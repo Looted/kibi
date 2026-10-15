@@ -326,6 +326,12 @@ function tokens(value: string): readonly string[] {
   );
 }
 
+/** The signal tokens intent ranking compares (stop words dropped, stemmed). */
+// implements REQ-kibi-contradiction-review-candidates
+export function intentTokens(value: string): readonly string[] {
+  return tokens(value);
+}
+
 // Clause boundaries an agent writes when it packs several questions into one
 // query: "user roles: how many can a user have, support role".
 const CLAUSE_SEPARATOR = /[;:,!?\n]+|\.(?=\s|$)|\s[-\u2013\u2014]\s/;

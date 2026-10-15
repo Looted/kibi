@@ -5,6 +5,7 @@ import {
   ALLOWED_GRANULARITY_REASONS_PROSE,
   type GranularSymbolCandidate,
   type SymbolKind,
+  coarseLinkBehavioralNames,
   getBehavioralSymbolNames,
   getNonBehavioralSymbolNames,
   inferSymbolRole,
@@ -37,19 +38,52 @@ function summarized(names: readonly string[]): string {
   return `${shown.join(", ")}${hidden > 0 ? `, and ${hidden} more` : ""}`;
 }
 
-// implements REQ-kibi-operation-interface-parity
-export async function validateSymbolGranularity(
+const STORED_LOCATION_FIELDS = [
+  "title",
+  "sourceFile",
+  "symbol_role",
+  "granularity_reason",
+] as const;
+
+// implements REQ-kibi-symbol-link-guidance
+/**
+ * The symbol a granularity check judges when an upsert updates a stored
+ * symbol: a payload that only adds links (title and relationships, no
+ * sourceFile) still links the stored symbol's file, so the fields the check
+ * reads fall back to the stored entity. Fields the payload sets win.
+ */
+function withStoredSymbolLocation(
   entity: Readonly<Record<string, unknown>>,
+  stored: Readonly<Record<string, unknown>> | null | undefined,
+): Readonly<Record<string, unknown>> {
+  if (entity.type !== "symbol" || stored === null || stored === undefined)
+    return entity;
+  const merged: Record<string, unknown> = { ...entity };
+  for (const field of STORED_LOCATION_FIELDS) {
+    if (merged[field] === undefined && stored[field] !== undefined)
+      merged[field] = stored[field];
+  }
+  return merged;
+}
+
+// implements REQ-kibi-operation-interface-parity, REQ-kibi-symbol-link-guidance
+export async function validateSymbolGranularity(
+  payload: Readonly<Record<string, unknown>>,
   relationships: readonly RelationshipInput[],
   context: OperationContext,
+  stored?: () => Promise<Readonly<Record<string, unknown>> | null | undefined>,
 ): Promise<void> {
-  if (entity.type !== "symbol") return;
+  if (payload.type !== "symbol") return;
   if (
     !relationships.some((relationship) =>
       isTraceabilityRelationshipType(relationship.type),
     )
   )
     return;
+  const entity =
+    stored === undefined
+      ? payload
+      : withStoredSymbolLocation(payload, await stored());
   if (isAllowedGranularityReason(entity.granularity_reason)) return;
   if (typeof entity.sourceFile !== "string" || typeof entity.title !== "string")
     return;
@@ -69,9 +103,14 @@ export async function validateSymbolGranularity(
   }
   const available = candidates(entity.sourceFile, content);
   const exact = available.find(({ name }) => name === entity.title);
-  if (exact && (exact.kind !== "variable" || entity.symbol_role === "config"))
-    return;
-  const behavioral = getBehavioralSymbolNames(available);
+  // A declaration named like the symbol is coarse only through its own
+  // behavioral members (a class and its public methods), the same test the
+  // staged gate and `kibi check` apply; any other title is judged against
+  // every behavioral declaration in the file.
+  const behavioral =
+    exact && (exact.kind !== "variable" || entity.symbol_role === "config")
+      ? coarseLinkBehavioralNames(entity.title, available)
+      : getBehavioralSymbolNames(available);
   if (behavioral.length === 0) return;
   const nonBehavioral = getNonBehavioralSymbolNames(available);
   const ignored =

@@ -121,6 +121,23 @@ function typeRestrictedFields(
   return types.length > 0 && fields.length > 0 ? { fields, types } : null;
 }
 
+// implements REQ-kibi-symbol-link-guidance
+/**
+ * The documented status vocabulary of each entity type (docs/entity-schema.md).
+ * The schema accepts the union of every type's statuses for older sources, so
+ * an invalid status names only the values that fit the entity being written.
+ */
+const STATUS_VALUES_BY_TYPE: ReadonlyMap<string, readonly string[]> = new Map([
+  ["req", ["open", "in_progress", "closed", "deprecated"]],
+  ["scenario", ["draft", "active", "deprecated"]],
+  ["test", ["passing", "failing", "skipped", "pending"]],
+  ["adr", ["proposed", "accepted", "deprecated", "superseded"]],
+  ["flag", ["active", "inactive", "deprecated"]],
+  ["event", ["active", "deprecated"]],
+  ["symbol", ["active", "deprecated", "removed"]],
+  ["fact", ["active", "deprecated"]],
+]);
+
 // implements REQ-upsert-unknown-field-guidance
 function formatEntityErrors(
   entity: Readonly<Record<string, unknown>>,
@@ -181,6 +198,12 @@ function formatEntityErrors(
       return `${path}: unknown property '${property}' (${error.message}).`;
     }
     if (error.keyword === "enum" && params.allowedValues) {
+      const typed =
+        path === "/status"
+          ? STATUS_VALUES_BY_TYPE.get(String(entity.type))
+          : undefined;
+      if (typed !== undefined)
+        return `${path}: ${error.message}. Allowed values for ${String(entity.type)} entities: ${typed.join(", ")}`;
       return `${path}: ${error.message}. Allowed values: ${params.allowedValues.map(String).join(", ")}`;
     }
     return `${path}: ${error.message}`;

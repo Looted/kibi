@@ -385,6 +385,41 @@ async function tryResetPrologProcess(prolog: PrologProcess): Promise<boolean> {
   }
 }
 
+/** What the store holds after a sync, by entity type, plus relationships. */
+// implements REQ-cli-sync-summary-kb-totals
+export type StoreTotals = Readonly<{
+  entities: Record<string, number>;
+  relationships: number;
+}>;
+
+/**
+ * Count what the store holds after this sync. Undefined when the store
+ * cannot be counted; the summary then shows only what was imported.
+ */
+// implements REQ-cli-sync-summary-kb-totals
+export async function queryStoreTotals(
+  prolog: Pick<PrologProcess, "query">,
+): Promise<StoreTotals | undefined> {
+  const result = await prolog
+    .query(
+      // kb_entity and kb_relationship need the type bound.
+      "findall(Type-Count, (member(Type, [req,scenario,test,adr,flag,event,symbol,fact]), aggregate_all(count, kb_entity(_, Type, _), Count), Count > 0), Counts), aggregate_all(count, (kibi_relationships:relationship_type(Rel), kb_relationship(Rel, _, _)), Relationships)",
+    )
+    .catch(() => undefined);
+  const counts = result?.success ? result.bindings?.Counts : undefined;
+  const relationships = result?.success
+    ? Number(result.bindings?.Relationships)
+    : Number.NaN;
+  if (typeof counts !== "string" || !Number.isInteger(relationships))
+    return undefined;
+  const entities: Record<string, number> = {};
+  for (const [, type, count] of counts.matchAll(/([a-z]+)-(\d+)/g)) {
+    if (type !== undefined && count !== undefined)
+      entities[type] = Number(count);
+  }
+  return { entities, relationships };
+}
+
 export async function persistEntities(
   // implements REQ-009
   prolog: PrologProcess,

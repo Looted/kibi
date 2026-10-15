@@ -258,7 +258,7 @@ describe("validateUpsertInput remaining branches", () => {
         },
         new Date(),
       ),
-    ).toThrow(/Allowed values:[\s\S]*open/);
+    ).toThrow(/Allowed values for req entities: open, in_progress, closed/);
 
     expect(() =>
       validateUpsertInput(
@@ -462,7 +462,7 @@ describe("validateAppendOnlyProofReceipts remaining branches", () => {
     );
   });
 
-  test("filters mixed receipt records and rejects removed history", async () => {
+  test("filters mixed receipt records and carries history an update omits", async () => {
     // implements REQ-011
     const previous = [
       null,
@@ -487,12 +487,16 @@ describe("validateAppendOnlyProofReceipts remaining branches", () => {
       contextFor("/tmp", async () => ({ success: true, bindings: {} })),
     );
 
-    await expect(
-      validateAppendOnlyProofReceipts(
+    expect(
+      await validateAppendOnlyProofReceipts(
         { id: "TEST-REMAIN", type: "test" },
         contextFor("/tmp", async () => ({ success: true, bindings: {} })),
       ),
-    ).rejects.toThrow(/append-only/);
+    ).toEqual({
+      proof_receipts: [
+        { version: "kibi.proof-receipt.v1", receipt_id: "PR-1" },
+      ],
+    });
   });
 });
 

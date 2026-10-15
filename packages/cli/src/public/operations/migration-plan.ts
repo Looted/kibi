@@ -344,6 +344,16 @@ export function digestMigrationPlan(plan: MigrationPlan): MigrationPlanDigest {
       });
     else group.count += 1;
   }
+  const automaticActions = plan.actions.filter(
+    (action) => action.safety === "automatic",
+  );
+  const blockedAutomatic = automaticActions.filter(
+    (action) => action.state === "blocked",
+  ).length;
+  const blockedNote =
+    blockedAutomatic === 0
+      ? ""
+      : ` ${blockedAutomatic === 1 ? "1 automatic action is" : `${blockedAutomatic} automatic actions are`} blocked: it waits for the actions in its dependsOn and needs no approval until a later plan shows it ready.`;
   return {
     version: MIGRATION_PLAN_DIGEST_VERSION,
     planHash: plan.planHash,
@@ -351,9 +361,7 @@ export function digestMigrationPlan(plan: MigrationPlan): MigrationPlanDigest {
     expected: plan.expected,
     scope: plan.scope,
     summary: plan.summary,
-    automaticActions: plan.actions.filter(
-      (action) => action.safety === "automatic",
-    ),
+    automaticActions,
     actionGroups: [...groups.values()].sort(
       (left, right) =>
         right.count - left.count ||
@@ -361,7 +369,7 @@ export function digestMigrationPlan(plan: MigrationPlan): MigrationPlanDigest {
         left.state.localeCompare(right.state),
     ),
     diagnostics: plan.diagnostics,
-    next: "This digest cannot be applied. Run kb_status, kb_check and kb_coverage (or kibi migrate) for the full plan and its action details.",
+    next: `This digest cannot be applied. Run kb_status, kb_check and kb_coverage (or kibi migrate) for the full plan and its action details.${blockedNote}`,
   };
 }
 

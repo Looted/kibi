@@ -216,3 +216,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dba0a21f84ae
+  - type: constrains
+    from: REQ-kb-upsert-ledger-contract-in-error
+    to: FACT-SUBJ-REQ-MCP-TOOL-UPSERT
+    created_at: 2026-10-14T17:11:15.780Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c290f832eb1
+  - type: requires_property
+    from: REQ-kb-upsert-ledger-contract-in-error
+    to: FACT-kb-upsert-ledger-contract-in-error
+    created_at: 2026-10-14T17:11:15.824Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41f7db628ddb
+  - type: specified_by
+    from: REQ-kb-upsert-ledger-contract-in-error
+    to: SCEN-kb-upsert-ledger-contract-in-error
+    created_at: 2026-10-14T17:11:15.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-380914b4dbd0
+  - type: verified_by
+    from: REQ-kb-upsert-ledger-contract-in-error
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-10-14T17:11:15.853Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93d831cda728

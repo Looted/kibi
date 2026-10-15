@@ -251,3 +251,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0ac58902a6bb
+  - type: implements
+    from: SYM-diagnostics-createKbMissingDiagnostic
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-10-14T21:22:30.481Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e79999a5e7bc
+  - type: covered_by
+    from: SYM-diagnostics-createKbMissingDiagnostic
+    to: TEST-branch-detached-head-read-only
+    created_at: 2026-10-14T21:22:30.516Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-211e61d7b040

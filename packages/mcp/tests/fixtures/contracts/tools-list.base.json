@@ -4904,7 +4904,7 @@
             "type": "boolean"
           },
           "includeImpactDiagnostics": {
-            "description": "When true, include changed-file impact diagnostics such as symbol_granularity_violation, symbol_semantic_review_needed and source_file_unowned in structured output.",
+            "description": "When true, include changed-file impact diagnostics such as symbol_granularity_violation, symbol_semantic_review_needed, source_file_unowned and requirement_statement_unverified (each current requirement the changed code implements, with its statement and firmness, since the check never compares code with a statement) in structured output.",
             "type": "boolean"
           },
           "includeWorkingTreeDiff": {
@@ -6561,7 +6561,7 @@
         "readOnlyHint": true,
         "title": "Compile Kibi change intent"
       },
-      "description": "Compile complete change intent into a deterministic, snapshot-bound read-only plan. Reuses intent-aware discovery and semantic modeling, accounts for every proposition, reports contradiction witnesses, proposes traceability links, and emits dependency-ordered kb_upsert-style steps only for resolved typed claims. No mutation side effects.",
+      "description": "Compile complete change intent into a deterministic, snapshot-bound read-only plan. Reuses intent-aware discovery and semantic modeling, accounts for every proposition, reports contradiction witnesses, proposes traceability links, and emits dependency-ordered kb_upsert-style steps only for resolved typed claims. contradictionAnalysis.outcome is no_conflict only when the check could decide: an unmodeled proposition or a related current requirement without logic leaves it unresolved with reasons and reviewCandidates to compare and judge through conflictReviews. No mutation side effects.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": {},
@@ -6573,6 +6573,38 @@
               "type": "string"
             },
             "maxItems": 64,
+            "type": "array"
+          },
+          "conflictReviews": {
+            "description": "Your verdict on each contradictionAnalysis.reviewCandidates entry of a previous compile: whether the intent contradicts that current requirement, which Kibi could not compare logically. A conflict verdict blocks the plan; a no_conflict verdict clears that candidate. A verdict may also name a current requirement discovery did not rank.",
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "note": {
+                  "maxLength": 2000,
+                  "type": "string"
+                },
+                "requirementId": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "verdict": {
+                  "anyOf": [
+                    {
+                      "const": "conflict",
+                      "type": "string"
+                    },
+                    {
+                      "const": "no_conflict",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "required": ["requirementId", "verdict"],
+              "type": "object"
+            },
+            "maxItems": 20,
             "type": "array"
           },
           "context": {

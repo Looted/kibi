@@ -275,6 +275,91 @@ describe("validateSymbolGranularity", () => {
     );
   });
 
+  test("rejects a class title whose public members are behavioral symbols", async () => {
+    const root = makeTempDir();
+    writeFileSync(
+      path.join(root, "canvas.ts"),
+      [
+        "export class CanvasService {",
+        "  draw() {}",
+        "  clear() {}",
+        "  private reset() {}",
+        "}",
+        "export class Empty {}",
+      ].join("\n"),
+    );
+    await expect(
+      validateSymbolGranularity(
+        {
+          type: "symbol",
+          id: "SYM-CANVAS",
+          title: "CanvasService",
+          sourceFile: "canvas.ts",
+        },
+        implementsRel,
+        context(root),
+      ),
+    ).rejects.toThrow(
+      "Symbol SYM-CANVAS links canvas.ts coarsely while granular symbols are available (behavioral only): CanvasService.clear, CanvasService.draw.",
+    );
+    await validateSymbolGranularity(
+      {
+        type: "symbol",
+        id: "SYM-EMPTY",
+        title: "Empty",
+        sourceFile: "canvas.ts",
+      },
+      implementsRel,
+      context(root),
+    );
+  });
+
+  test("judges a links-only update against the stored symbol", async () => {
+    const root = makeTempDir();
+    writeFileSync(
+      path.join(root, "canvas.ts"),
+      "export class CanvasService {\n  draw() {}\n}\n",
+    );
+    const linksOnly = {
+      type: "symbol",
+      id: "SYM-CANVAS",
+      title: "CanvasService",
+      status: "active",
+    };
+    // Without the stored symbol the payload names no file to judge.
+    await validateSymbolGranularity(linksOnly, implementsRel, context(root));
+    await expect(
+      validateSymbolGranularity(
+        linksOnly,
+        implementsRel,
+        context(root),
+        async () => ({ id: "SYM-CANVAS", sourceFile: "canvas.ts" }),
+      ),
+    ).rejects.toThrow(/links canvas\.ts coarsely/);
+    // A stored granularity_reason still applies to the update.
+    await validateSymbolGranularity(
+      linksOnly,
+      implementsRel,
+      context(root),
+      async () => ({
+        id: "SYM-CANVAS",
+        sourceFile: "canvas.ts",
+        granularity_reason: "module-level-behavior",
+      }),
+    );
+    // Fields the payload sets win over the stored ones.
+    await validateSymbolGranularity(
+      { ...linksOnly, title: "CanvasService.draw" },
+      implementsRel,
+      context(root),
+      async () => ({ id: "SYM-CANVAS", sourceFile: "canvas.ts" }),
+    );
+    // A payload with no traceability link never reads the stored symbol.
+    await validateSymbolGranularity(linksOnly, [], context(root), async () => {
+      throw new Error("stored symbol read");
+    });
+  });
+
   test("parses tsx, jsx, js, and extra TypeScript extensions and truncates long lists", async () => {
     const root = makeTempDir();
     const functions = Array.from(

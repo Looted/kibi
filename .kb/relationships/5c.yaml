@@ -384,3 +384,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f0c4ba4daf98
+  - type: implements
+    from: SYM-cli-requirement-statements-read-workspace-requirement
+    to: REQ-kb-check-unverified-requirement-statements
+    created_at: 2026-10-14T16:34:39.606Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ca6b89af9c7
+  - type: covered_by
+    from: SYM-cli-requirement-statements-read-workspace-requirement
+    to: TEST-search-answer-hygiene
+    created_at: 2026-10-14T16:34:39.631Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c7fd227cd6f

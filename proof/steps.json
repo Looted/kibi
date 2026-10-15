@@ -107,6 +107,13 @@
         "node",
         "scripts/run-proof-packed-e2e.mjs",
         "documentation/tests/e2e/packed/fresh-verification-receipts.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/operations/mutation.test.ts"
       ]
     ]
   },
@@ -157,6 +164,13 @@
         "node",
         "scripts/run-proof-packed-e2e.mjs",
         "documentation/tests/e2e/packed/proposition-complete-ingestion.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/operations/mutation.test.ts"
       ]
     ]
   },
@@ -2532,7 +2546,8 @@
         "./packages/cli/tests/consumer/check-evaluated.test.ts",
         "./packages/cli/tests/search-answer.test.ts",
         "./packages/cli/tests/intent-search.test.ts",
-        "./packages/cli/tests/traceability/unowned-files.test.ts"
+        "./packages/cli/tests/traceability/unowned-files.test.ts",
+        "./packages/cli/tests/traceability/requirement-statements.test.ts"
       ]
     ]
   },
@@ -2609,6 +2624,54 @@
         "--timeout",
         "600000",
         "./packages/cli/tests/commands/migrate-first-commit.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-legacy-kb-first-migrate",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/commands/migrate-entity-type.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-migrated-kb-type-backfill-sync-totals",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/commands/migrate-entity-type.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-contradiction-review-cli",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/contradiction-review.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-symbol-link-guidance",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/commands/symbol-link-guidance.test.ts"
       ]
     ]
   }

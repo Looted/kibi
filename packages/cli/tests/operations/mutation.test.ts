@@ -364,6 +364,36 @@ describe("shared mutation operation specs", () => {
     expect(save).not.toHaveBeenCalled();
   });
 
+  // implements REQ-kb-upsert-keeps-omitted-proof-receipts
+  test("validate-upsert keeps the stored receipt history when an update omits it", async () => {
+    const previousJson = JSON.stringify([proofReceipt]);
+    const { context, save } = createContext(() => ({
+      success: true,
+      bindings: {
+        Results: `[['TEST-RECEIPT',test,[proof_receipts=${JSON.stringify(previousJson)},verification_scope=end_to_end]]]`,
+      },
+    }));
+
+    const result = await validateUpsertSpec.execute(
+      {
+        type: "test",
+        id: "TEST-RECEIPT",
+        properties: { title: "Renamed test", status: "passing" },
+      },
+      context,
+    );
+
+    expect(result.structuredContent).toMatchObject({
+      valid: true,
+      normalizedPreview: {
+        title: "Renamed test",
+        verification_scope: "end_to_end",
+        proof_receipts: [proofReceipt],
+      },
+    });
+    expect(save).not.toHaveBeenCalled();
+  });
+
   test("validate-upsert returns a normalized preview without mutation", async () => {
     // Given: every read is empty and the rolled-back contradiction preview
     // passes (it is not a write; writeGoals below still forbids any commit).
@@ -454,6 +484,48 @@ describe("shared mutation operation specs", () => {
         expect.stringContaining("Proposition-complete ingestion failed"),
       ],
     });
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  // implements REQ-kb-upsert-ledger-contract-in-error
+  test("the omitted-ledger error carries the contract one resend needs", async () => {
+    const { context, save } = createContext((goal) =>
+      goal.startsWith("kb_preview_upsert_contradiction(")
+        ? { success: true, bindings: {} }
+        : { success: false, bindings: {} },
+    );
+    const properties = {
+      title: "OAuth support",
+      status: "open",
+      semantic_text:
+        "System must support OAuth2 authentication. Sessions must expire after 30 minutes.",
+    };
+    const first = await validateUpsertSpec.execute(
+      { type: "req", id: "REQ-LEDGER-RESEND", properties },
+      context,
+    );
+    const error = first.structuredContent?.errors.join(" ") ?? "";
+    expect(error).toContain("to merge into properties and resend");
+    const contract = JSON.parse(error.slice(error.indexOf("{"))) as Record<
+      string,
+      unknown
+    >;
+    expect(contract).toMatchObject({
+      semantic_inventory_version: "kibi.semantic-inventory.v1",
+      semantic_source_field: "semantic_text",
+    });
+    expect(contract.semantic_inventory).toHaveLength(2);
+
+    const second = await validateUpsertSpec.execute(
+      {
+        type: "req",
+        id: "REQ-LEDGER-RESEND",
+        properties: { ...properties, ...contract },
+      },
+      context,
+    );
+    expect(second.structuredContent?.errors ?? []).toEqual([]);
+    expect(second.structuredContent).toMatchObject({ valid: true });
     expect(save).not.toHaveBeenCalled();
   });
 

@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 220,
-  "proofProven": 220,
+  "currentRequirements": 228,
+  "proofProven": 228,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -1096,12 +1096,52 @@
       "gaps": [],
       "uncoveredSymbols": []
     },
+    "REQ-kb-check-unverified-requirement-statements": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kb-upsert-keeps-omitted-proof-receipts": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kb-upsert-ledger-contract-in-error": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
     "REQ-kibi-uncompiled-source-semantic-baseline": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-prolog-utf8-text": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-cli-migrate-entity-type-backfill": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-legacy-kb-first-step-migrate": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-cli-sync-summary-kb-totals": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-contradiction-review-candidates": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-symbol-link-guidance": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

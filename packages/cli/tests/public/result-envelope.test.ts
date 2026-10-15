@@ -30,6 +30,36 @@ describe("result envelope effect statuses", () => {
     ]);
   });
 
+  test("a dry run of an invalid upsert payload is an error that wrote nothing", () => {
+    const envelope = toKibiResult(
+      { name: "kb_upsert", effects: ["kb-write", "workspace-write"] as const },
+      {
+        valid: false,
+        errors: ["Entity validation failed: /status: bad"],
+        dryRun: true,
+        skippedEffects: ["kb-write", "workspace-write"],
+      },
+    );
+
+    expect(envelope.status).toBe("error");
+    expect(envelope.error).toEqual({
+      code: "UPSERT_DRY_RUN_INVALID",
+      message:
+        "Dry run: kb_upsert would refuse this payload; nothing was written. Entity validation failed: /status: bad",
+      retryable: false,
+    });
+    expect(envelope.effects).toEqual([
+      { kind: "kb-write", status: "not_applicable" },
+      { kind: "workspace-write", status: "not_applicable" },
+    ]);
+
+    const valid = toKibiResult(
+      { name: "kb_upsert", effects: ["kb-write", "workspace-write"] as const },
+      { valid: true, errors: [], dryRun: true },
+    );
+    expect(valid.status).toBe("success");
+  });
+
   test("an error result never reports a declared effect as completed", () => {
     const envelope = toKibiResult(mutationSpec, null, {
       status: "error",

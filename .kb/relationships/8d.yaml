@@ -608,3 +608,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2981d42d5072
+  - type: verified_by
+    from: SCEN-cli-migrate-entity-type-backfill
+    to: TEST-cli-legacy-kb-first-migrate
+    created_at: 2026-10-14T21:06:44.383Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8a2955cfdc6
+  - type: verified_by
+    from: SCEN-cli-migrate-entity-type-backfill
+    to: TEST-cli-migrated-kb-type-backfill-sync-totals
+    created_at: 2026-10-14T21:06:44.453Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-892db683d256
+  - type: assumes
+    from: SCEN-cli-migrate-entity-type-backfill
+    to: FACT-cli-migrate-entity-type-backfill-adds-type
+    created_at: 2026-10-14T21:06:44.524Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b25e7876aff
+  - type: assumes
+    from: SCEN-cli-migrate-entity-type-backfill
+    to: FACT-cli-migrate-entity-type-backfill-keeps-other-lines
+    created_at: 2026-10-14T21:06:44.575Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e59d110ff6ef

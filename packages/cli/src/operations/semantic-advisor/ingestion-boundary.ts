@@ -252,6 +252,43 @@ export function validateSemanticInventoryBoundary(
   return { applicable, errors, sourceHash };
 }
 
+/**
+ * The inventory contract the advisor derives for this payload's prose, as
+ * the properties to resend: the version, source field and hash, one ledger
+ * entry per proposition and the assertive claim keys. An entry keeps the
+ * status the payload already gave the same claim key; otherwise it carries
+ * the advisor's status (an ambiguity or ontology gap stays explicit).
+ */
+// implements REQ-kb-upsert-ledger-contract-in-error
+export function semanticInventoryContract(
+  payload: Payload,
+  receipt: SemanticAdvisorReceipt,
+): Record<string, unknown> {
+  const semanticSource = semanticSourceOf(payload);
+  const sent = new Map(
+    inventoryOf(payload).map((entry) => [
+      stringValue(entry.claim_key),
+      stringValue(entry.status),
+    ]),
+  );
+  return {
+    semantic_inventory_version: SEMANTIC_INVENTORY_VERSION,
+    semantic_source_field: semanticSource.field,
+    semantic_source_hash: semanticSourceHash(semanticSource.text),
+    semantic_inventory: receipt.propositions.map((proposition) => ({
+      claim_key: proposition.claim_key,
+      claim_text: proposition.claim_text,
+      role: proposition.role,
+      status: sent.get(proposition.claim_key) || proposition.status,
+      span: { start: proposition.span.start, end: proposition.span.end },
+    })),
+    logic_claims: receipt.propositions
+      .filter(propositionIsAssertive)
+      .map(({ claim_key }) => claim_key),
+  };
+}
+
+// implements REQ-kibi-proposition-complete-ingestion, REQ-kb-upsert-ledger-contract-in-error
 export function assertSemanticInventoryBoundary(
   payload: Payload,
   relationships: readonly SemanticRelationship[],
@@ -264,7 +301,7 @@ export function assertSemanticInventoryBoundary(
   );
   if (result.errors.length > 0) {
     throw new Error(
-      `Proposition-complete ingestion failed: ${result.errors.join("; ")}. Run kb_model mode analyze (CLI: semantic-advisor) with the complete prose and preserve its inventory contract before retrying.`,
+      `Proposition-complete ingestion failed: ${result.errors.join("; ")}. The contract kb_model mode analyze returns for this prose, to merge into properties and resend (a claim marked modeled needs one requires_property, requires_predicate or requires_rule link to a fact with its claim_key; otherwise keep the advisor's status): ${JSON.stringify(semanticInventoryContract(payload, receipt))}`,
     );
   }
 }
@@ -298,13 +335,17 @@ function plannedClaimKey(planned: Readonly<Record<string, unknown>>): string {
   return planned.type === "fact" ? stringValue(planned.claim_key) : "";
 }
 
+function missingGroundingFactError(target: string): string {
+  return `Proposition-complete ingestion failed: logical grounding target '${target}' does not exist yet. Write the fact first: the kb_compile_intent plan has an earlier fact step for '${target}' that carries its claim_key; run that step before this one, or apply the whole plan with kb_apply_plan.`;
+}
+
 function groundingClaimKeyError(
   modeledClaimKeys: readonly string[],
   grounded: readonly (readonly [target: string, claimKey: string])[],
 ): string | null {
   const missing = grounded.find(([, claimKey]) => !claimKey);
   if (missing)
-    return `Proposition-complete ingestion failed: logical grounding target '${missing[0]}' must declare a claim_key.`;
+    return `Proposition-complete ingestion failed: logical grounding target '${missing[0]}' must declare a claim_key: it is a fact without the claim_key of the claim it grounds. Set the claim_key the kb_compile_intent plan's fact step gives it.`;
   const groundedClaimKeys = grounded.map(([, claimKey]) => claimKey);
   const duplicate = groundedClaimKeys.find(
     (claimKey, index) => groundedClaimKeys.indexOf(claimKey) !== index,
@@ -398,6 +439,15 @@ export async function assertLogicalGroundingClaimKeys(
       claimKey = result.success
         ? stringValue(result.bindings.ClaimKey).replace(/^['"]|['"]$/g, "")
         : "";
+      // implements REQ-kibi-symbol-link-guidance
+      // A target that is not stored yet is a skipped plan step, not a fact
+      // missing its key: say which step to run first.
+      if (
+        !claimKey &&
+        !(await prolog.query(`once(kb_entity('${escapeAtom(target)}', _, _))`))
+          .success
+      )
+        throw new Error(missingGroundingFactError(target));
     }
     grounded.push([target, claimKey]);
     // The first target without a claim_key is reported; later reads are moot.

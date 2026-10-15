@@ -265,3 +265,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7461ff3afa0e
+  - type: implements
+    from: SYM-cli-requirement-statements-workspace-file-changed
+    to: REQ-kb-check-unverified-requirement-statements
+    created_at: 2026-10-14T16:34:34.239Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f8a60564e464
+  - type: covered_by
+    from: SYM-cli-requirement-statements-workspace-file-changed
+    to: TEST-search-answer-hygiene
+    created_at: 2026-10-14T16:34:34.259Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6494a110805b

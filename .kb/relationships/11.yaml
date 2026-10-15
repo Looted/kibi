@@ -391,3 +391,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6fd590ec22c5
+  - type: implements
+    from: SYM-upsert-validate-upsert-for-commit
+    to: REQ-kibi-symbol-link-guidance
+    created_at: 2026-10-15T16:01:00.385Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3cbfb87a83b2
+  - type: covered_by
+    from: SYM-upsert-validate-upsert-for-commit
+    to: TEST-cli-symbol-link-guidance
+    created_at: 2026-10-15T16:01:00.414Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c1d8724864b

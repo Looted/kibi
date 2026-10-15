@@ -216,3 +216,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-77a4c829592a
+  - type: implements
+    from: SYM-assert-logical-grounding-claim-keys
+    to: REQ-kibi-symbol-link-guidance
+    created_at: 2026-10-15T16:01:09.014Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff024d823117
+  - type: covered_by
+    from: SYM-assert-logical-grounding-claim-keys
+    to: TEST-cli-symbol-link-guidance
+    created_at: 2026-10-15T16:01:09.040Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-824e5362db9a
+  - type: executable_for
+    from: SYM-test-kibi-contradiction-review-cli
+    to: TEST-kibi-contradiction-review-cli
+    created_at: 2026-10-15T16:05:30.869Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89087494604f
+  - type: implements
+    from: SYM-bootstrap-conflict-review-signals
+    to: REQ-kibi-contradiction-review-candidates
+    created_at: 2026-10-15T16:12:50.498Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01681c914046
+  - type: covered_by
+    from: SYM-bootstrap-conflict-review-signals
+    to: TEST-kibi-contradiction-review-cli
+    created_at: 2026-10-15T16:12:50.533Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0fbd6c5a933e

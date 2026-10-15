@@ -166,6 +166,9 @@ function extraFailedEffects(
   });
 }
 
+/** The envelope error code of a kb_upsert dry run on an invalid payload. */
+export const UPSERT_DRY_RUN_INVALID = "UPSERT_DRY_RUN_INVALID" as const;
+
 export function resultVersion(spec: {
   readonly name: OperationName | string;
   readonly resultVersion?: string;
@@ -207,15 +210,26 @@ export function toKibiResult<T>(
   const migrationRefused =
     row?.version === "kibi.migration-apply-result.v1" &&
     row.outcome === "refused";
+  // implements REQ-kibi-symbol-link-guidance
+  // A kb_upsert dry run that finds the payload invalid reports what the
+  // write would do: refuse it. Its data still carries the errors.
+  const dryRunInvalid = row?.dryRun === true && row.valid === false;
   let status = options.status;
   if (!status) {
     status = "success";
     if (row?.status === "committed_with_repairs")
       status = "committed_with_repairs";
-    if (row?.status === "rejected" || migrationRefused) status = "error";
+    if (row?.status === "rejected" || migrationRefused || dryRunInvalid)
+      status = "error";
   }
-  const terminalError =
-    row?.status === "rejected"
+  const terminalError = dryRunInvalid
+    ? {
+        code: UPSERT_DRY_RUN_INVALID,
+        message:
+          `Dry run: kb_upsert would refuse this payload; nothing was written. ${Array.isArray(row.errors) ? row.errors.map(String).join("; ") : ""}`.trim(),
+        retryable: false,
+      }
+    : row?.status === "rejected"
       ? {
           code: "BOOTSTRAP_PLAN_REJECTED",
           message:
@@ -233,7 +247,7 @@ export function toKibiResult<T>(
   const resultError = options.error ?? terminalError;
   const outcome = effectOutcome(
     status,
-    migrationRefused && options.attempted === undefined
+    (migrationRefused || dryRunInvalid) && options.attempted === undefined
       ? { ...options, attempted: false }
       : options,
   );

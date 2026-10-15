@@ -220,3 +220,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ba9e2b6cd154
+  - type: implements
+    from: SYM-migration-entity-type-backfill-code
+    to: REQ-cli-migrate-entity-type-backfill
+    created_at: 2026-10-14T21:20:52.060Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7cb69e83ce12
+  - type: covered_by
+    from: SYM-migration-entity-type-backfill-code
+    to: TEST-cli-migrated-kb-type-backfill-sync-totals
+    created_at: 2026-10-14T21:20:52.085Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2033ce01c4d0

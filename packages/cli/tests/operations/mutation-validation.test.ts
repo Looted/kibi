@@ -144,3 +144,25 @@ describe("proof exemption validation", () => {
     expect(validated.entity.proof_exempt).toBeUndefined();
   });
 });
+
+describe("status vocabulary errors", () => {
+  test("an invalid status lists only the values of the entity's type", () => {
+    let message = "";
+    try {
+      validateUpsertInput(
+        {
+          type: "test",
+          id: "TEST-STATUS",
+          properties: { title: "status", status: "unknown" },
+        },
+        new Date("2026-08-24T00:00:00.000Z"),
+      );
+    } catch (error) {
+      message = (error as Error).message;
+    }
+    expect(message).toContain(
+      "/status: must be equal to one of the allowed values. Allowed values for test entities: passing, failing, skipped, pending",
+    );
+    expect(message).not.toContain("accepted");
+  });
+});

@@ -77,7 +77,9 @@ export function firmEditConfirmation(
       : "";
   const noun =
     requirements.length === 1 ? "a firm requirement" : "firm requirements";
-  return `Kibi: this edit changes ${where}, which implements ${noun} recorded in the knowledge base: ${shown.join("; ")}${more}. Allow it if the change keeps ${requirements.length === 1 ? "that requirement" : "them"}, or if you mean to change ${requirements.length === 1 ? "the requirement" : "them"} too.`;
+  // A title that ends in a full stop would read "preference.. Allow".
+  const named = `${shown.join("; ")}${more}`.replace(/\.+$/, "");
+  return `Kibi: this edit changes ${where}, which implements ${noun} recorded in the knowledge base: ${named}. Allow it if the change keeps ${requirements.length === 1 ? "that requirement" : "them"}, or if you mean to change ${requirements.length === 1 ? "the requirement" : "them"} too.`;
 }
 
 // implements REQ-claude-firm-edit-confirmation

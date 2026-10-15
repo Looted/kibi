@@ -212,12 +212,27 @@ function restoreRelationshipShard(
   restoreFileTimes(shardPath, beforeTimes);
 }
 
+/** Test fields the stored receipts were recorded against. */
+const RECEIPT_BOUND_FIELDS = [
+  "verification_scope",
+  "verification_perspective",
+] as const;
+
+/**
+ * Check a test write against the stored proof receipt history, which is
+ * append-only. An update that omits `proof_receipts` keeps the stored history
+ * (an update keeps every property it leaves out): the stored receipts are
+ * returned for the write to carry, with the verification scope and
+ * perspective they were recorded against. Undefined when there is nothing to
+ * carry.
+ */
+// implements REQ-kb-upsert-keeps-omitted-proof-receipts
 export async function validateAppendOnlyProofReceipts(
   entity: Readonly<Record<string, unknown>>,
   context: OperationContext,
   staged?: StagedUpsertState,
-): Promise<void> {
-  if (entity.type !== "test") return;
+): Promise<Readonly<Record<string, unknown>> | undefined> {
+  if (entity.type !== "test") return undefined;
   // An earlier plan step that writes the same test is the history this
   // write must extend.
   const planned = staged?.entities.get(String(entity.id));
@@ -231,12 +246,26 @@ export async function validateAppendOnlyProofReceipts(
           type: "test",
         });
   const previous = receiptRecords(existing[0]?.proof_receipts);
-  if (!previous || previous.length === 0) return;
+  if (!previous || previous.length === 0) return undefined;
+  if (entity.proof_receipts === undefined) {
+    // The receipts bind the test's verification scope, so it travels too.
+    const stored = existing[0] as Readonly<Record<string, unknown>>;
+    return {
+      proof_receipts: previous,
+      ...Object.fromEntries(
+        RECEIPT_BOUND_FIELDS.filter(
+          (field) =>
+            entity[field] === undefined && stored?.[field] !== undefined,
+        ).map((field) => [field, stored[field]]),
+      ),
+    };
+  }
   const next = receiptRecords(entity.proof_receipts);
   const errors = appendOnlyProofReceiptHistoryErrors(previous, next);
   if (errors.length > 0) {
     throw new Error(`Entity validation failed: ${errors.join("; ")}`);
   }
+  return undefined;
 }
 
 export async function effectiveRelationships(
@@ -386,8 +415,8 @@ export async function validateUpsertForCommit(
   // The payload must be valid on its own before the store is read.
   const checked = validateUpsertInput(payload, context.clock());
   validateRelationshipSources(payload.id, checked.relationships);
-  // Symbol granularity reads only the payload and its source file, and stored
-  // state never changes a symbol payload, so it runs before the store is read.
+  // Symbol granularity of a payload that names its source file reads only the
+  // payload and that file, so it runs before the store is read.
   await validateSymbolGranularity(
     checked.entity,
     checked.relationships,
@@ -407,13 +436,24 @@ export async function validateUpsertForCommit(
       : await readUncompiledAuthoredSource(context, payload);
   if (uncompiledSource !== null)
     lookup = authoredEntityLookup(uncompiledSource);
-  const input = await withStoredRequirementSemantics(
+  // implements REQ-kibi-symbol-link-guidance
+  // An update that only adds links keeps the stored sourceFile: judge the
+  // symbol as it will be stored, so a coarse link is refused here rather
+  // than later by the staged gate.
+  if (checked.entity.sourceFile === undefined)
+    await validateSymbolGranularity(
+      checked.entity,
+      checked.relationships,
+      context,
+      async () => staged?.entities.get(payload.id) ?? (await lookup.entity()),
+    );
+  let input = await withStoredRequirementSemantics(
     payload,
     prolog,
     staged,
     lookup,
   );
-  const validated =
+  let validated =
     input === payload ? checked : validateUpsertInput(input, context.clock());
   if (uncompiledSource !== null)
     lookup = {
@@ -425,7 +465,18 @@ export async function validateUpsertForCommit(
       ),
     };
   if (options.allowReceiptsPrune !== true) {
-    await validateAppendOnlyProofReceipts(validated.entity, context, staged);
+    const kept = await validateAppendOnlyProofReceipts(
+      validated.entity,
+      context,
+      staged,
+    );
+    if (kept !== undefined) {
+      input = {
+        ...input,
+        properties: { ...input.properties, ...kept },
+      };
+      validated = validateUpsertInput(input, context.clock());
+    }
   }
   const relationships = await effectiveRelationships(
     input,

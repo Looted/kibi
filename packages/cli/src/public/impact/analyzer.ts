@@ -20,6 +20,11 @@ import {
   createImpactManifestLookup,
   readImpactManifestResults,
 } from "./manifest.js";
+import {
+  createRequirementStatementDiagnostics,
+  readWorkspaceRequirement,
+  workspaceFileChanged,
+} from "./requirement-statements.js";
 import { normalizeSourceFile } from "./source-changes.js";
 import { collectSourceChanges, uniqueSorted } from "./source-changes.js";
 import {
@@ -33,6 +38,14 @@ import type {
   ChangedFileImpactResult,
 } from "./types.js";
 import { createUnownedFileDiagnostics } from "./unowned-files.js";
+
+/** The workspace-relative document a requirement was read from. */
+function requirementSourcePath(requirement: { id: string; source: string }) {
+  const source = requirement.source;
+  return source && !source.includes("://")
+    ? source.replace(/^\.\//, "")
+    : `.kb/requirements/${requirement.id}.md`;
+}
 
 export async function analyzeChangedFileImpact(
   options: ChangedFileImpactOptions,
@@ -88,12 +101,15 @@ export async function analyzeChangedFileImpact(
           .map((file) => file.path)
       : sourceChanges.map((change) => change.file),
   );
-  const manifestResults = snapshot
+  const snapshotKnowledge = snapshot
     ? readSnapshotKnowledge(
         snapshot.readGit,
         snapshot.headTree,
         snapshot.readBlobs,
-      ).filter((result) => result.entity.type === "symbol")
+      )
+    : undefined;
+  const manifestResults = snapshotKnowledge
+    ? snapshotKnowledge.filter((result) => result.entity.type === "symbol")
     : readImpactManifestResults(workspaceRoot);
   const manifestLookup = createImpactManifestLookup(manifestResults);
   const symbolsByFile = new Map<string, ExtractedSymbol[]>();
@@ -160,6 +176,26 @@ export async function analyzeChangedFileImpact(
             workspaceRoot,
             requestedFiles: [...filter],
             linkedSourceFiles,
+          }),
+          // What the changed code is meant to do, quoted, before the
+          // structural findings: "no violations" never compared it.
+          ...createRequirementStatementDiagnostics({
+            workspaceRoot,
+            symbolsByFile,
+            readRequirement: (id) =>
+              snapshotKnowledge
+                ? snapshotKnowledge.find((result) => result.entity.id === id)
+                    ?.entity
+                : readWorkspaceRequirement(workspaceRoot, id),
+            requirementChanged: (requirement) =>
+              snapshot
+                ? snapshot.inventory.some(
+                    (file) => file.path === requirementSourcePath(requirement),
+                  )
+                : workspaceFileChanged(
+                    workspaceRoot,
+                    requirementSourcePath(requirement),
+                  ),
           }),
           ...createSymbolGranularityDiagnostics({
             manifestResults: activeManifestResults,

@@ -272,3 +272,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ff9c8940e22d
+  - type: implements
+    from: SYM-diagnostics-DiagnosticCategory
+    to: REQ-cli-sync-summary-kb-totals
+    created_at: 2026-10-14T21:22:10.813Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5261d53ee8f
+  - type: covered_by
+    from: SYM-diagnostics-DiagnosticCategory
+    to: TEST-cli-migrated-kb-type-backfill-sync-totals
+    created_at: 2026-10-14T21:22:10.860Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5453dd49ab60
+  - type: implements
+    from: SYM-discovery-execute-status
+    to: REQ-legacy-kb-first-step-migrate
+    created_at: 2026-10-14T21:23:51.919Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5996ce78730
+  - type: covered_by
+    from: SYM-discovery-execute-status
+    to: TEST-cli-legacy-kb-first-migrate
+    created_at: 2026-10-14T21:23:51.943Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc57dd907d93

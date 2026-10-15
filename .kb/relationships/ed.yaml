@@ -377,3 +377,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-89be3d34d382
+  - type: implements
+    from: SYM-canonical-LEGACY_KB_MIGRATION_COMMAND
+    to: REQ-legacy-kb-first-step-migrate
+    created_at: 2026-10-14T21:21:38.707Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e592f1ccd1c9
+  - type: covered_by
+    from: SYM-canonical-LEGACY_KB_MIGRATION_COMMAND
+    to: TEST-cli-legacy-kb-first-migrate
+    created_at: 2026-10-14T21:21:38.738Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-734e0088c1ee

@@ -391,3 +391,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e87152833bfb
+  - type: implements
+    from: SYM-migration-entity-type-backfill-target
+    to: REQ-cli-migrate-entity-type-backfill
+    created_at: 2026-10-14T21:21:01.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4dd28afd3113
+  - type: covered_by
+    from: SYM-migration-entity-type-backfill-target
+    to: TEST-cli-legacy-kb-first-migrate
+    created_at: 2026-10-14T21:21:01.546Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-121a45b19438
+  - type: covered_by
+    from: SYM-migration-entity-type-backfill-target
+    to: TEST-cli-migrated-kb-type-backfill-sync-totals
+    created_at: 2026-10-14T21:21:01.574Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e86a1d09cad

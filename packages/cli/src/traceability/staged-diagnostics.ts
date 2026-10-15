@@ -22,6 +22,7 @@ export type KibiImpactDiagnosticId =
   | "symbol_granularity_violation"
   | "symbol_semantic_review_needed"
   | "source_file_unowned"
+  | "requirement_statement_unverified"
   | "multi_requirement_symbol_review"
   | "duplicate_symbol_coordinate_review"
   | "component_mixed_purpose_review"

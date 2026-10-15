@@ -237,3 +237,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8101ca0a3f48
+  - type: implements
+    from: SYM-diagnostics-formatSyncSummary
+    to: REQ-cli-sync-summary-kb-totals
+    created_at: 2026-10-14T21:21:51.652Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f979351b069
+  - type: covered_by
+    from: SYM-diagnostics-formatSyncSummary
+    to: TEST-cli-migrated-kb-type-backfill-sync-totals
+    created_at: 2026-10-14T21:21:51.682Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b08029f6e769
