@@ -1393,7 +1393,8 @@ function firmEditConfirmation(where, requirements) {
   const shown = requirements.slice(0, 2).map((summary) => summary.title ? `${summary.id}: ${summary.title}` : summary.id);
   const more = requirements.length > shown.length ? ` (+${requirements.length - shown.length} more)` : "";
   const noun = requirements.length === 1 ? "a firm requirement" : "firm requirements";
-  return `Kibi: this edit changes ${where}, which implements ${noun} recorded in the knowledge base: ${shown.join("; ")}${more}. Allow it if the change keeps ${requirements.length === 1 ? "that requirement" : "them"}, or if you mean to change ${requirements.length === 1 ? "the requirement" : "them"} too.`;
+  const named = `${shown.join("; ")}${more}`.replace(/\.+$/, "");
+  return `Kibi: this edit changes ${where}, which implements ${noun} recorded in the knowledge base: ${named}. Allow it if the change keeps ${requirements.length === 1 ? "that requirement" : "them"}, or if you mean to change ${requirements.length === 1 ? "the requirement" : "them"} too.`;
 }
 function firmEditContext(ids) {
   const named = ids.slice(0, 2).join(", ");

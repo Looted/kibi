@@ -2396,7 +2396,7 @@ describe("apply plan source recovery and migration", () => {
       );
       const remaining = buildMigrationPlan({
         actions: [
-          automaticAction({ id: "mig-remain" }),
+          automaticAction({ id: "mig-remain", state: "blocked" }),
           ...["REQ-a", "REQ-b", "REQ-c"].map((id) =>
             automaticAction({
               id: `mig-review-${id}`,
@@ -2490,6 +2490,10 @@ describe("apply plan source recovery and migration", () => {
           (action) => action.id,
         ),
       ).toEqual(["mig-remain"]);
+      // A blocked automatic action is not something to approve now.
+      expect(digest.next).toContain(
+        "1 automatic action is blocked: it waits for the actions in its dependsOn",
+      );
       expect(digest).not.toHaveProperty("actions");
       expect(JSON.stringify(digest)).not.toContain("x".repeat(2_000));
       expect(
