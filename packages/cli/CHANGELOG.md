@@ -1,5 +1,44 @@
 # kibi-cli
 
+## 2.27.0
+
+### Minor Changes
+
+- 410614e: `kb_check` no longer reports a bare "No violations found" after a change to code that implements requirements. Its rules compare links, coverage and facts, never code with a requirement's prose, so a change that contradicts a requirement used to pass with "0 violations", and agents read that as permission to keep it.
+
+  An impact-enabled `kb_check` (with `sourceFiles`, `includeWorkingTreeDiff` or `staged`) now emits `requirement_statement_unverified` (warning, not blocking) for each current requirement a changed behavioral symbol implements: it names the changed symbols and quotes the requirement's statement with its firmness, and suggests asking the person before keeping a change that contradicts it. The text summary then opens with "No structural violations found" and those requirement ids. A requirement whose own document changed in the same change is left to the firmness and supersede checks; closed, superseded and deprecated requirements are skipped.
+
+- 5552b1f: `kb_compile_intent` no longer reports "no conflict" for intent it could not check. Prolog compares only requirements that have a logical model, so a claim the advisor left as an ontology gap, or one next to a current requirement that exists only as prose, used to come back as `no_conflict` even when discovery had just returned a requirement saying the opposite. The plan now says the check is unresolved, names the related requirements the agent must compare, and blocks when the agent reports a conflict. Bootstrap plans name the same requirements for review before approval.
+  - `contradictionAnalysis` gains `reasons` (`unmodeled_target` with the claim keys, `unmodeled_related` with the requirement ids, `analysis_unavailable`), `reviewCandidates` (up to five related current requirements with discovery score at least 0.1: id, title, the sentence sharing the most terms with the intent, statement, score, `modeled`, `review`) and `nextAction`. Any reason makes `outcome` `unresolved`.
+  - New `kb_compile_intent` input `conflictReviews: [{requirementId, verdict: "conflict" | "no_conflict", note?}]`. A `conflict` verdict makes the outcome `conflict` and the plan `blocked`; `no_conflict` clears that candidate. A verdict on a current requirement discovery did not rank is honored; one that names no current requirement is ignored with a diagnostic.
+  - Pending reviews do not change the plan status: a plan whose propositions are modeled stays `ready` with `Contradiction check incomplete: …` in its diagnostics and becomes `no_conflict` once every candidate is reviewed. An unmodeled target keeps the plan `needs_resolution` as before, and its outcome stays `unresolved` after review.
+  - `kb_plan_bootstrap` adds `review_against:<id>` evidence and a `conflict-review:` diagnostic for each planned intent claim that has prose-only current requirements on the same topic.
+  - `kibi-usage` 2.20.0 and `kibi-bootstrap` 3.15.0 tell the agent to compare and report instead of reading `unresolved` as consistent.
+
+- 733b5b7: `kb_upsert` now refuses a coarse symbol link when it is written instead of leaving it for the pre-commit hook. A payload that only adds `implements` or `covered_by` to a stored symbol is judged against the stored `sourceFile` and `granularity_reason`, and a class-level symbol whose public methods are behavioral symbols is refused with those methods as candidates, as `kibi check` (`symbol-granularity`) and the staged hook already did. `symbol-coverage` on a symbol that already has `covered_by` now names the missing link: which test does not verify which implemented requirement, and the `verified_by(SCEN-…, TEST-…)` or `verified_by(REQ-…, TEST-…)` that connects them, instead of asking for `covered_by` again.
+
+  Migration: a `kb_upsert` with `dryRun: true` on an invalid payload now returns an error envelope (`status: "error"`, MCP `isError: true`, CLI exit code 1) with code `UPSERT_DRY_RUN_INVALID`; `data.valid: false` and `data.errors` are unchanged. Callers that read `status` to decide whether a dry run passed now see the failure; callers that read `data.valid` need no change. Links-only upserts that relied on the gap to attach a class-level symbol are now refused: move the links to the method symbol or set an allowed `granularity_reason`.
+
+  An invalid `status` lists only the values of the entity's type. A requirement whose grounding fact does not exist yet is told to write the fact from the `kb_compile_intent` plan's earlier step first, instead of being told the fact lacks a `claim_key`.
+
+### Patch Changes
+
+- 61c610a: Three fixes for teams moving a legacy knowledge base onto the current Kibi. The first `kb_upsert` after `kibi migrate` no longer adds an unrelated `type:` line to the file it edits: migrate now writes that line itself, so it lands in the migration commit. On a legacy KB, `kb_status` now names `kibi migrate --yes` as the first step, as `kibi doctor` already did, instead of `kibi init`. And the `kibi sync` summary now shows what the KB holds, not only what the sync recompiled.
+  - `kibi migrate --yes` adds the folder-implied `type` (for example `type: req` under `.kb/requirements/`) as the last front matter key of every authored entity file without one, at any schema version, and changes no other line. A KB that was already migrated without it gets the same edit from the next `kibi migrate`, planned as the automatic `entity-type-backfill` action. A status-only `kb_upsert` after the migration then changes only the `status` line.
+  - With a legacy `.kb/config.json` and no `.kb/manifest.json`, bootstrap activation reports `root_partial` with the reason `kibi doctor` gives, and `kb_status.bootstrap.nextAction` is `{operation: "kibi migrate --yes", required: true}`.
+  - The `kibi sync` summary opens with `KB Totals` by type and the KB relationship count, counted from the store after the sync, followed by `Imported This Sync (changed sources only)`. When the store cannot be counted, the summary falls back to the previous `Entity Counts` block.
+
+- f4c5822: After a migration, the `kb_apply_plan` digest of the remaining plan now says when an automatic action in it is blocked: it waits for the actions in its `dependsOn` and needs no approval until a later plan shows it ready. Before, a blocked automatic action looked like something left to approve. The Claude hook's firm-edit question no longer prints a double full stop after a requirement title that ends in one.
+
+  The digest's `next` text appends a count of blocked automatic actions when there are any. `firmEditConfirmation` in `kibi-agent-core/decision-guard` trims a trailing full stop from the named requirements before closing the sentence.
+
+- 425df3d: Two `kb_upsert` refusals that cost agents extra round trips are gone. Updating a test that already carries proof receipts no longer fails with "proof_receipts are append-only" when the update simply leaves the receipts out; the stored history is kept. A requirement upsert that lacks its semantic inventory now gets the ready contract in the error, so one resend succeeds without a separate `kb_model` call.
+  - `validateAppendOnlyProofReceipts` returns the stored `proof_receipts` (and the receipt-bound `verification_scope` and `verification_perspective` the payload omits) when an update has no `proof_receipts`; the upsert validates and writes with that history. Sending a changed or shortened history is still refused.
+  - The `Proposition-complete ingestion failed` error now ends with the JSON contract `kb_model` mode `analyze` returns for the prose (`semantic_inventory_version`, `semantic_source_field`, `semantic_source_hash`, `semantic_inventory`, `logic_claims`), keeping statuses the payload already set for the same `claim_key`.
+
+- Updated dependencies [733b5b7]
+  - kibi-core@0.22.3
+
 ## 2.26.3
 
 ### Patch Changes
