@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 222,
-  "proofProven": 222,
+  "currentRequirements": 223,
+  "proofProven": 223,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -1112,6 +1112,11 @@
       "uncoveredSymbols": []
     },
     "REQ-kibi-uncompiled-source-semantic-baseline": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-prolog-utf8-text": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

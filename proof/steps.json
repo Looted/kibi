@@ -1675,6 +1675,7 @@
         "./packages/cli/tests/prolog/swipl-resolver.test.ts",
         "./packages/cli/tests/prolog/swipl-package.test.ts",
         "./packages/cli/tests/prolog/swipl-launch-env.test.ts",
+        "./packages/cli/tests/prolog/utf8-transport.test.ts",
         "./scripts/tests/swipl-packages.test.ts"
       ]
     ]
