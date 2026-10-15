@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: Kibi Usage
   id: kibi-usage
-  version: 2.19.0
+  version: 2.20.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -412,6 +412,16 @@ decision has a reference; never cite words nobody said.
 Conditional clauses ("only when", "only if", "must not ... unless") compile
 into typed `forbid` rules linked by `requires_rule`, not property facts; one
 `kb_model` or `kb_compile_intent` cannot translate stays an `ontology_gap`.
+
+`kb_compile_intent` reports `contradictionAnalysis.outcome: no_conflict` only
+when it could check: Prolog compares only requirements with logic links. When
+the intent is unmodeled or a related current requirement is prose only, the
+outcome is `unresolved` with `reasons` and up to five `reviewCandidates`. Never
+read `unresolved` as consistent. Compare the intent with each candidate's
+`statement`, then compile again with `conflictReviews`
+(`{requirementId, verdict: "conflict" | "no_conflict", note}`). On a conflict
+the plan is `blocked`: ask the human which rule holds (a firm requirement is
+theirs), then supersede or change it, or change the intent.
 
 ## Semantic and proof guardrails
 

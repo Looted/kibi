@@ -35,7 +35,7 @@ export const compileIntentSpec = {
   name: "kb_compile_intent",
   cliName: "compile-intent",
   description:
-    "Compile complete change intent into a deterministic, snapshot-bound read-only plan. Reuses intent-aware discovery and semantic modeling, accounts for every proposition, reports contradiction witnesses, proposes traceability links, and emits dependency-ordered kb_upsert-style steps only for resolved typed claims. No mutation side effects.",
+    "Compile complete change intent into a deterministic, snapshot-bound read-only plan. Reuses intent-aware discovery and semantic modeling, accounts for every proposition, reports contradiction witnesses, proposes traceability links, and emits dependency-ordered kb_upsert-style steps only for resolved typed claims. contradictionAnalysis.outcome is no_conflict only when the check could decide: an unmodeled proposition or a related current requirement without logic leaves it unresolved with reasons and reviewCandidates to compare and judge through conflictReviews. No mutation side effects.",
   businessInputSchema: {
     type: "object",
     required: ["intent", "mode"],
@@ -197,6 +197,22 @@ export const compileIntentSpec = {
         },
         description:
           "Explicit decisions for deterministic traceability proposals. Pending proposals never enter steps.",
+      },
+      conflictReviews: {
+        type: "array",
+        maxItems: 20,
+        items: {
+          type: "object",
+          required: ["requirementId", "verdict"],
+          additionalProperties: false,
+          properties: {
+            requirementId: { type: "string", minLength: 1 },
+            verdict: { type: "string", enum: ["conflict", "no_conflict"] },
+            note: { type: "string", maxLength: 2000 },
+          },
+        },
+        description:
+          "Your verdict on each contradictionAnalysis.reviewCandidates entry of a previous compile: whether the intent contradicts that current requirement, which Kibi could not compare logically. A conflict verdict blocks the plan; a no_conflict verdict clears that candidate. A verdict may also name a current requirement discovery did not rank.",
       },
     },
   },

@@ -9,6 +9,8 @@ export type ExistingRequirement = {
   readonly id: string;
   readonly title: string;
   readonly semanticText: string;
+  /** Whether it has a logical representation; unknown when not loaded. */
+  readonly modeled?: boolean;
 };
 
 /**

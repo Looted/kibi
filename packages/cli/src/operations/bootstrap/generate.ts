@@ -8,6 +8,7 @@ import {
 import { executeStatus } from "../../public/operations/discovery-executors.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import { readWorkspaceSnapshot } from "../../public/operations/workspace-snapshot.js";
+import { loadReviewRequirements } from "../planning/conflict-review.js";
 import {
   type SemanticRelationship,
   stagedLogicalGroundingError,
@@ -18,6 +19,7 @@ import {
   isProvenanceStubCandidate,
 } from "./candidates.js";
 import type { ExistingRequirement } from "./claim-restatement.js";
+import { withConflictReviewSignals } from "./conflict-review.js";
 import { discoverBootstrap } from "./discovery.js";
 import { buildIntentClaimCandidates } from "./intent-claims.js";
 import { normalizeBootstrapContext, presentBootstrap } from "./presentation.js";
@@ -323,7 +325,7 @@ const NO_EXISTING_KNOWLEDGE: ExistingKnowledge = {
  * none (the CLI does so for status anyway); an unattached root never starts
  * one.
  */
-// implements REQ-bootstrap-intent-claim-accounting, REQ-bootstrap-claim-restatement
+// implements REQ-bootstrap-intent-claim-accounting, REQ-bootstrap-claim-restatement, REQ-kibi-contradiction-review-candidates
 async function existingKnowledge(
   context: OperationContext,
   attached: boolean,
@@ -336,9 +338,19 @@ async function existingKnowledge(
     // Ids only: materializing every entity (receipt histories included)
     // just to build this set exceeds the bounded engine output.
     const ids = new Set((await loadEntityIds(prolog)).filter(Boolean));
-    const requirements = withRequirements
+    const texts = withRequirements
       ? await loadCurrentRequirementTexts(prolog)
       : [];
+    const logic = await loadReviewRequirements(
+      prolog,
+      texts.map((requirement) => requirement.id),
+    );
+    const requirements = texts.map((requirement) => ({
+      ...requirement,
+      ...(logic.has(requirement.id)
+        ? { modeled: logic.get(requirement.id)?.modeled === true }
+        : {}),
+    }));
     return { ids, requirements };
   } catch (error) {
     throw new Error(
@@ -441,7 +453,7 @@ async function expectedSnapshots(
   }
 }
 
-// implements REQ-KIBI-BOOTSTRAP-PLAN, REQ-kibi-operation-interface-parity, REQ-bootstrap-discovered-candidate-budget
+// implements REQ-KIBI-BOOTSTRAP-PLAN, REQ-kibi-operation-interface-parity, REQ-bootstrap-discovered-candidate-budget, REQ-kibi-contradiction-review-candidates
 // implements REQ-KIBI-BOOTSTRAP-PLAN
 export async function executePlanBootstrap(
   args: PlanBootstrapArgs,
@@ -515,12 +527,19 @@ export async function executePlanBootstrap(
         suppressed: activationSuppressedClaims(declared, discovery.activation),
         diagnostics: [],
       };
+  // Planned claims next to prose-only current requirements name them for
+  // review: the plan cannot show they are consistent.
+  const reviewSignals = await withConflictReviewSignals(
+    claimed.candidates,
+    existing.requirements,
+    context.workspaceRoot,
+  );
   const filteredSignals = filterSourceOnlySignals(
     [...built.sourceOnlySignals, ...claimed.sourceOnlySignals],
     args.entityTypes,
   );
   const selected = selectBootstrapCandidates(
-    [...built.candidates, ...claimed.candidates].filter(
+    [...built.candidates, ...reviewSignals.candidates].filter(
       (candidate) => candidate.confidence >= minConfidence,
     ),
     existingIds,
@@ -577,6 +596,7 @@ export async function executePlanBootstrap(
           ]
         : []),
       ...claimed.diagnostics,
+      ...reviewSignals.diagnostics,
       ...built.diagnostics,
       ...selected.diagnostics,
       ...shared.diagnostics,
