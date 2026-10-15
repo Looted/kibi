@@ -2187,6 +2187,14 @@ coordinates:
     sourceEndLine: 132
     sourceFile: packages/cli/src/operations/bootstrap/activation.ts
     sourceLine: 114
+  SYM-bootstrap-conflict-review-signals:
+    identityHash: 2d82329e360ebc9c0cc8f86073bc42c984552ca56a4323afd0a2b84411678b17
+    sourceHash: 5b99e2e46bcadd52e72429fe25eb718cbed1929e313b833da61f8a99fe48c9f2
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 80
+    sourceFile: packages/cli/src/operations/bootstrap/conflict-review.ts
+    sourceLine: 19
   SYM-bootstrap-existing-requirement-type:
     identityHash: f72461fa563b7a19ba612339b6757e63cb3b6e3f9cba30dc4120b35191ffea8b
     sourceHash: 55a03acadefcf2f2044fec34aa17df4debcecc84e5039a0c8c695d40603ebdf6
@@ -17251,6 +17259,14 @@ coordinates:
     sourceEndLine: 140
     sourceFile: packages/cli/src/proof/integrations.ts
     sourceLine: 114
+  SYM-load-review-requirements:
+    identityHash: 119119533c12b5203c741c19663f6111e855ad74d86c66b951df44d14076d1e6
+    sourceHash: 7c751848d96943ceda45f0e59fb68c34ddfc9317d260a4db23353da52c71f6a6
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 131
+    sourceFile: packages/cli/src/operations/planning/conflict-review.ts
+    sourceLine: 97
   SYM-loadBundledSkill:
     identityHash: 9f03c51506dbf4123642d1091445630f8dfc4b04ea405c204e133bff660598dd
     sourceHash: 0d9e876eea69f45cf9d2262c8714886195c2826fb6c55bd8a31a2d311039a4b3
