@@ -258,7 +258,7 @@ describe("validateUpsertInput remaining branches", () => {
         },
         new Date(),
       ),
-    ).toThrow(/Allowed values:[\s\S]*open/);
+    ).toThrow(/Allowed values for req entities: open, in_progress, closed/);
 
     expect(() =>
       validateUpsertInput(
