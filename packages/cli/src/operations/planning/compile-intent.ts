@@ -36,6 +36,16 @@ import type {
   SemanticInterpretationInput,
   SemanticModelingSuggestion,
 } from "../semantic-advisor/types.js";
+import {
+  type ConflictReviewCandidate,
+  type ConflictReviewDecision,
+  MAX_REVIEW_CANDIDATES,
+  REVIEW_CANDIDATE_MIN_SCORE,
+  type UncheckedReason,
+  loadReviewRequirements,
+  reviewCandidate,
+  reviewNextAction,
+} from "./conflict-review.js";
 
 // implements REQ-kibi-change-to-proof-plan-compiler-v2
 export const COMPILE_PLAN_VERSION = "kibi.compile-plan.v1" as const;
@@ -62,6 +72,11 @@ export type CompileIntentArgs = Readonly<{
   sourceExcerpt?: string;
   /** Locator of that text (ticket, URL, path); rendered in `## Source`. */
   sourceReference?: string;
+  /**
+   * The agent's verdict on each review candidate a previous compile returned:
+   * whether the intent contradicts that current requirement.
+   */
+  conflictReviews?: readonly ConflictReviewDecision[];
 }>;
 
 // implements REQ-kibi-change-to-proof-plan-compiler-v2
@@ -98,6 +113,11 @@ export type {
   ContradictionWitness,
   WhatIfAnalysis,
 } from "../mutation/what-if.js";
+export type {
+  ConflictReviewCandidate,
+  ConflictReviewDecision,
+  UncheckedReason,
+} from "./conflict-review.js";
 export { isBlockingWitness, parseWhatIfAnalysis } from "../mutation/what-if.js";
 
 // implements REQ-kibi-change-to-proof-plan-compiler-v2
@@ -165,6 +185,15 @@ export type CompilePlanV1 = Readonly<{
     removed?: readonly ContradictionWitness[];
     /** Staged witnesses that already exist in the current KB. */
     unchanged?: readonly ContradictionWitness[];
+    /** Why the check could not decide; empty when it could. */
+    reasons?: readonly UncheckedReason[];
+    /**
+     * Current requirements the checker could not compare with the intent,
+     * which the agent must compare and judge through conflictReviews.
+     */
+    reviewCandidates?: readonly ConflictReviewCandidate[];
+    /** What the agent does next while the outcome is not decided. */
+    nextAction?: string;
   };
   proposals: readonly TraceabilityProposal[];
   steps: readonly PlanStep[];
@@ -648,6 +677,7 @@ async function contradictionAnalysis(
     introduced: [],
     removed: [],
     unchanged: [],
+    reasons: [{ reason: "analysis_unavailable" as const, ids: [] }],
   };
   let goal: string;
   try {
@@ -676,6 +706,136 @@ async function contradictionAnalysis(
     introduced: analysis.introduced,
     removed: analysis.removed,
     unchanged: analysis.unchanged,
+  };
+}
+
+// implements REQ-kibi-contradiction-review-candidates
+// No witness is not the same as no conflict: the checker compares only what
+// has a logical model. When a target proposition is unmodeled, or a related
+// current requirement from discovery has no logic of its own, the outcome
+// stays unresolved with the reason, and the related requirements become
+// review candidates the agent compares and judges. The verdicts come back
+// through conflictReviews: a conflict blocks the plan, a no_conflict clears
+// that candidate. A pending review leaves a ready plan ready; the outcome and
+// nextAction say what was not checked.
+async function withConflictReview(
+  prolog: NonNullable<OperationContext["prolog"]>,
+  analysis: CompilePlanV1["contradictionAnalysis"],
+  input: Readonly<{
+    intent: string;
+    requirementId: string;
+    propositions: CompilePlanV1["propositions"];
+    matches: readonly IntentSearchMatch[];
+    decisions: readonly ConflictReviewDecision[];
+  }>,
+): Promise<{
+  analysis: CompilePlanV1["contradictionAnalysis"];
+  diagnostics: string[];
+}> {
+  const diagnostics: string[] = [];
+  const decisions = new Map<string, ConflictReviewDecision>();
+  for (const decision of input.decisions) {
+    const id = text(decision.requirementId);
+    if (id) decisions.set(id, decision);
+  }
+  const unmodeledClaims = input.propositions
+    .filter(
+      (proposition) =>
+        proposition.status === "ontology_gap" ||
+        proposition.status === "ambiguous",
+    )
+    .map((proposition) => proposition.claimKey);
+  // Matches arrive best first, so the first score seen is the highest.
+  const scores = new Map<string, number>();
+  for (const match of input.matches) {
+    const id = text(match.entity.id);
+    if (
+      text(match.entity.type) !== "req" ||
+      !id ||
+      id === input.requirementId ||
+      match.score < REVIEW_CANDIDATE_MIN_SCORE ||
+      scores.has(id)
+    )
+      continue;
+    scores.set(id, match.score);
+  }
+  const requirements = await loadReviewRequirements(prolog, [
+    ...scores.keys(),
+    ...[...decisions.keys()].filter((id) => id !== input.requirementId),
+  ]);
+  for (const id of decisions.keys()) {
+    if (id === input.requirementId || !requirements.has(id))
+      diagnostics.push(
+        `conflictReviews names ${id}, which is not a current requirement other than the target; its verdict was ignored.`,
+      );
+  }
+  const candidates: ConflictReviewCandidate[] = [];
+  let pendingCount = 0;
+  for (const [id, score] of scores) {
+    const requirement = requirements.get(id);
+    if (!requirement) continue;
+    const decision = decisions.get(id);
+    if (!decision) {
+      // A modeled target is compared logically with every modeled
+      // requirement; only prose-only ones need the agent. An unmodeled
+      // target cannot be compared with anything.
+      if (unmodeledClaims.length === 0 && requirement.modeled) continue;
+      if (pendingCount >= MAX_REVIEW_CANDIDATES) continue;
+      pendingCount += 1;
+    }
+    candidates.push(
+      reviewCandidate(input.intent, requirement, score, decision),
+    );
+  }
+  // A verdict on a requirement discovery did not rank still counts: the
+  // agent may know a conflict the search missed.
+  for (const [id, decision] of decisions) {
+    const requirement = requirements.get(id);
+    if (!requirement || scores.has(id) || id === input.requirementId) continue;
+    candidates.push(reviewCandidate(input.intent, requirement, 0, decision));
+  }
+  const pending = candidates.filter(
+    (candidate) => candidate.review === "pending",
+  );
+  const declaredConflicts = candidates.filter(
+    (candidate) => candidate.review === "conflict",
+  );
+  const reasons: UncheckedReason[] = [...(analysis.reasons ?? [])];
+  if (unmodeledClaims.length > 0)
+    reasons.push({ reason: "unmodeled_target", ids: unmodeledClaims });
+  const pendingUnmodeled = pending.filter((candidate) => !candidate.modeled);
+  if (unmodeledClaims.length === 0 && pendingUnmodeled.length > 0)
+    reasons.push({
+      reason: "unmodeled_related",
+      ids: pendingUnmodeled.map((candidate) => candidate.requirementId),
+    });
+  const outcome: CompilePlanV1["contradictionAnalysis"]["outcome"] =
+    analysis.outcome === "conflict" || declaredConflicts.length > 0
+      ? "conflict"
+      : analysis.outcome === "unresolved" || reasons.length > 0
+        ? "unresolved"
+        : "no_conflict";
+  if (declaredConflicts.length > 0)
+    diagnostics.push(
+      `By your review the intent contradicts current requirement ${declaredConflicts.map((candidate) => candidate.requirementId).join(", ")}: ask the human which rule holds, then supersede or change the conflicting requirement, or change the intent, before applying this plan.`,
+    );
+  if (pending.length > 0)
+    diagnostics.push(
+      `Contradiction check incomplete: Kibi could not compare this intent logically with current requirement ${pending.map((candidate) => candidate.requirementId).join(", ")}. Compare them (contradictionAnalysis.reviewCandidates) and send your verdicts in conflictReviews.`,
+    );
+  const nextAction =
+    outcome === "no_conflict"
+      ? undefined
+      : reviewNextAction(candidates, unmodeledClaims);
+  return {
+    analysis: {
+      ...analysis,
+      outcome,
+      reasons,
+      reviewCandidates: candidates,
+      ...(nextAction !== undefined ? { nextAction } : {}),
+    },
+    diagnostics,
   };
 }
 
@@ -1269,26 +1429,35 @@ export async function executeCompileIntent(
     mergeSteps([...stepsWithInventory, ...drafts.steps]),
     proposals,
   );
-  const contradictions = await contradictionAnalysis(
+  const checked = await contradictionAnalysis(
     prolog,
     requirementId,
     stepsWithAcceptedProposals,
     context.clock(),
   );
-  if (contradictions.outcome === "conflict")
+  if (checked.outcome === "conflict")
     diagnostics.push(
-      contradictions.witnesses.some(
+      checked.witnesses.some(
         (witness) => witness.kind === "scenario_feasibility",
       )
         ? "The plan leaves a success scenario infeasible or conflicts with a current requirement: set expects: rejection, correct the assumption, record an approved exception, or supersede the conflicting requirement before applying this plan."
         : "Current requirement conflicts must be resolved with an explicit supersedes relationship before applying this plan.",
     );
-  if (contradictions.outcome === "unresolved")
+  if (checked.outcome === "unresolved")
     diagnostics.push(
-      contradictions.witnesses.length > 0
+      checked.witnesses.length > 0
         ? "Contradiction analysis is unresolved: the planned rules may overlap with current requirements and the checker can neither prove nor exclude a conflict."
         : "Contradiction analysis could not run against the attached KB snapshot with this plan staged.",
     );
+  const reviewed = await withConflictReview(prolog, checked, {
+    intent,
+    requirementId,
+    propositions,
+    matches: search.matches,
+    decisions: args.conflictReviews ?? [],
+  });
+  const contradictions = reviewed.analysis;
+  diagnostics.push(...reviewed.diagnostics);
   if (
     args.mode === "create" &&
     existing.length > 0 &&

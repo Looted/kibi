@@ -140,7 +140,7 @@ export const CLI_OPERATION_METADATA = [
     name: "kb_compile_intent",
     cliName: "compile-intent",
     description:
-      "Compile complete change intent into a deterministic, snapshot-bound read-only plan. Reuses intent-aware discovery and semantic modeling, accounts for every proposition, reports contradiction witnesses, proposes traceability links, and emits dependency-ordered kb_upsert-style steps only for resolved typed claims. No mutation side effects.",
+      "Compile complete change intent into a deterministic, snapshot-bound read-only plan. Reuses intent-aware discovery and semantic modeling, accounts for every proposition, reports contradiction witnesses, proposes traceability links, and emits dependency-ordered kb_upsert-style steps only for resolved typed claims. contradictionAnalysis.outcome is no_conflict only when the check could decide: an unmodeled proposition or a related current requirement without logic leaves it unresolved with reasons and reviewCandidates to compare and judge through conflictReviews. No mutation side effects.",
   },
   {
     name: "kb_apply_plan",

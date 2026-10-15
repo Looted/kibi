@@ -965,8 +965,12 @@ symbols:
         target: TEST-e2e-plan-compiler-hash
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-contradiction-review-cli
       - type: implements
         target: REQ-kibi-change-to-proof-plan-compiler-v2
+      - type: implements
+        target: REQ-kibi-contradiction-review-candidates
   - id: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compileintentargs
     title: CompileIntentArgs
     sourceFile: packages/cli/src/operations/planning/compile-intent.ts
@@ -55282,3 +55286,41 @@ symbols:
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-kibi-proposition-complete-ingestion
+  - id: SYM-test-kibi-contradiction-review-cli
+    title: Contradiction review candidates consumer CLI suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/contradiction-review.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-15T16:05:28.802Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-contradiction-review-cli
+  - id: SYM-load-review-requirements
+    title: loadReviewRequirements
+    status: active
+    sourceFile: packages/cli/src/operations/planning/conflict-review.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-15T16:12:41.367Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-contradiction-review-cli
+      - type: implements
+        target: REQ-kibi-contradiction-review-candidates
+  - id: SYM-bootstrap-conflict-review-signals
+    title: withConflictReviewSignals
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/conflict-review.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-15T16:12:48.555Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-contradiction-review-cli
+      - type: implements
+        target: REQ-kibi-contradiction-review-candidates
