@@ -27,5 +27,39 @@ origin:
   recorded_at: '2026-10-15T16:04:57.148Z'
 id: TEST-kibi-contradiction-review-cli
 type: test
+proof_receipts:
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-502bd452386a257494a33798
+    test_id: TEST-kibi-contradiction-review-cli
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 7f060ecc32f6e35899d93ae8501a7c47d983b0a64b68a26cd5a72198769ba861
+    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
+    started_at: '2026-10-15T16:10:40.168Z'
+    finished_at: '2026-10-15T16:11:08.121Z'
+    artifact_digest: a991daec821eaacdd250189f1c3eeec93865aef89a15102c55237c32e682ab5e
+    contract_hash: 8ce1ad0c8052b7fa3ac4cd0577233fd1f647509ffbdfdeb1fa92d0950940b813
+    binding_hash: d866626c47a5f9958116ff1bc4bb33931e4021ff4a5c9ee137a75323507a2729
+    fingerprint: 2a74f02524bfbfe852f9927e5ec004f38201fbf2f02d8ed27bad2abf2f49229a
+    fingerprint_components:
+      contract: 8ce1ad0c8052b7fa3ac4cd0577233fd1f647509ffbdfdeb1fa92d0950940b813
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: bdbe13f0b3f8f6c7fcbf15c36b1899e964c5ccdcafe356a7f689a0ebe4d87ff0
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-test-kibi-contradiction-review-cli
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 Drives a fresh workspace through the built `kibi` binary (`packages/cli/tests/consumer/contradiction-review.test.ts`). A drawing editor has a closed, prose-only requirement saying Escape cancels a label edit without saving. Compiling "Escape saves the label" must give `unresolved` with `unmodeled_target` and that requirement in `reviewCandidates`; a `conflict` review blocks the plan; a `no_conflict` review keeps the outcome unresolved while the claim is unmodeled. A modeled claim next to a prose-only requirement stays `ready` but `unresolved` until reviewed, a modeled consistent pair is `no_conflict`, and `kb_plan_bootstrap` names the prose-only requirement for a planned claim.
