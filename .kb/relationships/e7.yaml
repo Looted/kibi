@@ -202,3 +202,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3cf12c56d9ec
+  - type: implements
+    from: SYM-auto-8FB623B4AC3F
+    to: REQ-kibi-symbol-link-guidance
+    created_at: 2026-10-15T16:01:04.277Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7512dd4edbc
+  - type: covered_by
+    from: SYM-auto-8FB623B4AC3F
+    to: TEST-cli-symbol-link-guidance
+    created_at: 2026-10-15T16:01:04.293Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d2386d1e896f

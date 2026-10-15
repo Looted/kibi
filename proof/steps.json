@@ -2650,5 +2650,17 @@
         "./packages/cli/tests/commands/migrate-entity-type.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-cli-symbol-link-guidance",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/commands/symbol-link-guidance.test.ts"
+      ]
+    ]
   }
 ]

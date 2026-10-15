@@ -415,8 +415,8 @@ export async function validateUpsertForCommit(
   // The payload must be valid on its own before the store is read.
   const checked = validateUpsertInput(payload, context.clock());
   validateRelationshipSources(payload.id, checked.relationships);
-  // Symbol granularity reads only the payload and its source file, and stored
-  // state never changes a symbol payload, so it runs before the store is read.
+  // Symbol granularity of a payload that names its source file reads only the
+  // payload and that file, so it runs before the store is read.
   await validateSymbolGranularity(
     checked.entity,
     checked.relationships,
@@ -436,6 +436,17 @@ export async function validateUpsertForCommit(
       : await readUncompiledAuthoredSource(context, payload);
   if (uncompiledSource !== null)
     lookup = authoredEntityLookup(uncompiledSource);
+  // implements REQ-kibi-symbol-link-guidance
+  // An update that only adds links keeps the stored sourceFile: judge the
+  // symbol as it will be stored, so a coarse link is refused here rather
+  // than later by the staged gate.
+  if (checked.entity.sourceFile === undefined)
+    await validateSymbolGranularity(
+      checked.entity,
+      checked.relationships,
+      context,
+      async () => staged?.entities.get(payload.id) ?? (await lookup.entity()),
+    );
   let input = await withStoredRequirementSemantics(
     payload,
     prolog,

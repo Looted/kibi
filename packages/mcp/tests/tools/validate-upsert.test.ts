@@ -7,6 +7,8 @@ import {
   test,
 } from "bun:test";
 import fs from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import type { PrologProcess } from "kibi-cli/prolog";
 import { handleKbUpsert } from "../../src/tools/upsert.js";
 import { handleKbValidateUpsert } from "../../src/tools/validate-upsert.js";
@@ -229,6 +231,66 @@ describe("kb_validate_upsert", () => {
       expect(result.structuredContent.errors.join("\n")).toContain(
         "Create or update a requirement and link REQ -> TEST with verified_by",
       );
+    });
+
+    test("refuses links added to a stored class-level symbol", async () => {
+      const workspace = await fs.mkdtemp(
+        path.join(tmpdir(), "kibi-mcp-coarse-link-"),
+      );
+      const previous = process.env.KIBI_WORKSPACE;
+      process.env.KIBI_WORKSPACE = workspace;
+      try {
+        await fs.mkdir(path.join(workspace, "src"), { recursive: true });
+        await fs.writeFile(
+          path.join(workspace, "src", "canvas.ts"),
+          "export class CanvasService {\n  draw() {}\n  clear() {}\n}\n",
+        );
+        await handleKbUpsert(prolog, {
+          type: "req",
+          id: "REQ-CANVAS-DRAW",
+          properties: {
+            title: "Canvas draws shapes",
+            status: "open",
+            source: "test://validate-upsert/coarse",
+          },
+        });
+        await handleKbUpsert(prolog, {
+          type: "symbol",
+          id: "SYM-CANVAS-SERVICE",
+          properties: {
+            title: "CanvasService",
+            status: "active",
+            source: "test://validate-upsert/coarse",
+            sourceFile: "src/canvas.ts",
+          },
+        });
+        // The payload names no sourceFile: the stored symbol supplies it.
+        const linksOnly = {
+          type: "symbol",
+          id: "SYM-CANVAS-SERVICE",
+          properties: { title: "CanvasService", status: "active" },
+          relationships: [
+            {
+              type: "implements",
+              from: "SYM-CANVAS-SERVICE",
+              to: "REQ-CANVAS-DRAW",
+            },
+          ],
+        };
+        const preview = await handleKbValidateUpsert(prolog, linksOnly);
+        expect(preview.structuredContent.valid).toBe(false);
+        expect(preview.structuredContent.errors.join("\n")).toContain(
+          "Symbol SYM-CANVAS-SERVICE links src/canvas.ts coarsely while granular symbols are available (behavioral only): CanvasService.clear, CanvasService.draw.",
+        );
+        await expect(handleKbUpsert(prolog, linksOnly)).rejects.toThrow(
+          /links src\/canvas\.ts coarsely/,
+        );
+      } finally {
+        if (previous === undefined)
+          Reflect.deleteProperty(process.env, "KIBI_WORKSPACE");
+        else process.env.KIBI_WORKSPACE = previous;
+        await fs.rm(workspace, { recursive: true, force: true });
+      }
     });
   });
 });
