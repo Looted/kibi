@@ -55282,3 +55282,15 @@ symbols:
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-kibi-proposition-complete-ingestion
+  - id: SYM-test-kibi-contradiction-review-cli
+    title: Contradiction review candidates consumer CLI suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/contradiction-review.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-15T16:05:28.802Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-contradiction-review-cli
