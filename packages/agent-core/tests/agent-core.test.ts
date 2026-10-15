@@ -6,6 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { parse } from "yaml";
 
+import { firmEditConfirmation } from "../src/decision-guard";
 import * as agentCore from "../src/index";
 import {
   canonicalKbToolName,
@@ -583,5 +584,21 @@ describe("agent-core knowledge index", () => {
     expect(agentCore.classifyPath).toBe(classifyPath);
     expect(agentCore.canonicalKbToolName).toBe(canonicalKbToolName);
     expect(agentCore.loadKnowledgeIndex).toBe(loadKnowledgeIndex);
+  });
+});
+
+describe("firmEditConfirmation", () => {
+  test("a requirement title ending in a full stop reads as one sentence", () => {
+    expect(
+      firmEditConfirmation("toggleViewMode in src/auth.ts", [
+        {
+          id: "REQ-view-mode",
+          title: "A student must not gain coach rights from a view preference.",
+          firmness: "firm",
+        },
+      ]),
+    ).toBe(
+      "Kibi: this edit changes toggleViewMode in src/auth.ts, which implements a firm requirement recorded in the knowledge base: REQ-view-mode: A student must not gain coach rights from a view preference. Allow it if the change keeps that requirement, or if you mean to change the requirement too.",
+    );
   });
 });
