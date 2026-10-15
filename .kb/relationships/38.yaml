@@ -227,3 +227,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fee78c27086a
+  - type: implements
+    from: SYM-diagnostics-formatDiagnosticsForMcp
+    to: REQ-kibi-uncompiled-source-visibility
+    created_at: 2026-10-14T21:22:50.649Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5db74b2d7df9
+  - type: covered_by
+    from: SYM-diagnostics-formatDiagnosticsForMcp
+    to: TEST-kibi-uncompiled-source-visibility
+    created_at: 2026-10-14T21:22:50.673Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1781f94c0dc9

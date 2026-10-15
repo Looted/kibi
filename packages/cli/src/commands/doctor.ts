@@ -54,6 +54,10 @@ import {
   uncompiledBranchStoreReason,
 } from "../utils/branch-store.js";
 import {
+  LEGACY_KB_MIGRATION_COMMAND,
+  LEGACY_KB_MIGRATION_NOTE,
+} from "../utils/config.js";
+import {
   type GitRepositoryContext,
   resolveGitRepository,
 } from "../utils/git-repository-context.js";
@@ -790,7 +794,7 @@ function checkKbManifest(): {
       remediation:
         legacy.legacyConfig === "absent"
           ? "Run: kibi init"
-          : "Run: kibi migrate --yes (it creates the manifest from the legacy .kb/config.json; do not run kibi init first)",
+          : `Run: ${LEGACY_KB_MIGRATION_COMMAND} (${LEGACY_KB_MIGRATION_NOTE})`,
     };
   }
 

@@ -1359,36 +1359,43 @@ export async function executeStatus(
           bootstrapActivation.activationState === "root_active_thin" &&
           !bootstrapActivation.applyBlocked,
         reason: bootstrapActivation.reason,
+        // implements REQ-legacy-kb-first-step-migrate
         nextAction:
-          bootstrapActivation.activationState === "root_uninitialized"
+          bootstrapActivation.nextOperation !== undefined
             ? {
-                operation: "kibi init",
+                operation: bootstrapActivation.nextOperation,
                 reason: bootstrapActivation.reason,
                 required: true,
               }
-            : bootstrapActivation.activationState === "root_partial"
+            : bootstrapActivation.activationState === "root_uninitialized"
               ? {
-                  operation: "kibi doctor",
+                  operation: "kibi init",
                   reason: bootstrapActivation.reason,
                   required: true,
                 }
-              : bootstrapActivation.activationState === "vendored_only"
+              : bootstrapActivation.activationState === "root_partial"
                 ? {
-                    operation: "move-to-project-root",
+                    operation: "kibi doctor",
                     reason: bootstrapActivation.reason,
                     required: true,
                   }
-                : bootstrapActivation.activationState === "root_active_thin"
+                : bootstrapActivation.activationState === "vendored_only"
                   ? {
-                      operation: "kb_plan_bootstrap",
+                      operation: "move-to-project-root",
                       reason: bootstrapActivation.reason,
                       required: true,
                     }
-                  : {
-                      operation: "continue-kibi-workflow",
-                      reason: bootstrapActivation.reason,
-                      required: false,
-                    },
+                  : bootstrapActivation.activationState === "root_active_thin"
+                    ? {
+                        operation: "kb_plan_bootstrap",
+                        reason: bootstrapActivation.reason,
+                        required: true,
+                      }
+                    : {
+                        operation: "continue-kibi-workflow",
+                        reason: bootstrapActivation.reason,
+                        required: false,
+                      },
       },
     };
     return {

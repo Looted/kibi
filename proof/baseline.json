@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 223,
-  "proofProven": 223,
+  "currentRequirements": 226,
+  "proofProven": 226,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -1117,6 +1117,21 @@
       "uncoveredSymbols": []
     },
     "REQ-prolog-utf8-text": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-cli-migrate-entity-type-backfill": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-legacy-kb-first-step-migrate": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-cli-sync-summary-kb-totals": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

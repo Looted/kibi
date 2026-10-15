@@ -342,3 +342,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-02cbb72216b9
+  - type: constrains
+    from: REQ-cli-migrate-entity-type-backfill
+    to: FACT-SUBJ-kibi-migration-entity-type
+    created_at: 2026-10-14T21:06:48.621Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c7681a4f83a
+  - type: requires_property
+    from: REQ-cli-migrate-entity-type-backfill
+    to: FACT-cli-migrate-entity-type-backfill-adds-type
+    created_at: 2026-10-14T21:06:48.682Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5075cb93f52b
+  - type: requires_property
+    from: REQ-cli-migrate-entity-type-backfill
+    to: FACT-cli-migrate-entity-type-backfill-keeps-other-lines
+    created_at: 2026-10-14T21:06:48.720Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76a4be8c15cc
+  - type: specified_by
+    from: REQ-cli-migrate-entity-type-backfill
+    to: SCEN-cli-migrate-entity-type-backfill
+    created_at: 2026-10-14T21:06:48.743Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86fc4ec2869d
+  - type: verified_by
+    from: REQ-cli-migrate-entity-type-backfill
+    to: TEST-cli-legacy-kb-first-migrate
+    created_at: 2026-10-14T21:06:48.771Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e500817ddb15
+  - type: verified_by
+    from: REQ-cli-migrate-entity-type-backfill
+    to: TEST-cli-migrated-kb-type-backfill-sync-totals
+    created_at: 2026-10-14T21:06:48.799Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e26ad1ab12cf
+  - type: implements
+    from: SYM-migration-apply-schema6-migration-action
+    to: REQ-cli-migrate-entity-type-backfill
+    created_at: 2026-10-14T21:23:30.400Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31efc0880e70
+  - type: covered_by
+    from: SYM-migration-apply-schema6-migration-action
+    to: TEST-cli-migrated-kb-type-backfill-sync-totals
+    created_at: 2026-10-14T21:23:30.454Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-231b26330eb3

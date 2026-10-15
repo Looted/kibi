@@ -258,3 +258,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-99d53fd72a24
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-activation-classifyactivation
+    to: REQ-legacy-kb-first-step-migrate
+    created_at: 2026-10-14T21:23:45.399Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d7b2575bc48
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-activation-classifyactivation
+    to: TEST-cli-legacy-kb-first-migrate
+    created_at: 2026-10-14T21:23:45.427Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e37694874e8

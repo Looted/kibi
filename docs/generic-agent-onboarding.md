@@ -12,6 +12,12 @@ declared sources and cited intent claims; further questions come only from a
 approval, passes the unchanged plan to `kb_apply_plan`, and finishes with
 `kb_check` and `kb_status`.
 
+On a repository whose knowledge base was written by an older Kibi (a
+`.kb/config.json` and no `.kb/manifest.json`), the typed next action is
+`kibi migrate --yes`, the same step `kibi doctor` names: do not run
+`kibi init` first, because it would claim the latest schema and skip the
+legacy migration steps.
+
 The stable onboarding contract is typed status plus the named workflow skill.
 Skill manifests and resources are host plumbing for advanced integrations;
 they are not a prerequisite for ordinary bootstrap requests.

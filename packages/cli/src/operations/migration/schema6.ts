@@ -52,6 +52,12 @@ import {
   planSemanticTextPins,
 } from "./entity-body-context.js";
 import {
+  ENTITY_TYPE_BACKFILL_ACTION_ID,
+  ENTITY_TYPE_BACKFILL_CODE,
+  applyEntityTypeBackfill,
+  planEntityTypeBackfill,
+} from "./entity-type.js";
+import {
   FIRM_SUPERSEDE_ACKNOWLEDGE_CODE,
   applyFirmSupersedeAcknowledgement,
   planFirmSupersedeAcknowledgement,
@@ -584,6 +590,33 @@ export function buildSchema6MigrationFragment(input: {
       }),
     );
   }
+  // Entity files that take their type from the folder get it stated at any
+  // schema version, so the first kb_upsert on one adds no type line.
+  const typeBackfill = planEntityTypeBackfill(input.workspaceRoot);
+  if (typeBackfill.targets.length > 0) {
+    sourceRewriteActionIds.push(ENTITY_TYPE_BACKFILL_ACTION_ID);
+    actions.push(
+      migrationAction({
+        id: ENTITY_TYPE_BACKFILL_ACTION_ID,
+        code: ENTITY_TYPE_BACKFILL_CODE,
+        category: "schema",
+        safety: "automatic",
+        autoApplicable: true,
+        invocation: { kind: "cli", command_argv: ["kibi", "migrate", "--yes"] },
+        affectedEntityIds: typeBackfill.targets.map((row) => row.id),
+        affectedFiles: typeBackfill.targets.map((row) => row.path),
+        postconditions: [{ entitiesWithoutType: 0 }],
+        evidence: {
+          reason:
+            "These entity files take their type from the folder. Every Kibi write states type in front matter, so the first kb_upsert on one would add a type line the change did not ask for. Each gets the folder-implied type as its last front matter key, the type kibi sync already reads.",
+          count: typeBackfill.targets.length,
+          byType: countByType(typeBackfill.targets),
+          skipped: typeBackfill.skipped,
+          preserves: "every other front matter key and the body bytes",
+        },
+      }),
+    );
+  }
   // Schema 8: pin the checked meaning, then acknowledge missing context. A
   // missing or invalid version upgrades through every step, so it is planned.
   if (
@@ -968,6 +1001,14 @@ export async function applySchema6MigrationAction(
       applyPolarityValueBackfill(context.workspaceRoot);
       return;
     }
+    case ENTITY_TYPE_BACKFILL_CODE: {
+      const result = applyEntityTypeBackfill(context.workspaceRoot);
+      if (result.skipped.length > 0)
+        throw new Error(
+          `Could not state the type of ${result.skipped.map((skip) => `${skip.path} (${skip.reason})`).join(", ")}; add the type line by hand.`,
+        );
+      return;
+    }
     case SEMANTIC_TEXT_PIN_CODE: {
       applySemanticTextPins(context.workspaceRoot);
       return;
@@ -1117,6 +1158,7 @@ export const SCHEMA6_APPROVABLE_REVIEW_CODES: ReadonlySet<string> = new Set([
 // implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const SCHEMA6_AUTOMATIC_CODES: ReadonlySet<string> = new Set([
   POLARITY_VALUE_BACKFILL_CODE,
+  ENTITY_TYPE_BACKFILL_CODE,
   SEMANTIC_TEXT_PIN_CODE,
   CONTEXT_MISSING_TAG_CODE,
   SUPERSEDES_REASON_ACKNOWLEDGE_CODE,

@@ -281,9 +281,10 @@ describe("migrateCommand remaining runtime branches", () => {
       "Removed 1 legacy cop(ies) identical to their .kb/ file: documentation/requirements/REQ-1.md.",
     );
     expect(existsSync(path.join(cwd, "documentation"))).toBe(false);
+    // The kept copy only gains the type its folder implies.
     expect(
       readFileSync(path.join(cwd, ".kb", "requirements", "REQ-1.md"), "utf8"),
-    ).toBe(req);
+    ).toBe(req.replace("status: open\n", "status: open\ntype: req\n"));
 
     writeFileSync(
       path.join(cwd, ".kb", "symbols.yaml"),

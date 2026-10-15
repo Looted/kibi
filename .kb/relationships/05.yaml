@@ -269,3 +269,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b2dacc0ee11d
+  - type: verified_by
+    from: SCEN-cli-sync-summary-kb-totals
+    to: TEST-cli-migrated-kb-type-backfill-sync-totals
+    created_at: 2026-10-14T21:06:47.219Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12bab2d094cf
+  - type: assumes
+    from: SCEN-cli-sync-summary-kb-totals
+    to: FACT-cli-sync-summary-kb-totals-reports-totals
+    created_at: 2026-10-14T21:06:47.279Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd0c5dda2f57
+  - type: assumes
+    from: SCEN-cli-sync-summary-kb-totals
+    to: FACT-cli-sync-summary-kb-totals-labels-delta
+    created_at: 2026-10-14T21:06:47.315Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62cfe0dcfa19

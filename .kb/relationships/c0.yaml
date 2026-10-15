@@ -300,3 +300,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-748b92af5f93
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapclaimreference
+    to: REQ-bootstrap-claim-kinds-and-conflicts
+    created_at: 2026-10-14T21:23:05.645Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6abdb5fc9af1
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapclaimreference
+    to: TEST-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-14T21:23:05.675Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-baf398b669b8

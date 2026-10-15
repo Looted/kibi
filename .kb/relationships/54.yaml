@@ -181,3 +181,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6d5d1b98adb5
+  - type: constrains
+    from: REQ-cli-sync-summary-kb-totals
+    to: FACT-SUBJ-kibi-sync-summary
+    created_at: 2026-10-14T21:06:53.113Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-064e9801e533
+  - type: requires_property
+    from: REQ-cli-sync-summary-kb-totals
+    to: FACT-cli-sync-summary-kb-totals-reports-totals
+    created_at: 2026-10-14T21:06:53.152Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af5d8f2ea5f4
+  - type: requires_property
+    from: REQ-cli-sync-summary-kb-totals
+    to: FACT-cli-sync-summary-kb-totals-labels-delta
+    created_at: 2026-10-14T21:06:53.168Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c981357f984
+  - type: specified_by
+    from: REQ-cli-sync-summary-kb-totals
+    to: SCEN-cli-sync-summary-kb-totals
+    created_at: 2026-10-14T21:06:53.188Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c3d4c8985ec
+  - type: verified_by
+    from: REQ-cli-sync-summary-kb-totals
+    to: TEST-cli-migrated-kb-type-backfill-sync-totals
+    created_at: 2026-10-14T21:06:53.202Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-787ba8329e79

@@ -80,6 +80,18 @@ function pickLegacyPathValue(
   return typeof value === "string" ? value : undefined;
 }
 
+/**
+ * The first step on a workspace with a legacy `.kb/config.json` and no
+ * manifest. Doctor and kb_status both name it, so they never disagree on
+ * what to run first: `kibi init` would claim the latest schema and skip the
+ * legacy migration steps.
+ */
+// implements REQ-legacy-kb-first-step-migrate
+export const LEGACY_KB_MIGRATION_COMMAND = "kibi migrate --yes";
+// implements REQ-legacy-kb-first-step-migrate
+export const LEGACY_KB_MIGRATION_NOTE =
+  "it creates the manifest from the legacy .kb/config.json; do not run kibi init first";
+
 /** Whether a legacy `.kb/config.json` exists at the workspace root. */
 export function legacyConfigExists(cwd: string): boolean {
   return existsSync(path.join(cwd, ".kb", "config.json"));

@@ -2626,5 +2626,29 @@
         "./packages/cli/tests/commands/migrate-first-commit.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-cli-legacy-kb-first-migrate",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/commands/migrate-entity-type.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-migrated-kb-type-backfill-sync-totals",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/commands/migrate-entity-type.test.ts"
+      ]
+    ]
   }
 ]

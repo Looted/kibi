@@ -24,6 +24,11 @@ import {
   writeFileSync,
 } from "node:fs";
 import * as path from "node:path";
+import { countByType } from "../operations/migration/entity-body-context.js";
+import {
+  applyEntityTypeBackfill,
+  planEntityTypeBackfill,
+} from "../operations/migration/entity-type.js";
 import {
   type InventoryRederivation,
   applySafeInventoryRederivations,
@@ -595,6 +600,29 @@ function mapLegacyRequirementStatuses(
 }
 
 /**
+ * State the folder-implied type on entity files without one, so the first
+ * kb_upsert on such a file changes only what it was asked to change.
+ * Returns how many files were (or, on a dry run, would be) rewritten.
+ */
+// implements REQ-cli-migrate-entity-type-backfill
+function stateFolderImpliedTypes(cwd: string, dryRun: boolean): number {
+  const plan = dryRun
+    ? planEntityTypeBackfill(cwd)
+    : applyEntityTypeBackfill(cwd);
+  if (plan.targets.length > 0)
+    console.log(
+      `${dryRun ? "dry run: would state" : "Stated"} the folder-implied type on ${plan.targets.length} entity file(s) without one (${Object.entries(
+        countByType(plan.targets),
+      )
+        .map(([type, count]) => `${count} ${type}`)
+        .join(", ")}); no other line changes.`,
+    );
+  for (const skip of plan.skipped)
+    printWarning(`Type not stated for ${skip.path}: ${skip.reason}.`);
+  return plan.targets.length;
+}
+
+/**
  * Print what a `kibi migrate --yes` run left for a person, naming the
  * requirements kibi sync cannot compile first. Returns false when nothing
  * remains, so the caller may call the migration complete.
@@ -760,6 +788,7 @@ export async function migrateCommand(
     const polarityCount = options.dryRun
       ? planPolarityValueBackfill(cwd).length
       : applyPolarityValueBackfill(cwd);
+    const typesStated = stateFolderImpliedTypes(cwd, options.dryRun === true);
     // Delivery statuses keep requirements out of the store at any version;
     // map them before the drift check, which only sees compiled requirements.
     const statuses = mapLegacyRequirementStatuses(cwd, options.dryRun === true);
@@ -770,6 +799,7 @@ export async function migrateCommand(
     const legacyLinks = markLegacySymbolLinks(cwd, options.dryRun === true);
     const rewroteSources =
       polarityCount > 0 ||
+      typesStated > 0 ||
       statuses.mapped > 0 ||
       legacyLinks > 0 ||
       drift.rederived.length > 0 ||
@@ -928,6 +958,7 @@ export async function migrateCommand(
         );
       }
     }
+    stateFolderImpliedTypes(cwd, true);
     mapLegacyRequirementStatuses(cwd, true);
     rederiveDriftedInventories(cwd, true);
     repairLifecycleFindings(cwd, true);
@@ -973,6 +1004,7 @@ export async function migrateCommand(
       : "not_applicable");
 
   const migratedAt = new Date().toISOString();
+  stateFolderImpliedTypes(cwd, false);
   const polarityValuesRewritten = applyPolarityValueBackfill(cwd);
   if (polarityValuesRewritten > 0)
     console.log(
