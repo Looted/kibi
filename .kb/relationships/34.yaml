@@ -335,6 +335,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4485379bdaa7
+  - type: executable_for
+    from: SYM-test-requirement-statements
+    to: TEST-search-answer-hygiene
+    created_at: 2026-10-14T16:34:59.551Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7229d79e011
   - type: implements
     from: SYM-agent-core-decision-guard-hasdecisionflag
     to: REQ-agent-hosts-decision-guard

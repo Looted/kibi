@@ -230,6 +230,69 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bb8f85a1dd25
+  - type: constrains
+    from: REQ-kb-check-unverified-requirement-statements
+    to: FACT-SUBJECT-KIBI-CHECK-REQUIREMENT-STATEMENTS
+    created_at: 2026-10-14T16:34:01.391Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23bafc3eb7ac
+  - type: requires_property
+    from: REQ-kb-check-unverified-requirement-statements
+    to: FACT-kb-check-requirement-statements-reported
+    created_at: 2026-10-14T16:34:01.428Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e6657929977
+  - type: requires_property
+    from: REQ-kb-check-unverified-requirement-statements
+    to: FACT-kb-check-requirement-statements-no-bare-pass
+    created_at: 2026-10-14T16:34:01.442Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c97946c332ac
+  - type: relates_to
+    from: REQ-kb-check-unverified-requirement-statements
+    to: REQ-search-answer-hygiene
+    created_at: 2026-10-14T16:34:01.457Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5bc1e048675c
+  - type: relates_to
+    from: REQ-kb-check-unverified-requirement-statements
+    to: REQ-kb-decision-firmness
+    created_at: 2026-10-14T16:34:01.468Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2a2b2d5db68
+  - type: specified_by
+    from: REQ-kb-check-unverified-requirement-statements
+    to: SCEN-kb-check-unverified-requirement-statements
+    created_at: 2026-10-14T16:34:01.480Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7a9812d135f
+  - type: verified_by
+    from: REQ-kb-check-unverified-requirement-statements
+    to: TEST-search-answer-hygiene
+    created_at: 2026-10-14T16:34:01.493Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-672988606308
+  - type: implements
+    from: SYM-semantic-inventory-contract
+    to: REQ-kb-upsert-ledger-contract-in-error
+    created_at: 2026-10-14T17:13:00.915Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68e9386ced4b
+  - type: covered_by
+    from: SYM-semantic-inventory-contract
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-10-14T17:13:00.935Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a438c07e112
   - type: verified_by
     from: SCEN-claude-decision-capture-nudges
     to: TEST-claude-edit-snippet-hook

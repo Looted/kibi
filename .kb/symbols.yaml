@@ -298,8 +298,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-search-answer-hygiene
       - type: implements
         target: REQ-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-kb-check-unverified-requirement-statements
   - id: SYM-kibi-check-build-structured-content
     title: buildStructuredContent
     sourceFile: packages/cli/src/public/operations/check-format-shared.ts
@@ -320,8 +324,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-search-answer-hygiene
       - type: implements
         target: REQ-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-kb-check-unverified-requirement-statements
   - id: SYM-kibi-migration-plan-hash
     title: migrationPlanHash
     sourceFile: packages/cli/src/public/operations/migration-plan.ts
@@ -3602,6 +3610,8 @@ symbols:
         target: TEST-search-answer-hygiene
       - type: implements
         target: REQ-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-kb-check-unverified-requirement-statements
       - type: implements
         target: REQ-kb-unowned-file-candidates
   - id: SYM-cli-impact-buildNextActions
@@ -26200,6 +26210,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
+        target: REQ-kb-upsert-ledger-contract-in-error
+      - type: implements
         target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-assert-logical-grounding-claim-keys
     title: assertLogicalGroundingClaimKeys
@@ -27970,11 +27982,15 @@ symbols:
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-verification-receipts-v2
       - type: implements
         target: REQ-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-kb-upsert-keeps-omitted-proof-receipts
       - type: implements
         target: REQ-kibi-operation-interface-parity
       - type: implements
@@ -53951,9 +53967,13 @@ symbols:
       - type: covered_by
         target: TEST-kb-decision-firmness
       - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: covered_by
         target: TEST-kibi-truthful-consistency
       - type: implements
         target: REQ-kb-firm-decision-edit
+      - type: implements
+        target: REQ-kb-upsert-keeps-omitted-proof-receipts
       - type: implements
         target: REQ-kibi-truthful-consistency
   - id: SYM-decision-firmness-decision-firm-edited-rule
@@ -55159,3 +55179,106 @@ symbols:
         target: TEST-kibi-bootstrap-knowledge-sources
       - type: implements
         target: REQ-bootstrap-claim-kinds-and-conflicts
+  - id: SYM-cli-requirement-statements-create
+    title: createRequirementStatementDiagnostics
+    status: active
+    sourceFile: packages/cli/src/public/impact/requirement-statements.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T16:34:22.343Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: implements
+        target: REQ-kb-check-unverified-requirement-statements
+  - id: SYM-cli-requirement-statements-options
+    title: RequirementStatementDiagnosticsOptions
+    status: active
+    sourceFile: packages/cli/src/public/impact/requirement-statements.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T16:34:28.087Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: implements
+        target: REQ-kb-check-unverified-requirement-statements
+  - id: SYM-cli-requirement-statements-workspace-file-changed
+    title: workspaceFileChanged
+    status: active
+    sourceFile: packages/cli/src/public/impact/requirement-statements.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T16:34:33.101Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: implements
+        target: REQ-kb-check-unverified-requirement-statements
+  - id: SYM-cli-requirement-statements-read-workspace-requirement
+    title: readWorkspaceRequirement
+    status: active
+    sourceFile: packages/cli/src/public/impact/requirement-statements.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T16:34:38.408Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: implements
+        target: REQ-kb-check-unverified-requirement-statements
+  - id: SYM-test-requirement-statements
+    title: Requirement statements suite
+    status: active
+    sourceFile: packages/cli/tests/traceability/requirement-statements.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T16:34:58.342Z
+    relationships:
+      - type: executable_for
+        target: TEST-search-answer-hygiene
+  - id: SYM-kibi-check-evaluated
+    title: CheckEvaluated
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-format-shared.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T16:47:09.257Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: implements
+        target: REQ-search-answer-hygiene
+  - id: SYM-semantic-inventory-contract
+    title: semanticInventoryContract
+    status: active
+    sourceFile: packages/cli/src/operations/semantic-advisor/ingestion-boundary.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T17:12:59.381Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+      - type: implements
+        target: REQ-kb-upsert-ledger-contract-in-error
+  - id: SYM-reqcompiler-ingestion-boundary-relationship
+    title: SemanticRelationship
+    status: active
+    sourceFile: packages/cli/src/operations/semantic-advisor/ingestion-boundary.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T17:40:42.864Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion

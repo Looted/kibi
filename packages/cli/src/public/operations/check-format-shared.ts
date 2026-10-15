@@ -126,10 +126,31 @@ export function formatQualityDiagnosticsText(
   return `${diagnostics.length} quality diagnostic${diagnostics.length === 1 ? "" : "s"} found\n${details.join("\n")}`;
 }
 
-// implements REQ-mcp-tool-check
-export function formatViolationText(violations: readonly Violation[]): string {
+/**
+ * Requirements the changed code implements whose statements the check did not
+ * compare with the code (`requirement_statement_unverified`).
+ */
+// implements REQ-kb-check-unverified-requirement-statements
+function unverifiedRequirementIds(input: {
+  readonly impactResult: ChangedFileImpactResult | undefined;
+}): string[] {
+  return (input.impactResult?.impactDiagnostics ?? [])
+    .filter(
+      (diagnostic) => diagnostic.id === "requirement_statement_unverified",
+    )
+    .map((diagnostic) => diagnostic.entityId)
+    .filter((id): id is string => id !== undefined);
+}
+
+// implements REQ-mcp-tool-check, REQ-kb-check-unverified-requirement-statements
+export function formatViolationText(
+  violations: readonly Violation[],
+  unverifiedRequirements: readonly string[] = [],
+): string {
   if (violations.length === 0) {
-    return "No violations found";
+    return unverifiedRequirements.length === 0
+      ? "No violations found"
+      : `No structural violations found. The changed code implements ${unverifiedRequirements.join(", ")}; Kibi did not compare the code with ${unverifiedRequirements.length === 1 ? "its statement" : "their statements"} (quoted under requirement_statement_unverified below), so confirm the change still does what each says, and ask the person before keeping a change that contradicts one`;
   }
 
   const details = violations.map((violation) => {
@@ -205,7 +226,9 @@ export function buildSummary(input: {
   readonly impactResult: ChangedFileImpactResult | undefined;
   readonly qualityDiagnostics: readonly QualityDiagnostic[];
 }): string {
-  const sections = [formatViolationText(input.violations)];
+  const sections = [
+    formatViolationText(input.violations, unverifiedRequirementIds(input)),
+  ];
   if (input.evaluated !== undefined)
     sections.push(formatEvaluatedText(input.evaluated));
   if (input.impactResult !== undefined) {
