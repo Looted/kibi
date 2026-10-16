@@ -978,7 +978,7 @@ describe("doctorCommand capability plugins", () => {
     writeJevActivation(cwd, true);
     const restoreKey = clearTypesafeKey();
     restores.push(restoreKey);
-    process.env.TYPESAFE_API_KEY = "test-key-not-for-leak-check";
+    process.env.TYPESAFE_API_KEY = "example-test-key-not-for-leak-check";
     mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
     const { payload } = await runDoctorJson(cwd);
     const check = namedCheck(payload, "Capability plugins");
@@ -990,7 +990,7 @@ describe("doctorCommand capability plugins", () => {
     expect(check.message).toMatch(/jev\.model=/);
     expect(check.message).toMatch(/jev\.timeoutMs=/);
     expect(JSON.stringify(payload)).not.toContain(
-      "test-key-not-for-leak-check",
+      "example-test-key-not-for-leak-check",
     );
   });
 
@@ -1052,7 +1052,7 @@ describe("doctorCommand capability plugins", () => {
     writeJevActivation(cwd, true);
     const restoreKey = clearTypesafeKey();
     restores.push(restoreKey);
-    process.env.TYPESAFE_API_KEY = "process-wins";
+    process.env.TYPESAFE_API_KEY = "example-process-wins";
     writeFileSync(
       path.join(cwd, ".env.kibi"),
       "TYPESAFE_API_KEY=from-project-file\n",
@@ -1062,7 +1062,7 @@ describe("doctorCommand capability plugins", () => {
     const check = namedCheck(payload, "Capability plugins");
     expect(check.passed).toBe(true);
     expect(check.message).toContain("TYPESAFE_API_KEY=process");
-    expect(JSON.stringify(payload)).not.toContain("process-wins");
+    expect(JSON.stringify(payload)).not.toContain("example-process-wins");
     expect(JSON.stringify(payload)).not.toContain("from-project-file");
   });
 

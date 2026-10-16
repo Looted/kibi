@@ -40,7 +40,7 @@ describe("Codex JSONL normalization", () => {
     // Given
     const transcript = JSON.stringify({
       type: "item.completed",
-      token: "credential-value",
+      token: "example-credential-value",
       item: { type: "agent_message", text: "hidden-held-out-token" },
     });
 
@@ -51,7 +51,9 @@ describe("Codex JSONL normalization", () => {
     });
 
     // Then
-    expect(JSON.stringify(normalized.events)).not.toContain("credential-value");
+    expect(JSON.stringify(normalized.events)).not.toContain(
+      "example-credential-value",
+    );
     expect(JSON.stringify(normalized.events)).not.toContain(
       "hidden-held-out-token",
     );

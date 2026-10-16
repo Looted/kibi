@@ -21,7 +21,7 @@ export async function createLegacyPreflightFixture(): Promise<LegacyPreflightFix
     join(codexHome, "auth.json"),
     JSON.stringify({
       auth_mode: "chatgpt",
-      tokens: { access_token: "session-token" },
+      tokens: { access_token: "example-session-token" },
     }),
     { mode: 0o600 },
   );
