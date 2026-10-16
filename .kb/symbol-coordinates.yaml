@@ -12221,7 +12221,7 @@ coordinates:
     sourceLine: 174
   SYM-e2e-multilingual-language-catalog:
     identityHash: 32d1d50fae40c5940184440eeaa30c0ee0b0cc7f97e7fe6891baccd25a1a4d09
-    sourceHash: 001af30d1b99ca9c090c871c9831b5410fb52f14b68051b26624fb1ee454e591
+    sourceHash: 9e3d24c508ea4cd16d9d27f497352e9e83fecb98c395115bf155bfc1a0efe89d
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 1144
@@ -12229,7 +12229,7 @@ coordinates:
     sourceLine: 1140
   SYM-e2e-multilingual-source-analysis:
     identityHash: c768de50d5f33af6f16317243e684afb5bf25fb25e232e4bee5198f038f9fef3
-    sourceHash: 6c2e63e60b613aa1a6996cd6500cfa1ab107f22380061cab02191d1c257ad8c4
+    sourceHash: 9b05c020cbc0456d875621be393281c298f4b2d78a349fa1d1fdfc10967a15a7
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 701
@@ -14709,12 +14709,12 @@ coordinates:
     sourceLine: 64
   SYM-impact-stage-e-runinstalledimpactpolicye2e:
     identityHash: 53db33f454a40912d71fce9933f8a302b147a84ce9bba9ca14c8e579b3af2d81
-    sourceHash: 054af252e48bc284f2711e1315b7516db88938a2f2c5db502a956a32cac19979
+    sourceHash: 8207007b19e29fe274f167915331bc4a3a5e163e68d0aa5602002bfe9431d625
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 2372
+    sourceEndLine: 2377
     sourceFile: documentation/tests/e2e/packed/impact-review-stage-e.test.ts
-    sourceLine: 2367
+    sourceLine: 2372
   SYM-impact-stage-e-same:
     identityHash: 5cea51e1c192f3bbfc7d4b242b8a6edf8649b0deaa07670560146cc33e8e0ab2
     sourceHash: c2536f30af67460825cdefcb5a61d2b7ca7a59876a7a4214feacf129c5113cb8
