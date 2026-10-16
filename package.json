@@ -131,7 +131,7 @@
     "@changesets/cli": "^2.31.1",
     "@hughescr/stryker-bun-runner": "^1.4.0",
     "@stryker-mutator/core": "^10.0.0",
-    "@types/node": "^25.9.8",
+    "@types/node": "^26.6.5",
     "ajv": "^8.20.0",
     "ajv-formats": "2.1.1",
     "bun-types": "^1.4.2",
