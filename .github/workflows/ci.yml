@@ -243,7 +243,7 @@ jobs:
 
       - name: Upload unit coverage to Codecov
         if: ${{ github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
-        uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5.5.5
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
           # Install the official CLI from PyPI while the binary CDN fails TLS.
           use_pypi: true
