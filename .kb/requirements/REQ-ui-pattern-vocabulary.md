@@ -38,6 +38,8 @@ logic_claims:
   - CLAIM-F05A72F2A40AD831
 id: REQ-ui-pattern-vocabulary
 type: req
+firmness: firm
+approval_ref: Maintainer confirmed this as a firm rule on 2026-10-16
 ---
 The built-in predicate catalog must offer the ui_pattern, same_pattern, pattern_marker and ui_container schemas. Predicate suggestions must route UI pattern prose to the UI predicates instead of coding standard rules.
 
