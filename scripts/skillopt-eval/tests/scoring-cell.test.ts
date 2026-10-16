@@ -303,7 +303,7 @@ describe("SkillOpt cell scoring", () => {
   test("redacts secret-like fields and known sentinel values recursively", () => {
     // Given
     const evidence = {
-      token: "raw-token",
+      token: "example-raw-token",
       nested: { safe: "visible", value: "PRIVATE_SENTINEL_secret" },
     };
 

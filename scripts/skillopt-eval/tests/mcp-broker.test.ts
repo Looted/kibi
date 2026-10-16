@@ -107,7 +107,10 @@ describe("evaluator-owned Kibi MCP evidence", () => {
       futureField: { opaque: true },
       params: {
         name: "kb_query",
-        arguments: { token: "secret", nested: { apiKey: "also-secret" } },
+        arguments: {
+          token: "example-secret",
+          nested: { apiKey: "example-also-secret" },
+        },
       },
     };
 

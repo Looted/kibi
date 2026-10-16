@@ -1,0 +1,12 @@
+# Local state and secrets
+node_modules/
+.env
+.env.*
+*.log
+*.tgz
+
+# Build inputs and tests that are not needed at runtime
+src/
+tests/
+scripts/
+tsconfig.json

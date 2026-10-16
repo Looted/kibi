@@ -32,7 +32,7 @@ jobs:
     container: quay.io/pypa/manylinux_2_28_x86_64
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - name: Locate container work directory
         id: paths
         run: echo "dir=$RUNNER_TEMP/swipl-spike" >> "$GITHUB_OUTPUT"
@@ -44,7 +44,7 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: '1.4.2'
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: '24'
       - name: Verify no system SWI-Prolog and install JS dependencies
@@ -104,7 +104,7 @@ jobs:
           if [ -f "$SPIKE_DIR/report.json" ]; then
             cat "$SPIKE_DIR/report.json"
           fi
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         if: always()
         with:
           name: swipl-spike-linux-x64
@@ -119,17 +119,17 @@ jobs:
     runs-on: macos-14
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - name: Locate runner work directory
         id: paths
         run: echo "dir=$RUNNER_TEMP/swipl-spike" >> "$GITHUB_OUTPUT"
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.12'
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: '1.4.2'
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: '24'
       - name: Verify native tools and no system SWI-Prolog
@@ -170,7 +170,7 @@ jobs:
           if [ -f "$SPIKE_DIR/report.json" ]; then
             cat "$SPIKE_DIR/report.json"
           fi
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         if: always()
         with:
           name: swipl-spike-darwin-arm64

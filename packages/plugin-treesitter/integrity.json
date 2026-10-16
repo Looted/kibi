@@ -191,8 +191,8 @@
     },
     {
       "path": "dist/analysis-worker.js",
-      "bytes": 51535,
-      "sha256": "75a1e646f636c1d1ace9ae22a9141a51e94bddc70203bed08de7bd13dae1764e"
+      "bytes": 51539,
+      "sha256": "7e87c177a5893e7edd5b6fb2b2798aadf22831c092af96026a2de130034116f5"
     },
     {
       "path": "dist/catalog.d.ts",

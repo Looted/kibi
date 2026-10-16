@@ -21,11 +21,11 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           fetch-depth: 1
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: '1.4.2'
       - name: Install dependencies
@@ -64,18 +64,18 @@ jobs:
       toPublish: ${{ steps.check-packages.outputs.toPublish }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: refs/heads/master
           fetch-depth: 1
       - name: Install SWI-Prolog
         run: bash scripts/ci-install-swi-prolog.sh
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: '1.4.2'
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
@@ -113,7 +113,7 @@ jobs:
       - name: Build and package VS Code extension
         run: bun run --cwd packages/vscode package
       - name: Download SWI-Prolog pipeline archives
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
         with:
           pattern: swipl-*
           path: ${{ runner.temp }}/swipl-artifacts
@@ -135,14 +135,14 @@ jobs:
         env:
           KIBI_E2E_COMPILED_DIR: ${{ runner.temp }}/kibi-e2e-packed-compiled
       - name: Upload compiled e2e tests
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: release-e2e-compiled
           path: ${{ runner.temp }}/kibi-e2e-packed-compiled
           if-no-files-found: error
           retention-days: 1
       - name: Upload package tarballs
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: package-tarballs
           path: |
@@ -167,7 +167,7 @@ jobs:
             packages/cursor/*.tgz
           retention-days: 1
       - name: Upload VS Code extension VSIX
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: vscode-vsix
           path: packages/vscode/*.vsix
@@ -187,24 +187,24 @@ jobs:
     if: ${{ always() && needs.build-and-check.result == 'success' && needs.build-and-check.outputs.toPublish != '' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: refs/heads/master
           fetch-depth: 1
       - name: Install SWI-Prolog
         run: bash scripts/ci-install-swi-prolog.sh
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: '1.4.2'
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: '24'
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Download package tarballs
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
         with:
           name: package-tarballs
           path: packages
@@ -286,16 +286,16 @@ jobs:
       id-token: write
     steps:
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: '1.4.2'
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
       - name: Download package tarballs
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
         with:
           name: package-tarballs
           path: packages
@@ -343,7 +343,7 @@ jobs:
       id-token: write
     steps:
       - name: Checkout released package metadata
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: ${{ github.sha }}
           fetch-depth: 1
@@ -426,18 +426,18 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: refs/heads/master
           fetch-depth: 1
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: '1.4.2'
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Download VS Code extension VSIX
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
         with:
           name: vscode-vsix
           path: packages/vscode

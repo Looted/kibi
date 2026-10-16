@@ -19,7 +19,9 @@
     "skills",
     "bin",
     "dist",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "LICENSE",
+    "SECURITY.md"
   ],
   "engines": {
     "node": ">=18"

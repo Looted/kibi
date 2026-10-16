@@ -13,8 +13,8 @@ test("persists a synthetic refreshed auth file after preflight probes", async ()
     const refreshed = JSON.stringify({
       auth_mode: "chatgpt",
       tokens: {
-        access_token: "refreshed-session-token",
-        refresh_token: "refresh-2",
+        access_token: "example-refreshed-session-token",
+        refresh_token: "example-refresh-2",
       },
     });
     const deps = legacyPreflightDependencies();

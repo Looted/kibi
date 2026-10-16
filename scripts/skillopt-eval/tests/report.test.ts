@@ -17,9 +17,9 @@ function reportInput() {
     skill: "kibi-usage" as const,
     cells: [
       { taskId: "public-task", score: 91 },
-      { taskId: "private-task", token: "private-sentinel" },
+      { taskId: "private-task", token: "example-private-sentinel" },
     ],
-    privateValues: ["private-sentinel"],
+    privateValues: ["example-private-sentinel"],
     priceEquivalentEstimate: {
       currency: "USD" as const,
       amount: 1.25,
@@ -72,8 +72,8 @@ describe("SkillOpt report artifacts", () => {
     expect(privateArtifacts.report.cells).toEqual(
       redactedArtifacts.report.cells,
     );
-    expect(privateArtifacts.json).not.toContain("private-sentinel");
-    expect(privateArtifacts.markdown).not.toContain("private-sentinel");
+    expect(privateArtifacts.json).not.toContain("example-private-sentinel");
+    expect(privateArtifacts.markdown).not.toContain("example-private-sentinel");
   });
 
   test("refuses a passing verdict when a required gate is false", () => {

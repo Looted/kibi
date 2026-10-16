@@ -85,11 +85,15 @@ describe("ci.yml CI workflow contract", () => {
       const block = extractJobBlock(workflowContent, job);
       if (sourceDependentPackedJobs.includes(job)) {
         // These jobs execute tests that read repo-local fixtures/source files.
-        expect(block).toContain("actions/checkout@v6");
+        expect(block).toContain(
+          "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+        );
         expect(block).toContain("fetch-depth: 1");
       } else {
         // Artifact-only packed jobs should remain checkout-free.
-        expect(block).not.toContain("actions/checkout@v6");
+        expect(block).not.toContain(
+          "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+        );
       }
 
       // Packed jobs must download both artifacts
@@ -136,7 +140,9 @@ describe("ci.yml CI workflow contract", () => {
 
   test("ci-typecheck-build: explicit shallow checkout", () => {
     const block = extractJobBlock(workflowContent, "ci-typecheck-build");
-    expect(block).toContain("actions/checkout@v6");
+    expect(block).toContain(
+      "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+    );
     expect(block).toContain("fetch-depth: 1");
     expect(block).not.toContain("fetch-depth: 0");
   });
@@ -245,7 +251,9 @@ describe("ci.yml CI workflow contract", () => {
 
   test("ci-package-contract: explicit shallow checkout and catalog packing", () => {
     const block = extractJobBlock(workflowContent, "ci-package-contract");
-    expect(block).toContain("actions/checkout@v6");
+    expect(block).toContain(
+      "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+    );
     expect(block).toContain("fetch-depth: 1");
     expect(block).not.toContain("fetch-depth: 0");
     expect(block).toMatch(/^\s+run: bun run build$/m);
@@ -259,9 +267,11 @@ describe("ci.yml CI workflow contract", () => {
       // Simulate a mutated packed block that re-introduces checkout
       const mutated = block.replace(
         "Download tarball artifacts",
-        "Checkout\n        uses: actions/checkout@v6\n        with:\n          fetch-depth: 1\n      - name: Download tarball artifacts",
+        "Checkout\n        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803\n        with:\n          fetch-depth: 1\n      - name: Download tarball artifacts",
       );
-      expect(mutated).toContain("actions/checkout@v6");
+      expect(mutated).toContain(
+        "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+      );
     });
 
     test("rejects remaining checkout that omits fetch-depth: 1", () => {
