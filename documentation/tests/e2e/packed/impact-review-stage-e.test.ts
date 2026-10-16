@@ -360,7 +360,9 @@ async function upsert(
   sandbox: TestSandbox,
   payload: Record<string, unknown>,
 ): Promise<void> {
-  const validation = await kibiInput(sandbox, "validate-upsert", payload);
+  // kb_validate_upsert checks the entity, not its document body.
+  const { document: _document, ...entity } = payload;
+  const validation = await kibiInput(sandbox, "validate-upsert", entity);
   assertExit(validation, 0, `validate ${String(payload.id)}`);
   const preflight = parseJson(validation, `validate ${String(payload.id)}`);
   assert.equal(preflight.status, "success", outputOf(validation));
