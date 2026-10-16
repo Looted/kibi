@@ -52,14 +52,14 @@ jobs:
         env:
           BUILD_DIR: ${{ steps.paths.outputs.dir }}
         run: bash scripts/swipl-spike.sh build-archive --target '${{ matrix.target }}' --workdir "$BUILD_DIR"
-      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: swipl-build-report-${{ matrix.target }}
           path: ${{ steps.paths.outputs.dir }}/report.json
           if-no-files-found: warn
           retention-days: 7
-      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: success()
         with:
           name: swipl-${{ matrix.target }}
@@ -103,14 +103,14 @@ jobs:
         env:
           BUILD_DIR: ${{ steps.paths.outputs.dir }}
         run: bash scripts/swipl-spike.sh build-archive --target '${{ matrix.target }}' --workdir "$BUILD_DIR"
-      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: swipl-build-report-${{ matrix.target }}
           path: ${{ steps.paths.outputs.dir }}/report.json
           if-no-files-found: warn
           retention-days: 7
-      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: success()
         with:
           name: swipl-${{ matrix.target }}
@@ -166,7 +166,7 @@ jobs:
           test "${#archives[@]}" -eq 1
           bash scripts/swipl-spike.sh smoke-archive --target '${{ matrix.target }}' \
             --archive "${archives[0]}" --checksum "${archives[0]}.sha256" --workdir "$SMOKE_DIR"
-      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: swipl-smoke-${{ matrix.target }}
@@ -215,7 +215,7 @@ jobs:
           test "${#archives[@]}" -eq 1
           bash scripts/swipl-spike.sh smoke-archive --target '${{ matrix.target }}' \
             --archive "${archives[0]}" --checksum "${archives[0]}.sha256" --workdir "$SMOKE_DIR"
-      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: swipl-smoke-${{ matrix.target }}

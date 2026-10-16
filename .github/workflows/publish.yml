@@ -135,14 +135,14 @@ jobs:
         env:
           KIBI_E2E_COMPILED_DIR: ${{ runner.temp }}/kibi-e2e-packed-compiled
       - name: Upload compiled e2e tests
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-e2e-compiled
           path: ${{ runner.temp }}/kibi-e2e-packed-compiled
           if-no-files-found: error
           retention-days: 1
       - name: Upload package tarballs
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: package-tarballs
           path: |
@@ -167,7 +167,7 @@ jobs:
             packages/cursor/*.tgz
           retention-days: 1
       - name: Upload VS Code extension VSIX
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: vscode-vsix
           path: packages/vscode/*.vsix
