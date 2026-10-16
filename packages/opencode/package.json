@@ -63,7 +63,7 @@
   },
   "dependencies": {
     "@opencode-ai/plugin": "^1.4.7",
-    "@opentui/core": "^0.1.99",
+    "@opentui/core": "^0.6.3",
     "@opentui/solid": "^0.1.99",
     "kibi-agent-core": "^0.8.0",
     "kibi-runtime": "^2.16.4"
