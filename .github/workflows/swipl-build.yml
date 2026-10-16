@@ -36,7 +36,7 @@ jobs:
     container: ${{ matrix.image }}
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Require no preinstalled SWI-Prolog
         run: |
           if command -v swipl; then exit 1; fi
@@ -82,7 +82,7 @@ jobs:
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Require no preinstalled SWI-Prolog
         run: |
           if command -v swipl; then exit 1; fi
@@ -137,7 +137,7 @@ jobs:
     container: ${{ matrix.image }}
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Require clean consumer before artifact download
         run: |
           if command -v swipl; then exit 1; fi
@@ -187,7 +187,7 @@ jobs:
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Require clean consumer before artifact download
         run: |
           if command -v swipl; then exit 1; fi

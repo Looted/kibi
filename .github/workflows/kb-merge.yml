@@ -45,7 +45,7 @@ jobs:
     outputs:
       branches: ${{ steps.find.outputs.branches }}
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: develop
           fetch-depth: 0
@@ -106,7 +106,7 @@ jobs:
       # The merge driver and the coordinate refresh come from develop, not the
       # PR branch: a branch that predates them has no `kibi merge-driver`, and
       # its own lockfile or build may be stale until develop is merged in.
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.sha }}
 
@@ -126,7 +126,7 @@ jobs:
       - name: Install SWI-Prolog
         uses: ./.github/actions/use-bundled-swipl
 
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ matrix.branch }}
           path: pr
