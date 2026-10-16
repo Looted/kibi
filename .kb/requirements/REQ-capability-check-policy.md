@@ -56,6 +56,8 @@ logic_claims:
   - CLAIM-0B667438D7DBFB61
 id: REQ-capability-check-policy
 type: req
+firmness: firm
+approval_ref: Maintainer confirmed this as a firm rule on 2026-10-16
 ---
 The kb_check operation must read an activated check policy as JSON data without importing plugin code. The kb_check operation must report a production symbol in an ownership rule file set that implements no current requirement grounded in one of the rule predicates. The kb_check operation must report an implementing file that lacks a pattern marker declared for its requirement pattern. The kb_check operation must block when an activated check policy cannot be read.
 

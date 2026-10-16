@@ -38,6 +38,8 @@ logic_claims:
   - CLAIM-000ADB011443E23F
 id: REQ-ui-pattern-component-proof
 type: req
+firmness: firm
+approval_ref: Maintainer confirmed this as a firm rule on 2026-10-16
 ---
 A scenario whose specifying requirements are grounded only in ui_pattern, same_pattern and pattern_marker predicates must accept unit and integration tests with fresh passing receipts as proof. Every other scenario must accept only end-to-end tests as proof.
 

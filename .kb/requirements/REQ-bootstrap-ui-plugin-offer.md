@@ -47,6 +47,8 @@ logic_claims:
   - CLAIM-A988B560F7A5C46D
 id: REQ-bootstrap-ui-plugin-offer
 type: req
+firmness: firm
+approval_ref: Maintainer confirmed this as a firm rule on 2026-10-16
 ---
 The bootstrap plan must offer kibi-plugin-ui when production React or Angular component files exist. The bootstrap plan must not offer a plugin that package.json activates or lists in kibi.declinedPlugins. Project configuration validation must reject a kibi.declinedPlugins entry that is not a bare package name.
 

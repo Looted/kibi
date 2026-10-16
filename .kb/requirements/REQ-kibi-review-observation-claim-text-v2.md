@@ -47,6 +47,8 @@ origin:
   recorded_at: '2026-10-12T10:28:02.663Z'
 id: REQ-kibi-review-observation-claim-text-v2
 type: req
+firmness: firm
+approval_ref: Maintainer confirmed this as a firm rule on 2026-10-16
 ---
 Kibi must accept an observation or meta fact that quotes a claim in claim_text without claim_key. Kibi must derive claim_key from claim_text for any other fact that carries claim_text without claim_key. Kibi must reject a fact whose claim_key does not equal the key derived from its claim_text.
 
