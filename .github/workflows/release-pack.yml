@@ -79,7 +79,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
       - name: Setup Bun
@@ -87,7 +87,7 @@ jobs:
         with:
           bun-version: '1.4.2'
       - name: Setup Node.js
-        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24'
       - name: Install dependencies
@@ -95,7 +95,7 @@ jobs:
       - name: Build packages
         run: bun run build
       - name: Download SWI-Prolog pipeline archives
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: swipl-*
           path: ${{ runner.temp }}/swipl-artifacts
@@ -115,7 +115,7 @@ jobs:
             echo "$(basename "$tarball") packed=${packed} unpacked=${unpacked}" | tee -a "$GITHUB_STEP_SUMMARY"
           done
       - name: Upload package tarballs
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-pack-tarballs
           path: packages/*/*.tgz
@@ -126,7 +126,7 @@ jobs:
         env:
           KIBI_E2E_COMPILED_DIR: ${{ runner.temp }}/kibi-e2e-packed-compiled
       - name: Upload compiled e2e tests
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-pack-e2e-compiled
           path: ${{ runner.temp }}/kibi-e2e-packed-compiled

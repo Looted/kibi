@@ -36,7 +36,7 @@ jobs:
     container: ${{ matrix.image }}
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Require no preinstalled SWI-Prolog
         run: |
           if command -v swipl; then exit 1; fi
@@ -52,14 +52,14 @@ jobs:
         env:
           BUILD_DIR: ${{ steps.paths.outputs.dir }}
         run: bash scripts/swipl-spike.sh build-archive --target '${{ matrix.target }}' --workdir "$BUILD_DIR"
-      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: swipl-build-report-${{ matrix.target }}
           path: ${{ steps.paths.outputs.dir }}/report.json
           if-no-files-found: warn
           retention-days: 7
-      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: success()
         with:
           name: swipl-${{ matrix.target }}
@@ -82,11 +82,11 @@ jobs:
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Require no preinstalled SWI-Prolog
         run: |
           if command -v swipl; then exit 1; fi
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.12'
       - name: Install pinned build tools and check native audits
@@ -103,14 +103,14 @@ jobs:
         env:
           BUILD_DIR: ${{ steps.paths.outputs.dir }}
         run: bash scripts/swipl-spike.sh build-archive --target '${{ matrix.target }}' --workdir "$BUILD_DIR"
-      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: swipl-build-report-${{ matrix.target }}
           path: ${{ steps.paths.outputs.dir }}/report.json
           if-no-files-found: warn
           retention-days: 7
-      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: success()
         with:
           name: swipl-${{ matrix.target }}
@@ -137,7 +137,7 @@ jobs:
     container: ${{ matrix.image }}
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Require clean consumer before artifact download
         run: |
           if command -v swipl; then exit 1; fi
@@ -150,7 +150,7 @@ jobs:
         run: |
           echo "artifacts=$RUNNER_TEMP/swipl-artifact/${{ matrix.target }}" >> "$GITHUB_OUTPUT"
           echo "work=$RUNNER_TEMP/swipl-smoke/${{ matrix.target }}" >> "$GITHUB_OUTPUT"
-      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: swipl-${{ matrix.target }}
           path: ${{ steps.paths.outputs.artifacts }}
@@ -166,7 +166,7 @@ jobs:
           test "${#archives[@]}" -eq 1
           bash scripts/swipl-spike.sh smoke-archive --target '${{ matrix.target }}' \
             --archive "${archives[0]}" --checksum "${archives[0]}.sha256" --workdir "$SMOKE_DIR"
-      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: swipl-smoke-${{ matrix.target }}
@@ -187,11 +187,11 @@ jobs:
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Require clean consumer before artifact download
         run: |
           if command -v swipl; then exit 1; fi
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.12'
       - name: Locate clean consumer directories
@@ -199,7 +199,7 @@ jobs:
         run: |
           echo "artifacts=$RUNNER_TEMP/swipl-artifact/${{ matrix.target }}" >> "$GITHUB_OUTPUT"
           echo "work=$RUNNER_TEMP/swipl-smoke/${{ matrix.target }}" >> "$GITHUB_OUTPUT"
-      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: swipl-${{ matrix.target }}
           path: ${{ steps.paths.outputs.artifacts }}
@@ -215,7 +215,7 @@ jobs:
           test "${#archives[@]}" -eq 1
           bash scripts/swipl-spike.sh smoke-archive --target '${{ matrix.target }}' \
             --archive "${archives[0]}" --checksum "${archives[0]}.sha256" --workdir "$SMOKE_DIR"
-      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: swipl-smoke-${{ matrix.target }}
