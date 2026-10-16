@@ -69,7 +69,7 @@ export const qualifiedSourceAnalyzers = [
       "catalog.json":
         "6c1101d0e831ea11f1002edf4baeca88521ac6f4c18a2e1c64f2f030f8bf6bba",
       "dist/analysis-worker.js":
-        "75a1e646f636c1d1ace9ae22a9141a51e94bddc70203bed08de7bd13dae1764e",
+        "7e87c177a5893e7edd5b6fb2b2798aadf22831c092af96026a2de130034116f5",
       "dist/catalog.js":
         "460243c48cb6a03b8c7971273729d8a1134955186978b6c0d04182c71960ebff",
       "dist/extractor.js":
@@ -79,7 +79,7 @@ export const qualifiedSourceAnalyzers = [
       "dist/performance-timing.js":
         "56cce530f627c8fd079e8ec070322f84378ae50c40a6765d88b418850692940b",
       "integrity.json":
-        "a77eb4b614452f158202b3f8aa91b91750dd2ad94693cc9c375460ec5b80c48b",
+        "3b98a4ce02eabead2c72cd8d2a9b13dbf89ad56a0a0354811ec5498212b03ece",
       "licenses/tree-sitter-bash-MIT.txt":
         "49bf33cf78ef5897e4e161ce1517df7de1ae5042a65b6bcfd44401e0fc606559",
       "licenses/tree-sitter-c-MIT.txt":

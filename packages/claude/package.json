@@ -20,7 +20,9 @@
     "skills",
     "dist",
     "README.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "LICENSE",
+    "SECURITY.md"
   ],
   "engines": {
     "node": ">=18"

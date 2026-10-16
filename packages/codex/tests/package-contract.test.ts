@@ -39,6 +39,8 @@ describe("kibi-codex package contract", () => {
       "bin",
       "dist",
       "CHANGELOG.md",
+      "LICENSE",
+      "SECURITY.md",
     ]);
     expect(packageJson.publishConfig?.access).toBe("public");
     expect(packageJson.peerDependencies).toMatchObject({
