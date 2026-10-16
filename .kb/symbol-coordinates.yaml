@@ -12349,10 +12349,10 @@ coordinates:
     sourceLine: 1
   SYM-e2e-test-010:
     identityHash: 9e0c536be25e3bb45a147437589946fc8298ec59ae2656a4d8ecaab235461c3a
-    sourceHash: 3b55185afd5460d6b39c96ef1d7534ff1552692b975cf3d84647a8e44e3244d8
+    sourceHash: 9e9932b600c29f81a1cdf3a6a7f867aa0b2be7901543b97908040671a957894a
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 1059
+    sourceEndLine: 1063
     sourceFile: documentation/tests/e2e/packed/traceability-gate.test.ts
     sourceLine: 1
   SYM-e2e-test-011:
@@ -12861,18 +12861,18 @@ coordinates:
     sourceLine: 1
   SYM-e2e-test-vscode-traceability:
     identityHash: f5a9006ef6a26192a8751fdb93c50109edf2b7748f30a1cbc068504c6cb2739f
-    sourceHash: 3b55185afd5460d6b39c96ef1d7534ff1552692b975cf3d84647a8e44e3244d8
+    sourceHash: 9e9932b600c29f81a1cdf3a6a7f867aa0b2be7901543b97908040671a957894a
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 1059
+    sourceEndLine: 1063
     sourceFile: documentation/tests/e2e/packed/traceability-gate.test.ts
     sourceLine: 1
   SYM-e2e-test-vscode-traceability-coverage:
     identityHash: 3a19e5244230237dd515d08bbe63b24f0801ee556f96ec180f5a2b6a3fd6afe6
-    sourceHash: 3b55185afd5460d6b39c96ef1d7534ff1552692b975cf3d84647a8e44e3244d8
+    sourceHash: 9e9932b600c29f81a1cdf3a6a7f867aa0b2be7901543b97908040671a957894a
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 1059
+    sourceEndLine: 1063
     sourceFile: documentation/tests/e2e/packed/traceability-gate.test.ts
     sourceLine: 1
   SYM-e2e-vscode-extension-lifecycle:
@@ -36277,7 +36277,7 @@ coordinates:
     sourceLine: 14
   SYM-test-packed-default-branch-sync-hooks:
     identityHash: b1eb4af04264cc56c5584a22677eb7ac854b839bebebdfc2e0a6f724e1b593e7
-    sourceHash: 756653219b1139cfe0e107556d234550a19b34f3f66fa81182583794341c07a7
+    sourceHash: 694c1c8cc8c3a9d40a2abbe556519950f8160ce2218f4c83b2f24a1b5f6b30e1
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 44
@@ -36341,7 +36341,7 @@ coordinates:
     sourceLine: 40
   SYM-test-packed-post-merge-sync:
     identityHash: 42f805fd15dbf135c1b634b96d02b6fd4e26cc13a2e270fd54e1be0f8cee04f5
-    sourceHash: 756653219b1139cfe0e107556d234550a19b34f3f66fa81182583794341c07a7
+    sourceHash: 694c1c8cc8c3a9d40a2abbe556519950f8160ce2218f4c83b2f24a1b5f6b30e1
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 51
