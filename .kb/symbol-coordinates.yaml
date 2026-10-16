@@ -17949,10 +17949,10 @@ coordinates:
     sourceLine: 1
   SYM-mcp-release-registry-metadata:
     identityHash: 243381a6fc622289060ae9fc50ab65b559c478b15c309c3e7e4cf730e442d06a
-    sourceHash: b1c38963788f54103982783f7cc5598f7b2ad728b80de856d15ff23e7ee5aa45
+    sourceHash: 3d12847cd466e2c9b88cc9d42285ca8e2ee26b6bc61ff79272422cda842868e9
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 21
+    sourceEndLine: 29
     sourceFile: packages/mcp/server.json
     sourceLine: 1
   SYM-mcp-resolve-env-file-path:
@@ -23853,7 +23853,7 @@ coordinates:
     sourceLine: 336
   SYM-release-verify-published-metadata:
     identityHash: a2853dc37dda37cb92c73f7757c3cd4280101b22e39da24f38748a1b9681963d
-    sourceHash: a6a2b3a47ff6a5c5d31d680075d23a982b31cfcd7d98b1ef4595465e829e3208
+    sourceHash: 81b765698428f5950dddc322d3b1a549a4071449fedbfbe332c5b3b8b36d371e
     sourceColumn: 9
     sourceEndColumn: 1
     sourceEndLine: 120
@@ -36501,10 +36501,10 @@ coordinates:
     sourceLine: 1
   SYM-test-publish-metadata-verifier:
     identityHash: 77e0bc68bd3fbdb65448bce75a071032dd16bb664c04bd4eb8d70bc5fddf7609
-    sourceHash: fa68299875090ed5302557bb3fcf4a34ba59ca2fc18ca76a01ee4c421a8b4e1c
+    sourceHash: 7e30124a934271b97295b111de4d77ba4341b52ed383cfe6af31036a5f372c20
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 383
+    sourceEndLine: 414
     sourceFile: scripts/tests/verify-publish-metadata.test.ts
     sourceLine: 1
   SYM-test-release-pack-workflow-contract:
