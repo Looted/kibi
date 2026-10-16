@@ -922,7 +922,7 @@ async function runCatalogWorkflow(tarballs: Tarballs): Promise<void> {
         updated_at: "2026-09-26T00:00:00Z",
         source: ".kb/requirements/REQ-multilingual-language-catalog.md",
       },
-      "The approved offline source catalog records qualified declarations for Java, C#, PHP, C, C++, Bash, Ruby, Terraform, and HCL. Ambiguity, unsupported file-level documents, parser damage, and structural HCL remain explicit; no source program is executed.",
+      "The approved offline source catalog records qualified declarations for Java, C#, PHP, C, C++, Bash, Ruby, Terraform, and HCL. Ambiguity, unsupported file-level documents, parser damage, and structural HCL remain explicit; no source program is executed.\n\n## Context\n\nFixture requirement that owns the staged source declarations of this workflow.",
     );
     // Owned symbols also need production coverage: `kibi check --staged`
     // runs the same symbol-coverage rule as the full check.

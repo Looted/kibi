@@ -634,6 +634,10 @@ status: open
 ---
 
 # Develop Seed
+
+## Context
+
+Seed requirement for the branch workflow test: the develop branch carries knowledge before a feature branch is created.
 `,
         );
 

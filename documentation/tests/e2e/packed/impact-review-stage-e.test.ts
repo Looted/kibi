@@ -948,6 +948,9 @@ function requirementPayload(
         ...(proposition.reason ? { reason: proposition.reason } : {}),
       })),
     },
+    document: {
+      body: "## Context\n\nFixture requirement for the installed impact review lifecycle: it owns one function of the fixture service.",
+    },
   };
 }
 

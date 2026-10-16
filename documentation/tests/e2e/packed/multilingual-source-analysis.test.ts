@@ -524,7 +524,7 @@ async function runLanguageWorkflow(
         updated_at: "2026-09-26T00:00:00Z",
         source: ".kb/requirements/REQ-source-analysis-v2-contract.md",
       },
-      "Every changed Python, Go, and Rust declaration is analyzed by the approved source provider and receives authored requirement ownership.",
+      "Every changed Python, Go, and Rust declaration is analyzed by the approved source provider and receives authored requirement ownership.\n\n## Context\n\nFixture requirement that owns the staged source declarations of this workflow.",
     );
     // Owned symbols also need production coverage: `kibi check --staged`
     // runs the same symbol-coverage rule as the full check.
