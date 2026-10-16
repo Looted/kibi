@@ -34635,6 +34635,14 @@ coordinates:
     sourceEndLine: 23
     sourceFile: packages/cli/src/traceability/git-staged.ts
     sourceLine: 23
+  SYM-staged-entity-context-introduced:
+    identityHash: cbce67d3fca525a74e394be2010241db411ca70f83b83d19640c01b9f180407e
+    sourceHash: 1c9eef7f44fdb2e52b560189bec9d73cb58207a3ecf841f070c7bbbf9ed9a100
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 103
+    sourceFile: packages/cli/src/traceability/staged-entity-context.ts
+    sourceLine: 69
   SYM-staged-file-coverage-diagnostic:
     identityHash: d7a82033bab6f29172a5837e6a18cbda9feb61ed67cc7a0cf328f4af4aae562f
     sourceHash: c395330f78e8cffeca82e3c9f40c8f39ded5e26e090a483fad0bf3ecd5092240
