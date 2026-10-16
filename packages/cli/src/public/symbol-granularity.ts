@@ -107,14 +107,22 @@ export function isBehavioralSymbol(
   return getSymbolRole(candidate) === "behavioral";
 }
 
+/**
+ * The behavioral candidates' names, the place a coarse link should move to:
+ * functions, methods and accessors first, then properties (behavioral in the
+ * schema, but usually plain fields), each group sorted by name.
+ */
+// implements REQ-kibi-symbol-link-guidance
 export function getBehavioralSymbolNames(
   candidates: GranularSymbolCandidate[],
 ): string[] {
-  return [
-    ...new Set(
-      candidates.filter(isBehavioralSymbol).map((candidate) => candidate.name),
-    ),
-  ].sort();
+  const behavioral = candidates.filter(isBehavioralSymbol);
+  const names = (properties: boolean) =>
+    behavioral
+      .filter((candidate) => (candidate.kind === "property") === properties)
+      .map((candidate) => candidate.name)
+      .sort();
+  return [...new Set([...names(false), ...names(true)])];
 }
 
 /**

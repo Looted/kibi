@@ -489,6 +489,7 @@ export function buildIntentClaimCandidates(
       sourcePath: claim.reference,
       confidence,
       evidence,
+      claimStatement: claim.statement,
     });
     if (nearRestatement)
       diagnostics.push(

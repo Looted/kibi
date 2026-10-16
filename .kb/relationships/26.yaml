@@ -251,3 +251,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0fbd6c5a933e
+  - type: implements
+    from: SYM-bootstrap-conflict-review-signals
+    to: REQ-bootstrap-authoring-claim-review
+    created_at: 2026-10-16T09:05:20.679Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48680a592245

@@ -119,9 +119,10 @@ export async function collectIntroducedConsistencyViolations(
 // implements REQ-cli-staged-consistency
 export function formatConsistencyViolations(
   violations: readonly Violation[],
+  kind = "consistency",
 ): string[] {
   const lines = [
-    `Found ${violations.length} consistency violation(s) introduced by the staged changes:`,
+    `Found ${violations.length} ${kind} violation(s) introduced by the staged changes:`,
     "",
   ];
   for (const violation of violations) {

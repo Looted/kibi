@@ -398,3 +398,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2000d560311e
+  - type: implements
+    from: SYM-staged-entity-context-introduced
+    to: REQ-cli-staged-entity-context
+    created_at: 2026-10-16T09:05:26.830Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-000c004bd688
+  - type: covered_by
+    from: SYM-staged-entity-context-introduced
+    to: TEST-cli-staged-entity-context
+    created_at: 2026-10-16T09:05:26.871Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a83f53f79301

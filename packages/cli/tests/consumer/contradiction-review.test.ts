@@ -27,6 +27,8 @@ const LABEL_PROSE =
 const SAVES_INTENT =
   "Pressing Escape while editing a shape label saves the label text and deselects the shape.";
 const LABEL_INTENT = "Shape label length must be at most 200.";
+const UNRELATED_INTENT =
+  "Exported drawings keep the color profile chosen in the print dialog.";
 
 let ws: ConsumerWorkspace | undefined;
 afterEach(() => {
@@ -287,5 +289,74 @@ describe("contradiction analysis reports what it could not check", () => {
           entry.includes(LABEL),
       ),
     ).toBe(true);
+  }, 240_000);
+
+  test("bootstrap names prose-only requirements a claim left for authoring must be compared with", () => {
+    const workspace = editorWorkspace();
+    const result = workspace.json(["plan-bootstrap"], {
+      bootstrapContext: {
+        projectSummary: "A drawing editor for a test project.",
+        verificationAnchors: ["bun test"],
+        knowledgeSources: [
+          {
+            id: "tracker",
+            title: "Issue tracker",
+            kind: "issue_tracker",
+            locator: "https://example.com/tracker",
+            authority: "authoritative",
+            component: "editor",
+          },
+        ],
+        intentClaims: [
+          {
+            statement: SAVES_INTENT,
+            sourceId: "tracker",
+            reference: "T-2",
+            excerpt: `The tracker says: ${SAVES_INTENT}`,
+          },
+          {
+            statement: UNRELATED_INTENT,
+            sourceId: "tracker",
+            reference: "T-3",
+            excerpt: `The tracker says: ${UNRELATED_INTENT}`,
+          },
+        ],
+      },
+    });
+    expect(result.status).toBe("success");
+    const data = result.data as Json;
+    const planned = data.plan as Json;
+    const diagnostics = planned.diagnostics as string[];
+    // Neither claim can be modeled: both are left for authoring.
+    expect(diagnostics).toContain(
+      `Intent claim needs authoring at tracker:T-2: ${SAVES_INTENT}`,
+    );
+    expect(diagnostics).toContain(
+      `Intent claim needs authoring at tracker:T-3: ${UNRELATED_INTENT}`,
+    );
+    const review = diagnostics.filter((entry) =>
+      entry.startsWith("conflict-review:"),
+    );
+    const escapeReview = review.find((entry) => entry.includes("tracker:T-2"));
+    expect(escapeReview).toBeDefined();
+    expect(escapeReview).toContain(
+      `${ESCAPE} ("Escape cancels a label edit without saving")`,
+    );
+    expect(escapeReview).toContain("kb_compile_intent");
+    expect(escapeReview).toContain("conflictReviews");
+    expect(review.some((entry) => entry.includes("tracker:T-3"))).toBe(false);
+    expect(
+      diagnostics.some(
+        (entry) =>
+          entry.startsWith("Knowledge source tracker") &&
+          entry.includes("1 of them need a conflict review"),
+      ),
+    ).toBe(true);
+    const handoff = (data.recommendedActions as Json[]).find((action) =>
+      String(action.description).startsWith("Author REQ entities"),
+    ) as Json;
+    expect(String(handoff.description)).toContain(
+      "1 intent claim(s) left for authoring need a conflict review",
+    );
   }, 240_000);
 });

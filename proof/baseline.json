@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 228,
-  "proofProven": 228,
+  "currentRequirements": 230,
+  "proofProven": 230,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -1142,6 +1142,16 @@
       "uncoveredSymbols": []
     },
     "REQ-kibi-symbol-link-guidance": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-bootstrap-authoring-claim-review": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-cli-staged-entity-context": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

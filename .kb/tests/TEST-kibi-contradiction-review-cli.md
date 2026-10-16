@@ -29,17 +29,17 @@ id: TEST-kibi-contradiction-review-cli
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-502bd452386a257494a33798
+    receipt_id: PR-9b44401a02e14754ee4239a4
     test_id: TEST-kibi-contradiction-review-cli
     scope: end_to_end
     outcome: passed
-    code_snapshot: 7f060ecc32f6e35899d93ae8501a7c47d983b0a64b68a26cd5a72198769ba861
+    code_snapshot: 41881deebf8ec3697db8320dcaa508fecd148666d50247e408a64449f1e9a1ea
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-15T16:10:40.168Z'
-    finished_at: '2026-10-15T16:11:08.121Z'
-    artifact_digest: a991daec821eaacdd250189f1c3eeec93865aef89a15102c55237c32e682ab5e
+    started_at: '2026-10-16T09:03:13.613Z'
+    finished_at: '2026-10-16T09:03:39.717Z'
+    artifact_digest: 5b572e5a68b6161e206f745a7190c1db769e74d7b2933058e344d9d411b5673e
     contract_hash: 8ce1ad0c8052b7fa3ac4cd0577233fd1f647509ffbdfdeb1fa92d0950940b813
-    binding_hash: d866626c47a5f9958116ff1bc4bb33931e4021ff4a5c9ee137a75323507a2729
+    binding_hash: 71545cdc882d65b78085eb35398c137a6859bf7bf9535a13eadfcf8d641177d6
     fingerprint: 2a74f02524bfbfe852f9927e5ec004f38201fbf2f02d8ed27bad2abf2f49229a
     fingerprint_components:
       contract: 8ce1ad0c8052b7fa3ac4cd0577233fd1f647509ffbdfdeb1fa92d0950940b813
@@ -62,4 +62,4 @@ proof_receipts:
         attempts:
           status: unavailable
 ---
-Drives a fresh workspace through the built `kibi` binary (`packages/cli/tests/consumer/contradiction-review.test.ts`). A drawing editor has a closed, prose-only requirement saying Escape cancels a label edit without saving. Compiling "Escape saves the label" must give `unresolved` with `unmodeled_target` and that requirement in `reviewCandidates`; a `conflict` review blocks the plan; a `no_conflict` review keeps the outcome unresolved while the claim is unmodeled. A modeled claim next to a prose-only requirement stays `ready` but `unresolved` until reviewed, a modeled consistent pair is `no_conflict`, and `kb_plan_bootstrap` names the prose-only requirement for a planned claim.
+Drives a fresh workspace through the built `kibi` binary (`packages/cli/tests/consumer/contradiction-review.test.ts`). A drawing editor has a closed, prose-only requirement saying Escape cancels a label edit without saving. Compiling "Escape saves the label" must give `unresolved` with `unmodeled_target` and that requirement in `reviewCandidates`; a `conflict` review blocks the plan; a `no_conflict` review keeps the outcome unresolved while the claim is unmodeled. A modeled claim next to a prose-only requirement stays `ready` but `unresolved` until reviewed, a modeled consistent pair is `no_conflict`, and `kb_plan_bootstrap` names the prose-only requirement for a planned claim and, with a `conflict-review:` diagnostic and a count in the source summary and `recommendedActions`, for a claim it leaves for authoring, but not for an unrelated authoring claim.

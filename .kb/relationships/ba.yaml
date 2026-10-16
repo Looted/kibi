@@ -342,3 +342,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e9eff75147ee
+  - type: verified_by
+    from: SCEN-cli-staged-entity-context
+    to: TEST-cli-staged-entity-context
+    created_at: 2026-10-16T08:51:40.147Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f800be42df3a

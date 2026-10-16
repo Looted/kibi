@@ -308,6 +308,8 @@ export type SourceOnlySignal = {
   readonly sourcePath: string;
   readonly confidence: number;
   readonly evidence: readonly string[];
+  /** The declared intent claim's statement, when the signal is one. */
+  readonly claimStatement?: string;
 };
 
 export type BootstrapStructuredContent = Readonly<Record<string, unknown>> & {

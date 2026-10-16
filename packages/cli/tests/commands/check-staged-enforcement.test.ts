@@ -103,6 +103,8 @@ links:
 ---
 
 # ${testId} coverage
+
+Calls the covered function through its public export and asserts the value it returns for the fixture input.
 `,
   };
 }
@@ -269,6 +271,10 @@ status: open
 ---
 
 # Multi requirement one
+
+## Context
+
+Fixture requirement for the staged gate test: one symbol implements several requirements at once.
 `,
     ".kb/requirements/REQ-MULTI-002.md": `---
 id: REQ-MULTI-002
@@ -277,6 +283,10 @@ status: open
 ---
 
 # Multi requirement two
+
+## Context
+
+Fixture requirement for the staged gate test: one symbol implements several requirements at once.
 `,
     ".kb/requirements/REQ-MULTI-003.md": `---
 id: REQ-MULTI-003
@@ -285,6 +295,10 @@ status: open
 ---
 
 # Multi requirement three
+
+## Context
+
+Fixture requirement for the staged gate test: one symbol implements several requirements at once.
 `,
     ".kb/symbols.yaml": `symbols:
   - id: SYM-MULTI-001
@@ -803,6 +817,8 @@ links:
 ---
 
 # TEST-BEHAVIOR-001 coverage
+
+Calls the covered function through its public export and asserts the value it returns for the fixture input.
 `,
       });
       execSync("git add .kb/tests/TEST-BEHAVIOR-001.md", {

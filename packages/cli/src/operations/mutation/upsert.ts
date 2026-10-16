@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { OperationError } from "../../cli-errors.js";
+import { InputError, OperationError } from "../../cli-errors.js";
 import {
   DEFAULT_FIRMNESS,
   carriesFirmness,
@@ -1157,7 +1157,8 @@ export async function executeUpsert(
       operationFailure = { error: failure };
       throw failure;
     }
-    if (error instanceof OperationError) {
+    // A coded refusal keeps its code and message for the error envelope.
+    if (error instanceof OperationError || error instanceof InputError) {
       const failure = withPlanRecoveryNotes(error, planRecoveryWarnings);
       operationFailure = { error: failure };
       throw failure;

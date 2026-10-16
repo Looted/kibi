@@ -195,3 +195,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b519f0c3d285
+  - type: constrains
+    from: REQ-cli-staged-entity-context
+    to: FACT-SUBJ-kibi-staged-entity-context
+    created_at: 2026-10-16T08:50:48.681Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0abee90102d
+  - type: requires_property
+    from: REQ-cli-staged-entity-context
+    to: FACT-staged-entity-context-blocks-introduced
+    created_at: 2026-10-16T08:50:48.704Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17df91fc956e
+  - type: requires_property
+    from: REQ-cli-staged-entity-context
+    to: FACT-staged-entity-context-passes-base-debt
+    created_at: 2026-10-16T08:50:48.725Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49142844ac51
+  - type: specified_by
+    from: REQ-cli-staged-entity-context
+    to: SCEN-cli-staged-entity-context
+    created_at: 2026-10-16T08:51:38.655Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0396cee7755e

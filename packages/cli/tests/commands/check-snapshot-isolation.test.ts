@@ -225,7 +225,7 @@ describe("public staged check uses one captured code and knowledge tree", () => 
     write(
       root,
       ".kb/requirements/REQ-snapshot.md",
-      "---\nid: REQ-snapshot\ntitle: Snapshot ownership\nstatus: open\n---\n\nThe test helper has an owner.\n",
+      "---\nid: REQ-snapshot\ntitle: Snapshot ownership\nstatus: open\n---\n\nThe test helper has an owner.\n\n## Context\n\nFixture requirement: the first commit of an unborn repository is checked against an empty base tree.\n",
     );
     write(
       root,
