@@ -7,7 +7,7 @@
       "devDependencies": {
         "@biomejs/biome": "^1.9.4",
         "@changesets/cli": "^2.31.1",
-        "@hughescr/stryker-bun-runner": "^1.4.0",
+        "@hughescr/stryker-bun-runner": "^1.6.0",
         "@stryker-mutator/core": "^10.0.0",
         "@types/node": "^25.9.8",
         "ajv": "^8.20.0",
@@ -518,7 +518,7 @@
 
     "@hono/node-server": ["@hono/node-server@1.19.15", "", { "peerDependencies": { "hono": "^4" } }, "sha512-Za2ai6TLdKjUvnur+eenO6nuYYipVAEhyCAdaV8IRvmU9kK8crOZUSYvIXn72E4f8fJqyAbpcJuTsYYmZp9Deg=="],
 
-    "@hughescr/stryker-bun-runner": ["@hughescr/stryker-bun-runner@1.4.0", "", { "dependencies": { "@stryker-mutator/api": "^9.0.0 || ^10.0.0", "smol-toml": "1.7.0", "tinyglobby": "0.2.17", "ws": "8.21.0" }, "peerDependencies": { "@stryker-mutator/core": "^9.0.0 || ^10.0.0" } }, "sha512-yQmjwGgq21RcV/Ip1cvUjZNPp1qlmQkyQNqahZxL4CIb+SIxne6toOWng7JmSDei71wiggYrtQoKFHjCuwzNew=="],
+    "@hughescr/stryker-bun-runner": ["@hughescr/stryker-bun-runner@1.6.0", "", { "dependencies": { "@stryker-mutator/api": "^9.0.0 || ^10.0.0", "smol-toml": "^1.7.0", "tinyglobby": "^0.2.17", "ws": "^8.21.0" }, "peerDependencies": { "@stryker-mutator/core": "^9.0.0 || ^10.0.0", "typescript": "<7" } }, "sha512-P1QUMkY8ZRCyT+Ee5sa8/BbnEv9mmv7Zrqw+RoNbgjARoUfv8C+b/OYfCb5cXaIfu+p7jKjW/9Bh4Pfr+3B/jA=="],
 
     "@inquirer/ansi": ["@inquirer/ansi@2.0.8", "", {}, "sha512-WpQM+Ti6Z40EFwwt+uL2p4UabT+W179zHp6HhLVOzfbwnVn05IPO/eXIZXGNqcT1jbQ15SujNLzQ39k4QPPxBQ=="],
 
