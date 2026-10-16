@@ -445,6 +445,18 @@ function acknowledgeLegacyContext(root: string): void {
   );
 }
 
+/** Acknowledge legacy context as the migration does, and stage it. */
+function stageAcknowledgedContext(root: string): void {
+  acknowledgeLegacyContext(root);
+  const paths = [
+    ".kb/manifest.json",
+    ".kb/requirements",
+    ".kb/scenarios",
+    ".kb/tests",
+  ].filter((entry) => existsSync(path.join(root, entry)));
+  execSync(`git add -- ${paths.join(" ")}`, { cwd: root, stdio: "pipe" });
+}
+
 describe("kibi check", () => {
   const TEST_TIMEOUT_MS = 30000;
   let tmpDir: string;
@@ -2334,6 +2346,9 @@ source: .kb/requirements/REQ-STAGED-001.md
       });
 
       // Run staged check - should pass because symbols.yaml links it
+      // The staged gate blocks fixture entities without body context
+      // unless the migration acknowledged them.
+      stageAcknowledgedContext(tmpDir);
       const { status, stdout, stderr } = runKibi(
         kibiBin,
         ["check", "--staged"],
@@ -2576,6 +2591,9 @@ source: .kb/requirements/REQ-CUSTOM-001.md
         { cwd: tmpDir, stdio: "pipe" },
       );
 
+      // The staged gate blocks fixture entities without body context
+      // unless the migration acknowledged them.
+      stageAcknowledgedContext(tmpDir);
       const { status, stdout, stderr } = runKibi(
         kibiBin,
         ["check", "--staged"],
@@ -3205,6 +3223,9 @@ links:
 
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
 
+      // The staged gate blocks fixture entities without body context
+      // unless the migration acknowledged them.
+      stageAcknowledgedContext(tmpDir);
       const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
       const output = stdoutToString(result.stdout || result.stderr);
       // executable_for symbols are excluded from ownership gate
@@ -3391,6 +3412,9 @@ links:
       });
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
 
+      // The staged gate blocks fixture entities without body context
+      // unless the migration acknowledged them.
+      stageAcknowledgedContext(tmpDir);
       const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
       const output = stdoutToString(result.stdout || result.stderr);
       // implements satisfies ownership; covered_by + direct validates satisfies coverage
@@ -3467,6 +3491,9 @@ source: .kb/requirements/REQ-E2E-DIRECT.md
       });
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
 
+      // The staged gate blocks fixture entities without body context
+      // unless the migration acknowledged them.
+      stageAcknowledgedContext(tmpDir);
       const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
       const output = stdoutToString(result.stdout || result.stderr);
       expect(result.status).toBe(0);
@@ -3545,6 +3572,9 @@ export function inlineFunc() {}
       });
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
 
+      // The staged gate blocks fixture entities without body context
+      // unless the migration acknowledged them.
+      stageAcknowledgedContext(tmpDir);
       const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
       const output = stdoutToString(result.stdout || result.stderr);
       expect(result.status).toBe(0);

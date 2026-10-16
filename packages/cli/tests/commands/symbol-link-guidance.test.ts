@@ -69,10 +69,12 @@ describe("symbol link guidance", () => {
   test(
     "a coarse link is refused when it is written, an invalid dry run is an error, and symbol-coverage names the missing test link",
     () => {
+      // A public field is behavioral in the schema but is listed after the
+      // methods, which are where a link usually belongs.
       write(
         root,
         "src/canvas.ts",
-        "export class CanvasService {\n  draw() {}\n  clear() {}\n}\n",
+        "export class CanvasService {\n  anchorX = 0;\n  draw() {}\n  clear() {}\n}\n",
       );
       write(
         root,
@@ -124,7 +126,7 @@ describe("symbol link guidance", () => {
         ],
       };
       const coarse =
-        "Symbol SYM-canvas-service links src/canvas.ts coarsely while granular symbols are available (behavioral only): CanvasService.clear, CanvasService.draw.";
+        "Symbol SYM-canvas-service links src/canvas.ts coarsely while granular symbols are available (behavioral only): CanvasService.clear, CanvasService.draw, CanvasService.anchorX.";
       const preview = upsert(root, { ...linksOnly, dryRun: true });
       expect(preview.status).toBe(1);
       const envelope = JSON.parse(preview.stdout) as {
@@ -136,9 +138,16 @@ describe("symbol link guidance", () => {
       expect(envelope.error.code).toBe("UPSERT_DRY_RUN_INVALID");
       expect(envelope.error.message).toContain(coarse);
       expect(envelope.data).toMatchObject({ valid: false, dryRun: true });
+      // The write itself is refused with a code, not only the dry run.
       const write_ = upsert(root, linksOnly);
-      expect(write_.status).not.toBe(0);
-      expect(`${write_.stdout}${write_.stderr}`).toContain(coarse);
+      expect(write_.status).toBe(2);
+      const refused = JSON.parse(write_.stdout) as {
+        status: string;
+        error: { code: string; message: string };
+      };
+      expect(refused.status).toBe("error");
+      expect(refused.error.code).toBe("SYMBOL_GRANULARITY_VIOLATION");
+      expect(refused.error.message).toContain(coarse);
 
       // The granular symbol takes the links; its test does not yet verify
       // the requirement's scenario.

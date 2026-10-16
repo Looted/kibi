@@ -447,3 +447,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9516ac555c44
+  - type: constrains
+    from: REQ-bootstrap-authoring-claim-review
+    to: FACT-SUBJ-kibi-bootstrap-authoring-claim-review
+    created_at: 2026-10-16T08:59:28.181Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9cec6bc526c9
+  - type: requires_property
+    from: REQ-bootstrap-authoring-claim-review
+    to: FACT-bootstrap-authoring-claim-review-named
+    created_at: 2026-10-16T08:59:28.231Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-990423399db4
+  - type: specified_by
+    from: REQ-bootstrap-authoring-claim-review
+    to: SCEN-bootstrap-authoring-claim-review
+    created_at: 2026-10-16T08:59:28.274Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba5e965f4758

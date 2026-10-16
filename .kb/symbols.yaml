@@ -55369,3 +55369,15 @@ symbols:
         target: TEST-cli-symbol-link-guidance
       - type: implements
         target: REQ-kibi-symbol-link-guidance
+  - id: SYM-test-cli-staged-entity-context
+    title: Staged entity context consumer CLI suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/staged-entity-context.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-16T08:59:41.602Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-staged-entity-context

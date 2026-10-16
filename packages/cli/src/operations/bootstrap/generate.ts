@@ -527,15 +527,16 @@ export async function executePlanBootstrap(
         suppressed: activationSuppressedClaims(declared, discovery.activation),
         diagnostics: [],
       };
-  // Planned claims next to prose-only current requirements name them for
-  // review: the plan cannot show they are consistent.
+  // Claims next to prose-only current requirements name them for review,
+  // planned or left for authoring: the plan cannot show they are consistent.
   const reviewSignals = await withConflictReviewSignals(
     claimed.candidates,
     existing.requirements,
     context.workspaceRoot,
+    claimed.sourceOnlySignals,
   );
   const filteredSignals = filterSourceOnlySignals(
-    [...built.sourceOnlySignals, ...claimed.sourceOnlySignals],
+    [...built.sourceOnlySignals, ...reviewSignals.signals],
     args.entityTypes,
   );
   const selected = selectBootstrapCandidates(

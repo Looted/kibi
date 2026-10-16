@@ -2674,5 +2674,17 @@
         "./packages/cli/tests/commands/symbol-link-guidance.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-cli-staged-entity-context",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/staged-entity-context.test.ts"
+      ]
+    ]
   }
 ]

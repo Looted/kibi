@@ -413,6 +413,10 @@ type: req
 ---
 
 Login works.
+
+## Context
+
+Fixture requirement for the staged check: users sign in before they reach their account pages.
 `,
     );
     git(cwd, "add .kb/requirements/REQ-auth-login.md");
@@ -441,6 +445,10 @@ type: req
 ---
 
 Login works.
+
+## Context
+
+Fixture requirement for the staged check: users sign in before they reach their account pages.
 `,
     );
     git(cwd, "add .kb/requirements/REQ-1.md");

@@ -282,8 +282,18 @@ describe("kb_validate_upsert", () => {
         expect(preview.structuredContent.errors.join("\n")).toContain(
           "Symbol SYM-CANVAS-SERVICE links src/canvas.ts coarsely while granular symbols are available (behavioral only): CanvasService.clear, CanvasService.draw.",
         );
-        await expect(handleKbUpsert(prolog, linksOnly)).rejects.toThrow(
-          /links src\/canvas\.ts coarsely/,
+        // The write is refused with the same message and a code the MCP
+        // error envelope carries.
+        const refused = await handleKbUpsert(prolog, linksOnly).then(
+          () => null,
+          (error: unknown) => error,
+        );
+        expect(refused).toMatchObject({
+          name: "InputError",
+          code: "SYMBOL_GRANULARITY_VIOLATION",
+        });
+        expect(String((refused as Error).message)).toMatch(
+          /^Symbol SYM-CANVAS-SERVICE links src\/canvas\.ts coarsely/,
         );
       } finally {
         if (previous === undefined)

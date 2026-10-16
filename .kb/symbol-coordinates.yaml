@@ -35731,6 +35731,14 @@ coordinates:
     sourceEndLine: 131
     sourceFile: packages/cli/tests/consumer/staged-consistency.test.ts
     sourceLine: 1
+  SYM-test-cli-staged-entity-context:
+    identityHash: ddb7848ced665c7bce47a25c639c9d56de3cffd18367156872cc1f7b874ff6b8
+    sourceHash: 70c3180694a7ed0edb48e9c36b503713d2effcea6f638bd4f6afc7664fabc753
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 114
+    sourceFile: packages/cli/tests/consumer/staged-entity-context.test.ts
+    sourceLine: 1
   SYM-test-cli-symbol-link-guidance:
     identityHash: 32c893c045e68dd367ec84d838a8312d15cb76fd8c99e1af61fb752f9294a18e
     sourceHash: dce8aaf84edf4d42adb983d834e9ae34dbb0af3d3bb2a746cb40e5eb08e5d376
