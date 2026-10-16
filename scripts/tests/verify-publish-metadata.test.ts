@@ -210,6 +210,37 @@ afterEach(() => {
   }
 });
 
+describe("committed MCP Registry manifest", () => {
+  test("advertises the project-local npx command", () => {
+    const registry = JSON.parse(
+      readFileSync(join(packagesRoot, "mcp", "server.json"), "utf8"),
+    );
+    const pkg = JSON.parse(
+      readFileSync(join(packagesRoot, "mcp", "package.json"), "utf8"),
+    );
+    expect(registry.description.length).toBeGreaterThan(0);
+    expect(registry.description.length).toBeLessThanOrEqual(100);
+    expect(registry.description).toContain("dev dependency");
+    expect(registry.version).toBe(pkg.version);
+    expect(registry.packages).toHaveLength(1);
+    const entry = registry.packages[0];
+    expect(entry.registryType).toBe("npm");
+    expect(entry.identifier).toBe("kibi-mcp");
+    expect(entry.version).toBe(pkg.version);
+    expect(entry.runtimeHint).toBe("npx");
+    expect(entry.runtimeArguments).toEqual([
+      {
+        type: "positional",
+        value: "--no-install",
+        description:
+          "Use the project-local install. Add kibi-mcp as a dev dependency before launch.",
+      },
+    ]);
+    expect(entry.packageArguments).toBeUndefined();
+    expect(entry.transport).toEqual({ type: "stdio" });
+  });
+});
+
 describe("MCP Registry GitHub namespace", () => {
   test.each([
     ["io.github.Looted/kibi-mcp", "io.github.Looted/kibi-mcp", "Looted", true],

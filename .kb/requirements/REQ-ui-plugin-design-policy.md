@@ -47,6 +47,8 @@ logic_claims:
   - CLAIM-3E9D243F8B18A315
 id: REQ-ui-plugin-design-policy
 type: req
+firmness: firm
+approval_ref: Maintainer confirmed this as a firm rule on 2026-10-16
 ---
 The kibi-plugin-ui policy must require React and Angular components to implement a requirement grounded in UI design predicates. The kibi-plugin-ui policy must require implementing component files and their html templates to contain every pattern marker of their requirement pattern. The kibi-plugin-ui package must declare no permissions.
 

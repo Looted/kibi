@@ -1,5 +1,6 @@
 import path from "node:path";
 
+import { needsConflictReview } from "./conflict-review.js";
 import type { PluginOffer } from "./plugin-offers.js";
 import type {
   ActivationPolicy,
@@ -100,11 +101,13 @@ export function buildActions(
       description:
         "No declared intent claim could be planned. Claims already in the KB need nothing; compile each remaining claim with kb_compile_intent, citing its source and reference (see the Knowledge source diagnostics).",
     });
+  // implements REQ-bootstrap-authoring-claim-review
+  const toReview = signals.filter(needsConflictReview).length;
   if (signals.length > 0)
     result.push({
       order: order++,
       kind: "handoff",
-      description: `Author ${[...new Set(signals.map((signal) => signal.kind.toUpperCase()))].join("/")} entities manually from source-only evidence${seeded ? "; compile declared claims left there with kb_compile_intent" : ""}.`,
+      description: `Author ${[...new Set(signals.map((signal) => signal.kind.toUpperCase()))].join("/")} entities manually from source-only evidence${seeded ? "; compile declared claims left there with kb_compile_intent" : ""}.${toReview > 0 ? ` ${toReview} intent claim(s) left for authoring need a conflict review: when you compile each with kb_compile_intent, compare it with the current requirements its conflict-review diagnostic names and report the verdicts through conflictReviews.` : ""}`,
     });
   for (const offer of offers)
     result.push({

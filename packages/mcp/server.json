@@ -1,17 +1,25 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.Looted/kibi-mcp",
-  "description": "MCP server for Kibi's requirements, traceability, and proof workflows in coding agents.",
+  "description": "Kibi requirements, traceability, and proof MCP. Install as a project dev dependency.",
   "repository": {
     "url": "https://github.com/Looted/kibi",
     "source": "github"
   },
-  "version": "3.15.0",
+  "version": "3.16.0",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "kibi-mcp",
-      "version": "3.15.0",
+      "version": "3.16.0",
+      "runtimeHint": "npx",
+      "runtimeArguments": [
+        {
+          "type": "positional",
+          "value": "--no-install",
+          "description": "Use the project-local install. Add kibi-mcp as a dev dependency before launch."
+        }
+      ],
       "transport": {
         "type": "stdio"
       }

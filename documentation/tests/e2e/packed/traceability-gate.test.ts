@@ -369,6 +369,10 @@ function requirementMarkdown(): string {
     "",
     "Staged source declarations have explicit requirement ownership.",
     "",
+    "## Context",
+    "",
+    "Fixture requirement that owns the staged source declarations the traceability gate checks.",
+    "",
   ].join("\n");
 }
 
@@ -386,7 +390,7 @@ function testMarkdown(id: string, title: string): string {
     "    target: REQ-001",
     "---",
     "",
-    "Test fixture for staged symbol relationships.",
+    "Test fixture that gives the staged symbol relationships of the traceability gate production coverage.",
     "",
   ].join("\n");
 }

@@ -3,7 +3,11 @@ import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
 import { planLegacyStorageMigration } from "../../commands/legacy-storage-migration.js";
 import { BRANCH_STORE_NOT_COMPILED } from "../../utils/branch-store.js";
-import { legacyConfigExists } from "../../utils/config.js";
+import {
+  LEGACY_KB_MIGRATION_COMMAND,
+  LEGACY_KB_MIGRATION_NOTE,
+  legacyConfigExists,
+} from "../../utils/config.js";
 import { MTIME_SOURCE_REASON_CODES } from "../../utils/content-freshness.js";
 import { readKbManifestStatus } from "../../utils/kb-manifest.js";
 import {
@@ -743,7 +747,13 @@ export function readMigrationConfigStatus(
     ...schemaStatus,
     currentVersion: normalizeSchemaVersion(legacySchemaVersion),
     configHash: null,
-    warning: status.warning,
+    // implements REQ-legacy-kb-first-step-migrate
+    // A legacy KB is migrated, never initialized: name the step kb_status's
+    // bootstrap.nextAction and kibi doctor name.
+    warning:
+      status.state === "missing" && legacyConfigExists(workspaceRoot)
+        ? `Kibi lifecycle manifest is missing because this KB was written by an older Kibi; run '${LEGACY_KB_MIGRATION_COMMAND}' (${LEGACY_KB_MIGRATION_NOTE}).`
+        : status.warning,
   };
 }
 

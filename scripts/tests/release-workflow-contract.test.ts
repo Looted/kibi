@@ -188,7 +188,16 @@ describe("publish.yml CI workflow contract", () => {
           name: "io.github.Looted/kibi-mcp",
           version: "2.1.1",
           packages: [
-            { registryType: "npm", identifier: "kibi-mcp", version: "2.1.1" },
+            {
+              registryType: "npm",
+              identifier: "kibi-mcp",
+              version: "2.1.1",
+              runtimeHint: "npx",
+              runtimeArguments: [
+                { type: "positional", value: "--no-install" },
+              ],
+              transport: { type: "stdio" },
+            },
           ],
         }),
       );
@@ -240,6 +249,11 @@ describe("publish.yml CI workflow contract", () => {
       expect(registry.name).toBe(mcp.mcpName);
       expect(registry.version).toBe(mcp.version);
       expect(registry.packages[0].version).toBe(mcp.version);
+      expect(registry.packages[0].runtimeHint).toBe("npx");
+      expect(registry.packages[0].runtimeArguments).toEqual([
+        { type: "positional", value: "--no-install" },
+      ]);
+      expect(registry.packages[0].transport).toEqual({ type: "stdio" });
       expect(codex.version).toBe("2.0.2");
       expect(codex.dependencies["kibi-mcp"]).toBe("^2.1.2");
       expect(

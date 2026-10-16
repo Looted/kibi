@@ -80,6 +80,7 @@ import {
   type KibiImpactDiagnostic,
   collectStagedKibiDiagnostics,
 } from "../traceability/staged-diagnostics.js";
+import { collectIntroducedEntityContextViolations } from "../traceability/staged-entity-context.js";
 import { createStagedEntityIdStyleDiagnostics } from "../traceability/staged-entity-id-style.js";
 import {
   type StagedFileCoverageResult,
@@ -901,6 +902,15 @@ export async function checkCommand(
             return { exitCode: options.dryRun ? 0 : 1 };
           }
         }
+        // implements REQ-cli-staged-entity-context
+        // An entity document the commit adds or edits must carry the body
+        // context full `kibi check` requires; debt already at the base, or
+        // acknowledged by the migration, does not block.
+        const contextViolations = collectIntroducedEntityContextViolations(
+          snapshot,
+          markdownFiles.map((file) => file.path),
+          snapshotEntities,
+        );
         const inventoryDrift = stagedInventoryDriftViolations({
           stagedPaths: new Set(markdownFiles.map((file) => file.path)),
           snapshotEntities,
@@ -1184,15 +1194,29 @@ export async function checkCommand(
             ? "✓ No violations found in staged files."
             : "✓ No violations found in staged symbols.";
 
-        if (violationsRaw.length > 0 || coverageViolations.length > 0) {
+        if (
+          violationsRaw.length > 0 ||
+          coverageViolations.length > 0 ||
+          contextViolations.length > 0
+        ) {
           print({
             format: options.format,
             coverage: stagedCoverage,
-            violations: [...violationsRaw, ...coverageViolations],
+            violations: [
+              ...violationsRaw,
+              ...coverageViolations,
+              ...contextViolations,
+            ],
             qualityDiagnostics: stagedKibiDiagnostics,
             messages: [
               ...(stagedKibiDiagnostics.length > 0
                 ? [formatStagedKibiDiagnostics(stagedKibiDiagnostics)]
+                : []),
+              ...(contextViolations.length > 0
+                ? formatConsistencyViolations(
+                    contextViolations,
+                    "entity context",
+                  )
                 : []),
               ...(coverageViolations.length > 0
                 ? [formatCoverageViolations(coverageViolations)]

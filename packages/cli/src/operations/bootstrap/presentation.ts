@@ -1,4 +1,5 @@
 import { isProvenanceStubCandidate } from "./candidates.js";
+import { needsConflictReview } from "./conflict-review.js";
 import { buildGuidance } from "./guidance.js";
 import type { PluginOffer } from "./plugin-offers.js";
 import type {
@@ -189,6 +190,8 @@ type ClaimAccounting = {
   readonly suppressed: number;
   /** Not planned, left as a sourceOnlySignals authoring follow-up. */
   readonly sourceOnly: number;
+  /** Authoring follow-ups that name current requirements to compare with. */
+  readonly toReview: number;
   /** Not planned with no row or follow-up; the reason is in diagnostics. */
   readonly unattributed: number;
 };
@@ -251,14 +254,15 @@ function claimAccounting(
     const counted = new Set(
       [...filteredRows, ...otherRows].map((row) => String(row.sourcePath)),
     );
-    const sourceOnly = take(
-      signals.filter(
-        (signal) =>
-          signal.evidence.some((line) =>
-            line.startsWith(`intent_claim:${source.id}:`),
-          ) && !counted.has(signal.sourcePath),
-      ).length,
+    const sourceSignals = signals.filter((signal) =>
+      signal.evidence.some((line) =>
+        line.startsWith(`intent_claim:${source.id}:`),
+      ),
     );
+    const sourceOnly = take(
+      sourceSignals.filter((signal) => !counted.has(signal.sourcePath)).length,
+    );
+    const toReview = sourceSignals.filter(needsConflictReview).length;
     return [
       {
         source,
@@ -269,6 +273,7 @@ function claimAccounting(
         byActivation,
         suppressed: suppressedCount,
         sourceOnly,
+        toReview,
         unattributed: rest,
       },
     ];
@@ -294,7 +299,7 @@ function accountingLine(
       : []),
     ...(row.sourceOnly > 0
       ? [
-          `${row.sourceOnly} need authoring (sourceOnlySignals; compile them with kb_compile_intent)`,
+          `${row.sourceOnly} need authoring (sourceOnlySignals; compile them with kb_compile_intent${row.toReview > 0 ? `; ${row.toReview} of them need a conflict review against the current requirements their conflict-review diagnostics name` : ""})`,
         ]
       : []),
     ...(row.unattributed > 0

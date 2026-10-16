@@ -49,6 +49,8 @@ origin:
   recorded_at: '2026-10-08T21:05:34.278Z'
 id: REQ-engine-daemon-package-versions
 type: req
+firmness: firm
+approval_ref: Maintainer confirmed this as a firm rule on 2026-10-16
 ---
 The engine daemon handshake must report the package versions the daemon was built from. The engine daemon must reject every request except handshake and stop from a client with other package versions. The engine client must replace a daemon with other package versions instead of reusing it. Kibi doctor must report the package versions of the live engine daemon.
 

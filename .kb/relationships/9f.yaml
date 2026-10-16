@@ -234,3 +234,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2033ce01c4d0
+  - type: executable_for
+    from: SYM-test-cli-staged-entity-context
+    to: TEST-cli-staged-entity-context
+    created_at: 2026-10-16T08:59:43.297Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5aed19f9b70

@@ -164,6 +164,10 @@ status: open
 ---
 
 # Initial
+
+## Context
+
+Fixture requirement committed through the real hook so the branch KB has knowledge to copy.
 `,
       );
 
@@ -408,6 +412,10 @@ status: open
 ---
 
 # Test
+
+## Context
+
+Fixture requirement committed through the real hook so the branch KB has knowledge to copy.
 `,
         );
 
