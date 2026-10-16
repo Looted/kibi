@@ -12,7 +12,7 @@
     "js-yaml": "^4.1.0",
     "kibi-runtime": "^2.18.0",
     "kibi-core": "^0.22.3",
-    "zod": "^4.3.6"
+    "zod": "^4.6.7"
   },
   "type": "module",
   "description": "Model Context Protocol server for Kibi knowledge base",
