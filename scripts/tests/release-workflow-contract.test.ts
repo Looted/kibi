@@ -1,4 +1,8 @@
 import { describe, expect, test } from "bun:test";
+
+// Dependabot bumps the checkout SHA; assert the pinning shape (full 40-hex commit SHA), not one value.
+const CHECKOUT_PINNED = /actions\/checkout@[0-9a-f]{40}(?![0-9a-f])/;
+const PLACEHOLDER_CHECKOUT_SHA = "0".repeat(40);
 import { spawnSync } from "node:child_process";
 import {
   cpSync,
@@ -301,9 +305,7 @@ describe("publish.yml CI workflow contract", () => {
   // ── check-release ───────────────────────────────────────────────────
   test("check-release: shallow checkout, no full history", () => {
     const block = extractJobBlock(workflowContent, "check-release");
-    expect(block).toContain(
-      "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
-    );
+    expect(block).toMatch(CHECKOUT_PINNED);
     expect(block).toContain("fetch-depth: 1");
     expect(block).not.toContain("fetch-depth: 0");
   });
@@ -311,9 +313,7 @@ describe("publish.yml CI workflow contract", () => {
   // ── build-and-check ─────────────────────────────────────────────────
   test("build-and-check: shallow checkout pinned to master", () => {
     const block = extractJobBlock(workflowContent, "build-and-check");
-    expect(block).toContain(
-      "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
-    );
+    expect(block).toMatch(CHECKOUT_PINNED);
     expect(block).toContain("fetch-depth: 1");
     expect(block).toContain("ref: refs/heads/master");
     expect(block).not.toContain("fetch-depth: 0");
@@ -374,9 +374,7 @@ describe("publish.yml CI workflow contract", () => {
   // ── release-gate ────────────────────────────────────────────────────
   test("release-gate: shallow checkout pinned to master", () => {
     const block = extractJobBlock(workflowContent, "release-gate");
-    expect(block).toContain(
-      "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
-    );
+    expect(block).toMatch(CHECKOUT_PINNED);
     expect(block).toContain("fetch-depth: 1");
     expect(block).toContain("ref: refs/heads/master");
     expect(block).not.toContain("fetch-depth: 0");
@@ -387,9 +385,7 @@ describe("publish.yml CI workflow contract", () => {
   // ── publish ─────────────────────────────────────────────────────────
   test("publish: checkout-free, artifact-driven", () => {
     const block = extractJobBlock(workflowContent, "publish");
-    expect(block).not.toContain(
-      "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
-    );
+    expect(block).not.toMatch(CHECKOUT_PINNED);
     expect(block).toContain("Download package tarballs");
     expect(block).toContain("npm publish");
   });
@@ -469,9 +465,7 @@ describe("publish.yml CI workflow contract", () => {
   // ── create-github-releases ──────────────────────────────────────────
   test("create-github-releases: shallow checkout pinned to master", () => {
     const block = extractJobBlock(workflowContent, "create-github-releases");
-    expect(block).toContain(
-      "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
-    );
+    expect(block).toMatch(CHECKOUT_PINNED);
     expect(block).toContain("fetch-depth: 1");
     expect(block).toContain("ref: refs/heads/master");
     expect(block).not.toContain("fetch-depth: 0");
@@ -484,11 +478,9 @@ describe("publish.yml CI workflow contract", () => {
       // Simulate a mutated publish block that re-introduces checkout
       const mutated = block.replace(
         "Download package tarballs",
-        "Checkout\n        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803\n        with:\n          fetch-depth: 1\n      - name: Download package tarballs",
+        `Checkout\n        uses: actions/checkout@${PLACEHOLDER_CHECKOUT_SHA}\n        with:\n          fetch-depth: 1\n      - name: Download package tarballs`,
       );
-      expect(mutated).toContain(
-        "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
-      );
+      expect(mutated).toMatch(CHECKOUT_PINNED);
     });
 
     test("rejects any job retaining fetch-depth: 0", () => {
