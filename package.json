@@ -129,21 +129,21 @@
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@changesets/cli": "^2.31.1",
-    "@hughescr/stryker-bun-runner": "^1.4.0",
+    "@hughescr/stryker-bun-runner": "^1.6.0",
     "@stryker-mutator/core": "^10.0.0",
     "@types/node": "^25.9.8",
     "ajv": "^8.20.0",
     "ajv-formats": "2.1.1",
-    "bun-types": "^1.4.2",
+    "bun-types": "^1.4.3",
     "canonicalize": "^3.0.0",
     "kibi-cli": "workspace:*",
     "kibi-mcp": "workspace:*",
     "kibi-plugin-jev": "workspace:*",
-    "marked": "^17.0.1",
+    "marked": "^17.0.6",
     "mitata": "^1.0.34",
     "semver": "^7.8.5",
     "typescript": "^5.9.3",
-    "zod": "^4.6.5",
+    "zod": "^4.6.7",
     "c8": "10.1.3"
   }
 }

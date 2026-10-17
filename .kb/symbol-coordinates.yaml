@@ -17941,7 +17941,7 @@ coordinates:
     sourceLine: 27
   SYM-mcp-release-package-metadata:
     identityHash: 240336405ff91215ab2edd07d6f820210720d29abbb8cb1622c6097a330b8fa9
-    sourceHash: f2ac78bec7e81ccca46878f997c59ccc0a3fa01acb7077687a88a490b95c18ac
+    sourceHash: c960c0c14f6d216901e4cc625a747ba0504f893d06990a29b802dd784070adb6
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 57
