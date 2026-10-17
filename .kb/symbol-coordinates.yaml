@@ -23845,7 +23845,7 @@ coordinates:
     sourceLine: 13
   SYM-release-mcp-registry-verification:
     identityHash: 8a2700a7582cf0012d995ea02b781f3b667e58eca9cb64561aee447e033914d2
-    sourceHash: 324a9ef47d806231634d279f8b6f3682db938da00a2fe3d1ce658ffc66842c9c
+    sourceHash: 8201353ae5c4e96dd9d5cb605c91deceb7d192188cb94ff0cfa6eedbc5a942e3
     sourceColumn: 2
     sourceEndColumn: 22
     sourceEndLine: 336
@@ -23853,12 +23853,12 @@ coordinates:
     sourceLine: 336
   SYM-release-verify-published-metadata:
     identityHash: a2853dc37dda37cb92c73f7757c3cd4280101b22e39da24f38748a1b9681963d
-    sourceHash: 2c0fc8791bb727b49cc1b5f2db2bced8eac6af7de400ec84920bd46247d03c6a
+    sourceHash: d641b0c285141ee6b857ec33d914120dd8614051113b017d4f3ec4c90e027a9b
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 120
+    sourceEndLine: 124
     sourceFile: scripts/tests/release-workflow-contract.test.ts
-    sourceLine: 52
+    sourceLine: 56
   SYM-ReleaseAction:
     identityHash: 80efc2c1155e8b83672bab5cbf11d82ae8396dd35807ab978d1e49fc8c499831
     sourceHash: 4f66dda710f2ae080012f7413aaac12e545e12f1eb7c0b8ab5f1592ab337883b
@@ -35653,10 +35653,10 @@ coordinates:
     sourceLine: 1
   SYM-test-ci-workflow-contract:
     identityHash: 24ddec7bd018212a0057b64fe6d3b0cb18833fa95abd538f92919f506ab366de
-    sourceHash: 155cbc9c17c5c37b068eee42f9339b5e0aca290deefada13a49eaf6b5188bb04
+    sourceHash: dea43bf693843a1b2a406e86ec3dc87dcfb16a46bb7338c209fd5294f73813f7
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 438
+    sourceEndLine: 432
     sourceFile: scripts/tests/ci-workflow-contract.test.ts
     sourceLine: 1
   SYM-test-claude-edit-snippet-hook:
