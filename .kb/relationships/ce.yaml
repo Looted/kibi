@@ -461,3 +461,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-320b6fb958c8
+  - type: executable_for
+    from: SYM-opencode-v2-tui-coverage-tests
+    to: TEST-opencode-v2-plugin-api
+    created_at: 2026-10-19T20:31:16.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7807dfd982d8

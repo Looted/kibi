@@ -323,16 +323,36 @@ OpenCode v2. The default export carries both plugin shapes: v1 reads
 `{ id, server }` (and `{ id, tui }` for the TUI entry), and v2 reads
 `{ id, setup }`. Install and configure it the same way on either version.
 
+A directory install (a distro package or a local folder) does not read
+`package.json` `"exports"`. The package ships root `index.js` and `tui.js`
+shims that re-export the built server and TUI entries, so both parts load.
+Without `tui.js`, that install reports the server plugin only.
+
 On OpenCode v2:
 
 - Kibi guidance, background sync/check maintenance, and `/kibi-bootstrap`
-  work as on v1. File lifecycle events are derived from the `edit`, `write`,
-  and `patch` tools, because v2 has no `file.*` events.
+  work as on v1. Syncs triggered by file changes come from completed `edit`,
+  `write`, and `patch` tool calls. On OpenCode v2.0.32 a plugin can async-iterate
+  `event.subscribe()` and will see public bus events, including
+  `filesystem.changed`, but the host publishes that event only for the VCS HEAD
+  file (creating a branch delivered
+  `{ type: "filesystem.changed", data: { file: "<repo>/.git/HEAD", event: "change" } }`).
+  A bash `rm` or `mv`, appending to a tracked file, and `git checkout -- <file>`
+  produced no `file.created`, `file.edited`, `file.deleted`, or
+  `filesystem.changed` event. The SDK's `file.watcher.updated` type is not in
+  the v2.0.32 binary, and `file.edited` is only a schema with no publish site.
+  Changes from bash, `git checkout`, or an external editor therefore do not
+  trigger a Kibi sync. Run `kibi sync` yourself, or rely on the `post-checkout`,
+  `post-merge`, and `post-rewrite` hooks installed by `kibi init` (each runs
+  `kibi sync`). The next status refresh also picks up the working tree.
 - v2 has no toast or structured plugin log, so kibi-opencode shows no toasts and
   reports plugin errors on stderr with a `[kibi-opencode]` prefix.
-- **Code Mode:** v2 exposes MCP tools through Code Mode by default. If the Kibi
-  MCP tools do not show up for the agent, expose them directly with
-  `codemode: false` on a v2-native server entry under `mcp.servers`:
+- **Code Mode:** v2 exposes MCP tools through Code Mode by default. On
+  OpenCode v2.0.32 the catalog lists `kibi (16 tools, 1 shown)`,
+  `search({ query: "kibi" })` finds all 16, and the tools are reachable
+  through `execute` under `tools.kibi`. To call the native `kibi_*` tools
+  directly, set `codemode: false` on a v2-native server entry under
+  `mcp.servers`:
 
   ```json
   {

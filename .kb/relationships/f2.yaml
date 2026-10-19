@@ -195,3 +195,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-de06430bf776
+  - type: executable_for
+    from: SYM-opencode-v2-directory-entry-tests
+    to: TEST-opencode-v2-plugin-api
+    created_at: 2026-10-19T20:53:35.296Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d57f49ce720b

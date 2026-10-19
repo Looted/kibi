@@ -19811,6 +19811,14 @@ coordinates:
     sourceEndLine: 29
     sourceFile: packages/opencode/src/risk-classifier.ts
     sourceLine: 23
+  SYM-opencode-directory-tui-shim:
+    identityHash: 80a63b1d8ac936fc7d0b9a9b022fc0c4b8a405c6d9502434a2c46d51520df56b
+    sourceHash: 21beb79059635cbcee350fd056fa5c0fe056617c6dd2a9b671cd01cbd895199e
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 8
+    sourceFile: packages/opencode/tui.js
+    sourceLine: 1
   SYM-opencode-recordOpencodeToolTelemetry:
     identityHash: 9d3b690c3650c7a9688aabd49510bc9571ef5f783d03b869a1204f211b1c96e3
     sourceHash: 0b75fa7a44728057bb4951846ddbdd35be96be024b9d58d7d62175a9e14458a6
@@ -19835,6 +19843,94 @@ coordinates:
     sourceEndLine: 37
     sourceFile: packages/opencode/src/risk-classifier.ts
     sourceLine: 34
+  SYM-opencode-tui-hook:
+    identityHash: c67160f0fe6344c5b6972685fc76bf96ec5a35f8f1431090a9a011c9af8ab8ff
+    sourceHash: 4e40d0c7bf7ad1c0fbdcd8611a79d5ce44e0d1c077286d026e4133f85aa20e69
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 12
+    sourceFile: packages/opencode/src/tui.tsx
+    sourceLine: 10
+  SYM-opencode-tui-setup:
+    identityHash: 90fd84ef340b77c26eaa262a3fba21f399efd9380f79c11dcb89cb5b3e1f8583
+    sourceHash: 4e40d0c7bf7ad1c0fbdcd8611a79d5ce44e0d1c077286d026e4133f85aa20e69
+    sourceColumn: 13
+    sourceEndColumn: 52
+    sourceEndLine: 16
+    sourceFile: packages/opencode/src/tui.tsx
+    sourceLine: 16
+  SYM-opencode-v2-create-plugin-definition:
+    identityHash: 8f4b55ba1f86acfa1bec8d0850c44a109988b1fc3f736be07c2d01a29a2a5e3e
+    sourceHash: 60729b4d5eae14bcd71b3c954dbc96b14b6fb97acc70ee7af637c22b865070a0
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 397
+    sourceFile: packages/opencode/src/opencode-v2.ts
+    sourceLine: 389
+  SYM-opencode-v2-create-v2-setup:
+    identityHash: ac693916eeebc30ea4809c0f501b50df90d1c2e635c1973fb89f0e1eb6ef2b3c
+    sourceHash: 60729b4d5eae14bcd71b3c954dbc96b14b6fb97acc70ee7af637c22b865070a0
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 382
+    sourceFile: packages/opencode/src/opencode-v2.ts
+    sourceLine: 327
+  SYM-opencode-v2-directory-entry-tests:
+    identityHash: 4bbeed6558307eebd9ebff2df735cba331c1bbbbddf430d87eb4e2f43cebfebe
+    sourceHash: 87bc2f44de08358d3c81ac1e519f0d2168a59196afa320ebd0636a3f09dab15b
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 38
+    sourceFile: packages/opencode/tests/directory-entry.test.ts
+    sourceLine: 1
+  SYM-opencode-v2-extract-patch-file-operations:
+    identityHash: 568f93d4bd5910760f4f47a4ec8ee1f62072ed4b6c21e5405a97f454f9399520
+    sourceHash: 60729b4d5eae14bcd71b3c954dbc96b14b6fb97acc70ee7af637c22b865070a0
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 169
+    sourceFile: packages/opencode/src/opencode-v2.ts
+    sourceLine: 154
+  SYM-opencode-v2-legacy-events-from-tool-execution:
+    identityHash: 7c8259c47ff5c52e3c6807a433334f5751bc4d1d0c444fd42167bd1980e2312f
+    sourceHash: 60729b4d5eae14bcd71b3c954dbc96b14b6fb97acc70ee7af637c22b865070a0
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 216
+    sourceFile: packages/opencode/src/opencode-v2.ts
+    sourceLine: 181
+  SYM-opencode-v2-legacy-input-from-v2-context:
+    identityHash: 5f19b007769e483ba1c79cecba97b12b0b35f41fceaac49b7d28e0648e0f774e
+    sourceHash: 60729b4d5eae14bcd71b3c954dbc96b14b6fb97acc70ee7af637c22b865070a0
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 136
+    sourceFile: packages/opencode/src/opencode-v2.ts
+    sourceLine: 130
+  SYM-opencode-v2-legacy-tool-output:
+    identityHash: 2e8021e28685e6b0e97fcc1734b3e88d7e5e14ea0c34369cfdb13ed88bc588b4
+    sourceHash: 60729b4d5eae14bcd71b3c954dbc96b14b6fb97acc70ee7af637c22b865070a0
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 247
+    sourceFile: packages/opencode/src/opencode-v2.ts
+    sourceLine: 241
+  SYM-opencode-v2-plugin-api-tests:
+    identityHash: a1d2ffe626aa33a393765df6477ff3ef8c5d0ea9328228e22c4a275b89f92d67
+    sourceHash: cdcffb563f074f5aa9403af93d1f1e1fa6ede0a7e40dd8a80a4c795d74680885
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 335
+    sourceFile: packages/opencode/tests/opencode-v2.test.ts
+    sourceLine: 1
+  SYM-opencode-v2-tui-coverage-tests:
+    identityHash: 2483f3ea233e4f50c579875d8dd2c784baf2b544882fc4e2fe4068e6b09c30d5
+    sourceHash: 7d4f5fe56eb194f65dfe691006e5236b8d91d989ce4cfe3500157b5c1e8a445c
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 20
+    sourceFile: packages/opencode/tests/tui.coverage.test.ts
+    sourceLine: 1
   SYM-opencode-work-context-resolver-tests:
     identityHash: 8b5ab3a3fc50baa8bc040cf76f45e2fd313700ac849f751f31d4bd76bdd78447
     sourceHash: 22958162eb18cc720c3ebd77c7489144f6ba078a93ab87766f81f1c9191b7643
@@ -36285,7 +36381,7 @@ coordinates:
     sourceLine: 1
   SYM-test-opencode-tool-telemetry-acceptance:
     identityHash: 150ebe0c3dba9246bac61f59ac310c22fcdaedac63071bd590f6561976c4c88d
-    sourceHash: 3c18882b8f3785a8ad3aba2c07c8e9167762ecef13b48bb99d3e2557184572f0
+    sourceHash: 9ad841a4ec6572631ed7ab8f468a8d24083f82d573f82f6023ec9df17b74136e
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 287

@@ -321,3 +321,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7a9c1f928295
+  - type: verified_by
+    from: SCEN-opencode-v2-plugin-load
+    to: TEST-opencode-v2-plugin-api
+    created_at: 2026-10-19T20:34:11.313Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c64b84e6704c

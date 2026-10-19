@@ -27,42 +27,37 @@ semantic_source_field: semantic_text
 semantic_source_hash: 11b484410b4cf478773b7c2c30c2d0420c24c2f0133a8db8fdd3784afe9a680a
 semantic_inventory:
   - claim_key: CLAIM-E1E745FF5CE6976C
-    claim_text: "kibi-opencode must load on both OpenCode v1 and OpenCode v2 from a single package"
+    claim_text: kibi-opencode must load on both OpenCode v1 and OpenCode v2 from a single package
     role: normative
     status: ontology_gap
-    reason: "This normative clause has no deterministic strict-property or declared predicate grounding. Define its domain terms and predicate signature explicitly before grounding it; keep it unresolved instead of treating prose as logic-complete."
     span:
       start: 0
       end: 81
   - claim_key: CLAIM-33C1F7387361CE6D
-    claim_text: "The default export must be a plugin definition object with a non-empty id, a server function for OpenCode v1, and a setup function for OpenCode v2"
+    claim_text: The default export must be a plugin definition object with a non-empty id, a server function for OpenCode v1, and a setup function for OpenCode v2
     role: normative
     status: ontology_gap
-    reason: "This normative clause has no deterministic strict-property or declared predicate grounding. Define its domain terms and predicate signature explicitly before grounding it; keep it unresolved instead of treating prose as logic-complete."
     span:
       start: 83
       end: 229
   - claim_key: CLAIM-733DF122ABFEFA77
-    claim_text: "The package root must not export any function"
+    claim_text: The package root must not export any function
     role: normative
-    status: ambiguous
-    reason: "No accepted typed interpretation grounds this assertive proposition."
+    status: modeled
     span:
       start: 231
       end: 276
   - claim_key: CLAIM-F6D85429B12F8B60
-    claim_text: "The TUI entry must export a definition with id, tui, and setup"
+    claim_text: The TUI entry must export a definition with id, tui, and setup
     role: normative
     status: ontology_gap
-    reason: "This normative clause has no deterministic strict-property or declared predicate grounding. Define its domain terms and predicate signature explicitly before grounding it; keep it unresolved instead of treating prose as logic-complete."
     span:
       start: 278
       end: 340
   - claim_key: CLAIM-6CD5134734E3E790
-    claim_text: "On OpenCode v2, a hook registration failure must not prevent the remaining hooks from registering and must be reported"
+    claim_text: On OpenCode v2, a hook registration failure must not prevent the remaining hooks from registering and must be reported
     role: normative
     status: ontology_gap
-    reason: "This normative clause has no deterministic strict-property or declared predicate grounding. Define its domain terms and predicate signature explicitly before grounding it; keep it unresolved instead of treating prose as logic-complete."
     span:
       start: 342
       end: 460
@@ -72,6 +67,7 @@ logic_claims:
   - CLAIM-733DF122ABFEFA77
   - CLAIM-F6D85429B12F8B60
   - CLAIM-6CD5134734E3E790
+type: req
 ---
 
 ## Context
