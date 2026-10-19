@@ -316,6 +316,46 @@ The plugin's internal maintenance expects a `kibi` CLI command to be available
 from the project context or `PATH`; the canonical setup above satisfies that by
 installing `kibi-cli` project-locally.
 
+#### OpenCode v1 and v2
+
+The same `kibi-opencode` package loads on OpenCode v1 (1.4 and later) and on
+OpenCode v2. The default export carries both plugin shapes: v1 reads
+`{ id, server }` (and `{ id, tui }` for the TUI entry), and v2 reads
+`{ id, setup }`. Install and configure it the same way on either version.
+
+On OpenCode v2:
+
+- Kibi guidance, background sync/check maintenance, and `/kibi-bootstrap`
+  work as on v1. File lifecycle events are derived from the `edit`, `write`,
+  and `patch` tools, because v2 has no `file.*` events.
+- v2 has no toast or structured plugin log, so kibi-opencode shows no toasts and
+  reports plugin errors on stderr with a `[kibi-opencode]` prefix.
+- **Code Mode:** v2 exposes MCP tools through Code Mode by default. If the Kibi
+  MCP tools do not show up for the agent, expose them directly with
+  `codemode: false` on a v2-native server entry under `mcp.servers`:
+
+  ```json
+  {
+    "mcp": {
+      "servers": {
+        "kibi": {
+          "type": "local",
+          "command": ["npx", "kibi-mcp"],
+          "codemode": false
+        }
+      }
+    }
+  }
+  ```
+
+  Setting `codemode` on a v1-style entry (`mcp.kibi` with `enabled`) has no
+  effect: OpenCode v2 migrates v1 entries and drops that key. OpenCode v1 reads
+  every key under `mcp` as a server name, so keep this entry in a configuration
+  that only OpenCode v2 reads.
+- OpenCode v1 and v2 share the same `opencode.db`. To run both on one machine,
+  give each its own `XDG_DATA_HOME`, `XDG_STATE_HOME`, `XDG_CACHE_HOME`, and
+  `XDG_CONFIG_HOME`.
+
 ### Optional: Codex plugin
 
 `kibi-codex` is an optional adapter that gives Codex users prepackaged Kibi skills,
