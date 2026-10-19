@@ -12,6 +12,7 @@ tags:
   - kibi
   - plugin-api
   - compatibility
+  - umbrella
 links:
   - type: specified_by
     target: SCEN-opencode-v2-plugin-load
@@ -68,6 +69,8 @@ logic_claims:
   - CLAIM-F6D85429B12F8B60
   - CLAIM-6CD5134734E3E790
 type: req
+proof_exempt: true
+proof_exempt_reason: 'Four clauses stay ontology_gap: no predicate schema binds the dual-host package load, the default-export shape, or the TUI export, and failure_behavior cannot state both hook isolation and reporting. OpenCode 1.19.3 and 2.0.32 host proof is outside the contracted runner.'
 ---
 
 ## Context
