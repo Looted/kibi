@@ -25,7 +25,10 @@ import {
   normalizeEntityOrigin,
 } from "../public/entity-origin.js";
 import { DEFAULT_COORDINATES_PATH } from "../utils/manifest-paths.js";
-import { normalizeRepoRelativePath } from "../utils/repo-relative-path.js";
+import {
+  normalizeRepoRelativePath,
+  resolveWorkspaceSourceAbsolute,
+} from "../utils/repo-relative-path.js";
 import {
   type ParsedCoordinateArtifact,
   mergeCoordinatesWithManifest,
@@ -538,10 +541,8 @@ function sourceTextResolver(
   return (sourceFile: string) => {
     let resolved: string | null = null;
     for (const base of bases) {
-      const absolute = path.isAbsolute(sourceFile)
-        ? sourceFile
-        : path.resolve(base, sourceFile);
-      if (!existsSync(absolute)) continue;
+      const absolute = resolveWorkspaceSourceAbsolute(base, sourceFile);
+      if (absolute === null || !existsSync(absolute)) continue;
       try {
         const content = readFileSync(absolute, "utf8");
         if (typeof content === "string") {

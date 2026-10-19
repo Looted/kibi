@@ -24,6 +24,7 @@ import {
   enrichSymbolCoordinates,
   withSymbolCompilerLock,
 } from "kibi-runtime";
+import { resolveWorkspaceSourceAbsolute } from "../workspace-path.js";
 import { resolveWorkspaceRoot } from "../workspace.js";
 
 export interface SymbolsRefreshArgs {
@@ -385,10 +386,8 @@ async function isEligible(
 ): Promise<boolean> {
   if (!sourceFile) return false;
 
-  const absolute = path.isAbsolute(sourceFile)
-    ? sourceFile
-    : path.resolve(workspaceRoot, sourceFile);
-  if (!(await fileExists(absolute))) return false;
+  const absolute = resolveWorkspaceSourceAbsolute(workspaceRoot, sourceFile);
+  if (absolute === null || !(await fileExists(absolute))) return false;
 
   return SOURCE_EXTENSIONS.has(path.extname(absolute).toLowerCase());
 }
@@ -440,9 +439,13 @@ async function fillMissingCoordinates(
     return after;
   }
 
-  const absolutePath = path.isAbsolute(sourceFile)
-    ? sourceFile
-    : path.resolve(workspaceRoot, sourceFile);
+  const absolutePath = resolveWorkspaceSourceAbsolute(
+    workspaceRoot,
+    sourceFile,
+  );
+  if (absolutePath === null) {
+    return after;
+  }
 
   try {
     const content = await readFile(absolutePath, "utf8");
@@ -563,9 +566,11 @@ async function readSourceText(
   sourceFile: string,
   workspaceRoot: string,
 ): Promise<string | null> {
-  const absolutePath = path.isAbsolute(sourceFile)
-    ? sourceFile
-    : path.resolve(workspaceRoot, sourceFile);
+  const absolutePath = resolveWorkspaceSourceAbsolute(
+    workspaceRoot,
+    sourceFile,
+  );
+  if (absolutePath === null) return null;
   try {
     return await readFile(absolutePath, "utf8");
   } catch {

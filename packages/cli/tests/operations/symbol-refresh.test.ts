@@ -377,4 +377,49 @@ describe("targeted symbol coordinate refresh", () => {
     if (artifact.status !== "parsed") return;
     expect(artifact.coordinates["SYM-RENAMED"]).toBeUndefined();
   });
+
+  test("refuses to read sourceFile paths outside the workspace", async () => {
+    const workspace = mkdtempSync(join(tmpdir(), "kibi-targeted-escape-"));
+    const outside = mkdtempSync(join(tmpdir(), "kibi-outside-secret-"));
+    workspaces.push(workspace, outside);
+    mkdirSync(join(workspace, ".kb"), { recursive: true });
+    const secret = join(outside, "secret.ts");
+    writeFileSync(
+      secret,
+      'export const API_SECRET_TOKEN = "redacted";\n',
+      "utf8",
+    );
+    const manifestPath = join(workspace, ".kb", "symbols.yaml");
+    writeFileSync(
+      manifestPath,
+      `symbols:\n  - id: SYM-ESCAPE\n    title: API_SECRET_TOKEN\n    sourceFile: ${JSON.stringify(secret)}\n`,
+      "utf8",
+    );
+
+    const result = await refreshSymbolCoordinatesForManifest(
+      "SYM-ESCAPE",
+      manifestPath,
+      context(workspace),
+    );
+
+    expect(result).toMatchObject({
+      refreshed: false,
+      found: true,
+    });
+    expect(result.outcome === undefined || result.outcome === "unchanged").toBe(
+      true,
+    );
+    expect(
+      (() => {
+        try {
+          return readFileSync(
+            join(workspace, ".kb", "symbol-coordinates.yaml"),
+            "utf8",
+          );
+        } catch {
+          return null;
+        }
+      })(),
+    ).toBeNull();
+  });
 });

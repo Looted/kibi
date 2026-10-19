@@ -1,7 +1,7 @@
-import path from "node:path";
 import { collectGranularityCandidates } from "kibi-plugin-builtin";
 import { InputError } from "../../cli-errors.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
+import { resolveWorkspaceSourceAbsolute } from "../../utils/repo-relative-path.js";
 import {
   ALLOWED_GRANULARITY_REASONS_PROSE,
   type GranularSymbolCandidate,
@@ -98,9 +98,11 @@ export async function validateSymbolGranularity(
     return;
   const fs = context.fs;
   if (fs === undefined) return;
-  const sourcePath = path.isAbsolute(entity.sourceFile)
-    ? entity.sourceFile
-    : path.resolve(context.workspaceRoot, entity.sourceFile);
+  const sourcePath = resolveWorkspaceSourceAbsolute(
+    context.workspaceRoot,
+    entity.sourceFile,
+  );
+  if (sourcePath === null) return;
   let content: string;
   try {
     const stat = await fs.stat(sourcePath);

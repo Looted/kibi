@@ -329,6 +329,31 @@ symbols:
     );
   });
 
+  it("does not read or coordinate files outside the workspace", async () => {
+    const outsideDir = makeTmpDir();
+    const outsideFile = path.join(outsideDir, "secret.ts");
+    fs.writeFileSync(
+      outsideFile,
+      'export const API_SECRET_TOKEN = "redacted";\n',
+      "utf-8",
+    );
+    writeRefreshFixture(`symbols:
+  - id: escape-symbol
+    title: API_SECRET_TOKEN
+    sourceFile: ${JSON.stringify(outsideFile)}
+`);
+
+    const result = await refreshCoordinatesForSymbolId(
+      "escape-symbol",
+      refreshTestRoot,
+    );
+
+    expect(result.found).toBe(true);
+    expect(result.refreshed).toBe(false);
+    expect(fs.existsSync(refreshCoordinatesPath)).toBe(false);
+    fs.rmSync(outsideDir, { recursive: true, force: true });
+  });
+
   it("uses a whole-file span for an unmatched coarse anchor", async () => {
     const source = "first line\nsecond line\n";
     writeRefreshFixture(

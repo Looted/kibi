@@ -17,8 +17,13 @@
  */
 
 import { describe, expect, test } from "bun:test";
+import { mkdtempSync, mkdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
-import { normalizeRepoRelativePath } from "../../src/utils/repo-relative-path.js";
+import {
+  normalizeRepoRelativePath,
+  resolveWorkspaceSourceAbsolute,
+} from "../../src/utils/repo-relative-path.js";
 
 const ROOT = path.resolve("/ci/runner/work/kibi");
 
@@ -73,5 +78,38 @@ describe("normalizeRepoRelativePath", () => {
   test("keeps the recorded Unicode form so the checked-out bytes stay readable", () => {
     const decomposed = "docs/cafe\u0301.md";
     expect(normalizeRepoRelativePath(ROOT, `./${decomposed}`)).toBe(decomposed);
+  });
+});
+
+describe("resolveWorkspaceSourceAbsolute", () => {
+  test("resolves in-repo relative and absolute spellings under the workspace", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "kibi-ws-source-"));
+    try {
+      mkdirSync(path.join(root, "src"), { recursive: true });
+      const file = path.join(root, "src", "a.ts");
+      writeFileSync(file, "export const a = 1;\n", "utf8");
+      const expected = realpathSync.native(file);
+      expect(resolveWorkspaceSourceAbsolute(root, "src/a.ts")).toBe(expected);
+      expect(resolveWorkspaceSourceAbsolute(root, file)).toBe(expected);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test("refuses absolute and relative escapes so coordinate refresh cannot oracle outside files", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "kibi-ws-escape-"));
+    const outside = mkdtempSync(path.join(tmpdir(), "kibi-outside-"));
+    try {
+      const secret = path.join(outside, "secret.ts");
+      writeFileSync(secret, 'export const API_SECRET_TOKEN = "x";\n', "utf8");
+      expect(resolveWorkspaceSourceAbsolute(root, secret)).toBeNull();
+      expect(
+        resolveWorkspaceSourceAbsolute(root, path.join("..", path.basename(outside), "secret.ts")),
+      ).toBeNull();
+      expect(resolveWorkspaceSourceAbsolute(root, "/etc/passwd")).toBeNull();
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+      rmSync(outside, { recursive: true, force: true });
+    }
   });
 });

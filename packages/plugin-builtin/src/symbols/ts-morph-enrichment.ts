@@ -32,6 +32,7 @@ import {
   isPrivateClassMember,
   onlyCandidate,
 } from "./ts-morph-shared.js";
+import { resolveWorkspaceSourceAbsolute } from "./workspace-path.js";
 
 // implements REQ-capability-plugin-builtin-parity-v1
 export interface SymbolCoordinates {
@@ -180,9 +181,8 @@ async function resolveSourcePath(
 ): Promise<string | null> {
   if (!sourceFile) return null;
 
-  const absolute = path.isAbsolute(sourceFile)
-    ? sourceFile
-    : path.resolve(workspaceRoot, sourceFile);
+  const absolute = resolveWorkspaceSourceAbsolute(workspaceRoot, sourceFile);
+  if (absolute === null) return null;
   const ext = path.extname(absolute).toLowerCase();
 
   if (!SUPPORTED_SOURCE_EXTENSIONS.has(ext)) return null;

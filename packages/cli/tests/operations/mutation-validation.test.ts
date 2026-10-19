@@ -55,6 +55,40 @@ describe("symbol sourceFile validation", () => {
     expect(validated.entity.sourceFile).toBe("src/auth/login.ts");
   });
 
+  test("rejects an absolute sourceFile path", () => {
+    expect(() =>
+      validateUpsertInput(
+        {
+          type: "symbol",
+          id: "SYM-ABS-ESCAPE",
+          properties: {
+            title: "API_SECRET_TOKEN",
+            status: "active",
+            sourceFile: "/tmp/outside-secret.ts",
+          },
+        },
+        new Date("2026-10-19T00:00:00.000Z"),
+      ),
+    ).toThrow(/workspace-relative path/);
+  });
+
+  test("rejects a sourceFile with .. escapes", () => {
+    expect(() =>
+      validateUpsertInput(
+        {
+          type: "symbol",
+          id: "SYM-DOTDOT-ESCAPE",
+          properties: {
+            title: "API_SECRET_TOKEN",
+            status: "active",
+            sourceFile: "../outside-secret.ts",
+          },
+        },
+        new Date("2026-10-19T00:00:00.000Z"),
+      ),
+    ).toThrow(/workspace-relative path/);
+  });
+
   test("ignores symbols without a sourceFile", () => {
     const validated = validateUpsertInput(
       {

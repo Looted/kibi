@@ -19,6 +19,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { createMaintenanceSourceAnalysisService } from "../plugins/maintenance-source-analysis.js";
+import { resolveWorkspaceSourceAbsolute } from "../utils/repo-relative-path.js";
 import type { CapabilityRegistry } from "../plugins/registry.js";
 import type { SourceAnalysisService } from "../plugins/source-analysis-service.js";
 import {
@@ -399,10 +400,11 @@ function resolveSourcePath(
   workspaceRoot: string,
 ): { absolutePath: string } | null {
   if (!sourceFile) return null;
-  const absolutePath = path.isAbsolute(sourceFile)
-    ? sourceFile
-    : path.resolve(workspaceRoot, sourceFile);
-  if (!fs.existsSync(absolutePath)) return null;
+  const absolutePath = resolveWorkspaceSourceAbsolute(
+    workspaceRoot,
+    sourceFile,
+  );
+  if (absolutePath === null || !fs.existsSync(absolutePath)) return null;
   return { absolutePath };
 }
 

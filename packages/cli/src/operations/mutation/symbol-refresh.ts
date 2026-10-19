@@ -24,6 +24,7 @@ import { enrichSymbolCoordinates } from "../../public/extractors/symbols-coordin
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import { isCoarseGranularityReason } from "../../public/symbol-granularity.js";
 import { CANONICAL_ENTITY_PATHS } from "../../utils/kb-paths.js";
+import { resolveWorkspaceSourceAbsolute } from "../../utils/repo-relative-path.js";
 import { withSymbolCompilerLock } from "./symbol-compiler-lock.js";
 
 type CoordinateRecord = {
@@ -98,9 +99,8 @@ function sourceTextFor(
   sourceFile: string,
   workspaceRoot: string,
 ): string | null {
-  const absolute = path.isAbsolute(sourceFile)
-    ? sourceFile
-    : path.resolve(workspaceRoot, sourceFile);
+  const absolute = resolveWorkspaceSourceAbsolute(workspaceRoot, sourceFile);
+  if (absolute === null) return null;
   try {
     return readFileSync(absolute, "utf8");
   } catch {

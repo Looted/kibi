@@ -321,3 +321,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aba50d1e8b3f
+  - type: constrains
+    from: REQ-symbol-sourcefile-workspace-confinement
+    to: FACT-SUBJECT-SYMBOL-SOURCE-FILE
+    created_at: 2026-10-19T12:15:09.358Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9190ba8a674a
+  - type: requires_property
+    from: REQ-symbol-sourcefile-workspace-confinement
+    to: FACT-PROP-SYMBOL-SOURCEFILE-WORKSPACE-CONFINED
+    created_at: 2026-10-19T12:15:09.385Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2cddffd3f77
+  - type: relates_to
+    from: REQ-symbol-sourcefile-workspace-confinement
+    to: FACT-OBS-SYMBOL-SOURCEFILE-PATH-ESCAPE
+    created_at: 2026-10-19T12:15:09.397Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23cb4e08cfb3
+  - type: specified_by
+    from: REQ-symbol-sourcefile-workspace-confinement
+    to: SCEN-symbol-sourcefile-workspace-confinement
+    created_at: 2026-10-19T12:15:36.667Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a159a8a584af
+  - type: verified_by
+    from: REQ-symbol-sourcefile-workspace-confinement
+    to: TEST-symbol-sourcefile-workspace-confinement
+    created_at: 2026-10-19T12:15:48.633Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0c49c2dff80

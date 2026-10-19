@@ -293,3 +293,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e55f82b116fc
+  - type: implements
+    from: SYM-mcp-normalizeRepoRelativePath
+    to: REQ-symbol-sourcefile-workspace-confinement
+    created_at: 2026-10-19T12:28:32.541Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4fa93edc2569
+  - type: covered_by
+    from: SYM-mcp-normalizeRepoRelativePath
+    to: TEST-symbol-sourcefile-workspace-confinement
+    created_at: 2026-10-19T12:28:32.549Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-029aee0ad2f5
