@@ -2,8 +2,8 @@ import { describe, expect, test } from "bun:test";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import kibiOpencodePlugin from "../src/index";
 import type { PluginInput } from "../src/index";
+import kibiOpencodePlugin from "../src/plugin.js";
 import { registerIndexCoverageTests } from "./index.coverage.shared";
 
 describe("index kibiOpencodePlugin", () => {

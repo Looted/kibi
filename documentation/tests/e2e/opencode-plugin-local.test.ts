@@ -181,7 +181,7 @@ if (RUN_NODE_TEST_SUITE) {
 
           const distIndex = join(REPO_ROOT, "packages/opencode/dist/index.js");
           const pkg = await import(distIndex);
-          const plugin = pkg.default;
+          const plugin = pkg.default.server;
           await plugin({ directory: healthyDir, worktree: healthyDir });
 
           const summary = getSessionTracker().generateSummary();
@@ -225,7 +225,7 @@ if (RUN_NODE_TEST_SUITE) {
 
           const distIndex = join(REPO_ROOT, "packages/opencode/dist/index.js");
           const pkg = await import(distIndex);
-          const plugin = pkg.default;
+          const plugin = pkg.default.server;
           await plugin({ directory: missingDir, worktree: missingDir });
 
           const summary = getSessionTracker().generateSummary();
@@ -247,7 +247,7 @@ if (RUN_NODE_TEST_SUITE) {
       async () => {
         const distIndex = join(REPO_ROOT, "packages/opencode/dist/index.js");
         const pkg = await import(distIndex);
-        const plugin = pkg.default;
+        const plugin = pkg.default.server;
 
         const toastCalls: unknown[] = [];
         const logCalls: unknown[] = [];

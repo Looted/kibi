@@ -6,7 +6,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { recordOpencodeToolTelemetry } from "../src/hook-telemetry";
-import kibiOpencodePlugin from "../src/index";
+import kibiOpencodePlugin from "../src/plugin.js";
 import { buildPrompt } from "../src/prompt";
 
 const supportedCapability = {
