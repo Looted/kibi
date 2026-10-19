@@ -55396,3 +55396,97 @@ symbols:
         target: TEST-cli-staged-entity-context
       - type: implements
         target: REQ-cli-staged-entity-context
+  - id: SYM-test-symbol-sourcefile-workspace-confinement
+    title: Symbol sourceFile workspace confinement consumer CLI suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/symbol-sourcefile-workspace-confinement.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T14:10:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-symbol-sourcefile-workspace-confinement
+  - id: SYM-resolveWorkspaceSourceAbsolute
+    title: resolveWorkspaceSourceAbsolute
+    status: active
+    tags:
+      - security
+      - symbols
+    sourceFile: packages/cli/src/utils/repo-relative-path.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T12:23:47.690Z
+    relationships:
+      - type: covered_by
+        target: TEST-symbol-sourcefile-workspace-confinement
+      - type: implements
+        target: REQ-symbol-sourcefile-workspace-confinement
+  - id: SYM-mcp-resolveWorkspaceSourceAbsolute
+    title: resolveWorkspaceSourceAbsolute
+    status: active
+    tags:
+      - security
+      - symbols
+      - mcp
+    sourceFile: packages/mcp/src/workspace-path.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T12:23:50.261Z
+    relationships:
+      - type: covered_by
+        target: TEST-symbol-sourcefile-workspace-confinement
+      - type: implements
+        target: REQ-symbol-sourcefile-workspace-confinement
+  - id: SYM-mcp-normalizeRepoRelativePath
+    title: normalizeRepoRelativePath
+    status: active
+    tags:
+      - security
+      - symbols
+      - mcp
+    sourceFile: packages/mcp/src/workspace-path.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T12:28:31.780Z
+    relationships:
+      - type: covered_by
+        target: TEST-symbol-sourcefile-workspace-confinement
+      - type: implements
+        target: REQ-symbol-sourcefile-workspace-confinement
+  - id: SYM-plugin-resolveWorkspaceSourceAbsolute
+    title: resolveWorkspaceSourceAbsolute
+    status: active
+    tags:
+      - security
+      - symbols
+    sourceFile: packages/plugin-builtin/src/symbols/workspace-path.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T12:28:34.310Z
+    relationships:
+      - type: covered_by
+        target: TEST-symbol-sourcefile-workspace-confinement
+      - type: implements
+        target: REQ-symbol-sourcefile-workspace-confinement
+  - id: SYM-SYMBOL-GRANULARITY-VIOLATION
+    title: SYMBOL_GRANULARITY_VIOLATION
+    status: active
+    tags:
+      - symbols
+    sourceFile: packages/cli/src/operations/mutation/symbol-granularity.ts
+    granularity_reason: config-artifact
+    symbol_role: structural
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T12:28:36.652Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-symbol-link-guidance
+      - type: implements
+        target: REQ-kibi-symbol-link-guidance

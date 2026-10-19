@@ -50,10 +50,25 @@ check_kind(datetime, V) :- string(V). % accept ISO strings for now
 check_kind(list, V) :- is_list(V).
 check_kind(list_or_json, V) :- is_list(V) ; string(V) ; atom(V).
 check_kind(uri, V) :- string(V).
+% Non-empty workspace-relative path: reject absolute forms and `..` segments.
+check_kind(workspace_relpath, V) :-
+    string(V),
+    string_length(V, Len),
+    Len > 0,
+    \+ workspace_relpath_absolute(V),
+    split_string(V, "/\\", "", Parts),
+    \+ member("..", Parts).
 check_kind(integer, V) :- integer(V).
 check_kind(number, V) :- number(V).
 check_kind(boolean, true).
 check_kind(boolean, false).
+
+workspace_relpath_absolute(V) :- sub_string(V, 0, 1, _, "/").
+workspace_relpath_absolute(V) :-
+    string_length(V, Len),
+    Len >= 2,
+    sub_string(V, 1, 1, _, ":").
+workspace_relpath_absolute(V) :- sub_string(V, 0, 2, _, "\\\\").
 
 % Fallback false
 check_kind(_, _) :- fail.

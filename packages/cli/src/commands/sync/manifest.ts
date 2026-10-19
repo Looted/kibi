@@ -38,6 +38,7 @@ import {
   type ManifestSymbolEntry,
   enrichSymbolCoordinates,
 } from "../../extractors/symbols-coordinator.js";
+import { resolveWorkspaceSourceAbsolute } from "../../utils/repo-relative-path.js";
 import {
   COARSE_GRANULARITY_REASONS,
   COARSE_GRANULARITY_REASONS_PARENTHESIZED,
@@ -151,10 +152,8 @@ function readSourceText(
   workspaceRoot: string,
   deps: ManifestDeps,
 ): string | null {
-  const absolute = path.isAbsolute(sourceFile)
-    ? sourceFile
-    : path.resolve(workspaceRoot, sourceFile);
-  if (!deps.existsSync(absolute)) return null;
+  const absolute = resolveWorkspaceSourceAbsolute(workspaceRoot, sourceFile);
+  if (absolute === null || !deps.existsSync(absolute)) return null;
   try {
     const content = deps.readFileSync(absolute, "utf8");
     return typeof content === "string" ? content : null;
@@ -500,9 +499,8 @@ export function isEligibleForCoordinateRefresh(
 ): boolean {
   const resolved = resolveDeps(deps);
   if (!sourceFile) return false;
-  const absolute = path.isAbsolute(sourceFile)
-    ? sourceFile
-    : path.resolve(workspaceRoot, sourceFile);
+  const absolute = resolveWorkspaceSourceAbsolute(workspaceRoot, sourceFile);
+  if (absolute === null) return false;
 
   // Non-JS/TS files also undergo coordinate extraction through the text
   // heuristic. A miss there must be reported just like an AST extraction miss.

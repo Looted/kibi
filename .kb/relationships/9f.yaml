@@ -241,3 +241,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c5aed19f9b70
+  - type: implements
+    from: SYM-mcp-resolveWorkspaceSourceAbsolute
+    to: REQ-symbol-sourcefile-workspace-confinement
+    created_at: 2026-10-19T12:23:50.932Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-754a643cc1d3
+  - type: covered_by
+    from: SYM-mcp-resolveWorkspaceSourceAbsolute
+    to: TEST-symbol-sourcefile-workspace-confinement
+    created_at: 2026-10-19T12:23:50.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac4e54265328

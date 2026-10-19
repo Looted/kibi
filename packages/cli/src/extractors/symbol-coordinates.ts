@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
 import { dump as dumpYAML, load as parseYAML } from "js-yaml";
+import { resolveWorkspaceSourceAbsolute } from "../utils/repo-relative-path.js";
 import type { ManifestSymbolRecord } from "./manifest.js";
 
 /**
@@ -416,10 +417,8 @@ function manifestSourceFile(record: ManifestSymbolRecord): string | undefined {
 }
 
 function defaultResolveSourceText(sourceFile: string): string | null {
-  const absolute = path.isAbsolute(sourceFile)
-    ? sourceFile
-    : path.resolve(process.cwd(), sourceFile);
-  if (!existsSync(absolute)) return null;
+  const absolute = resolveWorkspaceSourceAbsolute(process.cwd(), sourceFile);
+  if (absolute === null || !existsSync(absolute)) return null;
   try {
     const content = readFileSync(absolute, "utf8");
     return typeof content === "string" ? content : null;

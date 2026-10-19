@@ -16,6 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { realpathSync } from "node:fs";
 import path from "node:path";
 
 /**
@@ -60,4 +61,30 @@ export function normalizeRepoRelativePath(
     return null;
   }
   return normalized;
+}
+
+/**
+ * Resolve a recorded source path to an absolute path that is lexically (and,
+ * when the file exists, via realpath) confined under `workspaceRoot`.
+ * Returns null for escapes, empty input, or symlink targets outside the root.
+ * Callers must treat null as "do not read".
+ */
+// implements REQ-symbol-sourcefile-workspace-confinement
+export function resolveWorkspaceSourceAbsolute(
+  workspaceRoot: string,
+  sourceFile: string,
+): string | null {
+  const relative = normalizeRepoRelativePath(workspaceRoot, sourceFile);
+  if (relative === null) return null;
+  const absolute = path.resolve(workspaceRoot, relative);
+  try {
+    const realRoot = realpathSync.native(path.resolve(workspaceRoot));
+    const realFile = realpathSync.native(absolute);
+    const confined = path.relative(realRoot, realFile);
+    if (confined.startsWith("..") || path.isAbsolute(confined)) return null;
+    return realFile;
+  } catch {
+    // Missing path: lexical confinement from normalizeRepoRelativePath is enough.
+    return absolute;
+  }
 }
