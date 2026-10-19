@@ -36779,6 +36779,14 @@ coordinates:
     sourceEndLine: 216
     sourceFile: scripts/tests/swipl-packages.test.ts
     sourceLine: 1
+  SYM-test-symbol-sourcefile-workspace-confinement:
+    identityHash: 7086bdd37d5e0555b032376df3dd39bba7ec46e95d0e6c000cc29bec3e24374b
+    sourceHash: 9d50bc9b7b6d0664d9ac5c8bf0defe0078fe7d535b61c932a6eb5c9c9e98f68f
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 58
+    sourceFile: packages/cli/tests/consumer/symbol-sourcefile-workspace-confinement.test.ts
+    sourceLine: 1
   SYM-test-sync-agent-skills:
     identityHash: 2c8e6e8b963ad16b90da23ebca5e979638245e2e59769631024a33f9585545c5
     sourceHash: a48214547bf261ed96a6186484175fd01d2ae5c84bae8ed07134b1ed88f3db61
