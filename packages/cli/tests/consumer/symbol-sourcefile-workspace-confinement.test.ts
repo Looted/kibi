@@ -32,8 +32,8 @@ function symbolPayload(sourceFile: string): Json {
   };
 }
 
-describe("kibi upsert rejects outside-workspace symbol sourceFile", () => {
-  test("dry-run refuses absolute and ..-escaping sourceFile with UPSERT_DRY_RUN_INVALID", () => {
+describe("built CLI rejects outside-workspace symbol sourceFile", () => {
+  test("preview write refuses absolute and ..-escaping sourceFile paths", () => {
     const ws = createConsumerWorkspace("kibi-sourcefile-confinement-");
     workspace = ws;
 

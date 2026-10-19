@@ -36781,7 +36781,7 @@ coordinates:
     sourceLine: 1
   SYM-test-symbol-sourcefile-workspace-confinement:
     identityHash: 7086bdd37d5e0555b032376df3dd39bba7ec46e95d0e6c000cc29bec3e24374b
-    sourceHash: 9d50bc9b7b6d0664d9ac5c8bf0defe0078fe7d535b61c932a6eb5c9c9e98f68f
+    sourceHash: f0843a8d2a9a51ab5aa8236fe5622265a8d5f233dccd54cb2895dd44da68f775
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 58
