@@ -21,6 +21,7 @@ import { after, before, describe, it } from "node:test";
 import {
   createIsolatedInstall,
   installOpencodeTarball,
+  loadPackedV1Plugin,
   resolveOpencodeTarball,
 } from "./opencode-packed-utils.js";
 
@@ -97,11 +98,7 @@ if (RUN_NODE_TEST_SUITE) {
           );
 
           // Dynamically import the installed plugin
-          const pkg = await import(distIndex);
-          assert.ok(
-            typeof pkg.default === "function",
-            "default export must be a function (the plugin)",
-          );
+          const plugin = await loadPackedV1Plugin(distIndex);
 
           // Create a temp project structure
           const projectDir = join(tmpDir, "test-project");
@@ -176,7 +173,7 @@ class User:
             directory: projectDir,
           };
 
-          const hooks: unknown = await pkg.default(mockInput);
+          const hooks: unknown = await plugin(mockInput);
           assert.ok(
             hooks !== null && typeof hooks === "object",
             "plugin must return a hooks object",
@@ -261,7 +258,7 @@ class User:
             "node_modules/kibi-opencode/dist/index.js",
           );
 
-          const pkg = await import(distIndex);
+          const plugin = await loadPackedV1Plugin(distIndex);
 
           // Create a temp project structure
           const projectDir = join(tmpDir, "test-project-2");
@@ -335,7 +332,7 @@ class Database:
             directory: projectDir,
           };
 
-          const hooks: unknown = await pkg.default(mockInput);
+          const hooks: unknown = await plugin(mockInput);
 
           // Trigger file.edited event
           const hooksObj2 = hooks as { event?: EventHook };

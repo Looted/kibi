@@ -36066,7 +36066,7 @@ symbols:
       - type: executable_for
         target: TEST-opencode-kibi-plugin-v1
   - id: SYM-e2e-test-opencode-python-comment-routing
-    title: opencode-comment-guidance.test
+    title: opencode-comment-guidance.test python-routing
     status: active
     sourceFile: documentation/tests/e2e/packed/opencode-comment-guidance.test.ts
     symbol_role: behavioral
@@ -36075,7 +36075,7 @@ symbols:
       - type: executable_for
         target: TEST-opencode-python-comment-routing
   - id: SYM-e2e-test-opencode-file-context-guidance-v1
-    title: opencode-comment-guidance.test
+    title: opencode-comment-guidance.test file-context
     status: active
     sourceFile: documentation/tests/e2e/packed/opencode-comment-guidance.test.ts
     symbol_role: behavioral
@@ -55680,3 +55680,88 @@ symbols:
         target: TEST-opencode-v2-plugin-api
       - type: implements
         target: REQ-opencode-v2-plugin-api
+  - id: SYM-opencode-packed-load-v1-plugin
+    title: loadPackedV1Plugin
+    status: active
+    sourceFile: documentation/tests/e2e/packed/opencode-packed-utils.ts
+    symbol_role: behavioral
+    tags:
+      - opencode
+      - test
+      - e2e
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T22:20:26.678Z
+    relationships:
+      - type: executable_for
+        target: TEST-opencode-bootstrap-paths
+      - type: executable_for
+        target: TEST-opencode-file-context-guidance-v1
+      - type: executable_for
+        target: TEST-opencode-python-comment-routing
+  - id: SYM-e2e-packed-opencode-install
+    title: opencode-install.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/opencode-install.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    tags:
+      - opencode
+      - test
+      - e2e
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T22:20:28.882Z
+    relationships:
+      - type: executable_for
+        target: TEST-opencode-kibi-plugin-v1
+  - id: SYM-opencode-directory-index-shim
+    title: OpenCode directory index shim
+    status: active
+    sourceFile: packages/opencode/index.js
+    symbol_role: module
+    granularity_reason: extractor-miss
+    tags:
+      - opencode
+      - plugin-api
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T22:24:05.040Z
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-v2-plugin-api
+      - type: implements
+        target: REQ-opencode-v2-plugin-api
+  - id: SYM-opencode-plugin-definition
+    title: OpenCode plugin definition
+    status: active
+    sourceFile: packages/opencode/src/index.ts
+    symbol_role: module
+    granularity_reason: extractor-miss
+    tags:
+      - opencode
+      - plugin-api
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T22:24:07.043Z
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-v2-plugin-api
+      - type: implements
+        target: REQ-opencode-v2-plugin-api
+  - id: SYM-opencode-index-wrapper-tests
+    title: index-wrapper.test
+    status: active
+    sourceFile: packages/opencode/tests/index-wrapper.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    tags:
+      - opencode
+      - plugin-api
+      - test
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T22:24:09.615Z
+    relationships:
+      - type: executable_for
+        target: TEST-opencode-v2-plugin-api
