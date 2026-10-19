@@ -1,5 +1,13 @@
 # kibi-plugin-builtin
 
+## 0.5.3
+
+### Patch Changes
+
+- 25d537e: Symbol coordinate refresh no longer treats `sourceFile` as an unrestricted filesystem path. Absolute paths and `..` escapes are rejected at upsert and refused at read time, so MCP/CLI coordinate refresh cannot probe files outside the workspace.
+
+  Tighten Prolog `sourceFile` typing to `workspace_relpath` in `kibi-core` (and the CLI schema mirror), add `resolveWorkspaceSourceAbsolute` confinement (with realpath checks), and cover the escape oracle with regression tests in CLI and MCP.
+
 ## 0.5.2
 
 ### Patch Changes
@@ -9,6 +17,7 @@
   Technical summary: `kb.pl` adds `changed_symbol_no_req_coverage/2`, which restricts `symbol_no_req_coverage/2` to the `changed_symbol/1` overlay facts plus symbols whose staged manifest entry changed, and `checks.pl` adds `check_changed_symbol_coverage/2`, which renders those as `symbol-coverage` violations; the staged flow in `check.ts` calls it through `validateStagedSymbolCoverage` next to `validateStagedSymbols` and creates the temp KB whenever a symbol changed, including manifest-only edits. The rule registry adds the TypeScript rule `symbol-granularity`, evaluated in `executeCheck` by `collectSymbolGranularityViolations`, which reuses `createSymbolGranularityDiagnostics` with every working-tree declaration as a candidate, analyzes only the source files of symbols the rule judges, honours allowed `granularity_reason` values and skips files the analyzers cannot fully analyze; the `kb_check` `rules` enum gains the name. Granularity diagnostics now carry `entityId`, `source` and evidence, and name titles the extractor does not produce. The built-in ts-morph v2 extractor creates its project with `noLib`, `noResolve` and no `types`: it reads only syntactic diagnostics, which are unchanged, and per-file analysis drops from roughly 75 ms to a few milliseconds. The ts-morph coordinate enricher skips private class members and records a transient `coordinateRefreshFailure` that sync prints as the failure reason and never writes to the manifest. The unused `checkSymbolCoverage` helper and its stale "not traceable to any functional requirement" message are removed. kibi-runtime is bumped because it bundles the CLI operations that kibi-mcp serves.
 
   Migration: `symbol-granularity` is canonical and blocking, so `kibi check`, `kb_check` and CI fail until its violations are fixed. A symbol violates it when it has `implements`, `covered_by` or `executable_for` links, no allowed `granularity_reason`, and its source file has a narrower behavioral declaration: a member of the symbol's title (a class symbol while its methods exist), or any declaration when the title names nothing the extractor produces (a non-exported helper, a private class member, a removed or renamed declaration). Run `kibi check --rules symbol-granularity` to list them, fix them with `kb_upsert`/`kb_delete` (never by editing `.kb/` files), then run `kibi sync --refresh-symbol-coordinates`:
+
   - Title the extractor does not produce: re-point the symbol to its public owner, the exported function or class that owns the behavior. Change its `title` to the owner, or, when a symbol for the owner already exists, add the links to that symbol and delete the helper symbol.
   - Class symbol while its members exist: move the links to the narrow member symbols, or delete the class symbol when its members already carry the same links.
   - Coarse ownership that is intended: add an allowed `granularity_reason` (`module-level-behavior`, `config-artifact`, `extractor-miss`, `test-suite` or `legacy-link`).
@@ -29,6 +38,7 @@
 ### Minor Changes
 
 - ee91b85: Projects with a UI can opt into the experimental `kibi-plugin-ui`, which keeps agents on the agreed design: `kb_check` then requires every React or Angular component to implement a design requirement and blocks a component that loses the class names or test ids marking its agreed pattern, such as a timeline rewritten as cards. `/kibi-bootstrap` offers the plugin when it finds component files, and a declined offer is remembered in `package.json` `kibi.declinedPlugins`. Requirements that only name a UI pattern are now proved by fresh isolated component tests, so pattern rules do not need browser tests. Projects without the plugin see no new blocking findings.
+
   - Add the `kibi.check-policy.v1` capability to `kibi-plugin-sdk`: a JSON policy with ownership and pattern-marker rules, validated by `validateCheckPolicyDocument`. `kb_check` reads activated policies as data from the package and never imports plugin code; an unreadable policy blocks. The builtin plugin ships an empty policy.
   - Add the canonical `policy-ownership` and `policy-markers` rules (inert without an activated policy) to the rule registry, the `kb_check` schema and the CLI.
   - Add built-in `ui_pattern`, `same_pattern`, `pattern_marker` and `ui_container` predicate schemas with suggestion keywords.
@@ -77,6 +87,7 @@
 ### Patch Changes
 
 - 8622782: An impact review prepared on one machine now still validates in CI, and the MCP server and the CLI agree on whether it is current. Checks only block on incomplete source analysis the author can act on: the committed side of a change never blocks, and a known analyzer limitation such as a Rust macro or a Python decorator matters only where it overlaps the changed lines. Syntax, parse, timeout and integrity problems in the staged file still block. Long-running hosts no longer grow memory with every analyzed file, and Tree-sitter analysis reuses warm workers instead of starting one per file.
+
   - Identify the impact evaluator by its contract version and the canonical JSON of the schemas it consumes, instead of hashing the installed file tree and `process.version`. Identify the builtin analyzer runtime by its package identity rather than its installed tree.
   - `kibi-runtime` bundles the CLI operations again (`kibi-cli` is a build-time dependency only); it no longer installs `kibi-cli`.
   - Add one shared analysis gate (`analysisObligation`) used by staged checks, impact-review preparation and validation, and impact reports.
@@ -97,6 +108,7 @@
   When you model a new requirement, Kibi now ranks the subjects that already exist and either reuses one or explicitly declares a new one. It also flags claims that look like possible duplicates. An intentional restatement can be recorded with the new `restates` relationship. Skills and docs now recommend naming entities by the behavior they govern (`REQ-cli-gc`) instead of a sequence number (`REQ-042`). Existing numbered IDs stay valid.
 
   Predicate schemas can now declare the allowed values for an argument, plus the old spellings that map onto them. New facts must use those values. `kibi check` reports predicate facts that don't match any schema, and `kibi migrate` can fix the mechanical cases after you approve the plan hash. It moves a fact to the only namespace whose schema matches, and rewrites old spellings to the declared value. Everything that needs judgment stays a review item.
+
   - core: new `semantic_quality.pl` (`entity-id-style`, `domain-redundancy`, `domain-implication`, `subject-key-identity`, `subject-key-shape`, `ontology-quality`) and `units.pl`. Unit canonicalization is used for comparison only, and unknown or ambiguous units such as `KB` are never equated. Adds the `restates` req→req relationship and an optional `diagnosticSeverity` in the rule registry. Adds `:- encoding(utf8)` to modules that contain non-ASCII text.
   - cli/mcp: `restates` is wired through the extractors, schemas, and mutation paths. `entity-id-style` warnings are reported on `kb_upsert` creates and on staged added or renamed entity files. `kb_model_requirement` returns `vocabularyAlignment` (subject decision, candidates, redundancy candidates, stamps, `fallbackUsed`). Ontology-quality thresholds can be set with `KIBI_ONTOLOGY_QUALITY_MAX_SINGLETON_RATIO` / `KIBI_ONTOLOGY_QUALITY_MIN_FACTS`. `kb_compile_intent` create mode now keeps a caller-supplied `requirementId`. `kibi check --staged` now also prints its pass line when metadata-only staged changes have only advisory findings, matching the staged-symbol path.
   - cli/mcp: `predicate_schema` facts accept `argument_constants` and `argument_aliases`, stored like `rule_ir` as JSON. `kb_upsert` / `kb_validate_upsert` reject malformed vocabularies and predicate facts that use undeclared values or aliases. `kb_suggest_predicates` binds aliases to their constant and leaves undeclared values unbound. The new advisory TypeScript rule `predicate-schema-conformance` checks predicate facts against project schemas and the built-in catalog. Its mechanical repairs become automatic `predicate_schema_alignment` migration actions that carry the exact `kb_upsert` input and re-read the fact before writing.
@@ -112,6 +124,7 @@
   this repository, `kibi status` for a fresh KB drops from about 3 seconds to
   about 1.7, and a command that needs neither schema validation nor symbol
   extraction starts about 0.5 seconds sooner.
+
   - `kb_status_json` skips the full-entity stale-reason scan when the KB is
     fresh, because a fresh verdict already rules out every stale reason.
   - `kibi-plugin-builtin` loads ts-morph (the TypeScript compiler) on first
@@ -126,6 +139,7 @@
 ### Minor Changes
 
 - 783cc75: Coordinate enrichment, granularity candidate collection, and private-member helpers now live in `kibi-plugin-builtin`, so the CLI can analyze TypeScript/JavaScript symbols without depending on `ts-morph` directly. Hosts that only install `kibi-cli` still get the same enrichment and staged-symbol behavior through the builtin plugin.
+
   - Export `enrichSymbolCoordinatesWithTsMorph`, `collectGranularityCandidates`, `onlyCandidate`, and `isPrivateClassMember` from `kibi-plugin-builtin`
   - Thin-wrap those helpers from CLI `symbols-ts`, `symbol-granularity`, and `symbol-extract`
   - Drop `ts-morph` from `kibi-cli` runtime dependencies (kept as a test-only devDependency for AST spies)
@@ -138,10 +152,12 @@
 ### Patch Changes
 
 - b375e8f: This maintenance update brings the affected package code and tests into line with Kibi's Biome checks while preserving runtime behavior. It also replaces MCP non-null assertions with receiver-preserving method calls.
+
   - Format affected files, sort imports, and remove unnecessary template literals.
   - Preserve EngineClient `this` when forwarding optional Prolog methods.
 
 - e6571b4: External classifiers stay limited to the two allowlisted operations, ontology matches keep their claim keys through host composition, and CLI predicate rule tables now re-export the builtin pack so advisor and modeling cannot drift. Lane selection from the builtin classifier also accepts host snake_case signal shapes, which unblocks typecheck/build for capability-plugin call sites.
+
   - fix(builtin): chooseLane accepts kind-only LaneSignal (unblocks analysis-receipt typecheck)
   - feat(cli): stamp claimKey on composed ontology match candidates
   - refactor(cli): re-export predicate rule tables from kibi-plugin-builtin
