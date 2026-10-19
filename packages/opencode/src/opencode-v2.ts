@@ -31,6 +31,7 @@
  */
 // implements REQ-opencode-v2-plugin-api
 import path from "node:path";
+import { error as logOperationalError } from "./logger.js";
 import type { Hooks, Plugin, PluginInput } from "./plugin.js";
 
 export const KIBI_OPENCODE_PLUGIN_ID = "kibi-opencode";
@@ -305,6 +306,10 @@ async function registerCommands(
   });
 }
 
+function describeError(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
 /**
  * Creates the OpenCode v2 `setup` function for a v1-style plugin.
  * A registration failure on one domain does not prevent the others.
@@ -317,34 +322,49 @@ export function createV2Setup(
     const hooks = await plugin(input);
     const registrations: V2Registration[] = [];
     const attempt = async (
+      domain: string,
       register: () => Promise<V2Registration | undefined>,
     ) => {
       try {
         const registration = await register();
         if (registration) registrations.push(registration);
-      } catch {
-        // Missing or incompatible domain: keep the remaining hooks working.
+      } catch (err) {
+        // Missing or incompatible domain: keep the remaining hooks working,
+        // but surface the failure — v2 has no structured log transport.
+        logOperationalError(`OpenCode v2 ${domain} registration failed`, {
+          domain,
+          error: describeError(err),
+        });
       }
     };
 
     const systemTransform = hooks["experimental.chat.system.transform"];
     if (systemTransform) {
-      await attempt(() => registerSystemTransform(context, systemTransform));
+      await attempt("session.context", () =>
+        registerSystemTransform(context, systemTransform),
+      );
     }
     if (hooks.event || hooks["tool.execute.after"]) {
-      await attempt(() => registerToolBridge(context, hooks, input.directory));
+      await attempt("tool.execute.after", () =>
+        registerToolBridge(context, hooks, input.directory),
+      );
     }
     const configHook = hooks.config;
     if (configHook) {
-      await attempt(() => registerCommands(context, configHook));
+      await attempt("command.transform", () =>
+        registerCommands(context, configHook),
+      );
     }
 
     return async () => {
       for (const registration of registrations.reverse()) {
         try {
           await registration.dispose();
-        } catch {
-          // best-effort cleanup
+        } catch (err) {
+          // best-effort cleanup; keep disposing the remaining registrations
+          logOperationalError("OpenCode v2 registration cleanup failed", {
+            error: describeError(err),
+          });
         }
       }
     };

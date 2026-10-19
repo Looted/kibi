@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import path from "node:path";
 import pluginDefinition from "../src/index";
+import { _setConsoleError } from "../src/logger";
 import {
   KIBI_OPENCODE_PLUGIN_ID,
   type V2CommandDefinition,
@@ -300,8 +301,20 @@ describe("createV2Setup", () => {
         },
       },
     };
-    await createV2Setup(async () => hooks)(broken);
+    const logged: unknown[][] = [];
+    _setConsoleError((...args: unknown[]) => {
+      logged.push(args);
+    });
+    try {
+      await createV2Setup(async () => hooks)(broken);
+    } finally {
+      _setConsoleError(null);
+    }
     expect(typeof registered.tool).toBe("function");
+    expect(logged).toHaveLength(1);
+    expect(String(logged[0]?.[1])).toContain(
+      "OpenCode v2 session.context registration failed",
+    );
   });
 
   test("cleanup disposes every registration", async () => {
