@@ -19877,10 +19877,10 @@ coordinates:
     sourceLine: 327
   SYM-opencode-v2-directory-entry-tests:
     identityHash: 4bbeed6558307eebd9ebff2df735cba331c1bbbbddf430d87eb4e2f43cebfebe
-    sourceHash: 87bc2f44de08358d3c81ac1e519f0d2168a59196afa320ebd0636a3f09dab15b
+    sourceHash: 1308e4a9f1b6e185242485a3750ba1bbbb5ed2a59f17580d5774dc160f1bf697
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 38
+    sourceEndLine: 42
     sourceFile: packages/opencode/tests/directory-entry.test.ts
     sourceLine: 1
   SYM-opencode-v2-extract-patch-file-operations:

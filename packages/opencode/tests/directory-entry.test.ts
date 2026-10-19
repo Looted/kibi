@@ -26,7 +26,11 @@ describe("directory plugin entries", () => {
   test("root tui.js default export is the v1 and v2 TUI definition", async () => {
     const href = pathToFileURL(path.join(packageRoot, "tui.js")).href;
     const loaded = (await import(href)) as {
-      default?: { id?: unknown; tui?: unknown; setup?: unknown };
+      default?: {
+        id?: unknown;
+        tui?: unknown;
+        setup?: (context: unknown) => unknown;
+      };
     };
     const definition = loaded.default;
     expect(definition?.id).toBe("kibi-opencode");
