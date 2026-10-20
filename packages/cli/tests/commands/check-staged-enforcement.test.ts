@@ -13,6 +13,7 @@ import {
   semanticClaimKey,
 } from "../../src/operations/semantic-advisor/clauses.js";
 import { semanticSourceHash } from "../../src/operations/semantic-advisor/shared.js";
+import { withSemanticInventory } from "../helpers/inventory-fixture.js";
 import { execSync, spawnSync } from "../helpers/isolated-env.js";
 
 type FileMap = Record<string, string>;
@@ -193,7 +194,8 @@ ${note}
 
 function stageGranularRequirementEvidence(root: string, note: string): void {
   writeFiles(root, {
-    ".kb/requirements/REQ-GRANULAR-001.md": `---
+    // The note changes the statement, so the staged gate needs its inventory.
+    ".kb/requirements/REQ-GRANULAR-001.md": withSemanticInventory(`---
 id: REQ-GRANULAR-001
 title: Granular ownership requirement
 status: open
@@ -202,7 +204,7 @@ status: open
 # Granular ownership requirement
 
 ${note}
-`,
+`),
   });
 }
 

@@ -14,3 +14,18 @@ export function withExitCode<TArgs extends unknown[]>(
     }
   };
 }
+
+const reportedErrors = new WeakSet<object>();
+
+/** Note that a command already printed this error, so the CLI does not again. */
+// implements REQ-kibi-operation-interface-parity
+export function markErrorReported(error: unknown): void {
+  if (typeof error === "object" && error !== null) reportedErrors.add(error);
+}
+
+// implements REQ-kibi-operation-interface-parity
+export function errorWasReported(error: unknown): boolean {
+  return (
+    typeof error === "object" && error !== null && reportedErrors.has(error)
+  );
+}

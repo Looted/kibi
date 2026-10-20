@@ -21,6 +21,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { Command } from "commander";
+import { errorWasReported } from "./cli-command.js";
 import { registerFoundationCommands } from "./cli-register-foundation.js";
 import { registerJsonOnlyCommands } from "./cli-register-json.js";
 import { registerMaintenanceCommands } from "./cli-register-maintenance.js";
@@ -56,8 +57,10 @@ export function isCliEntrypoint(
 }
 
 export function exitCodeFromCliFailure(error: unknown): number {
-  const message = error instanceof Error ? error.message : String(error);
-  console.error(message);
+  if (!errorWasReported(error)) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(message);
+  }
   return 1;
 }
 

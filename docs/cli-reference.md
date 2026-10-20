@@ -182,6 +182,14 @@ The engine is automatically started for CLI and MCP operations. `engine status`
 prints the workspace/branch daemon PID and journal status; `engine stop` asks it
 to flush and exit. A daemon is shared by all clients for the same canonical
 workspace path and branch and exits after ten minutes without clients.
+Clients find the daemon through a socket in `KIBI_RUNTIME_DIR`, else
+`XDG_RUNTIME_DIR`, else `/tmp/kibi-runtime` on Linux (the per-user `TMPDIR` on
+macOS). Processes that set these differently cannot see each other's daemon.
+The directory must be owned by you and private to you (`chmod 700`); when
+`KIBI_RUNTIME_DIR` names one that is not, Kibi prints a warning and uses a
+private directory under `/tmp` instead.
+When `engine stop` finds no daemon it says so, and names the pid still holding
+the branch store if there is one.
 
 `engine janitor` classifies stale engine daemons and branch-store locks left by
 crashed engines or removed worktrees. It only reports by default; `--apply`
@@ -685,7 +693,7 @@ When the staged change moves knowledge files into the canonical `.kb/` layout, a
 
 When the staged commit carries a `kibi migrate` run, a symbol record whose only differences from its base are fields the migration writes mechanically is not counted as changed by the commit: a `granularity_reason: legacy-link` the base did not have, and an added `review:context-missing` tag (`origin`, a removed dead `source` and a pinned `semantic_text` are not part of the compared symbol record). The output then also starts with `Migration commit: N symbol record(s) changed only by kibi migrate ... are not judged as changed by this commit: <ids>`. A commit carries a migration when the staged `.kb/manifest.json` records a newer `schemaVersion` than the base, or the commit removes the legacy `.kb/config.json`; the audit record under `.kb/migrations/` is ignored by Git, so it is not the signal. Outside such a commit, adding `legacy-link` to an existing record is a change like any other. Records the commit adds, and records it edits in any other field (an `implements` link, for example), are judged in full.
 
-A staged requirement whose semantic inventory no longer matches its prose blocks the commit with the same test `kibi sync` applies (proposition-complete ingestion) when the requirement declares an inventory contract (`semantic_inventory_version`, `semantic_source_hash` or `semantic_inventory`) in the staged file or in `HEAD`; requirements without a contract are left to `kibi sync`. Each finding names the requirement and the contract errors; re-derive with `kibi migrate`, or rerun `kb_model` analyze with the complete prose and keep its inventory contract.
+A staged requirement whose semantic inventory is missing or no longer matches its prose blocks the commit with the same test `kibi sync` applies (proposition-complete ingestion) when the requirement declares an inventory contract (`semantic_inventory_version`, `semantic_source_hash` or `semantic_inventory`) in the staged file or in `HEAD`, when it is new: its path is not in `HEAD` (a renamed requirement counts as new), or when its statement (the prose the inventory covers) differs from `HEAD`. A repository's first commit is exempt, and so is `git commit --amend` of it, since `kibi sync` imports it as its semantic baseline. Other requirements without a contract, for example one whose commit only edits its Context section, are left to `kibi sync`. Each finding names the requirement and the contract errors; re-derive a drifted inventory with `kibi migrate`, or run `kb_model` analyze with the complete prose and write the inventory contract it returns.
 
 KB writes through MCP or CLI JSON routes update branch state, but they do not automatically stage markdown or manifest files. The staged hook can only accept evidence present in the staged change-set, so run the required sync/authoring step and `git add` the tracked evidence before rerunning `kibi check --staged`.
 

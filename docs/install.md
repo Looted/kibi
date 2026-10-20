@@ -2,7 +2,11 @@
 
 ## Prerequisites
 
-Kibi needs **Node.js 22+** for the CLI, MCP server, and engine. It also needs **SWI-Prolog 9.0+**, and on supported platforms that comes with Kibi: you install nothing extra.
+Kibi needs **Node.js 22+** for the CLI, MCP server, and engine. npm only warns
+when an older Node is active, so `kibi` and `kibi-mcp` check at startup and
+exit with an error naming the Node they found. Both start through the first
+`node` on `PATH`, so Node.js 22+ must come first there for your shell, your Git
+hooks, and the agent host that launches `kibi-mcp`. It also needs **SWI-Prolog 9.0+**, and on supported platforms that comes with Kibi: you install nothing extra.
 
 ### Bundled SWI-Prolog
 
@@ -345,6 +349,9 @@ On OpenCode v2:
   trigger a Kibi sync. Run `kibi sync` yourself, or rely on the `post-checkout`,
   `post-merge`, and `post-rewrite` hooks installed by `kibi init` (each runs
   `kibi sync`). The next status refresh also picks up the working tree.
+  `kibi sync` reads only documents Git tracks (staged is enough), so a new
+  document written outside the agent needs `git add` before `kibi sync`
+  imports it. Documents written through `kb_upsert` are covered until then.
 - v2 has no toast or structured plugin log, so kibi-opencode shows no toasts and
   reports plugin errors on stderr with a `[kibi-opencode]` prefix.
 - **Code Mode:** v2 exposes MCP tools through Code Mode by default. On

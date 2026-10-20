@@ -102,6 +102,33 @@ describe("engine socket locations preserve private canonical identities", () => 
     },
   );
 
+  nativeTest(
+    "warns once when an explicit KIBI_RUNTIME_DIR is not private",
+    () => {
+      const root = fixtureRoot();
+      const configured = path.join(root, "shared");
+      mkdirSync(configured);
+      chmodSync(configured, 0o755);
+      const fallback = configureRuntime(configured);
+      const writes: string[] = [];
+      const stderr = spyOn(process.stderr, "write").mockImplementation(
+        (chunk: string | Uint8Array) => {
+          writes.push(String(chunk));
+          return true;
+        },
+      );
+      try {
+        expect(runtimeDirectory()).toBe(fallback);
+        expect(runtimeDirectory()).toBe(fallback);
+      } finally {
+        stderr.mockRestore();
+      }
+      expect(writes).toEqual([
+        `kibi: ignoring KIBI_RUNTIME_DIR=${configured} because its mode is 0755; it must be private to its owner (chmod 700); using a private directory under /tmp instead.\n`,
+      ]);
+    },
+  );
+
   nativeTest.each(["ascii", "multibyte"] as const)(
     "%s runtime paths fall back using the full UTF-8 socket budget",
     (kind) => {
@@ -142,7 +169,11 @@ describe("engine socket locations preserve private canonical identities", () => 
       chmodSync(requested, 0o700);
       const configured =
         kind === "tmpdir" ? path.join(requested, "kibi-runtime") : requested;
-      const fallback = registerFallback(configured);
+      // Linux ignores TMPDIR for the socket directory (see the next test).
+      const followsEnvironment = kind === "xdg" || process.platform !== "linux";
+      const fallback = followsEnvironment
+        ? registerFallback(configured)
+        : undefined;
       const environment = Object.fromEntries(
         Object.entries(process.env).filter(
           (entry): entry is [string, string] => typeof entry[1] === "string",
@@ -166,11 +197,51 @@ describe("engine socket locations preserve private canonical identities", () => 
       expect(child.error).toBeUndefined();
       expect(child.status).toBe(0);
       expect(child.stderr).toBe("");
-      expect(path.dirname(child.stdout)).toBe(fallback);
+      if (fallback === undefined) {
+        Reflect.deleteProperty(process.env, "KIBI_RUNTIME_DIR");
+        Reflect.deleteProperty(process.env, "XDG_RUNTIME_DIR");
+        expect(path.dirname(child.stdout)).toBe(runtimeDirectory());
+      } else {
+        expect(path.dirname(child.stdout)).toBe(fallback);
+        expect(lstatSync(fallback).mode & 0o777).toBe(0o700);
+      }
       expect(Buffer.byteLength(child.stdout, "utf8")).toBeLessThanOrEqual(
         maximumBytes,
       );
-      expect(lstatSync(fallback).mode & 0o777).toBe(0o700);
+    },
+  );
+
+  test.skipIf(process.platform !== "linux")(
+    "processes with different TMPDIR values share one socket directory on Linux",
+    () => {
+      const root = fixtureRoot();
+      const socketFor = (tmpdir: string): string => {
+        const environment = Object.fromEntries(
+          Object.entries(process.env).filter(
+            (entry): entry is [string, string] => typeof entry[1] === "string",
+          ),
+        );
+        Reflect.deleteProperty(environment, "KIBI_RUNTIME_DIR");
+        Reflect.deleteProperty(environment, "XDG_RUNTIME_DIR");
+        environment.TMPDIR = tmpdir;
+        const child = spawnSync(
+          process.execPath,
+          [
+            "-e",
+            `
+        import { engineSocketPath } from ${JSON.stringify(path.resolve(import.meta.dir, "../src/engine.ts"))};
+        process.stdout.write(engineSocketPath(${JSON.stringify(root)}, "main"));
+      `,
+          ],
+          { env: environment, encoding: "utf8", timeout: 10_000 },
+        );
+        expect(child.status).toBe(0);
+        return child.stdout;
+      };
+      const host = path.join(root, "host-tmp");
+      mkdirSync(host, { mode: 0o700 });
+      expect(socketFor(host)).toBe(socketFor("/tmp"));
+      expect(readdirSync(host)).toEqual([]);
     },
   );
 

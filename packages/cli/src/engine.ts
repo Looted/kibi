@@ -416,11 +416,27 @@ function parseFrames(
   return buffer.subarray(cursor);
 }
 
+/**
+ * The socket directory every Kibi process for one user must agree on. Linux
+ * hosts and agent harnesses often give their children a private TMPDIR, so
+ * following it there would hide an engine from the CLI, git hooks and other
+ * hosts that share its branch store (they then see only `store_locked`).
+ * Linux therefore uses /tmp unless KIBI_RUNTIME_DIR or XDG_RUNTIME_DIR names
+ * a directory. macOS keeps its per-user TMPDIR, which launchd sets for every
+ * process of the user.
+ */
+function defaultRuntimeDirectory(): string {
+  return path.join(
+    process.platform === "linux" ? "/tmp" : os.tmpdir(),
+    "kibi-runtime",
+  );
+}
+
 export function runtimeDirectory(): string {
   const configured =
     process.env.KIBI_RUNTIME_DIR ??
     process.env.XDG_RUNTIME_DIR ??
-    path.join(os.tmpdir(), "kibi-runtime");
+    defaultRuntimeDirectory();
   // Windows named pipes have no Unix socket pathname budget. Preserve its
   // filesystem location policy for the associated pid files.
   if (process.platform === "win32") {
@@ -464,38 +480,72 @@ export function runtimeDirectory(): string {
   const maximumBytes = process.platform === "linux" ? 107 : 103;
   const socketName = `kibi-${"0".repeat(32)}.sock`;
   for (const candidate of candidates) {
-    try {
-      try {
-        if (lstatSync(candidate).isSymbolicLink()) continue;
-      } catch (error) {
-        if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-      }
-      mkdirSync(candidate, { recursive: true, mode: 0o700 });
-      const directory = lstatSync(candidate);
-      if (
-        !directory.isDirectory() ||
-        directory.uid !== euid ||
-        (directory.mode & 0o077) !== 0
-      )
-        continue;
-      const canonical = canonicalFilesystemPath(candidate);
-      if (
-        Buffer.byteLength(path.join(canonical, socketName), "utf8") >
-        maximumBytes
-      )
-        continue;
-      // XDG_RUNTIME_DIR can exist but be mounted read-only (for example in a
-      // constrained container). Probe the directory before using it for the
-      // socket, start lock, and pid files so auto-start fails over cleanly.
-      const probe = path.join(canonical, `.kibi-write-${randomUUID()}`);
-      writeFileSync(probe, "", { mode: 0o600, flag: "wx" });
-      unlinkSync(probe);
-      return canonical;
-    } catch {
-      // Try the private system-temp fallback below.
-    }
+    const rejection = runtimeDirectoryRejection(
+      candidate,
+      euid,
+      socketName,
+      maximumBytes,
+    );
+    if (typeof rejection === "object") return rejection.directory;
+    if (candidate === process.env.KIBI_RUNTIME_DIR)
+      warnRuntimeDirectoryIgnored(candidate, rejection);
   }
   throw new Error("Unable to create a writable Kibi engine runtime directory");
+}
+
+/**
+ * The canonical runtime directory when `candidate` can hold the engine socket,
+ * else why it cannot.
+ */
+function runtimeDirectoryRejection(
+  candidate: string,
+  euid: number,
+  socketName: string,
+  maximumBytes: number,
+): { directory: string } | string {
+  try {
+    try {
+      if (lstatSync(candidate).isSymbolicLink()) return "it is a symbolic link";
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+    }
+    mkdirSync(candidate, { recursive: true, mode: 0o700 });
+    const directory = lstatSync(candidate);
+    if (!directory.isDirectory()) return "it is not a directory";
+    if (directory.uid !== euid)
+      return `it is owned by uid ${directory.uid}, not by the current user (uid ${euid})`;
+    if ((directory.mode & 0o077) !== 0)
+      return `its mode is ${(directory.mode & 0o777).toString(8).padStart(4, "0")}; it must be private to its owner (chmod 700)`;
+    const canonical = canonicalFilesystemPath(candidate);
+    if (
+      Buffer.byteLength(path.join(canonical, socketName), "utf8") > maximumBytes
+    )
+      return `its path is too long for a Unix socket (at most ${maximumBytes - socketName.length - 1} bytes)`;
+    // XDG_RUNTIME_DIR can exist but be mounted read-only (for example in a
+    // constrained container). Probe the directory before using it for the
+    // socket, start lock, and pid files so auto-start fails over cleanly.
+    const probe = path.join(canonical, `.kibi-write-${randomUUID()}`);
+    writeFileSync(probe, "", { mode: 0o600, flag: "wx" });
+    unlinkSync(probe);
+    return { directory: canonical };
+  } catch (error) {
+    return `it is not usable (${(error as Error).message})`;
+  }
+}
+
+const warnedRuntimeDirectories = new Set<string>();
+
+/**
+ * Processes that disagree on the runtime directory cannot reach each other's
+ * engine, so an explicit KIBI_RUNTIME_DIR that Kibi cannot use is reported
+ * (once per process) instead of being replaced silently.
+ */
+function warnRuntimeDirectoryIgnored(directory: string, reason: string): void {
+  if (warnedRuntimeDirectories.has(directory)) return;
+  warnedRuntimeDirectories.add(directory);
+  process.stderr.write(
+    `kibi: ignoring KIBI_RUNTIME_DIR=${directory} because ${reason}; using a private directory under /tmp instead.\n`,
+  );
 }
 
 function fsyncPath(filePath: string): void {
@@ -809,6 +859,20 @@ function recoverStaleJournalLock(branchPath: string): void {
   }
 }
 
+/**
+ * The Node binary that hosts the daemon. A Node client starts it with its own
+ * runtime, so a host that runs Kibi through Node 22+ by absolute path still
+ * gets a Node 22+ daemon when an older `node` comes first on PATH. Bun clients
+ * (source checkouts, tests) use `node` from PATH, since the daemon is a Node
+ * artifact. KIBI_NODE_PATH overrides both.
+ */
+export function daemonNodePath(
+  environment: NodeJS.ProcessEnv = process.env,
+): string {
+  if (environment.KIBI_NODE_PATH) return environment.KIBI_NODE_PATH;
+  return "Bun" in globalThis ? "node" : process.execPath;
+}
+
 function daemonEntry(): string {
   const moduleDirectory = path.dirname(fileURLToPath(import.meta.url));
   // Packed clients keep the daemon beside engine.js. Source-tree repository
@@ -1011,7 +1075,7 @@ export class EngineClient {
       }
     } catch {
       if (!allowSpawn) return;
-      const nodePath = process.env.KIBI_NODE_PATH ?? "node";
+      const nodePath = daemonNodePath();
       const entry = daemonEntry();
       const lockPath = engineStartLockPath(this.workspaceRoot, this.branch);
       const startDeadline = Date.now() + this.timeout;
@@ -1103,6 +1167,10 @@ export class EngineClient {
 
   private attachSocket(socket: net.Socket): void {
     this.inputBuffer = Buffer.alloc(0);
+    // An idle connection must not keep its client alive: a host that is done
+    // with an MCP server or CLI command lets it exit while the shared daemon
+    // keeps serving. request() holds the socket while a reply is pending.
+    socket.unref();
     socket.on("data", (chunk) => {
       if (this.socket !== socket) return;
       try {
@@ -1177,10 +1245,13 @@ export class EngineClient {
       release = resolve;
     });
     await previous;
+    let held: net.Socket | null = null;
     try {
       const socket = this.socket;
       if (socket === null || socket.destroyed)
         throw new Error("Kibi engine is not connected");
+      socket.ref();
+      held = socket;
       const id = ++this.requestId;
       const limits =
         this.readLimits !== undefined &&
@@ -1236,6 +1307,7 @@ export class EngineClient {
       assertWithinQueryLimits(value);
       return value;
     } finally {
+      if (held !== null && this.pending.size === 0) held.unref();
       release();
     }
   }
@@ -1553,13 +1625,14 @@ export class EngineClient {
     }
   }
 
-  async stop(startIfMissing = true): Promise<void> {
+  /** Resolves false when no daemon answered and none was started. */
+  async stop(startIfMissing = true): Promise<boolean> {
     const socketPath = engineSocketPath(this.workspaceRoot, this.branch);
     if (!this.isRunning()) {
       try {
         await this.connect(startIfMissing);
       } catch {
-        if (!startIfMissing) return;
+        if (!startIfMissing) return false;
         throw new Error("Unable to start Kibi engine for stop request");
       }
     }
@@ -1568,7 +1641,21 @@ export class EngineClient {
         `Kibi engine socket remains present but is not reachable: ${socketPath}`,
       );
     }
+    // A draining daemon has no listener but still counts as stopped here.
+    const found = this.isRunning() || this.daemonProcessAlive();
     await this.shutdownConnectedDaemon();
+    return found;
+  }
+
+  private daemonProcessAlive(): boolean {
+    const pid = this.getPid();
+    if (pid <= 0) return false;
+    try {
+      process.kill(pid, 0);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async terminate(): Promise<void> {
@@ -1958,7 +2045,14 @@ export async function runEngineDaemon(requestedOptions: {
       : { maxOutputBytes: options.maxOutputBytes }),
   });
   const session = new EngineSession(prolog, branchPath);
-  await session.boot();
+  try {
+    await session.boot();
+  } catch (error) {
+    // A failed boot (store_locked, a module load error) leaves the SWI child
+    // running, which keeps this daemon alive with no socket.
+    await prolog.terminate().catch(() => undefined);
+    throw error;
+  }
   let attachedIdentity = readEngineAttachmentIdentity(branchPath);
   const serverPrologIdentity = engineSwiplIdentity();
   const serverPackageVersions = enginePackageVersions();
@@ -2500,8 +2594,13 @@ export async function runEngineDaemon(requestedOptions: {
         return result;
       }
       case "status":
+        // Qualified: kb.pl loads library(http/json), but SWI-Prolog 9.0 does
+        // not autoload it into `user`, where its toplevel then waits on a
+        // "correct to kb:json_write_dict?" prompt instead of answering. A
+        // string binding reaches the client as JSON text; an atom would
+        // arrive Prolog-quoted and fail to parse.
         return prolog.query(
-          "kb_storage_status(Status), atom_json_dict(Json, Status, [])",
+          "kb_storage_status(Status), with_output_to(string(Json), json:json_write_dict(current_output, Status, [width(0)]))",
         );
       case "checkpoint": {
         queryCache.clear();

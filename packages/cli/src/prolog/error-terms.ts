@@ -17,6 +17,7 @@
 */
 
 import { splitTopLevelGeneral } from "./codec.js";
+import { describeLockHolderPid } from "./store-lock.js";
 
 /**
  * Structured transport for Prolog errors.
@@ -149,7 +150,7 @@ export function parsePrologErrorTerm(
       const holderSummary =
         holder === null
           ? "an unidentified holder"
-          : `pid ${holder.pid ?? "?"}${holder.workspaceRoot !== undefined ? ` for ${holder.workspaceRoot}` : ""}${holder.startedAt !== undefined ? ` since ${holder.startedAt}` : ""}`;
+          : `${holder.pid === undefined ? "pid ?" : describeLockHolderPid(holder.pid)}${holder.workspaceRoot !== undefined ? ` for ${holder.workspaceRoot}` : ""}${holder.startedAt !== undefined ? ` since ${holder.startedAt}` : ""}`;
       return {
         code: "permission_denied",
         storeLocked: detail,
@@ -413,16 +414,24 @@ function parseEntityRole(
   return undefined;
 }
 
-/** Strip SWI quoted-atom quoting and unescape standard character escapes. */
+const PROLOG_ESCAPES: Readonly<Record<string, string>> = { n: "\n", t: "\t" };
+
+/**
+ * Strip SWI quoted-atom or string quoting and unescape standard character
+ * escapes. Strings matter for store_locked: kb.pl reads the owner journal
+ * with read_file_to_string, so the owner arrives double-quoted.
+ */
 function unquoteAtom(value: string): string {
   const trimmed = value.trim();
-  if (trimmed.length >= 2 && trimmed.startsWith("'") && trimmed.endsWith("'")) {
-    const inner = trimmed.slice(1, -1);
-    return inner
-      .replace(/\\'/g, "'")
-      .replace(/\\\\/g, "\\")
-      .replace(/\\n/g, "\n")
-      .replace(/\\t/g, "\t");
+  const quote = trimmed[0];
+  if (
+    trimmed.length >= 2 &&
+    (quote === "'" || quote === '"') &&
+    trimmed.endsWith(quote)
+  ) {
+    return trimmed
+      .slice(1, -1)
+      .replace(/\\(.)/gs, (_, char: string) => PROLOG_ESCAPES[char] ?? char);
   }
   return trimmed;
 }

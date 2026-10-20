@@ -243,11 +243,14 @@ export function buildDiagnosticToolCall(input: {
     business_args: payload.businessArgs,
     raw_args_redacted: redactDiagnosticArgs(input.args),
     retry_key: deriveDiagnosticRetryKey(input.tool, input.args),
-    hint: deriveDiagnosticHints({
-      tool: input.tool,
-      error: input.error ?? new Error("diagnostic tool call"),
-      businessArgs: payload.businessArgs,
-    }),
+    // A successful call has no error to explain, so it carries no hint.
+    hint: input.error
+      ? deriveDiagnosticHints({
+          tool: input.tool,
+          error: input.error,
+          businessArgs: payload.businessArgs,
+        })
+      : "",
     diagnostic_error: diagnosticError,
     diagnostic_telemetry: input.telemetry ?? payload.telemetry,
   };

@@ -18,7 +18,11 @@ import {
 import * as os from "node:os";
 import * as path from "node:path";
 import { toPrologString } from "../../dist/prolog/codec.js";
-import { type SyncResult, syncCommand } from "../../src/commands/sync.js";
+import {
+  type SyncResult,
+  stagedNewSourceKeys,
+  syncCommand,
+} from "../../src/commands/sync.js";
 import {
   normalizeSemanticClause,
   semanticClaimKey,
@@ -932,6 +936,83 @@ claim_text: System must support OAuth2 authentication
     },
     TEST_TIMEOUT_MS,
   );
+
+  test(
+    "a new branch's first sync grandfathers committed requirements but not staged new ones",
+    () => {
+      const reqDir = path.join(tmpDir, ".kb/requirements");
+      const uninventoried = (id: string) => `---
+id: ${id}
+title: Greeting ${id}
+type: req
+status: open
+---
+
+# Greeting ${id}
+
+The system must greet the user by name.
+`;
+      writeFileSync(
+        path.join(reqDir, "committed.md"),
+        uninventoried("committed"),
+      );
+      stageSources(tmpDir, ".kb/requirements/committed.md");
+      execFileSync("git", ["commit", "--no-verify", "-q", "-m", "legacy"], {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      const first = spawnSync("bun", [kibiBin, "sync"], {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
+      expect(first.status, `${first.stdout}${first.stderr}`).toBe(0);
+      execFileSync(
+        "git",
+        ["-c", "core.hooksPath=/dev/null", "checkout", "-q", "-b", "feature"],
+        { cwd: tmpDir, stdio: "pipe" },
+      );
+      writeFileSync(path.join(reqDir, "staged.md"), uninventoried("staged"));
+      stageSources(tmpDir, ".kb/requirements/staged.md");
+
+      const result = spawnSync("bun", [kibiBin, "sync"], {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
+      const output = `${result.stdout}${result.stderr}`;
+
+      expect(result.status, output).not.toBe(0);
+      expect(output).toContain(
+        ".kb/requirements/staged.md: proposition-complete ingestion failed",
+      );
+      expect(output).not.toContain(
+        ".kb/requirements/committed.md: proposition-complete ingestion failed",
+      );
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test("stagedNewSourceKeys counts a staged rename as a new source", () => {
+    const reqDir = path.join(tmpDir, ".kb/requirements");
+    const body = Array.from({ length: 40 }, (_, i) => `line ${i}`).join("\n");
+    writeFileSync(path.join(reqDir, "old.md"), body);
+    stageSources(tmpDir, ".kb/requirements/old.md");
+    execFileSync("git", ["commit", "--no-verify", "-q", "-m", "old"], {
+      cwd: tmpDir,
+      stdio: "pipe",
+    });
+    execFileSync(
+      "git",
+      ["mv", ".kb/requirements/old.md", ".kb/requirements/renamed.md"],
+      { cwd: tmpDir, stdio: "pipe" },
+    );
+    writeFileSync(path.join(reqDir, "added.md"), "new\n");
+    stageSources(tmpDir, ".kb/requirements/added.md");
+
+    expect([...stagedNewSourceKeys(tmpDir)].sort()).toEqual([
+      ".kb/requirements/added.md",
+      ".kb/requirements/renamed.md",
+    ]);
+  });
 
   test(
     "imports valid shard relationships without false dangling warnings",
