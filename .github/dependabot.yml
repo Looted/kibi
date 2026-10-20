@@ -17,6 +17,10 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+      # Must match engines.vscode, or vsce refuses to package the extension.
+      - dependency-name: "@types/vscode"
+      # Pinned to the qualified tree-sitter runtime catalog; bumping needs re-qualification.
+      - dependency-name: "web-tree-sitter"
     groups:
       bun-minor-and-patch:
         update-types:

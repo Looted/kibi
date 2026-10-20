@@ -50,11 +50,17 @@ ${prose}
 `;
 }
 
-function drift(staged: string, base: string | null, stagedPaths = [PATH]) {
+function drift(
+  staged: string,
+  base: string | null,
+  stagedPaths = [PATH],
+  judgeNewRequirements = true,
+) {
   return stagedInventoryDriftViolations({
     stagedPaths: new Set(stagedPaths),
     snapshotEntities: [extractFromMarkdownString(staged, PATH)],
     readBase: () => base,
+    judgeNewRequirements,
   });
 }
 
@@ -84,10 +90,46 @@ describe("staged semantic inventory drift", () => {
     ).toEqual([]);
   });
 
-  test("leaves requirements without an inventory contract to sync", () => {
+  test("leaves an unchanged statement without an inventory contract to sync", () => {
     expect(drift(plain(original), plain(original))).toEqual([]);
-    expect(drift(plain(edited), plain(original))).toEqual([]);
-    expect(drift(plain(original), null)).toEqual([]);
+    expect(
+      drift(
+        plain(`${original}\n\n## Context\n\nWhy the total matters.`),
+        plain(original),
+      ),
+    ).toEqual([]);
+  });
+
+  test("fails a statement edit of a requirement without an inventory", () => {
+    const violations = drift(plain(edited), plain(original));
+    expect(violations).toHaveLength(1);
+    expect(violations[0]?.message).toContain(
+      "a requirement whose statement changes",
+    );
+  });
+
+  test("fails a new requirement without an inventory", () => {
+    const violations = drift(plain(original), null);
+    expect(violations).toHaveLength(1);
+    expect(violations[0]?.rule).toBe(STAGED_INVENTORY_DRIFT_RULE);
+    expect(violations[0]?.message).toContain("a new requirement needs");
+    expect(violations[0]?.message).toContain("kb_model mode analyze");
+    expect(drift(inventoried(original), null)).toEqual([]);
+  });
+
+  test("leaves a first commit's requirements to sync's baseline", () => {
+    expect(drift(plain(original), null, [PATH], false)).toEqual([]);
+    // Amending a root commit: the statement differs from HEAD, but the commit
+    // still has no parent.
+    expect(drift(plain(edited), plain(original), [PATH], false)).toEqual([]);
+    expect(
+      drift(
+        inventoried(original, edited),
+        inventoried(original),
+        [PATH],
+        false,
+      ),
+    ).toHaveLength(1);
   });
 
   test("still fails a contract dropped from the staged file", () => {

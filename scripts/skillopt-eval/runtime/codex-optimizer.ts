@@ -389,7 +389,8 @@ type CanonicalSkillSurface = Readonly<{
   resourcesHash: string;
 }>;
 
-async function validateBaselineInsertionSource(
+// implements REQ-skillopt-codex-optimization
+export async function validateBaselineInsertionSource(
   options: CodexOptimizerOptions,
 ): Promise<CanonicalSkillSurface> {
   const plan = options.baselineInsertion;
@@ -538,7 +539,7 @@ export async function runCodexSkillOptStep(
           role: "optimizer",
         });
         const timeoutMs = options.timeoutMs ?? 15 * 60 * 1000;
-        const runAttempt = async (stdin: string) => {
+        return await completeSkillOptStep(options, async (stdin) => {
           await writeFile(outputLastMessage, "", {
             encoding: "utf8",
             mode: 0o600,
@@ -554,177 +555,7 @@ export async function runCodexSkillOptStep(
             () => "",
           );
           return { result, lastMessage };
-        };
-        const interpretAttempt = (
-          result: { exitCode: number; stderr: string },
-          lastMessage: string,
-        ):
-          | {
-              ok: true;
-              body: string;
-              result: { exitCode: number; stderr: string };
-              lastMessage: string;
-            }
-          | {
-              ok: false;
-              error: CodexOptimizerError;
-              result: { exitCode: number; stderr: string };
-              lastMessage: string;
-            } => {
-          if (result.exitCode !== 0) {
-            const stderrTail = result.stderr
-              .trim()
-              .split("\n")
-              .slice(-6)
-              .join(" | ");
-            return {
-              ok: false,
-              error: new CodexOptimizerError(
-                `optimizer_exit:${result.exitCode}${stderrTail ? `:${stderrTail.slice(0, 600)}` : ""}`,
-              ),
-              result,
-              lastMessage,
-            };
-          }
-          try {
-            return {
-              ok: true,
-              body:
-                options.baselineInsertion === undefined
-                  ? parseCodexOptimizerBody(lastMessage)
-                  : parseBaselineInsertionParagraph(
-                      lastMessage,
-                      options.baselineInsertion,
-                    ),
-              result,
-              lastMessage,
-            };
-          } catch (error) {
-            return {
-              ok: false,
-              error:
-                error instanceof CodexOptimizerError
-                  ? error
-                  : new CodexOptimizerError(
-                      error instanceof Error
-                        ? error.message
-                        : "optimizer_failed",
-                    ),
-              result,
-              lastMessage,
-            };
-          }
-        };
-        const persistFailure = async (
-          attempt: number,
-          error: CodexOptimizerError,
-          result: { exitCode: number; stderr: string },
-          lastMessage: string,
-        ) => {
-          const stderrTail = result.stderr
-            .trim()
-            .split("\n")
-            .slice(-6)
-            .join(" | ");
-          await persistCodexOptimizerFailure(
-            options.artifactRoot,
-            sourceWorktree,
-            {
-              runId: options.runId,
-              skill: options.request.skill,
-              step: options.request.step,
-              attempt,
-              error: error.message,
-              lastMessage,
-              exitCode: result.exitCode,
-              stderrTail: stderrTail.slice(0, 600),
-            },
-          );
-        };
-
-        const initialPrompt =
-          options.baselineInsertion === undefined
-            ? promptFor(options.request)
-            : baselineInsertionPromptFor(
-                options.request,
-                options.baselineInsertion,
-              );
-        let attempt = await runAttempt(initialPrompt);
-        let interpreted = interpretAttempt(attempt.result, attempt.lastMessage);
-        if (!interpreted.ok) {
-          await persistFailure(
-            1,
-            interpreted.error,
-            interpreted.result,
-            interpreted.lastMessage,
-          );
-          const repairable =
-            options.baselineInsertion === undefined
-              ? isRepairableOptimizerError(interpreted.error)
-              : isRepairableBaselineInsertionError(interpreted.error);
-          if (repairable) {
-            attempt = await runAttempt(
-              options.baselineInsertion === undefined
-                ? repairPromptFor(
-                    options.request,
-                    interpreted.lastMessage,
-                    interpreted.error,
-                  )
-                : baselineInsertionRepairPromptFor(
-                    options.request,
-                    options.baselineInsertion,
-                    interpreted.lastMessage,
-                    interpreted.error,
-                  ),
-            );
-            interpreted = interpretAttempt(attempt.result, attempt.lastMessage);
-            if (!interpreted.ok) {
-              await persistFailure(
-                2,
-                interpreted.error,
-                interpreted.result,
-                interpreted.lastMessage,
-              );
-              throw interpreted.error;
-            }
-          } else {
-            throw interpreted.error;
-          }
-        }
-        if (options.baselineInsertion !== undefined) {
-          const currentSurface = await validateBaselineInsertionSource(options);
-          const composition = composeBaselineInsertion({
-            baselineBody: currentSurface.body,
-            paragraph: interpreted.body,
-            plan: options.baselineInsertion,
-          });
-          await persistBaselineInsertionArtifacts(
-            options.artifactRoot,
-            sourceWorktree,
-            {
-              runId: options.runId,
-              skill: options.request.skill,
-              step: options.request.step,
-              baselineBody: currentSurface.body,
-              plan: options.baselineInsertion,
-              composition,
-            },
-          );
-          return {
-            body: composition.composedBody,
-            development: options.request.previousDevelopment,
-          };
-        }
-        await persistCodexOptimizerBody(options.artifactRoot, sourceWorktree, {
-          runId: options.runId,
-          skill: options.request.skill,
-          step: options.request.step,
-          body: interpreted.body,
         });
-        return {
-          body: interpreted.body,
-          development: options.request.previousDevelopment,
-        };
       },
     );
   } catch (error) {
@@ -736,4 +567,178 @@ export async function runCodexSkillOptStep(
   } finally {
     await workspace.cleanup();
   }
+}
+
+/** One optimizer model call: its process result and final structured message. */
+// implements REQ-skillopt-codex-optimization
+export type OptimizerAttempt = Readonly<{
+  result: Readonly<{ exitCode: number; stderr: string }>;
+  lastMessage: string;
+}>;
+
+/**
+ * Host-neutral optimizer step: prompts, one format repair, failure evidence,
+ * baseline-insertion composition and accepted-output persistence.
+ * `runAttempt`
+ * runs one model call on the selected host.
+ */
+// implements REQ-skillopt-codex-optimization
+export async function completeSkillOptStep(
+  options: CodexOptimizerOptions,
+  runAttempt: (prompt: string) => Promise<OptimizerAttempt>,
+): Promise<SkillOptStepResult> {
+  const sourceWorktree = resolve(options.sourceWorktree);
+  const interpretAttempt = (
+    result: { exitCode: number; stderr: string },
+    lastMessage: string,
+  ):
+    | {
+        ok: true;
+        body: string;
+        result: { exitCode: number; stderr: string };
+        lastMessage: string;
+      }
+    | {
+        ok: false;
+        error: CodexOptimizerError;
+        result: { exitCode: number; stderr: string };
+        lastMessage: string;
+      } => {
+    if (result.exitCode !== 0) {
+      const stderrTail = result.stderr.trim().split("\n").slice(-6).join(" | ");
+      return {
+        ok: false,
+        error: new CodexOptimizerError(
+          `optimizer_exit:${result.exitCode}${stderrTail ? `:${stderrTail.slice(0, 600)}` : ""}`,
+        ),
+        result,
+        lastMessage,
+      };
+    }
+    try {
+      return {
+        ok: true,
+        body:
+          options.baselineInsertion === undefined
+            ? parseCodexOptimizerBody(lastMessage)
+            : parseBaselineInsertionParagraph(
+                lastMessage,
+                options.baselineInsertion,
+              ),
+        result,
+        lastMessage,
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        error:
+          error instanceof CodexOptimizerError
+            ? error
+            : new CodexOptimizerError(
+                error instanceof Error ? error.message : "optimizer_failed",
+              ),
+        result,
+        lastMessage,
+      };
+    }
+  };
+  const persistFailure = async (
+    attempt: number,
+    error: CodexOptimizerError,
+    result: { exitCode: number; stderr: string },
+    lastMessage: string,
+  ) => {
+    const stderrTail = result.stderr.trim().split("\n").slice(-6).join(" | ");
+    await persistCodexOptimizerFailure(options.artifactRoot, sourceWorktree, {
+      runId: options.runId,
+      skill: options.request.skill,
+      step: options.request.step,
+      attempt,
+      error: error.message,
+      lastMessage,
+      exitCode: result.exitCode,
+      stderrTail: stderrTail.slice(0, 600),
+    });
+  };
+
+  const initialPrompt =
+    options.baselineInsertion === undefined
+      ? promptFor(options.request)
+      : baselineInsertionPromptFor(options.request, options.baselineInsertion);
+  let attempt = await runAttempt(initialPrompt);
+  let interpreted = interpretAttempt(attempt.result, attempt.lastMessage);
+  if (!interpreted.ok) {
+    await persistFailure(
+      1,
+      interpreted.error,
+      interpreted.result,
+      interpreted.lastMessage,
+    );
+    const repairable =
+      options.baselineInsertion === undefined
+        ? isRepairableOptimizerError(interpreted.error)
+        : isRepairableBaselineInsertionError(interpreted.error);
+    if (repairable) {
+      attempt = await runAttempt(
+        options.baselineInsertion === undefined
+          ? repairPromptFor(
+              options.request,
+              interpreted.lastMessage,
+              interpreted.error,
+            )
+          : baselineInsertionRepairPromptFor(
+              options.request,
+              options.baselineInsertion,
+              interpreted.lastMessage,
+              interpreted.error,
+            ),
+      );
+      interpreted = interpretAttempt(attempt.result, attempt.lastMessage);
+      if (!interpreted.ok) {
+        await persistFailure(
+          2,
+          interpreted.error,
+          interpreted.result,
+          interpreted.lastMessage,
+        );
+        throw interpreted.error;
+      }
+    } else {
+      throw interpreted.error;
+    }
+  }
+  if (options.baselineInsertion !== undefined) {
+    const currentSurface = await validateBaselineInsertionSource(options);
+    const composition = composeBaselineInsertion({
+      baselineBody: currentSurface.body,
+      paragraph: interpreted.body,
+      plan: options.baselineInsertion,
+    });
+    await persistBaselineInsertionArtifacts(
+      options.artifactRoot,
+      sourceWorktree,
+      {
+        runId: options.runId,
+        skill: options.request.skill,
+        step: options.request.step,
+        baselineBody: currentSurface.body,
+        plan: options.baselineInsertion,
+        composition,
+      },
+    );
+    return {
+      body: composition.composedBody,
+      development: options.request.previousDevelopment,
+    };
+  }
+  await persistCodexOptimizerBody(options.artifactRoot, sourceWorktree, {
+    runId: options.runId,
+    skill: options.request.skill,
+    step: options.request.step,
+    body: interpreted.body,
+  });
+  return {
+    body: interpreted.body,
+    development: options.request.previousDevelopment,
+  };
 }

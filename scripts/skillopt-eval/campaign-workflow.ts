@@ -13,6 +13,7 @@ import {
   type CampaignManifest,
   CampaignManifestSchema,
   type CampaignModelProvenance,
+  type CampaignOptimizerModelSource,
   type CampaignSourceSurface,
   type PublicFeedback,
   type SourceFence,
@@ -264,6 +265,8 @@ export type CampaignDependencies = Readonly<{
     expectedRunLockHash: string,
   ) => Promise<void>;
   runOptimizerStep: typeof runCodexSkillOptStep;
+  /** Provenance name of `runOptimizerStep`, recorded in revise manifests. */
+  optimizerModelSource: CampaignOptimizerModelSource;
   readOptimizerParagraph: (artifactRoot: string) => Promise<string>;
   readModelReceipt: (
     artifactRoot: string,
@@ -1191,6 +1194,7 @@ export const defaultCampaignDependencies: CampaignDependencies = {
   resolveFixture: resolveTaskFixture,
   verifyCell: verifyPersistedCampaignCell,
   runOptimizerStep: runCodexSkillOptStep,
+  optimizerModelSource: "runCodexSkillOptStep",
   readOptimizerParagraph: (artifactRoot) =>
     readFile(join(artifactRoot, "accepted-output/model-paragraph.md"), "utf8"),
   readModelReceipt: async (artifactRoot) =>
@@ -1905,7 +1909,7 @@ export async function runReviseCampaign(
     }
     const provenance: CampaignModelProvenance = {
       kind: "model",
-      modelSource: "runCodexSkillOptStep",
+      modelSource: dependencies.optimizerModelSource,
       objectiveHash: sha256Text(objective),
       modelReceipt: receipt,
     };

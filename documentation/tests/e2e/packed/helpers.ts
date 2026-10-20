@@ -13,7 +13,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import {
   parseNpmPackJsonOutput,
   resolveNpmPackFilename,
@@ -1411,6 +1411,75 @@ ${content}
     stdio: "pipe",
   });
   console.log(`  📝 Created ${relativePath}`);
+}
+
+/**
+ * Create a requirement with the semantic inventory contract the installed
+ * advisor derives from its prose, so the staged hook and sync accept it as a
+ * new requirement. The installed tarball computes the contract, not the
+ * workspace sources.
+ */
+export async function createInventoriedRequirement(
+  sandbox: TestSandbox,
+  relativePath: string,
+  frontmatter: Frontmatter,
+  content: string,
+): Promise<void> {
+  createMarkdownFile(sandbox, relativePath, frontmatter, content);
+  await addSemanticInventory(sandbox, relativePath);
+}
+
+/** Add the derived semantic inventory contract to a requirement file, and stage it. */
+export async function addSemanticInventory(
+  sandbox: TestSandbox,
+  relativePath: string,
+): Promise<void> {
+  const dist = join(sandbox.npmPrefix, "node_modules", "kibi-cli", "dist");
+  const load = async (path: string) =>
+    (await import(pathToFileURL(join(dist, path)).href)) as Record<
+      string,
+      (...args: never[]) => unknown
+    >;
+  const extractor = await load("extractors/markdown.js");
+  const advisor = await load("operations/semantic-advisor/analyze-prose.js");
+  const boundary = await load(
+    "operations/semantic-advisor/ingestion-boundary.js",
+  );
+  const fullPath = join(sandbox.repoDir, relativePath);
+  const original = readFileSync(fullPath, "utf8");
+  const { entity } = (
+    extractor.extractFromMarkdownString as (
+      content: string,
+      path: string,
+    ) => { entity: Record<string, unknown> }
+  )(original, relativePath);
+  const payload = { type: "req", id: entity.id, properties: entity };
+  const { receipt } = (
+    advisor.analyzeSemanticAdvisorInput as (input: unknown) => {
+      receipt: unknown;
+    }
+  )({ payload });
+  const derived = (
+    boundary.semanticInventoryContract as (
+      payload: unknown,
+      receipt: unknown,
+    ) => Record<string, unknown>
+  )(payload, receipt);
+  // JSON is valid flow-style YAML, so the contract needs no YAML writer.
+  const contract = Object.entries(derived)
+    .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
+    .join("\n");
+  const end = original.indexOf("\n---", 3);
+  writeFileSync(
+    fullPath,
+    `${original.slice(0, end + 1)}${contract}${original.slice(end)}`,
+    "utf8",
+  );
+  execFileSync(resolveGitBinary(), ["add", "--", relativePath], {
+    cwd: sandbox.repoDir,
+    env: sandbox.env,
+    stdio: "pipe",
+  });
 }
 
 /** Mark a fixture path as Git-tracked so source compilation may consume it. */

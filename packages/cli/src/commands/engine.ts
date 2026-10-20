@@ -1,6 +1,12 @@
 import path from "node:path";
 import { EngineClient } from "../engine.js";
 import {
+  classifyStoreLockHolder,
+  describeLockHolderPid,
+  lockHolderProcess,
+  readStoreLockOwner,
+} from "../prolog/store-lock.js";
+import {
   resolveBranchAttachment,
   resolveReadBranchAttachment,
 } from "../utils/branch-resolver.js";
@@ -67,14 +73,40 @@ export async function engineStatusCommand(): Promise<void> {
   }
 }
 
+/** The pid of a live process holding the active branch store, if any. */
+function liveStoreLockHolder(root: string): number | null {
+  const attachment = resolveReadBranchAttachment(root);
+  if ("error" in attachment) return null;
+  const recorded = readStoreLockOwner(attachment.storePath);
+  if (recorded === null) return null;
+  const state = classifyStoreLockHolder(recorded.owner);
+  return state === "alive" && recorded.owner.pid !== undefined
+    ? recorded.owner.pid
+    : null;
+}
+
 export async function engineStopCommand(): Promise<void> {
   const engine = client();
   try {
     // Stopping an absent daemon must remain a no-op. Starting SWI merely to
     // shut it down defeats the maintenance command and can unexpectedly
     // migrate a legacy branch during an operator status check.
-    await engine.stop(false);
-    console.log("Kibi engine stopped");
+    const branch = currentBranch(workspaceRoot());
+    if (await engine.stop(false)) {
+      console.log("Kibi engine stopped");
+      return;
+    }
+    const { engineSocketPath } = await import("../engine.js");
+    console.log(
+      `No Kibi engine answered at ${engineSocketPath(workspaceRoot(), branch)}`,
+    );
+    const holder = liveStoreLockHolder(workspaceRoot());
+    if (holder !== null) {
+      const owner = lockHolderProcess(holder);
+      console.log(
+        `The branch store is still held by ${describeLockHolderPid(holder)}. That engine was likely started with a different KIBI_RUNTIME_DIR, XDG_RUNTIME_DIR or TMPDIR; stop it from the same environment, or end pid ${owner.pid}.`,
+      );
+    }
   } finally {
     await engine.terminate();
   }

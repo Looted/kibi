@@ -4,7 +4,10 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { probeFixtureReadiness } from "../fixture-readiness";
 import {
+  setupSeededConsistencyKb,
   setupSeededFreshKb,
+  setupSeededGovernedAreaKb,
+  setupSeededPreconditionKb,
   stopFixtureEngine,
 } from "../runtime/fixture-kb-setup";
 
@@ -132,3 +135,26 @@ test("seeded readiness has zero kb_check violations through the CLI", async () =
     stop: stopFixtureEngine,
   });
 });
+
+// The reasoning-case seeds must pass the CLI's own blocking checks (entity
+// context, supersede reasons) or every supplemental cell fails at setup.
+test.each([
+  ["governed-area", setupSeededGovernedAreaKb],
+  ["precondition", setupSeededPreconditionKb],
+  ["consistency", setupSeededConsistencyKb],
+] as const)(
+  "%s seed passes its own validation",
+  async (name, setup) => {
+    const root = await mkdtemp(join(tmpdir(), `skillopt-seed-${name}-`));
+    roots.push(root);
+    const cliRoot = await ensureCliBuild();
+    const workspace = join(root, "workspace");
+    await mkdir(workspace, { recursive: true });
+    try {
+      await setup(workspace, cliRoot);
+    } finally {
+      await stopFixtureEngine(workspace);
+    }
+  },
+  120_000,
+);

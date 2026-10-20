@@ -126,7 +126,17 @@ export const GOVERNED_AREA_DOCUMENTS: Readonly<Record<string, string>> = {
       "  - type: relates_to",
       `    target: ${GOVERNED_AREA_IDS.adr}`,
     ],
-    "A fixture family name must be non-empty after trimming. An empty or blank family name is rejected.",
+    [
+      "A fixture family name must be non-empty after trimming. An empty or blank family name is rejected.",
+      "",
+      "## Context",
+      "",
+      "Evaluator-owned fixture requirement: it gives the governed-area cases one current rule for fixtureFamily that an agent must find before editing.",
+      "",
+      "## Why this changed",
+      "",
+      "A support log showed an empty family name colliding with the default bucket, which the trimming-only rule allowed, so blank names are now rejected.",
+    ].join("\n"),
   ),
   [`.kb/adr/${GOVERNED_AREA_IDS.adr}.md`]: doc(
     [
@@ -152,16 +162,19 @@ export const GOVERNED_AREA_DOCUMENTS: Readonly<Record<string, string>> = {
     ],
     "A support log shows fixtureFamily accepting an empty family name before the non-empty rule landed.",
   ),
-  [`.kb/tests/${GOVERNED_AREA_IDS.test}.md`]: doc([
-    `id: ${GOVERNED_AREA_IDS.test}`,
-    "title: Fixture family names are trimmed and must not be empty",
-    "status: passing",
-    "text_ref: tests/fixture-family.test.ts",
-    "links:",
-    "  - type: validates",
-    `    target: ${GOVERNED_AREA_IDS.current}`,
-    "verification_scope: unit",
-  ]),
+  [`.kb/tests/${GOVERNED_AREA_IDS.test}.md`]: doc(
+    [
+      `id: ${GOVERNED_AREA_IDS.test}`,
+      "title: Fixture family names are trimmed and must not be empty",
+      "status: passing",
+      "text_ref: tests/fixture-family.test.ts",
+      "links:",
+      "  - type: validates",
+      `    target: ${GOVERNED_AREA_IDS.current}`,
+      "verification_scope: unit",
+    ],
+    "This evaluator-owned unit test checks that fixtureFamily trims names and rejects blank ones, as the current requirement states.",
+  ),
   // The symbol still implements the superseded v1: discovery must not read
   // that edge as the current owner.
   ".kb/symbols.yaml": [
@@ -313,7 +326,13 @@ export function ledgerRequirement(input: {
         `    target: ${link.target}`,
       ]),
     ],
-    input.prose,
+    [
+      input.prose,
+      "",
+      "## Context",
+      "",
+      "Evaluator-owned fixture requirement: it seeds the call-quota consistency cases with a bound whose modeled checks an agent must report honestly.",
+    ].join("\n"),
   );
 }
 
@@ -332,13 +351,16 @@ export const CONSISTENCY_E2E_TEST_SOURCE = [
 ].join("\n");
 
 // implements REQ-skillopt-codex-optimization
-export const CONSISTENCY_E2E_TEST_DOCUMENT = doc([
-  `id: ${CONSISTENCY_IDS.e2eTest}`,
-  "title: A client with remaining quota may call",
-  "status: passing",
-  `text_ref: ${CONSISTENCY_E2E_TEST_PATH}`,
-  "links:",
-  "  - type: validates",
-  `    target: ${CONSISTENCY_IDS.incomplete}`,
-  "verification_scope: end_to_end",
-]);
+export const CONSISTENCY_E2E_TEST_DOCUMENT = doc(
+  [
+    `id: ${CONSISTENCY_IDS.e2eTest}`,
+    "title: A client with remaining quota may call",
+    "status: passing",
+    `text_ref: ${CONSISTENCY_E2E_TEST_PATH}`,
+    "links:",
+    "  - type: validates",
+    `    target: ${CONSISTENCY_IDS.incomplete}`,
+    "verification_scope: end_to_end",
+  ],
+  "This evaluator-owned end-to-end test passes for a client with remaining quota, which alone does not prove the reset-review requirement.",
+);

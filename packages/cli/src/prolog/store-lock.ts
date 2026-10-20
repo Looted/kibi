@@ -16,6 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { execFileSync } from "node:child_process";
 import {
   existsSync,
   realpathSync,
@@ -69,6 +70,62 @@ export function isProcessAlive(pid: number): boolean {
     // EPERM means the process exists but is owned by another user.
     return code === "EPERM";
   }
+}
+
+function processInfo(pid: number): { parent: number; command: string } | null {
+  try {
+    if (process.platform === "linux") {
+      // `comm` is in parentheses; the fields after it are state, ppid, ...
+      const stat = readFileSync(`/proc/${pid}/stat`, "utf8");
+      const open = stat.indexOf("(");
+      const close = stat.lastIndexOf(")");
+      return {
+        command: stat.slice(open + 1, close),
+        parent: Number(stat.slice(close + 2).split(" ")[1]),
+      };
+    }
+    if (process.platform === "win32") return null;
+    const [parent, ...command] = execFileSync(
+      "ps",
+      ["-o", "ppid=,comm=", "-p", String(pid)],
+      { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 2000 },
+    )
+      .trim()
+      .split(/\s+/);
+    return { parent: Number(parent), command: basename(command.join(" ")) };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The process to stop for a store lock holder. The lock records the engine's
+ * SWI-Prolog child; its parent (the daemon, or another Kibi process hosting
+ * the session) is what a user ends or stops.
+ */
+// implements REQ-core-journaled-engine-persistence
+export function lockHolderProcess(pid: number): {
+  pid: number;
+  prologPid?: number;
+} {
+  const info = processInfo(pid);
+  if (
+    info === null ||
+    !/^swipl/.test(info.command) ||
+    !Number.isInteger(info.parent) ||
+    info.parent <= 1
+  )
+    return { pid };
+  return { pid: info.parent, prologPid: pid };
+}
+
+/** "pid N", naming the owning Kibi process when N is its SWI-Prolog child. */
+// implements REQ-core-journaled-engine-persistence
+export function describeLockHolderPid(pid: number): string {
+  const holder = lockHolderProcess(pid);
+  return holder.prologPid === undefined
+    ? `pid ${holder.pid}`
+    : `pid ${holder.pid} (through its SWI-Prolog process, pid ${holder.prologPid})`;
 }
 
 export type StoreLockHolderState = "self" | "alive" | "dead" | "unknown";
@@ -409,7 +466,7 @@ export async function retryAttachAfterBreakingStaleLock(
     const holderSummary =
       storeLocked.owner === null
         ? decision.reason
-        : `pid ${storeLocked.owner.pid ?? "?"} (${decision.reason})`;
+        : `${storeLocked.owner.pid === undefined ? "pid ?" : describeLockHolderPid(storeLocked.owner.pid)} (${decision.reason})`;
     return {
       ...failed,
       error: `${failed.error}

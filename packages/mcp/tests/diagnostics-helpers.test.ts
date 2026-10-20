@@ -42,6 +42,8 @@ describe("diagnostic tool call helpers", () => {
         attempt_number: 2,
       },
     });
+    expect(toolCall.hint).toBe("");
+    expect(toolCall.diagnostic_error).toBeNull();
     expect(toolCall.raw_args_redacted).toMatchObject({
       title: "Example",
       credentials: {

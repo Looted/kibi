@@ -19,6 +19,7 @@ import {
   restoreWorkspaceCwd,
   withCwd,
 } from "../helpers/in-process-workspace.js";
+import { withSemanticInventory } from "../helpers/inventory-fixture.js";
 
 const roots: string[] = [];
 const restores: Array<() => void> = [];
@@ -405,7 +406,7 @@ Body.
     mkdirSync(path.join(cwd, ".kb", "requirements"), { recursive: true });
     writeFileSync(
       path.join(cwd, ".kb", "requirements", "REQ-auth-login.md"),
-      `---
+      withSemanticInventory(`---
 id: REQ-auth-login
 title: Auth
 status: open
@@ -417,7 +418,7 @@ Login works.
 ## Context
 
 Fixture requirement for the staged check: users sign in before they reach their account pages.
-`,
+`),
     );
     git(cwd, "add .kb/requirements/REQ-auth-login.md");
     const io = captureIo();
@@ -437,7 +438,7 @@ Fixture requirement for the staged check: users sign in before they reach their 
     mkdirSync(path.join(cwd, ".kb", "requirements"), { recursive: true });
     writeFileSync(
       path.join(cwd, ".kb", "requirements", "REQ-1.md"),
-      `---
+      withSemanticInventory(`---
 id: REQ-1
 title: Auth
 status: open
@@ -449,7 +450,7 @@ Login works.
 ## Context
 
 Fixture requirement for the staged check: users sign in before they reach their account pages.
-`,
+`),
     );
     git(cwd, "add .kb/requirements/REQ-1.md");
     const io = captureIo();

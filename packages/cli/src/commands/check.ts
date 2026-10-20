@@ -51,6 +51,7 @@ import {
 import type { QualityDiagnostic } from "../public/impact-diagnostics.js";
 import { executeCheck } from "../public/operations/check-executor.js";
 import { refreshDetachedSnapshot } from "../runtime/detached-snapshot.js";
+import { amendsRootCommit } from "../traceability/commit-amend.js";
 import {
   KIBI_NO_IMPACT_DECLARATION,
   KIBI_SYMBOLS_MANIFEST_PATH,
@@ -914,6 +915,9 @@ export async function checkCommand(
         const inventoryDrift = stagedInventoryDriftViolations({
           stagedPaths: new Set(markdownFiles.map((file) => file.path)),
           snapshotEntities,
+          judgeNewRequirements:
+            snapshot.headCommit !== null &&
+            !amendsRootCommit(process.cwd(), snapshot.headCommit),
           readBase: (filePath) => {
             try {
               return snapshot
@@ -930,7 +934,7 @@ export async function checkCommand(
             coverage: stagedCoverage,
             violations: inventoryDrift,
             messages: [
-              `${inventoryDrift.length} staged requirement(s) have a semantic inventory that no longer matches their prose:`,
+              `${inventoryDrift.length} staged requirement(s) have a semantic inventory that is missing or no longer matches their prose:`,
               ...inventoryDrift.map((violation) => `  ${violation.message}`),
             ],
           });

@@ -23,6 +23,7 @@ import {
   restoreWorkspaceCwd,
   withCwd,
 } from "../helpers/in-process-workspace.js";
+import { withSemanticInventory } from "../helpers/inventory-fixture.js";
 
 const roots: string[] = [];
 const restores: Array<() => void> = [];
@@ -631,7 +632,7 @@ describe("checkCommand remaining runtime branches", () => {
     mkdirSync(path.join(cwd, ".kb", "requirements"), { recursive: true });
     writeFileSync(
       path.join(cwd, ".kb", "requirements", "REQ-STAGED-EMPTY.md"),
-      `---
+      withSemanticInventory(`---
 id: REQ-STAGED-EMPTY
 title: Staged empty symbols
 type: req
@@ -639,7 +640,7 @@ status: open
 ---
 
 Must stay independently testable.
-`,
+`),
     );
     git(cwd, "add .kb/requirements/REQ-STAGED-EMPTY.md");
     const granularity = spyOn(

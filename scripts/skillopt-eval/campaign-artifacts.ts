@@ -39,10 +39,20 @@ const CampaignInsertionSchema = z
     }
   });
 
+const OptimizerModelSourceSchema = z.enum([
+  "runCodexSkillOptStep",
+  "runClaudeSkillOptStep",
+]);
+
+// implements REQ-skillopt-claude-code-host
+export type CampaignOptimizerModelSource = z.infer<
+  typeof OptimizerModelSourceSchema
+>;
+
 const ModelProvenanceSchema = z
   .object({
     kind: z.literal("model"),
-    modelSource: z.literal("runCodexSkillOptStep"),
+    modelSource: OptimizerModelSourceSchema,
     objectiveHash: Sha256Schema,
     modelReceipt: z.record(z.string(), JsonValueSchema),
   })

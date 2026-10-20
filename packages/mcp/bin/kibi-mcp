@@ -16,6 +16,17 @@
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+// Kibi needs Node.js 22+ (package "engines"), but npm only warns on a
+// mismatch. Fail before loading anything, with the Node that was found.
+const nodeMajor = Number(process.versions.node.split(".")[0]);
+if (!globalThis.Bun && nodeMajor < 22) {
+  process.stderr.write(
+    `kibi-mcp requires Node.js 22 or later, but was started with Node.js ${process.versions.node} (${process.execPath}). ` +
+      "Put Node.js 22+ first on PATH, including for the host that launches it, and retry.\n",
+  );
+  process.exit(1);
+}
+
 const args = globalThis.Bun?.argv?.slice(2) ?? process.argv.slice(2);
 
 async function importStartupResolution() {

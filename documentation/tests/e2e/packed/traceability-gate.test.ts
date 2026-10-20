@@ -6,6 +6,7 @@ import { afterEach, before, beforeEach, describe, it } from "node:test";
 import {
   type Tarballs,
   type TestSandbox,
+  addSemanticInventory,
   checkPrologAvailable,
   createSandbox,
   kibi,
@@ -581,6 +582,8 @@ if (RUN_NODE_TEST_SUITE) {
           ".kb/requirements/REQ-001.md",
           requirementMarkdown(),
         );
+        // A new requirement needs its semantic inventory to pass the hook.
+        await addSemanticInventory(sandbox, ".kb/requirements/REQ-001.md");
         writeSandboxFile(
           sandbox,
           `.kb/tests/${BASELINE_TEST_ID}.md`,

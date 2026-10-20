@@ -34,12 +34,15 @@ const exits = [];
 const originalExit = process.exit;
 process.exit = (code) => { exits.push(code); };
 try { await main(); console.log(JSON.stringify({ exits })); }
-finally { process.exit = originalExit; }`,
+finally { process.exit = originalExit; }
+// The stubbed exit cannot end this process, so leave explicitly.
+process.exit(0);`,
       ],
       {
         cwd: path.resolve(import.meta.dir, "../../.."),
         encoding: "utf8",
         input: "{}\n",
+        timeout: 60_000,
       },
     );
 

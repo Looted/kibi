@@ -254,6 +254,7 @@ describe("EngineClient from source", () => {
       });
       expect(untypedSearch.count).toBe(0);
       client.cancel(1);
+      expect(await client.stop(false)).toBe(true);
     } finally {
       await client.stop(false).catch(() => undefined);
       await client.terminate();
@@ -280,7 +281,7 @@ describe("EngineClient from source", () => {
     });
     await missing.start(false);
     expect(missing.isRunning()).toBe(false);
-    await missing.stop(false);
+    expect(await missing.stop(false)).toBe(false);
     await missing.terminate();
 
     const client = new EngineClient({

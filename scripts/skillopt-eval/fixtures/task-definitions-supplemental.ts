@@ -132,20 +132,22 @@ function preApprovalCase(prompt: string): DogfoodCase {
  */
 // implements REQ-skillopt-codex-optimization
 export const SUPPLEMENTAL_CASES: Readonly<Record<string, DogfoodCase>> = {
-  // C1.2: a compatible change must land after one or two Kibi calls.
+  // C1.1: the requested change contradicts the current requirement.
   "kibi-usage/intent-consult/train/0": readOnlyCase(
-    "Add a log line to fixtureFamily() in src/fixture.ts that records each family name it is called with, keeping its existing behavior. Use only the public Kibi surface for project knowledge.",
-    "compatible_change_after_intent",
+    "Make fixtureFamily() in src/fixture.ts also accept an empty family name. Use only the public Kibi surface for project knowledge.",
+    "governing_intent_before_edit",
   ),
   // C5.1: layered explanation of current intent, rationale and proof.
   "kibi-usage/intent-consult/train/1": readOnlyCase(
     `Why does fixtureFamily() in src/fixture.ts reject empty family names, and is that behavior proven?${KNOWLEDGE}${READ_ONLY}`,
     "explain_governing_intent",
   ),
-  // C1.1: the requested change contradicts the current requirement.
+  // C1.2: a compatible change must land after one or two Kibi calls. It is
+  // the development case because the agent is expected to edit, so the cell
+  // measures whether the Kibi lookup comes before the first source edit.
   "kibi-usage/intent-consult/development/0": readOnlyCase(
-    "Make fixtureFamily() in src/fixture.ts also accept an empty family name. Use only the public Kibi surface for project knowledge.",
-    "governing_intent_before_edit",
+    "Add a log line to fixtureFamily() in src/fixture.ts that records each family name it is called with, keeping its existing behavior. Use only the public Kibi surface for project knowledge.",
+    "compatible_change_after_intent",
   ),
   // C1.3: the symbol still implements the superseded v1.
   "kibi-usage/intent-consult/held-out/0": readOnlyCase(

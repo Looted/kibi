@@ -6,7 +6,7 @@ import {
   type Tarballs,
   type TestSandbox,
   checkPrologAvailable,
-  createMarkdownFile,
+  createInventoriedRequirement,
   createSandbox,
   kibi,
   packAll,
@@ -513,7 +513,7 @@ async function runLanguageWorkflow(
     assertCommandExit(guardProbe, 0, "offline guard preload probe");
     assert.equal(guardProbe.stdout, "active", "offline guard was not loaded");
 
-    createMarkdownFile(
+    await createInventoriedRequirement(
       sandbox,
       ".kb/requirements/REQ-source-analysis-v2-contract.md",
       {

@@ -258,6 +258,8 @@ describe("journaled engine", () => {
     try {
       const status = await client.storageStatus();
       expect(status.success).toBe(true);
+      const statusJson = JSON.parse(JSON.parse(status.bindings.Json ?? '"{}"'));
+      expect(statusJson.mode).toBe("journaled");
       const compact = await client.compact();
       expect(compact.success).toBe(true);
     } finally {
