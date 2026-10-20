@@ -16,6 +16,7 @@
  *   3. The revise optimizer step runs on the same host: the stub sees the
  *      pinned optimizer model, no tools and no MCP server, and its structured
  *      `{ body }` answer becomes the accepted baseline-insertion output.
+ *      The target also gets the skill under evaluation preloaded.
  *   4. An unknown host value is a CLI error before any paid preparation.
  *
  * Run via `bun run documentation/tests/e2e/skillopt-claude-code-host.e2e.ts`.
@@ -157,6 +158,12 @@ printf '%s\\n' '{"type":"result","subtype":"success","is_error":false,"num_turns
   assert(argv.includes("--strict-mcp-config"), "MCP config is not strict");
   assert(flag("--permission-mode") === "dontAsk", "permissions can prompt");
   assert(!flag("--tools").split(",").includes("Bash"), "shell tool exposed");
+  assert(
+    /^The kibi-[a-z]+ skill applies to this task\./.test(
+      flag("--append-system-prompt"),
+    ),
+    "the skill under evaluation was not preloaded",
+  );
   const settings = JSON.parse(flag("--settings")) as {
     permissions: { allow: string[]; deny: string[] };
   };

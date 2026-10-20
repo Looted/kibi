@@ -307,6 +307,7 @@ export function buildClaudeExecArgv(
     settings: Readonly<Record<string, unknown>>;
     outputSchema: Readonly<Record<string, unknown>>;
     tools: readonly string[];
+    appendSystemPrompt?: string;
   }>,
 ): readonly [string, ...string[]] {
   const models = assertSkillOptModelsReadyForPaidWork();
@@ -335,7 +336,28 @@ export function buildClaudeExecArgv(
     "dontAsk",
     "--json-schema",
     JSON.stringify(input.outputSchema),
+    ...(input.appendSystemPrompt === undefined
+      ? []
+      : ["--append-system-prompt", input.appendSystemPrompt]),
   ];
+}
+
+/**
+ * The skill under evaluation, preloaded into the target's system prompt.
+ * Claude loads a project skill only when the model calls its Skill tool, and
+ * small targets rarely do, so a body-only variant would otherwise never reach
+ * the model and every arm would run on the same text.
+ */
+// implements REQ-skillopt-claude-code-host
+export async function preloadedSkillPrompt(
+  workspaceRoot: string,
+  skill: string,
+): Promise<string> {
+  const markdown = await readFile(
+    join(workspaceRoot, ".agents/skills", skill, "SKILL.md"),
+    "utf8",
+  );
+  return `The ${skill} skill applies to this task. Follow it.\n\n${markdown}`;
 }
 
 function isWithin(path: string, root: string): boolean {
@@ -414,6 +436,10 @@ export function claudeCodeTargetHost(): TargetHost {
           }),
           outputSchema,
           tools: CLAUDE_TARGET_TOOLS,
+          appendSystemPrompt: await preloadedSkillPrompt(
+            workspace.target,
+            options.targetSkill,
+          ),
         }),
         normalizeTranscript: claudeStreamToCodexJsonl,
       };
