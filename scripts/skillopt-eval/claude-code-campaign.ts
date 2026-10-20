@@ -20,6 +20,7 @@ import {
   selectedSkillOptHost,
   withClaudeAuthLease,
 } from "./runtime/claude-code-host";
+import { runClaudeSkillOptStep } from "./runtime/claude-optimizer";
 import { createIsolationWorkspace } from "./runtime/isolation-workspace";
 import { stageKibiMcpBroker } from "./runtime/mcp-broker-stage";
 import {
@@ -131,22 +132,25 @@ export async function runClaudeCodeCanary(
   const root = await mkdtemp(join(scratchRoot, "claude-canary-"));
   const runs = [];
   try {
-    // Only target-side commands run on this host (`revise` is refused), so
-    // only the target model is probed. The auth lease serializes the probe
-    // with cells that may refresh the shared login.
+    // Both roles are probed: `revise` calls the optimizer model and the
+    // other commands call the target model. The auth lease serializes each
+    // probe with cells that may refresh the shared login.
     const env = options.env ?? process.env;
-    runs.push(
-      await withClaudeAuthLease(env, () =>
-        runClaudeModelCanary({ role: "target", env, scratchRoot: root, run }),
-      ),
-    );
+    for (const role of ["target", "optimizer"] as const) {
+      runs.push(
+        await withClaudeAuthLease(env, () =>
+          runClaudeModelCanary({ role, env, scratchRoot: root, run }),
+        ),
+      );
+      if (runs.at(-1)?.passed !== true) break;
+    }
   } finally {
     await rm(root, { recursive: true, force: true });
   }
   const failed = runs.find((entry) => !entry.passed);
   const attempts = runs.length as 0 | 1 | 2;
   return {
-    verdict: failed === undefined && runs.length === 1 ? "pass" : "no-go",
+    verdict: failed === undefined && runs.length === 2 ? "pass" : "no-go",
     runId: options.runId,
     targetModel: models.targetModel,
     optimizerModel: models.optimizerModel,
@@ -173,8 +177,8 @@ export async function runClaudeCodeCanary(
 
 /**
  * Campaign dependency overrides for the selected host; `undefined` keeps the
- * Codex defaults. Only target-side commands (compose/evaluate/confirm) are
- * covered; `campaignMain` refuses `revise`, whose optimizer step is Codex.
+ * Codex defaults. On Claude Code every command runs there, including the
+ * `revise` optimizer step.
  */
 // implements REQ-skillopt-claude-code-host
 export function hostCampaignDependencies(
@@ -185,5 +189,7 @@ export function hostCampaignDependencies(
     runPreflight: runClaudeCodePreflight,
     runCanary: runClaudeCodeCanary,
     createRuntimeLease: (options) => createClaudeRuntimeLease(options, env),
+    runOptimizerStep: runClaudeSkillOptStep,
+    optimizerModelSource: "runClaudeSkillOptStep",
   };
 }
