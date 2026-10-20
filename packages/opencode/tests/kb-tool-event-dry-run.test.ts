@@ -2,6 +2,7 @@ import { describe, expect, it } from "bun:test";
 import {
   type KibiEventEnv,
   handleKbToolEvent,
+  kibiToolName,
 } from "../src/smart-enforcement-events.js";
 
 function envRecording(tools: string[]): KibiEventEnv {
@@ -38,5 +39,43 @@ describe("kb tool evidence", () => {
       "s1",
     );
     expect(tools).toEqual(["kb_validate_upsert", "kb_upsert"]);
+  });
+
+  it("records Kibi MCP tools under their server-prefixed host names", () => {
+    const tools: string[] = [];
+    const env = envRecording(tools);
+    handleKbToolEvent(
+      env,
+      {
+        type: "tool.execute.after",
+        properties: { tool: "kibi_kb_upsert", args: { dryRun: true } },
+      } as never,
+      "s1",
+    );
+    handleKbToolEvent(
+      env,
+      {
+        type: "tool.execute.after",
+        properties: { tool: "kibi_kb_status", args: {} },
+      } as never,
+      "s1",
+    );
+    handleKbToolEvent(
+      env,
+      {
+        type: "tool.execute.after",
+        properties: { tool: "edit", args: {} },
+      } as never,
+      "s1",
+    );
+    expect(tools).toEqual(["kb_validate_upsert", "kb_status"]);
+  });
+
+  it("maps host tool names to Kibi tool names", () => {
+    expect(kibiToolName("kb_search")).toBe("kb_search");
+    expect(kibiToolName("kibi_kb_search")).toBe("kb_search");
+    expect(kibiToolName("my-kibi_kb_query")).toBe("kb_query");
+    expect(kibiToolName("kibi_status")).toBeUndefined();
+    expect(kibiToolName(undefined)).toBeUndefined();
   });
 });

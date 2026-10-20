@@ -302,6 +302,9 @@ export { isAllowedGranularityReason };
  * artifact, but the engine never merges coordinates for KB-internal paths —
  * coverage then reports missing_symbol_coordinates forever with no signal.
  * Reject the configuration at upsert time instead.
+ *
+ * Also reject absolute paths and `..` escapes so coordinate refresh cannot be
+ * used as a workspace-escape oracle against files outside the repository.
  */
 function validateSymbolSourceFile(
   entity: Readonly<Record<string, unknown>>,
@@ -313,6 +316,18 @@ function validateSymbolSourceFile(
   if (normalized === ".kb" || normalized.startsWith(".kb/")) {
     throw new Error(
       `Entity validation failed: symbol sourceFile must point at a real code file in the workspace, not into the knowledge base ('${sourceFile}'). Coordinates for .kb/ paths are never merged into the engine, so coverage would report missing_symbol_coordinates permanently. Point the symbol at the implementing or verifying code file instead.`,
+    );
+  }
+  // Lexical confinement (no workspace root needed): absolute paths and `..`
+  // segments are never valid authored sourceFile values.
+  if (
+    normalized.startsWith("/") ||
+    /^[A-Za-z]:\//.test(normalized) ||
+    normalized.startsWith("//") ||
+    normalized.split("/").includes("..")
+  ) {
+    throw new Error(
+      `Entity validation failed: symbol sourceFile must be a workspace-relative path ('${sourceFile}'). Absolute paths and '..' escapes are rejected so coordinate refresh cannot read files outside the repository.`,
     );
   }
 }

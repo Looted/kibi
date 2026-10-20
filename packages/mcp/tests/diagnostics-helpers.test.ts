@@ -15,7 +15,7 @@ describe("diagnostic tool call helpers", () => {
       args: {
         title: "Example",
         credentials: {
-          token: "secret-token",
+          token: "example-secret-token",
           nested: { authorization: "Bearer abc" },
         },
         _diagnostic_telemetry: {
@@ -33,7 +33,7 @@ describe("diagnostic tool call helpers", () => {
       business_args: {
         title: "Example",
         credentials: {
-          token: "secret-token",
+          token: "example-secret-token",
           nested: { authorization: "Bearer abc" },
         },
       },
@@ -53,7 +53,7 @@ describe("diagnostic tool call helpers", () => {
 
   test("redacts secret-like keys recursively without mutating input", () => {
     const args = {
-      token: "secret-token",
+      token: "example-secret-token",
       profile: {
         authorization: "Bearer abc",
         nested: [{ apiKey: "key-1" }, { value: "kept" }],

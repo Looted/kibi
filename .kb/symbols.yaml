@@ -36066,7 +36066,7 @@ symbols:
       - type: executable_for
         target: TEST-opencode-kibi-plugin-v1
   - id: SYM-e2e-test-opencode-python-comment-routing
-    title: opencode-comment-guidance.test
+    title: opencode-comment-guidance.test python-routing
     status: active
     sourceFile: documentation/tests/e2e/packed/opencode-comment-guidance.test.ts
     symbol_role: behavioral
@@ -36075,7 +36075,7 @@ symbols:
       - type: executable_for
         target: TEST-opencode-python-comment-routing
   - id: SYM-e2e-test-opencode-file-context-guidance-v1
-    title: opencode-comment-guidance.test
+    title: opencode-comment-guidance.test file-context
     status: active
     sourceFile: documentation/tests/e2e/packed/opencode-comment-guidance.test.ts
     symbol_role: behavioral
@@ -55396,3 +55396,405 @@ symbols:
         target: TEST-cli-staged-entity-context
       - type: implements
         target: REQ-cli-staged-entity-context
+  - id: SYM-test-symbol-sourcefile-workspace-confinement
+    title: Symbol sourceFile workspace confinement consumer CLI suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/symbol-sourcefile-workspace-confinement.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T14:10:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-symbol-sourcefile-workspace-confinement
+  - id: SYM-resolveWorkspaceSourceAbsolute
+    title: resolveWorkspaceSourceAbsolute
+    status: active
+    tags:
+      - security
+      - symbols
+    sourceFile: packages/cli/src/utils/repo-relative-path.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T12:23:47.690Z
+    relationships:
+      - type: covered_by
+        target: TEST-symbol-sourcefile-workspace-confinement
+      - type: implements
+        target: REQ-symbol-sourcefile-workspace-confinement
+  - id: SYM-mcp-resolveWorkspaceSourceAbsolute
+    title: resolveWorkspaceSourceAbsolute
+    status: active
+    tags:
+      - security
+      - symbols
+      - mcp
+    sourceFile: packages/mcp/src/workspace-path.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T12:23:50.261Z
+    relationships:
+      - type: covered_by
+        target: TEST-symbol-sourcefile-workspace-confinement
+      - type: implements
+        target: REQ-symbol-sourcefile-workspace-confinement
+  - id: SYM-mcp-normalizeRepoRelativePath
+    title: normalizeRepoRelativePath
+    status: active
+    tags:
+      - security
+      - symbols
+      - mcp
+    sourceFile: packages/mcp/src/workspace-path.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T12:28:31.780Z
+    relationships:
+      - type: covered_by
+        target: TEST-symbol-sourcefile-workspace-confinement
+      - type: implements
+        target: REQ-symbol-sourcefile-workspace-confinement
+  - id: SYM-plugin-resolveWorkspaceSourceAbsolute
+    title: resolveWorkspaceSourceAbsolute
+    status: active
+    tags:
+      - security
+      - symbols
+    sourceFile: packages/plugin-builtin/src/symbols/workspace-path.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T12:28:34.310Z
+    relationships:
+      - type: covered_by
+        target: TEST-symbol-sourcefile-workspace-confinement
+      - type: implements
+        target: REQ-symbol-sourcefile-workspace-confinement
+  - id: SYM-SYMBOL-GRANULARITY-VIOLATION
+    title: SYMBOL_GRANULARITY_VIOLATION
+    status: active
+    tags:
+      - symbols
+    sourceFile: packages/cli/src/operations/mutation/symbol-granularity.ts
+    granularity_reason: config-artifact
+    symbol_role: structural
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T12:28:36.652Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-symbol-link-guidance
+      - type: implements
+        target: REQ-kibi-symbol-link-guidance
+  - id: SYM-opencode-v2-legacy-input-from-v2-context
+    title: legacyInputFromV2Context
+    status: active
+    sourceFile: packages/opencode/src/opencode-v2.ts
+    symbol_role: behavioral
+    tags:
+      - opencode
+      - plugin-api
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T20:30:52.946Z
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-v2-plugin-api
+      - type: implements
+        target: REQ-opencode-v2-plugin-api
+  - id: SYM-opencode-v2-extract-patch-file-operations
+    title: extractPatchFileOperations
+    status: active
+    sourceFile: packages/opencode/src/opencode-v2.ts
+    symbol_role: behavioral
+    tags:
+      - opencode
+      - plugin-api
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T20:30:55.833Z
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-v2-plugin-api
+      - type: implements
+        target: REQ-opencode-v2-plugin-api
+  - id: SYM-opencode-v2-legacy-events-from-tool-execution
+    title: legacyEventsFromToolExecution
+    status: active
+    sourceFile: packages/opencode/src/opencode-v2.ts
+    symbol_role: behavioral
+    tags:
+      - opencode
+      - plugin-api
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T20:30:58.707Z
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-v2-plugin-api
+      - type: implements
+        target: REQ-opencode-v2-plugin-api
+  - id: SYM-opencode-v2-legacy-tool-output
+    title: legacyToolOutput
+    status: active
+    sourceFile: packages/opencode/src/opencode-v2.ts
+    symbol_role: behavioral
+    tags:
+      - opencode
+      - plugin-api
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T20:31:01.572Z
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-v2-plugin-api
+      - type: implements
+        target: REQ-opencode-v2-plugin-api
+  - id: SYM-opencode-v2-create-v2-setup
+    title: createV2Setup
+    status: active
+    sourceFile: packages/opencode/src/opencode-v2.ts
+    symbol_role: behavioral
+    tags:
+      - opencode
+      - plugin-api
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T20:31:04.403Z
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-v2-plugin-api
+      - type: implements
+        target: REQ-opencode-v2-plugin-api
+  - id: SYM-opencode-v2-create-plugin-definition
+    title: createPluginDefinition
+    status: active
+    sourceFile: packages/opencode/src/opencode-v2.ts
+    symbol_role: behavioral
+    tags:
+      - opencode
+      - plugin-api
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T20:31:07.203Z
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-v2-plugin-api
+      - type: implements
+        target: REQ-opencode-v2-plugin-api
+  - id: SYM-opencode-tui-hook
+    title: tui
+    status: active
+    sourceFile: packages/opencode/src/tui.tsx
+    symbol_role: behavioral
+    tags:
+      - opencode
+      - plugin-api
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T20:31:09.571Z
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-v2-plugin-api
+      - type: implements
+        target: REQ-opencode-v2-plugin-api
+  - id: SYM-opencode-tui-setup
+    title: setup
+    status: active
+    sourceFile: packages/opencode/src/tui.tsx
+    symbol_role: behavioral
+    tags:
+      - opencode
+      - plugin-api
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T20:31:11.552Z
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-v2-plugin-api
+      - type: implements
+        target: REQ-opencode-v2-plugin-api
+  - id: SYM-opencode-v2-plugin-api-tests
+    title: OpenCode v2 plugin API tests
+    status: active
+    sourceFile: packages/opencode/tests/opencode-v2.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    tags:
+      - opencode
+      - plugin-api
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T20:31:13.347Z
+    relationships:
+      - type: executable_for
+        target: TEST-opencode-v2-plugin-api
+  - id: SYM-opencode-v2-tui-coverage-tests
+    title: OpenCode v2 TUI coverage tests
+    status: active
+    sourceFile: packages/opencode/tests/tui.coverage.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    tags:
+      - opencode
+      - plugin-api
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T20:31:15.872Z
+    relationships:
+      - type: executable_for
+        target: TEST-opencode-v2-plugin-api
+  - id: SYM-opencode-v2-directory-entry-tests
+    title: OpenCode directory install entry tests
+    status: active
+    tags:
+      - opencode
+      - plugin-api
+    sourceFile: packages/opencode/tests/directory-entry.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T20:53:34.631Z
+    relationships:
+      - type: executable_for
+        target: TEST-opencode-v2-plugin-api
+  - id: SYM-opencode-directory-tui-shim
+    title: OpenCode directory TUI shim
+    status: active
+    tags:
+      - opencode
+      - plugin-api
+    sourceFile: packages/opencode/tui.js
+    symbol_role: module
+    granularity_reason: extractor-miss
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T20:54:32.721Z
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-v2-plugin-api
+      - type: implements
+        target: REQ-opencode-v2-plugin-api
+  - id: SYM-opencode-packed-load-v1-plugin
+    title: loadPackedV1Plugin
+    status: active
+    sourceFile: documentation/tests/e2e/packed/opencode-packed-utils.ts
+    symbol_role: behavioral
+    tags:
+      - opencode
+      - test
+      - e2e
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T22:20:26.678Z
+    relationships:
+      - type: executable_for
+        target: TEST-opencode-bootstrap-paths
+      - type: executable_for
+        target: TEST-opencode-file-context-guidance-v1
+      - type: executable_for
+        target: TEST-opencode-python-comment-routing
+  - id: SYM-e2e-packed-opencode-install
+    title: opencode-install.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/opencode-install.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    tags:
+      - opencode
+      - test
+      - e2e
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T22:20:28.882Z
+    relationships:
+      - type: executable_for
+        target: TEST-opencode-kibi-plugin-v1
+  - id: SYM-opencode-directory-index-shim
+    title: OpenCode directory index shim
+    status: active
+    sourceFile: packages/opencode/index.js
+    symbol_role: module
+    granularity_reason: extractor-miss
+    tags:
+      - opencode
+      - plugin-api
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T22:24:05.040Z
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-v2-plugin-api
+      - type: implements
+        target: REQ-opencode-v2-plugin-api
+  - id: SYM-opencode-plugin-definition
+    title: OpenCode plugin definition
+    status: active
+    sourceFile: packages/opencode/src/index.ts
+    symbol_role: module
+    granularity_reason: extractor-miss
+    tags:
+      - opencode
+      - plugin-api
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T22:24:07.043Z
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-v2-plugin-api
+      - type: implements
+        target: REQ-opencode-v2-plugin-api
+  - id: SYM-opencode-index-wrapper-tests
+    title: index-wrapper.test
+    status: active
+    sourceFile: packages/opencode/tests/index-wrapper.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    tags:
+      - opencode
+      - plugin-api
+      - test
+    origin:
+      kind: agent
+      recorded_at: 2026-10-19T22:24:09.615Z
+    relationships:
+      - type: executable_for
+        target: TEST-opencode-v2-plugin-api
+  - id: SYM-opencode-v2-command-text
+    title: commandText
+    status: active
+    sourceFile: packages/opencode/src/opencode-v2.ts
+    symbol_role: behavioral
+    tags:
+      - opencode
+      - plugin-api
+    origin:
+      kind: agent
+      recorded_at: 2026-10-20T08:01:09.756Z
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-v2-plugin-api
+      - type: implements
+        target: REQ-opencode-v2-plugin-api
+  - id: SYM-x-oc-kibiToolName
+    title: kibiToolName
+    status: active
+    sourceFile: packages/opencode/src/smart-enforcement-events.ts
+    granularity_reason: module-level-behavior
+    origin:
+      kind: agent
+      recorded_at: 2026-10-20T08:01:13.812Z
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1-coverage
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1

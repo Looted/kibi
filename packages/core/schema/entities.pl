@@ -29,7 +29,8 @@ entity_property(_, priority, atom).
 entity_property(_, severity, atom).
 entity_property(_, links, list).
 entity_property(_, text_ref, uri).
-entity_property(_, sourceFile, uri).
+% Workspace-relative source paths only (no absolute / .. escapes).
+entity_property(_, sourceFile, workspace_relpath).
 % Provenance of any authored entity: a JSON object (kind, ref, approved_by,
 % recorded_at) naming who authored it and on what authority.
 entity_property(_, origin, list_or_json).

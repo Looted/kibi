@@ -91,7 +91,7 @@ describe("SkillOpt Codex preflight", () => {
         runId: "preflight-key-rejected",
         sourceWorktree: testFixture.root,
         artifactRoot: testFixture.artifactRoot,
-        env: { ...testFixture.env, OPENAI_API_KEY: "forbidden" },
+        env: { ...testFixture.env, OPENAI_API_KEY: "example-forbidden" },
       },
       dependencies(),
     );

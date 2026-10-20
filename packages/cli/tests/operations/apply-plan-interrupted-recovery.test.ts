@@ -180,7 +180,7 @@ function plantLock(root: string, pid: number): string {
   mkdirSync(lock, { recursive: true });
   writeFileSync(
     path.join(lock, "owner.json"),
-    `${JSON.stringify({ pid, token: `${pid}-planted`, acquiredAt: 1 })}\n`,
+    `${JSON.stringify({ pid, token: `example-${pid}-planted`, acquiredAt: 1 })}\n`,
   );
   return lock;
 }
@@ -359,7 +359,7 @@ describe("dead-holder lock reclaim", () => {
         reclaimDeadHolder: (holder) => holder.pid === 4242,
       });
       expect(handle.reclaimed).toEqual([
-        expect.objectContaining({ pid: 4242, token: "4242-planted" }),
+        expect.objectContaining({ pid: 4242, token: "example-4242-planted" }),
       ]);
       handle.release();
       expect(existsSync(lock)).toBe(false);

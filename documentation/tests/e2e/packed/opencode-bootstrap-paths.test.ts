@@ -15,6 +15,7 @@ import { after, before, describe, it } from "node:test";
 import {
   createIsolatedInstall,
   installOpencodeTarball,
+  loadPackedV1Plugin,
   resolveOpencodeTarball,
 } from "./opencode-packed-utils.js";
 
@@ -113,9 +114,9 @@ if (RUN_NODE_TEST_SUITE) {
               installDir,
               "node_modules/kibi-opencode/dist/index.js",
             );
-            const pkg = await import(distIndex);
+            const plugin = await loadPackedV1Plugin(distIndex);
 
-            await pkg.default({
+            await plugin({
               worktree: workspaceDir,
               directory: workspaceDir,
             });
@@ -165,9 +166,9 @@ if (RUN_NODE_TEST_SUITE) {
               installDir,
               "node_modules/kibi-opencode/dist/index.js",
             );
-            const pkg = await import(distIndex);
+            const plugin = await loadPackedV1Plugin(distIndex);
 
-            await pkg.default({
+            await plugin({
               worktree: workspaceDir,
               directory: workspaceDir,
             });

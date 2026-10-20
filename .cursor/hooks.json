@@ -6,6 +6,11 @@
         "command": "node packages/cursor/dist/hook-runner.js --trusted-workspace"
       }
     ],
+    "beforeSubmitPrompt": [
+      {
+        "command": "node packages/cursor/dist/hook-runner.js --trusted-workspace"
+      }
+    ],
     "preToolUse": [
       {
         "command": "node packages/cursor/dist/hook-runner.js --trusted-workspace"

@@ -53,7 +53,7 @@ describe("Codex existing-login isolation", () => {
     const chatGptAuth = JSON.stringify({
       auth_mode: "chatgpt",
       OPENAI_API_KEY: null,
-      tokens: { access_token: "session-token" },
+      tokens: { access_token: "example-session-token" },
     });
     await writeFile(join(paths.real, "auth.json"), chatGptAuth, {
       mode: 0o644,
@@ -84,12 +84,18 @@ describe("Codex existing-login isolation", () => {
     const original = JSON.stringify({
       auth_mode: "chatgpt",
       OPENAI_API_KEY: null,
-      tokens: { access_token: "old", refresh_token: "refresh-1" },
+      tokens: {
+        access_token: "example-old",
+        refresh_token: "example-refresh-1",
+      },
     });
     const refreshed = JSON.stringify({
       auth_mode: "chatgpt",
       OPENAI_API_KEY: null,
-      tokens: { access_token: "new", refresh_token: "refresh-2" },
+      tokens: {
+        access_token: "example-new",
+        refresh_token: "example-refresh-2",
+      },
     });
     await writeFile(join(paths.real, "auth.json"), original, { mode: 0o600 });
     await writeFile(join(paths.privateHome, "auth.json"), refreshed, {
@@ -149,12 +155,18 @@ describe("Codex existing-login isolation", () => {
     const original = JSON.stringify({
       auth_mode: "chatgpt",
       OPENAI_API_KEY: null,
-      tokens: { access_token: "old", refresh_token: "refresh-1" },
+      tokens: {
+        access_token: "example-old",
+        refresh_token: "example-refresh-1",
+      },
     });
     const refreshed = JSON.stringify({
       auth_mode: "chatgpt",
       OPENAI_API_KEY: null,
-      tokens: { access_token: "new", refresh_token: "refresh-2" },
+      tokens: {
+        access_token: "example-new",
+        refresh_token: "example-refresh-2",
+      },
     });
     await writeFile(join(paths.real, "auth.json"), original, { mode: 0o600 });
 

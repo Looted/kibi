@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import kibiOpencodePlugin from "../src/index";
+import kibiOpencodePlugin from "../src/plugin.js";
 
 describe("hook contract", () => {
   test("system.transform remains text-only and does not fetch live briefings", async () => {

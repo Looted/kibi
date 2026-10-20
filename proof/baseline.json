@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 230,
-  "proofProven": 230,
+  "currentRequirements": 231,
+  "proofProven": 231,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -642,6 +642,11 @@
       "uncoveredSymbols": []
     },
     "REQ-symbol-behavioral-anchors": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-symbol-sourcefile-workspace-confinement": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

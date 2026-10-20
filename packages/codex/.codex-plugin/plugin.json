@@ -1,7 +1,14 @@
 {
   "name": "kibi-codex",
-  "version": "2.7.2",
+  "version": "2.7.3",
   "description": "Kibi Codex plugin manifest for integrating the Kibi MCP into Codex workflows.",
+  "author": {
+    "name": "Piotr Franczyk"
+  },
+  "homepage": "https://looted.github.io/kibi/",
+  "repository": "https://github.com/Looted/kibi",
+  "license": "AGPL-3.0-or-later",
+  "keywords": ["kibi", "mcp", "requirements", "traceability", "knowledge-base"],
   "skills": "./skills/",
   "hooks": "./hooks/hooks.json",
   "mcpServers": "./.mcp.json"

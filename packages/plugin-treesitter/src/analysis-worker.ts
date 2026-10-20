@@ -1251,7 +1251,7 @@ function dynamicOmissions(
         add(
           node,
           "TREESITTER_PHP_EVAL_UNAVAILABLE",
-          "PHP eval() can create declarations that are absent from the syntax tree.",
+          "PHP eval calls can create declarations that are absent from the syntax tree.",
           "php-eval-may-create-declarations",
         );
       }
