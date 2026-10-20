@@ -1,16 +1,19 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import {
   engineStatusCommand,
   engineStopCommand,
-  parentPid,
   storageCompactCommand,
   storageExportCommand,
   storageStatusCommand,
 } from "../../src/commands/engine.js";
 import { initCommand } from "../../src/commands/init.js";
+import {
+  describeLockHolderPid,
+  lockHolderProcess,
+} from "../../src/prolog/store-lock.js";
 import {
   captureIo,
   createGitWorkspace,
@@ -99,18 +102,34 @@ describe("engine commands", () => {
   });
 });
 
-describe("parentPid", () => {
-  test.skipIf(process.platform === "win32")(
-    "names the process that started a lock holder",
+describe("lockHolderProcess", () => {
+  const swipl = spawnSync("swipl", ["--version"], { stdio: "ignore" });
+  test.skipIf(process.platform === "win32" || swipl.status !== 0)(
+    "names the Kibi process behind a SWI-Prolog lock holder",
     async () => {
-      const child = spawn("sleep", ["30"], { stdio: "ignore" });
+      const child = spawn("swipl", ["-g", "sleep(30)", "-t", "halt"], {
+        stdio: "ignore",
+      });
       try {
-        expect(child.pid).toBeDefined();
-        expect(parentPid(child.pid as number)).toBe(process.pid);
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        const pid = child.pid as number;
+        expect(lockHolderProcess(pid)).toEqual({
+          pid: process.pid,
+          prologPid: pid,
+        });
+        expect(describeLockHolderPid(pid)).toBe(
+          `pid ${process.pid} (through its SWI-Prolog process, pid ${pid})`,
+        );
       } finally {
         child.kill();
       }
-      expect(parentPid(2 ** 22 + 12345)).toBeNull();
     },
   );
+
+  test("keeps any other holder pid as recorded", () => {
+    expect(lockHolderProcess(process.pid)).toEqual({ pid: process.pid });
+    expect(describeLockHolderPid(2 ** 22 + 12345)).toBe(
+      `pid ${2 ** 22 + 12345}`,
+    );
+  });
 });

@@ -17,6 +17,7 @@
 */
 
 import { splitTopLevelGeneral } from "./codec.js";
+import { describeLockHolderPid } from "./store-lock.js";
 
 /**
  * Structured transport for Prolog errors.
@@ -149,7 +150,7 @@ export function parsePrologErrorTerm(
       const holderSummary =
         holder === null
           ? "an unidentified holder"
-          : `pid ${holder.pid ?? "?"}${holder.workspaceRoot !== undefined ? ` for ${holder.workspaceRoot}` : ""}${holder.startedAt !== undefined ? ` since ${holder.startedAt}` : ""}`;
+          : `${holder.pid === undefined ? "pid ?" : describeLockHolderPid(holder.pid)}${holder.workspaceRoot !== undefined ? ` for ${holder.workspaceRoot}` : ""}${holder.startedAt !== undefined ? ` since ${holder.startedAt}` : ""}`;
       return {
         code: "permission_denied",
         storeLocked: detail,

@@ -1133,6 +1133,10 @@ export class EngineClient {
 
   private attachSocket(socket: net.Socket): void {
     this.inputBuffer = Buffer.alloc(0);
+    // An idle connection must not keep its client alive: a host that is done
+    // with an MCP server or CLI command lets it exit while the shared daemon
+    // keeps serving. request() holds the socket while a reply is pending.
+    socket.unref();
     socket.on("data", (chunk) => {
       if (this.socket !== socket) return;
       try {
@@ -1207,10 +1211,13 @@ export class EngineClient {
       release = resolve;
     });
     await previous;
+    let held: net.Socket | null = null;
     try {
       const socket = this.socket;
       if (socket === null || socket.destroyed)
         throw new Error("Kibi engine is not connected");
+      socket.ref();
+      held = socket;
       const id = ++this.requestId;
       const limits =
         this.readLimits !== undefined &&
@@ -1266,6 +1273,7 @@ export class EngineClient {
       assertWithinQueryLimits(value);
       return value;
     } finally {
+      if (held !== null && this.pending.size === 0) held.unref();
       release();
     }
   }
