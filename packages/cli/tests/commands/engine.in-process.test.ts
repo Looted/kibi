@@ -1,9 +1,11 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import { spawn } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import {
   engineStatusCommand,
   engineStopCommand,
+  parentPid,
   storageCompactCommand,
   storageExportCommand,
   storageStatusCommand,
@@ -95,4 +97,20 @@ describe("engine commands", () => {
       /Storage compaction blocked by legacy attachment/,
     );
   });
+});
+
+describe("parentPid", () => {
+  test.skipIf(process.platform === "win32")(
+    "names the process that started a lock holder",
+    async () => {
+      const child = spawn("sleep", ["30"], { stdio: "ignore" });
+      try {
+        expect(child.pid).toBeDefined();
+        expect(parentPid(child.pid as number)).toBe(process.pid);
+      } finally {
+        child.kill();
+      }
+      expect(parentPid(2 ** 22 + 12345)).toBeNull();
+    },
+  );
 });

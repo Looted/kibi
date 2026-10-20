@@ -2003,7 +2003,14 @@ export async function runEngineDaemon(requestedOptions: {
       : { maxOutputBytes: options.maxOutputBytes }),
   });
   const session = new EngineSession(prolog, branchPath);
-  await session.boot();
+  try {
+    await session.boot();
+  } catch (error) {
+    // A failed boot (store_locked, a module load error) leaves the SWI child
+    // running, which keeps this daemon alive with no socket.
+    await prolog.terminate().catch(() => undefined);
+    throw error;
+  }
   let attachedIdentity = readEngineAttachmentIdentity(branchPath);
   const serverPrologIdentity = engineSwiplIdentity();
   const serverPackageVersions = enginePackageVersions();

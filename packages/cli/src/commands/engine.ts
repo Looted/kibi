@@ -1,3 +1,5 @@
+import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { EngineClient } from "../engine.js";
 import {
@@ -83,6 +85,32 @@ function liveStoreLockHolder(root: string): number | null {
     : null;
 }
 
+/**
+ * The parent of a lock holder. The store lock is held by the engine's SWI-Prolog
+ * child, so its parent is the daemon (or other Kibi process) to stop.
+ */
+export function parentPid(pid: number): number | null {
+  let parent: number;
+  try {
+    if (process.platform === "linux") {
+      // Fields after the parenthesized command name: state, ppid, ...
+      const stat = readFileSync(`/proc/${pid}/stat`, "utf8");
+      parent = Number(stat.slice(stat.lastIndexOf(")") + 2).split(" ")[1]);
+    } else if (process.platform !== "win32") {
+      parent = Number(
+        execFileSync("ps", ["-o", "ppid=", "-p", String(pid)], {
+          encoding: "utf8",
+          stdio: ["ignore", "pipe", "ignore"],
+          timeout: 2000,
+        }).trim(),
+      );
+    } else return null;
+  } catch {
+    return null;
+  }
+  return Number.isInteger(parent) && parent > 1 ? parent : null;
+}
+
 export async function engineStopCommand(): Promise<void> {
   const engine = client();
   try {
@@ -99,10 +127,16 @@ export async function engineStopCommand(): Promise<void> {
       `No Kibi engine answered at ${engineSocketPath(workspaceRoot(), branch)}`,
     );
     const holder = liveStoreLockHolder(workspaceRoot());
-    if (holder !== null)
+    if (holder !== null) {
+      const owner = parentPid(holder);
+      const held =
+        owner === null
+          ? `pid ${holder}`
+          : `pid ${owner} (through its Prolog process, pid ${holder})`;
       console.log(
-        `The branch store is still held by pid ${holder}. That engine was likely started with a different KIBI_RUNTIME_DIR, XDG_RUNTIME_DIR or TMPDIR; stop it from the same environment, or end that process.`,
+        `The branch store is still held by ${held}. That engine was likely started with a different KIBI_RUNTIME_DIR, XDG_RUNTIME_DIR or TMPDIR; stop it from the same environment, or end pid ${owner ?? holder}.`,
       );
+    }
   } finally {
     await engine.terminate();
   }

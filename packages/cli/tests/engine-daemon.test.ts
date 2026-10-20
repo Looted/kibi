@@ -1,6 +1,13 @@
 // implements REQ-core-journaled-engine-persistence
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+} from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import {
@@ -197,4 +204,42 @@ describe("runEngineDaemonCli", () => {
     expect(process.exitCode).toBe(1);
     process.exitCode = previousExit;
   });
+});
+
+describe("engine daemon startup failure", () => {
+  test("a daemon that cannot attach the branch store exits instead of lingering", async () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "kibi-daemon-locked-"));
+    roots.push(root);
+    const holder = new engine.EngineClient({
+      workspaceRoot: root,
+      branch: "main",
+      timeout: 30_000,
+    });
+    try {
+      await holder.start();
+      const socketPath = path.join(root, "other-runtime", "engine.sock");
+      mkdirSync(path.dirname(socketPath), { recursive: true, mode: 0o700 });
+      const child = spawnSync(
+        "node",
+        [
+          path.resolve(import.meta.dir, "../dist/engine-daemon.js"),
+          "--workspace",
+          root,
+          "--branch",
+          "main",
+          "--socket",
+          socketPath,
+        ],
+        { encoding: "utf8", timeout: 60_000 },
+      );
+      expect(child.signal).toBeNull();
+      expect(child.status).toBe(1);
+      expect(readFileSync(`${socketPath}.error`, "utf8")).toContain(
+        "store_locked",
+      );
+    } finally {
+      await holder.stop(false).catch(() => undefined);
+      await holder.terminate();
+    }
+  }, 120_000);
 });
