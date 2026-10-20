@@ -149,7 +149,7 @@
     },
     "packages/opencode": {
       "name": "kibi-opencode",
-      "version": "2.5.5",
+      "version": "3.0.0",
       "dependencies": {
         "@opencode-ai/plugin": "^1.19.0",
         "@opentui/core": "^0.6.3",
