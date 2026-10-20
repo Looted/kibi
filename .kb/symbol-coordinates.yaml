@@ -17957,7 +17957,7 @@ coordinates:
     sourceLine: 27
   SYM-mcp-release-package-metadata:
     identityHash: 240336405ff91215ab2edd07d6f820210720d29abbb8cb1622c6097a330b8fa9
-    sourceHash: c960c0c14f6d216901e4cc625a747ba0504f893d06990a29b802dd784070adb6
+    sourceHash: f605ab72b5ba2736c2319b141f18d2f56cdec0d4e761d9dfa7de0845c0cb14ee
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 57
@@ -17965,7 +17965,7 @@ coordinates:
     sourceLine: 1
   SYM-mcp-release-registry-metadata:
     identityHash: 243381a6fc622289060ae9fc50ab65b559c478b15c309c3e7e4cf730e442d06a
-    sourceHash: d77a431874440a8404d58e1b729cb6e4a10e487b23486400990d7b1d464334fb
+    sourceHash: 5a7ff4b44e888ee880536d7b8b3283298233d67b35f9169a20483747fdbd35f4
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 29
@@ -25189,7 +25189,7 @@ coordinates:
     sourceLine: 254
   SYM-runtime-packed-daemon-build:
     identityHash: 0b663b050962de77e0604feaa0dd61916f1e00fcc990f11723d8321a0b856ede
-    sourceHash: 02e1990981e7b0008de49c1e3aa3c95746cbdd72466277ca5d73f1d1db15abb1
+    sourceHash: 40c8cec29adf8889752246953647670d6d1838d5edecbf7f01dc7ab61cbb3aa0
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 44
@@ -34301,7 +34301,7 @@ coordinates:
     sourceLine: 161
   SYM-source-analysis-v2-qualifiedsourceanalyzers:
     identityHash: 961e6b9ac12f4abfcb555c93e6609590e7fbc2e6f0146830c8e25db86527637b
-    sourceHash: 3f0c89a50d9caa280b7d2892eeb7d6ff2f2f71dfa6123390abf2c2989a1689bb
+    sourceHash: 892d7670d5e89cbb6ac7dda0e5d41b3839d4c0d909b04bef44616966cb3195ae
     sourceColumn: 13
     sourceEndColumn: 10
     sourceEndLine: 135

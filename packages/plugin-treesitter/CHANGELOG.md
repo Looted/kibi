@@ -1,5 +1,13 @@
 # kibi-plugin-treesitter
 
+## 2.0.1
+
+### Patch Changes
+
+- 63e0e1f: The Claude and Codex plugin packages now ship their own license and security policy files, so the terms and the vulnerability reporting route travel with the installed plugin. The tree-sitter analyzer also words one PHP diagnostic without a literal call-syntax example.
+
+  Adds `LICENSE` and `SECURITY.md` to both plugin packages' `files`, rewords the PHP `eval` diagnostic message in the analysis worker, and refreshes the integrity manifest and release approval hashes for the rebuilt worker.
+
 ## 2.0.0
 
 ### Patch Changes

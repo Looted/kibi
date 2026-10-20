@@ -1,6 +1,6 @@
 {
   "name": "kibi-plugin-builtin",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "Default Kibi capability plugins: TS symbol extraction, ontology pack, and semantic classifier",
   "type": "module",
   "main": "./dist/index.js",

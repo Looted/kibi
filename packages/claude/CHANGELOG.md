@@ -1,5 +1,13 @@
 # kibi-claude
 
+## 0.9.4
+
+### Patch Changes
+
+- 63e0e1f: The Claude and Codex plugin packages now ship their own license and security policy files, so the terms and the vulnerability reporting route travel with the installed plugin. The tree-sitter analyzer also words one PHP diagnostic without a literal call-syntax example.
+
+  Adds `LICENSE` and `SECURITY.md` to both plugin packages' `files`, rewords the PHP `eval` diagnostic message in the analysis worker, and refreshes the integrity manifest and release approval hashes for the rebuilt worker.
+
 ## 0.9.3
 
 ### Patch Changes
@@ -15,6 +23,7 @@
 ### Patch Changes
 
 - 5552b1f: `kb_compile_intent` no longer reports "no conflict" for intent it could not check. Prolog compares only requirements that have a logical model, so a claim the advisor left as an ontology gap, or one next to a current requirement that exists only as prose, used to come back as `no_conflict` even when discovery had just returned a requirement saying the opposite. The plan now says the check is unresolved, names the related requirements the agent must compare, and blocks when the agent reports a conflict. Bootstrap plans name the same requirements for review before approval.
+
   - `contradictionAnalysis` gains `reasons` (`unmodeled_target` with the claim keys, `unmodeled_related` with the requirement ids, `analysis_unavailable`), `reviewCandidates` (up to five related current requirements with discovery score at least 0.1: id, title, the sentence sharing the most terms with the intent, statement, score, `modeled`, `review`) and `nextAction`. Any reason makes `outcome` `unresolved`.
   - New `kb_compile_intent` input `conflictReviews: [{requirementId, verdict: "conflict" | "no_conflict", note?}]`. A `conflict` verdict makes the outcome `conflict` and the plan `blocked`; `no_conflict` clears that candidate. A verdict on a current requirement discovery did not rank is honored; one that names no current requirement is ignored with a diagnostic.
   - Pending reviews do not change the plan status: a plan whose propositions are modeled stays `ready` with `Contradiction check incomplete: …` in its diagnostics and becomes `no_conflict` once every candidate is reviewed. An unmodeled target keeps the plan `needs_resolution` as before, and its outcome stays `unresolved` after review.
@@ -30,6 +39,7 @@
 ### Patch Changes
 
 - 00d2871: The Codex, Cursor and ZCode hooks now act on recorded decisions while the work happens, as the Claude Code hooks do.
+
   - **Firm requirements before the edit.** When an edit changes code that implements a current firm requirement, the pre-edit hook tells the agent to ask the person before an edit that breaks that rule, naming the rule; once per requirement per session. These hosts cannot put the question to the person from a hook (Codex has no "ask", Cursor does not enforce one, and the ZCode adapter stays advisory), so this is a notice to the agent. Set `KIBI_CONFIRM_FIRM_EDITS=0` to turn it off.
   - **Stated rules are captured.** A prompt that reads as a rule ("must", "never", "from now on") gets the note that recording it with `kb_upsert` is part of the change: through a new `UserPromptSubmit` hook in Codex and ZCode, and in Cursor through a new `beforeSubmitPrompt` hook whose note arrives with the next pre-edit message. When a session changed source files and wrote nothing with `kb_upsert`, the stop hook asks once for the decision to be recorded (Codex continues the turn with it; Cursor adds it to the stop follow-up; ZCode adds it to the Stop context).
   - **Codex unlinked-file candidates** are ranked by the latest prompt's words as well as the path's.
@@ -41,6 +51,7 @@
 ### Minor Changes
 
 - b9ec91d: The Claude Code hooks now act on recorded decisions while the work happens, not only after it.
+
   - **Firm requirements are confirmed before the edit.** When an `Edit`, `MultiEdit`, `Write` or in-place shell write lands in a symbol that implements a current firm requirement (marked `firmness: firm`, or written by a person rather than an agent), the `PreToolUse` hook returns `permissionDecision: "ask"` with the symbol and requirement in the prompt, so the person decides before the code changes. Once an edit is allowed, that requirement is not asked about again in the session; a declined edit is asked again. The agent is told that a declined edit means the requirement stands. In a `claude -p` run with nobody to answer, Claude Code refuses the edit and the agent reads the reason. Set `KIBI_CONFIRM_FIRM_EDITS=0` to turn the prompt off.
   - **Stated rules are captured.** A new `UserPromptSubmit` hook tells the agent, when a prompt reads as a rule ("must", "never", "from now on"), that recording it with `kb_upsert` is part of the change. At `Stop`, a session that changed source files and wrote nothing to the knowledge base is asked once to record the decision or say there was none.
   - **An unlinked file is no longer an all-clear.** The discovery note for a file no symbol links ranks candidate requirements by the latest prompt's words as well as the path's, and, when nothing matches, says that nothing recorded is known to cover the file and that a decision made for it is recorded before the work is reported done (Codex shows the same note).
@@ -52,6 +63,7 @@
 ### Patch Changes
 
 - 445ced0: Bootstrap no longer plans a declared intent claim as a new requirement when it only restates a requirement that is already in the knowledge base. A claim whose statement or excerpt matches an existing requirement's title, its semantic text or one of its sentences (ignoring case, whitespace and punctuation) is counted as already in the KB and names that requirement; a claim that comes close without matching is still planned, with a diagnostic naming the requirement to review. MCP tools that reject their input now return the same error code the CLI does (for example `VALIDATION_FAILED` for a clause that is not a verbatim fragment), in `structuredContent.error`, instead of a plain text failure.
+
   - `kb_plan_bootstrap`: before planning an `intent` claim, the planner reads every current requirement (`kb:current_req/1`, projected to id, title and `semantic_text`) through the engine it already uses for existing ids, only when intent claims are declared. A normalized exact match of the claim's `statement` or `excerpt` against the title, the whole semantic text or one sentence of it adds an `entity_exists` row with `matchedId`, `matchedBy: "restatement"` and `matchedField`, and the per-source accounting counts it as already in the KB. A token-set Jaccard of 0.8 or more (the entity-context restatement threshold) without an exact match keeps the candidate, adds `possible_restatement:<id>` to its evidence and emits a diagnostic. Requirements are compared in id order, so the plan hash stays stable for the same KB and context.
   - MCP `addTool`: an `InputError` or `OperationError` thrown by a handler (matched by class, or by name and an upper-case `code` when bundled separately) returns `isError: true` with a protocol 1 error envelope (`status: "error"`, `error: { code, message, retryable }`) and the text `Tool <name> failed: [<code>] <message>`, matching the CLI JSON route. Errors without a Kibi code still raise `Tool <name> failed: …`.
   - `kibi-runtime` exports `codedErrorOf` and `CodedErrorFields`.
@@ -78,6 +90,7 @@
 ### Patch Changes
 
 - cd4723e: Rules a person wrote or imported are no longer treated as an agent's own default choice when they carry no `firmness`. A requirement or ADR without `firmness` now reads as `firm` unless an agent wrote it, so an agent asks before replacing it, and bootstrap records the rules it imports from your documents as firm with a reference to the passage. The usage skill now treats any request that conflicts with a recorded rule as a question: the agent names the rule and asks, whatever the rule's firmness, and changes it only when the person says so. Run `kibi migrate --yes` to move a KB to schema 10; existing supersedes are acknowledged and no source file is rewritten.
+
   - `effectiveFirmness` takes the entity's origin: an absent value is `default` for `origin.kind: agent` and `firm` otherwise (human, import, migration or no origin). `kb_query` rows and `kb_search` answers show the derived value.
   - Hook snippets label a current firm decision `[firm: ask before changing]` (was `[firm]`) and no longer label retired decisions. The Claude Code and ZCode session-start context adds one sentence: a request that conflicts with a recorded requirement or ADR is a question, so the agent names the rule and asks before changing the code or the rule.
   - `decision-firm-superseded` applies to origin-derived firm targets; `decision-firm-unreferenced` still applies only to an explicit `firmness: firm`.
@@ -200,6 +213,7 @@
   Technical summary: `writeSourceForUpsert` snapshots the pending receipt bytes and the file times before publishing and restores both in the existing-file rollback branch; the `source-relationship-parity` suggestion names the working repair (`kb_upsert` republishes the receipt, `kibi branch recover --apply` for a deleted file). `kb_preview_upsert_contradiction/3` (kibi-core) stages an upsert in a transaction it always rolls back and runs `check_req_contradiction/1`; `executeValidateUpsert` calls it through `buildUpsertContradictionPreviewGoal` for `req` payloads without `_skipContradictionCheck`. `unnamedParticipantArguments` decides when an incomplete candidate's unbound arguments are all participants the claim does not name (empty, subject key or clause, and no declared constant or example value in the text); `handleKbSuggestPredicates` then returns `record_ontology_gap`, `buildGapApplyPlan` and keeps the candidate and `bindingHints`. `find_gaps_json` adds `summary` (`matching_gap_stub/6`), mirrored in `FindGapsPayload`, the `kb_find_gaps` output contract and the MCP contract fixtures. `validateSemanticInventoryBoundary` explains the derived source field (`semantic_text` when set, else `text_ref`, else `title`).
 
 - ee91b85: Projects with a UI can opt into the experimental `kibi-plugin-ui`, which keeps agents on the agreed design: `kb_check` then requires every React or Angular component to implement a design requirement and blocks a component that loses the class names or test ids marking its agreed pattern, such as a timeline rewritten as cards. `/kibi-bootstrap` offers the plugin when it finds component files, and a declined offer is remembered in `package.json` `kibi.declinedPlugins`. Requirements that only name a UI pattern are now proved by fresh isolated component tests, so pattern rules do not need browser tests. Projects without the plugin see no new blocking findings.
+
   - Add the `kibi.check-policy.v1` capability to `kibi-plugin-sdk`: a JSON policy with ownership and pattern-marker rules, validated by `validateCheckPolicyDocument`. `kb_check` reads activated policies as data from the package and never imports plugin code; an unreadable policy blocks. The builtin plugin ships an empty policy.
   - Add the canonical `policy-ownership` and `policy-markers` rules (inert without an activated policy) to the rule registry, the `kb_check` schema and the CLI.
   - Add built-in `ui_pattern`, `same_pattern`, `pattern_marker` and `ui_container` predicate schemas with suggestion keywords.
@@ -328,6 +342,7 @@
 ### Minor Changes
 
 - f8fff87: The telemetry acceptance and remediation reports now show whether agents look requirements up before they change requirement-linked code. A new `lookup_before_first_edit` metric gives, per host session, the share of sessions that ran `kb_search` or `kb_query` (through MCP or the CLI) before their first edit of a file whose symbols implement a requirement. Sessions that edited first appear in the report with the file and its exact `.kb/usage.log` line. The data comes from opt-in hook rows that every Kibi host plugin now writes when `KIBI_DIAGNOSTIC_MODE` is set; nothing is recorded otherwise.
+
   - `kibi usage-metrics` / `kb_check` telemetry acceptance: new metric `lookup_before_first_edit` (threshold `>=` policy `lookupBeforeFirstEditMinimum`, default 1) with evidence `unguidedEditPaths` and `lookupOperations`. It is `not_applicable` when no host hook recorded a requirement-linked edit, so logs without hook rows are judged as before. A failed metric adds the advisory diagnostic `lookup_before_first_edit_bypassed` (rank 35).
   - `kibi usage-remediation`: one event item per session whose first linked edit had no earlier lookup, pointing at that hook row.
   - `parseTelemetryUsageLog` still returns only Kibi operation rows; hook rows stay attached to the returned array (read them with `partitionTelemetryUsage`). Remediation `logLine` values now count hook rows and blank lines, so they match the file.
@@ -364,6 +379,7 @@
 ### Minor Changes
 
 - f93dcdd: Bootstrap no longer learns only from the code. The agent now starts with a short interview: it asks where product intent already lives (issue trackers such as Jira or YouTrack, wikis, specs, decision logs), which sources are authoritative or stale, and reads them through its own connectors. The bootstrap plan records those sources and the intent claims harvested from them, so each requirement taken from a ticket or page cites it and the citation is part of the approved plan hash. Kibi still never contacts those sources itself.
+
   - feat(cli): `kb_plan_bootstrap` / `plan-bootstrap` accept `bootstrapContext.knowledgeSources` (id, kind, title, locator, authority, optional connector) and `bootstrapContext.intentClaims` (statement, sourceId, reference, optional excerpt). Both are normalized into `declaredContext` and bound into `planHash`. Grounded claims from authoritative or supporting sources become `req` candidates with `sourceKind: intent_claim`, citation evidence, and `text_ref: <sourceId>:<reference>`. Ungroundable claims become authoring follow-ups, stale sources are suppressed with `stale_knowledge_source`, and claims citing undeclared sources are reported as non-blocking diagnostics. A `needs_context` plan without declared sources asks for them.
   - feat(skills): `kibi-bootstrap` 3.1.0 leads with the source interview before planning; the MCP `/kibi-bootstrap` prompt and the Cursor and ZCode commands follow it.
   - docs: README, landing page, quick start, and install guide lead with a copy-paste agent setup prompt; manual installation moves behind a toggle.
@@ -386,6 +402,7 @@
 ### Patch Changes
 
 - db5376c: Projects can now opt into impact reviews that bind a change to its exact source, knowledge decisions and trusted analysis policy. Kibi validates both staged changes and a complete pull-request diff, rejects stale review evidence, and lets agents prepare an unauthored review template through the CLI or MCP instead of hand-assembling one. Every decision and reviewer field stays for an agent to write; preparation never approves or proves anything.
+
   - Add versioned impact policy and review schemas, immutable review fingerprints, reviewed Python decorator coordinate migration and the trusted aggregate `check-diff` command.
   - Add the read-only `prepare-impact-review --input` CLI route and `kb_prepare_impact_review` MCP operation; regenerate the bundled operation-access catalog for the agent integrations.
   - Keep the sample CI workflow inactive until it is adopted on a protected target.
