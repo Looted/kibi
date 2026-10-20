@@ -90,9 +90,22 @@ describe("staged semantic inventory drift", () => {
     ).toEqual([]);
   });
 
-  test("leaves committed requirements without an inventory contract to sync", () => {
+  test("leaves an unchanged statement without an inventory contract to sync", () => {
     expect(drift(plain(original), plain(original))).toEqual([]);
-    expect(drift(plain(edited), plain(original))).toEqual([]);
+    expect(
+      drift(
+        plain(`${original}\n\n## Context\n\nWhy the total matters.`),
+        plain(original),
+      ),
+    ).toEqual([]);
+  });
+
+  test("fails a statement edit of a requirement without an inventory", () => {
+    const violations = drift(plain(edited), plain(original));
+    expect(violations).toHaveLength(1);
+    expect(violations[0]?.message).toContain(
+      "a requirement whose statement changes",
+    );
   });
 
   test("fails a new requirement without an inventory", () => {

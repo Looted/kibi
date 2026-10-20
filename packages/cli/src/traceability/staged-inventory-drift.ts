@@ -51,6 +51,16 @@ function payloadOf(result: ExtractionResult): Record<string, unknown> {
   };
 }
 
+/** The hash of the prose a requirement's inventory must cover. */
+function semanticSourceHashOf(result: ExtractionResult): string {
+  const payload = payloadOf(result);
+  return validateSemanticInventoryBoundary(
+    payload,
+    result.relationships,
+    analyzeSemanticAdvisorInput({ payload }).receipt,
+  ).sourceHash;
+}
+
 function baseResult(
   path: string,
   readBase: (path: string) => string | null,
@@ -72,8 +82,10 @@ function baseResult(
  * introduces it instead of after a later merge. A requirement the base tree
  * does not have yet is judged too, as sync judges a source it has never
  * imported, unless the commit has no parent (a first commit, which sync
- * imports as its semantic baseline). Other requirements without a contract
- * are left to sync, which decides from its own baseline.
+ * imports as its semantic baseline). So is one whose statement (the prose
+ * its inventory covers) differs from the base tree's, as sync judges a
+ * source whose semantic hash changed. Other requirements without a contract,
+ * such as a Context-only edit, are left to sync's baseline.
  */
 // implements REQ-kibi-proposition-complete-ingestion
 export function stagedInventoryDriftViolations(input: {
@@ -102,7 +114,9 @@ export function stagedInventoryDriftViolations(input: {
       (base !== null && advertisesContract(base.entity));
     const isNew =
       input.readBase(source) === null && (input.judgeNewRequirements ?? true);
-    if (!contract && !isNew) continue;
+    const restated =
+      base !== null && semanticSourceHashOf(base) !== boundary.sourceHash;
+    if (!contract && !isNew && !restated) continue;
     violations.push({
       rule: STAGED_INVENTORY_DRIFT_RULE,
       entityId: result.entity.id,
@@ -110,7 +124,7 @@ export function stagedInventoryDriftViolations(input: {
       errors: boundary.errors,
       message: contract
         ? `${result.entity.id} (${source}): the semantic inventory does not match the requirement's prose, so the next kibi sync rejects it: ${boundary.errors.join("; ")}. Run 'kibi migrate' to re-derive it, or kb_model mode analyze with the complete prose and keep its inventory contract.`
-        : `${result.entity.id} (${source}): a new requirement needs a semantic inventory that matches its prose, so the next kibi sync rejects it: ${boundary.errors.join("; ")}. Run kb_model mode analyze (CLI: semantic-advisor) with its id and complete semantic_text, then write the returned inventory contract into it (kb_upsert with semantic_inventory, semantic_inventory_version, semantic_source_field, semantic_source_hash and logic_claims).`,
+        : `${result.entity.id} (${source}): ${isNew ? "a new requirement" : "a requirement whose statement changes"} needs a semantic inventory that matches its prose, so the next kibi sync rejects it: ${boundary.errors.join("; ")}. Run kb_model mode analyze (CLI: semantic-advisor) with its id and complete semantic_text, then write the returned inventory contract into it (kb_upsert with semantic_inventory, semantic_inventory_version, semantic_source_field, semantic_source_hash and logic_claims).`,
     });
   }
   return violations.sort((left, right) =>
