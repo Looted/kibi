@@ -125,3 +125,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2b670fcbc174
+  - type: constrains
+    from: REQ-opencode-v2-plugin-api
+    to: FACT-SUBJECT-20BDF8A45E34E4B0
+    created_at: 2026-10-19T20:31:39.718Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-812db5eb64b5
+  - type: requires_property
+    from: REQ-opencode-v2-plugin-api
+    to: FACT-PROP-D180BC668BC78A3D
+    created_at: 2026-10-19T20:31:39.726Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d643d6fd550

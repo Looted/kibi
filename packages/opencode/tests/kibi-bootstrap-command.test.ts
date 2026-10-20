@@ -3,7 +3,6 @@ import { strict as assert } from "node:assert";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import kibiOpencodePlugin from "../src/index";
 import { buildKibiBootstrapAlias } from "../src/kibi-bootstrap-alias";
 import {
   KIBI_BOOTSTRAP_COMMAND_DESCRIPTION,
@@ -16,6 +15,7 @@ import {
   getKibiBootstrapCommandCapability,
   registerKibiBootstrapCommand,
 } from "../src/kibi-bootstrap-capability";
+import kibiOpencodePlugin from "../src/plugin.js";
 import { buildPrompt } from "../src/prompt";
 
 const SUPPORTED_PLUGIN_DTS = `

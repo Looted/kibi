@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { analyzeCodeFile } from "../src/comment-analysis";
 import { getKbExistenceTargets, loadKbSyncPaths } from "../src/file-filter";
-import kibiOpencodePlugin from "../src/index";
+import kibiOpencodePlugin from "../src/plugin.js";
 import { buildPrompt } from "../src/prompt";
 import { detectPosture } from "../src/repo-posture";
 import {

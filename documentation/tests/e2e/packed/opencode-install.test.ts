@@ -3,7 +3,7 @@
 // Verifies the full "install from tarball → load as OpenCode plugin" path:
 //   1. Pack kibi-opencode to a .tgz (triggers prepack → build)
 //   2. Install the tarball into an isolated npm prefix
-//   3. Dynamically import dist/index.js and invoke the default export as a plugin
+//   3. Dynamically import dist/index.js and invoke default.server (OpenCode v1)
 //   4. Assert that the plugin initialises and returns a hooks object without throwing
 //
 // This is hermetic (no network, no LLM provider, no opencode binary required) and
@@ -18,6 +18,7 @@ import { after, before, describe, it } from "node:test";
 import {
   createIsolatedInstall,
   installOpencodeTarball,
+  loadPackedV1Plugin,
   resolveOpencodeTarball,
 } from "./opencode-packed-utils.js";
 
@@ -117,7 +118,7 @@ if (RUN_NODE_TEST_SUITE) {
       );
 
       it(
-        "plugin default export is callable and returns hooks without throwing",
+        "plugin server export is callable and returns hooks without throwing",
         {
           timeout: 60000,
         },
@@ -127,13 +128,8 @@ if (RUN_NODE_TEST_SUITE) {
             "node_modules/kibi-opencode/dist/index.js",
           );
 
-          // Dynamically import the installed plugin (mirrors what OpenCode does)
-          const pkg = await import(distIndex);
-
-          assert.ok(
-            typeof pkg.default === "function",
-            "default export must be a function (the plugin)",
-          );
+          // OpenCode v1 calls default.server. The default export is the definition object.
+          const plugin = await loadPackedV1Plugin(distIndex);
 
           // Construct minimal PluginInput — matches @opencode-ai/plugin PluginInput shape
           // worktree/directory are both set to tmpDir (no .kb, triggers bootstrap warning but no error)
@@ -142,8 +138,8 @@ if (RUN_NODE_TEST_SUITE) {
             directory: tmpDir,
           };
 
-          // Invoke the plugin — should not throw
-          const hooks: unknown = await pkg.default(mockInput);
+          // Invoke the v1 plugin — should not throw
+          const hooks: unknown = await plugin(mockInput);
 
           assert.ok(
             hooks !== null && typeof hooks === "object",

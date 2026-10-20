@@ -5,7 +5,7 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import kibiOpencodePlugin from "../src/index";
+import kibiOpencodePlugin from "../src/plugin.js";
 
 /**
  * End to end: the OpenCode plugin's `tool.execute.after` hook writes the

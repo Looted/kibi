@@ -1,4 +1,3 @@
-// implements REQ-opencode-kibi-plugin-v1
 import { describe, expect, test } from "bun:test";
 import plugin, { tui } from "../src/tui.js";
 
@@ -7,5 +6,14 @@ describe("opencode TUI plugin stub", () => {
     expect(plugin.id).toBe("kibi-opencode");
     await tui({} as never, {} as never, {} as never);
     expect(typeof plugin.tui).toBe("function");
+  });
+
+  // implements REQ-opencode-v2-plugin-api
+  test("default export satisfies the OpenCode v2 TUI definition", async () => {
+    // Mirrors isPlugin() in OpenCode v2 packages/tui/src/plugin/context.tsx.
+    expect(typeof plugin.id).toBe("string");
+    expect(plugin.id.length).toBeGreaterThan(0);
+    expect(typeof plugin.setup).toBe("function");
+    expect(await plugin.setup({})).toBeUndefined();
   });
 });

@@ -293,3 +293,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a0485427f314
+  - type: implements
+    from: SYM-opencode-v2-create-v2-setup
+    to: REQ-opencode-v2-plugin-api
+    created_at: 2026-10-19T20:31:05.025Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c131177b3be0
+  - type: covered_by
+    from: SYM-opencode-v2-create-v2-setup
+    to: TEST-opencode-v2-plugin-api
+    created_at: 2026-10-19T20:31:05.037Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6dc4e7548632
