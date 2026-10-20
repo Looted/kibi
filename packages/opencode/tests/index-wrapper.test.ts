@@ -5,6 +5,8 @@ describe("index wrapper", () => {
     const wrapper = await import("../src/index");
     const pluginModule = await import("../src/plugin");
 
-    expect(wrapper.default).toBe(pluginModule.default);
+    expect(wrapper.default.server).toBe(pluginModule.default);
+    expect(wrapper.default.id).toBe("kibi-opencode");
+    expect(typeof wrapper.default.setup).toBe("function");
   });
 });

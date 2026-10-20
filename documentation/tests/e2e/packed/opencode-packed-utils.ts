@@ -265,6 +265,30 @@ export function createIsolatedInstall(prefix?: string): IsolatedInstall {
 }
 
 /**
+ * OpenCode v1 loads `default.server`. The package default is the definition
+ * object `{ id, server, setup }`, not the plugin function.
+ */
+export async function loadPackedV1Plugin(
+  distIndex: string,
+): Promise<
+  (input: { worktree: string; directory: string }) => Promise<unknown>
+> {
+  const pkg = (await import(distIndex)) as {
+    default?: { server?: unknown };
+  };
+  const server = pkg.default?.server;
+  if (typeof server !== "function") {
+    throw new TypeError(
+      "kibi-opencode default export must provide server() for OpenCode v1",
+    );
+  }
+  return server as (input: {
+    worktree: string;
+    directory: string;
+  }) => Promise<unknown>;
+}
+
+/**
  * Install a tarball into an isolated prefix.
  */
 export function installOpencodeTarball(

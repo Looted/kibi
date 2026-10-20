@@ -462,7 +462,7 @@ describe("logging policy", () => {
   // implements REQ-opencode-kibi-plugin-v1
   describe(".kb edit and comment-hint silence policy", () => {
     test(".kb edit detection produces zero console.log/warn output", async () => {
-      const plugin = require("../src/index").default;
+      const plugin = require("../src/plugin").default;
       const { resetSessionTracker } = require("../src/session-tracker");
       const fs = require("node:fs");
       const os = require("node:os");
@@ -519,7 +519,7 @@ describe("logging policy", () => {
     });
 
     test("comment-analysis hint produces zero console.log/warn output", async () => {
-      const plugin = require("../src/index").default;
+      const plugin = require("../src/plugin").default;
       const { resetSessionTracker } = require("../src/session-tracker");
       const fs = require("node:fs");
       const os = require("node:os");
@@ -603,7 +603,7 @@ describe("logging policy", () => {
 
     test(".kb edit routes through structured warn channel", async () => {
       const appLogCalls: Array<Record<string, unknown>> = [];
-      const plugin = require("../src/index").default;
+      const plugin = require("../src/plugin").default;
       const { resetSessionTracker } = require("../src/session-tracker");
       const fs = require("node:fs");
       const os = require("node:os");
@@ -665,7 +665,7 @@ describe("logging policy", () => {
 
     test("comment-analysis hint routes through structured warn channel", async () => {
       const appLogCalls: Array<Record<string, unknown>> = [];
-      const plugin = require("../src/index").default;
+      const plugin = require("../src/plugin").default;
       const { resetSessionTracker } = require("../src/session-tracker");
       const fs = require("node:fs");
       const os = require("node:os");
@@ -754,7 +754,7 @@ describe("logging policy", () => {
   // implements REQ-opencode-smart-enforcement-v1
   describe("completion reminder silence policy", () => {
     test("completion reminder produces zero console.log/warn output", async () => {
-      const plugin = require("../src/index").default;
+      const plugin = require("../src/plugin").default;
       const { resetSessionTracker } = require("../src/session-tracker");
       const fs = require("node:fs");
       const os = require("node:os");
@@ -839,7 +839,7 @@ describe("logging policy", () => {
 
     test("completion reminder routes through structured info channel", async () => {
       const appLogCalls: Array<Record<string, unknown>> = [];
-      const plugin = require("../src/index").default;
+      const plugin = require("../src/plugin").default;
       const { resetSessionTracker } = require("../src/session-tracker");
       const fs = require("node:fs");
       const os = require("node:os");
@@ -928,7 +928,7 @@ describe("logging policy", () => {
 
     test("no completion reminder log for safe_docs_only edit", async () => {
       const appLogCalls: Array<Record<string, unknown>> = [];
-      const plugin = require("../src/index").default;
+      const plugin = require("../src/plugin").default;
       const { resetSessionTracker } = require("../src/session-tracker");
       const fs = require("node:fs");
       const os = require("node:os");
@@ -1312,7 +1312,7 @@ describe("logging policy", () => {
   describe("file-operation reminder logging policy", () => {
     test("file-operation reminder produces structured log on emission", async () => {
       const appLogCalls: Array<Record<string, unknown>> = [];
-      const plugin = require("../src/index").default;
+      const plugin = require("../src/plugin").default;
       const { resetSessionTracker } = require("../src/session-tracker");
       const fs = require("node:fs");
       const os = require("node:os");
@@ -1428,7 +1428,7 @@ describe("logging policy", () => {
 
     test("file-operation reminder does NOT emit log when reminder text is absent", async () => {
       const appLogCalls: Array<Record<string, unknown>> = [];
-      const plugin = require("../src/index").default;
+      const plugin = require("../src/plugin").default;
       const { resetSessionTracker } = require("../src/session-tracker");
       const fs = require("node:fs");
       const os = require("node:os");
@@ -1513,7 +1513,7 @@ describe("logging policy", () => {
 
     test("file-operation reminder is suppressed on repeat prompt", async () => {
       const appLogCalls: Array<Record<string, unknown>> = [];
-      const plugin = require("../src/index").default;
+      const plugin = require("../src/plugin").default;
       const { resetSessionTracker } = require("../src/session-tracker");
       const fs = require("node:fs");
       const os = require("node:os");

@@ -316,6 +316,66 @@ The plugin's internal maintenance expects a `kibi` CLI command to be available
 from the project context or `PATH`; the canonical setup above satisfies that by
 installing `kibi-cli` project-locally.
 
+#### OpenCode v1 and v2
+
+The same `kibi-opencode` package loads on OpenCode v1 (1.4 and later) and on
+OpenCode v2. The default export carries both plugin shapes: v1 reads
+`{ id, server }` (and `{ id, tui }` for the TUI entry), and v2 reads
+`{ id, setup }`. Install and configure it the same way on either version.
+
+A directory install (a distro package or a local folder) does not read
+`package.json` `"exports"`. The package ships root `index.js` and `tui.js`
+shims that re-export the built server and TUI entries, so both parts load.
+Without `tui.js`, that install reports the server plugin only.
+
+On OpenCode v2:
+
+- Kibi guidance, background sync/check maintenance, and `/kibi-bootstrap`
+  work as on v1. Syncs triggered by file changes come from completed `edit`,
+  `write`, and `patch` tool calls. On OpenCode v2.0.32 a plugin can async-iterate
+  `event.subscribe()` and will see public bus events, including
+  `filesystem.changed`, but the host publishes that event only for the VCS HEAD
+  file (creating a branch delivered
+  `{ type: "filesystem.changed", data: { file: "<repo>/.git/HEAD", event: "change" } }`).
+  A bash `rm` or `mv`, appending to a tracked file, and `git checkout -- <file>`
+  produced no `file.created`, `file.edited`, `file.deleted`, or
+  `filesystem.changed` event. The SDK's `file.watcher.updated` type is not in
+  the v2.0.32 binary, and `file.edited` is only a schema with no publish site.
+  Changes from bash, `git checkout`, or an external editor therefore do not
+  trigger a Kibi sync. Run `kibi sync` yourself, or rely on the `post-checkout`,
+  `post-merge`, and `post-rewrite` hooks installed by `kibi init` (each runs
+  `kibi sync`). The next status refresh also picks up the working tree.
+- v2 has no toast or structured plugin log, so kibi-opencode shows no toasts and
+  reports plugin errors on stderr with a `[kibi-opencode]` prefix.
+- **Code Mode:** v2 exposes MCP tools through Code Mode by default. On
+  OpenCode v2.0.32 the catalog lists `kibi (16 tools, 1 shown)`,
+  `search({ query: "kibi" })` finds all 16, and the tools are reachable
+  through `execute` under `tools.kibi`. To call the native `kibi_*` tools
+  directly, set `codemode: false` on a v2-native server entry under
+  `mcp.servers`:
+
+  ```json
+  {
+    "mcp": {
+      "servers": {
+        "kibi": {
+          "type": "local",
+          "command": ["npx", "kibi-mcp"],
+          "codemode": false
+        }
+      }
+    }
+  }
+  ```
+
+  Setting `codemode` on a v1-style entry (`mcp.kibi` with `enabled`) has no
+  effect: OpenCode v2 migrates v1 entries and drops that key. OpenCode v1 reads
+  every key under `mcp` as a server name, so keep this entry in a configuration
+  that only OpenCode v2 reads.
+- OpenCode v1 and v2 share the same `opencode.db`. To run both on one machine,
+  give each its own `XDG_DATA_HOME`, `XDG_STATE_HOME`, `XDG_CACHE_HOME`, and
+  `XDG_CONFIG_HOME`.
+
 ### Optional: Codex plugin
 
 `kibi-codex` is an optional adapter that gives Codex users prepackaged Kibi skills,

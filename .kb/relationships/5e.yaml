@@ -237,3 +237,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1dc223963b7e
+  - type: executable_for
+    from: SYM-opencode-index-wrapper-tests
+    to: TEST-opencode-v2-plugin-api
+    created_at: 2026-10-19T22:24:10.278Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b082b2febbcd
