@@ -18,10 +18,7 @@ import {
 } from "./campaign-workflow";
 import { CANONICAL_SKILLS, type CanonicalSkill } from "./catalog";
 import { hostCampaignDependencies } from "./claude-code-campaign";
-import {
-  ClaudeHostConfigError,
-  selectedSkillOptHost,
-} from "./runtime/claude-code-host";
+import { ClaudeHostConfigError } from "./runtime/claude-code-host";
 import { runBoundedProcess } from "./runtime/process";
 
 const COMMANDS = new Set([
@@ -245,14 +242,6 @@ export async function campaignMain(
     const args = parseArgs(argv);
     const dependencies =
       explicitDependencies ?? hostCampaignDependencies(process.env);
-    if (
-      args.command === "revise" &&
-      selectedSkillOptHost(process.env) === "claude-code"
-    ) {
-      throw new CampaignCliError(
-        "revise runs the optimizer on Codex; KIBI_SKILLOPT_HOST=claude-code supports compose, evaluate and confirm",
-      );
-    }
     const source = await sourceRoot(args);
     const artifact = resolve(value(args, "--artifact-root"));
     if (args.command === "revise") {

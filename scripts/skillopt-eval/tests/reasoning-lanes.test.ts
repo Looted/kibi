@@ -413,7 +413,7 @@ describe("supplemental case manifests", () => {
 
   test("C1.1 manifest carries setup, argument contract and assertions", () => {
     const manifest = manifestFor(
-      taskFor("kibi-usage", "intent-consult", "development"),
+      taskFor("kibi-usage", "intent-consult", "train"),
     );
     expect(manifest.fixtureSetup).toBe("seeded_governed_area_kb");
     expect(manifest.protocolContract?.requiredCalls[0]).toEqual({
@@ -442,8 +442,21 @@ describe("supplemental case manifests", () => {
     ).toBeDefined();
   });
 
-  test("sealed evidence scores the answer and workspace lanes", () => {
+  test("the development case is the compatible edit (C1.2)", () => {
     const task = taskFor("kibi-usage", "intent-consult", "development");
+    expect(task.taskData.objectiveCode).toBe("compatible_change_after_intent");
+    const manifest = manifestFor(task);
+    expect(manifest.workspaceAssertions?.map((entry) => entry.key)).toEqual([
+      "governing-rule-preserved",
+      "logging-added",
+    ]);
+    expect(
+      OBJECTIVE_WORKFLOWS[task.taskData.objectiveCode]?.requiredSignals,
+    ).toContain("kb lookup before first source edit");
+  });
+
+  test("sealed evidence scores the answer and workspace lanes", () => {
+    const task = taskFor("kibi-usage", "intent-consult", "train");
     const manifest = manifestFor(task);
     const requests = [
       { tool: "kb_query" as const, args: {} },

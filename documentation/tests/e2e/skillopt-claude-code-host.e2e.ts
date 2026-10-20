@@ -13,8 +13,10 @@
  *      denied private roots, a private config dir, no parent session
  *      variables, mirrored skills and a clean git tree.
  *   2. The stub's stream becomes Codex-shaped evidence with a completed turn.
- *   3. `campaign.ts revise` is refused on this host and an unknown host value
- *      is a CLI error, both before any paid preparation.
+ *   3. The revise optimizer step runs on the same host: the stub sees the
+ *      pinned optimizer model, no tools and no MCP server, and its structured
+ *      `{ body }` answer becomes the accepted baseline-insertion output.
+ *   4. An unknown host value is a CLI error before any paid preparation.
  *
  * Run via `bun run documentation/tests/e2e/skillopt-claude-code-host.e2e.ts`.
  */
@@ -32,6 +34,10 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+
+import { surface } from "../../../scripts/skillopt-eval/real-workflow";
+import { runClaudeSkillOptStep } from "../../../scripts/skillopt-eval/runtime/claude-optimizer";
+import { sha256Text } from "../../../scripts/skillopt-eval/variants";
 
 const REPO_ROOT = process.cwd();
 const BUN = process.execPath;
@@ -66,6 +72,14 @@ pwd > "$out/cwd"
 git status --porcelain > "$out/git-status" 2>&1
 ls .claude/skills > "$out/skills" 2>&1
 cat > /dev/null
+case "$*" in
+*'"required":["body"]'*)
+  for arg in "$@"; do printf '%s\\n' "$arg"; done > "$out/optimizer-argv"
+  printf '%s\\n' '{"type":"system","subtype":"init","model":"claude-opus-5-5"}'
+  printf '%s\\n' '{"type":"result","subtype":"success","is_error":false,"num_turns":1,"total_cost_usd":0,"structured_output":{"body":"Before editing governed code, look up the requirement linked to its source file and keep its rule intact."},"modelUsage":{"claude-opus-5-5":{}},"usage":{"input_tokens":1,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":1}}'
+  exit 0
+  ;;
+esac
 printf '%s\\n' '{"type":"system","subtype":"init","model":"claude-sonnet-5-5"}'
 printf '%s\\n' '{"type":"assistant","message":{"content":[{"type":"text","text":"Stopping before any write."}]}}'
 printf '%s\\n' '{"type":"result","subtype":"success","is_error":false,"num_turns":1,"total_cost_usd":0,"structured_output":{"completed":false,"answer":"stub"},"usage":{"input_tokens":1,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":1}}'
@@ -198,24 +212,72 @@ printf '%s\\n' '{"type":"result","subtype":"success","is_error":false,"num_turns
     "raw Claude stream was not kept",
   );
 
-  // 3. Unsupported commands and hosts fail before paid preparation.
-  const revise = spawnSync(
-    BUN,
-    [
-      "scripts/skillopt-eval/campaign.ts",
-      "revise",
-      "--artifact-root",
-      join(root, "revise"),
-      "--skill",
-      "kibi-bootstrap",
-      "--allow-paid",
-    ],
-    { cwd: REPO_ROOT, env, encoding: "utf8", timeout: 120_000 },
+  // 3. The revise optimizer step runs on Claude Code.
+  const skillSurface = await surface(REPO_ROOT, "kibi-usage");
+  const headingAnchor = skillSurface.body
+    .split("\n")
+    .find((entry) => /^## \S/.test(entry));
+  assert(headingAnchor !== undefined, "kibi-usage has no section heading");
+  const optimizerRoot = join(root, "optimizer");
+  const previousEnv = { ...process.env };
+  Object.assign(process.env, env);
+  try {
+    const step = await runClaudeSkillOptStep({
+      sourceWorktree: REPO_ROOT,
+      artifactRoot: optimizerRoot,
+      runId: "e2e-claude-optimizer",
+      env,
+      request: {
+        skill: "kibi-usage",
+        step: 1,
+        maxSteps: 1,
+        currentBody: skillSurface.body,
+        trainTrajectories: [],
+        previousDevelopment: { mean: 0, hardPasses: 0, worstFamilyMean: 0 },
+      },
+      baselineInsertion: {
+        currentBaselineBodyHash: sha256Text(skillSurface.body),
+        frontmatterHash: skillSurface.frontmatterHash,
+        resourcesHash: skillSurface.resourcesHash,
+        headingAnchor: headingAnchor as string,
+        objective: "Consult governing intent before the first source edit.",
+      },
+    });
+    assert(
+      step.body.includes("look up the requirement linked to its source file"),
+      "optimizer paragraph was not composed into the body",
+    );
+  } finally {
+    for (const name of Object.keys(process.env)) {
+      if (!(name in previousEnv)) delete process.env[name];
+    }
+    Object.assign(process.env, previousEnv);
+  }
+  const optimizerArgv = readFileSync(
+    join(record, "optimizer-argv"),
+    "utf8",
+  ).split("\n");
+  const optimizerFlag = (name: string) =>
+    optimizerArgv[optimizerArgv.indexOf(name) + 1];
+  assert(
+    optimizerFlag("--model") === "claude-opus-5-5",
+    "optimizer model not pinned",
   );
-  assert(revise.status === 2, `revise exited ${revise.status}`);
-  assert(revise.stderr.includes("revise"), "revise refusal not explained");
-  assert(!existsSync(join(root, "revise")), "revise created artifacts");
+  assert(optimizerFlag("--effort") === "medium", "optimizer effort not pinned");
+  assert(optimizerFlag("--tools") === "", "optimizer was given tools");
+  assert(
+    !optimizerArgv.includes("--mcp-config"),
+    "optimizer was given an MCP server",
+  );
+  const accepted = JSON.parse(
+    readFileSync(join(optimizerRoot, "accepted-output/receipt.json"), "utf8"),
+  ) as { mode: string };
+  assert(
+    accepted.mode === "baseline-insertion",
+    "accepted optimizer output was not persisted",
+  );
 
+  // 4. An unknown host fails before paid preparation.
   const unknown = spawnSync(
     BUN,
     [
