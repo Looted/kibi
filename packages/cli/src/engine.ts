@@ -480,38 +480,72 @@ export function runtimeDirectory(): string {
   const maximumBytes = process.platform === "linux" ? 107 : 103;
   const socketName = `kibi-${"0".repeat(32)}.sock`;
   for (const candidate of candidates) {
-    try {
-      try {
-        if (lstatSync(candidate).isSymbolicLink()) continue;
-      } catch (error) {
-        if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-      }
-      mkdirSync(candidate, { recursive: true, mode: 0o700 });
-      const directory = lstatSync(candidate);
-      if (
-        !directory.isDirectory() ||
-        directory.uid !== euid ||
-        (directory.mode & 0o077) !== 0
-      )
-        continue;
-      const canonical = canonicalFilesystemPath(candidate);
-      if (
-        Buffer.byteLength(path.join(canonical, socketName), "utf8") >
-        maximumBytes
-      )
-        continue;
-      // XDG_RUNTIME_DIR can exist but be mounted read-only (for example in a
-      // constrained container). Probe the directory before using it for the
-      // socket, start lock, and pid files so auto-start fails over cleanly.
-      const probe = path.join(canonical, `.kibi-write-${randomUUID()}`);
-      writeFileSync(probe, "", { mode: 0o600, flag: "wx" });
-      unlinkSync(probe);
-      return canonical;
-    } catch {
-      // Try the private system-temp fallback below.
-    }
+    const rejection = runtimeDirectoryRejection(
+      candidate,
+      euid,
+      socketName,
+      maximumBytes,
+    );
+    if (typeof rejection === "object") return rejection.directory;
+    if (candidate === process.env.KIBI_RUNTIME_DIR)
+      warnRuntimeDirectoryIgnored(candidate, rejection);
   }
   throw new Error("Unable to create a writable Kibi engine runtime directory");
+}
+
+/**
+ * The canonical runtime directory when `candidate` can hold the engine socket,
+ * else why it cannot.
+ */
+function runtimeDirectoryRejection(
+  candidate: string,
+  euid: number,
+  socketName: string,
+  maximumBytes: number,
+): { directory: string } | string {
+  try {
+    try {
+      if (lstatSync(candidate).isSymbolicLink()) return "it is a symbolic link";
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+    }
+    mkdirSync(candidate, { recursive: true, mode: 0o700 });
+    const directory = lstatSync(candidate);
+    if (!directory.isDirectory()) return "it is not a directory";
+    if (directory.uid !== euid)
+      return `it is owned by uid ${directory.uid}, not by the current user (uid ${euid})`;
+    if ((directory.mode & 0o077) !== 0)
+      return `its mode is ${(directory.mode & 0o777).toString(8).padStart(4, "0")}; it must be private to its owner (chmod 700)`;
+    const canonical = canonicalFilesystemPath(candidate);
+    if (
+      Buffer.byteLength(path.join(canonical, socketName), "utf8") > maximumBytes
+    )
+      return `its path is too long for a Unix socket (at most ${maximumBytes - socketName.length - 1} bytes)`;
+    // XDG_RUNTIME_DIR can exist but be mounted read-only (for example in a
+    // constrained container). Probe the directory before using it for the
+    // socket, start lock, and pid files so auto-start fails over cleanly.
+    const probe = path.join(canonical, `.kibi-write-${randomUUID()}`);
+    writeFileSync(probe, "", { mode: 0o600, flag: "wx" });
+    unlinkSync(probe);
+    return { directory: canonical };
+  } catch (error) {
+    return `it is not usable (${(error as Error).message})`;
+  }
+}
+
+const warnedRuntimeDirectories = new Set<string>();
+
+/**
+ * Processes that disagree on the runtime directory cannot reach each other's
+ * engine, so an explicit KIBI_RUNTIME_DIR that Kibi cannot use is reported
+ * (once per process) instead of being replaced silently.
+ */
+function warnRuntimeDirectoryIgnored(directory: string, reason: string): void {
+  if (warnedRuntimeDirectories.has(directory)) return;
+  warnedRuntimeDirectories.add(directory);
+  process.stderr.write(
+    `kibi: ignoring KIBI_RUNTIME_DIR=${directory} because ${reason}; using a private directory under /tmp instead.\n`,
+  );
 }
 
 function fsyncPath(filePath: string): void {

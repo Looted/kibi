@@ -185,6 +185,9 @@ workspace path and branch and exits after ten minutes without clients.
 Clients find the daemon through a socket in `KIBI_RUNTIME_DIR`, else
 `XDG_RUNTIME_DIR`, else `/tmp/kibi-runtime` on Linux (the per-user `TMPDIR` on
 macOS). Processes that set these differently cannot see each other's daemon.
+The directory must be owned by you and private to you (`chmod 700`); when
+`KIBI_RUNTIME_DIR` names one that is not, Kibi prints a warning and uses a
+private directory under `/tmp` instead.
 When `engine stop` finds no daemon it says so, and names the pid still holding
 the branch store if there is one.
 

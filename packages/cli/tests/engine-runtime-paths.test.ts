@@ -102,6 +102,33 @@ describe("engine socket locations preserve private canonical identities", () => 
     },
   );
 
+  nativeTest(
+    "warns once when an explicit KIBI_RUNTIME_DIR is not private",
+    () => {
+      const root = fixtureRoot();
+      const configured = path.join(root, "shared");
+      mkdirSync(configured);
+      chmodSync(configured, 0o755);
+      const fallback = configureRuntime(configured);
+      const writes: string[] = [];
+      const stderr = spyOn(process.stderr, "write").mockImplementation(
+        (chunk: string | Uint8Array) => {
+          writes.push(String(chunk));
+          return true;
+        },
+      );
+      try {
+        expect(runtimeDirectory()).toBe(fallback);
+        expect(runtimeDirectory()).toBe(fallback);
+      } finally {
+        stderr.mockRestore();
+      }
+      expect(writes).toEqual([
+        `kibi: ignoring KIBI_RUNTIME_DIR=${configured} because its mode is 0755; it must be private to its owner (chmod 700); using a private directory under /tmp instead.\n`,
+      ]);
+    },
+  );
+
   nativeTest.each(["ascii", "multibyte"] as const)(
     "%s runtime paths fall back using the full UTF-8 socket budget",
     (kind) => {
