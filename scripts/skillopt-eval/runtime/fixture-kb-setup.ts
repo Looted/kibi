@@ -865,7 +865,7 @@ export async function setupSeededPreconditionKb(
     intent: PRECONDITION_INTENT,
     mode: "create",
     context:
-      "Fixture base requirement for the precondition scenario; reason not stated.",
+      "Evaluator-owned base requirement for the precondition scenario cases: a success scenario that assumes zero remaining quota must be reported as infeasible.",
     requirementId: PRECONDITION_IDS.base,
   });
   const plan = recordField(compiled, "data", "compile-intent");
