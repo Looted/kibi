@@ -171,7 +171,7 @@ function assertNoUnresolvedGitConflicts(workspaceRoot: string): void {
 }
 
 /**
- * Sources staged as new files that HEAD does not contain yet. An empty branch
+ * Sources staged as new files (renames included) that HEAD does not contain yet. An empty branch
  * store compiles its first sync as a semantic baseline, which accepts
  * requirements without an inventory. Once another branch of the workspace has
  * synced, that grace covers committed history only: a new branch must not
@@ -184,7 +184,9 @@ export function stagedNewSourceKeys(workspaceRoot: string): Set<string> {
   try {
     return new Set(
       execSync(
-        "git diff --cached --name-only --relative --diff-filter=A -z HEAD",
+        // --no-renames: a staged rename is a new source key too, judged on
+        // the parent branch like any other addition.
+        "git diff --cached --no-renames --name-only --relative --diff-filter=A -z HEAD",
         {
           cwd: workspaceRoot,
           encoding: "utf8",

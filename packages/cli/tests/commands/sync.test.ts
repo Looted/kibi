@@ -18,7 +18,11 @@ import {
 import * as os from "node:os";
 import * as path from "node:path";
 import { toPrologString } from "../../dist/prolog/codec.js";
-import { type SyncResult, syncCommand } from "../../src/commands/sync.js";
+import {
+  type SyncResult,
+  stagedNewSourceKeys,
+  syncCommand,
+} from "../../src/commands/sync.js";
 import {
   normalizeSemanticClause,
   semanticClaimKey,
@@ -986,6 +990,29 @@ The system must greet the user by name.
     },
     TEST_TIMEOUT_MS,
   );
+
+  test("stagedNewSourceKeys counts a staged rename as a new source", () => {
+    const reqDir = path.join(tmpDir, ".kb/requirements");
+    const body = Array.from({ length: 40 }, (_, i) => `line ${i}`).join("\n");
+    writeFileSync(path.join(reqDir, "old.md"), body);
+    stageSources(tmpDir, ".kb/requirements/old.md");
+    execFileSync("git", ["commit", "--no-verify", "-q", "-m", "old"], {
+      cwd: tmpDir,
+      stdio: "pipe",
+    });
+    execFileSync(
+      "git",
+      ["mv", ".kb/requirements/old.md", ".kb/requirements/renamed.md"],
+      { cwd: tmpDir, stdio: "pipe" },
+    );
+    writeFileSync(path.join(reqDir, "added.md"), "new\n");
+    stageSources(tmpDir, ".kb/requirements/added.md");
+
+    expect([...stagedNewSourceKeys(tmpDir)].sort()).toEqual([
+      ".kb/requirements/added.md",
+      ".kb/requirements/renamed.md",
+    ]);
+  });
 
   test(
     "imports valid shard relationships without false dangling warnings",
