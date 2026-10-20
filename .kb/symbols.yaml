@@ -55765,3 +55765,36 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-opencode-v2-plugin-api
+  - id: SYM-opencode-v2-command-text
+    title: commandText
+    status: active
+    sourceFile: packages/opencode/src/opencode-v2.ts
+    symbol_role: behavioral
+    tags:
+      - opencode
+      - plugin-api
+    origin:
+      kind: agent
+      recorded_at: 2026-10-20T08:01:09.756Z
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-v2-plugin-api
+      - type: implements
+        target: REQ-opencode-v2-plugin-api
+  - id: SYM-x-oc-kibiToolName
+    title: kibiToolName
+    status: active
+    sourceFile: packages/opencode/src/smart-enforcement-events.ts
+    granularity_reason: module-level-behavior
+    origin:
+      kind: agent
+      recorded_at: 2026-10-20T08:01:13.812Z
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1-coverage
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1

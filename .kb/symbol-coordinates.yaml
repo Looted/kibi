@@ -19899,22 +19899,30 @@ coordinates:
     sourceEndLine: 16
     sourceFile: packages/opencode/src/tui.tsx
     sourceLine: 16
+  SYM-opencode-v2-command-text:
+    identityHash: dbccdc84ac4e2579a8e1442a069e6a59b33c5931e6ceb8c475bbb937e9dd98f8
+    sourceHash: af90a68adfc8593e5128c28e7daa0646a249504b78f08275aab6ce7fde17d4e6
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 369
+    sourceFile: packages/opencode/src/opencode-v2.ts
+    sourceLine: 360
   SYM-opencode-v2-create-plugin-definition:
     identityHash: 8f4b55ba1f86acfa1bec8d0850c44a109988b1fc3f736be07c2d01a29a2a5e3e
-    sourceHash: 60729b4d5eae14bcd71b3c954dbc96b14b6fb97acc70ee7af637c22b865070a0
+    sourceHash: af90a68adfc8593e5128c28e7daa0646a249504b78f08275aab6ce7fde17d4e6
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 397
+    sourceEndLine: 494
     sourceFile: packages/opencode/src/opencode-v2.ts
-    sourceLine: 389
+    sourceLine: 486
   SYM-opencode-v2-create-v2-setup:
     identityHash: ac693916eeebc30ea4809c0f501b50df90d1c2e635c1973fb89f0e1eb6ef2b3c
-    sourceHash: 60729b4d5eae14bcd71b3c954dbc96b14b6fb97acc70ee7af637c22b865070a0
+    sourceHash: af90a68adfc8593e5128c28e7daa0646a249504b78f08275aab6ce7fde17d4e6
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 382
+    sourceEndLine: 479
     sourceFile: packages/opencode/src/opencode-v2.ts
-    sourceLine: 327
+    sourceLine: 424
   SYM-opencode-v2-directory-entry-tests:
     identityHash: 4bbeed6558307eebd9ebff2df735cba331c1bbbbddf430d87eb4e2f43cebfebe
     sourceHash: 1308e4a9f1b6e185242485a3750ba1bbbb5ed2a59f17580d5774dc160f1bf697
@@ -19925,42 +19933,42 @@ coordinates:
     sourceLine: 1
   SYM-opencode-v2-extract-patch-file-operations:
     identityHash: 568f93d4bd5910760f4f47a4ec8ee1f62072ed4b6c21e5405a97f454f9399520
-    sourceHash: 60729b4d5eae14bcd71b3c954dbc96b14b6fb97acc70ee7af637c22b865070a0
+    sourceHash: af90a68adfc8593e5128c28e7daa0646a249504b78f08275aab6ce7fde17d4e6
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 169
+    sourceEndLine: 193
     sourceFile: packages/opencode/src/opencode-v2.ts
-    sourceLine: 154
+    sourceLine: 169
   SYM-opencode-v2-legacy-events-from-tool-execution:
     identityHash: 7c8259c47ff5c52e3c6807a433334f5751bc4d1d0c444fd42167bd1980e2312f
-    sourceHash: 60729b4d5eae14bcd71b3c954dbc96b14b6fb97acc70ee7af637c22b865070a0
+    sourceHash: af90a68adfc8593e5128c28e7daa0646a249504b78f08275aab6ce7fde17d4e6
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 216
+    sourceEndLine: 262
     sourceFile: packages/opencode/src/opencode-v2.ts
-    sourceLine: 181
+    sourceLine: 219
   SYM-opencode-v2-legacy-input-from-v2-context:
     identityHash: 5f19b007769e483ba1c79cecba97b12b0b35f41fceaac49b7d28e0648e0f774e
-    sourceHash: 60729b4d5eae14bcd71b3c954dbc96b14b6fb97acc70ee7af637c22b865070a0
+    sourceHash: af90a68adfc8593e5128c28e7daa0646a249504b78f08275aab6ce7fde17d4e6
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 136
+    sourceEndLine: 146
     sourceFile: packages/opencode/src/opencode-v2.ts
-    sourceLine: 130
+    sourceLine: 140
   SYM-opencode-v2-legacy-tool-output:
     identityHash: 2e8021e28685e6b0e97fcc1734b3e88d7e5e14ea0c34369cfdb13ed88bc588b4
-    sourceHash: 60729b4d5eae14bcd71b3c954dbc96b14b6fb97acc70ee7af637c22b865070a0
+    sourceHash: af90a68adfc8593e5128c28e7daa0646a249504b78f08275aab6ce7fde17d4e6
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 247
+    sourceEndLine: 317
     sourceFile: packages/opencode/src/opencode-v2.ts
-    sourceLine: 241
+    sourceLine: 311
   SYM-opencode-v2-plugin-api-tests:
     identityHash: a1d2ffe626aa33a393765df6477ff3ef8c5d0ea9328228e22c4a275b89f92d67
-    sourceHash: cdcffb563f074f5aa9403af93d1f1e1fa6ede0a7e40dd8a80a4c795d74680885
+    sourceHash: ccb4da93871b4ad459fd75bc74c09451ced04b8794660ad03034e474265dab5d
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 335
+    sourceEndLine: 436
     sourceFile: packages/opencode/tests/opencode-v2.test.ts
     sourceLine: 1
   SYM-opencode-v2-tui-coverage-tests:
@@ -37717,23 +37725,23 @@ coordinates:
     sourceLine: 167
   SYM-x-oc-handleFileLifecycleEvent:
     identityHash: 1760137c69868806258b9930d19d1439d6640751a799495a5401e357e6f97afa
-    sourceHash: 7f3b28e4337f475366dc776172679bfbd1f515a0e65b3bea0988d25f4a1d4fa1
+    sourceHash: 1d6dec221a395d748b382f72c8c5d22c8c3e5528b42d35b64f8bcb1f6d5b338a
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 460
+    sourceEndLine: 472
     sourceFile: packages/opencode/src/smart-enforcement-events.ts
-    sourceLine: 229
+    sourceLine: 241
   SYM-x-oc-handleKbToolEvent:
     identityHash: 16b171fa3a5dd9b2a1dc05faa389115329eaa052daa9bbf75ebe0bb08a2bb38a
-    sourceHash: 7f3b28e4337f475366dc776172679bfbd1f515a0e65b3bea0988d25f4a1d4fa1
+    sourceHash: 1d6dec221a395d748b382f72c8c5d22c8c3e5528b42d35b64f8bcb1f6d5b338a
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 180
+    sourceEndLine: 192
     sourceFile: packages/opencode/src/smart-enforcement-events.ts
-    sourceLine: 139
+    sourceLine: 150
   SYM-x-oc-isKbToolEventType:
     identityHash: 0d5f7897aa6bbf383ca5bb11c87a8679bfaed528dda103384b6ce33296810a4f
-    sourceHash: 7f3b28e4337f475366dc776172679bfbd1f515a0e65b3bea0988d25f4a1d4fa1
+    sourceHash: 1d6dec221a395d748b382f72c8c5d22c8c3e5528b42d35b64f8bcb1f6d5b338a
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 136
@@ -37741,15 +37749,23 @@ coordinates:
     sourceLine: 134
   SYM-x-oc-KibiEventEnv:
     identityHash: 25eedcd2f16cce184e4f23b604bf4af7490ab054239463261fa303c81bc93084
-    sourceHash: 7f3b28e4337f475366dc776172679bfbd1f515a0e65b3bea0988d25f4a1d4fa1
+    sourceHash: 1d6dec221a395d748b382f72c8c5d22c8c3e5528b42d35b64f8bcb1f6d5b338a
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 123
     sourceFile: packages/opencode/src/smart-enforcement-events.ts
     sourceLine: 72
+  SYM-x-oc-kibiToolName:
+    identityHash: 218c6a0c314097a93e7d088629531acbdc5d96f80990034c86e1b20ea27d3b99
+    sourceHash: 1d6dec221a395d748b382f72c8c5d22c8c3e5528b42d35b64f8bcb1f6d5b338a
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 147
+    sourceFile: packages/opencode/src/smart-enforcement-events.ts
+    sourceLine: 144
   SYM-x-oc-PluginEvent:
     identityHash: e3c592375c8fcb75dbd56eafb935cbb3edcc9bc0b2be6d7d98c0c49c34eb29dd
-    sourceHash: 7f3b28e4337f475366dc776172679bfbd1f515a0e65b3bea0988d25f4a1d4fa1
+    sourceHash: 1d6dec221a395d748b382f72c8c5d22c8c3e5528b42d35b64f8bcb1f6d5b338a
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 57
@@ -37757,7 +37773,7 @@ coordinates:
     sourceLine: 54
   SYM-x-oc-PluginEventInput:
     identityHash: b39662b24cfa0e7f8acab7d04d69dbaf6ed021d94fd97236a2b63b00fd265c0b
-    sourceHash: 7f3b28e4337f475366dc776172679bfbd1f515a0e65b3bea0988d25f4a1d4fa1
+    sourceHash: 1d6dec221a395d748b382f72c8c5d22c8c3e5528b42d35b64f8bcb1f6d5b338a
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 51
@@ -37765,7 +37781,7 @@ coordinates:
     sourceLine: 46
   SYM-x-oc-SmartEnforcementState:
     identityHash: 7aa0cc042cd6a6b089203d18faed91dd40383ef64f228f7fdb52699f843c431a
-    sourceHash: 7f3b28e4337f475366dc776172679bfbd1f515a0e65b3bea0988d25f4a1d4fa1
+    sourceHash: 1d6dec221a395d748b382f72c8c5d22c8c3e5528b42d35b64f8bcb1f6d5b338a
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 69

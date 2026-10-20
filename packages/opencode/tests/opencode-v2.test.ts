@@ -8,6 +8,7 @@ import {
   type V2PluginContext,
   type V2SessionContextHookInput,
   type V2ToolExecuteAfterInput,
+  commandText,
   createPluginDefinition,
   createV2Setup,
   extractPatchFileOperations,
@@ -22,7 +23,12 @@ type Registered = {
   tool?: (input: V2ToolExecuteAfterInput) => Promise<void> | void;
   commands: V2CommandDefinition[];
   disposed: string[];
-  prompts: Array<{ sessionID: string; text: string; delivery?: unknown }>;
+  prompts: Array<{
+    sessionID: string;
+    text: string;
+    delivery?: unknown;
+    files?: unknown;
+  }>;
 };
 
 function fakeContext(directory = "/repo/app", project = "/repo") {
@@ -111,7 +117,7 @@ describe("extractPatchFileOperations", () => {
     ].join("\n");
     expect(extractPatchFileOperations(patch)).toEqual([
       { type: "file.created", file: "src/new.ts" },
-      { type: "file.edited", file: "src/old.ts" },
+      { type: "file.deleted", file: "src/old.ts" },
       { type: "file.created", file: "src/renamed.ts" },
       { type: "file.deleted", file: "src/gone.ts" },
     ]);
@@ -134,9 +140,38 @@ describe("legacyEventsFromToolExecution", () => {
           sessionID: "ses_1",
           callID: "call_1",
           status: "completed",
+          args: {},
         },
       },
     ]);
+  });
+
+  test("write reports file.created when the file did not exist", () => {
+    const created = legacyEventsFromToolExecution(
+      {
+        ...base,
+        tool: "write",
+        input: { path: "src/new.ts" },
+        status: "completed",
+        result: { output: { existed: false } },
+      },
+      "/repo",
+    );
+    expect(created[1]).toEqual({
+      type: "file.created",
+      properties: { file: path.resolve("/repo", "src/new.ts") },
+    });
+    const overwritten = legacyEventsFromToolExecution(
+      {
+        ...base,
+        tool: "write",
+        input: { path: "src/old.ts" },
+        status: "completed",
+        result: { output: { existed: true } },
+      },
+      "/repo",
+    );
+    expect(overwritten[1]?.type).toBe("file.edited");
   });
 
   test("derives file.edited from edit/write tools and resolves relative paths", () => {
@@ -287,6 +322,63 @@ describe("createV2Setup", () => {
     ]);
   });
 
+  test("a throwing hook is reported instead of failing the host call", async () => {
+    const hooks: Hooks = {
+      "experimental.chat.system.transform": async () => {
+        throw new Error("transform boom");
+      },
+      "tool.execute.after": async () => {
+        throw new Error("tool boom");
+      },
+    };
+    const { context, registered } = fakeContext();
+    await createV2Setup(async () => hooks)(context);
+    const logged: unknown[][] = [];
+    _setConsoleError((...args: unknown[]) => {
+      logged.push(args);
+    });
+    try {
+      await registered.context?.({ sessionID: "ses_1", system: [] });
+      await registered.tool?.({
+        tool: "edit",
+        sessionID: "ses_1",
+        input: { path: "a.ts" },
+        status: "completed",
+      });
+    } finally {
+      _setConsoleError(null);
+    }
+    expect(logged.map((args) => String(args[1]))).toEqual([
+      expect.stringContaining("OpenCode v2 session.context hook failed"),
+      expect.stringContaining("OpenCode v2 tool.execute.after hook failed"),
+    ]);
+  });
+
+  test("passes command arguments through to the prompt", async () => {
+    const hooks: Hooks = {
+      config: async (config) => {
+        (
+          config as unknown as {
+            command: Record<string, { template: string }>;
+          }
+        ).command["kibi-bootstrap"] = { template: "# /kibi-bootstrap" };
+      },
+    };
+    const { context, registered } = fakeContext();
+    await createV2Setup(async () => hooks)(context);
+    await registered.commands[0]?.execute({
+      sessionID: "ses_1",
+      prompt: { text: "focus on billing", files: [] },
+    });
+    expect(registered.prompts).toEqual([
+      {
+        sessionID: "ses_1",
+        text: "# /kibi-bootstrap\n\nfocus on billing",
+        files: [],
+      },
+    ]);
+  });
+
   test("a failing domain registration does not block the others", async () => {
     const hooks: Hooks = {
       "experimental.chat.system.transform": () => {},
@@ -330,5 +422,14 @@ describe("createV2Setup", () => {
     const cleanup = await createV2Setup(async () => hooks)(context);
     await cleanup();
     expect(registered.disposed.sort()).toEqual(["command", "session", "tool"]);
+  });
+});
+
+describe("commandText", () => {
+  test("expands $ARGUMENTS or appends arguments like OpenCode templates", () => {
+    expect(commandText("run $ARGUMENTS now", "x y")).toBe("run x y now");
+    expect(commandText("template", "extra")).toBe("template\n\nextra");
+    expect(commandText("template", "  ")).toBe("template");
+    expect(commandText("template", undefined)).toBe("template");
   });
 });

@@ -135,6 +135,17 @@ export function isKbToolEventType(eventType: string): boolean {
   return TOOL_EVENT_TYPES.has(eventType);
 }
 
+/**
+ * Returns the Kibi MCP tool name (`kb_*`) behind a host tool name. OpenCode
+ * names MCP tools `<server>_<tool>`, so the Kibi server's `kb_upsert` arrives
+ * as `kibi_kb_upsert` (or under whatever server name the user configured).
+ */
+// implements REQ-opencode-kibi-plugin-v1
+export function kibiToolName(toolName: unknown): string | undefined {
+  if (typeof toolName !== "string") return undefined;
+  return /(?:^|_)(kb_[A-Za-z0-9_]+)$/.exec(toolName)?.[1];
+}
+
 // implements REQ-opencode-kibi-plugin-v1
 export function handleKbToolEvent(
   env: KibiEventEnv,
@@ -142,14 +153,15 @@ export function handleKbToolEvent(
   sessionId: string | undefined,
 ): void {
   const props = (event.properties ?? {}) as Record<string, unknown>;
-  const toolName = (props.tool ??
+  const rawToolName = (props.tool ??
     props.toolName ??
     props.name ??
     (props.call as Record<string, unknown> | undefined)?.name ??
     (props.input as Record<string, unknown> | undefined)?.tool) as
     | string
     | undefined;
-  if (typeof toolName === "string" && toolName.startsWith("kb_")) {
+  const toolName = kibiToolName(rawToolName);
+  if (toolName) {
     const scope: KbFreshnessScope = {
       ...(sessionId !== undefined ? { sessionId } : {}),
       agentIdentity: env.input.agentIdentity ?? "unknown",

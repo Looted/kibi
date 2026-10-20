@@ -65,10 +65,17 @@ export type V2ToolExecuteAfterInput = {
   | { readonly status: "error"; error?: unknown }
 );
 
+export interface V2CommandPrompt {
+  readonly text?: string;
+  readonly files?: unknown;
+  readonly agents?: unknown;
+  readonly skills?: unknown;
+}
+
 export interface V2CommandInvocation {
   readonly sessionID: string;
   readonly delivery?: unknown;
-  readonly prompt?: unknown;
+  readonly prompt?: V2CommandPrompt;
 }
 
 export interface V2CommandDefinition {
@@ -96,6 +103,9 @@ export interface V2PluginContext {
       sessionID: string;
       text: string;
       delivery?: unknown;
+      files?: unknown;
+      agents?: unknown;
+      skills?: unknown;
     }): Promise<unknown>;
   };
   readonly tool?: {
@@ -146,10 +156,15 @@ const PATCH_MARKERS: ReadonlyArray<readonly [string, FileLifecycleEventType]> =
     ["*** Add File: ", "file.created"],
     ["*** Update File: ", "file.edited"],
     ["*** Delete File: ", "file.deleted"],
-    ["*** Move to: ", "file.created"],
   ];
+const PATCH_MOVE_MARKER = "*** Move to: ";
 
-/** Extracts file lifecycle operations from an OpenCode `patch` tool body. */
+/**
+ * Extracts file lifecycle operations from an OpenCode `patch` tool body.
+ * An `Update File` followed by `Move to` removes the source and writes the
+ * destination, so it becomes a delete of the source and a create of the
+ * destination.
+ */
 // implements REQ-opencode-v2-plugin-api
 export function extractPatchFileOperations(
   patchText: string,
@@ -157,6 +172,15 @@ export function extractPatchFileOperations(
   const operations: Array<{ type: FileLifecycleEventType; file: string }> = [];
   for (const rawLine of patchText.split(/\r?\n/)) {
     const line = rawLine.trim();
+    if (line.startsWith(PATCH_MOVE_MARKER)) {
+      const destination = line.slice(PATCH_MOVE_MARKER.length).trim();
+      const previous = operations[operations.length - 1];
+      if (destination && previous?.type === "file.edited") {
+        previous.type = "file.deleted";
+        operations.push({ type: "file.created", file: destination });
+      }
+      continue;
+    }
     for (const [marker, type] of PATCH_MARKERS) {
       if (line.startsWith(marker)) {
         const file = line.slice(marker.length).trim();
@@ -166,6 +190,20 @@ export function extractPatchFileOperations(
     }
   }
   return operations;
+}
+
+function booleanField(value: unknown, key: string): boolean | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const field = (value as Record<string, unknown>)[key];
+  return typeof field === "boolean" ? field : undefined;
+}
+
+/** The structured output of a completed v2 tool call, if any. */
+function toolOutput(input: V2ToolExecuteAfterInput): unknown {
+  if (input.status !== "completed") return undefined;
+  const result = input.result;
+  if (!result || typeof result !== "object") return undefined;
+  return (result as Record<string, unknown>).output;
 }
 
 /**
@@ -190,6 +228,7 @@ export function legacyEventsFromToolExecution(
         sessionID: input.sessionID,
         ...(input.id !== undefined ? { callID: input.id } : {}),
         status: input.status,
+        args: input.input,
       },
     },
   ];
@@ -202,7 +241,14 @@ export function legacyEventsFromToolExecution(
     const file =
       stringField(input.input, "path") ?? stringField(input.input, "filePath");
     if (file) {
-      events.push({ type: "file.edited", properties: { file: resolve(file) } });
+      // The v2 write tool reports whether the file existed before the call.
+      const created =
+        input.tool === "write" &&
+        booleanField(toolOutput(input), "existed") === false;
+      events.push({
+        type: created ? "file.created" : "file.edited",
+        properties: { file: resolve(file) },
+      });
     }
   } else if (input.tool === "patch" || input.tool === "apply_patch") {
     const patchText = stringField(input.input, "patchText");
@@ -215,6 +261,27 @@ export function legacyEventsFromToolExecution(
   return events;
 }
 
+/**
+ * OpenCode v2 runs plugin hooks without catching their errors, so a throw
+ * would fail the model request or tool call that triggered the hook. Kibi's
+ * hooks are advisory: report the failure and let the host continue.
+ */
+function guardHook<T>(
+  hook: string,
+  callback: (input: T) => Promise<void>,
+): (input: T) => Promise<void> {
+  return async (input) => {
+    try {
+      await callback(input);
+    } catch (err) {
+      logOperationalError(`OpenCode v2 ${hook} hook failed`, {
+        hook,
+        error: describeError(err),
+      });
+    }
+  };
+}
+
 function systemText(parts: readonly V2SystemPart[]): string[] {
   return parts.map((part) => (typeof part.text === "string" ? part.text : ""));
 }
@@ -224,16 +291,19 @@ async function registerSystemTransform(
   hook: NonNullable<Hooks["experimental.chat.system.transform"]>,
 ): Promise<V2Registration | undefined> {
   if (!context.session) return undefined;
-  return context.session.hook("context", async (request) => {
-    const existing = systemText(request.system);
-    const output = { system: [...existing] };
-    await hook({}, output);
-    for (const text of output.system.slice(existing.length)) {
-      if (typeof text === "string" && text.length > 0) {
-        request.system.push({ type: "text", text });
+  return context.session.hook(
+    "context",
+    guardHook("session.context", async (request) => {
+      const existing = systemText(request.system);
+      const output = { system: [...existing] };
+      await hook({}, output);
+      for (const text of output.system.slice(existing.length)) {
+        if (typeof text === "string" && text.length > 0) {
+          request.system.push({ type: "text", text });
+        }
       }
-    }
-  });
+    }),
+  );
 }
 
 /** Legacy v1 `tool.execute.after` output synthesized from a v2 payload. */
@@ -254,25 +324,48 @@ async function registerToolBridge(
   if (!context.tool) return undefined;
   const eventHook = hooks.event;
   const afterHook = hooks["tool.execute.after"];
-  return context.tool.hook("execute.after", async (execution) => {
-    if (afterHook) {
-      await afterHook(
-        {
-          tool: execution.tool,
-          sessionID: execution.sessionID,
-          args: execution.input,
-        },
-        legacyToolOutput(execution),
-      );
-    }
-    if (eventHook) {
-      for (const event of legacyEventsFromToolExecution(execution, directory)) {
-        await eventHook({ event } as unknown as Parameters<
-          typeof eventHook
-        >[0]);
+  return context.tool.hook(
+    "execute.after",
+    guardHook("tool.execute.after", async (execution) => {
+      if (afterHook) {
+        await afterHook(
+          {
+            tool: execution.tool,
+            sessionID: execution.sessionID,
+            args: execution.input,
+          },
+          legacyToolOutput(execution),
+        );
       }
-    }
-  });
+      if (eventHook) {
+        for (const event of legacyEventsFromToolExecution(
+          execution,
+          directory,
+        )) {
+          await eventHook({ event } as unknown as Parameters<
+            typeof eventHook
+          >[0]);
+        }
+      }
+    }),
+  );
+}
+
+/**
+ * Applies the command arguments to a legacy template the way OpenCode expands
+ * its own template commands: `$ARGUMENTS` is replaced, otherwise non-empty
+ * arguments are appended after a blank line.
+ */
+// implements REQ-opencode-v2-plugin-api
+export function commandText(
+  template: string,
+  args: string | undefined,
+): string {
+  const input = args ?? "";
+  if (template.includes("$ARGUMENTS")) {
+    return template.replaceAll("$ARGUMENTS", () => input).trim();
+  }
+  return input.trim() ? `${template}\n\n${input}`.trim() : template;
 }
 
 type LegacyCommandEntry = { template?: unknown; description?: unknown };
@@ -302,12 +395,16 @@ async function registerCommands(
         ...(description !== undefined ? { description } : {}),
         execute: async (invocation) => {
           if (!session?.prompt) return;
+          const prompt = invocation.prompt;
           await session.prompt({
             sessionID: invocation.sessionID,
-            text: template,
+            text: commandText(template, prompt?.text),
             ...(invocation.delivery !== undefined
               ? { delivery: invocation.delivery }
               : {}),
+            ...(prompt?.files !== undefined ? { files: prompt.files } : {}),
+            ...(prompt?.agents !== undefined ? { agents: prompt.agents } : {}),
+            ...(prompt?.skills !== undefined ? { skills: prompt.skills } : {}),
           });
         },
       });
