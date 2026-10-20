@@ -416,11 +416,27 @@ function parseFrames(
   return buffer.subarray(cursor);
 }
 
+/**
+ * The socket directory every Kibi process for one user must agree on. Linux
+ * hosts and agent harnesses often give their children a private TMPDIR, so
+ * following it there would hide an engine from the CLI, git hooks and other
+ * hosts that share its branch store (they then see only `store_locked`).
+ * Linux therefore uses /tmp unless KIBI_RUNTIME_DIR or XDG_RUNTIME_DIR names
+ * a directory. macOS keeps its per-user TMPDIR, which launchd sets for every
+ * process of the user.
+ */
+function defaultRuntimeDirectory(): string {
+  return path.join(
+    process.platform === "linux" ? "/tmp" : os.tmpdir(),
+    "kibi-runtime",
+  );
+}
+
 export function runtimeDirectory(): string {
   const configured =
     process.env.KIBI_RUNTIME_DIR ??
     process.env.XDG_RUNTIME_DIR ??
-    path.join(os.tmpdir(), "kibi-runtime");
+    defaultRuntimeDirectory();
   // Windows named pipes have no Unix socket pathname budget. Preserve its
   // filesystem location policy for the associated pid files.
   if (process.platform === "win32") {
@@ -1553,13 +1569,14 @@ export class EngineClient {
     }
   }
 
-  async stop(startIfMissing = true): Promise<void> {
+  /** Resolves false when no daemon answered and none was started. */
+  async stop(startIfMissing = true): Promise<boolean> {
     const socketPath = engineSocketPath(this.workspaceRoot, this.branch);
     if (!this.isRunning()) {
       try {
         await this.connect(startIfMissing);
       } catch {
-        if (!startIfMissing) return;
+        if (!startIfMissing) return false;
         throw new Error("Unable to start Kibi engine for stop request");
       }
     }
@@ -1568,7 +1585,9 @@ export class EngineClient {
         `Kibi engine socket remains present but is not reachable: ${socketPath}`,
       );
     }
+    if (!this.isRunning()) return false;
     await this.shutdownConnectedDaemon();
+    return true;
   }
 
   async terminate(): Promise<void> {

@@ -55798,3 +55798,19 @@ symbols:
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
+  - id: SYM-sync-staged-new-source-keys
+    title: stagedNewSourceKeys
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    tags:
+      - sync
+      - semantic-inventory
+    origin:
+      kind: agent
+      recorded_at: 2026-10-20T12:29:16.661Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion

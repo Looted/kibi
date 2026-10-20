@@ -934,6 +934,60 @@ claim_text: System must support OAuth2 authentication
   );
 
   test(
+    "a new branch's first sync grandfathers committed requirements but not staged new ones",
+    () => {
+      const reqDir = path.join(tmpDir, ".kb/requirements");
+      const uninventoried = (id: string) => `---
+id: ${id}
+title: Greeting ${id}
+type: req
+status: open
+---
+
+# Greeting ${id}
+
+The system must greet the user by name.
+`;
+      writeFileSync(
+        path.join(reqDir, "committed.md"),
+        uninventoried("committed"),
+      );
+      stageSources(tmpDir, ".kb/requirements/committed.md");
+      execFileSync("git", ["commit", "--no-verify", "-q", "-m", "legacy"], {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      const first = spawnSync("bun", [kibiBin, "sync"], {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
+      expect(first.status, `${first.stdout}${first.stderr}`).toBe(0);
+      execFileSync(
+        "git",
+        ["-c", "core.hooksPath=/dev/null", "checkout", "-q", "-b", "feature"],
+        { cwd: tmpDir, stdio: "pipe" },
+      );
+      writeFileSync(path.join(reqDir, "staged.md"), uninventoried("staged"));
+      stageSources(tmpDir, ".kb/requirements/staged.md");
+
+      const result = spawnSync("bun", [kibiBin, "sync"], {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
+      const output = `${result.stdout}${result.stderr}`;
+
+      expect(result.status, output).not.toBe(0);
+      expect(output).toContain(
+        ".kb/requirements/staged.md: proposition-complete ingestion failed",
+      );
+      expect(output).not.toContain(
+        ".kb/requirements/committed.md: proposition-complete ingestion failed",
+      );
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
     "imports valid shard relationships without false dangling warnings",
     async () => {
       const relationshipsDir = path.join(tmpDir, ".kb", "relationships");

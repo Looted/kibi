@@ -72,6 +72,7 @@ import {
 import {
   branchStoreManifestPath,
   branchStorePath,
+  branchStoresRoot,
   ensureBranchStoreManifest,
   expectedBranchStoreManifest,
 } from "../utils/branch-store-locator.js";
@@ -167,6 +168,69 @@ function assertNoUnresolvedGitConflicts(workspaceRoot: string): void {
       `Unresolved Git conflicts block Kibi compilation; resolve these authored files first: ${conflicted.split("\n").join(", ")}`,
     );
   }
+}
+
+/**
+ * Sources staged as new files that HEAD does not contain yet. An empty branch
+ * store compiles its first sync as a semantic baseline, which accepts
+ * requirements without an inventory. Once another branch of the workspace has
+ * synced, that grace covers committed history only: a new branch must not
+ * accept a staged requirement its parent branch would refuse. Without a HEAD
+ * commit (or outside Git) there is no history to tell apart, and the set is
+ * empty.
+ */
+// implements REQ-kibi-proposition-complete-ingestion
+export function stagedNewSourceKeys(workspaceRoot: string): Set<string> {
+  try {
+    return new Set(
+      execSync(
+        "git diff --cached --name-only --relative --diff-filter=A -z HEAD",
+        {
+          cwd: workspaceRoot,
+          encoding: "utf8",
+          timeout: 5000,
+          stdio: ["pipe", "pipe", "pipe"],
+        },
+      )
+        .split("\0")
+        .filter(Boolean)
+        .map((file) => file.replaceAll("\\", "/")),
+    );
+  } catch {
+    return new Set();
+  }
+}
+
+/** Whether a branch store other than `livePath` has a non-empty sync cache. */
+function anotherBranchStoreSynced(
+  workspaceRoot: string,
+  livePath: string,
+): boolean {
+  const root = branchStoresRoot(workspaceRoot);
+  let entries: string[];
+  try {
+    entries = readdirSync(root);
+  } catch {
+    return false;
+  }
+  for (const entry of entries) {
+    const storePath = path.join(root, entry);
+    if (path.resolve(storePath) === path.resolve(livePath)) continue;
+    try {
+      const cache = JSON.parse(
+        readFileSync(path.join(storePath, "sync-cache.json"), "utf8"),
+      ) as { hashes?: unknown };
+      if (
+        cache.hashes !== null &&
+        typeof cache.hashes === "object" &&
+        Object.keys(cache.hashes).length > 0
+      )
+        return true;
+    } catch {
+      // A store without a readable cache has not synced.
+    }
+  }
+  return false;
 }
 
 export function trackedRelationshipFiles(
@@ -844,6 +908,11 @@ export async function syncCommand(
     const addedShardRelationships: ExtractedRelationship[] = [];
     const removedShardRelationships: ExtractedRelationship[] = [];
     const initialSemanticBaseline = Object.keys(syncCache.hashes).length === 0;
+    const baselineExcludedKeys =
+      initialSemanticBaseline &&
+      anotherBranchStoreSynced(workspaceRoot, livePathForEngine)
+        ? stagedNewSourceKeys(workspaceRoot)
+        : new Set<string>();
 
     const changedMarkdownFiles: string[] = [];
     const changedManifestFiles: string[] = [];
@@ -1003,7 +1072,8 @@ export async function syncCommand(
       nextExtractionFailures[key] = {
         hash,
         message: failure.message,
-        ...(initialSemanticBaseline || previousFailure?.baseline === true
+        ...((initialSemanticBaseline && !baselineExcludedKeys.has(key)) ||
+        previousFailure?.baseline === true
           ? { baseline: true }
           : {}),
         ...(semanticHash !== undefined ? { semanticHash } : {}),
@@ -1136,7 +1206,8 @@ export async function syncCommand(
               previousFailure,
               boundary.sourceHash,
             )
-          : (!initialSemanticBaseline && syncCache.hashes[key] === undefined) ||
+          : (syncCache.hashes[key] === undefined &&
+              (!initialSemanticBaseline || baselineExcludedKeys.has(key))) ||
             syncCache.semanticContracts[key] === true ||
             (previousSemanticHash !== undefined &&
               previousSemanticHash !== boundary.sourceHash));

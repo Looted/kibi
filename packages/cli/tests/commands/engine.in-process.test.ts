@@ -43,7 +43,9 @@ describe("engine commands", () => {
     const io = captureIo();
     restores.push(io.restore);
     await withCwd(cwd, () => engineStopCommand());
-    expect(io.logText()).toContain("Kibi engine stopped");
+    expect(io.logText()).toContain("No Kibi engine answered at");
+    expect(io.logText()).not.toContain("Kibi engine stopped");
+    expect(io.logText()).not.toContain("still held by");
   });
 
   test("status reports the current branch after init", async () => {

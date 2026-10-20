@@ -182,6 +182,11 @@ The engine is automatically started for CLI and MCP operations. `engine status`
 prints the workspace/branch daemon PID and journal status; `engine stop` asks it
 to flush and exit. A daemon is shared by all clients for the same canonical
 workspace path and branch and exits after ten minutes without clients.
+Clients find the daemon through a socket in `KIBI_RUNTIME_DIR`, else
+`XDG_RUNTIME_DIR`, else `/tmp/kibi-runtime` on Linux (the per-user `TMPDIR` on
+macOS). Processes that set these differently cannot see each other's daemon.
+When `engine stop` finds no daemon it says so, and names the pid still holding
+the branch store if there is one.
 
 `engine janitor` classifies stale engine daemons and branch-store locks left by
 crashed engines or removed worktrees. It only reports by default; `--apply`
