@@ -2554,9 +2554,11 @@ export async function runEngineDaemon(requestedOptions: {
       case "status":
         // Qualified: kb.pl loads library(http/json), but SWI-Prolog 9.0 does
         // not autoload it into `user`, where its toplevel then waits on a
-        // "correct to kb:atom_json_dict?" prompt instead of answering.
+        // "correct to kb:json_write_dict?" prompt instead of answering. A
+        // string binding reaches the client as JSON text; an atom would
+        // arrive Prolog-quoted and fail to parse.
         return prolog.query(
-          "kb_storage_status(Status), json:atom_json_dict(Json, Status, [])",
+          "kb_storage_status(Status), with_output_to(string(Json), json:json_write_dict(current_output, Status, [width(0)]))",
         );
       case "checkpoint": {
         queryCache.clear();
