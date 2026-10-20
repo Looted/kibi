@@ -1585,9 +1585,21 @@ export class EngineClient {
         `Kibi engine socket remains present but is not reachable: ${socketPath}`,
       );
     }
-    if (!this.isRunning()) return false;
+    // A draining daemon has no listener but still counts as stopped here.
+    const found = this.isRunning() || this.daemonProcessAlive();
     await this.shutdownConnectedDaemon();
-    return true;
+    return found;
+  }
+
+  private daemonProcessAlive(): boolean {
+    const pid = this.getPid();
+    if (pid <= 0) return false;
+    try {
+      process.kill(pid, 0);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async terminate(): Promise<void> {
