@@ -27,6 +27,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import * as path from "node:path";
+import { markErrorReported } from "../cli-command.js";
 import type { Diagnostic, SyncSummary } from "../diagnostics.js";
 import {
   branchErrorToDiagnostic,
@@ -1852,6 +1853,7 @@ export async function syncCommand(
     }
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`Error: ${errorMessage}`);
+    markErrorReported(error);
 
     const commit = getCurrentCommit();
     const summary: SyncSummary = withOptionalCommit(
