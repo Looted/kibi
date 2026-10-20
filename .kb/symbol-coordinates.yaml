@@ -28901,7 +28901,7 @@ coordinates:
     sourceLine: 112
   SYM-skillopt-default-cell-evidence-tests:
     identityHash: 8f6f986dce1ff9aa7429ad8a48437991c7e9793824e643e6633e0b5fcb206eec
-    sourceHash: fa4abd98f82da10ae85793c97b5f56ed4b9eb5ea13c6fd242143197ecbec9fe4
+    sourceHash: 93679fde8148a6c02da896028b113b79100ee6ced6bf577aa46de5b767ce2d22
     sourceColumn: 10
     sourceEndColumn: 45
     sourceEndLine: 390
@@ -28909,12 +28909,12 @@ coordinates:
     sourceLine: 390
   SYM-skillopt-default-codex-cell-dependencies:
     identityHash: 1b46cedf2c2c218888ef62ce298dad627a9ea770f9aa561d9495ac52150fa231
-    sourceHash: ae4ff0dad4f1810d0e8a473fa23012b90bf4ec2f2d4326a8e3c70ebac76c86c3
+    sourceHash: 9a2fbfb7ef93807b6ab99e91f4ba29df6298939168cd1f69ef5687148ba80766
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 1125
+    sourceEndLine: 1129
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
-    sourceLine: 1049
+    sourceLine: 1053
   SYM-skillopt-default-codex-login-run:
     identityHash: e202a6e54d55e4fbe46657a7004a3d7680825d88cd5102852665b222327fd9c4
     sourceHash: 4838a3765f23ad7ac09e75c69b1d53e9d790d9142793742916927dfd7e3f9b7a
@@ -33381,12 +33381,12 @@ coordinates:
     sourceLine: 43
   SYM-skillopt-seal-default-cell-evidence:
     identityHash: 4b713da6922b684796f66439de6fee1a620168b39a15d9651b11c341fadcb46c
-    sourceHash: ae4ff0dad4f1810d0e8a473fa23012b90bf4ec2f2d4326a8e3c70ebac76c86c3
+    sourceHash: 9a2fbfb7ef93807b6ab99e91f4ba29df6298939168cd1f69ef5687148ba80766
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 1046
+    sourceEndLine: 1050
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
-    sourceLine: 1019
+    sourceLine: 1023
   SYM-skillopt-sealed-cell-evidence:
     identityHash: 74b93307a6ad5fa62f78b585732daff2570b96fb635cb7cac846fb29563c440e
     sourceHash: 37f871add3752aff757ab9a0ff0247e73f1a9cea723e55cc4f05afb6b6546eb7
