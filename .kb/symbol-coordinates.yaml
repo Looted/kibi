@@ -2469,10 +2469,10 @@ coordinates:
     sourceLine: 121
   SYM-buildDiagnosticToolCall:
     identityHash: d436304d9dfbd66b801960e267018c63b251a37e364c4a0ef733cdf7a1f8fd1d
-    sourceHash: 2a9941d11f48ba966deeb4c89e950e805c4a6b5312aafedc29d16ffe7b96e4d5
+    sourceHash: 492e70706818962631bdb9c875ab9b8736af67c3752cf6016d2fcee6b3289092
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 254
+    sourceEndLine: 257
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
     sourceLine: 224
   SYM-buildDirtyRelevantFingerprint:
@@ -4805,7 +4805,7 @@ coordinates:
     sourceLine: 76
   SYM-classifyDiagnosticError:
     identityHash: f437e8fd03a5188dd17bc6fc288e2fae3392e7d0742d757e2e74fa2057cbf709
-    sourceHash: 2a9941d11f48ba966deeb4c89e950e805c4a6b5312aafedc29d16ffe7b96e4d5
+    sourceHash: 492e70706818962631bdb9c875ab9b8736af67c3752cf6016d2fcee6b3289092
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 175
@@ -11453,7 +11453,7 @@ coordinates:
     sourceLine: 459
   SYM-deriveDiagnosticHints:
     identityHash: c56acd9408f4bb827c51214bc6f7a1cc99dbd56425fcc9b39a1021f8a76a3a67
-    sourceHash: 2a9941d11f48ba966deeb4c89e950e805c4a6b5312aafedc29d16ffe7b96e4d5
+    sourceHash: 492e70706818962631bdb9c875ab9b8736af67c3752cf6016d2fcee6b3289092
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 222
@@ -11461,7 +11461,7 @@ coordinates:
     sourceLine: 195
   SYM-deriveDiagnosticRetryKey:
     identityHash: 6c1185162e5409aab9b3c9a18281910863db2a9d74ca7ecd6e7ddd0cea4c7564
-    sourceHash: 2a9941d11f48ba966deeb4c89e950e805c4a6b5312aafedc29d16ffe7b96e4d5
+    sourceHash: 492e70706818962631bdb9c875ab9b8736af67c3752cf6016d2fcee6b3289092
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 65
@@ -13533,12 +13533,12 @@ coordinates:
     sourceLine: 293
   SYM-extractToolCallPayload:
     identityHash: fec561c7d10eb4047082af4da2da13ac4fe5ef5539ee083e34ac814b86f50769
-    sourceHash: 2a9941d11f48ba966deeb4c89e950e805c4a6b5312aafedc29d16ffe7b96e4d5
+    sourceHash: 492e70706818962631bdb9c875ab9b8736af67c3752cf6016d2fcee6b3289092
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 265
+    sourceEndLine: 268
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
-    sourceLine: 256
+    sourceLine: 259
   SYM-failedEffectStatus:
     identityHash: 0d6a9abe1784d091d733fc1f8a43e112982f3d667f0e0afc259483a8f88b9e64
     sourceHash: 7e1684b131b900407cff5924290b3c6d093d5acc01b79e7f364b3519b9a09e9b
@@ -16589,10 +16589,10 @@ coordinates:
     sourceLine: 11
   SYM-kibi-mcp-bin-entrypoint:
     identityHash: 9c94b417594b90310695f13381f781c58984efdefa08fb077d8b5d6badbc677e
-    sourceHash: c8da7971aeaa4baaf20646288733d4a51c79d9c053c5e47cc7852e929185038c
+    sourceHash: 683b069683956e3bfe9cdee5003c017512d7032a15eabc9c99d74e1faac17ae4
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 195
+    sourceEndLine: 206
     sourceFile: packages/mcp/bin/kibi-mcp
     sourceLine: 1
   SYM-kibi-migrate-plan-command:
@@ -23893,7 +23893,7 @@ coordinates:
     sourceLine: 26
   SYM-redactDiagnosticArgs:
     identityHash: 9a101ed1f470437fecb4912e4cff40f6db24d3daacaced44fcb42a462627f033
-    sourceHash: 2a9941d11f48ba966deeb4c89e950e805c4a6b5312aafedc29d16ffe7b96e4d5
+    sourceHash: 492e70706818962631bdb9c875ab9b8736af67c3752cf6016d2fcee6b3289092
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 53
