@@ -9,6 +9,7 @@ import {
 } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { withSemanticInventory } from "../helpers/inventory-fixture.js";
 import { execSync, spawnSync } from "../helpers/isolated-env.js";
 
 // implements REQ-cli-migration-first-commit
@@ -200,7 +201,9 @@ describe("the first commit after kibi migrate", () => {
       write(
         root,
         ".kb/requirements/REQ-wave.md",
-        "---\nid: REQ-wave\ntitle: Wave\nstatus: open\n---\n\nThe greeter must wave.\n",
+        withSemanticInventory(
+          "---\nid: REQ-wave\ntitle: Wave\nstatus: open\n---\n\nThe greeter must wave.\n",
+        ),
       );
       const symbols = readSymbols(root);
       const edited = symbols.replace(

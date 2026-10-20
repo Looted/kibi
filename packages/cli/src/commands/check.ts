@@ -914,6 +914,7 @@ export async function checkCommand(
         const inventoryDrift = stagedInventoryDriftViolations({
           stagedPaths: new Set(markdownFiles.map((file) => file.path)),
           snapshotEntities,
+          judgeNewRequirements: snapshot.headCommit !== null,
           readBase: (filePath) => {
             try {
               return snapshot
@@ -930,7 +931,7 @@ export async function checkCommand(
             coverage: stagedCoverage,
             violations: inventoryDrift,
             messages: [
-              `${inventoryDrift.length} staged requirement(s) have a semantic inventory that no longer matches their prose:`,
+              `${inventoryDrift.length} staged requirement(s) have a semantic inventory that is missing or no longer matches their prose:`,
               ...inventoryDrift.map((violation) => `  ${violation.message}`),
             ],
           });

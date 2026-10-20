@@ -8,7 +8,7 @@ import {
   type Tarballs,
   type TestSandbox,
   checkPrologAvailable,
-  createMarkdownFile,
+  createInventoriedRequirement,
   createSandbox,
   kibi,
   packAll,
@@ -911,7 +911,7 @@ async function runCatalogWorkflow(tarballs: Tarballs): Promise<void> {
       0,
       "Kibi init and real hook installation",
     );
-    createMarkdownFile(
+    await createInventoriedRequirement(
       sandbox,
       ".kb/requirements/REQ-multilingual-language-catalog.md",
       {
