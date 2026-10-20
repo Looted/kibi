@@ -825,6 +825,20 @@ function recoverStaleJournalLock(branchPath: string): void {
   }
 }
 
+/**
+ * The Node binary that hosts the daemon. A Node client starts it with its own
+ * runtime, so a host that runs Kibi through Node 22+ by absolute path still
+ * gets a Node 22+ daemon when an older `node` comes first on PATH. Bun clients
+ * (source checkouts, tests) use `node` from PATH, since the daemon is a Node
+ * artifact. KIBI_NODE_PATH overrides both.
+ */
+export function daemonNodePath(
+  environment: NodeJS.ProcessEnv = process.env,
+): string {
+  if (environment.KIBI_NODE_PATH) return environment.KIBI_NODE_PATH;
+  return "Bun" in globalThis ? "node" : process.execPath;
+}
+
 function daemonEntry(): string {
   const moduleDirectory = path.dirname(fileURLToPath(import.meta.url));
   // Packed clients keep the daemon beside engine.js. Source-tree repository
@@ -1027,7 +1041,7 @@ export class EngineClient {
       }
     } catch {
       if (!allowSpawn) return;
-      const nodePath = process.env.KIBI_NODE_PATH ?? "node";
+      const nodePath = daemonNodePath();
       const entry = daemonEntry();
       const lockPath = engineStartLockPath(this.workspaceRoot, this.branch);
       const startDeadline = Date.now() + this.timeout;
@@ -2531,8 +2545,11 @@ export async function runEngineDaemon(requestedOptions: {
         return result;
       }
       case "status":
+        // Qualified: kb.pl loads library(http/json), but SWI-Prolog 9.0 does
+        // not autoload it into `user`, where its toplevel then waits on a
+        // "correct to kb:atom_json_dict?" prompt instead of answering.
         return prolog.query(
-          "kb_storage_status(Status), atom_json_dict(Json, Status, [])",
+          "kb_storage_status(Status), json:atom_json_dict(Json, Status, [])",
         );
       case "checkpoint": {
         queryCache.clear();
