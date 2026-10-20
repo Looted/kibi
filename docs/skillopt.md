@@ -202,6 +202,20 @@ bun run scripts/skillopt-eval/operator.ts optimize --skill kibi-usage --max-step
 The prices above are placeholders. Use the published list prices for the models
 you configure.
 
+### Claude Code host
+
+Set `KIBI_SKILLOPT_HOST=claude-code` to run campaign `revise`, `compose`,
+`evaluate` and `confirm` through the Claude Code CLI instead of Codex (the
+default). The model variables above then take Claude model ids, for example
+`claude-opus-5-5` as the optimizer and `claude-haiku-5-5` as the target, and
+both need entries in `KIBI_SKILLOPT_MODEL_PRICING`. The capability canary makes
+one structured-output call per role. The `revise` optimizer call runs with no
+tools and no MCP server and returns its `{ body }` answer as structured
+output; its prompts, format repair and accepted output are the same as on
+Codex. Target cells have no OS sandbox on this host: isolation is permission
+rules plus the brokered MCP allowlist. `KIBI_SKILLOPT_CLAUDE_EXECUTABLE`
+overrides the `claude` binary found on `PATH`.
+
 ## What optimize runs
 
 For a bounded iterative campaign that stops before held-out, use:
@@ -328,6 +342,10 @@ analysis) and `scenario-feasibility` (a success scenario that a precondition
 forbids, before and after a human exception approval, and a rejection
 scenario). Each family has two training, one development and four held-out
 tasks. Campaign `evaluate`/`confirm` and `skillopt:screen` use all families.
+The `intent-consult` development task asks for a change the governing
+requirement allows, so the agent is expected to edit `src/fixture.ts` and the
+cell measures whether a Kibi lookup comes before that first edit. The
+contradicting request is a training task.
 The legacy `skillopt:optimize` trainer (eight training trajectories) and the
 16-task held-out aggregate gates keep the four core families.
 
