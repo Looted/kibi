@@ -119,6 +119,17 @@ describe("staged semantic inventory drift", () => {
 
   test("leaves a first commit's requirements to sync's baseline", () => {
     expect(drift(plain(original), null, [PATH], false)).toEqual([]);
+    // Amending a root commit: the statement differs from HEAD, but the commit
+    // still has no parent.
+    expect(drift(plain(edited), plain(original), [PATH], false)).toEqual([]);
+    expect(
+      drift(
+        inventoried(original, edited),
+        inventoried(original),
+        [PATH],
+        false,
+      ),
+    ).toHaveLength(1);
   });
 
   test("still fails a contract dropped from the staged file", () => {

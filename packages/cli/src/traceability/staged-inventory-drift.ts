@@ -92,7 +92,10 @@ export function stagedInventoryDriftViolations(input: {
   stagedPaths: ReadonlySet<string>;
   snapshotEntities: readonly ExtractionResult[];
   readBase: (path: string) => string | null;
-  /** False for a first commit: sync grandfathers its sources as a baseline. */
+  /**
+   * False for a first commit, or an amend of it: sync grandfathers its sources
+   * as a baseline, so only declared contracts are judged.
+   */
   judgeNewRequirements?: boolean;
 }): StagedInventoryDriftViolation[] {
   const violations: StagedInventoryDriftViolation[] = [];
@@ -112,10 +115,12 @@ export function stagedInventoryDriftViolations(input: {
     const contract =
       advertisesContract(result.entity) ||
       (base !== null && advertisesContract(base.entity));
-    const isNew =
-      input.readBase(source) === null && (input.judgeNewRequirements ?? true);
+    const judgeUncontracted = input.judgeNewRequirements ?? true;
+    const isNew = input.readBase(source) === null && judgeUncontracted;
     const restated =
-      base !== null && semanticSourceHashOf(base) !== boundary.sourceHash;
+      judgeUncontracted &&
+      base !== null &&
+      semanticSourceHashOf(base) !== boundary.sourceHash;
     if (!contract && !isNew && !restated) continue;
     violations.push({
       rule: STAGED_INVENTORY_DRIFT_RULE,
