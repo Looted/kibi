@@ -20,6 +20,20 @@ describe("parsePrologErrorTerm", () => {
     expect(record?.message).toContain("store_locked");
   });
 
+  test("parses store_locked errors whose owner journal arrives as a Prolog string", () => {
+    // kb.pl reads the journal with read_file_to_string, so the live term
+    // carries a double-quoted, multi-line string.
+    const record = parsePrologErrorTerm(
+      `error(permission_error(attach,kb_store,'/tmp/kb/branches/x'),kb_store_locked("{\\n  \\"bootId\\":\\"boot-1\\",\\n  \\"pid\\":2966,\\n  \\"workspaceRoot\\":\\"/ws\\"\\n}",'/tmp/kb/branches/x/rdf',"rdf_locked([time(1),pid(2966),host(vm)])"))`,
+    );
+    expect(record?.storeLocked?.owner?.pid).toBe(2966);
+    expect(record?.storeLocked?.owner?.bootId).toBe("boot-1");
+    expect(record?.storeLocked?.originalError).toBe(
+      "rdf_locked([time(1),pid(2966),host(vm)])",
+    );
+    expect(record?.message).toContain("pid 2966 for /ws");
+  });
+
   test("parses store_locked errors without an ownership journal", () => {
     const record = parsePrologErrorTerm(
       "error(permission_error(attach,kb_store,'/tmp/kb/branches/x'),kb_store_locked('','/tmp/kb/branches/x/rdf'))",
