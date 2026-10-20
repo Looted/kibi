@@ -7109,10 +7109,10 @@ coordinates:
     sourceLine: 27
   SYM-cli-import-purity-tests:
     identityHash: 12f555a2febb2c08034ec98f6a4c2a29b1809796668cfecd89e215d4ddc0b06e
-    sourceHash: 5c7bd23883338e15354dbc7ddcfff75e436dea81702658f40cb1e9d6822b18de
+    sourceHash: acee6d12e51d955becaf029a5d1e943e1610dbb266d61878fea40cc476f83983
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 51
+    sourceEndLine: 54
     sourceFile: packages/cli/tests/cli-import-purity.test.ts
     sourceLine: 1
   SYM-cli-init-command:
