@@ -92,7 +92,7 @@ For a copy-paste discovery snippet, see [generic-agent onboarding](generic-agent
 MCP-capable agents should use the standard `tools/list` capability discovery step, then follow Kibi's progressive-disclosure path instead of assuming that a package `skills/` directory is loaded by the host:
 
 1. Call `kb_skills` with `action: "list"` to obtain the bundled skill manifests.
-2. Call `kb_skills` with `action: "load"` and a returned `id`, normally `kibi-usage` for general Kibi workflow guidance. Load `kibi-bootstrap`, `kibi-freshness`, or `kibi-traceability` when the task matches those workflows.
+2. Call `kb_skills` with `action: "load"` and a returned `id`, normally `kibi-usage` for general Kibi workflow guidance. Load `kibi-bootstrap`, `kibi-freshness`, `kibi-traceability`, `kibi-decisions` (a stated rule, a firm-requirement edit or a conflict with a recorded rule), or `kibi-commit-review` (a blocked commit or an impact review) when the task matches those workflows.
 3. Call `kb_skills` with `action: "read"` only for resource paths declared by that manifest.
 
 These skill operations are local, read-only, and do not require Prolog. They return a human-readable `content` item plus structured data for clients that support structured tool results. The `kb_skills` registration advertises `readOnlyHint: true`, `destructiveHint: false`, `idempotentHint: true`, and `openWorldHint: false` as client-facing behavior hints. Clients must treat annotations and skill text as untrusted guidance: authorization, schema validation, approval gates, and mutation sequencing remain enforced by the server and repository workflow.
