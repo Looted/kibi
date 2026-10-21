@@ -55651,3 +55651,115 @@ symbols:
         target: TEST-e2e-skillopt-host-neutral-optimization
       - type: implements
         target: REQ-skillopt-operator-selected-harness
+  - id: SYM-cli-render-source-write
+    title: renderSourceWrite
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-21T20:14:20.665Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-cli-source-write-scope
+    title: sourceWriteScope
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/upsert.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-21T20:14:27.363Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-cli-build-upsert-contradiction-preview-goal
+    title: buildUpsertContradictionPreviewGoal
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/contradictions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-21T20:14:33.810Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-truthful-consistency
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-truthful-consistency
+  - id: SYM-cli-build-what-if-analysis-goal
+    title: buildWhatIfAnalysisGoal
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/contradictions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-21T20:14:39.727Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-truthful-consistency
+      - type: covered_by
+        target: TEST-model-what-if-planned-facts
+      - type: implements
+        target: REQ-kibi-truthful-consistency
+      - type: implements
+        target: REQ-model-what-if-planned-facts
+  - id: SYM-cli-build-what-if-contradiction-goal
+    title: buildWhatIfContradictionGoal
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/contradictions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-21T20:14:45.643Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-truthful-consistency
+      - type: implements
+        target: REQ-kibi-truthful-consistency
+  - id: SYM-cli-delete-outcome-type
+    title: DeleteOutcome
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/types.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-21T20:14:50.712Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-cli-planned-fact-input-type
+    title: PlannedFactInput
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/types.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-21T20:14:54.640Z
+    relationships:
+      - type: covered_by
+        target: TEST-model-what-if-planned-facts
+      - type: implements
+        target: REQ-model-what-if-planned-facts
+  - id: SYM-cli-staged-upsert-state-type
+    title: StagedUpsertState
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/types.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-21T20:14:58.455Z
+    relationships:
+      - type: covered_by
+        target: TEST-model-what-if-planned-facts
+      - type: implements
+        target: REQ-model-what-if-planned-facts

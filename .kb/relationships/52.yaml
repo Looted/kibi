@@ -405,3 +405,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9b0a10295826
+  - type: implements
+    from: SYM-cli-staged-upsert-state-type
+    to: REQ-model-what-if-planned-facts
+    created_at: 2026-10-21T20:14:59.890Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-795a4a6565e7
+  - type: covered_by
+    from: SYM-cli-staged-upsert-state-type
+    to: TEST-model-what-if-planned-facts
+    created_at: 2026-10-21T20:14:59.919Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61e2a23059ae

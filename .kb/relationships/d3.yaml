@@ -237,3 +237,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1de04c951eec
+  - type: implements
+    from: SYM-cli-delete-outcome-type
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-10-21T20:14:52.252Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0604fd83f1ee
+  - type: covered_by
+    from: SYM-cli-delete-outcome-type
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-10-21T20:14:52.276Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30aee636984f

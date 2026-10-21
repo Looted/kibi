@@ -4346,6 +4346,9 @@
                     "const": true,
                     "type": "boolean"
                   },
+                  "errorCode": {
+                    "type": "string"
+                  },
                   "errors": {
                     "items": {},
                     "type": "array"

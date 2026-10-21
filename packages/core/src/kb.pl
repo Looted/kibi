@@ -16,6 +16,7 @@
     kb_commit_upsert/5,
     kb_commit_upsert_batch/2,
     kb_preview_upsert_contradiction/3,
+    kb_preview_upsert_contradiction/4,
     kb_log_entity_upsert/3,
     kb_retract_entity/1,
     kb_retract_entity/3,
@@ -1069,9 +1070,7 @@ kb_commit_upsert(Type, Props, Relationships, SkipContradiction, ChangeKind) :-
         catch(
             rdf_transaction((
                 kb_stage(rdf_mutation),
-                kb_assert_entity_no_audit(Type, Props),
-                kb_commit_relationships_no_audit(Relationships),
-                kb_maybe_check_req_contradiction(Type, Id, SkipContradiction),
+                kb_stage_upsert_mutation(Type, Id, Props, Relationships, SkipContradiction),
                 kb_stage(entity_audit),
                 kb_log_entity_upsert(ChangeKind, Type, Props),
                 kb_stage(relationship_audit),
@@ -1101,9 +1100,7 @@ kb_commit_upsert(Type, Props, Relationships, SkipContradiction, ChangeKind) :-
         upsert_change_kind(Id, ChangeKind),
         rdf_transaction((
             kb_stage(rdf_mutation),
-            kb_assert_entity_no_audit(Type, Props),
-            kb_commit_relationships_no_audit(Relationships),
-            kb_maybe_check_req_contradiction(Type, Id, SkipContradiction),
+            kb_stage_upsert_mutation(Type, Id, Props, Relationships, SkipContradiction),
             kb_stage(entity_audit),
             kb_log_entity_upsert(ChangeKind, Type, Props),
             kb_stage(relationship_audit),
@@ -1130,35 +1127,51 @@ kb_maybe_check_req_contradiction(req, Id, false) :-
     check_req_contradiction(Id).
 kb_maybe_check_req_contradiction(_, _, _).
 
+%% kb_stage_upsert_mutation(+Type, +Id, +Properties, +Relationships, +SkipContradiction)
+% implements REQ-kibi-operation-interface-parity
+% The RDF mutation and refusal rules of one upsert, shared by the commit, the
+% batch commit and the dry-run preview so all three refuse the same payloads:
+% a relationship whose source or target entity does not exist, an invalid
+% relationship direction, a symbol mixing executable_for with production
+% ownership/coverage edges, and (for a requirement) a contradiction.
+kb_stage_upsert_mutation(Type, Id, Props, Relationships, SkipContradiction) :-
+    kb_assert_entity_no_audit(Type, Props),
+    kb_commit_relationships_no_audit(Relationships),
+    kb_maybe_check_req_contradiction(Type, Id, SkipContradiction).
+
 % Stage one upsert inside an already-open transaction. The caller saves once.
 kb_stage_upsert(Type, Props, Relationships, SkipContradiction, ChangeKind) :-
     memberchk(id=Id, Props),
     memberchk(SkipContradiction, [true, false]),
     upsert_change_kind(Id, ChangeKind),
-    kb_assert_entity_no_audit(Type, Props),
-    kb_commit_relationships_no_audit(Relationships),
-    kb_maybe_check_req_contradiction(Type, Id, SkipContradiction),
+    kb_stage_upsert_mutation(Type, Id, Props, Relationships, SkipContradiction),
     kb_log_entity_upsert(ChangeKind, Type, Props),
     kb_commit_relationship_audits(Relationships).
 
 %% kb_preview_upsert_contradiction(+Type, +Properties, +Relationships)
+%% kb_preview_upsert_contradiction(+Type, +Properties, +Relationships, +SkipContradiction)
 % implements REQ-kibi-operation-interface-parity
-% Stage one upsert in a transaction that is always rolled back and run the
-% commit-time requirement contradiction check against the staged KB, so a
-% kb_upsert dry run refuses exactly what the commit would refuse. Nothing is
-% written and nothing marks the branch dirty: the no-audit assertions only
-% touch the RDF store, which the transaction rolls back, and no audit entry,
-% snapshot save or journal flush follows. The entity index is not
-% transactional, so the staged id is re-indexed from the restored store.
+% Stage one upsert in a transaction that is always rolled back and run every
+% commit-time refusal rule (kb_stage_upsert_mutation/5) against the staged
+% KB, so a kb_upsert dry run refuses exactly what the commit would refuse:
+% missing relationship endpoints, invalid directions, mixed symbol roles and,
+% unless skipped, requirement contradictions. Nothing is written and nothing
+% marks the branch dirty: the no-audit assertions only touch the RDF store,
+% which the transaction rolls back, and no audit entry, snapshot save or
+% journal flush follows. The entity index is not transactional, so the
+% staged id is re-indexed from the restored store.
 kb_preview_upsert_contradiction(Type, Props, Relationships) :-
+    kb_preview_upsert_contradiction(Type, Props, Relationships, false).
+
+kb_preview_upsert_contradiction(Type, Props, Relationships, SkipContradiction) :-
     memberchk(id=Id, Props),
+    memberchk(SkipContradiction, [true, false]),
     with_kb_mutex(
         call_cleanup(
             catch(
                 rdf_transaction((
-                    kb_assert_entity_no_audit(Type, Props),
-                    kb_commit_relationships_no_audit(Relationships),
-                    kb_maybe_check_req_contradiction(Type, Id, false),
+                    kb_stage(rdf_mutation),
+                    kb_stage_upsert_mutation(Type, Id, Props, Relationships, SkipContradiction),
                     throw(kibi_preview_rolled_back)
                 )),
                 Caught,

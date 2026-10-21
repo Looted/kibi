@@ -223,3 +223,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-782d40f1f605
+  - type: implements
+    from: SYM-cli-build-what-if-analysis-goal
+    to: REQ-model-what-if-planned-facts
+    created_at: 2026-10-21T20:14:41.165Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aed0cef19842
+  - type: implements
+    from: SYM-cli-build-what-if-analysis-goal
+    to: REQ-kibi-truthful-consistency
+    created_at: 2026-10-21T20:14:41.184Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49788737a782
+  - type: covered_by
+    from: SYM-cli-build-what-if-analysis-goal
+    to: TEST-model-what-if-planned-facts
+    created_at: 2026-10-21T20:14:41.197Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e3402808f99
+  - type: covered_by
+    from: SYM-cli-build-what-if-analysis-goal
+    to: TEST-kibi-truthful-consistency
+    created_at: 2026-10-21T20:54:23.262Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7102779dc94f

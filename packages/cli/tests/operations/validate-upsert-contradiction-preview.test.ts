@@ -36,7 +36,12 @@ async function recordingContext(refusePreview: boolean): Promise<Recorded> {
       const text = Array.isArray(goal) ? goal.join(", ") : goal;
       goals.push(text);
       if (text.startsWith("kb_preview_upsert_contradiction(")) {
-        return refusePreview
+        // The Prolog preview runs the contradiction check only for a
+        // requirement whose skip flag is false, as the commit does.
+        const checks =
+          text.startsWith("kb_preview_upsert_contradiction(req,") &&
+          text.endsWith(", false)");
+        return refusePreview && checks
           ? {
               success: false,
               bindings: {},
@@ -104,6 +109,7 @@ describe("kb_upsert dryRun previews the commit-time contradiction check", () => 
     expect(goal.startsWith("kb_preview_upsert_contradiction(req, [")).toBe(
       true,
     );
+    expect(goal.endsWith(", false)")).toBe(true);
     expect(goal).toContain("rel(relates_to, 'REQ-a', 'REQ-b'");
     expect(goal).not.toContain("ChangeKind");
   });
@@ -156,7 +162,7 @@ describe("kb_upsert dryRun previews the commit-time contradiction check", () => 
     ).toBe(true);
   });
 
-  test("the preview is skipped where the commit skips the check: non-requirements and _skipContradictionCheck", async () => {
+  test("the preview runs for every payload and carries the commit's skip flag: non-requirements and _skipContradictionCheck stay valid", async () => {
     const skipped = await recordingContext(true);
     const skippedResult = await executeUpsert(
       { ...REQUIREMENT, dryRun: true, _skipContradictionCheck: true },
@@ -165,11 +171,11 @@ describe("kb_upsert dryRun previews the commit-time contradiction check", () => 
     expect(
       (skippedResult.structuredContent as unknown as { valid: boolean }).valid,
     ).toBe(true);
-    expect(
-      skipped.goals.some((goal) =>
-        goal.startsWith("kb_preview_upsert_contradiction("),
-      ),
-    ).toBe(false);
+    const skippedPreviews = skipped.goals.filter((goal) =>
+      goal.startsWith("kb_preview_upsert_contradiction("),
+    );
+    expect(skippedPreviews).toHaveLength(1);
+    expect(skippedPreviews[0]?.endsWith(", true)")).toBe(true);
 
     const fact = await recordingContext(true);
     const factResult = await executeUpsert(
@@ -189,9 +195,9 @@ describe("kb_upsert dryRun previews the commit-time contradiction check", () => 
       (factResult.structuredContent as unknown as { valid: boolean }).valid,
     ).toBe(true);
     expect(
-      fact.goals.some((goal) =>
-        goal.startsWith("kb_preview_upsert_contradiction("),
+      fact.goals.filter((goal) =>
+        goal.startsWith("kb_preview_upsert_contradiction(fact,"),
       ),
-    ).toBe(false);
+    ).toHaveLength(1);
   });
 });
