@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { existsSync, rmSync } from "node:fs";
 import path from "node:path";
-import { buildBundleCatalog, buildSkillCatalog } from "../catalog";
+import { buildCoreSkillCatalog, buildSkillCatalog } from "../catalog";
 import { PREDICATE_HELD_OUT_CASE_IDS } from "../fixtures/predicate-cases";
 import { materializePredicateCorpus } from "../fixtures/predicate-corpus";
 import { materializeFixtureRun } from "../fixtures/private";
@@ -21,7 +21,7 @@ afterEach(() => {
 });
 
 describe("held-out terminal evaluation concurrency", () => {
-  test("Given frozen variants and a task-scoped fixture run When same-candidate terminal calls overlap Then only one owner executes 96 cells", async () => {
+  test("Given frozen variants and a task-scoped fixture run When same-candidate terminal calls overlap Then only one owner executes 72 cells", async () => {
     // Given
     const root = temporaryRoot();
     roots.push(root);
@@ -58,12 +58,9 @@ describe("held-out terminal evaluation concurrency", () => {
       }),
     ] as const;
     const expectedPrompts = new Set(
-      [
-        ...buildSkillCatalog("kibi-usage").filter(
-          (task) => task.split === "held-out",
-        ),
-        ...buildBundleCatalog(),
-      ].map((task) => task.prompt),
+      buildSkillCatalog("kibi-usage")
+        .filter((task) => task.split === "held-out")
+        .map((task) => task.prompt),
     );
     const module = await import("../held-out-evaluation");
     let runnerCalls = 0;
@@ -124,7 +121,16 @@ describe("held-out terminal evaluation concurrency", () => {
         oneShot: variants[1].bodyHash,
         skillopt: variants[2].bodyHash,
       },
-      heldOutCaseIds: PREDICATE_HELD_OUT_CASE_IDS,
+      heldOutCaseIds: [
+        ...PREDICATE_HELD_OUT_CASE_IDS,
+        ...buildCoreSkillCatalog("kibi-usage")
+          .filter(
+            (task) =>
+              task.split === "held-out" &&
+              task.family !== "fact-predicate-modeling",
+          )
+          .map((task) => task.id),
+      ],
       runId: input.runId,
       fixtureClaimRoot: corpus.roots.corpus,
     };
@@ -135,10 +141,10 @@ describe("held-out terminal evaluation concurrency", () => {
 
     // Then
     expect(retried).toEqual(result);
-    expect(result.cellCount).toBe(96);
-    expect(runnerCalls).toBe(96);
+    expect(result.cellCount).toBe(72);
+    expect(runnerCalls).toBe(72);
     expect(reservationVisibleBeforeCellOne).toBe(true);
-    expect(capturedPrompts).toHaveLength(96);
+    expect(capturedPrompts).toHaveLength(72);
     expect(capturedPrompts.every((prompt) => expectedPrompts.has(prompt))).toBe(
       true,
     );

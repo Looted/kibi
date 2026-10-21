@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
+import { resolve } from "node:path";
 import { z } from "zod";
 import type { SkillManifest } from "../../packages/cli/src/public/skills";
 import { type ArtifactPath, prepareArtifactPath } from "./artifact-path";
@@ -155,42 +155,6 @@ export type CampaignSourceSurface = Readonly<{
    * body-and-description (1.2.0) manifest.
    */
   manifest?: Readonly<SkillManifest>;
-}>;
-
-const BundleManifestEntrySchema = z.discriminatedUnion("arm", [
-  z
-    .object({
-      skill: z.enum(CANONICAL_SKILLS),
-      arm: z.literal("baseline"),
-    })
-    .strict(),
-  z
-    .object({
-      skill: z.enum(CANONICAL_SKILLS),
-      arm: z.literal("candidate"),
-      manifestPath: z.string().min(1),
-    })
-    .strict(),
-]);
-
-export const BundleManifestSchema = z
-  .object({
-    schemaVersion: z.literal("1.0.0"),
-    artifactType: z.literal("skillopt-bundle-manifest"),
-    entries: z.array(BundleManifestEntrySchema).length(CANONICAL_SKILLS.length),
-  })
-  .strict()
-  .superRefine((value, context) => {
-    const skills = value.entries.map((entry) => entry.skill);
-    if (new Set(skills).size !== CANONICAL_SKILLS.length) {
-      context.addIssue({ code: "custom", message: "bundle_skill_duplicate" });
-    }
-  });
-
-export type BundleManifest = z.infer<typeof BundleManifestSchema>;
-export type BundleCandidateManifest = Readonly<{
-  bundle: BundleManifest;
-  candidates: ReadonlyMap<CanonicalSkill, CampaignManifest>;
 }>;
 
 export class CampaignArtifactError extends Error {
@@ -517,44 +481,6 @@ export async function readCampaignManifest(
     if (error instanceof CampaignArtifactError) throw error;
     throw new CampaignArtifactError("manifest_invalid");
   }
-}
-
-export async function readBundleCandidateManifest(
-  path: string,
-): Promise<BundleCandidateManifest> {
-  const bundle = await readBundleManifest(path);
-  const candidates = new Map<CanonicalSkill, CampaignManifest>();
-  for (const entry of bundle.entries) {
-    if (entry.arm === "baseline") continue;
-    const manifest = await readCampaignManifest(
-      resolveBundleCampaignManifestPath(path, entry.manifestPath),
-    );
-    if (manifest.skill !== entry.skill) {
-      throw new CampaignArtifactError("bundle_candidate_skill_mismatch");
-    }
-    candidates.set(entry.skill, manifest);
-  }
-  return { bundle, candidates };
-}
-
-export async function readBundleManifest(
-  path: string,
-): Promise<BundleManifest> {
-  try {
-    return BundleManifestSchema.parse(
-      JSON.parse(await readFile(resolve(path), "utf8")),
-    );
-  } catch (error) {
-    if (error instanceof CampaignArtifactError) throw error;
-    throw new CampaignArtifactError("bundle_manifest_invalid");
-  }
-}
-
-export function resolveBundleCampaignManifestPath(
-  bundleManifestPath: string,
-  manifestPath: string,
-): string {
-  return resolve(dirname(resolve(bundleManifestPath)), manifestPath);
 }
 
 const FeedbackItemSchema = z

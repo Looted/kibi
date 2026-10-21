@@ -25,7 +25,7 @@ the model-configuration tests still exercise explicit overrides and mismatches.
 
 ## Trust-plane scope
 
-**Primary path for improving the bundled skills:** authenticated Codex CLI SkillOpt. Select one of `kibi-usage`, `kibi-freshness`, `kibi-traceability`, or `kibi-bootstrap`; use the bundle suite for assembled acceptance. The scripts verify the pin, confirm the Codex login, and run the paid pipeline. `prepareExistingLogin` only mirrors that operator-owned session into a private Codex home; it does not provision credentials.
+**Primary path for improving the bundled skills:** authenticated Codex CLI SkillOpt. Select one of `kibi-usage`, `kibi-freshness`, `kibi-traceability`, or `kibi-bootstrap`; each run evaluates that one skill. The scripts verify the pin, confirm the Codex login, and run the paid pipeline. `prepareExistingLogin` only mirrors that operator-owned session into a private Codex home; it does not provision credentials.
 
 Canonical skill mutation still requires a separate production-adoption verdict; SkillOpt review artifacts alone do not rewrite production skills.
 
@@ -113,7 +113,6 @@ an optimization loads `--seed-candidate`; historical files cannot bypass that ga
 | --- | --- | --- |
 | `skillopt:smoke` | `bun run scripts/skillopt-eval/operator.ts smoke` | Verifies the SkillOpt pin and Codex login, then runs the paid two-model capability canary. |
 | `skillopt:optimize` | `bun run scripts/skillopt-eval/operator.ts optimize --skill <skill>` | Verifies pin and login, materializes fixtures, allocates artifact roots, then runs the selected skill through preflight, smoke, Codex rewrite, public development gate, and held-out gates. Writes non-mutating review evidence only. Defaults to `--max-steps 1`; pass `--max-steps 1..4` for complete proposal rounds and `--seed-candidate PATH` to continue from preserved work. |
-| bundle suite | `bun run scripts/skillopt-eval/operator.ts suite` | Evaluates the assembled four-skill bundle and its compatibility/behavioral gates without selecting a single candidate for adoption. |
 | `skillopt:cursor` | `bun run scripts/skillopt-eval/cursor-operator.ts qualify` | Non-authoritative Cursor compatibility lane. `qualify` checks version, session, models, and Kibi MCP approval with no paid call. `compat --skill S --candidate PATH --fixture-run-root PATH` runs frozen candidate bodies through the shared fixtures, evaluator broker, independent verifier, and sealed scorer. Cursor results never feed Codex gates or adoption. |
 | `skillopt:history` | `bun run scripts/skillopt-eval/inspect-history.ts` | Screens historical SkillOpt candidates offline without authentication, model calls, training, mutation, or adoption. |
 | `skillopt:screen` | `bun run scripts/skillopt-eval/screen-history.ts` | Paid, bounded public-development comparison of explicitly selected historical candidates against the current baseline; never trains, runs held-out, or adopts. |
@@ -122,24 +121,6 @@ an optimization loads `--seed-candidate`; historical files cannot bypass that ga
 ```bash
 bun run skillopt:smoke
 bun run scripts/skillopt-eval/operator.ts optimize --skill kibi-usage
-bun run scripts/skillopt-eval/operator.ts suite --candidate-manifest /path/to/bundle-manifest.json
-```
-
-The bundle suite requires an explicit choice for every canonical skill. Candidate
-paths are resolved relative to the manifest and must reference validated campaign
-candidate manifests. A missing entry or file is an error, not a baseline fallback.
-
-```json
-{
-  "schemaVersion": "1.0.0",
-  "artifactType": "skillopt-bundle-manifest",
-  "entries": [
-    { "skill": "kibi-usage", "arm": "candidate", "manifestPath": "usage/candidate.json" },
-    { "skill": "kibi-freshness", "arm": "baseline" },
-    { "skill": "kibi-traceability", "arm": "baseline" },
-    { "skill": "kibi-bootstrap", "arm": "baseline" }
-  ]
-}
 ```
 
 To reuse a preserved candidate instead of starting the trainer from a fresh comparator:
@@ -423,7 +404,7 @@ never counted as a write.
 
 Real cell final-state scoring uses the independent verifier's all-entity `kb_query`, `kb_check`, and `kb_status` receipts. Valid evidence that shows a wrong fact or predicate lane is a behavioral failure and the optimizer may continue; `evidence-conflict` is reserved for malformed, unbound, hash-invalid, or contradictory evidence.
 
-The held-out predicate supplement always reserves all 36 cells for four cases, three variants, and three replicates. All SkillOpt predicate cells must hard-pass. Baseline and one-shot misses remain comparator evidence and do not by themselves veto a successful candidate; the ordinary paired and bundle gates still compare all three variants.
+The held-out predicate supplement always reserves all 36 cells for four cases, three variants, and three replicates. All SkillOpt predicate cells must hard-pass. Baseline and one-shot misses remain comparator evidence and do not by themselves veto a successful candidate; the ordinary paired skill gate still compares all three variants.
 
 ## Recovery
 

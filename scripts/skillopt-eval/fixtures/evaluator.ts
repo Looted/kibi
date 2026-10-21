@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { CatalogSkill } from "../catalog";
+import type { CanonicalSkill } from "../catalog";
 import { OBJECTIVE_CASE_CONTRACTS, type RequiredCall } from "./case-contracts";
 import type { parseTaskSpec } from "./contracts";
 import type { parsePrivateEvaluatorManifest } from "./evaluator-contracts";
@@ -23,12 +23,11 @@ type PrivateEvaluatorManifest = ReturnType<
 const BLINDING_SEED = 5417;
 const VARIANTS = ["baseline", "one-shot", "skillopt"] as const;
 const SLOTS = ["variant-a", "variant-b", "variant-c"] as const;
-const READ_TOOLS: Readonly<Record<CatalogSkill, readonly string[]>> = {
+const READ_TOOLS: Readonly<Record<CanonicalSkill, readonly string[]>> = {
   "kibi-usage": ["kb_search", "kb_query"],
   "kibi-freshness": ["kb_status", "kb_query", "kb_check"],
   "kibi-traceability": ["kb_search", "kb_query", "kb_graph"],
   "kibi-bootstrap": ["kb_plan_bootstrap"],
-  bundle: ["kb_plan_bootstrap", "kb_search", "kb_query", "kb_check"],
 };
 
 function coordinateFinalStateRequests(taskId: string) {
@@ -51,7 +50,7 @@ function sha256(value: string): string {
 }
 
 // implements REQ-skillopt-codex-optimization
-export function blindedVariantOrder(taskId: string, skill: CatalogSkill) {
+export function blindedVariantOrder(taskId: string, skill: CanonicalSkill) {
   const ordered = VARIANTS.map((variant) => ({
     variant,
     rank: sha256(`${BLINDING_SEED}:${skill}:${taskId}:${variant}`),

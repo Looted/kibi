@@ -6,7 +6,6 @@ import {
   readCampaignManifest,
   readPublicFeedback,
 } from "./campaign-artifacts";
-import { runBundlePackageCampaign } from "./campaign-bundle-package";
 import {
   type CampaignDependencies,
   readCompleteCampaignEvaluation,
@@ -68,7 +67,7 @@ function usage(): string {
     "compose: --skill SKILL (--body-file FILE [--description-file FILE] | --insertion-file FILE [--insertion-file FILE ...])",
     "evaluate: --skill SKILL --candidate-manifest FILE [1..3] --max-target-episodes N --repeats 1..3 --allow-paid",
     "confirm: --previous-evaluation FILE --max-target-episodes N --repeats 1..3 --allow-paid",
-    "package: --candidate-manifest FILE [1..4] [--evaluation FILE] OR --candidate-manifest <bundle-manifest>",
+    "package: --candidate-manifest FILE [1..4] [--evaluation FILE]",
   ].join("\n");
 }
 
@@ -163,20 +162,6 @@ function repeated(args: ParsedArgs, flag: string): readonly string[] {
   return args.repeated.get(flag) ?? [];
 }
 
-async function isBundleManifestPath(path: string): Promise<boolean> {
-  try {
-    const parsed: unknown = JSON.parse(await readFile(resolve(path), "utf8"));
-    return (
-      typeof parsed === "object" &&
-      parsed !== null &&
-      "artifactType" in parsed &&
-      parsed.artifactType === "skillopt-bundle-manifest"
-    );
-  } catch {
-    return false;
-  }
-}
-
 async function manifests(
   args: ParsedArgs,
 ): Promise<readonly Awaited<ReturnType<typeof readCampaignManifest>>[]> {
@@ -184,33 +169,6 @@ async function manifests(
   if (paths.length === 0)
     throw new CampaignCliError("at least one --candidate-manifest is required");
   return Promise.all(paths.map((path) => readCampaignManifest(path)));
-}
-
-async function packageSelection(args: ParsedArgs): Promise<
-  | Readonly<{ kind: "bundle"; path: string }>
-  | Readonly<{
-      kind: "individual";
-      manifests: readonly Awaited<ReturnType<typeof readCampaignManifest>>[];
-    }>
-> {
-  const paths = repeated(args, "--candidate-manifest");
-  if (paths.length === 0)
-    throw new CampaignCliError("at least one --candidate-manifest is required");
-  const bundlePaths = (
-    await Promise.all(
-      paths.map(async (path) =>
-        (await isBundleManifestPath(path)) ? path : undefined,
-      ),
-    )
-  ).filter((path): path is string => path !== undefined);
-  if (bundlePaths.length > 0) {
-    if (paths.length !== 1)
-      throw new CampaignCliError(
-        "bundle --candidate-manifest is mutually exclusive with individual candidate paths",
-      );
-    return { kind: "bundle", path: bundlePaths[0] as string };
-  }
-  return { kind: "individual", manifests: await manifests(args) };
 }
 
 /** A description file holds one line; drop only the editor's final newline. */
@@ -353,44 +311,10 @@ export async function campaignMain(
       return 0;
     }
     const evaluationPath = optionalValue(args, "--evaluation");
-    const selection = await packageSelection(args);
-    if (selection.kind === "bundle") {
-      const receipt = await runBundlePackageCampaign({
-        sourceRoot: source,
-        artifactRoot: artifact,
-        bundleManifestPath: selection.path,
-        ...(evaluationPath === undefined ? {} : { evaluation: evaluationPath }),
-        dependencies:
-          dependencies === undefined
-            ? undefined
-            : {
-                ...(dependencies.sourceFence === undefined
-                  ? {}
-                  : { sourceFence: dependencies.sourceFence }),
-                ...(dependencies.surface === undefined
-                  ? {}
-                  : { surface: dependencies.surface }),
-                ...(dependencies.assemble === undefined
-                  ? {}
-                  : { assemble: dependencies.assemble }),
-              },
-      });
-      process.stdout.write(
-        `${JSON.stringify({
-          command: args.command,
-          status: "ready-for-review",
-          skills: receipt.skills
-            .filter((entry) => entry.bodyChanged || entry.descriptionChanged)
-            .map((entry) => entry.id)
-            .sort(),
-        })}\n`,
-      );
-      return 0;
-    }
     const receipt = await runPackageCampaign({
       sourceRoot: source,
       artifactRoot: artifact,
-      manifests: selection.manifests,
+      manifests: await manifests(args),
       ...(evaluationPath === undefined
         ? {}
         : { evaluation: await readCompleteCampaignEvaluation(evaluationPath) }),

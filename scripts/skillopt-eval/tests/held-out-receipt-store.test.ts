@@ -69,14 +69,13 @@ function terminal(
     eligibility: "HELD_OUT_MATRIX_INELIGIBLE" as const,
     reservationHash: reservation.reservationHash,
     authorizationRootHash: reservation.authorizationRootHash,
-    physicalCellCount: 96,
+    physicalCellCount: 72,
     frozenVariantHashes: null,
     episodeHashes: [],
     evidenceHashes: [],
     gateOutcomes: {
       predicate: "HELD_OUT_MATRIX_INELIGIBLE" as const,
       skill: { outcome: "fail" as const, adoptionEligible: false },
-      bundle: { outcome: "fail" as const, adoptionEligible: false },
     },
   };
 }

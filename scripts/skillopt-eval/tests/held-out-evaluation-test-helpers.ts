@@ -155,22 +155,9 @@ export function evaluation() {
       };
     }),
   ).flat();
-  const bundleCells = Array.from({ length: 8 }, (_, index) =>
-    VARIANTS.map((variant) => {
-      const taskId = `bundle-held-out-${String(index + 1).padStart(2, "0")}`;
-      const episodeRequest = next(taskId, variant);
-      return {
-        kind: "bundle" as const,
-        taskId,
-        family: "bundle-workflow",
-        request: episodeRequest,
-        receipt: receipt(episodeRequest, variant === "skillopt"),
-      };
-    }),
-  ).flat();
   return {
     root,
     reservation,
-    physicalCells: [...predicateCells, ...skillCells, ...bundleCells],
+    physicalCells: [...predicateCells, ...skillCells],
   };
 }

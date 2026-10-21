@@ -6,7 +6,6 @@ import { CodexEpisodeReceiptSchema } from "./runtime/codex-episode";
 import type { PredicateCaseEvidence } from "./scoring/cell";
 import {
   type GateCell,
-  evaluateBundleGate,
   evaluateHeldOutPredicateGate,
   evaluateSkillGate,
 } from "./scoring/gates";
@@ -110,12 +109,6 @@ export function skillGate(
   skill: readonly BoundPhysicalCell[],
 ): ReturnType<typeof evaluateSkillGate> {
   return evaluateSkillGate(matrix([...predicate, ...skill]));
-}
-
-export function bundleGate(
-  cells: readonly BoundPhysicalCell[],
-): ReturnType<typeof evaluateBundleGate> {
-  return evaluateBundleGate(matrix(cells));
 }
 
 export function frozenHashes(

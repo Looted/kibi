@@ -17,38 +17,6 @@ describe("objective workflow expectations stay surface-reachable", () => {
     }
   });
 
-  test("mutating bundle objectives expect a dirtied verification snapshot", () => {
-    for (const code of [
-      "bundle_bootstrap_discovery",
-      "bundle_mutation_validation",
-      "bundle_mutation_validation_recovery",
-      "bundle_semantic_test",
-      "bundle_predicate_test",
-    ]) {
-      expect(OBJECTIVE_WORKFLOWS[code]?.expectedVerificationState, code).toBe(
-        "dirty",
-      );
-      expect(OBJECTIVE_WORKFLOWS[code]?.expectedKbState, code).toBe(
-        "clean_fresh",
-      );
-    }
-  });
-
-  test("read-only bundle objectives stay clean_fresh with fresh verification", () => {
-    expect(OBJECTIVE_WORKFLOWS.bundle_source_freshness?.expectedKbState).toBe(
-      "clean_fresh",
-    );
-    expect(
-      OBJECTIVE_WORKFLOWS.bundle_source_freshness?.expectedVerificationState,
-    ).toBe("fresh");
-    expect(OBJECTIVE_WORKFLOWS.bundle_source_stale?.expectedKbState).toBe(
-      "stale",
-    );
-    expect(
-      OBJECTIVE_WORKFLOWS.bundle_source_stale?.expectedVerificationState,
-    ).toBe("fresh");
-  });
-
   test("thin bootstrap interim outcomes expect the staged thin posture", () => {
     for (const code of ["bootstrap_analysis", "bounded_context_questions"]) {
       expect(OBJECTIVE_WORKFLOWS[code]?.expectedKbState, code).toBe(

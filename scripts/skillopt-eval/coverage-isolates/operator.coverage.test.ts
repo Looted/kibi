@@ -127,25 +127,18 @@ describe("operator coverage leftovers", () => {
     expect(() => parseOperatorArgs(["optimize", "--unknown"])).toThrow(
       /Unknown operator option/,
     );
-    expect(parseOperatorArgs(["optimize", "--skill", "bundle"])).toMatchObject({
-      command: "optimize",
-      skill: "bundle",
-    });
+    expect(() => parseOperatorArgs(["optimize", "--skill", "bundle"])).toThrow(
+      /--skill must be one of/,
+    );
+    expect(() => parseOperatorArgs(["suite"])).toThrow(/Usage/);
     expect(
       parseOperatorArgs(["optimize", "--skill", "kibi-freshness"]),
     ).toMatchObject({
       skill: "kibi-freshness",
     });
-    expect(
-      parseOperatorArgs(["suite", "--candidate-manifest", "bundle.json"]),
-    ).toMatchObject({
-      command: "suite",
-      skill: "bundle",
-      candidateManifest: "bundle.json",
-    });
   });
 
-  test("runOperatorCommand covers pin/login failures and suite/optimize guards", async () => {
+  test("runOperatorCommand covers pin/login failures and optimize guards", async () => {
     await expect(
       runOperatorCommand("smoke", paidDeps({ which: () => null })),
     ).rejects.toThrow(/uv is required/);
@@ -191,29 +184,9 @@ describe("operator coverage leftovers", () => {
       ),
     ).rejects.toThrow(/Logged in using ChatGPT/);
 
-    const operatorBase = await mkdtemp(join(tmpdir(), "skillopt-op-suite-"));
-    roots.push(operatorBase);
-    const suite = await runOperatorCommand(
-      "suite",
-      paidDeps({
-        resolveOperatorBase: async () => operatorBase,
-        runCli: async (args) => {
-          expect(args[0]).toBe("bundle");
-          expect(args).toContain("--skill");
-          expect(args).toContain("--candidate-manifest");
-          return 0;
-        },
-      }),
-      { candidateManifest: "bundle.json" },
-    );
-    expect(suite).toBe(0);
-
     await expect(
       runOperatorCommand("optimize", paidDeps(), { maxSteps: 0 }),
     ).rejects.toThrow(OperatorUsageError);
-    await expect(
-      runOperatorCommand("optimize", paidDeps(), { skill: "bundle" }),
-    ).rejects.toThrow(/optimize requires --skill/);
   });
 
   test("main reports usage and operational failures", async () => {

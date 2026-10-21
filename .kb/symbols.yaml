@@ -3174,17 +3174,6 @@ symbols:
         target: TEST-mcp-suggest-predicates
       - type: implements
         target: REQ-mcp-suggest-predicates
-  - id: SYM-bundleGate
-    title: bundleGate
-    sourceFile: scripts/skillopt-eval/held-out-cell-binding.ts
-    symbol_role: behavioral
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-external-adoption-verdict
-      - type: implements
-        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-canonicalSkillsDir
     title: canonicalSkillsDir
     sourceFile: scripts/sync-agent-skills.ts
@@ -16463,15 +16452,6 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-  - id: SYM-skillopt-build-bundle-catalog
-    title: buildBundleCatalog
-    sourceFile: scripts/skillopt-eval/catalog.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-skill-behavioral-efficacy
-      - type: covered_by
-        target: TEST-skill-behavioral-efficacy
   - id: SYM-skillopt-build-held-out-catalog
     title: buildHeldOutCatalog
     sourceFile: scripts/skillopt-eval/catalog.ts
@@ -16694,16 +16674,6 @@ symbols:
     title: catalogHash
     sourceFile: scripts/skillopt-eval/catalog.ts
     symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: implements
-        target: REQ-skill-behavioral-efficacy
-      - type: covered_by
-        target: TEST-skill-behavioral-efficacy
-  - id: SYM-skillopt-catalog-skill-type
-    title: CatalogSkill
-    sourceFile: scripts/skillopt-eval/catalog.ts
-    symbol_role: type-shape
     granularity_reason: legacy-link
     relationships:
       - type: implements
@@ -18498,15 +18468,6 @@ symbols:
   - id: SYM-skillopt-fixture-blinded-order
     title: blindedVariantOrder
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-  - id: SYM-skillopt-fixture-build-bundle-payload
-    title: buildBundlePayload
-    sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
     symbol_role: behavioral
     relationships:
       - type: implements
@@ -22318,15 +22279,6 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-  - id: SYM-skillopt-scoring-bundle-gate
-    title: evaluateBundleGate
-    sourceFile: scripts/skillopt-eval/scoring/gates.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-scoring-cell
     title: scoreCell
     sourceFile: scripts/skillopt-eval/scoring/cell.ts
@@ -22396,31 +22348,6 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-  - id: SYM-skillopt-scoring-gate-fixture-bundle-gate-candidate-failure-at
-    title: bundleGateCandidateFailureAt
-    sourceFile: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts
-    text_ref: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts#bundleGateCandidateFailureAt
-    symbol_role: behavioral
-    relationships:
-      - type: executable_for
-        target: TEST-skillopt-codex-optimization
-  - id: SYM-skillopt-scoring-gate-fixture-bundle-gate-candidate-failure-with-weak-baseline
-    title: bundleGateCandidateFailureWithWeakBaseline
-    sourceFile: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts
-    text_ref: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts#bundleGateCandidateFailureWithWeakBaseline
-    symbol_role: behavioral
-    relationships:
-      - type: executable_for
-        target: TEST-skillopt-codex-optimization
-  - id: SYM-skillopt-scoring-gate-fixture-bundle-gate-task-count
-    title: BUNDLE_GATE_TASK_COUNT
-    sourceFile: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts
-    text_ref: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts#BUNDLE_GATE_TASK_COUNT
-    symbol_role: config
-    granularity_reason: config-artifact
-    relationships:
-      - type: executable_for
-        target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-scoring-gate-fixture-cells
     title: cells
     sourceFile: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts
@@ -22435,14 +22362,6 @@ symbols:
     text_ref: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts#FAMILIES
     symbol_role: config
     granularity_reason: config-artifact
-    relationships:
-      - type: executable_for
-        target: TEST-skillopt-codex-optimization
-  - id: SYM-skillopt-scoring-gate-fixture-passing-bundle-gate-matrix
-    title: passingBundleGateMatrix
-    sourceFile: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts
-    text_ref: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts#passingBundleGateMatrix
-    symbol_role: behavioral
     relationships:
       - type: executable_for
         target: TEST-skillopt-codex-optimization
@@ -34268,137 +34187,6 @@ symbols:
         target: TEST-generated-coordinate-repair
       - type: implements
         target: REQ-generated-coordinate-persistence
-  - id: SYM-skillopt-bundle-default-timeout
-    title: DEFAULT_BUNDLE_CELL_TIMEOUT_MS
-    status: active
-    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    granularity_reason: config-artifact
-    symbol_role: config
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-bundle-candidates-resolver
-    title: BundleCandidatesResolver
-    status: active
-    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    granularity_reason: config-artifact
-    symbol_role: type-shape
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-bundle-cell-summary-type
-    title: BundleCellSummary
-    status: active
-    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    granularity_reason: config-artifact
-    symbol_role: type-shape
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-bundle-summarize-arm
-    title: summarizeBundleArm
-    status: active
-    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    granularity_reason: module-level-behavior
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-bundle-evaluate-verdict
-    title: evaluateBundleVerdict
-    status: active
-    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-bundle-gate-options-type
-    title: PaidBundleGateOptions
-    status: active
-    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    granularity_reason: config-artifact
-    symbol_role: type-shape
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-bundle-gate-result-type
-    title: PaidBundleGateResult
-    status: active
-    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    granularity_reason: config-artifact
-    symbol_role: type-shape
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-bundle-run-paid-gate
-    title: runPaidBundleGate
-    status: active
-    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    granularity_reason: module-level-behavior
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-bundle-evaluation-branch
-    title: BUNDLE_EVALUATION_BRANCH
-    status: active
-    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    granularity_reason: config-artifact
-    symbol_role: config
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-bundle-arm-type
-    title: BundleArm
-    status: active
-    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    granularity_reason: config-artifact
-    symbol_role: type-shape
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-bundle-arm-summary-type
-    title: BundleArmSummary
-    status: active
-    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    granularity_reason: config-artifact
-    symbol_role: type-shape
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-bundle-cell-runner-type
-    title: BundleCellRunner
-    status: active
-    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    granularity_reason: config-artifact
-    symbol_role: type-shape
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-setup-seeded-fresh-kb
     title: setupSeededFreshKb
     status: active
@@ -34540,20 +34328,6 @@ symbols:
         target: TEST-013
       - type: implements
         target: REQ-016
-  - id: SYM-test-skillopt-bundle-workflow
-    title: paid bundle gate
-    status: active
-    tags:
-      - skillopt
-      - bundle
-      - evaluation
-      - test
-    sourceFile: scripts/skillopt-eval/tests/bundle-workflow.test.ts
-    granularity_reason: test-suite
-    symbol_role: behavioral
-    relationships:
-      - type: executable_for
-        target: TEST-skillopt-codex-optimization
   - id: SYM-test-publish-metadata-verifier
     title: publish metadata verifier tests
     status: active
@@ -49017,45 +48791,6 @@ symbols:
         target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-campaign-artifacts-readbundlecandidatemanifest-de3d79e5
-    title: readBundleCandidateManifest
-    status: active
-    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-05T12:20:09.356Z
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-campaign-artifacts-readbundlemanifest-89f928ea
-    title: readBundleManifest
-    status: active
-    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-05T12:20:13.201Z
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-campaign-artifacts-resolvebundlecampaignmanifestpath-5c688987
-    title: resolveBundleCampaignManifestPath
-    status: active
-    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-05T12:20:17.015Z
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-campaign-artifacts-parsepublicfeedback-c07709d1
     title: parsePublicFeedback
     status: active
@@ -49238,32 +48973,6 @@ symbols:
         target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-campaign-artifacts-bundlemanifest-871598d9
-    title: BundleManifest
-    status: active
-    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-10-05T12:21:17.589Z
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-campaign-artifacts-bundlecandidatemanifest-8e7ca250
-    title: BundleCandidateManifest
-    status: active
-    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-10-05T12:21:21.498Z
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-campaign-artifacts-publicfeedback-27f8da4c
     title: PublicFeedback
     status: active
@@ -49285,20 +48994,6 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-10-05T12:21:29.044Z
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-campaign-artifacts-bundlemanifestschema-779d52f8
-    title: BundleManifestSchema
-    status: active
-    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
-    symbol_role: unknown
-    granularity_reason: extractor-miss
-    origin:
-      kind: agent
-      recorded_at: 2026-10-05T12:23:03.735Z
     relationships:
       - type: covered_by
         target: TEST-skillopt-codex-optimization

@@ -1,6 +1,5 @@
 import { describe, expect, test } from "bun:test";
 import {
-  evaluateBundleGate,
   evaluateHeldOutPredicateGate,
   evaluateSkillGate,
 } from "../scoring/gates";
@@ -10,9 +9,7 @@ import {
 } from "../scoring/statistics";
 import {
   FAMILIES,
-  bundleGateCandidateFailureWithWeakBaseline,
   cells,
-  passingBundleGateMatrix,
   passingHeldOutPredicateCells,
   passingSkillMatrix,
 } from "./fixtures/scoring-gates-fixtures";
@@ -313,33 +310,5 @@ describe("held-out predicate matrix gate", () => {
 
     // Then
     expect(verdict).toEqual({ eligibility: "HELD_OUT_MATRIX_INELIGIBLE" });
-  });
-});
-
-describe("SkillOpt bundle gate", () => {
-  test("passes the exact eight-task bundle thresholds", () => {
-    // Given
-    const matrix = passingBundleGateMatrix();
-
-    // When
-    const verdict = evaluateBundleGate(matrix);
-
-    // Then
-    expect(verdict.outcome).toBe("pass");
-    expect(verdict.adoptionEligible).toBe(true);
-    expect(verdict.reasons).toEqual([]);
-  });
-
-  test("rejects candidate critical failures even when numeric gates pass", () => {
-    // Given
-    const matrix = bundleGateCandidateFailureWithWeakBaseline();
-
-    // When
-    const verdict = evaluateBundleGate(matrix);
-
-    // Then
-    expect(verdict.outcome).toBe("fail");
-    expect(verdict.adoptionEligible).toBe(false);
-    expect(verdict.reasons).toContain("candidate:critical-failures");
   });
 });

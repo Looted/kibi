@@ -25,7 +25,6 @@ export function evaluateHeldOutMatrix(
       total: number;
       predicate: number;
       skill: number;
-      bundle: number;
     }>;
   }>,
 ): HeldOutEligibilityReceipt {

@@ -8,7 +8,7 @@ import type { FinalStateOptions } from "./final-state";
 import type { IsolationWorkspace } from "./isolation-workspace";
 import type { StagedBrokerLaunch } from "./mcp-broker-stage";
 import type { CanaryRunner } from "./permissions";
-import type { SkillCandidateSurface, SkillSurface } from "./skill-assembly";
+import type { SkillCandidateSurface } from "./skill-assembly";
 
 export type PreparedLogin = Readonly<{
   mode: "file" | "keyring";
@@ -47,11 +47,7 @@ export type CodexCellOptions = Readonly<{
   sourceWorktree: string;
   artifactRoot: string;
   targetSkill: CanonicalSkill;
-  /** Bundle assembly: the source snapshot that both arms must use. */
-  baselineSurfaces?: Readonly<Record<CanonicalSkill, SkillSurface>>;
   candidate?: SkillCandidateSurface;
-  /** Bundle assembly: swap several skills at once (each surface-validated). */
-  bundleCandidates?: Partial<Record<CanonicalSkill, SkillCandidateSurface>>;
   codexExecutable: string;
   bwrapExecutable: string;
   env: NodeJS.ProcessEnv;

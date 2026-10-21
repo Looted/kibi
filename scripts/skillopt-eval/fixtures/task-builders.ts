@@ -97,77 +97,6 @@ const SAFE_MUTATION_FILES = [
   "mutation-request.json",
 ] as const;
 
-function bundle(
-  instruction: string,
-  objectiveCode: string,
-  approvalPhase: ApprovalPhase,
-): Definition {
-  const stale = objectiveCode.includes("stale");
-  const dirty = objectiveCode.includes("source");
-  return {
-    instruction,
-    objectiveCode,
-    sourceFile: "src/fixture.ts",
-    mutation: approvalPhase === "post-approval" ? "write" : "read-only",
-    activationMode: "attached_seeded_handoff",
-    repository: "seeded",
-    kb: stale ? "stale" : "fresh",
-    worktree: dirty ? "dirty" : "clean",
-    approvalPhase,
-    adversarialCases: [
-      "misleading-success",
-      ...(dirty ? (["dirty-state"] as const) : []),
-      ...(stale ? (["stale-state"] as const) : []),
-      ...(approvalPhase === "not-applicable"
-        ? []
-        : (["approval-boundary"] as const)),
-    ],
-  };
-}
-
-const BUNDLE_DEFINITIONS: Readonly<Record<string, Definition>> = {
-  "bootstrap-to-discovery-01": bundle(
-    "Attach the exact Git ref, bootstrap source-first Kibi state, then discover the authored requirement through a typed result envelope.",
-    "bundle_bootstrap_discovery",
-    "pre-approval",
-  ),
-  "bootstrap-to-discovery-02": bundle(
-    "Apply an approved source-first bootstrap then perform exact discovery; never copy a compiled store from another branch.",
-    "bundle_bootstrap_discovery",
-    "post-approval",
-  ),
-  "mutation-to-validation-01": bundle(
-    "Search then query, apply a typed source-first mutation, then validate its final state. If the envelope is committed_with_repairs, follow its recovery nextAction and never retry the original mutation.",
-    "bundle_mutation_validation",
-    "post-approval",
-  ),
-  "mutation-to-validation-02": bundle(
-    "Recover a malformed source-first mutation before final validation, preserving YAML shard records and deletion-plan approval boundaries.",
-    "bundle_mutation_validation_recovery",
-    "post-approval",
-  ),
-  "source-to-freshness-01": bundle(
-    "Inspect exact Git branch/source impact and pending-source receipts, then classify freshness without including arbitrary untracked files.",
-    "bundle_source_freshness",
-    "not-applicable",
-  ),
-  "source-to-freshness-02": bundle(
-    "Preserve dirty source evidence while reporting stale state, refusing unresolved conflicts and repairing a committed_with_repairs result without replaying its mutation.",
-    "bundle_source_stale",
-    "not-applicable",
-  ),
-  "semantic-to-test-01": bundle(
-    "Model a strict claim then link executable coverage.",
-    "bundle_semantic_test",
-    "post-approval",
-  ),
-  "semantic-to-test-02": bundle(
-    "Search then query the existing claim, select a predicate, then validate its test chain.",
-    "bundle_predicate_test",
-    "post-approval",
-  ),
-};
-
 const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
   "kibi-freshness/branch-status-classification/held-out/0": {
     prompt:
@@ -611,16 +540,4 @@ export function buildFamilyPayload(context: BuilderContext): FamilyPayload {
   const slot = `${context.skill}/${context.family}/${context.split}/${context.index}`;
   const special = DOGFOOD_CASES[slot] ?? SUPPLEMENTAL_CASES[slot];
   return payload(definition, context.split, context.index, special);
-}
-
-// implements REQ-skillopt-codex-optimization
-export function buildBundlePayload(workflow: string): FamilyPayload {
-  const definition = BUNDLE_DEFINITIONS[workflow];
-  if (definition === undefined)
-    throw new TaskDefinitionError(`unknown bundle workflow: ${workflow}`);
-  return payload(
-    definition,
-    "held-out",
-    Number.parseInt(workflow.slice(-2), 10) - 1,
-  );
 }

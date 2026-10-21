@@ -34,7 +34,6 @@ const WORKFLOW_COMMANDS = new Set([
   "prepare",
   "optimize",
   "evaluate",
-  "bundle",
   "run",
   "resume",
   "status",
