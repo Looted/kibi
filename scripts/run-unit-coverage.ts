@@ -111,6 +111,7 @@ function spawnErrorCode(error: Error | undefined): string | undefined {
 
 const CLI_COMMANDS_DIR = "./packages/cli/tests/commands";
 const CLI_SYNC_COMMAND_TEST = `${CLI_COMMANDS_DIR}/sync.test.ts`;
+const CLI_SYNC_MODULE_TEST_DIRECTORY = `${CLI_COMMANDS_DIR}/sync`;
 const CLI_SYNC_COMMAND_TESTS = readdirSync(CLI_COMMANDS_DIR)
   .filter((entry) => /^sync.*\.(?:test|spec)\.ts$/.test(entry))
   .map((entry) => `${CLI_COMMANDS_DIR}/${entry}`)
@@ -210,6 +211,15 @@ export const COVERAGE_SHARDS: readonly {
     ),
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
     isolation: "process-per-file",
+  },
+  {
+    // Unit tests of the sync modules (cache, discovery, manifest, persistence,
+    // staging). readdirSync over the commands directory is not recursive, so
+    // this subdirectory needs its own shard or it silently drops out.
+    label: "cli.sync-modules",
+    costSeconds: 10,
+    paths: [CLI_SYNC_MODULE_TEST_DIRECTORY],
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
   },
   {
     label: "cli.doctor",

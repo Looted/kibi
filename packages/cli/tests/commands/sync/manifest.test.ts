@@ -342,14 +342,23 @@ describe("isEligibleForCoordinateRefresh", () => {
     ).toBe(true);
   });
 
-  test("handles absolute path correctly", () => {
-    const absPath = "/other/project/src/foo.ts";
+  test("accepts an absolute path inside the workspace", () => {
+    const absPath = "/workspace/src/foo.ts";
     mockExistsSync.mockImplementation(
       (p: import("node:fs").PathLike) => p === absPath,
     );
     expect(
       isEligibleForCoordinateRefresh(absPath, workspaceRoot, manifestDeps()),
     ).toBe(true);
+  });
+
+  test("refuses an absolute path outside the workspace without reading it", () => {
+    const absPath = "/other/project/src/foo.ts";
+    mockExistsSync.mockImplementation(() => true);
+    expect(
+      isEligibleForCoordinateRefresh(absPath, workspaceRoot, manifestDeps()),
+    ).toBe(false);
+    expect(mockExistsSync).not.toHaveBeenCalledWith(absPath);
   });
 
   test("returns false when file does not exist", () => {
