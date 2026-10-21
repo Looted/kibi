@@ -9,6 +9,8 @@ const canonicalRoot = join(repoRoot, "packages/cli/src/public/skills");
 
 const EXPECTED_SKILL_IDS = [
   "kibi-bootstrap",
+  "kibi-commit-review",
+  "kibi-decisions",
   "kibi-freshness",
   "kibi-traceability",
   "kibi-usage",
@@ -133,6 +135,8 @@ describe("canonical skills source", () => {
   test("canonical skills declare their current release versions and compatibility", () => {
     const newCanonical = {
       "kibi-bootstrap": "3.16.0",
+      "kibi-commit-review": "1.0.0",
+      "kibi-decisions": "1.0.0",
       "kibi-freshness": "2.0.0",
       "kibi-traceability": "2.0.0",
     } as const;

@@ -14,6 +14,8 @@ const requiredSkills = [
   "kibi-bootstrap",
   "kibi-freshness",
   "kibi-traceability",
+  "kibi-decisions",
+  "kibi-commit-review",
 ] as const;
 
 const expectedSkillNames: Record<(typeof requiredSkills)[number], string> = {
@@ -21,6 +23,8 @@ const expectedSkillNames: Record<(typeof requiredSkills)[number], string> = {
   "kibi-bootstrap": "kibi-bootstrap",
   "kibi-freshness": "kibi-freshness",
   "kibi-traceability": "kibi-traceability",
+  "kibi-decisions": "kibi-decisions",
+  "kibi-commit-review": "kibi-commit-review",
 };
 
 const requiredToolNames = [

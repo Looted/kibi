@@ -136,6 +136,8 @@ export const OPERATIONS: readonly OperationCase[] = [
 
 export const EXPECTED_BUNDLE_PATHS = [
   "package/skills/kibi-bootstrap/SKILL.md",
+  "package/skills/kibi-commit-review/SKILL.md",
+  "package/skills/kibi-decisions/SKILL.md",
   "package/skills/kibi-freshness/SKILL.md",
   "package/skills/kibi-traceability/SKILL.md",
   "package/skills/kibi-usage/SKILL.md",

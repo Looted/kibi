@@ -629,7 +629,7 @@ targets (hook events, output schema, skill frontmatter rules).
 `kibi-cli`, and `kibi-mcp` and does not replace them. It contributes:
 
 - the workspace-gated Kibi MCP server;
-- the four bundled Kibi skills, invoked as `/kibi-claude:kibi-usage`,
+- the six bundled Kibi skills, invoked as `/kibi-claude:kibi-usage`,
   `/kibi-claude:kibi-bootstrap`, and so on;
 - advisory hooks that show the agent requirement and test context before it
   reads or edits linked code (before an edit, also what the requirement must

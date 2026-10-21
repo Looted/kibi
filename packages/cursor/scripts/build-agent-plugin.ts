@@ -32,6 +32,8 @@ import { fileURLToPath } from "node:url";
 
 const EXPECTED_SKILL_IDS = [
   "kibi-bootstrap",
+  "kibi-commit-review",
+  "kibi-decisions",
   "kibi-freshness",
   "kibi-traceability",
   "kibi-usage",

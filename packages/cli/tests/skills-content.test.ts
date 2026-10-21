@@ -6,17 +6,19 @@ import {
 } from "../src/public/skills";
 
 describe("bundled Kibi skills", () => {
-  test("ships the four canonical skills with source-first descriptions", () => {
+  test("ships the canonical skills with source-first descriptions", () => {
     const skills = listBundledSkills();
     expect(skills.map((skill) => skill.id)).toEqual([
       "kibi-bootstrap",
+      "kibi-commit-review",
+      "kibi-decisions",
       "kibi-freshness",
       "kibi-traceability",
       "kibi-usage",
     ]);
     for (const id of skills.map((skill) => skill.id)) {
       const bundle = loadBundledSkill(id);
-      expect(bundle.manifest.version).toMatch(/^[23]\./);
+      expect(bundle.manifest.version).toMatch(/^[123]\./);
       expect(bundle.manifest.description).toMatch(
         /Git|source|traceability|bootstrap/i,
       );

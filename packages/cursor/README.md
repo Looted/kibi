@@ -114,7 +114,7 @@ agent-plugin/
 ### Discovery-first rules and skills
 
 - **Rules**: always-on capability-based workflow guidance plus optional traceability rules for source files.
-- **Skills**: `kibi-usage`, `kibi-bootstrap`, `kibi-freshness`, and `kibi-traceability`.
+- **Skills**: `kibi-usage`, `kibi-bootstrap`, `kibi-freshness`, `kibi-traceability`, `kibi-decisions`, and `kibi-commit-review`.
 - **Commands**: `/kibi-bootstrap` documents the `kb_plan_bootstrap` bootstrap workflow.
 
 ### Advisory editor hooks
