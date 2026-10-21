@@ -1,7 +1,6 @@
 import { createHash } from "node:crypto";
 import {
   type FamilyPayload,
-  buildBundlePayload,
   buildFamilyPayload,
 } from "./fixtures/task-builders";
 
@@ -13,7 +12,6 @@ export const CANONICAL_SKILLS = [
 ] as const;
 
 export type CanonicalSkill = (typeof CANONICAL_SKILLS)[number];
-export type CatalogSkill = CanonicalSkill | "bundle";
 export type TaskSplit = "train" | "development" | "held-out";
 export type ActivationMode =
   | "cold_start_bootstrap"
@@ -35,7 +33,7 @@ export type AdversarialCase =
 
 export type TaskSpec = Readonly<{
   id: string;
-  skill: CatalogSkill;
+  skill: CanonicalSkill;
   family: string;
   split: TaskSplit;
   fixtureSeed: string;
@@ -121,10 +119,10 @@ export function skillFamilies(skill: CanonicalSkill): readonly string[] {
 
 // implements REQ-skillopt-codex-optimization
 export function isSupplementalFamily(
-  skill: CatalogSkill,
+  skill: CanonicalSkill,
   family: string,
 ): boolean {
-  return skill !== "bundle" && SUPPLEMENTAL_FAMILY_BY_SKILL[skill] === family;
+  return SUPPLEMENTAL_FAMILY_BY_SKILL[skill] === family;
 }
 
 const SPLIT_COUNTS: Readonly<Record<TaskSplit, number>> = {
@@ -133,20 +131,9 @@ const SPLIT_COUNTS: Readonly<Record<TaskSplit, number>> = {
   "held-out": 4,
 };
 
-const BUNDLE_WORKFLOWS = [
-  "bootstrap-to-discovery-01",
-  "bootstrap-to-discovery-02",
-  "mutation-to-validation-01",
-  "mutation-to-validation-02",
-  "source-to-freshness-01",
-  "source-to-freshness-02",
-  "semantic-to-test-01",
-  "semantic-to-test-02",
-] as const;
-
 function taskSpec(input: {
   readonly id: string;
-  readonly skill: CatalogSkill;
+  readonly skill: CanonicalSkill;
   readonly family: string;
   readonly split: TaskSplit;
   readonly payload: FamilyPayload;
@@ -198,18 +185,6 @@ export function buildCoreSkillCatalog(
   );
 }
 
-export function buildBundleCatalog(): readonly TaskSpec[] {
-  return BUNDLE_WORKFLOWS.map((workflow) =>
-    taskSpec({
-      id: `bundle-${workflow}`,
-      skill: "bundle",
-      family: workflow.split("-").slice(0, -1).join("-"),
-      split: "held-out",
-      payload: buildBundlePayload(workflow),
-    }),
-  );
-}
-
 // implements REQ-skillopt-codex-optimization
 export function buildPublicCatalog(): readonly TaskSpec[] {
   return CANONICAL_SKILLS.flatMap((skill) =>
@@ -219,12 +194,9 @@ export function buildPublicCatalog(): readonly TaskSpec[] {
 
 // implements REQ-skillopt-codex-optimization
 export function buildHeldOutCatalog(): readonly TaskSpec[] {
-  return [
-    ...CANONICAL_SKILLS.flatMap((skill) =>
-      buildSkillCatalog(skill).filter((task) => task.split === "held-out"),
-    ),
-    ...buildBundleCatalog(),
-  ];
+  return CANONICAL_SKILLS.flatMap((skill) =>
+    buildSkillCatalog(skill).filter((task) => task.split === "held-out"),
+  );
 }
 
 // implements REQ-skillopt-codex-optimization

@@ -3,7 +3,6 @@ import { rmSync } from "node:fs";
 import path from "node:path";
 import {
   type TaskSpec,
-  buildBundleCatalog,
   buildCoreSkillCatalog,
   buildHeldOutCatalog,
   buildPublicCatalog,
@@ -101,19 +100,11 @@ describe("SkillOpt fixture catalog", () => {
     ).toThrow("duplicate task ID");
   });
 
-  test("produces a stable catalog hash and eight distinct bundle cases", () => {
-    const tasks = buildBundleCatalog();
-
-    expect(tasks).toHaveLength(8);
-    expect(new Set(tasks.map((task) => task.id)).size).toBe(8);
-    expect(catalogHash(tasks)).toBe(catalogHash([...tasks]));
-  });
-
   test("encodes explicit state, scorer reference, and family task data", () => {
     const tasks = [...buildPublicCatalog(), ...buildHeldOutCatalog()];
 
-    // 4 skills x 5 families, 7 tasks each, + 8 bundles.
-    expect(tasks).toHaveLength(148);
+    // 4 skills x 5 families, 7 tasks each.
+    expect(tasks).toHaveLength(140);
     expect(
       tasks.every(
         (task) =>
@@ -245,7 +236,7 @@ describe("predicate corpus materializes stable authorized roots", () => {
     expect(buildCoreSkillCatalog("kibi-usage")).toHaveLength(28);
     expect(() => validateSkillCatalog(usage, "kibi-usage")).not.toThrow();
     const total = [...buildPublicCatalog(), ...buildHeldOutCatalog()];
-    expect(total).toHaveLength(148);
+    expect(total).toHaveLength(140);
     const usagePublic = buildPublicCatalog().filter(
       (task) => task.skill === "kibi-usage",
     );
@@ -256,11 +247,7 @@ describe("predicate corpus materializes stable authorized roots", () => {
     const supplementalFamilies = CANONICAL_SKILLS.filter(
       (skill) => skillFamilies(skill).length === 5,
     ).length;
-    expect(
-      CANONICAL_SKILLS.length * 28 +
-        supplementalFamilies * 7 +
-        buildBundleCatalog().length,
-    ).toBe(148);
+    expect(CANONICAL_SKILLS.length * 28 + supplementalFamilies * 7).toBe(140);
   });
 
   test("unsigned roots cannot authorize training or evaluation", () => {
@@ -370,7 +357,7 @@ describe("SkillOpt corpus executability invariants", () => {
   }
 
   test("every task carries an objective-specific expectation", () => {
-    expect(allTasks).toHaveLength(148);
+    expect(allTasks).toHaveLength(140);
     const uncovered = allTasks.filter((task) => {
       const manifest = manifestFor(task);
       return (
@@ -481,7 +468,6 @@ describe("fixture KB staging modes", () => {
       ...buildSkillCatalog("kibi-freshness"),
       ...buildSkillCatalog("kibi-traceability"),
       ...buildSkillCatalog("kibi-bootstrap"),
-      ...buildBundleCatalog(),
     ];
     const task = catalog.find(
       (candidate) => candidate.taskData.objectiveCode === objectiveCode,
@@ -511,10 +497,6 @@ describe("fixture KB staging modes", () => {
     ]) {
       expect(manifestFor(objective).fixtureSetup).toBe("seeded_dirty_kb");
     }
-    // A dirty worktree whose expectation stays fresh keeps the clean seed.
-    expect(manifestFor("bundle_source_freshness").fixtureSetup).toBe(
-      "seeded_fresh_kb",
-    );
   });
 
   test("derives seeded_stale_kb for stale initial states", () => {
@@ -533,24 +515,5 @@ describe("fixture KB staging modes", () => {
     expect(
       manifestFor("generated_only_symbol_coordinate_repair").fixtureSetup,
     ).toBe("generated_coordinate_divergence");
-  });
-
-  test("bundle tasks stage KBs instead of running on empty workspaces", () => {
-    const bundle = buildBundleCatalog();
-    const modes = new Set(
-      bundle.map(
-        (task) =>
-          buildPrivateManifest({
-            task: task as unknown as Parameters<
-              typeof buildPrivateManifest
-            >[0]["task"],
-            publicManifestHash: "a".repeat(64),
-            workspaceHash: "b".repeat(64),
-          }).fixtureSetup,
-      ),
-    );
-    expect(modes.has("seeded_fresh_kb")).toBe(true);
-    expect(modes.has("seeded_stale_kb")).toBe(true);
-    expect(modes.has(undefined)).toBe(false);
   });
 });

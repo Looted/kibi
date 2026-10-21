@@ -1,4 +1,4 @@
-import type { CatalogSkill } from "../catalog";
+import type { CanonicalSkill } from "../catalog";
 import { fixtureSymbolId } from "../fixtures/workspace";
 
 export { fixtureSymbolId } from "../fixtures/workspace";
@@ -44,4 +44,4 @@ export function taskFinalStateRequests(
   return DEFAULT_FINAL_STATE_REQUESTS;
 }
 
-export type FinalStateSkill = CatalogSkill;
+export type FinalStateSkill = CanonicalSkill;

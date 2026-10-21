@@ -131,12 +131,6 @@ describe("SkillOpt documentation contract", () => {
           "Verifies pin and login, materializes fixtures, allocates artifact roots, then runs the selected skill through preflight, smoke, Codex rewrite, public development gate, and held-out gates. Writes non-mutating review evidence only. Defaults to `--max-steps 1`; pass `--max-steps 1..4` for complete proposal rounds and `--seed-candidate PATH` to continue from preserved work.",
       },
       {
-        Script: "bundle suite",
-        Command: "`bun run scripts/skillopt-eval/operator.ts suite`",
-        Notes:
-          "Evaluates the assembled four-skill bundle and its compatibility/behavioral gates without selecting a single candidate for adoption.",
-      },
-      {
         Script: "`skillopt:cursor`",
         Command: "`bun run scripts/skillopt-eval/cursor-operator.ts qualify`",
         Notes:

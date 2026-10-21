@@ -161,21 +161,14 @@ describe("operator leftover runtime branches", () => {
     expect(() => parseOperatorArgs(["optimize", "--unknown"])).toThrow(
       /Unknown operator option/,
     );
-    expect(parseOperatorArgs(["optimize", "--skill", "bundle"])).toMatchObject({
-      command: "optimize",
-      skill: "bundle",
-    });
+    expect(() => parseOperatorArgs(["optimize", "--skill", "bundle"])).toThrow(
+      /--skill must be one of/,
+    );
+    expect(() => parseOperatorArgs(["suite"])).toThrow(/Usage/);
     expect(
       parseOperatorArgs(["optimize", "--skill", "kibi-freshness"]),
     ).toMatchObject({
       skill: "kibi-freshness",
-    });
-    expect(
-      parseOperatorArgs(["suite", "--candidate-manifest", "bundle.json"]),
-    ).toMatchObject({
-      command: "suite",
-      skill: "bundle",
-      candidateManifest: "bundle.json",
     });
     expect(
       parseOperatorArgs([
@@ -250,30 +243,12 @@ describe("operator leftover runtime branches", () => {
 
     expect(await runOperatorCommand("smoke", paidDeps())).toBe(0);
 
-    const operatorBase = await mkdtemp(join(tmpdir(), "skillopt-op-suite-"));
+    const operatorBase = await mkdtemp(join(tmpdir(), "skillopt-op-base-"));
     roots.push(operatorBase);
-    expect(
-      await runOperatorCommand(
-        "suite",
-        paidDeps({
-          resolveOperatorBase: async () => operatorBase,
-          runCli: async (args) => {
-            expect(args[0]).toBe("bundle");
-            expect(args).toContain("all");
-            expect(args).toContain("--candidate-manifest");
-            return 0;
-          },
-        }),
-        { candidateManifest: "bundle.json" },
-      ),
-    ).toBe(0);
 
     await expect(
       runOperatorCommand("optimize", paidDeps(), { maxSteps: 0 }),
     ).rejects.toThrow(OperatorUsageError);
-    await expect(
-      runOperatorCommand("optimize", paidDeps(), { skill: "bundle" }),
-    ).rejects.toThrow(/optimize requires --skill/);
 
     expect(
       await runOperatorCommand(
@@ -322,12 +297,7 @@ describe("operator leftover runtime branches", () => {
       ),
     ).toBe(0);
     expect(
-      await main(
-        ["suite", "--candidate-manifest", "bundle.json"],
-        paidDeps({
-          resolveOperatorBase: async () => operatorBase,
-        }),
-      ),
-    ).toBe(0);
+      await main(["suite", "--candidate-manifest", "bundle.json"], paidDeps()),
+    ).toBe(2);
   });
 });

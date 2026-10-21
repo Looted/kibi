@@ -23,7 +23,7 @@ describe("held-out review remaining eligible evaluation mapping", () => {
         eligibility: "eligible",
         reservationHash: "a".repeat(64),
         authorizationRootHash: "b".repeat(64),
-        physicalCellCount: 96,
+        physicalCellCount: 72,
         frozenVariantHashes: {
           baseline: "c".repeat(64),
           oneShot: "d".repeat(64),
@@ -34,12 +34,11 @@ describe("held-out review remaining eligible evaluation mapping", () => {
         gateOutcomes: {
           predicate: "eligible",
           skill: { outcome: "pass", adoptionEligible: true },
-          bundle: { outcome: "pass", adoptionEligible: true },
         },
       }),
     ).toEqual({
       eligibility: "eligible",
-      cellCount: 96,
+      cellCount: 72,
       productionAdoption: "external-verdict-required",
     });
   });

@@ -164,25 +164,12 @@ external workspace. Only supplied candidate bodies may differ; frontmatter,
 resources, and all other canonical bodies are copied from the source. This is
 an offline assembly and leaves production adoption explicitly unperformed.
 
-For a complete bundle, pass one strict bundle manifest instead. It must select
-all four canonical skills exactly once, using either `baseline` or `candidate`
-for each skill. Candidate entries reference their nested campaign manifests
-relative to the bundle file. Bundle mode cannot be combined with individual
-candidate manifests and does not accept `--evaluation`; bundle evaluation and
-production adoption remain explicitly unperformed.
-
 ```text
 bun scripts/skillopt-eval/campaign.ts package \
   --artifact-root <artifact-root> \
   --candidate-manifest <candidate-manifest> \
   [--candidate-manifest <candidate-manifest> ...] \
   [--evaluation <complete-evaluation.json>]
-```
-
-```text
-bun scripts/skillopt-eval/campaign.ts package \
-  --artifact-root <artifact-root> \
-  --candidate-manifest <bundle-manifest.json>
 ```
 
 The package receipt reports precise manifest readiness, changed skill bodies,

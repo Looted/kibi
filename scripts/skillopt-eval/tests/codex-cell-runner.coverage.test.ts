@@ -163,7 +163,7 @@ describe("codex-cell-runner remaining rejection and assembly paths", () => {
     ).rejects.toThrow("host_pipe_broke");
   });
 
-  test("assembles a body-only candidate and bundle candidates", async () => {
+  test("assembles a body-only candidate", async () => {
     const publicFixture = await fixture();
     const artifactRoot = await mkdtemp(
       join(tmpdir(), "skillopt-cell-candidate-"),
@@ -172,9 +172,6 @@ describe("codex-cell-runner remaining rejection and assembly paths", () => {
     const completed = await runCodexCell(
       cellOptions(publicFixture, artifactRoot, {
         candidate: { body: "Use Kibi through MCP only.\n" },
-        bundleCandidates: {
-          "kibi-freshness": { body: "Check freshness through MCP.\n" },
-        },
       }),
       dependencies({
         stageBroker: async (workspace) => {

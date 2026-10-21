@@ -206,28 +206,17 @@ describe("SkillOpt workflow CLI", () => {
     expect(options.cellRuntime).toEqual({ fixtureRunRoot: "/tmp/fixture-run" });
     expect(options.seedCandidate).toBe("/tmp/candidate.md");
     expect(options.developmentOnly).toBe(false);
-    expect(
-      parseWorkflowOptions(
-        [
-          "--run-id",
-          "00000000-0000-4000-8000-000000000097",
-          "--candidate-manifest",
-          "/tmp/bundle.json",
-        ],
-        "bundle",
-      ).candidateManifest,
-    ).toBe("/tmp/bundle.json");
     expect(() =>
       parseWorkflowOptions(
         [
           "--run-id",
           "00000000-0000-4000-8000-000000000097",
           "--candidate-manifest",
-          "/tmp/bundle.json",
+          "/tmp/manifest.json",
         ],
         "optimize",
       ),
-    ).toThrow("only valid for bundle");
+    ).toThrow("Unknown workflow option: --candidate-manifest");
     expect(() => parseWorkflowOptions(["--development-only"], "run")).toThrow(
       "only valid for optimize",
     );

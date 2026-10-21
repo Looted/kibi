@@ -169,7 +169,7 @@ function copyCanonicalSkills(input: WorkspaceInput): void {
     writeFileSync(target, readFileSync(source));
   }
   writeJson(input.root, "skills/bundle.json", {
-    selectedSkill: input.task.skill === "bundle" ? null : input.task.skill,
+    selectedSkill: input.task.skill,
     controls: CANONICAL_SKILLS.filter((skill) => skill !== input.task.skill),
     source: "canonical-copy-adapter",
   });

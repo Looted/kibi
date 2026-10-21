@@ -267,7 +267,6 @@ export type RealOptimizationDependencies = Readonly<{
       roots: CorpusRoots;
       env: NodeJS.ProcessEnv;
       cellRunner?: HeldOutCellRunner;
-      includeBundle?: boolean;
     }>,
   ) => Promise<HeldOutEvaluation>;
   oneShot: (input: TrainingInput) => Promise<FrozenVariant>;

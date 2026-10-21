@@ -311,15 +311,9 @@ export async function runCodexCell(
       sourceRepoRoot: options.sourceWorktree,
       workspace: workspace.target,
       targetSkill: options.targetSkill,
-      ...(options.baselineSurfaces === undefined
-        ? {}
-        : { baselineSurfaces: options.baselineSurfaces }),
       ...(options.candidate === undefined
         ? {}
         : { candidate: options.candidate }),
-      ...(options.bundleCandidates === undefined
-        ? {}
-        : { candidates: options.bundleCandidates }),
     });
     return await host.withLease(options.env, async () => {
       const session = await host.openSession({ workspace, env: options.env });

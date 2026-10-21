@@ -213,36 +213,3 @@ export function evaluateSkillGate(matrix: GateMatrix): GateVerdict {
     statistics: result,
   };
 }
-
-export function evaluateBundleGate(matrix: GateMatrix): GateVerdict {
-  if (!validPairedMatrix(matrix, 8)) {
-    return ambiguous("matrix:expected-8-paired-tasks");
-  }
-  if (hasMalformedCell(matrix)) {
-    return ambiguous("matrix:malformed-cell-evidence");
-  }
-  const ambiguousReason = ambiguousVariant(matrix);
-  if (ambiguousReason !== null) return ambiguous(ambiguousReason);
-  const result = statistics(matrix);
-  if (result === null) return ambiguous("matrix:unpaired-bootstrap-input");
-  const reasons: string[] = [];
-  if (result.candidate.mean < 85) reasons.push("candidate:mean-below-85");
-  if (result.candidate.hardPasses < 7)
-    reasons.push("candidate:hard-passes-below-7");
-  if (result.meanDelta.baseline < 3)
-    reasons.push("candidate:baseline-mean-delta-below-3");
-  if (result.meanDelta.oneShot < 3)
-    reasons.push("candidate:one-shot-mean-delta-below-3");
-  if (result.hardPassDelta.baseline < 0)
-    reasons.push("candidate:baseline-hard-pass-loss");
-  if (result.hardPassDelta.oneShot < 0)
-    reasons.push("candidate:one-shot-hard-pass-loss");
-  if (result.candidate.criticalFailures > 0)
-    reasons.push("candidate:critical-failures");
-  return {
-    outcome: reasons.length === 0 ? "pass" : "fail",
-    adoptionEligible: reasons.length === 0,
-    reasons,
-    statistics: result,
-  };
-}

@@ -10,7 +10,7 @@ afterEach(() => {
 });
 
 describe("held-out terminal evaluation", () => {
-  test("evaluates all 96 physical cells through predicate, skill, and bundle gates", async () => {
+  test("evaluates all 72 physical cells through predicate and skill gates", async () => {
     // Given
     const input = evaluation();
     roots.push(input.root);

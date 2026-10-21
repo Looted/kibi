@@ -1,9 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { evaluateBundleGate, evaluateSkillGate } from "../scoring/gates";
-import {
-  passingBundleGateMatrix,
-  passingSkillMatrix,
-} from "./fixtures/scoring-gates-fixtures";
+import { evaluateSkillGate } from "../scoring/gates";
+import { passingSkillMatrix } from "./fixtures/scoring-gates-fixtures";
 
 afterEach(() => {
   if (process.exitCode === 1) process.exitCode = 0;
@@ -21,7 +18,7 @@ function withOutcome(
   };
 }
 
-describe("skillopt gates remaining ambiguous variants and bundle malformation", () => {
+describe("skillopt gates remaining ambiguous variants", () => {
   test("classifies baseline and one-shot ambiguous evidence", () => {
     const matrix = passingSkillMatrix();
     expect(evaluateSkillGate(withOutcome(matrix, "baseline")).reasons).toEqual([
@@ -29,19 +26,6 @@ describe("skillopt gates remaining ambiguous variants and bundle malformation", 
     ]);
     expect(evaluateSkillGate(withOutcome(matrix, "oneShot")).reasons).toEqual([
       "one-shot:ambiguous-evidence",
-    ]);
-  });
-
-  test("rejects a malformed bundle-gate cell", () => {
-    const matrix = passingBundleGateMatrix();
-    const malformed = {
-      ...matrix,
-      candidate: matrix.candidate.map((cell, index) =>
-        index === 0 ? { ...cell, score: Number.NaN } : cell,
-      ),
-    };
-    expect(evaluateBundleGate(malformed).reasons).toEqual([
-      "matrix:malformed-cell-evidence",
     ]);
   });
 });

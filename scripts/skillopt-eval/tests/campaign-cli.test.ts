@@ -194,39 +194,22 @@ describe("campaign CLI", () => {
     }
   });
 
-  test("keeps bundle packaging exclusive from individual candidates and evidence", async () => {
-    const parent = await mkdtemp(
-      join(tmpdir(), "campaign-cli-bundle-package-"),
-    );
+  test("rejects an assembled multi-skill manifest as a package candidate", async () => {
+    const parent = await mkdtemp(join(tmpdir(), "campaign-cli-package-"));
     try {
-      const bundlePath = join(parent, "bundle.json");
-      const individualPath = join(parent, "candidate.json");
+      const manifestPath = join(parent, "assembled.json");
       await writeFile(
-        bundlePath,
+        manifestPath,
         JSON.stringify({ artifactType: "skillopt-bundle-manifest" }),
         "utf8",
       );
-      await writeFile(individualPath, "{}", "utf8");
       expect(
         await campaignMain([
           "package",
           "--artifact-root",
-          join(parent, "mixed-artifacts"),
+          join(parent, "artifacts"),
           "--candidate-manifest",
-          bundlePath,
-          "--candidate-manifest",
-          individualPath,
-        ]),
-      ).toBe(2);
-      expect(
-        await campaignMain([
-          "package",
-          "--artifact-root",
-          join(parent, "evidence-artifacts"),
-          "--candidate-manifest",
-          bundlePath,
-          "--evaluation",
-          join(parent, "evaluation.json"),
+          manifestPath,
         ]),
       ).toBe(1);
     } finally {

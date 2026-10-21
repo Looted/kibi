@@ -35,7 +35,7 @@ const TaskDataSchema = z
 const TaskSpecObjectSchema = z
   .object({
     id: z.string().regex(/^[a-z0-9-]+$/),
-    skill: z.enum([...CANONICAL_SKILLS, "bundle"]),
+    skill: z.enum(CANONICAL_SKILLS),
     family: z.string().regex(/^[a-z0-9-]+$/),
     split: SplitSchema,
     fixtureSeed: Sha256Schema,

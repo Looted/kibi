@@ -69,7 +69,6 @@ export const HeldOutTerminalReceiptSchema = z
       .object({
         predicate: z.enum(["eligible", "HELD_OUT_MATRIX_INELIGIBLE"]),
         skill: GateSchema,
-        bundle: GateSchema,
       })
       .strict(),
   })
