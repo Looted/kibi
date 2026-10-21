@@ -163,6 +163,21 @@ const ADVISOR_READ_TOOLS = [
   "kb_model_requirement",
 ] as const;
 
+// kibi-usage teaches `kb_model` mode `requirement` for strict scalar clauses
+// and typed-rule previews only; ground predicate, observation and ontology-gap
+// cases are modeled with the semantic advisor and predicate suggestions.
+const MODEL_REQUIREMENT_LANES: ReadonlySet<string> = new Set([
+  "strict_property",
+  "rule",
+]);
+
+function predicateReadTools(task: FixtureTaskSpec): readonly string[] {
+  const lane = predicateCaseById(task.id).privateExpectation.expectedLane;
+  return MODEL_REQUIREMENT_LANES.has(lane)
+    ? ADVISOR_READ_TOOLS
+    : ADVISOR_READ_TOOLS.filter((tool) => tool !== "kb_model_requirement");
+}
+
 const COORDINATE_REPAIR_CALLS = [
   "kb_search",
   "kb_query",
@@ -183,7 +198,7 @@ function requiredTools(task: FixtureTaskSpec): readonly string[] {
     return [...COORDINATE_REPAIR_CALLS];
   }
   if (isPredicateObjective(objective)) {
-    return [...ADVISOR_READ_TOOLS, "kb_upsert", "kb_check"];
+    return [...predicateReadTools(task), "kb_upsert", "kb_check"];
   }
   if (objective === "append_only_contract_drift") {
     return [

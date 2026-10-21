@@ -622,6 +622,7 @@ export async function setupSeededFreshKb(
     ].join("\n"),
     "utf8",
   );
+  await writeDeclaredPredicateSchemas(workspaceTarget);
   // Sync discovers tracked source files. Commit the evaluator-owned seed before
   // importing it so the branch snapshot contains the two authored entities.
   await stageCommitAll(workspaceTarget);
@@ -635,6 +636,114 @@ export async function setupSeededFreshKb(
     return;
   }
   await expectOnlyMissingSymbolCoverage(workspaceTarget, cliRoot);
+}
+
+const PREDICATE_CLAIM_PATH = "predicate-claim.json";
+const SAFE_SCHEMA_ID = /^FACT-[A-Z0-9][A-Z0-9-]*$/;
+const SAFE_SCHEMA_TOKEN = /^[a-z][a-z0-9_]*$/;
+
+type DeclaredPredicateSchema = Readonly<{
+  id: string;
+  predicateName: string;
+  argumentNames: readonly string[];
+  argumentTypes: readonly string[];
+}>;
+
+function declaredPredicateSchemas(
+  claim: unknown,
+): readonly DeclaredPredicateSchema[] {
+  const schemas =
+    claim !== null && typeof claim === "object"
+      ? (claim as { publicSchema?: { projectLocalSchemas?: unknown } })
+          .publicSchema?.projectLocalSchemas
+      : undefined;
+  if (schemas === undefined) return [];
+  if (!Array.isArray(schemas)) {
+    throw new FixtureSetupError(
+      `${PREDICATE_CLAIM_PATH} projectLocalSchemas must be a list`,
+    );
+  }
+  return schemas.map((schema): DeclaredPredicateSchema => {
+    const entry = schema as Partial<
+      Record<keyof DeclaredPredicateSchema, unknown>
+    >;
+    const names = entry.argumentNames;
+    const types = entry.argumentTypes;
+    const tokens = (value: unknown): value is string[] =>
+      Array.isArray(value) &&
+      value.length > 0 &&
+      value.every(
+        (token) => typeof token === "string" && SAFE_SCHEMA_TOKEN.test(token),
+      );
+    if (
+      typeof entry.id !== "string" ||
+      !SAFE_SCHEMA_ID.test(entry.id) ||
+      typeof entry.predicateName !== "string" ||
+      !SAFE_SCHEMA_TOKEN.test(entry.predicateName) ||
+      !tokens(names) ||
+      !tokens(types) ||
+      names.length !== types.length
+    ) {
+      throw new FixtureSetupError(
+        `${PREDICATE_CLAIM_PATH} declares a malformed project-local schema`,
+      );
+    }
+    return {
+      id: entry.id,
+      predicateName: entry.predicateName,
+      argumentNames: names,
+      argumentTypes: types,
+    };
+  });
+}
+
+/**
+ * Predicate-modeling tasks publish their approved project-local schemas in
+ * predicate-claim.json. The project those tasks describe already holds those
+ * schemas, so the seed authors each one as a predicate_schema fact with the
+ * declared name, arguments and types.
+ */
+// implements REQ-skillopt-predicate-first-requirements
+export async function writeDeclaredPredicateSchemas(
+  workspaceTarget: string,
+): Promise<readonly string[]> {
+  let claimText: string;
+  try {
+    claimText = await readFile(
+      join(workspaceTarget, PREDICATE_CLAIM_PATH),
+      "utf8",
+    );
+  } catch {
+    return [];
+  }
+  const schemas = declaredPredicateSchemas(JSON.parse(claimText));
+  if (schemas.length === 0) return [];
+  await mkdir(join(workspaceTarget, ".kb", "facts"), {
+    recursive: true,
+    mode: 0o700,
+  });
+  for (const schema of schemas) {
+    await writeFile(
+      join(workspaceTarget, ".kb", "facts", `${schema.id}.md`),
+      [
+        "---",
+        `id: ${schema.id}`,
+        `title: ${schema.predicateName} predicate schema`,
+        "status: active",
+        "fact_kind: predicate_schema",
+        `predicate_name: ${schema.predicateName}`,
+        `predicate_arity: ${schema.argumentNames.length}`,
+        `argument_names: [${schema.argumentNames.join(", ")}]`,
+        `argument_types: [${schema.argumentTypes.join(", ")}]`,
+        "---",
+        "",
+        `Approved project-local predicate schema declared by the task as ${schema.predicateName}(${schema.argumentNames.join(", ")}).`,
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+  }
+  return schemas.map((schema) => schema.id);
 }
 
 const SEEDED_SYMBOL_ID = "SYM-SETUP-FIXTURE";

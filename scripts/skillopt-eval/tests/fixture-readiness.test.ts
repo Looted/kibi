@@ -241,6 +241,25 @@ async function stagedWorkspace(
   return { workspace, cliRoot };
 }
 
+/** The public predicate claim a development fixture's workspace receives. */
+async function stagedWorkspaceClaim(
+  fixture: ReturnType<typeof developmentFixture>,
+): Promise<Readonly<{ claimText: string }>> {
+  const root = await mkdtemp(join(tmpdir(), "skillopt-claim-"));
+  roots.push(root);
+  writePublicWorkspace({
+    root,
+    task: parsePublicTaskSpec(fixture.task),
+    canonicalSkillRoot: resolve(
+      import.meta.dir,
+      "../../../packages/cli/src/public/skills",
+    ),
+  });
+  return {
+    claimText: await readFile(join(root, "predicate-claim.json"), "utf8"),
+  };
+}
+
 /** Runs one CLI route with the environment the final-state verifier uses. */
 async function verifierCli(
   workspace: string,
@@ -553,3 +572,34 @@ test("executable coverage fixture credits only an agent-applied coverage link", 
     proofState: expectation.expectedProofState,
   });
 }, 300_000);
+
+// The development predicate case publishes an approved project-local schema;
+// the seeded project it describes must already hold that schema.
+test("predicate fixture seeds its declared project-local schema", async () => {
+  const fixture = developmentFixture("kibi-usage", "fact-predicate-modeling");
+  const claim = JSON.parse((await stagedWorkspaceClaim(fixture)).claimText) as {
+    publicSchema: {
+      projectLocalSchemas: {
+        id: string;
+        predicateName: string;
+        argumentNames: string[];
+        argumentTypes: string[];
+      }[];
+    };
+  };
+  const declared = claim.publicSchema.projectLocalSchemas;
+  expect(declared.length).toBeGreaterThan(0);
+  const { workspace, cliRoot } = await stagedWorkspace("predicate", fixture);
+  for (const schema of declared) {
+    const read = await verifierCli(
+      workspace,
+      cliRoot,
+      ["query", "--input", "-"],
+      JSON.stringify({ type: "fact", id: schema.id }),
+    );
+    expect(JSON.stringify(read)).toContain(`"fact_kind":"predicate_schema"`);
+    expect(JSON.stringify(read)).toContain(
+      `"predicate_name":"${schema.predicateName}"`,
+    );
+  }
+}, 180_000);

@@ -131,7 +131,11 @@ describe("buildPrivateManifest remaining required-tool and workflow branches", (
       "kb_query",
       "kb_semantic_advisor",
       "kb_suggest_predicates",
-      "kb_model_requirement",
+      ...(["strict_property", "rule"].includes(
+        manifest.predicateExpectation?.expectedLane ?? "",
+      )
+        ? ["kb_model_requirement"]
+        : []),
       "kb_upsert",
       "kb_check",
     ]);
