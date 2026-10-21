@@ -22,14 +22,16 @@
     ]
   },
   "tool": {
-    "description": "Run bulk missing/present relationship analysis over KB entities. Use for questions like which requirements lack scenarios or tests. No mutation side effects.",
+    "description": "List KB entities by the relationships they lack or have. Use for questions like which requirements lack scenarios or tests; all filters must match, and a relationship counts in either direction. Use kb_coverage instead for proof status and repair plans, and kb_check for rule violations. No mutation side effects.",
     "inputSchema": {
       "properties": {
         "limit": {
           "default": 100,
+          "description": "Maximum rows to return; count reports the full total.",
           "type": "integer"
         },
         "missingRelationships": {
+          "description": "Relationship types the entity must have none of, in either direction, for example specified_by or verified_by. verified_by and validates satisfy each other.",
           "items": {
             "type": "string"
           },
@@ -37,24 +39,29 @@
         },
         "offset": {
           "default": 0,
+          "description": "Zero-based row offset for pagination.",
           "type": "integer"
         },
         "presentRelationships": {
+          "description": "Relationship types the entity must have at least one of each, in either direction.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "sourceFile": {
+          "description": "Keep entities whose source path contains this substring.",
           "type": "string"
         },
         "tags": {
+          "description": "Keep entities carrying any of these metadata tags. Bootstrap provenance stubs appear in rows only when this names bootstrap:provenance-stub.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "type": {
+          "description": "Only report entities of this type. Omit for all types.",
           "enum": [
             "req",
             "scenario",

@@ -5,13 +5,15 @@ export const prepareImpactReviewSpec = {
   name: "kb_prepare_impact_review",
   cliName: "prepare-impact-review",
   description:
-    "Prepare complete content-bound impact-review authoring inputs from the current staged snapshot or explicitly selected immutable Git commits. Returns strict reviewer schemas and an unauthored template; it does not decide, approve, sign, stage, or prove the review.",
+    "Prepare complete content-bound impact-review authoring inputs from the current staged snapshot or explicitly selected immutable Git commits. Use it when kb_check reports that changed files need an impact review; it does not plan KB changes. Returns strict reviewer schemas and an unauthored template; it does not decide, approve, sign, stage, or prove the review.",
   businessInputSchema: {
     type: "object",
     additionalProperties: false,
     required: ["scope"],
     properties: {
       scope: {
+        description:
+          'What to review: {"kind":"staged"} for the staged snapshot, or {"kind":"diff","baseCommit":"<sha>","headCommit":"<sha>"} with full commit hashes.',
         oneOf: [
           {
             type: "object",

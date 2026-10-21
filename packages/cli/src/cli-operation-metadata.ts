@@ -50,25 +50,25 @@ export const CLI_OPERATION_METADATA = [
     name: "kb_status",
     cliName: "status",
     description:
-      "Report current branch, KB snapshot, freshness metadata, schema status, and a typed kibi.migration-plan.v2 action graph. Read-only status inspection with no mutation side effects; damaged stores are diagnosed without starting the engine.",
+      "Report current branch, KB snapshot, freshness metadata, schema status, and a typed kibi.migration-plan.v2 action graph. Call it first to orient on a branch or after a failed call; use kb_check for validation findings and kb_coverage for proof status. Read-only status inspection with no mutation side effects; damaged stores are diagnosed without starting the engine.",
   },
   {
     name: "kb_find_gaps",
     cliName: "find-gaps",
     description:
-      "Run bulk missing/present relationship analysis over KB entities. Use for questions like which requirements lack scenarios or tests. No mutation side effects.",
+      "List KB entities by the relationships they lack or have. Use for questions like which requirements lack scenarios or tests; all filters must match, and a relationship counts in either direction. Use kb_coverage instead for proof status and repair plans, and kb_check for rule violations. No mutation side effects.",
   },
   {
     name: "kb_coverage",
     cliName: "coverage",
     description:
-      "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Reports include the compatible repair plan plus typed kibi.migration-plan.v2 actions; semantic and E2E actions remain review/execution work. Paginated plans identify incomplete scope and no mutation occurs.",
+      "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Use it to ask which requirements are proven and what blocks the rest; use kb_find_gaps for a plain list of missing links and kb_check for rule violations. Reports include the compatible repair plan plus typed kibi.migration-plan.v2 actions; semantic and E2E actions remain review/execution work. Paginated plans identify incomplete scope and no mutation occurs.",
   },
   {
     name: "kb_graph",
     cliName: "graph",
     description:
-      "Run bounded graph traversal from one or more seed IDs across curated relationship types. No mutation side effects.",
+      "Run bounded graph traversal from one or more seed IDs across curated relationship types and return the nodes and edges reached. Use it to follow links from IDs you already have, such as a requirement to its scenarios and tests or a symbol to the requirements it implements; use kb_query to find entities by filter and kb_search to ask a question. Traversal stops at depth, maxNodes or maxEdges and then sets truncated. No mutation side effects.",
   },
   {
     name: "kb_semantic_advisor",
@@ -92,13 +92,13 @@ export const CLI_OPERATION_METADATA = [
     name: "kb_model",
     cliName: "model",
     description:
-      "Turn requirement prose into checkable structure without writing the KB. mode:analyze returns the semantic advisor receipt: the clause ledger, what is grounded, what is ambiguous and suggested modeling (pass clauses for compound prose and optional typed kibi.logic.v1 interpretations). mode:requirement converts one claim (subjectKey, propertyKey, operator, value, or typed logic) into a strict-lane write set and applyPlan. mode:predicates ranks ontology predicate schemas and returns an applicable predicate-fact plan only for reviewed bindings, otherwise an ontology-gap observation. With requirementId, mode:predicates also returns a hash-bound plan (fact write plus requires_predicate link) for kb_apply_plan, whose contradictionAnalysis is the what-if over the current KB; other returned plans apply with kb_upsert, and kb_upsert dryRun with plannedFacts previews a requirement before its facts exist.",
+      "Turn requirement prose into checkable structure without writing the KB. Use it for one requirement's prose; to plan a whole change request use kb_compile_intent. mode:analyze returns the semantic advisor receipt: the clause ledger, what is grounded, what is ambiguous and suggested modeling (pass clauses for compound prose and optional typed kibi.logic.v1 interpretations). mode:requirement converts one claim (subjectKey, propertyKey, operator, value, or typed logic) into a strict-lane write set and applyPlan. mode:predicates ranks ontology predicate schemas and returns an applicable predicate-fact plan only for reviewed bindings, otherwise an ontology-gap observation. With requirementId, mode:predicates also returns a hash-bound plan (fact write plus requires_predicate link) for kb_apply_plan, whose contradictionAnalysis is the what-if over the current KB; other returned plans apply with kb_upsert, and kb_upsert dryRun with plannedFacts previews a requirement before its facts exist.",
   },
   {
     name: "kb_plan_bootstrap",
     cliName: "plan-bootstrap",
     description:
-      "Generate a deterministic, snapshot-bound kibi.bootstrap-plan.v1 for repository onboarding. Read-only analysis of the repository plus any declared knowledge sources and cited intent claims returns evidence, bounded context questions, exact dependency-ordered actions, a canonical plan hash, and no mutation side effects.",
+      "Generate a deterministic, snapshot-bound kibi.bootstrap-plan.v1 for repository onboarding. Use it only to onboard a repository whose KB is empty or incomplete (the kibi-bootstrap skill drives it); for a change in an onboarded project use kb_compile_intent. Read-only analysis of the repository plus any declared knowledge sources and cited intent claims returns evidence, bounded context questions, exact dependency-ordered actions, a canonical plan hash, and no mutation side effects.",
   },
   {
     name: "kb_validate_upsert",
@@ -128,7 +128,7 @@ export const CLI_OPERATION_METADATA = [
     name: "kb_prepare_impact_review",
     cliName: "prepare-impact-review",
     description:
-      "Prepare complete content-bound impact-review authoring inputs from the current staged snapshot or explicitly selected immutable Git commits. Returns strict reviewer schemas and an unauthored template; it does not decide, approve, sign, stage, or prove the review.",
+      "Prepare complete content-bound impact-review authoring inputs from the current staged snapshot or explicitly selected immutable Git commits. Use it when kb_check reports that changed files need an impact review; it does not plan KB changes. Returns strict reviewer schemas and an unauthored template; it does not decide, approve, sign, stage, or prove the review.",
   },
   {
     name: "kb_sparql_remote",
@@ -140,7 +140,7 @@ export const CLI_OPERATION_METADATA = [
     name: "kb_compile_intent",
     cliName: "compile-intent",
     description:
-      "Compile complete change intent into a deterministic, snapshot-bound read-only plan. Reuses intent-aware discovery and semantic modeling, accounts for every proposition, reports contradiction witnesses, proposes traceability links, and emits dependency-ordered kb_upsert-style steps only for resolved typed claims. contradictionAnalysis.outcome is no_conflict only when the check could decide: an unmodeled proposition or a related current requirement without logic leaves it unresolved with reasons and reviewCandidates to compare and judge through conflictReviews. No mutation side effects.",
+      "Compile complete change intent into a deterministic, snapshot-bound read-only plan. Use it before editing code for a change request that may touch several requirements; use kb_model for one requirement's prose and kb_plan_bootstrap for first-time onboarding. Reuses intent-aware discovery and semantic modeling, accounts for every proposition, reports contradiction witnesses, proposes traceability links, and emits dependency-ordered kb_upsert-style steps only for resolved typed claims. contradictionAnalysis.outcome is no_conflict only when the check could decide: an unmodeled proposition or a related current requirement without logic leaves it unresolved with reasons and reviewCandidates to compare and judge through conflictReviews. No mutation side effects.",
   },
   {
     name: "kb_apply_plan",

@@ -104,7 +104,7 @@
     "tldr": "Seeded contract workspace is ready for parity extraction."
   },
   "tool": {
-    "description": "Generate a deterministic, snapshot-bound kibi.bootstrap-plan.v1 for repository onboarding. Read-only analysis of the repository plus any declared knowledge sources and cited intent claims returns evidence, bounded context questions, exact dependency-ordered actions, a canonical plan hash, and no mutation side effects.",
+    "description": "Generate a deterministic, snapshot-bound kibi.bootstrap-plan.v1 for repository onboarding. Use it only to onboard a repository whose KB is empty or incomplete (the kibi-bootstrap skill drives it); for a change in an onboarded project use kb_compile_intent. Read-only analysis of the repository plus any declared knowledge sources and cited intent claims returns evidence, bounded context questions, exact dependency-ordered actions, a canonical plan hash, and no mutation side effects.",
     "inputSchema": {
       "properties": {
         "bootstrapContext": {
