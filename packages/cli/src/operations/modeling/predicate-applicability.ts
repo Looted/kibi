@@ -378,6 +378,40 @@ function specificityEvidence(
   return Math.min(1, hits / Math.max(3, values.length / 2));
 }
 
+function nameTokens(name: string): readonly string[] {
+  return (name.toLowerCase().match(/[a-z0-9]+/g) ?? []).filter(
+    (token) => token.length > 2,
+  );
+}
+
+function claimMentions(text: string, token: string): boolean {
+  return new RegExp(`\\b${token}`, "i").test(text);
+}
+
+/**
+ * Names of an explicitly selected schema that the claim does not state: an
+ * argument name counts as stated when every word of it appears in the claim,
+ * the predicate name when any of its words does.
+ */
+function unstatedSchemaNames(
+  schema: PredicateSchemaCandidate,
+  text: string,
+): readonly string[] {
+  const predicateTokens = nameTokens(schema.predicate_name);
+  const missing = schema.argument_names.filter(
+    (name) => !nameTokens(name).every((token) => claimMentions(text, token)),
+  );
+  return predicateTokens.length > 0 &&
+    !predicateTokens.some((token) => claimMentions(text, token))
+    ? [schema.predicate_name, ...missing]
+    : missing;
+}
+
+export interface SemanticApplicabilityOptions {
+  /** The caller selected this schema by its exact ID (schemaId). */
+  readonly explicitSchema?: boolean;
+}
+
 export interface SemanticApplicability {
   readonly eligible: boolean;
   readonly reasons: readonly string[];
@@ -392,6 +426,7 @@ export interface SemanticApplicability {
 export function evaluateSemanticApplicability(
   ranked: RankedPredicateSchema,
   text: string,
+  options: SemanticApplicabilityOptions = {},
 ): SemanticApplicability {
   const schema = ranked.schema;
   const rule = INTENT_RULES[schema.predicate_name];
@@ -452,15 +487,31 @@ export function evaluateSemanticApplicability(
     );
   }
 
-  const score = round(
+  const computed = round(
     ranked.score * 0.42 +
       Math.min(1, positive) * 0.58 -
       Math.min(1, negative) * 0.46,
   );
+  // A schema the caller chose by ID whose predicate and every argument the
+  // claim names is reviewed evidence the lexical score cannot see, for example
+  // a project-local schema with no keywords. Contradictory cues above still
+  // reject it.
+  const unstated = options.explicitSchema
+    ? unstatedSchemaNames(schema, text)
+    : [];
+  const namedByClaim = options.explicitSchema === true && unstated.length === 0;
+  const score = namedByClaim
+    ? Math.max(computed, MIN_APPLICABILITY_SCORE)
+    : computed;
   if (score < MIN_APPLICABILITY_SCORE) {
     reasons.push(
       `applicability score ${score.toFixed(2)} is below conservative threshold ${MIN_APPLICABILITY_SCORE.toFixed(2)}`,
     );
+    if (unstated.length > 0) {
+      reasons.push(
+        `the claim does not name ${unstated.join(", ")} from the selected schema ${schema.predicate_name}`,
+      );
+    }
   }
   return {
     eligible: reasons.length === 0 && score >= MIN_APPLICABILITY_SCORE,
