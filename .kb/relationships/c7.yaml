@@ -202,3 +202,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-998edd5b4daf
+  - type: constrains
+    from: REQ-skillopt-host-neutral-optimization
+    to: FACT-subject-skillopt-host-neutral-optimization
+    created_at: 2026-10-21T11:05:29.685Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e61ddfba0994
+  - type: requires_property
+    from: REQ-skillopt-host-neutral-optimization
+    to: FACT-prop-skillopt-host-neutral-optimization-c01
+    created_at: 2026-10-21T11:05:29.713Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a356e702b84
+  - type: requires_property
+    from: REQ-skillopt-host-neutral-optimization
+    to: FACT-prop-skillopt-host-neutral-optimization-c02
+    created_at: 2026-10-21T11:05:29.728Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23537b8755b7
+  - type: requires_property
+    from: REQ-skillopt-host-neutral-optimization
+    to: FACT-prop-skillopt-host-neutral-optimization-c03
+    created_at: 2026-10-21T11:05:29.745Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-13e78c3a2d72
+  - type: requires_property
+    from: REQ-skillopt-host-neutral-optimization
+    to: FACT-prop-skillopt-host-neutral-optimization-c04
+    created_at: 2026-10-21T11:05:29.757Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e96de1208e1c
+  - type: requires_property
+    from: REQ-skillopt-host-neutral-optimization
+    to: FACT-prop-skillopt-host-neutral-optimization-c05
+    created_at: 2026-10-21T11:05:29.775Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-94028ea6a829
+  - type: requires_property
+    from: REQ-skillopt-host-neutral-optimization
+    to: FACT-prop-skillopt-host-neutral-optimization-c06
+    created_at: 2026-10-21T11:05:29.802Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9672e04360eb
+  - type: requires_property
+    from: REQ-skillopt-host-neutral-optimization
+    to: FACT-prop-skillopt-host-neutral-optimization-c07
+    created_at: 2026-10-21T11:05:29.832Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d2c99734a901
+  - type: requires_property
+    from: REQ-skillopt-host-neutral-optimization
+    to: FACT-prop-skillopt-host-neutral-optimization-c08
+    created_at: 2026-10-21T11:05:29.846Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4491929f45be
+  - type: supersedes
+    from: REQ-skillopt-host-neutral-optimization
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-21T11:05:40.363Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-22839d90c1e3
+  - type: specified_by
+    from: REQ-skillopt-host-neutral-optimization
+    to: SCEN-skillopt-host-neutral-optimization
+    created_at: 2026-10-21T11:05:40.397Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0fa4281a0c49

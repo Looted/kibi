@@ -202,3 +202,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a10ca02a0fe6
+  - type: implements
+    from: SYM-skillopt-host-registry
+    to: REQ-skillopt-operator-selected-harness
+    created_at: 2026-10-21T10:55:27.454Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-067d59776306
+  - type: covered_by
+    from: SYM-skillopt-host-registry
+    to: TEST-e2e-skillopt-host-neutral-optimization
+    created_at: 2026-10-21T10:55:27.473Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc17e99ef6e5
+  - type: covered_by
+    from: SYM-skillopt-host-registry
+    to: TEST-e2e-skillopt-claude-code-host
+    created_at: 2026-10-21T10:55:27.488Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32836da08f40

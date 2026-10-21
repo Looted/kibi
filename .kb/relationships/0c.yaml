@@ -279,3 +279,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4593aed9ce58
+  - type: implements
+    from: SYM-skillopt-campaign-evaluation-host
+    to: REQ-skillopt-host-neutral-optimization
+    created_at: 2026-10-21T10:54:53.999Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7adfc8a2cdf6
+  - type: covered_by
+    from: SYM-skillopt-campaign-evaluation-host
+    to: TEST-e2e-skillopt-host-neutral-optimization
+    created_at: 2026-10-21T10:54:54.034Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa2247d27a15
