@@ -103,11 +103,12 @@
     }
   },
   "tool": {
-    "description": "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Reports include the compatible repair plan plus typed kibi.migration-plan.v2 actions; semantic and E2E actions remain review/execution work. Paginated plans identify incomplete scope and no mutation occurs.",
+    "description": "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Use it to ask which requirements are proven and what blocks the rest; use kb_find_gaps for a plain list of missing links and kb_check for rule violations. Reports include the compatible repair plan plus typed kibi.migration-plan.v2 actions; semantic and E2E actions remain review/execution work. Paginated plans identify incomplete scope and no mutation occurs.",
     "inputSchema": {
       "properties": {
         "by": {
           "default": "req",
+          "description": "Report shape: req gives per-requirement proof status and a repair plan, symbol gives per-symbol ownership coverage, type gives counts per entity type.",
           "enum": ["req", "symbol", "type"],
           "type": "string"
         },
@@ -118,14 +119,17 @@
         },
         "includePassing": {
           "default": false,
+          "description": "Also return rows that are already proven or not applicable. By default only rows that still need repair are returned.",
           "type": "boolean"
         },
         "includeTransitive": {
           "default": true,
+          "description": "Count symbol coverage reached transitively through linked entities, not only direct links.",
           "type": "boolean"
         },
         "limit": {
           "default": 100,
+          "description": "Maximum rows to return. When the repair plan reports scope.complete false, rerun with offset 0 and a larger limit.",
           "type": "integer"
         },
         "migrationLimit": {
@@ -157,6 +161,7 @@
         },
         "offset": {
           "default": 0,
+          "description": "Zero-based row offset for pagination.",
           "type": "integer"
         },
         "statuses": {
@@ -168,6 +173,7 @@
           "type": "array"
         },
         "tags": {
+          "description": "Keep rows for entities carrying any of these metadata tags.",
           "items": {
             "type": "string"
           },

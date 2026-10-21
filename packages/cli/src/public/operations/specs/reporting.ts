@@ -173,20 +173,47 @@ export const findGapsSpec = {
   name: "kb_find_gaps",
   cliName: "find-gaps",
   description:
-    "Run bulk missing/present relationship analysis over KB entities. Use for questions like which requirements lack scenarios or tests. No mutation side effects.",
+    "List KB entities by the relationships they lack or have. Use for questions like which requirements lack scenarios or tests; all filters must match, and a relationship counts in either direction. Use kb_coverage instead for proof status and repair plans, and kb_check for rule violations. No mutation side effects.",
   businessInputSchema: {
     type: "object",
     properties: {
       type: {
         type: "string",
         enum: ENTITY_TYPES,
+        description: "Only report entities of this type. Omit for all types.",
       },
-      missingRelationships: { type: "array", items: { type: "string" } },
-      presentRelationships: { type: "array", items: { type: "string" } },
-      tags: { type: "array", items: { type: "string" } },
-      sourceFile: { type: "string" },
-      limit: { type: "integer", default: 100 },
-      offset: { type: "integer", default: 0 },
+      missingRelationships: {
+        type: "array",
+        items: { type: "string" },
+        description:
+          "Relationship types the entity must have none of, in either direction, for example specified_by or verified_by. verified_by and validates satisfy each other.",
+      },
+      presentRelationships: {
+        type: "array",
+        items: { type: "string" },
+        description:
+          "Relationship types the entity must have at least one of each, in either direction.",
+      },
+      tags: {
+        type: "array",
+        items: { type: "string" },
+        description:
+          "Keep entities carrying any of these metadata tags. Bootstrap provenance stubs appear in rows only when this names bootstrap:provenance-stub.",
+      },
+      sourceFile: {
+        type: "string",
+        description: "Keep entities whose source path contains this substring.",
+      },
+      limit: {
+        type: "integer",
+        default: 100,
+        description: "Maximum rows to return; count reports the full total.",
+      },
+      offset: {
+        type: "integer",
+        default: 0,
+        description: "Zero-based row offset for pagination.",
+      },
     },
   },
   requiresProlog: true,
@@ -425,13 +452,29 @@ export const coverageSpec = {
   name: "kb_coverage",
   cliName: "coverage",
   description:
-    "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Reports include the compatible repair plan plus typed kibi.migration-plan.v2 actions; semantic and E2E actions remain review/execution work. Paginated plans identify incomplete scope and no mutation occurs.",
+    "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Use it to ask which requirements are proven and what blocks the rest; use kb_find_gaps for a plain list of missing links and kb_check for rule violations. Reports include the compatible repair plan plus typed kibi.migration-plan.v2 actions; semantic and E2E actions remain review/execution work. Paginated plans identify incomplete scope and no mutation occurs.",
   businessInputSchema: {
     type: "object",
     properties: {
-      by: { type: "string", enum: ["req", "symbol", "type"], default: "req" },
-      tags: { type: "array", items: { type: "string" } },
-      includePassing: { type: "boolean", default: false },
+      by: {
+        type: "string",
+        enum: ["req", "symbol", "type"],
+        default: "req",
+        description:
+          "Report shape: req gives per-requirement proof status and a repair plan, symbol gives per-symbol ownership coverage, type gives counts per entity type.",
+      },
+      tags: {
+        type: "array",
+        items: { type: "string" },
+        description:
+          "Keep rows for entities carrying any of these metadata tags.",
+      },
+      includePassing: {
+        type: "boolean",
+        default: false,
+        description:
+          "Also return rows that are already proven or not applicable. By default only rows that still need repair are returned.",
+      },
       statuses: {
         type: "array",
         items: {
@@ -441,9 +484,23 @@ export const coverageSpec = {
         description:
           "Requirement proof-status filter (req mode): include only rows whose proofStatus is listed. Selecting statuses implies include-passing; not_applicable rows carry their typed applicability reason in proofStages.applicability.reason. The summary always reflects the whole KB.",
       },
-      includeTransitive: { type: "boolean", default: true },
-      limit: { type: "integer", default: 100 },
-      offset: { type: "integer", default: 0 },
+      includeTransitive: {
+        type: "boolean",
+        default: true,
+        description:
+          "Count symbol coverage reached transitively through linked entities, not only direct links.",
+      },
+      limit: {
+        type: "integer",
+        default: 100,
+        description:
+          "Maximum rows to return. When the repair plan reports scope.complete false, rerun with offset 0 and a larger limit.",
+      },
+      offset: {
+        type: "integer",
+        default: 0,
+        description: "Zero-based row offset for pagination.",
+      },
       includeMigrationPreview: {
         type: "boolean",
         default: false,
@@ -526,22 +583,53 @@ export const graphSpec = {
   name: "kb_graph",
   cliName: "graph",
   description:
-    "Run bounded graph traversal from one or more seed IDs across curated relationship types. No mutation side effects.",
+    "Run bounded graph traversal from one or more seed IDs across curated relationship types and return the nodes and edges reached. Use it to follow links from IDs you already have, such as a requirement to its scenarios and tests or a symbol to the requirements it implements; use kb_query to find entities by filter and kb_search to ask a question. Traversal stops at depth, maxNodes or maxEdges and then sets truncated. No mutation side effects.",
   businessInputSchema: {
     type: "object",
     required: ["seedIds"],
     properties: {
-      seedIds: { type: "array", items: { type: "string" } },
-      relationships: { type: "array", items: { type: "string" } },
+      seedIds: {
+        type: "array",
+        items: { type: "string" },
+        description:
+          "Entity IDs to start from, for example REQ-... or SCEN-.... Seeds are always returned as nodes.",
+      },
+      relationships: {
+        type: "array",
+        items: { type: "string" },
+        description:
+          "Relationship types to follow, for example specified_by, verified_by or implements. Omit to follow every relationship type.",
+      },
       direction: {
         type: "string",
         enum: ["outgoing", "incoming", "both"],
         default: "outgoing",
+        description:
+          "outgoing follows links from each node, incoming follows links pointing at it, both does either.",
       },
-      depth: { type: "integer", default: 1, minimum: 1, maximum: 5 },
-      entityTypes: { type: "array", items: { type: "string" } },
-      maxNodes: { type: "integer", default: 200 },
-      maxEdges: { type: "integer", default: 500 },
+      depth: {
+        type: "integer",
+        default: 1,
+        minimum: 1,
+        maximum: 5,
+        description: "Number of hops from the seeds.",
+      },
+      entityTypes: {
+        type: "array",
+        items: { type: "string" },
+        description:
+          "Keep only nodes of these types (req, scenario, test, adr, flag, event, symbol, fact) in the result, and the edges between them. Traversal still passes through other types.",
+      },
+      maxNodes: {
+        type: "integer",
+        default: 200,
+        description: "Stop and set truncated once this many nodes are reached.",
+      },
+      maxEdges: {
+        type: "integer",
+        default: 500,
+        description: "Stop and set truncated once this many edges are reached.",
+      },
     },
   },
   requiresProlog: true,

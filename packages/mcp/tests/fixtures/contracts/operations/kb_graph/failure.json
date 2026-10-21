@@ -14,21 +14,24 @@
     "seedIds": ["REQ-CONTRACT-001"]
   },
   "tool": {
-    "description": "Run bounded graph traversal from one or more seed IDs across curated relationship types. No mutation side effects.",
+    "description": "Run bounded graph traversal from one or more seed IDs across curated relationship types and return the nodes and edges reached. Use it to follow links from IDs you already have, such as a requirement to its scenarios and tests or a symbol to the requirements it implements; use kb_query to find entities by filter and kb_search to ask a question. Traversal stops at depth, maxNodes or maxEdges and then sets truncated. No mutation side effects.",
     "inputSchema": {
       "properties": {
         "depth": {
           "default": 1,
+          "description": "Number of hops from the seeds.",
           "maximum": 5,
           "minimum": 1,
           "type": "integer"
         },
         "direction": {
           "default": "outgoing",
+          "description": "outgoing follows links from each node, incoming follows links pointing at it, both does either.",
           "enum": ["outgoing", "incoming", "both"],
           "type": "string"
         },
         "entityTypes": {
+          "description": "Keep only nodes of these types (req, scenario, test, adr, flag, event, symbol, fact) in the result, and the edges between them. Traversal still passes through other types.",
           "items": {
             "type": "string"
           },
@@ -36,19 +39,23 @@
         },
         "maxEdges": {
           "default": 500,
+          "description": "Stop and set truncated once this many edges are reached.",
           "type": "integer"
         },
         "maxNodes": {
           "default": 200,
+          "description": "Stop and set truncated once this many nodes are reached.",
           "type": "integer"
         },
         "relationships": {
+          "description": "Relationship types to follow, for example specified_by, verified_by or implements. Omit to follow every relationship type.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "seedIds": {
+          "description": "Entity IDs to start from, for example REQ-... or SCEN-.... Seeds are always returned as nodes.",
           "items": {
             "type": "string"
           },
