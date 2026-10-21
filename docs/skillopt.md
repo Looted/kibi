@@ -183,11 +183,38 @@ bun run scripts/skillopt-eval/operator.ts optimize --skill kibi-usage --max-step
 The prices above are placeholders. Use the published list prices for the models
 you configure.
 
+### Choosing the agent harness
+
+Every SkillOpt run uses one agent harness ("host") for preflight, the
+capability canary, the optimizer step and target cells. Pick it per run with
+`--host codex|claude-code` on any `campaign.ts` command, on `cli.ts` and
+`operator.ts`, and on `host-cell-smoke.ts`. The flag wins over
+`KIBI_SKILLOPT_HOST`, which stays a fallback; with neither set the host is
+Codex. An unknown name exits with status 2 before any work. The resolved
+host is passed to child processes through `KIBI_SKILLOPT_HOST`, so an
+inherited value cannot override the flag. Both hosts are registered in one
+table, `runtime/skillopt-host-registry.ts`, which says how each one launches
+a cell, stages its runtime and replaces campaign steps.
+
+Each run records the host and its CLI version (`host: { id, cliVersion }`):
+in `campaign.json`, in the evaluation `context`, and in the package receipt.
+The host is not part of the cohort hash. `confirm` refuses a previous
+evaluation produced on another host with `evaluation_host_mismatch`, and
+`package --evaluation` refuses one with `package_evidence_host_mismatch`.
+Both checks run before the artifact store is opened or any paid preparation
+starts. Evaluations written before the host was recorded are attributed
+through the CLI version in their run's `preflight.json`. When neither record
+exists, the evaluation is refused with `evaluation_host_unrecorded`.
+
+The `cli.ts`/`operator.ts` workflow (preflight, smoke, prepare, optimize,
+evaluate, run, resume) and its run lock stay Codex-only. On another host,
+those commands exit with status 2 before preflight.
+
 ### Claude Code host
 
-Set `KIBI_SKILLOPT_HOST=claude-code` to run campaign `revise`, `compose`,
-`evaluate` and `confirm` through the Claude Code CLI instead of Codex (the
-default). The model variables above then take Claude model ids, for example
+Run campaign `revise`, `compose`, `evaluate` and `confirm` with
+`--host claude-code` to use the Claude Code CLI instead of Codex. The model
+variables above then take Claude model ids, for example
 `claude-opus-5-5` as the optimizer and `claude-haiku-5-5` as the target, and
 both need entries in `KIBI_SKILLOPT_MODEL_PRICING`. The capability canary makes
 one structured-output call per role. The `revise` optimizer call runs with no
