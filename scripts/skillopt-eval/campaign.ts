@@ -16,9 +16,14 @@ import {
   runReviseCampaign,
 } from "./campaign-workflow";
 import { CANONICAL_SKILLS, type CanonicalSkill } from "./catalog";
-import { hostCampaignDependencies } from "./claude-code-campaign";
-import { ClaudeHostConfigError } from "./runtime/claude-code-host";
 import { runBoundedProcess } from "./runtime/process";
+import {
+  SKILLOPT_HOSTS,
+  SkillOptHostSelectionError,
+  envWithSkillOptHost,
+  resolveSkillOptHost,
+} from "./runtime/skillopt-host";
+import { skillOptHostImplementation } from "./runtime/skillopt-host-registry";
 
 const COMMANDS = new Set([
   "revise",
@@ -42,6 +47,7 @@ const VALUE_FLAGS = new Set([
   "--evaluation",
   "--repeats",
   "--max-target-episodes",
+  "--host",
 ]);
 
 const InsertionFileSchema = z
@@ -62,7 +68,7 @@ export class CampaignCliError extends Error {
 function usage(): string {
   return [
     "Usage: campaign.ts <revise|compose|evaluate|confirm|package> --artifact-root PATH [options]",
-    "Common: --source-root PATH",
+    `Common: --source-root PATH --host ${SKILLOPT_HOSTS.join("|")} (default: KIBI_SKILLOPT_HOST, else codex)`,
     "revise: --skill SKILL --objective-file FILE --heading HEADING --allow-paid [--feedback FILE]",
     "compose: --skill SKILL (--body-file FILE [--description-file FILE] | --insertion-file FILE [--insertion-file FILE ...])",
     "evaluate: --skill SKILL --candidate-manifest FILE [1..3] --max-target-episodes N --repeats 1..3 --allow-paid",
@@ -198,8 +204,17 @@ export async function campaignMain(
 ): Promise<number> {
   try {
     const args = parseArgs(argv);
+    // The harness is chosen per run: --host wins over KIBI_SKILLOPT_HOST and
+    // Codex is the default. It is resolved before any artifact or paid work
+    // and pinned in the environment every step and cell inherits.
+    const host = resolveSkillOptHost({
+      requested: optionalValue(args, "--host"),
+      env: process.env,
+    });
+    const env = envWithSkillOptHost(process.env, host);
     const dependencies =
-      explicitDependencies ?? hostCampaignDependencies(process.env);
+      explicitDependencies ??
+      skillOptHostImplementation(host).campaignDependencies(env);
     const source = await sourceRoot(args);
     const artifact = resolve(value(args, "--artifact-root"));
     if (args.command === "revise") {
@@ -217,6 +232,8 @@ export async function campaignMain(
         ...(feedbackPath === undefined
           ? {}
           : { feedback: await readPublicFeedback(feedbackPath) }),
+        env,
+        host,
         dependencies,
       });
       process.stdout.write(
@@ -250,6 +267,7 @@ export async function campaignMain(
               replacementDescription:
                 await readDescriptionFile(descriptionFile),
             }),
+        host,
         dependencies,
       });
       process.stdout.write(
@@ -280,6 +298,8 @@ export async function campaignMain(
           256,
         ),
         allowPaid: args.allowPaid,
+        env,
+        host,
         dependencies,
       });
       process.stdout.write(
@@ -303,6 +323,8 @@ export async function campaignMain(
           256,
         ),
         allowPaid: args.allowPaid,
+        env,
+        host,
         dependencies,
       });
       process.stdout.write(
@@ -318,6 +340,8 @@ export async function campaignMain(
       ...(evaluationPath === undefined
         ? {}
         : { evaluation: await readCompleteCampaignEvaluation(evaluationPath) }),
+      env,
+      host,
       dependencies,
     });
     process.stdout.write(
@@ -334,7 +358,7 @@ export async function campaignMain(
   } catch (error) {
     if (
       error instanceof CampaignCliError ||
-      error instanceof ClaudeHostConfigError ||
+      error instanceof SkillOptHostSelectionError ||
       error instanceof CampaignArtifactError ||
       error instanceof z.ZodError
     ) {
@@ -342,7 +366,7 @@ export async function campaignMain(
         `${error instanceof Error ? error.message : String(error)}\n`,
       );
       return error instanceof CampaignCliError ||
-        error instanceof ClaudeHostConfigError
+        error instanceof SkillOptHostSelectionError
         ? 2
         : 1;
     }

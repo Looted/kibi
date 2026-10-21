@@ -1398,3 +1398,179 @@ describe("campaign described candidates", () => {
     }
   });
 });
+
+describe("campaign harness selection", () => {
+  function reseal<T extends { contentHash: string }>(
+    evaluation: T,
+    patch: (body: Omit<T, "contentHash">) => Omit<T, "contentHash">,
+  ): T {
+    const { contentHash: _contentHash, ...body } = evaluation;
+    const patched = patch(body);
+    return {
+      ...patched,
+      contentHash: contractHash(JsonValueSchema.parse(patched)),
+    } as T;
+  }
+
+  test("records the run's host and its preflight CLI version in every campaign artifact", async () => {
+    const output = await tempArtifact("host-record");
+    const fake = dependencies();
+    try {
+      const evaluation = await runEvaluateCampaign({
+        sourceRoot: process.cwd(),
+        artifactRoot: output.root,
+        skill: "kibi-usage",
+        manifests: [candidateManifest()],
+        repeats: 1,
+        maxTargetEpisodes: 10,
+        allowPaid: true,
+        runId: "host-record-run",
+        host: "claude-code",
+        dependencies: fake.deps,
+      });
+      expect(evaluation.context.host).toEqual({
+        id: "claude-code",
+        cliVersion: "test",
+      });
+      const campaign = JSON.parse(
+        await readFile(join(output.root, "campaign.json"), "utf8"),
+      );
+      expect(campaign.host).toEqual({ id: "claude-code", cliVersion: "test" });
+    } finally {
+      await rm(output.parent, { recursive: true, force: true });
+    }
+  });
+
+  test("confirm refuses evidence from another host before any paid preparation", async () => {
+    const first = await tempArtifact("host-prior");
+    const second = await tempArtifact("host-confirm");
+    const fake = dependencies();
+    try {
+      const prior = await runEvaluateCampaign({
+        sourceRoot: process.cwd(),
+        artifactRoot: first.root,
+        skill: "kibi-usage",
+        manifests: [candidateManifest()],
+        repeats: 1,
+        maxTargetEpisodes: 10,
+        allowPaid: true,
+        runId: "host-prior-run",
+        host: "codex",
+        dependencies: fake.deps,
+      });
+      const callsBefore = fake.calls.length;
+      await expect(
+        runConfirmCampaign({
+          sourceRoot: process.cwd(),
+          artifactRoot: second.root,
+          previousEvaluation: prior,
+          repeats: 1,
+          maxTargetEpisodes: 20,
+          allowPaid: true,
+          runId: "host-confirm-run",
+          host: "claude-code",
+          dependencies: fake.deps,
+        }),
+      ).rejects.toThrow("evaluation_host_mismatch");
+      expect(fake.calls.slice(callsBefore)).toEqual([]);
+      await expect(
+        readFile(join(second.root, "campaign.json"), "utf8"),
+      ).rejects.toThrow();
+
+      // An evaluation written before the host was recorded falls back to its
+      // run's preflight receipt; one without either is refused.
+      const legacy = reseal(prior, (body) => {
+        const { host: _host, ...context } = body.context;
+        return { ...body, context };
+      });
+      await expect(
+        runConfirmCampaign({
+          sourceRoot: process.cwd(),
+          artifactRoot: second.root,
+          previousEvaluation: legacy,
+          repeats: 1,
+          maxTargetEpisodes: 20,
+          allowPaid: true,
+          runId: "host-confirm-legacy",
+          host: "claude-code",
+          dependencies: fake.deps,
+        }),
+      ).rejects.toThrow("evaluation_host_mismatch");
+      await writeFile(
+        join(first.root, "preflight.json"),
+        JSON.stringify({ ...gates(), codexVersion: null }),
+      );
+      await expect(
+        runConfirmCampaign({
+          sourceRoot: process.cwd(),
+          artifactRoot: second.root,
+          previousEvaluation: legacy,
+          repeats: 1,
+          maxTargetEpisodes: 20,
+          allowPaid: true,
+          runId: "host-confirm-unrecorded",
+          host: "codex",
+          dependencies: fake.deps,
+        }),
+      ).rejects.toThrow("evaluation_host_unrecorded");
+      expect(fake.calls.slice(callsBefore)).toEqual([]);
+    } finally {
+      await rm(first.parent, { recursive: true, force: true });
+      await rm(second.parent, { recursive: true, force: true });
+    }
+  });
+
+  test("package refuses evidence from another host and records the host it packaged for", async () => {
+    const manifest = await actualCandidateManifest();
+    const fake = dependencies();
+    const evaluationOutput = await tempArtifact("host-package-evaluation");
+    const packageOutput = await tempArtifact("host-package");
+    try {
+      const evaluation = await runEvaluateCampaign({
+        sourceRoot: process.cwd(),
+        artifactRoot: evaluationOutput.root,
+        skill: "kibi-usage",
+        manifests: [manifest],
+        repeats: 1,
+        maxTargetEpisodes: 10,
+        allowPaid: true,
+        runId: "00000000-0000-4000-8000-000000000044",
+        host: "codex",
+        dependencies: defaultCellDependencies(fake.deps, { surface }),
+      });
+      const packageDependencies = defaultCellDependencies(fake.deps, {
+        surface,
+        assemble: writeAssembledSkills,
+      });
+      await expect(
+        runPackageCampaign({
+          sourceRoot: process.cwd(),
+          artifactRoot: packageOutput.root,
+          manifests: [manifest],
+          evaluation,
+          host: "claude-code",
+          dependencies: packageDependencies,
+        }),
+      ).rejects.toThrow("package_evidence_host_mismatch");
+      await runPackageCampaign({
+        sourceRoot: process.cwd(),
+        artifactRoot: packageOutput.root,
+        manifests: [manifest],
+        evaluation,
+        host: "codex",
+        dependencies: packageDependencies,
+      });
+      const receipt = JSON.parse(
+        await readFile(
+          join(packageOutput.root, "package-receipt.json"),
+          "utf8",
+        ),
+      );
+      expect(receipt.host).toEqual({ id: "codex", cliVersion: "test" });
+      expect(receipt.evidenceValid).toBe(true);
+    } finally {
+      await rm(evaluationOutput.parent, { recursive: true, force: true });
+      await rm(packageOutput.parent, { recursive: true, force: true });
+    }
+  });
+});

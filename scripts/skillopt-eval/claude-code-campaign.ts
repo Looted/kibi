@@ -17,7 +17,6 @@ import {
   createClaudeRuntimeLease,
   resolveClaudeExecutable,
   runClaudeModelCanary,
-  selectedSkillOptHost,
   withClaudeAuthLease,
 } from "./runtime/claude-code-host";
 import { runClaudeSkillOptStep } from "./runtime/claude-optimizer";
@@ -176,15 +175,14 @@ export async function runClaudeCodeCanary(
 }
 
 /**
- * Campaign dependency overrides for the selected host; `undefined` keeps the
- * Codex defaults. On Claude Code every command runs there, including the
- * `revise` optimizer step.
+ * Campaign dependency overrides for the Claude Code host: every command runs
+ * there, including the `revise` optimizer step. Registered in
+ * `runtime/skillopt-host-registry.ts`.
  */
 // implements REQ-skillopt-claude-code-host
-export function hostCampaignDependencies(
+export function claudeCodeCampaignDependencies(
   env: NodeJS.ProcessEnv = process.env,
-): Partial<CampaignDependencies> | undefined {
-  if (selectedSkillOptHost(env) !== "claude-code") return undefined;
+): Partial<CampaignDependencies> {
   return {
     runPreflight: runClaudeCodePreflight,
     runCanary: runClaudeCodeCanary,

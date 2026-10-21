@@ -86,6 +86,12 @@ import {
   type SkillAssemblyReceipt,
   assembleCanonicalSkills,
 } from "./runtime/skill-assembly";
+import {
+  SKILLOPT_HOSTS,
+  type SkillOptHost,
+  hostFromPreflightVersion,
+  selectedSkillOptHost,
+} from "./runtime/skillopt-host";
 import { resolveTaskFixture } from "./runtime/task-fixture";
 import { initializeTargetEpisodeBudget } from "./target-episode-budget";
 
@@ -102,6 +108,47 @@ export function campaignModelProfile(): SkillOptModelConfig {
     targetReasoningEffort: config.targetReasoningEffort,
     optimizerModel: config.optimizerModel,
     optimizerReasoningEffort: config.optimizerReasoningEffort,
+  };
+}
+
+/**
+ * The agent harness a campaign command ran on, with the host CLI version its
+ * preflight captured (`null` for commands without a preflight).
+ */
+// implements REQ-skillopt-operator-selected-harness
+export type CampaignHostRecord = Readonly<{
+  id: SkillOptHost;
+  cliVersion: string | null;
+}>;
+
+const CampaignHostRecordSchema = z
+  .object({
+    id: z.enum(SKILLOPT_HOSTS),
+    cliVersion: z.string().min(1).nullable(),
+  })
+  .strict();
+
+function campaignHost(
+  host: SkillOptHost | undefined,
+  env: NodeJS.ProcessEnv | undefined,
+): CampaignHostRecord {
+  return {
+    id: host ?? selectedSkillOptHost(env ?? process.env),
+    cliVersion: null,
+  };
+}
+
+function withCliVersion(
+  host: CampaignHostRecord,
+  preflight: Readonly<{ codexVersion?: string | null }>,
+): CampaignHostRecord {
+  const version = preflight.codexVersion;
+  return {
+    id: host.id,
+    cliVersion:
+      typeof version === "string" && version.trim() !== ""
+        ? version.trim()
+        : null,
   };
 }
 
@@ -349,6 +396,7 @@ function zEvaluationSchema() {
       maxTargetEpisodes: z.number().int().positive(),
       taskCatalogHash: Sha256Schema,
       cohortBindingHash: Sha256Schema,
+      host: CampaignHostRecordSchema.optional(),
       model: z
         .object({
           targetModel: ModelIdSchema,
@@ -785,6 +833,44 @@ export async function readCompleteCampaignEvaluation(
     if (error instanceof CampaignArtifactError) throw error;
     throw new CampaignArtifactError("evaluation_invalid");
   }
+}
+
+/**
+ * The harness an evaluation's cells ran on. Evaluations written before the
+ * host was recorded fall back to the newest run's preflight receipt.
+ */
+// implements REQ-skillopt-operator-selected-harness
+export async function campaignEvaluationHost(
+  evaluation: CampaignEvaluation,
+): Promise<SkillOptHost | undefined> {
+  if (evaluation.context.host !== undefined) return evaluation.context.host.id;
+  const newest = evaluation.runs.at(-1);
+  if (newest === undefined) return undefined;
+  try {
+    const preflight: unknown = JSON.parse(
+      await readFile(join(newest.artifactRoot, "preflight.json"), "utf8"),
+    );
+    return typeof preflight === "object" && preflight !== null
+      ? hostFromPreflightVersion(
+          (preflight as Record<string, unknown>).codexVersion,
+        )
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Refuses evidence produced on a different harness than this run's. */
+// implements REQ-skillopt-operator-selected-harness
+export async function assertEvaluationHost(
+  evaluation: CampaignEvaluation,
+  host: SkillOptHost,
+  code: "evaluation_host_mismatch" | "package_evidence_host_mismatch",
+): Promise<void> {
+  const recorded = await campaignEvaluationHost(evaluation);
+  if (recorded === undefined)
+    throw new CampaignArtifactError("evaluation_host_unrecorded");
+  if (recorded !== host) throw new CampaignArtifactError(code);
 }
 
 function pathWithin(parent: string, child: string): boolean {
@@ -1376,6 +1462,7 @@ async function openRunningStore(
   runId: string,
   sourceRoot: string,
   artifactRoot: string,
+  host: CampaignHostRecord,
 ): Promise<CampaignArtifactStore> {
   const store = await CampaignArtifactStore.open({ artifactRoot, sourceRoot });
   await store.writeJson("campaign.json", {
@@ -1384,6 +1471,7 @@ async function openRunningStore(
     command,
     runId,
     status: "running",
+    host,
   });
   return store;
 }
@@ -1395,6 +1483,7 @@ async function persistFailure(
   error: unknown,
   attemptedCells: number,
   cells: readonly CampaignCell[],
+  host: CampaignHostRecord,
 ): Promise<void> {
   const message = error instanceof Error ? error.message : String(error);
   const state: CampaignState = {
@@ -1414,6 +1503,7 @@ async function persistFailure(
     command,
     runId,
     status: "failed",
+    host,
     error: message,
   });
 }
@@ -1828,6 +1918,7 @@ export async function runReviseCampaign(
     allowPaid: boolean;
     runId?: string;
     env?: NodeJS.ProcessEnv;
+    host?: SkillOptHost;
     dependencies?: Partial<CampaignDependencies>;
   }>,
 ): Promise<CampaignManifest> {
@@ -1837,11 +1928,13 @@ export async function runReviseCampaign(
     ...input.dependencies,
   };
   const runId = input.runId ?? randomUUID();
+  let host = campaignHost(input.host, input.env);
   const store = await openRunningStore(
     "revise",
     runId,
     input.sourceRoot,
     input.artifactRoot,
+    host,
   );
   try {
     const feedback =
@@ -1873,6 +1966,7 @@ export async function runReviseCampaign(
       env: input.env ?? process.env,
       dependencies,
     });
+    host = withCliVersion(host, preparation.preflight);
     const result = await dependencies.runOptimizerStep({
       sourceWorktree: input.sourceRoot,
       artifactRoot: store.root,
@@ -1931,12 +2025,13 @@ export async function runReviseCampaign(
       command: "revise",
       runId,
       status: "complete",
+      host,
       manifestHash: manifestHash(manifest),
       sourceHead: preparation.beforeFence.head,
     });
     return manifest;
   } catch (error) {
-    await persistFailure(store, "revise", runId, error, 0, []);
+    await persistFailure(store, "revise", runId, error, 0, [], host);
     throw error;
   } finally {
     await store.close();
@@ -1953,6 +2048,7 @@ export async function runComposeCampaign(
     /** With `replacementBody`, also replace the frontmatter description (1.2.0). */
     replacementDescription?: string;
     runId?: string;
+    host?: SkillOptHost;
     dependencies?: Partial<CampaignDependencies>;
   }>,
 ): Promise<CampaignManifest> {
@@ -1961,11 +2057,13 @@ export async function runComposeCampaign(
     ...input.dependencies,
   };
   const runId = input.runId ?? randomUUID();
+  const host = campaignHost(input.host, undefined);
   const store = await openRunningStore(
     "compose",
     runId,
     input.sourceRoot,
     input.artifactRoot,
+    host,
   );
   try {
     const current = await dependencies.surface(input.sourceRoot, input.skill);
@@ -2009,11 +2107,12 @@ export async function runComposeCampaign(
       command: "compose",
       runId,
       status: "complete",
+      host,
       manifestHash: manifestHash(manifest),
     });
     return manifest;
   } catch (error) {
-    await persistFailure(store, "compose", runId, error, 0, []);
+    await persistFailure(store, "compose", runId, error, 0, [], host);
     throw error;
   } finally {
     await store.close();
@@ -2033,15 +2132,18 @@ async function evaluateWithPreparation(
     runId: string;
     dependencies: CampaignDependencies;
     env?: NodeJS.ProcessEnv;
+    host: SkillOptHost;
     prior?: CampaignEvaluation;
   }>,
 ): Promise<CampaignEvaluation> {
   requirePaid(input.allowPaid);
+  let host = campaignHost(input.host, input.env);
   const store = await openRunningStore(
     input.command,
     input.runId,
     input.sourceRoot,
     input.artifactRoot,
+    host,
   );
   let completedCells: readonly CampaignCell[] = [];
   try {
@@ -2098,6 +2200,7 @@ async function evaluateWithPreparation(
               });
             },
     });
+    host = withCliVersion(host, preparation.preflight);
     if (preparation.fixtureRunRoot === undefined)
       throw new CampaignArtifactError("fixture_root_missing");
     if (preparation.tasks === undefined)
@@ -2227,6 +2330,7 @@ async function evaluateWithPreparation(
         maxTargetEpisodes: input.maxTargetEpisodes,
         taskCatalogHash: taskCatalogHash(tasks),
         cohortBindingHash: runLockHash,
+        host,
         model: campaignModelProfile(),
       } as const;
       const evaluation = await buildEvaluation({
@@ -2269,6 +2373,7 @@ async function evaluateWithPreparation(
         command: input.command,
         runId: input.runId,
         status: "complete",
+        host,
         evaluationHash: evaluation.contentHash,
       });
       if (input.command === "confirm" && !evaluation.aggregate.noRegression)
@@ -2287,6 +2392,7 @@ async function evaluateWithPreparation(
         ? error.attemptedCells
         : completedCells.length,
       error instanceof CampaignScreenFailure ? error.cells : completedCells,
+      host,
     );
     throw error;
   } finally {
@@ -2305,6 +2411,7 @@ export async function runEvaluateCampaign(
     allowPaid: boolean;
     runId?: string;
     env?: NodeJS.ProcessEnv;
+    host?: SkillOptHost;
     dependencies?: Partial<CampaignDependencies>;
   }>,
 ): Promise<CampaignEvaluation> {
@@ -2324,6 +2431,7 @@ export async function runEvaluateCampaign(
     runId: input.runId ?? randomUUID(),
     dependencies,
     env: input.env,
+    host: campaignHost(input.host, input.env).id,
   });
 }
 
@@ -2337,10 +2445,15 @@ export async function runConfirmCampaign(
     allowPaid: boolean;
     runId?: string;
     env?: NodeJS.ProcessEnv;
+    host?: SkillOptHost;
     dependencies?: Partial<CampaignDependencies>;
   }>,
 ): Promise<CampaignEvaluation> {
   const prior = parseCompleteCampaignEvaluation(input.previousEvaluation);
+  const host = campaignHost(input.host, input.env).id;
+  // Evidence from another harness is not comparable; refuse it before the
+  // store, preflight or any paid preparation.
+  await assertEvaluationHost(prior, host, "evaluation_host_mismatch");
   const dependencies = {
     ...defaultCampaignDependencies,
     ...input.dependencies,
@@ -2358,6 +2471,7 @@ export async function runConfirmCampaign(
     dependencies,
     prior,
     env: input.env,
+    host,
   });
 }
 
@@ -2368,6 +2482,8 @@ export async function runPackageCampaign(
     manifests: readonly CampaignManifest[];
     evaluation?: unknown;
     runId?: string;
+    env?: NodeJS.ProcessEnv;
+    host?: SkillOptHost;
     dependencies?: Partial<CampaignDependencies>;
   }>,
 ): Promise<SkillAssemblyReceipt> {
@@ -2381,11 +2497,25 @@ export async function runPackageCampaign(
   const skills = input.manifests.map((manifest) => manifest.skill);
   if (new Set(skills).size !== skills.length)
     throw new CampaignArtifactError("package_duplicate_skill");
+  let host = campaignHost(input.host, input.env);
+  if (input.evaluation !== undefined) {
+    const evidence = parseCompleteCampaignEvaluation(input.evaluation);
+    await assertEvaluationHost(
+      evidence,
+      host.id,
+      "package_evidence_host_mismatch",
+    );
+    host = {
+      id: host.id,
+      cliVersion: evidence.context.host?.cliVersion ?? null,
+    };
+  }
   const store = await openRunningStore(
     "package",
     runId,
     input.sourceRoot,
     input.artifactRoot,
+    host,
   );
   try {
     const sourceFenceBefore = await dependencies.sourceFence(input.sourceRoot);
@@ -2516,6 +2646,7 @@ export async function runPackageCampaign(
             }),
       },
       evidenceValid,
+      host,
       productionAdoption: "not-performed",
       assembly: receipt,
     });
@@ -2525,10 +2656,11 @@ export async function runPackageCampaign(
       command: "package",
       runId,
       status: "complete",
+      host,
     });
     return receipt;
   } catch (error) {
-    await persistFailure(store, "package", runId, error, 0, []);
+    await persistFailure(store, "package", runId, error, 0, [], host);
     throw error;
   } finally {
     await store.close();

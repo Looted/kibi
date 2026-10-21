@@ -145,6 +145,7 @@ export function printHelp(): void {
       "Usage: cli.ts <command> [options]",
       "Commands: preflight, smoke, dry-run, prepare, optimize, evaluate, run, resume, status, report, approve, adopt, prototype",
       "Workflow options: --run-id RUN_ID --artifact-root PATH [--fake] [--skill SKILL|all] [--max-steps 1..4] [--development-only] [--fixture-run-root PATH] [--seed-candidate PATH]",
+      "Host: --host codex|claude-code (default: KIBI_SKILLOPT_HOST, else codex). This workflow runs on codex only; other hosts use campaign.ts.",
       "Real optimize requires --allow-paid after preflight and smoke; eligible candidates remain review-only until an external verdict authorizes adoption.",
     ].join("\n")}\n`,
   );
