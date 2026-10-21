@@ -8,7 +8,6 @@ import {
 } from "../campaign-artifacts";
 import { campaignPublicFeedback } from "../campaign-workflow";
 import { buildPublicCatalog } from "../catalog";
-import { parsePrivateEvaluatorManifest } from "../fixtures/private";
 import { materializeFixtureRun } from "../fixtures/private";
 import {
   protocolFailureCategory,
@@ -20,136 +19,15 @@ import {
   CodexEpisodeReceiptSchema,
   replayCodexEpisode,
 } from "../runtime/codex-episode";
-import { type CellEvidence, scoreCell } from "../scoring/cell";
+import { scoreCell } from "../scoring/cell";
 import { CANONICAL_SKILL_ROOT } from "./fixture-test-helpers";
+import {
+  PRIVATE_PATH,
+  protocolEvidence,
+  protocolManifest,
+} from "./fixtures/protocol-failure-fixtures";
 
 // TEST-e2e-skillopt-host-neutral-optimization (offline unit layer)
-
-const PRIVATE_PATH = "src/private-governed-module.ts";
-
-function manifest(withContract: boolean) {
-  return parsePrivateEvaluatorManifest(
-    JSON.stringify({
-      schemaVersion: "1.1.0",
-      taskId: "held-out-usage-discovery-01",
-      scorerKey: "scorer-0123456789abcdef",
-      scorerReference: "scorer-ref-0123456789abcdef",
-      publicManifestHash: "a".repeat(64),
-      workspaceHash: "b".repeat(64),
-      fixtureSeedHash: "c".repeat(64),
-      expectedFinalState: [
-        {
-          key: "final-discovery",
-          query: "state://kibi-usage/discovery/complete",
-          expected: true,
-          critical: true,
-        },
-        {
-          key: "workspace-isolated",
-          query: "workspace://isolation/sentinel-count",
-          expected: 0,
-          critical: true,
-        },
-      ],
-      orderedMcpPredicates: {
-        required: [
-          { tool: "kb_search", predicate: "sequence=1" },
-          { tool: "kb_query", predicate: "sequence=2" },
-        ],
-        forbidden: [
-          { tool: "kb_upsert", predicate: "before discovery or approval" },
-        ],
-      },
-      ...(withContract
-        ? {
-            protocolContract: {
-              requiredCalls: [
-                {
-                  tool: "kb_search",
-                  args: { sourceLocations: [{ path: PRIVATE_PATH }] },
-                },
-                { tool: "kb_query" },
-              ],
-              forbiddenTools: [],
-            },
-          }
-        : {}),
-      isolationSentinels: [
-        "PRIVATE_SENTINEL_secret",
-        "SIBLING_SENTINEL_secret",
-      ],
-      rubric: [
-        {
-          key: "final_state",
-          points: 60,
-          criticalAssertionKeys: ["final-discovery"],
-        },
-        { key: "protocol", points: 25, criticalAssertionKeys: [] },
-        {
-          key: "isolation",
-          points: 15,
-          criticalAssertionKeys: ["workspace-isolated"],
-        },
-      ],
-      blindedVariants: [
-        { slot: "variant-a", variant: "one-shot" },
-        { slot: "variant-b", variant: "baseline" },
-        { slot: "variant-c", variant: "skillopt" },
-      ],
-      adversarialAssessments: [
-        "malformed-task-descriptor",
-        "prompt-injection",
-        "generated-stale-state",
-        "dirty-worktree",
-        "long-materialization",
-        "misleading-success-output",
-        "mid-operation-interruption",
-        "approval-boundary",
-      ].map((assessmentClass) => ({
-        class: assessmentClass,
-        applicable: false,
-        reason: "Not applicable to this scoring fixture.",
-        fixturePath: null,
-        approvalPhase: "not-applicable",
-      })),
-    }),
-  );
-}
-
-function evidence(
-  calls: readonly Readonly<{ tool: string; args?: Record<string, unknown> }>[],
-): CellEvidence {
-  const source = {
-    complete: true,
-    integrityValid: true,
-    claims: [{ key: "shared-task-state", value: "complete" }],
-  };
-  return {
-    finalState: {
-      ...source,
-      claims: [
-        ...source.claims,
-        { key: "final-discovery", value: true },
-        { key: "workspace-isolated", value: 0 },
-      ],
-    },
-    broker: {
-      ...source,
-      orderedCalls: calls.map(({ tool }, index) => ({
-        tool,
-        predicate: `sequence=${index + 1}`,
-      })),
-      rawCalls: calls.map(({ tool, args }) => ({
-        tool,
-        args: args ?? {},
-        resultOk: true,
-      })),
-    },
-    diagnostic: source,
-    codex: source,
-    isolation: { observedSentinels: [], violations: [] },
-  };
-}
 
 const roots: string[] = [];
 afterEach(async () => {
@@ -161,8 +39,8 @@ describe("protocol failures are recorded as public evidence", () => {
   test("a missing required call names its tool and position, nothing private", () => {
     // Given a cell that searched but never queried
     const receipt = scoreCell(
-      manifest(false),
-      evidence([{ tool: "kb_search" }]),
+      protocolManifest(false),
+      protocolEvidence([{ tool: "kb_search" }]),
     );
 
     // Then the protocol points are lost and the missing call is named
@@ -178,14 +56,14 @@ describe("protocol failures are recorded as public evidence", () => {
     // A complete protocol records nothing
     expect(
       scoreCell(
-        manifest(false),
-        evidence([{ tool: "kb_search" }, { tool: "kb_query" }]),
+        protocolManifest(false),
+        protocolEvidence([{ tool: "kb_search" }, { tool: "kb_query" }]),
       ).protocolFailure,
     ).toBeUndefined();
     // A forbidden call loses the points without inventing a missing call
     const forbidden = scoreCell(
-      manifest(false),
-      evidence([
+      protocolManifest(false),
+      protocolEvidence([
         { tool: "kb_upsert" },
         { tool: "kb_search" },
         { tool: "kb_query" },
@@ -197,8 +75,8 @@ describe("protocol failures are recorded as public evidence", () => {
 
   test("an argument-predicate miss names the call but never its private arguments", () => {
     const receipt = scoreCell(
-      manifest(true),
-      evidence([
+      protocolManifest(true),
+      protocolEvidence([
         { tool: "kb_search", args: { query: "anything" } },
         { tool: "kb_query" },
       ]),
@@ -212,7 +90,10 @@ describe("protocol failures are recorded as public evidence", () => {
   });
 
   test("the episode receipt keeps the failure for behavioral misses only", () => {
-    const score = scoreCell(manifest(false), evidence([{ tool: "kb_search" }]));
+    const score = scoreCell(
+      protocolManifest(false),
+      protocolEvidence([{ tool: "kb_search" }]),
+    );
     const input = {
       request: {
         schemaVersion: "1.0.0" as const,

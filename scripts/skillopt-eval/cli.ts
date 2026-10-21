@@ -64,7 +64,7 @@ const HOST_COMMANDS = new Set([
  * Removes `--host VALUE` from the arguments and resolves the run's harness:
  * the flag wins over KIBI_SKILLOPT_HOST, Codex is the default.
  */
-// implements REQ-skillopt-operator-selected-harness
+// implements REQ-skillopt-host-neutral-optimization
 export function extractHostOption(
   args: readonly string[],
   env: NodeJS.ProcessEnv = process.env,

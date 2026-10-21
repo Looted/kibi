@@ -849,7 +849,7 @@ export async function readCompleteCampaignEvaluation(
  * The harness an evaluation's cells ran on. Evaluations written before the
  * host was recorded fall back to the newest run's preflight receipt.
  */
-// implements REQ-skillopt-operator-selected-harness
+// implements REQ-skillopt-host-neutral-optimization
 export async function campaignEvaluationHost(
   evaluation: CampaignEvaluation,
 ): Promise<SkillOptHost | undefined> {
@@ -871,7 +871,7 @@ export async function campaignEvaluationHost(
 }
 
 /** Refuses evidence produced on a different harness than this run's. */
-// implements REQ-skillopt-operator-selected-harness
+// implements REQ-skillopt-host-neutral-optimization
 export async function assertEvaluationHost(
   evaluation: CampaignEvaluation,
   host: SkillOptHost,
