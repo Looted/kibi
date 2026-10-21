@@ -508,7 +508,15 @@ async function runSeededFixtureTest(
 export async function setupSeededFreshKb(
   workspaceTarget: string,
   cliRoot: string,
+  options: Readonly<{
+    /**
+     * false seeds the production symbol without its covered_by link, so the
+     * seed's only check violation is that symbol's missing coverage.
+     */
+    symbolCoverage?: boolean;
+  }> = {},
 ): Promise<void> {
+  const symbolCoverage = options.symbolCoverage ?? true;
   await initFixtureRepository(workspaceTarget);
   const expectOk = async (args: readonly string[], label: string) => {
     return runCliWithRetry(
@@ -607,8 +615,9 @@ export async function setupSeededFreshKb(
       "    relationships:",
       "      - type: implements",
       "        target: REQ-SETUP-BASE",
-      "      - type: covered_by",
-      "        target: TEST-SETUP-FIXTURE",
+      ...(symbolCoverage
+        ? ["      - type: covered_by", "        target: TEST-SETUP-FIXTURE"]
+        : []),
       "",
     ].join("\n"),
     "utf8",
@@ -621,7 +630,51 @@ export async function setupSeededFreshKb(
     "import sync",
     { retryOnInteractivePrologTimeout: true },
   );
-  await expectOk(["check"], "seeded fixture validation");
+  if (symbolCoverage) {
+    await expectOk(["check"], "seeded fixture validation");
+    return;
+  }
+  await expectOnlyMissingSymbolCoverage(workspaceTarget, cliRoot);
+}
+
+const SEEDED_SYMBOL_ID = "SYM-SETUP-FIXTURE";
+
+async function expectOnlyMissingSymbolCoverage(
+  workspaceTarget: string,
+  cliRoot: string,
+): Promise<void> {
+  const result = await runStagedCli(cliRoot, workspaceTarget, [
+    "check",
+    "--format",
+    "json",
+  ]);
+  const violations = recordField(
+    jsonRecord(result.stdout, "uncovered fixture validation"),
+    "structuredContent",
+    "uncovered fixture validation",
+  ).violations;
+  const only =
+    Array.isArray(violations) && violations.length === 1
+      ? (violations[0] as Record<string, unknown>)
+      : undefined;
+  if (only?.rule !== "symbol-coverage" || only.entityId !== SEEDED_SYMBOL_ID) {
+    throw new FixtureSetupError(
+      `uncovered fixture must report only symbol-coverage for ${SEEDED_SYMBOL_ID}: ${result.stdout.slice(0, 300)}`,
+    );
+  }
+}
+
+/**
+ * Seeded fixture whose production symbol implements the requirement but has no
+ * covered_by link to the seeded executable test, so linking coverage is work
+ * the agent must do rather than a fact the seed already states.
+ */
+// implements REQ-skillopt-codex-optimization
+export async function setupSeededUncoveredKb(
+  workspaceTarget: string,
+  cliRoot: string,
+): Promise<void> {
+  await setupSeededFreshKb(workspaceTarget, cliRoot, { symbolCoverage: false });
 }
 
 /**

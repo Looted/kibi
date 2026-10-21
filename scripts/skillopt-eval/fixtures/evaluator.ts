@@ -440,17 +440,19 @@ export function buildPrivateManifest(input: {
           ? ("generated_coordinate_divergence" as const)
           : input.task.taskData.objectiveCode === "repair_escalation"
             ? ("seeded_partial_kb" as const)
-            : input.task.initialState.kb === "fresh" &&
-                input.task.initialState.worktree === "dirty" &&
-                DIRTY_SOURCE_OBJECTIVES.has(input.task.taskData.objectiveCode)
-              ? ("seeded_dirty_kb" as const)
-              : input.task.initialState.kb === "fresh"
-                ? ("seeded_fresh_kb" as const)
-                : input.task.initialState.kb === "stale"
-                  ? ("seeded_stale_kb" as const)
-                  : input.task.initialState.kb === "absent"
-                    ? ("thin_root_kb" as const)
-                    : undefined,
+            : input.task.taskData.objectiveCode === "executable_coverage"
+              ? ("seeded_uncovered_kb" as const)
+              : input.task.initialState.kb === "fresh" &&
+                  input.task.initialState.worktree === "dirty" &&
+                  DIRTY_SOURCE_OBJECTIVES.has(input.task.taskData.objectiveCode)
+                ? ("seeded_dirty_kb" as const)
+                : input.task.initialState.kb === "fresh"
+                  ? ("seeded_fresh_kb" as const)
+                  : input.task.initialState.kb === "stale"
+                    ? ("seeded_stale_kb" as const)
+                    : input.task.initialState.kb === "absent"
+                      ? ("thin_root_kb" as const)
+                      : undefined,
     workspaceAssertions:
       workspaceAssertions.length === 0
         ? undefined

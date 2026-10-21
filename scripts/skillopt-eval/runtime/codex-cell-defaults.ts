@@ -187,6 +187,50 @@ function proofStateFromCoverage(
   return "unresolved";
 }
 
+type CoverageLink = Readonly<{
+  kind: "covered_by" | "executable_for";
+  /** The linked test names its executable file and verification scope. */
+  executableTest: boolean;
+}>;
+
+/**
+ * Symbol-to-test coverage edges in the verifier's final entity read. The
+ * executable-coverage fixture seeds no such edge, so any edge here is one the
+ * agent applied; prose that merely names the relationship does not count.
+ */
+function coverageLinks(
+  results: readonly Readonly<{ tool: string; result: unknown }>[],
+): readonly CoverageLink[] {
+  const entities = latestContent(results, "kb_query")?.entities;
+  if (!Array.isArray(entities)) return [];
+  const tests = new Map<string, Record<string, unknown>>();
+  for (const entity of entities) {
+    if (
+      isRecord(entity) &&
+      entity.type === "test" &&
+      typeof entity.id === "string"
+    )
+      tests.set(entity.id, entity);
+  }
+  return entities.flatMap((entity): CoverageLink[] => {
+    if (!isRecord(entity) || entity.type !== "symbol") return [];
+    return (["covered_by", "executable_for"] as const).flatMap((kind) =>
+      referenceTargets(entity[kind]).flatMap((target) => {
+        const test = tests.get(target);
+        if (test === undefined) return [];
+        return [
+          {
+            kind,
+            executableTest:
+              typeof test.text_ref === "string" &&
+              typeof test.verification_scope === "string",
+          },
+        ];
+      }),
+    );
+  });
+}
+
 function workflowSignalObserved(
   signal: string,
   results: readonly Readonly<{ tool: string; result: unknown }>[],
@@ -245,9 +289,11 @@ function workflowSignalObserved(
     case "graph traversal executed":
       return hasBrokerTool("kb_graph");
     case "executable test identity established":
-      return text.includes('"verification_scope"');
+      return coverageLinks(results).some(
+        (link) => link.kind === "executable_for" || link.executableTest,
+      );
     case "coverage link applied":
-      return text.includes('"covered_by"') || text.includes('"executable_for"');
+      return coverageLinks(results).length > 0;
     case "read-only plan produced":
     case "planner context gate honored":
       return hasBrokerTool("kb_plan_bootstrap");

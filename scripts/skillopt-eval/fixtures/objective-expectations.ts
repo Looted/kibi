@@ -188,7 +188,10 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     executable_coverage: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "fresh",
+      // The seeded production symbol starts without coverage, so completing
+      // the task writes a link and dirties the verification snapshot, like
+      // every other write objective.
+      expectedVerificationState: "dirty",
       expectedProofState: "unresolved",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
