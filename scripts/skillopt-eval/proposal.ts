@@ -1,9 +1,9 @@
 import { createHash } from "node:crypto";
 import type { z } from "zod";
 import {
-  CONTRACT_SCHEMA_VERSION,
   ContractIntegrityError,
   JsonValueSchema,
+  OFFLINE_CONTRACT_SCHEMA_VERSION,
   contractHash,
 } from "./contracts/common";
 import { type Proposal, ProposalSchema } from "./contracts/review";
@@ -28,8 +28,7 @@ function assertPassingReport(report: ReportV1): void {
     !gates.aggregate ||
     !gates.bootstrap ||
     !gates.family ||
-    !gates.security ||
-    gates.bundle === false
+    !gates.security
   ) {
     throw new ContractIntegrityError(
       "only passing reports can produce proposals",
@@ -79,7 +78,7 @@ export function buildProposal(input: BuildProposalInput): Proposal {
   assertPassingReport(report);
   assertCandidateIntegrity(input);
   return ProposalSchema.parse({
-    schemaVersion: CONTRACT_SCHEMA_VERSION,
+    schemaVersion: OFFLINE_CONTRACT_SCHEMA_VERSION,
     artifactType: "proposal",
     proposalId: input.proposalId,
     runId: report.runId,

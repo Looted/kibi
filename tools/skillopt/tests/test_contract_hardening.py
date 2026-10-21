@@ -184,7 +184,7 @@ class ContractHardeningTests(unittest.TestCase):
     def test_rejected_proposal_cannot_be_approved_with_recomputed_hash(self) -> None:
         proposal = Proposal.model_validate(
             {
-                "schemaVersion": "1.0.0",
+                "schemaVersion": "1.1.0",
                 "artifactType": "proposal",
                 "proposalId": PROPOSAL_ID,
                 "runId": RUN_ID,
@@ -202,7 +202,7 @@ class ContractHardeningTests(unittest.TestCase):
         )
         approval = Approval.model_validate(
             {
-                "schemaVersion": "1.0.0",
+                "schemaVersion": "1.1.0",
                 "artifactType": "approval",
                 "approvalId": "00000000-0000-4000-8000-000000000004",
                 "proposalId": PROPOSAL_ID,

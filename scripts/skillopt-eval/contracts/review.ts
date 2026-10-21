@@ -1,10 +1,10 @@
 import { z } from "zod";
 import {
   ArtifactIdSchema,
-  CONTRACT_SCHEMA_VERSION,
   ContractIntegrityError,
   JsonValueSchema,
   NonEmptyStringSchema,
+  OFFLINE_CONTRACT_SCHEMA_VERSION,
   Sha256Schema,
   TimestampSchema,
   boundedContractSchema,
@@ -16,7 +16,7 @@ import { SkillSchema } from "./episode";
 export const ProposalSchema = boundedContractSchema(
   z
     .object({
-      schemaVersion: z.literal(CONTRACT_SCHEMA_VERSION),
+      schemaVersion: z.literal(OFFLINE_CONTRACT_SCHEMA_VERSION),
       artifactType: z.literal("proposal"),
       proposalId: ArtifactIdSchema,
       runId: ArtifactIdSchema,
@@ -51,7 +51,7 @@ export const ProposalSchema = boundedContractSchema(
 export const ApprovalSchema = boundedContractSchema(
   z
     .object({
-      schemaVersion: z.literal(CONTRACT_SCHEMA_VERSION),
+      schemaVersion: z.literal(OFFLINE_CONTRACT_SCHEMA_VERSION),
       artifactType: z.literal("approval"),
       approvalId: ArtifactIdSchema,
       proposalId: ArtifactIdSchema,

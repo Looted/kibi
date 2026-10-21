@@ -77,7 +77,7 @@ def overridden_run_lock() -> dict[str, JsonValue]:
 
 def ledger_entry(model: str) -> dict[str, JsonValue]:
     return {
-        "schemaVersion": "1.0.0",
+        "schemaVersion": "1.1.0",
         "artifactType": "ledger-entry",
         "runId": "00000000-0000-4000-8000-000000000001",
         "sequence": 0,

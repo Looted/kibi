@@ -35,8 +35,7 @@
         "kibi-usage",
         "kibi-freshness",
         "kibi-traceability",
-        "kibi-bootstrap",
-        "bundle"
+        "kibi-bootstrap"
       ]
     },
     "taskId": {

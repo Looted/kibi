@@ -1,6 +1,7 @@
 from .adapter import EnvAdapter
 from .bridge import BridgeError, FileBridge
 from .common import (
+    OFFLINE_SCHEMA_VERSION,
     SCHEMA_VERSION,
     PriceEquivalentEstimate,
     Usage,
@@ -16,6 +17,7 @@ from .run_lock import RunLock, assert_run_lock_matches, run_lock_hash
 from .workflow import LedgerEntry, LegacyReport, ReportV1, RunState
 
 __all__ = [
+    "OFFLINE_SCHEMA_VERSION",
     "SCHEMA_VERSION",
     "Approval",
     "AdapterCheckpoint",

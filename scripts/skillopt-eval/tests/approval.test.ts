@@ -48,7 +48,6 @@ function approvalArtifacts() {
       bootstrap: true,
       family: true,
       security: true,
-      bundle: null,
     },
     generatedAt: "2026-07-23T12:00:00Z",
   }).report;
@@ -60,7 +59,7 @@ function approvalArtifacts() {
     candidate,
   });
   const approval = ApprovalSchema.parse({
-    schemaVersion: "1.0.0",
+    schemaVersion: "1.1.0",
     artifactType: "approval",
     approvalId: "00000000-0000-4000-8000-000000000103",
     proposalId: proposal.proposalId,

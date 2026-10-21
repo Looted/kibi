@@ -10,7 +10,11 @@ import { planSkillAdoption } from "./adoption";
 import { withSharedAdoptionLock } from "./adoption-lock";
 import { validateApproval } from "./approval";
 import { type ArtifactPath, prepareArtifactPath } from "./artifact-path";
-import { JsonValueSchema, contractHash } from "./contracts/common";
+import {
+  JsonValueSchema,
+  OFFLINE_CONTRACT_SCHEMA_VERSION,
+  contractHash,
+} from "./contracts/common";
 import type { Approval } from "./contracts/review";
 import {
   type RunLock,
@@ -156,7 +160,6 @@ export async function buildOfflineReviewArtifacts(
       bootstrap: true,
       family: true,
       security: true,
-      bundle: true,
     },
     generatedAt: "2026-07-23T00:00:00.000Z",
   });
@@ -170,7 +173,7 @@ export async function buildOfflineReviewArtifacts(
   });
   const approval = validateApproval({
     approval: {
-      schemaVersion: "1.0.0",
+      schemaVersion: OFFLINE_CONTRACT_SCHEMA_VERSION,
       artifactType: "approval",
       approvalId: runId,
       proposalId: proposal.proposalId,

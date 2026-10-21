@@ -105,10 +105,21 @@ describe("SkillOpt orchestration", () => {
       });
       expect(result.phase).toBe("complete");
       expect(result.completedSkills).toHaveLength(4);
-      expect(result.bundle).toBe(true);
-      expect(await readFile(join(root, "state.json"), "utf8")).toContain(
-        '"phase":"complete"',
-      );
+      expect(result).toEqual({
+        phase: "complete",
+        completedSkills: [
+          "kibi-usage",
+          "kibi-freshness",
+          "kibi-traceability",
+          "kibi-bootstrap",
+        ],
+      });
+      const state = await readFile(join(root, "state.json"), "utf8");
+      expect(state).toContain('"phase":"complete"');
+      expect(state).toContain('"schemaVersion":"1.1.0"');
+      const ledger = await readFile(join(root, "ledger.jsonl"), "utf8");
+      expect(ledger).not.toContain("bundle");
+      expect(ledger.trim().split("\n")).toHaveLength(4);
     } finally {
       await rm(root, { recursive: true, force: true });
     }

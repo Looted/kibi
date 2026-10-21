@@ -12,6 +12,9 @@ from pydantic.functional_validators import AfterValidator, model_validator
 from typing_extensions import Self, assert_never, override
 
 SCHEMA_VERSION: Final = "1.0.0"
+# Offline review contracts (run lock, run state, ledger, report, proposal,
+# approval); 1.1.0 removed the assembled-bundle gate, phase and result.
+OFFLINE_SCHEMA_VERSION: Final = "1.1.0"
 SHA256_PATTERN: Final = r"^[a-f0-9]{64}$"
 ARTIFACT_ID_PATTERN: Final = (
     r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"

@@ -75,7 +75,7 @@ class WorkflowContractTests(unittest.TestCase):
         )
         ledger = LedgerEntry.model_validate(
             {
-                "schemaVersion": "1.0.0",
+                "schemaVersion": "1.1.0",
                 "artifactType": "ledger-entry",
                 "runId": RUN_ID,
                 "sequence": 0,
@@ -90,7 +90,7 @@ class WorkflowContractTests(unittest.TestCase):
         )
         state = RunState.model_validate(
             {
-                "schemaVersion": "1.0.0",
+                "schemaVersion": "1.1.0",
                 "artifactType": "run-state",
                 "runId": RUN_ID,
                 "runLockHash": HASH,
@@ -118,7 +118,7 @@ class WorkflowContractTests(unittest.TestCase):
         )
         _ = ReportV1.model_validate(
             {
-                "schemaVersion": "1.0.0",
+                "schemaVersion": "1.1.0",
                 "artifactType": "report",
                 "runId": RUN_ID,
                 "runLockHash": HASH,
@@ -133,12 +133,11 @@ class WorkflowContractTests(unittest.TestCase):
                     "bootstrap": True,
                     "family": True,
                     "security": True,
-                    "bundle": None,
                 },
             }
         )
         proposal_payload = {
-            "schemaVersion": "1.0.0",
+            "schemaVersion": "1.1.0",
             "artifactType": "proposal",
             "proposalId": PROPOSAL_ID,
             "runId": RUN_ID,
@@ -156,7 +155,7 @@ class WorkflowContractTests(unittest.TestCase):
         proposal = Proposal.model_validate(proposal_payload)
         approval = Approval.model_validate(
             {
-                "schemaVersion": "1.0.0",
+                "schemaVersion": "1.1.0",
                 "artifactType": "approval",
                 "approvalId": APPROVAL_ID,
                 "proposalId": PROPOSAL_ID,
@@ -183,7 +182,7 @@ class WorkflowContractTests(unittest.TestCase):
         with self.assertRaises(ValidationError):
             _ = Approval.model_validate(
                 {
-                    "schemaVersion": "1.0.0",
+                    "schemaVersion": "1.1.0",
                     "artifactType": "approval",
                     "approvalId": APPROVAL_ID,
                     "proposalId": PROPOSAL_ID,
@@ -199,7 +198,7 @@ class WorkflowContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "ledger sequence/link mismatch"):
             _ = LedgerEntry.model_validate(
                 {
-                    "schemaVersion": "1.0.0",
+                    "schemaVersion": "1.1.0",
                     "artifactType": "ledger-entry",
                     "runId": RUN_ID,
                     "sequence": 1,

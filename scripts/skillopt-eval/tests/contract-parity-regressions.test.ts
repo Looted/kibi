@@ -24,7 +24,7 @@ function runLockFixture(): Readonly<Record<string, unknown>> {
 
 function acceptedProposal() {
   return ProposalSchema.parse({
-    schemaVersion: "1.0.0",
+    schemaVersion: "1.1.0",
     artifactType: "proposal",
     proposalId: PROPOSAL_ID,
     runId: RUN_ID,
@@ -43,7 +43,7 @@ function acceptedProposal() {
 
 function matchingApproval(proposal: ReturnType<typeof acceptedProposal>) {
   return ApprovalSchema.parse({
-    schemaVersion: "1.0.0",
+    schemaVersion: "1.1.0",
     artifactType: "approval",
     approvalId: "00000000-0000-4000-8000-000000000004",
     proposalId: proposal.proposalId,

@@ -35,7 +35,7 @@ export type CursorCellReceipt = Readonly<{
   episodeId: string;
   runId: string;
   variant: CursorVariant;
-  skill: CanonicalSkill | "bundle";
+  skill: CanonicalSkill;
   taskId: string;
   candidateBodyHash: string;
   startedAt: string;
@@ -63,7 +63,7 @@ export type CursorCompatibilityReport = Readonly<{
   schemaVersion: "1.1.0";
   artifactType: "skillopt-cursor-compat";
   runId: string;
-  skill: CanonicalSkill | "bundle";
+  skill: CanonicalSkill;
   phase: "development" | "held-out";
   cursorVersion: string;
   qualificationVerdict: "pass" | "no-go";

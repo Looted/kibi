@@ -2,8 +2,8 @@ import { z } from "zod";
 import { PinnedModelSchema } from "../runtime/models";
 import {
   ArtifactIdSchema,
-  CONTRACT_SCHEMA_VERSION,
   NonEmptyStringSchema,
+  OFFLINE_CONTRACT_SCHEMA_VERSION,
   PriceEquivalentEstimateSchema,
   Sha256Schema,
   TimestampSchema,
@@ -16,7 +16,7 @@ import { SkillSchema, VariantSchema } from "./episode";
 export const LedgerEntrySchema = boundedContractSchema(
   z
     .object({
-      schemaVersion: z.literal(CONTRACT_SCHEMA_VERSION),
+      schemaVersion: z.literal(OFFLINE_CONTRACT_SCHEMA_VERSION),
       artifactType: z.literal("ledger-entry"),
       runId: ArtifactIdSchema,
       sequence: z.int().nonnegative(),
@@ -29,7 +29,6 @@ export const LedgerEntrySchema = boundedContractSchema(
         "development",
         "optimization",
         "held-out",
-        "bundle",
         "infrastructure",
       ]),
       model: z.union([z.literal("none"), PinnedModelSchema]),
@@ -54,7 +53,7 @@ export const LedgerEntrySchema = boundedContractSchema(
 export const RunStateSchema = boundedContractSchema(
   z
     .object({
-      schemaVersion: z.literal(CONTRACT_SCHEMA_VERSION),
+      schemaVersion: z.literal(OFFLINE_CONTRACT_SCHEMA_VERSION),
       artifactType: z.literal("run-state"),
       runId: ArtifactIdSchema,
       runLockHash: Sha256Schema,
@@ -63,7 +62,6 @@ export const RunStateSchema = boundedContractSchema(
         "development",
         "optimization",
         "held-out",
-        "bundle",
         "review",
         "complete",
         "no-go",
@@ -113,7 +111,7 @@ const LegacyReportSchema = boundedContractSchema(
 export const ReportV1Schema = boundedContractSchema(
   z
     .object({
-      schemaVersion: z.literal(CONTRACT_SCHEMA_VERSION),
+      schemaVersion: z.literal(OFFLINE_CONTRACT_SCHEMA_VERSION),
       artifactType: z.literal("report"),
       runId: ArtifactIdSchema,
       runLockHash: Sha256Schema,
@@ -143,7 +141,6 @@ export const ReportV1Schema = boundedContractSchema(
           bootstrap: z.boolean(),
           family: z.boolean(),
           security: z.boolean(),
-          bundle: z.boolean().nullable(),
         })
         .strict(),
     })

@@ -132,32 +132,16 @@ class FamilyGuard(ContractModel):
     max_hard_pass_regression: Annotated[Literal[1], Field(alias="maxHardPassRegression")]
 
 
-class BundleMeanDelta(ContractModel):
-    baseline: Literal[3]
-    one_shot: Annotated[Literal[3], Field(alias="oneShot")]
-
-
-class BundleGates(ContractModel):
-    mean_minimum: Annotated[Literal[85], Field(alias="meanMinimum")]
-    hard_passes_minimum: Annotated[Literal[7], Field(alias="hardPassesMinimum")]
-    hard_passes_total: Annotated[Literal[8], Field(alias="hardPassesTotal")]
-    mean_delta_minimum: Annotated[BundleMeanDelta, Field(alias="meanDeltaMinimum")]
-    allow_hard_pass_loss: Annotated[Literal[False], Field(alias="allowHardPassLoss")]
-    max_critical_failures: Annotated[Literal[0], Field(alias="maxCriticalFailures")]
-
-
 class CodexGates(ContractModel):
     held_out_tasks_per_variant: Annotated[Literal[16], Field(alias="heldOutTasksPerVariant")]
     family_slices: Annotated[Literal[4], Field(alias="familySlices")]
-    bundle_tasks: Annotated[Literal[8], Field(alias="bundleTasks")]
     candidate: CandidateGates
     bootstrap: BootstrapGates
     family_guard: Annotated[FamilyGuard, Field(alias="familyGuard")]
-    bundle: BundleGates
 
 
 class RunLock(ContractModel):
-    schema_version: Annotated[Literal["1.0.0"], Field(alias="schemaVersion")]
+    schema_version: Annotated[Literal["1.1.0"], Field(alias="schemaVersion")]
     artifact_type: Annotated[Literal["run-lock"], Field(alias="artifactType")]
     run_id: Annotated[ArtifactId, Field(alias="runId")]
     repository_hash_algorithm: Annotated[
