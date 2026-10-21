@@ -49,6 +49,7 @@ import {
   setupSeededGovernedAreaKb,
   setupSeededPartialKb,
   setupSeededPreconditionKb,
+  setupSeededSafeMutationKb,
   setupSeededStaleKb,
   setupSeededUncoveredKb,
   setupThinRootKb,
@@ -290,6 +291,12 @@ export async function runCodexCell(
                 await setupSeededFreshKb(workspace.target, stagingCliRoot);
               } else if (setupMode === "seeded_uncovered_kb") {
                 await setupSeededUncoveredKb(workspace.target, stagingCliRoot);
+              } else if (setupMode === "seeded_safe_mutation_kb") {
+                await setupSeededSafeMutationKb(
+                  workspace.target,
+                  stagingCliRoot,
+                  request.taskId,
+                );
               } else if (setupMode === "seeded_governed_area_kb") {
                 await setupSeededGovernedAreaKb(
                   workspace.target,

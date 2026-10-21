@@ -14,6 +14,7 @@ export type FixtureSetupMode =
   | "generated_coordinate_divergence"
   | "seeded_fresh_kb"
   | "seeded_uncovered_kb"
+  | "seeded_safe_mutation_kb"
   | "seeded_dirty_kb"
   | "seeded_partial_kb"
   | "seeded_stale_kb"

@@ -264,7 +264,12 @@ function workflowSignalObserved(
     case "source-linked query executed":
       return hasBrokerTool("kb_query");
     case "typed relationship applied":
-      return text.includes('"implements"') && text.includes('"covered_by"');
+      // The seeded baseline symbol already carries both link kinds, so a
+      // safe mutation task credits only the requested links on its own
+      // fixture symbol.
+      return context.taskId?.includes(SAFE_MUTATION_TASK) === true
+        ? safeMutationLinksApplied(results, context.taskId)
+        : text.includes('"implements"') && text.includes('"covered_by"');
     case "symbol readback after write":
       return brokerTools.filter((tool) => tool === "kb_query").length >= 2;
     case "final check executed":
@@ -722,17 +727,24 @@ function referenceTargets(value: unknown): readonly string[] {
   });
 }
 
+const SAFE_MUTATION_TASK = "-safe-mutation-direction-";
+
 // implements REQ-skillopt-logical-evidence-fidelity
-function safeMutationComplete(
-  receipt: FinalStateReceipt,
+/**
+ * Whether the verifier's final entity read holds the fixture production
+ * symbol on src/fixture.ts with the two requested links: implements to the
+ * seeded requirement and covered_by to the seeded test. The seed holds
+ * neither the symbol nor its links, so only the agent's write satisfies it.
+ */
+function safeMutationLinksApplied(
+  results: readonly Readonly<{ tool: string; result: unknown }>[],
   taskId: string,
 ): boolean {
-  if (!taskId.includes("-safe-mutation-direction-")) return true;
   const symbolId = fixtureSymbolId(taskId);
   const suffix = symbolId.slice("SYM-FIXTURE-".length);
   const requirementId = `REQ-FIXTURE-${suffix}`;
   const testId = `TEST-FIXTURE-${suffix}`;
-  const query = receipt.requests.find(({ tool }) => tool === "kb_query");
+  const query = results.find(({ tool }) => tool === "kb_query");
   const entities = structuredContent(query?.result)?.entities;
   if (!Array.isArray(entities)) return false;
   const symbol = entities.find(
@@ -744,6 +756,15 @@ function safeMutationComplete(
     referenceTargets(symbol.implements).includes(requirementId) &&
     referenceTargets(symbol.covered_by).includes(testId)
   );
+}
+
+// implements REQ-skillopt-logical-evidence-fidelity
+function safeMutationComplete(
+  receipt: FinalStateReceipt,
+  taskId: string,
+): boolean {
+  if (!taskId.includes(SAFE_MUTATION_TASK)) return true;
+  return safeMutationLinksApplied(receipt.requests, taskId);
 }
 
 function sealedFinalState(
