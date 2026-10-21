@@ -48171,6 +48171,18 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-plan-apply-atomic-cli
+  - id: SYM-test-kibi-check-proof-evidence-cli
+    title: Check proof evidence consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/check-proof-evidence.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-21T12:59:56.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-check-proof-evidence-cli
   - id: SYM-test-kibi-proof-receipt-compaction-cli
     title: Proof receipt compaction consumer suite
     status: active

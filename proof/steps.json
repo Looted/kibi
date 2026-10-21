@@ -2013,6 +2013,18 @@
     ]
   },
   {
+    "test_id": "TEST-kibi-check-proof-evidence-cli",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/check-proof-evidence.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-kibi-proof-receipt-compaction-cli",
     "steps": [
       [
