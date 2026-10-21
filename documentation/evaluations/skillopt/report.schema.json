@@ -57,7 +57,9 @@
             "kibi-usage",
             "kibi-freshness",
             "kibi-traceability",
-            "kibi-bootstrap"
+            "kibi-bootstrap",
+            "kibi-decisions",
+            "kibi-commit-review"
           ]
         },
         "variants": { "const": ["baseline", "one-shot", "skillopt"] },
@@ -77,12 +79,7 @@
         "gateResults": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "aggregate",
-            "bootstrap",
-            "family",
-            "security"
-          ],
+          "required": ["aggregate", "bootstrap", "family", "security"],
           "properties": {
             "aggregate": { "type": "boolean" },
             "bootstrap": { "type": "boolean" },

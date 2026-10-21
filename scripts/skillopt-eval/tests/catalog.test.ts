@@ -104,8 +104,8 @@ describe("SkillOpt fixture catalog", () => {
   test("encodes explicit state, scorer reference, and family task data", () => {
     const tasks = [...buildPublicCatalog(), ...buildHeldOutCatalog()];
 
-    // 4 skills x 5 families, 7 tasks each.
-    expect(tasks).toHaveLength(140);
+    // 6 skills x 5 families, 7 tasks each.
+    expect(tasks).toHaveLength(210);
     expect(
       tasks.every(
         (task) =>
@@ -237,7 +237,7 @@ describe("predicate corpus materializes stable authorized roots", () => {
     expect(buildCoreSkillCatalog("kibi-usage")).toHaveLength(28);
     expect(() => validateSkillCatalog(usage, "kibi-usage")).not.toThrow();
     const total = [...buildPublicCatalog(), ...buildHeldOutCatalog()];
-    expect(total).toHaveLength(140);
+    expect(total).toHaveLength(210);
     const usagePublic = buildPublicCatalog().filter(
       (task) => task.skill === "kibi-usage",
     );
@@ -248,7 +248,7 @@ describe("predicate corpus materializes stable authorized roots", () => {
     const supplementalFamilies = CANONICAL_SKILLS.filter(
       (skill) => skillFamilies(skill).length === 5,
     ).length;
-    expect(CANONICAL_SKILLS.length * 28 + supplementalFamilies * 7).toBe(140);
+    expect(CANONICAL_SKILLS.length * 28 + supplementalFamilies * 7).toBe(210);
   });
 
   test("unsigned roots cannot authorize training or evaluation", () => {
@@ -358,7 +358,7 @@ describe("SkillOpt corpus executability invariants", () => {
   }
 
   test("every task carries an objective-specific expectation", () => {
-    expect(allTasks).toHaveLength(140);
+    expect(allTasks).toHaveLength(210);
     const uncovered = allTasks.filter((task) => {
       const manifest = manifestFor(task);
       return (

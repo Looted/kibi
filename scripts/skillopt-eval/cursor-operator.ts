@@ -32,7 +32,7 @@ export function parseCursorArgs(args: readonly string[]): ParsedCursorArgs {
   const command = args[0];
   if (command !== "qualify" && command !== "compat") {
     throw new CursorUsageError(
-      "Usage: bun run scripts/skillopt-eval/cursor-operator.ts <qualify|compat> [--skill kibi-usage|kibi-freshness|kibi-traceability|kibi-bootstrap] [--phase development|held-out] [--candidate PATH] [--one-shot PATH] [--fixture-run-root PATH] [--artifact-root PATH] [--run-id ID]",
+      "Usage: bun run scripts/skillopt-eval/cursor-operator.ts <qualify|compat> [--skill kibi-usage|kibi-freshness|kibi-traceability|kibi-bootstrap|kibi-decisions|kibi-commit-review] [--phase development|held-out] [--candidate PATH] [--one-shot PATH] [--fixture-run-root PATH] [--artifact-root PATH] [--run-id ID]",
     );
   }
   let skill: CanonicalSkill = "kibi-usage";

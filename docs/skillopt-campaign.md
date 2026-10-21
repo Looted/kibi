@@ -88,6 +88,15 @@ against immutable fixture evidence and rejects false proof claims. This is a
 review-decision exercise, not evidence of a successful end-to-end bootstrap.
 No private project material or credentials are included.
 
+`kibi-decisions` (core families `stated-rule-capture`, `firm-rule-conflict`,
+`supersede-with-reason` and `compile-intent-review`; supplemental
+`unrecorded-change-closeout`) and `kibi-commit-review` (core families
+`staged-impact-missing`, `coordinate-refresh-only`,
+`impact-review-preparation` and `staged-rule-conflict`; supplemental
+`merge-commit-scope`) start from seeded stores with one firm, human-set naming
+rule. The commit-review stores also carry a staged change. Their signals,
+setups and offline checks are described in [SkillOpt](skillopt.md#reasoning-cases-and-evidence-lanes).
+
 The isolated public fixture workspaces do not inherit the source repository's
 `kibi.plugins` configuration: current bootstrap cells use the builtin classifier,
 not JEV. Report the modeling backend alongside the agent model. The
@@ -109,9 +118,10 @@ The review scorer accepts one strict report under either a `json` or
 loaded automatically from the current source. Both limits are explicit:
 `--repeats` is 1..3 and `--max-target-episodes` is 1..256, and the latter must
 cover the complete baseline-plus-candidate development matrix. The matrix is
-repeats x (candidates + 1) x development tasks; `kibi-usage`,
-`kibi-freshness` and `kibi-traceability` have five development tasks (four
-core families plus one supplemental family), `kibi-bootstrap` also has five.
+repeats x (candidates + 1) x development tasks. Every skill (`kibi-usage`,
+`kibi-freshness`, `kibi-traceability`, `kibi-bootstrap`, `kibi-decisions` and
+`kibi-commit-review`) has five development tasks: four core families plus one
+supplemental family.
 
 ```text
 bun scripts/skillopt-eval/campaign.ts evaluate \

@@ -23,6 +23,13 @@ import {
   TRACEABILITY_DEFINITIONS,
 } from "./task-definitions-bootstrap";
 import {
+  COMMIT_REVIEW_DEFINITIONS,
+  COMMIT_REVIEW_SUPPLEMENTAL_DEFINITION,
+  DECISIONS_DEFINITIONS,
+  DECISIONS_SUPPLEMENTAL_DEFINITION,
+  DECISION_CASES,
+} from "./task-definitions-decisions";
+import {
   type DogfoodCase,
   SUPPLEMENTAL_CASES,
   SUPPLEMENTAL_DEFINITIONS,
@@ -76,12 +83,22 @@ const DEFINITIONS: Readonly<
     ...BOOTSTRAP_DEFINITIONS,
     ...SUPPLEMENTAL_DEFINITIONS["kibi-bootstrap"],
   },
+  "kibi-decisions": {
+    ...DECISIONS_DEFINITIONS,
+    "unrecorded-change-closeout": DECISIONS_SUPPLEMENTAL_DEFINITION,
+  },
+  "kibi-commit-review": {
+    ...COMMIT_REVIEW_DEFINITIONS,
+    "merge-commit-scope": COMMIT_REVIEW_SUPPLEMENTAL_DEFINITION,
+  },
 };
 const SKILL_FILES = [
   "skills/kibi-usage/SKILL.md",
   "skills/kibi-freshness/SKILL.md",
   "skills/kibi-traceability/SKILL.md",
   "skills/kibi-bootstrap/SKILL.md",
+  "skills/kibi-decisions/SKILL.md",
+  "skills/kibi-commit-review/SKILL.md",
   "skills/bundle.json",
 ] as const;
 const BASE_FILES = [
@@ -538,6 +555,7 @@ export function buildFamilyPayload(context: BuilderContext): FamilyPayload {
     return predicatePayload(definition, context.split, context.index);
   }
   const slot = `${context.skill}/${context.family}/${context.split}/${context.index}`;
-  const special = DOGFOOD_CASES[slot] ?? SUPPLEMENTAL_CASES[slot];
+  const special =
+    DOGFOOD_CASES[slot] ?? SUPPLEMENTAL_CASES[slot] ?? DECISION_CASES[slot];
   return payload(definition, context.split, context.index, special);
 }

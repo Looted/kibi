@@ -28,6 +28,8 @@ const READ_TOOLS: Readonly<Record<CanonicalSkill, readonly string[]>> = {
   "kibi-freshness": ["kb_status", "kb_query", "kb_check"],
   "kibi-traceability": ["kb_search", "kb_query", "kb_graph"],
   "kibi-bootstrap": ["kb_plan_bootstrap"],
+  "kibi-decisions": ["kb_search", "kb_query"],
+  "kibi-commit-review": ["kb_search", "kb_query"],
 };
 
 function coordinateFinalStateRequests(taskId: string) {

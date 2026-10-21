@@ -25,7 +25,7 @@ the model-configuration tests still exercise explicit overrides and mismatches.
 
 ## Trust-plane scope
 
-**Primary path for improving the bundled skills:** authenticated Codex CLI SkillOpt. Select one of `kibi-usage`, `kibi-freshness`, `kibi-traceability`, or `kibi-bootstrap`; each run evaluates that one skill. The scripts verify the pin, confirm the Codex login, and run the paid pipeline. `prepareExistingLogin` only mirrors that operator-owned session into a private Codex home; it does not provision credentials.
+**Primary path for improving the bundled skills:** authenticated Codex CLI SkillOpt. Select one of `kibi-usage`, `kibi-freshness`, `kibi-traceability`, `kibi-bootstrap`, `kibi-decisions`, or `kibi-commit-review`; each run evaluates that one skill. The scripts verify the pin, confirm the Codex login, and run the paid pipeline. `prepareExistingLogin` only mirrors that operator-owned session into a private Codex home; it does not provision credentials.
 
 Canonical skill mutation still requires a separate production-adoption verdict; SkillOpt review artifacts alone do not rewrite production skills.
 
@@ -300,7 +300,8 @@ bun run skillopt:screen --allow-paid --skill kibi-usage --candidate-hash <SHA256
 
 The example reserves 30 target episodes: baseline plus two candidates, five
 public development tasks (four core families plus the supplemental family),
-and two repetitions. `kibi-bootstrap` has no supplemental family and keeps four. A fresh canary adds at most two
+and two repetitions. Every skill has one supplemental family, so each screens five
+development tasks. A fresh canary adds at most two
 model invocations. `--max-cells` limits target episodes, not provider-internal
 turns or dollars; token usage is preserved from episode receipts. Model failures
 stop the stage without automatic retries. The command does not generate a new
@@ -350,8 +351,9 @@ Diagnostic reconciliation is the multiset of successful model-originated Kibi ca
 
 ### Reasoning cases and evidence lanes
 
-Each of `kibi-usage`, `kibi-freshness` and `kibi-traceability` has a fifth,
-supplemental task family next to its four core families: `intent-consult`
+Each skill has a fifth, supplemental task family next to its four core
+families. For `kibi-usage`, `kibi-freshness` and `kibi-traceability` these are
+`intent-consult`
 (governing intent, abstention, observation versus policy, agent-origin
 provenance), `consistency-report` (incomplete versus complete contradiction
 analysis) and `scenario-feasibility` (a success scenario that a precondition
@@ -365,6 +367,56 @@ contradicting request is a training task.
 The legacy `skillopt:optimize` trainer (eight training trajectories) and the
 16-task held-out aggregate gates keep the four core families.
 
+`kibi-decisions` has four core families and one supplemental family:
+
+- `stated-rule-capture`: the person states a new rule. The cell checks for a
+  new current requirement with `firmness: firm` whose `origin.ref` quotes the
+  person's words, a `specified_by` scenario and an `implements` link from
+  `src/fixture.ts`.
+- `firm-rule-conflict`: a request (some hook-style, declined-confirmation or
+  preference variants) contradicts the seeded firm rule. The cell expects an
+  interim stop with no KB write, an answer that cites the rule with verdict
+  `conflict`, and source that still holds the 32-character limit.
+- `supersede-with-reason`: the person changes the rule. The cell checks for a
+  firm superseding requirement that quotes them, the old requirement closed,
+  the code moved to the new rule, and a clean check (which enforces
+  `## Why this changed`).
+- `compile-intent-review`: the `kb_compile_intent` review loop. The second
+  compile must carry a `conflictReviews` verdict on the seeded rule. A
+  compatible intent must be applied with its plan hash and then made firm; a
+  conflicting intent must stop with the conflict reported.
+- `unrecorded-change-closeout` (supplemental): the Stop hook reports an
+  unrecorded source change. When the person stated the rule, record it firm
+  with their words. When it was the agent's own pick, record it as `default`,
+  never firm.
+
+`kibi-commit-review` has these families:
+
+- `staged-impact-missing`: a new exported helper is staged without symbol
+  evidence. The cell checks for an authored symbol linked to the seeded
+  requirement and test, and an answer that names
+  `kibi sync --refresh-symbol-coordinates`, `git add .kb/symbols.yaml` and
+  `kibi check --staged`.
+- `coordinate-refresh-only`: a comment-only or rename-only staged edit. The
+  cell expects no KB write and an answer that names the refresh and staging of
+  `.kb/symbol-coordinates.yaml`.
+- `impact-review-preparation`: the base commit carries an impact policy. The
+  cell checks that `kb_prepare_impact_review` ran and that the drafted
+  `.kibi/impact-review.json` keeps the prepared record headers and file set.
+  The `src/fixture.ts` decision must cite the seeded rule as `still_current`,
+  and `reviewer.id` must be left for the person.
+- `staged-rule-conflict`: the staged change contradicts the firm rule. The cell
+  expects an interim stop with the conflict reported.
+- `merge-commit-scope` (supplemental): a merge in progress. Evidence is
+  authored only for what the merge itself changed, never for the file taken
+  unchanged from the merged branch.
+
+The target sandbox has no shell and no kibi CLI. The commit-review prompts
+therefore quote the gate output and ask for the commands the person must run.
+Offline tests check that each quoted gate output matches what the real staged
+gate prints on the seed. They also check that the person's refresh, `git add`
+and `kibi check --staged` pass after the scripted solution.
+
 These cases start from deterministic seeded stores built by the real CLI:
 `seeded_governed_area_kb` (a closed requirement superseded by a current one,
 its rationale ADR, an observation fact, a passing test and a symbol still
@@ -373,6 +425,27 @@ call-quota precondition with a zero-quota fact and a rejection scenario) and
 `seeded_consistency_kb` (one requirement with an unmodeled clause and a fully
 modeled compatible pair). Each setup must end with a clean check and fresh
 status before a target episode starts.
+
+The decision and commit-review setups share one committed base: a firm,
+human-set rule (`REQ-fixture-family-name-length`, at most 32 characters), its
+scenario, a passing test and the enforcing symbol, with symbol coordinates
+refreshed and committed. Each setup then adds its own state:
+
+- `seeded_decision_kb`: the base alone.
+- `seeded_unrecorded_change_kb`: an uncommitted whitespace check.
+- `seeded_staged_symbol_kb`: a staged exported helper, with its requirement
+  and test already recorded.
+- `seeded_staged_coordinates_kb` and `seeded_staged_refactor_kb`: a staged
+  comment-only edit and a staged rename-only edit.
+- `seeded_impact_review_kb`: a committed impact policy and a staged message
+  change.
+- `seeded_staged_conflict_kb`: a staged 64-character limit.
+- `seeded_merge_commit_kb`: a merge in progress.
+
+The base passes a full check before staging. Offline tests check that no
+required signal of any task passes on its untouched seed. They also run one
+scripted MCP solution per objective and check that every signal and
+forbidden-action assertion passes.
 
 The evaluator reads three lanes beside the independent final-state queries:
 
@@ -386,8 +459,13 @@ The evaluator reads three lanes beside the independent final-state queries:
 - **Ordering.** From the Codex transcript: the index of the first `kb_search`,
   the first file change or patch, and the number of Kibi calls before that edit.
 - **Workspace assertions.** Regex assertions over the final `src/` files
-  (recorded as `final-workspace-src.json`), scored as critical final-state
-  entries such as `workspace-assert-governing-rule-preserved`.
+  (recorded as `final-workspace-src.json`, together with
+  `.kibi/impact-review.json` when the agent wrote one), scored as critical
+  final-state entries such as `workspace-assert-governing-rule-preserved`.
+- **Brokered call arguments.** Signals may read the arguments and results of the
+  target's brokered calls. For example, a `kb_compile_intent` call that carries
+  a `conflictReviews` verdict, or the record headers
+  `kb_prepare_impact_review` returned.
 
 `protocolContract.requiredCalls[].args` are enforced as subset predicates: an
 object matches when every listed field matches, and an array matches when every

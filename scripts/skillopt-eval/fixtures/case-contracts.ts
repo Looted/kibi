@@ -1,3 +1,5 @@
+import { DECISION_IDS } from "../runtime/decision-seeds";
+
 /**
  * Per-objective evaluator contracts for the intent, consistency, scenario and
  * provenance cases: which seeded fixture they start from, the ordered protocol
@@ -18,7 +20,15 @@ export type FixtureSetupMode =
   | "thin_root_kb"
   | "seeded_governed_area_kb"
   | "seeded_precondition_kb"
-  | "seeded_consistency_kb";
+  | "seeded_consistency_kb"
+  | "seeded_decision_kb"
+  | "seeded_unrecorded_change_kb"
+  | "seeded_staged_symbol_kb"
+  | "seeded_staged_coordinates_kb"
+  | "seeded_staged_refactor_kb"
+  | "seeded_impact_review_kb"
+  | "seeded_staged_conflict_kb"
+  | "seeded_merge_commit_kb";
 
 /** A regex over one final workspace source file. */
 // implements REQ-skillopt-codex-optimization
@@ -75,6 +85,23 @@ const REJECTS_EMPTY_NAMES: WorkspaceAssertion = {
 const CONTRADICTION_CHECK: RequiredCall = {
   tool: "kb_check",
   args: { rules: ["domain-contradictions"] },
+};
+
+const RECORD_RULE_TOOLS = ["kb_search", "kb_query", "kb_upsert", "kb_check"];
+
+/** The firm 32-character limit survives in the governed source. */
+const LIMIT_KEPT: WorkspaceAssertion = {
+  key: "firm-limit-kept",
+  path: GOVERNED_SOURCE,
+  pattern: "\\b32\\b",
+  expectMatch: true,
+};
+
+const LONG_NAMES_REJECTED: WorkspaceAssertion = {
+  key: "long-names-rejected",
+  path: GOVERNED_SOURCE,
+  pattern: "throw\\s+new\\s+Error\\s*\\(",
+  expectMatch: true,
 };
 
 // implements REQ-skillopt-codex-optimization
@@ -167,6 +194,133 @@ export const OBJECTIVE_CASE_CONTRACTS: Readonly<Record<string, CaseContract>> =
     scenario_expects_rejection: {
       fixtureSetup: "seeded_precondition_kb",
       requiredTools: ["kb_search", "kb_query", "kb_upsert", "kb_check"],
+      forbiddenTools: ["kb_delete", "kb_apply_plan"],
+    },
+    // kibi-decisions: read the firm rule, record stated rules, ask on conflict.
+    stated_rule_capture: {
+      fixtureSetup: "seeded_decision_kb",
+      requiredTools: RECORD_RULE_TOOLS,
+      forbiddenTools: ["kb_delete", "kb_apply_plan"],
+      workspaceAssertions: [LIMIT_KEPT],
+    },
+    firm_rule_conflict: {
+      fixtureSetup: "seeded_decision_kb",
+      requiredTools: ["kb_search", "kb_query"],
+      forbiddenTools: ["kb_upsert", "kb_delete", "kb_apply_plan"],
+      workspaceAssertions: [LIMIT_KEPT, LONG_NAMES_REJECTED],
+    },
+    supersede_with_reason: {
+      fixtureSetup: "seeded_decision_kb",
+      requiredTools: RECORD_RULE_TOOLS,
+      forbiddenTools: ["kb_delete", "kb_apply_plan"],
+      workspaceAssertions: [
+        { ...LIMIT_KEPT, key: "old-limit-removed", expectMatch: false },
+      ],
+    },
+    compile_intent_review: {
+      fixtureSetup: "seeded_decision_kb",
+      requiredTools: [
+        "kb_search",
+        "kb_query",
+        "kb_compile_intent",
+        "kb_compile_intent",
+        "kb_apply_plan",
+        "kb_upsert",
+        "kb_check",
+      ],
+      requiredCalls: [
+        { tool: "kb_search" },
+        { tool: "kb_query" },
+        { tool: "kb_compile_intent" },
+        {
+          tool: "kb_compile_intent",
+          args: { conflictReviews: [{ requirementId: DECISION_IDS.rule }] },
+        },
+        { tool: "kb_apply_plan" },
+        { tool: "kb_upsert" },
+        { tool: "kb_check" },
+      ],
+      forbiddenTools: ["kb_delete"],
+    },
+    compile_intent_conflict: {
+      fixtureSetup: "seeded_decision_kb",
+      requiredTools: ["kb_compile_intent", "kb_compile_intent"],
+      requiredCalls: [
+        { tool: "kb_compile_intent" },
+        {
+          tool: "kb_compile_intent",
+          args: {
+            conflictReviews: [
+              { requirementId: DECISION_IDS.rule, verdict: "conflict" },
+            ],
+          },
+        },
+      ],
+      forbiddenTools: ["kb_upsert", "kb_delete", "kb_apply_plan"],
+    },
+    unrecorded_change_closeout: {
+      fixtureSetup: "seeded_unrecorded_change_kb",
+      requiredTools: RECORD_RULE_TOOLS,
+      forbiddenTools: ["kb_delete", "kb_apply_plan"],
+      workspaceAssertions: [LIMIT_KEPT],
+    },
+    agent_pick_closeout: {
+      fixtureSetup: "seeded_unrecorded_change_kb",
+      requiredTools: RECORD_RULE_TOOLS,
+      forbiddenTools: ["kb_delete", "kb_apply_plan"],
+      workspaceAssertions: [LIMIT_KEPT],
+    },
+    // kibi-commit-review: read the gate, author or refresh evidence, name the
+    // commands the person runs (the sandbox has no shell or kibi CLI).
+    staged_symbol_evidence: {
+      fixtureSetup: "seeded_staged_symbol_kb",
+      requiredTools: ["kb_search", "kb_query", "kb_upsert", "kb_check"],
+      requiredCalls: [
+        SOURCE_LINKED_SEARCH,
+        { tool: "kb_query" },
+        { tool: "kb_upsert" },
+        { tool: "kb_check" },
+      ],
+      forbiddenTools: ["kb_delete", "kb_apply_plan"],
+    },
+    coordinate_refresh_only: {
+      fixtureSetup: "seeded_staged_coordinates_kb",
+      requiredTools: ["kb_search", "kb_query"],
+      requiredCalls: [SOURCE_LINKED_SEARCH, { tool: "kb_query" }],
+      forbiddenTools: ["kb_upsert", "kb_delete", "kb_apply_plan"],
+    },
+    refactor_refresh_only: {
+      fixtureSetup: "seeded_staged_refactor_kb",
+      requiredTools: ["kb_search", "kb_query"],
+      requiredCalls: [SOURCE_LINKED_SEARCH, { tool: "kb_query" }],
+      forbiddenTools: ["kb_upsert", "kb_delete", "kb_apply_plan"],
+    },
+    impact_review_draft: {
+      fixtureSetup: "seeded_impact_review_kb",
+      requiredTools: ["kb_prepare_impact_review"],
+      requiredCalls: [
+        {
+          tool: "kb_prepare_impact_review",
+          args: { scope: { kind: "staged" } },
+        },
+      ],
+      forbiddenTools: ["kb_upsert", "kb_delete", "kb_apply_plan"],
+    },
+    staged_rule_conflict: {
+      fixtureSetup: "seeded_staged_conflict_kb",
+      requiredTools: ["kb_search", "kb_query"],
+      requiredCalls: [SOURCE_LINKED_SEARCH, { tool: "kb_query" }],
+      forbiddenTools: ["kb_upsert", "kb_delete", "kb_apply_plan"],
+    },
+    merge_commit_scope: {
+      fixtureSetup: "seeded_merge_commit_kb",
+      requiredTools: ["kb_search", "kb_query", "kb_upsert", "kb_check"],
+      requiredCalls: [
+        SOURCE_LINKED_SEARCH,
+        { tool: "kb_query" },
+        { tool: "kb_upsert" },
+        { tool: "kb_check" },
+      ],
       forbiddenTools: ["kb_delete", "kb_apply_plan"],
     },
   };

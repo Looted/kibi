@@ -37,7 +37,9 @@
         "kibi-usage",
         "kibi-freshness",
         "kibi-traceability",
-        "kibi-bootstrap"
+        "kibi-bootstrap",
+        "kibi-decisions",
+        "kibi-commit-review"
       ]
     },
     "candidateBodyHash": {

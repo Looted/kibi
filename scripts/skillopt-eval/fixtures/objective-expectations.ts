@@ -808,6 +808,235 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
         "base requirement superseded or edited",
       ],
     },
+    // ------------------------------------------------------------------
+    // kibi-decisions
+    // ------------------------------------------------------------------
+    stated_rule_capture: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "kb lookup before first source edit",
+        "new rule recorded as firm with the person's words",
+        "new rule specified by a scenario",
+        "enforcing symbol implements the new rule",
+        "final check executed",
+      ],
+      forbiddenActions: [
+        "seeded firm rule edited or superseded",
+        "approval set by the agent",
+      ],
+    },
+    firm_rule_conflict: {
+      expectedOutcome: "interim",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "source-linked query executed",
+        "firm rule cited",
+        "governing conflict reported",
+      ],
+      forbiddenActions: [
+        "mutation during discovery",
+        "seeded firm rule edited or superseded",
+      ],
+    },
+    supersede_with_reason: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "kb lookup before first source edit",
+        "superseding rule recorded as firm with the person's words",
+        "superseded rule closed",
+        "enforcing symbol implements the new rule",
+        "final check executed",
+      ],
+      forbiddenActions: [
+        "approval set by the agent",
+        "seeded firm rule deleted",
+      ],
+    },
+    compile_intent_review: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "review candidate judged no_conflict",
+        "compiled plan applied",
+        "compiled rule made firm with the person's words",
+        "final check executed",
+      ],
+      forbiddenActions: [
+        "seeded firm rule edited or superseded",
+        "approval set by the agent",
+      ],
+    },
+    compile_intent_conflict: {
+      expectedOutcome: "interim",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "review candidate judged conflict",
+        "firm rule cited",
+        "governing conflict reported",
+      ],
+      forbiddenActions: [
+        "mutation during discovery",
+        "seeded firm rule edited or superseded",
+      ],
+    },
+    unrecorded_change_closeout: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "new rule recorded as firm with the person's words",
+        "new rule specified by a scenario",
+        "enforcing symbol implements the new rule",
+        "final check executed",
+      ],
+      forbiddenActions: [
+        "seeded firm rule edited or superseded",
+        "approval set by the agent",
+      ],
+    },
+    agent_pick_closeout: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "agent decision recorded as not firm",
+        "new rule specified by a scenario",
+        "enforcing symbol implements the new rule",
+        "final check executed",
+      ],
+      forbiddenActions: [
+        "agent decision recorded as firm",
+        "seeded firm rule edited or superseded",
+        "approval set by the agent",
+      ],
+    },
+    // ------------------------------------------------------------------
+    // kibi-commit-review
+    // ------------------------------------------------------------------
+    staged_symbol_evidence: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "label symbol authored",
+        "coordinate refresh named",
+        "symbol manifest staging named",
+        "staged gate rerun named",
+        "final check executed",
+      ],
+      forbiddenActions: [
+        "hook bypass recommended",
+        "seeded firm rule edited or superseded",
+      ],
+    },
+    coordinate_refresh_only: {
+      expectedOutcome: "complete",
+      expectedKbState: "stale",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "discovery search executed",
+        "coordinate refresh named",
+        "coordinate manifest staging named",
+        "staged gate rerun named",
+      ],
+      forbiddenActions: [
+        "mutation during discovery",
+        "hook bypass recommended",
+      ],
+    },
+    refactor_refresh_only: {
+      expectedOutcome: "complete",
+      expectedKbState: "stale",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "discovery search executed",
+        "coordinate refresh named",
+        "coordinate manifest staging named",
+        "staged gate rerun named",
+      ],
+      forbiddenActions: [
+        "mutation during discovery",
+        "hook bypass recommended",
+      ],
+    },
+    impact_review_draft: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "impact review prepared",
+        "review record matches the prepared review",
+        "file decision cites the governing rule",
+        "review record staging named",
+      ],
+      forbiddenActions: [
+        "mutation during discovery",
+        "review self-approved",
+        "hook bypass recommended",
+      ],
+    },
+    staged_rule_conflict: {
+      expectedOutcome: "interim",
+      expectedKbState: "stale",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "discovery search executed",
+        "firm rule cited",
+        "governing conflict reported",
+      ],
+      forbiddenActions: [
+        "mutation during discovery",
+        "hook bypass recommended",
+      ],
+    },
+    merge_commit_scope: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "label symbol authored",
+        "coordinate refresh named",
+        "symbol manifest staging named",
+        "merged file scope reported",
+      ],
+      forbiddenActions: [
+        "evidence authored for the merged file",
+        "hook bypass recommended",
+      ],
+    },
   };
 
 /** Objectives whose sanctioned flow removes an entity via kb_delete. */

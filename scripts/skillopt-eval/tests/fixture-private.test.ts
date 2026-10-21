@@ -63,8 +63,8 @@ describe("private SkillOpt fixture corpus", () => {
     expect(firstReceipt.publicIndex).toEqual(secondReceipt.publicIndex);
     expect(firstReceipt.heldOutIndex).toEqual(secondReceipt.heldOutIndex);
     expect(firstReceipt.privateIndex).toEqual(secondReceipt.privateIndex);
-    expect(firstReceipt.heldOutIndex.tasks).toHaveLength(80);
-    expect(firstReceipt.privateIndex.tasks).toHaveLength(140);
+    expect(firstReceipt.heldOutIndex.tasks).toHaveLength(120);
+    expect(firstReceipt.privateIndex.tasks).toHaveLength(210);
     expect(
       new Set(firstReceipt.privateIndex.tasks.map((entry) => entry.taskId)),
     ).toEqual(
@@ -112,7 +112,7 @@ describe("private SkillOpt fixture corpus", () => {
     );
 
     expect(permutations.size).toBe(6);
-    expect(CANONICAL_SKILLS).toHaveLength(4);
+    expect(CANONICAL_SKILLS).toHaveLength(6);
   });
 
   test("mutation kills expected state, MCP order, and isolation sentinel changes", () => {

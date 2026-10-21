@@ -28,6 +28,17 @@ export type CaseSignalContext = Readonly<{
   ordering: TranscriptOrdering;
   workspaceFiles: Readonly<Record<string, string>>;
   workspaceAssertions: readonly WorkspaceAssertion[];
+  /** The agent's brokered calls with arguments and results, in order. */
+  calls?: readonly BrokerCallEvidence[];
+}>;
+
+/** One model-originated broker call (routed tool name, arguments, result). */
+// implements REQ-skillopt-codex-optimization
+export type BrokerCallEvidence = Readonly<{
+  tool: string;
+  args: Readonly<Record<string, unknown>>;
+  resultOk: boolean;
+  result?: unknown;
 }>;
 
 type Entity = Readonly<Record<string, unknown>>;
@@ -61,7 +72,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-function payload(result: unknown): Record<string, unknown> | null {
+/** The typed payload of an MCP tool result (`data` of a kibiProtocol envelope). */
+// implements REQ-skillopt-codex-optimization
+export function resultPayload(result: unknown): Record<string, unknown> | null {
   if (!isRecord(result)) return null;
   const content = result.structuredContent ?? result.structured_content;
   if (!isRecord(content)) return result;
@@ -75,7 +88,7 @@ function latest(
 ): Record<string, unknown> | null {
   for (let index = context.results.length - 1; index >= 0; index -= 1) {
     const request = context.results[index];
-    if (request?.tool === tool) return payload(request.result);
+    if (request?.tool === tool) return resultPayload(request.result);
   }
   return null;
 }
@@ -102,7 +115,12 @@ export function relationshipTargets(value: unknown): readonly string[] {
   );
 }
 
-function ofType(context: CaseSignalContext, type: string): readonly Entity[] {
+/** Final-state `kb_query` entities of one type. */
+// implements REQ-skillopt-codex-optimization
+export function ofType(
+  context: CaseSignalContext,
+  type: string,
+): readonly Entity[] {
   return entities(context).filter((entity) => entity.type === type);
 }
 

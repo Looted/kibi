@@ -141,7 +141,8 @@ export async function runCliWithRetry(
   return result.stdout;
 }
 
-async function runStagedCli(
+// implements REQ-skillopt-codex-optimization
+export async function runStagedCli(
   cliRoot: string,
   workspaceTarget: string,
   args: readonly string[],
@@ -455,7 +456,8 @@ export async function setupThinRootKb(
   await stageCommitAll(workspaceTarget);
 }
 
-async function runSeededFixtureTest(
+// implements REQ-skillopt-codex-optimization
+export async function runSeededFixtureTest(
   workspaceTarget: string,
   testPath: string = FIXTURE_TEST_PATH,
 ): Promise<void> {
@@ -869,7 +871,8 @@ export async function stopFixtureEngine(
   await daemon.terminate();
 }
 
-async function writeDocuments(
+// implements REQ-skillopt-codex-optimization
+export async function writeDocuments(
   workspaceTarget: string,
   documents: Readonly<Record<string, string>>,
 ): Promise<void> {
@@ -881,7 +884,8 @@ async function writeDocuments(
 }
 
 /** Commit everything, then import it; sync reads the Git source boundary. */
-async function commitAndSync(
+// implements REQ-skillopt-codex-optimization
+export async function commitAndSync(
   workspaceTarget: string,
   cliRoot: string,
 ): Promise<void> {
@@ -893,7 +897,8 @@ async function commitAndSync(
   );
 }
 
-async function initSeededRepository(
+// implements REQ-skillopt-codex-optimization
+export async function initSeededRepository(
   workspaceTarget: string,
   cliRoot: string,
 ): Promise<void> {
@@ -904,7 +909,8 @@ async function initSeededRepository(
   );
 }
 
-async function validateSeed(
+// implements REQ-skillopt-codex-optimization
+export async function validateSeed(
   workspaceTarget: string,
   cliRoot: string,
   label: string,
@@ -944,7 +950,8 @@ function recordField(
   return field as Record<string, unknown>;
 }
 
-async function jsonRoute(
+// implements REQ-skillopt-codex-optimization
+export async function jsonRoute(
   cliRoot: string,
   workspaceTarget: string,
   route: string,

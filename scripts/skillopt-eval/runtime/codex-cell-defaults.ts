@@ -8,6 +8,7 @@ import type {
 } from "../scoring/evidence-utils";
 import { probeRequiredMcp } from "./canary-runtime";
 import {
+  type BrokerCallEvidence,
   type CaseSignalContext,
   caseForbiddenObserved,
   caseSignalObserved,
@@ -19,6 +20,10 @@ import type {
   CodexCellDependencies,
   CodexCellOptions,
 } from "./codex-cell-types";
+import {
+  decisionForbiddenObserved,
+  decisionSignalObserved,
+} from "./decision-signals";
 import {
   type FinalStateReceipt,
   FinalStateReceiptSchema,
@@ -237,7 +242,9 @@ function workflowSignalObserved(
   brokerTools: readonly string[],
   context: CaseSignalContext,
 ): boolean {
-  const caseOutcome = caseSignalObserved(signal, context);
+  const caseOutcome =
+    caseSignalObserved(signal, context) ??
+    decisionSignalObserved(signal, context);
   if (caseOutcome !== undefined) return caseOutcome;
   const text = JSON.stringify(results).toLowerCase();
   // Prose claims may come from the KB or from the agent's final answer (the
@@ -525,7 +532,9 @@ function forbiddenActionObserved(
   brokerTools: readonly string[],
   context: CaseSignalContext,
 ): boolean {
-  const caseOutcome = caseForbiddenObserved(action, context);
+  const caseOutcome =
+    caseForbiddenObserved(action, context) ??
+    decisionForbiddenObserved(action, context);
   if (caseOutcome !== undefined) return caseOutcome;
   const text = JSON.stringify(results).toLowerCase();
   const status = latestContent(results, "kb_status");
@@ -742,6 +751,7 @@ function sealedFinalState(
   options: Pick<CodexCellOptions, "evaluatorManifest" | "finalStateRequests">,
   brokerTools: readonly string[],
   lanes: EvidenceLanes = evidenceLanes(undefined, undefined),
+  calls: readonly BrokerCallEvidence[] = [],
 ) {
   const receipt = FinalStateReceiptSchema.parse(JSON.parse(finalState));
   const integrityValid = receipt.requests.every(
@@ -807,6 +817,7 @@ function sealedFinalState(
     ordering: lanes.ordering,
     workspaceFiles: lanes.workspaceFiles,
     workspaceAssertions,
+    calls,
   };
   // Coverage remains available as raw final-state evidence, but a workflow
   // that declares proof out of scope must not inherit an unresolved result
@@ -1120,6 +1131,7 @@ export function sealDefaultCellEvidence(
       options,
       brokerTools,
       evidenceLanes(evidence.transcript, evidence.workspaceFiles),
+      broker.evidence.rawCalls,
     ),
     broker: broker.evidence,
     diagnostic: sealedDiagnostic(
