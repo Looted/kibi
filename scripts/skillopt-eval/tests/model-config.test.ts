@@ -109,7 +109,7 @@ function overriddenRunLockText(): string {
 
 function ledgerEntry(model: string) {
   return {
-    schemaVersion: "1.0.0",
+    schemaVersion: "1.1.0",
     artifactType: "ledger-entry",
     runId: "00000000-0000-4000-8000-000000000001",
     sequence: 0,

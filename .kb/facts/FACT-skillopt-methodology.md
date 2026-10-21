@@ -3,7 +3,7 @@ id: FACT-skillopt-methodology
 title: SkillOpt behavioral efficacy methodology
 status: active
 created_at: 2026-07-21T16:00:00Z
-updated_at: 2026-08-04T00:00:00Z
+updated_at: 2026-10-21T00:00:00Z
 tags:
   - skillopt
   - evaluation
@@ -21,9 +21,9 @@ This preregistration limits conclusions to the pinned fixture matrix, exact host
 
 ## Corpus and variants
 
-Each canonical skill has 28 cases: 8 train, 4 development, and 16 held-out. Cases are balanced across four task families, with 2/1/4 cases per family in those splits. Each held-out case runs once on the officially supported Codex CLI host for each of three variants: unchanged baseline, first-valid one-shot rewrite, and SkillOpt candidate. OpenCode and Cursor are not evaluation hosts and receive no behavioral-efficacy claim from this experiment.
+Each canonical skill has 28 cases: 8 train, 4 development, and 16 held-out. Cases are balanced across four task families, with 2/1/4 cases per family in those splits. Each held-out case runs once on the agent harness the operator selected for the run (Codex by default; Claude Code is also supported) for each of three variants: unchanged baseline, first-valid one-shot rewrite, and SkillOpt candidate. OpenCode and Cursor are not evaluation hosts and receive no behavioral-efficacy claim from this experiment.
 
-The candidate replaces only the target skill. The other three canonical skills remain discoverable and unchanged. Target rollouts use `gpt-5.4-mini` with low reasoning effort. The one-shot comparator and every optimizer proposal use `gpt-5.6-sol` with xhigh reasoning effort. The one-shot request receives public training objectives and no evaluator feedback, development scores, or held-out data. The first valid response is frozen; an invalid response is a terminal zero.
+The candidate replaces only the target skill. The other three canonical skills remain discoverable and unchanged. Target rollouts, the one-shot comparator and every optimizer proposal use the target and optimizer models and reasoning efforts pinned for the run. Evidence from one harness is never mixed with evidence from another. The one-shot request receives public training objectives and no evaluator feedback, development scores, or held-out data. The first valid response is frozen; an invalid response is a terminal zero.
 
 The public learning corpus is the complete balanced 8-train/4-development split, not the smaller predicate-only slice. Every train round sees two cases from each of the four task families, and every development comparison sees one case from each family.
 
@@ -49,13 +49,12 @@ Every round also receives a compact cumulative summary of all completed public r
 
 A paid run may start from an explicitly supplied preserved candidate. That seed is the trainer's initial skill, while the fresh canonical baseline and one-shot remain independent comparators. The new run records the seed body hash and byte count before training.
 
-## Machine-readable Codex gates
+## Machine-readable gates
 
 ```json skillopt-codex-gates
 {
   "heldOutTasksPerVariant": 16,
   "familySlices": 4,
-  "bundleTasks": 8,
   "candidate": {
     "meanMinimum": 85,
     "hardPassesMinimum": 13,
@@ -74,32 +73,22 @@ A paid run may start from an explicitly supplied preserved candidate. That seed 
   "familyGuard": {
     "maxMeanRegression": 3,
     "maxHardPassRegression": 1
-  },
-  "bundle": {
-    "meanMinimum": 85,
-    "hardPassesMinimum": 7,
-    "hardPassesTotal": 8,
-    "meanDeltaMinimum": { "baseline": 3, "oneShot": 3 },
-    "allowHardPassLoss": false,
-    "maxCriticalFailures": 0
   }
 }
 ```
 
 ## Budget and stopping
 
-Each skill has a hard USD 100 ledger: $2 preflight, $8 development calibration, $48 one-shot/optimization, $30 frozen held-out evaluation, $10 reserved bundle pool, and $2 infrastructure contingency. Projected phase cost plus 20% must fit before launch; unspent funds do not transfer. Total spend cannot exceed USD 400.
+Each skill has a hard USD 90 ledger: $2 preflight, $8 development calibration, $48 one-shot/optimization, $30 frozen held-out evaluation, and $2 infrastructure contingency. Projected phase cost plus 20% must fit before launch; unspent funds do not transfer. Total spend cannot exceed USD 360.
 
-`--max-steps` is the number of complete proposal rounds and is constrained to 1–4. Each round rolls out all eight public training cases, reflects once with the structured public evidence, requests one optimizer rewrite, and scores that proposal on all four development cases. The outer trainer deadline is computed from the four internal baseline development cells, all 12 target cells and one optimizer allowance per round, plus startup grace; it is not a fixed 15-minute cap. Retry once only for pre-action spawn/provider/transport/MCP handshake failures or a verified Codex crash. A refusal, malformed output, wrong/no tool use, or agent-caused evaluator miss is a terminal behavioral failure with any earned partial score retained; an empty diagnostic receipt is valid only when the broker confirms there were zero successful model-originated tool calls. Infrastructure, timeout, budget, evidence-conflict, and security outcomes remain zero and stop according to their typed policy.
+`--max-steps` is the number of complete proposal rounds and is constrained to 1–4. Each round rolls out all eight public training cases, reflects once with the structured public evidence, requests one optimizer rewrite, and scores that proposal on all four development cases. The outer trainer deadline is computed from the four internal baseline development cells, all 12 target cells and one optimizer allowance per round, plus startup grace; it is not a fixed 15-minute cap. Retry once only for pre-action spawn/provider/transport/MCP handshake failures or a verified harness crash. A refusal, malformed output, wrong/no tool use, or agent-caused evaluator miss is a terminal behavioral failure with any earned partial score retained; an empty diagnostic receipt is valid only when the broker confirms there were zero successful model-originated tool calls. Infrastructure, timeout, budget, evidence-conflict, and security outcomes remain zero and stop according to their typed policy.
 
 ## Isolation and evidence
 
-Codex runs in an isolated temporary home/config and disposable workspace. Private scoring manifests and raw traces remain outside the target mount. An evaluator-owned MCP broker records JSON-RPC calls outside the sandbox; the final state is queried by a separate evaluator-owned client. Codex output is normalized but cannot erase broker or final-state evidence.
+The target harness runs in an isolated temporary home/config and disposable workspace. Private scoring manifests and raw traces remain outside the target mount. An evaluator-owned MCP broker records JSON-RPC calls outside the sandbox; the final state is queried by a separate evaluator-owned client. Harness output is normalized to one event shape but cannot erase broker or final-state evidence. A cell that loses its protocol points records the first required call it never made, by public tool name and position only.
 
-## Bundle gate and adoption
+## Adoption
 
 The predicate supplement reserves and completes all 36 predicate cells (four cases × three variants × three replicates) for matrix integrity and paired comparison. Its behavioral predicate gate requires every SkillOpt predicate cell to hard-pass. Baseline and one-shot predicate misses remain comparator evidence and do not independently veto a successful candidate; replicate 1 still participates in the ordinary paired skill gate.
-
-After all four individual gates pass, eight distinct cross-skill workflows run on Codex for each variant. The SkillOpt bundle must reach mean ≥85, at least 7/8 hard passes, exceed both comparators by 3 mean points, lose no hard passes against either comparator, and have zero critical failures.
 
 The experiment stops at the first failed individual gate. A passing candidate is still not adopted automatically: exact candidate hashes require explicit review approval before canonical skill sources or generated mirrors change.

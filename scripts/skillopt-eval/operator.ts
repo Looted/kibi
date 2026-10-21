@@ -7,6 +7,12 @@ import { resolve } from "node:path";
 import { CANONICAL_SKILLS, type CanonicalSkill } from "./catalog";
 import { main as cliMain } from "./cli";
 import { materializeFixtureRun } from "./fixtures/private";
+import {
+  type SkillOptHost,
+  SkillOptHostSelectionError,
+  resolveSkillOptHost,
+} from "./runtime/skillopt-host";
+import { skillOptHostImplementation } from "./runtime/skillopt-host-registry";
 
 export type OperatorCommand = "smoke" | "optimize";
 
@@ -23,6 +29,7 @@ export type ParsedOperatorArgs = Readonly<{
   seedCandidate?: string;
   skill: CanonicalSkill;
   developmentOnly?: boolean;
+  host?: SkillOptHost;
 }>;
 
 export type OperatorRunOptions = Readonly<{
@@ -30,6 +37,8 @@ export type OperatorRunOptions = Readonly<{
   seedCandidate?: string;
   skill?: CanonicalSkill;
   developmentOnly?: boolean;
+  /** The run's harness, forwarded to cli.ts as `--host`. */
+  host?: SkillOptHost;
 }>;
 
 export class OperatorUsageError extends Error {
@@ -243,15 +252,26 @@ export function parseOperatorArgs(args: readonly string[]): ParsedOperatorArgs {
   const command = args[0];
   if (command !== "smoke" && command !== "optimize") {
     throw new OperatorUsageError(
-      "Usage: bun run scripts/skillopt-eval/operator.ts <smoke|optimize> [--skill kibi-usage|kibi-freshness|kibi-traceability|kibi-bootstrap] [--max-steps 1..4] [--seed-candidate PATH] [--development-only]",
+      "Usage: bun run scripts/skillopt-eval/operator.ts <smoke|optimize> [--host codex] [--skill kibi-usage|kibi-freshness|kibi-traceability|kibi-bootstrap] [--max-steps 1..4] [--seed-candidate PATH] [--development-only]",
     );
   }
   let maxSteps = 1;
   let skill: CanonicalSkill = "kibi-usage";
   let seedCandidate: string | undefined;
   let developmentOnly = false;
+  let requestedHost: string | undefined;
   for (let index = 1; index < args.length; index += 1) {
     const arg = args[index];
+    if (arg === "--host") {
+      const value = args[index + 1];
+      if (value === undefined || value.startsWith("--"))
+        throw new OperatorUsageError("--host requires a value");
+      if (requestedHost !== undefined)
+        throw new OperatorUsageError("--host may be supplied once");
+      requestedHost = value;
+      index += 1;
+      continue;
+    }
     if (arg === "--development-only") {
       if (command !== "optimize") {
         throw new OperatorUsageError(
@@ -296,11 +316,27 @@ export function parseOperatorArgs(args: readonly string[]): ParsedOperatorArgs {
     }
     throw new OperatorUsageError(`Unknown operator option: ${arg}`);
   }
+  let host: SkillOptHost;
+  try {
+    host = resolveSkillOptHost({ requested: requestedHost });
+  } catch (error) {
+    if (error instanceof SkillOptHostSelectionError)
+      throw new OperatorUsageError(error.message);
+    throw error;
+  }
+  // The operator stages a Codex login and the Codex trainer bridge; another
+  // harness is refused here, before any paid preparation.
+  if (!skillOptHostImplementation(host).legacyWorkflow) {
+    throw new OperatorUsageError(
+      `${command} does not run on host ${host}; use campaign.ts --host ${host}`,
+    );
+  }
   return {
     command,
     maxSteps,
     skill,
     developmentOnly,
+    ...(requestedHost === undefined ? {} : { host }),
     ...(seedCandidate === undefined ? {} : { seedCandidate }),
   };
 }
@@ -321,6 +357,7 @@ export async function runOperatorCommand(
       "--allow-paid",
       "--run-id",
       runId,
+      ...hostArgs(options),
     ]);
   }
   const maxSteps = options.maxSteps ?? 1;
@@ -349,7 +386,12 @@ export async function runOperatorCommand(
     ...(options.seedCandidate === undefined
       ? []
       : ["--seed-candidate", resolve(dependencies.cwd, options.seedCandidate)]),
+    ...hostArgs(options),
   ]);
+}
+
+function hostArgs(options: OperatorRunOptions): readonly string[] {
+  return options.host === undefined ? [] : ["--host", options.host];
 }
 
 export async function main(
@@ -371,6 +413,7 @@ export async function main(
       maxSteps: parsed.maxSteps,
       skill: parsed.skill,
       developmentOnly: parsed.developmentOnly,
+      ...(parsed.host === undefined ? {} : { host: parsed.host }),
       ...(parsed.seedCandidate === undefined
         ? {}
         : { seedCandidate: parsed.seedCandidate }),

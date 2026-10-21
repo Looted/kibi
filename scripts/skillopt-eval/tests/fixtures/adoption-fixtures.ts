@@ -110,7 +110,6 @@ export function approvalArtifacts(repoRoot: string) {
       bootstrap: true,
       family: true,
       security: true,
-      bundle: null,
     },
     generatedAt: "2026-07-23T12:01:00Z",
   }).report;
@@ -122,7 +121,7 @@ export function approvalArtifacts(repoRoot: string) {
     candidate,
   });
   const approval = ApprovalSchema.parse({
-    schemaVersion: "1.0.0",
+    schemaVersion: "1.1.0",
     artifactType: "approval",
     approvalId: "00000000-0000-4000-8000-000000000203",
     proposalId: proposal.proposalId,

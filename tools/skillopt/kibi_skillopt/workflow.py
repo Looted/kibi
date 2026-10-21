@@ -25,7 +25,7 @@ from .model_pins import ModelId, resolve_model_config
 
 
 class LedgerEntry(ContractModel):
-    schema_version: Annotated[Literal["1.0.0"], Field(alias="schemaVersion")]
+    schema_version: Annotated[Literal["1.1.0"], Field(alias="schemaVersion")]
     artifact_type: Annotated[Literal["ledger-entry"], Field(alias="artifactType")]
     run_id: Annotated[ArtifactId, Field(alias="runId")]
     sequence: Annotated[JsonInteger, Field(ge=0)]
@@ -34,7 +34,7 @@ class LedgerEntry(ContractModel):
     occurred_at: Annotated[Timestamp, Field(alias="occurredAt")]
     episode_id: Annotated[ArtifactId | None, Field(alias="episodeId")] = None
     category: Literal[
-        "preflight", "development", "optimization", "held-out", "bundle", "infrastructure"
+        "preflight", "development", "optimization", "held-out", "infrastructure"
     ]
     model: Literal["none"] | ModelId
     usage: Usage
@@ -68,7 +68,7 @@ class LedgerEntry(ContractModel):
 
 
 class RunState(ContractModel):
-    schema_version: Annotated[Literal["1.0.0"], Field(alias="schemaVersion")]
+    schema_version: Annotated[Literal["1.1.0"], Field(alias="schemaVersion")]
     artifact_type: Annotated[Literal["run-state"], Field(alias="artifactType")]
     run_id: Annotated[ArtifactId, Field(alias="runId")]
     run_lock_hash: Annotated[Sha256, Field(alias="runLockHash")]
@@ -77,7 +77,6 @@ class RunState(ContractModel):
         "development",
         "optimization",
         "held-out",
-        "bundle",
         "review",
         "complete",
         "no-go",
@@ -110,11 +109,10 @@ class GateResults(ContractModel):
     bootstrap: JsonBoolean
     family: JsonBoolean
     security: JsonBoolean
-    bundle: JsonBoolean | None
 
 
 class ReportV1(ContractModel):
-    schema_version: Annotated[Literal["1.0.0"], Field(alias="schemaVersion")]
+    schema_version: Annotated[Literal["1.1.0"], Field(alias="schemaVersion")]
     artifact_type: Annotated[Literal["report"], Field(alias="artifactType")]
     run_id: Annotated[ArtifactId, Field(alias="runId")]
     run_lock_hash: Annotated[Sha256, Field(alias="runLockHash")]

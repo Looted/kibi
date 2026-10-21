@@ -8,11 +8,19 @@ Run it from the repository root. Every command requires an artifact directory
 outside the source worktree. `--source-root` is optional and, when supplied,
 must identify the current Git root.
 
+## Choosing the harness
+
+Every command takes `--host codex|claude-code`. The flag wins over
+`KIBI_SKILLOPT_HOST`, and Codex is the default. The resolved host and its CLI
+version are recorded in `campaign.json`, in the evaluation `context.host`, and
+in the package receipt. See
+[Choosing the agent harness](skillopt.md#choosing-the-agent-harness).
+
 ## Commands
 
 ### Revise one skill
 
-`revise` asks the existing Codex SkillOpt step for one paragraph anchored to the
+`revise` asks the SkillOpt optimizer step on the selected host for one paragraph anchored to the
 current baseline. The step may make one format repair, but the campaign does
 not start additional generation calls. The model source and the real accepted
 optimizer receipt are preserved in the manifest provenance.
@@ -149,6 +157,11 @@ bun scripts/skillopt-eval/campaign.ts confirm \
   --allow-paid
 ```
 
+`confirm` runs on the host that produced the previous evaluation. When
+`--host` (or `KIBI_SKILLOPT_HOST`) names a different host, it fails with
+`evaluation_host_mismatch` before the artifact store, preflight or canary.
+When the host is unrecorded, it fails with `evaluation_host_unrecorded`.
+
 The new comparison gets a new fixture root and target budget. It does not
 cherry-pick cells or reuse an old fixture cache. Before the paid canary, every
 prior cell is rechecked against its persisted request, receipt, evidence index,
@@ -175,6 +188,8 @@ bun scripts/skillopt-eval/campaign.ts package \
 The package receipt reports precise manifest readiness, changed skill bodies,
 and whether supplied complete evaluation evidence matched. Without
 `--evaluation`, `evidenceValid` is false; no adoption claim is inferred.
+The receipt records the run's `host`. Evidence from another host is refused
+with `package_evidence_host_mismatch` before assembly.
 
 ## Artifact Contract
 
@@ -188,10 +203,24 @@ does not manufacture receipts.
 The evaluation envelope retains frozen manifests, the baseline body, every
 cell, source/model/context bindings, pairings, and a content hash. A failed
 run retains its partial state and any target-budget counter already reserved.
+When a cell's protocol score is zero, its receipt carries `protocolFailure`.
+This records the first required MCP call that was not made in the required
+order, as `{ kind: "missing_required_call", tool, position }`: a public tool
+name and a 1-based position, never arguments, transcript text or evaluator
+content. After a complete evaluation, the campaign writes
+`public-feedback.json` next to `evaluation.json`. It summarizes those misses
+per variant and family in the public feedback shape above, so it can be passed
+to the next `revise` with `--feedback`. The file is skipped when the public
+filter rejects it.
+
 Source fences bind Git `HEAD` and the complete tracked tree metadata. Tracked
 symlinks are fenced as Git entries and are not followed while computing the
 source fence. Cell receipts bind the request, replicate, cohort lock, body
 label, score, failures, usage, and hashed artifacts.
+The offline workflow contracts (run lock, ledger entry, run state, report,
+proposal and approval) use schema version `1.1.0`. They no longer carry the
+assembled-bundle gate, phase or result. Live cell evidence and campaign
+envelopes stay at `1.0.0`.
 No command writes Kibi metadata, source files, adoption state, commits, pushes,
 or held-out results.
 

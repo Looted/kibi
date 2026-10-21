@@ -43,7 +43,7 @@
       ],
       "properties": {
         "schemaVersion": {
-          "$ref": "contract-definitions.schema.json#/$defs/schemaVersion"
+          "$ref": "contract-definitions.schema.json#/$defs/offlineSchemaVersion"
         },
         "artifactType": { "const": "report" },
         "runId": {
@@ -57,8 +57,7 @@
             "kibi-usage",
             "kibi-freshness",
             "kibi-traceability",
-            "kibi-bootstrap",
-            "bundle"
+            "kibi-bootstrap"
           ]
         },
         "variants": { "const": ["baseline", "one-shot", "skillopt"] },
@@ -82,15 +81,13 @@
             "aggregate",
             "bootstrap",
             "family",
-            "security",
-            "bundle"
+            "security"
           ],
           "properties": {
             "aggregate": { "type": "boolean" },
             "bootstrap": { "type": "boolean" },
             "family": { "type": "boolean" },
-            "security": { "type": "boolean" },
-            "bundle": { "type": ["boolean", "null"] }
+            "security": { "type": "boolean" }
           }
         }
       }

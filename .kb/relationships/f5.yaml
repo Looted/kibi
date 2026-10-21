@@ -300,3 +300,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6ccbca3bfbba
+  - type: implements
+    from: SYM-skillopt-assert-evaluation-host
+    to: REQ-skillopt-host-neutral-optimization
+    created_at: 2026-10-21T10:55:00.504Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77a06ba622c5
+  - type: covered_by
+    from: SYM-skillopt-assert-evaluation-host
+    to: TEST-e2e-skillopt-host-neutral-optimization
+    created_at: 2026-10-21T10:55:00.528Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1cde70d30ade

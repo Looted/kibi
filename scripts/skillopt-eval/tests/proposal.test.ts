@@ -51,7 +51,6 @@ function report(gateOutcome: "pass" | "fail" = "pass") {
       bootstrap: true,
       family: true,
       security: true,
-      bundle: null,
     },
     generatedAt: "2026-07-23T12:00:00Z",
   }).report;

@@ -1,8 +1,8 @@
 import type { z } from "zod";
 import {
-  CONTRACT_SCHEMA_VERSION,
   ContractIntegrityError,
   JsonValueSchema,
+  OFFLINE_CONTRACT_SCHEMA_VERSION,
   canonicalJson,
   contractHash,
   parseJsonText,
@@ -22,7 +22,6 @@ export type ReportGateResults = Readonly<{
   bootstrap: boolean;
   family: boolean;
   security: boolean;
-  bundle: boolean | null;
 }>;
 
 // implements REQ-skillopt-codex-optimization
@@ -126,8 +125,7 @@ function verdictFor(input: BuildReportInput): ReportV1["verdict"] {
     input.gateResults.aggregate &&
     input.gateResults.bootstrap &&
     input.gateResults.family &&
-    input.gateResults.security &&
-    input.gateResults.bundle !== false;
+    input.gateResults.security;
   if (input.gateOutcome === "pass" && !gatesPass) {
     throw new ContractIntegrityError(
       "passing report requires every applicable gate",
@@ -141,7 +139,6 @@ function verdictFor(input: BuildReportInput): ReportV1["verdict"] {
 // implements REQ-skillopt-codex-optimization
 export function renderReportMarkdown(machineJson: string): string {
   const report = ReportV1Schema.parse(parseJsonText(machineJson));
-  const bundle = report.gateResults.bundle;
   return [
     `# SkillOpt report: ${report.skill}`,
     "",
@@ -156,7 +153,6 @@ export function renderReportMarkdown(machineJson: string): string {
     `- Bootstrap: ${report.gateResults.bootstrap ? "pass" : "fail"}`,
     `- Family: ${report.gateResults.family ? "pass" : "fail"}`,
     `- Security: ${report.gateResults.security ? "pass" : "fail"}`,
-    `- Bundle: ${bundle === null ? "not applicable" : bundle ? "pass" : "fail"}`,
     "",
   ].join("\n");
 }
@@ -168,7 +164,7 @@ export function buildReportArtifacts(input: BuildReportInput): ReportArtifacts {
     return contractHash(JsonValueSchema.parse(redacted));
   });
   const report = ReportV1Schema.parse({
-    schemaVersion: CONTRACT_SCHEMA_VERSION,
+    schemaVersion: OFFLINE_CONTRACT_SCHEMA_VERSION,
     artifactType: "report",
     runId: input.runId,
     runLockHash: input.runLockHash,

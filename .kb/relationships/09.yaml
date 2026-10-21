@@ -244,3 +244,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ea3b04efd825
+  - type: implements
+    from: SYM-skillopt-first-missing-required-call
+    to: REQ-skillopt-host-neutral-optimization
+    created_at: 2026-10-21T10:54:24.761Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4070c02ecc4f
+  - type: covered_by
+    from: SYM-skillopt-first-missing-required-call
+    to: TEST-e2e-skillopt-host-neutral-optimization
+    created_at: 2026-10-21T10:54:24.781Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-154e14e50704

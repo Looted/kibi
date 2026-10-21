@@ -51,7 +51,7 @@ function runLockFixture(): Readonly<Record<string, unknown>> {
 
 function proposalFixture(status: "accepted" | "rejected") {
   return ProposalSchema.parse({
-    schemaVersion: "1.0.0",
+    schemaVersion: "1.1.0",
     artifactType: "proposal",
     proposalId: PROPOSAL_ID,
     runId: RUN_ID,
@@ -110,7 +110,7 @@ describe("SkillOpt hardened contract boundaries", () => {
   test("rejects approval of a rejected proposal even with a recomputed hash", () => {
     const proposal = proposalFixture("rejected");
     const approval = ApprovalSchema.parse({
-      schemaVersion: "1.0.0",
+      schemaVersion: "1.1.0",
       artifactType: "approval",
       approvalId: "00000000-0000-4000-8000-000000000004",
       proposalId: proposal.proposalId,

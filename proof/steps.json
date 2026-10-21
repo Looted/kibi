@@ -2071,6 +2071,16 @@
     ]
   },
   {
+    "test_id": "TEST-e2e-skillopt-host-neutral-optimization",
+    "steps": [
+      [
+        "bun",
+        "run",
+        "documentation/tests/e2e/skillopt-host-neutral-optimization.e2e.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-e2e-skillopt-description-candidates",
     "steps": [
       [

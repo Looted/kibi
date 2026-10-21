@@ -7,16 +7,17 @@ import { buildSkillCatalog } from "./catalog";
 import { EpisodeRequestSchema } from "./contracts/episode";
 import { materializeFixtureRun } from "./fixtures/materialize";
 import { taskScopedPublicSkillDescriptors } from "./real-workflow-setup";
-import {
-  claudeReportedCostUsd,
-  createClaudeRuntimeLease,
-  selectedSkillOptHost,
-} from "./runtime/claude-code-host";
+import { claudeReportedCostUsd } from "./runtime/claude-code-host";
 import { runCodexCell } from "./runtime/codex-cell-runner";
-import { createCodexRuntimeLease } from "./runtime/codex-runtime";
 import { PublicTaskClaimSchema } from "./runtime/file-bridge";
 import { taskFinalStateRequests } from "./runtime/final-state-requests";
 import { assertSkillOptModelsReadyForPaidWork } from "./runtime/models";
+import {
+  SkillOptHostSelectionError,
+  envWithSkillOptHost,
+  resolveSkillOptHost,
+} from "./runtime/skillopt-host";
+import { skillOptHostImplementation } from "./runtime/skillopt-host-registry";
 import { resolveTaskFixture } from "./runtime/task-fixture";
 import { initializeTargetEpisodeBudget } from "./target-episode-budget";
 import { validateCandidateDescription } from "./variants";
@@ -30,7 +31,7 @@ import { validateCandidateDescription } from "./variants";
  * bun scripts/skillopt-eval/host-cell-smoke.ts --artifact-root DIR \
  *   --skill kibi-bootstrap --family approval-plan-apply \
  *   [--body-file candidate.md [--description-file description.txt]] \
- *   [--timeout-ms 600000] --allow-paid
+ *   [--timeout-ms 600000] [--host codex|claude-code] --allow-paid
  */
 // implements REQ-skillopt-claude-code-host
 // implements REQ-skillopt-description-candidates
@@ -47,9 +48,18 @@ export async function hostCellSmokeMain(
       "description-file": { type: "string" },
       "timeout-ms": { type: "string", default: "600000" },
       "allow-paid": { type: "boolean", default: false },
+      host: { type: "string" },
     },
     strict: true,
   });
+  let host: ReturnType<typeof resolveSkillOptHost>;
+  try {
+    host = resolveSkillOptHost({ requested: values.host });
+  } catch (error) {
+    if (!(error instanceof SkillOptHostSelectionError)) throw error;
+    process.stderr.write(`${error.message}\n`);
+    return 2;
+  }
   if (values["allow-paid"] !== true) {
     process.stderr.write(
       "host-cell-smoke dispatches a paid model: pass --allow-paid\n",
@@ -108,7 +118,7 @@ export async function hostCellSmokeMain(
     join(artifactRoot, "target-budget"),
     1,
   );
-  const env = { ...process.env, ...budgetEnv };
+  const env = envWithSkillOptHost({ ...process.env, ...budgetEnv }, host);
   const body =
     values["body-file"] === undefined
       ? undefined
@@ -136,10 +146,10 @@ export async function hostCellSmokeMain(
     prompt: fixture.publicClaim.text,
     workspaceFixtureHash: fixture.workspaceHash,
   });
-  const lease =
-    selectedSkillOptHost(env) === "claude-code"
-      ? await createClaudeRuntimeLease({ artifactRoot }, env)
-      : await createCodexRuntimeLease({ artifactRoot });
+  const lease = await skillOptHostImplementation(host).createRuntimeLease(
+    { artifactRoot },
+    env,
+  );
   try {
     const completed = await runCodexCell({
       request,
@@ -172,7 +182,7 @@ export async function hostCellSmokeMain(
       "utf8",
     ).catch(() => "");
     const summary = {
-      host: selectedSkillOptHost(env),
+      host,
       taskId: task.id,
       family: task.family,
       variant: request.variant,

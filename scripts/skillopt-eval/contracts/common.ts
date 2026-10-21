@@ -4,6 +4,13 @@ import { z } from "zod";
 
 // implements REQ-skillopt-codex-optimization
 export const CONTRACT_SCHEMA_VERSION = "1.0.0" as const;
+/**
+ * Version of the offline review contracts (run lock, run state, ledger,
+ * report, proposal, approval). 1.1.0 removed the assembled-bundle gate,
+ * phase, ledger category and report result; nothing reads 1.0.0 copies.
+ */
+// implements REQ-skillopt-host-neutral-optimization
+export const OFFLINE_CONTRACT_SCHEMA_VERSION = "1.1.0" as const;
 // implements REQ-skillopt-codex-optimization
 export const MAX_CONTRACT_BYTES = 1_048_576;
 

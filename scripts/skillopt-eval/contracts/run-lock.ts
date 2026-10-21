@@ -9,10 +9,10 @@ import {
 } from "../runtime/models";
 import {
   ArtifactIdSchema,
-  CONTRACT_SCHEMA_VERSION,
   ContractIntegrityError,
   JsonValueSchema,
   NonEmptyStringSchema,
+  OFFLINE_CONTRACT_SCHEMA_VERSION,
   Sha256Schema,
   boundedContractSchema,
   contractHash,
@@ -83,7 +83,7 @@ export function createRunLockSchema(sourceLockPath = DEFAULT_SOURCE_LOCK_PATH) {
   return boundedContractSchema(
     z
       .object({
-        schemaVersion: z.literal(CONTRACT_SCHEMA_VERSION),
+        schemaVersion: z.literal(OFFLINE_CONTRACT_SCHEMA_VERSION),
         artifactType: z.literal("run-lock"),
         runId: ArtifactIdSchema,
         repositoryHashAlgorithm: z.enum(["sha1", "sha256"]),

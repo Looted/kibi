@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.0.0",
+  "schemaVersion": "1.1.0",
   "artifactType": "run-lock",
   "runId": "00000000-0000-4000-8000-000000000001",
   "repositoryHashAlgorithm": "sha1",
@@ -76,7 +76,6 @@
   "gates": {
     "heldOutTasksPerVariant": 16,
     "familySlices": 4,
-    "bundleTasks": 8,
     "candidate": {
       "meanMinimum": 85,
       "hardPassesMinimum": 13,
@@ -92,14 +91,6 @@
       "lowerBoundExclusiveMinimum": 0,
       "clusterUnit": "task"
     },
-    "familyGuard": { "maxMeanRegression": 3, "maxHardPassRegression": 1 },
-    "bundle": {
-      "meanMinimum": 85,
-      "hardPassesMinimum": 7,
-      "hardPassesTotal": 8,
-      "meanDeltaMinimum": { "baseline": 3, "oneShot": 3 },
-      "allowHardPassLoss": false,
-      "maxCriticalFailures": 0
-    }
+    "familyGuard": { "maxMeanRegression": 3, "maxHardPassRegression": 1 }
   }
 }

@@ -20,7 +20,7 @@ from .common import (
 )
 
 Variant = Literal["baseline", "one-shot", "skillopt"]
-Skill = Literal["kibi-usage", "kibi-freshness", "kibi-traceability", "kibi-bootstrap", "bundle"]
+Skill = Literal["kibi-usage", "kibi-freshness", "kibi-traceability", "kibi-bootstrap"]
 
 
 class EpisodeRequest(ContractModel):

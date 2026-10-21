@@ -49961,7 +49961,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-claude-code-host
   - id: SYM-skillopt-claude-host-campaign-dependencies
-    title: hostCampaignDependencies
+    title: claudeCodeCampaignDependencies
     status: active
     sourceFile: scripts/skillopt-eval/claude-code-campaign.ts
     symbol_role: behavioral
@@ -49995,7 +49995,7 @@ symbols:
   - id: SYM-skillopt-selected-host-choice
     title: selectedSkillOptHost
     status: active
-    sourceFile: scripts/skillopt-eval/runtime/claude-code-host.ts
+    sourceFile: scripts/skillopt-eval/runtime/skillopt-host.ts
     symbol_role: behavioral
     origin:
       kind: agent
@@ -55509,3 +55509,133 @@ symbols:
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-kibi-proposition-complete-ingestion
+  - id: SYM-e2e-skillopt-host-neutral-optimization
+    title: skillopt-host-neutral-optimization.e2e
+    status: active
+    sourceFile: documentation/tests/e2e/skillopt-host-neutral-optimization.e2e.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      ref: 'Maintainer decision, 2026-10-21: "Make SkillOpt treat the agent harness as an explicit per-run choice, finish the leftovers of the bundle removal, and record missing protocol calls."'
+      recorded_at: 2026-10-21T10:54:16.267Z
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-skillopt-host-neutral-optimization
+  - id: SYM-skillopt-first-missing-required-call
+    title: firstMissingRequiredCall
+    status: active
+    sourceFile: scripts/skillopt-eval/scoring/cell.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer decision, 2026-10-21: "Make SkillOpt treat the agent harness as an explicit per-run choice, finish the leftovers of the bundle removal, and record missing protocol calls."'
+      recorded_at: 2026-10-21T10:54:23.312Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-host-neutral-optimization
+      - type: implements
+        target: REQ-skillopt-host-neutral-optimization
+  - id: SYM-skillopt-campaign-public-feedback
+    title: campaignPublicFeedback
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer decision, 2026-10-21: "Make SkillOpt treat the agent harness as an explicit per-run choice, finish the leftovers of the bundle removal, and record missing protocol calls."'
+      recorded_at: 2026-10-21T10:54:29.295Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-host-neutral-optimization
+      - type: implements
+        target: REQ-skillopt-host-neutral-optimization
+  - id: SYM-skillopt-resolve-host
+    title: resolveSkillOptHost
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/skillopt-host.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer decision, 2026-10-21: "Make SkillOpt treat the agent harness as an explicit per-run choice, finish the leftovers of the bundle removal, and record missing protocol calls."'
+      recorded_at: 2026-10-21T10:54:38.901Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-claude-code-host
+      - type: covered_by
+        target: TEST-e2e-skillopt-host-neutral-optimization
+      - type: implements
+        target: REQ-skillopt-operator-selected-harness
+  - id: SYM-skillopt-extract-host-option
+    title: extractHostOption
+    status: active
+    sourceFile: scripts/skillopt-eval/cli.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer decision, 2026-10-21: "Make SkillOpt treat the agent harness as an explicit per-run choice, finish the leftovers of the bundle removal, and record missing protocol calls."'
+      recorded_at: 2026-10-21T10:54:45.419Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-host-neutral-optimization
+      - type: implements
+        target: REQ-skillopt-host-neutral-optimization
+  - id: SYM-skillopt-campaign-evaluation-host
+    title: campaignEvaluationHost
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer decision, 2026-10-21: "Make SkillOpt treat the agent harness as an explicit per-run choice, finish the leftovers of the bundle removal, and record missing protocol calls."'
+      recorded_at: 2026-10-21T10:54:52.516Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-host-neutral-optimization
+      - type: implements
+        target: REQ-skillopt-host-neutral-optimization
+  - id: SYM-skillopt-assert-evaluation-host
+    title: assertEvaluationHost
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer decision, 2026-10-21: "Make SkillOpt treat the agent harness as an explicit per-run choice, finish the leftovers of the bundle removal, and record missing protocol calls."'
+      recorded_at: 2026-10-21T10:54:59.158Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-host-neutral-optimization
+      - type: implements
+        target: REQ-skillopt-host-neutral-optimization
+  - id: SYM-skillopt-offline-contract-version
+    title: OFFLINE_CONTRACT_SCHEMA_VERSION
+    status: active
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer decision, 2026-10-21: "Make SkillOpt treat the agent harness as an explicit per-run choice, finish the leftovers of the bundle removal, and record missing protocol calls."'
+      recorded_at: 2026-10-21T10:55:19.801Z
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-host-neutral-optimization
+      - type: implements
+        target: REQ-skillopt-host-neutral-optimization
+  - id: SYM-skillopt-host-registry
+    title: skillOptHostImplementation
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/skillopt-host-registry.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer decision, 2026-10-21: "Make SkillOpt treat the agent harness as an explicit per-run choice, finish the leftovers of the bundle removal, and record missing protocol calls."'
+      recorded_at: 2026-10-21T10:55:25.674Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-claude-code-host
+      - type: covered_by
+        target: TEST-e2e-skillopt-host-neutral-optimization
+      - type: implements
+        target: REQ-skillopt-operator-selected-harness

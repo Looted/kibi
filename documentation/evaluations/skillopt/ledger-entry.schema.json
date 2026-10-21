@@ -19,7 +19,7 @@
   ],
   "properties": {
     "schemaVersion": {
-      "$ref": "contract-definitions.schema.json#/$defs/schemaVersion"
+      "$ref": "contract-definitions.schema.json#/$defs/offlineSchemaVersion"
     },
     "artifactType": { "const": "ledger-entry" },
     "runId": {
@@ -45,7 +45,6 @@
         "development",
         "optimization",
         "held-out",
-        "bundle",
         "infrastructure"
       ]
     },

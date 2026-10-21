@@ -31,7 +31,7 @@ def load_json_object(path: Path) -> dict[str, JsonValue]:
 def accepted_proposal() -> Proposal:
     return Proposal.model_validate(
         {
-            "schemaVersion": "1.0.0",
+            "schemaVersion": "1.1.0",
             "artifactType": "proposal",
             "proposalId": PROPOSAL_ID,
             "runId": RUN_ID,
@@ -55,7 +55,7 @@ def matching_approval(proposal: Proposal) -> Approval:
     )
     return Approval.model_validate(
         {
-            "schemaVersion": "1.0.0",
+            "schemaVersion": "1.1.0",
             "artifactType": "approval",
             "approvalId": "00000000-0000-4000-8000-000000000004",
             "proposalId": proposal.proposal_id,
