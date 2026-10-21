@@ -13,7 +13,13 @@ const processImpl = {
   }),
 };
 
+// The host registry reaches other importers of these modules; keep their
+// real exports and replace only what this suite drives.
+const realProcess = await import("../runtime/process");
+const realCodexOptimizer = await import("../runtime/codex-optimizer");
+
 mock.module("../runtime/process", () => ({
+  ...realProcess,
   runBoundedProcess: (options: unknown) => processImpl.run(options),
   ProcessControlError: class ProcessControlError extends Error {
     readonly kind: string;
@@ -48,6 +54,7 @@ mock.module("../runtime/task-fixture", () => ({
 }));
 
 mock.module("../runtime/codex-optimizer", () => ({
+  ...realCodexOptimizer,
   runCodexSkillOptStep: async () => ({
     body: "# one shot body\n",
     development: { mean: 0, hardPasses: 0, worstFamilyMean: 0 },
