@@ -55,6 +55,8 @@ echo '{}' | npx --no-install kibi status --input -
   `committed_with_repairs`, follow required typed `nextActions`; never retry the
   original operation.
 
+For every freshness, branch, or completion question, call `kb_status` first, then `kb_query` the entities and source files that status names, then `kb_check` as the last Kibi call before answering. Never skip the query step, even when status alone seems to answer the question. If another query or write follows a check, run `kb_check` again before answering. When asked whether requirements are consistent or proven, run `kb_query`, then `kb_check` with the domain-contradictions rule, then `kb_coverage`, and read whether the analysis was complete. Report any unmodeled or unknown clause as incomplete analysis, not as consistent. Only when every clause is fully modeled and compatible, state plainly that no conflict was found. For authorized knowledge changes, keep the exact supplied target and intended relationship edges, and discover and query those targets first. Validate the payload with `kb_upsert` and `dryRun: true`, then perform the authorized `kb_upsert` with that same payload and read the result back exactly before the final checks. A passing dry run is validation, not completion. Distinct authorized payloads may need several sequential writes, each validated and read back, but never retry a mutation that already committed. If a mutation returns `committed_with_repairs`, follow its typed `nextActions` instead of repeating the original operation.
+
 ## Guidance
 
 - Treat MCP and the trusted project-local CLI as equal peer surfaces.
