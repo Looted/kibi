@@ -23325,7 +23325,7 @@ coordinates:
     sourceLine: 610
   SYM-quality-inventory-522c5b9aeb69:
     identityHash: 6529c16ed47a56026cd6659bc79a00c8644deaac8c378279cb6c3d969f45fa4e
-    sourceHash: 6c70a9916239b78b0fbbe5d42093f8a798d8d479cab7e278c33cdf9b471cf76f
+    sourceHash: 5766d6e0a0d5d19fa2b73b762f83dc23f799f3d000052cd37db1c6b3ce1fe1f0
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 31
@@ -32821,28 +32821,28 @@ coordinates:
     sourceLine: 119
   SYM-skillopt-runtime-prerequisite-error:
     identityHash: 831169b68ea9863bbd747bf747629a2e9d36bd23895c0ab01cabfac0b2cee029
-    sourceHash: 2d4420fb48b36e2553b876409a69f58a8342d31c0e09cafc10a15c82de3bc521
+    sourceHash: 729e0fb9d58475bd9f757816953fbd2fad2f44d4ea262737253450808bbce146
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 20
-    sourceFile: scripts/skillopt-eval/runtime/canary-errors.ts
-    sourceLine: 14
-  SYM-skillopt-runtime-prerequisite-error-name:
-    identityHash: fa4c27e3ce93f880bf6e0fa7e19bef8659f31533fc5321e4bbaed5f24ac70ba6
-    sourceHash: 2d4420fb48b36e2553b876409a69f58a8342d31c0e09cafc10a15c82de3bc521
-    sourceColumn: 11
-    sourceEndColumn: 45
-    sourceEndLine: 15
+    sourceEndLine: 21
     sourceFile: scripts/skillopt-eval/runtime/canary-errors.ts
     sourceLine: 15
+  SYM-skillopt-runtime-prerequisite-error-name:
+    identityHash: fa4c27e3ce93f880bf6e0fa7e19bef8659f31533fc5321e4bbaed5f24ac70ba6
+    sourceHash: 729e0fb9d58475bd9f757816953fbd2fad2f44d4ea262737253450808bbce146
+    sourceColumn: 11
+    sourceEndColumn: 45
+    sourceEndLine: 16
+    sourceFile: scripts/skillopt-eval/runtime/canary-errors.ts
+    sourceLine: 16
   SYM-skillopt-runtime-prerequisite-kind:
     identityHash: aba3f3feb6f145c2d994b94ca5853f015959d2b0067c9238e99e70c25213433a
-    sourceHash: 2d4420fb48b36e2553b876409a69f58a8342d31c0e09cafc10a15c82de3bc521
+    sourceHash: 729e0fb9d58475bd9f757816953fbd2fad2f44d4ea262737253450808bbce146
     sourceColumn: 12
     sourceEndColumn: 72
-    sourceEndLine: 12
+    sourceEndLine: 13
     sourceFile: scripts/skillopt-eval/runtime/canary-errors.ts
-    sourceLine: 12
+    sourceLine: 13
   SYM-skillopt-runtime-probe-required-mcp:
     identityHash: 71ea3c020d920ceefc1a225b7bbe2b431640ea18a0e6a670a414566ac495318b
     sourceHash: 9aa3bbc7a70a3361b7e1fdcfb2d479687587ad7bfeacfb9010a8bf504a99d7d7
@@ -32901,20 +32901,20 @@ coordinates:
     sourceLine: 170
   SYM-skillopt-runtime-required-mcp-error:
     identityHash: aa465c2c8196388488063f9a9be4b99e59c035be9ab6f5e40d40c0b12da51bf9
-    sourceHash: 2d4420fb48b36e2553b876409a69f58a8342d31c0e09cafc10a15c82de3bc521
+    sourceHash: 729e0fb9d58475bd9f757816953fbd2fad2f44d4ea262737253450808bbce146
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 31
-    sourceFile: scripts/skillopt-eval/runtime/canary-errors.ts
-    sourceLine: 22
-  SYM-skillopt-runtime-required-mcp-error-name:
-    identityHash: a5bde37a7e757a35719cf866792bf826a29446550ed24f34c16cfcefd52a2216
-    sourceHash: 2d4420fb48b36e2553b876409a69f58a8342d31c0e09cafc10a15c82de3bc521
-    sourceColumn: 11
-    sourceEndColumn: 44
-    sourceEndLine: 23
+    sourceEndLine: 32
     sourceFile: scripts/skillopt-eval/runtime/canary-errors.ts
     sourceLine: 23
+  SYM-skillopt-runtime-required-mcp-error-name:
+    identityHash: a5bde37a7e757a35719cf866792bf826a29446550ed24f34c16cfcefd52a2216
+    sourceHash: 729e0fb9d58475bd9f757816953fbd2fad2f44d4ea262737253450808bbce146
+    sourceColumn: 11
+    sourceEndColumn: 44
+    sourceEndLine: 24
+    sourceFile: scripts/skillopt-eval/runtime/canary-errors.ts
+    sourceLine: 24
   SYM-skillopt-runtime-ReusableCodexRuntime:
     identityHash: ffcdd9417b56259e67faec9fa4ed47d6958bbae6ee8b7b7841484c8c3a738fd0
     sourceHash: 9aa3bbc7a70a3361b7e1fdcfb2d479687587ad7bfeacfb9010a8bf504a99d7d7
@@ -32981,12 +32981,12 @@ coordinates:
     sourceLine: 52
   SYM-skillopt-runtime-stage-kibi-mcp:
     identityHash: 6555a76f4b91494d40ac1b2d39d26193a7008ec4489539685552ea469aed7846
-    sourceHash: 6c70a9916239b78b0fbbe5d42093f8a798d8d479cab7e278c33cdf9b471cf76f
+    sourceHash: 5766d6e0a0d5d19fa2b73b762f83dc23f799f3d000052cd37db1c6b3ce1fe1f0
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 188
+    sourceEndLine: 298
     sourceFile: scripts/skillopt-eval/runtime/staged-mcp.ts
-    sourceLine: 121
+    sourceLine: 231
   SYM-skillopt-runtime-staged-canary:
     identityHash: a9607c3e4ee06a7b40d9d8d41cb98ebb063aa5cffc9d73f3fa90f080653e0fca
     sourceHash: 9aa3bbc7a70a3361b7e1fdcfb2d479687587ad7bfeacfb9010a8bf504a99d7d7
@@ -32997,7 +32997,7 @@ coordinates:
     sourceLine: 40
   SYM-skillopt-runtime-staged-mcp-launch:
     identityHash: 0b80fc5dd4b40c9c6de861d48a3a1e386c27cf6ca3f4093d57b62e6d268de01b
-    sourceHash: 6c70a9916239b78b0fbbe5d42093f8a798d8d479cab7e278c33cdf9b471cf76f
+    sourceHash: 5766d6e0a0d5d19fa2b73b762f83dc23f799f3d000052cd37db1c6b3ce1fe1f0
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 20
@@ -33381,7 +33381,7 @@ coordinates:
     sourceLine: 14
   SYM-skillopt-staged-mcp-options:
     identityHash: 29e024efbab88f7a7533a206e7a1a2193b787f9af83e19a440de2e55e3043db7
-    sourceHash: 6c70a9916239b78b0fbbe5d42093f8a798d8d479cab7e278c33cdf9b471cf76f
+    sourceHash: 5766d6e0a0d5d19fa2b73b762f83dc23f799f3d000052cd37db1c6b3ce1fe1f0
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 25

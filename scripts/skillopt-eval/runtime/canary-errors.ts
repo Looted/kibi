@@ -5,6 +5,7 @@ const PREREQUISITE_REASONS = {
   missing_claude_executable: "missing_isolation:claude_executable",
   missing_code_mode_host: "missing_isolation:code_mode_host",
   missing_node_executable: "missing_isolation:node_executable",
+  missing_runtime_package: "required_mcp_startup:missing_runtime_package",
   sandbox_probe_failed: "isolation_probe_failed",
   source_isolation_probe_failed: "source_isolation_probe_failed",
 } as const;
