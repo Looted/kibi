@@ -4,12 +4,30 @@ import {
   setupSeededFreshKb,
   stopFixtureEngine,
 } from "./runtime/fixture-kb-setup";
+import { probeStagedSymbolCapability } from "./runtime/symbol-capability-probe";
+
+export type FixtureReadinessDependencies = Readonly<{
+  setup: (workspace: string, cliRoot: string) => Promise<void>;
+  stop: (workspace: string) => Promise<void>;
+  /**
+   * Probes the staged MCP runtime against the seeded workspace after its setup
+   * engine stopped. Omitted, only the seeded setup is checked.
+   */
+  probeRuntime?: (workspace: string, sourceWorktree: string) => Promise<void>;
+}>;
+
+export const defaultFixtureReadinessDependencies: FixtureReadinessDependencies =
+  {
+    setup: setupSeededFreshKb,
+    stop: stopFixtureEngine,
+    probeRuntime: probeStagedSymbolCapability,
+  };
 
 // implements REQ-skillopt-codex-optimization
 export async function probeFixtureReadiness(
   workspace: string,
   cliRoot: string,
-  dependencies = { setup: setupSeededFreshKb, stop: stopFixtureEngine },
+  dependencies: FixtureReadinessDependencies = defaultFixtureReadinessDependencies,
 ): Promise<void> {
   // A fresh destination prevents a probe from reusing or deleting another run.
   await mkdir(workspace, { mode: 0o700 });
@@ -21,6 +39,12 @@ export async function probeFixtureReadiness(
   );
   try {
     await dependencies.setup(workspace, cliRoot);
+    if (dependencies.probeRuntime !== undefined) {
+      // The setup engine and the staged server must not share the branch
+      // store, so stop the former before the probe starts the latter.
+      await dependencies.stop(workspace);
+      await dependencies.probeRuntime(workspace, resolve(cliRoot, "../.."));
+    }
   } finally {
     await dependencies.stop(workspace);
     await rm(workspace, { recursive: true, force: true });

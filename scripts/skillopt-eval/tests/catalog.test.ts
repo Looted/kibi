@@ -13,6 +13,7 @@ import {
 } from "../catalog";
 import { CANONICAL_SKILLS } from "../catalog";
 import { buildPrivateManifest } from "../fixtures/evaluator";
+import { predicateCaseById } from "../fixtures/predicate-cases";
 import {
   PREDICATE_DEVELOPMENT_CASE_ID,
   PREDICATE_HELD_OUT_CASE_IDS,
@@ -441,23 +442,34 @@ describe("SkillOpt corpus executability invariants", () => {
   });
 
   test("predicate-family tasks sequence advisor operations before writes", () => {
-    const predicateTask = allTasks.find((task) =>
+    const predicateTasks = allTasks.filter((task) =>
       task.taskData.objectiveCode.startsWith("model_predicate_"),
     );
-    if (predicateTask === undefined)
+    if (predicateTasks.length === 0)
       throw new Error("predicate fixture missing");
-    const tools = manifestFor(predicateTask).orderedMcpPredicates.required.map(
-      ({ tool }) => tool,
-    );
-    expect(tools).toEqual([
-      "kb_search",
-      "kb_query",
-      "kb_semantic_advisor",
-      "kb_suggest_predicates",
-      "kb_model_requirement",
-      "kb_upsert",
-      "kb_check",
-    ]);
+    const lanes = new Set<string>();
+    for (const task of predicateTasks) {
+      const lane = predicateCaseById(task.id).privateExpectation.expectedLane;
+      lanes.add(lane);
+      const tools = manifestFor(task).orderedMcpPredicates.required.map(
+        ({ tool }) => tool,
+      );
+      // Requirement-mode modeling is required only where kibi-usage teaches
+      // it: strict scalar properties and typed rules.
+      expect(tools).toEqual([
+        "kb_search",
+        "kb_query",
+        "kb_semantic_advisor",
+        "kb_suggest_predicates",
+        ...(["strict_property", "rule"].includes(lane)
+          ? ["kb_model_requirement"]
+          : []),
+        "kb_upsert",
+        "kb_check",
+      ]);
+    }
+    expect(lanes.has("strict_property")).toBe(true);
+    expect(lanes.has("predicate")).toBe(true);
   });
 });
 

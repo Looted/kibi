@@ -394,6 +394,25 @@ describe("shared mutation operation specs", () => {
     expect(save).not.toHaveBeenCalled();
   });
 
+  test("validate-upsert reports a module-load failure as a tool failure, not an invalid payload", async () => {
+    // Given: a runtime whose validation dependency cannot be loaded
+    const missing = Object.assign(new Error("Cannot find module 'ts-morph'"), {
+      code: "MODULE_NOT_FOUND",
+    });
+    const context: OperationContext = {
+      workspaceRoot: process.cwd(),
+      signal: new AbortController().signal,
+      clock: () => {
+        throw missing;
+      },
+    };
+
+    // When / Then
+    await expect(validateUpsertSpec.execute(payload, context)).rejects.toBe(
+      missing,
+    );
+  });
+
   test("validate-upsert returns a normalized preview without mutation", async () => {
     // Given: every read is empty and the rolled-back contradiction preview
     // passes (it is not a write; writeGoals below still forbids any commit).

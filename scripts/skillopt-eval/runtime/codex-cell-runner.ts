@@ -45,6 +45,7 @@ import {
   setupSeededPartialKb,
   setupSeededPreconditionKb,
   setupSeededStaleKb,
+  setupSeededUncoveredKb,
   setupThinRootKb,
   stopFixtureEngine,
 } from "./fixture-kb-setup";
@@ -273,6 +274,8 @@ export async function runCodexCell(
               const setupMode = options.evaluatorManifest.fixtureSetup;
               if (setupMode === "seeded_fresh_kb") {
                 await setupSeededFreshKb(workspace.target, stagingCliRoot);
+              } else if (setupMode === "seeded_uncovered_kb") {
+                await setupSeededUncoveredKb(workspace.target, stagingCliRoot);
               } else if (setupMode === "seeded_governed_area_kb") {
                 await setupSeededGovernedAreaKb(
                   workspace.target,

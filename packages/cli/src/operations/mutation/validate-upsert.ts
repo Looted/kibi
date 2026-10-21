@@ -262,6 +262,12 @@ async function validateWithoutStore(
   return { entity: validated.entity, semantic };
 }
 
+function isModuleLoadFailure(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  const code = (error as Error & { code?: unknown }).code;
+  return code === "MODULE_NOT_FOUND" || code === "ERR_MODULE_NOT_FOUND";
+}
+
 // implements REQ-kibi-operation-interface-parity, REQ-kibi-truthful-consistency
 /**
  * kb_upsert dryRun:true (and the former kb_validate_upsert preflight). With a
@@ -368,6 +374,9 @@ export async function executeValidateUpsert(
       structuredContent: payload,
     };
   } catch (error) {
+    // A module that fails to load is a broken installation, not a property of
+    // the payload: report it as a tool failure instead of an invalid payload.
+    if (isModuleLoadFailure(error)) throw error;
     const message = error instanceof Error ? error.message : String(error);
     const payload: ValidateUpsertPayload = {
       valid: false,
