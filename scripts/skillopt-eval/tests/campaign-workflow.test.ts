@@ -10,6 +10,7 @@ import {
   campaignCandidateHash,
   candidateFrontmatterHash,
   composeCampaignManifest,
+  readPublicFeedback,
   replaceCampaignBodyAndDescription,
   sha256Text,
 } from "../campaign-artifacts";
@@ -167,6 +168,15 @@ async function writeTrustedCell(
     criticalFailures:
       input.request.variant === "baseline" ? ["isolation-sentinel"] : [],
     conflictKeys: [],
+    ...(input.request.variant === "baseline"
+      ? {}
+      : {
+          protocolFailure: {
+            kind: "missing_required_call" as const,
+            tool: "kb_query",
+            position: 2,
+          },
+        }),
   };
   const receipt = replayCodexEpisode({
     request: input.request,
@@ -1571,6 +1581,90 @@ describe("campaign harness selection", () => {
     } finally {
       await rm(evaluationOutput.parent, { recursive: true, force: true });
       await rm(packageOutput.parent, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("campaign protocol failures", () => {
+  test("cells keep the first missing required call and evaluate writes public feedback for revise", async () => {
+    const first = await tempArtifact("protocol-evaluate");
+    const second = await tempArtifact("protocol-confirm");
+    const fake = dependencies();
+    try {
+      const evaluation = await runEvaluateCampaign({
+        sourceRoot: process.cwd(),
+        artifactRoot: first.root,
+        skill: "kibi-usage",
+        manifests: [candidateManifest()],
+        repeats: 1,
+        maxTargetEpisodes: 10,
+        allowPaid: true,
+        runId: "00000000-0000-4000-8000-000000000071",
+        dependencies: defaultCellDependencies(fake.deps),
+      });
+      const candidateCells = evaluation.cells.filter(
+        (cell) => cell.variant === "candidate-1",
+      );
+      expect(candidateCells.length).toBeGreaterThan(0);
+      for (const cell of candidateCells)
+        expect(cell.protocolFailure).toEqual({
+          kind: "missing_required_call",
+          tool: "kb_query",
+          position: 2,
+        });
+      expect(
+        evaluation.cells
+          .filter((cell) => cell.variant === "baseline")
+          .every((cell) => cell.protocolFailure === undefined),
+      ).toBe(true);
+      const feedback = await readPublicFeedback(
+        join(first.root, "public-feedback.json"),
+      );
+      expect(feedback.observations.length).toBeGreaterThan(0);
+      expect(
+        feedback.observations.every((item) =>
+          item.observation.startsWith(
+            "Protocol failed for candidate-1: required call 2 (kb_query)",
+          ),
+        ),
+      ).toBe(true);
+
+      // A prior cell whose recorded failure no longer matches its receipt is
+      // refused on confirm.
+      const { contentHash: _contentHash, ...body } = evaluation;
+      const tamperedBody = {
+        ...body,
+        cells: body.cells.map((cell) =>
+          cell.variant === "candidate-1"
+            ? {
+                ...cell,
+                protocolFailure: {
+                  kind: "missing_required_call" as const,
+                  tool: "kb_check",
+                  position: 3,
+                },
+              }
+            : cell,
+        ),
+      };
+      await expect(
+        runConfirmCampaign({
+          sourceRoot: process.cwd(),
+          artifactRoot: second.root,
+          previousEvaluation: {
+            ...tamperedBody,
+            contentHash: contractHash(JsonValueSchema.parse(tamperedBody)),
+          },
+          repeats: 1,
+          maxTargetEpisodes: 20,
+          allowPaid: true,
+          runId: "00000000-0000-4000-8000-000000000072",
+          dependencies: defaultCellDependencies(fake.deps),
+        }),
+      ).rejects.toThrow("prior_cell_evidence_mismatch");
+    } finally {
+      await rm(first.parent, { recursive: true, force: true });
+      await rm(second.parent, { recursive: true, force: true });
     }
   });
 });

@@ -65,6 +65,7 @@ import {
 import {
   type CodexEpisodeReceipt,
   CodexEpisodeReceiptSchema,
+  ProtocolFailureSchema,
 } from "./runtime/codex-episode";
 import { deterministicVariantLabel } from "./runtime/codex-events";
 import {
@@ -185,7 +186,11 @@ export type CampaignCell = Readonly<{
   usage: z.infer<typeof JsonValueSchema>;
   violations: readonly string[];
   isolationSentinels: readonly string[];
+  /** The first required MCP call the cell never made (public tool + position). */
+  protocolFailure?: CampaignProtocolFailure;
 }>;
+
+type CampaignProtocolFailure = z.infer<typeof ProtocolFailureSchema>;
 
 type CampaignArtifactRef = Readonly<{
   name: string;
@@ -206,6 +211,7 @@ type CampaignSample = ScreenSample & {
   usage: z.infer<typeof JsonValueSchema>;
   violations: readonly string[];
   isolationSentinels: readonly string[];
+  protocolFailure?: CampaignProtocolFailure;
 };
 
 type CampaignEvidenceFields = Omit<CampaignSample, keyof ScreenSample>;
@@ -355,6 +361,7 @@ function zCellSchema() {
       usage: JsonValueSchema,
       violations: z.array(z.string()),
       isolationSentinels: z.array(z.string()),
+      protocolFailure: ProtocolFailureSchema.optional(),
     })
     .strict();
 }
@@ -545,6 +552,9 @@ function campaignCells(
       usage: JsonValueSchema.parse(evidence.usage),
       violations: [...evidence.violations],
       isolationSentinels: [...evidence.isolationSentinels],
+      ...(evidence.protocolFailure === undefined
+        ? {}
+        : { protocolFailure: evidence.protocolFailure }),
     };
   });
 }
@@ -922,6 +932,7 @@ type VerifiedCampaignArtifacts = Readonly<{
   usage: z.infer<typeof JsonValueSchema>;
   violations: readonly string[];
   isolationSentinels: readonly string[];
+  protocolFailure?: CampaignProtocolFailure;
 }>;
 
 async function readHashedArtifact(
@@ -1069,6 +1080,9 @@ async function verifyCompletedCellArtifacts(
     isolationSentinels: receipt.result.criticalFailures.filter((failure) =>
       /^(?:isolation|sentinel)(?:-|$)/.test(failure),
     ),
+    ...(receipt.protocolFailure === undefined
+      ? {}
+      : { protocolFailure: receipt.protocolFailure }),
   };
 }
 
@@ -1125,6 +1139,8 @@ async function verifyPersistedCampaignCell(
       contractHash(JsonValueSchema.parse(cell.violations)) ||
     contractHash(JsonValueSchema.parse(verified.isolationSentinels)) !==
       contractHash(JsonValueSchema.parse(cell.isolationSentinels)) ||
+    contractHash(JsonValueSchema.parse(verified.protocolFailure ?? null)) !==
+      contractHash(JsonValueSchema.parse(cell.protocolFailure ?? null)) ||
     contractHash(
       JsonValueSchema.parse([
         ...new Set([...verified.violations, ...verified.isolationSentinels]),
@@ -1248,6 +1264,9 @@ async function defaultEvaluateSample(
     runLockHash: verified.runLockHash,
     violations: [...verified.violations],
     isolationSentinels: [...verified.isolationSentinels],
+    ...(verified.protocolFailure === undefined
+      ? {}
+      : { protocolFailure: verified.protocolFailure }),
   };
 }
 
@@ -1625,6 +1644,76 @@ async function buildEvaluation(
     runs: input.runs,
     pairings,
   });
+}
+
+/**
+ * Public observations the next `revise` can take as `--feedback`: for each
+ * arm and family, the cells whose protocol failed on a missing required
+ * call, named by public tool and position only.
+ */
+// implements REQ-skillopt-host-neutral-optimization
+export function campaignPublicFeedback(
+  evaluation: Pick<CampaignEvaluation, "cells">,
+): PublicFeedback {
+  const groups = new Map<
+    string,
+    {
+      family: string;
+      variant: string;
+      total: number;
+      misses: Map<string, number>;
+    }
+  >();
+  for (const cell of evaluation.cells) {
+    const key = `${cell.variant}\u0000${cell.family}`;
+    const group = groups.get(key) ?? {
+      family: cell.family,
+      variant: cell.variant,
+      total: 0,
+      misses: new Map<string, number>(),
+    };
+    group.total += 1;
+    if (cell.protocolFailure !== undefined) {
+      const label = `required call ${cell.protocolFailure.position} (${cell.protocolFailure.tool})`;
+      group.misses.set(label, (group.misses.get(label) ?? 0) + 1);
+    }
+    groups.set(key, group);
+  }
+  const observations = [...groups.values()]
+    .filter((group) => group.misses.size > 0)
+    .sort((left, right) =>
+      `${left.variant} ${left.family}`.localeCompare(
+        `${right.variant} ${right.family}`,
+      ),
+    )
+    .slice(0, 32)
+    .map((group) => {
+      const missed = [...group.misses.entries()]
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([label, count]) => `${label} in ${count} of ${group.total} cells`)
+        .join("; ");
+      return {
+        family: group.family,
+        observation: `Protocol failed for ${group.variant}: ${missed} was never made in the required order.`,
+      };
+    });
+  return parsePublicFeedback({ schemaVersion: "1.0.0", observations });
+}
+
+async function writeCampaignFeedback(
+  store: CampaignArtifactStore,
+  evaluation: CampaignEvaluation,
+): Promise<void> {
+  let feedback: PublicFeedback;
+  try {
+    feedback = campaignPublicFeedback(evaluation);
+  } catch (error) {
+    // Feedback that would not pass the public filter is never written.
+    if (error instanceof CampaignArtifactError) return;
+    throw error;
+  }
+  if (feedback.observations.length > 0)
+    await store.writeJson("public-feedback.json", feedback);
 }
 
 function taskCatalogHash(tasks: readonly PublicTaskDescriptor[]): string {
@@ -2367,6 +2456,7 @@ async function evaluateWithPreparation(
               ],
       });
       await store.writeJson("evaluation.json", evaluation);
+      await writeCampaignFeedback(store, evaluation);
       await store.writeJson("campaign.json", {
         schemaVersion: "1.0.0",
         artifactType: "skillopt-campaign",
