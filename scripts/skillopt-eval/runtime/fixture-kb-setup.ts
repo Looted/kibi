@@ -651,6 +651,28 @@ export async function setupSeededStaleKb(
   await stageCommitAll(workspaceTarget);
 }
 
+/**
+ * Evaluator-owned staging for objectives whose declared dirty worktree must be
+ * observable: the seeded-fresh baseline plus an uncommitted edit to the
+ * tracked, KB-linked source (probe-verified: kb_status reports dirty=true,
+ * syncState=stale naming the linked symbol, and a dirty verification
+ * snapshot), matching the edit described by changes/uncommitted.patch.
+ */
+// implements REQ-skillopt-codex-optimization
+export async function setupSeededDirtyKb(
+  workspaceTarget: string,
+  cliRoot: string,
+): Promise<void> {
+  await setupSeededFreshKb(workspaceTarget, cliRoot);
+  const sourcePath = join(workspaceTarget, FIXTURE_SOURCE_PATH);
+  const original = await readFile(sourcePath, "utf8");
+  await writeFile(
+    sourcePath,
+    `${original}export const fixtureDirtyState = "dirty fixture state";\n`,
+    "utf8",
+  );
+}
+
 /** A deliberately incomplete layout for the read-only operator-repair task. */
 // implements REQ-skillopt-codex-optimization
 export async function setupSeededPartialKb(

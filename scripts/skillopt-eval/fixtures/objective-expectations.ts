@@ -158,7 +158,9 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     },
     symbol_granularity: {
       expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
+      // The declared dirty worktree edits the KB-linked source, so the
+      // verifier sees a stale KB naming the affected symbol.
+      expectedKbState: "stale",
       expectedVerificationState: "dirty",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
@@ -899,6 +901,17 @@ export const DELETE_OBJECTIVES: ReadonlySet<string> = new Set([
   "legacy_shard_reconciliation",
   "obsolete_symbol_delete_with_replacement",
   "extractor_owned_symbol_safety",
+]);
+
+/**
+ * Objectives whose dirty worktree is an uncommitted edit to the KB-linked
+ * source, staged by the seeded_dirty_kb fixture.
+ */
+// implements REQ-skillopt-codex-optimization
+export const DIRTY_SOURCE_OBJECTIVES: ReadonlySet<string> = new Set([
+  "inspect_source_impact",
+  "determine_completion_outcome",
+  "symbol_granularity",
 ]);
 
 /** Non-bootstrap objectives whose flow applies a migration/recovery plan. */

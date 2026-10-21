@@ -5,6 +5,7 @@ import type { parseTaskSpec } from "./contracts";
 import type { parsePrivateEvaluatorManifest } from "./evaluator-contracts";
 import {
   DELETE_OBJECTIVES,
+  DIRTY_SOURCE_OBJECTIVES,
   MIGRATION_APPLY_OBJECTIVES,
   OBJECTIVE_WORKFLOWS,
   RECEIPT_INGEST_OBJECTIVES,
@@ -440,13 +441,17 @@ export function buildPrivateManifest(input: {
           ? ("generated_coordinate_divergence" as const)
           : input.task.taskData.objectiveCode === "repair_escalation"
             ? ("seeded_partial_kb" as const)
-            : input.task.initialState.kb === "fresh"
-              ? ("seeded_fresh_kb" as const)
-              : input.task.initialState.kb === "stale"
-                ? ("seeded_stale_kb" as const)
-                : input.task.initialState.kb === "absent"
-                  ? ("thin_root_kb" as const)
-                  : undefined,
+            : input.task.initialState.kb === "fresh" &&
+                input.task.initialState.worktree === "dirty" &&
+                DIRTY_SOURCE_OBJECTIVES.has(input.task.taskData.objectiveCode)
+              ? ("seeded_dirty_kb" as const)
+              : input.task.initialState.kb === "fresh"
+                ? ("seeded_fresh_kb" as const)
+                : input.task.initialState.kb === "stale"
+                  ? ("seeded_stale_kb" as const)
+                  : input.task.initialState.kb === "absent"
+                    ? ("thin_root_kb" as const)
+                    : undefined,
     workspaceAssertions:
       workspaceAssertions.length === 0
         ? undefined

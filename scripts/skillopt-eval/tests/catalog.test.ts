@@ -142,6 +142,35 @@ describe("SkillOpt fixture catalog", () => {
     );
   });
 
+  test("prompts name what their objective expectations score", () => {
+    const tasks = [...buildPublicCatalog(), ...buildHeldOutCatalog()];
+    const closeout = tasks.filter(
+      (task) => task.taskData.objectiveCode === "determine_completion_outcome",
+    );
+    expect(closeout.length).toBeGreaterThan(0);
+    for (const task of closeout) {
+      for (const field of [
+        "taskOutcome",
+        "kbState",
+        "verificationState",
+        "proofState",
+        "limitationDisposition",
+      ]) {
+        expect(task.prompt).toContain(field);
+      }
+    }
+    // A single relational obligation over several arguments is one claim.
+    const predicate = tasks.filter(
+      (task) => task.family === "fact-predicate-modeling",
+    );
+    for (const task of predicate) {
+      expect(task.prompt).not.toContain("Decompose every atomic obligation");
+      expect(task.prompt).toContain(
+        "one obligation that relates several arguments stays a single fact with a single claim key",
+      );
+    }
+  });
+
   test("forbids direct upsert throughout every bootstrap task", () => {
     const task = buildSkillCatalog("kibi-bootstrap").find(
       (candidate) => candidate.taskData.objectiveCode === "approved_plan_apply",
@@ -470,6 +499,20 @@ describe("fixture KB staging modes", () => {
 
   test("derives seeded_fresh_kb for fresh initial states", () => {
     expect(manifestFor("discover_then_exact_lookup").fixtureSetup).toBe(
+      "seeded_fresh_kb",
+    );
+  });
+
+  test("derives seeded_dirty_kb where the expectation names a dirty source", () => {
+    for (const objective of [
+      "inspect_source_impact",
+      "determine_completion_outcome",
+      "symbol_granularity",
+    ]) {
+      expect(manifestFor(objective).fixtureSetup).toBe("seeded_dirty_kb");
+    }
+    // A dirty worktree whose expectation stays fresh keeps the clean seed.
+    expect(manifestFor("bundle_source_freshness").fixtureSetup).toBe(
       "seeded_fresh_kb",
     );
   });

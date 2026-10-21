@@ -42,7 +42,7 @@ export const USAGE_DEFINITIONS: Readonly<Record<string, Definition>> = {
   },
   "validation-recovery": {
     instruction:
-      "Recover from the supplied malformed mutation using validation diagnostics.",
+      "Recover the malformed mutation supplied in inputs/malformed.json using validation diagnostics, then apply the repaired write to its named target.",
     objectiveCode: "validation_recovery",
     sourceFile: "task-input.json",
     mutation: "write",
@@ -97,7 +97,7 @@ export const FRESHNESS_DEFINITIONS: Readonly<Record<string, Definition>> = {
   },
   "completion-outcome": {
     instruction:
-      "Determine the completion outcome from status and final validation evidence.",
+      "Determine the completion outcome from status and final validation evidence. Report it as a structured closeout with the fields taskOutcome, kbState, verificationState, proofState and limitationDisposition.",
     objectiveCode: "determine_completion_outcome",
     sourceFile: "fixture-state.json",
     mutation: "read-only",

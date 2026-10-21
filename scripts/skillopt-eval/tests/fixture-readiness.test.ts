@@ -1,10 +1,29 @@
 import { afterEach, expect, test } from "bun:test";
-import { access, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import {
+  access,
+  mkdir,
+  mkdtemp,
+  readFile,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { type CanonicalSkill, buildPublicCatalog } from "../catalog";
 import { probeFixtureReadiness } from "../fixture-readiness";
+import { parsePublicTaskSpec } from "../fixtures/contracts";
+import { buildPrivateManifest } from "../fixtures/evaluator";
+import { parsePrivateEvaluatorManifest } from "../fixtures/private";
+import { writePublicWorkspace } from "../fixtures/workspace";
 import {
+  sealDefaultCellEvidence,
+  verifierEnvironment,
+} from "../runtime/codex-cell-defaults";
+import {
+  FIXTURE_BRANCH,
   setupSeededConsistencyKb,
+  setupSeededDirtyKb,
   setupSeededFreshKb,
   setupSeededGovernedAreaKb,
   setupSeededPreconditionKb,
@@ -158,3 +177,248 @@ test.each([
   },
   120_000,
 );
+
+function developmentFixture(skill: CanonicalSkill, family: string) {
+  const task = buildPublicCatalog().find(
+    (candidate) =>
+      candidate.skill === skill &&
+      candidate.family === family &&
+      candidate.split === "development",
+  );
+  if (task === undefined) throw new Error(`Missing task ${skill}/${family}`);
+  const manifest = parsePrivateEvaluatorManifest(
+    JSON.stringify(
+      buildPrivateManifest({
+        task: task as never,
+        publicManifestHash: "a".repeat(64),
+        workspaceHash: "b".repeat(64),
+      }),
+    ),
+  );
+  return { task, manifest };
+}
+
+async function stagedWorkspace(
+  name: string,
+  fixture: ReturnType<typeof developmentFixture>,
+): Promise<Readonly<{ workspace: string; cliRoot: string }>> {
+  const root = await mkdtemp(join(tmpdir(), `skillopt-verifier-${name}-`));
+  roots.push(root);
+  const cliRoot = await ensureCliBuild();
+  const workspace = join(root, "workspace");
+  writePublicWorkspace({
+    root: workspace,
+    task: parsePublicTaskSpec(fixture.task),
+    canonicalSkillRoot: resolve(
+      import.meta.dir,
+      "../../../packages/cli/src/public/skills",
+    ),
+  });
+  const setup = {
+    seeded_fresh_kb: setupSeededFreshKb,
+    seeded_dirty_kb: setupSeededDirtyKb,
+  }[fixture.manifest.fixtureSetup as "seeded_fresh_kb" | "seeded_dirty_kb"];
+  if (setup === undefined) {
+    throw new Error(`unexpected setup ${fixture.manifest.fixtureSetup}`);
+  }
+  try {
+    await setup(workspace, cliRoot);
+  } finally {
+    await stopFixtureEngine(workspace);
+  }
+  return { workspace, cliRoot };
+}
+
+/** Runs one CLI route with the environment the final-state verifier uses. */
+async function verifierCli(
+  workspace: string,
+  cliRoot: string,
+  args: readonly string[],
+  stdin?: string,
+): Promise<Record<string, unknown>> {
+  const env = verifierEnvironment(
+    { ...process.env, KIBI_BRANCH: FIXTURE_BRANCH },
+    workspace,
+  );
+  const child = Bun.spawn(
+    [process.execPath, join(cliRoot, "dist", "cli.js"), ...args],
+    {
+      cwd: workspace,
+      env,
+      ...(stdin === undefined ? {} : { stdin: new Blob([stdin]) }),
+      stdout: "pipe",
+      stderr: "pipe",
+    },
+  );
+  const [stdout] = await Promise.all([
+    new Response(child.stdout).text(),
+    child.exited,
+  ]);
+  await stopFixtureEngine(workspace);
+  try {
+    return JSON.parse(stdout) as Record<string, unknown>;
+  } catch {
+    // Mutation routes print one JSON envelope, then a human error line.
+    const line = stdout
+      .split("\n")
+      .find((candidate) => candidate.trim().startsWith("{"));
+    return JSON.parse(line ?? stdout) as Record<string, unknown>;
+  }
+}
+
+function resultHash(value: unknown): string {
+  return createHash("sha256").update(JSON.stringify(value)).digest("hex");
+}
+
+/** Seal a verifier receipt built from the CLI's own status and check output. */
+async function sealVerifierState(
+  fixture: ReturnType<typeof developmentFixture>,
+  workspace: string,
+  cliRoot: string,
+) {
+  const status = {
+    structuredContent: await verifierCli(workspace, cliRoot, [
+      "status",
+      "--format",
+      "json",
+    ]),
+  };
+  const check = await verifierCli(workspace, cliRoot, [
+    "check",
+    "--format",
+    "json",
+  ]);
+  const requests = [
+    { tool: "kb_check" as const, args: {}, result: check },
+    { tool: "kb_status" as const, args: {}, result: status },
+  ];
+  const sealed = sealDefaultCellEvidence(
+    {
+      evaluatorManifest: fixture.manifest,
+      finalStateRequests: requests.map(({ tool, args }) => ({ tool, args })),
+    },
+    {
+      finalState: JSON.stringify({
+        schemaVersion: "1.0.0",
+        workspaceRoot: workspace,
+        requests: requests.map((request) => ({
+          ...request,
+          resultHash: resultHash(request.result),
+        })),
+      }),
+      brokerTrace: "",
+      diagnosticReceipt: "",
+    },
+  );
+  const claim = (key: string) =>
+    sealed.finalState.claims.find((entry) => entry.key === key)?.value;
+  return { status: status.structuredContent, sealed, claim };
+}
+
+// The verifier must observe the state each expectation names: an exact Git
+// attachment, a dirty source edit, or a recoverable malformed mutation.
+test("branch classification fixture shows the verifier an exact attachment", async () => {
+  const fixture = developmentFixture(
+    "kibi-freshness",
+    "branch-status-classification",
+  );
+  const { workspace, cliRoot } = await stagedWorkspace("branch", fixture);
+  const { status, sealed, claim } = await sealVerifierState(
+    fixture,
+    workspace,
+    cliRoot,
+  );
+  expect(status.branchAttachment).toMatchObject({
+    gitBranch: FIXTURE_BRANCH,
+    kbBranch: FIXTURE_BRANCH,
+    kind: "exact",
+  });
+  expect(sealed.finalState.closeout.kbState).toBe("clean_fresh");
+  expect(sealed.finalState.closeout.verificationState).toBe("fresh");
+  // Signal 1: exact Git branch equals KB branch.
+  expect(claim("workflow-signal-1")).toBe(true);
+}, 180_000);
+
+test("verifier keeps a pinned branch the checkout is not on", async () => {
+  const root = await mkdtemp(join(tmpdir(), "skillopt-verifier-env-"));
+  roots.push(root);
+  const env = { PATH: process.env.PATH, KIBI_BRANCH: FIXTURE_BRANCH };
+  // Not a repository: the pin is the only branch identity.
+  expect(verifierEnvironment(env, root).KIBI_BRANCH).toBe(FIXTURE_BRANCH);
+  const git = (args: readonly string[]) =>
+    Bun.spawnSync(["git", ...args], { cwd: root, stdout: "ignore" });
+  git(["init", "-q", "-b", "another-branch"]);
+  expect(verifierEnvironment(env, root).KIBI_BRANCH).toBe(FIXTURE_BRANCH);
+  git(["checkout", "-q", "-b", FIXTURE_BRANCH]);
+  expect(verifierEnvironment(env, root).KIBI_BRANCH).toBeUndefined();
+});
+
+test.each([
+  ["kibi-freshness", "source-linked-impact"],
+  ["kibi-freshness", "completion-outcome"],
+  ["kibi-traceability", "symbol-impact-granularity"],
+] as const)(
+  "%s/%s fixture shows the verifier the expected dirty state",
+  async (skill, family) => {
+    const fixture = developmentFixture(skill, family);
+    const expectation = fixture.manifest.workflowExpectation;
+    if (expectation == null) throw new Error("missing expectation");
+    const { workspace, cliRoot } = await stagedWorkspace(family, fixture);
+    const { status, sealed } = await sealVerifierState(
+      fixture,
+      workspace,
+      cliRoot,
+    );
+    expect(status.dirty).toBe(true);
+    expect(sealed.finalState.closeout.kbState).toBe(
+      expectation.expectedKbState,
+    );
+    expect(sealed.finalState.closeout.verificationState).toBe(
+      expectation.expectedVerificationState,
+    );
+  },
+  180_000,
+);
+
+test("validation recovery input names a target its diagnostics can repair", async () => {
+  const fixture = developmentFixture("kibi-usage", "validation-recovery");
+  const expectation = fixture.manifest.workflowExpectation;
+  if (expectation == null) throw new Error("missing expectation");
+  const { workspace, cliRoot } = await stagedWorkspace("recovery", fixture);
+  const malformed = JSON.parse(
+    await readFile(join(workspace, "inputs", "malformed.json"), "utf8"),
+  ) as { id?: unknown; properties?: { title?: unknown } };
+  const documented = await readFile(
+    join(workspace, "documentation", "requirements", "fixture.md"),
+    "utf8",
+  );
+  expect(typeof malformed.id).toBe("string");
+  expect(documented).toContain(`id: ${String(malformed.id)}`);
+  const dryRun = await verifierCli(
+    workspace,
+    cliRoot,
+    ["upsert", "--input", "-"],
+    JSON.stringify({ ...malformed, dryRun: true }),
+  );
+  expect(dryRun.status).toBe("error");
+  expect(JSON.stringify(dryRun.error)).toContain("/type");
+  const repaired = await verifierCli(
+    workspace,
+    cliRoot,
+    ["upsert", "--input", "-"],
+    JSON.stringify({
+      type: "req",
+      id: malformed.id,
+      properties: { title: malformed.properties?.title, status: "open" },
+      document: {
+        body: "The fixture requirement is recorded.\n\n## Context\n\nRecovered from inputs/malformed.json. Reason not stated.\n\n## Source\n\nvalidation-recovery fixture requirement\n",
+      },
+    }),
+  );
+  expect(repaired.status).toBe("success");
+  const { sealed } = await sealVerifierState(fixture, workspace, cliRoot);
+  expect(sealed.finalState.closeout.kbState).toBe(expectation.expectedKbState);
+  expect(sealed.finalState.closeout.verificationState).toBe(
+    expectation.expectedVerificationState,
+  );
+}, 180_000);
