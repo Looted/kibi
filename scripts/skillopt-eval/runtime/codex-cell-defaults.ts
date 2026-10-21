@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { join } from "node:path";
 import { fixtureSymbolId } from "../fixtures/workspace";
@@ -60,6 +61,41 @@ function stringEnvironment(env: NodeJS.ProcessEnv): Record<string, string> {
       value === undefined ? [] : [[key, value]],
     ),
   );
+}
+
+function currentGitBranch(workspaceRoot: string): string | null {
+  try {
+    return execFileSync("git", ["branch", "--show-current"], {
+      cwd: workspaceRoot,
+      encoding: "utf8",
+      timeout: 5_000,
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Environment for the independent final-state verifier. The cell pins
+ * KIBI_BRANCH so fixtures without a repository still attach the evaluation
+ * branch, but a pinned name always reports `explicit_override`. When the
+ * fixture is a Git checkout already on that branch, the verifier resolves the
+ * attachment from Git so `exact` remains observable; any other checkout keeps
+ * the pin and its override classification.
+ */
+// implements REQ-skillopt-codex-optimization
+export function verifierEnvironment(
+  env: NodeJS.ProcessEnv,
+  workspaceRoot: string,
+): Record<string, string> {
+  const environment = stringEnvironment(env);
+  const pinned = environment.KIBI_BRANCH;
+  if (pinned === undefined || currentGitBranch(workspaceRoot) !== pinned) {
+    return environment;
+  }
+  const { KIBI_BRANCH: _pinned, ...resolvedFromGit } = environment;
+  return resolvedFromGit;
 }
 
 function scalarClaims(
@@ -1083,7 +1119,7 @@ export function defaultCodexCellDependencies(
           ...context.broker.downstream,
           args: [...context.broker.downstream.args],
           env: {
-            ...stringEnvironment(context.env),
+            ...verifierEnvironment(context.env, context.workspace.target),
             // Keep independent verifier calls out of the model's diagnostic
             // usage receipt.  The two lanes share a fixture workspace, but
             // their evidence must remain independently attributable.

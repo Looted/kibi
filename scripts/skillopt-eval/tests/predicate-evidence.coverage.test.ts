@@ -297,6 +297,72 @@ describe("evaluatePredicateCase remaining lane and failure branches", () => {
     );
   });
 
+  test("accepts the advisor's spaced binding names for schema arguments", () => {
+    const manifest = baseManifest({
+      predicateExpectation: {
+        semanticClass: "project_local_schema",
+        expectedLane: "predicate",
+        expectedPredicateName: "delivery_lineage",
+        expectedPredicateArgs: [
+          "artifact_digest",
+          "test_evidence",
+          "source_revision",
+        ],
+        expectedPolarity: "assert",
+        expectedEdges: [
+          { relationship: "requires_predicate", target: "delivery_lineage" },
+        ],
+        expectedGroundFactKinds: ["predicate"],
+        expectedLogicClaimCount: 1,
+        privateRationale: "advisor bindings",
+      },
+    });
+    const withArgs = (predicateArgs: string[]) =>
+      evaluatePredicateCase(
+        manifest,
+        evidence(
+          snapshot({
+            facts: [
+              {
+                id: "FACT-1",
+                factKind: "predicate",
+                predicateName: "delivery_lineage",
+                predicateArgs,
+                polarity: "assert",
+                claimKey: "CLAIM-1111111111111111",
+                claimText: "Lineage binds the digest, evidence and revision.",
+              },
+            ],
+            relationships: [
+              {
+                relationship: "requires_predicate",
+                target: "delivery_lineage",
+              },
+            ],
+          }),
+        ),
+      ).failureCodes;
+    expect(
+      withArgs(["artifact digest", "test evidence", "source revision"]),
+    ).toEqual([]);
+    expect(
+      withArgs(["Artifact-Digest", " test_evidence ", "source  revision"]),
+    ).toEqual([]);
+    expect(
+      withArgs(["source revision", "test evidence", "artifact digest"]),
+    ).toEqual(["predicate-args"]);
+    expect(withArgs(["artifact digest", "test evidence"])).toEqual([
+      "predicate-args",
+    ]);
+    expect(
+      withArgs([
+        "deployment_candidate.artifact_digest",
+        "deployment_candidate.test_evidence",
+        "deployment_candidate.source_revision",
+      ]),
+    ).toEqual(["predicate-args"]);
+  });
+
   test("throws when a required snapshot is missing and maps binding failures", () => {
     const manifest = baseManifest();
     expect(() => evaluatePredicateCase(manifest, evidence())).toThrow(

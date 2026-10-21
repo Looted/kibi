@@ -1,3 +1,4 @@
+import { bindingToken } from "../../../packages/cli/src/operations/modeling/predicate-bindings";
 import {
   EvidenceBindingError,
   type PredicateCaseSnapshot,
@@ -40,6 +41,25 @@ export type PredicateCaseEvaluation = Readonly<{
   predicateEvidence?: PredicateCaseEvidence;
   failureCodes: readonly PredicateCaseFailure[];
 }>;
+
+/**
+ * Argument bindings compared in the snake_case form Kibi's own predicate
+ * advisor uses, so `artifact digest` binds the `artifact_digest` argument.
+ */
+// implements REQ-skillopt-predicate-first-requirements
+export function predicateArgsMatch(
+  actual: readonly string[] | undefined,
+  expected: readonly string[],
+): boolean {
+  return (
+    actual !== undefined &&
+    actual.length === expected.length &&
+    actual.every(
+      (value, index) =>
+        bindingToken(value) === bindingToken(expected[index] ?? ""),
+    )
+  );
+}
 
 function predicateFailures(
   manifest: Manifest,
@@ -109,8 +129,10 @@ function predicateFailures(
     } else {
       if (
         expectation.expectedPredicateArgs !== null &&
-        JSON.stringify(fact.predicateArgs) !==
-          JSON.stringify(expectation.expectedPredicateArgs)
+        !predicateArgsMatch(
+          fact.predicateArgs,
+          expectation.expectedPredicateArgs,
+        )
       ) {
         failures.push("predicate-args");
       }

@@ -60,7 +60,22 @@ function writeJson(root: string, relative: string, value: unknown): void {
 
 function writeAdversarialFiles(input: WorkspaceInput): void {
   const cases = input.task.taskData.adversarialCases;
-  if (cases.includes("malformed-input")) {
+  if (
+    cases.includes("malformed-input") &&
+    input.task.taskData.objectiveCode === "validation_recovery"
+  ) {
+    // A rejected mutation that names its target: the documented fixture
+    // requirement. Validation diagnostics expose the invalid type and status,
+    // so the intended write is recoverable without guessing.
+    writeJson(input.root, "inputs/malformed.json", {
+      type: "requirement",
+      id: fixtureEntityIds(input.task.id).requirement,
+      properties: {
+        title: `${input.task.family} fixture requirement`,
+        status: "opened",
+      },
+    });
+  } else if (cases.includes("malformed-input")) {
     const target = path.join(input.root, "inputs", "malformed.json");
     mkdirSync(path.dirname(target), { recursive: true });
     writeFileSync(target, '{"id":');

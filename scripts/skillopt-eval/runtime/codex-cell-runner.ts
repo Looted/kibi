@@ -43,6 +43,7 @@ import {
   FixtureSetupError,
   setupGeneratedCoordinateDivergence,
   setupSeededConsistencyKb,
+  setupSeededDirtyKb,
   setupSeededFreshKb,
   setupSeededGovernedAreaKb,
   setupSeededPartialKb,
@@ -368,6 +369,8 @@ export async function runCodexCell(
                   workspace.target,
                   stagingCliRoot,
                 );
+              } else if (setupMode === "seeded_dirty_kb") {
+                await setupSeededDirtyKb(workspace.target, stagingCliRoot);
               } else if (setupMode === "seeded_partial_kb") {
                 await setupSeededPartialKb(workspace.target, stagingCliRoot);
               } else if (setupMode === "seeded_stale_kb") {
