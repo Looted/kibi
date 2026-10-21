@@ -665,6 +665,34 @@ describe("default Codex cell evidence sealing", () => {
     expect(scoreCell(manifest, evidence).terminalCategory).toBeNull();
   });
 
+  test("reconciles a logged error-envelope call with the broker's failed call", async () => {
+    const manifest = evaluatorManifest("predicate");
+    const evidence = sealDefaultCellEvidence(
+      {
+        evaluatorManifest: manifest,
+        finalStateRequests: [
+          { tool: "kb_query", args: {} },
+          { tool: "kb_check", args: {} },
+          { tool: "kb_status", args: {} },
+        ],
+      },
+      {
+        finalState: finalStateReceipt(),
+        brokerTrace: await brokerTraceWithFailedThenSuccessfulCall(),
+        // The MCP server logs a returned error envelope as a completed call
+        // and answers the agent with isError: true.
+        diagnosticReceipt: [
+          '{"tool":"kb_query","status":"success","result_status":"error","telemetry":null}',
+          '{"tool":"kb_query","status":"success","result_status":"success","telemetry":null}',
+          "",
+        ].join("\n"),
+      },
+    );
+
+    expect(evidence.diagnostic.integrityValid).toBe(true);
+    expect(scoreCell(manifest, evidence).terminalCategory).toBeNull();
+  });
+
   test("requires the exact public safe-mutation ownership and coverage links", async () => {
     const manifest = safeMutationManifest();
     const options = {

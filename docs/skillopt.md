@@ -216,6 +216,14 @@ Codex. Target cells have no OS sandbox on this host: isolation is permission
 rules plus the brokered MCP allowlist. `KIBI_SKILLOPT_CLAUDE_EXECUTABLE`
 overrides the `claude` binary found on `PATH`.
 
+Claude loads a project skill only when the model calls its Skill tool, and
+small targets rarely do. Each target cell therefore gets the assembled variant
+of the skill under evaluation appended to its system prompt, and `kb_skills`
+serves the assembled variants rather than the shipped skill text, so every arm
+reads the body it is scored on. The target's `PATH` is the `claude` directory
+plus `/usr/bin:/bin`, so `swipl` must be reachable there
+for the target's Kibi engine to start.
+
 ## What optimize runs
 
 For a bounded iterative campaign that stops before held-out, use:

@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import {
   chmod,
   cp,
@@ -169,6 +170,15 @@ export async function stageKibiMcpRuntime(
   }
   await writeFile(bundlePath, bundled, { encoding: "utf8", mode: 0o400 });
   await copyRuntimeResources(sourceWorktree, stagedRoot);
+  // kb_skills must serve the variant under evaluation, not the shipped text:
+  // the cell assembles baseline or candidate bodies into .agents/skills first.
+  const assembledSkills = resolve(workspace.target, ".agents/skills");
+  if (existsSync(assembledSkills)) {
+    await cp(assembledSkills, resolve(stagedRoot, "dist/skills"), {
+      recursive: true,
+      force: true,
+    });
+  }
   return {
     command: stagedCommand,
     args: [bundlePath, "--diagnostic-mode"],

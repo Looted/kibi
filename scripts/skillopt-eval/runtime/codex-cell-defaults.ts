@@ -993,10 +993,14 @@ function sealedDiagnostic(
     integrityValid = false;
   }
   const expectedTools = [...successfulTools].sort();
+  // The server logs a returned error envelope (an invalid dry-run upsert, for
+  // example) as a completed call, but answers it with isError: true, which the
+  // broker counts as unsuccessful. Its result_status tells the two apart.
   const receiptTools = records
     .flatMap((record) =>
       typeof record.tool === "string" &&
       record.status === "success" &&
+      record.result_status !== "error" &&
       Object.hasOwn(record, "telemetry") &&
       (record.telemetry === null || isRecord(record.telemetry))
         ? [record.tool]

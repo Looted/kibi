@@ -12,6 +12,7 @@ import {
   claudeTargetSettings,
   mirrorSkillsForClaude,
   openClaudeSession,
+  preloadedSkillPrompt,
   selectedSkillOptHost,
 } from "../runtime/claude-code-host";
 import { normalizeCodexJsonl } from "../runtime/codex-events";
@@ -279,6 +280,28 @@ describe("Claude Code SkillOpt host", () => {
     ).toEqual(["--model", "claude-sonnet-5-5", "--effort", "low"]);
     expect(argv).toContain("--strict-mcp-config");
     expect(argv[argv.indexOf("--tools") + 1]).toBe("Read");
+  });
+
+  test("preloads the assembled variant of the skill under evaluation", async () => {
+    const root = await temporaryRoot();
+    const skillRoot = join(root, ".agents/skills/kibi-usage");
+    await mkdir(skillRoot, { recursive: true });
+    await writeFile(
+      join(skillRoot, "SKILL.md"),
+      "---\nname: kibi-usage\n---\nCandidate body text.\n",
+    );
+    const prompt = await preloadedSkillPrompt(root, "kibi-usage");
+    expect(prompt).toContain("The kibi-usage skill applies to this task.");
+    expect(prompt).toContain("Candidate body text.");
+    const argv = buildClaudeExecArgv({
+      claudeExecutable: "/bin/claude",
+      role: "target",
+      settings: {},
+      outputSchema: { type: "object" },
+      tools: ["Read"],
+      appendSystemPrompt: prompt,
+    });
+    expect(argv[argv.indexOf("--append-system-prompt") + 1]).toBe(prompt);
   });
 
   test("writes a refreshed file login back to the real config dir", async () => {
