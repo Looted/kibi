@@ -48,6 +48,7 @@ async function buildRuntimeBundle(
     target: "bun",
     format: "esm",
     packages: "bundle",
+    external: [...EXTERNAL_RUNTIME_PACKAGES],
     minify: false,
     sourcemap: "none",
   });
@@ -74,7 +75,14 @@ function runtimeBundle(
 const RUNTIME_REQUIRED_PACKAGES = [
   // Symbol extraction loads the TypeScript compiler on first use.
   { name: "ts-morph", from: "packages/plugin-builtin" },
+  // The builtin plugin reads its own package.json for its version, and impact
+  // review identifies the trusted source analyzer by that manifest. Bundled,
+  // `../package.json` would resolve to the MCP server's manifest instead.
+  { name: "kibi-plugin-builtin", from: "packages/cli" },
 ] as const;
+
+/** Packages kept out of the bundle and loaded from the staged node_modules. */
+const EXTERNAL_RUNTIME_PACKAGES = ["kibi-plugin-builtin"] as const;
 
 function packageDirectory(name: string, fromDirectory: string): string {
   let directory = fromDirectory;
