@@ -300,3 +300,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-baf398b669b8
+  - type: implements
+    from: SYM-cli-signoff-load-affected
+    to: REQ-kibi-signoff-views
+    created_at: 2026-10-22T09:25:49.342Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07f44f45b04d
+  - type: covered_by
+    from: SYM-cli-signoff-load-affected
+    to: TEST-kibi-signoff-views
+    created_at: 2026-10-22T09:25:49.360Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c8a0628b4d7

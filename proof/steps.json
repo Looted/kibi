@@ -2720,5 +2720,26 @@
         "./packages/cli/tests/consumer/symbol-sourcefile-workspace-confinement.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-kibi-signoff-views",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/cli-workflows.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "./packages/claude/tests/signoff-display.test.ts",
+        "./packages/opencode/tests/tui-signoff.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "./packages/vscode/tests/signoff.test.ts"
+      ]
+    ]
   }
 ]

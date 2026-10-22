@@ -247,7 +247,7 @@ export function renderSignoffHtml(view: SignoffView): string {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="${escapeHtml(REPORT_CSP)}">
+<meta http-equiv="Content-Security-Policy" content="${REPORT_CSP}">
 <title>Kibi ${escapeHtml(heading.toLowerCase())}</title>
 <link rel="icon" href="${renderKibiFaviconDataUri()}">
 <style>${styles()}</style>
