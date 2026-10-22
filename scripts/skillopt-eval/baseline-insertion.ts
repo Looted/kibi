@@ -1,6 +1,10 @@
 import { validateRepositoryPolicyLeaks } from "./candidate-body";
 import { JsonValueSchema, contractHash } from "./contracts/common";
-import { sha256Text, validateCandidateBody } from "./variants";
+import {
+  sha256Text,
+  validateCandidateBody,
+  validateCandidateBodyAgainstBaseline,
+} from "./variants";
 
 export const MAX_BASELINE_INSERTION_PARAGRAPH_BYTES = 1_600;
 
@@ -245,8 +249,9 @@ export function composeBaselineInsertion(
   const composedBody = `${before}${insertion}${after}`;
 
   // This is intentionally shallow: the legacy completeness policy does not
-  // apply to a baseline-preserving patch.
-  validateCandidateBody(composedBody);
+  // apply to a baseline-preserving patch, and content policy already judged
+  // the paragraph, so the trusted baseline text is not judged again.
+  validateCandidateBodyAgainstBaseline(composedBody, input.baselineBody);
   validateRepositoryPolicyLeaks(composedBody);
 
   return {
