@@ -33,8 +33,9 @@ The hook runner is committed as a single self-contained file
 
 ## What the agent sees
 
-Output is `additionalContext`, with one exception: an edit of code that
-implements a firm requirement is put to you first (below). Nothing is ever
+Output is `additionalContext`, with two exceptions: an edit of code that
+implements a firm requirement is put to you first (below), and a signoff view
+in a reply is shown as rendered Markdown (also below). Nothing is ever
 denied, no tool input is rewritten, and no workspace file is written. Every snippet is the
 first layer of progressive disclosure: requirement IDs and titles, the linked
 symbols, and the exact call that opens the next layer. Snippets are capped at
@@ -50,6 +51,7 @@ symbols, and the exact call that opens the next layer. Snippets are capped at
 | Prompt that reads as a rule ("must", "never", "from now on", ...) | That a rule you state is recorded with `kb_upsert` as part of the change, after checking `kb_search` for a recorded rule it changes | Each such prompt |
 | Before the first `Grep`/`Glob` | One tip that intent questions are answered by `kb_search` | Once per session, and never after the agent has used Kibi |
 | Direct `.kb/` reads or edits | One note that `kb_query`/`kb_upsert` keep the store consistent | Once per session |
+| A reply that contains a `kibi signoff` view (a fenced `kibi-signoff` or `kibi-questions` block) | The `MessageDisplay` hook hides the fence lines on screen, so the requirements summary or the numbered decisions render as headings, quotes and lists instead of a code block. The transcript and the model keep the original text. Set `KIBI_SIGNOFF_DISPLAY=0` to turn this off | Every streamed batch; batches without such a block pass through unchanged |
 | `Stop` | Source files edited without a later impact check, with the exact `kb_check` call, or a no-impact rationale. When the session changed source files and wrote nothing with `kb_upsert`, also asks the agent to record the decision you stated or the change made, or to say there was none | Impact: once per file; a later edit makes the file pending again. Recording: once per session. Respects `stop_hook_active` |
 
 Unlinked source files, docs, config, and generated or vendored paths get no
@@ -113,10 +115,13 @@ file. Remove the variable to stop recording.
   workspace instead.
 - `hooks/hooks.json`: `SessionStart`, `UserPromptSubmit`, `PreToolUse` (read,
   edit, and search tools), `PostToolUse` (edit tools, Bash, and `kb_*` MCP
-  tools), and `Stop`.
+  tools), `Stop`, and `MessageDisplay` (signoff views).
 - `bin/hook-runner.mjs`: generated bundle of `src/hook-runner.ts`
   (`bun run build:hook-bundle`). It is committed, and a test checks it for
   drift.
+- `bin/signoff-display.mjs`: generated bundle of `src/signoff-display.ts`,
+  the `MessageDisplay` hook. It imports nothing from Kibi and exits at once
+  for text without a signoff block.
 - `skills/`: generated mirror of the canonical Kibi skills
   (`scripts/sync-agent-skills.ts --target claude`). `name` is the skill id,
   so the skills are invoked as `/kibi-claude:kibi-usage`,

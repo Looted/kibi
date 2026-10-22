@@ -625,6 +625,65 @@ ordinary downloadable artifact. The Pages URL must be anonymously reachable for
 the badge to render in a public README; use an appropriate authenticated static
 host when the report must remain private.
 
+## `kibi signoff`
+
+Shows the person what they are signing off on, in one readable view. Agents
+run it before asking for signoff at the end of a change, and with
+`--questions` whenever decisions about rules wait for the person. It is a CLI
+command, not an MCP operation; the `kibi-decisions` and `kibi-commit-review`
+skills say when to run it. It reports and never blocks.
+
+**Syntax:**
+```bash
+kibi signoff [--staged] [--format md|html|json] [--output PATH] [--open] [--no-proof]
+kibi signoff --questions <path|-> [--format md|html|json] [--output PATH] [--open]
+```
+
+**Summary view (default):** lists each requirement the change adds, rewrites
+or retires (from the Git diff of `.kb/requirements/` against `HEAD`, with
+untracked files; `--staged` uses the index), and each current requirement the
+changed code implements whose document did not change. Each entry quotes the
+statement (the previous one too for a rewrite) with its firmness, origin,
+replaced requirements, scenarios and proof state. `--no-proof` skips the proof
+lookup, which runs a full coverage pass and can take tens of seconds on a
+large knowledge base.
+
+**Questions view (`--questions`):** reads JSON from a file or stdin (`-`):
+`{"questions":[{"id"?, "title"?, "statement", "quote"?, "firmness"?, "governs"?, "conflictsWith"?, "question"?, "answer"?}]}`
+or a bare array. Each decision is numbered, and the view quotes the recorded
+requirement it changes (`id`) or conflicts with (`conflictsWith`) next to the
+proposed statement and the person's own words. Decisions with an `answer` are
+shown as answered, so the agent can re-render the view as the person replies.
+
+**Output:**
+- `md` (default) prints a fenced `kibi-signoff` or `kibi-questions` Markdown
+  block for the agent to paste into its reply. Long summaries stop after 15
+  entries and point to the HTML page.
+- `html` writes a self-contained page (no network, strict content security
+  policy) and prints its path; `--output` chooses the file and `--open` opens
+  it in the default browser.
+- `json` prints the `kibi.signoff.v1` view.
+
+Every run also writes `.kb/briefs/signoff/latest.json`, `latest.md` and
+`latest.html`, which `kibi init` already ignores in Git. The Claude Code,
+OpenCode and VS Code integrations read these files or the fenced block:
+Claude Code renders the block as Markdown, OpenCode draws it as a framed card
+and offers `/kibi-signoff`, and VS Code offers a **Kibi: Show Requirements
+Signoff** panel.
+
+**Examples:**
+```bash
+# Summary of the working tree for the end-of-work signoff
+kibi signoff
+
+# Staged change, as a page in the browser
+kibi signoff --staged --format html --open
+
+# Decisions waiting for the person
+printf '%s' '{"questions":[{"id":"REQ-042","statement":"Exports stay in CSV.","quote":"keep CSV for now","firmness":"firm"}]}' \
+  | kibi signoff --questions -
+```
+
 ## `kibi graph`
 
 Runs bounded graph traversal from one or more seed IDs.

@@ -205,6 +205,8 @@ npm exec -- kibi report --open
 
 `kibi report` writes a self-contained `kibi-report/index.html` and `kibi-report/badge.svg` from one coverage snapshot. `% proven` is the share of current requirements with fresh end-to-end proof on the current code; the report lists what is proven, what is missing proof, what contradicts, and what has gone stale. See [reading the report](https://looted.github.io/kibi/guide/reading-the-report.html).
 
+Before you sign off on a change, `kibi signoff` shows the requirements it adds, rewrites or affects, each quoted with its firmness and proof state, and `kibi signoff --questions` numbers the decisions waiting for you next to the rule each one would change. Agents paste the view into their reply; Claude Code and OpenCode render it, and VS Code opens it in a panel.
+
 To publish the report and a clickable badge on GitHub Pages, run `npm exec -- kibi init --github`, then enable **Settings → Pages → Source → GitHub Actions**. The [GitHub integration guide](https://looted.github.io/kibi/guide/github-integration.html) covers the [report workflow](docs/examples/github/kibi-report.yml), badge-only publishing, and a [CI step](docs/examples/github/kibi-kb-merge.yml) that keeps pull requests mergeable when only Kibi's own files conflict.
 
 For day-to-day inspection, `kibi status`, `kibi search`, `kibi gaps`, `kibi coverage`, and `kibi check` are in the [CLI reference](https://looted.github.io/kibi/reference/cli.html).

@@ -187,6 +187,17 @@ Internal maintenance automatically syncs the knowledge base after relevant file 
 - Sync runs in background, never blocks OpenCode
 - **Non-blocking toast delivery**: Toast transport is best-effort. The plugin detects available OpenCode TUI capabilities (`client.tui.toast` or `client.tui.showToast`) and uses the official SDK contract. Toast failures resolve to structured `SendToastResult` objects (`delivered`, `unavailable`, `failed`) rather than throwing or falling back to raw HTTP requests.
 
+### Requirements signoff in the TUI
+
+Agents paste `kibi signoff` output as a fenced `kibi-signoff` block (the
+requirements a change adds, rewrites or affects) or a `kibi-questions` block
+(the decisions waiting for you). In OpenCode 2 the TUI plugin draws these
+blocks as a framed card with rendered Markdown instead of a code block, a
+toast announces each new view, and `/kibi-signoff` (also in the command
+palette) shows the latest one again. OpenCode 1 gets the toast. The view is
+read from `.kb/briefs/signoff/latest.json` and `latest.md`, which every
+`kibi signoff` run writes.
+
 ## Configuration
 
 Config files (project overrides global):
