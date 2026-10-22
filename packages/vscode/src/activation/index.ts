@@ -20,3 +20,4 @@ export {
   type TraceabilityRegistrationResult,
 } from "./traceability";
 export { registerContextOnOpen } from "./contextOnOpen";
+export { registerSignoff, signoffAnnouncement } from "./signoff";

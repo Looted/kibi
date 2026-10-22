@@ -506,6 +506,11 @@ export const COVERAGE_SHARDS: readonly {
     ],
   },
   {
+    label: "vscode.signoff",
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+    paths: ["./packages/vscode/tests/signoff.test.ts"],
+  },
+  {
     label: "vscode.providers",
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
     paths: [

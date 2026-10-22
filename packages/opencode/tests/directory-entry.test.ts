@@ -1,7 +1,7 @@
+import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { describe, expect, test } from "bun:test";
 
 const packageRoot = path.join(import.meta.dir, "..");
 
@@ -36,6 +36,10 @@ describe("directory plugin entries", () => {
     expect(definition?.id).toBe("kibi-opencode");
     expect(typeof definition?.tui).toBe("function");
     expect(typeof definition?.setup).toBe("function");
-    expect(await definition?.setup?.({})).toBeUndefined();
+    // A context without the optional v2 domains still loads; setup returns
+    // the cleanup that stops the signoff watcher.
+    const cleanup = await definition?.setup?.({});
+    expect(typeof cleanup).toBe("function");
+    (cleanup as () => void)();
   });
 });

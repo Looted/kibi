@@ -82,6 +82,31 @@ export function registerReportingCommands(program: Command): void {
     });
 
   program
+    .command("signoff")
+    .description(
+      "Show the requirements a change adds, rewrites or affects (or, with --questions, the decisions waiting for the person) as a fenced Markdown block, HTML page or JSON for signoff",
+    )
+    .option(
+      "--staged",
+      "Summarize staged changes instead of the working tree",
+      false,
+    )
+    .option(
+      "--questions <path>",
+      'Render decision questions from a JSON file (use - for stdin): {"questions":[{"statement":"...","quote":"...","firmness":"firm"}]}',
+    )
+    .option("--format <format>", "Output format: md|html|json", "md")
+    .option(
+      "--output <path>",
+      "HTML file to write (default .kb/briefs/signoff/latest.html)",
+    )
+    .option("--open", "Open the HTML page in the default browser", false)
+    .option("--no-proof", "Skip the proof-state lookup (faster; no Prolog)")
+    .action(async (options) => {
+      await (await import("./commands/signoff.js")).signoffCommand(options);
+    });
+
+  program
     .command("coverage")
     .description(getCliOperationMetadata("kb_coverage").description)
     .option("--input <path>", "JSON input file (use - for stdin)")
