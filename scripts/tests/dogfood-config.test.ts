@@ -140,11 +140,13 @@ describe("Claude Code dogfood", () => {
       "packages/claude/hooks/hooks.json",
     );
     expect(eventMatchers(settings.hooks)).toEqual(eventMatchers(plugin.hooks));
-    for (const groups of Object.values(settings.hooks)) {
+    for (const [event, groups] of Object.entries(settings.hooks)) {
+      const bundle =
+        event === "MessageDisplay" ? "signoff-display.mjs" : "hook-runner.mjs";
       for (const group of groups) {
         for (const hook of group.hooks) {
           expect(hook.command).toBe(
-            'node "$CLAUDE_PROJECT_DIR/packages/claude/bin/hook-runner.mjs"',
+            `node "$CLAUDE_PROJECT_DIR/packages/claude/bin/${bundle}"`,
           );
         }
       }
