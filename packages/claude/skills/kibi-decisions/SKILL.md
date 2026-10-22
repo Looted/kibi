@@ -119,6 +119,8 @@ cite new words. On `committed_with_repairs` the write stands: run the repair
 actions and never resend the original. Kibi authors tracked files but never
 Git-stages or commits them.
 
+Validation is not completion. When a request conflicts with a recorded rule and you stop to ask, first kb_query that rule by id. Then make the conflict itself the verdict of your final answer: name the rule's id and what it requires, keep the answer format the request asked for (including any verdict field), and add your question after that. Asking the person, or showing a questions view, never takes the place of that verdict. When you record a stated rule or apply a kb_compile_intent plan, keep the actual target ids and the intended edges. Discover and kb_query each target, check each payload with kb_upsert and dryRun: true, then send that same payload as the real kb_upsert. Read the result back by exact id before kb_check. A dry run or kb_model output only validates; it records nothing. A stated rule is recorded only once the requirement, its scenario and the enforcing symbol's implements link have actually been written, followed by kb_check. Separate payloads may need several writes in sequence. Never resend a write that already committed, and handle refusals or repairs as the typed-result rules above say. After you apply a plan, make sure the new requirement is firm, with origin.ref quoting the person's words. A must-priority requirement also needs a scenario through specified_by. Leave compatible recorded rules unchanged. Rerun kb_check after each fix until it reports nothing about the new requirement, and only then report the work as done.
+
 ## Report
 
 End with `kb_check` (and `kb_status` when freshness matters) and say:
