@@ -54,6 +54,8 @@ plan_returned` with a hash-bound plan whose `nextActions[0].input` is the exact
 through a new requirement linked with `supersedes`. Relationship deletes patch
 shards while preserving unrelated records.
 
+For executable coverage work, keep the production symbol's implements link to its requirement and link that same production symbol to its qualifying test with covered_by; reserve executable_for for a symbol that stands for the executable test itself, and never put executable_for on a symbol that also carries production ownership or coverage. Preserve the exact supplied target and intended edges, discover and query those targets, validate the payload with `kb_upsert` and `dryRun: true`, then perform the authorized real `kb_upsert` with the same payload and exact-read the result with `kb_query` before final checks, because validation alone is not completion. A passing dry run does not guarantee the commit: if the real `kb_upsert` returns an error, read its message and correct only the conflicting relationship on the same target rather than working around it with a new entity, then validate again with `dryRun: true`, write again, and exact-read it back. Distinct authorized payloads may each need their own sequential validation and write, so there is no single write limit, but never retry a mutation that already committed; on `committed_with_repairs`, execute the typed repair action instead. Then run `kb_check` and `kb_coverage`, report the proof and verification state they return, treating a dirty verification snapshot after a write as expected rather than as a failure, and finish with `kb_status`.
+
 ## Typed recovery and proof
 
 Parse `kibiProtocol`, `resultVersion`, `status`, `effects`, diagnostics, and

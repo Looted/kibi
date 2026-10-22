@@ -36,6 +36,11 @@ import {
 } from "./codex-cell-types";
 import { replayCodexEpisode } from "./codex-episode";
 import {
+  isDecisionSetupMode,
+  setupDecisionFixture,
+} from "./decision-fixture-setup";
+import { IMPACT_REVIEW_PATH } from "./decision-seeds";
+import {
   FixtureSetupError,
   setupGeneratedCoordinateDivergence,
   setupSeededConsistencyKb,
@@ -44,6 +49,7 @@ import {
   setupSeededGovernedAreaKb,
   setupSeededPartialKb,
   setupSeededPreconditionKb,
+  setupSeededSafeMutationKb,
   setupSeededStaleKb,
   setupSeededUncoveredKb,
   setupThinRootKb,
@@ -124,6 +130,15 @@ export async function readWorkspaceSources(
     }
   };
   await visit(WORKSPACE_SOURCE_ROOT);
+  // The impact-review record the commit-review cases draft lives outside src/.
+  try {
+    files[IMPACT_REVIEW_PATH] = await readFile(
+      join(workspaceRoot, IMPACT_REVIEW_PATH),
+      "utf8",
+    );
+  } catch {
+    // No record was written.
+  }
   return files;
 }
 
@@ -276,6 +291,12 @@ export async function runCodexCell(
                 await setupSeededFreshKb(workspace.target, stagingCliRoot);
               } else if (setupMode === "seeded_uncovered_kb") {
                 await setupSeededUncoveredKb(workspace.target, stagingCliRoot);
+              } else if (setupMode === "seeded_safe_mutation_kb") {
+                await setupSeededSafeMutationKb(
+                  workspace.target,
+                  stagingCliRoot,
+                  request.taskId,
+                );
               } else if (setupMode === "seeded_governed_area_kb") {
                 await setupSeededGovernedAreaKb(
                   workspace.target,
@@ -299,6 +320,12 @@ export async function runCodexCell(
                 await setupSeededStaleKb(workspace.target, stagingCliRoot);
               } else if (setupMode === "thin_root_kb") {
                 await setupThinRootKb(workspace.target, stagingCliRoot);
+              } else if (isDecisionSetupMode(setupMode)) {
+                await setupDecisionFixture(
+                  workspace.target,
+                  stagingCliRoot,
+                  setupMode,
+                );
               }
             }
           } finally {

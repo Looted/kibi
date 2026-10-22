@@ -9,6 +9,8 @@ export const CANONICAL_SKILLS = [
   "kibi-freshness",
   "kibi-traceability",
   "kibi-bootstrap",
+  "kibi-decisions",
+  "kibi-commit-review",
 ] as const;
 
 export type CanonicalSkill = (typeof CANONICAL_SKILLS)[number];
@@ -85,6 +87,18 @@ const FAMILY_BY_SKILL: Readonly<Record<CanonicalSkill, readonly string[]>> = {
     "approval-plan-apply",
     "repair-escalation",
   ],
+  "kibi-decisions": [
+    "stated-rule-capture",
+    "firm-rule-conflict",
+    "supersede-with-reason",
+    "compile-intent-review",
+  ],
+  "kibi-commit-review": [
+    "staged-impact-missing",
+    "coordinate-refresh-only",
+    "impact-review-preparation",
+    "staged-rule-conflict",
+  ],
 };
 
 /**
@@ -101,6 +115,8 @@ const SUPPLEMENTAL_FAMILY_BY_SKILL: Readonly<
   "kibi-freshness": "consistency-report",
   "kibi-traceability": "scenario-feasibility",
   "kibi-bootstrap": "onboarding-review",
+  "kibi-decisions": "unrecorded-change-closeout",
+  "kibi-commit-review": "merge-commit-scope",
 };
 
 const CORE_FAMILIES_PER_SKILL = 4;

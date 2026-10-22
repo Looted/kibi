@@ -48,6 +48,8 @@ describe("canonical skill assembly", () => {
       "kibi-freshness",
       "kibi-traceability",
       "kibi-bootstrap",
+      "kibi-decisions",
+      "kibi-commit-review",
     ]);
     expect(
       receipt.skills.find(({ id }) => id === "kibi-usage")?.bodyChanged,

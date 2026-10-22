@@ -98,7 +98,7 @@ test("CLI screens a historical one-shot against the supplied bundled baseline wi
   });
   expect(report.shortlist).toHaveLength(1);
   expect(report.shortlist[0].hash).toBe(hash);
-  expect(Object.keys(report.baselineBodyHashes)).toHaveLength(4);
+  expect(Object.keys(report.baselineBodyHashes)).toHaveLength(6);
 
   const missingRoot = capture();
   expect(

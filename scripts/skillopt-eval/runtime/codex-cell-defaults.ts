@@ -8,6 +8,7 @@ import type {
 } from "../scoring/evidence-utils";
 import { probeRequiredMcp } from "./canary-runtime";
 import {
+  type BrokerCallEvidence,
   type CaseSignalContext,
   caseForbiddenObserved,
   caseSignalObserved,
@@ -19,6 +20,10 @@ import type {
   CodexCellDependencies,
   CodexCellOptions,
 } from "./codex-cell-types";
+import {
+  decisionForbiddenObserved,
+  decisionSignalObserved,
+} from "./decision-signals";
 import {
   type FinalStateReceipt,
   FinalStateReceiptSchema,
@@ -237,7 +242,9 @@ function workflowSignalObserved(
   brokerTools: readonly string[],
   context: CaseSignalContext,
 ): boolean {
-  const caseOutcome = caseSignalObserved(signal, context);
+  const caseOutcome =
+    caseSignalObserved(signal, context) ??
+    decisionSignalObserved(signal, context);
   if (caseOutcome !== undefined) return caseOutcome;
   const text = JSON.stringify(results).toLowerCase();
   // Prose claims may come from the KB or from the agent's final answer (the
@@ -257,7 +264,12 @@ function workflowSignalObserved(
     case "source-linked query executed":
       return hasBrokerTool("kb_query");
     case "typed relationship applied":
-      return text.includes('"implements"') && text.includes('"covered_by"');
+      // The seeded baseline symbol already carries both link kinds, so a
+      // safe mutation task credits only the requested links on its own
+      // fixture symbol.
+      return context.taskId?.includes(SAFE_MUTATION_TASK) === true
+        ? safeMutationLinksApplied(results, context.taskId)
+        : text.includes('"implements"') && text.includes('"covered_by"');
     case "symbol readback after write":
       return brokerTools.filter((tool) => tool === "kb_query").length >= 2;
     case "final check executed":
@@ -525,7 +537,9 @@ function forbiddenActionObserved(
   brokerTools: readonly string[],
   context: CaseSignalContext,
 ): boolean {
-  const caseOutcome = caseForbiddenObserved(action, context);
+  const caseOutcome =
+    caseForbiddenObserved(action, context) ??
+    decisionForbiddenObserved(action, context);
   if (caseOutcome !== undefined) return caseOutcome;
   const text = JSON.stringify(results).toLowerCase();
   const status = latestContent(results, "kb_status");
@@ -713,17 +727,24 @@ function referenceTargets(value: unknown): readonly string[] {
   });
 }
 
+const SAFE_MUTATION_TASK = "-safe-mutation-direction-";
+
 // implements REQ-skillopt-logical-evidence-fidelity
-function safeMutationComplete(
-  receipt: FinalStateReceipt,
+/**
+ * Whether the verifier's final entity read holds the fixture production
+ * symbol on src/fixture.ts with the two requested links: implements to the
+ * seeded requirement and covered_by to the seeded test. The seed holds
+ * neither the symbol nor its links, so only the agent's write satisfies it.
+ */
+function safeMutationLinksApplied(
+  results: readonly Readonly<{ tool: string; result: unknown }>[],
   taskId: string,
 ): boolean {
-  if (!taskId.includes("-safe-mutation-direction-")) return true;
   const symbolId = fixtureSymbolId(taskId);
   const suffix = symbolId.slice("SYM-FIXTURE-".length);
   const requirementId = `REQ-FIXTURE-${suffix}`;
   const testId = `TEST-FIXTURE-${suffix}`;
-  const query = receipt.requests.find(({ tool }) => tool === "kb_query");
+  const query = results.find(({ tool }) => tool === "kb_query");
   const entities = structuredContent(query?.result)?.entities;
   if (!Array.isArray(entities)) return false;
   const symbol = entities.find(
@@ -737,11 +758,21 @@ function safeMutationComplete(
   );
 }
 
+// implements REQ-skillopt-logical-evidence-fidelity
+function safeMutationComplete(
+  receipt: FinalStateReceipt,
+  taskId: string,
+): boolean {
+  if (!taskId.includes(SAFE_MUTATION_TASK)) return true;
+  return safeMutationLinksApplied(receipt.requests, taskId);
+}
+
 function sealedFinalState(
   finalState: string,
   options: Pick<CodexCellOptions, "evaluatorManifest" | "finalStateRequests">,
   brokerTools: readonly string[],
   lanes: EvidenceLanes = evidenceLanes(undefined, undefined),
+  calls: readonly BrokerCallEvidence[] = [],
 ) {
   const receipt = FinalStateReceiptSchema.parse(JSON.parse(finalState));
   const integrityValid = receipt.requests.every(
@@ -807,6 +838,7 @@ function sealedFinalState(
     ordering: lanes.ordering,
     workspaceFiles: lanes.workspaceFiles,
     workspaceAssertions,
+    calls,
   };
   // Coverage remains available as raw final-state evidence, but a workflow
   // that declares proof out of scope must not inherit an unresolved result
@@ -1120,6 +1152,7 @@ export function sealDefaultCellEvidence(
       options,
       brokerTools,
       evidenceLanes(evidence.transcript, evidence.workspaceFiles),
+      broker.evidence.rawCalls,
     ),
     broker: broker.evidence,
     diagnostic: sealedDiagnostic(

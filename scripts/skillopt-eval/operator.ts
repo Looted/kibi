@@ -252,7 +252,7 @@ export function parseOperatorArgs(args: readonly string[]): ParsedOperatorArgs {
   const command = args[0];
   if (command !== "smoke" && command !== "optimize") {
     throw new OperatorUsageError(
-      "Usage: bun run scripts/skillopt-eval/operator.ts <smoke|optimize> [--host codex] [--skill kibi-usage|kibi-freshness|kibi-traceability|kibi-bootstrap] [--max-steps 1..4] [--seed-candidate PATH] [--development-only]",
+      "Usage: bun run scripts/skillopt-eval/operator.ts <smoke|optimize> [--host codex] [--skill kibi-usage|kibi-freshness|kibi-traceability|kibi-bootstrap|kibi-decisions|kibi-commit-review] [--max-steps 1..4] [--seed-candidate PATH] [--development-only]",
     );
   }
   let maxSteps = 1;

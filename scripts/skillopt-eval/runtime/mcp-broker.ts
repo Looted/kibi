@@ -19,6 +19,8 @@ export const REQUIRED_KIBI_TOOLS = [
   "kb_ingest_proof",
   "kb_coverage",
   "kb_skills",
+  "kb_compile_intent",
+  "kb_prepare_impact_review",
 ] as const;
 
 type ToolDescriptor = Readonly<{ name: string } & Record<string, unknown>>;

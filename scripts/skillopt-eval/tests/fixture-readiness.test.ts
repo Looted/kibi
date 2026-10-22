@@ -1,5 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
+import { mkdtempSync, readFileSync } from "node:fs";
 import {
   access,
   mkdir,
@@ -12,9 +13,16 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { Client } from "../../../packages/mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/client/index.js";
 import { StdioClientTransport } from "../../../packages/mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/client/stdio.js";
-import { type CanonicalSkill, buildPublicCatalog } from "../catalog";
+import {
+  type CanonicalSkill,
+  buildHeldOutCatalog,
+  buildPublicCatalog,
+} from "../catalog";
 import { probeFixtureReadiness } from "../fixture-readiness";
-import { parsePublicTaskSpec } from "../fixtures/contracts";
+import {
+  parseHeldOutTaskSpec,
+  parsePublicTaskSpec,
+} from "../fixtures/contracts";
 import { buildPrivateManifest } from "../fixtures/evaluator";
 import { parsePrivateEvaluatorManifest } from "../fixtures/private";
 import { writePublicWorkspace } from "../fixtures/workspace";
@@ -26,11 +34,13 @@ import { runIndependentFinalState } from "../runtime/final-state";
 import { DEFAULT_FINAL_STATE_REQUESTS } from "../runtime/final-state-requests";
 import {
   FIXTURE_BRANCH,
+  safeMutationEndpointDocuments,
   setupSeededConsistencyKb,
   setupSeededDirtyKb,
   setupSeededFreshKb,
   setupSeededGovernedAreaKb,
   setupSeededPreconditionKb,
+  setupSeededSafeMutationKb,
   setupSeededUncoveredKb,
   stopFixtureEngine,
 } from "../runtime/fixture-kb-setup";
@@ -224,11 +234,14 @@ async function stagedWorkspace(
     seeded_fresh_kb: setupSeededFreshKb,
     seeded_dirty_kb: setupSeededDirtyKb,
     seeded_uncovered_kb: setupSeededUncoveredKb,
+    seeded_safe_mutation_kb: (target: string, cli: string) =>
+      setupSeededSafeMutationKb(target, cli, fixture.task.id),
   }[
     fixture.manifest.fixtureSetup as
       | "seeded_fresh_kb"
       | "seeded_dirty_kb"
       | "seeded_uncovered_kb"
+      | "seeded_safe_mutation_kb"
   ];
   if (setup === undefined) {
     throw new Error(`unexpected setup ${fixture.manifest.fixtureSetup}`);
@@ -454,19 +467,16 @@ test("validation recovery input names a target its diagnostics can repair", asyn
   );
 }, 180_000);
 
-// The executable-coverage objective must start without the coverage edge it
-// asks for, so its signals and closeout reflect only the agent's write. This
-// drives the verifier through the staged MCP runtime the cells use.
-test("executable coverage fixture credits only an agent-applied coverage link", async () => {
-  const fixture = developmentFixture(
-    "kibi-traceability",
-    "executable-coverage",
-  );
-  expect(fixture.manifest.fixtureSetup).toBe("seeded_uncovered_kb");
-  const expectation = fixture.manifest.workflowExpectation;
-  if (expectation == null) throw new Error("missing expectation");
+/**
+ * The staged MCP runtime a cell's agent and final-state verifier use, over a
+ * staged fixture workspace: `finalState` seals one independent verifier read,
+ * `callTool` runs one agent tool call.
+ */
+async function stagedMcp(
+  fixture: ReturnType<typeof developmentFixture>,
+  workspace: string,
+) {
   const repository = resolve(import.meta.dir, "../../..");
-  const { workspace } = await stagedWorkspace("coverage", fixture);
   const privateEvidence = join(workspace, "..", "private");
   await mkdir(privateEvidence, { recursive: true });
   const launch = await stageKibiMcpRuntime(
@@ -510,6 +520,50 @@ test("executable coverage fixture credits only an agent-applied coverage link", 
       sealed.finalState.claims.find((entry) => entry.key === key)?.value;
     return { sealed, claim };
   };
+  const callTools = async (
+    calls: readonly Readonly<{
+      name: string;
+      arguments: Record<string, unknown>;
+    }>[],
+  ) => {
+    const client = new Client({ name: "fixture-agent", version: "1.0.0" });
+    await client.connect(
+      new StdioClientTransport({
+        command: launch.command,
+        args: [...launch.args],
+        cwd: workspace,
+        env,
+        stderr: "pipe",
+      }),
+    );
+    try {
+      const results = [];
+      for (const call of calls)
+        results.push(
+          await client.callTool(call, undefined, { timeout: 120_000 }),
+        );
+      return results;
+    } finally {
+      await client.close();
+      await stopFixtureEngine(workspace);
+    }
+  };
+  return { finalState, callTools };
+}
+
+// The executable-coverage objective must start without the coverage edge it
+// asks for, so its signals and closeout reflect only the agent's write. This
+// drives the verifier through the staged MCP runtime the cells use.
+test("executable coverage fixture credits only an agent-applied coverage link", async () => {
+  const fixture = developmentFixture(
+    "kibi-traceability",
+    "executable-coverage",
+  );
+  expect(fixture.manifest.fixtureSetup).toBe("seeded_uncovered_kb");
+  const expectation = fixture.manifest.workflowExpectation;
+  if (expectation == null) throw new Error("missing expectation");
+  const { workspace } = await stagedWorkspace("coverage", fixture);
+  const { finalState, callTools } = await stagedMcp(fixture, workspace);
 
   // The seed alone credits neither signal.
   const before = await finalState();
@@ -517,54 +571,141 @@ test("executable coverage fixture credits only an agent-applied coverage link", 
   expect(before.claim("workflow-signal-2")).toBe(false);
 
   // The agent links the production symbol to the seeded executable test.
-  const client = new Client({ name: "fixture-agent", version: "1.0.0" });
-  await client.connect(
-    new StdioClientTransport({
-      command: launch.command,
-      args: [...launch.args],
-      cwd: workspace,
-      env,
-      stderr: "pipe",
-    }),
-  );
-  try {
-    const write = await client.callTool(
-      {
-        name: "kb_upsert",
-        arguments: {
-          type: "symbol",
-          id: "SYM-SETUP-FIXTURE",
-          properties: {
-            title: "fixtureFamily",
-            status: "active",
-            sourceFile: "src/fixture.ts",
-          },
-          relationships: [
-            {
-              type: "implements",
-              from: "SYM-SETUP-FIXTURE",
-              to: "REQ-SETUP-BASE",
-            },
-            {
-              type: "covered_by",
-              from: "SYM-SETUP-FIXTURE",
-              to: "TEST-SETUP-FIXTURE",
-            },
-          ],
+  const [write] = await callTools([
+    {
+      name: "kb_upsert",
+      arguments: {
+        type: "symbol",
+        id: "SYM-SETUP-FIXTURE",
+        properties: {
+          title: "fixtureFamily",
+          status: "active",
+          sourceFile: "src/fixture.ts",
         },
+        relationships: [
+          {
+            type: "implements",
+            from: "SYM-SETUP-FIXTURE",
+            to: "REQ-SETUP-BASE",
+          },
+          {
+            type: "covered_by",
+            from: "SYM-SETUP-FIXTURE",
+            to: "TEST-SETUP-FIXTURE",
+          },
+        ],
       },
-      undefined,
-      { timeout: 120_000 },
-    );
-    expect(write.isError).not.toBe(true);
-  } finally {
-    await client.close();
-    await stopFixtureEngine(workspace);
-  }
+    },
+  ]);
+  expect(write?.isError).not.toBe(true);
 
   const after = await finalState();
   expect(after.claim("workflow-signal-1")).toBe(true);
   expect(after.claim("workflow-signal-2")).toBe(true);
+  expect(after.sealed.finalState.closeout).toMatchObject({
+    taskOutcome: "complete",
+    kbState: expectation.expectedKbState,
+    verificationState: expectation.expectedVerificationState,
+    proofState: expectation.expectedProofState,
+  });
+}, 300_000);
+
+// Every safe-mutation-direction variant seeds the endpoints its
+// mutation-request.json names, through a setup mode the evaluator selects.
+test("safe mutation variants seed the endpoints their request names", () => {
+  const tasks = [...buildPublicCatalog(), ...buildHeldOutCatalog()].filter(
+    (task) => task.family === "safe-mutation-direction",
+  );
+  expect(new Set(tasks.map((task) => task.split))).toEqual(
+    new Set(["train", "development", "held-out"]),
+  );
+  for (const task of tasks) {
+    const manifest = buildPrivateManifest({
+      task: task as never,
+      publicManifestHash: "a".repeat(64),
+      workspaceHash: "b".repeat(64),
+    });
+    expect(manifest.fixtureSetup).toBe("seeded_safe_mutation_kb");
+    const root = mkdtempSync(join(tmpdir(), "skillopt-safe-request-"));
+    roots.push(root);
+    writePublicWorkspace({
+      root,
+      task:
+        task.split === "held-out"
+          ? parseHeldOutTaskSpec(task)
+          : parsePublicTaskSpec(task),
+      canonicalSkillRoot: resolve(
+        import.meta.dir,
+        "../../../packages/cli/src/public/skills",
+      ),
+    });
+    const request = JSON.parse(
+      readFileSync(join(root, "mutation-request.json"), "utf8"),
+    ) as {
+      existingEndpoints: { requirementId: string; testId: string };
+      relationships: readonly { to: string }[];
+    };
+    const seeded = Object.keys(safeMutationEndpointDocuments(task.id));
+    const endpoints = [
+      request.existingEndpoints.requirementId,
+      request.existingEndpoints.testId,
+    ];
+    expect(seeded).toEqual([
+      `.kb/requirements/${endpoints[0]}.md`,
+      `.kb/tests/${endpoints[1]}.md`,
+    ]);
+    for (const relationship of request.relationships)
+      expect(endpoints).toContain(relationship.to);
+  }
+});
+
+// The safe mutation objective names a requirement and a test the agent must
+// link its new symbol to. They must be in the KB the MCP-only agent sees, and
+// only the agent's write may satisfy the work-done signals.
+test("safe mutation fixture accepts the requested links and credits only the agent's write", async () => {
+  const fixture = developmentFixture("kibi-usage", "safe-mutation-direction");
+  expect(fixture.manifest.fixtureSetup).toBe("seeded_safe_mutation_kb");
+  const expectation = fixture.manifest.workflowExpectation;
+  if (expectation == null) throw new Error("missing expectation");
+  const { workspace } = await stagedWorkspace("safe-mutation", fixture);
+  const request = JSON.parse(
+    await readFile(join(workspace, "mutation-request.json"), "utf8"),
+  ) as {
+    sourceSymbol: {
+      id: string;
+      title: string;
+      status: string;
+      sourceFile: string;
+    };
+    relationships: { type: string; from: string; to: string }[];
+  };
+  const { finalState, callTools } = await stagedMcp(fixture, workspace);
+
+  // The untouched seed credits neither the links nor the task.
+  const before = await finalState();
+  expect(before.claim("workflow-signal-1")).toBe(false);
+  expect(before.sealed.finalState.closeout.taskOutcome).not.toBe("complete");
+
+  // The agent validates, then writes the requested symbol and links.
+  const { id, ...properties } = request.sourceSymbol;
+  const payload = {
+    type: "symbol",
+    id,
+    properties,
+    relationships: request.relationships,
+  };
+  const [dryRun, write] = await callTools([
+    { name: "kb_upsert", arguments: { ...payload, dryRun: true } },
+    { name: "kb_upsert", arguments: payload },
+  ]);
+  expect(dryRun?.isError).not.toBe(true);
+  expect(dryRun?.structuredContent).toMatchObject({
+    data: { valid: true, dryRun: true },
+  });
+  expect(write?.isError).not.toBe(true);
+
+  const after = await finalState();
+  expect(after.claim("workflow-signal-1")).toBe(true);
   expect(after.sealed.finalState.closeout).toMatchObject({
     taskOutcome: "complete",
     kbState: expectation.expectedKbState,

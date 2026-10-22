@@ -6,6 +6,7 @@ import { promisify } from "node:util";
 import { EngineClient } from "../../../packages/cli/src/engine";
 import { buildUpsertCommitGoal } from "../../../packages/cli/src/operations/mutation/contradictions";
 import { escapeAtom } from "../../../packages/cli/src/prolog/codec";
+import { fixtureEntityIds } from "../fixtures/workspace";
 import {
   CONSISTENCY_E2E_TEST_DOCUMENT,
   CONSISTENCY_E2E_TEST_PATH,
@@ -141,7 +142,8 @@ export async function runCliWithRetry(
   return result.stdout;
 }
 
-async function runStagedCli(
+// implements REQ-skillopt-codex-optimization
+export async function runStagedCli(
   cliRoot: string,
   workspaceTarget: string,
   args: readonly string[],
@@ -455,7 +457,8 @@ export async function setupThinRootKb(
   await stageCommitAll(workspaceTarget);
 }
 
-async function runSeededFixtureTest(
+// implements REQ-skillopt-codex-optimization
+export async function runSeededFixtureTest(
   workspaceTarget: string,
   testPath: string = FIXTURE_TEST_PATH,
 ): Promise<void> {
@@ -514,6 +517,11 @@ export async function setupSeededFreshKb(
      * seed's only check violation is that symbol's missing coverage.
      */
     symbolCoverage?: boolean;
+    /**
+     * Further evaluator-owned authored documents (workspace-relative path to
+     * content) committed and imported with the seed.
+     */
+    documents?: Readonly<Record<string, string>>;
   }> = {},
 ): Promise<void> {
   const symbolCoverage = options.symbolCoverage ?? true;
@@ -623,6 +631,8 @@ export async function setupSeededFreshKb(
     "utf8",
   );
   await writeDeclaredPredicateSchemas(workspaceTarget);
+  if (options.documents !== undefined)
+    await writeDocuments(workspaceTarget, options.documents);
   // Sync discovers tracked source files. Commit the evaluator-owned seed before
   // importing it so the branch snapshot contains the two authored entities.
   await stageCommitAll(workspaceTarget);
@@ -787,6 +797,70 @@ export async function setupSeededUncoveredKb(
 }
 
 /**
+ * The requirement and executable test a safe typed mutation task names as
+ * existing endpoints in mutation-request.json, authored in the configured
+ * Kibi lanes. The public workspace also describes them under documentation/,
+ * but those legacy paths are outside the configured Kibi paths and only a CLI
+ * migration (which the MCP-only task forbids) imports them: without this seed
+ * every requested relationship is refused because its target does not exist.
+ */
+// implements REQ-skillopt-logical-evidence-fidelity
+export function safeMutationEndpointDocuments(
+  taskId: string,
+): Readonly<Record<string, string>> {
+  const ids = fixtureEntityIds(taskId);
+  return {
+    [`.kb/requirements/${ids.requirement}.md`]: [
+      "---",
+      `id: ${ids.requirement}`,
+      "title: safe-mutation-direction fixture requirement",
+      "status: open",
+      "type: req",
+      "---",
+      "",
+      "## Context",
+      "",
+      "This evaluator-owned requirement is the existing endpoint the safe mutation task asks the fixture production symbol to implement.",
+      "",
+    ].join("\n"),
+    [`.kb/tests/${ids.test}.md`]: [
+      "---",
+      `id: ${ids.test}`,
+      "title: Fixture production symbol coverage",
+      "status: passing",
+      `text_ref: ${FIXTURE_TEST_PATH}`,
+      "links:",
+      "  - type: validates",
+      `    target: ${ids.requirement}`,
+      "verification_scope: integration",
+      "---",
+      "",
+      "# Fixture production symbol coverage",
+      "",
+      "This supplied test is the coverage evidence for the fixture production symbol.",
+      "",
+    ].join("\n"),
+  };
+}
+
+/**
+ * Seeded fixture for the safe typed mutation objective: the seeded-fresh
+ * baseline plus the two endpoints mutation-request.json names, so the
+ * requested links are writable through MCP. The fixture production symbol
+ * itself is not seeded: creating it and linking it is the agent's work.
+ */
+// implements REQ-skillopt-logical-evidence-fidelity
+export async function setupSeededSafeMutationKb(
+  workspaceTarget: string,
+  cliRoot: string,
+  taskId: string,
+): Promise<void> {
+  await setupSeededFreshKb(workspaceTarget, cliRoot, {
+    documents: safeMutationEndpointDocuments(taskId),
+  });
+}
+
+/**
  * Evaluator-owned staging for tasks declaring initialState.kb "stale": the
  * seeded-fresh baseline plus a committed source drift that the compiled store
  * has not absorbed (probe-verified: kb_status reports syncState=stale with a
@@ -869,7 +943,8 @@ export async function stopFixtureEngine(
   await daemon.terminate();
 }
 
-async function writeDocuments(
+// implements REQ-skillopt-codex-optimization
+export async function writeDocuments(
   workspaceTarget: string,
   documents: Readonly<Record<string, string>>,
 ): Promise<void> {
@@ -881,7 +956,8 @@ async function writeDocuments(
 }
 
 /** Commit everything, then import it; sync reads the Git source boundary. */
-async function commitAndSync(
+// implements REQ-skillopt-codex-optimization
+export async function commitAndSync(
   workspaceTarget: string,
   cliRoot: string,
 ): Promise<void> {
@@ -893,7 +969,8 @@ async function commitAndSync(
   );
 }
 
-async function initSeededRepository(
+// implements REQ-skillopt-codex-optimization
+export async function initSeededRepository(
   workspaceTarget: string,
   cliRoot: string,
 ): Promise<void> {
@@ -904,7 +981,8 @@ async function initSeededRepository(
   );
 }
 
-async function validateSeed(
+// implements REQ-skillopt-codex-optimization
+export async function validateSeed(
   workspaceTarget: string,
   cliRoot: string,
   label: string,
@@ -944,7 +1022,8 @@ function recordField(
   return field as Record<string, unknown>;
 }
 
-async function jsonRoute(
+// implements REQ-skillopt-codex-optimization
+export async function jsonRoute(
   cliRoot: string,
   workspaceTarget: string,
   route: string,

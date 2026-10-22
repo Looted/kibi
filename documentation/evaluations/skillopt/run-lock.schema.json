@@ -192,13 +192,17 @@
         "kibi-usage",
         "kibi-freshness",
         "kibi-traceability",
-        "kibi-bootstrap"
+        "kibi-bootstrap",
+        "kibi-decisions",
+        "kibi-commit-review"
       ],
       "properties": {
         "kibi-usage": { "$ref": "#/$defs/skillSurfaceHashes" },
         "kibi-freshness": { "$ref": "#/$defs/skillSurfaceHashes" },
         "kibi-traceability": { "$ref": "#/$defs/skillSurfaceHashes" },
-        "kibi-bootstrap": { "$ref": "#/$defs/skillSurfaceHashes" }
+        "kibi-bootstrap": { "$ref": "#/$defs/skillSurfaceHashes" },
+        "kibi-decisions": { "$ref": "#/$defs/skillSurfaceHashes" },
+        "kibi-commit-review": { "$ref": "#/$defs/skillSurfaceHashes" }
       }
     },
     "seed": { "type": "integer", "minimum": 0 },

@@ -1,6 +1,6 @@
 // implements REQ-kibi-operation-interface-parity
+import { codedErrorOf } from "../../cli-errors.js";
 import { escapeAtom } from "../../prolog/codec.js";
-import { loadEntities } from "../../public/operations/discovery-entities.js";
 import type {
   OperationContext,
   PrologPort,
@@ -14,7 +14,7 @@ import {
   formatUpsertError,
 } from "./contradictions.js";
 import { validateRelationshipSources } from "./relationships.js";
-import { canonicalSourcePath } from "./source-authoring.js";
+import { canonicalSourcePath, renderSourceWrite } from "./source-authoring.js";
 import { validateSymbolGranularity } from "./symbol-granularity.js";
 import type {
   PlannedFactInput,
@@ -26,6 +26,7 @@ import type {
 import {
   type UpsertSemanticAnalysis,
   analyzeUpsertSemantics,
+  sourceWriteScope,
   validateAppendOnlyProofReceipts,
   validateUpsertForCommit,
 } from "./upsert.js";
@@ -43,64 +44,61 @@ async function entityExists(prolog: PrologPort, id: string): Promise<boolean> {
 
 // implements REQ-kibi-operation-interface-parity, REQ-kb-entity-body-context
 /**
- * The authored document a real kb_upsert would update, resolved with the
- * write's own rules (stored authored source, else the canonical lane path).
- * The preview entity's `source` is the runtime marker, so without this the
- * context warning would judge the statement instead of the existing body the
- * write preserves. Undefined when the write would not touch a document.
+ * The authored document a real kb_upsert would update, resolved and rendered
+ * with the write's own rules (sourceWriteScope and renderSourceWrite) but
+ * never written. A path or format the write would refuse
+ * (DOCUMENT_PATH_REQUIRED, SOURCE_PATH_INVALID, SOURCE_FORMAT_UNSUPPORTED)
+ * throws the write's own error. The preview entity's `source` is the runtime
+ * marker, so the returned path lets the context warning judge the existing
+ * body the write preserves. Undefined when the write would not touch a
+ * document.
  */
-async function previewDocumentPath(
+async function previewSourceWrite(
   input: UpsertInput,
   entity: Readonly<Record<string, unknown>>,
   context: OperationContext,
 ): Promise<string | undefined> {
-  if (context.fs === undefined || context.sourceFirst === false) {
-    return undefined;
-  }
-  try {
-    const existing =
-      context.prolog === undefined
-        ? undefined
-        : (
-            await loadEntities(context.prolog, {
-              id: input.id,
-              type: input.type,
-            })
-          )[0];
-    const existingSource =
-      typeof existing?.source === "string" ? existing.source : undefined;
-    if (
-      input.document === undefined &&
-      existing !== undefined &&
-      !existingSource?.match(/\.(?:md|mdx|ya?ml|json)$/i)
-    ) {
+  const fs = context.fs;
+  if (fs === undefined || context.sourceFirst === false) return undefined;
+  if (context.prolog === undefined) {
+    // No store, so no write either: only locate the document for the
+    // context warning.
+    try {
+      return canonicalSourcePath(context, input, entity);
+    } catch {
       return undefined;
     }
-    return canonicalSourcePath(context, input, entity, existing);
-  } catch {
-    return undefined;
   }
+  const scope = await sourceWriteScope(input, context);
+  if (scope === null) return undefined;
+  const { relative } = await renderSourceWrite(input, entity, scope.existing, {
+    ...context,
+    fs,
+  });
+  return relative;
 }
 
 // implements REQ-kibi-operation-interface-parity, REQ-kibi-truthful-consistency
 /**
- * The commit-time contradiction check, run against a staged and rolled-back
- * copy of the store. Only a `req` commit runs it (facts and scenarios never
- * do), and `_skipContradictionCheck` skips it at commit, so the preview skips
- * it too. A refusal carries the same message the commit would raise.
+ * The commit goal's own refusal rules, run against a staged and rolled-back
+ * copy of the store for every entity type: a relationship whose endpoint
+ * does not exist, an invalid relationship direction, a symbol mixing
+ * executable_for with implements/covered_by, and the requirement
+ * contradiction check (only a `req` commit runs it, and
+ * `_skipContradictionCheck` skips it at commit and here alike). A refusal
+ * carries the same message the commit would raise.
  */
-async function previewContradictions(
+async function previewCommit(
   prolog: PrologPort,
   input: UpsertInput,
   entity: Readonly<Record<string, unknown>>,
   relationships: readonly RelationshipInput[],
 ): Promise<void> {
-  if (input.type !== "req" || input._skipContradictionCheck === true) return;
   const preview = await prolog.query(
     buildUpsertContradictionPreviewGoal({
       entity,
       relationships,
-      skipContradictionCheck: false,
+      skipContradictionCheck: input._skipContradictionCheck === true,
     }),
   );
   if (!preview.success) {
@@ -287,6 +285,7 @@ export async function executeValidateUpsert(
     let whatIf: ValidateUpsertPayload["whatIf"];
     let stagedFacts: readonly string[] | undefined;
     let relationships: readonly RelationshipInput[] = input.relationships ?? [];
+    let targetPath: string | undefined;
     const { entity, semantic } =
       context.prolog !== undefined
         ? await stagePlannedFacts(input, context).then(async (facts) => {
@@ -295,11 +294,20 @@ export async function executeValidateUpsert(
               context,
               facts === null ? {} : { staged: facts.staged },
             );
-            // The commit goal checks requirement contradictions after the
-            // validations above; a dry run previews that stage as well, so
+            // The write publishes the authored document before its commit
+            // goal; render it (without writing) in the same order, so a
+            // source refusal surfaces here exactly as the write raises it.
+            targetPath = await previewSourceWrite(
+              input,
+              result.validated.entity,
+              context,
+            );
+            // The commit goal refuses missing relationship endpoints, mixed
+            // symbol roles and requirement contradictions after the
+            // validations above; a dry run previews that goal as well, so
             // "valid" means the commit would not refuse the write.
             if (facts === null) {
-              await previewContradictions(
+              await previewCommit(
                 context.prolog as PrologPort,
                 input,
                 result.validated.entity,
@@ -322,6 +330,8 @@ export async function executeValidateUpsert(
             };
           })
         : await validateWithoutStore(input, context);
+    if (context.prolog === undefined)
+      targetPath = await previewSourceWrite(input, entity, context);
     // Style warnings apply only to entities this upsert would create, so the
     // existence read happens only when the ID actually has a style issue.
     const candidateIdStyleWarnings = entityIdStyleWarnings({
@@ -352,7 +362,7 @@ export async function executeValidateUpsert(
         ...coverageWarnings,
         ...idStyleWarnings,
         ...entityContextWarnings(input, entity, context.workspaceRoot, {
-          targetPath: await previewDocumentPath(input, entity, context),
+          targetPath,
         }),
       ],
       semanticAdvisor: semantic.receipt,
@@ -378,12 +388,14 @@ export async function executeValidateUpsert(
     // the payload: report it as a tool failure instead of an invalid payload.
     if (isModuleLoadFailure(error)) throw error;
     const message = error instanceof Error ? error.message : String(error);
+    const errorCode = codedErrorOf(error)?.code;
     const payload: ValidateUpsertPayload = {
       valid: false,
       errors: [message],
       warnings: [],
       semanticAdvisor: null,
       normalizedPreview: null,
+      ...(errorCode !== undefined ? { errorCode } : {}),
     };
     return {
       content: [

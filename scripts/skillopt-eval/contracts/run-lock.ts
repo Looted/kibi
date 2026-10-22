@@ -123,6 +123,8 @@ export function createRunLockSchema(sourceLockPath = DEFAULT_SOURCE_LOCK_PATH) {
             "kibi-freshness": SkillSurfaceHashesSchema,
             "kibi-traceability": SkillSurfaceHashesSchema,
             "kibi-bootstrap": SkillSurfaceHashesSchema,
+            "kibi-decisions": SkillSurfaceHashesSchema,
+            "kibi-commit-review": SkillSurfaceHashesSchema,
           })
           .strict(),
         seed: z.int().nonnegative(),

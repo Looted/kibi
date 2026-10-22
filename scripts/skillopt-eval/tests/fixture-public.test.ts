@@ -28,15 +28,17 @@ describe("public SkillOpt fixture corpus", () => {
   test("exposes only balanced train and development descriptors", () => {
     const tasks = buildPublicCatalog();
 
-    // Four core families per skill plus the supplemental fifth family of
-    // kibi-usage, kibi-freshness and kibi-traceability.
-    expect(tasks).toHaveLength(60);
+    // Four core families per skill plus each skill's supplemental fifth
+    // family, three public tasks each.
+    expect(tasks).toHaveLength(90);
     expect(tasks.every((task) => task.split !== "held-out")).toBe(true);
     const objectiveCounts: Record<string, number> = {
       "kibi-usage": 9,
       "kibi-freshness": 6,
       "kibi-traceability": 6,
       "kibi-bootstrap": 5,
+      "kibi-decisions": 6,
+      "kibi-commit-review": 6,
     };
     for (const skill of CANONICAL_SKILLS) {
       const skillTasks = tasks.filter((task) => task.skill === skill);
@@ -114,7 +116,7 @@ describe("public SkillOpt fixture corpus", () => {
     });
     const { publicRoot } = receipt.roots;
 
-    expect(receipt.publicIndex.tasks).toHaveLength(60);
+    expect(receipt.publicIndex.tasks).toHaveLength(90);
     expect(path.basename(publicRoot)).toBe("public");
     expect(path.basename(receipt.roots.heldOutRoot)).toBe("held-out");
     expect(path.basename(receipt.roots.evaluatorRoot)).toBe("evaluator");

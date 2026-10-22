@@ -182,7 +182,7 @@ export function fixtureSymbolId(taskId: string): string {
 }
 
 // implements REQ-skillopt-logical-evidence-fidelity
-function fixtureEntityIds(taskId: string) {
+export function fixtureEntityIds(taskId: string) {
   const suffix = sha256(taskId).slice(0, 12).toUpperCase();
   return {
     requirement: `REQ-FIXTURE-${suffix}`,

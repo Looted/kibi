@@ -1193,6 +1193,49 @@ export function isUntrackedByGit(
   }
 }
 
+// implements REQ-kibi-operation-interface-parity
+/**
+ * The authored document an upsert publishes, resolved and rendered without
+ * writing: the target path (with its containment checks), the current bytes
+ * and the bytes the write would publish. writeSourceForUpsert publishes
+ * exactly this, and a kb_upsert dry run renders it so a path or format the
+ * write would refuse is refused by the dry run too.
+ */
+export async function renderSourceWrite(
+  input: UpsertInput,
+  entity: Readonly<Record<string, unknown>>,
+  existing: Readonly<Record<string, unknown>> | undefined,
+  context: OperationContext & {
+    readonly fs: NonNullable<OperationContext["fs"]>;
+  },
+  sourceDocumentOverride?: string,
+): Promise<{
+  absolute: string;
+  relative: string;
+  before: string | undefined;
+  after: string;
+}> {
+  const absolute = sourcePath(context, input, entity, existing);
+  const relative = path
+    .relative(context.workspaceRoot, absolute)
+    .replaceAll("\\", "/");
+  let before: string | undefined;
+  try {
+    before = await context.fs.readFile(absolute);
+  } catch {
+    before = undefined;
+  }
+  // Proof-receipt ingest supplies pre-patched bytes so unrelated frontmatter
+  // keeps its authored formatting (and the workspace snapshot stays stable).
+  // Only valid when the document already exists; a new document still needs
+  // the canonical render.
+  const after =
+    before !== undefined && sourceDocumentOverride !== undefined
+      ? sourceDocumentOverride
+      : renderSourceDocument(input, entity, before, relative);
+  return { absolute, relative, before, after };
+}
+
 export async function writeSourceForUpsert(
   input: UpsertInput,
   entity: Readonly<Record<string, unknown>>,
@@ -1204,28 +1247,17 @@ export async function writeSourceForUpsert(
   rollback: () => Promise<void>;
 } | null> {
   if (!context?.fs) return null;
-  const absolute = sourcePath(context, input, entity, existing);
-  const relative = path
-    .relative(context.workspaceRoot, absolute)
-    .replaceAll("\\", "/");
-  let before: string | undefined;
-  try {
-    before = await context.fs.readFile(absolute);
-  } catch {
-    before = undefined;
-  }
+  const { absolute, relative, before, after } = await renderSourceWrite(
+    input,
+    entity,
+    existing,
+    { ...context, fs: context.fs },
+    sourceDocumentOverride,
+  );
   // Freshness compares file times with the compiled snapshot, so restoring
   // the bytes alone would still make an untouched entity read as stale after
   // a rolled-back write. Snapshot the times before the publication below.
   const priorTimes = before === undefined ? null : readFileTimes(absolute);
-  // Proof-receipt ingest supplies pre-patched bytes so unrelated frontmatter
-  // keeps its authored formatting (and the workspace snapshot stays stable).
-  // Only valid when the document already exists; a new document still needs
-  // the canonical render.
-  const after =
-    before !== undefined && sourceDocumentOverride !== undefined
-      ? sourceDocumentOverride
-      : renderSourceDocument(input, entity, before, relative);
   await context.fs.mkdir(path.dirname(absolute));
   const temporary = `${absolute}.kibi-source-${process.pid}-${randomUUID()}`;
   try {

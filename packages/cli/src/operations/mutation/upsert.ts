@@ -610,6 +610,44 @@ export type UpsertExecutionOptions = Readonly<{
 
 // implements REQ-kibi-operation-interface-parity
 /**
+ * Whether a source-first upsert publishes an authored document, and the
+ * stored entity it updates (undefined for a create). Null when the write
+ * touches no document: no filesystem, a compiled-only runtime, or an
+ * existing entity whose runtime source (mcp://, test://, etc.) has no
+ * tracked document and the caller names none. A new entity always gets a
+ * document in a filesystem-capable runtime: writeSourceForUpsert emits the
+ * typed DOCUMENT_PATH_REQUIRED request when configuration has zero or
+ * multiple writable targets, rather than silently creating compiled-only
+ * state. The write and its dry run share this decision.
+ */
+export async function sourceWriteScope(
+  input: UpsertInput,
+  context: OperationContext,
+): Promise<{
+  readonly existing: Readonly<Record<string, unknown>> | undefined;
+} | null> {
+  if (
+    context.fs === undefined ||
+    context.sourceFirst === false ||
+    context.prolog === undefined
+  )
+    return null;
+  const existing = (
+    await loadEntities(context.prolog, { id: input.id, type: input.type })
+  )[0];
+  const existingSource =
+    typeof existing?.source === "string" ? existing.source : undefined;
+  if (
+    input.document !== undefined ||
+    existingSource?.match(/\.(?:md|mdx|ya?ml|json)$/i) ||
+    existing === undefined
+  )
+    return { existing };
+  return null;
+}
+
+// implements REQ-kibi-operation-interface-parity
+/**
  * A dry run is the former kb_validate_upsert preflight on the kb_upsert
  * surface: the same validation and semantic advisor receipt, no KB or
  * workspace write, and both write effects reported as skipped.
@@ -712,51 +750,29 @@ export async function executeUpsert(
       });
     relationshipCount = validated.relationships.length;
     semanticAdvisor = semantic.receipt;
-    if (context.fs !== undefined && context.sourceFirst !== false) {
-      const existingRows = await loadEntities(prolog, {
-        id: input.id,
-        type: input.type,
-      });
-      const existing = existingRows[0];
-      const existingSource =
-        existing !== undefined && typeof existing.source === "string"
-          ? existing.source
-          : undefined;
-      // Existing non-authored runtime sources (mcp://, test://, etc.) have no
-      // tracked document to update unless the caller explicitly supplies one;
-      // new entities are required to choose a source target in this
-      // filesystem-capable context.
-      if (
-        input.document !== undefined ||
-        existingSource?.match(/\.(?:md|mdx|ya?ml|json)$/i) ||
-        // A filesystem-capable runtime is source-first for every new entity.
-        // writeSourceForUpsert emits the typed DOCUMENT_PATH_REQUIRED request
-        // when configuration has zero or multiple writable targets, rather
-        // than silently creating compiled-only state.
-        existing === undefined
-      ) {
-        sourceWrite = await writeSourceForUpsert(
-          input,
-          validated.entity,
-          existing,
-          context,
-          options.sourceDocumentOverride,
-        );
-        if (sourceWrite !== null) {
-          const sourceStep = sourceWrite;
-          saga.add({
-            name: "authored-source",
-            rollback: () => sourceStep.rollback(),
-            onError: "capture",
-          });
-          // The authored path is the entity's canonical identity. Runtime
-          // transport provenance (mcp://...) must never survive a source-first
-          // write or a later delete/sync cycle.
-          commitEntity = {
-            ...validated.entity,
-            source: sourceWrite.receipt.path,
-          };
-        }
+    const sourceScope = await sourceWriteScope(input, context);
+    if (sourceScope !== null) {
+      sourceWrite = await writeSourceForUpsert(
+        input,
+        validated.entity,
+        sourceScope.existing,
+        context,
+        options.sourceDocumentOverride,
+      );
+      if (sourceWrite !== null) {
+        const sourceStep = sourceWrite;
+        saga.add({
+          name: "authored-source",
+          rollback: () => sourceStep.rollback(),
+          onError: "capture",
+        });
+        // The authored path is the entity's canonical identity. Runtime
+        // transport provenance (mcp://...) must never survive a source-first
+        // write or a later delete/sync cycle.
+        commitEntity = {
+          ...validated.entity,
+          source: sourceWrite.receipt.path,
+        };
       }
     }
 

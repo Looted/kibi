@@ -658,7 +658,7 @@ describe("campaign revise/package boundaries", () => {
         manifests: [manifest],
         dependencies: fake,
       });
-      expect(receipt.skills).toHaveLength(4);
+      expect(receipt.skills).toHaveLength(6);
       expect(inputCandidates).toEqual({
         "kibi-usage": { body: manifest.frozenBody },
       });
@@ -765,7 +765,7 @@ describe("campaign revise/package boundaries", () => {
         evaluation,
         dependencies: packageDependencies,
       });
-      expect(valid.skills).toHaveLength(4);
+      expect(valid.skills).toHaveLength(6);
       expect(
         JSON.parse(
           await readFile(

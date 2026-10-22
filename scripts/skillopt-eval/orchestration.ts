@@ -141,6 +141,8 @@ const SKILL_EPISODES: Record<CanonicalSkill, string> = {
   "kibi-freshness": "00000000-0000-4000-8000-000000000102",
   "kibi-traceability": "00000000-0000-4000-8000-000000000103",
   "kibi-bootstrap": "00000000-0000-4000-8000-000000000104",
+  "kibi-decisions": "00000000-0000-4000-8000-000000000105",
+  "kibi-commit-review": "00000000-0000-4000-8000-000000000106",
 };
 
 export type OfflineWorkflowResult = Readonly<{
