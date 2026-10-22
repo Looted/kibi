@@ -20,6 +20,7 @@ import {
   getWorkspaceFolderUri,
   registerContextOnOpen,
   registerNavigationCommands,
+  registerSignoff,
   registerTraceability,
   registerTreeView,
   resolveWorkspaceRoot,
@@ -77,6 +78,7 @@ function initializeWorkspaceFeatures(
   );
 
   registerContextOnOpen(context, output, workspaceRoot);
+  registerSignoff(context, output, workspaceRoot);
 
   const subscriptions: vscode.Disposable[] = [
     treeViewResult.watcher,

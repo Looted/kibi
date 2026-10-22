@@ -1,11 +1,11 @@
 ---
 name: kibi-commit-review
-description: "Use when kibi check --staged or the Kibi pre-commit hook blocks a commit (kibi_impact_evidence_missing, symbols_manifest_stale, symbol_granularity_violation, symbol-coverage, kibi check-generated drift, Staged impact review failed), or when preparing a commit or pull-request impact review. Covers reading the per-file Detail lines, authoring .kb/symbols.yaml symbol entries through kb_upsert, kibi sync --refresh-symbol-coordinates, staging the tracked Kibi evidence with git add, kb_prepare_impact_review for a staged or diff scope, and how merge commits and migration renames are judged."
+description: "Use when kibi check --staged or the Kibi pre-commit hook blocks a commit (kibi_impact_evidence_missing, symbols_manifest_stale, symbol_granularity_violation, symbol-coverage, kibi check-generated drift, Staged impact review failed), or when preparing a commit or pull-request impact review. Covers reading the per-file Detail lines, authoring .kb/symbols.yaml symbol entries through kb_upsert, kibi sync --refresh-symbol-coordinates, staging the tracked Kibi evidence with git add, kb_prepare_impact_review for a staged or diff scope, the kibi signoff requirements summary to show before a commit, and how merge commits and migration renames are judged."
 license: AGPL-3.0-or-later
 metadata:
   displayName: kibi-commit-review
   id: kibi-commit-review
-  version: 1.0.0
+  version: 1.1.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -70,6 +70,25 @@ stop and name the missing capability. Never read or edit `.kb/` files directly.
 5. **Re-run** `kibi check --staged` (and `kibi check-generated --staged` when it
    failed) until it passes. Never bypass the hook (`--no-verify`) unless the
    person says so.
+
+## Requirements signoff
+
+Before you ask the person to approve a commit that adds, rewrites or retires
+requirements, or changes code that implements them, show them what they are
+signing off:
+
+```
+npx --no-install kibi signoff            # working tree; --staged for the index
+```
+
+It prints a ```` ```kibi-signoff ```` block listing each new, changed, affected
+and retired requirement with its statement (before and after for a rewrite),
+firmness, origin, scenarios and proof state. Paste it unchanged, then add one
+or two sentences on why the requirements changed. Past 15 requirements, also
+run `kibi signoff --format html --open` (on a remote machine, give the path it
+prints). `--no-proof` skips the proof lookup, which reads coverage and is slow
+on a large knowledge base. The summary is not an approval: never set
+`approved_by` or `origin.ref` from it.
 
 ## Impact reviews
 

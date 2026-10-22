@@ -67,6 +67,17 @@
           }
         ]
       }
+    ],
+    "MessageDisplay": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/packages/claude/bin/signoff-display.mjs\"",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   }
 }

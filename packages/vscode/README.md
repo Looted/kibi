@@ -8,6 +8,7 @@ VS Code extension for Kibi knowledge base system, providing TreeView visualizati
 - **Entity Types**: Browse Requirements, Scenarios, Tests, ADRs, Flags, Events, and Symbols
 - **MCP Integration**: Built-in Model Context Protocol server for AI assistant integration
 - **Workspace Detection**: Auto-activates when `.kb` folder is detected
+- **Requirements signoff**: When an agent runs `kibi signoff`, a notification offers the view, and **Kibi: Show Requirements Signoff** opens the requirements summary or the decisions waiting for you in a panel that refreshes as the agent updates it
 
 ## Installation
 

@@ -13,6 +13,7 @@ import * as gaps from "../src/commands/gaps.js";
 import * as gc from "../src/commands/gc.js";
 import * as graph from "../src/commands/graph.js";
 import * as report from "../src/commands/report.js";
+import * as signoff from "../src/commands/signoff.js";
 import * as usageMetrics from "../src/commands/usage-metrics.js";
 import * as usageRemediation from "../src/commands/usage-remediation.js";
 
@@ -92,6 +93,7 @@ describe("maintenance and reporting command registration", () => {
     const spies = [
       spyOn(gaps, "gapsCommand").mockResolvedValue(undefined as never),
       spyOn(report, "reportCommand").mockResolvedValue(undefined as never),
+      spyOn(signoff, "signoffCommand").mockResolvedValue(undefined as never),
       spyOn(coverage, "coverageCommand").mockResolvedValue(undefined as never),
       spyOn(graph, "graphCommand").mockResolvedValue(undefined as never),
       spyOn(check, "checkCommand").mockResolvedValue({ exitCode: 0 }),
@@ -111,6 +113,10 @@ describe("maintenance and reporting command registration", () => {
     await parse("find-gaps", "req");
     await parse("find-gaps", "req", "--input", "-");
     await parse("report", "--output", "kibi-report");
+    await parse("signoff", "--staged", "--format", "html", "--no-proof");
+    expect(signoff.signoffCommand).toHaveBeenCalledWith(
+      expect.objectContaining({ staged: true, format: "html", proof: false }),
+    );
     await parse("coverage");
     await parse("coverage", "--input", "-");
     await parse("graph", "--from", "REQ-1");

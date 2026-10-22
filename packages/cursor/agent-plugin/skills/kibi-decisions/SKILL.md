@@ -1,8 +1,8 @@
 ---
 id: kibi-decisions
 name: kibi-decisions
-description: "Use when the person states a rule or decision (must, never, always, from now on, we decided), when a Kibi hook asks to confirm or warns about an edit to code that implements a firm requirement, when the Stop hook says source files changed but nothing was recorded, when kb_check quotes requirement_statement_unverified, or when a request conflicts with a recorded requirement or ADR. Covers reading firmness and origin, recording a person's rule as firm with origin.ref, superseding with a Why this changed section, the kb_compile_intent unresolved/reviewCandidates/conflictReviews loop, and asking before overriding a firm rule."
-version: 1.0.0
+description: "Use when the person states a rule or decision (must, never, always, from now on, we decided), when a Kibi hook asks to confirm or warns about an edit to code that implements a firm requirement, when the Stop hook says source files changed but nothing was recorded, when kb_check quotes requirement_statement_unverified, or when a request conflicts with a recorded requirement or ADR. Covers reading firmness and origin, recording a person's rule as firm with origin.ref, superseding with a Why this changed section, the kb_compile_intent unresolved/reviewCandidates/conflictReviews loop, asking before overriding a firm rule, and putting decisions to the person as one numbered kibi signoff --questions view."
+version: 1.1.0
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -12,6 +12,7 @@ tags:
   - agent-guidance
 resources:
   - resources/decision-records.md
+  - resources/signoff-views.md
 ---
 ## Goal
 
@@ -81,6 +82,25 @@ name the missing capability. Never read or edit `.kb/` files directly.
   new `origin.ref` to those words instead.
 - **You only prefer another approach:** a preference is not evidence. Propose
   it; do not supersede.
+
+## Put decisions to the person in one view
+
+Whenever you ask the person to confirm rules (a stated rule to record as
+firm, a change to a recorded rule, a conflict with one), render every open
+question as one numbered view instead of scattering them through the chat:
+
+```
+printf '%s\n' '{"questions":[{"title":"Refund approvals","statement":"Refunds above 500 EUR need a finance approval.","quote":"from now on refunds above 500 EUR must be approved by finance","firmness":"firm","governs":["src/refunds/approve.ts"],"question":"Record this as a firm rule?"}]}' | npx --no-install kibi signoff --questions -
+```
+
+Paste the printed ```` ```kibi-questions ```` block unchanged as your message
+(Kibi's host plugins render it as a card; elsewhere it reads as plain
+Markdown), then wait. Set `id` when a question would change a recorded
+requirement and `conflictsWith` to the recorded rules it conflicts with: the
+view quotes their current text from the knowledge base, so never retype it.
+When the person answers by number, fill each question's `answer` and render
+again until none is open, then record each rule with their words in
+`origin.ref`. Fields and outputs: `resources/signoff-views.md`.
 
 Never invent words for `origin.ref`, never set `approved_by` yourself, and
 mark your own picks `default` and guesses `exploratory`. Payload shapes,

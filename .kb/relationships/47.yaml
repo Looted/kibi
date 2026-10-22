@@ -244,3 +244,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9189e2f28808
+  - type: implements
+    from: SYM-cli-signoff-render-markdown
+    to: REQ-kibi-signoff-views
+    created_at: 2026-10-22T09:26:17.717Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0beb4f716d4e
+  - type: covered_by
+    from: SYM-cli-signoff-render-markdown
+    to: TEST-kibi-signoff-views
+    created_at: 2026-10-22T09:26:17.733Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98b777038962

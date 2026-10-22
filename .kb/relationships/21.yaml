@@ -237,3 +237,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fe9bdf02bace
+  - type: implements
+    from: SYM-vscode-register-signoff
+    to: REQ-kibi-signoff-views
+    created_at: 2026-10-22T09:27:02.720Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf55887d6739
+  - type: covered_by
+    from: SYM-vscode-register-signoff
+    to: TEST-kibi-signoff-views
+    created_at: 2026-10-22T09:27:02.732Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4bb9e9a47e4f

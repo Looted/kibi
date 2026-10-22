@@ -14,6 +14,8 @@ describe("opencode TUI plugin stub", () => {
     expect(typeof plugin.id).toBe("string");
     expect(plugin.id.length).toBeGreaterThan(0);
     expect(typeof plugin.setup).toBe("function");
-    expect(await plugin.setup({})).toBeUndefined();
+    const cleanup = await plugin.setup({});
+    expect(typeof cleanup).toBe("function");
+    cleanup();
   });
 });

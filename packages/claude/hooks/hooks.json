@@ -1,5 +1,5 @@
 {
-  "description": "Kibi hooks: knowledge snippets before reads and edits, a confirmation before edits of code a firm requirement governs, prompts to record decisions the person states, KB usage tracking, and one-shot freshness reminders. Silent outside Kibi workspaces.",
+  "description": "Kibi hooks: knowledge snippets before reads and edits, signoff views rendered in place of their fenced blocks, a confirmation before edits of code a firm requirement governs, prompts to record decisions the person states, KB usage tracking, and one-shot freshness reminders. Silent outside Kibi workspaces.",
   "hooks": {
     "SessionStart": [
       {
@@ -44,6 +44,17 @@
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/bin/hook-runner.mjs\"",
             "timeout": 10
+          }
+        ]
+      }
+    ],
+    "MessageDisplay": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/bin/signoff-display.mjs\"",
+            "timeout": 5
           }
         ]
       }

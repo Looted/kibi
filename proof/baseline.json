@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 232,
-  "proofProven": 232,
+  "currentRequirements": 233,
+  "proofProven": 233,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -1162,6 +1162,11 @@
       "uncoveredSymbols": []
     },
     "REQ-skillopt-host-neutral-optimization": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-signoff-views": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
