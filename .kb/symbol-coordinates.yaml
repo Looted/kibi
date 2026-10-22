@@ -12501,7 +12501,7 @@ coordinates:
     sourceLine: 18
   SYM-e2e-skillopt-host-neutral-optimization:
     identityHash: ea77f97b41053c099e66cf52f5bf941269b1553aeede67489aae3e2f6407052e
-    sourceHash: 5f28b8ea2ab924f29eb611e3ae9acacef4d130b8ada37827b7e1f76ef4d0cce0
+    sourceHash: a78397384c03848cc815fd6a5a49aa3c240f0b5f0e92497175acb953f0c3b580
     sourceColumn: 44
     sourceEndColumn: 82
     sourceEndLine: 28
