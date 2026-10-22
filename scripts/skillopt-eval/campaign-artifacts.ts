@@ -20,7 +20,7 @@ import {
 import { runBoundedProcess } from "./runtime/process";
 import {
   CandidateValidationError,
-  validateCandidateBody,
+  validateCandidateBodyAgainstBaseline,
   validateCandidateDescription,
 } from "./variants";
 
@@ -297,7 +297,7 @@ export function validateCampaignManifestAgainstSurface(
     return;
   }
   if (parsed.revisionMode === "body-replacement") {
-    validateCandidateBody(parsed.frozenBody);
+    validateCandidateBodyAgainstBaseline(parsed.frozenBody, surface.body);
     if (parsed.frozenBody === surface.body)
       throw new CampaignArtifactError("replacement_unchanged");
     return;
@@ -325,7 +325,7 @@ export function replaceCampaignBody(
     body: string;
   }>,
 ): CampaignManifest {
-  validateCandidateBody(input.body);
+  validateCandidateBodyAgainstBaseline(input.body, input.surface.body);
   if (input.body === input.surface.body)
     throw new CampaignArtifactError("replacement_unchanged");
   return CampaignManifestSchema.parse({
@@ -390,7 +390,7 @@ function validateDescribedRevision(
   assertCandidateDescription(description);
   const baseline = baselineManifest(surface);
   if (manifest.frozenBody !== surface.body)
-    validateCandidateBody(manifest.frozenBody);
+    validateCandidateBodyAgainstBaseline(manifest.frozenBody, surface.body);
   if (
     manifest.frozenBody === surface.body &&
     description === baseline.description
