@@ -20197,10 +20197,10 @@ coordinates:
     sourceLine: 1
   SYM-opencode-v2-tui-coverage-tests:
     identityHash: 2483f3ea233e4f50c579875d8dd2c784baf2b544882fc4e2fe4068e6b09c30d5
-    sourceHash: 7d4f5fe56eb194f65dfe691006e5236b8d91d989ce4cfe3500157b5c1e8a445c
+    sourceHash: 466f62340bfb0b0812fc96e6be9a03bb7c4c2ed6be728011cf385652e39e7690
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 20
+    sourceEndLine: 22
     sourceFile: packages/opencode/tests/tui.coverage.test.ts
     sourceLine: 1
   SYM-opencode-work-context-resolver-tests:
