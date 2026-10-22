@@ -29,6 +29,7 @@ import {
   FinalStateReceiptSchema,
   runIndependentFinalState,
 } from "./final-state";
+import { isSeededUnresolvedRuleViolation } from "./fixture-seeds";
 import { parseTraceReceipts, verifyTraceChain } from "./jsonrpc";
 import { stageKibiMcpBroker } from "./mcp-broker-stage";
 import { routedOperationName, toolCallArguments } from "./mcp-tool-names";
@@ -697,13 +698,15 @@ function forbiddenActionObserved(
   }
 }
 
+// The unresolved-pair seed carries one `unresolved` rule conflict by design;
+// a check whose only violations are that seeded one is clean for the task.
 function cleanCheckResult(value: unknown): boolean {
   const content = structuredContent(value);
   return (
     successfulResult(value) &&
-    content?.count === 0 &&
-    Array.isArray(content.violations) &&
-    content.violations.length === 0
+    Array.isArray(content?.violations) &&
+    content.count === content.violations.length &&
+    content.violations.every(isSeededUnresolvedRuleViolation)
   );
 }
 

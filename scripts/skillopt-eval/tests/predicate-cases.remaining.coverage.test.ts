@@ -17,7 +17,7 @@ describe("predicate-cases remaining lookup and invariant failures", () => {
       /unknown predicate case id/,
     );
     expect(() => predicateCaseBySplitIndex("train", 99)).toThrow(
-      /no predicate case for split=train index=99/,
+      /no predicate case for family=fact-predicate-modeling split=train index=99/,
     );
     const original = PREDICATE_CASES.map((entry) => ({ ...entry }));
     const cases = PREDICATE_CASES as unknown as Array<
@@ -35,7 +35,7 @@ describe("predicate-cases remaining lookup and invariant failures", () => {
       );
       cases.splice(0, cases.length, ...original.slice(0, 6));
       expect(() => assertDistinctSemanticClasses()).toThrow(
-        /expected exactly 7 predicate cases/,
+        /expected exactly 7 fact-predicate-modeling predicate cases/,
       );
     } finally {
       cases.splice(0, cases.length, ...original);

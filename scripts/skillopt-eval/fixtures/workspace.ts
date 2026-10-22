@@ -13,7 +13,7 @@ import { PRECONDITION_APPROVED_EXCEPTION } from "../runtime/fixture-seeds";
 import { bootstrapUserMode } from "./bootstrap-user";
 import type { parseTaskSpec } from "./contracts";
 import { onboardingReviewEvidence } from "./onboarding-review";
-import { predicateCaseById } from "./predicate-cases";
+import { isPredicateFamily, predicateCaseById } from "./predicate-cases";
 
 type FixtureTaskSpec = ReturnType<typeof parseTaskSpec>;
 type WorkspaceInput = Readonly<{
@@ -333,7 +333,7 @@ export function writePublicWorkspace(input: WorkspaceInput): string {
   // Predicate-family tasks materialize the public claim and schema (no expected
   // outcome) from the semantically distinct registry. The private expectation
   // lives only in the evaluator/verifier lane.
-  if (input.task.family === "fact-predicate-modeling") {
+  if (isPredicateFamily(input.task.family)) {
     writePublicPredicateClaim(input);
   }
   const materializedFiles = [...listFiles(input.root)].sort();

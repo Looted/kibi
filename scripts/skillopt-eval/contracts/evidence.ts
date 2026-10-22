@@ -60,6 +60,8 @@ const FinalStateFactSchema = z
       .regex(/^SEM-[A-F0-9]{24}$/)
       .optional(),
     ruleSchemaId: z.string().min(1).optional(),
+    /** Atom names in the rule's exceptions ("" for a non-atom exception). */
+    ruleExceptionAtoms: z.array(z.string()).optional(),
     claimKey: z
       .string()
       .regex(/^CLAIM-[A-F0-9]{16}$/)

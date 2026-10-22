@@ -52,6 +52,7 @@ import {
   setupSeededSafeMutationKb,
   setupSeededStaleKb,
   setupSeededUncoveredKb,
+  setupSeededUnresolvedRuleKb,
   setupThinRootKb,
   stopFixtureEngine,
 } from "./fixture-kb-setup";
@@ -309,6 +310,11 @@ export async function runCodexCell(
                 );
               } else if (setupMode === "seeded_consistency_kb") {
                 await setupSeededConsistencyKb(
+                  workspace.target,
+                  stagingCliRoot,
+                );
+              } else if (setupMode === "seeded_unresolved_rule_kb") {
+                await setupSeededUnresolvedRuleKb(
                   workspace.target,
                   stagingCliRoot,
                 );

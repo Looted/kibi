@@ -8,6 +8,7 @@ import { buildUpsertCommitGoal } from "../../../packages/cli/src/operations/muta
 import { escapeAtom } from "../../../packages/cli/src/prolog/codec";
 import { fixtureEntityIds } from "../fixtures/workspace";
 import {
+  CHARGEBACK_RULE_IR,
   CONSISTENCY_E2E_TEST_DOCUMENT,
   CONSISTENCY_E2E_TEST_PATH,
   CONSISTENCY_E2E_TEST_SOURCE,
@@ -22,7 +23,12 @@ import {
   PRECONDITION_IDS,
   PRECONDITION_INTENT,
   PRECONDITION_ORIGIN,
+  UNRESOLVED_RULE_CONTEXT,
+  UNRESOLVED_RULE_IDS,
+  UNRESOLVED_RULE_ORIGIN,
+  UNRESOLVED_RULE_PROSE,
   consistencyValueFact,
+  isSeededUnresolvedRuleViolation,
   ledgerRequirement,
 } from "./fixture-seeds";
 
@@ -1161,6 +1167,157 @@ export async function setupSeededPreconditionKb(
   await writeDocuments(workspaceTarget, PRECONDITION_DOCUMENTS);
   await commitAndSync(workspaceTarget, cliRoot);
   await validateSeed(workspaceTarget, cliRoot, "precondition fixture");
+}
+
+async function stampHumanOrigin(
+  workspaceTarget: string,
+  requirementId: string,
+  origin: string,
+): Promise<void> {
+  const path = join(
+    workspaceTarget,
+    ".kb",
+    "requirements",
+    `${requirementId}.md`,
+  );
+  const requirement = await readFile(path, "utf8");
+  if (!/^ {2}kind: agent$/m.test(requirement))
+    throw new FixtureSetupError(`${requirementId} has no agent origin`);
+  await writeFile(
+    path,
+    requirement.replace(/^ {2}kind: agent$/m, origin),
+    "utf8",
+  );
+}
+
+/**
+ * Evaluator-owned staging for the unresolved consistency case: two current
+ * refund requirements whose typed rules share the head `refund_issued(order)`
+ * with opposing modalities. The forbid-unless rule is compiled from prose
+ * through compile-intent and applied with its plan hash; the permit rule is
+ * modeled through model-requirement from its typed IR and written with
+ * upsert, as an agent would. The checker can neither prove nor exclude an
+ * order that satisfies both bodies, so `kb_check` reports exactly one
+ * `unresolved` rule conflict and nothing else.
+ */
+// implements REQ-skillopt-codex-optimization
+export async function setupSeededUnresolvedRuleKb(
+  workspaceTarget: string,
+  cliRoot: string,
+): Promise<void> {
+  await initSeededRepository(workspaceTarget, cliRoot);
+  await commitAndSync(workspaceTarget, cliRoot);
+  const compiled = await jsonRoute(cliRoot, workspaceTarget, "compile-intent", {
+    intent: UNRESOLVED_RULE_PROSE.settledAmount,
+    mode: "create",
+    context: UNRESOLVED_RULE_CONTEXT,
+    requirementId: UNRESOLVED_RULE_IDS.settledAmount,
+  });
+  const plan = recordField(compiled, "data", "compile-intent");
+  if (plan.status !== "ready" || typeof plan.planHash !== "string")
+    throw new FixtureSetupError(
+      `settled-amount plan is not ready: ${String(plan.status)}`,
+    );
+  const applied = await jsonRoute(cliRoot, workspaceTarget, "apply-plan", {
+    plan,
+    approvedPlanHash: plan.planHash,
+  });
+  if (recordField(applied, "data", "apply-plan").outcome !== "applied")
+    throw new FixtureSetupError("settled-amount plan was not applied");
+  await commitAndSync(workspaceTarget, cliRoot);
+  await stampHumanOrigin(
+    workspaceTarget,
+    UNRESOLVED_RULE_IDS.settledAmount,
+    UNRESOLVED_RULE_ORIGIN,
+  );
+  await commitAndSync(workspaceTarget, cliRoot);
+
+  const [claim] = (
+    await semanticLedger(
+      cliRoot,
+      workspaceTarget,
+      UNRESOLVED_RULE_PROSE.chargeback,
+    )
+  ).propositions;
+  if (claim === undefined)
+    throw new FixtureSetupError("chargeback prose has no clause");
+  const modeled = recordField(
+    await jsonRoute(cliRoot, workspaceTarget, "model-requirement", {
+      text: UNRESOLVED_RULE_PROSE.chargeback,
+      logic: CHARGEBACK_RULE_IR,
+      claimKey: claim.claim_key,
+      claimText: claim.claim_text,
+      requirementId: UNRESOLVED_RULE_IDS.chargeback,
+    }),
+    "data",
+    "model-requirement",
+  );
+  const steps = Array.isArray(modeled.applyPlan) ? modeled.applyPlan : [];
+  const ids = steps.map((step) =>
+    step !== null && typeof step === "object"
+      ? (step as Record<string, unknown>).id
+      : undefined,
+  );
+  if (
+    JSON.stringify(ids) !==
+    JSON.stringify([
+      UNRESOLVED_RULE_IDS.ruleSchema,
+      UNRESOLVED_RULE_IDS.chargebackRule,
+      UNRESOLVED_RULE_IDS.chargeback,
+    ])
+  )
+    throw new FixtureSetupError(
+      `chargeback plan has unexpected steps: ${JSON.stringify(ids)}`,
+    );
+  for (const step of steps as Record<string, unknown>[]) {
+    const payload =
+      step.type === "req"
+        ? {
+            ...step,
+            properties: {
+              ...(step.properties as Record<string, unknown>),
+              origin: {
+                kind: "human",
+                ref: "documentation/requirements/fixture.md",
+                approved_by: "Payments owner",
+              },
+            },
+            document: {
+              path: `.kb/requirements/${UNRESOLVED_RULE_IDS.chargeback}.md`,
+              body: `${UNRESOLVED_RULE_PROSE.chargeback}\n\n## Context\n\n${UNRESOLVED_RULE_CONTEXT}\n`,
+            },
+          }
+        : step;
+    await runCliWithRetry(
+      () =>
+        runStagedCli(
+          cliRoot,
+          workspaceTarget,
+          ["upsert", "--input", "-"],
+          JSON.stringify(payload),
+        ),
+      `${String(step.id)} upsert`,
+    );
+  }
+  await commitAndSync(workspaceTarget, cliRoot);
+  const result = await runStagedCli(cliRoot, workspaceTarget, [
+    "check",
+    "--format",
+    "json",
+  ]);
+  const violations = recordField(
+    jsonRecord(result.stdout, "unresolved fixture validation"),
+    "structuredContent",
+    "unresolved fixture validation",
+  ).violations;
+  if (
+    !Array.isArray(violations) ||
+    violations.length !== 1 ||
+    !isSeededUnresolvedRuleViolation(violations[0])
+  )
+    throw new FixtureSetupError(
+      `unresolved fixture must report only the unresolved refund rule pair: ${result.stdout.slice(0, 400)}`,
+    );
 }
 
 /**

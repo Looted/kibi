@@ -12,7 +12,7 @@ import {
   RECEIPT_INSPECT_OBJECTIVES,
   isPredicateObjective,
 } from "./objective-expectations";
-import { predicateCaseById } from "./predicate-cases";
+import { isPredicateFamily, predicateCaseById } from "./predicate-cases";
 import { fixtureSymbolId } from "./workspace";
 
 type FixtureTaskSpec = ReturnType<typeof parseTaskSpec>;
@@ -175,6 +175,12 @@ const MODEL_REQUIREMENT_LANES: ReadonlySet<string> = new Set([
 
 function predicateReadTools(task: FixtureTaskSpec): readonly string[] {
   const lane = predicateCaseById(task.id).privateExpectation.expectedLane;
+  // A typed rule comes from the advisor's rule suggestion and kb_model mode
+  // requirement; ranking predicate schemas is not part of that workflow.
+  if (lane === "rule")
+    return ADVISOR_READ_TOOLS.filter(
+      (tool) => tool !== "kb_suggest_predicates",
+    );
   return MODEL_REQUIREMENT_LANES.has(lane)
     ? ADVISOR_READ_TOOLS
     : ADVISOR_READ_TOOLS.filter((tool) => tool !== "kb_model_requirement");
@@ -327,7 +333,7 @@ function workflowExpectation(task: FixtureTaskSpec) {
 
 // implements REQ-skillopt-predicate-first-requirements
 function buildPredicateExpectation(task: FixtureTaskSpec) {
-  if (task.family !== "fact-predicate-modeling") {
+  if (!isPredicateFamily(task.family)) {
     return null;
   }
   const semanticCase = predicateCaseById(task.id);
@@ -341,6 +347,21 @@ function buildPredicateExpectation(task: FixtureTaskSpec) {
     expectedEdges: [...expectation.expectedEdges],
     expectedGroundFactKinds: [...expectation.expectedGroundFactKinds],
     expectedLogicClaimCount: expectation.expectedLogicClaimCount,
+    ...(expectation.expectedRuleSemanticKey == null
+      ? {}
+      : { expectedRuleSemanticKey: expectation.expectedRuleSemanticKey }),
+    ...(expectation.expectedRuleExceptions == null
+      ? {}
+      : {
+          expectedRuleExceptions: {
+            atomNames: [...expectation.expectedRuleExceptions.atomNames],
+          },
+        }),
+    ...(expectation.forbiddenGroundFactKinds === undefined
+      ? {}
+      : {
+          forbiddenGroundFactKinds: [...expectation.forbiddenGroundFactKinds],
+        }),
     privateRationale: expectation.privateRationale,
     coverageFamilies: [
       ...semanticCase.publicClaim.publicSchema.coverageFamilies,

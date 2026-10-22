@@ -158,12 +158,33 @@ describe("decodeFinalStatePredicateSnapshot remaining parse and normalize branch
               semantic_key: "SEM-AAAAAAAAAAAAAAAAAAAAAAAA",
               rule_hash: "e".repeat(64),
               rule_schema_id: "FACT-RULE-SCHEMA",
+              rule_ir: {
+                exceptions: [
+                  { kind: "atom", name: "legal_hold", args: [] },
+                  { kind: "compare", operator: "gt" },
+                  { kind: "not", item: { kind: "atom", name: "archived" } },
+                  {
+                    kind: "all",
+                    items: [{ kind: "atom", name: "pinned" }, "bad"],
+                  },
+                ],
+              },
             },
             {
               type: "fact",
               id: "FACT-RULE-NAME",
               fact_kind: "rule",
               rule_name: "retention",
+              rule_ir: JSON.stringify({
+                exceptions: [{ kind: "atom", name: "legal_hold" }],
+              }),
+            },
+            {
+              type: "fact",
+              id: "FACT-RULE-BAD-IR",
+              fact_kind: "rule",
+              rule_name: "broken",
+              rule_ir: "{",
             },
             {
               type: "fact",
@@ -213,6 +234,16 @@ describe("decodeFinalStatePredicateSnapshot remaining parse and normalize branch
       ]),
     );
     expect(normalized.logicClaims).toEqual(["CLAIM-1111111111111111"]);
+    const exceptionAtoms = Object.fromEntries(
+      normalized.facts
+        .filter((fact) => fact.factKind === "rule")
+        .map((fact) => [fact.id, fact.ruleExceptionAtoms]),
+    );
+    expect(exceptionAtoms).toEqual({
+      "FACT-RULE": ["legal_hold", "", "archived", "pinned", ""],
+      "FACT-RULE-NAME": ["legal_hold"],
+      "FACT-RULE-BAD-IR": [],
+    });
   });
 
   test("requires a receipt binding when the query result is not already a snapshot", () => {

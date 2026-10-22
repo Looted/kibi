@@ -299,9 +299,11 @@ bun run skillopt:screen --allow-paid --skill kibi-usage --candidate-hash <SHA256
 ```
 
 The example reserves 30 target episodes: baseline plus two candidates, five
-public development tasks (four core families plus the supplemental family),
-and two repetitions. Every skill has one supplemental family, so each screens five
-development tasks. A fresh canary adds at most two
+public development tasks (four core families plus one supplemental family),
+and two repetitions. Most skills screen five development tasks. `kibi-freshness`
+screens six (two `consistency-report` tasks) and `kibi-usage` screens seven
+(its second supplemental family, `rule-lane-modeling`, adds two), so raise
+`--max-cells` accordingly. A fresh canary adds at most two
 model invocations. `--max-cells` limits target episodes, not provider-internal
 turns or dollars; token usage is preserved from episode receipts. Model failures
 stop the stage without automatic retries. The command does not generate a new
@@ -351,15 +353,28 @@ Diagnostic reconciliation is the multiset of successful model-originated Kibi ca
 
 ### Reasoning cases and evidence lanes
 
-Each skill has a fifth, supplemental task family next to its four core
+Each skill has at least one supplemental task family next to its four core
 families. For `kibi-usage`, `kibi-freshness` and `kibi-traceability` these are
 `intent-consult`
 (governing intent, abstention, observation versus policy, agent-origin
 provenance), `consistency-report` (incomplete versus complete contradiction
-analysis) and `scenario-feasibility` (a success scenario that a precondition
-forbids, before and after a human exception approval, and a rejection
-scenario). Each family has two training, one development and four held-out
-tasks. Campaign `evaluate`/`confirm` and `skillopt:screen` use all families.
+analysis, and a rule pair whose contradiction analysis is `unresolved`) and
+`scenario-feasibility` (a success scenario that a precondition forbids, before
+and after a human exception approval, and a rejection scenario). Each family
+has two training, one development and four held-out tasks, except
+`consistency-report`, which has two development tasks: the incomplete-analysis
+report and the unresolved rule pair. The unresolved case passes only when the
+final answer reports `unresolved` with both requirement IDs and a resolving
+step, and neither requirement is superseded; `kb_upsert` and `kb_delete` are
+forbidden.
+
+`kibi-usage` has a second supplemental family, `rule-lane-modeling`, scored
+like the predicate cases against the final store: a necessary condition that
+must become one rule (with the expected rule semantic key and a
+`requires_rule` edge, and no strict property value), a six-obligation paragraph
+mixing scalar and relational claims, and a held-out `unless` exception that
+must become a rule with exceptions under an approved project-local schema.
+It has no training tasks, two development tasks and one held-out task. Campaign `evaluate`/`confirm` and `skillopt:screen` use all families.
 The `intent-consult` development task asks for a change the governing
 requirement allows, so the agent is expected to edit `src/fixture.ts` and the
 cell measures whether a Kibi lookup comes before that first edit. The
@@ -423,8 +438,12 @@ its rationale ADR, an observation fact, a passing test and a symbol still
 linked to the old requirement), `seeded_precondition_kb` (a compiled
 call-quota precondition with a zero-quota fact and a rejection scenario) and
 `seeded_consistency_kb` (one requirement with an unmodeled clause and a fully
-modeled compatible pair). Each setup must end with a clean check and fresh
-status before a target episode starts.
+modeled compatible pair) and `seeded_unresolved_rule_kb` (two human-approved
+refund rules with the same head whose conflict the engine reports as
+`unresolved`). Each setup must end with a clean check and fresh status before a
+target episode starts. The one exception is `seeded_unresolved_rule_kb`, whose
+check must report exactly the seeded unresolved rule conflict and nothing else;
+the final-state check accepts that one violation and no other.
 
 The decision and commit-review setups share one committed base: a firm,
 human-set rule (`REQ-fixture-family-name-length`, at most 32 characters), its

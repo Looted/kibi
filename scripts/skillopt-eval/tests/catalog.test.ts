@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { rmSync } from "node:fs";
 import path from "node:path";
+import { analyzeSemanticAdvisorInput } from "../../../packages/cli/src/operations/semantic-advisor/analyze-prose";
 import {
   type TaskSpec,
   buildCoreSkillCatalog,
@@ -13,7 +14,10 @@ import {
 } from "../catalog";
 import { CANONICAL_SKILLS } from "../catalog";
 import { buildPrivateManifest } from "../fixtures/evaluator";
-import { predicateCaseById } from "../fixtures/predicate-cases";
+import {
+  RULE_LANE_PREDICATE_CASES,
+  predicateCaseById,
+} from "../fixtures/predicate-cases";
 import {
   PREDICATE_DEVELOPMENT_CASE_ID,
   PREDICATE_HELD_OUT_CASE_IDS,
@@ -55,37 +59,56 @@ describe("SkillOpt fixture catalog", () => {
     ).toEqual([2, 2, 2, 2]);
   });
 
-  test("adds the supplemental fifth family to the public cohort only by scope", () => {
+  test("adds the supplemental families to the public cohort only by scope", () => {
     const train = publicSkillDescriptors("train");
     const development = publicSkillDescriptors("development");
 
+    // Four core families plus intent-consult (2/1) and rule-lane-modeling
+    // (0/2): supplemental training slots are never run, so the rule-lane
+    // cases are both development cases.
     expect(train).toHaveLength(10);
-    expect(development).toHaveLength(5);
-    expect(skillFamilies("kibi-usage")).toHaveLength(5);
-    expect(skillFamilies("kibi-usage").at(-1)).toBe("intent-consult");
+    expect(development).toHaveLength(7);
+    expect(skillFamilies("kibi-usage")).toEqual([
+      "discovery-exact-lookup",
+      "safe-mutation-direction",
+      "fact-predicate-modeling",
+      "validation-recovery",
+      "intent-consult",
+      "rule-lane-modeling",
+    ]);
     expect(skillFamilies("kibi-bootstrap")).toHaveLength(5);
     expect(
       development.filter(({ family }) => family === "intent-consult"),
     ).toHaveLength(1);
+    expect(
+      development.filter(({ family }) => family === "rule-lane-modeling"),
+    ).toHaveLength(2);
+    expect(
+      publicSkillDescriptors("development", "kibi-freshness").filter(
+        ({ family }) => family === "consistency-report",
+      ),
+    ).toHaveLength(2);
   });
 
-  test("builds the frozen 8/4/16 core split and a 10/5/20 split with the fifth family", () => {
+  test("builds the frozen 8/4/16 core split and the supplemental splits", () => {
     const tasks = buildSkillCatalog("kibi-usage");
     const core = buildCoreSkillCatalog("kibi-usage");
 
-    expect(tasks).toHaveLength(35);
+    // 28 core tasks, intent-consult 2/1/4 and rule-lane-modeling 0/2/1.
+    expect(tasks).toHaveLength(38);
     expect(core).toHaveLength(28);
     expect(core.filter((task) => task.split === "held-out")).toHaveLength(16);
     expect(() => validateSkillCatalog(tasks, "kibi-usage")).not.toThrow();
     expect(() => validateSkillCatalog(core, "kibi-usage")).toThrow(
-      "expected 35 tasks",
+      "expected 38 tasks",
     );
-    expect(() =>
-      validateSkillCatalog(
-        buildSkillCatalog("kibi-bootstrap"),
-        "kibi-bootstrap",
-      ),
-    ).not.toThrow();
+    // consistency-report adds a second development task (2/2/4).
+    expect(buildSkillCatalog("kibi-freshness")).toHaveLength(36);
+    for (const skill of CANONICAL_SKILLS) {
+      expect(() =>
+        validateSkillCatalog(buildSkillCatalog(skill), skill),
+      ).not.toThrow();
+    }
   });
 
   test("rejects duplicate task IDs before host launch", () => {
@@ -104,8 +127,9 @@ describe("SkillOpt fixture catalog", () => {
   test("encodes explicit state, scorer reference, and family task data", () => {
     const tasks = [...buildPublicCatalog(), ...buildHeldOutCatalog()];
 
-    // 6 skills x 5 families, 7 tasks each.
-    expect(tasks).toHaveLength(210);
+    // 6 skills x 5 families of 7 tasks, one more consistency-report
+    // development task, and the three rule-lane-modeling tasks.
+    expect(tasks).toHaveLength(214);
     expect(
       tasks.every(
         (task) =>
@@ -231,24 +255,27 @@ describe("predicate corpus materializes stable authorized roots", () => {
     expect(first.roots).not.toBe(second.roots);
   });
 
-  test("keeps the 28-task core per skill and adds 7 per supplemental family", () => {
+  test("keeps the 28-task core per skill and adds the supplemental families", () => {
     const usage = buildSkillCatalog("kibi-usage");
-    expect(usage).toHaveLength(35);
+    expect(usage).toHaveLength(38);
     expect(buildCoreSkillCatalog("kibi-usage")).toHaveLength(28);
     expect(() => validateSkillCatalog(usage, "kibi-usage")).not.toThrow();
     const total = [...buildPublicCatalog(), ...buildHeldOutCatalog()];
-    expect(total).toHaveLength(210);
+    expect(total).toHaveLength(214);
     const usagePublic = buildPublicCatalog().filter(
       (task) => task.skill === "kibi-usage",
     );
     const usageHeldOut = buildHeldOutCatalog().filter(
       (task) => task.skill === "kibi-usage",
     );
-    expect(usagePublic.length + usageHeldOut.length).toBe(35);
-    const supplementalFamilies = CANONICAL_SKILLS.filter(
-      (skill) => skillFamilies(skill).length === 5,
-    ).length;
-    expect(CANONICAL_SKILLS.length * 28 + supplementalFamilies * 7).toBe(210);
+    expect(usagePublic.length + usageHeldOut.length).toBe(38);
+    const supplementalFamilies = CANONICAL_SKILLS.flatMap((skill) =>
+      skillFamilies(skill).slice(4),
+    );
+    expect(supplementalFamilies).toHaveLength(7);
+    // Six 7-task families, one 8-task family (consistency-report) and the
+    // 3-task rule-lane-modeling family.
+    expect(CANONICAL_SKILLS.length * 28 + 5 * 7 + 8 + 3).toBe(214);
   });
 
   test("unsigned roots cannot authorize training or evaluation", () => {
@@ -358,7 +385,7 @@ describe("SkillOpt corpus executability invariants", () => {
   }
 
   test("every task carries an objective-specific expectation", () => {
-    expect(allTasks).toHaveLength(210);
+    expect(allTasks).toHaveLength(214);
     const uncovered = allTasks.filter((task) => {
       const manifest = manifestFor(task);
       return (
@@ -456,11 +483,13 @@ describe("SkillOpt corpus executability invariants", () => {
       );
       // Requirement-mode modeling is required only where kibi-usage teaches
       // it: strict scalar properties and typed rules.
+      // A typed rule comes from the advisor's rule suggestion, so rule
+      // cases do not rank predicate schemas.
       expect(tools).toEqual([
         "kb_search",
         "kb_query",
         "kb_semantic_advisor",
-        "kb_suggest_predicates",
+        ...(lane === "rule" ? [] : ["kb_suggest_predicates"]),
         ...(["strict_property", "rule"].includes(lane)
           ? ["kb_model_requirement"]
           : []),
@@ -470,6 +499,7 @@ describe("SkillOpt corpus executability invariants", () => {
     }
     expect(lanes.has("strict_property")).toBe(true);
     expect(lanes.has("predicate")).toBe(true);
+    expect(lanes.has("rule")).toBe(true);
   });
 });
 
@@ -527,5 +557,103 @@ describe("fixture KB staging modes", () => {
     expect(
       manifestFor("generated_only_symbol_coordinate_repair").fixtureSetup,
     ).toBe("generated_coordinate_divergence");
+  });
+});
+
+describe("rule-lane predicate cases", () => {
+  const manifestFor = (taskId: string) => {
+    const task = buildSkillCatalog("kibi-usage").find(
+      (candidate) => candidate.id === taskId,
+    );
+    if (task === undefined) throw new Error(`missing ${taskId}`);
+    return {
+      task,
+      manifest: buildPrivateManifest({
+        task: task as unknown as Parameters<
+          typeof buildPrivateManifest
+        >[0]["task"],
+        publicManifestHash: "a".repeat(64),
+        workspaceHash: "b".repeat(64),
+      }),
+    };
+  };
+  const receipt = (text: string) =>
+    analyzeSemanticAdvisorInput({
+      payload: {
+        type: "req",
+        id: "REQ-RULE-LANE",
+        properties: { title: "Rule lane", semantic_text: text },
+      },
+    }).receipt;
+
+  test("fill the rule-lane family slots with their own objectives", () => {
+    expect(
+      RULE_LANE_PREDICATE_CASES.map((entry) => [
+        entry.caseId,
+        entry.semanticClass,
+      ]),
+    ).toEqual([
+      ["kibi-usage-rule-lane-modeling-development-1", "necessary_condition"],
+      ["kibi-usage-rule-lane-modeling-development-2", "compound_obligations"],
+      ["kibi-usage-rule-lane-modeling-held-out-1", "exception_unless"],
+    ]);
+    for (const entry of RULE_LANE_PREDICATE_CASES) {
+      const { task, manifest } = manifestFor(entry.caseId);
+      expect(task.taskData.objectiveCode).toBe(
+        `model_predicate_${entry.semanticClass}`,
+      );
+      expect(task.allowedPublicFiles).toContain("predicate-claim.json");
+      expect(task.prompt).toContain(entry.publicClaim.claimText);
+      expect(manifest.fixtureSetup).toBe("seeded_fresh_kb");
+      expect(manifest.predicateExpectation?.semanticClass).toBe(
+        entry.semanticClass,
+      );
+    }
+  });
+
+  test("C3.1 expects the semantic key of the rule Kibi models from the claim", () => {
+    const entry = predicateCaseById(
+      "kibi-usage-rule-lane-modeling-development-1",
+    );
+    const expected = manifestFor(entry.caseId).manifest.predicateExpectation;
+    expect(expected).toMatchObject({
+      expectedLane: "rule",
+      expectedGroundFactKinds: ["rule_schema", "rule"],
+      expectedLogicClaimCount: 1,
+      forbiddenGroundFactKinds: ["property_value"],
+    });
+    const advised = receipt(entry.publicClaim.claimText);
+    expect(advised.propositions).toHaveLength(1);
+    const [rule] = advised.suggestions;
+    expect(rule?.kind).toBe("rule");
+    const semanticKey = rule?.kind === "rule" ? rule.semantic_key : null;
+    expect(semanticKey).toBe(expected?.expectedRuleSemanticKey ?? "");
+    expect(expected?.expectedEdges).toEqual([
+      { relationship: "requires_rule", target: semanticKey ?? "" },
+    ]);
+  });
+
+  test("C3.2 splits into six obligations and C3.3 needs an exception", () => {
+    const compound = predicateCaseById(
+      "kibi-usage-rule-lane-modeling-development-2",
+    );
+    expect(receipt(compound.publicClaim.claimText).propositions).toHaveLength(
+      6,
+    );
+    expect(compound.privateExpectation.expectedLogicClaimCount).toBe(6);
+    const unless = manifestFor("kibi-usage-rule-lane-modeling-held-out-1")
+      .manifest.predicateExpectation;
+    expect(unless).toMatchObject({
+      expectedLane: "rule",
+      expectedRuleExceptions: { atomNames: ["legal_hold"] },
+      forbiddenGroundFactKinds: ["property_value"],
+    });
+    expect(
+      predicateCaseById(
+        "kibi-usage-rule-lane-modeling-held-out-1",
+      ).publicClaim.publicSchema.projectLocalSchemas.map(
+        (schema) => schema.predicateName,
+      ),
+    ).toEqual(["legal_hold"]);
   });
 });

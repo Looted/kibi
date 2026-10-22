@@ -42,6 +42,7 @@ import {
   setupSeededPreconditionKb,
   setupSeededSafeMutationKb,
   setupSeededUncoveredKb,
+  setupSeededUnresolvedRuleKb,
   stopFixtureEngine,
 } from "../runtime/fixture-kb-setup";
 import { stageKibiMcpRuntime } from "../runtime/staged-mcp";
@@ -177,6 +178,7 @@ test.each([
   ["governed-area", setupSeededGovernedAreaKb],
   ["precondition", setupSeededPreconditionKb],
   ["consistency", setupSeededConsistencyKb],
+  ["unresolved-rule", setupSeededUnresolvedRuleKb],
 ] as const)(
   "%s seed passes its own validation",
   async (name, setup) => {
