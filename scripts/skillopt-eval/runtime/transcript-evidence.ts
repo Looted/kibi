@@ -229,10 +229,47 @@ export function parseKibiAnswer(text: string): KibiAnswer {
   return blockAnswer(text) ?? regexAnswer(text);
 }
 
+/**
+ * Prose messages of the final turn that precede the final answer: agent
+ * messages after the last tool, file or command item, without the final
+ * message itself. Reasoning items and turn accounting do not end the turn.
+ */
+function finalTurnProse(transcript: string): readonly string[] {
+  let trailing: string[] = [];
+  for (const event of parseLines(transcript)) {
+    const text = agentMessageText(event);
+    if (text !== null) {
+      trailing.push(text);
+      continue;
+    }
+    if (typeof event.type === "string" && event.type.startsWith("turn.")) {
+      continue;
+    }
+    const item = eventItem(event);
+    if (item === event || item.type === "reasoning") continue;
+    trailing = [];
+  }
+  return trailing.slice(0, -1);
+}
+
+/**
+ * The final answer. The Claude Code host writes the answer as prose and then
+ * restates it through its structured-output tool; the restatement sometimes
+ * drops the fenced `kibi-answer` block the prose ended with. When the final
+ * message carries no block, the block from the final turn's prose stands in
+ * for it, and labelled-line parsing remains the last fallback.
+ */
 // implements REQ-skillopt-codex-optimization
 export function finalAnswerEvidence(transcript: string): FinalAnswerEvidence {
   const text = lastAgentMessage(transcript);
-  return { text, answer: parseKibiAnswer(text) };
+  const parsed = parseKibiAnswer(text);
+  if (parsed.source === "block") return { text, answer: parsed };
+  const prose = finalTurnProse(transcript);
+  for (let index = prose.length - 1; index >= 0; index -= 1) {
+    const block = blockAnswer(userFacingText(prose[index] ?? ""));
+    if (block !== null) return { text, answer: block };
+  }
+  return { text, answer: parsed };
 }
 
 const EDIT_ITEM_TYPES = new Set(["file_change", "patch_apply", "apply_patch"]);

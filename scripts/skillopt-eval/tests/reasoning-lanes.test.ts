@@ -102,6 +102,45 @@ describe("final-answer lane (H1)", () => {
     expect(answer.governing).toEqual(["REQ-fixture-family-name-v2"]);
   });
 
+  test("takes the block from the final prose when the structured restatement drops it", () => {
+    const restated =
+      "REQ-fixture-family-name-v2 governs this; the change conflicts with it.";
+    const transcript = [
+      mcpCall("c1", "kb_query", { id: "REQ-fixture-family-name-v2" }),
+      agentMessage("m1", BLOCK_ANSWER),
+      agentMessage("m2", line({ completed: true, answer: restated })),
+      line({ type: "turn.completed", usage: {} }),
+    ].join("\n");
+    const evidence = finalAnswerEvidence(transcript);
+    expect(evidence.text).toBe(restated);
+    expect(evidence.answer.source).toBe("block");
+    expect(evidence.answer.verdict).toBe("conflict");
+    expect(evidence.answer.conflict).toBe("empty names must be rejected");
+  });
+
+  test("ignores a block from prose written before the last tool call", () => {
+    const transcript = [
+      agentMessage("m1", BLOCK_ANSWER),
+      mcpCall("c1", "kb_check"),
+      agentMessage(
+        "m2",
+        line({ completed: true, answer: "Verdict: no_conflict" }),
+      ),
+    ].join("\n");
+    const evidence = finalAnswerEvidence(transcript);
+    expect(evidence.answer.source).toBe("regex");
+    expect(evidence.answer.verdict).toBe("no_conflict");
+  });
+
+  test("keeps the final message's own block over the prose block", () => {
+    const own = BLOCK_ANSWER.replace('"conflict"', '"governed"');
+    const transcript = [
+      agentMessage("m1", BLOCK_ANSWER),
+      agentMessage("m2", line({ completed: true, answer: own })),
+    ].join("\n");
+    expect(finalAnswerEvidence(transcript).answer.verdict).toBe("governed");
+  });
+
   test("returns an empty answer for a transcript without messages", () => {
     const evidence = finalAnswerEvidence("");
     expect(evidence.text).toBe("");
