@@ -30,17 +30,19 @@ export const sourceSurface = {
 } as const;
 
 export const tasks: PublicTaskDescriptor[] = [
-  "discovery-exact-lookup",
-  "safe-mutation-direction",
-  "fact-predicate-modeling",
-  "validation-recovery",
-  "intent-consult",
-].map((family) => ({
-  id: `kibi-usage-${family}-development-1`,
-  family,
+  ["discovery-exact-lookup", 1],
+  ["safe-mutation-direction", 1],
+  ["fact-predicate-modeling", 1],
+  ["validation-recovery", 1],
+  ["intent-consult", 1],
+  ["rule-lane-modeling", 1],
+  ["rule-lane-modeling", 2],
+].map(([family, slot]) => ({
+  id: `kibi-usage-${family}-development-${slot}`,
+  family: String(family),
   split: "development" as const,
   publicClaim: {
-    taskId: `kibi-usage-${family}-development-1`,
+    taskId: `kibi-usage-${family}-development-${slot}`,
     text: `Public task ${family}`,
     publicManifestHash: "a".repeat(64),
     workspaceHash: "b".repeat(64),

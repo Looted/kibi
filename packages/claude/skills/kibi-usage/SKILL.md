@@ -124,6 +124,8 @@ component that renders it) with `implements` through `kb_upsert`. Without a read
 still answers and `kibi sync` regenerates the manifest. The search tip and the
 `.kb/` note appear once per session and need no action.
 
+Before you edit a source file that Kibi tracks, run `kb_search` with that file in `sourceLocations`, and treat both its ranked results and its `data.answer` layer as discovery only, not as the governing text. Then call `kb_query` by `id` on each current governing requirement that the search names, read what each one requires, and make the edit only after those exact reads. A `kb_check`, `kb_status` or `kb_coverage` result does not replace that `kb_query` read. This rule only adds an exact read before the edit and does not change the order of any other step in this workflow. It adds nothing to a modeling or write task: that task still ends with the real `kb_upsert` of every planned fact and requirement and the closing `kb_check`.
+
 ## Safe workflow
 
 1. Always discover before you mutate: start with `kb_search`, then exact-filter with `kb_query`. Use

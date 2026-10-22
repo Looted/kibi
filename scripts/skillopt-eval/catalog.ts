@@ -1,5 +1,9 @@
 import { createHash } from "node:crypto";
 import {
+  PREDICATE_FAMILY_ALLOCATION,
+  isPredicateFamily,
+} from "./fixtures/predicate-cases";
+import {
   type FamilyPayload,
   buildFamilyPayload,
 } from "./fixtures/task-builders";
@@ -102,34 +106,32 @@ const FAMILY_BY_SKILL: Readonly<Record<CanonicalSkill, readonly string[]>> = {
 };
 
 /**
- * Optional fifth family per skill. Supplemental families join the public
- * development/train cohort (campaign evaluate, development screen) and the
- * materialized held-out corpus, but not the legacy optimize trainer or the
- * 16-task held-out gate matrix, whose contracts stay on the four core
+ * Supplemental families per skill, after the four core families. They join
+ * the public development/train cohort (campaign evaluate, development screen)
+ * and the materialized held-out corpus, but not the legacy optimize trainer
+ * or the 16-task held-out gate matrix, whose contracts stay on the four core
  * families (see buildCoreSkillCatalog).
  */
-const SUPPLEMENTAL_FAMILY_BY_SKILL: Readonly<
-  Partial<Record<CanonicalSkill, string>>
+const SUPPLEMENTAL_FAMILIES_BY_SKILL: Readonly<
+  Partial<Record<CanonicalSkill, readonly string[]>>
 > = {
-  "kibi-usage": "intent-consult",
-  "kibi-freshness": "consistency-report",
-  "kibi-traceability": "scenario-feasibility",
-  "kibi-bootstrap": "onboarding-review",
-  "kibi-decisions": "unrecorded-change-closeout",
-  "kibi-commit-review": "merge-commit-scope",
+  "kibi-usage": ["intent-consult", "rule-lane-modeling"],
+  "kibi-freshness": ["consistency-report"],
+  "kibi-traceability": ["scenario-feasibility"],
+  "kibi-bootstrap": ["onboarding-review"],
+  "kibi-decisions": ["unrecorded-change-closeout"],
+  "kibi-commit-review": ["merge-commit-scope"],
 };
 
 const CORE_FAMILIES_PER_SKILL = 4;
-const MAX_FAMILIES_PER_SKILL = 5;
-const TASKS_PER_FAMILY = 7;
+const MAX_FAMILIES_PER_SKILL = 6;
 
-/** Core families followed by the skill's supplemental family, if any. */
+/** Core families followed by the skill's supplemental families, if any. */
 // implements REQ-skillopt-codex-optimization
 export function skillFamilies(skill: CanonicalSkill): readonly string[] {
-  const supplemental = SUPPLEMENTAL_FAMILY_BY_SKILL[skill];
   return [
     ...FAMILY_BY_SKILL[skill],
-    ...(supplemental === undefined ? [] : [supplemental]),
+    ...(SUPPLEMENTAL_FAMILIES_BY_SKILL[skill] ?? []),
   ];
 }
 
@@ -138,7 +140,7 @@ export function isSupplementalFamily(
   skill: CanonicalSkill,
   family: string,
 ): boolean {
-  return SUPPLEMENTAL_FAMILY_BY_SKILL[skill] === family;
+  return SUPPLEMENTAL_FAMILIES_BY_SKILL[skill]?.includes(family) === true;
 }
 
 const SPLIT_COUNTS: Readonly<Record<TaskSplit, number>> = {
@@ -146,6 +148,34 @@ const SPLIT_COUNTS: Readonly<Record<TaskSplit, number>> = {
   development: 1,
   "held-out": 4,
 };
+
+/**
+ * Supplemental families with a second development task, so a later case is
+ * screened next to the family's first development case.
+ */
+const SPLIT_COUNT_OVERRIDES: Readonly<
+  Record<string, Readonly<Record<TaskSplit, number>>>
+> = {
+  "consistency-report": { train: 2, development: 2, "held-out": 4 },
+};
+
+/**
+ * Tasks per split for one family: 2/1/4 (seven tasks) unless overridden.
+ * Predicate families follow the predicate case registry's allocation.
+ */
+// implements REQ-skillopt-codex-optimization
+export function familySplitCounts(
+  family: string,
+): Readonly<Record<TaskSplit, number>> {
+  return isPredicateFamily(family)
+    ? PREDICATE_FAMILY_ALLOCATION[family]
+    : (SPLIT_COUNT_OVERRIDES[family] ?? SPLIT_COUNTS);
+}
+
+function familyTaskCount(family: string): number {
+  const counts = familySplitCounts(family);
+  return counts.train + counts.development + counts["held-out"];
+}
 
 function taskSpec(input: {
   readonly id: string;
@@ -171,7 +201,11 @@ export function buildSkillCatalog(skill: CanonicalSkill): readonly TaskSpec[] {
   const tasks: TaskSpec[] = [];
   for (const family of skillFamilies(skill)) {
     for (const split of ["train", "development", "held-out"] as const) {
-      for (let index = 0; index < SPLIT_COUNTS[split]; index += 1) {
+      for (
+        let index = 0;
+        index < familySplitCounts(family)[split];
+        index += 1
+      ) {
         const id = `${skill}-${family}-${split}-${index + 1}`;
         tasks.push(
           taskSpec({
@@ -229,7 +263,10 @@ export function validateSkillCatalog(
       `expected ${CORE_FAMILIES_PER_SKILL}..${MAX_FAMILIES_PER_SKILL} families, received ${families.length}`,
     );
   }
-  const expectedTasks = families.length * TASKS_PER_FAMILY;
+  const expectedTasks = families.reduce(
+    (total, family) => total + familyTaskCount(family),
+    0,
+  );
   if (tasks.length !== expectedTasks) {
     throw new CatalogError(
       `expected ${expectedTasks} tasks, received ${tasks.length}`,
@@ -247,18 +284,19 @@ export function validateSkillCatalog(
   }
   for (const family of families) {
     const familyTasks = tasks.filter((task) => task.family === family);
-    if (familyTasks.length !== TASKS_PER_FAMILY) {
+    if (familyTasks.length !== familyTaskCount(family)) {
       throw new CatalogError(
-        `family ${family} must contain ${TASKS_PER_FAMILY} tasks`,
+        `family ${family} must contain ${familyTaskCount(family)} tasks`,
       );
     }
+    const counts = familySplitCounts(family);
     for (const split of ["train", "development", "held-out"] as const) {
       const splitCount = familyTasks.filter(
         (task) => task.split === split,
       ).length;
-      if (splitCount !== SPLIT_COUNTS[split]) {
+      if (splitCount !== counts[split]) {
         throw new CatalogError(
-          `${family}/${split} must contain ${SPLIT_COUNTS[split]} tasks`,
+          `${family}/${split} must contain ${counts[split]} tasks`,
         );
       }
     }

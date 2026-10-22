@@ -5,6 +5,7 @@ import {
   CANONICAL_SKILLS,
   buildHeldOutCatalog,
   buildPublicCatalog,
+  familySplitCounts,
   skillFamilies,
 } from "../catalog";
 import { parsePublicTaskManifest, parsePublicTaskSpec } from "../fixtures";
@@ -28,13 +29,14 @@ describe("public SkillOpt fixture corpus", () => {
   test("exposes only balanced train and development descriptors", () => {
     const tasks = buildPublicCatalog();
 
-    // Four core families per skill plus each skill's supplemental fifth
-    // family, three public tasks each.
-    expect(tasks).toHaveLength(90);
+    // Four core families per skill plus the supplemental families: three
+    // public tasks each, a second consistency-report development task and
+    // the two rule-lane-modeling development tasks.
+    expect(tasks).toHaveLength(93);
     expect(tasks.every((task) => task.split !== "held-out")).toBe(true);
     const objectiveCounts: Record<string, number> = {
-      "kibi-usage": 9,
-      "kibi-freshness": 6,
+      "kibi-usage": 11,
+      "kibi-freshness": 7,
       "kibi-traceability": 6,
       "kibi-bootstrap": 5,
       "kibi-decisions": 6,
@@ -42,13 +44,18 @@ describe("public SkillOpt fixture corpus", () => {
     };
     for (const skill of CANONICAL_SKILLS) {
       const skillTasks = tasks.filter((task) => task.skill === skill);
-      const families = skillFamilies(skill).length;
+      const families = skillFamilies(skill);
+      const expected = (split: "train" | "development") =>
+        families.reduce(
+          (total, family) => total + familySplitCounts(family)[split],
+          0,
+        );
       expect(skillTasks.filter((task) => task.split === "train")).toHaveLength(
-        2 * families,
+        expected("train"),
       );
       expect(
         skillTasks.filter((task) => task.split === "development"),
-      ).toHaveLength(families);
+      ).toHaveLength(expected("development"));
       expect(
         new Set(skillTasks.map((task) => task.taskData.objectiveCode)).size,
       ).toBe(objectiveCounts[skill]);
@@ -116,7 +123,7 @@ describe("public SkillOpt fixture corpus", () => {
     });
     const { publicRoot } = receipt.roots;
 
-    expect(receipt.publicIndex.tasks).toHaveLength(90);
+    expect(receipt.publicIndex.tasks).toHaveLength(93);
     expect(path.basename(publicRoot)).toBe("public");
     expect(path.basename(receipt.roots.heldOutRoot)).toBe("held-out");
     expect(path.basename(receipt.roots.evaluatorRoot)).toBe("evaluator");

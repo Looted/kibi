@@ -765,6 +765,22 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
         "mutation during discovery",
       ],
     },
+    consistency_unresolved_report: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "final check executed",
+        "unresolved pair reported",
+        "resolving step reported",
+      ],
+      forbiddenActions: [
+        "unresolved pair settled by supersession",
+        "mutation during discovery",
+      ],
+    },
     scenario_precondition_preapproval: {
       expectedOutcome: "interim",
       expectedKbState: "clean_fresh",

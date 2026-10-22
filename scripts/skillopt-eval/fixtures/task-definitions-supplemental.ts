@@ -67,6 +67,21 @@ export const SUPPLEMENTAL_DEFINITIONS: Readonly<
       "Before changing fixtureFamily() in src/fixture.ts, find what governs it through the public Kibi surface.",
       "governing_intent_before_edit",
     ),
+    // Predicate-dispatched: every slot comes from the rule-lane cases in the
+    // predicate case registry, like the core fact-predicate-modeling family.
+    "rule-lane-modeling": {
+      instruction:
+        "Model the supplied normative claim through the typed rule, strict fact or predicate workflow.",
+      objectiveCode: "model_strict_claim",
+      sourceFile: "documentation/requirements/fixture.md",
+      mutation: "write",
+      activationMode: "attached_thin_bootstrap",
+      repository: "thin",
+      kb: "fresh",
+      worktree: "clean",
+      approvalPhase: "post-approval",
+      adversarialCases: ["malformed-input", "approval-boundary"],
+    },
   },
   "kibi-freshness": {
     "consistency-report": seededDefinition(
@@ -184,6 +199,12 @@ export const SUPPLEMENTAL_CASES: Readonly<Record<string, DogfoodCase>> = {
     `Confirm that the call-quota requirement REQ-call-quota-reset-review is consistent and proven before release.${READ_ONLY}`,
     "consistency_incomplete_report",
   ),
+  // C2.2: the checker cannot decide the overlap; report it as unresolved
+  // with both requirements and a resolving step, and do not supersede.
+  "kibi-freshness/consistency-report/development/1": readOnlyCase(
+    `Do the refund requirements REQ-refund-settled-amount and REQ-refund-chargeback conflict? Report what the Kibi checks establish about this pair.${READ_ONLY}`,
+    "consistency_unresolved_report",
+  ),
   "kibi-freshness/consistency-report/held-out/0": readOnlyCase(
     `Before a release review, report whether the call-quota bounds in REQ-call-quota-non-negative and REQ-call-quota-cap conflict.${READ_ONLY}`,
     "consistency_disjoint_report",
@@ -197,8 +218,8 @@ export const SUPPLEMENTAL_CASES: Readonly<Record<string, DogfoodCase>> = {
     "consistency_incomplete_report",
   ),
   "kibi-freshness/consistency-report/held-out/3": readOnlyCase(
-    `Do REQ-call-quota-cap and REQ-call-quota-non-negative leave any valid remaining-quota value? Report the result of the modeled checks.${READ_ONLY}`,
-    "consistency_disjoint_report",
+    `Before a release review, confirm that the refund rules REQ-refund-settled-amount and REQ-refund-chargeback are consistent with each other.${READ_ONLY}`,
+    "consistency_unresolved_report",
   ),
   // C4.1: an intended-success scenario that assumes a forbidden value.
   "kibi-traceability/scenario-feasibility/train/0": preApprovalCase(

@@ -37,6 +37,8 @@ stop and name the missing capability. Never read or edit `.kb/` files directly.
 - You are about to commit or open a pull request and want the impact review
   ready first.
 
+Never read or open any file under `.kb`, not even read-only with a file tool to look at symbols or coordinates; doing so fails the session even when nothing is written. What you need is already shown elsewhere: the gate's `Detail:` lines, `kb_query` by `sourceFile` or `id`, and `kb_check` with `staged: true` show which symbols and coordinates are covered and which are missing. Before deciding what the change is, always run `kb_search` with `sourceLocations` for each named file and `kb_query` the requirement that governs it, even when the edit looks coordinate-only or seems to contradict a firm rule. When a write is authorized, keep the supplied target and its intended edges, query those targets first, validate the exact payload with `kb_upsert` and `dryRun: true`, then send that same payload with `kb_upsert` and exact-read the result back with `kb_query` before the final checks. Distinct authorized payloads may need several sequential writes, but never resend a write that is already committed, and let typed `nextActions` drive recovery. A passing dry run is validation only, not completion.
+
 ## Steps
 
 1. **Read the whole failure.** Each finding names an id, the files, `Detail:`

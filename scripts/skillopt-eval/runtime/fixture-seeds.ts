@@ -48,6 +48,81 @@ export const CONSISTENCY_IDS = {
   e2eTest: "TEST-call-quota-e2e",
 } as const;
 
+/** Entity IDs seeded by `seeded_unresolved_rule_kb`. */
+// implements REQ-skillopt-codex-optimization
+export const UNRESOLVED_RULE_IDS = {
+  /** Forbid-unless rule compiled from the settled-amount precondition. */
+  settledAmount: "REQ-refund-settled-amount",
+  /** Permit rule on the same head whose body the engine cannot compare. */
+  chargeback: "REQ-refund-chargeback",
+  settledAmountRule: "FACT-RULE-8DAF22273D6DEAAA",
+  chargebackRule: "FACT-RULE-646CD9A6EB9CD319",
+  ruleSchema: "FACT-RULE-SCHEMA-LOGIC-V1",
+} as const;
+
+/** Prose of the two refund rules the unresolved-pair setup records. */
+// implements REQ-skillopt-codex-optimization
+export const UNRESOLVED_RULE_PROSE = {
+  settledAmount:
+    "A refund may be issued only when the order's settled amount is greater than zero.",
+  chargeback: "A refund may be issued while the order has an open chargeback.",
+} as const;
+
+/** Context section shared by the two refund requirements. */
+// implements REQ-skillopt-codex-optimization
+export const UNRESOLVED_RULE_CONTEXT =
+  "Evaluator-owned refund requirement: the payments owner set both refund rules, and the consistency cases ask an agent to report what the checker can and cannot decide about them.";
+
+/**
+ * The permit rule's typed IR. Its head matches the compiled forbid rule, its
+ * body names a different order predicate, and neither rule entails the other's
+ * body or exception, so the pair stays `unresolved`.
+ */
+// implements REQ-skillopt-codex-optimization
+export const CHARGEBACK_RULE_IR = {
+  version: "kibi.logic.v1",
+  kind: "rule",
+  modality: "permit",
+  head: {
+    kind: "atom",
+    name: "refund_issued",
+    args: [{ kind: "var", name: "V1", type: "order" }],
+  },
+  body: {
+    kind: "atom",
+    namespace: "order",
+    name: "open_chargeback",
+    args: [{ kind: "var", name: "V1", type: "order" }],
+  },
+  variables: [{ name: "V1", type: "order", quantifier: "forall" }],
+} as const;
+
+/**
+ * The `kb_check` violation the unresolved-pair seed carries by design: the
+ * checker reports the opposing refund rules as an `unresolved` rule conflict.
+ * A final check whose only violations are this one counts as clean.
+ */
+// implements REQ-skillopt-codex-optimization
+export function isSeededUnresolvedRuleViolation(violation: unknown): boolean {
+  if (violation === null || typeof violation !== "object") return false;
+  const record = violation as Record<string, unknown>;
+  return (
+    record.rule === "domain-contradictions" &&
+    record.entityId ===
+      `${UNRESOLVED_RULE_IDS.chargeback}/${UNRESOLVED_RULE_IDS.settledAmount}` &&
+    typeof record.description === "string" &&
+    record.description.startsWith("Rule conflict (unresolved) ")
+  );
+}
+
+/** Human provenance stamped on the refund requirements. */
+// implements REQ-skillopt-codex-optimization
+export const UNRESOLVED_RULE_ORIGIN = [
+  "  kind: human",
+  "  ref: documentation/requirements/fixture.md",
+  "  approved_by: Payments owner",
+].join("\n");
+
 /** Prose the precondition setup compiles through compile-intent. */
 // implements REQ-skillopt-codex-optimization
 export const PRECONDITION_INTENT =
@@ -71,6 +146,7 @@ export const SEEDED_ENTITY_IDS: ReadonlySet<string> = new Set([
   ...Object.values(GOVERNED_AREA_IDS),
   ...Object.values(PRECONDITION_IDS),
   ...Object.values(CONSISTENCY_IDS),
+  ...Object.values(UNRESOLVED_RULE_IDS),
 ]);
 
 // implements REQ-skillopt-codex-optimization

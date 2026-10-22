@@ -22,6 +22,7 @@ export type FixtureSetupMode =
   | "seeded_governed_area_kb"
   | "seeded_precondition_kb"
   | "seeded_consistency_kb"
+  | "seeded_unresolved_rule_kb"
   | "seeded_decision_kb"
   | "seeded_unrecorded_change_kb"
   | "seeded_staged_symbol_kb"
@@ -180,6 +181,14 @@ export const OBJECTIVE_CASE_CONTRACTS: Readonly<Record<string, CaseContract>> =
       requiredTools: ["kb_query", "kb_check"],
       requiredCalls: [{ tool: "kb_query" }, CONTRADICTION_CHECK],
       forbiddenTools: ["kb_upsert", "kb_delete", "kb_apply_plan"],
+    },
+    // C2.2: the checker can neither prove nor exclude an overlap; report it
+    // as an open question and do not settle it with a supersedes edge.
+    consistency_unresolved_report: {
+      fixtureSetup: "seeded_unresolved_rule_kb",
+      requiredTools: ["kb_query", "kb_check"],
+      requiredCalls: [{ tool: "kb_query" }, CONTRADICTION_CHECK],
+      forbiddenTools: ["kb_upsert", "kb_delete"],
     },
     // Item 4: scenarios with intended outcomes, preconditions, exceptions.
     scenario_precondition_preapproval: {

@@ -17,6 +17,8 @@ export type PredicateCaseFailure =
   | "predicate-polarity"
   | "rule-semantic-key"
   | "rule-hash"
+  | "rule-exceptions"
+  | "forbidden-fact-lane"
   | "predicate-edges"
   | "logical-fact-lanes"
   | "logic-claim-manifest"
@@ -168,6 +170,25 @@ function predicateFailures(
     ) {
       failures.push("rule-hash");
     }
+  }
+  const expectedExceptions = expectation.expectedRuleExceptions;
+  if (expectedExceptions !== undefined && expectedExceptions !== null) {
+    const ruleWithExceptions = snapshot.facts.some((fact) => {
+      const atoms = fact.ruleExceptionAtoms ?? [];
+      return (
+        fact.factKind === "rule" &&
+        atoms.length > 0 &&
+        expectedExceptions.atomNames.every((name) => atoms.includes(name))
+      );
+    });
+    if (!ruleWithExceptions) failures.push("rule-exceptions");
+  }
+  if (
+    (expectation.forbiddenGroundFactKinds ?? []).some((kind) =>
+      snapshot.facts.some((fact) => fact.factKind === kind),
+    )
+  ) {
+    failures.push("forbidden-fact-lane");
   }
   for (const edge of expectation.expectedEdges) {
     if (

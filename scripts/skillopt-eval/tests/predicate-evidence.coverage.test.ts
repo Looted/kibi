@@ -297,6 +297,61 @@ describe("evaluatePredicateCase remaining lane and failure branches", () => {
     );
   });
 
+  test("checks rule exceptions and forbidden fact lanes", () => {
+    const manifest = baseManifest({
+      predicateExpectation: {
+        semanticClass: "exception_unless",
+        expectedLane: "rule",
+        expectedPredicateName: null,
+        expectedPredicateArgs: null,
+        expectedPolarity: null,
+        expectedEdges: [],
+        expectedGroundFactKinds: ["rule_schema", "rule"],
+        expectedLogicClaimCount: 1,
+        expectedRuleExceptions: { atomNames: ["legal_hold"] },
+        forbiddenGroundFactKinds: ["property_value"],
+        privateRationale: "exception",
+      },
+    });
+    const rule = (ruleExceptionAtoms: string[]) =>
+      snapshot({
+        facts: [
+          { id: "FACT-RULE-SCHEMA", factKind: "rule_schema" },
+          {
+            id: "FACT-RULE",
+            factKind: "rule",
+            ruleExceptionAtoms,
+            claimKey: "CLAIM-1111111111111111",
+            claimText: "deleted unless held",
+          },
+        ],
+        relationships: [],
+      });
+    expect(
+      evaluatePredicateCase(manifest, evidence(rule(["legal_hold"])))
+        .failureCodes,
+    ).toEqual([]);
+    expect(
+      evaluatePredicateCase(manifest, evidence(rule([]))).failureCodes,
+    ).toEqual(["rule-exceptions"]);
+    expect(
+      evaluatePredicateCase(manifest, evidence(rule([""]))).failureCodes,
+    ).toEqual(["rule-exceptions"]);
+    const withProperty = rule(["legal_hold"]);
+    expect(
+      evaluatePredicateCase(
+        manifest,
+        evidence({
+          ...withProperty,
+          facts: [
+            ...withProperty.facts,
+            { id: "FACT-PROP", factKind: "property_value" },
+          ],
+        }),
+      ).failureCodes,
+    ).toEqual(["forbidden-fact-lane"]);
+  });
+
   test("accepts the advisor's spaced binding names for schema arguments", () => {
     const manifest = baseManifest({
       predicateExpectation: {

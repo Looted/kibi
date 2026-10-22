@@ -96,7 +96,7 @@ try {
     skill: "kibi-usage",
     manifests: [candidateManifest()],
     repeats: 1,
-    maxTargetEpisodes: 10,
+    maxTargetEpisodes: 14,
     allowPaid: true,
     runId: "00000000-0000-4000-8000-0000000000e2",
     host: "codex",

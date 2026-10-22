@@ -2,6 +2,7 @@ import type { TaskSplit } from "../catalog";
 import type {
   LogicCoverageFamily,
   PredicateCase,
+  PredicateFamily,
   PredicateSemanticClass,
   PrivateExpectation,
   PublicClaim,
@@ -20,9 +21,10 @@ export function assertMatchingSemanticClass(
 // implements REQ-skillopt-predicate-first-requirements
 
 /**
- * Seven semantically distinct case declarations. Public claims use a factory so
- * the shared publicSchema shape is not repeated verbatim; only the distinct
- * claimText and projectLocalSchemas vary per case.
+ * Semantically distinct case declarations: seven core cases and three
+ * rule-lane cases. Public claims use a factory so the shared publicSchema
+ * shape is not repeated verbatim; only the distinct claimText and
+ * projectLocalSchemas vary per case.
  */
 
 const PUBLIC_SCHEMA_VERSION = "predicate-corpus-1.4.0";
@@ -109,6 +111,35 @@ const KEYWORD_FALSE_POSITIVE_CLAIM = makeClaim(
   "The fact body mentions the word 'predicate' several times while describing a free-form narrative about how reviewers feel about the release notes.",
   [],
   ["descriptive_fact", "passive_phrasing"],
+);
+
+// Rule-lane claims use neutral domains (refunds, rate limits, retention).
+const NECESSARY_CONDITION_CLAIM = makeClaim(
+  "A refund may be issued only when the order's settled amount is greater than zero.",
+  [],
+  ["implicit_condition", "deontic_modality", "negation_scope"],
+);
+const COMPOUND_OBLIGATIONS_CLAIM = makeClaim(
+  "An API client must send at most 100 requests per minute. An export requires an access review before download. Audit logs must be retained for 365 days. Export files must be deleted after 30 days. A refund requires manager approval before payout. Session tokens must expire after 60 minutes.",
+  [],
+  [
+    "compound_prose",
+    "deontic_modality",
+    "quantifier_cardinality",
+    "temporal_rule",
+  ],
+);
+const EXCEPTION_UNLESS_CLAIM = makeClaim(
+  "An expired export file must be deleted unless a legal hold is recorded for it.",
+  [
+    {
+      id: "FACT-SCHEMA-LEGAL-HOLD",
+      predicateName: "legal_hold",
+      argumentNames: ["export_file"],
+      argumentTypes: ["export_file"],
+    },
+  ],
+  ["exception_handling", "deontic_modality", "implicit_condition"],
 );
 
 // --- Private expectations. Held by the evaluator/verifier lane only. ---
@@ -242,15 +273,68 @@ const KEYWORD_FALSE_POSITIVE_EXPECTATION: PrivateExpectation = {
   coverageFamilies: KEYWORD_FALSE_POSITIVE_CLAIM.publicSchema.coverageFamilies,
 };
 
+const NECESSARY_CONDITION_EXPECTATION: PrivateExpectation = {
+  semanticClass: "necessary_condition",
+  expectedLane: "rule",
+  expectedPredicateName: null,
+  expectedPredicateArgs: null,
+  expectedPolarity: null,
+  expectedEdges: [
+    { relationship: "requires_rule", target: "SEM-9C7A62D88EA913EE3EA1B96E" },
+  ],
+  expectedGroundFactKinds: ["rule_schema", "rule"],
+  expectedLogicClaimCount: 1,
+  expectedRuleSemanticKey: "SEM-9C7A62D88EA913EE3EA1B96E",
+  forbiddenGroundFactKinds: ["property_value"],
+  privateRationale:
+    "A necessary condition is a typed forbid-unless rule over the settled amount, not a strict property of the order; the canonical IR fixes its semantic key.",
+  coverageFamilies: NECESSARY_CONDITION_CLAIM.publicSchema.coverageFamilies,
+};
+
+const COMPOUND_OBLIGATIONS_EXPECTATION: PrivateExpectation = {
+  semanticClass: "compound_obligations",
+  expectedLane: "strict_property",
+  expectedPredicateName: null,
+  expectedPredicateArgs: null,
+  expectedPolarity: null,
+  expectedEdges: [
+    { relationship: "requires_predicate", target: "dependency_rule" },
+    { relationship: "requires_property", target: "retention_days=365" },
+  ],
+  expectedGroundFactKinds: ["subject", "property_value", "predicate"],
+  expectedLogicClaimCount: 6,
+  privateRationale:
+    "Six independent obligations need six claim keys, each on its own strict property or predicate fact; one bundled fact fails grounding.",
+  coverageFamilies: COMPOUND_OBLIGATIONS_CLAIM.publicSchema.coverageFamilies,
+};
+
+const EXCEPTION_UNLESS_EXPECTATION: PrivateExpectation = {
+  semanticClass: "exception_unless",
+  expectedLane: "rule",
+  expectedPredicateName: null,
+  expectedPredicateArgs: null,
+  expectedPolarity: null,
+  expectedEdges: [],
+  expectedGroundFactKinds: ["rule_schema", "rule"],
+  expectedLogicClaimCount: 1,
+  expectedRuleExceptions: { atomNames: ["legal_hold"] },
+  forbiddenGroundFactKinds: ["property_value"],
+  privateRationale:
+    "The unless clause is an exception of a typed rule over the approved legal_hold schema; the conditioned deletion is never a strict property value.",
+  coverageFamilies: EXCEPTION_UNLESS_CLAIM.publicSchema.coverageFamilies,
+};
+
 function caseFor(
   split: TaskSplit,
   semanticClass: PredicateSemanticClass,
   caseId: string,
   claim: PublicClaim,
   expectation: PrivateExpectation,
+  family: PredicateFamily = "fact-predicate-modeling",
 ): PredicateCase {
   assertMatchingSemanticClass(semanticClass, expectation.semanticClass);
   return {
+    family,
     semanticClass,
     caseId,
     split,
@@ -312,5 +396,36 @@ export const PREDICATE_CASES: readonly PredicateCase[] = [
     "kibi-usage-fact-predicate-modeling-held-out-4",
     KEYWORD_FALSE_POSITIVE_CLAIM,
     KEYWORD_FALSE_POSITIVE_EXPECTATION,
+  ),
+];
+
+/**
+ * Rule-lane registry for the supplemental `rule-lane-modeling` family. Index
+ * order fills the 0/2/1 split allocation.
+ */
+export const RULE_LANE_PREDICATE_CASES: readonly PredicateCase[] = [
+  caseFor(
+    "development",
+    "necessary_condition",
+    "kibi-usage-rule-lane-modeling-development-1",
+    NECESSARY_CONDITION_CLAIM,
+    NECESSARY_CONDITION_EXPECTATION,
+    "rule-lane-modeling",
+  ),
+  caseFor(
+    "development",
+    "compound_obligations",
+    "kibi-usage-rule-lane-modeling-development-2",
+    COMPOUND_OBLIGATIONS_CLAIM,
+    COMPOUND_OBLIGATIONS_EXPECTATION,
+    "rule-lane-modeling",
+  ),
+  caseFor(
+    "held-out",
+    "exception_unless",
+    "kibi-usage-rule-lane-modeling-held-out-1",
+    EXCEPTION_UNLESS_CLAIM,
+    EXCEPTION_UNLESS_EXPECTATION,
+    "rule-lane-modeling",
   ),
 ];
