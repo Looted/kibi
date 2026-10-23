@@ -225,9 +225,10 @@ export async function collectSignoffSummary(
       : undefined;
     const firmness = firmnessOf(entity);
     const origin = entity.origin;
-    // A requirement is approved by top-level approved_by or origin.approved_by,
-    // the same two fields its evidence level reads.
-    const approvedBy = entity.approved_by ?? origin?.approved_by;
+    // origin.approved_by records who approved an agent-written requirement,
+    // the field its evidence level and agent-requirement-unapproved read. The
+    // top-level approved_by approves an exception and is not read here.
+    const approvedBy = origin?.approved_by;
     return {
       id: entity.id,
       title: flat(entity.title ?? entity.id),

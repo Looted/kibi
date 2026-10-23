@@ -157,7 +157,7 @@ backs it:
 | --- | --- | --- |
 | `proved` | A checker established the claim for every case and left a certificate a second program can re-check | A proof certificate. No proof kind issues one yet, so no requirement reaches this level today |
 | `tested` | Passing runs on sampled cases, bound to the current code snapshot | `proofStatus: tested` |
-| `asserted` | A person stands behind the statement, but nothing current checks it | `approved_by` (or `origin.approved_by`), or firm: `firmness: firm`, or no `firmness` and an origin other than `agent` |
+| `asserted` | A person stands behind the statement, but nothing current checks it | `origin.approved_by`, or firm: `firmness: firm`, or no `firmness` and an origin other than `agent` |
 | `unverified` | Stated, not approved, no evidence | Nothing: an agent wrote it and no person approved it |
 
 Each row's `evidence[]` lists the entries that earned the level, each with

@@ -6495,6 +6495,7 @@ test(evidence_level_follows_human_backing_without_passing_e2e, [setup(setup_kb),
     assert_fixture_entity(req, 'REQ-EVIDENCE-APPROVED', "Agent approved", open, [priority=must, origin="{\"kind\":\"agent\",\"approved_by\":\"Owner\",\"ref\":\"chat 1\"}"]),
     assert_fixture_entity(req, 'REQ-EVIDENCE-PERSON', "Person stated", open, [priority=must]),
     assert_fixture_entity(req, 'REQ-EVIDENCE-EXPLORATORY', "Exploratory guess", open, [priority=must, firmness=exploratory]),
+    assert_fixture_entity(req, 'REQ-EVIDENCE-SELF', "Agent exception approval", open, [priority=must, approved_by="Owner", origin="{\"kind\":\"agent\"}"]),
     coverage_report_json(req, [], true, true, 100, 0, JsonString),
     json_string_dict(JsonString, Report),
     coverage_row(Report.rows, 'REQ-EVIDENCE-AGENT', Agent),
@@ -6508,7 +6509,10 @@ test(evidence_level_follows_human_backing_without_passing_e2e, [setup(setup_kb),
     assertion(Person.evidence = [_{kind: human_intent, scope: intent, level: asserted, basis: firm}]),
     coverage_row(Report.rows, 'REQ-EVIDENCE-EXPLORATORY', Exploratory),
     assertion(Exploratory.evidenceLevel == unverified),
-    assertion(Report.summary.evidenceLevels = _{proved: 0, tested: 0, asserted: 2, unverified: 2}).
+    % The top-level approved_by approves an exception; an agent can write it.
+    coverage_row(Report.rows, 'REQ-EVIDENCE-SELF', Self),
+    assertion(Self.evidenceLevel == unverified),
+    assertion(Report.summary.evidenceLevels = _{proved: 0, tested: 0, asserted: 2, unverified: 3}).
 
 :- end_tests(requirement_evidence_levels).
 
