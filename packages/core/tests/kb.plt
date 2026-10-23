@@ -2037,7 +2037,7 @@ test(requirement_proof_rejects_structural_coverage_without_semantics_or_scenario
     json_string_dict(JsonString, Report),
     coverage_row(Report.rows, 'REQ-PROOF-STRUCTURAL-ONLY', Row),
     assertion(Row.coverageStatus == fully_covered),
-    assertion(Row.proofVersion == 'kibi.requirement-proof.v3'),
+    assertion(Row.proofVersion == 'kibi.requirement-proof.v4'),
     assertion(Row.proofStatus == missing),
     assertion(memberchk(missing_semantic_inventory, Row.proofGaps)),
     assertion(memberchk(missing_logic_claims, Row.proofGaps)),
@@ -2271,7 +2271,9 @@ test(requirement_proof_requires_the_complete_semantic_scenario_e2e_symbol_chain,
     json_string_dict(JsonString, Report),
     coverage_row(Report.rows, 'REQ-PROOF-COMPLETE', Row),
     assertion(Row.testCount == 3),
-    assertion(Row.proofStatus == proven),
+    assertion(Row.proofStatus == tested),
+    assertion(Row.evidenceLevel == tested),
+    assertion((member(E2e, Row.evidence), get_dict(kind, E2e, e2e), get_dict(level, E2e, tested))),
     assertion(Row.proofGaps == []),
     assertion(Row.proofAdvisories == []),
     assertion(Row.proofStages.sourceCoordinates.requirementPath == 'test://kb.plt'),
@@ -2288,7 +2290,7 @@ test(requirement_proof_requires_the_complete_semantic_scenario_e2e_symbol_chain,
     assertion(Row.proofStages.executableSymbols.symbols == ['SYM-PROOF-E2E']),
     assertion(Row.proofStages.productionSymbols.symbols == ['SYM-PROOF-PRODUCTION']),
     assertion(Row.proofStages.sourceCoordinates.status == passed),
-    assertion(Report.summary.proofProven == 1),
+    assertion(Report.summary.proofTested == 1),
     assert_fixture_entity(fact, 'FACT-PROOF-PROPERTY', "Proof outcome property", active, [
         fact_kind=property_value,
         subject_key="kibi.coverage.report",
@@ -2454,7 +2456,7 @@ test(per_contract_receipts_preserve_snapshot_fallback_and_requirement_rows, [set
     json_string_dict(ReportJson, Report),
     assertion(Report.summary.total == 1),
     coverage_row(Report.rows, 'REQ-BINDING-FALLBACK', Row),
-    assertion(Row.proofStatus \== proven),
+    assertion(Row.proofStatus \== tested),
     evidence_for_test(Row.proofStages.passingE2e.receiptEvidence, TestId, RowEvidence),
     assertion(RowEvidence.state == passed),
     assert_fixture_entity(test, TestId, "Legacy fallback E2E", passing, [verification_scope=end_to_end, proof_receipts=LegacyJson]),
@@ -2652,7 +2654,7 @@ test(production_coverage_explanations_report_missing_unit_unrelated_and_qualifyi
     coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, JsonString),
     json_string_dict(JsonString, Report),
     coverage_row(Report.rows, 'REQ-EXPLAIN', Row),
-    assertion(Row.proofVersion == 'kibi.requirement-proof.v3'),
+    assertion(Row.proofVersion == 'kibi.requirement-proof.v4'),
     assertion(memberchk('SYM-EXPLAIN-NONE', Row.proofStages.productionSymbols.uncoveredSymbols)),
     assertion(memberchk('SYM-EXPLAIN-UNIT', Row.proofStages.productionSymbols.uncoveredSymbols)),
     assertion(memberchk('SYM-EXPLAIN-FOREIGN', Row.proofStages.productionSymbols.uncoveredSymbols)),
@@ -2833,13 +2835,13 @@ test(executable_for_symbols_remain_excluded_from_production_coverage, [setup(set
     assertion(Symbols == []),
     assertion(Stage.uncoveredSymbols == []).
 
-test(requirement_proof_json_preserves_v3_and_explanations, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+test(requirement_proof_json_preserves_v4_and_explanations, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(req, 'REQ-EXPLAIN-JSON', "JSON serializer", active, [priority=must]),
     assert_fixture_entity(symbol, 'SYM-EXPLAIN-JSON', "json symbol", active, [symbol_role=behavioral, sourceFile="src/json.ts"]),
     kb_assert_relationship(implements, 'SYM-EXPLAIN-JSON', 'REQ-EXPLAIN-JSON', []),
     discovery:requirement_proof_json('REQ-EXPLAIN-JSON', unknown, '2026-08-10T12:05:00Z', 604800, JsonString),
     json_string_dict(JsonString, Proof),
-    assertion(Proof.proofVersion == 'kibi.requirement-proof.v3'),
+    assertion(Proof.proofVersion == 'kibi.requirement-proof.v4'),
     assertion(memberchk('SYM-EXPLAIN-JSON', Proof.proofStages.productionSymbols.uncoveredSymbols)),
     production_explanation(Proof, 'SYM-EXPLAIN-JSON', Expl),
     assertion(Expl.reason == stage_blocked_no_passing_e2e).
@@ -6197,6 +6199,31 @@ test(cleanup_temp_file_removes_existing_temp_file, [setup(setup_kb), cleanup(cle
     \+ exists_file(TempFile).
 
 :- end_tests(kb_internal_coverage_gaps).
+
+:- begin_tests(requirement_evidence_levels).
+
+% implements REQ-kibi-evidence-levels
+test(evidence_level_follows_human_backing_without_passing_e2e, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-EVIDENCE-AGENT', "Agent only", open, [priority=must, origin="{\"kind\":\"agent\"}"]),
+    assert_fixture_entity(req, 'REQ-EVIDENCE-APPROVED', "Agent approved", open, [priority=must, origin="{\"kind\":\"agent\",\"approved_by\":\"Owner\",\"ref\":\"chat 1\"}"]),
+    assert_fixture_entity(req, 'REQ-EVIDENCE-PERSON', "Person stated", open, [priority=must]),
+    assert_fixture_entity(req, 'REQ-EVIDENCE-EXPLORATORY', "Exploratory guess", open, [priority=must, firmness=exploratory]),
+    coverage_report_json(req, [], true, true, 100, 0, JsonString),
+    json_string_dict(JsonString, Report),
+    coverage_row(Report.rows, 'REQ-EVIDENCE-AGENT', Agent),
+    assertion(Agent.evidenceLevel == unverified),
+    assertion(Agent.evidence == []),
+    coverage_row(Report.rows, 'REQ-EVIDENCE-APPROVED', Approved),
+    assertion(Approved.evidenceLevel == asserted),
+    assertion(Approved.evidence = [_{kind: human_intent, scope: intent, level: asserted, basis: approved, ref: 'chat 1'}]),
+    coverage_row(Report.rows, 'REQ-EVIDENCE-PERSON', Person),
+    assertion(Person.evidenceLevel == asserted),
+    assertion(Person.evidence = [_{kind: human_intent, scope: intent, level: asserted, basis: firm}]),
+    coverage_row(Report.rows, 'REQ-EVIDENCE-EXPLORATORY', Exploratory),
+    assertion(Exploratory.evidenceLevel == unverified),
+    assertion(Report.summary.evidenceLevels = _{proved: 0, tested: 0, asserted: 2, unverified: 2}).
+
+:- end_tests(requirement_evidence_levels).
 
 :- begin_tests(requirement_applicability).
 
