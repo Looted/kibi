@@ -1,11 +1,35 @@
 # kibi-vscode
 
+## 1.1.0
+
+### Minor Changes
+
+- 7a3edce: Signoff is now one readable view instead of loose chat text. `kibi signoff` lists the requirements a change adds, rewrites, retires or affects, each quoted with its firmness, origin, scenarios and proof state, and `kibi signoff --questions` numbers the decisions waiting for you next to the recorded rule each one would change or conflict with. The output is a fenced Markdown block for the agent's reply, a self-contained HTML page (`--format html --open`) or JSON, and every run keeps the latest view in `.kb/briefs/signoff/`.
+
+  Claude Code renders the block as Markdown through a new `MessageDisplay` hook (`KIBI_SIGNOFF_DISPLAY=0` turns it off), OpenCode 2 draws it as a framed card with a `/kibi-signoff` command and a toast, and VS Code offers a **Kibi: Show Requirements Signoff** panel that refreshes as the agent updates it. The `kibi-decisions` and `kibi-commit-review` skills now tell agents when to run it.
+
+### Patch Changes
+
+- Updated dependencies [70db58e]
+- Updated dependencies [5e3541e]
+- Updated dependencies [140a61c]
+- Updated dependencies [16ed600]
+- Updated dependencies [7a3edce]
+- Updated dependencies [180196c]
+- Updated dependencies [3b43238]
+- Updated dependencies [8493b53]
+- Updated dependencies [98254ef]
+- Updated dependencies [0a9c431]
+- Updated dependencies [06fb484]
+- Updated dependencies [3162508]
+- Updated dependencies [668c332]
+  - kibi-cli@2.30.0
+
 ## 1.0.2
 
 ### Patch Changes
 
 - This coordinated release includes the OpenCode adapter and VS Code extension after their package manifests were reformatted. Their runtime behavior and package metadata values are unchanged.
-
   - Publish fresh package versions for the two manifest-only changes alongside the other packages changed since the previous versioning commit.
 
 - Updated dependencies [b375e8f]
@@ -84,7 +108,6 @@
 - 9e6fb3f: Kibi now uses one opinionated project contract: all Kibi-managed knowledge lives under `.kb/`, check enforcement is owned by the installed Kibi version, and projects can no longer weaken health by disabling rules or relocating entity paths in `.kb/config.json`. Existing repositories must run `kibi migrate --yes` to move legacy `documentation/...` knowledge into the canonical layout and adopt `.kb/manifest.json`.
 
   Advisory modeling checks still run by default, but they report as non-blocking quality diagnostics instead of failing `kibi check`. Migration rewrites the old blanket `.kb/` gitignore stanza so authored lanes are trackable, and a malformed leftover `config.json` blocks the one-way cutover instead of guessing default paths.
-
   - Remove user-configurable entity paths and persistent `checks.rules` overrides; retire `.kb/config.json` after migration.
   - Introduce `.kb/manifest.json` for Kibi-owned lifecycle metadata (schema version, semantic backfill state).
   - Add one-way legacy storage migration (`documentation/` and custom configured paths → `.kb/<lane>/`).
@@ -144,7 +167,6 @@
 ### Patch Changes
 
 - Dogfood projects now get branch-local knowledge bases that follow the exact Git ref, actionable stale-source diagnostics, and a sanctioned relationship cleanup path. Verification receipts and packed package provenance are stricter and reproducible, while agents receive conservative symbol-recovery guidance and explicit interim-state signals. This prevents silent `master`/`main` drift and makes passing E2E evidence distinguishable from complete semantic proof.
-
   - Remove implicit branch-name normalization and add previewed legacy branch migration.
   - Add exact relationship deletion, v2 receipt/schema parity, status diagnostics, dogfood package manifests, and SkillOpt cases.
 
@@ -248,7 +270,6 @@
 - VS Code users no longer see brief notifications or a latest-brief command from the extension. The extension remains focused on the Kibi knowledge base tree and MCP integration. Removed brief configuration no longer implies any VS Code notification behavior.
 
   Technical summary:
-
   - Regenerate the VS Code extension bundle after removing brief watcher, command, and virtual document provider code.
   - Keep tree view, CodeLens, and MCP configuration surfaces intact.
 
@@ -260,7 +281,6 @@
 ### Patch Changes
 
 - f8a3a88: This update introduces a split symbol coordinate workflow that separates logical symbol definitions from their physical source locations. Symbol coordinates are now managed in `documentation/symbol-coordinates.yaml`, which improves git diff readability and reduces merge conflicts when only line numbers change. The `kibi sync` command now supports a `--refresh-symbol-coordinates` flag to explicitly update these locations.
-
   - **kibi-cli**: Added `--refresh-symbol-coordinates` flag to `kibi sync` and updated pre-commit hooks to enforce coordinate staging.
   - **kibi-mcp**: Updated symbol resolution logic to read from the new split coordinate manifest.
   - **kibi-opencode**: Updated background sync behavior and documentation to support the split manifest workflow.
@@ -291,7 +311,6 @@
 ### Minor Changes
 
 - 4746f3f: Briefs no longer surface internal task-tracking artifacts (such as `.sisyphus/boulder.json`) as if they were meaningful project knowledge. Notifications are now specific-or-silent: a toast only appears when the brief can say what changed and why it matters. Previously, any `.sisyphus/` file edit could trigger a brief with generic content and produce a vague "a brief is available" notification regardless of whether it contained real domain context.
-
   - `kibi-cli`: adds `isOperationalArtifactPath(pathLike)` helper, exported as `kibi-cli/operational-artifacts`, matching `.sisyphus/**` paths as operational task-tracking artifacts
   - `kibi-mcp`: filters operational artifact sources, entities, and citations before brief content is assembled so `.sisyphus/**` changes never appear in brief entities, citations, prompt blocks, or TLDRs
   - `kibi-opencode`: suppresses brief eligibility for operational-only source changes; adds specificity gate to toast delivery so generic/operational envelopes do not trigger notifications

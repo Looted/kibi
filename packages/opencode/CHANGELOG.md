@@ -1,5 +1,42 @@
 # kibi-opencode
 
+## 3.1.0
+
+### Minor Changes
+
+- 7a3edce: Signoff is now one readable view instead of loose chat text. `kibi signoff` lists the requirements a change adds, rewrites, retires or affects, each quoted with its firmness, origin, scenarios and proof state, and `kibi signoff --questions` numbers the decisions waiting for you next to the recorded rule each one would change or conflict with. The output is a fenced Markdown block for the agent's reply, a self-contained HTML page (`--format html --open`) or JSON, and every run keeps the latest view in `.kb/briefs/signoff/`.
+
+  Claude Code renders the block as Markdown through a new `MessageDisplay` hook (`KIBI_SIGNOFF_DISPLAY=0` turns it off), OpenCode 2 draws it as a framed card with a `/kibi-signoff` command and a toast, and VS Code offers a **Kibi: Show Requirements Signoff** panel that refreshes as the agent updates it. The `kibi-decisions` and `kibi-commit-review` skills now tell agents when to run it.
+
+### Patch Changes
+
+- 5e3541e: Two new bundled skills cover the moments where agents most often went wrong with Kibi.
+  - `kibi-decisions` loads when a person states a rule ("must", "never", "from now on"), when a hook asks before an edit to code that implements a firm requirement, when the session ends without recording what changed, or when a request conflicts with a recorded rule. It shows how to read a requirement's firmness and origin, record a person's rule as firm with a reference to their words, supersede a rule with a "Why this changed" section, work through `kb_compile_intent` review candidates, and ask before overriding a firm rule.
+  - `kibi-commit-review` loads when `kibi check --staged` or the pre-commit hook blocks a commit, or when preparing a commit or pull-request impact review. It explains the per-file `Detail:` lines, how to add the missing symbols and refresh coordinates, which Kibi files to stage, how to prepare an impact-review record with `kb_prepare_impact_review`, and how merge commits and migration renames are judged.
+
+  `kibi-usage` now points to these skills instead of repeating their detail, and the OpenCode guidance routes rule and commit questions to them.
+
+- 180196c: The requirements signoff view now reads well on every host, not only in the hosts that draw Kibi's fenced block.
+  - `kibi signoff` prints plain Markdown by default (`--format chat`): headings, quoted statements and lists that render in any chat window, and in messaging tools for agents whose replies go through one (cloud and project sessions). The path of the self-contained page `.kb/briefs/signoff/latest.html` goes to stderr, so an agent can attach or publish it next to the message. `--format md` keeps the fenced block for the OpenCode terminal card, and `KIBI_SIGNOFF_FORMAT` sets the default per host.
+  - After a session writes a requirement, the Claude Code, Codex, Cursor and ZCode stop hooks ask once for the signoff view before the work is reported done, unless `kibi signoff` already ran since. A requirement the agent wrote is put to the person through the view, not retold in the agent's words.
+  - `/kibi-signoff` is a new command in Claude Code, Cursor and ZCode.
+  - The `kibi-decisions` and `kibi-commit-review` skills (1.2.0) say how to show the view on each host, and `kibi-usage` (2.22.0) points to `kibi signoff` when it says to leave `approved_by` to the person. The OpenCode guidance asks for `--format md` so the terminal card still renders.
+  - The Claude Code plugin README shows the `.claude/settings.json` snippet that loads the plugin in cloud sessions.
+
+- Updated dependencies [5e3541e]
+- Updated dependencies [140a61c]
+- Updated dependencies [7a3edce]
+- Updated dependencies [180196c]
+- Updated dependencies [3b43238]
+- Updated dependencies [8493b53]
+- Updated dependencies [98254ef]
+- Updated dependencies [0a9c431]
+- Updated dependencies [06fb484]
+- Updated dependencies [3162508]
+- Updated dependencies [668c332]
+  - kibi-runtime@2.19.0
+  - kibi-agent-core@0.9.0
+
 ## 3.0.0
 
 ### Major Changes
