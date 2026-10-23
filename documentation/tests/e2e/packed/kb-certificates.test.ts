@@ -19,34 +19,42 @@ const RUN_NODE_TEST_SUITE =
 type Certificate = Record<string, unknown> & { kind: string };
 
 /**
- * E2E: kibi verify certifies KB theorems and re-checks every certificate.
+ * E2E: the kb-consistency rule of kibi check certifies KB theorems and
+ * re-checks every certificate.
  *
- * SCEN-kibi-kb-certificates — on a KB with property facts, kibi verify
+ * SCEN-kibi-kb-certificates — on a KB with property facts, kibi check
  * produces a model for each consistent context and the independent checker
- * re-verifies it; a saved bundle with a broken model is rejected; and facts
- * that only contradict jointly (every pair admits a value) are reported as a
- * contradiction with an irreducible core.
+ * re-verifies it; a saved bundle with a broken model is rejected by
+ * kibi check --certificates; and facts that only contradict jointly (every
+ * pair admits a value) are a blocking kb-consistency violation with an
+ * irreducible core, which kibi check --staged also blocks.
  */
-/**
- * Runs kibi verify on the seat-pool sandbox (0 <= free seats <= 1): every
- * certificate re-verifies, --write saves the bundle, and a saved bundle whose
- * model breaks FACT-SEAT-MAX is rejected.
- */
-export async function verifyKbCertificates(sandbox: TestSandbox) {
-  const verify = await kibi(sandbox, ["verify"], { timeoutMs: 120000 });
-  assert.strictEqual(verify.exitCode, 0, `${verify.stdout}${verify.stderr}`);
-  assert.match(verify.stdout, /certificates re-verified/);
-  assert.match(verify.stdout, /Property facts are consistent: proved/);
-  assert.match(verify.stdout, /Not certified yet: /);
+const CONSISTENCY_RULES = "kb-consistency,kb-consistency-unresolved";
 
+/**
+ * Runs kibi check on the seat-pool sandbox (0 <= free seats <= 1): the
+ * kb-consistency rule passes, --write-certificates saves the bundle it
+ * re-checked, and a saved bundle whose model breaks FACT-SEAT-MAX is
+ * rejected by kibi check --certificates.
+ */
+export async function checkKbCertificates(sandbox: TestSandbox) {
   const bundlePath = join(sandbox.repoDir, "certificates.json");
-  const saved = await kibi(
+  const check = await kibi(
     sandbox,
-    ["verify", "--write", bundlePath, "--json"],
+    ["check", "--rules", CONSISTENCY_RULES, "--write-certificates", bundlePath],
     { timeoutMs: 120000 },
   );
-  assert.strictEqual(saved.exitCode, 0, `${saved.stdout}${saved.stderr}`);
-  const report = JSON.parse(saved.stdout) as {
+  assert.strictEqual(check.exitCode, 0, `${check.stdout}${check.stderr}`);
+  assert.doesNotMatch(check.stdout, /kb-consistency/);
+  assert.match(check.stderr, /Saved 1 certificate\(s\) to /);
+
+  const recheck = await kibi(
+    sandbox,
+    ["check", "--certificates", bundlePath, "--format", "json"],
+    { timeoutMs: 120000 },
+  );
+  assert.strictEqual(recheck.exitCode, 0, `${recheck.stdout}${recheck.stderr}`);
+  const report = JSON.parse(recheck.stdout) as {
     version: string;
     status: string;
     theorems: { theorem: string; verdict: string }[];
@@ -54,12 +62,12 @@ export async function verifyKbCertificates(sandbox: TestSandbox) {
   assert.strictEqual(report.version, "kibi.verification.v1");
   assert.strictEqual(report.status, "verified");
   assert.deepStrictEqual(
-    report.theorems.map((theorem) => theorem.theorem),
+    report.theorems.map((theorem) => [theorem.theorem, theorem.verdict]),
     [
-      "properties_consistent",
-      "predicates_consistent",
-      "decisions_consistent",
-      "rules_stratified",
+      ["properties_consistent", "proved"],
+      ["predicates_consistent", "proved"],
+      ["decisions_consistent", "proved"],
+      ["rules_stratified", "proved"],
     ],
   );
 
@@ -91,7 +99,7 @@ export async function verifyKbCertificates(sandbox: TestSandbox) {
   );
   const rejected = await kibi(
     sandbox,
-    ["verify", "--certificates", tamperedPath],
+    ["check", "--certificates", tamperedPath],
     { timeoutMs: 120000 },
   );
   assert.strictEqual(
@@ -103,33 +111,36 @@ export async function verifyKbCertificates(sandbox: TestSandbox) {
 }
 
 if (RUN_NODE_TEST_SUITE) {
-  describe("E2E: kibi verify certificates", { timeout: 300000 }, () => {
-    let tarballs: Tarballs;
-    let sandbox: TestSandbox;
-    let hasProlog = false;
+  describe(
+    "E2E: kb-consistency certificates in kibi check",
+    { timeout: 300000 },
+    () => {
+      let tarballs: Tarballs;
+      let sandbox: TestSandbox;
+      let hasProlog = false;
 
-    const write = (relativePath: string, text: string) => {
-      const fullPath = join(sandbox.repoDir, relativePath);
-      mkdirSync(join(fullPath, ".."), { recursive: true });
-      writeFileSync(fullPath, text);
-      stageSourceFile(sandbox, relativePath);
-    };
+      const write = (relativePath: string, text: string) => {
+        const fullPath = join(sandbox.repoDir, relativePath);
+        mkdirSync(join(fullPath, ".."), { recursive: true });
+        writeFileSync(fullPath, text);
+        stageSourceFile(sandbox, relativePath);
+      };
 
-    const claimKey = (text: string) =>
-      `CLAIM-${createHash("sha256").update(text.toLowerCase()).digest("hex").slice(0, 16).toUpperCase()}`;
+      const claimKey = (text: string) =>
+        `CLAIM-${createHash("sha256").update(text.toLowerCase()).digest("hex").slice(0, 16).toUpperCase()}`;
 
-    // One requirement per bound, each grounded by one property fact whose
-    // claim is the requirement's whole prose.
-    const boundRequirement = (
-      suffix: string,
-      operator: string,
-      value: number,
-      text: string,
-    ) => {
-      const claim = claimKey(text);
-      write(
-        `.kb/facts/FACT-SEAT-${suffix}.md`,
-        `---
+      // One requirement per bound, each grounded by one property fact whose
+      // claim is the requirement's whole prose.
+      const boundRequirement = (
+        suffix: string,
+        operator: string,
+        value: number,
+        text: string,
+      ) => {
+        const claim = claimKey(text);
+        write(
+          `.kb/facts/FACT-SEAT-${suffix}.md`,
+          `---
 id: FACT-SEAT-${suffix}
 title: Free seats ${operator} ${value}
 type: fact
@@ -148,10 +159,10 @@ claim_span_end: ${text.length}
 
 Fixture bound ${suffix}.
 `,
-      );
-      write(
-        `.kb/requirements/REQ-SEAT-${suffix}.md`,
-        `---
+        );
+        write(
+          `.kb/requirements/REQ-SEAT-${suffix}.md`,
+          `---
 id: REQ-SEAT-${suffix}
 title: Seat pool bound ${suffix}
 type: req
@@ -175,22 +186,26 @@ links:
 ---
 
 ${text}
-`,
-      );
-    };
 
-    before(
-      async () => {
-        hasProlog = checkPrologAvailable();
-        if (!hasProlog) return;
-        tarballs = await packAll();
-        sandbox = createSandbox();
-        await sandbox.install(tarballs);
-        await sandbox.initGitRepo();
-        await kibi(sandbox, ["init"]);
-        write(
-          ".kb/facts/FACT-SEAT-POOL.md",
-          `---
+## Context
+
+This fixture bounds the free seats of one pool so the consistency check has facts to compare.
+`,
+        );
+      };
+
+      before(
+        async () => {
+          hasProlog = checkPrologAvailable();
+          if (!hasProlog) return;
+          tarballs = await packAll();
+          sandbox = createSandbox();
+          await sandbox.install(tarballs);
+          await sandbox.initGitRepo();
+          await kibi(sandbox, ["init"]);
+          write(
+            ".kb/facts/FACT-SEAT-POOL.md",
+            `---
 id: FACT-SEAT-POOL
 title: Seat pool
 type: fact
@@ -201,92 +216,109 @@ subject_key: seat.pool
 
 The pool of seats a workspace can assign.
 `,
-        );
-        boundRequirement("MIN", "gte", 0, "Free seats must be at least 0");
-        boundRequirement("MAX", "lte", 1, "Free seats must be at most 1");
-        const sync = await kibi(sandbox, ["sync"]);
-        assert.strictEqual(sync.exitCode, 0, `${sync.stdout}${sync.stderr}`);
-      },
-      { timeout: 240000 },
-    );
+          );
+          boundRequirement("MIN", "gte", 0, "Free seats must be at least 0");
+          boundRequirement("MAX", "lte", 1, "Free seats must be at most 1");
+          const sync = await kibi(sandbox, ["sync"]);
+          assert.strictEqual(sync.exitCode, 0, `${sync.stdout}${sync.stderr}`);
+        },
+        { timeout: 240000 },
+      );
 
-    after(
-      async () => {
-        if (sandbox) await sandbox.cleanup();
-      },
-      { timeout: 60000 },
-    );
+      after(
+        async () => {
+          if (sandbox) await sandbox.cleanup();
+        },
+        { timeout: 60000 },
+      );
 
-    it(
-      "certifies consistent facts and rejects a tampered certificate",
-      { timeout: 120000 },
-      async (testContext) => {
-        if (!hasProlog) {
-          testContext.skip("SWI-Prolog is unavailable");
-          return;
-        }
-        await verifyKbCertificates(sandbox);
-      },
-    );
+      it(
+        "certifies consistent facts and rejects a tampered certificate",
+        { timeout: 120000 },
+        async (testContext) => {
+          if (!hasProlog) {
+            testContext.skip("SWI-Prolog is unavailable");
+            return;
+          }
+          await checkKbCertificates(sandbox);
+        },
+      );
 
-    it(
-      "reports a joint contradiction that no pair of facts shows",
-      { timeout: 180000 },
-      async (testContext) => {
-        if (!hasProlog) {
-          testContext.skip("SWI-Prolog is unavailable");
-          return;
-        }
-        // 0 <= free <= 1, free != 0 and free != 1: every pair admits an
-        // integer, all four admit none.
-        boundRequirement("NOT-ZERO", "neq", 0, "Free seats must not equal 0");
-        boundRequirement("NOT-ONE", "neq", 1, "Free seats must not equal 1");
-        const sync = await kibi(sandbox, ["sync"]);
-        assert.strictEqual(sync.exitCode, 0, `${sync.stdout}${sync.stderr}`);
+      it(
+        "reports a joint contradiction that no pair of facts shows",
+        { timeout: 180000 },
+        async (testContext) => {
+          if (!hasProlog) {
+            testContext.skip("SWI-Prolog is unavailable");
+            return;
+          }
+          // 0 <= free <= 1, free != 0 and free != 1: every pair admits an
+          // integer, all four admit none.
+          boundRequirement("NOT-ZERO", "neq", 0, "Free seats must not equal 0");
+          boundRequirement("NOT-ONE", "neq", 1, "Free seats must not equal 1");
+          const sync = await kibi(sandbox, ["sync"]);
+          assert.strictEqual(sync.exitCode, 0, `${sync.stdout}${sync.stderr}`);
 
-        const verify = await kibi(sandbox, ["verify", "--json"], {
-          timeoutMs: 120000,
-        });
-        assert.strictEqual(
-          verify.exitCode,
-          1,
-          `${verify.stdout}${verify.stderr}`,
-        );
-        const report = JSON.parse(verify.stdout) as {
-          status: string;
-          theorems: {
-            theorem: string;
-            verdict: string;
-            contradictions: Record<string, unknown>[];
-          }[];
-        };
-        assert.strictEqual(report.status, "verified");
-        const properties = report.theorems.find(
-          (theorem) => theorem.theorem === "properties_consistent",
-        );
-        assert.strictEqual(properties?.verdict, "disproved");
-        assert.strictEqual(
-          properties?.contradictions[0]?.subjectKey,
-          "seat.pool",
-        );
+          const check = await kibi(
+            sandbox,
+            [
+              "check",
+              "--rules",
+              `${CONSISTENCY_RULES},domain-contradictions`,
+              "--format",
+              "json",
+            ],
+            { timeoutMs: 120000 },
+          );
+          assert.strictEqual(
+            check.exitCode,
+            1,
+            `${check.stdout}${check.stderr}`,
+          );
+          const result = JSON.parse(check.stdout) as {
+            structuredContent: {
+              violations: {
+                rule: string;
+                entityId: string;
+                evidence?: { certificate?: Certificate };
+              }[];
+            };
+          };
+          const violations = result.structuredContent.violations;
+          // The pairwise rule is silent; only the joint check sees it.
+          assert.deepStrictEqual(
+            violations.map((violation) => violation.rule),
+            ["kb-consistency"],
+          );
+          assert.strictEqual(
+            violations[0]?.entityId,
+            "REQ-SEAT-MAX/REQ-SEAT-MIN/REQ-SEAT-NOT-ONE/REQ-SEAT-NOT-ZERO",
+          );
+          const core = violations[0]?.evidence?.certificate;
+          assert.strictEqual(core?.kind, "property_contradiction");
+          assert.deepStrictEqual([...((core?.core as string[]) ?? [])].sort(), [
+            "FACT-SEAT-MAX",
+            "FACT-SEAT-MIN",
+            "FACT-SEAT-NOT-ONE",
+            "FACT-SEAT-NOT-ZERO",
+          ]);
 
-        const bundlePath = join(sandbox.repoDir, "contradiction.json");
-        await kibi(sandbox, ["verify", "--write", bundlePath], {
-          timeoutMs: 120000,
-        });
-        const bundle = JSON.parse(readFileSync(bundlePath, "utf8")) as {
-          certificates: Certificate[];
-        };
-        const core = bundle.certificates.find(
-          (certificate) => certificate.kind === "property_contradiction",
-        );
-        assert.deepStrictEqual([...((core?.core as string[]) ?? [])].sort(), [
-          "FACT-SEAT-MAX",
-          "FACT-SEAT-MIN",
-          "FACT-SEAT-NOT-ONE",
-          "FACT-SEAT-NOT-ZERO",
-        ]);
-      },
-    );
-  });
+          // Nothing is committed yet, so the staged check sees the joint
+          // contradiction as introduced by this commit and blocks it.
+          const staged = await kibi(sandbox, ["check", "--staged"], {
+            timeoutMs: 120000,
+          });
+          assert.strictEqual(
+            staged.exitCode,
+            1,
+            `${staged.stdout}${staged.stderr}`,
+          );
+          assert.match(
+            `${staged.stdout}${staged.stderr}`,
+            /\[kb-consistency\] REQ-SEAT-MAX\/REQ-SEAT-MIN\/REQ-SEAT-NOT-ONE\/REQ-SEAT-NOT-ZERO/,
+          );
+        },
+      );
+    },
+  );
 }

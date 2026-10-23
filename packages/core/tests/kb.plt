@@ -6353,6 +6353,53 @@ test(checker_loads_neither_the_search_nor_the_checks) :-
     assertion(\+ predicate_property(certificate_check:_, imported_from(checks))),
     assertion(\+ predicate_property(certificate_check:_, imported_from(certificates))).
 
+% implements REQ-kibi-kb-certificates
+test(kb_consistency_rule_reports_a_reverified_joint_contradiction, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    cert_property('FACT-CERT-MIN', 'REQ-CERT-MIN', "api.quota", "rate_limit", gte, int, 1, []),
+    check_kb_consistency(Clean),
+    assertion(Clean == []),
+    cert_property('FACT-CERT-J1', 'REQ-CERT-J1', "seat.count", "free", gte, int, 0, []),
+    cert_property('FACT-CERT-J2', 'REQ-CERT-J2', "seat.count", "free", lte, int, 1, []),
+    cert_property('FACT-CERT-J3', 'REQ-CERT-J3', "seat.count", "free", neq, int, 0, []),
+    cert_property('FACT-CERT-J4', 'REQ-CERT-J4', "seat.count", "free", neq, int, 1, []),
+    check_kb_consistency(Violations),
+    assertion(Violations = [violation('kb-consistency', "REQ-CERT-J1/REQ-CERT-J2/REQ-CERT-J3/REQ-CERT-J4", _, _, "", _)]),
+    Violations = [violation(_, _, Description, Suggestion, _, Evidence)],
+    assertion(sub_string(Description, 0, _, _, "Facts FACT-CERT-J1, FACT-CERT-J2, FACT-CERT-J3, FACT-CERT-J4 cannot all hold for seat.count.free")),
+    assertion(sub_string(Suggestion, _, _, _, "kibi check --write-certificates")),
+    get_dict(certificate, Evidence, Certificate),
+    assertion(get_dict(kind, Certificate, "property_contradiction")),
+    check_kb_consistency_unresolved(Unresolved),
+    assertion(Unresolved == []).
+
+% implements REQ-kibi-kb-certificates
+test(kb_consistency_unresolved_names_contexts_it_cannot_compare, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    cert_property('FACT-CERT-GB', 'REQ-CERT-GB', "plan.storage", "quota", lte, int, 10, [unit="GB"]),
+    cert_property('FACT-CERT-SEATS', 'REQ-CERT-SEATS', "plan.storage", "quota", gte, int, 2, [unit="seat"]),
+    check_kb_consistency(Violations),
+    assertion(Violations == []),
+    check_kb_consistency_unresolved(Unresolved),
+    assertion(Unresolved = [violation('kb-consistency-unresolved', "REQ-CERT-GB/REQ-CERT-SEATS", _, _, "")]),
+    Unresolved = [violation(_, _, Description, _, _)],
+    assertion(sub_string(Description, _, _, _, "plan.storage.quota")),
+    assertion(sub_string(Description, _, _, _, "It never counts as consistent")).
+
+% implements REQ-kibi-kb-certificates
+test(kb_consistency_rule_reports_a_negation_cycle, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    cert_rule('FACT-CERT-RULE-P', p, not(q)),
+    cert_rule('FACT-CERT-RULE-Q', q, p),
+    check_kb_consistency(Violations),
+    assertion(Violations = [violation('kb-consistency', _, _, _, "", _)]),
+    Violations = [violation(_, _, Description, _, _, _)],
+    assertion(sub_string(Description, 0, _, _, "Stored rules are not stratified")),
+    assertion(sub_string(Description, _, _, _, "depends on not")).
+
+% implements REQ-kibi-kb-certificates
+test(kb_consistency_rules_run_through_check_selected, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    checks:check_selected(['kb-consistency', 'kb-consistency-unresolved'], Dict),
+    assertion(get_dict(kb_consistency, Dict, _)),
+    assertion(get_dict(kb_consistency_unresolved, Dict, _)).
+
 :- end_tests(kb_certificates).
 
 cert_property(FactId, ReqId, Subject, Property, Operator, Type, Value, Extra) :-

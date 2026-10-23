@@ -171,10 +171,10 @@ Firmness and evidence level are separate axes. Firmness says how sure the
 person is; the level says how strong the evidence is. A firm requirement at
 `asserted` is the gap to close before relying on it.
 
-## Knowledge-base certificates (`kibi verify`)
+## Knowledge-base certificates
 
-Evidence levels describe requirements. `kibi verify` covers the knowledge
-base itself: it states a few theorems about the facts current requirements
+Evidence levels describe requirements. The `kb-consistency` rule of
+`kibi check` (and `kb_check`) covers the knowledge base itself: it states a few theorems about the facts current requirements
 name, finds a certificate for each, and re-checks every certificate with a
 separate checker (`certificate_check.pl`) that never searches and never loads
 the code that found the certificate.
@@ -195,13 +195,16 @@ A context the checker cannot compare (mixed value types or units, an
 operator other than `eq`/`neq` on a non-numeric value, an unknown polarity)
 is unresolved and needs no certificate; it never counts as consistent.
 
-Each theorem's verdict is `proved`, `disproved` or `unresolved`. The run
-exits 1 when any certificate is rejected or missing, or a theorem is
-disproved. Opposing rule pairs and scenario feasibility are not certified
-yet; the report lists them under `notCovered`, and `kibi check` still
-decides them. Certificates are regenerated on each run and are not
-committed; `--write` saves a bundle and `--certificates` re-checks a saved
-one. CI runs `kibi verify` after `kibi check`.
+A re-verified contradiction (a core, two disagreeing facts or a negation
+cycle) is a blocking `kb-consistency` violation, and so is a certificate the
+checker rejects. An unresolved context is a non-blocking
+`kb-consistency-unresolved` diagnostic. `kibi check --staged` runs the rule
+too, so a commit that introduces a joint contradiction is blocked. Opposing
+rule pairs and scenario feasibility are not certified yet; their own
+`kibi check` rules still decide them. Certificates are regenerated on each
+run and are not committed: `kibi check --write-certificates <file>` saves the
+bundle, and `kibi check --certificates <file>` re-checks a saved one and
+prints each theorem's verdict (`proved`, `disproved` or `unresolved`).
 
 ## Common failure patterns
 

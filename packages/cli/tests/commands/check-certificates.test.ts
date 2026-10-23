@@ -4,10 +4,10 @@ import os from "node:os";
 import path from "node:path";
 import {
   type VerificationReport,
-  executeVerify,
+  certificatesExitCode,
+  recheckCertificates,
   renderVerification,
-  verifyExitCode,
-} from "../../src/commands/verify.js";
+} from "../../src/commands/check-certificates.js";
 import type { OperationContext } from "../../src/public/operations/runtime-types.js";
 
 const verified: VerificationReport = {
@@ -39,11 +39,11 @@ const verified: VerificationReport = {
 };
 
 // implements REQ-kibi-kb-certificates
-describe("kibi verify report", () => {
+describe("kibi check certificate re-check report", () => {
   test("a verified bundle with every theorem proved exits 0", () => {
-    expect(verifyExitCode(verified)).toBe(0);
+    expect(certificatesExitCode(verified)).toBe(0);
     const text = renderVerification(verified);
-    expect(text).toContain("Kibi verify: all 3 certificates re-verified");
+    expect(text).toContain("Kibi certificates: all 3 re-verified");
     expect(text).toContain(
       "- Property facts are consistent: proved (2 of 2 groups have a model)",
     );
@@ -72,7 +72,7 @@ describe("kibi verify report", () => {
         },
       ],
     };
-    expect(verifyExitCode(report)).toBe(1);
+    expect(certificatesExitCode(report)).toBe(1);
     expect(renderVerification(report)).toContain(
       "contradiction: seat.pool.free_seats",
     );
@@ -99,7 +99,7 @@ describe("kibi verify report", () => {
         },
       ],
     };
-    expect(verifyExitCode(report)).toBe(0);
+    expect(certificatesExitCode(report)).toBe(0);
     expect(renderVerification(report)).toContain(
       "unresolved: plan.price.monthly (scope eu): the facts use different units",
     );
@@ -124,11 +124,9 @@ describe("kibi verify report", () => {
         },
       ],
     };
-    expect(verifyExitCode(report)).toBe(1);
+    expect(certificatesExitCode(report)).toBe(1);
     const text = renderVerification(report);
-    expect(text).toContain(
-      "2 certificate problem(s); 2 of 3 certificates re-verified",
-    );
+    expect(text).toContain("2 problem(s); 2 of 3 certificates re-verified");
     expect(text).toContain(
       "- certificate 2 (property_model): model value does not satisfy FACT-SEAT-MAX",
     );
@@ -138,18 +136,20 @@ describe("kibi verify report", () => {
   });
 
   test("a missing or malformed saved bundle fails with a plain message", async () => {
-    const directory = mkdtempSync(path.join(os.tmpdir(), "kibi-verify-test-"));
+    const directory = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-certificates-test-"),
+    );
     const context = { prolog: {} } as unknown as OperationContext;
     try {
       const missing = path.join(directory, "missing.json");
-      await expect(
-        executeVerify({ certificates: missing }, context),
-      ).rejects.toThrow(`verify: no certificate bundle at ${missing}`);
+      await expect(recheckCertificates(missing, context)).rejects.toThrow(
+        `check: no certificate bundle at ${missing}`,
+      );
       const broken = path.join(directory, "broken.json");
       writeFileSync(broken, "{oops");
-      await expect(
-        executeVerify({ certificates: broken }, context),
-      ).rejects.toThrow(`verify: ${broken} is not valid JSON`);
+      await expect(recheckCertificates(broken, context)).rejects.toThrow(
+        `check: ${broken} is not valid JSON`,
+      );
     } finally {
       rmSync(directory, { recursive: true, force: true });
     }

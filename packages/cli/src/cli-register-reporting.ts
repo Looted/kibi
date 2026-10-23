@@ -207,10 +207,22 @@ export function registerReportingCommands(program: Command): void {
     )
     .option("--dry-run", "Do not modify files; only print what would happen")
     .option("--format <format>", "Output format: text|json", "text")
+    .option(
+      "--write-certificates <file>",
+      "Also save the kibi.certificates.v1 bundle the kb-consistency rule re-checked",
+    )
+    .option(
+      "--certificates <file>",
+      "Only re-check a saved kibi.certificates.v1 bundle against the current KB with the independent checker",
+    )
     .action(
       withExitCode(
         async (
-          options: Parameters<typeof checkCommand>[0] & { input?: string },
+          options: Parameters<typeof checkCommand>[0] & {
+            input?: string;
+            writeCertificates?: string;
+            certificates?: string;
+          },
           command: Command,
         ) => {
           if (options.input !== undefined) {
@@ -221,7 +233,40 @@ export function registerReportingCommands(program: Command): void {
             });
             return undefined;
           }
-          return (await import("./commands/check.js")).checkCommand(options);
+          // implements REQ-kibi-kb-certificates
+          if (options.certificates !== undefined) {
+            if (
+              options.writeCertificates !== undefined ||
+              options.staged ||
+              options.rules !== undefined
+            )
+              throw new Error(
+                "check: --certificates only re-checks a saved bundle; it cannot be combined with --write-certificates, --staged or --rules",
+              );
+            return (
+              await import("./commands/check-certificates.js")
+            ).checkCertificatesCommand({
+              certificates: options.certificates,
+              json: options.format === "json",
+            });
+          }
+          if (options.writeCertificates !== undefined && options.staged)
+            throw new Error(
+              "check: --write-certificates saves the full KB's bundle; it cannot be combined with --staged",
+            );
+          const { writeCertificates, ...checkOptions } = options;
+          const result = await (
+            await import("./commands/check.js")
+          ).checkCommand(checkOptions);
+          if (writeCertificates !== undefined) {
+            const saved = await (
+              await import("./commands/check-certificates.js")
+            ).writeCertificates(writeCertificates);
+            process.stderr.write(
+              `Saved ${saved.certificates} certificate(s) to ${saved.path}\n`,
+            );
+          }
+          return result;
         },
       ),
     );

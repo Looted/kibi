@@ -2772,7 +2772,7 @@
       [
         "bun",
         "test",
-        "./packages/cli/tests/commands/verify.test.ts"
+        "./packages/cli/tests/commands/check-certificates.test.ts"
       ],
       [
         "swipl",

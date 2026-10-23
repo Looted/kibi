@@ -383,4 +383,18 @@ export const GENERATED_RULES = [
     enforcementClass: "canonical",
     category: "traceability",
   },
+  {
+    name: "kb-consistency",
+    description:
+      "The facts current requirements name must hold together, jointly and not only pairwise: every property context needs a value that satisfies all its facts, every atom and decision key one truth value, and stored rules a stratification. Each finding is a contradiction certificate (an irreducible core, two disagreeing facts or a negation cycle) re-verified by the independent checker, or a certificate that checker rejects",
+    enforcementClass: "canonical",
+    category: "integrity",
+  },
+  {
+    name: "kb-consistency-unresolved",
+    description:
+      "Advisory: a property context, atom or decision key whose facts the consistency checker cannot compare (mixed value types or units, an unsupported operator or polarity, or a contradiction whose validity windows never overlap); it never counts as consistent",
+    enforcementClass: "advisory",
+    category: "integrity",
+  },
 ] as const;

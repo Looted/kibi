@@ -3,39 +3,6 @@ import { withExitCode } from "./cli-command.js";
 
 // implements REQ-kibi-verification-evidence-contract
 export function registerProofCommand(program: Command): void {
-  // implements REQ-kibi-kb-certificates
-  program
-    .command("verify")
-    .description(
-      "Produce a certificate for every KB theorem (consistent facts, stratified rules) and re-check each one with the independent checker; exits 1 when a certificate is rejected or a theorem is disproved",
-    )
-    .option(
-      "--certificates <file>",
-      "Re-check a saved kibi.certificates.v1 bundle instead of producing one",
-    )
-    .option("--write <file>", "Save the produced certificate bundle")
-    .option("--json", "Emit the kibi.verification.v1 report as JSON", false)
-    .action(
-      withExitCode(
-        async (options: {
-          certificates?: string;
-          write?: string;
-          json?: boolean;
-        }) => {
-          if (options.certificates !== undefined && options.write !== undefined)
-            throw new Error(
-              "verify: --write saves a new bundle; it cannot be combined with --certificates",
-            );
-          return await (await import("./commands/verify.js")).verifyCommand({
-            ...(options.certificates === undefined
-              ? {}
-              : { certificates: options.certificates }),
-            ...(options.write === undefined ? {} : { write: options.write }),
-            json: options.json === true,
-          });
-        },
-      ),
-    );
   program
     .command("prove")
     .description(
