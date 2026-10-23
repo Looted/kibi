@@ -195,3 +195,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8c61136cd94f
+  - type: implements
+    from: SYM-agent-core-decision-flag
+    to: REQ-agent-hosts-decision-guard
+    created_at: 2026-10-23T10:53:12.305Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ad841ad87dd
+  - type: covered_by
+    from: SYM-agent-core-decision-flag
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-10-23T11:01:08.161Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07dc902561eb

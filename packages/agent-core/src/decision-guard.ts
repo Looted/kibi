@@ -162,12 +162,15 @@ export type DecisionSession = {
   sessionId: string | undefined;
 };
 
+// implements REQ-agent-hosts-decision-guard, REQ-kibi-signoff-views
 /** Session markers the decision guard keeps. */
 export type DecisionFlag =
   | "source-edited"
   | "kb-recorded"
   | "rule-prompt"
-  | "capture-asked";
+  | "capture-asked"
+  | "requirement-recorded"
+  | "signoff-asked";
 
 function sessionPath(
   session: DecisionSession,
@@ -278,6 +281,67 @@ export function claimCaptureReminder(session: DecisionSession): boolean {
     !hasDecisionFlag(session, "kb-recorded") &&
     claimDecisionFlag(session, "capture-asked")
   );
+}
+
+// implements REQ-kibi-signoff-views
+/** Where `kibi signoff` keeps the latest view, relative to the workspace. */
+export const SIGNOFF_LATEST_JSON = path.join(
+  ".kb",
+  "briefs",
+  "signoff",
+  "latest.json",
+);
+
+function record(value: unknown): Record<string, unknown> | undefined {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : undefined;
+}
+
+// implements REQ-kibi-signoff-views
+/**
+ * Whether a kb_upsert call's input writes a requirement (not a dry run).
+ * Hosts pass the MCP arguments, sometimes wrapped in `arguments`.
+ */
+export function isRequirementUpsert(toolInput: unknown): boolean {
+  const input = record(toolInput);
+  const args = record(input?.arguments) ?? record(input?.args) ?? input;
+  return args?.type === "req" && args.dryRun !== true;
+}
+
+function mtimeMs(file: string | undefined): number | undefined {
+  if (!file) return undefined;
+  try {
+    return fs.statSync(file).mtimeMs;
+  } catch {
+    return undefined;
+  }
+}
+
+// implements REQ-kibi-signoff-views
+/**
+ * Whether the stop should ask for a signoff view: the session wrote a
+ * requirement, `kibi signoff` has not written a view since, and the session
+ * has not been asked yet (claiming the ask).
+ */
+export function claimSignoffReminder(
+  session: DecisionSession,
+  workspaceRoot: string,
+): boolean {
+  const recorded = mtimeMs(sessionPath(session, "requirement-recorded"));
+  if (recorded === undefined) return false;
+  const shown = mtimeMs(path.join(workspaceRoot, SIGNOFF_LATEST_JSON));
+  if (shown !== undefined && shown >= recorded) return false;
+  return claimDecisionFlag(session, "signoff-asked");
+}
+
+// implements REQ-kibi-signoff-views
+/** Stop-time note for a session that recorded requirements without a signoff view. */
+export function signoffReminder(): string {
+  return [
+    "Kibi: this session recorded or changed requirements, and the person has not seen them as a signoff view.",
+    "Before reporting the work done or asking to commit, run `kibi signoff` and put its output in the reply unchanged; a requirement the agent wrote waits for the person's approval, so ask for it with this view, never in your own words. When replies go through a messaging tool, pass the output there, and attach or publish `.kb/briefs/signoff/latest.html` when the host can show a page (kibi-decisions, resources/signoff-views.md).",
+  ].join("\n");
 }
 
 function readSettled(file: string | undefined): string[] {

@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware operations safely across MCP or the trusted local CLI, including partial completion repair.
-version: 2.21.0
+version: 2.22.0
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -360,7 +360,9 @@ authored. Each one is the order the write path accepts.
 
 Entities record `origin` (`kind`: `human`, `agent`, `migration`, or `import`,
 plus optional `ref` and `approved_by`). `kb_upsert` records `kind: agent` on
-entities you create; leave `origin.approved_by` to the person who reviews them.
+entities you create; leave `origin.approved_by` to the person who reviews them,
+and ask for that review with `kibi signoff` (see `kibi-decisions`), never with
+a summary in your own words.
 An exception (a requirement that `exempts` another) exempts nothing until a
 human sets `approved_by`; `kb_check` flags approvals an agent recorded without
 corroboration. Never fill in an approval yourself. Record why a requirement

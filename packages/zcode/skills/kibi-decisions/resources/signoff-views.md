@@ -8,11 +8,28 @@ requirement text from memory. It is a CLI command, not an MCP tool.
 | Decisions to confirm | `kibi signoff --questions <file or ->` | Mid-work: rules to record as firm, a change to a recorded rule, a conflict |
 | Requirements signoff | `kibi signoff` (`--staged` for the index) | End of work: before asking to commit |
 
-Both print a fenced block by default (`--format md`): ```` ```kibi-questions ````
-or ```` ```kibi-signoff ````. Paste it unchanged. `--format html --open`
-writes and opens a self-contained page; `--format json` prints the view.
-Every run also writes `.kb/briefs/signoff/latest.json`, `latest.md` and
-`latest.html` (git-ignored), which editor plugins show.
+Both print plain Markdown by default (`--format chat`): headings, quoted
+statements and lists that render in any chat or messaging surface. Put it in
+your reply unchanged: never wrap it in a code block, summarize it or retell a
+requirement in your own words. Every run also writes
+`.kb/briefs/signoff/latest.json`, `latest.md` and `latest.html` (git-ignored);
+`latest.html` is a self-contained page with the full view.
+
+## Showing it on your host
+
+| Host | Best view |
+| --- | --- |
+| Claude Code, Codex, Cursor, ZCode, VS Code chat | Paste the default output; `/kibi-signoff` (Claude Code, Cursor, ZCode) runs it. Offer `kibi signoff --format html --open` for the page |
+| OpenCode terminal | `kibi signoff --format md` and paste the fenced block unchanged: kibi-opencode draws it as a card, and `/kibi-signoff` reopens it |
+| Replies sent through a messaging tool (cloud or project threads, chat bots) | Pass the default output as the message text, and attach or publish `.kb/briefs/signoff/latest.html` next to it when the tool can carry a file or a page |
+| VS Code or Cursor with the kibi-vscode extension | The **Kibi: Show Requirements Signoff** panel follows every run |
+| Remote machine, no browser | Give the person the path of `latest.html` |
+
+`--format md` wraps the same Markdown in a ```` ```kibi-signoff ```` or
+```` ```kibi-questions ```` fence for host renderers; use it only where one
+draws it, because everywhere else a fence shows as raw code.
+`KIBI_SIGNOFF_FORMAT` sets the default for a host. `--format html --open`
+writes and opens the page; `--format json` prints the view.
 
 ## Questions input
 

@@ -15,6 +15,7 @@ import {
 import { renderSignoffHtml } from "../signoff/html.js";
 import {
   renderQuestionsMarkdownBody,
+  renderSignoffChatMarkdown,
   renderSignoffMarkdown,
   renderSummaryMarkdownBody,
 } from "../signoff/markdown.js";
@@ -36,15 +37,35 @@ export type SignoffOptions = Readonly<{
   proof?: boolean;
 }>;
 
+// implements REQ-kibi-signoff-views
 export type SignoffCommandDeps = SignoffCollectDeps &
   Readonly<{
     cwd?: () => string;
     readStdin?: () => string;
     write?: (text: string) => void;
+    writeNote?: (text: string) => void;
+    env?: NodeJS.ProcessEnv;
     openReport?: (filePath: string) => Promise<void>;
   }>;
 
-const FORMATS = new Set(["md", "html", "json"]);
+const FORMATS = new Set(["chat", "md", "html", "json"]);
+
+// implements REQ-kibi-signoff-views
+/** Sets the default signoff format for a host (`chat`, `md`, `html`, `json`). */
+export const SIGNOFF_FORMAT_ENV = "KIBI_SIGNOFF_FORMAT";
+
+// implements REQ-kibi-signoff-views
+/**
+ * The format `kibi signoff` prints when `--format` is not given. A fenced
+ * block only helps where a host renderer draws it (the OpenCode TUI, which
+ * sets KIBI_SIGNOFF_FORMAT=md for its shell); every other host renders
+ * assistant or message Markdown directly and shows a fence as code, so the
+ * default is the unfenced `chat` Markdown.
+ */
+export function defaultSignoffFormat(env: NodeJS.ProcessEnv): string {
+  const configured = env[SIGNOFF_FORMAT_ENV]?.trim().toLowerCase();
+  return configured && FORMATS.has(configured) ? configured : "chat";
+}
 
 async function writeAtomically(filePath: string, contents: string) {
   await mkdir(path.dirname(filePath), { recursive: true });
@@ -131,7 +152,7 @@ function readQuestionsSource(
 /**
  * `kibi signoff`: print the requirements signoff view for the current change
  * (or, with `--questions`, the decisions the agent asks the person to
- * confirm) as a fenced Markdown block, HTML or JSON, and keep the latest view
+ * confirm) as chat Markdown, a fenced Markdown block, HTML or JSON, and keep the latest view
  * in `.kb/briefs/signoff/` (latest.json, latest.md, latest.html) for editor
  * plugins.
  */
@@ -139,10 +160,14 @@ export async function signoffCommand(
   options: SignoffOptions,
   deps: SignoffCommandDeps = {},
 ): Promise<SignoffView> {
-  const format = (options.format ?? "md").trim().toLowerCase();
+  const format = (
+    options.format ?? defaultSignoffFormat(deps.env ?? process.env)
+  )
+    .trim()
+    .toLowerCase();
   if (!FORMATS.has(format)) {
     throw new Error(
-      `Unknown signoff format "${options.format}": use md, html or json`,
+      `Unknown signoff format "${options.format}": use chat, md, html or json`,
     );
   }
   const cwd = (deps.cwd ?? (() => process.cwd()))();
@@ -190,6 +215,12 @@ export async function signoffCommand(
     write(`${JSON.stringify(view, null, 2)}\n`);
   } else if (format === "md") {
     write(renderSignoffMarkdown(view));
+  } else if (format === "chat") {
+    write(`${renderSignoffChatMarkdown(view)}\n`);
+    // The page path goes to stderr so stdout stays pasteable as the reply.
+    (deps.writeNote ?? ((text: string) => process.stderr.write(text)))(
+      `Kibi signoff page: ${path.join(cwd, SIGNOFF_LATEST_HTML)} (attach or publish it next to the reply when the host can show a page)\n`,
+    );
   } else {
     const target = options.output?.trim()
       ? path.resolve(cwd, options.output.trim())

@@ -7,16 +7,19 @@ import {
   type DecisionSession,
   captureReminder,
   claimCaptureReminder,
+  claimSignoffReminder,
   confirmFirmEdits,
   firmEditNotice,
   firmRequirementsTouched,
   hasDecisionFlag,
+  isRequirementUpsert,
   markDecisionFlag,
   recordRequest,
   requestWords,
   rulePromptNote,
   settleFirmRequirements,
   settledFirmRequirements,
+  signoffReminder,
 } from "kibi-agent-core/decision-guard";
 import {
   appendHookUsageRows,
@@ -447,6 +450,10 @@ export async function runHook(
           "kb_upsert"
       ) {
         markDecisionFlag(session, "kb-recorded");
+        // implements REQ-kibi-signoff-views
+        if (isRequirementUpsert(input.toolInput)) {
+          markDecisionFlag(session, "requirement-recorded");
+        }
       }
 
       return defaultResult();
@@ -470,6 +477,19 @@ export async function runHook(
         ].join("\n");
         clearDirtyPaths(stateDir);
         return { continue: true, decision: "block", reason };
+      }
+      // implements REQ-kibi-signoff-views
+      // Requirements were written and the person has not seen them as a
+      // signoff view: continue once with the request to show `kibi signoff`.
+      if (
+        !input.stopHookActive &&
+        claimSignoffReminder(session, workspace.root)
+      ) {
+        return {
+          continue: true,
+          decision: "block",
+          reason: signoffReminder(),
+        };
       }
       if (uncheckedSourcePaths.length > 0) {
         clearDirtyPaths(stateDir);

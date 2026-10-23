@@ -6,9 +6,11 @@ import path from "node:path";
 
 import {
   type DecisionSession,
+  SIGNOFF_LATEST_JSON,
   captureReminder,
   claimCaptureReminder,
   claimDecisionFlag,
+  claimSignoffReminder,
   confirmFirmEdits,
   firmEditConfirmation,
   firmEditContext,
@@ -16,12 +18,14 @@ import {
   firmRequirementsTouched,
   hasDecisionFlag,
   holdRuleNote,
+  isRequirementUpsert,
   markDecisionFlag,
   recordRequest,
   requestWords,
   rulePromptNote,
   settleFirmRequirements,
   settledFirmRequirements,
+  signoffReminder,
   statedRule,
   takeRuleNote,
 } from "../src/decision-guard";
@@ -225,6 +229,40 @@ describe("session markers", () => {
     markDecisionFlag(unrecorded, "source-edited");
     expect(claimCaptureReminder(unrecorded)).toBe(true);
     expect(claimCaptureReminder(unrecorded)).toBe(false);
+  });
+
+  test("a requirement write is a kb_upsert of type req that is not a dry run", () => {
+    expect(isRequirementUpsert({ type: "req", id: "REQ-a" })).toBe(true);
+    expect(
+      isRequirementUpsert({ arguments: { type: "req", id: "REQ-a" } }),
+    ).toBe(true);
+    expect(isRequirementUpsert({ type: "req", dryRun: true })).toBe(false);
+    expect(isRequirementUpsert({ type: "symbol" })).toBe(false);
+    expect(isRequirementUpsert(undefined)).toBe(false);
+  });
+
+  test("signoff reminder needs a requirement write newer than the last view, once", () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-guard-root-"));
+    dirs.push(root);
+    const idle = session();
+    expect(claimSignoffReminder(idle, root)).toBe(false);
+
+    const shown = session();
+    markDecisionFlag(shown, "requirement-recorded");
+    const latest = path.join(root, SIGNOFF_LATEST_JSON);
+    fs.mkdirSync(path.dirname(latest), { recursive: true });
+    fs.writeFileSync(latest, "{}");
+    const later = new Date(Date.now() + 60_000);
+    fs.utimesSync(latest, later, later);
+    expect(claimSignoffReminder(shown, root)).toBe(false);
+
+    const unshown = session();
+    markDecisionFlag(unshown, "requirement-recorded");
+    const earlier = new Date(Date.now() - 60_000);
+    fs.utimesSync(latest, earlier, earlier);
+    expect(claimSignoffReminder(unshown, root)).toBe(true);
+    expect(claimSignoffReminder(unshown, root)).toBe(false);
+    expect(signoffReminder()).toContain("run `kibi signoff`");
   });
 
   test("marker writes are best effort when the state directory is unusable", () => {

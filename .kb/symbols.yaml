@@ -56112,3 +56112,579 @@ symbols:
         target: TEST-kibi-signoff-views
       - type: implements
         target: REQ-kibi-signoff-views
+  - id: SYM-agent-core-claim-signoff-reminder
+    title: claimSignoffReminder
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    tags:
+      - agent-core
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:44:18.042Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-agent-core-is-requirement-upsert
+    title: isRequirementUpsert
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    tags:
+      - agent-core
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:44:22.627Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-agent-core-signoff-reminder
+    title: signoffReminder
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    tags:
+      - agent-core
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:44:27.477Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-default-format
+    title: defaultSignoffFormat
+    status: active
+    sourceFile: packages/cli/src/commands/signoff.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:44:32.171Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-render-chat-markdown
+    title: renderSignoffChatMarkdown
+    status: active
+    sourceFile: packages/cli/src/signoff/markdown.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:44:37.612Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-statement-sentence-diff
+    title: statementSentenceDiff
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:44:42.460Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-awaits-approval
+    title: awaitsApproval
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:44:47.206Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-approval-numbers
+    title: approvalNumbers
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:44:51.896Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-approval-sentence
+    title: approvalSentence
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:44:56.232Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-agent-core-confirm-firm-edits-env
+    title: CONFIRM_FIRM_EDITS_ENV
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: config
+    tags:
+      - agent-core
+      - decision-guard
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:51:51.935Z
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-decision-guard
+  - id: SYM-agent-core-signoff-latest-json
+    title: SIGNOFF_LATEST_JSON
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: config
+    tags:
+      - agent
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:51:58.099Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-signoff-format-env
+    title: SIGNOFF_FORMAT_ENV
+    status: active
+    sourceFile: packages/cli/src/commands/signoff.ts
+    symbol_role: config
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:52:02.874Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-signoff-markdown-limit
+    title: SIGNOFF_MARKDOWN_LIMIT
+    status: active
+    sourceFile: packages/cli/src/signoff/markdown.ts
+    symbol_role: config
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:52:09.575Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-brief-dir
+    title: SIGNOFF_BRIEF_DIR
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: config
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:52:14.186Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-change-labels
+    title: SIGNOFF_CHANGE_LABELS
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: config
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:52:19.308Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-fences
+    title: SIGNOFF_FENCES
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: config
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:52:24.172Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-gate-labels
+    title: SIGNOFF_GATE_LABELS
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: config
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:52:28.860Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-latest-html
+    title: SIGNOFF_LATEST_HTML
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: config
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:52:33.682Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-latest-json
+    title: SIGNOFF_LATEST_JSON
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: config
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:52:38.446Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-latest-markdown
+    title: SIGNOFF_LATEST_MARKDOWN
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: config
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:52:43.251Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-version
+    title: SIGNOFF_VERSION
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: config
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:52:48.151Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-agent-core-decision-flag
+    title: DecisionFlag
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: type-shape
+    tags:
+      - agent-core
+      - decision-guard
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:53:11.126Z
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-decision-guard
+  - id: SYM-agent-core-decision-session
+    title: DecisionSession
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: type-shape
+    tags:
+      - agent-core
+      - decision-guard
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:53:16.054Z
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-decision-guard
+  - id: SYM-cli-signoff-signoff-command-deps
+    title: SignoffCommandDeps
+    status: active
+    sourceFile: packages/cli/src/commands/signoff.ts
+    symbol_role: type-shape
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:53:21.615Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-signoff-options
+    title: SignoffOptions
+    status: active
+    sourceFile: packages/cli/src/commands/signoff.ts
+    symbol_role: type-shape
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:53:27.736Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-change
+    title: SignoffChange
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: type-shape
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:53:33.734Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-firmness
+    title: SignoffFirmness
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: type-shape
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:53:38.379Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-proof
+    title: SignoffProof
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: type-shape
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:53:43.288Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-question
+    title: SignoffQuestion
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: type-shape
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:53:48.201Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-question-input
+    title: SignoffQuestionInput
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: type-shape
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:53:53.667Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-questions
+    title: SignoffQuestions
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: type-shape
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:53:58.572Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-requirement
+    title: SignoffRequirement
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: type-shape
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:54:03.367Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-statement-ref
+    title: SignoffStatementRef
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: type-shape
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:54:08.216Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-summary
+    title: SignoffSummary
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: type-shape
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:54:13.275Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-view
+    title: SignoffView
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: type-shape
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:54:18.166Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-statement-sentence
+    title: StatementSentence
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: type-shape
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:54:22.970Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views

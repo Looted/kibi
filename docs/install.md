@@ -658,6 +658,12 @@ milliseconds per tool call. The hard enforcement gate remains the
 `kibi check --staged` git hook installed by `kibi init`. See
 `packages/claude/README.md` for exactly what each hook emits and how often.
 
+Cloud sessions (Claude Code on the web and in the desktop app) load the
+plugin only when the repository enables it: commit `extraKnownMarketplaces`
+for `Looted/kibi` and `"enabledPlugins": {"kibi-claude@kibi": true}` to the
+repository's `.claude/settings.json` (the exact snippet is in
+`packages/claude/README.md`).
+
 ### Optional capability plugins
 
 Builtin classification, ontology matching, and symbol extraction need no plugin configuration. Installing an optional package does not activate it.

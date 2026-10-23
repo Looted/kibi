@@ -635,8 +635,8 @@ skills say when to run it. It reports and never blocks.
 
 **Syntax:**
 ```bash
-kibi signoff [--staged] [--format md|html|json] [--output PATH] [--open] [--no-proof]
-kibi signoff --questions <path|-> [--format md|html|json] [--output PATH] [--open]
+kibi signoff [--staged] [--format chat|md|html|json] [--output PATH] [--open] [--no-proof]
+kibi signoff --questions <path|-> [--format chat|md|html|json] [--output PATH] [--open]
 ```
 
 **Summary view (default):** lists each requirement the change adds, rewrites
@@ -656,25 +656,43 @@ proposed statement and the person's own words. Decisions with an `answer` are
 shown as answered, so the agent can re-render the view as the person replies.
 
 **Output:**
-- `md` (default) prints a fenced `kibi-signoff` or `kibi-questions` Markdown
-  block for the agent to paste into its reply. Long summaries stop after 15
-  entries and point to the HTML page.
+- `chat` (default) prints the view as plain Markdown (headings, quoted
+  statements, lists) for the agent to put in its reply, or in a messaging
+  tool's message when replies go through one. Any Markdown surface renders it.
+  The path of the HTML page goes to stderr, so stdout stays pasteable. Long
+  summaries stop after 15 entries and point to the HTML page.
+- `md` prints the same Markdown inside a fenced `kibi-signoff` or
+  `kibi-questions` block, for hosts whose plugin draws that block (the
+  OpenCode terminal). Elsewhere a fence shows as raw code.
 - `html` writes a self-contained page (no network, strict content security
   policy) and prints its path; `--output` chooses the file and `--open` opens
   it in the default browser.
 - `json` prints the `kibi.signoff.v1` view.
 
+`KIBI_SIGNOFF_FORMAT` (`chat`, `md`, `html` or `json`) sets the default
+format for a host.
+
 Every run also writes `.kb/briefs/signoff/latest.json`, `latest.md` and
-`latest.html`, which `kibi init` already ignores in Git. The Claude Code,
-OpenCode and VS Code integrations read these files or the fenced block:
-Claude Code renders the block as Markdown, OpenCode draws it as a framed card
-and offers `/kibi-signoff`, and VS Code offers a **Kibi: Show Requirements
-Signoff** panel.
+`latest.html`, which `kibi init` already ignores in Git. `latest.html` is a
+self-contained page, so an agent whose host can carry a file or publish a
+page can attach it next to the Markdown. The host integrations build on these
+files:
+
+| Host | What it offers |
+| --- | --- |
+| Claude Code | `/kibi-signoff`; a fenced block still renders as Markdown through the `MessageDisplay` hook |
+| Cursor, ZCode | `/kibi-signoff` |
+| OpenCode | The fenced block (`--format md`) drawn as a framed card, `/kibi-signoff`, and a toast for each new view |
+| VS Code (and Cursor with the extension) | The **Kibi: Show Requirements Signoff** panel |
+| Claude Code, Codex, Cursor, ZCode hooks | After a session writes a requirement, the stop hook asks once for `kibi signoff` unless it already ran since |
 
 **Examples:**
 ```bash
 # Summary of the working tree for the end-of-work signoff
 kibi signoff
+
+# The fenced block for the OpenCode terminal card
+kibi signoff --format md
 
 # Staged change, as a page in the browser
 kibi signoff --staged --format html --open

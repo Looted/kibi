@@ -22,6 +22,7 @@ const requiredPluginFiles = [
   path.join("bin", "mcp-launcher.cjs"),
   path.join("hooks", "hooks.json"),
   path.join("commands", "kibi-bootstrap.md"),
+  path.join("commands", "kibi-signoff.md"),
   path.join("skills", "kibi-usage", "SKILL.md"),
   path.join("skills", "kibi-bootstrap", "SKILL.md"),
   path.join("skills", "kibi-freshness", "SKILL.md"),

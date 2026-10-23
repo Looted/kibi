@@ -1681,6 +1681,18 @@ describe("ZCode decision guard", () => {
     expect(again).not.toContain("recorded nothing in the knowledge base");
   });
 
+  test("Stop asks once for a signoff view after a requirement is written", async () => {
+    const { event } = session();
+    await event({
+      hook_event_name: "PostToolUse",
+      tool_name: "mcp__kibi__kb_upsert",
+      tool_input: { type: "req", id: "REQ-checkout" },
+    });
+    const reminder = expectReminder(await event({ hook_event_name: "Stop" }));
+    expect(reminder).toContain("run `kibi signoff`");
+    expectQuiet(await event({ hook_event_name: "Stop" }));
+  });
+
   test("a kb_upsert keeps Stop from asking for the decision record", async () => {
     const { event, fixture } = session();
     await event({

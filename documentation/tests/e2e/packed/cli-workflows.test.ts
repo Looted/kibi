@@ -391,7 +391,18 @@ export async function verifyRequirementsSignoff(
   assert.match(requirement.statement ?? "", /test requirement/i);
   assert.ok(requirement.proof, "the summary should carry the proof state");
 
-  const markdown = await kibi(sandbox, ["signoff", "--no-proof"]);
+  const chat = await kibi(sandbox, ["signoff", "--no-proof"]);
+  assert.strictEqual(chat.exitCode, 0, chat.stderr);
+  assert.match(chat.stdout, /^## Requirements signoff: 1 new$/m);
+  assert.doesNotMatch(chat.stdout, /```/);
+  assert.match(chat.stderr, /latest\.html/);
+
+  const markdown = await kibi(sandbox, [
+    "signoff",
+    "--no-proof",
+    "--format",
+    "md",
+  ]);
   assert.strictEqual(markdown.exitCode, 0, markdown.stderr);
   assert.match(markdown.stdout, /^```kibi-signoff$/m);
   assert.match(markdown.stdout, /## Requirements signoff: 1 new/);

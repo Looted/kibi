@@ -58,6 +58,7 @@ describe("kibi-zcode ZCode marketplace", () => {
       path.join("hooks", "hooks.json"),
       path.join("bin", "mcp-launcher.cjs"),
       path.join("commands", "kibi-bootstrap.md"),
+      path.join("commands", "kibi-signoff.md"),
       "skills",
     ]) {
       expect(

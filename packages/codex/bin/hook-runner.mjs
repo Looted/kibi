@@ -1302,6 +1302,40 @@ function requestWords(session) {
 function claimCaptureReminder(session) {
   return hasDecisionFlag(session, "source-edited") && !hasDecisionFlag(session, "kb-recorded") && claimDecisionFlag(session, "capture-asked");
 }
+var SIGNOFF_LATEST_JSON = path4.join(".kb", "briefs", "signoff", "latest.json");
+function record(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value) ? value : undefined;
+}
+function isRequirementUpsert(toolInput) {
+  const input = record(toolInput);
+  const args = record(input?.arguments) ?? record(input?.args) ?? input;
+  return args?.type === "req" && args.dryRun !== true;
+}
+function mtimeMs(file) {
+  if (!file)
+    return;
+  try {
+    return fs4.statSync(file).mtimeMs;
+  } catch {
+    return;
+  }
+}
+function claimSignoffReminder(session, workspaceRoot) {
+  const recorded = mtimeMs(sessionPath(session, "requirement-recorded"));
+  if (recorded === undefined)
+    return false;
+  const shown = mtimeMs(path4.join(workspaceRoot, SIGNOFF_LATEST_JSON));
+  if (shown !== undefined && shown >= recorded)
+    return false;
+  return claimDecisionFlag(session, "signoff-asked");
+}
+function signoffReminder() {
+  return [
+    "Kibi: this session recorded or changed requirements, and the person has not seen them as a signoff view.",
+    "Before reporting the work done or asking to commit, run `kibi signoff` and put its output in the reply unchanged; a requirement the agent wrote waits for the person's approval, so ask for it with this view, never in your own words. When replies go through a messaging tool, pass the output there, and attach or publish `.kb/briefs/signoff/latest.html` when the host can show a page (kibi-decisions, resources/signoff-views.md)."
+  ].join(`
+`);
+}
 function readSettled(file) {
   if (!file)
     return [];
@@ -2300,6 +2334,9 @@ async function runHook(rawInput, environment = {}) {
       }
       if (kbToolCall?.toolName === "kb_upsert" || kbUsageTrace(input.toolName, input.toolInput)?.kbOperation === "kb_upsert") {
         markDecisionFlag(session, "kb-recorded");
+        if (isRequirementUpsert(input.toolInput)) {
+          markDecisionFlag(session, "requirement-recorded");
+        }
       }
       return defaultResult();
     }
@@ -2315,6 +2352,13 @@ async function runHook(rawInput, environment = {}) {
 `);
         clearDirtyPaths(stateDir);
         return { continue: true, decision: "block", reason };
+      }
+      if (!input.stopHookActive && claimSignoffReminder(session, workspace.root)) {
+        return {
+          continue: true,
+          decision: "block",
+          reason: signoffReminder()
+        };
       }
       if (uncheckedSourcePaths.length > 0) {
         clearDirtyPaths(stateDir);

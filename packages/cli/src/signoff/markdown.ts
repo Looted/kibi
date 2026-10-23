@@ -6,9 +6,13 @@ import {
   type SignoffRequirement,
   type SignoffSummary,
   type SignoffView,
+  approvalNumbers,
+  approvalSentence,
+  awaitsApproval,
   proofLabel,
   questionKind,
   questionOpen,
+  statementSentenceDiff,
 } from "./model.js";
 
 /** Rows shown in chat before the rest is left to the HTML view. */
@@ -25,6 +29,46 @@ function quote(text: string): string {
   return `> ${text.replace(/\s+/g, " ").trim()}`;
 }
 
+/**
+ * A rewritten statement as lines under a list item: the new statement with
+ * added sentences in bold and removed ones struck through when sentences
+ * survive the rewrite, or the old and new statements otherwise.
+ */
+function rewriteLines(
+  previous: string,
+  statement: string,
+  labels: readonly [string, string] = ["Was", "Now"],
+): string[] {
+  const diff = statementSentenceDiff(previous, statement);
+  if (diff === undefined) {
+    return [
+      `- ${labels[0]}:`,
+      `  ${quote(previous)}`,
+      `- ${labels[1]}:`,
+      `  ${quote(statement)}`,
+    ];
+  }
+  const added = diff.filter((part) => part.change === "added").length;
+  const removed = diff.filter((part) => part.change === "removed").length;
+  const counts = [
+    added > 0 ? `${added} added in bold` : undefined,
+    removed > 0 ? `${removed} removed struck through` : undefined,
+  ].filter(Boolean);
+  const text = diff
+    .map((part) =>
+      part.change === "added"
+        ? `**${part.text}**`
+        : part.change === "removed"
+          ? `~~${part.text}~~`
+          : part.text,
+    )
+    .join(" ");
+  return [
+    `- ${labels[1]}, sentences ${counts.join(", ")}:`,
+    `  ${quote(text)}`,
+  ];
+}
+
 function firmnessTag(firmness: string | undefined): string {
   return firmness === "firm"
     ? "firm"
@@ -39,6 +83,7 @@ function originLine(requirement: SignoffRequirement): string | undefined {
   if (requirement.originRef) parts.push(`"${requirement.originRef}"`);
   if (requirement.approvedBy)
     parts.push(`approved by ${requirement.approvedBy}`);
+  if (awaitsApproval(requirement)) parts.push("**awaiting your approval**");
   return parts.length > 0 ? `- Origin: ${parts.join(", ")}` : undefined;
 }
 
@@ -50,8 +95,9 @@ function requirementBlock(
     `**${number}. ${requirement.id}** · ${firmnessTag(requirement.firmness)} · ${requirement.title}`,
   ];
   if (requirement.previousStatement !== undefined) {
-    lines.push("- Was:", `  ${quote(requirement.previousStatement)}`);
-    lines.push("- Now:", `  ${quote(requirement.statement)}`);
+    lines.push(
+      ...rewriteLines(requirement.previousStatement, requirement.statement),
+    );
   } else {
     lines.push(quote(requirement.statement));
   }
@@ -101,6 +147,13 @@ export function renderSummaryMarkdownBody(
   limit = SIGNOFF_MARKDOWN_LIMIT,
 ): string {
   const lines = [headline(summary)];
+  const approvals = approvalNumbers(
+    CHANGE_ORDER.flatMap((change) =>
+      summary.requirements.filter((row) => row.change === change),
+    ),
+  );
+  if (approvals.length > 0)
+    lines.push("", `**${approvalSentence(approvals)}**`);
   let number = 0;
   for (const change of CHANGE_ORDER) {
     const rows = summary.requirements.filter((row) => row.change === change);
@@ -117,6 +170,12 @@ export function renderSummaryMarkdownBody(
     lines.push(
       "",
       `…and ${hidden} more. Run \`kibi signoff --format html --open\` to see them all.`,
+    );
+  }
+  if (approvals.length > 0) {
+    lines.push(
+      "",
+      'Reply by number, for example "approve 1" or "1: reword …".',
     );
   }
   for (const note of summary.notes) lines.push("", `Note: ${note}`);
@@ -144,10 +203,10 @@ export function renderQuestionsMarkdownBody(view: SignoffQuestions): string {
     );
     if (question.current) {
       lines.push(
-        `- Recorded now (${firmnessTag(question.current.firmness)}):`,
-        `  ${quote(question.current.statement)}`,
-        "- Proposed:",
-        `  ${quote(question.statement)}`,
+        ...rewriteLines(question.current.statement, question.statement, [
+          `Recorded now (${firmnessTag(question.current.firmness)})`,
+          "Proposed",
+        ]),
       );
     } else {
       lines.push(quote(question.statement));
@@ -175,16 +234,25 @@ export function renderQuestionsMarkdownBody(view: SignoffQuestions): string {
 
 // implements REQ-kibi-signoff-views
 /**
+ * A signoff view as plain Markdown for a chat reply or a messaging tool
+ * (headings, quotes and lists that any Markdown surface renders), with no
+ * fence for a host renderer to find.
+ */
+export function renderSignoffChatMarkdown(view: SignoffView): string {
+  return view.kind === "summary"
+    ? renderSummaryMarkdownBody(view)
+    : renderQuestionsMarkdownBody(view);
+}
+
+// implements REQ-kibi-signoff-views
+/**
  * A signoff view as the fenced block agents paste into chat. Host renderers
  * (the Claude Code display hook, the OpenCode TUI) key on the fence's info
- * string; hosts without one show the Markdown inside as plain text.
+ * string; hosts without one show it as a code block, so they get `chat`.
  */
 export function renderSignoffMarkdown(view: SignoffView): string {
   const fence = SIGNOFF_FENCES[view.kind];
-  const body =
-    view.kind === "summary"
-      ? renderSummaryMarkdownBody(view)
-      : renderQuestionsMarkdownBody(view);
+  const body = renderSignoffChatMarkdown(view);
   // A body line starting with ``` would close the fence early.
   const safe = body.replace(/^```/gm, "'''");
   return `\`\`\`${fence}\n${safe}\n\`\`\`\n`;

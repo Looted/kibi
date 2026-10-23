@@ -861,6 +861,26 @@ describe("Codex decision guard", () => {
     expect(stop.decision).toBeUndefined();
     expect(stop.systemMessage).toContain("kb_check(");
   });
+
+  test("Stop continues once with a signoff request after a requirement is written", async () => {
+    const event = session();
+    await event({
+      hook_event_name: "PostToolUse",
+      tool_name: "mcp__kibi__kb_upsert",
+      tool_input: { type: "req", id: "REQ-guards" },
+    });
+    const stop = await event({
+      hook_event_name: "Stop",
+      stop_hook_active: false,
+    });
+    expect(stop).toMatchObject({ continue: true, decision: "block" });
+    expect(stop.reason).toContain("run `kibi signoff`");
+    const again = await event({
+      hook_event_name: "Stop",
+      stop_hook_active: false,
+    });
+    expect(again.decision).toBeUndefined();
+  });
 });
 
 describe("Codex opt-in hook telemetry", () => {

@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: kibi-commit-review
   id: kibi-commit-review
-  version: 1.1.0
+  version: 1.2.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -83,12 +83,15 @@ signing off:
 npx --no-install kibi signoff            # working tree; --staged for the index
 ```
 
-It prints a ```` ```kibi-signoff ```` block listing each new, changed, affected
-and retired requirement with its statement (before and after for a rewrite),
-firmness, origin, scenarios and proof state. Paste it unchanged, then add one
-or two sentences on why the requirements changed. Past 15 requirements, also
-run `kibi signoff --format html --open` (on a remote machine, give the path it
-prints). `--no-proof` skips the proof lookup, which reads coverage and is slow
+It prints Markdown listing each new, changed, affected and retired
+requirement with its statement (before and after for a rewrite), firmness,
+origin, scenarios and proof state. Put it in your reply unchanged (in the
+messaging tool's message when replies go through one), then add one or two
+sentences on why the requirements changed. Offer the full page with
+`kibi signoff --format html --open`, or attach or publish
+`.kb/briefs/signoff/latest.html` when your host can carry a file or a page;
+past 15 requirements the Markdown stops and only the page lists them all.
+Host details: `kibi-decisions`, `resources/signoff-views.md`. `--no-proof` skips the proof lookup, which reads coverage and is slow
 on a large knowledge base. The summary is not an approval: never set
 `approved_by` or `origin.ref` from it.
 

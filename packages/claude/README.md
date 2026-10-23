@@ -31,6 +31,32 @@ macOS; only other platforms need SWI-Prolog 9+ on `PATH` (see the
 The hook runner is committed as a single self-contained file
 (`bin/hook-runner.mjs`), so installs from GitHub work without a build step.
 
+## Requirements signoff
+
+`kibi signoff` prints plain Markdown that Claude Code renders in the reply, and
+`/kibi-signoff` runs it for you. A fenced `kibi-signoff` or `kibi-questions`
+block pasted by an agent on an older skill still renders, through the
+`MessageDisplay` hook below.
+
+In Claude Code on the web, the desktop app and other cloud sessions, the
+plugin loads only when the repository asks for it. Commit this to the
+repository's `.claude/settings.json` so every session there gets the hooks,
+skills and `/kibi-signoff`:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "kibi": { "source": { "source": "github", "repo": "Looted/kibi" } }
+  },
+  "enabledPlugins": { "kibi-claude@kibi": true }
+}
+```
+
+Where the agent's replies go through a messaging tool instead of plain text,
+the skills tell it to pass the Markdown as the message and to attach or
+publish `.kb/briefs/signoff/latest.html`, the self-contained page with the
+full view, when the tool can carry a file or a page.
+
 ## What the agent sees
 
 Output is `additionalContext`, with two exceptions: an edit of code that
@@ -52,7 +78,7 @@ symbols, and the exact call that opens the next layer. Snippets are capped at
 | Before the first `Grep`/`Glob` | One tip that intent questions are answered by `kb_search` | Once per session, and never after the agent has used Kibi |
 | Direct `.kb/` reads or edits | One note that `kb_query`/`kb_upsert` keep the store consistent | Once per session |
 | A reply that contains a `kibi signoff` view (a fenced `kibi-signoff` or `kibi-questions` block) | The `MessageDisplay` hook hides the fence lines on screen, so the requirements summary or the numbered decisions render as headings, quotes and lists instead of a code block. The transcript and the model keep the original text. Set `KIBI_SIGNOFF_DISPLAY=0` to turn this off | Every streamed batch; batches without such a block pass through unchanged |
-| `Stop` | Source files edited without a later impact check, with the exact `kb_check` call, or a no-impact rationale. When the session changed source files and wrote nothing with `kb_upsert`, also asks the agent to record the decision you stated or the change made, or to say there was none | Impact: once per file; a later edit makes the file pending again. Recording: once per session. Respects `stop_hook_active` |
+| `Stop` | Source files edited without a later impact check, with the exact `kb_check` call, or a no-impact rationale. When the session changed source files and wrote nothing with `kb_upsert`, also asks the agent to record the decision you stated or the change made, or to say there was none. When the session wrote a requirement and `kibi signoff` has not run since, asks the agent to show you the signoff view before reporting the work done | Impact: once per file; a later edit makes the file pending again. Recording and signoff: once per session each. Respects `stop_hook_active` |
 
 Unlinked source files, docs, config, and generated or vendored paths get no
 snippet on read.
