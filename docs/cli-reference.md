@@ -857,6 +857,34 @@ Structured JSON output preserves the same two-lane model used by MCP: hard corre
 
 **See also:** [Staged Symbol Traceability](#staged-symbol-traceability) for `--staged` usage details.
 
+## `kibi verify`
+
+Certifies the knowledge-base theorems and re-checks every certificate with
+the independent checker: property facts are consistent, predicate facts are
+consistent, allow/deny decisions are consistent, and stored rules are
+stratified. See [Knowledge-base certificates](./proof-ladder.md#knowledge-base-certificates-kibi-verify)
+for each certificate.
+
+**Behavior:**
+- Produces a `kibi.certificates.v1` bundle (a model or irreducible
+  contradiction core per property context, a truth value per predicate atom,
+  a decision per decision key, a stratum assignment or a negation cycle for
+  the rules), then re-checks it and prints the `kibi.verification.v1` report:
+  one verdict per theorem (`proved`, `disproved`, `unresolved`), any
+  contradiction or unresolved context, and every rejected certificate with
+  the reason.
+- Exits 0 when every certificate re-verifies and no theorem is disproved; an
+  unresolved theorem is reported without failing the run. Exits 1 on a
+  rejected or missing certificate or a disproved theorem.
+- Lists the theorems it does not certify yet (opposing rule pairs, scenario
+  feasibility) under "Not certified yet"; `kibi check` still decides them.
+
+**Flags:**
+- `--write <file>` - Save the produced certificate bundle
+- `--certificates <file>` - Re-check a saved bundle instead of producing one
+  (cannot be combined with `--write`)
+- `--json` - Print the verification report as JSON
+
 ## `kibi doctor`
 
 Verifies environment setup and diagnostics.

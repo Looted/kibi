@@ -171,6 +171,38 @@ Firmness and evidence level are separate axes. Firmness says how sure the
 person is; the level says how strong the evidence is. A firm requirement at
 `asserted` is the gap to close before relying on it.
 
+## Knowledge-base certificates (`kibi verify`)
+
+Evidence levels describe requirements. `kibi verify` covers the knowledge
+base itself: it states a few theorems about the facts current requirements
+name, finds a certificate for each, and re-checks every certificate with a
+separate checker (`certificate_check.pl`) that never searches and never loads
+the code that found the certificate.
+
+| Theorem | Certificate when it holds | Certificate when it fails |
+| --- | --- | --- |
+| `properties_consistent` | A model per subject, property and scope: one value that satisfies every fact (a `forbid` fact counts as its negation) | An irreducible core: facts that admit no value together, with one model per dropped fact to show each is needed |
+| `predicates_consistent` | A truth value per ground atom that every fact agrees with | Two facts that assert and deny the same atom |
+| `decisions_consistent` | One allow or deny per decision key | Two facts with opposite effective decisions |
+| `rules_stratified` | A stratum number per rule predicate: a head is at least its body's stratum, and above it across `not` | A negation cycle: a closed path of rule dependencies with a negated edge |
+
+The property theorem is joint: facts that contradict only together, where
+every pair still admits a value (for example `int >= 0`, `<= 1`, `!= 0`,
+`!= 1`), are a contradiction here even though the pairwise
+`domain-contradictions` rule is silent. A core whose facts are never valid at
+the same time is reported as `property_unresolved`, not as a contradiction.
+A context the checker cannot compare (mixed value types or units, an
+operator other than `eq`/`neq` on a non-numeric value, an unknown polarity)
+is unresolved and needs no certificate; it never counts as consistent.
+
+Each theorem's verdict is `proved`, `disproved` or `unresolved`. The run
+exits 1 when any certificate is rejected or missing, or a theorem is
+disproved. Opposing rule pairs and scenario feasibility are not certified
+yet; the report lists them under `notCovered`, and `kibi check` still
+decides them. Certificates are regenerated on each run and are not
+committed; `--write` saves a bundle and `--certificates` re-checks a saved
+one. CI runs `kibi verify` after `kibi check`.
+
 ## Common failure patterns
 
 | Symptom | Usual cause | Fix |
