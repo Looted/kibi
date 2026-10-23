@@ -635,6 +635,8 @@ Use typed Kibi status and its \`nextActions\` as the workflow contract. Route ge
 
 Keep changed symbols traceable: production code uses \`implements\` (symbol→req) for ownership; test code uses \`executable_for\`; \`covered_by\` is coverage evidence only.
 
+In OpenCode, show signoff with \`kibi signoff --format md\` (or \`--questions - --format md\`) and paste the fenced block unchanged: the terminal draws it as a Kibi card and \`/kibi-signoff\` reopens it.
+
 Dogfood note for this repo: OpenCode here uses local built \`kibi-mcp\` and \`kibi-opencode\` artifacts. If you change package versions or local package wiring, run \`bun run build\` before relying on OpenCode in this workspace.
 
 ${buildKibiBootstrapReference(capability)}`;

@@ -14,7 +14,11 @@ import path from "node:path";
 import { signoffCommand } from "../../src/commands/signoff.js";
 import { parseSignoffQuestionsInput } from "../../src/signoff/collect.js";
 import { renderSignoffHtml } from "../../src/signoff/html.js";
-import { renderSignoffMarkdown } from "../../src/signoff/markdown.js";
+import {
+  renderSignoffChatMarkdown,
+  renderSignoffMarkdown,
+} from "../../src/signoff/markdown.js";
+import { statementSentenceDiff } from "../../src/signoff/model.js";
 import type {
   SignoffProof,
   SignoffSummary,
@@ -329,6 +333,62 @@ describe("kibi signoff summary", () => {
     );
   });
 
+  test("prints chat Markdown by default and names the page on stderr", async () => {
+    writeRequirement(
+      "REQ-refunds-new",
+      requirement("REQ-refunds-new", "Refunds are idempotent."),
+    );
+    const out = capture();
+    const notes = capture();
+    await signoffCommand(
+      { proof: false },
+      {
+        cwd: () => root,
+        now,
+        env: {},
+        write: out.write,
+        writeNote: notes.write,
+        loadAffected: async () => new Map(),
+      },
+    );
+    const text = out.chunks.join("");
+    expect(text.startsWith("## Requirements signoff: 1 new\n")).toBe(true);
+    expect(text).not.toContain("```");
+    expect(text).toContain("> Refunds are idempotent.");
+    expect(notes.chunks.join("")).toContain(
+      path.join(root, ".kb", "briefs", "signoff", "latest.html"),
+    );
+  });
+
+  test("KIBI_SIGNOFF_FORMAT sets the default for a host renderer", async () => {
+    const out = capture();
+    await signoffCommand(
+      { proof: false },
+      {
+        cwd: () => root,
+        now,
+        env: { KIBI_SIGNOFF_FORMAT: "md" },
+        write: out.write,
+        loadAffected: async () => new Map(),
+      },
+    );
+    expect(out.chunks.join("").startsWith("```kibi-signoff\n")).toBe(true);
+
+    const fallback = capture();
+    await signoffCommand(
+      { proof: false },
+      {
+        cwd: () => root,
+        now,
+        env: { KIBI_SIGNOFF_FORMAT: "fancy" },
+        write: fallback.write,
+        writeNote: () => {},
+        loadAffected: async () => new Map(),
+      },
+    );
+    expect(fallback.chunks.join("")).toStartWith("## Requirements signoff");
+  });
+
   test("rejects an unknown format", async () => {
     await expect(
       signoffCommand({ format: "pdf" }, { cwd: () => root }),
@@ -336,11 +396,67 @@ describe("kibi signoff summary", () => {
   });
 });
 
+describe("rewritten statements", () => {
+  const previous =
+    "Refunds are logged. Refunds above 500 EUR need approval. Refunds are idempotent.";
+  const statement =
+    "Refunds are logged. Refunds above 1000 EUR need approval. Refunds are idempotent. Refunds notify the buyer.";
+
+  test("marks the sentences a rewrite adds and removes", () => {
+    expect(statementSentenceDiff(previous, statement)).toEqual([
+      { text: "Refunds are logged.", change: "kept" },
+      { text: "Refunds above 1000 EUR need approval.", change: "added" },
+      { text: "Refunds above 500 EUR need approval.", change: "removed" },
+      { text: "Refunds are idempotent.", change: "kept" },
+      { text: "Refunds notify the buyer.", change: "added" },
+    ]);
+    expect(statementSentenceDiff("Old rule.", "New rule.")).toBeUndefined();
+  });
+
+  test("shows a partial rewrite as one statement with the changes marked", () => {
+    const summary: SignoffSummary = {
+      version: "kibi.signoff.v1",
+      kind: "summary",
+      scope: "working",
+      generatedAt: "2026-10-23T09:00:00.000Z",
+      notes: [],
+      requirements: [
+        {
+          id: "REQ-refunds",
+          title: "Refund rules",
+          change: "changed",
+          status: "open",
+          statement,
+          previousStatement: previous,
+          originKind: "agent",
+          supersedes: [],
+          scenarios: [],
+          symbols: [],
+          source: ".kb/requirements/REQ-refunds.md",
+        },
+      ],
+    };
+    const markdown = renderSignoffChatMarkdown(summary);
+    expect(markdown).toContain(
+      "- Now, sentences 2 added in bold, 1 removed struck through:\n  > Refunds are logged. **Refunds above 1000 EUR need approval.** ~~Refunds above 500 EUR need approval.~~ Refunds are idempotent. **Refunds notify the buyer.**",
+    );
+    expect(markdown).not.toContain("- Was:");
+    expect(markdown).toContain(
+      "**Requirement 1 was written by the agent and waits for your approval.**",
+    );
+    expect(markdown).toContain("- Origin: agent, **awaiting your approval**");
+    const html = renderSignoffHtml(summary);
+    expect(html).toContain("<ins>Refunds notify the buyer.</ins>");
+    expect(html).toContain("awaits your approval</span>");
+    expect(html).toContain("<del>Refunds above 500 EUR need approval.</del>");
+  });
+});
+
 describe("kibi signoff --questions", () => {
   test("numbers the questions and quotes recorded rules from the knowledge base", async () => {
     const out = capture();
     const view = await signoffCommand(
-      { questions: "-" },
+      { questions: "-", format: "md" },
       {
         cwd: () => root,
         now,

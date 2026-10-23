@@ -2733,7 +2733,9 @@
         "bun",
         "test",
         "./packages/claude/tests/signoff-display.test.ts",
-        "./packages/opencode/tests/tui-signoff.test.ts"
+        "./packages/opencode/tests/tui-signoff.test.ts",
+        "./packages/agent-core/tests/decision-guard.test.ts",
+        "./packages/cli/tests/commands/signoff.test.ts"
       ],
       [
         "bun",

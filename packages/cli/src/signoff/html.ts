@@ -12,9 +12,13 @@ import {
   type SignoffRequirement,
   type SignoffSummary,
   type SignoffView,
+  approvalNumbers,
+  approvalSentence,
+  awaitsApproval,
   proofLabel,
   questionKind,
   questionOpen,
+  statementSentenceDiff,
 } from "./model.js";
 
 function escapeHtml(value: unknown): string {
@@ -49,11 +53,15 @@ h2{font-size:16px;margin:28px 0 10px;color:var(--accent)}
 .badge--exploratory{border-color:var(--signal);color:var(--signal)}
 .badge--proven{border-color:var(--ok);color:var(--ok)}
 .badge--answered{border-color:var(--ok);color:var(--ok)}
+.badge--approval{border-color:var(--signal);color:var(--signal);font-weight:600}
+.callout{margin:12px 0 4px;padding:10px 14px;border:1px solid var(--signal);border-radius:8px;color:var(--text)}
 blockquote{margin:10px 0;padding:8px 12px;border-left:3px solid var(--accent);background:rgba(127,127,127,.08);border-radius:0 6px 6px 0}
 .diff{display:grid;gap:6px;margin:10px 0}
 .diff blockquote{margin:0}
 .diff .was{border-left-color:var(--bad);text-decoration:line-through;text-decoration-color:rgba(240,113,120,.6)}
 .diff .now{border-left-color:var(--ok)}
+.diff ins{text-decoration:none;background:rgba(61,186,128,.18);color:var(--text);border-radius:3px;padding:0 2px}
+.diff del{color:var(--muted);text-decoration-color:var(--bad);background:rgba(240,113,120,.12);border-radius:3px;padding:0 2px}
 .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 12px;margin:8px 0 0;font-size:14px}
 dt{color:var(--muted)}
@@ -82,6 +90,19 @@ function statementBlock(
 ): string {
   if (previous === undefined) {
     return `<blockquote>${escapeHtml(statement)}</blockquote>`;
+  }
+  const diff = statementSentenceDiff(previous, statement);
+  if (diff !== undefined) {
+    const text = diff
+      .map((part) =>
+        part.change === "added"
+          ? `<ins>${escapeHtml(part.text)}</ins>`
+          : part.change === "removed"
+            ? `<del>${escapeHtml(part.text)}</del>`
+            : escapeHtml(part.text),
+      )
+      .join(" ");
+    return `<div class="diff"><span class="label">${escapeHtml(currentLabel)}, with the changed sentences marked</span><blockquote class="now">${text}</blockquote></div>`;
   }
   return `<div class="diff"><span class="label">${escapeHtml(previousLabel)}</span><blockquote class="was">${escapeHtml(previous)}</blockquote><span class="label">${escapeHtml(currentLabel)}</span><blockquote class="now">${escapeHtml(statement)}</blockquote></div>`;
 }
@@ -144,7 +165,7 @@ function requirementCard(
     }
   }
   return `<article class="card" id="${escapeHtml(requirement.id)}">
-<div class="card__head"><span class="num">${number}.</span><span class="id">${escapeHtml(requirement.id)}</span>${firmnessBadge(requirement.firmness)}<span class="title">${escapeHtml(requirement.title)}</span></div>
+<div class="card__head"><span class="num">${number}.</span><span class="id">${escapeHtml(requirement.id)}</span>${firmnessBadge(requirement.firmness)}<span class="title">${escapeHtml(requirement.title)}</span>${awaitsApproval(requirement) ? '<span class="badge badge--approval">awaits your approval</span>' : ""}</div>
 ${statementBlock(requirement.statement, requirement.previousStatement)}
 <dl>${details.join("")}</dl>
 </article>`;
@@ -158,6 +179,16 @@ function summaryBody(summary: SignoffSummary): string {
     "retired",
   ];
   const sections: string[] = [];
+  const approvals = approvalNumbers(
+    order.flatMap((change) =>
+      summary.requirements.filter((item) => item.change === change),
+    ),
+  );
+  if (approvals.length > 0) {
+    sections.push(
+      `<p class="callout">${escapeHtml(approvalSentence(approvals))} Reply by number, for example “approve 1”.</p>`,
+    );
+  }
   let number = 0;
   for (const change of order) {
     const rows = summary.requirements.filter((item) => item.change === change);

@@ -304,3 +304,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-768ff1a80de2
+  - type: implements
+    from: SYM-cli-signoff-render-chat-markdown
+    to: REQ-kibi-signoff-views
+    created_at: 2026-10-23T10:44:38.756Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0df1a9285ab1
+  - type: covered_by
+    from: SYM-cli-signoff-render-chat-markdown
+    to: TEST-kibi-signoff-views
+    created_at: 2026-10-23T10:44:38.779Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-127727408f9e

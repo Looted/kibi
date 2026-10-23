@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 // src/hook-runner.ts
-import fs8 from "node:fs";
+import fs9 from "node:fs";
 import os from "node:os";
-import path9 from "node:path";
+import path10 from "node:path";
 import { pathToFileURL } from "node:url";
 import { spawnSync as spawnSync2 } from "node:child_process";
 
@@ -197,6 +197,11 @@ function parseStdinJson(rawInput) {
   const trimmed = rawInput.trim();
   return trimmed.length === 0 ? {} : JSON.parse(trimmed);
 }
+
+// ../agent-core/dist/decision-guard.js
+import { createHash as createHash2 } from "node:crypto";
+import fs5 from "node:fs";
+import path4 from "node:path";
 
 // ../agent-core/dist/requirement-candidates.js
 import fs2 from "node:fs";
@@ -1423,6 +1428,69 @@ function captureReminder(rulePrompt) {
   ].join(`
 `);
 }
+function sessionPath(session, name) {
+  if (!session.stateDir)
+    return;
+  const key = createHash2("sha256").update(session.sessionId?.trim() || "unattributed").digest("hex").slice(0, 32);
+  return path4.join(session.stateDir, "decision-guard", key, name);
+}
+function writeMarker(file, content, flag) {
+  fs5.mkdirSync(path4.dirname(file), { recursive: true });
+  fs5.writeFileSync(file, content, { flag });
+}
+function markDecisionFlag(session, flag) {
+  const file = sessionPath(session, flag);
+  if (!file)
+    return;
+  try {
+    writeMarker(file, "", "w");
+  } catch {}
+}
+function claimDecisionFlag(session, flag) {
+  const file = sessionPath(session, flag);
+  if (!file)
+    return false;
+  try {
+    writeMarker(file, "", "wx");
+    return true;
+  } catch {
+    return false;
+  }
+}
+var SIGNOFF_LATEST_JSON = path4.join(".kb", "briefs", "signoff", "latest.json");
+function record(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value) ? value : undefined;
+}
+function isRequirementUpsert(toolInput) {
+  const input = record(toolInput);
+  const args = record(input?.arguments) ?? record(input?.args) ?? input;
+  return args?.type === "req" && args.dryRun !== true;
+}
+function mtimeMs(file) {
+  if (!file)
+    return;
+  try {
+    return fs5.statSync(file).mtimeMs;
+  } catch {
+    return;
+  }
+}
+function claimSignoffReminder(session, workspaceRoot) {
+  const recorded = mtimeMs(sessionPath(session, "requirement-recorded"));
+  if (recorded === undefined)
+    return false;
+  const shown = mtimeMs(path4.join(workspaceRoot, SIGNOFF_LATEST_JSON));
+  if (shown !== undefined && shown >= recorded)
+    return false;
+  return claimDecisionFlag(session, "signoff-asked");
+}
+function signoffReminder() {
+  return [
+    "Kibi: this session recorded or changed requirements, and the person has not seen them as a signoff view.",
+    "Before reporting the work done or asking to commit, run `kibi signoff` and put its output in the reply unchanged; a requirement the agent wrote waits for the person's approval, so ask for it with this view, never in your own words. When replies go through a messaging tool, pass the output there, and attach or publish `.kb/briefs/signoff/latest.html` when the host can show a page (kibi-decisions, resources/signoff-views.md)."
+  ].join(`
+`);
+}
 
 // ../agent-core/dist/kb-mcp-tools.js
 function isRecord3(value) {
@@ -1548,7 +1616,7 @@ function loadKnowledgeIndex2(workspaceRoot, cacheDir) {
 }
 
 // ../agent-core/dist/path-policy.js
-import path4 from "node:path";
+import path5 from "node:path";
 var codeExtensions = new Set([
   ".c",
   ".cc",
@@ -1644,9 +1712,9 @@ function canonicalizeWorkspacePath(workspaceRoot, options) {
   if (trimmed.length === 0)
     return;
   const base = options.base ?? options.eventCwd ?? workspaceRoot;
-  const absolute = path4.isAbsolute(trimmed) ? path4.resolve(trimmed) : path4.resolve(base, trimmed);
-  const workspaceRelative = path4.relative(workspaceRoot, absolute).replaceAll("\\", "/");
-  if (workspaceRelative.length === 0 || workspaceRelative === ".." || workspaceRelative.startsWith("../") || path4.isAbsolute(workspaceRelative)) {
+  const absolute = path5.isAbsolute(trimmed) ? path5.resolve(trimmed) : path5.resolve(base, trimmed);
+  const workspaceRelative = path5.relative(workspaceRoot, absolute).replaceAll("\\", "/");
+  if (workspaceRelative.length === 0 || workspaceRelative === ".." || workspaceRelative.startsWith("../") || path5.isAbsolute(workspaceRelative)) {
     return;
   }
   return { workspaceRelative, absolute };
@@ -1668,7 +1736,7 @@ function classifyPath(relativePath) {
     return "other";
   }
   const basename = segments.at(-1) ?? "";
-  const extension = path4.extname(basename).toLowerCase();
+  const extension = path5.extname(basename).toLowerCase();
   if (!codeExtensions.has(extension))
     return "other";
   if (testBasename.test(basename) || segments.slice(0, -1).some((segment) => testSegments.has(segment))) {
@@ -1686,22 +1754,22 @@ function classifyPath2(relativePath) {
 }
 
 // src/session-state.ts
-import { createHash as createHash2 } from "node:crypto";
-import fs5 from "node:fs";
-import path5 from "node:path";
+import { createHash as createHash3 } from "node:crypto";
+import fs6 from "node:fs";
+import path6 from "node:path";
 var JOURNAL = "session.jsonl";
 function workspaceDataDir(pluginData, workspaceRoot) {
   if (!pluginData)
     return;
-  const key = createHash2("sha256").update(path5.resolve(workspaceRoot)).digest("hex").slice(0, 32);
-  return path5.join(pluginData, "workspaces", key);
+  const key = createHash3("sha256").update(path6.resolve(workspaceRoot)).digest("hex").slice(0, 32);
+  return path6.join(pluginData, "workspaces", key);
 }
 function sessionDir(workspaceDir, sessionId) {
   if (!workspaceDir)
     return;
   const trimmed = sessionId?.trim() ?? "";
-  const key = trimmed.length > 0 ? createHash2("sha256").update(trimmed).digest("hex").slice(0, 32) : "unattributed";
-  return path5.join(workspaceDir, "sessions", key);
+  const key = trimmed.length > 0 ? createHash3("sha256").update(trimmed).digest("hex").slice(0, 32) : "unattributed";
+  return path6.join(workspaceDir, "sessions", key);
 }
 function emptySessionState() {
   return {
@@ -1789,7 +1857,7 @@ function loadSessionState(dir) {
     return state;
   let journal;
   try {
-    journal = fs5.readFileSync(path5.join(dir, JOURNAL), "utf8");
+    journal = fs6.readFileSync(path6.join(dir, JOURNAL), "utf8");
   } catch {
     return state;
   }
@@ -1807,8 +1875,8 @@ function appendSessionEvents(dir, events) {
   if (!dir || events.length === 0)
     return;
   try {
-    fs5.mkdirSync(dir, { recursive: true });
-    fs5.appendFileSync(path5.join(dir, JOURNAL), events.map((event) => `${JSON.stringify(event)}
+    fs6.mkdirSync(dir, { recursive: true });
+    fs6.appendFileSync(path6.join(dir, JOURNAL), events.map((event) => `${JSON.stringify(event)}
 `).join(""));
   } catch {}
 }
@@ -1841,13 +1909,13 @@ function stopReminder(paths) {
 }
 
 // src/usage-log.ts
-import path7 from "node:path";
+import path8 from "node:path";
 import { fileURLToPath } from "node:url";
 
 // ../agent-core/dist/hook-usage-log.js
 import { randomUUID as randomUUID2 } from "node:crypto";
-import fs6 from "node:fs";
-import path6 from "node:path";
+import fs7 from "node:fs";
+import path7 from "node:path";
 function hookTelemetryEnabled(env = process.env) {
   const value = env.KIBI_DIAGNOSTIC_MODE?.trim().toLowerCase();
   return value === "1" || value === "true";
@@ -1878,15 +1946,15 @@ function appendHookUsage(row, env = process.env) {
     duration_ms: finishedAt.getTime() - row.startedAt.getTime()
   };
   try {
-    const logPath = path6.join(row.workspaceRoot, ".kb", "usage.log");
-    fs6.mkdirSync(path6.dirname(logPath), { recursive: true });
-    fs6.appendFileSync(logPath, `${JSON.stringify(record)}
+    const logPath = path7.join(row.workspaceRoot, ".kb", "usage.log");
+    fs7.mkdirSync(path7.dirname(logPath), { recursive: true });
+    fs7.appendFileSync(logPath, `${JSON.stringify(record)}
 `, "utf8");
   } catch {}
 }
 function readPackageVersion(packageJsonPath) {
   try {
-    const parsed = JSON.parse(fs6.readFileSync(packageJsonPath, "utf8"));
+    const parsed = JSON.parse(fs7.readFileSync(packageJsonPath, "utf8"));
     if (typeof parsed === "object" && parsed !== null && "version" in parsed && typeof parsed.version === "string") {
       return parsed.version;
     }
@@ -1899,7 +1967,7 @@ var cachedPluginVersion;
 function pluginVersion() {
   if (cachedPluginVersion !== undefined)
     return cachedPluginVersion;
-  cachedPluginVersion = readPackageVersion(path7.join(path7.dirname(fileURLToPath(import.meta.url)), "..", "package.json"));
+  cachedPluginVersion = readPackageVersion(path8.join(path8.dirname(fileURLToPath(import.meta.url)), "..", "package.json"));
   return cachedPluginVersion;
 }
 function appendHookUsage2(row, env = process.env) {
@@ -1909,22 +1977,22 @@ function appendHookUsage2(row, env = process.env) {
 }
 
 // src/workspace-optin.ts
-import fs7 from "node:fs";
-import path8 from "node:path";
+import fs8 from "node:fs";
+import path9 from "node:path";
 var KIBI_WORKSPACE_ENV_KEYS = [
   "KIBI_WORKSPACE",
   "KIBI_PROJECT_ROOT",
   "KIBI_ROOT"
 ];
 function nextAncestorDirectory(current) {
-  const parent = path8.dirname(current);
+  const parent = path9.dirname(current);
   return parent === current ? undefined : parent;
 }
 function hasKibiManifest(directory) {
-  return fs7.existsSync(path8.join(directory, ".kb", "manifest.json"));
+  return fs8.existsSync(path9.join(directory, ".kb", "manifest.json"));
 }
 function hasGitBoundary(directory) {
-  return fs7.existsSync(path8.join(directory, ".git"));
+  return fs8.existsSync(path9.join(directory, ".git"));
 }
 function resolutionFor(root) {
   return { root, optedIn: hasKibiManifest(root) };
@@ -1933,10 +2001,10 @@ function resolveKibiWorkspace(startDir, env = process.env) {
   for (const key of KIBI_WORKSPACE_ENV_KEYS) {
     const value = env[key]?.trim();
     if (value) {
-      return resolutionFor(path8.resolve(value));
+      return resolutionFor(path9.resolve(value));
     }
   }
-  let current = path8.resolve(startDir && startDir.trim().length > 0 ? startDir : process.cwd());
+  let current = path9.resolve(startDir && startDir.trim().length > 0 ? startDir : process.cwd());
   while (current !== undefined) {
     if (hasKibiManifest(current)) {
       return { root: current, optedIn: true };
@@ -1946,7 +2014,7 @@ function resolveKibiWorkspace(startDir, env = process.env) {
     }
     current = nextAncestorDirectory(current);
   }
-  return resolutionFor(path8.resolve(startDir ?? process.cwd()));
+  return resolutionFor(path9.resolve(startDir ?? process.cwd()));
 }
 
 // src/hook-runner.ts
@@ -2317,9 +2385,9 @@ function recordKbUsage(usage, workspace, events) {
 }
 function hasKibiPreCommitGate(workspaceRoot) {
   const resolved = spawnSync2("git", ["rev-parse", "--git-path", "hooks/pre-commit"], { cwd: workspaceRoot, encoding: "utf8", timeout: 2000 });
-  const hookPath = resolved.status === 0 && resolved.stdout.trim().length > 0 ? path9.resolve(workspaceRoot, resolved.stdout.trim()) : path9.join(workspaceRoot, ".git", "hooks", "pre-commit");
+  const hookPath = resolved.status === 0 && resolved.stdout.trim().length > 0 ? path10.resolve(workspaceRoot, resolved.stdout.trim()) : path10.join(workspaceRoot, ".git", "hooks", "pre-commit");
   try {
-    return /kibi[^\n]*\bcheck\b/.test(fs8.readFileSync(hookPath, "utf8"));
+    return /kibi[^\n]*\bcheck\b/.test(fs9.readFileSync(hookPath, "utf8"));
   } catch {
     return false;
   }
@@ -2365,6 +2433,9 @@ function postToolUse(input, workspace, trace = {}) {
     const usage = extractMcpKbUsage(toolName, input.toolInput);
     if (usage)
       recordUsage(usage);
+    if (usage?.operation === "kb_upsert" && isRequirementUpsert(input.toolInput)) {
+      markDecisionFlag({ stateDir: workspace.stateDir, sessionId: input.sessionId }, "requirement-recorded");
+    }
   }
   appendSessionEvents(workspace.stateDir, events);
   return {};
@@ -2375,7 +2446,8 @@ function stop(input, workspace, trace = {}) {
   const state = loadSessionState(workspace.stateDir);
   const unreminded = state.pendingSource.filter((pending) => !state.reminded.has(pending));
   const capture = state.sourceEdited && !state.kbRecorded && !state.notices.has("capture-stop");
-  if (unreminded.length === 0 && !capture)
+  const signoff = !capture && claimSignoffReminder({ stateDir: workspace.stateDir, sessionId: input.sessionId }, workspace.root);
+  if (unreminded.length === 0 && !capture && !signoff)
     return {};
   const events = [];
   const parts = [];
@@ -2383,12 +2455,14 @@ function stop(input, workspace, trace = {}) {
     events.push({ kind: "notice", name: "capture-stop" });
     parts.push(captureReminder(state.rulePrompt));
   }
+  if (signoff)
+    parts.push(signoffReminder());
   if (unreminded.length > 0) {
     events.push({ kind: "reminded", paths: unreminded });
     parts.push(stopReminder(unreminded));
   }
   appendSessionEvents(workspace.stateDir, events);
-  trace.action = capture ? "stop_capture_reminder" : "stop_reminder";
+  trace.action = capture ? "stop_capture_reminder" : signoff ? "stop_signoff_reminder" : "stop_reminder";
   trace.kbUsedBefore = state.kbUsed;
   return context("Stop", parts.join(`
 `));
@@ -2413,7 +2487,7 @@ function userPromptSubmit(input, workspace, trace) {
 async function runHook(rawInput, environment = {}) {
   const startedAt = new Date;
   const input = parseHookInput(rawInput);
-  const pluginData = environment.pluginData ?? process.env.CLAUDE_PLUGIN_DATA ?? path9.join(os.tmpdir(), `kibi-claude-${process.getuid?.() ?? "user"}`);
+  const pluginData = environment.pluginData ?? process.env.CLAUDE_PLUGIN_DATA ?? path10.join(os.tmpdir(), `kibi-claude-${process.getuid?.() ?? "user"}`);
   const projectDir = environment.projectDir ?? process.env.CLAUDE_PROJECT_DIR;
   const resolved = resolveKibiWorkspace(input.cwd ?? projectDir ?? process.cwd());
   if (!resolved.optedIn)
@@ -2469,7 +2543,7 @@ async function main() {
 `);
 }
 function isInvokedAsCli(argv1, moduleUrl) {
-  const invokedPath = argv1 ? pathToFileURL(path9.resolve(argv1)).href : "";
+  const invokedPath = argv1 ? pathToFileURL(path10.resolve(argv1)).href : "";
   return moduleUrl === invokedPath;
 }
 async function runHookCli() {

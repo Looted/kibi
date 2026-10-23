@@ -7,15 +7,18 @@ import {
   type DecisionSession,
   captureReminder,
   claimCaptureReminder,
+  claimSignoffReminder,
   confirmFirmEdits,
   firmEditNotice,
   firmRequirementsTouched,
   hasDecisionFlag,
+  isRequirementUpsert,
   markDecisionFlag,
   recordRequest,
   rulePromptNote,
   settleFirmRequirements,
   settledFirmRequirements,
+  signoffReminder,
 } from "kibi-agent-core/decision-guard";
 import {
   appendHookUsageRows,
@@ -473,6 +476,10 @@ export async function runHook(
           "kb_upsert"
       ) {
         markDecisionFlag(session, "kb-recorded");
+        // implements REQ-kibi-signoff-views
+        if (isRequirementUpsert(input.toolInput)) {
+          markDecisionFlag(session, "requirement-recorded");
+        }
       }
 
       return defaultResult();
@@ -489,12 +496,23 @@ export async function runHook(
       const capture = claimCaptureReminder(session)
         ? captureReminder(hasDecisionFlag(session, "rule-prompt"))
         : undefined;
-      if (capture !== undefined || uncheckedSourcePaths.length > 0) {
+      // implements REQ-kibi-signoff-views
+      // Requirements were written without a signoff view since: ask once.
+      const signoff =
+        capture === undefined && claimSignoffReminder(session, workspace.root)
+          ? signoffReminder()
+          : undefined;
+      if (
+        capture !== undefined ||
+        signoff !== undefined ||
+        uncheckedSourcePaths.length > 0
+      ) {
         clearDirtyPaths(stateDir);
         return contextResult(
           input.event,
           [
             capture,
+            signoff,
             uncheckedSourcePaths.length > 0
               ? impactCheckReminder(uncheckedSourcePaths)
               : undefined,

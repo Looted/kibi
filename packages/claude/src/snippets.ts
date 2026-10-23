@@ -10,9 +10,13 @@
 
 export {
   captureReminder,
+  claimSignoffReminder,
   firmEditConfirmation,
   firmEditContext,
+  isRequirementUpsert,
+  markDecisionFlag,
   rulePromptNote,
+  signoffReminder,
   statedRule,
 } from "kibi-agent-core/decision-guard";
 export {
