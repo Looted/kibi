@@ -22,18 +22,18 @@ afterEach(() => {
   }
 });
 
-function provenBaseline(status: "proven" | "missing") {
+function provenBaseline(status: "tested" | "missing") {
   return {
-    version: "kibi.proof-baseline.v2",
+    version: "kibi.proof-baseline.v3",
     mode: "ratchet",
     currentRequirements: 1,
-    proofProven: status === "proven" ? 1 : 0,
-    currentUnproven: status === "proven" ? 0 : 1,
+    proofTested: status === "tested" ? 1 : 0,
+    currentUntested: status === "tested" ? 0 : 1,
     trackedGaps: {},
     requirements: {
       "REQ-A": {
         proofStatus: status,
-        gaps: status === "proven" ? [] : ["missing_production_symbol_coverage"],
+        gaps: status === "tested" ? [] : ["missing_production_symbol_coverage"],
         uncoveredSymbols: [],
       },
     },
@@ -45,7 +45,7 @@ function missingCoverage() {
     summary: {
       total: 1,
       proofNotApplicable: 0,
-      proofProven: 0,
+      proofTested: 0,
       proofMissing: 1,
       proofUnresolved: 0,
     },
@@ -67,14 +67,14 @@ function provenCoverage() {
     summary: {
       total: 1,
       proofNotApplicable: 0,
-      proofProven: 1,
+      proofTested: 1,
       proofMissing: 0,
       proofUnresolved: 0,
     },
     rows: [
       {
         id: "REQ-A",
-        proofStatus: "proven",
+        proofStatus: "tested",
         proofGaps: [],
         proofStages: {
           productionSymbols: { uncoveredSymbols: [] },
@@ -97,7 +97,7 @@ function createGitRepo(): string {
   return dir;
 }
 
-function writeBaseline(dir: string, status: "proven" | "missing" | "raw") {
+function writeBaseline(dir: string, status: "tested" | "missing" | "raw") {
   mkdirSync(join(dir, "proof"), { recursive: true });
   const path = join(dir, COMMITTED_BASELINE_PATH);
   if (status === "raw") {
@@ -124,10 +124,10 @@ describe("proof impact vs committed baseline", () => {
   test("names committed proof/baseline.json as the comparison target", () => {
     const { result, rows } = buildProofImpact(
       {
-        version: "kibi.proof-baseline.v2",
+        version: "kibi.proof-baseline.v3",
         requirements: {
           "REQ-A": {
-            proofStatus: "proven",
+            proofStatus: "tested",
             gaps: [],
             uncoveredSymbols: [],
           },
@@ -140,19 +140,19 @@ describe("proof impact vs committed baseline", () => {
     expect(result.changes[0]?.id).toBe("REQ-A");
     const text = renderProofImpact(result, rows);
     expect(text).toContain("committed proof/baseline.json");
-    expect(text).toContain("REQ-A: proven -> missing");
+    expect(text).toContain("REQ-A: tested -> missing");
     expect(text).not.toContain("Git HEAD");
     expect(text).not.toContain("worktree");
   });
 
   test("reads HEAD:proof/baseline.json even when the worktree baseline was edited", async () => {
     const dir = createGitRepo();
-    writeBaseline(dir, "proven");
+    writeBaseline(dir, "tested");
     commitBaseline(dir, "committed proven baseline");
     writeBaseline(dir, "missing");
 
     const baseline = await loadCommittedBaseline(dir);
-    expect(baseline.requirements?.["REQ-A"]?.proofStatus).toBe("proven");
+    expect(baseline.requirements?.["REQ-A"]?.proofStatus).toBe("tested");
 
     const { result, text } = await executeProofImpact(stubContext(dir), {
       loadCoverage: async () => ({ structuredContent: missingCoverage() }),
@@ -161,11 +161,11 @@ describe("proof impact vs committed baseline", () => {
       expect.objectContaining({
         id: "REQ-A",
         kind: "changed",
-        before: expect.objectContaining({ proofStatus: "proven" }),
+        before: expect.objectContaining({ proofStatus: "tested" }),
         after: expect.objectContaining({ proofStatus: "missing" }),
       }),
     ]);
-    expect(text).toContain("REQ-A: proven -> missing");
+    expect(text).toContain("REQ-A: tested -> missing");
   });
 
   test("fails when HEAD:proof/baseline.json is missing", async () => {
@@ -190,7 +190,7 @@ describe("proof impact vs committed baseline", () => {
   test("fails when the workspace is not a Git repository", async () => {
     const dir = mkdtempSync(join(tmpdir(), "kibi-proof-impact-nongit-"));
     tempDirs.push(dir);
-    writeBaseline(dir, "proven");
+    writeBaseline(dir, "tested");
     await expect(loadCommittedBaseline(dir)).rejects.toThrow(
       /not in a suitable Git state/,
     );
@@ -198,7 +198,7 @@ describe("proof impact vs committed baseline", () => {
 
   test("exits 0 for no change, improvements, and regressions", () => {
     const unchanged = buildProofImpact(
-      provenBaseline("proven"),
+      provenBaseline("tested"),
       provenCoverage(),
     ).result;
     const improved = buildProofImpact(
@@ -206,7 +206,7 @@ describe("proof impact vs committed baseline", () => {
       provenCoverage(),
     ).result;
     const regressed = buildProofImpact(
-      provenBaseline("proven"),
+      provenBaseline("tested"),
       missingCoverage(),
     ).result;
     expect(unchanged.changes).toHaveLength(0);
@@ -214,13 +214,13 @@ describe("proof impact vs committed baseline", () => {
       expect.objectContaining({
         id: "REQ-A",
         before: expect.objectContaining({ proofStatus: "missing" }),
-        after: expect.objectContaining({ proofStatus: "proven" }),
+        after: expect.objectContaining({ proofStatus: "tested" }),
       }),
     );
     expect(regressed.changes[0]).toEqual(
       expect.objectContaining({
         id: "REQ-A",
-        before: expect.objectContaining({ proofStatus: "proven" }),
+        before: expect.objectContaining({ proofStatus: "tested" }),
         after: expect.objectContaining({ proofStatus: "missing" }),
       }),
     );

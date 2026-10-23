@@ -125,7 +125,7 @@ describe("proof impact command wrapper", () => {
   test("writes the impact result as JSON in json mode", async () => {
     const closes: CloseCall[] = [];
     fakeRuntime(closes);
-    const result = { requirements: 104, proven: 66, changes: [] };
+    const result = { requirements: 104, tested: 66, changes: [] };
     const operation = spyOn(impact, "executeProofImpact").mockResolvedValue({
       result,
       text: "impact-text",
@@ -148,7 +148,7 @@ describe("proof impact command wrapper", () => {
     const operation = spyOn(impact, "executeProofImpact").mockResolvedValue({
       result: {
         requirements: 104,
-        proven: 65,
+        tested: 65,
         changes: [{ requirement: "REQ-EXAMPLE", kind: "regressed" }],
       },
       text: "impact-text-with-changes",
@@ -169,7 +169,7 @@ describe("proof impact command wrapper", () => {
     const closes: CloseCall[] = [];
     fakeRuntime(closes);
     const operation = spyOn(impact, "executeProofImpact").mockResolvedValue({
-      result: { requirements: 104, proven: 66, changes: [] },
+      result: { requirements: 104, tested: 66, changes: [] },
       text: "impact-text",
     } as never);
     restores.push(() => operation.mockRestore());

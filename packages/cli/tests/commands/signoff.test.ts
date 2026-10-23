@@ -154,7 +154,7 @@ describe("kibi signoff summary", () => {
       ],
       [
         "REQ-refunds-audit",
-        { status: "proven", gate: "proven", testCount: 2, contradictions: [] },
+        { status: "tested", gate: "tested", testCount: 2, contradictions: [] },
       ],
       [
         "REQ-refunds-currency",
@@ -225,7 +225,7 @@ describe("kibi signoff summary", () => {
     );
     expect(markdown).toContain("- Changed code: auditRefund, writeAudit");
     expect(markdown).toContain("- Proof: no end-to-end test yet, 1 test");
-    expect(markdown).toContain("- Proof: proven, 2 tests");
+    expect(markdown).toContain("- Proof: tested, 2 tests");
     expect(markdown).toContain(
       "- Contradiction: Refund currency conflicts with REQ-x.",
     );
@@ -297,8 +297,8 @@ describe("kibi signoff summary", () => {
             [
               "REQ-other",
               {
-                status: "proven",
-                gate: "proven",
+                status: "tested",
+                gate: "tested",
                 testCount: 1,
                 contradictions: [],
               },

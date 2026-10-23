@@ -2423,8 +2423,8 @@ describe("apply plan source recovery and migration", () => {
             structuredContent: {
               summary:
                 input.by === "symbol"
-                  ? { proofProven: 1, proofMissing: 2 }
-                  : { proofProven: 3, proofMissing: 0 },
+                  ? { proofTested: 1, proofMissing: 2 }
+                  : { proofTested: 3, proofMissing: 0 },
               rows: [],
               migrationPlan: remaining,
             },
@@ -2509,7 +2509,7 @@ describe("apply plan source recovery and migration", () => {
       ).toMatchObject({
         kbState: "clean_fresh",
         snapshotState: "fresh",
-        proofState: "proven",
+        proofState: "tested",
       });
     });
 
@@ -2657,7 +2657,7 @@ describe("apply plan source recovery and migration", () => {
           statusSpy.mockRestore();
         }
       };
-      const mixed = await applyWithSummary({ proofProven: 2, proofMissing: 1 });
+      const mixed = await applyWithSummary({ proofTested: 2, proofMissing: 1 });
       expect(
         (
           mixed.structuredContent as unknown as {
@@ -2666,7 +2666,7 @@ describe("apply plan source recovery and migration", () => {
         ).closeout.proofState,
       ).toBe("mixed");
       const unresolved = await applyWithSummary({
-        proofProven: 0,
+        proofTested: 0,
         proofMissing: 4,
       });
       expect(

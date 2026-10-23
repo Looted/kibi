@@ -162,8 +162,8 @@ Unit-scope fixture that satisfies structure but never E2E proof.
           assert.ok(row, "coverage must include the fixture requirement row");
           assert.notStrictEqual(
             row.proofStatus,
-            "proven",
-            "a unit-only chain must never report proven",
+            "tested",
+            "a unit-only chain must never report tested",
           );
           assert.ok(
             (row.proofGaps ?? []).length > 0,

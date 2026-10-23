@@ -345,7 +345,7 @@ describe("deriveDiagnosticFields", () => {
       null,
       {
         structuredContent: {
-          summary: { total: 2, proofProven: 1, proofMissing: 1 },
+          summary: { total: 2, proofTested: 1, proofMissing: 1 },
           rows: [
             { id: "REQ-1", proofGaps: [] },
             {
@@ -367,7 +367,7 @@ describe("deriveDiagnosticFields", () => {
     expect(result).toMatchObject({
       coverage_by: "req",
       coverage_requirement_count: 2,
-      coverage_proven_count: 1,
+      coverage_tested_count: 1,
       coverage_proof_missing_count: 1,
       coverage_proof_gap_count: 2,
       coverage_receipt_gap_count: 1,
@@ -375,7 +375,7 @@ describe("deriveDiagnosticFields", () => {
       coverage_receipt_gaps_truncated: false,
       coverage_scope_complete: true,
       coverage_proof_snapshot: "c".repeat(64),
-      result_summary: "1 proven; 2 proof gaps",
+      result_summary: "1 tested; 2 proof gaps",
     });
     expect(result.coverage_gap_codes).toEqual([
       "missing_logic_grounding",

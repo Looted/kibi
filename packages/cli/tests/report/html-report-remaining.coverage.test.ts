@@ -28,7 +28,7 @@ describe("renderHtmlReport leftover evidence and term branches", () => {
         summary: {
           total: -3,
           proofNotApplicable: Number.NaN,
-          proofProven: -1,
+          proofTested: -1,
         },
         meta: { branch: "develop", dirty: true },
         rows: [
@@ -231,7 +231,7 @@ describe("renderHtmlReport leftover evidence and term branches", () => {
 
   test("earliestUnmetGate returns proven when every listed gate already passes", () => {
     restores.push(isolateKibiEnv());
-    expect(earliestUnmetGate({ proofStatus: "proven" })).toBe("proven");
+    expect(earliestUnmetGate({ proofStatus: "tested" })).toBe("tested");
     const allPassed = {
       proofStatus: "missing",
       proofStages: {
@@ -250,7 +250,7 @@ describe("renderHtmlReport leftover evidence and term branches", () => {
         passingE2e: { status: "passed" },
       },
     };
-    expect(["proven", "evidence", "e2e", "implementation"]).toContain(
+    expect(["tested", "evidence", "e2e", "implementation"]).toContain(
       earliestUnmetGate(allPassed),
     );
     expect(
@@ -258,7 +258,7 @@ describe("renderHtmlReport leftover evidence and term branches", () => {
         ["semantic", "scenario", "implementation", "e2e", "evidence"],
         () => true,
       ),
-    ).toBe("proven");
+    ).toBe("tested");
     expect(
       firstFailingProofGate(["semantic", "e2e"], (gate) => gate !== "e2e"),
     ).toBe("e2e");

@@ -83,14 +83,14 @@ describe("shared reporting operation executors", () => {
 
   test("coverageSpec.execute preserves passing and transitive defaults", async () => {
     const { context, query } = contextWithPayload({
-      summary: { total: 2, fullyCovered: 1, proofProven: 0 },
+      summary: { total: 2, fullyCovered: 1, proofTested: 0 },
       rows: [],
     });
 
     const result = await coverageSpec.execute({}, context);
 
     expect(result.content[0]?.text).toBe(
-      "Coverage summary: 1 structurally covered and 0 proven out of 2.",
+      "Coverage summary: 1 structurally covered and 0 tested end to end out of 2.",
     );
     // The default 100-row request is read in bounded pages; the first page
     // carries every other argument unchanged.
@@ -109,7 +109,7 @@ describe("shared reporting operation executors", () => {
 
   test("coverageSpec.execute refuses to turn an unavailable snapshot into proof", async () => {
     const { context, query } = contextWithPayload({
-      summary: { total: 1, fullyCovered: 1, proofProven: 0 },
+      summary: { total: 1, fullyCovered: 1, proofTested: 0 },
       rows: [],
     });
     const withoutSnapshot = { ...context, git: undefined };
@@ -132,7 +132,7 @@ describe("shared reporting operation executors", () => {
       summary: {
         total: 1,
         fullyCovered: 0,
-        proofProven: 0,
+        proofTested: 0,
         proofMissing: 1,
         proofUnresolved: 0,
       },

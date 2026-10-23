@@ -204,7 +204,7 @@ export async function verifyHtmlRequirementHealthReport(
     /Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'"/,
   );
   assert.match(html, /current requirements/);
-  assert.match(html, /Strict proof coverage/);
+  assert.match(html, /Tested end to end/);
   assert.match(html, /rel="icon" type="image\/svg\+xml"/);
   assert.match(html, /data:image\/svg\+xml;utf8,/);
   assert.match(html, /Test requirement/);
@@ -224,24 +224,24 @@ export async function verifyHtmlRequirementHealthReport(
   );
 
   const ratio = html.match(
-    /aria-label="(\d+)% strict proof coverage, ([\d,]+) of ([\d,]+) current requirements fully proven end-to-end"/,
+    /aria-label="(\d+)% tested end to end, ([\d,]+) of ([\d,]+) current requirements fully tested end-to-end"/,
   );
   assert.ok(
     ratio,
     "report should expose its exact proof ratio to assistive technology",
   );
   const percent = Number(ratio[1]);
-  const proven = Number(ratio[2]?.replaceAll(",", ""));
+  const tested = Number(ratio[2]?.replaceAll(",", ""));
   const current = Number(ratio[3]?.replaceAll(",", ""));
   assert.strictEqual(
     percent,
-    current === 0 ? 0 : Math.round((proven / current) * 100),
+    current === 0 ? 0 : Math.round((tested / current) * 100),
   );
   assert.match(html, new RegExp(`>${percent}<span>%<\\/span>`));
   assert.match(
     html,
     new RegExp(
-      `${proven.toLocaleString("en-US")} of ${current.toLocaleString("en-US")} current requirements fully proven end-to-end`,
+      `${tested.toLocaleString("en-US")} of ${current.toLocaleString("en-US")} current requirements fully tested end-to-end`,
     ),
   );
 
@@ -283,7 +283,7 @@ export async function verifyHtmlRequirementHealthReport(
     return total + Number(count?.replaceAll(",", "") ?? 0);
   }, 0);
   assert.strictEqual(blocked, current - (gates.at(-1)?.remaining ?? 0));
-  assert.strictEqual(gates.at(-1)?.remaining, proven);
+  assert.strictEqual(gates.at(-1)?.remaining, tested);
   assert.match(
     html,
     /Counts are sequential\. Each drop is the earliest unmet gate/,
@@ -359,6 +359,110 @@ export async function verifyHtmlRequirementHealthReport(
   );
 
   console.log("  ✓ HTML requirement health report generated");
+}
+
+/**
+ * Every requirement reports how strong its evidence is, and no surface calls
+ * passing end-to-end tests "proven".
+ */
+export async function verifyEvidenceLevels(
+  sandbox: TestSandbox,
+): Promise<void> {
+  const coverage = await kibi(
+    sandbox,
+    ["coverage", "--by", "req", "--include-passing", "--format", "json"],
+    { timeoutMs: 120000 },
+  );
+  assert.strictEqual(
+    coverage.exitCode,
+    0,
+    `coverage should succeed. Output: ${coverage.stdout}${coverage.stderr}`,
+  );
+  const report = JSON.parse(coverage.stdout) as {
+    summary?: Record<string, unknown>;
+    rows?: {
+      id?: string;
+      proofVersion?: string;
+      proofStatus?: string;
+      evidenceLevel?: string;
+      evidence?: { kind?: string; scope?: string; level?: string }[];
+    }[];
+  };
+  const levels = ["proved", "tested", "asserted", "unverified"];
+  const rows = report.rows ?? [];
+  assert.ok(rows.length > 0, "coverage should list the sandbox requirement");
+  for (const row of rows) {
+    assert.strictEqual(row.proofVersion, "kibi.requirement-proof.v4");
+    assert.notStrictEqual(row.proofStatus, "proven");
+    assert.ok(
+      levels.includes(row.evidenceLevel ?? ""),
+      `${row.id} should carry an evidence level, got ${row.evidenceLevel}`,
+    );
+    assert.ok(Array.isArray(row.evidence), `${row.id} should list evidence`);
+    if (row.proofStatus !== "tested") {
+      assert.notStrictEqual(row.evidenceLevel, "tested");
+    }
+    assert.notStrictEqual(row.evidenceLevel, "proved");
+  }
+  // REQ-001 is authored by hand with no origin and no passing E2E proof, so a
+  // person stands behind it and nothing checks it: asserted.
+  const requirement = rows.find((row) => row.id === "REQ-001");
+  assert.strictEqual(requirement?.evidenceLevel, "asserted");
+  assert.deepStrictEqual(
+    requirement?.evidence?.map((entry) => [
+      entry.kind,
+      entry.scope,
+      entry.level,
+    ]),
+    [["human_intent", "intent", "asserted"]],
+  );
+  const summary = report.summary ?? {};
+  assert.strictEqual(summary.proofProven, undefined);
+  assert.strictEqual(typeof summary.proofTested, "number");
+  const counts = summary.evidenceLevels as Record<string, number>;
+  assert.deepStrictEqual(Object.keys(counts).sort(), [...levels].sort());
+  assert.strictEqual(
+    Object.values(counts).reduce((total, value) => total + value, 0),
+    rows.length,
+  );
+
+  const filtered = await kibi(
+    sandbox,
+    ["coverage", "--by", "req", "--status", "tested", "--format", "json"],
+    { timeoutMs: 120000 },
+  );
+  assert.strictEqual(filtered.exitCode, 0, filtered.stderr);
+  const rejected = await kibi(
+    sandbox,
+    ["coverage", "--by", "req", "--status", "proven", "--format", "json"],
+    { timeoutMs: 120000 },
+  );
+  assert.notStrictEqual(rejected.exitCode, 0, "proven is no longer a status");
+
+  const html = await readFile(
+    path.join(sandbox.repoDir, "kibi-report", "index.html"),
+    "utf8",
+  );
+  assert.match(html, /class="evidence-level evidence-level--asserted"/);
+  assert.match(html, /Asserted, no current test/);
+  assert.match(html, /Unverified/);
+  assert.doesNotMatch(html, /fully proven/);
+
+  const signoff = await kibi(sandbox, ["signoff", "--format", "json"], {
+    timeoutMs: 120000,
+  });
+  assert.strictEqual(signoff.exitCode, 0, signoff.stderr);
+  const view = JSON.parse(signoff.stdout) as {
+    requirements?: { id?: string; proof?: { evidenceLevel?: string } }[];
+  };
+  assert.strictEqual(
+    view.requirements?.find((row) => row.id === "REQ-001")?.proof
+      ?.evidenceLevel,
+    "asserted",
+  );
+  const chat = await kibi(sandbox, ["signoff"], { timeoutMs: 120000 });
+  assert.strictEqual(chat.exitCode, 0, chat.stderr);
+  assert.match(chat.stdout, /evidence asserted/);
 }
 
 export async function verifyRequirementsSignoff(
@@ -715,6 +819,14 @@ if (RUN_NODE_TEST_SUITE) {
         return;
       }
       await verifyRequirementsSignoff(sandbox);
+    });
+
+    it("should report the evidence level of every requirement", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+      await verifyEvidenceLevels(sandbox);
     });
 
     it("should have created .kb directory structure", async (testContext) => {

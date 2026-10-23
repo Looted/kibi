@@ -20,7 +20,7 @@ function reportCoverage(total = 1, rowCount = 1) {
       summary: {
         total,
         proofNotApplicable: 0,
-        proofProven: rowCount,
+        proofTested: rowCount,
       },
       meta: {
         branch: "feature/report",
@@ -30,7 +30,7 @@ function reportCoverage(total = 1, rowCount = 1) {
       rows: Array.from({ length: rowCount }, (_, index) => ({
         id: `REQ-${index + 1}`,
         title: "HTML report",
-        proofStatus: "proven",
+        proofStatus: "tested",
         proofGaps: [] as string[],
         verificationScopes: ["end_to_end"],
         proofStages: {
@@ -105,9 +105,9 @@ describe("kibi report", () => {
     );
     const badgePath = path.join(temporaryDirectory, "kibi-report", "badge.svg");
     const badge = readFileSync(badgePath, "utf8");
-    expect(badge).toContain("100% proven");
+    expect(badge).toContain("100% tested");
     expect(badge).toContain("kibi</text>");
-    expect(badge).toContain("Kibi requirement health: 100% proven");
+    expect(badge).toContain("Kibi requirement health: 100% tested");
     expect(badge).toContain("#a2d3f4");
     expect(badge).toMatch(/width="\d+" height="20" viewBox="0 0 \d+ 20"/);
     expect(Number(badge.match(/\bwidth="(\d+)"/)?.[1])).toBeLessThan(160);
@@ -138,7 +138,7 @@ describe("kibi report", () => {
 
   test("renders conservative badge states from the report snapshot", async () => {
     const coverage = reportCoverage(2, 2);
-    coverage.requirements.summary.proofProven = 1;
+    coverage.requirements.summary.proofTested = 1;
     coverage.requirements.meta.proofSnapshotDirty = true;
     coverage.requirements.rows[0].proofGaps = ["blocking_contradiction"];
 
@@ -154,13 +154,13 @@ describe("kibi report", () => {
       path.join(temporaryDirectory, "health", "badge.svg"),
       "utf8",
     );
-    expect(badge).toContain("50% proven");
+    expect(badge).toContain("50% tested");
     expect(badge).toContain("#f07178");
   });
 
   test("renders a valid zero-proven snapshot as strict danger", async () => {
     const coverage = reportCoverage();
-    coverage.requirements.summary.proofProven = 0;
+    coverage.requirements.summary.proofTested = 0;
     coverage.requirements.rows[0].proofStatus = "missing";
     coverage.requirements.rows[0].proofGaps = ["missing_passing_e2e"];
 
@@ -176,7 +176,7 @@ describe("kibi report", () => {
       path.join(temporaryDirectory, "zero-health", "badge.svg"),
       "utf8",
     );
-    expect(badge).toContain("Kibi requirement health: 0% proven");
+    expect(badge).toContain("Kibi requirement health: 0% tested");
     expect(badge).toContain("#f07178");
   });
 

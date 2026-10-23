@@ -532,7 +532,7 @@ describe("coverage gaps: diagnostic usage", () => {
           },
           { proofGaps: ["other"] },
         ],
-        summary: { total: 2, proofProven: 0, proofMissing: 1 },
+        summary: { total: 2, proofTested: 0, proofMissing: 1 },
         repairPlan: { scope: { complete: false } },
       },
     );
