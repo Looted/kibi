@@ -304,7 +304,9 @@ jobs:
       # branch-store-not-compiled whenever the checkout is on a named branch,
       # as it is on a push to develop or master. A pull request checks out a
       # detached merge ref, where sync refuses to pick a branch, so the branch
-      # is named explicitly for both commands.
+      # is named explicitly for both commands. kibi verify then certifies the
+      # KB theorems and re-checks every certificate with the independent
+      # checker; a rejected certificate or a disproved theorem fails the job.
       - name: Run Kibi on the system SWI-Prolog
         env:
           KIBI_BRANCH: ${{ github.head_ref || github.ref_name }}
@@ -313,6 +315,7 @@ jobs:
           grep -q "SWI-Prolog: .* from PATH" "$RUNNER_TEMP/doctor.txt"
           bun packages/cli/bin/kibi sync
           bun packages/cli/bin/kibi check
+          bun packages/cli/bin/kibi verify
 
   ci-package-contract:
     runs-on: ubuntu-latest
