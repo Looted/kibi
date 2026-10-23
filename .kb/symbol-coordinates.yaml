@@ -6037,15 +6037,15 @@ coordinates:
     sourceLine: 57
   SYM-cli-discovery-renderCoverageTable:
     identityHash: 60ce116dc700bd0924db38921e09baabcc651f7c6c7228329dbb3e88ead16700
-    sourceHash: a4a8d0483fbb82fdf57027a11b1daa7f1467dbfa5131a7c3f8119ea043095623
+    sourceHash: 6852337875d3327b4cf92a03dde2cd263b5a75f8cfbb39a3676963e132d4d1f3
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 194
+    sourceEndLine: 197
     sourceFile: packages/cli/src/commands/discovery-table.ts
     sourceLine: 116
   SYM-cli-discovery-renderDiscoveryTable:
     identityHash: 0b0168b4aba2e8e6ad76d61132f740515034181d370832ace61f941f9e5dabb5
-    sourceHash: a4a8d0483fbb82fdf57027a11b1daa7f1467dbfa5131a7c3f8119ea043095623
+    sourceHash: 6852337875d3327b4cf92a03dde2cd263b5a75f8cfbb39a3676963e132d4d1f3
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 40
@@ -9013,18 +9013,18 @@ coordinates:
     sourceLine: 233
   SYM-cli-signoff-collect-questions:
     identityHash: 996b7f77dc78dfd57ddd68c9cdaaa2046282d04f4b46bdb6099dcc108b5d77b9
-    sourceHash: a8f0beab18c81df1d43d03ecbb519133dddcb6d070eb0ead19171fc4e9a71c29
+    sourceHash: 3c7c65d403f7e0d8aa7892e871f2cfe40cd74baa843a2499c05dff55a69f915e
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 436
+    sourceEndLine: 439
     sourceFile: packages/cli/src/signoff/collect.ts
-    sourceLine: 404
+    sourceLine: 407
   SYM-cli-signoff-collect-summary:
     identityHash: 6927e15fa3fdac2b34b2c1825506aab813ac049f0b54ff51a71246ffacb30f02
-    sourceHash: a8f0beab18c81df1d43d03ecbb519133dddcb6d070eb0ead19171fc4e9a71c29
+    sourceHash: 3c7c65d403f7e0d8aa7892e871f2cfe40cd74baa843a2499c05dff55a69f915e
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 356
+    sourceEndLine: 359
     sourceFile: packages/cli/src/signoff/collect.ts
     sourceLine: 195
   SYM-cli-signoff-command:
@@ -9045,12 +9045,12 @@ coordinates:
     sourceLine: 65
   SYM-cli-signoff-load-affected:
     identityHash: 14fca9b057e36f2b6d92698795002b70de7337f09846bdb9baa9f262a654cf2a
-    sourceHash: a8f0beab18c81df1d43d03ecbb519133dddcb6d070eb0ead19171fc4e9a71c29
+    sourceHash: 3c7c65d403f7e0d8aa7892e871f2cfe40cd74baa843a2499c05dff55a69f915e
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 396
+    sourceEndLine: 399
     sourceFile: packages/cli/src/signoff/collect.ts
-    sourceLine: 363
+    sourceLine: 366
   SYM-cli-signoff-model-signoff-brief-dir:
     identityHash: c5a9d9d4463863ecfb2daaa6738b0cfabc96b289f51c6d3e387075c29a05785a
     sourceHash: 306f26db8ec417fd5e810f303b630614c5bebe1429652ff9e14edf0f416b9955
@@ -9205,12 +9205,12 @@ coordinates:
     sourceLine: 166
   SYM-cli-signoff-parse-questions:
     identityHash: 24a25662994ced210c9f189e6a90d001d4e2b15ec6d64d57db4df58a97bc0004
-    sourceHash: a8f0beab18c81df1d43d03ecbb519133dddcb6d070eb0ead19171fc4e9a71c29
+    sourceHash: 3c7c65d403f7e0d8aa7892e871f2cfe40cd74baa843a2499c05dff55a69f915e
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 523
+    sourceEndLine: 526
     sourceFile: packages/cli/src/signoff/collect.ts
-    sourceLine: 471
+    sourceLine: 474
   SYM-cli-signoff-proof-label:
     identityHash: 77a1ab0c4ace105961f1a3717deb83bbd8c08b2138a08093f25a5ba13bdab67e
     sourceHash: 306f26db8ec417fd5e810f303b630614c5bebe1429652ff9e14edf0f416b9955
@@ -9277,7 +9277,7 @@ coordinates:
     sourceLine: 145
   SYM-cli-signoff-requirement-statement:
     identityHash: 0b562f85491d2a18db9d4062dfc9a62f6db4c46e4dc0dcfefcc31c8d4618f3ed
-    sourceHash: a8f0beab18c81df1d43d03ecbb519133dddcb6d070eb0ead19171fc4e9a71c29
+    sourceHash: 3c7c65d403f7e0d8aa7892e871f2cfe40cd74baa843a2499c05dff55a69f915e
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 85

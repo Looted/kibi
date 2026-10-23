@@ -284,10 +284,12 @@ tags: [authentication, session]
         notApplicable: 0,
         total: 1,
         uncovered: 1,
+        evidenceLevels: { proved: 0, tested: 0, asserted: 0, unverified: 1 },
       },
       rows: [
         {
           id: "REQ-001",
+          evidenceLevel: "unverified",
           status: "open",
           priority: "must",
           coverageStatus: "uncovered",
@@ -304,5 +306,9 @@ tags: [authentication, session]
 
     expect(rendered).toContain("open_or_nonpassing_tests_only");
     expect(rendered).toContain("missing_semantic_inventory");
+    expect(rendered).toContain("Evidence");
+    expect(rendered).toContain("unverified");
+    expect(rendered).toContain("unverified=1");
+    expect(rendered).not.toContain("[object Object]");
   });
 });
