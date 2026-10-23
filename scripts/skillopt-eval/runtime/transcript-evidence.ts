@@ -31,7 +31,7 @@ export type KibiAnswer = Readonly<{
   conflict: string | null;
   unknowns: readonly string[];
   nextStep: string | null;
-  /** Optional proof state the answer reports (`proven`, `unresolved`, ...). */
+  /** Optional proof state the answer reports (`tested`, `unresolved`, ...). */
   proof: string | null;
 }>;
 

@@ -341,7 +341,7 @@ h1 span {
   content: "";
   background: var(--amber);
 }
-.requirement--proven::before {
+.requirement--tested::before {
   background: var(--green);
 }
 .requirement--unresolved::before {
@@ -355,6 +355,13 @@ h1 span {
   gap: 18px;
   align-items: start;
   justify-content: space-between;
+}
+.evidence-level {
+  margin-left: 6px;
+  opacity: 0.75;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
 }
 .requirement__id {
   margin-bottom: 7px;
@@ -380,7 +387,7 @@ h1 span {
   letter-spacing: .07em;
   text-transform: uppercase;
 }
-.proof-badge--proven {
+.proof-badge--tested {
   border-color: rgba(98, 230, 167, 0.25);
   color: var(--green);
   background: rgba(98, 230, 167, 0.08);
@@ -1001,7 +1008,7 @@ h1 {
 .requirement::before {
   background: var(--warning);
 }
-.requirement--proven::before {
+.requirement--tested::before {
   background: var(--success);
 }
 .requirement--unresolved::before {
@@ -1024,7 +1031,7 @@ h1 {
   background: rgba(242, 184, 75, 0.07);
   font: 800 9px / 1.2 var(--mono);
 }
-.proof-badge--proven {
+.proof-badge--tested {
   border-color: rgba(99, 201, 154, 0.3);
   color: var(--success);
   background: rgba(99, 201, 154, 0.07);

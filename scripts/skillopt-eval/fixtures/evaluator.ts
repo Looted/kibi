@@ -318,7 +318,7 @@ function workflowExpectation(task: FixtureTaskSpec) {
       | "dirty"
       | "unavailable"
       | "not_evaluated";
-    expectedProofState: "proven" | "mixed" | "unresolved" | "not_evaluated";
+    expectedProofState: "tested" | "mixed" | "unresolved" | "not_evaluated";
     expectedLimitationDisposition:
       | "none"
       | "accepted"

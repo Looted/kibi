@@ -3161,14 +3161,14 @@ async function applyMigrationPlan(
         : finalStatus.proofSnapshotDirty === false
           ? "fresh"
           : "not_evaluated";
-  const proven = coverageSummary?.proofProven;
+  const tested = coverageSummary?.proofTested;
   const missing = coverageSummary?.proofMissing;
   const proofState =
-    typeof proven !== "number" || typeof missing !== "number"
+    typeof tested !== "number" || typeof missing !== "number"
       ? "not_evaluated"
-      : proven > 0 && missing === 0
-        ? "proven"
-        : proven > 0
+      : tested > 0 && missing === 0
+        ? "tested"
+        : tested > 0
           ? "mixed"
           : "unresolved";
   const payload: ApplyPlanResult = {

@@ -1014,21 +1014,21 @@ describe("forbidden action resolvers gated on evidence text", () => {
     await expectForbidden(
       "claim proof proven",
       {
-        claimEcho: { proofState: "proven", proofProven: 0 },
+        claimEcho: { proofState: "tested", proofTested: 0 },
       },
       true,
     );
     await expectForbidden(
       "claim proof proven",
       {
-        claimEcho: { proofState: "proven" },
+        claimEcho: { proofState: "tested" },
       },
       false,
     );
     await expectForbidden(
       "claim proof proven",
       {
-        claimEcho: { proofProven: 0 },
+        claimEcho: { proofTested: 0 },
       },
       false,
     );

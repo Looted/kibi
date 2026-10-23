@@ -51,7 +51,7 @@ h2{font-size:16px;margin:28px 0 10px;color:var(--accent)}
 .badge{font-size:12px;padding:1px 8px;border-radius:999px;border:1px solid var(--rail);color:var(--muted)}
 .badge--firm{border-color:var(--warn);color:var(--warn)}
 .badge--exploratory{border-color:var(--signal);color:var(--signal)}
-.badge--proven{border-color:var(--ok);color:var(--ok)}
+.badge--tested{border-color:var(--ok);color:var(--ok)}
 .badge--answered{border-color:var(--ok);color:var(--ok)}
 .badge--approval{border-color:var(--signal);color:var(--signal);font-weight:600}
 .callout{margin:12px 0 4px;padding:10px 14px;border:1px solid var(--signal);border-radius:8px;color:var(--text)}
@@ -148,11 +148,11 @@ function requirementCard(
               .join("<br>"),
       ),
     );
-    const proven = requirement.proof?.gate === "proven";
+    const tested = requirement.proof?.gate === "tested";
     details.push(
       row(
         "Proof",
-        `<span class="badge${proven ? " badge--proven" : ""}">${escapeHtml(proofLabel(requirement.proof))}</span>`,
+        `<span class="badge${tested ? " badge--tested" : ""}">${escapeHtml(proofLabel(requirement.proof))}</span>`,
       ),
     );
     for (const conflict of requirement.proof?.contradictions ?? []) {

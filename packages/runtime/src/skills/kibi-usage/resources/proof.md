@@ -1,6 +1,6 @@
 # Proof and Verification Workflow
 
-Use this resource when a requirement must be proven before handoff, when
+Use this resource when a requirement must be tested end to end before handoff, when
 wiring a proof-bearing test, or when `kb_ingest_proof` or `kibi prove`
 rejected evidence.
 
@@ -97,9 +97,9 @@ Cosmetic edits (descriptions, labels) never stale proof. Execution-relevant
 edits (command, artifact, targets, options, bindings, contract) change the
 effective fingerprint and do.
 
-## What counts toward proofProven
+## What counts toward proofTested
 
-A requirement is proven only by its scenarios' tests, and a scenario test
+A requirement reaches `proofStatus: tested` only through its scenarios' tests, and a scenario test
 counts only when it is an **end-to-end** test with a valid, fresh, passing
 receipt for the current snapshot.
 
@@ -109,7 +109,7 @@ receipt for the current snapshot.
   `source` path contains `e2e`) counts as end-to-end; anything else is
   `unknown` scope.
 - A `unit` or `integration` receipt is still recorded on the test entity, but
-  it does not move `proofProven` for a behavioural requirement: the
+  it does not move `proofTested` for a behavioural requirement: the
   requirement keeps the `missing_passing_e2e` gap in `proofGaps`. The one
   exception is a scenario whose specifying requirements are all grounded only
   in component-scope UI predicates (`ui_pattern`, `same_pattern`,
@@ -119,6 +119,24 @@ receipt for the current snapshot.
   authored `status` (`passing`) and scope, not its receipts: a passing
   receipt does not change it, and a `passing` status without a fresh receipt
   proves nothing.
+
+## Evidence levels
+
+Every requirement row also carries `evidenceLevel`, the strength of what backs
+it, and `evidence`, the entries that earned it (each with `kind`, `scope` and
+`level`):
+
+- `proved`: a re-checkable certificate covers every case. No proof kind issues
+  certificates yet, so nothing reaches it today.
+- `tested`: `proofStatus` is `tested`; fresh E2E receipts cover every linked
+  scenario.
+- `asserted`: a person stands behind the statement (approved, or firm by
+  `firmness` or a non-agent origin) but nothing current checks it.
+- `unverified`: an agent wrote it, no person approved it, nothing checks it.
+
+Report the level as it is. Never call an `asserted` or `unverified`
+requirement proven or tested, and never call `tested` proved. Firmness is a
+separate axis: it says how sure the person is, not how strong the evidence is.
 
 ## Attempt semantics (factual, never optimistic)
 

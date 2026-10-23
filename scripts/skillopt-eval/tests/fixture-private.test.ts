@@ -199,7 +199,7 @@ describe("private SkillOpt fixture corpus", () => {
     expect(manifest.workflowExpectation).toMatchObject({
       expectedOutcome: "complete",
       expectedVerificationState: "fresh",
-      expectedProofState: "proven",
+      expectedProofState: "tested",
       requiredSignals: [
         "historical contract receipt preserved",
         "current contract receipt appended",

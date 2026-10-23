@@ -147,7 +147,7 @@ function appendCoverageFields(
   const scope = isRecord(repairPlan?.scope) ? repairPlan.scope : undefined;
   fields.coverage_by = typeof args.by === "string" ? args.by : "req";
   fields.coverage_requirement_count = Number(summary.total ?? rows.length);
-  fields.coverage_proven_count = Number(summary.proofProven ?? 0);
+  fields.coverage_tested_count = Number(summary.proofTested ?? 0);
   fields.coverage_proof_missing_count = Number(summary.proofMissing ?? 0);
   fields.coverage_proof_gap_count = gapCodes.length;
   fields.coverage_gap_codes = [...new Set(gapCodes)].sort();
@@ -223,8 +223,8 @@ export function deriveDiagnosticUsageFields(
   if (tool === "kb_coverage" && structured) {
     appendCoverageFields(fields, args, structured);
     fields.result_summary = `${String(
-      fields.coverage_proven_count,
-    )} proven; ${String(fields.coverage_proof_gap_count)} proof gaps`;
+      fields.coverage_tested_count,
+    )} tested; ${String(fields.coverage_proof_gap_count)} proof gaps`;
   }
   if (tool === "kb_semantic_advisor" && structured) {
     appendSemanticFields(fields, structured.receipt);

@@ -4,7 +4,7 @@ description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware op
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-usage
-  version: 2.22.0
+  version: 2.23.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -170,7 +170,7 @@ End every task with these five independent fields:
 taskOutcome: complete | interim | blocked
 kbState: clean_fresh | stale | dirty | legacy_compat | not_evaluated
 verificationState: fresh | dirty | unavailable | not_evaluated
-proofState: proven | mixed | unresolved | not_evaluated
+proofState: tested | mixed | unresolved | not_evaluated
 limitationDisposition: none | accepted | unaccepted | not_applicable
 ```
 

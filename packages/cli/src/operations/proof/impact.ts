@@ -14,6 +14,7 @@ import type { OperationContext } from "../../public/operations/runtime-types.js"
 import { executeCoverage } from "../../public/operations/specs/reporting.js";
 import {
   type CoverageRowLike,
+  type RequirementFingerprint,
   type RequirementFingerprints,
   diffFingerprints,
   fingerprintRequirements,
@@ -27,8 +28,8 @@ export type ProofBaselineFile = {
   readonly version?: string;
   readonly mode?: string;
   readonly currentRequirements?: number;
-  readonly proofProven?: number;
-  readonly currentUnproven?: number;
+  readonly proofTested?: number;
+  readonly currentUntested?: number;
   readonly trackedGaps?: Record<string, number>;
   readonly requirements?: RequirementFingerprints;
 };
@@ -37,8 +38,8 @@ export type ProofImpactResult = {
   readonly comparisonTarget: typeof COMMITTED_BASELINE_PATH;
   readonly baselineVersion: string;
   readonly currentRequirements: number;
-  readonly proofProven: number;
-  readonly currentUnproven: number;
+  readonly proofTested: number;
+  readonly currentUntested: number;
   readonly changes: ReturnType<typeof diffFingerprints>;
 };
 
@@ -125,13 +126,35 @@ export async function loadCommittedBaseline(
   readCommittedFile: ReadCommittedFile = readCommittedHeadFile,
 ): Promise<ProofBaselineFile> {
   const raw = await readCommittedFile(workspaceRoot, COMMITTED_BASELINE_PATH);
+  let parsed: ProofBaselineFile;
   try {
-    return JSON.parse(raw) as ProofBaselineFile;
+    parsed = JSON.parse(raw) as ProofBaselineFile;
   } catch {
     throw new Error(
       `proof impact: HEAD:${COMMITTED_BASELINE_PATH} is not valid JSON`,
     );
   }
+  return upgradeBaselineStatuses(parsed);
+}
+
+/**
+ * A baseline committed before kibi.proof-baseline.v3 records a fully tested
+ * requirement as `proven`. Read it as `tested`, so the comparison shows real
+ * changes instead of a rename on every row.
+ */
+// implements REQ-kibi-evidence-levels
+export function upgradeBaselineStatuses(
+  baseline: ProofBaselineFile,
+): ProofBaselineFile {
+  if (baseline.requirements === undefined) return baseline;
+  const requirements: Record<string, RequirementFingerprint> = {};
+  for (const [id, entry] of Object.entries(baseline.requirements)) {
+    requirements[id] =
+      entry?.proofStatus === "proven"
+        ? { ...entry, proofStatus: "tested" }
+        : entry;
+  }
+  return { ...baseline, requirements };
 }
 
 /** Diagnostic only: successful evaluation always exits 0. Ratchet lives in check-proof-baseline.mjs. */
@@ -150,8 +173,8 @@ export function buildProofImpact(
   const summary = coverage.summary ?? {};
   const proofNotApplicable = asNumber(summary.proofNotApplicable);
   const total = asNumber(summary.total);
-  const proofProven = asNumber(summary.proofProven);
-  const currentUnproven =
+  const proofTested = asNumber(summary.proofTested);
+  const currentUntested =
     asNumber(summary.proofMissing) + asNumber(summary.proofUnresolved);
   const current = fingerprintRequirements(rows);
   const changes = diffFingerprints(baseline.requirements, current);
@@ -161,8 +184,8 @@ export function buildProofImpact(
       comparisonTarget: COMMITTED_BASELINE_PATH,
       baselineVersion: baseline.version ?? "unknown",
       currentRequirements: total - proofNotApplicable,
-      proofProven,
-      currentUnproven,
+      proofTested,
+      currentUntested,
       changes,
     },
   };
@@ -177,8 +200,8 @@ export function renderProofImpact(
     `Proof impact compared to committed ${result.comparisonTarget}`,
     `baseline version: ${result.baselineVersion}`,
     `current requirements: ${result.currentRequirements}`,
-    `proofProven: ${result.proofProven}`,
-    `currentUnproven: ${result.currentUnproven}`,
+    `proofTested: ${result.proofTested}`,
+    `currentUntested: ${result.currentUntested}`,
     `changed requirements: ${result.changes.length}`,
     "",
   ];

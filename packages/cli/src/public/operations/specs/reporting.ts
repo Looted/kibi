@@ -118,7 +118,7 @@ function validateEntityType(type?: string): void {
 }
 
 const COVERAGE_PROOF_STATUSES: ReadonlySet<string> = new Set([
-  "proven",
+  "tested",
   "missing",
   "unresolved",
   "not_applicable",
@@ -227,7 +227,7 @@ export const findGapsSpec = {
  * + bound-symbol code scope) and hand the Prolog coverage stage a
  * TestId -> BindingHash dict. This is the default binding mode since slice 3;
  * KIBI_PROOF_BINDING_MODE=strict-snapshot opts out (receipts then match only
- * against the whole-workspace snapshot they were proven on).
+ * against the whole-workspace snapshot they were produced on).
  */
 // implements REQ-kibi-verification-evidence-contract
 export function currentProofBindingMode(): "per_contract" | "strict_snapshot" {
@@ -431,13 +431,13 @@ export async function executeCoverage(
       },
     };
     const fullyCovered = Number(enrichedPayload.summary?.fullyCovered ?? 0);
-    const proofProven = Number(enrichedPayload.summary?.proofProven ?? 0);
+    const proofTested = Number(enrichedPayload.summary?.proofTested ?? 0);
     const total = Number(enrichedPayload.summary?.total ?? 0);
     return {
       content: [
         {
           type: "text",
-          text: `Coverage summary: ${fullyCovered} structurally covered and ${proofProven} proven out of ${total}.`,
+          text: `Coverage summary: ${fullyCovered} structurally covered and ${proofTested} tested end to end out of ${total}.`,
         },
       ],
       structuredContent: enrichedPayload,
@@ -452,7 +452,7 @@ export const coverageSpec = {
   name: "kb_coverage",
   cliName: "coverage",
   description:
-    "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Use it to ask which requirements are proven and what blocks the rest; use kb_find_gaps for a plain list of missing links and kb_check for rule violations. Reports include the compatible repair plan plus typed kibi.migration-plan.v2 actions; semantic and E2E actions remain review/execution work. Paginated plans identify incomplete scope and no mutation occurs.",
+    "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Use it to ask which requirements are tested end to end, how strong each requirement's evidence is (evidenceLevel: proved, tested, asserted or unverified), and what blocks the rest; use kb_find_gaps for a plain list of missing links and kb_check for rule violations. Reports include the compatible repair plan plus typed kibi.migration-plan.v2 actions; semantic and E2E actions remain review/execution work. Paginated plans identify incomplete scope and no mutation occurs.",
   businessInputSchema: {
     type: "object",
     properties: {
@@ -473,13 +473,13 @@ export const coverageSpec = {
         type: "boolean",
         default: false,
         description:
-          "Also return rows that are already proven or not applicable. By default only rows that still need repair are returned.",
+          "Also return rows that are already tested or not applicable. By default only rows that still need repair are returned.",
       },
       statuses: {
         type: "array",
         items: {
           type: "string",
-          enum: ["proven", "missing", "unresolved", "not_applicable"],
+          enum: ["tested", "missing", "unresolved", "not_applicable"],
         },
         description:
           "Requirement proof-status filter (req mode): include only rows whose proofStatus is listed. Selecting statuses implies include-passing; not_applicable rows carry their typed applicability reason in proofStages.applicability.reason. The summary always reflects the whole KB.",
