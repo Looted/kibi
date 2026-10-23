@@ -154,7 +154,7 @@ describe("kibi signoff summary", () => {
       ],
       [
         "REQ-refunds-audit",
-        { status: "proven", gate: "proven", testCount: 2, contradictions: [] },
+        { status: "tested", gate: "tested", testCount: 2, contradictions: [] },
       ],
       [
         "REQ-refunds-currency",
@@ -225,7 +225,7 @@ describe("kibi signoff summary", () => {
     );
     expect(markdown).toContain("- Changed code: auditRefund, writeAudit");
     expect(markdown).toContain("- Proof: no end-to-end test yet, 1 test");
-    expect(markdown).toContain("- Proof: proven, 2 tests");
+    expect(markdown).toContain("- Proof: tested, 2 tests");
     expect(markdown).toContain(
       "- Contradiction: Refund currency conflicts with REQ-x.",
     );
@@ -278,6 +278,43 @@ describe("kibi signoff summary", () => {
     ]);
   });
 
+  // implements REQ-kibi-signoff-views
+  test("an agent requirement is approved by origin.approved_by, not by the exception approved_by", async () => {
+    const agentRequirement = (approval: string) =>
+      `---\nid: REQ-refunds-agent\ntitle: REQ-refunds-agent title\nstatus: open\nsemantic_text: Refunds are capped at the order total.\norigin:\n  kind: agent\n${approval}---\nRefunds are capped at the order total.\n\n## Context\n\nWhy this rule exists, in enough words for the context rule.\n`;
+    const render = async () => {
+      const out = capture();
+      await signoffCommand(
+        { staged: false, proof: false },
+        {
+          cwd: () => root,
+          now,
+          write: out.write,
+          loadAffected: async () => new Map(),
+        },
+      );
+      return out.chunks.join("");
+    };
+    writeRequirement("REQ-refunds-agent", agentRequirement(""));
+    expect(await render()).toContain(
+      "- Origin: agent, **awaiting your approval**",
+    );
+    writeRequirement(
+      "REQ-refunds-agent",
+      agentRequirement("approved_by: dana\n"),
+    );
+    expect(await render()).toContain(
+      "- Origin: agent, **awaiting your approval**",
+    );
+    writeRequirement(
+      "REQ-refunds-agent",
+      agentRequirement("  approved_by: dana\n"),
+    );
+    const approved = await render();
+    expect(approved).toContain("approved by dana");
+    expect(approved).not.toContain("awaiting your approval");
+  });
+
   test("names what it could not compute instead of failing", async () => {
     writeRequirement(
       "REQ-refunds-new",
@@ -297,8 +334,8 @@ describe("kibi signoff summary", () => {
             [
               "REQ-other",
               {
-                status: "proven",
-                gate: "proven",
+                status: "tested",
+                gate: "tested",
                 testCount: 1,
                 contradictions: [],
               },

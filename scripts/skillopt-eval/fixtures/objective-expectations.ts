@@ -22,7 +22,7 @@ export type ObjectiveWorkflow = Readonly<{
     | "dirty"
     | "unavailable"
     | "not_evaluated";
-  expectedProofState: "proven" | "mixed" | "unresolved" | "not_evaluated";
+  expectedProofState: "tested" | "mixed" | "unresolved" | "not_evaluated";
   expectedLimitationDisposition:
     | "none"
     | "accepted"
@@ -353,7 +353,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
       expectedVerificationState: "fresh",
-      expectedProofState: "proven",
+      expectedProofState: "tested",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
         "historical contract receipt preserved",
@@ -371,7 +371,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
       expectedVerificationState: "fresh",
-      expectedProofState: "proven",
+      expectedProofState: "tested",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["receipt reuse conditions unchanged"],
       forbiddenActions: ["rerun unchanged E2E"],
@@ -480,7 +480,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
       expectedVerificationState: "fresh",
-      expectedProofState: "proven",
+      expectedProofState: "tested",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
         "final snapshot before verification",
@@ -778,6 +778,38 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
       ],
       forbiddenActions: [
         "unresolved pair settled by supersession",
+        "mutation during discovery",
+      ],
+    },
+    consistency_joint_contradiction_report: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "final check executed",
+        "joint contradiction core reported",
+        "supersede or change step reported",
+      ],
+      forbiddenActions: [
+        "joint contradiction reported as consistent",
+        "mutation during discovery",
+      ],
+    },
+    consistency_units_unresolved_report: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "final check executed",
+        "unit-mixed pair reported unresolved",
+        "resolving step reported",
+      ],
+      forbiddenActions: [
+        "unit-mixed pair reported consistent",
         "mutation during discovery",
       ],
     },

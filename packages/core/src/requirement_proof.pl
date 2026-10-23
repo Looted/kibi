@@ -25,7 +25,7 @@
 ]).
 :- use_module('logic_ir.pl', [logic_rule_safety/2]).
 
-proof_version('kibi.requirement-proof.v3').
+proof_version('kibi.requirement-proof.v4').
 
 requirement_proof_context(Context) :-
     requirement_proof_context(unknown, '1970-01-01T00:00:00Z', 604800, Context).
@@ -71,12 +71,12 @@ requirement_proof(ReqId, ReqProps, _Context, Proof) :-
     kb:current_req(ReqId),
     proof_exempt(ReqProps, Reason),
     !,
-    exempt_requirement_proof(Reason, Proof).
-requirement_proof(ReqId, _ReqProps, _Context, Proof) :-
+    exempt_requirement_proof(Reason, ReqProps, Proof).
+requirement_proof(ReqId, ReqProps, _Context, Proof) :-
     \+ kb:current_req(ReqId),
     !,
     applicability_exclusion_reason(ReqId, Reason),
-    exempt_requirement_proof(Reason, Proof).
+    exempt_requirement_proof(Reason, ReqProps, Proof).
 requirement_proof(ReqId, ReqProps, Context, Proof) :-
     semantic_inventory_stage(ReqProps, SemanticStage, Inventory),
     logic_grounding_stage(ReqId, ReqProps, Inventory, Context, LogicStage),
@@ -101,10 +101,13 @@ requirement_proof(ReqId, ReqProps, Context, Proof) :-
     proof_issues(Stages, Gaps, Advisories),
     proof_repairs(Gaps, Repairs),
     proof_status(Stages, Status),
+    requirement_evidence(ReqProps, Status, PassingE2eTests, EvidenceLevel, Evidence),
     proof_version(Version),
     Proof = _{
         proofVersion: Version,
         proofStatus: Status,
+        evidenceLevel: EvidenceLevel,
+        evidence: Evidence,
         proofGaps: Gaps,
         proofAdvisories: Advisories,
         proofRepairs: Repairs,
@@ -112,11 +115,14 @@ requirement_proof(ReqId, ReqProps, Context, Proof) :-
         testResolutions: ScenarioTestStage.resolutions
     }.
 
-exempt_requirement_proof(Reason, Proof) :-
+exempt_requirement_proof(Reason, ReqProps, Proof) :-
+    requirement_evidence(ReqProps, not_applicable, [], EvidenceLevel, Evidence),
     proof_version(Version),
     Proof = _{
         proofVersion: Version,
         proofStatus: not_applicable,
+        evidenceLevel: EvidenceLevel,
+        evidence: Evidence,
         proofGaps: [],
         proofAdvisories: [],
         proofRepairs: [],
@@ -1674,7 +1680,84 @@ proof_status(Stages, unresolved) :-
     stage_dict(Stages, Stage),
     memberchk(Stage.status, [unresolved, blocked]),
     !.
-proof_status(_, proven).
+proof_status(_, tested).
+
+% implements REQ-kibi-evidence-levels
+%% requirement_evidence(+Props, +ProofStatus, +PassingE2eTests, -Level, -Evidence)
+% How strong the evidence behind a requirement is, never stronger than what
+% backs it.  Levels, strongest first: proved (a re-checkable certificate
+% covers every case), tested (passing E2E receipts cover every linked
+% scenario: proofStatus tested), asserted (a person stands behind the
+% statement but nothing current checks it), unverified (an agent wrote it and
+% no person approved it).  No proof kind issues certificates yet, so proved
+% is never reached here.  Evidence lists what earned the level and anything
+% weaker that also holds, each entry naming its kind and scope.
+requirement_evidence(Props, ProofStatus, PassingE2eTests, Level, Evidence) :-
+    findall(Entry, evidence_entry(Props, ProofStatus, PassingE2eTests, Entry), Evidence),
+    evidence_level(Evidence, Level).
+
+evidence_entry(_Props, tested, PassingE2eTests, _{kind: e2e, scope: code, level: tested, tests: PassingE2eTests}).
+evidence_entry(Props, _ProofStatus, _PassingE2eTests, Entry) :-
+    human_intent(Props, Basis, Ref),
+    (   Ref == ''
+    ->  Entry = _{kind: human_intent, scope: intent, level: asserted, basis: Basis}
+    ;   Entry = _{kind: human_intent, scope: intent, level: asserted, basis: Basis, ref: Ref}
+    ).
+
+evidence_level(Evidence, Level) :-
+    (   member(Level0, [proved, tested, asserted]),
+        member(Entry, Evidence),
+        get_dict(level, Entry, Level0)
+    ->  Level = Level0
+    ;   Level = unverified
+    ).
+
+%% human_intent(+Props, -Basis, -Ref)
+% A person stands behind the requirement: someone approved it
+% (origin.approved_by, the field agent-requirement-unapproved reads), or it
+% reads as firm (firmness: firm, or no firmness and an origin other than
+% agent, as for decision firmness).  The top-level approved_by approves an
+% exception; an agent can write it, so on its own it approves nothing here.
+human_intent(Props, approved, Ref) :-
+    origin_field(Props, approved_by, _),
+    !,
+    intent_ref(Props, Ref).
+human_intent(Props, firm, Ref) :-
+    effective_firmness(Props, firm),
+    !,
+    intent_ref(Props, Ref).
+
+effective_firmness(Props, Firmness) :-
+    (   memberchk(firmness=Raw, Props),
+        normalize_atom(Raw, Explicit),
+        memberchk(Explicit, [firm, default, exploratory])
+    ->  Firmness = Explicit
+    ;   origin_field(Props, kind, agent)
+    ->  Firmness = default
+    ;   Firmness = firm
+    ).
+
+intent_ref(Props, Ref) :-
+    (   origin_field(Props, ref, Ref0)
+    ->  Ref = Ref0
+    ;   prop_text(Props, approval_ref, Ref0)
+    ->  Ref = Ref0
+    ;   Ref = ''
+    ).
+
+prop_text(Props, Key, Text) :-
+    Prop =.. [=, Key, Raw],
+    memberchk(Prop, Props),
+    normalize_atom(Raw, Text),
+    Text \== ''.
+
+origin_field(Props, Key, Value) :-
+    memberchk(origin=Raw, Props),
+    normalize_atom(Raw, Json),
+    catch(atom_json_dict(Json, Origin, [value_string_as(atom)]), _, fail),
+    get_dict(Key, Origin, Value0),
+    normalize_atom(Value0, Value),
+    Value \== ''.
 
 stage_dict(Stages, Stage) :-
     dict_pairs(Stages, _, Pairs),
@@ -1690,7 +1773,7 @@ proof_advisories(Stages, Advisories) :-
 % Every linked scenario is a mandatory proof obligation. Receipt-completeness
 % failures therefore remain blocking even when another scenario has a passing
 % receipt; unit/integration-only evidence stays nonblocking in the E2E lane.
-% Invariant: proofStatus == proven implies proofGaps == [].
+% Invariant: proofStatus == tested implies proofGaps == [].
 proof_issues(Stages, Gaps, Advisories) :-
     findall(Gap,
         (gap_definition(Gap, _, _, _),

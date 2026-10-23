@@ -293,3 +293,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fa2247d27a15
+  - type: constrains
+    from: REQ-kibi-evidence-levels
+    to: FACT-SUBJECT-KIBI-EVIDENCE-LEVELS
+    created_at: 2026-10-23T12:06:50.646Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b372421078e3
+  - type: requires_property
+    from: REQ-kibi-evidence-levels
+    to: FACT-kibi-evidence-level-per-requirement
+    created_at: 2026-10-23T12:06:50.688Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6a6a7db206f
+  - type: requires_property
+    from: REQ-kibi-evidence-levels
+    to: FACT-kibi-evidence-passing-e2e-is-tested
+    created_at: 2026-10-23T12:06:50.719Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d47a35b45ef
+  - type: requires_property
+    from: REQ-kibi-evidence-levels
+    to: FACT-kibi-evidence-person-backed-is-asserted
+    created_at: 2026-10-23T12:06:50.751Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1fefe924784b
+  - type: requires_property
+    from: REQ-kibi-evidence-levels
+    to: FACT-kibi-evidence-agent-only-is-unverified
+    created_at: 2026-10-23T12:06:50.783Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c93e37a62ed
+  - type: requires_property
+    from: REQ-kibi-evidence-levels
+    to: FACT-kibi-evidence-shown-in-report-signoff
+    created_at: 2026-10-23T12:06:50.813Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb65efcc3876
+  - type: relates_to
+    from: REQ-kibi-evidence-levels
+    to: REQ-kibi-conservative-requirement-proof
+    created_at: 2026-10-23T12:06:50.836Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa4ad4820836
+  - type: relates_to
+    from: REQ-kibi-evidence-levels
+    to: REQ-kb-decision-firmness
+    created_at: 2026-10-23T12:06:50.861Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b60e3b4e6afc
+  - type: specified_by
+    from: REQ-kibi-evidence-levels
+    to: SCEN-kibi-evidence-levels
+    created_at: 2026-10-23T12:09:00.479Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-752878ee0de4
+  - type: verified_by
+    from: REQ-kibi-evidence-levels
+    to: TEST-kibi-evidence-levels
+    created_at: 2026-10-23T12:09:00.517Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6395177550c

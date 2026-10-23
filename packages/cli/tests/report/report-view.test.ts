@@ -9,8 +9,8 @@ import {
 const rows: RequirementView[] = [
   {
     text: "REQ-1 Password Reset",
-    states: ["proven"],
-    earliestGate: "proven",
+    states: ["tested"],
+    earliestGate: "tested",
   },
   {
     text: "REQ-2 Trial Duration",
@@ -28,7 +28,7 @@ describe("report view matching", () => {
   test("counts come from the same classification used for filters", () => {
     expect(reportFilterCounts(rows)).toEqual({
       all: 3,
-      proven: 1,
+      tested: 1,
       attention: 2,
       stale: 1,
       contradiction: 1,

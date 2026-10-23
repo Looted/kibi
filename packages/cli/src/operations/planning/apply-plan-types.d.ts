@@ -150,7 +150,7 @@ export type ApplyPlanResult =
           | "legacy_compat"
           | "not_evaluated";
         snapshotState: "fresh" | "dirty" | "unavailable" | "not_evaluated";
-        proofState: "proven" | "mixed" | "unresolved" | "not_evaluated";
+        proofState: "tested" | "mixed" | "unresolved" | "not_evaluated";
         limitationDisposition:
           | "none"
           | "accepted"

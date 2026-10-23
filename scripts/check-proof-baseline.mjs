@@ -100,7 +100,7 @@ if (semanticOnly) {
 } else {
   const summary = coverage.summary;
   const currentRequirements = summary.total - summary.proofNotApplicable;
-  const currentUnproven = summary.proofMissing + summary.proofUnresolved;
+  const currentUntested = summary.proofMissing + summary.proofUnresolved;
   const gapCounts = Object.fromEntries(
     coverage.rows
       .filter((row) => row.proofStatus !== "not_applicable")
@@ -121,14 +121,14 @@ if (semanticOnly) {
       `current requirement count changed from ${baseline.currentRequirements} to ${currentRequirements}`,
     );
   }
-  if (summary.proofProven < baseline.proofProven) {
+  if (summary.proofTested < baseline.proofTested) {
     failures.push(
-      `proofProven regressed from ${baseline.proofProven} to ${summary.proofProven}`,
+      `proofTested regressed from ${baseline.proofTested} to ${summary.proofTested}`,
     );
   }
-  if (currentUnproven > baseline.currentUnproven) {
+  if (currentUntested > baseline.currentUntested) {
     failures.push(
-      `current unproven count increased from ${baseline.currentUnproven} to ${currentUnproven}`,
+      `current untested count increased from ${baseline.currentUntested} to ${currentUntested}`,
     );
   }
   for (const [gap, count] of Object.entries(gapCounts)) {
@@ -147,9 +147,9 @@ if (semanticOnly) {
   if (violations.length > 0)
     failures.push(`kibi check reported ${violations.length} violation(s)`);
   if (baseline.mode === "equality") {
-    if (summary.proofProven !== currentRequirements || currentUnproven !== 0) {
+    if (summary.proofTested !== currentRequirements || currentUntested !== 0) {
       failures.push(
-        `strict equality failed: proven=${summary.proofProven}, current=${currentRequirements}, unproven=${currentUnproven}`,
+        `strict equality failed: tested=${summary.proofTested}, current=${currentRequirements}, untested=${currentUntested}`,
       );
     }
     if (
@@ -167,8 +167,8 @@ if (semanticOnly) {
     version: "kibi.proof-baseline-result.v1",
     mode: baseline.mode,
     currentRequirements,
-    proofProven: summary.proofProven,
-    currentUnproven,
+    proofTested: summary.proofTested,
+    currentUntested,
     gapCounts,
     violations: violations.length,
     status: {

@@ -156,7 +156,7 @@ const SPLIT_COUNTS: Readonly<Record<TaskSplit, number>> = {
 const SPLIT_COUNT_OVERRIDES: Readonly<
   Record<string, Readonly<Record<TaskSplit, number>>>
 > = {
-  "consistency-report": { train: 2, development: 2, "held-out": 4 },
+  "consistency-report": { train: 3, development: 4, "held-out": 6 },
 };
 
 /**

@@ -162,8 +162,8 @@ Unit-scope fixture that satisfies structure but never E2E proof.
           assert.ok(row, "coverage must include the fixture requirement row");
           assert.notStrictEqual(
             row.proofStatus,
-            "proven",
-            "a unit-only chain must never report proven",
+            "tested",
+            "a unit-only chain must never report tested",
           );
           assert.ok(
             (row.proofGaps ?? []).length > 0,
@@ -179,7 +179,7 @@ Unit-scope fixture that satisfies structure but never E2E proof.
           );
           assert.strictEqual(
             row.proofVersion,
-            "kibi.requirement-proof.v3",
+            "kibi.requirement-proof.v4",
             "proof projection stays on the current contract version",
           );
         },

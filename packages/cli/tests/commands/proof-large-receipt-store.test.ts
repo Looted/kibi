@@ -170,7 +170,7 @@ async function seedLargeStore(root: string): Promise<void> {
   mkdirSync(join(root, "proof"), { recursive: true });
   writeFileSync(
     join(root, "proof", "baseline.json"),
-    `${JSON.stringify({ version: "kibi.proof-baseline.v2", mode: "equality", currentRequirements: 0, proofProven: 0, currentUnproven: 0, trackedGaps: {}, requirements: {} }, null, 2)}\n`,
+    `${JSON.stringify({ version: "kibi.proof-baseline.v3", mode: "equality", currentRequirements: 0, proofTested: 0, currentUntested: 0, trackedGaps: {}, requirements: {} }, null, 2)}\n`,
   );
   git(root, "add .kb/tests proof/baseline.json");
   git(root, "commit -m 'large receipt store sources'");

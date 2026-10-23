@@ -92,7 +92,7 @@ function coverageFixture(): {
       summary: {
         total: 3,
         proofNotApplicable: 1,
-        proofProven: 1,
+        proofTested: 1,
       },
       meta: {
         branch: "main",
@@ -105,7 +105,7 @@ function coverageFixture(): {
           id: "REQ-204",
           title: "Password Reset",
           source: ".kb/requirements/REQ-204.md",
-          proofStatus: "proven",
+          proofStatus: "tested",
           proofGaps: [],
           proofAdvisories: ["missing_verification_receipt"],
           verificationScopes: ["end_to_end"],
@@ -197,9 +197,9 @@ describe("renderHtmlReport", () => {
 
     expect(html).toContain("Kibi Requirement Health · main");
     expect(html).toContain(">50<span>%</span>");
-    expect(html).toContain("Strict proof coverage");
+    expect(html).toContain("Tested end to end");
     expect(html).toContain(
-      "1 of 2 current requirements fully proven end-to-end",
+      "1 of 2 current requirements fully tested end-to-end",
     );
     expect(html).toContain(
       "Kibi only counts a requirement when every required proof gate passes",
@@ -223,7 +223,7 @@ describe("renderHtmlReport", () => {
     expect(html).toContain(">2</strong>");
     expect(html).toContain('data-filter="contradiction"');
     expect(html).toContain('All <span class="filter__count">2</span>');
-    expect(html).toContain('Proven <span class="filter__count">1</span>');
+    expect(html).toContain('Tested <span class="filter__count">1</span>');
     expect(html).toContain('data-gate="semantic"');
     expect(html).toContain('type="button" class="proof-gate');
     expect(html).toContain("1 advisory");
@@ -238,7 +238,7 @@ describe("renderHtmlReport", () => {
     const fixture = coverageFixture();
     const proven = {
       ...fixture.requirements.rows[0],
-      proofStatus: "proven",
+      proofStatus: "tested",
       proofGaps: ["missing_verification_receipt"],
       proofAdvisories: [],
     };
@@ -252,10 +252,10 @@ describe("renderHtmlReport", () => {
       generatedAt: new Date("2026-08-15T12:00:00.000Z"),
     });
     const provenCard = html.match(
-      /<article class="requirement requirement--proven"[\s\S]*?<\/article>/,
+      /<article class="requirement requirement--tested"[\s\S]*?<\/article>/,
     )?.[0];
     expect(provenCard).toBeTruthy();
-    expect(provenCard).toContain("Proven");
+    expect(provenCard).toContain("Tested");
     expect(provenCard).toContain("1 advisory");
     expect(provenCard).not.toContain("proof gap");
   });
@@ -310,7 +310,7 @@ describe("renderHtmlReport", () => {
       ...fixture.requirements.rows[0],
       id,
       title: id,
-      proofStatus: state === "passed" ? "proven" : "missing",
+      proofStatus: state === "passed" ? "tested" : "missing",
       proofGaps: state === "passed" ? [] : ["missing_passing_e2e"],
       proofAdvisories: [],
       proofStages: provenStages({
@@ -383,7 +383,7 @@ describe("renderHtmlReport", () => {
 
     const html = renderHtmlReport({
       requirements: {
-        summary: { total: 2, proofNotApplicable: 0, proofProven: 0 },
+        summary: { total: 2, proofNotApplicable: 0, proofTested: 0 },
         rows: [blockedAtSemantics, completeBeforeEvidence],
       },
       symbols: { summary: { total: 1, uncovered: 0, mixedRole: 0 }, rows: [] },
@@ -393,7 +393,7 @@ describe("renderHtmlReport", () => {
 
     expect(html).toContain(">0<span>%</span>");
     expect(html).toContain(
-      "0 of 2 current requirements fully proven end-to-end",
+      "0 of 2 current requirements fully tested end-to-end",
     );
     expect(
       [...html.matchAll(/proof-gate__count">(\d+)/g)].map((match) =>
@@ -409,7 +409,7 @@ describe("renderHtmlReport", () => {
   test("renders zero, full, and empty requirement sets without fabricated freshness", () => {
     const empty = renderHtmlReport({
       requirements: {
-        summary: { total: 0, proofNotApplicable: 0, proofProven: 0 },
+        summary: { total: 0, proofNotApplicable: 0, proofTested: 0 },
         rows: [],
       },
       symbols: { summary: { total: 0, uncovered: 0, mixedRole: 0 }, rows: [] },
@@ -427,7 +427,7 @@ describe("renderHtmlReport", () => {
     const full = render({
       requirements: {
         ...fullFixture.requirements,
-        summary: { total: 1, proofNotApplicable: 0, proofProven: 1 },
+        summary: { total: 1, proofNotApplicable: 0, proofTested: 1 },
         rows: [provenRow],
       },
     });
@@ -440,7 +440,7 @@ describe("renderHtmlReport", () => {
         summary: {
           total: "not-a-number",
           proofNotApplicable: Number.NaN,
-          proofProven: Number.POSITIVE_INFINITY,
+          proofTested: Number.POSITIVE_INFINITY,
         },
         rows: [
           {

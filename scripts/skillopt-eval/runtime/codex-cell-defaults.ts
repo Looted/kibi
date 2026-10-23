@@ -29,7 +29,10 @@ import {
   FinalStateReceiptSchema,
   runIndependentFinalState,
 } from "./final-state";
-import { isSeededUnresolvedRuleViolation } from "./fixture-seeds";
+import {
+  isSeededJointContradictionViolation,
+  isSeededUnresolvedRuleViolation,
+} from "./fixture-seeds";
 import { parseTraceReceipts, verifyTraceChain } from "./jsonrpc";
 import { stageKibiMcpBroker } from "./mcp-broker-stage";
 import { routedOperationName, toolCallArguments } from "./mcp-tool-names";
@@ -167,7 +170,7 @@ function latestContent(
 
 function proofStateFromCoverage(
   coverage: Record<string, unknown> | null,
-): "proven" | "mixed" | "unresolved" | "not_evaluated" {
+): "tested" | "mixed" | "unresolved" | "not_evaluated" {
   if (coverage === null) return "not_evaluated";
   const scope =
     (isRecord(coverage.repairPlan) && isRecord(coverage.repairPlan.scope)
@@ -176,20 +179,20 @@ function proofStateFromCoverage(
     (isRecord(coverage.scope) ? coverage.scope.complete : undefined);
   if (scope !== true) return "not_evaluated";
   const summary = isRecord(coverage.summary) ? coverage.summary : null;
-  const proven = summary?.proofProven;
+  const tested = summary?.proofTested;
   const missing = summary?.proofMissing;
-  if (typeof proven !== "number" || typeof missing !== "number") {
+  if (typeof tested !== "number" || typeof missing !== "number") {
     const rows = Array.isArray(coverage.rows)
       ? coverage.rows.filter(isRecord)
       : [];
     const statuses = rows.map((row) => row.proofStatus);
     if (statuses.length === 0) return "unresolved";
-    if (statuses.every((status) => status === "proven")) return "proven";
-    if (statuses.some((status) => status === "proven")) return "mixed";
+    if (statuses.every((status) => status === "tested")) return "tested";
+    if (statuses.some((status) => status === "tested")) return "mixed";
     return "unresolved";
   }
-  if (proven > 0 && missing === 0) return "proven";
-  if (proven > 0) return "mixed";
+  if (tested > 0 && missing === 0) return "tested";
+  if (tested > 0) return "mixed";
   return "unresolved";
 }
 
@@ -603,8 +606,8 @@ function forbiddenActionObserved(
       );
     case "claim proof proven":
       return (
-        text.includes('"proofstate":"proven"') &&
-        text.includes('"proofproven":0')
+        text.includes('"proofstate":"tested"') &&
+        text.includes('"prooftested":0')
       );
     case "treat stale coverage-depth heuristic as proof failure":
     case "accept stale coverage-depth heuristic as a real gap":
@@ -698,15 +701,20 @@ function forbiddenActionObserved(
   }
 }
 
-// The unresolved-pair seed carries one `unresolved` rule conflict by design;
-// a check whose only violations are that seeded one is clean for the task.
+// The unresolved-pair and joint-contradiction seeds each carry one violation
+// by design; a check whose only violations are seeded ones is clean for the
+// task.
 function cleanCheckResult(value: unknown): boolean {
   const content = structuredContent(value);
   return (
     successfulResult(value) &&
     Array.isArray(content?.violations) &&
     content.count === content.violations.length &&
-    content.violations.every(isSeededUnresolvedRuleViolation)
+    content.violations.every(
+      (violation) =>
+        isSeededUnresolvedRuleViolation(violation) ||
+        isSeededJointContradictionViolation(violation),
+    )
   );
 }
 

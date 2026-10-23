@@ -66,7 +66,7 @@ After bootstrap, ask your agent for the health report — or run it yourself:
 npm exec -- kibi report --open
 ```
 
-You get a self-contained HTML page. The headline is a count, such as "0 of 12 current requirements fully proven end-to-end." An honest zero on day one is a successful report: it exists to make gaps explicit. [Read the health report](reading-the-report.md) explains the rows.
+You get a self-contained HTML page. The headline is a count, such as "0 of 12 current requirements fully tested end-to-end." An honest zero on day one is a successful report: it exists to make gaps explicit. [Read the health report](reading-the-report.md) explains the rows.
 
 ## 5. Work normally
 

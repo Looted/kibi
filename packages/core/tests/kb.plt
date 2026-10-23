@@ -8,9 +8,12 @@
 :- use_module('../src/derived_chr.pl').
 :- use_module('../src/sparql_client.pl').
 :- use_module('../src/status.pl', []).
+:- use_module('../src/certificates.pl').
+:- use_module('../src/certificate_check.pl').
 :- use_module(library(http/json)).
 :- use_module(library(date)).
 :- use_module(library(plunit)).
+:- use_module(library(yall)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(filesex)).
 :- use_module(library(process)).
@@ -2037,7 +2040,7 @@ test(requirement_proof_rejects_structural_coverage_without_semantics_or_scenario
     json_string_dict(JsonString, Report),
     coverage_row(Report.rows, 'REQ-PROOF-STRUCTURAL-ONLY', Row),
     assertion(Row.coverageStatus == fully_covered),
-    assertion(Row.proofVersion == 'kibi.requirement-proof.v3'),
+    assertion(Row.proofVersion == 'kibi.requirement-proof.v4'),
     assertion(Row.proofStatus == missing),
     assertion(memberchk(missing_semantic_inventory, Row.proofGaps)),
     assertion(memberchk(missing_logic_claims, Row.proofGaps)),
@@ -2271,7 +2274,9 @@ test(requirement_proof_requires_the_complete_semantic_scenario_e2e_symbol_chain,
     json_string_dict(JsonString, Report),
     coverage_row(Report.rows, 'REQ-PROOF-COMPLETE', Row),
     assertion(Row.testCount == 3),
-    assertion(Row.proofStatus == proven),
+    assertion(Row.proofStatus == tested),
+    assertion(Row.evidenceLevel == tested),
+    assertion((member(E2e, Row.evidence), get_dict(kind, E2e, e2e), get_dict(level, E2e, tested))),
     assertion(Row.proofGaps == []),
     assertion(Row.proofAdvisories == []),
     assertion(Row.proofStages.sourceCoordinates.requirementPath == 'test://kb.plt'),
@@ -2288,7 +2293,7 @@ test(requirement_proof_requires_the_complete_semantic_scenario_e2e_symbol_chain,
     assertion(Row.proofStages.executableSymbols.symbols == ['SYM-PROOF-E2E']),
     assertion(Row.proofStages.productionSymbols.symbols == ['SYM-PROOF-PRODUCTION']),
     assertion(Row.proofStages.sourceCoordinates.status == passed),
-    assertion(Report.summary.proofProven == 1),
+    assertion(Report.summary.proofTested == 1),
     assert_fixture_entity(fact, 'FACT-PROOF-PROPERTY', "Proof outcome property", active, [
         fact_kind=property_value,
         subject_key="kibi.coverage.report",
@@ -2454,7 +2459,7 @@ test(per_contract_receipts_preserve_snapshot_fallback_and_requirement_rows, [set
     json_string_dict(ReportJson, Report),
     assertion(Report.summary.total == 1),
     coverage_row(Report.rows, 'REQ-BINDING-FALLBACK', Row),
-    assertion(Row.proofStatus \== proven),
+    assertion(Row.proofStatus \== tested),
     evidence_for_test(Row.proofStages.passingE2e.receiptEvidence, TestId, RowEvidence),
     assertion(RowEvidence.state == passed),
     assert_fixture_entity(test, TestId, "Legacy fallback E2E", passing, [verification_scope=end_to_end, proof_receipts=LegacyJson]),
@@ -2652,7 +2657,7 @@ test(production_coverage_explanations_report_missing_unit_unrelated_and_qualifyi
     coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, JsonString),
     json_string_dict(JsonString, Report),
     coverage_row(Report.rows, 'REQ-EXPLAIN', Row),
-    assertion(Row.proofVersion == 'kibi.requirement-proof.v3'),
+    assertion(Row.proofVersion == 'kibi.requirement-proof.v4'),
     assertion(memberchk('SYM-EXPLAIN-NONE', Row.proofStages.productionSymbols.uncoveredSymbols)),
     assertion(memberchk('SYM-EXPLAIN-UNIT', Row.proofStages.productionSymbols.uncoveredSymbols)),
     assertion(memberchk('SYM-EXPLAIN-FOREIGN', Row.proofStages.productionSymbols.uncoveredSymbols)),
@@ -2833,13 +2838,13 @@ test(executable_for_symbols_remain_excluded_from_production_coverage, [setup(set
     assertion(Symbols == []),
     assertion(Stage.uncoveredSymbols == []).
 
-test(requirement_proof_json_preserves_v3_and_explanations, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+test(requirement_proof_json_preserves_v4_and_explanations, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(req, 'REQ-EXPLAIN-JSON', "JSON serializer", active, [priority=must]),
     assert_fixture_entity(symbol, 'SYM-EXPLAIN-JSON', "json symbol", active, [symbol_role=behavioral, sourceFile="src/json.ts"]),
     kb_assert_relationship(implements, 'SYM-EXPLAIN-JSON', 'REQ-EXPLAIN-JSON', []),
     discovery:requirement_proof_json('REQ-EXPLAIN-JSON', unknown, '2026-08-10T12:05:00Z', 604800, JsonString),
     json_string_dict(JsonString, Proof),
-    assertion(Proof.proofVersion == 'kibi.requirement-proof.v3'),
+    assertion(Proof.proofVersion == 'kibi.requirement-proof.v4'),
     assertion(memberchk('SYM-EXPLAIN-JSON', Proof.proofStages.productionSymbols.uncoveredSymbols)),
     production_explanation(Proof, 'SYM-EXPLAIN-JSON', Expl),
     assertion(Expl.reason == stage_blocked_no_passing_e2e).
@@ -6197,6 +6202,319 @@ test(cleanup_temp_file_removes_existing_temp_file, [setup(setup_kb), cleanup(cle
     \+ exists_file(TempFile).
 
 :- end_tests(kb_internal_coverage_gaps).
+
+:- begin_tests(kb_certificates).
+
+% implements REQ-kibi-kb-certificates
+test(consistent_facts_get_models_that_reverify, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    cert_property('FACT-CERT-MIN', 'REQ-CERT-MIN', "api.quota", "rate_limit", gte, int, 1, []),
+    cert_property('FACT-CERT-MAX', 'REQ-CERT-MAX', "api.quota", "rate_limit", lte, int, 10, []),
+    cert_property('FACT-CERT-ON', 'REQ-CERT-ON', "api.quota", "enabled", eq, bool, true, []),
+    cert_property('FACT-CERT-NOT-OFF', 'REQ-CERT-NOT-OFF', "api.quota", "enabled", eq, bool, false, [polarity=forbid]),
+    cert_verify(Bundle, Report),
+    assertion(Report.status == verified),
+    assertion(Report.rejected == []),
+    cert_theorem(Report, properties_consistent, Properties),
+    assertion(Properties.verdict == proved),
+    assertion(Properties.models == 2),
+    member(Model, Bundle.certificates),
+    Model.kind == property_model,
+    Model.propertyKey == rate_limit,
+    !,
+    assertion(integer(Model.value)),
+    assertion((Model.value >= 1, Model.value =< 10)).
+
+% implements REQ-kibi-kb-certificates
+test(joint_contradiction_the_pairwise_check_misses_gets_a_core, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    % Every pair admits an integer, all four together admit none.
+    cert_property('FACT-CERT-J1', 'REQ-CERT-J1', "seat.count", "free", gte, int, 0, []),
+    cert_property('FACT-CERT-J2', 'REQ-CERT-J2', "seat.count", "free", lte, int, 1, []),
+    cert_property('FACT-CERT-J3', 'REQ-CERT-J3', "seat.count", "free", neq, int, 0, []),
+    cert_property('FACT-CERT-J4', 'REQ-CERT-J4', "seat.count", "free", neq, int, 1, []),
+    check_domain_contradictions(Pairwise),
+    assertion(Pairwise == []),
+    cert_verify(Bundle, Report),
+    assertion(Report.status == verified),
+    cert_theorem(Report, properties_consistent, Properties),
+    assertion(Properties.verdict == disproved),
+    member(Certificate, Bundle.certificates),
+    Certificate.kind == property_contradiction,
+    !,
+    msort(Certificate.core, Core),
+    assertion(Core == ['FACT-CERT-J1', 'FACT-CERT-J2', 'FACT-CERT-J3', 'FACT-CERT-J4']),
+    length(Certificate.dropModels, 4).
+
+% implements REQ-kibi-kb-certificates
+test(scoped_facts_get_one_model_per_scope, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    cert_property('FACT-CERT-ALL', 'REQ-CERT-ALL', "tax.rate", "percent", gte, int, 0, []),
+    cert_property('FACT-CERT-EU', 'REQ-CERT-EU', "tax.rate", "percent", eq, int, 20, [scope="eu"]),
+    cert_property('FACT-CERT-US', 'REQ-CERT-US', "tax.rate", "percent", eq, int, 7, [scope="us"]),
+    cert_verify(Bundle, Report),
+    assertion(Report.status == verified),
+    findall(Scope-Value, (member(C, Bundle.certificates), C.kind == property_model, Scope = C.scope, Value = C.value), Models0),
+    msort(Models0, Models),
+    assertion(Models = [''-_, eu-20, us-7]).
+
+% implements REQ-kibi-kb-certificates
+test(contradiction_across_disjoint_windows_stays_unresolved, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    cert_property('FACT-CERT-OLD', 'REQ-CERT-OLD', "plan.price", "monthly", eq, int, 10, [valid_to="2025-12-31T00:00:00Z"]),
+    cert_property('FACT-CERT-NEW', 'REQ-CERT-NEW', "plan.price", "monthly", eq, int, 12, [valid_from="2026-01-01T00:00:00Z"]),
+    cert_verify(Bundle, Report),
+    assertion(Report.status == verified),
+    cert_theorem(Report, properties_consistent, Properties),
+    assertion(Properties.verdict == unresolved),
+    Certificates = Bundle.certificates,
+    assertion((member(C, Certificates), get_dict(kind, C, property_unresolved))).
+
+% implements REQ-kibi-kb-certificates
+test(predicate_and_decision_contradictions_reverify, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    % Allow asserted and the same allow denied disagree on one atom; allow
+    % against an asserted deny disagree on one decision key.
+    cert_predicate('FACT-CERT-READ-ALLOW', 'REQ-CERT-READ-ALLOW', ["coach", "read", "request", "allow"], assert),
+    cert_predicate('FACT-CERT-READ-ALLOW-DENIED', 'REQ-CERT-READ-ALLOW-DENIED', ["coach", "read", "request", "allow"], deny),
+    cert_predicate('FACT-CERT-READ-DENY', 'REQ-CERT-READ-DENY', ["coach", "read", "request", "deny"], assert),
+    cert_verify(Bundle, Report),
+    assertion(Report.status == verified),
+    cert_theorem(Report, predicates_consistent, Predicates),
+    assertion(Predicates.verdict == disproved),
+    cert_theorem(Report, decisions_consistent, Decisions),
+    assertion(Decisions.verdict == disproved),
+    Certificates = Bundle.certificates,
+    assertion((member(P, Certificates), get_dict(kind, P, predicate_contradiction))),
+    assertion((member(D, Certificates), get_dict(kind, D, decision_contradiction))).
+
+% implements REQ-kibi-kb-certificates
+test(stratified_rules_get_strata_and_a_negation_cycle_is_shown, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    cert_rule('FACT-CERT-RULE-P', p, not(q)),
+    cert_rule('FACT-CERT-RULE-Q', q, r),
+    cert_verify(Bundle, Report),
+    assertion(Report.status == verified),
+    cert_theorem(Report, rules_stratified, Stratified),
+    assertion(Stratified.verdict == proved),
+    member(Strata, Bundle.certificates),
+    Strata.kind == rule_strata,
+    !,
+    member(PEntry, Strata.strata), PEntry.name == p, !,
+    member(QEntry, Strata.strata), QEntry.name == q, !,
+    assertion(PEntry.stratum > QEntry.stratum),
+    cert_rule('FACT-CERT-RULE-R', r, not(p)),
+    cert_verify(CycleBundle, CycleReport),
+    assertion(CycleReport.status == verified),
+    cert_theorem(CycleReport, rules_stratified, Cycle),
+    assertion(Cycle.verdict == disproved),
+    CycleCertificates = CycleBundle.certificates,
+    assertion((member(C, CycleCertificates), get_dict(kind, C, rule_negation_cycle))).
+
+% implements REQ-kibi-kb-certificates
+test(tampered_certificates_are_rejected, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    cert_property('FACT-CERT-J1', 'REQ-CERT-J1', "seat.count", "free", gte, int, 0, []),
+    cert_property('FACT-CERT-J2', 'REQ-CERT-J2', "seat.count", "free", lte, int, 1, []),
+    cert_property('FACT-CERT-J3', 'REQ-CERT-J3', "seat.count", "free", neq, int, 0, []),
+    cert_property('FACT-CERT-J4', 'REQ-CERT-J4', "seat.count", "free", neq, int, 1, []),
+    cert_property('FACT-CERT-MIN', 'REQ-CERT-MIN', "api.quota", "rate_limit", gte, int, 1, []),
+    cert_rule('FACT-CERT-RULE-P', p, not(q)),
+    cert_rule('FACT-CERT-RULE-Q', q, r),
+    kb_certificates(Bundle0),
+    cert_json(Bundle0, Bundle),
+    verify_certificates(Bundle, Clean),
+    assertion(Clean.status == verified),
+    % A model value that breaks a fact.
+    cert_tamper(Bundle, property_model, [Model]>>get_dict(propertyKey, Model, "rate_limit"), [C0, C]>>put_dict(value, C0, 0, C), BadModel),
+    cert_rejected(BadModel, "model value does not satisfy FACT-CERT-MIN"),
+    % A core with a fact removed admits a value.
+    cert_tamper(Bundle, property_contradiction, [_]>>true, [C0, C]>>(get_dict(core, C0, [_|Rest]), put_dict(core, C0, Rest, C)), ShortCore),
+    cert_rejected(ShortCore, "core admits a value, so it is not a contradiction"),
+    % A claimed contradiction where the facts are consistent.
+    cert_tamper(Bundle, property_model, [Model]>>(get_dict(propertyKey, Model, "rate_limit")),
+        [C0, C]>>(get_dict(facts, C0, Facts), del_dict(facts, C0, _, C1), del_dict(value, C1, _, C2),
+                  put_dict(_{kind: "property_contradiction", core: Facts, dropModels: []}, C2, C)), FalseCore),
+    cert_rejected(FalseCore, "core admits a value, so it is not a contradiction"),
+    % Strata that put a negated dependency on the same level.
+    cert_tamper(Bundle, rule_strata, [_]>>true,
+        [C0, C]>>(get_dict(strata, C0, Strata0), maplist([E0, E]>>put_dict(stratum, E0, 0, E), Strata0, Flat), put_dict(strata, C0, Flat, C)), FlatStrata),
+    cert_rejected(FlatStrata, "a rule dependency violates the stratum order"),
+    % A missing certificate leaves its context unproved.
+    get_dict(certificates, Bundle, AllCertificates),
+    exclude([C]>>get_dict(kind, C, "property_model"), AllCertificates, WithoutModels),
+    put_dict(certificates, Bundle, WithoutModels, NoModels),
+    verify_certificates(NoModels, Missing),
+    assertion(Missing.status == rejected),
+    cert_theorem(Missing, properties_consistent, Properties),
+    assertion(Properties.verdict == disproved),
+    MissingRejected = Missing.rejected,
+    assertion((member(F, MissingRejected), get_dict(reason, F, "no certificate for this group"))).
+
+% implements REQ-kibi-kb-certificates
+test(checker_loads_neither_the_search_nor_the_checks) :-
+    module_property(certificate_check, file(File)),
+    read_file_to_string(File, Source, []),
+    assertion(\+ sub_string(Source, _, _, _, "'checks.pl'")),
+    assertion(\+ sub_string(Source, _, _, _, "'certificates.pl'")),
+    assertion(\+ predicate_property(certificate_check:_, imported_from(checks))),
+    assertion(\+ predicate_property(certificate_check:_, imported_from(certificates))).
+
+% implements REQ-kibi-kb-certificates
+test(kb_consistency_rule_reports_a_reverified_joint_contradiction, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    cert_property('FACT-CERT-MIN', 'REQ-CERT-MIN', "api.quota", "rate_limit", gte, int, 1, []),
+    check_kb_consistency(Clean),
+    assertion(Clean == []),
+    cert_property('FACT-CERT-J1', 'REQ-CERT-J1', "seat.count", "free", gte, int, 0, []),
+    cert_property('FACT-CERT-J2', 'REQ-CERT-J2', "seat.count", "free", lte, int, 1, []),
+    cert_property('FACT-CERT-J3', 'REQ-CERT-J3', "seat.count", "free", neq, int, 0, []),
+    cert_property('FACT-CERT-J4', 'REQ-CERT-J4', "seat.count", "free", neq, int, 1, []),
+    check_kb_consistency(Violations),
+    assertion(Violations = [violation('kb-consistency', "REQ-CERT-J1/REQ-CERT-J2/REQ-CERT-J3/REQ-CERT-J4", _, _, "", _)]),
+    Violations = [violation(_, _, Description, Suggestion, _, Evidence)],
+    assertion(sub_string(Description, 0, _, _, "Facts FACT-CERT-J1, FACT-CERT-J2, FACT-CERT-J3, FACT-CERT-J4 cannot all hold for seat.count.free")),
+    assertion(sub_string(Suggestion, _, _, _, "kibi check --write-certificates")),
+    get_dict(certificate, Evidence, Certificate),
+    assertion(get_dict(kind, Certificate, "property_contradiction")),
+    check_kb_consistency_unresolved(Unresolved),
+    assertion(Unresolved == []).
+
+% implements REQ-kibi-kb-certificates
+test(kb_consistency_unresolved_names_contexts_it_cannot_compare, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    cert_property('FACT-CERT-GB', 'REQ-CERT-GB', "plan.storage", "quota", lte, int, 10, [unit="GB"]),
+    cert_property('FACT-CERT-SEATS', 'REQ-CERT-SEATS', "plan.storage", "quota", gte, int, 2, [unit="seat"]),
+    check_kb_consistency(Violations),
+    assertion(Violations == []),
+    check_kb_consistency_unresolved(Unresolved),
+    assertion(Unresolved = [violation('kb-consistency-unresolved', "REQ-CERT-GB/REQ-CERT-SEATS", _, _, "")]),
+    Unresolved = [violation(_, _, Description, _, _)],
+    assertion(sub_string(Description, _, _, _, "plan.storage.quota")),
+    assertion(sub_string(Description, _, _, _, "It never counts as consistent")).
+
+% implements REQ-kibi-kb-certificates
+test(kb_consistency_rule_reports_a_negation_cycle, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    cert_rule('FACT-CERT-RULE-P', p, not(q)),
+    cert_rule('FACT-CERT-RULE-Q', q, p),
+    check_kb_consistency(Violations),
+    assertion(Violations = [violation('kb-consistency', _, _, _, "", _)]),
+    Violations = [violation(_, _, Description, _, _, _)],
+    assertion(sub_string(Description, 0, _, _, "Stored rules are not stratified")),
+    assertion(sub_string(Description, _, _, _, "depends on not")).
+
+% implements REQ-kibi-kb-certificates
+test(kb_consistency_rules_run_through_check_selected, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    checks:check_selected(['kb-consistency', 'kb-consistency-unresolved'], Dict),
+    assertion(get_dict(kb_consistency, Dict, _)),
+    assertion(get_dict(kb_consistency_unresolved, Dict, _)).
+
+:- end_tests(kb_certificates).
+
+cert_property(FactId, ReqId, Subject, Property, Operator, Type, Value, Extra) :-
+    atom_concat('FACT-SUBJECT-', Subject, SubjectId0),
+    upcase_atom(SubjectId0, SubjectId),
+    (   kb_entity(SubjectId, fact, _)
+    ->  true
+    ;   assert_fixture_entity(fact, SubjectId, "Certificate subject", active, [fact_kind=subject, subject_key=Subject])
+    ),
+    atom_concat(value_, Type, ValueKey),
+    variant_sha1(FactId, Hash),
+    sub_atom(Hash, 0, 16, _, Hex),
+    upcase_atom(Hex, Upper),
+    atom_concat('CLAIM-', Upper, ClaimAtom),
+    atom_string(ClaimAtom, ClaimKey),
+    ValueProp =.. [=, ValueKey, Value],
+    append([fact_kind=property_value, subject_key=Subject, property_key=Property, operator=Operator,
+            value_type=Type, ValueProp, claim_key=ClaimKey, claim_text="Certificate fixture claim"], Extra, Props),
+    assert_fixture_entity(fact, FactId, "Certificate fixture", active, Props),
+    assert_fixture_entity(req, ReqId, "Certificate fixture requirement", open, []),
+    kb_assert_relationship(constrains, ReqId, SubjectId, []),
+    kb_assert_relationship(requires_property, ReqId, FactId, []).
+
+cert_predicate(FactId, ReqId, Args, Polarity) :-
+    variant_sha1(FactId, Hash),
+    sub_atom(Hash, 0, 16, _, Hex),
+    upcase_atom(Hex, Upper),
+    atom_concat('CLAIM-', Upper, ClaimAtom),
+    atom_string(ClaimAtom, ClaimKey),
+    atomic_list_concat(Args, ',', ArgsText),
+    format(string(CanonicalKey), "permission_rule(~w):~w", [ArgsText, Polarity]),
+    assert_fixture_entity(fact, FactId, "Certificate permission", active, [
+        fact_kind=predicate,
+        predicate_name="permission_rule",
+        predicate_namespace="default",
+        predicate_args=Args,
+        polarity=Polarity,
+        canonical_key=CanonicalKey,
+        claim_key=ClaimKey,
+        claim_text="Coaches read analysis requests"
+    ]),
+    assert_fixture_entity(req, ReqId, "Certificate permission requirement", open, [logic_claims=[ClaimKey]]),
+    kb_assert_relationship(requires_predicate, ReqId, FactId, []).
+
+% A rule Head :- Body, Body an atom name or not(Name).  Stored raw so a
+% negation cycle reaches the KB.
+cert_rule(FactId, Head, Body) :-
+    (   Body = not(Name)
+    ->  BodyDict = _{kind: not, item: _{kind: atom, name: Name, args: []}}
+    ;   BodyDict = _{kind: atom, name: Body, args: []}
+    ),
+    atom_json_dict(Json, _{version: 'kibi.logic.v1', kind: rule, modality: assert,
+                           head: _{kind: atom, name: Head, args: []}, body: BodyDict, variables: []}, []),
+    assert_raw_entity(fact, FactId, [title="Certificate rule", status=active, fact_kind=rule, rule_ir=Json]).
+
+cert_json(Bundle, Json) :-
+    atom_json_dict(Atom, Bundle, []),
+    atom_json_dict(Atom, Json, [value_string_as(string)]).
+
+cert_verify(Bundle, Report) :-
+    kb_certificates(Bundle),
+    cert_json(Bundle, Json),
+    verify_certificates(Json, Report).
+
+cert_theorem(Report, Name, Theorem) :-
+    member(Theorem, Report.theorems),
+    Theorem.theorem == Name,
+    !.
+
+% Replace the first certificate of Kind that satisfies Select with the
+% result of Change.
+cert_tamper(Bundle, Kind, Select, Change, Tampered) :-
+    atom_string(Kind, KindText),
+    append(Before, [Certificate|After], Bundle.certificates),
+    get_dict(kind, Certificate, KindText),
+    call(Select, Certificate),
+    !,
+    call(Change, Certificate, Changed),
+    append(Before, [Changed|After], Certificates),
+    Tampered = Bundle.put(certificates, Certificates).
+
+cert_rejected(Bundle, Reason) :-
+    verify_certificates(Bundle, Report),
+    assertion(Report.status == rejected),
+    Rejected = Report.rejected,
+    assertion((member(Failure, Rejected), get_dict(reason, Failure, Reason))).
+
+:- begin_tests(requirement_evidence_levels).
+
+% implements REQ-kibi-evidence-levels
+test(evidence_level_follows_human_backing_without_passing_e2e, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-EVIDENCE-AGENT', "Agent only", open, [priority=must, origin="{\"kind\":\"agent\"}"]),
+    assert_fixture_entity(req, 'REQ-EVIDENCE-APPROVED', "Agent approved", open, [priority=must, origin="{\"kind\":\"agent\",\"approved_by\":\"Owner\",\"ref\":\"chat 1\"}"]),
+    assert_fixture_entity(req, 'REQ-EVIDENCE-PERSON', "Person stated", open, [priority=must]),
+    assert_fixture_entity(req, 'REQ-EVIDENCE-EXPLORATORY', "Exploratory guess", open, [priority=must, firmness=exploratory]),
+    assert_fixture_entity(req, 'REQ-EVIDENCE-SELF', "Agent exception approval", open, [priority=must, approved_by="Owner", origin="{\"kind\":\"agent\"}"]),
+    coverage_report_json(req, [], true, true, 100, 0, JsonString),
+    json_string_dict(JsonString, Report),
+    coverage_row(Report.rows, 'REQ-EVIDENCE-AGENT', Agent),
+    assertion(Agent.evidenceLevel == unverified),
+    assertion(Agent.evidence == []),
+    coverage_row(Report.rows, 'REQ-EVIDENCE-APPROVED', Approved),
+    assertion(Approved.evidenceLevel == asserted),
+    assertion(Approved.evidence = [_{kind: human_intent, scope: intent, level: asserted, basis: approved, ref: 'chat 1'}]),
+    coverage_row(Report.rows, 'REQ-EVIDENCE-PERSON', Person),
+    assertion(Person.evidenceLevel == asserted),
+    assertion(Person.evidence = [_{kind: human_intent, scope: intent, level: asserted, basis: firm}]),
+    coverage_row(Report.rows, 'REQ-EVIDENCE-EXPLORATORY', Exploratory),
+    assertion(Exploratory.evidenceLevel == unverified),
+    % The top-level approved_by approves an exception; an agent can write it.
+    coverage_row(Report.rows, 'REQ-EVIDENCE-SELF', Self),
+    assertion(Self.evidenceLevel == unverified),
+    assertion(Report.summary.evidenceLevels = _{proved: 0, tested: 0, asserted: 2, unverified: 3}).
+
+:- end_tests(requirement_evidence_levels).
 
 :- begin_tests(requirement_applicability).
 

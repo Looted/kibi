@@ -9,7 +9,7 @@
  */
 
 // implements REQ-kibi-verification-evidence-contract
-export const PROOF_BASELINE_VERSION = "kibi.proof-baseline.v2";
+export const PROOF_BASELINE_VERSION = "kibi.proof-baseline.v3";
 
 export type RequirementFingerprint = {
   readonly proofStatus: string;

@@ -211,7 +211,7 @@ const WorkflowExpectationSchema = z
       "not_evaluated",
     ]),
     expectedProofState: z.enum([
-      "proven",
+      "tested",
       "mixed",
       "unresolved",
       "not_evaluated",
@@ -238,7 +238,7 @@ const WorkflowExpectationSchema = z
           "unavailable",
           "not_evaluated",
         ]),
-        proofState: z.enum(["proven", "mixed", "unresolved", "not_evaluated"]),
+        proofState: z.enum(["tested", "mixed", "unresolved", "not_evaluated"]),
         limitationDisposition: z.enum([
           "none",
           "accepted",
@@ -278,6 +278,7 @@ const PrivateEvaluatorManifestSchema = z
         "seeded_precondition_kb",
         "seeded_consistency_kb",
         "seeded_unresolved_rule_kb",
+        "seeded_joint_contradiction_kb",
         "seeded_decision_kb",
         "seeded_unrecorded_change_kb",
         "seeded_staged_symbol_kb",

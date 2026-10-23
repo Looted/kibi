@@ -9,7 +9,7 @@ success flag):
 taskOutcome: complete | interim | blocked
 kbState: clean_fresh | stale | dirty | legacy_compat | not_evaluated
 verificationState: fresh | dirty | unavailable | not_evaluated
-proofState: proven | mixed | unresolved | not_evaluated
+proofState: tested | mixed | unresolved | not_evaluated
 limitationDisposition: none | accepted | unaccepted | not_applicable
 ```
 

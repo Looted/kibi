@@ -62,7 +62,7 @@ export const CLI_OPERATION_METADATA = [
     name: "kb_coverage",
     cliName: "coverage",
     description:
-      "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Use it to ask which requirements are proven and what blocks the rest; use kb_find_gaps for a plain list of missing links and kb_check for rule violations. Reports include the compatible repair plan plus typed kibi.migration-plan.v2 actions; semantic and E2E actions remain review/execution work. Paginated plans identify incomplete scope and no mutation occurs.",
+      "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Use it to ask which requirements are tested end to end, how strong each requirement's evidence is (evidenceLevel: proved, tested, asserted or unverified), and what blocks the rest; use kb_find_gaps for a plain list of missing links and kb_check for rule violations. Reports include the compatible repair plan plus typed kibi.migration-plan.v2 actions; semantic and E2E actions remain review/execution work. Paginated plans identify incomplete scope and no mutation occurs.",
   },
   {
     name: "kb_graph",

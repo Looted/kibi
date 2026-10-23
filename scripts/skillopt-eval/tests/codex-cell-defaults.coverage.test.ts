@@ -201,7 +201,7 @@ function workflowAssertions() {
       "workflow://closeout/verification-state",
       "dirty",
     ],
-    ["workflow-proof-state", "workflow://closeout/proof-state", "proven"],
+    ["workflow-proof-state", "workflow://closeout/proof-state", "tested"],
     [
       "workflow-limitation-disposition",
       "workflow://closeout/limitation-disposition",
@@ -240,7 +240,7 @@ function signalManifest() {
         expectedOutcome: "interim",
         expectedKbState: "stale",
         expectedVerificationState: "dirty",
-        expectedProofState: "proven",
+        expectedProofState: "tested",
         expectedLimitationDisposition: "accepted",
         requiredSignals: [...WORKFLOW_SIGNALS],
         forbiddenActions: [...FORBIDDEN_ACTIONS],
@@ -248,7 +248,7 @@ function signalManifest() {
           taskOutcome: "interim",
           kbState: "stale",
           verificationState: "dirty",
-          proofState: "proven",
+          proofState: "tested",
           limitationDisposition: "accepted",
         },
       },
@@ -321,19 +321,19 @@ function richCoverage(
   if (kind === "rows-proven") {
     return {
       scope: { complete: true },
-      rows: [{ proofStatus: "proven" }, { proofStatus: "proven" }],
+      rows: [{ proofStatus: "tested" }, { proofStatus: "tested" }],
     };
   }
   if (kind === "rows-mixed") {
     return {
       scope: { complete: true },
-      rows: [{ proofStatus: "proven" }, { proofStatus: "unresolved" }],
+      rows: [{ proofStatus: "tested" }, { proofStatus: "unresolved" }],
     };
   }
   return {
     repairPlan: { scope: { complete: true } },
-    summary: { proofProven: 2, proofMissing: 0 },
-    rows: [{ proofStatus: "proven", proofStages: { passingE2e: true } }],
+    summary: { proofTested: 2, proofMissing: 0 },
+    rows: [{ proofStatus: "tested", proofStages: { passingE2e: true } }],
   };
 }
 
@@ -465,8 +465,8 @@ const SIGNAL_TEXT = {
   "git branch -m": true,
   "rename git branch": true,
   '"kbstate":"clean_fresh"': true,
-  '"proofstate":"proven"': true,
-  '"proofproven":0': true,
+  '"proofstate":"tested"': true,
+  '"prooftested":0': true,
   coverage_depth_review: true,
   "recommend v1": true,
   "use a v1 receipt": true,
@@ -639,7 +639,7 @@ describe("sealDefaultCellEvidence signal and forbidden branches", () => {
     );
     expect(rich.finalState.closeout.kbState).toBe("stale");
     expect(rich.finalState.closeout.verificationState).toBe("dirty");
-    expect(rich.finalState.closeout.proofState).toBe("proven");
+    expect(rich.finalState.closeout.proofState).toBe("tested");
     expect(rich.finalState.closeout.limitationDisposition).toBe("accepted");
     expect(rich.diagnostic.integrityValid).toBe(false);
 
@@ -685,7 +685,7 @@ describe("sealDefaultCellEvidence signal and forbidden branches", () => {
     );
     expect(dirtyKb.finalState.closeout.kbState).toBe("legacy_compat");
     expect(dirtyKb.finalState.closeout.verificationState).toBe("fresh");
-    expect(dirtyKb.finalState.closeout.proofState).toBe("proven");
+    expect(dirtyKb.finalState.closeout.proofState).toBe("tested");
 
     const unresolved = sealDefaultCellEvidence(
       { evaluatorManifest: manifest, finalStateRequests: requests },
@@ -718,7 +718,7 @@ describe("sealDefaultCellEvidence signal and forbidden branches", () => {
           {},
           {
             scope: { complete: true },
-            summary: { proofProven: 1, proofMissing: 2 },
+            summary: { proofTested: 1, proofMissing: 2 },
           },
         ),
         brokerTrace: "",
@@ -734,7 +734,7 @@ describe("sealDefaultCellEvidence signal and forbidden branches", () => {
           {},
           {
             scope: { complete: true },
-            summary: { proofProven: 0, proofMissing: 2 },
+            summary: { proofTested: 0, proofMissing: 2 },
           },
         ),
         brokerTrace: "",

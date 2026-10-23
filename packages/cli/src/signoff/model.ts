@@ -37,11 +37,16 @@ export type SignoffStatementRef = Readonly<{
 }>;
 
 export type SignoffProof = Readonly<{
-  /** Coverage proof status: proven, missing, unresolved or not_applicable. */
+  /** Coverage proof status: tested, missing, unresolved or not_applicable. */
   status: string;
-  /** The earliest unmet proof gate, or "proven". */
+  /** The earliest unmet proof gate, or "tested". */
   gate: string;
   testCount: number;
+  /**
+   * How strong the evidence is: proved, tested, asserted (a person stands
+   * behind it, nothing current checks it) or unverified.
+   */
+  evidenceLevel?: string;
   contradictions: readonly string[];
 }>;
 
@@ -127,16 +132,21 @@ export const SIGNOFF_GATE_LABELS: Readonly<Record<string, string>> = {
   implementation: "no owning code yet",
   e2e: "no end-to-end test yet",
   evidence: "end-to-end evidence not current",
-  proven: "proven",
+  tested: "tested",
 };
 
 /** A short proof label for one requirement. */
+// implements REQ-kibi-evidence-levels
 export function proofLabel(proof: SignoffProof | undefined): string {
   if (proof === undefined) return "not checked";
   if (proof.status === "not_applicable") return "not applicable";
   const gate = SIGNOFF_GATE_LABELS[proof.gate] ?? proof.gate;
   const tests = `${proof.testCount} ${proof.testCount === 1 ? "test" : "tests"}`;
-  return proof.gate === "proven" ? `proven, ${tests}` : `${gate}, ${tests}`;
+  const label =
+    proof.gate === "tested" ? `tested, ${tests}` : `${gate}, ${tests}`;
+  return proof.evidenceLevel === undefined || proof.evidenceLevel === "tested"
+    ? label
+    : `${label}; evidence ${proof.evidenceLevel}`;
 }
 
 /** Whether a question still waits for the person. */

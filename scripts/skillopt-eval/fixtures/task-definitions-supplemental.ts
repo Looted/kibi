@@ -221,6 +221,31 @@ export const SUPPLEMENTAL_CASES: Readonly<Record<string, DogfoodCase>> = {
     `Before a release review, confirm that the refund rules REQ-refund-settled-amount and REQ-refund-chargeback are consistent with each other.${READ_ONLY}`,
     "consistency_unresolved_report",
   ),
+  // Four call-quota bounds that every pair satisfies but all four do not:
+  // only kb-consistency reports them; name the core and a supersede-or-change
+  // step, and never call the pairwise check proof of consistency.
+  "kibi-freshness/consistency-report/train/2": readOnlyCase(
+    `Check whether REQ-call-quota-floor, REQ-call-quota-ceiling, REQ-call-quota-not-empty and REQ-call-quota-not-single can all hold, and report what the Kibi checks establish about them.${READ_ONLY}`,
+    "consistency_joint_contradiction_report",
+  ),
+  "kibi-freshness/consistency-report/development/2": readOnlyCase(
+    `The pairwise contradiction check finds nothing among the remaining-call-quota requirements. Confirm that they are consistent before release.${READ_ONLY}`,
+    "consistency_joint_contradiction_report",
+  ),
+  // The reset-window bounds use hours and days: the checker cannot compare
+  // them, so the pair is unresolved, never consistent.
+  "kibi-freshness/consistency-report/development/3": readOnlyCase(
+    `Are the call-quota reset-window requirements REQ-call-quota-window-max and REQ-call-quota-window-min consistent with each other? Report what the Kibi checks establish.${READ_ONLY}`,
+    "consistency_units_unresolved_report",
+  ),
+  "kibi-freshness/consistency-report/held-out/4": readOnlyCase(
+    `Before a release review, sign off that the four bounds on the remaining call quota are consistent with each other.${READ_ONLY}`,
+    "consistency_joint_contradiction_report",
+  ),
+  "kibi-freshness/consistency-report/held-out/5": readOnlyCase(
+    `Sign off that the call-quota reset-window requirements are consistent.${READ_ONLY}`,
+    "consistency_units_unresolved_report",
+  ),
   // C4.1: an intended-success scenario that assumes a forbidden value.
   "kibi-traceability/scenario-feasibility/train/0": preApprovalCase(
     "Add an intended-success scenario in Kibi for a client with zero remaining call quota completing a promo call. approval-state.json records the current approval phase.",

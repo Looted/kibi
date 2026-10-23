@@ -35,7 +35,7 @@ The canonical files are [`assets/logo.svg`](../assets/logo.svg) and [`assets/wor
 | Snow | `#f4f8fb` | Primary dark-theme text |
 | Mist | `#aab8c2` | Secondary text |
 | Rail | `#34434f` | Inactive structure and borders |
-| Proven | `#63c99a` | Complete proof only |
+| Tested | `#63c99a` | Complete end-to-end evidence only |
 | Warning | `#f2b84b` | Stale, incomplete, or attention-needed evidence |
 | Contradiction | `#f07178` | Contradictions, failed evidence, and materially low proof health |
 
@@ -53,7 +53,7 @@ Use restrained 8–14 px corner radii, thin rails, circular nodes, and compact s
 
 Lead report-like surfaces with the exact result and the path that produced it. The preferred hierarchy is wordmark → health score → sequential proof rail → supporting metrics → detailed ledger. Marketing language may explain the value, but it must not displace the evidence in the first viewport.
 
-Proof percentages are conservative: fully proven current requirements divided by all current requirements. Show the numerator and denominator beside the percentage. When useful, show sequential gate counts so an honest 0% is distinguishable from missing or broken reporting.
+Proof percentages are conservative: fully tested current requirements divided by all current requirements. Show the numerator and denominator beside the percentage. When useful, show sequential gate counts so an honest 0% is distinguishable from missing or broken reporting.
 
 ## Voice
 

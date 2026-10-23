@@ -125,6 +125,9 @@ async function loadProof(): Promise<ReadonlyMap<string, SignoffProof>> {
       status: typeof row.proofStatus === "string" ? row.proofStatus : "missing",
       gate: earliestUnmetGate(row),
       testCount: typeof row.testCount === "number" ? row.testCount : 0,
+      ...(typeof row.evidenceLevel === "string"
+        ? { evidenceLevel: row.evidenceLevel }
+        : {}),
       contradictions: conflicts
         .map(record)
         .filter((conflict) => conflict.status === "contradiction")

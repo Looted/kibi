@@ -67,6 +67,8 @@ known_rule('supersedes-reason-missing').
 known_rule('supersedes-reason-acknowledged').
 known_rule('policy-ownership').
 known_rule('policy-markers').
+known_rule('kb-consistency').
+known_rule('kb-consistency-unresolved').
 
 rule_enforcement_class('must-priority-coverage', canonical).
 rule_enforcement_class('symbol-coverage', canonical).
@@ -121,6 +123,8 @@ rule_enforcement_class('supersedes-reason-missing', canonical).
 rule_enforcement_class('supersedes-reason-acknowledged', advisory).
 rule_enforcement_class('policy-ownership', canonical).
 rule_enforcement_class('policy-markers', canonical).
+rule_enforcement_class('kb-consistency', canonical).
+rule_enforcement_class('kb-consistency-unresolved', advisory).
 
 rule_implementation('must-priority-coverage', prolog).
 rule_implementation('symbol-coverage', prolog).
@@ -175,6 +179,8 @@ rule_implementation('supersedes-reason-missing', typescript).
 rule_implementation('supersedes-reason-acknowledged', typescript).
 rule_implementation('policy-ownership', typescript).
 rule_implementation('policy-markers', typescript).
+rule_implementation('kb-consistency', prolog).
+rule_implementation('kb-consistency-unresolved', prolog).
 
 rule_predicate('must-priority-coverage', check_must_priority_coverage).
 rule_predicate('symbol-coverage', check_symbol_coverage).
@@ -210,6 +216,8 @@ rule_predicate('ontology-quality', check_ontology_quality).
 rule_predicate('symbol-owner-superseded', check_symbol_owner_superseded).
 rule_predicate('adr-unlinked', check_adr_unlinked).
 rule_predicate('adr-proposed', check_adr_proposed).
+rule_predicate('kb-consistency', check_kb_consistency).
+rule_predicate('kb-consistency-unresolved', check_kb_consistency_unresolved).
 
 rule_predicate_arity('must-priority-coverage', 1).
 rule_predicate_arity('symbol-coverage', 1).
@@ -245,6 +253,8 @@ rule_predicate_arity('ontology-quality', 1).
 rule_predicate_arity('symbol-owner-superseded', 1).
 rule_predicate_arity('adr-unlinked', 1).
 rule_predicate_arity('adr-proposed', 1).
+rule_predicate_arity('kb-consistency', 1).
+rule_predicate_arity('kb-consistency-unresolved', 1).
 
 rule_description('must-priority-coverage', 'Every current must-priority requirement (not superseded, retired, or closed without the implemented tag) must have a scenario and a test').
 rule_description('symbol-coverage', 'Production symbols need qualifying coverage via covered_by plus a canonical requirement/scenario test path').
@@ -299,3 +309,5 @@ rule_description('supersedes-reason-missing', 'A current requirement or ADR that
 rule_description('supersedes-reason-acknowledged', 'Informational: how many current superseding requirements and ADRs have only supersede edges the schema 9 migration acknowledged without a \'Why this changed\' section; one summary finding per check').
 rule_description('policy-ownership', 'When a plugin activated for kibi.check-policy.v1 declares ownership rules, every production symbol in a rule\'s file set must implement a current requirement grounded (requires_predicate) in one of the rule\'s predicates; projects without an activated check policy are unaffected').
 rule_description('policy-markers', 'When a plugin activated for kibi.check-policy.v1 declares marker rules, every file implementing a requirement grounded in the rule\'s pattern predicate (with its declared sibling files) must contain each marker the KB declares for that pattern').
+rule_description('kb-consistency', 'The facts current requirements name must hold together, jointly and not only pairwise: every property context needs a value that satisfies all its facts, every atom and decision key one truth value, and stored rules a stratification. Each finding is a contradiction certificate (an irreducible core, two disagreeing facts or a negation cycle) re-verified by the independent checker, or a certificate that checker rejects').
+rule_description('kb-consistency-unresolved', 'Advisory: a property context, atom or decision key whose facts the consistency checker cannot compare (mixed value types or units, an unsupported operator or polarity, or a contradiction whose validity windows never overlap); it never counts as consistent').

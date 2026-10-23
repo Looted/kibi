@@ -115,7 +115,7 @@ export const DOCS: readonly DocPage[] = [
     group: "Understand",
     title: "The proof ladder",
     description:
-      "From a stated requirement to fresh end-to-end evidence: the stages a requirement climbs to count as proven.",
+      "From a stated requirement to fresh end-to-end evidence: the stages a requirement climbs to count as tested, and how strong its evidence is.",
     source: "docs/proof-ladder.md",
   },
   {

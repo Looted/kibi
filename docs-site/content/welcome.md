@@ -22,7 +22,7 @@ You keep working the way you already do: prompt your agent, review its changes, 
 1. **You state intent.** "Draft edits must auto-save when the user navigates away."
 2. **The agent compiles it.** Your coding agent turns the prompt into typed requirements, scenarios, tests, and links to the code symbols that implement them.
 3. **Kibi checks it.** A deterministic Prolog layer verifies schemas, coherence, traceability, and contradictions before anything becomes accepted project knowledge.
-4. **Evidence closes the loop.** Proof-bearing tests record fresh end-to-end results tied to the current code snapshot, and a health report shows exactly what is proven and what is still waiting.
+4. **Evidence closes the loop.** Proof-bearing tests record fresh end-to-end results tied to the current code snapshot, and a health report shows exactly what is tested, what only rests on someone's word, and what is still waiting.
 
 Nothing about this requires you to maintain a parallel requirements bureaucracy. The prompt is the interface; humans resolve genuine product decisions, agents own the bookkeeping.
 
@@ -42,6 +42,6 @@ Nothing about this requires you to maintain a parallel requirements bureaucracy.
 ## Where to go next
 
 - [Quick start](quick-start.md) — install Kibi and bootstrap your repository.
-- [Read the health report](reading-the-report.md) — what proven, a proof gap, and a contradiction mean.
+- [Read the health report](reading-the-report.md) — what tested, an evidence level, a proof gap, and a contradiction mean.
 - [How Kibi works](how-it-works.md) — the mental model behind the loop.
 - [Connect your coding agent](connect-an-agent.md) — wire Kibi into your client.

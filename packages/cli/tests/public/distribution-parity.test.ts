@@ -43,7 +43,7 @@ function runtime(
 function observations(
   runtimes: readonly DistributionRuntime[],
   outcome: unknown = {
-    proofStatus: "proven",
+    proofStatus: "tested",
     gapCodes: [],
     timestamp: "2026-08-10T12:00:00.000Z",
   },

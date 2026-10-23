@@ -250,12 +250,12 @@ export async function reportCommand(
   const summary = coverage.requirements.summary;
   const total = Number(summary.total ?? 0);
   const notApplicable = Number(summary.proofNotApplicable ?? 0);
-  const proven = Number(summary.proofProven ?? 0);
+  const tested = Number(summary.proofTested ?? 0);
   const currentRequirements = Math.max(0, total - notApplicable);
   const proofPercent =
     currentRequirements === 0
       ? 0
-      : Math.round((proven / currentRequirements) * 100);
+      : Math.round((tested / currentRequirements) * 100);
   const hasContradiction = coverage.requirements.rows.some(
     (row) =>
       Array.isArray(row.proofGaps) &&
@@ -265,7 +265,7 @@ export async function reportCommand(
     coverage.requirements.meta?.dirty === true ||
     coverage.requirements.meta?.proofSnapshotDirty === true;
   const badgeMessage =
-    currentRequirements === 0 ? "no requirements" : `${proofPercent}% proven`;
+    currentRequirements === 0 ? "no requirements" : `${proofPercent}% tested`;
   const badgeColor =
     currentRequirements === 0
       ? KIBI_BRAND.rail

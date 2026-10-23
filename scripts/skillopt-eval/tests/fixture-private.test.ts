@@ -63,8 +63,8 @@ describe("private SkillOpt fixture corpus", () => {
     expect(firstReceipt.publicIndex).toEqual(secondReceipt.publicIndex);
     expect(firstReceipt.heldOutIndex).toEqual(secondReceipt.heldOutIndex);
     expect(firstReceipt.privateIndex).toEqual(secondReceipt.privateIndex);
-    expect(firstReceipt.heldOutIndex.tasks).toHaveLength(121);
-    expect(firstReceipt.privateIndex.tasks).toHaveLength(214);
+    expect(firstReceipt.heldOutIndex.tasks).toHaveLength(123);
+    expect(firstReceipt.privateIndex.tasks).toHaveLength(219);
     expect(
       new Set(firstReceipt.privateIndex.tasks.map((entry) => entry.taskId)),
     ).toEqual(
@@ -199,7 +199,7 @@ describe("private SkillOpt fixture corpus", () => {
     expect(manifest.workflowExpectation).toMatchObject({
       expectedOutcome: "complete",
       expectedVerificationState: "fresh",
-      expectedProofState: "proven",
+      expectedProofState: "tested",
       requiredSignals: [
         "historical contract receipt preserved",
         "current contract receipt appended",

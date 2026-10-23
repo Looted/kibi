@@ -35,7 +35,7 @@ function indexOf(steps: Step[], pattern: RegExp): number {
 }
 
 describe("proof baseline summary reconciliation", () => {
-  const proven = { proofStatus: "proven", gaps: [], uncoveredSymbols: [] };
+  const proven = { proofStatus: "tested", gaps: [], uncoveredSymbols: [] };
 
   test("derives counts and gap totals from the entries", () => {
     expect(
@@ -54,8 +54,8 @@ describe("proof baseline summary reconciliation", () => {
       }),
     ).toEqual({
       currentRequirements: 3,
-      proofProven: 1,
-      currentUnproven: 2,
+      proofTested: 1,
+      currentUntested: 2,
       trackedGaps: { missing_passing_e2e: 2, stale_proof_receipt: 1 },
     });
   });
@@ -66,11 +66,11 @@ describe("proof baseline summary reconciliation", () => {
       const file = path.join(directory, "baseline.json");
       // Both branches raised 140 -> 141; Git kept one increment for two entries.
       const merged = {
-        version: "kibi.proof-baseline.v2",
+        version: "kibi.proof-baseline.v3",
         mode: "equality",
         currentRequirements: 1,
-        proofProven: 1,
-        currentUnproven: 0,
+        proofTested: 1,
+        currentUntested: 0,
         trackedGaps: {},
         requirements: { "REQ-from-base": proven, "REQ-from-branch": proven },
       };
@@ -85,8 +85,8 @@ describe("proof baseline summary reconciliation", () => {
       expect(Object.keys(repaired)).toEqual(Object.keys(merged));
       expect(repaired).toMatchObject({
         currentRequirements: 2,
-        proofProven: 2,
-        currentUnproven: 0,
+        proofTested: 2,
+        currentUntested: 0,
         trackedGaps: {},
         requirements: merged.requirements,
       });

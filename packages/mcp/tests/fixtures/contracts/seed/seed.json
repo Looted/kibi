@@ -265,7 +265,7 @@
           "summary": {
             "total": 1,
             "fullyCovered": 1,
-            "proofProven": 0,
+            "proofTested": 0,
             "proofUnresolved": 0,
             "proofMissing": 1
           },

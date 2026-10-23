@@ -38,7 +38,7 @@ function coverageRows(overrides: Record<string, unknown> = {}) {
       summary: {
         total: 1,
         proofNotApplicable: 0,
-        proofProven: 1,
+        proofTested: 1,
         ...((overrides.summary as object) ?? {}),
       },
       meta: {
@@ -51,7 +51,7 @@ function coverageRows(overrides: Record<string, unknown> = {}) {
         {
           id: "REQ-1",
           title: "HTML report",
-          proofStatus: "proven",
+          proofStatus: "tested",
           proofGaps: [] as string[],
         },
       ],
@@ -117,7 +117,7 @@ describe("reportCommand remaining executeCoverageInContext path", () => {
           loadCoverage: async () =>
             ({
               requirements: {
-                summary: { total: 0, proofNotApplicable: 0, proofProven: 0 },
+                summary: { total: 0, proofNotApplicable: 0, proofTested: 0 },
                 meta: {},
                 rows: [],
               },
@@ -187,12 +187,12 @@ describe("reportCommand remaining executeCoverageInContext path", () => {
     );
     const warningRows = Array.from({ length: 10 }, (_, index) => ({
       id: `REQ-${index + 1}`,
-      proofStatus: index < 8 ? "proven" : "missing",
+      proofStatus: index < 8 ? "tested" : "missing",
       proofGaps: [] as string[],
     }));
     const warning = coverageRows({
       requirements: {
-        summary: { total: 10, proofNotApplicable: 0, proofProven: 8 },
+        summary: { total: 10, proofNotApplicable: 0, proofTested: 8 },
         meta: { dirty: true, proofSnapshotDirty: false, branch: "main" },
         rows: warningRows,
       },
@@ -209,12 +209,12 @@ describe("reportCommand remaining executeCoverageInContext path", () => {
 
     const signalRows = Array.from({ length: 10 }, (_, index) => ({
       id: `REQ-S${index + 1}`,
-      proofStatus: index < 9 ? "proven" : "missing",
+      proofStatus: index < 9 ? "tested" : "missing",
       proofGaps: [] as string[],
     }));
     const signal = coverageRows({
       requirements: {
-        summary: { total: 10, proofNotApplicable: 0, proofProven: 9 },
+        summary: { total: 10, proofNotApplicable: 0, proofTested: 9 },
         meta: { dirty: false, proofSnapshotDirty: false },
         rows: signalRows,
       },

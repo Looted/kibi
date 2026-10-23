@@ -188,7 +188,7 @@ describe("coverage gaps: discovery tables", () => {
     expect(
       renderDiscoveryTable({
         rows: [{ id: "REQ-1", proofStatus: "missing" }],
-        summary: { proofProven: 0 },
+        summary: { proofTested: 0 },
       }),
     )?.toContain("REQ-1");
     expect(

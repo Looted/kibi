@@ -25,8 +25,8 @@ const baseline = JSON.parse(
 ) as {
   mode: string;
   currentRequirements: number;
-  proofProven: number;
-  currentUnproven: number;
+  proofTested: number;
+  currentUntested: number;
   trackedGaps: Record<string, number>;
 };
 const proofWorkflow = readFileSync(
@@ -273,9 +273,9 @@ describe("strict proof workflow contract", () => {
   });
 
   test("equality baseline locks full current-requirement proof", () => {
-    expect(baseline.version).toBe("kibi.proof-baseline.v2");
+    expect(baseline.version).toBe("kibi.proof-baseline.v3");
     expect(baseline.mode).toBe("equality");
-    expect(baseline.proofProven + baseline.currentUnproven).toBe(
+    expect(baseline.proofTested + baseline.currentUntested).toBe(
       baseline.currentRequirements,
     );
     // Equality: every current requirement is proven end to end. The counts
@@ -286,8 +286,8 @@ describe("strict proof workflow contract", () => {
     expect(baseline).toMatchObject(
       deriveBaselineSummary(baseline.requirements),
     );
-    expect(baseline.proofProven).toBe(baseline.currentRequirements);
-    expect(baseline.currentUnproven).toBe(0);
+    expect(baseline.proofTested).toBe(baseline.currentRequirements);
+    expect(baseline.currentUntested).toBe(0);
     expect(Object.keys(baseline.trackedGaps ?? {})).toEqual([]);
     expect(Object.keys(baseline.requirements ?? {}).length).toBe(
       baseline.currentRequirements,
@@ -295,7 +295,7 @@ describe("strict proof workflow contract", () => {
     for (const requirement of Object.values(
       baseline.requirements ?? {},
     ) as Array<{ proofStatus?: string }>) {
-      expect(requirement.proofStatus).toBe("proven");
+      expect(requirement.proofStatus).toBe("tested");
     }
   });
 });

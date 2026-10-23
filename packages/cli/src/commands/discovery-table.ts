@@ -121,10 +121,11 @@ export function renderCoverageTable(
   const summaryTable = new Table({
     head: ["Metric", "Value"],
     colWidths: [24, 16],
+    wordWrap: true,
   });
 
   for (const [key, value] of Object.entries(summary)) {
-    summaryTable.push([key, stringifyCell(value)]);
+    summaryTable.push([key, summaryCell(value)]);
   }
 
   const firstRow = firstFields(rows);
@@ -139,13 +140,14 @@ export function renderCoverageTable(
           "Coverage",
           "Depth",
           "Proof",
+          "Evidence",
           "Scen",
           "Tests",
           "Symbols",
           "Structural gaps",
           "Proof gaps",
         ],
-        colWidths: [20, 12, 12, 18, 36, 12, 8, 8, 10, 24, 36],
+        colWidths: [20, 12, 12, 18, 36, 12, 12, 8, 8, 10, 24, 36],
         wordWrap: true,
       })
     : new Table({
@@ -164,6 +166,7 @@ export function renderCoverageTable(
         stringifyCell(item.coverageStatus),
         stringifyCell(item.coverageDepth),
         stringifyCell(item.proofStatus),
+        stringifyCell(item.evidenceLevel),
         stringifyCell(item.scenarioCount),
         stringifyCell(item.testCount),
         stringifyCell(item.transitiveSymbolCount),
@@ -360,6 +363,16 @@ function stringifyCell(value: unknown): string {
     return value;
   }
   return String(value);
+}
+
+// A nested summary count, such as evidenceLevels, reads as key=value pairs.
+function summaryCell(value: unknown): string {
+  if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+    return Object.entries(value)
+      .map(([key, count]) => `${key}=${stringifyCell(count)}`)
+      .join(" ");
+  }
+  return stringifyCell(value);
 }
 
 function joinCells(value: unknown): string {

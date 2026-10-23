@@ -11,7 +11,8 @@ import {
 
 /**
  * Canonical rules that decide whether the staged knowledge is consistent:
- * requirement contradictions, success scenarios a current requirement
+ * requirement contradictions (pairwise, and joint ones whose certificate the
+ * independent checker re-verifies), success scenarios a current requirement
  * forbids, and exceptions that name claims they cannot waive. They read only
  * authored knowledge, so the staged tree alone decides them.
  */
@@ -20,6 +21,7 @@ const STAGED_CONSISTENCY_RULES: readonly string[] = [
   "domain-contradictions",
   "scenario-feasibility",
   "exception-claim-keys",
+  "kb-consistency",
 ];
 
 type SnapshotReader = Readonly<{
