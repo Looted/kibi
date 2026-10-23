@@ -4,7 +4,7 @@ description: "Use when the person states a rule or decision (must, never, always
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-decisions
-  version: 1.2.0
+  version: 1.2.1
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi

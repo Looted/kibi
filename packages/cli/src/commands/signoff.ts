@@ -222,7 +222,7 @@ export async function signoffCommand(
     write(`${renderSignoffChatMarkdown(view)}\n`);
     // The page path goes to stderr so stdout stays pasteable as the reply.
     (deps.writeNote ?? ((text: string) => process.stderr.write(text)))(
-      `Kibi signoff page: ${path.join(cwd, SIGNOFF_LATEST_HTML)} (attach or publish it next to the reply when the host can show a page)\n`,
+      `Kibi signoff page: ${path.join(cwd, SIGNOFF_LATEST_HTML)} (publish it as a rendered page, such as a Claude Artifact, when the host has a page tool; an attached .html file shows as raw source in chat apps)\n`,
     );
   } else {
     const target = options.output?.trim()
