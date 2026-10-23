@@ -3,7 +3,7 @@
 Consumer-facing reference for `proofStatus`, `proofStages`, `proofGaps`, and
 `proofAdvisories` as reported by `kibi coverage --by req` and `kb_coverage`.
 The authoritative implementation is `packages/core/src/requirement_proof.pl`
-(proof version `kibi.requirement-proof.v3`); this document explains what each
+(proof version `kibi.requirement-proof.v4`); this document explains what each
 stage means and what to do when it does not pass.
 
 ## Applicability: is the requirement in scope at all?
@@ -125,7 +125,7 @@ rule, the scenario goes back to end-to-end proof. See [ui-requirements.md](./ui-
   propositions in the inventory).
 
 A `blocked` stage never silently downgrades a requirement's proof status: it
-maps to `proofStatus: unresolved`, not `proven`.
+maps to `proofStatus: unresolved`, not `tested`.
 
 ## Gaps, advisories, and status
 
@@ -138,12 +138,38 @@ maps to `proofStatus: unresolved`, not `proven`.
   `proof_contract_mismatch`) remain blocking for every linked E2E obligation;
   they are never downgraded because another scenario has a passing receipt.
 - `proofStatus` — the headline:
-  - `proven` — all stages passed (`proofGaps` is empty by invariant).
+  - `tested` — all stages passed (`proofGaps` is empty by invariant).
+    Until `kibi.requirement-proof.v4` this value was `proven`; it was renamed
+    because passing end-to-end tests are evidence, not proof.
   - `missing` — at least one stage is `missing` (evidence absent).
   - `unresolved` — evidence is inconclusive or a stage is `blocked`.
   - `not_applicable` — out of scope; see applicability above.
 - `proofRepairs[]` — ranked concrete recovery actions derived from blocking
   gaps.
+
+## Evidence levels
+
+`proofStatus` says how far a requirement climbed the ladder. `evidenceLevel`
+says how strong the evidence behind it is, and is never stronger than what
+backs it:
+
+| Level | Meaning | What earns it |
+| --- | --- | --- |
+| `proved` | A checker established the claim for every case and left a certificate a second program can re-check | A proof certificate. No proof kind issues one yet, so no requirement reaches this level today |
+| `tested` | Passing runs on sampled cases, bound to the current code snapshot | `proofStatus: tested` |
+| `asserted` | A person stands behind the statement, but nothing current checks it | `approved_by` (or `origin.approved_by`), or firm: `firmness: firm`, or no `firmness` and an origin other than `agent` |
+| `unverified` | Stated, not approved, no evidence | Nothing: an agent wrote it and no person approved it |
+
+Each row's `evidence[]` lists the entries that earned the level, each with
+`kind` (`e2e`, `human_intent`), `scope` (`code` for what the tests exercised,
+`intent` for what a person stated) and `level`; an `e2e` entry names its
+passing `tests`, a `human_intent` entry its `basis` (`approved` or `firm`)
+and, when there is one, the `ref` to the person's words. The coverage
+summary counts rows per level under `evidenceLevels`.
+
+Firmness and evidence level are separate axes. Firmness says how sure the
+person is; the level says how strong the evidence is. A firm requirement at
+`asserted` is the gap to close before relying on it.
 
 ## Common failure patterns
 
@@ -156,7 +182,7 @@ maps to `proofStatus: unresolved`, not `proven`.
 
 ## Related surfaces
 
-- `kibi coverage --by req --status missing` (also: `proven`, `unresolved`,
+- `kibi coverage --by req --status missing` (also: `tested`, `unresolved`,
   `not_applicable`) — enumerate exactly one proof-status slice; N/A rows
   include their applicability reason. The summary always reflects the whole
   KB.

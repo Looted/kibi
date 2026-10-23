@@ -5,7 +5,7 @@
 # explicitly do not want to publish the HTML report.
 # Manual step: Settings → Pages → Source → GitHub Actions
 #
-# Pull requests still generate the report (same snapshot and % proven)
+# Pull requests still generate the report (same snapshot and % tested)
 # and upload it as a workflow artifact. Only the repository default
 # branch (and manual workflow_dispatch) may deploy the canonical badge
 # to GitHub Pages. Use the unprivileged pull_request event so untrusted

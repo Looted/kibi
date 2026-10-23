@@ -22,7 +22,7 @@ export type ObjectiveWorkflow = Readonly<{
     | "dirty"
     | "unavailable"
     | "not_evaluated";
-  expectedProofState: "proven" | "mixed" | "unresolved" | "not_evaluated";
+  expectedProofState: "tested" | "mixed" | "unresolved" | "not_evaluated";
   expectedLimitationDisposition:
     | "none"
     | "accepted"
@@ -353,7 +353,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
       expectedVerificationState: "fresh",
-      expectedProofState: "proven",
+      expectedProofState: "tested",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
         "historical contract receipt preserved",
@@ -371,7 +371,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
       expectedVerificationState: "fresh",
-      expectedProofState: "proven",
+      expectedProofState: "tested",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["receipt reuse conditions unchanged"],
       forbiddenActions: ["rerun unchanged E2E"],
@@ -480,7 +480,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
       expectedVerificationState: "fresh",
-      expectedProofState: "proven",
+      expectedProofState: "tested",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
         "final snapshot before verification",

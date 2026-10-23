@@ -118,7 +118,7 @@ export function registerReportingCommands(program: Command): void {
     .option("--include-passing", "Include passing rows", false)
     .option(
       "--status <statuses>",
-      "Comma-separated requirement proof-status filter (proven, missing, unresolved, not_applicable); implies include-passing",
+      "Comma-separated requirement proof-status filter (tested, missing, unresolved, not_applicable); implies include-passing",
     )
     .option("--no-include-transitive", "Disable transitive symbol coverage")
     .option("--limit <n>", "Limit results", "100")

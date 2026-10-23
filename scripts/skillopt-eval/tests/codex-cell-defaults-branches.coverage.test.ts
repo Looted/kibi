@@ -235,7 +235,7 @@ describe("sealDefaultCellEvidence remaining closeout and broker branches", () =>
           coverage: {
             structuredContent: {
               scope: { complete: true },
-              summary: { proofProven: "nope", proofMissing: "nope" },
+              summary: { proofTested: "nope", proofMissing: "nope" },
               rows: [{ proofStatus: "unresolved" }],
             },
           },
@@ -529,9 +529,9 @@ describe("sealDefaultCellEvidence protocol unwrap and targeted workflow signals"
         kibiProtocol: 1,
         data: {
           repairPlan: { scope: { complete: true } },
-          summary: { proofProven: "n/a", proofMissing: "n/a" },
+          summary: { proofTested: "n/a", proofMissing: "n/a" },
           rows: [
-            { proofStatus: "proven" },
+            { proofStatus: "tested" },
             "skip",
             { proofStatus: "unresolved" },
           ],

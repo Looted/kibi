@@ -94,7 +94,7 @@ describe("deriveDiagnosticFields remaining protocol and coverage branches", () =
     });
     expect(result.coverage_by).toBe("req");
     expect(result.coverage_requirement_count).toBe(0);
-    expect(result.coverage_proven_count).toBe(0);
+    expect(result.coverage_tested_count).toBe(0);
     expect(result.coverage_receipt_gaps).toEqual([]);
     expect(result.coverage_receipt_gaps_truncated).toBe(false);
     expect(result.coverage_scope_complete).toBeUndefined();
@@ -258,7 +258,7 @@ describe("deriveDiagnosticFields remaining protocol and coverage branches", () =
                 },
               },
             ],
-            summary: { total: 1, proofProven: 0, proofMissing: 1 },
+            summary: { total: 1, proofTested: 0, proofMissing: 1 },
             repairPlan: { scope: { complete: true } },
             meta: { proofSnapshot: "snap-1" },
           },

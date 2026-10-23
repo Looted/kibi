@@ -3,7 +3,7 @@
  Copyright (C) 2026 Piotr Franczyk
  */
 
-export const PROOF_BASELINE_VERSION = "kibi.proof-baseline.v2";
+export const PROOF_BASELINE_VERSION = "kibi.proof-baseline.v3";
 
 function asStringArray(value) {
   if (!Array.isArray(value)) return [];
@@ -48,9 +48,9 @@ export function deriveBaselineSummary(requirements) {
   }
   return {
     currentRequirements: entries.length,
-    proofProven: entries.filter((entry) => entry?.proofStatus === "proven")
+    proofTested: entries.filter((entry) => entry?.proofStatus === "tested")
       .length,
-    currentUnproven: entries.filter((entry) =>
+    currentUntested: entries.filter((entry) =>
       ["missing", "unresolved"].includes(entry?.proofStatus),
     ).length,
     trackedGaps: Object.fromEntries(

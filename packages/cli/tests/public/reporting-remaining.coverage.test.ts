@@ -58,7 +58,7 @@ const repairCoveragePayload = {
   summary: {
     total: 1,
     fullyCovered: 0,
-    proofProven: 0,
+    proofTested: 0,
     proofMissing: 1,
     proofUnresolved: 0,
   },

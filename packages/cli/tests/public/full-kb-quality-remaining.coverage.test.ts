@@ -82,7 +82,7 @@ describe("full-kb-quality remaining entity, proof, and telemetry branches", () =
         },
         {
           id: "REQ-NORMATIVE",
-          proofStatus: "proven",
+          proofStatus: "tested",
           proofStages: {
             passingE2e: { status: "passed", tests: ["TEST-1"] },
           },

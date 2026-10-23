@@ -1634,7 +1634,7 @@
         "readOnlyHint": true,
         "title": "Report Kibi coverage and proofs"
       },
-      "description": "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Use it to ask which requirements are proven and what blocks the rest; use kb_find_gaps for a plain list of missing links and kb_check for rule violations. Reports include the compatible repair plan plus typed kibi.migration-plan.v2 actions; semantic and E2E actions remain review/execution work. Paginated plans identify incomplete scope and no mutation occurs.",
+      "description": "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Use it to ask which requirements are tested end to end, how strong each requirement's evidence is (evidenceLevel: proved, tested, asserted or unverified), and what blocks the rest; use kb_find_gaps for a plain list of missing links and kb_check for rule violations. Reports include the compatible repair plan plus typed kibi.migration-plan.v2 actions; semantic and E2E actions remain review/execution work. Paginated plans identify incomplete scope and no mutation occurs.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": {},
@@ -1661,7 +1661,7 @@
             "type": "boolean"
           },
           "includePassing": {
-            "description": "Also return rows that are already proven or not applicable. By default only rows that still need repair are returned.",
+            "description": "Also return rows that are already tested or not applicable. By default only rows that still need repair are returned.",
             "type": "boolean"
           },
           "includeTransitive": {
@@ -1709,7 +1709,7 @@
             "items": {
               "anyOf": [
                 {
-                  "const": "proven",
+                  "const": "tested",
                   "type": "string"
                 },
                 {

@@ -50,6 +50,8 @@ const NON_PROVEN_ANSWERS = new Set([
   "missing",
   "not_proven",
   "unproven",
+  "not_tested",
+  "untested",
   "incomplete",
   "partial",
   "mixed",
@@ -221,9 +223,9 @@ function answerProofMatchesCoverage(context: CaseSignalContext): boolean {
   );
   if (rows.length === 0) return false;
   return rows.every((row) =>
-    row.proofStatus === "proven"
-      ? proof === "proven"
-      : proof !== "proven" && NON_PROVEN_ANSWERS.has(proof),
+    row.proofStatus === "tested"
+      ? proof === "tested"
+      : proof !== "tested" && NON_PROVEN_ANSWERS.has(proof),
   );
 }
 
@@ -269,7 +271,7 @@ function consistencyOverclaimed(context: CaseSignalContext): boolean {
     const incomplete = contradictions.outcome !== "no_conflict_found";
     return (
       (incomplete && verdict !== null && NO_CONFLICT_VERDICTS.has(verdict)) ||
-      (proof === "proven" && row.proofStatus !== "proven")
+      (proof === "tested" && row.proofStatus !== "tested")
     );
   });
 }

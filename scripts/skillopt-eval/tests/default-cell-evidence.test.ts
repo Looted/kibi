@@ -181,7 +181,7 @@ function workflowFinalStateReceipt(): string {
   const coverageResult = {
     structuredContent: {
       repairPlan: { scope: { complete: true } },
-      summary: { proofProven: 0, proofMissing: 1 },
+      summary: { proofTested: 0, proofMissing: 1 },
       rows: [
         {
           proofStatus: "unresolved",

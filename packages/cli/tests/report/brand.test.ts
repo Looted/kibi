@@ -93,7 +93,7 @@ describe("canonical brand marks", () => {
       path.join(REPO_ROOT, "assets", "logo.svg"),
       "utf8",
     );
-    const badge = renderKibiBadge("0% proven", "#f2b84b");
+    const badge = renderKibiBadge("0% tested", "#f2b84b");
     const badgeLogo = badge.match(/<svg x="\d+" y="\d+"[\s\S]*?<\/svg>/)?.[0];
     expect(badgeLogo).toBeTruthy();
     expect(
@@ -102,12 +102,12 @@ describe("canonical brand marks", () => {
   });
 
   test("badge uses compact Codecov-style chrome sized to its message", () => {
-    const short = renderKibiBadge("0% proven", "#f2b84b");
-    const long = renderKibiBadge("100% proven", "#a2d3f4");
+    const short = renderKibiBadge("0% tested", "#f2b84b");
+    const long = renderKibiBadge("100% tested", "#a2d3f4");
     const shortWidth = Number(short.match(/\bwidth="(\d+)"/)?.[1]);
     const longWidth = Number(long.match(/\bwidth="(\d+)"/)?.[1]);
     expect(short).toContain("kibi</text>");
-    expect(short).toContain("0% proven</text>");
+    expect(short).toContain("0% tested</text>");
     expect(short).toContain('fill="#555"');
     expect(short).toContain(
       'font-family="DejaVu Sans,Verdana,Geneva,sans-serif"',

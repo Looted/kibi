@@ -98,7 +98,7 @@ describe("deriveDiagnosticUsageFields", () => {
       { by: "symbol" },
       null,
       {
-        summary: { total: 2, proofProven: 1, proofMissing: 1 },
+        summary: { total: 2, proofTested: 1, proofMissing: 1 },
         rows: [
           {
             id: "REQ-2",
@@ -119,7 +119,7 @@ describe("deriveDiagnosticUsageFields", () => {
     );
     expect(coverage).toMatchObject({
       coverage_by: "symbol",
-      coverage_proven_count: 1,
+      coverage_tested_count: 1,
       coverage_receipt_gap_count: 2,
       coverage_scope_complete: false,
     });

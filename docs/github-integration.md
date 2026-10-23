@@ -1,22 +1,22 @@
 # GitHub badge + report
 
 Publish a continuously updated Kibi requirement-health report on GitHub Pages,
-with a clickable `% proven` badge in the repository README.
+with a clickable `% tested` badge in the repository README.
 
-Badge and report are one feature. Someone who sees `87% proven` needs to open
+Badge and report are one feature. Someone who sees `87% tested` needs to open
 the report to see what that percentage represents and which requirements are
 missing proof. Kibi does not host badges or reports; GitHub Pages is the
 expected publisher. Knowledge stays in the repository's `.kb/` directory.
 
 ## What the badge means
 
-A badge such as `kibi | 87% proven` is the share of **applicable current**
+A badge such as `kibi | 87% tested` is the share of **applicable current**
 Kibi requirements that have current proof. Non-current (for example superseded)
 requirements are excluded, as are requirements marked not applicable to proof.
 
 The published HTML report is the place to inspect:
 
-- which requirements are proven
+- which requirements are tested end to end
 - which are missing proof
 - contradictions
 - stale verification state
@@ -192,7 +192,7 @@ kibi init --github --badge-only
 Or copy [docs/examples/github/kibi-badge.yml](examples/github/kibi-badge.yml) to
 `.github/workflows/kibi-badge.yml`.
 
-That workflow still runs `kibi report` (same snapshot, same `% proven`). Pull
+That workflow still runs `kibi report` (same snapshot, same `% tested`). Pull
 requests upload the generated report directory as `kibi-pr-report` and still
 do not deploy Pages. Default-branch and `workflow_dispatch` publishes only
 `badge.svg` under `/kibi-report/`. The README link should point at this section

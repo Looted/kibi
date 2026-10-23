@@ -30,7 +30,7 @@ describe("MCP coverage tool handler", () => {
             missingScenario: 1,
             missingTest: 0,
             missingScenarioAndTest: 0,
-            proofProven: 0,
+            proofTested: 0,
             proofUnresolved: 0,
             proofMissing: 2,
           },

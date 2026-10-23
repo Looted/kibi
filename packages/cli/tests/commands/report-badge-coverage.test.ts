@@ -7,16 +7,16 @@ import os from "node:os";
 import path from "node:path";
 import { openReport, reportCommand } from "../../src/commands/report.js";
 
-function coverage(total: number, proven: number) {
+function coverage(total: number, tested: number) {
   return {
     branch: "develop",
     requirements: {
-      summary: { total, proofNotApplicable: 0, proofProven: proven },
+      summary: { total, proofNotApplicable: 0, proofTested: tested },
       meta: { branch: "develop", dirty: false, proofSnapshotDirty: false },
       rows: Array.from({ length: total }, (_, index) => ({
         id: `REQ-${index + 1}`,
         title: "Row",
-        proofStatus: index < proven ? "proven" : "missing",
+        proofStatus: index < tested ? "tested" : "missing",
         proofGaps: [] as string[],
       })),
     },
@@ -52,7 +52,7 @@ describe("report badge bands and openReport", () => {
       { cwd: () => root, loadCoverage: async () => coverage(20, 19) },
     );
     expect(readFileSync(path.join(root, "high.badge.svg"), "utf8")).toContain(
-      "95% proven",
+      "95% tested",
     );
 
     await reportCommand(
@@ -60,7 +60,7 @@ describe("report badge bands and openReport", () => {
       { cwd: () => root, loadCoverage: async () => coverage(4, 3) },
     );
     expect(readFileSync(path.join(root, "mid", "badge.svg"), "utf8")).toContain(
-      "75% proven",
+      "75% tested",
     );
   });
 

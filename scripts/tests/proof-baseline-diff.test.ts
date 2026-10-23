@@ -35,7 +35,7 @@ describe("proof baseline fingerprints", () => {
   test("reports REQ-A proven -> missing when a new production symbol appears", () => {
     const baseline = {
       "REQ-A": {
-        proofStatus: "proven",
+        proofStatus: "tested",
         gaps: [],
         uncoveredSymbols: [],
       },
@@ -76,7 +76,7 @@ describe("proof baseline fingerprints", () => {
       },
     ]);
     expect(text).toContain("committed proof/baseline.json");
-    expect(text).toContain("REQ-A: proven -> missing");
+    expect(text).toContain("REQ-A: tested -> missing");
     expect(text).toContain("uncovered symbol added: SYM-new");
     expect(text).toContain("gap added: missing_production_symbol_coverage");
     expect(text).toContain("SYM-new: covered_by_missing");
@@ -135,7 +135,7 @@ const provenBaseline = (ids: string[]) => ({
   requirements: Object.fromEntries(
     ids.map((id) => [
       id,
-      { proofStatus: "proven", gaps: [], uncoveredSymbols: [] },
+      { proofStatus: "tested", gaps: [], uncoveredSymbols: [] },
     ]),
   ),
 });

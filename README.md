@@ -197,15 +197,17 @@ Kibi's skill subsystem gives the agent six bundled skills that teach it how to w
 
 The [MCP reference](https://looted.github.io/kibi/reference/mcp.html) lists every tool. Generic agents can start from [agent onboarding](https://looted.github.io/kibi/reference/agent-onboarding.html).
 
-## See what is proven
+## See how strong each guarantee is
 
 ```bash
 npm exec -- kibi report --open
 ```
 
-`kibi report` writes a self-contained `kibi-report/index.html` and `kibi-report/badge.svg` from one coverage snapshot. `% proven` is the share of current requirements with fresh end-to-end proof on the current code; the report lists what is proven, what is missing proof, what contradicts, and what has gone stale. See [reading the report](https://looted.github.io/kibi/guide/reading-the-report.html).
+`kibi report` writes a self-contained `kibi-report/index.html` and `kibi-report/badge.svg` from one coverage snapshot. `% tested` is the share of current requirements with fresh end-to-end evidence on the current code; the report lists what is tested, what is missing evidence, what contradicts, and what has gone stale.
 
-Before you sign off on a change, `kibi signoff` shows the requirements it adds, rewrites or affects, each quoted with its firmness and proof state, and `kibi signoff --questions` numbers the decisions waiting for you next to the rule each one would change. Agents put the view in their reply as plain Markdown, so it renders wherever the agent writes, including chat apps and cloud sessions where replies go through a messaging tool; the same view is a self-contained page in `.kb/briefs/signoff/latest.html`. Claude Code, Cursor, ZCode and OpenCode add a `/kibi-signoff` command, OpenCode draws the view as a card, VS Code opens it in a panel, and the agent hooks ask for it once a session has written requirements.
+Every requirement also carries an evidence level, so no guarantee reads stronger than what backs it: **proved** (a re-checkable certificate covers every case; no proof kind issues one yet), **tested** (fresh end-to-end receipts cover every linked scenario), **asserted** (a person stands behind it, but nothing current checks it) and **unverified** (an agent wrote it and no person approved it). `kibi coverage` returns `evidenceLevel` per requirement and `summary.evidenceLevels` counts; the report and `kibi signoff` show it next to firmness. See [the proof ladder](https://looted.github.io/kibi/guide/proof-ladder.html). See [reading the report](https://looted.github.io/kibi/guide/reading-the-report.html).
+
+Before you sign off on a change, `kibi signoff` shows the requirements it adds, rewrites or affects, each quoted with its firmness, proof state and evidence level, and `kibi signoff --questions` numbers the decisions waiting for you next to the rule each one would change. Agents put the view in their reply as plain Markdown, so it renders wherever the agent writes, including chat apps and cloud sessions where replies go through a messaging tool; the same view is a self-contained page in `.kb/briefs/signoff/latest.html`. Claude Code, Cursor, ZCode and OpenCode add a `/kibi-signoff` command, OpenCode draws the view as a card, VS Code opens it in a panel, and the agent hooks ask for it once a session has written requirements.
 
 To publish the report and a clickable badge on GitHub Pages, run `npm exec -- kibi init --github`, then enable **Settings → Pages → Source → GitHub Actions**. The [GitHub integration guide](https://looted.github.io/kibi/guide/github-integration.html) covers the [report workflow](docs/examples/github/kibi-report.yml), badge-only publishing, and a [CI step](docs/examples/github/kibi-kb-merge.yml) that keeps pull requests mergeable when only Kibi's own files conflict.
 
@@ -228,7 +230,7 @@ Requirements + semantic facts/rules + scenarios + tests + symbol links
 Prolog coherence checks + traceability gates + fresh E2E evidence
     |
     v
-Proven result or explicit, repairable gaps
+Tested result or explicit, repairable gaps
 ```
 
 The agent never writes arbitrary Prolog as trusted truth. It works through typed facts, predicate schemas, and safe logic representations; Kibi validates those encodings before the Prolog layer uses them for inference.
@@ -244,7 +246,7 @@ Requirement -> Scenario -> Test
  Production symbol     Executable test symbol
 ```
 
-For a requirement to be proven rather than merely documented:
+For a requirement to be tested end to end rather than merely documented:
 
 - Every production symbol must trace to the requirement it implements.
 - Every normative requirement clause must be modeled as typed facts or stay explicitly unresolved.

@@ -269,7 +269,7 @@ a JSON array of argv strings; no shell quoting). Once the file exists,
 `currentIntegrations` lists each configured integration as `{ id, producer,
 command }` (the text output prints the command); `currentIntegration` keeps
 the comma-joined ids for older consumers. The integration only says how
-evidence is produced: whether a receipt counts toward `proofProven` depends
+evidence is produced: whether a receipt counts toward `proofTested` depends
 on the test's `verification_scope` (see
 [proving requirements](proving-requirements.md)).
 
@@ -289,7 +289,7 @@ kibi proof inspect --update unit --command "npx vitest run tests/e2e" --json
 ### `kibi proof explain`
 
 Projects one requirement (`REQ-*`) or symbol (`SYM-*`) from the same
-`kibi.requirement-proof.v3` Proof that coverage uses. Human output labels
+`kibi.requirement-proof.v4` Proof that coverage uses. Human output labels
 `required_proofs`, `executable_for`, and `covered_by` as separate blocks so
 agents cannot treat them as one chain. `--json` emits the structured
 projection (primary plus optional secondary `covered_by` reasons). This
@@ -552,12 +552,12 @@ kibi coverage [--by req|symbol|type] [--tag TAGS] [--include-passing] [--status 
 
 **Notes:**
 - Requirement coverage summaries distinguish evaluated must-priority requirements from `not_applicable` rows.
-- `--include-passing` adds rows with a proven or not-applicable proof outcome back into requirement results; compatibility-oriented structural coverage remains visible on every returned row.
-- `--status <statuses>` (comma-separated: `proven`, `missing`, `unresolved`, `not_applicable`) selects requirement rows by `proofStatus` and implies include-passing. Use it to enumerate one slice — e.g. `kibi coverage --by req --status not_applicable` lists every out-of-scope requirement with its typed applicability reason (`proofStages.applicability.reason`: superseded, a status-vocabulary mismatch, or a proof exemption). The summary always reflects the whole KB; pagination applies to the filtered rows.
+- `--include-passing` adds rows with a tested or not-applicable proof outcome back into requirement results; compatibility-oriented structural coverage remains visible on every returned row.
+- `--status <statuses>` (comma-separated: `tested`, `missing`, `unresolved`, `not_applicable`) selects requirement rows by `proofStatus` and implies include-passing. Use it to enumerate one slice — e.g. `kibi coverage --by req --status not_applicable` lists every out-of-scope requirement with its typed applicability reason (`proofStages.applicability.reason`: superseded, a status-vocabulary mismatch, or a proof exemption). The summary always reflects the whole KB; pagination applies to the filtered rows.
 - Requirement coverage rows include coverage-depth labels when evidence can be classified: `direct_passing_e2e`, `scenario_passing_e2e`, `unit_only`, `open_or_nonpassing_tests_only`, `scenario_only_no_test`, or `no_test_evidence`.
 - Coverage-depth labels are informational. They do not change existing covered/uncovered pass-fail semantics, and typed test fields (`verification_scope`, then `verification_perspective`) take precedence over legacy `e2e` tags or `/e2e/` path heuristics.
-- Requirement rows also expose the additive `kibi.requirement-proof.v3` contract. `proofStatus` is `proven`, `unresolved`, `missing`, or `not_applicable` for a non-current requirement, and is intentionally independent from compatibility-oriented `coverageStatus`. See `docs/proof-ladder.md` for the per-stage semantics.
-- `proofStages` records semantic inventory, logical grounding, contradiction, scenario, scenario-test, passing E2E, executable-symbol, production-symbol, and exact source-coordinate evidence. `proofGaps` lists only blocking issues that prevent `proven`. The passing-E2E stage exposes per-scenario `scenarioObligations`; every linked E2E proof-bearing test is mandatory, while unit/integration-only ancillary tests remain nonblocking when the scenario has qualifying E2E evidence. `proofAdvisories` is reserved for explicitly non-blocking context; missing, stale, failed, invalid, snapshot-unavailable, and contract-mismatched E2E evidence remains in `proofGaps`. `proofRepairs` ranks concrete recovery actions for blocking gaps only.
+- Requirement rows also expose the additive `kibi.requirement-proof.v4` contract. `proofStatus` is `tested` (named `proven` before v4), `unresolved`, `missing`, or `not_applicable` for a non-current requirement, and is intentionally independent from compatibility-oriented `coverageStatus`. Each row also carries `evidenceLevel` (`proved`, `tested`, `asserted` or `unverified`) and the `evidence[]` entries that earned it, and the summary counts rows per level under `evidenceLevels`; `proofTested` (named `proofProven` before v4) counts tested rows. See `docs/proof-ladder.md` for the per-stage semantics and the evidence levels.
+- `proofStages` records semantic inventory, logical grounding, contradiction, scenario, scenario-test, passing E2E, executable-symbol, production-symbol, and exact source-coordinate evidence. `proofGaps` lists only blocking issues that prevent `tested`. The passing-E2E stage exposes per-scenario `scenarioObligations`; every linked E2E proof-bearing test is mandatory, while unit/integration-only ancillary tests remain nonblocking when the scenario has qualifying E2E evidence. `proofAdvisories` is reserved for explicitly non-blocking context; missing, stale, failed, invalid, snapshot-unavailable, and contract-mismatched E2E evidence remains in `proofGaps`. `proofRepairs` ranks concrete recovery actions for blocking gaps only.
 - Requirement reports also include `repairPlan` (`kibi.repair-plan.v1`). It groups gaps into one small batch per requirement and dependency phase, marks only the earliest unresolved batch `ready`, and links later batches through `dependsOn`. Every batch is read-only guidance with `autoApplicable: false`, a reviewed `workflowSteps` sequence, targeted `validationRules`, and a sequential-write policy.
 - Requirement and symbol reports also include the shared `migrationPlan` (`kibi.migration-plan.v2`). Apply only ready automatic actions after explicitly approving its exact hash and action IDs; review, operator, and E2E execution actions remain agent/operator work.
 - `repairPlan.scope.complete` is false and `status` is `partial` whenever `limit`/`offset` exclude actionable requirements. Increase the limit and reset the offset before using a plan as a project-wide migration inventory. The plan ID is stable for the same snapshot, filters, evidence, and gaps; receipt ages and check timestamps do not churn it.
@@ -583,13 +583,13 @@ kibi report [--output PATH] [--open] [--tag TAGS] [--limit N]
 - `--limit <n>` sets the maximum complete requirement row set. It defaults to 10,000 and fails instead of publishing partial per-requirement metrics.
 
 **Report contents:**
-- Proven percentage and count use current requirements only; superseded and otherwise non-current requirements are reported as excluded rather than lowering the score.
-- Summary metrics show current requirements, strict proof coverage, missing scenarios, stale E2E evidence, unique contradiction witnesses, unmapped production symbols, and requirements without implementation.
+- The tested percentage and count use current requirements only; superseded and otherwise non-current requirements are reported as excluded rather than lowering the score.
+- Summary metrics show current requirements, requirements tested end to end, requirements only asserted or unverified (by evidence level), missing scenarios, stale E2E evidence, unique contradiction witnesses, unmapped production symbols, and requirements without implementation.
 - Requirement cards separate semantic grounding, scenario, implementation, E2E-test, and fresh-receipt stages. Search, health filters, and proof-gate filters run entirely in the generated file. Filter buttons include counts. Relative evidence and generation ages are computed in the viewer from preserved absolute timestamps.
 - Stale KB state and dirty workspace proof evaluation are shown as a prominent snapshot warning.
 - Stale KB state and dirty workspace proof evaluation are shown as a prominent snapshot warning.
 - All KB-provided values are HTML-escaped. The report has no CDN, font, script, or other network dependency, so the output directory can be hosted as-is.
-- The generated SVG badge uses the same complete coverage snapshot as the report. It pairs the Kibi logo with a `kibi` label in Codecov/Shields chrome (regular 11px type, `#555` label pane, reserved padding, and white status text), sizes itself to the proven-percentage message, and uses conservative colors for contradictions and stale snapshots.
+- The generated SVG badge uses the same complete coverage snapshot as the report. It pairs the Kibi logo with a `kibi` label in Codecov/Shields chrome (regular 11px type, `#555` label pane, reserved padding, and white status text), sizes itself to the tested-percentage message (`87% tested`), and uses conservative colors for contradictions and stale snapshots.
 
 **Examples:**
 ```bash

@@ -74,7 +74,7 @@ const BLOCK_ANSWER = [
     conflict: "empty names must be rejected",
     unknowns: [],
     nextStep: "ask the owner",
-    proof: "proven",
+    proof: "tested",
   }),
   "```",
 ].join("\n");
@@ -90,7 +90,7 @@ describe("final-answer lane (H1)", () => {
     expect(evidence.answer.source).toBe("block");
     expect(evidence.answer.verdict).toBe("conflict");
     expect(evidence.answer.governing).toEqual(["REQ-fixture-family-name-v2"]);
-    expect(evidence.answer.proof).toBe("proven");
+    expect(evidence.answer.proof).toBe("tested");
     expect(evidence.answer.nextStep).toBe("ask the owner");
   });
 

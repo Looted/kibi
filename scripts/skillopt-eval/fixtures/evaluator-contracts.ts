@@ -211,7 +211,7 @@ const WorkflowExpectationSchema = z
       "not_evaluated",
     ]),
     expectedProofState: z.enum([
-      "proven",
+      "tested",
       "mixed",
       "unresolved",
       "not_evaluated",
@@ -238,7 +238,7 @@ const WorkflowExpectationSchema = z
           "unavailable",
           "not_evaluated",
         ]),
-        proofState: z.enum(["proven", "mixed", "unresolved", "not_evaluated"]),
+        proofState: z.enum(["tested", "mixed", "unresolved", "not_evaluated"]),
         limitationDisposition: z.enum([
           "none",
           "accepted",

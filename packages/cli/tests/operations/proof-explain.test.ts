@@ -8,7 +8,7 @@ import {
 
 const requirementProof = {
   id: "REQ-example",
-  proofVersion: "kibi.requirement-proof.v3",
+  proofVersion: "kibi.requirement-proof.v4",
   proofStatus: "missing",
   proofGaps: ["missing_production_symbol_coverage"],
   testResolutions: [
@@ -87,7 +87,7 @@ describe("proof explain projection", () => {
   test("structural unit candidate is rendered as qualifying, not test_scope_is_unit", () => {
     const view = projectRequirementExplain({
       id: "REQ-shape",
-      proofVersion: "kibi.requirement-proof.v3",
+      proofVersion: "kibi.requirement-proof.v4",
       proofStatus: "missing",
       proofGaps: ["missing_production_symbol_coverage"],
       proofStages: {
@@ -174,7 +174,7 @@ describe("proof explain projection", () => {
 
   test("JSON view keeps required_proofs, executable_for, and covered_by distinct", () => {
     const view = projectRequirementExplain(requirementProof);
-    expect(view.proofVersion).toBe("kibi.requirement-proof.v3");
+    expect(view.proofVersion).toBe("kibi.requirement-proof.v4");
     expect(view.tests[0]?.requiredProofs[0]?.id).toBe("SYM-proof");
     expect(view.tests[0]?.executableFor[0]?.id).toBe("SYM-exec");
     expect(view.productionSymbols[0]?.coverageCandidates[0]).toEqual(

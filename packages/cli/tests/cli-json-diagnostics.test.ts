@@ -33,7 +33,7 @@ describe("CLI JSON diagnostic usage", () => {
               proofStages: { passingE2e: { status: "passed" } },
             },
           ],
-          summary: { total: 1, proofProven: 1, proofMissing: 0 },
+          summary: { total: 1, proofTested: 1, proofMissing: 0 },
           repairPlan: { scope: { complete: true } },
         },
       },
@@ -41,7 +41,7 @@ describe("CLI JSON diagnostic usage", () => {
 
     expect(fields).toMatchObject({
       coverage_requirement_count: 1,
-      coverage_proven_count: 1,
+      coverage_tested_count: 1,
       coverage_proof_gap_count: 0,
       coverage_receipt_gap_count: 0,
       coverage_scope_complete: true,

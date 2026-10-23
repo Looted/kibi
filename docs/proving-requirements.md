@@ -1,6 +1,6 @@
 # Proving Requirements
 
-This guide explains how a requirement goes from "implemented" to "proven":
+This guide explains how a requirement goes from "implemented" to "tested":
 fresh evidence from any proof producer, bound to the current code snapshot,
 evaluated against explicit proof obligations, and recorded in an ordered
 proof history that only ever drops receipts that can no longer decide proof.
@@ -19,7 +19,8 @@ REQ-* --specified_by--> SCEN-* --verified_by--> TEST-* <--executable_for-- SYM-*
 TEST-* --proof_contract--> obligations --integration--> configured producer
 ```
 
-A requirement counts as **proven** only when every required proof obligation
+A requirement counts as **tested** (`proofStatus: tested`, evidence level
+`tested`) only when every required proof obligation
 on its contracted test has fresh, passing evidence at the required
 `verification_scope` and `verification_perspective`:
 

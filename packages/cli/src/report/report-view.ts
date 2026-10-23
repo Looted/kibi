@@ -1,6 +1,6 @@
 export const REPORT_FILTERS = [
   "all",
-  "proven",
+  "tested",
   "attention",
   "stale",
   "contradiction",
@@ -21,7 +21,7 @@ export type ProofGateKey = (typeof PROOF_GATE_KEYS)[number];
 export type RequirementView = Readonly<{
   text: string;
   states: readonly string[];
-  earliestGate: ProofGateKey | "proven";
+  earliestGate: ProofGateKey | "tested";
 }>;
 
 export type ReportViewQuery = Readonly<{
@@ -50,7 +50,7 @@ export function reportFilterCounts(
 ): Readonly<Record<ReportFilter, number>> {
   return {
     all: rows.length,
-    proven: rows.filter((row) => row.states.includes("proven")).length,
+    tested: rows.filter((row) => row.states.includes("tested")).length,
     attention: rows.filter((row) => row.states.includes("attention")).length,
     stale: rows.filter((row) => row.states.includes("stale")).length,
     contradiction: rows.filter((row) => row.states.includes("contradiction"))

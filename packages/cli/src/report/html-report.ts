@@ -225,7 +225,7 @@ function implementationOwned(stages: UnknownRecord): boolean {
 }
 
 function passesProofGate(row: UnknownRecord, gate: string): boolean {
-  if (row.proofStatus === "proven") return true;
+  if (row.proofStatus === "tested") return true;
   const stages = record(row.proofStages);
   if (gate === "semantic") {
     return (
@@ -239,7 +239,7 @@ function passesProofGate(row: UnknownRecord, gate: string): boolean {
   if (gate === "e2e") {
     return stagePassed(stages, "scenarioTests") && hasEndToEndTest(stages);
   }
-  return row.proofStatus === "proven";
+  return row.proofStatus === "tested";
 }
 
 function proofGates(rows: readonly UnknownRecord[]): readonly ProofGate[] {
@@ -278,17 +278,17 @@ function proofGates(rows: readonly UnknownRecord[]): readonly ProofGate[] {
 export function firstFailingProofGate(
   gates: readonly ProofGateKey[],
   passes: (gate: ProofGateKey) => boolean,
-): ProofGateKey | "proven" {
+): ProofGateKey | "tested" {
   for (const gate of gates) {
     if (!passes(gate)) return gate;
   }
-  return "proven";
+  return "tested";
 }
 
 // implements REQ-kibi-html-health-report
 // covered_by TEST-kibi-html-health-report
-export function earliestUnmetGate(row: UnknownRecord): ProofGateKey | "proven" {
-  if (row.proofStatus === "proven") return "proven";
+export function earliestUnmetGate(row: UnknownRecord): ProofGateKey | "tested" {
+  if (row.proofStatus === "tested") return "tested";
   return firstFailingProofGate(
     ["semantic", "scenario", "implementation", "e2e", "evidence"],
     (gate) => passesProofGate(row, gate),
@@ -541,14 +541,14 @@ function rowSeverity(row: UnknownRecord): number {
   const gaps = strings(row.proofGaps);
   if (gaps.includes("blocking_contradiction")) return 0;
   if (gaps.includes("stale_proof_receipt")) return 1;
-  if (row.proofStatus !== "proven") return 2;
+  if (row.proofStatus !== "tested") return 2;
   return 3;
 }
 
 function rowStates(row: UnknownRecord): string {
   const states = new Set<string>();
   const gaps = strings(row.proofGaps);
-  if (row.proofStatus === "proven") states.add("proven");
+  if (row.proofStatus === "tested") states.add("tested");
   else states.add("attention");
   if (gaps.includes("stale_proof_receipt")) states.add("stale");
   if (gaps.includes("blocking_contradiction")) states.add("contradiction");
@@ -575,9 +575,9 @@ function renderRequirement(
   const proofStatus = text(row.proofStatus, "missing");
   const proofGaps = strings(row.proofGaps);
   const proofAdvisories = strings(row.proofAdvisories);
-  const blockingGaps = proofStatus === "proven" ? [] : proofGaps;
+  const blockingGaps = proofStatus === "tested" ? [] : proofGaps;
   const advisories =
-    proofStatus === "proven"
+    proofStatus === "tested"
       ? [
           ...proofAdvisories,
           ...proofGaps.filter((gap) => !proofAdvisories.includes(gap)),
@@ -587,7 +587,8 @@ function renderRequirement(
     record(record(row.proofStages).contradictions).conflicts,
   ).filter((conflict) => text(conflict.status) === "contradiction");
   const stages = requirementStages(row, repository);
-  const badgeLabel = proofStatus === "proven" ? "Proven" : "Needs attention";
+  const badgeLabel = proofStatus === "tested" ? "Tested" : "Needs attention";
+  const evidenceLevel = text(row.evidenceLevel, "unverified");
   const requirementSource =
     sourceCoordinate({
       path: text(
@@ -600,7 +601,7 @@ function renderRequirement(
   return `<article class="requirement requirement--${escapeHtml(proofStatus)}" data-state="${rowStates(row)}" data-gate="${escapeHtml(gate)}">
     <header class="requirement__header">
       <div>
-        <div class="requirement__id">${linkedLabel(id, sourceWebUrl(repository, requirementSource))}</div>
+        <div class="requirement__id">${linkedLabel(id, sourceWebUrl(repository, requirementSource))} <span class="evidence-level evidence-level--${escapeHtml(evidenceLevel)}" title="Evidence level">${escapeHtml(evidenceLevel)}</span></div>
         <h3>${linkedLabel(title, sourceWebUrl(repository, requirementSource))}</h3>
       </div>
       <span class="proof-badge proof-badge--${escapeHtml(proofStatus)}">${escapeHtml(badgeLabel)}</span>
@@ -610,6 +611,12 @@ function renderRequirement(
     ${renderIssueList(blockingGaps, "proof-gaps", "proof gap", "proof gaps")}
     ${renderIssueList(advisories, "proof-advisories", "advisory", "advisories")}
   </article>`;
+}
+
+// implements REQ-kibi-evidence-levels
+function evidenceCount(rows: readonly UnknownRecord[], level: string): number {
+  return rows.filter((row) => text(row.evidenceLevel, "unverified") === level)
+    .length;
 }
 
 function metric(label: string, value: number, tone = ""): string {
@@ -679,7 +686,7 @@ function renderFilters(
 ): string {
   const labels: Readonly<Record<(typeof REPORT_FILTERS)[number], string>> = {
     all: "All",
-    proven: "Proven",
+    tested: "Tested",
     attention: "Needs attention",
     stale: "Stale evidence",
     contradiction: "Contradictions",
@@ -704,11 +711,11 @@ export function renderHtmlReport(input: HtmlReportInput): string {
   const total = count(summary.total);
   const notApplicable = count(summary.proofNotApplicable);
   const currentRequirements = Math.max(0, total - notApplicable);
-  const proven = count(summary.proofProven);
+  const tested = count(summary.proofTested);
   const proofPercent =
     currentRequirements === 0
       ? 0
-      : Math.round((proven / currentRequirements) * 100);
+      : Math.round((tested / currentRequirements) * 100);
   const missingScenarios = currentRows.filter((row) =>
     strings(row.proofGaps).includes("missing_scenario"),
   ).length;
@@ -741,13 +748,11 @@ export function renderHtmlReport(input: HtmlReportInput): string {
   const identity = reportIdentity({ ...input, repository });
   const faviconHref = renderKibiFaviconDataUri();
   const scoreLabel =
-    currentRequirements === 0
-      ? "No current requirements"
-      : "Strict proof coverage";
+    currentRequirements === 0 ? "No current requirements" : "Tested end to end";
   const scoreRatio =
     currentRequirements === 0
       ? "No current requirements to prove"
-      : `${proven.toLocaleString("en-US")} of ${currentRequirements.toLocaleString("en-US")} current requirements fully proven end-to-end`;
+      : `${tested.toLocaleString("en-US")} of ${currentRequirements.toLocaleString("en-US")} current requirements fully tested end-to-end`;
 
   return `<!doctype html>
 <html lang="en">
@@ -778,7 +783,7 @@ export function renderHtmlReport(input: HtmlReportInput): string {
           <h1>Intent to proof,<br>without the gaps.</h1>
           <p>Kibi compiles product intent into an inspectable chain of semantics, scenarios, implementation ownership, end-to-end tests, and fresh evidence.</p>
         </div>
-        <div class="score" aria-label="${proofPercent}% strict proof coverage, ${proven} of ${currentRequirements} current requirements fully proven end-to-end">
+        <div class="score" aria-label="${proofPercent}% tested end to end, ${tested} of ${currentRequirements} current requirements fully tested end-to-end">
           <div class="score__value">${proofPercent}<span>%</span></div>
           <div class="score__label">${escapeHtml(scoreLabel)}</div>
           <div class="score__ratio">${escapeHtml(scoreRatio)}</div>
@@ -795,7 +800,9 @@ export function renderHtmlReport(input: HtmlReportInput): string {
       </section>
       <section class="metrics" aria-label="Requirement health summary">
         ${metric("Requirements", currentRequirements)}
-        ${metric("Strict proof coverage", proven, "good")}
+        ${metric("Tested end to end", tested, "good")}
+        ${metric("Asserted, no current test", evidenceCount(currentRows, "asserted"), evidenceCount(currentRows, "asserted") ? "warn" : "")}
+        ${metric("Unverified", evidenceCount(currentRows, "unverified"), evidenceCount(currentRows, "unverified") ? "warn" : "")}
         ${metric("Missing scenarios", missingScenarios, missingScenarios ? "warn" : "")}
         ${metric("Stale E2E evidence", staleEvidence, staleEvidence ? "warn" : "")}
         ${metric("Contradictions", contradictions.length, contradictions.length ? "bad" : "")}

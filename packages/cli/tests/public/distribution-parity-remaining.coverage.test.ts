@@ -220,7 +220,7 @@ describe("distribution-parity leftover provenance, normalize, and issue branches
         outcome:
           candidate.id === "legacy-cli" && capability === "semantic_inventory"
             ? { proofStatus: "diverged" }
-            : { proofStatus: "proven" },
+            : { proofStatus: "tested" },
       })),
     );
     const report = buildDistributionParityReport(runtimes, observations);
@@ -268,7 +268,7 @@ describe("distribution-parity leftover provenance, normalize, and issue branches
         runtimeId: "source-cli",
         capability,
         state: "supported" as const,
-        outcome: { proofStatus: "proven" },
+        outcome: { proofStatus: "tested" },
       })),
     );
     expect(report.rows.length).toBeGreaterThan(0);

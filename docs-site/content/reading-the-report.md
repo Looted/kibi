@@ -1,6 +1,6 @@
 ---
 title: Read the health report
-description: How to open the requirement-health report and what proven, a proof gap, stale evidence, and a contradiction mean.
+description: How to open the requirement-health report and what tested, an evidence level, a proof gap, stale evidence, and a contradiction mean.
 ---
 
 The health report is the page you read. It is a single HTML file generated from one coverage snapshot. It does not call a server, and it does not fetch fonts or images.
@@ -19,7 +19,7 @@ That writes `kibi-report/index.html` and `kibi-report/badge.svg` together, then 
 
 The score is a count, not a mood:
 
-> 4 of 11 current requirements fully proven end-to-end
+> 4 of 11 current requirements fully tested end-to-end
 
 The percentage is that fraction. The numerator is requirements with fresh end-to-end evidence on this code. The denominator is current requirements. An honest zero on the day you bootstrap is a working report.
 
@@ -30,11 +30,20 @@ The percentage is that fraction. The numerator is requirements with fresh end-to
 
 Each requirement sits on a ladder. The report names the earliest thing still missing, and it totals these across the branch:
 
-- **Fully proven** — a test that claims this requirement has fresh end-to-end evidence for the current code snapshot. A requirement that only names a UI pattern counts as proven with a fresh isolated component test instead.
+- **Fully tested** — a test that claims this requirement has fresh end-to-end evidence for the current code snapshot. A requirement that only names a UI pattern counts as tested with a fresh isolated component test instead.
 - **Proof gap** — the chain is incomplete. Typical gaps are a missing scenario, incomplete semantics, or evidence that was never recorded.
 - **Stale evidence** — a receipt exists, and the code has moved since. It stops counting as proof until the test is run again.
 - **Contradiction** — two encoded claims about the same behavior disagree. Kibi will not pick a winner.
 - **Unowned production symbols** — code the model does not yet connect to a requirement.
+
+Next to each requirement id is its **evidence level**, the strength of what backs it:
+
+- **proved** — a re-checkable certificate covers every case. No proof kind issues one yet.
+- **tested** — fresh end-to-end evidence, as above. Tests sample cases; they do not cover all of them.
+- **asserted** — a person stands behind the statement, but nothing current checks it.
+- **unverified** — an agent wrote it and no person has approved it.
+
+The summary counts the asserted and unverified requirements, because those are the ones you are trusting on someone's word.
 
 Color repeats the word. Do not read status from color alone.
 
@@ -42,7 +51,8 @@ Color repeats the word. Do not read status from color alone.
 
 | What you see | What you do |
 | --- | --- |
-| Fully proven | Nothing, until the code changes. |
+| Fully tested | Nothing, until the code changes. |
+| Asserted or unverified | Ask the agent for a test, or approve the requirement if it states what you want. |
 | Proof gap | Ask the agent to close that gap, or decide the behavior is not a requirement. |
 | Stale evidence | Re-run the test that claims to prove it. |
 | Contradiction | You choose which claim is the product. The agent updates the model. |
@@ -52,6 +62,6 @@ You do not edit the report. The next `kibi report` rebuilds it from the reposito
 
 ## Go deeper
 
-- [The proof ladder](proof-ladder.md) — the stages a requirement climbs before it counts as proven.
+- [The proof ladder](proof-ladder.md) — the stages a requirement climbs before it counts as tested, and the evidence levels.
 - [Publish requirement health](github-integration.md) — put this report and its badge on GitHub Pages.
 - [Quick start](quick-start.md) — generate the report for the first time.

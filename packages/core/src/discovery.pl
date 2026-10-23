@@ -398,7 +398,7 @@ coverage_report_json(By, Tags, IncludePassing, BindingMode, TestBindings, Includ
 
 % implements REQ-kibi-conservative-requirement-proof
 % Proof-status filtered report. The status filter selects requirement rows by
-% proofStatus (proven, missing, unresolved, not_applicable) and replaces the
+% proofStatus (tested, missing, unresolved, not_applicable) and replaces the
 % default include-passing filtering, so callers can enumerate exactly one
 % slice — e.g. every not_applicable row together with its typed applicability
 % reason — without diffing full exports by hand. The summary is always
@@ -1127,7 +1127,7 @@ coverage_summary(Rows, Summary) :-
     include(req_row_missing_scenario, Rows, MissingScenarioRows),
     include(req_row_missing_test, Rows, MissingTestRows),
     include(req_row_missing_both, Rows, MissingBothRows),
-    include(req_row_proof_proven, Rows, ProofProvenRows),
+    include(req_row_proof_tested, Rows, ProofTestedRows),
     include(req_row_proof_unresolved, Rows, ProofUnresolvedRows),
     include(req_row_proof_missing, Rows, ProofMissingRows),
     include(req_row_proof_not_applicable, Rows, ProofNotApplicableRows),
@@ -1138,7 +1138,8 @@ coverage_summary(Rows, Summary) :-
     length(MissingScenarioRows, MissingScenario),
     length(MissingTestRows, MissingTest),
     length(MissingBothRows, MissingScenarioAndTest),
-    length(ProofProvenRows, ProofProven),
+    length(ProofTestedRows, ProofTested),
+    evidence_level_counts(Rows, EvidenceLevels),
     length(ProofUnresolvedRows, ProofUnresolved),
     length(ProofMissingRows, ProofMissing),
     length(ProofNotApplicableRows, ProofNotApplicable),
@@ -1151,11 +1152,19 @@ coverage_summary(Rows, Summary) :-
         missingScenario: MissingScenario,
         missingTest: MissingTest,
         missingScenarioAndTest: MissingScenarioAndTest,
-        proofProven: ProofProven,
+        proofTested: ProofTested,
         proofUnresolved: ProofUnresolved,
         proofMissing: ProofMissing,
-        proofNotApplicable: ProofNotApplicable
+        proofNotApplicable: ProofNotApplicable,
+        evidenceLevels: EvidenceLevels
     }.
+
+% implements REQ-kibi-evidence-levels
+evidence_level_counts(Rows, _{proved: Proved, tested: Tested, asserted: Asserted, unverified: Unverified}) :-
+    aggregate_all(count, (member(Row, Rows), Row.get(evidenceLevel) == proved), Proved),
+    aggregate_all(count, (member(Row, Rows), Row.get(evidenceLevel) == tested), Tested),
+    aggregate_all(count, (member(Row, Rows), Row.get(evidenceLevel) == asserted), Asserted),
+    aggregate_all(count, (member(Row, Rows), Row.get(evidenceLevel) == unverified), Unverified).
 
 req_row_fully_covered(Row) :-
     CoverageStatus = Row.get(coverageStatus),
@@ -1175,8 +1184,8 @@ req_row_missing_test(Row) :-
     Row.gaps = [missing_test].
 req_row_missing_both(Row) :-
     Row.gaps = [missing_scenario_and_test].
-req_row_proof_proven(Row) :-
-    Row.proofStatus == proven.
+req_row_proof_tested(Row) :-
+    Row.proofStatus == tested.
 req_row_proof_unresolved(Row) :-
     Row.proofStatus == unresolved.
 req_row_proof_missing(Row) :-
@@ -1377,7 +1386,7 @@ filter_req_coverage_rows(false, Rows, Filtered) :-
 
 req_row_proof_passing(Row) :-
     Status = Row.proofStatus,
-    memberchk(Status, [proven, not_applicable]).
+    memberchk(Status, [tested, not_applicable]).
 
 filter_symbol_coverage_rows(true, Rows, Rows).
 filter_symbol_coverage_rows(false, Rows, Filtered) :-

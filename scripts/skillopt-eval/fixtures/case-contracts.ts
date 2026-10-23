@@ -68,7 +68,7 @@ export type CaseContract = Readonly<{
  */
 // implements REQ-skillopt-codex-optimization
 export const KIBI_ANSWER_FORMAT_INSTRUCTION =
-  ' Put your user-facing answer in the final "answer" field and end it with a fenced ```kibi-answer block holding one JSON object: {"verdict": "governed" | "conflict" | "infeasible" | "unknown" | "no_knowledge" | "analysis_incomplete" | "unresolved" | "no_conflict", "governing": [current requirement IDs], "conflict": string or null, "unknowns": [strings], "nextStep": string or null, "proof": "proven" | "unresolved" | "missing" | "not_applicable" | null}.';
+  ' Put your user-facing answer in the final "answer" field and end it with a fenced ```kibi-answer block holding one JSON object: {"verdict": "governed" | "conflict" | "infeasible" | "unknown" | "no_knowledge" | "analysis_incomplete" | "unresolved" | "no_conflict", "governing": [current requirement IDs], "conflict": string or null, "unknowns": [strings], "nextStep": string or null, "proof": "tested" | "unresolved" | "missing" | "not_applicable" | null}.';
 
 const GOVERNED_SOURCE = "src/fixture.ts";
 
