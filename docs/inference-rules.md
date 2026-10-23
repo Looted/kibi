@@ -138,6 +138,17 @@ These predicates remain useful for product features, automation, and future inte
   - **strict-lane only:** does not promise contradiction detection over all facts; only those explicitly modeled as `subject` + `property_value` participation rules, ground predicate facts (opposite polarity, or opposite allow/deny decisions on the same key arguments), and typed rules
   - is **enabled by default** for immediate value on normalized data
 
+- `kb-consistency`
+  - checks that the facts current requirements name hold together jointly, not only pairwise: three bounds that are each compatible with every other one can still leave no value, and `domain-contradictions` stays silent on them
+  - re-checks a certificate for every result (a model when consistent, an irreducible core when not) with an independent checker; a re-verified contradiction or a rejected certificate blocks
+  - is **canonical and enabled by default**, and also runs in the staged pre-commit gate
+
+- `kb-consistency-unresolved`
+  - reports each context the checker cannot compare (mixed value types or units, an unsupported operator or polarity, a contradiction whose validity windows never overlap)
+  - is advisory and non-blocking, and an unresolved context never counts as consistent
+
+For a consistency check, run `kb_check` with all three rules (`domain-contradictions`, `kb-consistency`, `kb-consistency-unresolved`). See [Knowledge-base certificates](./proof-ladder.md#knowledge-base-certificates).
+
 ### Bug and Workaround Documentation (Non-Blocking Lane)
 
 Bug records, incident notes, and workaround documentation should use `observation` or `meta` facts rather than strict fact modeling. Since `observation` and `meta` facts are excluded from contradiction inference, they are appropriate for non-blocking evidence.

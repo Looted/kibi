@@ -322,8 +322,8 @@ relationships:
 4. Preserve `claim_key` / `claim_text` on every ground fact (a missing key is derived from the text) and merge every key into the
    requirement `logic_claims` manifest.
 5. `kb_upsert` with `dryRun: true` for every payload, create endpoints first, then `kb_upsert` sequentially.
-6. Run `kb_check` with `logic-coverage`, `predicate-verifiability`, and
-   `domain-contradictions` during iteration, then a final unfiltered `kb_check`.
+6. Run `kb_check` with `logic-coverage`, `predicate-verifiability`,
+   `domain-contradictions`, `kb-consistency` and `kb-consistency-unresolved` during iteration, then a final unfiltered `kb_check`.
 
 ## Non-UI projects
 
