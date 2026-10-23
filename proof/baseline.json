@@ -1,1173 +1,1173 @@
 {
-  "version": "kibi.proof-baseline.v2",
+  "version": "kibi.proof-baseline.v3",
   "mode": "equality",
   "currentRequirements": 233,
-  "proofProven": 233,
-  "currentUnproven": 0,
+  "proofTested": 233,
+  "currentUntested": 0,
   "trackedGaps": {},
   "requirements": {
     "REQ-002": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-004": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-005": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-011": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-013": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-014": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-015": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-016": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-020": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-AUTO-941B0CE68BAF3331": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kb-decision-firmness": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kb-decision-firmness-from-origin": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kb-firm-decision-edit": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-KIBI-BOOTSTRAP-PLAN": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-agent-guided-migration-orchestration": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-agent-kibi-interface-selection": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-audit-quality-diagnostics-v1": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-capability-plugin-activation-disclosure-v1": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-capability-plugin-builtin-parity-v1": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-capability-plugin-configuration-v1": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-capability-plugin-jev-fallback-v1": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-capability-plugin-observable-behavior-v1": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-capability-plugin-protocol-v1": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-capability-plugin-three-capabilities-v1": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-claude-code-kibi-plugin-v1": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-mcp-workspace-routing": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-cli-canonical-runtime": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-cli-check": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-cli-doctor": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-cli-doctor-packed-provenance": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-cli-gc": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-cli-init-canonical": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-cli-kb-merge-driver": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-ci-kb-merge-resolution": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-cli-query": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-cli-schema-migration": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-cli-staged-impact-enforcement": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-cli-status-pre-first-sync": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-cli-usage-metrics-v1": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-codex-consumer-local-mcp-registration-v1": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-codex-kibi-plugin-v1": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-core-audit-logging": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-core-extractors": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-core-journaled-engine-persistence": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-core-prolog-process-management": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-core-validation-rules": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-cursor-agent-plugin-standard-v1": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-cursor-consumer-local-mcp-launcher-v1": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-cursor-kibi-plugin-v1": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-cursor-stop-job-vs-plan": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-cursor-worktree-kibi-continuity": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-docs-readme-published-links": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-docs-site-root-pages": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-generated-coordinate-persistence": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-git-hook-effective-install": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-git-hook-sync-v2": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-impact-policy-stage-e-content-bound-review": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-impact-review-public-preparation": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-installed-staged-impact-timing-integrity": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-bootstrap-knowledge-sources": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-branded-health-report": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-change-to-proof-evaluation": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-conservative-requirement-proof": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-consumer-local-plugin-launcher-ontology-v1": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-dependency-ordered-repair-plan": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-distribution-parity-matrix": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-domain-redundancy": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-entity-id-style": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-env-bootstrap": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-github-report-integration": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-html-health-report": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-intent-aware-source-discovery": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-logical-requirement-coverage": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-ontology-convergence-witnesses": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-ontology-quality": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-operation-interface-parity": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-predicate-argument-constants": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-predicate-schema-conformance": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-predicate-suggestion-relevance-v1": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-predicate-vocabulary-migration": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-proof-aware-quality-diagnostics": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-proposition-complete-ingestion": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-restates-relationship": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-source-relationship-parity": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-subject-vocabulary": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-telemetry-remediation-evidence": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-unit-canonicalization": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-verification-evidence-contract": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-vocabulary-alignment-capability": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-mcp-cli-help": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-mcp-kb-freshness": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-mcp-relationship-preflight": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-mcp-search-discovery": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-mcp-semantic-advisor-preflight": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-mcp-skills-resource-discoverability": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-mcp-suggest-predicates": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-mcp-tag-filtering-server-side": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-mcp-tool-check": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-mcp-tool-query": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-mcp-tool-upsert": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-multilingual-language-catalog": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-native-cli-suite-diagnostics": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-opencode-background-sync": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-opencode-bootstrap-nudge": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-opencode-comment-routing": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-opencode-file-context-guidance-v1": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-opencode-guidance-caching": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-opencode-guidance-injection": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-opencode-kibi-plugin-v1": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-opencode-posture-detection": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-opencode-risk-classification": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-opencode-smart-enforcement-v1": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-opencode-sync-feedback": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-prolog-build-pipeline-validation": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-prolog-coverage-test-selection": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-prolog-library-adoption": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-prolog-spike-config-validation": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-reusable-skill-subsystem": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-root-suite-batch-diagnostics": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-runtime-packed-engine-daemon": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-scripts-coverage-shard-isolation": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-skillopt-cursor-compat": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-skillopt-external-adoption-verdict": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-skillopt-logical-evidence-fidelity": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-skillopt-paid-launch-accounting": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-skillopt-predicate-first-requirements": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-source-analysis-v2": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-symbol-behavioral-anchors": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-symbol-sourcefile-workspace-confinement": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-test-journaled-engine-harness": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-tree-sitter-language-authoring-scaffold": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-vscode-kb-to-source": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-vscode-sidebar-kb-tree": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-vscode-source-to-kb": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-vscode-traceability": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-zcode-advisory-enforcement-boundary-v1": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-zcode-kibi-plugin-v1": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-zcode-manual-mcp-configuration-v1": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-prolog-bundled-runtime": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-prolog-daemon-runtime-identity": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-prolog-doctor-runtime-report": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-prolog-bundled-release": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-prolog-bundled-ci": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-prolog-bundled-quickstart": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-mcp-tool-consolidation": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-truthful-consistency": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-agent-core-edit-snippets": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-branch-store-recovery-v4": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-claude-hook-usage-telemetry-v2": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-core-engine-read-limits": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-change-to-proof-plan-compiler-v2": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-conditional-requirement-authoring": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-entity-origin": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-fresh-verification-receipts-v2": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-kb-lifecycle-integrity": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-legacy-migration-preview-v2": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-scenario-feasibility-v2": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-schema6-migration-v2": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-search-answer-layer-v2": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-search-gold-set-gate": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-telemetry-acceptance-gate-v2": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-bootstrap-write-safety": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-bootstrap-intent-claim-accounting": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-skillopt-claude-code-host": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-skillopt-operator-selected-harness": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-skillopt-description-candidates": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-bootstrap-discovered-candidate-budget": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-bootstrap-claim-kinds-and-conflicts": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-bootstrap-advisor-proposition-roles": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-upsert-preserves-requirement-semantics": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-docs-site-analytics": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-cli-staged-consistency": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kb-entity-body-context": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-docs-site-terminal-demo": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-mcp-conditional-input-validation": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-bootstrap-apply-long-running": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-upsert-unknown-field-guidance": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-check-related-requirement-unmodeled": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-model-predicates-grounding-aware-v2": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-mcp-oneof-guard-input-validation": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-mcp-apply-plan-async-preflight": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-bootstrap-subject-key-shape": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-bootstrap-claim-name-length": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-model-predicates-binding-placeholders": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-model-predicates-plan-roundtrip": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-check-strict-pairing-predicate-grounding-v2": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-bootstrap-subject-fact-shared": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-model-predicates-requirement-subject-v2": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-model-predicates-closed-vocabularies": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-model-predicates-binding-clauses": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-engine-daemon-package-versions": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-bootstrap-provenance-stubs": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-model-predicates-participant-not-subject": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-model-predicates-replacement-diagnostics": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-capability-check-policy": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-ui-pattern-vocabulary": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-ui-pattern-component-proof": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-ui-plugin-design-policy": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-bootstrap-ui-plugin-offer": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-query-fact-filters": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-hooks-flow-manifest": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-model-predicates-permission-grants": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-model-what-if-planned-facts": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-model-predicates-grounding-guards": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-upsert-committed-claim-key": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-search-answer-hygiene": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-mcp-structured-text-per-host": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-review-observation-claim-text-v2": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-cli-migration-first-commit": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kb-unowned-file-candidates": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-bootstrap-claim-restatement": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-mcp-coded-error-envelope": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-cli-migrate-legacy-requirement-status": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-uncompiled-source-visibility": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kb-upsert-statement-follows-semantic-text": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-claude-firm-edit-confirmation": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-claude-decision-capture-nudges": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-claude-request-topic-candidates": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-agent-hosts-decision-guard": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kb-check-unverified-requirement-statements": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kb-upsert-keeps-omitted-proof-receipts": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kb-upsert-ledger-contract-in-error": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-uncompiled-source-semantic-baseline": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-prolog-utf8-text": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-cli-migrate-entity-type-backfill": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-legacy-kb-first-step-migrate": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-cli-sync-summary-kb-totals": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-contradiction-review-candidates": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-symbol-link-guidance": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-bootstrap-authoring-claim-review": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-cli-staged-entity-context": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-skillopt-host-neutral-optimization": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-kibi-signoff-views": {
-      "proofStatus": "proven",
+      "proofStatus": "tested",
       "gaps": [],
       "uncoveredSymbols": []
     }

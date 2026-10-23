@@ -412,3 +412,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9e86a1d09cad
+  - type: implements
+    from: SYM-core-requirement-proof
+    to: REQ-kibi-evidence-levels
+    created_at: 2026-10-23T12:09:33.969Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-406a35cb1697
+  - type: covered_by
+    from: SYM-core-requirement-proof
+    to: TEST-kibi-evidence-levels
+    created_at: 2026-10-23T12:09:34.025Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c053279d92f

@@ -258,3 +258,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1b4f6794e289
+  - type: implements
+    from: SYM-operation-executeCoverage
+    to: REQ-kibi-evidence-levels
+    created_at: 2026-10-23T12:09:38.586Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-adb32af70ff8
+  - type: covered_by
+    from: SYM-operation-executeCoverage
+    to: TEST-kibi-evidence-levels
+    created_at: 2026-10-23T12:09:38.610Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f3e95b2a5c4f
