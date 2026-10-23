@@ -46,7 +46,7 @@ A coverage number can tell you a test executed a line. It cannot tell you *which
 
 That binding uses repository-relative paths and file contents only, so a CI runner and your own checkout of the same commit agree on what is fresh. Each test is judged by its own evidence: when the proof command reports results per test, one failing step fails only the tests that own it, and the run summary names the step. Receipt history keeps only the receipts that can still decide proof, so it does not grow with every run. The agent does not hand-write how proof runs either: `kibi proof inspect --json` proposes an integration for your test runner (or the command you pass with `--command`) and returns a plan you approve, and applying it writes `.kb/proof/integrations.json` for `kibi prove` to run. A plan that can no longer apply, because the file already exists or the runner configuration changed since planning, is refused as an error and changes nothing. A command integration is judged as one run, so a suite with an unrelated failing test proves nothing: narrow the command to the proof-bearing tests, or have it report results per test.
 
-That is why the health report distinguishes "proven" from "passing". Green is reserved for requirements whose evidence is current; everything else is shown honestly as waiting, stale, or broken.
+That is why the health report distinguishes "tested end to end" from "passing", and labels every requirement with its evidence level: proved, tested, asserted or unverified. Green is reserved for requirements whose evidence is current; everything else is shown honestly as waiting, stale, or broken.
 
 ## What the checks catch
 
@@ -72,6 +72,6 @@ The model lives in your repository under `.kb/`, and each Git branch carries its
 
 ## Go deeper
 
-- [The proof ladder](proof-ladder.md) — the stages from stated intent to proven requirement.
+- [The proof ladder](proof-ladder.md) — the stages from stated intent to a tested requirement, and the evidence levels.
 - [Architecture](../reference/architecture.md) — storage, branch isolation, and data flow.
 - [Inference rules](../reference/inference-rules.md) — the deterministic checks themselves.

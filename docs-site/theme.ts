@@ -1014,8 +1014,8 @@ export function landingContent(args: {
     ? `<section class="report-strip">
   <div>
     <h2>This repository publishes its own report</h2>
-    <p>Every push to the default branch republishes requirement health for Kibi itself: how many current requirements are fully proven, which ones contradict each other, and which evidence has gone stale.</p>
-    <div class="report-note"><span class="dot proven"></span>Proven means fresh end-to-end evidence on the current code snapshot.</div>
+    <p>Every push to the default branch republishes requirement health for Kibi itself: how many current requirements are fully tested end to end, which ones rest only on someone's word, which ones contradict each other, and which evidence has gone stale.</p>
+    <div class="report-note"><span class="dot proven"></span>Tested means fresh end-to-end evidence on the current code snapshot.</div>
   </div>
   <a class="btn btn-ghost" href="${reportUrl}" data-umami-event="cta-click" data-umami-event-target="live-report">Open the live report</a>
 </section>`
@@ -1062,7 +1062,7 @@ export function landingContent(args: {
     </li>
     <li>
       <h3>Read the result</h3>
-      <p>The health report names what is proven, what still has a gap, and what contradicts itself. A green test run is a different fact.</p>
+      <p>The health report names what is tested, what still has a gap, and what contradicts itself, and labels each requirement proved, tested, asserted or unverified. A green test run is a different fact.</p>
     </li>
   </ol>
 </section>
@@ -1150,8 +1150,8 @@ export function landingContent(args: {
       <p>Requirements and ADRs also record how firmly they were decided. A rule you stated is <code>firm</code> and points at your words; only another firm decision can replace it, so the agent is told to ask you first, and the agent cannot reword it in place unless it cites your new words. Kibi checks that the reference is there, not that you really wrote it. A choice you delegated, or one the agent made, is <code>default</code>: a later agent may replace it when it has evidence, and every replacement must say why it changed. A guess is <code>exploratory</code>. A rule with no firmness counts as <code>firm</code> unless the agent wrote it, and bootstrap marks the rules it imports from your documents as <code>firm</code>. When your request conflicts with any recorded rule, the agent names the rule and asks before changing it. Search results and the edit hooks show which is which.</p>
     </details>
     <details>
-      <summary>What counts as proven?</summary>
-      <p>A requirement is proven only when a test that claims to verify it has fresh end-to-end evidence for the current code. A passing unit test, a coverage percentage, or an old receipt does not count. The one exception is a requirement that only names a UI pattern, such as "this list is a line-and-dots timeline in both views": an isolated component test with a fresh receipt proves it, because rendering the component shows everything the requirement says. Freshness is computed from repository-relative paths and file contents, so CI and your own checkout of the same commit agree on what is proven.</p>
+      <summary>What counts as tested, and what as proved?</summary>
+      <p>A requirement is tested only when a test that claims to verify it has fresh end-to-end evidence for the current code. A passing unit test, a coverage percentage, or an old receipt does not count. The one exception is a requirement that only names a UI pattern, such as "this list is a line-and-dots timeline in both views": an isolated component test with a fresh receipt covers it, because rendering the component shows everything the requirement says. Freshness is computed from repository-relative paths and file contents, so CI and your own checkout of the same commit agree on what is tested. Tests sample cases, so tested is not proved: Kibi reserves proved for a claim a checker established for every case, with a certificate a second program can re-check, and no proof kind issues one yet. A requirement no current test checks is asserted when a person stands behind it and unverified when only an agent does.</p>
     </details>
     <details>
       <summary>Will Kibi decide the product for me?</summary>
