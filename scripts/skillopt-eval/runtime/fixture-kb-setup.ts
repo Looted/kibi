@@ -18,6 +18,9 @@ import {
   GOVERNED_AREA_DOCUMENTS,
   GOVERNED_FIXTURE_SOURCE,
   GOVERNED_FIXTURE_TEST,
+  JOINT_CONTRADICTION_CORE,
+  JOINT_CONTRADICTION_IDS,
+  JOINT_CONTRADICTION_PROSE,
   type LedgerProposition,
   PRECONDITION_DOCUMENTS,
   PRECONDITION_IDS,
@@ -28,6 +31,7 @@ import {
   UNRESOLVED_RULE_ORIGIN,
   UNRESOLVED_RULE_PROSE,
   consistencyValueFact,
+  isSeededJointContradictionViolation,
   isSeededUnresolvedRuleViolation,
   ledgerRequirement,
 } from "./fixture-seeds";
@@ -1419,4 +1423,138 @@ export async function setupSeededConsistencyKb(
   await runSeededFixtureTest(workspaceTarget, CONSISTENCY_E2E_TEST_PATH);
   await commitAndSync(workspaceTarget, cliRoot);
   await validateSeed(workspaceTarget, cliRoot, "consistency fixture");
+}
+
+/**
+ * Evaluator-owned staging for the joint-contradiction consistency cases:
+ * four bounds on `client.call_quota.remaining` (`>= 0`, `<= 1`, `!= 0`,
+ * `!= 1`) that every pair satisfies but all four do not, so only
+ * `kb-consistency` reports them, and a reset-window pair stated in hours and
+ * in billing cycles, which `kb-consistency-unresolved` reports as
+ * undecidable.
+ */
+// implements REQ-skillopt-codex-optimization
+export async function setupSeededJointContradictionKb(
+  workspaceTarget: string,
+  cliRoot: string,
+): Promise<void> {
+  await initSeededRepository(workspaceTarget, cliRoot);
+  const ids = JOINT_CONTRADICTION_IDS;
+  const prose = JOINT_CONTRADICTION_PROSE;
+  const bounds = [
+    {
+      id: ids.floor,
+      factId: ids.floorFact,
+      prose: prose.floor,
+      title: "Remaining call quota is at least 0",
+      operator: "gte",
+      value: 0,
+    },
+    {
+      id: ids.ceiling,
+      factId: ids.ceilingFact,
+      prose: prose.ceiling,
+      title: "Remaining call quota is at most 1",
+      operator: "lte",
+      value: 1,
+    },
+    {
+      id: ids.notEmpty,
+      factId: ids.notEmptyFact,
+      prose: prose.notEmpty,
+      title: "Remaining call quota is not 0",
+      operator: "neq",
+      value: 0,
+    },
+    {
+      id: ids.notSingle,
+      factId: ids.notSingleFact,
+      prose: prose.notSingle,
+      title: "Remaining call quota is not 1",
+      operator: "neq",
+      value: 1,
+    },
+    {
+      id: ids.windowMax,
+      factId: ids.windowMaxFact,
+      prose: prose.windowMax,
+      title: "Reset window is at most 24 hours",
+      operator: "lte",
+      value: 24,
+      property: "reset_window",
+      unit: "hours",
+    },
+    {
+      id: ids.windowMin,
+      factId: ids.windowMinFact,
+      prose: prose.windowMin,
+      title: "Reset window is at least 2 billing cycles",
+      operator: "gte",
+      value: 2,
+      property: "reset_window",
+      unit: "billing_cycles",
+    },
+  ] as const;
+  const documents: Record<string, string> = {
+    [`.kb/facts/${CONSISTENCY_IDS.subject}.md`]: CONSISTENCY_SUBJECT_DOCUMENT,
+  };
+  for (const spec of bounds) {
+    const ledger = await semanticLedger(cliRoot, workspaceTarget, spec.prose);
+    const [claim] = ledger.propositions;
+    if (ledger.propositions.length !== 1 || claim === undefined)
+      throw new FixtureSetupError(`${spec.id} expects exactly one clause`);
+    documents[`.kb/facts/${spec.factId}.md`] = consistencyValueFact({
+      id: spec.factId,
+      title: spec.title,
+      operator: spec.operator,
+      value: spec.value,
+      claimKey: claim.claim_key,
+      claimText: claim.claim_text,
+      ...("property" in spec
+        ? { property: spec.property, unit: spec.unit }
+        : {}),
+    });
+    documents[`.kb/requirements/${spec.id}.md`] = ledgerRequirement({
+      id: spec.id,
+      title: spec.title,
+      prose: spec.prose,
+      contract: ledger.contract,
+      propositions: [{ ...claim, status: "modeled" }],
+      links: [
+        { type: "constrains", target: CONSISTENCY_IDS.subject },
+        { type: "requires_property", target: spec.factId },
+      ],
+    });
+  }
+  await writeDocuments(workspaceTarget, documents);
+  await commitAndSync(workspaceTarget, cliRoot);
+  const result = await runStagedCli(cliRoot, workspaceTarget, [
+    "check",
+    "--format",
+    "json",
+  ]);
+  const content = recordField(
+    jsonRecord(result.stdout, "joint contradiction fixture validation"),
+    "structuredContent",
+    "joint contradiction fixture validation",
+  );
+  const violations = content.violations;
+  const unresolved = Array.isArray(content.qualityDiagnostics)
+    ? content.qualityDiagnostics.filter(
+        (entry) =>
+          entry !== null &&
+          typeof entry === "object" &&
+          (entry as Record<string, unknown>).id ===
+            "rule.kb-consistency-unresolved",
+      )
+    : [];
+  if (
+    !Array.isArray(violations) ||
+    violations.length !== 1 ||
+    !isSeededJointContradictionViolation(violations[0]) ||
+    unresolved.length !== 1
+  )
+    throw new FixtureSetupError(
+      `joint contradiction fixture must report only the ${JOINT_CONTRADICTION_CORE.join("/")} core and one unresolved reset-window pair: ${result.stdout.slice(0, 600)}`,
+    );
 }

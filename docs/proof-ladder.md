@@ -157,7 +157,7 @@ backs it:
 | --- | --- | --- |
 | `proved` | A checker established the claim for every case and left a certificate a second program can re-check | A proof certificate. No proof kind issues one yet, so no requirement reaches this level today |
 | `tested` | Passing runs on sampled cases, bound to the current code snapshot | `proofStatus: tested` |
-| `asserted` | A person stands behind the statement, but nothing current checks it | `approved_by` (or `origin.approved_by`), or firm: `firmness: firm`, or no `firmness` and an origin other than `agent` |
+| `asserted` | A person stands behind the statement, but nothing current checks it | `origin.approved_by`, or firm: `firmness: firm`, or no `firmness` and an origin other than `agent` |
 | `unverified` | Stated, not approved, no evidence | Nothing: an agent wrote it and no person approved it |
 
 Each row's `evidence[]` lists the entries that earned the level, each with
@@ -170,6 +170,41 @@ summary counts rows per level under `evidenceLevels`.
 Firmness and evidence level are separate axes. Firmness says how sure the
 person is; the level says how strong the evidence is. A firm requirement at
 `asserted` is the gap to close before relying on it.
+
+## Knowledge-base certificates
+
+Evidence levels describe requirements. The `kb-consistency` rule of
+`kibi check` (and `kb_check`) covers the knowledge base itself: it states a few theorems about the facts current requirements
+name, finds a certificate for each, and re-checks every certificate with a
+separate checker (`certificate_check.pl`) that never searches and never loads
+the code that found the certificate.
+
+| Theorem | Certificate when it holds | Certificate when it fails |
+| --- | --- | --- |
+| `properties_consistent` | A model per subject, property and scope: one value that satisfies every fact (a `forbid` fact counts as its negation) | An irreducible core: facts that admit no value together, with one model per dropped fact to show each is needed |
+| `predicates_consistent` | A truth value per ground atom that every fact agrees with | Two facts that assert and deny the same atom |
+| `decisions_consistent` | One allow or deny per decision key | Two facts with opposite effective decisions |
+| `rules_stratified` | A stratum number per rule predicate: a head is at least its body's stratum, and above it across `not` | A negation cycle: a closed path of rule dependencies with a negated edge |
+
+The property theorem is joint: facts that contradict only together, where
+every pair still admits a value (for example `int >= 0`, `<= 1`, `!= 0`,
+`!= 1`), are a contradiction here even though the pairwise
+`domain-contradictions` rule is silent. A core whose facts are never valid at
+the same time is reported as `property_unresolved`, not as a contradiction.
+A context the checker cannot compare (mixed value types or units, an
+operator other than `eq`/`neq` on a non-numeric value, an unknown polarity)
+is unresolved and needs no certificate; it never counts as consistent.
+
+A re-verified contradiction (a core, two disagreeing facts or a negation
+cycle) is a blocking `kb-consistency` violation, and so is a certificate the
+checker rejects. An unresolved context is a non-blocking
+`kb-consistency-unresolved` diagnostic. `kibi check --staged` runs the rule
+too, so a commit that introduces a joint contradiction is blocked. Opposing
+rule pairs and scenario feasibility are not certified yet; their own
+`kibi check` rules still decide them. Certificates are regenerated on each
+run and are not committed: `kibi check --write-certificates <file>` saves the
+bundle, and `kibi check --certificates <file>` re-checks a saved one and
+prints each theorem's verdict (`proved`, `disproved` or `unresolved`).
 
 ## Common failure patterns
 

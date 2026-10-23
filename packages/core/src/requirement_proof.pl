@@ -1713,13 +1713,13 @@ evidence_level(Evidence, Level) :-
     ).
 
 %% human_intent(+Props, -Basis, -Ref)
-% A person stands behind the requirement: someone approved it (approved_by,
-% or origin.approved_by), or it reads as firm (firmness: firm, or no
-% firmness and an origin other than agent, as for decision firmness).
+% A person stands behind the requirement: someone approved it
+% (origin.approved_by, the field agent-requirement-unapproved reads), or it
+% reads as firm (firmness: firm, or no firmness and an origin other than
+% agent, as for decision firmness).  The top-level approved_by approves an
+% exception; an agent can write it, so on its own it approves nothing here.
 human_intent(Props, approved, Ref) :-
-    (   prop_text(Props, approved_by, _)
-    ;   origin_field(Props, approved_by, _)
-    ),
+    origin_field(Props, approved_by, _),
     !,
     intent_ref(Props, Ref).
 human_intent(Props, firm, Ref) :-

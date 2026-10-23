@@ -50,6 +50,8 @@
     check_subject_key_identity/1,
     check_subject_key_shape/1,
     check_ontology_quality/1,
+    check_kb_consistency/1,
+    check_kb_consistency_unresolved/1,
     run_checks_json/0,              % Entry point for JSON output
     violation_id_text/2             % Extract text from entity ID term (exported for testing)
 ]).
@@ -75,6 +77,7 @@
 :- use_module('logic_ir.pl', [logic_rule_safety/2, logic_rule_from_props/2, logic_rule_render/2, logic_rule_conflict/3, logic_rule_conflict_witness/4, logic_rules_stratified/1, logic_rule_missing_keys/4, functional_predicate_declarations/1, logic_rule_property_form/2]).
 % GENERATED registry facts; single source is schema/rule-registry.json.
 :- use_module('rule_registry.pl', [known_rule/1]).
+:- use_module('kb_consistency.pl', [check_kb_consistency/1, check_kb_consistency_unresolved/1]).
 
 % Required fields for all entities
 required_fields([id, title, status, created_at, updated_at, source]).
@@ -125,6 +128,8 @@ check_all(ViolationsDict) :-
     check_subject_key_identity(SubjectKeyIdentity),
     check_subject_key_shape(SubjectKeyShape),
     check_ontology_quality(OntologyQuality),
+    check_kb_consistency(KbConsistency),
+    check_kb_consistency_unresolved(KbConsistencyUnresolved),
     ViolationsDict = _{
         must_priority_coverage: MustPriority,
         symbol_coverage: SymbolCoverage,
@@ -159,7 +164,9 @@ check_all(ViolationsDict) :-
         domain_implication: DomainImplication,
         subject_key_identity: SubjectKeyIdentity,
         subject_key_shape: SubjectKeyShape,
-        ontology_quality: OntologyQuality
+        ontology_quality: OntologyQuality,
+        kb_consistency: KbConsistency,
+        kb_consistency_unresolved: KbConsistencyUnresolved
     }.
 
 %% check_must_priority_coverage(-Violations)
@@ -3663,7 +3670,9 @@ check_selected_dispatch(Rules, _{
     domain_implication: DomainImplication,
     subject_key_identity: SubjectKeyIdentity,
     subject_key_shape: SubjectKeyShape,
-    ontology_quality: OntologyQuality
+    ontology_quality: OntologyQuality,
+    kb_consistency: KbConsistency,
+    kb_consistency_unresolved: KbConsistencyUnresolved
 }) :-
     selected_rule(Rules, 'must-priority-coverage', check_must_priority_coverage, MustPriority),
     selected_rule(Rules, 'symbol-coverage', check_symbol_coverage, SymbolCoverage),
@@ -3698,7 +3707,9 @@ check_selected_dispatch(Rules, _{
     selected_rule(Rules, 'domain-implication', check_domain_implication, DomainImplication),
     selected_rule(Rules, 'subject-key-identity', check_subject_key_identity, SubjectKeyIdentity),
     selected_rule(Rules, 'subject-key-shape', check_subject_key_shape, SubjectKeyShape),
-    selected_rule(Rules, 'ontology-quality', check_ontology_quality, OntologyQuality).
+    selected_rule(Rules, 'ontology-quality', check_ontology_quality, OntologyQuality),
+    selected_rule(Rules, 'kb-consistency', check_kb_consistency, KbConsistency),
+    selected_rule(Rules, 'kb-consistency-unresolved', check_kb_consistency_unresolved, KbConsistencyUnresolved).
 
 selected_rule(Rules, Name, Goal, Violations) :-
     (   memberchk(Name, Rules)
@@ -3770,6 +3781,8 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
     check_subject_key_identity(SubjectKeyIdentity),
     check_subject_key_shape(SubjectKeyShape),
     check_ontology_quality(OntologyQuality),
+    check_kb_consistency(KbConsistency),
+    check_kb_consistency_unresolved(KbConsistencyUnresolved),
     ViolationsDict = _{
         must_priority_coverage: MustPriority,
         symbol_coverage: SymbolCoverage,
@@ -3803,7 +3816,9 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
         domain_implication: DomainImplication,
         subject_key_identity: SubjectKeyIdentity,
         subject_key_shape: SubjectKeyShape,
-        ontology_quality: OntologyQuality
+        ontology_quality: OntologyQuality,
+        kb_consistency: KbConsistency,
+        kb_consistency_unresolved: KbConsistencyUnresolved
     }.
 
 %% violations_dict_to_json(+ViolationsDict, -JsonDict)

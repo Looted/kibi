@@ -115,6 +115,69 @@ export function isSeededUnresolvedRuleViolation(violation: unknown): boolean {
   );
 }
 
+/** Entity IDs seeded by `seeded_joint_contradiction_kb`. */
+// implements REQ-skillopt-codex-optimization
+export const JOINT_CONTRADICTION_IDS = {
+  /** `remaining >= 0`. */
+  floor: "REQ-call-quota-floor",
+  /** `remaining <= 1`. */
+  ceiling: "REQ-call-quota-ceiling",
+  /** `remaining != 0`. */
+  notEmpty: "REQ-call-quota-not-empty",
+  /** `remaining != 1`. Every pair of the four admits a value; all four do not. */
+  notSingle: "REQ-call-quota-not-single",
+  floorFact: "FACT-call-quota-floor",
+  ceilingFact: "FACT-call-quota-ceiling",
+  notEmptyFact: "FACT-call-quota-not-empty",
+  notSingleFact: "FACT-call-quota-not-single",
+  /** `reset_window <= 24` hours. */
+  windowMax: "REQ-call-quota-window-max",
+  /**
+   * `reset_window >= 2` billing cycles: a unit Kibi cannot convert to hours,
+   * so the pair stays unresolved.
+   */
+  windowMin: "REQ-call-quota-window-min",
+  windowMaxFact: "FACT-call-quota-window-max",
+  windowMinFact: "FACT-call-quota-window-min",
+} as const;
+
+/** Prose of the joint-contradiction requirements (ledgers are computed live). */
+// implements REQ-skillopt-codex-optimization
+export const JOINT_CONTRADICTION_PROSE = {
+  floor: "The remaining call quota must be at least 0.",
+  ceiling: "The remaining call quota must be at most 1.",
+  notEmpty: "The remaining call quota must not equal 0.",
+  notSingle: "The remaining call quota must not equal 1.",
+  windowMax: "The call quota reset window must be at most 24 hours.",
+  windowMin: "The call quota reset window must be at least 2 billing cycles.",
+} as const;
+
+/** The four requirements whose facts contradict only together. */
+// implements REQ-skillopt-codex-optimization
+export const JOINT_CONTRADICTION_CORE = [
+  JOINT_CONTRADICTION_IDS.ceiling,
+  JOINT_CONTRADICTION_IDS.floor,
+  JOINT_CONTRADICTION_IDS.notEmpty,
+  JOINT_CONTRADICTION_IDS.notSingle,
+] as const;
+
+/**
+ * The `kb_check` violation the joint-contradiction seed carries by design:
+ * `kb-consistency` reports the four call-quota bounds as one irreducible core.
+ * A final check whose only violations are seeded ones counts as clean.
+ */
+// implements REQ-skillopt-codex-optimization
+export function isSeededJointContradictionViolation(
+  violation: unknown,
+): boolean {
+  if (violation === null || typeof violation !== "object") return false;
+  const record = violation as Record<string, unknown>;
+  return (
+    record.rule === "kb-consistency" &&
+    record.entityId === [...JOINT_CONTRADICTION_CORE].sort().join("/")
+  );
+}
+
 /** Human provenance stamped on the refund requirements. */
 // implements REQ-skillopt-codex-optimization
 export const UNRESOLVED_RULE_ORIGIN = [
@@ -147,6 +210,7 @@ export const SEEDED_ENTITY_IDS: ReadonlySet<string> = new Set([
   ...Object.values(PRECONDITION_IDS),
   ...Object.values(CONSISTENCY_IDS),
   ...Object.values(UNRESOLVED_RULE_IDS),
+  ...Object.values(JOINT_CONTRADICTION_IDS),
 ]);
 
 // implements REQ-skillopt-codex-optimization
@@ -336,6 +400,9 @@ export function consistencyValueFact(input: {
   readonly value: number;
   readonly claimKey: string;
   readonly claimText: string;
+  /** Defaults to `remaining`. */
+  readonly property?: string;
+  readonly unit?: string;
 }): string {
   return doc([
     `id: ${input.id}`,
@@ -344,7 +411,8 @@ export function consistencyValueFact(input: {
     "status: active",
     "fact_kind: property_value",
     "subject_key: client.call_quota",
-    "property_key: remaining",
+    `property_key: ${input.property ?? "remaining"}`,
+    ...(input.unit === undefined ? [] : [`unit: ${input.unit}`]),
     `operator: ${input.operator}`,
     "value_type: int",
     `value_int: ${input.value}`,

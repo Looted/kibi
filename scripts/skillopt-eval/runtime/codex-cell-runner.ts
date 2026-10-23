@@ -47,6 +47,7 @@ import {
   setupSeededDirtyKb,
   setupSeededFreshKb,
   setupSeededGovernedAreaKb,
+  setupSeededJointContradictionKb,
   setupSeededPartialKb,
   setupSeededPreconditionKb,
   setupSeededSafeMutationKb,
@@ -315,6 +316,11 @@ export async function runCodexCell(
                 );
               } else if (setupMode === "seeded_unresolved_rule_kb") {
                 await setupSeededUnresolvedRuleKb(
+                  workspace.target,
+                  stagingCliRoot,
+                );
+              } else if (setupMode === "seeded_joint_contradiction_kb") {
+                await setupSeededJointContradictionKb(
                   workspace.target,
                   stagingCliRoot,
                 );
