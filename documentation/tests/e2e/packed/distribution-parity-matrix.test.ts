@@ -338,7 +338,7 @@ function coverageOutcome(value: JsonRecord, capability: string): unknown {
   }
   if (typeof row.proofStatus !== "string" || !row.proofStages) {
     throw new CapabilityUnavailableError(
-      "kibi.requirement-proof.v3 evidence is absent",
+      "kibi.requirement-proof.v4 evidence is absent",
     );
   }
   return {
