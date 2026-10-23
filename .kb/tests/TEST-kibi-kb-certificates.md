@@ -1,9 +1,9 @@
 ---
-title: Certificates and kibi verify through the packed CLI
+title: Knowledge-base certificates in kibi check through the packed CLI
 status: passing
 tags:
   - proof
-  - verify
+  - check
   - e2e
 verification_scope: end_to_end
 verification_perspective: consumer
@@ -54,4 +54,4 @@ proof_receipts:
         attempts:
           status: unavailable
 ---
-Runs the installed packed CLI on a sandbox repository with property facts and checks kibi verify end to end: consistent bounds get a model that re-verifies and the run exits 0, a saved bundle with a broken model is rejected with the fact it breaks and exit 1, and four bounds that only contradict together are reported as disproved with a core of all four facts.
+Runs the installed packed CLI on a sandbox repository with property facts and checks the kb-consistency rule end to end: consistent bounds pass kibi check, a saved bundle with a broken model is rejected by kibi check --certificates with the fact it breaks and exit 1, and four bounds that only contradict together are a blocking kb-consistency violation with a core of all four facts that kibi check --staged also blocks.

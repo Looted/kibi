@@ -56750,7 +56750,7 @@ symbols:
       - type: implements
         target: REQ-kibi-evidence-levels
   - id: SYM-e2e-packed-kb-certificates
-    title: verifyKbCertificates
+    title: checkKbCertificates
     status: active
     sourceFile: documentation/tests/e2e/packed/kb-certificates.test.ts
     symbol_role: behavioral
@@ -56794,17 +56794,33 @@ symbols:
         target: TEST-kibi-kb-certificates
       - type: implements
         target: REQ-kibi-kb-certificates
-  - id: SYM-cli-verify-command
-    title: verifyCommand
+  - id: SYM-cli-check-certificates
+    title: checkCertificatesCommand
     status: active
-    sourceFile: packages/cli/src/commands/verify.ts
+    sourceFile: packages/cli/src/commands/check-certificates.ts
     symbol_role: behavioral
     tags:
       - proof
-      - verify
+      - check
     origin:
       kind: agent
-      recorded_at: 2026-10-23T14:07:57.274Z
+      recorded_at: 2026-10-23T15:02:38.274Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-certificates
+      - type: implements
+        target: REQ-kibi-kb-certificates
+  - id: SYM-core-kb-consistency
+    title: check_kb_consistency
+    status: active
+    sourceFile: packages/core/src/kb_consistency.pl
+    symbol_role: behavioral
+    tags:
+      - proof
+      - check
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T15:02:46.682Z
     relationships:
       - type: covered_by
         target: TEST-kibi-kb-certificates

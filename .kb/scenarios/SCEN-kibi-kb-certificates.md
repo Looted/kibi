@@ -4,7 +4,7 @@ status: active
 priority: should
 tags:
   - proof
-  - verify
+  - check
   - certificates
 origin:
   kind: agent
@@ -12,4 +12,4 @@ origin:
 id: SCEN-kibi-kb-certificates
 type: scenario
 ---
-Given a synced repository whose requirements bound one property with facts that agree, when the maintainer runs kibi verify, then every certificate re-verifies, the property facts read as proved consistent, the run exits 0 and the theorems not certified yet are named. When the maintainer saves the bundle with --write and changes a model value, kibi verify --certificates on that file rejects the certificate, names the fact its value breaks and exits 1. When two more requirements add bounds that only contradict together, so every pair still admits a value, kibi verify reports the property facts as disproved with a contradiction core that lists all four facts and exits 1.
+Given a synced repository whose requirements bound one property with facts that agree, when the maintainer runs kibi check, then the kb-consistency rule reports nothing and the check passes. When the maintainer saves the bundle with kibi check --write-certificates and changes a model value, kibi check --certificates on that file rejects the certificate, names the fact its value breaks and exits 1. When two more requirements add bounds that only contradict together, so every pair still admits a value, kibi check reports a blocking kb-consistency violation whose contradiction core lists all four facts, the pairwise domain-contradictions rule stays silent, and committing those requirements is blocked by kibi check --staged.

@@ -290,3 +290,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cd76aa5d6c7e
+  - type: implements
+    from: SYM-cli-check-certificates
+    to: REQ-kibi-kb-certificates
+    created_at: 2026-10-23T15:02:40.429Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c680da76170f
+  - type: covered_by
+    from: SYM-cli-check-certificates
+    to: TEST-kibi-kb-certificates
+    created_at: 2026-10-23T15:02:40.464Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec6c2963a187
