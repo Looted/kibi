@@ -27,6 +27,81 @@ type Certificate = Record<string, unknown> & { kind: string };
  * that only contradict jointly (every pair admits a value) are reported as a
  * contradiction with an irreducible core.
  */
+/**
+ * Runs kibi verify on the seat-pool sandbox (0 <= free seats <= 1): every
+ * certificate re-verifies, --write saves the bundle, and a saved bundle whose
+ * model breaks FACT-SEAT-MAX is rejected.
+ */
+export async function verifyKbCertificates(sandbox: TestSandbox) {
+  const verify = await kibi(sandbox, ["verify"], { timeoutMs: 120000 });
+  assert.strictEqual(verify.exitCode, 0, `${verify.stdout}${verify.stderr}`);
+  assert.match(verify.stdout, /certificates re-verified/);
+  assert.match(verify.stdout, /Property facts are consistent: proved/);
+  assert.match(verify.stdout, /Not certified yet: /);
+
+  const bundlePath = join(sandbox.repoDir, "certificates.json");
+  const saved = await kibi(
+    sandbox,
+    ["verify", "--write", bundlePath, "--json"],
+    { timeoutMs: 120000 },
+  );
+  assert.strictEqual(saved.exitCode, 0, `${saved.stdout}${saved.stderr}`);
+  const report = JSON.parse(saved.stdout) as {
+    version: string;
+    status: string;
+    theorems: { theorem: string; verdict: string }[];
+  };
+  assert.strictEqual(report.version, "kibi.verification.v1");
+  assert.strictEqual(report.status, "verified");
+  assert.deepStrictEqual(
+    report.theorems.map((theorem) => theorem.theorem),
+    [
+      "properties_consistent",
+      "predicates_consistent",
+      "decisions_consistent",
+      "rules_stratified",
+    ],
+  );
+
+  const bundle = JSON.parse(readFileSync(bundlePath, "utf8")) as {
+    version: string;
+    certificates: Certificate[];
+  };
+  assert.strictEqual(bundle.version, "kibi.certificates.v1");
+  const model = bundle.certificates.find(
+    (certificate) =>
+      certificate.kind === "property_model" &&
+      certificate.subjectKey === "seat.pool",
+  );
+  assert.ok(model, "the seat pool context should have a model");
+  assert.ok(
+    model.value === 0 || model.value === 1,
+    `model value ${String(model.value)} should satisfy 0 <= free <= 1`,
+  );
+
+  const tamperedPath = join(sandbox.repoDir, "tampered.json");
+  writeFileSync(
+    tamperedPath,
+    JSON.stringify({
+      ...bundle,
+      certificates: bundle.certificates.map((certificate) =>
+        certificate === model ? { ...certificate, value: 5 } : certificate,
+      ),
+    }),
+  );
+  const rejected = await kibi(
+    sandbox,
+    ["verify", "--certificates", tamperedPath],
+    { timeoutMs: 120000 },
+  );
+  assert.strictEqual(
+    rejected.exitCode,
+    1,
+    `${rejected.stdout}${rejected.stderr}`,
+  );
+  assert.match(rejected.stdout, /model value does not satisfy FACT-SEAT-MAX/);
+}
+
 if (RUN_NODE_TEST_SUITE) {
   describe("E2E: kibi verify certificates", { timeout: 300000 }, () => {
     let tarballs: Tarballs;
@@ -150,82 +225,7 @@ The pool of seats a workspace can assign.
           testContext.skip("SWI-Prolog is unavailable");
           return;
         }
-        const verify = await kibi(sandbox, ["verify"], { timeoutMs: 120000 });
-        assert.strictEqual(
-          verify.exitCode,
-          0,
-          `${verify.stdout}${verify.stderr}`,
-        );
-        assert.match(verify.stdout, /certificates re-verified/);
-        assert.match(verify.stdout, /Property facts are consistent: proved/);
-        assert.match(verify.stdout, /Not certified yet: /);
-
-        const bundlePath = join(sandbox.repoDir, "certificates.json");
-        const saved = await kibi(
-          sandbox,
-          ["verify", "--write", bundlePath, "--json"],
-          { timeoutMs: 120000 },
-        );
-        assert.strictEqual(saved.exitCode, 0, `${saved.stdout}${saved.stderr}`);
-        const report = JSON.parse(saved.stdout) as {
-          version: string;
-          status: string;
-          theorems: { theorem: string; verdict: string }[];
-        };
-        assert.strictEqual(report.version, "kibi.verification.v1");
-        assert.strictEqual(report.status, "verified");
-        assert.deepStrictEqual(
-          report.theorems.map((theorem) => theorem.theorem),
-          [
-            "properties_consistent",
-            "predicates_consistent",
-            "decisions_consistent",
-            "rules_stratified",
-          ],
-        );
-
-        const bundle = JSON.parse(readFileSync(bundlePath, "utf8")) as {
-          version: string;
-          certificates: Certificate[];
-        };
-        assert.strictEqual(bundle.version, "kibi.certificates.v1");
-        const model = bundle.certificates.find(
-          (certificate) =>
-            certificate.kind === "property_model" &&
-            certificate.subjectKey === "seat.pool",
-        );
-        assert.ok(model, "the seat pool context should have a model");
-        assert.ok(
-          model.value === 0 || model.value === 1,
-          `model value ${String(model.value)} should satisfy 0 <= free <= 1`,
-        );
-
-        const tamperedPath = join(sandbox.repoDir, "tampered.json");
-        writeFileSync(
-          tamperedPath,
-          JSON.stringify({
-            ...bundle,
-            certificates: bundle.certificates.map((certificate) =>
-              certificate === model
-                ? { ...certificate, value: 5 }
-                : certificate,
-            ),
-          }),
-        );
-        const rejected = await kibi(
-          sandbox,
-          ["verify", "--certificates", tamperedPath],
-          { timeoutMs: 120000 },
-        );
-        assert.strictEqual(
-          rejected.exitCode,
-          1,
-          `${rejected.stdout}${rejected.stderr}`,
-        );
-        assert.match(
-          rejected.stdout,
-          /model value does not satisfy FACT-SEAT-MAX/,
-        );
+        await verifyKbCertificates(sandbox);
       },
     );
 

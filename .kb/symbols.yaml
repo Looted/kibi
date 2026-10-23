@@ -56750,7 +56750,7 @@ symbols:
       - type: implements
         target: REQ-kibi-evidence-levels
   - id: SYM-e2e-packed-kb-certificates
-    title: kb-certificates.test
+    title: verifyKbCertificates
     status: active
     sourceFile: documentation/tests/e2e/packed/kb-certificates.test.ts
     symbol_role: behavioral

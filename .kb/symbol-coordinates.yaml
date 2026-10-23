@@ -12787,6 +12787,14 @@ coordinates:
     sourceEndLine: 563
     sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
     sourceLine: 468
+  SYM-e2e-packed-kb-certificates:
+    identityHash: 9be88505823d04b328afb381e7adb8475499c8389c3745b43fa4658eabb1c795
+    sourceHash: 67edba47e16ae2209ef8551c26497149bed30d3e8bf8b08345758dec3d9a553b
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 103
+    sourceFile: documentation/tests/e2e/packed/kb-certificates.test.ts
+    sourceLine: 35
   SYM-e2e-packed-opencode-install:
     identityHash: e08f91370a26a0d158a3e3d27acd2f79608b76e0874bbde3666fecf4e8467ea5
     sourceHash: 2d60cbad1fee627ba2d5c5ef9cdb81ddf7106e3ba51bf0370c90002be0f4b63b
