@@ -138,6 +138,19 @@ Report the level as it is. Never call an `asserted` or `unverified`
 requirement proven or tested, and never call `tested` proved. Firmness is a
 separate axis: it says how sure the person is, not how strong the evidence is.
 
+## Knowledge-base certificates
+
+`kibi verify` proves facts about the KB itself and re-checks each answer with
+an independent checker: property facts are consistent (a model per subject,
+property and scope, or an irreducible contradiction core), predicate facts
+and allow/deny decisions are consistent, and stored rules are stratified. It
+exits 1 when a certificate is rejected or a theorem is disproved. Run it after
+modeling facts, especially when several requirements bound the same property:
+it catches facts that contradict only together, which `kibi check` misses.
+Quote an `unresolved` context as unresolved, never as consistent. Opposing
+rule pairs and scenario feasibility are not certified yet; `kibi check` still
+decides them.
+
 ## Attempt semantics (factual, never optimistic)
 
 - `attempts: {status: "complete", entries: [...]}` — known history; the

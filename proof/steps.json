@@ -2760,5 +2760,30 @@
         "./packages/cli/tests/operations/proof-impact.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-kibi-kb-certificates",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/kb-certificates.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/commands/verify.test.ts"
+      ],
+      [
+        "swipl",
+        "-q",
+        "-s",
+        "packages/core/tests/kb.plt",
+        "-g",
+        "run_tests(kb_certificates)",
+        "-t",
+        "halt"
+      ]
+    ]
   }
 ]
