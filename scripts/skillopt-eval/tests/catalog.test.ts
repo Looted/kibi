@@ -87,7 +87,7 @@ describe("SkillOpt fixture catalog", () => {
       publicSkillDescriptors("development", "kibi-freshness").filter(
         ({ family }) => family === "consistency-report",
       ),
-    ).toHaveLength(2);
+    ).toHaveLength(4);
   });
 
   test("builds the frozen 8/4/16 core split and the supplemental splits", () => {
@@ -102,8 +102,9 @@ describe("SkillOpt fixture catalog", () => {
     expect(() => validateSkillCatalog(core, "kibi-usage")).toThrow(
       "expected 38 tasks",
     );
-    // consistency-report adds a second development task (2/2/4).
-    expect(buildSkillCatalog("kibi-freshness")).toHaveLength(36);
+    // consistency-report carries the joint-contradiction and unit cases
+    // (3/4/6).
+    expect(buildSkillCatalog("kibi-freshness")).toHaveLength(41);
     for (const skill of CANONICAL_SKILLS) {
       expect(() =>
         validateSkillCatalog(buildSkillCatalog(skill), skill),
@@ -127,9 +128,9 @@ describe("SkillOpt fixture catalog", () => {
   test("encodes explicit state, scorer reference, and family task data", () => {
     const tasks = [...buildPublicCatalog(), ...buildHeldOutCatalog()];
 
-    // 6 skills x 5 families of 7 tasks, one more consistency-report
-    // development task, and the three rule-lane-modeling tasks.
-    expect(tasks).toHaveLength(214);
+    // 6 skills x 5 families of 7 tasks, six more consistency-report tasks,
+    // and the three rule-lane-modeling tasks.
+    expect(tasks).toHaveLength(219);
     expect(
       tasks.every(
         (task) =>
@@ -261,7 +262,7 @@ describe("predicate corpus materializes stable authorized roots", () => {
     expect(buildCoreSkillCatalog("kibi-usage")).toHaveLength(28);
     expect(() => validateSkillCatalog(usage, "kibi-usage")).not.toThrow();
     const total = [...buildPublicCatalog(), ...buildHeldOutCatalog()];
-    expect(total).toHaveLength(214);
+    expect(total).toHaveLength(219);
     const usagePublic = buildPublicCatalog().filter(
       (task) => task.skill === "kibi-usage",
     );
@@ -273,9 +274,9 @@ describe("predicate corpus materializes stable authorized roots", () => {
       skillFamilies(skill).slice(4),
     );
     expect(supplementalFamilies).toHaveLength(7);
-    // Six 7-task families, one 8-task family (consistency-report) and the
+    // Six 7-task families, one 13-task family (consistency-report) and the
     // 3-task rule-lane-modeling family.
-    expect(CANONICAL_SKILLS.length * 28 + 5 * 7 + 8 + 3).toBe(214);
+    expect(CANONICAL_SKILLS.length * 28 + 5 * 7 + 13 + 3).toBe(219);
   });
 
   test("unsigned roots cannot authorize training or evaluation", () => {
@@ -385,7 +386,7 @@ describe("SkillOpt corpus executability invariants", () => {
   }
 
   test("every task carries an objective-specific expectation", () => {
-    expect(allTasks).toHaveLength(214);
+    expect(allTasks).toHaveLength(219);
     const uncovered = allTasks.filter((task) => {
       const manifest = manifestFor(task);
       return (

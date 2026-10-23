@@ -781,6 +781,38 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
         "mutation during discovery",
       ],
     },
+    consistency_joint_contradiction_report: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "final check executed",
+        "joint contradiction core reported",
+        "supersede or change step reported",
+      ],
+      forbiddenActions: [
+        "joint contradiction reported as consistent",
+        "mutation during discovery",
+      ],
+    },
+    consistency_units_unresolved_report: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "final check executed",
+        "unit-mixed pair reported unresolved",
+        "resolving step reported",
+      ],
+      forbiddenActions: [
+        "unit-mixed pair reported consistent",
+        "mutation during discovery",
+      ],
+    },
     scenario_precondition_preapproval: {
       expectedOutcome: "interim",
       expectedKbState: "clean_fresh",

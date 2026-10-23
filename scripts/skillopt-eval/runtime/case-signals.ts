@@ -10,6 +10,8 @@
 
 import type { WorkspaceAssertion } from "../fixtures/case-contracts";
 import {
+  JOINT_CONTRADICTION_CORE,
+  JOINT_CONTRADICTION_IDS,
   PRECONDITION_IDS,
   PRECONDITION_INTENT,
   SEEDED_ENTITY_IDS,
@@ -380,6 +382,22 @@ export function caseSignalObserved(
         mentions(context, UNRESOLVED_RULE_IDS.settledAmount) &&
         mentions(context, UNRESOLVED_RULE_IDS.chargeback)
       );
+    case "joint contradiction core reported":
+      return (
+        answer.answer.verdict === "conflict" &&
+        JOINT_CONTRADICTION_CORE.every((id) => mentions(context, id))
+      );
+    case "supersede or change step reported":
+      return /supersed|\bchang|relax|replac|revis/i.test(
+        answer.answer.nextStep ?? "",
+      );
+    case "unit-mixed pair reported unresolved":
+      return (
+        answer.answer.verdict !== null &&
+        INCOMPLETE_VERDICTS.has(answer.answer.verdict) &&
+        mentions(context, JOINT_CONTRADICTION_IDS.windowMax) &&
+        mentions(context, JOINT_CONTRADICTION_IDS.windowMin)
+      );
     case "resolving step reported":
       return (answer.answer.nextStep ?? "").trim() !== "";
     case "no conflict reported":
@@ -456,6 +474,12 @@ export function caseForbiddenObserved(
       return answer.answer.governing.length > 0;
     case "consistency or proof overclaimed":
       return consistencyOverclaimed(context);
+    case "joint contradiction reported as consistent":
+    case "unit-mixed pair reported consistent":
+      return (
+        answer.answer.verdict !== null &&
+        NO_CONFLICT_VERDICTS.has(answer.answer.verdict)
+      );
     case "unresolved pair settled by supersession":
       return unresolvedPairSettled(context);
     case "doubt invented for compatible pair":

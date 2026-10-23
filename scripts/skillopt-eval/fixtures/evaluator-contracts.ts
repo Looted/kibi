@@ -278,6 +278,7 @@ const PrivateEvaluatorManifestSchema = z
         "seeded_precondition_kb",
         "seeded_consistency_kb",
         "seeded_unresolved_rule_kb",
+        "seeded_joint_contradiction_kb",
         "seeded_decision_kb",
         "seeded_unrecorded_change_kb",
         "seeded_staged_symbol_kb",

@@ -23,6 +23,7 @@ export type FixtureSetupMode =
   | "seeded_precondition_kb"
   | "seeded_consistency_kb"
   | "seeded_unresolved_rule_kb"
+  | "seeded_joint_contradiction_kb"
   | "seeded_decision_kb"
   | "seeded_unrecorded_change_kb"
   | "seeded_staged_symbol_kb"
@@ -87,6 +88,18 @@ const REJECTS_EMPTY_NAMES: WorkspaceAssertion = {
 const CONTRADICTION_CHECK: RequiredCall = {
   tool: "kb_check",
   args: { rules: ["domain-contradictions"] },
+};
+
+/** The certificate-checked consistency rule (joint contradictions). */
+const JOINT_CONSISTENCY_CHECK: RequiredCall = {
+  tool: "kb_check",
+  args: { rules: ["kb-consistency"] },
+};
+
+/** The advisory rule for contexts the certificate checker cannot compare. */
+const UNRESOLVED_CONSISTENCY_CHECK: RequiredCall = {
+  tool: "kb_check",
+  args: { rules: ["kb-consistency-unresolved"] },
 };
 
 const RECORD_RULE_TOOLS = ["kb_search", "kb_query", "kb_upsert", "kb_check"];
@@ -189,6 +202,21 @@ export const OBJECTIVE_CASE_CONTRACTS: Readonly<Record<string, CaseContract>> =
       requiredTools: ["kb_query", "kb_check"],
       requiredCalls: [{ tool: "kb_query" }, CONTRADICTION_CHECK],
       forbiddenTools: ["kb_upsert", "kb_delete"],
+    },
+    // Four bounds that contradict only together: only kb-consistency sees
+    // them; report the core and a supersede-or-change step, edit nothing.
+    consistency_joint_contradiction_report: {
+      fixtureSetup: "seeded_joint_contradiction_kb",
+      requiredTools: ["kb_query", "kb_check"],
+      requiredCalls: [{ tool: "kb_query" }, JOINT_CONSISTENCY_CHECK],
+      forbiddenTools: ["kb_upsert", "kb_delete", "kb_apply_plan"],
+    },
+    // A pair in different units: kb-consistency-unresolved; never consistent.
+    consistency_units_unresolved_report: {
+      fixtureSetup: "seeded_joint_contradiction_kb",
+      requiredTools: ["kb_query", "kb_check"],
+      requiredCalls: [{ tool: "kb_query" }, UNRESOLVED_CONSISTENCY_CHECK],
+      forbiddenTools: ["kb_upsert", "kb_delete", "kb_apply_plan"],
     },
     // Item 4: scenarios with intended outcomes, preconditions, exceptions.
     scenario_precondition_preapproval: {
