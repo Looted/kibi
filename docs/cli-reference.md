@@ -132,7 +132,7 @@ kibi init --print-hook pre-commit >> .husky/pre-commit
 - Hooks are installed by default. Only use `--no-hooks` if you specifically don't want automated syncing.
 - The pre-commit hook blocks commits when `.kb/symbol-coordinates.yaml` has unstaged changes, forcing refreshed symbol coordinates to be staged with the related code changes.
 - The pre-commit hook also blocks behavior-changing source edits that lack staged Kibi impact evidence (KB entity docs or refreshed manifest). Test-only and docs-only edits are exempt.
-- The pre-commit hook also blocks a commit whose staged knowledge introduces a `domain-contradictions`, `scenario-feasibility` or `exception-claim-keys` violation, the same finding full `kibi check` reports on that tree. A violation already present at the last commit does not block an unrelated commit.
+- The pre-commit hook also blocks a commit whose staged knowledge introduces a `domain-contradictions`, `scenario-feasibility`, `exception-claim-keys` or `kb-consistency` violation, the same finding full `kibi check` reports on that tree. A violation already present at the last commit does not block an unrelated commit.
 - The pre-commit hook also blocks a commit that adds or edits an entity document without the body context full `kibi check` requires (`entity-context-missing`). An entity that already lacked context at the last commit, or that the schema 8 migration acknowledged in `.kb/manifest.json`, does not block.
 - Idempotent: safe to run multiple times
 - After initialization, ask the coding agent to bootstrap the repository. The
