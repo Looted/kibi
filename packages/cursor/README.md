@@ -114,8 +114,8 @@ agent-plugin/
 ### Discovery-first rules and skills
 
 - **Rules**: always-on capability-based workflow guidance plus optional traceability rules for source files.
-- **Skills**: `kibi-usage`, `kibi-bootstrap`, `kibi-freshness`, and `kibi-traceability`.
-- **Commands**: `/kibi-bootstrap` documents the `kb_plan_bootstrap` bootstrap workflow.
+- **Skills**: `kibi-usage`, `kibi-bootstrap`, `kibi-freshness`, `kibi-traceability`, `kibi-decisions`, and `kibi-commit-review`.
+- **Commands**: `/kibi-bootstrap` documents the `kb_plan_bootstrap` bootstrap workflow, and `/kibi-signoff` shows the requirements signoff view (or the decisions waiting for you) as Markdown in the chat. The [kibi-vscode](../vscode/README.md) extension also installs in Cursor and adds the **Kibi: Show Requirements Signoff** panel.
 
 ### Advisory editor hooks
 
@@ -127,7 +127,7 @@ Hooks are warning-only and never replace MCP/CLI behavior:
 - **beforeReadFile** and **postToolUse (Read)**: inject source-linked lookup guidance once per path per session, with the same snippet minus the "must keep true" and "Decision" lines.
 - **postToolUse** (opt-in telemetry): with `KIBI_DIAGNOSTIC_MODE=1`, appends `interface: "hook"` rows with `host: "cursor"` to `.kb/usage.log` for `kb_*` lookups (MCP or `kibi <route>` in Shell) and for edited files with the requirements they implement, keyed by `conversation_id`. `kibi usage-metrics` reads them for the `lookup_before_first_edit` metric. Nothing is written without the variable.
 - **postToolUse (Write/Edit)**: inject traceability and freshness guidance once per path per session, including `kb_check({sourceFiles:[...], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})` for meaningful source edits.
-- **stop**: emits a single freshness or impact-check follow-up when meaningful paths were **edited** during the turn (reads and search do not count). Plan delivery (`CreatePlan`) stays silent unless that same turn also edited source or mutated the KB. When the conversation changed source files and recorded nothing with `kb_upsert`, the follow-up also asks, once, for the decision behind the change to be recorded.
+- **stop**: emits a single freshness or impact-check follow-up when meaningful paths were **edited** during the turn (reads and search do not count). Plan delivery (`CreatePlan`) stays silent unless that same turn also edited source or mutated the KB. When the conversation changed source files and recorded nothing with `kb_upsert`, the follow-up also asks, once, for the decision behind the change to be recorded. When the conversation wrote a requirement and `kibi signoff` has not run since, it asks, once, for the signoff view to be shown before the work is reported done.
 
 ### What the plugin does not do
 

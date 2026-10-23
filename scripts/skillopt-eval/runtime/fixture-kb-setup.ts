@@ -6,7 +6,9 @@ import { promisify } from "node:util";
 import { EngineClient } from "../../../packages/cli/src/engine";
 import { buildUpsertCommitGoal } from "../../../packages/cli/src/operations/mutation/contradictions";
 import { escapeAtom } from "../../../packages/cli/src/prolog/codec";
+import { fixtureEntityIds } from "../fixtures/workspace";
 import {
+  CHARGEBACK_RULE_IR,
   CONSISTENCY_E2E_TEST_DOCUMENT,
   CONSISTENCY_E2E_TEST_PATH,
   CONSISTENCY_E2E_TEST_SOURCE,
@@ -21,7 +23,12 @@ import {
   PRECONDITION_IDS,
   PRECONDITION_INTENT,
   PRECONDITION_ORIGIN,
+  UNRESOLVED_RULE_CONTEXT,
+  UNRESOLVED_RULE_IDS,
+  UNRESOLVED_RULE_ORIGIN,
+  UNRESOLVED_RULE_PROSE,
   consistencyValueFact,
+  isSeededUnresolvedRuleViolation,
   ledgerRequirement,
 } from "./fixture-seeds";
 
@@ -141,7 +148,8 @@ export async function runCliWithRetry(
   return result.stdout;
 }
 
-async function runStagedCli(
+// implements REQ-skillopt-codex-optimization
+export async function runStagedCli(
   cliRoot: string,
   workspaceTarget: string,
   args: readonly string[],
@@ -455,7 +463,8 @@ export async function setupThinRootKb(
   await stageCommitAll(workspaceTarget);
 }
 
-async function runSeededFixtureTest(
+// implements REQ-skillopt-codex-optimization
+export async function runSeededFixtureTest(
   workspaceTarget: string,
   testPath: string = FIXTURE_TEST_PATH,
 ): Promise<void> {
@@ -508,7 +517,20 @@ async function runSeededFixtureTest(
 export async function setupSeededFreshKb(
   workspaceTarget: string,
   cliRoot: string,
+  options: Readonly<{
+    /**
+     * false seeds the production symbol without its covered_by link, so the
+     * seed's only check violation is that symbol's missing coverage.
+     */
+    symbolCoverage?: boolean;
+    /**
+     * Further evaluator-owned authored documents (workspace-relative path to
+     * content) committed and imported with the seed.
+     */
+    documents?: Readonly<Record<string, string>>;
+  }> = {},
 ): Promise<void> {
+  const symbolCoverage = options.symbolCoverage ?? true;
   await initFixtureRepository(workspaceTarget);
   const expectOk = async (args: readonly string[], label: string) => {
     return runCliWithRetry(
@@ -607,12 +629,16 @@ export async function setupSeededFreshKb(
       "    relationships:",
       "      - type: implements",
       "        target: REQ-SETUP-BASE",
-      "      - type: covered_by",
-      "        target: TEST-SETUP-FIXTURE",
+      ...(symbolCoverage
+        ? ["      - type: covered_by", "        target: TEST-SETUP-FIXTURE"]
+        : []),
       "",
     ].join("\n"),
     "utf8",
   );
+  await writeDeclaredPredicateSchemas(workspaceTarget);
+  if (options.documents !== undefined)
+    await writeDocuments(workspaceTarget, options.documents);
   // Sync discovers tracked source files. Commit the evaluator-owned seed before
   // importing it so the branch snapshot contains the two authored entities.
   await stageCommitAll(workspaceTarget);
@@ -621,7 +647,223 @@ export async function setupSeededFreshKb(
     "import sync",
     { retryOnInteractivePrologTimeout: true },
   );
-  await expectOk(["check"], "seeded fixture validation");
+  if (symbolCoverage) {
+    await expectOk(["check"], "seeded fixture validation");
+    return;
+  }
+  await expectOnlyMissingSymbolCoverage(workspaceTarget, cliRoot);
+}
+
+const PREDICATE_CLAIM_PATH = "predicate-claim.json";
+const SAFE_SCHEMA_ID = /^FACT-[A-Z0-9][A-Z0-9-]*$/;
+const SAFE_SCHEMA_TOKEN = /^[a-z][a-z0-9_]*$/;
+
+type DeclaredPredicateSchema = Readonly<{
+  id: string;
+  predicateName: string;
+  argumentNames: readonly string[];
+  argumentTypes: readonly string[];
+}>;
+
+function declaredPredicateSchemas(
+  claim: unknown,
+): readonly DeclaredPredicateSchema[] {
+  const schemas =
+    claim !== null && typeof claim === "object"
+      ? (claim as { publicSchema?: { projectLocalSchemas?: unknown } })
+          .publicSchema?.projectLocalSchemas
+      : undefined;
+  if (schemas === undefined) return [];
+  if (!Array.isArray(schemas)) {
+    throw new FixtureSetupError(
+      `${PREDICATE_CLAIM_PATH} projectLocalSchemas must be a list`,
+    );
+  }
+  return schemas.map((schema): DeclaredPredicateSchema => {
+    const entry = schema as Partial<
+      Record<keyof DeclaredPredicateSchema, unknown>
+    >;
+    const names = entry.argumentNames;
+    const types = entry.argumentTypes;
+    const tokens = (value: unknown): value is string[] =>
+      Array.isArray(value) &&
+      value.length > 0 &&
+      value.every(
+        (token) => typeof token === "string" && SAFE_SCHEMA_TOKEN.test(token),
+      );
+    if (
+      typeof entry.id !== "string" ||
+      !SAFE_SCHEMA_ID.test(entry.id) ||
+      typeof entry.predicateName !== "string" ||
+      !SAFE_SCHEMA_TOKEN.test(entry.predicateName) ||
+      !tokens(names) ||
+      !tokens(types) ||
+      names.length !== types.length
+    ) {
+      throw new FixtureSetupError(
+        `${PREDICATE_CLAIM_PATH} declares a malformed project-local schema`,
+      );
+    }
+    return {
+      id: entry.id,
+      predicateName: entry.predicateName,
+      argumentNames: names,
+      argumentTypes: types,
+    };
+  });
+}
+
+/**
+ * Predicate-modeling tasks publish their approved project-local schemas in
+ * predicate-claim.json. The project those tasks describe already holds those
+ * schemas, so the seed authors each one as a predicate_schema fact with the
+ * declared name, arguments and types.
+ */
+// implements REQ-skillopt-predicate-first-requirements
+export async function writeDeclaredPredicateSchemas(
+  workspaceTarget: string,
+): Promise<readonly string[]> {
+  let claimText: string;
+  try {
+    claimText = await readFile(
+      join(workspaceTarget, PREDICATE_CLAIM_PATH),
+      "utf8",
+    );
+  } catch {
+    return [];
+  }
+  const schemas = declaredPredicateSchemas(JSON.parse(claimText));
+  if (schemas.length === 0) return [];
+  await mkdir(join(workspaceTarget, ".kb", "facts"), {
+    recursive: true,
+    mode: 0o700,
+  });
+  for (const schema of schemas) {
+    await writeFile(
+      join(workspaceTarget, ".kb", "facts", `${schema.id}.md`),
+      [
+        "---",
+        `id: ${schema.id}`,
+        `title: ${schema.predicateName} predicate schema`,
+        "status: active",
+        "fact_kind: predicate_schema",
+        `predicate_name: ${schema.predicateName}`,
+        `predicate_arity: ${schema.argumentNames.length}`,
+        `argument_names: [${schema.argumentNames.join(", ")}]`,
+        `argument_types: [${schema.argumentTypes.join(", ")}]`,
+        "---",
+        "",
+        `Approved project-local predicate schema declared by the task as ${schema.predicateName}(${schema.argumentNames.join(", ")}).`,
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+  }
+  return schemas.map((schema) => schema.id);
+}
+
+const SEEDED_SYMBOL_ID = "SYM-SETUP-FIXTURE";
+
+async function expectOnlyMissingSymbolCoverage(
+  workspaceTarget: string,
+  cliRoot: string,
+): Promise<void> {
+  const result = await runStagedCli(cliRoot, workspaceTarget, [
+    "check",
+    "--format",
+    "json",
+  ]);
+  const violations = recordField(
+    jsonRecord(result.stdout, "uncovered fixture validation"),
+    "structuredContent",
+    "uncovered fixture validation",
+  ).violations;
+  const only =
+    Array.isArray(violations) && violations.length === 1
+      ? (violations[0] as Record<string, unknown>)
+      : undefined;
+  if (only?.rule !== "symbol-coverage" || only.entityId !== SEEDED_SYMBOL_ID) {
+    throw new FixtureSetupError(
+      `uncovered fixture must report only symbol-coverage for ${SEEDED_SYMBOL_ID}: ${result.stdout.slice(0, 300)}`,
+    );
+  }
+}
+
+/**
+ * Seeded fixture whose production symbol implements the requirement but has no
+ * covered_by link to the seeded executable test, so linking coverage is work
+ * the agent must do rather than a fact the seed already states.
+ */
+// implements REQ-skillopt-codex-optimization
+export async function setupSeededUncoveredKb(
+  workspaceTarget: string,
+  cliRoot: string,
+): Promise<void> {
+  await setupSeededFreshKb(workspaceTarget, cliRoot, { symbolCoverage: false });
+}
+
+/**
+ * The requirement and executable test a safe typed mutation task names as
+ * existing endpoints in mutation-request.json, authored in the configured
+ * Kibi lanes. The public workspace also describes them under documentation/,
+ * but those legacy paths are outside the configured Kibi paths and only a CLI
+ * migration (which the MCP-only task forbids) imports them: without this seed
+ * every requested relationship is refused because its target does not exist.
+ */
+// implements REQ-skillopt-logical-evidence-fidelity
+export function safeMutationEndpointDocuments(
+  taskId: string,
+): Readonly<Record<string, string>> {
+  const ids = fixtureEntityIds(taskId);
+  return {
+    [`.kb/requirements/${ids.requirement}.md`]: [
+      "---",
+      `id: ${ids.requirement}`,
+      "title: safe-mutation-direction fixture requirement",
+      "status: open",
+      "type: req",
+      "---",
+      "",
+      "## Context",
+      "",
+      "This evaluator-owned requirement is the existing endpoint the safe mutation task asks the fixture production symbol to implement.",
+      "",
+    ].join("\n"),
+    [`.kb/tests/${ids.test}.md`]: [
+      "---",
+      `id: ${ids.test}`,
+      "title: Fixture production symbol coverage",
+      "status: passing",
+      `text_ref: ${FIXTURE_TEST_PATH}`,
+      "links:",
+      "  - type: validates",
+      `    target: ${ids.requirement}`,
+      "verification_scope: integration",
+      "---",
+      "",
+      "# Fixture production symbol coverage",
+      "",
+      "This supplied test is the coverage evidence for the fixture production symbol.",
+      "",
+    ].join("\n"),
+  };
+}
+
+/**
+ * Seeded fixture for the safe typed mutation objective: the seeded-fresh
+ * baseline plus the two endpoints mutation-request.json names, so the
+ * requested links are writable through MCP. The fixture production symbol
+ * itself is not seeded: creating it and linking it is the agent's work.
+ */
+// implements REQ-skillopt-logical-evidence-fidelity
+export async function setupSeededSafeMutationKb(
+  workspaceTarget: string,
+  cliRoot: string,
+  taskId: string,
+): Promise<void> {
+  await setupSeededFreshKb(workspaceTarget, cliRoot, {
+    documents: safeMutationEndpointDocuments(taskId),
+  });
 }
 
 /**
@@ -649,6 +891,28 @@ export async function setupSeededStaleKb(
     "utf8",
   );
   await stageCommitAll(workspaceTarget);
+}
+
+/**
+ * Evaluator-owned staging for objectives whose declared dirty worktree must be
+ * observable: the seeded-fresh baseline plus an uncommitted edit to the
+ * tracked, KB-linked source (probe-verified: kb_status reports dirty=true,
+ * syncState=stale naming the linked symbol, and a dirty verification
+ * snapshot), matching the edit described by changes/uncommitted.patch.
+ */
+// implements REQ-skillopt-codex-optimization
+export async function setupSeededDirtyKb(
+  workspaceTarget: string,
+  cliRoot: string,
+): Promise<void> {
+  await setupSeededFreshKb(workspaceTarget, cliRoot);
+  const sourcePath = join(workspaceTarget, FIXTURE_SOURCE_PATH);
+  const original = await readFile(sourcePath, "utf8");
+  await writeFile(
+    sourcePath,
+    `${original}export const fixtureDirtyState = "dirty fixture state";\n`,
+    "utf8",
+  );
 }
 
 /** A deliberately incomplete layout for the read-only operator-repair task. */
@@ -685,7 +949,8 @@ export async function stopFixtureEngine(
   await daemon.terminate();
 }
 
-async function writeDocuments(
+// implements REQ-skillopt-codex-optimization
+export async function writeDocuments(
   workspaceTarget: string,
   documents: Readonly<Record<string, string>>,
 ): Promise<void> {
@@ -697,7 +962,8 @@ async function writeDocuments(
 }
 
 /** Commit everything, then import it; sync reads the Git source boundary. */
-async function commitAndSync(
+// implements REQ-skillopt-codex-optimization
+export async function commitAndSync(
   workspaceTarget: string,
   cliRoot: string,
 ): Promise<void> {
@@ -709,7 +975,8 @@ async function commitAndSync(
   );
 }
 
-async function initSeededRepository(
+// implements REQ-skillopt-codex-optimization
+export async function initSeededRepository(
   workspaceTarget: string,
   cliRoot: string,
 ): Promise<void> {
@@ -720,7 +987,8 @@ async function initSeededRepository(
   );
 }
 
-async function validateSeed(
+// implements REQ-skillopt-codex-optimization
+export async function validateSeed(
   workspaceTarget: string,
   cliRoot: string,
   label: string,
@@ -760,7 +1028,8 @@ function recordField(
   return field as Record<string, unknown>;
 }
 
-async function jsonRoute(
+// implements REQ-skillopt-codex-optimization
+export async function jsonRoute(
   cliRoot: string,
   workspaceTarget: string,
   route: string,
@@ -898,6 +1167,157 @@ export async function setupSeededPreconditionKb(
   await writeDocuments(workspaceTarget, PRECONDITION_DOCUMENTS);
   await commitAndSync(workspaceTarget, cliRoot);
   await validateSeed(workspaceTarget, cliRoot, "precondition fixture");
+}
+
+async function stampHumanOrigin(
+  workspaceTarget: string,
+  requirementId: string,
+  origin: string,
+): Promise<void> {
+  const path = join(
+    workspaceTarget,
+    ".kb",
+    "requirements",
+    `${requirementId}.md`,
+  );
+  const requirement = await readFile(path, "utf8");
+  if (!/^ {2}kind: agent$/m.test(requirement))
+    throw new FixtureSetupError(`${requirementId} has no agent origin`);
+  await writeFile(
+    path,
+    requirement.replace(/^ {2}kind: agent$/m, origin),
+    "utf8",
+  );
+}
+
+/**
+ * Evaluator-owned staging for the unresolved consistency case: two current
+ * refund requirements whose typed rules share the head `refund_issued(order)`
+ * with opposing modalities. The forbid-unless rule is compiled from prose
+ * through compile-intent and applied with its plan hash; the permit rule is
+ * modeled through model-requirement from its typed IR and written with
+ * upsert, as an agent would. The checker can neither prove nor exclude an
+ * order that satisfies both bodies, so `kb_check` reports exactly one
+ * `unresolved` rule conflict and nothing else.
+ */
+// implements REQ-skillopt-codex-optimization
+export async function setupSeededUnresolvedRuleKb(
+  workspaceTarget: string,
+  cliRoot: string,
+): Promise<void> {
+  await initSeededRepository(workspaceTarget, cliRoot);
+  await commitAndSync(workspaceTarget, cliRoot);
+  const compiled = await jsonRoute(cliRoot, workspaceTarget, "compile-intent", {
+    intent: UNRESOLVED_RULE_PROSE.settledAmount,
+    mode: "create",
+    context: UNRESOLVED_RULE_CONTEXT,
+    requirementId: UNRESOLVED_RULE_IDS.settledAmount,
+  });
+  const plan = recordField(compiled, "data", "compile-intent");
+  if (plan.status !== "ready" || typeof plan.planHash !== "string")
+    throw new FixtureSetupError(
+      `settled-amount plan is not ready: ${String(plan.status)}`,
+    );
+  const applied = await jsonRoute(cliRoot, workspaceTarget, "apply-plan", {
+    plan,
+    approvedPlanHash: plan.planHash,
+  });
+  if (recordField(applied, "data", "apply-plan").outcome !== "applied")
+    throw new FixtureSetupError("settled-amount plan was not applied");
+  await commitAndSync(workspaceTarget, cliRoot);
+  await stampHumanOrigin(
+    workspaceTarget,
+    UNRESOLVED_RULE_IDS.settledAmount,
+    UNRESOLVED_RULE_ORIGIN,
+  );
+  await commitAndSync(workspaceTarget, cliRoot);
+
+  const [claim] = (
+    await semanticLedger(
+      cliRoot,
+      workspaceTarget,
+      UNRESOLVED_RULE_PROSE.chargeback,
+    )
+  ).propositions;
+  if (claim === undefined)
+    throw new FixtureSetupError("chargeback prose has no clause");
+  const modeled = recordField(
+    await jsonRoute(cliRoot, workspaceTarget, "model-requirement", {
+      text: UNRESOLVED_RULE_PROSE.chargeback,
+      logic: CHARGEBACK_RULE_IR,
+      claimKey: claim.claim_key,
+      claimText: claim.claim_text,
+      requirementId: UNRESOLVED_RULE_IDS.chargeback,
+    }),
+    "data",
+    "model-requirement",
+  );
+  const steps = Array.isArray(modeled.applyPlan) ? modeled.applyPlan : [];
+  const ids = steps.map((step) =>
+    step !== null && typeof step === "object"
+      ? (step as Record<string, unknown>).id
+      : undefined,
+  );
+  if (
+    JSON.stringify(ids) !==
+    JSON.stringify([
+      UNRESOLVED_RULE_IDS.ruleSchema,
+      UNRESOLVED_RULE_IDS.chargebackRule,
+      UNRESOLVED_RULE_IDS.chargeback,
+    ])
+  )
+    throw new FixtureSetupError(
+      `chargeback plan has unexpected steps: ${JSON.stringify(ids)}`,
+    );
+  for (const step of steps as Record<string, unknown>[]) {
+    const payload =
+      step.type === "req"
+        ? {
+            ...step,
+            properties: {
+              ...(step.properties as Record<string, unknown>),
+              origin: {
+                kind: "human",
+                ref: "documentation/requirements/fixture.md",
+                approved_by: "Payments owner",
+              },
+            },
+            document: {
+              path: `.kb/requirements/${UNRESOLVED_RULE_IDS.chargeback}.md`,
+              body: `${UNRESOLVED_RULE_PROSE.chargeback}\n\n## Context\n\n${UNRESOLVED_RULE_CONTEXT}\n`,
+            },
+          }
+        : step;
+    await runCliWithRetry(
+      () =>
+        runStagedCli(
+          cliRoot,
+          workspaceTarget,
+          ["upsert", "--input", "-"],
+          JSON.stringify(payload),
+        ),
+      `${String(step.id)} upsert`,
+    );
+  }
+  await commitAndSync(workspaceTarget, cliRoot);
+  const result = await runStagedCli(cliRoot, workspaceTarget, [
+    "check",
+    "--format",
+    "json",
+  ]);
+  const violations = recordField(
+    jsonRecord(result.stdout, "unresolved fixture validation"),
+    "structuredContent",
+    "unresolved fixture validation",
+  ).violations;
+  if (
+    !Array.isArray(violations) ||
+    violations.length !== 1 ||
+    !isSeededUnresolvedRuleViolation(violations[0])
+  )
+    throw new FixtureSetupError(
+      `unresolved fixture must report only the unresolved refund rule pair: ${result.stdout.slice(0, 400)}`,
+    );
 }
 
 /**

@@ -3174,17 +3174,6 @@ symbols:
         target: TEST-mcp-suggest-predicates
       - type: implements
         target: REQ-mcp-suggest-predicates
-  - id: SYM-bundleGate
-    title: bundleGate
-    sourceFile: scripts/skillopt-eval/held-out-cell-binding.ts
-    symbol_role: behavioral
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-external-adoption-verdict
-      - type: implements
-        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-canonicalSkillsDir
     title: canonicalSkillsDir
     sourceFile: scripts/sync-agent-skills.ts
@@ -16463,15 +16452,6 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-  - id: SYM-skillopt-build-bundle-catalog
-    title: buildBundleCatalog
-    sourceFile: scripts/skillopt-eval/catalog.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-skill-behavioral-efficacy
-      - type: covered_by
-        target: TEST-skill-behavioral-efficacy
   - id: SYM-skillopt-build-held-out-catalog
     title: buildHeldOutCatalog
     sourceFile: scripts/skillopt-eval/catalog.ts
@@ -16694,16 +16674,6 @@ symbols:
     title: catalogHash
     sourceFile: scripts/skillopt-eval/catalog.ts
     symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: implements
-        target: REQ-skill-behavioral-efficacy
-      - type: covered_by
-        target: TEST-skill-behavioral-efficacy
-  - id: SYM-skillopt-catalog-skill-type
-    title: CatalogSkill
-    sourceFile: scripts/skillopt-eval/catalog.ts
-    symbol_role: type-shape
     granularity_reason: legacy-link
     relationships:
       - type: implements
@@ -18498,15 +18468,6 @@ symbols:
   - id: SYM-skillopt-fixture-blinded-order
     title: blindedVariantOrder
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-  - id: SYM-skillopt-fixture-build-bundle-payload
-    title: buildBundlePayload
-    sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
     symbol_role: behavioral
     relationships:
       - type: implements
@@ -22318,15 +22279,6 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-  - id: SYM-skillopt-scoring-bundle-gate
-    title: evaluateBundleGate
-    sourceFile: scripts/skillopt-eval/scoring/gates.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-scoring-cell
     title: scoreCell
     sourceFile: scripts/skillopt-eval/scoring/cell.ts
@@ -22396,31 +22348,6 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
-  - id: SYM-skillopt-scoring-gate-fixture-bundle-gate-candidate-failure-at
-    title: bundleGateCandidateFailureAt
-    sourceFile: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts
-    text_ref: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts#bundleGateCandidateFailureAt
-    symbol_role: behavioral
-    relationships:
-      - type: executable_for
-        target: TEST-skillopt-codex-optimization
-  - id: SYM-skillopt-scoring-gate-fixture-bundle-gate-candidate-failure-with-weak-baseline
-    title: bundleGateCandidateFailureWithWeakBaseline
-    sourceFile: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts
-    text_ref: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts#bundleGateCandidateFailureWithWeakBaseline
-    symbol_role: behavioral
-    relationships:
-      - type: executable_for
-        target: TEST-skillopt-codex-optimization
-  - id: SYM-skillopt-scoring-gate-fixture-bundle-gate-task-count
-    title: BUNDLE_GATE_TASK_COUNT
-    sourceFile: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts
-    text_ref: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts#BUNDLE_GATE_TASK_COUNT
-    symbol_role: config
-    granularity_reason: config-artifact
-    relationships:
-      - type: executable_for
-        target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-scoring-gate-fixture-cells
     title: cells
     sourceFile: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts
@@ -22435,14 +22362,6 @@ symbols:
     text_ref: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts#FAMILIES
     symbol_role: config
     granularity_reason: config-artifact
-    relationships:
-      - type: executable_for
-        target: TEST-skillopt-codex-optimization
-  - id: SYM-skillopt-scoring-gate-fixture-passing-bundle-gate-matrix
-    title: passingBundleGateMatrix
-    sourceFile: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts
-    text_ref: scripts/skillopt-eval/tests/fixtures/scoring-gates-fixtures.ts#passingBundleGateMatrix
-    symbol_role: behavioral
     relationships:
       - type: executable_for
         target: TEST-skillopt-codex-optimization
@@ -34268,137 +34187,6 @@ symbols:
         target: TEST-generated-coordinate-repair
       - type: implements
         target: REQ-generated-coordinate-persistence
-  - id: SYM-skillopt-bundle-default-timeout
-    title: DEFAULT_BUNDLE_CELL_TIMEOUT_MS
-    status: active
-    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    granularity_reason: config-artifact
-    symbol_role: config
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-bundle-candidates-resolver
-    title: BundleCandidatesResolver
-    status: active
-    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    granularity_reason: config-artifact
-    symbol_role: type-shape
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-bundle-cell-summary-type
-    title: BundleCellSummary
-    status: active
-    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    granularity_reason: config-artifact
-    symbol_role: type-shape
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-bundle-summarize-arm
-    title: summarizeBundleArm
-    status: active
-    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    granularity_reason: module-level-behavior
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-bundle-evaluate-verdict
-    title: evaluateBundleVerdict
-    status: active
-    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-bundle-gate-options-type
-    title: PaidBundleGateOptions
-    status: active
-    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    granularity_reason: config-artifact
-    symbol_role: type-shape
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-bundle-gate-result-type
-    title: PaidBundleGateResult
-    status: active
-    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    granularity_reason: config-artifact
-    symbol_role: type-shape
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-bundle-run-paid-gate
-    title: runPaidBundleGate
-    status: active
-    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    granularity_reason: module-level-behavior
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-bundle-evaluation-branch
-    title: BUNDLE_EVALUATION_BRANCH
-    status: active
-    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    granularity_reason: config-artifact
-    symbol_role: config
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-bundle-arm-type
-    title: BundleArm
-    status: active
-    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    granularity_reason: config-artifact
-    symbol_role: type-shape
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-bundle-arm-summary-type
-    title: BundleArmSummary
-    status: active
-    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    granularity_reason: config-artifact
-    symbol_role: type-shape
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-bundle-cell-runner-type
-    title: BundleCellRunner
-    status: active
-    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    granularity_reason: config-artifact
-    symbol_role: type-shape
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-setup-seeded-fresh-kb
     title: setupSeededFreshKb
     status: active
@@ -34540,20 +34328,6 @@ symbols:
         target: TEST-013
       - type: implements
         target: REQ-016
-  - id: SYM-test-skillopt-bundle-workflow
-    title: paid bundle gate
-    status: active
-    tags:
-      - skillopt
-      - bundle
-      - evaluation
-      - test
-    sourceFile: scripts/skillopt-eval/tests/bundle-workflow.test.ts
-    granularity_reason: test-suite
-    symbol_role: behavioral
-    relationships:
-      - type: executable_for
-        target: TEST-skillopt-codex-optimization
   - id: SYM-test-publish-metadata-verifier
     title: publish metadata verifier tests
     status: active
@@ -48397,6 +48171,18 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-plan-apply-atomic-cli
+  - id: SYM-test-kibi-check-proof-evidence-cli
+    title: Check proof evidence consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/check-proof-evidence.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-21T12:59:56.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-check-proof-evidence-cli
   - id: SYM-test-kibi-proof-receipt-compaction-cli
     title: Proof receipt compaction consumer suite
     status: active
@@ -49017,45 +48803,6 @@ symbols:
         target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-campaign-artifacts-readbundlecandidatemanifest-de3d79e5
-    title: readBundleCandidateManifest
-    status: active
-    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-05T12:20:09.356Z
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-campaign-artifacts-readbundlemanifest-89f928ea
-    title: readBundleManifest
-    status: active
-    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-05T12:20:13.201Z
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-campaign-artifacts-resolvebundlecampaignmanifestpath-5c688987
-    title: resolveBundleCampaignManifestPath
-    status: active
-    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-05T12:20:17.015Z
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-campaign-artifacts-parsepublicfeedback-c07709d1
     title: parsePublicFeedback
     status: active
@@ -49238,32 +48985,6 @@ symbols:
         target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-campaign-artifacts-bundlemanifest-871598d9
-    title: BundleManifest
-    status: active
-    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-10-05T12:21:17.589Z
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-campaign-artifacts-bundlecandidatemanifest-8e7ca250
-    title: BundleCandidateManifest
-    status: active
-    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-10-05T12:21:21.498Z
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-campaign-artifacts-publicfeedback-27f8da4c
     title: PublicFeedback
     status: active
@@ -49285,20 +49006,6 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-10-05T12:21:29.044Z
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-campaign-artifacts-bundlemanifestschema-779d52f8
-    title: BundleManifestSchema
-    status: active
-    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
-    symbol_role: unknown
-    granularity_reason: extractor-miss
-    origin:
-      kind: agent
-      recorded_at: 2026-10-05T12:23:03.735Z
     relationships:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
@@ -50266,7 +49973,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-claude-code-host
   - id: SYM-skillopt-claude-host-campaign-dependencies
-    title: hostCampaignDependencies
+    title: claudeCodeCampaignDependencies
     status: active
     sourceFile: scripts/skillopt-eval/claude-code-campaign.ts
     symbol_role: behavioral
@@ -50300,7 +50007,7 @@ symbols:
   - id: SYM-skillopt-selected-host-choice
     title: selectedSkillOptHost
     status: active
-    sourceFile: scripts/skillopt-eval/runtime/claude-code-host.ts
+    sourceFile: scripts/skillopt-eval/runtime/skillopt-host.ts
     symbol_role: behavioral
     origin:
       kind: agent
@@ -55814,3 +55521,1170 @@ symbols:
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-kibi-proposition-complete-ingestion
+  - id: SYM-e2e-skillopt-host-neutral-optimization
+    title: skillopt-host-neutral-optimization.e2e
+    status: active
+    sourceFile: documentation/tests/e2e/skillopt-host-neutral-optimization.e2e.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      ref: 'Maintainer decision, 2026-10-21: "Make SkillOpt treat the agent harness as an explicit per-run choice, finish the leftovers of the bundle removal, and record missing protocol calls."'
+      recorded_at: 2026-10-21T10:54:16.267Z
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-skillopt-host-neutral-optimization
+  - id: SYM-skillopt-first-missing-required-call
+    title: firstMissingRequiredCall
+    status: active
+    sourceFile: scripts/skillopt-eval/scoring/cell.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer decision, 2026-10-21: "Make SkillOpt treat the agent harness as an explicit per-run choice, finish the leftovers of the bundle removal, and record missing protocol calls."'
+      recorded_at: 2026-10-21T10:54:23.312Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-host-neutral-optimization
+      - type: implements
+        target: REQ-skillopt-host-neutral-optimization
+  - id: SYM-skillopt-campaign-public-feedback
+    title: campaignPublicFeedback
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer decision, 2026-10-21: "Make SkillOpt treat the agent harness as an explicit per-run choice, finish the leftovers of the bundle removal, and record missing protocol calls."'
+      recorded_at: 2026-10-21T10:54:29.295Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-host-neutral-optimization
+      - type: implements
+        target: REQ-skillopt-host-neutral-optimization
+  - id: SYM-skillopt-resolve-host
+    title: resolveSkillOptHost
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/skillopt-host.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer decision, 2026-10-21: "Make SkillOpt treat the agent harness as an explicit per-run choice, finish the leftovers of the bundle removal, and record missing protocol calls."'
+      recorded_at: 2026-10-21T10:54:38.901Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-claude-code-host
+      - type: covered_by
+        target: TEST-e2e-skillopt-host-neutral-optimization
+      - type: implements
+        target: REQ-skillopt-operator-selected-harness
+  - id: SYM-skillopt-extract-host-option
+    title: extractHostOption
+    status: active
+    sourceFile: scripts/skillopt-eval/cli.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer decision, 2026-10-21: "Make SkillOpt treat the agent harness as an explicit per-run choice, finish the leftovers of the bundle removal, and record missing protocol calls."'
+      recorded_at: 2026-10-21T10:54:45.419Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-host-neutral-optimization
+      - type: implements
+        target: REQ-skillopt-host-neutral-optimization
+  - id: SYM-skillopt-campaign-evaluation-host
+    title: campaignEvaluationHost
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer decision, 2026-10-21: "Make SkillOpt treat the agent harness as an explicit per-run choice, finish the leftovers of the bundle removal, and record missing protocol calls."'
+      recorded_at: 2026-10-21T10:54:52.516Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-host-neutral-optimization
+      - type: implements
+        target: REQ-skillopt-host-neutral-optimization
+  - id: SYM-skillopt-assert-evaluation-host
+    title: assertEvaluationHost
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer decision, 2026-10-21: "Make SkillOpt treat the agent harness as an explicit per-run choice, finish the leftovers of the bundle removal, and record missing protocol calls."'
+      recorded_at: 2026-10-21T10:54:59.158Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-host-neutral-optimization
+      - type: implements
+        target: REQ-skillopt-host-neutral-optimization
+  - id: SYM-skillopt-offline-contract-version
+    title: OFFLINE_CONTRACT_SCHEMA_VERSION
+    status: active
+    sourceFile: scripts/skillopt-eval/contracts/common.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer decision, 2026-10-21: "Make SkillOpt treat the agent harness as an explicit per-run choice, finish the leftovers of the bundle removal, and record missing protocol calls."'
+      recorded_at: 2026-10-21T10:55:19.801Z
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-host-neutral-optimization
+      - type: implements
+        target: REQ-skillopt-host-neutral-optimization
+  - id: SYM-skillopt-host-registry
+    title: skillOptHostImplementation
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/skillopt-host-registry.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Maintainer decision, 2026-10-21: "Make SkillOpt treat the agent harness as an explicit per-run choice, finish the leftovers of the bundle removal, and record missing protocol calls."'
+      recorded_at: 2026-10-21T10:55:25.674Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-claude-code-host
+      - type: covered_by
+        target: TEST-e2e-skillopt-host-neutral-optimization
+      - type: implements
+        target: REQ-skillopt-operator-selected-harness
+  - id: SYM-cli-render-source-write
+    title: renderSourceWrite
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-21T20:14:20.665Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-cli-source-write-scope
+    title: sourceWriteScope
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/upsert.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-21T20:14:27.363Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-cli-build-upsert-contradiction-preview-goal
+    title: buildUpsertContradictionPreviewGoal
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/contradictions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-21T20:14:33.810Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-truthful-consistency
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-truthful-consistency
+  - id: SYM-cli-build-what-if-analysis-goal
+    title: buildWhatIfAnalysisGoal
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/contradictions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-21T20:14:39.727Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-truthful-consistency
+      - type: covered_by
+        target: TEST-model-what-if-planned-facts
+      - type: implements
+        target: REQ-kibi-truthful-consistency
+      - type: implements
+        target: REQ-model-what-if-planned-facts
+  - id: SYM-cli-build-what-if-contradiction-goal
+    title: buildWhatIfContradictionGoal
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/contradictions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-21T20:14:45.643Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-truthful-consistency
+      - type: implements
+        target: REQ-kibi-truthful-consistency
+  - id: SYM-cli-delete-outcome-type
+    title: DeleteOutcome
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/types.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-21T20:14:50.712Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-cli-planned-fact-input-type
+    title: PlannedFactInput
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/types.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-21T20:14:54.640Z
+    relationships:
+      - type: covered_by
+        target: TEST-model-what-if-planned-facts
+      - type: implements
+        target: REQ-model-what-if-planned-facts
+  - id: SYM-cli-staged-upsert-state-type
+    title: StagedUpsertState
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/types.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-21T20:14:58.455Z
+    relationships:
+      - type: covered_by
+        target: TEST-model-what-if-planned-facts
+      - type: implements
+        target: REQ-model-what-if-planned-facts
+  - id: SYM-e2e-packed-cli-signoff
+    title: verifyRequirementsSignoff
+    status: active
+    sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
+    symbol_role: behavioral
+    tags:
+      - e2e
+    origin:
+      kind: agent
+      recorded_at: 2026-10-22T09:25:40.237Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-signoff-views
+  - id: SYM-cli-signoff-collect-summary
+    title: collectSignoffSummary
+    status: active
+    sourceFile: packages/cli/src/signoff/collect.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-22T09:25:44.170Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-load-affected
+    title: loadAffectedForScope
+    status: active
+    sourceFile: packages/cli/src/signoff/collect.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-22T09:25:48.405Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-collect-questions
+    title: collectSignoffQuestions
+    status: active
+    sourceFile: packages/cli/src/signoff/collect.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-22T09:25:52.629Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-parse-questions
+    title: parseSignoffQuestionsInput
+    status: active
+    sourceFile: packages/cli/src/signoff/collect.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-22T09:25:56.924Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-requirement-statement
+    title: requirementStatement
+    status: active
+    sourceFile: packages/cli/src/signoff/collect.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-22T09:26:00.936Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-render-html
+    title: renderSignoffHtml
+    status: active
+    sourceFile: packages/cli/src/signoff/html.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-22T09:26:05.103Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-render-summary-markdown
+    title: renderSummaryMarkdownBody
+    status: active
+    sourceFile: packages/cli/src/signoff/markdown.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-22T09:26:09.117Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-render-questions-markdown
+    title: renderQuestionsMarkdownBody
+    status: active
+    sourceFile: packages/cli/src/signoff/markdown.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-22T09:26:12.865Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-render-markdown
+    title: renderSignoffMarkdown
+    status: active
+    sourceFile: packages/cli/src/signoff/markdown.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-22T09:26:16.790Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-proof-label
+    title: proofLabel
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-22T09:26:20.019Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-question-open
+    title: questionOpen
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-22T09:26:22.540Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-question-kind
+    title: questionKind
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-22T09:26:25.373Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-command
+    title: signoffCommand
+    status: active
+    sourceFile: packages/cli/src/commands/signoff.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-22T09:26:28.669Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-claude-signoff-unwrap-fences
+    title: unwrapSignoffFences
+    status: active
+    sourceFile: packages/claude/src/signoff-display.ts
+    symbol_role: behavioral
+    tags:
+      - claude
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-22T09:26:33.597Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-claude-signoff-display-batch
+    title: handleDisplayBatch
+    status: active
+    sourceFile: packages/claude/src/signoff-display.ts
+    symbol_role: behavioral
+    tags:
+      - claude
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-22T09:26:37.390Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-opencode-signoff-read-latest
+    title: readLatestSignoff
+    status: active
+    sourceFile: packages/opencode/src/tui.tsx
+    symbol_role: behavioral
+    tags:
+      - opencode
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-22T09:26:41.356Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-opencode-signoff-toast
+    title: signoffToast
+    status: active
+    sourceFile: packages/opencode/src/tui.tsx
+    symbol_role: behavioral
+    tags:
+      - opencode
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-22T09:26:45.395Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-opencode-signoff-watch
+    title: watchSignoff
+    status: active
+    sourceFile: packages/opencode/src/tui.tsx
+    symbol_role: behavioral
+    tags:
+      - opencode
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-22T09:26:49.565Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-opencode-signoff-render-block
+    title: renderSignoffBlock
+    status: active
+    sourceFile: packages/opencode/src/tui.tsx
+    symbol_role: behavioral
+    tags:
+      - opencode
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-22T09:26:53.705Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-vscode-signoff-announcement
+    title: signoffAnnouncement
+    status: active
+    sourceFile: packages/vscode/src/activation/signoff.ts
+    symbol_role: behavioral
+    tags:
+      - vscode
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-22T09:26:57.584Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-vscode-register-signoff
+    title: registerSignoff
+    status: active
+    sourceFile: packages/vscode/src/activation/signoff.ts
+    symbol_role: behavioral
+    tags:
+      - vscode
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-22T09:27:01.878Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-agent-core-claim-signoff-reminder
+    title: claimSignoffReminder
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    tags:
+      - agent-core
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:44:18.042Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-agent-core-is-requirement-upsert
+    title: isRequirementUpsert
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    tags:
+      - agent-core
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:44:22.627Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-agent-core-signoff-reminder
+    title: signoffReminder
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    tags:
+      - agent-core
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:44:27.477Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-default-format
+    title: defaultSignoffFormat
+    status: active
+    sourceFile: packages/cli/src/commands/signoff.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:44:32.171Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-render-chat-markdown
+    title: renderSignoffChatMarkdown
+    status: active
+    sourceFile: packages/cli/src/signoff/markdown.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:44:37.612Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-statement-sentence-diff
+    title: statementSentenceDiff
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:44:42.460Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-awaits-approval
+    title: awaitsApproval
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:44:47.206Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-approval-numbers
+    title: approvalNumbers
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:44:51.896Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-approval-sentence
+    title: approvalSentence
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:44:56.232Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-agent-core-confirm-firm-edits-env
+    title: CONFIRM_FIRM_EDITS_ENV
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: config
+    tags:
+      - agent-core
+      - decision-guard
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:51:51.935Z
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-decision-guard
+  - id: SYM-agent-core-signoff-latest-json
+    title: SIGNOFF_LATEST_JSON
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: config
+    tags:
+      - agent
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:51:58.099Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-signoff-format-env
+    title: SIGNOFF_FORMAT_ENV
+    status: active
+    sourceFile: packages/cli/src/commands/signoff.ts
+    symbol_role: config
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:52:02.874Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-signoff-markdown-limit
+    title: SIGNOFF_MARKDOWN_LIMIT
+    status: active
+    sourceFile: packages/cli/src/signoff/markdown.ts
+    symbol_role: config
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:52:09.575Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-brief-dir
+    title: SIGNOFF_BRIEF_DIR
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: config
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:52:14.186Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-change-labels
+    title: SIGNOFF_CHANGE_LABELS
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: config
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:52:19.308Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-fences
+    title: SIGNOFF_FENCES
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: config
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:52:24.172Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-gate-labels
+    title: SIGNOFF_GATE_LABELS
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: config
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:52:28.860Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-latest-html
+    title: SIGNOFF_LATEST_HTML
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: config
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:52:33.682Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-latest-json
+    title: SIGNOFF_LATEST_JSON
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: config
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:52:38.446Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-latest-markdown
+    title: SIGNOFF_LATEST_MARKDOWN
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: config
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:52:43.251Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-version
+    title: SIGNOFF_VERSION
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: config
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:52:48.151Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-agent-core-decision-flag
+    title: DecisionFlag
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: type-shape
+    tags:
+      - agent-core
+      - decision-guard
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:53:11.126Z
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-decision-guard
+  - id: SYM-agent-core-decision-session
+    title: DecisionSession
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: type-shape
+    tags:
+      - agent-core
+      - decision-guard
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:53:16.054Z
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-decision-guard
+  - id: SYM-cli-signoff-signoff-command-deps
+    title: SignoffCommandDeps
+    status: active
+    sourceFile: packages/cli/src/commands/signoff.ts
+    symbol_role: type-shape
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:53:21.615Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-signoff-options
+    title: SignoffOptions
+    status: active
+    sourceFile: packages/cli/src/commands/signoff.ts
+    symbol_role: type-shape
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:53:27.736Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-change
+    title: SignoffChange
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: type-shape
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:53:33.734Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-firmness
+    title: SignoffFirmness
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: type-shape
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:53:38.379Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-proof
+    title: SignoffProof
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: type-shape
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:53:43.288Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-question
+    title: SignoffQuestion
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: type-shape
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:53:48.201Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-question-input
+    title: SignoffQuestionInput
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: type-shape
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:53:53.667Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-questions
+    title: SignoffQuestions
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: type-shape
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:53:58.572Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-requirement
+    title: SignoffRequirement
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: type-shape
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:54:03.367Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-statement-ref
+    title: SignoffStatementRef
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: type-shape
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:54:08.216Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-summary
+    title: SignoffSummary
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: type-shape
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:54:13.275Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-signoff-view
+    title: SignoffView
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: type-shape
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:54:18.166Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views
+  - id: SYM-cli-signoff-model-statement-sentence
+    title: StatementSentence
+    status: active
+    sourceFile: packages/cli/src/signoff/model.ts
+    symbol_role: type-shape
+    tags:
+      - cli
+      - signoff
+    origin:
+      kind: agent
+      recorded_at: 2026-10-23T10:54:22.970Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-kibi-signoff-views

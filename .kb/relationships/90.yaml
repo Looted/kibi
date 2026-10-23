@@ -468,3 +468,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ba5e965f4758
+  - type: implements
+    from: SYM-agent-core-claim-signoff-reminder
+    to: REQ-kibi-signoff-views
+    created_at: 2026-10-23T10:44:19.204Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca0d95793869
+  - type: covered_by
+    from: SYM-agent-core-claim-signoff-reminder
+    to: TEST-kibi-signoff-views
+    created_at: 2026-10-23T10:44:19.233Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-96ed066c60d3

@@ -233,6 +233,141 @@ describe("kb_validate_upsert", () => {
       );
     });
 
+    // implements REQ-kibi-operation-interface-parity
+    describe("kb_upsert dryRun agrees with the real write", () => {
+      async function seed(): Promise<void> {
+        await handleKbUpsert(prolog, {
+          type: "req",
+          id: "REQ-PARITY-OWNER",
+          properties: {
+            title: "Parity owner requirement",
+            status: "open",
+            source: "test://validate-upsert/parity",
+          },
+        });
+        await handleKbUpsert(prolog, {
+          type: "test",
+          id: "TEST-PARITY-RUNNER",
+          properties: {
+            title: "Parity runner test",
+            status: "passing",
+            source: "test://validate-upsert/parity",
+            verification_scope: "unit",
+            verification_perspective: "consumer",
+          },
+        });
+      }
+
+      function symbol(
+        relationships: readonly { type: string; to: string }[],
+      ): Parameters<typeof handleKbUpsert>[1] {
+        return {
+          type: "symbol",
+          id: "SYM-PARITY-HELPER",
+          properties: {
+            title: "parityHelper",
+            status: "active",
+            source: "test://validate-upsert/parity",
+          },
+          relationships: relationships.map((relationship) => ({
+            ...relationship,
+            from: "SYM-PARITY-HELPER",
+          })),
+        };
+      }
+
+      async function expectSameRefusal(
+        payload: Parameters<typeof handleKbUpsert>[1],
+        expected: string,
+      ): Promise<void> {
+        const preview = await handleKbUpsert(prolog, {
+          ...payload,
+          dryRun: true,
+        });
+        const dry = preview.structuredContent as unknown as {
+          valid: boolean;
+          errors: string[];
+          dryRun: boolean;
+        };
+        expect(dry.dryRun).toBe(true);
+        expect(dry.valid).toBe(false);
+        expect(dry.errors).toHaveLength(1);
+        expect(dry.errors[0]).toContain(expected);
+        const refused = await handleKbUpsert(prolog, payload).then(
+          () => null,
+          (error: unknown) => error,
+        );
+        expect(refused).toBeInstanceOf(Error);
+        // The write reports the dry run's message verbatim (behind the
+        // operation's own failure prefix).
+        expect((refused as Error).message).toContain(dry.errors[0] as string);
+      }
+
+      test("a relationship to a missing target entity is refused by both", async () => {
+        await seed();
+        await expectSameRefusal(
+          symbol([{ type: "implements", to: "REQ-PARITY-MISSING" }]),
+          "Target entity does not exist: REQ-PARITY-MISSING",
+        );
+      });
+
+      test("one symbol payload mixing executable_for with implements or covered_by is refused by both", async () => {
+        await seed();
+        await expectSameRefusal(
+          symbol([
+            { type: "implements", to: "REQ-PARITY-OWNER" },
+            { type: "executable_for", to: "TEST-PARITY-RUNNER" },
+          ]),
+          "symbol SYM-PARITY-HELPER cannot mix executable_for with production ownership/coverage relationships",
+        );
+        await expectSameRefusal(
+          symbol([
+            { type: "covered_by", to: "TEST-PARITY-RUNNER" },
+            { type: "executable_for", to: "TEST-PARITY-RUNNER" },
+          ]),
+          "cannot mix executable_for with production ownership/coverage relationships",
+        );
+      });
+
+      test("an executable_for link added to a stored production symbol is refused by both", async () => {
+        await seed();
+        await handleKbUpsert(
+          prolog,
+          symbol([{ type: "implements", to: "REQ-PARITY-OWNER" }]),
+        );
+        await expectSameRefusal(
+          symbol([{ type: "executable_for", to: "TEST-PARITY-RUNNER" }]),
+          "cannot mix executable_for with production ownership/coverage relationships",
+        );
+      });
+
+      test("a valid payload passes the dry run without writing, then commits", async () => {
+        await seed();
+        const payload = symbol([
+          { type: "implements", to: "REQ-PARITY-OWNER" },
+          { type: "covered_by", to: "TEST-PARITY-RUNNER" },
+        ]);
+        const preview = await handleKbUpsert(prolog, {
+          ...payload,
+          dryRun: true,
+        });
+        expect(preview.structuredContent).toMatchObject({
+          valid: true,
+          errors: [],
+          dryRun: true,
+        });
+        const stored = await prolog.query(
+          "once(kb_entity('SYM-PARITY-HELPER', _, _))",
+        );
+        expect(stored.success).toBe(false);
+        const written = await handleKbUpsert(prolog, payload);
+        expect(written.structuredContent).toMatchObject({
+          created: 1,
+          relationships_created: 2,
+        });
+      });
+    });
+
     test("refuses links added to a stored class-level symbol", async () => {
       const workspace = await fs.mkdtemp(
         path.join(tmpdir(), "kibi-mcp-coarse-link-"),

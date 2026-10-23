@@ -22,7 +22,7 @@
   ],
   "properties": {
     "schemaVersion": {
-      "$ref": "contract-definitions.schema.json#/$defs/schemaVersion"
+      "$ref": "contract-definitions.schema.json#/$defs/offlineSchemaVersion"
     },
     "artifactType": { "const": "proposal" },
     "proposalId": {
@@ -38,7 +38,8 @@
         "kibi-freshness",
         "kibi-traceability",
         "kibi-bootstrap",
-        "bundle"
+        "kibi-decisions",
+        "kibi-commit-review"
       ]
     },
     "candidateBodyHash": {

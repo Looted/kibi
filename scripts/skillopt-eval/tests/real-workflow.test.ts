@@ -410,7 +410,7 @@ describe("real SkillOpt workflow", () => {
           heldOutVariants.push(input.variants.map((variant) => variant.body));
           return {
             eligibility: "eligible" as const,
-            cellCount: 96 as const,
+            cellCount: 72 as const,
             productionAdoption: "external-verdict-required" as const,
           };
         },
@@ -593,7 +593,7 @@ describe("real SkillOpt workflow", () => {
             heldOutCalls += 1;
             return {
               eligibility: "eligible",
-              cellCount: 96,
+              cellCount: 72,
               productionAdoption: "external-verdict-required",
             };
           },

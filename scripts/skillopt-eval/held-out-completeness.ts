@@ -9,10 +9,9 @@ import type { ReservedPredicateMatrix } from "./held-out-evidence";
 
 const Variants = ["baseline", "one-shot", "skillopt"] as const;
 const LEGACY_EXPECTED_COUNTS = {
-  total: 96,
+  total: 72,
   predicate: 36,
   skill: 36,
-  bundle: 24,
 } as const;
 
 function completeVariantCells(
@@ -74,12 +73,10 @@ export function isCompleteHeldOutEvaluation(
     cells: readonly BoundPhysicalCell[];
     predicate: readonly BoundPhysicalCell[];
     skill: readonly BoundPhysicalCell[];
-    bundle: readonly BoundPhysicalCell[];
     expected?: Partial<{
       total: number;
       predicate: number;
       skill: number;
-      bundle: number;
     }>;
   }>,
 ): boolean {
@@ -91,25 +88,18 @@ export function isCompleteHeldOutEvaluation(
   return (
     input.cells.length === expected.total &&
     new Set(input.cells.map((cell) => cell.receipt.result.episodeId)).size ===
-      96 &&
+      expected.total &&
     input.cells.every(receiptBindsCell) &&
     (expected.predicate === 0
       ? input.predicate.length === 0
       : completePredicateCells(input.reservation, input.predicate) &&
         input.predicate.length === expected.predicate) &&
     completeVariantCells(input.skill, expected.skill / Variants.length) &&
-    (expected.bundle === 0
-      ? input.bundle.length === 0
-      : completeVariantCells(
-          input.bundle,
-          expected.bundle / Variants.length,
-        )) &&
     input.skill.every(
       (cell) =>
         cell.request.replicate === undefined &&
         !predicateTaskIds.has(cell.taskId),
-    ) &&
-    input.bundle.every((cell) => cell.request.replicate === undefined)
+    )
   );
 }
 

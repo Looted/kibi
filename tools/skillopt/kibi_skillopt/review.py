@@ -19,7 +19,7 @@ from .episode import Skill
 
 
 class Proposal(ContractModel):
-    schema_version: Annotated[Literal["1.0.0"], Field(alias="schemaVersion")]
+    schema_version: Annotated[Literal["1.1.0"], Field(alias="schemaVersion")]
     artifact_type: Annotated[Literal["proposal"], Field(alias="artifactType")]
     proposal_id: Annotated[ArtifactId, Field(alias="proposalId")]
     run_id: Annotated[ArtifactId, Field(alias="runId")]
@@ -44,7 +44,7 @@ class Proposal(ContractModel):
 
 
 class Approval(ContractModel):
-    schema_version: Annotated[Literal["1.0.0"], Field(alias="schemaVersion")]
+    schema_version: Annotated[Literal["1.1.0"], Field(alias="schemaVersion")]
     artifact_type: Annotated[Literal["approval"], Field(alias="artifactType")]
     approval_id: Annotated[ArtifactId, Field(alias="approvalId")]
     proposal_id: Annotated[ArtifactId, Field(alias="proposalId")]

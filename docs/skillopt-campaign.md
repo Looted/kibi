@@ -8,11 +8,19 @@ Run it from the repository root. Every command requires an artifact directory
 outside the source worktree. `--source-root` is optional and, when supplied,
 must identify the current Git root.
 
+## Choosing the harness
+
+Every command takes `--host codex|claude-code`. The flag wins over
+`KIBI_SKILLOPT_HOST`, and Codex is the default. The resolved host and its CLI
+version are recorded in `campaign.json`, in the evaluation `context.host`, and
+in the package receipt. See
+[Choosing the agent harness](skillopt.md#choosing-the-agent-harness).
+
 ## Commands
 
 ### Revise one skill
 
-`revise` asks the existing Codex SkillOpt step for one paragraph anchored to the
+`revise` asks the SkillOpt optimizer step on the selected host for one paragraph anchored to the
 current baseline. The step may make one format repair, but the campaign does
 not start additional generation calls. The model source and the real accepted
 optimizer receipt are preserved in the manifest provenance.
@@ -80,6 +88,15 @@ against immutable fixture evidence and rejects false proof claims. This is a
 review-decision exercise, not evidence of a successful end-to-end bootstrap.
 No private project material or credentials are included.
 
+`kibi-decisions` (core families `stated-rule-capture`, `firm-rule-conflict`,
+`supersede-with-reason` and `compile-intent-review`; supplemental
+`unrecorded-change-closeout`) and `kibi-commit-review` (core families
+`staged-impact-missing`, `coordinate-refresh-only`,
+`impact-review-preparation` and `staged-rule-conflict`; supplemental
+`merge-commit-scope`) start from seeded stores with one firm, human-set naming
+rule. The commit-review stores also carry a staged change. Their signals,
+setups and offline checks are described in [SkillOpt](skillopt.md#reasoning-cases-and-evidence-lanes).
+
 The isolated public fixture workspaces do not inherit the source repository's
 `kibi.plugins` configuration: current bootstrap cells use the builtin classifier,
 not JEV. Report the modeling backend alongside the agent model. The
@@ -101,9 +118,10 @@ The review scorer accepts one strict report under either a `json` or
 loaded automatically from the current source. Both limits are explicit:
 `--repeats` is 1..3 and `--max-target-episodes` is 1..256, and the latter must
 cover the complete baseline-plus-candidate development matrix. The matrix is
-repeats x (candidates + 1) x development tasks; `kibi-usage`,
-`kibi-freshness` and `kibi-traceability` have five development tasks (four
-core families plus one supplemental family), `kibi-bootstrap` also has five.
+repeats x (candidates + 1) x development tasks. Every skill (`kibi-usage`,
+`kibi-freshness`, `kibi-traceability`, `kibi-bootstrap`, `kibi-decisions` and
+`kibi-commit-review`) has five development tasks: four core families plus one
+supplemental family.
 
 ```text
 bun scripts/skillopt-eval/campaign.ts evaluate \
@@ -149,6 +167,11 @@ bun scripts/skillopt-eval/campaign.ts confirm \
   --allow-paid
 ```
 
+`confirm` runs on the host that produced the previous evaluation. When
+`--host` (or `KIBI_SKILLOPT_HOST`) names a different host, it fails with
+`evaluation_host_mismatch` before the artifact store, preflight or canary.
+When the host is unrecorded, it fails with `evaluation_host_unrecorded`.
+
 The new comparison gets a new fixture root and target budget. It does not
 cherry-pick cells or reuse an old fixture cache. Before the paid canary, every
 prior cell is rechecked against its persisted request, receipt, evidence index,
@@ -164,13 +187,6 @@ external workspace. Only supplied candidate bodies may differ; frontmatter,
 resources, and all other canonical bodies are copied from the source. This is
 an offline assembly and leaves production adoption explicitly unperformed.
 
-For a complete bundle, pass one strict bundle manifest instead. It must select
-all four canonical skills exactly once, using either `baseline` or `candidate`
-for each skill. Candidate entries reference their nested campaign manifests
-relative to the bundle file. Bundle mode cannot be combined with individual
-candidate manifests and does not accept `--evaluation`; bundle evaluation and
-production adoption remain explicitly unperformed.
-
 ```text
 bun scripts/skillopt-eval/campaign.ts package \
   --artifact-root <artifact-root> \
@@ -179,15 +195,11 @@ bun scripts/skillopt-eval/campaign.ts package \
   [--evaluation <complete-evaluation.json>]
 ```
 
-```text
-bun scripts/skillopt-eval/campaign.ts package \
-  --artifact-root <artifact-root> \
-  --candidate-manifest <bundle-manifest.json>
-```
-
 The package receipt reports precise manifest readiness, changed skill bodies,
 and whether supplied complete evaluation evidence matched. Without
 `--evaluation`, `evidenceValid` is false; no adoption claim is inferred.
+The receipt records the run's `host`. Evidence from another host is refused
+with `package_evidence_host_mismatch` before assembly.
 
 ## Artifact Contract
 
@@ -201,10 +213,24 @@ does not manufacture receipts.
 The evaluation envelope retains frozen manifests, the baseline body, every
 cell, source/model/context bindings, pairings, and a content hash. A failed
 run retains its partial state and any target-budget counter already reserved.
+When a cell's protocol score is zero, its receipt carries `protocolFailure`.
+This records the first required MCP call that was not made in the required
+order, as `{ kind: "missing_required_call", tool, position }`: a public tool
+name and a 1-based position, never arguments, transcript text or evaluator
+content. After a complete evaluation, the campaign writes
+`public-feedback.json` next to `evaluation.json`. It summarizes those misses
+per variant and family in the public feedback shape above, so it can be passed
+to the next `revise` with `--feedback`. The file is skipped when the public
+filter rejects it.
+
 Source fences bind Git `HEAD` and the complete tracked tree metadata. Tracked
 symlinks are fenced as Git entries and are not followed while computing the
 source fence. Cell receipts bind the request, replicate, cohort lock, body
 label, score, failures, usage, and hashed artifacts.
+The offline workflow contracts (run lock, ledger entry, run state, report,
+proposal and approval) use schema version `1.1.0`. They no longer carry the
+assembled-bundle gate, phase or result. Live cell evidence and campaign
+envelopes stay at `1.0.0`.
 No command writes Kibi metadata, source files, adoption state, commits, pushes,
 or held-out results.
 

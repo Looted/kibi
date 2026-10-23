@@ -69,20 +69,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ad66b08e3807
-  - type: implements
-    from: SYM-skillopt-bundle-gate-options-type
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-08-26T09:17:10.099Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b6f95a62205c
-  - type: covered_by
-    from: SYM-skillopt-bundle-gate-options-type
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-28T10:04:47.109Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8294df5039de
   - type: constrains
     from: REQ-mcp-search-discovery
     to: FACT-SUBJ-REQ-MCP-SEARCH-DISCOVERY

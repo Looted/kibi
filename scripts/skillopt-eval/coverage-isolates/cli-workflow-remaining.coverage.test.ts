@@ -1,24 +1,16 @@
 // implements REQ-skillopt-codex-optimization
-import { afterEach, describe, expect, mock, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { ArtifactRootRequiredError } from "../artifact-path";
 import { CliUsageError } from "../cli-options";
+import {
+  type WorkflowDependencies,
+  defaultWorkflowDependencies,
+  runWorkflowCommand,
+} from "../cli-workflow";
 import { EvaluationInfrastructureError } from "../evaluation-infrastructure";
-
-mock.module("../bundle-workflow", () => ({
-  runPaidBundleGate: async () => ({
-    verdict: "pass",
-    reportPath: "/tmp/skillopt-bundle-report.json",
-    exitCode: 0,
-  }),
-}));
-
-const { defaultWorkflowDependencies, runWorkflowCommand } = await import(
-  "../cli-workflow"
-);
-import type { BundleSurfaceSet, WorkflowDependencies } from "../cli-workflow";
 
 const roots: string[] = [];
 afterEach(async () => {
@@ -26,28 +18,6 @@ afterEach(async () => {
     await rm(root, { recursive: true, force: true });
   }
 });
-
-function bundleSurfaces(): BundleSurfaceSet {
-  const baseline = {
-    body: "baseline\n",
-    frontmatterHash: "a".repeat(64),
-    resourcesHash: "b".repeat(64),
-  };
-  return {
-    baselineSurfaces: {
-      "kibi-usage": baseline,
-      "kibi-freshness": baseline,
-      "kibi-traceability": baseline,
-      "kibi-bootstrap": baseline,
-    },
-    candidateSurfaces: {
-      "kibi-usage": { ...baseline, body: "candidate\n" },
-      "kibi-freshness": baseline,
-      "kibi-traceability": baseline,
-      "kibi-bootstrap": baseline,
-    },
-  };
-}
 
 function workflowOptions(
   artifactRoot: string,
@@ -64,7 +34,6 @@ function workflowOptions(
     cellRuntime: {
       fixtureRunRoot: join(artifactRoot, "fixtures"),
     },
-    candidateManifest: join(artifactRoot, "bundle.json"),
     ...overrides,
   } as const;
 }
@@ -115,7 +84,6 @@ function dependencies(
     cellRunner: async () => {
       throw new Error("cell runner unused");
     },
-    resolveBundleSurfaces: async () => bundleSurfaces(),
     createCodexRuntimeLease: async ({ artifactRoot }) => ({
       root: join(artifactRoot, ".runtime"),
       codexExecutable: "/bin/true",
@@ -349,63 +317,6 @@ describe("runWorkflowCommand leftover branches", () => {
     ).toBe(0);
   });
 
-  test("bundle validates paid gates and succeeds through the mocked gate", async () => {
-    const artifactRoot = await mkdtemp(join(tmpdir(), "skillopt-wf-bundle-"));
-    roots.push(artifactRoot);
-    await expect(
-      runWorkflowCommand(
-        "bundle",
-        workflowOptions(artifactRoot, { allowPaid: false, skill: "all" }),
-        dependencies(),
-      ),
-    ).rejects.toThrow(/bundle requires --allow-paid/);
-    await expect(
-      runWorkflowCommand(
-        "bundle",
-        workflowOptions(artifactRoot, { skill: "kibi-usage" }),
-        dependencies(),
-      ),
-    ).rejects.toThrow(/requires --skill all/);
-    await expect(
-      runWorkflowCommand(
-        "bundle",
-        workflowOptions(artifactRoot, {
-          skill: "all",
-          cellRuntime: undefined,
-        }),
-        dependencies(),
-      ),
-    ).rejects.toThrow(/bundle requires --fixture-run-root/);
-
-    expect(
-      await runWorkflowCommand(
-        "bundle",
-        workflowOptions(artifactRoot, { skill: "all" }),
-        dependencies({
-          runPreflight: async ({ runId }) =>
-            ({ verdict: "fail", runId }) as never,
-        }),
-      ),
-    ).toBe(1);
-    expect(
-      await runWorkflowCommand(
-        "bundle",
-        workflowOptions(artifactRoot, { skill: "all" }),
-        dependencies({
-          runCapabilityCanary: async ({ runId }) =>
-            ({ verdict: "fail", runId }) as never,
-        }),
-      ),
-    ).toBe(1);
-    expect(
-      await runWorkflowCommand(
-        "bundle",
-        workflowOptions(artifactRoot, { skill: "all" }),
-        dependencies(),
-      ),
-    ).toBe(0);
-  });
-
   test("status, fake review, incomplete resume, and unknown real commands", async () => {
     const artifactRoot = await mkdtemp(join(tmpdir(), "skillopt-wf-status-"));
     roots.push(artifactRoot);
@@ -458,7 +369,7 @@ describe("runWorkflowCommand leftover branches", () => {
     await writeFile(
       join(noGoRoot, "state.json"),
       `${JSON.stringify({
-        schemaVersion: "1.0.0",
+        schemaVersion: "1.1.0",
         artifactType: "run-state",
         runId: "00000000-0000-4000-8000-000000000301",
         runLockHash: "0".repeat(64),

@@ -162,6 +162,40 @@ export function factTarget(entity: Record<string, unknown>): string | null {
   }
 }
 
+/** Atom names of a rule IR's exceptions; "" marks a non-atom exception. */
+function ruleExceptionAtoms(value: unknown): string[] {
+  let ir: unknown = value;
+  if (typeof ir === "string") {
+    try {
+      ir = JSON.parse(ir);
+    } catch {
+      return [];
+    }
+  }
+  if (!isRecord(ir) || !Array.isArray(ir.exceptions)) return [];
+  const names: string[] = [];
+  const visit = (expression: unknown): void => {
+    if (!isRecord(expression)) {
+      names.push("");
+      return;
+    }
+    if (expression.kind === "atom" && typeof expression.name === "string") {
+      names.push(expression.name);
+    } else if (expression.kind === "not") {
+      visit(expression.item);
+    } else if (
+      (expression.kind === "all" || expression.kind === "any") &&
+      Array.isArray(expression.items)
+    ) {
+      for (const item of expression.items) visit(item);
+    } else {
+      names.push("");
+    }
+  };
+  for (const exception of ir.exceptions) visit(exception);
+  return names;
+}
+
 function normalizeMcpPredicateSnapshot(
   value: unknown,
   binding: EvidenceBinding,
@@ -219,6 +253,9 @@ function normalizeMcpPredicateSnapshot(
           : {}),
         ...(typeof entity.rule_schema_id === "string"
           ? { ruleSchemaId: entity.rule_schema_id }
+          : {}),
+        ...(factKind === "rule"
+          ? { ruleExceptionAtoms: ruleExceptionAtoms(entity.rule_ir) }
           : {}),
         ...(typeof entity.claim_key === "string"
           ? { claimKey: entity.claim_key }

@@ -1074,12 +1074,46 @@ describe("decision capture", () => {
     const recorded = createKibiWorkspace();
     const withRecord = session(recorded);
     await withRecord.post("Edit", { file_path: "src/checkout.ts" });
-    await withRecord.post("mcp__kibi__kb_upsert", { type: "req", id: "REQ-x" });
+    await withRecord.post("mcp__kibi__kb_upsert", {
+      type: "scenario",
+      id: "SCEN-x",
+    });
     await withRecord.post("mcp__kibi__kb_check", {
       includeImpactDiagnostics: true,
       includeWorkingTreeDiff: true,
     });
     expect(await withRecord.stop()).toBeUndefined();
+  });
+
+  test("a session that wrote a requirement is asked once at stop for a signoff view, unless kibi signoff ran since", async () => {
+    const fixture = createKibiWorkspace();
+    const { post, stop } = session(fixture);
+    await post("mcp__kibi__kb_upsert", { type: "req", id: "REQ-x" });
+    const text = await stop();
+    expect(text).toStartWith(
+      "Kibi: this session recorded or changed requirements, and the person has not seen them as a signoff view.",
+    );
+    expect(text).toContain("run `kibi signoff`");
+    expect(await stop()).toBeUndefined();
+
+    const dryRun = createKibiWorkspace();
+    const preview = session(dryRun);
+    await preview.post("mcp__kibi__kb_upsert", {
+      type: "req",
+      id: "REQ-x",
+      dryRun: true,
+    });
+    expect(await preview.stop()).toBeUndefined();
+
+    const shown = createKibiWorkspace();
+    const withView = session(shown);
+    await withView.post("mcp__kibi__kb_upsert", { type: "req", id: "REQ-x" });
+    const latest = path.join(shown.root, ".kb", "briefs", "signoff");
+    fs.mkdirSync(latest, { recursive: true });
+    const later = new Date(Date.now() + 60_000);
+    fs.writeFileSync(path.join(latest, "latest.json"), "{}");
+    fs.utimesSync(path.join(latest, "latest.json"), later, later);
+    expect(await withView.stop()).toBeUndefined();
   });
 });
 

@@ -223,3 +223,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-95957ed78f7a
+  - type: verified_by
+    from: SCEN-kibi-signoff-views
+    to: TEST-kibi-signoff-views
+    created_at: 2026-10-22T09:25:37.280Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0296d2c06874

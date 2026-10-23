@@ -14,6 +14,8 @@ const hashManifestPath = join(mirrorRoot, ".canon-hash.json");
 
 const EXPECTED_SKILL_IDS = [
   "kibi-bootstrap",
+  "kibi-commit-review",
+  "kibi-decisions",
   "kibi-freshness",
   "kibi-traceability",
   "kibi-usage",

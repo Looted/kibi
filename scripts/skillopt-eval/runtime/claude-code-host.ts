@@ -33,7 +33,8 @@ import type { CanaryRunner } from "./permissions";
 /**
  * Claude Code CLI as an alternative SkillOpt agent host.
  *
- * Selected with `KIBI_SKILLOPT_HOST=claude-code`. The target runs
+ * Selected with `--host claude-code` (or `KIBI_SKILLOPT_HOST=claude-code`).
+ * The target runs
  * `claude -p` with the brokered Kibi MCP server as its only MCP server,
  * project skills copied from the assembled `.agents/skills`, a private
  * `CLAUDE_CONFIG_DIR`, no shell tool and deny rules for the private KB.
@@ -44,8 +45,11 @@ import type { CanaryRunner } from "./permissions";
  * plus the brokered MCP allowlist, not an OS sandbox. Reports must say so.
  */
 
-// implements REQ-skillopt-claude-code-host
-export const SKILLOPT_HOST_ENV = "KIBI_SKILLOPT_HOST" as const;
+export {
+  SKILLOPT_HOST_ENV,
+  type SkillOptHost,
+  selectedSkillOptHost,
+} from "./skillopt-host";
 // implements REQ-skillopt-claude-code-host
 export const CLAUDE_EXECUTABLE_ENV = "KIBI_SKILLOPT_CLAUDE_EXECUTABLE" as const;
 // implements REQ-skillopt-claude-code-host
@@ -64,26 +68,6 @@ export const CLAUDE_TARGET_TOOLS = [
 ] as const;
 
 const KIBI_MCP_SERVER = "kibi";
-
-// implements REQ-skillopt-claude-code-host
-export type SkillOptHost = "codex" | "claude-code";
-
-// implements REQ-skillopt-claude-code-host
-export class ClaudeHostConfigError extends Error {
-  readonly name = "ClaudeHostConfigError";
-}
-
-// implements REQ-skillopt-claude-code-host
-export function selectedSkillOptHost(
-  env: NodeJS.ProcessEnv = process.env,
-): SkillOptHost {
-  const value = env[SKILLOPT_HOST_ENV];
-  if (value === undefined || value === "" || value === "codex") return "codex";
-  if (value === "claude-code") return "claude-code";
-  throw new ClaudeHostConfigError(
-    `${SKILLOPT_HOST_ENV} must be codex or claude-code`,
-  );
-}
 
 /** Claude Code has no `minimal`; `xhigh` exists. */
 // implements REQ-skillopt-claude-code-host
@@ -307,6 +291,7 @@ export function buildClaudeExecArgv(
     settings: Readonly<Record<string, unknown>>;
     outputSchema: Readonly<Record<string, unknown>>;
     tools: readonly string[];
+    appendSystemPrompt?: string;
   }>,
 ): readonly [string, ...string[]] {
   const models = assertSkillOptModelsReadyForPaidWork();
@@ -335,7 +320,28 @@ export function buildClaudeExecArgv(
     "dontAsk",
     "--json-schema",
     JSON.stringify(input.outputSchema),
+    ...(input.appendSystemPrompt === undefined
+      ? []
+      : ["--append-system-prompt", input.appendSystemPrompt]),
   ];
+}
+
+/**
+ * The skill under evaluation, preloaded into the target's system prompt.
+ * Claude loads a project skill only when the model calls its Skill tool, and
+ * small targets rarely do, so a body-only variant would otherwise never reach
+ * the model and every arm would run on the same text.
+ */
+// implements REQ-skillopt-claude-code-host
+export async function preloadedSkillPrompt(
+  workspaceRoot: string,
+  skill: string,
+): Promise<string> {
+  const markdown = await readFile(
+    join(workspaceRoot, ".agents/skills", skill, "SKILL.md"),
+    "utf8",
+  );
+  return `The ${skill} skill applies to this task. Follow it.\n\n${markdown}`;
 }
 
 function isWithin(path: string, root: string): boolean {
@@ -414,6 +420,10 @@ export function claudeCodeTargetHost(): TargetHost {
           }),
           outputSchema,
           tools: CLAUDE_TARGET_TOOLS,
+          appendSystemPrompt: await preloadedSkillPrompt(
+            workspace.target,
+            options.targetSkill,
+          ),
         }),
         normalizeTranscript: claudeStreamToCodexJsonl,
       };

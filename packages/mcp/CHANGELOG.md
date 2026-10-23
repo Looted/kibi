@@ -1,5 +1,27 @@
 # kibi-mcp
 
+## 3.16.3
+
+### Patch Changes
+
+- 140a61c: `kb_model` with `mode: "predicates"` and an explicit `schemaId` now accepts a project-local schema when the claim names the predicate and every one of its arguments. Before, a schema without keywords or examples scored below the applicability threshold and was refused even though the claim stated it directly. When an explicitly selected schema is still refused, the reasons now list which predicate or argument names the claim leaves out.
+- 16ed600: MCP tool descriptions now say when to pick a tool over its neighbours: `kb_status`, `kb_find_gaps`, `kb_coverage` and `kb_graph` point to each other and to `kb_check`, `kb_query` and `kb_search`. `kb_model`, `kb_compile_intent`, `kb_plan_bootstrap` and `kb_prepare_impact_review` now say which job each one is for. Every input of `kb_find_gaps`, `kb_coverage` and `kb_graph` now has a description, including defaults, how filters combine, and when traversal stops. The `scope` input of `kb_prepare_impact_review` now shows its two accepted shapes; before, MCP clients saw it as an untyped value.
+- 3162508: `kb_upsert` with `dryRun: true` now refuses every payload the real write would refuse, with the same message. Before, a dry run could report a payload valid that the write then rejected: a relationship whose target entity does not exist, a symbol that mixes `executable_for` with `implements` or `covered_by` (in one payload or against links it already has), or an authored document path or format the write cannot use. Such a refusal now comes back as an invalid dry run, and a refusal that carries an error code (for example `SOURCE_PATH_INVALID`) also returns it as `errorCode`.
+- 668c332: `kb_upsert` with `dryRun: true` no longer reports a broken installation as an invalid payload. When a module Kibi needs for validation cannot be loaded, the dry run now fails as a tool error that names the missing module, instead of answering "payload is invalid" with no way to fix the payload.
+- Updated dependencies [5e3541e]
+- Updated dependencies [140a61c]
+- Updated dependencies [7a3edce]
+- Updated dependencies [180196c]
+- Updated dependencies [3b43238]
+- Updated dependencies [8493b53]
+- Updated dependencies [98254ef]
+- Updated dependencies [0a9c431]
+- Updated dependencies [06fb484]
+- Updated dependencies [3162508]
+- Updated dependencies [668c332]
+  - kibi-runtime@2.19.0
+  - kibi-core@0.22.5
+
 ## 3.16.2
 
 ### Patch Changes

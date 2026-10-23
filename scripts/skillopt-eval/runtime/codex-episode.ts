@@ -13,7 +13,7 @@ import {
   EpisodeResultSchema,
 } from "../contracts/episode";
 import { type EvidenceIndex, EvidenceIndexSchema } from "../contracts/evidence";
-import type { CellReceipt } from "../scoring/cell";
+import { type CellReceipt, PUBLIC_TOOL_NAME } from "../scoring/cell";
 import {
   CODEX_VIOLATIONS,
   deterministicVariantLabel,
@@ -22,6 +22,19 @@ import {
 
 const ArtifactRefSchema = z
   .object({ path: z.string().min(1), sha256: Sha256Schema })
+  .strict();
+
+/**
+ * Public record of a failed protocol: the first required call the cell never
+ * made, by tool name and position. No arguments or expected values.
+ */
+// implements REQ-skillopt-host-neutral-optimization
+export const ProtocolFailureSchema = z
+  .object({
+    kind: z.literal("missing_required_call"),
+    tool: z.string().regex(PUBLIC_TOOL_NAME),
+    position: z.number().int().min(1).max(64),
+  })
   .strict();
 
 // implements REQ-skillopt-codex-optimization
@@ -45,6 +58,7 @@ export const CodexEpisodeReceiptSchema = z
       .strict(),
     violations: z.array(z.enum(CODEX_VIOLATIONS)),
     malformedLines: z.array(z.number().int().positive()),
+    protocolFailure: ProtocolFailureSchema.optional(),
   })
   .strict();
 
@@ -293,5 +307,11 @@ export function replayCodexEpisode(
     },
     violations: normalized.violations,
     malformedLines: normalized.malformedLines,
+    // Only a scored behavioral miss carries it: infrastructure, budget and
+    // evidence failures are not protocol evidence.
+    ...(terminal.status === "behavioral-failure" &&
+    input.score.protocolFailure !== undefined
+      ? { protocolFailure: input.score.protocolFailure }
+      : {}),
   });
 }

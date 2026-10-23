@@ -22,6 +22,8 @@ skills + hooks + MCP), declared in ZCode's native plugin format.
   `tests/skill-drift.test.ts`
 - `commands/kibi-bootstrap.md` — slash command routing into the
   `kibi-bootstrap` skill
+- `commands/kibi-signoff.md` — slash command that shows the `kibi signoff`
+  view (or the decisions waiting for the person) in the reply
 - `src/` — hook runner and helpers (TypeScript, built to `dist/`)
 
 ## ZCode declaration contract
@@ -91,7 +93,9 @@ All hooks are advisory; the hard enforcement gate remains the
   workspace-relative paths that changed during this session without a
   corresponding covering `kb_check`. When the session changed source files
   and recorded nothing with `kb_upsert`, it first asks, once, for the
-  decision behind the change to be recorded.
+  decision behind the change to be recorded. When the session wrote a
+  requirement and `kibi signoff` has not run since, it asks, once, for the
+  signoff view to be shown before the work is reported done.
 
 ## Development
 

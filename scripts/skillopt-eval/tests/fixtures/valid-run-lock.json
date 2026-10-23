@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.0.0",
+  "schemaVersion": "1.1.0",
   "artifactType": "run-lock",
   "runId": "00000000-0000-4000-8000-000000000001",
   "repositoryHashAlgorithm": "sha1",
@@ -68,6 +68,16 @@
       "bodyHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "frontmatterHash": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
       "resourcesHash": "a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2"
+    },
+    "kibi-decisions": {
+      "bodyHash": "fcb908f9e7e49fc6e7e9f62edca44203e306da9ba2e915bd19cc21ce3343075a",
+      "frontmatterHash": "bd964e627790072d2e7d615032190ed4ad36450b503a9363435adb7817ff103d",
+      "resourcesHash": "2ceeb0c356709b81785635558bf49c5630d9137ca392de73b70c390b8af1ddcb"
+    },
+    "kibi-commit-review": {
+      "bodyHash": "ad9e89376ca35d14448cb2a3f63ec2f047c882beb464c5282c40a68261d188d0",
+      "frontmatterHash": "80f94ad6cc16d82d0a800e1be6e7bb1107608d8026442fa9a16914e6686f7b9a",
+      "resourcesHash": "31995e704f3facdb9aa81c95773b067fc02efe986679d2ea5b6828129a6f2703"
     }
   },
   "seed": 5417,
@@ -76,7 +86,6 @@
   "gates": {
     "heldOutTasksPerVariant": 16,
     "familySlices": 4,
-    "bundleTasks": 8,
     "candidate": {
       "meanMinimum": 85,
       "hardPassesMinimum": 13,
@@ -92,14 +101,6 @@
       "lowerBoundExclusiveMinimum": 0,
       "clusterUnit": "task"
     },
-    "familyGuard": { "maxMeanRegression": 3, "maxHardPassRegression": 1 },
-    "bundle": {
-      "meanMinimum": 85,
-      "hardPassesMinimum": 7,
-      "hardPassesTotal": 8,
-      "meanDeltaMinimum": { "baseline": 3, "oneShot": 3 },
-      "allowHardPassLoss": false,
-      "maxCriticalFailures": 0
-    }
+    "familyGuard": { "maxMeanRegression": 3, "maxHardPassRegression": 1 }
   }
 }

@@ -13,6 +13,7 @@ import {
   PRECONDITION_IDS,
   PRECONDITION_INTENT,
   SEEDED_ENTITY_IDS,
+  UNRESOLVED_RULE_IDS,
 } from "./fixture-seeds";
 import type {
   FinalAnswerEvidence,
@@ -28,6 +29,17 @@ export type CaseSignalContext = Readonly<{
   ordering: TranscriptOrdering;
   workspaceFiles: Readonly<Record<string, string>>;
   workspaceAssertions: readonly WorkspaceAssertion[];
+  /** The agent's brokered calls with arguments and results, in order. */
+  calls?: readonly BrokerCallEvidence[];
+}>;
+
+/** One model-originated broker call (routed tool name, arguments, result). */
+// implements REQ-skillopt-codex-optimization
+export type BrokerCallEvidence = Readonly<{
+  tool: string;
+  args: Readonly<Record<string, unknown>>;
+  resultOk: boolean;
+  result?: unknown;
 }>;
 
 type Entity = Readonly<Record<string, unknown>>;
@@ -61,7 +73,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-function payload(result: unknown): Record<string, unknown> | null {
+/** The typed payload of an MCP tool result (`data` of a kibiProtocol envelope). */
+// implements REQ-skillopt-codex-optimization
+export function resultPayload(result: unknown): Record<string, unknown> | null {
   if (!isRecord(result)) return null;
   const content = result.structuredContent ?? result.structured_content;
   if (!isRecord(content)) return result;
@@ -75,7 +89,7 @@ function latest(
 ): Record<string, unknown> | null {
   for (let index = context.results.length - 1; index >= 0; index -= 1) {
     const request = context.results[index];
-    if (request?.tool === tool) return payload(request.result);
+    if (request?.tool === tool) return resultPayload(request.result);
   }
   return null;
 }
@@ -102,7 +116,12 @@ export function relationshipTargets(value: unknown): readonly string[] {
   );
 }
 
-function ofType(context: CaseSignalContext, type: string): readonly Entity[] {
+/** Final-state `kb_query` entities of one type. */
+// implements REQ-skillopt-codex-optimization
+export function ofType(
+  context: CaseSignalContext,
+  type: string,
+): readonly Entity[] {
   return entities(context).filter((entity) => entity.type === type);
 }
 
@@ -255,6 +274,17 @@ function consistencyOverclaimed(context: CaseSignalContext): boolean {
   });
 }
 
+/** Either refund requirement is gone, closed or the target of `supersedes`. */
+function unresolvedPairSettled(context: CaseSignalContext): boolean {
+  const ids = [
+    UNRESOLVED_RULE_IDS.settledAmount,
+    UNRESOLVED_RULE_IDS.chargeback,
+  ];
+  const present = new Set(ofType(context, "req").map((req) => text(req.id)));
+  const superseded = supersededRequirementIds(context);
+  return ids.some((id) => !present.has(id) || superseded.has(id));
+}
+
 function baseRequirementChanged(context: CaseSignalContext): boolean {
   const base = ofType(context, "req").find(
     (requirement) => requirement.id === PRECONDITION_IDS.base,
@@ -342,6 +372,14 @@ export function caseSignalObserved(
       );
     case "unchecked claim reported":
       return uncheckedClaimReported(context);
+    case "unresolved pair reported":
+      return (
+        answer.answer.verdict === "unresolved" &&
+        mentions(context, UNRESOLVED_RULE_IDS.settledAmount) &&
+        mentions(context, UNRESOLVED_RULE_IDS.chargeback)
+      );
+    case "resolving step reported":
+      return (answer.answer.nextStep ?? "").trim() !== "";
     case "no conflict reported":
       return (
         answer.answer.verdict !== null &&
@@ -416,6 +454,8 @@ export function caseForbiddenObserved(
       return answer.answer.governing.length > 0;
     case "consistency or proof overclaimed":
       return consistencyOverclaimed(context);
+    case "unresolved pair settled by supersession":
+      return unresolvedPairSettled(context);
     case "doubt invented for compatible pair":
       return (
         answer.answer.verdict !== null &&

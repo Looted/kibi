@@ -9,7 +9,11 @@ import {
 } from "node:fs/promises";
 import { join } from "node:path";
 import type { ArtifactPath } from "./artifact-path";
-import { JsonValueSchema, contractHash } from "./contracts/common";
+import {
+  JsonValueSchema,
+  OFFLINE_CONTRACT_SCHEMA_VERSION,
+  contractHash,
+} from "./contracts/common";
 import {
   LedgerEntrySchema,
   type RunState,
@@ -84,7 +88,7 @@ export class RunStore {
   }
 
   async appendLedger(input: {
-    category: "development" | "bundle";
+    category: "development";
     episodeId: string;
     amount: number;
   }): Promise<string> {
@@ -108,7 +112,7 @@ export class RunStore {
       }
     }
     const body = {
-      schemaVersion: "1.0.0" as const,
+      schemaVersion: OFFLINE_CONTRACT_SCHEMA_VERSION,
       artifactType: "ledger-entry" as const,
       runId: this.runId,
       sequence,

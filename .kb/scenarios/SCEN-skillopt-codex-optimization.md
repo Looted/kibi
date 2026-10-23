@@ -4,7 +4,7 @@ title: Codex-only SkillOpt candidates are gated before adoption
 type: scenario
 status: active
 created_at: 2026-07-21T00:00:00Z
-updated_at: 2026-08-09T00:00:00Z
+updated_at: 2026-10-21T00:00:00Z
 source: .kb/facts/FACT-skillopt-methodology.md
 priority: must
 tags: [skillopt, codex, evaluation, security]
@@ -17,7 +17,7 @@ origin:
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
-Given frozen baseline, one-shot, and SkillOpt skill-body variants with unchanged frontmatter and resources, when the evaluator scores 16 held-out tasks per variant and eight bundle tasks on Codex, then it applies the preregistered aggregate, family, bootstrap, security, and explicit-approval gates without treating OpenCode or Cursor as evaluated hosts.
+Given frozen baseline, one-shot, and SkillOpt skill-body variants with unchanged frontmatter and resources, when the evaluator scores 16 held-out tasks per variant for the selected skill on Codex, then it applies the preregistered aggregate, family, bootstrap, security, and explicit-approval gates without treating OpenCode or Cursor as evaluated hosts.
 
 Given the balanced public corpus, when optimization runs with `--max-steps 4`, then `gpt-5.6-sol` at xhigh effort performs four complete proposal rounds over all eight training cases, each proposal is scored across all four development families, and behavioral partial scores plus structured failure/tool/final-state evidence remain available to reflection.
 

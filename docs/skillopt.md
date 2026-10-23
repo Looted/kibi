@@ -25,7 +25,7 @@ the model-configuration tests still exercise explicit overrides and mismatches.
 
 ## Trust-plane scope
 
-**Primary path for improving the bundled skills:** authenticated Codex CLI SkillOpt. Select one of `kibi-usage`, `kibi-freshness`, `kibi-traceability`, or `kibi-bootstrap`; use the bundle suite for assembled acceptance. The scripts verify the pin, confirm the Codex login, and run the paid pipeline. `prepareExistingLogin` only mirrors that operator-owned session into a private Codex home; it does not provision credentials.
+**Primary path for improving the bundled skills:** authenticated Codex CLI SkillOpt. Select one of `kibi-usage`, `kibi-freshness`, `kibi-traceability`, `kibi-bootstrap`, `kibi-decisions`, or `kibi-commit-review`; each run evaluates that one skill. The scripts verify the pin, confirm the Codex login, and run the paid pipeline. `prepareExistingLogin` only mirrors that operator-owned session into a private Codex home; it does not provision credentials.
 
 Canonical skill mutation still requires a separate production-adoption verdict; SkillOpt review artifacts alone do not rewrite production skills.
 
@@ -113,7 +113,6 @@ an optimization loads `--seed-candidate`; historical files cannot bypass that ga
 | --- | --- | --- |
 | `skillopt:smoke` | `bun run scripts/skillopt-eval/operator.ts smoke` | Verifies the SkillOpt pin and Codex login, then runs the paid two-model capability canary. |
 | `skillopt:optimize` | `bun run scripts/skillopt-eval/operator.ts optimize --skill <skill>` | Verifies pin and login, materializes fixtures, allocates artifact roots, then runs the selected skill through preflight, smoke, Codex rewrite, public development gate, and held-out gates. Writes non-mutating review evidence only. Defaults to `--max-steps 1`; pass `--max-steps 1..4` for complete proposal rounds and `--seed-candidate PATH` to continue from preserved work. |
-| bundle suite | `bun run scripts/skillopt-eval/operator.ts suite` | Evaluates the assembled four-skill bundle and its compatibility/behavioral gates without selecting a single candidate for adoption. |
 | `skillopt:cursor` | `bun run scripts/skillopt-eval/cursor-operator.ts qualify` | Non-authoritative Cursor compatibility lane. `qualify` checks version, session, models, and Kibi MCP approval with no paid call. `compat --skill S --candidate PATH --fixture-run-root PATH` runs frozen candidate bodies through the shared fixtures, evaluator broker, independent verifier, and sealed scorer. Cursor results never feed Codex gates or adoption. |
 | `skillopt:history` | `bun run scripts/skillopt-eval/inspect-history.ts` | Screens historical SkillOpt candidates offline without authentication, model calls, training, mutation, or adoption. |
 | `skillopt:screen` | `bun run scripts/skillopt-eval/screen-history.ts` | Paid, bounded public-development comparison of explicitly selected historical candidates against the current baseline; never trains, runs held-out, or adopts. |
@@ -122,24 +121,6 @@ an optimization loads `--seed-candidate`; historical files cannot bypass that ga
 ```bash
 bun run skillopt:smoke
 bun run scripts/skillopt-eval/operator.ts optimize --skill kibi-usage
-bun run scripts/skillopt-eval/operator.ts suite --candidate-manifest /path/to/bundle-manifest.json
-```
-
-The bundle suite requires an explicit choice for every canonical skill. Candidate
-paths are resolved relative to the manifest and must reference validated campaign
-candidate manifests. A missing entry or file is an error, not a baseline fallback.
-
-```json
-{
-  "schemaVersion": "1.0.0",
-  "artifactType": "skillopt-bundle-manifest",
-  "entries": [
-    { "skill": "kibi-usage", "arm": "candidate", "manifestPath": "usage/candidate.json" },
-    { "skill": "kibi-freshness", "arm": "baseline" },
-    { "skill": "kibi-traceability", "arm": "baseline" },
-    { "skill": "kibi-bootstrap", "arm": "baseline" }
-  ]
-}
 ```
 
 To reuse a preserved candidate instead of starting the trainer from a fresh comparator:
@@ -202,11 +183,38 @@ bun run scripts/skillopt-eval/operator.ts optimize --skill kibi-usage --max-step
 The prices above are placeholders. Use the published list prices for the models
 you configure.
 
+### Choosing the agent harness
+
+Every SkillOpt run uses one agent harness ("host") for preflight, the
+capability canary, the optimizer step and target cells. Pick it per run with
+`--host codex|claude-code` on any `campaign.ts` command, on `cli.ts` and
+`operator.ts`, and on `host-cell-smoke.ts`. The flag wins over
+`KIBI_SKILLOPT_HOST`, which stays a fallback; with neither set the host is
+Codex. An unknown name exits with status 2 before any work. The resolved
+host is passed to child processes through `KIBI_SKILLOPT_HOST`, so an
+inherited value cannot override the flag. Both hosts are registered in one
+table, `runtime/skillopt-host-registry.ts`, which says how each one launches
+a cell, stages its runtime and replaces campaign steps.
+
+Each run records the host and its CLI version (`host: { id, cliVersion }`):
+in `campaign.json`, in the evaluation `context`, and in the package receipt.
+The host is not part of the cohort hash. `confirm` refuses a previous
+evaluation produced on another host with `evaluation_host_mismatch`, and
+`package --evaluation` refuses one with `package_evidence_host_mismatch`.
+Both checks run before the artifact store is opened or any paid preparation
+starts. Evaluations written before the host was recorded are attributed
+through the CLI version in their run's `preflight.json`. When neither record
+exists, the evaluation is refused with `evaluation_host_unrecorded`.
+
+The `cli.ts`/`operator.ts` workflow (preflight, smoke, prepare, optimize,
+evaluate, run, resume) and its run lock stay Codex-only. On another host,
+those commands exit with status 2 before preflight.
+
 ### Claude Code host
 
-Set `KIBI_SKILLOPT_HOST=claude-code` to run campaign `revise`, `compose`,
-`evaluate` and `confirm` through the Claude Code CLI instead of Codex (the
-default). The model variables above then take Claude model ids, for example
+Run campaign `revise`, `compose`, `evaluate` and `confirm` with
+`--host claude-code` to use the Claude Code CLI instead of Codex. The model
+variables above then take Claude model ids, for example
 `claude-opus-5-5` as the optimizer and `claude-haiku-5-5` as the target, and
 both need entries in `KIBI_SKILLOPT_MODEL_PRICING`. The capability canary makes
 one structured-output call per role. The `revise` optimizer call runs with no
@@ -215,6 +223,14 @@ output; its prompts, format repair and accepted output are the same as on
 Codex. Target cells have no OS sandbox on this host: isolation is permission
 rules plus the brokered MCP allowlist. `KIBI_SKILLOPT_CLAUDE_EXECUTABLE`
 overrides the `claude` binary found on `PATH`.
+
+Claude loads a project skill only when the model calls its Skill tool, and
+small targets rarely do. Each target cell therefore gets the assembled variant
+of the skill under evaluation appended to its system prompt, and `kb_skills`
+serves the assembled variants rather than the shipped skill text, so every arm
+reads the body it is scored on. The target's `PATH` is the `claude` directory
+plus `/usr/bin:/bin`, so `swipl` must be reachable there
+for the target's Kibi engine to start.
 
 ## What optimize runs
 
@@ -283,8 +299,11 @@ bun run skillopt:screen --allow-paid --skill kibi-usage --candidate-hash <SHA256
 ```
 
 The example reserves 30 target episodes: baseline plus two candidates, five
-public development tasks (four core families plus the supplemental family),
-and two repetitions. `kibi-bootstrap` has no supplemental family and keeps four. A fresh canary adds at most two
+public development tasks (four core families plus one supplemental family),
+and two repetitions. Most skills screen five development tasks. `kibi-freshness`
+screens six (two `consistency-report` tasks) and `kibi-usage` screens seven
+(its second supplemental family, `rule-lane-modeling`, adds two), so raise
+`--max-cells` accordingly. A fresh canary adds at most two
 model invocations. `--max-cells` limits target episodes, not provider-internal
 turns or dollars; token usage is preserved from episode receipts. Model failures
 stop the stage without automatic retries. The command does not generate a new
@@ -334,14 +353,28 @@ Diagnostic reconciliation is the multiset of successful model-originated Kibi ca
 
 ### Reasoning cases and evidence lanes
 
-Each of `kibi-usage`, `kibi-freshness` and `kibi-traceability` has a fifth,
-supplemental task family next to its four core families: `intent-consult`
+Each skill has at least one supplemental task family next to its four core
+families. For `kibi-usage`, `kibi-freshness` and `kibi-traceability` these are
+`intent-consult`
 (governing intent, abstention, observation versus policy, agent-origin
 provenance), `consistency-report` (incomplete versus complete contradiction
-analysis) and `scenario-feasibility` (a success scenario that a precondition
-forbids, before and after a human exception approval, and a rejection
-scenario). Each family has two training, one development and four held-out
-tasks. Campaign `evaluate`/`confirm` and `skillopt:screen` use all families.
+analysis, and a rule pair whose contradiction analysis is `unresolved`) and
+`scenario-feasibility` (a success scenario that a precondition forbids, before
+and after a human exception approval, and a rejection scenario). Each family
+has two training, one development and four held-out tasks, except
+`consistency-report`, which has two development tasks: the incomplete-analysis
+report and the unresolved rule pair. The unresolved case passes only when the
+final answer reports `unresolved` with both requirement IDs and a resolving
+step, and neither requirement is superseded; `kb_upsert` and `kb_delete` are
+forbidden.
+
+`kibi-usage` has a second supplemental family, `rule-lane-modeling`, scored
+like the predicate cases against the final store: a necessary condition that
+must become one rule (with the expected rule semantic key and a
+`requires_rule` edge, and no strict property value), a six-obligation paragraph
+mixing scalar and relational claims, and a held-out `unless` exception that
+must become a rule with exceptions under an approved project-local schema.
+It has no training tasks, two development tasks and one held-out task. Campaign `evaluate`/`confirm` and `skillopt:screen` use all families.
 The `intent-consult` development task asks for a change the governing
 requirement allows, so the agent is expected to edit `src/fixture.ts` and the
 cell measures whether a Kibi lookup comes before that first edit. The
@@ -349,14 +382,89 @@ contradicting request is a training task.
 The legacy `skillopt:optimize` trainer (eight training trajectories) and the
 16-task held-out aggregate gates keep the four core families.
 
+`kibi-decisions` has four core families and one supplemental family:
+
+- `stated-rule-capture`: the person states a new rule. The cell checks for a
+  new current requirement with `firmness: firm` whose `origin.ref` quotes the
+  person's words, a `specified_by` scenario and an `implements` link from
+  `src/fixture.ts`.
+- `firm-rule-conflict`: a request (some hook-style, declined-confirmation or
+  preference variants) contradicts the seeded firm rule. The cell expects an
+  interim stop with no KB write, an answer that cites the rule with verdict
+  `conflict`, and source that still holds the 32-character limit.
+- `supersede-with-reason`: the person changes the rule. The cell checks for a
+  firm superseding requirement that quotes them, the old requirement closed,
+  the code moved to the new rule, and a clean check (which enforces
+  `## Why this changed`).
+- `compile-intent-review`: the `kb_compile_intent` review loop. The second
+  compile must carry a `conflictReviews` verdict on the seeded rule. A
+  compatible intent must be applied with its plan hash and then made firm; a
+  conflicting intent must stop with the conflict reported.
+- `unrecorded-change-closeout` (supplemental): the Stop hook reports an
+  unrecorded source change. When the person stated the rule, record it firm
+  with their words. When it was the agent's own pick, record it as `default`,
+  never firm.
+
+`kibi-commit-review` has these families:
+
+- `staged-impact-missing`: a new exported helper is staged without symbol
+  evidence. The cell checks for an authored symbol linked to the seeded
+  requirement and test, and an answer that names
+  `kibi sync --refresh-symbol-coordinates`, `git add .kb/symbols.yaml` and
+  `kibi check --staged`.
+- `coordinate-refresh-only`: a comment-only or rename-only staged edit. The
+  cell expects no KB write and an answer that names the refresh and staging of
+  `.kb/symbol-coordinates.yaml`.
+- `impact-review-preparation`: the base commit carries an impact policy. The
+  cell checks that `kb_prepare_impact_review` ran and that the drafted
+  `.kibi/impact-review.json` keeps the prepared record headers and file set.
+  The `src/fixture.ts` decision must cite the seeded rule as `still_current`,
+  and `reviewer.id` must be left for the person.
+- `staged-rule-conflict`: the staged change contradicts the firm rule. The cell
+  expects an interim stop with the conflict reported.
+- `merge-commit-scope` (supplemental): a merge in progress. Evidence is
+  authored only for what the merge itself changed, never for the file taken
+  unchanged from the merged branch.
+
+The target sandbox has no shell and no kibi CLI. The commit-review prompts
+therefore quote the gate output and ask for the commands the person must run.
+Offline tests check that each quoted gate output matches what the real staged
+gate prints on the seed. They also check that the person's refresh, `git add`
+and `kibi check --staged` pass after the scripted solution.
+
 These cases start from deterministic seeded stores built by the real CLI:
 `seeded_governed_area_kb` (a closed requirement superseded by a current one,
 its rationale ADR, an observation fact, a passing test and a symbol still
 linked to the old requirement), `seeded_precondition_kb` (a compiled
 call-quota precondition with a zero-quota fact and a rejection scenario) and
 `seeded_consistency_kb` (one requirement with an unmodeled clause and a fully
-modeled compatible pair). Each setup must end with a clean check and fresh
-status before a target episode starts.
+modeled compatible pair) and `seeded_unresolved_rule_kb` (two human-approved
+refund rules with the same head whose conflict the engine reports as
+`unresolved`). Each setup must end with a clean check and fresh status before a
+target episode starts. The one exception is `seeded_unresolved_rule_kb`, whose
+check must report exactly the seeded unresolved rule conflict and nothing else;
+the final-state check accepts that one violation and no other.
+
+The decision and commit-review setups share one committed base: a firm,
+human-set rule (`REQ-fixture-family-name-length`, at most 32 characters), its
+scenario, a passing test and the enforcing symbol, with symbol coordinates
+refreshed and committed. Each setup then adds its own state:
+
+- `seeded_decision_kb`: the base alone.
+- `seeded_unrecorded_change_kb`: an uncommitted whitespace check.
+- `seeded_staged_symbol_kb`: a staged exported helper, with its requirement
+  and test already recorded.
+- `seeded_staged_coordinates_kb` and `seeded_staged_refactor_kb`: a staged
+  comment-only edit and a staged rename-only edit.
+- `seeded_impact_review_kb`: a committed impact policy and a staged message
+  change.
+- `seeded_staged_conflict_kb`: a staged 64-character limit.
+- `seeded_merge_commit_kb`: a merge in progress.
+
+The base passes a full check before staging. Offline tests check that no
+required signal of any task passes on its untouched seed. They also run one
+scripted MCP solution per objective and check that every signal and
+forbidden-action assertion passes.
 
 The evaluator reads three lanes beside the independent final-state queries:
 
@@ -370,8 +478,13 @@ The evaluator reads three lanes beside the independent final-state queries:
 - **Ordering.** From the Codex transcript: the index of the first `kb_search`,
   the first file change or patch, and the number of Kibi calls before that edit.
 - **Workspace assertions.** Regex assertions over the final `src/` files
-  (recorded as `final-workspace-src.json`), scored as critical final-state
-  entries such as `workspace-assert-governing-rule-preserved`.
+  (recorded as `final-workspace-src.json`, together with
+  `.kibi/impact-review.json` when the agent wrote one), scored as critical
+  final-state entries such as `workspace-assert-governing-rule-preserved`.
+- **Brokered call arguments.** Signals may read the arguments and results of the
+  target's brokered calls. For example, a `kb_compile_intent` call that carries
+  a `conflictReviews` verdict, or the record headers
+  `kb_prepare_impact_review` returned.
 
 `protocolContract.requiredCalls[].args` are enforced as subset predicates: an
 object matches when every listed field matches, and an array matches when every
@@ -415,7 +528,7 @@ never counted as a write.
 
 Real cell final-state scoring uses the independent verifier's all-entity `kb_query`, `kb_check`, and `kb_status` receipts. Valid evidence that shows a wrong fact or predicate lane is a behavioral failure and the optimizer may continue; `evidence-conflict` is reserved for malformed, unbound, hash-invalid, or contradictory evidence.
 
-The held-out predicate supplement always reserves all 36 cells for four cases, three variants, and three replicates. All SkillOpt predicate cells must hard-pass. Baseline and one-shot misses remain comparator evidence and do not by themselves veto a successful candidate; the ordinary paired and bundle gates still compare all three variants.
+The held-out predicate supplement always reserves all 36 cells for four cases, three variants, and three replicates. All SkillOpt predicate cells must hard-pass. Baseline and one-shot misses remain comparator evidence and do not by themselves veto a successful candidate; the ordinary paired skill gate still compares all three variants.
 
 ## Recovery
 

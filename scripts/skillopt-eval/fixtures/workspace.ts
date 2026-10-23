@@ -13,7 +13,7 @@ import { PRECONDITION_APPROVED_EXCEPTION } from "../runtime/fixture-seeds";
 import { bootstrapUserMode } from "./bootstrap-user";
 import type { parseTaskSpec } from "./contracts";
 import { onboardingReviewEvidence } from "./onboarding-review";
-import { predicateCaseById } from "./predicate-cases";
+import { isPredicateFamily, predicateCaseById } from "./predicate-cases";
 
 type FixtureTaskSpec = ReturnType<typeof parseTaskSpec>;
 type WorkspaceInput = Readonly<{
@@ -60,7 +60,22 @@ function writeJson(root: string, relative: string, value: unknown): void {
 
 function writeAdversarialFiles(input: WorkspaceInput): void {
   const cases = input.task.taskData.adversarialCases;
-  if (cases.includes("malformed-input")) {
+  if (
+    cases.includes("malformed-input") &&
+    input.task.taskData.objectiveCode === "validation_recovery"
+  ) {
+    // A rejected mutation that names its target: the documented fixture
+    // requirement. Validation diagnostics expose the invalid type and status,
+    // so the intended write is recoverable without guessing.
+    writeJson(input.root, "inputs/malformed.json", {
+      type: "requirement",
+      id: fixtureEntityIds(input.task.id).requirement,
+      properties: {
+        title: `${input.task.family} fixture requirement`,
+        status: "opened",
+      },
+    });
+  } else if (cases.includes("malformed-input")) {
     const target = path.join(input.root, "inputs", "malformed.json");
     mkdirSync(path.dirname(target), { recursive: true });
     writeFileSync(target, '{"id":');
@@ -154,7 +169,7 @@ function copyCanonicalSkills(input: WorkspaceInput): void {
     writeFileSync(target, readFileSync(source));
   }
   writeJson(input.root, "skills/bundle.json", {
-    selectedSkill: input.task.skill === "bundle" ? null : input.task.skill,
+    selectedSkill: input.task.skill,
     controls: CANONICAL_SKILLS.filter((skill) => skill !== input.task.skill),
     source: "canonical-copy-adapter",
   });
@@ -167,7 +182,7 @@ export function fixtureSymbolId(taskId: string): string {
 }
 
 // implements REQ-skillopt-logical-evidence-fidelity
-function fixtureEntityIds(taskId: string) {
+export function fixtureEntityIds(taskId: string) {
   const suffix = sha256(taskId).slice(0, 12).toUpperCase();
   return {
     requirement: `REQ-FIXTURE-${suffix}`,
@@ -318,7 +333,7 @@ export function writePublicWorkspace(input: WorkspaceInput): string {
   // Predicate-family tasks materialize the public claim and schema (no expected
   // outcome) from the semantically distinct registry. The private expectation
   // lives only in the evaluator/verifier lane.
-  if (input.task.family === "fact-predicate-modeling") {
+  if (isPredicateFamily(input.task.family)) {
     writePublicPredicateClaim(input);
   }
   const materializedFiles = [...listFiles(input.root)].sort();

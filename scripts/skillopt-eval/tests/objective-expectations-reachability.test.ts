@@ -1,5 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { OBJECTIVE_WORKFLOWS } from "../fixtures/objective-expectations";
+import {
+  DIRTY_SOURCE_OBJECTIVES,
+  OBJECTIVE_WORKFLOWS,
+} from "../fixtures/objective-expectations";
 
 // The final-state probe always runs kb_status after the episode, and the
 // staged fixture workspaces always have an attached branch store with a
@@ -12,38 +15,6 @@ describe("objective workflow expectations stay surface-reachable", () => {
         "not_evaluated",
       );
     }
-  });
-
-  test("mutating bundle objectives expect a dirtied verification snapshot", () => {
-    for (const code of [
-      "bundle_bootstrap_discovery",
-      "bundle_mutation_validation",
-      "bundle_mutation_validation_recovery",
-      "bundle_semantic_test",
-      "bundle_predicate_test",
-    ]) {
-      expect(OBJECTIVE_WORKFLOWS[code]?.expectedVerificationState, code).toBe(
-        "dirty",
-      );
-      expect(OBJECTIVE_WORKFLOWS[code]?.expectedKbState, code).toBe(
-        "clean_fresh",
-      );
-    }
-  });
-
-  test("read-only bundle objectives stay clean_fresh with fresh verification", () => {
-    expect(OBJECTIVE_WORKFLOWS.bundle_source_freshness?.expectedKbState).toBe(
-      "clean_fresh",
-    );
-    expect(
-      OBJECTIVE_WORKFLOWS.bundle_source_freshness?.expectedVerificationState,
-    ).toBe("fresh");
-    expect(OBJECTIVE_WORKFLOWS.bundle_source_stale?.expectedKbState).toBe(
-      "stale",
-    );
-    expect(
-      OBJECTIVE_WORKFLOWS.bundle_source_stale?.expectedVerificationState,
-    ).toBe("fresh");
   });
 
   test("thin bootstrap interim outcomes expect the staged thin posture", () => {
@@ -62,11 +33,19 @@ describe("objective workflow expectations stay surface-reachable", () => {
       "safe_typed_mutation",
       "validation_recovery",
       "approved_plan_apply",
-      "symbol_granularity",
     ]) {
       expect(OBJECTIVE_WORKFLOWS[code]?.expectedKbState, code).toBe(
         "clean_fresh",
       );
+      expect(OBJECTIVE_WORKFLOWS[code]?.expectedVerificationState, code).toBe(
+        "dirty",
+      );
+    }
+  });
+
+  test("dirty-source objectives expect the stale KB their staged edit produces", () => {
+    for (const code of DIRTY_SOURCE_OBJECTIVES) {
+      expect(OBJECTIVE_WORKFLOWS[code]?.expectedKbState, code).toBe("stale");
       expect(OBJECTIVE_WORKFLOWS[code]?.expectedVerificationState, code).toBe(
         "dirty",
       );

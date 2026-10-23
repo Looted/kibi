@@ -18,7 +18,8 @@ export const SkillSchema = z.enum([
   "kibi-freshness",
   "kibi-traceability",
   "kibi-bootstrap",
-  "bundle",
+  "kibi-decisions",
+  "kibi-commit-review",
 ]);
 
 // implements REQ-skillopt-codex-optimization

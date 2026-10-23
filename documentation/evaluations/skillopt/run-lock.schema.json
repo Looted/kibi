@@ -34,7 +34,7 @@
   ],
   "properties": {
     "schemaVersion": {
-      "$ref": "contract-definitions.schema.json#/$defs/schemaVersion"
+      "$ref": "contract-definitions.schema.json#/$defs/offlineSchemaVersion"
     },
     "artifactType": { "const": "run-lock" },
     "runId": {
@@ -192,13 +192,17 @@
         "kibi-usage",
         "kibi-freshness",
         "kibi-traceability",
-        "kibi-bootstrap"
+        "kibi-bootstrap",
+        "kibi-decisions",
+        "kibi-commit-review"
       ],
       "properties": {
         "kibi-usage": { "$ref": "#/$defs/skillSurfaceHashes" },
         "kibi-freshness": { "$ref": "#/$defs/skillSurfaceHashes" },
         "kibi-traceability": { "$ref": "#/$defs/skillSurfaceHashes" },
-        "kibi-bootstrap": { "$ref": "#/$defs/skillSurfaceHashes" }
+        "kibi-bootstrap": { "$ref": "#/$defs/skillSurfaceHashes" },
+        "kibi-decisions": { "$ref": "#/$defs/skillSurfaceHashes" },
+        "kibi-commit-review": { "$ref": "#/$defs/skillSurfaceHashes" }
       }
     },
     "seed": { "type": "integer", "minimum": 0 },
@@ -209,7 +213,6 @@
       "const": {
         "heldOutTasksPerVariant": 16,
         "familySlices": 4,
-        "bundleTasks": 8,
         "candidate": {
           "meanMinimum": 85,
           "hardPassesMinimum": 13,
@@ -225,15 +228,7 @@
           "lowerBoundExclusiveMinimum": 0,
           "clusterUnit": "task"
         },
-        "familyGuard": { "maxMeanRegression": 3, "maxHardPassRegression": 1 },
-        "bundle": {
-          "meanMinimum": 85,
-          "hardPassesMinimum": 7,
-          "hardPassesTotal": 8,
-          "meanDeltaMinimum": { "baseline": 3, "oneShot": 3 },
-          "allowHardPassLoss": false,
-          "maxCriticalFailures": 0
-        }
+        "familyGuard": { "maxMeanRegression": 3, "maxHardPassRegression": 1 }
       }
     }
   },
@@ -302,7 +297,6 @@
       "const": {
         "heldOutTasksPerVariant": 16,
         "familySlices": 4,
-        "bundleTasks": 8,
         "candidate": {
           "meanMinimum": 85,
           "hardPassesMinimum": 13,
@@ -318,15 +312,7 @@
           "lowerBoundExclusiveMinimum": 0,
           "clusterUnit": "task"
         },
-        "familyGuard": { "maxMeanRegression": 3, "maxHardPassRegression": 1 },
-        "bundle": {
-          "meanMinimum": 85,
-          "hardPassesMinimum": 7,
-          "hardPassesTotal": 8,
-          "meanDeltaMinimum": { "baseline": 3, "oneShot": 3 },
-          "allowHardPassLoss": false,
-          "maxCriticalFailures": 0
-        }
+        "familyGuard": { "maxMeanRegression": 3, "maxHardPassRegression": 1 }
       }
     }
   }

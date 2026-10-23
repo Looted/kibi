@@ -21,8 +21,6 @@ import { withHeldOutExecutionLease } from "../held-out-execution-lease";
 import { scoreCell } from "../scoring/cell";
 import { reserveTargetEpisode } from "../target-episode-budget";
 import { RequiredMcpStartupError } from "./canary-runtime";
-import { claudeCodeTargetHost, selectedSkillOptHost } from "./claude-code-host";
-import { persistRefreshedLogin, withCodexAuthLease } from "./codex-auth";
 import {
   persistCodexEpisode,
   readOptionalArtifact,
@@ -34,33 +32,39 @@ import {
   type CodexCellOptions,
   type CompletedCodexCell,
   FixtureIntegrityError,
-  type PreparedLogin,
   type TargetHost,
-  type TargetHostSession,
 } from "./codex-cell-types";
 import { replayCodexEpisode } from "./codex-episode";
+import {
+  isDecisionSetupMode,
+  setupDecisionFixture,
+} from "./decision-fixture-setup";
+import { IMPACT_REVIEW_PATH } from "./decision-seeds";
 import {
   FixtureSetupError,
   setupGeneratedCoordinateDivergence,
   setupSeededConsistencyKb,
+  setupSeededDirtyKb,
   setupSeededFreshKb,
   setupSeededGovernedAreaKb,
   setupSeededPartialKb,
   setupSeededPreconditionKb,
+  setupSeededSafeMutationKb,
   setupSeededStaleKb,
+  setupSeededUncoveredKb,
+  setupSeededUnresolvedRuleKb,
   setupThinRootKb,
   stopFixtureEngine,
 } from "./fixture-kb-setup";
 import { createIsolationWorkspace } from "./isolation-workspace";
-import {
-  SKILLOPT_EVALUATION_BRANCH,
-  buildCodexConfig,
-  buildCodexExecArgv,
-} from "./permissions";
+import { SKILLOPT_EVALUATION_BRANCH } from "./permissions";
 import { ProcessControlError } from "./process";
 import { assembleCanonicalSkills } from "./skill-assembly";
+import { selectedSkillOptHost } from "./skillopt-host";
+import { skillOptHostImplementation } from "./skillopt-host-registry";
 
 export { FixtureIntegrityError } from "./codex-cell-types";
+export { codexTargetHost } from "./codex-target-host";
 export type {
   CodexCellDependencies,
   CodexCellOptions,
@@ -127,6 +131,15 @@ export async function readWorkspaceSources(
     }
   };
   await visit(WORKSPACE_SOURCE_ROOT);
+  // The impact-review record the commit-review cases draft lives outside src/.
+  try {
+    files[IMPACT_REVIEW_PATH] = await readFile(
+      join(workspaceRoot, IMPACT_REVIEW_PATH),
+      "utf8",
+    );
+  } catch {
+    // No record was written.
+  }
   return files;
 }
 
@@ -161,84 +174,14 @@ async function createCellTempParent(): Promise<string> {
   throw lastError ?? new Error("no_short_private_temp_root");
 }
 
-/** The historical Codex target host: auth lease, private CODEX_HOME, exec. */
-// implements REQ-skillopt-codex-optimization
-export function codexTargetHost(
-  dependencies: Pick<CodexCellDependencies, "prepareLogin">,
-): TargetHost {
-  const logins = new WeakMap<TargetHostSession, PreparedLogin>();
-  return {
-    id: "codex",
-    withLease: withCodexAuthLease,
-    openSession: async ({ workspace, env }) => {
-      const login = await dependencies.prepareLogin({
-        privateCodexHome: workspace.codexHome,
-        sandboxHome: workspace.sandboxHome,
-        env,
-      });
-      const session: TargetHostSession = {
-        env: login.env,
-        privateRoots: [login.realCodexHome],
-        finalize: () =>
-          persistRefreshedLogin({
-            mode: login.mode,
-            realCodexHome: login.realCodexHome,
-            privateCodexHome: workspace.codexHome,
-          }),
-      };
-      logins.set(session, login);
-      return session;
-    },
-    prepareLaunch: async ({
-      options,
-      workspace,
-      broker,
-      outputSchemaPath,
-      session,
-    }) => {
-      const login = logins.get(session);
-      if (login === undefined) throw new Error("codex_session_unknown");
-      await writeFile(
-        join(workspace.codexHome, "config.toml"),
-        buildCodexConfig({
-          role: "target",
-          authMode: login.mode,
-          paths: {
-            workspace: workspace.target,
-            runPrivateHome: workspace.codexHome,
-            realCodexHome: login.realCodexHome,
-            sourceWorktree: options.sourceWorktree,
-            fixtureKb: join(workspace.target, ".kb"),
-            privateScorer: workspace.privateScorer,
-            privateEvidence: workspace.privateEvidence,
-            siblingRuns: workspace.siblingRun,
-          },
-          bwrapExecutable: options.bwrapExecutable,
-          codexExecutable: options.codexExecutable,
-          mcpServer: broker,
-        }),
-        { mode: 0o600 },
-      );
-      return {
-        argv: buildCodexExecArgv({
-          codexCommand: options.codexExecutable,
-          workspace: workspace.target,
-          outputSchema: outputSchemaPath,
-          role: "target",
-        }),
-      };
-    },
-  };
-}
-
 function selectedTargetHost(
   options: CodexCellOptions,
   dependencies: CodexCellDependencies,
 ): TargetHost {
   if (dependencies.targetHost !== undefined) return dependencies.targetHost;
-  return selectedSkillOptHost(options.env) === "claude-code"
-    ? claudeCodeTargetHost()
-    : codexTargetHost(dependencies);
+  return skillOptHostImplementation(
+    selectedSkillOptHost(options.env),
+  ).targetHost(dependencies);
 }
 
 function assertNoCallerScoreInjection(options: CodexCellOptions): void {
@@ -310,15 +253,9 @@ export async function runCodexCell(
       sourceRepoRoot: options.sourceWorktree,
       workspace: workspace.target,
       targetSkill: options.targetSkill,
-      ...(options.baselineSurfaces === undefined
-        ? {}
-        : { baselineSurfaces: options.baselineSurfaces }),
       ...(options.candidate === undefined
         ? {}
         : { candidate: options.candidate }),
-      ...(options.bundleCandidates === undefined
-        ? {}
-        : { candidates: options.bundleCandidates }),
     });
     return await host.withLease(options.env, async () => {
       const session = await host.openSession({ workspace, env: options.env });
@@ -353,6 +290,14 @@ export async function runCodexCell(
               const setupMode = options.evaluatorManifest.fixtureSetup;
               if (setupMode === "seeded_fresh_kb") {
                 await setupSeededFreshKb(workspace.target, stagingCliRoot);
+              } else if (setupMode === "seeded_uncovered_kb") {
+                await setupSeededUncoveredKb(workspace.target, stagingCliRoot);
+              } else if (setupMode === "seeded_safe_mutation_kb") {
+                await setupSeededSafeMutationKb(
+                  workspace.target,
+                  stagingCliRoot,
+                  request.taskId,
+                );
               } else if (setupMode === "seeded_governed_area_kb") {
                 await setupSeededGovernedAreaKb(
                   workspace.target,
@@ -368,12 +313,25 @@ export async function runCodexCell(
                   workspace.target,
                   stagingCliRoot,
                 );
+              } else if (setupMode === "seeded_unresolved_rule_kb") {
+                await setupSeededUnresolvedRuleKb(
+                  workspace.target,
+                  stagingCliRoot,
+                );
+              } else if (setupMode === "seeded_dirty_kb") {
+                await setupSeededDirtyKb(workspace.target, stagingCliRoot);
               } else if (setupMode === "seeded_partial_kb") {
                 await setupSeededPartialKb(workspace.target, stagingCliRoot);
               } else if (setupMode === "seeded_stale_kb") {
                 await setupSeededStaleKb(workspace.target, stagingCliRoot);
               } else if (setupMode === "thin_root_kb") {
                 await setupThinRootKb(workspace.target, stagingCliRoot);
+              } else if (isDecisionSetupMode(setupMode)) {
+                await setupDecisionFixture(
+                  workspace.target,
+                  stagingCliRoot,
+                  setupMode,
+                );
               }
             }
           } finally {

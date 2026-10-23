@@ -8,15 +8,18 @@ import {
   type DecisionSession,
   captureReminder,
   claimCaptureReminder,
+  claimSignoffReminder,
   confirmFirmEdits,
   firmEditNotice,
   firmRequirementsTouched,
   hasDecisionFlag,
   holdRuleNote,
+  isRequirementUpsert,
   markDecisionFlag,
   recordRequest,
   settleFirmRequirements,
   settledFirmRequirements,
+  signoffReminder,
   takeRuleNote,
 } from "kibi-agent-core/decision-guard";
 import {
@@ -473,6 +476,10 @@ export async function runHook(
           "kb_upsert"
       ) {
         markDecisionFlag(session, "kb-recorded");
+        // implements REQ-kibi-signoff-views
+        if (isRequirementUpsert(input.toolInput)) {
+          markDecisionFlag(session, "requirement-recorded");
+        }
       }
 
       const primaryPath = resolvePrimaryPath(input);
@@ -551,12 +558,16 @@ export async function runHook(
       // implements REQ-agent-hosts-decision-guard
       // Source changed and nothing was recorded: the follow-up asks for the
       // decision to be recorded, once per conversation.
-      const followupMessage = [
-        claimCaptureReminder(session)
-          ? captureReminder(hasDecisionFlag(session, "rule-prompt"))
-          : undefined,
-        stopFollowupMessage(state),
-      ]
+      const capture = claimCaptureReminder(session)
+        ? captureReminder(hasDecisionFlag(session, "rule-prompt"))
+        : undefined;
+      // implements REQ-kibi-signoff-views
+      // Requirements were written without a signoff view since: ask once.
+      const signoff =
+        capture === undefined && claimSignoffReminder(session, cwd)
+          ? signoffReminder()
+          : undefined;
+      const followupMessage = [capture, signoff, stopFollowupMessage(state)]
         .filter((part): part is string => part !== undefined)
         .join("\n");
       if (followupMessage) {

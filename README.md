@@ -5,6 +5,7 @@
 [![Coverage](https://codecov.io/gh/Looted/kibi/branch/develop/graph/badge.svg)](https://codecov.io/gh/Looted/kibi)
 [![Kibi requirement health](https://looted.github.io/kibi/kibi-report/badge.svg)](https://looted.github.io/kibi/kibi-report/)
 [![License: AGPL-3.0-or-later](https://img.shields.io/badge/license-AGPL--3.0--or--later-6f42c1.svg)](LICENSE.md)
+[![Glama MCP server](https://glama.ai/mcp/servers/Looted/kibi/badges/score.svg)](https://glama.ai/mcp/servers/Looted/kibi)
 [![X @kibi_dev](https://img.shields.io/badge/%40kibi__dev-000000.svg?logo=x&logoColor=white)](https://x.com/kibi_dev)
 
 **Prompt the intent. Kibi makes the agent remember it—and prove the implementation.**
@@ -188,7 +189,7 @@ Any stdio MCP client works with `command: npx`, `args: --no-install kibi-mcp`. Z
 
 ### What your agent gets
 
-Kibi's skill subsystem gives the agent four bundled skills that teach it how to work with Kibi, so you do not paste a long system prompt, and a small set of MCP tools does the rest:
+Kibi's skill subsystem gives the agent six bundled skills that teach it how to work with Kibi, so you do not paste a long system prompt, and a small set of MCP tools does the rest:
 
 - **Plain-language answers.** Ask "what governs checkout rounding?" and `kb_search` returns the current requirements, the tests and decisions behind them, and what Kibi's checks say about each.
 - **A review of every change.** `kb_check` on the files the agent touched quotes the requirements that code implements and flags new code no requirement covers.
@@ -203,6 +204,8 @@ npm exec -- kibi report --open
 ```
 
 `kibi report` writes a self-contained `kibi-report/index.html` and `kibi-report/badge.svg` from one coverage snapshot. `% proven` is the share of current requirements with fresh end-to-end proof on the current code; the report lists what is proven, what is missing proof, what contradicts, and what has gone stale. See [reading the report](https://looted.github.io/kibi/guide/reading-the-report.html).
+
+Before you sign off on a change, `kibi signoff` shows the requirements it adds, rewrites or affects, each quoted with its firmness and proof state, and `kibi signoff --questions` numbers the decisions waiting for you next to the rule each one would change. Agents put the view in their reply as plain Markdown, so it renders wherever the agent writes, including chat apps and cloud sessions where replies go through a messaging tool; the same view is a self-contained page in `.kb/briefs/signoff/latest.html`. Claude Code, Cursor, ZCode and OpenCode add a `/kibi-signoff` command, OpenCode draws the view as a card, VS Code opens it in a panel, and the agent hooks ask for it once a session has written requirements.
 
 To publish the report and a clickable badge on GitHub Pages, run `npm exec -- kibi init --github`, then enable **Settings → Pages → Source → GitHub Actions**. The [GitHub integration guide](https://looted.github.io/kibi/guide/github-integration.html) covers the [report workflow](docs/examples/github/kibi-report.yml), badge-only publishing, and a [CI step](docs/examples/github/kibi-kb-merge.yml) that keeps pull requests mergeable when only Kibi's own files conflict.
 

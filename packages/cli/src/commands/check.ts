@@ -50,6 +50,7 @@ import {
 } from "../public/impact-diagnostics.js";
 import type { QualityDiagnostic } from "../public/impact-diagnostics.js";
 import { executeCheck } from "../public/operations/check-executor.js";
+import { nodeGit } from "../public/operations/node-ports.js";
 import { refreshDetachedSnapshot } from "../runtime/detached-snapshot.js";
 import { amendsRootCommit } from "../traceability/commit-amend.js";
 import {
@@ -1318,6 +1319,9 @@ export async function checkCommand(
         workspaceRoot: process.cwd(),
         signal: new AbortController().signal,
         clock: () => new Date(),
+        // The workspace snapshot lets quality diagnostics read the same
+        // proof receipt evidence as kibi coverage.
+        git: nodeGit,
         prolog: {
           query: (goal) => activeProlog.query(goal),
           ...(activeProlog instanceof EngineClient

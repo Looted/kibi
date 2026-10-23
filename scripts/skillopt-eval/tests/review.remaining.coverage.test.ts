@@ -10,7 +10,7 @@ const OTHER = "b".repeat(64);
 
 function proposal(overrides: Record<string, unknown> = {}) {
   return {
-    schemaVersion: "1.0.0",
+    schemaVersion: "1.1.0",
     artifactType: "proposal",
     proposalId: "00000000-0000-4000-8000-000000000102",
     runId: "00000000-0000-4000-8000-000000000101",

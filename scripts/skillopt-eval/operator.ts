@@ -7,8 +7,14 @@ import { resolve } from "node:path";
 import { CANONICAL_SKILLS, type CanonicalSkill } from "./catalog";
 import { main as cliMain } from "./cli";
 import { materializeFixtureRun } from "./fixtures/private";
+import {
+  type SkillOptHost,
+  SkillOptHostSelectionError,
+  resolveSkillOptHost,
+} from "./runtime/skillopt-host";
+import { skillOptHostImplementation } from "./runtime/skillopt-host-registry";
 
-export type OperatorCommand = "smoke" | "optimize" | "suite";
+export type OperatorCommand = "smoke" | "optimize";
 
 export type OptimizeLayout = Readonly<{
   runId: string;
@@ -21,17 +27,18 @@ export type ParsedOperatorArgs = Readonly<{
   command: OperatorCommand;
   maxSteps: number;
   seedCandidate?: string;
-  candidateManifest?: string;
-  skill: CanonicalSkill | "bundle";
+  skill: CanonicalSkill;
   developmentOnly?: boolean;
+  host?: SkillOptHost;
 }>;
 
 export type OperatorRunOptions = Readonly<{
   maxSteps?: number;
   seedCandidate?: string;
-  candidateManifest?: string;
-  skill?: CanonicalSkill | "bundle";
+  skill?: CanonicalSkill;
   developmentOnly?: boolean;
+  /** The run's harness, forwarded to cli.ts as `--host`. */
+  host?: SkillOptHost;
 }>;
 
 export class OperatorUsageError extends Error {
@@ -243,19 +250,28 @@ async function preparePaidOptimize(
 // implements REQ-skillopt-codex-optimization
 export function parseOperatorArgs(args: readonly string[]): ParsedOperatorArgs {
   const command = args[0];
-  if (command !== "smoke" && command !== "optimize" && command !== "suite") {
+  if (command !== "smoke" && command !== "optimize") {
     throw new OperatorUsageError(
-      "Usage: bun run scripts/skillopt-eval/operator.ts <smoke|optimize|suite> [--skill kibi-usage|kibi-freshness|kibi-traceability|kibi-bootstrap] [--max-steps 1..4] [--seed-candidate PATH] [--candidate-manifest PATH] [--development-only]",
+      "Usage: bun run scripts/skillopt-eval/operator.ts <smoke|optimize> [--host codex] [--skill kibi-usage|kibi-freshness|kibi-traceability|kibi-bootstrap|kibi-decisions|kibi-commit-review] [--max-steps 1..4] [--seed-candidate PATH] [--development-only]",
     );
   }
   let maxSteps = 1;
-  let skill: CanonicalSkill | "bundle" =
-    command === "suite" ? "bundle" : "kibi-usage";
+  let skill: CanonicalSkill = "kibi-usage";
   let seedCandidate: string | undefined;
-  let candidateManifest: string | undefined;
   let developmentOnly = false;
+  let requestedHost: string | undefined;
   for (let index = 1; index < args.length; index += 1) {
     const arg = args[index];
+    if (arg === "--host") {
+      const value = args[index + 1];
+      if (value === undefined || value.startsWith("--"))
+        throw new OperatorUsageError("--host requires a value");
+      if (requestedHost !== undefined)
+        throw new OperatorUsageError("--host may be supplied once");
+      requestedHost = value;
+      index += 1;
+      continue;
+    }
     if (arg === "--development-only") {
       if (command !== "optimize") {
         throw new OperatorUsageError(
@@ -268,32 +284,19 @@ export function parseOperatorArgs(args: readonly string[]): ParsedOperatorArgs {
     if (
       arg === "--max-steps" ||
       arg === "--seed-candidate" ||
-      arg === "--skill" ||
-      arg === "--candidate-manifest"
+      arg === "--skill"
     ) {
-      if (arg === "--candidate-manifest") {
-        if (command !== "suite")
-          throw new OperatorUsageError(
-            "--candidate-manifest is only valid for suite",
-          );
-      } else if (command !== "optimize") {
+      if (command !== "optimize") {
         throw new OperatorUsageError(`${arg} is only valid for optimize`);
       }
       const value = args[index + 1];
       if (value === undefined || value.startsWith("--")) {
         throw new OperatorUsageError(`${arg} requires a value`);
       }
-      if (arg === "--candidate-manifest") {
-        if (candidateManifest !== undefined)
-          throw new OperatorUsageError(
-            "--candidate-manifest may be supplied once",
-          );
-        candidateManifest = value;
-      } else if (arg === "--seed-candidate") {
+      if (arg === "--seed-candidate") {
         seedCandidate = value;
       } else if (arg === "--skill") {
-        if (value === "bundle") skill = value;
-        else if ((CANONICAL_SKILLS as readonly string[]).includes(value))
+        if ((CANONICAL_SKILLS as readonly string[]).includes(value))
           skill = value as CanonicalSkill;
         else
           throw new OperatorUsageError(
@@ -313,16 +316,28 @@ export function parseOperatorArgs(args: readonly string[]): ParsedOperatorArgs {
     }
     throw new OperatorUsageError(`Unknown operator option: ${arg}`);
   }
-  if (command === "suite" && candidateManifest === undefined) {
-    throw new OperatorUsageError("suite requires --candidate-manifest PATH");
+  let host: SkillOptHost;
+  try {
+    host = resolveSkillOptHost({ requested: requestedHost });
+  } catch (error) {
+    if (error instanceof SkillOptHostSelectionError)
+      throw new OperatorUsageError(error.message);
+    throw error;
+  }
+  // The operator stages a Codex login and the Codex trainer bridge; another
+  // harness is refused here, before any paid preparation.
+  if (!skillOptHostImplementation(host).legacyWorkflow) {
+    throw new OperatorUsageError(
+      `${command} does not run on host ${host}; use campaign.ts --host ${host}`,
+    );
   }
   return {
     command,
     maxSteps,
     skill,
     developmentOnly,
+    ...(requestedHost === undefined ? {} : { host }),
     ...(seedCandidate === undefined ? {} : { seedCandidate }),
-    ...(candidateManifest === undefined ? {} : { candidateManifest }),
   };
 }
 
@@ -332,9 +347,6 @@ export async function runOperatorCommand(
   dependencies: OperatorDependencies = defaultOperatorDependencies,
   options: OperatorRunOptions = {},
 ): Promise<number> {
-  if (command === "suite" && options.candidateManifest === undefined) {
-    throw new OperatorUsageError("suite requires --candidate-manifest PATH");
-  }
   await ensureUvPin(dependencies);
   await ensureCodexLogin(dependencies);
   if (command === "smoke") {
@@ -345,36 +357,12 @@ export async function runOperatorCommand(
       "--allow-paid",
       "--run-id",
       runId,
-    ]);
-  }
-  if (command === "suite") {
-    const layout = await preparePaidOptimize(dependencies);
-    process.stderr.write(
-      `skillopt suite run-id=${layout.runId}\nartifact-root=${layout.artifactRoot}\nfixture-run-root=${layout.fixtureRunRoot}\n`,
-    );
-    return await dependencies.runCli([
-      "bundle",
-      "--allow-paid",
-      "--run-id",
-      layout.runId,
-      "--artifact-root",
-      layout.artifactRoot,
-      "--fixture-run-root",
-      layout.fixtureRunRoot,
-      "--skill",
-      "all",
-      "--candidate-manifest",
-      resolve(dependencies.cwd, options.candidateManifest as string),
+      ...hostArgs(options),
     ]);
   }
   const maxSteps = options.maxSteps ?? 1;
   if (!Number.isInteger(maxSteps) || maxSteps < 1 || maxSteps > 4) {
     throw new OperatorUsageError("--max-steps must be an integer from 1 to 4");
-  }
-  if (options.skill === "bundle") {
-    throw new OperatorUsageError(
-      "optimize requires --skill kibi-usage|kibi-freshness|kibi-traceability|kibi-bootstrap",
-    );
   }
   const selectedSkill = options.skill ?? "kibi-usage";
   const layout = await preparePaidOptimize(dependencies);
@@ -398,7 +386,12 @@ export async function runOperatorCommand(
     ...(options.seedCandidate === undefined
       ? []
       : ["--seed-candidate", resolve(dependencies.cwd, options.seedCandidate)]),
+    ...hostArgs(options),
   ]);
+}
+
+function hostArgs(options: OperatorRunOptions): readonly string[] {
+  return options.host === undefined ? [] : ["--host", options.host];
 }
 
 export async function main(
@@ -420,12 +413,10 @@ export async function main(
       maxSteps: parsed.maxSteps,
       skill: parsed.skill,
       developmentOnly: parsed.developmentOnly,
+      ...(parsed.host === undefined ? {} : { host: parsed.host }),
       ...(parsed.seedCandidate === undefined
         ? {}
         : { seedCandidate: parsed.seedCandidate }),
-      ...(parsed.candidateManifest === undefined
-        ? {}
-        : { candidateManifest: parsed.candidateManifest }),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

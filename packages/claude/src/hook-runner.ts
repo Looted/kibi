@@ -56,16 +56,20 @@ import {
   DIRECT_KB_ACCESS_NOTE,
   type LineRange,
   captureReminder,
+  claimSignoffReminder,
   editKnowledgeUpdate,
   fileKnowledgeSnippet,
   firmEditConfirmation,
   firmEditContext,
   focusUpdate,
   focusedSymbols,
+  isRequirementUpsert,
+  markDecisionFlag,
   rulePromptNote,
   searchTip,
   sessionStartContext,
   editFocus as sharedEditFocus,
+  signoffReminder,
   statedRule,
   stopReminder,
   unownedSourceNote,
@@ -773,6 +777,16 @@ function postToolUse(
   } else {
     const usage = extractMcpKbUsage(toolName, input.toolInput);
     if (usage) recordUsage(usage);
+    // implements REQ-kibi-signoff-views
+    if (
+      usage?.operation === "kb_upsert" &&
+      isRequirementUpsert(input.toolInput)
+    ) {
+      markDecisionFlag(
+        { stateDir: workspace.stateDir, sessionId: input.sessionId },
+        "requirement-recorded",
+      );
+    }
   }
 
   appendSessionEvents(workspace.stateDir, events);
@@ -797,19 +811,33 @@ function stop(
     state.sourceEdited &&
     !state.kbRecorded &&
     !state.notices.has("capture-stop");
-  if (unreminded.length === 0 && !capture) return {};
+  // implements REQ-kibi-signoff-views
+  // Requirements were written and the person has not seen a signoff view:
+  // ask once for `kibi signoff` before the work is reported done.
+  const signoff =
+    !capture &&
+    claimSignoffReminder(
+      { stateDir: workspace.stateDir, sessionId: input.sessionId },
+      workspace.root,
+    );
+  if (unreminded.length === 0 && !capture && !signoff) return {};
   const events: SessionEvent[] = [];
   const parts: string[] = [];
   if (capture) {
     events.push({ kind: "notice", name: "capture-stop" });
     parts.push(captureReminder(state.rulePrompt));
   }
+  if (signoff) parts.push(signoffReminder());
   if (unreminded.length > 0) {
     events.push({ kind: "reminded", paths: unreminded });
     parts.push(stopReminder(unreminded));
   }
   appendSessionEvents(workspace.stateDir, events);
-  trace.action = capture ? "stop_capture_reminder" : "stop_reminder";
+  trace.action = capture
+    ? "stop_capture_reminder"
+    : signoff
+      ? "stop_signoff_reminder"
+      : "stop_reminder";
   trace.kbUsedBefore = state.kbUsed;
   return context("Stop", parts.join("\n"));
 }

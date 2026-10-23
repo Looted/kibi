@@ -51,7 +51,6 @@ describe("SkillOpt methodology contract", () => {
           const: {
             heldOutTasksPerVariant: 16,
             familySlices: 4,
-            bundleTasks: 8,
             candidate: {
               meanMinimum: 85,
               hardPassesMinimum: 13,
@@ -71,19 +70,45 @@ describe("SkillOpt methodology contract", () => {
               maxMeanRegression: 3,
               maxHardPassRegression: 1,
             },
-            bundle: {
-              meanMinimum: 85,
-              hardPassesMinimum: 7,
-              hardPassesTotal: 8,
-              meanDeltaMinimum: { baseline: 3, oneShot: 3 },
-              allowHardPassLoss: false,
-              maxCriticalFailures: 0,
-            },
           },
         },
       },
     });
     expect(JSON.parse(reportSchema)).toMatchObject({ type: "object" });
     expect(JSON.parse(preflightSchema)).toMatchObject({ type: "object" });
+  });
+
+  test("carries no assembled-bundle gate, phase or result in the offline contracts", () => {
+    const methodology = readFileSync(methodologyPath, "utf8");
+    expect(methodology).not.toMatch(/bundle/i);
+    for (const fileName of [
+      "contract-definitions.schema.json",
+      "run-lock.schema.json",
+      "run-state.schema.json",
+      "ledger-entry.schema.json",
+      "report.schema.json",
+      "proposal.schema.json",
+      "approval.schema.json",
+      "episode-request.schema.json",
+    ]) {
+      expect(readEvaluationFile(fileName)).not.toContain("bundle");
+    }
+    const definitions = JSON.parse(
+      readEvaluationFile("contract-definitions.schema.json"),
+    );
+    expect(definitions.$defs.offlineSchemaVersion).toEqual({ const: "1.1.0" });
+    for (const fileName of [
+      "run-lock.schema.json",
+      "run-state.schema.json",
+      "ledger-entry.schema.json",
+      "proposal.schema.json",
+      "approval.schema.json",
+    ]) {
+      expect(
+        JSON.parse(readEvaluationFile(fileName)).properties.schemaVersion,
+      ).toEqual({
+        $ref: "contract-definitions.schema.json#/$defs/offlineSchemaVersion",
+      });
+    }
   });
 });

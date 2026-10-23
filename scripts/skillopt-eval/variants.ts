@@ -101,6 +101,9 @@ function assertBodyEncoding(body: string): void {
   }
 }
 
+const PROHIBITED_HOST_OR_PROVIDER_CLAIM =
+  /\b(?:OpenCode|Cursor)\b|(?:OPENAI|CODEX)_API_KEY|provider\s+(?:SDK|API)/i;
+
 function hasDirectKbGuidance(line: string): boolean {
   if (!/\.kb\b/i.test(line)) return false;
   if (!/(?:read|write|edit|modify|access|inspect|open|use)/i.test(line)) {
@@ -109,8 +112,68 @@ function hasDirectKbGuidance(line: string): boolean {
   return !/(?:do not|don't|never|avoid|instead of|without)/i.test(line);
 }
 
-// implements REQ-skillopt-codex-optimization
-export function validateCandidateBody(body: string): void {
+/**
+ * Marks each candidate line that the baseline does not already contain, as a
+ * multiset: repeating a baseline line counts as adding it again.
+ */
+function addedLineMask(
+  lines: readonly string[],
+  baselineBody: string,
+): readonly boolean[] {
+  const available = new Map<string, number>();
+  if (baselineBody.length > 0) {
+    for (const line of baselineBody.split(/\r?\n/)) {
+      available.set(line, (available.get(line) ?? 0) + 1);
+    }
+  }
+  return lines.map((line) => {
+    const count = available.get(line) ?? 0;
+    if (count === 0) return true;
+    available.set(line, count - 1);
+    return false;
+  });
+}
+
+/**
+ * Content policy covers only what the candidate adds or changes. Baseline
+ * lines are the reviewed canonical text, so a claim or `.kb` reference they
+ * already carry is not the candidate's to answer for; a claim the candidate
+ * writes, alone or by completing a baseline line, still is.
+ */
+function assertCandidateContentPolicy(
+  body: string,
+  baselineBody: string,
+): void {
+  const lines = body.split(/\r?\n/);
+  const added = addedLineMask(lines, baselineBody);
+  // NUL cannot occur in a valid body, so it stands in for a trusted line
+  // without letting a multi-line match bridge across it.
+  const addedText = lines
+    .map((line, index) => (added[index] ? line : "\u0000"))
+    .join("\n");
+  const completesBaselineLine = lines.some((line, index) => {
+    const next = lines[index + 1];
+    if (next === undefined || !(added[index] || added[index + 1])) {
+      return false;
+    }
+    return (
+      PROHIBITED_HOST_OR_PROVIDER_CLAIM.test(`${line}\n${next}`) &&
+      !PROHIBITED_HOST_OR_PROVIDER_CLAIM.test(line) &&
+      !PROHIBITED_HOST_OR_PROVIDER_CLAIM.test(next)
+    );
+  });
+  if (
+    PROHIBITED_HOST_OR_PROVIDER_CLAIM.test(addedText) ||
+    completesBaselineLine
+  ) {
+    throw new CandidateValidationError("prohibited_host_or_provider_claim");
+  }
+  if (lines.some((line, index) => added[index] && hasDirectKbGuidance(line))) {
+    throw new CandidateValidationError("direct_kb_guidance");
+  }
+}
+
+function assertCandidateStructure(body: string): void {
   if (typeof body !== "string" || body.trim().length === 0) {
     throw new CandidateValidationError("empty");
   }
@@ -118,16 +181,26 @@ export function validateCandidateBody(body: string): void {
   if (/^---\r?\n/.test(body)) {
     throw new CandidateValidationError("frontmatter_changed");
   }
-  if (
-    /\b(?:OpenCode|Cursor)\b|(?:OPENAI|CODEX)_API_KEY|provider\s+(?:SDK|API)/i.test(
-      body,
-    )
-  ) {
-    throw new CandidateValidationError("prohibited_host_or_provider_claim");
-  }
-  if (body.split(/\r?\n/).some(hasDirectKbGuidance)) {
-    throw new CandidateValidationError("direct_kb_guidance");
-  }
+}
+
+/** Validates a body written from scratch: every line counts as candidate text. */
+// implements REQ-skillopt-codex-optimization
+export function validateCandidateBody(body: string): void {
+  validateCandidateBodyAgainstBaseline(body, "");
+}
+
+/**
+ * Validates a candidate revision of `baselineBody`. Structural checks apply
+ * to the whole body; content-safety checks judge only the lines the candidate
+ * adds or changes relative to the trusted baseline.
+ */
+// implements REQ-skillopt-codex-optimization
+export function validateCandidateBodyAgainstBaseline(
+  body: string,
+  baselineBody: string,
+): void {
+  assertCandidateStructure(body);
+  assertCandidateContentPolicy(body, baselineBody);
 }
 
 /**
@@ -153,11 +226,7 @@ export function validateCandidateDescription(description: string): void {
   if (/[<>]/.test(description)) {
     throw new CandidateValidationError("description_angle_bracket");
   }
-  if (
-    /\b(?:OpenCode|Cursor)\b|(?:OPENAI|CODEX)_API_KEY|provider\s+(?:SDK|API)/i.test(
-      description,
-    )
-  ) {
+  if (PROHIBITED_HOST_OR_PROVIDER_CLAIM.test(description)) {
     throw new CandidateValidationError("prohibited_host_or_provider_claim");
   }
   if (hasDirectKbGuidance(description)) {

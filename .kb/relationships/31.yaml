@@ -304,3 +304,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-66b1280f7a68
+  - type: constrains
+    from: REQ-kibi-signoff-views
+    to: FACT-SUBJECT-KIBI-SIGNOFF-VIEWS
+    created_at: 2026-10-22T09:25:17.989Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71b0bbc1f690
+  - type: requires_property
+    from: REQ-kibi-signoff-views
+    to: FACT-kibi-signoff-lists-changed-requirements
+    created_at: 2026-10-22T09:25:18.022Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05d719f8a5bb
+  - type: requires_property
+    from: REQ-kibi-signoff-views
+    to: FACT-kibi-signoff-numbers-decisions
+    created_at: 2026-10-22T09:25:18.043Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83d5acfe57e5
+  - type: requires_property
+    from: REQ-kibi-signoff-views
+    to: FACT-kibi-signoff-writes-latest-view
+    created_at: 2026-10-22T09:25:18.057Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c66719913978
+  - type: requires_property
+    from: REQ-kibi-signoff-views
+    to: FACT-kibi-signoff-hosts-render-view
+    created_at: 2026-10-22T09:25:18.071Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5109ddaed1d1
+  - type: relates_to
+    from: REQ-kibi-signoff-views
+    to: REQ-kb-decision-firmness
+    created_at: 2026-10-22T09:25:18.082Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a51937440185
+  - type: relates_to
+    from: REQ-kibi-signoff-views
+    to: REQ-kb-check-unverified-requirement-statements
+    created_at: 2026-10-22T09:25:18.092Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3cbb45d9e717
+  - type: specified_by
+    from: REQ-kibi-signoff-views
+    to: SCEN-kibi-signoff-views
+    created_at: 2026-10-22T09:25:38.167Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d870cf4c3240
+  - type: verified_by
+    from: REQ-kibi-signoff-views
+    to: TEST-kibi-signoff-views
+    created_at: 2026-10-22T09:25:38.192Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fdcefacda5cc
+  - type: requires_property
+    from: REQ-kibi-signoff-views
+    to: FACT-kibi-signoff-default-chat-markdown
+    created_at: 2026-10-23T10:11:45.140Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8760f2270ce2
+  - type: requires_property
+    from: REQ-kibi-signoff-views
+    to: FACT-kibi-signoff-stop-hooks-ask-for-view
+    created_at: 2026-10-23T10:11:45.170Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b1621262597e

@@ -110,7 +110,7 @@ describe("SkillOpt JSON schemas", () => {
     const fixture = readJson(fixturePath);
 
     expect(ajv.validate("run-lock.schema.json", fixture)).toBe(true);
-    expect(RunLockSchema.parse(fixture).schemaVersion).toBe("1.0.0");
+    expect(RunLockSchema.parse(fixture).schemaVersion).toBe("1.1.0");
   });
 
   test("keeps JSON Schema and Zod acceptance and serialization aligned", () => {

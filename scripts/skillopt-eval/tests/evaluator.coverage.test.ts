@@ -2,7 +2,6 @@
 // implements REQ-skillopt-codex-optimization
 import { describe, expect, test } from "bun:test";
 import {
-  buildBundleCatalog,
   buildHeldOutCatalog,
   buildPublicCatalog,
   buildSkillCatalog,
@@ -132,7 +131,11 @@ describe("buildPrivateManifest remaining required-tool and workflow branches", (
       "kb_query",
       "kb_semantic_advisor",
       "kb_suggest_predicates",
-      "kb_model_requirement",
+      ...(["strict_property", "rule"].includes(
+        manifest.predicateExpectation?.expectedLane ?? "",
+      )
+        ? ["kb_model_requirement"]
+        : []),
       "kb_upsert",
       "kb_check",
     ]);
@@ -202,22 +205,6 @@ describe("buildPrivateManifest remaining required-tool and workflow branches", (
       deleted.orderedMcpPredicates.required.some(
         ({ tool }) => tool === "kb_delete",
       ),
-    ).toBe(true);
-
-    const bundle = buildBundleCatalog()[0];
-    if (bundle === undefined) throw new Error("bundle fixture missing");
-    const bundleManifest = buildPrivateManifest({
-      task: bundle as unknown as Parameters<
-        typeof buildPrivateManifest
-      >[0]["task"],
-      publicManifestHash: "a".repeat(64),
-      workspaceHash: "b".repeat(64),
-    });
-    expect(
-      bundleManifest.orderedMcpPredicates.required.map(({ tool }) => tool),
-    ).toEqual(expect.arrayContaining(["kb_plan_bootstrap", "kb_search"]));
-    expect(
-      verifyPrivateManifestIntegrity(bundle as never, bundleManifest as never),
     ).toBe(true);
 
     const predicate = [...buildPublicCatalog(), ...buildHeldOutCatalog()].find(

@@ -6,20 +6,6 @@ import {
   ArtifactRootRequiredError,
   prepareArtifactPath,
 } from "./artifact-path";
-import {
-  type BundleSurface,
-  type BundleSurfaces,
-  runPaidBundleGate,
-} from "./bundle-workflow";
-import {
-  CampaignArtifactError,
-  type CampaignSourceSurface,
-  campaignCandidateSurface,
-  readBundleCandidateManifest,
-  sha256Text,
-  validateCampaignManifestAgainstSurface,
-} from "./campaign-artifacts";
-import { CANONICAL_SKILLS } from "./catalog";
 import { CliUsageError, type WorkflowOptions } from "./cli-options";
 import {
   EvaluationInfrastructureError,
@@ -34,7 +20,7 @@ import {
 import { RunStore, runOfflineWorkflow } from "./orchestration";
 import { runCapabilityCanary, runPreflight } from "./preflight";
 import { prepareArtifact } from "./prepared-root";
-import { campaignSurface, runRealOptimization } from "./real-workflow";
+import { runRealOptimization } from "./real-workflow";
 import type { HeldOutCellRunner } from "./real-workflow-types";
 import { runCodexCell } from "./runtime/codex-cell-runner";
 import {
@@ -64,7 +50,6 @@ export type WorkflowDependencies = Readonly<{
   readonly runRealOptimization: typeof runRealOptimization;
   readonly evaluateHeldOut: typeof defaultEvaluateHeldOut;
   readonly cellRunner: HeldOutCellRunner;
-  readonly resolveBundleSurfaces?: typeof resolveBundleSurfaces;
   readonly createCodexRuntimeLease: (
     options: Readonly<{ artifactRoot: string }>,
   ) => Promise<CodexRuntimeLease>;
@@ -78,71 +63,6 @@ export const defaultWorkflowDependencies = {
   cellRunner: runCodexCell,
   createCodexRuntimeLease,
 } satisfies WorkflowDependencies;
-
-export type BundleSurfaceSet = Readonly<{
-  baselineSurfaces: BundleSurfaces;
-  candidateSurfaces: BundleSurfaces;
-}>;
-
-export async function resolveBundleSurfaces(
-  sourceRoot: string,
-  bundleManifestPath: string,
-): Promise<BundleSurfaceSet> {
-  const bundle = await readBundleCandidateManifest(bundleManifestPath);
-  const sourceSurfaces = new Map<
-    (typeof CANONICAL_SKILLS)[number],
-    CampaignSourceSurface
-  >();
-  const baselineEntries = await Promise.all(
-    CANONICAL_SKILLS.map(async (skill) => {
-      // The parsed frontmatter only validates described manifests; the gate's
-      // surfaces (and its verdict report) keep their hash-only shape.
-      const { manifest: frontmatter, ...current } = await campaignSurface(
-        sourceRoot,
-        skill,
-      );
-      sourceSurfaces.set(skill, { ...current, manifest: frontmatter });
-      return [skill, current] as const;
-    }),
-  );
-  const baselineSurfaces = Object.fromEntries(
-    baselineEntries,
-  ) as BundleSurfaces;
-  const candidateSurfaces = { ...baselineSurfaces } as Record<
-    (typeof CANONICAL_SKILLS)[number],
-    BundleSurface
-  >;
-
-  for (const entry of bundle.bundle.entries) {
-    if (entry.arm === "baseline") continue;
-    const manifest = bundle.candidates.get(entry.skill);
-    if (manifest === undefined)
-      throw new CampaignArtifactError("bundle_candidate_manifest_missing");
-    const current = sourceSurfaces.get(entry.skill);
-    if (current === undefined)
-      throw new CampaignArtifactError("bundle_candidate_manifest_missing");
-    validateCampaignManifestAgainstSurface(manifest, current);
-    const { description } = campaignCandidateSurface(manifest);
-    candidateSurfaces[entry.skill] = {
-      body: manifest.frozenBody,
-      frontmatterHash: manifest.frontmatterHash,
-      resourcesHash: manifest.resourcesHash,
-      ...(description === undefined ? {} : { description }),
-    } satisfies BundleSurface;
-  }
-
-  if (
-    !CANONICAL_SKILLS.some(
-      (skill) =>
-        sha256Text(baselineSurfaces[skill].body) !==
-          sha256Text(candidateSurfaces[skill].body) ||
-        candidateSurfaces[skill].description !== undefined,
-    )
-  ) {
-    throw new CampaignArtifactError("bundle_no_improvement");
-  }
-  return { baselineSurfaces, candidateSurfaces };
-}
 
 type WorkflowExecution = Readonly<{
   options: WorkflowOptions;
@@ -274,8 +194,6 @@ async function runWorkflowAtRoot(
       dependencies,
       artifactPath,
     );
-  if (command === "bundle" && !options.fake)
-    return await runPaidBundleStage(options, dependencies, artifactPath);
   if (!options.fake)
     throw new CliUsageError(
       `${command} requires --fake until the bounded real smoke gate is enabled`,
@@ -302,9 +220,7 @@ async function runPaidOptimization(
     );
   assertSkillOptModelsReadyForPaidWork();
   if (options.skill === undefined || options.skill === "all")
-    throw new CliUsageError(
-      "real optimize requires one --skill (use bundle for the assembled suite)",
-    );
+    throw new CliUsageError("real optimize requires one --skill");
   if (options.cellRuntime === undefined)
     throw new CliUsageError(
       "optimize requires --fixture-run-root for bounded Codex cells",
@@ -312,7 +228,7 @@ async function runPaidOptimization(
   let env = process.env;
   if (options.developmentOnly === true) {
     // Development-only runs are the bounded paid lane. The normal optimize
-    // route and the separate bundle stage retain their existing budgets.
+    // route retains its existing budget.
     try {
       const budgetEnv = await initializeTargetEpisodeBudget(
         options.artifactRoot,
@@ -458,94 +374,6 @@ async function reportTargetBudgetFailure(
   );
   process.stdout.write(`${JSON.stringify(failure)}\n`);
   return 1;
-}
-
-// implements REQ-skillopt-codex-optimization
-async function runPaidBundleStage(
-  options: WorkflowOptions,
-  dependencies: WorkflowDependencies,
-  artifactPath: ArtifactPath,
-): Promise<number> {
-  if (!options.allowPaid)
-    throw new CliUsageError(
-      "bundle requires --allow-paid after preflight and smoke",
-    );
-  assertSkillOptModelsReadyForPaidWork();
-  if (options.skill !== "all")
-    throw new CliUsageError("real bundle requires --skill all");
-  if (options.cellRuntime === undefined)
-    throw new CliUsageError(
-      "bundle requires --fixture-run-root for bounded Codex cells",
-    );
-  if (options.candidateManifest === undefined)
-    throw new CliUsageError("bundle requires --candidate-manifest PATH");
-  const sourceWorktree = options.sourceRoot ?? process.cwd();
-  let bundleSurfaces: BundleSurfaceSet;
-  try {
-    bundleSurfaces = await (
-      dependencies.resolveBundleSurfaces ?? resolveBundleSurfaces
-    )(sourceWorktree, options.candidateManifest);
-  } catch (error) {
-    if (error instanceof CliUsageError) throw error;
-    throw new CliUsageError(
-      `bundle candidate manifest rejected: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    );
-  }
-  const preflight = await dependencies.runPreflight({
-    runId: options.runId,
-    sourceWorktree,
-    artifactRoot: options.artifactRoot,
-  });
-  await writeGateReceipt(artifactPath, "preflight.json", preflight);
-  if (preflight.verdict !== "pass") {
-    process.stdout.write(
-      `${JSON.stringify({ command: "bundle", stage: "preflight", ...preflight })}\n`,
-    );
-    return 1;
-  }
-  const smoke = await dependencies.runCapabilityCanary({
-    runId: options.runId,
-    sourceWorktree,
-    artifactRoot: options.artifactRoot,
-  });
-  await writeGateReceipt(artifactPath, "smoke.json", smoke);
-  if (smoke.verdict !== "pass") {
-    process.stdout.write(
-      `${JSON.stringify({ command: "bundle", stage: "smoke", ...smoke })}\n`,
-    );
-    return 1;
-  }
-  const runtimeLease = await dependencies.createCodexRuntimeLease({
-    artifactRoot: options.artifactRoot,
-  });
-  try {
-    const result = await runPaidBundleGate(
-      {
-        runId: options.runId,
-        artifactRoot: options.artifactRoot,
-        sourceWorktree,
-        fixtureRunRoot: options.cellRuntime.fixtureRunRoot,
-        baselineSurfaces: bundleSurfaces.baselineSurfaces,
-        candidateSurfaces: bundleSurfaces.candidateSurfaces,
-        env: process.env,
-        codexExecutable: runtimeLease.codexExecutable,
-        bwrapExecutable: runtimeLease.bwrapExecutable,
-      },
-      { runCodexCell: async (cellOptions) => await runCodexCell(cellOptions) },
-    );
-    const verdictLine = {
-      command: "bundle",
-      verdict: result.verdict,
-      reportPath: result.reportPath,
-      productionAdoption: "external-verdict-required",
-    };
-    process.stdout.write(`${JSON.stringify(verdictLine)}\n`);
-    return result.exitCode;
-  } finally {
-    await runtimeLease.cleanup();
-  }
 }
 
 async function writeGateReceipt(

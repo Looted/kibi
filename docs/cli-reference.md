@@ -625,6 +625,83 @@ ordinary downloadable artifact. The Pages URL must be anonymously reachable for
 the badge to render in a public README; use an appropriate authenticated static
 host when the report must remain private.
 
+## `kibi signoff`
+
+Shows the person what they are signing off on, in one readable view. Agents
+run it before asking for signoff at the end of a change, and with
+`--questions` whenever decisions about rules wait for the person. It is a CLI
+command, not an MCP operation; the `kibi-decisions` and `kibi-commit-review`
+skills say when to run it. It reports and never blocks.
+
+**Syntax:**
+```bash
+kibi signoff [--staged] [--format chat|md|html|json] [--output PATH] [--open] [--no-proof]
+kibi signoff --questions <path|-> [--format chat|md|html|json] [--output PATH] [--open]
+```
+
+**Summary view (default):** lists each requirement the change adds, rewrites
+or retires (from the Git diff of `.kb/requirements/` against `HEAD`, with
+untracked files; `--staged` uses the index), and each current requirement the
+changed code implements whose document did not change. Each entry quotes the
+statement (the previous one too for a rewrite) with its firmness, origin,
+replaced requirements, scenarios and proof state. `--no-proof` skips the proof
+lookup, which runs a full coverage pass and can take tens of seconds on a
+large knowledge base.
+
+**Questions view (`--questions`):** reads JSON from a file or stdin (`-`):
+`{"questions":[{"id"?, "title"?, "statement", "quote"?, "firmness"?, "governs"?, "conflictsWith"?, "question"?, "answer"?}]}`
+or a bare array. Each decision is numbered, and the view quotes the recorded
+requirement it changes (`id`) or conflicts with (`conflictsWith`) next to the
+proposed statement and the person's own words. Decisions with an `answer` are
+shown as answered, so the agent can re-render the view as the person replies.
+
+**Output:**
+- `chat` (default) prints the view as plain Markdown (headings, quoted
+  statements, lists) for the agent to put in its reply, or in a messaging
+  tool's message when replies go through one. Any Markdown surface renders it.
+  The path of the HTML page goes to stderr, so stdout stays pasteable. Long
+  summaries stop after 15 entries and point to the HTML page.
+- `md` prints the same Markdown inside a fenced `kibi-signoff` or
+  `kibi-questions` block, for hosts whose plugin draws that block (the
+  OpenCode terminal). Elsewhere a fence shows as raw code.
+- `html` writes a self-contained page (no network, strict content security
+  policy) and prints its path; `--output` chooses the file and `--open` opens
+  it in the default browser.
+- `json` prints the `kibi.signoff.v1` view.
+
+`KIBI_SIGNOFF_FORMAT` (`chat`, `md`, `html` or `json`) sets the default
+format for a host.
+
+Every run also writes `.kb/briefs/signoff/latest.json`, `latest.md` and
+`latest.html`, which `kibi init` already ignores in Git. `latest.html` is a
+self-contained page, so an agent whose host can carry a file or publish a
+page can attach it next to the Markdown. The host integrations build on these
+files:
+
+| Host | What it offers |
+| --- | --- |
+| Claude Code | `/kibi-signoff`; a fenced block still renders as Markdown through the `MessageDisplay` hook |
+| Cursor, ZCode | `/kibi-signoff` |
+| OpenCode | The fenced block (`--format md`) drawn as a framed card, `/kibi-signoff`, and a toast for each new view |
+| VS Code (and Cursor with the extension) | The **Kibi: Show Requirements Signoff** panel |
+| Claude Code, Codex, Cursor, ZCode hooks | After a session writes a requirement, the stop hook asks once for `kibi signoff` unless it already ran since |
+
+**Examples:**
+```bash
+# Summary of the working tree for the end-of-work signoff
+kibi signoff
+
+# The fenced block for the OpenCode terminal card
+kibi signoff --format md
+
+# Staged change, as a page in the browser
+kibi signoff --staged --format html --open
+
+# Decisions waiting for the person
+printf '%s' '{"questions":[{"id":"REQ-042","statement":"Exports stay in CSV.","quote":"keep CSV for now","firmness":"firm"}]}' \
+  | kibi signoff --questions -
+```
+
 ## `kibi graph`
 
 Runs bounded graph traversal from one or more seed IDs.

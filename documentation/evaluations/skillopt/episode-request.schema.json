@@ -36,7 +36,8 @@
         "kibi-freshness",
         "kibi-traceability",
         "kibi-bootstrap",
-        "bundle"
+        "kibi-decisions",
+        "kibi-commit-review"
       ]
     },
     "taskId": {

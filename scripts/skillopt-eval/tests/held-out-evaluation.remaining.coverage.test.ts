@@ -66,7 +66,6 @@ describe("held-out-evaluation remaining variant, unique-id, and fail-evidence br
           artifactSchema: "9".repeat(64),
         },
         env: process.env,
-        includeBundle: false,
       }),
     ).rejects.toThrow("terminal_variant_set_invalid");
   });
@@ -120,7 +119,6 @@ describe("held-out-evaluation remaining variant, unique-id, and fail-evidence br
       runId: RUN_ID,
       roots: corpus.roots,
       env: process.env,
-      includeBundle: false,
       cellRunner: async ({ request }) => ({
         receipt: receipt(request, false),
         artifactDirectory: "/tmp/held-out-cell",

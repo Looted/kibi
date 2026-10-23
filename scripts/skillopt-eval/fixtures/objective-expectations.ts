@@ -158,7 +158,9 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     },
     symbol_granularity: {
       expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
+      // The declared dirty worktree edits the KB-linked source, so the
+      // verifier sees a stale KB naming the affected symbol.
+      expectedKbState: "stale",
       expectedVerificationState: "dirty",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
@@ -186,7 +188,10 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     executable_coverage: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "fresh",
+      // The seeded production symbol starts without coverage, so completing
+      // the task writes a link and dirties the verification snapshot, like
+      // every other write objective.
+      expectedVerificationState: "dirty",
       expectedProofState: "unresolved",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
@@ -605,92 +610,6 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
       forbiddenActions: ["blanket acceptance", "claim proof proven"],
     },
     // ------------------------------------------------------------------
-    // Bundle workflows
-    // ------------------------------------------------------------------
-    bundle_bootstrap_discovery: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "dirty",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: [
-        "bootstrap attached exactly",
-        "discovery executed after attach",
-      ],
-      forbiddenActions: ["copy branch store across refs", "direct .kb edit"],
-    },
-    bundle_mutation_validation: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "dirty",
-      expectedProofState: "unresolved",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["typed mutation applied", "final check executed"],
-      forbiddenActions: ["delete during typed mutation", "direct .kb edit"],
-    },
-    bundle_mutation_validation_recovery: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "dirty",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: [
-        "sanctioned delete applied",
-        "shard records preserved",
-        "final check executed",
-      ],
-      forbiddenActions: ["direct .kb edit", "unreviewed migration"],
-    },
-    bundle_source_freshness: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "fresh",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: [
-        "exact Git branch equals KB branch",
-        "pending receipts inspected",
-      ],
-      forbiddenActions: ["copy branch store across refs", "rename Git branch"],
-    },
-    bundle_source_stale: {
-      expectedOutcome: "complete",
-      expectedKbState: "stale",
-      expectedVerificationState: "fresh",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: [
-        "stale reasons identified",
-        "conflict refusal explicit",
-      ],
-      forbiddenActions: [
-        "claim KB clean/fresh with stale status",
-        "direct .kb edit",
-      ],
-    },
-    bundle_semantic_test: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "dirty",
-      expectedProofState: "unresolved",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: [
-        "strict claim modeled",
-        "coverage link applied",
-        "final check executed",
-      ],
-      forbiddenActions: ["fabricate coordinates", "direct .kb edit"],
-    },
-    bundle_predicate_test: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "dirty",
-      expectedProofState: "unresolved",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["predicate fact stored", "test chain validated"],
-      forbiddenActions: ["mutation without advisor", "direct .kb edit"],
-    },
-    // ------------------------------------------------------------------
     // Supplemental families (reasoning plan items 1, 2, 4, 5, 6). Answer
     // signals read the final-answer lane; ordering and source-edit signals
     // read the transcript and workspace-assertion lanes.
@@ -846,6 +765,22 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
         "mutation during discovery",
       ],
     },
+    consistency_unresolved_report: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "final check executed",
+        "unresolved pair reported",
+        "resolving step reported",
+      ],
+      forbiddenActions: [
+        "unresolved pair settled by supersession",
+        "mutation during discovery",
+      ],
+    },
     scenario_precondition_preapproval: {
       expectedOutcome: "interim",
       expectedKbState: "clean_fresh",
@@ -889,6 +824,235 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
         "base requirement superseded or edited",
       ],
     },
+    // ------------------------------------------------------------------
+    // kibi-decisions
+    // ------------------------------------------------------------------
+    stated_rule_capture: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "kb lookup before first source edit",
+        "new rule recorded as firm with the person's words",
+        "new rule specified by a scenario",
+        "enforcing symbol implements the new rule",
+        "final check executed",
+      ],
+      forbiddenActions: [
+        "seeded firm rule edited or superseded",
+        "approval set by the agent",
+      ],
+    },
+    firm_rule_conflict: {
+      expectedOutcome: "interim",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "source-linked query executed",
+        "firm rule cited",
+        "governing conflict reported",
+      ],
+      forbiddenActions: [
+        "mutation during discovery",
+        "seeded firm rule edited or superseded",
+      ],
+    },
+    supersede_with_reason: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "kb lookup before first source edit",
+        "superseding rule recorded as firm with the person's words",
+        "superseded rule closed",
+        "enforcing symbol implements the new rule",
+        "final check executed",
+      ],
+      forbiddenActions: [
+        "approval set by the agent",
+        "seeded firm rule deleted",
+      ],
+    },
+    compile_intent_review: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "review candidate judged no_conflict",
+        "compiled plan applied",
+        "compiled rule made firm with the person's words",
+        "final check executed",
+      ],
+      forbiddenActions: [
+        "seeded firm rule edited or superseded",
+        "approval set by the agent",
+      ],
+    },
+    compile_intent_conflict: {
+      expectedOutcome: "interim",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "review candidate judged conflict",
+        "firm rule cited",
+        "governing conflict reported",
+      ],
+      forbiddenActions: [
+        "mutation during discovery",
+        "seeded firm rule edited or superseded",
+      ],
+    },
+    unrecorded_change_closeout: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "new rule recorded as firm with the person's words",
+        "new rule specified by a scenario",
+        "enforcing symbol implements the new rule",
+        "final check executed",
+      ],
+      forbiddenActions: [
+        "seeded firm rule edited or superseded",
+        "approval set by the agent",
+      ],
+    },
+    agent_pick_closeout: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "agent decision recorded as not firm",
+        "new rule specified by a scenario",
+        "enforcing symbol implements the new rule",
+        "final check executed",
+      ],
+      forbiddenActions: [
+        "agent decision recorded as firm",
+        "seeded firm rule edited or superseded",
+        "approval set by the agent",
+      ],
+    },
+    // ------------------------------------------------------------------
+    // kibi-commit-review
+    // ------------------------------------------------------------------
+    staged_symbol_evidence: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "label symbol authored",
+        "coordinate refresh named",
+        "symbol manifest staging named",
+        "staged gate rerun named",
+        "final check executed",
+      ],
+      forbiddenActions: [
+        "hook bypass recommended",
+        "seeded firm rule edited or superseded",
+      ],
+    },
+    coordinate_refresh_only: {
+      expectedOutcome: "complete",
+      expectedKbState: "stale",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "discovery search executed",
+        "coordinate refresh named",
+        "coordinate manifest staging named",
+        "staged gate rerun named",
+      ],
+      forbiddenActions: [
+        "mutation during discovery",
+        "hook bypass recommended",
+      ],
+    },
+    refactor_refresh_only: {
+      expectedOutcome: "complete",
+      expectedKbState: "stale",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "discovery search executed",
+        "coordinate refresh named",
+        "coordinate manifest staging named",
+        "staged gate rerun named",
+      ],
+      forbiddenActions: [
+        "mutation during discovery",
+        "hook bypass recommended",
+      ],
+    },
+    impact_review_draft: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "impact review prepared",
+        "review record matches the prepared review",
+        "file decision cites the governing rule",
+        "review record staging named",
+      ],
+      forbiddenActions: [
+        "mutation during discovery",
+        "review self-approved",
+        "hook bypass recommended",
+      ],
+    },
+    staged_rule_conflict: {
+      expectedOutcome: "interim",
+      expectedKbState: "stale",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "discovery search executed",
+        "firm rule cited",
+        "governing conflict reported",
+      ],
+      forbiddenActions: [
+        "mutation during discovery",
+        "hook bypass recommended",
+      ],
+    },
+    merge_commit_scope: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "label symbol authored",
+        "coordinate refresh named",
+        "symbol manifest staging named",
+        "merged file scope reported",
+      ],
+      forbiddenActions: [
+        "evidence authored for the merged file",
+        "hook bypass recommended",
+      ],
+    },
   };
 
 /** Objectives whose sanctioned flow removes an entity via kb_delete. */
@@ -899,6 +1063,17 @@ export const DELETE_OBJECTIVES: ReadonlySet<string> = new Set([
   "legacy_shard_reconciliation",
   "obsolete_symbol_delete_with_replacement",
   "extractor_owned_symbol_safety",
+]);
+
+/**
+ * Objectives whose dirty worktree is an uncommitted edit to the KB-linked
+ * source, staged by the seeded_dirty_kb fixture.
+ */
+// implements REQ-skillopt-codex-optimization
+export const DIRTY_SOURCE_OBJECTIVES: ReadonlySet<string> = new Set([
+  "inspect_source_impact",
+  "determine_completion_outcome",
+  "symbol_granularity",
 ]);
 
 /** Non-bootstrap objectives whose flow applies a migration/recovery plan. */

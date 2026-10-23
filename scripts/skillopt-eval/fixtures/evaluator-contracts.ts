@@ -69,6 +69,9 @@ const PredicateExpectationSchema = z
       "ambiguous",
       "ontology_gap",
       "keyword_false_positive",
+      "necessary_condition",
+      "compound_obligations",
+      "exception_unless",
     ]),
     expectedLane: z.enum([
       "predicate",
@@ -109,6 +112,23 @@ const PredicateExpectationSchema = z
       .string()
       .regex(/^[a-f0-9]{64}$/)
       .nullable()
+      .optional(),
+    expectedRuleExceptions: z
+      .object({ atomNames: z.array(z.string().min(1)) })
+      .strict()
+      .nullable()
+      .optional(),
+    forbiddenGroundFactKinds: z
+      .array(
+        z.enum([
+          "subject",
+          "property_value",
+          "predicate",
+          "rule_schema",
+          "rule",
+          "observation",
+        ]),
+      )
       .optional(),
     coverageFamilies: z.array(z.string().min(1)).default([]),
   })
@@ -248,12 +268,24 @@ const PrivateEvaluatorManifestSchema = z
         "none",
         "generated_coordinate_divergence",
         "seeded_fresh_kb",
+        "seeded_uncovered_kb",
+        "seeded_safe_mutation_kb",
+        "seeded_dirty_kb",
         "seeded_partial_kb",
         "seeded_stale_kb",
         "thin_root_kb",
         "seeded_governed_area_kb",
         "seeded_precondition_kb",
         "seeded_consistency_kb",
+        "seeded_unresolved_rule_kb",
+        "seeded_decision_kb",
+        "seeded_unrecorded_change_kb",
+        "seeded_staged_symbol_kb",
+        "seeded_staged_coordinates_kb",
+        "seeded_staged_refactor_kb",
+        "seeded_impact_review_kb",
+        "seeded_staged_conflict_kb",
+        "seeded_merge_commit_kb",
       ])
       .optional(),
     workspaceAssertions: z.array(WorkspaceAssertionSchema).optional(),

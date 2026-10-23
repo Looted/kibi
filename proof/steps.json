@@ -2013,6 +2013,18 @@
     ]
   },
   {
+    "test_id": "TEST-kibi-check-proof-evidence-cli",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/check-proof-evidence.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-kibi-proof-receipt-compaction-cli",
     "steps": [
       [
@@ -2067,6 +2079,16 @@
         "bun",
         "run",
         "documentation/tests/e2e/skillopt-claude-code-host.e2e.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-e2e-skillopt-host-neutral-optimization",
+    "steps": [
+      [
+        "bun",
+        "run",
+        "documentation/tests/e2e/skillopt-host-neutral-optimization.e2e.ts"
       ]
     ]
   },
@@ -2696,6 +2718,29 @@
         "--timeout",
         "600000",
         "./packages/cli/tests/consumer/symbol-sourcefile-workspace-confinement.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-signoff-views",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/cli-workflows.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "./packages/claude/tests/signoff-display.test.ts",
+        "./packages/opencode/tests/tui-signoff.test.ts",
+        "./packages/agent-core/tests/decision-guard.test.ts",
+        "./packages/cli/tests/commands/signoff.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "./packages/vscode/tests/signoff.test.ts"
       ]
     ]
   }

@@ -14,7 +14,9 @@ import {
   answerScoredObjective,
 } from "./case-contracts";
 import {
+  type PredicateFamily,
   type PredicateSemanticClass,
+  isPredicateFamily,
   predicateCaseBySplitIndex,
 } from "./predicate-cases";
 import type { Definition } from "./task-definition-types";
@@ -22,6 +24,13 @@ import {
   BOOTSTRAP_DEFINITIONS,
   TRACEABILITY_DEFINITIONS,
 } from "./task-definitions-bootstrap";
+import {
+  COMMIT_REVIEW_DEFINITIONS,
+  COMMIT_REVIEW_SUPPLEMENTAL_DEFINITION,
+  DECISIONS_DEFINITIONS,
+  DECISIONS_SUPPLEMENTAL_DEFINITION,
+  DECISION_CASES,
+} from "./task-definitions-decisions";
 import {
   type DogfoodCase,
   SUPPLEMENTAL_CASES,
@@ -76,12 +85,22 @@ const DEFINITIONS: Readonly<
     ...BOOTSTRAP_DEFINITIONS,
     ...SUPPLEMENTAL_DEFINITIONS["kibi-bootstrap"],
   },
+  "kibi-decisions": {
+    ...DECISIONS_DEFINITIONS,
+    "unrecorded-change-closeout": DECISIONS_SUPPLEMENTAL_DEFINITION,
+  },
+  "kibi-commit-review": {
+    ...COMMIT_REVIEW_DEFINITIONS,
+    "merge-commit-scope": COMMIT_REVIEW_SUPPLEMENTAL_DEFINITION,
+  },
 };
 const SKILL_FILES = [
   "skills/kibi-usage/SKILL.md",
   "skills/kibi-freshness/SKILL.md",
   "skills/kibi-traceability/SKILL.md",
   "skills/kibi-bootstrap/SKILL.md",
+  "skills/kibi-decisions/SKILL.md",
+  "skills/kibi-commit-review/SKILL.md",
   "skills/bundle.json",
 ] as const;
 const BASE_FILES = [
@@ -96,77 +115,6 @@ const SAFE_MUTATION_FILES = [
   "documentation/tests/fixture.md",
   "mutation-request.json",
 ] as const;
-
-function bundle(
-  instruction: string,
-  objectiveCode: string,
-  approvalPhase: ApprovalPhase,
-): Definition {
-  const stale = objectiveCode.includes("stale");
-  const dirty = objectiveCode.includes("source");
-  return {
-    instruction,
-    objectiveCode,
-    sourceFile: "src/fixture.ts",
-    mutation: approvalPhase === "post-approval" ? "write" : "read-only",
-    activationMode: "attached_seeded_handoff",
-    repository: "seeded",
-    kb: stale ? "stale" : "fresh",
-    worktree: dirty ? "dirty" : "clean",
-    approvalPhase,
-    adversarialCases: [
-      "misleading-success",
-      ...(dirty ? (["dirty-state"] as const) : []),
-      ...(stale ? (["stale-state"] as const) : []),
-      ...(approvalPhase === "not-applicable"
-        ? []
-        : (["approval-boundary"] as const)),
-    ],
-  };
-}
-
-const BUNDLE_DEFINITIONS: Readonly<Record<string, Definition>> = {
-  "bootstrap-to-discovery-01": bundle(
-    "Attach the exact Git ref, bootstrap source-first Kibi state, then discover the authored requirement through a typed result envelope.",
-    "bundle_bootstrap_discovery",
-    "pre-approval",
-  ),
-  "bootstrap-to-discovery-02": bundle(
-    "Apply an approved source-first bootstrap then perform exact discovery; never copy a compiled store from another branch.",
-    "bundle_bootstrap_discovery",
-    "post-approval",
-  ),
-  "mutation-to-validation-01": bundle(
-    "Search then query, apply a typed source-first mutation, then validate its final state. If the envelope is committed_with_repairs, follow its recovery nextAction and never retry the original mutation.",
-    "bundle_mutation_validation",
-    "post-approval",
-  ),
-  "mutation-to-validation-02": bundle(
-    "Recover a malformed source-first mutation before final validation, preserving YAML shard records and deletion-plan approval boundaries.",
-    "bundle_mutation_validation_recovery",
-    "post-approval",
-  ),
-  "source-to-freshness-01": bundle(
-    "Inspect exact Git branch/source impact and pending-source receipts, then classify freshness without including arbitrary untracked files.",
-    "bundle_source_freshness",
-    "not-applicable",
-  ),
-  "source-to-freshness-02": bundle(
-    "Preserve dirty source evidence while reporting stale state, refusing unresolved conflicts and repairing a committed_with_repairs result without replaying its mutation.",
-    "bundle_source_stale",
-    "not-applicable",
-  ),
-  "semantic-to-test-01": bundle(
-    "Model a strict claim then link executable coverage.",
-    "bundle_semantic_test",
-    "post-approval",
-  ),
-  "semantic-to-test-02": bundle(
-    "Search then query the existing claim, select a predicate, then validate its test chain.",
-    "bundle_predicate_test",
-    "post-approval",
-  ),
-};
 
 const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
   "kibi-freshness/branch-status-classification/held-out/0": {
@@ -459,16 +407,17 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
 
 /**
  * Predicate-family cases are dispatched to the semantically distinct registry
- * so each of the seven cases carries a distinct claim-derived prompt and
+ * so each case carries a distinct claim-derived prompt and
  * objective. This avoids split-suffix semantics (e.g. "train case 1").
  */
 function predicatePayload(
   definition: Definition,
+  family: PredicateFamily,
   split: TaskSplit,
   index: number,
 ): FamilyPayload {
-  const semanticCase = predicateCaseBySplitIndex(split, index);
-  const claimPrompt = `Model the complete normative claim through Kibi's clause-complete logical workflow using only the public MCP surface. Before any kb_upsert (including a dryRun: true validation), call kb_search then kb_query. Claim: "${semanticCase.publicClaim.claimText}" Decompose every atomic obligation, preserve each advisor-issued claim key on its ground fact, and merge the complete logic_claims manifest; one correct fact is not sufficient for compound prose. Treat structured projectLocalSchemas in predicate-claim.json as approved ontology declarations; when a declared schema endpoint is absent, create that schema before its ground predicate fact. Relationship types remain graph edges, not predicate names.`;
+  const semanticCase = predicateCaseBySplitIndex(split, index, family);
+  const claimPrompt = `Model the complete normative claim through Kibi's clause-complete logical workflow using only the public MCP surface. Before any kb_upsert (including a dryRun: true validation), call kb_search then kb_query. Claim: "${semanticCase.publicClaim.claimText}" Decompose the claim into its atomic obligations: compound prose with independent obligations needs one ground fact and claim key per obligation, while one obligation that relates several arguments stays a single fact with a single claim key. Preserve each advisor-issued claim key on its ground fact and merge the complete logic_claims manifest. Treat structured projectLocalSchemas in predicate-claim.json as approved ontology declarations; when a declared schema endpoint is absent, create that schema before its ground predicate fact. Relationship types remain graph edges, not predicate names.`;
   const objectiveByClass: Readonly<Record<PredicateSemanticClass, string>> = {
     builtin_relational: "model_predicate_builtin_relational",
     strict_scalar_counterexample: "model_predicate_strict_scalar",
@@ -477,6 +426,9 @@ function predicatePayload(
     ambiguous: "model_predicate_ambiguous",
     ontology_gap: "model_predicate_ontology_gap",
     keyword_false_positive: "model_predicate_keyword_false_positive",
+    necessary_condition: "model_predicate_necessary_condition",
+    compound_obligations: "model_predicate_compound_obligations",
+    exception_unless: "model_predicate_exception_unless",
   };
   const conditionalFiles = [
     ...(definition.worktree === "dirty" ? ["changes/uncommitted.patch"] : []),
@@ -605,22 +557,16 @@ export function buildFamilyPayload(context: BuilderContext): FamilyPayload {
   const definition = DEFINITIONS[context.skill][context.family];
   if (definition === undefined)
     throw new TaskDefinitionError(`unknown task family: ${context.family}`);
-  if (context.family === "fact-predicate-modeling") {
-    return predicatePayload(definition, context.split, context.index);
+  if (isPredicateFamily(context.family)) {
+    return predicatePayload(
+      definition,
+      context.family,
+      context.split,
+      context.index,
+    );
   }
   const slot = `${context.skill}/${context.family}/${context.split}/${context.index}`;
-  const special = DOGFOOD_CASES[slot] ?? SUPPLEMENTAL_CASES[slot];
+  const special =
+    DOGFOOD_CASES[slot] ?? SUPPLEMENTAL_CASES[slot] ?? DECISION_CASES[slot];
   return payload(definition, context.split, context.index, special);
-}
-
-// implements REQ-skillopt-codex-optimization
-export function buildBundlePayload(workflow: string): FamilyPayload {
-  const definition = BUNDLE_DEFINITIONS[workflow];
-  if (definition === undefined)
-    throw new TaskDefinitionError(`unknown bundle workflow: ${workflow}`);
-  return payload(
-    definition,
-    "held-out",
-    Number.parseInt(workflow.slice(-2), 10) - 1,
-  );
 }

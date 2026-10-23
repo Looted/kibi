@@ -48,6 +48,23 @@ export type TerminalCategory =
   | "budget_stop"
   | "evidence_conflict";
 
+/**
+ * The first required MCP call a cell never made in order. Tool names and
+ * their order are public in the case contracts; argument predicates and
+ * expected values stay private and are never recorded here.
+ */
+// implements REQ-skillopt-host-neutral-optimization
+export type ProtocolFailure = Readonly<{
+  kind: "missing_required_call";
+  tool: string;
+  /** 1-based position of the call in the required order. */
+  position: number;
+}>;
+
+/** Public Kibi MCP tool names; anything else is never recorded. */
+// implements REQ-skillopt-host-neutral-optimization
+export const PUBLIC_TOOL_NAME = /^[a-z][a-z0-9_]{0,63}$/;
+
 export type CellReceipt = Readonly<{
   outcome: "pass" | "fail" | "ambiguous";
   terminalCategory: TerminalCategory | null;
@@ -64,6 +81,8 @@ export type CellReceipt = Readonly<{
   criticalFailures: readonly string[];
   conflictKeys: readonly string[];
   predicateEvidence?: PredicateCaseEvidence;
+  /** Set when the protocol component is zero because a required call is missing. */
+  protocolFailure?: ProtocolFailure;
 }>;
 
 const ZERO_COMPONENTS = {
@@ -368,6 +387,62 @@ export function protocolContractViolations(
   return [...new Set(violations)];
 }
 
+function missingCall(tool: string, index: number): ProtocolFailure | undefined {
+  return PUBLIC_TOOL_NAME.test(tool)
+    ? { kind: "missing_required_call", tool, position: index + 1 }
+    : undefined;
+}
+
+/**
+ * The first required call not observed in order: the protocol contract's
+ * ordered calls first, then the ordered MCP predicates, matching the order
+ * `protocolPasses` checks them in.
+ */
+// implements REQ-skillopt-host-neutral-optimization
+export function firstMissingRequiredCall(
+  manifest: Manifest,
+  evidence: CellEvidence,
+): ProtocolFailure | undefined {
+  const contract = manifest.protocolContract;
+  if (contract !== undefined && contract !== null) {
+    const calls: readonly RawCallView[] =
+      evidence.broker.rawCalls ??
+      evidence.broker.orderedCalls.map(({ tool }) => ({
+        tool,
+        args: {},
+        resultOk: true,
+      }));
+    let cursor = 0;
+    for (const [index, required] of contract.requiredCalls.entries()) {
+      const found = calls.findIndex(
+        (call, callIndex) =>
+          callIndex >= cursor &&
+          call.tool === required.tool &&
+          (required.args === undefined ||
+            argumentsMatch(required.args, call.args)),
+      );
+      if (found < 0) return missingCall(required.tool, index);
+      cursor = found + 1;
+    }
+  }
+  let cursor = 0;
+  for (const [
+    index,
+    required,
+  ] of manifest.orderedMcpPredicates.required.entries()) {
+    const found = evidence.broker.orderedCalls.findIndex(
+      (call, callIndex) =>
+        callIndex >= cursor &&
+        call.tool === required.tool &&
+        (required.predicate.startsWith("sequence=") ||
+          call.predicate === required.predicate),
+    );
+    if (found < 0) return missingCall(required.tool, index);
+    cursor = found + 1;
+  }
+  return undefined;
+}
+
 function protocolPasses(manifest: Manifest, evidence: CellEvidence): boolean {
   if (
     manifest.protocolContract !== undefined &&
@@ -520,6 +595,10 @@ export function scoreCell(
     ),
   );
   const hard = score >= 85 && criticalFailures.length === 0 ? 1 : 0;
+  const protocolFailure =
+    components.protocol === 0
+      ? firstMissingRequiredCall(manifest, evidence)
+      : undefined;
   return {
     outcome: hard === 1 ? "pass" : "fail",
     terminalCategory: hard === 1 ? null : "behavioral_failure",
@@ -532,6 +611,7 @@ export function scoreCell(
     criticalFailures,
     conflictKeys: [],
     ...(predicateEvidence === undefined ? {} : { predicateEvidence }),
+    ...(protocolFailure === undefined ? {} : { protocolFailure }),
   };
 }
 

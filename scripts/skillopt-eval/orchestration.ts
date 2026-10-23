@@ -2,6 +2,7 @@ import type { ArtifactPath } from "./artifact-path";
 
 import { randomUUID } from "node:crypto";
 import { CANONICAL_SKILLS, type CanonicalSkill } from "./catalog";
+import { OFFLINE_CONTRACT_SCHEMA_VERSION } from "./contracts/common";
 import { type RunState, RunStateSchema } from "./contracts/workflow";
 import { RunStore } from "./orchestration-store";
 import {
@@ -16,7 +17,6 @@ export const BUDGET_LIMITS = {
   development: 8,
   optimization: 48,
   "held-out": 30,
-  bundle: 10,
   contingency: 2,
 } as const;
 
@@ -141,13 +141,13 @@ const SKILL_EPISODES: Record<CanonicalSkill, string> = {
   "kibi-freshness": "00000000-0000-4000-8000-000000000102",
   "kibi-traceability": "00000000-0000-4000-8000-000000000103",
   "kibi-bootstrap": "00000000-0000-4000-8000-000000000104",
+  "kibi-decisions": "00000000-0000-4000-8000-000000000105",
+  "kibi-commit-review": "00000000-0000-4000-8000-000000000106",
 };
-const BUNDLE_EPISODE = "00000000-0000-4000-8000-000000000105";
 
 export type OfflineWorkflowResult = Readonly<{
   phase: RunState["phase"];
   completedSkills: readonly CanonicalSkill[];
-  bundle: boolean;
 }>;
 
 // implements REQ-skillopt-codex-optimization
@@ -173,7 +173,7 @@ export async function runOfflineWorkflow(
     let state =
       existing ??
       RunStateSchema.parse({
-        schemaVersion: "1.0.0",
+        schemaVersion: OFFLINE_CONTRACT_SCHEMA_VERSION,
         artifactType: "run-state",
         runId: input.runId,
         runLockHash: input.runLockHash,
@@ -214,23 +214,12 @@ export async function runOfflineWorkflow(
       });
       await store.writeState(state);
     }
-    if (!state.completedEpisodeIds.includes(BUNDLE_EPISODE)) {
-      const reservation = budget.reserve("bundle", 2);
-      const ledgerHeadHash = await store.appendLedger({
-        category: "bundle",
-        episodeId: BUNDLE_EPISODE,
-        amount: 2,
-      });
-      budget.finalize(reservation.id, 0);
-      state = RunStateSchema.parse({
-        ...state,
-        phase: "complete",
-        completedEpisodeIds: [...state.completedEpisodeIds, BUNDLE_EPISODE],
-        ledgerHeadHash,
-        updatedAt: new Date().toISOString(),
-      });
-      await store.writeState(state);
-    }
+    state = RunStateSchema.parse({
+      ...state,
+      phase: "complete",
+      updatedAt: new Date().toISOString(),
+    });
+    await store.writeState(state);
     return summarize(state);
   } finally {
     await store.release();
@@ -243,6 +232,5 @@ function summarize(state: RunState): OfflineWorkflowResult {
     completedSkills: CANONICAL_SKILLS.filter((skill) =>
       state.completedEpisodeIds.includes(SKILL_EPISODES[skill]),
     ),
-    bundle: state.completedEpisodeIds.includes(BUNDLE_EPISODE),
   };
 }

@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: Kibi Usage
   id: kibi-usage
-  version: 2.20.0
+  version: 2.22.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -123,6 +123,10 @@ component that renders it) with `implements` through `kb_upsert`. Without a read
 .kb/symbols.yaml`) snippets are off for this session; `kb_query({sourceFile})`
 still answers and `kibi sync` regenerates the manifest. The search tip and the
 `.kb/` note appear once per session and need no action.
+
+Before you edit a source file that Kibi tracks, run `kb_search` with that file in `sourceLocations`, and treat both its ranked results and its `data.answer` layer as discovery only, not as the governing text. Then call `kb_query` by `id` on each current governing requirement that the search names, read what each one requires, and make the edit only after those exact reads. A `kb_check`, `kb_status` or `kb_coverage` result does not replace that `kb_query` read. This rule only adds an exact read before the edit and does not change the order of any other step in this workflow. It adds nothing to a modeling or write task: that task still ends with the real `kb_upsert` of every planned fact and requirement and the closing `kb_check`.
+
+For an edit that keeps the governing rule, limit the consultation before the edit to exactly two Kibi calls: `kb_search` with the file in `sourceLocations`, then one `kb_query` (by the governing requirement's `id`, or by `sourceFile` when several requirements govern the file). Do not start with `kb_status`, and do not repeat the search or the query before editing; run `kb_status`, `kb_check` and `kb_coverage` after the edit. This limit applies only to source edits. A task that models a claim keeps its full order, one step after the other: `kb_search`, then the exact `kb_query` of the supplied target, then `kb_model` with `mode: "analyze"` on the complete claim, then `mode: "predicates"` for each relational clause, then `kb_model` with `mode: "requirement"` for a strict or typed-rule clause, and only then the real `kb_upsert` of every planned fact and requirement and the closing `kb_check`. Never call `kb_model` before that exact `kb_query`, and never stop at a dry run.
 
 ## Safe workflow
 
@@ -359,7 +363,9 @@ authored. Each one is the order the write path accepts.
 
 Entities record `origin` (`kind`: `human`, `agent`, `migration`, or `import`,
 plus optional `ref` and `approved_by`). `kb_upsert` records `kind: agent` on
-entities you create; leave `origin.approved_by` to the person who reviews them.
+entities you create; leave `origin.approved_by` to the person who reviews them,
+and ask for that review with `kibi signoff` (see `kibi-decisions`), never with
+a summary in your own words.
 An exception (a requirement that `exempts` another) exempts nothing until a
 human sets `approved_by`; `kb_check` flags approvals an agent recorded without
 corroboration. Never fill in an approval yourself. Record why a requirement
@@ -368,6 +374,8 @@ exists in `rationale`, or link the ADR that explains it.
 ## Decision firmness
 
 Requirements and ADRs carry `firmness`, which says what you may do with them.
+Load `kibi-decisions` when a person states a rule, a hook asks before an edit
+of firm code, or a request conflicts with a recorded rule.
 Search answers, `kb_query` rows and hook snippets show it (snippets label only
 `[firm: ask before changing]` and `[exploratory]`; an unlabeled decision is
 `default`).
@@ -397,17 +405,12 @@ task or in reply: then supersede it with `firmness: firm` and `origin.ref` to
 their words (or, for a correction they asked for in place, update it with
 `origin.ref` to those words), and say in the final answer which rule changed.
 
-Set `firmness` from what a human actually said: only their stated rule is
-`firm` (with `origin.ref`); "do whatever" or your own pick is `default`; a
-guess is `exploratory`. Write it explicitly whenever you record a decision,
-including when importing rules from documents, tests or tickets (a rule a
-person wrote there is `firm`, with `origin.ref` to that document). A
-supersede needs `## Why this changed` in the new entity's body (at least 12
-words): name the evidence (a failing test, a measured cost, a constraint the
-old decision missed, a new requirement, the person's instruction) and answer
-the old decision's reasoning; `kb_check` blocks it otherwise. A preference is
-not evidence: propose it instead of superseding. Kibi checks only that a firm
-decision has a reference; never cite words nobody said.
+Set `firmness` explicitly from what a human actually said: only their stated
+rule is `firm` (with `origin.ref` to their words); your own pick is `default`;
+a guess is `exploratory`. A supersede needs a `## Why this changed` section of
+at least 12 words naming the evidence; a preference is not evidence. Never
+cite words nobody said. `kibi-decisions` has the recording and supersede
+payloads.
 
 Conditional clauses ("only when", "only if", "must not ... unless") compile
 into typed `forbid` rules linked by `requires_rule`, not property facts; one
@@ -421,7 +424,8 @@ read `unresolved` as consistent. Compare the intent with each candidate's
 `statement`, then compile again with `conflictReviews`
 (`{requirementId, verdict: "conflict" | "no_conflict", note}`). On a conflict
 the plan is `blocked`: ask the human which rule holds (a firm requirement is
-theirs), then supersede or change it, or change the intent.
+theirs), then supersede or change it, or change the intent (see
+`kibi-decisions`).
 
 ## Semantic and proof guardrails
 
@@ -561,4 +565,5 @@ retrying the same payload; inspect the typed error and `nextActions`.
 Kibi may now author tracked Markdown/YAML evidence transactionally. The former
 statement “Kibi operation writes do not automatically stage markdown evidence”
 means Kibi writes do not Git-stage it: review and commit remain ordinary Git
-workflows.
+workflows. When `kibi check --staged` or the pre-commit hook blocks a commit,
+load `kibi-commit-review`.

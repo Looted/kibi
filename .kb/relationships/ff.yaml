@@ -405,3 +405,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eefb5d7179b9
+  - type: implements
+    from: SYM-cli-signoff-model-signoff-latest-html
+    to: REQ-kibi-signoff-views
+    created_at: 2026-10-23T10:52:34.791Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-377108d7c56f
+  - type: covered_by
+    from: SYM-cli-signoff-model-signoff-latest-html
+    to: TEST-kibi-signoff-views
+    created_at: 2026-10-23T10:52:34.816Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61b52ed52470
+  - type: implements
+    from: SYM-cli-signoff-model-signoff-requirement
+    to: REQ-kibi-signoff-views
+    created_at: 2026-10-23T10:54:04.554Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ad9e10e03ae
+  - type: covered_by
+    from: SYM-cli-signoff-model-signoff-requirement
+    to: TEST-kibi-signoff-views
+    created_at: 2026-10-23T10:54:04.581Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f8ebdd6e0aa7

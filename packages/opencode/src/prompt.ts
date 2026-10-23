@@ -631,9 +631,11 @@ function buildBaseGuidance(
   capability: KibiBootstrapCommandCapability = getKibiBootstrapCommandCapability(),
 ): string {
   return `${SENTINEL}
-Use typed Kibi status and its \`nextActions\` as the workflow contract. Route general work to \`kibi-usage\`, freshness decisions to \`kibi-freshness\`, source proof to \`kibi-traceability\`, and an explicit bootstrap request to \`kibi-bootstrap\`. Use the host-visible approved Kibi peer surface; if it is unavailable, report the blocked capability. Never read or edit \`.kb/\` directly.
+Use typed Kibi status and its \`nextActions\` as the workflow contract. Route general work to \`kibi-usage\`, freshness decisions to \`kibi-freshness\`, source proof to \`kibi-traceability\`, a stated rule or a conflict with a recorded rule to \`kibi-decisions\`, a blocked commit or impact review to \`kibi-commit-review\`, and an explicit bootstrap request to \`kibi-bootstrap\`. Use the host-visible approved Kibi peer surface; if it is unavailable, report the blocked capability. Never read or edit \`.kb/\` directly.
 
 Keep changed symbols traceable: production code uses \`implements\` (symbol→req) for ownership; test code uses \`executable_for\`; \`covered_by\` is coverage evidence only.
+
+In OpenCode, show signoff with \`kibi signoff --format md\` (or \`--questions - --format md\`) and paste the fenced block unchanged: the terminal draws it as a Kibi card and \`/kibi-signoff\` reopens it.
 
 Dogfood note for this repo: OpenCode here uses local built \`kibi-mcp\` and \`kibi-opencode\` artifacts. If you change package versions or local package wiring, run \`bun run build\` before relying on OpenCode in this workspace.
 

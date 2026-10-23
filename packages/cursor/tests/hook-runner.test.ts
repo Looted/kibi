@@ -942,6 +942,22 @@ describe("Cursor decision guard", () => {
     );
   });
 
+  test("stop asks once for a signoff view after a requirement is written", async () => {
+    const { event } = conversation();
+    await event({
+      hook_event_name: "postToolUse",
+      tool_name: "CallMcpTool",
+      tool_input: {
+        toolName: "kb_upsert",
+        arguments: { type: "req", id: "REQ-guests" },
+      },
+    });
+    const stop = await event({ hook_event_name: "stop", status: "completed" });
+    expect(stop.followup_message).toContain("run `kibi signoff`");
+    const again = await event({ hook_event_name: "stop", status: "completed" });
+    expect(again.followup_message ?? "").not.toContain("kibi signoff");
+  });
+
   test("a kb_upsert keeps stop from asking for the decision record", async () => {
     const { event, workspace } = conversation();
     await event({

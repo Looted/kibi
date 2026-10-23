@@ -629,7 +629,7 @@ targets (hook events, output schema, skill frontmatter rules).
 `kibi-cli`, and `kibi-mcp` and does not replace them. It contributes:
 
 - the workspace-gated Kibi MCP server;
-- the four bundled Kibi skills, invoked as `/kibi-claude:kibi-usage`,
+- the six bundled Kibi skills, invoked as `/kibi-claude:kibi-usage`,
   `/kibi-claude:kibi-bootstrap`, and so on;
 - advisory hooks that show the agent requirement and test context before it
   reads or edits linked code (before an edit, also what the requirement must
@@ -657,6 +657,12 @@ index of `.kb/symbols.yaml` instead of calling the CLI, so they add tens of
 milliseconds per tool call. The hard enforcement gate remains the
 `kibi check --staged` git hook installed by `kibi init`. See
 `packages/claude/README.md` for exactly what each hook emits and how often.
+
+Cloud sessions (Claude Code on the web and in the desktop app) load the
+plugin only when the repository enables it: commit `extraKnownMarketplaces`
+for `Looted/kibi` and `"enabledPlugins": {"kibi-claude@kibi": true}` to the
+repository's `.claude/settings.json` (the exact snippet is in
+`packages/claude/README.md`).
 
 ### Optional capability plugins
 

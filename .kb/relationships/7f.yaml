@@ -335,3 +335,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-65e0fc942269
+  - type: implements
+    from: SYM-skillopt-offline-contract-version
+    to: REQ-skillopt-host-neutral-optimization
+    created_at: 2026-10-21T10:55:21.377Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70f90326f6d7
+  - type: covered_by
+    from: SYM-skillopt-offline-contract-version
+    to: TEST-e2e-skillopt-host-neutral-optimization
+    created_at: 2026-10-21T10:55:21.407Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e90f3d40a03
+  - type: implements
+    from: SYM-opencode-signoff-read-latest
+    to: REQ-kibi-signoff-views
+    created_at: 2026-10-22T09:26:42.273Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-13e73ecabcec
+  - type: covered_by
+    from: SYM-opencode-signoff-read-latest
+    to: TEST-kibi-signoff-views
+    created_at: 2026-10-22T09:26:42.292Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a80cf3d62eb

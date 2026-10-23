@@ -24,6 +24,7 @@ import {
   GOVERNED_AREA_IDS,
   PRECONDITION_IDS,
   PRECONDITION_INTENT,
+  UNRESOLVED_RULE_IDS,
 } from "../runtime/fixture-seeds";
 import {
   finalAnswerEvidence,
@@ -99,6 +100,45 @@ describe("final-answer lane (H1)", () => {
     );
     expect(answer.source).toBe("regex");
     expect(answer.governing).toEqual(["REQ-fixture-family-name-v2"]);
+  });
+
+  test("takes the block from the final prose when the structured restatement drops it", () => {
+    const restated =
+      "REQ-fixture-family-name-v2 governs this; the change conflicts with it.";
+    const transcript = [
+      mcpCall("c1", "kb_query", { id: "REQ-fixture-family-name-v2" }),
+      agentMessage("m1", BLOCK_ANSWER),
+      agentMessage("m2", line({ completed: true, answer: restated })),
+      line({ type: "turn.completed", usage: {} }),
+    ].join("\n");
+    const evidence = finalAnswerEvidence(transcript);
+    expect(evidence.text).toBe(restated);
+    expect(evidence.answer.source).toBe("block");
+    expect(evidence.answer.verdict).toBe("conflict");
+    expect(evidence.answer.conflict).toBe("empty names must be rejected");
+  });
+
+  test("ignores a block from prose written before the last tool call", () => {
+    const transcript = [
+      agentMessage("m1", BLOCK_ANSWER),
+      mcpCall("c1", "kb_check"),
+      agentMessage(
+        "m2",
+        line({ completed: true, answer: "Verdict: no_conflict" }),
+      ),
+    ].join("\n");
+    const evidence = finalAnswerEvidence(transcript);
+    expect(evidence.answer.source).toBe("regex");
+    expect(evidence.answer.verdict).toBe("no_conflict");
+  });
+
+  test("keeps the final message's own block over the prose block", () => {
+    const own = BLOCK_ANSWER.replace('"conflict"', '"governed"');
+    const transcript = [
+      agentMessage("m1", BLOCK_ANSWER),
+      agentMessage("m2", line({ completed: true, answer: own })),
+    ].join("\n");
+    expect(finalAnswerEvidence(transcript).answer.verdict).toBe("governed");
   });
 
   test("returns an empty answer for a transcript without messages", () => {
@@ -295,6 +335,104 @@ describe("case signals", () => {
         "base requirement superseded or edited",
         base("A client call may always happen."),
       ),
+    ).toBe(true);
+  });
+});
+
+describe("unresolved consistency signals (C2.2)", () => {
+  const refundRequirements = (extra: Record<string, unknown>[] = []) => [
+    queryResult([
+      { id: UNRESOLVED_RULE_IDS.settledAmount, type: "req", status: "open" },
+      { id: UNRESOLVED_RULE_IDS.chargeback, type: "req", status: "open" },
+      ...extra,
+    ]),
+  ];
+  const answer = (value: Record<string, unknown>) =>
+    ["```kibi-answer", line(value), "```"].join("\n");
+  const unresolved = {
+    verdict: "unresolved",
+    governing: [
+      UNRESOLVED_RULE_IDS.settledAmount,
+      UNRESOLVED_RULE_IDS.chargeback,
+    ],
+    conflict: null,
+    unknowns: ["whether an order with an open chargeback can settle at zero"],
+    nextStep: "Ask the payments owner whether chargeback refunds are exempt.",
+    proof: null,
+  };
+
+  test("credits an unresolved verdict that names both requirements and a next step", () => {
+    const ctx = context({
+      results: refundRequirements(),
+      text: answer(unresolved),
+    });
+    expect(caseSignalObserved("unresolved pair reported", ctx)).toBe(true);
+    expect(caseSignalObserved("resolving step reported", ctx)).toBe(true);
+    expect(
+      caseForbiddenObserved("unresolved pair settled by supersession", ctx),
+    ).toBe(false);
+  });
+
+  test("rejects a decided verdict, a missing ID or a missing next step", () => {
+    for (const value of [
+      { ...unresolved, verdict: "no_conflict" },
+      { ...unresolved, verdict: "conflict" },
+      { ...unresolved, governing: [UNRESOLVED_RULE_IDS.chargeback] },
+    ]) {
+      expect(
+        caseSignalObserved(
+          "unresolved pair reported",
+          context({ results: refundRequirements(), text: answer(value) }),
+        ),
+      ).toBe(false);
+    }
+    expect(
+      caseSignalObserved(
+        "resolving step reported",
+        context({
+          results: refundRequirements(),
+          text: answer({ ...unresolved, nextStep: null }),
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  test("flags a supersedes edge, a closed or a missing refund requirement", () => {
+    const settled = (results: CaseSignalContext["results"]) =>
+      caseForbiddenObserved(
+        "unresolved pair settled by supersession",
+        context({ results, text: answer(unresolved) }),
+      );
+    expect(
+      settled(
+        refundRequirements([
+          {
+            id: "REQ-refund-chargeback-v2",
+            type: "req",
+            status: "open",
+            supersedes: [`kb:entity/${UNRESOLVED_RULE_IDS.chargeback}`],
+          },
+        ]),
+      ),
+    ).toBe(true);
+    expect(
+      settled([
+        queryResult([
+          {
+            id: UNRESOLVED_RULE_IDS.settledAmount,
+            type: "req",
+            status: "closed",
+          },
+          { id: UNRESOLVED_RULE_IDS.chargeback, type: "req", status: "open" },
+        ]),
+      ]),
+    ).toBe(true);
+    expect(
+      settled([
+        queryResult([
+          { id: UNRESOLVED_RULE_IDS.chargeback, type: "req", status: "open" },
+        ]),
+      ]),
     ).toBe(true);
   });
 });
@@ -516,5 +654,135 @@ describe("supplemental case manifests", () => {
       ) ?? -1;
     expect(citedIndex).toBeGreaterThanOrEqual(0);
     expect(claim(signalKeys[citedIndex] ?? "")).toBe(true);
+  });
+
+  test("C2.2 cases use the unresolved-rule seed and forbid writes", () => {
+    const tasks = buildSkillCatalog("kibi-freshness").filter(
+      (task) => task.taskData.objectiveCode === "consistency_unresolved_report",
+    );
+    expect(tasks.map((task) => `${task.split}:${task.id}`)).toEqual([
+      "development:kibi-freshness-consistency-report-development-2",
+      "held-out:kibi-freshness-consistency-report-held-out-4",
+    ]);
+    for (const task of tasks) {
+      const manifest = manifestFor(task);
+      expect(manifest.fixtureSetup).toBe("seeded_unresolved_rule_kb");
+      expect(manifest.protocolContract?.forbiddenTools).toEqual([
+        "kb_upsert",
+        "kb_delete",
+      ]);
+      expect(manifest.protocolContract?.requiredCalls).toEqual([
+        { tool: "kb_query" },
+        { tool: "kb_check", args: { rules: ["domain-contradictions"] } },
+      ]);
+      expect(task.prompt).toContain(UNRESOLVED_RULE_IDS.settledAmount);
+      expect(task.prompt).toContain(UNRESOLVED_RULE_IDS.chargeback);
+    }
+  });
+
+  test("C2.2 counts the seeded unresolved pair as a clean final check", () => {
+    const task = buildSkillCatalog("kibi-freshness").find(
+      (candidate) =>
+        candidate.taskData.objectiveCode === "consistency_unresolved_report" &&
+        candidate.split === "development",
+    );
+    if (task === undefined) throw new Error("missing C2.2 task");
+    const manifest = manifestFor(task);
+    const requests = [
+      { tool: "kb_query" as const, args: {} },
+      { tool: "kb_check" as const, args: {} },
+      { tool: "kb_status" as const, args: {} },
+      { tool: "kb_coverage" as const, args: { by: "req" } },
+    ];
+    const seeded = {
+      rule: "domain-contradictions",
+      entityId: `${UNRESOLVED_RULE_IDS.chargeback}/${UNRESOLVED_RULE_IDS.settledAmount}`,
+      description: `Rule conflict (unresolved) between ${UNRESOLVED_RULE_IDS.chargeback} and ${UNRESOLVED_RULE_IDS.settledAmount}`,
+    };
+    const seal = (violations: readonly Record<string, unknown>[]) => {
+      const finalState = `${line({
+        schemaVersion: "1.0.0",
+        workspaceRoot: "/isolated/workspace",
+        binding: { caseId: task.id, roots: evaluatorRoots, sequence: 1 },
+        requests: requests.map((request) => ({
+          ...request,
+          result:
+            request.tool === "kb_query"
+              ? queryResult([
+                  {
+                    id: UNRESOLVED_RULE_IDS.settledAmount,
+                    type: "req",
+                    status: "open",
+                  },
+                  {
+                    id: UNRESOLVED_RULE_IDS.chargeback,
+                    type: "req",
+                    status: "open",
+                  },
+                ]).result
+              : request.tool === "kb_check"
+                ? {
+                    structuredContent: {
+                      violations,
+                      count: violations.length,
+                    },
+                  }
+                : request.tool === "kb_status"
+                  ? {
+                      structuredContent: {
+                        syncState: "fresh",
+                        dirty: false,
+                        proofSnapshotDirty: false,
+                      },
+                    }
+                  : { structuredContent: {} },
+          resultHash: "0".repeat(64),
+        })),
+      })}\n`;
+      const transcript = [
+        mcpCall("c1", "kb_query", {}),
+        mcpCall("c2", "kb_check", { rules: ["domain-contradictions"] }),
+        agentMessage(
+          "m1",
+          line({
+            completed: true,
+            answer: [
+              "```kibi-answer",
+              line({
+                verdict: "unresolved",
+                governing: [
+                  UNRESOLVED_RULE_IDS.settledAmount,
+                  UNRESOLVED_RULE_IDS.chargeback,
+                ],
+                conflict: null,
+                unknowns: [],
+                nextStep: "Ask the payments owner which rule wins.",
+                proof: null,
+              }),
+              "```",
+            ].join("\n"),
+          }),
+        ),
+      ].join("\n");
+      const sealed = sealDefaultCellEvidence(
+        { evaluatorManifest: manifest, finalStateRequests: requests },
+        { finalState, brokerTrace: "", diagnosticReceipt: "", transcript },
+      );
+      return (key: string) =>
+        sealed.finalState.claims.find((entry) => entry.key === key)?.value;
+    };
+    const clean = seal([seeded]);
+    expect(clean("final-consistency-report")).toBe(true);
+    expect(clean("workflow-outcome")).toBe("complete");
+    const signals = OBJECTIVE_WORKFLOWS.consistency_unresolved_report;
+    for (const [index] of (signals?.requiredSignals ?? []).entries()) {
+      if (signals?.requiredSignals[index] === "final check executed") continue;
+      expect(clean(`workflow-signal-${index + 1}`)).toBe(true);
+    }
+    const extra = seal([
+      seeded,
+      { ...seeded, entityId: "REQ-other/REQ-refund-chargeback" },
+    ]);
+    expect(extra("final-consistency-report")).toBe(false);
   });
 });

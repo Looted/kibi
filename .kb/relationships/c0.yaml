@@ -83,20 +83,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c397466561ae
-  - type: implements
-    from: SYM-skillopt-bundle-cell-runner-type
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-08-26T09:18:32.787Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-874ec9532a40
-  - type: covered_by
-    from: SYM-skillopt-bundle-cell-runner-type
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-28T10:05:47.439Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d64b1917dfc8
   - type: covered_by
     from: SYM-cli-PrologQueryPlanSafetyViolation
     to: TEST-001
@@ -314,3 +300,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-baf398b669b8
+  - type: implements
+    from: SYM-cli-signoff-load-affected
+    to: REQ-kibi-signoff-views
+    created_at: 2026-10-22T09:25:49.342Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07f44f45b04d
+  - type: covered_by
+    from: SYM-cli-signoff-load-affected
+    to: TEST-kibi-signoff-views
+    created_at: 2026-10-22T09:25:49.360Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c8a0628b4d7

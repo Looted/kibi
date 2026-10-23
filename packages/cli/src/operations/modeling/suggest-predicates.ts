@@ -440,7 +440,9 @@ export async function handleKbSuggestPredicates(
   // Stage 2: semantic eligibility. A complete binding list cannot bypass this
   // gate, and every rejected candidate remains inspectable when retrieved.
   const initialCandidates = retrieved.map((ranked) => {
-    const applicability = evaluateSemanticApplicability(ranked, text);
+    const applicability = evaluateSemanticApplicability(ranked, text, {
+      explicitSchema: Boolean(args.schemaId),
+    });
     return buildSuggestion(
       ranked.schema,
       text,

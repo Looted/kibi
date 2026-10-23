@@ -1,17 +1,18 @@
 import { createHash } from "node:crypto";
-import type { CatalogSkill } from "../catalog";
+import type { CanonicalSkill } from "../catalog";
 import { OBJECTIVE_CASE_CONTRACTS, type RequiredCall } from "./case-contracts";
 import type { parseTaskSpec } from "./contracts";
 import type { parsePrivateEvaluatorManifest } from "./evaluator-contracts";
 import {
   DELETE_OBJECTIVES,
+  DIRTY_SOURCE_OBJECTIVES,
   MIGRATION_APPLY_OBJECTIVES,
   OBJECTIVE_WORKFLOWS,
   RECEIPT_INGEST_OBJECTIVES,
   RECEIPT_INSPECT_OBJECTIVES,
   isPredicateObjective,
 } from "./objective-expectations";
-import { predicateCaseById } from "./predicate-cases";
+import { isPredicateFamily, predicateCaseById } from "./predicate-cases";
 import { fixtureSymbolId } from "./workspace";
 
 type FixtureTaskSpec = ReturnType<typeof parseTaskSpec>;
@@ -22,12 +23,13 @@ type PrivateEvaluatorManifest = ReturnType<
 const BLINDING_SEED = 5417;
 const VARIANTS = ["baseline", "one-shot", "skillopt"] as const;
 const SLOTS = ["variant-a", "variant-b", "variant-c"] as const;
-const READ_TOOLS: Readonly<Record<CatalogSkill, readonly string[]>> = {
+const READ_TOOLS: Readonly<Record<CanonicalSkill, readonly string[]>> = {
   "kibi-usage": ["kb_search", "kb_query"],
   "kibi-freshness": ["kb_status", "kb_query", "kb_check"],
   "kibi-traceability": ["kb_search", "kb_query", "kb_graph"],
   "kibi-bootstrap": ["kb_plan_bootstrap"],
-  bundle: ["kb_plan_bootstrap", "kb_search", "kb_query", "kb_check"],
+  "kibi-decisions": ["kb_search", "kb_query"],
+  "kibi-commit-review": ["kb_search", "kb_query"],
 };
 
 function coordinateFinalStateRequests(taskId: string) {
@@ -50,7 +52,7 @@ function sha256(value: string): string {
 }
 
 // implements REQ-skillopt-codex-optimization
-export function blindedVariantOrder(taskId: string, skill: CatalogSkill) {
+export function blindedVariantOrder(taskId: string, skill: CanonicalSkill) {
   const ordered = VARIANTS.map((variant) => ({
     variant,
     rank: sha256(`${BLINDING_SEED}:${skill}:${taskId}:${variant}`),
@@ -163,6 +165,27 @@ const ADVISOR_READ_TOOLS = [
   "kb_model_requirement",
 ] as const;
 
+// kibi-usage teaches `kb_model` mode `requirement` for strict scalar clauses
+// and typed-rule previews only; ground predicate, observation and ontology-gap
+// cases are modeled with the semantic advisor and predicate suggestions.
+const MODEL_REQUIREMENT_LANES: ReadonlySet<string> = new Set([
+  "strict_property",
+  "rule",
+]);
+
+function predicateReadTools(task: FixtureTaskSpec): readonly string[] {
+  const lane = predicateCaseById(task.id).privateExpectation.expectedLane;
+  // A typed rule comes from the advisor's rule suggestion and kb_model mode
+  // requirement; ranking predicate schemas is not part of that workflow.
+  if (lane === "rule")
+    return ADVISOR_READ_TOOLS.filter(
+      (tool) => tool !== "kb_suggest_predicates",
+    );
+  return MODEL_REQUIREMENT_LANES.has(lane)
+    ? ADVISOR_READ_TOOLS
+    : ADVISOR_READ_TOOLS.filter((tool) => tool !== "kb_model_requirement");
+}
+
 const COORDINATE_REPAIR_CALLS = [
   "kb_search",
   "kb_query",
@@ -183,7 +206,7 @@ function requiredTools(task: FixtureTaskSpec): readonly string[] {
     return [...COORDINATE_REPAIR_CALLS];
   }
   if (isPredicateObjective(objective)) {
-    return [...ADVISOR_READ_TOOLS, "kb_upsert", "kb_check"];
+    return [...predicateReadTools(task), "kb_upsert", "kb_check"];
   }
   if (objective === "append_only_contract_drift") {
     return [
@@ -310,7 +333,7 @@ function workflowExpectation(task: FixtureTaskSpec) {
 
 // implements REQ-skillopt-predicate-first-requirements
 function buildPredicateExpectation(task: FixtureTaskSpec) {
-  if (task.family !== "fact-predicate-modeling") {
+  if (!isPredicateFamily(task.family)) {
     return null;
   }
   const semanticCase = predicateCaseById(task.id);
@@ -324,6 +347,21 @@ function buildPredicateExpectation(task: FixtureTaskSpec) {
     expectedEdges: [...expectation.expectedEdges],
     expectedGroundFactKinds: [...expectation.expectedGroundFactKinds],
     expectedLogicClaimCount: expectation.expectedLogicClaimCount,
+    ...(expectation.expectedRuleSemanticKey == null
+      ? {}
+      : { expectedRuleSemanticKey: expectation.expectedRuleSemanticKey }),
+    ...(expectation.expectedRuleExceptions == null
+      ? {}
+      : {
+          expectedRuleExceptions: {
+            atomNames: [...expectation.expectedRuleExceptions.atomNames],
+          },
+        }),
+    ...(expectation.forbiddenGroundFactKinds === undefined
+      ? {}
+      : {
+          forbiddenGroundFactKinds: [...expectation.forbiddenGroundFactKinds],
+        }),
     privateRationale: expectation.privateRationale,
     coverageFamilies: [
       ...semanticCase.publicClaim.publicSchema.coverageFamilies,
@@ -440,13 +478,23 @@ export function buildPrivateManifest(input: {
           ? ("generated_coordinate_divergence" as const)
           : input.task.taskData.objectiveCode === "repair_escalation"
             ? ("seeded_partial_kb" as const)
-            : input.task.initialState.kb === "fresh"
-              ? ("seeded_fresh_kb" as const)
-              : input.task.initialState.kb === "stale"
-                ? ("seeded_stale_kb" as const)
-                : input.task.initialState.kb === "absent"
-                  ? ("thin_root_kb" as const)
-                  : undefined,
+            : input.task.taskData.objectiveCode === "executable_coverage"
+              ? ("seeded_uncovered_kb" as const)
+              : input.task.taskData.objectiveCode === "safe_typed_mutation"
+                ? ("seeded_safe_mutation_kb" as const)
+                : input.task.initialState.kb === "fresh" &&
+                    input.task.initialState.worktree === "dirty" &&
+                    DIRTY_SOURCE_OBJECTIVES.has(
+                      input.task.taskData.objectiveCode,
+                    )
+                  ? ("seeded_dirty_kb" as const)
+                  : input.task.initialState.kb === "fresh"
+                    ? ("seeded_fresh_kb" as const)
+                    : input.task.initialState.kb === "stale"
+                      ? ("seeded_stale_kb" as const)
+                      : input.task.initialState.kb === "absent"
+                        ? ("thin_root_kb" as const)
+                        : undefined,
     workspaceAssertions:
       workspaceAssertions.length === 0
         ? undefined

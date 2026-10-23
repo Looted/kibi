@@ -120,6 +120,11 @@ export type ValidateUpsertPayload = {
   readonly warnings: readonly string[];
   readonly semanticAdvisor: SemanticAdvisorReceipt | null;
   readonly normalizedPreview: Readonly<Record<string, unknown>> | null;
+  /**
+   * When the payload is invalid and the write would refuse it with a coded
+   * error (for example DOCUMENT_PATH_REQUIRED): that code.
+   */
+  readonly errorCode?: string;
   /** Planned fact ids staged ahead of the payload, in order. */
   readonly stagedFacts?: readonly string[];
   /**

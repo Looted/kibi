@@ -230,3 +230,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e095c058421a
+  - type: implements
+    from: SYM-opencode-signoff-watch
+    to: REQ-kibi-signoff-views
+    created_at: 2026-10-22T09:26:50.562Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d78cda0d96de
+  - type: covered_by
+    from: SYM-opencode-signoff-watch
+    to: TEST-kibi-signoff-views
+    created_at: 2026-10-22T09:26:50.580Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-abaddad9ccdd

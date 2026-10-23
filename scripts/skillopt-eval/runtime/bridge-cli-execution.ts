@@ -33,6 +33,7 @@ type BridgeCellCompletion = Readonly<{
         event: unknown;
       }>[];
     }>;
+    protocolFailure?: Readonly<{ tool: string; position: number }>;
   }>;
   artifactDirectory: string;
   receiptPath: string;
@@ -49,6 +50,14 @@ type BridgeCliDependencies = Readonly<{
   ) => CodexCellDependencies;
 }>;
 
+/** `missing-required-call:<tool>@<position>`, a public failure category. */
+// implements REQ-skillopt-host-neutral-optimization
+export function protocolFailureCategory(
+  failure: Readonly<{ tool: string; position: number }>,
+): string {
+  return `missing-required-call:${failure.tool}@${failure.position}`;
+}
+
 // implements REQ-skillopt-logical-evidence-fidelity
 function bridgeRow(
   taskId: string,
@@ -63,8 +72,9 @@ function bridgeRow(
       : result.status === "infrastructure-failure"
         ? "infrastructure-failure"
         : "behavioral-failure";
-  const failureCategories =
-    result.criticalFailures.length > 0
+  const protocolFailure = completed.receipt.protocolFailure;
+  const failureCategories = [
+    ...(result.criticalFailures.length > 0
       ? [...result.criticalFailures]
       : result.status === "behavioral-failure"
         ? [
@@ -72,7 +82,13 @@ function bridgeRow(
               ? "protocol-incomplete"
               : "behavioral-evaluation-miss",
           ]
-        : [];
+        : []),
+    // The first required call the target never made, by public tool name
+    // and position, so reflection can name the missing step.
+    ...(protocolFailure === undefined
+      ? []
+      : [protocolFailureCategory(protocolFailure)]),
+  ];
   return {
     id: taskId,
     hard: result.hardPass ? (1 as const) : (0 as const),

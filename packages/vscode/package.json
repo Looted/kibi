@@ -2,7 +2,7 @@
   "name": "kibi-vscode",
   "displayName": "Kibi Knowledge Base",
   "description": "VS Code extension for Kibi knowledge base with TreeView and MCP integration",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "publisher": "kibi",
   "engines": {
     "vscode": "^1.74.0"
@@ -12,7 +12,8 @@
   "activationEvents": [
     "onStartupFinished",
     "onView:kibi-knowledge-base",
-    "onCommand:kibi.focusKnowledgeBase"
+    "onCommand:kibi.focusKnowledgeBase",
+    "onCommand:kibi.showSignoff"
   ],
   "main": "./dist/extension.js",
   "icon": "icon.png",
@@ -76,6 +77,10 @@
       {
         "command": "kibi.focusKnowledgeBase",
         "title": "Kibi: Focus Knowledge Base"
+      },
+      {
+        "command": "kibi.showSignoff",
+        "title": "Kibi: Show Requirements Signoff"
       }
     ],
     "menus": {
@@ -99,6 +104,9 @@
         },
         {
           "command": "kibi.refreshTree"
+        },
+        {
+          "command": "kibi.showSignoff"
         }
       ]
     },
@@ -131,7 +139,7 @@
   },
   "dependencies": {
     "js-yaml": "^4.1.0",
-    "kibi-cli": "^2.1.0"
+    "kibi-cli": "^2.30.0"
   },
   "homepage": "https://looted.github.io/kibi/",
   "repository": {

@@ -1,3 +1,4 @@
+import { bindingToken } from "../../../packages/cli/src/operations/modeling/predicate-bindings";
 import {
   EvidenceBindingError,
   type PredicateCaseSnapshot,
@@ -16,6 +17,8 @@ export type PredicateCaseFailure =
   | "predicate-polarity"
   | "rule-semantic-key"
   | "rule-hash"
+  | "rule-exceptions"
+  | "forbidden-fact-lane"
   | "predicate-edges"
   | "logical-fact-lanes"
   | "logic-claim-manifest"
@@ -40,6 +43,25 @@ export type PredicateCaseEvaluation = Readonly<{
   predicateEvidence?: PredicateCaseEvidence;
   failureCodes: readonly PredicateCaseFailure[];
 }>;
+
+/**
+ * Argument bindings compared in the snake_case form Kibi's own predicate
+ * advisor uses, so `artifact digest` binds the `artifact_digest` argument.
+ */
+// implements REQ-skillopt-predicate-first-requirements
+export function predicateArgsMatch(
+  actual: readonly string[] | undefined,
+  expected: readonly string[],
+): boolean {
+  return (
+    actual !== undefined &&
+    actual.length === expected.length &&
+    actual.every(
+      (value, index) =>
+        bindingToken(value) === bindingToken(expected[index] ?? ""),
+    )
+  );
+}
 
 function predicateFailures(
   manifest: Manifest,
@@ -109,8 +131,10 @@ function predicateFailures(
     } else {
       if (
         expectation.expectedPredicateArgs !== null &&
-        JSON.stringify(fact.predicateArgs) !==
-          JSON.stringify(expectation.expectedPredicateArgs)
+        !predicateArgsMatch(
+          fact.predicateArgs,
+          expectation.expectedPredicateArgs,
+        )
       ) {
         failures.push("predicate-args");
       }
@@ -146,6 +170,25 @@ function predicateFailures(
     ) {
       failures.push("rule-hash");
     }
+  }
+  const expectedExceptions = expectation.expectedRuleExceptions;
+  if (expectedExceptions !== undefined && expectedExceptions !== null) {
+    const ruleWithExceptions = snapshot.facts.some((fact) => {
+      const atoms = fact.ruleExceptionAtoms ?? [];
+      return (
+        fact.factKind === "rule" &&
+        atoms.length > 0 &&
+        expectedExceptions.atomNames.every((name) => atoms.includes(name))
+      );
+    });
+    if (!ruleWithExceptions) failures.push("rule-exceptions");
+  }
+  if (
+    (expectation.forbiddenGroundFactKinds ?? []).some((kind) =>
+      snapshot.facts.some((fact) => fact.factKind === kind),
+    )
+  ) {
+    failures.push("forbidden-fact-lane");
   }
   for (const edge of expectation.expectedEdges) {
     if (

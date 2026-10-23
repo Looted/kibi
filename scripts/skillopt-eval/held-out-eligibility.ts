@@ -1,7 +1,6 @@
 import type { EpisodeRequest } from "./contracts/episode";
 import {
   bindPhysicalCells,
-  bundleGate,
   frozenHashes,
   predicateGate,
   skillGate,
@@ -16,7 +15,7 @@ import type { CodexEpisodeReceipt } from "./runtime/codex-episode";
 import type { PredicateCaseEvidence } from "./scoring/cell";
 
 // implements REQ-skillopt-predicate-first-requirements
-type PhysicalCellKind = "predicate" | "skill" | "bundle";
+type PhysicalCellKind = "predicate" | "skill";
 
 export type HeldOutPhysicalCell = Readonly<{
   kind: PhysicalCellKind;
@@ -44,10 +43,6 @@ export type HeldOutGateOutcomes = Readonly<{
       outcome: "pass" | "fail" | "ambiguous";
       adoptionEligible: boolean;
     }>;
-    bundle: Readonly<{
-      outcome: "pass" | "fail" | "ambiguous";
-      adoptionEligible: boolean;
-    }>;
   }>;
 }>;
 
@@ -59,20 +54,17 @@ export function evaluateHeldOutGateOutcomes(
       total: number;
       predicate: number;
       skill: number;
-      bundle: number;
     }>;
   }>,
 ): HeldOutGateOutcomes {
   const boundCells = bindPhysicalCells(input.physicalCells);
   const predicate = boundCells.filter((cell) => cell.kind === "predicate");
   const skill = boundCells.filter((cell) => cell.kind === "skill");
-  const bundle = boundCells.filter((cell) => cell.kind === "bundle");
   const predicateVerdict = predicateGate(predicate);
   const representativePredicate = predicate.filter(
     (cell) => cell.request.replicate === 1,
   );
   const skillVerdict = skillGate(representativePredicate, skill);
-  const bundleVerdict = bundleGate(bundle);
   const hashes = frozenHashes(boundCells);
   const complete =
     boundCells.length === input.physicalCells.length &&
@@ -81,7 +73,6 @@ export function evaluateHeldOutGateOutcomes(
       cells: boundCells,
       predicate,
       skill,
-      bundle,
       ...(input.expected === undefined ? {} : { expected: input.expected }),
     }) &&
     hashes !== null &&
@@ -89,8 +80,7 @@ export function evaluateHeldOutGateOutcomes(
   const eligibility: "eligible" | "HELD_OUT_MATRIX_INELIGIBLE" =
     complete &&
     predicateVerdict.eligibility === "eligible" &&
-    skillVerdict.adoptionEligible &&
-    bundleVerdict.adoptionEligible
+    skillVerdict.adoptionEligible
       ? "eligible"
       : "HELD_OUT_MATRIX_INELIGIBLE";
   return {
@@ -106,10 +96,6 @@ export function evaluateHeldOutGateOutcomes(
       skill: {
         outcome: skillVerdict.outcome,
         adoptionEligible: skillVerdict.adoptionEligible,
-      },
-      bundle: {
-        outcome: bundleVerdict.outcome,
-        adoptionEligible: bundleVerdict.adoptionEligible,
       },
     },
   };

@@ -251,3 +251,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1a60e99b3b37
+  - type: implements
+    from: SYM-cli-planned-fact-input-type
+    to: REQ-model-what-if-planned-facts
+    created_at: 2026-10-21T20:14:55.948Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b38e8aff5fbc
+  - type: covered_by
+    from: SYM-cli-planned-fact-input-type
+    to: TEST-model-what-if-planned-facts
+    created_at: 2026-10-21T20:14:55.967Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-38005aae400f
+  - type: implements
+    from: SYM-cli-signoff-render-html
+    to: REQ-kibi-signoff-views
+    created_at: 2026-10-22T09:26:06.035Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3dfd0b3d1fb2
+  - type: covered_by
+    from: SYM-cli-signoff-render-html
+    to: TEST-kibi-signoff-views
+    created_at: 2026-10-22T09:26:06.052Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9123b5acf85a

@@ -259,7 +259,7 @@ export const statusSpec = {
   name: "kb_status",
   cliName: "status",
   description:
-    "Report current branch, KB snapshot, freshness metadata, schema status, and a typed kibi.migration-plan.v2 action graph. Read-only status inspection with no mutation side effects; damaged stores are diagnosed without starting the engine.",
+    "Report current branch, KB snapshot, freshness metadata, schema status, and a typed kibi.migration-plan.v2 action graph. Call it first to orient on a branch or after a failed call; use kb_check for validation findings and kb_coverage for proof status. Read-only status inspection with no mutation side effects; damaged stores are diagnosed without starting the engine.",
   businessInputSchema: { type: "object", properties: {} },
   // Status must remain available when the branch store cannot be attached.
   requiresProlog: false,

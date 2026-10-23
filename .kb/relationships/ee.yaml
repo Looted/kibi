@@ -377,3 +377,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b9c8710ea8d0
+  - type: implements
+    from: SYM-claude-signoff-display-batch
+    to: REQ-kibi-signoff-views
+    created_at: 2026-10-22T09:26:38.385Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4dc7db6814c1
+  - type: covered_by
+    from: SYM-claude-signoff-display-batch
+    to: TEST-kibi-signoff-views
+    created_at: 2026-10-22T09:26:38.407Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1a72231f5f5

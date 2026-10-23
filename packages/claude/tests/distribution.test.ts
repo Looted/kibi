@@ -166,6 +166,8 @@ describe("kibi-claude distribution artifacts", () => {
       .sort();
     expect(ids).toEqual([
       "kibi-bootstrap",
+      "kibi-commit-review",
+      "kibi-decisions",
       "kibi-freshness",
       "kibi-traceability",
       "kibi-usage",

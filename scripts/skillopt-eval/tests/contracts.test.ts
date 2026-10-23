@@ -175,7 +175,7 @@ describe("SkillOpt versioned contracts", () => {
     const hash = "b".repeat(64);
     expect(() =>
       ApprovalSchema.parse({
-        schemaVersion: "1.0.0",
+        schemaVersion: "1.1.0",
         artifactType: "approval",
         approvalId: "00000000-0000-4000-8000-000000000004",
         proposalId: "00000000-0000-4000-8000-000000000003",
@@ -190,7 +190,7 @@ describe("SkillOpt versioned contracts", () => {
     ).toThrow();
     expect(() =>
       LedgerEntrySchema.parse({
-        schemaVersion: "1.0.0",
+        schemaVersion: "1.1.0",
         artifactType: "ledger-entry",
         runId: RUN_ID,
         sequence: 1,

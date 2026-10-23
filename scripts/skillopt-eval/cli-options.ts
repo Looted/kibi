@@ -24,7 +24,6 @@ export type WorkflowOptions = Readonly<{
   developmentOnly?: boolean;
   sourceRoot?: string;
   seedCandidate?: string;
-  candidateManifest?: string;
   cellRuntime?: CodexCellRuntime;
 }>;
 
@@ -62,7 +61,6 @@ export function parseWorkflowOptions(
   let fixtureRunRoot: string | undefined;
   let sourceRoot: string | undefined;
   let seedCandidate: string | undefined;
-  let candidateManifest: string | undefined;
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
     if (arg === "--fake") {
@@ -94,21 +92,6 @@ export function parseWorkflowOptions(
         }
         maxSteps = parsed;
       }
-      index += 1;
-      continue;
-    }
-    if (arg === "--candidate-manifest") {
-      if (command !== undefined && command !== "bundle") {
-        throw new CliUsageError(
-          "--candidate-manifest is only valid for bundle",
-        );
-      }
-      const value = args[index + 1];
-      if (value === undefined || value.startsWith("--"))
-        throw new CliUsageError("--candidate-manifest requires a value");
-      if (candidateManifest !== undefined)
-        throw new CliUsageError("--candidate-manifest may be supplied once");
-      candidateManifest = value;
       index += 1;
       continue;
     }
@@ -151,7 +134,6 @@ export function parseWorkflowOptions(
       : { cellRuntime: { fixtureRunRoot } }),
     ...(sourceRoot === undefined ? {} : { sourceRoot }),
     ...(seedCandidate === undefined ? {} : { seedCandidate }),
-    ...(candidateManifest === undefined ? {} : { candidateManifest }),
   };
 }
 
@@ -161,8 +143,9 @@ export function printHelp(): void {
   process.stdout.write(
     `${[
       "Usage: cli.ts <command> [options]",
-      "Commands: preflight, smoke, dry-run, prepare, optimize, evaluate, bundle, run, resume, status, report, approve, adopt, prototype",
-      "Workflow options: --run-id RUN_ID --artifact-root PATH [--fake] [--skill SKILL|all] [--max-steps 1..4] [--development-only] [--fixture-run-root PATH] [--seed-candidate PATH] [--candidate-manifest PATH]",
+      "Commands: preflight, smoke, dry-run, prepare, optimize, evaluate, run, resume, status, report, approve, adopt, prototype",
+      "Workflow options: --run-id RUN_ID --artifact-root PATH [--fake] [--skill SKILL|all] [--max-steps 1..4] [--development-only] [--fixture-run-root PATH] [--seed-candidate PATH]",
+      "Host: --host codex|claude-code (default: KIBI_SKILLOPT_HOST, else codex). This workflow runs on codex only; other hosts use campaign.ts.",
       "Real optimize requires --allow-paid after preflight and smoke; eligible candidates remain review-only until an external verdict authorizes adoption.",
     ].join("\n")}\n`,
   );

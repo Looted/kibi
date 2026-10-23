@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { join } from "node:path";
 import { fixtureSymbolId } from "../fixtures/workspace";
@@ -7,6 +8,7 @@ import type {
 } from "../scoring/evidence-utils";
 import { probeRequiredMcp } from "./canary-runtime";
 import {
+  type BrokerCallEvidence,
   type CaseSignalContext,
   caseForbiddenObserved,
   caseSignalObserved,
@@ -19,10 +21,15 @@ import type {
   CodexCellOptions,
 } from "./codex-cell-types";
 import {
+  decisionForbiddenObserved,
+  decisionSignalObserved,
+} from "./decision-signals";
+import {
   type FinalStateReceipt,
   FinalStateReceiptSchema,
   runIndependentFinalState,
 } from "./final-state";
+import { isSeededUnresolvedRuleViolation } from "./fixture-seeds";
 import { parseTraceReceipts, verifyTraceChain } from "./jsonrpc";
 import { stageKibiMcpBroker } from "./mcp-broker-stage";
 import { routedOperationName, toolCallArguments } from "./mcp-tool-names";
@@ -60,6 +67,41 @@ function stringEnvironment(env: NodeJS.ProcessEnv): Record<string, string> {
       value === undefined ? [] : [[key, value]],
     ),
   );
+}
+
+function currentGitBranch(workspaceRoot: string): string | null {
+  try {
+    return execFileSync("git", ["branch", "--show-current"], {
+      cwd: workspaceRoot,
+      encoding: "utf8",
+      timeout: 5_000,
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Environment for the independent final-state verifier. The cell pins
+ * KIBI_BRANCH so fixtures without a repository still attach the evaluation
+ * branch, but a pinned name always reports `explicit_override`. When the
+ * fixture is a Git checkout already on that branch, the verifier resolves the
+ * attachment from Git so `exact` remains observable; any other checkout keeps
+ * the pin and its override classification.
+ */
+// implements REQ-skillopt-codex-optimization
+export function verifierEnvironment(
+  env: NodeJS.ProcessEnv,
+  workspaceRoot: string,
+): Record<string, string> {
+  const environment = stringEnvironment(env);
+  const pinned = environment.KIBI_BRANCH;
+  if (pinned === undefined || currentGitBranch(workspaceRoot) !== pinned) {
+    return environment;
+  }
+  const { KIBI_BRANCH: _pinned, ...resolvedFromGit } = environment;
+  return resolvedFromGit;
 }
 
 function scalarClaims(
@@ -151,13 +193,59 @@ function proofStateFromCoverage(
   return "unresolved";
 }
 
+type CoverageLink = Readonly<{
+  kind: "covered_by" | "executable_for";
+  /** The linked test names its executable file and verification scope. */
+  executableTest: boolean;
+}>;
+
+/**
+ * Symbol-to-test coverage edges in the verifier's final entity read. The
+ * executable-coverage fixture seeds no such edge, so any edge here is one the
+ * agent applied; prose that merely names the relationship does not count.
+ */
+function coverageLinks(
+  results: readonly Readonly<{ tool: string; result: unknown }>[],
+): readonly CoverageLink[] {
+  const entities = latestContent(results, "kb_query")?.entities;
+  if (!Array.isArray(entities)) return [];
+  const tests = new Map<string, Record<string, unknown>>();
+  for (const entity of entities) {
+    if (
+      isRecord(entity) &&
+      entity.type === "test" &&
+      typeof entity.id === "string"
+    )
+      tests.set(entity.id, entity);
+  }
+  return entities.flatMap((entity): CoverageLink[] => {
+    if (!isRecord(entity) || entity.type !== "symbol") return [];
+    return (["covered_by", "executable_for"] as const).flatMap((kind) =>
+      referenceTargets(entity[kind]).flatMap((target) => {
+        const test = tests.get(target);
+        if (test === undefined) return [];
+        return [
+          {
+            kind,
+            executableTest:
+              typeof test.text_ref === "string" &&
+              typeof test.verification_scope === "string",
+          },
+        ];
+      }),
+    );
+  });
+}
+
 function workflowSignalObserved(
   signal: string,
   results: readonly Readonly<{ tool: string; result: unknown }>[],
   brokerTools: readonly string[],
   context: CaseSignalContext,
 ): boolean {
-  const caseOutcome = caseSignalObserved(signal, context);
+  const caseOutcome =
+    caseSignalObserved(signal, context) ??
+    decisionSignalObserved(signal, context);
   if (caseOutcome !== undefined) return caseOutcome;
   const text = JSON.stringify(results).toLowerCase();
   // Prose claims may come from the KB or from the agent's final answer (the
@@ -177,7 +265,12 @@ function workflowSignalObserved(
     case "source-linked query executed":
       return hasBrokerTool("kb_query");
     case "typed relationship applied":
-      return text.includes('"implements"') && text.includes('"covered_by"');
+      // The seeded baseline symbol already carries both link kinds, so a
+      // safe mutation task credits only the requested links on its own
+      // fixture symbol.
+      return context.taskId?.includes(SAFE_MUTATION_TASK) === true
+        ? safeMutationLinksApplied(results, context.taskId)
+        : text.includes('"implements"') && text.includes('"covered_by"');
     case "symbol readback after write":
       return brokerTools.filter((tool) => tool === "kb_query").length >= 2;
     case "final check executed":
@@ -209,9 +302,11 @@ function workflowSignalObserved(
     case "graph traversal executed":
       return hasBrokerTool("kb_graph");
     case "executable test identity established":
-      return text.includes('"verification_scope"');
+      return coverageLinks(results).some(
+        (link) => link.kind === "executable_for" || link.executableTest,
+      );
     case "coverage link applied":
-      return text.includes('"covered_by"') || text.includes('"executable_for"');
+      return coverageLinks(results).length > 0;
     case "read-only plan produced":
     case "planner context gate honored":
       return hasBrokerTool("kb_plan_bootstrap");
@@ -443,7 +538,9 @@ function forbiddenActionObserved(
   brokerTools: readonly string[],
   context: CaseSignalContext,
 ): boolean {
-  const caseOutcome = caseForbiddenObserved(action, context);
+  const caseOutcome =
+    caseForbiddenObserved(action, context) ??
+    decisionForbiddenObserved(action, context);
   if (caseOutcome !== undefined) return caseOutcome;
   const text = JSON.stringify(results).toLowerCase();
   const status = latestContent(results, "kb_status");
@@ -601,13 +698,15 @@ function forbiddenActionObserved(
   }
 }
 
+// The unresolved-pair seed carries one `unresolved` rule conflict by design;
+// a check whose only violations are that seeded one is clean for the task.
 function cleanCheckResult(value: unknown): boolean {
   const content = structuredContent(value);
   return (
     successfulResult(value) &&
-    content?.count === 0 &&
-    Array.isArray(content.violations) &&
-    content.violations.length === 0
+    Array.isArray(content?.violations) &&
+    content.count === content.violations.length &&
+    content.violations.every(isSeededUnresolvedRuleViolation)
   );
 }
 
@@ -631,17 +730,24 @@ function referenceTargets(value: unknown): readonly string[] {
   });
 }
 
+const SAFE_MUTATION_TASK = "-safe-mutation-direction-";
+
 // implements REQ-skillopt-logical-evidence-fidelity
-function safeMutationComplete(
-  receipt: FinalStateReceipt,
+/**
+ * Whether the verifier's final entity read holds the fixture production
+ * symbol on src/fixture.ts with the two requested links: implements to the
+ * seeded requirement and covered_by to the seeded test. The seed holds
+ * neither the symbol nor its links, so only the agent's write satisfies it.
+ */
+function safeMutationLinksApplied(
+  results: readonly Readonly<{ tool: string; result: unknown }>[],
   taskId: string,
 ): boolean {
-  if (!taskId.includes("-safe-mutation-direction-")) return true;
   const symbolId = fixtureSymbolId(taskId);
   const suffix = symbolId.slice("SYM-FIXTURE-".length);
   const requirementId = `REQ-FIXTURE-${suffix}`;
   const testId = `TEST-FIXTURE-${suffix}`;
-  const query = receipt.requests.find(({ tool }) => tool === "kb_query");
+  const query = results.find(({ tool }) => tool === "kb_query");
   const entities = structuredContent(query?.result)?.entities;
   if (!Array.isArray(entities)) return false;
   const symbol = entities.find(
@@ -655,11 +761,21 @@ function safeMutationComplete(
   );
 }
 
+// implements REQ-skillopt-logical-evidence-fidelity
+function safeMutationComplete(
+  receipt: FinalStateReceipt,
+  taskId: string,
+): boolean {
+  if (!taskId.includes(SAFE_MUTATION_TASK)) return true;
+  return safeMutationLinksApplied(receipt.requests, taskId);
+}
+
 function sealedFinalState(
   finalState: string,
   options: Pick<CodexCellOptions, "evaluatorManifest" | "finalStateRequests">,
   brokerTools: readonly string[],
   lanes: EvidenceLanes = evidenceLanes(undefined, undefined),
+  calls: readonly BrokerCallEvidence[] = [],
 ) {
   const receipt = FinalStateReceiptSchema.parse(JSON.parse(finalState));
   const integrityValid = receipt.requests.every(
@@ -725,6 +841,7 @@ function sealedFinalState(
     ordering: lanes.ordering,
     workspaceFiles: lanes.workspaceFiles,
     workspaceAssertions,
+    calls,
   };
   // Coverage remains available as raw final-state evidence, but a workflow
   // that declares proof out of scope must not inherit an unresolved result
@@ -993,10 +1110,14 @@ function sealedDiagnostic(
     integrityValid = false;
   }
   const expectedTools = [...successfulTools].sort();
+  // The server logs a returned error envelope (an invalid dry-run upsert, for
+  // example) as a completed call, but answers it with isError: true, which the
+  // broker counts as unsuccessful. Its result_status tells the two apart.
   const receiptTools = records
     .flatMap((record) =>
       typeof record.tool === "string" &&
       record.status === "success" &&
+      record.result_status !== "error" &&
       Object.hasOwn(record, "telemetry") &&
       (record.telemetry === null || isRecord(record.telemetry))
         ? [record.tool]
@@ -1034,6 +1155,7 @@ export function sealDefaultCellEvidence(
       options,
       brokerTools,
       evidenceLanes(evidence.transcript, evidence.workspaceFiles),
+      broker.evidence.rawCalls,
     ),
     broker: broker.evidence,
     diagnostic: sealedDiagnostic(
@@ -1079,7 +1201,7 @@ export function defaultCodexCellDependencies(
           ...context.broker.downstream,
           args: [...context.broker.downstream.args],
           env: {
-            ...stringEnvironment(context.env),
+            ...verifierEnvironment(context.env, context.workspace.target),
             // Keep independent verifier calls out of the model's diagnostic
             // usage receipt.  The two lanes share a fixture workspace, but
             // their evidence must remain independently attributable.

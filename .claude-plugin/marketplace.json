@@ -18,7 +18,7 @@
     {
       "name": "kibi-zcode",
       "source": "./packages/zcode",
-      "description": "Kibi ZCode plugin: bundled Kibi skills, a kibi-bootstrap command, advisory lifecycle hooks, and the workspace-gated Kibi MCP server.",
+      "description": "Kibi ZCode plugin: bundled Kibi skills, kibi-bootstrap and kibi-signoff commands, advisory lifecycle hooks, and the workspace-gated Kibi MCP server.",
       "category": "Productivity"
     }
   ]

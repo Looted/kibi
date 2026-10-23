@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import {
   chmod,
   cp,
@@ -6,7 +7,7 @@ import {
   realpath,
   writeFile,
 } from "node:fs/promises";
-import { resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { RuntimePrerequisiteError } from "./canary-errors";
 import type { IsolationWorkspace } from "./isolation-workspace";
 
@@ -47,6 +48,7 @@ async function buildRuntimeBundle(
     target: "bun",
     format: "esm",
     packages: "bundle",
+    external: [...EXTERNAL_RUNTIME_PACKAGES],
     minify: false,
     sourcemap: "none",
   });
@@ -63,6 +65,120 @@ function runtimeBundle(
   const pending = buildRuntimeBundle(sourceWorktree, privateRoot);
   bundleCache.set(sourceWorktree, pending);
   return pending;
+}
+
+/**
+ * Packages the bundled server loads at runtime with `require` instead of
+ * importing statically, so `Bun.build` cannot inline them. Each entry names the
+ * package and the source package whose dependency it is.
+ */
+const RUNTIME_REQUIRED_PACKAGES = [
+  // Symbol extraction loads the TypeScript compiler on first use.
+  { name: "ts-morph", from: "packages/plugin-builtin" },
+  // The builtin plugin reads its own package.json for its version, and impact
+  // review identifies the trusted source analyzer by that manifest. Bundled,
+  // `../package.json` would resolve to the MCP server's manifest instead.
+  { name: "kibi-plugin-builtin", from: "packages/cli" },
+] as const;
+
+/** Packages kept out of the bundle and loaded from the staged node_modules. */
+const EXTERNAL_RUNTIME_PACKAGES = ["kibi-plugin-builtin"] as const;
+
+function packageDirectory(name: string, fromDirectory: string): string {
+  let directory = fromDirectory;
+  for (;;) {
+    const candidate = join(directory, "node_modules", name);
+    if (existsSync(join(candidate, "package.json"))) return candidate;
+    const parent = dirname(directory);
+    if (parent === directory) {
+      throw new RuntimePrerequisiteError("missing_runtime_package");
+    }
+    directory = parent;
+  }
+}
+
+function manifestDependencies(manifest: unknown): readonly string[] {
+  if (typeof manifest !== "object" || manifest === null) return [];
+  const names = new Set<string>();
+  for (const field of [
+    "dependencies",
+    "optionalDependencies",
+    "peerDependencies",
+  ] as const) {
+    const entries = (manifest as Record<string, unknown>)[field];
+    if (typeof entries !== "object" || entries === null) continue;
+    for (const name of Object.keys(entries)) names.add(name);
+  }
+  return [...names];
+}
+
+/**
+ * Copies a package and its installed dependency closure into the staged
+ * `node_modules`, resolving each dependency from its real install location the
+ * way Node would. A dependency is hoisted to the staged root unless another
+ * version already occupies that name, in which case it is nested beside the
+ * package that needs it. Optional and peer dependencies that are not installed
+ * are skipped, as Node would fail to resolve them too.
+ */
+// implements REQ-skillopt-codex-optimization
+export async function stageRuntimePackage(
+  name: string,
+  fromDirectory: string,
+  stagedRoot: string,
+): Promise<void> {
+  const hoisted = new Map<string, string>();
+  const stagedDestinations = new Set<string>();
+  const visit = async (
+    packageName: string,
+    resolveFrom: string,
+    parentDestination: string,
+    required: boolean,
+  ): Promise<void> => {
+    let source: string;
+    try {
+      source = await realpath(packageDirectory(packageName, resolveFrom));
+    } catch (error) {
+      if (!required) return;
+      throw error;
+    }
+    let destination: string;
+    const occupant = hoisted.get(packageName);
+    if (occupant === source) return;
+    if (occupant === undefined) {
+      hoisted.set(packageName, source);
+      destination = join(stagedRoot, "node_modules", packageName);
+    } else {
+      destination = join(parentDestination, "node_modules", packageName);
+    }
+    if (stagedDestinations.has(destination)) return;
+    stagedDestinations.add(destination);
+    await cp(source, destination, {
+      recursive: true,
+      dereference: true,
+      // Dependencies are staged explicitly below; never copy an install's own
+      // nested node_modules or development links.
+      filter: (path) =>
+        !path.slice(source.length).split("/").includes("node_modules"),
+    });
+    const manifest: unknown = JSON.parse(
+      await readFile(join(source, "package.json"), "utf8"),
+    );
+    const requiredDependencies = new Set(
+      Object.keys(
+        (manifest as { dependencies?: Record<string, unknown> }).dependencies ??
+          {},
+      ),
+    );
+    for (const dependency of manifestDependencies(manifest)) {
+      await visit(
+        dependency,
+        source,
+        destination,
+        requiredDependencies.has(dependency),
+      );
+    }
+  };
+  await visit(name, fromDirectory, stagedRoot, true);
 }
 
 async function copyRuntimeResources(
@@ -114,11 +230,14 @@ async function copyRuntimeResources(
       { recursive: true },
     ),
   ]);
+  for (const { name, from } of RUNTIME_REQUIRED_PACKAGES) {
+    await stageRuntimePackage(name, resolve(sourceWorktree, from), stagedRoot);
+  }
 }
 
 // implements REQ-skillopt-codex-optimization
 export async function stageKibiMcpRuntime(
-  workspace: IsolationWorkspace,
+  workspace: Pick<IsolationWorkspace, "target" | "privateEvidence">,
   sourceWorktree: string,
   options: StagedMcpOptions = {},
 ): Promise<StagedMcpLaunch> {
@@ -169,6 +288,15 @@ export async function stageKibiMcpRuntime(
   }
   await writeFile(bundlePath, bundled, { encoding: "utf8", mode: 0o400 });
   await copyRuntimeResources(sourceWorktree, stagedRoot);
+  // kb_skills must serve the variant under evaluation, not the shipped text:
+  // the cell assembles baseline or candidate bodies into .agents/skills first.
+  const assembledSkills = resolve(workspace.target, ".agents/skills");
+  if (existsSync(assembledSkills)) {
+    await cp(assembledSkills, resolve(stagedRoot, "dist/skills"), {
+      recursive: true,
+      force: true,
+    });
+  }
   return {
     command: stagedCommand,
     args: [bundlePath, "--diagnostic-mode"],

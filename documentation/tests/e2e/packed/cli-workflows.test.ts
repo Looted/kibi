@@ -361,6 +361,103 @@ export async function verifyHtmlRequirementHealthReport(
   console.log("  ✓ HTML requirement health report generated");
 }
 
+export async function verifyRequirementsSignoff(
+  sandbox: TestSandbox,
+): Promise<void> {
+  const summary = await kibi(sandbox, ["signoff", "--format", "json"], {
+    timeoutMs: 120000,
+  });
+  assert.strictEqual(
+    summary.exitCode,
+    0,
+    `signoff should succeed. Output: ${summary.stdout}${summary.stderr}`,
+  );
+  const view = JSON.parse(summary.stdout) as {
+    version?: string;
+    kind?: string;
+    requirements?: {
+      id?: string;
+      change?: string;
+      statement?: string;
+      scenarios?: unknown[];
+      proof?: { status?: string };
+    }[];
+  };
+  assert.strictEqual(view.version, "kibi.signoff.v1");
+  assert.strictEqual(view.kind, "summary");
+  const requirement = view.requirements?.find((row) => row.id === "REQ-001");
+  assert.ok(requirement, "the uncommitted requirement should be listed");
+  assert.strictEqual(requirement.change, "new");
+  assert.match(requirement.statement ?? "", /test requirement/i);
+  assert.ok(requirement.proof, "the summary should carry the proof state");
+
+  const chat = await kibi(sandbox, ["signoff", "--no-proof"]);
+  assert.strictEqual(chat.exitCode, 0, chat.stderr);
+  assert.match(chat.stdout, /^## Requirements signoff: 1 new$/m);
+  assert.doesNotMatch(chat.stdout, /```/);
+  assert.match(chat.stderr, /latest\.html/);
+
+  const markdown = await kibi(sandbox, [
+    "signoff",
+    "--no-proof",
+    "--format",
+    "md",
+  ]);
+  assert.strictEqual(markdown.exitCode, 0, markdown.stderr);
+  assert.match(markdown.stdout, /^```kibi-signoff$/m);
+  assert.match(markdown.stdout, /## Requirements signoff: 1 new/);
+  assert.match(markdown.stdout, /\*\*1\. REQ-001\*\*/);
+
+  const questionsPath = path.join(sandbox.repoDir, "decisions.json");
+  await writeFile(
+    questionsPath,
+    JSON.stringify({
+      questions: [
+        {
+          id: "REQ-001",
+          statement: "Test requirement applies to every sync.",
+          quote: "it should always sync",
+          firmness: "firm",
+        },
+        { statement: "Exports stay in JSON.", answer: "yes" },
+      ],
+    }),
+  );
+  const questions = await kibi(sandbox, [
+    "signoff",
+    "--questions",
+    questionsPath,
+    "--format",
+    "html",
+  ]);
+  assert.strictEqual(
+    questions.exitCode,
+    0,
+    `signoff --questions should succeed. Output: ${questions.stdout}${questions.stderr}`,
+  );
+  const briefs = path.join(sandbox.repoDir, ".kb", "briefs", "signoff");
+  const html = await readFile(path.join(briefs, "latest.html"), "utf8");
+  assert.match(
+    html,
+    /Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'"/,
+  );
+  assert.match(html, /Decisions to confirm/);
+  assert.match(html, /it should always sync/);
+  assert.match(html, /Test requirement applies to every sync\./);
+  const latest = JSON.parse(
+    await readFile(path.join(briefs, "latest.json"), "utf8"),
+  ) as { kind?: string; questions?: { number?: number; answer?: string }[] };
+  assert.strictEqual(latest.kind, "questions");
+  assert.deepStrictEqual(
+    latest.questions?.map((question) => question.number),
+    [1, 2],
+  );
+  const latestMarkdown = await readFile(path.join(briefs, "latest.md"), "utf8");
+  assert.match(latestMarkdown, /## Decisions to confirm: 1 open, 1 answered/);
+
+  console.log("  ✓ Requirements signoff views generated");
+}
+
 if (RUN_NODE_TEST_SUITE) {
   describe("CLI E2E: Install and Basic Commands", () => {
     let tarballs: Tarballs;
@@ -610,6 +707,14 @@ if (RUN_NODE_TEST_SUITE) {
         return;
       }
       await verifyHtmlRequirementHealthReport(sandbox);
+    });
+
+    it("should show the requirements signoff summary and decisions view", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+      await verifyRequirementsSignoff(sandbox);
     });
 
     it("should have created .kb directory structure", async (testContext) => {

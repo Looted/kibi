@@ -195,3 +195,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2e2a7952a1d7
+  - type: implements
+    from: SYM-cli-source-write-scope
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-10-21T20:14:28.672Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c25802192f89
+  - type: covered_by
+    from: SYM-cli-source-write-scope
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-10-21T20:14:28.690Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85b34b6b1731

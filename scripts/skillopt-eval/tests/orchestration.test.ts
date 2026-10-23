@@ -95,7 +95,7 @@ describe("SkillOpt orchestration", () => {
     }
   });
 
-  test("completes all four skills and bundle through the fake surface", async () => {
+  test("completes all six skills and bundle through the fake surface", async () => {
     const root = await mkdtemp(join(tmpdir(), "skillopt-complete-"));
     try {
       const result = await runOfflineWorkflow({
@@ -104,11 +104,24 @@ describe("SkillOpt orchestration", () => {
         runLockHash: "b".repeat(64),
       });
       expect(result.phase).toBe("complete");
-      expect(result.completedSkills).toHaveLength(4);
-      expect(result.bundle).toBe(true);
-      expect(await readFile(join(root, "state.json"), "utf8")).toContain(
-        '"phase":"complete"',
-      );
+      expect(result.completedSkills).toHaveLength(6);
+      expect(result).toEqual({
+        phase: "complete",
+        completedSkills: [
+          "kibi-usage",
+          "kibi-freshness",
+          "kibi-traceability",
+          "kibi-bootstrap",
+          "kibi-decisions",
+          "kibi-commit-review",
+        ],
+      });
+      const state = await readFile(join(root, "state.json"), "utf8");
+      expect(state).toContain('"phase":"complete"');
+      expect(state).toContain('"schemaVersion":"1.1.0"');
+      const ledger = await readFile(join(root, "ledger.jsonl"), "utf8");
+      expect(ledger).not.toContain("bundle");
+      expect(ledger.trim().split("\n")).toHaveLength(6);
     } finally {
       await rm(root, { recursive: true, force: true });
     }

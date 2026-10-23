@@ -11,10 +11,12 @@
   "overrides": {
     "diff": "^8.0.3",
     "ip-address": "^10.7.3",
+    "markdown-it": "^14.3.3",
     "qs": "^6.16.0",
     "seroval": "^1.6.8",
     "smol-toml": "^1.9.0",
-    "tmp": "^0.2.7"
+    "tmp": "^0.2.7",
+    "toml": "^5.0.1"
   },
   "kibi": {
     "plugins": [

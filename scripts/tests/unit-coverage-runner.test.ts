@@ -76,6 +76,7 @@ describe("unit coverage runner contract", () => {
       "cli.check-command",
       "cli.sync-command",
       "cli.sync-coverage",
+      "cli.sync-modules",
       "cli.doctor",
       "cli.operations",
       "cli.public",
@@ -170,6 +171,39 @@ describe("unit coverage runner contract", () => {
       "./packages/vscode/tests/coverage-completion.test.ts",
       "./packages/vscode/tests/workspace-resolve.coverage.test.ts",
     ]);
+  });
+
+  test("every in-process CLI unit test file belongs to a coverage shard", () => {
+    // Directories whose tests drive the CLI or MCP through child processes,
+    // so their lines never reach Bun's in-process coverage. They run in the
+    // root unit suite and proof instead.
+    const subprocessOnly = [
+      "./packages/cli/tests/consumer/",
+      "./packages/cli/tests/convergence/",
+      "./packages/cli/tests/env/",
+    ];
+    const owned = COVERAGE_SHARDS.flatMap((shard) => shard.paths);
+    const isOwned = (file: string) =>
+      owned.some((path) => file === path || file.startsWith(`${path}/`));
+    const files: string[] = [];
+    const collect = (directory: string): void => {
+      for (const entry of readdirSync(directory, { withFileTypes: true })) {
+        if (["node_modules", "dist"].includes(entry.name)) continue;
+        const file = `${directory}/${entry.name}`;
+        if (entry.isDirectory()) collect(file);
+        else if (/\.(?:test|spec)\.ts$/.test(entry.name)) files.push(file);
+      }
+    };
+    collect("./packages/cli/tests");
+    const unowned = files
+      .filter((file) => !subprocessOnly.some((dir) => file.startsWith(dir)))
+      .filter((file) => !isOwned(file))
+      .sort();
+    expect(unowned).toEqual([]);
+    expect(
+      COVERAGE_SHARDS.find((shard) => shard.label === "cli.sync-modules")
+        ?.paths,
+    ).toEqual(["./packages/cli/tests/commands/sync"]);
   });
 
   test("selectedShards returns every shard when no labels are requested", () => {
