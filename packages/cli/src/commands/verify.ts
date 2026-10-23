@@ -8,7 +8,7 @@
  (at your option) any later version.
  */
 
-import { mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { escapeAtom } from "../prolog/codec.js";
@@ -66,6 +66,17 @@ const NOT_COVERED_LABELS: Record<string, string> = {
   scenario_feasibility:
     "scenario feasibility (kibi check scenario-feasibility)",
 };
+
+function assertReadableBundle(filePath: string): void {
+  if (!existsSync(filePath)) {
+    throw new Error(`verify: no certificate bundle at ${filePath}`);
+  }
+  try {
+    JSON.parse(readFileSync(filePath, "utf8"));
+  } catch {
+    throw new Error(`verify: ${filePath} is not valid JSON`);
+  }
+}
 
 function prologPath(filePath: string): string {
   return escapeAtom(path.resolve(filePath).replaceAll("\\", "/"));
@@ -166,6 +177,7 @@ export async function executeVerify(
     throw new Error("verify: the Kibi engine is not available");
   }
   let bundlePath = options.certificates;
+  if (bundlePath !== undefined) assertReadableBundle(bundlePath);
   let temporaryDirectory: string | undefined;
   try {
     if (bundlePath === undefined) {

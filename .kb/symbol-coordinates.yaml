@@ -9645,12 +9645,12 @@ coordinates:
     sourceLine: 7
   SYM-cli-verify-command:
     identityHash: 3f4835a107e6e15dec668042fc90390b1118cada9c249c6298f5168b8e6a2ee5
-    sourceHash: a5eccfd3764a4cd281bf32edd4d1a09b1f4c691e074a68af15f6ae796e0b59be
+    sourceHash: affa9a25fe516948dd28aa1aa6e86c3858469280fd53f069bf955cd1d45dc95e
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 237
+    sourceEndLine: 249
     sourceFile: packages/cli/src/commands/verify.ts
-    sourceLine: 205
+    sourceLine: 217
   SYM-cli-with-exit-code:
     identityHash: 7de769b27f6e60ae8dc47f4db9c22b3ce35d97afd06b31b39c674dc8623311ee
     sourceHash: 4d1265bb79b808bdbe356fc66ee3c13c4f0bd82c6fca6e046217bcfe8f2d5c26

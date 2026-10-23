@@ -1,9 +1,14 @@
 import { describe, expect, test } from "bun:test";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import {
   type VerificationReport,
+  executeVerify,
   renderVerification,
   verifyExitCode,
 } from "../../src/commands/verify.js";
+import type { OperationContext } from "../../src/public/operations/runtime-types.js";
 
 const verified: VerificationReport = {
   version: "kibi.verification.v1",
@@ -130,5 +135,23 @@ describe("kibi verify report", () => {
     expect(text).toContain(
       "- default:allowed(a, b): no certificate for this group",
     );
+  });
+
+  test("a missing or malformed saved bundle fails with a plain message", async () => {
+    const directory = mkdtempSync(path.join(os.tmpdir(), "kibi-verify-test-"));
+    const context = { prolog: {} } as unknown as OperationContext;
+    try {
+      const missing = path.join(directory, "missing.json");
+      await expect(
+        executeVerify({ certificates: missing }, context),
+      ).rejects.toThrow(`verify: no certificate bundle at ${missing}`);
+      const broken = path.join(directory, "broken.json");
+      writeFileSync(broken, "{oops");
+      await expect(
+        executeVerify({ certificates: broken }, context),
+      ).rejects.toThrow(`verify: ${broken} is not valid JSON`);
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
   });
 });
