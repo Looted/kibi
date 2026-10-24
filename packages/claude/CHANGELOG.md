@@ -1,5 +1,11 @@
 # kibi-claude
 
+## 0.10.2
+
+### Patch Changes
+
+- 45036a3: Signoff guidance no longer tells agents to attach `latest.html` as a file. Chat apps (the Claude apps, Slack and most others) show an attached HTML file as raw source or a download, so agents now share the page only as a rendered page, such as a Claude Artifact, and otherwise leave the message text as the whole view. Updates the kibi-decisions and kibi-commit-review skills (1.2.1), the `kibi signoff` page note and the stop-hook reminder.
+
 ## 0.10.1
 
 ### Patch Changes
