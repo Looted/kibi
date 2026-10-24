@@ -765,7 +765,7 @@ export function buildSchema6MigrationFragment(input: {
     }
   }
   // Schema 11: a firm requirement needs tested evidence. Record an asserted
-  // floor on current firm requirements that have no proof path, so the
+  // floor on current firm requirements without a passing proof path, so the
   // upgraded knowledge base passes evidence-floor.
   if (
     input.currentSchemaVersion === null ||

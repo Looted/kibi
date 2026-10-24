@@ -936,7 +936,11 @@ export async function migrateCommand(
       const floors = planEvidenceFloorPins(cwd);
       if (floors.targets.length > 0)
         console.log(
-          `dry run: would record required_evidence: asserted on ${floors.targets.length} current firm requirement(s) with no scenario verified by a test with a proof contract (front matter only).`,
+          `dry run: would record required_evidence: asserted on ${floors.targets.length} current firm requirement(s) with no scenario verified by a passing end-to-end test with a proof contract (front matter only).`,
+        );
+      if (floors.kept.length > 0)
+        console.log(
+          `dry run: ${floors.kept.length} firm requirement(s) keep the tested floor (${floors.kept.join(", ")}); after migrating, kibi check --rules evidence-floor lists any that still miss it.`,
         );
       for (const skip of floors.skipped)
         printWarning(`Cannot edit ${skip.path}: ${skip.reason}.`);
@@ -1115,7 +1119,11 @@ export async function migrateCommand(
     );
   if (evidenceFloorsPinned > 0)
     console.log(
-      `Recorded required_evidence: asserted on ${evidenceFloorsPinned} current firm requirement(s) with no scenario verified by a test with a proof contract; raise it to tested once one has an end-to-end proof.`,
+      `Recorded required_evidence: asserted on ${evidenceFloorsPinned} current firm requirement(s) with no scenario verified by a passing end-to-end test with a proof contract; raise it to tested once one has an end-to-end proof.`,
+    );
+  if ((evidenceFloorPlan?.kept.length ?? 0) > 0)
+    console.log(
+      `${evidenceFloorPlan?.kept.length} firm requirement(s) keep the tested floor; run kibi sync and kibi check --rules evidence-floor to list any whose proof still has gaps (kibi proof explain <id> names them).`,
     );
   for (const skip of evidenceFloorPlan?.skipped ?? [])
     printWarning(

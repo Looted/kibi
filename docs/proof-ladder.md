@@ -304,9 +304,12 @@ reviewers see it; give the reason in the requirement when you lower one.
 
 The schema 11 upgrade (`kibi migrate --yes`) records `required_evidence:
 asserted` on each current firm requirement that has no scenario verified by
-a test with a proof contract, since it cannot reach `tested`; raise it once
-the requirement has an end-to-end proof. Firm requirements that already have
-a proof path keep the `tested` floor.
+an end-to-end test with a proof contract and a passing receipt, since it has
+not reached `tested`; raise it once the requirement has an end-to-end proof.
+Firm requirements whose proof has passed keep the `tested` floor, and the
+migration lists them. Their proof can still have gaps it does not read, such
+as a stale receipt or a production symbol without `covered_by`, so run
+`kibi check --rules evidence-floor` after migrating and fix what it reports.
 
 ## Knowledge-base certificates
 

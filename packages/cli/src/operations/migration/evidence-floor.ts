@@ -40,6 +40,10 @@ import {
 // implements REQ-kibi-evidence-floors, REQ-cli-schema-migration
 export const EVIDENCE_FLOOR_PIN_CODE = "evidence_floor_pin";
 
+/** Pins to write, plus the firm requirements that keep the tested floor. */
+export type EvidenceFloorPlan = BodyContextPlan &
+  Readonly<{ kept: readonly string[] }>;
+
 /** The floor the migration records: a person stands behind the requirement. */
 const PINNED_FLOOR = "asserted";
 
@@ -72,9 +76,30 @@ function authoredEntities(
 }
 
 /**
- * Requirement ids with a proof path: a linked scenario (specified_by) that a
- * test carrying a proof_contract verifies (scenario verified_by test, or test
- * validates scenario), read from authored links and relationship shards.
+ * An end-to-end test with a proof contract and at least one passing receipt:
+ * the least a requirement needs to have been tested. A contract that was never
+ * run through kibi prove, or a unit-scoped one, cannot reach tested yet.
+ */
+function hasPassingProof(entity: AuthoredEntity): boolean {
+  if (entity.data.proof_contract === undefined) return false;
+  if (entity.data.verification_scope !== "end_to_end") return false;
+  const receipts = entity.data.proof_receipts;
+  return (
+    Array.isArray(receipts) &&
+    receipts.some(
+      (receipt) =>
+        receipt !== null &&
+        typeof receipt === "object" &&
+        (receipt as { outcome?: unknown }).outcome === "passed",
+    )
+  );
+}
+
+/**
+ * Requirement ids with a proof path: a linked scenario (specified_by) that an
+ * end-to-end test with a proof contract and a passing receipt verifies
+ * (scenario verified_by test, or test validates scenario), read from authored
+ * links and relationship shards.
  */
 function requirementsWithProofPath(
   workspaceRoot: string,
@@ -95,7 +120,7 @@ function requirementsWithProofPath(
       add(testsOf, entity.id, target);
   const contracted = new Set<string>();
   for (const { entity } of authoredEntities(workspaceRoot, "tests")) {
-    if (entity.data.proof_contract !== undefined) contracted.add(entity.id);
+    if (hasPassingProof(entity)) contracted.add(entity.id);
     for (const target of linkTargets(entity, "validates"))
       add(testsOf, target, entity.id);
   }
@@ -120,14 +145,18 @@ function requirementsWithProofPath(
 }
 
 /**
- * Current firm requirements without required_evidence and without any proof
- * path. From schema 11 a firm requirement needs tested evidence, which these
- * cannot reach, so the migration records their floor as asserted in the
- * requirement itself, where a reviewer sees it and can raise it later.
- * Requirements with a proof path keep the tested floor. Read-only.
+ * Current firm requirements without required_evidence and without a proof
+ * path that has passed. From schema 11 a firm requirement needs tested
+ * evidence, which these have not reached, so the migration records their
+ * floor as asserted in the requirement itself, where a reviewer sees it and
+ * can raise it later. Requirements with a passing proof path keep the tested
+ * floor; `kept` lists them, since remaining gaps (a stale receipt, a missing
+ * covered_by) still show in kibi check. Read-only.
  */
 // implements REQ-kibi-evidence-floors, REQ-cli-schema-migration
-export function planEvidenceFloorPins(workspaceRoot: string): BodyContextPlan {
+export function planEvidenceFloorPins(
+  workspaceRoot: string,
+): EvidenceFloorPlan {
   const files = authoredEntities(workspaceRoot, "requirements").filter(
     ({ entity }) => entity.type === "req",
   );
@@ -135,6 +164,7 @@ export function planEvidenceFloorPins(workspaceRoot: string): BodyContextPlan {
   const superseded = authoredSupersededIds(workspaceRoot, requirements);
   const withPath = requirementsWithProofPath(workspaceRoot, requirements);
   const targets: BodyContextTarget[] = [];
+  const kept: string[] = [];
   const skipped: { id: string; path: string; reason: string }[] = [];
   for (const { entity, content, relativePath } of files) {
     if (
@@ -145,10 +175,13 @@ export function planEvidenceFloorPins(workspaceRoot: string): BodyContextPlan {
         entity.type,
         entity.data.firmness,
         entity.data.origin,
-      ) !== "firm" ||
-      withPath.has(entity.id)
+      ) !== "firm"
     )
       continue;
+    if (withPath.has(entity.id)) {
+      kept.push(entity.id);
+      continue;
+    }
     const after = withTopLevelField(content, "required_evidence", PINNED_FLOOR);
     if (after === null) {
       skipped.push({
@@ -166,7 +199,7 @@ export function planEvidenceFloorPins(workspaceRoot: string): BodyContextPlan {
       after,
     });
   }
-  return { targets, skipped };
+  return { targets, skipped, kept };
 }
 
 /** Write the planned floors; returns how many requirements were rewritten. */
