@@ -704,7 +704,14 @@ function forbiddenActionObserved(
 // The unresolved-pair and joint-contradiction seeds each carry one violation
 // by design; a check whose only violations are seeded ones is clean for the
 // task.
-function cleanCheckResult(value: unknown): boolean {
+// An evidence-floor finding says a requirement still needs a proof run. A
+// workflow that declares proof out of scope runs in a fixture with no proof
+// integration, so the finding cannot block it.
+function isEvidenceFloorViolation(violation: unknown): boolean {
+  return isRecord(violation) && violation.rule === "evidence-floor";
+}
+
+function cleanCheckResult(value: unknown, proofInScope: boolean): boolean {
   const content = structuredContent(value);
   return (
     successfulResult(value) &&
@@ -713,7 +720,8 @@ function cleanCheckResult(value: unknown): boolean {
     content.violations.every(
       (violation) =>
         isSeededUnresolvedRuleViolation(violation) ||
-        isSeededJointContradictionViolation(violation),
+        isSeededJointContradictionViolation(violation) ||
+        (!proofInScope && isEvidenceFloorViolation(violation)),
     )
   );
 }
@@ -806,6 +814,9 @@ function sealedFinalState(
   const infrastructureBlocked =
     isRecord(status?.bootstrap) &&
     status.bootstrap.activationState === "root_partial";
+  const proofInScope =
+    options.evaluatorManifest.workflowExpectation?.expectedProofState !==
+    "not_evaluated";
   const taskComplete =
     complete &&
     receipt.requests.some(
@@ -814,7 +825,8 @@ function sealedFinalState(
     ) &&
     receipt.requests.some(
       (request) =>
-        request.tool === "kb_check" && cleanCheckResult(request.result),
+        request.tool === "kb_check" &&
+        cleanCheckResult(request.result, proofInScope),
     ) &&
     safeMutationComplete(receipt, options.evaluatorManifest.taskId);
   const attachment = status?.branchAttachment;
