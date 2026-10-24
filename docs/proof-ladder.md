@@ -67,21 +67,123 @@ To re-enter the proof ladder, remove both properties.
 
 ## The stages
 
-For in-scope requirements the ladder evaluates nine stages, each reporting
-`status` (and, for `productionSymbols`, a typed `reason` when it does not
-pass):
+For in-scope requirements the ladder evaluates nine stages, in order. Each
+stage reports a `status` under its key in `proofStages`; `productionSymbols`
+also carries a typed `reason` when it does not pass.
 
-| Stage | Meaning | Statuses |
+| # | Stage | Key in `proofStages` |
 | --- | --- | --- |
-| `semanticInventory` | Every assertive proposition in the requirement's prose is inventoried and classified (modeled / unresolved / missing / nonlogical). | `passed`, `unresolved`, `missing` |
-| `logicGrounding` | Modeled claims are grounded by strict property, predicate, or safe rule facts, one-to-one with the declared manifest. | `passed`, `missing`, `unresolved` |
-| `contradictions` | No other current requirement contradicts this one over shared facts. Check completeness itself is visible. | `passed`, `blocked`, `unresolved` |
-| `scenarios` | At least one scenario specifies the requirement (`specified_by`). | `passed`, `missing` |
-| `scenarioTests` | Each scenario is validated by at least one test (`verified_by`/`validates`). | `passed`, `missing` |
-| `passingE2E` | Every linked scenario has at least one end-to-end test, and every linked E2E proof-bearing test carries a valid, fresh, passing `kibi.proof-receipt.v1` bound to the current snapshot, contract hash, and fingerprint. Per-scenario results are exposed in `scenarioObligations`, each with the `acceptedScopes` it allows; unit/integration-only ancillary tests remain nonblocking. A UI pattern scenario also accepts component tests (see [Component-scope proof](#component-scope-proof-for-ui-patterns)). | `passed`, `missing`, `unresolved` |
-| `executableSymbols` | Each qualifying E2E test is linked to executable test code via `executable_for`. | `passed`, `missing` |
-| `productionSymbols` | Production symbols implementing the requirement are covered by those passing E2E tests (`covered_by`). Additive `explanations[]` (still `kibi.requirement-proof.v3`) give each symbol a rollup reason and per-candidate primary plus optional secondary rejection codes. | `passed`, `missing`, `blocked` |
-| `sourceCoordinates` | The requirement source and all linked symbols carry exact published coordinates. | `passed`, `missing`, `blocked` |
+| 1 | [Semantic inventory](#1-semantic-inventory) | `semanticInventory` |
+| 2 | [Logic grounding](#2-logic-grounding) | `logicGrounding` |
+| 3 | [Contradictions](#3-contradictions) | `contradictions` |
+| 4 | [Scenarios](#4-scenarios) | `scenarios` |
+| 5 | [Scenario tests](#5-scenario-tests) | `scenarioTests` |
+| 6 | [Passing E2E tests](#6-passing-e2e-tests) | `passingE2e` |
+| 7 | [Executable test symbols](#7-executable-test-symbols) | `executableSymbols` |
+| 8 | [Production symbols](#8-production-symbols) | `productionSymbols` |
+| 9 | [Source coordinates](#9-source-coordinates) | `sourceCoordinates` |
+
+### 1. Semantic inventory
+
+**Checks:** every assertive statement in the requirement's prose is listed in
+its semantic inventory and classified as modeled, unresolved, missing or
+nonlogical.
+
+- `passed`: the inventory is complete and nothing in it is unresolved.
+- `missing`: there is no inventory, an entry is classified as missing, or an
+  entry is malformed.
+- `unresolved`: at least one statement is classified as unresolved.
+
+### 2. Logic grounding
+
+**Checks:** each modeled claim is grounded by a strict property, predicate or
+safe rule fact, one to one with the declared manifest.
+
+- `passed`: every modeled claim has exactly one grounding fact.
+- `missing`: a claim has no grounding fact or no manifest entry.
+- `unresolved`: the grounding exists but does not line up (an extra or
+  duplicate manifest entry, claim text that differs, an invalid or undeclared
+  fact, an unsafe rule).
+
+### 3. Contradictions
+
+**Checks:** no other current requirement contradicts this one over shared
+facts.
+
+- `passed`: no conflict was found and grounding is complete.
+- `blocked`: a conflict was found; `conflicts` names it.
+- `unresolved`: the check could not finish, usually because logic grounding
+  is incomplete, so the absence of a found conflict is not evidence of safety.
+
+### 4. Scenarios
+
+**Checks:** at least one scenario specifies the requirement (`specified_by`).
+
+- `passed`: one or more valid scenarios are linked.
+- `missing`: no scenario is linked, or a link points at a scenario that does
+  not exist.
+- `blocked`: a linked success scenario is infeasible; `infeasibleScenarios`
+  names it.
+
+### 5. Scenario tests
+
+**Checks:** each linked scenario is validated by at least one test
+(`verified_by` or `validates`).
+
+- `passed`: every scenario has a test.
+- `missing`: a scenario has no test, or links a test that does not exist.
+
+### 6. Passing E2E tests
+
+**Checks:** every linked scenario has at least one end-to-end test, and every
+linked E2E test that bears proof carries a valid, fresh, passing
+`kibi.proof-receipt.v1` receipt bound to the current snapshot, contract hash
+and fingerprint.
+
+- `passed`: every scenario obligation passed.
+- `missing`: a scenario has no qualifying E2E test or receipt.
+- `unresolved`: the evidence exists but does not qualify (for example a stale,
+  failed or invalid receipt).
+
+Per-scenario results are in `scenarioObligations`, each with the
+`acceptedScopes` it allows. Unit and integration tests linked alongside the
+E2E tests do not block. A UI pattern scenario also accepts component tests;
+see [Component-scope proof](#component-scope-proof-for-ui-patterns).
+
+### 7. Executable test symbols
+
+**Checks:** each qualifying E2E test is linked to executable test code with
+`executable_for`.
+
+- `passed`: every qualifying test has executable code linked.
+- `missing`: a test has no `executable_for` link; `missingTests` lists it.
+- `blocked`: there are no passing E2E tests to check.
+
+### 8. Production symbols
+
+**Checks:** the production symbols that implement the requirement are covered
+by the passing E2E tests (`covered_by`).
+
+- `passed`: every production symbol is covered.
+- `missing`: no production symbol implements the requirement, or some lack
+  `covered_by` links; `uncoveredSymbols` lists them.
+- `blocked`: there is no passing E2E evidence in the current snapshot
+  (usually stale or missing receipts), so coverage cannot be evaluated.
+  `reason` says so and points at `kibi prove`.
+
+`explanations[]` gives each symbol a rollup reason and, for each rejected
+`covered_by` candidate, a primary rejection code plus optional secondary codes.
+See [Stage statuses, precisely](#stage-statuses-precisely).
+
+### 9. Source coordinates
+
+**Checks:** the requirement source and every linked test and production symbol
+carry exact published coordinates.
+
+- `passed`: all coordinates are present.
+- `missing`: the requirement has no source, or a symbol has no coordinates;
+  `missingSymbols` lists them.
+- `blocked`: there are no linked symbols to check.
 
 ### Component-scope proof for UI patterns
 
@@ -102,30 +204,33 @@ rule, the scenario goes back to end-to-end proof. See [ui-requirements.md](./ui-
 
 ### Stage statuses, precisely
 
-- `passed` — the stage's obligations hold.
-- `missing` — the evidence is absent. The stage names what is missing
+- `passed`: the stage's obligations hold.
+- `missing`: the evidence is absent. The stage names what is missing
   (`missingTests`, `missingReceiptTests`, `uncoveredSymbols`,
   `missingSymbols`, ...), and `proofGaps` carries the blocking gap code.
-- `blocked` — the stage cannot be evaluated because an upstream input is
-  unavailable. Only two stages use it:
-  - `contradictions`: logical grounding is incomplete, so absence of a found
-    conflict is not evidence of safety.
-  - `productionSymbols`: there is no passing E2E evidence at all in the
-    current snapshot (typically stale or missing receipts). The stage now
-    says so with `reason` instead of an opaque word. Existing
-    `uncoveredSymbols` still lists every remaining production symbol; each
-    explanation uses `stage_blocked_no_passing_e2e` rather than implying the
-    symbol independently lacks `covered_by`.
-  - Additive `explanations[]` never change `status`, `reason`,
-    `uncoveredSymbols`, or `proofStatus`. Rejected `covered_by` candidates
-    carry the earliest disqualifying `reason` and optional
-    `secondaryReasons` already known from cheaper gates. Out-of-chain tests
-    do not walk receipts.
-- `unresolved` — evidence exists but is not conclusive (e.g. unresolved
-  propositions in the inventory).
+- `unresolved`: evidence exists but is not conclusive (for example unresolved
+  statements in the inventory, or a stale receipt).
+- `blocked`: the stage found a hard stop or has nothing to evaluate:
+  - `contradictions`: a conflicting requirement was found.
+  - `scenarios`: a linked success scenario is infeasible.
+  - `executableSymbols` and `productionSymbols`: there is no passing E2E
+    evidence in the current snapshot (typically stale or missing receipts).
+    `productionSymbols` says so in `reason`; `uncoveredSymbols` still lists
+    every remaining production symbol, and each explanation uses
+    `stage_blocked_no_passing_e2e` rather than implying the symbol itself
+    lacks `covered_by`.
+  - `sourceCoordinates`: there are no linked symbols to check.
 
-A `blocked` stage never silently downgrades a requirement's proof status: it
-maps to `proofStatus: unresolved`, not `tested`.
+`explanations[]` on `productionSymbols` never changes `status`, `reason`,
+`uncoveredSymbols` or `proofStatus`. A rejected `covered_by` candidate carries
+the earliest disqualifying `reason` and optional `secondaryReasons` already
+known from cheaper checks. Tests outside the scenario chain do not have their
+receipts read.
+
+A `blocked` stage never silently counts as passing. A blocked
+`contradictions` stage makes `proofStatus` `unresolved`; any other blocked
+stage does the same unless another stage is `missing`, in which case
+`proofStatus` is `missing`.
 
 ## Gaps, advisories, and status
 
