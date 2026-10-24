@@ -24,6 +24,8 @@ on:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   KIBI_CLI: ./packages/cli/bin/kibi
+  # The intervals differential must run its CLP(Q)/CLP(FD) oracle here.
+  KIBI_REQUIRE_ORACLE: "1"
   KIBI_BRANCH: ${{ github.event_name == 'pull_request' && github.base_ref == 'master' && 'master' || github.head_ref || github.ref_name }}
 
 jobs:
@@ -88,7 +90,7 @@ jobs:
 
       - name: Bootstrap Ubuntu packages
         if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
-        run: bash scripts/ci-apt-bootstrap.sh bubblewrap z3
+        run: bash scripts/ci-apt-bootstrap.sh bubblewrap z3 swi-prolog-nox
 
       # The pipeline-built bundle (kibi-swipl-linux-x64-gnu's archive), so the
       # proof runs on the same Prolog bytes that ship. Kept under this name for
@@ -107,6 +109,8 @@ jobs:
           # Same pnpm as ci.yml's packed MCP job; the newest pnpm fails the
           # offline upgrade in mcp-pnpm-upgrade-stale-path.test.ts.
           PNPM_VERSION: "10.24.0"
+          ELAN_VERSION: "v4.1.2"
+          ELAN_INIT_SHA256: "4bacca9502cb89736fe63d2685abc2947cfbf34dc87673504f1bb4c43eda9264"
         run: |
           curl --fail --silent --show-error --location \
             "https://astral.sh/uv/${UV_VERSION}/install.sh" | sh
@@ -114,11 +118,21 @@ jobs:
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           npm install --global "@openai/codex@${CODEX_CLI_VERSION}"
           npm install --global "pnpm@${PNPM_VERSION}"
+          # Lean for the intervals.pl proofs; the toolchain is proof/lean/lean-toolchain.
+          curl --fail --silent --show-error --location --output elan-init.sh \
+            "https://raw.githubusercontent.com/leanprover/elan/${ELAN_VERSION}/elan-init.sh"
+          echo "${ELAN_INIT_SHA256}  elan-init.sh" | sha256sum --check
+          sh elan-init.sh -y --default-toolchain none
+          rm elan-init.sh
+          export PATH="$HOME/.elan/bin:$PATH"
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
           uv --version
           codex --version
           test "$(pnpm --version)" = "$PNPM_VERSION"
           bwrap --version
           z3 --version
+          /usr/bin/swipl -g "use_module(library(clpq))" -t halt
+          (cd proof/lean && lake --version)
           uv sync --project tools/skillopt --frozen
           uv run --project tools/skillopt python tools/skillopt/verify_pin.py
 

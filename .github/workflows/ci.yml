@@ -615,3 +615,64 @@ jobs:
           path: coverage/prolog
           if-no-files-found: error
           retention-days: 7
+
+  # The Lean 4 proofs that intervals.pl's folds decide numeric satisfiability
+  # and entailment exactly, and a differential run checking that intervals.pl
+  # computes what the proved model computes (and agrees with CLP(Q)/CLP(FD)).
+  lean-intervals-proof:
+    needs: [swipl-bundle]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: ${{ !inputs.skip_tests }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: '1.4.2'
+
+      - name: Use the pipeline-built SWI-Prolog
+        uses: ./.github/actions/use-bundled-swipl
+
+      # The CLP(Q) oracle needs library(clpq), which the bundle does not ship.
+      - name: Install the oracle SWI-Prolog
+        run: bash scripts/ci-apt-bootstrap.sh swi-prolog-nox
+
+      - name: Cache the Lean toolchain
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.elan
+          key: elan-${{ runner.os }}-${{ hashFiles('proof/lean/lean-toolchain') }}
+
+      - name: Install the Lean toolchain
+        run: |
+          if [ ! -x "$HOME/.elan/bin/lake" ]; then
+            curl --fail --silent --show-error --location --output elan-init.sh \
+              https://raw.githubusercontent.com/leanprover/elan/v4.1.2/elan-init.sh
+            echo "4bacca9502cb89736fe63d2685abc2947cfbf34dc87673504f1bb4c43eda9264  elan-init.sh" | sha256sum --check
+            sh elan-init.sh -y --default-toolchain none
+            rm elan-init.sh
+          fi
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Check the Lean proofs
+        working-directory: proof/lean
+        run: |
+          lake build
+          lake env lean CheckAxioms.lean | tee axioms.txt
+          if grep -q sorryAx axioms.txt; then
+            echo "A theorem depends on sorry" >&2
+            exit 1
+          fi
+
+      - name: Differential test against intervals.pl and CLP(Q)/CLP(FD)
+        run: >-
+          bun scripts/intervals-differential.ts
+          --lean proof/lean/.lake/build/bin/kibi-intervals
+          --oracle-swipl /usr/bin/swipl
+          --require-oracle
+          --cases 200000

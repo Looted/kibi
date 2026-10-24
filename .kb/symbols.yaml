@@ -47353,7 +47353,11 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-kibi-intervals-differential
+      - type: covered_by
         target: TEST-kibi-truthful-consistency
+      - type: implements
+        target: REQ-kibi-intervals-verified
       - type: implements
         target: REQ-kibi-truthful-consistency
   - id: SYM-core-values-conflict
@@ -57154,3 +57158,32 @@ symbols:
         target: TEST-kibi-code-proof-kinds
       - type: implements
         target: REQ-kibi-code-proof-kinds
+  - id: SYM-test-intervals-differential
+    title: runDifferential
+    status: active
+    sourceFile: scripts/intervals-differential.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - differential
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T20:30:59.647Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-intervals-differential
+  - id: SYM-core-intervals-numeric-entailed
+    title: numeric_constraint_entailed
+    status: active
+    sourceFile: packages/core/src/intervals.pl
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T20:31:50.911Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-intervals-differential
+      - type: implements
+        target: REQ-kibi-intervals-verified
