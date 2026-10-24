@@ -340,7 +340,7 @@ export function claimSignoffReminder(
 export function signoffReminder(): string {
   return [
     "Kibi: this session recorded or changed requirements, and the person has not seen them as a signoff view.",
-    "Before reporting the work done or asking to commit, run `kibi signoff` and put its output in the reply unchanged; a requirement the agent wrote waits for the person's approval, so ask for it with this view, never in your own words. When replies go through a messaging tool, pass the output there, and attach or publish `.kb/briefs/signoff/latest.html` when the host can show a page (kibi-decisions, resources/signoff-views.md).",
+    "Before reporting the work done or asking to commit, run `kibi signoff` and put its output in the reply unchanged; a requirement the agent wrote waits for the person's approval, so ask for it with this view, never in your own words. When replies go through a messaging tool, pass the output there as the message text, and share `.kb/briefs/signoff/latest.html` only as a rendered page (the Artifact tool in Claude apps), never as an attached file, which chat apps show as raw source (kibi-decisions, resources/signoff-views.md).",
   ].join("\n");
 }
 

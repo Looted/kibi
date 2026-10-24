@@ -2,7 +2,7 @@
 id: kibi-commit-review
 name: kibi-commit-review
 description: "Use when kibi check --staged or the Kibi pre-commit hook blocks a commit (kibi_impact_evidence_missing, symbols_manifest_stale, symbol_granularity_violation, symbol-coverage, kibi check-generated drift, Staged impact review failed), or when preparing a commit or pull-request impact review. Covers reading the per-file Detail lines, authoring .kb/symbols.yaml symbol entries through kb_upsert, kibi sync --refresh-symbol-coordinates, staging the tracked Kibi evidence with git add, kb_prepare_impact_review for a staged or diff scope, the kibi signoff requirements summary to show before a commit, and how merge commits and migration renames are judged."
-version: 1.2.0
+version: 1.2.1
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -85,8 +85,9 @@ requirement with its statement (before and after for a rewrite), firmness,
 origin, scenarios and proof state. Put it in your reply unchanged (in the
 messaging tool's message when replies go through one), then add one or two
 sentences on why the requirements changed. Offer the full page with
-`kibi signoff --format html --open`, or attach or publish
-`.kb/briefs/signoff/latest.html` when your host can carry a file or a page;
+`kibi signoff --format html --open`, or publish `.kb/briefs/signoff/latest.html`
+as a rendered page when your host has a page tool (the Artifact tool in Claude
+apps); never attach the `.html` as a file, which chat apps show as raw source;
 past 15 requirements the Markdown stops and only the page lists them all.
 Host details: `kibi-decisions`, `resources/signoff-views.md`. `--no-proof` skips the proof lookup, which reads coverage and is slow
 on a large knowledge base. The summary is not an approval: never set

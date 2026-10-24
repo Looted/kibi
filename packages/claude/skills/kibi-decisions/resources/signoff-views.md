@@ -13,7 +13,8 @@ statements and lists that render in any chat or messaging surface. Put it in
 your reply unchanged: never wrap it in a code block, summarize it or retell a
 requirement in your own words. Every run also writes
 `.kb/briefs/signoff/latest.json`, `latest.md` and `latest.html` (git-ignored);
-`latest.html` is a self-contained page with the full view.
+`latest.html` is a self-contained page with the full view, meant to be opened
+in a browser or published as a page, not attached as a file.
 
 ## Showing it on your host
 
@@ -21,7 +22,7 @@ requirement in your own words. Every run also writes
 | --- | --- |
 | Claude Code, Codex, Cursor, ZCode, VS Code chat | Paste the default output; `/kibi-signoff` (Claude Code, Cursor, ZCode) runs it. Offer `kibi signoff --format html --open` for the page |
 | OpenCode terminal | `kibi signoff --format md` and paste the fenced block unchanged: kibi-opencode draws it as a card, and `/kibi-signoff` reopens it |
-| Replies sent through a messaging tool (cloud or project threads, chat bots) | Pass the default output as the message text, and attach or publish `.kb/briefs/signoff/latest.html` next to it when the tool can carry a file or a page |
+| Replies sent through a messaging tool (cloud or project threads, chat bots) | Pass the default output as the message text. Share `latest.html` only as a rendered page: in Claude apps (claude.ai, the mobile and desktop apps, Claude Code on the web) publish it with the Artifact tool and give its link. Never attach the `.html` as a file: the Claude apps, Slack and most chat apps show it as raw source or a download. With no page tool, the message text is the whole view |
 | VS Code or Cursor with the kibi-vscode extension | The **Kibi: Show Requirements Signoff** panel follows every run |
 | Remote machine, no browser | Give the person the path of `latest.html` |
 
