@@ -1,6 +1,7 @@
 ---
 title: SkillOpt campaigns may run on the Claude Code CLI as an opt-in host
 status: open
+required_evidence: tested
 priority: should
 tags:
   - skillopt

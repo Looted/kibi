@@ -74,6 +74,7 @@ This section provides guidance on selecting the appropriate entity type for your
 | text_ref     | No       | string         | Pointer to Markdown/doc blob; a value shaped like one file path must name an existing file (`source-path-dangling`) |
 | origin       | No       | object         | Provenance: who authored the entity and on what authority (see [Entity origin](#entity-origin)). Valid on every type; optional on symbols |
 | firmness     | No       | string         | Requirements and ADRs only: `firm`, `default` or `exploratory`; when absent, `default` if an agent wrote the entity and `firm` otherwise (see [Decision firmness](#decision-firmness)) |
+| required_evidence | No  | string         | Requirements only: the weakest evidence level it accepts, `proved`, `tested`, `asserted` or `unverified`; when absent, `tested` for a firm requirement and `unverified` (no floor) otherwise. The `evidence-floor` check fails while the requirement's evidence level is lower (see [Evidence floors](./proof-ladder.md#evidence-floors)) |
 
 ### Entity origin
 

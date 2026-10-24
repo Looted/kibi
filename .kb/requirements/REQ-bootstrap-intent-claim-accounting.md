@@ -1,6 +1,7 @@
 ---
 title: Bootstrap plans keep every declared intent claim and account for it per source
 status: open
+required_evidence: tested
 priority: must
 tags:
   - bootstrap

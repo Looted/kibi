@@ -1,6 +1,7 @@
 ---
 title: The contradiction check names requirements it could not compare with new intent instead of reporting no conflict
 status: open
+required_evidence: tested
 priority: must
 tags:
   - contradictions

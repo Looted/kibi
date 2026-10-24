@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { checkCommand } from "../../src/commands/check.js";
 import { coverageCommand } from "../../src/commands/coverage.js";
 import { executeReportingSpec } from "../../src/commands/discovery-shared.js";
 import { engineStopCommand } from "../../src/commands/engine.js";
 import { initCommand } from "../../src/commands/init.js";
-import { proofImpactCommand } from "../../src/commands/proof-impact.js";
 import { resolveBoundSymbolScope } from "../../src/extractors/manifest.js";
 import {
   loadCoveredBySymbolsByTest,
@@ -46,7 +46,7 @@ import {
 // Regression for Looted/kibi#285: per-contract binding used to load every
 // test with its full receipt history in a single findall. Once a store's
 // histories crossed the 8 MiB bounded output, that answer overflowed, the
-// engine's SWI session was terminated, and coverage / proof impact failed
+// engine's SWI session was terminated, and coverage and proof impact failed
 // with "Predicate or file not found". This store is deliberately larger than
 // the cap.
 
@@ -167,12 +167,7 @@ async function seedLargeStore(root: string): Promise<void> {
     const id = testId(index);
     writeFileSync(join(root, ".kb", "tests", `${id}.md`), sourceDocument(id));
   }
-  mkdirSync(join(root, "proof"), { recursive: true });
-  writeFileSync(
-    join(root, "proof", "baseline.json"),
-    `${JSON.stringify({ version: "kibi.proof-baseline.v3", mode: "equality", currentRequirements: 0, proofTested: 0, currentUntested: 0, trackedGaps: {}, requirements: {} }, null, 2)}\n`,
-  );
-  git(root, "add .kb/tests proof/baseline.json");
+  git(root, "add .kb/tests");
   git(root, "commit -m 'large receipt store sources'");
 
   const prolog = await attachedStore(root);
@@ -220,7 +215,7 @@ afterEach(async () => {
 });
 
 describe("proof reporting on a receipt store larger than the Prolog output cap", () => {
-  test("coverage and proof impact succeed and per-contract bindings match full entities", async () => {
+  test("coverage and the evidence-floor check succeed and per-contract bindings match full entities", async () => {
     const root = createGitWorkspace("main");
     roots.push(root);
     restores.push(isolateKibiEnv());
@@ -241,10 +236,11 @@ describe("proof reporting on a receipt store larger than the Prolog output cap",
     const io = captureIo({ stdio: true });
     restores.push(io.restore);
     await withCwd(root, () => coverageCommand({ format: "json", limit: "3" }));
-    const impact = await withCwd(root, () =>
-      proofImpactCommand({ json: true }),
+    // evidence-floor reads every requirement's proof with the same
+    // per-contract binding projection.
+    await withCwd(root, () =>
+      checkCommand({ rules: "evidence-floor", format: "json" }),
     );
-    expect(impact.exitCode).toBe(0);
     const output = io.stdout.join("") + io.stderr.join("");
     expect(output).not.toMatch(/Predicate or file not found|ENOBUFS/);
     await stopEngine(root);

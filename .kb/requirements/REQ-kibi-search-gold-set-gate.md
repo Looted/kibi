@@ -1,6 +1,7 @@
 ---
 title: CI gates kb_search answers on a versioned gold set of questions about Kibi's own KB
 status: open
+required_evidence: tested
 priority: should
 tags:
   - evaluation

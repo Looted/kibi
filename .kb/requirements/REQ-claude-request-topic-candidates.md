@@ -1,6 +1,7 @@
 ---
 title: An unlinked file's note uses the request's words and never reads as an all-clear
 status: open
+required_evidence: tested
 priority: must
 tags:
   - hooks

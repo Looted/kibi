@@ -1,6 +1,7 @@
 ---
 title: Hooks read flow-layout symbol manifests and kibi sync normalises them
 status: open
+required_evidence: tested
 tags:
   - hooks
   - agent-core

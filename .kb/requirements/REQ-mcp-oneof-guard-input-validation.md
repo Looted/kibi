@@ -1,6 +1,7 @@
 ---
 title: MCP input validation enforces oneOf guard branches like the CLI
 status: open
+required_evidence: tested
 priority: must
 tags:
   - mcp

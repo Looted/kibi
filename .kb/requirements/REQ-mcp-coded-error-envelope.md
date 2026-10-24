@@ -1,6 +1,7 @@
 ---
 title: MCP answers a coded tool failure with the error envelope the CLI returns
 status: open
+required_evidence: tested
 tags:
   - mcp
   - cli

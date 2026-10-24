@@ -1,6 +1,7 @@
 ---
 title: Bootstrap plans write one subject fact per subject key
 status: open
+required_evidence: tested
 priority: must
 tags:
   - bootstrap

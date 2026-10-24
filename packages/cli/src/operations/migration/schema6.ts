@@ -22,6 +22,7 @@ import {
   extractFromMarkdown,
 } from "../../extractors/markdown.js";
 import { FIRMNESS_FROM_ORIGIN_SCHEMA_VERSION } from "../../public/operations/decision-firmness.js";
+import { EVIDENCE_FLOOR_SCHEMA_VERSION } from "../../public/operations/evidence-floor.js";
 import {
   type MigrationAction,
   migrationAction,
@@ -57,6 +58,11 @@ import {
   applyEntityTypeBackfill,
   planEntityTypeBackfill,
 } from "./entity-type.js";
+import {
+  EVIDENCE_FLOOR_PIN_CODE,
+  applyEvidenceFloorPins,
+  planEvidenceFloorPins,
+} from "./evidence-floor.js";
 import {
   FIRM_SUPERSEDE_ACKNOWLEDGE_CODE,
   applyFirmSupersedeAcknowledgement,
@@ -758,6 +764,42 @@ export function buildSchema6MigrationFragment(input: {
       );
     }
   }
+  // Schema 11: a firm requirement needs tested evidence. Record an asserted
+  // floor on current firm requirements that have no proof path, so the
+  // upgraded knowledge base passes evidence-floor.
+  if (
+    input.currentSchemaVersion === null ||
+    input.currentSchemaVersion < EVIDENCE_FLOOR_SCHEMA_VERSION
+  ) {
+    const floors = planEvidenceFloorPins(input.workspaceRoot);
+    if (floors.targets.length > 0) {
+      const id = "evidence-floor-pin";
+      sourceRewriteActionIds.push(id);
+      actions.push(
+        migrationAction({
+          id,
+          code: EVIDENCE_FLOOR_PIN_CODE,
+          category: "schema",
+          safety: "automatic",
+          autoApplicable: true,
+          invocation: {
+            kind: "cli",
+            command_argv: ["kibi", "migrate", "--yes"],
+          },
+          affectedEntityIds: floors.targets.map((row) => row.id),
+          affectedFiles: floors.targets.map((row) => row.path),
+          postconditions: [{ rule: "evidence-floor", findings: 0 }],
+          evidence: {
+            reason:
+              "Schema 11 fails a current requirement whose evidence is below its floor, and a firm requirement without required_evidence needs tested evidence. These firm requirements have no scenario verified by a test with a proof contract, so each records required_evidence: asserted in its front matter, where a reviewer can raise it once a proof exists.",
+            count: floors.targets.length,
+            skipped: floors.skipped,
+            preserves: "every other front matter key and the body bytes",
+          },
+        }),
+      );
+    }
+  }
   const drift = planInventoryRederivation(input.workspaceRoot);
   for (const plan of drift) {
     const action = plan.safe ? rederiveAction(plan) : reviewAction(plan);
@@ -1025,6 +1067,10 @@ export async function applySchema6MigrationAction(
       applyFirmSupersedeAcknowledgement(context.workspaceRoot);
       return;
     }
+    case EVIDENCE_FLOOR_PIN_CODE: {
+      applyEvidenceFloorPins(context.workspaceRoot);
+      return;
+    }
     case SEMANTIC_INVENTORY_REDERIVE_CODE: {
       const requirementId = action.affectedEntityIds[0];
       if (requirementId === undefined)
@@ -1163,6 +1209,7 @@ export const SCHEMA6_AUTOMATIC_CODES: ReadonlySet<string> = new Set([
   CONTEXT_MISSING_TAG_CODE,
   SUPERSEDES_REASON_ACKNOWLEDGE_CODE,
   FIRM_SUPERSEDE_ACKNOWLEDGE_CODE,
+  EVIDENCE_FLOOR_PIN_CODE,
   SEMANTIC_INVENTORY_REDERIVE_CODE,
   REQ_STATUS_DELIVERED_MAP_CODE,
   ENTITY_ORIGIN_BACKFILL_CODE,

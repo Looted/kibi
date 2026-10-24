@@ -1,6 +1,7 @@
 ---
 title: Authored sources sync cannot compile block kb_check, keep kb_status stale and guard kb_upsert
 status: open
+required_evidence: tested
 priority: must
 tags:
   - sync

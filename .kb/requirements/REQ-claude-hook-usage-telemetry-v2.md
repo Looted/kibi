@@ -1,6 +1,7 @@
 ---
 title: Kibi host hooks record opt-in agent activity around Kibi calls
 status: open
+required_evidence: tested
 priority: should
 tags:
   - claude

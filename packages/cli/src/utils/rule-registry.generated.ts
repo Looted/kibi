@@ -397,4 +397,11 @@ export const GENERATED_RULES = [
     enforcementClass: "advisory",
     category: "integrity",
   },
+  {
+    name: "evidence-floor",
+    description:
+      "Every current requirement's computed evidence level (proved, tested, asserted, unverified) must reach its floor: required_evidence when set, otherwise tested for a firm requirement and no floor for any other. Receipts that are only older than the code count as pending re-proof and pass, unless kibi check runs with --fresh-evidence, which also needs a clean proof snapshot",
+    enforcementClass: "canonical",
+    category: "integrity",
+  },
 ] as const;

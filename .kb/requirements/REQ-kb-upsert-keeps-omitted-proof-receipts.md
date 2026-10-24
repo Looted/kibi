@@ -1,6 +1,7 @@
 ---
 title: A test update that omits its proof receipts keeps them
 status: open
+required_evidence: tested
 priority: must
 tags:
   - kb

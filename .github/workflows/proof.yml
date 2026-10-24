@@ -148,9 +148,12 @@ jobs:
           fi
           bun packages/cli/bin/kibi check --format json --rules no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness,symbol-traceability
 
-      - name: Reject semantic proof regressions before executing contracts
+      # Every current requirement's floor, before re-proving: receipts that
+      # are only older than the code count as pending re-proof, so grounding,
+      # contradiction and link regressions fail before the long proof run.
+      - name: Reject evidence-floor regressions before executing contracts
         if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
-        run: node scripts/check-proof-baseline.mjs --semantic-only
+        run: sh scripts/proof-gate.sh
 
       - name: Prove every contracted test through Kibi
         if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
@@ -176,9 +179,9 @@ jobs:
           kill "$fetcher" 2>/dev/null || true
           exit "$status"
 
-      - name: Enforce proof baseline and clean snapshot
+      - name: Enforce evidence floors on a clean snapshot
         if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
-        run: node scripts/check-proof-baseline.mjs
+        run: sh scripts/proof-gate.sh --fresh-evidence
 
       # Asks the repository's own KB the versioned gold questions through the
       # built CLI and fails on recall@3, superseded results, abstention or warm

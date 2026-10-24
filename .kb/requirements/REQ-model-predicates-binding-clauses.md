@@ -1,6 +1,7 @@
 ---
 title: Predicate participant bindings are short names, not clauses of the claim
 status: open
+required_evidence: tested
 priority: must
 tags:
   - modeling

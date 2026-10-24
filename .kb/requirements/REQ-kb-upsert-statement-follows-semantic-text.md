@@ -1,6 +1,7 @@
 ---
 title: kb_upsert keeps a requirement's body statement in step with its semantic_text
 status: open
+required_evidence: tested
 priority: must
 tags:
   - kb

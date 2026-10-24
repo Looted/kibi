@@ -1,6 +1,7 @@
 ---
 title: Bootstrap plans name claims component-first and carry stated rationale
 status: open
+required_evidence: tested
 priority: must
 tags:
   - bootstrap

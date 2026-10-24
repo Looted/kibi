@@ -1,6 +1,7 @@
 ---
 title: kb_status names kibi migrate --yes first on a legacy KB, as kibi doctor does
 status: open
+required_evidence: tested
 priority: must
 tags:
   - bootstrap

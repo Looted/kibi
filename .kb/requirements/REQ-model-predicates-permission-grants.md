@@ -1,6 +1,7 @@
 ---
 title: kb_model accepts capability grants as permission rules
 status: open
+required_evidence: tested
 tags:
   - modeling
   - predicates

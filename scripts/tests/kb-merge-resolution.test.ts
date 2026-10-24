@@ -1,13 +1,9 @@
 // implements REQ-ci-kb-merge-resolution
 import { describe, expect, test } from "bun:test";
-import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import os from "node:os";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { deriveBaselineSummary } from "../lib/proof-baseline-diff.mjs";
 
 const ROOT = path.join(import.meta.dir, "..", "..");
-const RECONCILE = path.join(ROOT, "scripts", "reconcile-proof-baseline.mjs");
 
 type Step = {
   name?: string;
@@ -34,82 +30,6 @@ function indexOf(steps: Step[], pattern: RegExp): number {
   return index;
 }
 
-describe("proof baseline summary reconciliation", () => {
-  const proven = { proofStatus: "tested", gaps: [], uncoveredSymbols: [] };
-
-  test("derives counts and gap totals from the entries", () => {
-    expect(
-      deriveBaselineSummary({
-        "REQ-A": proven,
-        "REQ-B": {
-          proofStatus: "missing",
-          gaps: ["missing_passing_e2e"],
-          uncoveredSymbols: [],
-        },
-        "REQ-C": {
-          proofStatus: "unresolved",
-          gaps: ["stale_proof_receipt", "missing_passing_e2e"],
-          uncoveredSymbols: [],
-        },
-      }),
-    ).toEqual({
-      currentRequirements: 3,
-      proofTested: 1,
-      currentUntested: 2,
-      trackedGaps: { missing_passing_e2e: 2, stale_proof_receipt: 1 },
-    });
-  });
-
-  test("repairs the count a line merge keeps when two branches each add a requirement", () => {
-    const directory = mkdtempSync(path.join(os.tmpdir(), "kibi-baseline-"));
-    try {
-      const file = path.join(directory, "baseline.json");
-      // Both branches raised 140 -> 141; Git kept one increment for two entries.
-      const merged = {
-        version: "kibi.proof-baseline.v3",
-        mode: "equality",
-        currentRequirements: 1,
-        proofTested: 1,
-        currentUntested: 0,
-        trackedGaps: {},
-        requirements: { "REQ-from-base": proven, "REQ-from-branch": proven },
-      };
-      writeFileSync(file, `${JSON.stringify(merged, null, 2)}\n`);
-
-      const first = spawnSync(process.execPath, [RECONCILE, file], {
-        encoding: "utf8",
-      });
-      expect(first.status).toBe(0);
-      expect(first.stdout).toContain("reconciled");
-      const repaired = JSON.parse(readFileSync(file, "utf8"));
-      expect(Object.keys(repaired)).toEqual(Object.keys(merged));
-      expect(repaired).toMatchObject({
-        currentRequirements: 2,
-        proofTested: 2,
-        currentUntested: 0,
-        trackedGaps: {},
-        requirements: merged.requirements,
-      });
-
-      const second = spawnSync(process.execPath, [RECONCILE, file], {
-        encoding: "utf8",
-      });
-      expect(second.stdout).toContain("already match");
-    } finally {
-      rmSync(directory, { recursive: true, force: true });
-    }
-  });
-
-  test("the committed baseline already matches its entries", () => {
-    const baseline = JSON.parse(
-      readFileSync(path.join(ROOT, "proof", "baseline.json"), "utf8"),
-    );
-    expect(baseline).toMatchObject(
-      deriveBaselineSummary(baseline.requirements),
-    );
-  });
-});
-
 describe("KB merge workflow", () => {
   const steps = resolveSteps(".github/workflows/kb-merge.yml");
   const prCheckout = steps.findIndex((step) => step.with?.path === "pr");
@@ -132,17 +52,20 @@ describe("KB merge workflow", () => {
     }
   });
 
-  test("reconciles the baseline and checks it before pushing", () => {
-    const reconcile = indexOf(steps, /reconcile-proof-baseline\.mjs/);
+  test("runs the proof gate before pushing, with no shared baseline to reconcile", () => {
     const commit = indexOf(steps, /git commit/);
-    const gate = indexOf(steps, /check-proof-baseline\.mjs --semantic-only/);
+    const gate = indexOf(steps, /scripts\/proof-gate\.sh/);
     const push = indexOf(steps, /git push/);
-    expect(reconcile).toBeLessThan(commit);
     expect(commit).toBeLessThan(gate);
     expect(gate).toBeLessThan(push);
     expect(push).toBe(steps.length - 1);
     expect(steps[push]?.run).not.toContain("git commit");
-    for (const index of [reconcile, commit, gate, push]) {
+    expect(steps[gate]?.run).not.toContain("--fresh-evidence");
+    expect(
+      steps.some((step) => /baseline/.test(`${step.name}\n${step.run}`)),
+    ).toBe(false);
+    expect(existsSync(path.join(ROOT, "proof", "baseline.json"))).toBe(false);
+    for (const index of [commit, gate, push]) {
       expect(steps[index]?.["working-directory"]).toBe("pr");
     }
   });

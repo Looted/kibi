@@ -1,6 +1,7 @@
 ---
 title: Symbol links are judged when written, and coverage and upsert errors name the missing step
 status: open
+required_evidence: tested
 priority: must
 tags:
   - symbol

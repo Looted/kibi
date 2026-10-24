@@ -17,8 +17,6 @@ origin:
 ## Test Coverage
 
 - `scripts/tests/replay-proof-ci.test.ts`: the local replay derives the proof job's gate steps from `.github/workflows/proof.yml` in CI order, skips only host provisioning while keeping its repository-local `uv` commands, and fails loudly when a skipped step is renamed.
-- `scripts/tests/proof-baseline-diff.test.ts`:
-  - fingerprint and diff suite: baseline fingerprints skip not-applicable rows and sort gaps and symbols, requirement diffs name added gaps and uncovered symbols, and spawn output parses even when the checker exits non-zero;
-  - semantic-only suite: stale receipts and the production-coverage gap they cause are set aside; a symbol with no `covered_by` link stays a real gap; grounding and contradiction regressions fail with stale evidence; new current requirements must join the baseline.
+- `scripts/tests/proof-workflow-contract.test.ts`: the proof workflow runs the evidence-floor gate before executing contracts and again with `--fresh-evidence` after re-proving, the pre-push script ends with the same gate, and every current requirement in this repository needs tested evidence.
 
-Run with `bun test ./scripts/tests/replay-proof-ci.test.ts ./scripts/tests/proof-baseline-diff.test.ts`.
+Run with `bun test ./scripts/tests/replay-proof-ci.test.ts ./scripts/tests/proof-workflow-contract.test.ts`.

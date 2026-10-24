@@ -1,6 +1,7 @@
 ---
 title: A requirement can be previewed and its grounding planned before its facts exist
 status: open
+required_evidence: tested
 tags:
   - modeling
   - mutation

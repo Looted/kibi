@@ -1,6 +1,7 @@
 ---
 title: Files without linked symbols get candidate requirements, not silence
 status: open
+required_evidence: tested
 priority: must
 tags:
   - hooks

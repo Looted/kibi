@@ -1,6 +1,7 @@
 ---
 title: Documentation site loads opt-in cookieless analytics scoped to its published host
 status: open
+required_evidence: tested
 priority: could
 tags:
   - docs

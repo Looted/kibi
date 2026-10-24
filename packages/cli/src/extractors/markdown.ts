@@ -130,6 +130,7 @@ export interface ExtractedEntity {
   text_ref?: string;
   origin?: EntityOrigin;
   firmness?: Firmness;
+  required_evidence?: "proved" | "tested" | "asserted" | "unverified";
   semantic_text?: string;
   logic_claims?: string[];
   semantic_clauses?: string[];
@@ -845,6 +846,31 @@ function extractFromMarkdownContent(
         );
       }
       entity.firmness = data.firmness;
+    }
+    // implements REQ-kibi-evidence-floors
+    // The weakest evidence level the requirement accepts; the evidence-floor
+    // rule reads it, and derives it from firmness when absent.
+    if (data.required_evidence !== undefined) {
+      if (
+        type !== "req" ||
+        !["proved", "tested", "asserted", "unverified"].includes(
+          data.required_evidence as string,
+        )
+      ) {
+        throw new FrontmatterError(
+          type === "req"
+            ? "Invalid required_evidence; expected one of proved, tested, asserted, unverified"
+            : "required_evidence is only allowed on type: req",
+          filePath,
+          {
+            classification: "Invalid Required Evidence",
+            hint: "Set required_evidence to the weakest evidence level the requirement accepts (proved, tested, asserted or unverified), or remove the field to derive it from firmness.",
+          },
+        );
+      }
+      entity.required_evidence = data.required_evidence as NonNullable<
+        ExtractedEntity["required_evidence"]
+      >;
     }
     if (type === "req" && Array.isArray(data.exempts_claims)) {
       entity.exempts_claims = data.exempts_claims.filter(

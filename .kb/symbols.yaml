@@ -43463,26 +43463,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-docs-site-pages
-  - id: SYM-semanticGaps
-    title: semanticGaps
-    status: active
-    sourceFile: scripts/lib/proof-baseline-diff.mjs
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-local-proof-parity
-      - type: implements
-        target: REQ-kibi-local-proof-parity
-  - id: SYM-evaluateSemanticBaseline
-    title: evaluateSemanticBaseline
-    status: active
-    sourceFile: scripts/lib/proof-baseline-diff.mjs
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-local-proof-parity
-      - type: implements
-        target: REQ-kibi-local-proof-parity
   - id: SYM-replaySteps
     title: replaySteps
     status: active
@@ -43514,57 +43494,6 @@ symbols:
         target: TEST-cli-canonical-runtime
       - type: implements
         target: REQ-cli-canonical-runtime
-  - id: SYM-PROOF_BASELINE_VERSION
-    title: PROOF_BASELINE_VERSION
-    status: active
-    sourceFile: scripts/lib/proof-baseline-diff.mjs
-    symbol_role: unknown
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-local-proof-parity
-      - type: implements
-        target: REQ-kibi-local-proof-parity
-  - id: SYM-fingerprintRequirements
-    title: fingerprintRequirements
-    status: active
-    sourceFile: scripts/lib/proof-baseline-diff.mjs
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-local-proof-parity
-      - type: implements
-        target: REQ-kibi-local-proof-parity
-  - id: SYM-diffFingerprints
-    title: diffFingerprints
-    status: active
-    sourceFile: scripts/lib/proof-baseline-diff.mjs
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-local-proof-parity
-      - type: implements
-        target: REQ-kibi-local-proof-parity
-  - id: SYM-renderRequirementDiffs
-    title: renderRequirementDiffs
-    status: active
-    sourceFile: scripts/lib/proof-baseline-diff.mjs
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-local-proof-parity
-      - type: implements
-        target: REQ-kibi-local-proof-parity
-  - id: SYM-parseSpawnJson
-    title: parseSpawnJson
-    status: active
-    sourceFile: scripts/lib/proof-baseline-diff.mjs
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-local-proof-parity
-      - type: implements
-        target: REQ-kibi-local-proof-parity
   - id: SYM-renderShardWithout
     title: renderShardWithout
     status: active
@@ -46935,16 +46864,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-ci-kb-merge-resolution
-  - id: SYM-derive-baseline-summary
-    title: deriveBaselineSummary
-    status: active
-    sourceFile: scripts/lib/proof-baseline-diff.mjs
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-ci-kb-merge-resolution
-      - type: implements
-        target: REQ-ci-kb-merge-resolution
   - id: SYM-claude-mcp-launcher
     title: Claude Code MCP launcher (workspace-gated kibi-mcp proxy)
     status: active
@@ -56826,3 +56745,117 @@ symbols:
         target: TEST-kibi-kb-certificates
       - type: implements
         target: REQ-kibi-kb-certificates
+  - id: SYM-e2e-packed-evidence-floors
+    title: checkEvidenceFloors
+    status: active
+    sourceFile: documentation/tests/e2e/packed/evidence-floors.test.ts
+    symbol_role: behavioral
+    tags:
+      - e2e
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T17:34:06.561Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-evidence-floors
+  - id: SYM-cli-evidence-floor-check
+    title: collectEvidenceFloorViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/evidence-floor.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - check
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T17:34:11.236Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-evidence-floors
+      - type: implements
+        target: REQ-kibi-evidence-floors
+  - id: SYM-cli-evidence-floor-findings
+    title: evidenceFloorViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/evidence-floor.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - check
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T17:34:16.442Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-evidence-floors
+      - type: implements
+        target: REQ-kibi-evidence-floors
+  - id: SYM-cli-evidence-floor-migration
+    title: planEvidenceFloorPins
+    status: active
+    sourceFile: packages/cli/src/operations/migration/evidence-floor.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - migration
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T17:34:22.015Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-evidence-floors
+      - type: implements
+        target: REQ-kibi-evidence-floors
+  - id: SYM-core-evidence-floor
+    title: evidence_floor
+    status: active
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T17:34:26.557Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-evidence-floors
+      - type: implements
+        target: REQ-kibi-evidence-floors
+  - id: SYM-core-evidence-floor-json
+    title: evidence_floor_json
+    status: active
+    sourceFile: packages/core/src/discovery.pl
+    symbol_role: behavioral
+    tags:
+      - proof
+      - check
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T17:34:30.637Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-evidence-floors
+      - type: implements
+        target: REQ-kibi-evidence-floors
+  - id: SYM-proof-gate
+    title: run_proof_gate
+    status: active
+    sourceFile: scripts/proof-gate.sh
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    text_ref: scripts/proof-gate.sh#run_proof_gate
+    tags:
+      - proof
+      - ci
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T17:36:42.524Z
+    relationships:
+      - type: covered_by
+        target: TEST-ci-kb-merge-resolution
+      - type: covered_by
+        target: TEST-kibi-local-proof-parity
+      - type: implements
+        target: REQ-ci-kb-merge-resolution
+      - type: implements
+        target: REQ-kibi-local-proof-parity

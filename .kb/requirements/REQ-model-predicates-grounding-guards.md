@@ -1,6 +1,7 @@
 ---
 title: kb_model guards a predicate grounding against the ledger, existing groundings and stored decisions
 status: open
+required_evidence: tested
 priority: must
 tags:
   - modeling

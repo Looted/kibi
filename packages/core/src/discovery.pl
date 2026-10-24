@@ -8,6 +8,7 @@
     coverage_report_json/11,
     coverage_report_json/12,
     coverage_evidence_json/5,
+    evidence_floor_json/6,
     requirement_proof_json/5,
     requirement_proof_json/7,
     symbol_proof_json/7,
@@ -343,6 +344,39 @@ coverage_evidence_json(Tags, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Jso
         Evidences),
     Response = _{rows: Evidences},
     dict_json_string(Response, JsonString).
+
+% implements REQ-kibi-evidence-floors
+% Every current requirement whose evidence level is below its floor, for the
+% evidence-floor check rule: the rows that fail (status below) or that only
+% need kibi prove re-run (status pending_reproof), plus how many current
+% requirements were evaluated.  Requirements outside proof scope carry no
+% floor.
+evidence_floor_json(BindingMode, TestBindings, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
+    requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, BindingMode, TestBindings, Context),
+    findall(Id-Proof,
+        (   kb_entity(Id, req, Props),
+            requirement_proof(Id, Props, Context, Proof),
+            get_dict(evidenceFloor, Proof, _)
+        ),
+        Evaluated),
+    findall(Row,
+        (   member(Id-Proof, Evaluated),
+            Floor = Proof.evidenceFloor,
+            Floor.status \== met,
+            Row = _{
+                id: Id,
+                evidenceLevel: Proof.evidenceLevel,
+                requiredEvidence: Floor.required,
+                requiredEvidenceSource: Floor.source,
+                status: Floor.status,
+                proofStatus: Proof.proofStatus,
+                proofGaps: Proof.proofGaps
+            }
+        ),
+        Rows0),
+    sort(id, @<, Rows0, Rows),
+    length(Evaluated, Count),
+    dict_json_string(_{evaluated: Count, rows: Rows}, JsonString).
 
 coverage_evidence_row(Id, Proof, Evidence) :-
     (   get_dict(proofStatus, Proof, ProofStatus)

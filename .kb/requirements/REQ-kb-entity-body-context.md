@@ -1,6 +1,7 @@
 ---
 title: Entity bodies carry context separate from checked meaning
 status: open
+required_evidence: tested
 priority: must
 tags:
   - kb

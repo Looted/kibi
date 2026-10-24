@@ -440,3 +440,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-43ea25aa8fa0
+  - type: implements
+    from: SYM-proof-gate
+    to: REQ-ci-kb-merge-resolution
+    created_at: 2026-10-24T17:36:43.797Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-08cea6684ebd
+  - type: implements
+    from: SYM-proof-gate
+    to: REQ-kibi-local-proof-parity
+    created_at: 2026-10-24T17:36:43.831Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f46c1cb794e0
+  - type: covered_by
+    from: SYM-proof-gate
+    to: TEST-ci-kb-merge-resolution
+    created_at: 2026-10-24T17:36:43.850Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-725ab1e8ca70
+  - type: covered_by
+    from: SYM-proof-gate
+    to: TEST-kibi-local-proof-parity
+    created_at: 2026-10-24T17:36:43.867Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0efd39c4407

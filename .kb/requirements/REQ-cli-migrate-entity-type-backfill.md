@@ -1,6 +1,7 @@
 ---
 title: kibi migrate states the folder-implied type on entity files without one
 status: open
+required_evidence: tested
 priority: must
 tags:
   - cli

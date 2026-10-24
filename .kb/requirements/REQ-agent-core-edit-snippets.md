@@ -1,6 +1,7 @@
 ---
 title: Host edit snippets come from one shared builder and say what a current requirement must keep true and why
 status: open
+required_evidence: tested
 priority: should
 tags:
   - hooks

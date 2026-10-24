@@ -1,6 +1,7 @@
 ---
 title: Bootstrap writes are valid and failures are actionable
 status: open
+required_evidence: tested
 priority: must
 tags:
   - bootstrap

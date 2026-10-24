@@ -171,6 +171,38 @@ Firmness and evidence level are separate axes. Firmness says how sure the
 person is; the level says how strong the evidence is. A firm requirement at
 `asserted` is the gap to close before relying on it.
 
+## Evidence floors
+
+Each current requirement also has a floor: the weakest evidence level it
+accepts. The `evidence-floor` rule of `kibi check` fails while a
+requirement's level is below its floor, so a regression is caught on the
+requirement itself and no shared snapshot file has to be kept in step.
+
+| Floor | Where it comes from |
+| --- | --- |
+| `required_evidence: proved \| tested \| asserted \| unverified` | Set on the requirement by its author |
+| `tested` | No `required_evidence` and the requirement is firm (`firmness: firm`, or no `firmness` and an origin other than `agent`) |
+| `unverified` (no floor) | No `required_evidence` and the requirement is not firm |
+
+Coverage rows carry the floor as `evidenceFloor` with `required`, `source`
+(`explicit` or `firmness`) and `status`: `met`, `below`, or `pending_reproof`
+when the floor is `tested` and every gap only says the receipts are older
+than the code. A plain `kibi check` lets `pending_reproof` pass, so a local
+check catches grounding, contradiction and link regressions without
+re-proving first. `kibi check --fresh-evidence` judges receipts as they are
+and also needs a clean proof snapshot; run it right after `kibi prove`, as CI
+does.
+
+Requirements outside proof scope (`proof_exempt`, superseded or not current)
+have no floor. Lowering a floor is a visible edit to the requirement, so
+reviewers see it; give the reason in the requirement when you lower one.
+
+The schema 11 upgrade (`kibi migrate --yes`) records `required_evidence:
+asserted` on each current firm requirement that has no scenario verified by
+a test with a proof contract, since it cannot reach `tested`; raise it once
+the requirement has an end-to-end proof. Firm requirements that already have
+a proof path keep the `tested` floor.
+
 ## Knowledge-base certificates
 
 Evidence levels describe requirements. The `kb-consistency` rule of
@@ -227,16 +259,18 @@ prints each theorem's verdict (`proved`, `disproved` or `unresolved`).
 - `kibi proof explain REQ-*` / `kibi proof explain SYM-*` — project the same
   Proof, labeling `required_proofs`, `executable_for`, and `covered_by`
   separately.
-- `kibi proof impact` — compare current proof state to `HEAD:proof/baseline.json`
-  (diagnostic; exits 0 after a successful report). The ratchet remains
-  `scripts/check-proof-baseline.mjs`.
-- `bun run proof:baseline:semantic` (this repository) — compare the committed
-  baseline without re-proving: gaps that only reflect stale evidence
+- `kibi check --rules evidence-floor` — fail every current requirement whose
+  evidence level is below its floor (see [Evidence floors](#evidence-floors)).
+  Without `--fresh-evidence`, gaps that only reflect stale evidence
   (`stale_proof_receipt`, `proof_contract_mismatch`, and production coverage
   whose symbols all have a qualifying candidate or a scenario-backed E2E
-  candidate rejected solely for stale evidence) are set aside. Unit/integration
-  scope, missing receipts, invalid evidence, and scenario-chain failures remain
-  blocking gaps.
+  candidate rejected solely for stale evidence) count as pending re-proof, so
+  a local run catches semantic regressions without re-proving. Unit or
+  integration scope, missing receipts, invalid evidence, and scenario-chain
+  failures stay blocking.
+- `bun run proof:gate` (this repository) — the integrity rules plus
+  `evidence-floor`, as the pre-push hook and the KB merge workflow run them;
+  CI runs it again with `--fresh-evidence` after `kibi prove --all`.
 - `bun run proof:replay` (this repository) — replay the CI proof job's gate
   steps from `.github/workflows/proof.yml` in a clean clone of the committed
   HEAD, outside the repository tree, and stop at the first failing step.
