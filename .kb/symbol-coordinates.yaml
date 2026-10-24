@@ -15869,12 +15869,12 @@ coordinates:
     sourceLine: 86
   SYM-kb-decision-firmness-asimportedrule:
     identityHash: ed391c61241eee83369dfd9b5a988a5f0d6dba97eb9f7c720faeaf7d3bbc0d37
-    sourceHash: 13b61c7f2b9f591ebe4e35d1955195945b40fbc394cefa1231c41c06353b3857
+    sourceHash: 1d89fb5f0ea8597358fe430e12ebbbceccc36697ccf0b0bd3921670cfadb1663
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 117
+    sourceEndLine: 121
     sourceFile: packages/cli/src/operations/bootstrap/candidate-helpers.ts
-    sourceLine: 101
+    sourceLine: 104
   SYM-kb-decision-firmness-authoredsupersedes:
     identityHash: 0995d75801bdf902d6f75323b4f50f8eedf0644bb180e4618a11011283c91709
     sourceHash: 8360ebce02036b07a5a6cc25be0cba9e037c4532c3b3e54f7fe2db4eb1bc5883
@@ -16173,7 +16173,7 @@ coordinates:
     sourceLine: 189
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-confidenceband:
     identityHash: 3323487c41e9e4fbb0e0cb2e7bbc942d78547fc48747649d0b47a4a5879d674a
-    sourceHash: 13b61c7f2b9f591ebe4e35d1955195945b40fbc394cefa1231c41c06353b3857
+    sourceHash: 1d89fb5f0ea8597358fe430e12ebbbceccc36697ccf0b0bd3921670cfadb1663
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 8
@@ -16181,7 +16181,7 @@ coordinates:
     sourceLine: 6
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-slug:
     identityHash: 67e62a4818ee5c62e63316fc2c5ed9c510b13083ff7cfd39d31b6bb934f583bc
-    sourceHash: 13b61c7f2b9f591ebe4e35d1955195945b40fbc394cefa1231c41c06353b3857
+    sourceHash: 1d89fb5f0ea8597358fe430e12ebbbceccc36697ccf0b0bd3921670cfadb1663
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 16
@@ -16189,7 +16189,7 @@ coordinates:
     sourceLine: 10
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-strictplan:
     identityHash: 0c4b0d71dbac1b21b9fcb7f55ebcbceb94e497ca2e3bc39c0be5e2567806551e
-    sourceHash: 13b61c7f2b9f591ebe4e35d1955195945b40fbc394cefa1231c41c06353b3857
+    sourceHash: 1d89fb5f0ea8597358fe430e12ebbbceccc36697ccf0b0bd3921670cfadb1663
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 81
@@ -16197,7 +16197,7 @@ coordinates:
     sourceLine: 37
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-upsert:
     identityHash: 8b55aa0f2aec1e496a4c26d0e06d33bbb8426023cc65cb1143228803a712258d
-    sourceHash: 13b61c7f2b9f591ebe4e35d1955195945b40fbc394cefa1231c41c06353b3857
+    sourceHash: 1d89fb5f0ea8597358fe430e12ebbbceccc36697ccf0b0bd3921670cfadb1663
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 35
@@ -29341,12 +29341,12 @@ coordinates:
     sourceLine: 390
   SYM-skillopt-default-codex-cell-dependencies:
     identityHash: 1b46cedf2c2c218888ef62ce298dad627a9ea770f9aa561d9495ac52150fa231
-    sourceHash: 406633de6b4bb6351c5fa31593b956eead3c7831f10bb4002f4629e5612fbb9c
+    sourceHash: 2c95d7b95b18bf3d05b7053177b52129744bf48d842aa43f37b8f09a67c27370
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 1255
+    sourceEndLine: 1267
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
-    sourceLine: 1179
+    sourceLine: 1191
   SYM-skillopt-default-codex-login-run:
     identityHash: e202a6e54d55e4fbe46657a7004a3d7680825d88cd5102852665b222327fd9c4
     sourceHash: 4838a3765f23ad7ac09e75c69b1d53e9d790d9142793742916927dfd7e3f9b7a
@@ -33805,12 +33805,12 @@ coordinates:
     sourceLine: 43
   SYM-skillopt-seal-default-cell-evidence:
     identityHash: 4b713da6922b684796f66439de6fee1a620168b39a15d9651b11c341fadcb46c
-    sourceHash: 406633de6b4bb6351c5fa31593b956eead3c7831f10bb4002f4629e5612fbb9c
+    sourceHash: 2c95d7b95b18bf3d05b7053177b52129744bf48d842aa43f37b8f09a67c27370
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 1176
+    sourceEndLine: 1188
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
-    sourceLine: 1148
+    sourceLine: 1160
   SYM-skillopt-sealed-cell-evidence:
     identityHash: 74b93307a6ad5fa62f78b585732daff2570b96fb635cb7cac846fb29563c440e
     sourceHash: 6f1ea841b6f4f629135efd51ee0e1a28a52d2426b370755a643b7014d64bc570
