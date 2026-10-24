@@ -231,6 +231,14 @@ If lexical ranking prefers a reviewed false positive, retry with the exact candi
 
 `domain-contradictions` violations may include `evidence.witnesses`. Strict-property and ground-predicate witnesses identify both requirements, both source-bound fact claims, and the exact normalized terms. Rule witnesses also include source spans, rule hashes/IR, and a symbolic comparison. A rule witness with `status: unresolved` means overlap could not be proven or excluded; it keeps requirement proof at `analysis_incomplete` and must not be reported as consistency.
 
+## Joint contradiction (`kb-consistency`)
+
+The facts in the violation's core cannot all hold at once, even when every pair of them is compatible, so `domain-contradictions` does not report it. The violation names the core facts, the requirements behind them, and for each fact a model showing the others hold once it is dropped; the certificate is under `evidence.certificate`. Resolve it by changing one of the values or by superseding one of the requirements (a new requirement that `supersedes` it, with the old one set to `status: closed`). Do not edit a firm requirement's value in place.
+
+A certificate the independent checker rejects also blocks: rerun `kibi check`, which regenerates the bundle from the current KB. `kibi check --certificates <file>` rejects a saved bundle once the KB has changed (for example "core names a fact outside its context or repeats one" when a core fact is no longer current); write a fresh one with `--write-certificates`.
+
+`kb-consistency-unresolved` is advisory: the checker could not compare a context (mixed value types or units, an unsupported operator or polarity, validity windows that never overlap). Model the values in one unit and type if they should be comparable; until then the context is unresolved, not consistent.
+
 ## Advisory quality diagnostics are present but checks pass
 
 Kibi has a two-lane check contract. Hard correctness failures appear in `violations[]` and fail checks. Auditability findings appear in `qualityDiagnostics[]`; `review`, `info`, and non-blocking `warning` diagnostics are intentionally advisory so they can guide agents without breaking otherwise valid KB operations.

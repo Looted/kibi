@@ -4,7 +4,7 @@ description: "Use when kibi check --staged or the Kibi pre-commit hook blocks a 
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-commit-review
-  version: 1.2.0
+  version: 1.2.1
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -87,8 +87,9 @@ requirement with its statement (before and after for a rewrite), firmness,
 origin, scenarios and proof state. Put it in your reply unchanged (in the
 messaging tool's message when replies go through one), then add one or two
 sentences on why the requirements changed. Offer the full page with
-`kibi signoff --format html --open`, or attach or publish
-`.kb/briefs/signoff/latest.html` when your host can carry a file or a page;
+`kibi signoff --format html --open`, or publish `.kb/briefs/signoff/latest.html`
+as a rendered page when your host has a page tool (the Artifact tool in Claude
+apps); never attach the `.html` as a file, which chat apps show as raw source;
 past 15 requirements the Markdown stops and only the page lists them all.
 Host details: `kibi-decisions`, `resources/signoff-views.md`. `--no-proof` skips the proof lookup, which reads coverage and is slow
 on a large knowledge base. The summary is not an approval: never set

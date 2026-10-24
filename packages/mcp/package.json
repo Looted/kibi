@@ -10,7 +10,7 @@
     "fast-glob": "^3.2.12",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
-    "kibi-runtime": "^2.20.0",
+    "kibi-runtime": "^2.20.1",
     "kibi-core": "^0.23.0",
     "zod": "^4.6.7"
   },
