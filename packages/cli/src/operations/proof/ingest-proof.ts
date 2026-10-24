@@ -30,6 +30,7 @@ import {
   type ProofBinding,
   type ProofContract,
   type ProofRunArtifact,
+  optionalProofContractFields,
   proofBindingsErrors,
   proofRunArtifactErrors,
 } from "../../public/proof-protocol.js";
@@ -54,6 +55,7 @@ import {
 } from "../mutation/workspace-mutation-lock.js";
 import { MutationRollbackFailureError } from "../mutation/saga.js";
 import { patchReceiptsIntoDocument } from "./receipt-document.js";
+import { checkCodeCertificate } from "./code-certificates.js";
 
 // implements REQ-kibi-verification-evidence-contract
 export type IngestProofArgs = Readonly<{
@@ -167,6 +169,7 @@ function parseContract(test: Record<string, unknown>): ProofContract {
         }) as ProofContract["required_proofs"])
       : [],
     success_policy: success_policy as ProofContract["success_policy"],
+    ...optionalProofContractFields(candidate),
   };
   if (!contract || contract.version !== PROOF_CONTRACT_VERSION)
     throw new Error(
@@ -444,6 +447,14 @@ async function executeIngestProofUnlocked(
             test,
             coveredBySymbols: coveredBy.get(testId) ?? [],
           });
+    const verdict = await checkCodeCertificate(context, {
+      testId,
+      contract,
+      outcome: evaluation.outcome,
+      certificate: (artifact.certificates ?? []).find(
+        (entry) => entry.test_id === testId,
+      ),
+    });
     const receipt: ProofReceipt = {
       version: PROOF_RECEIPT_VERSION,
       receipt_id: `PR-${jsonDigest({
@@ -472,6 +483,7 @@ async function executeIngestProofUnlocked(
         ...result,
       })),
       ...(evaluation.gaps.length > 0 ? { gaps: evaluation.gaps } : {}),
+      ...verdict,
     };
     prepared.push({
       testId,

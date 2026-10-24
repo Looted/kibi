@@ -216,3 +216,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f418b271427c
+  - type: implements
+    from: SYM-cli-write-code-certificate
+    to: REQ-kibi-code-proof-kinds
+    created_at: 2026-10-24T19:33:18.631Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec1a3204cd7e
+  - type: covered_by
+    from: SYM-cli-write-code-certificate
+    to: TEST-kibi-code-proof-kinds
+    created_at: 2026-10-24T19:33:18.647Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b821763584a3

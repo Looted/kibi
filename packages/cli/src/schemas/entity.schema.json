@@ -774,6 +774,65 @@
           "enum": [
             "all_required_first_attempt"
           ]
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "e2e",
+            "example",
+            "property",
+            "exhaustive",
+            "typecheck",
+            "arithmetic",
+            "smt"
+          ],
+          "description": "What the checker establishes; absent means e2e. exhaustive, typecheck, arithmetic and smt must leave a kibi.code-certificate.v1 that Kibi re-checks before the receipt counts as proved."
+        },
+        "domain_source": {
+          "type": "object",
+          "description": "exhaustive and typecheck: the symbol that defines the finite domain. The proof must import it from its source file; a hand-listed domain downgrades the receipt to example.",
+          "required": [
+            "symbol_id"
+          ],
+          "properties": {
+            "symbol_id": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "witness": {
+          "type": "object",
+          "description": "typecheck: the repository-relative witness file Kibi compiles (an exhaustive switch ending in never, or a mapped type over the domain).",
+          "required": [
+            "path"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "constraint_source": {
+          "type": "object",
+          "description": "arithmetic and smt: the typed numeric property_value facts the certificate's assumptions come from. Kibi checks the assumptions (or the query's assertions) are exactly these facts' constraints, so the proof is about the knowledge base, not numbers the test chose.",
+          "required": [
+            "fact_ids"
+          ],
+          "properties": {
+            "fact_ids": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -823,7 +882,7 @@
       "type": "array",
       "items": {
         "type": "object",
-        "description": "Kibi-derived kibi.proof-receipt.v1. Receipts are never caller-authored; kb_ingest_proof derives them from kibi.proof-run.v1 artifacts.",
+        "description": "Kibi-derived kibi.proof-receipt.v2 (kibi.proof-receipt.v1 entries are still read). Receipts are never caller-authored; kb_ingest_proof derives them from kibi.proof-run.v1 artifacts.",
         "required": [
           "version",
           "receipt_id",
@@ -847,7 +906,10 @@
         "properties": {
           "version": {
             "type": "string",
-            "const": "kibi.proof-receipt.v1"
+            "enum": [
+              "kibi.proof-receipt.v1",
+              "kibi.proof-receipt.v2"
+            ]
           },
           "receipt_id": {
             "type": "string",
@@ -1089,6 +1151,36 @@
               },
               "additionalProperties": false
             }
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "e2e",
+              "example",
+              "property",
+              "exhaustive",
+              "typecheck",
+              "arithmetic",
+              "smt"
+            ]
+          },
+          "evidence_level": {
+            "type": "string",
+            "enum": [
+              "proved",
+              "tested"
+            ]
+          },
+          "certificate": {
+            "type": "object"
+          },
+          "certificate_digest": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "certificate_rejection": {
+            "type": "string",
+            "minLength": 1
           },
           "gaps": {
             "type": "array",

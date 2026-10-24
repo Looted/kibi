@@ -167,3 +167,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-05aad7dd5f5d
+  - type: executable_for
+    from: SYM-test-entity-origin-exhaustive
+    to: TEST-kibi-entity-origin-exhaustive
+    created_at: 2026-10-24T19:32:11.460Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8618cb8de15

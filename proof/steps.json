@@ -2809,5 +2809,95 @@
         "halt"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-kibi-code-proof-kinds",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/code-proof-kinds.test.ts"
+      ],
+      [
+        "swipl",
+        "-q",
+        "-s",
+        "packages/core/tests/kb.plt",
+        "-g",
+        "run_tests(requirement_proved_evidence)",
+        "-t",
+        "halt"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-code-proof-kinds-exhaustive",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/code-proof-kinds.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-code-proof-kinds-typecheck",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/code-proof-kinds-typecheck.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-evidence-levels-exhaustive",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/evidence-levels.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-evidence-floors-exhaustive",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/evidence-floors.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-entity-origin-exhaustive",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/entity-origin.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-migrate-entity-type-backfill-exhaustive",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/entity-type-backfill.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-model-predicates-closed-vocabularies-exhaustive",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/closed-vocabularies.proof.test.ts"
+      ]
+    ]
   }
 ]

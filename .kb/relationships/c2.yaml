@@ -374,3 +374,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-38328e66a112
+  - type: validates
+    from: TEST-kibi-code-proof-kinds
+    to: SCEN-kibi-code-proof-kinds
+    created_at: 2026-10-24T19:31:48.439Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4186961151cb

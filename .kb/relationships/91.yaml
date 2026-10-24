@@ -202,3 +202,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1cb6e7439b26
+  - type: validates
+    from: TEST-kibi-evidence-floors-exhaustive
+    to: SCEN-kibi-evidence-floors
+    created_at: 2026-10-24T19:31:45.626Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d71b8c4d05c

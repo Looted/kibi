@@ -72,6 +72,7 @@ export type ProofRunArtifact = Readonly<{
   proof_results: readonly ProofResult[];
   integration?: string;
   diagnostics?: readonly string[];
+  certificates?: readonly Readonly<Record<string, unknown>>[];
 }>;
 
 export type ProofObligation = Readonly<{
@@ -84,6 +85,17 @@ export type ProofContract = Readonly<{
   integration: string;
   required_proofs: readonly ProofObligation[];
   success_policy: SuccessPolicy;
+  kind?:
+    | "e2e"
+    | "example"
+    | "property"
+    | "exhaustive"
+    | "typecheck"
+    | "arithmetic"
+    | "smt";
+  domain_source?: Readonly<{ symbol_id: string }>;
+  witness?: Readonly<{ path: string }>;
+  constraint_source?: Readonly<{ fact_ids: readonly string[] }>;
 }>;
 
 export type ProofBinding = Readonly<{

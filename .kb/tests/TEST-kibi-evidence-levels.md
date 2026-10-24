@@ -20,18 +20,18 @@ origin:
 id: TEST-kibi-evidence-levels
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-fbccad20d722fd8cc2b53d09
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-8812e30edf495521ddb3e38f
     test_id: TEST-kibi-evidence-levels
     scope: end_to_end
     outcome: passed
-    code_snapshot: d32cd3f92a4c7483052a78e1ec727e390954d399a651ec6e883ff2e57d855ded
+    code_snapshot: 43675d5112431d4f3e5766d7fd142174b14e417e9c8b3d76bc67f23dfa7c508e
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-23T12:33:07.070Z'
-    finished_at: '2026-10-23T12:35:08.062Z'
-    artifact_digest: 04de51925090f156e527a96710e17b616a92fecfd17c5cb60c736993eb3f1695
+    started_at: '2026-10-24T20:08:58.199Z'
+    finished_at: '2026-10-24T20:09:12.746Z'
+    artifact_digest: 365a6ea1c9a45675d770119196c679be686e6aaab4b6d412e86f8e04f0a04550
     contract_hash: 488df5f639d46a89f3e4fffe171918d89f7482589ce48d839846d7c35581bd43
-    binding_hash: 0560189fba2f4e198f4ce3fbe2c3b21028acc0a2e6b09f4db5fd2bc97a2f6ce0
+    binding_hash: af6faa90ee40a2350c8ca59733ae03e06b3e1f04cbe2d25dd4f5407ce4596a91
     fingerprint: fe82656f72a9edf1f1d6c7da3730cb23d8ceb2e8a0c1e1bea53feb11b19daa13
     fingerprint_components:
       contract: 488df5f639d46a89f3e4fffe171918d89f7482589ce48d839846d7c35581bd43
@@ -53,5 +53,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs the installed packed CLI on a sandbox repository and checks the evidence levels end to end: kibi coverage rows carry the v4 proof version, an evidence level and its evidence entries, the hand-written requirement reads as asserted, the summary counts rows per level, the tested status filter works while proven is rejected, and the HTML report and kibi signoff show the level.

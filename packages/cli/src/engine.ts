@@ -366,7 +366,7 @@ function safeEngineGoal(goal: string): boolean {
   ) {
     return false;
   }
-  return /(?:^|[(:,\s])(?:kb_|checks:|status:|discovery:|requirement_proof:|findall\(|aggregate_all\(|rdf_transaction\(|use_module\(|atom_json_dict\(|member\(|once\(|true\b|fail\b)/.test(
+  return /(?:^|[(:,\s])(?:kb_|checks:|status:|discovery:|requirement_proof:|code_certificates:|findall\(|aggregate_all\(|rdf_transaction\(|use_module\(|atom_json_dict\(|member\(|once\(|true\b|fail\b)/.test(
     goal.trim(),
   );
 }

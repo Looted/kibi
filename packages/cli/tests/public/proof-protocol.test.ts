@@ -186,7 +186,7 @@ describe("kibi.proof-run.v1", () => {
 
   test("exports protocol constants and schema objects", () => {
     expect(PROOF_RUN_VERSION).toBe("kibi.proof-run.v1");
-    expect(PROOF_RECEIPT_VERSION).toBe("kibi.proof-receipt.v1");
+    expect(PROOF_RECEIPT_VERSION).toBe("kibi.proof-receipt.v2");
     expect(PROOF_INTEGRATION_VERSION).toBe("kibi.proof-integration.v1");
     expect(PROOF_RUN_OUTCOMES).toContain("timed_out");
     expect(PROOF_RESULT_OUTCOMES).toContain("skipped");

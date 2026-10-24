@@ -35,6 +35,7 @@ import {
   type EntityOrigin,
   normalizeEntityOrigin,
 } from "../public/entity-origin.js";
+import { EVIDENCE_LEVELS } from "../public/evidence-levels.js";
 import {
   PROOF_BINDINGS_SCHEMA,
   PROOF_CONTRACT_SCHEMA,
@@ -853,8 +854,8 @@ function extractFromMarkdownContent(
     if (data.required_evidence !== undefined) {
       if (
         type !== "req" ||
-        !["proved", "tested", "asserted", "unverified"].includes(
-          data.required_evidence as string,
+        !(EVIDENCE_LEVELS as readonly unknown[]).includes(
+          data.required_evidence,
         )
       ) {
         throw new FrontmatterError(

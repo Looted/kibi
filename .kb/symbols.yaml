@@ -56859,3 +56859,298 @@ symbols:
         target: REQ-ci-kb-merge-resolution
       - type: implements
         target: REQ-kibi-local-proof-parity
+  - id: SYM-test-code-proof-kinds-exhaustive
+    title: codeProofKindsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/code-proof-kinds.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T19:31:53.245Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-code-proof-kinds-exhaustive
+  - id: SYM-test-evidence-levels-exhaustive
+    title: evidenceLevelsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/evidence-levels.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T19:31:58.832Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-evidence-levels-exhaustive
+  - id: SYM-test-evidence-floors-exhaustive
+    title: evidenceFloorsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/evidence-floors.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T19:32:03.951Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-evidence-floors-exhaustive
+  - id: SYM-test-entity-origin-exhaustive
+    title: entityOriginCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/entity-origin.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T19:32:10.217Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-entity-origin-exhaustive
+  - id: SYM-test-entity-type-backfill-exhaustive
+    title: entityTypeBackfillCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/entity-type-backfill.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T19:32:15.602Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-migrate-entity-type-backfill-exhaustive
+  - id: SYM-test-closed-vocabularies-exhaustive
+    title: closedVocabulariesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/closed-vocabularies.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T19:32:21.248Z
+    relationships:
+      - type: executable_for
+        target: TEST-model-predicates-closed-vocabularies-exhaustive
+  - id: SYM-test-code-proof-kinds-typecheck
+    title: proofKindWitnessCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/code-proof-kinds-typecheck.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - typecheck
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T19:32:26.508Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-code-proof-kinds-typecheck
+  - id: SYM-e2e-packed-code-proof-kinds
+    title: checkCodeProofKinds
+    status: active
+    sourceFile: documentation/tests/e2e/packed/code-proof-kinds.test.ts
+    symbol_role: behavioral
+    tags:
+      - e2e
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T19:32:31.968Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-code-proof-kinds
+  - id: SYM-proof-kinds
+    title: PROOF_KINDS
+    status: active
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    symbol_role: config
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T19:32:37.268Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-code-proof-kinds
+      - type: implements
+        target: REQ-kibi-code-proof-kinds
+  - id: SYM-cli-evidence-levels
+    title: EVIDENCE_LEVELS
+    status: active
+    sourceFile: packages/cli/src/public/evidence-levels.ts
+    symbol_role: config
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T19:32:41.369Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-evidence-floors
+      - type: covered_by
+        target: TEST-kibi-evidence-levels
+      - type: implements
+        target: REQ-kibi-evidence-floors
+      - type: implements
+        target: REQ-kibi-evidence-levels
+  - id: SYM-cli-check-code-certificate
+    title: checkCodeCertificate
+    status: active
+    sourceFile: packages/cli/src/operations/proof/code-certificates.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T19:32:45.872Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-code-proof-kinds
+      - type: implements
+        target: REQ-kibi-code-proof-kinds
+  - id: SYM-cli-imports-domain
+    title: importsDomain
+    status: active
+    sourceFile: packages/cli/src/operations/proof/code-certificates.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T19:32:51.437Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-code-proof-kinds
+      - type: implements
+        target: REQ-kibi-code-proof-kinds
+  - id: SYM-cli-rerun-smt-query
+    title: rerunSmtQuery
+    status: active
+    sourceFile: packages/cli/src/operations/proof/code-certificates.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T19:32:57.025Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-code-proof-kinds
+      - type: implements
+        target: REQ-kibi-code-proof-kinds
+  - id: SYM-cli-attach-certificates
+    title: attachCertificates
+    status: active
+    sourceFile: packages/cli/src/commands/prove.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T19:33:02.444Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-code-proof-kinds
+      - type: implements
+        target: REQ-kibi-code-proof-kinds
+  - id: SYM-cli-read-certificate-dir
+    title: readCertificateDir
+    status: active
+    sourceFile: packages/cli/src/commands/prove.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T19:33:08.497Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-code-proof-kinds
+      - type: implements
+        target: REQ-kibi-code-proof-kinds
+  - id: SYM-cli-exhaustive-certificate
+    title: exhaustiveCertificate
+    status: active
+    sourceFile: packages/cli/src/public/proof-certificates.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T19:33:13.869Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-code-proof-kinds
+      - type: implements
+        target: REQ-kibi-code-proof-kinds
+  - id: SYM-cli-write-code-certificate
+    title: writeCodeCertificate
+    status: active
+    sourceFile: packages/cli/src/public/proof-certificates.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T19:33:17.377Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-code-proof-kinds
+      - type: implements
+        target: REQ-kibi-code-proof-kinds
+  - id: SYM-core-code-certificate-check
+    title: code_certificate_check
+    status: active
+    sourceFile: packages/core/src/code_certificates.pl
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T19:33:20.736Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-code-proof-kinds
+      - type: implements
+        target: REQ-kibi-code-proof-kinds
+  - id: SYM-core-proved-scenario-tests
+    title: proved_scenario_tests
+    status: active
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T19:33:24.443Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-code-proof-kinds
+      - type: implements
+        target: REQ-kibi-code-proof-kinds
+  - id: SYM-core-receipt-kind-evidence
+    title: receipt_kind_evidence
+    status: active
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-24T19:33:27.857Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-code-proof-kinds
+      - type: implements
+        target: REQ-kibi-code-proof-kinds

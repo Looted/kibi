@@ -438,8 +438,49 @@
               "additionalProperties": false,
               "description": "Semantic proof contract binding this test to explicit proof obligations executed by one configured integration.",
               "properties": {
+                "constraint_source": {
+                  "additionalProperties": false,
+                  "description": "arithmetic and smt: the typed numeric property_value facts the certificate's assumptions come from. Kibi checks the assumptions (or the query's assertions) are exactly these facts' constraints, so the proof is about the knowledge base, not numbers the test chose.",
+                  "properties": {
+                    "fact_ids": {
+                      "items": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "minItems": 1,
+                      "type": "array"
+                    }
+                  },
+                  "required": ["fact_ids"],
+                  "type": "object"
+                },
+                "domain_source": {
+                  "additionalProperties": false,
+                  "description": "exhaustive and typecheck: the symbol that defines the finite domain. The proof must import it from its source file; a hand-listed domain downgrades the receipt to example.",
+                  "properties": {
+                    "symbol_id": {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": ["symbol_id"],
+                  "type": "object"
+                },
                 "integration": {
                   "minLength": 1,
+                  "type": "string"
+                },
+                "kind": {
+                  "description": "What the checker establishes; absent means e2e. exhaustive, typecheck, arithmetic and smt must leave a kibi.code-certificate.v1 that Kibi re-checks before the receipt counts as proved.",
+                  "enum": [
+                    "e2e",
+                    "example",
+                    "property",
+                    "exhaustive",
+                    "typecheck",
+                    "arithmetic",
+                    "smt"
+                  ],
                   "type": "string"
                 },
                 "required_proofs": {
@@ -469,6 +510,18 @@
                 "version": {
                   "const": "kibi.proof-contract.v1",
                   "type": "string"
+                },
+                "witness": {
+                  "additionalProperties": false,
+                  "description": "typecheck: the repository-relative witness file Kibi compiles (an exhaustive switch ending in never, or a mapped type over the domain).",
+                  "properties": {
+                    "path": {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": ["path"],
+                  "type": "object"
                 }
               },
               "required": [
@@ -483,7 +536,7 @@
               "description": "Append-only proof evidence. Proof accepts only the newest valid passed receipt bound to the current code snapshot, current contract hash, and effective execution fingerprint within the seven-day freshness window. Ingest rotates the oldest entries at the cap.",
               "items": {
                 "additionalProperties": false,
-                "description": "Kibi-derived kibi.proof-receipt.v1. Receipts are never caller-authored; kb_ingest_proof derives them from kibi.proof-run.v1 artifacts.",
+                "description": "Kibi-derived kibi.proof-receipt.v2 (kibi.proof-receipt.v1 entries are still read). Receipts are never caller-authored; kb_ingest_proof derives them from kibi.proof-run.v1 artifacts.",
                 "properties": {
                   "artifact_digest": {
                     "pattern": "^[a-f0-9]{64}$",
@@ -491,6 +544,17 @@
                   },
                   "binding_hash": {
                     "pattern": "^[a-f0-9]{64}$",
+                    "type": "string"
+                  },
+                  "certificate": {
+                    "type": "object"
+                  },
+                  "certificate_digest": {
+                    "pattern": "^[a-f0-9]{64}$",
+                    "type": "string"
+                  },
+                  "certificate_rejection": {
+                    "minLength": 1,
                     "type": "string"
                   },
                   "code_snapshot": {
@@ -511,6 +575,10 @@
                   },
                   "environment_hash": {
                     "pattern": "^[a-f0-9]{64}$",
+                    "type": "string"
+                  },
+                  "evidence_level": {
+                    "enum": ["proved", "tested"],
                     "type": "string"
                   },
                   "fingerprint": {
@@ -578,6 +646,18 @@
                   },
                   "integration_id": {
                     "minLength": 1,
+                    "type": "string"
+                  },
+                  "kind": {
+                    "enum": [
+                      "e2e",
+                      "example",
+                      "property",
+                      "exhaustive",
+                      "typecheck",
+                      "arithmetic",
+                      "smt"
+                    ],
                     "type": "string"
                   },
                   "outcome": {
@@ -733,7 +813,7 @@
                     "type": "string"
                   },
                   "version": {
-                    "const": "kibi.proof-receipt.v1",
+                    "enum": ["kibi.proof-receipt.v1", "kibi.proof-receipt.v2"],
                     "type": "string"
                   }
                 },

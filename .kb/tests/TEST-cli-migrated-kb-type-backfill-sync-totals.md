@@ -27,18 +27,18 @@ origin:
 id: TEST-cli-migrated-kb-type-backfill-sync-totals
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-289419e28a8e4b633f6708ab
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-c5bb489ffda114416c7dff35
     test_id: TEST-cli-migrated-kb-type-backfill-sync-totals
     scope: end_to_end
     outcome: passed
-    code_snapshot: cb39f0e560f5857d1d62061507d78f2d645b1f132184f32b37c3312b2e3871a4
+    code_snapshot: 43675d5112431d4f3e5766d7fd142174b14e417e9c8b3d76bc67f23dfa7c508e
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-14T21:39:29.064Z'
-    finished_at: '2026-10-14T21:39:39.201Z'
-    artifact_digest: fb1e5c1c55c8421b83527729f3b4787dadd56b695b13b28a824182b1411c8641
+    started_at: '2026-10-24T20:09:56.914Z'
+    finished_at: '2026-10-24T20:10:04.889Z'
+    artifact_digest: 741b4a8c2f552e90f2179ea8198d09f9d6c47b1cef67087b982d284b3f41bb72
     contract_hash: 34a14051cd42eeb9b9723a20400b2a9355d7c47368e6e22cec9e89fe4e13e439
-    binding_hash: d9d9be4e3fa4db38be4a0e24f42bc4806635785569882de99e4c66373bdd027d
+    binding_hash: ee3ebd4f63d4434178d0ebe499350f6ca23bf36069bf0d4dd9aa3b56d289da98
     fingerprint: 74c0cd0ddf3991c7011b5b5c8f7e52888b286b4bb638191c9ec8033fd053d0db
     fingerprint_components:
       contract: 34a14051cd42eeb9b9723a20400b2a9355d7c47368e6e22cec9e89fe4e13e439
@@ -60,5 +60,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs the CLI against a KB at the latest schema with a requirement file that has no `type`. It asserts that `kibi migrate` plans `entity-type-backfill`, that `kibi migrate --yes` adds only the `type` line and a second run is a no-op, and that `kibi sync` after an upsert prints the KB totals beside the counts imported from changed sources.

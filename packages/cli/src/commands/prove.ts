@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import { executeIngestProof } from "../operations/proof/ingest-proof.js";
@@ -27,6 +27,7 @@ import type {
 } from "../public/operations/runtime-types.js";
 import { ingestProofSpec } from "../public/operations/specs/proof.js";
 import { readWorkspaceSnapshot } from "../public/operations/workspace-snapshot.js";
+import { PROOF_CERTIFICATES_ENV } from "../public/proof-certificates.js";
 import {
   PROOF_RUN_VERSION,
   type ProofContract,
@@ -419,6 +420,12 @@ export async function proveCommand(
       );
       if (testReportPath !== undefined)
         env[PROOF_TEST_REPORT_ENV] = testReportPath;
+      // Certificate-kind tests leave one certificate per test here; any left
+      // by an earlier run must never be read as this run's proof.
+      const certificateDir = path.join(runsDir, "certificates", integrationId);
+      await rm(certificateDir, { recursive: true, force: true });
+      await mkdir(certificateDir, { recursive: true });
+      env[PROOF_CERTIFICATES_ENV] = certificateDir;
       const startedAt = new Date().toISOString();
       let exitCode: number;
       try {
@@ -466,6 +473,17 @@ export async function proveCommand(
                   exitCode,
                 ),
               });
+      } catch (error) {
+        failures.push(
+          `integration '${integrationId}': ${error instanceof Error ? error.message : String(error)}`,
+        );
+        continue;
+      }
+      try {
+        evaluated = attachCertificates(
+          evaluated,
+          await readCertificateDir(certificateDir),
+        );
       } catch (error) {
         failures.push(
           `integration '${integrationId}': ${error instanceof Error ? error.message : String(error)}`,
@@ -580,6 +598,81 @@ export async function proveCommand(
         : { status: "error", error: 1 },
     );
   }
+}
+
+/** Read every certificate a run left in its certificate directory. */
+// implements REQ-kibi-code-proof-kinds
+export async function readCertificateDir(
+  directory: string,
+): Promise<Record<string, unknown>[]> {
+  let names: string[];
+  try {
+    names = (await readdir(directory)).filter((name) => name.endsWith(".json"));
+  } catch {
+    return [];
+  }
+  const certificates: Record<string, unknown>[] = [];
+  for (const name of names.sort()) {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(await readFile(path.join(directory, name), "utf8"));
+    } catch {
+      throw new Error(`certificate ${name} is not valid JSON`);
+    }
+    if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed))
+      throw new Error(`certificate ${name} is not a JSON object`);
+    certificates.push(parsed as Record<string, unknown>);
+  }
+  return certificates;
+}
+
+/**
+ * Give each artifact the certificates of its own tests, so a partition is
+ * never evaluated against another test's certificate. A test may leave at
+ * most one certificate per run.
+ */
+// implements REQ-kibi-code-proof-kinds
+export function attachCertificates(
+  evaluated: EvaluatedRun,
+  certificates: readonly Record<string, unknown>[],
+): EvaluatedRun {
+  if (certificates.length === 0) return evaluated;
+  const seen = new Set<string>();
+  for (const certificate of certificates) {
+    const id = String(certificate.test_id ?? "");
+    if (seen.has(id))
+      throw new Error(`the run left more than one certificate for ${id}`);
+    seen.add(id);
+  }
+  const withOwn = (
+    artifact: ProofRunArtifact,
+    testIds: readonly string[],
+  ): ProofRunArtifact => {
+    const own = certificates.filter((certificate) =>
+      testIds.includes(String(certificate.test_id ?? "")),
+    );
+    return own.length === 0
+      ? artifact
+      : {
+          ...artifact,
+          certificates: [...(artifact.certificates ?? []), ...own],
+        };
+  };
+  return {
+    ...evaluated,
+    artifacts: evaluated.artifacts.map((entry) => ({
+      ...entry,
+      artifact: withOwn(entry.artifact, entry.testIds),
+    })),
+    ...(evaluated.wholeRun === undefined
+      ? {}
+      : {
+          wholeRun: withOwn(
+            evaluated.wholeRun,
+            evaluated.artifacts.flatMap((entry) => entry.testIds),
+          ),
+        }),
+  };
 }
 
 /** The artifacts one integration run is evaluated through. */

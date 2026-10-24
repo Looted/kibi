@@ -216,3 +216,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-688790ff1df1
+  - type: implements
+    from: SYM-proof-kinds
+    to: REQ-kibi-code-proof-kinds
+    created_at: 2026-10-24T19:32:38.469Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1cdd538f9df
+  - type: covered_by
+    from: SYM-proof-kinds
+    to: TEST-kibi-code-proof-kinds
+    created_at: 2026-10-24T19:32:38.485Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c2e80922be4
