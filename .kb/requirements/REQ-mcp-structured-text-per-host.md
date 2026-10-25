@@ -1,6 +1,7 @@
 ---
 title: Discovery results reach each MCP host once and kb_search pages at ten rows by default
 status: open
+required_evidence: tested
 tags:
   - mcp
   - search

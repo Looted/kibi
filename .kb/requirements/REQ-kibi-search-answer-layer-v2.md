@@ -1,6 +1,7 @@
 ---
 title: kb_search answers with the current governing requirements, what the checks report about them, and the snapshot it answered from
 status: open
+required_evidence: tested
 priority: must
 tags:
   - search

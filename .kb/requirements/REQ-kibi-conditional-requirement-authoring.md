@@ -1,6 +1,7 @@
 ---
 title: Conditional requirement prose compiles to typed forbid rules, and conditionals Kibi cannot translate stay open gaps
 status: open
+required_evidence: tested
 priority: must
 tags:
   - modeling

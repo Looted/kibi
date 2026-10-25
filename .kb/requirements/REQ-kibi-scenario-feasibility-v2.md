@@ -1,6 +1,7 @@
 ---
 title: Scenarios that assume what current requirements forbid, through property values or rules, are reported infeasible and block proof
 status: open
+required_evidence: tested
 priority: must
 tags:
   - scenarios

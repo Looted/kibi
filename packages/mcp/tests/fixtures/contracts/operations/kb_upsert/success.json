@@ -771,6 +771,11 @@
               "minLength": 1,
               "type": "string"
             },
+            "required_evidence": {
+              "description": "Requirement-only. Weakest evidence level it accepts; the evidence-floor rule fails below it. Absent = tested if firm, else unverified.",
+              "enum": ["proved", "tested", "asserted", "unverified"],
+              "type": "string"
+            },
             "rule_hash": {
               "description": "Deterministic hash of canonical rule_ir.",
               "type": "string"

@@ -1,6 +1,7 @@
 ---
 title: Codex, Cursor and ZCode hooks guard firm rules and capture stated decisions
 status: open
+required_evidence: tested
 priority: should
 tags:
   - hooks

@@ -1,6 +1,7 @@
 ---
 title: Bootstrap and modeling write the semantic advisor's proposition roles
 status: open
+required_evidence: tested
 priority: must
 tags:
   - bootstrap

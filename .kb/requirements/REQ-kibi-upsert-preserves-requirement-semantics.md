@@ -1,6 +1,7 @@
 ---
 title: Relationship-only requirement upserts keep the stored proposition ledger
 status: open
+required_evidence: tested
 priority: must
 tags:
   - upsert

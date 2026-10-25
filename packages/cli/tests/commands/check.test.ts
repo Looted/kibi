@@ -415,10 +415,23 @@ function acknowledgeLegacyContext(root: string): void {
       const raw = readFileSync(file, "utf8");
       const id = /^id:[ \t]*(\S+)/m.exec(raw)?.[1];
       if (id !== undefined) ids.push(id);
-      if (raw.includes("review:context-missing")) continue;
       const end = raw.indexOf("\n---", 4);
       if (!raw.startsWith("---") || end < 0) continue;
       let front = raw.slice(0, end);
+      // As the schema 11 migration does: a firm requirement with no proof
+      // path keeps an asserted floor instead of the tested default.
+      const firm =
+        !/^firmness:/m.test(front) && !/kind:[ \t]*agent/.test(front);
+      if (
+        lane === "requirements" &&
+        firm &&
+        !/^required_evidence:/m.test(front)
+      )
+        front = `${front}\nrequired_evidence: asserted`;
+      if (raw.includes("review:context-missing")) {
+        writeFileSync(file, front + raw.slice(end));
+        continue;
+      }
       if (/^tags:[ \t]*\[/m.test(front)) {
         front = front.replace(
           /^tags:[ \t]*\[(.*)\]/m,

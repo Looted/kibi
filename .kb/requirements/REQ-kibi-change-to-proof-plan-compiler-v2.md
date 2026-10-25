@@ -1,6 +1,7 @@
 ---
 title: Kibi compiles intent into reviewable plans and applies a compile plan all-or-nothing with a recovery journal
 status: open
+required_evidence: tested
 priority: must
 tags:
   - planning

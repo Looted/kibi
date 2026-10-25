@@ -384,3 +384,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3ff565b5f2ef
+  - type: executable_for
+    from: SYM-e2e-packed-evidence-floors
+    to: TEST-kibi-evidence-floors
+    created_at: 2026-10-24T17:34:07.697Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5ac9b0b5630

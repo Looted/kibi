@@ -356,3 +356,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d0c49c2dff80
+  - type: validates
+    from: TEST-kibi-evidence-floors
+    to: SCEN-kibi-evidence-floors
+    created_at: 2026-10-24T17:34:02.483Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c1a4f5740da

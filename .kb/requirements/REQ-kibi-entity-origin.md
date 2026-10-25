@@ -1,6 +1,7 @@
 ---
 title: Entities record who authored and approved them, and missing approvals stay visible
 status: open
+required_evidence: tested
 priority: must
 tags:
   - origin

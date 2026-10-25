@@ -1,6 +1,7 @@
 ---
 title: The pre-commit check blocks an entity the commit adds or edits without body context
 status: open
+required_evidence: tested
 priority: must
 tags:
   - cli

@@ -364,6 +364,12 @@ const entitySchema: Record<string, unknown> = {
       description:
         "Requirement and ADR only. How firmly the decision was made. firm: a human stated it as a rule; it needs a ref (origin.ref, or approval_ref on a requirement) to their words, and only a human may change it. default: a delegated or agent choice; a later agent may supersede it with evidence. exploratory: a flagged guess, expected to be revisited. When absent, it reads as default if an agent wrote the entity (origin.kind agent) and as firm otherwise (a person's, imported or migrated decision); set it explicitly when recording a decision.",
     },
+    required_evidence: {
+      type: "string",
+      enum: ["proved", "tested", "asserted", "unverified"],
+      description:
+        "Requirement-only. The weakest evidence level this current requirement accepts; the evidence-floor check rule fails while its computed evidence level is lower. proved: a re-checkable certificate covers every case. tested: fresh passing E2E receipts cover every linked scenario. asserted: a person stands behind it. unverified: no floor. When absent, it is tested for a firm requirement and unverified otherwise.",
+    },
     expects: {
       type: "string",
       enum: ["success", "rejection", "error"],
@@ -715,6 +721,7 @@ const entitySchema: Record<string, unknown> = {
             { required: ["approval_ref"] },
             { required: ["rationale"] },
             { required: ["exempts_claims"] },
+            { required: ["required_evidence"] },
           ],
         },
       },

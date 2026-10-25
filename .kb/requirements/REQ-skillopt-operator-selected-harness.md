@@ -1,6 +1,7 @@
 ---
 title: SkillOpt runs the harness and models the operator selects
 status: open
+required_evidence: tested
 priority: must
 tags:
   - skillopt

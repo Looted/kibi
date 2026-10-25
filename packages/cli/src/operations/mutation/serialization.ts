@@ -16,6 +16,7 @@ const ATOM_FIELDS = [
   "polarity",
   "expects",
   "firmness",
+  "required_evidence",
 ] as const;
 
 const STRING_FIELDS = [

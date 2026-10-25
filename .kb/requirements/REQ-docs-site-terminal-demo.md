@@ -1,6 +1,7 @@
 ---
 title: Landing page and README show the same Kibi use-case terminal
 status: open
+required_evidence: tested
 priority: could
 tags:
   - docs

@@ -50,7 +50,7 @@ import {
 } from "../public/impact-diagnostics.js";
 import type { QualityDiagnostic } from "../public/impact-diagnostics.js";
 import { executeCheck } from "../public/operations/check-executor.js";
-import { nodeGit } from "../public/operations/node-ports.js";
+import { nodeFilesystem, nodeGit } from "../public/operations/node-ports.js";
 import { refreshDetachedSnapshot } from "../runtime/detached-snapshot.js";
 import { amendsRootCommit } from "../traceability/commit-amend.js";
 import {
@@ -132,6 +132,7 @@ export interface CheckOptions {
   minLinks?: string | number;
   dryRun?: boolean;
   format?: "text" | "json";
+  freshEvidence?: boolean;
 }
 
 function getMatchGroup(
@@ -1314,14 +1315,19 @@ export async function checkCommand(
       .map((rule) => rule.trim())
       .filter((rule) => rule.length > 0);
     const result = await executeCheck(
-      rules === undefined ? {} : { rules },
+      {
+        ...(rules === undefined ? {} : { rules }),
+        ...(options.freshEvidence === true ? { freshEvidence: true } : {}),
+      },
       {
         workspaceRoot: process.cwd(),
         signal: new AbortController().signal,
         clock: () => new Date(),
-        // The workspace snapshot lets quality diagnostics read the same
-        // proof receipt evidence as kibi coverage.
+        // The workspace snapshot lets quality diagnostics and evidence-floor
+        // read the same proof receipt evidence as kibi coverage, with the
+        // same per-contract receipt binding.
         git: nodeGit,
+        fs: nodeFilesystem,
         prolog: {
           query: (goal) => activeProlog.query(goal),
           ...(activeProlog instanceof EngineClient

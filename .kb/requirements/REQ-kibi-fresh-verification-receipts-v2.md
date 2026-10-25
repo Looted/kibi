@@ -1,6 +1,7 @@
 ---
 title: Requirement proof uses fresh snapshot-bound proof receipts that ingest compacts and attributes per test
 status: open
+required_evidence: tested
 priority: must
 tags:
   - requirements

@@ -549,6 +549,11 @@ export async function persistEntities(
       ) {
         props.push(`firmness=${toPrologAtom(entity.firmness)}`);
       }
+      if (entity.type === "req" && entity.required_evidence !== undefined) {
+        props.push(
+          `required_evidence=${toPrologAtom(entity.required_evidence)}`,
+        );
+      }
       if (entity.type === "scenario" && entity.expects !== undefined) {
         props.push(`expects=${toPrologAtom(entity.expects)}`);
       }

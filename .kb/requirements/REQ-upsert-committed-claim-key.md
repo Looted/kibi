@@ -1,6 +1,7 @@
 ---
 title: A committed kb_upsert returns the claim key it stored for a fact
 status: open
+required_evidence: tested
 priority: must
 tags:
   - modeling

@@ -189,6 +189,7 @@ if (RUN_NODE_TEST_SUITE && REQUIRED) {
 id: REQ-BUNDLED-SMOKE
 title: Bundled runtime smoke requirement
 status: open
+required_evidence: asserted
 ---
 
 The bundled runtime compiles this requirement.

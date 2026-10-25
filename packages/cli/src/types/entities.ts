@@ -98,6 +98,8 @@ export type Requirement = BaseEntity & {
   rationale?: string;
   /** How firmly it was decided; absent reads as `default` when an agent wrote it, else `firm`. */
   firmness?: "firm" | "default" | "exploratory";
+  /** Weakest evidence level it accepts; absent reads as `tested` when firm, else `unverified`. */
+  required_evidence?: "proved" | "tested" | "asserted" | "unverified";
   /** Exception requirements only: claim keys of the exempted requirement it waives. */
   exempts_claims?: string[];
 };

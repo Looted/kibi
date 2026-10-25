@@ -11,9 +11,9 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
-Given a branch whose KB change breaks logical grounding for a proven requirement, while every local proof receipt is stale
-When the maintainer runs `bun run proof:baseline:semantic`
-Then the check fails and names the requirement and its semantic gaps, without flagging requirements whose only gaps are stale evidence
+Given a branch whose KB change leaves a current requirement below its evidence floor, while every local proof receipt is stale
+When the maintainer runs `bun run proof:gate`
+Then the gate fails and names the requirement, its evidence level and its floor, without flagging requirements whose only gaps are stale receipts
 
 Given a committed branch head
 When the maintainer runs `bun run proof:replay`

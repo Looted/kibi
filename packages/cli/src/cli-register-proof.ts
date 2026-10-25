@@ -134,17 +134,6 @@ export function registerProofCommand(program: Command): void {
       ),
     );
   proof
-    .command("impact")
-    .description("Compare current proof state to HEAD:proof/baseline.json")
-    .option("--json", "Emit structured JSON", false)
-    .action(
-      withExitCode(async (options: { json?: boolean }) => {
-        return await (
-          await import("./commands/proof-impact.js")
-        ).proofImpactCommand({ json: options.json === true });
-      }),
-    );
-  proof
     .command("prune")
     .description(
       "Shrink each test's proof_receipts history to its newest entries (re-proving the same snapshot appends duplicates; prune removes the superseded ones)",

@@ -1,6 +1,7 @@
 ---
 title: Predicate subjects pair with the requirement's subject by argument name or subject key
 status: open
+required_evidence: tested
 priority: must
 tags:
   - modeling

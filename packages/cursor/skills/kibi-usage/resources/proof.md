@@ -138,6 +138,22 @@ Report the level as it is. Never call an `asserted` or `unverified`
 requirement proven or tested, and never call `tested` proved. Firmness is a
 separate axis: it says how sure the person is, not how strong the evidence is.
 
+## Evidence floors
+
+Each current requirement accepts a weakest level, its floor: the
+`required_evidence` field (`proved`, `tested`, `asserted` or `unverified`),
+or, when absent, `tested` for a firm requirement and no floor otherwise.
+`kb_check`'s `evidence-floor` rule fails while the level is below the floor;
+coverage rows show it as `evidenceFloor` (`required`, `source`, `status`).
+A requirement whose receipts are only older than the code is
+`pending_reproof` and passes a plain check; `kibi check --fresh-evidence`
+fails it, and is what CI runs after `kibi prove`.
+
+Fix a finding by raising the level: add the scenario, the end-to-end
+test with a proof contract and the receipts, or have a person approve the
+requirement. Lower `required_evidence` only when a person decides the
+requirement does not need that evidence, and say why in the requirement.
+
 ## Knowledge-base certificates
 
 `kb_check` (`kibi check`) proves facts about the KB itself in its
@@ -191,10 +207,11 @@ Full reference: `docs/proving-requirements.md`.
 
 ## Debugging proof regressions
 
-When a proof ratchet fails, diagnose first. Do not treat
-`proof/baseline.json` as the thing to edit.
+When the `evidence-floor` rule fails, diagnose first. Do not lower
+`required_evidence` to make it pass.
 
-1. Do not refresh `proof/baseline.json` as the first fix.
+1. Read the finding: it names the requirement, its level, its floor and where
+   the floor comes from (`explicit` or `firmness`).
 2. Identify the exact requirement and symbol responsible for the regression.
 3. Use Kibi proof diagnostics rather than reverse-engineering
    `requirement_proof.pl`:
@@ -202,14 +219,9 @@ When a proof ratchet fails, diagnose first. Do not treat
    ```bash
    kibi proof explain REQ-<id>
    kibi proof explain SYM-<id>
-   kibi proof impact
+   kibi check --rules evidence-floor
    ```
 
-   `kibi proof impact` compares the current Proof projection to
-   `HEAD:proof/baseline.json` (the committed ratchet snapshot, not the
-   working-tree file). It is diagnostic: fingerprint differences are reported
-   and the command exits 0 on successful evaluation. The strict ratchet remains
-   `scripts/check-proof-baseline.mjs`.
 4. For `missing_production_symbol_coverage`, inspect symbol role, owning
    requirement, `covered_by`, candidate test scope, the requirement scenario
    chain, and the current proof receipt. `kibi proof explain` prints those as
@@ -231,5 +243,5 @@ When a proof ratchet fails, diagnose first. Do not treat
    `covered_by` relationship semantically correct.
 10. Prefer one meaningful E2E scenario covering multiple internal functions
     plus focused unit tests for edge cases, rather than an E2E test per helper.
-11. Refresh the baseline only after a genuine intentional proof-state
-    improvement requires the ratchet snapshot to be updated.
+11. A `pending_reproof` finding under `--fresh-evidence` needs `kibi prove`
+    for the tests behind the requirement, not a KB change.

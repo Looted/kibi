@@ -1,6 +1,7 @@
 ---
 title: Predicate modeling plans apply through kb_upsert as returned
 status: open
+required_evidence: tested
 priority: must
 tags:
   - modeling

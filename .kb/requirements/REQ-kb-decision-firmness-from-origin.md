@@ -1,6 +1,7 @@
 ---
 title: Decisions without firmness are firm unless an agent wrote them
 status: open
+required_evidence: tested
 priority: must
 tags:
   - kb

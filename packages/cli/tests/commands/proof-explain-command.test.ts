@@ -1,8 +1,6 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { proofExplainCommand } from "../../src/commands/proof-explain.js";
-import { proofImpactCommand } from "../../src/commands/proof-impact.js";
 import * as explain from "../../src/operations/proof/explain.js";
-import * as impact from "../../src/operations/proof/impact.js";
 import * as cliRuntime from "../../src/runtime/cli-runtime.js";
 
 const restores: Array<() => void> = [];
@@ -117,67 +115,6 @@ describe("proof explain command wrapper", () => {
       id: "SYM-EXAMPLE",
     });
     expect(output.join("")).toBe("rendered-explain-view");
-    expect(closes).toEqual([{ status: "success" }]);
-  });
-});
-
-describe("proof impact command wrapper", () => {
-  test("writes the impact result as JSON in json mode", async () => {
-    const closes: CloseCall[] = [];
-    fakeRuntime(closes);
-    const result = { requirements: 104, tested: 66, changes: [] };
-    const operation = spyOn(impact, "executeProofImpact").mockResolvedValue({
-      result,
-      text: "impact-text",
-    } as never);
-    restores.push(() => operation.mockRestore());
-    const output: string[] = [];
-    captureStdout(output);
-
-    await expect(proofImpactCommand({ json: true })).resolves.toEqual({
-      exitCode: 0,
-    });
-    expect(JSON.parse(output.join(""))).toEqual(result);
-    expect(output.join("")).not.toContain("impact-text");
-    expect(closes).toEqual([{ status: "success" }]);
-  });
-
-  test("exits 0 even when the impact comparison reports changes (diagnostic-only)", async () => {
-    const closes: CloseCall[] = [];
-    fakeRuntime(closes);
-    const operation = spyOn(impact, "executeProofImpact").mockResolvedValue({
-      result: {
-        requirements: 104,
-        tested: 65,
-        changes: [{ requirement: "REQ-EXAMPLE", kind: "regressed" }],
-      },
-      text: "impact-text-with-changes",
-    } as never);
-    restores.push(() => operation.mockRestore());
-    const output: string[] = [];
-    captureStdout(output);
-
-    // `proof impact` is diagnostic: successful evaluation always exits 0.
-    // Regression enforcement lives in the baseline ratchet
-    // (scripts/check-proof-baseline.mjs), not in the report command.
-    await expect(proofImpactCommand({})).resolves.toEqual({ exitCode: 0 });
-    expect(output.join("")).toContain("impact-text-with-changes");
-    expect(closes).toEqual([{ status: "success" }]);
-  });
-
-  test("writes rendered impact text by default", async () => {
-    const closes: CloseCall[] = [];
-    fakeRuntime(closes);
-    const operation = spyOn(impact, "executeProofImpact").mockResolvedValue({
-      result: { requirements: 104, tested: 66, changes: [] },
-      text: "impact-text",
-    } as never);
-    restores.push(() => operation.mockRestore());
-    const output: string[] = [];
-    captureStdout(output);
-
-    await expect(proofImpactCommand({})).resolves.toEqual({ exitCode: 0 });
-    expect(output.join("")).toContain("impact-text");
     expect(closes).toEqual([{ status: "success" }]);
   });
 });

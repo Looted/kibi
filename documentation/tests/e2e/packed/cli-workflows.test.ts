@@ -687,6 +687,7 @@ if (RUN_NODE_TEST_SUITE) {
           id: "REQ-001",
           title: "Test requirement",
           status: "open",
+          required_evidence: "asserted",
           tags: ["test"],
         },
         [

@@ -1,6 +1,7 @@
 ---
 title: Decisions carry firmness and supersedes explain themselves
 status: open
+required_evidence: tested
 priority: must
 tags:
   - kb

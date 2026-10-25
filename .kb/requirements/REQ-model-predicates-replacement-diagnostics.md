@@ -1,6 +1,7 @@
 ---
 title: Grounding replacement plans state their transient kb_check findings and rollback condition
 status: open
+required_evidence: tested
 tags:
   - modeling
   - predicates

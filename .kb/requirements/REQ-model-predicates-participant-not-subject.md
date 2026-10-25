@@ -1,6 +1,7 @@
 ---
 title: Predicate modeling never binds a participant argument to the identifier the requirement constrains
 status: open
+required_evidence: tested
 tags:
   - modeling
   - predicates

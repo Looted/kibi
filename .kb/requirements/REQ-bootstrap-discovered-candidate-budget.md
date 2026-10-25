@@ -1,6 +1,7 @@
 ---
 title: Bootstrap keeps a separate budget for discovered candidates and a readable suppression summary
 status: open
+required_evidence: tested
 priority: must
 tags:
   - bootstrap

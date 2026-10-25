@@ -1,6 +1,7 @@
 ---
 title: Bootstrap keeps observations, open questions and declared conflicts as cited review facts
 status: open
+required_evidence: tested
 priority: must
 tags:
   - bootstrap

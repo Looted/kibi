@@ -1,6 +1,7 @@
 ---
 title: kibi signoff shows the requirement summary and pending decisions as one readable view on every host
 status: open
+required_evidence: tested
 priority: should
 tags:
   - cli

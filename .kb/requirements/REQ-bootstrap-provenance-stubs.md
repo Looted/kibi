@@ -1,6 +1,7 @@
 ---
 title: Bootstrap writes claimless provider candidates as provenance stubs that search ranks last and reports skip
 status: open
+required_evidence: tested
 tags:
   - bootstrap
   - provenance-stubs

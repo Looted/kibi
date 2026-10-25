@@ -241,3 +241,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1781f94c0dc9
+  - type: implements
+    from: SYM-core-evidence-floor
+    to: REQ-kibi-evidence-floors
+    created_at: 2026-10-24T17:34:27.737Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b06e800e5c5
+  - type: covered_by
+    from: SYM-core-evidence-floor
+    to: TEST-kibi-evidence-floors
+    created_at: 2026-10-24T17:34:27.759Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c18ea0a64e0

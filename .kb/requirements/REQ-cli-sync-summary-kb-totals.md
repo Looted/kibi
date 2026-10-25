@@ -1,6 +1,7 @@
 ---
 title: The kibi sync summary reports KB totals beside what the sync imported
 status: open
+required_evidence: tested
 priority: must
 tags:
   - cli

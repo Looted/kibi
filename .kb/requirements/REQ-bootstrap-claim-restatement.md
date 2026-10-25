@@ -1,6 +1,7 @@
 ---
 title: Bootstrap counts intent claims that restate a current requirement as already in the KB
 status: open
+required_evidence: tested
 tags:
   - bootstrap
   - intent-claims

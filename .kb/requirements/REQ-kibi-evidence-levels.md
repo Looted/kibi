@@ -1,6 +1,7 @@
 ---
 title: Kibi reports how strong the evidence behind each requirement is
 status: open
+required_evidence: tested
 priority: should
 tags:
   - proof

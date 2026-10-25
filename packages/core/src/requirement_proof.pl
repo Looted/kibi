@@ -102,12 +102,14 @@ requirement_proof(ReqId, ReqProps, Context, Proof) :-
     proof_repairs(Gaps, Repairs),
     proof_status(Stages, Status),
     requirement_evidence(ReqProps, Status, PassingE2eTests, EvidenceLevel, Evidence),
+    evidence_floor(ReqProps, EvidenceLevel, Gaps, Stages, EvidenceFloor),
     proof_version(Version),
     Proof = _{
         proofVersion: Version,
         proofStatus: Status,
         evidenceLevel: EvidenceLevel,
         evidence: Evidence,
+        evidenceFloor: EvidenceFloor,
         proofGaps: Gaps,
         proofAdvisories: Advisories,
         proofRepairs: Repairs,
@@ -1711,6 +1713,74 @@ evidence_level(Evidence, Level) :-
     ->  Level = Level0
     ;   Level = unverified
     ).
+
+% implements REQ-kibi-evidence-floors
+%% evidence_floor(+Props, +Level, +Gaps, +Stages, -Floor)
+% The weakest evidence level the requirement accepts and whether its computed
+% level reaches it.  The floor is the requirement's required_evidence, or,
+% when absent, tested for a firm requirement and unverified (no floor)
+% otherwise.  Status is met, below, or pending_reproof: the floor is tested
+% and every gap only says recorded receipts are older than the code, so
+% re-running kibi prove reaches it without any KB change.
+evidence_floor(Props, Level, Gaps, Stages, _{required: Required, source: Source, status: Status}) :-
+    required_evidence(Props, Required, Source),
+    evidence_rank(Level, Have),
+    evidence_rank(Required, Need),
+    (   Have >= Need
+    ->  Status = met
+    ;   Required == tested,
+        freshness_only_gaps(Gaps, Stages)
+    ->  Status = pending_reproof
+    ;   Status = below
+    ).
+
+required_evidence(Props, Required, explicit) :-
+    memberchk(required_evidence=Raw, Props),
+    normalize_atom(Raw, Required),
+    evidence_rank(Required, _),
+    !.
+required_evidence(Props, tested, firmness) :-
+    effective_firmness(Props, firm),
+    !.
+required_evidence(_Props, unverified, firmness).
+
+evidence_rank(unverified, 0).
+evidence_rank(asserted, 1).
+evidence_rank(tested, 2).
+evidence_rank(proved, 3).
+
+% Gaps that only say the evidence is stale: kibi prove clears them.  Stale
+% receipts also leave every production symbol uncovered; that gap is
+% freshness-only when each uncovered symbol has a coverage candidate that
+% qualifies or is rejected only for stale evidence.
+freshness_gap(stale_proof_receipt).
+freshness_gap(proof_contract_mismatch).
+
+freshness_only_gaps(Gaps, Stages) :-
+    include(freshness_gap, Gaps, [_|_]),
+    exclude(freshness_gap, Gaps, Rest),
+    (   Rest == []
+    ->  true
+    ;   Rest == [missing_production_symbol_coverage],
+        production_coverage_freshness_only(Stages)
+    ).
+
+production_coverage_freshness_only(Stages) :-
+    Stage = Stages.productionSymbols,
+    forall(member(SymbolId, Stage.uncoveredSymbols),
+           (   member(Explanation, Stage.explanations),
+               Explanation.symbolId == SymbolId,
+               member(Candidate, Explanation.coverageCandidates),
+               freshness_only_candidate(Candidate)
+           )).
+
+freshness_only_candidate(Candidate) :-
+    Candidate.qualifies == true,
+    !.
+freshness_only_candidate(Candidate) :-
+    Candidate.scope == end_to_end,
+    forall(member(Reason, [Candidate.reason|Candidate.secondaryReasons]),
+           memberchk(Reason, [stale_proof_receipt, receipt_snapshot_mismatch, receipt_contract_mismatch])).
 
 %% human_intent(+Props, -Basis, -Ref)
 % A person stands behind the requirement: someone approved it

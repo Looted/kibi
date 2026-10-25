@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 import { replaySteps } from "../replay-proof-ci.ts";
 
-const FINAL_GATE_STEP = "Enforce proof baseline and clean snapshot";
+const FINAL_GATE_STEP = "Enforce evidence floors on a clean snapshot";
 const HOST_PROVISIONING_STEPS = [
   "Check whether the PR can reuse develop proof",
   "Bootstrap Ubuntu packages",
@@ -27,7 +27,7 @@ describe("local proof CI replay", () => {
       "Reject generated manifest drift in committed snapshot",
       "Compile packed proof tests",
       "Sync and validate integrity of the proof snapshot",
-      "Reject semantic proof regressions before executing contracts",
+      "Reject evidence-floor regressions before executing contracts",
       "Prove every contracted test through Kibi",
       FINAL_GATE_STEP,
     ].map((name) => names.indexOf(name));
@@ -57,10 +57,10 @@ describe("local proof CI replay", () => {
     // GitHub-only expressions stay unset locally instead of becoming literals.
     expect(prove?.env).not.toHaveProperty("GH_TOKEN");
     expect(prove?.env).not.toHaveProperty("CI_HEAD_SHA");
-    const baseline = replaySteps(proofWorkflow).find(
+    const finalGate = replaySteps(proofWorkflow).find(
       (step) => step.name === FINAL_GATE_STEP,
     );
-    expect(baseline?.env).toBeUndefined();
+    expect(finalGate?.env).toBeUndefined();
   });
 
   test("fails loudly when a skipped step is renamed in the workflow", () => {

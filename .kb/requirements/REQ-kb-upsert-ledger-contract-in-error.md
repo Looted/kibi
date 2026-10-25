@@ -1,6 +1,7 @@
 ---
 title: The missing-ledger upsert error carries the contract one resend needs
 status: open
+required_evidence: tested
 priority: must
 tags:
   - kb

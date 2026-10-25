@@ -1,6 +1,7 @@
 ---
 title: Strict pairing accepts a predicate about the constrained subject by name or subject key
 status: open
+required_evidence: tested
 priority: must
 tags:
   - check

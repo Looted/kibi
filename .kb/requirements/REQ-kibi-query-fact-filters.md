@@ -1,6 +1,7 @@
 ---
 title: kb_query answers typed questions about modeled facts and names the next call
 status: open
+required_evidence: tested
 priority: must
 tags:
   - discovery

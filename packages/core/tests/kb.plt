@@ -6516,6 +6516,54 @@ test(evidence_level_follows_human_backing_without_passing_e2e, [setup(setup_kb),
 
 :- end_tests(requirement_evidence_levels).
 
+:- begin_tests(requirement_evidence_floors).
+
+% implements REQ-kibi-evidence-floors
+test(evidence_floor_defaults_from_firmness_and_honours_required_evidence, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-FLOOR-AGENT', "Agent only", open, [priority=must, origin="{\"kind\":\"agent\"}"]),
+    assert_fixture_entity(req, 'REQ-FLOOR-PERSON', "Person stated", open, [priority=must]),
+    assert_fixture_entity(req, 'REQ-FLOOR-LOWERED', "Person stated, asserted is enough", open, [priority=must, required_evidence=asserted]),
+    assert_fixture_entity(req, 'REQ-FLOOR-RAISED', "Agent wrote, needs tests", open, [priority=must, required_evidence=tested, origin="{\"kind\":\"agent\"}"]),
+    assert_fixture_entity(req, 'REQ-FLOOR-EXEMPT', "Exempt", open, [priority=must, proof_exempt=true, proof_exempt_reason="Outside proof scope"]),
+    coverage_report_json(req, [], true, true, 100, 0, JsonString),
+    json_string_dict(JsonString, Report),
+    coverage_row(Report.rows, 'REQ-FLOOR-AGENT', Agent),
+    assertion(Agent.evidenceFloor = _{required: unverified, source: firmness, status: met}),
+    coverage_row(Report.rows, 'REQ-FLOOR-PERSON', Person),
+    assertion(Person.evidenceFloor = _{required: tested, source: firmness, status: below}),
+    coverage_row(Report.rows, 'REQ-FLOOR-LOWERED', Lowered),
+    assertion(Lowered.evidenceFloor = _{required: asserted, source: explicit, status: met}),
+    coverage_row(Report.rows, 'REQ-FLOOR-RAISED', Raised),
+    assertion(Raised.evidenceLevel == unverified),
+    assertion(Raised.evidenceFloor = _{required: tested, source: explicit, status: below}),
+    coverage_row(Report.rows, 'REQ-FLOOR-EXEMPT', Exempt),
+    assertion(\+ get_dict(evidenceFloor, Exempt, _)),
+    discovery:evidence_floor_json(strict_snapshot, _{}, unknown, '1970-01-01T00:00:00Z', 604800, FloorJson),
+    json_string_dict(FloorJson, Floors),
+    assertion(Floors.evaluated == 4),
+    findall(Id-Status, (member(Row, Floors.rows), Id = Row.id, Status = Row.status), Below),
+    assertion(Below == ['REQ-FLOOR-PERSON'-below, 'REQ-FLOOR-RAISED'-below]).
+
+% implements REQ-kibi-evidence-floors
+test(evidence_floor_sets_aside_only_freshness_gaps) :-
+    Candidate = _{testId: 'TEST-E2E', qualifies: false, reason: receipt_snapshot_mismatch, secondaryReasons: [], scope: end_to_end},
+    Stale = _{productionSymbols: _{uncoveredSymbols: ['SYM-A'], explanations: [_{symbolId: 'SYM-A', coverageCandidates: [Candidate]}]}},
+    assertion(requirement_proof:freshness_only_gaps([stale_proof_receipt], Stale)),
+    assertion(requirement_proof:freshness_only_gaps([stale_proof_receipt, missing_production_symbol_coverage], Stale)),
+    % A unit-scoped candidate never becomes E2E coverage by re-proving.
+    put_dict(scope, Candidate, unit, UnitCandidate),
+    Unit = _{productionSymbols: _{uncoveredSymbols: ['SYM-A'], explanations: [_{symbolId: 'SYM-A', coverageCandidates: [UnitCandidate]}]}},
+    assertion(\+ requirement_proof:freshness_only_gaps([stale_proof_receipt, missing_production_symbol_coverage], Unit)),
+    % A symbol without any covered_by link stays a real gap.
+    NoLink = _{productionSymbols: _{uncoveredSymbols: ['SYM-A'], explanations: [_{symbolId: 'SYM-A', coverageCandidates: []}]}},
+    assertion(\+ requirement_proof:freshness_only_gaps([stale_proof_receipt, missing_production_symbol_coverage], NoLink)),
+    % Semantic gaps and missing receipts are never freshness-only.
+    assertion(\+ requirement_proof:freshness_only_gaps([stale_proof_receipt, missing_semantic_inventory], Stale)),
+    assertion(\+ requirement_proof:freshness_only_gaps([missing_proof_receipt], Stale)),
+    assertion(\+ requirement_proof:freshness_only_gaps([], Stale)).
+
+:- end_tests(requirement_evidence_floors).
+
 :- begin_tests(requirement_applicability).
 
 test(req_status_vocabulary_accepts_canonical_and_legacy_statuses, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-

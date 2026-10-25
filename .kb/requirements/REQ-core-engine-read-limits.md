@@ -1,6 +1,7 @@
 ---
 title: Opt-in engine read limits stop runaway reads without partial answers
 status: open
+required_evidence: tested
 priority: should
 tags:
   - engine

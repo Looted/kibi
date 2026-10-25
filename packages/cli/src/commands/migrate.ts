@@ -222,6 +222,13 @@ const SCHEMA_MIGRATION_STEPS: readonly SchemaMigrationStep[] = [
     description:
       "Read a requirement or ADR without firmness as firm unless an agent wrote it, and acknowledge in the manifest the supersedes of such decisions recorded before; no source file is rewritten and no firmness is written.",
   },
+  {
+    id: "evidence-floor-v11",
+    from: 10,
+    to: 11,
+    description:
+      "Check every current requirement's evidence level against its floor (required_evidence, else tested when firm), and record required_evidence: asserted on current firm requirements that have no scenario verified by a test with a proof contract; front matter only.",
+  },
 ];
 
 function migrationStepsFor(
@@ -865,6 +872,12 @@ export async function migrateCommand(
   const firmnessFromOriginStep = migrationSteps.some(
     (step) => step.id === "firmness-from-origin-v10",
   );
+  const evidenceFloorStep = migrationSteps.some(
+    (step) => step.id === "evidence-floor-v11",
+  );
+  const { applyEvidenceFloorPins, planEvidenceFloorPins } = await import(
+    "../operations/migration/evidence-floor.js"
+  );
   const {
     mergeSupersedesAcknowledgements,
     planSupersedesReasonAcknowledgement,
@@ -918,6 +931,19 @@ export async function migrateCommand(
         console.log(
           `dry run: would acknowledge ${firmEdges.length} supersede(s) of decisions that read as firm from schema 10 (manifest only; no firmness is written).`,
         );
+    }
+    if (evidenceFloorStep) {
+      const floors = planEvidenceFloorPins(cwd);
+      if (floors.targets.length > 0)
+        console.log(
+          `dry run: would record required_evidence: asserted on ${floors.targets.length} current firm requirement(s) with no scenario verified by a passing end-to-end test with a proof contract (front matter only).`,
+        );
+      if (floors.kept.length > 0)
+        console.log(
+          `dry run: ${floors.kept.length} firm requirement(s) keep the tested floor (${floors.kept.join(", ")}); after migrating, kibi check --rules evidence-floor lists any that still miss it.`,
+        );
+      for (const skip of floors.skipped)
+        printWarning(`Cannot edit ${skip.path}: ${skip.reason}.`);
     }
     if (storagePlan.moves.length > 0) {
       console.log(
@@ -1044,6 +1070,12 @@ export async function migrateCommand(
   const firmSupersedes = firmnessFromOriginStep
     ? planFirmSupersedeAcknowledgement(cwd)
     : [];
+  const evidenceFloorPlan = evidenceFloorStep
+    ? planEvidenceFloorPins(cwd)
+    : null;
+  const evidenceFloorsPinned = evidenceFloorStep
+    ? applyEvidenceFloorPins(cwd)
+    : 0;
 
   const existingManifest = readKbManifest(cwd) ?? defaultKbManifest();
   writeKbManifest(cwd, {
@@ -1084,6 +1116,18 @@ export async function migrateCommand(
   if (firmSupersedes.length > 0)
     console.log(
       `Acknowledged ${firmSupersedes.length} supersede(s) of decisions without firmness that read as firm from schema 10; a new replacement of such a decision must be firm.`,
+    );
+  if (evidenceFloorsPinned > 0)
+    console.log(
+      `Recorded required_evidence: asserted on ${evidenceFloorsPinned} current firm requirement(s) with no scenario verified by a passing end-to-end test with a proof contract; raise it to tested once one has an end-to-end proof.`,
+    );
+  if ((evidenceFloorPlan?.kept.length ?? 0) > 0)
+    console.log(
+      `${evidenceFloorPlan?.kept.length} firm requirement(s) keep the tested floor; run kibi sync and kibi check --rules evidence-floor to list any whose proof still has gaps (kibi proof explain <id> names them).`,
+    );
+  for (const skip of evidenceFloorPlan?.skipped ?? [])
+    printWarning(
+      `Cannot record required_evidence on ${skip.path}: ${skip.reason}.`,
     );
 
   await refreshMigratedSymbolCoordinates(cwd, generatedManifestsBefore);

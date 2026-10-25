@@ -1,6 +1,7 @@
 ---
 title: A requirement that once failed to compile keeps its legacy treatment while its prose is unchanged
 status: open
+required_evidence: tested
 priority: must
 tags:
   - sync

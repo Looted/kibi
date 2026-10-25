@@ -131,6 +131,12 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       description:
         "req/adr only. firm = a human stated it as a rule (needs origin.ref to their words); its title, meaning or firmness changes only with new human words (a new origin.ref) or by supersede. default = delegated or agent choice; exploratory = flagged guess. Absent = default if an agent wrote it, else firm.",
     },
+    required_evidence: {
+      type: "string",
+      enum: ["proved", "tested", "asserted", "unverified"],
+      description:
+        "Requirement-only. Weakest evidence level it accepts; the evidence-floor rule fails below it. Absent = tested if firm, else unverified.",
+    },
     rationale: {
       type: "string",
       minLength: 1,

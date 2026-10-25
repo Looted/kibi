@@ -96,6 +96,9 @@ export function withDocumentBody(
  * Record a requirement bootstrap read from a person's document as theirs: an
  * import with a reference to the passage, and `firmness: firm`, so an agent
  * asks before changing it instead of treating it as its own default choice.
+ * Nothing tests it yet, so its evidence floor is `asserted` (the document
+ * stands behind it), as `kibi migrate` sets for untested firm requirements;
+ * a freshly bootstrapped knowledge base passes `kibi check`.
  */
 // implements REQ-kb-decision-firmness
 export function asImportedRule(
@@ -112,6 +115,7 @@ export function asImportedRule(
       ...properties,
       origin: { kind: "import", ref },
       firmness: "firm",
+      required_evidence: "asserted",
     },
   };
 }

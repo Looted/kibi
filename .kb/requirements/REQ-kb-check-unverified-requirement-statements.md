@@ -1,6 +1,7 @@
 ---
 title: kb_check quotes the requirements changed code implements instead of reporting a bare pass
 status: open
+required_evidence: tested
 priority: must
 tags:
   - kb

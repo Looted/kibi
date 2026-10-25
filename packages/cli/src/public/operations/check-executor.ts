@@ -46,6 +46,7 @@ import { collectCheckPolicyViolations } from "./check-policy-rules.js";
 import { collectDecisionFirmnessViolations } from "./decision-firmness.js";
 import { executeStatus } from "./discovery-executors.js";
 import { collectEntityContextViolations } from "./entity-context.js";
+import { collectEvidenceFloorViolations } from "./evidence-floor.js";
 import {
   buildActionsFromCheck,
   buildMigrationPlan,
@@ -72,6 +73,8 @@ export type CheckInput = {
   readonly includeWorkingTreeDiff?: boolean;
   readonly includeImpactDiagnostics?: boolean;
   readonly maxDiagnostics?: number;
+  /** evidence-floor judges receipts as they are and needs a clean snapshot. */
+  readonly freshEvidence?: boolean;
 };
 
 export type CheckPayload = CheckStructuredContent;
@@ -393,6 +396,11 @@ export async function executeCheck(
       rulesAllowlist,
       workspaceRoot,
     );
+    const evidenceFloorFindings = await collectEvidenceFloorViolations(
+      context,
+      rulesAllowlist,
+      { freshEvidence: args.freshEvidence === true },
+    );
     const partitioned = partitionCheckFindings([
       ...aggregatedFindings,
       ...queryPlanViolations,
@@ -404,6 +412,7 @@ export async function executeCheck(
       ...entityContextFindings,
       ...decisionFirmnessFindings,
       ...checkPolicyFindings,
+      ...evidenceFloorFindings,
     ]);
     const violations: Violation[] = partitioned.violations;
     const evaluated = await describeEvaluation(prolog, rulesAllowlist);
