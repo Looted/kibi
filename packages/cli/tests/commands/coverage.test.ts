@@ -9,6 +9,7 @@ import {
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { stripVTControlCharacters } from "node:util";
 import { renderCoverageTable } from "../../src/commands/discovery-shared.js";
 import type { LegacyMigrationPlan } from "../../src/public/operations/legacy-migration-plan.js";
 import { branchStorePath } from "../../src/utils/branch-store-locator.js";
@@ -320,6 +321,71 @@ tags: [authentication, session]
       rendered.indexOf("Proof (evidence)"),
     );
     expect(rendered.indexOf("evidenceLevels")).toBeGreaterThan(
+      rendered.indexOf("Proof (evidence)"),
+    );
+  });
+
+  // implements REQ-kibi-evidence-floors
+  test("shows each row's evidence floor and counts floors with the proof group", () => {
+    const row = {
+      evidenceLevel: "asserted",
+      status: "open",
+      priority: "must",
+      coverageStatus: "fully_covered",
+      coverageDepth: "scenario_passing_e2e",
+      proofStatus: "unresolved",
+      proofGaps: [],
+      scenarioCount: 1,
+      testCount: 1,
+      transitiveSymbolCount: 1,
+      gaps: [],
+    };
+    const rendered = renderCoverageTable({
+      summary: {
+        total: 3,
+        evidenceLevels: { proved: 0, tested: 0, asserted: 3, unverified: 0 },
+        evidenceFloors: { met: 0, below: 1, pendingReproof: 1 },
+        linkCoverageScope: "priority_must",
+      },
+      rows: [
+        {
+          ...row,
+          id: "REQ-A",
+          evidenceFloor: {
+            required: "tested",
+            source: "firmness",
+            status: "below",
+          },
+        },
+        {
+          ...row,
+          id: "REQ-B",
+          evidenceFloor: {
+            required: "tested",
+            source: "explicit",
+            status: "pending_reproof",
+          },
+        },
+        {
+          ...row,
+          id: "REQ-C",
+          evidenceFloor: {
+            required: "unverified",
+            source: "firmness",
+            status: "met",
+          },
+        },
+      ],
+    });
+    expect(rendered).toContain("Floor");
+    // The Floor column wraps, so read it as words.
+    const plain = stripVTControlCharacters(rendered);
+    expect(plain).toMatch(/│ tested\s+│/);
+    expect(plain).toContain(" below ");
+    expect(plain).toContain(" pending ");
+    expect(plain).not.toContain("unverified met");
+    expect(plain).toContain("below=1");
+    expect(rendered.indexOf("evidenceFloors")).toBeGreaterThan(
       rendered.indexOf("Proof (evidence)"),
     );
   });

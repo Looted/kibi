@@ -121,6 +121,9 @@ function requirementBlock(
     for (const conflict of requirement.proof?.contradictions ?? []) {
       lines.push(`- Contradiction: ${conflict}`);
     }
+    for (const rejection of requirement.proof?.certificateRejections ?? []) {
+      lines.push(`- Certificate: ${rejection}`);
+    }
   }
   return lines;
 }

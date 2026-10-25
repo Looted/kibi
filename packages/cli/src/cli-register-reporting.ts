@@ -77,6 +77,10 @@ export function registerReportingCommands(program: Command): void {
       "Maximum complete requirement rows (1-100000)",
       "10000",
     )
+    .option(
+      "--certificates <file>",
+      "Publish a kibi check --write-certificates bundle next to the report and link it",
+    )
     .action(async (options) => {
       await (await import("./commands/report.js")).reportCommand(options);
     });

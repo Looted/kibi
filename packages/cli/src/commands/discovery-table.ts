@@ -134,7 +134,9 @@ export function renderCoverageTable(
     ([key]) => key !== "linkCoverageScope",
   );
   const isProofKey = (key: string) =>
-    key.startsWith("proof") || key === "evidenceLevels";
+    key.startsWith("proof") ||
+    key === "evidenceLevels" ||
+    key === "evidenceFloors";
   const groups: [string, [string, unknown][]][] = [
     [
       mustOnly ? "Links (priority: must)" : "Traceability (links)",
@@ -163,13 +165,14 @@ export function renderCoverageTable(
           "Depth",
           "Proof",
           "Evidence",
+          "Floor",
           "Scen",
           "Tests",
           "Symbols",
           "Structural gaps",
           "Proof gaps",
         ],
-        colWidths: [20, 12, 12, 18, 36, 12, 12, 8, 8, 10, 24, 36],
+        colWidths: [20, 12, 12, 18, 36, 12, 12, 12, 8, 8, 10, 24, 36],
         wordWrap: true,
       })
     : new Table({
@@ -189,6 +192,7 @@ export function renderCoverageTable(
         stringifyCell(item.coverageDepth),
         stringifyCell(item.proofStatus),
         evidenceCell(item),
+        floorCell(item),
         stringifyCell(item.scenarioCount),
         stringifyCell(item.testCount),
         stringifyCell(item.transitiveSymbolCount),
@@ -396,6 +400,16 @@ function evidenceCell(item: Record<string, unknown>): string {
   const { applicable, proved } = summary as Record<string, unknown>;
   if (typeof applicable !== "number" || applicable === 0) return level;
   return `${level}\n${typeof proved === "number" ? proved : 0}/${applicable} claims proved`;
+}
+
+// implements REQ-kibi-evidence-floors
+// The evidence floor and whether the level reaches it; empty without a floor.
+function floorCell(item: Record<string, unknown>): string {
+  const floor = item.evidenceFloor;
+  if (floor === null || typeof floor !== "object") return "";
+  const { required, status } = floor as Record<string, unknown>;
+  if (typeof required !== "string" || required === "unverified") return "";
+  return `${required} ${typeof status === "string" ? status.replaceAll("_", " ") : ""}`.trim();
 }
 
 // A nested summary count, such as evidenceLevels, reads as key=value pairs.

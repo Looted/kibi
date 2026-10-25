@@ -18,7 +18,11 @@ import {
   renderSignoffChatMarkdown,
   renderSignoffMarkdown,
 } from "../../src/signoff/markdown.js";
-import { statementSentenceDiff } from "../../src/signoff/model.js";
+import {
+  floorLabel,
+  proofLabel,
+  statementSentenceDiff,
+} from "../../src/signoff/model.js";
 import type {
   SignoffProof,
   SignoffSummary,
@@ -603,5 +607,72 @@ describe("signoff HTML", () => {
     );
     expect(html).toContain("Content-Security-Policy");
     expect(html).not.toMatch(/(?:src|href)="https?:/);
+  });
+});
+
+describe("signoff evidence floors and certificates", () => {
+  const proof: SignoffProof = {
+    status: "missing",
+    gate: "e2e",
+    testCount: 0,
+    evidenceLevel: "asserted",
+    evidenceFloor: { required: "asserted", source: "explicit", status: "met" },
+    contradictions: [],
+    certificateRejections: [
+      "TEST-x: certificate rejected, the domain gained a member",
+    ],
+  };
+
+  test("names the floor and says when required_evidence set it", () => {
+    expect(floorLabel(undefined)).toBeUndefined();
+    expect(
+      floorLabel({ required: "unverified", source: "firmness", status: "met" }),
+    ).toBeUndefined();
+    expect(
+      floorLabel({ required: "tested", source: "firmness", status: "below" }),
+    ).toBe("floor tested (below)");
+    expect(
+      floorLabel({
+        required: "tested",
+        source: "firmness",
+        status: "pending_reproof",
+      }),
+    ).toBe("floor tested (pending re-proof)");
+    expect(proofLabel(proof)).toBe(
+      "no end-to-end test yet, 0 tests; evidence asserted; floor asserted set by required_evidence (met)",
+    );
+  });
+
+  test("Markdown and HTML list certificates that no longer re-check", () => {
+    const view: SignoffView = {
+      version: "kibi.signoff.v1",
+      kind: "summary",
+      scope: "working",
+      generatedAt: "2026-10-22T09:00:00.000Z",
+      requirements: [
+        {
+          id: "REQ-x",
+          title: "Palette",
+          change: "affected",
+          status: "open",
+          statement: "The palette is red, green or blue.",
+          supersedes: [],
+          scenarios: [],
+          symbols: ["SYM-palette"],
+          proof,
+          source: ".kb/requirements/REQ-x.md",
+        },
+      ],
+      notes: [],
+    };
+    const markdown = renderSignoffMarkdown(view);
+    expect(markdown).toContain("floor asserted set by required_evidence (met)");
+    expect(markdown).toContain(
+      "- Certificate: TEST-x: certificate rejected, the domain gained a member",
+    );
+    const html = renderSignoffHtml(view);
+    expect(html).toContain(
+      "TEST-x: certificate rejected, the domain gained a member",
+    );
   });
 });

@@ -525,3 +525,166 @@ describe("renderHtmlReport", () => {
     expect(html).toContain("--carbon:");
   });
 });
+
+describe("renderHtmlReport evidence ladder", () => {
+  function ladderReport(kbCertificates?: {
+    count: number;
+    kinds: Record<string, number>;
+    href: string;
+  }) {
+    const fixture = coverageFixture();
+    const [tested, unresolved, old] = fixture.requirements.rows;
+    const proved = {
+      ...tested,
+      evidenceLevel: "proved",
+      evidence: [
+        {
+          kind: "certificate",
+          scope: "code",
+          level: "proved",
+          tests: ["TEST-reset-exhaustive"],
+          kinds: ["exhaustive"],
+        },
+        { kind: "e2e", scope: "code", level: "tested", tests: ["TEST-reset"] },
+      ],
+      evidenceFloor: { required: "proved", source: "explicit", status: "met" },
+      claimSummary: {
+        applicable: 2,
+        proved: 2,
+        attested: 0,
+        tested: 0,
+        unresolved: 0,
+      },
+    };
+    const below = {
+      ...unresolved,
+      evidenceLevel: "asserted",
+      evidenceFloor: {
+        required: "tested",
+        source: "firmness",
+        status: "below",
+      },
+      certificateRejections: [
+        { test: "TEST-trial-smt", reason: "the solver did not answer unsat" },
+      ],
+      claimBindingRejections: [
+        {
+          test: "TEST-trial-smt",
+          claimKey: "CLAIM-trial",
+          reason: "the fact changed since ingest",
+        },
+      ],
+    };
+    const pending = {
+      ...tested,
+      id: "REQ-205",
+      title: "Session Expiry",
+      proofStatus: "unresolved",
+      proofGaps: ["stale_proof_receipt"],
+      evidenceLevel: "asserted",
+      evidenceFloor: {
+        required: "tested",
+        source: "firmness",
+        status: "pending_reproof",
+      },
+    };
+    const noFloor = {
+      ...tested,
+      id: "REQ-206",
+      title: "Exploratory Note",
+      evidenceLevel: "tested",
+      evidenceFloor: {
+        required: "unverified",
+        source: "firmness",
+        status: "met",
+      },
+    };
+    return renderHtmlReport({
+      ...fixture,
+      requirements: {
+        ...fixture.requirements,
+        rows: [proved, below, pending, noFloor, old],
+      },
+      branch: "main",
+      generatedAt: new Date("2026-08-15T12:00:00.000Z"),
+      ...(kbCertificates === undefined ? {} : { kbCertificates }),
+    });
+  }
+
+  function card(html: string, id: string): string {
+    const match = html.match(
+      new RegExp(
+        `<article class="requirement[^"]*"[^>]*>(?:(?!</article>)[\\s\\S])*?${id}[\\s\\S]*?</article>`,
+      ),
+    );
+    expect(match).toBeTruthy();
+    return match?.[0] ?? "";
+  }
+
+  test("shows each requirement's floor and whether its level reaches it", () => {
+    const html = ladderReport();
+    expect(card(html, "REQ-204")).toContain("floor proved* · met");
+    expect(card(html, "REQ-443")).toContain(
+      'class="evidence-floor evidence-floor--below"',
+    );
+    expect(card(html, "REQ-443")).toContain("floor tested · below");
+    expect(card(html, "REQ-205")).toContain("floor tested · pending re-proof");
+    expect(card(html, "REQ-206")).not.toContain("evidence-floor");
+    expect(html).toContain("Below evidence floor</span><strong>1</strong>");
+    expect(html).toContain("Pending re-proof</span><strong>1</strong>");
+    expect(html).toContain('Below floor <span class="filter__count">1</span>');
+    expect(html).toContain(
+      'Pending re-proof <span class="filter__count">1</span>',
+    );
+  });
+
+  test("sorts a requirement below its floor right after contradictions", () => {
+    const html = ladderReport();
+    const order = [...html.matchAll(/<article class="requirement[^>]*>/g)].map(
+      (match) => match.index ?? 0,
+    );
+    const at = (id: string) => html.indexOf(card(html, id));
+    expect(order.length).toBe(4);
+    expect(at("REQ-443")).toBeLessThan(at("REQ-205"));
+    expect(at("REQ-205")).toBeLessThan(at("REQ-204"));
+  });
+
+  test("labels a proved requirement and names the certificate behind it", () => {
+    const html = ladderReport();
+    const proved = card(html, "REQ-204");
+    expect(proved).toContain('data-state="tested proved"');
+    expect(proved).toContain(
+      '<span class="proof-badge proof-badge--proved">Proved</span>',
+    );
+    expect(proved).toContain("Certificate");
+    expect(proved).toContain("exhaustive · 1 test · 2/2 claims proved");
+    expect(html).toContain('Proved <span class="filter__count">1</span>');
+    expect(card(html, "REQ-206")).toContain(">Tested</span>");
+  });
+
+  test("lists certificates and claim bindings that no longer re-check", () => {
+    const below = card(ladderReport(), "REQ-443");
+    expect(below).toContain("2 certificate rejections");
+    expect(below).toContain(
+      "TEST-trial-smt: certificate rejected, the solver did not answer unsat",
+    );
+    expect(below).toContain(
+      "TEST-trial-smt: binding for CLAIM-trial rejected, the fact changed since ingest",
+    );
+    expect(below).toContain("certificates do not re-check");
+  });
+
+  test("links a published KB certificate bundle", () => {
+    expect(ladderReport()).not.toContain('class="kb-certificates"');
+    const html = ladderReport({
+      count: 3,
+      kinds: { property_model: 2, predicate_model: 1 },
+      href: "kb-certificates.json",
+    });
+    expect(html).toContain(
+      "KB consistency: 3 certificates (1 predicate model, 2 property model)",
+    );
+    expect(html).toContain('<a href="kb-certificates.json">');
+    expect(html).toContain("kibi check --certificates kb-certificates.json");
+  });
+});

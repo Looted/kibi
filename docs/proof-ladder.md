@@ -317,7 +317,10 @@ than the code. A plain `kibi check` lets `pending_reproof` pass, so a local
 check catches grounding, contradiction and link regressions without
 re-proving first. `kibi check --fresh-evidence` judges receipts as they are
 and also needs a clean proof snapshot; run it right after `kibi prove`, as CI
-does.
+does. The coverage summary counts current requirements with a floor under
+`evidenceFloors` (`met`, `below`, `pendingReproof`), the coverage table has a
+Floor column, and `kibi report` and `kibi signoff` show each requirement's
+floor and whether it is met.
 
 Requirements outside proof scope (`proof_exempt`, superseded or not current)
 have no floor. Lowering a floor is a visible edit to the requirement, so

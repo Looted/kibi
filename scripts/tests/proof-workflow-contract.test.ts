@@ -173,6 +173,22 @@ describe("strict proof workflow contract", () => {
     expect(proofWorkflow).toContain(
       "sh scripts/proof-gate.sh --fresh-evidence",
     );
+    // The KB certificates the gate re-checked are re-checked independently
+    // and published with the report.
+    const recheck = proofWorkflow.indexOf(
+      "Re-check KB certificates with the independent checker",
+    );
+    expect(recheck).toBeGreaterThan(floorCheck);
+    expect(report).toBeGreaterThan(recheck);
+    expect(proofWorkflow).toContain(
+      '--write-certificates "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/kb-certificates.json"',
+    );
+    expect(proofWorkflow).toContain(
+      'kibi check --certificates "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/kb-certificates.json"',
+    );
+    expect(proofWorkflow).toContain(
+      'report --output kibi-report --certificates "$certificates"',
+    );
     const integrityRules =
       "no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness,symbol-traceability";
     const proofGate = readFileSync(

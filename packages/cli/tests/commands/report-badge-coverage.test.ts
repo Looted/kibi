@@ -2,10 +2,17 @@
 
 import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
 import { EventEmitter } from "node:events";
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { openReport, reportCommand } from "../../src/commands/report.js";
+import { KIBI_BRAND } from "../../src/report/brand.js";
 
 function coverage(total: number, tested: number) {
   return {
@@ -62,6 +69,90 @@ describe("report badge bands and openReport", () => {
     expect(readFileSync(path.join(root, "mid", "badge.svg"), "utf8")).toContain(
       "75% tested",
     );
+  });
+
+  // implements REQ-kibi-evidence-floors
+  test("a requirement below its evidence floor turns the badge red", async () => {
+    const below = coverage(20, 20);
+    const rows = below.requirements.rows.map((row, index) =>
+      index === 0
+        ? {
+            ...row,
+            evidenceFloor: {
+              required: "proved",
+              source: "explicit",
+              status: "below",
+            },
+          }
+        : row,
+    );
+    await reportCommand(
+      { output: "below" },
+      {
+        cwd: () => root,
+        loadCoverage: async () => ({
+          ...below,
+          requirements: { ...below.requirements, rows },
+        }),
+      },
+    );
+    const badge = readFileSync(path.join(root, "below", "badge.svg"), "utf8");
+    expect(badge).toContain("100% tested");
+    expect(badge).toContain(KIBI_BRAND.danger);
+    await reportCommand(
+      { output: "met" },
+      { cwd: () => root, loadCoverage: async () => coverage(20, 20) },
+    );
+    expect(
+      readFileSync(path.join(root, "met", "badge.svg"), "utf8"),
+    ).not.toContain(KIBI_BRAND.danger);
+  });
+
+  // implements REQ-kibi-kb-certificates
+  test("--certificates publishes the KB certificate bundle next to the page", async () => {
+    const bundle = path.join(root, "certs.json");
+    writeFileSync(
+      bundle,
+      JSON.stringify({
+        version: "kibi.certificates.v1",
+        certificates: [{ kind: "property_model" }, { kind: "property_model" }],
+      }),
+    );
+    await reportCommand(
+      { output: "site", certificates: "certs.json" },
+      { cwd: () => root, loadCoverage: async () => coverage(2, 2) },
+    );
+    expect(
+      JSON.parse(
+        readFileSync(path.join(root, "site", "kb-certificates.json"), "utf8"),
+      ).certificates,
+    ).toHaveLength(2);
+    expect(
+      readFileSync(path.join(root, "site", "index.html"), "utf8"),
+    ).toContain("KB consistency: 2 certificates (2 property model)");
+    await reportCommand(
+      { output: "page.html", certificates: "certs.json" },
+      { cwd: () => root, loadCoverage: async () => coverage(2, 2) },
+    );
+    expect(existsSync(path.join(root, "page.kb-certificates.json"))).toBe(true);
+
+    writeFileSync(
+      path.join(root, "bad.json"),
+      JSON.stringify({ version: "x" }),
+    );
+    await expect(
+      reportCommand(
+        { output: "bad", certificates: "bad.json" },
+        { cwd: () => root, loadCoverage: async () => coverage(2, 2) },
+      ),
+    ).rejects.toThrow("is not a kibi.certificates.v1 bundle");
+    writeFileSync(path.join(root, "garbage.json"), "{");
+    await expect(
+      reportCommand(
+        { output: "bad", certificates: "garbage.json" },
+        { cwd: () => root, loadCoverage: async () => coverage(2, 2) },
+      ),
+    ).rejects.toThrow("is not JSON");
   });
 
   test("openReport spawns the platform opener and rejects spawn errors", async () => {

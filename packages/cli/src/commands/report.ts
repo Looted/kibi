@@ -1,6 +1,6 @@
 import { execFileSync, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { mkdir, rename, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -12,6 +12,7 @@ import { coverageSpec } from "../public/operations/specs/reporting.js";
 import { KIBI_BRAND, renderKibiBadge } from "../report/brand.js";
 import {
   type HtmlReportCoverage,
+  type HtmlReportKbCertificates,
   renderHtmlReport,
 } from "../report/html-report.js";
 import {
@@ -25,6 +26,7 @@ export type ReportOptions = Readonly<{
   open?: boolean;
   tag?: string;
   limit?: string;
+  certificates?: string;
 }>;
 
 type ReportCoverage = Readonly<{
@@ -215,6 +217,53 @@ function assertCompleteRequirementRows(
   }
 }
 
+const KB_CERTIFICATES_VERSION = "kibi.certificates.v1";
+
+/**
+ * Read a saved kibi check --write-certificates bundle, so the report can
+ * publish it next to the page and say how many certificates it holds.
+ */
+// implements REQ-kibi-kb-certificates
+async function readKbCertificates(
+  bundlePath: string,
+): Promise<{ raw: string; certificates: readonly unknown[] }> {
+  const raw = await readFile(bundlePath, "utf8");
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw new Error(`report: ${bundlePath} is not JSON`);
+  }
+  const bundle =
+    parsed !== null && typeof parsed === "object"
+      ? (parsed as Record<string, unknown>)
+      : {};
+  if (
+    bundle.version !== KB_CERTIFICATES_VERSION ||
+    !Array.isArray(bundle.certificates)
+  )
+    throw new Error(
+      `report: ${bundlePath} is not a ${KB_CERTIFICATES_VERSION} bundle (write one with kibi check --write-certificates)`,
+    );
+  return { raw, certificates: bundle.certificates };
+}
+
+function certificateKinds(
+  certificates: readonly unknown[],
+): Readonly<Record<string, number>> {
+  const kinds: Record<string, number> = {};
+  for (const certificate of certificates) {
+    const kind =
+      certificate !== null &&
+      typeof certificate === "object" &&
+      typeof (certificate as Record<string, unknown>).kind === "string"
+        ? ((certificate as Record<string, unknown>).kind as string)
+        : "unknown";
+    kinds[kind] = (kinds[kind] ?? 0) + 1;
+  }
+  return kinds;
+}
+
 // implements REQ-kibi-html-health-report
 export async function reportCommand(
   options: ReportOptions,
@@ -227,6 +276,32 @@ export async function reportCommand(
 
   const now = (deps.now ?? (() => new Date()))();
   const workspace = (deps.cwd ?? (() => process.cwd()))();
+  const outputPath = reportTarget(workspace, options.output);
+  const requestedOutput = options.output?.trim() || "kibi-report";
+  const outputIsHtmlFile = [".html", ".htm"].includes(
+    path.extname(requestedOutput).toLowerCase(),
+  );
+  const kbCertificatesSource =
+    options.certificates?.trim() === undefined ||
+    options.certificates.trim() === ""
+      ? undefined
+      : await readKbCertificates(
+          path.resolve(workspace, options.certificates.trim()),
+        );
+  const kbCertificatesPath = outputIsHtmlFile
+    ? path.join(
+        path.dirname(outputPath),
+        `${path.basename(outputPath, path.extname(outputPath))}.kb-certificates.json`,
+      )
+    : path.join(path.dirname(outputPath), "kb-certificates.json");
+  const kbCertificates: HtmlReportKbCertificates | undefined =
+    kbCertificatesSource === undefined
+      ? undefined
+      : {
+          count: kbCertificatesSource.certificates.length,
+          kinds: certificateKinds(kbCertificatesSource.certificates),
+          href: path.basename(kbCertificatesPath),
+        };
   const html = renderHtmlReport({
     requirements: coverage.requirements,
     symbols: coverage.symbols,
@@ -234,12 +309,8 @@ export async function reportCommand(
     generatedAt: now,
     repository:
       deps.repository ?? loadReportRepository(workspace, coverage.branch),
+    ...(kbCertificates === undefined ? {} : { kbCertificates }),
   });
-  const outputPath = reportTarget(workspace, options.output);
-  const requestedOutput = options.output?.trim() || "kibi-report";
-  const outputIsHtmlFile = [".html", ".htm"].includes(
-    path.extname(requestedOutput).toLowerCase(),
-  );
   const badgePath = outputIsHtmlFile
     ? path.join(
         path.dirname(outputPath),
@@ -261,6 +332,19 @@ export async function reportCommand(
       Array.isArray(row.proofGaps) &&
       row.proofGaps.includes("blocking_contradiction"),
   );
+  // implements REQ-kibi-evidence-floors
+  // A requirement below its evidence floor fails kibi check, like a
+  // contradiction, so the badge turns red whatever the tested share.
+  const belowFloor = coverage.requirements.rows.some((row) => {
+    const floor = row.evidenceFloor;
+    return (
+      row.proofStatus !== "not_applicable" &&
+      floor !== null &&
+      typeof floor === "object" &&
+      (floor as Record<string, unknown>).status === "below" &&
+      (floor as Record<string, unknown>).required !== "unverified"
+    );
+  });
   const snapshotStale =
     coverage.requirements.meta?.dirty === true ||
     coverage.requirements.meta?.proofSnapshotDirty === true;
@@ -269,7 +353,7 @@ export async function reportCommand(
   const badgeColor =
     currentRequirements === 0
       ? KIBI_BRAND.rail
-      : hasContradiction
+      : hasContradiction || belowFloor
         ? KIBI_BRAND.danger
         : snapshotStale
           ? KIBI_BRAND.warning
@@ -284,9 +368,13 @@ export async function reportCommand(
 
   await writeAtomically(outputPath, html);
   await writeAtomically(badgePath, badge);
+  if (kbCertificatesSource !== undefined)
+    await writeAtomically(kbCertificatesPath, kbCertificatesSource.raw);
 
   console.log(`Kibi report written to ${outputPath}`);
   console.log(`Kibi badge written to ${badgePath}`);
+  if (kbCertificatesSource !== undefined)
+    console.log(`KB certificates written to ${kbCertificatesPath}`);
   if (options.open === true) {
     await (deps.openReport ?? openReport)(outputPath);
     console.log("Opened Kibi report in the default browser");

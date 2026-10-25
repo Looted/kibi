@@ -1256,6 +1256,7 @@ coverage_summary(Rows, Summary) :-
     length(ProofTestedRows, ProofTested),
     evidence_level_counts(Rows, EvidenceLevels),
     claim_level_counts(Rows, ProofClaims),
+    evidence_floor_counts(Rows, EvidenceFloors),
     length(ProofUnresolvedRows, ProofUnresolved),
     length(ProofMissingRows, ProofMissing),
     length(ProofNotApplicableRows, ProofNotApplicable),
@@ -1274,6 +1275,7 @@ coverage_summary(Rows, Summary) :-
         proofNotApplicable: ProofNotApplicable,
         evidenceLevels: EvidenceLevels,
         proofClaims: ProofClaims,
+        evidenceFloors: EvidenceFloors,
         linkCoverageScope: priority_must
     }.
 
@@ -1296,6 +1298,24 @@ claim_count_sum(Rows, Key, Sum) :-
             number(N)
         ),
         Sum).
+
+% implements REQ-kibi-evidence-floors
+% Current requirements with a floor (required_evidence, or tested for a firm
+% requirement), by whether their evidence level reaches it.  A floor of
+% unverified accepts anything and is not counted.
+evidence_floor_counts(Rows, _{met: Met, below: Below, pendingReproof: Pending}) :-
+    evidence_floor_status_count(Rows, met, Met),
+    evidence_floor_status_count(Rows, below, Below),
+    evidence_floor_status_count(Rows, pending_reproof, Pending).
+
+evidence_floor_status_count(Rows, Status, Count) :-
+    aggregate_all(count,
+        (   member(Row, Rows),
+            get_dict(evidenceFloor, Row, Floor),
+            Floor.get(required) \== unverified,
+            Floor.get(status) == Status
+        ),
+        Count).
 
 % implements REQ-kibi-evidence-levels
 evidence_level_counts(Rows, _{proved: Proved, tested: Tested, asserted: Asserted, unverified: Unverified}) :-

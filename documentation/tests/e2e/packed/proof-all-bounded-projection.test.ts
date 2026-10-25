@@ -251,7 +251,7 @@ export async function runProofAllBoundedProjectionWorkflow(): Promise<{
   readonly totalTests: number;
   readonly reconstructedFullPropertyJsonBytes: number;
   readonly queryPages: number;
-  readonly proved: number;
+  readonly passed: number;
 }> {
   const tarballs: Tarballs = await packAll();
   const sandbox: TestSandbox = createSandbox();
@@ -448,7 +448,7 @@ export async function runProofAllBoundedProjectionWorkflow(): Promise<{
     assertCommandSucceeded(prove, "installed kibi prove --all");
     const summaryLine = prove.stdout.trim().split(/\r?\n/).at(-1) ?? "";
     const summary = JSON.parse(summaryLine) as {
-      readonly proved: number;
+      readonly passed: number;
       readonly failed: number;
       readonly runs: ReadonlyArray<{
         readonly integration: string;
@@ -463,7 +463,7 @@ export async function runProofAllBoundedProjectionWorkflow(): Promise<{
         }>;
       }>;
     };
-    assert.equal(summary.proved, 1);
+    assert.equal(summary.passed, 1);
     assert.equal(summary.failed, 0);
     assert.equal(summary.runs.length, 1);
     assert.equal(summary.runs[0]?.integration, "projection-fixture");
@@ -498,7 +498,7 @@ export async function runProofAllBoundedProjectionWorkflow(): Promise<{
       totalTests: queriedTests.length,
       reconstructedFullPropertyJsonBytes,
       queryPages: queryPageBytes.length,
-      proved: summary.proved,
+      passed: summary.passed,
     };
   } finally {
     await sandbox.cleanup();

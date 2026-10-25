@@ -248,6 +248,15 @@ as `KIBI_PROOF_SOURCE_FILES` (a JSON array).
 `--integration-except` is a modifier (it requires a selector such as `--all`)
 that skips tests bound to the listed integrations. A selector that matches no
 proof-bearing test is an error, so a typo cannot silently prove nothing.
+
+The last stdout line is a JSON summary: `passed` (passing receipts),
+`certified` (passing receipts whose certificate re-checked, the only ones that
+can support `proved`), `failed`, `unchanged`, and per-integration `runs` whose
+`results` carry each test's `kind`, `evidenceLevel` (`proved` or `tested`),
+`certificateRejection` and `claimBindings`. A certificate kind whose
+certificate does not re-check still passes, and stderr names it
+(`prove: TEST-x exhaustive: certificate rejected, <reason>`). Before this
+summary used `proved` for the passing count; that key is now `passed`.
 The exit code is non-zero when any proof fails or a producer errors.
 
 Producer child processes run with `KIBI_PROOF_RUN=1` (plus
@@ -572,7 +581,7 @@ kibi coverage [--by req|symbol|type] [--tag TAGS] [--include-passing] [--status 
 - `--status <statuses>` (comma-separated: `tested`, `missing`, `unresolved`, `not_applicable`) selects requirement rows by `proofStatus` and implies include-passing. Use it to enumerate one slice — e.g. `kibi coverage --by req --status not_applicable` lists every out-of-scope requirement with its typed applicability reason (`proofStages.applicability.reason`: superseded, a status-vocabulary mismatch, or a proof exemption). The summary always reflects the whole KB; pagination applies to the filtered rows.
 - Requirement coverage rows include coverage-depth labels when evidence can be classified: `direct_passing_e2e`, `scenario_passing_e2e`, `unit_only`, `open_or_nonpassing_tests_only`, `scenario_only_no_test`, or `no_test_evidence`.
 - Coverage-depth labels are informational. They do not change existing covered/uncovered pass-fail semantics, and typed test fields (`verification_scope`, then `verification_perspective`) take precedence over legacy `e2e` tags or `/e2e/` path heuristics.
-- Requirement rows also expose the additive `kibi.requirement-proof.v5` contract. `proofStatus` is `tested` (named `proven` before v4), `unresolved`, `missing`, or `not_applicable` for a non-current requirement, and is intentionally independent from compatibility-oriented `coverageStatus`. Each row also carries `evidenceLevel` (`proved`, `tested`, `asserted` or `unverified`) and the `evidence[]` entries that earned it, and the summary counts rows per level under `evidenceLevels`; `proofTested` (named `proofProven` before v4) counts tested rows. From v5 each row also carries `claimEvidence[]`, `claimSummary` and `unprovedClaims` (a requirement is proved only when a certificate binding derives every applicable claim), the summary totals them under `proofClaims`, and the table's Evidence column shows `n/m claims proved`. See `docs/proof-ladder.md` for the per-stage semantics and the evidence levels.
+- Requirement rows also expose the additive `kibi.requirement-proof.v5` contract. `proofStatus` is `tested` (named `proven` before v4), `unresolved`, `missing`, or `not_applicable` for a non-current requirement, and is intentionally independent from compatibility-oriented `coverageStatus`. Each row also carries `evidenceLevel` (`proved`, `tested`, `asserted` or `unverified`) and the `evidence[]` entries that earned it, and the summary counts rows per level under `evidenceLevels`; `proofTested` (named `proofProven` before v4) counts tested rows. From v5 each row also carries `claimEvidence[]`, `claimSummary` and `unprovedClaims` (a requirement is proved only when a certificate binding derives every applicable claim), the summary totals them under `proofClaims`, and the table's Evidence column shows `n/m claims proved`. The summary also counts current requirements with an evidence floor under `evidenceFloors` (`met`, `below`, `pendingReproof`; a floor of `unverified` is not counted), and the table's Floor column shows each row's floor and status (for example `tested pending reproof`). See `docs/proof-ladder.md` for the per-stage semantics and the evidence levels.
 - `proofStages` records semantic inventory, logical grounding, contradiction, scenario, scenario-test, passing E2E, executable-symbol, production-symbol, and exact source-coordinate evidence. `proofGaps` lists only blocking issues that prevent `tested`. The passing-E2E stage exposes per-scenario `scenarioObligations`; every linked E2E proof-bearing test is mandatory, while unit/integration-only ancillary tests remain nonblocking when the scenario has qualifying E2E evidence. `proofAdvisories` is reserved for explicitly non-blocking context; missing, stale, failed, invalid, snapshot-unavailable, and contract-mismatched E2E evidence remains in `proofGaps`. `proofRepairs` ranks concrete recovery actions for blocking gaps only.
 - Requirement reports also include `repairPlan` (`kibi.repair-plan.v1`). It groups gaps into one small batch per requirement and dependency phase, marks only the earliest unresolved batch `ready`, and links later batches through `dependsOn`. Every batch is read-only guidance with `autoApplicable: false`, a reviewed `workflowSteps` sequence, targeted `validationRules`, and a sequential-write policy.
 - Requirement and symbol reports also include the shared `migrationPlan` (`kibi.migration-plan.v2`). Apply only ready automatic actions after explicitly approving its exact hash and action IDs; review, operator, and E2E execution actions remain agent/operator work.
@@ -589,7 +598,7 @@ existing `kb_coverage` operation, not an additional JSON/MCP operation.
 
 **Syntax:**
 ```bash
-kibi report [--output PATH] [--open] [--tag TAGS] [--limit N]
+kibi report [--output PATH] [--open] [--tag TAGS] [--limit N] [--certificates FILE]
 ```
 
 **Options:**
@@ -597,15 +606,16 @@ kibi report [--output PATH] [--open] [--tag TAGS] [--limit N]
 - `--open` opens the report with the operating system's default browser after the file is written successfully.
 - `--tag <tags>` limits requirement and symbol health to comma-separated tags.
 - `--limit <n>` sets the maximum complete requirement row set. It defaults to 10,000 and fails instead of publishing partial per-requirement metrics.
+- `--certificates <file>` publishes a `kibi.certificates.v1` bundle written by `kibi check --write-certificates` next to the report (`kb-certificates.json`, or `<name>.kb-certificates.json` beside an explicit HTML file) and links it with its certificate count per kind. The report does not re-check the bundle; `kibi check --certificates` does.
 
 **Report contents:**
 - The tested percentage and count use current requirements only; superseded and otherwise non-current requirements are reported as excluded rather than lowering the score.
-- Summary metrics show current requirements, requirements tested end to end, requirements only asserted or unverified (by evidence level), missing scenarios, stale E2E evidence, unique contradiction witnesses, unmapped production symbols, and requirements without implementation.
-- Requirement cards separate semantic grounding, scenario, implementation, E2E-test, and fresh-receipt stages. Search, health filters, and proof-gate filters run entirely in the generated file. Filter buttons include counts. Relative evidence and generation ages are computed in the viewer from preserved absolute timestamps.
+- Summary metrics show current requirements, requirements tested end to end, requirements proved by certificate, asserted or unverified (by evidence level), requirements below their evidence floor or pending re-proof, missing scenarios, stale E2E evidence, unique contradiction witnesses, unmapped production symbols, and requirements without implementation.
+- Requirement cards separate semantic grounding, scenario, implementation, E2E-test, and fresh-receipt stages, plus a certificate stage when a test carries a certificate (its proof kinds and claims proved). Each card shows the evidence level, the evidence floor and whether it is met, below or pending re-proof (`*` marks a floor set by `required_evidence` rather than the firm default), a `Proved` badge for proved requirements, and any certificate or claim-binding rejections. Cards below their floor sort right after contradictions. Search, health filters (proved, tested, needs attention, below floor, pending re-proof, stale, contradictions), and proof-gate filters run entirely in the generated file. Filter buttons include counts. Relative evidence and generation ages are computed in the viewer from preserved absolute timestamps.
 - Stale KB state and dirty workspace proof evaluation are shown as a prominent snapshot warning.
 - Stale KB state and dirty workspace proof evaluation are shown as a prominent snapshot warning.
 - All KB-provided values are HTML-escaped. The report has no CDN, font, script, or other network dependency, so the output directory can be hosted as-is.
-- The generated SVG badge uses the same complete coverage snapshot as the report. It pairs the Kibi logo with a `kibi` label in Codecov/Shields chrome (regular 11px type, `#555` label pane, reserved padding, and white status text), sizes itself to the tested-percentage message (`87% tested`), and uses conservative colors for contradictions and stale snapshots.
+- The generated SVG badge uses the same complete coverage snapshot as the report. It pairs the Kibi logo with a `kibi` label in Codecov/Shields chrome (regular 11px type, `#555` label pane, reserved padding, and white status text), sizes itself to the tested-percentage message (`87% tested`), and uses conservative colors: red for a contradiction or a requirement below its evidence floor, amber for a stale snapshot.
 
 **Examples:**
 ```bash
@@ -660,7 +670,10 @@ or retires (from the Git diff of `.kb/requirements/` against `HEAD`, with
 untracked files; `--staged` uses the index), and each current requirement the
 changed code implements whose document did not change. Each entry quotes the
 statement (the previous one too for a rewrite) with its firmness, origin,
-replaced requirements, scenarios and proof state. `--no-proof` skips the proof
+replaced requirements, scenarios and proof state. The proof state names the
+evidence level, the evidence floor and whether it is met (a floor lowered with
+`required_evidence` says so, since approving the requirement accepts it), and
+any certificate that no longer re-checks. `--no-proof` skips the proof
 lookup, which runs a full coverage pass and can take tens of seconds on a
 large knowledge base.
 
