@@ -15,6 +15,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: test
 ---
 
 Verifies atom and string escaping, entity/property decoding, typed Prolog values, nested list and tuple parsing, violation-row decoding, and lossless preservation of repeated relationship properties.

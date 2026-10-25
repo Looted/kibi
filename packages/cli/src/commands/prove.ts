@@ -522,6 +522,18 @@ async function selectTestsBySelector(
   return filtered;
 }
 
+// implements REQ-kibi-claim-bound-proofs
+// One line per claim a certificate test names in proves: derived (with its
+// scope), attested, or rejected with the reason.
+function claimBindingLines(result: IngestProofResult): string[] {
+  return result.results.flatMap((row) =>
+    (row.claimBindings ?? []).map(
+      (binding) =>
+        `${row.testId} ${binding.claim_key}${binding.requirement_id ? ` (${binding.requirement_id})` : ""}: ${binding.binding}${binding.binding === "derived" && binding.scope ? `, ${binding.scope} scope` : ""}${binding.reason ? `: ${binding.reason}` : ""}`,
+    ),
+  );
+}
+
 function summarize(result: IngestProofResult): string {
   const parts = [`passed ${result.passed}`, `failed ${result.failed}`];
   if (result.unchanged > 0) parts.push(`unchanged ${result.unchanged}`);
@@ -797,6 +809,8 @@ export async function proveCommand(
         process.stderr.write(
           `prove: ingested integration '${integrationId}' (${summarize(merged)})\n`,
         );
+        for (const line of claimBindingLines(merged))
+          process.stderr.write(`prove: ${line}\n`);
       }
       const afterIngest = await readWorkspaceSnapshot(context);
       if (!afterIngest.available || afterIngest.snapshot.hash !== snapshot) {

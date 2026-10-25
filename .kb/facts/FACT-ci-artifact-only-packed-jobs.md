@@ -17,6 +17,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: fact
 ---
 
 Observation: Packed CI regression jobs (packed CLI and MCP suites) are designed to consume pre-built npm tarballs (artifacts) and should not require a repository checkout. This reduces CI clone traffic and enables promotion workflows that verify published artifacts match source behavior.

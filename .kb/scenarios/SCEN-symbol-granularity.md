@@ -15,6 +15,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: scenario
 ---
 
 Given extracted symbols include class methods or otherwise narrow code symbols, traceability must prefer the narrowest unambiguous symbol target. Coarse module or file-level symbols remain valid only when no narrower symbol is available or an explicit granularity reason is supplied.

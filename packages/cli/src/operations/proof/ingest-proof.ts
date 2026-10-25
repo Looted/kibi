@@ -36,6 +36,7 @@ import {
 } from "../../public/proof-protocol.js";
 import {
   MAX_PROOF_RECEIPTS,
+  type ClaimBinding,
   type ProofReceipt,
   proofReceiptCurrentBindingErrors,
   proofReceiptHistoryErrors,
@@ -55,6 +56,7 @@ import {
 } from "../mutation/workspace-mutation-lock.js";
 import { MutationRollbackFailureError } from "../mutation/saga.js";
 import { patchReceiptsIntoDocument } from "./receipt-document.js";
+import { judgeClaimBindings } from "./claim-bindings.js";
 import { checkCodeCertificate } from "./code-certificates.js";
 
 // implements REQ-kibi-verification-evidence-contract
@@ -74,6 +76,8 @@ export type IngestProofTestResult = Readonly<{
   /** Superseded receipts the ingest compaction dropped from the history. */
   compacted: number;
   gaps: readonly ProofGap[];
+  /** How the receipt's certificate binds to each claim its contract names. */
+  claimBindings?: readonly ClaimBinding[];
 }>;
 
 // implements REQ-kibi-verification-evidence-contract
@@ -455,6 +459,12 @@ async function executeIngestProofUnlocked(
         (entry) => entry.test_id === testId,
       ),
     });
+    const claimBindings = await judgeClaimBindings(context, {
+      testId,
+      contract,
+      verdict,
+      coveredBySymbols: coveredBy.get(testId) ?? [],
+    });
     const receipt: ProofReceipt = {
       version: PROOF_RECEIPT_VERSION,
       receipt_id: `PR-${jsonDigest({
@@ -484,6 +494,7 @@ async function executeIngestProofUnlocked(
       })),
       ...(evaluation.gaps.length > 0 ? { gaps: evaluation.gaps } : {}),
       ...verdict,
+      ...(claimBindings !== undefined ? { claim_bindings: claimBindings } : {}),
     };
     prepared.push({
       testId,
@@ -496,6 +507,13 @@ async function executeIngestProofUnlocked(
   }
 
   const results: IngestProofTestResult[] = [];
+  const bindingsOf = new Map(
+    prepared.flatMap((entry) =>
+      entry.receipt.claim_bindings === undefined
+        ? []
+        : [[entry.testId, { claimBindings: entry.receipt.claim_bindings }]],
+    ),
+  );
   const pendingCommits: PendingReceiptCommit[] = [];
   let passed = 0;
   let failed = 0;
@@ -518,6 +536,7 @@ async function executeIngestProofUnlocked(
         receiptCount: existing.length,
         compacted: 0,
         gaps: evaluation.gaps,
+        ...bindingsOf.get(testId),
       });
       continue;
     }
@@ -673,6 +692,7 @@ async function executeIngestProofUnlocked(
         receiptCount: entry.receiptCount,
         compacted: entry.compacted,
         gaps: entry.gaps,
+        ...bindingsOf.get(entry.testId),
       });
     }
   }

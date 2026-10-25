@@ -6,6 +6,7 @@ const PROPERTY_VALUE_FIELDS = [
   "value_int",
   "value_number",
   "value_bool",
+  "value_set",
 ] as const;
 
 // implements REQ-kibi-operation-interface-parity
@@ -21,7 +22,10 @@ export function valueFieldHint(value: unknown): string {
   if (typeof value === "string") {
     return `Use value_type: "string" plus value_string: ${JSON.stringify(value)}.`;
   }
-  return "Use value_type plus exactly one of value_string, value_int, value_number, or value_bool.";
+  if (Array.isArray(value)) {
+    return `Use value_type: "set" plus value_set: ${JSON.stringify(value)}.`;
+  }
+  return "Use value_type plus exactly one of value_string, value_int, value_number, value_bool, or value_set.";
 }
 
 // implements REQ-kibi-operation-interface-parity
@@ -45,7 +49,7 @@ export function factKindShapeHints(
     }
     if (present.length !== 1) {
       hints.push(
-        "fact_kind 'property_value' requires exactly one typed value field: value_string, value_int, value_number, or value_bool.",
+        "fact_kind 'property_value' requires exactly one typed value field: value_string, value_int, value_number, value_bool, or value_set.",
       );
     }
     if (hints.length > 0) {

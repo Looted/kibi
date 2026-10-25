@@ -59,6 +59,31 @@ export type ProofExplainSymbolBlock = {
   readonly coverageCandidates: readonly ProofCoverageCandidate[];
 };
 
+// implements REQ-kibi-claim-bound-proofs
+export type ClaimSummary = Readonly<{
+  applicable: number;
+  proved: number;
+  attested: number;
+  tested: number;
+  unresolved: number;
+}>;
+
+// implements REQ-kibi-claim-bound-proofs
+export type ClaimExplainEntry = Readonly<{
+  claimKey: string;
+  status: string;
+  applicable: boolean;
+  level: string | null;
+  blocker?: string;
+  bindings: readonly Readonly<{
+    test: string;
+    kind: string;
+    binding: string;
+    scope: string;
+    reason?: string;
+  }>[];
+}>;
+
 export type RequirementProofExplainView = {
   readonly kind: "requirement";
   readonly id: string;
@@ -68,6 +93,11 @@ export type RequirementProofExplainView = {
   readonly evidenceLevel?: string;
   /** Tests whose receipt claimed proved but whose certificate no longer re-checks. */
   readonly certificateRejections?: readonly { test: string; reason: string }[];
+  /** How many applicable claims reach each level, and which are not proved. */
+  readonly claimSummary?: ClaimSummary;
+  readonly unprovedClaims?: readonly string[];
+  /** One entry per inventory claim, with the certificate bindings behind it. */
+  readonly claims?: readonly ClaimExplainEntry[];
   readonly scenarios: readonly { id: string; tests: readonly string[] }[];
   readonly tests: readonly ProofExplainTestBlock[];
   readonly productionSymbols: readonly ProofExplainSymbolBlock[];
@@ -242,6 +272,7 @@ export function projectRequirementExplain(
           }),
         }
       : {}),
+    ...claimFields(proof),
     scenarios,
     tests,
     productionSymbols: explanations.filter(
@@ -251,6 +282,87 @@ export function projectRequirementExplain(
       structuralIds.has(item.symbolId),
     ),
   };
+}
+
+function claimFields(proof: Record<string, unknown>): {
+  claimSummary?: ClaimSummary;
+  unprovedClaims?: string[];
+  claims?: ClaimExplainEntry[];
+} {
+  const summary = asRecord(proof.claimSummary);
+  const count = (key: string) =>
+    typeof summary[key] === "number" ? (summary[key] as number) : 0;
+  return {
+    ...(proof.claimSummary !== undefined
+      ? {
+          claimSummary: {
+            applicable: count("applicable"),
+            proved: count("proved"),
+            attested: count("attested"),
+            tested: count("tested"),
+            unresolved: count("unresolved"),
+          },
+        }
+      : {}),
+    ...(Array.isArray(proof.unprovedClaims)
+      ? { unprovedClaims: asStringArray(proof.unprovedClaims) }
+      : {}),
+    ...(Array.isArray(proof.claimEvidence)
+      ? {
+          claims: proof.claimEvidence.map((item) => {
+            const entry = asRecord(item);
+            return {
+              claimKey: asString(entry.claimKey),
+              status: asString(entry.status),
+              applicable: asBoolean(entry.applicable),
+              level: typeof entry.level === "string" ? entry.level : null,
+              ...(typeof entry.blocker === "string"
+                ? { blocker: entry.blocker }
+                : {}),
+              bindings: (Array.isArray(entry.bindings)
+                ? entry.bindings
+                : []
+              ).map((raw) => {
+                const binding = asRecord(raw);
+                return {
+                  test: asString(binding.test),
+                  kind: asString(binding.kind),
+                  binding: asString(binding.binding),
+                  scope: asString(binding.scope),
+                  ...(typeof binding.reason === "string"
+                    ? { reason: binding.reason }
+                    : {}),
+                };
+              }),
+            };
+          }),
+        }
+      : {}),
+  };
+}
+
+function renderClaims(view: RequirementProofExplainView): string[] {
+  if (view.claims === undefined) return [];
+  const summary = view.claimSummary;
+  const lines = [
+    "",
+    summary === undefined
+      ? "Claims"
+      : `Claims (${summary.proved}/${summary.applicable} proved, ${summary.attested} attested, ${summary.tested} tested, ${summary.unresolved} unresolved)`,
+  ];
+  if (view.claims.length === 0) lines.push("  (none)");
+  for (const claim of view.claims) {
+    lines.push(
+      claim.applicable
+        ? `  ${claim.claimKey} ${claim.level ?? "unverified"} (${claim.status})${claim.blocker ? ` blocked by ${claim.blocker}` : ""}`
+        : `  ${claim.claimKey} not applicable (${claim.status})`,
+    );
+    for (const binding of claim.bindings)
+      lines.push(
+        `    ${binding.test} ${binding.kind}: ${binding.binding}${binding.binding === "derived" ? ` (${binding.scope})` : ""}${binding.reason ? `: ${binding.reason}` : ""}`,
+      );
+  }
+  return lines;
 }
 
 // implements REQ-kibi-verification-evidence-contract
@@ -290,6 +402,7 @@ function renderRequirementExplain(view: RequirementProofExplainView): string {
     ...(view.certificateRejections ?? []).map(
       (row) => `certificate rejected for ${row.test}: ${row.reason}`,
     ),
+    ...renderClaims(view),
     "",
     "Scenarios",
   ];

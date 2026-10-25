@@ -72,6 +72,7 @@ const STRING_ARRAY_FIELDS = new Set([
   "aliases",
   "examples",
   "predicate_args",
+  "value_set",
 ]);
 
 function getEntityField(entity: ExtractedEntity, field: string): unknown {

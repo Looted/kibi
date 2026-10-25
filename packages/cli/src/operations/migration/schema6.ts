@@ -27,6 +27,7 @@ import {
   type MigrationAction,
   migrationAction,
 } from "../../public/operations/migration-plan.js";
+import { CLAIM_BINDING_SCHEMA_VERSION } from "../../public/operations/proof-contract-claims.js";
 import {
   CLOSE_SUPERSEDED_REQUIREMENTS_ACTION_ID,
   CLOSE_SUPERSEDED_REQUIREMENTS_CODE,
@@ -82,6 +83,12 @@ import {
   applyPolarityValueBackfill,
   planPolarityValueBackfill,
 } from "./polarity-values.js";
+import {
+  type ClaimCandidateRow,
+  PROOF_CONTRACT_CLAIMS_PIN_CODE,
+  PROOF_CONTRACT_CLAIMS_REVIEW_CODE,
+  planProofContractClaimPins,
+} from "./proof-contract-claims.js";
 import {
   DELIVERED_REQUIREMENT_TAG,
   type RequirementStatusFinding,
@@ -572,6 +579,8 @@ export function buildSchema6MigrationFragment(input: {
   currentSchemaVersion: number | null;
   /** The evidence ladder's floor verdicts on the synced store, when read. */
   ladderFloors?: LadderFloorVerdicts | null;
+  /** Claim candidates of certificate contracts without proves, when read. */
+  claimCandidates?: readonly ClaimCandidateRow[] | null;
 }): Schema6MigrationFragment {
   const actions: MigrationAction[] = [];
   const sourceRewriteActionIds: string[] = [];
@@ -805,6 +814,68 @@ export function buildSchema6MigrationFragment(input: {
         }),
       );
     }
+  }
+  // Schema 12: a certificate contract names the claims it proves. Pin proves
+  // where the test reaches one provable claim; list the rest for review.
+  if (
+    (input.currentSchemaVersion === null ||
+      input.currentSchemaVersion < CLAIM_BINDING_SCHEMA_VERSION) &&
+    input.claimCandidates
+  ) {
+    const claims = planProofContractClaimPins(
+      input.workspaceRoot,
+      input.claimCandidates,
+    );
+    if (claims.targets.length > 0) {
+      const id = "proof-contract-claims-pin";
+      sourceRewriteActionIds.push(id);
+      actions.push(
+        migrationAction({
+          id,
+          code: PROOF_CONTRACT_CLAIMS_PIN_CODE,
+          category: "schema",
+          safety: "automatic",
+          autoApplicable: true,
+          invocation: {
+            kind: "cli",
+            command_argv: ["kibi", "migrate", "--yes"],
+          },
+          affectedEntityIds: claims.targets.map((row) => row.id),
+          affectedFiles: claims.targets.map((row) => row.path),
+          evidence: {
+            reason:
+              "Schema 12 requires every certificate-kind proof contract to name the claims it proves. Each of these tests reaches exactly one claim its proof kind can derive an obligation for, so the migration writes it to proof_contract.proves. The contract changes, so run kibi prove for these tests afterwards.",
+            count: claims.targets.length,
+            skipped: claims.skipped,
+            preserves: "every other front matter key and the body bytes",
+          },
+        }),
+      );
+    }
+    for (const row of claims.review)
+      actions.push(
+        migrationAction({
+          id: `proof-contract-claims-review-${row.id}`,
+          code: PROOF_CONTRACT_CLAIMS_REVIEW_CODE,
+          category: "semantic",
+          safety: "review",
+          invocation: {
+            kind: "review",
+            instruction:
+              row.candidates.length === 0
+                ? `${row.id} (${row.path}) has a ${row.kind} proof contract but reaches no claim ${/^[aeiou]/.test(row.kind) ? "an" : "a"} ${row.kind} certificate can derive an obligation for. Add proof_contract.proves with the claim key its certificate establishes (it then counts as attested, not proved), or model that claim's grounding fact as a ${row.kind === "exhaustive" || row.kind === "typecheck" ? "set" : "numeric"} fact first. Then run kibi prove --test ${row.id}.`
+                : `${row.id} (${row.path}) has a ${row.kind} proof contract and could prove any of ${row.candidates.join(", ")}. Add proof_contract.proves with the claim keys its certificate establishes, then run kibi prove --test ${row.id}.`,
+          },
+          affectedEntityIds: [row.id],
+          affectedFiles: [row.path],
+          postconditions: [
+            { rule: "proof-contract-claims", entityId: row.id, findings: 0 },
+          ],
+          dispositionRequired: true,
+          allowedDispositions: ["fixed", "deferred"],
+          evidence: { kind: row.kind, candidates: row.candidates },
+        }),
+      );
   }
   const drift = planInventoryRederivation(input.workspaceRoot);
   for (const plan of drift) {

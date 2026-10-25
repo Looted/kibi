@@ -300,6 +300,7 @@ function toExtractedEntity(entity: Record<string, unknown>): ExtractedEntity {
     "aliases",
     "examples",
     "predicate_args",
+    "value_set",
   ] as const) {
     const values = optionalStringArrayField(entity, field);
     if (values !== undefined) extracted[field] = values;

@@ -15,6 +15,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: test
 ---
 
 Replace the attached branch snapshot during a live MCP session and assert deterministic refresh, one retry for a changing stamp, and fail-closed behavior when reconciliation fails.

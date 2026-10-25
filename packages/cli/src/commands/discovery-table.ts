@@ -188,7 +188,7 @@ export function renderCoverageTable(
         stringifyCell(item.coverageStatus),
         stringifyCell(item.coverageDepth),
         stringifyCell(item.proofStatus),
-        stringifyCell(item.evidenceLevel),
+        evidenceCell(item),
         stringifyCell(item.scenarioCount),
         stringifyCell(item.testCount),
         stringifyCell(item.transitiveSymbolCount),
@@ -385,6 +385,17 @@ function stringifyCell(value: unknown): string {
     return value;
   }
   return String(value);
+}
+
+// implements REQ-kibi-claim-bound-proofs
+// The evidence level, with how many applicable claims a certificate proves.
+function evidenceCell(item: Record<string, unknown>): string {
+  const level = stringifyCell(item.evidenceLevel);
+  const summary = item.claimSummary;
+  if (summary === null || typeof summary !== "object") return level;
+  const { applicable, proved } = summary as Record<string, unknown>;
+  if (typeof applicable !== "number" || applicable === 0) return level;
+  return `${level}\n${typeof proved === "number" ? proved : 0}/${applicable} claims proved`;
 }
 
 // A nested summary count, such as evidenceLevels, reads as key=value pairs.

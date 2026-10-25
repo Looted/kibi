@@ -16,6 +16,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: flag
 ---
 
 When enabled: adds a webview panel with an interactive graph of entity relationships

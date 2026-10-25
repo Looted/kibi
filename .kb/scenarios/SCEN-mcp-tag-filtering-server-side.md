@@ -12,6 +12,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: scenario
 ---
 
 Given entities whose tags are stored in mixed or legacy list formats, when kb_query is called with a tags filter, then matching is any-of the provided tags, results match the previous public semantics, and the query path does not fetch every entity solely to apply the filter.

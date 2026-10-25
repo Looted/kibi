@@ -49,8 +49,9 @@ export interface FactFields {
   subject_key?: string;
   property_key?: string;
   operator?: "eq" | "neq" | "lt" | "lte" | "gt" | "gte";
-  value_type?: "string" | "int" | "number" | "bool";
+  value_type?: "string" | "int" | "number" | "bool" | "set";
   value_string?: string;
+  value_set?: string[];
   value_int?: number;
   value_number?: number;
   value_bool?: boolean;

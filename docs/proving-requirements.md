@@ -165,8 +165,11 @@ tested. The contract says so with `kind`:
 | `e2e` (default), `example`, `property` | the test runner | tested |
 | `exhaustive` | the test checks every member of a domain it imports from the code | proved |
 | `typecheck` | Kibi compiles a witness that fails to compile when a member goes unhandled | proved |
-| `arithmetic` | Kibi decides a one-variable claim exactly from the typed facts in `constraint_source` | proved |
-| `smt` | Kibi re-runs z3 or cvc5 on a query that asserts the `constraint_source` facts and needs `unsat` | proved |
+| `arithmetic` | Kibi decides a one-variable claim exactly from the typed facts in `constraint_source` or the code constants in `value_source` | proved |
+| `smt` | Kibi re-runs z3 or cvc5 on a query that asserts those assumptions and needs `unsat` | proved |
+
+"Proved" here is what the certificate supports; a requirement is proved only
+for the claims a certificate binds to (see "Binding a certificate to claims").
 
 ```yaml
 proof_contract:
@@ -292,19 +295,89 @@ A certificate only counts when the KB links it to the requirement it proves:
    that scenario's end-to-end test still has to pass.
 4. The test has a `proof_contract` with `kind` and `domain_source`, and the
    integration's command runs the proof file.
+5. The contract names the requirement claims the certificate proves in
+   `proves` (see below).
 
 `kibi proof explain REQ-...` shows each link it found, and
 `certificateRejections` says why a certificate did not count.
 
+### Binding a certificate to claims
+
+A requirement's prose is split into claims (its `semantic_inventory`), and
+each modeled claim is grounded by one typed fact. A certificate proves claims,
+not requirements: the contract names them in `proves`, and Kibi derives from
+each claim's fact what the certificate has to establish.
+
+```yaml
+proof_contract:
+  kind: exhaustive
+  domain_source:
+    symbol_id: SYM-cli-evidence-levels
+  proves:
+    - CLAIM-3F2A9C0D11E4B7A8   # "The evidence levels are proved, tested, asserted and unverified"
+```
+
+| The claim's fact | Kind | What the certificate must establish |
+| --- | --- | --- |
+| a set fact (`value_type: set`, `value_set: [...]`) | `exhaustive` | the domain Kibi loads is exactly the fact's set |
+| a set fact | `typecheck` | the domain export, as a type, is exactly the fact's set (Kibi compiles a set-equality witness itself) |
+| a numeric fact (`value_type: int` or `number`, a comparison) | `arithmetic` | the certificate's claim is the fact's constraint (negated for `polarity: forbid`) |
+| a numeric fact | `smt` | the query asserts the negation of the fact's constraint |
+
+A legacy `property_key: allowed_values` fact whose `value_string` joins the
+members with `|` reads as a set fact. Each claim gets one binding per test,
+recorded in the receipt's `claim_bindings`:
+
+- **derived**: Kibi checked the certificate against the claim's own fact.
+  Only a derived binding proves a claim.
+- **attested**: the fact has no derivation (a boolean placeholder, a
+  predicate, a rule, a free string). The author says the certificate
+  expresses the claim; Kibi reports it and counts it as tested, never proved.
+- **rejected**: the key is not a modeled claim of a current requirement the
+  test reaches through its scenarios, its fact is the wrong shape for the
+  kind (a set fact under `arithmetic`), or the certificate does not establish
+  the obligation. The reason says which.
+
+Exhaustive and typecheck bindings also need the `domain_source` symbol linked
+`covered_by` the test, so a change to the domain stales the proof. An
+arithmetic or SMT certificate that reads its assumptions from facts proves
+only that the facts entail the claim; its binding has scope `intent` and the
+claim stays tested. To prove that the code satisfies the claim, read the
+value from the code with `value_source` (instead of or with
+`constraint_source`), link those symbols `covered_by` the test, and the
+binding has scope `code`:
+
+```yaml
+  kind: arithmetic
+  value_source:
+    - symbol_id: SYM-retry-config
+      export: MAX_RETRIES          # a number export; Kibi reads it itself
+  proves:
+    - CLAIM-0A1B2C3D4E5F6071       # "Clients retry at most 3 times"
+```
+
+Kibi judges bindings at ingest and judges them again whenever it reports
+evidence: a binding whose fact changed since ingest (another set, another
+bound), whose claim is no longer modeled, or whose certificate no longer
+re-checks against the obligation is rejected. `kibi prove` prints each
+binding as it ingests a receipt.
+
+From schema 12 the blocking `proof-contract-claims` rule reports a
+certificate-kind contract without `proves` and a named claim no certificate of
+its kind could prove. `kibi migrate` pins `proves` where the test reaches
+exactly one claim its kind can derive and lists the other contracts.
+
 ### What `proved` covers
 
-`proved` means the requirement is tested end to end and each linked scenario
-has a fresh certificate. The certificate is checked against its domain, not
-against the requirement's individual claims, so a requirement with several
-claims is reported proved when one certificate per scenario re-checks, even if
-that certificate only speaks to one of the claims. Split a multi-claim
-requirement, or give each claim its own scenario and certificate, when every
-claim has to be proved.
+A requirement is **proved** when it is tested end to end and every applicable
+claim (every normative claim of its inventory; nonlogical context spans are
+not claims) has a derived, code-scope binding from a fresh, re-checked
+certificate. Coverage reports `claimSummary` per requirement (applicable,
+proved, attested, tested and unresolved claims), lists `unprovedClaims`, and
+`kibi proof explain` shows each claim with its bindings. A requirement whose
+claims are only partly proved is tested, and the table and the HTML report
+show `n/m claims proved`. A claim that is not yet modeled keeps the
+requirement below proved until it is.
 
 `arithmetic` and `smt` certificates pay off only when the requirement rests on
 typed numeric facts (bounds, limits, counts). For an enumerable domain use
@@ -336,11 +409,10 @@ diff is for. A receipt that claimed proved but no longer re-checks counts as
 tested, and coverage and `kibi proof explain` name the test and the reason
 (`certificateRejections`).
 
-A requirement is **proved** when it is tested end to end and every linked
-scenario also has a test (of any verification scope) whose fresh receipt is
-proved. A certificate strengthens end-to-end evidence; it never replaces the
+A certificate strengthens end-to-end evidence; it never replaces the
 journey test. `required_evidence: proved` makes the evidence-floor rule demand
-it.
+proved, and its finding lists the claims no certificate derives
+(`gapDetails.unprovedClaims`).
 
 A `bun test` proof step that runs a `*.proof.test.*` file is never satisfied by
 reused unit results, because reuse would leave no certificate.

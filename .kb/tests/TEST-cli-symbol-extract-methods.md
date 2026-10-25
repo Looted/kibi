@@ -13,6 +13,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: test
 ---
 
 Verifies that staged symbol extraction qualifies duplicate class method symbols and keeps method-level traceability directives attached to the method rather than the containing class.

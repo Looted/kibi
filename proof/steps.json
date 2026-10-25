@@ -2852,6 +2852,36 @@
     ]
   },
   {
+    "test_id": "TEST-kibi-claim-bound-proofs",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/claim-bound-proofs.test.ts"
+      ],
+      [
+        "swipl",
+        "-q",
+        "-s",
+        "packages/core/tests/kb.plt",
+        "-g",
+        "run_tests(claim_bound_proofs)",
+        "-t",
+        "halt"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-claim-bound-proofs-exhaustive",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claim-binding-verdicts.proof.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-kibi-evidence-levels-exhaustive",
     "steps": [
       [

@@ -108,6 +108,7 @@ is_fact_only_field(value_string).
 is_fact_only_field(value_int).
 is_fact_only_field(value_number).
 is_fact_only_field(value_bool).
+is_fact_only_field(value_set).
 is_fact_only_field(unit).
 is_fact_only_field(scope).
 is_fact_only_field(polarity).
@@ -227,7 +228,7 @@ text_atom(Value, Atom) :- string(Value), atom_string(Atom, Value).
 valid_operator(Op) :- memberchk(Op, [eq, neq, lt, lte, gt, gte]), !.
 
 % valid_value_type(+VT)
-valid_value_type(ValueType) :- memberchk(ValueType, [string, int, number, bool]), !.
+valid_value_type(ValueType) :- memberchk(ValueType, [string, int, number, bool, set]), !.
 
 % valid_polarity_in_props(+Props)
 % Validates polarity if present; succeeds if no polarity in props
@@ -299,6 +300,7 @@ is_value_field(value_string).
 is_value_field(value_int).
 is_value_field(value_number).
 is_value_field(value_bool).
+is_value_field(value_set).
 
 % value_type_matches_field(+ValueType, +Props)
 % Ensures that value_type matches the actual value field present
@@ -306,6 +308,7 @@ value_type_matches_field(string, Props) :- memberchk(value_string=_, Props), !.
 value_type_matches_field(int, Props) :- memberchk(value_int=_, Props), !.
 value_type_matches_field(number, Props) :- memberchk(value_number=_, Props), !.
 value_type_matches_field(bool, Props) :- memberchk(value_bool=_, Props), !.
+value_type_matches_field(set, Props) :- memberchk(value_set=_, Props), !.
 
 % valid_origin_in_props(+Props)
 % Entity provenance travels as a JSON object string (or a dict). When present

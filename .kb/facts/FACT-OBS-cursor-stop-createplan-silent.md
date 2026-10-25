@@ -17,6 +17,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: fact
 ---
 
 After a turn that observed `CreatePlan` and did not edit source files or mutate the knowledge base, the Cursor Kibi `stop` hook emits no `followup_message`.

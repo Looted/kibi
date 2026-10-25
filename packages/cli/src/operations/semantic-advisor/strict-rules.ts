@@ -188,10 +188,10 @@ export function detectStrictSuggestion(
           subject_key: normalizeSubjectKey(enumSet.groups.subject),
           property_key: "allowed_values",
           operator: "eq",
-          value_type: "string",
-          value_string: values.join("|"),
+          value_type: "set",
+          value_set: [...new Set(values)].sort(),
         },
-        "Allowed enum sets are explicit property values and should not remain prose-only.",
+        "Allowed enum sets are explicit set values and should not remain prose-only; an exhaustive or typecheck proof can bind to the set.",
         0.86,
         `one of ${enumSet.groups.values}`,
       );

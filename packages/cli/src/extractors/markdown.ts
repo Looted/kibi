@@ -91,6 +91,7 @@ const FACT_STRING_ARRAY_FIELDS = [
   "aliases",
   "examples",
   "predicate_args",
+  "value_set",
 ] as const;
 const FACT_ONLY_FIELDS = [
   ...FACT_STRING_FIELDS,
@@ -170,8 +171,9 @@ export interface ExtractedEntity {
   subject_key?: string;
   property_key?: string;
   operator?: "eq" | "neq" | "lt" | "lte" | "gt" | "gte";
-  value_type?: "string" | "int" | "number" | "bool";
+  value_type?: "string" | "int" | "number" | "bool" | "set";
   value_string?: string;
+  value_set?: string[];
   value_int?: number;
   value_number?: number;
   value_bool?: boolean;

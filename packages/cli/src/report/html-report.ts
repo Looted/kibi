@@ -589,6 +589,7 @@ function renderRequirement(
   const stages = requirementStages(row, repository);
   const badgeLabel = proofStatus === "tested" ? "Tested" : "Needs attention";
   const evidenceLevel = text(row.evidenceLevel, "unverified");
+  const claims = claimsProvedLabel(row);
   const requirementSource =
     sourceCoordinate({
       path: text(
@@ -601,7 +602,7 @@ function renderRequirement(
   return `<article class="requirement requirement--${escapeHtml(proofStatus)}" data-state="${rowStates(row)}" data-gate="${escapeHtml(gate)}">
     <header class="requirement__header">
       <div>
-        <div class="requirement__id">${linkedLabel(id, sourceWebUrl(repository, requirementSource))} <span class="evidence-level evidence-level--${escapeHtml(evidenceLevel)}" title="Evidence level">${escapeHtml(evidenceLevel)}</span></div>
+        <div class="requirement__id">${linkedLabel(id, sourceWebUrl(repository, requirementSource))} <span class="evidence-level evidence-level--${escapeHtml(evidenceLevel)}" title="Evidence level">${escapeHtml(evidenceLevel)}</span>${claims === null ? "" : ` <span class="claims-proved" title="Requirement claims a re-checked certificate derives">${escapeHtml(claims)}</span>`}</div>
         <h3>${linkedLabel(title, sourceWebUrl(repository, requirementSource))}</h3>
       </div>
       <span class="proof-badge proof-badge--${escapeHtml(proofStatus)}">${escapeHtml(badgeLabel)}</span>
@@ -611,6 +612,15 @@ function renderRequirement(
     ${renderIssueList(blockingGaps, "proof-gaps", "proof gap", "proof gaps")}
     ${renderIssueList(advisories, "proof-advisories", "advisory", "advisories")}
   </article>`;
+}
+
+// implements REQ-kibi-claim-bound-proofs
+function claimsProvedLabel(row: UnknownRecord): string | null {
+  const summary = record(row.claimSummary);
+  const applicable = summary.applicable;
+  if (typeof applicable !== "number" || applicable === 0) return null;
+  const proved = typeof summary.proved === "number" ? summary.proved : 0;
+  return `${proved}/${applicable} claims proved`;
 }
 
 // implements REQ-kibi-evidence-levels

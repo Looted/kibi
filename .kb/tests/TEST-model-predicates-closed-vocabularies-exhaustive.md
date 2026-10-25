@@ -17,6 +17,8 @@ proof_contract:
   kind: exhaustive
   domain_source:
     symbol_id: SYM-built-in-predicate-schemas
+  proves:
+    - CLAIM-17EA6E80A17D81E7
 origin:
   kind: agent
   recorded_at: '2026-10-24T19:31:47.509Z'
@@ -24,20 +26,20 @@ id: TEST-model-predicates-closed-vocabularies-exhaustive
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-fc65fc24fbee975158203792
+    receipt_id: PR-16340566e9abc2e621f848eb
     test_id: TEST-model-predicates-closed-vocabularies-exhaustive
     scope: unit
     outcome: passed
-    code_snapshot: ded72dac6be0ba6834ef5c3166558b3ffad93197ba8871d340c23f98ebdbb69e
+    code_snapshot: 88f72ac7863bc053137ae0fbd6e7ea179d4fbf9dd5cb363152f2b4fc11739754
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-24T21:36:59.734Z'
-    finished_at: '2026-10-24T21:36:59.805Z'
-    artifact_digest: 03a5c0c4457d938d455dd62d741ae069e6b3c02a1dd024aff66e985efcf78e29
-    contract_hash: 7074eaac232275721b2d959da015ca79fca5579d6db3cb8979410782698bddb5
-    binding_hash: 125a2b2cc1e6c79b71a364b434981237ce1143d68500b806a3c53ad1c824dbc2
-    fingerprint: eeafd6a4d1841e5f8e08be8d6025d1af89d08f363458dc2c3888c6a27123ebdc
+    started_at: '2026-10-25T18:54:15.848Z'
+    finished_at: '2026-10-25T18:54:15.919Z'
+    artifact_digest: 969144c8320850a137e0ef2d9a544372e5cedcff6f0c7d6cf3e7c8ccfc3ec577
+    contract_hash: b9ebbd0638f2be4b478ed9c2e0c85bf7ace6ee7f8ae3bd4f4c95d6fd48891f44
+    binding_hash: 0219d1e1fa2f9aa2755bf0026a2256caab571c95de383db688dd3b58c9f4c3d8
+    fingerprint: d9f1c46a1fa13c0ee21e47e7493ed8340df1cebfb86dea5e3f1a00d6ca6c0138
     fingerprint_components:
-      contract: 7074eaac232275721b2d959da015ca79fca5579d6db3cb8979410782698bddb5
+      contract: b9ebbd0638f2be4b478ed9c2e0c85bf7ace6ee7f8ae3bd4f4c95d6fd48891f44
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -298,5 +300,11 @@ proof_receipts:
         - member: FACT-SCHEMA-UI-CONTAINER
           outcome: passed
     certificate_digest: 9a6110d6c671b1bdc7fa2109adc2ed76a91383d6e02f03f76cf1f0592bb5120c
+    claim_bindings:
+      - claim_key: CLAIM-17EA6E80A17D81E7
+        requirement_id: REQ-model-predicates-closed-vocabularies
+        fact_id: FACT-model-predicates-closed-vocabularies-declared
+        binding: attested
+        scope: code
 ---
 Checks every member of BUILT_IN_PREDICATE_SCHEMAS: its vocabulary has no errors, each closed argument lists distinct constants that the schema examples use, the binding hint of each unbound closed argument lists exactly those constants as allowedValues, and no open argument lists any; the run leaves an exhaustive certificate over BUILT_IN_PREDICATE_SCHEMAS.

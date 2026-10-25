@@ -12,6 +12,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: scenario
 ---
 
 Given a scenario-backed E2E test with an existing receipt history, when the exact current proof contract is executed through `kibi prove`, then Kibi appends a `kibi.proof-receipt.v1` result containing the command, contract hash, required case results, timing, snapshot, outcome, and artifact digest while preserving every older receipt unchanged.

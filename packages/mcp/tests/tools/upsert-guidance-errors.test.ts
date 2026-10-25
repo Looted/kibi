@@ -73,7 +73,7 @@ describe("kb_upsert modeling guidance errors", () => {
         },
       }),
     ).rejects.toThrow(
-      "Use value_type plus exactly one of value_string, value_int, value_number, or value_bool",
+      "Use value_type plus exactly one of value_string, value_int, value_number, value_bool, or value_set",
     );
   });
 

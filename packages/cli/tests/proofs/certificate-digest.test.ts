@@ -109,16 +109,19 @@ describe("stored certificate re-check", () => {
         [receipt, edited, rehashed],
       ),
     ).toEqual([
-      { kind: "arithmetic", evidenceLevel: "proved" },
+      // The re-checked certificate travels on so claim bindings can read it.
+      { kind: "arithmetic", evidenceLevel: "proved", certificate },
       {
         kind: "arithmetic",
         evidenceLevel: "tested",
+        certificate: edited.certificate,
         certificateRejection:
           "the certificate no longer matches its certificate_digest",
       },
       {
         kind: "arithmetic",
         evidenceLevel: "tested",
+        certificate: rehashed.certificate,
         certificateRejection:
           "the assumptions do not entail the claim: some value satisfies them and breaks it",
       },

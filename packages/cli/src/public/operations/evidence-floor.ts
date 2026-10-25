@@ -78,6 +78,7 @@ const GAP_DETAIL_LABELS: Readonly<Record<string, string>> = {
   contractMismatchReceiptTests: "receipts for an older contract",
   uncoveredSymbols: "production symbols without qualifying coverage",
   missingCoordinateSymbols: "symbols without source coordinates",
+  unprovedClaims: "claims no certificate derives",
 };
 
 /** The entities behind the gaps, for a person reading kibi check's text. */
@@ -97,7 +98,7 @@ function suggestionFor(row: EvidenceFloorRow): string {
     return `Run kibi prove for the tests behind ${row.id} so its receipts match the current code, then rerun kibi check --fresh-evidence.`;
   switch (row.requiredEvidence) {
     case "proved":
-      return `Give ${row.id} evidence a second program can re-check (a proof kind that issues a certificate), or lower required_evidence with the reason in the requirement.`;
+      return `Prove every applicable claim of ${row.id}${(row.gapDetails?.unprovedClaims ?? []).length > 0 ? ` (unproved: ${(row.gapDetails?.unprovedClaims ?? []).join(", ")})` : ""}: model each as a set fact (prove it with exhaustive or typecheck) or a numeric fact (arithmetic or smt), name it in a certificate test's proof_contract.proves, and run kibi prove; kibi proof explain ${row.id} shows each claim's bindings. A claim with no such fact can only be attested, so lower required_evidence to tested with the reason in the requirement if that is enough.`;
     case "tested":
       return `Link ${row.id} to a scenario with an end-to-end test that has a proof contract, run kibi prove, and fix its proof gaps (${row.proofGaps.join(", ") || "none listed"}${gapDetailLines(row).length > 0 ? `; ${gapDetailLines(row).join("; ")}` : ""}); kibi proof explain ${row.id} shows each one. Or lower required_evidence if a person decides it does not need tests.`;
     default:

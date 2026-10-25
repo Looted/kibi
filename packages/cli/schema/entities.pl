@@ -72,6 +72,8 @@ entity_property(fact, value_string, string).
 entity_property(fact, value_int, integer).
 entity_property(fact, value_number, number).
 entity_property(fact, value_bool, boolean).
+% The exact members of a set fact (value_type set).
+entity_property(fact, value_set, list).
 entity_property(fact, unit, string).
 entity_property(fact, scope, string).
 entity_property(fact, polarity, atom).

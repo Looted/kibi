@@ -12,6 +12,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: scenario
 ---
 
 Given fresh packed CLI and MCP runtimes in diagnostic mode, when both receive the same opaque session and actor identifiers, then they append semantically equivalent correlated usage records. Given advisor or preflight evidence from a different session or actor, when the operator runs `usage-remediation`, then `kibi.telemetry-remediation.v1` identifies the exact unmatched upsert by log line and audit fields, orders repairs deterministically, preserves missing coverage as report-level work, and does not mutate the usage log or knowledge base.

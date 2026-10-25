@@ -38,6 +38,7 @@
     certificate_rule_edges/1,
     certificate_member_holds/3,
     certificate_members_satisfiable/2,
+    set_texts/2,
     verify_certificates/2,
     kb_verify_certificates_file/2
 ]).
@@ -148,7 +149,7 @@ kind_is(Certificate, Kind) :-
 % Every comparable context: context(Subject, Property, Scope, Domain, Members)
 % or unresolved(Subject, Property, Scope, Reason).  A member is
 % m(FactId, Op, Value, ValidFrom, ValidTo) with the operator already negated
-% for a forbid fact; Domain is int, number, bool or string.
+% for a forbid fact; Domain is int, number, bool, string or set.
 certificate_property_contexts(Contexts) :-
     findall(Fact-tuple(Subject, Property, Op, Type, Value, Unit, Scope, Polarity, From, To),
         (   kb:current_req(Req),
@@ -202,6 +203,8 @@ context_domain(Members, Domain, Reason) :-
     ->  Domain = bool, context_scalar_reason(Members, Reason)
     ;   Types == [string]
     ->  Domain = string, context_scalar_reason(Members, Reason)
+    ;   Types == [set]
+    ->  Domain = set, context_scalar_reason(Members, Reason)
     ;   Types = [_, _|_]
     ->  Domain = none, Reason = "the facts use different value types"
     ;   Domain = none, Reason = "the value type is not supported"
@@ -247,6 +250,22 @@ certificate_member_holds(Domain, m(_, Op, Bound, _, _), Value) :-
     ;   Op == neq -> ValueText \== BoundText
     ).
 
+% A set value is the exact set of allowed values: eq holds for the same
+% members in any order, neq for any other set.
+certificate_member_holds(set, m(_, Op, Bound, _, _), Value) :-
+    set_texts(Value, ValueTexts),
+    set_texts(Bound, BoundTexts),
+    (   Op == eq -> ValueTexts == BoundTexts
+    ;   Op == neq -> ValueTexts \== BoundTexts
+    ).
+
+%% set_texts(+Value, -Texts)
+% The sorted, unique member texts of a set value.
+set_texts(Value, Texts) :-
+    is_list(Value),
+    maplist(text_of, Value, Texts0),
+    sort(Texts0, Texts).
+
 numeric_domain(int).
 numeric_domain(number).
 
@@ -282,6 +301,14 @@ scalar_candidates(string, Members, Candidates) :-
     atomic_list_concat(["kibi:fresh"|Texts], '|', FreshAtom),
     atom_string(FreshAtom, Fresh),
     append(Texts, [Fresh], Candidates).
+scalar_candidates(set, Members, Candidates) :-
+    findall(Texts, (member(m(_, _, Bound, _, _), Members), set_texts(Bound, Texts)), Sets0),
+    sort(Sets0, Sets),
+    findall(Text, (member(Set, Sets), member(Text, Set)), Texts0),
+    sort(Texts0, Texts),
+    atomic_list_concat(["kibi:fresh"|Texts], '|', FreshAtom),
+    atom_string(FreshAtom, Fresh),
+    append(Sets, [[Fresh]], Candidates).
 
 property_theorem(Contexts, Numbered, Theorem, Used, Rejected) :-
     findall(Index-Certificate,

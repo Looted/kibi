@@ -67,6 +67,7 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 semantic_text: Current requirement writes must reject any omitted assertive proposition. Ledger entries must bind to the exact semantic source field, SHA-256 hash, and UTF-8 span. Duplicate claim keys or spans must be rejected. Ambiguity, ontology gaps, or missing interpretations remain explicit unresolved states rather than evidence of consistency. Every modeled proposition must have exactly one logical grounding fact with the same claim key. Markdown sync must baseline existing legacy requirements once, then enforce complete ledgers for new or semantically changed requirements.
+type: req
 ---
 
 Current requirement writes must reject any omitted assertive proposition. Ledger entries must bind to the exact semantic source field, SHA-256 hash, and UTF-8 span. Duplicate claim keys or spans must be rejected. Ambiguity, ontology gaps, or missing interpretations remain explicit unresolved states rather than evidence of consistency. Every modeled proposition must have exactly one logical grounding fact with the same claim key. Markdown sync must baseline existing legacy requirements once, then enforce complete ledgers for new or semantically changed requirements.

@@ -363,6 +363,11 @@ h1 span {
   text-transform: uppercase;
   letter-spacing: .06em;
 }
+.claims-proved {
+  margin-left: 6px;
+  opacity: 0.75;
+  font-weight: 400;
+}
 .requirement__id {
   margin-bottom: 7px;
   color: var(--muted);

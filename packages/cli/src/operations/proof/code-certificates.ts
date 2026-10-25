@@ -48,7 +48,7 @@ export type CertificateVerdict = Readonly<{
   certificate_rejection?: string;
 }>;
 
-type SymbolRow = Readonly<{ id: string; title: string; sourceFile: string }>;
+export type SymbolRow = Readonly<{ id: string; title: string; sourceFile: string }>;
 
 function record(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === "object" && !Array.isArray(value)
@@ -60,7 +60,7 @@ function text(value: unknown): string {
   return typeof value === "string" ? value : "";
 }
 
-async function loadSymbol(
+export async function loadSymbol(
   context: OperationContext,
   symbolId: string,
 ): Promise<SymbolRow | null> {
@@ -74,7 +74,7 @@ async function loadSymbol(
   return { id: symbolId, title: text(row.title), sourceFile };
 }
 
-function readWorkspaceFile(workspaceRoot: string, relative: string) {
+export function readWorkspaceFile(workspaceRoot: string, relative: string) {
   const absolute = path.resolve(workspaceRoot, relative);
   if (!absolute.startsWith(path.resolve(workspaceRoot) + path.sep)) return null;
   return existsSync(absolute) ? readFileSync(absolute, "utf8") : null;
@@ -269,7 +269,10 @@ else if (value instanceof Set) items = [...value];
 else if (value instanceof Map) items = [...value.keys()];
 else if (value !== null && typeof value === "object") items = Object.keys(value);
 const primitive = (item) => ["string", "number", "boolean", "bigint"].includes(typeof item);
-console.log(JSON.stringify(items === null
+const scalar = typeof value === "number" || typeof value === "bigint" ? Number(value) : null;
+console.log(JSON.stringify(scalar !== null
+  ? { scalar }
+  : items === null
   ? { error: \`\${name} is not an array, set, map or object\` }
   : { count: items.length, members: items.every(primitive) ? items.map(String) : null }));
 `;
@@ -302,7 +305,9 @@ def text(item):
     if isinstance(item, bool):
         return "true" if item else "false"
     return str(item)
-if items is None:
+if isinstance(value, (int, float)) and not isinstance(value, bool):
+    print(json.dumps({"scalar": value}))
+elif items is None:
     print(json.dumps({"error": f"{name} is not a list, tuple, set, dict or Enum"}))
 else:
     print(json.dumps({"count": len(items), "members": [text(i) for i in items] if all(primitive(i) for i in items) else None}))
@@ -388,6 +393,47 @@ export function evaluateDomain(
 ):
   | { ok: true; count: number; members: readonly string[] | null }
   | { ok: false; reason: string } {
+  const evaluated = evaluateExport(workspaceRoot, sourceFile, exportName, options);
+  if (!evaluated.ok) return evaluated;
+  if (evaluated.scalar !== undefined)
+    return {
+      ok: false,
+      reason: `${exportName} is a number, not a list, set, map or object`,
+    };
+  return { ok: true, count: evaluated.count, members: evaluated.members };
+}
+
+/**
+ * The number a value_source export holds, read the same way as a domain.
+ */
+// implements REQ-kibi-claim-bound-proofs
+export function evaluateScalar(
+  workspaceRoot: string,
+  sourceFile: string,
+  exportName: string,
+): { ok: true; value: number } | { ok: false; reason: string } {
+  const evaluated = evaluateExport(workspaceRoot, sourceFile, exportName);
+  if (!evaluated.ok) return evaluated;
+  if (evaluated.scalar === undefined || !Number.isFinite(evaluated.scalar))
+    return { ok: false, reason: `${exportName} in ${sourceFile} is not a finite number` };
+  return { ok: true, value: evaluated.scalar };
+}
+
+function evaluateExport(
+  workspaceRoot: string,
+  sourceFile: string,
+  exportName: string,
+  options: Readonly<{
+    runners?: readonly ("bun" | "tsx" | "node")[];
+  }> = {},
+):
+  | {
+      ok: true;
+      count: number;
+      members: readonly string[] | null;
+      scalar?: number;
+    }
+  | { ok: false; reason: string } {
   const absolute = path.resolve(workspaceRoot, sourceFile);
   const python = /\.py$/i.test(sourceFile);
   const tsx = python ? null : workspaceBin(workspaceRoot, "tsx");
@@ -433,8 +479,11 @@ export function evaluateDomain(
         error?: string;
         count?: number;
         members?: string[] | null;
+        scalar?: number;
       };
       if (parsed.error !== undefined) return { ok: false, reason: parsed.error };
+      if (typeof parsed.scalar === "number")
+        return { ok: true, count: 0, members: null, scalar: parsed.scalar };
       if (typeof parsed.count === "number")
         return { ok: true, count: parsed.count, members: parsed.members ?? null };
     } catch {
@@ -527,7 +576,7 @@ export function compileWitness(
   return { ok: true, version: ts.version };
 }
 
-type FactConstraint = Readonly<{ operator: string; value: number }>;
+export type FactConstraint = Readonly<{ operator: string; value: number }>;
 
 /**
  * The constraints the contract's constraint_source facts state on one
@@ -609,7 +658,7 @@ function smtNumber(value: number, valueType: "int" | "real"): string {
 }
 
 /** The SMT-LIB assertion a fact constraint must appear as in the query. */
-function smtAssertion(
+export function smtAssertion(
   property: string,
   valueType: "int" | "real",
   row: FactConstraint,
@@ -621,10 +670,42 @@ function smtAssertion(
 }
 
 /**
- * arithmetic and smt certificates must rest on the knowledge base: the
- * arithmetic assumptions are exactly the facts' constraints on a variable
- * named after the fact property, and an smt query declares that constant
- * and asserts each fact constraint.
+ * The values a contract's value_source exports hold, read from the code the
+ * same way as a domain, or why one cannot be read.
+ */
+// implements REQ-kibi-claim-bound-proofs
+export async function valueSourceValues(
+  context: OperationContext,
+  contract: ProofContract,
+): Promise<
+  | { ok: true; values: { symbol_id: string; value: number }[] }
+  | { ok: false; reason: string }
+> {
+  const values: { symbol_id: string; value: number }[] = [];
+  for (const source of contract.value_source ?? []) {
+    const symbol = await loadSymbol(context, source.symbol_id);
+    if (!symbol || symbol.sourceFile === "")
+      return {
+        ok: false,
+        reason: `the value_source symbol ${source.symbol_id} has no source file`,
+      };
+    const evaluated = evaluateScalar(
+      context.workspaceRoot,
+      symbol.sourceFile,
+      source.export ?? symbol.title,
+    );
+    if (!evaluated.ok) return evaluated;
+    values.push({ symbol_id: source.symbol_id, value: evaluated.value });
+  }
+  return { ok: true, values };
+}
+
+/**
+ * arithmetic and smt certificates must rest on the knowledge base and the
+ * code: the arithmetic assumptions are exactly the constraint_source facts'
+ * constraints plus one `eq` per value_source constant, on a variable named
+ * after the fact property, and an smt query declares that constant and
+ * asserts each of them.
  */
 async function constraintSourceProblem(
   context: OperationContext,
@@ -632,34 +713,54 @@ async function constraintSourceProblem(
   certificate: Record<string, unknown>,
 ): Promise<string | null> {
   const factIds = contract.constraint_source?.fact_ids ?? [];
-  if (factIds.length === 0)
-    return `the contract names no constraint_source facts, so the ${contract.kind} certificate proves numbers the test chose`;
-  const facts = await factConstraints(context, factIds);
-  if (!facts.ok) return facts.reason;
+  if (factIds.length === 0 && (contract.value_source ?? []).length === 0)
+    return `the contract names no constraint_source facts or value_source constants, so the ${contract.kind} certificate proves numbers the test chose`;
+  const facts =
+    factIds.length === 0
+      ? null
+      : await factConstraints(context, factIds);
+  if (facts !== null && !facts.ok) return facts.reason;
+  const sources = await valueSourceValues(context, contract);
+  if (!sources.ok) return sources.reason;
+  const property =
+    facts !== null && facts.ok ? facts.property : text(certificate.variable);
+  const valueType: "int" | "real" =
+    facts !== null && facts.ok
+      ? facts.valueType
+      : text(certificate.value_type) === "real" ||
+          sources.values.some((row) => !Number.isInteger(row.value))
+        ? "real"
+        : "int";
+  const constraints: FactConstraint[] = [
+    ...(facts !== null && facts.ok ? facts.constraints : []),
+    ...sources.values.map((row) => ({ operator: "eq", value: row.value })),
+  ];
   if (contract.kind === "arithmetic") {
-    if (text(certificate.variable) !== facts.property)
-      return `the certificate's variable ${text(certificate.variable) || "(none)"} is not the facts' property ${facts.property}`;
-    if (text(certificate.value_type) !== facts.valueType)
-      return `the certificate's value_type ${text(certificate.value_type)} is not the facts' ${facts.valueType}`;
+    if (text(certificate.variable) !== property)
+      return `the certificate's variable ${text(certificate.variable) || "(none)"} is not the facts' property ${property}`;
+    if (text(certificate.value_type) !== valueType)
+      return `the certificate's value_type ${text(certificate.value_type)} is not the facts' ${valueType}`;
     const assumptions = Array.isArray(certificate.assumptions)
       ? certificate.assumptions.map((row) => constraintKey(record(row) ?? {}))
       : [];
-    const expected = facts.constraints.map(constraintKey);
+    const expected = constraints.map(constraintKey);
     const same =
       assumptions.length === expected.length &&
       [...assumptions].sort().join("|") === [...expected].sort().join("|");
     if (!same)
-      return `the certificate's assumptions are not exactly the constraint_source facts' constraints (${expected.join(", ")})`;
+      return `the certificate's assumptions are not exactly the constraint_source facts' constraints and value_source values (${expected.join(", ")})`;
     return null;
   }
   const query = text(certificate.query).replace(/\s+/g, " ");
-  const sort = facts.valueType === "int" ? "Int" : "Real";
-  if (!query.includes(`(declare-const ${facts.property} ${sort})`))
-    return `the query does not declare (declare-const ${facts.property} ${sort}) for the facts' property`;
-  for (const row of facts.constraints) {
-    const assertion = smtAssertion(facts.property, facts.valueType, row);
+  const sort = valueType === "int" ? "Int" : "Real";
+  if (property === "")
+    return "the smt contract names no constraint_source facts, so Kibi cannot tell which constant the query is about";
+  if (!query.includes(`(declare-const ${property} ${sort})`))
+    return `the query does not declare (declare-const ${property} ${sort}) for the facts' property`;
+  for (const row of constraints) {
+    const assertion = smtAssertion(property, valueType, row);
     if (!query.includes(assertion))
-      return `the query does not assert the constraint_source fact constraint ${assertion}`;
+      return `the query does not assert the constraint_source or value_source constraint ${assertion}`;
   }
   return null;
 }

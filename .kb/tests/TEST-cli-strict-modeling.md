@@ -13,6 +13,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: test
 ---
 
 Verifies subject/property normalization, stable IDs, strict write-set construction, and migration-warning modeling behavior for contradiction-safe requirement writes.

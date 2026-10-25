@@ -3,7 +3,7 @@
 Consumer-facing reference for `proofStatus`, `proofStages`, `proofGaps`, and
 `proofAdvisories` as reported by `kibi coverage --by req` and `kb_coverage`.
 The authoritative implementation is `packages/core/src/requirement_proof.pl`
-(proof version `kibi.requirement-proof.v4`); this document explains what each
+(proof version `kibi.requirement-proof.v5`); this document explains what each
 stage means and what to do when it does not pass.
 
 ## Applicability: is the requirement in scope at all?
@@ -268,7 +268,7 @@ backs it:
 
 | Level | Meaning | What earns it |
 | --- | --- | --- |
-| `proved` | A checker established the claim for every case and left a certificate a second program can re-check | `proofStatus: tested`, and every linked scenario also has a test whose fresh `kibi.proof-receipt.v2` is proved: a certificate-kind contract (`exhaustive`, `typecheck`, `arithmetic`, `smt`) whose certificate re-checks now (see [Certificate proof kinds](proving-requirements.md#certificate-proof-kinds)) |
+| `proved` | A checker established every claim of the requirement for every case and left certificates a second program can re-check | `proofStatus: tested`, and every applicable claim has a derived, code-scope binding: a fresh `kibi.proof-receipt.v2` of a certificate-kind contract (`exhaustive`, `typecheck`, `arithmetic`, `smt`) that names the claim in `proves`, whose certificate re-checks now against the obligation Kibi derives from the claim's fact (see [Binding a certificate to claims](proving-requirements.md#binding-a-certificate-to-claims)) |
 | `tested` | Passing runs on sampled cases, bound to the current code snapshot | `proofStatus: tested` |
 | `asserted` | A person stands behind the statement, but nothing current checks it | `origin.approved_by`, or firm: `firmness: firm`, or no `firmness` and an origin other than `agent` |
 | `unverified` | Stated, not approved, no evidence | Nothing: an agent wrote it and no person approved it |
@@ -280,6 +280,18 @@ passing `tests`, a `certificate` entry its proved `tests` and their proof
 `kinds`, a `human_intent` entry its `basis` (`approved` or `firm`)
 and, when there is one, the `ref` to the person's words. The coverage
 summary counts rows per level under `evidenceLevels`.
+
+From `kibi.requirement-proof.v5` each row also judges its claims one by one.
+`claimEvidence[]` has an entry per inventory claim with its `claimKey`,
+`status`, whether it is `applicable` (a nonlogical context span is not), the
+`level` it reaches and the certificate `bindings` behind it (`derived`,
+`attested` or `rejected`, with the test, kind, scope and reason);
+`claimSummary` counts the applicable claims per level (`proved`, `attested`,
+`tested`, `unresolved`) and `unprovedClaims` lists those below proved. A
+claim is proved only through a derived binding with scope `code`; an
+attested binding (the fact has no derivation) and an intent-scope one (an
+arithmetic claim decided from the facts alone) count as tested. The coverage
+summary adds the claim totals under `proofClaims`.
 
 Firmness and evidence level are separate axes. Firmness says how sure the
 person is; the level says how strong the evidence is. A firm requirement at
