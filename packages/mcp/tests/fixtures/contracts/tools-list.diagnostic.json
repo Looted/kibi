@@ -3966,8 +3966,16 @@
                     "type": "array"
                   },
                   "success_policy": {
-                    "const": "all_required_first_attempt",
-                    "type": "string"
+                    "anyOf": [
+                      {
+                        "const": "all_required_first_attempt",
+                        "type": "string"
+                      },
+                      {
+                        "const": "own_results_first_attempt",
+                        "type": "string"
+                      }
+                    ]
                   },
                   "version": {
                     "const": "kibi.proof-contract.v1",

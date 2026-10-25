@@ -509,7 +509,10 @@
                   "type": "array"
                 },
                 "success_policy": {
-                  "enum": ["all_required_first_attempt"],
+                  "enum": [
+                    "all_required_first_attempt",
+                    "own_results_first_attempt"
+                  ],
                   "type": "string"
                 },
                 "version": {
