@@ -16,6 +16,21 @@ import {
 
 export const PROOF_RECEIPT_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 
+/**
+ * How a certificate binds to a claim its contract names in proves: derived
+ * (Kibi checked it against the claim's fact; the only verdict that proves),
+ * attested (the fact has no derivation; the author vouches) or rejected.
+ */
+// implements REQ-kibi-claim-bound-proofs
+export const CLAIM_BINDING_VERDICTS = [
+  "derived",
+  "attested",
+  "rejected",
+] as const;
+
+// implements REQ-kibi-claim-bound-proofs
+export type ClaimBindingVerdict = (typeof CLAIM_BINDING_VERDICTS)[number];
+
 export const PROOF_RECEIPT_OUTCOMES = [
   "passed",
   "failed",
@@ -164,7 +179,10 @@ export const PROOF_RECEIPT_SCHEMA = {
           claim_key: { type: "string", minLength: 1 },
           requirement_id: { type: "string", minLength: 1 },
           fact_id: { type: "string", minLength: 1 },
-          binding: { type: "string", enum: ["derived", "attested", "rejected"] },
+          binding: {
+            type: "string",
+            enum: [...CLAIM_BINDING_VERDICTS],
+          },
           scope: { type: "string", enum: ["code", "intent"] },
           obligation: { type: "object" },
           reason: { type: "string", minLength: 1 },
@@ -246,7 +264,7 @@ export type ClaimBinding = Readonly<{
   claim_key: string;
   requirement_id?: string;
   fact_id?: string;
-  binding: "derived" | "attested" | "rejected";
+  binding: ClaimBindingVerdict;
   scope?: "code" | "intent";
   obligation?: Readonly<Record<string, unknown>>;
   reason?: string;
@@ -432,7 +450,10 @@ function validV2Fields(row: Record<string, unknown>): boolean {
     !nonEmptyString(row.certificate_rejection)
   )
     return false;
-  if (row.claim_bindings !== undefined && !validClaimBindings(row.claim_bindings))
+  if (
+    row.claim_bindings !== undefined &&
+    !validClaimBindings(row.claim_bindings)
+  )
     return false;
   return true;
 }
@@ -445,7 +466,9 @@ function validClaimBindings(value: unknown): boolean {
       (entry) =>
         isRecord(entry) &&
         nonEmptyString(entry.claim_key) &&
-        ["derived", "attested", "rejected"].includes(String(entry.binding)) &&
+        (CLAIM_BINDING_VERDICTS as readonly unknown[]).includes(
+          entry.binding,
+        ) &&
         (entry.scope === undefined ||
           entry.scope === "code" ||
           entry.scope === "intent") &&

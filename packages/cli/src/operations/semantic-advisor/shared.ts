@@ -192,7 +192,9 @@ export function strictSuggestion(
     ...(claim.value_string !== undefined
       ? { value_string: claim.value_string }
       : {}),
-    ...(claim.value_set !== undefined ? { value_set: [...claim.value_set] } : {}),
+    ...(claim.value_set !== undefined
+      ? { value_set: [...claim.value_set] }
+      : {}),
     ...(claim.value_int !== undefined ? { value_int: claim.value_int } : {}),
     ...(claim.value_number !== undefined
       ? { value_number: claim.value_number }

@@ -413,7 +413,16 @@ evidence_floor_gap_details(Proof, Details) :-
             get_dict(Field, Stage, Ids),
             Ids \== []
         ),
-        Pairs),
+        Pairs0),
+    % implements REQ-kibi-claim-bound-proofs
+    % Under a proved floor, the claims no certificate binding derives.
+    (   get_dict(evidenceFloor, Proof, Floor),
+        get_dict(required, Floor, proved),
+        get_dict(unprovedClaims, Proof, Unproved),
+        Unproved \== []
+    ->  Pairs = [unprovedClaims-Unproved|Pairs0]
+    ;   Pairs = Pairs0
+    ),
     dict_pairs(Details, _, Pairs).
 
 evidence_floor_gap_field(failedReceiptTests, passingE2e, failedReceiptTests).
@@ -1246,6 +1255,7 @@ coverage_summary(Rows, Summary) :-
     length(MissingBothRows, MissingScenarioAndTest),
     length(ProofTestedRows, ProofTested),
     evidence_level_counts(Rows, EvidenceLevels),
+    claim_level_counts(Rows, ProofClaims),
     length(ProofUnresolvedRows, ProofUnresolved),
     length(ProofMissingRows, ProofMissing),
     length(ProofNotApplicableRows, ProofNotApplicable),
@@ -1263,8 +1273,29 @@ coverage_summary(Rows, Summary) :-
         proofMissing: ProofMissing,
         proofNotApplicable: ProofNotApplicable,
         evidenceLevels: EvidenceLevels,
+        proofClaims: ProofClaims,
         linkCoverageScope: priority_must
     }.
+
+% implements REQ-kibi-claim-bound-proofs
+% The applicable requirement claims across Rows, by the level their evidence
+% reaches: a claim is proved only through a derived certificate binding.
+claim_level_counts(Rows, _{applicable: Applicable, proved: Proved, attested: Attested,
+                           tested: Tested, unresolved: Unresolved}) :-
+    claim_count_sum(Rows, applicable, Applicable),
+    claim_count_sum(Rows, proved, Proved),
+    claim_count_sum(Rows, attested, Attested),
+    claim_count_sum(Rows, tested, Tested),
+    claim_count_sum(Rows, unresolved, Unresolved).
+
+claim_count_sum(Rows, Key, Sum) :-
+    aggregate_all(sum(N),
+        (   member(Row, Rows),
+            get_dict(claimSummary, Row, Summary),
+            get_dict(Key, Summary, N),
+            number(N)
+        ),
+        Sum).
 
 % implements REQ-kibi-evidence-levels
 evidence_level_counts(Rows, _{proved: Proved, tested: Tested, asserted: Asserted, unverified: Unverified}) :-

@@ -179,7 +179,7 @@ Unit-scope fixture that satisfies structure but never E2E proof.
           );
           assert.strictEqual(
             row.proofVersion,
-            "kibi.requirement-proof.v4",
+            "kibi.requirement-proof.v5",
             "proof projection stays on the current contract version",
           );
         },

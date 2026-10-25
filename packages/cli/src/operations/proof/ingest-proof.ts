@@ -36,6 +36,7 @@ import {
 } from "../../public/proof-protocol.js";
 import {
   MAX_PROOF_RECEIPTS,
+  type ClaimBinding,
   type ProofReceipt,
   proofReceiptCurrentBindingErrors,
   proofReceiptHistoryErrors,
@@ -75,6 +76,8 @@ export type IngestProofTestResult = Readonly<{
   /** Superseded receipts the ingest compaction dropped from the history. */
   compacted: number;
   gaps: readonly ProofGap[];
+  /** How the receipt's certificate binds to each claim its contract names. */
+  claimBindings?: readonly ClaimBinding[];
 }>;
 
 // implements REQ-kibi-verification-evidence-contract
@@ -504,6 +507,13 @@ async function executeIngestProofUnlocked(
   }
 
   const results: IngestProofTestResult[] = [];
+  const bindingsOf = new Map(
+    prepared.flatMap((entry) =>
+      entry.receipt.claim_bindings === undefined
+        ? []
+        : [[entry.testId, { claimBindings: entry.receipt.claim_bindings }]],
+    ),
+  );
   const pendingCommits: PendingReceiptCommit[] = [];
   let passed = 0;
   let failed = 0;
@@ -526,6 +536,7 @@ async function executeIngestProofUnlocked(
         receiptCount: existing.length,
         compacted: 0,
         gaps: evaluation.gaps,
+        ...bindingsOf.get(testId),
       });
       continue;
     }
@@ -681,6 +692,7 @@ async function executeIngestProofUnlocked(
         receiptCount: entry.receiptCount,
         compacted: entry.compacted,
         gaps: entry.gaps,
+        ...bindingsOf.get(entry.testId),
       });
     }
   }

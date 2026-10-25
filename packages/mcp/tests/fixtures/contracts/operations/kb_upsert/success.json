@@ -488,6 +488,16 @@
                   ],
                   "type": "string"
                 },
+                "proves": {
+                  "description": "Certificate kinds: the requirement claim keys (CLAIM-...) this certificate proves. Each must be a modeled claim of a current requirement the test reaches through its scenarios. Kibi derives what the certificate must establish from the claim's grounding fact (a set fact for exhaustive or typecheck, a numeric fact for arithmetic or smt); a claim with no such derivation is only attested and never counts as proved.",
+                  "items": {
+                    "pattern": "^CLAIM-",
+                    "type": "string"
+                  },
+                  "minItems": 1,
+                  "type": "array",
+                  "uniqueItems": true
+                },
                 "required_proofs": {
                   "items": {
                     "additionalProperties": false,
@@ -514,6 +524,26 @@
                     "own_results_first_attempt"
                   ],
                   "type": "string"
+                },
+                "value_source": {
+                  "description": "arithmetic and smt: code constants the assumptions read. Kibi evaluates each export at ingest and requires the certificate to assume the variable equals that value, so the proof is about the code and not only the knowledge base.",
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "export": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "symbol_id": {
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": ["symbol_id"],
+                    "type": "object"
+                  },
+                  "minItems": 1,
+                  "type": "array"
                 },
                 "version": {
                   "const": "kibi.proof-contract.v1",
@@ -564,6 +594,44 @@
                   "certificate_rejection": {
                     "minLength": 1,
                     "type": "string"
+                  },
+                  "claim_bindings": {
+                    "description": "Certificate kinds: how the certificate binds to each claim its contract names in proves, judged at ingest. derived means Kibi derived the certificate's obligation from the claim's grounding fact and the certificate satisfies it; attested means no derivation exists and the author vouches for it (never proved); rejected names why.",
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "binding": {
+                          "enum": ["derived", "attested", "rejected"],
+                          "type": "string"
+                        },
+                        "claim_key": {
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "fact_id": {
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "obligation": {
+                          "type": "object"
+                        },
+                        "reason": {
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "requirement_id": {
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "scope": {
+                          "enum": ["code", "intent"],
+                          "type": "string"
+                        }
+                      },
+                      "required": ["claim_key", "binding"],
+                      "type": "object"
+                    },
+                    "type": "array"
                   },
                   "code_snapshot": {
                     "pattern": "^[a-f0-9]{64}$",
@@ -986,13 +1054,23 @@
               "description": "Optional number value for property_value facts.",
               "type": "number"
             },
+            "value_set": {
+              "description": "Optional exact set of values for property_value facts with value_type set, such as the members a domain must have.",
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            },
             "value_string": {
               "description": "Optional string value for property_value facts.",
               "type": "string"
             },
             "value_type": {
-              "description": "Optional typed value discriminator for property_value facts. Pair with exactly one value_string, value_int, value_number, or value_bool; do not use generic value.",
-              "enum": ["string", "int", "number", "bool"],
+              "description": "Optional typed value discriminator for property_value facts. Pair with exactly one value_string, value_int, value_number, value_bool, or value_set (set: an exact list of allowed values, operator eq or neq); do not use generic value.",
+              "enum": ["string", "int", "number", "bool", "set"],
               "type": "string"
             },
             "verification_perspective": {
