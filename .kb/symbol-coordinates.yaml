@@ -10835,6 +10835,14 @@ coordinates:
     sourceEndLine: 87
     sourceFile: packages/core/src/requirement_proof.pl
     sourceLine: 87
+  SYM-core-proved-scenario-tests:
+    identityHash: 5bd5670792ba8e4cb90a3069fa9e40a686030df32ef10de1b559048c49a546d4
+    sourceHash: d26ac57d03430bee05ada8021bf02ab6775890b3e8d7857905578d7c182dac07
+    sourceColumn: 4
+    sourceEndColumn: 18
+    sourceEndLine: 108
+    sourceFile: packages/core/src/requirement_proof.pl
+    sourceLine: 108
   SYM-core-receipt-kind-evidence:
     identityHash: 4bfd3c1578722a43811ad6202e2bc5fe55696dad94f3afaab3da029a7df8eea1
     sourceHash: d26ac57d03430bee05ada8021bf02ab6775890b3e8d7857905578d7c182dac07
