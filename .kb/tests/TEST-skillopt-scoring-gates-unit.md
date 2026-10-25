@@ -7,6 +7,13 @@ tags:
   - structural-contract
   - review:context-missing
 verification_scope: unit
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-unit-test-skillopt-scoring-gates-unit
+      target: default
+  success_policy: all_required_first_attempt
 id: TEST-skillopt-scoring-gates-unit
 type: test
 origin:

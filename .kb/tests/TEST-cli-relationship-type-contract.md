@@ -7,6 +7,13 @@ tags:
   - types
   - unit
 verification_scope: unit
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-unit-test-cli-relationship-type-contract
+      target: default
+  success_policy: all_required_first_attempt
 verification_perspective: internal
 id: TEST-cli-relationship-type-contract
 type: test

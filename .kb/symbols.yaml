@@ -57295,3 +57295,57 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-rule-registry-single-source
+  - id: SYM-unit-test-cli-relationship-type-contract
+    title: relationships.test
+    status: active
+    sourceFile: packages/cli/tests/operations/relationships.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-cli-relationship-type-contract
+  - id: SYM-unit-test-cli-source-relationship-parity-unit
+    title: source-relationship-parity-coverage.test
+    status: active
+    sourceFile: packages/cli/tests/public/operations/source-relationship-parity-coverage.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-cli-source-relationship-parity-unit
+  - id: SYM-unit-test-cli-workspace-snapshot-dirtiness
+    title: node-ports.test
+    status: active
+    sourceFile: packages/cli/tests/operations/node-ports.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-cli-workspace-snapshot-dirtiness
+  - id: SYM-unit-test-impact-public-preparation-parity
+    title: impact-review-preparation.test
+    status: active
+    sourceFile: packages/cli/tests/traceability/impact-review-preparation.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-impact-public-preparation-parity
+  - id: SYM-unit-test-skillopt-file-bridge-unit
+    title: file-bridge.test
+    status: active
+    sourceFile: scripts/skillopt-eval/tests/file-bridge.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-file-bridge-unit
+  - id: SYM-unit-test-skillopt-scoring-gates-unit
+    title: scoring-gates.test
+    status: active
+    sourceFile: scripts/skillopt-eval/tests/scoring-gates.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-scoring-gates-unit

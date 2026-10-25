@@ -3,6 +3,13 @@ title: Public impact-review preparation parity preserves exact scope and unautho
 status: passing
 text_ref: packages/cli/tests/parity/harness.test.ts
 verification_scope: unit
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-unit-test-impact-public-preparation-parity
+      target: default
+  success_policy: all_required_first_attempt
 verification_perspective: internal
 tags:
   - multilingual

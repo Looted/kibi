@@ -3084,5 +3084,81 @@
         "./packages/cli/tests/utils/rule-registry-contract.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-cli-relationship-type-contract",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/operations/relationships.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-source-relationship-parity-unit",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/public/operations/source-relationship-parity-coverage.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-workspace-snapshot-dirtiness",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/operations/node-ports.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-impact-public-preparation-parity",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/traceability/impact-review-preparation.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-skillopt-file-bridge-unit",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--preload",
+        "./scripts/skillopt-eval/offline-test-preload.ts",
+        "--timeout",
+        "15000",
+        "./scripts/skillopt-eval/tests/file-bridge.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-skillopt-scoring-gates-unit",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--preload",
+        "./scripts/skillopt-eval/offline-test-preload.ts",
+        "--timeout",
+        "15000",
+        "./scripts/skillopt-eval/tests/scoring-gates.test.ts"
+      ]
+    ]
   }
 ]

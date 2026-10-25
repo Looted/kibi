@@ -37803,6 +37803,14 @@ coordinates:
     sourceEndLine: 158
     sourceFile: packages/cli/tests/utils/config.test.ts
     sourceLine: 1
+  SYM-unit-test-cli-relationship-type-contract:
+    identityHash: eeba8b8eb878624f4b999d29c36789f8750a9f5422be003f9f57254dbdada56f
+    sourceHash: 32fb3c13fe4101f2e501a8cf618b3cf47a86b41ce23f519fc1b286a6b81b664a
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 37
+    sourceFile: packages/cli/tests/operations/relationships.test.ts
+    sourceLine: 1
   SYM-unit-test-cli-requirement-quality-diagnostics:
     identityHash: cedcf90bcfc502e6cccc71e848aac3f1918a287fbd3c8b1c8581343135582142
     sourceHash: 232aaafba7e49075369b30a995694e6410dc589511092b4c4b44a344844eeefe
@@ -37811,6 +37819,14 @@ coordinates:
     sourceEndLine: 357
     sourceFile: packages/cli/tests/traceability/impact-requirement-quality.test.ts
     sourceLine: 1
+  SYM-unit-test-cli-source-relationship-parity-unit:
+    identityHash: dc02a86dbb18d548af1c771d8674b5103ae12ad5aefa5ea1c163cf1547ac2076
+    sourceHash: e409aa2b5edd28f44407ec11fd17ba4257193eef23ed2b262a77be3be9b44bdb
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 212
+    sourceFile: packages/cli/tests/public/operations/source-relationship-parity-coverage.test.ts
+    sourceLine: 1
   SYM-unit-test-cli-symbol-quality-diagnostics:
     identityHash: 400dad43bce750b0ed9bece6466324e09321f8d426e179073ba8768c92d33613
     sourceHash: e68a1532a5695492422880d793d595c195482a41e318f3908221b4ab3b497d00
@@ -37818,6 +37834,14 @@ coordinates:
     sourceEndColumn: 0
     sourceEndLine: 396
     sourceFile: packages/cli/tests/traceability/impact-symbol-quality.test.ts
+    sourceLine: 1
+  SYM-unit-test-cli-workspace-snapshot-dirtiness:
+    identityHash: 055e7d1c4945b1b9ad9c9ab043937583a1a2ac04cbc6e67c2bb51d1ff9f635cb
+    sourceHash: b259765f7f43898319eaa2497ce124a8f43da9d73f5c5a8c675f455d7fd8d929
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 300
+    sourceFile: packages/cli/tests/operations/node-ports.test.ts
     sourceLine: 1
   SYM-unit-test-coordinate-repair-capability:
     identityHash: 2dc22dc4bee2d9465331ce97d4d4b260518b8a87fc338531752b2490c5625cb8
@@ -37835,6 +37859,14 @@ coordinates:
     sourceEndLine: 395
     sourceFile: packages/cli/tests/public/impact/coverage-depth-quality.test.ts
     sourceLine: 1
+  SYM-unit-test-impact-public-preparation-parity:
+    identityHash: b7702a69ad5bd9e4525b6fdee21231d09ed2e714c46aa8cd31be7d6a23a94996
+    sourceHash: d964b431dabb6409864cfda04b9554c741f4dc99c29566ae54fc7835102ea621
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 323
+    sourceFile: packages/cli/tests/traceability/impact-review-preparation.test.ts
+    sourceLine: 1
   SYM-unit-test-prolog-library-adoption-mcp:
     identityHash: 27ec728548f8c1c9de3d374ea8c25ae72ce7de31cdb4515981c8c798d41db36d
     sourceHash: baf7ce5d477919cba7bfbbd85f2c9d06c6d0a4e280599b9555ca9cc02c178f3d
@@ -37850,6 +37882,22 @@ coordinates:
     sourceEndColumn: 0
     sourceEndLine: 99
     sourceFile: packages/cli/tests/utils/rule-registry-contract.test.ts
+    sourceLine: 1
+  SYM-unit-test-skillopt-file-bridge-unit:
+    identityHash: ce702fe6c124b9063d6da5635d2e34f9dba3f931b87ed28f2623cbdad09009b0
+    sourceHash: 648891874606009cf7286a17b85d9bb1da0f978538f589be1bd21942b0bedd0d
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 128
+    sourceFile: scripts/skillopt-eval/tests/file-bridge.test.ts
+    sourceLine: 1
+  SYM-unit-test-skillopt-scoring-gates-unit:
+    identityHash: ef6bce2792c5319778e13b0fba9a634cb1206718585ed0e9f984dd6fe27531c6
+    sourceHash: 4a7c69540a24786b264ba80b0de002816049a99e96e67db8720f8262be2f1901
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 315
+    sourceFile: scripts/skillopt-eval/tests/scoring-gates.test.ts
     sourceLine: 1
   SYM-updateGitIgnore:
     identityHash: b9d10bf438a59b7341334176ea0cedbc826d1d705c0d1e11a39daf6232d2b37a

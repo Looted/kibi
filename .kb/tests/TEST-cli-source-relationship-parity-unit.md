@@ -7,6 +7,13 @@ tags:
   - parity
   - unit
 verification_scope: unit
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-unit-test-cli-source-relationship-parity-unit
+      target: default
+  success_policy: all_required_first_attempt
 verification_perspective: internal
 id: TEST-cli-source-relationship-parity-unit
 type: test
