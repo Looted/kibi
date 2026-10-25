@@ -760,7 +760,9 @@ function proofContractKindErrors(contract: Record<string, unknown>): string[] {
           row !== null &&
           nonEmptyString(row.symbol_id) &&
           (row.export === undefined || nonEmptyString(row.export)) &&
-          Object.keys(row).every((key) => key === "symbol_id" || key === "export")
+          Object.keys(row).every(
+            (key) => key === "symbol_id" || key === "export",
+          )
         );
       })
     )

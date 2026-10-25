@@ -25,7 +25,9 @@
 // agent wrote it.
 // Schema 11 checks each current requirement's evidence level against its
 // floor (required_evidence, else tested when firm).
-export const LATEST_KB_SCHEMA_VERSION = 11;
+// Schema 12 requires every certificate-kind proof contract to name the
+// claims it proves.
+export const LATEST_KB_SCHEMA_VERSION = 12;
 
 export interface SchemaVersionStatus {
   status: "missing" | "invalid" | "older" | "current" | "newer";

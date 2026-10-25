@@ -23,6 +23,8 @@
     claim_obligation/3,
     fact_obligation/3,
     obligation_equal/2,
+    proof_contract_claim_candidates_json/1,
+    proof_contract_claim_issues_json/1,
     test_claim_obligations_json/4
 ]).
 
@@ -46,9 +48,10 @@ fact_obligation(FactId, ProofKind, Result) :-
     ->  (   memberchk(ProofKind, [arithmetic, smt])
         ->  Result = obligation(_{kind: "numeric_constraint", variable: Variable,
                                   value_type: ValueType, operator: Operator, value: Value})
-        ;   format(string(Reason),
-                   "~w is a numeric fact, which an ~w certificate cannot express (use arithmetic or smt)",
-                   [FactId, ProofKind]),
+        ;   (   ProofKind == typecheck -> Article = a ; Article = an ),
+            format(string(Reason),
+                   "~w is a numeric fact, which ~w ~w certificate cannot express (use arithmetic or smt)",
+                   [FactId, Article, ProofKind]),
             Result = incompatible(Reason)
         )
     ;   Result = attested
@@ -177,7 +180,26 @@ prop_atom(Props, Key, Atom) :-
     kb:normalize_term_atom(Raw, Atom).
 
 % The status of a claim in the requirement's semantic inventory.
+% With ClaimKey unbound it enumerates the claims; the first entry for a key
+% wins.
 requirement_claim_status(ReqId, ClaimKey, Status) :-
+    nonvar(ClaimKey),
+    !,
+    once(inventory_claim_status(ReqId, ClaimKey, Status0)),
+    Status = Status0.
+requirement_claim_status(ReqId, ClaimKey, Status) :-
+    findall(Key-S, inventory_claim_status(ReqId, Key, S), Pairs),
+    first_per_key(Pairs, [], Unique),
+    member(ClaimKey-Status, Unique).
+
+first_per_key([], Acc, Unique) :- reverse(Acc, Unique).
+first_per_key([Key-S|Rest], Acc, Unique) :-
+    (   memberchk(Key-_, Acc)
+    ->  first_per_key(Rest, Acc, Unique)
+    ;   first_per_key(Rest, [Key-S|Acc], Unique)
+    ).
+
+inventory_claim_status(ReqId, ClaimKey, Status) :-
     kb_entity(ReqId, req, Props),
     memberchk(semantic_inventory=Raw, Props),
     inventory_list(Raw, Entries),
@@ -185,8 +207,7 @@ requirement_claim_status(ReqId, ClaimKey, Status) :-
     entry_field(Entry, claim_key, RawKey),
     kb:normalize_term_atom(RawKey, ClaimKey),
     entry_field(Entry, status, RawStatus),
-    kb:normalize_term_atom(RawStatus, Status),
-    !.
+    kb:normalize_term_atom(RawStatus, Status).
 
 inventory_list(Raw, Entries) :- is_list(Raw), !, Entries = Raw.
 inventory_list(^^(Raw, _), Entries) :- !, inventory_list(Raw, Entries).
@@ -273,3 +294,85 @@ owner_row(Kind, Key, KeyString, ReqId, Acc0, [Row|Acc0]) :-
     ;   Result = unresolved(Reason),
         Row = Base.put(_{result: "unresolved", reason: Reason})
     ).
+
+%% proof_contract_claim_issues_json(-Json)
+% For the proof-contract-claims rule: one row {test_id, claim_key?, reason}
+% per certificate-kind proof contract that names no claims in proves, and
+% per claim key it names that no certificate of its kind could prove
+% (not a modeled claim of a reached requirement, no grounding fact, or a
+% fact the kind cannot express).  An attested claim is not an issue here:
+% it is reported as attested, and never counts as proved.
+proof_contract_claim_issues_json(Json) :-
+    findall(Row, proof_contract_claim_issue(Row), Rows0),
+    sort(Rows0, Rows),
+    with_output_to(string(Json), json_write_dict(current_output, Rows, [width(0)])).
+
+certificate_kind(exhaustive).
+certificate_kind(typecheck).
+certificate_kind(arithmetic).
+certificate_kind(smt).
+
+test_certificate_contract(TestId, Kind, Contract) :-
+    kb_entity(TestId, test, Props),
+    memberchk(proof_contract=Raw, Props),
+    contract_dict(Raw, Contract),
+    get_dict(kind, Contract, RawKind),
+    text_string(RawKind, KindString),
+    atom_string(Kind, KindString),
+    certificate_kind(Kind).
+
+contract_dict(^^(Raw, _), Dict) :- !, contract_dict(Raw, Dict).
+contract_dict(Dict, Dict) :- is_dict(Dict), !.
+contract_dict(Raw, Dict) :-
+    (   atom(Raw) ; string(Raw) ),
+    catch(atom_json_dict(Raw, Dict, [value_string_as(string)]), _, fail),
+    is_dict(Dict).
+
+proof_contract_claim_issue(_{test_id: TestString, reason: Reason}) :-
+    test_certificate_contract(TestId, Kind, Contract),
+    \+ ( get_dict(proves, Contract, Proves), is_list(Proves), Proves \== [] ),
+    atom_string(TestId, TestString),
+    format(string(Reason),
+           "the ~w proof contract names no claims in proves, so its certificate proves nothing about a requirement",
+           [Kind]).
+proof_contract_claim_issue(_{test_id: TestString, claim_key: KeyString, reason: Reason}) :-
+    test_certificate_contract(TestId, Kind, Contract),
+    get_dict(proves, Contract, Proves),
+    is_list(Proves),
+    Proves \== [],
+    atom_json_term(KeysJson, Proves, []),
+    test_claim_obligations_json(TestId, KeysJson, Kind, RowsJson),
+    atom_json_dict(RowsJson, Rows, [value_string_as(string)]),
+    member(Row, Rows),
+    get_dict(result, Row, Result),
+    memberchk(Result, ["unresolved", "incompatible"]),
+    atom_string(TestId, TestString),
+    get_dict(claim_key, Row, KeyString),
+    get_dict(reason, Row, Reason).
+
+%% proof_contract_claim_candidates_json(-Json)
+% For the schema 12 migration: one row {test_id, kind, candidates} per
+% certificate-kind proof contract without proves, where candidates are the
+% claims {claim_key, requirement_id, fact_id} of current requirements the
+% test reaches whose grounding fact derives an obligation for its kind.  The
+% migration pins proves only when exactly one claim is a candidate.
+proof_contract_claim_candidates_json(Json) :-
+    findall(Row, proof_contract_claim_candidates(Row), Rows0),
+    sort(Rows0, Rows),
+    with_output_to(string(Json), json_write_dict(current_output, Rows, [width(0)])).
+
+proof_contract_claim_candidates(_{test_id: TestString, kind: KindString, candidates: Candidates}) :-
+    test_certificate_contract(TestId, Kind, Contract),
+    \+ ( get_dict(proves, Contract, Proves), is_list(Proves), Proves \== [] ),
+    findall(_{claim_key: KeyString, requirement_id: ReqString, fact_id: FactString},
+        (   test_requirement(TestId, ReqId),
+            requirement_claim_status(ReqId, ClaimKey, modeled),
+            claim_obligation(ReqId-ClaimKey, Kind, obligation(FactId, _)),
+            atom_string(ClaimKey, KeyString),
+            atom_string(ReqId, ReqString),
+            atom_string(FactId, FactString)
+        ),
+        Candidates0),
+    sort(Candidates0, Candidates),
+    atom_string(TestId, TestString),
+    atom_string(Kind, KindString).

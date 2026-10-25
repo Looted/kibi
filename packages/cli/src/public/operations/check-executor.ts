@@ -54,6 +54,7 @@ import {
 } from "./migration-plan.js";
 import { collectOriginReviewViolations } from "./origin-review.js";
 import { collectPredicateSchemaConformanceViolations } from "./predicate-schema-conformance.js";
+import { collectProofContractClaimViolations } from "./proof-contract-claims.js";
 import type { OperationContext, PrologPort } from "./runtime-types.js";
 import {
   SOURCE_PATH_DANGLING_RULE,
@@ -401,6 +402,8 @@ export async function executeCheck(
       rulesAllowlist,
       { freshEvidence: args.freshEvidence === true },
     );
+    const proofContractClaimFindings =
+      await collectProofContractClaimViolations(context, rulesAllowlist);
     const partitioned = partitionCheckFindings([
       ...aggregatedFindings,
       ...queryPlanViolations,
@@ -413,6 +416,7 @@ export async function executeCheck(
       ...decisionFirmnessFindings,
       ...checkPolicyFindings,
       ...evidenceFloorFindings,
+      ...proofContractClaimFindings,
     ]);
     const violations: Violation[] = partitioned.violations;
     const evaluated = await describeEvaluation(prolog, rulesAllowlist);

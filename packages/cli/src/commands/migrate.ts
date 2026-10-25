@@ -38,6 +38,7 @@ import {
   applyOriginBackfill,
   planOriginBackfill,
 } from "../operations/migration/origin-backfill.js";
+import type { ProofContractClaimsPlan } from "../operations/migration/proof-contract-claims.js";
 import {
   type RequirementStatusFinding,
   applyDeliveredStatusMappings,
@@ -229,6 +230,13 @@ const SCHEMA_MIGRATION_STEPS: readonly SchemaMigrationStep[] = [
     description:
       "Check every current requirement's evidence level against its floor (required_evidence, else tested when firm), and record required_evidence: asserted on current firm requirements that have no scenario verified by a test with a proof contract; front matter only.",
   },
+  {
+    id: "claim-bound-proofs-v12",
+    from: 11,
+    to: 12,
+    description:
+      "Require every certificate-kind proof contract to name the requirement claims it proves, and pin proves on contracts whose test reaches exactly one claim the proof kind can derive an obligation for; front matter only. Other contracts are listed for a person to bind.",
+  },
 ];
 
 function migrationStepsFor(
@@ -240,6 +248,26 @@ function migrationStepsFor(
 
 function printWarning(message: string): void {
   console.log(`Warning: ${message}`);
+}
+
+function printClaimBindingReview(
+  plan: ProofContractClaimsPlan,
+  noStore: boolean,
+  dryRun: boolean,
+): void {
+  const prefix = dryRun ? "dry run: " : "";
+  if (noStore)
+    console.log(
+      `${prefix}no synced store could be read, so no proof_contract.proves was pinned; run kibi sync and rerun kibi migrate, or add proves by hand where kibi check --rules proof-contract-claims reports a contract.`,
+    );
+  for (const row of plan.review)
+    console.log(
+      row.candidates.length === 0
+        ? `${prefix}${row.id} (${row.kind}) reaches no claim ${/^[aeiou]/.test(row.kind) ? "an" : "a"} ${row.kind} certificate can derive an obligation for; add proves with the claim it establishes (it will be attested, not proved) or model the claim's fact as a ${row.kind === "exhaustive" || row.kind === "typecheck" ? "set" : "numeric"} fact.`
+        : `${prefix}${row.id} (${row.kind}) could prove any of ${row.candidates.join(", ")}; add proof_contract.proves with the ones its certificate establishes.`,
+    );
+  for (const skip of plan.skipped)
+    printWarning(`Cannot pin proves on ${skip.path}: ${skip.reason}.`);
 }
 
 function toRelativePath(cwd: string, filePath: string): string {
@@ -885,6 +913,17 @@ export async function migrateCommand(
   const ladderFloors = evidenceFloorStep
     ? await readLadderFloorVerdicts(cwd)
     : null;
+  const claimBindingStep = migrationSteps.some(
+    (step) => step.id === "claim-bound-proofs-v12",
+  );
+  const {
+    applyProofContractClaimPins,
+    planProofContractClaimPins,
+    readProofContractClaimCandidates,
+  } = await import("../operations/migration/proof-contract-claims.js");
+  const claimCandidates = claimBindingStep
+    ? await readProofContractClaimCandidates(cwd)
+    : null;
   const {
     mergeSupersedesAcknowledgements,
     planSupersedesReasonAcknowledgement,
@@ -953,6 +992,14 @@ export async function migrateCommand(
         );
       for (const skip of floors.skipped)
         printWarning(`Cannot edit ${skip.path}: ${skip.reason}.`);
+    }
+    if (claimBindingStep) {
+      const claims = planProofContractClaimPins(cwd, claimCandidates);
+      if (claims.targets.length > 0)
+        console.log(
+          `dry run: would pin proof_contract.proves on ${claims.targets.length} certificate test(s) whose test reaches exactly one provable claim (${claims.targets.map((target) => target.id).join(", ")}); front matter only.`,
+        );
+      printClaimBindingReview(claims, claimCandidates === null, true);
     }
     if (storagePlan.moves.length > 0) {
       console.log(
@@ -1085,6 +1132,9 @@ export async function migrateCommand(
   const evidenceFloorsPinned = evidenceFloorStep
     ? applyEvidenceFloorPins(cwd, ladderFloors)
     : 0;
+  const claimPins = claimBindingStep
+    ? applyProofContractClaimPins(cwd, claimCandidates)
+    : null;
 
   const existingManifest = readKbManifest(cwd) ?? defaultKbManifest();
   writeKbManifest(cwd, {
@@ -1140,6 +1190,13 @@ export async function migrateCommand(
     printWarning(
       `Cannot record required_evidence on ${skip.path}: ${skip.reason}.`,
     );
+  if (claimPins !== null) {
+    if (claimPins.targets.length > 0)
+      console.log(
+        `Pinned proof_contract.proves on ${claimPins.targets.length} certificate test(s) (${claimPins.targets.map((target) => target.id).join(", ")}); run kibi prove for them so their receipts bind the claim.`,
+      );
+    printClaimBindingReview(claimPins, claimCandidates === null, false);
+  }
 
   await refreshMigratedSymbolCoordinates(cwd, generatedManifestsBefore);
 
@@ -1272,6 +1329,12 @@ async function buildWorkspaceMigrationPlan(
   const { readLadderFloorVerdicts } = await import(
     "../operations/migration/evidence-floor.js"
   );
+  const { CLAIM_BINDING_SCHEMA_VERSION } = await import(
+    "../public/operations/proof-contract-claims.js"
+  );
+  const { readProofContractClaimCandidates } = await import(
+    "../operations/migration/proof-contract-claims.js"
+  );
   const fragment = buildSchema6MigrationFragment({
     workspaceRoot,
     currentSchemaVersion,
@@ -1279,6 +1342,11 @@ async function buildWorkspaceMigrationPlan(
       currentSchemaVersion === null ||
       currentSchemaVersion < EVIDENCE_FLOOR_SCHEMA_VERSION
         ? await readLadderFloorVerdicts(workspaceRoot)
+        : null,
+    claimCandidates:
+      currentSchemaVersion === null ||
+      currentSchemaVersion < CLAIM_BINDING_SCHEMA_VERSION
+        ? await readProofContractClaimCandidates(workspaceRoot)
         : null,
   });
   const fragmentActions = [...fragment.actions];
