@@ -4,7 +4,7 @@ description: Check exact Git attachment, branch migration/quarantine, compiled-s
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-freshness
-  version: 2.1.0
+  version: 2.2.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -68,6 +68,10 @@ For every freshness, branch, or completion question, call `kb_status` first, the
   evidence-dependent closeout. Name the exact paths/symbol IDs and whether the
   result is fixed, accepted, or deferred.
 - If entities look stale, refresh context through an approved Kibi capability and then re-query.
+- When asked whether a requirement is proven, quote its `evidenceLevel` and
+  `evidenceFloor` from `kb_coverage`. `pending_reproof` (receipts older than
+  the code) is stale evidence, not proof; `kibi prove` refreshes it, and
+  `kibi check --fresh-evidence` is the check that fails on it.
 - Preserve source-file traceability by carrying `sourceFile`, text references, and validation evidence through discovery, mutation, and completion.
 - Do not read or edit files inside `.kb` directly; use the selected Kibi interface instead.
 - Kibi authors tracked files but never Git-stages or commits them; ordinary Git workflows remain responsible for review and commit.

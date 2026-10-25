@@ -4,7 +4,7 @@ description: "Use when the person states a rule or decision (must, never, always
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-decisions
-  version: 1.2.1
+  version: 1.3.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -76,6 +76,13 @@ name the missing capability. Never read or edit `.kb/` files directly.
   quoting their words and where they said them, a sectioned `document.body`,
   a scenario, and an `implements` link from the code that enforces it. Use
   `kb_compile_intent` first when the rule may touch several requirements.
+  A firm rule needs `tested` evidence by default, so `kb_check`'s
+  `evidence-floor` rule fails on it until an end-to-end test proves its
+  scenario. When the change includes that test, give it a proof contract and
+  run `kibi prove`. Otherwise set `required_evidence: asserted`, say in the
+  body that no end-to-end test proves the rule yet, and report it as
+  asserted, not tested. Kibi's bootstrap and migration give an untested firm
+  rule the same floor.
 - **The person changes a rule:** supersede it (new requirement linked
   `supersedes` new -> old, `firmness: firm` when the old one was firm, a
   `## Why this changed` section of at least 12 words naming their instruction
@@ -126,7 +133,8 @@ Validation is not completion. When a request conflicts with a recorded rule and 
 
 End with `kb_check` (and `kb_status` when freshness matters) and say:
 
-- which rules you followed, asked about, recorded or changed (ids, firmness);
+- which rules you followed, asked about, recorded or changed (ids, firmness,
+  evidence level);
 - under "Decisions I changed", each supersede and its evidence;
 - the open question, if a conflict is waiting on the person;
 - or, when the session made no decision, one line saying so.
