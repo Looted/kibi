@@ -335,6 +335,14 @@ migration lists them. Their proof can still have gaps it does not read, such
 as a stale receipt or a production symbol without `covered_by`, so run
 `kibi check --rules evidence-floor` after migrating and fix what it reports.
 
+The schema 12 upgrade binds certificates to claims. `kibi migrate --yes` pins
+`proves` on each certificate-kind contract whose test reaches exactly one
+claim its kind can prove and lists the other contracts for review. Until a
+contract names its claims, the blocking `proof-contract-claims` rule reports
+it and its certificate proves nothing, so a requirement that reported
+`proved` before reports `tested` until its claims are bound and re-proved with
+`kibi prove`.
+
 ## Knowledge-base certificates
 
 Evidence levels describe requirements. The `kb-consistency` rule of
