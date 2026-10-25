@@ -245,8 +245,13 @@ anchor):
   output (`dist/status.js`), Kibi maps the import back to the source through
   the nearest `tsconfig.json` (`outDir` to `rootDir`) before checking that the
   proof file imports the domain.
-- **Python**: a `.py` domain is loaded with `python3` (or `python`), imported
-  under its package name so absolute and relative imports inside it resolve.
+- **Python**: a `.py` domain is loaded with the first interpreter found among
+  `KIBI_PYTHON`, the active virtualenv (`VIRTUAL_ENV`), a `.venv` or `venv`
+  directory from the domain file's directory up to the workspace root, then
+  `python3` (or `python`) on `PATH`, so the domain's own dependencies import.
+  It is imported under its package name so absolute and relative imports
+  inside it resolve. When loading fails, the rejection quotes the exception
+  line of the traceback (`ModuleNotFoundError: No module named 'x'`).
   An `Enum` contributes its member values, a `dict` its keys, and a list,
   tuple, set or frozenset its items. The proof file must import the module
   (`from app.status import OrderStatus`, `from .status import OrderStatus` or

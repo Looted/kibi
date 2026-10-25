@@ -61,7 +61,7 @@ test("an incremental sync shows the KB totals beside what it imported", () => {
     failures: [],
   });
   expect(result).toContain(
-    "KB Totals: 283 entities\n  fact: 240\n  req: 43\nKB Relationships: 512\nImported This Sync (changed sources only): 1 entities, 2 relationship records\n  req: 1\n",
+    "KB Totals: 283 entities\n  fact: 240\n  req: 43\nKB Relationships: 512\nImported This Sync (changed sources only): 1 entities, 2 distinct relationships\n  req: 1\n",
   );
   expect(result).not.toContain("Entity Counts:");
 });

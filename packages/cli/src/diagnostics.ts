@@ -156,7 +156,7 @@ export function formatSyncSummary(summary: SyncSummary): string {
     pushCounts(lines, totals.entities);
     lines.push(`KB Relationships: ${totals.relationships}`);
     lines.push(
-      `Imported This Sync (changed sources only): ${imported} entities, ${summary.relationshipCount} relationship records`,
+      `Imported This Sync (changed sources only): ${imported} entities, ${summary.relationshipCount} distinct relationships`,
     );
     pushCounts(lines, summary.entityCounts);
   }

@@ -4,7 +4,9 @@ import {
   buildActionsFromCheck,
   buildActionsFromStatus,
   buildMigrationPlan,
+  digestMigrationPlan,
   mergeMigrationPlans,
+  migrationAction,
   migrationPlanHash,
 } from "../../src/public/operations/migration-plan.js";
 
@@ -306,5 +308,37 @@ describe("kibi.migration-plan.v2", () => {
         (action) => action.code === "check_source-relationship-parity",
       ),
     ).toHaveLength(1);
+  });
+
+  test("the remaining-plan digest lists a bounded slice of automatic actions", () => {
+    const plan = buildMigrationPlan({
+      evaluatedDomains: ["semantic"],
+      actions: Array.from({ length: 30 }, (_, index) =>
+        migrationAction({
+          id: `auto-${String(index).padStart(2, "0")}`,
+          code: "predicate_schema_alignment",
+          category: "semantic",
+          safety: "automatic",
+          autoApplicable: true,
+          state: "ready",
+          invocation: { kind: "operation", name: "kb_upsert", input: {} },
+        }),
+      ),
+    });
+    const digest = digestMigrationPlan(plan);
+    expect(digest.automaticActions).toHaveLength(20);
+    expect(Object.keys(digest.automaticActions[0] ?? {}).sort()).toEqual([
+      "autoApplicable",
+      "code",
+      "dependsOn",
+      "id",
+      "state",
+    ]);
+    expect(digest.automaticSummary).toEqual({
+      total: 30,
+      ready: 30,
+      blocked: 0,
+      omitted: 10,
+    });
   });
 });

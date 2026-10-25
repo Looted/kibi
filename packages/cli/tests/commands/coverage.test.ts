@@ -285,6 +285,7 @@ tags: [authentication, session]
         total: 1,
         uncovered: 1,
         evidenceLevels: { proved: 0, tested: 0, asserted: 0, unverified: 1 },
+        linkCoverageScope: "priority_must",
       },
       rows: [
         {
@@ -311,7 +312,9 @@ tags: [authentication, session]
     expect(rendered).toContain("unverified=1");
     expect(rendered).not.toContain("[object Object]");
     // Link counts and proof counts sit in separate groups.
-    expect(rendered).toContain("Traceability (links)");
+    // Link coverage judges only priority: must requirements, and says so.
+    expect(rendered).toContain("Links (priority: must)");
+    expect(rendered).not.toContain("linkCoverageScope");
     expect(rendered).toContain("Proof (evidence)");
     expect(rendered.indexOf("notApplicable")).toBeLessThan(
       rendered.indexOf("Proof (evidence)"),

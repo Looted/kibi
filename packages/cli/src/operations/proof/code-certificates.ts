@@ -319,12 +319,62 @@ function workspaceBin(workspaceRoot: string, name: string): string | null {
 }
 
 /**
+ * The Python interpreters a domain loads with, most specific first: the
+ * KIBI_PYTHON override, the active virtualenv, a project virtualenv (`.venv`
+ * or `venv`) between the domain file and the workspace root, then python3
+ * and python on PATH. The system interpreter usually cannot import the
+ * project's dependencies, so a project environment comes before it.
+ */
+// implements REQ-kibi-code-proof-kinds
+export function pythonDomainInterpreters(
+  workspaceRoot: string,
+  sourceFile: string,
+  env: NodeJS.ProcessEnv = process.env,
+): string[] {
+  const interpreters: string[] = [];
+  const add = (candidate: string | undefined) => {
+    if (candidate && !interpreters.includes(candidate))
+      interpreters.push(candidate);
+  };
+  add(env.KIBI_PYTHON?.trim() || undefined);
+  const venvPython = (venv: string): string | undefined =>
+    [
+      path.join(venv, "bin", "python"),
+      path.join(venv, "Scripts", "python.exe"),
+    ].find((candidate) => existsSync(candidate));
+  if (env.VIRTUAL_ENV) add(venvPython(env.VIRTUAL_ENV));
+  const root = path.resolve(workspaceRoot);
+  let dir = path.dirname(path.resolve(root, sourceFile));
+  for (;;) {
+    for (const name of [".venv", "venv"]) add(venvPython(path.join(dir, name)));
+    if (dir === root || path.dirname(dir) === dir) break;
+    if (!dir.startsWith(`${root}${path.sep}`)) break;
+    dir = path.dirname(dir);
+  }
+  add("python3");
+  add("python");
+  return interpreters;
+}
+
+/** The line of a runner's stderr that names the failure. */
+function failureLine(stderr: string, python: boolean): string {
+  const lines = stderr
+    .trim()
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line !== "");
+  // A Python traceback names the exception on its last line.
+  return (python ? lines.at(-1) : lines[0]) ?? "";
+}
+
+/**
  * The domain as the code defines it: Kibi imports the domain_source file
  * itself and reads the named export's members, so a certificate cannot cover
  * a hand-listed subset. A TypeScript or JavaScript domain loads with bun when
  * it is on PATH, else with the workspace's tsx, else with node's type
  * stripping (which retries extensionless relative imports as TypeScript
- * files); a Python domain (`.py`) loads with python3.
+ * files); a Python domain (`.py`) loads with the first interpreter
+ * pythonDomainInterpreters finds.
  */
 // implements REQ-kibi-code-proof-kinds
 export function evaluateDomain(
@@ -342,10 +392,12 @@ export function evaluateDomain(
   const python = /\.py$/i.test(sourceFile);
   const tsx = python ? null : workspaceBin(workspaceRoot, "tsx");
   const runners: [string, string[]][] = python
-    ? [
-        ["python3", ["-c", PYTHON_DOMAIN_EVALUATOR]],
-        ["python", ["-c", PYTHON_DOMAIN_EVALUATOR]],
-      ]
+    ? pythonDomainInterpreters(workspaceRoot, sourceFile).map(
+        (interpreter): [string, string[]] => [
+          interpreter,
+          ["-c", PYTHON_DOMAIN_EVALUATOR],
+        ],
+      )
     : (options.runners ?? ["bun", "tsx", "node"]).flatMap(
         (runner): [string, string[]][] => {
           if (runner === "bun") return [["bun", ["-e", DOMAIN_EVALUATOR]]];
@@ -388,11 +440,11 @@ export function evaluateDomain(
     } catch {
       // Fall through to the next runner.
     }
-    failure = (run.stderr ?? "").trim().split("\n")[0] ?? "";
+    failure = failureLine(run.stderr ?? "", python);
   }
   return {
     ok: false,
-    reason: `Kibi could not load ${exportName} from ${sourceFile}${failure ? `: ${failure}` : ""}${python ? " (a Python domain needs python3 on PATH)" : " (without bun or the workspace's tsx, node's type stripping loads the domain; a type imported without import type stops it)"}`,
+    reason: `Kibi could not load ${exportName} from ${sourceFile}${failure ? `: ${failure}` : ""}${python ? " (a Python domain loads with KIBI_PYTHON, the active or project virtualenv (.venv or venv), then python3 on PATH)" : " (without bun or the workspace's tsx, node's type stripping loads the domain; a type imported without import type stops it)"}`,
   };
 }
 

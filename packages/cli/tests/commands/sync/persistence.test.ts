@@ -1268,6 +1268,24 @@ describe("persistRelationships", () => {
     expect(result.kbModified).toBe(true);
   });
 
+  test("counts an edge stated in front matter and a shard once", async () => {
+    const prolog = makeProlog();
+    const entity = makeEntity({ id: "REQ-001" });
+    const edge: ExtractedRelationship = {
+      type: "relates_to",
+      from: "REQ-001",
+      to: "REQ-003",
+    };
+
+    const result = await persistRelationships(
+      asPrologProcess(prolog),
+      [{ entity, relationships: [edge, { ...edge }] }],
+      [{ ...edge }],
+    );
+
+    expect(result.relationshipCount).toBe(1);
+  });
+
   test("tracks failed relationships on prolog failure", async () => {
     const prolog = makeProlog();
     prolog.query.mockImplementation(async (goal: string | string[]) => {
