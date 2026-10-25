@@ -60,6 +60,7 @@ import {
 } from "./entity-type.js";
 import {
   EVIDENCE_FLOOR_PIN_CODE,
+  type LadderFloorVerdicts,
   applyEvidenceFloorPins,
   planEvidenceFloorPins,
 } from "./evidence-floor.js";
@@ -569,6 +570,8 @@ export type Schema6MigrationFragment = Readonly<{
 export function buildSchema6MigrationFragment(input: {
   workspaceRoot: string;
   currentSchemaVersion: number | null;
+  /** The evidence ladder's floor verdicts on the synced store, when read. */
+  ladderFloors?: LadderFloorVerdicts | null;
 }): Schema6MigrationFragment {
   const actions: MigrationAction[] = [];
   const sourceRewriteActionIds: string[] = [];
@@ -771,7 +774,10 @@ export function buildSchema6MigrationFragment(input: {
     input.currentSchemaVersion === null ||
     input.currentSchemaVersion < EVIDENCE_FLOOR_SCHEMA_VERSION
   ) {
-    const floors = planEvidenceFloorPins(input.workspaceRoot);
+    const floors = planEvidenceFloorPins(
+      input.workspaceRoot,
+      input.ladderFloors,
+    );
     if (floors.targets.length > 0) {
       const id = "evidence-floor-pin";
       sourceRewriteActionIds.push(id);
@@ -791,7 +797,7 @@ export function buildSchema6MigrationFragment(input: {
           postconditions: [{ rule: "evidence-floor", findings: 0 }],
           evidence: {
             reason:
-              "Schema 11 fails a current requirement whose evidence is below its floor, and a firm requirement without required_evidence needs tested evidence. These firm requirements have no scenario verified by a test with a proof contract, so each records required_evidence: asserted in its front matter, where a reviewer can raise it once a proof exists.",
+              "Schema 11 fails a current requirement whose evidence is below its floor, and a firm requirement without required_evidence needs tested evidence. These firm requirements are below tested (judged by the evidence ladder on the synced store when one could be read, else by their latest end-to-end receipt), so each records required_evidence: asserted in its front matter, where a reviewer can raise it once a proof exists.",
             count: floors.targets.length,
             skipped: floors.skipped,
             preserves: "every other front matter key and the body bytes",
@@ -1068,7 +1074,15 @@ export async function applySchema6MigrationAction(
       return;
     }
     case EVIDENCE_FLOOR_PIN_CODE: {
-      applyEvidenceFloorPins(context.workspaceRoot);
+      // The plan decided the pins with the evidence ladder; apply the same
+      // set even though source rewrites before it may have left the store
+      // behind the authored files.
+      applyEvidenceFloorPins(
+        context.workspaceRoot,
+        new Map(
+          (action.affectedEntityIds ?? []).map((id) => [id, "below"] as const),
+        ),
+      );
       return;
     }
     case SEMANTIC_INVENTORY_REDERIVE_CODE: {

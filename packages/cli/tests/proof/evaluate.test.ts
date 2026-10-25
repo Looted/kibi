@@ -208,3 +208,68 @@ describe("parseIntegrationSelector", () => {
     ).toThrow("empty integration id");
   });
 });
+
+describe("own_results_first_attempt success policy", () => {
+  // implements REQ-kibi-verification-evidence-contract
+  const own: ProofContract = {
+    version: "kibi.proof-contract.v1",
+    integration: "self-proof",
+    required_proofs: [{ symbol_id: "SYM-MINE", target: "default" }],
+    success_policy: "own_results_first_attempt",
+  };
+  const passedCase = (symbolId: string) =>
+    result({
+      symbol_id: symbolId,
+      binding: "native_case",
+      attempts: { status: "complete", entries: [{ outcome: "passed" }] },
+    });
+  const failedCase = result({
+    symbol_id: "SYM-OTHER",
+    outcome: "failed",
+    binding: "native_case",
+    attempts: { status: "complete", entries: [{ outcome: "failed" }] },
+  });
+
+  test("an unrelated failing case does not refuse an obligation whose own case passed", () => {
+    const evaluation = evaluateContractAgainstRun(
+      artifact({ outcome: "failed", exit_code: 1, failure_phase: "execution" }, [
+        passedCase("SYM-MINE"),
+        failedCase,
+      ]),
+      own,
+    );
+    expect(evaluation).toMatchObject({ satisfied: true, outcome: "passed" });
+    // The strict default still refuses the same run.
+    expect(
+      evaluateContractAgainstRun(
+        artifact(
+          { outcome: "failed", exit_code: 1, failure_phase: "execution" },
+          [passedCase("SYM-MINE"), failedCase],
+        ),
+        { ...own, success_policy: "all_required_first_attempt" },
+      ).satisfied,
+    ).toBe(false);
+  });
+
+  test("setup failures, errored runs and aggregate results still refuse", () => {
+    for (const run of [
+      { outcome: "failed" as const, exit_code: 1, failure_phase: "setup" as const },
+      { outcome: "errored" as const, exit_code: 1 },
+    ]) {
+      expect(
+        evaluateContractAgainstRun(
+          artifact(run, [passedCase("SYM-MINE"), failedCase]),
+          own,
+        ).satisfied,
+      ).toBe(false);
+    }
+    expect(
+      evaluateContractAgainstRun(
+        artifact({ outcome: "failed", exit_code: 1 }, [
+          result({ symbol_id: "SYM-MINE" }),
+        ]),
+        own,
+      ).satisfied,
+    ).toBe(false);
+  });
+});

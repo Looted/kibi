@@ -271,6 +271,44 @@ describe("schema 11 migration", () => {
     expect(plan.skipped).toEqual([]);
   });
 
+  test("judges the newest receipt, not any passing one in the history", () => {
+    const root = fixture();
+    const testPath = path.join(root, ".kb/tests/TEST-PROVED.md");
+    writeFileSync(
+      testPath,
+      readFileSync(testPath, "utf8").replace(
+        "    outcome: passed\n",
+        "    outcome: passed\n    finished_at: '2026-10-20T00:00:00Z'\n  - version: kibi.proof-receipt.v1\n    test_id: TEST-PROVED\n    outcome: failed\n    finished_at: '2026-10-21T00:00:00Z'\n",
+      ),
+    );
+    const plan = planEvidenceFloorPins(root);
+    expect(plan.targets.map((target) => target.id)).toContain("REQ-PROVED");
+    expect(plan.kept).toEqual([]);
+    expect(plan.decidedBy).toBe("authored");
+  });
+
+  test("pins what the evidence ladder puts below tested, even with a passing receipt", () => {
+    const root = fixture();
+    const below = planEvidenceFloorPins(
+      root,
+      new Map([["REQ-PROVED", "below" as const]]),
+    );
+    expect(below.targets.map((target) => target.id)).toContain("REQ-PROVED");
+    expect(below.kept).toEqual([]);
+    expect(below.decidedBy).toBe("ladder");
+    // Receipts older than the code only need kibi prove re-run: kept.
+    const pending = planEvidenceFloorPins(
+      root,
+      new Map([["REQ-PROVED", "pending_reproof" as const]]),
+    );
+    expect(pending.kept).toEqual(["REQ-PROVED"]);
+    // A requirement without an authored proof path is pinned even when the
+    // store, older than the sources, has no verdict for it.
+    expect(
+      planEvidenceFloorPins(root, new Map()).targets.map((t) => t.id),
+    ).toContain("REQ-NO-PATH");
+  });
+
   test("writes the floor into front matter only, and a second run is a no-op", () => {
     const root = fixture();
     expect(applyEvidenceFloorPins(root)).toBe(5);

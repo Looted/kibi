@@ -124,8 +124,22 @@ export function renderCoverageTable(
     wordWrap: true,
   });
 
-  for (const [key, value] of Object.entries(summary)) {
-    summaryTable.push([key, summaryCell(value)]);
+  // Traceability counts (scenario/test links) and proof counts (receipt
+  // evidence) use similar names, e.g. notApplicable vs proofNotApplicable:
+  // group them so the two families read apart.
+  const entries = Object.entries(summary);
+  const isProofKey = (key: string) =>
+    key.startsWith("proof") || key === "evidenceLevels";
+  const groups: [string, [string, unknown][]][] = [
+    ["Traceability (links)", entries.filter(([key]) => !isProofKey(key))],
+    ["Proof (evidence)", entries.filter(([key]) => isProofKey(key))],
+  ];
+  const grouped = groups.every(([, members]) => members.length > 0);
+  for (const [label, members] of groups) {
+    if (grouped) summaryTable.push([label, ""]);
+    for (const [key, value] of members) {
+      summaryTable.push([grouped ? `  ${key}` : key, summaryCell(value)]);
+    }
   }
 
   const firstRow = firstFields(rows);

@@ -5,7 +5,7 @@
 ## Development Setup
 
 **Prerequisites**
-- SWI-Prolog >= 9.0 on `PATH` (or `KIBI_SWIPL` pointing at it). A source checkout does not carry the bundled runtime that published packages ship, so install it yourself (see `docs/install.md`)
+- SWI-Prolog >= 9.0 on `PATH` (or `KIBI_SWIPL` pointing at it). A source checkout does not carry the bundled runtime that published packages ship. The quickest route is the published platform package: `npm pack kibi-swipl-linux-x64-gnu` (or `-darwin-arm64`, ...), extract it, copy its `package/` contents to `packages/swipl-<platform>/` (gitignored) and put that directory's `bin/` on `PATH`. A system install works too (see `docs/install.md`)
 - Bun (latest)
 - Git
 
@@ -66,6 +66,7 @@ To try unreleased changes in a separate consumer repository, pack the workspace 
    ```bash
    bun run pack:all -- --destination /tmp/kibi-tarballs
    ```
+   Add `--dev-version` to stamp every tarball `<version>-dev.<short sha>` (or `--dev-version=<suffix>`), with dependencies between the packed packages pinned to those versions, so a local pack never reuses a published version number and package-manager caches cannot serve an older build under the same version.
 3. In the consumer repository, depend on the tarballs and override the transitive Kibi packages so they resolve to the same local builds instead of npm. With npm:
    ```json
    {

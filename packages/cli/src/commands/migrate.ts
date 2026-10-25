@@ -75,8 +75,8 @@ import {
 } from "../utils/kb-manifest.js";
 import { CANONICAL_ENTITY_PATHS } from "../utils/kb-paths.js";
 import {
-  MERGE_DRIVER_SETUP,
   manifestMergeDriverGaps,
+  mergeDriverSetup,
 } from "../utils/merge-driver-setup.js";
 import {
   LATEST_KB_SCHEMA_VERSION,
@@ -875,9 +875,16 @@ export async function migrateCommand(
   const evidenceFloorStep = migrationSteps.some(
     (step) => step.id === "evidence-floor-v11",
   );
-  const { applyEvidenceFloorPins, planEvidenceFloorPins } = await import(
-    "../operations/migration/evidence-floor.js"
-  );
+  const {
+    applyEvidenceFloorPins,
+    planEvidenceFloorPins,
+    readLadderFloorVerdicts,
+  } = await import("../operations/migration/evidence-floor.js");
+  // Read before any source rewrite: the store still holds the KB as it was,
+  // and the floors are judged by the same ladder kibi check applies.
+  const ladderFloors = evidenceFloorStep
+    ? await readLadderFloorVerdicts(cwd)
+    : null;
   const {
     mergeSupersedesAcknowledgements,
     planSupersedesReasonAcknowledgement,
@@ -933,14 +940,16 @@ export async function migrateCommand(
         );
     }
     if (evidenceFloorStep) {
-      const floors = planEvidenceFloorPins(cwd);
+      const floors = planEvidenceFloorPins(cwd, ladderFloors);
       if (floors.targets.length > 0)
         console.log(
-          `dry run: would record required_evidence: asserted on ${floors.targets.length} current firm requirement(s) with no scenario verified by a passing end-to-end test with a proof contract (front matter only).`,
+          `dry run: would record required_evidence: asserted on ${floors.targets.length} current firm requirement(s) whose evidence is below tested (front matter only).`,
         );
       if (floors.kept.length > 0)
         console.log(
-          `dry run: ${floors.kept.length} firm requirement(s) keep the tested floor (${floors.kept.join(", ")}); after migrating, kibi check --rules evidence-floor lists any that still miss it.`,
+          floors.decidedBy === "ladder"
+            ? `dry run: ${floors.kept.length} firm requirement(s) keep the tested floor (${floors.kept.join(", ")}); the evidence ladder on the synced store accepts each, or needs only kibi prove re-run.`
+            : `dry run: ${floors.kept.length} firm requirement(s) keep the tested floor (${floors.kept.join(", ")}) because their latest end-to-end receipt passed; no synced store could be read, so other proof gaps were not judged. Run kibi sync and rerun the dry run for the ladder's verdict.`,
         );
       for (const skip of floors.skipped)
         printWarning(`Cannot edit ${skip.path}: ${skip.reason}.`);
@@ -1071,10 +1080,10 @@ export async function migrateCommand(
     ? planFirmSupersedeAcknowledgement(cwd)
     : [];
   const evidenceFloorPlan = evidenceFloorStep
-    ? planEvidenceFloorPins(cwd)
+    ? planEvidenceFloorPins(cwd, ladderFloors)
     : null;
   const evidenceFloorsPinned = evidenceFloorStep
-    ? applyEvidenceFloorPins(cwd)
+    ? applyEvidenceFloorPins(cwd, ladderFloors)
     : 0;
 
   const existingManifest = readKbManifest(cwd) ?? defaultKbManifest();
@@ -1119,11 +1128,13 @@ export async function migrateCommand(
     );
   if (evidenceFloorsPinned > 0)
     console.log(
-      `Recorded required_evidence: asserted on ${evidenceFloorsPinned} current firm requirement(s) with no scenario verified by a passing end-to-end test with a proof contract; raise it to tested once one has an end-to-end proof.`,
+      `Recorded required_evidence: asserted on ${evidenceFloorsPinned} current firm requirement(s) whose evidence is below tested; raise it to tested once the requirement has an end-to-end proof.`,
     );
   if ((evidenceFloorPlan?.kept.length ?? 0) > 0)
     console.log(
-      `${evidenceFloorPlan?.kept.length} firm requirement(s) keep the tested floor; run kibi sync and kibi check --rules evidence-floor to list any whose proof still has gaps (kibi proof explain <id> names them).`,
+      evidenceFloorPlan?.decidedBy === "ladder"
+        ? `${evidenceFloorPlan?.kept.length} firm requirement(s) keep the tested floor; the evidence ladder accepts each, or needs only kibi prove re-run (kibi check --fresh-evidence lists those).`
+        : `${evidenceFloorPlan?.kept.length} firm requirement(s) keep the tested floor because their latest end-to-end receipt passed; no synced store could be read, so run kibi sync and kibi check --rules evidence-floor to list any whose proof has other gaps (kibi proof explain <id> names them).`,
     );
   for (const skip of evidenceFloorPlan?.skipped ?? [])
     printWarning(
@@ -1181,7 +1192,7 @@ export async function migrateCommand(
   const mergeDriverGaps = manifestMergeDriverGaps(cwd);
   if (mergeDriverGaps !== null && mergeDriverGaps.length > 0) {
     console.log(
-      `Tip: kibi merge-driver resolves .kb/symbols.yaml merges by record id, but it is not wired up (${mergeDriverGaps.join("; ")}). ${MERGE_DRIVER_SETUP}`,
+      `Tip: kibi merge-driver resolves .kb/symbols.yaml merges by record id, but it is not wired up (${mergeDriverGaps.join("; ")}). ${mergeDriverSetup(cwd)}`,
     );
   }
   const gitignoreUpdated = updateGitIgnore(cwd);
@@ -1255,9 +1266,20 @@ async function buildWorkspaceMigrationPlan(
     status?.schemaStatus?.currentVersion ??
     readKbManifest(workspaceRoot)?.schemaVersion ??
     null;
+  const { EVIDENCE_FLOOR_SCHEMA_VERSION } = await import(
+    "../public/operations/evidence-floor.js"
+  );
+  const { readLadderFloorVerdicts } = await import(
+    "../operations/migration/evidence-floor.js"
+  );
   const fragment = buildSchema6MigrationFragment({
     workspaceRoot,
     currentSchemaVersion,
+    ladderFloors:
+      currentSchemaVersion === null ||
+      currentSchemaVersion < EVIDENCE_FLOOR_SCHEMA_VERSION
+        ? await readLadderFloorVerdicts(workspaceRoot)
+        : null,
   });
   const fragmentActions = [...fragment.actions];
   const statusActions = status?.migrationPlan?.actions ?? [];

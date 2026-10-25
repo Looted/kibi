@@ -4,7 +4,11 @@ import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { manifestMergeDriverGaps } from "../../src/utils/merge-driver-setup.js";
+import {
+  localKibiCommand,
+  manifestMergeDriverGaps,
+  mergeDriverSetup,
+} from "../../src/utils/merge-driver-setup.js";
 
 function git(root: string, args: string[]): void {
   execFileSync("git", args, { cwd: root, stdio: "ignore" });
@@ -41,6 +45,20 @@ describe("manifest merge driver setup", () => {
         "npm exec --no -- kibi merge-driver %O %A %B",
       ]);
       expect(manifestMergeDriverGaps(root)).toEqual([]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test("names the project's package manager in the driver command", () => {
+    const root = mkdtempSync(join(tmpdir(), "kibi-merge-driver-pm-"));
+    try {
+      expect(localKibiCommand(root)).toBe("npm exec --no -- kibi");
+      writeFileSync(join(root, "pnpm-lock.yaml"), "lockfileVersion: 9\n");
+      expect(localKibiCommand(root)).toBe("pnpm exec kibi");
+      expect(mergeDriverSetup(root)).toContain(
+        'git config merge.kibi.driver "pnpm exec kibi merge-driver %O %A %B"',
+      );
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

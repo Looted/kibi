@@ -38,13 +38,13 @@ import {
   type ManifestSymbolEntry,
   enrichSymbolCoordinates,
 } from "../../extractors/symbols-coordinator.js";
-import { resolveWorkspaceSourceAbsolute } from "../../utils/repo-relative-path.js";
 import {
   COARSE_GRANULARITY_REASONS,
   COARSE_GRANULARITY_REASONS_PARENTHESIZED,
   isCoarseGranularityReason,
 } from "../../public/symbol-granularity.js";
 import { resolveSymbolsManifestPaths } from "../../utils/manifest-paths.js";
+import { resolveWorkspaceSourceAbsolute } from "../../utils/repo-relative-path.js";
 import { blockifySymbolManifest } from "../../utils/symbol-manifest-layout.js";
 
 interface ManifestDeps {
@@ -91,6 +91,17 @@ export const SYMBOLS_MANIFEST_COMMENT_BLOCK = `# symbols.yaml
 #   coordinate entry at all and is reported as failed; add symbol_role and
 #   granularity_reason to opt it into the coarse fallback.
 `;
+
+function sameCoordinateSpan(
+  stored: SymbolCoordinatesRecord | undefined,
+  next: SymbolCoordinatesRecord,
+): boolean {
+  return (
+    stored !== undefined &&
+    stored.sourceFile === next.sourceFile &&
+    GENERATED_COORD_FIELDS.every((field) => stored[field] === next[field])
+  );
+}
 
 const GENERATED_COORD_FIELDS = [
   "sourceLine",
@@ -277,9 +288,14 @@ export async function refreshManifestCoordinates(
   );
 
   let coordinatesPath: string | null = null;
+  // The stored artifact is the baseline a refresh is counted against: the
+  // authored manifest never holds coordinates, so comparing against it would
+  // report every symbol as refreshed.
+  let storedCoordinates: Record<string, SymbolCoordinatesRecord> | null = null;
   if (shouldRefreshCoordinates) {
     coordinatesPath =
       resolved.resolveSymbolsManifestPaths(workspaceRoot).coordinatesPath;
+    storedCoordinates = {};
     if (resolved.existsSync(coordinatesPath)) {
       const existing = parseCoordinateArtifact(
         String(resolved.readFileSync(coordinatesPath, "utf8")),
@@ -289,6 +305,7 @@ export async function refreshManifestCoordinates(
           `Failed to parse coordinate artifact ${coordinatesPath}: ${existing.reason}`,
         );
       }
+      storedCoordinates = existing.coordinates;
     }
   }
 
@@ -305,11 +322,11 @@ export async function refreshManifestCoordinates(
   // partially published compiler dependency. Symbols without extractable
   // coordinates stay absent from the artifact; coverage keeps their gap visible.
   let refreshedArtifactBytes: string | null = null;
+  const boundEntries: Record<
+    string,
+    SymbolCoordinatesRecord & { identityHash: string; sourceHash: string }
+  > = {};
   if (shouldRefreshCoordinates) {
-    const boundEntries: Record<
-      string,
-      SymbolCoordinatesRecord & { identityHash: string; sourceHash: string }
-    > = {};
     for (const entry of enriched) {
       const id = typeof entry?.id === "string" ? entry.id : undefined;
       if (!id) continue;
@@ -351,11 +368,17 @@ export async function refreshManifestCoordinates(
   for (let i = 0; i < before.length; i++) {
     const previous = before[i] ?? ({} as ManifestSymbolEntry);
     const current = enriched[i] ?? previous;
-    const changed = GENERATED_COORD_FIELDS.some(
-      (field) =>
-        previous[field as keyof ManifestSymbolEntry] !==
-        current[field as keyof ManifestSymbolEntry],
-    );
+    const id = typeof current.id === "string" ? current.id : undefined;
+    const changed =
+      storedCoordinates === null
+        ? GENERATED_COORD_FIELDS.some(
+            (field) =>
+              previous[field as keyof ManifestSymbolEntry] !==
+              current[field as keyof ManifestSymbolEntry],
+          )
+        : id !== undefined &&
+          boundEntries[id] !== undefined &&
+          !sameCoordinateSpan(storedCoordinates[id], boundEntries[id]);
 
     if (changed) {
       refreshed++;

@@ -227,9 +227,23 @@ kibi prove --requirement REQ-checkout
 kibi prove --integration web-e2e
 kibi prove --integration web-e2e,api-tests
 kibi prove --all --integration-except heavy-suite
+kibi prove --stale
+kibi prove --requirement REQ-checkout --stale
+kibi prove --all --resume
 ```
 
 Selectors: `--test`, `--requirement`, `--integration`, `--all` (default).
+`--stale` narrows the selection to tests without a current passing receipt
+(missing, stale, failed or contract-mismatched, judged as coverage judges
+them); when every selected test is current it runs nothing and says so.
+`--resume` skips integrations an interrupted run with the same selector
+already ingested at the current workspace snapshot (recorded in
+`.kb/proof/runs/prove-progress.json`); progress lines on stderr name each
+integration as it starts and is ingested. With `--test`, `--requirement` or
+`--stale`, a `playwright` integration whose command is a direct
+`playwright test` invocation runs only the selected tests'
+`proof_bindings[].source_file` spec files; every producer also receives them
+as `KIBI_PROOF_SOURCE_FILES` (a JSON array).
 `--integration` accepts one or more comma-separated integration ids.
 `--integration-except` is a modifier (it requires a selector such as `--all`)
 that skips tests bound to the listed integrations. A selector that matches no
@@ -250,11 +264,27 @@ the summary's `runs` then carries `attribution: "per_test"` and `failedSteps`
 report the run is evaluated as one unit (`attribution: "aggregate"`, with an
 `attributionReason`). See
 [per-test attribution](proving-requirements.md#per-test-attribution-for-command-integrations).
+Ctrl-C (or SIGTERM/SIGHUP) stops the producer's whole process group.
+
+### `kibi proof run-steps [steps-file]`
+
+A ready-made `command` integration producer. Reads `{test_id, steps}` entries
+from the steps file (default `proof/steps.json`), runs the steps of the tests
+`kibi prove` selected (`KIBI_PROOF_TEST_IDS`, or `--test <id...>` when run by
+hand), each distinct argv once, and writes a `kibi.proof-test-report.v1` to
+`KIBI_PROOF_TEST_REPORT`. Exit code 0 when every step passed. Steps time out
+after `KIBI_PROOF_STEP_TIMEOUT_MS` (default 15 minutes).
+
+```bash
+kibi proof run-steps                 # as an integration command
+kibi proof run-steps --test TEST-checkout
+```
 
 ## `kibi proof inspect`
 
-Detects languages, build systems, test frameworks, CI workflows, configured
-integrations, and the recommended integration level. Deterministic output for
+Detects languages, build systems, test frameworks (including `node --test`
+and `bun test` in the scripts of `package.json` and its workspaces), CI
+workflows, configured integrations, and the recommended integration level. Deterministic output for
 agents. While `.kb/proof/integrations.json` does not exist and a test runner
 is detected, the JSON also carries `proposedIntegration` (a `command`
 integration running the `package.json` `test` script, or the detected
@@ -863,7 +893,8 @@ Verifies environment setup and diagnostics.
 - Treats a hook without a kibi-managed section as the project's own hook (hand-written, husky, lefthook, ...). A custom pre-commit passes when it runs both `kibi check-generated --staged --changed-only` and `kibi check --staged` (via `kibi`, `npx kibi`, `node_modules/.bin/kibi` or `"$KIBI_BIN"`; commented lines do not count), and a custom post-rewrite passes when it runs `kibi sync`. Otherwise the check fails and the remediation shows what to delegate to and `kibi init --print-hook <hook>`, because `kibi init` never edits a custom hook
 - Fails when an installed kibi-managed hook section differs from what the running CLI installs ("Kibi-managed hook sections"), for example a pre-commit hook written before the generated-manifest gate
 - Reports the engine daemon serving this workspace and branch ("Engine daemon"), without starting one: its package versions and SWI-Prolog from the daemon handshake. A daemon with other package versions than this CLI is reported, not failed; the next Kibi command stops and replaces it
-- Warns ("Manifest merge driver"), once `.kb/symbols.yaml` holds a symbol, when Git does not route `.kb/symbols.yaml` to `kibi merge-driver` (`merge=kibi` in `.gitattributes`) or `merge.kibi.driver` is not set, and prints both setup lines; merges still work without it, with ordinary line conflicts
+- Warns ("Manifest merge driver"), once `.kb/symbols.yaml` holds a symbol, when Git does not route `.kb/symbols.yaml` to `kibi merge-driver` (`merge=kibi` in `.gitattributes`) or `merge.kibi.driver` is not set, and prints both setup lines; merges still work without it, with ordinary line conflicts; the driver command names the project's package manager (from its lockfile)
+- Warns, rather than fails, when the secret of an activated plugin is missing and every capability of that plugin is in `augment` mode (for example `TYPESAFE_API_KEY` for `kibi-plugin-jev`): the plugin is skipped and builtin providers keep answering. In `replace` mode the missing secret is a failure
 - Reports issues with remediation suggestions
 
 **Examples:**
@@ -1094,6 +1125,10 @@ driver merges the record lists by `id` and writes the result to `<current>`.
 ```bash
 git config merge.kibi.driver "npm exec --no -- kibi merge-driver %O %A %B"
 ```
+
+Use `pnpm exec kibi`, `yarn exec kibi` or `bunx --no-install kibi` in place of
+`npm exec --no -- kibi` in pnpm, Yarn or Bun repositories; `kibi doctor` and
+`kibi migrate` print the command for the lockfile they find.
 
 Regenerate `.kb/symbol-coordinates.yaml` after the merge with
 `kibi sync --refresh-symbol-coordinates`. For a CI job that applies this to

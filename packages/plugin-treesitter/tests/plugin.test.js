@@ -240,6 +240,37 @@ describe("offline Tree-sitter symbol extractor", () => {
     );
   });
 
+  it("keeps a file with more decorators than the diagnostic cap decorator-only", async () => {
+    const methods = Array.from(
+      { length: 70 },
+      (_, index) =>
+        `    @app.get("/r${index}")\n    def route_${index}(self):\n        return ${index}\n`,
+    ).join("");
+    const content = `import app\n\nclass Api:\n${methods}`;
+    const input = { path: "api.py", content };
+    const result = await extractor.analyze(input);
+    assert.equal(result.status, "partial");
+    assertValidV2(result, input);
+    assert.equal(result.diagnostics.length, 64);
+    assert(
+      result.diagnostics.every(
+        (diagnostic) =>
+          diagnostic.code === "TREESITTER_DECORATOR_EXPANSION_UNAVAILABLE",
+      ),
+    );
+    assert(
+      result.uncoveredRanges.every(
+        (range) =>
+          range.reason === "decorator-may-alter-or-create-declarations",
+      ),
+    );
+    // The last slot summarizes the decorated declarations past the cap.
+    const last = result.diagnostics.at(-1);
+    assert.match(last.message, /7 decorated declarations/);
+    assert.equal(last.range.endLine, 3 + 70 * 3);
+    assert.equal(findSymbol(result, "Api.route_69").startLine, 3 + 69 * 3 + 2);
+  });
+
   it("uses CRLF rows and reports syntax damage as partial with uncovered ranges", async () => {
     const crlf = await fixture("go/crlf.go");
     const parsed = await extractor.analyze({ path: "crlf.go", content: crlf });

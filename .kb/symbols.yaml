@@ -57187,3 +57187,165 @@ symbols:
         target: TEST-kibi-intervals-differential
       - type: implements
         target: REQ-kibi-intervals-verified
+  - id: SYM-unit-test-007
+    title: manifest.test
+    status: active
+    sourceFile: packages/cli/tests/commands/sync/manifest.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-007
+  - id: SYM-unit-test-capability-plugin-host-resolution-v1
+    title: capability-plugin-host.test
+    status: active
+    sourceFile: packages/cli/tests/plugins/capability-plugin-host.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-capability-plugin-host-resolution-v1
+  - id: SYM-unit-test-capability-plugin-jev-mocked-v1
+    title: jev.test
+    status: active
+    sourceFile: packages/plugin-jev/tests/jev.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-capability-plugin-jev-mocked-v1
+  - id: SYM-unit-test-capability-plugin-protocol-v1
+    title: sdk.test
+    status: active
+    sourceFile: packages/plugin-sdk/tests/sdk.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-capability-plugin-protocol-v1
+  - id: SYM-unit-test-cli-canonical-status
+    title: status.test
+    status: active
+    sourceFile: packages/cli/tests/commands/status.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-cli-canonical-status
+  - id: SYM-unit-test-cli-config-schema
+    title: config.test
+    status: active
+    sourceFile: packages/cli/tests/utils/config.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-cli-config-schema
+  - id: SYM-unit-test-cli-requirement-quality-diagnostics
+    title: impact-requirement-quality.test
+    status: active
+    sourceFile: packages/cli/tests/traceability/impact-requirement-quality.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-cli-requirement-quality-diagnostics
+  - id: SYM-unit-test-cli-symbol-quality-diagnostics
+    title: impact-symbol-quality.test
+    status: active
+    sourceFile: packages/cli/tests/traceability/impact-symbol-quality.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-cli-symbol-quality-diagnostics
+  - id: SYM-unit-test-coordinate-repair-capability
+    title: symbol-repair-plan.test
+    status: active
+    sourceFile: packages/cli/tests/public/operations/symbol-repair-plan.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-coordinate-repair-capability
+  - id: SYM-unit-test-coverage-depth-labels
+    title: coverage-depth-quality.test
+    status: active
+    sourceFile: packages/cli/tests/public/impact/coverage-depth-quality.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-coverage-depth-labels
+  - id: SYM-unit-test-prolog-library-adoption-mcp
+    title: sparql.test
+    status: active
+    sourceFile: packages/mcp/tests/tools/sparql.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-prolog-library-adoption-mcp
+  - id: SYM-unit-test-rule-registry-single-source
+    title: rule-registry-contract.test
+    status: active
+    sourceFile: packages/cli/tests/utils/rule-registry-contract.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-rule-registry-single-source
+  - id: SYM-unit-test-cli-relationship-type-contract
+    title: relationships.test
+    status: active
+    sourceFile: packages/cli/tests/operations/relationships.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-cli-relationship-type-contract
+  - id: SYM-unit-test-cli-source-relationship-parity-unit
+    title: source-relationship-parity-coverage.test
+    status: active
+    sourceFile: packages/cli/tests/public/operations/source-relationship-parity-coverage.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-cli-source-relationship-parity-unit
+  - id: SYM-unit-test-cli-workspace-snapshot-dirtiness
+    title: node-ports.test
+    status: active
+    sourceFile: packages/cli/tests/operations/node-ports.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-cli-workspace-snapshot-dirtiness
+  - id: SYM-unit-test-impact-public-preparation-parity
+    title: impact-review-preparation.test
+    status: active
+    sourceFile: packages/cli/tests/traceability/impact-review-preparation.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-impact-public-preparation-parity
+  - id: SYM-unit-test-skillopt-file-bridge-unit
+    title: file-bridge.test
+    status: active
+    sourceFile: scripts/skillopt-eval/tests/file-bridge.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-file-bridge-unit
+  - id: SYM-unit-test-skillopt-scoring-gates-unit
+    title: scoring-gates.test
+    status: active
+    sourceFile: scripts/skillopt-eval/tests/scoring-gates.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-scoring-gates-unit

@@ -21,11 +21,19 @@ import {
 import { convertJUnitXml } from "../proof/producers/junit-adapter.js";
 import { convertTap } from "../proof/producers/tap-adapter.js";
 import { loadEntities } from "../public/operations/discovery-entities.js";
+import {
+  runOperationJsonQuery,
+  toPrologAtom,
+} from "../public/operations/prolog-json.js";
 import type {
   OperationContext,
   OperationRuntime,
 } from "../public/operations/runtime-types.js";
 import { ingestProofSpec } from "../public/operations/specs/proof.js";
+import {
+  currentProofBindingMode,
+  perContractTestBindings,
+} from "../public/operations/specs/reporting.js";
 import { readWorkspaceSnapshot } from "../public/operations/workspace-snapshot.js";
 import { PROOF_CERTIFICATES_ENV } from "../public/proof-certificates.js";
 import {
@@ -36,6 +44,7 @@ import {
   proofBindingsErrors,
   proofRunArtifactErrors,
 } from "../public/proof-protocol.js";
+import { PROOF_RECEIPT_MAX_AGE_SECONDS } from "../public/proof-receipt.js";
 import { createCliRuntime } from "../runtime/cli-runtime.js";
 
 // implements REQ-kibi-verification-evidence-contract
@@ -45,6 +54,10 @@ export type ProveCommandOptions = Readonly<{
   integration?: string;
   integrationExcept?: string;
   all?: boolean;
+  /** Keep only selected tests without a current passing receipt. */
+  stale?: boolean;
+  /** Skip integrations an interrupted run already ingested at this snapshot. */
+  resume?: boolean;
   workspaceRoot?: string;
 }>;
 
@@ -126,7 +139,9 @@ function parseContract(test: Record<string, unknown>): ProofContract | null {
   return contract as ProofContract;
 }
 
-async function runChild(
+/** Run a proof integration's command and resolve with its exit code. */
+// implements REQ-kibi-verification-evidence-contract
+export async function runChild(
   commandArgv: readonly string[],
   cwd: string,
   env: NodeJS.ProcessEnv,
@@ -135,14 +150,46 @@ async function runChild(
   if (!command)
     throw new Error("prove: integration command argv must be non-empty");
   return await new Promise((resolve, reject) => {
+    // The producer runs in its own process group, so stopping kibi prove
+    // stops the whole suite it started (a test runner and its workers), not
+    // only kibi prove itself.
+    const ownGroup = process.platform !== "win32";
     const child = spawn(command, args, {
       cwd,
       env,
       shell: false,
       stdio: "inherit",
+      detached: ownGroup,
     });
-    child.once("error", reject);
-    child.once("close", (code) => resolve(code ?? 1));
+    const forward = (signal: NodeJS.Signals) => {
+      const pid = child.pid;
+      try {
+        if (ownGroup && pid !== undefined) process.kill(-pid, signal);
+        else child.kill(signal);
+      } catch {
+        // The producer already exited.
+      }
+      process.exit(signal === "SIGINT" ? 130 : 143);
+    };
+    const onInt = () => forward("SIGINT");
+    const onTerm = () => forward("SIGTERM");
+    const onHup = () => forward("SIGHUP");
+    process.once("SIGINT", onInt);
+    process.once("SIGTERM", onTerm);
+    process.once("SIGHUP", onHup);
+    const settle = () => {
+      process.removeListener("SIGINT", onInt);
+      process.removeListener("SIGTERM", onTerm);
+      process.removeListener("SIGHUP", onHup);
+    };
+    child.once("error", (error) => {
+      settle();
+      reject(error);
+    });
+    child.once("close", (code) => {
+      settle();
+      resolve(code ?? 1);
+    });
   });
 }
 
@@ -165,6 +212,118 @@ export function commandEnvironment(
     KIBI_PROOF_WORKSPACE: workspaceRoot,
     KIBI_PROOF_TEST_IDS: JSON.stringify(testIds),
   };
+}
+
+/** Where `kibi prove` records which integrations it has ingested. */
+export const PROVE_PROGRESS_FILE = "prove-progress.json";
+
+type ProveProgress = {
+  version: "kibi.prove-progress.v1";
+  snapshot: string;
+  /** Integration id to the test ids whose receipts it wrote. */
+  ingested: Record<string, string[]>;
+};
+
+/** Read the progress file; anything unreadable counts as no progress. */
+export async function readProveProgress(
+  runsDir: string,
+): Promise<ProveProgress | null> {
+  try {
+    const parsed = JSON.parse(
+      await readFile(path.join(runsDir, PROVE_PROGRESS_FILE), "utf8"),
+    ) as Partial<ProveProgress>;
+    if (
+      parsed.version !== "kibi.prove-progress.v1" ||
+      typeof parsed.snapshot !== "string" ||
+      parsed.ingested === null ||
+      typeof parsed.ingested !== "object"
+    )
+      return null;
+    return parsed as ProveProgress;
+  } catch {
+    return null;
+  }
+}
+
+/** Start a fresh progress record for a run that is not resuming. */
+async function recordProgressReset(
+  runsDir: string,
+  progress: ProveProgress,
+): Promise<void> {
+  await writeFile(
+    path.join(runsDir, PROVE_PROGRESS_FILE),
+    `${JSON.stringify(progress, null, 2)}\n`,
+    "utf8",
+  );
+}
+
+/**
+ * Integrations a resumed run can skip: ingested at the same snapshot, for
+ * every test this run selects for them.
+ */
+export function resumableIntegrations(
+  progress: ProveProgress | null,
+  snapshot: string,
+  groups: ReadonlyMap<string, readonly SelectedTest[]>,
+): Set<string> {
+  const skip = new Set<string>();
+  if (progress === null || progress.snapshot !== snapshot) return skip;
+  for (const [integrationId, tests] of groups) {
+    const done = new Set(progress.ingested[integrationId] ?? []);
+    if (done.size > 0 && tests.every((test) => done.has(String(test.id))))
+      skip.add(integrationId);
+  }
+  return skip;
+}
+
+/**
+ * Narrow a Playwright integration's command to the spec files the selected
+ * tests are bound to, so `kibi prove --test X` runs X's specs instead of the
+ * whole suite. Only a direct `playwright test` invocation is narrowed, and
+ * only when every selected test names its `proof_bindings[].source_file`;
+ * otherwise the command runs unchanged and the reason says why.
+ */
+// implements REQ-kibi-verification-evidence-contract
+export function narrowedPlaywrightCommand(
+  command: readonly string[],
+  tests: readonly SelectedTest[],
+): { argv: string[]; narrowed: boolean; reason?: string } {
+  const argv = [...command];
+  const runner = argv.findIndex(
+    (arg, index) =>
+      /(^|[\\/])playwright(\.c?js)?$/.test(arg) && argv[index + 1] === "test",
+  );
+  if (runner < 0)
+    return {
+      argv,
+      narrowed: false,
+      reason:
+        "the command is not a direct `playwright test` invocation; narrow it from KIBI_PROOF_SOURCE_FILES",
+    };
+  const files = new Set<string>();
+  for (const test of tests) {
+    const own = proofSourceFiles(test);
+    if (own.length === 0)
+      return {
+        argv,
+        narrowed: false,
+        reason: `test ${String(test.id)} has no proof_bindings[].source_file`,
+      };
+    for (const file of own) files.add(file);
+  }
+  return { argv: [...argv, ...[...files].sort()], narrowed: true };
+}
+
+function proofSourceFiles(test: SelectedTest): string[] {
+  const raw = test.proof_bindings;
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((entry) => {
+    const file =
+      entry !== null && typeof entry === "object"
+        ? (entry as Record<string, unknown>).source_file
+        : undefined;
+    return typeof file === "string" && file !== "" ? [file] : [];
+  });
 }
 
 function collectBindings(tests: readonly SelectedTest[]): {
@@ -231,7 +390,46 @@ function markAggregateFailure(results: ProofResult[]): ProofResult[] {
   return results.map((result) => ({ ...result, outcome: "failed" as const }));
 }
 
+/**
+ * Receipt state per proof-bearing test under the binding mode reports use.
+ * `passed` means the test already has a current passing receipt; anything
+ * else (missing, stale, contract_mismatch, invalid, failed) needs a run.
+ */
+// implements REQ-kibi-verification-evidence-contract
+export async function readTestReceiptStates(
+  context: OperationContext,
+): Promise<ReadonlyMap<string, string>> {
+  const snapshotEvidence = await readWorkspaceSnapshot(context);
+  const snapshot = snapshotEvidence.available
+    ? snapshotEvidence.snapshot.hash
+    : "unknown";
+  const bindingsDict = await perContractTestBindings(context);
+  const bindingMode =
+    bindingsDict !== null ? "per_contract" : currentProofBindingMode();
+  const payload = await runOperationJsonQuery<{
+    states?: Record<string, string>;
+  }>(
+    context.prolog as never,
+    "discovery.pl",
+    `discovery:test_receipt_states_json(${bindingMode}, ${bindingsDict ?? "_{}"}, ${toPrologAtom(snapshot)}, ${toPrologAtom(context.clock().toISOString())}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`,
+    "prove --stale",
+  );
+  return new Map(Object.entries(payload.states ?? {}));
+}
+
 async function selectTests(
+  context: OperationContext,
+  options: ProveCommandOptions,
+): Promise<SelectedTest[]> {
+  const selected = await selectTestsBySelector(context, options);
+  if (!options.stale || selected.length === 0) return selected;
+  const states = await readTestReceiptStates(context);
+  return selected.filter(
+    (entity) => states.get(String(entity.id)) !== "passed",
+  );
+}
+
+async function selectTestsBySelector(
   context: OperationContext,
   options: ProveCommandOptions,
 ): Promise<SelectedTest[]> {
@@ -353,7 +551,7 @@ export async function proveCommand(
     const selected = await selectTests(context, options);
     if (selected.length === 0) {
       process.stdout.write(
-        `${JSON.stringify({ proved: 0, failed: 0, message: "no proof-bearing tests selected" })}\n`,
+        `${JSON.stringify({ proved: 0, failed: 0, message: options.stale ? "every selected test already has a current passing receipt" : "no proof-bearing tests selected" })}\n`,
       );
       completed = true;
       return { exitCode: 0 };
@@ -379,10 +577,54 @@ export async function proveCommand(
     const runsDir = path.join(context.workspaceRoot, PROOF_RUNS_DIR);
     await mkdir(runsDir, { recursive: true });
 
+    // Each integration's receipts are written as soon as it finishes; the
+    // progress file lets an interrupted run continue with --resume.
+    const previous = options.resume ? await readProveProgress(runsDir) : null;
+    const skipped = options.resume
+      ? resumableIntegrations(previous, snapshot, groups)
+      : new Set<string>();
+    if (options.resume && previous !== null && previous.snapshot !== snapshot)
+      process.stderr.write(
+        "prove: the workspace changed since the interrupted run; running every selected integration\n",
+      );
+    const progress: ProveProgress = {
+      version: "kibi.prove-progress.v1",
+      snapshot,
+      ingested:
+        previous !== null && previous.snapshot === snapshot
+          ? { ...previous.ingested }
+          : {},
+    };
+    const recordProgress = async (
+      integrationId: string,
+      testIds: readonly string[],
+    ): Promise<void> => {
+      const done = new Set(progress.ingested[integrationId] ?? []);
+      for (const id of testIds) done.add(id);
+      progress.ingested[integrationId] = [...done].sort();
+      await writeFile(
+        path.join(runsDir, PROVE_PROGRESS_FILE),
+        `${JSON.stringify(progress, null, 2)}\n`,
+        "utf8",
+      );
+    };
+    if (!options.resume) await recordProgressReset(runsDir, progress);
+    if (skipped.size > 0)
+      process.stderr.write(
+        `prove: resuming; skipping integrations already ingested at this snapshot: ${[...skipped].join(", ")}\n`,
+      );
+    const narrowSelection = Boolean(
+      options.testId || options.requirement || options.stale,
+    );
+    const pending = [...groups].filter(([id]) => !skipped.has(id));
+
     const ingestResults: IngestProofResult[] = [];
     const runAttribution = new Map<IngestProofResult, EvaluatedRun>();
     const failures: string[] = [];
-    for (const [integrationId, tests] of groups) {
+    for (const [index, [integrationId, tests]] of pending.entries()) {
+      process.stderr.write(
+        `prove: running integration '${integrationId}' (${index + 1}/${pending.length}, ${tests.length} test${tests.length === 1 ? "" : "s"})\n`,
+      );
       const integration = resolveIntegration(
         integrations.integrations,
         integrationId,
@@ -393,7 +635,15 @@ export async function proveCommand(
         );
         continue;
       }
-      const commandArgv = [...integration.command];
+      let commandArgv = [...integration.command];
+      if (narrowSelection && integration.producer === "playwright") {
+        const narrowed = narrowedPlaywrightCommand(commandArgv, tests);
+        commandArgv = narrowed.argv;
+        if (!narrowed.narrowed)
+          process.stderr.write(
+            `prove: running the whole '${integrationId}' integration: ${narrowed.reason}\n`,
+          );
+      }
       const artifactPath = path.resolve(
         context.workspaceRoot,
         integration.artifact ??
@@ -420,6 +670,9 @@ export async function proveCommand(
       );
       if (testReportPath !== undefined)
         env[PROOF_TEST_REPORT_ENV] = testReportPath;
+      env.KIBI_PROOF_SOURCE_FILES = JSON.stringify(
+        [...new Set(tests.flatMap(proofSourceFiles))].sort(),
+      );
       // Certificate-kind tests leave one certificate per test here; any left
       // by an earlier run must never be read as this run's proof.
       const certificateDir = path.join(runsDir, "certificates", integrationId);
@@ -540,6 +793,10 @@ export async function proveCommand(
       if (merged !== undefined) {
         ingestResults.push(merged);
         runAttribution.set(merged, evaluated);
+        await recordProgress(integrationId, selectedTestIds);
+        process.stderr.write(
+          `prove: ingested integration '${integrationId}' (${summarize(merged)})\n`,
+        );
       }
       const afterIngest = await readWorkspaceSnapshot(context);
       if (!afterIngest.available || afterIngest.snapshot.hash !== snapshot) {
@@ -586,6 +843,10 @@ export async function proveCommand(
       }),
       ...(failures.length > 0 ? { failures } : {}),
     };
+    if (failures.length > 0 && Object.keys(progress.ingested).length > 0)
+      process.stderr.write(
+        "prove: integrations that failed to produce receipts run again with the same selector plus --resume\n",
+      );
     process.stdout.write(`${JSON.stringify(summary)}\n`);
     completed = true;
     await runtime.afterSuccess(ingestProofSpec, context);

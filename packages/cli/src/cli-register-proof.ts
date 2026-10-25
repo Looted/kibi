@@ -22,6 +22,14 @@ export function registerProofCommand(program: Command): void {
       "With --all (or another selector), skip tests bound to these integrations (comma-separated)",
     )
     .option("--all", "Prove every proof-bearing test in the knowledge base")
+    .option(
+      "--stale",
+      "Prove only the selected tests (all by default) without a current passing receipt",
+    )
+    .option(
+      "--resume",
+      "Skip integrations an interrupted run with the same selector already ingested at this snapshot",
+    )
     .action(
       withExitCode(
         async (options: {
@@ -30,6 +38,8 @@ export function registerProofCommand(program: Command): void {
           integration?: string;
           integrationExcept?: string;
           all?: boolean;
+          stale?: boolean;
+          resume?: boolean;
         }) => {
           const mode = [
             options.test ? "test" : undefined,
@@ -57,6 +67,8 @@ export function registerProofCommand(program: Command): void {
               ? {}
               : { integrationExcept: options.integrationExcept }),
             all: mode === 0,
+            ...(options.stale ? { stale: true } : {}),
+            ...(options.resume ? { resume: true } : {}),
           });
         },
       ),
@@ -104,6 +116,32 @@ export function registerProofCommand(program: Command): void {
           return undefined;
         },
       ),
+    );
+  proof
+    .command("run-steps")
+    .description(
+      "Run the declared steps of the proof-bearing tests kibi prove selected and write a per-test report, so a command integration fails only the tests whose own steps failed (use as the integration's command)",
+    )
+    .argument(
+      "[steps-file]",
+      "JSON array of {test_id, steps: [[argv...]]}",
+      "proof/steps.json",
+    )
+    .option(
+      "--test <id...>",
+      "Run these tests' steps (default: KIBI_PROOF_TEST_IDS, else every test in the file)",
+    )
+    .action(
+      withExitCode(async (stepsFile: string, options: { test?: string[] }) => {
+        const { runProofSteps } = await import("./proof/step-runner.js");
+        return {
+          exitCode: await runProofSteps({
+            workspaceRoot: process.env.KIBI_PROOF_WORKSPACE ?? process.cwd(),
+            stepsPath: stepsFile,
+            ...(options.test === undefined ? {} : { testIds: options.test }),
+          }),
+        };
+      }),
     );
   proof
     .command("explain")

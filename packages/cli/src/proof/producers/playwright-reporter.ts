@@ -63,6 +63,25 @@ function environment(): ProofRunArtifact["environment"] {
 }
 
 /**
+ * Map Playwright's final status to a run outcome. A plain `failed` run with
+ * no error outside the test cases failed in execution, so a contract under
+ * `own_results_first_attempt` can still judge each obligation's own case;
+ * global errors, a global timeout and interruptions refuse every obligation.
+ */
+function runOutcome(
+  status: string | undefined,
+  globalErrors: number,
+): Pick<ProofRunArtifact["run"], "outcome" | "failure_phase"> {
+  if (status === "passed" && globalErrors === 0) return { outcome: "passed" };
+  if (status === "interrupted") return { outcome: "interrupted" };
+  if (status === "timedout")
+    return { outcome: "timed_out", failure_phase: "infrastructure" };
+  return globalErrors > 0
+    ? { outcome: "failed", failure_phase: "setup" }
+    : { outcome: "failed", failure_phase: "execution" };
+}
+
+/**
  * First-party Playwright producer. It reports what happened as a
  * kibi.proof-run.v1 artifact with complete attempt history; Kibi evaluates
  * proof obligations and policies. Structural callback surface only — no
@@ -72,6 +91,7 @@ export class KibiPlaywrightProducer {
   private readonly options: KibiPlaywrightProducerOptions;
   private readonly results = new Map<string, ProofResult>();
   private startedAt: string;
+  private globalErrors = 0;
 
   constructor(options: KibiPlaywrightProducerOptions = {}) {
     this.options = options;
@@ -135,6 +155,12 @@ export class KibiPlaywrightProducer {
     });
   }
 
+  /** Errors outside any test case (config, global setup, collection). */
+  // implements REQ-kibi-verification-evidence-contract
+  onError(): void {
+    this.globalErrors += 1;
+  }
+
   // implements REQ-kibi-verification-evidence-contract
   async onEnd(result?: unknown): Promise<void> {
     const now = this.options.now ?? (() => new Date());
@@ -159,8 +185,8 @@ export class KibiPlaywrightProducer {
         this.options.codeSnapshot ?? process.env.KIBI_PROOF_SNAPSHOT ?? "",
       environment: environment(),
       run: {
-        outcome: status === "passed" ? "passed" : "failed",
-        exit_code: status === "passed" ? 0 : 1,
+        ...runOutcome(status, this.globalErrors),
+        exit_code: status === "passed" && this.globalErrors === 0 ? 0 : 1,
         started_at: this.startedAt,
         finished_at: now().toISOString(),
       },

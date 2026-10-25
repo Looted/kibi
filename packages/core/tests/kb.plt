@@ -2125,7 +2125,13 @@ test(requirement_proof_uncovered_behavioral_implementation_still_blocks, [setup(
 test(requirement_proof_type_shape_contract_is_not_runtime_e2e_or_coordinate_evidence, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(req, 'REQ-PROOF-TYPE-SHAPE', "Type-shape proof contract", active, []),
     assert_fixture_entity(test, 'TEST-PROOF-TYPE-SHAPE-E2E', "Type-shape scenario E2E", passing, [verification_scope=end_to_end]),
-    assert_fixture_entity(test, 'TEST-PROOF-TYPE-SHAPE-UNIT', "Type import contract", passing, [verification_scope=unit]),
+    Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    proof_receipt_json_scoped('PR-TEST000000001', 'TEST-PROOF-TYPE-SHAPE-UNIT', unit, Snapshot, passed,
+        '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', UnitReceiptJson),
+    assert_fixture_entity(test, 'TEST-PROOF-TYPE-SHAPE-UNIT', "Type import contract", passing, [
+        verification_scope=unit,
+        proof_receipts=UnitReceiptJson
+    ]),
     assert_fixture_entity(symbol, 'SYM-PROOF-RUNTIME', "runtime_behavior", active, [
         symbol_role=behavioral,
         sourceFile="src/runtime.ts",
@@ -2142,9 +2148,13 @@ test(requirement_proof_type_shape_contract_is_not_runtime_e2e_or_coordinate_evid
     kb_assert_relationship(implements, 'SYM-PROOF-TYPE-SHAPE', 'REQ-PROOF-TYPE-SHAPE', []),
     kb_assert_relationship(covered_by, 'SYM-PROOF-RUNTIME', 'TEST-PROOF-TYPE-SHAPE-E2E', []),
     kb_assert_relationship(covered_by, 'SYM-PROOF-TYPE-SHAPE', 'TEST-PROOF-TYPE-SHAPE-UNIT', []),
+    requirement_proof:requirement_proof_context(Snapshot, '2026-08-10T12:05:00Z', 604800, Context),
     requirement_proof:production_symbol_stage(
         'REQ-PROOF-TYPE-SHAPE',
         ['TEST-PROOF-TYPE-SHAPE-E2E'],
+        [],
+        [],
+        Context,
         Stage,
         Symbols
     ),
@@ -2179,11 +2189,18 @@ test(requirement_proof_preserves_structurally_tested_type_shape_symbols, [setup(
     ),
     assertion(Symbols == []),
     assertion(Stage.structuralSymbols == ['SYM-PROOF-STRUCTURAL-TYPE']),
-    assertion(Stage.status == passed),
+    % An authored active status is not evidence: without a current passing
+    % receipt on the unit test the type-shape symbol is uncovered.
+    assertion(Stage.status == missing),
+    assertion(Stage.uncoveredSymbols == ['SYM-PROOF-STRUCTURAL-TYPE']),
+    assertion(sub_atom(Stage.reason, _, _, _, 'type-shape symbol(s) lack a covered_by unit test')),
     assertion(kb_entity('SYM-PROOF-STRUCTURAL-TYPE', symbol, _)),
     Stages = _{productionSymbols: Stage},
     assertion(\+ requirement_proof:proof_gap_present(missing_production_symbol, Stages)),
-    assertion(\+ requirement_proof:proof_gap_present(missing_production_symbol_coverage, Stages)).
+    assertion(requirement_proof:proof_gap_present(missing_production_symbol_coverage, Stages)),
+    production_explanation(Stage, 'SYM-PROOF-STRUCTURAL-TYPE', Explanation),
+    assertion(Explanation.status == uncovered),
+    assertion(Explanation.reason == structural_unit_receipt_not_current).
 
 test(requirement_proof_requires_the_complete_semantic_scenario_e2e_symbol_chain, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     ClaimKey = 'CLAIM-ABCDEF0123456789',
@@ -2804,14 +2821,21 @@ test(receipt_reject_fallback_uses_context_then_test_and_evidence_dict, [setup(se
 test(production_coverage_type_shape_unit_contract_is_not_available_to_behavioral_symbols, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(req, 'REQ-EXPLAIN-SHAPE', "Shape vs behavioral", active, []),
     assert_fixture_entity(test, 'TEST-EXPLAIN-SHAPE-E2E', "Shape E2E", passing, [verification_scope=end_to_end]),
-    assert_fixture_entity(test, 'TEST-EXPLAIN-SHAPE-UNIT', "Shape unit", passing, [verification_scope=unit]),
+    Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    proof_receipt_json_scoped('PR-TEST000000001', 'TEST-EXPLAIN-SHAPE-UNIT', unit, Snapshot, passed,
+        '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', UnitReceiptJson),
+    assert_fixture_entity(test, 'TEST-EXPLAIN-SHAPE-UNIT', "Shape unit", passing, [
+        verification_scope=unit,
+        proof_receipts=UnitReceiptJson
+    ]),
     assert_fixture_entity(symbol, 'SYM-EXPLAIN-SHAPE', "Shape", active, [symbol_role='type-shape', sourceFile="src/shape.ts"]),
     assert_fixture_entity(symbol, 'SYM-EXPLAIN-BEHAVIOR', "Behavior", active, [symbol_role=behavioral, sourceFile="src/behavior.ts"]),
     kb_assert_relationship(implements, 'SYM-EXPLAIN-SHAPE', 'REQ-EXPLAIN-SHAPE', []),
     kb_assert_relationship(implements, 'SYM-EXPLAIN-BEHAVIOR', 'REQ-EXPLAIN-SHAPE', []),
     kb_assert_relationship(covered_by, 'SYM-EXPLAIN-SHAPE', 'TEST-EXPLAIN-SHAPE-UNIT', []),
     kb_assert_relationship(covered_by, 'SYM-EXPLAIN-BEHAVIOR', 'TEST-EXPLAIN-SHAPE-UNIT', []),
-    requirement_proof:production_symbol_stage('REQ-EXPLAIN-SHAPE', ['TEST-EXPLAIN-SHAPE-E2E'], Stage, Symbols),
+    requirement_proof:requirement_proof_context(Snapshot, '2026-08-10T12:05:00Z', 604800, Context),
+    requirement_proof:production_symbol_stage('REQ-EXPLAIN-SHAPE', ['TEST-EXPLAIN-SHAPE-E2E'], [], [], Context, Stage, Symbols),
     assertion(Stage.structuralSymbols == ['SYM-EXPLAIN-SHAPE']),
     assertion(memberchk('SYM-EXPLAIN-BEHAVIOR', Symbols)),
     assertion(memberchk('SYM-EXPLAIN-BEHAVIOR', Stage.uncoveredSymbols)),
@@ -2827,6 +2851,37 @@ test(production_coverage_type_shape_unit_contract_is_not_available_to_behavioral
     assertion(memberchk(BehaviorExpl.reason, [no_qualifying_e2e_coverage, covered_by_missing])),
     candidate_for(BehaviorExpl, 'TEST-EXPLAIN-SHAPE-UNIT', BehaviorCand),
     assertion(BehaviorCand.qualifies == false).
+
+test(claim_texts_match_across_trailing_punctuation_and_whitespace, [nondet]) :-
+    assertion(requirement_proof:claim_texts_equivalent('Coverage reports expose outcomes.', 'Coverage reports expose outcomes')),
+    assertion(requirement_proof:claim_texts_equivalent('Coverage  reports expose outcomes ;', 'Coverage reports expose outcomes')),
+    assertion(\+ requirement_proof:claim_texts_equivalent('Coverage reports expose outcomes', 'Coverage reports hide outcomes')),
+    Evidence = [_{claimKey: 'CLAIM-A', claimText: 'Coverage reports expose outcomes'}],
+    requirement_proof:inventory_ground_text_mismatches(
+        [_{claim_key: 'CLAIM-A', claim_text: "Coverage reports expose outcomes."}], Evidence, Keys),
+    assertion(Keys == []).
+
+test(type_shape_coverage_with_a_stale_unit_receipt_is_freshness_only, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    OtherSnapshot = 'abababababababababababababababababababababababababababababababab',
+    proof_receipt_json_scoped('PR-TEST000000001', 'TEST-SHAPE-STALE-UNIT', unit, OtherSnapshot, passed,
+        '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', UnitReceiptJson),
+    assert_fixture_entity(req, 'REQ-SHAPE-STALE', "Stale shape", active, []),
+    assert_fixture_entity(test, 'TEST-SHAPE-STALE-UNIT', "Shape unit", active, [
+        verification_scope=unit,
+        proof_receipts=UnitReceiptJson
+    ]),
+    assert_fixture_entity(symbol, 'SYM-SHAPE-STALE', "Shape", active, [symbol_role='type-shape', sourceFile="src/shape.ts"]),
+    kb_assert_relationship(implements, 'SYM-SHAPE-STALE', 'REQ-SHAPE-STALE', []),
+    kb_assert_relationship(covered_by, 'SYM-SHAPE-STALE', 'TEST-SHAPE-STALE-UNIT', []),
+    requirement_proof:requirement_proof_context(Snapshot, '2026-08-10T12:05:00Z', 604800, Context),
+    requirement_proof:production_symbol_stage('REQ-SHAPE-STALE', ['TEST-ANY-E2E'], [], [], Context, Stage, _),
+    assertion(Stage.uncoveredSymbols == ['SYM-SHAPE-STALE']),
+    production_explanation(Stage, 'SYM-SHAPE-STALE', Explanation),
+    candidate_for(Explanation, 'TEST-SHAPE-STALE-UNIT', Candidate),
+    assertion(Candidate.qualifies == false),
+    assertion(Candidate.secondaryReasons == [stale_proof_receipt]),
+    assertion(requirement_proof:production_coverage_freshness_only(_{productionSymbols: Stage})).
 
 test(executable_for_symbols_remain_excluded_from_production_coverage, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(req, 'REQ-EXPLAIN-EXEC', "Executable exclusion", active, []),

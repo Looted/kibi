@@ -905,7 +905,11 @@ describe("doctorCommand runtime provenance", () => {
 });
 
 describe("doctorCommand capability plugins", () => {
-  function writeJevActivation(cwd: string, declared: boolean): void {
+  function writeJevActivation(
+    cwd: string,
+    declared: boolean,
+    mode: "augment" | "replace" = "augment",
+  ): void {
     writeFileSync(
       path.join(cwd, "package.json"),
       JSON.stringify({
@@ -918,7 +922,7 @@ describe("doctorCommand capability plugins", () => {
             {
               package: "kibi-plugin-jev",
               capabilities: {
-                "kibi.semantic-classifier.v1": { mode: "augment" },
+                "kibi.semantic-classifier.v1": { mode },
               },
             },
           ],
@@ -1010,10 +1014,27 @@ describe("doctorCommand capability plugins", () => {
     });
   }
 
-  test("fails when activated Jev secret is missing, with remediation", async () => {
+  test("warns when an augment-mode Jev secret is missing", async () => {
+    // implements REQ-cli-doctor
     const cwd = preparedWorkspace();
     writeOkManifest(cwd);
     writeJevActivation(cwd, true);
+    restores.push(clearTypesafeKey());
+    isolateUserEnvConfig();
+    mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
+    const { payload } = await runDoctorJson(cwd);
+    const check = namedCheck(payload, "Capability plugins");
+    expect(check).toMatchObject({ passed: true, warning: true });
+    expect(String(check.remediation)).toContain(
+      "builtin providers answer alone",
+    );
+    expect(check.message).toContain("TYPESAFE_API_KEY=missing");
+  });
+
+  test("fails when a replace-mode Jev secret is missing, with remediation", async () => {
+    const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
+    writeJevActivation(cwd, true, "replace");
     restores.push(clearTypesafeKey());
     isolateUserEnvConfig();
     mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");

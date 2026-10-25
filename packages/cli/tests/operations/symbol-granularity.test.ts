@@ -75,7 +75,7 @@ describe("validateSymbolGranularity", () => {
     );
   });
 
-  test("accepts an exact behavioral match and a config-role variable", async () => {
+  test("accepts an exact behavioral match and an exported constant", async () => {
     const root = makeTempDir();
     const filePath = path.join(root, "exact.ts");
     writeFileSync(
@@ -103,6 +103,18 @@ describe("validateSymbolGranularity", () => {
         title: "FEATURE_FLAG",
         sourceFile: filePath,
         symbol_role: "config",
+      },
+      implementsRel,
+      context(root),
+    );
+    // An exported constant without a role is as granular: a certificate
+    // proof's domain_source is exactly such a declaration.
+    await validateSymbolGranularity(
+      {
+        type: "symbol",
+        id: "SYM-DOMAIN",
+        title: "FEATURE_FLAG",
+        sourceFile: "exact.ts",
       },
       implementsRel,
       context(root),
@@ -243,18 +255,18 @@ describe("validateSymbolGranularity", () => {
         context(root),
       ),
     ).rejects.toThrow(/granular symbols are available/);
-    await expect(
-      validateSymbolGranularity(
-        {
-          type: "symbol",
-          id: "SYM-COARSE",
-          title: "CONFIG",
-          sourceFile: "coarse.ts",
-        },
-        implementsRel,
-        context(root),
-      ),
-    ).rejects.toThrow(/Non-behavioral symbols/);
+    // The exported constant itself is a declaration with exact coordinates,
+    // as the staged gate and kibi check judge it: not a coarse file link.
+    await validateSymbolGranularity(
+      {
+        type: "symbol",
+        id: "SYM-CONFIG",
+        title: "CONFIG",
+        sourceFile: "coarse.ts",
+      },
+      implementsRel,
+      context(root),
+    );
   });
 
   test("accepts a bare unique method title from collectGranularityCandidates parity", async () => {

@@ -85,7 +85,10 @@ const IMPORT_SPECIFIER =
 
 /**
  * Whether `source` (at `sourcePath`) imports `targetPath` and names
- * `identifier`: the domain is read from the code, not hand-listed.
+ * `identifier`: the domain is read from the code, not hand-listed. A suite
+ * that tests compiled output imports the domain from the TypeScript
+ * project's `outDir`; given the workspace root, such an import counts when it
+ * maps back to the domain's source file under `rootDir`.
  */
 // implements REQ-kibi-code-proof-kinds
 export function importsDomain(
@@ -93,19 +96,134 @@ export function importsDomain(
   sourcePath: string,
   targetPath: string,
   identifier: string,
+  workspaceRoot?: string,
 ): boolean {
   if (identifier === "" || !new RegExp(`\\b${escapeRegExp(identifier)}\\b`).test(source))
     return false;
   const target = stripExtension(path.normalize(targetPath));
+  if (/\.py$/i.test(sourcePath))
+    return pythonImportsModule(source, sourcePath, targetPath);
   for (const match of source.matchAll(IMPORT_SPECIFIER)) {
     const specifier = match[1] ?? "";
     if (!specifier.startsWith(".")) continue;
-    const resolved = stripExtension(
-      path.normalize(path.join(path.dirname(sourcePath), specifier)),
-    );
-    if (resolved === target) return true;
+    const joined = path.normalize(path.join(path.dirname(sourcePath), specifier));
+    if (stripExtension(joined) === target) return true;
+    if (workspaceRoot === undefined) continue;
+    const mapped = compiledToSourcePath(workspaceRoot, joined);
+    if (mapped !== null && stripExtension(mapped) === target) return true;
   }
   return false;
+}
+
+const PYTHON_FROM_IMPORT = /^\s*from\s+(\.*)([\w.]*)\s+import\b/gm;
+const PYTHON_IMPORT = /^\s*import\s+([\w.]+(?:\s*,\s*[\w.]+)*)/gm;
+
+/**
+ * Whether a Python proof imports the module at `targetPath`: a relative
+ * `from .mod import X` resolved from the proof's package, or an absolute
+ * `from pkg.mod import X` / `import pkg.mod` whose dotted path names the
+ * file's trailing path segments (src layouts and packages alike).
+ */
+function pythonImportsModule(
+  source: string,
+  sourcePath: string,
+  targetPath: string,
+): boolean {
+  const target = path
+    .normalize(targetPath)
+    .replace(/\.pyi?$/i, "")
+    .replace(/[\\/]__init__$/, "");
+  const matchesDotted = (dotted: string) => {
+    if (dotted === "") return false;
+    const tail = dotted.split(".").join(path.sep);
+    return target === tail || target.endsWith(`${path.sep}${tail}`);
+  };
+  for (const match of source.matchAll(PYTHON_FROM_IMPORT)) {
+    const dots = match[1] ?? "";
+    const module = match[2] ?? "";
+    if (dots === "") {
+      if (matchesDotted(module)) return true;
+      continue;
+    }
+    let base = path.dirname(path.normalize(sourcePath));
+    for (let level = 1; level < dots.length; level++) base = path.dirname(base);
+    const resolved = path.join(base, ...module.split(".").filter(Boolean));
+    if (resolved === target) return true;
+  }
+  for (const match of source.matchAll(PYTHON_IMPORT))
+    for (const dotted of (match[1] ?? "").split(","))
+      if (matchesDotted(dotted.trim())) return true;
+  return false;
+}
+
+/** Strip `//` and block comments and trailing commas: tsconfig is JSONC. */
+function parseJsonc(text: string): unknown {
+  let out = "";
+  let inString = false;
+  for (let index = 0; index < text.length; index++) {
+    const char = text[index];
+    const next = text[index + 1];
+    if (inString) {
+      out += char;
+      if (char === "\\") {
+        out += next ?? "";
+        index++;
+      } else if (char === '"') inString = false;
+      continue;
+    }
+    if (char === '"') {
+      inString = true;
+      out += char;
+    } else if (char === "/" && next === "/") {
+      while (index < text.length && text[index] !== "\n") index++;
+      out += "\n";
+    } else if (char === "/" && next === "*") {
+      index += 2;
+      while (index < text.length && !(text[index] === "*" && text[index + 1] === "/"))
+        index++;
+      index++;
+    } else out += char;
+  }
+  return JSON.parse(out.replace(/,(\s*[}\]])/g, "$1"));
+}
+
+/**
+ * Map a workspace-relative path inside a TypeScript project's `outDir` to the
+ * matching path under its `rootDir` (the tsconfig's directory when unset),
+ * using the nearest tsconfig.json above the path. Null when no tsconfig
+ * declares an `outDir` that contains it.
+ */
+// implements REQ-kibi-code-proof-kinds
+export function compiledToSourcePath(
+  workspaceRoot: string,
+  relativePath: string,
+): string | null {
+  const absolute = path.resolve(workspaceRoot, relativePath);
+  let dir = path.dirname(absolute);
+  const root = path.resolve(workspaceRoot);
+  for (;;) {
+    const config = path.join(dir, "tsconfig.json");
+    if (existsSync(config)) {
+      try {
+        const options = record(
+          record(parseJsonc(readFileSync(config, "utf8")))?.compilerOptions,
+        );
+        const outDir = text(options?.outDir);
+        if (outDir !== "") {
+          const out = path.resolve(dir, outDir);
+          const rel = path.relative(out, absolute);
+          if (rel !== "" && !rel.startsWith("..") && !path.isAbsolute(rel)) {
+            const rootDir = path.resolve(dir, text(options?.rootDir) || ".");
+            return path.relative(root, path.join(rootDir, rel));
+          }
+        }
+      } catch {
+        // An unreadable tsconfig maps nothing.
+      }
+    }
+    if (dir === root || path.dirname(dir) === dir) return null;
+    dir = path.dirname(dir);
+  }
 }
 
 function stripExtension(file: string): string {
@@ -116,9 +234,34 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+// Node's type stripping resolves only exact specifiers. TypeScript apps
+// import relative modules without an extension, or with `.js` for a `.ts`
+// file; this resolve hook retries those as the TypeScript files they name.
+const TS_RESOLVE_HOOKS = `
+const SUFFIXES = [".ts", ".tsx", ".mts", ".cts", ".js", ".mjs", "/index.ts", "/index.tsx", "/index.js"];
+export async function resolve(specifier, context, next) {
+  try {
+    return await next(specifier, context);
+  } catch (error) {
+    if (error?.code !== "ERR_MODULE_NOT_FOUND" || !/^\\.\\.?\\//.test(specifier)) throw error;
+    const base = specifier.replace(/\\.[cm]?js$/, "");
+    for (const suffix of SUFFIXES) {
+      try {
+        return await next(base + suffix, context);
+      } catch {}
+    }
+    throw error;
+  }
+}
+`;
+
 const DOMAIN_EVALUATOR = `
-const [file, name] = process.argv.slice(1);
+const [file, name] = process.argv.slice(-2);
 const { pathToFileURL } = await import("node:url");
+if (typeof globalThis.Bun === "undefined") {
+  const { register } = await import("node:module");
+  register?.("data:text/javascript," + encodeURIComponent(${JSON.stringify(TS_RESOLVE_HOOKS)}));
+}
 const value = (await import(pathToFileURL(file).href))[name];
 let items = null;
 if (Array.isArray(value)) items = value;
@@ -131,34 +274,99 @@ console.log(JSON.stringify(items === null
   : { count: items.length, members: items.every(primitive) ? items.map(String) : null }));
 `;
 
+// A Python domain: a list, tuple, set, frozenset, dict or Enum class.
+const PYTHON_DOMAIN_EVALUATOR = `
+import enum, importlib, json, os, sys
+file, name = sys.argv[-2], sys.argv[-1]
+# Import the module under its package name, from the directory above its
+# topmost package, so absolute and relative imports inside it resolve.
+directory, module_name = os.path.split(os.path.splitext(file)[0])
+parts = [] if module_name == "__init__" else [module_name]
+while os.path.exists(os.path.join(directory, "__init__.py")):
+    directory, package = os.path.split(directory)
+    parts.insert(0, package)
+sys.path.insert(0, directory)
+module = importlib.import_module(".".join(parts))
+value = getattr(module, name, None)
+if isinstance(value, type) and issubclass(value, enum.Enum):
+    items = [member.value for member in value]
+elif isinstance(value, dict):
+    items = list(value.keys())
+elif isinstance(value, (list, tuple, set, frozenset)):
+    items = list(value)
+else:
+    items = None
+def primitive(item):
+    return isinstance(item, (str, int, float, bool))
+def text(item):
+    if isinstance(item, bool):
+        return "true" if item else "false"
+    return str(item)
+if items is None:
+    print(json.dumps({"error": f"{name} is not a list, tuple, set, dict or Enum"}))
+else:
+    print(json.dumps({"count": len(items), "members": [text(i) for i in items] if all(primitive(i) for i in items) else None}))
+`;
+
+function workspaceBin(workspaceRoot: string, name: string): string | null {
+  let dir = path.resolve(workspaceRoot);
+  for (;;) {
+    const candidate = path.join(dir, "node_modules", ".bin", name);
+    if (existsSync(candidate)) return candidate;
+    if (path.dirname(dir) === dir) return null;
+    dir = path.dirname(dir);
+  }
+}
+
 /**
  * The domain as the code defines it: Kibi imports the domain_source file
- * itself (with bun when it is on PATH, else node with type stripping) and
- * reads the named export's members, so a certificate cannot cover a
- * hand-listed subset.
+ * itself and reads the named export's members, so a certificate cannot cover
+ * a hand-listed subset. A TypeScript or JavaScript domain loads with bun when
+ * it is on PATH, else with the workspace's tsx, else with node's type
+ * stripping (which retries extensionless relative imports as TypeScript
+ * files); a Python domain (`.py`) loads with python3.
  */
 // implements REQ-kibi-code-proof-kinds
 export function evaluateDomain(
   workspaceRoot: string,
   sourceFile: string,
   exportName: string,
+  options: Readonly<{
+    /** The TypeScript runners to try, in order (default all three). */
+    runners?: readonly ("bun" | "tsx" | "node")[];
+  }> = {},
 ):
   | { ok: true; count: number; members: readonly string[] | null }
   | { ok: false; reason: string } {
   const absolute = path.resolve(workspaceRoot, sourceFile);
-  const runners: [string, string[]][] = [
-    ["bun", ["-e", DOMAIN_EVALUATOR]],
-    [
-      process.execPath,
-      [
-        "--experimental-strip-types",
-        "--no-warnings",
-        "--input-type=module",
-        "-e",
-        DOMAIN_EVALUATOR,
-      ],
-    ],
-  ];
+  const python = /\.py$/i.test(sourceFile);
+  const tsx = python ? null : workspaceBin(workspaceRoot, "tsx");
+  const runners: [string, string[]][] = python
+    ? [
+        ["python3", ["-c", PYTHON_DOMAIN_EVALUATOR]],
+        ["python", ["-c", PYTHON_DOMAIN_EVALUATOR]],
+      ]
+    : (options.runners ?? ["bun", "tsx", "node"]).flatMap(
+        (runner): [string, string[]][] => {
+          if (runner === "bun") return [["bun", ["-e", DOMAIN_EVALUATOR]]];
+          if (runner === "tsx")
+            return tsx === null
+              ? []
+              : [[tsx, ["--eval", DOMAIN_EVALUATOR, "--"]]];
+          return [
+            [
+              process.execPath,
+              [
+                "--experimental-strip-types",
+                "--no-warnings",
+                "--input-type=module",
+                "-e",
+                DOMAIN_EVALUATOR,
+              ],
+            ],
+          ];
+        },
+      );
   let failure = "";
   for (const [command, argv] of runners) {
     const run = spawnSync(command, [...argv, absolute, exportName], {
@@ -184,7 +392,7 @@ export function evaluateDomain(
   }
   return {
     ok: false,
-    reason: `Kibi could not load ${exportName} from ${sourceFile}${failure ? `: ${failure}` : ""}`,
+    reason: `Kibi could not load ${exportName} from ${sourceFile}${failure ? `: ${failure}` : ""}${python ? " (a Python domain needs python3 on PATH)" : " (without bun or the workspace's tsx, node's type stripping loads the domain; a type imported without import type stops it)"}`,
   };
 }
 
@@ -461,26 +669,34 @@ async function workspaceProblem(
               ),
             )
           ).map((symbol) => symbol?.sourceFile ?? "");
+    // The export Kibi reads: domain_source.export, else the symbol's title.
+    const exportName = contract.domain_source?.export ?? domain.title;
     const importing = readers.some((reader) => {
       if (reader === "") return false;
       const source = readWorkspaceFile(context.workspaceRoot, reader);
       return (
         source !== null &&
-        importsDomain(source, reader, domain.sourceFile, domain.title)
+        importsDomain(
+          source,
+          reader,
+          domain.sourceFile,
+          exportName,
+          context.workspaceRoot,
+        )
       );
     });
     if (!importing)
-      return `the proof does not import ${domain.title || domainId} from ${domain.sourceFile}, so its domain may be hand-listed`;
+      return `the proof does not import ${exportName || domainId} from ${domain.sourceFile}, so its domain may be hand-listed${contract.domain_source?.export === undefined ? ` (Kibi reads the export named by the symbol's title; set domain_source.export when the export has another name)` : ""}`;
     if (kind === "exhaustive") {
       const evaluated = evaluateDomain(
         context.workspaceRoot,
         domain.sourceFile,
-        domain.title,
+        exportName,
       );
       if (!evaluated.ok) return evaluated.reason;
       const members = record(certificate.domain)?.members;
       const problem = domainCoverageProblem(
-        domain.title,
+        exportName,
         evaluated,
         Array.isArray(members) ? members.map(String) : [],
       );

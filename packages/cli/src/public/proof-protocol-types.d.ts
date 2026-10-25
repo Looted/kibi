@@ -24,7 +24,9 @@ export type RunFailurePhase =
   | "execution"
   | "teardown"
   | "infrastructure";
-export type SuccessPolicy = "all_required_first_attempt";
+export type SuccessPolicy =
+  | "all_required_first_attempt"
+  | "own_results_first_attempt";
 
 export type ProofAttempt = Readonly<{
   outcome: ProofResultOutcome;
@@ -93,7 +95,7 @@ export type ProofContract = Readonly<{
     | "typecheck"
     | "arithmetic"
     | "smt";
-  domain_source?: Readonly<{ symbol_id: string }>;
+  domain_source?: Readonly<{ symbol_id: string; export?: string }>;
   witness?: Readonly<{ path: string }>;
   constraint_source?: Readonly<{ fact_ids: readonly string[] }>;
 }>;

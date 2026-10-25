@@ -86,6 +86,56 @@ describe("Kibi Playwright producer", () => {
     >;
     const run = artifact.run as Record<string, unknown>;
     expect(run.outcome).toBe("failed");
+    expect(run.failure_phase).toBe("execution");
     expect(proofRunArtifactErrors(artifact)).toEqual([]);
+  });
+
+  test("marks global errors, timeouts and interruptions as run-level failures", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-producer-"));
+    const runFor = async (
+      status: string,
+      globalError: boolean,
+    ): Promise<Record<string, unknown>> => {
+      const output = path.join(root, `${status}-${globalError}.json`);
+      const producer = new KibiPlaywrightProducer({
+        outputPath: output,
+        codeSnapshot: "a".repeat(64),
+        commandArgv: ["npx", "playwright", "test"],
+        now: () => new Date("2026-08-13T00:00:00.000Z"),
+      });
+      producer.onBegin();
+      producer.onTestEnd(
+        {
+          titlePath: () => ["checkout", "accepts a card"],
+          location: { file: "tests/checkout.spec.ts", line: 4 },
+        },
+        { status: "passed", duration: 10 },
+      );
+      if (globalError) producer.onError();
+      await producer.onEnd({ status });
+      const artifact = JSON.parse(await readFile(output, "utf8")) as Record<
+        string,
+        unknown
+      >;
+      expect(proofRunArtifactErrors(artifact)).toEqual([]);
+      return artifact.run as Record<string, unknown>;
+    };
+
+    expect(await runFor("failed", true)).toMatchObject({
+      outcome: "failed",
+      failure_phase: "setup",
+    });
+    expect(await runFor("passed", true)).toMatchObject({
+      outcome: "failed",
+      failure_phase: "setup",
+      exit_code: 1,
+    });
+    expect(await runFor("timedout", false)).toMatchObject({
+      outcome: "timed_out",
+      failure_phase: "infrastructure",
+    });
+    expect(await runFor("interrupted", false)).toMatchObject({
+      outcome: "interrupted",
+    });
   });
 });

@@ -50,6 +50,7 @@ import {
 } from "../public/impact-diagnostics.js";
 import type { QualityDiagnostic } from "../public/impact-diagnostics.js";
 import { executeCheck } from "../public/operations/check-executor.js";
+import { EVIDENCE_FLOOR_RULE } from "../public/operations/evidence-floor.js";
 import { nodeFilesystem, nodeGit } from "../public/operations/node-ports.js";
 import { refreshDetachedSnapshot } from "../runtime/detached-snapshot.js";
 import { amendsRootCommit } from "../traceability/commit-amend.js";
@@ -1374,7 +1375,10 @@ export async function checkCommand(
         console.log(`  Source: ${v.source}`);
       }
       console.log(`  ${v.description}`);
-      if (options.fix && v.suggestion) {
+      // An evidence-floor finding names no fix in its description; its
+      // suggestion carries the proof gaps and the tests and symbols behind
+      // them, so it is always shown.
+      if (v.suggestion && (options.fix || v.rule === EVIDENCE_FLOOR_RULE)) {
         console.log(`  Suggestion: ${v.suggestion}`);
       }
       console.log();

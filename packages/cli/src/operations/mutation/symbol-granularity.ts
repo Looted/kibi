@@ -1,7 +1,6 @@
 import { collectGranularityCandidates } from "kibi-plugin-builtin";
 import { InputError } from "../../cli-errors.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
-import { resolveWorkspaceSourceAbsolute } from "../../utils/repo-relative-path.js";
 import {
   ALLOWED_GRANULARITY_REASONS_PROSE,
   type GranularSymbolCandidate,
@@ -13,6 +12,7 @@ import {
   isAllowedGranularityReason,
   isTraceabilityRelationshipType,
 } from "../../public/symbol-granularity.js";
+import { resolveWorkspaceSourceAbsolute } from "../../utils/repo-relative-path.js";
 import type { RelationshipInput } from "./types.js";
 
 function candidate(name: string, kind: SymbolKind): GranularSymbolCandidate {
@@ -117,11 +117,12 @@ export async function validateSymbolGranularity(
   // A declaration named like the symbol is coarse only through its own
   // behavioral members (a class and its public methods), the same test the
   // staged gate and `kibi check` apply; any other title is judged against
-  // every behavioral declaration in the file.
-  const behavioral =
-    exact && (exact.kind !== "variable" || entity.symbol_role === "config")
-      ? coarseLinkBehavioralNames(entity.title, available)
-      : getBehavioralSymbolNames(available);
+  // every behavioral declaration in the file. An exported constant is its
+  // own declaration with exact coordinates (a certificate proof's domain is
+  // one), so it is granular whatever its role.
+  const behavioral = exact
+    ? coarseLinkBehavioralNames(entity.title, available)
+    : getBehavioralSymbolNames(available);
   if (behavioral.length === 0) return;
   const nonBehavioral = getNonBehavioralSymbolNames(available);
   const ignored =
