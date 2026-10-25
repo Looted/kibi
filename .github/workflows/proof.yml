@@ -118,11 +118,13 @@ jobs:
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           npm install --global "@openai/codex@${CODEX_CLI_VERSION}"
           npm install --global "pnpm@${PNPM_VERSION}"
-          # Lean for the intervals.pl proofs; the toolchain is proof/lean/lean-toolchain.
+          # Lean for the intervals.pl proofs. The proof step runs `lake --dir
+          # proof/lean` from the repository root, where no lean-toolchain file
+          # applies, so proof/lean's toolchain is also the default.
           curl --fail --silent --show-error --location --output elan-init.sh \
             "https://raw.githubusercontent.com/leanprover/elan/${ELAN_VERSION}/elan-init.sh"
           echo "${ELAN_INIT_SHA256}  elan-init.sh" | sha256sum --check
-          sh elan-init.sh -y --default-toolchain none
+          sh elan-init.sh -y --default-toolchain "$(cat proof/lean/lean-toolchain)"
           rm elan-init.sh
           export PATH="$HOME/.elan/bin:$PATH"
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
@@ -132,7 +134,7 @@ jobs:
           bwrap --version
           z3 --version
           /usr/bin/swipl -g "use_module(library(clpq))" -t halt
-          (cd proof/lean && lake --version)
+          lake --version
           uv sync --project tools/skillopt --frozen
           uv run --project tools/skillopt python tools/skillopt/verify_pin.py
 

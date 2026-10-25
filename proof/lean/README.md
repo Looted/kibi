@@ -46,4 +46,6 @@ it; `apt-get install swi-prolog-nox` does). Without one the oracle is skipped
 with a note and `intervals.pl` is compared with the Lean model alone; CI
 passes `--require-oracle` (or sets `KIBI_REQUIRE_ORACLE=1`) so it never
 skips. The toolchain version is in
-`lean-toolchain`; install it with [elan](https://github.com/leanprover/elan).
+`lean-toolchain`; install it with [elan](https://github.com/leanprover/elan)
+and make it the default (`elan default "$(cat proof/lean/lean-toolchain)"`),
+because `kibi prove` runs `lake --dir proof/lean` from the repository root.
