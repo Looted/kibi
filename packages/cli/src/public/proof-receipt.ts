@@ -153,6 +153,25 @@ export const PROOF_RECEIPT_SCHEMA = {
     certificate: { type: "object" },
     certificate_digest: { type: "string", pattern: "^[a-f0-9]{64}$" },
     certificate_rejection: { type: "string", minLength: 1 },
+    claim_bindings: {
+      type: "array",
+      description:
+        "Certificate kinds: how the certificate binds to each claim its contract names in proves, judged at ingest. derived means Kibi derived the certificate's obligation from the claim's grounding fact and the certificate satisfies it; attested means no derivation exists and the author vouches for it (never proved); rejected names why.",
+      items: {
+        type: "object",
+        required: ["claim_key", "binding"],
+        properties: {
+          claim_key: { type: "string", minLength: 1 },
+          requirement_id: { type: "string", minLength: 1 },
+          fact_id: { type: "string", minLength: 1 },
+          binding: { type: "string", enum: ["derived", "attested", "rejected"] },
+          scope: { type: "string", enum: ["code", "intent"] },
+          obligation: { type: "object" },
+          reason: { type: "string", minLength: 1 },
+        },
+        additionalProperties: false,
+      },
+    },
     gaps: {
       type: "array",
       items: {
@@ -217,6 +236,20 @@ export type ProofReceipt = Readonly<{
   certificate?: Readonly<Record<string, unknown>>;
   certificate_digest?: string;
   certificate_rejection?: string;
+  /** Certificate kinds: the binding to each claim the contract names in proves. */
+  claim_bindings?: readonly ClaimBinding[];
+}>;
+
+/** How one certificate binds to one requirement claim, judged at ingest. */
+// implements REQ-kibi-claim-bound-proofs
+export type ClaimBinding = Readonly<{
+  claim_key: string;
+  requirement_id?: string;
+  fact_id?: string;
+  binding: "derived" | "attested" | "rejected";
+  scope?: "code" | "intent";
+  obligation?: Readonly<Record<string, unknown>>;
+  reason?: string;
 }>;
 
 export function finishedAtPrecedesStartedAt(
@@ -399,7 +432,27 @@ function validV2Fields(row: Record<string, unknown>): boolean {
     !nonEmptyString(row.certificate_rejection)
   )
     return false;
+  if (row.claim_bindings !== undefined && !validClaimBindings(row.claim_bindings))
+    return false;
   return true;
+}
+
+// implements REQ-kibi-claim-bound-proofs
+function validClaimBindings(value: unknown): boolean {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (entry) =>
+        isRecord(entry) &&
+        nonEmptyString(entry.claim_key) &&
+        ["derived", "attested", "rejected"].includes(String(entry.binding)) &&
+        (entry.scope === undefined ||
+          entry.scope === "code" ||
+          entry.scope === "intent") &&
+        (entry.obligation === undefined || isRecord(entry.obligation)) &&
+        (entry.reason === undefined || nonEmptyString(entry.reason)),
+    )
+  );
 }
 
 /**

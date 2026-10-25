@@ -55,6 +55,7 @@ import {
 } from "../mutation/workspace-mutation-lock.js";
 import { MutationRollbackFailureError } from "../mutation/saga.js";
 import { patchReceiptsIntoDocument } from "./receipt-document.js";
+import { judgeClaimBindings } from "./claim-bindings.js";
 import { checkCodeCertificate } from "./code-certificates.js";
 
 // implements REQ-kibi-verification-evidence-contract
@@ -455,6 +456,12 @@ async function executeIngestProofUnlocked(
         (entry) => entry.test_id === testId,
       ),
     });
+    const claimBindings = await judgeClaimBindings(context, {
+      testId,
+      contract,
+      verdict,
+      coveredBySymbols: coveredBy.get(testId) ?? [],
+    });
     const receipt: ProofReceipt = {
       version: PROOF_RECEIPT_VERSION,
       receipt_id: `PR-${jsonDigest({
@@ -484,6 +491,7 @@ async function executeIngestProofUnlocked(
       })),
       ...(evaluation.gaps.length > 0 ? { gaps: evaluation.gaps } : {}),
       ...verdict,
+      ...(claimBindings !== undefined ? { claim_bindings: claimBindings } : {}),
     };
     prepared.push({
       testId,

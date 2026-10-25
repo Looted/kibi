@@ -506,7 +506,7 @@ identity_live_fact(FactId) :-
 property_value_signature(Props, Signature) :-
     findall(
         Field-Value,
-        (   member(Field, [value_type, value_string, value_int, value_number, value_bool, unit]),
+        (   member(Field, [value_type, value_string, value_int, value_number, value_bool, value_set, unit]),
             memberchk(Field=Raw, Props),
             signature_value(Raw, Value),
             Value \== ''

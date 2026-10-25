@@ -26,8 +26,9 @@
 ]).
 :- use_module('logic_ir.pl', [logic_rule_safety/2]).
 :- use_module('code_certificates.pl', [code_certificate_check/2, code_certificate_digest/2]).
+:- use_module('claim_obligations.pl', [claim_obligation/3, obligation_equal/2]).
 
-proof_version('kibi.requirement-proof.v4').
+proof_version('kibi.requirement-proof.v5').
 
 requirement_proof_context(Context) :-
     requirement_proof_context(unknown, '1970-01-01T00:00:00Z', 604800, Context).
@@ -103,10 +104,12 @@ requirement_proof(ReqId, ReqProps, Context, Proof) :-
     proof_issues(Stages, Gaps, Advisories),
     proof_repairs(Gaps, Repairs),
     proof_status(Stages, Status),
-    proved_scenario_tests(Status, ScenarioTestStage, Context, ProvedTests),
     certificate_rejections(ScenarioTestStage, Context, Rejections),
+    claim_evidence(ReqId, ReqProps, Inventory, Status, ScenarioTestStage, Context,
+                   ClaimEvidence, ProvedTests, BindingRejections),
     requirement_evidence(ReqProps, Status, PassingE2eTests, ProvedTests, EvidenceLevel, Evidence),
     evidence_floor(ReqProps, EvidenceLevel, Gaps, Stages, EvidenceFloor),
+    claim_summary(ClaimEvidence, ClaimSummary, UnprovedClaims),
     proof_version(Version),
     Proof0 = _{
         proofVersion: Version,
@@ -114,6 +117,9 @@ requirement_proof(ReqId, ReqProps, Context, Proof) :-
         evidenceLevel: EvidenceLevel,
         evidence: Evidence,
         evidenceFloor: EvidenceFloor,
+        claimEvidence: ClaimEvidence,
+        claimSummary: ClaimSummary,
+        unprovedClaims: UnprovedClaims,
         proofGaps: Gaps,
         proofAdvisories: Advisories,
         proofRepairs: Repairs,
@@ -121,8 +127,12 @@ requirement_proof(ReqId, ReqProps, Context, Proof) :-
         testResolutions: ScenarioTestStage.resolutions
     },
     (   Rejections == []
-    ->  Proof = Proof0
-    ;   Proof = Proof0.put(certificateRejections, Rejections)
+    ->  Proof1 = Proof0
+    ;   Proof1 = Proof0.put(certificateRejections, Rejections)
+    ),
+    (   BindingRejections == []
+    ->  Proof = Proof1
+    ;   Proof = Proof1.put(claimBindingRejections, BindingRejections)
     ).
 
 exempt_requirement_proof(Reason, ReqProps, Proof) :-
@@ -133,6 +143,9 @@ exempt_requirement_proof(Reason, ReqProps, Proof) :-
         proofStatus: not_applicable,
         evidenceLevel: EvidenceLevel,
         evidence: Evidence,
+        claimEvidence: [],
+        claimSummary: _{applicable: 0, proved: 0, attested: 0, tested: 0, unresolved: 0},
+        unprovedClaims: [],
         proofGaps: [],
         proofAdvisories: [],
         proofRepairs: [],
@@ -1264,13 +1277,14 @@ receipt_kind_evidence(Receipt, State, Evidence0, Evidence) :-
         receipt_string_field(Receipt, evidence_level, proved)
     ->  receipt_certificate_recheck(Receipt, Recheck),
         (   Recheck == ok
-        ->  Evidence = Evidence0.put(_{kind: Kind, evidenceLevel: proved})
+        ->  Evidence1 = Evidence0.put(_{kind: Kind, evidenceLevel: proved})
         ;   Recheck = rejected(Reason),
-            Evidence = Evidence0.put(_{kind: Kind, evidenceLevel: tested,
-                                       certificateRejection: Reason})
+            Evidence1 = Evidence0.put(_{kind: Kind, evidenceLevel: tested,
+                                        certificateRejection: Reason})
         )
-    ;   Evidence = Evidence0.put(_{kind: Kind, evidenceLevel: tested})
-    ).
+    ;   Evidence1 = Evidence0.put(_{kind: Kind, evidenceLevel: tested})
+    ),
+    receipt_claim_fields(Receipt, Evidence1, Evidence).
 receipt_kind_evidence(_Receipt, _State, Evidence, Evidence).
 
 % receipt_certificate_recheck(+Receipt, -Result): ok or rejected(Reason).
@@ -1875,22 +1889,6 @@ proof_status(Stages, unresolved) :-
 proof_status(_, tested).
 
 % implements REQ-kibi-code-proof-kinds
-%% proved_scenario_tests(+ProofStatus, +ScenarioTestStage, +Context, -ProvedTests)
-% The tests whose fresh receipts earn proved, when every linked scenario has
-% at least one, as TestId-Kind pairs; otherwise [].  A certificate test may have any verification
-% scope: it covers every case of its domain instead of sampling a journey,
-% and the requirement must already be tested end to end.
-proved_scenario_tests(tested, ScenarioTestStage, Context, ProvedTests) :-
-    Obligations = ScenarioTestStage.obligations,
-    Obligations \= [],
-    maplist(scenario_proved_tests(Context), Obligations, PerScenario),
-    \+ memberchk([], PerScenario),
-    !,
-    append(PerScenario, ProvedTests0),
-    sort(ProvedTests0, ProvedTests).
-proved_scenario_tests(_ProofStatus, _ScenarioTestStage, _Context, []).
-
-% implements REQ-kibi-code-proof-kinds
 % Scenario tests whose receipt claimed proved but whose certificate no
 % longer re-checks, with the reason, so a drop to tested is never silent.
 certificate_rejections(ScenarioTestStage, Context, Rejections) :-
@@ -1906,21 +1904,221 @@ certificate_rejections(ScenarioTestStage, Context, Rejections) :-
         Rejections0),
     sort(Rejections0, Rejections).
 
-scenario_proved_tests(Context, Obligation, ProvedTests) :-
-    findall(TestId-Kind,
-        (member(TestId, Obligation.tests),
-         test_receipt_evidence(Context, [unit, integration, end_to_end], TestId, Evidence),
-         Evidence.state == passed,
-         get_dict(evidenceLevel, Evidence, proved),
-         get_dict(kind, Evidence, Kind)),
-        ProvedTests).
+% implements REQ-kibi-claim-bound-proofs
+%% receipt_claim_fields(+Receipt, +Evidence0, -Evidence)
+% A certificate receipt keeps the certificate and the claim bindings Kibi
+% recorded at ingest, so each claim can be judged against the current KB.
+receipt_claim_fields(Receipt, Evidence0, Evidence) :-
+    (   inventory_entry_field(Receipt, claim_bindings, RawBindings),
+        inventory_entries(RawBindings, Bindings),
+        Bindings \== []
+    ->  Evidence1 = Evidence0.put(claimBindings, Bindings)
+    ;   Evidence1 = Evidence0
+    ),
+    (   inventory_entry_field(Receipt, certificate, Certificate),
+        is_dict(Certificate)
+    ->  Evidence = Evidence1.put(certificate, Certificate)
+    ;   Evidence = Evidence1
+    ).
+
+% implements REQ-kibi-claim-bound-proofs
+%% claim_evidence(+ReqId, +Props, +Inventory, +ProofStatus, +ScenarioTestStage,
+%%                +Context, -ClaimEvidence, -ProvedTests, -Rejections)
+% One entry per semantic-inventory claim with the evidence level that claim
+% has on its own.  A claim is proved only when the requirement is tested end
+% to end and a fresh certificate whose obligation Kibi derived from the
+% claim's grounding fact (binding derived, scope code) re-checks.  A
+% certificate the author only attests to the claim leaves it tested.
+% ProvedTests is non-empty, as TestId-Kind pairs, only when every applicable
+% claim is proved; the requirement is proved exactly then.
+claim_evidence(ReqId, Props, Inventory, ProofStatus, ScenarioTestStage, Context,
+               ClaimEvidence, ProvedTests, Rejections) :-
+    (   get_dict(tests, ScenarioTestStage, Tests) -> true ; Tests = [] ),
+    (   ProofStatus == tested
+    ->  findall(TestId-Evidence,
+            (member(TestId, Tests),
+             test_receipt_evidence(Context, [unit, integration, end_to_end], TestId, Evidence),
+             get_dict(state, Evidence, passed),
+             get_dict(claimBindings, Evidence, _)),
+            BoundTests)
+    ;   BoundTests = []
+    ),
+    intent_claim_level(Props, IntentLevel),
+    maplist(claim_entry(ReqId, ProofStatus, IntentLevel, BoundTests), Inventory, Entries0),
+    exclude(==(none), Entries0, ClaimEvidence),
+    findall(R, (member(E, ClaimEvidence), get_dict(rejections, E, Rs), member(R, Rs)), Rejections0),
+    sort(Rejections0, Rejections),
+    include(applicable_claim, ClaimEvidence, Applicable),
+    (   ProofStatus == tested,
+        Applicable \== [],
+        forall(member(E, Applicable), claim_level_is(proved, E))
+    ->  findall(T-K,
+            (member(E, Applicable), get_dict(bindings, E, Bs), member(B, Bs),
+             get_dict(binding, B, derived), get_dict(test, B, T), get_dict(kind, B, K)),
+            Pairs0),
+        sort(Pairs0, ProvedTests)
+    ;   ProvedTests = []
+    ).
+
+intent_claim_level(Props, Level) :-
+    (   human_intent(Props, _, _) -> Level = asserted ; Level = unverified ).
+
+applicable_claim(Entry) :- get_dict(applicable, Entry, true).
+
+claim_level_is(Level, Entry) :- get_dict(level, Entry, Level).
+
+claim_attested_only(Entry) :-
+    \+ claim_level_is(proved, Entry),
+    get_dict(bindings, Entry, Bindings),
+    member(B, Bindings),
+    get_dict(binding, B, attested),
+    !.
+
+claim_unresolved(Entry) :- get_dict(blocker, Entry, _).
+
+claim_entry(ReqId, ProofStatus, IntentLevel, BoundTests, InventoryEntry, Entry) :-
+    (   inventory_entry_field(InventoryEntry, claim_key, RawKey),
+        normalize_atom(RawKey, Key)
+    ->  inventory_entry_status(InventoryEntry, Status),
+        (   inventory_entry_field(InventoryEntry, role, RawRole)
+        ->  normalize_atom(RawRole, Role)
+        ;   Role = ''
+        ),
+        Base = _{claimKey: Key, status: Status, role: Role},
+        (   Status == nonlogical
+        ->  Entry = Base.put(_{applicable: false, level: null, bindings: []})
+        ;   Status \== modeled
+        ->  Entry = Base.put(_{applicable: true, level: IntentLevel, bindings: [],
+                               blocker: unresolved_semantic_proposition})
+        ;   ProofStatus \== tested
+        ->  Entry = Base.put(_{applicable: true, level: IntentLevel, bindings: []})
+        ;   findall(Binding, test_claim_binding(ReqId, Key, BoundTests, Binding), Bindings0),
+            sort(Bindings0, Bindings),
+            include(binding_is(rejected), Bindings, RejectedBindings),
+            maplist(binding_rejection(Key), RejectedBindings, Rejections),
+            (   member(B, Bindings), get_dict(binding, B, derived), get_dict(scope, B, code)
+            ->  Level = proved
+            ;   Level = tested
+            ),
+            Entry0 = Base.put(_{applicable: true, level: Level, bindings: Bindings}),
+            (   Rejections == []
+            ->  Entry = Entry0
+            ;   Entry = Entry0.put(rejections, Rejections)
+            )
+        )
+    ;   Entry = none
+    ).
+
+binding_is(Expected, Binding) :- get_dict(binding, Binding, Expected).
+
+binding_rejection(Key, Binding, _{test: Test, claimKey: Key, reason: Reason}) :-
+    get_dict(test, Binding, Test),
+    get_dict(reason, Binding, Reason).
+
+% The binding one passed receipt records for this claim of this requirement,
+% re-judged against the current KB.
+test_claim_binding(ReqId, Key, BoundTests, Binding) :-
+    member(TestId-Evidence, BoundTests),
+    get_dict(claimBindings, Evidence, Recorded0),
+    member(Recorded, Recorded0),
+    inventory_entry_field(Recorded, claim_key, RawKey),
+    normalize_atom(RawKey, Key),
+    inventory_entry_field(Recorded, requirement_id, RawReq),
+    normalize_atom(RawReq, ReqId),
+    (   get_dict(kind, Evidence, Kind) -> true ; Kind = e2e ),
+    judge_claim_binding(ReqId, Key, Kind, Evidence, Recorded, Verdict, Scope, Reason),
+    Binding0 = _{test: TestId, kind: Kind, binding: Verdict, scope: Scope},
+    (   Reason == ''
+    ->  Binding = Binding0
+    ;   Binding = Binding0.put(reason, Reason)
+    ).
+
+% judge_claim_binding(+ReqId, +Key, +Kind, +Evidence, +Recorded, -Verdict, -Scope, -Reason)
+judge_claim_binding(ReqId, Key, Kind, Evidence, Recorded, Verdict, Scope, Reason) :-
+    receipt_string_field(Recorded, binding, RecordedVerdict),
+    (   receipt_string_field(Recorded, scope, Scope0) -> true ; Scope0 = code ),
+    claim_obligation(ReqId-Key, Kind, Current),
+    (   RecordedVerdict == rejected
+    ->  Verdict = rejected, Scope = Scope0,
+        (   receipt_string_field(Recorded, reason, Reason) -> true ; Reason = 'rejected at ingest' )
+    ;   Current = unresolved(Reason0)
+    ->  Verdict = rejected, Scope = Scope0, atom_string(Reason, Reason0)
+    ;   Current = incompatible(_, Reason0)
+    ->  Verdict = rejected, Scope = Scope0, atom_string(Reason, Reason0)
+    ;   RecordedVerdict == attested
+    ->  (   Current = attested(_)
+        ->  Verdict = attested, Scope = Scope0, Reason = ''
+        ;   Verdict = rejected, Scope = Scope0,
+            Reason = 'the claim now has a derivable obligation; re-prove the test so Kibi can derive it'
+        )
+    ;   RecordedVerdict == derived,
+        Current = obligation(FactId, Obligation)
+    ->  Scope = Scope0,
+        (   \+ ( receipt_string_field(Recorded, fact_id, RecordedFact), RecordedFact == FactId )
+        ->  Verdict = rejected,
+            format(atom(Reason), "~w is now grounded by ~w, not the fact the receipt was ingested against", [Key, FactId])
+        ;   \+ ( inventory_entry_field(Recorded, obligation, RecordedObligation),
+                 obligation_equal(RecordedObligation, Obligation) )
+        ->  Verdict = rejected,
+            format(atom(Reason), "~w changed since the receipt was ingested", [FactId])
+        ;   \+ get_dict(evidenceLevel, Evidence, proved)
+        ->  Verdict = rejected,
+            Reason = 'the certificate does not re-check'
+        ;   certificate_obligation_problem(Kind, Evidence, Obligation, Problem)
+        ->  Verdict = rejected, Reason = Problem
+        ;   Verdict = derived, Reason = ''
+        )
+    ;   Verdict = rejected, Scope = Scope0,
+        Reason = 'the claim has no derivable obligation; re-prove the test'
+    ).
+
+% The part of a derived binding Kibi can re-check from the stored
+% certificate alone (code-dependent parts were checked at ingest and stale
+% with the receipt).
+certificate_obligation_problem(exhaustive, Evidence, Obligation, Problem) :-
+    get_dict(certificate, Evidence, Certificate),
+    get_dict(domain, Certificate, Domain),
+    get_dict(members, Domain, Raw),
+    maplist([M, S]>>(atom(M) -> atom_string(M, S) ; S = M), Raw, Strings),
+    sort(Strings, Members),
+    \+ obligation_equal(Obligation, _{kind: "set_equals", members: Members}),
+    Problem = 'the certificate domain is not the fact\'s set'.
+certificate_obligation_problem(arithmetic, Evidence, Obligation, Problem) :-
+    get_dict(certificate, Evidence, Certificate),
+    (   get_dict(claim, Certificate, Claim),
+        get_dict(operator, Claim, Op),
+        get_dict(value, Claim, Value),
+        get_dict(variable, Certificate, Variable),
+        get_dict(value_type, Certificate, Type),
+        obligation_equal(Obligation,
+            _{kind: "numeric_constraint", variable: Variable, value_type: Type,
+              operator: Op, value: Value})
+    ->  fail
+    ;   Problem = 'the certificate\'s claim is not the fact\'s constraint'
+    ).
+
+%% claim_summary(+ClaimEvidence, -Summary, -UnprovedClaims)
+claim_summary(ClaimEvidence, Summary, Unproved) :-
+    include(applicable_claim, ClaimEvidence, Applicable),
+    length(Applicable, ApplicableCount),
+    count_claims(Applicable, claim_level_is(proved), Proved),
+    count_claims(Applicable, claim_attested_only, Attested),
+    count_claims(Applicable, claim_level_is(tested), Tested),
+    count_claims(Applicable, claim_unresolved, Unresolved),
+    Summary = _{applicable: ApplicableCount, proved: Proved, attested: Attested,
+                tested: Tested, unresolved: Unresolved},
+    findall(Key, (member(E, Applicable), \+ claim_level_is(proved, E), get_dict(claimKey, E, Key)), Unproved).
+
+count_claims(Entries, Goal, Count) :-
+    include(Goal, Entries, Matching),
+    length(Matching, Count).
 
 % implements REQ-kibi-evidence-levels, REQ-kibi-code-proof-kinds
 %% requirement_evidence(+Props, +ProofStatus, +PassingE2eTests, +ProvedTests, -Level, -Evidence)
 % How strong the evidence behind a requirement is, never stronger than what
 % backs it.  Levels, strongest first: proved (the requirement is tested and
-% every linked scenario also has a test whose fresh receipt carries a
-% certificate that re-checks: ProvedTests is non-empty), tested (passing E2E
+% every applicable claim is proved by a fresh certificate bound to it with a
+% derived obligation: ProvedTests is non-empty), tested (passing E2E
 % receipts cover every linked scenario: proofStatus tested), asserted (a
 % person stands behind the statement but nothing current checks it),
 % unverified (an agent wrote it and no person approved it).  Evidence lists

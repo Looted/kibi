@@ -98,6 +98,8 @@ export type ProofContract = Readonly<{
   domain_source?: Readonly<{ symbol_id: string; export?: string }>;
   witness?: Readonly<{ path: string }>;
   constraint_source?: Readonly<{ fact_ids: readonly string[] }>;
+  value_source?: readonly Readonly<{ symbol_id: string; export?: string }>[];
+  proves?: readonly string[];
 }>;
 
 export type ProofBinding = Readonly<{

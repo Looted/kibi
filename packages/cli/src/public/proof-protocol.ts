@@ -315,6 +315,29 @@ export const PROOF_CONTRACT_SCHEMA = {
       properties: { path: { type: "string", minLength: 1 } },
       additionalProperties: false,
     },
+    proves: {
+      type: "array",
+      description:
+        "Certificate kinds: the requirement claim keys (CLAIM-...) this certificate proves. Each must be a modeled claim of a current requirement the test reaches through its scenarios. Kibi derives what the certificate must establish from the claim's grounding fact (a set fact for exhaustive or typecheck, a numeric fact for arithmetic or smt); a claim with no such derivation is only attested and never counts as proved.",
+      minItems: 1,
+      items: { type: "string", pattern: "^CLAIM-" },
+      uniqueItems: true,
+    },
+    value_source: {
+      type: "array",
+      description:
+        "arithmetic and smt: code constants the assumptions read. Kibi evaluates each export at ingest and requires the certificate to assume the variable equals that value, so the proof is about the code and not only the knowledge base.",
+      minItems: 1,
+      items: {
+        type: "object",
+        required: ["symbol_id"],
+        properties: {
+          symbol_id: { type: "string", minLength: 1 },
+          export: { type: "string", minLength: 1 },
+        },
+        additionalProperties: false,
+      },
+    },
     constraint_source: {
       type: "object",
       description:
@@ -719,10 +742,54 @@ function proofContractKindErrors(contract: Record<string, unknown>): string[] {
       errors.push(
         "proof_contract.constraint_source must be {fact_ids: [FACT-...]} naming the facts the assumptions come from",
       );
-  } else if (kind === "arithmetic" || kind === "smt")
+  } else if (
+    (kind === "arithmetic" || kind === "smt") &&
+    contract.value_source === undefined
+  )
     errors.push(
-      `proof_contract.constraint_source is required for kind ${String(kind)}: name the typed facts its assumptions come from`,
+      `proof_contract.constraint_source or value_source is required for kind ${String(kind)}: name the typed facts or code constants its assumptions come from`,
     );
+  const valueSource = contract.value_source;
+  if (valueSource !== undefined) {
+    if (
+      !Array.isArray(valueSource) ||
+      valueSource.length === 0 ||
+      !valueSource.every((entry) => {
+        const row = record(entry);
+        return (
+          row !== null &&
+          nonEmptyString(row.symbol_id) &&
+          (row.export === undefined || nonEmptyString(row.export)) &&
+          Object.keys(row).every((key) => key === "symbol_id" || key === "export")
+        );
+      })
+    )
+      errors.push(
+        "proof_contract.value_source must be [{symbol_id, export?}] naming the code constants the assumptions read",
+      );
+    else if (kind !== "arithmetic" && kind !== "smt")
+      errors.push(
+        `proof_contract.value_source applies only to kind arithmetic or smt, not ${String(kind ?? "e2e")}`,
+      );
+  }
+  const proves = contract.proves;
+  if (proves !== undefined) {
+    if (
+      !Array.isArray(proves) ||
+      proves.length === 0 ||
+      !proves.every(
+        (key) => typeof key === "string" && /^CLAIM-[A-Za-z0-9]+$/.test(key),
+      ) ||
+      new Set(proves).size !== proves.length
+    )
+      errors.push(
+        "proof_contract.proves must be a non-empty list of distinct claim keys (CLAIM-...) the certificate proves",
+      );
+    else if (!isCertificateProofKind(kind))
+      errors.push(
+        `proof_contract.proves applies only to certificate kinds (exhaustive, typecheck, arithmetic, smt), not ${String(kind ?? "e2e")}`,
+      );
+  }
   return errors;
 }
 
@@ -735,13 +802,20 @@ export function optionalProofContractFields(
   contract: Record<string, unknown>,
 ): Pick<
   ProofContract,
-  "kind" | "domain_source" | "witness" | "constraint_source"
+  | "kind"
+  | "domain_source"
+  | "witness"
+  | "constraint_source"
+  | "value_source"
+  | "proves"
 > {
   const fields: {
     kind?: ProofKind;
     domain_source?: { symbol_id: string; export?: string };
     witness?: { path: string };
     constraint_source?: { fact_ids: string[] };
+    value_source?: { symbol_id: string; export?: string }[];
+    proves?: string[];
   } = {};
   if (typeof contract.kind === "string")
     fields.kind = contract.kind as ProofKind;
@@ -761,6 +835,21 @@ export function optionalProofContractFields(
         (id): id is string => typeof id === "string",
       ),
     };
+  if (Array.isArray(contract.value_source))
+    fields.value_source = contract.value_source
+      .map((entry) => record(entry))
+      .filter(
+        (row): row is Record<string, unknown> =>
+          row !== null && typeof row.symbol_id === "string",
+      )
+      .map((row) => ({
+        symbol_id: String(row.symbol_id),
+        ...(typeof row.export === "string" ? { export: row.export } : {}),
+      }));
+  if (Array.isArray(contract.proves))
+    fields.proves = contract.proves.filter(
+      (key): key is string => typeof key === "string",
+    );
   return fields;
 }
 

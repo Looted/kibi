@@ -243,6 +243,7 @@ const ROW_KEYS = [
   "value_int",
   "value_number",
   "value_bool",
+  "value_set",
   "unit",
 ] as const;
 

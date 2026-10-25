@@ -250,9 +250,9 @@ export const ENTITY_PROPERTIES_SCHEMA = {
     },
     value_type: {
       type: "string",
-      enum: ["string", "int", "number", "bool"],
+      enum: ["string", "int", "number", "bool", "set"],
       description:
-        "Optional typed value discriminator for property_value facts. Pair with exactly one value_string, value_int, value_number, or value_bool; do not use generic value.",
+        "Optional typed value discriminator for property_value facts. Pair with exactly one value_string, value_int, value_number, value_bool, or value_set (set: an exact list of allowed values, operator eq or neq); do not use generic value.",
     },
     value_string: {
       type: "string",
@@ -269,6 +269,14 @@ export const ENTITY_PROPERTIES_SCHEMA = {
     value_bool: {
       type: "boolean",
       description: "Optional boolean value for property_value facts.",
+    },
+    value_set: {
+      type: "array",
+      items: { type: "string", minLength: 1 },
+      minItems: 1,
+      uniqueItems: true,
+      description:
+        "Optional exact set of values for property_value facts with value_type set, such as the members a domain must have.",
     },
     unit: {
       type: "string",

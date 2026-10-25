@@ -101,6 +101,7 @@ const FACT_STRING_ARRAY_FIELDS = new Set([
   "aliases",
   "examples",
   "predicate_args",
+  "value_set",
 ]);
 
 function isTraceEnabled(): boolean {

@@ -822,6 +822,38 @@
           },
           "additionalProperties": false
         },
+        "proves": {
+          "type": "array",
+          "description": "Certificate kinds: the requirement claim keys (CLAIM-...) this certificate proves. Each must be a modeled claim of a current requirement the test reaches through its scenarios. Kibi derives what the certificate must establish from the claim's grounding fact (a set fact for exhaustive or typecheck, a numeric fact for arithmetic or smt); a claim with no such derivation is only attested and never counts as proved.",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^CLAIM-"
+          },
+          "uniqueItems": true
+        },
+        "value_source": {
+          "type": "array",
+          "description": "arithmetic and smt: code constants the assumptions read. Kibi evaluates each export at ingest and requires the certificate to assume the variable equals that value, so the proof is about the code and not only the knowledge base.",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "symbol_id"
+            ],
+            "properties": {
+              "symbol_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "export": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": false
+          }
+        },
         "constraint_source": {
           "type": "object",
           "description": "arithmetic and smt: the typed numeric property_value facts the certificate's assumptions come from. Kibi checks the assumptions (or the query's assertions) are exactly these facts' constraints, so the proof is about the knowledge base, not numbers the test chose.",
@@ -1188,6 +1220,54 @@
             "type": "string",
             "minLength": 1
           },
+          "claim_bindings": {
+            "type": "array",
+            "description": "Certificate kinds: how the certificate binds to each claim its contract names in proves, judged at ingest. derived means Kibi derived the certificate's obligation from the claim's grounding fact and the certificate satisfies it; attested means no derivation exists and the author vouches for it (never proved); rejected names why.",
+            "items": {
+              "type": "object",
+              "required": [
+                "claim_key",
+                "binding"
+              ],
+              "properties": {
+                "claim_key": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "requirement_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "fact_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "binding": {
+                  "type": "string",
+                  "enum": [
+                    "derived",
+                    "attested",
+                    "rejected"
+                  ]
+                },
+                "scope": {
+                  "type": "string",
+                  "enum": [
+                    "code",
+                    "intent"
+                  ]
+                },
+                "obligation": {
+                  "type": "object"
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": false
+            }
+          },
           "gaps": {
             "type": "array",
             "items": {
@@ -1267,11 +1347,21 @@
         "string",
         "int",
         "number",
-        "bool"
+        "bool",
+        "set"
       ]
     },
     "value_string": {
       "type": "string"
+    },
+    "value_set": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true
     },
     "value_int": {
       "type": "integer"
@@ -1501,6 +1591,11 @@
             {
               "required": [
                 "value_bool"
+              ]
+            },
+            {
+              "required": [
+                "value_set"
               ]
             },
             {
