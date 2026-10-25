@@ -6281,6 +6281,25 @@ test(consistent_facts_get_models_that_reverify, [setup(setup_kb), cleanup(cleanu
     assertion(integer(Model.value)),
     assertion((Model.value >= 1, Model.value =< 10)).
 
+% implements REQ-kibi-kb-certificates, REQ-kibi-claim-bound-proofs
+test(set_facts_get_models_that_reverify, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    % The same set in another order agrees, and a neq set admits the eq one.
+    % Two different eq sets conflict pairwise, so the KB never holds them.
+    cert_property('FACT-CERT-SET-A', 'REQ-CERT-SET-A', "palette.colors", "allowed", eq, set, ["red", "green", "blue"], []),
+    cert_property('FACT-CERT-SET-B', 'REQ-CERT-SET-B', "palette.colors", "allowed", eq, set, ["blue", "red", "green"], []),
+    cert_property('FACT-CERT-SET-C', 'REQ-CERT-SET-C', "palette.colors", "allowed", neq, set, ["red", "green"], []),
+    cert_verify(Bundle, Report),
+    assertion(Report.status == verified),
+    assertion(Report.rejected == []),
+    cert_theorem(Report, properties_consistent, Properties),
+    assertion(Properties.verdict == proved),
+    member(Model, Bundle.certificates),
+    Model.kind == property_model,
+    !,
+    assertion(Model.domain == set),
+    msort(Model.value, Members),
+    assertion(Members == ["blue", "green", "red"]).
+
 % implements REQ-kibi-kb-certificates
 test(joint_contradiction_the_pairwise_check_misses_gets_a_core, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     % Every pair admits an integer, all four together admit none.
@@ -8111,5 +8130,52 @@ test(derived_binding_is_rejected_when_the_fact_or_certificate_drifts, [setup(set
     atom_json_dict(Json, [First|_], [value_string_as(string)]),
     requirement_proof:claim_entry('REQ-COLORS', tested, asserted, ['TEST-COLORS'-IntentEvidence], First, Entry),
     assertion(Entry.level == tested).
+
+colors_contract_test(TestId, Contract) :-
+    atom_json_dict(ContractJson, Contract, []),
+    assert_fixture_entity(test, TestId, "Colors proof", passing, [proof_contract=ContractJson]),
+    ( kb_relationship(specified_by, 'REQ-COLORS', 'SCEN-COLORS')
+    -> true
+    ;  assert_fixture_entity(scenario, 'SCEN-COLORS', "Colors scenario", active, []),
+       kb_assert_relationship(specified_by, 'REQ-COLORS', 'SCEN-COLORS', [])
+    ),
+    kb_assert_relationship(validates, TestId, 'SCEN-COLORS', []).
+
+test(claim_status_enumerates_every_claim, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    claim_fixture,
+    findall(Key-Status, claim_obligations:requirement_claim_status('REQ-COLORS', Key, Status), Pairs),
+    assertion(length(Pairs, 4)),
+    assertion(memberchk('CLAIM-00000000000000A3'-ambiguous, Pairs)).
+
+test(proof_contract_claim_issues_report_missing_and_unprovable_claims, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    claim_fixture,
+    colors_contract_test('TEST-COLORS-NONE', _{kind: "exhaustive"}),
+    colors_contract_test('TEST-COLORS-GOOD', _{kind: "exhaustive",
+        proves: ["CLAIM-00000000000000A1", "CLAIM-00000000000000A2"]}),
+    colors_contract_test('TEST-COLORS-BAD', _{kind: "arithmetic",
+        proves: ["CLAIM-00000000000000A1", "CLAIM-00000000000000A3"]}),
+    colors_contract_test('TEST-COLORS-E2E', _{kind: "e2e"}),
+    claim_obligations:proof_contract_claim_issues_json(Json),
+    atom_json_dict(Json, Rows, [value_string_as(string)]),
+    findall(Test-Key,
+        ( member(Row, Rows), get_dict(test_id, Row, Test),
+          ( get_dict(claim_key, Row, Key) -> true ; Key = none ) ),
+        Issues),
+    msort(Issues, Sorted),
+    assertion(Sorted == ["TEST-COLORS-BAD"-"CLAIM-00000000000000A1",
+                         "TEST-COLORS-BAD"-"CLAIM-00000000000000A3",
+                         "TEST-COLORS-NONE"-none]).
+
+test(proof_contract_claim_candidates_list_derivable_claims, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    claim_fixture,
+    colors_contract_test('TEST-COLORS-NONE', _{kind: "typecheck"}),
+    colors_contract_test('TEST-COLORS-NUMERIC', _{kind: "smt"}),
+    claim_obligations:proof_contract_claim_candidates_json(Json),
+    atom_json_dict(Json, Rows, [value_string_as(string)]),
+    member(None, Rows), None.test_id == "TEST-COLORS-NONE", !,
+    assertion(None.candidates = [_{claim_key: "CLAIM-00000000000000A1",
+        requirement_id: "REQ-COLORS", fact_id: "FACT-COLOR-SET"}]),
+    member(Numeric, Rows), Numeric.test_id == "TEST-COLORS-NUMERIC", !,
+    assertion(Numeric.candidates == []).
 
 :- end_tests(claim_bound_proofs).
