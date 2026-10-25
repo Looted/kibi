@@ -142,9 +142,11 @@ Every requirement row also carries `evidenceLevel`, the strength of what backs
 it, and `evidence`, the entries that earned it (each with `kind`, `scope` and
 `level`):
 
-- `proved`: the requirement is `tested` and every scenario has a test whose
-  fresh receipt carries a certificate that still re-checks (see Certificate
-  proof kinds). The entry has `kind: certificate` and lists the tests.
+- `proved`: the requirement is `tested` and every applicable claim has a
+  derived, code-scope binding from a fresh certificate that still re-checks
+  (see Certificate proof kinds). The entry has `kind: certificate` and lists
+  the tests. `claimSummary` counts claims per level and `unprovedClaims`
+  lists the claims below proved.
 - `tested`: `proofStatus` is `tested`; fresh E2E receipts cover every linked
   scenario.
 - `asserted`: a person stands behind the statement (approved, or firm by
@@ -182,14 +184,31 @@ left:
   typed facts. Set `constraint_source: { fact_ids: [FACT-...] }` to the
   numeric `property_value` facts (one subject and property); the
   certificate's variable is their `property_key` and its assumptions are
-  exactly their constraints.
+  exactly their constraints. To read the value from the code instead, set
+  `value_source: [{ symbol_id: SYM-<constant>, export: <name> }]`; Kibi
+  evaluates the number export itself and adds `variable eq value` as an
+  assumption.
 - `smt`: an SMT-LIB query that declares the facts' property as a constant,
   asserts each `constraint_source` fact constraint and then the claim's
   negation. Kibi re-runs z3 or cvc5 on it and accepts only `unsat`.
 
-`arithmetic` and `smt` prove that the knowledge base's facts entail the
-claim, not that code follows the facts; when the code is what matters, also
-test the code. A test whose numbers are not in typed facts stays `tested`.
+`arithmetic` and `smt` from `constraint_source` alone prove that the
+knowledge base's facts entail the claim, not that code follows the facts:
+their claim bindings have scope `intent` and the claim stays `tested`. Use
+`value_source` (its symbols `covered_by` the test) for scope `code`. A test
+whose numbers are not in typed facts or code constants stays `tested`.
+
+Every certificate contract names the claims it proves in `proves:
+[CLAIM-...]` (blocking `proof-contract-claims` from schema 12). Kibi derives
+each claim's obligation from its grounding fact: a set fact (`value_type:
+set`, `value_set: [...]`) needs the `exhaustive` domain or the `typecheck`
+domain type to be exactly the set; a numeric fact needs the `arithmetic`
+claim or the negated `smt` assertion to be its constraint. The receipt
+records one binding per claim: `derived` (checked, the only kind that
+proves), `attested` (the fact has no derivation; counts as tested) or
+`rejected` with the reason. Model an enumerated claim as a set fact and a
+bound as a numeric fact before writing its certificate. `kibi proof explain
+REQ-...` shows each claim with its bindings.
 
 Build the certificate with `kibi-cli/proof-certificates`
 (`exhaustiveCertificate`, `typecheckCertificate`, `arithmeticCertificate`,
@@ -200,10 +219,10 @@ elsewhere. A Python test writes the same `kibi.code-certificate.v1` JSON
 to that directory itself. Wire the KB: the proof file symbol is
 `executable_for` the test and named in `required_proofs`; the domain symbol
 `implements` the requirement and is `covered_by` the test; the test
-`validates` one of the requirement's scenarios. `proved` is per scenario, not
-per claim, so a multi-claim requirement can read proved while a certificate
-covers only one claim: give each claim its own scenario when all must be
-proved. A rejected certificate leaves the receipt at `tested` with
+`validates` one of the requirement's scenarios. `proved` is per claim: a
+multi-claim requirement is proved only when certificates derive every
+applicable claim, and reads `tested` with `n/m claims proved` otherwise. A
+rejected certificate leaves the receipt at `tested` with
 `certificate_rejection` naming why; fix the proof, never the receipt. If a
 stored certificate stops re-checking later, coverage and `kibi proof
 explain` list it under `certificateRejections`. Use a

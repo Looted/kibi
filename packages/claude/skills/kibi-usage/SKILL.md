@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: Kibi Usage
   id: kibi-usage
-  version: 2.26.1
+  version: 2.27.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -439,7 +439,8 @@ For an existing product KB that needs semantic backfill, read
 `resources/kb-improvement.md`, and `resources/proof.md` for the proof workflow.
 Each current requirement has an evidence floor (`required_evidence`, else
 `tested` when firm); certificate proof kinds (exhaustive, typecheck,
-arithmetic, smt) reach `proved`. When the `evidence-floor` rule fails, follow Debugging
+arithmetic, smt) reach `proved` for the claims their contract names in
+`proves`, and a requirement is proved only when every claim is. When the `evidence-floor` rule fails, follow Debugging
 proof regressions in `resources/proof.md` and use `kibi proof explain`.
 
 ## Predicate Ontology Decision Tree

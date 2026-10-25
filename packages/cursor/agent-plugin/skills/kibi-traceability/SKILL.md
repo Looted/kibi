@@ -2,7 +2,7 @@
 id: kibi-traceability
 name: kibi-traceability
 description: Maintain source-first requirement, scenario, test, symbol, and proof traceability through Kibi's peer interfaces.
-version: 2.1.0
+version: 2.2.0
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -66,8 +66,9 @@ command, an append-only receipt, and current symbol coordinates. Structural
 coverage and a green check are not proof by themselves.
 
 Report each requirement's `evidenceLevel` from `kb_coverage` as it is:
-`proved` only when a certificate proof kind (exhaustive, typecheck,
-arithmetic, smt) re-checks, `tested` for fresh passing E2E receipts,
+`proved` only when certificate proofs (exhaustive, typecheck, arithmetic,
+smt) derive every applicable claim, named in each contract's `proves`
+(`claimSummary` and `unprovedClaims` say which are missing), `tested` for fresh passing E2E receipts,
 `asserted` when only a person stands behind it, `unverified` otherwise. Its
 `evidenceFloor` says what `kb_check`'s `evidence-floor` rule requires:
 `below` is a traceability gap to close with links, tests and `kibi prove`;
