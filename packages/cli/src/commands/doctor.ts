@@ -63,8 +63,8 @@ import {
 } from "../utils/git-repository-context.js";
 import { readKbManifestStatus } from "../utils/kb-manifest.js";
 import {
-  MERGE_DRIVER_SETUP,
   manifestMergeDriverGaps,
+  mergeDriverSetup,
 } from "../utils/merge-driver-setup.js";
 import { LATEST_KB_SCHEMA_VERSION } from "../utils/schema-version.js";
 import {
@@ -569,6 +569,7 @@ function checkSWIProlog(): DoctorCheckResult {
 function checkCapabilityPlugins(): {
   // implements REQ-cli-doctor, REQ-capability-plugin-observable-behavior-v1
   passed: boolean;
+  warning?: boolean;
   message: string;
   remediation?: string;
 } {
@@ -601,6 +602,9 @@ function checkCapabilityPlugins(): {
       ...new Set((config.plugins ?? []).map((plugin) => plugin.package)),
     ];
     const missingSecrets: string[] = [];
+    // Secrets whose plugin only augments a builtin provider: without them the
+    // plugin is skipped and the builtin keeps working, so doctor warns.
+    const optionalMissingSecrets: string[] = [];
     const legacySecrets: string[] = [];
 
     for (const packageName of packages) {
@@ -608,7 +612,12 @@ function checkCapabilityPlugins(): {
       for (const secret of secrets) {
         const source = formatSecretSourcePart(secret, bootstrap);
         parts.push(`${secret}=${source}`);
-        if (source === "missing") missingSecrets.push(secret);
+        if (source === "missing") {
+          const augmentOnly = rows
+            .filter((row) => row.package === packageName)
+            .every((row) => row.mode === "augment");
+          (augmentOnly ? optionalMissingSecrets : missingSecrets).push(secret);
+        }
         if (source === "legacy_env") legacySecrets.push(secret);
       }
 
@@ -626,6 +635,15 @@ function checkCapabilityPlugins(): {
         remediation: jevMissing
           ? "Set `TYPESAFE_API_KEY` in `~/.config/kibi/env` (user-wide) or `<workspace>/.env.kibi` (project override), then restart long-running Kibi MCP/host processes."
           : `Set missing plugin secret(s) (${missingSecrets.join(", ")}) in ~/.config/kibi/env or <workspace>/.env.kibi, then restart long-running Kibi MCP/host processes.`,
+      };
+    }
+
+    if (optionalMissingSecrets.length > 0) {
+      return {
+        passed: true,
+        warning: true,
+        message,
+        remediation: `${optionalMissingSecrets.join(", ")} is not set, so the augment-mode plugin is skipped and builtin providers answer alone. Set it in ~/.config/kibi/env or <workspace>/.env.kibi to enable the plugin, then restart long-running Kibi MCP/host processes.`,
       };
     }
 
@@ -913,7 +931,7 @@ function checkManifestMergeDriver(): DoctorCheckResult {
     passed: true,
     warning: true,
     message: `Not configured: ${gaps.join("; ")}. Merges of .kb/symbols.yaml fall back to line conflicts.`,
-    remediation: MERGE_DRIVER_SETUP,
+    remediation: mergeDriverSetup(process.cwd()),
   };
 }
 

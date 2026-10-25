@@ -412,13 +412,12 @@ describe("proof receipt compaction through the kibi CLI", () => {
       expect(receipts(ws, REFUND).at(-1)?.outcome).toBe("failed");
     }
 
-    // A fully passing run is one unit again and proves both tests.
+    // A fully passing run with a report is still attributed per test and
+    // proves both tests.
     const green = prove(ws, everyTest, {}, 0);
     expect(green).toMatchObject({ proved: 2, failed: 0 });
-    expect(green.runs[0]).toMatchObject({
-      attribution: "aggregate",
-      attributionReason: "the integration passed",
-    });
+    expect(green.runs[0]?.attribution).toBe("per_test");
+    expect(green.runs[0]?.attributionReason).toBeUndefined();
     expect(green.runs[0]?.failedSteps).toBeUndefined();
     expect(receipts(ws, PAY).at(-1)?.outcome).toBe("passed");
     expect(receipts(ws, REFUND).at(-1)?.outcome).toBe("passed");

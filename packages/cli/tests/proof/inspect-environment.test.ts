@@ -35,6 +35,28 @@ describe("inspectProofEnvironment", () => {
     expect(inspection.integrationPlanReason).toContain("No test runner detected");
   });
 
+  test("detects node --test and bun test in root and workspace scripts", () => {
+    // implements REQ-kibi-verification-evidence-contract
+    const root = workspace();
+    writeFileSync(
+      path.join(root, "package.json"),
+      JSON.stringify({
+        name: "demo",
+        workspaces: ["plugins/*"],
+        scripts: { "test:node": "node --test tests/*.test.js" },
+      }),
+    );
+    mkdirSync(path.join(root, "plugins", "alpha"), { recursive: true });
+    writeFileSync(
+      path.join(root, "plugins", "alpha", "package.json"),
+      JSON.stringify({ name: "alpha", scripts: { check: "bun test ./tests" } }),
+    );
+    const inspection = inspectProofEnvironment(root);
+    expect(inspection.detectedRunners).toEqual(
+      expect.arrayContaining(["node --test", "bun test"]),
+    );
+  });
+
   test("detects package.json scripts, bun lockfile, and npm test runner", () => {
     const root = workspace();
     writeFileSync(

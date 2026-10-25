@@ -50,7 +50,13 @@ kibi prove --all            # prove every proof-bearing test
 kibi prove --test TEST-mcp-search-discovery  # one test
 kibi prove --requirement REQ-cli-check
 kibi prove --integration self-proof
+kibi prove --stale          # only tests without a current passing receipt
 ```
+
+`--stale` narrows any selector (all tests by default) to the tests whose
+receipt is missing, stale, failed or bound to an older contract, judged the
+way coverage judges them, so re-proving after a change only reruns what the
+change invalidated.
 
 For each configured integration, `kibi prove`:
 
@@ -198,6 +204,89 @@ const certificate = await exhaustiveCertificate({
 writeCodeCertificate(certificate);
 expect(failedMembers(certificate)).toEqual([]);
 ```
+
+### Where the domain comes from
+
+`domain_source.symbol_id` names the symbol that defines the domain. Kibi
+loads that symbol's file and reads one export from it: the symbol's title by
+default, or `domain_source.export` when the export has another name (a symbol
+titled `ENTITY_LANES` whose export is `entityLanes`, or a module-level
+anchor):
+
+```yaml
+  domain_source:
+    symbol_id: SYM-order-status
+    export: OrderStatus
+```
+
+- **TypeScript and JavaScript**: Kibi tries bun, then the workspace's own
+  `tsx` (`node_modules/.bin/tsx`), then node with type stripping and a
+  resolve hook that maps extensionless and `.js` relative imports to their
+  `.ts` sources. A domain whose module imports runtime-only dependencies
+  needs one of these runners to resolve them.
+- **Compiled output**: when the proof file imports the domain from build
+  output (`dist/status.js`), Kibi maps the import back to the source through
+  the nearest `tsconfig.json` (`outDir` to `rootDir`) before checking that the
+  proof file imports the domain.
+- **Python**: a `.py` domain is loaded with `python3` (or `python`), imported
+  under its package name so absolute and relative imports inside it resolve.
+  An `Enum` contributes its member values, a `dict` its keys, and a list,
+  tuple, set or frozenset its items. The proof file must import the module
+  (`from app.status import OrderStatus`, `from .status import OrderStatus` or
+  `import app.status`).
+
+A Python test has no helper module: it writes the certificate JSON itself to
+a file in the directory named by `KIBI_PROOF_CERTIFICATES` (skip writing when
+the variable is unset):
+
+```python
+import json, os
+from app.status import OrderStatus
+
+members = [m.value for m in OrderStatus]
+results = [{"member": str(m), "outcome": "passed"} for m in members]  # check each
+directory = os.environ.get("KIBI_PROOF_CERTIFICATES")
+if directory:
+    os.makedirs(directory, exist_ok=True)
+    with open(os.path.join(directory, "TEST-order-status-exhaustive.json"), "w") as f:
+        json.dump({
+            "version": "kibi.code-certificate.v1",
+            "kind": "exhaustive",
+            "test_id": "TEST-order-status-exhaustive",
+            "domain": {"symbol_id": "SYM-order-status", "members": [str(m) for m in members]},
+            "results": results,
+        }, f)
+```
+
+### Wiring a certificate test into the KB
+
+A certificate only counts when the KB links it to the requirement it proves:
+
+1. The proof file is an executable test symbol: `required_proofs` names it
+   and it links `executable_for` to the test.
+2. The domain symbol links `implements` to the requirement and `covered_by`
+   to the test (and to the requirement's end-to-end test).
+3. The test `validates` a scenario that the requirement is `specified_by`;
+   that scenario's end-to-end test still has to pass.
+4. The test has a `proof_contract` with `kind` and `domain_source`, and the
+   integration's command runs the proof file.
+
+`kibi proof explain REQ-...` shows each link it found, and
+`certificateRejections` says why a certificate did not count.
+
+### What `proved` covers
+
+`proved` means the requirement is tested end to end and each linked scenario
+has a fresh certificate. The certificate is checked against its domain, not
+against the requirement's individual claims, so a requirement with several
+claims is reported proved when one certificate per scenario re-checks, even if
+that certificate only speaks to one of the claims. Split a multi-claim
+requirement, or give each claim its own scenario and certificate, when every
+claim has to be proved.
+
+`arithmetic` and `smt` certificates pay off only when the requirement rests on
+typed numeric facts (bounds, limits, counts). For an enumerable domain use
+`exhaustive` or `typecheck`.
 
 Kibi never takes a certificate's word for it. At ingest it re-checks the
 certificate (every member listed once and passed; the arithmetic decided by
@@ -421,7 +510,9 @@ until any file in the workspace changes. Each receipt records a
 `binding_hash` over:
 
 - the test's `proof_contract`,
-- the test document itself (excluding its `proof_receipts` history), and
+- the test document itself (excluding its `proof_receipts` history and its
+  `links`, so adding or reordering a link does not invalidate the receipt;
+  receipts written before links were excluded stay current), and
 - the **code scope**: the current source-file content of every symbol in
   - the contract's `required_proofs` (the test's own executable code),
   - the test's `proof_bindings`, and
@@ -493,8 +584,33 @@ exited non-zero; only tests with a failing step receive failing receipts. The
 fails closed: with no report, a report that omits or duplicates a selected
 test, a test reported `passed` over a failing step, or a failing process whose
 report blames no test, the whole run is evaluated as one unit as before
-(`attribution: "aggregate"` with an `attributionReason`). Kibi's own
+(`attribution: "aggregate"` with an `attributionReason`). A valid report in
+which every test passed is also `per_test`. Kibi's own
 `scripts/run-proof-producer.mjs` writes this report.
+
+### `kibi proof run-steps`
+
+Projects do not need their own producer script. Declare each proof-bearing
+test's steps (argv arrays, no shell) in `proof/steps.json`:
+
+```json
+[
+  { "test_id": "TEST-checkout", "steps": [["bun", "test", "./tests/checkout.test.ts"]] },
+  { "test_id": "TEST-cart", "steps": [["node", "--test", "tests/cart.test.js"]] }
+]
+```
+
+and make `kibi proof run-steps` the integration's command:
+
+```json
+{ "id": "unit", "producer": "command", "command": ["npx", "kibi", "proof", "run-steps"], "targets": ["default"] }
+```
+
+It runs the steps of the tests `kibi prove` selected, each distinct argv once
+(in its own process group, with a timeout from `KIBI_PROOF_STEP_TIMEOUT_MS`),
+and writes the per-test report, so each test gets its own receipt. Ctrl-C
+during `kibi prove` stops the whole process group of the producer, so no test
+worker is left running.
 
 ## Trust boundary
 

@@ -2919,5 +2919,170 @@
         "200000"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-007",
+    "steps": [
+      [
+        "swipl",
+        "-q",
+        "-s",
+        "packages/core/tests/kb.plt",
+        "-g",
+        "run_tests([kb_basic,kb_entities])",
+        "-t",
+        "halt"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/commands/sync/manifest.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-capability-plugin-host-resolution-v1",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/plugins/capability-plugin-host.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-capability-plugin-jev-mocked-v1",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/plugin-jev/tests/jev.test.ts",
+        "./packages/cli/tests/plugins/default-deps-exclude-jev.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-capability-plugin-protocol-v1",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/plugin-sdk/tests/sdk.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-canonical-status",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/commands/status.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-config-schema",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/utils/config.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-requirement-quality-diagnostics",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/traceability/impact-requirement-quality.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-symbol-quality-diagnostics",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/traceability/impact-symbol-quality.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-coordinate-repair-capability",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/public/operations/symbol-repair-plan.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-coverage-depth-labels",
+    "steps": [
+      [
+        "swipl",
+        "-q",
+        "-s",
+        "packages/core/tests/kb.plt",
+        "-g",
+        "run_tests(kb_coverage_depth)",
+        "-t",
+        "halt"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/public/impact/coverage-depth-quality.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-prolog-library-adoption-mcp",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/mcp/tests/tools/sparql.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-rule-registry-single-source",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/utils/rule-registry-contract.test.ts"
+      ]
+    ]
   }
 ]

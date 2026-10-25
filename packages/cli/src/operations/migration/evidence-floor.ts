@@ -42,7 +42,26 @@ export const EVIDENCE_FLOOR_PIN_CODE = "evidence_floor_pin";
 
 /** Pins to write, plus the firm requirements that keep the tested floor. */
 export type EvidenceFloorPlan = BodyContextPlan &
-  Readonly<{ kept: readonly string[] }>;
+  Readonly<{
+    kept: readonly string[];
+    /**
+     * Whether the floors were decided by the evidence ladder on the compiled
+     * store (`ladder`) or only from authored receipts (`authored`), because
+     * no synced store could be read.
+     */
+    decidedBy: "ladder" | "authored";
+  }>;
+
+/**
+ * The evidence ladder's verdict on the current store: requirement id to the
+ * evidence-floor status of every requirement below a tested floor
+ * (`below`, or `pending_reproof` when only receipts older than the code
+ * stand in the way). Requirements absent from the map meet the floor.
+ */
+export type LadderFloorVerdicts = ReadonlyMap<
+  string,
+  "below" | "pending_reproof"
+>;
 
 /** The floor the migration records: a person stands behind the requirement. */
 const PINNED_FLOOR = "asserted";
@@ -76,23 +95,32 @@ function authoredEntities(
 }
 
 /**
- * An end-to-end test with a proof contract and at least one passing receipt:
- * the least a requirement needs to have been tested. A contract that was never
- * run through kibi prove, or a unit-scoped one, cannot reach tested yet.
+ * An end-to-end test with a proof contract whose newest receipt passed: the
+ * least a requirement needs to have been tested, judged on the receipt the
+ * evidence ladder reads. A contract that was never run through kibi prove,
+ * one whose latest run failed, or a unit-scoped one cannot reach tested.
  */
 function hasPassingProof(entity: AuthoredEntity): boolean {
   if (entity.data.proof_contract === undefined) return false;
   if (entity.data.verification_scope !== "end_to_end") return false;
   const receipts = entity.data.proof_receipts;
-  return (
-    Array.isArray(receipts) &&
-    receipts.some(
-      (receipt) =>
-        receipt !== null &&
-        typeof receipt === "object" &&
-        (receipt as { outcome?: unknown }).outcome === "passed",
-    )
+  if (!Array.isArray(receipts) || receipts.length === 0) return false;
+  const latest = receipts.reduce<{ at: string; outcome: unknown } | null>(
+    (best, receipt, index) => {
+      if (receipt === null || typeof receipt !== "object") return best;
+      const record = receipt as Record<string, unknown>;
+      // Finish times increase strictly; history order is the fallback.
+      const at =
+        typeof record.finished_at === "string"
+          ? record.finished_at
+          : String(index).padStart(12, "0");
+      return best === null || at >= best.at
+        ? { at, outcome: record.outcome }
+        : best;
+    },
+    null,
   );
+  return latest?.outcome === "passed";
 }
 
 /**
@@ -156,6 +184,7 @@ function requirementsWithProofPath(
 // implements REQ-kibi-evidence-floors, REQ-cli-schema-migration
 export function planEvidenceFloorPins(
   workspaceRoot: string,
+  ladder?: LadderFloorVerdicts | null,
 ): EvidenceFloorPlan {
   const files = authoredEntities(workspaceRoot, "requirements").filter(
     ({ entity }) => entity.type === "req",
@@ -178,7 +207,12 @@ export function planEvidenceFloorPins(
       ) !== "firm"
     )
       continue;
-    if (withPath.has(entity.id)) {
+    // The ladder on the compiled store judges every gap (failed latest
+    // receipts, missing coverage or coordinates), so a requirement it puts
+    // below the tested floor is pinned even with a passing receipt; one
+    // without any authored proof path is pinned whatever the store says,
+    // since the store may predate the authored sources.
+    if (withPath.has(entity.id) && ladder?.get(entity.id) !== "below") {
       kept.push(entity.id);
       continue;
     }
@@ -199,14 +233,73 @@ export function planEvidenceFloorPins(
       after,
     });
   }
-  return { targets, skipped, kept };
+  return {
+    targets,
+    skipped,
+    kept,
+    decidedBy: ladder === undefined || ladder === null ? "authored" : "ladder",
+  };
 }
 
 /** Write the planned floors; returns how many requirements were rewritten. */
 // implements REQ-kibi-evidence-floors, REQ-cli-schema-migration
-export function applyEvidenceFloorPins(workspaceRoot: string): number {
-  const plan = planEvidenceFloorPins(workspaceRoot);
+export function applyEvidenceFloorPins(
+  workspaceRoot: string,
+  ladder?: LadderFloorVerdicts | null,
+): number {
+  const plan = planEvidenceFloorPins(workspaceRoot, ladder);
   for (const target of plan.targets)
     writeFileAtomically(path.join(workspaceRoot, target.path), target.after);
   return plan.targets.length;
+}
+
+/**
+ * Read the evidence ladder's floor verdicts from the branch's compiled store,
+ * so the migration keeps the tested floor only where kibi check will accept
+ * it. Returns null when no healthy, synced store is attached (never synced,
+ * damaged, another branch's store) or the evaluation fails; the migration
+ * then decides from authored receipts alone and says so.
+ */
+// implements REQ-kibi-evidence-floors, REQ-cli-schema-migration
+export async function readLadderFloorVerdicts(
+  workspaceRoot: string,
+): Promise<LadderFloorVerdicts | null> {
+  try {
+    const [
+      { createCliRuntime },
+      { executeOperation },
+      { statusSpec },
+      { readEvidenceFloorRows },
+    ] = await Promise.all([
+      import("../../runtime/cli-runtime.js"),
+      import("../../public/operations/runtime-types.js"),
+      import("../../public/operations/specs/discovery.js"),
+      import("../../public/operations/evidence-floor.js"),
+    ]);
+    const runtime = createCliRuntime({ workspaceRoot });
+    const status = (await executeOperation(runtime, statusSpec, {}))
+      .structuredContent;
+    if (
+      status?.branchStore?.state !== "healthy" ||
+      status?.snapshotId === "missing" ||
+      status?.branchAttachment?.kind !== "exact"
+    )
+      return null;
+    const rows = await executeOperation(
+      runtime,
+      {
+        name: "kb_migrate_evidence_floor_preview",
+        effects: ["kb-read"],
+        requiresProlog: true,
+        execute: (_input: unknown, context) => readEvidenceFloorRows(context),
+      },
+      {},
+    );
+    const verdicts = new Map<string, "below" | "pending_reproof">();
+    for (const row of rows)
+      if (row.requiredEvidence === "tested") verdicts.set(row.id, row.status);
+    return verdicts;
+  } catch {
+    return null;
+  }
 }

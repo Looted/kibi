@@ -17,6 +17,7 @@
  */
 
 import { describe, expect, test } from "bun:test";
+import { currentReceiptBindingHashes } from "../../src/operations/proof/code-scope.js";
 import { removeFrontmatterBlock } from "../../src/operations/proof/receipt-document.js";
 import { receiptBindingHash } from "../../src/public/proof-fingerprint.js";
 import {
@@ -176,5 +177,47 @@ describe("PROOF_RECEIPT_SCHEMA binding_hash", () => {
     >;
     expect(properties.binding_hash).toBeDefined();
     expect(PROOF_RECEIPT_SCHEMA.required).not.toContain("binding_hash");
+  });
+});
+
+describe("currentReceiptBindingHashes", () => {
+  const linked = (target: string) => `---
+id: TEST-binding
+title: Binding test
+source: .kb/tests/TEST-binding.md
+links:
+  - type: validates
+    target: ${target}
+proof_receipts:
+  - version: kibi.proof-receipt.v1
+---
+
+Body text.
+`;
+  const hashes = (content: string) =>
+    currentReceiptBindingHashes({
+      workspaceRoot: "/workspace",
+      readFile: async () => content,
+      test: { source: ".kb/tests/TEST-binding.md", proof_contract: contract },
+      coveredBySymbols: [],
+    });
+
+  test("relationship links never enter the current binding", async () => {
+    const first = await hashes(linked("SCEN-a"));
+    const second = await hashes(linked("SCEN-b"));
+    expect(first?.[0]).toBe(second?.[0] as string);
+    // The earlier binding (links included) is still accepted, and differs.
+    expect(first).toHaveLength(2);
+    expect(first?.[1]).not.toBe(second?.[1] as string);
+  });
+
+  test("a document without links has one binding", async () => {
+    expect(await hashes(doc.replace("title: Binding test", "title: Binding test\nsource: .kb/tests/TEST-binding.md"))).toHaveLength(1);
+  });
+
+  test("body and contract changes still change the binding", async () => {
+    const base = await hashes(linked("SCEN-a"));
+    const edited = await hashes(linked("SCEN-a").replace("Body text.", "Other body."));
+    expect(edited?.[0]).not.toBe(base?.[0] as string);
   });
 });

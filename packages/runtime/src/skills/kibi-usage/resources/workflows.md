@@ -144,7 +144,7 @@ choose package managers, ground semantic claims, resolve contradictions, rerun
 E2E tests, rewrite receipt history, remap authored symbols, or accept
 limitations. Those actions remain explicit review/operator/execution steps.
 
-For `e2e_receipt_freshness_low`, query each listed requirement/test gap and run `kibi prove --requirement <id>` (or the covering integration); this appends proof receipts idempotently and preserves history. If `coverage_depth_review` conflicts with a coverage row whose `proofStages.passingE2e.status` is `passed`, report the diagnostic as a stale heuristic and keep any independent proof gaps unresolved.
+For `e2e_receipt_freshness_low`, query each listed requirement/test gap and run `kibi prove --requirement <id>` (or the covering integration); this appends proof receipts idempotently and preserves history. If `coverage_depth_review` conflicts with a coverage row whose `proofStages.passingE2e.status` is `passed`, report the diagnostic as a stale heuristic and keep any independent proof gaps unresolved. For `coarse_anchor_only_review`, the requirement is implemented only by whole-file anchors: link the functions, methods or types that implement it (with `covered_by` to their tests) so its `tested` evidence is tied to that code.
 
 ## Creating a New Feature
 ```

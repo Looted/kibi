@@ -1,6 +1,9 @@
 import { describe, expect, it } from "bun:test";
 import type { ExtractionResult } from "../../../src/extractors/markdown.js";
-import { createCoverageDepthQualityDiagnostics } from "../../../src/public/impact/coverage-depth-quality.js";
+import {
+  createCoarseAnchorQualityDiagnostics,
+  createCoverageDepthQualityDiagnostics,
+} from "../../../src/public/impact/coverage-depth-quality.js";
 
 type EntityFixture = {
   readonly id: string;
@@ -331,5 +334,61 @@ describe("createCoverageDepthQualityDiagnostics", () => {
       "REQ-NEW",
       "REQ-OPEN",
     ]);
+  });
+});
+
+describe("createCoarseAnchorQualityDiagnostics", () => {
+  const symbol = (
+    id: string,
+    granularityReason: string | undefined,
+    relationships: ExtractionResult["relationships"],
+  ): ExtractionResult => {
+    const base = result({ id, type: "symbol" }, relationships);
+    return granularityReason === undefined
+      ? base
+      : {
+          ...base,
+          entity: { ...base.entity, granularity_reason: granularityReason },
+        };
+  };
+
+  it("reviews a requirement implemented only by whole-file anchors", () => {
+    const diagnostics = createCoarseAnchorQualityDiagnostics([
+      result({ id: "REQ-COARSE", type: "req" }),
+      symbol("SYM-file", "module-level-behavior", [
+        { type: "implements", from: "SYM-file", to: "REQ-COARSE" },
+      ]),
+      // A test-suite symbol is executable test code, not production code.
+      symbol("SYM-suite", "test-suite", [
+        { type: "implements", from: "SYM-suite", to: "REQ-COARSE" },
+        { type: "executable_for", from: "SYM-suite", to: "TEST-x" },
+      ]),
+    ]);
+    expect(diagnostics).toEqual([
+      expect.objectContaining({
+        id: "coarse_anchor_only_review",
+        entityId: "REQ-COARSE",
+        blocking: false,
+        evidence: expect.objectContaining({
+          symbols: [
+            { id: "SYM-file", granularityReason: "module-level-behavior" },
+          ],
+        }),
+      }),
+    ]);
+  });
+
+  it("stays quiet once a narrower symbol implements the requirement", () => {
+    expect(
+      createCoarseAnchorQualityDiagnostics([
+        result({ id: "REQ-MIXED", type: "req" }),
+        symbol("SYM-file", "extractor-miss", [
+          { type: "implements", from: "SYM-file", to: "REQ-MIXED" },
+        ]),
+        symbol("SYM-fn", undefined, [
+          { type: "implements", from: "SYM-fn", to: "REQ-MIXED" },
+        ]),
+      ]),
+    ).toEqual([]);
   });
 });

@@ -310,5 +310,14 @@ tags: [authentication, session]
     expect(rendered).toContain("unverified");
     expect(rendered).toContain("unverified=1");
     expect(rendered).not.toContain("[object Object]");
+    // Link counts and proof counts sit in separate groups.
+    expect(rendered).toContain("Traceability (links)");
+    expect(rendered).toContain("Proof (evidence)");
+    expect(rendered.indexOf("notApplicable")).toBeLessThan(
+      rendered.indexOf("Proof (evidence)"),
+    );
+    expect(rendered.indexOf("evidenceLevels")).toBeGreaterThan(
+      rendered.indexOf("Proof (evidence)"),
+    );
   });
 });

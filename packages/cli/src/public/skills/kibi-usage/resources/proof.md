@@ -17,6 +17,7 @@ reports what happened as `kibi.proof-run.v1`; Kibi evaluates proof.
    ```bash
    kibi prove --test TEST-<id>
    # or: kibi prove --requirement REQ-<id> | --integration <id> | --all
+   # add --stale to rerun only tests without a current passing receipt
    ```
 
    `kibi prove` captures the workspace snapshot, runs each integration's
@@ -85,7 +86,10 @@ replacing one named integration.
   `--command` the proposal is the `package.json` `test` script or the
   detected runner again), or make the run attributable per test: have the
   command write a `kibi.proof-test-report.v1` to the path in
-  `KIBI_PROOF_TEST_REPORT` so each test is judged by its own steps.
+  `KIBI_PROOF_TEST_REPORT` so each test is judged by its own steps. The
+  shipped `kibi proof run-steps` does that from `proof/steps.json`
+  (`[{test_id, steps: [[argv...]]}]`); use it as the integration command
+  instead of writing a producer script.
 - `producer: playwright` (or custom) — the child emits `kibi.proof-run.v1`
   itself (bundled reporter: `kibi-cli/playwright-reporter`).
 - `producer: junit` / `tap` — Kibi converts the native report at `artifact`
@@ -148,9 +152,13 @@ left:
 
 - `exhaustive`: the test runs a check on every member of a finite domain.
   Set `domain_source: { symbol_id: SYM-<domain> }` to the symbol that defines
-  the domain, and import that symbol in the proof file. Kibi loads the
-  export itself and rejects a certificate that does not cover exactly its
-  members, so a hand-listed or partial domain stays `tested`.
+  the domain (add `export: <name>` when the export is not named like the
+  symbol's title), and import that symbol in the proof file. Kibi loads the
+  export itself (bun, the workspace's tsx, or node; `python3` for a `.py`
+  domain: Enum values, dict keys, list/tuple/set items) and rejects a
+  certificate that does not cover exactly its members, so a hand-listed or
+  partial domain stays `tested`. An import from build output is mapped back
+  to its source through `tsconfig.json` `outDir`/`rootDir`.
 - `typecheck`: a witness file that stops compiling when a domain member
   goes unhandled (a switch ending in a `never` assignment, or a
   `satisfies Record<Domain, ...>` map). Set `witness.path` and
@@ -175,7 +183,14 @@ Build the certificate with `kibi-cli/proof-certificates`
 `smtCertificate`), fail the test when it records a failure
 (`failedMembers`), and call `writeCodeCertificate`; it writes to the
 directory `kibi prove` sets in `KIBI_PROOF_CERTIFICATES` and does nothing
-elsewhere. A rejected certificate leaves the receipt at `tested` with
+elsewhere. A Python test writes the same `kibi.code-certificate.v1` JSON
+to that directory itself. Wire the KB: the proof file symbol is
+`executable_for` the test and named in `required_proofs`; the domain symbol
+`implements` the requirement and is `covered_by` the test; the test
+`validates` one of the requirement's scenarios. `proved` is per scenario, not
+per claim, so a multi-claim requirement can read proved while a certificate
+covers only one claim: give each claim its own scenario when all must be
+proved. A rejected certificate leaves the receipt at `tested` with
 `certificate_rejection` naming why; fix the proof, never the receipt. If a
 stored certificate stops re-checking later, coverage and `kibi proof
 explain` list it under `certificateRejections`. Use a
@@ -242,10 +257,12 @@ feasibility are not certified yet; their own rules still decide them.
 
 ## After code changes
 
-Receipts bind to the snapshot, contract hash, and execution fingerprint at
-run time. Any code or source change moves the snapshot and stales receipts:
-re-run `kibi prove` for the affected selection, then confirm `kb_status` and
-`kb_coverage` before handoff.
+Receipts bind to the contract, the test document (its links excluded) and
+the code of the symbols they cover. A change to that code stales them:
+re-run `kibi prove --stale` (or the affected selection), then confirm
+`kb_status` and `kb_coverage` before handoff. Type-shape symbols covered by a
+unit test count only while that unit test has a current passing receipt, so
+prove unit tests that cover type-shape symbols too.
 
 Full reference: `docs/proving-requirements.md`.
 

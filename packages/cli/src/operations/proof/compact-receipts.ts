@@ -27,7 +27,7 @@ import { projectEntityProperties } from "../mutation/entity-projection.js";
 import { resolveContainedSourcePath } from "../mutation/source-authoring.js";
 import { executeUpsert } from "../mutation/upsert.js";
 import {
-  currentReceiptBindingHash,
+  currentReceiptBindingHashes,
   loadCoveredBySymbolsByTest,
 } from "./code-scope.js";
 import {
@@ -178,15 +178,17 @@ export async function executeCompactReceipts(
       });
       continue;
     }
-    const bindingHash = await currentReceiptBindingHash({
-      workspaceRoot: context.workspaceRoot,
-      readFile: (absolute) => fs.readFile(absolute),
-      test,
-      coveredBySymbols: coveredBy.get(testId) ?? [],
-    });
+    const [bindingHash, ...legacyBindingHashes] =
+      (await currentReceiptBindingHashes({
+        workspaceRoot: context.workspaceRoot,
+        readFile: (absolute) => fs.readFile(absolute),
+        test,
+        coveredBySymbols: coveredBy.get(testId) ?? [],
+      })) ?? [];
     const { kept, removed } = compactProofReceipts(receipts, {
       codeSnapshot: snapshot,
       ...(bindingHash === undefined ? {} : { bindingHash }),
+      ...(legacyBindingHashes.length > 0 ? { legacyBindingHashes } : {}),
     });
     if (removed === 0) continue;
     if (!isOrderedReceiptSubsequence(kept, receipts)) {

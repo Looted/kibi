@@ -167,6 +167,56 @@ const PACKAGE_RUNNERS: readonly {
   },
 ];
 
+/**
+ * Runners recognised inside package.json scripts. Projects that run the
+ * built-in Node or Bun test runners have no config file to detect.
+ */
+const SCRIPT_RUNNERS: readonly { runner: string; pattern: RegExp }[] = [
+  { runner: "node --test", pattern: /\bnode\b[^&|;]*\s--test\b/ },
+  { runner: "bun test", pattern: /\bbun\s+test\b/ },
+  { runner: "vitest", pattern: /\bvitest\b/ },
+  { runner: "jest", pattern: /\bjest\b/ },
+  { runner: "playwright", pattern: /\bplaywright\s+test\b/ },
+];
+
+/** package.json script bodies of the root and its declared workspaces. */
+function workspaceScripts(
+  root: string,
+  pkg: Record<string, unknown> | null,
+): string[] {
+  const bodies: string[] = [];
+  const collect = (manifest: Record<string, unknown> | null) => {
+    const scripts = manifest?.scripts;
+    if (scripts === null || typeof scripts !== "object") return;
+    for (const body of Object.values(scripts as Record<string, unknown>))
+      if (typeof body === "string") bodies.push(body);
+  };
+  collect(pkg);
+  const declared = Array.isArray(pkg?.workspaces)
+    ? pkg.workspaces
+    : Array.isArray((pkg?.workspaces as { packages?: unknown })?.packages)
+      ? (pkg?.workspaces as { packages: unknown[] }).packages
+      : [];
+  for (const pattern of declared) {
+    if (typeof pattern !== "string" || pattern.startsWith("!")) continue;
+    // Only `dir` and `dir/*` workspace globs are expanded.
+    const directories = pattern.endsWith("/*")
+      ? (() => {
+          const parent = path.join(root, pattern.slice(0, -2));
+          try {
+            return readdirSync(parent).map((entry) => path.join(parent, entry));
+          } catch {
+            return [];
+          }
+        })()
+      : pattern.includes("*")
+        ? []
+        : [path.join(root, pattern)];
+    for (const directory of directories) collect(packageJson(directory));
+  }
+  return bodies;
+}
+
 function packageJson(root: string): Record<string, unknown> | null {
   const filePath = path.join(root, "package.json");
   if (!existsSync(filePath)) return null;
@@ -254,6 +304,15 @@ export function inspectProofEnvironment(
         if (!runners.includes(entry.runner)) runners.push(entry.runner);
       }
     }
+    const bodies = workspaceScripts(root, pkg);
+    for (const entry of SCRIPT_RUNNERS) {
+      if (
+        bodies.some((body) => entry.pattern.test(body)) &&
+        !runners.includes(entry.runner)
+      )
+        runners.push(entry.runner);
+    }
+    if (existsSync(path.join(root, "bunfig.toml"))) buildSystems.add("bun");
   }
   if (existsSync(path.join(root, "Cargo.toml"))) buildSystems.add("cargo");
   if (existsSync(path.join(root, "go.mod"))) buildSystems.add("go");

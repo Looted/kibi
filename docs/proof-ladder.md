@@ -171,6 +171,14 @@ by the passing E2E tests (`covered_by`).
   (usually stale or missing receipts), so coverage cannot be evaluated.
   `reason` says so and points at `kibi prove`.
 
+Type-shape symbols (interfaces, type aliases, enums) are listed under
+`structuralSymbols` instead. One counts as covered when it is `covered_by` a
+passing E2E test or a unit test with a current passing receipt; an authored
+`status: passing` on the unit test is not enough. Without that receipt the
+symbol is in `uncoveredSymbols` with the reason
+`structural_unit_receipt_not_current`, and `kibi prove` on the unit test (or
+`kibi prove --stale`) clears it.
+
 `explanations[]` gives each symbol a rollup reason and, for each rejected
 `covered_by` candidate, a primary rejection code plus optional secondary codes.
 See [Stage statuses, precisely](#stage-statuses-precisely).

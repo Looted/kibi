@@ -24,7 +24,10 @@ import {
   createTelemetryAcceptanceDiagnostics,
   parseTelemetryUsageLog,
 } from "../telemetry-acceptance.js";
-import { createCoverageDepthQualityDiagnostics } from "./coverage-depth-quality.js";
+import {
+  createCoarseAnchorQualityDiagnostics,
+  createCoverageDepthQualityDiagnostics,
+} from "./coverage-depth-quality.js";
 import { createRequirementQualityDiagnostics } from "./requirement-quality.js";
 import { createSymbolQualityDiagnostics } from "./symbol-quality.js";
 import type { QualityDiagnostic } from "./types.js";
@@ -786,6 +789,7 @@ export async function collectFullKbQualityDiagnostics(
         : {}),
     }),
     ...coverageDepthDiagnostics,
+    ...createCoarseAnchorQualityDiagnostics(manifestResults),
     ...createSymbolQualityDiagnostics({
       manifestResults,
       symbolsByFile: new Map(),

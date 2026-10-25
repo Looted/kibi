@@ -282,9 +282,17 @@ export const PROOF_CONTRACT_SCHEMA = {
     domain_source: {
       type: "object",
       description:
-        "exhaustive and typecheck: the symbol that defines the finite domain. The proof must import it from its source file; a hand-listed domain downgrades the receipt to example.",
+        "exhaustive and typecheck: the symbol that defines the finite domain. The proof must import it from its source file; a hand-listed domain downgrades the receipt to example. Kibi reads the export named `export`, or the symbol's title when `export` is absent.",
       required: ["symbol_id"],
-      properties: { symbol_id: { type: "string", minLength: 1 } },
+      properties: {
+        symbol_id: { type: "string", minLength: 1 },
+        export: {
+          type: "string",
+          minLength: 1,
+          description:
+            "The name the domain is exported under in the symbol's source file, when the symbol's title is not that name.",
+        },
+      },
       additionalProperties: false,
     },
     witness: {
@@ -661,9 +669,14 @@ function proofContractKindErrors(contract: Record<string, unknown>): string[] {
   const domain = contract.domain_source;
   if (domain !== undefined) {
     const row = record(domain);
-    if (!row || !nonEmptyString(row.symbol_id) || Object.keys(row).length !== 1)
+    if (
+      !row ||
+      !nonEmptyString(row.symbol_id) ||
+      (row.export !== undefined && !nonEmptyString(row.export)) ||
+      Object.keys(row).some((key) => key !== "symbol_id" && key !== "export")
+    )
       errors.push(
-        "proof_contract.domain_source must be {symbol_id} naming the symbol that defines the domain",
+        "proof_contract.domain_source must be {symbol_id, export?} naming the symbol that defines the domain and, when its title is not the export name, the export to read",
       );
   } else if (kind === "exhaustive" || kind === "typecheck")
     errors.push(
@@ -714,7 +727,7 @@ export function optionalProofContractFields(
 > {
   const fields: {
     kind?: ProofKind;
-    domain_source?: { symbol_id: string };
+    domain_source?: { symbol_id: string; export?: string };
     witness?: { path: string };
     constraint_source?: { fact_ids: string[] };
   } = {};
@@ -722,7 +735,10 @@ export function optionalProofContractFields(
     fields.kind = contract.kind as ProofKind;
   const domain = record(contract.domain_source);
   if (domain && typeof domain.symbol_id === "string")
-    fields.domain_source = { symbol_id: domain.symbol_id };
+    fields.domain_source = {
+      symbol_id: domain.symbol_id,
+      ...(typeof domain.export === "string" ? { export: domain.export } : {}),
+    };
   const witness = record(contract.witness);
   if (witness && typeof witness.path === "string")
     fields.witness = { path: witness.path };

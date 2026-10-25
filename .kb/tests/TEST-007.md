@@ -15,6 +15,13 @@ links:
   - type: validates
     target: SCEN-001
 verification_scope: unit
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-unit-test-007
+      target: default
+  success_policy: all_required_first_attempt
 origin:
   kind: migration
   ref: kibi migrate v5->v6

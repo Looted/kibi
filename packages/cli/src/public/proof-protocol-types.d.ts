@@ -93,7 +93,7 @@ export type ProofContract = Readonly<{
     | "typecheck"
     | "arithmetic"
     | "smt";
-  domain_source?: Readonly<{ symbol_id: string }>;
+  domain_source?: Readonly<{ symbol_id: string; export?: string }>;
   witness?: Readonly<{ path: string }>;
   constraint_source?: Readonly<{ fact_ids: readonly string[] }>;
 }>;

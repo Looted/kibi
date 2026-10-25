@@ -21,11 +21,19 @@ import {
 import { convertJUnitXml } from "../proof/producers/junit-adapter.js";
 import { convertTap } from "../proof/producers/tap-adapter.js";
 import { loadEntities } from "../public/operations/discovery-entities.js";
+import {
+  runOperationJsonQuery,
+  toPrologAtom,
+} from "../public/operations/prolog-json.js";
 import type {
   OperationContext,
   OperationRuntime,
 } from "../public/operations/runtime-types.js";
 import { ingestProofSpec } from "../public/operations/specs/proof.js";
+import {
+  currentProofBindingMode,
+  perContractTestBindings,
+} from "../public/operations/specs/reporting.js";
 import { readWorkspaceSnapshot } from "../public/operations/workspace-snapshot.js";
 import { PROOF_CERTIFICATES_ENV } from "../public/proof-certificates.js";
 import {
@@ -36,6 +44,7 @@ import {
   proofBindingsErrors,
   proofRunArtifactErrors,
 } from "../public/proof-protocol.js";
+import { PROOF_RECEIPT_MAX_AGE_SECONDS } from "../public/proof-receipt.js";
 import { createCliRuntime } from "../runtime/cli-runtime.js";
 
 // implements REQ-kibi-verification-evidence-contract
@@ -45,6 +54,8 @@ export type ProveCommandOptions = Readonly<{
   integration?: string;
   integrationExcept?: string;
   all?: boolean;
+  /** Keep only selected tests without a current passing receipt. */
+  stale?: boolean;
   workspaceRoot?: string;
 }>;
 
@@ -126,7 +137,9 @@ function parseContract(test: Record<string, unknown>): ProofContract | null {
   return contract as ProofContract;
 }
 
-async function runChild(
+/** Run a proof integration's command and resolve with its exit code. */
+// implements REQ-kibi-verification-evidence-contract
+export async function runChild(
   commandArgv: readonly string[],
   cwd: string,
   env: NodeJS.ProcessEnv,
@@ -135,14 +148,46 @@ async function runChild(
   if (!command)
     throw new Error("prove: integration command argv must be non-empty");
   return await new Promise((resolve, reject) => {
+    // The producer runs in its own process group, so stopping kibi prove
+    // stops the whole suite it started (a test runner and its workers), not
+    // only kibi prove itself.
+    const ownGroup = process.platform !== "win32";
     const child = spawn(command, args, {
       cwd,
       env,
       shell: false,
       stdio: "inherit",
+      detached: ownGroup,
     });
-    child.once("error", reject);
-    child.once("close", (code) => resolve(code ?? 1));
+    const forward = (signal: NodeJS.Signals) => {
+      const pid = child.pid;
+      try {
+        if (ownGroup && pid !== undefined) process.kill(-pid, signal);
+        else child.kill(signal);
+      } catch {
+        // The producer already exited.
+      }
+      process.exit(signal === "SIGINT" ? 130 : 143);
+    };
+    const onInt = () => forward("SIGINT");
+    const onTerm = () => forward("SIGTERM");
+    const onHup = () => forward("SIGHUP");
+    process.once("SIGINT", onInt);
+    process.once("SIGTERM", onTerm);
+    process.once("SIGHUP", onHup);
+    const settle = () => {
+      process.removeListener("SIGINT", onInt);
+      process.removeListener("SIGTERM", onTerm);
+      process.removeListener("SIGHUP", onHup);
+    };
+    child.once("error", (error) => {
+      settle();
+      reject(error);
+    });
+    child.once("close", (code) => {
+      settle();
+      resolve(code ?? 1);
+    });
   });
 }
 
@@ -231,7 +276,46 @@ function markAggregateFailure(results: ProofResult[]): ProofResult[] {
   return results.map((result) => ({ ...result, outcome: "failed" as const }));
 }
 
+/**
+ * Receipt state per proof-bearing test under the binding mode reports use.
+ * `passed` means the test already has a current passing receipt; anything
+ * else (missing, stale, contract_mismatch, invalid, failed) needs a run.
+ */
+// implements REQ-kibi-verification-evidence-contract
+export async function readTestReceiptStates(
+  context: OperationContext,
+): Promise<ReadonlyMap<string, string>> {
+  const snapshotEvidence = await readWorkspaceSnapshot(context);
+  const snapshot = snapshotEvidence.available
+    ? snapshotEvidence.snapshot.hash
+    : "unknown";
+  const bindingsDict = await perContractTestBindings(context);
+  const bindingMode =
+    bindingsDict !== null ? "per_contract" : currentProofBindingMode();
+  const payload = await runOperationJsonQuery<{
+    states?: Record<string, string>;
+  }>(
+    context.prolog as never,
+    "discovery.pl",
+    `discovery:test_receipt_states_json(${bindingMode}, ${bindingsDict ?? "_{}"}, ${toPrologAtom(snapshot)}, ${toPrologAtom(context.clock().toISOString())}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`,
+    "prove --stale",
+  );
+  return new Map(Object.entries(payload.states ?? {}));
+}
+
 async function selectTests(
+  context: OperationContext,
+  options: ProveCommandOptions,
+): Promise<SelectedTest[]> {
+  const selected = await selectTestsBySelector(context, options);
+  if (!options.stale || selected.length === 0) return selected;
+  const states = await readTestReceiptStates(context);
+  return selected.filter(
+    (entity) => states.get(String(entity.id)) !== "passed",
+  );
+}
+
+async function selectTestsBySelector(
   context: OperationContext,
   options: ProveCommandOptions,
 ): Promise<SelectedTest[]> {
@@ -353,7 +437,7 @@ export async function proveCommand(
     const selected = await selectTests(context, options);
     if (selected.length === 0) {
       process.stdout.write(
-        `${JSON.stringify({ proved: 0, failed: 0, message: "no proof-bearing tests selected" })}\n`,
+        `${JSON.stringify({ proved: 0, failed: 0, message: options.stale ? "every selected test already has a current passing receipt" : "no proof-bearing tests selected" })}\n`,
       );
       completed = true;
       return { exitCode: 0 };

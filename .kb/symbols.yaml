@@ -57187,3 +57187,111 @@ symbols:
         target: TEST-kibi-intervals-differential
       - type: implements
         target: REQ-kibi-intervals-verified
+  - id: SYM-unit-test-007
+    title: manifest.test
+    status: active
+    sourceFile: packages/cli/tests/commands/sync/manifest.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-007
+  - id: SYM-unit-test-capability-plugin-host-resolution-v1
+    title: capability-plugin-host.test
+    status: active
+    sourceFile: packages/cli/tests/plugins/capability-plugin-host.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-capability-plugin-host-resolution-v1
+  - id: SYM-unit-test-capability-plugin-jev-mocked-v1
+    title: jev.test
+    status: active
+    sourceFile: packages/plugin-jev/tests/jev.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-capability-plugin-jev-mocked-v1
+  - id: SYM-unit-test-capability-plugin-protocol-v1
+    title: sdk.test
+    status: active
+    sourceFile: packages/plugin-sdk/tests/sdk.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-capability-plugin-protocol-v1
+  - id: SYM-unit-test-cli-canonical-status
+    title: status.test
+    status: active
+    sourceFile: packages/cli/tests/commands/status.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-cli-canonical-status
+  - id: SYM-unit-test-cli-config-schema
+    title: config.test
+    status: active
+    sourceFile: packages/cli/tests/utils/config.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-cli-config-schema
+  - id: SYM-unit-test-cli-requirement-quality-diagnostics
+    title: impact-requirement-quality.test
+    status: active
+    sourceFile: packages/cli/tests/traceability/impact-requirement-quality.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-cli-requirement-quality-diagnostics
+  - id: SYM-unit-test-cli-symbol-quality-diagnostics
+    title: impact-symbol-quality.test
+    status: active
+    sourceFile: packages/cli/tests/traceability/impact-symbol-quality.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-cli-symbol-quality-diagnostics
+  - id: SYM-unit-test-coordinate-repair-capability
+    title: symbol-repair-plan.test
+    status: active
+    sourceFile: packages/cli/tests/public/operations/symbol-repair-plan.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-coordinate-repair-capability
+  - id: SYM-unit-test-coverage-depth-labels
+    title: coverage-depth-quality.test
+    status: active
+    sourceFile: packages/cli/tests/public/impact/coverage-depth-quality.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-coverage-depth-labels
+  - id: SYM-unit-test-prolog-library-adoption-mcp
+    title: sparql.test
+    status: active
+    sourceFile: packages/mcp/tests/tools/sparql.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-prolog-library-adoption-mcp
+  - id: SYM-unit-test-rule-registry-single-source
+    title: rule-registry-contract.test
+    status: active
+    sourceFile: packages/cli/tests/utils/rule-registry-contract.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-rule-registry-single-source

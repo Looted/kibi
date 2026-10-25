@@ -112,11 +112,16 @@ describe("the status plan's schema upgrade declares every write", () => {
     expect(upgrade?.affectedFiles).toContain(".gitignore");
     expect(upgrade?.dependsOn).toContain("symbol-legacy-link-mark");
 
-    // Approving the upgrade alone is refused: it would mark the link too.
+    // Approving the upgrade without the mark is refused: it would mark the
+    // link too. (Its other dependencies, such as the entity-type backfill,
+    // are approved so the refusal names the mark.)
+    const otherDependencies = (upgrade?.dependsOn ?? []).filter(
+      (id) => id !== "symbol-legacy-link-mark",
+    );
     const refused = ws.json(["apply-plan"], {
       plan,
       approvedPlanHash: plan.planHash,
-      approvedActionIds: ["schema-config-upgrade"],
+      approvedActionIds: [...otherDependencies, "schema-config-upgrade"],
     }) as ApplyResult;
     expect(refused.status).toBe("error");
     expect(refused.error?.message).toContain(
@@ -127,7 +132,11 @@ describe("the status plan's schema upgrade declares every write", () => {
     const applied = ws.json(["apply-plan"], {
       plan,
       approvedPlanHash: plan.planHash,
-      approvedActionIds: ["symbol-legacy-link-mark", "schema-config-upgrade"],
+      approvedActionIds: [
+        ...otherDependencies,
+        "symbol-legacy-link-mark",
+        "schema-config-upgrade",
+      ],
     }) as ApplyResult;
     expect(applied.data?.outcome).toBe("applied");
     const details = Object.fromEntries(

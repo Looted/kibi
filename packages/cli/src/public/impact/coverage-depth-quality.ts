@@ -2,6 +2,7 @@ import type {
   ExtractedEntity,
   ExtractionResult,
 } from "../../extractors/markdown.js";
+import { COARSE_GRANULARITY_REASONS } from "../symbol-granularity.generated.js";
 import type { QualityDiagnostic } from "./types.js";
 
 type ReviewableCoverageDepth =
@@ -342,6 +343,78 @@ export function createCoverageDepthQualityDiagnostics(
         proofByRequirement.get(result.entity.id),
       );
       return diagnostic === undefined ? [] : [diagnostic];
+    })
+    .toSorted((left, right) =>
+      (left.entityId ?? "").localeCompare(right.entityId ?? ""),
+    );
+}
+
+const COARSE_REASONS: ReadonlySet<string> = new Set(COARSE_GRANULARITY_REASONS);
+
+/**
+ * Requirements whose every implementing production symbol is a whole-file
+ * anchor (a coarse granularity_reason). Coverage then only says some test
+ * touches the file, so `tested` evidence is cheap; narrower behavioral
+ * symbols would tie it to the code that implements the claim.
+ */
+// implements REQ-audit-quality-diagnostics-v1
+export function createCoarseAnchorQualityDiagnostics(
+  manifestResults: readonly ExtractionResult[],
+): readonly QualityDiagnostic[] {
+  const superseded = supersededRequirementIds(manifestResults);
+  const anchorsByRequirement = new Map<string, ExtractedEntity[]>();
+  for (const result of manifestResults) {
+    if (result.entity.type !== "symbol") continue;
+    // Executable test code is not a production symbol.
+    if (result.relationships.some((rel) => rel.type === "executable_for"))
+      continue;
+    for (const relationship of result.relationships) {
+      if (relationship.type !== "implements") continue;
+      const list = anchorsByRequirement.get(relationship.to) ?? [];
+      list.push(result.entity);
+      anchorsByRequirement.set(relationship.to, list);
+    }
+  }
+  return manifestResults
+    .filter(
+      (result) =>
+        result.entity.type === "req" &&
+        isReviewableRequirement(result.entity, superseded),
+    )
+    .flatMap((result): QualityDiagnostic[] => {
+      const symbols = uniqueEntities(
+        anchorsByRequirement.get(result.entity.id) ?? [],
+      );
+      if (
+        symbols.length === 0 ||
+        !symbols.every((symbol) =>
+          COARSE_REASONS.has(symbol.granularity_reason ?? ""),
+        )
+      )
+        return [];
+      const requirement = result.entity;
+      return [
+        {
+          id: "coarse_anchor_only_review",
+          severity: "review",
+          blocking: false,
+          category: "coverage",
+          entityId: requirement.id,
+          source: requirement.source,
+          files: [requirement.source],
+          message: `Requirement ${requirement.id} (${requirement.title}) is implemented only by whole-file anchors, so its coverage says a test touches those files, not the code behind the claim.`,
+          suggestion:
+            "Link the functions, methods or types that implement the requirement with implements (and covered_by to their tests); keep the file anchor only for genuinely module-level behavior.",
+          evidence: {
+            requirementId: requirement.id,
+            title: requirement.title,
+            symbols: symbols.map((symbol) => ({
+              id: symbol.id,
+              granularityReason: symbol.granularity_reason ?? "",
+            })),
+          },
+        },
+      ];
     })
     .toSorted((left, right) =>
       (left.entityId ?? "").localeCompare(right.entityId ?? ""),

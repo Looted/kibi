@@ -5,7 +5,8 @@
     requirement_proof_context/1,
     requirement_proof_context/4,
     requirement_proof_context/6,
-    requirement_proof/4
+    requirement_proof/4,
+    test_receipt_evidence/4
 ]).
 
 % Source contains non-ASCII text; do not depend on the host locale.
@@ -458,9 +459,29 @@ inventory_ground_text_mismatches(Inventory, Evidence, Keys) :-
          normalize_atom(RawKey, Key),
          inventory_entry_field(Entry, claim_text, RawInventoryText),
          normalize_atom(RawInventoryText, InventoryText),
-         InventoryText \== Item.claimText),
+         \+ claim_texts_equivalent(InventoryText, Item.claimText)),
         Keys0),
     sort(Keys0, Keys).
+
+% implements REQ-kibi-conservative-requirement-proof
+% Inventory and fact claim texts name the same sentence when they differ only
+% in whitespace or trailing punctuation ("…outcomes." vs "…outcomes").
+claim_texts_equivalent(Left, Right) :-
+    canonical_claim_text(Left, Canonical),
+    canonical_claim_text(Right, Canonical).
+
+canonical_claim_text(Text, Canonical) :-
+    normalize_space(codes(Codes0), Text),
+    reverse(Codes0, Reversed0),
+    drop_trailing_claim_punctuation(Reversed0, Reversed),
+    reverse(Reversed, Codes),
+    atom_codes(Canonical, Codes).
+
+drop_trailing_claim_punctuation([Code|Rest], Trimmed) :-
+    (code_type(Code, space) ; memberchk(Code, `.,;:!?`)),
+    !,
+    drop_trailing_claim_punctuation(Rest, Trimmed).
+drop_trailing_claim_punctuation(Codes, Codes).
 
 linked_ground_keys(ReqId, Keys) :-
     findall(Key, linked_ground_claim_key(ReqId, Key), Keys0),
@@ -1094,6 +1115,15 @@ receipt_for_current_mode(TestId, Context, Receipts, SnapshotReceipts) :-
 receipt_with_binding_hash(Receipt) :-
     inventory_entry_field(Receipt, binding_hash, _).
 
+% The current binding is one hash, or a list of the hashes a current receipt
+% may carry (the current binding and the one written before relationship
+% links left it).
+receipt_for_binding(Bindings, Receipt) :-
+    is_list(Bindings),
+    !,
+    inventory_entry_field(Receipt, binding_hash, RawBinding),
+    normalize_receipt_atom(RawBinding, Binding),
+    memberchk(Binding, Bindings).
 receipt_for_binding(Binding, Receipt) :-
     inventory_entry_field(Receipt, binding_hash, RawBinding),
     normalize_receipt_atom(RawBinding, Binding).
@@ -1326,7 +1356,8 @@ production_symbol_stage(ReqId, PassingE2eTests, Stage, ProductionSymbols) :-
          scenario_test(ScenarioId, TestId)),
         ScenarioTests0),
     sort(ScenarioTests0, ScenarioTests),
-    production_symbol_stage(ReqId, PassingE2eTests, ScenarioTests, [], _{}, Stage, ProductionSymbols).
+    requirement_proof_context(Context),
+    production_symbol_stage(ReqId, PassingE2eTests, ScenarioTests, [], Context, Stage, ProductionSymbols).
 
 production_symbol_stage(ReqId, PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, Stage, ProductionSymbols) :-
     findall(SymbolId,
@@ -1337,12 +1368,16 @@ production_symbol_stage(ReqId, PassingE2eTests, ScenarioTests, ReceiptEvidence, 
     sort(Implementing0, ImplementingSymbols),
     include(type_shape_symbol_with_structural_contract, ImplementingSymbols, StructuralSymbols),
     exclude(type_shape_symbol_with_structural_contract, ImplementingSymbols, ProductionSymbols),
-    include(symbol_not_covered_by_tests(PassingE2eTests), ProductionSymbols, UncoveredSymbols),
-    production_stage_status(ProductionSymbols, StructuralSymbols, PassingE2eTests, UncoveredSymbols, Status, StatusReason),
+    include(symbol_not_covered_by_tests(PassingE2eTests), ProductionSymbols, UncoveredProduction),
+    structural_unit_receipts(StructuralSymbols, Context, UnitReceipts),
+    exclude(structural_symbol_covered(PassingE2eTests, UnitReceipts), StructuralSymbols, UncoveredStructural),
+    append(UncoveredProduction, UncoveredStructural, UncoveredSymbols),
+    production_stage_status(ProductionSymbols, StructuralSymbols, PassingE2eTests,
+                            UncoveredProduction, UncoveredStructural, Status, StatusReason),
     maplist(symbol_coordinate_ref, ProductionSymbols, Coordinates),
     production_coverage_explanations(
         ReqId, ProductionSymbols, StructuralSymbols, UncoveredSymbols,
-        PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, Explanations),
+        PassingE2eTests, ScenarioTests, ReceiptEvidence, UnitReceipts-Context, Explanations),
     StageBase = _{
         status: Status,
         symbols: ProductionSymbols,
@@ -1367,13 +1402,40 @@ type_shape_symbol_with_structural_contract(SymbolId) :-
     normalize_atom(RawStatus, Status),
     memberchk(Status, [active, passing]).
 
+% implements REQ-kibi-conservative-requirement-proof
+% A type-shape symbol is structurally covered by a unit test only while that
+% test holds a current passing receipt: an authored status alone is a claim,
+% not evidence. Receipt states are computed once per distinct unit test.
+structural_unit_receipts(StructuralSymbols, Context, UnitReceipts) :-
+    findall(TestId,
+        (member(SymbolId, StructuralSymbols),
+         kb_relationship(covered_by, SymbolId, TestId),
+         structural_unit_contract_test(TestId)),
+        TestIds0),
+    sort(TestIds0, TestIds),
+    findall(TestId-State,
+        (member(TestId, TestIds),
+         test_receipt_evidence(Context, [unit], TestId, Evidence),
+         State = Evidence.state),
+        UnitReceipts).
+
+structural_symbol_covered(PassingE2eTests, _UnitReceipts, SymbolId) :-
+    member(TestId, PassingE2eTests),
+    kb_relationship(covered_by, SymbolId, TestId),
+    !.
+structural_symbol_covered(_PassingE2eTests, UnitReceipts, SymbolId) :-
+    kb_relationship(covered_by, SymbolId, TestId),
+    memberchk(TestId-passed, UnitReceipts),
+    !.
+
 % Stage status plus a typed reason, from a single total clause so status and
 % reason can never disagree (a test project's stale-receipts case reported `blocked`
 % with no indication that fresh receipts were the unblock). Clause order keeps
 % the historical precedence: no production symbols at all is `missing` even
 % when E2E evidence is also absent; only then does absent E2E evidence read
 % as `blocked`.
-production_stage_status(ProductionSymbols, StructuralSymbols, PassingE2eTests, UncoveredSymbols, Status, Reason) :-
+production_stage_status(ProductionSymbols, StructuralSymbols, PassingE2eTests,
+                        UncoveredProduction, UncoveredStructural, Status, Reason) :-
     (   ProductionSymbols == [],
         StructuralSymbols == []
     ->  Status = missing,
@@ -1381,34 +1443,50 @@ production_stage_status(ProductionSymbols, StructuralSymbols, PassingE2eTests, U
     ;   PassingE2eTests == []
     ->  Status = blocked,
         Reason = "no passing E2E test evidence is available for the current snapshot; run kibi prove so this stage can evaluate production symbol coverage"
-    ;   UncoveredSymbols == []
+    ;   UncoveredProduction == [],
+        UncoveredStructural == []
     ->  Status = passed
-    ;   Status = missing,
-        length(UncoveredSymbols, Count),
+    ;   UncoveredStructural == []
+    ->  Status = missing,
+        length(UncoveredProduction, Count),
         format(atom(Reason), "~w production symbol(s) lack covered_by links to the passing E2E tests", [Count])
+    ;   UncoveredProduction == []
+    ->  Status = missing,
+        length(UncoveredStructural, Count),
+        format(atom(Reason), "~w type-shape symbol(s) lack a covered_by unit test with a current passing receipt; run kibi prove on those unit tests", [Count])
+    ;   Status = missing,
+        length(UncoveredProduction, ProductionCount),
+        length(UncoveredStructural, StructuralCount),
+        format(atom(Reason), "~w production symbol(s) lack covered_by links to the passing E2E tests and ~w type-shape symbol(s) lack a covered_by unit test with a current passing receipt", [ProductionCount, StructuralCount])
     ).
 
 symbol_not_covered_by_tests(Tests, SymbolId) :-
     \+ (member(TestId, Tests), kb_relationship(covered_by, SymbolId, TestId)).
 
 production_coverage_explanations(ReqId, ProductionSymbols, StructuralSymbols, UncoveredSymbols,
-        PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, Explanations) :-
+        PassingE2eTests, ScenarioTests, ReceiptEvidence, UnitReceipts-Context, Explanations) :-
     maplist(production_symbol_explanation(ReqId, UncoveredSymbols, PassingE2eTests, ScenarioTests, ReceiptEvidence, Context),
             ProductionSymbols, ProductionExplanations),
-    maplist(structural_symbol_explanation(ReqId, PassingE2eTests, ScenarioTests, ReceiptEvidence, Context),
+    maplist(structural_symbol_explanation(ReqId, UncoveredSymbols, PassingE2eTests, ScenarioTests, ReceiptEvidence, UnitReceipts-Context),
             StructuralSymbols, StructuralExplanations),
     append(ProductionExplanations, StructuralExplanations, Explanations).
 
-structural_symbol_explanation(ReqId, PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, SymbolId, Explanation) :-
+structural_symbol_explanation(ReqId, UncoveredSymbols, PassingE2eTests, ScenarioTests, ReceiptEvidence, UnitReceipts-Context, SymbolId, Explanation) :-
     symbol_classification(SymbolId, Classification),
-    symbol_coverage_candidates(structural, PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, SymbolId, Candidates),
-    explanation_reason_text(structural_unit_contract, ReasonText),
+    symbol_coverage_candidates(structural(UnitReceipts), PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, SymbolId, Candidates),
+    (   memberchk(SymbolId, UncoveredSymbols)
+    ->  Status = uncovered,
+        Reason = structural_unit_receipt_not_current
+    ;   Status = covered,
+        Reason = structural_unit_contract
+    ),
+    explanation_reason_text(Reason, ReasonText),
     Explanation = _{
         symbolId: SymbolId,
         requirementId: ReqId,
         classification: Classification,
-        status: covered,
-        reason: structural_unit_contract,
+        status: Status,
+        reason: Reason,
         reasonText: ReasonText,
         coverageCandidates: Candidates
     }.
@@ -1478,9 +1556,20 @@ coverage_candidate_qualification(_Mode, PassingE2eTests, _ScenarioTests, _Receip
 coverage_candidate_qualification(_Mode, _Passing, _Scenario, _Evidence, _Context, TestId, false, missing_test_entity, []) :-
     \+ kb_entity(TestId, test, _),
     !.
-coverage_candidate_qualification(structural, _Passing, _Scenario, _Evidence, _Context, TestId, true, structural_unit_contract, []) :-
+coverage_candidate_qualification(structural(UnitReceipts), _Passing, _Scenario, _Evidence, _Context, TestId, Qualifies, Primary, Secondaries) :-
     structural_unit_contract_test(TestId),
-    !.
+    !,
+    (   memberchk(TestId-passed, UnitReceipts)
+    ->  Qualifies = true,
+        Primary = structural_unit_contract,
+        Secondaries = []
+    ;   Qualifies = false,
+        Primary = structural_unit_receipt_not_current,
+        (   memberchk(TestId-State, UnitReceipts)
+        ->  unit_receipt_secondary(State, Secondaries)
+        ;   Secondaries = []
+        )
+    ).
 coverage_candidate_qualification(_Mode, _Passing, ScenarioTests, ReceiptEvidence, Context, TestId, false, Primary, Secondaries) :-
     cheap_scope_reject_reason(TestId, ScopeReason),
     (   \+ memberchk(TestId, ScenarioTests)
@@ -1493,6 +1582,14 @@ coverage_candidate_qualification(_Mode, _Passing, ScenarioTests, ReceiptEvidence
         reused_receipt_reject_reasons(ReceiptEvidence, TestId, Secondaries)
     ;   receipt_reject_for_in_chain(ReceiptEvidence, Context, TestId, Primary, Secondaries)
     ).
+
+unit_receipt_secondary(missing, [missing_proof_receipt]) :- !.
+unit_receipt_secondary(stale, [stale_proof_receipt]) :- !.
+unit_receipt_secondary(contract_mismatch, [receipt_contract_mismatch]) :- !.
+unit_receipt_secondary(failed, [failed_proof_receipt]) :- !.
+unit_receipt_secondary(invalid, [invalid_proof_receipt]) :- !.
+unit_receipt_secondary(snapshot_unavailable, [proof_snapshot_unavailable]) :- !.
+unit_receipt_secondary(_, []).
 
 structural_unit_contract_test(TestId) :-
     kb_entity(TestId, test, TestProps),
@@ -1582,6 +1679,7 @@ explanation_reason_text_def(covered, "Qualifying covered_by to a passing scenari
 explanation_reason_text_def(covered_by_missing, "No covered_by relationship to any test").
 explanation_reason_text_def(no_qualifying_e2e_coverage, "covered_by relationships exist but none qualify as passing scenario-backed E2E coverage").
 explanation_reason_text_def(structural_unit_contract, "type-shape symbol is satisfied by a unit structural contract").
+explanation_reason_text_def(structural_unit_receipt_not_current, "type-shape symbol needs a covered_by unit test with a current passing receipt; run kibi prove on that unit test").
 explanation_reason_text_def(executable_test, "Symbol is executable test code linked with executable_for").
 explanation_reason_text_def(stage_blocked_no_passing_e2e, "Production coverage cannot be evaluated because no passing E2E evidence is available for the current snapshot").
 explanation_reason_text_def(missing_test_entity, "covered_by target is not a test entity").
@@ -1917,6 +2015,13 @@ freshness_only_candidate(Candidate) :-
     Candidate.qualifies == true,
     !.
 freshness_only_candidate(Candidate) :-
+    Candidate.scope == unit,
+    Candidate.reason == structural_unit_receipt_not_current,
+    Candidate.secondaryReasons = [_|_],
+    forall(member(Reason, Candidate.secondaryReasons),
+           memberchk(Reason, [stale_proof_receipt, receipt_snapshot_mismatch, receipt_contract_mismatch])),
+    !.
+freshness_only_candidate(Candidate) :-
     Candidate.scope == end_to_end,
     forall(member(Reason, [Candidate.reason|Candidate.secondaryReasons]),
            memberchk(Reason, [stale_proof_receipt, receipt_snapshot_mismatch, receipt_contract_mismatch])).
@@ -2061,7 +2166,7 @@ gap_definition(proof_contract_mismatch, 57, passing_e2e, "Run kibi prove so the 
 gap_definition(proof_snapshot_unavailable, 58, passing_e2e, "Run coverage through a CLI or MCP runtime that exposes the deterministic workspace snapshot.").
 gap_definition(missing_executable_test_symbol, 60, executable_symbols, "Link executable test code to every qualifying E2E test with executable_for.").
 gap_definition(missing_production_symbol, 70, production_symbols, "Link at least one production symbol to the requirement with implements.").
-gap_definition(missing_production_symbol_coverage, 71, production_symbols, "Link every runtime implementing production symbol to a qualifying E2E test with covered_by; type-shape symbols retain structural unit contracts instead.").
+gap_definition(missing_production_symbol_coverage, 71, production_symbols, "Link every runtime implementing production symbol to a qualifying E2E test with covered_by; type-shape symbols instead need a covered_by unit test with a current passing receipt.").
 gap_definition(missing_symbol_coordinates, 80, source_coordinates, "Refresh and persist exact coordinates for every proof-bearing symbol.").
 gap_definition(missing_requirement_source, 81, source_coordinates, "Bind the requirement to its current source document.").
 

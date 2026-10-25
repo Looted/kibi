@@ -218,9 +218,10 @@ function failedStepsOf(
 
 /**
  * Decide how a finished command run is attributed. `per_test` partitions the
- * selected tests by their own outcome; `aggregate` keeps the historical
- * whole-run semantics (and is always the answer for a passing process
- * without a report, so a fully green run stays byte-identical).
+ * selected tests by their own outcome whenever a valid report was read, a
+ * fully passing one included; `aggregate` keeps the historical whole-run
+ * semantics (and is always the answer for a passing process without a
+ * report, so a fully green run without a report stays byte-identical).
  */
 // implements REQ-kibi-fresh-verification-receipts-v2
 export function attributeCommandRun(input: {
@@ -258,13 +259,6 @@ export function attributeCommandRun(input: {
     return {
       attribution: "aggregate",
       reason: `the integration exited ${exitCode} but its ${PROOF_TEST_REPORT_VERSION} attributes the failure to no test`,
-      failedSteps,
-    };
-  }
-  if (failing.length === 0) {
-    return {
-      attribution: "aggregate",
-      reason: "the integration passed",
       failedSteps,
     };
   }

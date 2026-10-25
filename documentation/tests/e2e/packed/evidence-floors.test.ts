@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { after, before, describe, it } from "node:test";
 import {
@@ -108,6 +108,16 @@ export async function checkEvidenceFloors(sandbox: TestSandbox) {
     ],
   );
 
+  // The text output names the proof gaps without --fix or --format json.
+  const text = await kibi(sandbox, ["check", "--rules", "evidence-floor"], {
+    timeoutMs: 120000,
+  });
+  assert.strictEqual(text.exitCode, 1, text.stdout + text.stderr);
+  assert.match(
+    text.stdout,
+    /REQ-FLOOR-PERSON is asserted but needs tested[^\n]*\n\s+Suggestion: [^\n]*missing_scenario/,
+  );
+
   // A person decides the first needs no tests and approves the second.
   setFrontmatterLine(
     sandbox,
@@ -148,6 +158,61 @@ export async function checkEvidenceFloors(sandbox: TestSandbox) {
  * upgraded KB passes evidence-floor.
  */
 export async function checkEvidenceFloorMigration(sandbox: TestSandbox) {
+  // A firm requirement whose scenario test has a passing receipt but no
+  // production symbol: the evidence ladder puts it below tested, so the
+  // migration must record its floor instead of keeping tested on the
+  // strength of the receipt alone.
+  await createInventoriedRequirement(
+    sandbox,
+    ".kb/requirements/REQ-FLOOR-RECEIPT.md",
+    {
+      id: "REQ-FLOOR-RECEIPT",
+      title: "Reports export as CSV",
+      type: "req",
+      status: "open",
+      links: "\n  - type: specified_by\n    target: SCEN-FLOOR-RECEIPT",
+    },
+    `Reports must export as CSV.\n\n${CONTEXT}`,
+  );
+  writeFileSync(
+    join(sandbox.repoDir, ".kb/scenarios/SCEN-FLOOR-RECEIPT.md"),
+    "---\nid: SCEN-FLOOR-RECEIPT\ntitle: A user exports a report as CSV\ntype: scenario\nstatus: active\nlinks:\n  - type: verified_by\n    target: TEST-FLOOR-RECEIPT\n---\n\nGiven a report, when the user exports it, then a CSV file downloads with every row of the report in it.\n",
+  );
+  stageSourceFile(sandbox, ".kb/scenarios/SCEN-FLOOR-RECEIPT.md");
+  writeFileSync(
+    join(sandbox.repoDir, ".kb/tests/TEST-FLOOR-RECEIPT.md"),
+    "---\nid: TEST-FLOOR-RECEIPT\ntitle: Exporting a report downloads a CSV file\ntype: test\nstatus: active\nverification_scope: end_to_end\nverification_perspective: consumer\nproof_contract:\n  version: kibi.proof-contract.v1\n  integration: floor-proof\n  required_proofs:\n    - symbol_id: SYM-floor-receipt\n      target: default\n  success_policy: all_required_first_attempt\n---\n\nExporting a report downloads a CSV file with every row in it.\n",
+  );
+  stageSourceFile(sandbox, ".kb/tests/TEST-FLOOR-RECEIPT.md");
+  mkdirSync(join(sandbox.repoDir, ".kb", "proof"), { recursive: true });
+  writeFileSync(
+    join(sandbox.repoDir, ".kb", "proof", "integrations.json"),
+    `${JSON.stringify({
+      version: "kibi.proof-integration.v1",
+      integrations: [
+        {
+          id: "floor-proof",
+          producer: "command",
+          command: ["node", "floor-proof.mjs"],
+          targets: ["default"],
+        },
+      ],
+    })}\n`,
+  );
+  writeFileSync(join(sandbox.repoDir, "floor-proof.mjs"), "process.exit(0);\n");
+  stageSourceFile(sandbox, ".kb/proof/integrations.json");
+  stageSourceFile(sandbox, "floor-proof.mjs");
+  const before = await kibi(sandbox, ["sync"]);
+  assert.strictEqual(before.exitCode, 0, `${before.stdout}${before.stderr}`);
+  const prove = await kibi(sandbox, ["prove", "--test", "TEST-FLOOR-RECEIPT"], {
+    timeoutMs: 120000,
+  });
+  assert.strictEqual(prove.exitCode, 0, `${prove.stdout}${prove.stderr}`);
+  assert.doesNotMatch(prove.stderr, /fatal:/);
+  stageSourceFile(sandbox, ".kb/tests/TEST-FLOOR-RECEIPT.md");
+  const proved = await kibi(sandbox, ["sync"]);
+  assert.strictEqual(proved.exitCode, 0, `${proved.stdout}${proved.stderr}`);
+
   const manifestPath = join(sandbox.repoDir, ".kb", "manifest.json");
   const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as Record<
     string,
@@ -175,7 +240,14 @@ export async function checkEvidenceFloorMigration(sandbox: TestSandbox) {
   assert.strictEqual(migrate.exitCode, 0, `${migrate.stdout}${migrate.stderr}`);
   assert.match(
     migrate.stdout,
-    /Recorded required_evidence: asserted on 1 current firm requirement\(s\)/,
+    /Recorded required_evidence: asserted on 2 current firm requirement\(s\)/,
+  );
+  assert.match(
+    readFileSync(
+      join(sandbox.repoDir, ".kb/requirements/REQ-FLOOR-RECEIPT.md"),
+      "utf8",
+    ),
+    /^required_evidence: asserted$/m,
   );
   const legacy = readFileSync(
     join(sandbox.repoDir, ".kb/requirements/REQ-FLOOR-LEGACY.md"),

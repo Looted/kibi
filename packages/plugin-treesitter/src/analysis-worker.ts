@@ -16,6 +16,8 @@ import type { TreeSitterLanguage } from "./catalog.js";
 const MAX_SYMBOLS = 10_000;
 const QUERY_MATCH_LIMIT = 16_384;
 const MAX_DIAGNOSTICS = 64;
+const DECORATOR_OMISSION_CODE = "TREESITTER_DECORATOR_EXPANSION_UNAVAILABLE";
+const DECORATOR_OMISSION_REASON = "decorator-may-alter-or-create-declarations";
 
 interface AnalysisWorkerInput {
   readonly id: number;
@@ -1085,9 +1087,9 @@ function dynamicOmissions(
     )) {
       add(
         node,
-        "TREESITTER_DECORATOR_EXPANSION_UNAVAILABLE",
+        DECORATOR_OMISSION_CODE,
         "Python decorators are not evaluated and may alter or synthesize declarations.",
-        "decorator-may-alter-or-create-declarations",
+        DECORATOR_OMISSION_REASON,
       );
     }
     for (const node of nodes.filter(
@@ -1459,7 +1461,9 @@ function analyzeInput(
   const diagnostics: SourceAnalysisDiagnosticV2[] = [];
   const uncoveredRanges: SourceAnalysisUncoveredRangeV2[] = [];
   const seenFindings = new Set<string>();
-  for (const omission of omissions) {
+  // Index of the omission behind the last diagnostic slot.
+  let lastSlotOmission = -1;
+  for (const [index, omission] of omissions.entries()) {
     if (diagnostics.length >= MAX_DIAGNOSTICS) break;
     const range = rangeForNode(omission.node);
     const key = `${omission.code}:${rangeKey(range)}:${omission.reason}`;
@@ -1471,8 +1475,46 @@ function analyzeInput(
       range,
     });
     uncoveredRanges.push({ ...range, reason: omission.reason });
+    lastSlotOmission = index;
   }
+  const decoratorOnly =
+    omissions.length > 0 &&
+    omissions.every((omission) => omission.code === DECORATOR_OMISSION_CODE);
   if (
+    decoratorOnly &&
+    omissions.length > MAX_DIAGNOSTICS &&
+    diagnostics.length === MAX_DIAGNOSTICS
+  ) {
+    // Every finding is an unevaluated decorator: the last slot summarizes
+    // the rest as one decorator finding over their span, so the result stays
+    // decorator-only (coordinates can still be refreshed from it) instead of
+    // turning into a whole-file limit finding.
+    const rest = omissions
+      .slice(lastSlotOmission)
+      .map((omission) => rangeForNode(omission.node));
+    const first = rest[0] as SourceAnalysisUncoveredRangeV2;
+    const last = rest.reduce((latest, range) =>
+      range.endLine > latest.endLine ||
+      (range.endLine === latest.endLine && range.endColumn > latest.endColumn)
+        ? range
+        : latest,
+    );
+    const span = {
+      startLine: first.startLine,
+      startColumn: first.startColumn,
+      endLine: last.endLine,
+      endColumn: last.endColumn,
+    };
+    diagnostics[MAX_DIAGNOSTICS - 1] = {
+      code: DECORATOR_OMISSION_CODE,
+      message: `Python decorators are not evaluated and may alter or synthesize declarations (${rest.length} decorated declarations from line ${span.startLine} to ${span.endLine}; diagnostics are capped at ${MAX_DIAGNOSTICS}).`,
+      range: span,
+    };
+    uncoveredRanges[MAX_DIAGNOSTICS - 1] = {
+      ...span,
+      reason: DECORATOR_OMISSION_REASON,
+    };
+  } else if (
     omissions.length > MAX_DIAGNOSTICS &&
     diagnostics.length === MAX_DIAGNOSTICS
   ) {

@@ -44,6 +44,8 @@ export type EvidenceFloorRow = Readonly<{
   status: "below" | "pending_reproof";
   proofStatus: string;
   proofGaps: readonly string[];
+  /** The tests and symbols behind the gaps; empty lists are left out. */
+  gapDetails?: Readonly<Record<string, readonly string[]>>;
 }>;
 
 type EvidenceFloorPayload = {
@@ -68,6 +70,28 @@ function floorSource(row: EvidenceFloorRow): string {
       : "its floor";
 }
 
+const GAP_DETAIL_LABELS: Readonly<Record<string, string>> = {
+  failedReceiptTests: "failing receipts",
+  missingReceiptTests: "no receipt",
+  staleReceiptTests: "stale receipts",
+  invalidReceiptTests: "invalid receipts",
+  contractMismatchReceiptTests: "receipts for an older contract",
+  uncoveredSymbols: "production symbols without qualifying coverage",
+  missingCoordinateSymbols: "symbols without source coordinates",
+};
+
+/** The entities behind the gaps, for a person reading kibi check's text. */
+// implements REQ-kibi-evidence-floors
+export function gapDetailLines(row: EvidenceFloorRow): string[] {
+  return Object.entries(row.gapDetails ?? {}).flatMap(([key, ids]) =>
+    ids.length === 0
+      ? []
+      : [
+          `${GAP_DETAIL_LABELS[key] ?? key}: ${ids.slice(0, 8).join(", ")}${ids.length > 8 ? ` (+${ids.length - 8} more)` : ""}`,
+        ],
+  );
+}
+
 function suggestionFor(row: EvidenceFloorRow): string {
   if (row.status === "pending_reproof")
     return `Run kibi prove for the tests behind ${row.id} so its receipts match the current code, then rerun kibi check --fresh-evidence.`;
@@ -75,7 +99,7 @@ function suggestionFor(row: EvidenceFloorRow): string {
     case "proved":
       return `Give ${row.id} evidence a second program can re-check (a proof kind that issues a certificate), or lower required_evidence with the reason in the requirement.`;
     case "tested":
-      return `Link ${row.id} to a scenario with an end-to-end test that has a proof contract, run kibi prove, and fix the proof gaps kibi proof explain ${row.id} lists (${row.proofGaps.join(", ") || "none listed"}); or lower required_evidence if a person decides it does not need tests.`;
+      return `Link ${row.id} to a scenario with an end-to-end test that has a proof contract, run kibi prove, and fix its proof gaps (${row.proofGaps.join(", ") || "none listed"}${gapDetailLines(row).length > 0 ? `; ${gapDetailLines(row).join("; ")}` : ""}); kibi proof explain ${row.id} shows each one. Or lower required_evidence if a person decides it does not need tests.`;
     default:
       return `Have a person approve ${row.id} (origin.approved_by) or state it as firm with origin.ref to their words, or lower required_evidence.`;
   }
@@ -104,8 +128,38 @@ export function evidenceFloorViolations(
         status: row.status,
         proofStatus: row.proofStatus,
         proofGaps: row.proofGaps,
+        ...(row.gapDetails === undefined ? {} : { gapDetails: row.gapDetails }),
       },
     }));
+}
+
+/**
+ * Every current requirement whose evidence is below its floor (status below
+ * or pending_reproof), judged on the attached store with the same
+ * per-contract receipt binding kb_coverage uses. Unlike the check rule this
+ * ignores the schema version, so a migration can read the floor the ladder
+ * will apply before it records the new schema.
+ */
+// implements REQ-kibi-evidence-floors
+export async function readEvidenceFloorRows(
+  context: OperationContext,
+  snapshotEvidence?: Awaited<ReturnType<typeof readWorkspaceSnapshot>>,
+): Promise<readonly EvidenceFloorRow[]> {
+  const prolog = context.prolog ?? (await context.ensureProlog?.());
+  if (prolog === undefined) return [];
+  const evidence = snapshotEvidence ?? (await readWorkspaceSnapshot(context));
+  const snapshot = evidence.available ? evidence.snapshot.hash : "unknown";
+  const { perContractTestBindings } = await import("./specs/reporting.js");
+  const bindings = await perContractTestBindings({ ...context, prolog });
+  const checkedAt = context.clock().toISOString();
+  const goal = `discovery:evidence_floor_json(${bindings === null ? "strict_snapshot, _{}" : `per_contract, ${bindings}`}, ${toPrologAtom(snapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`;
+  const payload = await runOperationJsonQuery<EvidenceFloorPayload>(
+    prolog,
+    "discovery.pl",
+    goal,
+    "Evidence floor evaluation",
+  );
+  return payload.rows ?? [];
 }
 
 /**
@@ -128,20 +182,8 @@ export async function collectEvidenceFloorViolations(
   )
     return [];
   const snapshotEvidence = await readWorkspaceSnapshot(context);
-  const snapshot = snapshotEvidence.available
-    ? snapshotEvidence.snapshot.hash
-    : "unknown";
-  const { perContractTestBindings } = await import("./specs/reporting.js");
-  const bindings = await perContractTestBindings(context);
-  const checkedAt = context.clock().toISOString();
-  const goal = `discovery:evidence_floor_json(${bindings === null ? "strict_snapshot, _{}" : `per_contract, ${bindings}`}, ${toPrologAtom(snapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`;
-  const payload = await runOperationJsonQuery<EvidenceFloorPayload>(
-    context.prolog,
-    "discovery.pl",
-    goal,
-    "Evidence floor evaluation",
-  );
-  const violations = evidenceFloorViolations(payload.rows ?? [], options);
+  const rows = await readEvidenceFloorRows(context, snapshotEvidence);
+  const violations = evidenceFloorViolations(rows, options);
   if (options.freshEvidence === true) {
     const clean =
       snapshotEvidence.available && snapshotEvidence.snapshot.dirty === false;

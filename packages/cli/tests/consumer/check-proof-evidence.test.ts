@@ -161,4 +161,75 @@ describe("kibi check proof evidence through the kibi CLI", () => {
     // The receipt is the behavior-level evidence the review asked for.
     expect(depthReviews(ws)).toEqual([]);
   }, 300_000);
+
+  test("a proof-status filter judges receipts like the unfiltered report", () => {
+    const ws = createConsumerWorkspace("kibi-coverage-status-binding-");
+    workspace = ws;
+    seed(ws);
+    const prove = ws.kibi(["prove", "--test", TEST]);
+    expect(prove.status).toBe(0);
+    // An unrelated committed change moves the workspace snapshot but not the
+    // test's per-contract binding, so its receipt stays current.
+    ws.write("docs-notes.txt", "unrelated\n");
+    ws.write("src/unrelated.ts", "export const unrelated = 1;\n");
+    ws.git("add", "-A");
+    ws.git("commit", "-q", "-m", "unrelated change");
+    ws.sync();
+
+    const unfiltered = ws.json([
+      "coverage",
+      "--format",
+      "json",
+      "--include-passing",
+    ]);
+    const status = coverageRows(ws).get(REQ)?.proofStatus;
+    expect(status).toBeDefined();
+    const filtered = ws.json([
+      "coverage",
+      "--format",
+      "json",
+      "--status",
+      String(status),
+    ]);
+    const report = (value: unknown): Json | undefined => {
+      if (value === null || typeof value !== "object") return undefined;
+      const record = value as Json;
+      if (Array.isArray(record.rows) && record.summary) return record;
+      for (const nested of Object.values(record)) {
+        const found = report(nested);
+        if (found) return found;
+      }
+      return undefined;
+    };
+    const summaryOf = (result: Json) => report(result)?.summary as Json;
+    const rowsOf = (result: Json) => (report(result)?.rows ?? []) as Json[];
+    expect(rowsOf(filtered).map((row) => row.id)).toContain(REQ);
+    const filteredRow = rowsOf(filtered).find((row) => row.id === REQ);
+    expect((filteredRow?.proofStages as Json).passingE2e as Json).toMatchObject(
+      { status: "passed", tests: [TEST] },
+    );
+    expect(summaryOf(filtered)).toEqual(summaryOf(unfiltered));
+  }, 300_000);
+
+  test("prove --stale reruns only tests without a current passing receipt", () => {
+    const ws = createConsumerWorkspace("kibi-prove-stale-");
+    workspace = ws;
+    seed(ws);
+    const lastLine = (stdout: string) =>
+      JSON.parse(stdout.trim().split("\n").at(-1) ?? "{}") as Json;
+
+    const first = ws.kibi(["prove", "--stale"]);
+    expect({ status: first.status, stderr: first.stderr }).toMatchObject({
+      status: 0,
+    });
+    expect(lastLine(first.stdout)).toMatchObject({ proved: 1, failed: 0 });
+
+    // The receipt is current, so a second stale pass selects nothing.
+    const second = ws.kibi(["prove", "--stale"]);
+    expect(second.status).toBe(0);
+    expect(lastLine(second.stdout)).toMatchObject({
+      proved: 0,
+      message: "every selected test already has a current passing receipt",
+    });
+  }, 300_000);
 });

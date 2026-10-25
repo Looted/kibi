@@ -526,6 +526,42 @@ describe("refreshManifestCoordinates", () => {
     restore();
   });
 
+  test("counts a refresh against the stored coordinate artifact, not the authored manifest", async () => {
+    // implements REQ-generated-coordinate-persistence
+    const authored = makeEntry({
+      sourceLine: undefined,
+      sourceColumn: undefined,
+      sourceEndLine: undefined,
+      sourceEndColumn: undefined,
+    });
+    const artifact = (line: number) =>
+      `coordinates:\n  SYM-001:\n    sourceFile: src/foo.ts\n    sourceLine: ${line}\n    sourceColumn: 0\n    sourceEndLine: 10\n    sourceEndColumn: 12\n`;
+    const run = async (storedLine: number) => {
+      mockReadFileSync.mockImplementation((filePath) =>
+        String(filePath).endsWith("symbol-coordinates.yaml")
+          ? artifact(storedLine)
+          : "export function myFunction() {}\n",
+      );
+      mockParseYAML.mockImplementation(() => ({ symbols: [{ ...authored }] }));
+      mockEnrichSymbolCoordinates.mockImplementation(async () => [makeEntry()]);
+      const { messages, restore } = captureLog();
+      await refreshManifestCoordinates(
+        manifestPath,
+        workspaceRoot,
+        Object.assign(manifestDeps(), { refreshSymbolCoordinates: true }),
+      );
+      restore();
+      return messages[0] ?? "";
+    };
+
+    const same = await run(10);
+    expect(same).toContain("refreshed=0");
+    expect(same).toContain("unchanged=1");
+    const moved = await run(3);
+    expect(moved).toContain("refreshed=1");
+    expect(moved).toContain("unchanged=0");
+  });
+
   test("increments unchanged count when coordinates are the same and all coords present", async () => {
     const entry = makeEntry();
     mockParseYAML.mockImplementation(() => ({ symbols: [entry] }));

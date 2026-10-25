@@ -2,6 +2,13 @@
 title: Check-rule registry stays single-sourced across TS, schema enum, and Prolog
 status: passing
 verification_scope: unit
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-unit-test-rule-registry-single-source
+      target: default
+  success_policy: all_required_first_attempt
 id: TEST-rule-registry-single-source
 type: test
 origin:

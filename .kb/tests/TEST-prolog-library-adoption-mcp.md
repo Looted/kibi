@@ -14,6 +14,13 @@ links:
   - type: validates
     target: SCEN-prolog-library-adoption
 verification_scope: unit
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-unit-test-prolog-library-adoption-mcp
+      target: default
+  success_policy: all_required_first_attempt
 type: test
 origin:
   kind: migration
