@@ -57133,7 +57133,7 @@ symbols:
       - type: implements
         target: REQ-kibi-code-proof-kinds
   - id: SYM-core-proved-scenario-tests
-    title: proved_scenario_tests
+    title: claim_evidence
     status: active
     sourceFile: packages/core/src/requirement_proof.pl
     symbol_role: behavioral
@@ -57145,8 +57145,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-code-proof-kinds
+      - type: covered_by
+        target: TEST-kibi-claim-bound-proofs
       - type: implements
         target: REQ-kibi-code-proof-kinds
+      - type: implements
+        target: REQ-kibi-claim-bound-proofs
   - id: SYM-core-receipt-kind-evidence
     title: receipt_kind_evidence
     status: active

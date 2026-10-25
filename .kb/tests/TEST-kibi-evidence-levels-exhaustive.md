@@ -27,20 +27,20 @@ id: TEST-kibi-evidence-levels-exhaustive
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-f02567d2b5f2838de3b12de1
+    receipt_id: PR-3acbd1056e626315a04833bb
     test_id: TEST-kibi-evidence-levels-exhaustive
     scope: unit
     outcome: passed
-    code_snapshot: ded72dac6be0ba6834ef5c3166558b3ffad93197ba8871d340c23f98ebdbb69e
+    code_snapshot: 88f72ac7863bc053137ae0fbd6e7ea179d4fbf9dd5cb363152f2b4fc11739754
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-24T21:36:53.943Z'
-    finished_at: '2026-10-24T21:36:54.522Z'
-    artifact_digest: 0f381ce21004b8764cfcff8b8b9422745fa7eaf631cbec6e498520b216f01169
-    contract_hash: 61cd519213376d002b91731ff67de79651a70310a7cc9c1477566b47ce3d50df
-    binding_hash: af9528b8022bae6e7f4f359db5aa3ae39c75803e5ebdf9ae2cacb698f371a4bb
-    fingerprint: 587ac41397e039bf94f8a32d88bb6566c046a62251b14724648bf7be2d4d7ec4
+    started_at: '2026-10-25T18:54:10.280Z'
+    finished_at: '2026-10-25T18:54:10.839Z'
+    artifact_digest: 53857779b5082a1f9b53b748dfa3d322bb23b9deb6899d267bf9c65635cba30e
+    contract_hash: 5de06c7ebbfdbd5a1b7a02694379c1ae8881dc5c64a4b2e9ded68691cac6daa8
+    binding_hash: b9fccb07c19a0b293f205d2da1e6b1d699c7d40175c850e3f49ac07f03338129
+    fingerprint: 605b3625f782e0556e79332008d350b9e5f79a42c7bed5a7f98300387fd6c564
     fingerprint_components:
-      contract: 61cd519213376d002b91731ff67de79651a70310a7cc9c1477566b47ce3d50df
+      contract: 5de06c7ebbfdbd5a1b7a02694379c1ae8881dc5c64a4b2e9ded68691cac6daa8
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -82,5 +82,16 @@ proof_receipts:
         - member: unverified
           outcome: passed
     certificate_digest: 722258d4d6913672868ae1ab31aafb227395df21eeb472d661f30e4973bf1ba2
+    claim_bindings:
+      - claim_key: CLAIM-6A120A441BC6AD42
+        requirement_id: REQ-kibi-evidence-levels
+        fact_id: FACT-kibi-evidence-level-per-requirement
+        binding: attested
+        scope: code
+      - claim_key: CLAIM-22E34F860C144AB0
+        requirement_id: REQ-kibi-evidence-levels
+        fact_id: FACT-kibi-evidence-shown-in-report-signoff
+        binding: attested
+        scope: code
 ---
 Crosses every input the evidence level depends on (proof status, a certificate test or none, who wrote the requirement and whether a person approved it, its firmness) and checks, for every member of EVIDENCE_LEVELS, that requirement_evidence reports that level exactly for the inputs that earn it and that kibi report and kibi signoff show it; the run leaves an exhaustive certificate over EVIDENCE_LEVELS.
