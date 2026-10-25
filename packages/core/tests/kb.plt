@@ -6590,6 +6590,21 @@ test(evidence_level_follows_human_backing_without_passing_e2e, [setup(setup_kb),
     assertion(Self.evidenceLevel == unverified),
     assertion(Report.summary.evidenceLevels = _{proved: 0, tested: 0, asserted: 2, unverified: 3}).
 
+% implements REQ-kibi-evidence-floors
+% The summary counts requirements with a floor by status; a floor of
+% unverified (no floor) is not counted.
+test(evidence_floor_counts_by_status, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-FLOOR-FIRM', "Person stated", open, [priority=must]),
+    assert_fixture_entity(req, 'REQ-FLOOR-LOWERED', "Lowered floor", open, [priority=must, required_evidence=asserted]),
+    assert_fixture_entity(req, 'REQ-FLOOR-NONE', "Agent only", open, [priority=must, origin="{\"kind\":\"agent\"}"]),
+    coverage_report_json(req, [], true, true, 100, 0, JsonString),
+    json_string_dict(JsonString, Report),
+    coverage_row(Report.rows, 'REQ-FLOOR-FIRM', Firm),
+    assertion(Firm.evidenceFloor = _{required: tested, source: firmness, status: below}),
+    coverage_row(Report.rows, 'REQ-FLOOR-LOWERED', Lowered),
+    assertion(Lowered.evidenceFloor = _{required: asserted, source: explicit, status: met}),
+    assertion(Report.summary.evidenceFloors = _{met: 1, below: 1, pendingReproof: 0}).
+
 :- end_tests(requirement_evidence_levels).
 
 :- begin_tests(requirement_proved_evidence).

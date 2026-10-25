@@ -196,9 +196,15 @@ jobs:
           kill "$fetcher" 2>/dev/null || true
           exit "$status"
 
+      # Also saves the kb-consistency certificates the gate re-checked, so an
+      # independent checker re-checks them and the report publishes them.
       - name: Enforce evidence floors on a clean snapshot
         if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
-        run: sh scripts/proof-gate.sh --fresh-evidence
+        run: sh scripts/proof-gate.sh --fresh-evidence --write-certificates "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/kb-certificates.json"
+
+      - name: Re-check KB certificates with the independent checker
+        if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
+        run: bun packages/cli/bin/kibi check --certificates "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/kb-certificates.json"
 
       # Asks the repository's own KB the versioned gold questions through the
       # built CLI and fails on recall@3, superseded results, abstention or warm
@@ -212,7 +218,13 @@ jobs:
 
       - name: Generate requirement health report
         if: ${{ !cancelled() && steps.integrity.outcome == 'success' && (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
-        run: bun packages/cli/bin/kibi report --output kibi-report
+        run: |
+          certificates="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/kb-certificates.json"
+          if [ -f "$certificates" ]; then
+            bun packages/cli/bin/kibi report --output kibi-report --certificates "$certificates"
+          else
+            bun packages/cli/bin/kibi report --output kibi-report
+          fi
 
       - name: Upload Kibi proof artifacts
         if: ${{ !cancelled() && steps.integrity.outcome == 'success' && (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}

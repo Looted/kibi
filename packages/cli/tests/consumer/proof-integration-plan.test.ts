@@ -165,8 +165,8 @@ describe("proof integration configured through a reviewed plan", () => {
     });
     const summary = JSON.parse(
       proved.stdout.trim().split("\n").at(-1) ?? "{}",
-    ) as { proved: number; failed: number };
-    expect(summary).toMatchObject({ proved: 1, failed: 0 });
+    ) as { passed: number; failed: number };
+    expect(summary).toMatchObject({ passed: 1, failed: 0 });
 
     // The same plan only creates the file; it is refused once it exists,
     // and a fresh inspection offers no create plan. The refusal changed

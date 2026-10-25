@@ -534,6 +534,19 @@ function claimBindingLines(result: IngestProofResult): string[] {
   );
 }
 
+// implements REQ-kibi-code-proof-kinds
+// One line per certificate test whose certificate did not re-check: the test
+// passed, but its receipt supports tested, not proved.
+function certificateRejectionLines(result: IngestProofResult): string[] {
+  return result.results.flatMap((row) =>
+    row.certificateRejection === undefined
+      ? []
+      : [
+          `${row.testId} ${row.kind ?? "certificate"}: certificate rejected, ${row.certificateRejection}`,
+        ],
+  );
+}
+
 function summarize(result: IngestProofResult): string {
   const parts = [`passed ${result.passed}`, `failed ${result.failed}`];
   if (result.unchanged > 0) parts.push(`unchanged ${result.unchanged}`);
@@ -563,7 +576,7 @@ export async function proveCommand(
     const selected = await selectTests(context, options);
     if (selected.length === 0) {
       process.stdout.write(
-        `${JSON.stringify({ proved: 0, failed: 0, message: options.stale ? "every selected test already has a current passing receipt" : "no proof-bearing tests selected" })}\n`,
+        `${JSON.stringify({ passed: 0, certified: 0, failed: 0, message: options.stale ? "every selected test already has a current passing receipt" : "no proof-bearing tests selected" })}\n`,
       );
       completed = true;
       return { exitCode: 0 };
@@ -809,7 +822,10 @@ export async function proveCommand(
         process.stderr.write(
           `prove: ingested integration '${integrationId}' (${summarize(merged)})\n`,
         );
-        for (const line of claimBindingLines(merged))
+        for (const line of [
+          ...certificateRejectionLines(merged),
+          ...claimBindingLines(merged),
+        ])
           process.stderr.write(`prove: ${line}\n`);
       }
       const afterIngest = await readWorkspaceSnapshot(context);
@@ -832,8 +848,20 @@ export async function proveCommand(
       (sum, result) => sum + result.unchanged,
       0,
     );
+    // implements REQ-kibi-code-proof-kinds
+    // passed counts passing receipts; certified counts those whose certificate
+    // re-checked, the only receipts that can support proved.
+    const certified = ingestResults.reduce(
+      (sum, result) =>
+        sum +
+        result.results.filter(
+          (row) => row.outcome === "passed" && row.evidenceLevel === "proved",
+        ).length,
+      0,
+    );
     const summary = {
-      proved: passed,
+      passed,
+      certified,
       failed,
       unchanged,
       runs: ingestResults.map((result) => {

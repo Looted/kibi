@@ -368,6 +368,19 @@ h1 span {
   opacity: 0.75;
   font-weight: 400;
 }
+.evidence-floor {
+  margin-left: 6px;
+  font-weight: 400;
+  opacity: 0.75;
+}
+.evidence-floor--below {
+  color: var(--red);
+  opacity: 1;
+}
+.evidence-floor--pending_reproof {
+  color: var(--amber);
+  opacity: 1;
+}
 .requirement__id {
   margin-bottom: 7px;
   color: var(--muted);
@@ -396,6 +409,11 @@ h1 span {
   border-color: rgba(98, 230, 167, 0.25);
   color: var(--green);
   background: rgba(98, 230, 167, 0.08);
+}
+.proof-badge--proved {
+  border-color: rgba(98, 230, 167, 0.45);
+  color: var(--green);
+  background: rgba(98, 230, 167, 0.16);
 }
 .proof-badge--unresolved {
   border-color: rgba(255, 125, 144, 0.25);
@@ -1041,6 +1059,11 @@ h1 {
   color: var(--success);
   background: rgba(99, 201, 154, 0.07);
 }
+.proof-badge--proved {
+  border-color: rgba(99, 201, 154, 0.55);
+  color: var(--success);
+  background: rgba(99, 201, 154, 0.16);
+}
 .proof-badge--unresolved {
   border-color: rgba(240, 113, 120, 0.3);
   color: var(--danger);
@@ -1048,6 +1071,9 @@ h1 {
 }
 .stages {
   grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.stages:has(> :nth-child(6)) {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 0;
 }
 .stage {
@@ -1183,7 +1209,8 @@ footer {
   .proof-path__header p {
     text-align: left;
   }
-  .stages {
+  .stages,
+  .stages:has(> :nth-child(6)) {
     grid-template-columns: 1fr;
   }
   .stage {
@@ -1249,4 +1276,9 @@ footer {
   .snapshot a {
     color: inherit;
   }
+}
+.kb-certificates {
+  margin: 14px 0 28px;
+  color: var(--muted);
+  font-size: 13px;
 }

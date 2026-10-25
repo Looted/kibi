@@ -151,7 +151,7 @@ describe("kibi check proof evidence through the kibi CLI", () => {
     const summary = JSON.parse(
       prove.stdout.trim().split("\n").at(-1) ?? "{}",
     ) as Json;
-    expect(summary).toMatchObject({ proved: 1, failed: 0 });
+    expect(summary).toMatchObject({ passed: 1, failed: 0 });
 
     const row = coverageRows(ws).get(REQ);
     expect(row?.proofStages.passingE2e).toMatchObject({
@@ -222,13 +222,13 @@ describe("kibi check proof evidence through the kibi CLI", () => {
     expect({ status: first.status, stderr: first.stderr }).toMatchObject({
       status: 0,
     });
-    expect(lastLine(first.stdout)).toMatchObject({ proved: 1, failed: 0 });
+    expect(lastLine(first.stdout)).toMatchObject({ passed: 1, failed: 0 });
 
     // The receipt is current, so a second stale pass selects nothing.
     const second = ws.kibi(["prove", "--stale"]);
     expect(second.status).toBe(0);
     expect(lastLine(second.stdout)).toMatchObject({
-      proved: 0,
+      passed: 0,
       message: "every selected test already has a current passing receipt",
     });
   }, 300_000);

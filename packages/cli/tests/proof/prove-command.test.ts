@@ -171,7 +171,7 @@ describe("proveCommand", () => {
       );
       expect(value.exitCode).toBe(0);
       expect(JSON.parse(output)).toMatchObject({
-        proved: 0,
+        passed: 0,
         failed: 0,
         message: "no proof-bearing tests selected",
       });
@@ -214,10 +214,91 @@ describe("proveCommand", () => {
       );
       expect(value.exitCode).toBe(0);
       expect(JSON.parse(output)).toMatchObject({
-        proved: 1,
+        passed: 1,
         failed: 0,
         unchanged: 1,
       });
+    });
+  });
+
+  // implements REQ-kibi-code-proof-kinds
+  test("counts certified receipts apart from passed ones and names a rejected certificate", async () => {
+    await withTempWorkspace(async (dir) => {
+      writeIntegrations(dir, [
+        {
+          id: "self-proof",
+          producer: "command",
+          producer_version: "1.0.0",
+          command: passingCommand,
+          description: "Self proof",
+        },
+      ]);
+      const extra = `,proof_contract=${JSON.stringify(JSON.stringify(contract))}`;
+      const receipt = {
+        receiptId: "PR-1",
+        applied: true,
+        duplicate: false,
+        receiptCount: 1,
+        compacted: 0,
+        gaps: [],
+        outcome: "passed" as const,
+      };
+      const errors: string[] = [];
+      const originalError = process.stderr.write.bind(process.stderr);
+      process.stderr.write = ((chunk: string | Uint8Array) => {
+        errors.push(typeof chunk === "string" ? chunk : chunk.toString());
+        return true;
+      }) as typeof process.stderr.write;
+      try {
+        const { value, output } = await captureStdout(() =>
+          proveCommand(
+            { all: true, workspaceRoot: dir },
+            {
+              runtime: fakeRuntime(dir, async () =>
+                resultsFor([entityRow("TEST-001", extra)]),
+              ),
+              ingestProof: async () =>
+                ingestResult({
+                  passed: 3,
+                  results: [
+                    {
+                      ...receipt,
+                      testId: "TEST-e2e",
+                      kind: "e2e",
+                      evidenceLevel: "tested",
+                    },
+                    {
+                      ...receipt,
+                      testId: "TEST-domain",
+                      kind: "exhaustive",
+                      evidenceLevel: "proved",
+                    },
+                    {
+                      ...receipt,
+                      testId: "TEST-smt",
+                      kind: "smt",
+                      evidenceLevel: "tested",
+                      certificateRejection: "the solver did not answer unsat",
+                    },
+                  ],
+                }),
+            },
+          ),
+        );
+        expect(value.exitCode).toBe(0);
+        const summary = JSON.parse(output);
+        expect(summary).toMatchObject({ passed: 3, certified: 1, failed: 0 });
+        expect(summary).not.toHaveProperty("proved");
+        expect(summary.runs[0].results[2]).toMatchObject({
+          kind: "smt",
+          certificateRejection: "the solver did not answer unsat",
+        });
+      } finally {
+        process.stderr.write = originalError;
+      }
+      expect(errors.join("")).toContain(
+        "prove: TEST-smt smt: certificate rejected, the solver did not answer unsat",
+      );
     });
   });
 
@@ -372,7 +453,7 @@ describe("proveCommand", () => {
       ]);
 
       const summary = JSON.parse(output);
-      expect(summary).toMatchObject({ proved: 1, failed: 1 });
+      expect(summary).toMatchObject({ passed: 1, failed: 1 });
       expect(summary.runs).toHaveLength(1);
       expect(summary.runs[0]).toMatchObject({
         integration: "self-proof",
@@ -776,7 +857,7 @@ describe("proveCommand", () => {
         ),
       );
       expect(value.exitCode).toBe(0);
-      expect(JSON.parse(output).proved).toBe(1);
+      expect(JSON.parse(output).passed).toBe(1);
     });
   });
 });

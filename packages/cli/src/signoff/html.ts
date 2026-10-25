@@ -163,6 +163,14 @@ function requirementCard(
         ),
       );
     }
+    for (const rejection of requirement.proof?.certificateRejections ?? []) {
+      details.push(
+        row(
+          "Certificate",
+          `<span class="conflict">${escapeHtml(rejection)}</span>`,
+        ),
+      );
+    }
   }
   return `<article class="card" id="${escapeHtml(requirement.id)}">
 <div class="card__head"><span class="num">${number}.</span><span class="id">${escapeHtml(requirement.id)}</span>${firmnessBadge(requirement.firmness)}<span class="title">${escapeHtml(requirement.title)}</span>${awaitsApproval(requirement) ? '<span class="badge badge--approval">awaits your approval</span>' : ""}</div>

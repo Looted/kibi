@@ -47,7 +47,22 @@ export type SignoffProof = Readonly<{
    * behind it, nothing current checks it) or unverified.
    */
   evidenceLevel?: string;
+  /**
+   * The weakest level the requirement accepts (required_evidence, or tested
+   * for a firm requirement), where it comes from, and whether it is met.
+   */
+  evidenceFloor?: SignoffEvidenceFloor;
   contradictions: readonly string[];
+  /** Certificates or claim bindings that no longer re-check, one line each. */
+  certificateRejections?: readonly string[];
+}>;
+
+export type SignoffEvidenceFloor = Readonly<{
+  required: string;
+  /** explicit (required_evidence) or firmness (the firm default). */
+  source: string;
+  /** met, below or pending_reproof. */
+  status: string;
 }>;
 
 export type SignoffRequirement = Readonly<{
@@ -144,9 +159,32 @@ export function proofLabel(proof: SignoffProof | undefined): string {
   const tests = `${proof.testCount} ${proof.testCount === 1 ? "test" : "tests"}`;
   const label =
     proof.gate === "tested" ? `tested, ${tests}` : `${gate}, ${tests}`;
-  return proof.evidenceLevel === undefined || proof.evidenceLevel === "tested"
-    ? label
-    : `${label}; evidence ${proof.evidenceLevel}`;
+  const evidence =
+    proof.evidenceLevel === undefined || proof.evidenceLevel === "tested"
+      ? label
+      : `${label}; evidence ${proof.evidenceLevel}`;
+  const floor = floorLabel(proof.evidenceFloor);
+  return floor === undefined ? evidence : `${evidence}; ${floor}`;
+}
+
+/**
+ * The evidence floor as a reviewer reads it. A floor set by
+ * required_evidence says so, since lowering it is a decision the person
+ * approving the requirement is also accepting.
+ */
+// implements REQ-kibi-evidence-floors
+export function floorLabel(
+  floor: SignoffEvidenceFloor | undefined,
+): string | undefined {
+  if (floor === undefined || floor.required === "unverified") return undefined;
+  const status =
+    floor.status === "pending_reproof"
+      ? "pending re-proof"
+      : floor.status === "met"
+        ? "met"
+        : "below";
+  const origin = floor.source === "explicit" ? " set by required_evidence" : "";
+  return `floor ${floor.required}${origin} (${status})`;
 }
 
 /** Whether a question still waits for the person. */

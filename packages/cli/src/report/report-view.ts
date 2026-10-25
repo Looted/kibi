@@ -1,7 +1,10 @@
 export const REPORT_FILTERS = [
   "all",
+  "proved",
   "tested",
   "attention",
+  "below_floor",
+  "pending_reproof",
   "stale",
   "contradiction",
 ] as const;
@@ -50,8 +53,14 @@ export function reportFilterCounts(
 ): Readonly<Record<ReportFilter, number>> {
   return {
     all: rows.length,
+    proved: rows.filter((row) => row.states.includes("proved")).length,
     tested: rows.filter((row) => row.states.includes("tested")).length,
     attention: rows.filter((row) => row.states.includes("attention")).length,
+    below_floor: rows.filter((row) => row.states.includes("below_floor"))
+      .length,
+    pending_reproof: rows.filter((row) =>
+      row.states.includes("pending_reproof"),
+    ).length,
     stale: rows.filter((row) => row.states.includes("stale")).length,
     contradiction: rows.filter((row) => row.states.includes("contradiction"))
       .length,
