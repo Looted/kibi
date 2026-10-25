@@ -1,5 +1,86 @@
 # kibi-core
 
+## 0.24.0
+
+### Minor Changes
+
+- 94dc89d: A certificate now proves the requirement claims it names, and `proved` says which claims a requirement's certificates cover.
+
+  A certificate-kind proof contract (`exhaustive`, `typecheck`, `arithmetic`, `smt`) names the claim keys it proves in the new `proves` field. For each named claim Kibi derives what the certificate has to establish from the claim's grounding fact, so the author never states it:
+  - A set fact (the new `value_type: set` with `value_set`) gives a set-equality obligation. An `exhaustive` certificate meets it when its domain, read from the code, is exactly the set and the domain symbol is covered by the test; a `typecheck` certificate meets it when Kibi's own witness, which compares the domain type with the set both ways, compiles.
+  - A numeric fact gives a constraint. An `arithmetic` or `smt` certificate meets it when its assumptions are the fact's constraints; a new `value_source` field names the code constants that bound the variable, which `constraint_source` used to require.
+  - A fact with no derivation (a behavioral claim) gives an attested binding, which counts as `tested`.
+
+  `kibi prove` records one binding per claim in the receipt's `claim_bindings` (derived, attested or rejected, with the reason) and prints it. Kibi re-judges each binding against the current KB when it reports, so a binding goes stale when its fact changes. A requirement reports `proved` only when every applicable claim has a derived, code-scope binding from a fresh certificate that re-checks.
+
+  The semantic advisor now models closed lists ("must be one of red, green or blue") as set facts. KB consistency certificates support set facts.
+
+  `kibi coverage`, `kibi proof explain` and the HTML report show claim-level evidence (`claimSummary`, `claimEvidence`, "n/m claims proved"), and the `proved` floor gap lists the unproved claims. The new blocking `proof-contract-claims` check reports a certificate contract that names no claims, names a key that is no current claim, or names a claim its kind cannot express. The kibi-usage (2.27.0) and kibi-traceability (2.2.0) skills explain claim binding to agents.
+
+  **Migration (breaking):** KB schema 12. `kibi migrate` pins `proves` on every certificate contract with exactly one claim it could prove and lists the rest for review; until a contract names its claims, `proof-contract-claims` blocks and its certificate proves nothing. A requirement that reported `proved` from a certificate before reports `tested` until its claims are bound and re-proved. The requirement proof payload is now `kibi.requirement-proof.v5`. Facts with a legacy `allowed_values` list are read as sets; nothing is rewritten.
+
+- a71798f: Proof contracts can now earn `proved` evidence with certificate proof kinds that Kibi re-checks itself.
+
+  A proof contract sets `kind` to one of the runner kinds `e2e`, `example` or `property`, which support `tested`, or to a certificate kind, which supports `proved`:
+  - `exhaustive` runs a check on every member of a finite domain the code defines. The contract names the domain with `domain_source`; the proof must import that symbol, and Kibi loads the export itself and rejects a certificate that does not cover exactly its members.
+  - `typecheck` names a `witness` file that stops compiling when a domain member goes unhandled (an exhaustive switch ending in a `never` check, or a mapped type over the domain). Kibi compiles the witness itself, strict and with the workspace's TypeScript, and checks it is the workspace file and imports the domain.
+  - `arithmetic` states a claim about one integer or real variable. Its assumptions must be exactly the constraints of the typed numeric facts the contract names in `constraint_source`, and Kibi decides the claim exactly: the facts must be satisfiable and entail it for every value.
+  - `smt` carries an SMT-LIB query that asserts the `constraint_source` facts and the claim's negation. Kibi re-runs z3 or cvc5 on it and accepts only `unsat`.
+
+  `arithmetic` and `smt` prove that the knowledge base's facts entail a claim, not that code follows those facts.
+
+  Tests build certificates with the new `kibi-cli/proof-certificates` helpers and leave them in the directory `kibi prove` names in `KIBI_PROOF_CERTIFICATES`; outside `kibi prove` writing a certificate does nothing. A requirement reports `proved` when it is `tested` and every scenario has a test whose fresh receipt carries a certificate that still re-checks. `kibi coverage`, `kibi proof explain` and the report show the new certificate evidence, the report counts requirements proved by certificate, and a stored certificate that stops re-checking is listed with its reason under `certificateRejections`.
+
+  **Receipts:** `kibi prove` now writes `kibi.proof-receipt.v2`, which adds the contract kind, the evidence level, the certificate, its digest and, when a certificate is rejected, the reason. Existing `kibi.proof-receipt.v1` receipts stay valid and support `tested`. Older Kibi versions do not read v2 receipts, so upgrade every checkout that proves requirements together. The kibi-usage skill (2.26.0) explains certificate kinds to agents.
+
+- 0d68081: Requirements now state the evidence they need, and `kibi check` fails any current requirement whose evidence is below it.
+
+  A requirement can set `required_evidence` to `proved`, `tested`, `asserted` or `unverified`. Without it, a firm requirement needs `tested` evidence and any other requirement needs none. The new canonical `evidence-floor` rule of `kibi check` and `kb_check` reports every current requirement whose evidence level is below its floor, with the level, the floor, where the floor comes from and the proof gaps to fix. Requirements whose only gaps are receipts older than the code count as pending re-proof and pass; `kibi check --fresh-evidence`, meant for CI right after `kibi prove --all`, fails them and also needs a clean proof snapshot.
+
+  The floor replaces snapshot files of every requirement's proof gaps: a pull request that adds a requirement no longer edits a shared baseline, and the floor sits in the requirement a reviewer reads. `kibi proof impact`, which compared coverage with such a baseline, is removed; use `kibi check --rules evidence-floor` and `kibi proof explain <id>`.
+
+  **Migration:** the knowledge-base schema moves to version 11. `kibi migrate` writes `required_evidence: asserted` on every current firm requirement that has no scenario verified by an end-to-end test with a proof contract and a passing receipt, so an upgraded knowledge base passes; raise a floor to `tested` once the requirement has an end-to-end proof. Requirements that keep `tested` are listed, and `kibi check --rules evidence-floor` shows any whose proof still has gaps, such as a stale receipt. For the same reason, requirements `kibi bootstrap` imports from a person's documents are recorded with `required_evidence: asserted`, so a freshly bootstrapped knowledge base passes `kibi check`. A knowledge base below schema 11 is not judged by `evidence-floor` until it is upgraded. The kibi-usage skill (2.25.0) explains floors to agents.
+
+- 1fea8f6: Fixes from running the formal-proof lane on two test projects.
+
+  **Migration note:** a type-shape symbol (interface, type alias, enum) covered by a unit test now counts as covered only while that unit test has a current passing receipt; an authored `status: passing` is no longer enough. After upgrading, give those unit tests a `proof_contract` and run `kibi prove --stale`. Until then coverage lists the symbols in `uncoveredSymbols` with `structural_unit_receipt_not_current`.
+  - `kibi migrate` pins a `tested` floor only where the proof ladder would accept it (newest receipt, every gap), so a migrated project no longer starts with dozens of `evidence-floor` violations.
+  - `kibi check` prints the evidence-floor suggestion in text output without `--fix`, and the suggestion names the failing receipts, uncovered symbols and missing coordinates.
+  - `kibi coverage --status` judges receipts with the same per-contract binding as the unfiltered report.
+  - Certificate domains: `domain_source.export` names the export when it differs from the symbol title; TypeScript domains load through bun, the workspace's tsx, or node with a resolve hook for extensionless and `.js` imports; imports of compiled output map back to sources through `tsconfig.json`; Python domains (`Enum`, `dict`, list, tuple, set) load with `python3`.
+  - An exported constant matched by name is judged as a narrow symbol by the upsert granularity check, as the staged gate and `kibi check` already did.
+  - `kibi prove` no longer prints a raw `git show` error for a newly added test document, attributes a valid all-pass test report per test, and stops the producer's whole process group on Ctrl-C.
+  - New `kibi prove --stale` reruns only tests without a current passing receipt.
+  - New `success_policy: own_results_first_attempt` judges each obligation by its own native-case result when a run failed only in execution, so one unrelated failing Playwright case no longer fails every receipt of the suite. The Playwright reporter now marks global errors (`setup`), global timeouts (`timed_out`) and interruptions as run-level failures, which still refuse every obligation.
+  - `kibi prove` prints each integration it starts and ingests on stderr, records ingested integrations in `.kb/proof/runs/prove-progress.json`, and `kibi prove --resume` skips integrations an interrupted run already ingested at the same snapshot.
+  - With `--test`, `--requirement` or `--stale`, a direct `playwright test` integration runs only the selected tests' `proof_bindings[].source_file` spec files; every producer receives them as `KIBI_PROOF_SOURCE_FILES`.
+  - New `kibi proof run-steps` runs `proof/steps.json` as a `command` integration and writes the per-test report.
+  - Receipt binding ignores a test document's `links`, so adding a link no longer stales its receipts; receipts bound the earlier way stay current.
+  - The tree-sitter analyzer keeps a file with more than 64 decorated declarations decorator-only (the last diagnostic summarizes the rest), so `kibi sync --refresh-symbol-coordinates` no longer aborts on it.
+  - `kibi sync --refresh-symbol-coordinates` counts refreshed symbols against the stored coordinate artifact.
+  - New `coarse_anchor_only_review` diagnostic for requirements implemented only by whole-file anchors.
+  - `kibi proof inspect` detects `node --test` and `bun test` in root and workspace scripts.
+  - `kibi doctor` warns instead of failing when an augment-mode plugin's secret is missing, and the merge-driver setup names the project's package manager.
+  - `kibi coverage` text output groups traceability and proof counts.
+  - Claim texts that differ only in whitespace or trailing punctuation match.
+  - `pack:all -- --dev-version` stamps local packs `<version>-dev.<sha>`.
+
+- b3b3cbd: The proof report, coverage, signoff and `kibi prove` now show the whole evidence ladder, not only the evidence level.
+  - `kibi report` shows each requirement's evidence floor and whether it is met, below or pending re-proof (`*` marks a floor set by `required_evidence`), a `Proved` badge for proved requirements, a certificate stage naming the proof kinds and claims behind them, and any certificate or claim binding that no longer re-checks. New metrics count requirements below their floor and pending re-proof, new filters select proved, below-floor and pending re-proof requirements, and cards below their floor sort right after contradictions. The badge turns red when a requirement is below its floor.
+  - `kibi report --certificates <file>` publishes a `kibi check --write-certificates` bundle next to the report and links it. The proof workflow now writes that bundle, re-checks it with `kibi check --certificates`, and publishes it with the report.
+  - `kibi coverage` adds a Floor column, and the summary counts current requirements with a floor under `evidenceFloors` (`met`, `below`, `pendingReproof`).
+  - `kibi signoff` names each requirement's floor, says when `required_evidence` set it, and lists certificates that no longer re-check.
+  - Breaking: the `kibi prove` JSON summary reports passing receipts as `passed` (it was `proved`) and adds `certified`, the passing receipts whose certificate re-checked. Each result carries the contract's `kind`, the `evidenceLevel` the receipt supports and any `certificateRejection`, and stderr names a rejected certificate. `kb_ingest_proof` says "Passed N test(s)" instead of "Proved N test(s)".
+
+### Patch Changes
+
+- 26bfdd6: Close the remaining proof-lane issues.
+  - `kibi upsert` keeps the properties an update leaves out in the compiled store, as the authored file already did. A relationship-only upsert no longer drops `required_evidence` (or `priority`, `owner`, `tags` and the rest) from the stored requirement, so `evidence-floor` stops judging it by firmness until a `kibi sync --rebuild`.
+  - A Python certificate domain loads with `KIBI_PYTHON`, the active virtualenv, or a `.venv`/`venv` from the domain file's directory up to the workspace root before `python3` on `PATH`, so a domain that imports project dependencies is checked. A failed load quotes the traceback's exception line (`ModuleNotFoundError: ...`) instead of its header.
+  - The `kibi coverage` summary carries `linkCoverageScope: "priority_must"`, and the table titles the link counts `Links (priority: must)`, so `evaluated: 0` on a KB without must-priority requirements no longer reads as if nothing was proved.
+  - `kibi sync` counts distinct relationships in both summary blocks: an edge stated in front matter and again in a symbol manifest or shard counts once, so the imported count no longer exceeds the KB total.
+  - After an applied migration, `remainingPlan` is a `kibi.migration-plan-digest.v2`: it lists the first 20 automatic actions as `{ id, code, state, autoApplicable, dependsOn }` and counts all of them under `automaticSummary` (`total`, `ready`, `blocked`, `omitted`), instead of embedding every automatic action with its full input.
+
 ## 0.23.0
 
 ### Minor Changes
