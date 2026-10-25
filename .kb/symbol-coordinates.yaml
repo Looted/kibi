@@ -10659,9 +10659,17 @@ coordinates:
     sourceEndLine: 3213
     sourceFile: packages/core/src/checks.pl
     sourceLine: 3213
+  SYM-core-intervals-numeric-entailed:
+    identityHash: de2c2ff3fec9c519c3a00ad56d2f5ed362c316907efd04ad521c6c1dc5167284
+    sourceHash: 21e68733c7a377924cbb2b5a848a88579eb19876d01524ca6143557b24e381fb
+    sourceColumn: 4
+    sourceEndColumn: 31
+    sourceEndLine: 16
+    sourceFile: packages/core/src/intervals.pl
+    sourceLine: 16
   SYM-core-intervals-numeric-satisfiable:
     identityHash: 35a38a233b82f0bc362189eb1b21e02cf4a6ae5e9c49a10894539fb1ed8f7fd1
-    sourceHash: 2c146cd6af0d0b8ad9396b8a0909ec8e5e89e42ab4c5ea18923947dd86bed2ae
+    sourceHash: 21e68733c7a377924cbb2b5a848a88579eb19876d01524ca6143557b24e381fb
     sourceColumn: 4
     sourceEndColumn: 35
     sourceEndLine: 14
@@ -24789,12 +24797,12 @@ coordinates:
     sourceLine: 508
   SYM-replaySteps:
     identityHash: dac93aa36d2bf45004f98685ba083f892089c838c14a5746c598734efd3a0224
-    sourceHash: e898a8c5a415d999fe1bf2494a62cbc342aad43633874e77e1e2f9b0a69a7eab
+    sourceHash: e918bf21e0b79453eaa397b9605251dcadc55bbd2f125c6e8fbde11c6ee3a77f
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 130
+    sourceEndLine: 131
     sourceFile: scripts/replay-proof-ci.ts
-    sourceLine: 94
+    sourceLine: 95
   SYM-repoRootFromScript:
     identityHash: 5fd10db76dfe977139050b9457c0a09d1bad8078d7618b1b2fbedf294ab12cb9
     sourceHash: 7307942c99bcbf775a1d02c3f4242176b3fd8b1499994c99875d4d21528aeb70
@@ -36691,6 +36699,14 @@ coordinates:
     sourceEndLine: 1154
     sourceFile: packages/cli/tests/operations/ingest-proof.test.ts
     sourceLine: 1
+  SYM-test-intervals-differential:
+    identityHash: 2d4cef9d439a6df05043b4b7c0ad40bd96b27265cb06c8ba45004c231ea9d50f
+    sourceHash: d2135e74dc94da13688c997edc817e2430af930a5d98029a4249090d901ed772
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 205
+    sourceFile: scripts/intervals-differential.ts
+    sourceLine: 148
   SYM-test-journaled-engine-benchmark:
     identityHash: af186baf9c248eb7ca6da5acc545a5671e6018ae779b9ab3748a24e100fd7089
     sourceHash: 33553025d3bc91709d749be0de835baa8bc801b9240b1136c9909527b1cfcc01

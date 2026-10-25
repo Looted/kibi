@@ -272,3 +272,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-82284df907ac
+  - type: specified_by
+    from: REQ-kibi-intervals-verified
+    to: SCEN-kibi-intervals-verified
+    created_at: 2026-10-24T20:31:49.274Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63edbcabc6e5
+  - type: constrains
+    from: REQ-kibi-intervals-verified
+    to: FACT-SUBJECT-KIBI-NUMERIC-DECISION
+    created_at: 2026-10-24T20:31:49.307Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-476d877764d0
+  - type: relates_to
+    from: REQ-kibi-intervals-verified
+    to: REQ-kibi-truthful-consistency
+    created_at: 2026-10-24T20:31:49.322Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ade2ae811b82
+  - type: relates_to
+    from: REQ-kibi-intervals-verified
+    to: REQ-kibi-code-proof-kinds
+    created_at: 2026-10-24T20:31:49.335Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5915f984c361
+  - type: requires_property
+    from: REQ-kibi-intervals-verified
+    to: FACT-kibi-numeric-decision-satisfiability-exact
+    created_at: 2026-10-24T20:31:49.350Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a0ad59db1c7
+  - type: requires_property
+    from: REQ-kibi-intervals-verified
+    to: FACT-kibi-numeric-decision-entailment-exact
+    created_at: 2026-10-24T20:31:49.368Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2976aa9ceb8c
+  - type: requires_property
+    from: REQ-kibi-intervals-verified
+    to: FACT-kibi-numeric-decision-lean-proofs-build
+    created_at: 2026-10-24T20:31:49.378Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-634111eb9177
+  - type: requires_property
+    from: REQ-kibi-intervals-verified
+    to: FACT-kibi-numeric-decision-differential-agreement
+    created_at: 2026-10-24T20:31:49.388Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e0d30041379

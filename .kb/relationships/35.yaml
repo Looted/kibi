@@ -279,3 +279,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-64277750a2f2
+  - type: implements
+    from: SYM-core-intervals-numeric-entailed
+    to: REQ-kibi-intervals-verified
+    created_at: 2026-10-24T20:31:52.133Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ffd92dec35c9
+  - type: covered_by
+    from: SYM-core-intervals-numeric-entailed
+    to: TEST-kibi-intervals-differential
+    created_at: 2026-10-24T20:31:52.151Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d9b049545d41

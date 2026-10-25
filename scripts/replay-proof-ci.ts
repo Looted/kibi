@@ -49,6 +49,7 @@ const REQUIRED_HOST_TOOLS = Object.freeze([
   "codex",
   "bwrap",
   "z3",
+  "lake",
 ]);
 
 type ReplayStep = {

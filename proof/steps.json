@@ -1767,7 +1767,8 @@
         "30000",
         "--isolate",
         "--max-concurrency=1",
-        "./packages/cli/tests/commands/merge-driver.test.ts"
+        "./packages/cli/tests/commands/merge-driver.test.ts",
+        "./packages/cli/tests/commands/merge-driver.property.test.ts"
       ]
     ]
   },
@@ -2897,6 +2898,25 @@
         "bun",
         "test",
         "./packages/cli/tests/proofs/closed-vocabularies.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-intervals-differential",
+    "steps": [
+      [
+        "lake",
+        "--dir",
+        "proof/lean",
+        "build"
+      ],
+      [
+        "bun",
+        "scripts/intervals-differential.ts",
+        "--lean",
+        "proof/lean/.lake/build/bin/kibi-intervals",
+        "--cases",
+        "200000"
       ]
     ]
   }

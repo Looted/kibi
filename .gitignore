@@ -87,3 +87,7 @@ artifacts/skillopt/
 .claude/worktrees/
 .claude/settings.local.json
 .kb/branches/
+
+# Lean build output
+proof/lean/.lake/
+proof/lean/axioms.txt

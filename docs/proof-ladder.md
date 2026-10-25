@@ -347,6 +347,35 @@ run and are not committed: `kibi check --write-certificates <file>` saves the
 bundle, and `kibi check --certificates <file>` re-checks a saved one and
 prints each theorem's verdict (`proved`, `disproved` or `unresolved`).
 
+## The numeric decision procedure, proved
+
+Numeric contradictions, the arithmetic certificate kind and the property
+theorem above all rest on `intervals.pl`, which folds every comparison on a
+variable into an interval (open or closed ends, excluded points) or, for an
+integer variable, an integer range, and asks whether it is empty. The Lean 4
+project in [`proof/lean`](../proof/lean/README.md) defines the same folds and
+proves:
+
+| Theorem | Statement |
+| --- | --- |
+| `realFeasible_iff` | The real fold is true exactly when some value satisfies every constraint |
+| `intFeasible_iff` | The integer fold is true exactly when some integer satisfies every constraint, whatever (fractional) values they compare with |
+| `satisfiable_iff` | `numeric_constraints_satisfiable/2` is true exactly when one assignment, integral on the integer variables, satisfies every constraint |
+| `entailed_iff` | `numeric_constraint_entailed/3` is true exactly when every such assignment that satisfies the premises satisfies the claim |
+
+The proofs hold for any dense linear order without endpoints that embeds the
+integers with a floor and a ceiling, so for the rationals and the reals, and
+rest on Lean's standard axioms only (CI fails on `sorry`). The rationals the
+model's executable computes with are proved to be such an order, so the
+theorems cover the executable itself. A proof about a
+model says nothing about the shipped code unless the two compute the same
+thing, so `scripts/intervals-differential.ts` decides 200000 generated cases
+(rationals, integers and floats) with `intervals.pl` on the bundled
+SWI-Prolog, with the Lean model's executable and with an independent
+CLP(Q)/CLP(FD) oracle, and fails on any disagreement. `intervals.pl` rejects
+a NaN or infinite bound with a domain error. Both run in CI (`lean-intervals-proof`) and as the proof of
+`REQ-kibi-intervals-verified`.
+
 ## Common failure patterns
 
 | Symptom | Usual cause | Fix |
