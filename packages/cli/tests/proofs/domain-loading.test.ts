@@ -1,11 +1,18 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  chmodSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import {
   compiledToSourcePath,
   evaluateDomain,
   importsDomain,
+  pythonDomainInterpreters,
 } from "../../src/operations/proof/code-certificates.js";
 
 const roots: string[] = [];
@@ -68,6 +75,59 @@ describe("Python domains", () => {
     expect(
       evaluateDomain(root, "backend/src/app/status.py", "MISSING").ok,
     ).toBe(false);
+  });
+
+  test("a Python domain loads with the project virtualenv before the system interpreter", () => {
+    const root = workspace({
+      "backend/src/app/__init__.py": "",
+      "backend/src/app/currencies.py":
+        "import quotelib\nQUOTE_CURRENCIES = quotelib.CURRENCIES\n",
+      "deps/quotelib.py": "CURRENCIES = ('USD', 'JPY')\n",
+    });
+    // Without the project environment the import fails, and the rejection
+    // names the exception rather than the traceback header.
+    const bare = evaluateDomain(
+      root,
+      "backend/src/app/currencies.py",
+      "QUOTE_CURRENCIES",
+    );
+    expect(bare.ok).toBe(false);
+    expect(bare.ok ? "" : bare.reason).toContain(
+      "ModuleNotFoundError: No module named 'quotelib'",
+    );
+
+    // A project .venv whose interpreter can import the dependency wins.
+    const venvPython = path.join(root, "backend", ".venv", "bin", "python");
+    mkdirSync(path.dirname(venvPython), { recursive: true });
+    writeFileSync(
+      venvPython,
+      `#!/bin/sh\nPYTHONPATH="${path.join(root, "deps")}" exec python3 "$@"\n`,
+    );
+    chmodSync(venvPython, 0o755);
+    expect(
+      pythonDomainInterpreters(root, "backend/src/app/currencies.py", {})[0],
+    ).toBe(venvPython);
+    expect(
+      evaluateDomain(root, "backend/src/app/currencies.py", "QUOTE_CURRENCIES"),
+    ).toEqual({ ok: true, count: 2, members: ["USD", "JPY"] });
+  });
+
+  test("KIBI_PYTHON and the active virtualenv come first", () => {
+    const root = workspace({ "app/domain.py": "X = (1,)\n" });
+    const active = path.join(root, "active-env");
+    mkdirSync(path.join(active, "bin"), { recursive: true });
+    writeFileSync(path.join(active, "bin", "python"), "");
+    expect(
+      pythonDomainInterpreters(root, "app/domain.py", {
+        KIBI_PYTHON: "/opt/py/bin/python",
+        VIRTUAL_ENV: active,
+      }),
+    ).toEqual([
+      "/opt/py/bin/python",
+      path.join(active, "bin", "python"),
+      "python3",
+      "python",
+    ]);
   });
 
   test("a Python proof imports the domain module relatively or by dotted path", () => {

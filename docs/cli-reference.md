@@ -150,7 +150,7 @@ Extracts entities and relationships from project documents and updates the knowl
 - Rewrites a `.kb/symbols.yaml` whose `symbols` sequence is still in YAML flow layout (`symbols: [ { id: … }, … ]`, what kibi-cli before 2.18.0 produced by appending to the `symbols: []` that `kibi init` writes) in block layout once, keeping comments and order, so hook scanners and reviewers can read it; the summary line `Rewrote .kb/symbols.yaml in block layout` reports it
 - Updates KB for the current git branch
 - Runs validation rules on the updated KB
-- Prints a summary that opens with `KB Totals` (the entities the branch KB holds after the sync, by type) and `KB Relationships`, counted from the store, followed by `Imported This Sync (changed sources only)`: an incremental sync recompiles only changed sources, so that second block is a delta, not the size of the KB. When the store cannot be counted, the summary shows the imported counts under `Entity Counts` as before
+- Prints a summary that opens with `KB Totals` (the entities the branch KB holds after the sync, by type) and `KB Relationships`, counted from the store, followed by `Imported This Sync (changed sources only)`: an incremental sync recompiles only changed sources, so that second block is a delta, not the size of the KB. Both blocks count distinct relationships: an edge stated in an entity's front matter and again in a symbol manifest or shard counts once. When the store cannot be counted, the summary shows the imported counts under `Entity Counts` as before
 
 **Flags:**
 - `--validate-only` - Perform validation without making mutations
@@ -567,7 +567,7 @@ kibi coverage [--by req|symbol|type] [--tag TAGS] [--include-passing] [--status 
 ```
 
 **Notes:**
-- Requirement coverage summaries distinguish evaluated must-priority requirements from `not_applicable` rows.
+- Requirement coverage summaries distinguish evaluated must-priority requirements from `not_applicable` rows. The link counts (`evaluated`, `fullyCovered`, `notApplicable` and the `missing*` gaps) judge only `priority: must` requirements, and the summary says so with `linkCoverageScope: "priority_must"`; the table titles that group `Links (priority: must)`. A KB without must-priority requirements reads `evaluated: 0` there while `evidenceLevels` and `proofTested` still count every requirement.
 - `--include-passing` adds rows with a tested or not-applicable proof outcome back into requirement results; compatibility-oriented structural coverage remains visible on every returned row.
 - `--status <statuses>` (comma-separated: `tested`, `missing`, `unresolved`, `not_applicable`) selects requirement rows by `proofStatus` and implies include-passing. Use it to enumerate one slice — e.g. `kibi coverage --by req --status not_applicable` lists every out-of-scope requirement with its typed applicability reason (`proofStages.applicability.reason`: superseded, a status-vocabulary mismatch, or a proof exemption). The summary always reflects the whole KB; pagination applies to the filtered rows.
 - Requirement coverage rows include coverage-depth labels when evidence can be classified: `direct_passing_e2e`, `scenario_passing_e2e`, `unit_only`, `open_or_nonpassing_tests_only`, `scenario_only_no_test`, or `no_test_evidence`.

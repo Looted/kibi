@@ -1511,9 +1511,7 @@ function printApplySummary(content: unknown): void {
   }
   const remaining = result.remainingPlan;
   if (remaining !== undefined) {
-    const ready = remaining.automaticActions.filter(
-      (action) => action.state === "ready" && action.autoApplicable,
-    ).length;
+    const ready = remaining.automaticSummary.ready;
     console.log(
       `Remaining plan ${remaining.planHash}: ${remaining.status}; actions: ${remaining.summary.actionCount}; automatic-ready: ${ready}`,
     );

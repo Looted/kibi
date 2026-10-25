@@ -2465,14 +2465,14 @@ describe("apply plan source recovery and migration", () => {
       );
       expect(result.structuredContent.outcome).toBe("applied");
       // The response reports what is left without embedding every review
-      // action: automatic actions stay whole, the rest are counted by code.
+      // action: the first automatic actions are listed by id, the rest are counted by code.
       const digest = (
         result.structuredContent as unknown as {
           remainingPlan: Record<string, unknown>;
         }
       ).remainingPlan;
       expect(digest).toMatchObject({
-        version: "kibi.migration-plan-digest.v1",
+        version: "kibi.migration-plan-digest.v2",
         planHash: remaining.planHash,
         status: remaining.status,
         summary: remaining.summary,

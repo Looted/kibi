@@ -749,7 +749,13 @@ export async function persistRelationships(
   shardRelationships: ExtractedRelationship[],
   options: { workspaceRoot?: string } = {},
 ): Promise<{ relationshipCount: number; kbModified: boolean }> {
-  let relCount = 0;
+  // Distinct edges asserted: an edge stated in an entity's front matter and in
+  // a relationship shard, or extracted twice, is asserted more than once but
+  // stored once, so counting assert calls overstates what this sync added.
+  const assertedEdges = new Set<string>();
+  const countEdge = (type: string, fromId: string, toId: string) => {
+    assertedEdges.add(`${type}|${fromId}|${toId}`);
+  };
   let kbModified = false;
 
   // Build ID lookup for relationship resolution
@@ -834,7 +840,8 @@ export async function persistRelationships(
       ? await relationshipBatchRunner(chunk.map(({ goal }) => goal))
       : { success: false, error: "batch unsupported" };
     if (batch.success) {
-      relCount += chunk.length;
+      for (const item of chunk)
+        countEdge(item.rel.type, item.fromId, item.toId);
       kbModified = true;
       continue;
     }
@@ -842,7 +849,7 @@ export async function persistRelationships(
       try {
         const single = await prolog.query(item.goal);
         if (single.success) {
-          relCount++;
+          countEdge(item.rel.type, item.fromId, item.toId);
           kbModified = true;
         } else {
           failedRelationships.push({
@@ -881,7 +888,7 @@ export async function persistRelationships(
         const goal = `kb_assert_relationship(${toPrologAtom(rel.type)}, ${toPrologAtom(fromId)}, ${toPrologAtom(toId)}, [])`;
         const result = await prolog.query(goal);
         if (result.success) {
-          relCount++;
+          countEdge(rel.type, fromId, toId);
           kbModified = true;
         } else {
           remainingFailed.push({
@@ -974,5 +981,5 @@ export async function persistRelationships(
     }
   }
 
-  return { relationshipCount: relCount, kbModified };
+  return { relationshipCount: assertedEdges.size, kbModified };
 }

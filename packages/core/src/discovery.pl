@@ -1220,6 +1220,10 @@ symbol_coverage_row(Tags, Row) :-
         coverageStatus: CoverageStatus
     }.
 
+% Link coverage (evaluated, fullyCovered, uncovered, notApplicable and the
+% missing* counts) judges only priority: must requirements; linkCoverageScope
+% says so, so a project without must requirements does not read as having
+% evaluated nothing next to its proof counts.
 coverage_summary(Rows, Summary) :-
     length(Rows, Total),
     include(req_row_evaluated, Rows, EvaluatedRows),
@@ -1258,7 +1262,8 @@ coverage_summary(Rows, Summary) :-
         proofUnresolved: ProofUnresolved,
         proofMissing: ProofMissing,
         proofNotApplicable: ProofNotApplicable,
-        evidenceLevels: EvidenceLevels
+        evidenceLevels: EvidenceLevels,
+        linkCoverageScope: priority_must
     }.
 
 % implements REQ-kibi-evidence-levels

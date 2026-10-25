@@ -297,8 +297,11 @@ export function mergeMigrationPlans(
   });
 }
 
+/** How many automatic actions a plan digest lists by id. */
+const DIGEST_AUTOMATIC_ACTIONS = 20;
+
 export const MIGRATION_PLAN_DIGEST_VERSION =
-  "kibi.migration-plan-digest.v1" as const;
+  "kibi.migration-plan-digest.v2" as const;
 
 export type MigrationPlanDigest = Readonly<{
   version: typeof MIGRATION_PLAN_DIGEST_VERSION;
@@ -307,7 +310,20 @@ export type MigrationPlanDigest = Readonly<{
   expected: MigrationPlan["expected"];
   scope: MigrationPlan["scope"];
   summary: MigrationPlan["summary"];
-  automaticActions: readonly MigrationAction[];
+  /** The first automatic actions, by id; automaticSummary counts them all. */
+  automaticActions: readonly Readonly<{
+    id: string;
+    code: string;
+    state: MigrationActionState;
+    autoApplicable: boolean;
+    dependsOn: readonly string[];
+  }>[];
+  automaticSummary: Readonly<{
+    total: number;
+    ready: number;
+    blocked: number;
+    omitted: number;
+  }>;
   actionGroups: readonly Readonly<{
     code: string;
     safety: MigrationSafety;
@@ -320,9 +336,10 @@ export type MigrationPlanDigest = Readonly<{
 
 /**
  * A bounded summary of a plan for responses that report what is left rather
- * than hand over a plan to apply: automatic actions stay whole, every other
- * action is counted by code. The full plan comes from status, check and
- * coverage.
+ * than hand over a plan to apply: the first automatic actions are listed by
+ * id and all of them counted, every other action is counted by code. The full
+ * plan comes from status, check and coverage, so a response stays small even
+ * when hundreds of actions remain.
  */
 // implements REQ-agent-guided-migration-orchestration
 export function digestMigrationPlan(plan: MigrationPlan): MigrationPlanDigest {
@@ -365,7 +382,23 @@ export function digestMigrationPlan(plan: MigrationPlan): MigrationPlanDigest {
     expected: plan.expected,
     scope: plan.scope,
     summary: plan.summary,
-    automaticActions,
+    automaticActions: automaticActions
+      .slice(0, DIGEST_AUTOMATIC_ACTIONS)
+      .map((action) => ({
+        id: action.id,
+        code: action.code,
+        state: action.state,
+        autoApplicable: action.autoApplicable,
+        dependsOn: action.dependsOn,
+      })),
+    automaticSummary: {
+      total: automaticActions.length,
+      ready: automaticActions.filter(
+        (action) => action.state === "ready" && action.autoApplicable,
+      ).length,
+      blocked: blockedAutomatic,
+      omitted: Math.max(0, automaticActions.length - DIGEST_AUTOMATIC_ACTIONS),
+    },
     actionGroups: [...groups.values()].sort(
       (left, right) =>
         right.count - left.count ||

@@ -127,11 +127,19 @@ export function renderCoverageTable(
   // Traceability counts (scenario/test links) and proof counts (receipt
   // evidence) use similar names, e.g. notApplicable vs proofNotApplicable:
   // group them so the two families read apart.
-  const entries = Object.entries(summary);
+  // Link coverage judges only priority: must requirements; say so in the
+  // heading rather than as a row.
+  const mustOnly = summary.linkCoverageScope === "priority_must";
+  const entries = Object.entries(summary).filter(
+    ([key]) => key !== "linkCoverageScope",
+  );
   const isProofKey = (key: string) =>
     key.startsWith("proof") || key === "evidenceLevels";
   const groups: [string, [string, unknown][]][] = [
-    ["Traceability (links)", entries.filter(([key]) => !isProofKey(key))],
+    [
+      mustOnly ? "Links (priority: must)" : "Traceability (links)",
+      entries.filter(([key]) => !isProofKey(key)),
+    ],
     ["Proof (evidence)", entries.filter(([key]) => isProofKey(key))],
   ];
   const grouped = groups.every(([, members]) => members.length > 0);

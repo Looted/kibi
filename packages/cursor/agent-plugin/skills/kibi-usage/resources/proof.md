@@ -166,8 +166,9 @@ left:
   Set `domain_source: { symbol_id: SYM-<domain> }` to the symbol that defines
   the domain (add `export: <name>` when the export is not named like the
   symbol's title), and import that symbol in the proof file. Kibi loads the
-  export itself (bun, the workspace's tsx, or node; `python3` for a `.py`
-  domain: Enum values, dict keys, list/tuple/set items) and rejects a
+  export itself (bun, the workspace's tsx, or node; for a `.py` domain
+  `KIBI_PYTHON`, the active or project `.venv`/`venv`, then `python3`:
+  Enum values, dict keys, list/tuple/set items) and rejects a
   certificate that does not cover exactly its members, so a hand-listed or
   partial domain stays `tested`. An import from build output is mapped back
   to its source through `tsconfig.json` `outDir`/`rootDir`.
