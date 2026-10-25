@@ -17,6 +17,8 @@ proof_contract:
   kind: exhaustive
   domain_source:
     symbol_id: SYM-proof-kinds
+  proves:
+    - CLAIM-296F27003E43BA8A
 origin:
   kind: agent
   recorded_at: '2026-10-24T19:31:43.873Z'

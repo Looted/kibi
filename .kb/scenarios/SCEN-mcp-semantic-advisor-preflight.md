@@ -13,6 +13,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: scenario
 ---
 
 Given a requirement payload with prose such as numeric cardinality, permission, conditional, or state/default signals, the MCP semantic advisor returns a non-mutating receipt with detected signals, suggested modeling lane, ambiguity witnesses when needed, and next tools before or during upsert.

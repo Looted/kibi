@@ -12,6 +12,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: scenario
 ---
 
 When an agent asks where a capability is implemented, Kibi returns ranked requirements and linked symbols with source locations and graph evidence. When no useful entity or source-linked match exists, Kibi returns an explicit zero-result outcome suitable for telemetry and follow-up discovery.

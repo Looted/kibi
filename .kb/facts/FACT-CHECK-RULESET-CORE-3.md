@@ -15,6 +15,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: fact
 ---
 
 The baseline check rules are must-priority-coverage, no-dangling-refs, and no-cycles.

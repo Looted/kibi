@@ -23,6 +23,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: fact
 ---
 
 Kibi is an agent-native requirements compiler and enforcement layer, not a human-maintained requirements database or a passive retrieval-memory system.

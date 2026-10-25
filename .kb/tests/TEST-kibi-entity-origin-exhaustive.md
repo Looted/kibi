@@ -17,6 +17,9 @@ proof_contract:
   kind: exhaustive
   domain_source:
     symbol_id: SYM-mutation-entity-types-schema
+  proves:
+    - CLAIM-7AC3394BD0DCD7A9
+    - CLAIM-E77E686DE934A103
 origin:
   kind: agent
   recorded_at: '2026-10-24T19:31:44.708Z'

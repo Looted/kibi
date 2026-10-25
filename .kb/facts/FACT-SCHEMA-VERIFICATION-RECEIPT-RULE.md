@@ -21,6 +21,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: fact
 ---
 
 Defines the stable project ontology for snapshot-bound execution evidence without conflating ontology predicates with graph relationships.

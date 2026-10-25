@@ -12,6 +12,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: scenario
 ---
 
 When a project runs one selected Playwright case through the Kibi wrapper, the reporter records the exact case ID, argv, contract hash, snapshot, and outcome. If the contract changed, Kibi preserves all earlier receipts, appends the current-contract result, and exposes only current-contract, current-snapshot evidence as proof.

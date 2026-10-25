@@ -12,6 +12,7 @@ origin:
   recorded_at: '2026-10-04T01:17:15.284Z'
 tags:
   - review:context-missing
+type: test
 ---
 
 Validates language-agnostic mixed-purpose class/component/service symbol review diagnostics.

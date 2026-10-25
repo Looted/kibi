@@ -160,3 +160,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8aafb57cc1bd
+  - type: relates_to
+    from: ADR-kibi-claim-bound-proofs
+    to: REQ-kibi-claim-bound-proofs
+    created_at: 2026-10-25T18:47:51.797Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ea2a1f487f0
+  - type: relates_to
+    from: ADR-kibi-claim-bound-proofs
+    to: REQ-kibi-code-proof-kinds
+    created_at: 2026-10-25T18:47:51.815Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b287adfbb04

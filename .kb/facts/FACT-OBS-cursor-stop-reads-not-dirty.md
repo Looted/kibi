@@ -17,6 +17,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: fact
 ---
 
 Source-file reads, search, and other non-edit tools must not be recorded as dirty paths for stop-hook freshness follow-up. Only known editable tools such as `Write`, `StrReplace`, and `Edit` mark dirty paths.

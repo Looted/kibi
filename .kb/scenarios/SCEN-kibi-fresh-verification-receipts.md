@@ -12,6 +12,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: scenario
 ---
 
 Given a scenario-backed end-to-end test with only durable passing metadata, a receipt for another code snapshot, a stale result, a current failure, malformed provenance, or a future timestamp, when coverage evaluates the requirement, then the passing-E2E proof stage remains missing or unresolved and reports the matching ranked receipt gap.

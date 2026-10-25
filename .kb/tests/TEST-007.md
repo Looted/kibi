@@ -62,6 +62,7 @@ proof_receipts:
           status: unavailable
     kind: e2e
     evidence_level: tested
+type: test
 ---
 
 Calls `kb_attach/1` on a temp RDF store, then `kb_assert_entity/2` with a valid

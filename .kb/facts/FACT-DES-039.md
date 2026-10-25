@@ -13,6 +13,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: fact
 ---
 
 The VS Code extension sidebar/activity icon is configured via `packages/vscode/package.json` `contributes.viewsContainers.activitybar[0].icon` and currently points to `packages/vscode/media/kibi-activitybar.svg`. Fixes to the sidebar icon must update that SVG and then repackage the VSIX.

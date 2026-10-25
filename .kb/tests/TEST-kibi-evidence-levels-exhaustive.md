@@ -17,6 +17,9 @@ proof_contract:
   kind: exhaustive
   domain_source:
     symbol_id: SYM-cli-evidence-levels
+  proves:
+    - CLAIM-6A120A441BC6AD42
+    - CLAIM-22E34F860C144AB0
 origin:
   kind: agent
   recorded_at: '2026-10-24T19:31:46.524Z'

@@ -17,6 +17,8 @@ proof_contract:
   kind: exhaustive
   domain_source:
     symbol_id: SYM-canonical-ENTITY_LANES
+  proves:
+    - CLAIM-7D2B678A106147C3
 origin:
   kind: agent
   recorded_at: '2026-10-24T19:31:43.084Z'

@@ -14,6 +14,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: test
 ---
 
 Exercise the OpenCode plugin guidance and assert that bootstrap, briefing, and synchronization paths use the sanctioned Kibi surfaces.

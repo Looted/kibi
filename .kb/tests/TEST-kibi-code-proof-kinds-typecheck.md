@@ -19,6 +19,8 @@ proof_contract:
     symbol_id: SYM-proof-kinds
   witness:
     path: packages/cli/tests/proofs/witness/proof-kind-levels.ts
+  proves:
+    - CLAIM-296F27003E43BA8A
 origin:
   kind: agent
   recorded_at: '2026-10-24T19:31:49.356Z'

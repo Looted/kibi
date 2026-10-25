@@ -56987,6 +56987,10 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-code-proof-kinds
+      - type: covered_by
+        target: TEST-kibi-code-proof-kinds-exhaustive
+      - type: covered_by
+        target: TEST-kibi-code-proof-kinds-typecheck
       - type: implements
         target: REQ-kibi-code-proof-kinds
   - id: SYM-cli-evidence-levels
@@ -57349,3 +57353,49 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-skillopt-scoring-gates-unit
+  - id: SYM-e2e-packed-claim-bound-proofs
+    title: checkClaimBoundProofs
+    status: active
+    sourceFile: documentation/tests/e2e/packed/claim-bound-proofs.test.ts
+    symbol_role: behavioral
+    tags:
+      - e2e
+    origin:
+      kind: agent
+      recorded_at: 2026-10-25T18:21:32.725Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-claim-bound-proofs
+  - id: SYM-test-claim-binding-verdicts-exhaustive
+    title: claimBindingVerdictsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claim-binding-verdicts.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-25T18:21:37.378Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-claim-bound-proofs-exhaustive
+  - id: SYM-claim-binding-verdicts
+    title: CLAIM_BINDING_VERDICTS
+    status: active
+    sourceFile: packages/cli/src/public/proof-receipt.ts
+    symbol_role: config
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-25T18:21:42.762Z
+    relationships:
+      - type: constrained_by
+        target: ADR-kibi-claim-bound-proofs
+      - type: covered_by
+        target: TEST-kibi-claim-bound-proofs
+      - type: covered_by
+        target: TEST-kibi-claim-bound-proofs-exhaustive
+      - type: implements
+        target: REQ-kibi-claim-bound-proofs

@@ -13,6 +13,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: scenario
 ---
 
 Given readable normative requirement prose and the current predicate catalog, when an agent models the requirement, then it obtains semantic advice and predicate suggestions before mutation, uses the suggested predicate and `requires_predicate` only for a suitable relational claim, routes scalar constraints to strict subject/property facts, and preserves ambiguous, unmatched, ontology-gap, and false-positive cases as review observations or the correct non-predicate outcome.

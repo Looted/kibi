@@ -13,6 +13,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: test
 ---
 
 Verifies that MCP upsert accepts coarse traceability when only type-shape symbols are available, still rejects coarse links when behavioral symbols exist, and accepts explicit granularity reasons for intentional coarse links.

@@ -17,6 +17,8 @@ proof_contract:
   kind: exhaustive
   domain_source:
     symbol_id: SYM-built-in-predicate-schemas
+  proves:
+    - CLAIM-17EA6E80A17D81E7
 origin:
   kind: agent
   recorded_at: '2026-10-24T19:31:47.509Z'
