@@ -4,7 +4,7 @@ description: "Use when kibi check --staged or the Kibi pre-commit hook blocks a 
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-commit-review
-  version: 1.2.1
+  version: 1.2.2
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
