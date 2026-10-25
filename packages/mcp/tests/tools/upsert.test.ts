@@ -343,7 +343,7 @@ export function greet() {
         type: "symbol",
         id: "SYM-GREET-FILE",
         properties: {
-          title: "greetModule",
+          title: "greet.ts",
           status: "active",
           source: ".kb/symbols.yaml",
           sourceFile: "src/greet.ts",

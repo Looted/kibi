@@ -193,7 +193,10 @@ describe("kibi.proof-run.v1", () => {
     expect(PROOF_BINDING_KINDS).toEqual(["native_case", "aggregate_run"]);
     expect(ATTEMPTS_STATUS).toEqual(["complete", "unavailable"]);
     expect(RUN_FAILURE_PHASES).toContain("infrastructure");
-    expect(SUCCESS_POLICIES).toEqual(["all_required_first_attempt"]);
+    expect(SUCCESS_POLICIES).toEqual([
+      "all_required_first_attempt",
+      "own_results_first_attempt",
+    ]);
     expect(PROOF_RESULT_SCHEMA.type).toBe("object");
     expect(PROOF_RUN_ARTIFACT_SCHEMA.type).toBe("object");
     expect(PROOF_CONTRACT_SCHEMA.type).toBe("object");
