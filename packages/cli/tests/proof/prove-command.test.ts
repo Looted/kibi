@@ -10,7 +10,12 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { proveCommand } from "../../src/commands/prove.js";
+import {
+  PROVE_PROGRESS_FILE,
+  narrowedPlaywrightCommand,
+  proveCommand,
+  resumableIntegrations,
+} from "../../src/commands/prove.js";
 import type { IngestProofResult } from "../../src/operations/proof/ingest-proof.js";
 import type {
   OperationContext,
@@ -589,6 +594,144 @@ describe("proveCommand", () => {
       expect(value.exitCode).toBe(1);
       expect(JSON.parse(output).failures[0]).toContain("failed to start");
     });
+  });
+
+  test("resume skips integrations an interrupted run already ingested", async () => {
+    await withTempWorkspace(async (dir) => {
+      const selfExtra = `,proof_contract=${JSON.stringify(JSON.stringify(contract))}`;
+      const webExtra = `,proof_contract=${JSON.stringify(JSON.stringify(otherContract))}`;
+      const runtime = fakeRuntime(dir, async () =>
+        resultsFor([
+          entityRow("TEST-001", selfExtra),
+          entityRow("TEST-002", webExtra, "Web flow"),
+        ]),
+      );
+      const ingested: string[][] = [];
+      const ingestProof = async (input: { testIds?: readonly string[] }) => {
+        ingested.push([...(input.testIds ?? [])]);
+        return ingestResult();
+      };
+      // Given a first run whose second integration never started
+      writeIntegrations(dir, [
+        {
+          id: "self-proof",
+          producer: "command",
+          command: passingCommand,
+          description: "Self proof",
+        },
+        {
+          id: "web-e2e",
+          producer: "command",
+          command: ["/no/such/kibi-prove-binary"],
+          description: "Web",
+        },
+      ]);
+      const first = await captureStdout(() =>
+        proveCommand(
+          { all: true, workspaceRoot: dir },
+          { runtime, ingestProof: ingestProof as never },
+        ),
+      );
+      expect(first.value.exitCode).toBe(1);
+      const progress = JSON.parse(
+        readFileSync(
+          path.join(dir, ".kb", "proof", "runs", PROVE_PROGRESS_FILE),
+          "utf8",
+        ),
+      );
+      expect(progress).toMatchObject({
+        snapshot: SNAPSHOT,
+        ingested: { "self-proof": ["TEST-001"] },
+      });
+
+      // When the run resumes after the second integration is fixed
+      writeIntegrations(dir, [
+        {
+          id: "self-proof",
+          producer: "command",
+          command: failingCommand,
+          description: "Self proof",
+        },
+        {
+          id: "web-e2e",
+          producer: "command",
+          command: passingCommand,
+          description: "Web",
+        },
+      ]);
+      ingested.length = 0;
+      const resumed = await captureStdout(() =>
+        proveCommand(
+          { all: true, resume: true, workspaceRoot: dir },
+          { runtime, ingestProof: ingestProof as never },
+        ),
+      );
+
+      // Then only the unfinished integration runs
+      expect(resumed.value.exitCode).toBe(0);
+      expect(ingested).toEqual([["TEST-002"]]);
+    });
+  });
+
+  test("resume runs everything after the snapshot moved", () => {
+    const groups = new Map([
+      ["self-proof", [{ id: "TEST-001" }]],
+      ["web-e2e", [{ id: "TEST-002" }, { id: "TEST-003" }]],
+    ]);
+    const progress = {
+      version: "kibi.prove-progress.v1" as const,
+      snapshot: SNAPSHOT,
+      ingested: { "self-proof": ["TEST-001"], "web-e2e": ["TEST-002"] },
+    };
+    expect([...resumableIntegrations(progress, SNAPSHOT, groups)]).toEqual([
+      "self-proof",
+    ]);
+    expect(resumableIntegrations(progress, "d".repeat(64), groups).size).toBe(
+      0,
+    );
+    expect(resumableIntegrations(null, SNAPSHOT, groups).size).toBe(0);
+  });
+
+  test("narrows a playwright command to the selected tests' bound spec files", () => {
+    const bound = (id: string, file?: string) => ({
+      id,
+      proof_bindings: [
+        {
+          symbol_id: `SYM-${id}`,
+          target: "chromium",
+          ...(file === undefined ? {} : { source_file: file }),
+        },
+      ],
+    });
+    expect(
+      narrowedPlaywrightCommand(
+        ["npx", "playwright", "test", "--project=chromium"],
+        [bound("A", "e2e/b.spec.ts"), bound("B", "e2e/a.spec.ts")],
+      ),
+    ).toEqual({
+      argv: [
+        "npx",
+        "playwright",
+        "test",
+        "--project=chromium",
+        "e2e/a.spec.ts",
+        "e2e/b.spec.ts",
+      ],
+      narrowed: true,
+    });
+    const unbound = narrowedPlaywrightCommand(
+      ["npx", "playwright", "test"],
+      [bound("A", "e2e/a.spec.ts"), bound("B")],
+    );
+    expect(unbound.narrowed).toBe(false);
+    expect(unbound.argv).toEqual(["npx", "playwright", "test"]);
+    expect(unbound.reason).toContain("test B");
+    const wrapped = narrowedPlaywrightCommand(
+      ["npm", "run", "e2e"],
+      [bound("A", "e2e/a.spec.ts")],
+    );
+    expect(wrapped.narrowed).toBe(false);
+    expect(wrapped.reason).toContain("KIBI_PROOF_SOURCE_FILES");
   });
 
   test("converts a junit native report through the command path", async () => {

@@ -18,7 +18,12 @@ reports what happened as `kibi.proof-run.v1`; Kibi evaluates proof.
    kibi prove --test TEST-<id>
    # or: kibi prove --requirement REQ-<id> | --integration <id> | --all
    # add --stale to rerun only tests without a current passing receipt
+   # add --resume to continue an interrupted run (same selector)
    ```
+
+   With `--test`, `--requirement` or `--stale`, a direct `playwright test`
+   integration runs only the selected tests' `proof_bindings[].source_file`
+   specs; wrappers get them as `KIBI_PROOF_SOURCE_FILES`.
 
    `kibi prove` captures the workspace snapshot, runs each integration's
    producer once (`shell: false`), revalidates the snapshot, evaluates the
@@ -51,6 +56,13 @@ proof_bindings:                 # optional provenance metadata
 ```
 
 Provenance lives in `proof_bindings`; the contract stays semantic.
+
+`success_policy: own_results_first_attempt` judges each obligation by its own
+`native_case` result when the run failed only in execution (other cases
+failed), so one unrelated failing case does not fail every receipt of a
+Playwright suite. Aggregate-run obligations, run-level errors, timeouts,
+interruptions and setup failures still refuse every obligation. Keep
+`all_required_first_attempt` unless the user wants per-case judgement.
 
 - Every `required_proofs[].symbol_id` must name an existing `symbol` entity,
   or `kb_check` reports `proof-contract-symbols`. Create the symbols first

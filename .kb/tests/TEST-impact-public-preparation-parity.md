@@ -23,4 +23,40 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+proof_receipts:
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-282f24983a4c382741df4e41
+    test_id: TEST-impact-public-preparation-parity
+    scope: unit
+    outcome: passed
+    code_snapshot: cffe41b11590abbf5935d229d1c33d882718eab1b065285a913e2254bd9e5828
+    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
+    started_at: '2026-10-25T12:36:21.468Z'
+    finished_at: '2026-10-25T12:36:23.803Z'
+    artifact_digest: b8194b3ddb404ee8d6c5dbfe7008dabf9880a2a0079f5ee00752a3d2e67481be
+    contract_hash: 0486e043c2605d47fa92092306281fbb6e41c144638d72e5a4c3833c34e35556
+    binding_hash: 9428bcba18ace30772dd9284b8c1970f186d721f573ea6a01dcc0081cd2336ad
+    fingerprint: 48bd879cceb8b194e7e74d40926fcdb6a142b47ef24e1096805b348b3b570f60
+    fingerprint_components:
+      contract: 0486e043c2605d47fa92092306281fbb6e41c144638d72e5a4c3833c34e35556
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-unit-test-impact-public-preparation-parity
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---

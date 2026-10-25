@@ -51,12 +51,29 @@ kibi prove --test TEST-mcp-search-discovery  # one test
 kibi prove --requirement REQ-cli-check
 kibi prove --integration self-proof
 kibi prove --stale          # only tests without a current passing receipt
+kibi prove --all --resume   # continue an interrupted run
 ```
 
 `--stale` narrows any selector (all tests by default) to the tests whose
 receipt is missing, stale, failed or bound to an older contract, judged the
 way coverage judges them, so re-proving after a change only reruns what the
 change invalidated.
+
+Receipts are written as each integration finishes, and `kibi prove` prints
+each integration it starts and ingests on stderr. When a long run is stopped,
+rerun the same selector with `--resume`: integrations already ingested at the
+same workspace snapshot, for every test the run selects, are skipped (the
+record lives in `.kb/proof/runs/prove-progress.json`). After the workspace
+changes, `--resume` runs everything again.
+
+When `--test`, `--requirement` or `--stale` selects a subset and the
+integration's producer is `playwright`, a direct `playwright test` command is
+narrowed to the selected tests' `proof_bindings[].source_file` spec files, so
+proving one test runs its specs instead of the whole suite. Narrowing needs a
+`source_file` on every selected test's bindings; otherwise, or when the
+command is a wrapper such as `npm run e2e`, the whole integration runs and
+`kibi prove` says why. Every producer gets the selected tests' bound files in
+`KIBI_PROOF_SOURCE_FILES` (a JSON array), so a wrapper can narrow itself.
 
 For each configured integration, `kibi prove`:
 
@@ -489,8 +506,31 @@ retry history, report `attempts: {status: "unavailable"}`. The strict
 
 `run.outcome` — `passed`, `failed`, `errored`, `cancelled`, `timed_out`,
 `interrupted`, `no_results` — is evaluated independently of individual
-results. A failed run never proves anything, no matter how many results
-passed before the failure.
+results. Under `all_required_first_attempt` a failed run never proves
+anything, no matter how many results passed before the failure.
+
+### `own_results_first_attempt`: one failing case does not erase a suite
+
+A large end-to-end suite almost always has some failing or flaky case, and
+under the strict policy that one case fails every receipt of the run. A
+contract can opt into `success_policy: own_results_first_attempt` instead:
+
+- a run whose outcome is `failed` in the `execution` phase (or with no phase)
+  is judged per obligation, so an obligation whose own `native_case` result
+  passed on its first attempt is proved even though other cases failed;
+- the first-attempt rules above still apply to the obligation's own result;
+- `aggregate_run` obligations still need the whole run to pass, because they
+  have no result of their own;
+- `errored`, `cancelled`, `timed_out`, `interrupted` and `no_results` runs,
+  and failures in `setup`, `collection`, `teardown` or `infrastructure`, still
+  refuse every obligation.
+
+`kibi-cli/playwright-reporter` marks a run that only failed test cases as
+`failure_phase: execution`; an error outside the test cases (config, global
+setup, a spec that fails to load) is `setup`, a global timeout is `timed_out`
+and an interrupted run is `interrupted`. Use the policy where the per-case
+results are native, as with the Playwright reporter; keep the strict policy
+where a run-level failure should block everything.
 
 ## Environments and fingerprints
 

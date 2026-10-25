@@ -26,6 +26,10 @@ export function registerProofCommand(program: Command): void {
       "--stale",
       "Prove only the selected tests (all by default) without a current passing receipt",
     )
+    .option(
+      "--resume",
+      "Skip integrations an interrupted run with the same selector already ingested at this snapshot",
+    )
     .action(
       withExitCode(
         async (options: {
@@ -35,6 +39,7 @@ export function registerProofCommand(program: Command): void {
           integrationExcept?: string;
           all?: boolean;
           stale?: boolean;
+          resume?: boolean;
         }) => {
           const mode = [
             options.test ? "test" : undefined,
@@ -63,6 +68,7 @@ export function registerProofCommand(program: Command): void {
               : { integrationExcept: options.integrationExcept }),
             all: mode === 0,
             ...(options.stale ? { stale: true } : {}),
+            ...(options.resume ? { resume: true } : {}),
           });
         },
       ),

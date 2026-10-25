@@ -53,7 +53,19 @@ export const RUN_FAILURE_PHASES = [
   "infrastructure",
 ] as const;
 
-export const SUCCESS_POLICIES = ["all_required_first_attempt"] as const;
+/**
+ * `all_required_first_attempt`: the whole run must pass and every obligation's
+ * own result must pass on its first attempt.
+ * `own_results_first_attempt`: a run whose only failures are other test cases
+ * (outcome `failed` in the execution phase) still proves an obligation whose
+ * own native-case result passed on its first attempt, so one unrelated
+ * failing case does not erase a suite's evidence. Aggregate-run obligations
+ * still need the whole run to pass.
+ */
+export const SUCCESS_POLICIES = [
+  "all_required_first_attempt",
+  "own_results_first_attempt",
+] as const;
 
 /**
  * What a proof contract's checker establishes. Runner kinds (e2e, example,

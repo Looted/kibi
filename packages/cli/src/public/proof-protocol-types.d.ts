@@ -24,7 +24,9 @@ export type RunFailurePhase =
   | "execution"
   | "teardown"
   | "infrastructure";
-export type SuccessPolicy = "all_required_first_attempt";
+export type SuccessPolicy =
+  | "all_required_first_attempt"
+  | "own_results_first_attempt";
 
 export type ProofAttempt = Readonly<{
   outcome: ProofResultOutcome;

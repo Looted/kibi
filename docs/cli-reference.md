@@ -229,12 +229,21 @@ kibi prove --integration web-e2e,api-tests
 kibi prove --all --integration-except heavy-suite
 kibi prove --stale
 kibi prove --requirement REQ-checkout --stale
+kibi prove --all --resume
 ```
 
 Selectors: `--test`, `--requirement`, `--integration`, `--all` (default).
 `--stale` narrows the selection to tests without a current passing receipt
 (missing, stale, failed or contract-mismatched, judged as coverage judges
 them); when every selected test is current it runs nothing and says so.
+`--resume` skips integrations an interrupted run with the same selector
+already ingested at the current workspace snapshot (recorded in
+`.kb/proof/runs/prove-progress.json`); progress lines on stderr name each
+integration as it starts and is ingested. With `--test`, `--requirement` or
+`--stale`, a `playwright` integration whose command is a direct
+`playwright test` invocation runs only the selected tests'
+`proof_bindings[].source_file` spec files; every producer also receives them
+as `KIBI_PROOF_SOURCE_FILES` (a JSON array).
 `--integration` accepts one or more comma-separated integration ids.
 `--integration-except` is a modifier (it requires a selector such as `--all`)
 that skips tests bound to the listed integrations. A selector that matches no

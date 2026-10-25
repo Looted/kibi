@@ -772,7 +772,8 @@
         "success_policy": {
           "type": "string",
           "enum": [
-            "all_required_first_attempt"
+            "all_required_first_attempt",
+            "own_results_first_attempt"
           ]
         },
         "kind": {
