@@ -61,7 +61,7 @@ describe("proof-protocol leftover validator and constant branches", () => {
     restores.push(restoreEnv);
     expect(PROOF_RUN_VERSION).toBe("kibi.proof-run.v1");
     expect(PROOF_CONTRACT_VERSION).toBe("kibi.proof-contract.v1");
-    expect(PROOF_RECEIPT_VERSION).toBe("kibi.proof-receipt.v1");
+    expect(PROOF_RECEIPT_VERSION).toBe("kibi.proof-receipt.v2");
     expect(PROOF_INTEGRATION_VERSION).toBe("kibi.proof-integration.v1");
     expect(PROOF_RUN_OUTCOMES).toContain("no_results");
     expect(PROOF_RESULT_OUTCOMES).toContain("interrupted");

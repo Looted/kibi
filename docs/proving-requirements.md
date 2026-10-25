@@ -59,7 +59,9 @@ For each configured integration, `kibi prove`:
 3. revalidates the snapshot (proof execution must not change tracked state),
 4. validates the complete `kibi.proof-run.v1` artifact,
 5. evaluates it independently against every selected test's proof contract,
-6. derives idempotent `kibi.proof-receipt.v1` receipts and appends them,
+6. derives idempotent `kibi.proof-receipt.v2` receipts and appends them
+   (re-checking any certificate the run left, see
+   [Certificate proof kinds](#certificate-proof-kinds)),
 7. reports gaps with expected versus received values.
 
 One suite run can satisfy many TEST contracts; unrelated results are ignored
@@ -127,6 +129,110 @@ they help adapters map native results to symbols.
 Each `required_proofs` entry is an explicit `(symbol_id, target)` pair. A
 suite must demonstrate exactly what the contract declares — no implicit
 `cases × projects` combinations.
+
+## Certificate proof kinds
+
+A test samples cases. When a requirement is about a finite domain (every
+entity type, every evidence level, every built-in schema), a test can cover
+every case, and Kibi can then report the requirement as **proved** instead of
+tested. The contract says so with `kind`:
+
+| Kind | Checker | Evidence it supports |
+| --- | --- | --- |
+| `e2e` (default), `example`, `property` | the test runner | tested |
+| `exhaustive` | the test checks every member of a domain it imports from the code | proved |
+| `typecheck` | Kibi compiles a witness that fails to compile when a member goes unhandled | proved |
+| `arithmetic` | Kibi decides a one-variable claim exactly from the typed facts in `constraint_source` | proved |
+| `smt` | Kibi re-runs z3 or cvc5 on a query that asserts the `constraint_source` facts and needs `unsat` | proved |
+
+```yaml
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-test-evidence-levels-exhaustive
+      target: default
+  success_policy: all_required_first_attempt
+  kind: exhaustive
+  domain_source:
+    symbol_id: SYM-cli-evidence-levels   # the symbol that defines the domain
+```
+
+`exhaustive` and `typecheck` need `domain_source`; `typecheck` also needs
+`witness: {path}`. `arithmetic` and `smt` need `constraint_source: {fact_ids:
+[...]}`, the typed numeric `property_value` facts (one subject and property,
+`value_type: int` or `number`) the claim rests on:
+
+```yaml
+  kind: arithmetic
+  constraint_source:
+    fact_ids: [FACT-RETRY-MIN, FACT-RETRY-MAX]   # retry_count >= 0, retry_count < 4
+```
+
+The arithmetic certificate's variable is the facts' `property_key`, its
+assumptions are exactly the facts' constraints and its claim is what the
+test proves from them; an SMT query declares the property as a constant and
+asserts each fact constraint (`(assert (>= retry_count 0))`) before the
+negated claim. These kinds prove that the knowledge base's facts entail the
+claim; they say nothing about code that does not follow those facts, so pair
+them with a test of the code when the code is what matters. A certificate-kind test leaves a `kibi.code-certificate.v1`
+JSON file in the directory `kibi prove` names in `KIBI_PROOF_CERTIFICATES`
+(outside `kibi prove` the variable is unset and nothing is written). The
+`kibi-cli/proof-certificates` module builds and writes them:
+
+```ts
+import {
+  exhaustiveCertificate,
+  failedMembers,
+  writeCodeCertificate,
+} from "kibi-cli/proof-certificates";
+import { EVIDENCE_LEVELS } from "../src/evidence-levels.js";
+
+const certificate = await exhaustiveCertificate({
+  testId: "TEST-evidence-levels-exhaustive",
+  domain: { symbolId: "SYM-cli-evidence-levels", members: EVIDENCE_LEVELS },
+  check(level) {
+    // throw when the claim fails for this member
+  },
+});
+writeCodeCertificate(certificate);
+expect(failedMembers(certificate)).toEqual([]);
+```
+
+Kibi never takes a certificate's word for it. At ingest it re-checks the
+certificate (every member listed once and passed; the arithmetic decided by
+the same interval reasoning as contradiction checks; the solver re-run), and
+it checks the workspace. For an exhaustive proof Kibi loads the
+`domain_source` symbol's export itself (with bun when it is on `PATH`, else
+node with type stripping) and needs the certificate to cover exactly its
+members (or, for non-primitive members, as many of them), so a hand-listed
+subset is rejected; the proof file must also import the symbol. A typecheck
+witness must import the domain, be the file in the workspace (its sha256) and
+contain a `never` check, and Kibi compiles it itself with the workspace's
+TypeScript under fixed strict options, so a test cannot report a pass the
+compiler would not give. Arithmetic and SMT certificates must match their
+`constraint_source` facts as described above. The receipt
+(`kibi.proof-receipt.v2`) records `kind`,
+`evidence_level`, the certificate and its digest (the sha256 of its canonical
+JSON, computed by `code_certificates.pl`), or `certificate_rejection` with the
+reason.
+
+Whenever it reports evidence, Kibi re-checks the stored certificate's digest
+and structure (and re-decides an arithmetic claim); the solver and workspace
+checks run at ingest only. The digest is an unsigned hash: it catches edited
+or corrupted receipts, not deliberate forgery, which review of the receipt
+diff is for. A receipt that claimed proved but no longer re-checks counts as
+tested, and coverage and `kibi proof explain` name the test and the reason
+(`certificateRejections`).
+
+A requirement is **proved** when it is tested end to end and every linked
+scenario also has a test (of any verification scope) whose fresh receipt is
+proved. A certificate strengthens end-to-end evidence; it never replaces the
+journey test. `required_evidence: proved` makes the evidence-floor rule demand
+it.
+
+A `bun test` proof step that runs a `*.proof.test.*` file is never satisfied by
+reused unit results, because reuse would leave no certificate.
 
 ## Integration configuration
 

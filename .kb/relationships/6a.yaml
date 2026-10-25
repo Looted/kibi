@@ -202,3 +202,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d0eb3bca8a1f
+  - type: specified_by
+    from: REQ-kibi-code-proof-kinds
+    to: SCEN-kibi-code-proof-kinds
+    created_at: 2026-10-24T19:31:50.336Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7929a6883ca2
+  - type: constrains
+    from: REQ-kibi-code-proof-kinds
+    to: FACT-SUBJECT-KIBI-CODE-PROOF
+    created_at: 2026-10-24T19:31:50.363Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a3b5b2074ab
+  - type: relates_to
+    from: REQ-kibi-code-proof-kinds
+    to: REQ-kibi-evidence-levels
+    created_at: 2026-10-24T19:31:50.380Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f2f1038897d9
+  - type: relates_to
+    from: REQ-kibi-code-proof-kinds
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-10-24T19:31:50.391Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3f0791b8893
+  - type: requires_property
+    from: REQ-kibi-code-proof-kinds
+    to: FACT-kibi-code-proof-kind-vocabulary-closed
+    created_at: 2026-10-24T19:31:50.406Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89780db2c943
+  - type: requires_property
+    from: REQ-kibi-code-proof-kinds
+    to: FACT-kibi-code-proof-kindless-contract-is-e2e
+    created_at: 2026-10-24T19:31:50.428Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55d84cbebbe7
+  - type: requires_property
+    from: REQ-kibi-code-proof-kinds
+    to: FACT-kibi-code-proof-proved-needs-rechecked-certificate
+    created_at: 2026-10-24T19:31:50.443Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7773ab74189
+  - type: requires_property
+    from: REQ-kibi-code-proof-kinds
+    to: FACT-kibi-code-proof-rejects-hand-listed-domain
+    created_at: 2026-10-24T19:31:50.472Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40045983a15e
+  - type: requires_property
+    from: REQ-kibi-code-proof-kinds
+    to: FACT-kibi-code-proof-rejects-vacuous-or-unentailed-arithmetic
+    created_at: 2026-10-24T19:31:50.480Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-154fe2baac25
+  - type: requires_property
+    from: REQ-kibi-code-proof-kinds
+    to: FACT-kibi-code-proof-rejects-smt-without-unsat
+    created_at: 2026-10-24T19:31:50.497Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3ddb1379995
+  - type: requires_property
+    from: REQ-kibi-code-proof-kinds
+    to: FACT-kibi-code-proof-coverage-reports-proved
+    created_at: 2026-10-24T19:31:50.505Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-632ceb8bd360

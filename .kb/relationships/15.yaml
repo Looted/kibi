@@ -265,3 +265,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-70ff0f4111a2
+  - type: executable_for
+    from: SYM-test-entity-type-backfill-exhaustive
+    to: TEST-cli-migrate-entity-type-backfill-exhaustive
+    created_at: 2026-10-24T19:32:16.833Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19472db71396

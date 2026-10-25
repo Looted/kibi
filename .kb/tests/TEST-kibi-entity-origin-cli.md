@@ -30,18 +30,18 @@ origin:
 id: TEST-kibi-entity-origin-cli
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-7d079c683e795158ea8657c6
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-d3ab7df6a89b3cc02e9dc291
     test_id: TEST-kibi-entity-origin-cli
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
+    code_snapshot: 43675d5112431d4f3e5766d7fd142174b14e417e9c8b3d76bc67f23dfa7c508e
+    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
+    started_at: '2026-10-24T20:09:30.669Z'
+    finished_at: '2026-10-24T20:09:39.303Z'
+    artifact_digest: 44620a05cdc1796544ab9a3b31a628d7d98938c2d1b5d589a63d015d1de46739
     contract_hash: 93392f102dc3a63c152c0010a91e9c393b3fbfa8c87669c93e49916a8a0739b4
-    binding_hash: c1a3f744d59158d40efabdbfb86afe270381481cb48de13b386a4038639a5f76
+    binding_hash: 8d16868413583b9f60831a4fc00410f6e958deeb6d6464ecdc4ac6ccc8ff19d7
     fingerprint: 669517221cc261324725b67cfb7347ee537ca199850bfd5da71ec452346e9ea6
     fingerprint_components:
       contract: 93392f102dc3a63c152c0010a91e9c393b3fbfa8c87669c93e49916a8a0739b4
@@ -63,6 +63,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 # Consumer CLI upserts record agent origin, keep it on later writes and flag uncorroborated approvals
 

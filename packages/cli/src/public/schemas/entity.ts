@@ -17,6 +17,7 @@
  */
 
 import { ENTITY_ORIGIN_SCHEMA } from "../entity-origin.js";
+import { EVIDENCE_LEVELS } from "../evidence-levels.js";
 import {
   PROOF_BINDINGS_SCHEMA,
   PROOF_CONTRACT_SCHEMA,
@@ -366,7 +367,7 @@ const entitySchema: Record<string, unknown> = {
     },
     required_evidence: {
       type: "string",
-      enum: ["proved", "tested", "asserted", "unverified"],
+      enum: [...EVIDENCE_LEVELS],
       description:
         "Requirement-only. The weakest evidence level this current requirement accepts; the evidence-floor check rule fails while its computed evidence level is lower. proved: a re-checkable certificate covers every case. tested: fresh passing E2E receipts cover every linked scenario. asserted: a person stands behind it. unverified: no floor. When absent, it is tested for a firm requirement and unverified otherwise.",
     },

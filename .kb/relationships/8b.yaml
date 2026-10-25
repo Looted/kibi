@@ -370,3 +370,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e6274491db4d
+  - type: executable_for
+    from: SYM-test-code-proof-kinds-exhaustive
+    to: TEST-kibi-code-proof-kinds-exhaustive
+    created_at: 2026-10-24T19:31:54.591Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2724905c942b

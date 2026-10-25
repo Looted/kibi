@@ -24,6 +24,7 @@
     check_rule_verifiability/1
 ]).
 :- use_module('logic_ir.pl', [logic_rule_safety/2]).
+:- use_module('code_certificates.pl', [code_certificate_check/2, code_certificate_digest/2]).
 
 proof_version('kibi.requirement-proof.v4').
 
@@ -101,10 +102,12 @@ requirement_proof(ReqId, ReqProps, Context, Proof) :-
     proof_issues(Stages, Gaps, Advisories),
     proof_repairs(Gaps, Repairs),
     proof_status(Stages, Status),
-    requirement_evidence(ReqProps, Status, PassingE2eTests, EvidenceLevel, Evidence),
+    proved_scenario_tests(Status, ScenarioTestStage, Context, ProvedTests),
+    certificate_rejections(ScenarioTestStage, Context, Rejections),
+    requirement_evidence(ReqProps, Status, PassingE2eTests, ProvedTests, EvidenceLevel, Evidence),
     evidence_floor(ReqProps, EvidenceLevel, Gaps, Stages, EvidenceFloor),
     proof_version(Version),
-    Proof = _{
+    Proof0 = _{
         proofVersion: Version,
         proofStatus: Status,
         evidenceLevel: EvidenceLevel,
@@ -115,10 +118,14 @@ requirement_proof(ReqId, ReqProps, Context, Proof) :-
         proofRepairs: Repairs,
         proofStages: Stages,
         testResolutions: ScenarioTestStage.resolutions
-    }.
+    },
+    (   Rejections == []
+    ->  Proof = Proof0
+    ;   Proof = Proof0.put(certificateRejections, Rejections)
+    ).
 
 exempt_requirement_proof(Reason, ReqProps, Proof) :-
-    requirement_evidence(ReqProps, not_applicable, [], EvidenceLevel, Evidence),
+    requirement_evidence(ReqProps, not_applicable, [], [], EvidenceLevel, Evidence),
     proof_version(Version),
     Proof = _{
         proofVersion: Version,
@@ -912,7 +919,9 @@ proof_receipt_entries(Props, Receipts, Present) :-
 
 valid_receipt_shape(TestId, Receipt) :-
     inventory_entry_field(Receipt, version, RawVersion),
-    normalize_receipt_atom(RawVersion, 'kibi.proof-receipt.v1'),
+    normalize_receipt_atom(RawVersion, Version),
+    receipt_version(Version),
+    valid_receipt_version_fields(Version, Receipt),
     inventory_entry_field(Receipt, receipt_id, RawReceiptId),
     normalize_receipt_atom(RawReceiptId, ReceiptId), valid_receipt_id(ReceiptId),
     inventory_entry_field(Receipt, test_id, RawTestId),
@@ -956,6 +965,34 @@ valid_receipt_shape(TestId, Receipt) :-
     receipt_timestamp(Receipt, started_at, StartedStamp),
     receipt_timestamp(Receipt, finished_at, FinishedStamp),
     FinishedStamp >= StartedStamp.
+
+% kibi.proof-receipt.v2 adds the contract kind and the evidence level the
+% receipt supports; v1 receipts are still read, as e2e evidence at tested.
+receipt_version('kibi.proof-receipt.v1').
+receipt_version('kibi.proof-receipt.v2').
+
+valid_receipt_version_fields('kibi.proof-receipt.v1', _Receipt).
+valid_receipt_version_fields('kibi.proof-receipt.v2', Receipt) :-
+    inventory_entry_field(Receipt, kind, RawKind),
+    normalize_receipt_atom(RawKind, Kind),
+    memberchk(Kind, [e2e, example, property, exhaustive, typecheck, arithmetic, smt]),
+    inventory_entry_field(Receipt, evidence_level, RawLevel),
+    normalize_receipt_atom(RawLevel, Level),
+    memberchk(Level, [proved, tested]),
+    (   inventory_entry_field(Receipt, certificate_digest, RawDigest)
+    ->  normalize_receipt_atom(RawDigest, Digest),
+        valid_sha256(Digest)
+    ;   true
+    ),
+    (   Level == proved
+    ->  memberchk(Kind, [exhaustive, typecheck, arithmetic, smt]),
+        inventory_entry_field(Receipt, outcome, RawOutcome),
+        normalize_receipt_atom(RawOutcome, passed),
+        inventory_entry_field(Receipt, certificate, _),
+        inventory_entry_field(Receipt, certificate_digest, _),
+        \+ inventory_entry_field(Receipt, certificate_rejection, _)
+    ;   true
+    ).
 
 receipt_producer_name(Producer, Name) :-
     inventory_entry_field(Producer, name, RawName),
@@ -1069,7 +1106,8 @@ receipt_matches_current_binding(Scope, ContractBinding, Receipt) :-
 receipt_matches_current_contract(none, _Receipt).
 receipt_matches_current_contract(hash(ExpectedHash), Receipt) :-
     inventory_entry_field(Receipt, version, RawVersion),
-    normalize_receipt_atom(RawVersion, 'kibi.proof-receipt.v1'),
+    normalize_receipt_atom(RawVersion, Version),
+    receipt_version(Version),
     inventory_entry_field(Receipt, contract_hash, RawContractHash),
     normalize_receipt_atom(RawContractHash, ExpectedHash).
 
@@ -1166,7 +1204,7 @@ receipt_evidence_dict(TestId, Scope, Receipt, State, AgeSeconds, Evidence) :-
     receipt_string_field(Receipt, started_at, StartedAt),
     receipt_string_field(Receipt, finished_at, FinishedAt),
     receipt_string_field(Receipt, artifact_digest, ArtifactDigest),
-    Evidence = _{
+    Evidence0 = _{
         testId: TestId,
         state: State,
         scope: Scope,
@@ -1178,7 +1216,61 @@ receipt_evidence_dict(TestId, Scope, Receipt, State, AgeSeconds, Evidence) :-
         finishedAt: FinishedAt,
         artifactDigest: ArtifactDigest,
         ageSeconds: AgeSeconds
-    }.
+    },
+    receipt_kind_evidence(Receipt, State, Evidence0, Evidence).
+
+% implements REQ-kibi-code-proof-kinds
+% A v2 receipt adds its contract kind and the evidence level it supports.
+% proved needs the certificate to re-check now, not only when it was
+% ingested: its digest must still match and code_certificates.pl must accept
+% it. The digest is an unsigned hash, so this catches edits and corruption,
+% not deliberate forgery. When a receipt that claimed proved no longer
+% re-checks, the evidence says why (certificateRejection).
+receipt_kind_evidence(Receipt, State, Evidence0, Evidence) :-
+    receipt_string_field(Receipt, version, 'kibi.proof-receipt.v2'),
+    receipt_string_field(Receipt, kind, Kind),
+    !,
+    (   State == passed,
+        receipt_string_field(Receipt, evidence_level, proved)
+    ->  receipt_certificate_recheck(Receipt, Recheck),
+        (   Recheck == ok
+        ->  Evidence = Evidence0.put(_{kind: Kind, evidenceLevel: proved})
+        ;   Recheck = rejected(Reason),
+            Evidence = Evidence0.put(_{kind: Kind, evidenceLevel: tested,
+                                       certificateRejection: Reason})
+        )
+    ;   Evidence = Evidence0.put(_{kind: Kind, evidenceLevel: tested})
+    ).
+receipt_kind_evidence(_Receipt, _State, Evidence, Evidence).
+
+% receipt_certificate_recheck(+Receipt, -Result): ok or rejected(Reason).
+receipt_certificate_recheck(Receipt, Result) :-
+    (   inventory_entry_field(Receipt, certificate, Certificate),
+        is_dict(Certificate)
+    ->  true
+    ;   Certificate = none
+    ),
+    (   Certificate == none
+    ->  Result = rejected("the receipt has no certificate")
+    ;   \+ receipt_string_field(Receipt, certificate_digest, _)
+    ->  Result = rejected("the receipt has no certificate_digest")
+    ;   \+ ( receipt_string_field(Receipt, test_id, TestId),
+              get_dict(test_id, Certificate, CertificateTestId),
+              atom_string(TestId, CertificateTestId) )
+    ->  Result = rejected("the certificate is for another test")
+    ;   \+ ( receipt_string_field(Receipt, kind, Kind),
+              get_dict(kind, Certificate, CertificateKind),
+              atom_string(Kind, CertificateKind) )
+    ->  Result = rejected("the certificate kind is not the receipt kind")
+    ;   receipt_string_field(Receipt, certificate_digest, Digest),
+        code_certificate_digest(Certificate, Recomputed),
+        \+ atom_string(Digest, Recomputed)
+    ->  Result = rejected("the certificate no longer matches its certificate_digest")
+    ;   code_certificate_check(Certificate, Check),
+        Check = rejected(Reason)
+    ->  Result = rejected(Reason)
+    ;   Result = ok
+    ).
 
 receipt_string_field(Receipt, Field, Value) :-
     inventory_entry_field(Receipt, Field, RawValue),
@@ -1684,22 +1776,69 @@ proof_status(Stages, unresolved) :-
     !.
 proof_status(_, tested).
 
-% implements REQ-kibi-evidence-levels
-%% requirement_evidence(+Props, +ProofStatus, +PassingE2eTests, -Level, -Evidence)
+% implements REQ-kibi-code-proof-kinds
+%% proved_scenario_tests(+ProofStatus, +ScenarioTestStage, +Context, -ProvedTests)
+% The tests whose fresh receipts earn proved, when every linked scenario has
+% at least one, as TestId-Kind pairs; otherwise [].  A certificate test may have any verification
+% scope: it covers every case of its domain instead of sampling a journey,
+% and the requirement must already be tested end to end.
+proved_scenario_tests(tested, ScenarioTestStage, Context, ProvedTests) :-
+    Obligations = ScenarioTestStage.obligations,
+    Obligations \= [],
+    maplist(scenario_proved_tests(Context), Obligations, PerScenario),
+    \+ memberchk([], PerScenario),
+    !,
+    append(PerScenario, ProvedTests0),
+    sort(ProvedTests0, ProvedTests).
+proved_scenario_tests(_ProofStatus, _ScenarioTestStage, _Context, []).
+
+% implements REQ-kibi-code-proof-kinds
+% Scenario tests whose receipt claimed proved but whose certificate no
+% longer re-checks, with the reason, so a drop to tested is never silent.
+certificate_rejections(ScenarioTestStage, Context, Rejections) :-
+    (   get_dict(obligations, ScenarioTestStage, Obligations)
+    ->  true
+    ;   Obligations = []
+    ),
+    findall(_{test: TestId, reason: Reason},
+        (member(Obligation, Obligations),
+         member(TestId, Obligation.tests),
+         test_receipt_evidence(Context, [unit, integration, end_to_end], TestId, Evidence),
+         get_dict(certificateRejection, Evidence, Reason)),
+        Rejections0),
+    sort(Rejections0, Rejections).
+
+scenario_proved_tests(Context, Obligation, ProvedTests) :-
+    findall(TestId-Kind,
+        (member(TestId, Obligation.tests),
+         test_receipt_evidence(Context, [unit, integration, end_to_end], TestId, Evidence),
+         Evidence.state == passed,
+         get_dict(evidenceLevel, Evidence, proved),
+         get_dict(kind, Evidence, Kind)),
+        ProvedTests).
+
+% implements REQ-kibi-evidence-levels, REQ-kibi-code-proof-kinds
+%% requirement_evidence(+Props, +ProofStatus, +PassingE2eTests, +ProvedTests, -Level, -Evidence)
 % How strong the evidence behind a requirement is, never stronger than what
-% backs it.  Levels, strongest first: proved (a re-checkable certificate
-% covers every case), tested (passing E2E receipts cover every linked
-% scenario: proofStatus tested), asserted (a person stands behind the
-% statement but nothing current checks it), unverified (an agent wrote it and
-% no person approved it).  No proof kind issues certificates yet, so proved
-% is never reached here.  Evidence lists what earned the level and anything
-% weaker that also holds, each entry naming its kind and scope.
-requirement_evidence(Props, ProofStatus, PassingE2eTests, Level, Evidence) :-
-    findall(Entry, evidence_entry(Props, ProofStatus, PassingE2eTests, Entry), Evidence),
+% backs it.  Levels, strongest first: proved (the requirement is tested and
+% every linked scenario also has a test whose fresh receipt carries a
+% certificate that re-checks: ProvedTests is non-empty), tested (passing E2E
+% receipts cover every linked scenario: proofStatus tested), asserted (a
+% person stands behind the statement but nothing current checks it),
+% unverified (an agent wrote it and no person approved it).  Evidence lists
+% what earned the level and anything weaker that also holds, each entry
+% naming its kind and scope.
+requirement_evidence(Props, ProofStatus, PassingE2eTests, ProvedTests, Level, Evidence) :-
+    findall(Entry, evidence_entry(Props, ProofStatus, PassingE2eTests, ProvedTests, Entry), Evidence),
     evidence_level(Evidence, Level).
 
-evidence_entry(_Props, tested, PassingE2eTests, _{kind: e2e, scope: code, level: tested, tests: PassingE2eTests}).
-evidence_entry(Props, _ProofStatus, _PassingE2eTests, Entry) :-
+evidence_entry(_Props, tested, _PassingE2eTests, ProvedTests, _{kind: certificate, scope: code, level: proved, tests: Tests, kinds: Kinds}) :-
+    ProvedTests \= [],
+    pairs_keys_values(ProvedTests, Tests0, Kinds0),
+    sort(Tests0, Tests),
+    sort(Kinds0, Kinds).
+evidence_entry(_Props, tested, PassingE2eTests, _ProvedTests, _{kind: e2e, scope: code, level: tested, tests: PassingE2eTests}).
+evidence_entry(Props, _ProofStatus, _PassingE2eTests, _ProvedTests, Entry) :-
     human_intent(Props, Basis, Ref),
     (   Ref == ''
     ->  Entry = _{kind: human_intent, scope: intent, level: asserted, basis: Basis}

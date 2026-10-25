@@ -65,6 +65,9 @@ export type RequirementProofExplainView = {
   readonly proofVersion: string;
   readonly proofStatus: string;
   readonly proofGaps: readonly string[];
+  readonly evidenceLevel?: string;
+  /** Tests whose receipt claimed proved but whose certificate no longer re-checks. */
+  readonly certificateRejections?: readonly { test: string; reason: string }[];
   readonly scenarios: readonly { id: string; tests: readonly string[] }[];
   readonly tests: readonly ProofExplainTestBlock[];
   readonly productionSymbols: readonly ProofExplainSymbolBlock[];
@@ -225,6 +228,20 @@ export function projectRequirementExplain(
     proofVersion: asString(proof.proofVersion),
     proofStatus: asString(proof.proofStatus),
     proofGaps: asStringArray(proof.proofGaps),
+    ...(typeof proof.evidenceLevel === "string"
+      ? { evidenceLevel: proof.evidenceLevel }
+      : {}),
+    ...(Array.isArray(proof.certificateRejections)
+      ? {
+          certificateRejections: proof.certificateRejections.map((row) => {
+            const entry = asRecord(row);
+            return {
+              test: asString(entry.test),
+              reason: asString(entry.reason),
+            };
+          }),
+        }
+      : {}),
     scenarios,
     tests,
     productionSymbols: explanations.filter(
@@ -267,6 +284,12 @@ function renderRequirementExplain(view: RequirementProofExplainView): string {
     `proofVersion: ${view.proofVersion}`,
     `proofStatus: ${view.proofStatus}`,
     `proofGaps: ${view.proofGaps.join(", ") || "(none)"}`,
+    ...(view.evidenceLevel === undefined
+      ? []
+      : [`evidenceLevel: ${view.evidenceLevel}`]),
+    ...(view.certificateRejections ?? []).map(
+      (row) => `certificate rejected for ${row.test}: ${row.reason}`,
+    ),
     "",
     "Scenarios",
   ];

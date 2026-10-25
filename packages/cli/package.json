@@ -92,6 +92,10 @@
       "types": "./dist/public/extractors/markdown.d.ts",
       "default": "./dist/public/extractors/markdown.js"
     },
+    "./proof-certificates": {
+      "types": "./dist/public/proof-certificates.d.ts",
+      "default": "./dist/public/proof-certificates.js"
+    },
     "./schemas/entity": {
       "types": "./dist/public/schemas/entity.d.ts",
       "default": "./dist/public/schemas/entity.js"

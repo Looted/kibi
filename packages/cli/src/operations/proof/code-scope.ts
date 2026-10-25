@@ -13,7 +13,10 @@ import { resolveBoundSymbolScope } from "../../extractors/manifest.js";
 import { normalizeEntityId, parseTriples } from "../../prolog/codec.js";
 import type { PrologPort } from "../../public/operations/runtime-types.js";
 import { receiptBindingHash } from "../../public/proof-fingerprint.js";
-import type { ProofContract } from "../../public/proof-protocol.js";
+import {
+  type ProofContract,
+  optionalProofContractFields,
+} from "../../public/proof-protocol.js";
 import { normalizeRepoRelativePath } from "../../utils/repo-relative-path.js";
 import { resolveContainedSourcePath } from "../mutation/source-authoring.js";
 import { removeFrontmatterBlock } from "./receipt-document.js";
@@ -110,6 +113,7 @@ export function receiptBindingContract(raw: unknown): ProofContract | null {
       };
     }) as unknown as ProofContract["required_proofs"],
     success_policy: contract.success_policy as ProofContract["success_policy"],
+    ...optionalProofContractFields(contract),
   };
 }
 

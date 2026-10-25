@@ -88,7 +88,7 @@ jobs:
 
       - name: Bootstrap Ubuntu packages
         if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
-        run: bash scripts/ci-apt-bootstrap.sh bubblewrap
+        run: bash scripts/ci-apt-bootstrap.sh bubblewrap z3
 
       # The pipeline-built bundle (kibi-swipl-linux-x64-gnu's archive), so the
       # proof runs on the same Prolog bytes that ship. Kept under this name for
@@ -118,6 +118,7 @@ jobs:
           codex --version
           test "$(pnpm --version)" = "$PNPM_VERSION"
           bwrap --version
+          z3 --version
           uv sync --project tools/skillopt --frozen
           uv run --project tools/skillopt python tools/skillopt/verify_pin.py
 

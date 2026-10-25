@@ -419,3 +419,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-61e2a23059ae
+  - type: executable_for
+    from: SYM-test-code-proof-kinds-typecheck
+    to: TEST-kibi-code-proof-kinds-typecheck
+    created_at: 2026-10-24T19:32:27.730Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32b2b903b929

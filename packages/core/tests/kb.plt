@@ -6516,6 +6516,130 @@ test(evidence_level_follows_human_backing_without_passing_e2e, [setup(setup_kb),
 
 :- end_tests(requirement_evidence_levels).
 
+:- begin_tests(requirement_proved_evidence).
+
+% implements REQ-kibi-code-proof-kinds
+% proved needs the requirement tested end to end and, on every linked
+% scenario, a test whose fresh v2 receipt carries a certificate that re-checks
+% now: a tampered digest or a certificate that no longer re-checks stays tested.
+test(proved_requires_a_rechecked_certificate_on_every_scenario, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    proved_fixture(Snapshot),
+    Certificate = _{
+        version: "kibi.code-certificate.v1",
+        kind: "exhaustive",
+        test_id: "TEST-PROVED-EXHAUSTIVE",
+        domain: _{symbol_id: "SYM-PROVED-DOMAIN", members: ["a", "b"]},
+        results: [_{member: "a", outcome: "passed"}, _{member: "b", outcome: "passed"}]
+    },
+    code_certificates:code_certificate_digest(Certificate, Digest),
+    proved_level(Snapshot, Certificate, Digest, Proved),
+    assertion(Proved.evidenceLevel == proved),
+    assertion(Proved.proofStatus == tested),
+    Evidence = Proved.evidence,
+    assertion(memberchk(_{kind: certificate, scope: code, level: proved,
+                          tests: ['TEST-PROVED-EXHAUSTIVE'], kinds: [exhaustive]}, Evidence)),
+    % A receipt whose digest no longer matches its certificate stays tested.
+    proved_level(Snapshot, Certificate, 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Tampered),
+    assertion(Tampered.evidenceLevel == tested),
+    % A certificate that does not re-check (a failed member) stays tested,
+    % even with a matching digest.
+    put_dict(results, Certificate, [_{member: "a", outcome: "passed"}, _{member: "b", outcome: "failed"}], Failing),
+    code_certificates:code_certificate_digest(Failing, FailingDigest),
+    proved_level(Snapshot, Failing, FailingDigest, Failed),
+    assertion(Failed.evidenceLevel == tested),
+    % A stale certificate receipt (another snapshot) stays tested.
+    proved_level('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', Certificate, Digest, Stale0),
+    assertion(Stale0.evidenceLevel \== proved).
+
+% implements REQ-kibi-code-proof-kinds
+test(proved_needs_every_scenario, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    proved_fixture(Snapshot),
+    Certificate = _{
+        version: "kibi.code-certificate.v1",
+        kind: "exhaustive",
+        test_id: "TEST-PROVED-EXHAUSTIVE",
+        domain: _{symbol_id: "SYM-PROVED-DOMAIN", members: ["a"]},
+        results: [_{member: "a", outcome: "passed"}]
+    },
+    code_certificates:code_certificate_digest(Certificate, Digest),
+    % A second scenario, tested end to end, with no certificate test.
+    proof_receipt_json_with_id('PR-TEST000000009', 'TEST-PROVED-SECOND-E2E', Snapshot, passed,
+        '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', SecondJson),
+    assert_fixture_entity(scenario, 'SCEN-PROVED-SECOND', "A second path", active, []),
+    assert_fixture_entity(test, 'TEST-PROVED-SECOND-E2E', "Second E2E", passing, [
+        verification_scope=end_to_end, proof_receipts=SecondJson]),
+    kb_assert_relationship(specified_by, 'REQ-PROVED', 'SCEN-PROVED-SECOND', []),
+    kb_assert_relationship(verified_by, 'SCEN-PROVED-SECOND', 'TEST-PROVED-SECOND-E2E', []),
+    kb_assert_relationship(covered_by, 'SYM-PROVED-PRODUCTION', 'TEST-PROVED-SECOND-E2E', []),
+    kb_assert_relationship(executable_for, 'SYM-PROVED-E2E', 'TEST-PROVED-SECOND-E2E', []),
+    proved_level(Snapshot, Certificate, Digest, Row),
+    assertion(Row.proofStatus == tested),
+    assertion(Row.evidenceLevel == tested).
+
+proved_fixture(Snapshot) :-
+    ClaimKey = 'CLAIM-ABCDEF0123456789',
+    proof_receipt_json('TEST-PROVED-E2E', Snapshot, passed,
+        '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', ReceiptJson),
+    assert_fixture_entity(req, 'REQ-PROVED', "Proved requirement", active, [
+        priority=must,
+        logic_claims=[ClaimKey],
+        semantic_inventory=[_{claim_key: ClaimKey,
+            claim_text: "Coverage reports expose conservative proof outcomes",
+            role: normative, status: modeled, span: _{start: 0, end: 51}}]
+    ]),
+    assert_fixture_entity(fact, 'FACT-PROVED-SUBJECT', "Coverage report subject", active, [
+        fact_kind=subject, subject_key="kibi.coverage.report"]),
+    assert_fixture_entity(fact, 'FACT-PROVED-PROPERTY', "Proof outcome property", active, [
+        fact_kind=property_value, subject_key="kibi.coverage.report",
+        property_key="proof_outcome", operator=eq, value_type=string,
+        value_string="conservative", claim_key="CLAIM-ABCDEF0123456789",
+        claim_text="Coverage reports expose conservative proof outcomes"]),
+    assert_fixture_entity(scenario, 'SCEN-PROVED', "Inspect a proof", active, []),
+    assert_fixture_entity(test, 'TEST-PROVED-E2E', "Requirement proof E2E", passing, [
+        verification_scope=end_to_end, proof_receipts=ReceiptJson]),
+    assert_fixture_entity(symbol, 'SYM-PROVED-PRODUCTION', "requirement_proof", active, [
+        sourceFile="packages/core/src/requirement_proof.pl", sourceLine=10,
+        sourceColumn=0, sourceEndLine=30, sourceEndColumn=1]),
+    assert_fixture_entity(symbol, 'SYM-PROVED-E2E', "requirement proof E2E test", active, [
+        sourceFile="packages/core/tests/kb.plt", sourceLine=1300,
+        sourceColumn=0, sourceEndLine=1340, sourceEndColumn=1]),
+    kb_assert_relationship(constrains, 'REQ-PROVED', 'FACT-PROVED-SUBJECT', []),
+    kb_assert_relationship(requires_property, 'REQ-PROVED', 'FACT-PROVED-PROPERTY', []),
+    kb_assert_relationship(specified_by, 'REQ-PROVED', 'SCEN-PROVED', []),
+    kb_assert_relationship(verified_by, 'SCEN-PROVED', 'TEST-PROVED-E2E', []),
+    kb_assert_relationship(implements, 'SYM-PROVED-PRODUCTION', 'REQ-PROVED', []),
+    kb_assert_relationship(covered_by, 'SYM-PROVED-PRODUCTION', 'TEST-PROVED-E2E', []),
+    kb_assert_relationship(executable_for, 'SYM-PROVED-E2E', 'TEST-PROVED-E2E', []).
+
+% The coverage row of REQ-PROVED with TEST-PROVED-EXHAUSTIVE verifying
+% SCEN-PROVED through a v2 receipt that carries Certificate and Digest.
+proved_level(Snapshot, Certificate, Digest, Row) :-
+    proof_receipt_v2_json('TEST-PROVED-EXHAUSTIVE', Snapshot, Certificate, Digest, Json),
+    assert_fixture_entity(test, 'TEST-PROVED-EXHAUSTIVE', "Exhaustive proof", passing, [
+        verification_scope=unit, proof_receipts=Json]),
+    ( kb_relationship(verified_by, 'SCEN-PROVED', 'TEST-PROVED-EXHAUSTIVE')
+    -> true
+    ;  kb_assert_relationship(verified_by, 'SCEN-PROVED', 'TEST-PROVED-EXHAUSTIVE', [])
+    ),
+    coverage_report_json(req, [], true, true, 100, 0,
+        'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        '2026-08-10T12:05:00Z', 604800, JsonString),
+    json_string_dict(JsonString, Report),
+    coverage_row(Report.rows, 'REQ-PROVED', Row).
+
+proof_receipt_v2_json(TestId, Snapshot, Certificate, Digest, Json) :-
+    proof_receipt_json_scoped('PR-TEST000000077', TestId, unit, Snapshot, passed,
+        '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', V1Json),
+    atom_json_dict(V1Json, [V1], [value_string_as(atom)]),
+    put_dict(_{version: 'kibi.proof-receipt.v2', kind: exhaustive, evidence_level: proved,
+               certificate: Certificate, certificate_digest: Digest}, V1, V2),
+    atom_json_dict(JsonAtom, [V2], []),
+    atom_string(JsonAtom, Json).
+
+:- end_tests(requirement_proved_evidence).
+
 :- begin_tests(requirement_evidence_floors).
 
 % implements REQ-kibi-evidence-floors

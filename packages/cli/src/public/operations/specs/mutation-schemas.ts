@@ -1,4 +1,5 @@
 import { ENTITY_ORIGIN_SCHEMA } from "../../entity-origin.js";
+import { EVIDENCE_LEVELS } from "../../evidence-levels.js";
 import {
   PROOF_BINDINGS_SCHEMA,
   PROOF_CONTRACT_SCHEMA,
@@ -133,7 +134,7 @@ export const ENTITY_PROPERTIES_SCHEMA = {
     },
     required_evidence: {
       type: "string",
-      enum: ["proved", "tested", "asserted", "unverified"],
+      enum: [...EVIDENCE_LEVELS],
       description:
         "Requirement-only. Weakest evidence level it accepts; the evidence-floor rule fails below it. Absent = tested if firm, else unverified.",
     },

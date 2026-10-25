@@ -801,6 +801,7 @@ export function renderHtmlReport(input: HtmlReportInput): string {
       <section class="metrics" aria-label="Requirement health summary">
         ${metric("Requirements", currentRequirements)}
         ${metric("Tested end to end", tested, "good")}
+        ${metric("Proved by certificate", evidenceCount(currentRows, "proved"), evidenceCount(currentRows, "proved") ? "good" : "")}
         ${metric("Asserted, no current test", evidenceCount(currentRows, "asserted"), evidenceCount(currentRows, "asserted") ? "warn" : "")}
         ${metric("Unverified", evidenceCount(currentRows, "unverified"), evidenceCount(currentRows, "unverified") ? "warn" : "")}
         ${metric("Missing scenarios", missingScenarios, missingScenarios ? "warn" : "")}

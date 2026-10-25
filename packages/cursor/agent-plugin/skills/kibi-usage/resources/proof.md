@@ -22,7 +22,7 @@ reports what happened as `kibi.proof-run.v1`; Kibi evaluates proof.
    `kibi prove` captures the workspace snapshot, runs each integration's
    producer once (`shell: false`), revalidates the snapshot, evaluates the
    artifact against every selected contract, and appends idempotent
-   `kibi.proof-receipt.v1` receipts.
+   `kibi.proof-receipt.v2` receipts (v1 receipts stay valid).
 3. Confirm with `kb_status` (fresh, current snapshot) and `kb_coverage`.
 
 Never hand-write receipts. Kibi derives them from validated
@@ -126,8 +126,9 @@ Every requirement row also carries `evidenceLevel`, the strength of what backs
 it, and `evidence`, the entries that earned it (each with `kind`, `scope` and
 `level`):
 
-- `proved`: a re-checkable certificate covers every case. No proof kind issues
-  certificates yet, so nothing reaches it today.
+- `proved`: the requirement is `tested` and every scenario has a test whose
+  fresh receipt carries a certificate that still re-checks (see Certificate
+  proof kinds). The entry has `kind: certificate` and lists the tests.
 - `tested`: `proofStatus` is `tested`; fresh E2E receipts cover every linked
   scenario.
 - `asserted`: a person stands behind the statement (approved, or firm by
@@ -137,6 +138,49 @@ it, and `evidence`, the entries that earned it (each with `kind`, `scope` and
 Report the level as it is. Never call an `asserted` or `unverified`
 requirement proven or tested, and never call `tested` proved. Firmness is a
 separate axis: it says how sure the person is, not how strong the evidence is.
+
+## Certificate proof kinds
+
+A contract's `kind` says what its evidence can reach. The runner kinds `e2e`
+(the default), `example` and `property` support `tested`. The certificate
+kinds support `proved`, and only when Kibi re-checks the certificate the test
+left:
+
+- `exhaustive`: the test runs a check on every member of a finite domain.
+  Set `domain_source: { symbol_id: SYM-<domain> }` to the symbol that defines
+  the domain, and import that symbol in the proof file. Kibi loads the
+  export itself and rejects a certificate that does not cover exactly its
+  members, so a hand-listed or partial domain stays `tested`.
+- `typecheck`: a witness file that stops compiling when a domain member
+  goes unhandled (a switch ending in a `never` assignment, or a
+  `satisfies Record<Domain, ...>` map). Set `witness.path` and
+  `domain_source`; the witness must import the domain. Kibi compiles the
+  witness itself (strict, with the workspace's TypeScript), so `typescript`
+  must be installed in the workspace.
+- `arithmetic`: a claim on one `int` or `real` variable decided exactly from
+  typed facts. Set `constraint_source: { fact_ids: [FACT-...] }` to the
+  numeric `property_value` facts (one subject and property); the
+  certificate's variable is their `property_key` and its assumptions are
+  exactly their constraints.
+- `smt`: an SMT-LIB query that declares the facts' property as a constant,
+  asserts each `constraint_source` fact constraint and then the claim's
+  negation. Kibi re-runs z3 or cvc5 on it and accepts only `unsat`.
+
+`arithmetic` and `smt` prove that the knowledge base's facts entail the
+claim, not that code follows the facts; when the code is what matters, also
+test the code. A test whose numbers are not in typed facts stays `tested`.
+
+Build the certificate with `kibi-cli/proof-certificates`
+(`exhaustiveCertificate`, `typecheckCertificate`, `arithmeticCertificate`,
+`smtCertificate`), fail the test when it records a failure
+(`failedMembers`), and call `writeCodeCertificate`; it writes to the
+directory `kibi prove` sets in `KIBI_PROOF_CERTIFICATES` and does nothing
+elsewhere. A rejected certificate leaves the receipt at `tested` with
+`certificate_rejection` naming why; fix the proof, never the receipt. If a
+stored certificate stops re-checking later, coverage and `kibi proof
+explain` list it under `certificateRejections`. Use a
+certificate kind only when the domain or claim is genuinely finite or
+decidable; an e2e test that samples cases stays `tested`.
 
 ## Evidence floors
 

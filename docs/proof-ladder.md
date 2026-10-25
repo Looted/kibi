@@ -260,15 +260,16 @@ backs it:
 
 | Level | Meaning | What earns it |
 | --- | --- | --- |
-| `proved` | A checker established the claim for every case and left a certificate a second program can re-check | A proof certificate. No proof kind issues one yet, so no requirement reaches this level today |
+| `proved` | A checker established the claim for every case and left a certificate a second program can re-check | `proofStatus: tested`, and every linked scenario also has a test whose fresh `kibi.proof-receipt.v2` is proved: a certificate-kind contract (`exhaustive`, `typecheck`, `arithmetic`, `smt`) whose certificate re-checks now (see [Certificate proof kinds](proving-requirements.md#certificate-proof-kinds)) |
 | `tested` | Passing runs on sampled cases, bound to the current code snapshot | `proofStatus: tested` |
 | `asserted` | A person stands behind the statement, but nothing current checks it | `origin.approved_by`, or firm: `firmness: firm`, or no `firmness` and an origin other than `agent` |
 | `unverified` | Stated, not approved, no evidence | Nothing: an agent wrote it and no person approved it |
 
 Each row's `evidence[]` lists the entries that earned the level, each with
-`kind` (`e2e`, `human_intent`), `scope` (`code` for what the tests exercised,
+`kind` (`certificate`, `e2e`, `human_intent`), `scope` (`code` for what the tests exercised,
 `intent` for what a person stated) and `level`; an `e2e` entry names its
-passing `tests`, a `human_intent` entry its `basis` (`approved` or `firm`)
+passing `tests`, a `certificate` entry its proved `tests` and their proof
+`kinds`, a `human_intent` entry its `basis` (`approved` or `firm`)
 and, when there is one, the `ref` to the person's words. The coverage
 summary counts rows per level under `evidenceLevels`.
 

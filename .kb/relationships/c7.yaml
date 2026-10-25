@@ -279,3 +279,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0fa4281a0c49
+  - type: executable_for
+    from: SYM-e2e-packed-code-proof-kinds
+    to: TEST-kibi-code-proof-kinds
+    created_at: 2026-10-24T19:32:33.264Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5e8fbdd414b
