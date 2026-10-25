@@ -19013,18 +19013,18 @@ coordinates:
     sourceLine: 142
   SYM-mcp-tools-list-base-contract:
     identityHash: 9073f98551866a5ff683b3bca2e5236aca8bd1f04902812cd6544f3653119f74
-    sourceHash: ffdb5eb9da1e6681a9fc8541e822ba3f7c6d5364360d2c563f84037a9c454b02
+    sourceHash: ba4c343ebf77318858266e8da2952a47eba49201bcfff81200caefb1ce7deb0d
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 8148
+    sourceEndLine: 8161
     sourceFile: packages/mcp/tests/fixtures/contracts/tools-list.base.json
     sourceLine: 1
   SYM-mcp-tools-list-diagnostic-contract:
     identityHash: d7a4de20871928a9cd2c9a71f45020a705571669957562a00e355e78ee5ba841
-    sourceHash: 66423a7f31e7b423d26602984affb4d512258e57f2a1e2cf04984d4f87375259
+    sourceHash: f234cfdaf79db6e9e7aad49afc2d873204081b54b80e4164b8f4c3d1597bd651
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 8740
+    sourceEndLine: 8753
     sourceFile: packages/mcp/tests/fixtures/contracts/tools-list.diagnostic.json
     sourceLine: 1
   SYM-mcp-withWorkspaceRootSchema:
@@ -37309,10 +37309,10 @@ coordinates:
     sourceLine: 1
   SYM-test-proof-protocol:
     identityHash: 1c8ef63590374de37cc33074d7d9aaada02273a1261585e6579a0e63327a2ecc
-    sourceHash: 7c09930a5e67f7efa92ccbb402c3387c4e82a37d8d2aa874ef665c790bf519d1
+    sourceHash: 8c01327e3f78528459621c15197bf6a0b031cedf83f6a2e37d79f9712ce23f68
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 614
+    sourceEndLine: 617
     sourceFile: packages/cli/tests/public/proof-protocol.test.ts
     sourceLine: 1
   SYM-test-publish-metadata-verifier:
