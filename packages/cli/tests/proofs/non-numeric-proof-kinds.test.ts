@@ -3,7 +3,10 @@ import { spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { requiredFieldsWitness } from "../../src/operations/proof/claim-bindings.js";
+import {
+  requiredFieldsFailures,
+  requiredFieldsWitness,
+} from "../../src/operations/proof/claim-bindings.js";
 import { compileWitness } from "../../src/operations/proof/code-certificates.js";
 import {
   type MachineModel,
@@ -880,5 +883,106 @@ describe("required fields through typecheck", () => {
     expect(compile(["note"])).toBe(false);
     expect(compile(["refund"])).toBe(false);
     expect(compile(["missing"])).toBe(false);
+  });
+});
+
+describe("required fields failures", () => {
+  test("a failed witness names each field that breaks the claim", () => {
+    writeFileSync(
+      path.join(scratch, "invoice.ts"),
+      "export interface Invoice { id: string; note?: string; voidedAt: number | null }\n",
+    );
+    const fields = ["id", "note", "voidedAt", "missing"];
+    const witnessText = requiredFieldsWitness(
+      "./invoice.js",
+      "domain.Invoice",
+      fields,
+    );
+    const witness = path.join(scratch, `witness-${Math.random()}.ts`);
+    writeFileSync(witness, witnessText);
+    const compiled = compileWitness(repoRoot, path.relative(repoRoot, witness));
+    expect(compiled.ok).toBe(false);
+    if (compiled.ok) return;
+    expect(
+      requiredFieldsFailures(witnessText, fields, compiled.errorLines ?? []),
+    ).toEqual([
+      "note is optional or nullable",
+      "voidedAt is optional or nullable",
+      "missing is not a field",
+    ]);
+  });
+});
+
+describe("every-member set facts (includes)", () => {
+  test("two includes facts agree; includes conflicts with eq only on a member eq leaves out", () => {
+    const answers = prologCases<{ conflict: boolean }>(
+      "kb.pl",
+      `atom_string(A, Case.a_op), atom_string(B, Case.b_op),
+       ( kb:values_conflict(A, Case.a, B, Case.b, set)
+       -> Out = _{conflict: true} ; Out = _{conflict: false} )`,
+      [
+        {
+          a_op: "includes",
+          a: ["admin", "owner"],
+          b_op: "includes",
+          b: ["admin", "member", "owner"],
+        },
+        {
+          a_op: "includes",
+          a: ["admin", "owner"],
+          b_op: "eq",
+          b: ["admin", "member", "owner"],
+        },
+        {
+          a_op: "includes",
+          a: ["admin", "member"],
+          b_op: "eq",
+          b: ["admin", "owner"],
+        },
+        { a_op: "eq", a: ["admin"], b_op: "includes", b: ["admin", "owner"] },
+      ],
+    );
+    expect(answers.map((answer) => answer.conflict)).toEqual([
+      false,
+      false,
+      true,
+      true,
+    ]);
+  });
+
+  test("the KB consistency checker models includes as containment", () => {
+    const answers = prologCases<{ satisfiable: boolean }>(
+      "certificate_check.pl",
+      `findall(m(f, Op, Set, '', ''),
+               (member(Row, Case.members), atom_string(Op, Row.op), Set = Row.set),
+               Members),
+       ( certificate_check:certificate_members_satisfiable(set, Members)
+       -> Out = _{satisfiable: true} ; Out = _{satisfiable: false} )`,
+      [
+        {
+          members: [
+            { op: "includes", set: ["admin", "owner"] },
+            { op: "includes", set: ["member"] },
+          ],
+        },
+        {
+          members: [
+            { op: "includes", set: ["admin", "owner"] },
+            { op: "eq", set: ["admin", "member", "owner"] },
+          ],
+        },
+        {
+          members: [
+            { op: "includes", set: ["admin", "owner"] },
+            { op: "eq", set: ["admin"] },
+          ],
+        },
+      ],
+    );
+    expect(answers.map((answer) => answer.satisfiable)).toEqual([
+      true,
+      true,
+      false,
+    ]);
   });
 });

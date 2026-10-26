@@ -178,8 +178,12 @@ left:
   goes unhandled (a switch ending in a `never` assignment, or a
   `satisfies Record<Domain, ...>` map). Set `witness.path` and
   `domain_source`; the witness must import the domain. Kibi compiles the
-  witness itself (strict, with the workspace's TypeScript), so `typescript`
-  must be installed in the workspace.
+  witness itself (strict, with the workspace's TypeScript and the import
+  resolution of the nearest `tsconfig.json`), so `typescript` must be
+  installed in the workspace (TypeScript 7 has no compiler API: add
+  `typescript@6` as a dev dependency). With `proves`, Kibi decides each
+  claim with its own witness and reports the fields or members that break
+  it.
 - `arithmetic`: a claim on one `int` or `real` variable decided exactly from
   typed facts. Set `constraint_source: { fact_ids: [FACT-...] }` to the
   numeric `property_value` facts (one subject and property); the
@@ -192,7 +196,9 @@ left:
   its size, so do not add a number export just for the proof.
   A claim that every member of a closed set has a property ("Every currency
   in GBP, ILS and ZAR must fail closed") is a set fact whose `property_key`
-  names the property and whose `value_set` is the members.
+  names the property, whose `value_set` is the members and whose operator
+  is `includes` (other members may have the property too, so two such
+  claims over different sets do not contradict).
 - `smt`: an SMT-LIB query that declares the facts' property as a constant,
   asserts each `constraint_source` fact constraint and then the claim's
   negation. Kibi re-runs z3 or cvc5 on it and accepts only `unsat`.

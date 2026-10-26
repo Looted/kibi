@@ -85,7 +85,7 @@
 :- use_module(library(sha), [sha_hash/3, hash_atom/2]).
 :- use_module(library(http/json)).
 :- use_module(library(aggregate), [aggregate_all/3]).
-:- use_module(library(lists), [sum_list/2]).
+:- use_module(library(lists), [sum_list/2, subtract/3]).
 :- use_module(library(ordsets)).
 :- use_module(library(solution_sequences), [distinct/1, limit/2, offset/2, order_by/2]).
 :- use_module('../schema/entities.pl', [entity_type/1, entity_property/3, required_property/2]).
@@ -3225,6 +3225,16 @@ same_value(TypeA, ValA, TypeB, ValB) :-
 % Exact value conflict: eq X vs eq Y where X \= Y
 values_conflict(eq, ValA, eq, ValB, Type) :-
     \+ same_value(Type, ValA, Type, ValB).
+
+% A set fact with includes says every member of its set has the property;
+% eq on a set says exactly those members do. Two includes facts always agree
+% (the members having the property include both sets); includes conflicts
+% with eq only when it names a member the eq set leaves out.
+% implements REQ-kibi-non-numeric-proof-kinds
+values_conflict(includes, Included, eq, Exact, set) :-
+    \+ subtract(Included, Exact, []).
+values_conflict(eq, Exact, includes, Included, set) :-
+    \+ subtract(Included, Exact, []).
 
 % Eq/neq conflict on the same scalar value.
 values_conflict(eq, ValA, neq, ValB, Type) :-

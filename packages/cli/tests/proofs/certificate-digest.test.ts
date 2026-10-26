@@ -123,7 +123,7 @@ describe("stored certificate re-check", () => {
         evidenceLevel: "tested",
         certificate: rehashed.certificate,
         certificateRejection:
-          "the assumptions do not entail the claim: some value satisfies them and breaks it",
+          "the assumptions do not entail the claim: x = 3 satisfies them and breaks it",
       },
     ]);
   });
@@ -160,5 +160,87 @@ describe("typecheck witness", () => {
     expect(partial.ok).toBe(false);
     if (!partial.ok)
       expect(partial.reason).toContain("rejects the witness partial.ts");
+  }, 60_000);
+});
+
+describe("typecheck witness compile", () => {
+  const workspace = () => {
+    const root = mkdtempSync(path.join(tmpdir(), "kibi-witness-ts-"));
+    mkdirSync(path.join(root, "node_modules"));
+    symlinkSync(
+      path.dirname(
+        createRequire(import.meta.url).resolve("typescript/package.json"),
+      ),
+      path.join(root, "node_modules", "typescript"),
+    );
+    writeFileSync(
+      path.join(root, "domain.ts"),
+      "export interface Row { id: string; deletedAt: number | null }\n",
+    );
+    return root;
+  };
+
+  test("imports resolve the way the workspace tsconfig says", () => {
+    const root = workspace();
+    writeFileSync(
+      path.join(root, "witness.ts"),
+      'import type { Row } from "./domain";\nconst id: Row["id"] = "x";\nvoid id;\nexport {};\n',
+    );
+    // In an ES module package NodeNext needs ./domain.js; the project
+    // resolves like a bundler.
+    writeFileSync(path.join(root, "package.json"), '{"type": "module"}\n');
+    expect(compileWitness(root, "witness.ts").ok).toBe(false);
+    writeFileSync(
+      path.join(root, "tsconfig.json"),
+      JSON.stringify({
+        compilerOptions: { module: "ESNext", moduleResolution: "Bundler" },
+      }),
+    );
+    expect(compileWitness(root, "witness.ts")).toMatchObject({ ok: true });
+  }, 60_000);
+
+  test("the exhaustiveness check reads the syntax tree, not the word never", () => {
+    const root = workspace();
+    writeFileSync(
+      path.join(root, "comment.ts"),
+      '// this witness never checks anything\nimport type { Row } from "./domain.js";\nconst id: Row["id"] = "x";\nvoid id;\nexport {};\n',
+    );
+    writeFileSync(
+      path.join(root, "map.ts"),
+      'const colors = { red: 1, green: 2 } satisfies Record<"red" | "green", number>;\nvoid colors;\nexport {};\n',
+    );
+    const comment = compileWitness(root, "comment.ts", {
+      requireExhaustiveness: true,
+    });
+    expect(comment.ok).toBe(false);
+    if (!comment.ok)
+      expect(comment.reason).toContain("no exhaustiveness check");
+    expect(compileWitness(root, "comment.ts").ok).toBe(true);
+    expect(
+      compileWitness(root, "map.ts", { requireExhaustiveness: true }).ok,
+    ).toBe(true);
+  }, 60_000);
+
+  test("a TypeScript without the compiler API is named, not reported missing", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "kibi-witness-ts7-"));
+    const fake = path.join(root, "node_modules", "typescript");
+    mkdirSync(fake, { recursive: true });
+    writeFileSync(
+      path.join(fake, "package.json"),
+      JSON.stringify({
+        name: "typescript",
+        version: "7.0.2",
+        main: "version.cjs",
+      }),
+    );
+    writeFileSync(
+      path.join(fake, "version.cjs"),
+      'module.exports = { version: "7.0.2" };\n',
+    );
+    writeFileSync(path.join(root, "witness.ts"), "export {};\n");
+    const compiled = compileWitness(root, "witness.ts");
+    expect(compiled.ok).toBe(false);
+    if (!compiled.ok)
+      expect(compiled.reason).toContain("TypeScript 7.0.2 has no compiler API");
   }, 60_000);
 });

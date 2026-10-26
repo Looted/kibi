@@ -383,9 +383,14 @@ for the proof:
 
 A claim that every member of a closed set has a property ("Every currency in
 GBP, ILS and ZAR must fail closed") is modeled as a set fact named for the
-property: the semantic advisor proposes `property_key: fail_closed` with
-`value_set: [GBP, ILS, ZAR]`, so the property stays in the requirement instead
-of living only in the test.
+property: the semantic advisor proposes `property_key: fail_closed`,
+`operator: includes` and `value_set: [GBP, ILS, ZAR]`, so the property stays in
+the requirement instead of living only in the test. `includes` says every
+listed member has the property and leaves the others open, so "every role in
+owner and admin can invite" and "every role in owner, admin and member can
+invite" are both valid facts; the code decides which holds. `eq` on a set
+means exactly those members, and an `includes` fact contradicts an `eq` fact
+on the same property only when it names a member the `eq` set leaves out.
 
 Kibi judges bindings at ingest and judges them again whenever it reports
 evidence: a binding whose fact changed since ingest (another set, another
@@ -502,10 +507,18 @@ it checks the workspace. For an exhaustive proof Kibi loads the
 node with type stripping) and needs the certificate to cover exactly its
 members (or, for non-primitive members, as many of them), so a hand-listed
 subset is rejected; the proof file must also import the symbol. A typecheck
-witness must import the domain, be the file in the workspace (its sha256) and
-contain a `never` check, and Kibi compiles it itself with the workspace's
-TypeScript under fixed strict options, so a test cannot report a pass the
-compiler would not give. Arithmetic and SMT certificates must match their
+witness must import the domain and be the file in the workspace (its sha256),
+and Kibi compiles it itself with the workspace's TypeScript under fixed strict
+options, so a test cannot report a pass the compiler would not give. Imports
+resolve the way the nearest `tsconfig.json` says (`module`,
+`moduleResolution`, `paths`, ...); without one, NodeNext. TypeScript 7 ships
+without the compiler API, so Kibi falls back to an older `typescript` further
+up the workspace and otherwise asks for `typescript@6` as a dev dependency. A
+contract without `proves` rests on the witness alone, so the witness must also
+contain an exhaustiveness check, a `never` type or a `satisfies` map, read
+from its syntax (the word in a comment does not count). With `proves`, Kibi
+checks each claim with a witness it writes itself, and a rejection names the
+fields that are missing, optional or nullable. Arithmetic and SMT certificates must match their
 `constraint_source` facts as described above. The receipt
 (`kibi.proof-receipt.v2`) records `kind`,
 `evidence_level`, the certificate and its digest (the sha256 of its canonical

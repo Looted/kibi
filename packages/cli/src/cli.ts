@@ -29,6 +29,7 @@ import { registerProofCommand } from "./cli-register-proof.js";
 import { registerReportingCommands } from "./cli-register-reporting.js";
 import { registerSkillsCommands } from "./cli-register-skills.js";
 import { bootstrapKibiEnvironment } from "./env/bootstrap.js";
+import { resolveWorkspaceCwd } from "./workspace-cwd.js";
 export type { CommandResult } from "./cli-command.js";
 
 const packageJson: unknown = JSON.parse(
@@ -86,10 +87,16 @@ export function buildProgram(): Command {
 
 // implements REQ-kibi-operation-interface-parity
 export async function main(): Promise<never> {
+  const workspace = resolveWorkspaceCwd(
+    process.argv,
+    process.cwd(),
+    process.env,
+  );
+  if (workspace.cwd !== process.cwd()) process.chdir(workspace.cwd);
   bootstrapKibiEnvironment();
   let exitCode = process.exitCode ?? 0;
   try {
-    await buildProgram().parseAsync(process.argv);
+    await buildProgram().parseAsync(workspace.argv);
     exitCode = process.exitCode ?? 0;
   } catch (error) {
     exitCode = exitCodeFromCliFailure(error);

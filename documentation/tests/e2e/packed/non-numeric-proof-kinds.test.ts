@@ -527,6 +527,9 @@ export async function checkNonNumericProofKinds(
   const loose = latestReceipt(sandbox, "TEST-INVOICE-NUMBER-LOOSE");
   assert.match(loose, /binding: rejected/, loose);
   assert.match(loose, /is in the code''s pattern only/, loose);
+  // The certificate re-checks but derives no claim, so the receipt supports
+  // tested, the level coverage reports, not proved.
+  assert.match(loose, /evidence_level: tested/, loose);
 
   const machine = latestReceipt(sandbox, "TEST-INVOICE-MACHINE");
   assert.match(machine, /evidence_level: proved/, machine);

@@ -173,10 +173,12 @@ export function detectStrictSuggestion(
     );
   }
 
-  // "Every currency in GBP, ILS and ZAR must fail closed": the set is
-  // exactly the members that must have the property, and the property names
-  // the fact, so the claim keeps it. An exhaustive certificate over a domain
-  // equal to the set, whose per-member check is the property, proves it.
+  // "Every currency in GBP, ILS and ZAR must fail closed": every member of
+  // the set must have the property, which names the fact. The operator is
+  // includes, not eq: other members may have the property too, so two such
+  // claims over different sets agree. A rule certificate over the property's
+  // predicate, or an exhaustive one whose per-member check is the property,
+  // proves it.
   const everyMember = statement.match(
     /^(?:every|each|all)\s+(?<subject>.+?)\s+in\s+(?<values>.+?)\s+(?:must|shall|should)\s+(?<predicate>.+?)\.?$/i,
   );
@@ -200,11 +202,11 @@ export function detectStrictSuggestion(
         {
           subject_key: normalizeSubjectKey(everyMember.groups.subject),
           property_key: property,
-          operator: "eq",
+          operator: "includes",
           value_type: "set",
           value_set: [...new Set(values)].sort(),
         },
-        `A claim that every member of a closed set has a property is a set fact named for the property (${property}): its value is exactly the members that must have it. An exhaustive proof binds to it when its domain is that set and its per-member check is the property.`,
+        `A claim that every member of a closed set has a property is a set fact named for the property (${property}) with operator includes: every member of its value must have the property, and other members may have it too. An exhaustive proof binds to it when its domain is that set and its per-member check is the property.`,
         0.84,
         `in ${everyMember.groups.values}`,
       );

@@ -49,7 +49,7 @@ describe("CLI modules previously absent from LCOV", () => {
     ).toMatchObject({
       subject_key: "currency",
       property_key: "fail_closed",
-      operator: "eq",
+      operator: "includes",
       value_type: "set",
       value_set: ["GBP", "ILS", "ZAR"],
     });

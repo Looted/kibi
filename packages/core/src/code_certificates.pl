@@ -178,7 +178,12 @@ kind_problem(arithmetic, Certificate, Reason) :-
         (   \+ numeric_constraints_satisfiable(Premises, Integers)
         ->  Reason = "the assumptions admit no value, so the claim holds vacuously"
         ;   \+ numeric_constraint_entailed(Premises, Goal, Integers)
-        ->  Reason = "the assumptions do not entail the claim: some value satisfies them and breaks it"
+        ->  (   arithmetic_counterexample(Type, Assumptions, Claim, Value)
+            ->  format(string(Reason),
+                       "the assumptions do not entail the claim: ~w = ~w satisfies them and breaks it",
+                       [Variable, Value])
+            ;   Reason = "the assumptions do not entail the claim: some value satisfies them and breaks it"
+            )
         )
     ).
 kind_problem(smt, Certificate, Reason) :-
@@ -338,6 +343,36 @@ arithmetic_constraint(X, Row, c(Op, X, Value)) :-
     memberchk(Op, [eq, neq, lt, lte, gt, gte]),
     get_dict(value, Row, Value),
     number(Value).
+
+% arithmetic_counterexample(+Type, +Assumptions, +Claim, -Value): a value
+% next to one of the constants that satisfies every assumption and breaks the
+% claim, so a rejection can name it (a count of 5 against "exactly 4").
+arithmetic_counterexample(Type, Assumptions, Claim, Value) :-
+    findall(C, (member(Row, [Claim|Assumptions]), get_dict(value, Row, C)), Constants),
+    (   Type == "int" -> Step = 1 ; Step = 0.5 ),
+    findall(V,
+            (   member(C, [0|Constants]),
+                member(D, [0, -1, 1]),
+                V is C + D*Step,
+                (   Type == "int" -> integer(V) ; true )
+            ),
+            Candidates0),
+    sort(Candidates0, Candidates),
+    member(Value, Candidates),
+    forall(member(Row, Assumptions), concrete_holds(Row, Value)),
+    \+ concrete_holds(Claim, Value),
+    !.
+
+concrete_holds(Row, X) :-
+    arithmetic_constraint(Y, Row, c(Op, Y, V)),
+    concrete_op(Op, X, V).
+
+concrete_op(eq, X, V) :- X =:= V.
+concrete_op(neq, X, V) :- X =\= V.
+concrete_op(lt, X, V) :- X < V.
+concrete_op(lte, X, V) :- X =< V.
+concrete_op(gt, X, V) :- X > V.
+concrete_op(gte, X, V) :- X >= V.
 
 integer_variables("int", X, [X]).
 integer_variables("real", _, []).

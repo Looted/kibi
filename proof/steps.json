@@ -3215,5 +3215,20 @@
         "./packages/cli/tests/proofs/non-numeric-proof-kinds.proof.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-cli-subdirectory-workspace",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/cli-subdirectory-workspace.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/workspace-cwd.test.ts"
+      ]
+    ]
   }
 ]

@@ -584,42 +584,156 @@ export function domainCoverageProblem(
 type TypeScriptApi = typeof import("typescript");
 
 /**
- * Kibi compiles a typecheck witness itself, with the workspace's TypeScript
- * and fixed strict options (a lax project tsconfig could make the never
- * check vacuous), and accepts it only with no errors in the witness.
+ * The TypeScript compiler API for a witness: the package nearest the witness
+ * first, then the workspace root. TypeScript 7 ships without the JS compiler
+ * API, so a 7.x install is skipped for an older one further up, and named in
+ * the reason when none is left.
+ */
+function loadTypeScript(
+  workspaceRoot: string,
+  absoluteWitness: string,
+): { ok: true; ts: TypeScriptApi } | { ok: false; reason: string } {
+  const noApi: string[] = [];
+  const bases = [
+    path.join(path.dirname(absoluteWitness), "noop.js"),
+    path.join(workspaceRoot, "package.json"),
+  ];
+  for (const base of bases) {
+    let loaded: Partial<TypeScriptApi> | undefined;
+    try {
+      loaded = createRequire(base)("typescript") as Partial<TypeScriptApi>;
+    } catch {
+      continue;
+    }
+    if (typeof loaded.createProgram === "function")
+      return { ok: true, ts: loaded as TypeScriptApi };
+    noApi.push(String(loaded.version ?? "unknown"));
+  }
+  return {
+    ok: false,
+    reason:
+      noApi.length > 0
+        ? `the workspace's TypeScript ${noApi[0]} has no compiler API to compile the witness (TypeScript 7 ships without it); add typescript@6 as a dev dependency for typecheck proofs`
+        : "Kibi could not load TypeScript from the workspace to compile the witness (install typescript)",
+  };
+}
+
+/** Options that decide how the witness's imports resolve, from the nearest tsconfig. */
+const RESOLUTION_OPTIONS = [
+  "module",
+  "moduleResolution",
+  "baseUrl",
+  "paths",
+  "rootDirs",
+  "customConditions",
+  "resolvePackageJsonExports",
+  "resolvePackageJsonImports",
+  "allowImportingTsExtensions",
+  "resolveJsonModule",
+  "jsx",
+  "jsxImportSource",
+  "lib",
+  "target",
+  "esModuleInterop",
+  "allowSyntheticDefaultImports",
+  "verbatimModuleSyntax",
+] as const;
+
+function projectResolutionOptions(
+  ts: TypeScriptApi,
+  workspaceRoot: string,
+  absoluteWitness: string,
+): import("typescript").CompilerOptions {
+  const configPath = ts.findConfigFile(
+    path.dirname(absoluteWitness),
+    ts.sys.fileExists,
+    "tsconfig.json",
+  );
+  if (
+    configPath === undefined ||
+    path.relative(workspaceRoot, configPath).startsWith("..")
+  )
+    return {};
+  const read = ts.readConfigFile(configPath, ts.sys.readFile);
+  if (read.error !== undefined) return {};
+  const parsed = ts.parseJsonConfigFileContent(
+    read.config,
+    ts.sys,
+    path.dirname(configPath),
+    undefined,
+    configPath,
+  );
+  const options: Record<string, unknown> = {};
+  for (const key of RESOLUTION_OPTIONS)
+    if (parsed.options[key] !== undefined) options[key] = parsed.options[key];
+  return options as import("typescript").CompilerOptions;
+}
+
+/**
+ * Whether a witness can stop compiling when a domain member goes unhandled:
+ * it uses the never type (a switch ending in a never assignment) or a
+ * satisfies expression (a map over the domain). Read from the syntax tree,
+ * so the word never in a comment or a string does not count.
+ */
+function hasExhaustivenessCheck(
+  ts: TypeScriptApi,
+  witness: import("typescript").SourceFile,
+): boolean {
+  const visit = (node: import("typescript").Node): boolean =>
+    node.kind === ts.SyntaxKind.NeverKeyword ||
+    node.kind === ts.SyntaxKind.SatisfiesExpression ||
+    (ts.forEachChild(node, (child) => (visit(child) ? true : undefined)) ??
+      false);
+  return visit(witness);
+}
+
+/**
+ * Kibi compiles a typecheck witness itself, with the workspace's TypeScript.
+ * Imports resolve the way the project's own tsconfig says (module,
+ * moduleResolution, paths, ...), but the checking options stay fixed and
+ * strict, so a lax project tsconfig cannot make the never check vacuous. It
+ * accepts the witness only with no errors in it.
  */
 // implements REQ-kibi-code-proof-kinds
 export function compileWitness(
   workspaceRoot: string,
   witnessPath: string,
-): { ok: true; version: string } | { ok: false; reason: string } {
-  let ts: TypeScriptApi;
-  try {
-    ts = createRequire(path.join(workspaceRoot, "package.json"))(
-      "typescript",
-    ) as TypeScriptApi;
-  } catch {
-    return {
-      ok: false,
-      reason:
-        "Kibi could not load TypeScript from the workspace to compile the witness (install typescript)",
-    };
-  }
+  options: Readonly<{ requireExhaustiveness?: boolean }> = {},
+):
+  | { ok: true; version: string }
+  | { ok: false; reason: string; errorLines?: number[] } {
   const absolute = path.resolve(workspaceRoot, witnessPath);
+  const loaded = loadTypeScript(workspaceRoot, absolute);
+  if (!loaded.ok) return loaded;
+  const { ts } = loaded;
+  const project = projectResolutionOptions(ts, workspaceRoot, absolute);
+  // module and moduleResolution must agree, so take both or neither.
+  const moduleOptions =
+    project.module !== undefined || project.moduleResolution !== undefined
+      ? {}
+      : {
+          module: ts.ModuleKind.NodeNext,
+          moduleResolution: ts.ModuleResolutionKind.NodeNext,
+        };
   const program = ts.createProgram([absolute], {
+    target: ts.ScriptTarget.ES2022,
+    ...moduleOptions,
+    ...project,
     strict: true,
     noEmit: true,
     skipLibCheck: true,
     allowJs: true,
     checkJs: true,
-    target: ts.ScriptTarget.ES2022,
-    module: ts.ModuleKind.NodeNext,
-    moduleResolution: ts.ModuleResolutionKind.NodeNext,
     types: [],
   });
   const witness = program.getSourceFile(absolute);
   if (witness === undefined)
     return { ok: false, reason: `Kibi could not read the witness ${witnessPath}` };
+  if (options.requireExhaustiveness === true && !hasExhaustivenessCheck(ts, witness))
+    return {
+      ok: false,
+      reason: `the witness ${witnessPath} has no exhaustiveness check (a never type or a satisfies map), so a new domain member would still compile`,
+    };
   const errors = [
     ...program.getSyntacticDiagnostics(witness),
     ...program.getSemanticDiagnostics(witness),
@@ -628,6 +742,18 @@ export function compileWitness(
     return {
       ok: false,
       reason: `TypeScript ${ts.version} rejects the witness ${witnessPath}: ${ts.flattenDiagnosticMessageText(errors[0]?.messageText ?? "", " ")}`,
+      // Zero-based witness lines with an error, so a generated witness can
+      // say which of its checks failed.
+      errorLines: [
+        ...new Set(
+          errors
+            .filter((error) => error.file === witness && error.start !== undefined)
+            .map(
+              (error) =>
+                witness.getLineAndCharacterOfPosition(error.start ?? 0).line,
+            ),
+        ),
+      ],
     };
   return { ok: true, version: ts.version };
 }
@@ -935,9 +1061,13 @@ async function workspaceProblem(
       const sha = createHash("sha256").update(content).digest("hex");
       if (text(witness?.sha256) !== sha)
         return `the witness sha256 does not match ${witnessPath} in the workspace`;
-      if (!/\bnever\b/.test(content))
-        return `the witness ${witnessPath} has no never check, so a new domain member would still compile`;
-      const compiled = compileWitness(context.workspaceRoot, witnessPath);
+      // With proves, Kibi decides each claim with its own witness (set
+      // equality, required fields), so the author's witness only has to
+      // compile. Without proves, the receipt's proved rests on this witness
+      // alone, so it must be able to fail when a domain member goes unhandled.
+      const compiled = compileWitness(context.workspaceRoot, witnessPath, {
+        requireExhaustiveness: (contract.proves ?? []).length === 0,
+      });
       if (!compiled.ok) return compiled.reason;
     }
   }
