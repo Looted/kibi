@@ -399,7 +399,7 @@ describe("renderHtmlReport", () => {
       [...html.matchAll(/proof-gate__count">(\d+)/g)].map((match) =>
         Number(match[1]),
       ),
-    ).toEqual([1, 1, 1, 1, 0]);
+    ).toEqual([1, 1, 1, 1, 0, 0]);
     expect(html.match(/−1 blocked here/g)).toHaveLength(2);
     expect(html).toContain('data-gate="semantic"');
     expect(html).toContain('data-gate="implementation"');
@@ -660,6 +660,50 @@ describe("renderHtmlReport evidence ladder", () => {
     expect(proved).toContain("exhaustive · 1 test · 2/2 claims proved");
     expect(html).toContain('Proved <span class="filter__count">1</span>');
     expect(card(html, "REQ-206")).toContain(">Tested</span>");
+  });
+
+  test("ends the proof rail at Proved and files tested-only rows there", () => {
+    const html = ladderReport();
+    const gates = [...html.matchAll(/proof-gate__label">([^<]+)/g)].map(
+      (match) => match[1],
+    );
+    expect(gates).toEqual([
+      "Semantic model",
+      "Scenario",
+      "Implementation",
+      "E2E",
+      "Tested",
+      "Proved",
+    ]);
+    expect(html).toContain('class="proof-gate proof-gate--optional"');
+    expect(html).toContain("1 tested, not proved");
+    expect(html).toContain(
+      "Every claim has a re-checked certificate · 2 of 2 claims proved",
+    );
+    expect(card(html, "REQ-204")).toContain('data-gate="tested"');
+    expect(card(html, "REQ-206")).toContain('data-gate="proved"');
+  });
+
+  test("lays the summary tiles out as two full rows, ladder first", () => {
+    const html = ladderReport();
+    const labels = [
+      ...html.matchAll(/<div class="metric[^"]*"><span>([^<]+)<\/span>/g),
+    ].map((match) => match[1]);
+    expect(labels).toEqual([
+      "Requirements",
+      "Proved by certificate",
+      "Tested end to end",
+      "Asserted, no current test",
+      "Unverified",
+      "Below evidence floor",
+      "Pending re-proof",
+      "Stale E2E evidence",
+      "Missing scenarios",
+      "Requirements without implementation",
+      "Unmapped production symbols",
+      "Contradictions",
+    ]);
+    expect(html).toContain("grid-template-columns: repeat(6, minmax(0, 1fr));");
   });
 
   test("lists certificates and claim bindings that no longer re-check", () => {

@@ -256,16 +256,16 @@ export async function verifyHtmlRequirementHealthReport(
   }));
   assert.deepStrictEqual(
     gates.map((gate) => gate.label),
-    ["Semantic model", "Scenario", "Implementation", "E2E", "Evidence"],
+    ["Semantic model", "Scenario", "Implementation", "E2E", "Tested", "Proved"],
   );
   assert.deepStrictEqual(
     gates.map((gate) => gate.remaining),
-    [0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
     "the single known fixture row should leave the rail at its semantic gate",
   );
   assert.deepStrictEqual(
     gates.map((gate) => gate.drop),
-    ["−1 blocked here", "No drop", "No drop", "No drop", "No drop"],
+    ["−1 blocked here", "No drop", "No drop", "No drop", "No drop", "No drop"],
     "the row's actual earliest unmet gate should receive the only drop",
   );
   assert.ok(
@@ -282,8 +282,9 @@ export async function verifyHtmlRequirementHealthReport(
     const count = gate.drop.match(/−([\d,]+) blocked here/)?.[1];
     return total + Number(count?.replaceAll(",", "") ?? 0);
   }, 0);
-  assert.strictEqual(blocked, current - (gates.at(-1)?.remaining ?? 0));
-  assert.strictEqual(gates.at(-1)?.remaining, tested);
+  const testedGate = gates.find((gate) => gate.label === "Tested");
+  assert.strictEqual(blocked, current - (testedGate?.remaining ?? 0));
+  assert.strictEqual(testedGate?.remaining, tested);
   assert.match(
     html,
     /Counts are sequential\. Each drop is the earliest unmet gate/,

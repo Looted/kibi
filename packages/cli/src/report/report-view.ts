@@ -17,6 +17,7 @@ export const PROOF_GATE_KEYS = [
   "implementation",
   "e2e",
   "evidence",
+  "proved",
 ] as const;
 
 export type ProofGateKey = (typeof PROOF_GATE_KEYS)[number];
