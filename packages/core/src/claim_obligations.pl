@@ -352,10 +352,14 @@ proof_contract_claim_issue(_{test_id: TestString, claim_key: KeyString, reason: 
 
 %% proof_contract_claim_candidates_json(-Json)
 % For the schema 12 migration: one row {test_id, kind, candidates} per
-% certificate-kind proof contract without proves, where candidates are the
-% claims {claim_key, requirement_id, fact_id} of current requirements the
-% test reaches whose grounding fact derives an obligation for its kind.  The
-% migration pins proves only when exactly one claim is a candidate.
+% certificate-kind proof contract without proves.  Candidates are the
+% modeled claims {claim_key, requirement_id, fact_id, binding, reason?} of
+% current requirements the test reaches through its scenarios, with the
+% binding a certificate of its kind would get: derived when the grounding
+% fact derives an obligation for the kind, attested when the fact has no
+% derivation, incompatible (with the reason) when the kind cannot express
+% it.  The migration pins proves only when exactly one claim is derived;
+% the review lists every candidate so a person can bind the rest.
 proof_contract_claim_candidates_json(Json) :-
     findall(Row, proof_contract_claim_candidates(Row), Rows0),
     sort(Rows0, Rows),
@@ -364,15 +368,28 @@ proof_contract_claim_candidates_json(Json) :-
 proof_contract_claim_candidates(_{test_id: TestString, kind: KindString, candidates: Candidates}) :-
     test_certificate_contract(TestId, Kind, Contract),
     \+ ( get_dict(proves, Contract, Proves), is_list(Proves), Proves \== [] ),
-    findall(_{claim_key: KeyString, requirement_id: ReqString, fact_id: FactString},
+    findall(Candidate,
         (   test_requirement(TestId, ReqId),
             requirement_claim_status(ReqId, ClaimKey, modeled),
-            claim_obligation(ReqId-ClaimKey, Kind, obligation(FactId, _)),
-            atom_string(ClaimKey, KeyString),
-            atom_string(ReqId, ReqString),
-            atom_string(FactId, FactString)
+            claim_obligation(ReqId-ClaimKey, Kind, Result),
+            claim_candidate(ReqId, ClaimKey, Result, Candidate)
         ),
         Candidates0),
-    sort(Candidates0, Candidates),
+    sort(Candidates0, Candidates1),
+    sort(claim_key, @=<, Candidates1, Candidates),
     atom_string(TestId, TestString),
     atom_string(Kind, KindString).
+
+claim_candidate(ReqId, ClaimKey, Result, Candidate) :-
+    (   Result = obligation(FactId, _)
+    ->  Binding = "derived"
+    ;   Result = attested(FactId)
+    ->  Binding = "attested"
+    ;   Result = incompatible(FactId, Reason)
+    ->  Binding = "incompatible"
+    ),
+    atom_string(ClaimKey, KeyString),
+    atom_string(ReqId, ReqString),
+    atom_string(FactId, FactString),
+    Base = _{claim_key: KeyString, requirement_id: ReqString, fact_id: FactString, binding: Binding},
+    (   var(Reason) -> Candidate = Base ; Candidate = Base.put(reason, Reason) ).
