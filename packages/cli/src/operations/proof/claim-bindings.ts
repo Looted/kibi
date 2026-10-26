@@ -357,6 +357,27 @@ async function derivedProblem(
 }
 
 /**
+ * The evidence level a receipt records. A certificate that re-checks but
+ * derives none of the claims it names from the code proves nothing about
+ * the code, so the receipt supports tested, the level coverage reports. An
+ * intent-scope derivation rests on the knowledge base's own facts alone
+ * (the test read no value from the code), so it does not count either.
+ */
+// implements REQ-kibi-claim-bound-proofs
+export function receiptEvidenceLevel(
+  level: "proved" | "tested",
+  bindings: readonly ClaimBinding[] | undefined,
+): "proved" | "tested" {
+  if (level !== "proved" || bindings === undefined || bindings.length === 0)
+    return level;
+  return bindings.some(
+    (binding) => binding.binding === "derived" && binding.scope !== "intent",
+  )
+    ? "proved"
+    : "tested";
+}
+
+/**
  * How a certificate binds to each claim its contract names in proves. Kibi
  * derives what the certificate must establish from each claim's grounding
  * fact (claim_obligations.pl) and checks the certificate against it; a claim

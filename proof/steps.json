@@ -2828,6 +2828,11 @@
         "run_tests(requirement_proved_evidence)",
         "-t",
         "halt"
+      ],
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/certificate-digest.test.ts"
       ]
     ]
   },

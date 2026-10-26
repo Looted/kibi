@@ -639,11 +639,20 @@ const RESOLUTION_OPTIONS = [
   "verbatimModuleSyntax",
 ] as const;
 
-function projectResolutionOptions(
+/**
+ * The nearest tsconfig's resolution options, and the declaration files it
+ * includes: global typings such as a `reset.d.ts` that the project's types
+ * rely on, which a witness importing those types needs too.
+ */
+function projectCompileSettings(
   ts: TypeScriptApi,
   workspaceRoot: string,
   absoluteWitness: string,
-): import("typescript").CompilerOptions {
+): {
+  options: import("typescript").CompilerOptions;
+  declarations: string[];
+} {
+  const none = { options: {}, declarations: [] };
   const configPath = ts.findConfigFile(
     path.dirname(absoluteWitness),
     ts.sys.fileExists,
@@ -653,9 +662,9 @@ function projectResolutionOptions(
     configPath === undefined ||
     path.relative(workspaceRoot, configPath).startsWith("..")
   )
-    return {};
+    return none;
   const read = ts.readConfigFile(configPath, ts.sys.readFile);
-  if (read.error !== undefined) return {};
+  if (read.error !== undefined) return none;
   const parsed = ts.parseJsonConfigFileContent(
     read.config,
     ts.sys,
@@ -666,7 +675,10 @@ function projectResolutionOptions(
   const options: Record<string, unknown> = {};
   for (const key of RESOLUTION_OPTIONS)
     if (parsed.options[key] !== undefined) options[key] = parsed.options[key];
-  return options as import("typescript").CompilerOptions;
+  return {
+    options: options as import("typescript").CompilerOptions,
+    declarations: parsed.fileNames.filter((file) => file.endsWith(".d.ts")),
+  };
 }
 
 /**
@@ -690,7 +702,8 @@ function hasExhaustivenessCheck(
 /**
  * Kibi compiles a typecheck witness itself, with the workspace's TypeScript.
  * Imports resolve the way the project's own tsconfig says (module,
- * moduleResolution, paths, ...), but the checking options stay fixed and
+ * moduleResolution, paths, ...) and its declaration files are in the
+ * program, but the checking options stay fixed and
  * strict, so a lax project tsconfig cannot make the never check vacuous. It
  * accepts the witness only with no errors in it.
  */
@@ -706,7 +719,11 @@ export function compileWitness(
   const loaded = loadTypeScript(workspaceRoot, absolute);
   if (!loaded.ok) return loaded;
   const { ts } = loaded;
-  const project = projectResolutionOptions(ts, workspaceRoot, absolute);
+  const { options: project, declarations } = projectCompileSettings(
+    ts,
+    workspaceRoot,
+    absolute,
+  );
   // module and moduleResolution must agree, so take both or neither.
   const moduleOptions =
     project.module !== undefined || project.moduleResolution !== undefined
@@ -715,7 +732,7 @@ export function compileWitness(
           module: ts.ModuleKind.NodeNext,
           moduleResolution: ts.ModuleResolutionKind.NodeNext,
         };
-  const program = ts.createProgram([absolute], {
+  const program = ts.createProgram([absolute, ...declarations], {
     target: ts.ScriptTarget.ES2022,
     ...moduleOptions,
     ...project,
@@ -1087,6 +1104,26 @@ async function workspaceProblem(
   return null;
 }
 
+const WITNESS_NOT_ACCEPTED = "the type checker did not accept the witness";
+
+/**
+ * A typecheck certificate whose own outcome is failed says only that: add
+ * what Kibi's compile of the same witness reports, so the author sees the
+ * first error, or learns that the test compiled it differently.
+ */
+export function withWitnessDiagnosis(
+  context: OperationContext,
+  contract: ProofContract,
+  reason: string,
+): string {
+  const witnessPath = contract.witness?.path ?? "";
+  if (reason !== WITNESS_NOT_ACCEPTED || witnessPath === "") return reason;
+  const compiled = compileWitness(context.workspaceRoot, witnessPath);
+  return compiled.ok
+    ? `${reason}, though Kibi's own compile of ${witnessPath} with TypeScript ${compiled.version} accepts it (the test compiled it with other settings)`
+    : `${reason}: ${compiled.reason}`;
+}
+
 /**
  * Re-check the certificate a certificate-kind run left for one test. A
  * runner kind (e2e, example, property) supports tested evidence and needs
@@ -1145,7 +1182,13 @@ export async function checkCodeCertificate(
     "Code certificate check",
   );
   if (checked.accepted !== true)
-    return rejected(checked.reason ?? "the certificate did not re-check");
+    return rejected(
+      withWitnessDiagnosis(
+        context,
+        input.contract,
+        checked.reason ?? "the certificate did not re-check",
+      ),
+    );
   // Every later re-check hashes the stored certificate in Prolog, so a
   // certificate whose two canonical forms differ would silently lose proved.
   if (checked.digest !== digest)
