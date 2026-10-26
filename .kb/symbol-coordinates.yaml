@@ -17741,7 +17741,7 @@ coordinates:
     sourceLine: 1
   SYM-kibi-usage-skill-guidance:
     identityHash: 4596b4770fa6eca3c0b31b8c58f21cc8c076ffe4dc4e76b6252e9984eb6c5857
-    sourceHash: e9aa00d7a0ecc71bb0b7e2e3d2a456c42f35f63f6238d6ba235b8421d23efe4c
+    sourceHash: 26d3aa9fcd07d2afdaf57dd49293b1fb259fd2a9759605f7c9c1b3d6a09e2850
     sourceColumn: 6
     sourceEndColumn: 16
     sourceEndLine: 3
@@ -18765,7 +18765,7 @@ coordinates:
     sourceLine: 27
   SYM-mcp-release-package-metadata:
     identityHash: 240336405ff91215ab2edd07d6f820210720d29abbb8cb1622c6097a330b8fa9
-    sourceHash: 24ac4d7524024a1022854feafda429c6e3008699c6bbdd950ac9e3628a9173fb
+    sourceHash: d3718a399db5d41d5f189c009e1834aa3a6c046c16f75dd383f84f4a54a9e829
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 57
@@ -18773,7 +18773,7 @@ coordinates:
     sourceLine: 1
   SYM-mcp-release-registry-metadata:
     identityHash: 243381a6fc622289060ae9fc50ab65b559c478b15c309c3e7e4cf730e442d06a
-    sourceHash: a48270b4c3e3aa58ed7dc3b83828eb2ad644de1640e02aa8e6d31cccd264026b
+    sourceHash: 21efd7f3ea1032914d8de9861690bf0f4d3537e5eb52947b798cbcda766dac84
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 29
@@ -26069,7 +26069,7 @@ coordinates:
     sourceLine: 254
   SYM-runtime-packed-daemon-build:
     identityHash: 0b663b050962de77e0604feaa0dd61916f1e00fcc990f11723d8321a0b856ede
-    sourceHash: b577908538dba73943aeee9fdab2215a10fe018fa6d70e778a6a72fc6a11b529
+    sourceHash: f6910e6295bab803fad90b1fd022c88fddacff58b5d9dc8344779d538f679e03
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 44
@@ -39141,7 +39141,7 @@ coordinates:
     sourceLine: 1
   SYM-zcode-mcp-registration-config:
     identityHash: a49902dfe1abb97958a5441b1232d9235135aea24308be1265c4be0c751661e5
-    sourceHash: 4b87fb72ce7ffe344daa0f86d6d63b4f422a1446cac43655aa9cb33f3ea8ffbd
+    sourceHash: 244cd482f050505d8ea4f0cbcb7ffc4215c290ff8601ca115bac10c80173edf3
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 22
