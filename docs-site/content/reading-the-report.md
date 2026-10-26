@@ -38,7 +38,7 @@ Each requirement sits on a ladder. The report names the earliest thing still mis
 
 Next to each requirement id is its **evidence level**, the strength of what backs it:
 
-- **proved** — every claim of the requirement holds for every case, backed by fresh certificates a separate checker re-checks. Certificates come from the `exhaustive`, `typecheck`, `arithmetic` and `smt` proof kinds; see [proving requirements](proving.md#certificate-proof-kinds).
+- **proved** — every claim of the requirement holds for every case, backed by fresh certificates a separate checker re-checks. Certificates come from the `exhaustive`, `typecheck`, `arithmetic`, `smt`, `rule`, `state_machine` and `regex` proof kinds; see [proving requirements](proving.md#certificate-proof-kinds).
 - **tested** — fresh end-to-end evidence, as above. Tests sample cases; they do not cover all of them.
 - **asserted** — a person stands behind the statement, but nothing current checks it.
 - **unverified** — an agent wrote it and no person has approved it.
