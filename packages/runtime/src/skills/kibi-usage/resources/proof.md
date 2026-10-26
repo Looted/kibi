@@ -296,7 +296,8 @@ re-run `kibi prove --stale` (or the affected selection), then confirm
 unit test count only while that unit test has a current passing receipt, so
 prove unit tests that cover type-shape symbols too.
 
-Full reference: `docs/proving-requirements.md`.
+Full reference: [Proving requirements](https://looted.github.io/kibi/reference/proving.html)
+(`docs/proving-requirements.md` in the Kibi repository).
 
 ## Debugging proof regressions
 
