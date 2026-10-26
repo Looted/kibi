@@ -327,7 +327,7 @@ proof_contract:
 | a numeric fact (`value_type: int` or `number`, a comparison) | `arithmetic` | the certificate's claim is the fact's constraint (negated for `polarity: forbid`) |
 | a numeric fact | `smt` | the query asserts the negation of the fact's constraint |
 | a set fact with `property_key: required_fields` | `typecheck` | every member is a required, non-nullable field of the domain type (Kibi compiles that witness itself) |
-| a set fact whose `property_key` names a predicate | `rule` | the code decides the predicate true for every member |
+| a set fact whose `property_key` names a predicate (`eq` or `includes`) | `rule` | the code decides the predicate true for every member |
 | a rule fact (`kibi.logic.v1`, from `kibi model-requirement` with `logic`) | `rule`, `state_machine` | the rule holds for every assignment of its variables over the domains the code exports |
 | a predicate fact (a ground atom, or a decision predicate such as `permission_rule`) | `rule`, `state_machine` | the code decides the atom as the fact says (for a decision predicate: the key arguments are allowed exactly when the effective decision is allow) |
 | a set fact with `property_key` `transitions`, `states`, `initial_states`, `terminal_states` or `reachable_states` | `state_machine` | that projection of the machine is exactly the set (`transitions` members are spelled `from->to`) |
@@ -391,6 +391,11 @@ owner and admin can invite" and "every role in owner, admin and member can
 invite" are both valid facts; the code decides which holds. `eq` on a set
 means exactly those members, and an `includes` fact contradicts an `eq` fact
 on the same property only when it names a member the `eq` set leaves out.
+A `rule` certificate derives an `includes` fact by checking the property on
+each listed member, and a `typecheck` certificate derives one on
+`required_fields`; the kinds that compare the whole set (`exhaustive`, a
+set-equality `typecheck`, `state_machine`) reject an `includes` fact, because
+they would read "at least these" as "exactly these".
 
 Kibi judges bindings at ingest and judges them again whenever it reports
 evidence: a binding whose fact changed since ingest (another set, another
@@ -511,7 +516,11 @@ witness must import the domain and be the file in the workspace (its sha256),
 and Kibi compiles it itself with the workspace's TypeScript under fixed strict
 options, so a test cannot report a pass the compiler would not give. Imports
 resolve the way the nearest `tsconfig.json` says (`module`,
-`moduleResolution`, `paths`, ...); without one, NodeNext. TypeScript 7 ships
+`moduleResolution`, `paths`, ...), and the declaration files that tsconfig
+includes (a `reset.d.ts`, for example) are part of the witness program;
+without one, NodeNext. When the test's own compile failed, the rejection adds
+the first error Kibi's compile of the witness reports, or that Kibi's compile
+accepts it. TypeScript 7 ships
 without the compiler API, so Kibi falls back to an older `typescript` further
 up the workspace and otherwise asks for `typescript@6` as a dev dependency. A
 contract without `proves` rests on the witness alone, so the witness must also

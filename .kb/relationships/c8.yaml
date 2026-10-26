@@ -321,3 +321,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2ed1cb2d7f43
+  - type: implements
+    from: SYM-cli-with-witness-diagnosis
+    to: REQ-kibi-code-proof-kinds
+    created_at: 2026-10-26T15:58:30.053Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f70a6d2ea69d
+  - type: covered_by
+    from: SYM-cli-with-witness-diagnosis
+    to: TEST-kibi-code-proof-kinds
+    created_at: 2026-10-26T15:58:30.072Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1b3ec3ba8a6

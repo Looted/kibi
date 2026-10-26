@@ -176,7 +176,11 @@ kind_problem(arithmetic, Certificate, Reason) :-
         arithmetic_constraint(X, Claim, Goal),
         integer_variables(Type, X, Integers),
         (   \+ numeric_constraints_satisfiable(Premises, Integers)
-        ->  Reason = "the assumptions admit no value, so the claim holds vacuously"
+        ->  maplist(constraint_text(Variable), Assumptions, Texts),
+            atomic_list_concat(Texts, ' and ', Joined),
+            format(string(Reason),
+                   "the assumptions contradict each other (~w), so no value satisfies them and they prove nothing about the claim",
+                   [Joined])
         ;   \+ numeric_constraint_entailed(Premises, Goal, Integers)
         ->  (   arithmetic_counterexample(Type, Assumptions, Claim, Value)
             ->  format(string(Reason),
@@ -343,6 +347,21 @@ arithmetic_constraint(X, Row, c(Op, X, Value)) :-
     memberchk(Op, [eq, neq, lt, lte, gt, gte]),
     get_dict(value, Row, Value),
     number(Value).
+
+% "count = 4", for naming an assumption in a rejection.
+constraint_text(Variable, Row, Text) :-
+    get_dict(operator, Row, OpString),
+    get_dict(value, Row, Value),
+    atom_string(Op, OpString),
+    operator_symbol(Op, Symbol),
+    format(atom(Text), "~w ~w ~w", [Variable, Symbol, Value]).
+
+operator_symbol(eq, '=').
+operator_symbol(neq, '!=').
+operator_symbol(lt, '<').
+operator_symbol(lte, '<=').
+operator_symbol(gt, '>').
+operator_symbol(gte, '>=').
 
 % arithmetic_counterexample(+Type, +Assumptions, +Claim, -Value): a value
 % next to one of the constants that satisfies every assumption and breaks the

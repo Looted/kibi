@@ -179,11 +179,13 @@ left:
   `satisfies Record<Domain, ...>` map). Set `witness.path` and
   `domain_source`; the witness must import the domain. Kibi compiles the
   witness itself (strict, with the workspace's TypeScript and the import
-  resolution of the nearest `tsconfig.json`), so `typescript` must be
+  resolution and declaration files of the nearest `tsconfig.json`), so
+  `typescript` must be
   installed in the workspace (TypeScript 7 has no compiler API: add
   `typescript@6` as a dev dependency). With `proves`, Kibi decides each
   claim with its own witness and reports the fields or members that break
-  it.
+  it. When the test's compile failed, the rejection adds the first error
+  Kibi's own compile of the witness reports.
 - `arithmetic`: a claim on one `int` or `real` variable decided exactly from
   typed facts. Set `constraint_source: { fact_ids: [FACT-...] }` to the
   numeric `property_value` facts (one subject and property); the
@@ -193,12 +195,19 @@ left:
   evaluates the number export itself and adds `variable eq value` as an
   assumption. For a count claim over a collection ("exactly 32 tools") add
   `measure: count` and name the list, set, map or object export; Kibi uses
-  its size, so do not add a number export just for the proof.
+  its size, so do not add a number export just for the proof. A count
+  claim needs only `value_source`. Naming the claim's own fact in
+  `constraint_source` assumes the claim: without `value_source` Kibi counts
+  that derivation as intent only (tested), and with it a code value that
+  breaks the claim shows up as contradictory assumptions, which the
+  rejection names.
   A claim that every member of a closed set has a property ("Every currency
   in GBP, ILS and ZAR must fail closed") is a set fact whose `property_key`
   names the property, whose `value_set` is the members and whose operator
   is `includes` (other members may have the property too, so two such
-  claims over different sets do not contradict).
+  claims over different sets do not contradict). Prove it with `rule`: Kibi
+  checks the property on each listed member. The kinds that compare the
+  whole set (`exhaustive`, `state_machine`) reject an `includes` fact.
 - `smt`: an SMT-LIB query that declares the facts' property as a constant,
   asserts each `constraint_source` fact constraint and then the claim's
   negation. Kibi re-runs z3 or cvc5 on it and accepts only `unsat`.

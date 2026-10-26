@@ -29,7 +29,10 @@ const RUN_NODE_TEST_SUITE =
  * rule test over its sharing function each get a derived binding. A pattern
  * that also accepts longer strings is rejected with a string that tells the
  * two apart, and a sharing function that lets owners share archived
- * documents is rejected with the assignment that breaks the rule.
+ * documents is rejected with the assignment that breaks the rule. The
+ * advisor models "Every role in owner and editor must be able to invite
+ * members" as an includes set fact; a rule test over the invite check derives
+ * it, and the same check refutes the claim that adds viewer.
  */
 
 type Step = Readonly<{
@@ -43,6 +46,12 @@ const PATTERN_STATEMENT = "Invoice numbers must match `INV-[0-9]{6}`.";
 const MACHINE_STATEMENT =
   "Invoice status transitions must be one of draft -> sent, draft -> void, sent -> paid, sent -> void.";
 const RULE_STATEMENT = "Archived documents must never be shared.";
+const INVITE_STATEMENT =
+  "Every role in owner and editor must be able to invite members.";
+const INVITE_ALL_STATEMENT =
+  "Every role in owner, editor and viewer must be able to invite members.";
+/** The predicate the advisor names after the property every member has. */
+const INVITE_PREDICATE = "be_able_to_invite_members";
 
 const v = (name: string, type: string) => ({ kind: "var", name, type });
 const RULE_IR = {
@@ -74,7 +83,7 @@ export const LOOSE_NUMBER = /INV-\\d{6}/;
 export const TRANSITIONS = { draft: ["sent", "void"], sent: ["paid", "void"], paid: [], void: [] };
 `,
     "documents.mjs": `export const STATUSES = ["draft", "active", "archived"];
-export const ROLES = ["viewer", "owner"];
+export const ROLES = ["viewer", "editor", "owner"];
 export function canShare(status, role) {
   return status !== "archived" && role === "owner";
 }
@@ -83,6 +92,9 @@ export function leakyShare(status, role) {
 }
 export function isArchived(status) {
   return status === "archived";
+}
+export function canInvite(role) {
+  return role !== "viewer";
 }
 `,
     "emit.mjs": `import {
@@ -110,7 +122,7 @@ export async function proveInvoices() {
 }
 await proveInvoices();
 `,
-    "sharing-proof.mjs": `import { ROLES, STATUSES, canShare, isArchived, leakyShare } from "./documents.mjs";
+    "sharing-proof.mjs": `import { ROLES, STATUSES, canInvite, canShare, isArchived, leakyShare } from "./documents.mjs";
 import { emit, ruleCertificate } from "./emit.mjs";
 const domains = {
   document_status: { symbolId: "SYM-STATUSES", members: STATUSES },
@@ -136,6 +148,15 @@ export async function proveSharing() {
         archived,
       },
     }));
+  for (const testId of ["TEST-INVITE-RULE", "TEST-INVITE-ALL"])
+    await emit(testId, (id) =>
+      ruleCertificate({
+        testId: id,
+        domains: { role: domains.role },
+        predicates: {
+          ${INVITE_PREDICATE}: { symbolId: "SYM-CAN-INVITE", argTypes: ["role"], decide: canInvite },
+        },
+      }));
 }
 await proveSharing();
 `,
@@ -288,7 +309,21 @@ async function provision(
       await logicPlan(sandbox, "REQ-SHARING", RULE_STATEMENT),
       "SCEN-SHARING",
     ),
+    invite: "",
+    inviteAll: "",
   };
+  for (const [key, id, statement] of [
+    ["invite", "REQ-INVITE", INVITE_STATEMENT],
+    ["inviteAll", "REQ-INVITE-ALL", INVITE_ALL_STATEMENT],
+  ] as const) {
+    const plan = await advisorPlan(sandbox, id, statement);
+    const setFact = plan.find(
+      (step) => step.type === "fact" && step.properties.value_type === "set",
+    );
+    assert.strictEqual(setFact?.properties.operator, "includes");
+    assert.strictEqual(setFact?.properties.property_key, INVITE_PREDICATE);
+    claims[key] = await applyPlan(sandbox, plan, "SCEN-SHARING");
+  }
 
   const ruleContract = (canShare: string) => `  predicate_source:
     can_share:
@@ -298,6 +333,13 @@ async function provision(
   domains:
     document_status:
       symbol_id: SYM-STATUSES
+    role:
+      symbol_id: SYM-ROLES
+`;
+  const inviteContract = `  predicate_source:
+    ${INVITE_PREDICATE}:
+      symbol_id: SYM-CAN-INVITE
+  domains:
     role:
       symbol_id: SYM-ROLES
 `;
@@ -342,6 +384,22 @@ async function provision(
       claim: claims.rule,
       contract: ruleContract("SYM-LEAKY-SHARE"),
     },
+    {
+      id: "TEST-INVITE-RULE",
+      requirement: "REQ-INVITE",
+      runner: "SYM-PROOF-SHARING",
+      kind: "rule",
+      claim: claims.invite,
+      contract: inviteContract,
+    },
+    {
+      id: "TEST-INVITE-ALL",
+      requirement: "REQ-INVITE-ALL",
+      runner: "SYM-PROOF-SHARING",
+      kind: "rule",
+      claim: claims.inviteAll,
+      contract: inviteContract,
+    },
   ];
   for (const spec of tests) {
     const relative = `.kb/tests/${spec.id}.md`;
@@ -366,10 +424,9 @@ async function provision(
         {
           type: "validates",
           from: spec.id,
-          to:
-            spec.requirement === "REQ-SHARING"
-              ? "SCEN-SHARING"
-              : "SCEN-INVOICES",
+          to: spec.requirement.startsWith("REQ-INVOICE")
+            ? "SCEN-INVOICES"
+            : "SCEN-SHARING",
         },
       ],
     });
@@ -410,7 +467,19 @@ async function provision(
       "ROLES",
       "documents.mjs",
       "REQ-SHARING",
-      ["TEST-SHARING-RULE", "TEST-SHARING-LEAKY"],
+      [
+        "TEST-SHARING-RULE",
+        "TEST-SHARING-LEAKY",
+        "TEST-INVITE-RULE",
+        "TEST-INVITE-ALL",
+      ],
+    ],
+    [
+      "SYM-CAN-INVITE",
+      "canInvite",
+      "documents.mjs",
+      "REQ-INVITE",
+      ["TEST-INVITE-RULE", "TEST-INVITE-ALL"],
     ],
     [
       "SYM-IS-ARCHIVED",
@@ -442,7 +511,12 @@ async function provision(
       "TEST-INVOICE-NUMBER-LOOSE",
       "TEST-INVOICE-MACHINE",
     ],
-    "SYM-PROOF-SHARING": ["TEST-SHARING-RULE", "TEST-SHARING-LEAKY"],
+    "SYM-PROOF-SHARING": [
+      "TEST-SHARING-RULE",
+      "TEST-SHARING-LEAKY",
+      "TEST-INVITE-RULE",
+      "TEST-INVITE-ALL",
+    ],
   };
   for (const [id, title, sourceFile, requirement, coveredBy] of symbols)
     await upsert(sandbox, {
@@ -547,6 +621,21 @@ export async function checkNonNumericProofKinds(
     /the code decides can_share\(archived, owner\) is true, but the rule requires false/,
     leaky,
   );
+
+  // Two includes facts on one property coexist; the rule derives the true
+  // one from the code and refutes the one that adds viewer.
+  const invite = latestReceipt(sandbox, "TEST-INVITE-RULE");
+  assert.match(invite, /evidence_level: proved/, invite);
+  assert.match(invite, /binding: derived/, invite);
+  assert.match(invite, /kind: every_member/, invite);
+  const inviteAll = latestReceipt(sandbox, "TEST-INVITE-ALL");
+  assert.match(inviteAll, /binding: rejected/, inviteAll);
+  assert.match(
+    inviteAll,
+    new RegExp(`the code decides ${INVITE_PREDICATE}\\(viewer\\) is false`),
+    inviteAll,
+  );
+  assert.match(inviteAll, /evidence_level: tested/, inviteAll);
 
   const explain = await kibi(sandbox, ["proof", "explain", "REQ-SHARING"]);
   assert.strictEqual(explain.exitCode, 0, explain.stdout + explain.stderr);

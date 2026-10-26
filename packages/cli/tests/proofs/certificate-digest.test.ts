@@ -7,11 +7,14 @@ import {
   compileWitness,
   domainCoverageProblem,
   evaluateDomain,
+  withWitnessDiagnosis,
 } from "../../src/operations/proof/code-certificates.js";
+import type { OperationContext } from "../../src/public/operations/runtime-types.js";
 import {
   canonicalCertificateJson,
   certificateDigest,
 } from "../../src/public/proof-certificates.js";
+import type { ProofContract } from "../../src/public/proof-protocol.js";
 import { prologCases } from "./prolog-cases.js";
 
 // implements REQ-kibi-code-proof-kinds
@@ -102,11 +105,25 @@ describe("stored certificate re-check", () => {
       ...edited,
       certificate_digest: certificateDigest(edited.certificate),
     };
+    // A code count of 5 against a fact of exactly 4: no value satisfies both.
+    const contradictory = {
+      ...certificate,
+      assumptions: [
+        { operator: "eq", value: 4 },
+        { operator: "eq", value: 5 },
+      ],
+      claim: { operator: "eq", value: 4 },
+    };
+    const contradicted = {
+      ...receipt,
+      certificate: contradictory,
+      certificate_digest: certificateDigest(contradictory),
+    };
     expect(
       prologCases(
         "requirement_proof.pl",
         "requirement_proof:receipt_kind_evidence(Case, passed, _{}, Out)",
-        [receipt, edited, rehashed],
+        [receipt, edited, rehashed, contradicted],
       ),
     ).toEqual([
       // The re-checked certificate travels on so claim bindings can read it.
@@ -124,6 +141,13 @@ describe("stored certificate re-check", () => {
         certificate: rehashed.certificate,
         certificateRejection:
           "the assumptions do not entail the claim: x = 3 satisfies them and breaks it",
+      },
+      {
+        kind: "arithmetic",
+        evidenceLevel: "tested",
+        certificate: contradictory,
+        certificateRejection:
+          "the assumptions contradict each other (x = 4 and x = 5), so no value satisfies them and they prove nothing about the claim",
       },
     ]);
   });
@@ -197,6 +221,53 @@ describe("typecheck witness compile", () => {
       }),
     );
     expect(compileWitness(root, "witness.ts")).toMatchObject({ ok: true });
+  }, 60_000);
+
+  test("the project's declaration files are in the witness program", () => {
+    const root = workspace();
+    writeFileSync(
+      path.join(root, "witness.ts"),
+      "const flag: ProjectFlag = true;\nvoid flag;\nexport {};\n",
+    );
+    expect(compileWitness(root, "witness.ts").ok).toBe(false);
+    // Global typings the project's tsconfig includes, as a reset.d.ts is.
+    writeFileSync(
+      path.join(root, "globals.d.ts"),
+      "type ProjectFlag = boolean;\n",
+    );
+    writeFileSync(
+      path.join(root, "tsconfig.json"),
+      JSON.stringify({ include: ["*.ts"] }),
+    );
+    expect(compileWitness(root, "witness.ts")).toMatchObject({ ok: true });
+  }, 60_000);
+
+  test("a failed typecheck certificate says what Kibi's compile of the witness reports", () => {
+    const root = workspace();
+    writeFileSync(
+      path.join(root, "bad.ts"),
+      'import type { Row } from "./domain.js";\nconst at: Row["deletedAt"] = "x";\nvoid at;\nexport {};\n',
+    );
+    writeFileSync(
+      path.join(root, "good.ts"),
+      'import type { Row } from "./domain.js";\nconst id: Row["id"] = "x";\nvoid id;\nexport {};\n',
+    );
+    const context = { workspaceRoot: root } as unknown as OperationContext;
+    const contract = (witness: string) =>
+      ({
+        kind: "typecheck",
+        witness: { path: witness },
+      }) as unknown as ProofContract;
+    const generic = "the type checker did not accept the witness";
+    expect(withWitnessDiagnosis(context, contract("bad.ts"), generic)).toMatch(
+      /^the type checker did not accept the witness: TypeScript .* rejects the witness bad\.ts: Type 'string' is not assignable/,
+    );
+    expect(withWitnessDiagnosis(context, contract("good.ts"), generic)).toMatch(
+      /though Kibi's own compile of good\.ts with TypeScript .* accepts it/,
+    );
+    expect(
+      withWitnessDiagnosis(context, contract("bad.ts"), "another reason"),
+    ).toBe("another reason");
   }, 60_000);
 
   test("the exhaustiveness check reads the syntax tree, not the word never", () => {

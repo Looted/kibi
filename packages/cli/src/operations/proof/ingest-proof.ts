@@ -56,7 +56,7 @@ import {
 } from "../mutation/workspace-mutation-lock.js";
 import { MutationRollbackFailureError } from "../mutation/saga.js";
 import { patchReceiptsIntoDocument } from "./receipt-document.js";
-import { judgeClaimBindings } from "./claim-bindings.js";
+import { judgeClaimBindings, receiptEvidenceLevel } from "./claim-bindings.js";
 import { checkCodeCertificate } from "./code-certificates.js";
 
 // implements REQ-kibi-verification-evidence-contract
@@ -500,14 +500,7 @@ async function executeIngestProofUnlocked(
       })),
       ...(evaluation.gaps.length > 0 ? { gaps: evaluation.gaps } : {}),
       ...verdict,
-      // A certificate that re-checks but derives none of the claims it names
-      // proves nothing: the receipt supports tested, as coverage reports.
-      ...(verdict.evidence_level === "proved" &&
-      claimBindings !== undefined &&
-      claimBindings.length > 0 &&
-      !claimBindings.some((binding) => binding.binding === "derived")
-        ? { evidence_level: "tested" as const }
-        : {}),
+      evidence_level: receiptEvidenceLevel(verdict.evidence_level, claimBindings),
       ...(claimBindings !== undefined ? { claim_bindings: claimBindings } : {}),
     };
     prepared.push({

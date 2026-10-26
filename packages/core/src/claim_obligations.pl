@@ -54,8 +54,11 @@
 %% fact_obligation(+FactId, +ProofKind, -Result)
 % Result is obligation(Dict), attested, or incompatible(Reason).
 fact_obligation(FactId, ProofKind, Result) :-
-    (   fact_set(FactId, Members)
-    ->  set_obligation(FactId, Members, ProofKind, Result)
+    (   fact_set(FactId, Members, Operator)
+    ->  (   Operator == includes
+        ->  includes_obligation(FactId, Members, ProofKind, Result)
+        ;   set_obligation(FactId, Members, ProofKind, Result)
+        )
     ;   fact_numeric_constraint(FactId, Variable, ValueType, Operator, Value)
     ->  (   memberchk(ProofKind, [arithmetic, smt])
         ->  Result = obligation(_{kind: "numeric_constraint", variable: Variable,
@@ -126,6 +129,21 @@ set_obligation(FactId, _Members, ProofKind, incompatible(Reason)) :-
     format(string(Reason),
            "~w is a set fact, which ~w ~w certificate cannot express (use exhaustive, typecheck, rule or state_machine)",
            [FactId, Article, ProofKind]).
+
+% includes set facts ("every member of A has P") state containment only, so
+% only the kinds that check each member on its own can derive them: a rule
+% checks the property on every member, and a typecheck checks each field is
+% required. Kinds that compare the whole set would read containment as
+% equality.
+includes_obligation(FactId, Members, rule, Result) :- !,
+    set_obligation(FactId, Members, rule, Result).
+includes_obligation(FactId, Members, typecheck, obligation(_{kind: "required_fields", members: Members})) :-
+    fact_property_key(FactId, required_fields),
+    !.
+includes_obligation(FactId, _Members, ProofKind, incompatible(Reason)) :-
+    format(string(Reason),
+           "~w is an includes set fact (every member has the property), which a ~w certificate cannot derive: it compares the whole set (use rule, or an eq set fact for exactly these members)",
+           [FactId, ProofKind]).
 
 % A transition member "from -> to" (or with U+2192 as the arrow) spelled "from->to".
 edge_member(Member, Spelled) :-
@@ -289,8 +307,9 @@ text_string(Raw, String) :- atom(Raw), !, atom_string(Raw, String).
 text_string(Raw, String) :- number(Raw), !, number_string(Raw, String).
 text_string(^^(Raw, _), String) :- !, text_string(Raw, String).
 
-% The members of a set fact, sorted and unique.
-fact_set(FactId, Members) :-
+% The members of a set fact, sorted and unique, and its operator: eq (the
+% set is exactly these members) or includes (it contains at least these).
+fact_set(FactId, Members, Operator) :-
     kb_entity(FactId, fact, Props),
     prop_atom(Props, fact_kind, property_value),
     (   prop_atom(Props, value_type, set)
@@ -307,7 +326,8 @@ fact_set(FactId, Members) :-
         exclude(==(""), Parts, NonEmpty),
         maplist([S, A]>>atom_string(A, S), NonEmpty, Atoms)
     ),
-    (   prop_atom(Props, operator, Operator) -> Operator == eq ; true ),
+    (   prop_atom(Props, operator, Operator0) -> Operator = Operator0 ; Operator = eq ),
+    memberchk(Operator, [eq, includes]),
     \+ prop_atom(Props, polarity, forbid),
     maplist([A, S]>>atom_string(A, S), Atoms, Strings),
     sort(Strings, Members),
