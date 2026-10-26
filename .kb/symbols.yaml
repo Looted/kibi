@@ -57667,7 +57667,7 @@ symbols:
       recorded_at: 2026-10-26T15:58:24.242Z
     relationships:
       - type: covered_by
-        target: TEST-kibi-non-numeric-proof-kinds
+        target: TEST-kibi-claim-bound-proofs
       - type: implements
         target: REQ-kibi-claim-bound-proofs
   - id: SYM-cli-with-witness-diagnosis
