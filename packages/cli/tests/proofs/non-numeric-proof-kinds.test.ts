@@ -865,6 +865,8 @@ describe("model_check.pl decides obligations against the model", () => {
   });
 });
 
+// Each case compiles a witness with the TypeScript compiler, which takes
+// seconds on a loaded runner, so these tests get more than the default 5 s.
 describe("required fields through typecheck", () => {
   test("the witness compiles only when every field is required and non-nullable", () => {
     writeFileSync(
@@ -883,7 +885,7 @@ describe("required fields through typecheck", () => {
     expect(compile(["note"])).toBe(false);
     expect(compile(["refund"])).toBe(false);
     expect(compile(["missing"])).toBe(false);
-  });
+  }, 30_000);
 });
 
 describe("required fields failures", () => {
@@ -910,7 +912,7 @@ describe("required fields failures", () => {
       "voidedAt is optional or nullable",
       "missing is not a field",
     ]);
-  });
+  }, 30_000);
 });
 
 describe("every-member set facts (includes)", () => {
