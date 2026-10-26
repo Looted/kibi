@@ -27,6 +27,7 @@
 :- use_module('logic_ir.pl', [logic_rule_safety/2]).
 :- use_module('code_certificates.pl', [code_certificate_check/2, code_certificate_digest/2]).
 :- use_module('claim_obligations.pl', [claim_obligation/3, obligation_equal/2]).
+:- use_module('model_check.pl', [model_check_obligation/4]).
 
 proof_version('kibi.requirement-proof.v5').
 
@@ -1009,7 +1010,7 @@ valid_receipt_version_fields('kibi.proof-receipt.v1', _Receipt).
 valid_receipt_version_fields('kibi.proof-receipt.v2', Receipt) :-
     inventory_entry_field(Receipt, kind, RawKind),
     normalize_receipt_atom(RawKind, Kind),
-    memberchk(Kind, [e2e, example, property, exhaustive, typecheck, arithmetic, smt]),
+    memberchk(Kind, [e2e, example, property, exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex]),
     inventory_entry_field(Receipt, evidence_level, RawLevel),
     normalize_receipt_atom(RawLevel, Level),
     memberchk(Level, [proved, tested]),
@@ -1019,7 +1020,7 @@ valid_receipt_version_fields('kibi.proof-receipt.v2', Receipt) :-
     ;   true
     ),
     (   Level == proved
-    ->  memberchk(Kind, [exhaustive, typecheck, arithmetic, smt]),
+    ->  memberchk(Kind, [exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex]),
         inventory_entry_field(Receipt, outcome, RawOutcome),
         normalize_receipt_atom(RawOutcome, passed),
         inventory_entry_field(Receipt, certificate, _),
@@ -2096,6 +2097,12 @@ certificate_obligation_problem(arithmetic, Evidence, Obligation, Problem) :-
     ->  fail
     ;   Problem = 'the certificate\'s claim is not the fact\'s constraint'
     ).
+
+certificate_obligation_problem(Kind, Evidence, Obligation, Problem) :-
+    memberchk(Kind, [rule, state_machine]),
+    get_dict(certificate, Evidence, Certificate),
+    model_check_obligation(Kind, Obligation, Certificate, problem(Problem0)),
+    atom_string(Problem, Problem0).
 
 %% claim_summary(+ClaimEvidence, -Summary, -UnprovedClaims)
 claim_summary(ClaimEvidence, Summary, Unproved) :-

@@ -94,7 +94,10 @@ export type ProofContract = Readonly<{
     | "exhaustive"
     | "typecheck"
     | "arithmetic"
-    | "smt";
+    | "smt"
+    | "rule"
+    | "state_machine"
+    | "regex";
   domain_source?: Readonly<{ symbol_id: string; export?: string }>;
   witness?: Readonly<{ path: string }>;
   constraint_source?: Readonly<{ fact_ids: readonly string[] }>;
@@ -105,6 +108,14 @@ export type ProofContract = Readonly<{
     measure?: "value" | "count";
   }>[];
   proves?: readonly string[];
+  predicate_source?: Readonly<
+    Record<string, Readonly<{ symbol_id: string; export?: string }>>
+  >;
+  domains?: Readonly<
+    Record<string, Readonly<{ symbol_id: string; export?: string }>>
+  >;
+  initial_source?: Readonly<{ symbol_id: string; export?: string }>;
+  pattern_source?: Readonly<{ symbol_id: string; export?: string }>;
 }>;
 
 export type ProofBinding = Readonly<{

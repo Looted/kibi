@@ -38,7 +38,14 @@ export const PROOF_CERTIFICATES_ENV = "KIBI_PROOF_CERTIFICATES";
 export type CodeCertificate = Readonly<Record<string, unknown>> &
   Readonly<{
     version: typeof CODE_CERTIFICATE_VERSION;
-    kind: "exhaustive" | "typecheck" | "arithmetic" | "smt";
+    kind:
+      | "exhaustive"
+      | "typecheck"
+      | "arithmetic"
+      | "smt"
+      | "rule"
+      | "state_machine"
+      | "regex";
     test_id: string;
   }>;
 
@@ -247,6 +254,247 @@ export function smtCertificate(input: {
     solver: { ...input.solver },
     query: input.query,
     result: input.result,
+  };
+}
+
+const certificateText = (value: unknown) =>
+  typeof value === "string" ? value : String(value);
+
+/** A finite domain a rule certificate ranges over. */
+// implements REQ-kibi-non-numeric-proof-kinds
+export type RuleDomain = Readonly<{
+  symbolId: string;
+  members: Iterable<unknown>;
+}>;
+
+/** A predicate the code decides, and the argument types it takes. */
+// implements REQ-kibi-non-numeric-proof-kinds
+export type RulePredicate = Readonly<{
+  symbolId: string;
+  argTypes: readonly string[];
+  decide: (...args: never[]) => boolean | Promise<boolean>;
+}>;
+
+/**
+ * Call every predicate on every combination of its argument domains and
+ * record what the code decides. Import the domains and functions from their
+ * source (never restate them): Kibi evaluates the same exports at ingest and
+ * rejects a certificate whose tables differ, then model checks each claim's
+ * rule, predicate or set fact against the tables.
+ */
+// implements REQ-kibi-non-numeric-proof-kinds
+export async function ruleCertificate(input: {
+  testId: string;
+  domains: Readonly<Record<string, RuleDomain>>;
+  predicates: Readonly<Record<string, RulePredicate>>;
+}): Promise<CodeCertificate> {
+  const values: Record<string, unknown[]> = {};
+  const domains: Record<string, { symbol_id: string; members: string[] }> = {};
+  for (const [type, domain] of Object.entries(input.domains)) {
+    values[type] = [...domain.members];
+    domains[type] = {
+      symbol_id: domain.symbolId,
+      members: values[type].map(certificateText),
+    };
+  }
+  const predicates: Record<
+    string,
+    {
+      symbol_id: string;
+      arg_types: string[];
+      rows: { args: string[]; value?: boolean; error?: string }[];
+    }
+  > = {};
+  for (const [name, predicate] of Object.entries(input.predicates)) {
+    const lists = predicate.argTypes.map((type) => {
+      const list = values[type];
+      if (list === undefined)
+        throw new Error(`no domain for argument type ${type} of ${name}`);
+      return list;
+    });
+    const rows: { args: string[]; value?: boolean; error?: string }[] = [];
+    const count = lists.reduce((product, list) => product * list.length, 1);
+    for (let index = 0; index < count; index++) {
+      let rest = index;
+      const tuple: unknown[] = [];
+      for (let position = lists.length - 1; position >= 0; position--) {
+        const list = lists[position] as unknown[];
+        tuple[position] = list[rest % list.length];
+        rest = Math.floor(rest / list.length);
+      }
+      const args = tuple.map(certificateText);
+      try {
+        const value = await (
+          predicate.decide as (...args: unknown[]) => unknown
+        )(...tuple);
+        rows.push(
+          typeof value === "boolean"
+            ? { args, value }
+            : { args, error: `returned ${typeof value}, not a boolean` },
+        );
+      } catch (error) {
+        rows.push({
+          args,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+    predicates[name] = {
+      symbol_id: predicate.symbolId,
+      arg_types: [...predicate.argTypes],
+      rows,
+    };
+  }
+  return {
+    version: CODE_CERTIFICATE_VERSION,
+    kind: "rule",
+    test_id: input.testId,
+    domains,
+    predicates,
+  };
+}
+
+/** The calls of a rule certificate that threw or returned a non-boolean. */
+// implements REQ-kibi-non-numeric-proof-kinds
+export function failedCalls(certificate: CodeCertificate): string[] {
+  const predicates = (certificate.predicates ?? {}) as Record<
+    string,
+    { rows?: { args: string[]; error?: string }[] }
+  >;
+  return Object.entries(predicates).flatMap(([name, table]) =>
+    (table.rows ?? [])
+      .filter((row) => row.error !== undefined)
+      .map((row) => `${name}(${row.args.join(", ")}): ${row.error}`),
+  );
+}
+
+type Transitions =
+  | ReadonlyMap<unknown, unknown>
+  | Readonly<Record<string, unknown>>
+  | readonly unknown[]
+  | ((state: never, event: never) => unknown);
+
+function nextStates(next: unknown): unknown[] {
+  if (next === null || next === undefined || next === false) return [];
+  if (Array.isArray(next)) return next;
+  if (next instanceof Set) return [...next];
+  if (next instanceof Map) return [...next.values()];
+  if (typeof next === "object") return Object.values(next);
+  return [next];
+}
+
+/**
+ * Record a state machine as the code defines it: a transition table (an
+ * object or Map from each state to its next state, states, or event map; or
+ * a list of [from, to] pairs) or a next-state function called on every state
+ * and event (a throw, null or undefined means no transition). Kibi reads the
+ * same exports at ingest and checks each claim's transitions, reachability,
+ * initial and terminal states against the machine.
+ */
+// implements REQ-kibi-non-numeric-proof-kinds
+export async function stateMachineCertificate(input: {
+  testId: string;
+  symbolId: string;
+  transitions: Transitions;
+  /** For a next-state function: the states and events it is called on. */
+  states?: Iterable<unknown>;
+  events?: Iterable<unknown>;
+  initial?: unknown;
+}): Promise<CodeCertificate> {
+  const states = new Set<string>();
+  const edges = new Map<string, [string, string]>();
+  const edge = (from: unknown, to: unknown) => {
+    const pair: [string, string] = [certificateText(from), certificateText(to)];
+    states.add(pair[0]);
+    states.add(pair[1]);
+    edges.set(pair.join("\u0000"), pair);
+  };
+  const table = input.transitions;
+  if (typeof table === "function") {
+    const events = [...(input.events ?? [])];
+    for (const state of input.states ?? []) {
+      states.add(certificateText(state));
+      for (const event of events) {
+        let next: unknown;
+        try {
+          next = await (table as (state: unknown, event: unknown) => unknown)(
+            state,
+            event,
+          );
+        } catch {
+          continue;
+        }
+        for (const target of nextStates(next)) edge(state, target);
+      }
+    }
+  } else if (Array.isArray(table)) {
+    for (const entry of table as unknown[]) {
+      if (Array.isArray(entry) && entry.length === 2) edge(entry[0], entry[1]);
+      else if (entry !== null && typeof entry === "object")
+        edge(
+          (entry as { from: unknown }).from,
+          (entry as { to: unknown }).to,
+        );
+    }
+  } else {
+    const entries =
+      table instanceof Map
+        ? [...table.entries()]
+        : Object.entries(table as Record<string, unknown>);
+    for (const [from, next] of entries) {
+      states.add(certificateText(from));
+      for (const target of nextStates(next)) edge(from, target);
+    }
+  }
+  const initial =
+    input.initial === undefined
+      ? undefined
+      : (typeof input.initial === "object" && input.initial !== null
+          ? [...(input.initial as Iterable<unknown>)]
+          : [input.initial]
+        )
+          .map(certificateText)
+          .sort();
+  return {
+    version: CODE_CERTIFICATE_VERSION,
+    kind: "state_machine",
+    test_id: input.testId,
+    machine: {
+      symbol_id: input.symbolId,
+      states: [...states].sort(),
+      transitions: [...edges.values()].sort((a, b) =>
+        a.join("\u0000") < b.join("\u0000") ? -1 : 1,
+      ),
+      ...(initial !== undefined ? { initial } : {}),
+    },
+  };
+}
+
+/**
+ * Record the pattern (a RegExp) or string constant a string claim is about.
+ * Kibi reads the same export at ingest and decides the claim exactly: a
+ * pattern's language against the fact's, or the string against the fact.
+ */
+// implements REQ-kibi-non-numeric-proof-kinds
+export function regexCertificate(input: {
+  testId: string;
+  symbolId: string;
+  value: RegExp | string;
+}): CodeCertificate {
+  return {
+    version: CODE_CERTIFICATE_VERSION,
+    kind: "regex",
+    test_id: input.testId,
+    pattern:
+      typeof input.value === "string"
+        ? { symbol_id: input.symbolId, type: "string", value: input.value }
+        : {
+            symbol_id: input.symbolId,
+            type: "regexp",
+            source: input.value.source,
+            flags: input.value.flags,
+            flavor: "js",
+          },
   };
 }
 

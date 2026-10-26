@@ -34,6 +34,11 @@ import {
   type ProofKind,
   isCertificateProofKind,
 } from "../../public/proof-protocol.js";
+import {
+  machineCertificateProblem,
+  patternCertificateProblem,
+  ruleCertificateProblem,
+} from "./code-models.js";
 
 /**
  * What a receipt records about its contract's kind: the evidence level it
@@ -237,7 +242,7 @@ function escapeRegExp(value: string): string {
 // Node's type stripping resolves only exact specifiers. TypeScript apps
 // import relative modules without an extension, or with `.js` for a `.ts`
 // file; this resolve hook retries those as the TypeScript files they name.
-const TS_RESOLVE_HOOKS = `
+export const TS_RESOLVE_HOOKS = `
 const SUFFIXES = [".ts", ".tsx", ".mts", ".cts", ".js", ".mjs", "/index.ts", "/index.tsx", "/index.js"];
 export async function resolve(specifier, context, next) {
   try {
@@ -435,22 +440,84 @@ function evaluateExport(
     }
   | { ok: false; reason: string } {
   const absolute = path.resolve(workspaceRoot, sourceFile);
+  const run = runCodeEvaluator(
+    workspaceRoot,
+    sourceFile,
+    { js: DOMAIN_EVALUATOR, python: PYTHON_DOMAIN_EVALUATOR },
+    [absolute, exportName],
+    (parsed) => {
+      const row = parsed as {
+        error?: string;
+        count?: number;
+        members?: string[] | null;
+        scalar?: number;
+      };
+      return (
+        row.error !== undefined ||
+        typeof row.scalar === "number" ||
+        typeof row.count === "number"
+      );
+    },
+    options,
+  );
+  if (!run.ok)
+    return {
+      ok: false,
+      reason: `Kibi could not load ${exportName} from ${sourceFile}${run.failure ? `: ${run.failure}` : ""}${run.python ? " (a Python domain loads with KIBI_PYTHON, the active or project virtualenv (.venv or venv), then python3 on PATH)" : " (without bun or the workspace's tsx, node's type stripping loads the domain; a type imported without import type stops it)"}`,
+    };
+  const parsed = run.value as {
+    error?: string;
+    count?: number;
+    members?: string[] | null;
+    scalar?: number;
+  };
+  if (parsed.error !== undefined) return { ok: false, reason: parsed.error };
+  if (typeof parsed.scalar === "number")
+    return { ok: true, count: 0, members: null, scalar: parsed.scalar };
+  return {
+    ok: true,
+    count: parsed.count as number,
+    members: parsed.members ?? null,
+  };
+}
+
+/**
+ * Run an evaluator script against the workspace code and return the JSON it
+ * prints last. A TypeScript or JavaScript file runs with bun when it is on
+ * PATH, else the workspace's tsx, else node's type stripping (which retries
+ * extensionless relative imports as TypeScript files); a Python file (`.py`)
+ * runs with the first interpreter pythonDomainInterpreters finds. A runner
+ * whose output `accept` rejects (or that fails to start) yields to the next.
+ */
+// implements REQ-kibi-non-numeric-proof-kinds
+export function runCodeEvaluator(
+  workspaceRoot: string,
+  sourceFile: string,
+  scripts: Readonly<{ js: string; python: string }>,
+  args: readonly string[],
+  accept: (parsed: unknown) => boolean = () => true,
+  options: Readonly<{
+    runners?: readonly ("bun" | "tsx" | "node")[];
+  }> = {},
+):
+  | { ok: true; value: unknown; python: boolean }
+  | { ok: false; failure: string; python: boolean } {
   const python = /\.py$/i.test(sourceFile);
   const tsx = python ? null : workspaceBin(workspaceRoot, "tsx");
   const runners: [string, string[]][] = python
     ? pythonDomainInterpreters(workspaceRoot, sourceFile).map(
         (interpreter): [string, string[]] => [
           interpreter,
-          ["-c", PYTHON_DOMAIN_EVALUATOR],
+          ["-c", scripts.python],
         ],
       )
     : (options.runners ?? ["bun", "tsx", "node"]).flatMap(
         (runner): [string, string[]][] => {
-          if (runner === "bun") return [["bun", ["-e", DOMAIN_EVALUATOR]]];
+          if (runner === "bun") return [["bun", ["-e", scripts.js]]];
           if (runner === "tsx")
             return tsx === null
               ? []
-              : [[tsx, ["--eval", DOMAIN_EVALUATOR, "--"]]];
+              : [[tsx, ["--eval", scripts.js, "--"]]];
           return [
             [
               process.execPath,
@@ -459,7 +526,7 @@ function evaluateExport(
                 "--no-warnings",
                 "--input-type=module",
                 "-e",
-                DOMAIN_EVALUATOR,
+                scripts.js,
               ],
             ],
           ];
@@ -467,34 +534,23 @@ function evaluateExport(
       );
   let failure = "";
   for (const [command, argv] of runners) {
-    const run = spawnSync(command, [...argv, absolute, exportName], {
+    const run = spawnSync(command, [...argv, ...args], {
       cwd: workspaceRoot,
       encoding: "utf8",
       timeout: 60_000,
+      maxBuffer: 64 * 1024 * 1024,
     });
     if (run.error) continue;
     const line = (run.stdout ?? "").trim().split("\n").pop() ?? "";
     try {
-      const parsed = JSON.parse(line) as {
-        error?: string;
-        count?: number;
-        members?: string[] | null;
-        scalar?: number;
-      };
-      if (parsed.error !== undefined) return { ok: false, reason: parsed.error };
-      if (typeof parsed.scalar === "number")
-        return { ok: true, count: 0, members: null, scalar: parsed.scalar };
-      if (typeof parsed.count === "number")
-        return { ok: true, count: parsed.count, members: parsed.members ?? null };
+      const parsed = JSON.parse(line) as unknown;
+      if (accept(parsed)) return { ok: true, value: parsed, python };
     } catch {
       // Fall through to the next runner.
     }
     failure = failureLine(run.stderr ?? "", python);
   }
-  return {
-    ok: false,
-    reason: `Kibi could not load ${exportName} from ${sourceFile}${failure ? `: ${failure}` : ""}${python ? " (a Python domain loads with KIBI_PYTHON, the active or project virtualenv (.venv or venv), then python3 on PATH)" : " (without bun or the workspace's tsx, node's type stripping loads the domain; a type imported without import type stops it)"}`,
-  };
+  return { ok: false, failure, python };
 }
 
 /**
@@ -894,6 +950,10 @@ async function workspaceProblem(
     const rerun = rerunSmtQuery(solver, text(certificate.query));
     if (!rerun.ok) return rerun.reason;
   }
+  if (kind === "rule") return ruleCertificateProblem(context, contract, certificate);
+  if (kind === "state_machine")
+    return machineCertificateProblem(context, contract, certificate);
+  if (kind === "regex") return patternCertificateProblem(context, contract, certificate);
   return null;
 }
 
@@ -903,7 +963,8 @@ async function workspaceProblem(
  * no certificate; a certificate kind supports proved evidence only when the
  * certificate re-checks: its structure and arithmetic in code_certificates.pl,
  * and here that the proof read its domain from the code, that the witness is
- * the workspace file, and that the solver still answers unsat.
+ * the workspace file, that the solver still answers unsat, and that a rule
+ * table, state machine or pattern is what Kibi itself reads from the code.
  */
 // implements REQ-kibi-code-proof-kinds
 export async function checkCodeCertificate(

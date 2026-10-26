@@ -89,7 +89,13 @@ function describeCandidate(candidate: ClaimCandidate): string {
 // implements REQ-kibi-claim-bound-proofs, REQ-cli-schema-migration
 export function claimReviewInstruction(row: ProofContractClaimsReview): string {
   const factKind =
-    row.kind === "exhaustive" || row.kind === "typecheck" ? "set" : "numeric";
+    row.kind === "exhaustive" || row.kind === "typecheck"
+      ? "set"
+      : row.kind === "regex"
+        ? "string"
+        : row.kind === "rule" || row.kind === "state_machine"
+          ? "rule, predicate or set"
+          : "numeric";
   if (row.candidates.length === 0)
     return `${row.id} (${row.path}) has a ${row.kind} proof contract, but its test reaches no modeled claim through a scenario. Link the test to the scenario of the requirement it proves, then add proof_contract.proves with the claim keys its certificate establishes and run kibi prove --test ${row.id}.`;
   const derived = row.candidates.filter((c) => c.binding === "derived");

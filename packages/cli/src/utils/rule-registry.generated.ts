@@ -407,7 +407,7 @@ export const GENERATED_RULES = [
   {
     name: "proof-contract-claims",
     description:
-      "From schema 12, every certificate-kind proof contract (exhaustive, typecheck, arithmetic, smt) must name the claims it proves in proves, and each named claim must be a modeled claim of a current requirement the test reaches through its scenarios, grounded by a fact that proof kind can express or attest",
+      "From schema 12, every certificate-kind proof contract (exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex) must name the claims it proves in proves, and each named claim must be a modeled claim of a current requirement the test reaches through its scenarios, grounded by a fact that proof kind can express or attest",
     enforcementClass: "canonical",
     category: "integrity",
   },
