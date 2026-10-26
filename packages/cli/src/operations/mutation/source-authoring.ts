@@ -1097,34 +1097,58 @@ export function renderYamlRelationshipDeletion(
   if (!symbol || typeof symbol !== "object" || !("get" in symbol)) {
     return { body: existingContent, removed: false };
   }
-  const relationships = (
-    symbol as { get(key: string, keepCst?: boolean): unknown }
-  ).get("relationships", true);
-  if (
-    !relationships ||
-    typeof relationships !== "object" ||
-    !("items" in relationships)
-  ) {
-    return { body: existingContent, removed: false };
-  }
-  const relationshipItems = (relationships as { items: unknown[] }).items;
+  const symbolNode = symbol as {
+    get(key: string, keepCst?: boolean): unknown;
+    delete(key: string): unknown;
+  };
+  const sameTarget = (value: unknown) =>
+    typeof value === "string" &&
+    value.replace(/^kb:entity\//, "") === selector.to;
   let removed = false;
-  for (let index = relationshipItems.length - 1; index >= 0; index -= 1) {
-    const item = relationshipItems[index];
-    if (!item || typeof item !== "object" || !("get" in item)) continue;
-    const node = item as { get(key: string): unknown };
-    const type = node.get("type");
-    const target = node.get("target") ?? node.get("to");
-    const normalizedTarget =
-      typeof target === "string"
-        ? target.replace(/^kb:entity\//, "")
-        : undefined;
-    if (type === selector.type && normalizedTarget === selector.to) {
-      (relationships as unknown as { delete(index: number): unknown }).delete(
-        index,
-      );
-      removed = true;
+  const relationships = symbolNode.get("relationships", true);
+  if (
+    relationships &&
+    typeof relationships === "object" &&
+    "items" in relationships
+  ) {
+    const relationshipItems = (relationships as { items: unknown[] }).items;
+    for (let index = relationshipItems.length - 1; index >= 0; index -= 1) {
+      const item = relationshipItems[index];
+      if (!item || typeof item !== "object" || !("get" in item)) continue;
+      const node = item as { get(key: string): unknown };
+      if (
+        node.get("type") === selector.type &&
+        sameTarget(node.get("target") ?? node.get("to"))
+      ) {
+        (relationships as unknown as { delete(index: number): unknown }).delete(
+          index,
+        );
+        removed = true;
+      }
     }
+  }
+  // A legacy `links:` list declares implements edges too; leaving the entry
+  // would bring the deleted edge back on the next sync.
+  const links = symbolNode.get("links", true);
+  if (
+    selector.type === "implements" &&
+    links &&
+    typeof links === "object" &&
+    "items" in links
+  ) {
+    const linkItems = (links as { items: unknown[] }).items;
+    for (let index = linkItems.length - 1; index >= 0; index -= 1) {
+      const item = linkItems[index];
+      const value =
+        item && typeof item === "object" && "value" in item
+          ? (item as { value: unknown }).value
+          : item;
+      if (sameTarget(value)) {
+        (links as unknown as { delete(index: number): unknown }).delete(index);
+        removed = true;
+      }
+    }
+    if (linkItems.length === 0) symbolNode.delete("links");
   }
   return removed
     ? { body: doc.toString(AUTHORED_YAML_OPTIONS), removed: true }

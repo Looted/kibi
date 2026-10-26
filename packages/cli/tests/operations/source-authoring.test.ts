@@ -271,7 +271,10 @@ describe("source-first authoring", () => {
       status: "open",
       source: "mcp://kibi/upsert",
     };
-    const existing = { id: "REQ-floor", source: ".kb/requirements/REQ-floor.md" };
+    const existing = {
+      id: "REQ-floor",
+      source: ".kb/requirements/REQ-floor.md",
+    };
 
     await writeSourceForUpsert(
       { type: "req", id: "REQ-floor", properties: { status: "open" } },
@@ -300,7 +303,9 @@ describe("source-first authoring", () => {
     );
     const written = await readFile(target, "utf8");
     expect(written).not.toContain("version 9.0");
-    expect(written.split("---\n")[2]).toBe(`\n${statement}\n\n${contextSection}`);
+    expect(written.split("---\n")[2]).toBe(
+      `\n${statement}\n\n${contextSection}`,
+    );
   });
 
   test("changes a flow list in flow style and appends new keys after the authored ones", async () => {
@@ -755,6 +760,56 @@ describe("source-first authoring", () => {
         to: "REQ-MISSING",
       }),
     ).toEqual({ body: original, removed: false });
+  });
+
+  test("removes an implements edge declared in a legacy links list", () => {
+    const original = [
+      "symbols:",
+      "  - id: SYMBOL-066",
+      "    title: InstallPromptComponent",
+      "    links:",
+      "      - REQ-001",
+      "      - REQ-002",
+      "    relationships:",
+      "      - type: implements",
+      "        target: REQ-WEB",
+      "  - id: SYMBOL-067",
+      "    title: Other",
+      "    links:",
+      "      - REQ-001",
+      "",
+    ].join("\n");
+    const once = renderYamlRelationshipDeletion(".kb/symbols.yaml", original, {
+      type: "implements",
+      from: "SYMBOL-066",
+      to: "REQ-001",
+    });
+    expect(once.removed).toBe(true);
+    expect(once.body).toContain("    links:\n      - REQ-002\n");
+    expect(once.body).toContain(
+      "  - id: SYMBOL-067\n    title: Other\n    links:\n      - REQ-001\n",
+    );
+    // Removing the last entry drops the empty list, so nothing re-declares it.
+    const twice = renderYamlRelationshipDeletion(
+      ".kb/symbols.yaml",
+      once.body,
+      {
+        type: "implements",
+        from: "SYMBOL-066",
+        to: "REQ-002",
+      },
+    );
+    expect(twice.body).toContain(
+      "  - id: SYMBOL-066\n    title: InstallPromptComponent\n    relationships:\n",
+    );
+    // links only declare implements.
+    expect(
+      renderYamlRelationshipDeletion(".kb/symbols.yaml", original, {
+        type: "covered_by",
+        from: "SYMBOL-066",
+        to: "REQ-001",
+      }).removed,
+    ).toBe(false);
   });
 
   test("accepts exact-hash pending sources and blocks drift", async () => {
