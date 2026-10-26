@@ -70,8 +70,9 @@ export const SUCCESS_POLICIES = [
 /**
  * What a proof contract's checker establishes. Runner kinds (e2e, example,
  * property) sample cases and support tested evidence; certificate kinds
- * (exhaustive, typecheck, arithmetic, smt) cover every case and support
- * proved evidence once Kibi re-checks the certificate the run left.
+ * (exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex) cover
+ * every case and support proved evidence once Kibi re-checks the certificate
+ * the run left.
  */
 // implements REQ-kibi-code-proof-kinds
 export const PROOF_KINDS = [
@@ -82,14 +83,20 @@ export const PROOF_KINDS = [
   "typecheck",
   "arithmetic",
   "smt",
+  "rule",
+  "state_machine",
+  "regex",
 ] as const;
 
-// implements REQ-kibi-code-proof-kinds
+// implements REQ-kibi-code-proof-kinds, REQ-kibi-non-numeric-proof-kinds
 export const CERTIFICATE_PROOF_KINDS = [
   "exhaustive",
   "typecheck",
   "arithmetic",
   "smt",
+  "rule",
+  "state_machine",
+  "regex",
 ] as const;
 
 // implements REQ-kibi-code-proof-kinds
@@ -262,6 +269,16 @@ export const PROOF_RUN_ARTIFACT_SCHEMA = {
   additionalProperties: false,
 } as const;
 
+const SOURCE_REFERENCE_SCHEMA = {
+  type: "object",
+  required: ["symbol_id"],
+  properties: {
+    symbol_id: { type: "string", minLength: 1 },
+    export: { type: "string", minLength: 1 },
+  },
+  additionalProperties: false,
+} as const;
+
 export const PROOF_CONTRACT_SCHEMA = {
   type: "object",
   description:
@@ -289,12 +306,12 @@ export const PROOF_CONTRACT_SCHEMA = {
       type: "string",
       enum: [...PROOF_KINDS],
       description:
-        "What the checker establishes; absent means e2e. exhaustive, typecheck, arithmetic and smt must leave a kibi.code-certificate.v1 that Kibi re-checks before the receipt counts as proved.",
+        "What the checker establishes; absent means e2e. exhaustive, typecheck, arithmetic, smt, rule, state_machine and regex must leave a kibi.code-certificate.v1 that Kibi re-checks before the receipt counts as proved.",
     },
     domain_source: {
       type: "object",
       description:
-        "exhaustive and typecheck: the symbol that defines the finite domain. The proof must import it from its source file; a hand-listed domain downgrades the receipt to example. Kibi reads the export named `export`, or the symbol's title when `export` is absent.",
+        "exhaustive and typecheck: the symbol that defines the finite domain (typecheck: also the type whose fields a required_fields fact names). state_machine: the transition table or next-state function. The proof must import it from its source file; a hand-listed domain downgrades the receipt to example. Kibi reads the export named `export`, or the symbol's title when `export` is absent.",
       required: ["symbol_id"],
       properties: {
         symbol_id: { type: "string", minLength: 1 },
@@ -318,7 +335,7 @@ export const PROOF_CONTRACT_SCHEMA = {
     proves: {
       type: "array",
       description:
-        "Certificate kinds: the requirement claim keys (CLAIM-...) this certificate proves. Each must be a modeled claim of a current requirement the test reaches through its scenarios. Kibi derives what the certificate must establish from the claim's grounding fact (a set fact for exhaustive or typecheck, a numeric fact for arithmetic or smt); a claim with no such derivation is only attested and never counts as proved.",
+        "Certificate kinds: the requirement claim keys (CLAIM-...) this certificate proves. Each must be a modeled claim of a current requirement the test reaches through its scenarios. Kibi derives what the certificate must establish from the claim's grounding fact (a set fact for exhaustive or typecheck, a numeric fact for arithmetic or smt, a rule, predicate or set fact for rule and state_machine, a string fact for regex); a claim with no such derivation is only attested and never counts as proved.",
       minItems: 1,
       items: { type: "string", pattern: "^CLAIM-" },
       uniqueItems: true,
@@ -343,6 +360,30 @@ export const PROOF_CONTRACT_SCHEMA = {
         },
         additionalProperties: false,
       },
+    },
+    predicate_source: {
+      type: "object",
+      description:
+        "rule: the code function behind each predicate a claim's rule, predicate or set fact names, keyed by predicate name. Each export takes the predicate's arguments in order and returns a boolean; Kibi calls it on every combination of its argument domains.",
+      minProperties: 1,
+      additionalProperties: SOURCE_REFERENCE_SCHEMA,
+    },
+    domains: {
+      type: "object",
+      description:
+        "rule: the finite domain of each argument type, keyed by type name (an array, Set, Map or object export, or a Python list, set, dict or Enum). state_machine with a next-state function: the `state` and `event` domains it is called on.",
+      minProperties: 1,
+      additionalProperties: SOURCE_REFERENCE_SCHEMA,
+    },
+    initial_source: {
+      ...SOURCE_REFERENCE_SCHEMA,
+      description:
+        "state_machine: the export holding the initial state (or states), needed for initial_states and reachable_states facts.",
+    },
+    pattern_source: {
+      ...SOURCE_REFERENCE_SCHEMA,
+      description:
+        "regex: the export holding the code's pattern (a RegExp, or a Python re.Pattern) or string constant that a string fact is about.",
     },
     constraint_source: {
       type: "object",
@@ -784,6 +825,7 @@ function proofContractKindErrors(contract: Record<string, unknown>): string[] {
         `proof_contract.value_source applies only to kind arithmetic or smt, not ${String(kind ?? "e2e")}`,
       );
   }
+  errors.push(...nonNumericContractErrors(contract));
   const proves = contract.proves;
   if (proves !== undefined) {
     if (
@@ -799,9 +841,97 @@ function proofContractKindErrors(contract: Record<string, unknown>): string[] {
       );
     else if (!isCertificateProofKind(kind))
       errors.push(
-        `proof_contract.proves applies only to certificate kinds (exhaustive, typecheck, arithmetic, smt), not ${String(kind ?? "e2e")}`,
+        `proof_contract.proves applies only to certificate kinds (${CERTIFICATE_PROOF_KINDS.join(", ")}), not ${String(kind ?? "e2e")}`,
       );
   }
+  return errors;
+}
+
+function isSourceReference(value: unknown): boolean {
+  const row = record(value);
+  return (
+    row !== null &&
+    nonEmptyString(row.symbol_id) &&
+    (row.export === undefined || nonEmptyString(row.export)) &&
+    Object.keys(row).every((key) => key === "symbol_id" || key === "export")
+  );
+}
+
+function isSourceMap(value: unknown): boolean {
+  const row = record(value);
+  return (
+    row !== null &&
+    Object.keys(row).length > 0 &&
+    Object.entries(row).every(
+      ([key, entry]) => key.trim() !== "" && isSourceReference(entry),
+    )
+  );
+}
+
+/**
+ * The contract fields of the rule, state_machine and regex kinds: where the
+ * code Kibi evaluates lives, and only on the kinds that read it.
+ */
+// implements REQ-kibi-non-numeric-proof-kinds
+function nonNumericContractErrors(contract: Record<string, unknown>): string[] {
+  const errors: string[] = [];
+  const kind = contract.kind;
+  const only = (field: string, kinds: readonly string[]) => {
+    if (contract[field] !== undefined && !kinds.includes(String(kind)))
+      errors.push(
+        `proof_contract.${field} applies only to kind ${kinds.join(" or ")}, not ${String(kind ?? "e2e")}`,
+      );
+  };
+  if (
+    contract.predicate_source !== undefined &&
+    !isSourceMap(contract.predicate_source)
+  )
+    errors.push(
+      "proof_contract.predicate_source must map each predicate name to {symbol_id, export?} naming the function that decides it",
+    );
+  if (contract.domains !== undefined && !isSourceMap(contract.domains))
+    errors.push(
+      "proof_contract.domains must map each argument type to {symbol_id, export?} naming the export that lists its values",
+    );
+  for (const field of ["initial_source", "pattern_source"])
+    if (contract[field] !== undefined && !isSourceReference(contract[field]))
+      errors.push(
+        `proof_contract.${field} must be {symbol_id, export?} naming the export Kibi reads`,
+      );
+  only("predicate_source", ["rule"]);
+  only("domains", ["rule", "state_machine"]);
+  only("initial_source", ["state_machine"]);
+  only("pattern_source", ["regex"]);
+  if (kind === "rule") {
+    if (contract.predicate_source === undefined)
+      errors.push(
+        "proof_contract.predicate_source is required for kind rule: name the function behind each predicate the claims use",
+      );
+    if (contract.domains === undefined)
+      errors.push(
+        "proof_contract.domains is required for kind rule: name the export listing each argument type's values",
+      );
+  }
+  if (kind === "state_machine") {
+    if (contract.domain_source === undefined)
+      errors.push(
+        "proof_contract.domain_source is required for kind state_machine: name the transition table or next-state function",
+      );
+    const domains = record(contract.domains);
+    if (
+      domains !== null &&
+      (Object.keys(domains).length !== 2 ||
+        domains.state === undefined ||
+        domains.event === undefined)
+    )
+      errors.push(
+        "proof_contract.domains for kind state_machine must name exactly the state and event domains a next-state function is called on",
+      );
+  }
+  if (kind === "regex" && contract.pattern_source === undefined)
+    errors.push(
+      "proof_contract.pattern_source is required for kind regex: name the export holding the pattern or string",
+    );
   return errors;
 }
 
@@ -820,6 +950,10 @@ export function optionalProofContractFields(
   | "constraint_source"
   | "value_source"
   | "proves"
+  | "predicate_source"
+  | "domains"
+  | "initial_source"
+  | "pattern_source"
 > {
   const fields: {
     kind?: ProofKind;
@@ -832,6 +966,10 @@ export function optionalProofContractFields(
       measure?: "value" | "count";
     }[];
     proves?: string[];
+    predicate_source?: Record<string, SourceReference>;
+    domains?: Record<string, SourceReference>;
+    initial_source?: SourceReference;
+    pattern_source?: SourceReference;
   } = {};
   if (typeof contract.kind === "string")
     fields.kind = contract.kind as ProofKind;
@@ -869,7 +1007,39 @@ export function optionalProofContractFields(
     fields.proves = contract.proves.filter(
       (key): key is string => typeof key === "string",
     );
+  const predicates = sourceMap(contract.predicate_source);
+  if (predicates !== undefined) fields.predicate_source = predicates;
+  const domains = sourceMap(contract.domains);
+  if (domains !== undefined) fields.domains = domains;
+  const initial = sourceReference(contract.initial_source);
+  if (initial !== undefined) fields.initial_source = initial;
+  const pattern = sourceReference(contract.pattern_source);
+  if (pattern !== undefined) fields.pattern_source = pattern;
   return fields;
+}
+
+type SourceReference = { symbol_id: string; export?: string };
+
+function sourceReference(value: unknown): SourceReference | undefined {
+  const row = record(value);
+  if (!row || typeof row.symbol_id !== "string") return undefined;
+  return {
+    symbol_id: row.symbol_id,
+    ...(typeof row.export === "string" ? { export: row.export } : {}),
+  };
+}
+
+function sourceMap(
+  value: unknown,
+): Record<string, SourceReference> | undefined {
+  const row = record(value);
+  if (!row) return undefined;
+  const out: Record<string, SourceReference> = {};
+  for (const [key, entry] of Object.entries(row)) {
+    const reference = sourceReference(entry);
+    if (reference !== undefined) out[key] = reference;
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
 }
 
 export function proofBindingsErrors(value: unknown): string[] {

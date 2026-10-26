@@ -210,6 +210,49 @@ export function detectStrictSuggestion(
       );
   }
 
+  // implements REQ-kibi-non-numeric-proof-kinds
+  const pattern = statement.match(
+    /^(?<subject>.+?)\s+(?:must|shall|should)\s+(?:always\s+)?match\s+(?:the\s+(?:pattern|regular\s+expression|regex)\s+)?(?:`(?<tick>[^`]+)`|\/(?<slash>.+)\/)\.?$/i,
+  );
+  const patternSource = pattern?.groups?.tick ?? pattern?.groups?.slash;
+  if (pattern?.groups?.subject && patternSource) {
+    return suggestion(
+      payload,
+      pattern,
+      {
+        subject_key: normalizeSubjectKey(pattern.groups.subject),
+        property_key: "format",
+        operator: "matches",
+        value_type: "string",
+        value_string: patternSource,
+      },
+      "A required format is a string fact with operator matches; a regex proof decides whether the code's pattern accepts exactly these strings.",
+      0.86,
+      `match ${patternSource}`,
+    );
+  }
+
+  const exactString = statement.match(
+    /^(?<subject>.+?)\s+(?:must|shall|should)\s+(?:always\s+)?be\s+`(?<value>[^`]+)`\.?$/i,
+  );
+  if (exactString?.groups?.subject && exactString.groups.value) {
+    return suggestion(
+      payload,
+      exactString,
+      {
+        subject_key: normalizeSubjectKey(exactString.groups.subject),
+        property_key: "value",
+        operator: "eq",
+        value_type: "string",
+        value_string: exactString.groups.value,
+      },
+      "An exact quoted value is a string fact; a regex proof checks the code's constant against it.",
+      0.86,
+      `be ${exactString.groups.value}`,
+    );
+  }
+
+  // implements REQ-kibi-non-numeric-proof-kinds
   const enumSet = statement.match(
     /^(?<subject>.+?)\s+(?:must|shall|should)\s+be\s+one\s+of\s+(?<values>.+?)\.?$/i,
   );
@@ -218,6 +261,41 @@ export function detectStrictSuggestion(
       .split(/,|\bor\b/i)
       .map((value) => value.trim())
       .filter(Boolean);
+    // A machine's transitions ("draft -> sent") or its initial, terminal
+    // (final) or reachable states name the projection a state_machine
+    // proof checks.
+    const machine = enumSet.groups.subject.match(
+      /^(?<base>.+?)\s+(?<projection>transitions|(?:initial|terminal|final|reachable)\s+states)$/i,
+    );
+    const projection = machine?.groups?.projection
+      ?.toLowerCase()
+      .replace(/^final/, "terminal")
+      .replace(/\s+/, "_");
+    if (
+      machine?.groups?.base &&
+      projection !== undefined &&
+      values.length > 0 &&
+      (projection !== "transitions" ||
+        values.every((value) => /->|\u2192/.test(value)))
+    )
+      return suggestion(
+        payload,
+        enumSet,
+        {
+          subject_key: normalizeSubjectKey(machine.groups.base),
+          property_key: projection,
+          operator: "eq",
+          value_type: "set",
+          value_set: [
+            ...new Set(
+              values.map((value) => value.replace(/\s*(?:->|\u2192)\s*/, "->")),
+            ),
+          ].sort(),
+        },
+        "A state machine's transitions or states are a set fact named after the projection; a state_machine proof checks the code's machine against it.",
+        0.86,
+        `one of ${enumSet.groups.values}`,
+      );
     if (values.length > 1)
       return suggestion(
         payload,

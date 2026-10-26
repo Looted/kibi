@@ -32,6 +32,7 @@ import {
   loadSymbol,
   smtAssertion,
 } from "./code-certificates.js";
+import { stringConstraintProblem } from "./code-models.js";
 
 type ObligationRow = Readonly<{
   claim_key: string;
@@ -162,6 +163,120 @@ function constraintText(obligation: NumericObligation): string {
   return `${obligation.variable} ${obligation.operator} ${obligation.value}`;
 }
 
+/**
+ * The type-level witness Kibi writes for a required_fields claim binding: it
+ * compiles only when every field is a required key of the type whose value
+ * can be neither undefined nor null.
+ */
+// implements REQ-kibi-non-numeric-proof-kinds
+export function requiredFieldsWitness(
+  importPath: string,
+  typeExpression: string,
+  fields: readonly string[],
+): string {
+  const checks = fields.map((field) => `IsRequired<${JSON.stringify(field)}>`);
+  return [
+    `import type * as domain from ${JSON.stringify(importPath)};`,
+    `type Shape = ${typeExpression};`,
+    "type IsRequired<K extends PropertyKey> = K extends keyof Shape",
+    "  ? {} extends Pick<Shape, K> ? false : undefined extends Shape[K] ? false : null extends Shape[K] ? false : true",
+    "  : false;",
+    `const required: [${checks.join(", ")}] = [${fields.map(() => "true").join(", ")}];`,
+    "void required;",
+    "export {};",
+    "",
+  ].join("\n");
+}
+
+async function requiredFieldsProblem(
+  context: OperationContext,
+  contract: ProofContract,
+  fields: readonly string[],
+): Promise<string | null> {
+  const domainId = contract.domain_source?.symbol_id ?? "";
+  const domain = await loadSymbol(context, domainId);
+  if (!domain || domain.sourceFile === "")
+    return `the domain_source symbol ${domainId} has no source file`;
+  const exportName = contract.domain_source?.export ?? domain.title;
+  const directory = path.dirname(domain.sourceFile);
+  const base = path.basename(domain.sourceFile).replace(/\.[cm]?[jt]sx?$/, "");
+  const witnessPath = path.join(
+    directory,
+    `.kibi-claim-witness-${randomBytes(6).toString("hex")}.ts`,
+  );
+  const absolute = path.resolve(context.workspaceRoot, witnessPath);
+  let lastReason = "";
+  try {
+    for (const typeExpression of [
+      `domain.${exportName}`,
+      `InstanceType<typeof domain.${exportName}>`,
+    ]) {
+      writeFileSync(
+        absolute,
+        requiredFieldsWitness(`./${base}.js`, typeExpression, fields),
+        "utf8",
+      );
+      const compiled = compileWitness(context.workspaceRoot, witnessPath);
+      if (compiled.ok) return null;
+      lastReason = compiled.reason;
+    }
+  } finally {
+    rmSync(absolute, { force: true });
+  }
+  return `${exportName} does not have every field of {${fields.join(", ")}} as a required, non-nullable field${lastReason ? ` (${lastReason.replace(/ the witness \S+/, " the required-fields witness")})` : ""}`;
+}
+
+/** The symbols a non-numeric certificate read, which must be in code scope. */
+function modelSymbols(contract: ProofContract): string[] {
+  return [
+    contract.domain_source?.symbol_id,
+    contract.initial_source?.symbol_id,
+    contract.pattern_source?.symbol_id,
+    ...Object.values(contract.domains ?? {}).map((row) => row.symbol_id),
+    ...Object.values(contract.predicate_source ?? {}).map((row) => row.symbol_id),
+  ].filter((id): id is string => typeof id === "string" && id !== "");
+}
+
+async function nonNumericProblem(
+  context: OperationContext,
+  contract: ProofContract,
+  certificate: Record<string, unknown>,
+  obligation: Record<string, unknown>,
+  factId: string,
+  coveredBy: ReadonlySet<string>,
+): Promise<string | null> {
+  const outside = modelSymbols(contract).find((id) => !coveredBy.has(id));
+  if (outside !== undefined)
+    return `the symbol ${outside} the certificate read is not in the receipt's code scope: link it covered_by the test so a change to it stales the proof`;
+  const obligationKind = text(obligation.kind);
+  if (obligationKind === "required_fields")
+    return requiredFieldsProblem(
+      context,
+      contract,
+      Array.isArray(obligation.members) ? obligation.members.map(String) : [],
+    );
+  if (obligationKind === "string_constraint")
+    return stringConstraintProblem(certificate, obligation, factId);
+  if (context.prolog === undefined)
+    return "no Prolog runtime is attached to model check the claim";
+  const checked = await runOperationJsonQuery<{ ok?: boolean; reason?: string }>(
+    context.prolog,
+    "claim_obligations.pl",
+    `claim_obligations:claim_model_check_json(${toPrologAtom(contract.kind ?? "")}, ${toPrologAtom(JSON.stringify(obligation))}, ${toPrologAtom(JSON.stringify(certificate))}, JsonString)`,
+    "Claim model check",
+  );
+  return checked.ok === true ? null : (checked.reason ?? "the model check failed");
+}
+
+const NON_NUMERIC_OBLIGATIONS = new Set([
+  "required_fields",
+  "string_constraint",
+  "rule_holds",
+  "predicate_holds",
+  "every_member",
+  "machine_set",
+]);
+
 async function derivedProblem(
   context: OperationContext,
   contract: ProofContract,
@@ -172,6 +287,8 @@ async function derivedProblem(
   const obligation = record(row.obligation) ?? {};
   const kind = contract.kind;
   const factId = row.fact_id ?? "the grounding fact";
+  if (NON_NUMERIC_OBLIGATIONS.has(text(obligation.kind)))
+    return nonNumericProblem(context, contract, certificate, obligation, factId, coveredBy);
   if (kind === "exhaustive" || kind === "typecheck") {
     const set = obligation as unknown as SetObligation;
     const domainId = contract.domain_source?.symbol_id ?? "";
@@ -215,7 +332,7 @@ async function derivedProblem(
  * whose fact has no derivation is only attested by the author. Returns
  * undefined for a contract that names no claims.
  */
-// implements REQ-kibi-claim-bound-proofs
+// implements REQ-kibi-claim-bound-proofs, REQ-kibi-non-numeric-proof-kinds
 export async function judgeClaimBindings(
   context: OperationContext,
   input: Readonly<{

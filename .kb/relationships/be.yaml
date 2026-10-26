@@ -279,3 +279,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5364bc929efe
+  - type: executable_for
+    from: SYM-e2e-packed-non-numeric-proof-kinds
+    to: TEST-kibi-non-numeric-proof-kinds
+    created_at: 2026-10-26T09:47:57.683Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0fedcc27db0e

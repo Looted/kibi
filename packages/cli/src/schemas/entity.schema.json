@@ -785,13 +785,16 @@
             "exhaustive",
             "typecheck",
             "arithmetic",
-            "smt"
+            "smt",
+            "rule",
+            "state_machine",
+            "regex"
           ],
-          "description": "What the checker establishes; absent means e2e. exhaustive, typecheck, arithmetic and smt must leave a kibi.code-certificate.v1 that Kibi re-checks before the receipt counts as proved."
+          "description": "What the checker establishes; absent means e2e. exhaustive, typecheck, arithmetic, smt, rule, state_machine and regex must leave a kibi.code-certificate.v1 that Kibi re-checks before the receipt counts as proved."
         },
         "domain_source": {
           "type": "object",
-          "description": "exhaustive and typecheck: the symbol that defines the finite domain. The proof must import it from its source file; a hand-listed domain downgrades the receipt to example. Kibi reads the export named `export`, or the symbol's title when `export` is absent.",
+          "description": "exhaustive and typecheck: the symbol that defines the finite domain (typecheck: also the type whose fields a required_fields fact names). state_machine: the transition table or next-state function. The proof must import it from its source file; a hand-listed domain downgrades the receipt to example. Kibi reads the export named `export`, or the symbol's title when `export` is absent.",
           "required": [
             "symbol_id"
           ],
@@ -824,7 +827,7 @@
         },
         "proves": {
           "type": "array",
-          "description": "Certificate kinds: the requirement claim keys (CLAIM-...) this certificate proves. Each must be a modeled claim of a current requirement the test reaches through its scenarios. Kibi derives what the certificate must establish from the claim's grounding fact (a set fact for exhaustive or typecheck, a numeric fact for arithmetic or smt); a claim with no such derivation is only attested and never counts as proved.",
+          "description": "Certificate kinds: the requirement claim keys (CLAIM-...) this certificate proves. Each must be a modeled claim of a current requirement the test reaches through its scenarios. Kibi derives what the certificate must establish from the claim's grounding fact (a set fact for exhaustive or typecheck, a numeric fact for arithmetic or smt, a rule, predicate or set fact for rule and state_machine, a string fact for regex); a claim with no such derivation is only attested and never counts as proved.",
           "minItems": 1,
           "items": {
             "type": "string",
@@ -861,6 +864,86 @@
             },
             "additionalProperties": false
           }
+        },
+        "predicate_source": {
+          "type": "object",
+          "description": "rule: the code function behind each predicate a claim's rule, predicate or set fact names, keyed by predicate name. Each export takes the predicate's arguments in order and returns a boolean; Kibi calls it on every combination of its argument domains.",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "symbol_id"
+            ],
+            "properties": {
+              "symbol_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "export": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "domains": {
+          "type": "object",
+          "description": "rule: the finite domain of each argument type, keyed by type name (an array, Set, Map or object export, or a Python list, set, dict or Enum). state_machine with a next-state function: the `state` and `event` domains it is called on.",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "symbol_id"
+            ],
+            "properties": {
+              "symbol_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "export": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "initial_source": {
+          "type": "object",
+          "required": [
+            "symbol_id"
+          ],
+          "properties": {
+            "symbol_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "export": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false,
+          "description": "state_machine: the export holding the initial state (or states), needed for initial_states and reachable_states facts."
+        },
+        "pattern_source": {
+          "type": "object",
+          "required": [
+            "symbol_id"
+          ],
+          "properties": {
+            "symbol_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "export": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false,
+          "description": "regex: the export holding the code's pattern (a RegExp, or a Python re.Pattern) or string constant that a string fact is about."
         },
         "constraint_source": {
           "type": "object",
@@ -1207,7 +1290,10 @@
               "exhaustive",
               "typecheck",
               "arithmetic",
-              "smt"
+              "smt",
+              "rule",
+              "state_machine",
+              "regex"
             ]
           },
           "evidence_level": {
@@ -1346,7 +1432,8 @@
         "lt",
         "lte",
         "gt",
-        "gte"
+        "gte",
+        "matches"
       ]
     },
     "value_type": {

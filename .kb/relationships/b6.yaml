@@ -244,3 +244,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c4a2715c298b
+  - type: covered_by
+    from: SYM-proof-kinds
+    to: TEST-kibi-non-numeric-proof-kinds-rule
+    created_at: 2026-10-26T09:48:18.264Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6cb6387b09a

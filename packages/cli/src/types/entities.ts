@@ -48,7 +48,7 @@ export interface FactFields {
     | "predicate";
   subject_key?: string;
   property_key?: string;
-  operator?: "eq" | "neq" | "lt" | "lte" | "gt" | "gte";
+  operator?: "eq" | "neq" | "lt" | "lte" | "gt" | "gte" | "matches";
   value_type?: "string" | "int" | "number" | "bool" | "set";
   value_string?: string;
   value_set?: string[];

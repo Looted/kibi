@@ -304,3 +304,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fa485304998d
+  - type: implements
+    from: SYM-proof-certificates-rule-certificate
+    to: REQ-kibi-non-numeric-proof-kinds
+    created_at: 2026-10-26T09:49:32.386Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9a928ee5b9a
+  - type: covered_by
+    from: SYM-proof-certificates-rule-certificate
+    to: TEST-kibi-non-numeric-proof-kinds
+    created_at: 2026-10-26T09:49:32.421Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61f4c2d43374

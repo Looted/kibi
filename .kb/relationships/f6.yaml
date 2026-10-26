@@ -216,3 +216,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-46ced05c762e
+  - type: validates
+    from: TEST-kibi-non-numeric-proof-kinds-rule
+    to: SCEN-kibi-non-numeric-proof-kinds
+    created_at: 2026-10-26T09:47:52.820Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aca0a2cf759b

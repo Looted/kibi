@@ -318,3 +318,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-127727408f9e
+  - type: implements
+    from: SYM-code-models-string-constraint-problem
+    to: REQ-kibi-non-numeric-proof-kinds
+    created_at: 2026-10-26T09:49:18.245Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6822d0edbf17
+  - type: covered_by
+    from: SYM-code-models-string-constraint-problem
+    to: TEST-kibi-non-numeric-proof-kinds
+    created_at: 2026-10-26T09:49:18.286Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b14091c84eb

@@ -115,7 +115,7 @@ export interface SemanticAmbiguityWitness {
 export interface SemanticStrictPropertyClaim {
   readonly subject_key: string;
   readonly property_key: string;
-  readonly operator: "eq" | "neq" | "lt" | "lte" | "gt" | "gte";
+  readonly operator: "eq" | "neq" | "lt" | "lte" | "gt" | "gte" | "matches";
   readonly value_type: "string" | "int" | "number" | "bool" | "set";
   readonly value_string?: string;
   readonly value_set?: readonly string[];

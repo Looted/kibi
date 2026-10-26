@@ -258,3 +258,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f75753553f46
+  - type: implements
+    from: SYM-regular-language-compile
+    to: REQ-kibi-non-numeric-proof-kinds
+    created_at: 2026-10-26T09:48:35.546Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-481546b2db0f
+  - type: covered_by
+    from: SYM-regular-language-compile
+    to: TEST-kibi-non-numeric-proof-kinds
+    created_at: 2026-10-26T09:48:35.573Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-22a35217a860

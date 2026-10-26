@@ -244,9 +244,9 @@ export const ENTITY_PROPERTIES_SCHEMA = {
     },
     operator: {
       type: "string",
-      enum: ["eq", "neq", "lt", "lte", "gt", "gte"],
+      enum: ["eq", "neq", "lt", "lte", "gt", "gte", "matches"],
       description:
-        "Optional comparison operator for property_value facts. Example: 'eq'.",
+        "Optional comparison operator for property_value facts. Example: 'eq'. 'matches' (string facts only): value_string is a JavaScript regular expression (u flag) every value must match as a whole.",
     },
     value_type: {
       type: "string",

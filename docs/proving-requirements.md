@@ -167,6 +167,9 @@ tested. The contract says so with `kind`:
 | `typecheck` | Kibi compiles a witness that fails to compile when a member goes unhandled | proved |
 | `arithmetic` | Kibi decides a one-variable claim exactly from the typed facts in `constraint_source` or the code constants in `value_source` | proved |
 | `smt` | Kibi re-runs z3 or cvc5 on a query that asserts those assumptions and needs `unsat` | proved |
+| `rule` | Kibi calls the code's predicate functions on every combination of the finite domains the code exports and model checks a rule, predicate or every-member claim | proved |
+| `state_machine` | Kibi reads the code's transition table or next-state function and checks the transitions, initial, terminal or reachable states a claim names | proved |
+| `regex` | Kibi decides whether the code's pattern (or string constant) accepts exactly the strings a string fact describes | proved |
 
 "Proved" here is what the certificate supports; a requirement is proved only
 for the claims a certificate binds to (see "Binding a certificate to claims").
@@ -323,6 +326,12 @@ proof_contract:
 | a set fact | `typecheck` | the domain export, as a type, is exactly the fact's set (Kibi compiles a set-equality witness itself) |
 | a numeric fact (`value_type: int` or `number`, a comparison) | `arithmetic` | the certificate's claim is the fact's constraint (negated for `polarity: forbid`) |
 | a numeric fact | `smt` | the query asserts the negation of the fact's constraint |
+| a set fact with `property_key: required_fields` | `typecheck` | every member is a required, non-nullable field of the domain type (Kibi compiles that witness itself) |
+| a set fact whose `property_key` names a predicate | `rule` | the code decides the predicate true for every member |
+| a rule fact (`kibi.logic.v1`, from `kibi model-requirement` with `logic`) | `rule`, `state_machine` | the rule holds for every assignment of its variables over the domains the code exports |
+| a predicate fact (a ground atom, or a decision predicate such as `permission_rule`) | `rule`, `state_machine` | the code decides the atom as the fact says (for a decision predicate: the key arguments are allowed exactly when the effective decision is allow) |
+| a set fact with `property_key` `transitions`, `states`, `initial_states`, `terminal_states` or `reachable_states` | `state_machine` | that projection of the machine is exactly the set (`transitions` members are spelled `from->to`) |
+| a string fact (`eq`, `neq` or `matches`) | `regex` | the code's string meets the constraint, or the code's pattern accepts exactly the fact's string (`eq`), rejects it (`neq`) or accepts exactly the strings the fact's pattern matches (`matches`); `polarity: forbid` negates it, and a forbidden match means no string matches both |
 
 A legacy `property_key: allowed_values` fact whose `value_string` joins the
 members with `|` reads as a set fact. Each claim gets one binding per test,
@@ -330,9 +339,10 @@ recorded in the receipt's `claim_bindings`:
 
 - **derived**: Kibi checked the certificate against the claim's own fact.
   Only a derived binding proves a claim.
-- **attested**: the fact has no derivation (a boolean placeholder, a
-  predicate, a rule, a free string). The author says the certificate
-  expresses the claim; Kibi reports it and counts it as tested, never proved.
+- **attested**: the fact has no derivation for the kind (a boolean
+  placeholder, a rule fact under `exhaustive`). The author says the
+  certificate expresses the claim; Kibi reports it and counts it as tested,
+  never proved.
 - **rejected**: the key is not a modeled claim of a current requirement the
   test reaches through its scenarios, its fact is the wrong shape for the
   kind (a set fact under `arithmetic`), or the certificate does not establish
@@ -392,6 +402,81 @@ binding a certificate of its kind would get (provable, attested only, or the
 reason its kind cannot express the fact), so the person binding it knows which
 keys to name and which facts to remodel.
 
+### Rules, state machines and patterns
+
+These kinds prove claims that are not numbers. In each one Kibi reads the
+model from the code itself at ingest, with the same runners as an exhaustive
+domain (TypeScript, JavaScript or Python), needs the certificate to be that
+model, and decides the claim exactly: nothing is sampled. Every symbol a
+contract names must link `covered_by` the test.
+
+A **rule** contract names the function behind each predicate the claims use
+in `predicate_source`, and the export listing each argument type's values in
+`domains`. Each function takes the predicate's arguments in order and returns
+a boolean; Kibi calls it on every combination of its argument domains (up to
+100,000 rows) and records the table. A rule holds when, for every assignment
+of its variables, its head has the value the modality requires (true for
+`assert`, `oblige` and `permit`, false for `deny` and `forbid`) wherever its
+body holds and no exception applies. A domain's type name is also a
+predicate of one argument that holds for its members (`role(R)`), so every
+variable can be ranged over a domain. A failure names the assignment:
+
+```yaml
+  kind: rule
+  predicate_source:
+    can_share:
+      symbol_id: SYM-can-share          # canShare(status, role) -> boolean
+    archived:
+      symbol_id: SYM-is-archived
+  domains:
+    document_status:
+      symbol_id: SYM-document-statuses  # ["draft", "active", "archived"]
+    role:
+      symbol_id: SYM-roles
+  proves:
+    - CLAIM-15C388CF1E89C595            # "Archived documents must never be shared"
+```
+
+```
+rejected: the rule fails for V1=archived, V2=owner: the code decides can_share(archived, owner) is true, but the rule requires false
+```
+
+Rules with existential quantifiers, counts, temporal expressions or
+durations are refused with the reason.
+
+A **state_machine** contract names the transition table in `domain_source`:
+an object or `Map` from each state to its next states (a list, a set, one
+state, or an event map), or a list of `[from, to]` pairs. A next-state
+function `next(state, event)` works too, with `domains: {state, event}` naming
+the exports it is called on (a throw or `null` means no transition).
+`initial_source` names the initial state, which reachable states need. A
+statement such as "Invoice status transitions must be one of draft -> sent,
+sent -> paid" is modeled as a `transitions` set fact; terminal, initial and
+reachable states the same way. A rule over a machine can use `transition`,
+`reachable` (one or more steps), `initial`, `terminal` and `state`.
+
+A **regex** contract names the pattern in `pattern_source`: a `RegExp` or a
+Python `re.compile(...)` (its flags included), or a string constant. "Invoice
+numbers must match `INV-[0-9]{6}`" is modeled as a string fact with
+`operator: matches`, whose value is a JavaScript pattern (with the `u` flag)
+that must match the whole string. Kibi compares the two languages exactly
+(over well-formed UTF-16 strings, with each engine's own rules for `$`, `.`,
+`\d` and case folding) and, when they differ, reports the shortest string
+only one of them accepts:
+
+```
+rejected: the code's pattern /INV-\d{6}/ does not accept exactly the strings matching /INV-[0-9]{6}/: "0INV-000000" is in the code's pattern only
+```
+
+Only the regular subset is decided: backreferences, lookaround, `\b`,
+Unicode property escapes, the `g`, `y`, `m` and `v` flags (Python
+`MULTILINE`, `VERBOSE` and `LOCALE`), Python `\d` and `\w` without
+`re.ASCII`, and non-ASCII letters under case-insensitive matching are refused
+with the reason. The certificate builders are `ruleCertificate`,
+`stateMachineCertificate` and `regexCertificate` in
+`kibi-cli/proof-certificates`; `failedCalls` lists predicate calls that
+threw.
+
 ### What `proved` covers
 
 A requirement is **proved** when it is tested end to end and every applicable
@@ -406,7 +491,8 @@ requirement below proved until it is.
 
 `arithmetic` and `smt` certificates pay off only when the requirement rests on
 typed numeric facts (bounds, limits, counts). For an enumerable domain use
-`exhaustive` or `typecheck`.
+`exhaustive` or `typecheck`; for decisions, lifecycles and formats use
+`rule`, `state_machine` or `regex`.
 
 Kibi never takes a certificate's word for it. At ingest it re-checks the
 certificate (every member listed once and passed; the arithmetic decided by

@@ -3732,9 +3732,13 @@
                   {
                     "const": "gte",
                     "type": "string"
+                  },
+                  {
+                    "const": "matches",
+                    "type": "string"
                   }
                 ],
-                "description": "Optional comparison operator for property_value facts. Example: 'eq'."
+                "description": "Optional comparison operator for property_value facts. Example: 'eq'. 'matches' (string facts only): value_string is a JavaScript regular expression (u flag) every value must match as a whole."
               },
               "origin": {
                 "additionalProperties": false,
@@ -3893,10 +3897,32 @@
                   },
                   "domain_source": {
                     "additionalProperties": false,
-                    "description": "exhaustive and typecheck: the symbol that defines the finite domain. The proof must import it from its source file; a hand-listed domain downgrades the receipt to example. Kibi reads the export named `export`, or the symbol's title when `export` is absent.",
+                    "description": "exhaustive and typecheck: the symbol that defines the finite domain (typecheck: also the type whose fields a required_fields fact names). state_machine: the transition table or next-state function. The proof must import it from its source file; a hand-listed domain downgrades the receipt to example. Kibi reads the export named `export`, or the symbol's title when `export` is absent.",
                     "properties": {
                       "export": {
                         "description": "The name the domain is exported under in the symbol's source file, when the symbol's title is not that name.",
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "symbol_id": {
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": ["symbol_id"],
+                    "type": "object"
+                  },
+                  "domains": {
+                    "additionalProperties": {},
+                    "description": "rule: the finite domain of each argument type, keyed by type name (an array, Set, Map or object export, or a Python list, set, dict or Enum). state_machine with a next-state function: the `state` and `event` domains it is called on.",
+                    "properties": {},
+                    "type": "object"
+                  },
+                  "initial_source": {
+                    "additionalProperties": false,
+                    "description": "state_machine: the export holding the initial state (or states), needed for initial_states and reachable_states facts.",
+                    "properties": {
+                      "export": {
                         "minLength": 1,
                         "type": "string"
                       },
@@ -3941,12 +3967,46 @@
                       {
                         "const": "smt",
                         "type": "string"
+                      },
+                      {
+                        "const": "rule",
+                        "type": "string"
+                      },
+                      {
+                        "const": "state_machine",
+                        "type": "string"
+                      },
+                      {
+                        "const": "regex",
+                        "type": "string"
                       }
                     ],
-                    "description": "What the checker establishes; absent means e2e. exhaustive, typecheck, arithmetic and smt must leave a kibi.code-certificate.v1 that Kibi re-checks before the receipt counts as proved."
+                    "description": "What the checker establishes; absent means e2e. exhaustive, typecheck, arithmetic, smt, rule, state_machine and regex must leave a kibi.code-certificate.v1 that Kibi re-checks before the receipt counts as proved."
+                  },
+                  "pattern_source": {
+                    "additionalProperties": false,
+                    "description": "regex: the export holding the code's pattern (a RegExp, or a Python re.Pattern) or string constant that a string fact is about.",
+                    "properties": {
+                      "export": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "symbol_id": {
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": ["symbol_id"],
+                    "type": "object"
+                  },
+                  "predicate_source": {
+                    "additionalProperties": {},
+                    "description": "rule: the code function behind each predicate a claim's rule, predicate or set fact names, keyed by predicate name. Each export takes the predicate's arguments in order and returns a boolean; Kibi calls it on every combination of its argument domains.",
+                    "properties": {},
+                    "type": "object"
                   },
                   "proves": {
-                    "description": "Certificate kinds: the requirement claim keys (CLAIM-...) this certificate proves. Each must be a modeled claim of a current requirement the test reaches through its scenarios. Kibi derives what the certificate must establish from the claim's grounding fact (a set fact for exhaustive or typecheck, a numeric fact for arithmetic or smt); a claim with no such derivation is only attested and never counts as proved.",
+                    "description": "Certificate kinds: the requirement claim keys (CLAIM-...) this certificate proves. Each must be a modeled claim of a current requirement the test reaches through its scenarios. Kibi derives what the certificate must establish from the claim's grounding fact (a set fact for exhaustive or typecheck, a numeric fact for arithmetic or smt, a rule, predicate or set fact for rule and state_machine, a string fact for regex); a claim with no such derivation is only attested and never counts as proved.",
                     "items": {
                       "pattern": "^CLAIM-",
                       "type": "string"
@@ -4259,6 +4319,18 @@
                         },
                         {
                           "const": "smt",
+                          "type": "string"
+                        },
+                        {
+                          "const": "rule",
+                          "type": "string"
+                        },
+                        {
+                          "const": "state_machine",
+                          "type": "string"
+                        },
+                        {
+                          "const": "regex",
                           "type": "string"
                         }
                       ]
