@@ -170,6 +170,7 @@ tested. The contract says so with `kind`:
 | `rule` | Kibi calls the code's predicate functions on every combination of the finite domains the code exports and model checks a rule, predicate or every-member claim | proved |
 | `state_machine` | Kibi reads the code's transition table or next-state function and checks the transitions, initial, terminal or reachable states a claim names | proved |
 | `regex` | Kibi decides whether the code's pattern (or string constant) accepts exactly the strings a string fact describes | proved |
+| `source` | Kibi reads a project source itself (a JSON or YAML file, a glob, an OpenAPI document, the references the code makes, a data schema, a route table, a validator) and decides a set, field or middleware claim against it | proved |
 
 "Proved" here is what the certificate supports; a requirement is proved only
 for the claims a certificate binds to (see "Binding a certificate to claims").
@@ -487,6 +488,90 @@ with the reason. The certificate builders are `ruleCertificate`,
 `kibi-cli/proof-certificates`; `failedCalls` lists predicate calls that
 threw.
 
+### Project sources: routes, schemas, configuration and references
+
+Many claims in a real product are about sets the project already declares:
+every route under `/api` runs the auth middleware, every table has
+`created_at`, the app reads only the environment variables in the deploy
+docs, a module never imports `node:fs`, every validator field the API
+accepts is a column of the table. A **source** proof reads that set from the
+project itself and decides the claim; the test does not have to compute or
+list anything. The contract names the source:
+
+```yaml
+  kind: source
+  source:
+    reader: routes
+    file: src/app.ts
+    export: app            # a Hono or Express app, or a function returning one
+    path_prefix: /api
+    names_from: [src/middleware.ts]   # name middleware by the export they are
+  proves:
+    - CLAIM-...            # "Every route under /api must use requireAuth"
+```
+
+| Reader | Reads | `select` |
+| --- | --- | --- |
+| `json`, `yaml` | `file` at `path` (dotted, or a JSON pointer) | `keys`, `values`, `items` |
+| `glob` | the files `pattern` matches (`capture: true` reads what each `*` matched) | |
+| `openapi` | `file`'s operations (`GET /invoices`) | `operations`, `unsecured_operations`, `security_schemes`, `responses` |
+| `references` | the code in `files` (TypeScript, JavaScript, Python): `extract` `env`, `imports`, `calls`, `string_args` (with `callee`), `thrown` or `property` (with `key`) | |
+| `schema` | `format: drizzle` or `prisma` (`file`), or `sql` migrations replayed in order (`files`); `table` filters by name or glob | `tables`, `columns`, `required_columns`, `nullable_columns`, `foreign_keys` |
+| `routes` | a Hono or Express app's route table, with the middleware that runs before each route (mounted routers included) | `routes`, `middleware` |
+| `validator` | a zod object (or one wrapped in refine, transform or pipe), or a pydantic model | `fields`, `required_fields`, `optional_fields` |
+
+Every reader is exact or refuses: a member Kibi cannot read statically
+(`process.env[name]`, a dynamic `import()`, an `ALTER TABLE` form it does not
+know, a router mounted on a pattern) fails the read and names the file and
+line, so a set claim is never decided over a set Kibi only partly saw.
+
+The test leaves no certificate (or `sourceCertificate({testId})` from
+`kibi-cli/proof-certificates`): Kibi reads the source at ingest and stores
+its own read as the certificate. What the set fact means depends on its
+property and operator:
+
+| Fact | The source must |
+| --- | --- |
+| operator `eq`, `includes`, `subset_of` or `excludes` | have exactly, at least, only, or none of the members |
+| property `required_fields` | have each member as a required, non-null field of every selected table or object (`table.field` names one table) |
+| property `nullable_fields` | have each member nullable |
+| property `middleware` | run the members (by the operator) before every selected route |
+
+The receipt's binding covers what the read depends on: each file it parses,
+the list of files a glob matches, and the modules a drizzle schema, route
+table or validator imports. Change any of them and the receipt is stale.
+
+Sources also feed the other kinds. An arithmetic or smt `value_source` entry
+`{source: {...}, measure: count}` counts the members ("at most 40 routes"),
+and a rule domain `{source: {...}}` ranges a predicate over the members
+("every route Kibi reads is guarded"); `readProjectSource` in
+`kibi-cli/proof-certificates` gives the test the same members. A rule
+predicate whose function is a test harness that drives the code (it calls
+the handler for each role) says so with `harness_for: [SYM-...]`; its
+claims are bound with scope `harness`.
+
+The semantic advisor models these statements for you: "Every route under
+/api must use requireAuth" (middleware, includes), "Every table must have id
+and created_at" (required_fields), "The deleted_at column of organizations
+must be nullable" (nullable_fields), "Every environment variable the app
+reads must be one of A, B or C" (subset_of), "The web app must never import
+node:fs" (imports, excludes).
+
+### Temporal claims on state machines
+
+A state_machine set fact can name `reachable_pairs` (`from->to` pairs joined
+by a path of one or more transitions) and `required_waypoints`
+(`from->to via state`: the target is reachable and every path to it passes
+through the state), and any machine projection can use `includes`,
+`subset_of` or `excludes`. "A cancelled invoice can never become paid" is a
+`reachable_pairs` fact with `excludes`; "Every path from draft to paid must
+pass through approved" is a `required_waypoints` fact. A failure names the
+path or the state:
+
+```
+rejected: a path from draft reaches paid without passing through approved
+```
+
 ### What `proved` covers
 
 A requirement is **proved** when it is tested end to end and every applicable
@@ -502,7 +587,8 @@ requirement below proved until it is.
 `arithmetic` and `smt` certificates pay off only when the requirement rests on
 typed numeric facts (bounds, limits, counts). For an enumerable domain use
 `exhaustive` or `typecheck`; for decisions, lifecycles and formats use
-`rule`, `state_machine` or `regex`.
+`rule`, `state_machine` or `regex`; for routes, schemas, configuration and
+the references the code makes use `source`.
 
 Kibi never takes a certificate's word for it. At ingest it re-checks the
 certificate (every member listed once and passed; the arithmetic decided by

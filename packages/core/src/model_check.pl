@@ -34,7 +34,20 @@
 %                    predicate is true for every member.
 %   machine_set      A set fact naming a machine projection (transitions,
 %                    states, initial_states, terminal_states,
-%                    reachable_states): the projection is exactly the set.
+%                    reachable_states, reachable_pairs): the projection is
+%                    exactly the set.
+%   machine_relation The projection stands in the fact operator's relation
+%                    to the set (includes, subset_of, excludes, eq).
+%                    reachable_pairs are "from->to" pairs joined by a path
+%                    of one or more transitions; a required waypoint
+%                    "from->to via mid" holds when the target is reachable
+%                    from the start and every such path passes through mid.
+%   source           The model is what Kibi read from a project source (the
+%                    source kind): its members, and the tables, objects or
+%                    routes.  set_relation compares the members with the
+%                    fact's set; required_fields and nullable_fields check
+%                    each selected table or object; route_middleware checks
+%                    each selected route's middleware.
 %
 % Rules with explicit exists quantifiers, count or temporal expressions, or
 % durations, timestamps and intervals are outside what Kibi enumerates and
@@ -102,6 +115,14 @@ certificate_model(state_machine, Certificate, model(any(States), Table, machine(
     ;   Initial = none
     ),
     machine_table(States, Edges, Initial, Table).
+certificate_model(source, Certificate, model(none, none, source(Members, Entities, Routes))) :-
+    !,
+    required(Certificate, model, Model),
+    required(Model, members, RawMembers),
+    maplist(text_string, RawMembers, Members0),
+    sort(Members0, Members),
+    (   get_dict(entities, Model, Entities) -> true ; Entities = none ),
+    (   get_dict(routes, Model, Routes) -> true ; Routes = none ).
 certificate_model(Kind, _, _) :-
     format(string(Reason), "a ~w certificate has no finite model to check", [Kind]),
     throw(model_error(Reason)).
@@ -210,8 +231,74 @@ machine_projection(reachable_states, machine(States, Edges, Initial), Members) :
     include(member_of(States), All, Kept),
     maplist(atom_string, Kept, Members).
 
+machine_projection(reachable_pairs, machine(States, Edges, _), Members) :- !,
+    closure_pairs(States, Edges, Pairs),
+    maplist([From-To, Text]>>edge_text(From, To, Text), Pairs, Members0),
+    sort(Members0, Members).
+
 edge_text(From, To, Text) :-
     format(string(Text), "~w->~w", [From, To]).
+
+% implements REQ-kibi-source-proof-kinds
+% Whether "from->to via mid" holds: to is reachable from from, and not once
+% mid is taken out of the machine.
+waypoint_holds(Member, machine(States, Edges, _), Holds, Why) :-
+    (   sub_string(Member, Before, _, After, " via "),
+        sub_string(Member, 0, Before, _, EdgeText),
+        sub_string(Member, _, After, 0, ViaText),
+        sub_string(EdgeText, B2, _, A2, "->")
+    ->  sub_string(EdgeText, 0, B2, _, FromText),
+        sub_string(EdgeText, _, A2, 0, ToText),
+        maplist([T, A]>>atom_string(A, T), [FromText, ToText, ViaText], [From, To, Via])
+    ;   format(string(Reason), "~w is not spelled \"from->to via state\"", [Member]),
+        throw(model_error(Reason))
+    ),
+    forall(member(S, [From, To, Via]),
+           (   memberchk(S, States)
+           ->  true
+           ;   format(string(Reason), "~w is not a state of the machine", [S]),
+               throw(model_error(Reason))
+           )),
+    reach_from(From, Edges, Reached),
+    (   \+ memberchk(To, Reached)
+    ->  Holds = false,
+        format(string(Why), "~w is never reachable from ~w, so no path passes through ~w", [To, From, Via])
+    ;   memberchk(Via, [From, To])
+    ->  Holds = true, Why = ""
+    ;   exclude(edge_touches(Via), Edges, Without),
+        reach_from(From, Without, Avoiding),
+        (   memberchk(To, Avoiding)
+        ->  Holds = false,
+            format(string(Why), "a path from ~w reaches ~w without passing through ~w", [From, To, Via])
+        ;   Holds = true, Why = ""
+        )
+    ).
+
+edge_touches(State, From-To) :- ( From == State ; To == State ).
+
+% relation_problem(+Operator, +Actual, +Expected, +What, -Reason) fails when
+% the relation holds; Actual and Expected are sorted lists of strings.
+relation_problem("eq", Actual, Expected, What, Reason) :-
+    Actual \== Expected,
+    subtract(Expected, Actual, Missing),
+    subtract(Actual, Expected, Extra),
+    set_difference_text(Missing, Extra, Difference),
+    format(string(Reason), "~w are not the fact's set (~w)", [What, Difference]).
+relation_problem("includes", Actual, Expected, What, Reason) :-
+    subtract(Expected, Actual, Missing),
+    Missing \== [],
+    atomic_list_concat(Missing, ', ', Text),
+    format(string(Reason), "~w do not include ~w", [What, Text]).
+relation_problem("subset_of", Actual, Expected, What, Reason) :-
+    subtract(Actual, Expected, Extra),
+    Extra \== [],
+    atomic_list_concat(Extra, ', ', Text),
+    format(string(Reason), "~w include ~w, which the fact's set does not allow", [What, Text]).
+relation_problem("excludes", Actual, Expected, What, Reason) :-
+    intersection(Actual, Expected, Shared),
+    Shared \== [],
+    atomic_list_concat(Shared, ', ', Text),
+    format(string(Reason), "~w include ~w, which the fact excludes", [What, Text]).
 
 % ---------------------------------------------------------------------------
 % Obligations
@@ -273,8 +360,117 @@ obligation_result("machine_set", Obligation, model(_, _, Machine), Result) :- !,
         format(string(Reason), "the machine's ~w are not the fact's set (~w)", [Projection, Difference]),
         Result = problem(Reason)
     ).
+obligation_result("machine_relation", Obligation, model(_, _, Machine), Result) :- !,
+    (   Machine = machine(_, _, _)
+    ->  true
+    ;   throw(model_error("a machine_relation obligation needs a state_machine certificate"))
+    ),
+    dict_text(Obligation, projection, ProjectionText),
+    atom_string(Projection, ProjectionText),
+    dict_text(Obligation, operator, Operator),
+    get_dict(members, Obligation, RawMembers),
+    maplist(text_string, RawMembers, Expected0),
+    sort(Expected0, Expected),
+    (   Projection == required_waypoints
+    ->  (   member(Member, Expected),
+            waypoint_holds(Member, Machine, Holds, Why),
+            (   Operator == "excludes"
+            ->  Holds == true,
+                format(string(Reason), "every path ~w, which the fact excludes", [Member])
+            ;   Holds == false,
+                Reason = Why
+            )
+        ->  Result = problem(Reason)
+        ;   Result = ok
+        )
+    ;   machine_projection(Projection, Machine, Actual0),
+        sort(Actual0, Actual),
+        format(string(What), "the machine's ~w", [Projection]),
+        (   relation_problem(Operator, Actual, Expected, What, Reason)
+        ->  Result = problem(Reason)
+        ;   Result = ok
+        )
+    ).
+obligation_result("set_relation", Obligation, model(_, _, source(Actual, _, _)), Result) :- !,
+    dict_text(Obligation, operator, Operator),
+    obligation_strings(Obligation, Expected),
+    (   relation_problem(Operator, Actual, Expected, "the members Kibi read from the source", Reason)
+    ->  Result = problem(Reason)
+    ;   Result = ok
+    ).
+obligation_result(FieldKind, Obligation, model(_, _, source(_, Entities, _)), Result) :-
+    memberchk(FieldKind, ["required_fields", "nullable_fields"]),
+    !,
+    (   is_list(Entities), Entities \== []
+    ->  true
+    ;   throw(model_error("the source has no tables or objects; read a schema or validator for a field claim"))
+    ),
+    obligation_strings(Obligation, Expected),
+    (   member(Member, Expected),
+        field_problem(FieldKind, Member, Entities, Reason)
+    ->  Result = problem(Reason)
+    ;   Result = ok
+    ).
+obligation_result("route_middleware", Obligation, model(_, _, source(_, _, Routes)), Result) :- !,
+    (   is_list(Routes), Routes \== []
+    ->  true
+    ;   throw(model_error("the source has no routes; read a route table for a middleware claim"))
+    ),
+    dict_text(Obligation, operator, Operator),
+    obligation_strings(Obligation, Expected),
+    (   member(Route, Routes),
+        get_dict(middleware, Route, Raw),
+        maplist(text_string, Raw, Actual0),
+        sort(Actual0, Actual),
+        get_dict(method, Route, Method),
+        get_dict(path, Route, Path),
+        format(string(What), "the middleware of ~w ~w", [Method, Path]),
+        relation_problem(Operator, Actual, Expected, What, Reason)
+    ->  Result = problem(Reason)
+    ;   Result = ok
+    ).
 obligation_result(Kind, _, _, problem(Reason)) :-
     format(string(Reason), "a ~w obligation cannot be checked against a finite model", [Kind]).
+
+obligation_strings(Obligation, Members) :-
+    get_dict(members, Obligation, Raw),
+    maplist(text_string, Raw, Members0),
+    sort(Members0, Members).
+
+% A field member "name" applies to every selected table or object, and
+% "table.name" to that table only.
+field_problem(FieldKind, Member, Entities, Reason) :-
+    (   sub_string(Member, Before, _, After, "."),
+        sub_string(Member, 0, Before, _, Table),
+        sub_string(Member, _, After, 0, Field),
+        \+ sub_string(Field, _, _, _, ".")
+    ->  (   member(Entity, Entities), get_dict(name, Entity, Name), text_string(Name, Table)
+        ->  Targets = [Entity]
+        ;   format(string(Reason), "the source has no table or object ~w", [Table]),
+            Targets = []
+        )
+    ;   Field = Member,
+        Targets = Entities
+    ),
+    (   nonvar(Reason)
+    ->  true
+    ;   member(Entity, Targets),
+        get_dict(name, Entity, EntityName),
+        get_dict(columns, Entity, Columns),
+        (   member(Column, Columns), get_dict(name, Column, ColumnName), text_string(ColumnName, Field)
+        ->  get_dict(nullable, Column, Nullable),
+            get_dict(optional, Column, Optional),
+            (   FieldKind == "required_fields",
+                ( Nullable == true ; Optional == true )
+            ->  (   Nullable == true -> How = nullable ; How = optional ),
+                format(string(Reason), "~w.~w is ~w, not required", [EntityName, Field, How])
+            ;   FieldKind == "nullable_fields",
+                Nullable \== true
+            ->  format(string(Reason), "~w.~w is not nullable", [EntityName, Field])
+            )
+        ;   format(string(Reason), "~w has no field ~w", [EntityName, Field])
+        )
+    ).
 
 set_difference_text(Missing, Extra, Text) :-
     findall(Part,

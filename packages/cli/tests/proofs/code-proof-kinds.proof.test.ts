@@ -14,6 +14,7 @@ import {
   regexCertificate,
   ruleCertificate,
   smtCertificate,
+  sourceCertificate,
   stateMachineCertificate,
   writeCodeCertificate,
 } from "../../src/public/proof-certificates.js";
@@ -237,6 +238,54 @@ async function certificates(kind: ProofKind): Promise<{
           "a pattern without a symbol": {
             ...valid,
             pattern: { ...pattern, symbol_id: "" },
+          },
+        },
+      };
+    }
+    case "source": {
+      // Kibi stores its own read of the source as the certificate's model.
+      const valid = {
+        ...sourceCertificate({
+          testId: TEST_ID,
+          source: {
+            reader: "schema",
+            format: "sql",
+            files: ["migrations/*.sql"],
+          },
+        }),
+        model: {
+          members: ["invitations", "organizations"],
+          entities: [
+            {
+              name: "organizations",
+              columns: [{ name: "id", nullable: false, optional: false }],
+              foreign_keys: [],
+            },
+          ],
+        },
+      };
+      return {
+        valid,
+        tampered: {
+          "unsorted members": {
+            ...valid,
+            model: {
+              ...valid.model,
+              members: ["organizations", "invitations"],
+            },
+          },
+          "no reader": { ...valid, source: {} },
+          "a column without nullable": {
+            ...valid,
+            model: {
+              ...valid.model,
+              entities: [
+                {
+                  name: "organizations",
+                  columns: [{ name: "id", optional: false }],
+                },
+              ],
+            },
           },
         },
       };

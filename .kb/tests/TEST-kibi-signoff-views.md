@@ -20,18 +20,18 @@ origin:
 id: TEST-kibi-signoff-views
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-869c26a8a09b3178c9105af4
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-20e6f4df3ded4810eeba86ab
     test_id: TEST-kibi-signoff-views
     scope: end_to_end
     outcome: passed
-    code_snapshot: a3b3fd9828c2519a01070d5c6fd6abe73004c96826c445cccfa77a492c8fb054
+    code_snapshot: bcb841dd0abcae9dabd73b657221fbb2fe40a69646f6d5a7954feabecdde7d2c
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-23T11:08:06.669Z'
-    finished_at: '2026-10-23T11:09:29.368Z'
-    artifact_digest: f37ebd6d62cfeab55e83fe495046c88c24b6f5a81c3338ecc095324f26c7b9df
+    started_at: '2026-10-26T18:27:02.711Z'
+    finished_at: '2026-10-26T18:28:23.885Z'
+    artifact_digest: c3686fd44c8e553c9b4ff11026047bbe0ec3f10161b51c508b453512eeb9c202
     contract_hash: 302c7100c521246af632a6fcdfbb60b0f6891e594895a78a316924219410ba0a
-    binding_hash: 5dd7f620b39768dee1a68129467455e0e62b9801d1e4a371d561a0a31b9b274c
+    binding_hash: 7d280acaeb24b836b91fc8596fe720e553473f5d6d78ea8371e09adcb7ee72be
     fingerprint: eb1828efefe3a43e179e135dd966ec3e83f7f7931a030f4191488d65310f5ee1
     fingerprint_components:
       contract: 302c7100c521246af632a6fcdfbb60b0f6891e594895a78a316924219410ba0a
@@ -53,5 +53,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs kibi signoff through the installed packed CLI on a sandbox repository: the default Markdown block, the JSON summary with proof state, and a questions file rendered to HTML, checking the files written under .kb/briefs/signoff. The same proof run executes the Claude Code display hook tests, which spawn the bundled hook as Claude Code does, and the OpenCode and VS Code signoff tests for the rendered card, toasts and the webview panel.

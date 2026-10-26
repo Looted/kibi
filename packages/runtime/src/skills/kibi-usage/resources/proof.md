@@ -220,16 +220,27 @@ left:
   `logic`) must hold for every assignment, a predicate fact must be decided
   as it says, and a set fact whose `property_key` names a predicate needs it
   true for every member. A type name is also a one-argument predicate
-  (`role(R)`) to range a variable. A failure names the assignment.
+  (`role(R)`) to range a variable. A failure names the assignment. A domain
+  can come from the project instead of an export (`domains: {<type>:
+  {source: {...}}}`, see `source` below). When the predicate is a test
+  harness that drives real code (it calls the handler with each role), add
+  `harness_for: [SYM-...]` naming that code; the claim binds with scope
+  `harness`, which proves, and those symbols must be `covered_by` the test.
 - `state_machine`: set `domain_source` to the transition table (object or
   Map from state to next states, or `[from, to]` pairs) or to a
   `next(state, event)` function with `domains: {state, event}`;
   `initial_source` names the initial state. Model "transitions must be one of
   a -> b, ..." as a `transitions` set fact (members `a->b`), and terminal,
   initial or reachable states as `terminal_states`, `initial_states` or
-  `reachable_states` set facts; Kibi checks that projection exactly. Rules
-  over a machine use `transition`, `reachable`, `initial`, `terminal`,
-  `state`.
+  `reachable_states` set facts; Kibi checks that projection exactly.
+  Temporal claims use two more projections: "a cancelled invoice can never
+  become paid" is a `reachable_pairs` fact with `operator: excludes` and
+  member `cancelled->paid`, and "every path from draft to paid must pass
+  through approved" is a `required_waypoints` fact with member
+  `draft->paid via approved` (paid must be reachable from draft, and not
+  once approved is removed). Any projection also takes `includes`,
+  `subset_of` and `excludes`. Rules over a machine use `transition`,
+  `reachable`, `initial`, `terminal`, `state`.
 - `regex`: set `pattern_source` to a `RegExp`, a Python `re.compile(...)` or
   a string constant. Model "X must match `re`" as a string fact with
   `operator: matches` (a JavaScript pattern with the `u` flag, matched
@@ -238,6 +249,24 @@ left:
   `y`, `m` and `v` flags, Python `\d`/`\w` without `re.ASCII` and
   non-ASCII letters under `i` are refused with the reason. An exact string
   fact (`eq`/`neq`) checks a constant.
+- `source`: Kibi reads a project source itself and checks a set fact
+  against what it read, so the test only runs the proof (it may write
+  nothing, or `sourceCertificate({ testId })`). Set `source: {reader, ...}`:
+  `json`/`yaml` (`file`, `path`, `select`), `glob` (`pattern`, `capture`),
+  `openapi` (`file`, `select: operations|unsecured_operations|...`),
+  `references` (`files`, `extract: env|imports|calls|string_args|thrown|
+  property`), `schema` (`format: drizzle|prisma|sql`, `select:
+  tables|columns|required_columns|nullable_columns|foreign_keys`), `routes`
+  (Hono or Express app export, `select: routes|middleware`) or `validator`
+  (zod or pydantic, `select: fields|required_fields|optional_fields`). A
+  member Kibi cannot read statically (a computed env name, a dynamic
+  import) fails the read with its location, so a read is never silently
+  partial. Model the claim as a set fact: `eq` (exactly), `includes` (at
+  least), `subset_of` ("must be one of"), `excludes` ("must never use");
+  `property_key: required_fields` or `nullable_fields` with members `name`
+  or `table.name`; `middleware` with `includes` for "every route under /p
+  must use M" (Kibi checks each route). The receipt stales when a file the
+  read touched changes. `value_source` accepts `{source, measure: count}`.
 
 `arithmetic` and `smt` from `constraint_source` alone prove that the
 knowledge base's facts entail the claim, not that code follows the facts:
@@ -263,7 +292,8 @@ REQ-...` shows each claim with its bindings.
 Build the certificate with `kibi-cli/proof-certificates`
 (`exhaustiveCertificate`, `typecheckCertificate`, `arithmeticCertificate`,
 `smtCertificate`, `ruleCertificate`, `stateMachineCertificate`,
-`regexCertificate`), fail the test when it records a failure
+`regexCertificate`, `sourceCertificate`; `readProjectSource` returns Kibi's
+read for a test that wants to assert on it), fail the test when it records a failure
 (`failedMembers`, `failedCalls`), and call `writeCodeCertificate`; it writes to the
 directory `kibi prove` sets in `KIBI_PROOF_CERTIFICATES` and does nothing
 elsewhere. A Python test writes the same `kibi.code-certificate.v1` JSON

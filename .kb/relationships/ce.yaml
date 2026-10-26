@@ -468,3 +468,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-09ddb60d33e7
+  - type: implements
+    from: SYM-proof-sources-read-source
+    to: REQ-kibi-source-proof-kinds
+    created_at: 2026-10-26T17:38:59.234Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3fa5a0144a05
+  - type: covered_by
+    from: SYM-proof-sources-read-source
+    to: TEST-kibi-source-proof-kinds
+    created_at: 2026-10-26T17:38:59.270Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e3ac48cf33c
+  - type: covered_by
+    from: SYM-proof-sources-read-source
+    to: TEST-kibi-source-proof-kinds-readers
+    created_at: 2026-10-26T17:38:59.288Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed75f14058b6

@@ -158,7 +158,7 @@ validate_fact_shape(property_value, Props) :-
     memberchk(value_type=VT, Props),
     valid_value_type(VT),
     ( Op == matches -> VT == string ; true ),
-    ( Op == includes -> VT == set ; true ),
+    ( memberchk(Op, [includes, subset_of, excludes]) -> VT == set ; true ),
     exactly_one_value_field(Props),
     value_type_matches_field(VT, Props),
     valid_optional_fact_enums(Props),
@@ -227,7 +227,7 @@ text_atom(Value, Atom) :- atom(Value), !, Atom = Value.
 text_atom(Value, Atom) :- string(Value), atom_string(Atom, Value).
 
 % valid_operator(+Op)
-valid_operator(Op) :- memberchk(Op, [eq, neq, lt, lte, gt, gte, matches, includes]), !.
+valid_operator(Op) :- memberchk(Op, [eq, neq, lt, lte, gt, gte, matches, includes, subset_of, excludes]), !.
 
 % valid_value_type(+VT)
 valid_value_type(ValueType) :- memberchk(ValueType, [string, int, number, bool, set]), !.

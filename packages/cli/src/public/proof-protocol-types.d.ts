@@ -97,26 +97,62 @@ export type ProofContract = Readonly<{
     | "smt"
     | "rule"
     | "state_machine"
-    | "regex";
+    | "regex"
+    | "source";
   domain_source?: Readonly<{ symbol_id: string; export?: string }>;
   witness?: Readonly<{ path: string }>;
   constraint_source?: Readonly<{ fact_ids: readonly string[] }>;
-  value_source?: readonly Readonly<{
-    symbol_id: string;
-    export?: string;
-    /** value (default): the export is a number; count: the size of a list, set, map or object. */
-    measure?: "value" | "count";
-  }>[];
+  value_source?: readonly (
+    | Readonly<{
+        symbol_id: string;
+        export?: string;
+        /** value (default): the export is a number; count: the size of a list, set, map or object. */
+        measure?: "value" | "count";
+      }>
+    | Readonly<{
+        /** A project source whose members Kibi counts. */
+        source: ProofSourceSpec;
+        measure: "count";
+      }>
+  )[];
   proves?: readonly string[];
   predicate_source?: Readonly<
-    Record<string, Readonly<{ symbol_id: string; export?: string }>>
+    Record<
+      string,
+      Readonly<{
+        symbol_id: string;
+        export?: string;
+        /** The predicate is a test harness driving these code symbols. */
+        harness_for?: readonly string[];
+      }>
+    >
   >;
   domains?: Readonly<
-    Record<string, Readonly<{ symbol_id: string; export?: string }>>
+    Record<
+      string,
+      | Readonly<{ symbol_id: string; export?: string }>
+      | Readonly<{ source: ProofSourceSpec }>
+    >
   >;
   initial_source?: Readonly<{ symbol_id: string; export?: string }>;
   pattern_source?: Readonly<{ symbol_id: string; export?: string }>;
+  /** kind source: the project source Kibi reads. */
+  source?: ProofSourceSpec;
 }>;
+
+/** A project source a source proof, a rule domain or a count reads; see proof-sources. */
+export type ProofSourceSpec = Readonly<Record<string, unknown>> &
+  Readonly<{
+    reader:
+      | "json"
+      | "yaml"
+      | "glob"
+      | "openapi"
+      | "references"
+      | "schema"
+      | "routes"
+      | "validator";
+  }>;
 
 export type ProofBinding = Readonly<{
   symbol_id: string;

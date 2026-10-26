@@ -37,7 +37,7 @@ import {
   statementOf,
   stringValue,
 } from "./shared.js";
-import { detectStrictSuggestion } from "./strict-rules.js";
+import { detectSourceShape, detectStrictSuggestion } from "./strict-rules.js";
 import type {
   SemanticAdvisorAnalysisResult,
   SemanticAdvisorInput,
@@ -381,6 +381,7 @@ function modelingSuggestions(
     const conditional = detectConditionalRule(candidate);
     const rawSuggestion =
       conditionalRuleSuggestion(payload, clause, conditional) ??
+      detectSourceShape(payload, candidate) ??
       predicateSuggestion(payload, candidate) ??
       unresolvedConditionalSuggestion(payload, clause, conditional) ??
       ontologyGapSuggestion(payload, candidate) ??

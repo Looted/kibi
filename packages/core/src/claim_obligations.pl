@@ -27,6 +27,21 @@
 %   string fact (value_type string, operator eq, neq or matches)
 %       regex                  the code's string or pattern meets the
 %                              constraint (decided in the CLI, exactly)
+%   set fact under source (any operator: eq, includes, subset_of, excludes)
+%       source                 the members Kibi read from the project source
+%                              stand in the operator's relation to the set;
+%                              with property required_fields or
+%                              nullable_fields every selected table or object
+%                              has each member as a required (or nullable)
+%                              field; with property middleware every
+%                              selected route's middleware stands in the
+%                              relation
+%   set fact under state_machine with operator includes, subset_of or
+%   excludes, or with property reachable_pairs or required_waypoints
+%       state_machine          the projection stands in the operator's
+%                              relation to the set; a required waypoint
+%                              "from->to via mid" holds when every path from
+%                              one state to the other passes through mid
 %
 % Any other pairing of a set, numeric or string fact with a certificate kind
 % is incompatible (a set fact under arithmetic, a numeric fact under
@@ -55,15 +70,24 @@
 % Result is obligation(Dict), attested, or incompatible(Reason).
 fact_obligation(FactId, ProofKind, Result) :-
     (   fact_set(FactId, Members, Operator)
-    ->  (   Operator == includes
+    ->  (   ProofKind == source
+        ->  source_obligation(FactId, Members, Operator, Result)
+        ;   ProofKind == state_machine
+        ->  machine_obligation(FactId, Members, Operator, Result)
+        ;   Operator == includes
         ->  includes_obligation(FactId, Members, ProofKind, Result)
-        ;   set_obligation(FactId, Members, ProofKind, Result)
+        ;   Operator == eq
+        ->  set_obligation(FactId, Members, ProofKind, Result)
+        ;   format(string(Reason),
+                   "~w is a ~w set fact, which only source and state_machine certificates can derive (a ~w certificate compares the whole set)",
+                   [FactId, Operator, ProofKind]),
+            Result = incompatible(Reason)
         )
     ;   fact_numeric_constraint(FactId, Variable, ValueType, Operator, Value)
     ->  (   memberchk(ProofKind, [arithmetic, smt])
         ->  Result = obligation(_{kind: "numeric_constraint", variable: Variable,
                                   value_type: ValueType, operator: Operator, value: Value})
-        ;   (   memberchk(ProofKind, [typecheck]) -> Article = a ; Article = an ),
+        ;   (   memberchk(ProofKind, [typecheck, source]) -> Article = a ; Article = an ),
             format(string(Reason),
                    "~w is a numeric fact, which ~w ~w certificate cannot express (use arithmetic or smt)",
                    [FactId, Article, ProofKind]),
@@ -106,20 +130,7 @@ set_obligation(FactId, Members, rule, obligation(_{kind: "every_member", predica
     atom_string(Property, Predicate),
     !.
 set_obligation(FactId, Members, state_machine, Result) :- !,
-    (   fact_property_key(FactId, Projection),
-        memberchk(Projection, [transitions, states, initial_states, terminal_states, reachable_states])
-    ->  (   Projection == transitions
-        ->  maplist(edge_member, Members, Edges0),
-            sort(Edges0, Spelled)
-        ;   Spelled = Members
-        ),
-        atom_string(Projection, ProjectionString),
-        Result = obligation(_{kind: "machine_set", projection: ProjectionString, members: Spelled})
-    ;   format(string(Reason),
-               "~w is a set fact whose property is not a machine projection (transitions, states, initial_states, terminal_states or reachable_states)",
-               [FactId]),
-        Result = incompatible(Reason)
-    ).
+    machine_obligation(FactId, Members, eq, Result).
 set_obligation(FactId, _Members, rule, incompatible(Reason)) :- !,
     format(string(Reason),
            "~w is a set fact with no property to read as the predicate every member satisfies",
@@ -144,6 +155,75 @@ includes_obligation(FactId, _Members, ProofKind, incompatible(Reason)) :-
     format(string(Reason),
            "~w is an includes set fact (every member has the property), which a ~w certificate cannot derive: it compares the whole set (use rule, or an eq set fact for exactly these members)",
            [FactId, ProofKind]).
+
+% implements REQ-kibi-source-proof-kinds
+% A state machine set fact: the projection its property names stands in the
+% fact operator's relation to the members.  eq on a plain projection keeps
+% the machine_set obligation earlier receipts recorded.
+machine_obligation(FactId, Members, Operator, Result) :-
+    (   fact_property_key(FactId, Projection),
+        memberchk(Projection, [transitions, states, initial_states, terminal_states,
+                               reachable_states, reachable_pairs, required_waypoints])
+    ->  (   memberchk(Projection, [transitions, reachable_pairs])
+        ->  maplist(edge_member, Members, Edges0),
+            sort(Edges0, Spelled)
+        ;   Projection == required_waypoints
+        ->  maplist(waypoint_member, Members, Spelled0),
+            sort(Spelled0, Spelled)
+        ;   Spelled = Members
+        ),
+        atom_string(Projection, ProjectionString),
+        atom_string(Operator, OperatorString),
+        (   Projection == required_waypoints,
+            Operator == subset_of
+        ->  format(string(Reason),
+                   "~w names required waypoints with subset_of; state each waypoint with includes (they hold) or excludes (they do not)",
+                   [FactId]),
+            Result = incompatible(Reason)
+        ;   Projection == required_waypoints,
+            \+ ( member(M, Spelled), sub_string(M, _, _, _, " via ") )
+        ->  format(string(Reason),
+                   "~w names required waypoints that are not spelled \"from->to via state\"",
+                   [FactId]),
+            Result = incompatible(Reason)
+        ;   Operator == eq,
+            Projection \== required_waypoints
+        ->  Result = obligation(_{kind: "machine_set", projection: ProjectionString, members: Spelled})
+        ;   Result = obligation(_{kind: "machine_relation", projection: ProjectionString,
+                                  operator: OperatorString, members: Spelled})
+        )
+    ;   format(string(Reason),
+               "~w is a set fact whose property is not a machine projection (transitions, states, initial_states, terminal_states, reachable_states, reachable_pairs or required_waypoints)",
+               [FactId]),
+        Result = incompatible(Reason)
+    ).
+
+% A required waypoint "from -> to via state", spelled "from->to via state".
+waypoint_member(Member, Spelled) :-
+    (   sub_string(Member, Before, _, After, " via ")
+    ->  sub_string(Member, 0, Before, _, Edge0),
+        sub_string(Member, _, After, 0, Via0),
+        edge_member(Edge0, Edge),
+        normalize_space(atom(Via), Via0),
+        format(string(Spelled), "~w via ~w", [Edge, Via])
+    ;   Spelled = Member
+    ).
+
+% implements REQ-kibi-source-proof-kinds
+% A set fact under the source kind.  The property decides what the members
+% are about: fields every selected table or object has as required or
+% nullable, middleware every selected route runs, or (any other property)
+% the members of the source itself.
+source_obligation(FactId, Members, Operator, obligation(Obligation)) :-
+    atom_string(Operator, OperatorString),
+    (   fact_property_key(FactId, Property) -> true ; Property = none ),
+    (   memberchk(Property-Kind, [required_fields-"required_fields", nullable_fields-"nullable_fields"]),
+        memberchk(Operator, [eq, includes])
+    ->  Obligation = _{kind: Kind, members: Members}
+    ;   Property == middleware
+    ->  Obligation = _{kind: "route_middleware", operator: OperatorString, members: Members}
+    ;   Obligation = _{kind: "set_relation", operator: OperatorString, members: Members}
+    ).
 
 % A transition member "from -> to" (or with U+2192 as the arrow) spelled "from->to".
 edge_member(Member, Spelled) :-
@@ -253,6 +333,26 @@ obligation_key(Obligation, every(Predicate, Members)) :-
     dict_text(Obligation, predicate, Predicate),
     obligation_members(Obligation, Members),
     !.
+obligation_key(Obligation, nullable_fields(Members)) :-
+    dict_text(Obligation, kind, "nullable_fields"),
+    obligation_members(Obligation, Members),
+    !.
+obligation_key(Obligation, relation(Operator, Members)) :-
+    dict_text(Obligation, kind, "set_relation"),
+    dict_text(Obligation, operator, Operator),
+    obligation_members(Obligation, Members),
+    !.
+obligation_key(Obligation, middleware(Operator, Members)) :-
+    dict_text(Obligation, kind, "route_middleware"),
+    dict_text(Obligation, operator, Operator),
+    obligation_members(Obligation, Members),
+    !.
+obligation_key(Obligation, machine(Projection, Operator, Members)) :-
+    dict_text(Obligation, kind, "machine_relation"),
+    dict_text(Obligation, projection, Projection),
+    dict_text(Obligation, operator, Operator),
+    obligation_members(Obligation, Members),
+    !.
 obligation_key(Obligation, machine(Projection, Members)) :-
     dict_text(Obligation, kind, "machine_set"),
     dict_text(Obligation, projection, Projection),
@@ -308,7 +408,8 @@ text_string(Raw, String) :- number(Raw), !, number_string(Raw, String).
 text_string(^^(Raw, _), String) :- !, text_string(Raw, String).
 
 % The members of a set fact, sorted and unique, and its operator: eq (the
-% set is exactly these members) or includes (it contains at least these).
+% set is exactly these members), includes (it contains at least these),
+% subset_of (it contains only these) or excludes (it contains none of them).
 fact_set(FactId, Members, Operator) :-
     kb_entity(FactId, fact, Props),
     prop_atom(Props, fact_kind, property_value),
@@ -327,7 +428,7 @@ fact_set(FactId, Members, Operator) :-
         maplist([S, A]>>atom_string(A, S), NonEmpty, Atoms)
     ),
     (   prop_atom(Props, operator, Operator0) -> Operator = Operator0 ; Operator = eq ),
-    memberchk(Operator, [eq, includes]),
+    memberchk(Operator, [eq, includes, subset_of, excludes]),
     \+ prop_atom(Props, polarity, forbid),
     maplist([A, S]>>atom_string(A, S), Atoms, Strings),
     sort(Strings, Members),
@@ -497,6 +598,7 @@ certificate_kind(smt).
 certificate_kind(rule).
 certificate_kind(state_machine).
 certificate_kind(regex).
+certificate_kind(source).
 
 test_certificate_contract(TestId, Kind, Contract) :-
     kb_entity(TestId, test, Props),

@@ -178,7 +178,9 @@ export interface ExtractedEntity {
     | "gt"
     | "gte"
     | "matches"
-    | "includes";
+    | "includes"
+    | "subset_of"
+    | "excludes";
   value_type?: "string" | "int" | "number" | "bool" | "set";
   value_string?: string;
   value_set?: string[];

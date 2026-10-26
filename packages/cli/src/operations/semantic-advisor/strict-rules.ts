@@ -21,6 +21,230 @@ function suggestion(
   return strictSuggestion(payload, evidence, claim, rationale, confidence);
 }
 
+const splitValues = (text: string): string[] =>
+  [
+    ...new Set(
+      text
+        .split(/,|\band\b|\bor\b|\bnor\b/i)
+        .map((value) =>
+          value
+            .trim()
+            .replace(/^(?:the|a|an)\s+/i, "")
+            .replace(/^`|`$/g, ""),
+        )
+        .filter(Boolean),
+    ),
+  ].sort();
+
+const IDENTIFIER = /^[A-Za-z_][\w.:/@-]*$/;
+
+const NEVER_VERBS: Readonly<Record<string, string>> = {
+  use: "uses",
+  import: "imports",
+  call: "calls",
+  read: "reads",
+  throw: "throws",
+};
+
+/**
+ * Set claims a source or state_machine proof decides: a machine state that
+ * can never reach another, a state every path passes through, middleware
+ * every route under a prefix runs, fields every table or object has, a
+ * nullable field, members a set must stay within, and references the code
+ * must never make.
+ */
+// implements REQ-kibi-source-proof-kinds
+export function detectSourceShape(
+  payload: Payload,
+  statement: string,
+): SemanticModelingSuggestion | null {
+  const never = statement.match(
+    /^(?:an?\s+|the\s+)?(?<from>[\w-]+)\s+(?<base>[\w\s-]+?)\s+(?:can|may|must|shall|should)\s+never\s+(?:become|reach|transition\s+to|move\s+to|go\s+(?:back\s+)?to)\s+(?<to>[\w-]+)\.?$/i,
+  );
+  if (never?.groups?.from && never.groups.base && never.groups.to)
+    return suggestion(
+      payload,
+      never,
+      {
+        subject_key: normalizeSubjectKey(never.groups.base),
+        property_key: "reachable_pairs",
+        operator: "excludes",
+        value_type: "set",
+        value_set: [
+          `${never.groups.from.toLowerCase()}->${never.groups.to.toLowerCase()}`,
+        ],
+      },
+      "A state that can never reach another is a reachable_pairs set fact with operator excludes; a state_machine proof checks that no path of the code's machine joins them.",
+      0.86,
+      `${never.groups.from} ... never ... ${never.groups.to}`,
+    );
+
+  const waypoint = statement.match(
+    /^(?:in\s+(?:the\s+|an?\s+)?(?<base>.+?),\s*)?(?:every|each|any)\s+path\s+from\s+(?<from>[\w-]+)\s+to\s+(?<to>[\w-]+)\s+(?:must|shall|should)\s+(?:pass|go)\s+through\s+(?<via>[\w-]+)\.?$/i,
+  );
+  if (waypoint?.groups?.from && waypoint.groups.to && waypoint.groups.via)
+    return suggestion(
+      payload,
+      waypoint,
+      {
+        subject_key: normalizeSubjectKey(waypoint.groups.base ?? "workflow"),
+        property_key: "required_waypoints",
+        operator: "includes",
+        value_type: "set",
+        value_set: [
+          `${waypoint.groups.from}->${waypoint.groups.to} via ${waypoint.groups.via}`,
+        ],
+      },
+      'A state every path passes through is a required_waypoints set fact ("from->to via state"); a state_machine proof checks that the target is reachable and every path to it passes through the state.',
+      0.86,
+      `path from ${waypoint.groups.from} to ${waypoint.groups.to} ... through ${waypoint.groups.via}`,
+    );
+
+  const middleware = statement.match(
+    /^(?:every|each|all)\s+(?:routes?|endpoints?|handlers?)\s+(?:under|below|in)\s+`?(?<prefix>\/[^\s`]*)`?\s+(?:must|shall|should)\s+(?:use|run|apply|be\s+(?:protected|guarded)\s+by|go\s+through)\s+(?:the\s+)?(?<values>.+?)(?:\s+middleware)?\.?$/i,
+  );
+  if (middleware?.groups?.prefix && middleware.groups.values) {
+    const values = splitValues(middleware.groups.values);
+    if (values.length > 0 && values.every((value) => IDENTIFIER.test(value)))
+      return suggestion(
+        payload,
+        middleware,
+        {
+          subject_key: normalizeSubjectKey(
+            `routes ${middleware.groups.prefix}`,
+          ),
+          property_key: "middleware",
+          operator: "includes",
+          value_type: "set",
+          value_set: values,
+        },
+        "Middleware every route under a prefix runs is a middleware set fact with operator includes; a source proof reads the app's route table and checks each route.",
+        0.84,
+        `under ${middleware.groups.prefix} ... ${middleware.groups.values}`,
+      );
+  }
+
+  const fields = statement.match(
+    /^(?:every|each|all)\s+(?<subject>[\w\s-]+?)\s+(?:must|shall|should)\s+(?:have|include|contain|define)\s+(?:the\s+)?(?:(?:required\s+)?(?:fields?|columns?|properties)\s+)?(?<values>.+?)\.?$/i,
+  );
+  if (fields?.groups?.subject && fields.groups.values) {
+    const values = splitValues(fields.groups.values);
+    if (values.length > 0 && values.every((value) => IDENTIFIER.test(value)))
+      return suggestion(
+        payload,
+        fields,
+        {
+          subject_key: normalizeSubjectKey(fields.groups.subject),
+          property_key: "required_fields",
+          operator: "includes",
+          value_type: "set",
+          value_set: values,
+        },
+        "Fields every table or object must have are a required_fields set fact; a source proof reads the schema or validator and checks each one (typecheck proves it for one type).",
+        0.84,
+        `have ${fields.groups.values}`,
+      );
+  }
+
+  const nullable = statement.match(
+    /^(?:the\s+)?(?<values>.+?)\s+(?:column|field|property)s?\s+(?:of|in|on)\s+(?:the\s+)?(?<subject>[\w\s-]+?)\s+(?:must|shall|should)\s+be\s+(?:nullable|optional\s+null)\.?$/i,
+  );
+  if (nullable?.groups?.subject && nullable.groups.values) {
+    const values = splitValues(nullable.groups.values);
+    if (values.length > 0 && values.every((value) => IDENTIFIER.test(value)))
+      return suggestion(
+        payload,
+        nullable,
+        {
+          subject_key: normalizeSubjectKey(nullable.groups.subject),
+          property_key: "nullable_fields",
+          operator: "includes",
+          value_type: "set",
+          value_set: values,
+        },
+        "A field that must accept null is a nullable_fields set fact; a source proof reads the schema or validator and checks it.",
+        0.84,
+        `${nullable.groups.values} ... nullable`,
+      );
+  }
+
+  const within = statement.match(
+    /^(?:every|each|all|any)\s+(?<subject>.+?)\s+(?:must|shall|should)\s+be\s+(?:one\s+of|(?:declared|listed)\s+(?:in|among))\s+(?<values>.+?)\.?$/i,
+  );
+  if (within?.groups?.subject && within.groups.values) {
+    const values = splitValues(within.groups.values);
+    if (values.length > 1)
+      return suggestion(
+        payload,
+        within,
+        {
+          subject_key: normalizeSubjectKey(within.groups.subject),
+          property_key: "allowed_values",
+          operator: "subset_of",
+          value_type: "set",
+          value_set: values,
+        },
+        "A claim that every member stays within a set is a set fact with operator subset_of: the members the code uses must all be listed, and listed values need not all be used. A source proof reads the members from the project.",
+        0.84,
+        `one of ${within.groups.values}`,
+      );
+  }
+
+  const forbidden = statement.match(
+    /^(?<subject>.+?)\s+(?:must|shall|should)\s+never\s+(?<verb>use|import|call|read|throw)\s+(?<values>.+?)\.?$/i,
+  );
+  if (
+    forbidden?.groups?.subject &&
+    forbidden.groups.verb &&
+    forbidden.groups.values
+  ) {
+    const values = splitValues(forbidden.groups.values);
+    const property = NEVER_VERBS[forbidden.groups.verb.toLowerCase()];
+    if (
+      property !== undefined &&
+      values.length > 0 &&
+      values.every((value) => IDENTIFIER.test(value))
+    )
+      return suggestion(
+        payload,
+        forbidden,
+        {
+          subject_key: normalizeSubjectKey(forbidden.groups.subject),
+          property_key: property,
+          operator: "excludes",
+          value_type: "set",
+          value_set: values,
+        },
+        "Something the code must never use is a set fact with operator excludes; a source proof reads every reference the code makes (imports, calls, environment variables) and checks none is listed.",
+        0.84,
+        `never ${forbidden.groups.verb} ${forbidden.groups.values}`,
+      );
+  }
+
+  const atLeast = statement.match(
+    /^(?<subject>.+?)\s+(?:must|shall|should)\s+(?:always\s+)?(?:include|contain|list|declare)\s+at\s+least\s+(?<values>.+?)\.?$/i,
+  );
+  if (atLeast?.groups?.subject && atLeast.groups.values) {
+    const values = splitValues(atLeast.groups.values);
+    if (values.length > 0 && values.every((value) => IDENTIFIER.test(value)))
+      return suggestion(
+        payload,
+        atLeast,
+        {
+          subject_key: normalizeSubjectKey(atLeast.groups.subject),
+          property_key: "members",
+          operator: "includes",
+          value_type: "set",
+          value_set: values,
+        },
+        "Members a set must contain are a set fact with operator includes; a source proof reads the members from the project.",
+        0.84,
+        `at least ${atLeast.groups.values}`,
+      );
+  }
+  return null;
+}
+
 // implements REQ-mcp-semantic-advisor-preflight
 export function detectStrictSuggestion(
   payload: Payload,
@@ -253,6 +477,9 @@ export function detectStrictSuggestion(
       `be ${exactString.groups.value}`,
     );
   }
+
+  const sourceShape = detectSourceShape(payload, statement);
+  if (sourceShape !== null) return sourceShape;
 
   // implements REQ-kibi-non-numeric-proof-kinds
   const enumSet = statement.match(

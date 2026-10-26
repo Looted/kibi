@@ -128,8 +128,14 @@ model_candidates(set, Members, Candidates) :-
     findall(Text, (member(Set, Sets), member(Text, Set)), Texts0),
     sort(Texts0, Texts),
     fresh_text(Texts, 0, Fresh),
-    % The union of every bound satisfies any set of includes facts alone.
-    append(Sets, [Texts, [Fresh]], Candidates).
+    % The union of every bound satisfies any set of includes facts alone;
+    % the union of the includes bounds alone is the least set they allow,
+    % which subset_of and excludes facts accept when anything does.
+    findall(Text,
+        (member(m(_, includes, Bound, _, _), Members), set_texts(Bound, Set), member(Text, Set)),
+        Included0),
+    sort(Included0, Included),
+    append(Sets, [Texts, Included, [Fresh]], Candidates).
 
 fresh_text(Bounds, Index, Fresh) :-
     format(string(Candidate), "kibi:model:~w", [Index]),

@@ -28,7 +28,16 @@
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { evaluateSourceCode } from "../operations/proof/source-code-readers.js";
 import { CODE_CERTIFICATE_VERSION } from "./proof-protocol.js";
+import {
+  type SourceModel,
+  type SourceSpec,
+  describeSource,
+  readSource,
+} from "./proof-sources.js";
+
+export type { SourceModel, SourceSpec } from "./proof-sources.js";
 
 /** Where `kibi prove` asks a run to leave its certificates. */
 // implements REQ-kibi-code-proof-kinds
@@ -45,7 +54,8 @@ export type CodeCertificate = Readonly<Record<string, unknown>> &
       | "smt"
       | "rule"
       | "state_machine"
-      | "regex";
+      | "regex"
+      | "source";
     test_id: string;
   }>;
 
@@ -263,7 +273,8 @@ const certificateText = (value: unknown) =>
 /** A finite domain a rule certificate ranges over. */
 // implements REQ-kibi-non-numeric-proof-kinds
 export type RuleDomain = Readonly<{
-  symbolId: string;
+  /** The domain's symbol; omit it for a domain the contract reads from a source. */
+  symbolId?: string;
   members: Iterable<unknown>;
 }>;
 
@@ -289,11 +300,11 @@ export async function ruleCertificate(input: {
   predicates: Readonly<Record<string, RulePredicate>>;
 }): Promise<CodeCertificate> {
   const values: Record<string, unknown[]> = {};
-  const domains: Record<string, { symbol_id: string; members: string[] }> = {};
+  const domains: Record<string, { symbol_id?: string; members: string[] }> = {};
   for (const [type, domain] of Object.entries(input.domains)) {
     values[type] = [...domain.members];
     domains[type] = {
-      symbol_id: domain.symbolId,
+      ...(domain.symbolId !== undefined ? { symbol_id: domain.symbolId } : {}),
       members: values[type].map(certificateText),
     };
   }
@@ -493,6 +504,45 @@ export function regexCertificate(input: {
             flavor: "js",
           },
   };
+}
+
+/**
+ * The certificate of a source proof. Kibi reads the contract's source
+ * itself at ingest and stores its own read, so the run only names the test
+ * and, optionally, the source (which must be the contract's). A run may also
+ * leave nothing: a passed source proof needs no certificate from the test.
+ */
+// implements REQ-kibi-source-proof-kinds
+export function sourceCertificate(input: {
+  testId: string;
+  source?: SourceSpec;
+}): CodeCertificate {
+  return {
+    version: CODE_CERTIFICATE_VERSION,
+    kind: "source",
+    test_id: input.testId,
+    ...(input.source !== undefined ? { source: input.source } : {}),
+  };
+}
+
+/**
+ * Read a project source the way Kibi does at ingest: the members (and the
+ * tables, objects or routes) of a JSON or YAML file, a glob, an OpenAPI
+ * document, the references the code makes, a data schema, a route table or
+ * a validator. A rule proof whose contract reads a domain from a source
+ * uses this to range its predicates over the same members.
+ */
+// implements REQ-kibi-source-proof-kinds
+export async function readProjectSource(
+  source: SourceSpec,
+  workspaceRoot: string = process.cwd(),
+): Promise<SourceModel> {
+  const read = await readSource(workspaceRoot, source, evaluateSourceCode);
+  if (!read.ok)
+    throw new Error(
+      `Kibi could not read ${describeSource(source)}: ${read.reason}`,
+    );
+  return read.model;
 }
 
 /**

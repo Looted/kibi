@@ -123,7 +123,9 @@ export interface SemanticStrictPropertyClaim {
     | "gt"
     | "gte"
     | "matches"
-    | "includes";
+    | "includes"
+    | "subset_of"
+    | "excludes";
   readonly value_type: "string" | "int" | "number" | "bool" | "set";
   readonly value_string?: string;
   readonly value_set?: readonly string[];

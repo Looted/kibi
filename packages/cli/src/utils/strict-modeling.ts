@@ -28,8 +28,21 @@ export interface SemanticClaim {
   source: string;
   subjectKey: string;
   propertyKey: string;
-  operator: "eq" | "gt" | "gte" | "lt" | "lte" | "neq" | "bool" | "polarity";
-  value: string | number | boolean;
+  operator:
+    | "eq"
+    | "gt"
+    | "gte"
+    | "lt"
+    | "lte"
+    | "neq"
+    | "bool"
+    | "polarity"
+    | "matches"
+    | "includes"
+    | "subset_of"
+    | "excludes";
+  /** A list of strings is a set value (operator eq, includes, subset_of or excludes). */
+  value: string | number | boolean | readonly string[];
   confidence: number;
   provenance?: string;
 }
@@ -343,7 +356,13 @@ export function normalizeSourceKey(value: string): string {
   return normalized;
 }
 
-function normalizeStableValue(value: string | number | boolean): string {
+function normalizeStableValue(
+  value: string | number | boolean | readonly string[],
+): string {
+  if (Array.isArray(value))
+    return normalizeStableValue(
+      [...new Set(value as readonly string[])].sort().join("|"),
+    );
   if (typeof value === "string") {
     const normalized = value
       .trim()
@@ -418,8 +437,22 @@ function buildPropertyFactTitle(
   const label = humanizeKey(normalizedPropertyKey);
 
   if (claim.operator === "polarity") {
-    return `${label} ${normalizePolarityValue(claim.value) === "forbid" ? "forbidden" : "required"}`;
+    return `${label} ${normalizePolarityValue(scalarValue(claim.value)) === "forbid" ? "forbidden" : "required"}`;
   }
+
+  if (Array.isArray(claim.value)) {
+    const setLabel =
+      claim.operator === "includes"
+        ? "includes"
+        : claim.operator === "subset_of"
+          ? "within"
+          : claim.operator === "excludes"
+            ? "excludes"
+            : "=";
+    return `${label} ${setLabel} ${(claim.value as readonly string[]).join(", ")}`;
+  }
+  if (claim.operator === "matches")
+    return `${label} matches ${String(claim.value)}`;
 
   const operatorLabel =
     claim.operator === "bool"
@@ -440,12 +473,25 @@ function buildPropertyFactTitle(
 }
 
 function buildPropertyFactFields(claim: SemanticClaim): Partial<FactFields> {
+  // implements REQ-kibi-source-proof-kinds
+  if (Array.isArray(claim.value))
+    return {
+      operator: claim.operator as FactFields["operator"],
+      value_type: "set",
+      value_set: [...new Set(claim.value as readonly string[])].sort(),
+    } as Partial<FactFields>;
+  if (claim.operator === "matches")
+    return {
+      operator: "matches",
+      value_type: "string",
+      value_string: String(claim.value),
+    } as Partial<FactFields>;
   if (claim.operator === "polarity") {
     return {
       operator: "eq",
       value_type: "bool",
       value_bool: true,
-      polarity: normalizePolarityValue(claim.value),
+      polarity: normalizePolarityValue(scalarValue(claim.value)),
     };
   }
 
@@ -453,7 +499,7 @@ function buildPropertyFactFields(claim: SemanticClaim): Partial<FactFields> {
     return {
       operator: "eq",
       value_type: "bool",
-      value_bool: normalizeBooleanValue(claim.value),
+      value_bool: normalizeBooleanValue(scalarValue(claim.value)),
     };
   }
 
@@ -477,7 +523,7 @@ function numericClaimValue(claim: SemanticClaim): string | number | boolean {
   ) {
     return Number(claim.value);
   }
-  return claim.value;
+  return scalarValue(claim.value);
 }
 
 function buildTypedValueFields(
@@ -598,4 +644,13 @@ function buildEntitySourcePath(directory: string, entityId: string): string {
 // implements REQ-kibi-subject-vocabulary
 export function factSourcePath(factId: string): string {
   return buildEntitySourcePath(resolveEntitySourcePaths().facts, factId);
+}
+
+/** A claim value as one scalar: a set value joins its members. */
+function scalarValue(
+  value: string | number | boolean | readonly string[],
+): string | number | boolean {
+  return Array.isArray(value)
+    ? (value as readonly string[]).join("|")
+    : (value as string | number | boolean);
 }

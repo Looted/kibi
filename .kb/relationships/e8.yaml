@@ -377,3 +377,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5bb0ecd76e95
+  - type: implements
+    from: SYM-code-certificates-complete-source-certificate
+    to: REQ-kibi-source-proof-kinds
+    created_at: 2026-10-26T17:39:02.908Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-684cdfa8100b
+  - type: covered_by
+    from: SYM-code-certificates-complete-source-certificate
+    to: TEST-kibi-source-proof-kinds
+    created_at: 2026-10-26T17:39:02.940Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6ddf3ac7a54
+  - type: covered_by
+    from: SYM-code-certificates-complete-source-certificate
+    to: TEST-kibi-source-proof-kinds-readers
+    created_at: 2026-10-26T17:39:02.976Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-616d82607481

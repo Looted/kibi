@@ -3222,6 +3222,31 @@
     ]
   },
   {
+    "test_id": "TEST-kibi-source-proof-kinds",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/source-proof-kinds.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/source-proof-kinds.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-source-proof-kinds-readers",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/source-proof-kinds.proof.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-cli-subdirectory-workspace",
     "steps": [
       [

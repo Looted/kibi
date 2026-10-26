@@ -70,9 +70,11 @@ export const SUCCESS_POLICIES = [
 /**
  * What a proof contract's checker establishes. Runner kinds (e2e, example,
  * property) sample cases and support tested evidence; certificate kinds
- * (exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex) cover
- * every case and support proved evidence once Kibi re-checks the certificate
- * the run left.
+ * (exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex,
+ * source) cover every case and support proved evidence once Kibi re-checks
+ * the certificate the run left. A source certificate is Kibi's own read of a
+ * project source (a JSON or YAML file, a glob, an OpenAPI document, the
+ * references the code makes, a data schema, a route table, a validator).
  */
 // implements REQ-kibi-code-proof-kinds
 export const PROOF_KINDS = [
@@ -86,9 +88,10 @@ export const PROOF_KINDS = [
   "rule",
   "state_machine",
   "regex",
+  "source",
 ] as const;
 
-// implements REQ-kibi-code-proof-kinds, REQ-kibi-non-numeric-proof-kinds
+// implements REQ-kibi-code-proof-kinds, REQ-kibi-non-numeric-proof-kinds, REQ-kibi-source-proof-kinds
 export const CERTIFICATE_PROOF_KINDS = [
   "exhaustive",
   "typecheck",
@@ -97,6 +100,7 @@ export const CERTIFICATE_PROOF_KINDS = [
   "rule",
   "state_machine",
   "regex",
+  "source",
 ] as const;
 
 // implements REQ-kibi-code-proof-kinds
@@ -134,6 +138,12 @@ import type {
   ProofResult,
   ProofRunArtifact,
 } from "./proof-protocol-types.js";
+import {
+  SOURCE_READERS,
+  type SourceSpec,
+  normalizeSourceSpec,
+  sourceSpecErrors,
+} from "./proof-sources.js";
 
 export const PROOF_RESULT_SCHEMA = {
   type: "object",
@@ -279,6 +289,42 @@ const SOURCE_REFERENCE_SCHEMA = {
   additionalProperties: false,
 } as const;
 
+// implements REQ-kibi-source-proof-kinds
+const SOURCE_SPEC_SCHEMA = {
+  type: "object",
+  description:
+    "A project source Kibi reads by itself. reader json or yaml: {file, path?, select?: keys|values|items}. glob: {pattern, capture?, ignore?} (capture true reads what each * matched). openapi: {file, select?: operations|unsecured_operations|security_schemes|responses}. references: {files, extract: env|imports|calls|string_args|thrown|property, callee?, key?, ignore?}. schema: {format: drizzle|prisma|sql, file (drizzle, prisma) or files (sql migrations), exports?, table?, select?: tables|columns|required_columns|nullable_columns|foreign_keys}. routes: {file, export, framework?: hono|express, path_prefix?, names_from?, select?: routes|middleware}. validator: {file, export, select?: fields|required_fields|optional_fields}. Paths are repository-relative. A member Kibi cannot read statically fails the read with its location.",
+  required: ["reader"],
+  properties: {
+    reader: { type: "string", enum: [...SOURCE_READERS] },
+  },
+  additionalProperties: true,
+} as const;
+
+const SOURCE_DOMAIN_SCHEMA = {
+  type: "object",
+  required: ["source"],
+  properties: { source: SOURCE_SPEC_SCHEMA },
+  additionalProperties: false,
+} as const;
+
+const PREDICATE_SOURCE_SCHEMA = {
+  type: "object",
+  required: ["symbol_id"],
+  properties: {
+    symbol_id: { type: "string", minLength: 1 },
+    export: { type: "string", minLength: 1 },
+    harness_for: {
+      type: "array",
+      minItems: 1,
+      items: { type: "string", minLength: 1 },
+      description:
+        "The predicate is a test harness that decides the predicate by driving these code symbols (for example by calling the handler with each role). The symbols must be covered_by the test; a claim the harness proves is bound with scope harness.",
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 export const PROOF_CONTRACT_SCHEMA = {
   type: "object",
   description:
@@ -306,7 +352,11 @@ export const PROOF_CONTRACT_SCHEMA = {
       type: "string",
       enum: [...PROOF_KINDS],
       description:
-        "What the checker establishes; absent means e2e. exhaustive, typecheck, arithmetic, smt, rule, state_machine and regex must leave a kibi.code-certificate.v1 that Kibi re-checks before the receipt counts as proved.",
+        "What the checker establishes; absent means e2e. exhaustive, typecheck, arithmetic, smt, rule, state_machine and regex must leave a kibi.code-certificate.v1 that Kibi re-checks before the receipt counts as proved. source reads the contract's source itself: the run may leave {version, kind: source, test_id, source} or nothing, and Kibi stores its own read as the certificate.",
+    },
+    source: {
+      ...SOURCE_SPEC_SCHEMA,
+      description: `source: the project source a source proof reads. ${SOURCE_SPEC_SCHEMA.description}`,
     },
     domain_source: {
       type: "object",
@@ -343,19 +393,19 @@ export const PROOF_CONTRACT_SCHEMA = {
     value_source: {
       type: "array",
       description:
-        "arithmetic and smt: code constants the assumptions read. Kibi evaluates each export at ingest and requires the certificate to assume the variable equals that value, so the proof is about the code and not only the knowledge base. With measure count the value is the size of a list, set, map or object export, so a count claim reads the collection itself.",
+        "arithmetic and smt: code constants the assumptions read. Kibi evaluates each export at ingest and requires the certificate to assume the variable equals that value, so the proof is about the code and not only the knowledge base. With measure count the value is the size of a list, set, map or object export, so a count claim reads the collection itself. An entry {source, measure: count} counts the members Kibi reads from a project source (routes, tables, environment variables).",
       minItems: 1,
       items: {
         type: "object",
-        required: ["symbol_id"],
         properties: {
           symbol_id: { type: "string", minLength: 1 },
           export: { type: "string", minLength: 1 },
+          source: SOURCE_SPEC_SCHEMA,
           measure: {
             type: "string",
             enum: ["value", "count"],
             description:
-              "value (default): the export is a number. count: the number of members of a list, set, map or object export.",
+              "value (default for an export): the export is a number. count (the only measure of a source): the number of members of a list, set, map or object export, or of a source.",
           },
         },
         additionalProperties: false,
@@ -366,14 +416,16 @@ export const PROOF_CONTRACT_SCHEMA = {
       description:
         "rule: the code function behind each predicate a claim's rule, predicate or set fact names, keyed by predicate name. Each export takes the predicate's arguments in order and returns a boolean; Kibi calls it on every combination of its argument domains.",
       minProperties: 1,
-      additionalProperties: SOURCE_REFERENCE_SCHEMA,
+      additionalProperties: PREDICATE_SOURCE_SCHEMA,
     },
     domains: {
       type: "object",
       description:
-        "rule: the finite domain of each argument type, keyed by type name (an array, Set, Map or object export, or a Python list, set, dict or Enum). state_machine with a next-state function: the `state` and `event` domains it is called on.",
+        "rule: the finite domain of each argument type, keyed by type name (an array, Set, Map or object export, or a Python list, set, dict or Enum), or {source} for the members Kibi reads from a project source (every route, every table, every environment variable). state_machine with a next-state function: the `state` and `event` domains it is called on.",
       minProperties: 1,
-      additionalProperties: SOURCE_REFERENCE_SCHEMA,
+      additionalProperties: {
+        anyOf: [SOURCE_REFERENCE_SCHEMA, SOURCE_DOMAIN_SCHEMA],
+      },
     },
     initial_source: {
       ...SOURCE_REFERENCE_SCHEMA,
@@ -798,11 +850,31 @@ function proofContractKindErrors(contract: Record<string, unknown>): string[] {
     );
   const valueSource = contract.value_source;
   if (valueSource !== undefined) {
+    if (Array.isArray(valueSource))
+      valueSource.forEach((entry, index) => {
+        const row = record(entry);
+        if (row === null || row.source === undefined) return;
+        errors.push(
+          ...sourceSpecErrors(
+            row.source,
+            `proof_contract.value_source[${index}].source`,
+          ),
+        );
+        if (row.symbol_id !== undefined || row.export !== undefined)
+          errors.push(
+            `proof_contract.value_source[${index}] names a source, so it takes no symbol_id or export`,
+          );
+        if (row.measure !== undefined && row.measure !== "count")
+          errors.push(
+            `proof_contract.value_source[${index}].measure must be count for a source: Kibi counts the members it reads`,
+          );
+      });
     if (
       !Array.isArray(valueSource) ||
       valueSource.length === 0 ||
       !valueSource.every((entry) => {
         const row = record(entry);
+        if (row !== null && row.source !== undefined) return true;
         return (
           row !== null &&
           nonEmptyString(row.symbol_id) &&
@@ -818,7 +890,7 @@ function proofContractKindErrors(contract: Record<string, unknown>): string[] {
       })
     )
       errors.push(
-        "proof_contract.value_source must be [{symbol_id, export?, measure?: value|count}] naming the code constants the assumptions read",
+        "proof_contract.value_source must be [{symbol_id, export?, measure?: value|count} or {source, measure?: count}] naming the code constants or project sources the assumptions read",
       );
     else if (kind !== "arithmetic" && kind !== "smt")
       errors.push(
@@ -826,6 +898,7 @@ function proofContractKindErrors(contract: Record<string, unknown>): string[] {
       );
   }
   errors.push(...nonNumericContractErrors(contract));
+  errors.push(...sourceContractErrors(contract));
   const proves = contract.proves;
   if (proves !== undefined) {
     if (
@@ -857,15 +930,73 @@ function isSourceReference(value: unknown): boolean {
   );
 }
 
-function isSourceMap(value: unknown): boolean {
+function isSourceMap(
+  value: unknown,
+  accepts: (entry: unknown) => boolean = isSourceReference,
+): boolean {
   const row = record(value);
   return (
     row !== null &&
     Object.keys(row).length > 0 &&
     Object.entries(row).every(
-      ([key, entry]) => key.trim() !== "" && isSourceReference(entry),
+      ([key, entry]) => key.trim() !== "" && accepts(entry),
     )
   );
+}
+
+function isPredicateReference(value: unknown): boolean {
+  const row = record(value);
+  if (row === null || row.harness_for === undefined)
+    return isSourceReference(value);
+  const { harness_for: harness, ...reference } = row;
+  return (
+    isSourceReference(reference) &&
+    Array.isArray(harness) &&
+    harness.length > 0 &&
+    harness.every(nonEmptyString)
+  );
+}
+
+function isSourceDomain(value: unknown): boolean {
+  const row = record(value);
+  return (
+    row !== null && Object.keys(row).length === 1 && row.source !== undefined
+  );
+}
+
+/**
+ * The source kind and the source-backed rule domains: a well-formed source
+ * spec, required for kind source and only there.
+ */
+// implements REQ-kibi-source-proof-kinds
+function sourceContractErrors(contract: Record<string, unknown>): string[] {
+  const errors: string[] = [];
+  const kind = contract.kind;
+  if (contract.source !== undefined) {
+    errors.push(...sourceSpecErrors(contract.source, "proof_contract.source"));
+    if (kind !== "source")
+      errors.push(
+        `proof_contract.source applies only to kind source, not ${String(kind ?? "e2e")}`,
+      );
+  } else if (kind === "source")
+    errors.push(
+      "proof_contract.source is required for kind source: name the project source Kibi reads (reader json, yaml, glob, openapi, references, schema, routes or validator)",
+    );
+  const domains = record(contract.domains);
+  for (const [type, entry] of Object.entries(domains ?? {}))
+    if (isSourceDomain(entry)) {
+      errors.push(
+        ...sourceSpecErrors(
+          record(entry)?.source,
+          `proof_contract.domains.${type}.source`,
+        ),
+      );
+      if (kind !== "rule")
+        errors.push(
+          `proof_contract.domains.${type}.source applies only to kind rule: a state machine's domains are the code's`,
+        );
+    }
+  return errors;
 }
 
 /**
@@ -884,14 +1015,20 @@ function nonNumericContractErrors(contract: Record<string, unknown>): string[] {
   };
   if (
     contract.predicate_source !== undefined &&
-    !isSourceMap(contract.predicate_source)
+    !isSourceMap(contract.predicate_source, isPredicateReference)
   )
     errors.push(
-      "proof_contract.predicate_source must map each predicate name to {symbol_id, export?} naming the function that decides it",
+      "proof_contract.predicate_source must map each predicate name to {symbol_id, export?, harness_for?} naming the function that decides it",
     );
-  if (contract.domains !== undefined && !isSourceMap(contract.domains))
+  if (
+    contract.domains !== undefined &&
+    !isSourceMap(
+      contract.domains,
+      (entry) => isSourceReference(entry) || isSourceDomain(entry),
+    )
+  )
     errors.push(
-      "proof_contract.domains must map each argument type to {symbol_id, export?} naming the export that lists its values",
+      "proof_contract.domains must map each argument type to {symbol_id, export?} naming the export that lists its values, or {source} naming the project source Kibi reads them from",
     );
   for (const field of ["initial_source", "pattern_source"])
     if (contract[field] !== undefined && !isSourceReference(contract[field]))
@@ -954,22 +1091,20 @@ export function optionalProofContractFields(
   | "domains"
   | "initial_source"
   | "pattern_source"
+  | "source"
 > {
   const fields: {
     kind?: ProofKind;
     domain_source?: { symbol_id: string; export?: string };
     witness?: { path: string };
     constraint_source?: { fact_ids: string[] };
-    value_source?: {
-      symbol_id: string;
-      export?: string;
-      measure?: "value" | "count";
-    }[];
+    value_source?: ValueSourceEntry[];
     proves?: string[];
-    predicate_source?: Record<string, SourceReference>;
-    domains?: Record<string, SourceReference>;
+    predicate_source?: Record<string, PredicateReference>;
+    domains?: Record<string, SourceReference | { source: SourceSpec }>;
     initial_source?: SourceReference;
     pattern_source?: SourceReference;
+    source?: SourceSpec;
   } = {};
   if (typeof contract.kind === "string")
     fields.kind = contract.kind as ProofKind;
@@ -992,25 +1127,30 @@ export function optionalProofContractFields(
   if (Array.isArray(contract.value_source))
     fields.value_source = contract.value_source
       .map((entry) => record(entry))
-      .filter(
-        (row): row is Record<string, unknown> =>
-          row !== null && typeof row.symbol_id === "string",
-      )
-      .map((row) => ({
-        symbol_id: String(row.symbol_id),
-        ...(typeof row.export === "string" ? { export: row.export } : {}),
-        ...(row.measure === "value" || row.measure === "count"
-          ? { measure: row.measure }
-          : {}),
-      }));
+      .map((row): ValueSourceEntry | null => {
+        if (row === null) return null;
+        const spec = normalizeSourceSpec(row.source);
+        if (spec !== undefined) return { source: spec, measure: "count" };
+        if (typeof row.symbol_id !== "string") return null;
+        return {
+          symbol_id: row.symbol_id,
+          ...(typeof row.export === "string" ? { export: row.export } : {}),
+          ...(row.measure === "value" || row.measure === "count"
+            ? { measure: row.measure }
+            : {}),
+        };
+      })
+      .filter((row): row is ValueSourceEntry => row !== null);
   if (Array.isArray(contract.proves))
     fields.proves = contract.proves.filter(
       (key): key is string => typeof key === "string",
     );
-  const predicates = sourceMap(contract.predicate_source);
+  const predicates = predicateMap(contract.predicate_source);
   if (predicates !== undefined) fields.predicate_source = predicates;
-  const domains = sourceMap(contract.domains);
+  const domains = domainMap(contract.domains);
   if (domains !== undefined) fields.domains = domains;
+  const spec = normalizeSourceSpec(contract.source);
+  if (spec !== undefined) fields.source = spec;
   const initial = sourceReference(contract.initial_source);
   if (initial !== undefined) fields.initial_source = initial;
   const pattern = sourceReference(contract.pattern_source);
@@ -1019,6 +1159,50 @@ export function optionalProofContractFields(
 }
 
 type SourceReference = { symbol_id: string; export?: string };
+type PredicateReference = SourceReference & { harness_for?: string[] };
+type ValueSourceEntry =
+  | { symbol_id: string; export?: string; measure?: "value" | "count" }
+  | { source: SourceSpec; measure: "count" };
+
+function predicateMap(
+  value: unknown,
+): Record<string, PredicateReference> | undefined {
+  const row = record(value);
+  if (!row) return undefined;
+  const out: Record<string, PredicateReference> = {};
+  for (const [key, entry] of Object.entries(row)) {
+    const reference = sourceReference(entry);
+    if (reference === undefined) continue;
+    const harness = record(entry)?.harness_for;
+    out[key] = Array.isArray(harness)
+      ? {
+          ...reference,
+          harness_for: harness.filter(
+            (id): id is string => typeof id === "string",
+          ),
+        }
+      : reference;
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
+function domainMap(
+  value: unknown,
+): Record<string, SourceReference | { source: SourceSpec }> | undefined {
+  const row = record(value);
+  if (!row) return undefined;
+  const out: Record<string, SourceReference | { source: SourceSpec }> = {};
+  for (const [key, entry] of Object.entries(row)) {
+    const spec = normalizeSourceSpec(record(entry)?.source);
+    if (spec !== undefined) {
+      out[key] = { source: spec };
+      continue;
+    }
+    const reference = sourceReference(entry);
+    if (reference !== undefined) out[key] = reference;
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
+}
 
 function sourceReference(value: unknown): SourceReference | undefined {
   const row = record(value);

@@ -13,6 +13,7 @@ import { resolveBoundSymbolScope } from "../../extractors/manifest.js";
 import { normalizeEntityId, parseTriples } from "../../prolog/codec.js";
 import type { PrologPort } from "../../public/operations/runtime-types.js";
 import { receiptBindingHash } from "../../public/proof-fingerprint.js";
+import { type SourceSpec, sourceDependencies } from "../../public/proof-sources.js";
 import {
   type ProofContract,
   optionalProofContractFields,
@@ -117,6 +118,18 @@ export function receiptBindingContract(raw: unknown): ProofContract | null {
   };
 }
 
+/** Every project source a contract reads: its source, source counts and source domains. */
+// implements REQ-kibi-source-proof-kinds
+export function contractSources(contract: ProofContract): SourceSpec[] {
+  const specs: SourceSpec[] = [];
+  if (contract.source !== undefined) specs.push(contract.source as SourceSpec);
+  for (const entry of contract.value_source ?? [])
+    if ("source" in entry) specs.push(entry.source as SourceSpec);
+  for (const entry of Object.values(contract.domains ?? {}))
+    if ("source" in entry) specs.push(entry.source as SourceSpec);
+  return specs;
+}
+
 // implements REQ-kibi-fresh-verification-receipts-v2
 export type ReceiptBindingInput = Readonly<{
   workspaceRoot: string;
@@ -179,8 +192,19 @@ export async function currentReceiptBindingHashes(
         input.coveredBySymbols,
       ),
     );
-    const current = receiptBindingHash(contract, withoutLinks, codeScope);
-    const legacy = receiptBindingHash(contract, withoutReceipts, codeScope);
+    // A contract that reads project sources stales when what it reads
+    // changes: each file's contents and the set of files a glob matches.
+    const scope = [
+      ...codeScope,
+      ...contractSources(contract).flatMap((spec) =>
+        sourceDependencies(input.workspaceRoot, spec).map((dependency) => ({
+          symbolId: dependency.id,
+          sourceHash: dependency.hash,
+        })),
+      ),
+    ];
+    const current = receiptBindingHash(contract, withoutLinks, scope);
+    const legacy = receiptBindingHash(contract, withoutReceipts, scope);
     return legacy === current ? [current] : [current, legacy];
   } catch {
     return undefined;

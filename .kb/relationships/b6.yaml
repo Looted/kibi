@@ -251,3 +251,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b6cb6387b09a
+  - type: constrains
+    from: REQ-kibi-source-proof-kinds
+    to: FACT-SUBJECT-KIBI-SOURCE-PROOF
+    created_at: 2026-10-26T17:38:48.458Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d62c99c269c2
+  - type: requires_property
+    from: REQ-kibi-source-proof-kinds
+    to: FACT-kibi-source-proof-readers
+    created_at: 2026-10-26T17:38:48.481Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-815ba6340913
+  - type: requires_property
+    from: REQ-kibi-source-proof-kinds
+    to: FACT-kibi-source-proof-reads-itself
+    created_at: 2026-10-26T17:38:48.499Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39821dc72559
+  - type: requires_property
+    from: REQ-kibi-source-proof-kinds
+    to: FACT-kibi-source-proof-refuse-dynamic
+    created_at: 2026-10-26T17:38:48.515Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b367bc05fa2d
+  - type: requires_property
+    from: REQ-kibi-source-proof-kinds
+    to: FACT-kibi-source-proof-never-reachable
+    created_at: 2026-10-26T17:38:48.535Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-700756be6ad3
+  - type: requires_property
+    from: REQ-kibi-source-proof-kinds
+    to: FACT-kibi-source-proof-waypoints
+    created_at: 2026-10-26T17:38:48.550Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-363715194469
+  - type: requires_property
+    from: REQ-kibi-source-proof-kinds
+    to: FACT-kibi-source-proof-stale-on-change
+    created_at: 2026-10-26T17:38:48.570Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-782f737097c3
+  - type: specified_by
+    from: REQ-kibi-source-proof-kinds
+    to: SCEN-kibi-source-proof-kinds
+    created_at: 2026-10-26T17:38:48.582Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62a5903e604d

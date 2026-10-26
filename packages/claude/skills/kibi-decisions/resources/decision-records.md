@@ -62,7 +62,10 @@ validation, not the write.
   the `evidence-floor` check while it is recorded. Drop it (the floor goes
   back to `tested`) once an end-to-end test with a proof contract and a
   passing `kibi prove` receipt covers the rule's scenario; never set it below
-  `asserted` on a firm rule.
+  `asserted` on a firm rule. A rule that a certificate kind checks (allowed
+  values, transitions, a pattern, a rule over roles, a config, route or
+  schema read) can instead be proved by a certificate test; see Certificate
+  proof kinds in kibi-usage `resources/proof.md`.
 - Your own choice is `default`; a guess is `exploratory`. Write the value
   explicitly whenever you record a decision.
 - For strict modeling (claim keys, predicate facts) follow `kibi-usage`,
