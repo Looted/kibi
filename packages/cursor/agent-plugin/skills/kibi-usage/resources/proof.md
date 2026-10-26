@@ -196,6 +196,33 @@ left:
 - `smt`: an SMT-LIB query that declares the facts' property as a constant,
   asserts each `constraint_source` fact constraint and then the claim's
   negation. Kibi re-runs z3 or cvc5 on it and accepts only `unsat`.
+- `rule`: decisions over finite domains. Set `predicate_source: {<predicate>:
+  { symbol_id }}` to the function behind each predicate the claim uses (it
+  takes the arguments in order and returns a boolean) and `domains: {<type>:
+  { symbol_id }}` to the export listing each argument type's values. Kibi
+  calls every function on every combination and model checks the claim's
+  fact: a `kibi.logic.v1` rule fact (from `kb_model_requirement` with
+  `logic`) must hold for every assignment, a predicate fact must be decided
+  as it says, and a set fact whose `property_key` names a predicate needs it
+  true for every member. A type name is also a one-argument predicate
+  (`role(R)`) to range a variable. A failure names the assignment.
+- `state_machine`: set `domain_source` to the transition table (object or
+  Map from state to next states, or `[from, to]` pairs) or to a
+  `next(state, event)` function with `domains: {state, event}`;
+  `initial_source` names the initial state. Model "transitions must be one of
+  a -> b, ..." as a `transitions` set fact (members `a->b`), and terminal,
+  initial or reachable states as `terminal_states`, `initial_states` or
+  `reachable_states` set facts; Kibi checks that projection exactly. Rules
+  over a machine use `transition`, `reachable`, `initial`, `terminal`,
+  `state`.
+- `regex`: set `pattern_source` to a `RegExp`, a Python `re.compile(...)` or
+  a string constant. Model "X must match `re`" as a string fact with
+  `operator: matches` (a JavaScript pattern with the `u` flag, matched
+  whole); Kibi decides exact language equality and reports the shortest
+  string only one side accepts. Backreferences, lookaround, `\b`, the `g`,
+  `y`, `m` and `v` flags, Python `\d`/`\w` without `re.ASCII` and
+  non-ASCII letters under `i` are refused with the reason. An exact string
+  fact (`eq`/`neq`) checks a constant.
 
 `arithmetic` and `smt` from `constraint_source` alone prove that the
 knowledge base's facts entail the claim, not that code follows the facts:
@@ -207,8 +234,11 @@ Every certificate contract names the claims it proves in `proves:
 [CLAIM-...]` (blocking `proof-contract-claims` from schema 12). Kibi derives
 each claim's obligation from its grounding fact: a set fact (`value_type:
 set`, `value_set: [...]`) needs the `exhaustive` domain or the `typecheck`
-domain type to be exactly the set; a numeric fact needs the `arithmetic`
-claim or the negated `smt` assertion to be its constraint. The receipt
+domain type to be exactly the set (with `property_key: required_fields`,
+`typecheck` instead needs every member to be a required, non-nullable field
+of the domain type); a numeric fact needs the `arithmetic` claim or the
+negated `smt` assertion to be its constraint; rule, predicate, machine and
+string facts need the `rule`, `state_machine` or `regex` checks above. The receipt
 records one binding per claim: `derived` (checked, the only kind that
 proves), `attested` (the fact has no derivation; counts as tested) or
 `rejected` with the reason. Model an enumerated claim as a set fact and a
@@ -217,13 +247,15 @@ REQ-...` shows each claim with its bindings.
 
 Build the certificate with `kibi-cli/proof-certificates`
 (`exhaustiveCertificate`, `typecheckCertificate`, `arithmeticCertificate`,
-`smtCertificate`), fail the test when it records a failure
-(`failedMembers`), and call `writeCodeCertificate`; it writes to the
+`smtCertificate`, `ruleCertificate`, `stateMachineCertificate`,
+`regexCertificate`), fail the test when it records a failure
+(`failedMembers`, `failedCalls`), and call `writeCodeCertificate`; it writes to the
 directory `kibi prove` sets in `KIBI_PROOF_CERTIFICATES` and does nothing
 elsewhere. A Python test writes the same `kibi.code-certificate.v1` JSON
 to that directory itself. Wire the KB: the proof file symbol is
 `executable_for` the test and named in `required_proofs`; the domain symbol
-`implements` the requirement and is `covered_by` the test; the test
+(and every symbol a rule, machine or pattern contract names) `implements`
+the requirement and is `covered_by` the test; the test
 `validates` one of the requirement's scenarios. `proved` is per claim: a
 multi-claim requirement is proved only when certificates derive every
 applicable claim, and reads `tested` with `n/m claims proved` otherwise. A
