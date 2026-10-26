@@ -27,4 +27,4 @@ A `rule` contract can take a domain from a project source, and a predicate with 
 
 The semantic advisor and `kibi model` turn these sentence shapes into the matching facts. `kibi-cli/proof-certificates` adds `sourceCertificate` and `readProjectSource`.
 
-The kibi-usage skill (2.30.0) explains the new kind and operators.
+The kibi-usage skill (2.31.0) explains the new kind and operators. kibi-traceability (2.3.0) lists every certificate kind that reaches proved and the code or harness scope it needs, kibi-freshness (2.3.0) says a changed file a source proof read also leaves its receipt pending re-proof, and kibi-decisions (1.4.0) says a firm rule a certificate kind can check is proved by a certificate test.
