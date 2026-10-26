@@ -360,6 +360,68 @@ describe("runUnitCoverage mocked shards", () => {
     }
   }, 20_000);
 
+  test("runs the in-process engine daemon file once more after a coverage pipe stall", async () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "kibi-unit-cov-retry-"));
+    roots.push(root);
+    mkdirSync(path.join(root, "packages", "demo", "src"), { recursive: true });
+    writeFileSync(path.join(root, "packages", "demo", "src", "main.ts"), "x\n");
+    const previousCwd = process.cwd();
+    const errors: string[] = [];
+    const warnings: string[] = [];
+    const errorSpy = spyOn(console, "error").mockImplementation((message) => {
+      errors.push(String(message));
+    });
+    const warnSpy = spyOn(console, "warn").mockImplementation((message) => {
+      warnings.push(String(message));
+    });
+    const infoSpy = spyOn(console, "info").mockImplementation(() => {});
+    const daemonFile = "./packages/cli/tests/engine-daemon-inprocess.test.ts";
+    const otherFile = "./packages/cli/tests/engine-limits.test.ts";
+    const runs = new Map<string, number>();
+    const spawnSpy = spyOn(childProcess, "spawnSync").mockImplementation(((
+      _command,
+      args,
+    ) => {
+      const list = (args ?? []) as string[];
+      const file = list.at(-1) ?? "";
+      const run = (runs.get(file) ?? 0) + 1;
+      runs.set(file, run);
+      const coverageDir = mockedCoverageDirectory(list);
+      mkdirSync(coverageDir, { recursive: true });
+      writeFileSync(
+        path.join(coverageDir, "lcov.info"),
+        lcovRecord("packages/demo/src/main.ts", 1),
+      );
+      const failed = (file === daemonFile && run === 1) || file === otherFile;
+      return {
+        status: failed ? 1 : 0,
+        stdout: "",
+        stderr: "",
+      } as unknown as ReturnType<typeof childProcess.spawnSync>;
+    }) as typeof childProcess.spawnSync);
+    process.chdir(root);
+    try {
+      await runUnitCoverageIfMain(true, isolatedCoverageOptions(root), [
+        "--shards=cli.engine",
+      ]);
+      expect(runs.get(daemonFile)).toBe(2);
+      expect(warnings.join("\n")).toContain(
+        "running it once more for the Bun coverage pipe stall",
+      );
+      // A failure in any other file is reported, never run again.
+      expect(runs.get(otherFile)).toBe(1);
+      expect(errors.join("\n")).toContain(`file=${otherFile}`);
+      expect(errors.join("\n")).not.toContain(`file=${daemonFile}`);
+    } finally {
+      process.chdir(previousCwd);
+      process.exitCode = 0;
+      spawnSpy.mockRestore();
+      errorSpy.mockRestore();
+      warnSpy.mockRestore();
+      infoSpy.mockRestore();
+    }
+  }, 20_000);
+
   test("CLI --partition runs only its slice and leaves repo gates to the merge", async () => {
     const root = mkdtempSync(
       path.join(os.tmpdir(), "kibi-unit-cov-partition-"),
