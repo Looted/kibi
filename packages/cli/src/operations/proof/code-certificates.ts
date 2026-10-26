@@ -671,7 +671,8 @@ export function smtAssertion(
 
 /**
  * The values a contract's value_source exports hold, read from the code the
- * same way as a domain, or why one cannot be read.
+ * same way as a domain (a count measure is the collection's size), or why
+ * one cannot be read.
  */
 // implements REQ-kibi-claim-bound-proofs
 export async function valueSourceValues(
@@ -689,10 +690,23 @@ export async function valueSourceValues(
         ok: false,
         reason: `the value_source symbol ${source.symbol_id} has no source file`,
       };
+    const exportName = source.export ?? symbol.title;
+    if (source.measure === "count") {
+      // A count claim reads the collection itself, not a number kept
+      // beside it for the proof.
+      const domain = evaluateDomain(
+        context.workspaceRoot,
+        symbol.sourceFile,
+        exportName,
+      );
+      if (!domain.ok) return domain;
+      values.push({ symbol_id: source.symbol_id, value: domain.count });
+      continue;
+    }
     const evaluated = evaluateScalar(
       context.workspaceRoot,
       symbol.sourceFile,
-      source.export ?? symbol.title,
+      exportName,
     );
     if (!evaluated.ok) return evaluated;
     values.push({ symbol_id: source.symbol_id, value: evaluated.value });
