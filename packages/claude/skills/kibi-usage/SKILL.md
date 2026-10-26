@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: Kibi Usage
   id: kibi-usage
-  version: 2.29.2
+  version: 2.30.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi

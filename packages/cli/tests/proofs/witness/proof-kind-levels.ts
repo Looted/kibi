@@ -21,6 +21,7 @@ export const PROOF_KIND_LEVELS = {
   rule: "proved",
   state_machine: "proved",
   regex: "proved",
+  source: "proved",
 } as const satisfies Record<(typeof PROOF_KINDS)[number], "proved" | "tested">;
 
 export function proofKindLevel(kind: ProofKind): "proved" | "tested" {
@@ -36,6 +37,7 @@ export function proofKindLevel(kind: ProofKind): "proved" | "tested" {
     case "rule":
     case "state_machine":
     case "regex":
+    case "source":
       return "proved";
     default: {
       const unhandled: never = kind;

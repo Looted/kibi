@@ -43,7 +43,9 @@ type Operator =
   | "gt"
   | "gte"
   | "matches"
-  | "includes";
+  | "includes"
+  | "subset_of"
+  | "excludes";
 type ValueType = "string" | "int" | "number" | "bool";
 type Polarity = "require" | "forbid" | "assert" | "deny";
 type VerificationScope = "unit" | "integration" | "end_to_end";
@@ -560,10 +562,23 @@ const entitySchema: Record<string, unknown> = {
     // matches: value_string is a JavaScript regular expression (u flag) the
     // property's values match as a whole; only string facts use it.
     // includes: every member of value_set has the property (the members
-    // that have it include the set); only set facts use it.
+    // that have it include the set); subset_of: every member that has the
+    // property is in value_set; excludes: no member of value_set has it.
+    // Only set facts use these three.
     operator: {
       type: "string",
-      enum: ["eq", "neq", "lt", "lte", "gt", "gte", "matches", "includes"],
+      enum: [
+        "eq",
+        "neq",
+        "lt",
+        "lte",
+        "gt",
+        "gte",
+        "matches",
+        "includes",
+        "subset_of",
+        "excludes",
+      ],
     },
     value_type: {
       type: "string",

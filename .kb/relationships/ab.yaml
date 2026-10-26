@@ -304,3 +304,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-668fd1108959
+  - type: validates
+    from: TEST-kibi-source-proof-kinds-readers
+    to: SCEN-kibi-source-proof-kinds
+    created_at: 2026-10-26T17:38:49.836Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95e1da4cfebc

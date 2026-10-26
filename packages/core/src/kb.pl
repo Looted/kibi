@@ -85,7 +85,7 @@
 :- use_module(library(sha), [sha_hash/3, hash_atom/2]).
 :- use_module(library(http/json)).
 :- use_module(library(aggregate), [aggregate_all/3]).
-:- use_module(library(lists), [sum_list/2, subtract/3]).
+:- use_module(library(lists), [sum_list/2, subtract/3, intersection/3]).
 :- use_module(library(ordsets)).
 :- use_module(library(solution_sequences), [distinct/1, limit/2, offset/2, order_by/2]).
 :- use_module('../schema/entities.pl', [entity_type/1, entity_property/3, required_property/2]).
@@ -3235,6 +3235,25 @@ values_conflict(includes, Included, eq, Exact, set) :-
     \+ subtract(Included, Exact, []).
 values_conflict(eq, Exact, includes, Included, set) :-
     \+ subtract(Included, Exact, []).
+
+% subset_of says every member with the property is in its set, excludes that
+% no member of its set has it.  subset_of conflicts with a set that must have
+% the property (eq or includes) when that set names a member outside it;
+% excludes conflicts when the two sets share a member.  subset_of and excludes
+% never conflict with each other or themselves: the empty set satisfies them.
+% implements REQ-kibi-source-proof-kinds
+values_conflict(subset_of, Allowed, Op, Required, set) :-
+    memberchk(Op, [eq, includes]),
+    \+ subtract(Required, Allowed, []).
+values_conflict(Op, Required, subset_of, Allowed, set) :-
+    memberchk(Op, [eq, includes]),
+    \+ subtract(Required, Allowed, []).
+values_conflict(excludes, Excluded, Op, Required, set) :-
+    memberchk(Op, [eq, includes]),
+    intersection(Excluded, Required, [_|_]).
+values_conflict(Op, Required, excludes, Excluded, set) :-
+    memberchk(Op, [eq, includes]),
+    intersection(Excluded, Required, [_|_]).
 
 % Eq/neq conflict on the same scalar value.
 values_conflict(eq, ValA, neq, ValB, Type) :-

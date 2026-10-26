@@ -34,11 +34,10 @@ import {
   languagesEqual,
   UnsupportedPattern,
 } from "./regular-language.js";
-import {
-  loadSymbol,
-  runCodeEvaluator,
-  TS_RESOLVE_HOOKS,
-} from "./code-certificates.js";
+import { loadSymbol } from "./code-certificates.js";
+import { describeSource, readSource } from "../../public/proof-sources.js";
+import { runCodeEvaluator, TS_RESOLVE_HOOKS } from "./code-runner.js";
+import { evaluateSourceCode } from "./source-code-readers.js";
 
 /** The most predicate calls one rule certificate may need. */
 export const MAX_TABLE_ROWS = 100_000;
@@ -100,7 +99,7 @@ async function main() {
     const values = {};
     const domains = {};
     for (const [type, ref] of Object.entries(plan.domains)) {
-      values[type] = items(await load(ref), ref.export);
+      values[type] = ref.values ?? items(await load(ref), ref.export);
       domains[type] = values[type].map(text);
     }
     const predicates = {};
@@ -253,7 +252,7 @@ def main():
     if mode == "table":
         values, domains = {}, {}
         for kind, ref in plan["domains"].items():
-            values[kind] = items(load(ref), ref["export"])
+            values[kind] = list(ref["values"]) if "values" in ref else items(load(ref), ref["export"])
             domains[kind] = [text(v) for v in values[kind]]
         predicates, total = {}, 0
         for name, ref in plan["predicates"].items():
@@ -402,12 +401,22 @@ export async function evaluateRuleModel(
   contract: ProofContract,
   argTypes: Readonly<Record<string, readonly string[]>>,
 ): Promise<{ ok: true; model: RuleModel } | { ok: false; reason: string }> {
-  const domains: Record<string, Resolved> = {};
+  const domains: Record<string, Resolved | { values: string[] }> = {};
+  const files: Resolved[] = [];
   const predicates: Record<string, Resolved & { arg_types: readonly string[] }> = {};
   for (const [type, reference] of Object.entries(contract.domains ?? {})) {
+    if ("source" in reference) {
+      // A source domain is the members Kibi reads from the project itself.
+      const read = await readSource(context.workspaceRoot, reference.source, evaluateSourceCode);
+      if (!read.ok)
+        return { ok: false, reason: `Kibi could not read the domain ${type} from ${describeSource(reference.source)}: ${read.reason}` };
+      domains[type] = { values: read.model.members };
+      continue;
+    }
     const resolved = await resolveReference(context, reference, `domains.${type}`);
     if (typeof resolved === "string") return { ok: false, reason: resolved };
     domains[type] = resolved;
+    files.push(resolved);
   }
   for (const [name, reference] of Object.entries(contract.predicate_source ?? {})) {
     const resolved = await resolveReference(context, reference, `predicate_source.${name}`);
@@ -419,7 +428,7 @@ export async function evaluateRuleModel(
   }
   return evaluateCodeModel<RuleModel>(
     context.workspaceRoot,
-    [...Object.values(domains), ...Object.values(predicates)],
+    [...files, ...Object.values(predicates)],
     { mode: "table", domains, predicates, limit: MAX_TABLE_ROWS },
   );
 }
@@ -445,6 +454,8 @@ export async function evaluateMachine(
   if (contract.domains !== undefined) {
     const domains: Record<string, Resolved> = {};
     for (const [type, reference] of Object.entries(contract.domains)) {
+      if ("source" in reference)
+        return { ok: false, reason: `domains.${type} names a source; a state machine's state and event domains are code exports` };
       const resolved = await resolveReference(context, reference, `domains.${type}`);
       if (typeof resolved === "string") return { ok: false, reason: resolved };
       domains[type] = resolved;
@@ -493,7 +504,7 @@ function sameSorted(left: readonly string[], right: readonly string[]): boolean 
 
 function sameKeys(
   certificate: Record<string, unknown> | null,
-  contract: Readonly<Record<string, Reference>> | undefined,
+  contract: Readonly<Record<string, Reference | Readonly<{ source: unknown }>>> | undefined,
   field: string,
 ): string | null {
   const certified = Object.keys(certificate ?? {}).sort();
@@ -502,7 +513,8 @@ function sameKeys(
     return `the certificate's ${field} (${certified.join(", ") || "none"}) are not the contract's (${declared.join(", ") || "none"})`;
   for (const key of declared) {
     const named = text(record(certificate?.[key])?.symbol_id);
-    const expected = contract?.[key]?.symbol_id ?? "";
+    const entry = contract?.[key];
+    const expected = entry !== undefined && "symbol_id" in entry ? entry.symbol_id : "";
     if (named !== expected)
       return `the certificate's ${field}.${key} is ${named || "(none)"}, not the contract's ${expected}`;
   }

@@ -30,6 +30,11 @@
 %   regex       The certificate holds the code's pattern (source, flags and
 %               flavor) or string constant.  (Kibi reads it from the code
 %               at ingest and decides the claim's language exactly.)
+%   source      The certificate names a project source (a reader and its
+%               spec) and holds what Kibi read from it: the members as a
+%               sorted list of distinct strings, and for schema, validator
+%               and route readers the tables, objects or routes.  (Kibi
+%               reads the source itself at ingest and stores its own read.)
 %
 % The digest a receipt records is the sha256 of the certificate's canonical
 % JSON as canonical_json/2 below spells it. The CLI records the digest this
@@ -102,8 +107,8 @@ certificate_problem(Certificate, Reason) :-
     ),
     (   kind_problem(Kind, Certificate, Reason0)
     ->  Reason = Reason0
-    ;   \+ memberchk(Kind, [exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex])
-    ->  Reason = "the certificate kind is not exhaustive, typecheck, arithmetic, smt, rule, state_machine or regex"
+    ;   \+ memberchk(Kind, [exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex, source])
+    ->  Reason = "the certificate kind is not exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex or source"
     ).
 
 kind_problem(exhaustive, Certificate, Reason) :-
@@ -268,6 +273,49 @@ kind_problem(regex, Certificate, Reason) :-
         Reason = "a string pattern must give its value"
     ;   Reason = "the pattern's type must be regexp or string"
     ).
+
+% implements REQ-kibi-source-proof-kinds
+kind_problem(source, Certificate, Reason) :-
+    field(Certificate, source, Source),
+    field(Certificate, model, Model),
+    field(Model, members, Members),
+    (   \+ ( is_dict(Source), get_dict(reader, Source, Reader), nonempty_string(Reader) )
+    ->  Reason = "the certificate names no source reader"
+    ;   \+ is_dict(Model)
+    ->  Reason = "the certificate has no model of what Kibi read"
+    ;   \+ sorted_distinct_strings(Members)
+    ->  Reason = "the source model's members must be a sorted list of distinct strings"
+    ;   get_dict(entities, Model, Entities),
+        \+ ( is_list(Entities), maplist(source_entity_ok, Entities) )
+    ->  Reason = "every source entity must have a name and columns of {name, nullable, optional}"
+    ;   get_dict(routes, Model, Routes),
+        \+ ( is_list(Routes), maplist(source_route_ok, Routes) )
+    ->  Reason = "every source route must have a method, a path and a middleware list"
+    ).
+
+sorted_distinct_strings(List) :-
+    is_list(List),
+    forall(member(Item, List), string(Item)),
+    sort(List, Sorted),
+    Sorted == List.
+
+source_entity_ok(Entity) :-
+    is_dict(Entity),
+    get_dict(name, Entity, Name), nonempty_string(Name),
+    get_dict(columns, Entity, Columns), is_list(Columns),
+    forall(member(Column, Columns),
+           ( is_dict(Column),
+             get_dict(name, Column, ColumnName), nonempty_string(ColumnName),
+             get_dict(nullable, Column, Nullable), memberchk(Nullable, [true, false]),
+             get_dict(optional, Column, Optional), memberchk(Optional, [true, false]) )),
+    (   get_dict(foreign_keys, Entity, Keys) -> is_list(Keys), forall(member(K, Keys), string(K)) ; true ).
+
+source_route_ok(Route) :-
+    is_dict(Route),
+    get_dict(method, Route, Method), nonempty_string(Method),
+    get_dict(path, Route, Path), nonempty_string(Path),
+    get_dict(middleware, Route, Middleware), is_list(Middleware),
+    forall(member(M, Middleware), string(M)).
 
 % table_problem(+Name, +Table, +Domains, -Reason): the first problem with
 % one predicate table.

@@ -183,7 +183,7 @@ export const PROOF_RECEIPT_SCHEMA = {
             type: "string",
             enum: [...CLAIM_BINDING_VERDICTS],
           },
-          scope: { type: "string", enum: ["code", "intent"] },
+          scope: { type: "string", enum: ["code", "harness", "intent"] },
           obligation: { type: "object" },
           reason: { type: "string", minLength: 1 },
         },
@@ -265,7 +265,7 @@ export type ClaimBinding = Readonly<{
   requirement_id?: string;
   fact_id?: string;
   binding: ClaimBindingVerdict;
-  scope?: "code" | "intent";
+  scope?: "code" | "harness" | "intent";
   obligation?: Readonly<Record<string, unknown>>;
   reason?: string;
 }>;
@@ -471,6 +471,7 @@ function validClaimBindings(value: unknown): boolean {
         ) &&
         (entry.scope === undefined ||
           entry.scope === "code" ||
+          entry.scope === "harness" ||
           entry.scope === "intent") &&
         (entry.obligation === undefined || isRecord(entry.obligation)) &&
         (entry.reason === undefined || nonEmptyString(entry.reason)),

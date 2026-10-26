@@ -57685,3 +57685,109 @@ symbols:
         target: TEST-kibi-code-proof-kinds
       - type: implements
         target: REQ-kibi-code-proof-kinds
+  - id: SYM-e2e-packed-source-proof-kinds
+    title: checkSourceProofKinds
+    status: active
+    sourceFile: documentation/tests/e2e/packed/source-proof-kinds.test.ts
+    symbol_role: behavioral
+    tags:
+      - e2e
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T17:38:51.431Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-source-proof-kinds
+  - id: SYM-test-source-proof-kinds-readers
+    title: sourceReadersCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/source-proof-kinds.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T17:38:54.807Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-source-proof-kinds-readers
+  - id: SYM-proof-sources-read-source
+    title: readSource
+    status: active
+    sourceFile: packages/cli/src/public/proof-sources.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T17:38:58.318Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-source-proof-kinds
+      - type: covered_by
+        target: TEST-kibi-source-proof-kinds-readers
+      - type: implements
+        target: REQ-kibi-source-proof-kinds
+  - id: SYM-code-certificates-complete-source-certificate
+    title: completeSourceCertificate
+    status: active
+    sourceFile: packages/cli/src/operations/proof/code-certificates.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T17:39:02.085Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-source-proof-kinds
+      - type: covered_by
+        target: TEST-kibi-source-proof-kinds-readers
+      - type: implements
+        target: REQ-kibi-source-proof-kinds
+  - id: SYM-source-code-readers-evaluate-source-code
+    title: evaluateSourceCode
+    status: active
+    sourceFile: packages/cli/src/operations/proof/source-code-readers.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T17:39:06.139Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-source-proof-kinds
+      - type: implements
+        target: REQ-kibi-source-proof-kinds
+  - id: SYM-code-scope-contract-sources
+    title: contractSources
+    status: active
+    sourceFile: packages/cli/src/operations/proof/code-scope.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T17:39:09.824Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-source-proof-kinds
+      - type: implements
+        target: REQ-kibi-source-proof-kinds
+  - id: SYM-strict-rules-detect-source-shape
+    title: detectSourceShape
+    status: active
+    sourceFile: packages/cli/src/operations/semantic-advisor/strict-rules.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T17:39:13.887Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-source-proof-kinds
+      - type: implements
+        target: REQ-kibi-source-proof-kinds

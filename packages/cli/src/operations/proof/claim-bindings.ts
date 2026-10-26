@@ -263,8 +263,13 @@ function modelSymbols(contract: ProofContract): string[] {
     contract.domain_source?.symbol_id,
     contract.initial_source?.symbol_id,
     contract.pattern_source?.symbol_id,
-    ...Object.values(contract.domains ?? {}).map((row) => row.symbol_id),
-    ...Object.values(contract.predicate_source ?? {}).map((row) => row.symbol_id),
+    ...Object.values(contract.domains ?? {}).map((row) =>
+      "symbol_id" in row ? row.symbol_id : undefined,
+    ),
+    ...Object.values(contract.predicate_source ?? {}).flatMap((row) => [
+      row.symbol_id,
+      ...(row.harness_for ?? []),
+    ]),
   ].filter((id): id is string => typeof id === "string" && id !== "");
 }
 
@@ -280,7 +285,7 @@ async function nonNumericProblem(
   if (outside !== undefined)
     return `the symbol ${outside} the certificate read is not in the receipt's code scope: link it covered_by the test so a change to it stales the proof`;
   const obligationKind = text(obligation.kind);
-  if (obligationKind === "required_fields")
+  if (obligationKind === "required_fields" && contract.kind === "typecheck")
     return requiredFieldsProblem(
       context,
       contract,
@@ -306,6 +311,10 @@ const NON_NUMERIC_OBLIGATIONS = new Set([
   "predicate_holds",
   "every_member",
   "machine_set",
+  "machine_relation",
+  "set_relation",
+  "nullable_fields",
+  "route_middleware",
 ]);
 
 async function derivedProblem(
@@ -411,8 +420,15 @@ export async function judgeClaimBindings(
   const coveredBy = new Set(input.coveredBySymbols);
   const valueSourced =
     (input.contract.value_source ?? []).length > 0 &&
-    (input.contract.value_source ?? []).every((source) =>
-      coveredBy.has(source.symbol_id),
+    (input.contract.value_source ?? []).every(
+      (source) => "source" in source || coveredBy.has(source.symbol_id),
+    );
+  // A rule decided by a test harness that drives the code is about the code
+  // through that harness, so its claims are bound with scope harness.
+  const harnessed =
+    input.contract.kind === "rule" &&
+    Object.values(input.contract.predicate_source ?? {}).some(
+      (row) => (row.harness_for ?? []).length > 0,
     );
   const certificate = record(input.verdict.certificate) ?? {};
   const bindings: ClaimBinding[] = [];
@@ -467,7 +483,7 @@ export async function judgeClaimBindings(
         ? {
             ...base,
             binding: "derived",
-            scope: numeric && !valueSourced ? "intent" : "code",
+            scope: numeric && !valueSourced ? "intent" : harnessed ? "harness" : "code",
             obligation,
           }
         : { ...base, binding: "rejected", obligation, reason: problem },

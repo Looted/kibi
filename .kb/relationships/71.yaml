@@ -209,3 +209,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-35c2e5082831
+  - type: executable_for
+    from: SYM-test-source-proof-kinds-readers
+    to: TEST-kibi-source-proof-kinds-readers
+    created_at: 2026-10-26T17:38:55.570Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2232653f749b

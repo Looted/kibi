@@ -258,3 +258,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-72c81e554acd
+  - type: validates
+    from: TEST-kibi-source-proof-kinds
+    to: SCEN-kibi-source-proof-kinds
+    created_at: 2026-10-26T17:38:49.224Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a93e9f31b47

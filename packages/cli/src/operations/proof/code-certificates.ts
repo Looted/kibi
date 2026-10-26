@@ -27,13 +27,27 @@ import {
   toPrologAtom,
 } from "../../public/operations/prolog-json.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
-import { certificateDigest } from "../../public/proof-certificates.js";
+import {
+  canonicalCertificateJson,
+  certificateDigest,
+} from "../../public/proof-certificates.js";
 import {
   CODE_CERTIFICATE_VERSION,
   type ProofContract,
   type ProofKind,
   isCertificateProofKind,
 } from "../../public/proof-protocol.js";
+import {
+  describeSource,
+  normalizeSourceSpec,
+  readSource,
+} from "../../public/proof-sources.js";
+import {
+  pythonDomainInterpreters,
+  runCodeEvaluator,
+  TS_RESOLVE_HOOKS,
+} from "./code-runner.js";
+import { evaluateSourceCode } from "./source-code-readers.js";
 import {
   machineCertificateProblem,
   patternCertificateProblem,
@@ -239,27 +253,6 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-// Node's type stripping resolves only exact specifiers. TypeScript apps
-// import relative modules without an extension, or with `.js` for a `.ts`
-// file; this resolve hook retries those as the TypeScript files they name.
-export const TS_RESOLVE_HOOKS = `
-const SUFFIXES = [".ts", ".tsx", ".mts", ".cts", ".js", ".mjs", "/index.ts", "/index.tsx", "/index.js"];
-export async function resolve(specifier, context, next) {
-  try {
-    return await next(specifier, context);
-  } catch (error) {
-    if (error?.code !== "ERR_MODULE_NOT_FOUND" || !/^\\.\\.?\\//.test(specifier)) throw error;
-    const base = specifier.replace(/\\.[cm]?js$/, "");
-    for (const suffix of SUFFIXES) {
-      try {
-        return await next(base + suffix, context);
-      } catch {}
-    }
-    throw error;
-  }
-}
-`;
-
 const DOMAIN_EVALUATOR = `
 const [file, name] = process.argv.slice(-2);
 const { pathToFileURL } = await import("node:url");
@@ -317,65 +310,6 @@ elif items is None:
 else:
     print(json.dumps({"count": len(items), "members": [text(i) for i in items] if all(primitive(i) for i in items) else None}))
 `;
-
-function workspaceBin(workspaceRoot: string, name: string): string | null {
-  let dir = path.resolve(workspaceRoot);
-  for (;;) {
-    const candidate = path.join(dir, "node_modules", ".bin", name);
-    if (existsSync(candidate)) return candidate;
-    if (path.dirname(dir) === dir) return null;
-    dir = path.dirname(dir);
-  }
-}
-
-/**
- * The Python interpreters a domain loads with, most specific first: the
- * KIBI_PYTHON override, the active virtualenv, a project virtualenv (`.venv`
- * or `venv`) between the domain file and the workspace root, then python3
- * and python on PATH. The system interpreter usually cannot import the
- * project's dependencies, so a project environment comes before it.
- */
-// implements REQ-kibi-code-proof-kinds
-export function pythonDomainInterpreters(
-  workspaceRoot: string,
-  sourceFile: string,
-  env: NodeJS.ProcessEnv = process.env,
-): string[] {
-  const interpreters: string[] = [];
-  const add = (candidate: string | undefined) => {
-    if (candidate && !interpreters.includes(candidate))
-      interpreters.push(candidate);
-  };
-  add(env.KIBI_PYTHON?.trim() || undefined);
-  const venvPython = (venv: string): string | undefined =>
-    [
-      path.join(venv, "bin", "python"),
-      path.join(venv, "Scripts", "python.exe"),
-    ].find((candidate) => existsSync(candidate));
-  if (env.VIRTUAL_ENV) add(venvPython(env.VIRTUAL_ENV));
-  const root = path.resolve(workspaceRoot);
-  let dir = path.dirname(path.resolve(root, sourceFile));
-  for (;;) {
-    for (const name of [".venv", "venv"]) add(venvPython(path.join(dir, name)));
-    if (dir === root || path.dirname(dir) === dir) break;
-    if (!dir.startsWith(`${root}${path.sep}`)) break;
-    dir = path.dirname(dir);
-  }
-  add("python3");
-  add("python");
-  return interpreters;
-}
-
-/** The line of a runner's stderr that names the failure. */
-function failureLine(stderr: string, python: boolean): string {
-  const lines = stderr
-    .trim()
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line !== "");
-  // A Python traceback names the exception on its last line.
-  return (python ? lines.at(-1) : lines[0]) ?? "";
-}
 
 /**
  * The domain as the code defines it: Kibi imports the domain_source file
@@ -479,78 +413,6 @@ function evaluateExport(
     count: parsed.count as number,
     members: parsed.members ?? null,
   };
-}
-
-/**
- * Run an evaluator script against the workspace code and return the JSON it
- * prints last. A TypeScript or JavaScript file runs with bun when it is on
- * PATH, else the workspace's tsx, else node's type stripping (which retries
- * extensionless relative imports as TypeScript files); a Python file (`.py`)
- * runs with the first interpreter pythonDomainInterpreters finds. A runner
- * whose output `accept` rejects (or that fails to start) yields to the next.
- */
-// implements REQ-kibi-non-numeric-proof-kinds
-export function runCodeEvaluator(
-  workspaceRoot: string,
-  sourceFile: string,
-  scripts: Readonly<{ js: string; python: string }>,
-  args: readonly string[],
-  accept: (parsed: unknown) => boolean = () => true,
-  options: Readonly<{
-    runners?: readonly ("bun" | "tsx" | "node")[];
-  }> = {},
-):
-  | { ok: true; value: unknown; python: boolean }
-  | { ok: false; failure: string; python: boolean } {
-  const python = /\.py$/i.test(sourceFile);
-  const tsx = python ? null : workspaceBin(workspaceRoot, "tsx");
-  const runners: [string, string[]][] = python
-    ? pythonDomainInterpreters(workspaceRoot, sourceFile).map(
-        (interpreter): [string, string[]] => [
-          interpreter,
-          ["-c", scripts.python],
-        ],
-      )
-    : (options.runners ?? ["bun", "tsx", "node"]).flatMap(
-        (runner): [string, string[]][] => {
-          if (runner === "bun") return [["bun", ["-e", scripts.js]]];
-          if (runner === "tsx")
-            return tsx === null
-              ? []
-              : [[tsx, ["--eval", scripts.js, "--"]]];
-          return [
-            [
-              process.execPath,
-              [
-                "--experimental-strip-types",
-                "--no-warnings",
-                "--input-type=module",
-                "-e",
-                scripts.js,
-              ],
-            ],
-          ];
-        },
-      );
-  let failure = "";
-  for (const [command, argv] of runners) {
-    const run = spawnSync(command, [...argv, ...args], {
-      cwd: workspaceRoot,
-      encoding: "utf8",
-      timeout: 60_000,
-      maxBuffer: 64 * 1024 * 1024,
-    });
-    if (run.error) continue;
-    const line = (run.stdout ?? "").trim().split("\n").pop() ?? "";
-    try {
-      const parsed = JSON.parse(line) as unknown;
-      if (accept(parsed)) return { ok: true, value: parsed, python };
-    } catch {
-      // Fall through to the next runner.
-    }
-    failure = failureLine(run.stderr ?? "", python);
-  }
-  return { ok: false, failure, python };
 }
 
 /**
@@ -883,6 +745,17 @@ export async function valueSourceValues(
 > {
   const values: { symbol_id: string; value: number }[] = [];
   for (const source of contract.value_source ?? []) {
+    if ("source" in source) {
+      // A source count reads the members Kibi reads from the project.
+      const read = await readSource(context.workspaceRoot, source.source, evaluateSourceCode);
+      if (!read.ok)
+        return {
+          ok: false,
+          reason: `Kibi could not read the value_source ${describeSource(source.source)}: ${read.reason}`,
+        };
+      values.push({ symbol_id: describeSource(source.source), value: read.model.members.length });
+      continue;
+    }
     const symbol = await loadSymbol(context, source.symbol_id);
     if (!symbol || symbol.sourceFile === "")
       return {
@@ -1104,6 +977,60 @@ async function workspaceProblem(
   return null;
 }
 
+/**
+ * The certificate of a source proof: the contract's source and what Kibi
+ * reads from it. A certificate the run left must name the same source, and
+ * a model it carries must be what Kibi reads; either way the stored model is
+ * Kibi's own read, so the proof never rests on members the test listed.
+ */
+// implements REQ-kibi-source-proof-kinds
+export async function completeSourceCertificate(
+  context: OperationContext,
+  testId: string,
+  contract: ProofContract,
+  left: unknown,
+): Promise<
+  { ok: true; certificate: Record<string, unknown> } | { ok: false; reason: string }
+> {
+  const spec = contract.source;
+  if (spec === undefined)
+    return { ok: false, reason: "the source contract names no source" };
+  const row = record(left);
+  if (left !== undefined && left !== null && row === null)
+    return { ok: false, reason: "the run left a source certificate that is not a JSON object" };
+  if (row !== null) {
+    if (text(row.kind) !== "source")
+      return { ok: false, reason: `the certificate kind ${text(row.kind) || "(none)"} is not the contract kind source` };
+    if (text(row.test_id) !== testId)
+      return { ok: false, reason: `the certificate is for ${text(row.test_id)}` };
+    if (
+      row.source !== undefined &&
+      canonicalCertificateJson(normalizeSourceSpec(row.source) ?? row.source) !==
+        canonicalCertificateJson(spec)
+    )
+      return { ok: false, reason: `the certificate reads ${JSON.stringify(row.source)}, not the contract's source` };
+  }
+  const read = await readSource(context.workspaceRoot, spec, evaluateSourceCode);
+  if (!read.ok)
+    return { ok: false, reason: `Kibi could not read ${describeSource(spec)}: ${read.reason}` };
+  const model = read.model;
+  if (row?.model !== undefined && canonicalCertificateJson(row.model) !== canonicalCertificateJson(model))
+    return {
+      ok: false,
+      reason: `the certificate's model is not what Kibi reads from ${describeSource(spec)} (${model.members.slice(0, 8).join(", ") || "no members"})`,
+    };
+  return {
+    ok: true,
+    certificate: {
+      version: CODE_CERTIFICATE_VERSION,
+      kind: "source",
+      test_id: testId,
+      source: spec,
+      model,
+    },
+  };
+}
+
 const WITNESS_NOT_ACCEPTED = "the type checker did not accept the witness";
 
 /**
@@ -1123,6 +1050,12 @@ export function withWitnessDiagnosis(
     ? `${reason}, though Kibi's own compile of ${witnessPath} with TypeScript ${compiled.version} accepts it (the test compiled it with other settings)`
     : `${reason}: ${compiled.reason}`;
 }
+
+export {
+  pythonDomainInterpreters,
+  runCodeEvaluator,
+  TS_RESOLVE_HOOKS,
+} from "./code-runner.js";
 
 /**
  * Re-check the certificate a certificate-kind run left for one test. A
@@ -1146,7 +1079,30 @@ export async function checkCodeCertificate(
   const kind: ProofKind = input.contract.kind ?? "e2e";
   if (!isCertificateProofKind(kind))
     return { kind, evidence_level: "tested" };
-  const certificate = record(input.certificate);
+  let left: unknown = input.certificate;
+  if (kind === "source" && input.outcome === "passed") {
+    // Kibi reads the source itself, so the certificate it stores is its own
+    // read, whatever the run left (or nothing).
+    const completed = await completeSourceCertificate(
+      context,
+      input.testId,
+      input.contract,
+      input.certificate,
+    );
+    if (!completed.ok) {
+      const leftRecord = record(left);
+      return {
+        kind,
+        evidence_level: "tested",
+        ...(leftRecord
+          ? { certificate: leftRecord, certificate_digest: certificateDigest(leftRecord) }
+          : {}),
+        certificate_rejection: completed.reason,
+      };
+    }
+    left = completed.certificate;
+  }
+  const certificate = record(left);
   if (!certificate)
     return {
       kind,

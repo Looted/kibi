@@ -1010,7 +1010,7 @@ valid_receipt_version_fields('kibi.proof-receipt.v1', _Receipt).
 valid_receipt_version_fields('kibi.proof-receipt.v2', Receipt) :-
     inventory_entry_field(Receipt, kind, RawKind),
     normalize_receipt_atom(RawKind, Kind),
-    memberchk(Kind, [e2e, example, property, exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex]),
+    memberchk(Kind, [e2e, example, property, exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex, source]),
     inventory_entry_field(Receipt, evidence_level, RawLevel),
     normalize_receipt_atom(RawLevel, Level),
     memberchk(Level, [proved, tested]),
@@ -1020,7 +1020,7 @@ valid_receipt_version_fields('kibi.proof-receipt.v2', Receipt) :-
     ;   true
     ),
     (   Level == proved
-    ->  memberchk(Kind, [exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex]),
+    ->  memberchk(Kind, [exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex, source]),
         inventory_entry_field(Receipt, outcome, RawOutcome),
         normalize_receipt_atom(RawOutcome, passed),
         inventory_entry_field(Receipt, certificate, _),
@@ -1997,7 +1997,7 @@ claim_entry(ReqId, ProofStatus, IntentLevel, BoundTests, InventoryEntry, Entry) 
             sort(Bindings0, Bindings),
             include(binding_is(rejected), Bindings, RejectedBindings),
             maplist(binding_rejection(Key), RejectedBindings, Rejections),
-            (   member(B, Bindings), get_dict(binding, B, derived), get_dict(scope, B, code)
+            (   member(B, Bindings), get_dict(binding, B, derived), \+ get_dict(scope, B, intent)
             ->  Level = proved
             ;   Level = tested
             ),
@@ -2099,7 +2099,7 @@ certificate_obligation_problem(arithmetic, Evidence, Obligation, Problem) :-
     ).
 
 certificate_obligation_problem(Kind, Evidence, Obligation, Problem) :-
-    memberchk(Kind, [rule, state_machine]),
+    memberchk(Kind, [rule, state_machine, source]),
     get_dict(certificate, Evidence, Certificate),
     model_check_obligation(Kind, Obligation, Certificate, problem(Problem0)),
     atom_string(Problem, Problem0).

@@ -1,4 +1,6 @@
 import type { SemanticClaim } from "../../public/check-types.js";
+import { detectStrictSuggestion } from "../semantic-advisor/strict-rules.js";
+import type { SemanticStrictPropertyClaim } from "../semantic-advisor/types.js";
 import {
   buildFallbackClaim,
   extractHeuristicClaim,
@@ -94,6 +96,13 @@ export function extractRequirementClaim(
     };
   }
 
+  // implements REQ-kibi-source-proof-kinds
+  // Set and pattern claims (every route uses a middleware, a state can never
+  // reach another, a format) take the advisor's strict shapes, so the fact is
+  // one a source, state_machine or regex proof can derive.
+  const strict = strictSetClaim(statement, source, confidence, provenance);
+  if (strict) return { statement, source, sourceFiles, ...strict };
+
   const heuristic = extractHeuristicClaim(
     statement,
     source,
@@ -106,5 +115,41 @@ export function extractRequirementClaim(
     source,
     sourceFiles,
     ...buildFallbackClaim(statement, source, confidence, provenance),
+  };
+}
+
+/** A set or pattern claim from the advisor's strict shapes, or null. */
+function strictSetClaim(
+  statement: string,
+  source: string,
+  confidence: number,
+  provenance: string | undefined,
+): ExtractedRequirementClaim | null {
+  const normalized = stripListPrefix(statement);
+  const suggestion = detectStrictSuggestion(
+    { semantic_text: normalized },
+    normalized,
+  );
+  if (suggestion?.kind !== "strict_property") return null;
+  const strict: SemanticStrictPropertyClaim = suggestion.claim;
+  const value =
+    strict.value_type === "set" && strict.value_set !== undefined
+      ? [...strict.value_set]
+      : strict.operator === "matches" && strict.value_string !== undefined
+        ? strict.value_string
+        : undefined;
+  if (value === undefined) return null;
+  return {
+    claim: {
+      source,
+      subjectKey: strict.subject_key,
+      propertyKey: strict.property_key,
+      operator: strict.operator as SemanticClaim["operator"],
+      value,
+      confidence,
+      ...(provenance ? { provenance } : {}),
+    },
+    extractionMode: "heuristic",
+    extractionWarnings: [],
   };
 }
