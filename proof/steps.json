@@ -3190,5 +3190,30 @@
         "./scripts/skillopt-eval/tests/scoring-gates.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-kibi-non-numeric-proof-kinds",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/non-numeric-proof-kinds.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/non-numeric-proof-kinds.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-non-numeric-proof-kinds-rule",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/non-numeric-proof-kinds.proof.test.ts"
+      ]
+    ]
   }
 ]

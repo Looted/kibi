@@ -943,7 +943,17 @@ function minterms(automata: readonly Determinizer[]): number[] {
     const visible = lo <= 0x7e && hi >= 0x21 ? Math.max(lo, 0x21) : lo;
     representatives.push(printable ?? visible);
   }
-  return representatives;
+  // The search tries readable characters first, so among the shortest
+  // strings that tell two languages apart it reports a readable one.
+  const rank = (unit: number) =>
+    /[A-Za-z0-9]/.test(String.fromCharCode(unit))
+      ? 0
+      : unit >= 0x20 && unit <= 0x7e
+        ? 1
+        : unit >= 0xa0
+          ? 2
+          : 3;
+  return representatives.sort((x, y) => rank(x) - rank(y) || x - y);
 }
 
 // Well-formed UTF-16: 0 between scalar values, 1 after a high surrogate.

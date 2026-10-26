@@ -275,7 +275,8 @@ export function detectStrictSuggestion(
       machine?.groups?.base &&
       projection !== undefined &&
       values.length > 0 &&
-      (projection !== "transitions" || values.every((value) => /->|\u2192/.test(value)))
+      (projection !== "transitions" ||
+        values.every((value) => /->|\u2192/.test(value)))
     )
       return suggestion(
         payload,
@@ -287,9 +288,7 @@ export function detectStrictSuggestion(
           value_type: "set",
           value_set: [
             ...new Set(
-              values.map((value) =>
-                value.replace(/\s*(?:->|\u2192)\s*/, "->"),
-              ),
+              values.map((value) => value.replace(/\s*(?:->|\u2192)\s*/, "->")),
             ),
           ].sort(),
         },

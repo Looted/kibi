@@ -384,3 +384,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-48ef17e52139
+  - type: implements
+    from: SYM-code-models-evaluate
+    to: REQ-kibi-non-numeric-proof-kinds
+    created_at: 2026-10-26T09:48:44.201Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3f9d48dfbac
+  - type: covered_by
+    from: SYM-code-models-evaluate
+    to: TEST-kibi-non-numeric-proof-kinds
+    created_at: 2026-10-26T09:48:44.237Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f2b868addeb4

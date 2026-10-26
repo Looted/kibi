@@ -431,10 +431,7 @@ export async function stateMachineCertificate(input: {
     for (const entry of table as unknown[]) {
       if (Array.isArray(entry) && entry.length === 2) edge(entry[0], entry[1]);
       else if (entry !== null && typeof entry === "object")
-        edge(
-          (entry as { from: unknown }).from,
-          (entry as { to: unknown }).to,
-        );
+        edge((entry as { from: unknown }).from, (entry as { to: unknown }).to);
     }
   } else {
     const entries =

@@ -6,18 +6,18 @@ import path from "node:path";
 import { requiredFieldsWitness } from "../../src/operations/proof/claim-bindings.js";
 import { compileWitness } from "../../src/operations/proof/code-certificates.js";
 import {
-  evaluateCodeModel,
   type MachineModel,
   type PatternModel,
   type RuleModel,
+  evaluateCodeModel,
   stringConstraintProblem,
 } from "../../src/operations/proof/code-models.js";
 import {
   type LanguageSpec,
+  UnsupportedPattern,
   languageAccepts,
   languagesDisjoint,
   languagesEqual,
-  UnsupportedPattern,
 } from "../../src/operations/proof/regular-language.js";
 import {
   failedCalls,
@@ -61,8 +61,12 @@ const fact = (source: string): LanguageSpec => ({
 
 describe("regular languages", () => {
   test("decides equivalence exactly and names the shortest string that differs", () => {
-    expect(languagesEqual(js("^INV-\\d{6}$"), fact("INV-[0-9]{6}")).holds).toBe(true);
-    expect(languagesEqual(js("^(?:a|b)+$"), fact("[ab][ab]*")).holds).toBe(true);
+    expect(languagesEqual(js("^INV-\\d{6}$"), fact("INV-[0-9]{6}")).holds).toBe(
+      true,
+    );
+    expect(languagesEqual(js("^(?:a|b)+$"), fact("[ab][ab]*")).holds).toBe(
+      true,
+    );
     const loose = languagesEqual(js("INV-\\d{6}"), fact("INV-[0-9]{6}"));
     expect(loose.holds).toBe(false);
     // The shortest strings that differ have 11 characters, like "INV-0000000".
@@ -83,7 +87,9 @@ describe("regular languages", () => {
 
   test("decides disjointness and membership", () => {
     expect(languagesDisjoint(js("^[0-9]+$"), fact("[a-z]+")).holds).toBe(true);
-    expect(languagesDisjoint(js("^[0-9a]+$"), fact("[a-z]+")).holds).toBe(false);
+    expect(languagesDisjoint(js("^[0-9a]+$"), fact("[a-z]+")).holds).toBe(
+      false,
+    );
     expect(languageAccepts(fact("INV-[0-9]{6}"), "INV-123456")).toBe(true);
     expect(languageAccepts(fact("INV-[0-9]{6}"), "xINV-123456")).toBe(false);
     expect(languageAccepts(js("INV-[0-9]{6}"), "xINV-123456")).toBe(true);
@@ -109,13 +115,28 @@ describe("regular languages", () => {
     };
     const pick = <T>(items: readonly T[]) =>
       items[Math.floor(random() * items.length)] as T;
-    const atoms = ["a", "b", "\\d", "\\w", "\\s", ".", "[ab]", "[^a]", "[a-c]", "[^]", "\\n", "😀", "k"];
+    const atoms = [
+      "a",
+      "b",
+      "\\d",
+      "\\w",
+      "\\s",
+      ".",
+      "[ab]",
+      "[^a]",
+      "[a-c]",
+      "[^]",
+      "\\n",
+      "😀",
+      "k",
+    ];
     const generate = (depth: number): string => {
       const roll = random();
       if (depth <= 0 || roll < 0.35) return pick(atoms);
       if (roll < 0.55) return generate(depth - 1) + generate(depth - 1);
       if (roll < 0.65) return `(${generate(depth - 1)}|${generate(depth - 1)})`;
-      if (roll < 0.75) return `(?:${generate(depth - 1)})${pick(["*", "+", "?", "{2}", "{1,3}"])}`;
+      if (roll < 0.75)
+        return `(?:${generate(depth - 1)})${pick(["*", "+", "?", "{2}", "{1,3}"])}`;
       if (roll < 0.85) return `^${generate(depth - 1)}`;
       return `${generate(depth - 1)}$`;
     };
@@ -129,7 +150,12 @@ describe("regular languages", () => {
         let text = "";
         for (let length = Math.floor(random() * 5); length > 0; length--)
           text += pick(characters);
-        expect({ source, flags, text, matched: languageAccepts(js(source, flags), text) }).toEqual({
+        expect({
+          source,
+          flags,
+          text,
+          matched: languageAccepts(js(source, flags), text),
+        }).toEqual({
           source,
           flags,
           text,
@@ -160,12 +186,22 @@ describe("regular languages", () => {
 
 describe("string facts against the code's string or pattern", () => {
   const pattern = (source: string, flags = "") => ({
-    pattern: { symbol_id: "SYM-P", type: "regexp", source, flags, flavor: "js" },
+    pattern: {
+      symbol_id: "SYM-P",
+      type: "regexp",
+      source,
+      flags,
+      flavor: "js",
+    },
   });
   const constant = (value: string) => ({
     pattern: { symbol_id: "SYM-P", type: "string", value },
   });
-  const obligation = (operator: string, value: string, polarity = "require") => ({
+  const obligation = (
+    operator: string,
+    value: string,
+    polarity = "require",
+  ) => ({
     kind: "string_constraint",
     operator,
     value,
@@ -174,28 +210,64 @@ describe("string facts against the code's string or pattern", () => {
 
   test("a validator pattern must accept exactly the fact's strings", () => {
     expect(
-      stringConstraintProblem(pattern("^INV-\\d{6}$"), obligation("matches", "INV-[0-9]{6}"), "FACT-F"),
+      stringConstraintProblem(
+        pattern("^INV-\\d{6}$"),
+        obligation("matches", "INV-[0-9]{6}"),
+        "FACT-F",
+      ),
     ).toBeNull();
     expect(
-      stringConstraintProblem(pattern("^INV-\\d+$"), obligation("matches", "INV-[0-9]{6}"), "FACT-F"),
+      stringConstraintProblem(
+        pattern("^INV-\\d+$"),
+        obligation("matches", "INV-[0-9]{6}"),
+        "FACT-F",
+      ),
     ).toContain('"INV-0" is in the code\'s pattern only');
     expect(
-      stringConstraintProblem(pattern("^[0-9]+$"), obligation("matches", "[a-z]+", "forbid"), "FACT-F"),
+      stringConstraintProblem(
+        pattern("^[0-9]+$"),
+        obligation("matches", "[a-z]+", "forbid"),
+        "FACT-F",
+      ),
     ).toBeNull();
     expect(
-      stringConstraintProblem(pattern("^(?:a)\\1$"), obligation("matches", "a"), "FACT-F"),
+      stringConstraintProblem(
+        pattern("^(?:a)\\1$"),
+        obligation("matches", "a"),
+        "FACT-F",
+      ),
     ).toContain("cannot decide the pattern exactly");
   });
 
   test("a string constant is compared, or matched against the fact's pattern", () => {
-    expect(stringConstraintProblem(constant("X-Api-Key"), obligation("eq", "X-Api-Key"), "FACT-H")).toBeNull();
-    expect(stringConstraintProblem(constant("X-API-Key"), obligation("eq", "X-Api-Key"), "FACT-H")).toContain(
-      "does not meet FACT-H's constraint eq",
-    );
-    expect(stringConstraintProblem(constant("INV-000042"), obligation("matches", "INV-[0-9]{6}"), "FACT-F")).toBeNull();
-    expect(stringConstraintProblem(constant("draft"), obligation("eq", "draft", "forbid"), "FACT-F")).toContain(
-      "which the fact forbids",
-    );
+    expect(
+      stringConstraintProblem(
+        constant("X-Api-Key"),
+        obligation("eq", "X-Api-Key"),
+        "FACT-H",
+      ),
+    ).toBeNull();
+    expect(
+      stringConstraintProblem(
+        constant("X-API-Key"),
+        obligation("eq", "X-Api-Key"),
+        "FACT-H",
+      ),
+    ).toContain("does not meet FACT-H's constraint eq");
+    expect(
+      stringConstraintProblem(
+        constant("INV-000042"),
+        obligation("matches", "INV-[0-9]{6}"),
+        "FACT-F",
+      ),
+    ).toBeNull();
+    expect(
+      stringConstraintProblem(
+        constant("draft"),
+        obligation("eq", "draft", "forbid"),
+        "FACT-F",
+      ),
+    ).toContain("which the fact forbids");
   });
 });
 
@@ -214,15 +286,22 @@ describe("proof_contract fields of the non-numeric kinds", () => {
         contract({
           kind: "rule",
           predicate_source: { can_share: { symbol_id: "SYM-CAN-SHARE" } },
-          domains: { document_status: { symbol_id: "SYM-STATUS", export: "STATUSES" } },
+          domains: {
+            document_status: { symbol_id: "SYM-STATUS", export: "STATUSES" },
+          },
         }),
       ),
     ).toEqual([]);
-    expect(proofContractErrors(contract({ kind: "rule" })).join("\n")).toContain(
-      "predicate_source is required for kind rule",
-    );
     expect(
-      proofContractErrors(contract({ kind: "state_machine", domain_source: { symbol_id: "SYM-T" } })),
+      proofContractErrors(contract({ kind: "rule" })).join("\n"),
+    ).toContain("predicate_source is required for kind rule");
+    expect(
+      proofContractErrors(
+        contract({
+          kind: "state_machine",
+          domain_source: { symbol_id: "SYM-T" },
+        }),
+      ),
     ).toEqual([]);
     expect(
       proofContractErrors(
@@ -233,8 +312,14 @@ describe("proof_contract fields of the non-numeric kinds", () => {
         }),
       ).join("\n"),
     ).toContain("exactly the state and event domains");
-    expect(proofContractErrors(contract({ kind: "regex", pattern_source: { symbol_id: "SYM-P" } }))).toEqual([]);
-    expect(proofContractErrors(contract({ kind: "regex" })).join("\n")).toContain("pattern_source is required");
+    expect(
+      proofContractErrors(
+        contract({ kind: "regex", pattern_source: { symbol_id: "SYM-P" } }),
+      ),
+    ).toEqual([]);
+    expect(
+      proofContractErrors(contract({ kind: "regex" })).join("\n"),
+    ).toContain("pattern_source is required");
     expect(
       proofContractErrors(
         contract({
@@ -245,9 +330,13 @@ describe("proof_contract fields of the non-numeric kinds", () => {
       ).join("\n"),
     ).toContain("pattern_source applies only to kind regex");
     expect(
-      proofContractErrors(contract({ kind: "rule", predicate_source: { p: {} }, domains: { t: { symbol_id: "S" } } })).join(
-        "\n",
-      ),
+      proofContractErrors(
+        contract({
+          kind: "rule",
+          predicate_source: { p: {} },
+          domains: { t: { symbol_id: "S" } },
+        }),
+      ).join("\n"),
     ).toContain("predicate_source must map each predicate name");
   });
 });
@@ -292,7 +381,12 @@ describe("Kibi reads the model from the code", () => {
     const evaluated = evaluateCodeModel<RuleModel>(root, [ref("canShare")], {
       mode: "table",
       domains: { document_status: ref("STATUSES"), role: ref("ROLES") },
-      predicates: { can_share: { ...ref("canShare"), arg_types: ["document_status", "role"] } },
+      predicates: {
+        can_share: {
+          ...ref("canShare"),
+          arg_types: ["document_status", "role"],
+        },
+      },
       limit: 1000,
     });
     expect(evaluated.ok).toBe(true);
@@ -300,7 +394,9 @@ describe("Kibi reads the model from the code", () => {
     expect(evaluated.model.domains.role).toEqual(["viewer", "owner"]);
     const rows = evaluated.model.predicates.can_share ?? [];
     expect(rows).toHaveLength(6);
-    expect(rows.filter((row) => row.value === true).map((row) => row.args)).toEqual([
+    expect(
+      rows.filter((row) => row.value === true).map((row) => row.args),
+    ).toEqual([
       ["draft", "owner"],
       ["active", "owner"],
     ]);
@@ -313,12 +409,17 @@ describe("Kibi reads the model from the code", () => {
         role: { symbolId: "SYM-ROLES", members: module.ROLES },
       },
       predicates: {
-        can_share: { symbolId: "SYM-CAN-SHARE", argTypes: ["document_status", "role"], decide: module.canShare },
+        can_share: {
+          symbolId: "SYM-CAN-SHARE",
+          argTypes: ["document_status", "role"],
+          decide: module.canShare,
+        },
       },
     });
     expect(failedCalls(certificate)).toEqual([]);
     expect(
-      (certificate.predicates as Record<string, { rows: unknown[] }>).can_share?.rows,
+      (certificate.predicates as Record<string, { rows: unknown[] }>).can_share
+        ?.rows,
     ).toEqual(rows as unknown[]);
   });
 
@@ -349,8 +450,12 @@ describe("Kibi reads the model from the code", () => {
       transitions: module.TRANSITIONS,
       initial: module.INITIAL,
     });
-    expect((certificate.machine as MachineModel).transitions).toEqual(table.model.transitions);
-    expect((certificate.machine as MachineModel).states).toEqual(table.model.states);
+    expect((certificate.machine as MachineModel).transitions).toEqual(
+      table.model.transitions,
+    );
+    expect((certificate.machine as MachineModel).states).toEqual(
+      table.model.states,
+    );
     expect(fn.model.transitions).toEqual([
       ["draft", "sent"],
       ["draft", "void"],
@@ -360,23 +465,41 @@ describe("Kibi reads the model from the code", () => {
   });
 
   test("a pattern is the code's RegExp, or its string constant", () => {
-    const regexp = evaluateCodeModel<PatternModel>(root, [ref("INVOICE_NUMBER")], {
-      mode: "pattern",
-      pattern: ref("INVOICE_NUMBER"),
-    });
+    const regexp = evaluateCodeModel<PatternModel>(
+      root,
+      [ref("INVOICE_NUMBER")],
+      {
+        mode: "pattern",
+        pattern: ref("INVOICE_NUMBER"),
+      },
+    );
     expect(regexp).toEqual({
       ok: true,
-      model: { type: "regexp", source: "^INV-\\d{6}$", flags: "", flavor: "js" },
+      model: {
+        type: "regexp",
+        source: "^INV-\\d{6}$",
+        flags: "",
+        flavor: "js",
+      },
     });
-    expect(regexCertificate({ testId: "T", symbolId: "SYM-P", value: /^INV-\d{6}$/ }).pattern).toEqual({
+    expect(
+      regexCertificate({ testId: "T", symbolId: "SYM-P", value: /^INV-\d{6}$/ })
+        .pattern,
+    ).toEqual({
       symbol_id: "SYM-P",
       type: "regexp",
       source: "^INV-\\d{6}$",
       flags: "",
       flavor: "js",
     });
-    const header = evaluateCodeModel<PatternModel>(root, [ref("HEADER")], { mode: "pattern", pattern: ref("HEADER") });
-    expect(header).toEqual({ ok: true, model: { type: "string", value: "X-Api-Key" } });
+    const header = evaluateCodeModel<PatternModel>(root, [ref("HEADER")], {
+      mode: "pattern",
+      pattern: ref("HEADER"),
+    });
+    expect(header).toEqual({
+      ok: true,
+      model: { type: "string", value: "X-Api-Key" },
+    });
   });
 
   const hasPython = spawnSync("python3", ["--version"]).status === 0;
@@ -396,12 +519,18 @@ describe("Kibi reads the model from the code", () => {
       ].join("\n"),
     });
     const file = path.join(root, "pkg/rules.py");
-    const rule = evaluateCodeModel<RuleModel>(root, [{ file, export: "can_share" }], {
-      mode: "table",
-      domains: { status: { file, export: "Status" } },
-      predicates: { can_share: { file, export: "can_share", arg_types: ["status"] } },
-      limit: 100,
-    });
+    const rule = evaluateCodeModel<RuleModel>(
+      root,
+      [{ file, export: "can_share" }],
+      {
+        mode: "table",
+        domains: { status: { file, export: "Status" } },
+        predicates: {
+          can_share: { file, export: "can_share", arg_types: ["status"] },
+        },
+        limit: 100,
+      },
+    );
     expect(rule).toEqual({
       ok: true,
       model: {
@@ -414,21 +543,34 @@ describe("Kibi reads the model from the code", () => {
         },
       },
     });
-    const machine = evaluateCodeModel<MachineModel>(root, [{ file, export: "TRANSITIONS" }], {
-      mode: "machine",
-      transitions: { file, export: "TRANSITIONS" },
-    });
+    const machine = evaluateCodeModel<MachineModel>(
+      root,
+      [{ file, export: "TRANSITIONS" }],
+      {
+        mode: "machine",
+        transitions: { file, export: "TRANSITIONS" },
+      },
+    );
     expect(machine.ok && machine.model.transitions).toEqual([
       ["draft", "sent"],
       ["sent", "paid"],
     ]);
-    const pattern = evaluateCodeModel<PatternModel>(root, [{ file, export: "INVOICE_NUMBER" }], {
-      mode: "pattern",
-      pattern: { file, export: "INVOICE_NUMBER" },
-    });
+    const pattern = evaluateCodeModel<PatternModel>(
+      root,
+      [{ file, export: "INVOICE_NUMBER" }],
+      {
+        mode: "pattern",
+        pattern: { file, export: "INVOICE_NUMBER" },
+      },
+    );
     expect(pattern).toEqual({
       ok: true,
-      model: { type: "regexp", source: "\\AINV-[0-9]{6}\\Z", flags: "i", flavor: "python" },
+      model: {
+        type: "regexp",
+        source: "\\AINV-[0-9]{6}\\Z",
+        flags: "i",
+        flavor: "python",
+      },
     });
   });
 });
@@ -466,17 +608,37 @@ describe("code_certificates.pl re-checks the new certificate shapes", () => {
           version: "kibi.code-certificate.v1",
           kind: "state_machine",
           test_id: "TEST-M",
-          machine: { symbol_id: "SYM-M", states: ["a", "b"], transitions: [["a", "b"], ["b", "c"]] },
+          machine: {
+            symbol_id: "SYM-M",
+            states: ["a", "b"],
+            transitions: [
+              ["a", "b"],
+              ["b", "c"],
+            ],
+          },
         },
         {
           version: "kibi.code-certificate.v1",
           kind: "regex",
           test_id: "TEST-P",
-          pattern: { symbol_id: "SYM-P", type: "regexp", source: "^a$", flags: "", flavor: "js" },
+          pattern: {
+            symbol_id: "SYM-P",
+            type: "regexp",
+            source: "^a$",
+            flags: "",
+            flavor: "js",
+          },
         },
       ],
     );
-    expect(answers.map((answer) => answer.accepted ?? false)).toEqual([true, false, false, false, false, true]);
+    expect(answers.map((answer) => answer.accepted ?? false)).toEqual([
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+    ]);
     expect(answers[1]?.reason).toContain("not one per combination");
     expect(answers[2]?.reason).toContain("can_edit(owner) failed: boom");
     expect(answers[4]?.reason).toContain("pair of the machine's states");
@@ -488,7 +650,10 @@ type ModelAnswer = { ok?: boolean; reason?: string };
 describe("model_check.pl decides obligations against the model", () => {
   const sharing = {
     domains: {
-      document_status: { symbol_id: "S", members: ["draft", "active", "archived"] },
+      document_status: {
+        symbol_id: "S",
+        members: ["draft", "active", "archived"],
+      },
       role: { symbol_id: "R", members: ["viewer", "owner"] },
     },
     predicates: {
@@ -528,7 +693,8 @@ describe("model_check.pl decides obligations against the model", () => {
       initial: ["draft"],
     },
   };
-  const ruleIr = (rule: Record<string, unknown>) => JSON.stringify({ version: "kibi.logic.v1", ...rule });
+  const ruleIr = (rule: Record<string, unknown>) =>
+    JSON.stringify({ version: "kibi.logic.v1", ...rule });
   const v = (name: string, type: string) => ({ kind: "var", name, type });
   const c = (value: string, type: string) => ({ kind: "const", value, type });
 
@@ -536,29 +702,54 @@ describe("model_check.pl decides obligations against the model", () => {
     const archivedNeverShared = ruleIr({
       kind: "rule",
       modality: "forbid",
-      head: { kind: "atom", name: "can_share", args: [v("D", "document_status"), v("R", "role")] },
-      body: { kind: "compare", operator: "eq", left: v("D", "document_status"), right: c("archived", "document_status") },
+      head: {
+        kind: "atom",
+        name: "can_share",
+        args: [v("D", "document_status"), v("R", "role")],
+      },
+      body: {
+        kind: "compare",
+        operator: "eq",
+        left: v("D", "document_status"),
+        right: c("archived", "document_status"),
+      },
     });
     const viewersShare = ruleIr({
       kind: "rule",
       modality: "permit",
-      head: { kind: "atom", name: "can_share", args: [v("D", "document_status"), v("R", "role")] },
-      body: { kind: "atom", name: "is_editable", args: [v("D", "document_status")] },
+      head: {
+        kind: "atom",
+        name: "can_share",
+        args: [v("D", "document_status"), v("R", "role")],
+      },
+      body: {
+        kind: "atom",
+        name: "is_editable",
+        args: [v("D", "document_status")],
+      },
     });
     const paidIsFinal = ruleIr({
       kind: "rule",
       modality: "forbid",
-      head: { kind: "atom", name: "reachable", args: [c("paid", "invoice_status"), v("S", "invoice_status")] },
+      head: {
+        kind: "atom",
+        name: "reachable",
+        args: [c("paid", "invoice_status"), v("S", "invoice_status")],
+      },
       body: { kind: "atom", name: "state", args: [v("S", "invoice_status")] },
     });
     const unknownType = ruleIr({
       kind: "atom",
       modality: "assert",
-      head: { kind: "atom", name: "can_share", args: [v("D", "document_status"), v("U", "user")] },
+      head: {
+        kind: "atom",
+        name: "can_share",
+        args: [v("D", "document_status"), v("U", "user")],
+      },
     });
     const answers = prologCases<ModelAnswer>(
       "model_check.pl",
-      "logic_ir:logic_rule_from_props([rule_ir=Case.ir], Rule), (Case.kind == \"rule\" -> K = rule ; K = state_machine), model_check:certificate_model(K, Case.certificate, Model), catch(model_check:rule_result(Rule, Model, Result), model_error(R), Result = problem(R)), (Result == ok -> Out = _{ok: true} ; Result = problem(Reason), Out = _{ok: false, reason: Reason})",
+      'logic_ir:logic_rule_from_props([rule_ir=Case.ir], Rule), (Case.kind == "rule" -> K = rule ; K = state_machine), model_check:certificate_model(K, Case.certificate, Model), catch(model_check:rule_result(Rule, Model, Result), model_error(R), Result = problem(R)), (Result == ok -> Out = _{ok: true} ; Result = problem(Reason), Out = _{ok: false, reason: Reason})',
       [
         { kind: "rule", ir: archivedNeverShared, certificate: sharing },
         { kind: "rule", ir: viewersShare, certificate: sharing },
@@ -566,11 +757,18 @@ describe("model_check.pl decides obligations against the model", () => {
         { kind: "rule", ir: unknownType, certificate: sharing },
       ],
     );
-    expect(answers.map((answer) => answer.ok ?? false)).toEqual([true, false, true, false]);
+    expect(answers.map((answer) => answer.ok ?? false)).toEqual([
+      true,
+      false,
+      true,
+      false,
+    ]);
     expect(answers[1]?.reason).toBe(
       "the rule fails for D=draft, R=viewer: the code decides can_share(draft, viewer) is false, but the rule requires true",
     );
-    expect(answers[3]?.reason).toContain("type user, which has no finite domain");
+    expect(answers[3]?.reason).toContain(
+      "type user, which has no finite domain",
+    );
   });
 
   test("predicate, every-member and machine projection obligations", () => {
@@ -578,19 +776,89 @@ describe("model_check.pl decides obligations against the model", () => {
       "model_check.pl",
       "atom_string(K, Case.kind), model_check:model_check_obligation(K, Case.obligation, Case.certificate, Result), (Result == ok -> Out = _{ok: true} ; Result = problem(Reason), Out = _{ok: false, reason: Reason})",
       [
-        { kind: "rule", certificate: sharing, obligation: { kind: "predicate_holds", predicate: "can_share", args: ["archived", "owner"], value: false } },
-        { kind: "rule", certificate: sharing, obligation: { kind: "predicate_holds", predicate: "can_share", args: ["draft", "owner"], value: false } },
-        { kind: "rule", certificate: sharing, obligation: { kind: "every_member", predicate: "is_editable", members: ["draft", "active"] } },
-        { kind: "rule", certificate: sharing, obligation: { kind: "every_member", predicate: "is_editable", members: ["draft", "archived"] } },
-        { kind: "state_machine", certificate: machine, obligation: { kind: "machine_set", projection: "terminal_states", members: ["paid", "void"] } },
-        { kind: "state_machine", certificate: machine, obligation: { kind: "machine_set", projection: "transitions", members: ["draft->sent", "sent->paid"] } },
-        { kind: "state_machine", certificate: machine, obligation: { kind: "machine_set", projection: "reachable_states", members: ["draft", "sent", "paid", "void"] } },
+        {
+          kind: "rule",
+          certificate: sharing,
+          obligation: {
+            kind: "predicate_holds",
+            predicate: "can_share",
+            args: ["archived", "owner"],
+            value: false,
+          },
+        },
+        {
+          kind: "rule",
+          certificate: sharing,
+          obligation: {
+            kind: "predicate_holds",
+            predicate: "can_share",
+            args: ["draft", "owner"],
+            value: false,
+          },
+        },
+        {
+          kind: "rule",
+          certificate: sharing,
+          obligation: {
+            kind: "every_member",
+            predicate: "is_editable",
+            members: ["draft", "active"],
+          },
+        },
+        {
+          kind: "rule",
+          certificate: sharing,
+          obligation: {
+            kind: "every_member",
+            predicate: "is_editable",
+            members: ["draft", "archived"],
+          },
+        },
+        {
+          kind: "state_machine",
+          certificate: machine,
+          obligation: {
+            kind: "machine_set",
+            projection: "terminal_states",
+            members: ["paid", "void"],
+          },
+        },
+        {
+          kind: "state_machine",
+          certificate: machine,
+          obligation: {
+            kind: "machine_set",
+            projection: "transitions",
+            members: ["draft->sent", "sent->paid"],
+          },
+        },
+        {
+          kind: "state_machine",
+          certificate: machine,
+          obligation: {
+            kind: "machine_set",
+            projection: "reachable_states",
+            members: ["draft", "sent", "paid", "void"],
+          },
+        },
       ],
     );
-    expect(answers.map((answer) => answer.ok ?? false)).toEqual([true, false, true, false, true, false, true]);
-    expect(answers[1]?.reason).toContain("the code decides can_share(draft, owner) is true, but the fact says false");
+    expect(answers.map((answer) => answer.ok ?? false)).toEqual([
+      true,
+      false,
+      true,
+      false,
+      true,
+      false,
+      true,
+    ]);
+    expect(answers[1]?.reason).toContain(
+      "the code decides can_share(draft, owner) is true, but the fact says false",
+    );
     expect(answers[3]?.reason).toContain("is_editable(archived) is false");
-    expect(answers[5]?.reason).toContain("not in the set draft->void, sent->void");
+    expect(answers[5]?.reason).toContain(
+      "not in the set draft->void, sent->void",
+    );
   });
 });
 
@@ -602,7 +870,10 @@ describe("required fields through typecheck", () => {
     );
     const compile = (fields: readonly string[]) => {
       const witness = path.join(scratch, `witness-${Math.random()}.ts`);
-      writeFileSync(witness, requiredFieldsWitness("./payment.js", "domain.Payment", fields));
+      writeFileSync(
+        witness,
+        requiredFieldsWitness("./payment.js", "domain.Payment", fields),
+      );
       return compileWitness(repoRoot, path.relative(repoRoot, witness)).ok;
     };
     expect(compile(["amount", "currency"])).toBe(true);

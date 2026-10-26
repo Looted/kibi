@@ -146,7 +146,9 @@ async function certificates(kind: ProofKind): Promise<{
     case "rule": {
       const valid = await ruleCertificate({
         testId: TEST_ID,
-        domains: { role: { symbolId: "SYM-ROLES", members: ["viewer", "owner"] } },
+        domains: {
+          role: { symbolId: "SYM-ROLES", members: ["viewer", "owner"] },
+        },
         predicates: {
           can_edit: {
             symbolId: "SYM-CAN-EDIT",
@@ -155,7 +157,10 @@ async function certificates(kind: ProofKind): Promise<{
           },
         },
       });
-      const predicates = valid.predicates as Record<string, Record<string, unknown>>;
+      const predicates = valid.predicates as Record<
+        string,
+        Record<string, unknown>
+      >;
       const table = predicates.can_edit ?? {};
       const rows = table.rows as unknown[];
       return {

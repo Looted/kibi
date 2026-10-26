@@ -56983,7 +56983,7 @@ symbols:
       - proof
     origin:
       kind: agent
-      recorded_at: 2026-10-24T19:32:37.268Z
+      recorded_at: 2026-10-26T09:48:16.565Z
     relationships:
       - type: covered_by
         target: TEST-kibi-code-proof-kinds
@@ -56991,6 +56991,8 @@ symbols:
         target: TEST-kibi-code-proof-kinds-exhaustive
       - type: covered_by
         target: TEST-kibi-code-proof-kinds-typecheck
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds-rule
       - type: implements
         target: REQ-kibi-code-proof-kinds
   - id: SYM-cli-evidence-levels
@@ -57403,3 +57405,212 @@ symbols:
         target: TEST-kibi-claim-bound-proofs-exhaustive
       - type: implements
         target: REQ-kibi-claim-bound-proofs
+  - id: SYM-e2e-packed-non-numeric-proof-kinds
+    title: checkNonNumericProofKinds
+    status: active
+    sourceFile: documentation/tests/e2e/packed/non-numeric-proof-kinds.test.ts
+    symbol_role: behavioral
+    tags:
+      - e2e
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:47:55.836Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-non-numeric-proof-kinds
+  - id: SYM-test-non-numeric-proof-kinds-rule
+    title: nonNumericProofKindsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/non-numeric-proof-kinds.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - rule
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:48:03.222Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-non-numeric-proof-kinds-rule
+  - id: SYM-is-certificate-proof-kind
+    title: isCertificateProofKind
+    status: active
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:48:10.545Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds-rule
+      - type: implements
+        target: REQ-kibi-non-numeric-proof-kinds
+  - id: SYM-regular-language-equal
+    title: languagesEqual
+    status: active
+    sourceFile: packages/cli/src/operations/proof/regular-language.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:48:25.244Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds
+      - type: implements
+        target: REQ-kibi-non-numeric-proof-kinds
+  - id: SYM-regular-language-compile
+    title: compileLanguage
+    status: active
+    sourceFile: packages/cli/src/operations/proof/regular-language.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:48:33.455Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds
+      - type: implements
+        target: REQ-kibi-non-numeric-proof-kinds
+  - id: SYM-code-models-evaluate
+    title: evaluateCodeModel
+    status: active
+    sourceFile: packages/cli/src/operations/proof/code-models.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:48:41.696Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds
+      - type: implements
+        target: REQ-kibi-non-numeric-proof-kinds
+  - id: SYM-code-models-rule-certificate-problem
+    title: ruleCertificateProblem
+    status: active
+    sourceFile: packages/cli/src/operations/proof/code-models.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:48:50.522Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds
+      - type: implements
+        target: REQ-kibi-non-numeric-proof-kinds
+  - id: SYM-code-models-machine-certificate-problem
+    title: machineCertificateProblem
+    status: active
+    sourceFile: packages/cli/src/operations/proof/code-models.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:48:58.676Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds
+      - type: implements
+        target: REQ-kibi-non-numeric-proof-kinds
+  - id: SYM-code-models-pattern-certificate-problem
+    title: patternCertificateProblem
+    status: active
+    sourceFile: packages/cli/src/operations/proof/code-models.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:49:07.412Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds
+      - type: implements
+        target: REQ-kibi-non-numeric-proof-kinds
+  - id: SYM-code-models-string-constraint-problem
+    title: stringConstraintProblem
+    status: active
+    sourceFile: packages/cli/src/operations/proof/code-models.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:49:16.421Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds
+      - type: implements
+        target: REQ-kibi-non-numeric-proof-kinds
+  - id: SYM-claim-bindings-required-fields-witness
+    title: requiredFieldsWitness
+    status: active
+    sourceFile: packages/cli/src/operations/proof/claim-bindings.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:49:24.239Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds
+      - type: implements
+        target: REQ-kibi-non-numeric-proof-kinds
+  - id: SYM-proof-certificates-rule-certificate
+    title: ruleCertificate
+    status: active
+    sourceFile: packages/cli/src/public/proof-certificates.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:49:30.756Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds
+      - type: implements
+        target: REQ-kibi-non-numeric-proof-kinds
+  - id: SYM-proof-certificates-state-machine-certificate
+    title: stateMachineCertificate
+    status: active
+    sourceFile: packages/cli/src/public/proof-certificates.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:49:36.502Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds
+      - type: implements
+        target: REQ-kibi-non-numeric-proof-kinds
+  - id: SYM-proof-certificates-regex-certificate
+    title: regexCertificate
+    status: active
+    sourceFile: packages/cli/src/public/proof-certificates.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:49:41.952Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds
+      - type: implements
+        target: REQ-kibi-non-numeric-proof-kinds

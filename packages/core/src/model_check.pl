@@ -11,7 +11,10 @@
 %                  per argument type) and its predicate tables (the value the
 %                  code's function returned for every combination of its
 %                  argument domains).  Kibi evaluated both from the code at
-%                  ingest, so the tables are the code's own decisions.
+%                  ingest, so the tables are the code's own decisions.  A
+%                  domain's type is also a predicate of one argument that
+%                  holds for its members, so a rule can range its variables
+%                  with document_status(D).
 %   state_machine  The model is the machine's states and transitions.  Its
 %                  predicates are transition(From, To), reachable(From, To)
 %                  (one or more steps), initial(State), terminal(State) and
@@ -452,9 +455,15 @@ eval_expression(Expression, _, _, _) :-
     format(string(Reason), "a ~w expression is outside what Kibi model checks", [Kind]),
     throw(model_error(Reason)).
 
-eval_atom(atom(_NS, Name, Args, Polarity, _CW), Env, model(_, Table, _), Value) :-
+eval_atom(atom(_NS, Name, Args, Polarity, _CW), Env, model(Domains, Table, _), Value) :-
     maplist(resolve_atom_arg(Env), Args, Values),
-    table_value(Table, Name, Values, Positive),
+    (   Values = [Member],
+        \+ get_assoc(Name-Values, Table, _),
+        Domains \= any(_),
+        get_assoc(Name, Domains, Members)
+    ->  truth(memberchk(Member, Members), Positive)
+    ;   table_value(Table, Name, Values, Positive)
+    ),
     (   Polarity == negative
     ->  negate(Positive, Value0)
     ;   Value0 = Positive

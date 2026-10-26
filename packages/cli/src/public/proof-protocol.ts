@@ -882,7 +882,10 @@ function nonNumericContractErrors(contract: Record<string, unknown>): string[] {
         `proof_contract.${field} applies only to kind ${kinds.join(" or ")}, not ${String(kind ?? "e2e")}`,
       );
   };
-  if (contract.predicate_source !== undefined && !isSourceMap(contract.predicate_source))
+  if (
+    contract.predicate_source !== undefined &&
+    !isSourceMap(contract.predicate_source)
+  )
     errors.push(
       "proof_contract.predicate_source must map each predicate name to {symbol_id, export?} naming the function that decides it",
     );
@@ -1026,7 +1029,9 @@ function sourceReference(value: unknown): SourceReference | undefined {
   };
 }
 
-function sourceMap(value: unknown): Record<string, SourceReference> | undefined {
+function sourceMap(
+  value: unknown,
+): Record<string, SourceReference> | undefined {
   const row = record(value);
   if (!row) return undefined;
   const out: Record<string, SourceReference> = {};
