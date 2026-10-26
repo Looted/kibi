@@ -38,7 +38,10 @@ import {
   applyOriginBackfill,
   planOriginBackfill,
 } from "../operations/migration/origin-backfill.js";
-import type { ProofContractClaimsPlan } from "../operations/migration/proof-contract-claims.js";
+import {
+  type ProofContractClaimsPlan,
+  claimReviewInstruction,
+} from "../operations/migration/proof-contract-claims.js";
 import {
   type RequirementStatusFinding,
   applyDeliveredStatusMappings,
@@ -261,11 +264,7 @@ function printClaimBindingReview(
       `${prefix}no synced store could be read, so no proof_contract.proves was pinned; run kibi sync and rerun kibi migrate, or add proves by hand where kibi check --rules proof-contract-claims reports a contract.`,
     );
   for (const row of plan.review)
-    console.log(
-      row.candidates.length === 0
-        ? `${prefix}${row.id} (${row.kind}) reaches no claim ${/^[aeiou]/.test(row.kind) ? "an" : "a"} ${row.kind} certificate can derive an obligation for; add proves with the claim it establishes (it will be attested, not proved) or model the claim's fact as a ${row.kind === "exhaustive" || row.kind === "typecheck" ? "set" : "numeric"} fact.`
-        : `${prefix}${row.id} (${row.kind}) could prove any of ${row.candidates.join(", ")}; add proof_contract.proves with the ones its certificate establishes.`,
-    );
+    console.log(`${prefix}${claimReviewInstruction(row)}`);
   for (const skip of plan.skipped)
     printWarning(`Cannot pin proves on ${skip.path}: ${skip.reason}.`);
 }

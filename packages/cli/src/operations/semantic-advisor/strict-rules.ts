@@ -1,5 +1,6 @@
 import {
   type Payload,
+  normalizeKey,
   normalizeSubjectKey,
   strictSuggestion,
 } from "./shared.js";
@@ -170,6 +171,43 @@ export function detectStrictSuggestion(
       0.92,
       `retained for ${retention.groups.value} ${retention.groups.unit}`,
     );
+  }
+
+  // "Every currency in GBP, ILS and ZAR must fail closed": the set is
+  // exactly the members that must have the property, and the property names
+  // the fact, so the claim keeps it. An exhaustive certificate over a domain
+  // equal to the set, whose per-member check is the property, proves it.
+  const everyMember = statement.match(
+    /^(?:every|each|all)\s+(?<subject>.+?)\s+in\s+(?<values>.+?)\s+(?:must|shall|should)\s+(?<predicate>.+?)\.?$/i,
+  );
+  if (
+    everyMember?.groups?.subject &&
+    everyMember.groups.values &&
+    everyMember.groups.predicate
+  ) {
+    const values = everyMember.groups.values
+      .split(/,|\band\b|\bor\b/i)
+      .map((value) => value.trim())
+      .filter(Boolean);
+    const property = normalizeKey(everyMember.groups.predicate)
+      .split("_")
+      .slice(0, 6)
+      .join("_");
+    if (values.length > 1 && property !== "")
+      return suggestion(
+        payload,
+        everyMember,
+        {
+          subject_key: normalizeSubjectKey(everyMember.groups.subject),
+          property_key: property,
+          operator: "eq",
+          value_type: "set",
+          value_set: [...new Set(values)].sort(),
+        },
+        `A claim that every member of a closed set has a property is a set fact named for the property (${property}): its value is exactly the members that must have it. An exhaustive proof binds to it when its domain is that set and its per-member check is the property.`,
+        0.84,
+        `in ${everyMember.groups.values}`,
+      );
   }
 
   const enumSet = statement.match(

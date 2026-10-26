@@ -38,6 +38,7 @@ type Step = Readonly<{
 }>;
 
 const STATEMENT = "Palette colors must be one of red, green or blue.";
+const COUNT_STATEMENT = "The palette must have exactly 3 colors.";
 const UNKNOWN_CLAIM = "CLAIM-0000000000000BAD";
 
 const SOURCES: Record<string, string> = {
@@ -75,8 +76,31 @@ export function proveWarm() {
 }
 proveWarm();
 `,
+  // An arithmetic certificate for the count claim; Kibi reads the count
+  // from COLORS itself (value_source measure count), not from a number
+  // kept beside it.
+  "count-proof.mjs": `import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { COLORS } from "./colors.mjs";
+export function proveCount() {
+  const directory = process.env.KIBI_PROOF_CERTIFICATES;
+  const selected = JSON.parse(process.env.KIBI_PROOF_TEST_IDS ?? "[]");
+  if (!directory || !selected.includes("TEST-COLORS-COUNT")) return;
+  mkdirSync(directory, { recursive: true });
+  writeFileSync(join(directory, "TEST-COLORS-COUNT.json"), JSON.stringify({
+    version: "kibi.code-certificate.v1",
+    test_id: "TEST-COLORS-COUNT",
+    kind: "arithmetic",
+    variable: "count",
+    value_type: "int",
+    assumptions: [{ operator: "eq", value: COLORS.length }],
+    claim: { operator: "eq", value: 3 },
+  }));
+}
+proveCount();
+`,
   "run-proofs.mjs":
-    'await import("./colors-proof.mjs");\nawait import("./warm-proof.mjs");\n',
+    'await import("./colors-proof.mjs");\nawait import("./warm-proof.mjs");\nawait import("./count-proof.mjs");\n',
 };
 
 async function upsert(sandbox: TestSandbox, payload: unknown): Promise<void> {
@@ -86,70 +110,34 @@ async function upsert(sandbox: TestSandbox, payload: unknown): Promise<void> {
   assert.strictEqual(result.exitCode, 0, result.stdout + result.stderr);
 }
 
-/** The advisor's apply plan for the statement: subject fact, set fact, requirement. */
-async function advisorPlan(sandbox: TestSandbox): Promise<Step[]> {
+/** The advisor's apply plan for a statement: subject fact, typed fact, requirement. */
+async function advisorPlan(
+  sandbox: TestSandbox,
+  id: string,
+  text: string,
+  valueType: string,
+): Promise<Step[]> {
   const request = join(sandbox.repoDir, "model-request.json");
   writeFileSync(
     request,
-    JSON.stringify({
-      mode: "analyze",
-      type: "req",
-      id: "REQ-PALETTE",
-      text: STATEMENT,
-    }),
+    JSON.stringify({ mode: "analyze", type: "req", id, text }),
   );
   const model = await kibi(sandbox, ["model", "--input", request]);
   assert.strictEqual(model.exitCode, 0, model.stdout + model.stderr);
   const suggestion = JSON.parse(model.stdout).data.receipt.suggestions.find(
     (row: { claim?: { value_type?: string } }) =>
-      row.claim?.value_type === "set",
+      row.claim?.value_type === valueType,
   );
-  assert.ok(suggestion, `no set suggestion:\n${model.stdout}`);
+  assert.ok(suggestion, `no ${valueType} suggestion:\n${model.stdout}`);
   return suggestion.applyPlan as Step[];
 }
 
-function testDocument(
-  id: string,
-  proofSymbol: string,
-  domain: string,
-  proves: readonly string[],
-): string {
-  return `---
-id: ${id}
-title: Exhaustive palette proof ${id}
-status: passing
-verification_scope: end_to_end
-proof_contract:
-  version: kibi.proof-contract.v1
-  integration: command
-  required_proofs:
-    - symbol_id: ${proofSymbol}
-      target: default
-  success_policy: all_required_first_attempt
-  kind: exhaustive
-  domain_source:
-    symbol_id: ${domain}
-${proves.length > 0 ? `  proves:\n${proves.map((key) => `    - ${key}`).join("\n")}\n` : ""}type: test
----
-
-Leaves an exhaustive certificate for kibi prove.
-`;
-}
-
-async function provision(sandbox: TestSandbox): Promise<string> {
-  for (const [file, content] of Object.entries(SOURCES)) {
-    writeFileSync(join(sandbox.repoDir, file), content);
-    stageSourceFile(sandbox, file);
-  }
-  const synced = await kibi(sandbox, ["sync"]);
-  assert.strictEqual(synced.exitCode, 0, synced.stdout + synced.stderr);
-
-  await upsert(sandbox, {
-    type: "scenario",
-    id: "SCEN-PALETTE",
-    properties: { title: "Render the palette", status: "active" },
-  });
-  const plan = await advisorPlan(sandbox);
+/** Applies an advisor plan with the requirement specified by a scenario. */
+async function applyPlan(
+  sandbox: TestSandbox,
+  plan: readonly Step[],
+  scenario: string,
+): Promise<string> {
   const requirement = plan.find((step) => step.type === "req");
   const claimKey = (
     requirement?.properties.semantic_inventory as { claim_key: string }[]
@@ -163,16 +151,108 @@ async function provision(sandbox: TestSandbox): Promise<string> {
       relationships: [
         ...(step.relationships ?? []),
         ...(step.type === "req"
-          ? [{ type: "specified_by", from: step.id, to: "SCEN-PALETTE" }]
+          ? [{ type: "specified_by", from: step.id, to: scenario }]
           : []),
       ],
     });
+  return claimKey ?? "";
+}
 
-  const tests: [string, string, string, string[]][] = [
-    ["TEST-COLORS-EXACT", "SYM-PROOF-COLORS", "SYM-COLORS", [claimKey ?? ""]],
-    ["TEST-COLORS-NARROW", "SYM-PROOF-WARM", "SYM-WARM", [claimKey ?? ""]],
-    ["TEST-COLORS-UNKNOWN", "SYM-PROOF-COLORS", "SYM-COLORS", [UNKNOWN_CLAIM]],
-    ["TEST-COLORS-UNBOUND", "SYM-PROOF-COLORS", "SYM-COLORS", []],
+function testDocument(
+  id: string,
+  proofSymbol: string,
+  domain: string,
+  proves: readonly string[],
+): string {
+  const source =
+    id === "TEST-COLORS-COUNT"
+      ? `  kind: arithmetic\n  value_source:\n    - symbol_id: ${domain}\n      measure: count\n`
+      : `  kind: exhaustive\n  domain_source:\n    symbol_id: ${domain}\n`;
+  return `---
+id: ${id}
+title: Palette proof ${id}
+status: passing
+verification_scope: end_to_end
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: command
+  required_proofs:
+    - symbol_id: ${proofSymbol}
+      target: default
+  success_policy: all_required_first_attempt
+${source}${proves.length > 0 ? `  proves:\n${proves.map((key) => `    - ${key}`).join("\n")}\n` : ""}type: test
+---
+
+Leaves a certificate for kibi prove.
+`;
+}
+
+async function provision(
+  sandbox: TestSandbox,
+): Promise<{ claimKey: string; countKey: string }> {
+  for (const [file, content] of Object.entries(SOURCES)) {
+    writeFileSync(join(sandbox.repoDir, file), content);
+    stageSourceFile(sandbox, file);
+  }
+  const synced = await kibi(sandbox, ["sync"]);
+  assert.strictEqual(synced.exitCode, 0, synced.stdout + synced.stderr);
+
+  for (const [id, title] of [
+    ["SCEN-PALETTE", "Render the palette"],
+    ["SCEN-PALETTE-COUNT", "Count the palette"],
+  ])
+    await upsert(sandbox, {
+      type: "scenario",
+      id,
+      properties: { title, status: "active" },
+    });
+  const claimKey = await applyPlan(
+    sandbox,
+    await advisorPlan(sandbox, "REQ-PALETTE", STATEMENT, "set"),
+    "SCEN-PALETTE",
+  );
+  const countKey = await applyPlan(
+    sandbox,
+    await advisorPlan(sandbox, "REQ-PALETTE-COUNT", COUNT_STATEMENT, "int"),
+    "SCEN-PALETTE-COUNT",
+  );
+
+  const tests: [string, string, string, string[], string][] = [
+    [
+      "TEST-COLORS-EXACT",
+      "SYM-PROOF-COLORS",
+      "SYM-COLORS",
+      [claimKey],
+      "SCEN-PALETTE",
+    ],
+    [
+      "TEST-COLORS-NARROW",
+      "SYM-PROOF-WARM",
+      "SYM-WARM",
+      [claimKey],
+      "SCEN-PALETTE",
+    ],
+    [
+      "TEST-COLORS-UNKNOWN",
+      "SYM-PROOF-COLORS",
+      "SYM-COLORS",
+      [UNKNOWN_CLAIM],
+      "SCEN-PALETTE",
+    ],
+    [
+      "TEST-COLORS-UNBOUND",
+      "SYM-PROOF-COLORS",
+      "SYM-COLORS",
+      [],
+      "SCEN-PALETTE",
+    ],
+    [
+      "TEST-COLORS-COUNT",
+      "SYM-PROOF-COUNT",
+      "SYM-COLORS",
+      [countKey],
+      "SCEN-PALETTE-COUNT",
+    ],
   ];
   for (const [id, proofSymbol, domain, proves] of tests) {
     const relative = `.kb/tests/${id}.md`;
@@ -188,21 +268,25 @@ async function provision(sandbox: TestSandbox): Promise<string> {
     0,
     testsSynced.stdout + testsSynced.stderr,
   );
-  for (const [id] of tests)
+  for (const [id, , , , scenario] of tests)
     await upsert(sandbox, {
       type: "test",
       id,
-      properties: {
-        title: `Exhaustive palette proof ${id}`,
-        status: "passing",
-      },
-      relationships: [{ type: "validates", from: id, to: "SCEN-PALETTE" }],
+      properties: { title: `Palette proof ${id}`, status: "passing" },
+      relationships: [{ type: "validates", from: id, to: scenario }],
     });
-  const symbols: [string, string, string, string[]][] = [
-    ["SYM-COLORS", "COLORS", "colors.mjs", ["TEST-COLORS-EXACT"]],
-    ["SYM-WARM", "WARM", "warm.mjs", ["TEST-COLORS-NARROW"]],
-    ["SYM-PROOF-COLORS", "proveColors", "colors-proof.mjs", []],
-    ["SYM-PROOF-WARM", "proveWarm", "warm-proof.mjs", []],
+  const symbols: [string, string, string, string[], string[]][] = [
+    [
+      "SYM-COLORS",
+      "COLORS",
+      "colors.mjs",
+      ["TEST-COLORS-EXACT", "TEST-COLORS-COUNT"],
+      ["REQ-PALETTE", "REQ-PALETTE-COUNT"],
+    ],
+    ["SYM-WARM", "WARM", "warm.mjs", ["TEST-COLORS-NARROW"], ["REQ-PALETTE"]],
+    ["SYM-PROOF-COLORS", "proveColors", "colors-proof.mjs", [], []],
+    ["SYM-PROOF-WARM", "proveWarm", "warm-proof.mjs", [], []],
+    ["SYM-PROOF-COUNT", "proveCount", "count-proof.mjs", [], []],
   ];
   const executableFor: Record<string, string[]> = {
     "SYM-PROOF-COLORS": [
@@ -211,8 +295,9 @@ async function provision(sandbox: TestSandbox): Promise<string> {
       "TEST-COLORS-UNBOUND",
     ],
     "SYM-PROOF-WARM": ["TEST-COLORS-NARROW"],
+    "SYM-PROOF-COUNT": ["TEST-COLORS-COUNT"],
   };
-  for (const [id, title, sourceFile, coveredBy] of symbols)
+  for (const [id, title, sourceFile, coveredBy, implementsReqs] of symbols)
     await upsert(sandbox, {
       type: "symbol",
       id,
@@ -225,9 +310,11 @@ async function provision(sandbox: TestSandbox): Promise<string> {
       // The domains implement the requirement; the proof runners are the
       // tests' executable code.
       relationships: [
-        ...(coveredBy.length > 0
-          ? [{ type: "implements", from: id, to: "REQ-PALETTE" }]
-          : []),
+        ...implementsReqs.map((req) => ({
+          type: "implements",
+          from: id,
+          to: req,
+        })),
         ...coveredBy.map((test) => ({
           type: "covered_by",
           from: id,
@@ -259,7 +346,7 @@ async function provision(sandbox: TestSandbox): Promise<string> {
   );
   const sync = await kibi(sandbox, ["sync", "--refresh-symbol-coordinates"]);
   assert.strictEqual(sync.exitCode, 0, sync.stdout + sync.stderr);
-  return claimKey ?? "";
+  return { claimKey, countKey };
 }
 
 /** The claim_bindings block of a test's latest receipt, as YAML text. */
@@ -280,7 +367,7 @@ function latestBindings(sandbox: TestSandbox, testId: string): string {
 export async function checkClaimBoundProofs(
   sandbox: TestSandbox,
 ): Promise<void> {
-  const claimKey = await provision(sandbox);
+  const { claimKey, countKey } = await provision(sandbox);
   const prove = await kibi(sandbox, ["prove", "--all"], { timeoutMs: 240000 });
   assert.strictEqual(prove.exitCode, 0, prove.stdout + prove.stderr);
   assert.match(
@@ -288,6 +375,14 @@ export async function checkClaimBoundProofs(
     new RegExp(
       `TEST-COLORS-EXACT ${claimKey} \\(REQ-PALETTE\\): derived, code scope`,
     ),
+  );
+  // The count claim is proved from COLORS.length, read by Kibi.
+  assert.match(
+    prove.stderr,
+    new RegExp(
+      `TEST-COLORS-COUNT ${countKey} \\(REQ-PALETTE-COUNT\\): derived, code scope`,
+    ),
+    prove.stderr,
   );
 
   const exact = latestBindings(sandbox, "TEST-COLORS-EXACT");
@@ -329,6 +424,8 @@ export async function checkClaimBoundProofs(
     /TEST-COLORS-NARROW exhaustive: rejected/,
     explain.stdout,
   );
+  const count = await kibi(sandbox, ["proof", "explain", "REQ-PALETTE-COUNT"]);
+  assert.match(count.stdout, /Claims \(1\/1 proved/, count.stdout);
 }
 
 if (RUN_NODE_TEST_SUITE) {

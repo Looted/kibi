@@ -326,7 +326,7 @@ export const PROOF_CONTRACT_SCHEMA = {
     value_source: {
       type: "array",
       description:
-        "arithmetic and smt: code constants the assumptions read. Kibi evaluates each export at ingest and requires the certificate to assume the variable equals that value, so the proof is about the code and not only the knowledge base.",
+        "arithmetic and smt: code constants the assumptions read. Kibi evaluates each export at ingest and requires the certificate to assume the variable equals that value, so the proof is about the code and not only the knowledge base. With measure count the value is the size of a list, set, map or object export, so a count claim reads the collection itself.",
       minItems: 1,
       items: {
         type: "object",
@@ -334,6 +334,12 @@ export const PROOF_CONTRACT_SCHEMA = {
         properties: {
           symbol_id: { type: "string", minLength: 1 },
           export: { type: "string", minLength: 1 },
+          measure: {
+            type: "string",
+            enum: ["value", "count"],
+            description:
+              "value (default): the export is a number. count: the number of members of a list, set, map or object export.",
+          },
         },
         additionalProperties: false,
       },
@@ -760,14 +766,18 @@ function proofContractKindErrors(contract: Record<string, unknown>): string[] {
           row !== null &&
           nonEmptyString(row.symbol_id) &&
           (row.export === undefined || nonEmptyString(row.export)) &&
+          (row.measure === undefined ||
+            row.measure === "value" ||
+            row.measure === "count") &&
           Object.keys(row).every(
-            (key) => key === "symbol_id" || key === "export",
+            (key) =>
+              key === "symbol_id" || key === "export" || key === "measure",
           )
         );
       })
     )
       errors.push(
-        "proof_contract.value_source must be [{symbol_id, export?}] naming the code constants the assumptions read",
+        "proof_contract.value_source must be [{symbol_id, export?, measure?: value|count}] naming the code constants the assumptions read",
       );
     else if (kind !== "arithmetic" && kind !== "smt")
       errors.push(
@@ -816,7 +826,11 @@ export function optionalProofContractFields(
     domain_source?: { symbol_id: string; export?: string };
     witness?: { path: string };
     constraint_source?: { fact_ids: string[] };
-    value_source?: { symbol_id: string; export?: string }[];
+    value_source?: {
+      symbol_id: string;
+      export?: string;
+      measure?: "value" | "count";
+    }[];
     proves?: string[];
   } = {};
   if (typeof contract.kind === "string")
@@ -847,6 +861,9 @@ export function optionalProofContractFields(
       .map((row) => ({
         symbol_id: String(row.symbol_id),
         ...(typeof row.export === "string" ? { export: row.export } : {}),
+        ...(row.measure === "value" || row.measure === "count"
+          ? { measure: row.measure }
+          : {}),
       }));
   if (Array.isArray(contract.proves))
     fields.proves = contract.proves.filter(

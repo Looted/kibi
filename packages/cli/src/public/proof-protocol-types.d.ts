@@ -98,7 +98,12 @@ export type ProofContract = Readonly<{
   domain_source?: Readonly<{ symbol_id: string; export?: string }>;
   witness?: Readonly<{ path: string }>;
   constraint_source?: Readonly<{ fact_ids: readonly string[] }>;
-  value_source?: readonly Readonly<{ symbol_id: string; export?: string }>[];
+  value_source?: readonly Readonly<{
+    symbol_id: string;
+    export?: string;
+    /** value (default): the export is a number; count: the size of a list, set, map or object. */
+    measure?: "value" | "count";
+  }>[];
   proves?: readonly string[];
 }>;
 

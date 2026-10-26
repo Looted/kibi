@@ -87,6 +87,7 @@ import {
   type ClaimCandidateRow,
   PROOF_CONTRACT_CLAIMS_PIN_CODE,
   PROOF_CONTRACT_CLAIMS_REVIEW_CODE,
+  claimReviewInstruction,
   planProofContractClaimPins,
 } from "./proof-contract-claims.js";
 import {
@@ -861,10 +862,7 @@ export function buildSchema6MigrationFragment(input: {
           safety: "review",
           invocation: {
             kind: "review",
-            instruction:
-              row.candidates.length === 0
-                ? `${row.id} (${row.path}) has a ${row.kind} proof contract but reaches no claim ${/^[aeiou]/.test(row.kind) ? "an" : "a"} ${row.kind} certificate can derive an obligation for. Add proof_contract.proves with the claim key its certificate establishes (it then counts as attested, not proved), or model that claim's grounding fact as a ${row.kind === "exhaustive" || row.kind === "typecheck" ? "set" : "numeric"} fact first. Then run kibi prove --test ${row.id}.`
-                : `${row.id} (${row.path}) has a ${row.kind} proof contract and could prove any of ${row.candidates.join(", ")}. Add proof_contract.proves with the claim keys its certificate establishes, then run kibi prove --test ${row.id}.`,
+            instruction: claimReviewInstruction(row),
           },
           affectedEntityIds: [row.id],
           affectedFiles: [row.path],

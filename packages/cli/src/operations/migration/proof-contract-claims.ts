@@ -36,16 +36,23 @@ export const PROOF_CONTRACT_CLAIMS_PIN_CODE = "proof_contract_claims_pin";
 // implements REQ-kibi-claim-bound-proofs, REQ-cli-schema-migration
 export const PROOF_CONTRACT_CLAIMS_REVIEW_CODE = "proof_contract_claims_review";
 
-/** A claim a certificate contract could prove: its fact derives an obligation. */
+/**
+ * A modeled claim a certificate contract's test reaches, with the binding a
+ * certificate of its kind would get: derived when the claim's fact derives
+ * an obligation for the kind, attested when the fact has no derivation,
+ * incompatible (with the reason) when the kind cannot express it.
+ */
 export type ClaimCandidate = Readonly<{
   claim_key: string;
   requirement_id: string;
   fact_id: string;
+  binding: "derived" | "attested" | "incompatible";
+  reason?: string;
 }>;
 
 /**
- * A certificate-kind contract without proves, with the claims of the
- * requirements its test reaches that its kind can derive an obligation for.
+ * A certificate-kind contract without proves, with every modeled claim of
+ * the requirements its test reaches through its scenarios.
  */
 export type ClaimCandidateRow = Readonly<{
   test_id: string;
@@ -53,17 +60,45 @@ export type ClaimCandidateRow = Readonly<{
   candidates: readonly ClaimCandidate[];
 }>;
 
+export type ProofContractClaimsReview = Readonly<{
+  id: string;
+  path: string;
+  kind: string;
+  candidates: readonly ClaimCandidate[];
+}>;
+
 export type ProofContractClaimsPlan = Readonly<{
   targets: readonly BodyContextTarget[];
-  /** Contracts left without proves: none or several candidates. */
-  review: readonly Readonly<{
-    id: string;
-    path: string;
-    kind: string;
-    candidates: readonly string[];
-  }>[];
+  /** Contracts left without proves: no derived claim, or several. */
+  review: readonly ProofContractClaimsReview[];
   skipped: readonly Readonly<{ id: string; path: string; reason: string }>[];
 }>;
+
+function describeCandidate(candidate: ClaimCandidate): string {
+  const where = `${candidate.claim_key} (${candidate.requirement_id}, ${candidate.fact_id})`;
+  if (candidate.binding === "derived") return `${where}: provable`;
+  if (candidate.binding === "attested")
+    return `${where}: attested only, the fact has no derivation`;
+  return `${where}: ${candidate.reason ?? "its kind cannot express the fact"}`;
+}
+
+/**
+ * What a person reviewing a contract without proves has to do, naming every
+ * claim its test reaches and how a certificate of its kind would bind it.
+ */
+// implements REQ-kibi-claim-bound-proofs, REQ-cli-schema-migration
+export function claimReviewInstruction(row: ProofContractClaimsReview): string {
+  const factKind =
+    row.kind === "exhaustive" || row.kind === "typecheck" ? "set" : "numeric";
+  if (row.candidates.length === 0)
+    return `${row.id} (${row.path}) has a ${row.kind} proof contract, but its test reaches no modeled claim through a scenario. Link the test to the scenario of the requirement it proves, then add proof_contract.proves with the claim keys its certificate establishes and run kibi prove --test ${row.id}.`;
+  const derived = row.candidates.filter((c) => c.binding === "derived");
+  const advice =
+    derived.length > 1
+      ? "Add proof_contract.proves with the claim keys its certificate establishes"
+      : `None is provable by a ${row.kind} certificate as modeled: add proof_contract.proves with the claim it establishes (it then counts as attested, not proved), or model that claim's grounding fact as a ${factKind} fact first`;
+  return `${row.id} (${row.path}) has a ${row.kind} proof contract without proves. Claims its test reaches: ${row.candidates.map(describeCandidate).join("; ")}. ${advice}, then run kibi prove --test ${row.id}.`;
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -135,12 +170,7 @@ export function planProofContractClaimPins(
 ): ProofContractClaimsPlan {
   const byTest = new Map((rows ?? []).map((row) => [row.test_id, row]));
   const targets: BodyContextTarget[] = [];
-  const review: {
-    id: string;
-    path: string;
-    kind: string;
-    candidates: string[];
-  }[] = [];
+  const review: ProofContractClaimsReview[] = [];
   const skipped: { id: string; path: string; reason: string }[] = [];
   if (byTest.size === 0) return { targets, review, skipped };
   for (const file of listLaneMarkdownFiles(workspaceRoot, ["tests"])) {
@@ -149,13 +179,19 @@ export function planProofContractClaimPins(
     const entity = readAuthoredEntity(content, file.relativePath);
     const row = entity === null ? undefined : byTest.get(entity.id);
     if (entity === null || row === undefined) continue;
-    const keys = [...new Set(row.candidates.map((c) => c.claim_key))].sort();
+    const keys = [
+      ...new Set(
+        row.candidates
+          .filter((c) => c.binding === "derived")
+          .map((c) => c.claim_key),
+      ),
+    ].sort();
     if (keys.length !== 1) {
       review.push({
         id: entity.id,
         path: file.relativePath,
         kind: row.kind,
-        candidates: keys,
+        candidates: row.candidates,
       });
       continue;
     }

@@ -356,6 +356,27 @@ binding has scope `code`:
     - CLAIM-0A1B2C3D4E5F6071       # "Clients retry at most 3 times"
 ```
 
+A count claim over a collection reads the collection itself: with
+`measure: count`, Kibi evaluates a list, set, map or object export and uses
+its size, so "exactly 32 tools" needs no separate number kept beside the list
+for the proof:
+
+```yaml
+  kind: arithmetic
+  value_source:
+    - symbol_id: SYM-tool-names
+      export: TOOL_NAMES
+      measure: count               # the number of members of TOOL_NAMES
+  proves:
+    - CLAIM-5D6E7F8091A2B3C4       # "There are exactly 32 tools"
+```
+
+A claim that every member of a closed set has a property ("Every currency in
+GBP, ILS and ZAR must fail closed") is modeled as a set fact named for the
+property: the semantic advisor proposes `property_key: fail_closed` with
+`value_set: [GBP, ILS, ZAR]`, so the property stays in the requirement instead
+of living only in the test.
+
 Kibi judges bindings at ingest and judges them again whenever it reports
 evidence: a binding whose fact changed since ingest (another set, another
 bound), whose claim is no longer modeled, or whose certificate no longer
@@ -365,7 +386,11 @@ binding as it ingests a receipt.
 From schema 12 the blocking `proof-contract-claims` rule reports a
 certificate-kind contract without `proves` and a named claim no certificate of
 its kind could prove. `kibi migrate` pins `proves` where the test reaches
-exactly one claim its kind can derive and lists the other contracts.
+exactly one claim its kind can derive. For every other contract its review
+lists each modeled claim the test reaches through its scenarios with the
+binding a certificate of its kind would get (provable, attested only, or the
+reason its kind cannot express the fact), so the person binding it knows which
+keys to name and which facts to remodel.
 
 ### What `proved` covers
 

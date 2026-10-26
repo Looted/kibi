@@ -8181,16 +8181,27 @@ test(proof_contract_claim_issues_report_missing_and_unprovable_claims, [setup(se
                          "TEST-COLORS-BAD"-"CLAIM-00000000000000A3",
                          "TEST-COLORS-NONE"-none]).
 
-test(proof_contract_claim_candidates_list_derivable_claims, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+test(proof_contract_claim_candidates_list_every_reached_claim, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     claim_fixture,
     colors_contract_test('TEST-COLORS-NONE', _{kind: "typecheck"}),
     colors_contract_test('TEST-COLORS-NUMERIC', _{kind: "smt"}),
     claim_obligations:proof_contract_claim_candidates_json(Json),
     atom_json_dict(Json, Rows, [value_string_as(string)]),
+    % Every modeled claim the test reaches is listed with the binding its
+    % kind would get, so a review never comes back empty.
     member(None, Rows), None.test_id == "TEST-COLORS-NONE", !,
-    assertion(None.candidates = [_{claim_key: "CLAIM-00000000000000A1",
-        requirement_id: "REQ-COLORS", fact_id: "FACT-COLOR-SET"}]),
+    assertion(None.candidates = [
+        _{claim_key: "CLAIM-00000000000000A1", requirement_id: "REQ-COLORS",
+          fact_id: "FACT-COLOR-SET", binding: "derived"},
+        _{claim_key: "CLAIM-00000000000000A2", requirement_id: "REQ-COLORS",
+          fact_id: "FACT-COLOR-RENDERS", binding: "attested"}]),
     member(Numeric, Rows), Numeric.test_id == "TEST-COLORS-NUMERIC", !,
-    assertion(Numeric.candidates == []).
+    findall(Key-Binding,
+        (member(C, Numeric.candidates), Key = C.claim_key, Binding = C.binding),
+        Bindings),
+    assertion(Bindings == ["CLAIM-00000000000000A1"-"incompatible",
+                           "CLAIM-00000000000000A2"-"attested"]),
+    Numeric.candidates = [Set|_],
+    assertion(sub_string(Set.reason, _, _, _, "set fact")).
 
 :- end_tests(claim_bound_proofs).

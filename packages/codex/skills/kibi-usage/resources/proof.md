@@ -187,7 +187,12 @@ left:
   exactly their constraints. To read the value from the code instead, set
   `value_source: [{ symbol_id: SYM-<constant>, export: <name> }]`; Kibi
   evaluates the number export itself and adds `variable eq value` as an
-  assumption.
+  assumption. For a count claim over a collection ("exactly 32 tools") add
+  `measure: count` and name the list, set, map or object export; Kibi uses
+  its size, so do not add a number export just for the proof.
+  A claim that every member of a closed set has a property ("Every currency
+  in GBP, ILS and ZAR must fail closed") is a set fact whose `property_key`
+  names the property and whose `value_set` is the members.
 - `smt`: an SMT-LIB query that declares the facts' property as a constant,
   asserts each `constraint_source` fact constraint and then the claim's
   negation. Kibi re-runs z3 or cvc5 on it and accepts only `unsat`.
