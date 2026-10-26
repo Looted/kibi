@@ -834,9 +834,13 @@ function renderProofGate(gate: ProofGate, index: number): string {
   const stopped = optional
     ? `${gate.blocked} tested, not proved`
     : `${gate.blocked} blocked here`;
-  const accessible = `${gate.label}. ${stopped}. Filter requirements whose earliest unmet proof gate is ${gate.label}.`;
+  // A gate nobody stops at has nothing to show, so it is not a filter.
+  const empty = gate.blocked === 0;
+  const accessible = empty
+    ? `${gate.label}. No requirement stops here.`
+    : `${gate.label}. ${stopped}. Filter requirements whose earliest unmet proof gate is ${gate.label}.`;
   return `<li>
-    <button type="button" class="proof-gate proof-gate--${state}" data-gate="${escapeHtml(gate.key)}" aria-pressed="false" aria-controls="requirements" aria-label="${escapeHtml(accessible)}">
+    <button type="button" class="proof-gate proof-gate--${state}" data-gate="${escapeHtml(gate.key)}" data-label="${escapeHtml(gate.label)}" aria-pressed="false" aria-controls="requirements" aria-label="${escapeHtml(accessible)}"${empty ? " disabled" : ""}>
       <div class="proof-gate__node"><span>${index + 1}</span></div>
       <div class="proof-gate__count">${gate.remaining.toLocaleString("en-US")}</div>
       <div class="proof-gate__label">${escapeHtml(gate.label)}</div>
@@ -1038,6 +1042,7 @@ export function renderHtmlReport(input: HtmlReportInput): string {
             ${renderFilters(filterCounts)}
           </div>
         </div>
+        <p class="gate-status" id="gate-status" aria-live="polite" hidden><span></span> <button type="button" class="gate-status__clear">Show all</button></p>
         <div class="requirements" id="requirements">${currentRows.map((row) => renderRequirement(row, repository)).join("")}</div>
         <div class="empty" id="empty" aria-live="polite">No requirements match this view.</div>
       </section>
@@ -1054,6 +1059,8 @@ export function renderHtmlReport(input: HtmlReportInput): string {
       const filters = [...document.querySelectorAll(".filter")];
       const gates = [...document.querySelectorAll(".proof-gate")];
       const empty = document.querySelector("#empty");
+      const gateStatus = document.querySelector("#gate-status");
+      const gateStatusText = gateStatus.querySelector("span");
       let activeFilter = "all";
       let activeGate = "all";
       const formatRelativeAge = (fromMs, nowMs) => {
@@ -1090,7 +1097,20 @@ export function renderHtmlReport(input: HtmlReportInput): string {
           if (!card.hidden) visible += 1;
         }
         empty.dataset.visible = String(visible === 0);
+        const selectedGate = gates.find((candidate) => candidate.dataset.gate === activeGate);
+        gateStatus.hidden = selectedGate === undefined;
+        if (selectedGate) {
+          gateStatusText.textContent = visible + (visible === 1 ? " requirement stops" : " requirements stop") + " at " + (selectedGate.dataset.label || activeGate) + ".";
+        }
       };
+      const selectGate = (selected) => {
+        activeGate = selected;
+        for (const candidate of gates) {
+          candidate.setAttribute("aria-pressed", String(candidate.dataset.gate === activeGate));
+        }
+        apply();
+      };
+      gateStatus.querySelector("button").addEventListener("click", () => selectGate("all"));
       search.addEventListener("input", apply);
       for (const filter of filters) {
         filter.addEventListener("click", () => {
@@ -1102,11 +1122,9 @@ export function renderHtmlReport(input: HtmlReportInput): string {
       for (const gate of gates) {
         gate.addEventListener("click", () => {
           const selected = gate.dataset.gate || "all";
-          activeGate = activeGate === selected ? "all" : selected;
-          for (const candidate of gates) {
-            candidate.setAttribute("aria-pressed", String(candidate.dataset.gate === activeGate));
-          }
-          apply();
+          selectGate(activeGate === selected ? "all" : selected);
+          // The ledger sits below the fold; bring the filtered rows into view.
+          if (activeGate !== "all") gateStatus.scrollIntoView({ behavior: "smooth", block: "start" });
         });
       }
       refreshAges();
