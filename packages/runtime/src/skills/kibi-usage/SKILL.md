@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware operations safely across MCP or the trusted local CLI, including partial completion repair.
-version: 2.29.2
+version: 2.29.3
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -436,7 +436,7 @@ For an existing product KB that needs semantic backfill, read
 `resources/kb-improvement.md`, and `resources/proof.md` for the proof workflow.
 Each current requirement has an evidence floor (`required_evidence`, else
 `tested` when firm); certificate proof kinds (exhaustive, typecheck,
-arithmetic, smt) reach `proved` for the claims their contract names in
+arithmetic, smt, rule, state_machine, regex) reach `proved` for the claims their contract names in
 `proves`, and a requirement is proved only when every claim is. When the `evidence-floor` rule fails, follow Debugging
 proof regressions in `resources/proof.md` and use `kibi proof explain`.
 
