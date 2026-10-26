@@ -24,6 +24,8 @@ on:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   KIBI_CLI: ./packages/cli/bin/kibi
+  # The intervals differential must run its CLP(Q)/CLP(FD) oracle here.
+  KIBI_REQUIRE_ORACLE: "1"
   KIBI_BRANCH: ${{ github.event_name == 'pull_request' && github.base_ref == 'master' && 'master' || github.head_ref || github.ref_name }}
 
 jobs:
@@ -88,7 +90,7 @@ jobs:
 
       - name: Bootstrap Ubuntu packages
         if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
-        run: bash scripts/ci-apt-bootstrap.sh bubblewrap
+        run: bash scripts/ci-apt-bootstrap.sh bubblewrap z3 swi-prolog-nox
 
       # The pipeline-built bundle (kibi-swipl-linux-x64-gnu's archive), so the
       # proof runs on the same Prolog bytes that ship. Kept under this name for
@@ -107,6 +109,8 @@ jobs:
           # Same pnpm as ci.yml's packed MCP job; the newest pnpm fails the
           # offline upgrade in mcp-pnpm-upgrade-stale-path.test.ts.
           PNPM_VERSION: "10.24.0"
+          ELAN_VERSION: "v4.1.2"
+          ELAN_INIT_SHA256: "4bacca9502cb89736fe63d2685abc2947cfbf34dc87673504f1bb4c43eda9264"
         run: |
           curl --fail --silent --show-error --location \
             "https://astral.sh/uv/${UV_VERSION}/install.sh" | sh
@@ -114,10 +118,23 @@ jobs:
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           npm install --global "@openai/codex@${CODEX_CLI_VERSION}"
           npm install --global "pnpm@${PNPM_VERSION}"
+          # Lean for the intervals.pl proofs. The proof step runs `lake --dir
+          # proof/lean` from the repository root, where no lean-toolchain file
+          # applies, so proof/lean's toolchain is also the default.
+          curl --fail --silent --show-error --location --output elan-init.sh \
+            "https://raw.githubusercontent.com/leanprover/elan/${ELAN_VERSION}/elan-init.sh"
+          echo "${ELAN_INIT_SHA256}  elan-init.sh" | sha256sum --check
+          sh elan-init.sh -y --default-toolchain "$(cat proof/lean/lean-toolchain)"
+          rm elan-init.sh
+          export PATH="$HOME/.elan/bin:$PATH"
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
           uv --version
           codex --version
           test "$(pnpm --version)" = "$PNPM_VERSION"
           bwrap --version
+          z3 --version
+          /usr/bin/swipl -g "use_module(library(clpq))" -t halt
+          lake --version
           uv sync --project tools/skillopt --frozen
           uv run --project tools/skillopt python tools/skillopt/verify_pin.py
 
@@ -148,9 +165,12 @@ jobs:
           fi
           bun packages/cli/bin/kibi check --format json --rules no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness,symbol-traceability
 
-      - name: Reject semantic proof regressions before executing contracts
+      # Every current requirement's floor, before re-proving: receipts that
+      # are only older than the code count as pending re-proof, so grounding,
+      # contradiction and link regressions fail before the long proof run.
+      - name: Reject evidence-floor regressions before executing contracts
         if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
-        run: node scripts/check-proof-baseline.mjs --semantic-only
+        run: sh scripts/proof-gate.sh
 
       - name: Prove every contracted test through Kibi
         if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
@@ -176,9 +196,15 @@ jobs:
           kill "$fetcher" 2>/dev/null || true
           exit "$status"
 
-      - name: Enforce proof baseline and clean snapshot
+      # Also saves the kb-consistency certificates the gate re-checked, so an
+      # independent checker re-checks them and the report publishes them.
+      - name: Enforce evidence floors on a clean snapshot
         if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
-        run: node scripts/check-proof-baseline.mjs
+        run: sh scripts/proof-gate.sh --fresh-evidence --write-certificates "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/kb-certificates.json"
+
+      - name: Re-check KB certificates with the independent checker
+        if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
+        run: bun packages/cli/bin/kibi check --certificates "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/kb-certificates.json"
 
       # Asks the repository's own KB the versioned gold questions through the
       # built CLI and fails on recall@3, superseded results, abstention or warm
@@ -192,7 +218,13 @@ jobs:
 
       - name: Generate requirement health report
         if: ${{ !cancelled() && steps.integrity.outcome == 'success' && (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
-        run: bun packages/cli/bin/kibi report --output kibi-report
+        run: |
+          certificates="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/kb-certificates.json"
+          if [ -f "$certificates" ]; then
+            bun packages/cli/bin/kibi report --output kibi-report --certificates "$certificates"
+          else
+            bun packages/cli/bin/kibi report --output kibi-report
+          fi
 
       - name: Upload Kibi proof artifacts
         if: ${{ !cancelled() && steps.integrity.outcome == 'success' && (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}

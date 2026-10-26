@@ -139,3 +139,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6d643d6fd550
+  - type: validates
+    from: TEST-kibi-code-proof-kinds-typecheck
+    to: SCEN-kibi-code-proof-kinds
+    created_at: 2026-10-24T19:31:49.362Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23b62554036d

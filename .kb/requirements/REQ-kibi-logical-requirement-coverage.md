@@ -145,6 +145,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: req
 ---
 
 Every atomic normative clause in a requirement must have a stable claim key and a linked ground property or predicate fact.

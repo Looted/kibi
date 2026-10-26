@@ -26,6 +26,7 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 semantic_text: Kibi must ship deterministic, reviewable evaluation fixtures for intent search and change-to-proof planning so dogfood projects can compare source-linked retrieval, clause disposition, abstention, and plan quality before and after a KB migration.
+type: req
 ---
 
 Kibi must ship deterministic, reviewable evaluation fixtures for intent search and change-to-proof planning so dogfood projects can compare source-linked retrieval, clause disposition, abstention, and plan quality before and after a KB migration.

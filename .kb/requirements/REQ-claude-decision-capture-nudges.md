@@ -1,6 +1,7 @@
 ---
 title: Rules the person states are recorded during the session
 status: open
+required_evidence: tested
 priority: must
 tags:
   - hooks

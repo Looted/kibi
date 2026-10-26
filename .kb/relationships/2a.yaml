@@ -160,3 +160,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a66c0930ebc5
+  - type: implements
+    from: SYM-core-receipt-kind-evidence
+    to: REQ-kibi-code-proof-kinds
+    created_at: 2026-10-24T19:33:29.134Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-013a65726e18
+  - type: covered_by
+    from: SYM-core-receipt-kind-evidence
+    to: TEST-kibi-code-proof-kinds
+    created_at: 2026-10-24T19:33:29.147Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9fac92ce88d

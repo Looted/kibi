@@ -13,7 +13,10 @@ import { resolveBoundSymbolScope } from "../../extractors/manifest.js";
 import { normalizeEntityId, parseTriples } from "../../prolog/codec.js";
 import type { PrologPort } from "../../public/operations/runtime-types.js";
 import { receiptBindingHash } from "../../public/proof-fingerprint.js";
-import type { ProofContract } from "../../public/proof-protocol.js";
+import {
+  type ProofContract,
+  optionalProofContractFields,
+} from "../../public/proof-protocol.js";
 import { normalizeRepoRelativePath } from "../../utils/repo-relative-path.js";
 import { resolveContainedSourcePath } from "../mutation/source-authoring.js";
 import { removeFrontmatterBlock } from "./receipt-document.js";
@@ -110,6 +113,7 @@ export function receiptBindingContract(raw: unknown): ProofContract | null {
       };
     }) as unknown as ProofContract["required_proofs"],
     success_policy: contract.success_policy as ProofContract["success_policy"],
+    ...optionalProofContractFields(contract),
   };
 }
 
@@ -138,6 +142,22 @@ export type ReceiptBindingInput = Readonly<{
 export async function currentReceiptBindingHash(
   input: ReceiptBindingInput,
 ): Promise<string | undefined> {
+  return (await currentReceiptBindingHashes(input))?.[0];
+}
+
+/**
+ * The binding hashes a receipt of this test may carry and still be current:
+ * the current hash first, then the hash Kibi wrote before relationship links
+ * left the binding (when it differs). The test document is hashed without
+ * `proof_receipts` and without `links`: links to scenarios or requirements
+ * change what the test is evidence for, not what the code does, so editing
+ * them never stales a receipt. Receipts written under the earlier binding
+ * stay current until the test's own inputs change.
+ */
+// implements REQ-kibi-fresh-verification-receipts-v2
+export async function currentReceiptBindingHashes(
+  input: ReceiptBindingInput,
+): Promise<readonly string[] | undefined> {
   const contract = receiptBindingContract(input.test.proof_contract);
   if (!contract) return undefined;
   const source = typeof input.test.source === "string" ? input.test.source : "";
@@ -147,7 +167,10 @@ export async function currentReceiptBindingHash(
   try {
     const absolute = resolveContainedSourcePath(input.workspaceRoot, relative);
     const authored = await input.readFile(absolute);
-    const stripped = removeFrontmatterBlock(authored, "proof_receipts");
+    const withoutReceipts =
+      removeFrontmatterBlock(authored, "proof_receipts") ?? authored;
+    const withoutLinks =
+      removeFrontmatterBlock(withoutReceipts, "links") ?? withoutReceipts;
     const codeScope = resolveBoundSymbolScope(
       join(input.workspaceRoot, ".kb", "symbols.yaml"),
       receiptCodeScopeSymbolIds(
@@ -156,7 +179,9 @@ export async function currentReceiptBindingHash(
         input.coveredBySymbols,
       ),
     );
-    return receiptBindingHash(contract, stripped ?? authored, codeScope);
+    const current = receiptBindingHash(contract, withoutLinks, codeScope);
+    const legacy = receiptBindingHash(contract, withoutReceipts, codeScope);
+    return legacy === current ? [current] : [current, legacy];
   } catch {
     return undefined;
   }

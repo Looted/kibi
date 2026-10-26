@@ -275,8 +275,8 @@ describe("semantic advisor prose analysis", () => {
         subject_key: "auth.status",
         property_key: "allowed_values",
         operator: "eq",
-        value_type: "string",
-        value_string: "ready|anonymous|profile-error",
+        value_type: "set",
+        value_set: ["anonymous", "profile-error", "ready"],
       },
     });
   });

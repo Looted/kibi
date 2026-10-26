@@ -1,6 +1,7 @@
 ---
 title: Bootstrap names what to compare for intent claims it leaves for authoring
 status: open
+required_evidence: tested
 priority: must
 tags:
   - bootstrap

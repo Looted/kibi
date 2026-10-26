@@ -92,7 +92,7 @@ describe("kibi migrate to schema 6", () => {
     expect(
       JSON.parse(readFileSync(path.join(root, ".kb/manifest.json"), "utf8"))
         .schemaVersion,
-    ).toBe(10);
+    ).toBe(12);
     const result = runKibi(["migrate", "--yes"], root);
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("No migration needed");
@@ -206,7 +206,7 @@ describe("kibi migrate to schema 6", () => {
       expect(
         JSON.parse(readFileSync(path.join(root, ".kb/manifest.json"), "utf8"))
           .schemaVersion,
-      ).toBe(10);
+      ).toBe(12);
       const requirement = frontmatter(
         path.join(root, ".kb/requirements/REQ-upload-resume.md"),
       );
@@ -491,7 +491,7 @@ describe("kibi migrate to schema 6", () => {
       );
       expect(audit).toMatchObject({
         fromVersion: 5,
-        toVersion: 10,
+        toVersion: 12,
         entityOriginBackfill: 4,
         steps: [
           "entity-origin-v6",
@@ -499,6 +499,8 @@ describe("kibi migrate to schema 6", () => {
           "entity-body-context-v8",
           "decision-firmness-v9",
           "firmness-from-origin-v10",
+          "evidence-floor-v11",
+          "claim-bound-proofs-v12",
         ],
       });
 
@@ -543,7 +545,10 @@ describe("kibi migrate to schema 6", () => {
   test(
     "plans one sync after a schema upgrade that rewrites no sources, as kb_status does",
     () => {
-      writeCurrentRequirement(root, "REQ-upload-base", UPLOAD_TEXT);
+      // A stated floor leaves the schema 11 step nothing to record.
+      writeCurrentRequirement(root, "REQ-upload-base", UPLOAD_TEXT, {
+        required_evidence: "asserted",
+      });
       writeManifest(root, 9);
       git(root, "add", "--all");
       const syncs = (plan: MigrationPlan) =>

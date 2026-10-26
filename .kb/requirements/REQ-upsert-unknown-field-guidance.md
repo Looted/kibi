@@ -1,6 +1,7 @@
 ---
 title: Upsert validation names unknown fields and where prose belongs
 status: open
+required_evidence: tested
 priority: must
 tags:
   - upsert

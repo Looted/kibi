@@ -392,7 +392,7 @@ export async function verifyEvidenceLevels(
   const rows = report.rows ?? [];
   assert.ok(rows.length > 0, "coverage should list the sandbox requirement");
   for (const row of rows) {
-    assert.strictEqual(row.proofVersion, "kibi.requirement-proof.v4");
+    assert.strictEqual(row.proofVersion, "kibi.requirement-proof.v5");
     assert.notStrictEqual(row.proofStatus, "proven");
     assert.ok(
       levels.includes(row.evidenceLevel ?? ""),
@@ -687,6 +687,7 @@ if (RUN_NODE_TEST_SUITE) {
           id: "REQ-001",
           title: "Test requirement",
           status: "open",
+          required_evidence: "asserted",
           tags: ["test"],
         },
         [

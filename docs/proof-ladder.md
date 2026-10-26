@@ -3,7 +3,7 @@
 Consumer-facing reference for `proofStatus`, `proofStages`, `proofGaps`, and
 `proofAdvisories` as reported by `kibi coverage --by req` and `kb_coverage`.
 The authoritative implementation is `packages/core/src/requirement_proof.pl`
-(proof version `kibi.requirement-proof.v4`); this document explains what each
+(proof version `kibi.requirement-proof.v5`); this document explains what each
 stage means and what to do when it does not pass.
 
 ## Applicability: is the requirement in scope at all?
@@ -67,21 +67,131 @@ To re-enter the proof ladder, remove both properties.
 
 ## The stages
 
-For in-scope requirements the ladder evaluates nine stages, each reporting
-`status` (and, for `productionSymbols`, a typed `reason` when it does not
-pass):
+For in-scope requirements the ladder evaluates nine stages, in order. Each
+stage reports a `status` under its key in `proofStages`; `productionSymbols`
+also carries a typed `reason` when it does not pass.
 
-| Stage | Meaning | Statuses |
+| # | Stage | Key in `proofStages` |
 | --- | --- | --- |
-| `semanticInventory` | Every assertive proposition in the requirement's prose is inventoried and classified (modeled / unresolved / missing / nonlogical). | `passed`, `unresolved`, `missing` |
-| `logicGrounding` | Modeled claims are grounded by strict property, predicate, or safe rule facts, one-to-one with the declared manifest. | `passed`, `missing`, `unresolved` |
-| `contradictions` | No other current requirement contradicts this one over shared facts. Check completeness itself is visible. | `passed`, `blocked`, `unresolved` |
-| `scenarios` | At least one scenario specifies the requirement (`specified_by`). | `passed`, `missing` |
-| `scenarioTests` | Each scenario is validated by at least one test (`verified_by`/`validates`). | `passed`, `missing` |
-| `passingE2E` | Every linked scenario has at least one end-to-end test, and every linked E2E proof-bearing test carries a valid, fresh, passing `kibi.proof-receipt.v1` bound to the current snapshot, contract hash, and fingerprint. Per-scenario results are exposed in `scenarioObligations`, each with the `acceptedScopes` it allows; unit/integration-only ancillary tests remain nonblocking. A UI pattern scenario also accepts component tests (see [Component-scope proof](#component-scope-proof-for-ui-patterns)). | `passed`, `missing`, `unresolved` |
-| `executableSymbols` | Each qualifying E2E test is linked to executable test code via `executable_for`. | `passed`, `missing` |
-| `productionSymbols` | Production symbols implementing the requirement are covered by those passing E2E tests (`covered_by`). Additive `explanations[]` (still `kibi.requirement-proof.v3`) give each symbol a rollup reason and per-candidate primary plus optional secondary rejection codes. | `passed`, `missing`, `blocked` |
-| `sourceCoordinates` | The requirement source and all linked symbols carry exact published coordinates. | `passed`, `missing`, `blocked` |
+| 1 | [Semantic inventory](#1-semantic-inventory) | `semanticInventory` |
+| 2 | [Logic grounding](#2-logic-grounding) | `logicGrounding` |
+| 3 | [Contradictions](#3-contradictions) | `contradictions` |
+| 4 | [Scenarios](#4-scenarios) | `scenarios` |
+| 5 | [Scenario tests](#5-scenario-tests) | `scenarioTests` |
+| 6 | [Passing E2E tests](#6-passing-e2e-tests) | `passingE2e` |
+| 7 | [Executable test symbols](#7-executable-test-symbols) | `executableSymbols` |
+| 8 | [Production symbols](#8-production-symbols) | `productionSymbols` |
+| 9 | [Source coordinates](#9-source-coordinates) | `sourceCoordinates` |
+
+### 1. Semantic inventory
+
+**Checks:** every assertive statement in the requirement's prose is listed in
+its semantic inventory and classified as modeled, unresolved, missing or
+nonlogical.
+
+- `passed`: the inventory is complete and nothing in it is unresolved.
+- `missing`: there is no inventory, an entry is classified as missing, or an
+  entry is malformed.
+- `unresolved`: at least one statement is classified as unresolved.
+
+### 2. Logic grounding
+
+**Checks:** each modeled claim is grounded by a strict property, predicate or
+safe rule fact, one to one with the declared manifest.
+
+- `passed`: every modeled claim has exactly one grounding fact.
+- `missing`: a claim has no grounding fact or no manifest entry.
+- `unresolved`: the grounding exists but does not line up (an extra or
+  duplicate manifest entry, claim text that differs, an invalid or undeclared
+  fact, an unsafe rule).
+
+### 3. Contradictions
+
+**Checks:** no other current requirement contradicts this one over shared
+facts.
+
+- `passed`: no conflict was found and grounding is complete.
+- `blocked`: a conflict was found; `conflicts` names it.
+- `unresolved`: the check could not finish, usually because logic grounding
+  is incomplete, so the absence of a found conflict is not evidence of safety.
+
+### 4. Scenarios
+
+**Checks:** at least one scenario specifies the requirement (`specified_by`).
+
+- `passed`: one or more valid scenarios are linked.
+- `missing`: no scenario is linked, or a link points at a scenario that does
+  not exist.
+- `blocked`: a linked success scenario is infeasible; `infeasibleScenarios`
+  names it.
+
+### 5. Scenario tests
+
+**Checks:** each linked scenario is validated by at least one test
+(`verified_by` or `validates`).
+
+- `passed`: every scenario has a test.
+- `missing`: a scenario has no test, or links a test that does not exist.
+
+### 6. Passing E2E tests
+
+**Checks:** every linked scenario has at least one end-to-end test, and every
+linked E2E test that bears proof carries a valid, fresh, passing
+`kibi.proof-receipt.v1` receipt bound to the current snapshot, contract hash
+and fingerprint.
+
+- `passed`: every scenario obligation passed.
+- `missing`: a scenario has no qualifying E2E test or receipt.
+- `unresolved`: the evidence exists but does not qualify (for example a stale,
+  failed or invalid receipt).
+
+Per-scenario results are in `scenarioObligations`, each with the
+`acceptedScopes` it allows. Unit and integration tests linked alongside the
+E2E tests do not block. A UI pattern scenario also accepts component tests;
+see [Component-scope proof](#component-scope-proof-for-ui-patterns).
+
+### 7. Executable test symbols
+
+**Checks:** each qualifying E2E test is linked to executable test code with
+`executable_for`.
+
+- `passed`: every qualifying test has executable code linked.
+- `missing`: a test has no `executable_for` link; `missingTests` lists it.
+- `blocked`: there are no passing E2E tests to check.
+
+### 8. Production symbols
+
+**Checks:** the production symbols that implement the requirement are covered
+by the passing E2E tests (`covered_by`).
+
+- `passed`: every production symbol is covered.
+- `missing`: no production symbol implements the requirement, or some lack
+  `covered_by` links; `uncoveredSymbols` lists them.
+- `blocked`: there is no passing E2E evidence in the current snapshot
+  (usually stale or missing receipts), so coverage cannot be evaluated.
+  `reason` says so and points at `kibi prove`.
+
+Type-shape symbols (interfaces, type aliases, enums) are listed under
+`structuralSymbols` instead. One counts as covered when it is `covered_by` a
+passing E2E test or a unit test with a current passing receipt; an authored
+`status: passing` on the unit test is not enough. Without that receipt the
+symbol is in `uncoveredSymbols` with the reason
+`structural_unit_receipt_not_current`, and `kibi prove` on the unit test (or
+`kibi prove --stale`) clears it.
+
+`explanations[]` gives each symbol a rollup reason and, for each rejected
+`covered_by` candidate, a primary rejection code plus optional secondary codes.
+See [Stage statuses, precisely](#stage-statuses-precisely).
+
+### 9. Source coordinates
+
+**Checks:** the requirement source and every linked test and production symbol
+carry exact published coordinates.
+
+- `passed`: all coordinates are present.
+- `missing`: the requirement has no source, or a symbol has no coordinates;
+  `missingSymbols` lists them.
+- `blocked`: there are no linked symbols to check.
 
 ### Component-scope proof for UI patterns
 
@@ -102,30 +212,33 @@ rule, the scenario goes back to end-to-end proof. See [ui-requirements.md](./ui-
 
 ### Stage statuses, precisely
 
-- `passed` — the stage's obligations hold.
-- `missing` — the evidence is absent. The stage names what is missing
+- `passed`: the stage's obligations hold.
+- `missing`: the evidence is absent. The stage names what is missing
   (`missingTests`, `missingReceiptTests`, `uncoveredSymbols`,
   `missingSymbols`, ...), and `proofGaps` carries the blocking gap code.
-- `blocked` — the stage cannot be evaluated because an upstream input is
-  unavailable. Only two stages use it:
-  - `contradictions`: logical grounding is incomplete, so absence of a found
-    conflict is not evidence of safety.
-  - `productionSymbols`: there is no passing E2E evidence at all in the
-    current snapshot (typically stale or missing receipts). The stage now
-    says so with `reason` instead of an opaque word. Existing
-    `uncoveredSymbols` still lists every remaining production symbol; each
-    explanation uses `stage_blocked_no_passing_e2e` rather than implying the
-    symbol independently lacks `covered_by`.
-  - Additive `explanations[]` never change `status`, `reason`,
-    `uncoveredSymbols`, or `proofStatus`. Rejected `covered_by` candidates
-    carry the earliest disqualifying `reason` and optional
-    `secondaryReasons` already known from cheaper gates. Out-of-chain tests
-    do not walk receipts.
-- `unresolved` — evidence exists but is not conclusive (e.g. unresolved
-  propositions in the inventory).
+- `unresolved`: evidence exists but is not conclusive (for example unresolved
+  statements in the inventory, or a stale receipt).
+- `blocked`: the stage found a hard stop or has nothing to evaluate:
+  - `contradictions`: a conflicting requirement was found.
+  - `scenarios`: a linked success scenario is infeasible.
+  - `executableSymbols` and `productionSymbols`: there is no passing E2E
+    evidence in the current snapshot (typically stale or missing receipts).
+    `productionSymbols` says so in `reason`; `uncoveredSymbols` still lists
+    every remaining production symbol, and each explanation uses
+    `stage_blocked_no_passing_e2e` rather than implying the symbol itself
+    lacks `covered_by`.
+  - `sourceCoordinates`: there are no linked symbols to check.
 
-A `blocked` stage never silently downgrades a requirement's proof status: it
-maps to `proofStatus: unresolved`, not `tested`.
+`explanations[]` on `productionSymbols` never changes `status`, `reason`,
+`uncoveredSymbols` or `proofStatus`. A rejected `covered_by` candidate carries
+the earliest disqualifying `reason` and optional `secondaryReasons` already
+known from cheaper checks. Tests outside the scenario chain do not have their
+receipts read.
+
+A `blocked` stage never silently counts as passing. A blocked
+`contradictions` stage makes `proofStatus` `unresolved`; any other blocked
+stage does the same unless another stage is `missing`, in which case
+`proofStatus` is `missing`.
 
 ## Gaps, advisories, and status
 
@@ -155,21 +268,80 @@ backs it:
 
 | Level | Meaning | What earns it |
 | --- | --- | --- |
-| `proved` | A checker established the claim for every case and left a certificate a second program can re-check | A proof certificate. No proof kind issues one yet, so no requirement reaches this level today |
+| `proved` | A checker established every claim of the requirement for every case and left certificates a second program can re-check | `proofStatus: tested`, and every applicable claim has a derived, code-scope binding: a fresh `kibi.proof-receipt.v2` of a certificate-kind contract (`exhaustive`, `typecheck`, `arithmetic`, `smt`) that names the claim in `proves`, whose certificate re-checks now against the obligation Kibi derives from the claim's fact (see [Binding a certificate to claims](proving-requirements.md#binding-a-certificate-to-claims)) |
 | `tested` | Passing runs on sampled cases, bound to the current code snapshot | `proofStatus: tested` |
 | `asserted` | A person stands behind the statement, but nothing current checks it | `origin.approved_by`, or firm: `firmness: firm`, or no `firmness` and an origin other than `agent` |
 | `unverified` | Stated, not approved, no evidence | Nothing: an agent wrote it and no person approved it |
 
 Each row's `evidence[]` lists the entries that earned the level, each with
-`kind` (`e2e`, `human_intent`), `scope` (`code` for what the tests exercised,
+`kind` (`certificate`, `e2e`, `human_intent`), `scope` (`code` for what the tests exercised,
 `intent` for what a person stated) and `level`; an `e2e` entry names its
-passing `tests`, a `human_intent` entry its `basis` (`approved` or `firm`)
+passing `tests`, a `certificate` entry its proved `tests` and their proof
+`kinds`, a `human_intent` entry its `basis` (`approved` or `firm`)
 and, when there is one, the `ref` to the person's words. The coverage
 summary counts rows per level under `evidenceLevels`.
+
+From `kibi.requirement-proof.v5` each row also judges its claims one by one.
+`claimEvidence[]` has an entry per inventory claim with its `claimKey`,
+`status`, whether it is `applicable` (a nonlogical context span is not), the
+`level` it reaches and the certificate `bindings` behind it (`derived`,
+`attested` or `rejected`, with the test, kind, scope and reason);
+`claimSummary` counts the applicable claims per level (`proved`, `attested`,
+`tested`, `unresolved`) and `unprovedClaims` lists those below proved. A
+claim is proved only through a derived binding with scope `code`; an
+attested binding (the fact has no derivation) and an intent-scope one (an
+arithmetic claim decided from the facts alone) count as tested. The coverage
+summary adds the claim totals under `proofClaims`.
 
 Firmness and evidence level are separate axes. Firmness says how sure the
 person is; the level says how strong the evidence is. A firm requirement at
 `asserted` is the gap to close before relying on it.
+
+## Evidence floors
+
+Each current requirement also has a floor: the weakest evidence level it
+accepts. The `evidence-floor` rule of `kibi check` fails while a
+requirement's level is below its floor, so a regression is caught on the
+requirement itself and no shared snapshot file has to be kept in step.
+
+| Floor | Where it comes from |
+| --- | --- |
+| `required_evidence: proved \| tested \| asserted \| unverified` | Set on the requirement by its author |
+| `tested` | No `required_evidence` and the requirement is firm (`firmness: firm`, or no `firmness` and an origin other than `agent`) |
+| `unverified` (no floor) | No `required_evidence` and the requirement is not firm |
+
+Coverage rows carry the floor as `evidenceFloor` with `required`, `source`
+(`explicit` or `firmness`) and `status`: `met`, `below`, or `pending_reproof`
+when the floor is `tested` and every gap only says the receipts are older
+than the code. A plain `kibi check` lets `pending_reproof` pass, so a local
+check catches grounding, contradiction and link regressions without
+re-proving first. `kibi check --fresh-evidence` judges receipts as they are
+and also needs a clean proof snapshot; run it right after `kibi prove`, as CI
+does. The coverage summary counts current requirements with a floor under
+`evidenceFloors` (`met`, `below`, `pendingReproof`), the coverage table has a
+Floor column, and `kibi report` and `kibi signoff` show each requirement's
+floor and whether it is met.
+
+Requirements outside proof scope (`proof_exempt`, superseded or not current)
+have no floor. Lowering a floor is a visible edit to the requirement, so
+reviewers see it; give the reason in the requirement when you lower one.
+
+The schema 11 upgrade (`kibi migrate --yes`) records `required_evidence:
+asserted` on each current firm requirement that has no scenario verified by
+an end-to-end test with a proof contract and a passing receipt, since it has
+not reached `tested`; raise it once the requirement has an end-to-end proof.
+Firm requirements whose proof has passed keep the `tested` floor, and the
+migration lists them. Their proof can still have gaps it does not read, such
+as a stale receipt or a production symbol without `covered_by`, so run
+`kibi check --rules evidence-floor` after migrating and fix what it reports.
+
+The schema 12 upgrade binds certificates to claims. `kibi migrate --yes` pins
+`proves` on each certificate-kind contract whose test reaches exactly one
+claim its kind can prove and lists the other contracts for review. Until a
+contract names its claims, the blocking `proof-contract-claims` rule reports
+it and its certificate proves nothing, so a requirement that reported
+`proved` before reports `tested` until its claims are bound and re-proved with
+`kibi prove`.
 
 ## Knowledge-base certificates
 
@@ -206,6 +378,35 @@ run and are not committed: `kibi check --write-certificates <file>` saves the
 bundle, and `kibi check --certificates <file>` re-checks a saved one and
 prints each theorem's verdict (`proved`, `disproved` or `unresolved`).
 
+## The numeric decision procedure, proved
+
+Numeric contradictions, the arithmetic certificate kind and the property
+theorem above all rest on `intervals.pl`, which folds every comparison on a
+variable into an interval (open or closed ends, excluded points) or, for an
+integer variable, an integer range, and asks whether it is empty. The Lean 4
+project in [`proof/lean`](../proof/lean/README.md) defines the same folds and
+proves:
+
+| Theorem | Statement |
+| --- | --- |
+| `realFeasible_iff` | The real fold is true exactly when some value satisfies every constraint |
+| `intFeasible_iff` | The integer fold is true exactly when some integer satisfies every constraint, whatever (fractional) values they compare with |
+| `satisfiable_iff` | `numeric_constraints_satisfiable/2` is true exactly when one assignment, integral on the integer variables, satisfies every constraint |
+| `entailed_iff` | `numeric_constraint_entailed/3` is true exactly when every such assignment that satisfies the premises satisfies the claim |
+
+The proofs hold for any dense linear order without endpoints that embeds the
+integers with a floor and a ceiling, so for the rationals and the reals, and
+rest on Lean's standard axioms only (CI fails on `sorry`). The rationals the
+model's executable computes with are proved to be such an order, so the
+theorems cover the executable itself. A proof about a
+model says nothing about the shipped code unless the two compute the same
+thing, so `scripts/intervals-differential.ts` decides 200000 generated cases
+(rationals, integers and floats) with `intervals.pl` on the bundled
+SWI-Prolog, with the Lean model's executable and with an independent
+CLP(Q)/CLP(FD) oracle, and fails on any disagreement. `intervals.pl` rejects
+a NaN or infinite bound with a domain error. Both run in CI (`lean-intervals-proof`) and as the proof of
+`REQ-kibi-intervals-verified`.
+
 ## Common failure patterns
 
 | Symptom | Usual cause | Fix |
@@ -227,16 +428,18 @@ prints each theorem's verdict (`proved`, `disproved` or `unresolved`).
 - `kibi proof explain REQ-*` / `kibi proof explain SYM-*` — project the same
   Proof, labeling `required_proofs`, `executable_for`, and `covered_by`
   separately.
-- `kibi proof impact` — compare current proof state to `HEAD:proof/baseline.json`
-  (diagnostic; exits 0 after a successful report). The ratchet remains
-  `scripts/check-proof-baseline.mjs`.
-- `bun run proof:baseline:semantic` (this repository) — compare the committed
-  baseline without re-proving: gaps that only reflect stale evidence
+- `kibi check --rules evidence-floor` — fail every current requirement whose
+  evidence level is below its floor (see [Evidence floors](#evidence-floors)).
+  Without `--fresh-evidence`, gaps that only reflect stale evidence
   (`stale_proof_receipt`, `proof_contract_mismatch`, and production coverage
   whose symbols all have a qualifying candidate or a scenario-backed E2E
-  candidate rejected solely for stale evidence) are set aside. Unit/integration
-  scope, missing receipts, invalid evidence, and scenario-chain failures remain
-  blocking gaps.
+  candidate rejected solely for stale evidence) count as pending re-proof, so
+  a local run catches semantic regressions without re-proving. Unit or
+  integration scope, missing receipts, invalid evidence, and scenario-chain
+  failures stay blocking.
+- `bun run proof:gate` (this repository) — the integrity rules plus
+  `evidence-floor`, as the pre-push hook and the KB merge workflow run them;
+  CI runs it again with `--fresh-evidence` after `kibi prove --all`.
 - `bun run proof:replay` (this repository) — replay the CI proof job's gate
   steps from `.github/workflows/proof.yml` in a clean clone of the committed
   HEAD, outside the repository tree, and stop at the first failing step.
@@ -254,7 +457,7 @@ Before pushing, run `kibi sync --refresh-symbol-coordinates` with the project-lo
 CLI, review and commit the generated changes, and run `bun run proof:prepush`.
 If committing leaves the KB stale, sync it again before the check. This checks the
 committed manifests, publish metadata (including exact GitHub owner casing),
-and semantic baseline using the project-local CLI. When
+and evidence floors (`scripts/proof-gate.sh`) using the project-local CLI. When
 proof contracts, coverage links, or proof tooling change, also run
 `bun run proof:replay` to reproduce the full CI gate on committed HEAD.
 

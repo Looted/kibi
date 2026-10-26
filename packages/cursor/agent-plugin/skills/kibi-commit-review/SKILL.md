@@ -2,7 +2,7 @@
 id: kibi-commit-review
 name: kibi-commit-review
 description: "Use when kibi check --staged or the Kibi pre-commit hook blocks a commit (kibi_impact_evidence_missing, symbols_manifest_stale, symbol_granularity_violation, symbol-coverage, kibi check-generated drift, Staged impact review failed), or when preparing a commit or pull-request impact review. Covers reading the per-file Detail lines, authoring .kb/symbols.yaml symbol entries through kb_upsert, kibi sync --refresh-symbol-coordinates, staging the tracked Kibi evidence with git add, kb_prepare_impact_review for a staged or diff scope, the kibi signoff requirements summary to show before a commit, and how merge commits and migration renames are judged."
-version: 1.2.1
+version: 1.2.2
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi

@@ -35,6 +35,7 @@ import {
   type EntityOrigin,
   normalizeEntityOrigin,
 } from "../public/entity-origin.js";
+import { EVIDENCE_LEVELS } from "../public/evidence-levels.js";
 import {
   PROOF_BINDINGS_SCHEMA,
   PROOF_CONTRACT_SCHEMA,
@@ -90,6 +91,7 @@ const FACT_STRING_ARRAY_FIELDS = [
   "aliases",
   "examples",
   "predicate_args",
+  "value_set",
 ] as const;
 const FACT_ONLY_FIELDS = [
   ...FACT_STRING_FIELDS,
@@ -130,6 +132,7 @@ export interface ExtractedEntity {
   text_ref?: string;
   origin?: EntityOrigin;
   firmness?: Firmness;
+  required_evidence?: "proved" | "tested" | "asserted" | "unverified";
   semantic_text?: string;
   logic_claims?: string[];
   semantic_clauses?: string[];
@@ -168,8 +171,9 @@ export interface ExtractedEntity {
   subject_key?: string;
   property_key?: string;
   operator?: "eq" | "neq" | "lt" | "lte" | "gt" | "gte";
-  value_type?: "string" | "int" | "number" | "bool";
+  value_type?: "string" | "int" | "number" | "bool" | "set";
   value_string?: string;
+  value_set?: string[];
   value_int?: number;
   value_number?: number;
   value_bool?: boolean;
@@ -845,6 +849,31 @@ function extractFromMarkdownContent(
         );
       }
       entity.firmness = data.firmness;
+    }
+    // implements REQ-kibi-evidence-floors
+    // The weakest evidence level the requirement accepts; the evidence-floor
+    // rule reads it, and derives it from firmness when absent.
+    if (data.required_evidence !== undefined) {
+      if (
+        type !== "req" ||
+        !(EVIDENCE_LEVELS as readonly unknown[]).includes(
+          data.required_evidence,
+        )
+      ) {
+        throw new FrontmatterError(
+          type === "req"
+            ? "Invalid required_evidence; expected one of proved, tested, asserted, unverified"
+            : "required_evidence is only allowed on type: req",
+          filePath,
+          {
+            classification: "Invalid Required Evidence",
+            hint: "Set required_evidence to the weakest evidence level the requirement accepts (proved, tested, asserted or unverified), or remove the field to derive it from firmness.",
+          },
+        );
+      }
+      entity.required_evidence = data.required_evidence as NonNullable<
+        ExtractedEntity["required_evidence"]
+      >;
     }
     if (type === "req" && Array.isArray(data.exempts_claims)) {
       entity.exempts_claims = data.exempts_claims.filter(

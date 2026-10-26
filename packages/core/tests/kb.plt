@@ -10,6 +10,8 @@
 :- use_module('../src/status.pl', []).
 :- use_module('../src/certificates.pl').
 :- use_module('../src/certificate_check.pl').
+:- use_module('../src/claim_obligations.pl').
+:- use_module('../src/requirement_proof.pl').
 :- use_module(library(http/json)).
 :- use_module(library(date)).
 :- use_module(library(plunit)).
@@ -2040,7 +2042,7 @@ test(requirement_proof_rejects_structural_coverage_without_semantics_or_scenario
     json_string_dict(JsonString, Report),
     coverage_row(Report.rows, 'REQ-PROOF-STRUCTURAL-ONLY', Row),
     assertion(Row.coverageStatus == fully_covered),
-    assertion(Row.proofVersion == 'kibi.requirement-proof.v4'),
+    assertion(Row.proofVersion == 'kibi.requirement-proof.v5'),
     assertion(Row.proofStatus == missing),
     assertion(memberchk(missing_semantic_inventory, Row.proofGaps)),
     assertion(memberchk(missing_logic_claims, Row.proofGaps)),
@@ -2125,7 +2127,13 @@ test(requirement_proof_uncovered_behavioral_implementation_still_blocks, [setup(
 test(requirement_proof_type_shape_contract_is_not_runtime_e2e_or_coordinate_evidence, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(req, 'REQ-PROOF-TYPE-SHAPE', "Type-shape proof contract", active, []),
     assert_fixture_entity(test, 'TEST-PROOF-TYPE-SHAPE-E2E', "Type-shape scenario E2E", passing, [verification_scope=end_to_end]),
-    assert_fixture_entity(test, 'TEST-PROOF-TYPE-SHAPE-UNIT', "Type import contract", passing, [verification_scope=unit]),
+    Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    proof_receipt_json_scoped('PR-TEST000000001', 'TEST-PROOF-TYPE-SHAPE-UNIT', unit, Snapshot, passed,
+        '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', UnitReceiptJson),
+    assert_fixture_entity(test, 'TEST-PROOF-TYPE-SHAPE-UNIT', "Type import contract", passing, [
+        verification_scope=unit,
+        proof_receipts=UnitReceiptJson
+    ]),
     assert_fixture_entity(symbol, 'SYM-PROOF-RUNTIME', "runtime_behavior", active, [
         symbol_role=behavioral,
         sourceFile="src/runtime.ts",
@@ -2142,9 +2150,13 @@ test(requirement_proof_type_shape_contract_is_not_runtime_e2e_or_coordinate_evid
     kb_assert_relationship(implements, 'SYM-PROOF-TYPE-SHAPE', 'REQ-PROOF-TYPE-SHAPE', []),
     kb_assert_relationship(covered_by, 'SYM-PROOF-RUNTIME', 'TEST-PROOF-TYPE-SHAPE-E2E', []),
     kb_assert_relationship(covered_by, 'SYM-PROOF-TYPE-SHAPE', 'TEST-PROOF-TYPE-SHAPE-UNIT', []),
+    requirement_proof:requirement_proof_context(Snapshot, '2026-08-10T12:05:00Z', 604800, Context),
     requirement_proof:production_symbol_stage(
         'REQ-PROOF-TYPE-SHAPE',
         ['TEST-PROOF-TYPE-SHAPE-E2E'],
+        [],
+        [],
+        Context,
         Stage,
         Symbols
     ),
@@ -2179,11 +2191,18 @@ test(requirement_proof_preserves_structurally_tested_type_shape_symbols, [setup(
     ),
     assertion(Symbols == []),
     assertion(Stage.structuralSymbols == ['SYM-PROOF-STRUCTURAL-TYPE']),
-    assertion(Stage.status == passed),
+    % An authored active status is not evidence: without a current passing
+    % receipt on the unit test the type-shape symbol is uncovered.
+    assertion(Stage.status == missing),
+    assertion(Stage.uncoveredSymbols == ['SYM-PROOF-STRUCTURAL-TYPE']),
+    assertion(sub_atom(Stage.reason, _, _, _, 'type-shape symbol(s) lack a covered_by unit test')),
     assertion(kb_entity('SYM-PROOF-STRUCTURAL-TYPE', symbol, _)),
     Stages = _{productionSymbols: Stage},
     assertion(\+ requirement_proof:proof_gap_present(missing_production_symbol, Stages)),
-    assertion(\+ requirement_proof:proof_gap_present(missing_production_symbol_coverage, Stages)).
+    assertion(requirement_proof:proof_gap_present(missing_production_symbol_coverage, Stages)),
+    production_explanation(Stage, 'SYM-PROOF-STRUCTURAL-TYPE', Explanation),
+    assertion(Explanation.status == uncovered),
+    assertion(Explanation.reason == structural_unit_receipt_not_current).
 
 test(requirement_proof_requires_the_complete_semantic_scenario_e2e_symbol_chain, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     ClaimKey = 'CLAIM-ABCDEF0123456789',
@@ -2657,7 +2676,7 @@ test(production_coverage_explanations_report_missing_unit_unrelated_and_qualifyi
     coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, JsonString),
     json_string_dict(JsonString, Report),
     coverage_row(Report.rows, 'REQ-EXPLAIN', Row),
-    assertion(Row.proofVersion == 'kibi.requirement-proof.v4'),
+    assertion(Row.proofVersion == 'kibi.requirement-proof.v5'),
     assertion(memberchk('SYM-EXPLAIN-NONE', Row.proofStages.productionSymbols.uncoveredSymbols)),
     assertion(memberchk('SYM-EXPLAIN-UNIT', Row.proofStages.productionSymbols.uncoveredSymbols)),
     assertion(memberchk('SYM-EXPLAIN-FOREIGN', Row.proofStages.productionSymbols.uncoveredSymbols)),
@@ -2804,14 +2823,21 @@ test(receipt_reject_fallback_uses_context_then_test_and_evidence_dict, [setup(se
 test(production_coverage_type_shape_unit_contract_is_not_available_to_behavioral_symbols, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(req, 'REQ-EXPLAIN-SHAPE', "Shape vs behavioral", active, []),
     assert_fixture_entity(test, 'TEST-EXPLAIN-SHAPE-E2E', "Shape E2E", passing, [verification_scope=end_to_end]),
-    assert_fixture_entity(test, 'TEST-EXPLAIN-SHAPE-UNIT', "Shape unit", passing, [verification_scope=unit]),
+    Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    proof_receipt_json_scoped('PR-TEST000000001', 'TEST-EXPLAIN-SHAPE-UNIT', unit, Snapshot, passed,
+        '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', UnitReceiptJson),
+    assert_fixture_entity(test, 'TEST-EXPLAIN-SHAPE-UNIT', "Shape unit", passing, [
+        verification_scope=unit,
+        proof_receipts=UnitReceiptJson
+    ]),
     assert_fixture_entity(symbol, 'SYM-EXPLAIN-SHAPE', "Shape", active, [symbol_role='type-shape', sourceFile="src/shape.ts"]),
     assert_fixture_entity(symbol, 'SYM-EXPLAIN-BEHAVIOR', "Behavior", active, [symbol_role=behavioral, sourceFile="src/behavior.ts"]),
     kb_assert_relationship(implements, 'SYM-EXPLAIN-SHAPE', 'REQ-EXPLAIN-SHAPE', []),
     kb_assert_relationship(implements, 'SYM-EXPLAIN-BEHAVIOR', 'REQ-EXPLAIN-SHAPE', []),
     kb_assert_relationship(covered_by, 'SYM-EXPLAIN-SHAPE', 'TEST-EXPLAIN-SHAPE-UNIT', []),
     kb_assert_relationship(covered_by, 'SYM-EXPLAIN-BEHAVIOR', 'TEST-EXPLAIN-SHAPE-UNIT', []),
-    requirement_proof:production_symbol_stage('REQ-EXPLAIN-SHAPE', ['TEST-EXPLAIN-SHAPE-E2E'], Stage, Symbols),
+    requirement_proof:requirement_proof_context(Snapshot, '2026-08-10T12:05:00Z', 604800, Context),
+    requirement_proof:production_symbol_stage('REQ-EXPLAIN-SHAPE', ['TEST-EXPLAIN-SHAPE-E2E'], [], [], Context, Stage, Symbols),
     assertion(Stage.structuralSymbols == ['SYM-EXPLAIN-SHAPE']),
     assertion(memberchk('SYM-EXPLAIN-BEHAVIOR', Symbols)),
     assertion(memberchk('SYM-EXPLAIN-BEHAVIOR', Stage.uncoveredSymbols)),
@@ -2828,6 +2854,37 @@ test(production_coverage_type_shape_unit_contract_is_not_available_to_behavioral
     candidate_for(BehaviorExpl, 'TEST-EXPLAIN-SHAPE-UNIT', BehaviorCand),
     assertion(BehaviorCand.qualifies == false).
 
+test(claim_texts_match_across_trailing_punctuation_and_whitespace, [nondet]) :-
+    assertion(requirement_proof:claim_texts_equivalent('Coverage reports expose outcomes.', 'Coverage reports expose outcomes')),
+    assertion(requirement_proof:claim_texts_equivalent('Coverage  reports expose outcomes ;', 'Coverage reports expose outcomes')),
+    assertion(\+ requirement_proof:claim_texts_equivalent('Coverage reports expose outcomes', 'Coverage reports hide outcomes')),
+    Evidence = [_{claimKey: 'CLAIM-A', claimText: 'Coverage reports expose outcomes'}],
+    requirement_proof:inventory_ground_text_mismatches(
+        [_{claim_key: 'CLAIM-A', claim_text: "Coverage reports expose outcomes."}], Evidence, Keys),
+    assertion(Keys == []).
+
+test(type_shape_coverage_with_a_stale_unit_receipt_is_freshness_only, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    OtherSnapshot = 'abababababababababababababababababababababababababababababababab',
+    proof_receipt_json_scoped('PR-TEST000000001', 'TEST-SHAPE-STALE-UNIT', unit, OtherSnapshot, passed,
+        '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', UnitReceiptJson),
+    assert_fixture_entity(req, 'REQ-SHAPE-STALE', "Stale shape", active, []),
+    assert_fixture_entity(test, 'TEST-SHAPE-STALE-UNIT', "Shape unit", active, [
+        verification_scope=unit,
+        proof_receipts=UnitReceiptJson
+    ]),
+    assert_fixture_entity(symbol, 'SYM-SHAPE-STALE', "Shape", active, [symbol_role='type-shape', sourceFile="src/shape.ts"]),
+    kb_assert_relationship(implements, 'SYM-SHAPE-STALE', 'REQ-SHAPE-STALE', []),
+    kb_assert_relationship(covered_by, 'SYM-SHAPE-STALE', 'TEST-SHAPE-STALE-UNIT', []),
+    requirement_proof:requirement_proof_context(Snapshot, '2026-08-10T12:05:00Z', 604800, Context),
+    requirement_proof:production_symbol_stage('REQ-SHAPE-STALE', ['TEST-ANY-E2E'], [], [], Context, Stage, _),
+    assertion(Stage.uncoveredSymbols == ['SYM-SHAPE-STALE']),
+    production_explanation(Stage, 'SYM-SHAPE-STALE', Explanation),
+    candidate_for(Explanation, 'TEST-SHAPE-STALE-UNIT', Candidate),
+    assertion(Candidate.qualifies == false),
+    assertion(Candidate.secondaryReasons == [stale_proof_receipt]),
+    assertion(requirement_proof:production_coverage_freshness_only(_{productionSymbols: Stage})).
+
 test(executable_for_symbols_remain_excluded_from_production_coverage, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(req, 'REQ-EXPLAIN-EXEC', "Executable exclusion", active, []),
     assert_fixture_entity(test, 'TEST-EXPLAIN-EXEC', "Exec E2E", passing, [verification_scope=end_to_end]),
@@ -2838,13 +2895,13 @@ test(executable_for_symbols_remain_excluded_from_production_coverage, [setup(set
     assertion(Symbols == []),
     assertion(Stage.uncoveredSymbols == []).
 
-test(requirement_proof_json_preserves_v4_and_explanations, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+test(requirement_proof_json_preserves_v5_and_explanations, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(req, 'REQ-EXPLAIN-JSON', "JSON serializer", active, [priority=must]),
     assert_fixture_entity(symbol, 'SYM-EXPLAIN-JSON', "json symbol", active, [symbol_role=behavioral, sourceFile="src/json.ts"]),
     kb_assert_relationship(implements, 'SYM-EXPLAIN-JSON', 'REQ-EXPLAIN-JSON', []),
     discovery:requirement_proof_json('REQ-EXPLAIN-JSON', unknown, '2026-08-10T12:05:00Z', 604800, JsonString),
     json_string_dict(JsonString, Proof),
-    assertion(Proof.proofVersion == 'kibi.requirement-proof.v4'),
+    assertion(Proof.proofVersion == 'kibi.requirement-proof.v5'),
     assertion(memberchk('SYM-EXPLAIN-JSON', Proof.proofStages.productionSymbols.uncoveredSymbols)),
     production_explanation(Proof, 'SYM-EXPLAIN-JSON', Expl),
     assertion(Expl.reason == stage_blocked_no_passing_e2e).
@@ -6224,6 +6281,25 @@ test(consistent_facts_get_models_that_reverify, [setup(setup_kb), cleanup(cleanu
     assertion(integer(Model.value)),
     assertion((Model.value >= 1, Model.value =< 10)).
 
+% implements REQ-kibi-kb-certificates, REQ-kibi-claim-bound-proofs
+test(set_facts_get_models_that_reverify, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    % The same set in another order agrees, and a neq set admits the eq one.
+    % Two different eq sets conflict pairwise, so the KB never holds them.
+    cert_property('FACT-CERT-SET-A', 'REQ-CERT-SET-A', "palette.colors", "allowed", eq, set, ["red", "green", "blue"], []),
+    cert_property('FACT-CERT-SET-B', 'REQ-CERT-SET-B', "palette.colors", "allowed", eq, set, ["blue", "red", "green"], []),
+    cert_property('FACT-CERT-SET-C', 'REQ-CERT-SET-C', "palette.colors", "allowed", neq, set, ["red", "green"], []),
+    cert_verify(Bundle, Report),
+    assertion(Report.status == verified),
+    assertion(Report.rejected == []),
+    cert_theorem(Report, properties_consistent, Properties),
+    assertion(Properties.verdict == proved),
+    member(Model, Bundle.certificates),
+    Model.kind == property_model,
+    !,
+    assertion(Model.domain == set),
+    msort(Model.value, Members),
+    assertion(Members == ["blue", "green", "red"]).
+
 % implements REQ-kibi-kb-certificates
 test(joint_contradiction_the_pairwise_check_misses_gets_a_core, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     % Every pair admits an integer, all four together admit none.
@@ -6514,7 +6590,218 @@ test(evidence_level_follows_human_backing_without_passing_e2e, [setup(setup_kb),
     assertion(Self.evidenceLevel == unverified),
     assertion(Report.summary.evidenceLevels = _{proved: 0, tested: 0, asserted: 2, unverified: 3}).
 
+% implements REQ-kibi-evidence-floors
+% The summary counts requirements with a floor by status; a floor of
+% unverified (no floor) is not counted.
+test(evidence_floor_counts_by_status, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-FLOOR-FIRM', "Person stated", open, [priority=must]),
+    assert_fixture_entity(req, 'REQ-FLOOR-LOWERED', "Lowered floor", open, [priority=must, required_evidence=asserted]),
+    assert_fixture_entity(req, 'REQ-FLOOR-NONE', "Agent only", open, [priority=must, origin="{\"kind\":\"agent\"}"]),
+    coverage_report_json(req, [], true, true, 100, 0, JsonString),
+    json_string_dict(JsonString, Report),
+    coverage_row(Report.rows, 'REQ-FLOOR-FIRM', Firm),
+    assertion(Firm.evidenceFloor = _{required: tested, source: firmness, status: below}),
+    coverage_row(Report.rows, 'REQ-FLOOR-LOWERED', Lowered),
+    assertion(Lowered.evidenceFloor = _{required: asserted, source: explicit, status: met}),
+    assertion(Report.summary.evidenceFloors = _{met: 1, below: 1, pendingReproof: 0}).
+
 :- end_tests(requirement_evidence_levels).
+
+:- begin_tests(requirement_proved_evidence).
+
+% implements REQ-kibi-code-proof-kinds
+% proved needs the requirement tested end to end and, on every linked
+% scenario, a test whose fresh v2 receipt carries a certificate that re-checks
+% now: a tampered digest or a certificate that no longer re-checks stays tested.
+test(proved_requires_a_rechecked_certificate_on_every_scenario, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    proved_fixture(Snapshot),
+    Certificate = _{
+        version: "kibi.code-certificate.v1",
+        kind: "exhaustive",
+        test_id: "TEST-PROVED-EXHAUSTIVE",
+        domain: _{symbol_id: "SYM-PROVED-DOMAIN", members: ["a", "b"]},
+        results: [_{member: "a", outcome: "passed"}, _{member: "b", outcome: "passed"}]
+    },
+    code_certificates:code_certificate_digest(Certificate, Digest),
+    proved_level(Snapshot, Certificate, Digest, Proved),
+    assertion(Proved.evidenceLevel == proved),
+    assertion(Proved.proofStatus == tested),
+    Evidence = Proved.evidence,
+    assertion(memberchk(_{kind: certificate, scope: code, level: proved,
+                          tests: ['TEST-PROVED-EXHAUSTIVE'], kinds: [exhaustive]}, Evidence)),
+    % A receipt whose digest no longer matches its certificate stays tested.
+    proved_level(Snapshot, Certificate, 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', Tampered),
+    assertion(Tampered.evidenceLevel == tested),
+    % A certificate that does not re-check (a failed member) stays tested,
+    % even with a matching digest.
+    put_dict(results, Certificate, [_{member: "a", outcome: "passed"}, _{member: "b", outcome: "failed"}], Failing),
+    code_certificates:code_certificate_digest(Failing, FailingDigest),
+    proved_level(Snapshot, Failing, FailingDigest, Failed),
+    assertion(Failed.evidenceLevel == tested),
+    % A stale certificate receipt (another snapshot) stays tested.
+    proved_level('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', Certificate, Digest, Stale0),
+    assertion(Stale0.evidenceLevel \== proved),
+    % implements REQ-kibi-claim-bound-proofs
+    % A re-checking certificate that names no claim proves nothing: tested.
+    proof_receipt_v2_json('TEST-PROVED-EXHAUSTIVE', Snapshot, Certificate, Digest, [], Unbound),
+    proved_level_json(Unbound, UnboundRow),
+    assertion(UnboundRow.evidenceLevel == tested),
+    % An attested binding is the author's word, not a derivation: tested.
+    proof_receipt_v2_json('TEST-PROVED-EXHAUSTIVE', Snapshot, Certificate, Digest,
+        [_{claim_key: "CLAIM-ABCDEF0123456789", requirement_id: "REQ-PROVED",
+           fact_id: "FACT-PROVED-PROPERTY", binding: "attested", scope: "code"}], Attested),
+    proved_level_json(Attested, AttestedRow),
+    assertion(AttestedRow.evidenceLevel == tested).
+
+% implements REQ-kibi-code-proof-kinds
+test(proved_needs_every_scenario, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    proved_fixture(Snapshot),
+    Certificate = _{
+        version: "kibi.code-certificate.v1",
+        kind: "exhaustive",
+        test_id: "TEST-PROVED-EXHAUSTIVE",
+        domain: _{symbol_id: "SYM-PROVED-DOMAIN", members: ["a"]},
+        results: [_{member: "a", outcome: "passed"}]
+    },
+    code_certificates:code_certificate_digest(Certificate, Digest),
+    % A second scenario, tested end to end, with no certificate test.
+    proof_receipt_json_with_id('PR-TEST000000009', 'TEST-PROVED-SECOND-E2E', Snapshot, passed,
+        '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', SecondJson),
+    assert_fixture_entity(scenario, 'SCEN-PROVED-SECOND', "A second path", active, []),
+    assert_fixture_entity(test, 'TEST-PROVED-SECOND-E2E', "Second E2E", passing, [
+        verification_scope=end_to_end, proof_receipts=SecondJson]),
+    kb_assert_relationship(specified_by, 'REQ-PROVED', 'SCEN-PROVED-SECOND', []),
+    kb_assert_relationship(verified_by, 'SCEN-PROVED-SECOND', 'TEST-PROVED-SECOND-E2E', []),
+    kb_assert_relationship(covered_by, 'SYM-PROVED-PRODUCTION', 'TEST-PROVED-SECOND-E2E', []),
+    kb_assert_relationship(executable_for, 'SYM-PROVED-E2E', 'TEST-PROVED-SECOND-E2E', []),
+    proved_level(Snapshot, Certificate, Digest, Row),
+    assertion(Row.proofStatus == tested),
+    assertion(Row.evidenceLevel == tested).
+
+proved_fixture(Snapshot) :-
+    ClaimKey = 'CLAIM-ABCDEF0123456789',
+    proof_receipt_json('TEST-PROVED-E2E', Snapshot, passed,
+        '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', ReceiptJson),
+    assert_fixture_entity(req, 'REQ-PROVED', "Proved requirement", active, [
+        priority=must,
+        logic_claims=[ClaimKey],
+        semantic_inventory=[_{claim_key: ClaimKey,
+            claim_text: "Coverage reports expose conservative proof outcomes",
+            role: normative, status: modeled, span: _{start: 0, end: 51}}]
+    ]),
+    assert_fixture_entity(fact, 'FACT-PROVED-SUBJECT', "Coverage report subject", active, [
+        fact_kind=subject, subject_key="kibi.coverage.report"]),
+    assert_fixture_entity(fact, 'FACT-PROVED-PROPERTY', "Proof outcome property", active, [
+        fact_kind=property_value, subject_key="kibi.coverage.report",
+        property_key="proof_outcomes", operator=eq, value_type=set,
+        value_set=["a", "b"], claim_key="CLAIM-ABCDEF0123456789",
+        claim_text="Coverage reports expose conservative proof outcomes"]),
+    assert_fixture_entity(scenario, 'SCEN-PROVED', "Inspect a proof", active, []),
+    assert_fixture_entity(test, 'TEST-PROVED-E2E', "Requirement proof E2E", passing, [
+        verification_scope=end_to_end, proof_receipts=ReceiptJson]),
+    assert_fixture_entity(symbol, 'SYM-PROVED-PRODUCTION', "requirement_proof", active, [
+        sourceFile="packages/core/src/requirement_proof.pl", sourceLine=10,
+        sourceColumn=0, sourceEndLine=30, sourceEndColumn=1]),
+    assert_fixture_entity(symbol, 'SYM-PROVED-E2E', "requirement proof E2E test", active, [
+        sourceFile="packages/core/tests/kb.plt", sourceLine=1300,
+        sourceColumn=0, sourceEndLine=1340, sourceEndColumn=1]),
+    kb_assert_relationship(constrains, 'REQ-PROVED', 'FACT-PROVED-SUBJECT', []),
+    kb_assert_relationship(requires_property, 'REQ-PROVED', 'FACT-PROVED-PROPERTY', []),
+    kb_assert_relationship(specified_by, 'REQ-PROVED', 'SCEN-PROVED', []),
+    kb_assert_relationship(verified_by, 'SCEN-PROVED', 'TEST-PROVED-E2E', []),
+    kb_assert_relationship(implements, 'SYM-PROVED-PRODUCTION', 'REQ-PROVED', []),
+    kb_assert_relationship(covered_by, 'SYM-PROVED-PRODUCTION', 'TEST-PROVED-E2E', []),
+    kb_assert_relationship(executable_for, 'SYM-PROVED-E2E', 'TEST-PROVED-E2E', []).
+
+% The coverage row of REQ-PROVED with TEST-PROVED-EXHAUSTIVE verifying
+% SCEN-PROVED through a v2 receipt that carries Certificate and Digest.
+proved_level(Snapshot, Certificate, Digest, Row) :-
+    proof_receipt_v2_json('TEST-PROVED-EXHAUSTIVE', Snapshot, Certificate, Digest, Json),
+    proved_level_json(Json, Row).
+
+proved_level_json(Json, Row) :-
+    assert_fixture_entity(test, 'TEST-PROVED-EXHAUSTIVE', "Exhaustive proof", passing, [
+        verification_scope=unit, proof_receipts=Json]),
+    ( kb_relationship(verified_by, 'SCEN-PROVED', 'TEST-PROVED-EXHAUSTIVE')
+    -> true
+    ;  kb_assert_relationship(verified_by, 'SCEN-PROVED', 'TEST-PROVED-EXHAUSTIVE', [])
+    ),
+    coverage_report_json(req, [], true, true, 100, 0,
+        'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        '2026-08-10T12:05:00Z', 604800, JsonString),
+    json_string_dict(JsonString, Report),
+    coverage_row(Report.rows, 'REQ-PROVED', Row).
+
+proof_receipt_v2_json(TestId, Snapshot, Certificate, Digest, Json) :-
+    proof_receipt_v2_json(TestId, Snapshot, Certificate, Digest,
+        [_{claim_key: "CLAIM-ABCDEF0123456789", requirement_id: "REQ-PROVED",
+           fact_id: "FACT-PROVED-PROPERTY", binding: "derived", scope: "code",
+           obligation: _{kind: "set_equals", members: ["a", "b"]}}], Json).
+
+proof_receipt_v2_json(TestId, Snapshot, Certificate, Digest, Bindings, Json) :-
+    proof_receipt_json_scoped('PR-TEST000000077', TestId, unit, Snapshot, passed,
+        '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', V1Json),
+    atom_json_dict(V1Json, [V1], [value_string_as(atom)]),
+    put_dict(_{version: 'kibi.proof-receipt.v2', kind: exhaustive, evidence_level: proved,
+               certificate: Certificate, certificate_digest: Digest}, V1, V2a),
+    (   Bindings == []
+    ->  V2 = V2a
+    ;   put_dict(claim_bindings, V2a, Bindings, V2)
+    ),
+    atom_json_dict(JsonAtom, [V2], []),
+    atom_string(JsonAtom, Json).
+
+:- end_tests(requirement_proved_evidence).
+
+:- begin_tests(requirement_evidence_floors).
+
+% implements REQ-kibi-evidence-floors
+test(evidence_floor_defaults_from_firmness_and_honours_required_evidence, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-FLOOR-AGENT', "Agent only", open, [priority=must, origin="{\"kind\":\"agent\"}"]),
+    assert_fixture_entity(req, 'REQ-FLOOR-PERSON', "Person stated", open, [priority=must]),
+    assert_fixture_entity(req, 'REQ-FLOOR-LOWERED', "Person stated, asserted is enough", open, [priority=must, required_evidence=asserted]),
+    assert_fixture_entity(req, 'REQ-FLOOR-RAISED', "Agent wrote, needs tests", open, [priority=must, required_evidence=tested, origin="{\"kind\":\"agent\"}"]),
+    assert_fixture_entity(req, 'REQ-FLOOR-EXEMPT', "Exempt", open, [priority=must, proof_exempt=true, proof_exempt_reason="Outside proof scope"]),
+    coverage_report_json(req, [], true, true, 100, 0, JsonString),
+    json_string_dict(JsonString, Report),
+    coverage_row(Report.rows, 'REQ-FLOOR-AGENT', Agent),
+    assertion(Agent.evidenceFloor = _{required: unverified, source: firmness, status: met}),
+    coverage_row(Report.rows, 'REQ-FLOOR-PERSON', Person),
+    assertion(Person.evidenceFloor = _{required: tested, source: firmness, status: below}),
+    coverage_row(Report.rows, 'REQ-FLOOR-LOWERED', Lowered),
+    assertion(Lowered.evidenceFloor = _{required: asserted, source: explicit, status: met}),
+    coverage_row(Report.rows, 'REQ-FLOOR-RAISED', Raised),
+    assertion(Raised.evidenceLevel == unverified),
+    assertion(Raised.evidenceFloor = _{required: tested, source: explicit, status: below}),
+    coverage_row(Report.rows, 'REQ-FLOOR-EXEMPT', Exempt),
+    assertion(\+ get_dict(evidenceFloor, Exempt, _)),
+    discovery:evidence_floor_json(strict_snapshot, _{}, unknown, '1970-01-01T00:00:00Z', 604800, FloorJson),
+    json_string_dict(FloorJson, Floors),
+    assertion(Floors.evaluated == 4),
+    findall(Id-Status, (member(Row, Floors.rows), Id = Row.id, Status = Row.status), Below),
+    assertion(Below == ['REQ-FLOOR-PERSON'-below, 'REQ-FLOOR-RAISED'-below]).
+
+% implements REQ-kibi-evidence-floors
+test(evidence_floor_sets_aside_only_freshness_gaps) :-
+    Candidate = _{testId: 'TEST-E2E', qualifies: false, reason: receipt_snapshot_mismatch, secondaryReasons: [], scope: end_to_end},
+    Stale = _{productionSymbols: _{uncoveredSymbols: ['SYM-A'], explanations: [_{symbolId: 'SYM-A', coverageCandidates: [Candidate]}]}},
+    assertion(requirement_proof:freshness_only_gaps([stale_proof_receipt], Stale)),
+    assertion(requirement_proof:freshness_only_gaps([stale_proof_receipt, missing_production_symbol_coverage], Stale)),
+    % A unit-scoped candidate never becomes E2E coverage by re-proving.
+    put_dict(scope, Candidate, unit, UnitCandidate),
+    Unit = _{productionSymbols: _{uncoveredSymbols: ['SYM-A'], explanations: [_{symbolId: 'SYM-A', coverageCandidates: [UnitCandidate]}]}},
+    assertion(\+ requirement_proof:freshness_only_gaps([stale_proof_receipt, missing_production_symbol_coverage], Unit)),
+    % A symbol without any covered_by link stays a real gap.
+    NoLink = _{productionSymbols: _{uncoveredSymbols: ['SYM-A'], explanations: [_{symbolId: 'SYM-A', coverageCandidates: []}]}},
+    assertion(\+ requirement_proof:freshness_only_gaps([stale_proof_receipt, missing_production_symbol_coverage], NoLink)),
+    % Semantic gaps and missing receipts are never freshness-only.
+    assertion(\+ requirement_proof:freshness_only_gaps([stale_proof_receipt, missing_semantic_inventory], Stale)),
+    assertion(\+ requirement_proof:freshness_only_gaps([missing_proof_receipt], Stale)),
+    assertion(\+ requirement_proof:freshness_only_gaps([], Stale)).
+
+:- end_tests(requirement_evidence_floors).
 
 :- begin_tests(requirement_applicability).
 
@@ -7705,3 +7992,205 @@ assert_rule_requirement(Dict, FactId, ReqId, ClaimKey) :-
     ]),
     assert_fixture_entity(req, ReqId, "Checkout requirement", open, []),
     kb_assert_relationship(requires_rule, ReqId, FactId, []).
+
+:- begin_tests(claim_bound_proofs).
+
+claim_fixture_inventory(Json) :-
+    Json = "[{\"claim_key\":\"CLAIM-00000000000000A1\",\"claim_text\":\"The colors are exactly red, green and blue\",\"role\":\"normative\",\"status\":\"modeled\",\"span\":{\"start\":0,\"end\":42}},{\"claim_key\":\"CLAIM-00000000000000A2\",\"claim_text\":\"Every color renders\",\"role\":\"normative\",\"status\":\"modeled\",\"span\":{\"start\":44,\"end\":63}},{\"claim_key\":\"CLAIM-00000000000000A3\",\"claim_text\":\"Colors look nice\",\"role\":\"normative\",\"status\":\"ambiguous\",\"span\":{\"start\":65,\"end\":81}},{\"claim_key\":\"CLAIM-00000000000000A4\",\"claim_text\":\"See the palette\",\"role\":\"context\",\"status\":\"nonlogical\",\"span\":{\"start\":83,\"end\":98}}]".
+
+claim_fixture :-
+    assert_fixture_entity(fact, 'FACT-COLOR-SET', "Color set", active, [
+        fact_kind=property_value, subject_key="palette", property_key="colors",
+        operator=eq, value_type=set, value_set=["red", "green", "blue"],
+        claim_key="CLAIM-00000000000000A1",
+        claim_text="The colors are exactly red, green and blue"
+    ]),
+    assert_fixture_entity(fact, 'FACT-COLOR-RENDERS', "Colors render", active, [
+        fact_kind=property_value, subject_key="palette", property_key="clause_02_renders",
+        operator=eq, value_type=bool, value_bool=true,
+        claim_key="CLAIM-00000000000000A2", claim_text="Every color renders"
+    ]),
+    claim_fixture_inventory(Inventory),
+    assert_fixture_entity(req, 'REQ-COLORS', "Colors", open, [semantic_inventory=Inventory]),
+    kb_assert_relationship(requires_property, 'REQ-COLORS', 'FACT-COLOR-SET', []),
+    kb_assert_relationship(requires_property, 'REQ-COLORS', 'FACT-COLOR-RENDERS', []).
+
+test(set_fact_obligation_for_exhaustive_and_typecheck, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    claim_fixture,
+    claim_obligations:fact_obligation('FACT-COLOR-SET', exhaustive, obligation(O)),
+    assertion(O.members == ["blue", "green", "red"]),
+    claim_obligations:fact_obligation('FACT-COLOR-SET', typecheck, obligation(_)),
+    claim_obligations:fact_obligation('FACT-COLOR-SET', arithmetic, incompatible(Reason)),
+    assertion(sub_string(Reason, _, _, _, "set fact")),
+    claim_obligations:fact_obligation('FACT-COLOR-RENDERS', exhaustive, Attested),
+    assertion(Attested == attested).
+
+test(legacy_allowed_values_string_is_a_set, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(fact, 'FACT-LEGACY-SET', "Legacy set", active, [
+        fact_kind=property_value, subject_key="order", property_key="allowed_values",
+        operator=eq, value_type=string, value_string="open|closed"
+    ]),
+    claim_obligations:fact_obligation('FACT-LEGACY-SET', exhaustive, obligation(O)),
+    assertion(O.members == ["closed", "open"]).
+
+test(numeric_fact_obligation_negates_forbid, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(fact, 'FACT-RETRY-MIN', "Retry minimum", active, [
+        fact_kind=property_value, subject_key="client", property_key="retry_count",
+        operator=gte, value_type=int, value_int=0
+    ]),
+    assert_fixture_entity(fact, 'FACT-RETRY-FORBID', "Retry cap", active, [
+        fact_kind=property_value, subject_key="client", property_key="retry_count",
+        operator=gt, value_type=int, value_int=5, polarity=forbid
+    ]),
+    claim_obligations:fact_obligation('FACT-RETRY-MIN', arithmetic, obligation(Min)),
+    assertion(Min.operator == "gte"),
+    assertion(Min.value =:= 0),
+    assertion(Min.variable == "retry_count"),
+    claim_obligations:fact_obligation('FACT-RETRY-FORBID', smt, obligation(Cap)),
+    assertion(Cap.operator == "lte"),
+    claim_obligations:fact_obligation('FACT-RETRY-MIN', exhaustive, incompatible(_)).
+
+test(obligations_compare_as_sets_and_numbers, [nondet]) :-
+    claim_obligations:obligation_equal(
+        _{kind: "set_equals", members: ["b", "a"]},
+        _{kind: set_equals, members: [a, b]}),
+    claim_obligations:obligation_equal(
+        _{kind: "numeric_constraint", variable: "x", value_type: "int", operator: "gte", value: 0},
+        _{kind: "numeric_constraint", variable: x, value_type: int, operator: gte, value: "0"}),
+    \+ claim_obligations:obligation_equal(
+        _{kind: "set_equals", members: ["a"]},
+        _{kind: "set_equals", members: ["a", "b"]}).
+
+test(claim_obligation_resolves_status_and_grounding, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    claim_fixture,
+    claim_obligations:claim_obligation('REQ-COLORS'-'CLAIM-00000000000000A1', exhaustive, obligation('FACT-COLOR-SET', _)),
+    claim_obligations:claim_obligation('REQ-COLORS'-'CLAIM-00000000000000A2', exhaustive, attested('FACT-COLOR-RENDERS')),
+    claim_obligations:claim_obligation('REQ-COLORS'-'CLAIM-00000000000000A3', exhaustive, unresolved(Ambiguous)),
+    assertion(sub_string(Ambiguous, _, _, _, "is ambiguous")),
+    claim_obligations:claim_obligation('REQ-COLORS'-'CLAIM-00000000000000A4', exhaustive, unresolved(Context)),
+    assertion(sub_string(Context, _, _, _, "nonlogical")),
+    claim_obligations:claim_obligation('REQ-COLORS'-'CLAIM-0000000000000099', exhaustive, unresolved(_)).
+
+test(test_claim_obligations_json_reaches_requirements_through_scenarios, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    claim_fixture,
+    assert_fixture_entity(scenario, 'SCEN-COLORS', "Colors scenario", active, []),
+    assert_fixture_entity(test, 'TEST-COLORS', "Colors proof", passing, []),
+    kb_assert_relationship(specified_by, 'REQ-COLORS', 'SCEN-COLORS', []),
+    kb_assert_relationship(validates, 'TEST-COLORS', 'SCEN-COLORS', []),
+    claim_obligations:test_claim_obligations_json('TEST-COLORS',
+        '["CLAIM-00000000000000A1","CLAIM-00000000000000A2","CLAIM-0000000000000099"]',
+        exhaustive, Json),
+    atom_json_dict(Json, Rows, [value_string_as(string)]),
+    Rows = [Set, Renders, Unknown],
+    assertion(Set.result == "obligation"),
+    assertion(Set.requirement_id == "REQ-COLORS"),
+    assertion(Renders.result == "attested"),
+    assertion(Unknown.result == "unresolved"),
+    assertion(\+ get_dict(requirement_id, Unknown, _)).
+
+claim_bound_evidence(Bindings, Level, Certificate, Evidence) :-
+    Evidence = _{testId: 'TEST-COLORS', state: passed, kind: exhaustive,
+                 evidenceLevel: Level, claimBindings: Bindings, certificate: Certificate}.
+
+colors_certificate(Members, _{domain: _{symbol_id: "SYM-COLORS", members: Members}}).
+
+derived_binding(_{claim_key: "CLAIM-00000000000000A1", requirement_id: "REQ-COLORS",
+                  fact_id: "FACT-COLOR-SET", binding: "derived", scope: "code",
+                  obligation: _{kind: "set_equals", members: ["blue", "green", "red"]}}).
+
+test(derived_binding_proves_only_its_claim, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    claim_fixture,
+    derived_binding(Derived),
+    Attested = _{claim_key: "CLAIM-00000000000000A2", requirement_id: "REQ-COLORS",
+                 fact_id: "FACT-COLOR-RENDERS", binding: "attested", scope: "code"},
+    colors_certificate(["red", "green", "blue"], Certificate),
+    claim_bound_evidence([Derived, Attested], proved, Certificate, Evidence),
+    claim_fixture_inventory(Json),
+    atom_json_dict(Json, Inventory, [value_string_as(string)]),
+    maplist(requirement_proof:claim_entry('REQ-COLORS', tested, asserted, ['TEST-COLORS'-Evidence]),
+            Inventory, Entries),
+    Entries = [SetClaim, RendersClaim, Vague, Context],
+    assertion(SetClaim.level == proved),
+    assertion(RendersClaim.level == tested),
+    assertion(Vague.level == asserted),
+    assertion(Vague.blocker == unresolved_semantic_proposition),
+    assertion(Context.applicable == false),
+    requirement_proof:claim_summary(Entries, Summary, Unproved),
+    assertion(Summary = _{applicable: 3, proved: 1, attested: 1, tested: 1, unresolved: 1}),
+    assertion(Unproved == ['CLAIM-00000000000000A2', 'CLAIM-00000000000000A3']).
+
+test(derived_binding_is_rejected_when_the_fact_or_certificate_drifts, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    claim_fixture,
+    derived_binding(Derived),
+    % The certificate no longer re-checks.
+    colors_certificate(["red", "green", "blue"], Certificate),
+    claim_bound_evidence([Derived], tested, Certificate, Stale),
+    requirement_proof:test_claim_binding('REQ-COLORS', 'CLAIM-00000000000000A1', ['TEST-COLORS'-Stale], B1),
+    assertion(B1.binding == rejected),
+    % The recorded obligation is not what the fact asks today.
+    Changed = Derived.put(obligation, _{kind: "set_equals", members: ["red", "green"]}),
+    claim_bound_evidence([Changed], proved, Certificate, Drifted),
+    requirement_proof:test_claim_binding('REQ-COLORS', 'CLAIM-00000000000000A1', ['TEST-COLORS'-Drifted], B2),
+    assertion(B2.binding == rejected),
+    assertion(sub_atom(B2.reason, _, _, _, 'changed since the receipt')),
+    % The certificate's domain is not the fact's set.
+    colors_certificate(["red", "green"], Partial),
+    claim_bound_evidence([Derived], proved, Partial, Narrow),
+    requirement_proof:test_claim_binding('REQ-COLORS', 'CLAIM-00000000000000A1', ['TEST-COLORS'-Narrow], B3),
+    assertion(B3.binding == rejected),
+    % An intent-scope derivation never proves the claim.
+    Intent = Derived.put(scope, "intent"),
+    claim_bound_evidence([Intent], proved, Certificate, IntentEvidence),
+    claim_fixture_inventory(Json),
+    atom_json_dict(Json, [First|_], [value_string_as(string)]),
+    requirement_proof:claim_entry('REQ-COLORS', tested, asserted, ['TEST-COLORS'-IntentEvidence], First, Entry),
+    assertion(Entry.level == tested).
+
+colors_contract_test(TestId, Contract) :-
+    atom_json_dict(ContractJson, Contract, []),
+    assert_fixture_entity(test, TestId, "Colors proof", passing, [proof_contract=ContractJson]),
+    ( kb_relationship(specified_by, 'REQ-COLORS', 'SCEN-COLORS')
+    -> true
+    ;  assert_fixture_entity(scenario, 'SCEN-COLORS', "Colors scenario", active, []),
+       kb_assert_relationship(specified_by, 'REQ-COLORS', 'SCEN-COLORS', [])
+    ),
+    kb_assert_relationship(validates, TestId, 'SCEN-COLORS', []).
+
+test(claim_status_enumerates_every_claim, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    claim_fixture,
+    findall(Key-Status, claim_obligations:requirement_claim_status('REQ-COLORS', Key, Status), Pairs),
+    assertion(length(Pairs, 4)),
+    assertion(memberchk('CLAIM-00000000000000A3'-ambiguous, Pairs)).
+
+test(proof_contract_claim_issues_report_missing_and_unprovable_claims, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    claim_fixture,
+    colors_contract_test('TEST-COLORS-NONE', _{kind: "exhaustive"}),
+    colors_contract_test('TEST-COLORS-GOOD', _{kind: "exhaustive",
+        proves: ["CLAIM-00000000000000A1", "CLAIM-00000000000000A2"]}),
+    colors_contract_test('TEST-COLORS-BAD', _{kind: "arithmetic",
+        proves: ["CLAIM-00000000000000A1", "CLAIM-00000000000000A3"]}),
+    colors_contract_test('TEST-COLORS-E2E', _{kind: "e2e"}),
+    claim_obligations:proof_contract_claim_issues_json(Json),
+    atom_json_dict(Json, Rows, [value_string_as(string)]),
+    findall(Test-Key,
+        ( member(Row, Rows), get_dict(test_id, Row, Test),
+          ( get_dict(claim_key, Row, Key) -> true ; Key = none ) ),
+        Issues),
+    msort(Issues, Sorted),
+    assertion(Sorted == ["TEST-COLORS-BAD"-"CLAIM-00000000000000A1",
+                         "TEST-COLORS-BAD"-"CLAIM-00000000000000A3",
+                         "TEST-COLORS-NONE"-none]).
+
+test(proof_contract_claim_candidates_list_derivable_claims, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    claim_fixture,
+    colors_contract_test('TEST-COLORS-NONE', _{kind: "typecheck"}),
+    colors_contract_test('TEST-COLORS-NUMERIC', _{kind: "smt"}),
+    claim_obligations:proof_contract_claim_candidates_json(Json),
+    atom_json_dict(Json, Rows, [value_string_as(string)]),
+    member(None, Rows), None.test_id == "TEST-COLORS-NONE", !,
+    assertion(None.candidates = [_{claim_key: "CLAIM-00000000000000A1",
+        requirement_id: "REQ-COLORS", fact_id: "FACT-COLOR-SET"}]),
+    member(Numeric, Rows), Numeric.test_id == "TEST-COLORS-NUMERIC", !,
+    assertion(Numeric.candidates == []).
+
+:- end_tests(claim_bound_proofs).

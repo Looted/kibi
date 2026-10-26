@@ -1,6 +1,7 @@
 ---
 title: The first commit after kibi migrate passes the pre-commit gates when it adds nothing else
 status: open
+required_evidence: tested
 priority: must
 tags:
   - cli

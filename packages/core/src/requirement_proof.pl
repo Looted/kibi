@@ -5,7 +5,8 @@
     requirement_proof_context/1,
     requirement_proof_context/4,
     requirement_proof_context/6,
-    requirement_proof/4
+    requirement_proof/4,
+    test_receipt_evidence/4
 ]).
 
 % Source contains non-ASCII text; do not depend on the host locale.
@@ -24,8 +25,10 @@
     check_rule_verifiability/1
 ]).
 :- use_module('logic_ir.pl', [logic_rule_safety/2]).
+:- use_module('code_certificates.pl', [code_certificate_check/2, code_certificate_digest/2]).
+:- use_module('claim_obligations.pl', [claim_obligation/3, obligation_equal/2]).
 
-proof_version('kibi.requirement-proof.v4').
+proof_version('kibi.requirement-proof.v5').
 
 requirement_proof_context(Context) :-
     requirement_proof_context(unknown, '1970-01-01T00:00:00Z', 604800, Context).
@@ -101,28 +104,48 @@ requirement_proof(ReqId, ReqProps, Context, Proof) :-
     proof_issues(Stages, Gaps, Advisories),
     proof_repairs(Gaps, Repairs),
     proof_status(Stages, Status),
-    requirement_evidence(ReqProps, Status, PassingE2eTests, EvidenceLevel, Evidence),
+    certificate_rejections(ScenarioTestStage, Context, Rejections),
+    claim_evidence(ReqId, ReqProps, Inventory, Status, ScenarioTestStage, Context,
+                   ClaimEvidence, ProvedTests, BindingRejections),
+    requirement_evidence(ReqProps, Status, PassingE2eTests, ProvedTests, EvidenceLevel, Evidence),
+    evidence_floor(ReqProps, EvidenceLevel, Gaps, Stages, EvidenceFloor),
+    claim_summary(ClaimEvidence, ClaimSummary, UnprovedClaims),
     proof_version(Version),
-    Proof = _{
+    Proof0 = _{
         proofVersion: Version,
         proofStatus: Status,
         evidenceLevel: EvidenceLevel,
         evidence: Evidence,
+        evidenceFloor: EvidenceFloor,
+        claimEvidence: ClaimEvidence,
+        claimSummary: ClaimSummary,
+        unprovedClaims: UnprovedClaims,
         proofGaps: Gaps,
         proofAdvisories: Advisories,
         proofRepairs: Repairs,
         proofStages: Stages,
         testResolutions: ScenarioTestStage.resolutions
-    }.
+    },
+    (   Rejections == []
+    ->  Proof1 = Proof0
+    ;   Proof1 = Proof0.put(certificateRejections, Rejections)
+    ),
+    (   BindingRejections == []
+    ->  Proof = Proof1
+    ;   Proof = Proof1.put(claimBindingRejections, BindingRejections)
+    ).
 
 exempt_requirement_proof(Reason, ReqProps, Proof) :-
-    requirement_evidence(ReqProps, not_applicable, [], EvidenceLevel, Evidence),
+    requirement_evidence(ReqProps, not_applicable, [], [], EvidenceLevel, Evidence),
     proof_version(Version),
     Proof = _{
         proofVersion: Version,
         proofStatus: not_applicable,
         evidenceLevel: EvidenceLevel,
         evidence: Evidence,
+        claimEvidence: [],
+        claimSummary: _{applicable: 0, proved: 0, attested: 0, tested: 0, unresolved: 0},
+        unprovedClaims: [],
         proofGaps: [],
         proofAdvisories: [],
         proofRepairs: [],
@@ -449,9 +472,29 @@ inventory_ground_text_mismatches(Inventory, Evidence, Keys) :-
          normalize_atom(RawKey, Key),
          inventory_entry_field(Entry, claim_text, RawInventoryText),
          normalize_atom(RawInventoryText, InventoryText),
-         InventoryText \== Item.claimText),
+         \+ claim_texts_equivalent(InventoryText, Item.claimText)),
         Keys0),
     sort(Keys0, Keys).
+
+% implements REQ-kibi-conservative-requirement-proof
+% Inventory and fact claim texts name the same sentence when they differ only
+% in whitespace or trailing punctuation ("…outcomes." vs "…outcomes").
+claim_texts_equivalent(Left, Right) :-
+    canonical_claim_text(Left, Canonical),
+    canonical_claim_text(Right, Canonical).
+
+canonical_claim_text(Text, Canonical) :-
+    normalize_space(codes(Codes0), Text),
+    reverse(Codes0, Reversed0),
+    drop_trailing_claim_punctuation(Reversed0, Reversed),
+    reverse(Reversed, Codes),
+    atom_codes(Canonical, Codes).
+
+drop_trailing_claim_punctuation([Code|Rest], Trimmed) :-
+    (code_type(Code, space) ; memberchk(Code, `.,;:!?`)),
+    !,
+    drop_trailing_claim_punctuation(Rest, Trimmed).
+drop_trailing_claim_punctuation(Codes, Codes).
 
 linked_ground_keys(ReqId, Keys) :-
     findall(Key, linked_ground_claim_key(ReqId, Key), Keys0),
@@ -910,7 +953,9 @@ proof_receipt_entries(Props, Receipts, Present) :-
 
 valid_receipt_shape(TestId, Receipt) :-
     inventory_entry_field(Receipt, version, RawVersion),
-    normalize_receipt_atom(RawVersion, 'kibi.proof-receipt.v1'),
+    normalize_receipt_atom(RawVersion, Version),
+    receipt_version(Version),
+    valid_receipt_version_fields(Version, Receipt),
     inventory_entry_field(Receipt, receipt_id, RawReceiptId),
     normalize_receipt_atom(RawReceiptId, ReceiptId), valid_receipt_id(ReceiptId),
     inventory_entry_field(Receipt, test_id, RawTestId),
@@ -954,6 +999,34 @@ valid_receipt_shape(TestId, Receipt) :-
     receipt_timestamp(Receipt, started_at, StartedStamp),
     receipt_timestamp(Receipt, finished_at, FinishedStamp),
     FinishedStamp >= StartedStamp.
+
+% kibi.proof-receipt.v2 adds the contract kind and the evidence level the
+% receipt supports; v1 receipts are still read, as e2e evidence at tested.
+receipt_version('kibi.proof-receipt.v1').
+receipt_version('kibi.proof-receipt.v2').
+
+valid_receipt_version_fields('kibi.proof-receipt.v1', _Receipt).
+valid_receipt_version_fields('kibi.proof-receipt.v2', Receipt) :-
+    inventory_entry_field(Receipt, kind, RawKind),
+    normalize_receipt_atom(RawKind, Kind),
+    memberchk(Kind, [e2e, example, property, exhaustive, typecheck, arithmetic, smt]),
+    inventory_entry_field(Receipt, evidence_level, RawLevel),
+    normalize_receipt_atom(RawLevel, Level),
+    memberchk(Level, [proved, tested]),
+    (   inventory_entry_field(Receipt, certificate_digest, RawDigest)
+    ->  normalize_receipt_atom(RawDigest, Digest),
+        valid_sha256(Digest)
+    ;   true
+    ),
+    (   Level == proved
+    ->  memberchk(Kind, [exhaustive, typecheck, arithmetic, smt]),
+        inventory_entry_field(Receipt, outcome, RawOutcome),
+        normalize_receipt_atom(RawOutcome, passed),
+        inventory_entry_field(Receipt, certificate, _),
+        inventory_entry_field(Receipt, certificate_digest, _),
+        \+ inventory_entry_field(Receipt, certificate_rejection, _)
+    ;   true
+    ).
 
 receipt_producer_name(Producer, Name) :-
     inventory_entry_field(Producer, name, RawName),
@@ -1055,6 +1128,15 @@ receipt_for_current_mode(TestId, Context, Receipts, SnapshotReceipts) :-
 receipt_with_binding_hash(Receipt) :-
     inventory_entry_field(Receipt, binding_hash, _).
 
+% The current binding is one hash, or a list of the hashes a current receipt
+% may carry (the current binding and the one written before relationship
+% links left it).
+receipt_for_binding(Bindings, Receipt) :-
+    is_list(Bindings),
+    !,
+    inventory_entry_field(Receipt, binding_hash, RawBinding),
+    normalize_receipt_atom(RawBinding, Binding),
+    memberchk(Binding, Bindings).
 receipt_for_binding(Binding, Receipt) :-
     inventory_entry_field(Receipt, binding_hash, RawBinding),
     normalize_receipt_atom(RawBinding, Binding).
@@ -1067,7 +1149,8 @@ receipt_matches_current_binding(Scope, ContractBinding, Receipt) :-
 receipt_matches_current_contract(none, _Receipt).
 receipt_matches_current_contract(hash(ExpectedHash), Receipt) :-
     inventory_entry_field(Receipt, version, RawVersion),
-    normalize_receipt_atom(RawVersion, 'kibi.proof-receipt.v1'),
+    normalize_receipt_atom(RawVersion, Version),
+    receipt_version(Version),
     inventory_entry_field(Receipt, contract_hash, RawContractHash),
     normalize_receipt_atom(RawContractHash, ExpectedHash).
 
@@ -1164,7 +1247,7 @@ receipt_evidence_dict(TestId, Scope, Receipt, State, AgeSeconds, Evidence) :-
     receipt_string_field(Receipt, started_at, StartedAt),
     receipt_string_field(Receipt, finished_at, FinishedAt),
     receipt_string_field(Receipt, artifact_digest, ArtifactDigest),
-    Evidence = _{
+    Evidence0 = _{
         testId: TestId,
         state: State,
         scope: Scope,
@@ -1176,7 +1259,62 @@ receipt_evidence_dict(TestId, Scope, Receipt, State, AgeSeconds, Evidence) :-
         finishedAt: FinishedAt,
         artifactDigest: ArtifactDigest,
         ageSeconds: AgeSeconds
-    }.
+    },
+    receipt_kind_evidence(Receipt, State, Evidence0, Evidence).
+
+% implements REQ-kibi-code-proof-kinds
+% A v2 receipt adds its contract kind and the evidence level it supports.
+% proved needs the certificate to re-check now, not only when it was
+% ingested: its digest must still match and code_certificates.pl must accept
+% it. The digest is an unsigned hash, so this catches edits and corruption,
+% not deliberate forgery. When a receipt that claimed proved no longer
+% re-checks, the evidence says why (certificateRejection).
+receipt_kind_evidence(Receipt, State, Evidence0, Evidence) :-
+    receipt_string_field(Receipt, version, 'kibi.proof-receipt.v2'),
+    receipt_string_field(Receipt, kind, Kind),
+    !,
+    (   State == passed,
+        receipt_string_field(Receipt, evidence_level, proved)
+    ->  receipt_certificate_recheck(Receipt, Recheck),
+        (   Recheck == ok
+        ->  Evidence1 = Evidence0.put(_{kind: Kind, evidenceLevel: proved})
+        ;   Recheck = rejected(Reason),
+            Evidence1 = Evidence0.put(_{kind: Kind, evidenceLevel: tested,
+                                        certificateRejection: Reason})
+        )
+    ;   Evidence1 = Evidence0.put(_{kind: Kind, evidenceLevel: tested})
+    ),
+    receipt_claim_fields(Receipt, Evidence1, Evidence).
+receipt_kind_evidence(_Receipt, _State, Evidence, Evidence).
+
+% receipt_certificate_recheck(+Receipt, -Result): ok or rejected(Reason).
+receipt_certificate_recheck(Receipt, Result) :-
+    (   inventory_entry_field(Receipt, certificate, Certificate),
+        is_dict(Certificate)
+    ->  true
+    ;   Certificate = none
+    ),
+    (   Certificate == none
+    ->  Result = rejected("the receipt has no certificate")
+    ;   \+ receipt_string_field(Receipt, certificate_digest, _)
+    ->  Result = rejected("the receipt has no certificate_digest")
+    ;   \+ ( receipt_string_field(Receipt, test_id, TestId),
+              get_dict(test_id, Certificate, CertificateTestId),
+              atom_string(TestId, CertificateTestId) )
+    ->  Result = rejected("the certificate is for another test")
+    ;   \+ ( receipt_string_field(Receipt, kind, Kind),
+              get_dict(kind, Certificate, CertificateKind),
+              atom_string(Kind, CertificateKind) )
+    ->  Result = rejected("the certificate kind is not the receipt kind")
+    ;   receipt_string_field(Receipt, certificate_digest, Digest),
+        code_certificate_digest(Certificate, Recomputed),
+        \+ atom_string(Digest, Recomputed)
+    ->  Result = rejected("the certificate no longer matches its certificate_digest")
+    ;   code_certificate_check(Certificate, Check),
+        Check = rejected(Reason)
+    ->  Result = rejected(Reason)
+    ;   Result = ok
+    ).
 
 receipt_string_field(Receipt, Field, Value) :-
     inventory_entry_field(Receipt, Field, RawValue),
@@ -1232,7 +1370,8 @@ production_symbol_stage(ReqId, PassingE2eTests, Stage, ProductionSymbols) :-
          scenario_test(ScenarioId, TestId)),
         ScenarioTests0),
     sort(ScenarioTests0, ScenarioTests),
-    production_symbol_stage(ReqId, PassingE2eTests, ScenarioTests, [], _{}, Stage, ProductionSymbols).
+    requirement_proof_context(Context),
+    production_symbol_stage(ReqId, PassingE2eTests, ScenarioTests, [], Context, Stage, ProductionSymbols).
 
 production_symbol_stage(ReqId, PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, Stage, ProductionSymbols) :-
     findall(SymbolId,
@@ -1243,12 +1382,16 @@ production_symbol_stage(ReqId, PassingE2eTests, ScenarioTests, ReceiptEvidence, 
     sort(Implementing0, ImplementingSymbols),
     include(type_shape_symbol_with_structural_contract, ImplementingSymbols, StructuralSymbols),
     exclude(type_shape_symbol_with_structural_contract, ImplementingSymbols, ProductionSymbols),
-    include(symbol_not_covered_by_tests(PassingE2eTests), ProductionSymbols, UncoveredSymbols),
-    production_stage_status(ProductionSymbols, StructuralSymbols, PassingE2eTests, UncoveredSymbols, Status, StatusReason),
+    include(symbol_not_covered_by_tests(PassingE2eTests), ProductionSymbols, UncoveredProduction),
+    structural_unit_receipts(StructuralSymbols, Context, UnitReceipts),
+    exclude(structural_symbol_covered(PassingE2eTests, UnitReceipts), StructuralSymbols, UncoveredStructural),
+    append(UncoveredProduction, UncoveredStructural, UncoveredSymbols),
+    production_stage_status(ProductionSymbols, StructuralSymbols, PassingE2eTests,
+                            UncoveredProduction, UncoveredStructural, Status, StatusReason),
     maplist(symbol_coordinate_ref, ProductionSymbols, Coordinates),
     production_coverage_explanations(
         ReqId, ProductionSymbols, StructuralSymbols, UncoveredSymbols,
-        PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, Explanations),
+        PassingE2eTests, ScenarioTests, ReceiptEvidence, UnitReceipts-Context, Explanations),
     StageBase = _{
         status: Status,
         symbols: ProductionSymbols,
@@ -1273,13 +1416,40 @@ type_shape_symbol_with_structural_contract(SymbolId) :-
     normalize_atom(RawStatus, Status),
     memberchk(Status, [active, passing]).
 
+% implements REQ-kibi-conservative-requirement-proof
+% A type-shape symbol is structurally covered by a unit test only while that
+% test holds a current passing receipt: an authored status alone is a claim,
+% not evidence. Receipt states are computed once per distinct unit test.
+structural_unit_receipts(StructuralSymbols, Context, UnitReceipts) :-
+    findall(TestId,
+        (member(SymbolId, StructuralSymbols),
+         kb_relationship(covered_by, SymbolId, TestId),
+         structural_unit_contract_test(TestId)),
+        TestIds0),
+    sort(TestIds0, TestIds),
+    findall(TestId-State,
+        (member(TestId, TestIds),
+         test_receipt_evidence(Context, [unit], TestId, Evidence),
+         State = Evidence.state),
+        UnitReceipts).
+
+structural_symbol_covered(PassingE2eTests, _UnitReceipts, SymbolId) :-
+    member(TestId, PassingE2eTests),
+    kb_relationship(covered_by, SymbolId, TestId),
+    !.
+structural_symbol_covered(_PassingE2eTests, UnitReceipts, SymbolId) :-
+    kb_relationship(covered_by, SymbolId, TestId),
+    memberchk(TestId-passed, UnitReceipts),
+    !.
+
 % Stage status plus a typed reason, from a single total clause so status and
 % reason can never disagree (a test project's stale-receipts case reported `blocked`
 % with no indication that fresh receipts were the unblock). Clause order keeps
 % the historical precedence: no production symbols at all is `missing` even
 % when E2E evidence is also absent; only then does absent E2E evidence read
 % as `blocked`.
-production_stage_status(ProductionSymbols, StructuralSymbols, PassingE2eTests, UncoveredSymbols, Status, Reason) :-
+production_stage_status(ProductionSymbols, StructuralSymbols, PassingE2eTests,
+                        UncoveredProduction, UncoveredStructural, Status, Reason) :-
     (   ProductionSymbols == [],
         StructuralSymbols == []
     ->  Status = missing,
@@ -1287,34 +1457,50 @@ production_stage_status(ProductionSymbols, StructuralSymbols, PassingE2eTests, U
     ;   PassingE2eTests == []
     ->  Status = blocked,
         Reason = "no passing E2E test evidence is available for the current snapshot; run kibi prove so this stage can evaluate production symbol coverage"
-    ;   UncoveredSymbols == []
+    ;   UncoveredProduction == [],
+        UncoveredStructural == []
     ->  Status = passed
-    ;   Status = missing,
-        length(UncoveredSymbols, Count),
+    ;   UncoveredStructural == []
+    ->  Status = missing,
+        length(UncoveredProduction, Count),
         format(atom(Reason), "~w production symbol(s) lack covered_by links to the passing E2E tests", [Count])
+    ;   UncoveredProduction == []
+    ->  Status = missing,
+        length(UncoveredStructural, Count),
+        format(atom(Reason), "~w type-shape symbol(s) lack a covered_by unit test with a current passing receipt; run kibi prove on those unit tests", [Count])
+    ;   Status = missing,
+        length(UncoveredProduction, ProductionCount),
+        length(UncoveredStructural, StructuralCount),
+        format(atom(Reason), "~w production symbol(s) lack covered_by links to the passing E2E tests and ~w type-shape symbol(s) lack a covered_by unit test with a current passing receipt", [ProductionCount, StructuralCount])
     ).
 
 symbol_not_covered_by_tests(Tests, SymbolId) :-
     \+ (member(TestId, Tests), kb_relationship(covered_by, SymbolId, TestId)).
 
 production_coverage_explanations(ReqId, ProductionSymbols, StructuralSymbols, UncoveredSymbols,
-        PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, Explanations) :-
+        PassingE2eTests, ScenarioTests, ReceiptEvidence, UnitReceipts-Context, Explanations) :-
     maplist(production_symbol_explanation(ReqId, UncoveredSymbols, PassingE2eTests, ScenarioTests, ReceiptEvidence, Context),
             ProductionSymbols, ProductionExplanations),
-    maplist(structural_symbol_explanation(ReqId, PassingE2eTests, ScenarioTests, ReceiptEvidence, Context),
+    maplist(structural_symbol_explanation(ReqId, UncoveredSymbols, PassingE2eTests, ScenarioTests, ReceiptEvidence, UnitReceipts-Context),
             StructuralSymbols, StructuralExplanations),
     append(ProductionExplanations, StructuralExplanations, Explanations).
 
-structural_symbol_explanation(ReqId, PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, SymbolId, Explanation) :-
+structural_symbol_explanation(ReqId, UncoveredSymbols, PassingE2eTests, ScenarioTests, ReceiptEvidence, UnitReceipts-Context, SymbolId, Explanation) :-
     symbol_classification(SymbolId, Classification),
-    symbol_coverage_candidates(structural, PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, SymbolId, Candidates),
-    explanation_reason_text(structural_unit_contract, ReasonText),
+    symbol_coverage_candidates(structural(UnitReceipts), PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, SymbolId, Candidates),
+    (   memberchk(SymbolId, UncoveredSymbols)
+    ->  Status = uncovered,
+        Reason = structural_unit_receipt_not_current
+    ;   Status = covered,
+        Reason = structural_unit_contract
+    ),
+    explanation_reason_text(Reason, ReasonText),
     Explanation = _{
         symbolId: SymbolId,
         requirementId: ReqId,
         classification: Classification,
-        status: covered,
-        reason: structural_unit_contract,
+        status: Status,
+        reason: Reason,
         reasonText: ReasonText,
         coverageCandidates: Candidates
     }.
@@ -1384,9 +1570,20 @@ coverage_candidate_qualification(_Mode, PassingE2eTests, _ScenarioTests, _Receip
 coverage_candidate_qualification(_Mode, _Passing, _Scenario, _Evidence, _Context, TestId, false, missing_test_entity, []) :-
     \+ kb_entity(TestId, test, _),
     !.
-coverage_candidate_qualification(structural, _Passing, _Scenario, _Evidence, _Context, TestId, true, structural_unit_contract, []) :-
+coverage_candidate_qualification(structural(UnitReceipts), _Passing, _Scenario, _Evidence, _Context, TestId, Qualifies, Primary, Secondaries) :-
     structural_unit_contract_test(TestId),
-    !.
+    !,
+    (   memberchk(TestId-passed, UnitReceipts)
+    ->  Qualifies = true,
+        Primary = structural_unit_contract,
+        Secondaries = []
+    ;   Qualifies = false,
+        Primary = structural_unit_receipt_not_current,
+        (   memberchk(TestId-State, UnitReceipts)
+        ->  unit_receipt_secondary(State, Secondaries)
+        ;   Secondaries = []
+        )
+    ).
 coverage_candidate_qualification(_Mode, _Passing, ScenarioTests, ReceiptEvidence, Context, TestId, false, Primary, Secondaries) :-
     cheap_scope_reject_reason(TestId, ScopeReason),
     (   \+ memberchk(TestId, ScenarioTests)
@@ -1399,6 +1596,14 @@ coverage_candidate_qualification(_Mode, _Passing, ScenarioTests, ReceiptEvidence
         reused_receipt_reject_reasons(ReceiptEvidence, TestId, Secondaries)
     ;   receipt_reject_for_in_chain(ReceiptEvidence, Context, TestId, Primary, Secondaries)
     ).
+
+unit_receipt_secondary(missing, [missing_proof_receipt]) :- !.
+unit_receipt_secondary(stale, [stale_proof_receipt]) :- !.
+unit_receipt_secondary(contract_mismatch, [receipt_contract_mismatch]) :- !.
+unit_receipt_secondary(failed, [failed_proof_receipt]) :- !.
+unit_receipt_secondary(invalid, [invalid_proof_receipt]) :- !.
+unit_receipt_secondary(snapshot_unavailable, [proof_snapshot_unavailable]) :- !.
+unit_receipt_secondary(_, []).
 
 structural_unit_contract_test(TestId) :-
     kb_entity(TestId, test, TestProps),
@@ -1488,6 +1693,7 @@ explanation_reason_text_def(covered, "Qualifying covered_by to a passing scenari
 explanation_reason_text_def(covered_by_missing, "No covered_by relationship to any test").
 explanation_reason_text_def(no_qualifying_e2e_coverage, "covered_by relationships exist but none qualify as passing scenario-backed E2E coverage").
 explanation_reason_text_def(structural_unit_contract, "type-shape symbol is satisfied by a unit structural contract").
+explanation_reason_text_def(structural_unit_receipt_not_current, "type-shape symbol needs a covered_by unit test with a current passing receipt; run kibi prove on that unit test").
 explanation_reason_text_def(executable_test, "Symbol is executable test code linked with executable_for").
 explanation_reason_text_def(stage_blocked_no_passing_e2e, "Production coverage cannot be evaluated because no passing E2E evidence is available for the current snapshot").
 explanation_reason_text_def(missing_test_entity, "covered_by target is not a test entity").
@@ -1682,22 +1888,253 @@ proof_status(Stages, unresolved) :-
     !.
 proof_status(_, tested).
 
-% implements REQ-kibi-evidence-levels
-%% requirement_evidence(+Props, +ProofStatus, +PassingE2eTests, -Level, -Evidence)
+% implements REQ-kibi-code-proof-kinds
+% Scenario tests whose receipt claimed proved but whose certificate no
+% longer re-checks, with the reason, so a drop to tested is never silent.
+certificate_rejections(ScenarioTestStage, Context, Rejections) :-
+    (   get_dict(obligations, ScenarioTestStage, Obligations)
+    ->  true
+    ;   Obligations = []
+    ),
+    findall(_{test: TestId, reason: Reason},
+        (member(Obligation, Obligations),
+         member(TestId, Obligation.tests),
+         test_receipt_evidence(Context, [unit, integration, end_to_end], TestId, Evidence),
+         get_dict(certificateRejection, Evidence, Reason)),
+        Rejections0),
+    sort(Rejections0, Rejections).
+
+% implements REQ-kibi-claim-bound-proofs
+%% receipt_claim_fields(+Receipt, +Evidence0, -Evidence)
+% A certificate receipt keeps the certificate and the claim bindings Kibi
+% recorded at ingest, so each claim can be judged against the current KB.
+receipt_claim_fields(Receipt, Evidence0, Evidence) :-
+    (   inventory_entry_field(Receipt, claim_bindings, RawBindings),
+        inventory_entries(RawBindings, Bindings),
+        Bindings \== []
+    ->  Evidence1 = Evidence0.put(claimBindings, Bindings)
+    ;   Evidence1 = Evidence0
+    ),
+    (   inventory_entry_field(Receipt, certificate, Certificate),
+        is_dict(Certificate)
+    ->  Evidence = Evidence1.put(certificate, Certificate)
+    ;   Evidence = Evidence1
+    ).
+
+% implements REQ-kibi-claim-bound-proofs
+%% claim_evidence(+ReqId, +Props, +Inventory, +ProofStatus, +ScenarioTestStage,
+%%                +Context, -ClaimEvidence, -ProvedTests, -Rejections)
+% One entry per semantic-inventory claim with the evidence level that claim
+% has on its own.  A claim is proved only when the requirement is tested end
+% to end and a fresh certificate whose obligation Kibi derived from the
+% claim's grounding fact (binding derived, scope code) re-checks.  A
+% certificate the author only attests to the claim leaves it tested.
+% ProvedTests is non-empty, as TestId-Kind pairs, only when every applicable
+% claim is proved; the requirement is proved exactly then.
+claim_evidence(ReqId, Props, Inventory, ProofStatus, ScenarioTestStage, Context,
+               ClaimEvidence, ProvedTests, Rejections) :-
+    (   get_dict(tests, ScenarioTestStage, Tests) -> true ; Tests = [] ),
+    (   ProofStatus == tested
+    ->  findall(TestId-Evidence,
+            (member(TestId, Tests),
+             test_receipt_evidence(Context, [unit, integration, end_to_end], TestId, Evidence),
+             get_dict(state, Evidence, passed),
+             get_dict(claimBindings, Evidence, _)),
+            BoundTests)
+    ;   BoundTests = []
+    ),
+    intent_claim_level(Props, IntentLevel),
+    maplist(claim_entry(ReqId, ProofStatus, IntentLevel, BoundTests), Inventory, Entries0),
+    exclude(==(none), Entries0, ClaimEvidence),
+    findall(R, (member(E, ClaimEvidence), get_dict(rejections, E, Rs), member(R, Rs)), Rejections0),
+    sort(Rejections0, Rejections),
+    include(applicable_claim, ClaimEvidence, Applicable),
+    (   ProofStatus == tested,
+        Applicable \== [],
+        forall(member(E, Applicable), claim_level_is(proved, E))
+    ->  findall(T-K,
+            (member(E, Applicable), get_dict(bindings, E, Bs), member(B, Bs),
+             get_dict(binding, B, derived), get_dict(test, B, T), get_dict(kind, B, K)),
+            Pairs0),
+        sort(Pairs0, ProvedTests)
+    ;   ProvedTests = []
+    ).
+
+intent_claim_level(Props, Level) :-
+    (   human_intent(Props, _, _) -> Level = asserted ; Level = unverified ).
+
+applicable_claim(Entry) :- get_dict(applicable, Entry, true).
+
+claim_level_is(Level, Entry) :- get_dict(level, Entry, Level).
+
+claim_attested_only(Entry) :-
+    \+ claim_level_is(proved, Entry),
+    get_dict(bindings, Entry, Bindings),
+    member(B, Bindings),
+    get_dict(binding, B, attested),
+    !.
+
+claim_unresolved(Entry) :- get_dict(blocker, Entry, _).
+
+claim_entry(ReqId, ProofStatus, IntentLevel, BoundTests, InventoryEntry, Entry) :-
+    (   inventory_entry_field(InventoryEntry, claim_key, RawKey),
+        normalize_atom(RawKey, Key)
+    ->  inventory_entry_status(InventoryEntry, Status),
+        (   inventory_entry_field(InventoryEntry, role, RawRole)
+        ->  normalize_atom(RawRole, Role)
+        ;   Role = ''
+        ),
+        Base = _{claimKey: Key, status: Status, role: Role},
+        (   Status == nonlogical
+        ->  Entry = Base.put(_{applicable: false, level: null, bindings: []})
+        ;   Status \== modeled
+        ->  Entry = Base.put(_{applicable: true, level: IntentLevel, bindings: [],
+                               blocker: unresolved_semantic_proposition})
+        ;   ProofStatus \== tested
+        ->  Entry = Base.put(_{applicable: true, level: IntentLevel, bindings: []})
+        ;   findall(Binding, test_claim_binding(ReqId, Key, BoundTests, Binding), Bindings0),
+            sort(Bindings0, Bindings),
+            include(binding_is(rejected), Bindings, RejectedBindings),
+            maplist(binding_rejection(Key), RejectedBindings, Rejections),
+            (   member(B, Bindings), get_dict(binding, B, derived), get_dict(scope, B, code)
+            ->  Level = proved
+            ;   Level = tested
+            ),
+            Entry0 = Base.put(_{applicable: true, level: Level, bindings: Bindings}),
+            (   Rejections == []
+            ->  Entry = Entry0
+            ;   Entry = Entry0.put(rejections, Rejections)
+            )
+        )
+    ;   Entry = none
+    ).
+
+binding_is(Expected, Binding) :- get_dict(binding, Binding, Expected).
+
+binding_rejection(Key, Binding, _{test: Test, claimKey: Key, reason: Reason}) :-
+    get_dict(test, Binding, Test),
+    get_dict(reason, Binding, Reason).
+
+% The binding one passed receipt records for this claim of this requirement,
+% re-judged against the current KB.
+test_claim_binding(ReqId, Key, BoundTests, Binding) :-
+    member(TestId-Evidence, BoundTests),
+    get_dict(claimBindings, Evidence, Recorded0),
+    member(Recorded, Recorded0),
+    inventory_entry_field(Recorded, claim_key, RawKey),
+    normalize_atom(RawKey, Key),
+    inventory_entry_field(Recorded, requirement_id, RawReq),
+    normalize_atom(RawReq, ReqId),
+    (   get_dict(kind, Evidence, Kind) -> true ; Kind = e2e ),
+    judge_claim_binding(ReqId, Key, Kind, Evidence, Recorded, Verdict, Scope, Reason),
+    Binding0 = _{test: TestId, kind: Kind, binding: Verdict, scope: Scope},
+    (   Reason == ''
+    ->  Binding = Binding0
+    ;   Binding = Binding0.put(reason, Reason)
+    ).
+
+% judge_claim_binding(+ReqId, +Key, +Kind, +Evidence, +Recorded, -Verdict, -Scope, -Reason)
+judge_claim_binding(ReqId, Key, Kind, Evidence, Recorded, Verdict, Scope, Reason) :-
+    receipt_string_field(Recorded, binding, RecordedVerdict),
+    (   receipt_string_field(Recorded, scope, Scope0) -> true ; Scope0 = code ),
+    claim_obligation(ReqId-Key, Kind, Current),
+    (   RecordedVerdict == rejected
+    ->  Verdict = rejected, Scope = Scope0,
+        (   receipt_string_field(Recorded, reason, Reason) -> true ; Reason = 'rejected at ingest' )
+    ;   Current = unresolved(Reason0)
+    ->  Verdict = rejected, Scope = Scope0, atom_string(Reason, Reason0)
+    ;   Current = incompatible(_, Reason0)
+    ->  Verdict = rejected, Scope = Scope0, atom_string(Reason, Reason0)
+    ;   RecordedVerdict == attested
+    ->  (   Current = attested(_)
+        ->  Verdict = attested, Scope = Scope0, Reason = ''
+        ;   Verdict = rejected, Scope = Scope0,
+            Reason = 'the claim now has a derivable obligation; re-prove the test so Kibi can derive it'
+        )
+    ;   RecordedVerdict == derived,
+        Current = obligation(FactId, Obligation)
+    ->  Scope = Scope0,
+        (   \+ ( receipt_string_field(Recorded, fact_id, RecordedFact), RecordedFact == FactId )
+        ->  Verdict = rejected,
+            format(atom(Reason), "~w is now grounded by ~w, not the fact the receipt was ingested against", [Key, FactId])
+        ;   \+ ( inventory_entry_field(Recorded, obligation, RecordedObligation),
+                 obligation_equal(RecordedObligation, Obligation) )
+        ->  Verdict = rejected,
+            format(atom(Reason), "~w changed since the receipt was ingested", [FactId])
+        ;   \+ get_dict(evidenceLevel, Evidence, proved)
+        ->  Verdict = rejected,
+            Reason = 'the certificate does not re-check'
+        ;   certificate_obligation_problem(Kind, Evidence, Obligation, Problem)
+        ->  Verdict = rejected, Reason = Problem
+        ;   Verdict = derived, Reason = ''
+        )
+    ;   Verdict = rejected, Scope = Scope0,
+        Reason = 'the claim has no derivable obligation; re-prove the test'
+    ).
+
+% The part of a derived binding Kibi can re-check from the stored
+% certificate alone (code-dependent parts were checked at ingest and stale
+% with the receipt).
+certificate_obligation_problem(exhaustive, Evidence, Obligation, Problem) :-
+    get_dict(certificate, Evidence, Certificate),
+    get_dict(domain, Certificate, Domain),
+    get_dict(members, Domain, Raw),
+    maplist([M, S]>>(atom(M) -> atom_string(M, S) ; S = M), Raw, Strings),
+    sort(Strings, Members),
+    \+ obligation_equal(Obligation, _{kind: "set_equals", members: Members}),
+    Problem = 'the certificate domain is not the fact\'s set'.
+certificate_obligation_problem(arithmetic, Evidence, Obligation, Problem) :-
+    get_dict(certificate, Evidence, Certificate),
+    (   get_dict(claim, Certificate, Claim),
+        get_dict(operator, Claim, Op),
+        get_dict(value, Claim, Value),
+        get_dict(variable, Certificate, Variable),
+        get_dict(value_type, Certificate, Type),
+        obligation_equal(Obligation,
+            _{kind: "numeric_constraint", variable: Variable, value_type: Type,
+              operator: Op, value: Value})
+    ->  fail
+    ;   Problem = 'the certificate\'s claim is not the fact\'s constraint'
+    ).
+
+%% claim_summary(+ClaimEvidence, -Summary, -UnprovedClaims)
+claim_summary(ClaimEvidence, Summary, Unproved) :-
+    include(applicable_claim, ClaimEvidence, Applicable),
+    length(Applicable, ApplicableCount),
+    count_claims(Applicable, claim_level_is(proved), Proved),
+    count_claims(Applicable, claim_attested_only, Attested),
+    count_claims(Applicable, claim_level_is(tested), Tested),
+    count_claims(Applicable, claim_unresolved, Unresolved),
+    Summary = _{applicable: ApplicableCount, proved: Proved, attested: Attested,
+                tested: Tested, unresolved: Unresolved},
+    findall(Key, (member(E, Applicable), \+ claim_level_is(proved, E), get_dict(claimKey, E, Key)), Unproved).
+
+count_claims(Entries, Goal, Count) :-
+    include(Goal, Entries, Matching),
+    length(Matching, Count).
+
+% implements REQ-kibi-evidence-levels, REQ-kibi-code-proof-kinds
+%% requirement_evidence(+Props, +ProofStatus, +PassingE2eTests, +ProvedTests, -Level, -Evidence)
 % How strong the evidence behind a requirement is, never stronger than what
-% backs it.  Levels, strongest first: proved (a re-checkable certificate
-% covers every case), tested (passing E2E receipts cover every linked
-% scenario: proofStatus tested), asserted (a person stands behind the
-% statement but nothing current checks it), unverified (an agent wrote it and
-% no person approved it).  No proof kind issues certificates yet, so proved
-% is never reached here.  Evidence lists what earned the level and anything
-% weaker that also holds, each entry naming its kind and scope.
-requirement_evidence(Props, ProofStatus, PassingE2eTests, Level, Evidence) :-
-    findall(Entry, evidence_entry(Props, ProofStatus, PassingE2eTests, Entry), Evidence),
+% backs it.  Levels, strongest first: proved (the requirement is tested and
+% every applicable claim is proved by a fresh certificate bound to it with a
+% derived obligation: ProvedTests is non-empty), tested (passing E2E
+% receipts cover every linked scenario: proofStatus tested), asserted (a
+% person stands behind the statement but nothing current checks it),
+% unverified (an agent wrote it and no person approved it).  Evidence lists
+% what earned the level and anything weaker that also holds, each entry
+% naming its kind and scope.
+requirement_evidence(Props, ProofStatus, PassingE2eTests, ProvedTests, Level, Evidence) :-
+    findall(Entry, evidence_entry(Props, ProofStatus, PassingE2eTests, ProvedTests, Entry), Evidence),
     evidence_level(Evidence, Level).
 
-evidence_entry(_Props, tested, PassingE2eTests, _{kind: e2e, scope: code, level: tested, tests: PassingE2eTests}).
-evidence_entry(Props, _ProofStatus, _PassingE2eTests, Entry) :-
+evidence_entry(_Props, tested, _PassingE2eTests, ProvedTests, _{kind: certificate, scope: code, level: proved, tests: Tests, kinds: Kinds}) :-
+    ProvedTests \= [],
+    pairs_keys_values(ProvedTests, Tests0, Kinds0),
+    sort(Tests0, Tests),
+    sort(Kinds0, Kinds).
+evidence_entry(_Props, tested, PassingE2eTests, _ProvedTests, _{kind: e2e, scope: code, level: tested, tests: PassingE2eTests}).
+evidence_entry(Props, _ProofStatus, _PassingE2eTests, _ProvedTests, Entry) :-
     human_intent(Props, Basis, Ref),
     (   Ref == ''
     ->  Entry = _{kind: human_intent, scope: intent, level: asserted, basis: Basis}
@@ -1711,6 +2148,81 @@ evidence_level(Evidence, Level) :-
     ->  Level = Level0
     ;   Level = unverified
     ).
+
+% implements REQ-kibi-evidence-floors
+%% evidence_floor(+Props, +Level, +Gaps, +Stages, -Floor)
+% The weakest evidence level the requirement accepts and whether its computed
+% level reaches it.  The floor is the requirement's required_evidence, or,
+% when absent, tested for a firm requirement and unverified (no floor)
+% otherwise.  Status is met, below, or pending_reproof: the floor is tested
+% and every gap only says recorded receipts are older than the code, so
+% re-running kibi prove reaches it without any KB change.
+evidence_floor(Props, Level, Gaps, Stages, _{required: Required, source: Source, status: Status}) :-
+    required_evidence(Props, Required, Source),
+    evidence_rank(Level, Have),
+    evidence_rank(Required, Need),
+    (   Have >= Need
+    ->  Status = met
+    ;   Required == tested,
+        freshness_only_gaps(Gaps, Stages)
+    ->  Status = pending_reproof
+    ;   Status = below
+    ).
+
+required_evidence(Props, Required, explicit) :-
+    memberchk(required_evidence=Raw, Props),
+    normalize_atom(Raw, Required),
+    evidence_rank(Required, _),
+    !.
+required_evidence(Props, tested, firmness) :-
+    effective_firmness(Props, firm),
+    !.
+required_evidence(_Props, unverified, firmness).
+
+evidence_rank(unverified, 0).
+evidence_rank(asserted, 1).
+evidence_rank(tested, 2).
+evidence_rank(proved, 3).
+
+% Gaps that only say the evidence is stale: kibi prove clears them.  Stale
+% receipts also leave every production symbol uncovered; that gap is
+% freshness-only when each uncovered symbol has a coverage candidate that
+% qualifies or is rejected only for stale evidence.
+freshness_gap(stale_proof_receipt).
+freshness_gap(proof_contract_mismatch).
+
+freshness_only_gaps(Gaps, Stages) :-
+    include(freshness_gap, Gaps, [_|_]),
+    exclude(freshness_gap, Gaps, Rest),
+    (   Rest == []
+    ->  true
+    ;   Rest == [missing_production_symbol_coverage],
+        production_coverage_freshness_only(Stages)
+    ).
+
+production_coverage_freshness_only(Stages) :-
+    Stage = Stages.productionSymbols,
+    forall(member(SymbolId, Stage.uncoveredSymbols),
+           (   member(Explanation, Stage.explanations),
+               Explanation.symbolId == SymbolId,
+               member(Candidate, Explanation.coverageCandidates),
+               freshness_only_candidate(Candidate)
+           )).
+
+freshness_only_candidate(Candidate) :-
+    Candidate.qualifies == true,
+    !.
+freshness_only_candidate(Candidate) :-
+    Candidate.scope == unit,
+    Candidate.reason == structural_unit_receipt_not_current,
+    Candidate.secondaryReasons = [_|_],
+    forall(member(Reason, Candidate.secondaryReasons),
+           memberchk(Reason, [stale_proof_receipt, receipt_snapshot_mismatch, receipt_contract_mismatch])),
+    !.
+freshness_only_candidate(Candidate) :-
+    Candidate.scope == end_to_end,
+    forall(member(Reason, [Candidate.reason|Candidate.secondaryReasons]),
+           memberchk(Reason, [stale_proof_receipt, receipt_snapshot_mismatch, receipt_contract_mismatch])).
 
 %% human_intent(+Props, -Basis, -Ref)
 % A person stands behind the requirement: someone approved it
@@ -1852,7 +2364,7 @@ gap_definition(proof_contract_mismatch, 57, passing_e2e, "Run kibi prove so the 
 gap_definition(proof_snapshot_unavailable, 58, passing_e2e, "Run coverage through a CLI or MCP runtime that exposes the deterministic workspace snapshot.").
 gap_definition(missing_executable_test_symbol, 60, executable_symbols, "Link executable test code to every qualifying E2E test with executable_for.").
 gap_definition(missing_production_symbol, 70, production_symbols, "Link at least one production symbol to the requirement with implements.").
-gap_definition(missing_production_symbol_coverage, 71, production_symbols, "Link every runtime implementing production symbol to a qualifying E2E test with covered_by; type-shape symbols retain structural unit contracts instead.").
+gap_definition(missing_production_symbol_coverage, 71, production_symbols, "Link every runtime implementing production symbol to a qualifying E2E test with covered_by; type-shape symbols instead need a covered_by unit test with a current passing receipt.").
 gap_definition(missing_symbol_coordinates, 80, source_coordinates, "Refresh and persist exact coordinates for every proof-bearing symbol.").
 gap_definition(missing_requirement_source, 81, source_coordinates, "Bind the requirement to its current source document.").
 

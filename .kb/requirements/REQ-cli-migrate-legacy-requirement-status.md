@@ -1,6 +1,7 @@
 ---
 title: kibi migrate maps delivered legacy statuses and reports uncompiled requirements
 status: open
+required_evidence: tested
 priority: must
 tags:
   - migration

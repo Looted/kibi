@@ -590,6 +590,7 @@ export async function setupSeededFreshKb(
       "---",
       "title: seeded fixture requirement",
       "status: open",
+      "required_evidence: asserted",
       "id: REQ-SETUP-BASE",
       "type: req",
       "---",
@@ -825,6 +826,7 @@ export function safeMutationEndpointDocuments(
       `id: ${ids.requirement}`,
       "title: safe-mutation-direction fixture requirement",
       "status: open",
+      "required_evidence: asserted",
       "type: req",
       "---",
       "",
@@ -1165,12 +1167,28 @@ export async function setupSeededPreconditionKb(
     throw new FixtureSetupError("compiled requirement has no agent origin");
   await writeFile(
     requirementPath,
-    requirement.replace(/^ {2}kind: agent$/m, PRECONDITION_ORIGIN),
+    withAssertedFloor(
+      requirement.replace(/^ {2}kind: agent$/m, PRECONDITION_ORIGIN),
+    ),
     "utf8",
   );
   await writeDocuments(workspaceTarget, PRECONDITION_DOCUMENTS);
   await commitAndSync(workspaceTarget, cliRoot);
   await validateSeed(workspaceTarget, cliRoot, "precondition fixture");
+}
+
+/**
+ * A person's origin makes the requirement firm, whose default floor is tested
+ * evidence; fixture requirements have no end-to-end proof, so they keep an
+ * asserted floor and the seed stays free of evidence-floor findings.
+ */
+function withAssertedFloor(requirement: string): string {
+  return /^required_evidence:/m.test(requirement)
+    ? requirement
+    : requirement.replace(
+        /^status: (.*)$/m,
+        "status: $1\nrequired_evidence: asserted",
+      );
 }
 
 async function stampHumanOrigin(
@@ -1189,7 +1207,7 @@ async function stampHumanOrigin(
     throw new FixtureSetupError(`${requirementId} has no agent origin`);
   await writeFile(
     path,
-    requirement.replace(/^ {2}kind: agent$/m, origin),
+    withAssertedFloor(requirement.replace(/^ {2}kind: agent$/m, origin)),
     "utf8",
   );
 }
@@ -1280,6 +1298,7 @@ export async function setupSeededUnresolvedRuleKb(
             ...step,
             properties: {
               ...(step.properties as Record<string, unknown>),
+              required_evidence: "asserted",
               origin: {
                 kind: "human",
                 ref: "documentation/requirements/fixture.md",

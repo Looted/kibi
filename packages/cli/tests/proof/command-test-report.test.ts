@@ -175,17 +175,25 @@ describe("attributeCommandRun", () => {
     }
   });
 
-  test("treats a fully passing report as the historical passing run", () => {
+  test("reports a fully passing report as per-test attribution", () => {
     const attribution = attributeCommandRun({
-      selectedTestIds: ["TEST-a"],
+      selectedTestIds: ["TEST-a", "TEST-b"],
       exitCode: 0,
       report: report([
         { test_id: "TEST-a", outcome: "passed", steps: [step(1)] },
+        { test_id: "TEST-b", outcome: "passed", steps: [step(1)] },
       ]),
     });
     expect(attribution).toEqual({
-      attribution: "aggregate",
-      reason: "the integration passed",
+      attribution: "per_test",
+      partitions: [
+        {
+          outcome: "passed",
+          testIds: ["TEST-a", "TEST-b"],
+          exitCode: 0,
+          failedSteps: [],
+        },
+      ],
       failedSteps: [],
     });
   });

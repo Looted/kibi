@@ -186,14 +186,17 @@ describe("kibi.proof-run.v1", () => {
 
   test("exports protocol constants and schema objects", () => {
     expect(PROOF_RUN_VERSION).toBe("kibi.proof-run.v1");
-    expect(PROOF_RECEIPT_VERSION).toBe("kibi.proof-receipt.v1");
+    expect(PROOF_RECEIPT_VERSION).toBe("kibi.proof-receipt.v2");
     expect(PROOF_INTEGRATION_VERSION).toBe("kibi.proof-integration.v1");
     expect(PROOF_RUN_OUTCOMES).toContain("timed_out");
     expect(PROOF_RESULT_OUTCOMES).toContain("skipped");
     expect(PROOF_BINDING_KINDS).toEqual(["native_case", "aggregate_run"]);
     expect(ATTEMPTS_STATUS).toEqual(["complete", "unavailable"]);
     expect(RUN_FAILURE_PHASES).toContain("infrastructure");
-    expect(SUCCESS_POLICIES).toEqual(["all_required_first_attempt"]);
+    expect(SUCCESS_POLICIES).toEqual([
+      "all_required_first_attempt",
+      "own_results_first_attempt",
+    ]);
     expect(PROOF_RESULT_SCHEMA.type).toBe("object");
     expect(PROOF_RUN_ARTIFACT_SCHEMA.type).toBe("object");
     expect(PROOF_CONTRACT_SCHEMA.type).toBe("object");

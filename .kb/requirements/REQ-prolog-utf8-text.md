@@ -1,6 +1,7 @@
 ---
 title: Text keeps its characters through the SWI-Prolog process whatever the locale
 status: open
+required_evidence: tested
 priority: must
 tags:
   - prolog

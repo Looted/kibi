@@ -17,13 +17,33 @@
 */
 
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
+
+/**
+ * The command that runs the project's local kibi, chosen from its lockfile so
+ * a pnpm, Yarn or Bun repository is not told to use npm.
+ */
+// implements REQ-cli-doctor
+export function localKibiCommand(cwd: string): string {
+  const has = (file: string) => existsSync(path.join(cwd, file));
+  if (has("pnpm-lock.yaml")) return "pnpm exec kibi";
+  if (has("yarn.lock")) return "yarn exec kibi";
+  if (has("bun.lock") || has("bun.lockb")) return "bunx --no-install kibi";
+  return "npm exec --no -- kibi";
+}
 
 /** How to route the authored manifests to `kibi merge-driver`. */
 // implements REQ-cli-doctor
-export const MERGE_DRIVER_SETUP =
-  'Add to .gitattributes: ".kb/symbols.yaml merge=kibi" and ".kb/relationships/*.yaml merge=kibi"; then run: git config merge.kibi.driver "npm exec --no -- kibi merge-driver %O %A %B" (see docs/cli-reference.md#kibi-merge-driver-base-current-other).';
+export function mergeDriverSetup(cwd?: string): string {
+  const command =
+    cwd === undefined ? "npm exec --no -- kibi" : localKibiCommand(cwd);
+  return `Add to .gitattributes: ".kb/symbols.yaml merge=kibi" and ".kb/relationships/*.yaml merge=kibi"; then run: git config merge.kibi.driver "${command} merge-driver %O %A %B" (see docs/cli-reference.md#kibi-merge-driver-base-current-other).`;
+}
+
+/** The npm form of {@link mergeDriverSetup}. */
+// implements REQ-cli-doctor
+export const MERGE_DRIVER_SETUP = mergeDriverSetup();
 
 function gitOutput(cwd: string, args: readonly string[]): string | null {
   try {

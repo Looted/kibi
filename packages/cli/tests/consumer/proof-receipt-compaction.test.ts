@@ -50,7 +50,7 @@ type ProveResult = {
 };
 
 type ProveSummary = {
-  proved: number;
+  passed: number;
   failed: number;
   unchanged: number;
   runs: Array<{
@@ -267,7 +267,7 @@ describe("proof receipt compaction through the kibi CLI", () => {
       const summary = prove(ws, ["--test", PAY], plan, exit);
       const outcome = exit === 0 ? "passed" : "failed";
       expect(summary).toMatchObject({
-        proved: exit === 0 ? 1 : 0,
+        passed: exit === 0 ? 1 : 0,
         failed: exit === 0 ? 0 : 1,
         unchanged: 0,
       });
@@ -337,7 +337,7 @@ describe("proof receipt compaction through the kibi CLI", () => {
     // A complete per-test report: the refund check fails, the pay test's
     // own steps all passed.
     const split = prove(ws, everyTest, { failing: [REFUND] }, 1);
-    expect(split).toMatchObject({ proved: 1, failed: 1, unchanged: 0 });
+    expect(split).toMatchObject({ passed: 1, failed: 1, unchanged: 0 });
     expect(split.failures).toBeUndefined();
     expect(split.runs).toHaveLength(1);
     expect(split.runs[0]).toMatchObject({
@@ -401,7 +401,7 @@ describe("proof receipt compaction through the kibi CLI", () => {
     ];
     for (const [plan, reason] of unattributed) {
       const summary = prove(ws, everyTest, plan, 1);
-      expect(summary).toMatchObject({ proved: 0, failed: 2 });
+      expect(summary).toMatchObject({ passed: 0, failed: 2 });
       expect(summary.runs[0]?.attribution).toBe("aggregate");
       expect(summary.runs[0]?.attributionReason).toContain(reason);
       expect(outcomes(summary)).toEqual({
@@ -412,13 +412,12 @@ describe("proof receipt compaction through the kibi CLI", () => {
       expect(receipts(ws, REFUND).at(-1)?.outcome).toBe("failed");
     }
 
-    // A fully passing run is one unit again and proves both tests.
+    // A fully passing run with a report is still attributed per test and
+    // proves both tests.
     const green = prove(ws, everyTest, {}, 0);
-    expect(green).toMatchObject({ proved: 2, failed: 0 });
-    expect(green.runs[0]).toMatchObject({
-      attribution: "aggregate",
-      attributionReason: "the integration passed",
-    });
+    expect(green).toMatchObject({ passed: 2, failed: 0 });
+    expect(green.runs[0]?.attribution).toBe("per_test");
+    expect(green.runs[0]?.attributionReason).toBeUndefined();
     expect(green.runs[0]?.failedSteps).toBeUndefined();
     expect(receipts(ws, PAY).at(-1)?.outcome).toBe("passed");
     expect(receipts(ws, REFUND).at(-1)?.outcome).toBe("passed");

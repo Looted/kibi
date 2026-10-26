@@ -27,7 +27,8 @@
     certificate_decision_groups/1,
     certificate_rule_edges/1,
     certificate_member_holds/3,
-    certificate_members_satisfiable/2
+    certificate_members_satisfiable/2,
+    set_texts/2
 ]).
 
 %% kb_write_certificates(+Path, -JsonString)
@@ -120,6 +121,13 @@ model_candidates(string, Members, Candidates) :-
     sort(Bounds0, Bounds),
     fresh_text(Bounds, 0, Fresh),
     append(Bounds, [Fresh], Candidates).
+
+model_candidates(set, Members, Candidates) :-
+    findall(Set, (member(m(_, _, Bound, _, _), Members), set_texts(Bound, Set)), Sets0),
+    sort(Sets0, Sets),
+    findall(Text, (member(Set, Sets), member(Text, Set)), Texts),
+    fresh_text(Texts, 0, Fresh),
+    append(Sets, [[Fresh]], Candidates).
 
 fresh_text(Bounds, Index, Fresh) :-
     format(string(Candidate), "kibi:model:~w", [Index]),

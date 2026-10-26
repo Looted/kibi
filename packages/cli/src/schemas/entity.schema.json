@@ -523,6 +523,16 @@
       ],
       "description": "Requirement and ADR only. How firmly the decision was made. firm: a human stated it as a rule; it needs a ref (origin.ref, or approval_ref on a requirement) to their words, and only a human may change it. default: a delegated or agent choice; a later agent may supersede it with evidence. exploratory: a flagged guess, expected to be revisited. When absent, it reads as default if an agent wrote the entity (origin.kind agent) and as firm otherwise (a person's, imported or migrated decision); set it explicitly when recording a decision."
     },
+    "required_evidence": {
+      "type": "string",
+      "enum": [
+        "proved",
+        "tested",
+        "asserted",
+        "unverified"
+      ],
+      "description": "Requirement-only. The weakest evidence level this current requirement accepts; the evidence-floor check rule fails while its computed evidence level is lower. proved: a re-checkable certificate covers every case. tested: fresh passing E2E receipts cover every linked scenario. asserted: a person stands behind it. unverified: no floor. When absent, it is tested for a firm requirement and unverified otherwise."
+    },
     "expects": {
       "type": "string",
       "enum": [
@@ -762,8 +772,105 @@
         "success_policy": {
           "type": "string",
           "enum": [
-            "all_required_first_attempt"
+            "all_required_first_attempt",
+            "own_results_first_attempt"
           ]
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "e2e",
+            "example",
+            "property",
+            "exhaustive",
+            "typecheck",
+            "arithmetic",
+            "smt"
+          ],
+          "description": "What the checker establishes; absent means e2e. exhaustive, typecheck, arithmetic and smt must leave a kibi.code-certificate.v1 that Kibi re-checks before the receipt counts as proved."
+        },
+        "domain_source": {
+          "type": "object",
+          "description": "exhaustive and typecheck: the symbol that defines the finite domain. The proof must import it from its source file; a hand-listed domain downgrades the receipt to example. Kibi reads the export named `export`, or the symbol's title when `export` is absent.",
+          "required": [
+            "symbol_id"
+          ],
+          "properties": {
+            "symbol_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "export": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The name the domain is exported under in the symbol's source file, when the symbol's title is not that name."
+            }
+          },
+          "additionalProperties": false
+        },
+        "witness": {
+          "type": "object",
+          "description": "typecheck: the repository-relative witness file Kibi compiles (an exhaustive switch ending in never, or a mapped type over the domain).",
+          "required": [
+            "path"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "proves": {
+          "type": "array",
+          "description": "Certificate kinds: the requirement claim keys (CLAIM-...) this certificate proves. Each must be a modeled claim of a current requirement the test reaches through its scenarios. Kibi derives what the certificate must establish from the claim's grounding fact (a set fact for exhaustive or typecheck, a numeric fact for arithmetic or smt); a claim with no such derivation is only attested and never counts as proved.",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^CLAIM-"
+          },
+          "uniqueItems": true
+        },
+        "value_source": {
+          "type": "array",
+          "description": "arithmetic and smt: code constants the assumptions read. Kibi evaluates each export at ingest and requires the certificate to assume the variable equals that value, so the proof is about the code and not only the knowledge base.",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "symbol_id"
+            ],
+            "properties": {
+              "symbol_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "export": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "constraint_source": {
+          "type": "object",
+          "description": "arithmetic and smt: the typed numeric property_value facts the certificate's assumptions come from. Kibi checks the assumptions (or the query's assertions) are exactly these facts' constraints, so the proof is about the knowledge base, not numbers the test chose.",
+          "required": [
+            "fact_ids"
+          ],
+          "properties": {
+            "fact_ids": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -813,7 +920,7 @@
       "type": "array",
       "items": {
         "type": "object",
-        "description": "Kibi-derived kibi.proof-receipt.v1. Receipts are never caller-authored; kb_ingest_proof derives them from kibi.proof-run.v1 artifacts.",
+        "description": "Kibi-derived kibi.proof-receipt.v2 (kibi.proof-receipt.v1 entries are still read). Receipts are never caller-authored; kb_ingest_proof derives them from kibi.proof-run.v1 artifacts.",
         "required": [
           "version",
           "receipt_id",
@@ -837,7 +944,10 @@
         "properties": {
           "version": {
             "type": "string",
-            "const": "kibi.proof-receipt.v1"
+            "enum": [
+              "kibi.proof-receipt.v1",
+              "kibi.proof-receipt.v2"
+            ]
           },
           "receipt_id": {
             "type": "string",
@@ -1080,6 +1190,84 @@
               "additionalProperties": false
             }
           },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "e2e",
+              "example",
+              "property",
+              "exhaustive",
+              "typecheck",
+              "arithmetic",
+              "smt"
+            ]
+          },
+          "evidence_level": {
+            "type": "string",
+            "enum": [
+              "proved",
+              "tested"
+            ]
+          },
+          "certificate": {
+            "type": "object"
+          },
+          "certificate_digest": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "certificate_rejection": {
+            "type": "string",
+            "minLength": 1
+          },
+          "claim_bindings": {
+            "type": "array",
+            "description": "Certificate kinds: how the certificate binds to each claim its contract names in proves, judged at ingest. derived means Kibi derived the certificate's obligation from the claim's grounding fact and the certificate satisfies it; attested means no derivation exists and the author vouches for it (never proved); rejected names why.",
+            "items": {
+              "type": "object",
+              "required": [
+                "claim_key",
+                "binding"
+              ],
+              "properties": {
+                "claim_key": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "requirement_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "fact_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "binding": {
+                  "type": "string",
+                  "enum": [
+                    "derived",
+                    "attested",
+                    "rejected"
+                  ]
+                },
+                "scope": {
+                  "type": "string",
+                  "enum": [
+                    "code",
+                    "intent"
+                  ]
+                },
+                "obligation": {
+                  "type": "object"
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": false
+            }
+          },
           "gaps": {
             "type": "array",
             "items": {
@@ -1159,11 +1347,21 @@
         "string",
         "int",
         "number",
-        "bool"
+        "bool",
+        "set"
       ]
     },
     "value_string": {
       "type": "string"
+    },
+    "value_set": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true
     },
     "value_int": {
       "type": "integer"
@@ -1393,6 +1591,11 @@
             {
               "required": [
                 "value_bool"
+              ]
+            },
+            {
+              "required": [
+                "value_set"
               ]
             },
             {
@@ -1660,6 +1863,11 @@
             {
               "required": [
                 "exempts_claims"
+              ]
+            },
+            {
+              "required": [
+                "required_evidence"
               ]
             }
           ]

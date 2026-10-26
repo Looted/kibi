@@ -1,4 +1,5 @@
 import { ENTITY_ORIGIN_SCHEMA } from "../../entity-origin.js";
+import { EVIDENCE_LEVELS } from "../../evidence-levels.js";
 import {
   PROOF_BINDINGS_SCHEMA,
   PROOF_CONTRACT_SCHEMA,
@@ -131,6 +132,12 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       description:
         "req/adr only. firm = a human stated it as a rule (needs origin.ref to their words); its title, meaning or firmness changes only with new human words (a new origin.ref) or by supersede. default = delegated or agent choice; exploratory = flagged guess. Absent = default if an agent wrote it, else firm.",
     },
+    required_evidence: {
+      type: "string",
+      enum: [...EVIDENCE_LEVELS],
+      description:
+        "Requirement-only. Weakest evidence level it accepts; the evidence-floor rule fails below it. Absent = tested if firm, else unverified.",
+    },
     rationale: {
       type: "string",
       minLength: 1,
@@ -243,9 +250,9 @@ export const ENTITY_PROPERTIES_SCHEMA = {
     },
     value_type: {
       type: "string",
-      enum: ["string", "int", "number", "bool"],
+      enum: ["string", "int", "number", "bool", "set"],
       description:
-        "Optional typed value discriminator for property_value facts. Pair with exactly one value_string, value_int, value_number, or value_bool; do not use generic value.",
+        "Optional typed value discriminator for property_value facts. Pair with exactly one value_string, value_int, value_number, value_bool, or value_set (set: an exact list of allowed values, operator eq or neq); do not use generic value.",
     },
     value_string: {
       type: "string",
@@ -262,6 +269,14 @@ export const ENTITY_PROPERTIES_SCHEMA = {
     value_bool: {
       type: "boolean",
       description: "Optional boolean value for property_value facts.",
+    },
+    value_set: {
+      type: "array",
+      items: { type: "string", minLength: 1 },
+      minItems: 1,
+      uniqueItems: true,
+      description:
+        "Optional exact set of values for property_value facts with value_type set, such as the members a domain must have.",
     },
     unit: {
       type: "string",

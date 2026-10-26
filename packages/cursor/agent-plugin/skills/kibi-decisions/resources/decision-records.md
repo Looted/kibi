@@ -43,7 +43,7 @@ says it, link to it instead of restating it. Otherwise write the scenario
 first, then the requirement (the requirement's write sends `specified_by`):
 
 ```json
-{"type":"req","id":"REQ-billing-refund-approval","properties":{"title":"Refunds above 500 EUR need a finance approval","status":"open","priority":"must","firmness":"firm","origin":{"kind":"agent","ref":"session request: \"from now on refunds above 500 EUR must be approved by finance\""}},"relationships":[{"type":"specified_by","from":"REQ-billing-refund-approval","to":"SCEN-billing-refund-approval"}],"document":{"body":"Refunds above 500 EUR need a finance approval.\n\n## Context\n\nThe person asked for this rule while changing the refund flow; reason not stated.\n\n## Source\n\n> from now on refunds above 500 EUR must be approved by finance\n\nSession request."}}
+{"type":"req","id":"REQ-billing-refund-approval","properties":{"title":"Refunds above 500 EUR need a finance approval","status":"open","priority":"must","firmness":"firm","required_evidence":"asserted","origin":{"kind":"agent","ref":"session request: \"from now on refunds above 500 EUR must be approved by finance\""}},"relationships":[{"type":"specified_by","from":"REQ-billing-refund-approval","to":"SCEN-billing-refund-approval"}],"document":{"body":"Refunds above 500 EUR need a finance approval.\n\n## Context\n\nThe person asked for this rule while changing the refund flow; reason not stated. No end-to-end test proves it yet.\n\n## Source\n\n> from now on refunds above 500 EUR must be approved by finance\n\nSession request."}}
 ```
 
 Then link the enforcing symbol with `implements` (and its test with
@@ -58,6 +58,11 @@ validation, not the write.
   `origin.approved_by` to the person.
 - A rule from a document, test or ticket a person wrote is `firm` too, with
   `origin.ref` to that source.
+- `required_evidence: asserted` keeps an untested firm rule from failing
+  the `evidence-floor` check while it is recorded. Drop it (the floor goes
+  back to `tested`) once an end-to-end test with a proof contract and a
+  passing `kibi prove` receipt covers the rule's scenario; never set it below
+  `asserted` on a firm rule.
 - Your own choice is `default`; a guess is `exploratory`. Write the value
   explicitly whenever you record a decision.
 - For strict modeling (claim keys, predicate facts) follow `kibi-usage`,

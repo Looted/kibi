@@ -3121,6 +3121,13 @@ value_from_props(Props, string, Value) :- memberchk(value_string=ValueRaw, Props
 value_from_props(Props, int, Value) :- memberchk(value_int=ValueRaw, Props), !, unwrap_rdf_value(ValueRaw, Value).
 value_from_props(Props, number, Value) :- memberchk(value_number=ValueRaw, Props), !, unwrap_rdf_value(ValueRaw, Value).
 value_from_props(Props, bool, Value) :- memberchk(value_bool=ValueRaw, Props), !, unwrap_rdf_value(ValueRaw, Value).
+% A set value is its sorted, unique members, so two facts naming the same set
+% in any order compare equal.
+value_from_props(Props, set, Value) :-
+    memberchk(value_set=ValueRaw, Props),
+    normalize_term_atom_list(ValueRaw, Atoms),
+    !,
+    sort(Atoms, Value).
 value_from_props(_, _, '').
 
 %% unwrap_rdf_value(+Raw, -Value)

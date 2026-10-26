@@ -30,10 +30,15 @@ symbols_manifest_stale: .kb/symbol-coordinates.yaml is stale or missing for stag
 | `symbol-coverage` | A changed symbol, or a symbol whose staged manifest entry changed, fails the full-check rule on the staged knowledge. | The symbol `implements` the requirement and is `covered_by` a test that verifies it: through the requirement's scenario (`verified_by` scenario -> test) when it has one, else `verified_by` requirement -> test. A direct requirement -> test link does not count while a scenario exists. The finding's suggestion names the missing link (see `kibi-traceability`). |
 | `kibi_impact_override_missing_rationale` | A `Kibi-Impact: none` declaration has no `Rationale:` line. | Add the rationale, or drop the declaration and stage real evidence. |
 | `entity-context-missing` (staged entity) | A staged requirement, scenario, test, ADR or observation fact has fewer than 12 words of context. | Upsert a sectioned `document.body` (see `kibi-usage`, Entity body contract). |
-| `domain-contradictions`, `scenario-feasibility`, `exception-claim-keys` (staged `.kb/` change) | The staged knowledge introduces a violation the last commit did not have. | Fix the knowledge; a contradiction with a recorded rule goes to the person (`kibi-decisions`). |
+| `domain-contradictions`, `kb-consistency`, `scenario-feasibility`, `exception-claim-keys` (staged `.kb/` change) | The staged knowledge introduces a violation the last commit did not have. `kb-consistency` also catches facts that contradict only together and names their requirements. | Fix the knowledge; a contradiction with a recorded rule goes to the person (`kibi-decisions`). |
 | Proposition-complete ingestion | A staged requirement's semantic inventory is missing or no longer matches its prose. | Re-derive it (`kb_model` analyze with the complete prose) or run `kibi migrate` for drift. |
 | `kibi check-generated --staged` drift | The staged `.kb/symbols.yaml` or `.kb/symbol-coordinates.yaml` differs from a refresh computed from the index. | `kibi sync --refresh-symbol-coordinates`, review the diff, stage only the intended hunks (`git add -p`). |
 | `Staged impact review failed: impact_review_invalid: ...` | The base commit has `.kibi/impact-policy.json` and the staged `.kibi/impact-review.json` is missing, stale or incomplete. The message names the cause (missing review path, stale fingerprint, ...). | Prepare a fresh record (below). Any later staged change makes the fingerprints stale again, so prepare it last. |
+
+The staged gate does not judge evidence levels: the `evidence-floor` rule
+runs only in a full `kibi check`. A firm requirement staged without an
+end-to-end proof passes the commit and fails that check later (see
+`kibi-decisions` for `required_evidence`).
 
 ## Advisory findings
 

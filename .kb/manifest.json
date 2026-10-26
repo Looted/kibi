@@ -1,6 +1,6 @@
 {
   "manifestVersion": 1,
-  "schemaVersion": 10,
+  "schemaVersion": 12,
   "semanticAdvisorBackfill": "pending",
   "contextAcknowledged": [
     "FACT-OBS-141D6CBE864E4D01",

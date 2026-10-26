@@ -1,6 +1,7 @@
 ---
 title: Staged check blocks consistency violations a commit introduces
 status: open
+required_evidence: tested
 priority: must
 tags:
   - cli

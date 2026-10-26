@@ -75,6 +75,14 @@ const DOCUMENT_TEXT_PROPERTIES = new Set([
   "details",
 ]);
 
+/** Whether the upsert entity schema defines `key` as an entity property. */
+export function isUpsertEntityProperty(key: string): boolean {
+  return Object.hasOwn(
+    upsertEntitySchema.properties as Readonly<Record<string, unknown>>,
+    key,
+  );
+}
+
 /** Every top-level entity key the upsert entity schema does not define. */
 function unknownEntityProperties(
   entity: Readonly<Record<string, unknown>>,

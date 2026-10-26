@@ -4,13 +4,32 @@ import {
   proofContractHash,
 } from "./proof-fingerprint.js";
 import {
+  PROOF_KINDS,
   PROOF_RECEIPT_VERSION,
+  PROOF_RECEIPT_VERSIONS,
   PROOF_RESULT_OUTCOMES,
   PROOF_RUN_OUTCOMES,
   type ProofContract,
+  type ProofKind,
+  isCertificateProofKind,
 } from "./proof-protocol.js";
 
 export const PROOF_RECEIPT_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
+
+/**
+ * How a certificate binds to a claim its contract names in proves: derived
+ * (Kibi checked it against the claim's fact; the only verdict that proves),
+ * attested (the fact has no derivation; the author vouches) or rejected.
+ */
+// implements REQ-kibi-claim-bound-proofs
+export const CLAIM_BINDING_VERDICTS = [
+  "derived",
+  "attested",
+  "rejected",
+] as const;
+
+// implements REQ-kibi-claim-bound-proofs
+export type ClaimBindingVerdict = (typeof CLAIM_BINDING_VERDICTS)[number];
 
 export const PROOF_RECEIPT_OUTCOMES = [
   "passed",
@@ -25,7 +44,7 @@ export const PROOF_RECEIPT_OUTCOMES = [
 export const PROOF_RECEIPT_SCHEMA = {
   type: "object",
   description:
-    "Kibi-derived kibi.proof-receipt.v1. Receipts are never caller-authored; kb_ingest_proof derives them from kibi.proof-run.v1 artifacts.",
+    "Kibi-derived kibi.proof-receipt.v2 (kibi.proof-receipt.v1 entries are still read). Receipts are never caller-authored; kb_ingest_proof derives them from kibi.proof-run.v1 artifacts.",
   required: [
     "version",
     "receipt_id",
@@ -47,7 +66,7 @@ export const PROOF_RECEIPT_SCHEMA = {
     "proof_results",
   ],
   properties: {
-    version: { type: "string", const: PROOF_RECEIPT_VERSION },
+    version: { type: "string", enum: [...PROOF_RECEIPT_VERSIONS] },
     receipt_id: {
       type: "string",
       pattern: "^PR-[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
@@ -144,6 +163,33 @@ export const PROOF_RECEIPT_SCHEMA = {
         additionalProperties: false,
       },
     },
+    kind: { type: "string", enum: [...PROOF_KINDS] },
+    evidence_level: { type: "string", enum: ["proved", "tested"] },
+    certificate: { type: "object" },
+    certificate_digest: { type: "string", pattern: "^[a-f0-9]{64}$" },
+    certificate_rejection: { type: "string", minLength: 1 },
+    claim_bindings: {
+      type: "array",
+      description:
+        "Certificate kinds: how the certificate binds to each claim its contract names in proves, judged at ingest. derived means Kibi derived the certificate's obligation from the claim's grounding fact and the certificate satisfies it; attested means no derivation exists and the author vouches for it (never proved); rejected names why.",
+      items: {
+        type: "object",
+        required: ["claim_key", "binding"],
+        properties: {
+          claim_key: { type: "string", minLength: 1 },
+          requirement_id: { type: "string", minLength: 1 },
+          fact_id: { type: "string", minLength: 1 },
+          binding: {
+            type: "string",
+            enum: [...CLAIM_BINDING_VERDICTS],
+          },
+          scope: { type: "string", enum: ["code", "intent"] },
+          obligation: { type: "object" },
+          reason: { type: "string", minLength: 1 },
+        },
+        additionalProperties: false,
+      },
+    },
     gaps: {
       type: "array",
       items: {
@@ -162,7 +208,7 @@ export const PROOF_RECEIPT_SCHEMA = {
 } as const;
 
 export type ProofReceipt = Readonly<{
-  version: typeof PROOF_RECEIPT_VERSION;
+  version: (typeof PROOF_RECEIPT_VERSIONS)[number];
   receipt_id: string;
   test_id: string;
   scope: "unit" | "integration" | "end_to_end";
@@ -201,6 +247,27 @@ export type ProofReceipt = Readonly<{
     readonly target: string;
     readonly reason: string;
   }[];
+  /** v2: what the contract's checker establishes. */
+  kind?: ProofKind;
+  /** v2: proved only for a passed certificate kind whose certificate re-checked. */
+  evidence_level?: "proved" | "tested";
+  certificate?: Readonly<Record<string, unknown>>;
+  certificate_digest?: string;
+  certificate_rejection?: string;
+  /** Certificate kinds: the binding to each claim the contract names in proves. */
+  claim_bindings?: readonly ClaimBinding[];
+}>;
+
+/** How one certificate binds to one requirement claim, judged at ingest. */
+// implements REQ-kibi-claim-bound-proofs
+export type ClaimBinding = Readonly<{
+  claim_key: string;
+  requirement_id?: string;
+  fact_id?: string;
+  binding: ClaimBindingVerdict;
+  scope?: "code" | "intent";
+  obligation?: Readonly<Record<string, unknown>>;
+  reason?: string;
 }>;
 
 export function finishedAtPrecedesStartedAt(
@@ -285,14 +352,17 @@ function validFingerprintComponents(value: unknown): boolean {
   );
 }
 
-/** Structural validation of one kibi.proof-receipt.v1 entry. */
+/** Structural validation of one kibi.proof-receipt.v1 or v2 entry. */
 export function validProofReceiptShape(
   testId: string,
   receipt: unknown,
 ): boolean {
   const row = isRecord(receipt) ? receipt : null;
   if (!row) return false;
-  if (row.version !== PROOF_RECEIPT_VERSION) return false;
+  if (!(PROOF_RECEIPT_VERSIONS as readonly unknown[]).includes(row.version))
+    return false;
+  if (row.version === PROOF_RECEIPT_VERSION && !validV2Fields(row))
+    return false;
   if (
     typeof row.receipt_id !== "string" ||
     !/^PR-[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$/.test(row.receipt_id)
@@ -358,9 +428,59 @@ export function validProofReceiptShape(
   return !finishedAtPrecedesStartedAt(startedAt, finishedAt);
 }
 
+// implements REQ-kibi-code-proof-kinds
+function validV2Fields(row: Record<string, unknown>): boolean {
+  if (!(PROOF_KINDS as readonly unknown[]).includes(row.kind)) return false;
+  if (row.evidence_level !== "proved" && row.evidence_level !== "tested")
+    return false;
+  if (
+    row.evidence_level === "proved" &&
+    (row.outcome !== "passed" ||
+      !isCertificateProofKind(row.kind) ||
+      !isRecord(row.certificate) ||
+      !hex64(row.certificate_digest) ||
+      row.certificate_rejection !== undefined)
+  )
+    return false;
+  if (row.certificate !== undefined && !isRecord(row.certificate)) return false;
+  if (row.certificate_digest !== undefined && !hex64(row.certificate_digest))
+    return false;
+  if (
+    row.certificate_rejection !== undefined &&
+    !nonEmptyString(row.certificate_rejection)
+  )
+    return false;
+  if (
+    row.claim_bindings !== undefined &&
+    !validClaimBindings(row.claim_bindings)
+  )
+    return false;
+  return true;
+}
+
+// implements REQ-kibi-claim-bound-proofs
+function validClaimBindings(value: unknown): boolean {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (entry) =>
+        isRecord(entry) &&
+        nonEmptyString(entry.claim_key) &&
+        (CLAIM_BINDING_VERDICTS as readonly unknown[]).includes(
+          entry.binding,
+        ) &&
+        (entry.scope === undefined ||
+          entry.scope === "code" ||
+          entry.scope === "intent") &&
+        (entry.obligation === undefined || isRecord(entry.obligation)) &&
+        (entry.reason === undefined || nonEmptyString(entry.reason)),
+    )
+  );
+}
+
 /**
  * Full-history validation for proof_receipts: unique ids, per-test binding,
- * supported scope, ordered timestamps, and structurally valid v1 entries.
+ * supported scope, ordered timestamps, and structurally valid v1 or v2 entries.
  */
 export function proofReceiptHistoryErrors(
   testId: string,
@@ -388,7 +508,7 @@ export function proofReceiptHistoryErrors(
     }
     if (!validProofReceiptShape(testId, receipt)) {
       errors.push(
-        `${prefix} must be a structurally valid kibi.proof-receipt.v1 bound to '${testId}'`,
+        `${prefix} must be a structurally valid kibi.proof-receipt.v2 (or v1) bound to '${testId}'`,
       );
       continue;
     }

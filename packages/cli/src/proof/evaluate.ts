@@ -97,6 +97,15 @@ export function evaluateContractAgainstRun(
   contract: ProofContract,
 ): ContractEvaluation {
   const runPassed = artifact.run.outcome === "passed";
+  // Under own_results_first_attempt a run that only failed other cases is
+  // judged per obligation; setup, collection, infrastructure or teardown
+  // failures, errors, interruptions and empty runs still refuse every one.
+  const judgeOwnResults =
+    !runPassed &&
+    contract.success_policy === "own_results_first_attempt" &&
+    artifact.run.outcome === "failed" &&
+    (artifact.run.failure_phase === undefined ||
+      artifact.run.failure_phase === "execution");
   const gaps: ProofGap[] = [];
   const projectedResults: ProofResult[] = [];
 
@@ -107,7 +116,15 @@ export function evaluateContractAgainstRun(
         result.target === obligation.target,
     );
     if (observed) projectedResults.push(observed);
-    if (!runPassed) {
+    if (judgeOwnResults && observed?.binding === "aggregate_run") {
+      gaps.push({
+        symbol_id: obligation.symbol_id,
+        target: obligation.target,
+        reason: `run did not pass (outcome: ${artifact.run.outcome}); an aggregate-run result has no result of its own to judge`,
+      });
+      continue;
+    }
+    if (!runPassed && !judgeOwnResults) {
       const attribution = failingMemberSummary(artifact, observed);
       gaps.push({
         symbol_id: obligation.symbol_id,
@@ -167,7 +184,7 @@ export function evaluateContractAgainstRun(
     }
   }
 
-  if (!runPassed) {
+  if (!runPassed && !judgeOwnResults) {
     return {
       satisfied: false,
       outcome: mapRunOutcome(artifact.run.outcome),

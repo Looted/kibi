@@ -1,0 +1,371 @@
+import assert from "node:assert";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { after, before, describe, it } from "node:test";
+import {
+  type Tarballs,
+  type TestSandbox,
+  checkPrologAvailable,
+  createSandbox,
+  kibi,
+  packAll,
+  stageSourceFile,
+} from "./helpers.js";
+
+const RUN_NODE_TEST_SUITE =
+  typeof (globalThis as { Bun?: unknown }).Bun === "undefined";
+
+/**
+ * E2E: a certificate proves the requirement claims its contract names, and
+ * only those whose obligation Kibi derives from the claim's fact.
+ *
+ * SCEN-kibi-claim-bound-proofs — the semantic advisor models "Palette colors
+ * must be one of red, green or blue" as a set fact. An exhaustive test whose
+ * contract names that claim in proves, over a domain that is exactly the set
+ * and linked covered_by the test, gets a derived binding; a test over a
+ * domain missing a member and a test naming a key that is no claim of the
+ * requirement get rejected bindings with the reason. kibi prove prints each
+ * binding, kibi check reports the contracts that cannot prove their claims
+ * and a certificate contract without proves, and kibi proof explain lists
+ * the claim with its bindings.
+ */
+
+type Step = Readonly<{
+  type: string;
+  id: string;
+  properties: Record<string, unknown>;
+  relationships?: readonly Record<string, string>[];
+}>;
+
+const STATEMENT = "Palette colors must be one of red, green or blue.";
+const UNKNOWN_CLAIM = "CLAIM-0000000000000BAD";
+
+const SOURCES: Record<string, string> = {
+  "colors.mjs": 'export const COLORS = ["red", "green", "blue"];\n',
+  "warm.mjs": 'export const WARM = ["red", "green"];\n',
+  "emit.mjs": `import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+const selected = new Set(JSON.parse(process.env.KIBI_PROOF_TEST_IDS ?? "[]"));
+export function emit(testId, symbolId, members) {
+  const directory = process.env.KIBI_PROOF_CERTIFICATES;
+  if (!directory || !selected.has(testId)) return;
+  mkdirSync(directory, { recursive: true });
+  writeFileSync(join(directory, testId + ".json"), JSON.stringify({
+    version: "kibi.code-certificate.v1",
+    test_id: testId,
+    kind: "exhaustive",
+    domain: { symbol_id: symbolId, members },
+    results: members.map((member) => ({ member, outcome: "passed" })),
+  }));
+}
+`,
+  "colors-proof.mjs": `import { COLORS } from "./colors.mjs";
+import { emit } from "./emit.mjs";
+export function proveColors() {
+  emit("TEST-COLORS-EXACT", "SYM-COLORS", COLORS);
+  emit("TEST-COLORS-UNKNOWN", "SYM-COLORS", COLORS);
+  emit("TEST-COLORS-UNBOUND", "SYM-COLORS", COLORS);
+}
+proveColors();
+`,
+  "warm-proof.mjs": `import { WARM } from "./warm.mjs";
+import { emit } from "./emit.mjs";
+export function proveWarm() {
+  emit("TEST-COLORS-NARROW", "SYM-WARM", WARM);
+}
+proveWarm();
+`,
+  "run-proofs.mjs":
+    'await import("./colors-proof.mjs");\nawait import("./warm-proof.mjs");\n',
+};
+
+async function upsert(sandbox: TestSandbox, payload: unknown): Promise<void> {
+  const request = join(sandbox.repoDir, "upsert-request.json");
+  writeFileSync(request, JSON.stringify(payload));
+  const result = await kibi(sandbox, ["upsert", "--input", request]);
+  assert.strictEqual(result.exitCode, 0, result.stdout + result.stderr);
+}
+
+/** The advisor's apply plan for the statement: subject fact, set fact, requirement. */
+async function advisorPlan(sandbox: TestSandbox): Promise<Step[]> {
+  const request = join(sandbox.repoDir, "model-request.json");
+  writeFileSync(
+    request,
+    JSON.stringify({
+      mode: "analyze",
+      type: "req",
+      id: "REQ-PALETTE",
+      text: STATEMENT,
+    }),
+  );
+  const model = await kibi(sandbox, ["model", "--input", request]);
+  assert.strictEqual(model.exitCode, 0, model.stdout + model.stderr);
+  const suggestion = JSON.parse(model.stdout).data.receipt.suggestions.find(
+    (row: { claim?: { value_type?: string } }) =>
+      row.claim?.value_type === "set",
+  );
+  assert.ok(suggestion, `no set suggestion:\n${model.stdout}`);
+  return suggestion.applyPlan as Step[];
+}
+
+function testDocument(
+  id: string,
+  proofSymbol: string,
+  domain: string,
+  proves: readonly string[],
+): string {
+  return `---
+id: ${id}
+title: Exhaustive palette proof ${id}
+status: passing
+verification_scope: end_to_end
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: command
+  required_proofs:
+    - symbol_id: ${proofSymbol}
+      target: default
+  success_policy: all_required_first_attempt
+  kind: exhaustive
+  domain_source:
+    symbol_id: ${domain}
+${proves.length > 0 ? `  proves:\n${proves.map((key) => `    - ${key}`).join("\n")}\n` : ""}type: test
+---
+
+Leaves an exhaustive certificate for kibi prove.
+`;
+}
+
+async function provision(sandbox: TestSandbox): Promise<string> {
+  for (const [file, content] of Object.entries(SOURCES)) {
+    writeFileSync(join(sandbox.repoDir, file), content);
+    stageSourceFile(sandbox, file);
+  }
+  const synced = await kibi(sandbox, ["sync"]);
+  assert.strictEqual(synced.exitCode, 0, synced.stdout + synced.stderr);
+
+  await upsert(sandbox, {
+    type: "scenario",
+    id: "SCEN-PALETTE",
+    properties: { title: "Render the palette", status: "active" },
+  });
+  const plan = await advisorPlan(sandbox);
+  const requirement = plan.find((step) => step.type === "req");
+  const claimKey = (
+    requirement?.properties.semantic_inventory as { claim_key: string }[]
+  )[0]?.claim_key;
+  assert.match(claimKey ?? "", /^CLAIM-/);
+  for (const step of plan)
+    await upsert(sandbox, {
+      type: step.type,
+      id: step.id,
+      properties: step.properties,
+      relationships: [
+        ...(step.relationships ?? []),
+        ...(step.type === "req"
+          ? [{ type: "specified_by", from: step.id, to: "SCEN-PALETTE" }]
+          : []),
+      ],
+    });
+
+  const tests: [string, string, string, string[]][] = [
+    ["TEST-COLORS-EXACT", "SYM-PROOF-COLORS", "SYM-COLORS", [claimKey ?? ""]],
+    ["TEST-COLORS-NARROW", "SYM-PROOF-WARM", "SYM-WARM", [claimKey ?? ""]],
+    ["TEST-COLORS-UNKNOWN", "SYM-PROOF-COLORS", "SYM-COLORS", [UNKNOWN_CLAIM]],
+    ["TEST-COLORS-UNBOUND", "SYM-PROOF-COLORS", "SYM-COLORS", []],
+  ];
+  for (const [id, proofSymbol, domain, proves] of tests) {
+    const relative = `.kb/tests/${id}.md`;
+    writeFileSync(
+      join(sandbox.repoDir, relative),
+      testDocument(id, proofSymbol, domain, proves),
+    );
+    stageSourceFile(sandbox, relative);
+  }
+  const testsSynced = await kibi(sandbox, ["sync"]);
+  assert.strictEqual(
+    testsSynced.exitCode,
+    0,
+    testsSynced.stdout + testsSynced.stderr,
+  );
+  for (const [id] of tests)
+    await upsert(sandbox, {
+      type: "test",
+      id,
+      properties: {
+        title: `Exhaustive palette proof ${id}`,
+        status: "passing",
+      },
+      relationships: [{ type: "validates", from: id, to: "SCEN-PALETTE" }],
+    });
+  const symbols: [string, string, string, string[]][] = [
+    ["SYM-COLORS", "COLORS", "colors.mjs", ["TEST-COLORS-EXACT"]],
+    ["SYM-WARM", "WARM", "warm.mjs", ["TEST-COLORS-NARROW"]],
+    ["SYM-PROOF-COLORS", "proveColors", "colors-proof.mjs", []],
+    ["SYM-PROOF-WARM", "proveWarm", "warm-proof.mjs", []],
+  ];
+  const executableFor: Record<string, string[]> = {
+    "SYM-PROOF-COLORS": [
+      "TEST-COLORS-EXACT",
+      "TEST-COLORS-UNKNOWN",
+      "TEST-COLORS-UNBOUND",
+    ],
+    "SYM-PROOF-WARM": ["TEST-COLORS-NARROW"],
+  };
+  for (const [id, title, sourceFile, coveredBy] of symbols)
+    await upsert(sandbox, {
+      type: "symbol",
+      id,
+      properties: {
+        title,
+        status: "active",
+        sourceFile,
+        symbol_role: "behavioral",
+      },
+      // The domains implement the requirement; the proof runners are the
+      // tests' executable code.
+      relationships: [
+        ...(coveredBy.length > 0
+          ? [{ type: "implements", from: id, to: "REQ-PALETTE" }]
+          : []),
+        ...coveredBy.map((test) => ({
+          type: "covered_by",
+          from: id,
+          to: test,
+        })),
+        ...(executableFor[id] ?? []).map((test) => ({
+          type: "executable_for",
+          from: id,
+          to: test,
+        })),
+      ],
+    });
+  mkdirSync(join(sandbox.repoDir, ".kb", "proof"), { recursive: true });
+  writeFileSync(
+    join(sandbox.repoDir, ".kb", "proof", "integrations.json"),
+    JSON.stringify({
+      version: "kibi.proof-integration.v1",
+      integrations: [
+        {
+          id: "command",
+          producer: "command",
+          command: ["node", "run-proofs.mjs"],
+          artifact: ".kb/proof/runs/command.json",
+          targets: ["default"],
+          description: "Runs the palette proofs, which leave certificates.",
+        },
+      ],
+    }),
+  );
+  const sync = await kibi(sandbox, ["sync", "--refresh-symbol-coordinates"]);
+  assert.strictEqual(sync.exitCode, 0, sync.stdout + sync.stderr);
+  return claimKey ?? "";
+}
+
+/** The claim_bindings block of a test's latest receipt, as YAML text. */
+function latestBindings(sandbox: TestSandbox, testId: string): string {
+  const document = readFileSync(
+    join(sandbox.repoDir, ".kb", "tests", `${testId}.md`),
+    "utf8",
+  );
+  const frontmatter = document.split(/^---$/m)[1] ?? "";
+  const latest = frontmatter.split(/^ {2}- version: /m).at(-1) ?? "";
+  return latest.split(/^ {4}claim_bindings:/m)[1] ?? "";
+}
+
+/**
+ * Provisions the palette fixture, runs kibi prove --all, and checks how each
+ * certificate binds to the claim it names.
+ */
+export async function checkClaimBoundProofs(
+  sandbox: TestSandbox,
+): Promise<void> {
+  const claimKey = await provision(sandbox);
+  const prove = await kibi(sandbox, ["prove", "--all"], { timeoutMs: 240000 });
+  assert.strictEqual(prove.exitCode, 0, prove.stdout + prove.stderr);
+  assert.match(
+    prove.stderr,
+    new RegExp(
+      `TEST-COLORS-EXACT ${claimKey} \\(REQ-PALETTE\\): derived, code scope`,
+    ),
+  );
+
+  const exact = latestBindings(sandbox, "TEST-COLORS-EXACT");
+  assert.match(exact, /binding: derived/, exact);
+  assert.match(exact, /kind: set_equals/);
+  const narrow = latestBindings(sandbox, "TEST-COLORS-NARROW");
+  assert.match(narrow, /binding: rejected/, narrow);
+  assert.match(narrow, /missing blue/);
+  const unknown = latestBindings(sandbox, "TEST-COLORS-UNKNOWN");
+  assert.match(unknown, /binding: rejected/, unknown);
+  assert.match(unknown, /is not a claim of any current requirement/);
+  assert.strictEqual(latestBindings(sandbox, "TEST-COLORS-UNBOUND"), "");
+
+  const check = await kibi(sandbox, [
+    "check",
+    "--rules",
+    "proof-contract-claims",
+    "--format",
+    "json",
+  ]);
+  const findings = JSON.stringify(
+    JSON.parse(check.stdout).structuredContent.violations,
+  );
+  assert.match(findings, /TEST-COLORS-UNBOUND/, findings);
+  assert.match(findings, /TEST-COLORS-UNKNOWN proves CLAIM-0000000000000BAD/);
+  assert.doesNotMatch(findings, /TEST-COLORS-EXACT/);
+
+  const explain = await kibi(sandbox, ["proof", "explain", "REQ-PALETTE"]);
+  assert.strictEqual(explain.exitCode, 0, explain.stdout + explain.stderr);
+  assert.match(explain.stdout, /proofStatus: tested/, explain.stdout);
+  assert.match(explain.stdout, /Claims \(1\/1 proved/, explain.stdout);
+  assert.match(
+    explain.stdout,
+    /TEST-COLORS-EXACT exhaustive: derived \(code\)/,
+    explain.stdout,
+  );
+  assert.match(
+    explain.stdout,
+    /TEST-COLORS-NARROW exhaustive: rejected/,
+    explain.stdout,
+  );
+}
+
+if (RUN_NODE_TEST_SUITE) {
+  describe("E2E: claim-bound proofs", () => {
+    let tarballs: Tarballs;
+    let sandbox: TestSandbox;
+    let hasProlog = false;
+
+    before(
+      async () => {
+        hasProlog = checkPrologAvailable();
+        tarballs = await packAll();
+        sandbox = createSandbox();
+        await sandbox.install(tarballs);
+        await sandbox.initGitRepo();
+        await kibi(sandbox, ["init", "--no-hooks"]);
+      },
+      { timeout: 240000 },
+    );
+
+    after(
+      async () => {
+        if (sandbox) await sandbox.cleanup();
+      },
+      { timeout: 120000 },
+    );
+
+    it(
+      "binds a certificate to the claims it derives and rejects the rest with the reason",
+      { timeout: 300000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+        await checkClaimBoundProofs(sandbox);
+      },
+    );
+  });
+}

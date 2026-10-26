@@ -181,3 +181,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0f74a56dc34b
+  - type: implements
+    from: SYM-cli-rerun-smt-query
+    to: REQ-kibi-code-proof-kinds
+    created_at: 2026-10-24T19:32:58.316Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c848e757e93
+  - type: covered_by
+    from: SYM-cli-rerun-smt-query
+    to: TEST-kibi-code-proof-kinds
+    created_at: 2026-10-24T19:32:58.333Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb94c9195562

@@ -46,6 +46,7 @@ import { collectCheckPolicyViolations } from "./check-policy-rules.js";
 import { collectDecisionFirmnessViolations } from "./decision-firmness.js";
 import { executeStatus } from "./discovery-executors.js";
 import { collectEntityContextViolations } from "./entity-context.js";
+import { collectEvidenceFloorViolations } from "./evidence-floor.js";
 import {
   buildActionsFromCheck,
   buildMigrationPlan,
@@ -53,6 +54,7 @@ import {
 } from "./migration-plan.js";
 import { collectOriginReviewViolations } from "./origin-review.js";
 import { collectPredicateSchemaConformanceViolations } from "./predicate-schema-conformance.js";
+import { collectProofContractClaimViolations } from "./proof-contract-claims.js";
 import type { OperationContext, PrologPort } from "./runtime-types.js";
 import {
   SOURCE_PATH_DANGLING_RULE,
@@ -72,6 +74,8 @@ export type CheckInput = {
   readonly includeWorkingTreeDiff?: boolean;
   readonly includeImpactDiagnostics?: boolean;
   readonly maxDiagnostics?: number;
+  /** evidence-floor judges receipts as they are and needs a clean snapshot. */
+  readonly freshEvidence?: boolean;
 };
 
 export type CheckPayload = CheckStructuredContent;
@@ -393,6 +397,13 @@ export async function executeCheck(
       rulesAllowlist,
       workspaceRoot,
     );
+    const evidenceFloorFindings = await collectEvidenceFloorViolations(
+      context,
+      rulesAllowlist,
+      { freshEvidence: args.freshEvidence === true },
+    );
+    const proofContractClaimFindings =
+      await collectProofContractClaimViolations(context, rulesAllowlist);
     const partitioned = partitionCheckFindings([
       ...aggregatedFindings,
       ...queryPlanViolations,
@@ -404,6 +415,8 @@ export async function executeCheck(
       ...entityContextFindings,
       ...decisionFirmnessFindings,
       ...checkPolicyFindings,
+      ...evidenceFloorFindings,
+      ...proofContractClaimFindings,
     ]);
     const violations: Violation[] = partitioned.violations;
     const evaluated = await describeEvaluation(prolog, rulesAllowlist);

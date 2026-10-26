@@ -1,6 +1,7 @@
 ---
 title: Predicate bindings that repeat a name or a stop word stay unbound
 status: open
+required_evidence: tested
 priority: must
 tags:
   - modeling

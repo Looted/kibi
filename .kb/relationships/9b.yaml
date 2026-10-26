@@ -286,3 +286,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-320e55864a17
+  - type: executable_for
+    from: SYM-test-claim-binding-verdicts-exhaustive
+    to: TEST-kibi-claim-bound-proofs-exhaustive
+    created_at: 2026-10-25T18:21:54.877Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1360ec2ebe70

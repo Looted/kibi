@@ -23,7 +23,11 @@
 // "Why this changed" section on new supersedes.
 // Schema 10 reads a requirement or ADR without firmness as firm unless an
 // agent wrote it.
-export const LATEST_KB_SCHEMA_VERSION = 10;
+// Schema 11 checks each current requirement's evidence level against its
+// floor (required_evidence, else tested when firm).
+// Schema 12 requires every certificate-kind proof contract to name the
+// claims it proves.
+export const LATEST_KB_SCHEMA_VERSION = 12;
 
 export interface SchemaVersionStatus {
   status: "missing" | "invalid" | "older" | "current" | "newer";

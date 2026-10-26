@@ -271,6 +271,7 @@ export const COVERAGE_SHARDS: readonly {
       "./packages/cli/tests/utils",
       "./packages/cli/tests/logic",
       "./packages/cli/tests/proof",
+      "./packages/cli/tests/proofs",
       "./packages/cli/tests/relationships",
       "./packages/cli/tests/prolog",
       "./packages/cli/tests/helpers",

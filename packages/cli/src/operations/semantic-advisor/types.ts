@@ -116,8 +116,9 @@ export interface SemanticStrictPropertyClaim {
   readonly subject_key: string;
   readonly property_key: string;
   readonly operator: "eq" | "neq" | "lt" | "lte" | "gt" | "gte";
-  readonly value_type: "string" | "int" | "number" | "bool";
+  readonly value_type: "string" | "int" | "number" | "bool" | "set";
   readonly value_string?: string;
+  readonly value_set?: readonly string[];
   readonly value_int?: number;
   readonly value_number?: number;
   readonly value_bool?: boolean;

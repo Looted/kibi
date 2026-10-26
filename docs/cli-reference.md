@@ -150,7 +150,7 @@ Extracts entities and relationships from project documents and updates the knowl
 - Rewrites a `.kb/symbols.yaml` whose `symbols` sequence is still in YAML flow layout (`symbols: [ { id: … }, … ]`, what kibi-cli before 2.18.0 produced by appending to the `symbols: []` that `kibi init` writes) in block layout once, keeping comments and order, so hook scanners and reviewers can read it; the summary line `Rewrote .kb/symbols.yaml in block layout` reports it
 - Updates KB for the current git branch
 - Runs validation rules on the updated KB
-- Prints a summary that opens with `KB Totals` (the entities the branch KB holds after the sync, by type) and `KB Relationships`, counted from the store, followed by `Imported This Sync (changed sources only)`: an incremental sync recompiles only changed sources, so that second block is a delta, not the size of the KB. When the store cannot be counted, the summary shows the imported counts under `Entity Counts` as before
+- Prints a summary that opens with `KB Totals` (the entities the branch KB holds after the sync, by type) and `KB Relationships`, counted from the store, followed by `Imported This Sync (changed sources only)`: an incremental sync recompiles only changed sources, so that second block is a delta, not the size of the KB. Both blocks count distinct relationships: an edge stated in an entity's front matter and again in a symbol manifest or shard counts once. When the store cannot be counted, the summary shows the imported counts under `Entity Counts` as before
 
 **Flags:**
 - `--validate-only` - Perform validation without making mutations
@@ -227,13 +227,36 @@ kibi prove --requirement REQ-checkout
 kibi prove --integration web-e2e
 kibi prove --integration web-e2e,api-tests
 kibi prove --all --integration-except heavy-suite
+kibi prove --stale
+kibi prove --requirement REQ-checkout --stale
+kibi prove --all --resume
 ```
 
 Selectors: `--test`, `--requirement`, `--integration`, `--all` (default).
+`--stale` narrows the selection to tests without a current passing receipt
+(missing, stale, failed or contract-mismatched, judged as coverage judges
+them); when every selected test is current it runs nothing and says so.
+`--resume` skips integrations an interrupted run with the same selector
+already ingested at the current workspace snapshot (recorded in
+`.kb/proof/runs/prove-progress.json`); progress lines on stderr name each
+integration as it starts and is ingested. With `--test`, `--requirement` or
+`--stale`, a `playwright` integration whose command is a direct
+`playwright test` invocation runs only the selected tests'
+`proof_bindings[].source_file` spec files; every producer also receives them
+as `KIBI_PROOF_SOURCE_FILES` (a JSON array).
 `--integration` accepts one or more comma-separated integration ids.
 `--integration-except` is a modifier (it requires a selector such as `--all`)
 that skips tests bound to the listed integrations. A selector that matches no
 proof-bearing test is an error, so a typo cannot silently prove nothing.
+
+The last stdout line is a JSON summary: `passed` (passing receipts),
+`certified` (passing receipts whose certificate re-checked, the only ones that
+can support `proved`), `failed`, `unchanged`, and per-integration `runs` whose
+`results` carry each test's `kind`, `evidenceLevel` (`proved` or `tested`),
+`certificateRejection` and `claimBindings`. A certificate kind whose
+certificate does not re-check still passes, and stderr names it
+(`prove: TEST-x exhaustive: certificate rejected, <reason>`). Before this
+summary used `proved` for the passing count; that key is now `passed`.
 The exit code is non-zero when any proof fails or a producer errors.
 
 Producer child processes run with `KIBI_PROOF_RUN=1` (plus
@@ -250,11 +273,27 @@ the summary's `runs` then carries `attribution: "per_test"` and `failedSteps`
 report the run is evaluated as one unit (`attribution: "aggregate"`, with an
 `attributionReason`). See
 [per-test attribution](proving-requirements.md#per-test-attribution-for-command-integrations).
+Ctrl-C (or SIGTERM/SIGHUP) stops the producer's whole process group.
+
+### `kibi proof run-steps [steps-file]`
+
+A ready-made `command` integration producer. Reads `{test_id, steps}` entries
+from the steps file (default `proof/steps.json`), runs the steps of the tests
+`kibi prove` selected (`KIBI_PROOF_TEST_IDS`, or `--test <id...>` when run by
+hand), each distinct argv once, and writes a `kibi.proof-test-report.v1` to
+`KIBI_PROOF_TEST_REPORT`. Exit code 0 when every step passed. Steps time out
+after `KIBI_PROOF_STEP_TIMEOUT_MS` (default 15 minutes).
+
+```bash
+kibi proof run-steps                 # as an integration command
+kibi proof run-steps --test TEST-checkout
+```
 
 ## `kibi proof inspect`
 
-Detects languages, build systems, test frameworks, CI workflows, configured
-integrations, and the recommended integration level. Deterministic output for
+Detects languages, build systems, test frameworks (including `node --test`
+and `bun test` in the scripts of `package.json` and its workspaces), CI
+workflows, configured integrations, and the recommended integration level. Deterministic output for
 agents. While `.kb/proof/integrations.json` does not exist and a test runner
 is detected, the JSON also carries `proposedIntegration` (a `command`
 integration running the `package.json` `test` script, or the detected
@@ -289,7 +328,7 @@ kibi proof inspect --update unit --command "npx vitest run tests/e2e" --json
 ### `kibi proof explain`
 
 Projects one requirement (`REQ-*`) or symbol (`SYM-*`) from the same
-`kibi.requirement-proof.v4` Proof that coverage uses. Human output labels
+`kibi.requirement-proof.v5` Proof that coverage uses. Human output labels
 `required_proofs`, `executable_for`, and `covered_by` as separate blocks so
 agents cannot treat them as one chain. `--json` emits the structured
 projection (primary plus optional secondary `covered_by` reasons). This
@@ -300,20 +339,6 @@ kibi proof explain REQ-EXAMPLE
 kibi proof explain SYM-EXAMPLE
 kibi proof explain --requirement REQ-EXAMPLE --json
 kibi proof explain --symbol SYM-EXAMPLE --json
-```
-
-### `kibi proof impact`
-
-Compares the current Proof projection to `HEAD:proof/baseline.json`, the
-committed ratchet snapshot — not the working-tree copy. This is a diagnostic
-command: it reports fingerprint differences and exits 0 when evaluation
-succeeds. The strict ratchet remains `scripts/check-proof-baseline.mjs`.
-Human output names the committed file as the comparison target and prints
-requirement-level fingerprint diffs plus live coverage explanations.
-
-```bash
-kibi proof impact
-kibi proof impact --json
 ```
 
 See [proving requirements](proving-requirements.md) for the full workflow:
@@ -551,12 +576,12 @@ kibi coverage [--by req|symbol|type] [--tag TAGS] [--include-passing] [--status 
 ```
 
 **Notes:**
-- Requirement coverage summaries distinguish evaluated must-priority requirements from `not_applicable` rows.
+- Requirement coverage summaries distinguish evaluated must-priority requirements from `not_applicable` rows. The link counts (`evaluated`, `fullyCovered`, `notApplicable` and the `missing*` gaps) judge only `priority: must` requirements, and the summary says so with `linkCoverageScope: "priority_must"`; the table titles that group `Links (priority: must)`. A KB without must-priority requirements reads `evaluated: 0` there while `evidenceLevels` and `proofTested` still count every requirement.
 - `--include-passing` adds rows with a tested or not-applicable proof outcome back into requirement results; compatibility-oriented structural coverage remains visible on every returned row.
 - `--status <statuses>` (comma-separated: `tested`, `missing`, `unresolved`, `not_applicable`) selects requirement rows by `proofStatus` and implies include-passing. Use it to enumerate one slice — e.g. `kibi coverage --by req --status not_applicable` lists every out-of-scope requirement with its typed applicability reason (`proofStages.applicability.reason`: superseded, a status-vocabulary mismatch, or a proof exemption). The summary always reflects the whole KB; pagination applies to the filtered rows.
 - Requirement coverage rows include coverage-depth labels when evidence can be classified: `direct_passing_e2e`, `scenario_passing_e2e`, `unit_only`, `open_or_nonpassing_tests_only`, `scenario_only_no_test`, or `no_test_evidence`.
 - Coverage-depth labels are informational. They do not change existing covered/uncovered pass-fail semantics, and typed test fields (`verification_scope`, then `verification_perspective`) take precedence over legacy `e2e` tags or `/e2e/` path heuristics.
-- Requirement rows also expose the additive `kibi.requirement-proof.v4` contract. `proofStatus` is `tested` (named `proven` before v4), `unresolved`, `missing`, or `not_applicable` for a non-current requirement, and is intentionally independent from compatibility-oriented `coverageStatus`. Each row also carries `evidenceLevel` (`proved`, `tested`, `asserted` or `unverified`) and the `evidence[]` entries that earned it, and the summary counts rows per level under `evidenceLevels`; `proofTested` (named `proofProven` before v4) counts tested rows. See `docs/proof-ladder.md` for the per-stage semantics and the evidence levels.
+- Requirement rows also expose the additive `kibi.requirement-proof.v5` contract. `proofStatus` is `tested` (named `proven` before v4), `unresolved`, `missing`, or `not_applicable` for a non-current requirement, and is intentionally independent from compatibility-oriented `coverageStatus`. Each row also carries `evidenceLevel` (`proved`, `tested`, `asserted` or `unverified`) and the `evidence[]` entries that earned it, and the summary counts rows per level under `evidenceLevels`; `proofTested` (named `proofProven` before v4) counts tested rows. From v5 each row also carries `claimEvidence[]`, `claimSummary` and `unprovedClaims` (a requirement is proved only when a certificate binding derives every applicable claim), the summary totals them under `proofClaims`, and the table's Evidence column shows `n/m claims proved`. The summary also counts current requirements with an evidence floor under `evidenceFloors` (`met`, `below`, `pendingReproof`; a floor of `unverified` is not counted), and the table's Floor column shows each row's floor and status (for example `tested pending reproof`). See `docs/proof-ladder.md` for the per-stage semantics and the evidence levels.
 - `proofStages` records semantic inventory, logical grounding, contradiction, scenario, scenario-test, passing E2E, executable-symbol, production-symbol, and exact source-coordinate evidence. `proofGaps` lists only blocking issues that prevent `tested`. The passing-E2E stage exposes per-scenario `scenarioObligations`; every linked E2E proof-bearing test is mandatory, while unit/integration-only ancillary tests remain nonblocking when the scenario has qualifying E2E evidence. `proofAdvisories` is reserved for explicitly non-blocking context; missing, stale, failed, invalid, snapshot-unavailable, and contract-mismatched E2E evidence remains in `proofGaps`. `proofRepairs` ranks concrete recovery actions for blocking gaps only.
 - Requirement reports also include `repairPlan` (`kibi.repair-plan.v1`). It groups gaps into one small batch per requirement and dependency phase, marks only the earliest unresolved batch `ready`, and links later batches through `dependsOn`. Every batch is read-only guidance with `autoApplicable: false`, a reviewed `workflowSteps` sequence, targeted `validationRules`, and a sequential-write policy.
 - Requirement and symbol reports also include the shared `migrationPlan` (`kibi.migration-plan.v2`). Apply only ready automatic actions after explicitly approving its exact hash and action IDs; review, operator, and E2E execution actions remain agent/operator work.
@@ -573,7 +598,7 @@ existing `kb_coverage` operation, not an additional JSON/MCP operation.
 
 **Syntax:**
 ```bash
-kibi report [--output PATH] [--open] [--tag TAGS] [--limit N]
+kibi report [--output PATH] [--open] [--tag TAGS] [--limit N] [--certificates FILE]
 ```
 
 **Options:**
@@ -581,15 +606,16 @@ kibi report [--output PATH] [--open] [--tag TAGS] [--limit N]
 - `--open` opens the report with the operating system's default browser after the file is written successfully.
 - `--tag <tags>` limits requirement and symbol health to comma-separated tags.
 - `--limit <n>` sets the maximum complete requirement row set. It defaults to 10,000 and fails instead of publishing partial per-requirement metrics.
+- `--certificates <file>` publishes a `kibi.certificates.v1` bundle written by `kibi check --write-certificates` next to the report (`kb-certificates.json`, or `<name>.kb-certificates.json` beside an explicit HTML file) and links it with its certificate count per kind. The report does not re-check the bundle; `kibi check --certificates` does.
 
 **Report contents:**
 - The tested percentage and count use current requirements only; superseded and otherwise non-current requirements are reported as excluded rather than lowering the score.
-- Summary metrics show current requirements, requirements tested end to end, requirements only asserted or unverified (by evidence level), missing scenarios, stale E2E evidence, unique contradiction witnesses, unmapped production symbols, and requirements without implementation.
-- Requirement cards separate semantic grounding, scenario, implementation, E2E-test, and fresh-receipt stages. Search, health filters, and proof-gate filters run entirely in the generated file. Filter buttons include counts. Relative evidence and generation ages are computed in the viewer from preserved absolute timestamps.
+- Summary metrics show current requirements, requirements tested end to end, requirements proved by certificate, asserted or unverified (by evidence level), requirements below their evidence floor or pending re-proof, missing scenarios, stale E2E evidence, unique contradiction witnesses, unmapped production symbols, and requirements without implementation.
+- Requirement cards separate semantic grounding, scenario, implementation, E2E-test, and fresh-receipt stages, plus a certificate stage when a test carries a certificate (its proof kinds and claims proved). Each card shows the evidence level, the evidence floor and whether it is met, below or pending re-proof (`*` marks a floor set by `required_evidence` rather than the firm default), a `Proved` badge for proved requirements, and any certificate or claim-binding rejections. Cards below their floor sort right after contradictions. Search, health filters (proved, tested, needs attention, below floor, pending re-proof, stale, contradictions), and proof-gate filters run entirely in the generated file. Filter buttons include counts. Relative evidence and generation ages are computed in the viewer from preserved absolute timestamps.
 - Stale KB state and dirty workspace proof evaluation are shown as a prominent snapshot warning.
 - Stale KB state and dirty workspace proof evaluation are shown as a prominent snapshot warning.
 - All KB-provided values are HTML-escaped. The report has no CDN, font, script, or other network dependency, so the output directory can be hosted as-is.
-- The generated SVG badge uses the same complete coverage snapshot as the report. It pairs the Kibi logo with a `kibi` label in Codecov/Shields chrome (regular 11px type, `#555` label pane, reserved padding, and white status text), sizes itself to the tested-percentage message (`87% tested`), and uses conservative colors for contradictions and stale snapshots.
+- The generated SVG badge uses the same complete coverage snapshot as the report. It pairs the Kibi logo with a `kibi` label in Codecov/Shields chrome (regular 11px type, `#555` label pane, reserved padding, and white status text), sizes itself to the tested-percentage message (`87% tested`), and uses conservative colors: red for a contradiction or a requirement below its evidence floor, amber for a stale snapshot.
 
 **Examples:**
 ```bash
@@ -644,7 +670,10 @@ or retires (from the Git diff of `.kb/requirements/` against `HEAD`, with
 untracked files; `--staged` uses the index), and each current requirement the
 changed code implements whose document did not change. Each entry quotes the
 statement (the previous one too for a rewrite) with its firmness, origin,
-replaced requirements, scenarios and proof state. `--no-proof` skips the proof
+replaced requirements, scenarios and proof state. The proof state names the
+evidence level, the evidence floor and whether it is met (a floor lowered with
+`required_evidence` says so, since approving the requirement accepts it), and
+any certificate that no longer re-checks. `--no-proof` skips the proof
 lookup, which runs a full coverage pass and can take tens of seconds on a
 large knowledge base.
 
@@ -736,6 +765,7 @@ Validates knowledge base integrity and runs inference rules.
 - Runs the canonical `entity-context-missing` check on authored sources: a current `req`, `scenario`, `test`, `adr` or observation/meta `fact` needs at least 12 words of body context that do not restate its title (requirements: only text under `Context`, `Rationale`, `Why`, `Background`, `Source`, `Notes` or `Evidence` headings). Entities the schema 8 migration acknowledged (tagged `review:context-missing` and recorded in `.kb/manifest.json` as `contextAcknowledged`) are counted by the info diagnostic `entity-context-acknowledged`; the tag on any other entity is still a violation.
 - Runs four canonical decision-firmness checks on authored requirements and ADRs (KB schema 9): `decision-firm-unreferenced` (a current decision marked `firmness: firm` must name the human words it rests on in `origin.ref`, or `approval_ref` on a requirement), `decision-firm-superseded` (a decision that supersedes a firm one, retired or not, must itself be firm; from KB schema 10 a decision without `firmness` is firm unless an agent wrote it, and the supersedes of such decisions recorded before schema 10 are acknowledged in `firmSupersedeAcknowledged`), `decision-firm-edited` (a decision that was firm at `HEAD` must not have its title, stated meaning, an ADR's body or its firmness changed in the working tree unless the edit cites new human words in `origin.ref` or `approval_ref`; `kb_upsert` refuses such a write up front) and `supersedes-reason-missing` (a current decision that supersedes another needs a `## Why this changed` section of at least 12 words naming the evidence). Supersede edges the schema 9 migration acknowledged (`supersedesReasonAcknowledged` in `.kb/manifest.json`) are counted by the info diagnostic `supersedes-reason-acknowledged` instead. See [Decision firmness](entity-schema.md#decision-firmness).
 - Runs the canonical `kb-consistency` check: the facts current requirements name must hold together, jointly and not only pairwise. Each run produces a `kibi.certificates.v1` bundle (a model or an irreducible contradiction core per property context, a truth value per predicate atom, a decision per decision key, a stratum assignment or a negation cycle for the stored rules) and re-checks it with the independent checker. A re-verified contradiction is a blocking violation that names the core facts, the requirements behind them and one model per dropped fact, with the certificate under `evidence.certificate`; a certificate the checker rejects also blocks. The advisory `kb-consistency-unresolved` check reports each context the checker cannot compare (mixed value types or units, an unsupported operator or polarity, a contradiction whose validity windows never overlap) as a non-blocking diagnostic; it never counts as consistent. See [Knowledge-base certificates](./proof-ladder.md#knowledge-base-certificates).
+- Runs the canonical `evidence-floor` check (KB schema 11): every current requirement's evidence level (`proved`, `tested`, `asserted`, `unverified`) must reach its floor, which is `required_evidence` when set, otherwise `tested` for a firm requirement and no floor for any other. A requirement whose receipts are only older than the code counts as pending re-proof and passes unless `--fresh-evidence` is given. Each finding names the level, the floor and where the floor came from, and its suggestion says what would raise the level. See [Evidence floors](./proof-ladder.md#evidence-floors).
 - Runs the canonical `related-requirement-unmodeled` check: a current requirement whose proposition ledger still carries `status: missing` entries while it `relates_to` (in either direction) a current requirement modeled with contradiction-ready strict facts or ground predicate facts is a blocking violation, because `domain-contradictions` compares grounded facts only and would never compare the two. The finding names the modeled `subject_key.property_key` and predicate canonical keys and asks for the missing propositions to be modeled against them or for a `supersedes` decision. Requirements without a ledger stay in the `strict-readiness` migration lane; ledgers whose assertive propositions are modeled or explicitly classified, neighbours that model nothing, and superseded neighbours are not reported.
 - Runs four advisory lifecycle checks by default: `symbol-owner-superseded` (a symbol whose every `implements` target is superseded or deprecated, so no current requirement owns it; a `closed` requirement is done, not retired; up to 25 symbols per check, then one summary finding), `adr-unlinked` (an accepted ADR that no requirement or other ADR links with, in either direction; a symbol's `constrained_by` link does not count), `adr-proposed` (info: an ADR still `proposed` and not superseded) and `requirement-rationale-missing` (a current requirement whose `origin.kind` is `human` or `agent` has no `rationale` field, no `## Rationale`, `## Why` or `## Context` section in its body, and no link to an ADR; up to 25 per check, then one summary finding). Imported and migrated requirements are not asked for a rationale.
 - Runs three advisory approval checks by default, all non-blocking: `exception-unapproved` (a current exception requirement `exempts` another requirement but has no `approved_by`, so it exempts nothing), `exception-approval-self-attested` (an exception whose `origin.kind` is `agent` records `approved_by`, but `origin.approved_by` or `approval_ref` is missing, so nothing corroborates that a person approved it) and `agent-requirement-unapproved` (info: current requirements with `origin.kind: agent` and no `origin.approved_by`, listed by id up to 25 per check, then one summary finding with the remaining ids). Kibi cannot verify that a person approved anything; these checks make agent-recorded approvals visible so a human can confirm them.
@@ -758,6 +788,7 @@ Validates knowledge base integrity and runs inference rules.
 - `--min-links <N>` - Minimum requirement links per symbol for staged traceability (default: 1)
 - `--dry-run` - Show staged-traceability effects without modifying files
 - `--format json|text` - Output structured JSON for integrations such as OpenCode scheduled checks, or human-readable text output (default: text)
+- `--fresh-evidence` - The `evidence-floor` rule judges proof receipts as they are: a requirement whose receipts are only older than the code fails instead of counting as pending re-proof, and the proof snapshot must be clean. Run it right after `kibi prove`
 - `--write-certificates <file>` - Also save the `kibi.certificates.v1` bundle the `kb-consistency` rule re-checked (not with `--staged`)
 - `--certificates <file>` - Only re-check a saved bundle against the current KB with the independent checker and print the `kibi.verification.v1` report (one verdict per theorem: `proved`, `disproved` or `unresolved`, and every rejected certificate with the reason; `--format json` prints it as JSON). Exits 1 when a certificate is rejected or missing or a theorem is disproved; cannot be combined with `--write-certificates`, `--staged` or `--rules`
 
@@ -875,7 +906,8 @@ Verifies environment setup and diagnostics.
 - Treats a hook without a kibi-managed section as the project's own hook (hand-written, husky, lefthook, ...). A custom pre-commit passes when it runs both `kibi check-generated --staged --changed-only` and `kibi check --staged` (via `kibi`, `npx kibi`, `node_modules/.bin/kibi` or `"$KIBI_BIN"`; commented lines do not count), and a custom post-rewrite passes when it runs `kibi sync`. Otherwise the check fails and the remediation shows what to delegate to and `kibi init --print-hook <hook>`, because `kibi init` never edits a custom hook
 - Fails when an installed kibi-managed hook section differs from what the running CLI installs ("Kibi-managed hook sections"), for example a pre-commit hook written before the generated-manifest gate
 - Reports the engine daemon serving this workspace and branch ("Engine daemon"), without starting one: its package versions and SWI-Prolog from the daemon handshake. A daemon with other package versions than this CLI is reported, not failed; the next Kibi command stops and replaces it
-- Warns ("Manifest merge driver"), once `.kb/symbols.yaml` holds a symbol, when Git does not route `.kb/symbols.yaml` to `kibi merge-driver` (`merge=kibi` in `.gitattributes`) or `merge.kibi.driver` is not set, and prints both setup lines; merges still work without it, with ordinary line conflicts
+- Warns ("Manifest merge driver"), once `.kb/symbols.yaml` holds a symbol, when Git does not route `.kb/symbols.yaml` to `kibi merge-driver` (`merge=kibi` in `.gitattributes`) or `merge.kibi.driver` is not set, and prints both setup lines; merges still work without it, with ordinary line conflicts; the driver command names the project's package manager (from its lockfile)
+- Warns, rather than fails, when the secret of an activated plugin is missing and every capability of that plugin is in `augment` mode (for example `TYPESAFE_API_KEY` for `kibi-plugin-jev`): the plugin is skipped and builtin providers keep answering. In `replace` mode the missing secret is a failure
 - Reports issues with remediation suggestions
 
 **Examples:**
@@ -1106,6 +1138,10 @@ driver merges the record lists by `id` and writes the result to `<current>`.
 ```bash
 git config merge.kibi.driver "npm exec --no -- kibi merge-driver %O %A %B"
 ```
+
+Use `pnpm exec kibi`, `yarn exec kibi` or `bunx --no-install kibi` in place of
+`npm exec --no -- kibi` in pnpm, Yarn or Bun repositories; `kibi doctor` and
+`kibi migrate` print the command for the lockfile they find.
 
 Regenerate `.kb/symbol-coordinates.yaml` after the merge with
 `kibi sync --refresh-symbol-coordinates`. For a CI job that applies this to

@@ -11,6 +11,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: fact
 ---
 
 Deterministic inference exists over the KB graph, but the public MCP API exposes curated lookup, reporting, mutation, and validation tools rather than raw inference predicates.

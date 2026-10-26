@@ -21,18 +21,18 @@ origin:
 id: TEST-model-predicates-closed-vocabularies
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-4e61c36420b3aad776db6358
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-36ecbcfd031e7cea3e8a7f02
     test_id: TEST-model-predicates-closed-vocabularies
     scope: end_to_end
     outcome: passed
-    code_snapshot: 6cca97613441c1fbaabc1ae371ee3f303736b4d4b1a0c6d7c908439c9eabb06d
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-08T16:07:20.310Z'
-    finished_at: '2026-10-08T16:07:20.441Z'
-    artifact_digest: 1705fee3c40f9c59be68f7935f3da182d731cbd60b3ad6910487e362fe286ae4
+    code_snapshot: 43675d5112431d4f3e5766d7fd142174b14e417e9c8b3d76bc67f23dfa7c508e
+    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
+    started_at: '2026-10-24T20:10:10.145Z'
+    finished_at: '2026-10-24T20:10:10.371Z'
+    artifact_digest: db8d040547ead64ec95fdd832e9183923e255235cdcbeb465f999955d32e09af
     contract_hash: e3b53f982a857a54bf71e2f9b427973e83d9a51f31dcf4b0b905cd102550acde
-    binding_hash: 4617ca86a11524ce2c3d7cc83302bc226b8edfe6c0b5e480b694291ab144a460
+    binding_hash: c9b0f549147527ae84ef3c96a3ba1c0d0bb42a209496970a7ea1b5fe48572a1d
     fingerprint: b625b31e12eead182713b23eeed20aa8628abe4d42fe53b69d25623526103004
     fingerprint_components:
       contract: e3b53f982a857a54bf71e2f9b427973e83d9a51f31dcf4b0b905cd102550acde
@@ -54,5 +54,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs `packages/cli/tests/operations/predicate-binding-placeholders.test.ts`, which validates every built-in schema vocabulary against `predicateVocabularyErrors` and the schema examples, checks the `allowedValues` and summary text of an unbound trigger, and binds constants named in other words or through an alias.

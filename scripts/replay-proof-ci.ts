@@ -25,7 +25,7 @@ import path from "node:path";
 const PROOF_WORKFLOW_PATH = ".github/workflows/proof.yml";
 
 /** The last step of the proof gate; later steps publish reports and artifacts. */
-const FINAL_GATE_STEP = "Enforce proof baseline and clean snapshot";
+const FINAL_GATE_STEP = "Enforce evidence floors on a clean snapshot";
 
 /**
  * Steps that provision the CI host (apt packages, the SWI-Prolog build, global
@@ -48,6 +48,8 @@ const REQUIRED_HOST_TOOLS = Object.freeze([
   "uv",
   "codex",
   "bwrap",
+  "z3",
+  "lake",
 ]);
 
 type ReplayStep = {
@@ -89,7 +91,7 @@ function repositoryLocalProvisioning(run: string): string | undefined {
   return lines.length > 0 ? lines.join("\n") : undefined;
 }
 
-/** The proof job's `run:` steps, in order, up to and including the baseline gate. */
+/** The proof job's `run:` steps, in order, up to and including the evidence-floor gate. */
 export function replaySteps(workflowText: string): ReplayStep[] {
   const workflow = Bun.YAML.parse(workflowText) as {
     jobs?: { proof?: { steps?: WorkflowStep[] } };

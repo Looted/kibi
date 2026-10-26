@@ -112,11 +112,16 @@ describe("the status plan's schema upgrade declares every write", () => {
     expect(upgrade?.affectedFiles).toContain(".gitignore");
     expect(upgrade?.dependsOn).toContain("symbol-legacy-link-mark");
 
-    // Approving the upgrade alone is refused: it would mark the link too.
+    // Approving the upgrade without the mark is refused: it would mark the
+    // link too. (Its other dependencies, such as the entity-type backfill,
+    // are approved so the refusal names the mark.)
+    const otherDependencies = (upgrade?.dependsOn ?? []).filter(
+      (id) => id !== "symbol-legacy-link-mark",
+    );
     const refused = ws.json(["apply-plan"], {
       plan,
       approvedPlanHash: plan.planHash,
-      approvedActionIds: ["schema-config-upgrade"],
+      approvedActionIds: [...otherDependencies, "schema-config-upgrade"],
     }) as ApplyResult;
     expect(refused.status).toBe("error");
     expect(refused.error?.message).toContain(
@@ -127,7 +132,11 @@ describe("the status plan's schema upgrade declares every write", () => {
     const applied = ws.json(["apply-plan"], {
       plan,
       approvedPlanHash: plan.planHash,
-      approvedActionIds: ["symbol-legacy-link-mark", "schema-config-upgrade"],
+      approvedActionIds: [
+        ...otherDependencies,
+        "symbol-legacy-link-mark",
+        "schema-config-upgrade",
+      ],
     }) as ApplyResult;
     expect(applied.data?.outcome).toBe("applied");
     const details = Object.fromEntries(
@@ -142,7 +151,7 @@ describe("the status plan's schema upgrade declares every write", () => {
     // The mark ran as its own action, so the upgrade's pass is a visible
     // no-op; the counts come from the audit record the run wrote.
     expect(details["schema-config-upgrade"]).toBe(
-      "Migrated schema 8 -> 10 (audit .kb/migrations/main.json): legacy-link marks 0, origin backfill 0, superseded requirements closed 0, source paths rewritten 0, source paths removed 0, legacy statuses mapped 0; .gitignore updated.",
+      "Migrated schema 8 -> 12 (audit .kb/migrations/main.json): legacy-link marks 0, origin backfill 0, superseded requirements closed 0, source paths rewritten 0, source paths removed 0, legacy statuses mapped 0; .gitignore updated.",
     );
     expect(ws.read(".kb/symbols.yaml")).toContain(
       "granularity_reason: legacy-link",
@@ -152,10 +161,10 @@ describe("the status plan's schema upgrade declares every write", () => {
     expect(audit).toMatchObject({
       status: "applied",
       fromVersion: 8,
-      toVersion: 10,
+      toVersion: 12,
       symbolGranularityLegacyLinks: 0,
       preMigrationWarning: expect.stringContaining(
-        "KB schemaVersion 8 is older than the latest version 10",
+        "KB schemaVersion 8 is older than the latest version 12",
       ),
     });
     expect(audit).not.toHaveProperty("warning");

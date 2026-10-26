@@ -1,6 +1,7 @@
 ---
 title: SkillOpt candidates may replace the skill description
 status: open
+required_evidence: tested
 priority: must
 tags:
   - skillopt

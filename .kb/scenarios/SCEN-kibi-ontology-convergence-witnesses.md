@@ -12,6 +12,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: scenario
 ---
 
 Given a project-local predicate schema persisted in RDF, when a consumer asks Kibi to ground related prose, then the schema is discoverable, incomplete arguments produce no applicable plan, and an exact reviewed selection can be completed without lexical guessing. Given opposing logical requirements, when contradiction checks run, then their exact source-bound terms are returned and unproved rule overlap remains unresolved.

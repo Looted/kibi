@@ -30,11 +30,13 @@ import {
   type ProofBinding,
   type ProofContract,
   type ProofRunArtifact,
+  optionalProofContractFields,
   proofBindingsErrors,
   proofRunArtifactErrors,
 } from "../../public/proof-protocol.js";
 import {
   MAX_PROOF_RECEIPTS,
+  type ClaimBinding,
   type ProofReceipt,
   proofReceiptCurrentBindingErrors,
   proofReceiptHistoryErrors,
@@ -54,6 +56,8 @@ import {
 } from "../mutation/workspace-mutation-lock.js";
 import { MutationRollbackFailureError } from "../mutation/saga.js";
 import { patchReceiptsIntoDocument } from "./receipt-document.js";
+import { judgeClaimBindings } from "./claim-bindings.js";
+import { checkCodeCertificate } from "./code-certificates.js";
 
 // implements REQ-kibi-verification-evidence-contract
 export type IngestProofArgs = Readonly<{
@@ -72,6 +76,14 @@ export type IngestProofTestResult = Readonly<{
   /** Superseded receipts the ingest compaction dropped from the history. */
   compacted: number;
   gaps: readonly ProofGap[];
+  /** How the receipt's certificate binds to each claim its contract names. */
+  claimBindings?: readonly ClaimBinding[];
+  /** The contract's proof kind (e2e when the contract names none). */
+  kind?: string;
+  /** The evidence level the receipt supports: proved or tested. */
+  evidenceLevel?: string;
+  /** Why the test's certificate did not re-check, for a certificate kind. */
+  certificateRejection?: string;
 }>;
 
 // implements REQ-kibi-verification-evidence-contract
@@ -167,6 +179,7 @@ function parseContract(test: Record<string, unknown>): ProofContract {
         }) as ProofContract["required_proofs"])
       : [],
     success_policy: success_policy as ProofContract["success_policy"],
+    ...optionalProofContractFields(candidate),
   };
   if (!contract || contract.version !== PROOF_CONTRACT_VERSION)
     throw new Error(
@@ -444,6 +457,20 @@ async function executeIngestProofUnlocked(
             test,
             coveredBySymbols: coveredBy.get(testId) ?? [],
           });
+    const verdict = await checkCodeCertificate(context, {
+      testId,
+      contract,
+      outcome: evaluation.outcome,
+      certificate: (artifact.certificates ?? []).find(
+        (entry) => entry.test_id === testId,
+      ),
+    });
+    const claimBindings = await judgeClaimBindings(context, {
+      testId,
+      contract,
+      verdict,
+      coveredBySymbols: coveredBy.get(testId) ?? [],
+    });
     const receipt: ProofReceipt = {
       version: PROOF_RECEIPT_VERSION,
       receipt_id: `PR-${jsonDigest({
@@ -472,6 +499,8 @@ async function executeIngestProofUnlocked(
         ...result,
       })),
       ...(evaluation.gaps.length > 0 ? { gaps: evaluation.gaps } : {}),
+      ...verdict,
+      ...(claimBindings !== undefined ? { claim_bindings: claimBindings } : {}),
     };
     prepared.push({
       testId,
@@ -484,6 +513,28 @@ async function executeIngestProofUnlocked(
   }
 
   const results: IngestProofTestResult[] = [];
+  // implements REQ-kibi-code-proof-kinds
+  // What each receipt says about its proof kind, evidence level, certificate
+  // and claim bindings, so the caller sees a rejected certificate at ingest.
+  const bindingsOf = new Map(
+    prepared.map((entry) => [
+      entry.testId,
+      {
+        ...(entry.receipt.claim_bindings === undefined
+          ? {}
+          : { claimBindings: entry.receipt.claim_bindings }),
+        ...(typeof entry.receipt.kind === "string"
+          ? { kind: entry.receipt.kind }
+          : {}),
+        ...(typeof entry.receipt.evidence_level === "string"
+          ? { evidenceLevel: entry.receipt.evidence_level }
+          : {}),
+        ...(typeof entry.receipt.certificate_rejection === "string"
+          ? { certificateRejection: entry.receipt.certificate_rejection }
+          : {}),
+      },
+    ]),
+  );
   const pendingCommits: PendingReceiptCommit[] = [];
   let passed = 0;
   let failed = 0;
@@ -506,6 +557,7 @@ async function executeIngestProofUnlocked(
         receiptCount: existing.length,
         compacted: 0,
         gaps: evaluation.gaps,
+        ...bindingsOf.get(testId),
       });
       continue;
     }
@@ -661,13 +713,14 @@ async function executeIngestProofUnlocked(
         receiptCount: entry.receiptCount,
         compacted: entry.compacted,
         gaps: entry.gaps,
+        ...bindingsOf.get(entry.testId),
       });
     }
   }
 
   const summary =
     passed > 0
-      ? `Proved ${passed} test(s)${failed > 0 ? `, ${failed} failed` : ""}${unchanged > 0 ? `, ${unchanged} unchanged` : ""}.`
+      ? `Passed ${passed} test(s)${failed > 0 ? `, ${failed} failed` : ""}${unchanged > 0 ? `, ${unchanged} unchanged` : ""}.`
       : `No passing proof: ${failed} failed, ${unchanged} unchanged.`;
   return {
     content: [{ type: "text", text: `Ingested proof evidence. ${summary}` }],

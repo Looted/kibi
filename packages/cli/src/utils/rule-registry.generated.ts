@@ -397,4 +397,18 @@ export const GENERATED_RULES = [
     enforcementClass: "advisory",
     category: "integrity",
   },
+  {
+    name: "evidence-floor",
+    description:
+      "Every current requirement's computed evidence level (proved, tested, asserted, unverified) must reach its floor: required_evidence when set, otherwise tested for a firm requirement and no floor for any other. Receipts that are only older than the code count as pending re-proof and pass, unless kibi check runs with --fresh-evidence, which also needs a clean proof snapshot",
+    enforcementClass: "canonical",
+    category: "integrity",
+  },
+  {
+    name: "proof-contract-claims",
+    description:
+      "From schema 12, every certificate-kind proof contract (exhaustive, typecheck, arithmetic, smt) must name the claims it proves in proves, and each named claim must be a modeled claim of a current requirement the test reaches through its scenarios, grounded by a fact that proof kind can express or attest",
+    enforcementClass: "canonical",
+    category: "integrity",
+  },
 ] as const;

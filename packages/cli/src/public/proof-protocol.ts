@@ -2,8 +2,23 @@
 export const PROOF_RUN_VERSION = "kibi.proof-run.v1" as const;
 // implements REQ-kibi-verification-evidence-contract
 export const PROOF_CONTRACT_VERSION = "kibi.proof-contract.v1" as const;
-// implements REQ-kibi-verification-evidence-contract
-export const PROOF_RECEIPT_VERSION = "kibi.proof-receipt.v1" as const;
+/**
+ * Receipts Kibi writes. v2 adds the contract's kind, the evidence level the
+ * receipt supports, and for certificate kinds the re-checked certificate.
+ */
+// implements REQ-kibi-verification-evidence-contract, REQ-kibi-code-proof-kinds
+export const PROOF_RECEIPT_VERSION = "kibi.proof-receipt.v2" as const;
+/** Receipts written before v2; still read, as e2e evidence at tested. */
+// implements REQ-kibi-code-proof-kinds
+export const PROOF_RECEIPT_V1_VERSION = "kibi.proof-receipt.v1" as const;
+// implements REQ-kibi-code-proof-kinds
+export const PROOF_RECEIPT_VERSIONS = [
+  PROOF_RECEIPT_V1_VERSION,
+  PROOF_RECEIPT_VERSION,
+] as const;
+/** The certificate a certificate-kind proof leaves for Kibi to re-check. */
+// implements REQ-kibi-code-proof-kinds
+export const CODE_CERTIFICATE_VERSION = "kibi.code-certificate.v1" as const;
 // implements REQ-kibi-verification-evidence-contract
 export const PROOF_INTEGRATION_VERSION = "kibi.proof-integration.v1" as const;
 
@@ -38,7 +53,52 @@ export const RUN_FAILURE_PHASES = [
   "infrastructure",
 ] as const;
 
-export const SUCCESS_POLICIES = ["all_required_first_attempt"] as const;
+/**
+ * `all_required_first_attempt`: the whole run must pass and every obligation's
+ * own result must pass on its first attempt.
+ * `own_results_first_attempt`: a run whose only failures are other test cases
+ * (outcome `failed` in the execution phase) still proves an obligation whose
+ * own native-case result passed on its first attempt, so one unrelated
+ * failing case does not erase a suite's evidence. Aggregate-run obligations
+ * still need the whole run to pass.
+ */
+export const SUCCESS_POLICIES = [
+  "all_required_first_attempt",
+  "own_results_first_attempt",
+] as const;
+
+/**
+ * What a proof contract's checker establishes. Runner kinds (e2e, example,
+ * property) sample cases and support tested evidence; certificate kinds
+ * (exhaustive, typecheck, arithmetic, smt) cover every case and support
+ * proved evidence once Kibi re-checks the certificate the run left.
+ */
+// implements REQ-kibi-code-proof-kinds
+export const PROOF_KINDS = [
+  "e2e",
+  "example",
+  "property",
+  "exhaustive",
+  "typecheck",
+  "arithmetic",
+  "smt",
+] as const;
+
+// implements REQ-kibi-code-proof-kinds
+export const CERTIFICATE_PROOF_KINDS = [
+  "exhaustive",
+  "typecheck",
+  "arithmetic",
+  "smt",
+] as const;
+
+// implements REQ-kibi-code-proof-kinds
+export type ProofKind = (typeof PROOF_KINDS)[number];
+
+// implements REQ-kibi-code-proof-kinds
+export function isCertificateProofKind(kind: unknown): boolean {
+  return (CERTIFICATE_PROOF_KINDS as readonly unknown[]).includes(kind);
+}
 
 export type {
   AttemptsStatus,
@@ -191,6 +251,13 @@ export const PROOF_RUN_ARTIFACT_SCHEMA = {
       type: "array",
       items: { type: "string", minLength: 1 },
     },
+    certificates: {
+      type: "array",
+      description:
+        "kibi.code-certificate.v1 objects the run left for certificate-kind contracts, one per test. Kibi re-checks each before a receipt counts as proved.",
+      maxItems: 1000,
+      items: { type: "object", required: ["version", "kind", "test_id"] },
+    },
   },
   additionalProperties: false,
 } as const;
@@ -218,6 +285,73 @@ export const PROOF_CONTRACT_SCHEMA = {
       },
     },
     success_policy: { type: "string", enum: [...SUCCESS_POLICIES] },
+    kind: {
+      type: "string",
+      enum: [...PROOF_KINDS],
+      description:
+        "What the checker establishes; absent means e2e. exhaustive, typecheck, arithmetic and smt must leave a kibi.code-certificate.v1 that Kibi re-checks before the receipt counts as proved.",
+    },
+    domain_source: {
+      type: "object",
+      description:
+        "exhaustive and typecheck: the symbol that defines the finite domain. The proof must import it from its source file; a hand-listed domain downgrades the receipt to example. Kibi reads the export named `export`, or the symbol's title when `export` is absent.",
+      required: ["symbol_id"],
+      properties: {
+        symbol_id: { type: "string", minLength: 1 },
+        export: {
+          type: "string",
+          minLength: 1,
+          description:
+            "The name the domain is exported under in the symbol's source file, when the symbol's title is not that name.",
+        },
+      },
+      additionalProperties: false,
+    },
+    witness: {
+      type: "object",
+      description:
+        "typecheck: the repository-relative witness file Kibi compiles (an exhaustive switch ending in never, or a mapped type over the domain).",
+      required: ["path"],
+      properties: { path: { type: "string", minLength: 1 } },
+      additionalProperties: false,
+    },
+    proves: {
+      type: "array",
+      description:
+        "Certificate kinds: the requirement claim keys (CLAIM-...) this certificate proves. Each must be a modeled claim of a current requirement the test reaches through its scenarios. Kibi derives what the certificate must establish from the claim's grounding fact (a set fact for exhaustive or typecheck, a numeric fact for arithmetic or smt); a claim with no such derivation is only attested and never counts as proved.",
+      minItems: 1,
+      items: { type: "string", pattern: "^CLAIM-" },
+      uniqueItems: true,
+    },
+    value_source: {
+      type: "array",
+      description:
+        "arithmetic and smt: code constants the assumptions read. Kibi evaluates each export at ingest and requires the certificate to assume the variable equals that value, so the proof is about the code and not only the knowledge base.",
+      minItems: 1,
+      items: {
+        type: "object",
+        required: ["symbol_id"],
+        properties: {
+          symbol_id: { type: "string", minLength: 1 },
+          export: { type: "string", minLength: 1 },
+        },
+        additionalProperties: false,
+      },
+    },
+    constraint_source: {
+      type: "object",
+      description:
+        "arithmetic and smt: the typed numeric property_value facts the certificate's assumptions come from. Kibi checks the assumptions (or the query's assertions) are exactly these facts' constraints, so the proof is about the knowledge base, not numbers the test chose.",
+      required: ["fact_ids"],
+      properties: {
+        fact_ids: {
+          type: "array",
+          minItems: 1,
+          items: { type: "string", minLength: 1 },
+        },
+      },
+      additionalProperties: false,
+    },
   },
   additionalProperties: false,
 } as const;
@@ -479,6 +613,24 @@ export function proofRunArtifactErrors(value: unknown): string[] {
     )
       errors.push("artifact.diagnostics must be an array of non-empty strings");
   }
+  if (artifact.certificates !== undefined) {
+    if (!Array.isArray(artifact.certificates))
+      errors.push("artifact.certificates must be an array when present");
+    else
+      artifact.certificates.forEach((entry, index) => {
+        const row = record(entry);
+        if (
+          !row ||
+          !nonEmptyString(row.version) ||
+          !includes(CERTIFICATE_PROOF_KINDS, row.kind) ||
+          !nonEmptyString(row.test_id) ||
+          !isPlainJson(row)
+        )
+          errors.push(
+            `artifact.certificates[${index}] must be a JSON object with version, a certificate kind (${CERTIFICATE_PROOF_KINDS.join(", ")}) and test_id`,
+          );
+      });
+  }
   return errors;
 }
 
@@ -537,7 +689,170 @@ export function proofContractErrors(value: unknown): string[] {
     errors.push(
       `proof_contract.success_policy must be one of: ${SUCCESS_POLICIES.join(", ")}; received ${JSON.stringify(contract.success_policy ?? null)}`,
     );
+  errors.push(...proofContractKindErrors(contract));
   return errors;
+}
+
+// implements REQ-kibi-code-proof-kinds
+function proofContractKindErrors(contract: Record<string, unknown>): string[] {
+  const errors: string[] = [];
+  const kind = contract.kind;
+  if (kind !== undefined && !includes(PROOF_KINDS, kind))
+    errors.push(
+      `proof_contract.kind must be one of: ${PROOF_KINDS.join(", ")}; received ${JSON.stringify(kind)}`,
+    );
+  const domain = contract.domain_source;
+  if (domain !== undefined) {
+    const row = record(domain);
+    if (
+      !row ||
+      !nonEmptyString(row.symbol_id) ||
+      (row.export !== undefined && !nonEmptyString(row.export)) ||
+      Object.keys(row).some((key) => key !== "symbol_id" && key !== "export")
+    )
+      errors.push(
+        "proof_contract.domain_source must be {symbol_id, export?} naming the symbol that defines the domain and, when its title is not the export name, the export to read",
+      );
+  } else if (kind === "exhaustive" || kind === "typecheck")
+    errors.push(
+      `proof_contract.domain_source is required for kind ${String(kind)}: name the symbol the proof reads its domain from`,
+    );
+  const witness = contract.witness;
+  if (witness !== undefined) {
+    const row = record(witness);
+    if (!row || !nonEmptyString(row.path) || Object.keys(row).length !== 1)
+      errors.push(
+        "proof_contract.witness must be {path} naming the repository-relative witness file",
+      );
+  } else if (kind === "typecheck")
+    errors.push(
+      "proof_contract.witness is required for kind typecheck: name the file the type checker compiles",
+    );
+  const source = contract.constraint_source;
+  if (source !== undefined) {
+    const row = record(source);
+    const ids = row?.fact_ids;
+    if (
+      !row ||
+      Object.keys(row).length !== 1 ||
+      !Array.isArray(ids) ||
+      ids.length === 0 ||
+      !ids.every(nonEmptyString)
+    )
+      errors.push(
+        "proof_contract.constraint_source must be {fact_ids: [FACT-...]} naming the facts the assumptions come from",
+      );
+  } else if (
+    (kind === "arithmetic" || kind === "smt") &&
+    contract.value_source === undefined
+  )
+    errors.push(
+      `proof_contract.constraint_source or value_source is required for kind ${String(kind)}: name the typed facts or code constants its assumptions come from`,
+    );
+  const valueSource = contract.value_source;
+  if (valueSource !== undefined) {
+    if (
+      !Array.isArray(valueSource) ||
+      valueSource.length === 0 ||
+      !valueSource.every((entry) => {
+        const row = record(entry);
+        return (
+          row !== null &&
+          nonEmptyString(row.symbol_id) &&
+          (row.export === undefined || nonEmptyString(row.export)) &&
+          Object.keys(row).every(
+            (key) => key === "symbol_id" || key === "export",
+          )
+        );
+      })
+    )
+      errors.push(
+        "proof_contract.value_source must be [{symbol_id, export?}] naming the code constants the assumptions read",
+      );
+    else if (kind !== "arithmetic" && kind !== "smt")
+      errors.push(
+        `proof_contract.value_source applies only to kind arithmetic or smt, not ${String(kind ?? "e2e")}`,
+      );
+  }
+  const proves = contract.proves;
+  if (proves !== undefined) {
+    if (
+      !Array.isArray(proves) ||
+      proves.length === 0 ||
+      !proves.every(
+        (key) => typeof key === "string" && /^CLAIM-[A-Za-z0-9]+$/.test(key),
+      ) ||
+      new Set(proves).size !== proves.length
+    )
+      errors.push(
+        "proof_contract.proves must be a non-empty list of distinct claim keys (CLAIM-...) the certificate proves",
+      );
+    else if (!isCertificateProofKind(kind))
+      errors.push(
+        `proof_contract.proves applies only to certificate kinds (exhaustive, typecheck, arithmetic, smt), not ${String(kind ?? "e2e")}`,
+      );
+  }
+  return errors;
+}
+
+/**
+ * The optional contract fields beyond the v1 core, copied only when present
+ * so existing contracts keep their hash.
+ */
+// implements REQ-kibi-code-proof-kinds
+export function optionalProofContractFields(
+  contract: Record<string, unknown>,
+): Pick<
+  ProofContract,
+  | "kind"
+  | "domain_source"
+  | "witness"
+  | "constraint_source"
+  | "value_source"
+  | "proves"
+> {
+  const fields: {
+    kind?: ProofKind;
+    domain_source?: { symbol_id: string; export?: string };
+    witness?: { path: string };
+    constraint_source?: { fact_ids: string[] };
+    value_source?: { symbol_id: string; export?: string }[];
+    proves?: string[];
+  } = {};
+  if (typeof contract.kind === "string")
+    fields.kind = contract.kind as ProofKind;
+  const domain = record(contract.domain_source);
+  if (domain && typeof domain.symbol_id === "string")
+    fields.domain_source = {
+      symbol_id: domain.symbol_id,
+      ...(typeof domain.export === "string" ? { export: domain.export } : {}),
+    };
+  const witness = record(contract.witness);
+  if (witness && typeof witness.path === "string")
+    fields.witness = { path: witness.path };
+  const source = record(contract.constraint_source);
+  if (source && Array.isArray(source.fact_ids))
+    fields.constraint_source = {
+      fact_ids: source.fact_ids.filter(
+        (id): id is string => typeof id === "string",
+      ),
+    };
+  if (Array.isArray(contract.value_source))
+    fields.value_source = contract.value_source
+      .map((entry) => record(entry))
+      .filter(
+        (row): row is Record<string, unknown> =>
+          row !== null && typeof row.symbol_id === "string",
+      )
+      .map((row) => ({
+        symbol_id: String(row.symbol_id),
+        ...(typeof row.export === "string" ? { export: row.export } : {}),
+      }));
+  if (Array.isArray(contract.proves))
+    fields.proves = contract.proves.filter(
+      (key): key is string => typeof key === "string",
+    );
+  return fields;
 }
 
 export function proofBindingsErrors(value: unknown): string[] {

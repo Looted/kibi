@@ -22,10 +22,12 @@ import {
   extractFromMarkdown,
 } from "../../extractors/markdown.js";
 import { FIRMNESS_FROM_ORIGIN_SCHEMA_VERSION } from "../../public/operations/decision-firmness.js";
+import { EVIDENCE_FLOOR_SCHEMA_VERSION } from "../../public/operations/evidence-floor.js";
 import {
   type MigrationAction,
   migrationAction,
 } from "../../public/operations/migration-plan.js";
+import { CLAIM_BINDING_SCHEMA_VERSION } from "../../public/operations/proof-contract-claims.js";
 import {
   CLOSE_SUPERSEDED_REQUIREMENTS_ACTION_ID,
   CLOSE_SUPERSEDED_REQUIREMENTS_CODE,
@@ -58,6 +60,12 @@ import {
   planEntityTypeBackfill,
 } from "./entity-type.js";
 import {
+  EVIDENCE_FLOOR_PIN_CODE,
+  type LadderFloorVerdicts,
+  applyEvidenceFloorPins,
+  planEvidenceFloorPins,
+} from "./evidence-floor.js";
+import {
   FIRM_SUPERSEDE_ACKNOWLEDGE_CODE,
   applyFirmSupersedeAcknowledgement,
   planFirmSupersedeAcknowledgement,
@@ -75,6 +83,12 @@ import {
   applyPolarityValueBackfill,
   planPolarityValueBackfill,
 } from "./polarity-values.js";
+import {
+  type ClaimCandidateRow,
+  PROOF_CONTRACT_CLAIMS_PIN_CODE,
+  PROOF_CONTRACT_CLAIMS_REVIEW_CODE,
+  planProofContractClaimPins,
+} from "./proof-contract-claims.js";
 import {
   DELIVERED_REQUIREMENT_TAG,
   type RequirementStatusFinding,
@@ -563,6 +577,10 @@ export type Schema6MigrationFragment = Readonly<{
 export function buildSchema6MigrationFragment(input: {
   workspaceRoot: string;
   currentSchemaVersion: number | null;
+  /** The evidence ladder's floor verdicts on the synced store, when read. */
+  ladderFloors?: LadderFloorVerdicts | null;
+  /** Claim candidates of certificate contracts without proves, when read. */
+  claimCandidates?: readonly ClaimCandidateRow[] | null;
 }): Schema6MigrationFragment {
   const actions: MigrationAction[] = [];
   const sourceRewriteActionIds: string[] = [];
@@ -757,6 +775,107 @@ export function buildSchema6MigrationFragment(input: {
         }),
       );
     }
+  }
+  // Schema 11: a firm requirement needs tested evidence. Record an asserted
+  // floor on current firm requirements without a passing proof path, so the
+  // upgraded knowledge base passes evidence-floor.
+  if (
+    input.currentSchemaVersion === null ||
+    input.currentSchemaVersion < EVIDENCE_FLOOR_SCHEMA_VERSION
+  ) {
+    const floors = planEvidenceFloorPins(
+      input.workspaceRoot,
+      input.ladderFloors,
+    );
+    if (floors.targets.length > 0) {
+      const id = "evidence-floor-pin";
+      sourceRewriteActionIds.push(id);
+      actions.push(
+        migrationAction({
+          id,
+          code: EVIDENCE_FLOOR_PIN_CODE,
+          category: "schema",
+          safety: "automatic",
+          autoApplicable: true,
+          invocation: {
+            kind: "cli",
+            command_argv: ["kibi", "migrate", "--yes"],
+          },
+          affectedEntityIds: floors.targets.map((row) => row.id),
+          affectedFiles: floors.targets.map((row) => row.path),
+          postconditions: [{ rule: "evidence-floor", findings: 0 }],
+          evidence: {
+            reason:
+              "Schema 11 fails a current requirement whose evidence is below its floor, and a firm requirement without required_evidence needs tested evidence. These firm requirements are below tested (judged by the evidence ladder on the synced store when one could be read, else by their latest end-to-end receipt), so each records required_evidence: asserted in its front matter, where a reviewer can raise it once a proof exists.",
+            count: floors.targets.length,
+            skipped: floors.skipped,
+            preserves: "every other front matter key and the body bytes",
+          },
+        }),
+      );
+    }
+  }
+  // Schema 12: a certificate contract names the claims it proves. Pin proves
+  // where the test reaches one provable claim; list the rest for review.
+  if (
+    (input.currentSchemaVersion === null ||
+      input.currentSchemaVersion < CLAIM_BINDING_SCHEMA_VERSION) &&
+    input.claimCandidates
+  ) {
+    const claims = planProofContractClaimPins(
+      input.workspaceRoot,
+      input.claimCandidates,
+    );
+    if (claims.targets.length > 0) {
+      const id = "proof-contract-claims-pin";
+      sourceRewriteActionIds.push(id);
+      actions.push(
+        migrationAction({
+          id,
+          code: PROOF_CONTRACT_CLAIMS_PIN_CODE,
+          category: "schema",
+          safety: "automatic",
+          autoApplicable: true,
+          invocation: {
+            kind: "cli",
+            command_argv: ["kibi", "migrate", "--yes"],
+          },
+          affectedEntityIds: claims.targets.map((row) => row.id),
+          affectedFiles: claims.targets.map((row) => row.path),
+          evidence: {
+            reason:
+              "Schema 12 requires every certificate-kind proof contract to name the claims it proves. Each of these tests reaches exactly one claim its proof kind can derive an obligation for, so the migration writes it to proof_contract.proves. The contract changes, so run kibi prove for these tests afterwards.",
+            count: claims.targets.length,
+            skipped: claims.skipped,
+            preserves: "every other front matter key and the body bytes",
+          },
+        }),
+      );
+    }
+    for (const row of claims.review)
+      actions.push(
+        migrationAction({
+          id: `proof-contract-claims-review-${row.id}`,
+          code: PROOF_CONTRACT_CLAIMS_REVIEW_CODE,
+          category: "semantic",
+          safety: "review",
+          invocation: {
+            kind: "review",
+            instruction:
+              row.candidates.length === 0
+                ? `${row.id} (${row.path}) has a ${row.kind} proof contract but reaches no claim ${/^[aeiou]/.test(row.kind) ? "an" : "a"} ${row.kind} certificate can derive an obligation for. Add proof_contract.proves with the claim key its certificate establishes (it then counts as attested, not proved), or model that claim's grounding fact as a ${row.kind === "exhaustive" || row.kind === "typecheck" ? "set" : "numeric"} fact first. Then run kibi prove --test ${row.id}.`
+                : `${row.id} (${row.path}) has a ${row.kind} proof contract and could prove any of ${row.candidates.join(", ")}. Add proof_contract.proves with the claim keys its certificate establishes, then run kibi prove --test ${row.id}.`,
+          },
+          affectedEntityIds: [row.id],
+          affectedFiles: [row.path],
+          postconditions: [
+            { rule: "proof-contract-claims", entityId: row.id, findings: 0 },
+          ],
+          dispositionRequired: true,
+          allowedDispositions: ["fixed", "deferred"],
+          evidence: { kind: row.kind, candidates: row.candidates },
+        }),
+      );
   }
   const drift = planInventoryRederivation(input.workspaceRoot);
   for (const plan of drift) {
@@ -1025,6 +1144,18 @@ export async function applySchema6MigrationAction(
       applyFirmSupersedeAcknowledgement(context.workspaceRoot);
       return;
     }
+    case EVIDENCE_FLOOR_PIN_CODE: {
+      // The plan decided the pins with the evidence ladder; apply the same
+      // set even though source rewrites before it may have left the store
+      // behind the authored files.
+      applyEvidenceFloorPins(
+        context.workspaceRoot,
+        new Map(
+          (action.affectedEntityIds ?? []).map((id) => [id, "below"] as const),
+        ),
+      );
+      return;
+    }
     case SEMANTIC_INVENTORY_REDERIVE_CODE: {
       const requirementId = action.affectedEntityIds[0];
       if (requirementId === undefined)
@@ -1163,6 +1294,7 @@ export const SCHEMA6_AUTOMATIC_CODES: ReadonlySet<string> = new Set([
   CONTEXT_MISSING_TAG_CODE,
   SUPERSEDES_REASON_ACKNOWLEDGE_CODE,
   FIRM_SUPERSEDE_ACKNOWLEDGE_CODE,
+  EVIDENCE_FLOOR_PIN_CODE,
   SEMANTIC_INVENTORY_REDERIVE_CODE,
   REQ_STATUS_DELIVERED_MAP_CODE,
   ENTITY_ORIGIN_BACKFILL_CODE,

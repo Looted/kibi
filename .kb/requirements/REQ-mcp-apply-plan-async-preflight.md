@@ -1,6 +1,7 @@
 ---
 title: Async kb_apply_plan calls report hash errors as call errors
 status: open
+required_evidence: tested
 priority: must
 tags:
   - mcp

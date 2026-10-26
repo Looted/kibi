@@ -53,6 +53,7 @@ id: REQ-GATE-COVERED
 title: Covered gate fixture
 status: open
 priority: must
+required_evidence: asserted
 links:
   - type: specified_by
     target: SCEN-GATE-COVERED
@@ -108,6 +109,7 @@ Covered gate fixture test that validates the covered scenario end to end, so the
 id: REQ-GATE-BARE
 title: Uncovered gate fixture
 status: open
+required_evidence: asserted
 priority: must
 ---
 

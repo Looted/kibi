@@ -30,6 +30,7 @@ numeric_constraints_satisfiable(Constraints) :-
 % integer lies strictly between 0 and 1, and eq 0.5 has no integer solution.
 % IntegerVariables may also be the atom `all`, making every variable integral.
 numeric_constraints_satisfiable(Constraints, IntegerVariables) :-
+    maplist(finite_constraint, Constraints),
     term_variables(Constraints, Variables),
     forall(
         member(Variable, Variables),
@@ -48,6 +49,16 @@ numeric_constraint_entailed(Premises, Constraint) :-
 numeric_constraint_entailed(Premises, Constraint, IntegerVariables) :-
     numeric_constraint_negation(Constraint, Negated),
     \+ numeric_constraints_satisfiable([Negated|Premises], IntegerVariables).
+
+% A NaN or infinite bound has no place on the number line the intervals
+% model, so it is an error rather than an answer.
+finite_constraint(c(_Op, _Variable, Value)) :-
+    (   float(Value),
+        float_class(Value, Class),
+        memberchk(Class, [nan, infinite])
+    ->  domain_error(finite_number, Value)
+    ;   true
+    ).
 
 integer_variable(_, all) :- !.
 integer_variable(Variable, IntegerVariables) :-

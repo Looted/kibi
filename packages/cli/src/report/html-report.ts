@@ -59,12 +59,20 @@ export type HtmlReportCoverage = Readonly<{
   meta?: UnknownRecord;
 }>;
 
+/** A kibi.certificates.v1 bundle published next to the report. */
+export type HtmlReportKbCertificates = Readonly<{
+  count: number;
+  kinds: Readonly<Record<string, number>>;
+  href: string;
+}>;
+
 export type HtmlReportInput = Readonly<{
   requirements: HtmlReportCoverage;
   symbols: HtmlReportCoverage;
   branch: string;
   generatedAt: Date;
   repository?: ReportRepository;
+  kbCertificates?: HtmlReportKbCertificates;
 }>;
 
 type StageState = "passed" | "warning" | "failed" | "muted";
@@ -394,6 +402,7 @@ function requirementStages(
   const testSources = sourceCoordinates(record(stages.scenarioTests).sources);
   const productionSources = sourceCoordinates(productionSymbols.coordinates);
   const executableSources = sourceCoordinates(executableSymbols.coordinates);
+  const certificate = certificateStage(row);
 
   let implementationState: StageState = "failed";
   let implementationDetail = "No production symbol ownership";
@@ -478,6 +487,7 @@ function requirementStages(
       state: e2eState,
     },
     evidenceStage(passingE2e, testSources, repository),
+    ...(certificate === undefined ? [] : [certificate]),
   ];
 }
 
@@ -537,22 +547,134 @@ function renderContradiction(conflict: UnknownRecord): string {
   </div>`;
 }
 
+type EvidenceFloor = Readonly<{
+  required: string;
+  source: string;
+  status: string;
+}>;
+
+/**
+ * The requirement's evidence floor, when it has one: required_evidence, or
+ * tested for a firm requirement. A floor of unverified accepts anything and
+ * reads as no floor.
+ */
+// implements REQ-kibi-evidence-floors
+function evidenceFloor(row: UnknownRecord): EvidenceFloor | undefined {
+  const floor = record(row.evidenceFloor);
+  const required = text(floor.required);
+  if (!required || required === "unverified") return undefined;
+  return {
+    required,
+    source: text(floor.source, "explicit"),
+    status: text(floor.status, "below"),
+  };
+}
+
 function rowSeverity(row: UnknownRecord): number {
   const gaps = strings(row.proofGaps);
   if (gaps.includes("blocking_contradiction")) return 0;
-  if (gaps.includes("stale_proof_receipt")) return 1;
-  if (row.proofStatus !== "tested") return 2;
-  return 3;
+  if (evidenceFloor(row)?.status === "below") return 1;
+  if (gaps.includes("stale_proof_receipt")) return 2;
+  if (row.proofStatus !== "tested") return 3;
+  return 4;
 }
 
+// implements REQ-kibi-html-health-report, REQ-kibi-evidence-floors
 function rowStates(row: UnknownRecord): string {
   const states = new Set<string>();
   const gaps = strings(row.proofGaps);
   if (row.proofStatus === "tested") states.add("tested");
   else states.add("attention");
+  if (row.evidenceLevel === "proved") states.add("proved");
+  const floorStatus = evidenceFloor(row)?.status;
+  if (floorStatus === "below") states.add("below_floor");
+  if (floorStatus === "pending_reproof") states.add("pending_reproof");
   if (gaps.includes("stale_proof_receipt")) states.add("stale");
   if (gaps.includes("blocking_contradiction")) states.add("contradiction");
   return [...states].join(" ");
+}
+
+const FLOOR_STATUS_LABELS: Readonly<Record<string, string>> = {
+  met: "met",
+  below: "below",
+  pending_reproof: "pending re-proof",
+};
+
+// implements REQ-kibi-evidence-floors
+function renderFloorChip(floor: EvidenceFloor | undefined): string {
+  if (floor === undefined) return "";
+  const origin =
+    floor.source === "firmness"
+      ? "the default floor for a firm requirement"
+      : "set by required_evidence";
+  const status = FLOOR_STATUS_LABELS[floor.status] ?? humanize(floor.status);
+  return ` <span class="evidence-floor evidence-floor--${escapeHtml(floor.status)}" title="Evidence floor: ${escapeHtml(floor.required)}, ${escapeHtml(origin)}">floor ${escapeHtml(floor.required)}${floor.source === "explicit" ? "*" : ""} · ${escapeHtml(status)}</span>`;
+}
+
+/**
+ * Certificates a requirement's tests carry: the proof kinds that earned
+ * proved, and certificates or claim bindings that no longer re-check.
+ */
+// implements REQ-kibi-code-proof-kinds
+function certificateStage(row: UnknownRecord): ReportStage | undefined {
+  const certificate = records(row.evidence).find(
+    (entry) => text(entry.kind) === "certificate",
+  );
+  const rejections = certificateRejectionLines(row);
+  const claims = record(row.claimSummary);
+  const applicable = count(claims.applicable);
+  const proved = count(claims.proved);
+  const claimText =
+    applicable > 0 ? `${proved}/${applicable} claims proved` : "";
+  if (certificate !== undefined) {
+    const kinds = strings(certificate.kinds).join(", ");
+    const tests = strings(certificate.tests);
+    return {
+      label: "Certificate",
+      detail: escapeHtml(
+        [
+          `${kinds || "certificate"} · ${tests.length} ${tests.length === 1 ? "test" : "tests"}`,
+          claimText,
+        ]
+          .filter(Boolean)
+          .join(" · "),
+      ),
+      state: rejections.length > 0 ? "warning" : "passed",
+    };
+  }
+  if (rejections.length > 0) {
+    return {
+      label: "Certificate",
+      detail: escapeHtml(
+        `${rejections.length} ${rejections.length === 1 ? "certificate does" : "certificates do"} not re-check`,
+      ),
+      state: "failed",
+    };
+  }
+  if (proved > 0 || count(claims.attested) > 0) {
+    return {
+      label: "Certificate",
+      detail: escapeHtml(claimText),
+      state: "warning",
+    };
+  }
+  return undefined;
+}
+
+// implements REQ-kibi-code-proof-kinds
+export function certificateRejectionLines(
+  row: UnknownRecord,
+): readonly string[] {
+  return [
+    ...records(row.certificateRejections).map(
+      (item) =>
+        `${text(item.test, "test")}: certificate rejected, ${text(item.reason, "no reason given")}`,
+    ),
+    ...records(row.claimBindingRejections).map(
+      (item) =>
+        `${text(item.test, "test")}: binding for ${text(item.claimKey, "claim")} rejected, ${text(item.reason, "no reason given")}`,
+    ),
+  ];
 }
 
 function renderIssueList(
@@ -564,6 +686,12 @@ function renderIssueList(
   if (codes.length === 0) return "";
   const label = `${codes.length} ${codes.length === 1 ? singular : plural}`;
   return `<details class="${className}"><summary>${escapeHtml(label)}</summary><ul>${codes.map((code) => `<li>${escapeHtml(humanize(code))}</li>`).join("")}</ul></details>`;
+}
+
+function renderRejectionList(lines: readonly string[]): string {
+  if (lines.length === 0) return "";
+  const label = `${lines.length} ${lines.length === 1 ? "certificate rejection" : "certificate rejections"}`;
+  return `<details class="proof-gaps certificate-rejections"><summary>${escapeHtml(label)}</summary><ul>${lines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul></details>`;
 }
 
 function renderRequirement(
@@ -587,8 +715,16 @@ function renderRequirement(
     record(record(row.proofStages).contradictions).conflicts,
   ).filter((conflict) => text(conflict.status) === "contradiction");
   const stages = requirementStages(row, repository);
-  const badgeLabel = proofStatus === "tested" ? "Tested" : "Needs attention";
   const evidenceLevel = text(row.evidenceLevel, "unverified");
+  const badgeLabel =
+    proofStatus !== "tested"
+      ? "Needs attention"
+      : evidenceLevel === "proved"
+        ? "Proved"
+        : "Tested";
+  const floor = evidenceFloor(row);
+  const rejections = certificateRejectionLines(row);
+  const claims = claimsProvedLabel(row);
   const requirementSource =
     sourceCoordinate({
       path: text(
@@ -601,22 +737,47 @@ function renderRequirement(
   return `<article class="requirement requirement--${escapeHtml(proofStatus)}" data-state="${rowStates(row)}" data-gate="${escapeHtml(gate)}">
     <header class="requirement__header">
       <div>
-        <div class="requirement__id">${linkedLabel(id, sourceWebUrl(repository, requirementSource))} <span class="evidence-level evidence-level--${escapeHtml(evidenceLevel)}" title="Evidence level">${escapeHtml(evidenceLevel)}</span></div>
+        <div class="requirement__id">${linkedLabel(id, sourceWebUrl(repository, requirementSource))} <span class="evidence-level evidence-level--${escapeHtml(evidenceLevel)}" title="Evidence level">${escapeHtml(evidenceLevel)}</span>${renderFloorChip(floor)}${claims === null ? "" : ` <span class="claims-proved" title="Requirement claims a re-checked certificate derives">${escapeHtml(claims)}</span>`}</div>
         <h3>${linkedLabel(title, sourceWebUrl(repository, requirementSource))}</h3>
       </div>
-      <span class="proof-badge proof-badge--${escapeHtml(proofStatus)}">${escapeHtml(badgeLabel)}</span>
+      <span class="proof-badge proof-badge--${escapeHtml(badgeLabel === "Proved" ? "proved" : proofStatus)}">${escapeHtml(badgeLabel)}</span>
     </header>
     <ul class="stages">${stages.map(renderStage).join("")}</ul>
     ${conflicts.map(renderContradiction).join("")}
     ${renderIssueList(blockingGaps, "proof-gaps", "proof gap", "proof gaps")}
     ${renderIssueList(advisories, "proof-advisories", "advisory", "advisories")}
+    ${renderRejectionList(rejections)}
   </article>`;
+}
+
+// implements REQ-kibi-claim-bound-proofs
+function claimsProvedLabel(row: UnknownRecord): string | null {
+  const summary = record(row.claimSummary);
+  const applicable = summary.applicable;
+  if (typeof applicable !== "number" || applicable === 0) return null;
+  const proved = typeof summary.proved === "number" ? summary.proved : 0;
+  return `${proved}/${applicable} claims proved`;
 }
 
 // implements REQ-kibi-evidence-levels
 function evidenceCount(rows: readonly UnknownRecord[], level: string): number {
   return rows.filter((row) => text(row.evidenceLevel, "unverified") === level)
     .length;
+}
+
+// implements REQ-kibi-kb-certificates
+function renderKbCertificates(
+  bundle: HtmlReportKbCertificates | undefined,
+): string {
+  if (bundle === undefined) return "";
+  const kinds = Object.entries(bundle.kinds)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(
+      ([kind, total]) =>
+        `${total.toLocaleString("en-US")} ${humanize(kind).toLowerCase()}`,
+    )
+    .join(", ");
+  return `<p class="kb-certificates">KB consistency: ${bundle.count.toLocaleString("en-US")} ${bundle.count === 1 ? "certificate" : "certificates"}${kinds ? ` (${escapeHtml(kinds)})` : ""} · <a href="${escapeHtml(bundle.href)}">${escapeHtml(bundle.href)}</a> · re-check with <code>kibi check --certificates ${escapeHtml(bundle.href)}</code></p>`;
 }
 
 function metric(label: string, value: number, tone = ""): string {
@@ -686,8 +847,11 @@ function renderFilters(
 ): string {
   const labels: Readonly<Record<(typeof REPORT_FILTERS)[number], string>> = {
     all: "All",
+    proved: "Proved",
     tested: "Tested",
     attention: "Needs attention",
+    below_floor: "Below floor",
+    pending_reproof: "Pending re-proof",
     stale: "Stale evidence",
     contradiction: "Contradictions",
   };
@@ -726,6 +890,12 @@ export function renderHtmlReport(input: HtmlReportInput): string {
     strings(row.proofGaps).includes("missing_production_symbol"),
   ).length;
   const contradictions = contradictionRows(currentRows);
+  const belowFloor = currentRows.filter(
+    (row) => evidenceFloor(row)?.status === "below",
+  ).length;
+  const pendingReproof = currentRows.filter(
+    (row) => evidenceFloor(row)?.status === "pending_reproof",
+  ).length;
   const unmappedProductionSymbols = Math.max(
     0,
     count(symbolSummary.uncovered) - count(symbolSummary.mixedRole),
@@ -801,14 +971,18 @@ export function renderHtmlReport(input: HtmlReportInput): string {
       <section class="metrics" aria-label="Requirement health summary">
         ${metric("Requirements", currentRequirements)}
         ${metric("Tested end to end", tested, "good")}
+        ${metric("Proved by certificate", evidenceCount(currentRows, "proved"), evidenceCount(currentRows, "proved") ? "good" : "")}
         ${metric("Asserted, no current test", evidenceCount(currentRows, "asserted"), evidenceCount(currentRows, "asserted") ? "warn" : "")}
         ${metric("Unverified", evidenceCount(currentRows, "unverified"), evidenceCount(currentRows, "unverified") ? "warn" : "")}
+        ${metric("Below evidence floor", belowFloor, belowFloor ? "bad" : "good")}
+        ${metric("Pending re-proof", pendingReproof, pendingReproof ? "warn" : "")}
         ${metric("Missing scenarios", missingScenarios, missingScenarios ? "warn" : "")}
         ${metric("Stale E2E evidence", staleEvidence, staleEvidence ? "warn" : "")}
         ${metric("Contradictions", contradictions.length, contradictions.length ? "bad" : "")}
         ${metric("Unmapped production symbols", unmappedProductionSymbols, unmappedProductionSymbols ? "bad" : "")}
         ${metric("Requirements without implementation", withoutImplementation, withoutImplementation ? "warn" : "")}
       </section>
+      ${renderKbCertificates(input.kbCertificates)}
       <section>
         <div class="section-header">
           <div><p class="eyebrow">Proof ledger</p><h2>Requirements</h2></div>

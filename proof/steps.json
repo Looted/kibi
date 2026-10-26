@@ -1767,7 +1767,8 @@
         "30000",
         "--isolate",
         "--max-concurrency=1",
-        "./packages/cli/tests/commands/merge-driver.test.ts"
+        "./packages/cli/tests/commands/merge-driver.test.ts",
+        "./packages/cli/tests/commands/merge-driver.property.test.ts"
       ]
     ]
   },
@@ -2756,8 +2757,7 @@
         "bun",
         "test",
         "./packages/cli/tests/commands/signoff.test.ts",
-        "./packages/cli/tests/report/html-report.test.ts",
-        "./packages/cli/tests/operations/proof-impact.test.ts"
+        "./packages/cli/tests/report/html-report.test.ts"
       ]
     ]
   },
@@ -2783,6 +2783,411 @@
         "run_tests(kb_certificates)",
         "-t",
         "halt"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-evidence-floors",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/evidence-floors.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/public/evidence-floor.test.ts"
+      ],
+      [
+        "swipl",
+        "-q",
+        "-s",
+        "packages/core/tests/kb.plt",
+        "-g",
+        "run_tests(requirement_evidence_floors)",
+        "-t",
+        "halt"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-code-proof-kinds",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/code-proof-kinds.test.ts"
+      ],
+      [
+        "swipl",
+        "-q",
+        "-s",
+        "packages/core/tests/kb.plt",
+        "-g",
+        "run_tests(requirement_proved_evidence)",
+        "-t",
+        "halt"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-code-proof-kinds-exhaustive",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/code-proof-kinds.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-code-proof-kinds-typecheck",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/code-proof-kinds-typecheck.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-claim-bound-proofs",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/claim-bound-proofs.test.ts"
+      ],
+      [
+        "swipl",
+        "-q",
+        "-s",
+        "packages/core/tests/kb.plt",
+        "-g",
+        "run_tests(claim_bound_proofs)",
+        "-t",
+        "halt"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-claim-bound-proofs-exhaustive",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claim-binding-verdicts.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-evidence-levels-exhaustive",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/evidence-levels.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-evidence-floors-exhaustive",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/evidence-floors.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-entity-origin-exhaustive",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/entity-origin.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-migrate-entity-type-backfill-exhaustive",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/entity-type-backfill.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-model-predicates-closed-vocabularies-exhaustive",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/closed-vocabularies.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-intervals-differential",
+    "steps": [
+      [
+        "lake",
+        "--dir",
+        "proof/lean",
+        "build"
+      ],
+      [
+        "bun",
+        "scripts/intervals-differential.ts",
+        "--lean",
+        "proof/lean/.lake/build/bin/kibi-intervals",
+        "--cases",
+        "200000"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-007",
+    "steps": [
+      [
+        "swipl",
+        "-q",
+        "-s",
+        "packages/core/tests/kb.plt",
+        "-g",
+        "run_tests([kb_basic,kb_entities])",
+        "-t",
+        "halt"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/commands/sync/manifest.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-capability-plugin-host-resolution-v1",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/plugins/capability-plugin-host.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-capability-plugin-jev-mocked-v1",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/plugin-jev/tests/jev.test.ts",
+        "./packages/cli/tests/plugins/default-deps-exclude-jev.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-capability-plugin-protocol-v1",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/plugin-sdk/tests/sdk.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-canonical-status",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/commands/status.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-config-schema",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/utils/config.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-requirement-quality-diagnostics",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/traceability/impact-requirement-quality.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-symbol-quality-diagnostics",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/traceability/impact-symbol-quality.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-coordinate-repair-capability",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/public/operations/symbol-repair-plan.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-coverage-depth-labels",
+    "steps": [
+      [
+        "swipl",
+        "-q",
+        "-s",
+        "packages/core/tests/kb.plt",
+        "-g",
+        "run_tests(kb_coverage_depth)",
+        "-t",
+        "halt"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/public/impact/coverage-depth-quality.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-prolog-library-adoption-mcp",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/mcp/tests/tools/sparql.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-rule-registry-single-source",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/utils/rule-registry-contract.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-relationship-type-contract",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/operations/relationships.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-source-relationship-parity-unit",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/public/operations/source-relationship-parity-coverage.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-workspace-snapshot-dirtiness",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/operations/node-ports.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-impact-public-preparation-parity",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/traceability/impact-review-preparation.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-skillopt-file-bridge-unit",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--preload",
+        "./scripts/skillopt-eval/offline-test-preload.ts",
+        "--timeout",
+        "15000",
+        "./scripts/skillopt-eval/tests/file-bridge.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-skillopt-scoring-gates-unit",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--preload",
+        "./scripts/skillopt-eval/offline-test-preload.ts",
+        "--timeout",
+        "15000",
+        "./scripts/skillopt-eval/tests/scoring-gates.test.ts"
       ]
     ]
   }

@@ -33,6 +33,7 @@ import type { SemanticAdvisorReceipt } from "../semantic-advisor/types.js";
 import { entityContextWarnings } from "./context-warning.js";
 import { buildUpsertCommitGoal, formatUpsertError } from "./contradictions.js";
 import { assertFirmDecisionUnchanged } from "./firm-decision-guard.js";
+import { withStoredOmittedProperties } from "./omitted-properties.js";
 import { resolveUpsertOrigin } from "./origin.js";
 import {
   planRecoveryNotes,
@@ -447,12 +448,18 @@ export async function validateUpsertForCommit(
       context,
       async () => staged?.entities.get(payload.id) ?? (await lookup.entity()),
     );
-  let input = await withStoredRequirementSemantics(
+  const withSemantics = await withStoredRequirementSemantics(
     payload,
     prolog,
     staged,
     lookup,
   );
+  // An uncompiled file is judged as the writer will patch it (below), so only
+  // a compiled entity lends its omitted properties to the stored write.
+  let input =
+    uncompiledSource === null
+      ? await withStoredOmittedProperties(withSemantics, lookup, staged)
+      : withSemantics;
   let validated =
     input === payload ? checked : validateUpsertInput(input, context.clock());
   if (uncompiledSource !== null)

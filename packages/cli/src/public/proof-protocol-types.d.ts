@@ -24,7 +24,9 @@ export type RunFailurePhase =
   | "execution"
   | "teardown"
   | "infrastructure";
-export type SuccessPolicy = "all_required_first_attempt";
+export type SuccessPolicy =
+  | "all_required_first_attempt"
+  | "own_results_first_attempt";
 
 export type ProofAttempt = Readonly<{
   outcome: ProofResultOutcome;
@@ -72,6 +74,7 @@ export type ProofRunArtifact = Readonly<{
   proof_results: readonly ProofResult[];
   integration?: string;
   diagnostics?: readonly string[];
+  certificates?: readonly Readonly<Record<string, unknown>>[];
 }>;
 
 export type ProofObligation = Readonly<{
@@ -84,6 +87,19 @@ export type ProofContract = Readonly<{
   integration: string;
   required_proofs: readonly ProofObligation[];
   success_policy: SuccessPolicy;
+  kind?:
+    | "e2e"
+    | "example"
+    | "property"
+    | "exhaustive"
+    | "typecheck"
+    | "arithmetic"
+    | "smt";
+  domain_source?: Readonly<{ symbol_id: string; export?: string }>;
+  witness?: Readonly<{ path: string }>;
+  constraint_source?: Readonly<{ fact_ids: readonly string[] }>;
+  value_source?: readonly Readonly<{ symbol_id: string; export?: string }>[];
+  proves?: readonly string[];
 }>;
 
 export type ProofBinding = Readonly<{

@@ -2377,7 +2377,7 @@ property_value_shape_error(Props, "Property value fact missing required field: o
 property_value_shape_error(Props, "Property value fact missing required field: value_type") :-
     memberchk(operator=_, Props),
     \+ memberchk(value_type=_, Props).
-property_value_shape_error(Props, "Property value fact missing value field (value_string, value_int, value_number, or value_bool)") :-
+property_value_shape_error(Props, "Property value fact missing value field (value_string, value_int, value_number, value_bool, or value_set)") :-
     memberchk(value_type=_, Props),
     \+ has_value_field(Props).
 property_value_shape_error(Props, "Property value fact has multiple value fields (should have exactly one)") :-
@@ -2394,17 +2394,20 @@ is_value_field(value_string).
 is_value_field(value_int).
 is_value_field(value_number).
 is_value_field(value_bool).
+is_value_field(value_set).
 
 has_value_field(Props) :- memberchk(value_string=_, Props), !.
 has_value_field(Props) :- memberchk(value_int=_, Props), !.
 has_value_field(Props) :- memberchk(value_number=_, Props), !.
 has_value_field(Props) :- memberchk(value_bool=_, Props), !.
+has_value_field(Props) :- memberchk(value_set=_, Props), !.
 
 % value_type_matches_field(+ValueType, +Props)
 value_type_matches_field(string, Props) :- memberchk(value_string=_, Props), !.
 value_type_matches_field(int, Props) :- memberchk(value_int=_, Props), !.
 value_type_matches_field(number, Props) :- memberchk(value_number=_, Props), !.
 value_type_matches_field(bool, Props) :- memberchk(value_bool=_, Props), !.
+value_type_matches_field(set, Props) :- memberchk(value_set=_, Props), !.
 
 predicate_schema_shape_error(Props, "Predicate schema fact missing required field: predicate_name") :-
     \+ memberchk(predicate_name=_, Props).

@@ -1,6 +1,6 @@
 {
   "name": "kibi-cli",
-  "version": "2.31.1",
+  "version": "2.32.0",
   "type": "module",
   "description": "Kibi CLI for knowledge base management",
   "engines": {
@@ -91,6 +91,10 @@
     "./extractors/markdown": {
       "types": "./dist/public/extractors/markdown.d.ts",
       "default": "./dist/public/extractors/markdown.js"
+    },
+    "./proof-certificates": {
+      "types": "./dist/public/proof-certificates.d.ts",
+      "default": "./dist/public/proof-certificates.js"
     },
     "./schemas/entity": {
       "types": "./dist/public/schemas/entity.d.ts",
@@ -235,7 +239,7 @@
     "fast-glob": "^3.2.12",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
-    "kibi-core": "^0.23.0",
+    "kibi-core": "^0.24.0",
     "kibi-plugin-builtin": "^0.5.3",
     "kibi-plugin-sdk": "^0.5.0",
     "kibi-swipl": "^1.0.1",

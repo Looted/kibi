@@ -1,6 +1,7 @@
 ---
 title: MCP input validation evaluates conditional schema rules like the CLI
 status: open
+required_evidence: tested
 priority: must
 tags:
   - mcp

@@ -31,6 +31,8 @@ export const PROOF_RECEIPT_COMPACTION_POLICY =
 export type ReceiptCompactionAnchor = Readonly<{
   codeSnapshot?: string;
   bindingHash?: string;
+  /** Earlier binding hashes a current receipt may still carry. */
+  legacyBindingHashes?: readonly string[];
 }>;
 
 // implements REQ-kibi-fresh-verification-receipts-v2
@@ -107,8 +109,11 @@ export function compactProofReceipts(
   );
 
   const selectors: Array<(receipt: Receipt) => boolean> = [];
-  if (anchor.bindingHash !== undefined && anchor.bindingHash !== "") {
-    const bindingHash = anchor.bindingHash;
+  for (const bindingHash of [
+    anchor.bindingHash,
+    ...(anchor.legacyBindingHashes ?? []),
+  ]) {
+    if (bindingHash === undefined || bindingHash === "") continue;
     selectors.push((receipt) => receipt.binding_hash === bindingHash);
   }
   if (anchor.codeSnapshot !== undefined && anchor.codeSnapshot !== "") {

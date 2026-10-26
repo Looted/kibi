@@ -27,18 +27,18 @@ origin:
 id: TEST-cli-legacy-kb-first-migrate
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-a945412604a48877e2f8c861
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-d6bb57f3b6d10eccccacdada
     test_id: TEST-cli-legacy-kb-first-migrate
     scope: end_to_end
     outcome: passed
-    code_snapshot: cb39f0e560f5857d1d62061507d78f2d645b1f132184f32b37c3312b2e3871a4
+    code_snapshot: 43675d5112431d4f3e5766d7fd142174b14e417e9c8b3d76bc67f23dfa7c508e
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-14T21:39:09.769Z'
-    finished_at: '2026-10-14T21:39:20.874Z'
-    artifact_digest: 2668b04ad7b0fbb8553c87659fd46c5fcdcbefdfff57e2eebdfda0d7f73b8732
+    started_at: '2026-10-24T20:09:44.248Z'
+    finished_at: '2026-10-24T20:09:51.934Z'
+    artifact_digest: d3c32cac0c9661f36e886b85a2f06f8b731f6f510732f7fb89d95c655b19479f
     contract_hash: 34a14051cd42eeb9b9723a20400b2a9355d7c47368e6e22cec9e89fe4e13e439
-    binding_hash: 4c33ddadea64391184b46e264e8badf2cacc6b8743e314db135c95c6a88fc5a1
+    binding_hash: b31e392e1e46869b2fc16751dabb255c3745db6d54489ab3641e6f778384645a
     fingerprint: ed4a0fb961d965c8f332439ac0e4ad630e6142fe7fbc955cde8f7f2aeb44e5ad
     fingerprint_components:
       contract: 34a14051cd42eeb9b9723a20400b2a9355d7c47368e6e22cec9e89fe4e13e439
@@ -60,5 +60,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs the CLI against a legacy KB (`.kb/config.json`, requirement files without `type`). It asserts that `kibi doctor` and `kb_status.bootstrap.nextAction` both name `kibi migrate --yes`, that migrate adds `type: req`, and that after a commit and sync a status-only `kb_upsert` changes exactly the `status` line in the Git diff.

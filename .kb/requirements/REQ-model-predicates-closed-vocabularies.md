@@ -1,6 +1,7 @@
 ---
 title: Built-in predicate schemas declare closed argument vocabularies
 status: open
+required_evidence: tested
 priority: must
 tags:
   - modeling

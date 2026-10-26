@@ -46,6 +46,15 @@
           "additionalProperties": false,
           "description": "Producer-emitted kibi.proof-run.v1 proof artifact. Producers report what happened; Kibi evaluates proof obligations and policies. Produce it via `kibi prove` or direct kb_ingest_proof calls.",
           "properties": {
+            "certificates": {
+              "description": "kibi.code-certificate.v1 objects the run left for certificate-kind contracts, one per test. Kibi re-checks each before a receipt counts as proved.",
+              "items": {
+                "required": ["version", "kind", "test_id"],
+                "type": "object"
+              },
+              "maxItems": 1000,
+              "type": "array"
+            },
             "code_snapshot": {
               "pattern": "^[a-f0-9]{64}$",
               "type": "string"

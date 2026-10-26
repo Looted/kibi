@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { deriveBaselineSummary } from "../lib/proof-baseline-diff.mjs";
 
 const ROOT = join(import.meta.dir, "..", "..");
 const integrations = JSON.parse(
@@ -20,15 +19,6 @@ const integrations = JSON.parse(
 const steps = JSON.parse(
   readFileSync(join(ROOT, "proof", "steps.json"), "utf8"),
 ) as Array<{ test_id: string; steps: string[][] }>;
-const baseline = JSON.parse(
-  readFileSync(join(ROOT, "proof", "baseline.json"), "utf8"),
-) as {
-  mode: string;
-  currentRequirements: number;
-  proofTested: number;
-  currentUntested: number;
-  trackedGaps: Record<string, number>;
-};
 const proofWorkflow = readFileSync(
   join(ROOT, ".github", "workflows", "proof.yml"),
   "utf8",
@@ -169,25 +159,46 @@ describe("strict proof workflow contract", () => {
     );
   });
 
-  test("proof runs before baseline enforcement and report generation", () => {
+  test("proof runs before evidence-floor enforcement and report generation", () => {
     const runner = proofWorkflow.indexOf(
       "Prove every contracted test through Kibi",
     );
-    const baselineCheck = proofWorkflow.indexOf(
-      "Enforce proof baseline and clean snapshot",
+    const floorCheck = proofWorkflow.indexOf(
+      "Enforce evidence floors on a clean snapshot",
     );
     const report = proofWorkflow.indexOf("Generate requirement health report");
     expect(runner).toBeGreaterThanOrEqual(0);
-    expect(baselineCheck).toBeGreaterThan(runner);
-    expect(report).toBeGreaterThan(baselineCheck);
+    expect(floorCheck).toBeGreaterThan(runner);
+    expect(report).toBeGreaterThan(floorCheck);
+    expect(proofWorkflow).toContain(
+      "sh scripts/proof-gate.sh --fresh-evidence",
+    );
+    // The KB certificates the gate re-checked are re-checked independently
+    // and published with the report.
+    const recheck = proofWorkflow.indexOf(
+      "Re-check KB certificates with the independent checker",
+    );
+    expect(recheck).toBeGreaterThan(floorCheck);
+    expect(report).toBeGreaterThan(recheck);
+    expect(proofWorkflow).toContain(
+      '--write-certificates "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/kb-certificates.json"',
+    );
+    expect(proofWorkflow).toContain(
+      'kibi check --certificates "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/kb-certificates.json"',
+    );
+    expect(proofWorkflow).toContain(
+      'report --output kibi-report --certificates "$certificates"',
+    );
     const integrityRules =
       "no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness,symbol-traceability";
-    const baselineChecker = readFileSync(
-      join(ROOT, "scripts", "check-proof-baseline.mjs"),
+    const proofGate = readFileSync(
+      join(ROOT, "scripts", "proof-gate.sh"),
       "utf8",
     );
     expect(proofWorkflow).toContain(`--rules ${integrityRules}`);
-    expect(baselineChecker).toContain('"symbol-traceability"');
+    expect(proofGate).toContain("symbol-traceability");
+    expect(proofGate).toContain("evidence-floor");
+    expect(existsSync(join(ROOT, "proof", "baseline.json"))).toBe(false);
     expect(proofWorkflow).not.toContain("proof-contract-symbols");
     expect(ciWorkflow).not.toContain("Generate Kibi requirement health report");
   });
@@ -227,7 +238,7 @@ describe("strict proof workflow contract", () => {
       "Build packages used by packed proof contracts",
       "Sync and validate integrity of the proof snapshot",
       "Prove every contracted test through Kibi",
-      "Enforce proof baseline and clean snapshot",
+      "Enforce evidence floors on a clean snapshot",
     ]) {
       expect(proofSteps.find((step) => step.name === name)?.if).toContain(
         "steps.reuse.outputs.reuse != 'true'",
@@ -272,30 +283,34 @@ describe("strict proof workflow contract", () => {
     expect(packedCompile).toContain("mkdtemp(");
   });
 
-  test("equality baseline locks full current-requirement proof", () => {
-    expect(baseline.version).toBe("kibi.proof-baseline.v3");
-    expect(baseline.mode).toBe("equality");
-    expect(baseline.proofTested + baseline.currentUntested).toBe(
-      baseline.currentRequirements,
-    );
-    // Equality: every current requirement is proven end to end. The counts
-    // must match the entries rather than a pinned number: two branches that
-    // each add a requirement would both bump a pinned literal, and the merge
-    // would keep one bump. check-proof-baseline compares these counts with
-    // the live KB, so a dropped requirement still fails the proof gate.
-    expect(baseline).toMatchObject(
-      deriveBaselineSummary(baseline.requirements),
-    );
-    expect(baseline.proofTested).toBe(baseline.currentRequirements);
-    expect(baseline.currentUntested).toBe(0);
-    expect(Object.keys(baseline.trackedGaps ?? {})).toEqual([]);
-    expect(Object.keys(baseline.requirements ?? {}).length).toBe(
-      baseline.currentRequirements,
-    );
-    for (const requirement of Object.values(
-      baseline.requirements ?? {},
-    ) as Array<{ proofStatus?: string }>) {
-      expect(requirement.proofStatus).toBe("tested");
+  // Every current requirement in this repository needs tested evidence:
+  // either it is firm (its floor defaults to tested) or it says so with
+  // required_evidence. The rule lives on each requirement, so two branches
+  // that each add one never touch a shared file, and evidence-floor enforces
+  // the level in the proof job.
+  test("every current requirement in this repository needs tested evidence", () => {
+    const directory = join(ROOT, ".kb", "requirements");
+    const lacking: string[] = [];
+    for (const file of readdirSync(directory)) {
+      if (!file.endsWith(".md")) continue;
+      const text = readFileSync(join(directory, file), "utf8");
+      const frontmatter = text.split(/^---$/m)[1] ?? "";
+      const data = Bun.YAML.parse(frontmatter) as Record<string, unknown>;
+      const status = String(data.status ?? "");
+      if (!["open", "in_progress", "active", "approved"].includes(status))
+        continue;
+      if (data.proof_exempt === true) continue;
+      const origin = data.origin as { kind?: string } | undefined;
+      const firm =
+        data.firmness === "firm" ||
+        (data.firmness === undefined && origin?.kind !== "agent");
+      const required = data.required_evidence;
+      const needsTested =
+        required === "tested" ||
+        required === "proved" ||
+        (required === undefined && firm);
+      if (!needsTested) lacking.push(String(data.id ?? file));
     }
+    expect(lacking).toEqual([]);
   });
 });

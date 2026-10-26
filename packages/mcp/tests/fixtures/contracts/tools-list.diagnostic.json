@@ -3875,9 +3875,85 @@
                 "additionalProperties": false,
                 "description": "Semantic proof contract binding this test to explicit proof obligations executed by one configured integration.",
                 "properties": {
+                  "constraint_source": {
+                    "additionalProperties": false,
+                    "description": "arithmetic and smt: the typed numeric property_value facts the certificate's assumptions come from. Kibi checks the assumptions (or the query's assertions) are exactly these facts' constraints, so the proof is about the knowledge base, not numbers the test chose.",
+                    "properties": {
+                      "fact_ids": {
+                        "items": {
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "minItems": 1,
+                        "type": "array"
+                      }
+                    },
+                    "required": ["fact_ids"],
+                    "type": "object"
+                  },
+                  "domain_source": {
+                    "additionalProperties": false,
+                    "description": "exhaustive and typecheck: the symbol that defines the finite domain. The proof must import it from its source file; a hand-listed domain downgrades the receipt to example. Kibi reads the export named `export`, or the symbol's title when `export` is absent.",
+                    "properties": {
+                      "export": {
+                        "description": "The name the domain is exported under in the symbol's source file, when the symbol's title is not that name.",
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "symbol_id": {
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": ["symbol_id"],
+                    "type": "object"
+                  },
                   "integration": {
                     "minLength": 1,
                     "type": "string"
+                  },
+                  "kind": {
+                    "anyOf": [
+                      {
+                        "const": "e2e",
+                        "type": "string"
+                      },
+                      {
+                        "const": "example",
+                        "type": "string"
+                      },
+                      {
+                        "const": "property",
+                        "type": "string"
+                      },
+                      {
+                        "const": "exhaustive",
+                        "type": "string"
+                      },
+                      {
+                        "const": "typecheck",
+                        "type": "string"
+                      },
+                      {
+                        "const": "arithmetic",
+                        "type": "string"
+                      },
+                      {
+                        "const": "smt",
+                        "type": "string"
+                      }
+                    ],
+                    "description": "What the checker establishes; absent means e2e. exhaustive, typecheck, arithmetic and smt must leave a kibi.code-certificate.v1 that Kibi re-checks before the receipt counts as proved."
+                  },
+                  "proves": {
+                    "description": "Certificate kinds: the requirement claim keys (CLAIM-...) this certificate proves. Each must be a modeled claim of a current requirement the test reaches through its scenarios. Kibi derives what the certificate must establish from the claim's grounding fact (a set fact for exhaustive or typecheck, a numeric fact for arithmetic or smt); a claim with no such derivation is only attested and never counts as proved.",
+                    "items": {
+                      "pattern": "^CLAIM-",
+                      "type": "string"
+                    },
+                    "minItems": 1,
+                    "type": "array",
+                    "uniqueItems": true
                   },
                   "required_proofs": {
                     "items": {
@@ -3900,12 +3976,52 @@
                     "type": "array"
                   },
                   "success_policy": {
-                    "const": "all_required_first_attempt",
-                    "type": "string"
+                    "anyOf": [
+                      {
+                        "const": "all_required_first_attempt",
+                        "type": "string"
+                      },
+                      {
+                        "const": "own_results_first_attempt",
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "value_source": {
+                    "description": "arithmetic and smt: code constants the assumptions read. Kibi evaluates each export at ingest and requires the certificate to assume the variable equals that value, so the proof is about the code and not only the knowledge base.",
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "export": {
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "symbol_id": {
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["symbol_id"],
+                      "type": "object"
+                    },
+                    "minItems": 1,
+                    "type": "array"
                   },
                   "version": {
                     "const": "kibi.proof-contract.v1",
                     "type": "string"
+                  },
+                  "witness": {
+                    "additionalProperties": false,
+                    "description": "typecheck: the repository-relative witness file Kibi compiles (an exhaustive switch ending in never, or a mapped type over the domain).",
+                    "properties": {
+                      "path": {
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": ["path"],
+                    "type": "object"
                   }
                 },
                 "required": [
@@ -3920,7 +4036,7 @@
                 "description": "Append-only proof evidence. Proof accepts only the newest valid passed receipt bound to the current code snapshot, current contract hash, and effective execution fingerprint within the seven-day freshness window. Ingest rotates the oldest entries at the cap.",
                 "items": {
                   "additionalProperties": false,
-                  "description": "Kibi-derived kibi.proof-receipt.v1. Receipts are never caller-authored; kb_ingest_proof derives them from kibi.proof-run.v1 artifacts.",
+                  "description": "Kibi-derived kibi.proof-receipt.v2 (kibi.proof-receipt.v1 entries are still read). Receipts are never caller-authored; kb_ingest_proof derives them from kibi.proof-run.v1 artifacts.",
                   "properties": {
                     "artifact_digest": {
                       "pattern": "^[a-f0-9]{64}$",
@@ -3929,6 +4045,79 @@
                     "binding_hash": {
                       "pattern": "^[a-f0-9]{64}$",
                       "type": "string"
+                    },
+                    "certificate": {
+                      "additionalProperties": {},
+                      "properties": {},
+                      "type": "object"
+                    },
+                    "certificate_digest": {
+                      "pattern": "^[a-f0-9]{64}$",
+                      "type": "string"
+                    },
+                    "certificate_rejection": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "claim_bindings": {
+                      "description": "Certificate kinds: how the certificate binds to each claim its contract names in proves, judged at ingest. derived means Kibi derived the certificate's obligation from the claim's grounding fact and the certificate satisfies it; attested means no derivation exists and the author vouches for it (never proved); rejected names why.",
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "binding": {
+                            "anyOf": [
+                              {
+                                "const": "derived",
+                                "type": "string"
+                              },
+                              {
+                                "const": "attested",
+                                "type": "string"
+                              },
+                              {
+                                "const": "rejected",
+                                "type": "string"
+                              }
+                            ]
+                          },
+                          "claim_key": {
+                            "minLength": 1,
+                            "type": "string"
+                          },
+                          "fact_id": {
+                            "minLength": 1,
+                            "type": "string"
+                          },
+                          "obligation": {
+                            "additionalProperties": {},
+                            "properties": {},
+                            "type": "object"
+                          },
+                          "reason": {
+                            "minLength": 1,
+                            "type": "string"
+                          },
+                          "requirement_id": {
+                            "minLength": 1,
+                            "type": "string"
+                          },
+                          "scope": {
+                            "anyOf": [
+                              {
+                                "const": "code",
+                                "type": "string"
+                              },
+                              {
+                                "const": "intent",
+                                "type": "string"
+                              }
+                            ]
+                          }
+                        },
+                        "required": ["claim_key", "binding"],
+                        "type": "object"
+                      },
+                      "type": "array"
                     },
                     "code_snapshot": {
                       "pattern": "^[a-f0-9]{64}$",
@@ -3949,6 +4138,18 @@
                     "environment_hash": {
                       "pattern": "^[a-f0-9]{64}$",
                       "type": "string"
+                    },
+                    "evidence_level": {
+                      "anyOf": [
+                        {
+                          "const": "proved",
+                          "type": "string"
+                        },
+                        {
+                          "const": "tested",
+                          "type": "string"
+                        }
+                      ]
                     },
                     "fingerprint": {
                       "pattern": "^[a-f0-9]{64}$",
@@ -4016,6 +4217,38 @@
                     "integration_id": {
                       "minLength": 1,
                       "type": "string"
+                    },
+                    "kind": {
+                      "anyOf": [
+                        {
+                          "const": "e2e",
+                          "type": "string"
+                        },
+                        {
+                          "const": "example",
+                          "type": "string"
+                        },
+                        {
+                          "const": "property",
+                          "type": "string"
+                        },
+                        {
+                          "const": "exhaustive",
+                          "type": "string"
+                        },
+                        {
+                          "const": "typecheck",
+                          "type": "string"
+                        },
+                        {
+                          "const": "arithmetic",
+                          "type": "string"
+                        },
+                        {
+                          "const": "smt",
+                          "type": "string"
+                        }
+                      ]
                     },
                     "outcome": {
                       "anyOf": [
@@ -4196,8 +4429,16 @@
                       "type": "string"
                     },
                     "version": {
-                      "const": "kibi.proof-receipt.v1",
-                      "type": "string"
+                      "anyOf": [
+                        {
+                          "const": "kibi.proof-receipt.v1",
+                          "type": "string"
+                        },
+                        {
+                          "const": "kibi.proof-receipt.v2",
+                          "type": "string"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -4233,6 +4474,27 @@
                 "description": "Requirement-only. Why the requirement exists, in one or two sentences from whoever stated the intent; not part of the checked meaning.",
                 "minLength": 1,
                 "type": "string"
+              },
+              "required_evidence": {
+                "anyOf": [
+                  {
+                    "const": "proved",
+                    "type": "string"
+                  },
+                  {
+                    "const": "tested",
+                    "type": "string"
+                  },
+                  {
+                    "const": "asserted",
+                    "type": "string"
+                  },
+                  {
+                    "const": "unverified",
+                    "type": "string"
+                  }
+                ],
+                "description": "Requirement-only. Weakest evidence level it accepts; the evidence-floor rule fails below it. Absent = tested if firm, else unverified."
               },
               "rule_hash": {
                 "description": "Deterministic hash of canonical rule_ir.",
@@ -4391,6 +4653,16 @@
                 "description": "Optional number value for property_value facts.",
                 "type": "number"
               },
+              "value_set": {
+                "description": "Optional exact set of values for property_value facts with value_type set, such as the members a domain must have.",
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "minItems": 1,
+                "type": "array",
+                "uniqueItems": true
+              },
               "value_string": {
                 "description": "Optional string value for property_value facts.",
                 "type": "string"
@@ -4412,9 +4684,13 @@
                   {
                     "const": "bool",
                     "type": "string"
+                  },
+                  {
+                    "const": "set",
+                    "type": "string"
                   }
                 ],
-                "description": "Optional typed value discriminator for property_value facts. Pair with exactly one value_string, value_int, value_number, or value_bool; do not use generic value."
+                "description": "Optional typed value discriminator for property_value facts. Pair with exactly one value_string, value_int, value_number, value_bool, or value_set (set: an exact list of allowed values, operator eq or neq); do not use generic value."
               },
               "verification_perspective": {
                 "anyOf": [
@@ -5348,7 +5624,7 @@
             "type": "integer"
           },
           "rules": {
-            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, symbol-granularity, no-dangling-refs, source-relationship-parity, branch-store-not-compiled, source-path-dangling, no-cycles, required-fields, deprecated-adr-no-successor, superseded-requirement-open, scenario-feasibility, scenario-feasibility-unknown, exception-claim-keys, numeric-string-value, rule-key-arguments-missing, domain-contradictions, logic-coverage, rule-safety, rule-verifiability, query-plan-safety, req-status-vocabulary, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, strict-readiness, semantic-completeness, related-requirement-unmodeled, proof-contract-symbols, entity-id-style, domain-redundancy, domain-implication, subject-key-identity, subject-key-shape, ontology-quality, exception-unapproved, exception-approval-self-attested, agent-requirement-unapproved, requirement-rationale-missing, symbol-owner-superseded, adr-unlinked, adr-proposed, predicate-schema-conformance, entity-context-missing, entity-context-acknowledged, decision-firm-unreferenced, decision-firm-superseded, decision-firm-edited, supersedes-reason-missing, supersedes-reason-acknowledged, policy-ownership, policy-markers, kb-consistency, kb-consistency-unresolved. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
+            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, symbol-granularity, no-dangling-refs, source-relationship-parity, branch-store-not-compiled, source-path-dangling, no-cycles, required-fields, deprecated-adr-no-successor, superseded-requirement-open, scenario-feasibility, scenario-feasibility-unknown, exception-claim-keys, numeric-string-value, rule-key-arguments-missing, domain-contradictions, logic-coverage, rule-safety, rule-verifiability, query-plan-safety, req-status-vocabulary, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, strict-readiness, semantic-completeness, related-requirement-unmodeled, proof-contract-symbols, entity-id-style, domain-redundancy, domain-implication, subject-key-identity, subject-key-shape, ontology-quality, exception-unapproved, exception-approval-self-attested, agent-requirement-unapproved, requirement-rationale-missing, symbol-owner-superseded, adr-unlinked, adr-proposed, predicate-schema-conformance, entity-context-missing, entity-context-acknowledged, decision-firm-unreferenced, decision-firm-superseded, decision-firm-edited, supersedes-reason-missing, supersedes-reason-acknowledged, policy-ownership, policy-markers, kb-consistency, kb-consistency-unresolved, evidence-floor, proof-contract-claims. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
             "items": {
               "anyOf": [
                 {
@@ -5569,6 +5845,14 @@
                 },
                 {
                   "const": "kb-consistency-unresolved",
+                  "type": "string"
+                },
+                {
+                  "const": "evidence-floor",
+                  "type": "string"
+                },
+                {
+                  "const": "proof-contract-claims",
                   "type": "string"
                 }
               ]
@@ -8087,6 +8371,16 @@
             "additionalProperties": false,
             "description": "Producer-emitted kibi.proof-run.v1 proof artifact. Producers report what happened; Kibi evaluates proof obligations and policies. Produce it via `kibi prove` or direct kb_ingest_proof calls.",
             "properties": {
+              "certificates": {
+                "description": "kibi.code-certificate.v1 objects the run left for certificate-kind contracts, one per test. Kibi re-checks each before a receipt counts as proved.",
+                "items": {
+                  "additionalProperties": {},
+                  "properties": {},
+                  "type": "object"
+                },
+                "maxItems": 1000,
+                "type": "array"
+              },
               "code_snapshot": {
                 "pattern": "^[a-f0-9]{64}$",
                 "type": "string"

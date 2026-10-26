@@ -1,6 +1,7 @@
 ---
 title: Bootstrap plans keep generated claim names short
 status: open
+required_evidence: tested
 priority: must
 tags:
   - bootstrap

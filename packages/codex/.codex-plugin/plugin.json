@@ -1,6 +1,6 @@
 {
   "name": "kibi-codex",
-  "version": "2.8.2",
+  "version": "2.8.3",
   "description": "Kibi Codex plugin manifest for integrating the Kibi MCP into Codex workflows.",
   "author": {
     "name": "Piotr Franczyk"

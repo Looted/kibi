@@ -49,8 +49,9 @@ export interface FactFields {
   subject_key?: string;
   property_key?: string;
   operator?: "eq" | "neq" | "lt" | "lte" | "gt" | "gte";
-  value_type?: "string" | "int" | "number" | "bool";
+  value_type?: "string" | "int" | "number" | "bool" | "set";
   value_string?: string;
+  value_set?: string[];
   value_int?: number;
   value_number?: number;
   value_bool?: boolean;
@@ -98,6 +99,8 @@ export type Requirement = BaseEntity & {
   rationale?: string;
   /** How firmly it was decided; absent reads as `default` when an agent wrote it, else `firm`. */
   firmness?: "firm" | "default" | "exploratory";
+  /** Weakest evidence level it accepts; absent reads as `tested` when firm, else `unverified`. */
+  required_evidence?: "proved" | "tested" | "asserted" | "unverified";
   /** Exception requirements only: claim keys of the exempted requirement it waives. */
   exempts_claims?: string[];
 };

@@ -307,12 +307,15 @@ function testFilesUnder(workspaceRoot, relative) {
     .sort();
 }
 
+const PROOF_TEST_FILE_PATTERN = /\.proof\.test\.[cm]?[jt]sx?$/;
+
 /**
  * The test files a `bun test` step runs, when the step is nothing more than
  * whole files under the allowed flags. Name filters, other flags or a missing
  * path make the step non-reusable (null). Directories expand to every file a
  * test runner could pick up there, so reuse can only ever ask for more
- * evidence than the step itself would produce, never less.
+ * evidence than the step itself would produce, never less. A step that runs
+ * a `*.proof.test.*` file is never reusable: it must leave its certificate.
  */
 // implements REQ-kibi-verification-evidence-contract
 export function reusableBunTestFiles(argv, workspaceRoot = process.cwd()) {
@@ -333,6 +336,10 @@ export function reusableBunTestFiles(argv, workspaceRoot = process.cwd()) {
     if (expanded === null) return null;
     for (const file of expanded) files.add(file);
   }
+  // A proof test leaves a code certificate for kibi prove; reused evidence
+  // would leave none, so a step that runs one always runs.
+  if ([...files].some((file) => PROOF_TEST_FILE_PATTERN.test(file)))
+    return null;
   return files.size > 0 ? [...files].sort() : null;
 }
 

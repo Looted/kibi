@@ -77,6 +77,10 @@ export function registerReportingCommands(program: Command): void {
       "Maximum complete requirement rows (1-100000)",
       "10000",
     )
+    .option(
+      "--certificates <file>",
+      "Publish a kibi check --write-certificates bundle next to the report and link it",
+    )
     .action(async (options) => {
       await (await import("./commands/report.js")).reportCommand(options);
     });
@@ -207,6 +211,10 @@ export function registerReportingCommands(program: Command): void {
     )
     .option("--dry-run", "Do not modify files; only print what would happen")
     .option("--format <format>", "Output format: text|json", "text")
+    .option(
+      "--fresh-evidence",
+      "evidence-floor judges receipts as they are (stale receipts fail) and needs a clean proof snapshot; run it after kibi prove",
+    )
     .option(
       "--write-certificates <file>",
       "Also save the kibi.certificates.v1 bundle the kb-consistency rule re-checked",

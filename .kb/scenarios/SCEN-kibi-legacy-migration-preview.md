@@ -12,6 +12,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: scenario
 ---
 
 Given a legacy requirement whose authored Markdown lacks a proposition inventory, when a packed CLI consumer or MCP caller opts into migration preview, then Kibi returns the same deterministic, read-only, source-bound review plan with exactly one disposition per proposition and no applicable write. Given a requirement whose existing `text_ref` contains distinct code evidence, the preview is blocked and preserves that evidence.

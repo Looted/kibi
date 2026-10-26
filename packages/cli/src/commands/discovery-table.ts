@@ -124,8 +124,32 @@ export function renderCoverageTable(
     wordWrap: true,
   });
 
-  for (const [key, value] of Object.entries(summary)) {
-    summaryTable.push([key, summaryCell(value)]);
+  // Traceability counts (scenario/test links) and proof counts (receipt
+  // evidence) use similar names, e.g. notApplicable vs proofNotApplicable:
+  // group them so the two families read apart.
+  // Link coverage judges only priority: must requirements; say so in the
+  // heading rather than as a row.
+  const mustOnly = summary.linkCoverageScope === "priority_must";
+  const entries = Object.entries(summary).filter(
+    ([key]) => key !== "linkCoverageScope",
+  );
+  const isProofKey = (key: string) =>
+    key.startsWith("proof") ||
+    key === "evidenceLevels" ||
+    key === "evidenceFloors";
+  const groups: [string, [string, unknown][]][] = [
+    [
+      mustOnly ? "Links (priority: must)" : "Traceability (links)",
+      entries.filter(([key]) => !isProofKey(key)),
+    ],
+    ["Proof (evidence)", entries.filter(([key]) => isProofKey(key))],
+  ];
+  const grouped = groups.every(([, members]) => members.length > 0);
+  for (const [label, members] of groups) {
+    if (grouped) summaryTable.push([label, ""]);
+    for (const [key, value] of members) {
+      summaryTable.push([grouped ? `  ${key}` : key, summaryCell(value)]);
+    }
   }
 
   const firstRow = firstFields(rows);
@@ -141,13 +165,14 @@ export function renderCoverageTable(
           "Depth",
           "Proof",
           "Evidence",
+          "Floor",
           "Scen",
           "Tests",
           "Symbols",
           "Structural gaps",
           "Proof gaps",
         ],
-        colWidths: [20, 12, 12, 18, 36, 12, 12, 8, 8, 10, 24, 36],
+        colWidths: [20, 12, 12, 18, 36, 12, 12, 12, 8, 8, 10, 24, 36],
         wordWrap: true,
       })
     : new Table({
@@ -166,7 +191,8 @@ export function renderCoverageTable(
         stringifyCell(item.coverageStatus),
         stringifyCell(item.coverageDepth),
         stringifyCell(item.proofStatus),
-        stringifyCell(item.evidenceLevel),
+        evidenceCell(item),
+        floorCell(item),
         stringifyCell(item.scenarioCount),
         stringifyCell(item.testCount),
         stringifyCell(item.transitiveSymbolCount),
@@ -363,6 +389,27 @@ function stringifyCell(value: unknown): string {
     return value;
   }
   return String(value);
+}
+
+// implements REQ-kibi-claim-bound-proofs
+// The evidence level, with how many applicable claims a certificate proves.
+function evidenceCell(item: Record<string, unknown>): string {
+  const level = stringifyCell(item.evidenceLevel);
+  const summary = item.claimSummary;
+  if (summary === null || typeof summary !== "object") return level;
+  const { applicable, proved } = summary as Record<string, unknown>;
+  if (typeof applicable !== "number" || applicable === 0) return level;
+  return `${level}\n${typeof proved === "number" ? proved : 0}/${applicable} claims proved`;
+}
+
+// implements REQ-kibi-evidence-floors
+// The evidence floor and whether the level reaches it; empty without a floor.
+function floorCell(item: Record<string, unknown>): string {
+  const floor = item.evidenceFloor;
+  if (floor === null || typeof floor !== "object") return "";
+  const { required, status } = floor as Record<string, unknown>;
+  if (typeof required !== "string" || required === "unverified") return "";
+  return `${required} ${typeof status === "string" ? status.replaceAll("_", " ") : ""}`.trim();
 }
 
 // A nested summary count, such as evidenceLevels, reads as key=value pairs.

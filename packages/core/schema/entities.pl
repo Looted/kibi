@@ -56,6 +56,9 @@ entity_property(req, exempts_claims, list).
 % Absent reads as default.
 entity_property(req, firmness, atom).
 entity_property(adr, firmness, atom).
+% The weakest evidence level a current requirement accepts: proved, tested,
+% asserted or unverified. Absent: tested when firm, otherwise unverified.
+entity_property(req, required_evidence, atom).
 % Intended outcome of a scenario: success, rejection or error.
 entity_property(scenario, expects, atom).
 
@@ -69,6 +72,8 @@ entity_property(fact, value_string, string).
 entity_property(fact, value_int, integer).
 entity_property(fact, value_number, number).
 entity_property(fact, value_bool, boolean).
+% The exact members of a set fact (value_type set).
+entity_property(fact, value_set, list).
 entity_property(fact, unit, string).
 entity_property(fact, scope, string).
 entity_property(fact, polarity, atom).
@@ -150,6 +155,7 @@ optional_property(req, rationale).
 optional_property(req, exempts_claims).
 optional_property(req, firmness).
 optional_property(adr, firmness).
+optional_property(req, required_evidence).
 optional_property(test, verification_scope).
 optional_property(test, verification_perspective).
 optional_property(test, proof_contract).

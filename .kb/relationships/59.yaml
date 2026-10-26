@@ -279,3 +279,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ccf4e3bfddac
+  - type: implements
+    from: SYM-cli-evidence-floor-findings
+    to: REQ-kibi-evidence-floors
+    created_at: 2026-10-24T17:34:17.590Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-014bfe146578
+  - type: covered_by
+    from: SYM-cli-evidence-floor-findings
+    to: TEST-kibi-evidence-floors
+    created_at: 2026-10-24T17:34:17.609Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e102403b2f7

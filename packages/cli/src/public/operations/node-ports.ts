@@ -79,7 +79,9 @@ function isReceiptOnlyMarkdownChange(
     const committed = execFileSync(
       "git",
       ["-C", workspaceRoot, "show", `HEAD:${relativePath}`],
-      { encoding: "buffer", maxBuffer: 64 * 1024 * 1024 },
+      // A file staged but not committed yet has no HEAD blob; git's error is
+      // expected here and must not reach the terminal.
+      { encoding: "buffer", maxBuffer: 64 * 1024 * 1024, stdio: "pipe" },
     ) as Buffer;
     return working.equals(snapshotFileContent(relativePath, committed));
   } catch {

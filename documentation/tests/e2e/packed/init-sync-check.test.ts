@@ -210,6 +210,7 @@ if (RUN_NODE_TEST_SUITE) {
             title: "Valid Requirement",
             type: "req",
             status: "open",
+            required_evidence: "asserted",
             tags: ["feature"],
             owner: "bob",
           },

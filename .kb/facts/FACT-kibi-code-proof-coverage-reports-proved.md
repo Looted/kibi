@@ -1,0 +1,23 @@
+---
+title: 'Proof kinds: coverage reports proved requirements'
+status: active
+fact_kind: property_value
+subject_key: kibi.code_proof
+property_key: coverage_reports_proved_per_claim
+operator: eq
+value_type: bool
+value_bool: true
+claim_key: CLAIM-83222148D2E46CC8
+claim_text: Kibi coverage must report a tested requirement as proved only when certificates prove every applicable claim of it
+text_ref: REQ-kibi-code-proof-kinds
+tags:
+  - strict-modeling
+  - lane:strict
+  - fact:property_value
+  - provenance:req-kibi-code-proof-kinds
+origin:
+  kind: agent
+  recorded_at: '2026-10-24T19:31:41.527Z'
+id: FACT-kibi-code-proof-coverage-reports-proved
+type: fact
+---

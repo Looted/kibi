@@ -9,6 +9,7 @@ import {
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { stripVTControlCharacters } from "node:util";
 import { renderCoverageTable } from "../../src/commands/discovery-shared.js";
 import type { LegacyMigrationPlan } from "../../src/public/operations/legacy-migration-plan.js";
 import { branchStorePath } from "../../src/utils/branch-store-locator.js";
@@ -153,7 +154,7 @@ tags: [authentication, session]
     expect(req1Row?.scenarioTests).toEqual([]);
     expect(req1Row?.testStatuses).toEqual([]);
     expect(req1Row?.verificationScopes).toEqual([]);
-    expect(req1Row?.proofVersion).toBe("kibi.requirement-proof.v4");
+    expect(req1Row?.proofVersion).toBe("kibi.requirement-proof.v5");
     expect(req1Row?.proofStatus).toBe("missing");
     expect(req1Row?.proofGaps).toContain("missing_semantic_inventory");
     expect(req1Row?.proofAdvisories).toEqual([]);
@@ -285,6 +286,7 @@ tags: [authentication, session]
         total: 1,
         uncovered: 1,
         evidenceLevels: { proved: 0, tested: 0, asserted: 0, unverified: 1 },
+        linkCoverageScope: "priority_must",
       },
       rows: [
         {
@@ -310,5 +312,81 @@ tags: [authentication, session]
     expect(rendered).toContain("unverified");
     expect(rendered).toContain("unverified=1");
     expect(rendered).not.toContain("[object Object]");
+    // Link counts and proof counts sit in separate groups.
+    // Link coverage judges only priority: must requirements, and says so.
+    expect(rendered).toContain("Links (priority: must)");
+    expect(rendered).not.toContain("linkCoverageScope");
+    expect(rendered).toContain("Proof (evidence)");
+    expect(rendered.indexOf("notApplicable")).toBeLessThan(
+      rendered.indexOf("Proof (evidence)"),
+    );
+    expect(rendered.indexOf("evidenceLevels")).toBeGreaterThan(
+      rendered.indexOf("Proof (evidence)"),
+    );
+  });
+
+  // implements REQ-kibi-evidence-floors
+  test("shows each row's evidence floor and counts floors with the proof group", () => {
+    const row = {
+      evidenceLevel: "asserted",
+      status: "open",
+      priority: "must",
+      coverageStatus: "fully_covered",
+      coverageDepth: "scenario_passing_e2e",
+      proofStatus: "unresolved",
+      proofGaps: [],
+      scenarioCount: 1,
+      testCount: 1,
+      transitiveSymbolCount: 1,
+      gaps: [],
+    };
+    const rendered = renderCoverageTable({
+      summary: {
+        total: 3,
+        evidenceLevels: { proved: 0, tested: 0, asserted: 3, unverified: 0 },
+        evidenceFloors: { met: 0, below: 1, pendingReproof: 1 },
+        linkCoverageScope: "priority_must",
+      },
+      rows: [
+        {
+          ...row,
+          id: "REQ-A",
+          evidenceFloor: {
+            required: "tested",
+            source: "firmness",
+            status: "below",
+          },
+        },
+        {
+          ...row,
+          id: "REQ-B",
+          evidenceFloor: {
+            required: "tested",
+            source: "explicit",
+            status: "pending_reproof",
+          },
+        },
+        {
+          ...row,
+          id: "REQ-C",
+          evidenceFloor: {
+            required: "unverified",
+            source: "firmness",
+            status: "met",
+          },
+        },
+      ],
+    });
+    expect(rendered).toContain("Floor");
+    // The Floor column wraps, so read it as words.
+    const plain = stripVTControlCharacters(rendered);
+    expect(plain).toMatch(/│ tested\s+│/);
+    expect(plain).toContain(" below ");
+    expect(plain).toContain(" pending ");
+    expect(plain).not.toContain("unverified met");
+    expect(plain).toContain("below=1");
+    expect(rendered.indexOf("evidenceFloors")).toBeGreaterThan(
+      rendered.indexOf("Proof (evidence)"),
+    );
   });
 });

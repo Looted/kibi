@@ -1,5 +1,6 @@
 ---
 status: open
+required_evidence: tested
 priority: must
 tags:
   - migration

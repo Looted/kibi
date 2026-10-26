@@ -1,6 +1,7 @@
 ---
 title: Predicate modeling reports the predicate state for grounded claims
 status: open
+required_evidence: tested
 priority: must
 tags:
   - modeling

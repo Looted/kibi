@@ -17,6 +17,7 @@
  */
 
 import { ENTITY_ORIGIN_SCHEMA } from "../entity-origin.js";
+import { EVIDENCE_LEVELS } from "../evidence-levels.js";
 import {
   PROOF_BINDINGS_SCHEMA,
   PROOF_CONTRACT_SCHEMA,
@@ -364,6 +365,12 @@ const entitySchema: Record<string, unknown> = {
       description:
         "Requirement and ADR only. How firmly the decision was made. firm: a human stated it as a rule; it needs a ref (origin.ref, or approval_ref on a requirement) to their words, and only a human may change it. default: a delegated or agent choice; a later agent may supersede it with evidence. exploratory: a flagged guess, expected to be revisited. When absent, it reads as default if an agent wrote the entity (origin.kind agent) and as firm otherwise (a person's, imported or migrated decision); set it explicitly when recording a decision.",
     },
+    required_evidence: {
+      type: "string",
+      enum: [...EVIDENCE_LEVELS],
+      description:
+        "Requirement-only. The weakest evidence level this current requirement accepts; the evidence-floor check rule fails while its computed evidence level is lower. proved: a re-checkable certificate covers every case. tested: fresh passing E2E receipts cover every linked scenario. asserted: a person stands behind it. unverified: no floor. When absent, it is tested for a firm requirement and unverified otherwise.",
+    },
     expects: {
       type: "string",
       enum: ["success", "rejection", "error"],
@@ -543,8 +550,17 @@ const entitySchema: Record<string, unknown> = {
     subject_key: { type: "string" },
     property_key: { type: "string" },
     operator: { type: "string", enum: ["eq", "neq", "lt", "lte", "gt", "gte"] },
-    value_type: { type: "string", enum: ["string", "int", "number", "bool"] },
+    value_type: {
+      type: "string",
+      enum: ["string", "int", "number", "bool", "set"],
+    },
     value_string: { type: "string" },
+    value_set: {
+      type: "array",
+      items: { type: "string", minLength: 1 },
+      minItems: 1,
+      uniqueItems: true,
+    },
     value_int: { type: "integer" },
     value_number: { type: "number" },
     value_bool: { type: "boolean" },
@@ -643,6 +659,7 @@ const entitySchema: Record<string, unknown> = {
             { required: ["value_int"] },
             { required: ["value_number"] },
             { required: ["value_bool"] },
+            { required: ["value_set"] },
             { required: ["unit"] },
             { required: ["scope"] },
             { required: ["polarity"] },
@@ -715,6 +732,7 @@ const entitySchema: Record<string, unknown> = {
             { required: ["approval_ref"] },
             { required: ["rationale"] },
             { required: ["exempts_claims"] },
+            { required: ["required_evidence"] },
           ],
         },
       },

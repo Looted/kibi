@@ -7,10 +7,13 @@
     coverage_report_json/10,
     coverage_report_json/11,
     coverage_report_json/12,
+    coverage_report_json/13,
     coverage_evidence_json/5,
+    evidence_floor_json/6,
     requirement_proof_json/5,
     requirement_proof_json/7,
     symbol_proof_json/7,
+    test_receipt_states_json/6,
     graph_expand_json/8,
     search_answer_verdicts_json/2,
     ask_predicate_json/9,
@@ -29,7 +32,7 @@
 :- use_module(library(pairs)).
 :- use_module('kb.pl').
 :- use_module(library(semweb/rdf_db), [rdf_generation/1]).
-:- use_module('requirement_proof.pl', [requirement_proof_context/1, requirement_proof_context/4, requirement_proof_context/6, requirement_proof/4]).
+:- use_module('requirement_proof.pl', [requirement_proof_context/1, requirement_proof_context/4, requirement_proof_context/6, requirement_proof/4, test_receipt_evidence/4]).
 :- use_module('checks.pl', [scenario_feasibility_outcome/2, infeasible_scenario/5]).
 :- use_module('logic_ir.pl', [logic_rule_conflict/3, logic_rule_conflict/4]).
 :- use_module('status.pl', [status_meta_dict/1, status_scope_dict/1]).
@@ -77,6 +80,21 @@ requirement_proof_json(ReqId, BindingMode, TestBindings, VerificationSnapshot, C
     requirement_proof(ReqId, Props, Context, Proof),
     put_dict(id, Proof, ReqId, ProofWithId),
     dict_json_string(ProofWithId, JsonString).
+
+% implements REQ-kibi-verification-evidence-contract
+% The receipt state of every proof-bearing test under the given binding, as
+% `kibi prove --stale` selects them: passed means a current passing receipt.
+test_receipt_states_json(BindingMode, TestBindings, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
+    requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, BindingMode, TestBindings, Context),
+    findall(TestId-State,
+        (kb_entity(TestId, test, Props),
+         memberchk(proof_contract=_, Props),
+         test_receipt_evidence(Context, [unit, integration, end_to_end], TestId, Evidence),
+         State = Evidence.state),
+        Pairs0),
+    sort(Pairs0, Pairs),
+    dict_pairs(States, _, Pairs),
+    dict_json_string(_{states: States}, JsonString).
 
 symbol_proof_json(SymbolId, BindingMode, TestBindings, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
     requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, BindingMode, TestBindings, Context),
@@ -344,6 +362,77 @@ coverage_evidence_json(Tags, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Jso
     Response = _{rows: Evidences},
     dict_json_string(Response, JsonString).
 
+% implements REQ-kibi-evidence-floors
+% Every current requirement whose evidence level is below its floor, for the
+% evidence-floor check rule: the rows that fail (status below) or that only
+% need kibi prove re-run (status pending_reproof), plus how many current
+% requirements were evaluated.  Requirements outside proof scope carry no
+% floor.
+evidence_floor_json(BindingMode, TestBindings, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
+    requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, BindingMode, TestBindings, Context),
+    findall(Id-Proof,
+        (   kb_entity(Id, req, Props),
+            requirement_proof(Id, Props, Context, Proof),
+            get_dict(evidenceFloor, Proof, _)
+        ),
+        Evaluated),
+    findall(Row,
+        (   member(Id-Proof, Evaluated),
+            Floor = Proof.evidenceFloor,
+            Floor.status \== met,
+            Row = _{
+                id: Id,
+                evidenceLevel: Proof.evidenceLevel,
+                requiredEvidence: Floor.required,
+                requiredEvidenceSource: Floor.source,
+                status: Floor.status,
+                proofStatus: Proof.proofStatus,
+                proofGaps: Proof.proofGaps,
+                gapDetails: Details
+            },
+            evidence_floor_gap_details(Proof, Details)
+        ),
+        Rows0),
+    sort(id, @<, Rows0, Rows),
+    length(Evaluated, Count),
+    dict_json_string(_{evaluated: Count, rows: Rows}, JsonString).
+
+% The entities behind an evidence-floor row's gaps, so a person sees what to
+% fix without one kibi proof explain per requirement: the tests whose
+% receipts are missing, stale, failed or invalid, the production symbols no
+% qualifying test covers and the symbols without source coordinates.  Empty
+% lists are left out.
+evidence_floor_gap_details(Proof, Details) :-
+    (   get_dict(proofStages, Proof, Stages)
+    ->  true
+    ;   Stages = _{}
+    ),
+    findall(Key-Ids,
+        (   evidence_floor_gap_field(Key, StageKey, Field),
+            get_dict(StageKey, Stages, Stage),
+            get_dict(Field, Stage, Ids),
+            Ids \== []
+        ),
+        Pairs0),
+    % implements REQ-kibi-claim-bound-proofs
+    % Under a proved floor, the claims no certificate binding derives.
+    (   get_dict(evidenceFloor, Proof, Floor),
+        get_dict(required, Floor, proved),
+        get_dict(unprovedClaims, Proof, Unproved),
+        Unproved \== []
+    ->  Pairs = [unprovedClaims-Unproved|Pairs0]
+    ;   Pairs = Pairs0
+    ),
+    dict_pairs(Details, _, Pairs).
+
+evidence_floor_gap_field(failedReceiptTests, passingE2e, failedReceiptTests).
+evidence_floor_gap_field(missingReceiptTests, passingE2e, missingReceiptTests).
+evidence_floor_gap_field(staleReceiptTests, passingE2e, staleReceiptTests).
+evidence_floor_gap_field(invalidReceiptTests, passingE2e, invalidReceiptTests).
+evidence_floor_gap_field(contractMismatchReceiptTests, passingE2e, contractMismatchReceiptTests).
+evidence_floor_gap_field(uncoveredSymbols, productionSymbols, uncoveredSymbols).
+evidence_floor_gap_field(missingCoordinateSymbols, sourceCoordinates, missingSymbols).
+
 coverage_evidence_row(Id, Proof, Evidence) :-
     (   get_dict(proofStatus, Proof, ProofStatus)
     ->  true
@@ -413,6 +502,28 @@ coverage_report_json(By, Tags, IncludePassing, StatusFilter, IncludeTransitive, 
     status_meta_dict(Meta),
     Response = _{summary: Summary, rows: Rows, meta: Meta},
     dict_json_string(Response, JsonString).
+
+% Proof-status filtered report with per-contract receipt binding: the same
+% rows and whole-KB summary as the unfiltered report under that binding mode,
+% so a status filter never judges receipts more strictly than kb_coverage,
+% kibi proof explain or the evidence-floor rule do.
+coverage_report_json(By, Tags, IncludePassing, StatusFilter, BindingMode, TestBindings, IncludeTransitive, Limit, Offset, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
+    memo_sorted_coverage(
+        status_binding(By, Tags, IncludePassing, StatusFilter, BindingMode, TestBindings, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds),
+        status_binding_coverage_rows(By, Tags, IncludePassing, StatusFilter, BindingMode, TestBindings, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds),
+        SortedRows,
+        Summary),
+    paginate_rows(SortedRows, Offset, Limit, Rows),
+    status_meta_dict(Meta),
+    Response = _{summary: Summary, rows: Rows, meta: Meta},
+    dict_json_string(Response, JsonString).
+
+status_binding_coverage_rows(req, Tags, _IncludePassing, StatusFilter, BindingMode, TestBindings, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, MatchedRows, Summary) :-
+    !,
+    coverage_rows(req, Tags, true, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, BindingMode, TestBindings, Rows0, Summary),
+    include(req_row_proof_status_in(StatusFilter), Rows0, MatchedRows).
+status_binding_coverage_rows(By, Tags, IncludePassing, StatusFilter, _BindingMode, _TestBindings, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary) :-
+    status_filtered_coverage_rows(By, Tags, IncludePassing, StatusFilter, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary).
 
 binding_coverage_rows(req, Tags, IncludePassing, BindingMode, TestBindings, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary) :-
     !,
@@ -1118,6 +1229,10 @@ symbol_coverage_row(Tags, Row) :-
         coverageStatus: CoverageStatus
     }.
 
+% Link coverage (evaluated, fullyCovered, uncovered, notApplicable and the
+% missing* counts) judges only priority: must requirements; linkCoverageScope
+% says so, so a project without must requirements does not read as having
+% evaluated nothing next to its proof counts.
 coverage_summary(Rows, Summary) :-
     length(Rows, Total),
     include(req_row_evaluated, Rows, EvaluatedRows),
@@ -1140,6 +1255,8 @@ coverage_summary(Rows, Summary) :-
     length(MissingBothRows, MissingScenarioAndTest),
     length(ProofTestedRows, ProofTested),
     evidence_level_counts(Rows, EvidenceLevels),
+    claim_level_counts(Rows, ProofClaims),
+    evidence_floor_counts(Rows, EvidenceFloors),
     length(ProofUnresolvedRows, ProofUnresolved),
     length(ProofMissingRows, ProofMissing),
     length(ProofNotApplicableRows, ProofNotApplicable),
@@ -1156,8 +1273,49 @@ coverage_summary(Rows, Summary) :-
         proofUnresolved: ProofUnresolved,
         proofMissing: ProofMissing,
         proofNotApplicable: ProofNotApplicable,
-        evidenceLevels: EvidenceLevels
+        evidenceLevels: EvidenceLevels,
+        proofClaims: ProofClaims,
+        evidenceFloors: EvidenceFloors,
+        linkCoverageScope: priority_must
     }.
+
+% implements REQ-kibi-claim-bound-proofs
+% The applicable requirement claims across Rows, by the level their evidence
+% reaches: a claim is proved only through a derived certificate binding.
+claim_level_counts(Rows, _{applicable: Applicable, proved: Proved, attested: Attested,
+                           tested: Tested, unresolved: Unresolved}) :-
+    claim_count_sum(Rows, applicable, Applicable),
+    claim_count_sum(Rows, proved, Proved),
+    claim_count_sum(Rows, attested, Attested),
+    claim_count_sum(Rows, tested, Tested),
+    claim_count_sum(Rows, unresolved, Unresolved).
+
+claim_count_sum(Rows, Key, Sum) :-
+    aggregate_all(sum(N),
+        (   member(Row, Rows),
+            get_dict(claimSummary, Row, Summary),
+            get_dict(Key, Summary, N),
+            number(N)
+        ),
+        Sum).
+
+% implements REQ-kibi-evidence-floors
+% Current requirements with a floor (required_evidence, or tested for a firm
+% requirement), by whether their evidence level reaches it.  A floor of
+% unverified accepts anything and is not counted.
+evidence_floor_counts(Rows, _{met: Met, below: Below, pendingReproof: Pending}) :-
+    evidence_floor_status_count(Rows, met, Met),
+    evidence_floor_status_count(Rows, below, Below),
+    evidence_floor_status_count(Rows, pending_reproof, Pending).
+
+evidence_floor_status_count(Rows, Status, Count) :-
+    aggregate_all(count,
+        (   member(Row, Rows),
+            get_dict(evidenceFloor, Row, Floor),
+            Floor.get(required) \== unverified,
+            Floor.get(status) == Status
+        ),
+        Count).
 
 % implements REQ-kibi-evidence-levels
 evidence_level_counts(Rows, _{proved: Proved, tested: Tested, asserted: Asserted, unverified: Unverified}) :-

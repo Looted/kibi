@@ -377,3 +377,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c0d42b823de5
+  - type: executable_for
+    from: SYM-test-evidence-floors-exhaustive
+    to: TEST-kibi-evidence-floors-exhaustive
+    created_at: 2026-10-24T19:32:05.189Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33cd8a376c30
+  - type: implements
+    from: SYM-cli-evidence-levels
+    to: REQ-kibi-evidence-levels
+    created_at: 2026-10-24T19:32:42.577Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4fbbb912e7e0
+  - type: implements
+    from: SYM-cli-evidence-levels
+    to: REQ-kibi-evidence-floors
+    created_at: 2026-10-24T19:32:42.609Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe199c54da8f
+  - type: covered_by
+    from: SYM-cli-evidence-levels
+    to: TEST-kibi-evidence-levels
+    created_at: 2026-10-24T19:32:42.629Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-273fe31fee95
+  - type: covered_by
+    from: SYM-cli-evidence-levels
+    to: TEST-kibi-evidence-floors
+    created_at: 2026-10-24T19:32:42.647Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ccecede8ec4

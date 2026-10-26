@@ -10,7 +10,12 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { proveCommand } from "../../src/commands/prove.js";
+import {
+  PROVE_PROGRESS_FILE,
+  narrowedPlaywrightCommand,
+  proveCommand,
+  resumableIntegrations,
+} from "../../src/commands/prove.js";
 import type { IngestProofResult } from "../../src/operations/proof/ingest-proof.js";
 import type {
   OperationContext,
@@ -166,7 +171,7 @@ describe("proveCommand", () => {
       );
       expect(value.exitCode).toBe(0);
       expect(JSON.parse(output)).toMatchObject({
-        proved: 0,
+        passed: 0,
         failed: 0,
         message: "no proof-bearing tests selected",
       });
@@ -209,10 +214,91 @@ describe("proveCommand", () => {
       );
       expect(value.exitCode).toBe(0);
       expect(JSON.parse(output)).toMatchObject({
-        proved: 1,
+        passed: 1,
         failed: 0,
         unchanged: 1,
       });
+    });
+  });
+
+  // implements REQ-kibi-code-proof-kinds
+  test("counts certified receipts apart from passed ones and names a rejected certificate", async () => {
+    await withTempWorkspace(async (dir) => {
+      writeIntegrations(dir, [
+        {
+          id: "self-proof",
+          producer: "command",
+          producer_version: "1.0.0",
+          command: passingCommand,
+          description: "Self proof",
+        },
+      ]);
+      const extra = `,proof_contract=${JSON.stringify(JSON.stringify(contract))}`;
+      const receipt = {
+        receiptId: "PR-1",
+        applied: true,
+        duplicate: false,
+        receiptCount: 1,
+        compacted: 0,
+        gaps: [],
+        outcome: "passed" as const,
+      };
+      const errors: string[] = [];
+      const originalError = process.stderr.write.bind(process.stderr);
+      process.stderr.write = ((chunk: string | Uint8Array) => {
+        errors.push(typeof chunk === "string" ? chunk : chunk.toString());
+        return true;
+      }) as typeof process.stderr.write;
+      try {
+        const { value, output } = await captureStdout(() =>
+          proveCommand(
+            { all: true, workspaceRoot: dir },
+            {
+              runtime: fakeRuntime(dir, async () =>
+                resultsFor([entityRow("TEST-001", extra)]),
+              ),
+              ingestProof: async () =>
+                ingestResult({
+                  passed: 3,
+                  results: [
+                    {
+                      ...receipt,
+                      testId: "TEST-e2e",
+                      kind: "e2e",
+                      evidenceLevel: "tested",
+                    },
+                    {
+                      ...receipt,
+                      testId: "TEST-domain",
+                      kind: "exhaustive",
+                      evidenceLevel: "proved",
+                    },
+                    {
+                      ...receipt,
+                      testId: "TEST-smt",
+                      kind: "smt",
+                      evidenceLevel: "tested",
+                      certificateRejection: "the solver did not answer unsat",
+                    },
+                  ],
+                }),
+            },
+          ),
+        );
+        expect(value.exitCode).toBe(0);
+        const summary = JSON.parse(output);
+        expect(summary).toMatchObject({ passed: 3, certified: 1, failed: 0 });
+        expect(summary).not.toHaveProperty("proved");
+        expect(summary.runs[0].results[2]).toMatchObject({
+          kind: "smt",
+          certificateRejection: "the solver did not answer unsat",
+        });
+      } finally {
+        process.stderr.write = originalError;
+      }
+      expect(errors.join("")).toContain(
+        "prove: TEST-smt smt: certificate rejected, the solver did not answer unsat",
+      );
     });
   });
 
@@ -367,7 +453,7 @@ describe("proveCommand", () => {
       ]);
 
       const summary = JSON.parse(output);
-      expect(summary).toMatchObject({ proved: 1, failed: 1 });
+      expect(summary).toMatchObject({ passed: 1, failed: 1 });
       expect(summary.runs).toHaveLength(1);
       expect(summary.runs[0]).toMatchObject({
         integration: "self-proof",
@@ -591,6 +677,144 @@ describe("proveCommand", () => {
     });
   });
 
+  test("resume skips integrations an interrupted run already ingested", async () => {
+    await withTempWorkspace(async (dir) => {
+      const selfExtra = `,proof_contract=${JSON.stringify(JSON.stringify(contract))}`;
+      const webExtra = `,proof_contract=${JSON.stringify(JSON.stringify(otherContract))}`;
+      const runtime = fakeRuntime(dir, async () =>
+        resultsFor([
+          entityRow("TEST-001", selfExtra),
+          entityRow("TEST-002", webExtra, "Web flow"),
+        ]),
+      );
+      const ingested: string[][] = [];
+      const ingestProof = async (input: { testIds?: readonly string[] }) => {
+        ingested.push([...(input.testIds ?? [])]);
+        return ingestResult();
+      };
+      // Given a first run whose second integration never started
+      writeIntegrations(dir, [
+        {
+          id: "self-proof",
+          producer: "command",
+          command: passingCommand,
+          description: "Self proof",
+        },
+        {
+          id: "web-e2e",
+          producer: "command",
+          command: ["/no/such/kibi-prove-binary"],
+          description: "Web",
+        },
+      ]);
+      const first = await captureStdout(() =>
+        proveCommand(
+          { all: true, workspaceRoot: dir },
+          { runtime, ingestProof: ingestProof as never },
+        ),
+      );
+      expect(first.value.exitCode).toBe(1);
+      const progress = JSON.parse(
+        readFileSync(
+          path.join(dir, ".kb", "proof", "runs", PROVE_PROGRESS_FILE),
+          "utf8",
+        ),
+      );
+      expect(progress).toMatchObject({
+        snapshot: SNAPSHOT,
+        ingested: { "self-proof": ["TEST-001"] },
+      });
+
+      // When the run resumes after the second integration is fixed
+      writeIntegrations(dir, [
+        {
+          id: "self-proof",
+          producer: "command",
+          command: failingCommand,
+          description: "Self proof",
+        },
+        {
+          id: "web-e2e",
+          producer: "command",
+          command: passingCommand,
+          description: "Web",
+        },
+      ]);
+      ingested.length = 0;
+      const resumed = await captureStdout(() =>
+        proveCommand(
+          { all: true, resume: true, workspaceRoot: dir },
+          { runtime, ingestProof: ingestProof as never },
+        ),
+      );
+
+      // Then only the unfinished integration runs
+      expect(resumed.value.exitCode).toBe(0);
+      expect(ingested).toEqual([["TEST-002"]]);
+    });
+  });
+
+  test("resume runs everything after the snapshot moved", () => {
+    const groups = new Map([
+      ["self-proof", [{ id: "TEST-001" }]],
+      ["web-e2e", [{ id: "TEST-002" }, { id: "TEST-003" }]],
+    ]);
+    const progress = {
+      version: "kibi.prove-progress.v1" as const,
+      snapshot: SNAPSHOT,
+      ingested: { "self-proof": ["TEST-001"], "web-e2e": ["TEST-002"] },
+    };
+    expect([...resumableIntegrations(progress, SNAPSHOT, groups)]).toEqual([
+      "self-proof",
+    ]);
+    expect(resumableIntegrations(progress, "d".repeat(64), groups).size).toBe(
+      0,
+    );
+    expect(resumableIntegrations(null, SNAPSHOT, groups).size).toBe(0);
+  });
+
+  test("narrows a playwright command to the selected tests' bound spec files", () => {
+    const bound = (id: string, file?: string) => ({
+      id,
+      proof_bindings: [
+        {
+          symbol_id: `SYM-${id}`,
+          target: "chromium",
+          ...(file === undefined ? {} : { source_file: file }),
+        },
+      ],
+    });
+    expect(
+      narrowedPlaywrightCommand(
+        ["npx", "playwright", "test", "--project=chromium"],
+        [bound("A", "e2e/b.spec.ts"), bound("B", "e2e/a.spec.ts")],
+      ),
+    ).toEqual({
+      argv: [
+        "npx",
+        "playwright",
+        "test",
+        "--project=chromium",
+        "e2e/a.spec.ts",
+        "e2e/b.spec.ts",
+      ],
+      narrowed: true,
+    });
+    const unbound = narrowedPlaywrightCommand(
+      ["npx", "playwright", "test"],
+      [bound("A", "e2e/a.spec.ts"), bound("B")],
+    );
+    expect(unbound.narrowed).toBe(false);
+    expect(unbound.argv).toEqual(["npx", "playwright", "test"]);
+    expect(unbound.reason).toContain("test B");
+    const wrapped = narrowedPlaywrightCommand(
+      ["npm", "run", "e2e"],
+      [bound("A", "e2e/a.spec.ts")],
+    );
+    expect(wrapped.narrowed).toBe(false);
+    expect(wrapped.reason).toContain("KIBI_PROOF_SOURCE_FILES");
+  });
+
   test("converts a junit native report through the command path", async () => {
     await withTempWorkspace(async (dir) => {
       const report = path.join(dir, "junit.xml");
@@ -633,7 +857,7 @@ describe("proveCommand", () => {
         ),
       );
       expect(value.exitCode).toBe(0);
-      expect(JSON.parse(output).proved).toBe(1);
+      expect(JSON.parse(output).passed).toBe(1);
     });
   });
 });

@@ -475,3 +475,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8abf7ba9f497
+  - type: implements
+    from: SYM-cli-evidence-floor-check
+    to: REQ-kibi-evidence-floors
+    created_at: 2026-10-24T17:34:12.297Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f88e8c6a5c8
+  - type: covered_by
+    from: SYM-cli-evidence-floor-check
+    to: TEST-kibi-evidence-floors
+    created_at: 2026-10-24T17:34:12.329Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69c0f3f95b6f
+  - type: validates
+    from: TEST-kibi-intervals-differential
+    to: SCEN-kibi-intervals-verified
+    created_at: 2026-10-24T20:30:57.073Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6cf85c88c44e

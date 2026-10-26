@@ -1,6 +1,7 @@
 ---
 title: Search answers and check results say what they did not find as plainly as what they found
 status: open
+required_evidence: tested
 tags:
   - search
   - checks

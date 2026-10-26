@@ -1,6 +1,7 @@
 ---
 title: Kibi certifies knowledge-base theorems and re-checks every certificate
 status: open
+required_evidence: tested
 priority: should
 tags:
   - proof

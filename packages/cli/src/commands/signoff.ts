@@ -4,7 +4,10 @@ import { mkdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { RuntimeOperationSpec } from "../public/operations/runtime-types.js";
 import { coverageSpec } from "../public/operations/specs/reporting.js";
-import { earliestUnmetGate } from "../report/html-report.js";
+import {
+  certificateRejectionLines,
+  earliestUnmetGate,
+} from "../report/html-report.js";
 import {
   type SignoffCollectDeps,
   type SignoffScope,
@@ -23,6 +26,7 @@ import {
   SIGNOFF_LATEST_HTML,
   SIGNOFF_LATEST_JSON,
   SIGNOFF_LATEST_MARKDOWN,
+  type SignoffEvidenceFloor,
   type SignoffProof,
   type SignoffView,
 } from "../signoff/model.js";
@@ -82,6 +86,24 @@ async function writeAtomically(filePath: string, contents: string) {
   }
 }
 
+// implements REQ-kibi-evidence-floors
+function signoffFloor(
+  value: unknown,
+): { evidenceFloor: SignoffEvidenceFloor } | Record<string, never> {
+  const floor = record(value);
+  return typeof floor.required === "string" &&
+    floor.required !== "unverified" &&
+    typeof floor.status === "string"
+    ? {
+        evidenceFloor: {
+          required: floor.required,
+          source: typeof floor.source === "string" ? floor.source : "explicit",
+          status: floor.status,
+        },
+      }
+    : {};
+}
+
 function record(value: unknown): Record<string, unknown> {
   return value !== null && typeof value === "object"
     ? (value as Record<string, unknown>)
@@ -127,6 +149,10 @@ async function loadProof(): Promise<ReadonlyMap<string, SignoffProof>> {
       testCount: typeof row.testCount === "number" ? row.testCount : 0,
       ...(typeof row.evidenceLevel === "string"
         ? { evidenceLevel: row.evidenceLevel }
+        : {}),
+      ...signoffFloor(row.evidenceFloor),
+      ...(certificateRejectionLines(row).length > 0
+        ? { certificateRejections: certificateRejectionLines(row) }
         : {}),
       contradictions: conflicts
         .map(record)
