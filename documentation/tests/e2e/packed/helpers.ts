@@ -799,6 +799,8 @@ export function parseKibiResult<T>(stdout: string): T {
 /** Options for kibi commands */
 export interface KibiOptions {
   timeoutMs?: number;
+  /** Directory to run in, relative to the repo (default: the repo root). */
+  cwd?: string;
 }
 
 /** Test sandbox with isolated environment */
@@ -1346,7 +1348,7 @@ export async function kibi(
 ): Promise<RunResult> {
   // Use node to execute the bin file directly (bypass shebang permission issues in Docker)
   return run("node", [sandbox.kibiBin, ...args], {
-    cwd: sandbox.repoDir,
+    cwd: options.cwd ? join(sandbox.repoDir, options.cwd) : sandbox.repoDir,
     env: sandbox.env,
     timeoutMs: options.timeoutMs ?? 120000,
   });

@@ -500,6 +500,14 @@ async function executeIngestProofUnlocked(
       })),
       ...(evaluation.gaps.length > 0 ? { gaps: evaluation.gaps } : {}),
       ...verdict,
+      // A certificate that re-checks but derives none of the claims it names
+      // proves nothing: the receipt supports tested, as coverage reports.
+      ...(verdict.evidence_level === "proved" &&
+      claimBindings !== undefined &&
+      claimBindings.length > 0 &&
+      !claimBindings.some((binding) => binding.binding === "derived")
+        ? { evidence_level: "tested" as const }
+        : {}),
       ...(claimBindings !== undefined ? { claim_bindings: claimBindings } : {}),
     };
     prepared.push({

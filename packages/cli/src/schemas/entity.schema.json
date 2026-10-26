@@ -1433,7 +1433,8 @@
         "lte",
         "gt",
         "gte",
-        "matches"
+        "matches",
+        "includes"
       ]
     },
     "value_type": {

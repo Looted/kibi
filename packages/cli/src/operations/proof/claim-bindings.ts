@@ -166,7 +166,9 @@ function constraintText(obligation: NumericObligation): string {
 /**
  * The type-level witness Kibi writes for a required_fields claim binding: it
  * compiles only when every field is a required key of the type whose value
- * can be neither undefined nor null.
+ * can be neither undefined nor null. Each field has its own two lines (`key<i>`
+ * that the field exists, `required<i>` that it is required and non-null), so
+ * a failed compile says which fields break the claim.
  */
 // implements REQ-kibi-non-numeric-proof-kinds
 export function requiredFieldsWitness(
@@ -174,18 +176,41 @@ export function requiredFieldsWitness(
   typeExpression: string,
   fields: readonly string[],
 ): string {
-  const checks = fields.map((field) => `IsRequired<${JSON.stringify(field)}>`);
   return [
     `import type * as domain from ${JSON.stringify(importPath)};`,
     `type Shape = ${typeExpression};`,
+    "type HasKey<K extends PropertyKey> = K extends keyof Shape ? true : false;",
     "type IsRequired<K extends PropertyKey> = K extends keyof Shape",
     "  ? {} extends Pick<Shape, K> ? false : undefined extends Shape[K] ? false : null extends Shape[K] ? false : true",
     "  : false;",
-    `const required: [${checks.join(", ")}] = [${fields.map(() => "true").join(", ")}];`,
-    "void required;",
+    ...fields.flatMap((field, index) => [
+      `const key${index}: HasKey<${JSON.stringify(field)}> = true;`,
+      `const required${index}: IsRequired<${JSON.stringify(field)}> = true;`,
+    ]),
+    `void [${fields.map((_, index) => `key${index}, required${index}`).join(", ")}];`,
     "export {};",
     "",
   ].join("\n");
+}
+
+/** Which fields a failed required-fields witness rejected, and how. */
+export function requiredFieldsFailures(
+  witness: string,
+  fields: readonly string[],
+  errorLines: readonly number[],
+): string[] {
+  const lines = witness.split("\n");
+  const failing = new Set(errorLines);
+  const lineOf = (prefix: string) =>
+    lines.findIndex((line) => line.startsWith(prefix));
+  const failures: string[] = [];
+  fields.forEach((field, index) => {
+    if (failing.has(lineOf(`const key${index}:`)))
+      failures.push(`${field} is not a field`);
+    else if (failing.has(lineOf(`const required${index}:`)))
+      failures.push(`${field} is optional or nullable`);
+  });
+  return failures;
 }
 
 async function requiredFieldsProblem(
@@ -206,23 +231,29 @@ async function requiredFieldsProblem(
   );
   const absolute = path.resolve(context.workspaceRoot, witnessPath);
   let lastReason = "";
+  let failures: string[] = [];
   try {
     for (const typeExpression of [
       `domain.${exportName}`,
       `InstanceType<typeof domain.${exportName}>`,
     ]) {
-      writeFileSync(
-        absolute,
-        requiredFieldsWitness(`./${base}.js`, typeExpression, fields),
-        "utf8",
-      );
+      const witness = requiredFieldsWitness(`./${base}.js`, typeExpression, fields);
+      writeFileSync(absolute, witness, "utf8");
       const compiled = compileWitness(context.workspaceRoot, witnessPath);
       if (compiled.ok) return null;
       lastReason = compiled.reason;
+      // The first type expression that names a real type decides which
+      // fields fail; the InstanceType form is only for classes.
+      const errorLines = compiled.errorLines ?? [];
+      const shapeLine = witness.split("\n").findIndex((line) => line.startsWith("type Shape"));
+      if (failures.length === 0 && !errorLines.includes(shapeLine))
+        failures = requiredFieldsFailures(witness, fields, errorLines);
     }
   } finally {
     rmSync(absolute, { force: true });
   }
+  if (failures.length > 0)
+    return `${exportName} does not have every field of {${fields.join(", ")}} as a required, non-nullable field: ${failures.join("; ")}`;
   return `${exportName} does not have every field of {${fields.join(", ")}} as a required, non-nullable field${lastReason ? ` (${lastReason.replace(/ the witness \S+/, " the required-fields witness")})` : ""}`;
 }
 
@@ -384,11 +415,21 @@ export async function judgeClaimBindings(
     }
     const obligation = record(row.obligation) ?? {};
     if (input.verdict.evidence_level !== "proved") {
+      const recheck = `the certificate did not re-check${input.verdict.certificate_rejection ? `: ${input.verdict.certificate_rejection}` : ""}`;
+      // A typecheck claim is decided from the code alone, so when the
+      // author's witness fails, lead with what the code breaks (the field
+      // that is nullable, the member that is missing) rather than only
+      // "the type checker did not accept the witness".
+      const codeProblem =
+        input.contract.kind === "typecheck" &&
+        input.verdict.certificate !== undefined
+          ? await derivedProblem(context, input.contract, certificate, row, coveredBy)
+          : null;
       bindings.push({
         ...base,
         binding: "rejected",
         obligation,
-        reason: `the certificate did not re-check${input.verdict.certificate_rejection ? `: ${input.verdict.certificate_rejection}` : ""}`,
+        reason: codeProblem === null ? recheck : `${codeProblem} (${recheck})`,
       });
       continue;
     }

@@ -35,7 +35,15 @@ type FactKind =
   | "predicate"
   | "rule_schema"
   | "rule";
-type Operator = "eq" | "neq" | "lt" | "lte" | "gt" | "gte" | "matches";
+type Operator =
+  | "eq"
+  | "neq"
+  | "lt"
+  | "lte"
+  | "gt"
+  | "gte"
+  | "matches"
+  | "includes";
 type ValueType = "string" | "int" | "number" | "bool";
 type Polarity = "require" | "forbid" | "assert" | "deny";
 type VerificationScope = "unit" | "integration" | "end_to_end";
@@ -551,9 +559,11 @@ const entitySchema: Record<string, unknown> = {
     property_key: { type: "string" },
     // matches: value_string is a JavaScript regular expression (u flag) the
     // property's values match as a whole; only string facts use it.
+    // includes: every member of value_set has the property (the members
+    // that have it include the set); only set facts use it.
     operator: {
       type: "string",
-      enum: ["eq", "neq", "lt", "lte", "gt", "gte", "matches"],
+      enum: ["eq", "neq", "lt", "lte", "gt", "gte", "matches", "includes"],
     },
     value_type: {
       type: "string",

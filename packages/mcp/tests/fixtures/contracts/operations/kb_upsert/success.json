@@ -329,8 +329,17 @@
               "uniqueItems": true
             },
             "operator": {
-              "description": "Optional comparison operator for property_value facts. Example: 'eq'. 'matches' (string facts only): value_string is a JavaScript regular expression (u flag) every value must match as a whole.",
-              "enum": ["eq", "neq", "lt", "lte", "gt", "gte", "matches"],
+              "description": "Optional comparison operator for property_value facts. Example: 'eq'. 'matches' (string facts only): value_string is a JavaScript regular expression (u flag) every value must match as a whole. 'includes' (set facts only): every member of value_set has the property, and other members may have it too; 'eq' on a set means exactly those members.",
+              "enum": [
+                "eq",
+                "neq",
+                "lt",
+                "lte",
+                "gt",
+                "gte",
+                "matches",
+                "includes"
+              ],
               "type": "string"
             },
             "origin": {

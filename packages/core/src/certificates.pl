@@ -125,9 +125,11 @@ model_candidates(string, Members, Candidates) :-
 model_candidates(set, Members, Candidates) :-
     findall(Set, (member(m(_, _, Bound, _, _), Members), set_texts(Bound, Set)), Sets0),
     sort(Sets0, Sets),
-    findall(Text, (member(Set, Sets), member(Text, Set)), Texts),
+    findall(Text, (member(Set, Sets), member(Text, Set)), Texts0),
+    sort(Texts0, Texts),
     fresh_text(Texts, 0, Fresh),
-    append(Sets, [[Fresh]], Candidates).
+    % The union of every bound satisfies any set of includes facts alone.
+    append(Sets, [Texts, [Fresh]], Candidates).
 
 fresh_text(Bounds, Index, Fresh) :-
     format(string(Candidate), "kibi:model:~w", [Index]),

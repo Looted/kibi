@@ -57614,3 +57614,44 @@ symbols:
         target: TEST-kibi-non-numeric-proof-kinds
       - type: implements
         target: REQ-kibi-non-numeric-proof-kinds
+  - id: SYM-e2e-packed-cli-subdirectory-workspace
+    title: checkSubdirectoryWorkspace
+    status: active
+    sourceFile: documentation/tests/e2e/packed/cli-subdirectory-workspace.test.ts
+    symbol_role: behavioral
+    tags:
+      - e2e
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T13:32:51.211Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-subdirectory-workspace
+  - id: SYM-cli-resolve-workspace-cwd
+    title: resolveWorkspaceCwd
+    status: active
+    sourceFile: packages/cli/src/workspace-cwd.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T13:32:55.653Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-subdirectory-workspace
+      - type: implements
+        target: REQ-cli-subdirectory-workspace
+  - id: SYM-claim-bindings-required-fields-failures
+    title: requiredFieldsFailures
+    status: active
+    sourceFile: packages/cli/src/operations/proof/claim-bindings.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T13:42:04.949Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds
+      - type: implements
+        target: REQ-kibi-non-numeric-proof-kinds

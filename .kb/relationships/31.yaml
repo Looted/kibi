@@ -381,3 +381,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b1621262597e
+  - type: constrains
+    from: REQ-cli-subdirectory-workspace
+    to: FACT-SUBJECT-CLI-SUBDIRECTORY-WORKSPACE
+    created_at: 2026-10-26T13:32:31.618Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ce85def880b
+  - type: requires_property
+    from: REQ-cli-subdirectory-workspace
+    to: FACT-cli-subdirectory-workspace-nearest-enclosing-kb
+    created_at: 2026-10-26T13:32:31.659Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b119210c1e8f
+  - type: requires_property
+    from: REQ-cli-subdirectory-workspace
+    to: FACT-cli-subdirectory-workspace-relative-paths-from-invocation
+    created_at: 2026-10-26T13:32:31.699Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd658d459232
+  - type: requires_property
+    from: REQ-cli-subdirectory-workspace
+    to: FACT-cli-subdirectory-workspace-init-and-env-keep-directory
+    created_at: 2026-10-26T13:32:31.737Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6533e2d57f14
+  - type: specified_by
+    from: REQ-cli-subdirectory-workspace
+    to: SCEN-cli-subdirectory-workspace
+    created_at: 2026-10-26T13:32:31.759Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90a3ab786cde
