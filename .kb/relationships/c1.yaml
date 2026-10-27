@@ -104,3 +104,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-18f31a3518f9
+  - type: validates
+    from: TEST-proof-entity-accepted-fields
+    to: SCEN-kibi-entity-relationship-schema-roundtrip
+    created_at: 2026-10-27T07:19:22.606Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a97b8ca06fe

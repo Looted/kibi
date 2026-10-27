@@ -57791,3 +57791,45 @@ symbols:
         target: TEST-kibi-source-proof-kinds
       - type: implements
         target: REQ-kibi-source-proof-kinds
+  - id: SYM-test-proof-entity-type-count
+    title: entityTypeCountCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/entity-schema.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:19:04.247Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-entity-type-count
+  - id: SYM-test-proof-entity-required-fields
+    title: entityRequiredFieldsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/entity-schema.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:19:15.420Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-entity-required-fields
+  - id: SYM-test-proof-entity-accepted-fields
+    title: entityAcceptedFieldsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/entity-schema.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:19:25.909Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-entity-accepted-fields

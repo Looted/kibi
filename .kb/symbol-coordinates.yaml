@@ -37531,6 +37531,30 @@ coordinates:
     sourceEndLine: 211
     sourceFile: packages/cli/tests/prolog/swipl-package.test.ts
     sourceLine: 1
+  SYM-test-proof-entity-accepted-fields:
+    identityHash: 4f4fbed6faeac52684d7eedd03368c16a196862b862783ee865ed9ab015dc4df
+    sourceHash: c579ac67b8f841918f91a694d9f9e99dbfbf709f273dd1d71aa986758e154f4d
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 48
+    sourceFile: packages/cli/tests/proofs/claims/entity-schema.proof.test.ts
+    sourceLine: 46
+  SYM-test-proof-entity-required-fields:
+    identityHash: 9e5f35e1b3f30a75d63fbd47ea503325fb31ad438e51a750e42e8fb14688904b
+    sourceHash: c579ac67b8f841918f91a694d9f9e99dbfbf709f273dd1d71aa986758e154f4d
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 43
+    sourceFile: packages/cli/tests/proofs/claims/entity-schema.proof.test.ts
+    sourceLine: 41
+  SYM-test-proof-entity-type-count:
+    identityHash: 843a2eacd9c5366500f330838bc53fd97aba81cdecf4a7b70b6085bffea6c94c
+    sourceHash: c579ac67b8f841918f91a694d9f9e99dbfbf709f273dd1d71aa986758e154f4d
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 38
+    sourceFile: packages/cli/tests/proofs/claims/entity-schema.proof.test.ts
+    sourceLine: 29
   SYM-test-proof-protocol:
     identityHash: 1c8ef63590374de37cc33074d7d9aaada02273a1261585e6579a0e63327a2ecc
     sourceHash: 8c01327e3f78528459621c15197bf6a0b031cedf83f6a2e37d79f9712ce23f68

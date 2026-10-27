@@ -3260,5 +3260,35 @@
         "./packages/cli/tests/workspace-cwd.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-proof-entity-type-count",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/entity-schema.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-entity-required-fields",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/entity-schema.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-entity-accepted-fields",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/entity-schema.proof.test.ts"
+      ]
+    ]
   }
 ]
