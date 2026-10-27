@@ -643,7 +643,7 @@ describe("prolog remaining: process-tree teardown and translators", () => {
       queryWrites += 1;
       last().stdout?.emit(
         "data",
-        Buffer.from("X = 1.\n__KIBI_QUERY_FRAME_END__\n"),
+        Buffer.from("X = 1.\n__KIBI_QUERY_FRAME_END__\ntrue.\n\n"),
       );
       return Boolean(chunk);
     };
@@ -686,12 +686,66 @@ describe("prolog remaining: process-tree teardown and translators", () => {
     const writes: string[] = [];
     stdin().write = (chunk: string) => {
       writes.push(String(chunk));
-      last().stdout?.emit("data", Buffer.from("__KIBI_QUERY_FRAME_END__\n"));
+      last().stdout?.emit(
+        "data",
+        Buffer.from("__KIBI_QUERY_FRAME_END__\ntrue.\n\n"),
+      );
       return true;
     };
     const result = await prolog.query("kb_assert_entity(req, [])");
     expect(result.success).toBe(true);
     expect(writes.join("")).toMatch(/kb_assert_entity\(req, \[\]\), kb_save/);
+    await prolog.terminate();
+  });
+
+  test("answers only once the frame goal's own toplevel answer has been read", async () => {
+    const restoreEnvFn = isolateKibiEnv();
+    restores.push(restoreEnvFn);
+    const children: FakeChild[] = [];
+    const spawn = spyOn(childProcess, "spawn").mockImplementation(
+      asSpawn(() => {
+        const created = fakeChild({ echoTrue: true });
+        children.push(created);
+        return created;
+      }),
+    );
+    restores.push(() => spawn.mockRestore());
+    const last = (): FakeChild => {
+      const child = children.at(-1);
+      if (child === undefined) throw new Error("spawn was not called");
+      return child;
+    };
+    const stdin = (): NonNullable<FakeChild["stdin"]> => {
+      const stream = last().stdin;
+      if (!stream) throw new Error("spawned Prolog child has no stdin");
+      return stream;
+    };
+    const prolog = new PrologProcess({
+      swiplPath: "/usr/bin/env",
+      oneShot: false,
+      timeout: 2_000,
+    });
+    await prolog.start();
+    stdin().write = () => {
+      // SWI writes the marker, then answers the writeln/1 goal separately.
+      last().stdout?.emit("data", Buffer.from("X = 1.\n\n"));
+      last().stdout?.emit("data", Buffer.from("__KIBI_QUERY_FRAME_END__\n"));
+      return true;
+    };
+    let settled = false;
+    const pending = prolog.query("(X = 1)").then((result) => {
+      settled = true;
+      return result;
+    });
+    await new Promise((resolve) => setTimeout(resolve, 120));
+    expect(settled).toBe(false);
+    last().stdout?.emit("data", Buffer.from("true.\n"));
+    await new Promise((resolve) => setTimeout(resolve, 120));
+    expect(settled).toBe(false);
+    last().stdout?.emit("data", Buffer.from("\n"));
+    const result = await pending;
+    expect(result.success).toBe(true);
+    expect(result.bindings.X).toBe("1");
     await prolog.terminate();
   });
 });

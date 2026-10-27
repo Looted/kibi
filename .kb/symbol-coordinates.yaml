@@ -149,12 +149,12 @@ coordinates:
     sourceLine: 158
   SYM-001:
     identityHash: dbaa5884694d259f0f5f7bf93cd7682d31b9640f91650eb34b554ca69a083c73
-    sourceHash: 9176796810afcb1c857e7625745ca0fd12d2d260145953c68767395eceba2645
+    sourceHash: d1eb16e331923e906df6e2ae2d9cd408851209b5b564831dfe9b0fc741cb285c
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 1323
+    sourceEndLine: 1333
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 168
+    sourceLine: 177
   SYM-003:
     identityHash: 07e0becff1b2d35c40bf950d8042fc778ea252d881a6835a93c1c1c7c2d33e96
     sourceHash: f1a222f7326ec584c5a958a298cb6ad4b720d91184eb193be4fab4c58614445d
@@ -8101,12 +8101,12 @@ coordinates:
     sourceLine: 18
   SYM-cli-prolog-query-batch:
     identityHash: c5a4fbea346a9e00ae0e8c03c214085284a61bfc58486221719338bfbc13a304
-    sourceHash: 9176796810afcb1c857e7625745ca0fd12d2d260145953c68767395eceba2645
+    sourceHash: d1eb16e331923e906df6e2ae2d9cd408851209b5b564831dfe9b0fc741cb285c
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 646
+    sourceEndLine: 656
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 644
+    sourceLine: 654
   SYM-cli-prolog-search-query-input:
     identityHash: 22d637186cc58e2c253fed704b89a25214f345b39b8eff97422b7ca72f705a58
     sourceHash: e24407444f5b865a1b65dca43abc6d2ca6d30308c440d867d1f577969dcce191
@@ -8173,116 +8173,116 @@ coordinates:
     sourceLine: 34
   SYM-cli-PrologProcess-execOneShot:
     identityHash: fdf58c465bd29adcc2a37aa63280f09f0e2d837b3848c51318bcd4e535f24c8e
-    sourceHash: 9176796810afcb1c857e7625745ca0fd12d2d260145953c68767395eceba2645
+    sourceHash: d1eb16e331923e906df6e2ae2d9cd408851209b5b564831dfe9b0fc741cb285c
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 1325
+    sourceEndLine: 1335
     sourceFile: packages/cli/src/prolog.ts
     sourceLine: 1
   SYM-cli-PrologProcess-getPid:
     identityHash: 15e44891fea416242845c6124176dc0b066dc31b35e9ff9876622b1eaef9396f
-    sourceHash: 9176796810afcb1c857e7625745ca0fd12d2d260145953c68767395eceba2645
+    sourceHash: d1eb16e331923e906df6e2ae2d9cd408851209b5b564831dfe9b0fc741cb285c
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 1271
+    sourceEndLine: 1281
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 1269
+    sourceLine: 1279
   SYM-cli-PrologProcess-invalidateCache:
     identityHash: 02f81a2169ded873f1f58a0a6a091bd6f4757480cbb5ff3d87033324766ac687
-    sourceHash: 9176796810afcb1c857e7625745ca0fd12d2d260145953c68767395eceba2645
+    sourceHash: d1eb16e331923e906df6e2ae2d9cd408851209b5b564831dfe9b0fc741cb285c
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 650
+    sourceEndLine: 660
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 648
+    sourceLine: 658
   SYM-cli-PrologProcess-isRunning:
     identityHash: dfcd60919e19a7d8eb3901cb97e9c7aabc67e39ba0d5f5687a98e76d58d93470
-    sourceHash: 9176796810afcb1c857e7625745ca0fd12d2d260145953c68767395eceba2645
+    sourceHash: d1eb16e331923e906df6e2ae2d9cd408851209b5b564831dfe9b0fc741cb285c
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 1267
+    sourceEndLine: 1277
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 1260
+    sourceLine: 1270
   SYM-cli-PrologProcess-needsRestart:
     identityHash: 2023fd6a514ea2c982d3526b75d0e6431303ef7e611b43640795c54e8ee001d3
-    sourceHash: 9176796810afcb1c857e7625745ca0fd12d2d260145953c68767395eceba2645
+    sourceHash: d1eb16e331923e906df6e2ae2d9cd408851209b5b564831dfe9b0fc741cb285c
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 241
+    sourceEndLine: 250
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 239
+    sourceLine: 248
   SYM-cli-PrologProcess-oneShotMode:
     identityHash: 23c2250364cb621cfab6a32b1fa64696b2f7e23f922a045288e56dff14379a2c
-    sourceHash: 9176796810afcb1c857e7625745ca0fd12d2d260145953c68767395eceba2645
+    sourceHash: d1eb16e331923e906df6e2ae2d9cd408851209b5b564831dfe9b0fc741cb285c
     sourceColumn: 6
     sourceEndColumn: 3
-    sourceEndLine: 233
+    sourceEndLine: 242
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 231
+    sourceLine: 240
   SYM-cli-PrologProcess-query:
     identityHash: d89f1ae979c7c5c7d87b4670d5a2e83d98124460be6158fbf9ddf9c7f8287665
-    sourceHash: 9176796810afcb1c857e7625745ca0fd12d2d260145953c68767395eceba2645
+    sourceHash: d1eb16e331923e906df6e2ae2d9cd408851209b5b564831dfe9b0fc741cb285c
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 641
+    sourceEndLine: 651
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 374
+    sourceLine: 383
   SYM-cli-PrologProcess-signalProcessTree:
     identityHash: db17c40523cf9db59f92f2065a327301f15c170d7bfa8415c08eae2c4539858f
-    sourceHash: 9176796810afcb1c857e7625745ca0fd12d2d260145953c68767395eceba2645
+    sourceHash: d1eb16e331923e906df6e2ae2d9cd408851209b5b564831dfe9b0fc741cb285c
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 1325
+    sourceEndLine: 1335
     sourceFile: packages/cli/src/prolog.ts
     sourceLine: 1
   SYM-cli-PrologProcess-start:
     identityHash: 9707782fceb402df090cc916da3a9dcb5af68e2d9deff34f4f90163f05f8aa96
-    sourceHash: 9176796810afcb1c857e7625745ca0fd12d2d260145953c68767395eceba2645
+    sourceHash: d1eb16e331923e906df6e2ae2d9cd408851209b5b564831dfe9b0fc741cb285c
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 324
+    sourceEndLine: 333
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 255
+    sourceLine: 264
   SYM-cli-PrologProcess-terminate:
     identityHash: 9bccf794e1ac2f2e646ee6a5b99034be5cd2d2558c6448959238c356120f9c10
-    sourceHash: 9176796810afcb1c857e7625745ca0fd12d2d260145953c68767395eceba2645
+    sourceHash: d1eb16e331923e906df6e2ae2d9cd408851209b5b564831dfe9b0fc741cb285c
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 1322
+    sourceEndLine: 1332
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 1286
+    sourceLine: 1296
   SYM-cli-PrologProcess-terminateProcessTree:
     identityHash: b90dd3db2fb6cfaf4051e1241571b6753e7ba02101d14c4c95ba31b0744f77a4
-    sourceHash: 9176796810afcb1c857e7625745ca0fd12d2d260145953c68767395eceba2645
+    sourceHash: d1eb16e331923e906df6e2ae2d9cd408851209b5b564831dfe9b0fc741cb285c
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 1325
+    sourceEndLine: 1335
     sourceFile: packages/cli/src/prolog.ts
     sourceLine: 1
   SYM-cli-PrologProcessTerminatedError:
     identityHash: 182abca6fbf5d8bfafabd086f53ce83f447531b17cd30c30b97911fa54a46936
-    sourceHash: 9176796810afcb1c857e7625745ca0fd12d2d260145953c68767395eceba2645
+    sourceHash: d1eb16e331923e906df6e2ae2d9cd408851209b5b564831dfe9b0fc741cb285c
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 131
+    sourceEndLine: 140
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 120
+    sourceLine: 129
   SYM-cli-PrologProcessTerminatedError-code:
     identityHash: fb5cc8998f716fc84f68917db1858ff5f8d58cef072551f92e0c462d3c3aea53
-    sourceHash: 9176796810afcb1c857e7625745ca0fd12d2d260145953c68767395eceba2645
+    sourceHash: d1eb16e331923e906df6e2ae2d9cd408851209b5b564831dfe9b0fc741cb285c
     sourceColumn: 11
     sourceEndColumn: 46
-    sourceEndLine: 121
+    sourceEndLine: 130
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 121
+    sourceLine: 130
   SYM-cli-PrologProcessTerminatedError-reason:
     identityHash: 11333cc9da418294b0887d2300017dc8a7669cfda8b0c6497c423539d457b27b
-    sourceHash: 9176796810afcb1c857e7625745ca0fd12d2d260145953c68767395eceba2645
+    sourceHash: d1eb16e331923e906df6e2ae2d9cd408851209b5b564831dfe9b0fc741cb285c
     sourceColumn: 11
     sourceEndColumn: 26
-    sourceEndLine: 122
+    sourceEndLine: 131
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 122
+    sourceLine: 131
   SYM-cli-PrologQueryPlanSafetyViolation:
     identityHash: 0a1349697cef485d5ff8534d8f280b59633f6fb35b04b098a2ef523091a3d378
     sourceHash: e4b195c11ea26569419d88f53379c34f7fcf500c01b74ead1f036ccc36ef2ebe
@@ -22581,20 +22581,20 @@ coordinates:
     sourceLine: 383
   SYM-prolog-attach-process-exit-handler:
     identityHash: a30e87b09d8fa2fb8548f864b40dfb620fe26dab902783821c3228bf88e9a006
-    sourceHash: 9176796810afcb1c857e7625745ca0fd12d2d260145953c68767395eceba2645
+    sourceHash: d1eb16e331923e906df6e2ae2d9cd408851209b5b564831dfe9b0fc741cb285c
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 225
+    sourceEndLine: 234
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 216
+    sourceLine: 225
   SYM-prolog-bind-process-exit-handler:
     identityHash: bde06d2f0900da4b8f491a2f7cc2c27db77fad24e5ae93928f2cca68447e668b
-    sourceHash: 9176796810afcb1c857e7625745ca0fd12d2d260145953c68767395eceba2645
+    sourceHash: d1eb16e331923e906df6e2ae2d9cd408851209b5b564831dfe9b0fc741cb285c
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 166
+    sourceEndLine: 175
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 153
+    sourceLine: 162
   SYM-prolog-build-archive-pipeline:
     identityHash: d9b0d3f24b1894e3dbdec429697618bb5244d7365729c29273217288ea71cdd4
     sourceHash: 80c603af5ab5064039444df489c354e530e628bc88b7f3485823bc17edbac0c9
@@ -22821,12 +22821,12 @@ coordinates:
     sourceLine: 81
   SYM-prolog-register-process-exit-once:
     identityHash: c3857b4a4da71b847b81f949f1fc9415fcf9c3930706d4fcaee1f38a97658f4a
-    sourceHash: 9176796810afcb1c857e7625745ca0fd12d2d260145953c68767395eceba2645
+    sourceHash: d1eb16e331923e906df6e2ae2d9cd408851209b5b564831dfe9b0fc741cb285c
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 150
+    sourceEndLine: 159
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 141
+    sourceLine: 150
   SYM-prolog-release-archive-name:
     identityHash: b771fdfdfc5537bc139116260bd853c916776538678e4ece86a12f60cadc5202
     sourceHash: df968b424db3d3ab157be4bf3a01598e92a9615b83571875fbdb1cb4c7f5b6c7
@@ -23341,12 +23341,12 @@ coordinates:
     sourceLine: 28
   SYM-PrologOptions:
     identityHash: 4af33dbd8730362f13e3356d045bac779b6ea446e044cd1c289f1b4e1cd281e7
-    sourceHash: 9176796810afcb1c857e7625745ca0fd12d2d260145953c68767395eceba2645
+    sourceHash: d1eb16e331923e906df6e2ae2d9cd408851209b5b564831dfe9b0fc741cb285c
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 111
+    sourceEndLine: 120
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 91
+    sourceLine: 100
   SYM-PromptContext:
     identityHash: 212fe4f3466e6f180121d263403a7f7301c6a83501a9c61969f7bb6a32d5bb1b
     sourceHash: 3ad3ee00cff7c442ec5b04e4208161c0d16f577fb0dac43fd1c29216f4400236
@@ -24581,12 +24581,12 @@ coordinates:
     sourceLine: 254
   SYM-QueryResult:
     identityHash: 96b7d6cfa8b67aa0166d08e97e714fed5b3d96b585e1eb103f1e6caba3c388b4
-    sourceHash: 9176796810afcb1c857e7625745ca0fd12d2d260145953c68767395eceba2645
+    sourceHash: d1eb16e331923e906df6e2ae2d9cd408851209b5b564831dfe9b0fc741cb285c
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 138
+    sourceEndLine: 147
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 133
+    sourceLine: 142
   SYM-rank-subject-candidates:
     identityHash: dd3fe0080664f6d56d33aab44e19d0c562a9145ce8ec0dc494c2dfd8d15b31d8
     sourceHash: b49ea80ebde55e40eed06a412fe9747a7781d214608f4f931513b7773a993ea5
@@ -25733,12 +25733,12 @@ coordinates:
     sourceLine: 67
   SYM-resolveKbPlPath:
     identityHash: bc2217f451c4d08291e1674b6de56ea4a175dc225f8d823a16bc84a59d3a9834
-    sourceHash: 9176796810afcb1c857e7625745ca0fd12d2d260145953c68767395eceba2645
+    sourceHash: d1eb16e331923e906df6e2ae2d9cd408851209b5b564831dfe9b0fc741cb285c
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 90
+    sourceEndLine: 99
     sourceFile: packages/cli/src/prolog.ts
-    sourceLine: 52
+    sourceLine: 61
   SYM-resolveManifestPath:
     identityHash: a6e2bfbc1f1b23d5150fad499dee838e29ffaa91742410a3f754a197668b53d9
     sourceHash: 4b4eb90458c8f42fe339018eb1d1a335640a3c96342aae0763a40f5da614dbcc
