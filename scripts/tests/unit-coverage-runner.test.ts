@@ -9,6 +9,7 @@ import {
   partitionShards,
   selectedShards,
   shardLabelsFromArgv,
+  testFailureOutput,
 } from "../run-unit-coverage";
 
 const runnerSource = readFileSync(
@@ -317,6 +318,41 @@ describe("unit coverage runner contract", () => {
     ).toBe(
       'cli.commands file=./packages/cli/tests/commands/sync.test.ts (exit 1, 301000ms, timeout=300000ms timedOut lastOutput="spawnSync /bin/sh ETIMEDOUT")',
     );
+  });
+
+  test("a failed file's reported output keeps its failing test, not the coverage table", () => {
+    const output = [
+      "(pass) daemon > serves RPCs [120.00ms]",
+      "error: expect(received).toBe(expected)",
+      "      at <anonymous> (engine-daemon-inprocess.test.ts:42:7)",
+      "(fail) daemon > idle timeout shuts the daemon down [4012.00ms]",
+      "-----------------------|---------|---------|-------------------",
+      "File                   | % Funcs | % Lines | Uncovered Line #s",
+      "-----------------------|---------|---------|-------------------",
+      "All files              |   91.20 |   88.40 |",
+      " packages/cli/src/a.ts |  100.00 |   76.72 | 58-61,76-80",
+      "",
+      " 16 pass",
+      " 1 fail",
+    ].join("\n");
+    const kept = testFailureOutput(output);
+    expect(kept).toContain(
+      "(fail) daemon > idle timeout shuts the daemon down",
+    );
+    expect(kept).toContain("engine-daemon-inprocess.test.ts:42:7");
+    expect(kept).not.toContain("(pass)");
+    expect(kept).not.toContain("% Funcs");
+    expect(kept).not.toContain("packages/cli/src/a.ts");
+    expect(
+      formatCoverageFailure({
+        label: "cli.engine",
+        exitCode: 1,
+        durationMs: 8_000,
+        timeoutMs: 300_000,
+        timedOut: false,
+        lastOutput: output,
+      }),
+    ).toContain("(fail) daemon > idle timeout shuts the daemon down");
   });
 
   test("process-per-file isolation is the default for process-heavy CLI shards", () => {
