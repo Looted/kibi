@@ -307,3 +307,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5c332f2f3ce6
+  - type: implements
+    from: SYM-bootstrap-near-restatement-jaccard
+    to: REQ-bootstrap-claim-restatement-threshold
+    created_at: 2026-10-27T08:06:09.469Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d76b1455b50

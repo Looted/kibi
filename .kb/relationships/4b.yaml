@@ -419,3 +419,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-79e923997480
+  - type: executable_for
+    from: SYM-test-proof-entity-accepted-fields
+    to: TEST-proof-entity-accepted-fields
+    created_at: 2026-10-27T07:19:27.962Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dfe56e04e9c7

@@ -384,3 +384,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c20816063278
+  - type: executable_for
+    from: SYM-proof-cursor-agent-plugin-mcp-schema
+    to: TEST-proof-cursor-agent-plugin-mcp-schema
+    created_at: 2026-10-27T07:57:55.344Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3828b9c1af2c

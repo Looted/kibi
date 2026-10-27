@@ -3262,6 +3262,346 @@
     ]
   },
   {
+    "test_id": "TEST-proof-entity-type-count",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/entity-schema.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-entity-required-fields",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/entity-schema.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-entity-accepted-fields",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/entity-schema.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-zcode-manifest-fields",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/zcode-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-zcode-commands",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/zcode-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-zcode-skills",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/zcode-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-zcode-mcp-launcher",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/zcode-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-zcode-lifecycle-hooks",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/zcode-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-claude-published-parts",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/claude-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-claude-skills",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/claude-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-claude-mcp-launcher",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/claude-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-claude-lifecycle-hooks",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/claude-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-codex-published-parts",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/codex-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-codex-manifest-fields",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/codex-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-codex-skills",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/codex-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-codex-lifecycle-hooks",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/codex-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-codex-peer-dependencies",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/codex-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-published-parts",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-manifest-fields",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-skills",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-rules",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-commands",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-mcp-launcher",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-lifecycle-hooks",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-peer-dependencies",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-agent-plugin-published",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-agent-plugin-plugin-schema",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-agent-plugin-plugin-fields",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-agent-plugin-skills",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-agent-plugin-mcp-schema",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-agent-plugin-mcp-fields",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-applicability-threshold",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/numeric-thresholds.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-weak-candidate-margin",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/numeric-thresholds.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-near-restatement-jaccard",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/numeric-thresholds.proof.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-symbol-coordinates-derived-locally",
     "steps": [
       [

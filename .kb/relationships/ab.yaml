@@ -325,3 +325,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fc717cca67db
+  - type: executable_for
+    from: SYM-proof-codex-skills
+    to: TEST-proof-codex-skills
+    created_at: 2026-10-27T07:49:10.061Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d40d7dd40cd
