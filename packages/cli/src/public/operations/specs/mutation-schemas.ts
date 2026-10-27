@@ -263,7 +263,7 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       type: "string",
       enum: ["string", "int", "number", "bool", "set"],
       description:
-        "Optional typed value discriminator for property_value facts. Pair with exactly one value_string, value_int, value_number, value_bool, or value_set (set: an exact list of allowed values, operator eq or neq); do not use generic value.",
+        "Optional typed value discriminator for property_value facts. Pair with exactly one value_string, value_int, value_number, value_bool, or value_set (set: a list of members, with operator eq, includes, subset_of or excludes); do not use generic value.",
     },
     value_string: {
       type: "string",

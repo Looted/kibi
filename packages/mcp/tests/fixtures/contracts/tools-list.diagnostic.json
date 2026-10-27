@@ -2667,9 +2667,25 @@
               {
                 "const": "polarity",
                 "type": "string"
+              },
+              {
+                "const": "matches",
+                "type": "string"
+              },
+              {
+                "const": "includes",
+                "type": "string"
+              },
+              {
+                "const": "subset_of",
+                "type": "string"
+              },
+              {
+                "const": "excludes",
+                "type": "string"
               }
             ],
-            "description": "Optional extracted semantic claim operator. Use gt/lt for strict bounds ('greater than zero' is gt 0, not gte 0). Example: 'eq'."
+            "description": "Optional extracted semantic claim operator. Use gt/lt for strict bounds ('greater than zero' is gt 0, not gte 0). A set claim takes a list value with eq (exactly these), includes (at least these), subset_of (only these) or excludes (none of these); matches takes a regular expression string. Example: 'eq'."
           },
           "polarityHint": {
             "anyOf": [
@@ -2770,7 +2786,25 @@
             "description": "Entity type context for analysis. Requirement, domain-fact, and supporting prose all receive a proposition ledger; only requirements receive deterministic modeling suggestions."
           },
           "value": {
-            "description": "Optional extracted semantic claim value. Accepts string, number, or boolean."
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ],
+            "description": "Optional extracted semantic claim value: a string, number or boolean, or a list of strings for a set claim. Example: ['requireAuth'] with operator includes."
           },
           "workspaceRoot": {
             "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
@@ -4284,6 +4318,10 @@
                                 "type": "string"
                               },
                               {
+                                "const": "source",
+                                "type": "string"
+                              },
+                              {
                                 "const": "harness",
                                 "type": "string"
                               },
@@ -4886,7 +4924,7 @@
                     "type": "string"
                   }
                 ],
-                "description": "Optional typed value discriminator for property_value facts. Pair with exactly one value_string, value_int, value_number, value_bool, or value_set (set: an exact list of allowed values, operator eq or neq); do not use generic value."
+                "description": "Optional typed value discriminator for property_value facts. Pair with exactly one value_string, value_int, value_number, value_bool, or value_set (set: a list of members, with operator eq, includes, subset_of or excludes); do not use generic value."
               },
               "verification_perspective": {
                 "anyOf": [

@@ -18,6 +18,12 @@ import {
   stripListPrefix,
 } from "./requirement-utils.js";
 
+const SET_OPERATORS: ReadonlySet<string> = new Set([
+  "includes",
+  "subset_of",
+  "excludes",
+]);
+
 const NORMATIVE_SECTION_PATTERN = /\b(requirements?|polic(?:y|ies)|rules?)\b/i;
 
 function hasExplicitClaimFields(args: ModelRequirementArgs): boolean {
@@ -77,12 +83,22 @@ export function extractRequirementClaim(
         "Requirement modeling failed: subjectKey, propertyKey, operator, and value must all be provided when any extracted claim field is supplied",
       );
     }
+    const value = normalizeClaimValue(args.value);
+    const setOperator = SET_OPERATORS.has(args.operator);
+    if (setOperator && !Array.isArray(value))
+      throw new Error(
+        `Requirement modeling failed: operator ${args.operator} takes a set value (a list of strings)`,
+      );
+    if (Array.isArray(value) && !setOperator && args.operator !== "eq")
+      throw new Error(
+        `Requirement modeling failed: a set value takes operator eq, includes, subset_of or excludes, not ${args.operator}`,
+      );
     const claim: SemanticClaim = {
       source,
       subjectKey,
       propertyKey,
       operator: args.operator,
-      value: normalizeClaimValue(args.value),
+      value,
       confidence,
       ...(provenance ? { provenance } : {}),
     };

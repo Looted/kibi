@@ -483,7 +483,14 @@ export async function judgeClaimBindings(
         ? {
             ...base,
             binding: "derived",
-            scope: numeric && !valueSourced ? "intent" : harnessed ? "harness" : "code",
+            scope:
+              numeric && !valueSourced
+                ? "intent"
+                : harnessed
+                  ? "harness"
+                  : input.contract.kind === "source"
+                    ? "source"
+                    : "code",
             obligation,
           }
         : { ...base, binding: "rejected", obligation, reason: problem },
