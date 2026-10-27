@@ -657,3 +657,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-70d20cd4f422
+  - type: executable_for
+    from: SYM-proof-zcode-skills
+    to: TEST-proof-zcode-skills
+    created_at: 2026-10-27T07:27:39.431Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1907cadc17cb

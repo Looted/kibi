@@ -3290,5 +3290,55 @@
         "./packages/cli/tests/proofs/claims/entity-schema.proof.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-proof-zcode-manifest-fields",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/zcode-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-zcode-commands",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/zcode-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-zcode-skills",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/zcode-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-zcode-mcp-launcher",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/zcode-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-zcode-lifecycle-hooks",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/zcode-plugin-package.proof.test.ts"
+      ]
+    ]
   }
 ]

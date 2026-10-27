@@ -31690,6 +31690,8 @@ symbols:
         target: TEST-zcode-kibi-plugin-v1
       - type: implements
         target: REQ-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-plugin-package
   - id: SYM-kibi-predicate-suggestion-relevance-e2e
     title: predicate suggestion relevance e2e
     status: active
@@ -57833,3 +57835,73 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-entity-accepted-fields
+  - id: SYM-proof-zcode-manifest-fields
+    title: zcodeManifestFieldsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/zcode-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:27:17.055Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-zcode-manifest-fields
+  - id: SYM-proof-zcode-commands
+    title: zcodeCommandsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/zcode-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:27:27.217Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-zcode-commands
+  - id: SYM-proof-zcode-skills
+    title: zcodeSkillsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/zcode-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:27:37.766Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-zcode-skills
+  - id: SYM-proof-zcode-mcp-launcher
+    title: zcodeMcpLauncherCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/zcode-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:27:47.749Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-zcode-mcp-launcher
+  - id: SYM-proof-zcode-lifecycle-hooks
+    title: zcodeLifecycleHooksCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/zcode-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:27:58.129Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-zcode-lifecycle-hooks

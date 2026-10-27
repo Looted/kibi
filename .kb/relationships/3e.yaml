@@ -314,3 +314,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2ff71dc4e987
+  - type: implements
+    from: SYM-zcode-mcp-registration-config
+    to: REQ-zcode-plugin-package
+    created_at: 2026-10-27T07:27:11.484Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d0539134df2

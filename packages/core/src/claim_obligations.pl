@@ -415,7 +415,7 @@ fact_set(FactId, Members, Operator) :-
     prop_atom(Props, fact_kind, property_value),
     (   prop_atom(Props, value_type, set)
     ->  memberchk(value_set=Raw, Props),
-        kb:normalize_term_atom_list(Raw, Atoms)
+        kb:normalize_literal_atom_list(Raw, Atoms)
     ;   prop_atom(Props, property_key, allowed_values),
         \+ (memberchk(value_type=RawType, Props),
             kb:normalize_term_atom(RawType, Type),

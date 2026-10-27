@@ -90,13 +90,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-383bc9e37003
-  - type: requires_property
-    from: REQ-zcode-kibi-plugin-v1
-    to: FACT-PROP-ZCODE-MCP-RESOLVER
-    created_at: 2026-09-17T05:22:16.492Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a91c612f2343
   - type: requires_predicate
     from: REQ-zcode-kibi-plugin-v1
     to: FACT-PRED-ZCODE-NO-CORE-RUNTIME-MODIFICATION
@@ -104,41 +97,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-70bac92902e5
-  - type: requires_predicate
-    from: REQ-zcode-kibi-plugin-v1
-    to: FACT-PRED-ZCODE-MANIFEST
-    created_at: 2026-09-17T05:22:16.507Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b39155775c7c
-  - type: requires_predicate
-    from: REQ-zcode-kibi-plugin-v1
-    to: FACT-PRED-ZCODE-SKILLS
-    created_at: 2026-09-17T05:22:16.511Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6c67fce45f2b
-  - type: requires_predicate
-    from: REQ-zcode-kibi-plugin-v1
-    to: FACT-PRED-ZCODE-BOOTSTRAP
-    created_at: 2026-09-17T05:22:16.518Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-23cd5792d19b
-  - type: requires_predicate
-    from: REQ-zcode-kibi-plugin-v1
-    to: FACT-PRED-ZCODE-HOOKS
-    created_at: 2026-09-17T05:22:16.523Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-349d77ce8521
-  - type: requires_predicate
-    from: REQ-zcode-kibi-plugin-v1
-    to: FACT-PRED-ZCODE-MCP-CONFIG
-    created_at: 2026-09-17T05:22:16.527Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-90395a86e28f
   - type: requires_predicate
     from: REQ-zcode-kibi-plugin-v1
     to: FACT-PRED-ZCODE-NO-HOOK-OUTPUT-UNOWNED
@@ -307,3 +265,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ad7ab2875cca
+  - type: requires_property
+    from: REQ-zcode-kibi-plugin-v1
+    to: FACT-PROP-ZCODE-MCP-RESOLVER
+    created_at: 2026-10-27T07:26:08.251Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a91c612f2343

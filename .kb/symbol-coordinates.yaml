@@ -23819,6 +23819,46 @@ coordinates:
     sourceEndLine: 1339
     sourceFile: packages/cli/src/public/proof-sources.ts
     sourceLine: 1274
+  SYM-proof-zcode-commands:
+    identityHash: 0a1f77b587c436ce1de37b37f04bdd272d4c7c9ff6bc9ead97a9134272f20544
+    sourceHash: 064260d75e1aa14a1019e5bc71cf08260d209ce253a729e2a4f2e210f8888c9a
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 26
+    sourceFile: packages/cli/tests/proofs/claims/zcode-plugin-package.proof.test.ts
+    sourceLine: 24
+  SYM-proof-zcode-lifecycle-hooks:
+    identityHash: e58799dccef8a3bb98eef500fac167796f27426c0eaf69283eb2a5ac03387829
+    sourceHash: 064260d75e1aa14a1019e5bc71cf08260d209ce253a729e2a4f2e210f8888c9a
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 41
+    sourceFile: packages/cli/tests/proofs/claims/zcode-plugin-package.proof.test.ts
+    sourceLine: 39
+  SYM-proof-zcode-manifest-fields:
+    identityHash: d0758702c402b7df9211c9bbcf019f056edc8c41b2b57e695688f9d856c1b1f2
+    sourceHash: 064260d75e1aa14a1019e5bc71cf08260d209ce253a729e2a4f2e210f8888c9a
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 21
+    sourceFile: packages/cli/tests/proofs/claims/zcode-plugin-package.proof.test.ts
+    sourceLine: 19
+  SYM-proof-zcode-mcp-launcher:
+    identityHash: 72822130468b81926f332c0f6245feb05f6c6e9acb226eba095bc355cbc8c623
+    sourceHash: 064260d75e1aa14a1019e5bc71cf08260d209ce253a729e2a4f2e210f8888c9a
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 36
+    sourceFile: packages/cli/tests/proofs/claims/zcode-plugin-package.proof.test.ts
+    sourceLine: 34
+  SYM-proof-zcode-skills:
+    identityHash: 7d329af94a1758048b5bd76e1af3fd5bc82266a9201ac4ee93cda576332b1f69
+    sourceHash: 064260d75e1aa14a1019e5bc71cf08260d209ce253a729e2a4f2e210f8888c9a
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 31
+    sourceFile: packages/cli/tests/proofs/claims/zcode-plugin-package.proof.test.ts
+    sourceLine: 29
   SYM-proofStepConcurrency:
     identityHash: 47e4873718f8db4fa729b3d36a250290fa2a392ed1a33eab30044ce4df2d0fba
     sourceHash: 0b7e196f0931aa1dbcaa04f1a9291393143491670396df4901164e20769a9483
