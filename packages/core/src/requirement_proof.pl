@@ -1211,6 +1211,11 @@ canonical_json_value(Value, Json) :-
     maplist(canonical_json_value, Value, Parts),
     atomics_to_string(Parts, ",", Body),
     format(string(Json), "[~s]", [Body]).
+% JSON true, false and null read back as atoms; json_write would quote them,
+% so the hash would differ from the one the CLI recorded at ingest.
+canonical_json_value(Value, Json) :-
+    memberchk(Value, [true, false, null]), !,
+    atom_string(Value, Json).
 canonical_json_value(Value, Json) :-
     with_output_to(string(Json), json_write(current_output, Value, [width(0)])).
 

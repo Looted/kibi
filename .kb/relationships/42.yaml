@@ -279,3 +279,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-720ff632bc17
+  - type: covered_by
+    from: 3ddd3dd671e3f236
+    to: TEST-proof-applicability-threshold
+    created_at: 2026-10-27T18:59:49.716Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3da7c3f06a90

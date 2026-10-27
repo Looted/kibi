@@ -2635,6 +2635,14 @@ test(requirement_proof_preserves_old_contract_receipts_but_only_current_contract
     assertion(CurrentRow.proofStages.passingE2e.status == passed),
     assertion(\+ memberchk(proof_contract_mismatch, CurrentRow.proofGaps)).
 
+test(proof_contract_hash_keeps_json_literals) :-
+    % The CLI hashes true, false and null as JSON literals, not strings.
+    ContractJson = "{\"version\":\"kibi.proof-contract.v1\",\"kind\":\"source\",\"source\":{\"reader\":\"glob\",\"pattern\":\"skills/*/SKILL.md\",\"capture\":true,\"strict\":false,\"label\":null}}",
+    Canonical = "{\"kind\":\"source\",\"source\":{\"capture\":true,\"label\":null,\"pattern\":\"skills/*/SKILL.md\",\"reader\":\"glob\",\"strict\":false},\"version\":\"kibi.proof-contract.v1\"}",
+    crypto_data_hash(Canonical, Expected, [algorithm(sha256), encoding(utf8)]),
+    requirement_proof:proof_contract_hash(ContractJson, Hash),
+    assertion(Hash == Expected).
+
 test(symbol_coverage_does_not_count_executable_test_symbols_as_production_coverage, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(test, 'TEST-SYMBOL-ROLE', "Executable symbol test", passing, [verification_scope=end_to_end]),
     assert_fixture_entity(symbol, 'SYM-EXECUTABLE-ONLY', "Executable test symbol", active, []),

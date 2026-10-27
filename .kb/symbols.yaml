@@ -31891,6 +31891,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-predicate-suggestion-relevance-v1
+      - type: covered_by
+        target: TEST-proof-applicability-threshold
       - type: implements
         target: REQ-kibi-predicate-suggestion-relevance-v1
       - type: implements
@@ -31915,6 +31917,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-predicate-suggestion-relevance-v1
+      - type: covered_by
+        target: TEST-proof-weak-candidate-margin
       - type: implements
         target: REQ-kibi-predicate-suggestion-relevance-v1
       - type: implements
