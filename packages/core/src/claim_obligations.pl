@@ -214,15 +214,23 @@ waypoint_member(Member, Spelled) :-
 % are about: fields every selected table or object has as required or
 % nullable, middleware every selected route runs, or (any other property)
 % the members of the source itself.
-source_obligation(FactId, Members, Operator, obligation(Obligation)) :-
+% A required_fields or nullable_fields fact says which fields have the
+% property; with subset_of or excludes it would be decided against whatever
+% members the contract selects, so it is refused instead.
+source_obligation(FactId, Members, Operator, Result) :-
     atom_string(Operator, OperatorString),
     (   fact_property_key(FactId, Property) -> true ; Property = none ),
-    (   memberchk(Property-Kind, [required_fields-"required_fields", nullable_fields-"nullable_fields"]),
-        memberchk(Operator, [eq, includes])
-    ->  Obligation = _{kind: Kind, members: Members}
+    (   memberchk(Property-Kind, [required_fields-"required_fields", nullable_fields-"nullable_fields"])
+    ->  (   memberchk(Operator, [eq, includes])
+        ->  Result = obligation(_{kind: Kind, members: Members})
+        ;   format(string(Reason),
+                   "~w is a ~w fact with operator ~w; a source proof decides ~w only with eq or includes (to bound the fields, use a columns or fields fact)",
+                   [FactId, Property, Operator, Property]),
+            Result = incompatible(Reason)
+        )
     ;   Property == middleware
-    ->  Obligation = _{kind: "route_middleware", operator: OperatorString, members: Members}
-    ;   Obligation = _{kind: "set_relation", operator: OperatorString, members: Members}
+    ->  Result = obligation(_{kind: "route_middleware", operator: OperatorString, members: Members})
+    ;   Result = obligation(_{kind: "set_relation", operator: OperatorString, members: Members})
     ).
 
 % A transition member "from -> to" (or with U+2192 as the arrow) spelled "from->to".
@@ -415,7 +423,7 @@ fact_set(FactId, Members, Operator) :-
     prop_atom(Props, fact_kind, property_value),
     (   prop_atom(Props, value_type, set)
     ->  memberchk(value_set=Raw, Props),
-        kb:normalize_term_atom_list(Raw, Atoms)
+        kb:normalize_literal_atom_list(Raw, Atoms)
     ;   prop_atom(Props, property_key, allowed_values),
         \+ (memberchk(value_type=RawType, Props),
             kb:normalize_term_atom(RawType, Type),

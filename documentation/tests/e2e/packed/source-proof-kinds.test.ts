@@ -33,7 +33,9 @@ const RUN_NODE_TEST_SUITE =
  * gets a derived binding at evidence level proved. A source over every
  * route (the health check has no auth) is rejected with the route that
  * breaks the claim, and once the code reads another environment variable the
- * environment claim is rejected with the variable.
+ * environment claim is rejected with the variable. "The web app must never
+ * import rxjs/operators" is rejected because the app imports it: a member
+ * with a slash is compared whole.
  */
 
 type Step = Readonly<{
@@ -49,6 +51,7 @@ const STATEMENTS = {
   tables: "Every table must have id and created_at.",
   never: "A cancelled invoice can never become paid.",
   waypoint: "Every path from draft to paid must pass through approved.",
+  imports: "The web app must never import rxjs/operators.",
 } as const;
 
 const EXPECTED_FACTS: Record<keyof typeof STATEMENTS, [string, string]> = {
@@ -57,6 +60,7 @@ const EXPECTED_FACTS: Record<keyof typeof STATEMENTS, [string, string]> = {
   tables: ["required_fields", "includes"],
   never: ["reachable_pairs", "excludes"],
   waypoint: ["required_waypoints", "includes"],
+  imports: ["imports", "excludes"],
 };
 
 function sources(certificatesModule: string): Record<string, string> {
@@ -91,6 +95,9 @@ CREATE TABLE invoices (
   customer_id text NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
   created_at integer NOT NULL
 );
+`,
+    "web.mjs": `import { map } from "rxjs/operators";
+export const pipeline = [map];
 `,
     "invoices.mjs": `export const TRANSITIONS = {
   draft: ["approved", "cancelled"],
@@ -274,6 +281,14 @@ ${prefix}`;
         "  source:\n    reader: schema\n    format: sql\n    files: migrations/*.sql\n",
     },
     {
+      id: "TEST-WEB-IMPORTS",
+      requirement: "REQ-IMPORTS",
+      kind: "source",
+      claim: claims.imports ?? "",
+      contract:
+        "  source:\n    reader: references\n    files: web.mjs\n    extract: imports\n",
+    },
+    {
       id: "TEST-INVOICE-NEVER",
       requirement: "REQ-NEVER",
       kind: "state_machine",
@@ -411,10 +426,23 @@ export async function checkSourceProofKinds(
     assert.match(receipt, /binding: derived/, receipt);
     assert.match(receipt, new RegExp(`kind: ${obligation}`), receipt);
   }
-  // Kibi stores its own read of the route table as the certificate.
+  // Kibi stores its own read of the route table as the certificate, and the
+  // claim rests on that read: scope source.
   assert.match(
     latestReceipt(sandbox, "TEST-API-AUTH"),
     /- GET \/api\/invoices requireAuth/,
+  );
+  assert.match(latestReceipt(sandbox, "TEST-API-AUTH"), /scope: source/);
+
+  // A member with a slash stays whole: the web app imports rxjs/operators,
+  // so "never import rxjs/operators" is rejected, not decided over
+  // "operators".
+  const imports = latestReceipt(sandbox, "TEST-WEB-IMPORTS");
+  assert.match(imports, /binding: rejected/, imports);
+  assert.match(
+    imports,
+    /include rxjs\/operators, which the fact excludes/,
+    imports,
   );
 
   const all = latestReceipt(sandbox, "TEST-ALL-ROUTES-AUTH");
