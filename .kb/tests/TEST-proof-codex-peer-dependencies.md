@@ -90,4 +90,4 @@ proof_receipts:
             - kibi-mcp
           operator: eq
 ---
-Reads the peerDependencies keys of packages/codex/package.json.
+Reads the peer dependency names in packages/codex/package.json.

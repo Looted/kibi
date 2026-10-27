@@ -40,7 +40,7 @@ origin:
   kind: agent
   ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof."'
   approved_by: maintainer
-  recorded_at: '2026-10-27T07:56:30.727Z'
+  recorded_at: '2026-10-27T08:36:26.457Z'
 firmness: firm
 ---
 Any client that supports the open Agent Plugins standard must be able to load Kibi Agent Skills and the MCP server from the kibi-cursor portable Agent Plugin artifact.
@@ -48,6 +48,8 @@ Any client that supports the open Agent Plugins standard must be able to load Ki
 ## Context
 
 kibi-cursor ships a portable Agent Plugin artifact next to its Cursor Plugin, so clients other than Cursor can use Kibi. What the artifact contains and which schema fields it uses is stated in REQ-cursor-agent-plugin-package, where each claim is proved from the artifact files. This requirement keeps the portability outcome, which the end-to-end test checks.
+
+Packaging details the end-to-end and package tests check: the artifact's mcp.json starts the project-local kibi-mcp through npx --no-install. The artifact stays committed and regenerable, so a fresh marketplace clone resolves it without a build step, while the Cursor-only parts (rules, commands, hooks) stay in the .cursor-plugin build. It is listed in the repository marketplace next to the Cursor Plugin as plugins/kibi-agent-plugin, and its plugin.json and mcp.json are written in the repository's canonical JSON formatting so the regenerated artifact passes bun run check. The portable MCP launcher prefers the running build when the project-local resolution has the same version, so a same-version copy is not re-entered and local fixes are honoured instead of a stale store copy. Launched from a workspace without its own package.json, it does not resolve an unrelated cached kibi-mcp package; the explicitly launched server stays authoritative.
 
 ## Why this changed
 

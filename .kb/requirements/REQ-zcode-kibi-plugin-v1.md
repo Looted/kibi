@@ -101,7 +101,17 @@ origin:
   kind: agent
   ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof."'
   approved_by: maintainer
-  recorded_at: '2026-10-27T07:26:08.209Z'
+  recorded_at: '2026-10-27T08:36:10.769Z'
 firmness: firm
 ---
 The kibi-zcode package must remain optional. Installing or enabling kibi-zcode must not modify core Kibi runtime components. Project-local Kibi logic used through kibi-zcode must remain provided by kibi-core. Project-local Kibi command workflows used through kibi-zcode must remain provided by kibi-cli. Project-local Kibi MCP operations used through kibi-zcode must remain provided by kibi-mcp. The kibi-zcode MCP configuration must resolve the project-local kibi-mcp binary. When the resolved project root does not own .kb/manifest.json, kibi-zcode hooks must emit no output. When the resolved project root does not own .kb/manifest.json, the kibi-zcode MCP endpoint must expose no tools.
+
+## Context
+
+kibi-zcode is an optional ZCode adapter. Its hooks give advisory reminders and warnings only: they never write directly to .kb and never replace MCP tooling. The package is documented as optional and describes a supported manual MCP configuration. Its scope is declarative plugin assets and advisory hooks; the Kibi git hooks installed by kibi init keep ownership of hard enforcement.
+
+What the package ships (its manifest, bootstrap command, skills, MCP launcher and lifecycle hooks) is stated in REQ-zcode-plugin-package, where each claim is proved from the package files.
+
+## Why this changed
+
+On 2026-10-27 the packaging claims moved to REQ-zcode-plugin-package so that they can be proved from the files the package publishes, and the MCP resolver claim was reworded to name the project-local kibi-mcp binary.

@@ -90,4 +90,4 @@ proof_receipts:
             - mcpServers
           operator: subset_of
 ---
-Reads the top-level keys of packages/cursor/agent-plugin/mcp.json.
+Reads the top-level fields of packages/cursor/agent-plugin/mcp.json.

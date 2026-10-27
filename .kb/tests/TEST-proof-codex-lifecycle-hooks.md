@@ -96,4 +96,4 @@ proof_receipts:
             - UserPromptSubmit
           operator: includes
 ---
-Reads the /hooks keys of packages/codex/hooks/hooks.json.
+Reads the hook event names under /hooks in packages/codex/hooks/hooks.json.

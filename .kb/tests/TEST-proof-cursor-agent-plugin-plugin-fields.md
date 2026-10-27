@@ -105,4 +105,4 @@ proof_receipts:
             - version
           operator: subset_of
 ---
-Reads the top-level keys of packages/cursor/agent-plugin/plugin.json.
+Reads the top-level fields of packages/cursor/agent-plugin/plugin.json.

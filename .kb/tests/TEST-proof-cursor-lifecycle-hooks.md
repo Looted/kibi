@@ -98,4 +98,4 @@ proof_receipts:
             - stop
           operator: includes
 ---
-Reads the /hooks keys of packages/cursor/hooks/hooks.json.
+Reads the hook event names under /hooks in packages/cursor/hooks/hooks.json.

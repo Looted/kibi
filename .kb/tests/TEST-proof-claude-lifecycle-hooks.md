@@ -97,4 +97,4 @@ proof_receipts:
             - UserPromptSubmit
           operator: includes
 ---
-Reads the /hooks keys of packages/claude/hooks/hooks.json and checks the five lifecycle events are registered.
+Reads the hook event names under /hooks in packages/claude/hooks/hooks.json and checks the five lifecycle events are registered.

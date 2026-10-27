@@ -99,4 +99,4 @@ proof_receipts:
             - skills
           operator: includes
 ---
-Proves that the kibi-zcode plugin manifest declares skills, commands, hooks and mcpServers: Kibi reads the manifest keys itself.
+Proves that the kibi-zcode plugin manifest declares skills, commands, hooks and mcpServers: Kibi reads the manifest fields itself.
