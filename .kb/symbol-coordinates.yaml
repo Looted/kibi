@@ -19157,18 +19157,18 @@ coordinates:
     sourceLine: 142
   SYM-mcp-tools-list-base-contract:
     identityHash: 9073f98551866a5ff683b3bca2e5236aca8bd1f04902812cd6544f3653119f74
-    sourceHash: f004eb6de7ecc1dc3290da3522aeba5d23059e2c1632df5ceba81b2dde5fae04
+    sourceHash: a611d0ce5c538598f8d800a295f5f0ef51f969bb9f1271c617e25b3033f6503a
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 8465
+    sourceEndLine: 8503
     sourceFile: packages/mcp/tests/fixtures/contracts/tools-list.base.json
     sourceLine: 1
   SYM-mcp-tools-list-diagnostic-contract:
     identityHash: d7a4de20871928a9cd2c9a71f45020a705571669957562a00e355e78ee5ba841
-    sourceHash: c93fd7836b99d7af1a354e8f7ff0461aafe4d2da6e2bc54d355cafa1ee42258b
+    sourceHash: 80cf36eadba178a10dd3198b3c74cf1f459a7c127553534a53048988c5804bbd
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 9057
+    sourceEndLine: 9095
     sourceFile: packages/mcp/tests/fixtures/contracts/tools-list.diagnostic.json
     sourceLine: 1
   SYM-mcp-withWorkspaceRootSchema:
