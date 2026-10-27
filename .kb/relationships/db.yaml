@@ -76,20 +76,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5e6b0d32fc3f
-  - type: requires_property
-    from: REQ-kibi-predicate-suggestion-relevance-v1
-    to: FACT-PROP-6CB6EAF6F48DC108
-    created_at: 2026-08-20T22:05:24.910Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-19590d3128e0
-  - type: requires_property
-    from: REQ-kibi-predicate-suggestion-relevance-v1
-    to: FACT-PROP-60F32F10D6BCB433
-    created_at: 2026-08-20T22:05:24.917Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d239f917e6d5
   - type: requires_rule
     from: REQ-kibi-predicate-suggestion-relevance-v1
     to: FACT-RULE-B4018810804C39BB

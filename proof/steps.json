@@ -3570,5 +3570,35 @@
         "./packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-proof-applicability-threshold",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/numeric-thresholds.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-weak-candidate-margin",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/numeric-thresholds.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-near-restatement-jaccard",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/numeric-thresholds.proof.test.ts"
+      ]
+    ]
   }
 ]

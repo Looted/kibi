@@ -31881,6 +31881,8 @@ symbols:
         target: TEST-kibi-predicate-suggestion-relevance-v1
       - type: implements
         target: REQ-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-thresholds
   - id: 4fad501950207b0b
     title: STRONG_APPLICABILITY_SCORE
     sourceFile: packages/cli/src/operations/modeling/predicate-applicability.ts
@@ -31903,6 +31905,8 @@ symbols:
         target: TEST-kibi-predicate-suggestion-relevance-v1
       - type: implements
         target: REQ-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-thresholds
   - id: 26e0fdf782563d2c
     title: aggregateBindingProvenance
     sourceFile: packages/cli/src/operations/modeling/predicate-bindings.ts
@@ -54006,6 +54010,8 @@ symbols:
         target: TEST-kibi-bootstrap-knowledge-sources
       - type: implements
         target: REQ-bootstrap-claim-restatement
+      - type: implements
+        target: REQ-bootstrap-claim-restatement-threshold
   - id: SYM-bootstrap-existing-requirement-type
     title: ExistingRequirement
     status: active
@@ -58235,3 +58241,45 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-cursor-agent-plugin-mcp-fields
+  - id: SYM-proof-applicability-threshold
+    title: applicabilityThresholdCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/numeric-thresholds.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T08:05:24.279Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-applicability-threshold
+  - id: SYM-proof-weak-candidate-margin
+    title: weakCandidateMarginCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/numeric-thresholds.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T08:05:34.055Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-weak-candidate-margin
+  - id: SYM-proof-near-restatement-jaccard
+    title: nearRestatementJaccardCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/numeric-thresholds.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T08:06:15.769Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-near-restatement-jaccard

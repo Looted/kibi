@@ -23363,6 +23363,14 @@ coordinates:
     sourceEndLine: 182
     sourceFile: packages/mcp/src/server/docs.ts
     sourceLine: 70
+  SYM-proof-applicability-threshold:
+    identityHash: 549fa6ca17702e785bf27af8e4700b19e730e202f5f568edf78c29cbf858906a
+    sourceHash: ade86ddb52070e0242026d7b17440b6147527a12e5ba6e4652196613cab35dfa
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 43
+    sourceFile: packages/cli/tests/proofs/claims/numeric-thresholds.proof.test.ts
+    sourceLine: 36
   SYM-proof-attempt:
     identityHash: 29a500395befe823fbebc7c22f4a10eb1ddbfb1a225e020e5eac54f75f9da988
     sourceHash: f36dc07fc0de640eab555d34226505e10046fc6960372acf0c7848358ce9346d
@@ -23803,6 +23811,14 @@ coordinates:
     sourceEndLine: 92
     sourceFile: packages/cli/src/public/proof-protocol.ts
     sourceLine: 80
+  SYM-proof-near-restatement-jaccard:
+    identityHash: 0df52281471cf8d7d0b90d5e5b7412c262ec092babe4587c78c00bc438501576
+    sourceHash: ade86ddb52070e0242026d7b17440b6147527a12e5ba6e4652196613cab35dfa
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 63
+    sourceFile: packages/cli/tests/proofs/claims/numeric-thresholds.proof.test.ts
+    sourceLine: 56
   SYM-proof-obligation:
     identityHash: 3732983eb0d82a06db2603409e649cfe3395d04136b12ff7999a929e23b0fa7b
     sourceHash: f36dc07fc0de640eab555d34226505e10046fc6960372acf0c7848358ce9346d
@@ -24003,6 +24019,14 @@ coordinates:
     sourceEndLine: 1339
     sourceFile: packages/cli/src/public/proof-sources.ts
     sourceLine: 1274
+  SYM-proof-weak-candidate-margin:
+    identityHash: 8b447dea44f23df633adbad60084408d67958810c3f2ba7ba5d4a965af343370
+    sourceHash: ade86ddb52070e0242026d7b17440b6147527a12e5ba6e4652196613cab35dfa
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 53
+    sourceFile: packages/cli/tests/proofs/claims/numeric-thresholds.proof.test.ts
+    sourceLine: 46
   SYM-proof-zcode-commands:
     identityHash: 0a1f77b587c436ce1de37b37f04bdd272d4c7c9ff6bc9ead97a9134272f20544
     sourceHash: 064260d75e1aa14a1019e5bc71cf08260d209ce253a729e2a4f2e210f8888c9a

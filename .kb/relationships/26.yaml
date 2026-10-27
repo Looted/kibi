@@ -272,3 +272,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-46c1ad5218b2
+  - type: validates
+    from: TEST-proof-near-restatement-jaccard
+    to: SCEN-bootstrap-claim-restatement
+    created_at: 2026-10-27T08:06:12.918Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6aca13e6717c
