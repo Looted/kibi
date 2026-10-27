@@ -3510,5 +3510,65 @@
         "./packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-agent-plugin-published",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-agent-plugin-plugin-schema",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-agent-plugin-plugin-fields",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-agent-plugin-skills",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-agent-plugin-mcp-schema",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-agent-plugin-mcp-fields",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts"
+      ]
+    ]
   }
 ]

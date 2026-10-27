@@ -181,3 +181,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-be5b0281b01c
+  - type: requires_property
+    from: REQ-cursor-agent-plugin-package
+    to: FACT-cursor-publishes-agent-plugin
+    created_at: 2026-10-27T07:56:53.898Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45f131c1d1c7
+  - type: requires_property
+    from: REQ-cursor-agent-plugin-package
+    to: FACT-agent-plugin-manifest-schema
+    created_at: 2026-10-27T07:56:53.936Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-823dca18ef57
+  - type: requires_property
+    from: REQ-cursor-agent-plugin-package
+    to: FACT-agent-plugin-manifest-fields
+    created_at: 2026-10-27T07:56:53.958Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3af434de56c
+  - type: requires_property
+    from: REQ-cursor-agent-plugin-package
+    to: FACT-agent-plugin-skills
+    created_at: 2026-10-27T07:56:53.975Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40bb073b242b
+  - type: requires_property
+    from: REQ-cursor-agent-plugin-package
+    to: FACT-agent-plugin-mcp-schema
+    created_at: 2026-10-27T07:56:53.990Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c1c5b4e7b51
+  - type: requires_property
+    from: REQ-cursor-agent-plugin-package
+    to: FACT-agent-plugin-mcp-fields
+    created_at: 2026-10-27T07:56:54.008Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2fe582167f3
+  - type: specified_by
+    from: REQ-cursor-agent-plugin-package
+    to: SCEN-cursor-agent-plugin-v1
+    created_at: 2026-10-27T07:56:54.035Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dcd076c18ac4
+  - type: constrains
+    from: REQ-cursor-agent-plugin-package
+    to: FACT-SUBJ-REQ-CURSOR-AGENT-PLUGIN-STANDARD-V1
+    created_at: 2026-10-27T07:56:54.064Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21046d8b1f54

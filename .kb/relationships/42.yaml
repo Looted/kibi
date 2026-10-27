@@ -265,3 +265,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8d2613eded29
+  - type: validates
+    from: TEST-proof-cursor-agent-plugin-mcp-fields
+    to: SCEN-cursor-agent-plugin-v1
+    created_at: 2026-10-27T07:58:00.230Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f0d5dc8f6c6

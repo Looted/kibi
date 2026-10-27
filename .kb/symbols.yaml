@@ -6122,6 +6122,8 @@ symbols:
       - type: covered_by
         target: TEST-cursor-agent-plugin-v1
       - type: implements
+        target: REQ-cursor-agent-plugin-package
+      - type: implements
         target: REQ-cursor-agent-plugin-standard-v1
   - id: SYM-cursor-BOOTSTRAP_REMINDER
     title: BOOTSTRAP_REMINDER
@@ -58149,3 +58151,87 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-cursor-peer-dependencies
+  - id: SYM-proof-cursor-agent-plugin-published
+    title: agentPluginPublishedCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:57:10.226Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-cursor-agent-plugin-published
+  - id: SYM-proof-cursor-agent-plugin-plugin-schema
+    title: agentPluginManifestSchemaCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:57:21.004Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-cursor-agent-plugin-plugin-schema
+  - id: SYM-proof-cursor-agent-plugin-plugin-fields
+    title: agentPluginManifestFieldsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:57:31.874Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-cursor-agent-plugin-plugin-fields
+  - id: SYM-proof-cursor-agent-plugin-skills
+    title: agentPluginSkillsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:57:43.283Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-cursor-agent-plugin-skills
+  - id: SYM-proof-cursor-agent-plugin-mcp-schema
+    title: agentPluginMcpSchemaCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:57:53.648Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-cursor-agent-plugin-mcp-schema
+  - id: SYM-proof-cursor-agent-plugin-mcp-fields
+    title: agentPluginMcpFieldsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:58:03.020Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-cursor-agent-plugin-mcp-fields

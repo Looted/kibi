@@ -23571,6 +23571,54 @@ coordinates:
     sourceEndLine: 4
     sourceFile: packages/cli/src/public/proof-protocol.ts
     sourceLine: 4
+  SYM-proof-cursor-agent-plugin-mcp-fields:
+    identityHash: 20ae19e63f36144593768df563c8d7cf47c85ba66666dbed8d1f2ca5a458b481
+    sourceHash: 13da9b67c7171c4a22232951aa0e1b915de9129f17a20e82415caadde4edfafb
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 46
+    sourceFile: packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts
+    sourceLine: 44
+  SYM-proof-cursor-agent-plugin-mcp-schema:
+    identityHash: 10075c60ec2ff1308e78aa6a8030e4443638ba2cd51b9419ae845d66a097a3ce
+    sourceHash: 13da9b67c7171c4a22232951aa0e1b915de9129f17a20e82415caadde4edfafb
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 41
+    sourceFile: packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts
+    sourceLine: 39
+  SYM-proof-cursor-agent-plugin-plugin-fields:
+    identityHash: 73bf506a74fbf670a37c31dfb779998ef52868dfc33bb9c989bcfaa7f6281026
+    sourceHash: 13da9b67c7171c4a22232951aa0e1b915de9129f17a20e82415caadde4edfafb
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 31
+    sourceFile: packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts
+    sourceLine: 29
+  SYM-proof-cursor-agent-plugin-plugin-schema:
+    identityHash: 2ba62badac01f302b7ad234570a57993b72711aa7f8442ee839d081236c90a08
+    sourceHash: 13da9b67c7171c4a22232951aa0e1b915de9129f17a20e82415caadde4edfafb
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 26
+    sourceFile: packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts
+    sourceLine: 24
+  SYM-proof-cursor-agent-plugin-published:
+    identityHash: 039e1307fcdaf337a5a1322ae6641c21f0c28b01d2c10189d7fe20c6cf17eb3f
+    sourceHash: 13da9b67c7171c4a22232951aa0e1b915de9129f17a20e82415caadde4edfafb
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 21
+    sourceFile: packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts
+    sourceLine: 19
+  SYM-proof-cursor-agent-plugin-skills:
+    identityHash: dcf9259c4ca2b2ae60258abd1db147dda8e6ead5f2362c04897920d7ac70225d
+    sourceHash: 13da9b67c7171c4a22232951aa0e1b915de9129f17a20e82415caadde4edfafb
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 36
+    sourceFile: packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts
+    sourceLine: 34
   SYM-proof-cursor-commands:
     identityHash: 3d5f379054880075cee000f31153eab1e4b921928457ccc87447b6ac8a0177a4
     sourceHash: 6f9c6f99cb4a835a564798aaa7bd7837d0519cc5cb3244e366039bba61d97061
