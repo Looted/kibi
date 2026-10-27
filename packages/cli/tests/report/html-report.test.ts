@@ -401,6 +401,20 @@ describe("renderHtmlReport", () => {
       ),
     ).toEqual([1, 1, 1, 1, 0, 0]);
     expect(html.match(/−1 blocked here/g)).toHaveLength(2);
+    // Only gates a requirement stops at act as filters.
+    const disabledGates = [
+      ...html.matchAll(
+        /data-gate="([a-z0-9]+)" data-label="[^"]*"[^>]*disabled>/g,
+      ),
+    ].map((match) => match[1]);
+    expect(disabledGates).toEqual([
+      "scenario",
+      "implementation",
+      "e2e",
+      "proved",
+    ]);
+    expect(html).toContain('id="gate-status" aria-live="polite" hidden');
+    expect(html).toContain("gateStatus.scrollIntoView");
     expect(html).toContain('data-gate="semantic"');
     expect(html).toContain('data-gate="implementation"');
     expect(html).toContain("timestamp unavailable");

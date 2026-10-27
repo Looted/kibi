@@ -913,6 +913,30 @@ h1 {
   color: var(--danger);
   background: var(--carbon);
 }
+.proof-gate:disabled {
+  cursor: default;
+}
+.gate-status {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 0 0 14px;
+  color: var(--mist);
+  font-size: 13px;
+  scroll-margin-top: 110px;
+}
+.gate-status[hidden] {
+  display: none;
+}
+.gate-status__clear {
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ice);
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
 .proof-gate--optional {
   border-top-style: dashed;
 }
