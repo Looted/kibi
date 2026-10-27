@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        slot: [1, 2, 3, 4, 5, 6]
+        slot: [1, 2, 3, 4]
         bun: ['1.4.2']
         cov: ['--coverage']
         variant: ['baseline']
@@ -35,6 +35,9 @@ jobs:
       - run: bun install --frozen-lockfile
       - uses: ./.github/actions/use-bundled-swipl
       - run: bun run build
+      - name: Standalone pipe stall repro
+        run: |
+          for m in node bun node bun; do timeout 120 bun scripts/probe/bun-pipe-stall.ts $m 3000 || echo "exit $?"; done
       - name: Loop the in-process daemon file under coverage
         run: |
           bun --version; lscpu | grep -E "Model name|^CPU\(s\)"
