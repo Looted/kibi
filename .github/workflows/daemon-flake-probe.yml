@@ -18,12 +18,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        slot: [1, 2]
-        bun: ['1.4.2', '1.4.4', 'canary']
+        slot: [1, 2, 3, 4]
+        bun: ['1.4.2']
         cov: ['--coverage']
-        include:
-          - { slot: 3, bun: '1.4.2', cov: '' }
-          - { slot: 4, bun: '1.4.2', cov: '' }
+        variant: ['baseline', 'late-close']
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -43,7 +41,7 @@ jobs:
           fails=0
           for i in 1 2 3 4 5; do
             rt=$(mktemp -d)
-            NODE_ENV=test KIBI_ENGINE_IDLE_TIMEOUT_MS=30000 KIBI_RUNTIME_DIR=$rt CODEX_HOME=$rt/codex-home \
+            KIBI_PROBE_VARIANT=${{ matrix.variant }} NODE_ENV=test KIBI_ENGINE_IDLE_TIMEOUT_MS=30000 KIBI_RUNTIME_DIR=$rt CODEX_HOME=$rt/codex-home \
               bun test ${{ matrix.cov }} --timeout 15000 --isolate --max-concurrency=1 \
               ./packages/cli/tests/engine-daemon-inprocess.test.ts > "run$i.log" 2>&1 || fails=$((fails+1))
             echo "== run $i"
