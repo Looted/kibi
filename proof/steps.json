@@ -3430,5 +3430,85 @@
         "./packages/cli/tests/proofs/claims/codex-plugin-package.proof.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-published-parts",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-manifest-fields",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-skills",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-rules",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-commands",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-mcp-launcher",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-lifecycle-hooks",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-cursor-peer-dependencies",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts"
+      ]
+    ]
   }
 ]

@@ -314,3 +314,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ab230c14fd90
+  - type: implements
+    from: SYM-cursor-launchKibiMcp
+    to: REQ-cursor-plugin-package
+    created_at: 2026-10-27T07:52:25.735Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eea70dc3becd

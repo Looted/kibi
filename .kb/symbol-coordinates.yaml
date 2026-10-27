@@ -23571,6 +23571,70 @@ coordinates:
     sourceEndLine: 4
     sourceFile: packages/cli/src/public/proof-protocol.ts
     sourceLine: 4
+  SYM-proof-cursor-commands:
+    identityHash: 3d5f379054880075cee000f31153eab1e4b921928457ccc87447b6ac8a0177a4
+    sourceHash: 6f9c6f99cb4a835a564798aaa7bd7837d0519cc5cb3244e366039bba61d97061
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 41
+    sourceFile: packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts
+    sourceLine: 39
+  SYM-proof-cursor-lifecycle-hooks:
+    identityHash: c713970647d595c48df0fd44a895b7db633a90bcf9cf8d212c5b38e1fd8c316a
+    sourceHash: 6f9c6f99cb4a835a564798aaa7bd7837d0519cc5cb3244e366039bba61d97061
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 51
+    sourceFile: packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts
+    sourceLine: 49
+  SYM-proof-cursor-manifest-fields:
+    identityHash: 0a363b6ed6d7990106c09511b98ffb4a3a60e228efb795db85697692e937bce9
+    sourceHash: 6f9c6f99cb4a835a564798aaa7bd7837d0519cc5cb3244e366039bba61d97061
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 26
+    sourceFile: packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts
+    sourceLine: 24
+  SYM-proof-cursor-mcp-launcher:
+    identityHash: 592985a93a9cd04e16edd0b029c03a93259a1e93910cc5212cff7b2992985d0d
+    sourceHash: 6f9c6f99cb4a835a564798aaa7bd7837d0519cc5cb3244e366039bba61d97061
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 46
+    sourceFile: packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts
+    sourceLine: 44
+  SYM-proof-cursor-peer-dependencies:
+    identityHash: 413fa8a2eb89f26c58f0c4641bffc24ef4b8bfe0e91960ffcb7aeb038ee96c49
+    sourceHash: 6f9c6f99cb4a835a564798aaa7bd7837d0519cc5cb3244e366039bba61d97061
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 56
+    sourceFile: packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts
+    sourceLine: 54
+  SYM-proof-cursor-published-parts:
+    identityHash: d360dc7ebca9a9bd0afba9c8b3c5b9bc7d57a6db9ff5eed9bc99d7e0defadeb6
+    sourceHash: 6f9c6f99cb4a835a564798aaa7bd7837d0519cc5cb3244e366039bba61d97061
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 21
+    sourceFile: packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts
+    sourceLine: 19
+  SYM-proof-cursor-rules:
+    identityHash: 994e0b9b03f5220e2cbbefd2d93aa3100defba17fb7c439e5d6264e6aaf551a0
+    sourceHash: 6f9c6f99cb4a835a564798aaa7bd7837d0519cc5cb3244e366039bba61d97061
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 36
+    sourceFile: packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts
+    sourceLine: 34
+  SYM-proof-cursor-skills:
+    identityHash: e5669b7f5f963be3d2874e68b8f940187e96e72ebb4faf42a9168f5c344d055c
+    sourceHash: 6f9c6f99cb4a835a564798aaa7bd7837d0519cc5cb3244e366039bba61d97061
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 31
+    sourceFile: packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts
+    sourceLine: 29
   SYM-proof-environment:
     identityHash: a361c2e2d333284ad8105c6cdd379374df0366bfdd17e700dbc8c9b60abf5465
     sourceHash: f36dc07fc0de640eab555d34226505e10046fc6960372acf0c7848358ce9346d

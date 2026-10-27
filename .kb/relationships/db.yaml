@@ -307,3 +307,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1173022173e3
+  - type: executable_for
+    from: SYM-proof-cursor-peer-dependencies
+    to: TEST-proof-cursor-peer-dependencies
+    created_at: 2026-10-27T07:53:47.423Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3fd9a4b5c780

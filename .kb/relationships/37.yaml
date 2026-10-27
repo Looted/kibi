@@ -272,3 +272,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a91c612f2343
+  - type: executable_for
+    from: SYM-proof-cursor-published-parts
+    to: TEST-proof-cursor-published-parts
+    created_at: 2026-10-27T07:52:35.018Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-88d7eaca1e2f
