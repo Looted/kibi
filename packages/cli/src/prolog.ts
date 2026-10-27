@@ -661,6 +661,8 @@ export class PrologProcess {
               readableLength: out?.readableLength,
               destroyed: out?.destroyed,
               usable: this.isProcessUsable(),
+              totalBytes: this.__probeBytes,
+              totalChunks: this.__probeChunks,
               stdinPending: inp?.writableLength,
               stdinNeedDrain: inp?.writableNeedDrain,
               action,
@@ -1028,7 +1030,11 @@ export class PrologProcess {
     this.errorBufferBytes = 0;
   }
 
+  public __probeBytes = 0;
+  public __probeChunks = 0;
   private appendOutputChunk(chunk: Buffer): void {
+    this.__probeBytes += chunk.byteLength;
+    this.__probeChunks += 1;
     if (this.outputOverflowed) return;
     const remaining = this.maxOutputBytes - this.outputBufferBytes;
     if (chunk.byteLength > remaining) {

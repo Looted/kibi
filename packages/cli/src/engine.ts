@@ -2658,7 +2658,7 @@ export async function runEngineDaemon(requestedOptions: {
     server.close();
     const __t0 = Date.now();
     await queue.catch(() => undefined);
-    console.error("PROBE shutdown queue", Date.now() - __t0, "recycle", session.needsRecycle());
+    console.error("PROBE shutdown queue", Date.now() - __t0, "recycle", session.needsRecycle(), "bytes", (prolog as unknown as { __probeBytes?: number }).__probeBytes, "chunks", (prolog as unknown as { __probeChunks?: number }).__probeChunks);
     const saved = session.needsRecycle()
       ? null
       : await prolog.query("kb_save").catch(() => null);

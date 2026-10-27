@@ -18,10 +18,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        slot: [1, 2, 3]
+        slot: [1, 2, 3, 4, 5, 6]
         bun: ['1.4.2']
         cov: ['--coverage']
-        variant: ['baseline', 'no-fsync']
+        variant: ['baseline']
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -45,6 +45,6 @@ jobs:
               bun test ${{ matrix.cov }} --timeout 15000 --isolate --max-concurrency=1 \
               ./packages/cli/tests/engine-daemon-inprocess.test.ts > "run$i.log" 2>&1 || fails=$((fails+1))
             echo "== run $i"
-            grep -E "PROBE|\(fail\)|error:| pass$| fail$" "run$i.log" | grep -v "PROBE shutdown .* [0-9]\{1,2\} " | head -80
+            grep -E "PROBE|\(fail\)|error:| pass$| fail$" "run$i.log" | grep -v "PROBE shutdown \(saved\|detached\|terminated\) [0-9]\{1,2\} " | head -80
           done
           echo "fails=$fails"
