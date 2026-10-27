@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        slot: [1, 2, 3, 4]
+        slot: [1, 2, 3, 4, 5, 6]
         bun: ['1.4.2']
         cov: ['--coverage']
         variant: ['baseline']
@@ -35,19 +35,15 @@ jobs:
       - run: bun install --frozen-lockfile
       - uses: ./.github/actions/use-bundled-swipl
       - run: bun run build
-      - name: Strace the serves test until it stalls
+      - name: Loop the in-process daemon file under coverage
         run: |
-          sudo apt-get install -y strace >/dev/null 2>&1 || true
-          mkdir -p traces
-          for i in 1 2 3 4 5 6 7 8; do
+          fails=0
+          for i in 1 2 3 4 5 6; do
             rt=$(mktemp -d)
-            KIBI_PROBE_VARIANT=baseline NODE_ENV=test KIBI_ENGINE_IDLE_TIMEOUT_MS=30000 KIBI_RUNTIME_DIR=$rt \
-              strace -f -tt -T -o traces/t$i.txt -e trace=epoll_ctl,epoll_wait,epoll_pwait,epoll_pwait2,read,recvfrom,recvmsg,write,writev,sendmsg,close,socketpair,pipe2 \
-              bun test --coverage --timeout 60000 ./packages/cli/tests/engine-daemon-inprocess.test.ts -t "serves EngineClient" > traces/run$i.log 2>&1 || true
-            if grep -q '"elapsed":20' traces/run$i.log; then echo "stall in run $i"; else rm -f traces/t$i.txt; fi
+            KIBI_PROBE_VARIANT=baseline NODE_ENV=test KIBI_ENGINE_IDLE_TIMEOUT_MS=30000 KIBI_RUNTIME_DIR=$rt CODEX_HOME=$rt/codex-home \
+              bun test --coverage --timeout 15000 --isolate --max-concurrency=1 \
+              ./packages/cli/tests/engine-daemon-inprocess.test.ts > "run$i.log" 2>&1 || fails=$((fails+1))
+            echo "== run $i stalls=$(grep -c '"elapsed":20' run$i.log) $(grep -oE 'PROBE shutdown saved [0-9]+' run$i.log | tr '\n' ' ')"
+            grep -E "\(fail\)" run$i.log || true
           done
-          ls -la traces
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: traces-${{ matrix.slot }}
-          path: traces/
+          echo "fails=$fails"
