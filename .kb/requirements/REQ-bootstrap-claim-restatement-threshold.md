@@ -23,6 +23,7 @@ origin:
   recorded_at: '2026-10-27T08:05:58.880Z'
 id: REQ-bootstrap-claim-restatement-threshold
 type: req
+required_evidence: tested
 ---
 The close restatement threshold must be a token-set Jaccard similarity of 0.8.
 
