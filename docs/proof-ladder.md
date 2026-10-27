@@ -453,8 +453,8 @@ a NaN or infinite bound with a domain error. Both run in CI (`lean-intervals-pro
 - `docs/proving-requirements.md` — the runner-neutral proof pipeline:
   contracts, integrations, artifacts, and how `kibi prove` produces receipts.
 
-Before pushing, run `kibi sync --refresh-symbol-coordinates` with the project-local
-CLI, review and commit the generated changes, and run `bun run proof:prepush`.
+Before pushing, run `kibi sync` with the project-local CLI (it keeps the
+gitignored symbol coordinates current), commit, and run `bun run proof:prepush`.
 If committing leaves the KB stale, sync it again before the check. This checks the
 committed manifests, publish metadata (including exact GitHub owner casing),
 and evidence floors (`scripts/proof-gate.sh`) using the project-local CLI. When

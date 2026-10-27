@@ -10,18 +10,11 @@ import {
 import { tmpdir } from "node:os";
 import * as path from "node:path";
 import { load as parseYAML } from "js-yaml";
-import { enrichSymbolCoordinates } from "../extractors/symbols-coordinator.js";
-import {
-  createMaintenanceSourceAnalysisService,
-  fingerprintMaintenanceSourceSet,
-  readSnapshotSourceConfig,
-} from "../plugins/maintenance-source-analysis.js";
 import { captureStagedSnapshot } from "../traceability/git-change-snapshot.js";
-import { fingerprintImpactEvaluator } from "../traceability/impact-evaluator.js";
-import { createReviewedDecoratorCoordinateVerifier } from "../traceability/reviewed-coordinate-refresh.js";
+import { KB_PATHS } from "../utils/kb-paths.js";
 import { refreshManifestCoordinates } from "./sync/manifest.js";
 
-const MANIFESTS = [".kb/symbols.yaml", ".kb/symbol-coordinates.yaml"] as const;
+const MANIFESTS = [KB_PATHS.symbolsManifest] as const;
 const MAX_GIT_OUTPUT = 256 * 1024 * 1024;
 
 function git(args: string[], input?: Buffer): Buffer {
@@ -126,8 +119,13 @@ function sourcePaths(symbols: Buffer): {
   return { paths: [...sources], symbolCount: parsed.symbols.length };
 }
 
-/** Compare generated artifacts for exactly one captured Git index tree. */
+/**
+ * Check the staged symbols manifest for exactly one captured Git index tree:
+ * it is in the canonical layout sync writes, and the derived coordinate
+ * artifact is not tracked.
+ */
 // implements REQ-cli-check
+// implements REQ-symbol-coordinates-derived-locally
 export async function checkGeneratedManifests(
   options: {
     changedOnly?: boolean;
@@ -153,17 +151,24 @@ export async function checkGeneratedManifests(
       throw new Error(
         "Staged .kb/symbols.yaml is missing or is not a regular file",
       );
+    if (blobs.has(KB_PATHS.symbolCoordinates)) {
+      assertUnchanged();
+      console.error(
+        `kibi: ${KB_PATHS.symbolCoordinates} is staged, but symbol coordinates are derived locally and never committed.`,
+      );
+      console.error(
+        `Run kibi migrate (or git rm --cached ${KB_PATHS.symbolCoordinates} and add it to .gitignore), then commit again.`,
+      );
+      return { exitCode: 1 };
+    }
     const initial = readBlobs([symbolsOid]);
     const symbols = initial.get(symbolsOid);
     if (!symbols) throw new Error("Could not read staged .kb/symbols.yaml");
     const { paths: sources, symbolCount } = sourcePaths(symbols);
-    // Plain sync does not publish coordinate artifacts for a freshly
-    // initialized, empty symbols manifest. The first commit must remain usable.
+    // A freshly initialized, empty symbols manifest has nothing to normalize.
     if (symbolCount === 0) {
       assertUnchanged();
-      console.log(
-        "kibi: staged symbols manifest is empty; no coordinates to refresh.",
-      );
+      console.log("kibi: staged symbols manifest is empty; nothing to check.");
       return { exitCode: 0 };
     }
     const nonRegularEntries = [...nonRegularPaths];
@@ -179,18 +184,16 @@ export async function checkGeneratedManifests(
     if (options.changedOnly) {
       const changed = new Set(snapshot.inventory.map((file) => file.path));
       if (
-        ![...MANIFESTS, ...sources, "package.json"].some((file) =>
+        ![...MANIFESTS, KB_PATHS.symbolCoordinates].some((file) =>
           changed.has(file),
         )
       ) {
         assertUnchanged();
-        console.log(
-          "kibi: no staged symbol sources or generated manifests changed.",
-        );
+        console.log("kibi: staged symbols manifest unchanged.");
         return { exitCode: 0 };
       }
     }
-    const files = [...MANIFESTS, ...sources, "package.json"];
+    const files = [...MANIFESTS];
     const objectIds = [
       ...new Set(
         files
@@ -210,52 +213,13 @@ export async function checkGeneratedManifests(
       writeFileSync(target, bytes);
     }
 
-    const sourceAnalysisService = createMaintenanceSourceAnalysisService(
-      process.cwd(),
-      readSnapshotSourceConfig(snapshot),
-    );
-    let verifyReviewedCoordinates:
-      | ReturnType<typeof createReviewedDecoratorCoordinateVerifier>
-      | undefined;
-    const verifyPythonDecoratorCoordinates: NonNullable<
-      Parameters<typeof enrichSymbolCoordinates>[2]
-    >["verifyPythonDecoratorCoordinates"] = async (sourcePath, analysis) => {
-      if (verifyReviewedCoordinates === undefined) {
-        const trustedSourceConfig = readSnapshotSourceConfig(
-          snapshot,
-          snapshot.baseTree,
-        );
-        const trustedService = createMaintenanceSourceAnalysisService(
-          process.cwd(),
-          trustedSourceConfig,
-        );
-        verifyReviewedCoordinates = createReviewedDecoratorCoordinateVerifier(
-          snapshot,
-          trustedService,
-          {
-            providerSetFingerprint: fingerprintMaintenanceSourceSet(
-              process.cwd(),
-              trustedSourceConfig,
-            ),
-            evaluatorFingerprint: fingerprintImpactEvaluator(),
-          },
-        );
-      }
-      await verifyReviewedCoordinates(sourcePath, analysis);
-    };
+    // Normalize the staged manifest the way `kibi sync
+    // --refresh-symbol-coordinates` writes it. Coordinates are not compared:
+    // they are derived locally and never committed, so no extraction runs.
     await refreshManifestCoordinates(
       path.join(snapshotDir, MANIFESTS[0]),
       snapshotDir,
-      {
-        refreshSymbolCoordinates: true,
-        quiet: true,
-        enrichSymbolCoordinates: (entries, root) =>
-          enrichSymbolCoordinates(entries, root, {
-            sourceAnalysisService,
-            allowPythonDecoratorCoordinates: true,
-            verifyPythonDecoratorCoordinates,
-          }),
-      },
+      { quiet: true, enrichSymbolCoordinates: async (entries) => entries },
     );
 
     const materializedRoot = snapshotDir;
@@ -278,7 +242,7 @@ export async function checkGeneratedManifests(
         `kibi: generated manifest drift in staged snapshot: ${drift.join(", ")}`,
       );
       console.error(
-        "Run kibi sync --refresh-symbol-coordinates, review the diff, then stage only the intended hunks with git add -p (or git add <path> when the whole file is intended).",
+        "Run kibi sync --refresh-symbol-coordinates to rewrite the manifest in its canonical layout, review the diff, then stage only the intended hunks with git add -p (or git add <path> when the whole file is intended).",
       );
       return { exitCode: 1 };
     }

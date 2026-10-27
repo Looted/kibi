@@ -187,5 +187,5 @@ repeating the original mutation.
 
 ## Directory Structure
 
-- Authored knowledge lives in canonical `.kb/` lanes: `requirements/`, `scenarios/`, `tests/`, `facts/`, `adr/`, `flags/`, `events/`, plus `symbols.yaml` and `symbol-coordinates.yaml`. See [Entity Schema](entity-schema.md).
-- Derived, Git-ignored runtime state lives under `.kb/branches/`, `.kb/recovery/`, `.kb/proof/runs/`, `.kb/briefs/`, `.kb/migrations/`, and `.kb/usage.log`.
+- Authored knowledge lives in canonical `.kb/` lanes: `requirements/`, `scenarios/`, `tests/`, `facts/`, `adr/`, `flags/`, `events/`, plus `symbols.yaml`. See [Entity Schema](entity-schema.md).
+- Derived, Git-ignored runtime state lives under `.kb/branches/`, `.kb/recovery/`, `.kb/proof/runs/`, `.kb/briefs/`, `.kb/migrations/`, and `.kb/usage.log`, plus `.kb/symbol-coordinates.yaml`, the symbol source spans every sync derives from the working tree.

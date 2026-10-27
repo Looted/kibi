@@ -1,5 +1,5 @@
 ---
-title: Installed staged impact review, generated coordinate migration and trusted aggregate gate lifecycle
+title: Installed staged impact review, derived coordinate cache and trusted aggregate gate lifecycle
 status: active
 tags:
   - multilingual

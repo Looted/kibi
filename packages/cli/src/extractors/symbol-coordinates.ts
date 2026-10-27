@@ -72,8 +72,8 @@ export class CoordinateArtifactError extends Error {
 }
 
 const SYMBOL_COORDINATES_COMMENT_BLOCK = `# symbol-coordinates.yaml
-# GENERATED coordinate artifact — do not edit manually.
-# Run \`kibi sync --refresh-symbol-coordinates\` to refresh.
+# GENERATED local cache — do not edit or commit (it is gitignored).
+# Every \`kibi sync\` keeps it current; \`kibi sync --refresh-symbol-coordinates\` rebuilds it.
 `;
 
 function isRecord(value: unknown): value is Record<string, unknown> {

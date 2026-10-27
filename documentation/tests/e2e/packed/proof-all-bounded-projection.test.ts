@@ -369,12 +369,12 @@ export async function runProofAllBoundedProjectionWorkflow(): Promise<{
     );
     const stagedSymbolArtifacts = await run(
       "git",
-      ["add", "--", ".kb/symbols.yaml", ".kb/symbol-coordinates.yaml"],
+      ["add", "--", ".kb/symbols.yaml"],
       { cwd: sandbox.repoDir, env: sandbox.env },
     );
     assertCommandSucceeded(
       stagedSymbolArtifacts,
-      "stage generated symbol artifacts",
+      "stage the normalized symbols manifest",
     );
     const symbolCommit = await run(
       "git",

@@ -409,7 +409,7 @@ describe("staged diagnostics: kibi_impact_evidence_missing contract", () => {
   });
 
   // -------------------------------------------------------------------------
-  // 3. Source edit WITH refreshed symbol coordinates → passes
+  // 3. Source edit whose declarations the symbols manifest covers → passes
   // -------------------------------------------------------------------------
 
   it("passes when a behavior source edit has a fresh symbols manifest covering the file", () => {

@@ -26,6 +26,7 @@ import {
 type Entity = Readonly<Record<string, unknown>>;
 
 const GOVERNED_SOURCE = "src/fixture.ts";
+const COORDINATE_CACHE_PATH = ".kb/symbol-coordinates.yaml";
 const CURRENT_STATUSES = new Set(["open", "in_progress"]);
 const NEGATION = /\b(?:never|not|don't|do not|avoid|without|no)\b/i;
 
@@ -157,6 +158,16 @@ function stagingNamed(context: CaseSignalContext, path: string): boolean {
     (line) =>
       /\bgit\s+add\b/.test(line) &&
       (line.includes(path) || wholeDirectory.test(line)),
+  );
+}
+
+/** The answer takes the derived coordinate cache back out of the index. */
+function coordinateCacheUnstaged(context: CaseSignalContext): boolean {
+  return answerLines(context).some(
+    (line) =>
+      /\bgit\s+(?:rm\s+(?:-\S+\s+)*--cached|restore\s+--staged|reset)\b/.test(
+        line,
+      ) && line.includes(COORDINATE_CACHE_PATH),
   );
 }
 
@@ -327,12 +338,10 @@ export function decisionSignalObserved(
       return firmRuleCited(context);
     case "label symbol authored":
       return labelSymbolAuthored(context);
-    case "coordinate refresh named":
-      return answer.includes("--refresh-symbol-coordinates");
     case "symbol manifest staging named":
       return stagingNamed(context, ".kb/symbols.yaml");
-    case "coordinate manifest staging named":
-      return stagingNamed(context, ".kb/symbol-coordinates.yaml");
+    case "coordinate cache unstaging named":
+      return coordinateCacheUnstaged(context);
     case "review record staging named":
       return stagingNamed(context, IMPACT_REVIEW_PATH);
     case "staged gate rerun named":

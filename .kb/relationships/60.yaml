@@ -209,3 +209,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f14279ea30b6
+  - type: implements
+    from: SYM-cli-check-generated-manifests
+    to: REQ-symbol-coordinates-derived-locally
+    created_at: 2026-10-27T10:37:36.707Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-366335d18c6b
+  - type: covered_by
+    from: SYM-cli-check-generated-manifests
+    to: TEST-symbol-coordinates-derived-locally
+    created_at: 2026-10-27T10:37:36.726Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7cd2ed1829a4

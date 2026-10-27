@@ -1214,7 +1214,7 @@ describe("refreshManifestCoordinates", () => {
     expect(written).toContain("# symbols.yaml");
     expect(written).toContain("AUTHORED fields (edit freely)");
     expect(written).toContain(
-      "Generated coordinates are stored separately in symbol-coordinates.yaml",
+      "gitignored symbol-coordinates.yaml; they are never authored or committed",
     );
     expect(written).toContain("yaml-output");
   });

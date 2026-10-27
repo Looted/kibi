@@ -106,9 +106,9 @@ not infer or write product knowledge.
 **Behavior:**
 - Creates `.kb/` directory structure with canonical knowledge lanes (`requirements/`, `scenarios/`, `tests/`, `facts/`, `adr/`, `flags/`, `events/`)
 - Installs git hooks (pre-commit, post-checkout, post-merge, post-rewrite) by default, into the directory Git reads hooks from (`git rev-parse --git-path hooks`), so linked worktrees and `core.hooksPath` are honored. Re-running `kibi init` refreshes only the kibi-managed section of each hook. A hook without a kibi-managed section (hand-written, husky, lefthook, ...) is never edited: init reports it as skipped and points at `--print-hook` so you can delegate from it yourself. Hooks resolve the `kibi` binary at run time (PATH first, then `node_modules/.bin` walking up from the repository root), so they work with both global and project-local installs even though git does not put `node_modules/.bin` on the hook's `PATH`.
-- Ignores derived `.kb/` runtime state in `.gitignore` (`.kb/branches/`, `.kb/recovery/`, `.kb/proof/runs/`, `.kb/briefs/`, `.kb/migrations/`, `.kb/usage.log`). Authored knowledge under `.kb/` stays tracked. `kibi migrate` also removes the pre-canonical blanket `.kb/` ignore stanza so migrated knowledge files are not left Git-ignored.
+- Ignores derived `.kb/` runtime state in `.gitignore` (`.kb/branches/`, `.kb/recovery/`, `.kb/proof/runs/`, `.kb/briefs/`, `.kb/migrations/`, `.kb/symbol-coordinates.yaml`, `.kb/usage.log`). Authored knowledge under `.kb/` stays tracked. `kibi migrate` also removes the pre-canonical blanket `.kb/` ignore stanza so migrated knowledge files are not left Git-ignored.
 - Creates Kibi-owned `.kb/manifest.json` (lifecycle metadata only; not a user configuration file)
-- Creates `.kb/symbols.yaml` and `.kb/symbol-coordinates.yaml` when they do not already exist
+- Creates `.kb/symbols.yaml` (authored, committed) and the local `.kb/symbol-coordinates.yaml` cache when they do not already exist
 - Leaves `.kb/manifest.json` and `.kb/symbols.yaml` alone when a legacy `.kb/config.json` is present and points to `kibi migrate --yes`, which moves the existing knowledge and runs every schema step from the legacy version
 
 **Flags:**
@@ -130,8 +130,8 @@ kibi init --print-hook pre-commit >> .husky/pre-commit
 
 **Notes:**
 - Hooks are installed by default. Only use `--no-hooks` if you specifically don't want automated syncing.
-- The pre-commit hook blocks commits when `.kb/symbol-coordinates.yaml` has unstaged changes, forcing refreshed symbol coordinates to be staged with the related code changes.
-- The pre-commit hook also blocks behavior-changing source edits that lack staged Kibi impact evidence (KB entity docs or refreshed manifest). Test-only and docs-only edits are exempt.
+- The pre-commit hook blocks commits that stage `.kb/symbol-coordinates.yaml` (it is derived locally and never committed) or a `.kb/symbols.yaml` that is not in the layout sync writes.
+- The pre-commit hook also blocks behavior-changing source edits that lack staged Kibi impact evidence (KB entity docs, authored `.kb/symbols.yaml` entries, or a symbol manifest that already covers every declaration of the edited file). Test-only and docs-only edits are exempt.
 - The pre-commit hook also blocks a commit whose staged knowledge introduces a `domain-contradictions`, `scenario-feasibility`, `exception-claim-keys` or `kb-consistency` violation, the same finding full `kibi check` reports on that tree. A violation already present at the last commit does not block an unrelated commit.
 - The pre-commit hook also blocks a commit that adds or edits an entity document without the body context full `kibi check` requires (`entity-context-missing`). An entity that already lacked context at the last commit, or that the schema 8 migration acknowledged in `.kb/manifest.json`, does not block.
 - Idempotent: safe to run multiple times
@@ -147,6 +147,7 @@ Extracts entities and relationships from project documents and updates the knowl
 **Behavior:**
 - Extracts entities from Markdown files with frontmatter
 - Imports symbols from YAML manifests
+- Keeps the gitignored `.kb/symbol-coordinates.yaml` current: symbols whose identity or source file bytes changed since the last sync are extracted again and every other record is reused, so a no-op sync does no extraction. A fresh clone builds the file on its first sync. When extraction fails, sync warns and keeps the previous coordinates.
 - Rewrites a `.kb/symbols.yaml` whose `symbols` sequence is still in YAML flow layout (`symbols: [ { id: … }, … ]`, what kibi-cli before 2.18.0 produced by appending to the `symbols: []` that `kibi init` writes) in block layout once, keeping comments and order, so hook scanners and reviewers can read it; the summary line `Rewrote .kb/symbols.yaml in block layout` reports it
 - Updates KB for the current git branch
 - Runs validation rules on the updated KB
@@ -155,7 +156,7 @@ Extracts entities and relationships from project documents and updates the knowl
 **Flags:**
 - `--validate-only` - Perform validation without making mutations
 - `--rebuild` - Rebuild branch snapshot from scratch (discards current KB)
-- `--refresh-symbol-coordinates` - Refresh symbol location data in `.kb/symbol-coordinates.yaml` during sync. Explicit refreshes are fatal on artifact errors, force coordinate-bearing symbols to persist even when normalized hashes match cached state, and only then advance the sync cache (version 2, workspace-root-relative keys; the artifact is a compiler dependency of `symbols.yaml`). A symbol that gets no coordinates is listed as `failed <id>: <reason>`. A TypeScript or JavaScript symbol whose title names a private class member (`Class.member` or a bare member name for a `private` or `#private` member) is never bound, because the symbol extractor that `kibi check --staged` uses skips private members; its reason says so and asks you to re-point the symbol to the public member or class that owns the behavior, or remove it. Full `kibi check` reports the same symbol under `symbol-granularity` when it has traceability links.
+- `--refresh-symbol-coordinates` - Re-extract every symbol's location into `.kb/symbol-coordinates.yaml` and rewrite `.kb/symbols.yaml` in its canonical layout. Plain sync already keeps coordinates current; use this to rebuild them from scratch or to normalize the manifest. Explicit refreshes are fatal on artifact errors, force coordinate-bearing symbols to persist even when normalized hashes match cached state, and only then advance the sync cache (version 2, workspace-root-relative keys; the artifact is a compiler dependency of `symbols.yaml`). A symbol that gets no coordinates is listed as `failed <id>: <reason>`. A TypeScript or JavaScript symbol whose title names a private class member (`Class.member` or a bare member name for a `private` or `#private` member) is never bound, because the symbol extractor that `kibi check --staged` uses skips private members; its reason says so and asks you to re-point the symbol to the public member or class that owns the behavior, or remove it. Full `kibi check` reports the same symbol under `symbol-granularity` when it has traceability links.
   Extraction misses are reported as failed, including Python and other files handled by the text heuristic. If a qualified symbol title cannot be located, query and validate/upsert a corrected title/sourceFile or an intentional `granularity_reason: extractor-miss` before refreshing. Coverage only offers automatic coordinate repair when current extraction or an explicit coarse anchor can produce coordinates.
 
 **Notes (sync + MCP):**
@@ -794,9 +795,9 @@ Validates knowledge base integrity and runs inference rules.
 
 ### Staged Impact Evidence
 
-When `kibi check --staged` reports `kibi_impact_evidence_missing`, first use Kibi discovery (`kb_search`, then `kb_query`) through visible MCP tools or trusted CLI JSON routes to inspect existing requirements, scenarios, tests, facts, and symbols for the edited source file. If the edit changes behavior, update the KB through either peer surface and also stage tracked evidence that the commit can carry: related entity markdown under `.kb/`, authored `.kb/symbols.yaml` entries, or refreshed `.kb/symbol-coordinates.yaml` output.
+When `kibi check --staged` reports `kibi_impact_evidence_missing`, first use Kibi discovery (`kb_search`, then `kb_query`) through visible MCP tools or trusted CLI JSON routes to inspect existing requirements, scenarios, tests, facts, and symbols for the edited source file. If the edit changes behavior, update the KB through either peer surface and also stage tracked evidence that the commit can carry: related entity markdown under `.kb/` or authored `.kb/symbols.yaml` entries. An edit to a file whose every declaration already has a `.kb/symbols.yaml` entry (and whose entries all still name a declaration) needs nothing more: coordinates are derived locally and never staged.
 
-Both `kibi_impact_evidence_missing` and `symbols_manifest_stale` carry `Detail:` lines that name the cause per file: how many symbols the extractor finds in the staged source content, how many of those the staged evidence covers (evidence-only entries are listed separately and not counted), and exactly which symbols are missing from `.kb/symbols.yaml` (with their definition lines). When the Detail lines list uncovered symbols, fix the cause first — author `.kb/symbols.yaml` entries for those symbols (`kibi upsert`, with `implements`/`covered_by` links) — and only then refresh coordinates with `kibi sync --refresh-symbol-coordinates`; the same comparison drives the printed `Suggestion:`. Detail lines name every symbol, never a shortened list; the `--json` diagnostic `evidence` (`symbolsManifest[].missing`/`extra`, `uncoveredSymbols[].titles`) carries the same complete lists.
+Both `kibi_impact_evidence_missing` and `symbols_manifest_stale` carry `Detail:` lines that name the cause per file: how many symbols the extractor finds in the staged source content, how many of those the staged evidence covers (evidence-only entries are listed separately and not counted), and exactly which symbols are missing from `.kb/symbols.yaml` (with their definition lines). When the Detail lines list uncovered symbols, fix the cause first — author `.kb/symbols.yaml` entries for those symbols (`kibi upsert`, with `implements`/`covered_by` links) — and re-point or retire entries listed as evidence without a matching symbol; the same comparison drives the printed `Suggestion:`. The comparison is by symbol title: coordinates are derived, so a declaration that only moved is never a finding. Detail lines name every symbol, never a shortened list; the `--json` diagnostic `evidence` (`symbolsManifest[].missing`/`extra`, `uncoveredSymbols[].titles`) carries the same complete lists.
 
 While a merge commit is being made (`MERGE_HEAD` exists, for example after resolving conflicts), `kibi check --staged` judges only what the merge itself changed: staged files whose content equals a merged parent's are taken from that parent unchanged, sit in the comparison base, and are neither listed nor checked. The output says how many files were skipped this way (`Merge commit: N staged file(s) are taken unchanged from the merged branch ...`); any debt in them was inherited from that branch. A file the merge resolved or edited is judged in full.
 
@@ -1008,10 +1009,11 @@ flags, it is a read-only preview; `--format json` returns the complete
 **Behavior:**
 - Upgrades entity schemas and internal storage formats
 - Marks pre-existing coarse symbol links with `granularity_reason: legacy-link` at any schema version, using the same rule as the staged granularity gate (`kibi check --staged`): a traceability link is coarse when the source declares narrower behavioral symbols, such as the methods of a linked class (`ClassName.methodName`) or other exported functions when the linked title is not declared at all. The pass is idempotent; the plan offers it as the automatic `symbol_legacy_link_mark` action (id `symbol-legacy-link-mark`), bound to the hash of `.kb/symbols.yaml` it was planned from and listing each symbol with the narrower symbols that make it coarse
-- Refreshes generated symbol coordinates, the way `kibi sync --refresh-symbol-coordinates` does, whenever the run rewrote or moved `.kb/symbols.yaml` (a moved legacy manifest, or legacy-link marks, which change a record's coordinate identity), and prints `Refreshed generated symbol coordinates for the migrated .kb/symbols.yaml; ...`. The `symbol-legacy-link-mark` plan action refreshes them the same way. The first commit after a migration therefore carries current `.kb/symbols.yaml` and `.kb/symbol-coordinates.yaml`, and the pre-commit `kibi check-generated --staged` gate reports no drift. A symbol that gets no coordinates is listed as `failed <id>: <reason>` as in sync; if the refresh itself fails, the migration stays applied and a warning names `kibi sync --refresh-symbol-coordinates` as the step to run before committing
+- Refreshes generated symbol coordinates, the way `kibi sync --refresh-symbol-coordinates` does, whenever the run rewrote or moved `.kb/symbols.yaml` (a moved legacy manifest, or legacy-link marks, which change a record's coordinate identity), and prints `Refreshed generated symbol coordinates for the migrated .kb/symbols.yaml; ...`. The `symbol-legacy-link-mark` plan action refreshes them the same way. The first commit after a migration therefore carries a current `.kb/symbols.yaml`, and the pre-commit `kibi check-generated --staged` gate reports no drift. A symbol that gets no coordinates is listed as `failed <id>: <reason>` as in sync; if the refresh itself fails, the migration stays applied and a warning names `kibi sync --refresh-symbol-coordinates` as the step to run before committing
 - Fixes legacy requirement modeling to follow strict fact-pairing rules
 - Moves legacy `documentation/` knowledge lanes and leftover `.kb/config.json` into the canonical `.kb/` layout
 - Replaces the pre-canonical blanket `.kb/` gitignore stanza with derived-runtime ignores so migrated `.kb/<lane>/` files are trackable
+- Schema 13: adds `.kb/symbol-coordinates.yaml` to `.gitignore` and removes it from the Git index (`git rm --cached`; the local file stays), because sync derives coordinates from source. Commit the removal with the migration
 - Treats malformed `.kb/config.json` as a blocker instead of guessing `documentation/` paths
 - Classifies a legacy file whose `.kb/` destination already exists, with or without a legacy `.kb/config.json`: a byte-identical copy is removed (the dry run lists it as `would remove`), and anything else blocks the move with a resolution. A legacy symbols manifest whose symbol ids are all in `.kb/symbols.yaml` is reported as a stale subset to remove with `git rm`, a `symbol-coordinates.yaml` copy as generated (keep `.kb/`, `kibi sync --refresh-symbol-coordinates` regenerates it), and other content as a conflict to compare. Kibi only deletes the identical copy itself.
 - Without `paths.symbols` in a legacy config whose lanes sit under another folder (for example `kibi-docs/requirements`), takes the symbols manifest beside those lanes (`kibi-docs/symbols.yaml`) instead of the `documentation/symbols.yaml` default. When a `documentation/symbols.yaml` exists too, or is the only candidate, the move is blocked as ambiguous until `paths.symbols` names the current manifest or the stale one is removed.
@@ -1143,8 +1145,8 @@ Use `pnpm exec kibi`, `yarn exec kibi` or `bunx --no-install kibi` in place of
 `npm exec --no -- kibi` in pnpm, Yarn or Bun repositories; `kibi doctor` and
 `kibi migrate` print the command for the lockfile they find.
 
-Regenerate `.kb/symbol-coordinates.yaml` after the merge with
-`kibi sync --refresh-symbol-coordinates`. For a CI job that applies this to
+`.kb/symbol-coordinates.yaml` is never committed, so it never conflicts; the
+next sync after the merge rebuilds it. For a CI job that applies this to
 open pull requests, see
 [GitHub badge + report](github-integration.md#merge-conflicts-in-kibi-manifests).
 
@@ -1301,15 +1303,16 @@ empty or partial answer.
 
 ## Staged Symbol Traceability
 
-`kibi check-generated --staged` compares the staged `.kb/symbols.yaml` and
-`.kb/symbol-coordinates.yaml` bytes with the output of a coordinate refresh
-computed from the exact Git index. It fails if either manifest would change or
-if the index changes while it runs. The command does not alter the index or
-working tree. Run `kibi sync --refresh-symbol-coordinates`, review the diff,
-then stage only the intended hunks (`git add -p`) before retrying. CI runs the
-full check before `prove --all`. The installed pre-commit hook uses
-`--changed-only` to avoid regeneration when staged paths cannot affect symbol
-manifests; commits touching symbol sources or manifests run the full check.
+`kibi check-generated --staged` compares the staged `.kb/symbols.yaml` bytes
+with the canonical layout a refresh writes, computed from the exact Git index,
+and fails when `.kb/symbol-coordinates.yaml` is in the index: coordinates are
+derived locally by every sync and never committed (schema 13; `kibi migrate`
+untracks the file). It also fails if the index changes while it runs. The
+command does not alter the index or working tree. Run
+`kibi sync --refresh-symbol-coordinates`, review the diff, then stage only the
+intended hunks (`git add -p`) before retrying. CI runs the full check before
+`prove --all`. The installed pre-commit hook uses `--changed-only` to skip the
+check when the staged change does not touch the symbol manifest.
 An initialized repository with no symbols has no coordinate artifact to
 refresh, so its first commit is allowed without that file.
 

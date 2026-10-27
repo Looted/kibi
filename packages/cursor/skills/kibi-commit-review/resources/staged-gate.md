@@ -8,10 +8,10 @@ not the working tree, so a fix counts only once it is staged.
 ## Reading a finding
 
 ```text
-symbols_manifest_stale: .kb/symbol-coordinates.yaml is stale or missing for staged source files: src/billing/refund.ts
+symbols_manifest_stale: .kb/symbols.yaml does not cover the declarations of staged source files: src/billing/refund.ts
   Detail: src/billing/refund.ts — extraction finds 4 symbol(s), evidence covers 3.
       Not in .kb/symbols.yaml: approveRefund (line 42)
-  Suggestion: Author .kb/symbols.yaml entries for the uncovered symbols (kibi upsert, with implements/covered_by links), then run kibi sync --refresh-symbol-coordinates && git add .kb/symbol-coordinates.yaml .kb/symbols.yaml, then re-run kibi check --staged.
+  Suggestion: Author .kb/symbols.yaml entries for the uncovered symbols (kibi upsert, with implements/covered_by links). Stage .kb/symbols.yaml with the behavior edit, then re-run kibi check --staged.
 ```
 
 - Detail lines name every symbol, never a shortened list. `Evidence without a
@@ -24,15 +24,15 @@ symbols_manifest_stale: .kb/symbol-coordinates.yaml is stale or missing for stag
 
 | Id or message | Cause | Fix |
 | --- | --- | --- |
-| `kibi_impact_evidence_missing` | A staged behavior edit (changed lines in exported or behavior-bearing code, not comments or formatting) has no staged Kibi evidence. Test-only edits do not need it unless they add executable test symbols. | Query the owning knowledge; update it when behavior changed; stage entity Markdown under `.kb/`, authored `.kb/symbols.yaml` entries for the listed symbols, or refreshed `.kb/symbol-coordinates.yaml`. |
-| `symbols_manifest_stale` | Extraction output changed and the staged coordinates (or manifest) do not match it. | Author entries for the listed symbols first, then `kibi sync --refresh-symbol-coordinates`, then stage both manifests. |
+| `kibi_impact_evidence_missing` | A staged behavior edit (changed lines in exported or behavior-bearing code, not comments or formatting) has no staged Kibi evidence. Test-only edits do not need it unless they add executable test symbols. | Query the owning knowledge; update it when behavior changed; stage entity Markdown under `.kb/` or authored `.kb/symbols.yaml` entries for the listed symbols. A file whose every declaration already has a `.kb/symbols.yaml` entry needs nothing more. |
+| `symbols_manifest_stale` | A staged behavior file declares symbols `.kb/symbols.yaml` has no entry for, or an entry names a declaration that is gone. | Author entries for the listed symbols, re-point or retire entries whose declaration is gone, and stage `.kb/symbols.yaml`. Coordinates are derived locally and never staged. |
 | `symbol_granularity_violation` | A changed behavioral member is owned only by a coarse class or module symbol while a narrower declaration exists. | Add a symbol for the member itself (`title` = `Class.method` or the exported function) with its own links; use `granularity_reason` (`config-artifact`, `module-level-behavior`, `extractor-miss`, `legacy-link`, `test-suite`) only when it is true. |
 | `symbol-coverage` | A changed symbol, or a symbol whose staged manifest entry changed, fails the full-check rule on the staged knowledge. | The symbol `implements` the requirement and is `covered_by` a test that verifies it: through the requirement's scenario (`verified_by` scenario -> test) when it has one, else `verified_by` requirement -> test. A direct requirement -> test link does not count while a scenario exists. The finding's suggestion names the missing link (see `kibi-traceability`). |
 | `kibi_impact_override_missing_rationale` | A `Kibi-Impact: none` declaration has no `Rationale:` line. | Add the rationale, or drop the declaration and stage real evidence. |
 | `entity-context-missing` (staged entity) | A staged requirement, scenario, test, ADR or observation fact has fewer than 12 words of context. | Upsert a sectioned `document.body` (see `kibi-usage`, Entity body contract). |
 | `domain-contradictions`, `kb-consistency`, `scenario-feasibility`, `exception-claim-keys` (staged `.kb/` change) | The staged knowledge introduces a violation the last commit did not have. `kb-consistency` also catches facts that contradict only together and names their requirements. | Fix the knowledge; a contradiction with a recorded rule goes to the person (`kibi-decisions`). |
 | Proposition-complete ingestion | A staged requirement's semantic inventory is missing or no longer matches its prose. | Re-derive it (`kb_model` analyze with the complete prose) or run `kibi migrate` for drift. |
-| `kibi check-generated --staged` drift | The staged `.kb/symbols.yaml` or `.kb/symbol-coordinates.yaml` differs from a refresh computed from the index. | `kibi sync --refresh-symbol-coordinates`, review the diff, stage only the intended hunks (`git add -p`). |
+| `kibi check-generated --staged` drift | The staged `.kb/symbols.yaml` is not in the layout sync writes, or `.kb/symbol-coordinates.yaml` is tracked. | `kibi sync --refresh-symbol-coordinates`, review the diff, stage only the intended hunks (`git add -p`); untrack a tracked coordinates file with `kibi migrate` (or `git rm --cached`). |
 | `Staged impact review failed: impact_review_invalid: ...` | The base commit has `.kibi/impact-policy.json` and the staged `.kibi/impact-review.json` is missing, stale or incomplete. The message names the cause (missing review path, stale fingerprint, ...). | Prepare a fresh record (below). Any later staged change makes the fingerprints stale again, so prepare it last. |
 
 The staged gate does not judge evidence levels: the `evidence-floor` rule
@@ -98,6 +98,6 @@ does not prove it. Put the person's id there only when they reviewed it.
 npx --no-install kibi check --staged                    # the gate
 npx --no-install kibi check --staged --format json      # with full evidence
 npx --no-install kibi check-generated --staged          # manifest drift
-npx --no-install kibi sync --refresh-symbol-coordinates # refresh coordinates
+npx --no-install kibi sync --refresh-symbol-coordinates # rebuild local coordinates
 git status --short .kb                                  # what Kibi wrote
 ```

@@ -18,7 +18,7 @@ afterEach(() => {
 });
 
 describe("collectStagedKibiDiagnostics symbols_manifest_stale and override rendering", () => {
-  test("derives coordinates from the symbols manifest path and returns early for empty overrides", () => {
+  test("names the symbols manifest and returns early for empty overrides", () => {
     restores.push(isolateKibiEnv());
     const derived = collectStagedKibiDiagnostics(
       {
@@ -35,12 +35,12 @@ describe("collectStagedKibiDiagnostics symbols_manifest_stale and override rende
     expect(derived.some((row) => row.id === "symbols_manifest_stale")).toBe(
       true,
     );
-    expect(derived[0]?.files[0]).toBe("docs/symbol-coordinates.yaml");
+    expect(derived[0]?.files[0]).toBe("docs/symbols.yaml");
 
     const emptyOverride: KibiImpactEvidence = {
       sourceChanges: [],
       symbolsManifest: {
-        path: ".kb/symbol-coordinates.yaml",
+        path: ".kb/symbols.yaml",
         state: "not_required",
         sourcePaths: [],
       },
@@ -64,7 +64,7 @@ describe("collectStagedKibiDiagnostics symbols_manifest_stale and override rende
       createMissingOverrideRationaleDiagnostic({
         sourceChanges: [],
         symbolsManifest: {
-          path: ".kb/symbol-coordinates.yaml",
+          path: ".kb/symbols.yaml",
           state: "not_required",
           sourcePaths: [],
         },
@@ -78,7 +78,7 @@ describe("collectStagedKibiDiagnostics symbols_manifest_stale and override rende
     const derived = collectStagedKibiDiagnostics({
       sourceChanges: [{ path: "src/app.ts", kind: "behavior_source_edit" }],
       symbolsManifest: {
-        path: ".kb/symbol-coordinates.yaml",
+        path: ".kb/symbols.yaml",
         state: "stale",
         sourcePaths: ["src/app.ts"],
         fileDetails: [
@@ -122,12 +122,12 @@ describe("collectStagedKibiDiagnostics symbols_manifest_stale and override rende
     );
   });
 
-  test("keeps the refresh-coordinates suggestion when evidence only drifted", () => {
+  test("asks to re-point or retire orphaned entries when only extra evidence remains", () => {
     restores.push(isolateKibiEnv());
     const derived = collectStagedKibiDiagnostics({
       sourceChanges: [{ path: "src/app.ts", kind: "behavior_source_edit" }],
       symbolsManifest: {
-        path: ".kb/symbol-coordinates.yaml",
+        path: ".kb/symbols.yaml",
         state: "stale",
         sourcePaths: ["src/app.ts"],
         fileDetails: [
@@ -149,8 +149,9 @@ describe("collectStagedKibiDiagnostics symbols_manifest_stale and override rende
     );
     expect(stale?.suggestion).not.toContain("Author .kb/symbols.yaml entries");
     expect(stale?.suggestion).toContain(
-      "Run kibi sync --refresh-symbol-coordinates",
+      "Re-point or remove (kibi delete) the .kb/symbols.yaml entries whose declaration is gone",
     );
+    expect(stale?.suggestion).not.toContain("refresh-symbol-coordinates");
   });
   test("renders every symbol name in text and JSON evidence", () => {
     restores.push(isolateKibiEnv());
@@ -162,7 +163,7 @@ describe("collectStagedKibiDiagnostics symbols_manifest_stale and override rende
     const derived = collectStagedKibiDiagnostics({
       sourceChanges: [{ path: "src/app.ts", kind: "behavior_source_edit" }],
       symbolsManifest: {
-        path: ".kb/symbol-coordinates.yaml",
+        path: ".kb/symbols.yaml",
         state: "stale",
         sourcePaths: ["src/app.ts"],
         fileDetails: [

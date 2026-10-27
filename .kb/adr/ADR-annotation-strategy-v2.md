@@ -31,7 +31,7 @@ The KB itself never compiles these comments: `kb_query`, `kb_coverage`, `kb_chec
 ## Decision
 
 - `.kb/symbols.yaml` is the authoritative source of symbol links (`implements`, `covered_by`, `executable_for`). It is written only through Kibi operations (`kb_upsert` and `kb_delete`, or their project-local CLI routes), never by hand.
-- Generated coordinates live only in `.kb/symbol-coordinates.yaml`, refreshed with `kibi sync --refresh-symbol-coordinates` and verified with `kibi check-generated`.
+- Generated coordinates live only in the gitignored `.kb/symbol-coordinates.yaml`, which every `kibi sync` derives from source; `kibi check-generated` verifies the `symbols.yaml` layout and rejects a commit that stages the coordinate cache.
 - Inline `// implements REQ-<area>-<behavior>` (or `# implements ...`) comments directly above a symbol are accepted as hints. They are read by staged checks for changed symbols and by host tooling, and they never create or replace a KB relationship.
 - An inline annotation names an existing current requirement. When a requirement is superseded, its manifest links and the annotations that name it move to the superseding requirement together.
 - Test and end-to-end code is traced through manifest entries with `executable_for` rather than inline annotations.

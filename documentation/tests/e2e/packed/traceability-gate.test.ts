@@ -628,7 +628,6 @@ if (RUN_NODE_TEST_SUITE) {
           ".kb/requirements/REQ-001.md",
           `.kb/tests/${BASELINE_TEST_ID}.md`,
           ".kb/symbols.yaml",
-          ".kb/symbol-coordinates.yaml",
           "src/sample.js",
         ]) {
           assert.ok(
@@ -745,7 +744,7 @@ if (RUN_NODE_TEST_SUITE) {
       const negativePaths = await stageWorkingChanges(sandbox);
       assert.ok(negativePaths.includes("src/sample.js"));
       assert.ok(negativePaths.includes(".kb/symbols.yaml"));
-      assert.ok(negativePaths.includes(".kb/symbol-coordinates.yaml"));
+      assert.ok(!negativePaths.includes(".kb/symbol-coordinates.yaml"));
       await assertGeneratedCurrent(
         sandbox,
         "unowned declaration generated-manifest check",
@@ -966,7 +965,6 @@ if (RUN_NODE_TEST_SUITE) {
       for (const required of [
         ".kb/tests/TEST-EXE-001.md",
         ".kb/symbols.yaml",
-        ".kb/symbol-coordinates.yaml",
         "tests/helper.js",
       ]) {
         assert.ok(

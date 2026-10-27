@@ -3260,5 +3260,17 @@
         "./packages/cli/tests/workspace-cwd.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-symbol-coordinates-derived-locally",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/commands/derived-symbol-coordinates.test.ts"
+      ]
+    ]
   }
 ]

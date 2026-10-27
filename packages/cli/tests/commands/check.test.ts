@@ -2353,7 +2353,7 @@ source: .kb/requirements/REQ-STAGED-001.md
         cwd: tmpDir,
         stdio: "pipe",
       });
-      execSync("git add .kb/symbol-coordinates.yaml .kb/symbols.yaml", {
+      execSync("git add .kb/symbols.yaml", {
         cwd: tmpDir,
         stdio: "pipe",
       });
@@ -2479,13 +2479,10 @@ source: .kb/requirements/REQ-STAGED-SCOPED-001.md
         cwd: tmpDir,
         stdio: "pipe",
       });
-      execSync(
-        "git add src/app.ts .kb/symbols.yaml .kb/symbol-coordinates.yaml",
-        {
-          cwd: tmpDir,
-          stdio: "pipe",
-        },
-      );
+      execSync("git add src/app.ts .kb/symbols.yaml", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
       const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
       const output =
@@ -2600,7 +2597,7 @@ source: .kb/requirements/REQ-CUSTOM-001.md
         stdio: "pipe",
       });
       execSync(
-        "git add src/app.ts .kb/symbols.yaml .kb/symbol-coordinates.yaml .kb/requirements/REQ-CUSTOM-001.md",
+        "git add src/app.ts .kb/symbols.yaml .kb/requirements/REQ-CUSTOM-001.md",
         { cwd: tmpDir, stdio: "pipe" },
       );
 

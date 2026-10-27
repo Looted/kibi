@@ -817,6 +817,28 @@ export async function syncCommand(
       }
     }
 
+    // Symbol coordinates are derived from the source tree and kept in a
+    // gitignored artifact. Bring it up to date before anything hashes it, so
+    // a source edit that moved a declaration recompiles the manifest. Only
+    // symbols whose identity or source bytes changed are extracted again.
+    // An explicit --refresh-symbol-coordinates run re-extracts everything
+    // below instead.
+    if (!validateOnly && !options.refreshSymbolCoordinates) {
+      for (const file of manifestFiles) {
+        try {
+          await refreshManifestCoordinates(file, workspaceRoot, {
+            incremental: true,
+          });
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : String(error);
+          console.warn(
+            `Warning: could not update symbol coordinates for ${path.relative(workspaceRoot, file)}: ${message}`,
+          );
+        }
+      }
+    }
+
     // No-op is a first-class compiler result. Hashing the configured inputs is
     // sufficient when normalized entity/shard inventories are already fresh;
     // avoid rebuilding maps and rediscovering RDF state for the common path.

@@ -37,17 +37,17 @@ describe("built CLI rejects outside-workspace symbol sourceFile", () => {
     const ws = createConsumerWorkspace("kibi-sourcefile-confinement-");
     workspace = ws;
 
-    const absolute = ws.json(["upsert"], symbolPayload("/tmp/outside-secret.ts"));
+    const absolute = ws.json(
+      ["upsert"],
+      symbolPayload("/tmp/outside-secret.ts"),
+    );
     expect(absolute).toMatchObject({
       status: "error",
       error: { code: "UPSERT_DRY_RUN_INVALID" },
     });
     expect(JSON.stringify(absolute)).toMatch(/workspace-relative path/);
 
-    const escaped = ws.json(
-      ["upsert"],
-      symbolPayload("../outside-secret.ts"),
-    );
+    const escaped = ws.json(["upsert"], symbolPayload("../outside-secret.ts"));
     expect(escaped).toMatchObject({
       status: "error",
       error: { code: "UPSERT_DRY_RUN_INVALID" },

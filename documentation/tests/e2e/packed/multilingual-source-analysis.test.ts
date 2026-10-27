@@ -200,7 +200,6 @@ async function runPythonDecoratorCoordinateWorkflow(
   writeFileSync(sourcePath, expectedSourceBytes);
   writeFileSync(symbolsPath, expectedManifest, "utf8");
   stageSourceFile(sandbox, fixture.sourcePath);
-  stageSourceFile(sandbox, ".kb/symbols.yaml");
 
   const coordinateRefresh = await kibi(
     sandbox,
@@ -221,7 +220,6 @@ async function runPythonDecoratorCoordinateWorkflow(
     outputOf(coordinateRefresh),
     /Python decorators are not evaluated and may alter or synthesize declarations/i,
   );
-  stageSourceFile(sandbox, ".kb/symbol-coordinates.yaml");
 
   assert.deepEqual(
     readFileSync(sourcePath),
@@ -261,18 +259,17 @@ async function runPythonDecoratorCoordinateWorkflow(
     "partial parser analysis must not create declarations that were not authored",
   );
 
+  // Coordinates are a local cache, so partial decorated analysis needs no
+  // review: the staged generated-manifest check only judges symbols.yaml.
+  stageSourceFile(sandbox, ".kb/symbols.yaml");
   const partialDefaultCheck = await kibi(sandbox, [
     "check-generated",
     "--staged",
   ]);
-  assert.notEqual(
-    partialDefaultCheck.exitCode,
+  assertCommandExit(
+    partialDefaultCheck,
     0,
-    "default staged generated-manifest check must still reject partial decorated analysis",
-  );
-  assert.match(
-    outputOf(partialDefaultCheck),
-    /Decorator coordinates for src\/sample\.py are not allowed by the captured base policy/i,
+    "staged generated-manifest check with partial decorated analysis",
   );
   assert.deepEqual(readFileSync(sourcePath), expectedSourceBytes);
   assert.deepEqual(
@@ -283,17 +280,18 @@ async function runPythonDecoratorCoordinateWorkflow(
   const syntaxErrorBytes = Buffer.from(PYTHON_SYNTAX_ERROR_SOURCE, "utf8");
   writeFileSync(sourcePath, syntaxErrorBytes);
   stageSourceFile(sandbox, fixture.sourcePath);
-  const syntaxDefaultCheck = await kibi(sandbox, [
-    "check-generated",
-    "--staged",
-  ]);
+  const syntaxRefresh = await kibi(
+    sandbox,
+    ["sync", "--refresh-symbol-coordinates"],
+    { timeoutMs: COMMAND_TIMEOUT_MS },
+  );
   assert.notEqual(
-    syntaxDefaultCheck.exitCode,
+    syntaxRefresh.exitCode,
     0,
-    "default staged generated-manifest check must reject Python syntax errors",
+    "coordinate refresh must reject Python syntax errors",
   );
   assert.match(
-    outputOf(syntaxDefaultCheck),
+    outputOf(syntaxRefresh),
     /Cannot refresh incomplete source analysis for src\/sample\.py/i,
   );
   assert.deepEqual(
@@ -558,7 +556,6 @@ async function runLanguageWorkflow(
       "baseline source sync and coordinate refresh",
     );
     stageSourceFile(sandbox, ".kb/symbols.yaml");
-    stageSourceFile(sandbox, ".kb/symbol-coordinates.yaml");
 
     const baselineCheck = await kibi(
       sandbox,
@@ -624,7 +621,6 @@ async function runLanguageWorkflow(
       `${fixture.language} ownership repair and coordinate refresh`,
     );
     stageSourceFile(sandbox, ".kb/symbols.yaml");
-    stageSourceFile(sandbox, ".kb/symbol-coordinates.yaml");
 
     const repairedCheck = await kibi(
       sandbox,

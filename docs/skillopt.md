@@ -412,9 +412,9 @@ The legacy `skillopt:optimize` trainer (eight training trajectories) and the
   requirement and test, and an answer that names
   `kibi sync --refresh-symbol-coordinates`, `git add .kb/symbols.yaml` and
   `kibi check --staged`.
-- `coordinate-refresh-only`: a comment-only or rename-only staged edit. The
-  cell expects no KB write and an answer that names the refresh and staging of
-  `.kb/symbol-coordinates.yaml`.
+- `coordinate-refresh-only`: a comment-only staged edit that moves
+  declarations. The cell expects no KB write and an answer that says nothing
+  needs staging beyond the edit, because coordinates are derived locally.
 - `impact-review-preparation`: the base commit carries an impact policy. The
   cell checks that `kb_prepare_impact_review` ran and that the drafted
   `.kibi/impact-review.json` keeps the prepared record headers and file set.

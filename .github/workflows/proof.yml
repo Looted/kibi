@@ -159,8 +159,8 @@ jobs:
         if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
         run: |
           bun packages/cli/bin/kibi sync --refresh-symbol-coordinates
-          if ! git diff --quiet -- .kb/symbols.yaml .kb/symbol-coordinates.yaml; then
-            echo '::error::Kibi generated manifests changed during sync. Run kibi sync --refresh-symbol-coordinates and commit the reviewed manifest changes.'
+          if ! git diff --quiet -- .kb/symbols.yaml; then
+            echo '::error::Kibi rewrote .kb/symbols.yaml during sync. Run kibi sync --refresh-symbol-coordinates and commit the reviewed manifest changes.'
             exit 1
           fi
           bun packages/cli/bin/kibi check --format json --rules no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness,symbol-traceability

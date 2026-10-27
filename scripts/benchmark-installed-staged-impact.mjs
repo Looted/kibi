@@ -2977,13 +2977,6 @@ function authorPreparedRecord(preparation, sources, workspace) {
             "The staged inert parser declarations change only the synthetic input bodies; the linked benchmark requirement and its intent remain unchanged.",
         },
       };
-    } else if (filePath === ".kb/symbol-coordinates.yaml") {
-      file.decision = {
-        kind: "no_impact",
-        reason: "Generated source-coordinate refresh only",
-        rationale:
-          "This generated artifact updates locations for the existing source-linked symbols after the staged synthetic source edit; it does not change requirement intent.",
-      };
     } else {
       throw new Error(
         `No explicit benchmark decision rule covers prepared path ${filePath}`,
@@ -3365,9 +3358,7 @@ async function runScenario({
       .map(normalizeRelativePath)
       .sort();
     const unexpectedBaselineFiles = normalizedBaselineFiles.filter(
-      (filePath) =>
-        filePath !== ".kb/symbols.yaml" &&
-        filePath !== ".kb/symbol-coordinates.yaml",
+      (filePath) => filePath !== ".kb/symbols.yaml",
     );
     if (unexpectedBaselineFiles.length > 0) {
       throw new Error(
@@ -3405,9 +3396,7 @@ async function runScenario({
       .map(normalizeRelativePath)
       .sort();
     const unexpected = changed.filter(
-      (filePath) =>
-        !sourceFiles.includes(filePath) &&
-        filePath !== ".kb/symbol-coordinates.yaml",
+      (filePath) => !sourceFiles.includes(filePath),
     );
     const missingSources = sourceFiles.filter(
       (filePath) => !changed.includes(filePath),

@@ -9,11 +9,6 @@ import {
   type ManifestSymbolRecord,
   extractManifestSymbolRecordsString,
 } from "../extractors/manifest.js";
-import {
-  type ParsedCoordinateArtifact,
-  mergeCoordinatesWithManifest,
-  parseCoordinateArtifact as parseStrict,
-} from "../extractors/symbol-coordinates.js";
 import { analyzeSourceText } from "../extractors/symbols-coordinator.js";
 import { isCoarseGranularityReason } from "../public/symbol-granularity.js";
 import { resolveSymbolsManifestPaths } from "../utils/manifest-paths.js";
@@ -46,22 +41,21 @@ interface NormalizedAuthoredManifestSymbol {
 
 interface RelativeManifestPaths {
   symbolsPath: string;
-  coordinatesPath: string;
 }
 
 /**
  * True when a manifest record documents coarse file/module-level coverage using
- * a canonical granularity reason that legitimately carries no generated
- * per-symbol coordinates. Such records do not participate in coordinate
- * freshness comparison. `legacy-link` records remain coordinate-bearing, and
- * unknown or malformed reasons cannot bypass freshness checks.
+ * a canonical granularity reason that legitimately stands for no single
+ * declaration. Such records do not participate in declaration coverage.
+ * `legacy-link` records remain declaration-bound, and unknown or malformed
+ * reasons cannot bypass the comparison.
  */
 function isDocumentedCoarseRecord(record: ManifestSymbolRecord): boolean {
   return isCoarseGranularityReason(record.granularity_reason);
 }
 
 export interface StagedSymbolsManifestAssessment {
-  state: "fresh" | "stale" | "missing" | "not_required";
+  state: "fresh" | "stale" | "not_required";
   sourcePaths: string[];
   path: string;
   /**
@@ -97,22 +91,11 @@ function resolveRelativeManifestPaths(
 ): RelativeManifestPaths {
   if (symbolsManifestPath) {
     const normalizedSymbolsPath = toRepoRelativePath(symbolsManifestPath);
-    return {
-      symbolsPath: normalizedSymbolsPath,
-      coordinatesPath: path
-        .join(path.dirname(normalizedSymbolsPath), "symbol-coordinates.yaml")
-        .replace(/\\/g, "/"),
-    };
+    return { symbolsPath: toRepoRelativePath(symbolsManifestPath) };
   }
 
-  const { coordinatesPath, symbolsPath } = resolveSymbolsManifestPaths(
-    process.cwd(),
-  );
-
-  return {
-    symbolsPath: toRepoRelativePath(symbolsPath),
-    coordinatesPath: toRepoRelativePath(coordinatesPath),
-  };
+  const { symbolsPath } = resolveSymbolsManifestPaths(process.cwd());
+  return { symbolsPath: toRepoRelativePath(symbolsPath) };
 }
 
 function readHeadFileContent(
@@ -158,17 +141,6 @@ function parseManifestRecords(
   }
 }
 
-export function parsedCoordinateOrNull(
-  parse: () => ParsedCoordinateArtifact,
-): ParsedCoordinateArtifact | null {
-  try {
-    const parsed = parse();
-    return parsed.status === "invalid" ? null : parsed;
-  } catch {
-    return null;
-  }
-}
-
 export function manifestRecordSourcePath(record: {
   sourceFile?: unknown;
   source?: unknown;
@@ -178,20 +150,6 @@ export function manifestRecordSourcePath(record: {
     : typeof record.source === "string"
       ? record.source
       : null;
-}
-
-function parseCoordinateArtifact(
-  content: string | null | undefined,
-): ParsedCoordinateArtifact | null {
-  // An absent artifact must not masquerade as an empty authoritative one:
-  // inline authored coordinates stay comparable until the artifact exists.
-  // The strict parser preserves identity bindings so versioned artifacts
-  // overlay without falling back to source-text heuristics.
-  if (content === null || content === undefined) {
-    return null;
-  }
-
-  return parsedCoordinateOrNull(() => parseStrict(content));
 }
 
 function normalizeNumber(value: unknown): number | null {
@@ -279,9 +237,7 @@ function normalizeManifestSymbolsForSourceFile(
     }))
     .sort(compareNormalizedSymbols);
 
-  // Several logical records may own the same declaration. Only identical
-  // validated spans collapse; a stale duplicate still carries null coordinates
-  // and must remain visible to the equality check.
+  // Several logical records may own the same declaration; they collapse.
   return symbols.filter(
     (symbol, index) =>
       index === 0 ||
@@ -445,55 +401,6 @@ function uniqueSorted(paths: Iterable<string>): string[] {
   return Array.from(new Set(paths)).sort();
 }
 
-function mergeManifestRecordsWithCoordinates(
-  manifestRecords: ManifestSymbolRecord[] | null,
-  coordinateArtifact: ParsedCoordinateArtifact | null,
-  options: {
-    readonly resolveSourceText?: (sourceFile: string) => string | null;
-  } = {},
-): ManifestSymbolRecord[] {
-  return mergeCoordinatesWithManifest(
-    manifestRecords ?? [],
-    coordinateArtifact,
-    options,
-  );
-}
-
-function getEffectiveManifestRecords(options: {
-  stagedFiles: StagedFile[];
-  paths: RelativeManifestPaths;
-  headManifestRecords: ManifestSymbolRecord[] | null;
-  headCoordinateArtifact: ParsedCoordinateArtifact | null;
-}): {
-  stagedManifestFile: StagedFile | undefined;
-  stagedCoordinatesFile: StagedFile | undefined;
-  stagedManifestRecords: ManifestSymbolRecord[] | null;
-  stagedCoordinateArtifact: ParsedCoordinateArtifact | null;
-} {
-  const { headCoordinateArtifact, headManifestRecords, paths, stagedFiles } =
-    options;
-  const stagedManifestFile = stagedFiles.find(
-    (file) => file.path === paths.symbolsPath,
-  );
-  const stagedCoordinatesFile = stagedFiles.find(
-    (file) => file.path === paths.coordinatesPath,
-  );
-
-  const stagedManifestRecords = stagedManifestFile
-    ? parseManifestRecords(stagedManifestFile.content, paths.symbolsPath)
-    : headManifestRecords;
-  const stagedCoordinateArtifact = stagedCoordinatesFile
-    ? parseCoordinateArtifact(stagedCoordinatesFile.content)
-    : headCoordinateArtifact;
-
-  return {
-    stagedManifestFile,
-    stagedCoordinatesFile,
-    stagedManifestRecords,
-    stagedCoordinateArtifact,
-  };
-}
-
 // implements REQ-cli-staged-impact-enforcement
 function diffSymbolEvidence(
   sourcePath: string,
@@ -525,6 +432,18 @@ function diffSymbolEvidence(
   };
 }
 
+/**
+ * Whether the staged symbol manifest covers the declarations of the staged
+ * behavior files.
+ *
+ * Coordinates are derived from source and never committed, so the check
+ * compares symbol titles only: every declaration extracted from a staged
+ * file must have a manifest record and every granular record must still name
+ * a declaration. A covered file is `fresh` evidence for its behavior edit; a
+ * gap is `stale` and lists the uncovered and orphaned symbols.
+ */
+// implements REQ-cli-staged-impact-enforcement
+// implements REQ-symbol-coordinates-derived-locally
 export function assessStagedSymbolsManifest(options: {
   symbolsManifestPath: string;
   sourceFiles: StagedFile[];
@@ -534,71 +453,25 @@ export function assessStagedSymbolsManifest(options: {
 }): StagedSymbolsManifestAssessment {
   const { sourceFiles, stagedFiles, symbolsManifestPath } = options;
   const paths = resolveRelativeManifestPaths(symbolsManifestPath);
-  // Scope HEAD memoization to one assessment. A long-lived CLI process may
-  // assess several commits in the same checkout; a process-global cache would
-  // otherwise reuse content from the previous HEAD.
-  const headFileContentCache = new Map<string, string | null>();
-  const readAssessmentHeadFileContent = (filePath: string): string | null =>
-    options.readBaseFile
-      ? options.readBaseFile(filePath)
-      : readHeadFileContent(filePath, headFileContentCache);
-  const headManifestRecords = parseManifestRecords(
-    readAssessmentHeadFileContent(paths.symbolsPath),
-    paths.symbolsPath,
+  const stagedManifestFile = stagedFiles.find(
+    (file) => file.path === paths.symbolsPath,
   );
-  const headCoordinateArtifact = parseCoordinateArtifact(
-    readAssessmentHeadFileContent(paths.coordinatesPath),
-  );
-  const {
-    stagedCoordinatesFile,
-    stagedCoordinateArtifact,
-    stagedManifestRecords,
-  } = getEffectiveManifestRecords({
-    stagedFiles,
-    paths,
-    headManifestRecords,
-    headCoordinateArtifact,
-  });
+  const stagedManifestRecords = stagedManifestFile
+    ? parseManifestRecords(stagedManifestFile.content, paths.symbolsPath)
+    : parseManifestRecords(
+        options.readBaseFile
+          ? options.readBaseFile(paths.symbolsPath)
+          : readHeadFileContent(paths.symbolsPath),
+        paths.symbolsPath,
+      );
 
-  const stagedSourceText = new Map(
-    stagedFiles.map(
-      (stagedFile) =>
-        [
-          stagedFile.path.replace(/\\/g, "/"),
-          typeof stagedFile.content === "string" ? stagedFile.content : null,
-        ] as const,
-    ),
-  );
-  const resolveStagedSourceText = (sourceFile: string): string | null => {
-    const normalizedSourceFile = sourceFile.replace(/\\/g, "/");
-    return stagedSourceText.has(normalizedSourceFile)
-      ? (stagedSourceText.get(normalizedSourceFile) ?? null)
-      : readAssessmentHeadFileContent(sourceFile);
-  };
-
-  const baselineMergedRecords = mergeManifestRecordsWithCoordinates(
-    headManifestRecords,
-    headCoordinateArtifact,
-    // Existing bindings must also be valid for the proposed source. Comparing
-    // them against HEAD would miss body edits that leave spans unchanged.
-    { resolveSourceText: resolveStagedSourceText },
-  );
-  const stagedMergedRecords = mergeManifestRecordsWithCoordinates(
-    stagedManifestRecords,
-    stagedCoordinateArtifact,
-    { resolveSourceText: resolveStagedSourceText },
-  );
-
-  const requiredRefreshPaths: string[] = [];
-  const freshPaths = new Set<string>();
+  const coveredPaths: string[] = [];
+  const uncoveredPaths: string[] = [];
   const symbolDetails: KibiImpactSymbolsManifestFileDetail[] = [];
 
   for (const sourceFile of sourceFiles) {
     const manifestRecordsForFile = (stagedManifestRecords ?? []).filter(
-      (record) => {
-        const recordSource = manifestRecordSourcePath(record);
-        return recordSource === sourceFile.path;
-      },
+      (record) => manifestRecordSourcePath(record) === sourceFile.path,
     );
     const coarseCovered =
       manifestRecordsForFile.length > 0 &&
@@ -614,10 +487,8 @@ export function assessStagedSymbolsManifest(options: {
       records.push(record);
       recordsByTitle.set(record.title, records);
     }
-    // A coarse anchor is allowed to stand in for its extracted declaration
-    // only when every authored record with that title is explicitly coarse.
-    // If a granular record shares the title, keep the declaration in the
-    // equality check so a duplicate anchor cannot hide stale coordinates.
+    // A coarse anchor stands in for its extracted declaration only when
+    // every authored record with that title is explicitly coarse.
     const coarseTitles = new Set(
       [...recordsByTitle.entries()]
         .filter(([, records]) => records.every(isDocumentedCoarseRecord))
@@ -628,88 +499,44 @@ export function assessStagedSymbolsManifest(options: {
       options.analyzeSource,
       new Set(recordsByTitle.keys()),
     ).filter((symbol) => !coarseTitles.has(symbol.title));
-    const baselineSymbols = normalizeManifestSymbolsForSourceFile(
-      baselineMergedRecords,
+    const stagedSymbols = normalizeManifestSymbolsForSourceFile(
+      stagedManifestRecords ?? [],
       sourceFile.path,
     );
-
-    if (signaturesEqual(expectedSymbols, baselineSymbols)) {
+    if (expectedSymbols.length === 0 && stagedSymbols.length === 0) {
       continue;
     }
 
-    requiredRefreshPaths.push(sourceFile.path);
-
-    // Without a usable staged coordinate artifact there is nothing to diff
-    // against: every extracted symbol counts as uncovered evidence.
-    const stagedSymbols =
-      stagedCoordinateArtifact === null
-        ? []
-        : normalizeManifestSymbolsForSourceFile(
-            stagedMergedRecords,
-            sourceFile.path,
-          );
     const detail = diffSymbolEvidence(
       sourceFile.path,
       expectedSymbols,
       stagedSymbols,
     );
-    if (detail !== null) {
+    if (detail === null) {
+      coveredPaths.push(sourceFile.path);
+    } else {
+      uncoveredPaths.push(sourceFile.path);
       symbolDetails.push(detail);
     }
-
-    if (!stagedCoordinatesFile) {
-      continue;
-    }
-
-    if (signaturesEqual(expectedSymbols, stagedSymbols)) {
-      freshPaths.add(sourceFile.path);
-    }
   }
 
-  const sourcePaths = uniqueSorted(requiredRefreshPaths);
-  if (sourcePaths.length === 0) {
+  if (coveredPaths.length === 0 && uncoveredPaths.length === 0) {
+    return { state: "not_required", sourcePaths: [], path: paths.symbolsPath };
+  }
+  if (uncoveredPaths.length === 0) {
     return {
-      state: "not_required",
-      sourcePaths: [],
-      path: paths.coordinatesPath,
+      state: "fresh",
+      sourcePaths: uniqueSorted(coveredPaths),
+      path: paths.symbolsPath,
     };
   }
-
-  if (sourcePaths.every((sourcePath) => freshPaths.has(sourcePath))) {
-    return { state: "fresh", sourcePaths, path: paths.coordinatesPath };
-  }
-
-  // Details are only meaningful for the states whose diagnostics fire; a
-  // fresh refresh carries no uncovered symbols by definition, and the stale
-  // state cites only the non-fresh paths, so details follow that filter.
-  const nonFreshDetails = symbolDetails.filter(
-    (detail) => !freshPaths.has(detail.path),
-  );
-  const detailSpread =
-    nonFreshDetails.length > 0
-      ? {
-          fileDetails: nonFreshDetails.sort((left, right) =>
-            left.path.localeCompare(right.path),
-          ),
-        }
-      : {};
-
-  if (!stagedCoordinatesFile) {
-    return {
-      state: "missing",
-      sourcePaths,
-      path: paths.coordinatesPath,
-      ...detailSpread,
-    };
-  }
-
   return {
     state: "stale",
-    sourcePaths: sourcePaths.filter(
-      (sourcePath) => !freshPaths.has(sourcePath),
+    sourcePaths: uniqueSorted(uncoveredPaths),
+    path: paths.symbolsPath,
+    fileDetails: symbolDetails.sort((left, right) =>
+      left.path.localeCompare(right.path),
     ),
-    path: paths.coordinatesPath,
-    ...detailSpread,
   };
 }
 

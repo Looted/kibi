@@ -55,10 +55,10 @@ export interface AuditedNoImpactOverrideInput {
  *   intersect exported or other behavior-bearing/user-facing surfaces and whose
  *   changed lines are not comment-only or formatting-only.
  * - `kibi_impact_evidence` is staged entity markdown under `.kb/`, staged
- *   authored `.kb/symbols.yaml` metadata, refreshed
- *   `.kb/symbol-coordinates.yaml` when extraction output changes, or
- *   an explicit audited `Kibi-Impact: none` declaration with
- *   rationale for false positives/non-behavior-only edits.
+ *   authored `.kb/symbols.yaml` metadata, a symbol manifest that covers
+ *   every declaration of the edited file, or an explicit audited
+ *   `Kibi-Impact: none` declaration with rationale for
+ *   false positives/non-behavior-only edits.
  * - `Kibi-Impact: none` never satisfies a genuine behavior change.
  * - Test-only edits do not require new KB evidence unless they introduce
  *   executable test symbols that need traceability.
@@ -76,17 +76,17 @@ export const KIBI_IMPACT_DIAGNOSTICS: Record<
     title: "Behavior edit requires staged Kibi impact evidence",
     resolution: [
       "Query Kibi via visible MCP tools or the trusted project-local CLI (peer surfaces): use kb_search for discovery, then kb_query for exact follow-up.",
-      "MCP writes update KB state but do not stage tracked evidence; also stage related KB entity markdown under .kb/, authored .kb/symbols.yaml metadata (the Detail lines name the symbols lacking evidence), or refreshed .kb/symbol-coordinates.yaml.",
+      "MCP writes update KB state but do not stage tracked evidence; also stage related KB entity markdown under .kb/ or authored .kb/symbols.yaml metadata (the Detail lines name the symbols lacking evidence).",
       "Re-run or let the hook run kibi check --staged.",
     ],
   },
   symbols_manifest_stale: {
     id: "symbols_manifest_stale",
-    title: "Symbol coordinates evidence is stale for changed extraction output",
+    title: "Symbol manifest does not cover the staged declarations",
     resolution: [
-      "Read the Detail lines: they name the extracted symbols the staged .kb/symbols.yaml evidence does not cover.",
-      "Author .kb/symbols.yaml entries for the uncovered symbols (kibi upsert, with implements/covered_by links), then refresh symbol coordinates with kibi sync --refresh-symbol-coordinates.",
-      "Stage .kb/symbol-coordinates.yaml and .kb/symbols.yaml in the same change as the behavior edit, then re-run or let the hook run kibi check --staged.",
+      "Read the Detail lines: they name the extracted symbols the staged .kb/symbols.yaml does not cover, and the entries whose declaration is gone.",
+      "Author .kb/symbols.yaml entries for the uncovered symbols (kibi upsert, with implements/covered_by links); re-point or remove (kibi delete) entries whose declaration is gone.",
+      "Stage .kb/symbols.yaml in the same change as the behavior edit, then re-run or let the hook run kibi check --staged. Symbol coordinates are derived locally and never staged.",
     ],
   },
   kibi_impact_override_missing_rationale: {
