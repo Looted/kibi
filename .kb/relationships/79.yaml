@@ -209,3 +209,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-40f8485e3a4e
+  - type: requires_property
+    from: REQ-codex-plugin-package
+    to: FACT-codex-package-published-parts
+    created_at: 2026-10-27T07:48:33.290Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a0e8c45c8cf
+  - type: requires_property
+    from: REQ-codex-plugin-package
+    to: FACT-codex-manifest-declares-plugin-parts
+    created_at: 2026-10-27T07:48:33.328Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2752e7dd3b84
+  - type: requires_property
+    from: REQ-codex-plugin-package
+    to: FACT-codex-bundled-skills
+    created_at: 2026-10-27T07:48:33.352Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bcb1df7577f0
+  - type: requires_property
+    from: REQ-codex-plugin-package
+    to: FACT-codex-lifecycle-hooks
+    created_at: 2026-10-27T07:48:33.373Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0d51376376d
+  - type: requires_property
+    from: REQ-codex-plugin-package
+    to: FACT-codex-peer-dependencies
+    created_at: 2026-10-27T07:48:33.392Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-124a2a7448e1
+  - type: specified_by
+    from: REQ-codex-plugin-package
+    to: SCEN-codex-kibi-plugin-v1
+    created_at: 2026-10-27T07:48:33.414Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bbd07ee3bc53
+  - type: constrains
+    from: REQ-codex-plugin-package
+    to: FACT-SUBJ-REQ-CODEX-KIBI-PLUGIN-V1
+    created_at: 2026-10-27T07:48:33.438Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0620d725af14
+  - type: executable_for
+    from: SYM-proof-cursor-agent-plugin-skills
+    to: TEST-proof-cursor-agent-plugin-skills
+    created_at: 2026-10-27T07:57:45.033Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-965334f93d53

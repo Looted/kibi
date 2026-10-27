@@ -209,3 +209,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6771f910fb8a
+  - type: executable_for
+    from: SYM-proof-cursor-lifecycle-hooks
+    to: TEST-proof-cursor-lifecycle-hooks
+    created_at: 2026-10-27T07:53:37.128Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53240229a105

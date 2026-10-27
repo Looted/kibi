@@ -87,13 +87,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-95e3931ae6cd
-  - type: requires_property
-    from: REQ-codex-kibi-plugin-v1
-    to: FACT-PROP-REQ-CODEX-KIBI-PLUGIN-V1-C01
-    created_at: 2026-09-05T14:11:53.778Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a5c3399ac2ed
   - type: covered_by
     from: SYM-cli-engine-status-command
     to: TEST-core-journaled-engine-delta-sync
@@ -234,3 +227,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eb0b6d71386b
+  - type: requires_property
+    from: REQ-codex-kibi-plugin-v1
+    to: FACT-codex-adapter-optional
+    created_at: 2026-10-27T07:48:21.563Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-35ae2773f472
+  - type: requires_property
+    from: REQ-codex-kibi-plugin-v1
+    to: FACT-codex-no-core-modification
+    created_at: 2026-10-27T07:48:21.588Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4faa93384ed6
+  - type: requires_property
+    from: REQ-codex-kibi-plugin-v1
+    to: FACT-codex-mcp-launches-project-kibi-mcp
+    created_at: 2026-10-27T07:48:21.610Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00b18e39fef1
+  - type: requires_property
+    from: REQ-codex-kibi-plugin-v1
+    to: FACT-codex-hooks-advisory-only
+    created_at: 2026-10-27T07:48:21.630Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72dca62663d8
+  - type: requires_property
+    from: REQ-codex-kibi-plugin-v1
+    to: FACT-codex-hooks-no-kb-writes
+    created_at: 2026-10-27T07:48:21.651Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1b79e1e031e
+  - type: requires_property
+    from: REQ-codex-kibi-plugin-v1
+    to: FACT-codex-documents-manual-mcp
+    created_at: 2026-10-27T07:48:21.669Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb22abe4935d

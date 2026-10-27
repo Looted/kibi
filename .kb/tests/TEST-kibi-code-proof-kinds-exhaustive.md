@@ -18,7 +18,7 @@ proof_contract:
   domain_source:
     symbol_id: SYM-proof-kinds
   proves:
-    - CLAIM-296F27003E43BA8A
+    - CLAIM-AEDC5DE05A243DB4
 origin:
   kind: agent
   recorded_at: '2026-10-24T19:31:43.873Z'
@@ -26,20 +26,20 @@ id: TEST-kibi-code-proof-kinds-exhaustive
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-206aa0f6e746ab380f5cf25b
+    receipt_id: PR-9628dc07ddfc65ee52f2b501
     test_id: TEST-kibi-code-proof-kinds-exhaustive
     scope: unit
     outcome: passed
-    code_snapshot: 88f72ac7863bc053137ae0fbd6e7ea179d4fbf9dd5cb363152f2b4fc11739754
+    code_snapshot: e7ef7119bcc90f0b8409339ad2246d8e19fdffcaa2429ca3ccda3a5b7dc8f4b1
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-25T18:53:40.517Z'
-    finished_at: '2026-10-25T18:53:40.929Z'
-    artifact_digest: 5ba03a7dc951ed6a9eed61a77a20e6ab5879ccbf8838b77183379c9792d2e9b9
-    contract_hash: 69f6cbff8ad79263d0324bb7369332fa54c0972c53f45be9bbd64a81e45cdc90
-    binding_hash: 66e407196fcb1ffb306ed54b84c1de97b922ff508fc18c12701841a06d0834e1
-    fingerprint: 39d577820ebd935d8ba73c8840aeb63318faf6610ba71095be1b2ed5654f68ae
+    started_at: '2026-10-27T08:00:55.717Z'
+    finished_at: '2026-10-27T08:00:57.119Z'
+    artifact_digest: cc842de9711afc968434efc65501e494d0d62b8398f0a3aaae52ddc2037cdadf
+    contract_hash: e62830101503e23a415f90aa530c8191b0f3fb5b11adc01e8926575ad07efb3a
+    binding_hash: 7081b6626d103cf9c8520f6cb24f9821f601f6daaa9a9345ddaea05eeb9e1872
+    fingerprint: b4c2285f58220bd0bb0a45984588de8b4996607c7a16ea3efe5693834e2daafc
     fingerprint_components:
-      contract: 69f6cbff8ad79263d0324bb7369332fa54c0972c53f45be9bbd64a81e45cdc90
+      contract: e62830101503e23a415f90aa530c8191b0f3fb5b11adc01e8926575ad07efb3a
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -74,6 +74,10 @@ proof_receipts:
           - typecheck
           - arithmetic
           - smt
+          - rule
+          - state_machine
+          - regex
+          - source
       results:
         - member: e2e
           outcome: passed
@@ -89,9 +93,17 @@ proof_receipts:
           outcome: passed
         - member: smt
           outcome: passed
-    certificate_digest: 8fffc1f6ca5dd776bde850ce95b5182993520b4f517b3e7d5164ef8f8bd1732d
+        - member: rule
+          outcome: passed
+        - member: state_machine
+          outcome: passed
+        - member: regex
+          outcome: passed
+        - member: source
+          outcome: passed
+    certificate_digest: 38541cefad6f9c96bbf1af740396292d76b42fc04b9b9bae5adeb31250d28e41
     claim_bindings:
-      - claim_key: CLAIM-296F27003E43BA8A
+      - claim_key: CLAIM-AEDC5DE05A243DB4
         requirement_id: REQ-kibi-code-proof-kinds
         fact_id: FACT-kibi-code-proof-kind-vocabulary-closed
         binding: derived
@@ -104,7 +116,11 @@ proof_receipts:
             - example
             - exhaustive
             - property
+            - regex
+            - rule
             - smt
+            - source
+            - state_machine
             - typecheck
 ---
 Checks every member of PROOF_KINDS: a runner kind earns tested without a certificate, and for each certificate kind a valid certificate re-checks in code_certificates.pl with the receipt's digest while every tampered variant is rejected; the run leaves an exhaustive certificate over PROOF_KINDS.

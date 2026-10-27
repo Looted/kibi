@@ -426,3 +426,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-654d9e381d5a
+  - type: executable_for
+    from: SYM-proof-codex-manifest-fields
+    to: TEST-proof-codex-manifest-fields
+    created_at: 2026-10-27T07:49:00.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82c24657c009
+  - type: executable_for
+    from: SYM-proof-weak-candidate-margin
+    to: TEST-proof-weak-candidate-margin
+    created_at: 2026-10-27T08:05:35.692Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-306680ced084

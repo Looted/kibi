@@ -1,5 +1,5 @@
 ---
-title: 'Proof kinds: a contract kind is one of seven'
+title: 'Proof kinds: a contract kind is one of eleven'
 status: active
 fact_kind: property_value
 subject_key: kibi.code_proof
@@ -12,10 +12,14 @@ value_set:
   - example
   - exhaustive
   - property
+  - regex
+  - rule
   - smt
+  - source
+  - state_machine
   - typecheck
-claim_key: CLAIM-296F27003E43BA8A
-claim_text: A proof contract kind must be one of e2e, example, property, exhaustive, typecheck, arithmetic or smt
+claim_key: CLAIM-AEDC5DE05A243DB4
+claim_text: A proof contract kind must be one of e2e, example, property, exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex or source
 text_ref: REQ-kibi-code-proof-kinds
 tags:
   - strict-modeling
@@ -28,3 +32,4 @@ origin:
 id: FACT-kibi-code-proof-kind-vocabulary-closed
 type: fact
 ---
+Proof kinds: a contract kind is one of seven

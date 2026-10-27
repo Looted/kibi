@@ -335,3 +335,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-82ca2e8ae92f
+  - type: executable_for
+    from: SYM-proof-codex-lifecycle-hooks
+    to: TEST-proof-codex-lifecycle-hooks
+    created_at: 2026-10-27T07:49:20.016Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a4717d3fc52

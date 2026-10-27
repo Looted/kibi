@@ -300,3 +300,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dccbf43acf32
+  - type: implements
+    from: 7657f944663e9895
+    to: REQ-kibi-predicate-suggestion-thresholds
+    created_at: 2026-10-27T08:05:17.470Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb08482dd62d

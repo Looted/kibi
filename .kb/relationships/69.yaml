@@ -426,3 +426,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7c053279d92f
+  - type: executable_for
+    from: SYM-proof-claude-lifecycle-hooks
+    to: TEST-proof-claude-lifecycle-hooks
+    created_at: 2026-10-27T07:44:02.997Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b5068c82265

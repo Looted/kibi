@@ -412,3 +412,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1ccecede8ec4
+  - type: validates
+    from: TEST-proof-cursor-skills
+    to: SCEN-cursor-kibi-plugin-v1
+    created_at: 2026-10-27T07:52:51.309Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d8d36517e79

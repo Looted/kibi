@@ -265,3 +265,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8a93e9f31b47
+  - type: executable_for
+    from: SYM-proof-codex-peer-dependencies
+    to: TEST-proof-codex-peer-dependencies
+    created_at: 2026-10-27T07:49:29.899Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-019c1ccd31eb

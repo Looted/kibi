@@ -5,8 +5,8 @@ tags:
   - zcode
   - strict-modeling
 fact_kind: property_value
-claim_key: CLAIM-0B200F96DEDB4D84
-claim_text: The exposed MCP configuration must resolve the project-local kibi-mcp binary
+claim_key: CLAIM-EBB199E9155E693A
+claim_text: The kibi-zcode MCP configuration must resolve the project-local kibi-mcp binary
 claim_span_start: 811
 claim_span_end: 887
 subject_key: zcode.kibi_adapter
@@ -21,5 +21,6 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+text_ref: REQ-zcode-kibi-plugin-v1
 ---
 The exposed MCP configuration must resolve the project-local kibi-mcp binary

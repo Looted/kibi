@@ -41,13 +41,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-082935f3c080
-  - type: requires_predicate
-    from: REQ-004
-    to: FACT-ENTITY-FIELD-POLICY
-    created_at: 2026-08-17T08:16:39.569Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eafd34b70e24
   - type: implements
     from: SYM-DeleteResult
     to: REQ-002
@@ -244,3 +237,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-11b8cedc77cb
+  - type: requires_property
+    from: REQ-004
+    to: FACT-entity-record-required-fields
+    created_at: 2026-10-27T07:17:44.493Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00defef86094
+  - type: requires_property
+    from: REQ-004
+    to: FACT-entity-record-accepted-fields
+    created_at: 2026-10-27T07:17:44.526Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2f6b14a8bef0

@@ -251,3 +251,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-00ac10aec866
+  - type: validates
+    from: TEST-proof-entity-type-count
+    to: SCEN-kibi-entity-relationship-schema-roundtrip
+    created_at: 2026-10-27T07:19:00.091Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71cde45f65cf

@@ -398,3 +398,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-197108162c37
+  - type: executable_for
+    from: SYM-proof-zcode-commands
+    to: TEST-proof-zcode-commands
+    created_at: 2026-10-27T07:27:28.892Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-849e9039a57a
