@@ -27,6 +27,7 @@ import { runOperationJsonQuery } from "../src/public/operations/prolog-json.js";
 import type { PrologPort } from "../src/public/operations/runtime-types.js";
 import { ensureBranchStoreManifest } from "../src/utils/branch-store-locator.js";
 
+const __v = process.env.KIBI_PROBE_VARIANT ?? "baseline";
 const roots: string[] = [];
 const restores: Array<() => void> = [];
 const baselineSigterm = process.listeners("SIGTERM").slice();
@@ -207,123 +208,127 @@ describe("runEngineDaemon in-process", () => {
       await client.start(false);
       expect(client.isRunning()).toBe(true);
       expect(client.getPid()).toBe(process.pid);
-      const status = await client.command({ version: 1, kind: "status" });
-      expect(status).toMatchObject({ success: true });
-      await client.query("true");
-      await client.queryBatch(["true"]);
-      await client.queryEntities({ limit: 5, offset: 0 });
-      await client.searchEntities({ query: "nothing", limit: 3, offset: 0 });
-      await client.save();
-      await client.storageStatus();
-      await client.checkpoint();
-      await client.queryStatusJson();
-      await client.queryStatusJson();
-      await client.compact();
-      client.cancel(99);
-      await client.command({
-        version: 1,
-        kind: "relationship",
-        action: "assert",
-        type: "relates_to",
-        from: "REQ-A",
-        to: "REQ-B",
-      });
-      await client.command({
-        version: 1,
-        kind: "relationship",
-        action: "retract",
-        type: "relates_to",
-        from: "REQ-A",
-        to: "REQ-B",
-      });
-      await client.command({
-        version: 1,
-        kind: "persistence",
-        action: "checkpoint",
-      });
-      await client.command({
-        version: 1,
-        kind: "lifecycle",
-        action: "cancel",
-        requestId: 7,
-      });
-      const exportDir = path.join(root, "export-out");
-      await client.exportStorage(exportDir);
-      await expect(
-        client.queryEntities({ limit: -1, offset: 0 }),
-      ).rejects.toThrow();
-      await expect(
-        client.searchEntities({ query: "   ", limit: 1, offset: 0 }),
-      ).rejects.toThrow();
-      await expect(
-        client.command({
-          version: 1,
-          kind: "check",
-          rule: "Not_a_rule",
-        }),
-      ).rejects.toThrow(/lowercase rule name/);
-      await client.command({ version: 1, kind: "check", rule: "integrity" });
-      await client.queryEntities({
-        type: "req",
-        id: "REQ-NONE",
-        tags: ["keep"],
-        sourceFile: "docs/none.md",
-        limit: 2,
-        offset: 0,
-      });
-      await client.searchEntities({
-        query: "keep",
-        type: "req",
-        limit: 2,
-        offset: 0,
-      });
-      await expect(
-        client.command({
+      if (__v !== "minimal") {
+        const status = await client.command({ version: 1, kind: "status" });
+        expect(status).toMatchObject({ success: true });
+        await client.query("true");
+        await client.queryBatch(["true"]);
+        await client.queryEntities({ limit: 5, offset: 0 });
+        await client.searchEntities({ query: "nothing", limit: 3, offset: 0 });
+        if (__v !== "no-persist") {
+          await client.save();
+          await client.storageStatus();
+          await client.checkpoint();
+        }
+        await client.queryStatusJson();
+        await client.queryStatusJson();
+        if (__v !== "no-compact") await client.compact();
+        if (__v !== "no-cancel") client.cancel(99);
+        await client.command({
           version: 1,
           kind: "relationship",
           action: "assert",
-        } as never),
-      ).rejects.toThrow(/requires type, from, and to/);
-      await expect(
-        client.command({
+          type: "relates_to",
+          from: "REQ-A",
+          to: "REQ-B",
+        });
+        await client.command({
+          version: 1,
+          kind: "relationship",
+          action: "retract",
+          type: "relates_to",
+          from: "REQ-A",
+          to: "REQ-B",
+        });
+        await client.command({
           version: 1,
           kind: "persistence",
-          action: "export",
-        } as never),
-      ).rejects.toThrow(/targetDirectory/);
-      await expect(
-        client.command({
+          action: "checkpoint",
+        });
+        await client.command({
           version: 1,
           kind: "lifecycle",
           action: "cancel",
-        } as never),
-      ).rejects.toThrow(/requestId/);
-      await expect(
-        client.command({
-          version: 1,
-          kind: "search",
-          query: "   ",
-          limit: 1,
+          requestId: 7,
+        });
+        const exportDir = path.join(root, "export-out");
+        if (__v !== "no-export") await client.exportStorage(exportDir);
+        await expect(
+          client.queryEntities({ limit: -1, offset: 0 }),
+        ).rejects.toThrow();
+        await expect(
+          client.searchEntities({ query: "   ", limit: 1, offset: 0 }),
+        ).rejects.toThrow();
+        await expect(
+          client.command({
+            version: 1,
+            kind: "check",
+            rule: "Not_a_rule",
+          }),
+        ).rejects.toThrow(/lowercase rule name/);
+        await client.command({ version: 1, kind: "check", rule: "integrity" });
+        await client.queryEntities({
+          type: "req",
+          id: "REQ-NONE",
+          tags: ["keep"],
+          sourceFile: "docs/none.md",
+          limit: 2,
           offset: 0,
-        } as never),
-      ).rejects.toThrow(/non-empty/);
-      await expect(
-        client.command({
-          version: 1,
-          kind: "entities",
-          limit: -1,
-          offset: 0,
-        } as never),
-      ).rejects.toThrow(/bounded integers/);
-      await expect(
-        client.command({
-          version: 1,
-          kind: "search",
+        });
+        await client.searchEntities({
           query: "keep",
-          limit: -1,
+          type: "req",
+          limit: 2,
           offset: 0,
-        } as never),
-      ).rejects.toThrow(/bounded integers/);
+        });
+        await expect(
+          client.command({
+            version: 1,
+            kind: "relationship",
+            action: "assert",
+          } as never),
+        ).rejects.toThrow(/requires type, from, and to/);
+        await expect(
+          client.command({
+            version: 1,
+            kind: "persistence",
+            action: "export",
+          } as never),
+        ).rejects.toThrow(/targetDirectory/);
+        await expect(
+          client.command({
+            version: 1,
+            kind: "lifecycle",
+            action: "cancel",
+          } as never),
+        ).rejects.toThrow(/requestId/);
+        await expect(
+          client.command({
+            version: 1,
+            kind: "search",
+            query: "   ",
+            limit: 1,
+            offset: 0,
+          } as never),
+        ).rejects.toThrow(/non-empty/);
+        await expect(
+          client.command({
+            version: 1,
+            kind: "entities",
+            limit: -1,
+            offset: 0,
+          } as never),
+        ).rejects.toThrow(/bounded integers/);
+        await expect(
+          client.command({
+            version: 1,
+            kind: "search",
+            query: "keep",
+            limit: -1,
+            offset: 0,
+          } as never),
+        ).rejects.toThrow(/bounded integers/);
+      }
       await client.stop(false);
     } finally {
       await client.terminate();

@@ -2654,8 +2654,7 @@ export async function runEngineDaemon(requestedOptions: {
     clearInterval(workspaceWatchdog);
     // Stop accepting clients before the first asynchronous durability step.
     // Keep the PID published until Prolog releases the branch-store lock.
-    const __lateClose = process.env.KIBI_PROBE_VARIANT === "late-close";
-    if (!__lateClose) server.close();
+    server.close();
     const __t0 = Date.now();
     await queue.catch(() => undefined);
     console.error("PROBE shutdown queue", Date.now() - __t0, "recycle", session.needsRecycle());
@@ -2685,7 +2684,6 @@ export async function runEngineDaemon(requestedOptions: {
     // child is signalled at once. Otherwise let SWI halt on stdin EOF (running
     // its at_halt cleanup) for a bounded moment; the wait ends on exit.
     console.error("PROBE shutdown detached", Date.now() - __t0, detached);
-    if (__lateClose) server.close();
     await prolog
       .terminate({ graceMs: detached ? 0 : ENGINE_PROLOG_EXIT_GRACE_MS })
       .catch(() => undefined);

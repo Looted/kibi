@@ -18,10 +18,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        slot: [1, 2, 3, 4]
+        slot: [1, 2]
         bun: ['1.4.2']
         cov: ['--coverage']
-        variant: ['baseline', 'late-close']
+        variant: ['baseline', 'minimal', 'no-persist', 'no-compact', 'no-export', 'no-cancel']
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
