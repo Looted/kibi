@@ -87,4 +87,4 @@ proof_receipts:
             - kibi-bootstrap
           operator: includes
 ---
-Globs packages/cursor/commands/*.md.
+Globs packages/cursor/commands/*.md. Kibi re-reads the same file when it ingests the certificate, so the claim stays proved only while the file still matches.

@@ -88,4 +88,4 @@ proof_receipts:
             - kibi-workflow
           operator: includes
 ---
-Globs packages/cursor/rules/*.mdc.
+Globs packages/cursor/rules/*.mdc. Kibi re-reads the same file when it ingests the certificate, so the claim stays proved only while the file still matches.

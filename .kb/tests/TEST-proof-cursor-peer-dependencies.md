@@ -90,4 +90,4 @@ proof_receipts:
             - kibi-mcp
           operator: eq
 ---
-Reads the peer dependency names in packages/cursor/package.json.
+Reads the peer dependency names in packages/cursor/package.json. Kibi re-reads the same file when it ingests the certificate, so the claim stays proved only while the file still matches.

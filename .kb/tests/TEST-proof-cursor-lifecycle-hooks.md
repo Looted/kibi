@@ -98,4 +98,4 @@ proof_receipts:
             - stop
           operator: includes
 ---
-Reads the hook event names under /hooks in packages/cursor/hooks/hooks.json.
+Reads the hook event names under /hooks in packages/cursor/hooks/hooks.json. Kibi re-reads the same file when it ingests the certificate, so the claim stays proved only while the file still matches.

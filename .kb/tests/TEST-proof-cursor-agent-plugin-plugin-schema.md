@@ -86,4 +86,4 @@ proof_receipts:
             - https://agent-plugins.org/schemas/1.0.0/plugin.schema.json
           operator: eq
 ---
-Reads /$schema from packages/cursor/agent-plugin/plugin.json.
+Reads /$schema from packages/cursor/agent-plugin/plugin.json. Kibi re-reads the same file when it ingests the certificate, so the claim stays proved only while the file still matches.

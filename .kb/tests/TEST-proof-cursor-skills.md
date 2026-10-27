@@ -96,4 +96,4 @@ proof_receipts:
             - kibi-usage
           operator: includes
 ---
-Globs packages/cursor/skills/*/SKILL.md.
+Globs packages/cursor/skills/*/SKILL.md. Kibi re-reads the same file when it ingests the certificate, so the claim stays proved only while the file still matches.

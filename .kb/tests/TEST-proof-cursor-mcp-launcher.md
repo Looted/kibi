@@ -90,4 +90,4 @@ proof_receipts:
             - ${workspaceFolder}
           operator: eq
 ---
-Reads /mcpServers/kibi/args from packages/cursor/mcp.json.
+Reads /mcpServers/kibi/args from packages/cursor/mcp.json. Kibi re-reads the same file when it ingests the certificate, so the claim stays proved only while the file still matches.

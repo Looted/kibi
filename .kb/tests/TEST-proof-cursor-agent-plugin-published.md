@@ -98,4 +98,4 @@ proof_receipts:
             - agent-plugin
           operator: includes
 ---
-Reads the files list of packages/cursor/package.json.
+Reads the files list of packages/cursor/package.json. Kibi re-reads the same file when it ingests the certificate, so the claim stays proved only while the file still matches.

@@ -100,4 +100,4 @@ proof_receipts:
             - skills
           operator: includes
 ---
-Reads the top-level fields of packages/codex/.codex-plugin/plugin.json.
+Reads the top-level fields of packages/codex/.codex-plugin/plugin.json. Kibi re-reads the same file when it ingests the certificate, so the claim stays proved only while the file still matches.
