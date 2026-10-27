@@ -307,3 +307,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3dfdeb26d3a3
+  - type: validates
+    from: TEST-proof-codex-lifecycle-hooks
+    to: SCEN-codex-kibi-plugin-v1
+    created_at: 2026-10-27T07:49:15.261Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab230c14fd90

@@ -23483,6 +23483,46 @@ coordinates:
     sourceEndLine: 26
     sourceFile: packages/cli/tests/proofs/claims/claude-plugin-package.proof.test.ts
     sourceLine: 24
+  SYM-proof-codex-lifecycle-hooks:
+    identityHash: 3104655880d0f39ed76400e850613b5f825d9bbb54a420f44cfd2ac803b8ac49
+    sourceHash: 59205994e2730d21c36f24220c8fa0a6c61bb03d41e09ad7a746918669b04fce
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 36
+    sourceFile: packages/cli/tests/proofs/claims/codex-plugin-package.proof.test.ts
+    sourceLine: 34
+  SYM-proof-codex-manifest-fields:
+    identityHash: e884d087d7c313bd675e3a95f0bb53610483cda66ac65510b3d8bbf3f77693db
+    sourceHash: 59205994e2730d21c36f24220c8fa0a6c61bb03d41e09ad7a746918669b04fce
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 26
+    sourceFile: packages/cli/tests/proofs/claims/codex-plugin-package.proof.test.ts
+    sourceLine: 24
+  SYM-proof-codex-peer-dependencies:
+    identityHash: 48fdf0f718bca5577ba6bafe998aa9b1e61afacf8428124e15ec7c50a92a52ac
+    sourceHash: 59205994e2730d21c36f24220c8fa0a6c61bb03d41e09ad7a746918669b04fce
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 41
+    sourceFile: packages/cli/tests/proofs/claims/codex-plugin-package.proof.test.ts
+    sourceLine: 39
+  SYM-proof-codex-published-parts:
+    identityHash: 63b0dd6554bc0b54eec97aadfc60b9642a5b0aa15d414b62a36c4a95e4b4c290
+    sourceHash: 59205994e2730d21c36f24220c8fa0a6c61bb03d41e09ad7a746918669b04fce
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 21
+    sourceFile: packages/cli/tests/proofs/claims/codex-plugin-package.proof.test.ts
+    sourceLine: 19
+  SYM-proof-codex-skills:
+    identityHash: e9ee0ef913fa5b2afc03930c5330c6796114457251a7675e9103543c0af9e190
+    sourceHash: 59205994e2730d21c36f24220c8fa0a6c61bb03d41e09ad7a746918669b04fce
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 31
+    sourceFile: packages/cli/tests/proofs/claims/codex-plugin-package.proof.test.ts
+    sourceLine: 29
   SYM-proof-compactProofReceipts:
     identityHash: fe07a0dea80f6de9dd5f8578cfea4ed9ed1c19977adcbd0abcaf562ef6df3237
     sourceHash: 01593531130e8792a1e232de8f2bd46b389a25defc691a05329ff37f737a0205

@@ -46890,6 +46890,8 @@ symbols:
         target: TEST-codex-kibi-plugin-v1
       - type: implements
         target: REQ-codex-kibi-plugin-v1
+      - type: implements
+        target: REQ-codex-plugin-package
   - id: SYM-cursor-nextAncestorDirectory
     title: nextAncestorDirectory
     status: active
@@ -57963,3 +57965,73 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-claude-lifecycle-hooks
+  - id: SYM-proof-codex-published-parts
+    title: codexPublishedPartsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/codex-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:48:48.989Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-codex-published-parts
+  - id: SYM-proof-codex-manifest-fields
+    title: codexManifestFieldsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/codex-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:48:58.674Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-codex-manifest-fields
+  - id: SYM-proof-codex-skills
+    title: codexSkillsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/codex-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:49:08.334Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-codex-skills
+  - id: SYM-proof-codex-lifecycle-hooks
+    title: codexLifecycleHooksCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/codex-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:49:18.199Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-codex-lifecycle-hooks
+  - id: SYM-proof-codex-peer-dependencies
+    title: codexPeerDependenciesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/codex-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:49:28.112Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-codex-peer-dependencies

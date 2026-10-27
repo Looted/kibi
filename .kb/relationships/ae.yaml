@@ -328,3 +328,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cccaafa24f7a
+  - type: implements
+    from: SYM-codex-mcp-launcher
+    to: REQ-codex-plugin-package
+    created_at: 2026-10-27T07:48:41.792Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46a1a5dd27a4

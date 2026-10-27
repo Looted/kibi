@@ -272,3 +272,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d2f778f4a2cf
+  - type: executable_for
+    from: SYM-proof-codex-published-parts
+    to: TEST-proof-codex-published-parts
+    created_at: 2026-10-27T07:48:50.637Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb851ad20b19
