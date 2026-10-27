@@ -233,6 +233,7 @@ function implementationOwned(stages: UnknownRecord): boolean {
 }
 
 function passesProofGate(row: UnknownRecord, gate: string): boolean {
+  if (gate === "proved") return row.evidenceLevel === "proved";
   if (row.proofStatus === "tested") return true;
   const stages = record(row.proofStages);
   if (gate === "semantic") {
@@ -264,10 +265,18 @@ function proofGates(rows: readonly UnknownRecord[]): readonly ProofGate[] {
       "Production ownership is source-bound",
     ],
     ["e2e", "E2E", "A scenario-backed end-to-end test exists"],
-    ["evidence", "Evidence", "Every strict proof stage passes now"],
+    ["evidence", "Tested", "Fresh passing receipts cover every scenario"],
+    ["proved", "Proved", "Every claim has a re-checked certificate"],
   ] as const;
+  const claims = claimTotals(rows);
+  const claimDetail =
+    claims.applicable === 0
+      ? ""
+      : ` · ${claims.proved.toLocaleString("en-US")} of ${claims.applicable.toLocaleString("en-US")} claims proved`;
   let candidates = [...rows];
-  return definitions.map(([key, label, detail]) => {
+  return definitions.map(([key, label, baseDetail]) => {
+    const detail =
+      key === "proved" ? `${baseDetail}${claimDetail}` : baseDetail;
     const remainingRows = candidates.filter((row) => passesProofGate(row, key));
     const gate = {
       key,
@@ -301,6 +310,29 @@ export function earliestUnmetGate(row: UnknownRecord): ProofGateKey | "tested" {
     ["semantic", "scenario", "implementation", "e2e", "evidence"],
     (gate) => passesProofGate(row, gate),
   );
+}
+
+// The rail's last step: a tested requirement still short of a certificate
+// for every claim stops at "proved". Signoff keeps earliestUnmetGate, where
+// tested is the end of the strict chain.
+function reportGate(row: UnknownRecord): ProofGateKey | "tested" {
+  const gate = earliestUnmetGate(row);
+  if (gate !== "tested") return gate;
+  return passesProofGate(row, "proved") ? "tested" : "proved";
+}
+
+function claimTotals(rows: readonly UnknownRecord[]): {
+  proved: number;
+  applicable: number;
+} {
+  let proved = 0;
+  let applicable = 0;
+  for (const row of rows) {
+    const claims = record(row.claimSummary);
+    proved += count(claims.proved);
+    applicable += count(claims.applicable);
+  }
+  return { proved, applicable };
 }
 
 function evidenceStage(
@@ -732,7 +764,7 @@ function renderRequirement(
         text(row.source),
       ),
     }) ?? sourceCoordinate({ path: text(row.source) });
-  const gate = earliestUnmetGate(row);
+  const gate = reportGate(row);
 
   return `<article class="requirement requirement--${escapeHtml(proofStatus)}" data-state="${rowStates(row)}" data-gate="${escapeHtml(gate)}">
     <header class="requirement__header">
@@ -785,14 +817,30 @@ function metric(label: string, value: number, tone = ""): string {
 }
 
 function renderProofGate(gate: ProofGate, index: number): string {
-  const state = gate.remaining === 0 ? "blocked" : "active";
+  // Proved sits above the default tested floor, so stopping before it is not
+  // a block; floors that require proved show up as Below evidence floor.
+  const optional = gate.key === "proved";
+  const state = optional
+    ? "optional"
+    : gate.remaining === 0
+      ? "blocked"
+      : "active";
   const drop =
     gate.blocked === 0
       ? "No drop"
-      : `−${gate.blocked.toLocaleString("en-US")} blocked here`;
-  const accessible = `${gate.label}. ${gate.blocked} blocked here. Filter requirements whose earliest unmet proof gate is ${gate.label}.`;
+      : optional
+        ? `${gate.blocked.toLocaleString("en-US")} tested, not proved`
+        : `−${gate.blocked.toLocaleString("en-US")} blocked here`;
+  const stopped = optional
+    ? `${gate.blocked} tested, not proved`
+    : `${gate.blocked} blocked here`;
+  // A gate nobody stops at has nothing to show, so it is not a filter.
+  const empty = gate.blocked === 0;
+  const accessible = empty
+    ? `${gate.label}. No requirement stops here.`
+    : `${gate.label}. ${stopped}. Filter requirements whose earliest unmet proof gate is ${gate.label}.`;
   return `<li>
-    <button type="button" class="proof-gate proof-gate--${state}" data-gate="${escapeHtml(gate.key)}" aria-pressed="false" aria-controls="requirements" aria-label="${escapeHtml(accessible)}">
+    <button type="button" class="proof-gate proof-gate--${state}" data-gate="${escapeHtml(gate.key)}" data-label="${escapeHtml(gate.label)}" aria-pressed="false" aria-controls="requirements" aria-label="${escapeHtml(accessible)}"${empty ? " disabled" : ""}>
       <div class="proof-gate__node"><span>${index + 1}</span></div>
       <div class="proof-gate__count">${gate.remaining.toLocaleString("en-US")}</div>
       <div class="proof-gate__label">${escapeHtml(gate.label)}</div>
@@ -912,7 +960,7 @@ export function renderHtmlReport(input: HtmlReportInput): string {
     currentRows.map((row) => ({
       text: `${text(row.id)} ${text(row.title)}`,
       states: rowStates(row).split(" ").filter(Boolean),
-      earliestGate: earliestUnmetGate(row),
+      earliestGate: reportGate(row),
     })),
   );
   const identity = reportIdentity({ ...input, repository });
@@ -970,17 +1018,17 @@ export function renderHtmlReport(input: HtmlReportInput): string {
       </section>
       <section class="metrics" aria-label="Requirement health summary">
         ${metric("Requirements", currentRequirements)}
-        ${metric("Tested end to end", tested, "good")}
         ${metric("Proved by certificate", evidenceCount(currentRows, "proved"), evidenceCount(currentRows, "proved") ? "good" : "")}
+        ${metric("Tested end to end", tested, "good")}
         ${metric("Asserted, no current test", evidenceCount(currentRows, "asserted"), evidenceCount(currentRows, "asserted") ? "warn" : "")}
         ${metric("Unverified", evidenceCount(currentRows, "unverified"), evidenceCount(currentRows, "unverified") ? "warn" : "")}
         ${metric("Below evidence floor", belowFloor, belowFloor ? "bad" : "good")}
         ${metric("Pending re-proof", pendingReproof, pendingReproof ? "warn" : "")}
-        ${metric("Missing scenarios", missingScenarios, missingScenarios ? "warn" : "")}
         ${metric("Stale E2E evidence", staleEvidence, staleEvidence ? "warn" : "")}
-        ${metric("Contradictions", contradictions.length, contradictions.length ? "bad" : "")}
-        ${metric("Unmapped production symbols", unmappedProductionSymbols, unmappedProductionSymbols ? "bad" : "")}
+        ${metric("Missing scenarios", missingScenarios, missingScenarios ? "warn" : "")}
         ${metric("Requirements without implementation", withoutImplementation, withoutImplementation ? "warn" : "")}
+        ${metric("Unmapped production symbols", unmappedProductionSymbols, unmappedProductionSymbols ? "bad" : "")}
+        ${metric("Contradictions", contradictions.length, contradictions.length ? "bad" : "")}
       </section>
       ${renderKbCertificates(input.kbCertificates)}
       <section>
@@ -994,6 +1042,7 @@ export function renderHtmlReport(input: HtmlReportInput): string {
             ${renderFilters(filterCounts)}
           </div>
         </div>
+        <p class="gate-status" id="gate-status" aria-live="polite" hidden><span></span> <button type="button" class="gate-status__clear">Show all</button></p>
         <div class="requirements" id="requirements">${currentRows.map((row) => renderRequirement(row, repository)).join("")}</div>
         <div class="empty" id="empty" aria-live="polite">No requirements match this view.</div>
       </section>
@@ -1010,6 +1059,8 @@ export function renderHtmlReport(input: HtmlReportInput): string {
       const filters = [...document.querySelectorAll(".filter")];
       const gates = [...document.querySelectorAll(".proof-gate")];
       const empty = document.querySelector("#empty");
+      const gateStatus = document.querySelector("#gate-status");
+      const gateStatusText = gateStatus.querySelector("span");
       let activeFilter = "all";
       let activeGate = "all";
       const formatRelativeAge = (fromMs, nowMs) => {
@@ -1046,7 +1097,20 @@ export function renderHtmlReport(input: HtmlReportInput): string {
           if (!card.hidden) visible += 1;
         }
         empty.dataset.visible = String(visible === 0);
+        const selectedGate = gates.find((candidate) => candidate.dataset.gate === activeGate);
+        gateStatus.hidden = selectedGate === undefined;
+        if (selectedGate) {
+          gateStatusText.textContent = visible + (visible === 1 ? " requirement stops" : " requirements stop") + " at " + (selectedGate.dataset.label || activeGate) + ".";
+        }
       };
+      const selectGate = (selected) => {
+        activeGate = selected;
+        for (const candidate of gates) {
+          candidate.setAttribute("aria-pressed", String(candidate.dataset.gate === activeGate));
+        }
+        apply();
+      };
+      gateStatus.querySelector("button").addEventListener("click", () => selectGate("all"));
       search.addEventListener("input", apply);
       for (const filter of filters) {
         filter.addEventListener("click", () => {
@@ -1058,11 +1122,9 @@ export function renderHtmlReport(input: HtmlReportInput): string {
       for (const gate of gates) {
         gate.addEventListener("click", () => {
           const selected = gate.dataset.gate || "all";
-          activeGate = activeGate === selected ? "all" : selected;
-          for (const candidate of gates) {
-            candidate.setAttribute("aria-pressed", String(candidate.dataset.gate === activeGate));
-          }
-          apply();
+          selectGate(activeGate === selected ? "all" : selected);
+          // The ledger sits below the fold; bring the filtered rows into view.
+          if (activeGate !== "all") gateStatus.scrollIntoView({ behavior: "smooth", block: "start" });
         });
       }
       refreshAges();

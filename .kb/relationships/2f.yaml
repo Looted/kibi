@@ -433,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-762235bdbd87
+  - type: validates
+    from: TEST-proof-cursor-manifest-fields
+    to: SCEN-cursor-kibi-plugin-v1
+    created_at: 2026-10-27T07:52:40.607Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c7608aa3b5d
+  - type: validates
+    from: TEST-proof-cursor-agent-plugin-skills
+    to: SCEN-cursor-agent-plugin-v1
+    created_at: 2026-10-27T07:57:40.265Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bbb3e5e22091

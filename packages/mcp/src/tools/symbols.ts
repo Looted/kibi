@@ -79,8 +79,8 @@ interface SymbolCoordinatesArtifact {
 const SYMBOL_COORDINATES_FORMAT_VERSION = 2;
 
 const SYMBOL_COORDINATES_COMMENT_BLOCK = `# symbol-coordinates.yaml
-# GENERATED coordinate artifact — do not edit manually.
-# Run \`kibi sync --refresh-symbol-coordinates\` to refresh.
+# GENERATED local cache — do not edit or commit (it is gitignored).
+# Every \`kibi sync\` keeps it current; \`kibi sync --refresh-symbol-coordinates\` rebuilds it.
 `;
 
 const DEFAULT_COORDINATE_ARTIFACT_NAME = "symbol-coordinates.yaml";

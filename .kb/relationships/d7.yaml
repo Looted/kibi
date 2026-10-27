@@ -307,3 +307,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-029aee0ad2f5
+  - type: implements
+    from: SYM-isCoordinateArtifactTracked
+    to: REQ-symbol-coordinates-derived-locally
+    created_at: 2026-10-27T10:37:22.778Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64edc56e1219
+  - type: covered_by
+    from: SYM-isCoordinateArtifactTracked
+    to: TEST-symbol-coordinates-derived-locally
+    created_at: 2026-10-27T10:37:22.798Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f09909a463a

@@ -701,6 +701,27 @@ type BunTestRunResult = Readonly<{
   lastOutput: string;
 }>;
 
+/** Enough of a failing file's output to hold its assertion and stack. */
+const FAILURE_OUTPUT_CHARS = 4000;
+
+/**
+ * Bun prints the coverage table after the failing test's error, so the raw
+ * tail of a failed run is only coverage rows. Drop those rows and the passing
+ * test lines so the tail names the failing test and why it failed.
+ */
+export function testFailureOutput(output: string): string {
+  return output
+    .split("\n")
+    .filter((line) => {
+      const trimmed = line.trim();
+      if (trimmed.startsWith("(pass)")) return false;
+      if (/^-+\|[-|]*$/.test(trimmed) || /^File\s+\|/.test(trimmed))
+        return false;
+      return !/\|\s*[\d.]+\s*\|\s*[\d.]+\s*\|/.test(trimmed);
+    })
+    .join("\n");
+}
+
 // implements REQ-014
 export function formatCoverageFailure(
   options: Readonly<{
@@ -717,9 +738,13 @@ export function formatCoverageFailure(
   const file = options.file ? ` file=${options.file}` : "";
   const timedOut = options.timedOut ? " timedOut" : "";
   const missing = options.missingCoverage ? " coverage artifact missing" : "";
+  const output =
+    options.lastOutput === undefined
+      ? ""
+      : testFailureOutput(options.lastOutput);
   const tail =
-    options.lastOutput && options.lastOutput.trim().length > 0
-      ? ` lastOutput=${JSON.stringify(options.lastOutput.slice(-500))}`
+    output.trim().length > 0
+      ? ` lastOutput=${JSON.stringify(output.slice(-FAILURE_OUTPUT_CHARS))}`
       : "";
   return `${options.label}${file} (exit ${options.exitCode}, ${options.durationMs}ms, timeout=${options.timeoutMs}ms${timedOut}${missing}${tail})`;
 }

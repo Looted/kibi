@@ -268,7 +268,7 @@ backs it:
 
 | Level | Meaning | What earns it |
 | --- | --- | --- |
-| `proved` | A checker established every claim of the requirement for every case and left certificates a second program can re-check | `proofStatus: tested`, and every applicable claim has a derived, code-scope binding: a fresh `kibi.proof-receipt.v2` of a certificate-kind contract (`exhaustive`, `typecheck`, `arithmetic`, `smt`) that names the claim in `proves`, whose certificate re-checks now against the obligation Kibi derives from the claim's fact (see [Binding a certificate to claims](proving-requirements.md#binding-a-certificate-to-claims)) |
+| `proved` | A checker established every claim of the requirement for every case and left certificates a second program can re-check | `proofStatus: tested`, and every applicable claim has a derived, code-scope binding: a fresh `kibi.proof-receipt.v2` of a certificate-kind contract (`exhaustive`, `typecheck`, `arithmetic`, `smt`, `rule`, `state_machine`, `regex`, `source`) that names the claim in `proves`, whose certificate re-checks now against the obligation Kibi derives from the claim's fact (see [Binding a certificate to claims](proving-requirements.md#binding-a-certificate-to-claims)) |
 | `tested` | Passing runs on sampled cases, bound to the current code snapshot | `proofStatus: tested` |
 | `asserted` | A person stands behind the statement, but nothing current checks it | `origin.approved_by`, or firm: `firmness: firm`, or no `firmness` and an origin other than `agent` |
 | `unverified` | Stated, not approved, no evidence | Nothing: an agent wrote it and no person approved it |
@@ -453,8 +453,8 @@ a NaN or infinite bound with a domain error. Both run in CI (`lean-intervals-pro
 - `docs/proving-requirements.md` — the runner-neutral proof pipeline:
   contracts, integrations, artifacts, and how `kibi prove` produces receipts.
 
-Before pushing, run `kibi sync --refresh-symbol-coordinates` with the project-local
-CLI, review and commit the generated changes, and run `bun run proof:prepush`.
+Before pushing, run `kibi sync` with the project-local CLI (it keeps the
+gitignored symbol coordinates current), commit, and run `bun run proof:prepush`.
 If committing leaves the KB stale, sync it again before the check. This checks the
 committed manifests, publish metadata (including exact GitHub owner casing),
 and evidence floors (`scripts/proof-gate.sh`) using the project-local CLI. When

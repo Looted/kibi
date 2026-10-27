@@ -178,8 +178,14 @@ left:
   goes unhandled (a switch ending in a `never` assignment, or a
   `satisfies Record<Domain, ...>` map). Set `witness.path` and
   `domain_source`; the witness must import the domain. Kibi compiles the
-  witness itself (strict, with the workspace's TypeScript), so `typescript`
-  must be installed in the workspace.
+  witness itself (strict, with the workspace's TypeScript and the import
+  resolution and declaration files of the nearest `tsconfig.json`), so
+  `typescript` must be
+  installed in the workspace (TypeScript 7 has no compiler API: add
+  `typescript@6` as a dev dependency). With `proves`, Kibi decides each
+  claim with its own witness and reports the fields or members that break
+  it. When the test's compile failed, the rejection adds the first error
+  Kibi's own compile of the witness reports.
 - `arithmetic`: a claim on one `int` or `real` variable decided exactly from
   typed facts. Set `constraint_source: { fact_ids: [FACT-...] }` to the
   numeric `property_value` facts (one subject and property); the
@@ -187,10 +193,93 @@ left:
   exactly their constraints. To read the value from the code instead, set
   `value_source: [{ symbol_id: SYM-<constant>, export: <name> }]`; Kibi
   evaluates the number export itself and adds `variable eq value` as an
-  assumption.
+  assumption. For a count claim over a collection ("exactly 32 tools") add
+  `measure: count` and name the list, set, map or object export; Kibi uses
+  its size, so do not add a number export just for the proof. A count
+  claim needs only `value_source`. Naming the claim's own fact in
+  `constraint_source` assumes the claim: without `value_source` Kibi counts
+  that derivation as intent only (tested), and with it a code value that
+  breaks the claim shows up as contradictory assumptions, which the
+  rejection names.
+  A claim that every member of a closed set has a property ("Every currency
+  in GBP, ILS and ZAR must fail closed") is a set fact whose `property_key`
+  names the property, whose `value_set` is the members and whose operator
+  is `includes` (other members may have the property too, so two such
+  claims over different sets do not contradict). Prove it with `rule`: Kibi
+  checks the property on each listed member. The kinds that compare the
+  whole set (`exhaustive`, `state_machine`) reject an `includes` fact.
 - `smt`: an SMT-LIB query that declares the facts' property as a constant,
   asserts each `constraint_source` fact constraint and then the claim's
   negation. Kibi re-runs z3 or cvc5 on it and accepts only `unsat`.
+- `rule`: decisions over finite domains. Set `predicate_source: {<predicate>:
+  { symbol_id }}` to the function behind each predicate the claim uses (it
+  takes the arguments in order and returns a boolean) and `domains: {<type>:
+  { symbol_id }}` to the export listing each argument type's values. Kibi
+  calls every function on every combination and model checks the claim's
+  fact: a `kibi.logic.v1` rule fact (from `kb_model_requirement` with
+  `logic`) must hold for every assignment, a predicate fact must be decided
+  as it says, and a set fact whose `property_key` names a predicate needs it
+  true for every member. A type name is also a one-argument predicate
+  (`role(R)`) to range a variable. A failure names the assignment. A domain
+  can come from the project instead of an export (`domains: {<type>:
+  {source: {...}}}`, see `source` below). When the predicate is a test
+  harness that drives real code (it calls the handler with each role), add
+  `harness_for: [SYM-...]` naming that code; the claim binds with scope
+  `harness`, which proves, and those symbols must be `covered_by` the test.
+  Add `export: <name>` to a `predicate_source` entry when the function's
+  export is not the symbol's title.
+- `state_machine`: set `domain_source` to the transition table (object or
+  Map from state to next states, or `[from, to]` pairs) or to a
+  `next(state, event)` function with `domains: {state, event}`;
+  `initial_source` names the initial state. Model "transitions must be one of
+  a -> b, ..." as a `transitions` set fact (members `a->b`), and terminal,
+  initial or reachable states as `terminal_states`, `initial_states` or
+  `reachable_states` set facts; Kibi checks that projection exactly.
+  Temporal claims use two more projections: "a cancelled invoice can never
+  become paid" is a `reachable_pairs` fact with `operator: excludes` and
+  member `cancelled->paid`, and "every path from draft to paid must pass
+  through approved" is a `required_waypoints` fact with member
+  `draft->paid via approved` (paid must be reachable from draft, and not
+  once approved is removed). Any projection also takes `includes`,
+  `subset_of` and `excludes`. Rules over a machine use `transition`,
+  `reachable`, `initial`, `terminal`, `state`.
+- `regex`: set `pattern_source` to a `RegExp`, a Python `re.compile(...)` or
+  a string constant. Model "X must match `re`" as a string fact with
+  `operator: matches` (a JavaScript pattern with the `u` flag, matched
+  whole); Kibi decides exact language equality and reports the shortest
+  string only one side accepts. Backreferences, lookaround, `\b`, the `g`,
+  `y`, `m` and `v` flags, Python `\d`/`\w` without `re.ASCII` and
+  non-ASCII letters under `i` are refused with the reason. An exact string
+  fact (`eq`/`neq`) checks a constant.
+- `source`: Kibi reads a project source itself and checks a set fact
+  against what it read, so the test only runs the proof (it may write
+  nothing, or `sourceCertificate({ testId })`). Set `source: {reader, ...}`:
+  `json`/`yaml` (`file`, `path`, `select`), `glob` (`pattern`, `capture`),
+  `openapi` (`file`, `select: operations|unsecured_operations|...`),
+  `references` (`files`, `extract: env|imports|calls|string_args|thrown|
+  property`), `schema` (`format: drizzle|prisma|sql`, `select:
+  tables|columns|required_columns|nullable_columns|foreign_keys`), `routes`
+  (Hono or Express app export, `path_prefix`, `names_from`, `select:
+  routes|middleware`) or `validator` (zod, valibot or pydantic, `select:
+  fields|required_fields|optional_fields`). A member Kibi cannot read
+  statically (a computed env name, a dynamic import, an env object handed
+  to a variable) fails the read with its location, and so does an empty
+  read (a glob matching no file, migrations with no `CREATE TABLE`), so a
+  read is never silently partial. Model the claim as a set fact: `eq`
+  (exactly), `includes` (at least), `subset_of` ("must be one of"),
+  `excludes` ("must never use"); `property_key: required_fields` or
+  `nullable_fields` (only `eq`/`includes`) with bare members `name` for
+  "every table" (it also covers tables added later) or `table.name` for
+  one; `middleware` with `includes` for "every route under /p must use M"
+  (Kibi checks each route). Name middleware with `names_from`: a
+  zero-argument factory export such as `requireAuth()` names the
+  middleware it returns `requireAuth`. Write the fact with `kb_model`
+  (requirement mode, `operator` plus a list `value`) or `kb_upsert`. The
+  receipt stales when a file the read touched changes, and the claim binds
+  with scope `source`. `value_source` accepts `{source, measure: count}`.
+  The builders need kibi-cli 2.33.0 or newer in the project. The env
+  extractor reads `process.env`, `import.meta.env`, `Bun.env`,
+  `Deno.env.get`, `os.environ` and `os.getenv`, through casts.
 
 `arithmetic` and `smt` from `constraint_source` alone prove that the
 knowledge base's facts entail the claim, not that code follows the facts:
@@ -202,8 +291,11 @@ Every certificate contract names the claims it proves in `proves:
 [CLAIM-...]` (blocking `proof-contract-claims` from schema 12). Kibi derives
 each claim's obligation from its grounding fact: a set fact (`value_type:
 set`, `value_set: [...]`) needs the `exhaustive` domain or the `typecheck`
-domain type to be exactly the set; a numeric fact needs the `arithmetic`
-claim or the negated `smt` assertion to be its constraint. The receipt
+domain type to be exactly the set (with `property_key: required_fields`,
+`typecheck` instead needs every member to be a required, non-nullable field
+of the domain type); a numeric fact needs the `arithmetic` claim or the
+negated `smt` assertion to be its constraint; rule, predicate, machine and
+string facts need the `rule`, `state_machine` or `regex` checks above. The receipt
 records one binding per claim: `derived` (checked, the only kind that
 proves), `attested` (the fact has no derivation; counts as tested) or
 `rejected` with the reason. Model an enumerated claim as a set fact and a
@@ -212,13 +304,16 @@ REQ-...` shows each claim with its bindings.
 
 Build the certificate with `kibi-cli/proof-certificates`
 (`exhaustiveCertificate`, `typecheckCertificate`, `arithmeticCertificate`,
-`smtCertificate`), fail the test when it records a failure
-(`failedMembers`), and call `writeCodeCertificate`; it writes to the
+`smtCertificate`, `ruleCertificate`, `stateMachineCertificate`,
+`regexCertificate`, `sourceCertificate`; `readProjectSource` returns Kibi's
+read for a test that wants to assert on it), fail the test when it records a failure
+(`failedMembers`, `failedCalls`), and call `writeCodeCertificate`; it writes to the
 directory `kibi prove` sets in `KIBI_PROOF_CERTIFICATES` and does nothing
 elsewhere. A Python test writes the same `kibi.code-certificate.v1` JSON
 to that directory itself. Wire the KB: the proof file symbol is
 `executable_for` the test and named in `required_proofs`; the domain symbol
-`implements` the requirement and is `covered_by` the test; the test
+(and every symbol a rule, machine or pattern contract names) `implements`
+the requirement and is `covered_by` the test; the test
 `validates` one of the requirement's scenarios. `proved` is per claim: a
 multi-claim requirement is proved only when certificates derive every
 applicable claim, and reads `tested` with `n/m claims proved` otherwise. A
@@ -296,7 +391,8 @@ re-run `kibi prove --stale` (or the affected selection), then confirm
 unit test count only while that unit test has a current passing receipt, so
 prove unit tests that cover type-shape symbols too.
 
-Full reference: `docs/proving-requirements.md`.
+Full reference: [Proving requirements](https://looted.github.io/kibi/reference/proving.html)
+(`docs/proving-requirements.md` in the Kibi repository).
 
 ## Debugging proof regressions
 

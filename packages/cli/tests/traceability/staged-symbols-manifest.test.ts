@@ -15,7 +15,6 @@ import {
   assessStagedSymbolsManifest,
   collectStagedAuthoredSymbolsManifestEvidence,
   manifestRecordSourcePath,
-  parsedCoordinateOrNull,
 } from "../../src/traceability/staged-symbols-manifest.js";
 import {
   createGitWorkspace,
@@ -96,66 +95,6 @@ describe("assessStagedSymbolsManifest", () => {
     }
   });
 
-  it("accepts identical declaration owners but rejects a stale duplicate binding", () => {
-    const original = 'export function app() {\n  return "old";\n}\n';
-    const changed = 'export function app() {\n  return "new";\n}\n';
-    const manifest = `symbols:
-  - id: SYM-app
-    title: app
-    sourceFile: src/app.ts
-  - id: SYM-other
-    title: app
-    sourceFile: src/app.ts
-`;
-    const pairedCoordinates = (first: string, second: string): string => {
-      const other = appCoordinatesArtifact(second, 1)
-        .replace("  SYM-app:", "  SYM-other:")
-        .replace(
-          sha256("SYM-app\u0000app\u0000src/app.ts\u0000"),
-          sha256("SYM-other\u0000app\u0000src/app.ts\u0000"),
-        );
-      return (
-        appCoordinatesArtifact(first, 1) + other.split("coordinates:\n")[1]
-      );
-    };
-    writeFile(tmpDir, "src/app.ts", original);
-    writeFile(tmpDir, ".kb/symbols.yaml", manifest);
-    writeFile(
-      tmpDir,
-      ".kb/symbol-coordinates.yaml",
-      pairedCoordinates(original, original),
-    );
-    commitAll(tmpDir, "initial identical owners");
-    writeFile(tmpDir, "src/app.ts", changed);
-    const previousCwd = process.cwd();
-    process.chdir(tmpDir);
-    try {
-      const source = createSourceStagedFile(tmpDir);
-      const assess = (second: string) =>
-        assessStagedSymbolsManifest({
-          symbolsManifestPath: ".kb/symbols.yaml",
-          sourceFiles: [source],
-          stagedFiles: [
-            source,
-            {
-              path: ".kb/symbol-coordinates.yaml",
-              status: "M",
-              hunkRanges: [],
-              content: pairedCoordinates(changed, second),
-            },
-          ],
-        });
-      expect(assess(changed).state).toBe("fresh");
-      expect(assess(original)).toEqual({
-        state: "stale",
-        sourcePaths: ["src/app.ts"],
-        path: ".kb/symbol-coordinates.yaml",
-      });
-    } finally {
-      process.chdir(previousCwd);
-    }
-  });
-
   it("uses canonical .kb/symbols.yaml for baseline manifest comparison", () => {
     writeFile(
       tmpDir,
@@ -185,9 +124,9 @@ describe("assessStagedSymbolsManifest", () => {
         stagedFiles: [createSourceStagedFile(tmpDir)],
       });
       expect(result).toEqual({
-        state: "not_required",
-        sourcePaths: [],
-        path: ".kb/symbol-coordinates.yaml",
+        state: "fresh",
+        sourcePaths: ["src/app.ts"],
+        path: ".kb/symbols.yaml",
       });
     } finally {
       process.chdir(previousCwd);
@@ -279,9 +218,9 @@ describe("assessStagedSymbolsManifest", () => {
         stagedFiles: [createSourceStagedFile(tmpDir)],
       });
       expect(result).toEqual({
-        state: "not_required",
-        sourcePaths: [],
-        path: ".kb/symbol-coordinates.yaml",
+        state: "fresh",
+        sourcePaths: ["src/app.ts"],
+        path: ".kb/symbols.yml",
       });
     } finally {
       process.chdir(previousCwd);
@@ -346,7 +285,7 @@ describe("assessStagedSymbolsManifest", () => {
       ).toEqual({
         state: "fresh",
         sourcePaths: ["src/app.ts"],
-        path: ".kb/symbol-coordinates.yaml",
+        path: ".kb/symbols.yaml",
       });
     } finally {
       process.chdir(previousCwd);
@@ -391,7 +330,7 @@ describe("assessStagedSymbolsManifest", () => {
       ).toEqual({
         state: "not_required",
         sourcePaths: [],
-        path: ".kb/symbol-coordinates.yaml",
+        path: ".kb/symbols.yaml",
       });
     } finally {
       process.chdir(previousCwd);
@@ -465,7 +404,7 @@ describe("assessStagedSymbolsManifest", () => {
       ).toEqual({
         state: "fresh",
         sourcePaths: ["src/app.ts"],
-        path: ".kb/symbol-coordinates.yaml",
+        path: ".kb/symbols.yaml",
       });
     } finally {
       process.chdir(previousCwd);
@@ -533,135 +472,7 @@ export function helper() {
       ).toEqual({
         state: "fresh",
         sourcePaths: ["src/app.ts"],
-        path: ".kb/symbol-coordinates.yaml",
-      });
-    } finally {
-      process.chdir(previousCwd);
-    }
-  });
-
-  it("still rejects a stale granular coordinate in a mixed manifest", () => {
-    const initialSource = `export function app() {
-  return "ok";
-}
-
-export function helper() {
-  return "helper";
-}
-`;
-    writeFile(tmpDir, "src/app.ts", initialSource);
-    writeFile(
-      tmpDir,
-      ".kb/symbols.yaml",
-      `symbols:
-  - id: SYM-app
-    title: app
-    sourceFile: src/app.ts
-  - id: SYM-helper-module
-    title: helper
-    sourceFile: src/app.ts
-    granularity_reason: module-level-behavior
-`,
-    );
-    writeFile(
-      tmpDir,
-      ".kb/symbol-coordinates.yaml",
-      appCoordinatesArtifact(initialSource, 1),
-    );
-    commitAll(tmpDir, "initial");
-
-    const stagedSource = `
-export function app() {
-  return "ok";
-}
-
-export function helper() {
-  return "helper";
-}
-`;
-    writeFile(tmpDir, "src/app.ts", stagedSource);
-
-    const previousCwd = process.cwd();
-    process.chdir(tmpDir);
-    try {
-      const sourceFile = createSourceStagedFile(tmpDir);
-      const staleCoordinates: StagedFile = {
-        path: ".kb/symbol-coordinates.yaml",
-        status: "M",
-        hunkRanges: [],
-        content: appCoordinatesArtifact(initialSource, 1),
-      };
-
-      expect(
-        assessStagedSymbolsManifest({
-          symbolsManifestPath: ".kb/symbols.yaml",
-          sourceFiles: [sourceFile],
-          stagedFiles: [sourceFile, staleCoordinates],
-        }),
-      ).toEqual({
-        state: "stale",
-        sourcePaths: ["src/app.ts"],
-        path: ".kb/symbol-coordinates.yaml",
-      });
-    } finally {
-      process.chdir(previousCwd);
-    }
-  });
-
-  it("does not exempt a stale granular duplicate beside a coarse title anchor", () => {
-    const initialSource = `export function app() {
-  return "ok";
-}
-`;
-    writeFile(tmpDir, "src/app.ts", initialSource);
-    writeFile(
-      tmpDir,
-      ".kb/symbols.yaml",
-      `symbols:
-  - id: SYM-app
-    title: app
-    sourceFile: src/app.ts
-  - id: SYM-app-module
-    title: app
-    sourceFile: src/app.ts
-    granularity_reason: module-level-behavior
-`,
-    );
-    writeFile(
-      tmpDir,
-      ".kb/symbol-coordinates.yaml",
-      appCoordinatesArtifact(initialSource, 1),
-    );
-    commitAll(tmpDir, "initial");
-
-    const stagedSource = `
-export function app() {
-  return "ok";
-}
-`;
-    writeFile(tmpDir, "src/app.ts", stagedSource);
-
-    const previousCwd = process.cwd();
-    process.chdir(tmpDir);
-    try {
-      const sourceFile = createSourceStagedFile(tmpDir);
-      const staleCoordinates: StagedFile = {
-        path: ".kb/symbol-coordinates.yaml",
-        status: "M",
-        hunkRanges: [],
-        content: appCoordinatesArtifact(initialSource, 1),
-      };
-
-      expect(
-        assessStagedSymbolsManifest({
-          symbolsManifestPath: ".kb/symbols.yaml",
-          sourceFiles: [sourceFile],
-          stagedFiles: [sourceFile, staleCoordinates],
-        }),
-      ).toEqual({
-        state: "stale",
-        sourcePaths: ["src/app.ts"],
-        path: ".kb/symbol-coordinates.yaml",
+        path: ".kb/symbols.yaml",
       });
     } finally {
       process.chdir(previousCwd);
@@ -733,7 +544,7 @@ export function added() {
       ).toEqual({
         state: "stale",
         sourcePaths: ["src/app.ts"],
-        path: ".kb/symbol-coordinates.yaml",
+        path: ".kb/symbols.yaml",
         fileDetails: [
           {
             path: "src/app.ts",
@@ -811,7 +622,7 @@ export function app() {
       ).toEqual({
         state: "fresh",
         sourcePaths: [sourcePath],
-        path: ".kb/symbol-coordinates.yaml",
+        path: ".kb/symbols.yaml",
       });
     } finally {
       process.chdir(previousCwd);
@@ -881,9 +692,16 @@ export function app() {
       ).toEqual({
         state: "fresh",
         sourcePaths: ["src/app.ts"],
-        path: ".kb/symbol-coordinates.yaml",
+        path: ".kb/symbols.yaml",
       });
 
+      // The next commit retitles the record, so only a fresh HEAD read sees
+      // the declaration uncovered.
+      writeFile(
+        tmpDir,
+        ".kb/symbols.yaml",
+        "symbols:\n  - id: SYM-app\n    title: renamedApp\n    sourceFile: src/app.ts\n",
+      );
       commitAll(tmpDir, "second");
 
       expect(
@@ -892,10 +710,10 @@ export function app() {
           sourceFiles: [stagedSecondSource],
           stagedFiles: [stagedSecondSource],
         }),
-      ).toEqual({
-        state: "not_required",
-        sourcePaths: [],
-        path: ".kb/symbol-coordinates.yaml",
+      ).toMatchObject({
+        state: "stale",
+        sourcePaths: ["src/app.ts"],
+        path: ".kb/symbols.yaml",
       });
     } finally {
       process.chdir(previousCwd);
@@ -963,7 +781,7 @@ export function app() {
       ).toEqual({
         state: "fresh",
         sourcePaths: ["src/app.ts"],
-        path: ".kb/symbol-coordinates.yaml",
+        path: ".kb/symbols.yaml",
       });
     } finally {
       process.chdir(previousCwd);
@@ -1036,7 +854,7 @@ export function app() {
       ).toEqual({
         state: "stale",
         sourcePaths: ["src/app.ts"],
-        path: ".kb/symbol-coordinates.yaml",
+        path: ".kb/symbols.yaml",
         fileDetails: [
           {
             path: "src/app.ts",
@@ -1086,7 +904,8 @@ export function app() {
         sourceFiles: [createSourceStagedFile(tmpDir)],
         stagedFiles: [createSourceStagedFile(tmpDir)],
       });
-      expect(result.state).toBe("missing");
+      // An unknown reason is not coarse, so the file is judged by its titles.
+      expect(result.state).toBe("fresh");
       expect(result.sourcePaths).toEqual(["src/app.ts"]);
     } finally {
       process.chdir(previousCwd);
@@ -1369,24 +1188,7 @@ describe("staged symbols manifest record normalization fallbacks", () => {
     });
   });
 
-  it("parsedCoordinateOrNull and manifestRecordSourcePath return null for unusable inputs", () => {
-    expect(
-      parsedCoordinateOrNull(() => {
-        throw new Error("parse boom");
-      }),
-    ).toBeNull();
-    expect(
-      parsedCoordinateOrNull(() => ({
-        status: "invalid",
-        reason: "bad",
-      })),
-    ).toBeNull();
-    expect(
-      parsedCoordinateOrNull(() => ({
-        status: "legacy",
-        coordinates: {},
-      })),
-    ).toEqual({ status: "legacy", coordinates: {} });
+  it("manifestRecordSourcePath returns null for unusable inputs", () => {
     expect(manifestRecordSourcePath({ sourceFile: "src/a.ts" })).toBe(
       "src/a.ts",
     );

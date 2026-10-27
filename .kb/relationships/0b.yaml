@@ -125,13 +125,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f7342cb18067
-  - type: requires_property
-    from: REQ-cursor-kibi-plugin-v1
-    to: FACT-PROP-REQ-CURSOR-KIBI-PLUGIN-V1-C01
-    created_at: 2026-09-05T14:12:14.255Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-35a0095a24db
   - type: covered_by
     from: SYM-built-in-predicate-schemas
     to: TEST-mcp-suggest-predicates
@@ -258,3 +251,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f75753553f46
+  - type: implements
+    from: SYM-regular-language-compile
+    to: REQ-kibi-non-numeric-proof-kinds
+    created_at: 2026-10-26T09:48:35.546Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-481546b2db0f
+  - type: covered_by
+    from: SYM-regular-language-compile
+    to: TEST-kibi-non-numeric-proof-kinds
+    created_at: 2026-10-26T09:48:35.573Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-22a35217a860
+  - type: requires_property
+    from: REQ-cursor-kibi-plugin-v1
+    to: FACT-cursor-adapter-optional
+    created_at: 2026-10-27T07:51:58.988Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43122f461760
+  - type: requires_property
+    from: REQ-cursor-kibi-plugin-v1
+    to: FACT-cursor-no-core-modification
+    created_at: 2026-10-27T07:51:59.030Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd8078a3744e
+  - type: requires_property
+    from: REQ-cursor-kibi-plugin-v1
+    to: FACT-cursor-mcp-launches-project-kibi-mcp
+    created_at: 2026-10-27T07:51:59.056Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0eefb83b1b53
+  - type: requires_property
+    from: REQ-cursor-kibi-plugin-v1
+    to: FACT-cursor-hooks-advisory-only
+    created_at: 2026-10-27T07:51:59.087Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f22de7f454e2
+  - type: requires_property
+    from: REQ-cursor-kibi-plugin-v1
+    to: FACT-cursor-hooks-no-kb-writes
+    created_at: 2026-10-27T07:51:59.114Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-94c9c5698be2
+  - type: requires_property
+    from: REQ-cursor-kibi-plugin-v1
+    to: FACT-cursor-documents-manual-mcp
+    created_at: 2026-10-27T07:51:59.135Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f064b0644310

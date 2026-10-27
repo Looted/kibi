@@ -244,15 +244,26 @@ export const ENTITY_PROPERTIES_SCHEMA = {
     },
     operator: {
       type: "string",
-      enum: ["eq", "neq", "lt", "lte", "gt", "gte"],
+      enum: [
+        "eq",
+        "neq",
+        "lt",
+        "lte",
+        "gt",
+        "gte",
+        "matches",
+        "includes",
+        "subset_of",
+        "excludes",
+      ],
       description:
-        "Optional comparison operator for property_value facts. Example: 'eq'.",
+        "Optional comparison operator for property_value facts. Example: 'eq'. 'matches' (string facts only): value_string is a JavaScript regular expression (u flag) every value must match as a whole. Set facts only: 'includes' means every member of value_set has the property and other members may have it too; 'subset_of' means every member that has the property is in value_set ('every env var the server reads is one of ...'); 'excludes' means no member of value_set has it ('never imports md5'); 'eq' on a set means exactly those members.",
     },
     value_type: {
       type: "string",
       enum: ["string", "int", "number", "bool", "set"],
       description:
-        "Optional typed value discriminator for property_value facts. Pair with exactly one value_string, value_int, value_number, value_bool, or value_set (set: an exact list of allowed values, operator eq or neq); do not use generic value.",
+        "Optional typed value discriminator for property_value facts. Pair with exactly one value_string, value_int, value_number, value_bool, or value_set (set: a list of members, with operator eq, includes, subset_of or excludes); do not use generic value.",
     },
     value_string: {
       type: "string",

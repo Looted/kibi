@@ -19,7 +19,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { createMaintenanceSourceAnalysisService } from "../plugins/maintenance-source-analysis.js";
-import { resolveWorkspaceSourceAbsolute } from "../utils/repo-relative-path.js";
 import type { CapabilityRegistry } from "../plugins/registry.js";
 import type { SourceAnalysisService } from "../plugins/source-analysis-service.js";
 import {
@@ -30,6 +29,7 @@ import {
   extensionLanguage,
   isTsJsSourcePath,
 } from "../plugins/source-classification.js";
+import { resolveWorkspaceSourceAbsolute } from "../utils/repo-relative-path.js";
 import {
   type ManifestSymbolEntry,
   createTsMorphSourceAnalysisProvider,
@@ -92,14 +92,9 @@ export interface AnalyzeSourceTextOptions {
 interface EnrichSymbolCoordinatesDeps {
   sourceAnalysisService: SourceAnalysisService;
   enrichTsCoordinates: typeof enrichSymbolCoordinatesWithTsMorph;
-  /** Coordinate-only sync may locate explicit declarations in decorated Python.
-   * Completeness-sensitive callers must also verify the captured policy/review. */
+  /** Coordinate-only sync may locate explicit declarations in decorated
+   * Python. The coordinates stay a local cache, so no review authorizes them. */
   allowPythonDecoratorCoordinates?: boolean;
-  /** Additional snapshot/policy authorization for completeness-sensitive gates. */
-  verifyPythonDecoratorCoordinates?: (
-    logicalPath: string,
-    analysis: Awaited<ReturnType<SourceAnalysisService["analyzeTextV2"]>>,
-  ) => Promise<void>;
 }
 
 const DEFAULT_SOURCE_ANALYSIS_PROVIDERS: SourceAnalysisProvider[] = [
@@ -297,7 +292,6 @@ export async function enrichSymbolCoordinates(
         `Cannot refresh incomplete source analysis for ${logicalPath}: ${analysis.diagnostics.map((d) => d.message).join("; ")}`,
       );
     if (coordinateOnlyPartial && firstAnalysis) {
-      await deps?.verifyPythonDecoratorCoordinates?.(logicalPath, analysis);
       console.warn(
         `[kibi] Coordinate-only refresh for ${logicalPath}; source analysis remains partial: ${analysis.diagnostics.map((diagnostic) => diagnostic.message).join("; ")}`,
       );

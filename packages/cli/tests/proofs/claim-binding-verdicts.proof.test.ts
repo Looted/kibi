@@ -1,5 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { judgeClaimBindings } from "../../src/operations/proof/claim-bindings.js";
+import {
+  judgeClaimBindings,
+  receiptEvidenceLevel,
+} from "../../src/operations/proof/claim-bindings.js";
 import type { CertificateVerdict } from "../../src/operations/proof/code-certificates.js";
 import type { OperationContext } from "../../src/public/operations/runtime-types.js";
 import {
@@ -171,5 +174,33 @@ describe("claim binding verdicts, proved by exhaustion", () => {
     const certificate = await claimBindingVerdictsCertificate();
     writeCodeCertificate(certificate);
     expect(failedMembers(certificate)).toEqual([]);
+  });
+});
+
+describe("receipt evidence level", () => {
+  test("a receipt is proved only by a claim derived from the code", () => {
+    const binding = (
+      verdict: ClaimBindingVerdict,
+      scope?: "code" | "intent",
+    ) => ({ claim_key: CLAIM, binding: verdict, ...(scope ? { scope } : {}) });
+    expect(receiptEvidenceLevel("proved", undefined)).toBe("proved");
+    expect(receiptEvidenceLevel("proved", [binding("derived", "code")])).toBe(
+      "proved",
+    );
+    expect(receiptEvidenceLevel("proved", [binding("derived")])).toBe("proved");
+    // A derivation from the knowledge base's own facts proves nothing about
+    // the code, nor does a rejected or attested claim.
+    expect(receiptEvidenceLevel("proved", [binding("derived", "intent")])).toBe(
+      "tested",
+    );
+    expect(
+      receiptEvidenceLevel("proved", [
+        binding("rejected"),
+        binding("attested"),
+      ]),
+    ).toBe("tested");
+    expect(receiptEvidenceLevel("tested", [binding("derived", "code")])).toBe(
+      "tested",
+    );
   });
 });

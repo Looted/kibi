@@ -38,6 +38,7 @@ const execFileAsync = promisify(execFile);
 const FIXTURE_SOURCE_PATH = "src/fixture.ts";
 const FIXTURE_TEST_PATH = "tests/fixture-family.test.ts";
 const SIDE_BRANCH = "fixture-side";
+const COORDINATE_CACHE_PATH = ".kb/symbol-coordinates.yaml";
 
 /** Setup modes owned by the kibi-decisions and kibi-commit-review cases. */
 // implements REQ-skillopt-codex-optimization
@@ -93,8 +94,9 @@ const LABEL_MODES: ReadonlySet<DecisionSetupMode> = new Set([
 
 /**
  * The committed base every mode starts from: the firm length rule, its
- * scenario, passing test and enforcing symbol, with symbol coordinates
- * refreshed and committed so the staged gate judges only the staged change.
+ * scenario, passing test and enforcing symbol, with the symbols manifest in
+ * its canonical layout so the staged gate judges only the staged change. The
+ * refreshed coordinates stay a gitignored local cache.
  */
 async function setupDecisionBase(
   workspaceTarget: string,
@@ -157,23 +159,25 @@ export async function setupDecisionFixture(
       });
       return;
     case "seeded_staged_coordinates_kb":
-      await stage(workspaceTarget, {
-        [FIXTURE_SOURCE_PATH]: COMMENTED_FIXTURE_SOURCE,
-      });
-      return;
     case "seeded_staged_refactor_kb":
+      // The person refreshed and force-staged the gitignored coordinate
+      // cache out of habit; the generated-manifest gate rejects it.
       await stage(workspaceTarget, {
-        [FIXTURE_SOURCE_PATH]: RENAMED_FIXTURE_SOURCE,
+        [FIXTURE_SOURCE_PATH]:
+          mode === "seeded_staged_coordinates_kb"
+            ? COMMENTED_FIXTURE_SOURCE
+            : RENAMED_FIXTURE_SOURCE,
       });
+      await refreshCoordinates(workspaceTarget, cliRoot);
+      await git(workspaceTarget, ["add", "-f", "--", COORDINATE_CACHE_PATH]);
       return;
     case "seeded_impact_review_kb":
-      // Coordinates are refreshed and staged here so the only gate failure
-      // left is the missing review record.
+      // Synced after staging so the only gate failure left is the missing
+      // review record.
       await stage(workspaceTarget, {
         [FIXTURE_SOURCE_PATH]: MESSAGE_FIXTURE_SOURCE,
       });
       await refreshCoordinates(workspaceTarget, cliRoot);
-      await git(workspaceTarget, ["add", "--", ".kb"]);
       return;
     case "seeded_staged_conflict_kb":
       await stage(workspaceTarget, {

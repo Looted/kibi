@@ -7,9 +7,9 @@
 # .kb/relationships shard). On every push to the default branch this workflow
 # test-merges each open same-repository pull request. When the only conflicts
 # are Kibi manifests, it merges the default branch into the PR branch with
-# `kibi merge-driver` (a three-way merge keyed by record id), regenerates
-# .kb/symbol-coordinates.yaml from the merged tree, and pushes the merge
-# commit. Any other conflict, or two sides changing the same field of one
+# `kibi merge-driver` (a three-way merge keyed by record id) and pushes the
+# merge commit. A branch that still tracks the derived
+# .kb/symbol-coordinates.yaml has it removed. Any other conflict, or two sides changing the same field of one
 # record, is left for a person. Fork PRs are skipped: the workflow cannot push
 # to them.
 #
@@ -130,10 +130,9 @@ jobs:
             echo "::error::Nothing to merge; the branch already contains $BASE or the merge could not start."
             exit 1
           fi
-          # Generated: take this side's copy, then regenerate from the merged tree.
-          if git diff --name-only --diff-filter=U | grep -qx '.kb/symbol-coordinates.yaml'; then
-            git checkout --ours -- .kb/symbol-coordinates.yaml
-            git add .kb/symbol-coordinates.yaml
+          # Derived and no longer tracked: drop the branch's copy.
+          if git ls-files --error-unmatch .kb/symbol-coordinates.yaml >/dev/null 2>&1; then
+            git rm --cached --quiet -- .kb/symbol-coordinates.yaml
           fi
           unmerged=$(git diff --name-only --diff-filter=U)
           if [ -n "$unmerged" ]; then
@@ -141,15 +140,10 @@ jobs:
             git merge --abort
             exit 1
           fi
-      - name: Regenerate symbol coordinates
-        working-directory: pr
-        run: |
-          "$GITHUB_WORKSPACE/node_modules/.bin/kibi" sync --refresh-symbol-coordinates
-          git add .kb/symbol-coordinates.yaml
       - name: Commit and push the merge
         working-directory: pr
         run: |
           set -euo pipefail
           git commit -m "Merge $BASE into $KIBI_BRANCH" \
-            -m "Kibi merge driver resolved the .kb manifest conflicts; symbol coordinates regenerated."
+            -m "Kibi merge driver resolved the .kb manifest conflicts."
           git push origin "HEAD:refs/heads/$KIBI_BRANCH"

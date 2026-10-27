@@ -17,7 +17,13 @@
  */
 
 import { describe, expect, test } from "bun:test";
-import { mkdtempSync, mkdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import {
@@ -104,7 +110,10 @@ describe("resolveWorkspaceSourceAbsolute", () => {
       writeFileSync(secret, 'export const API_SECRET_TOKEN = "x";\n', "utf8");
       expect(resolveWorkspaceSourceAbsolute(root, secret)).toBeNull();
       expect(
-        resolveWorkspaceSourceAbsolute(root, path.join("..", path.basename(outside), "secret.ts")),
+        resolveWorkspaceSourceAbsolute(
+          root,
+          path.join("..", path.basename(outside), "secret.ts"),
+        ),
       ).toBeNull();
       expect(resolveWorkspaceSourceAbsolute(root, "/etc/passwd")).toBeNull();
     } finally {

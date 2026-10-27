@@ -19,6 +19,22 @@
 %               plus the negated claim admit no value.
 %   smt         The query asks (check-sat) and the solver answered unsat.
 %               (Kibi re-runs the solver on the query at ingest.)
+%   rule        Every domain lists distinct values, every predicate table
+%               holds exactly one boolean for every combination of its
+%               argument domains, and no call failed.  (Kibi recomputes the
+%               domains and tables from the code at ingest.)
+%   state_machine
+%               The machine lists distinct states, and its transitions and
+%               initial states are pairs and states of that list.  (Kibi
+%               reads the machine from the code at ingest.)
+%   regex       The certificate holds the code's pattern (source, flags and
+%               flavor) or string constant.  (Kibi reads it from the code
+%               at ingest and decides the claim's language exactly.)
+%   source      The certificate names a project source (a reader and its
+%               spec) and holds what Kibi read from it: the members as a
+%               sorted list of distinct strings, and for schema, validator
+%               and route readers the tables, objects or routes.  (Kibi
+%               reads the source itself at ingest and stores its own read.)
 %
 % The digest a receipt records is the sha256 of the certificate's canonical
 % JSON as canonical_json/2 below spells it. The CLI records the digest this
@@ -35,6 +51,7 @@
 :- use_module(library(crypto)).
 :- use_module(library(apply)).
 :- use_module(library(lists)).
+:- use_module(library(yall)).
 :- use_module('intervals.pl', [
     numeric_constraints_satisfiable/2,
     numeric_constraint_entailed/3
@@ -90,8 +107,8 @@ certificate_problem(Certificate, Reason) :-
     ),
     (   kind_problem(Kind, Certificate, Reason0)
     ->  Reason = Reason0
-    ;   \+ memberchk(Kind, [exhaustive, typecheck, arithmetic, smt])
-    ->  Reason = "the certificate kind is not exhaustive, typecheck, arithmetic or smt"
+    ;   \+ memberchk(Kind, [exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex, source])
+    ->  Reason = "the certificate kind is not exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex or source"
     ).
 
 kind_problem(exhaustive, Certificate, Reason) :-
@@ -164,9 +181,18 @@ kind_problem(arithmetic, Certificate, Reason) :-
         arithmetic_constraint(X, Claim, Goal),
         integer_variables(Type, X, Integers),
         (   \+ numeric_constraints_satisfiable(Premises, Integers)
-        ->  Reason = "the assumptions admit no value, so the claim holds vacuously"
+        ->  maplist(constraint_text(Variable), Assumptions, Texts),
+            atomic_list_concat(Texts, ' and ', Joined),
+            format(string(Reason),
+                   "the assumptions contradict each other (~w), so no value satisfies them and they prove nothing about the claim",
+                   [Joined])
         ;   \+ numeric_constraint_entailed(Premises, Goal, Integers)
-        ->  Reason = "the assumptions do not entail the claim: some value satisfies them and breaks it"
+        ->  (   arithmetic_counterexample(Type, Assumptions, Claim, Value)
+            ->  format(string(Reason),
+                       "the assumptions do not entail the claim: ~w = ~w satisfies them and breaks it",
+                       [Variable, Value])
+            ;   Reason = "the assumptions do not entail the claim: some value satisfies them and breaks it"
+            )
         )
     ).
 kind_problem(smt, Certificate, Reason) :-
@@ -184,6 +210,170 @@ kind_problem(smt, Certificate, Reason) :-
     ;   Result \== "unsat"
     ->  Reason = "the solver did not answer unsat"
     ).
+
+kind_problem(rule, Certificate, Reason) :-
+    field(Certificate, domains, Domains),
+    field(Certificate, predicates, Predicates),
+    (   \+ (is_dict(Domains), dict_pairs(Domains, _, DomainPairs), DomainPairs \== [])
+    ->  Reason = "the certificate has no domains"
+    ;   dict_pairs(Domains, _, DomainPairs),
+        member(Type-Domain, DomainPairs),
+        field(Domain, members, Members),
+        \+ distinct_strings(Members)
+    ->  format(string(Reason), "the domain ~w must list distinct values, at least one", [Type])
+    ;   \+ (is_dict(Predicates), dict_pairs(Predicates, _, PredicatePairs), PredicatePairs \== [])
+    ->  Reason = "the certificate has no predicate tables"
+    ;   dict_pairs(Predicates, _, PredicatePairs),
+        member(Name-Table, PredicatePairs),
+        table_problem(Name, Table, Domains, Reason0)
+    ->  Reason = Reason0
+    ).
+kind_problem(state_machine, Certificate, Reason) :-
+    field(Certificate, machine, Machine),
+    field(Machine, symbol_id, Symbol),
+    field(Machine, states, States),
+    field(Machine, transitions, Transitions),
+    (   \+ is_dict(Machine)
+    ->  Reason = "the certificate has no machine"
+    ;   \+ nonempty_string(Symbol)
+    ->  Reason = "the machine names no symbol_id"
+    ;   \+ distinct_strings(States)
+    ->  Reason = "the machine must list distinct states, at least one"
+    ;   \+ is_list(Transitions)
+    ->  Reason = "the machine has no transitions list"
+    ;   member(Edge, Transitions),
+        \+ ( is_list(Edge), Edge = [From, To], memberchk(From, States), memberchk(To, States) )
+    ->  Reason = "every transition must be a [from, to] pair of the machine's states"
+    ;   msort(Transitions, SortedEdges), sort(Transitions, UniqueEdges), SortedEdges \== UniqueEdges
+    ->  Reason = "the machine lists a transition twice"
+    ;   get_dict(initial, Machine, Initial),
+        \+ ( is_list(Initial), forall(member(S, Initial), memberchk(S, States)) )
+    ->  Reason = "the machine's initial states must be states of the machine"
+    ).
+kind_problem(regex, Certificate, Reason) :-
+    field(Certificate, pattern, Pattern),
+    field(Pattern, symbol_id, Symbol),
+    field(Pattern, type, Type),
+    (   \+ is_dict(Pattern)
+    ->  Reason = "the certificate has no pattern"
+    ;   \+ nonempty_string(Symbol)
+    ->  Reason = "the pattern names no symbol_id"
+    ;   Type == "regexp"
+    ->  field(Pattern, source, Source),
+        field(Pattern, flags, Flags),
+        field(Pattern, flavor, Flavor),
+        (   \+ (string(Source), string(Flags))
+        ->  Reason = "a regexp pattern must give its source and flags"
+        ;   \+ memberchk(Flavor, ["js", "python"])
+        ->  Reason = "a regexp pattern's flavor must be js or python"
+        )
+    ;   Type == "string"
+    ->  field(Pattern, value, Value),
+        \+ string(Value),
+        Reason = "a string pattern must give its value"
+    ;   Reason = "the pattern's type must be regexp or string"
+    ).
+
+% implements REQ-kibi-source-proof-kinds
+kind_problem(source, Certificate, Reason) :-
+    field(Certificate, source, Source),
+    field(Certificate, model, Model),
+    field(Model, members, Members),
+    (   \+ ( is_dict(Source), get_dict(reader, Source, Reader), nonempty_string(Reader) )
+    ->  Reason = "the certificate names no source reader"
+    ;   \+ is_dict(Model)
+    ->  Reason = "the certificate has no model of what Kibi read"
+    ;   \+ sorted_distinct_strings(Members)
+    ->  Reason = "the source model's members must be a sorted list of distinct strings"
+    ;   get_dict(entities, Model, Entities),
+        \+ ( is_list(Entities), maplist(source_entity_ok, Entities) )
+    ->  Reason = "every source entity must have a name and columns of {name, nullable, optional}"
+    ;   get_dict(routes, Model, Routes),
+        \+ ( is_list(Routes), maplist(source_route_ok, Routes) )
+    ->  Reason = "every source route must have a method, a path and a middleware list"
+    ).
+
+sorted_distinct_strings(List) :-
+    is_list(List),
+    forall(member(Item, List), string(Item)),
+    sort(List, Sorted),
+    Sorted == List.
+
+source_entity_ok(Entity) :-
+    is_dict(Entity),
+    get_dict(name, Entity, Name), nonempty_string(Name),
+    get_dict(columns, Entity, Columns), is_list(Columns),
+    forall(member(Column, Columns),
+           ( is_dict(Column),
+             get_dict(name, Column, ColumnName), nonempty_string(ColumnName),
+             get_dict(nullable, Column, Nullable), memberchk(Nullable, [true, false]),
+             get_dict(optional, Column, Optional), memberchk(Optional, [true, false]) )),
+    (   get_dict(foreign_keys, Entity, Keys) -> is_list(Keys), forall(member(K, Keys), string(K)) ; true ).
+
+source_route_ok(Route) :-
+    is_dict(Route),
+    get_dict(method, Route, Method), nonempty_string(Method),
+    get_dict(path, Route, Path), nonempty_string(Path),
+    get_dict(middleware, Route, Middleware), is_list(Middleware),
+    forall(member(M, Middleware), string(M)).
+
+% table_problem(+Name, +Table, +Domains, -Reason): the first problem with
+% one predicate table.
+table_problem(Name, Table, Domains, Reason) :-
+    field(Table, symbol_id, Symbol),
+    field(Table, arg_types, Types),
+    field(Table, rows, Rows),
+    (   \+ nonempty_string(Symbol)
+    ->  format(string(Reason), "the table for ~w names no symbol_id", [Name])
+    ;   \+ (is_list(Types), Types \== [], length(Types, Arity), Arity =< 8,
+             forall(member(T, Types), (string(T), atom_string(TA, T), get_dict(TA, Domains, _))))
+    ->  format(string(Reason), "the table for ~w must name 1 to 8 argument types, each with a domain", [Name])
+    ;   \+ is_list(Rows)
+    ->  format(string(Reason), "the table for ~w has no rows", [Name])
+    ;   member(Row, Rows),
+        get_dict(error, Row, Error)
+    ->  get_dict(args, Row, Args),
+        atomic_list_concat(Args, ', ', ArgText),
+        format(string(Reason), "~w(~w) failed: ~w", [Name, ArgText, Error])
+    ;   member(Row, Rows),
+        \+ table_row(Row, Types, Domains)
+    ->  format(string(Reason), "every row of ~w must give one value per argument from its domain and a boolean", [Name])
+    ;   findall(Args, (member(Row, Rows), get_dict(args, Row, Args)), AllArgs),
+        msort(AllArgs, SortedArgs),
+        sort(AllArgs, UniqueArgs),
+        SortedArgs \== UniqueArgs
+    ->  format(string(Reason), "the table for ~w lists a combination twice", [Name])
+    ;   length(Rows, Count),
+        foldl(domain_product(Domains), Types, 1, Expected),
+        Count =\= Expected
+    ->  format(string(Reason), "the table for ~w has ~d rows, not one per combination of its domains (~d)", [Name, Count, Expected])
+    ).
+
+domain_product(Domains, Type, Count0, Count) :-
+    atom_string(TypeKey, Type),
+    get_dict(TypeKey, Domains, Domain),
+    get_dict(members, Domain, Members),
+    length(Members, N),
+    Count is Count0 * N.
+
+table_row(Row, Types, Domains) :-
+    is_dict(Row),
+    get_dict(args, Row, Args),
+    is_list(Args),
+    same_length(Args, Types),
+    forall(nth1(I, Args, Arg),
+           ( nth1(I, Types, T), atom_string(TA, T), get_dict(TA, Domains, D),
+             get_dict(members, D, Members), memberchk(Arg, Members) )),
+    get_dict(value, Row, Value),
+    memberchk(Value, [true, false]).
+
+distinct_strings(Values) :-
+    is_list(Values),
+    Values \== [],
+    maplist(string, Values),
+    msort(Values, Sorted),
+    sort(Values, Unique),
+    Sorted == Unique.
 
 % field(+Dict, +Key, -Value): the value, or '$missing' when absent.
 field(Dict, Key, Value) :-
@@ -205,6 +395,51 @@ arithmetic_constraint(X, Row, c(Op, X, Value)) :-
     memberchk(Op, [eq, neq, lt, lte, gt, gte]),
     get_dict(value, Row, Value),
     number(Value).
+
+% "count = 4", for naming an assumption in a rejection.
+constraint_text(Variable, Row, Text) :-
+    get_dict(operator, Row, OpString),
+    get_dict(value, Row, Value),
+    atom_string(Op, OpString),
+    operator_symbol(Op, Symbol),
+    format(atom(Text), "~w ~w ~w", [Variable, Symbol, Value]).
+
+operator_symbol(eq, '=').
+operator_symbol(neq, '!=').
+operator_symbol(lt, '<').
+operator_symbol(lte, '<=').
+operator_symbol(gt, '>').
+operator_symbol(gte, '>=').
+
+% arithmetic_counterexample(+Type, +Assumptions, +Claim, -Value): a value
+% next to one of the constants that satisfies every assumption and breaks the
+% claim, so a rejection can name it (a count of 5 against "exactly 4").
+arithmetic_counterexample(Type, Assumptions, Claim, Value) :-
+    findall(C, (member(Row, [Claim|Assumptions]), get_dict(value, Row, C)), Constants),
+    (   Type == "int" -> Step = 1 ; Step = 0.5 ),
+    findall(V,
+            (   member(C, [0|Constants]),
+                member(D, [0, -1, 1]),
+                V is C + D*Step,
+                (   Type == "int" -> integer(V) ; true )
+            ),
+            Candidates0),
+    sort(Candidates0, Candidates),
+    member(Value, Candidates),
+    forall(member(Row, Assumptions), concrete_holds(Row, Value)),
+    \+ concrete_holds(Claim, Value),
+    !.
+
+concrete_holds(Row, X) :-
+    arithmetic_constraint(Y, Row, c(Op, Y, V)),
+    concrete_op(Op, X, V).
+
+concrete_op(eq, X, V) :- X =:= V.
+concrete_op(neq, X, V) :- X =\= V.
+concrete_op(lt, X, V) :- X < V.
+concrete_op(lte, X, V) :- X =< V.
+concrete_op(gt, X, V) :- X > V.
+concrete_op(gte, X, V) :- X >= V.
 
 integer_variables("int", X, [X]).
 integer_variables("real", _, []).

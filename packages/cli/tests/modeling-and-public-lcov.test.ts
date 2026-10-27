@@ -110,7 +110,11 @@ describe("requirement modeling remaining branches", () => {
     expect(normalizeClaimValue(3)).toBe(3);
     expect(normalizeClaimValue(true)).toBe(true);
     expect(() => normalizeClaimValue(Number.NaN)).toThrow(/finite/);
-    expect(() => normalizeClaimValue({})).toThrow(/string, number, or boolean/);
+    expect(() => normalizeClaimValue({})).toThrow(
+      /string, number, boolean, or a list of strings/,
+    );
+    expect(normalizeClaimValue([" b", "a", "b"])).toEqual(["a", "b"]);
+    expect(() => normalizeClaimValue(["a", ""])).toThrow(/non-empty list/);
     expect(stripListPrefix("- item")).toBe("item");
     expect(stripListPrefix("1) item")).toBe("item");
     expect(cleanSubject("the Widget")).toBe("Widget");

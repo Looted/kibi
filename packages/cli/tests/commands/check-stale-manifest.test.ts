@@ -128,15 +128,6 @@ function writeShiftedBehaviorEdit(root: string): void {
   });
 }
 
-function writeSameCoordinateBehaviorEdit(root: string): void {
-  writeFiles(root, {
-    "src/greet.ts": `export function greet() {
-  return "hullo";
-}
-`,
-  });
-}
-
 function semanticInventoryFrontmatter(source: string): string {
   const claimText = normalizeSemanticClause(source);
   const claimKey = semanticClaimKey(claimText);
@@ -169,15 +160,23 @@ ${note}
   });
 }
 
+// Coordinates stay a gitignored local cache; only the normalized authored
+// manifest is committed.
 function commitRefreshedManifest(kibiBin: string, cwd: string): void {
   syncKb(kibiBin, cwd, ["--refresh-symbol-coordinates"]);
-  execSync("git add .kb/symbol-coordinates.yaml .kb/symbols.yaml", {
+  execSync("git add .kb/symbols.yaml", { cwd, stdio: "pipe" });
+  execSync('git commit --allow-empty -m "refresh manifest" --no-verify', {
     cwd,
     stdio: "pipe",
   });
-  execSync('git commit -m "refresh manifest" --no-verify', {
-    cwd,
-    stdio: "pipe",
+}
+
+function writeRenamedBehaviorEdit(root: string): void {
+  writeFiles(root, {
+    "src/greet.ts": `export function hello() {
+  return "hello";
+}
+`,
   });
 }
 
@@ -211,7 +210,7 @@ describe("kibi check --staged stale symbols manifest detection", () => {
   });
 
   test(
-    "fails when source edits are staged after the refreshed symbols manifest was reverted",
+    "passes a line-shifting behavior edit without staging any coordinates",
     async () => {
       writeFiles(tmpDir, createTrackedFixture());
       commitAll(tmpDir, "initial");
@@ -222,11 +221,7 @@ describe("kibi check --staged stale symbols manifest detection", () => {
         tmpDir,
         "Staged requirement note proving KB evidence exists for this edit.",
       );
-      syncKb(kibiBin, tmpDir, ["--refresh-symbol-coordinates"]);
-      execSync("git checkout -- .kb/symbol-coordinates.yaml .kb/symbols.yaml", {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
+      syncKb(kibiBin, tmpDir);
       execSync("git add src/greet.ts .kb/requirements/REQ-GREET-001.md", {
         cwd: tmpDir,
         stdio: "pipe",
@@ -239,9 +234,9 @@ describe("kibi check --staged stale symbols manifest detection", () => {
       );
 
       const output = stdoutToString(stdout || stderr);
-      expect(status).toBe(1);
-      expect(output).toContain("symbols_manifest_stale");
-      expect(output).not.toContain("kibi_impact_evidence_missing");
+      expect(status).toBe(0);
+      expect(output).not.toContain("symbols_manifest_stale");
+      expect(output).not.toContain("symbol-coordinates");
     },
     TEST_TIMEOUT_MS,
   );
@@ -285,21 +280,15 @@ export interface GreetOptions {
   );
 
   test(
-    "passes when the refreshed symbols manifest is staged with the source edit",
+    "counts a covering symbols manifest as impact evidence for a line-shifting edit",
     async () => {
       writeFiles(tmpDir, createTrackedFixture());
       commitAll(tmpDir, "initial");
       commitRefreshedManifest(kibiBin, tmpDir);
 
       writeShiftedBehaviorEdit(tmpDir);
-      syncKb(kibiBin, tmpDir, ["--refresh-symbol-coordinates"]);
-      execSync(
-        "git add src/greet.ts .kb/symbol-coordinates.yaml .kb/symbols.yaml",
-        {
-          cwd: tmpDir,
-          stdio: "pipe",
-        },
-      );
+      syncKb(kibiBin, tmpDir);
+      execSync("git add src/greet.ts", { cwd: tmpDir, stdio: "pipe" });
 
       const { status, stdout, stderr } = runKibi(
         kibiBin,
@@ -310,27 +299,27 @@ export interface GreetOptions {
       const output = stdoutToString(stdout || stderr);
       expect(status).toBe(0);
       expect(output).not.toContain("symbols_manifest_stale");
+      expect(output).not.toContain("kibi_impact_evidence_missing");
     },
     TEST_TIMEOUT_MS,
   );
 
   test(
-    "hard-fails when a staged body edit leaves bound coordinates stale",
+    "hard-fails when a staged rename leaves a manifest entry without its declaration",
     async () => {
       writeFiles(tmpDir, createTrackedFixture());
       commitAll(tmpDir, "initial");
       commitRefreshedManifest(kibiBin, tmpDir);
 
-      writeSameCoordinateBehaviorEdit(tmpDir);
+      writeRenamedBehaviorEdit(tmpDir);
       stageRequirementEvidence(
         tmpDir,
-        "Staged requirement note covering the same-coordinate behavior edit.",
+        "Staged requirement note covering the renamed greeting.",
       );
-      syncKb(kibiBin, tmpDir);
-      execSync(
-        "git add src/greet.ts .kb/requirements/REQ-GREET-001.md .kb/symbols.yaml",
-        { cwd: tmpDir, stdio: "pipe" },
-      );
+      execSync("git add src/greet.ts .kb/requirements/REQ-GREET-001.md", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
       const { status, stdout, stderr } = runKibi(
         kibiBin,
@@ -341,6 +330,11 @@ export interface GreetOptions {
       const output = stdoutToString(stdout || stderr);
       expect(status).toBe(1);
       expect(output).toContain("symbols_manifest_stale");
+      expect(output).toContain("Not in .kb/symbols.yaml: hello (line 1)");
+      expect(output).toContain("Evidence without a matching symbol: greet");
+      expect(output).toContain(
+        "re-point or remove (kibi delete) the .kb/symbols.yaml entries whose declaration is gone",
+      );
       expect(output).not.toContain("kibi_impact_evidence_missing");
     },
     TEST_TIMEOUT_MS,
@@ -378,25 +372,13 @@ status: open
       });
       commitAll(tmpDir, "initial");
 
-      syncKb(kibiBin, tmpDir, ["--refresh-symbol-coordinates"]);
-      execSync("git add .kb/symbol-coordinates.yaml .kb/symbols.yaml", {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
-      execSync('git commit -m "refresh canonical manifest" --no-verify', {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
+      commitRefreshedManifest(kibiBin, tmpDir);
 
-      writeShiftedBehaviorEdit(tmpDir);
+      writeRenamedBehaviorEdit(tmpDir);
       stageRequirementEvidence(
         tmpDir,
         "Staged requirement note proving KB evidence exists for this edit.",
       );
-      execSync("git checkout -- .kb/symbol-coordinates.yaml .kb/symbols.yaml", {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
       execSync("git add src/greet.ts .kb/requirements/REQ-GREET-001.md", {
         cwd: tmpDir,
         stdio: "pipe",
@@ -410,11 +392,13 @@ status: open
 
       const output = stdoutToString(stdout || stderr);
       expect(status).toBe(1);
-      expect(output).toContain("symbols_manifest_stale");
-      expect(output).toContain(".kb/symbol-coordinates.yaml");
       expect(output).toContain(
-        "git add .kb/symbol-coordinates.yaml .kb/symbols.yaml",
+        "[ERROR symbols_manifest_stale] .kb/symbols.yaml does not cover the declarations of staged source files: src/greet.ts",
       );
+      expect(output).toContain(
+        "Stage .kb/symbols.yaml with the behavior edit, then re-run kibi check --staged.",
+      );
+      expect(output).not.toContain("symbol-coordinates");
       expect(output).not.toContain("kibi_impact_evidence_missing");
     },
     TEST_TIMEOUT_MS,

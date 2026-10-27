@@ -99,7 +99,7 @@ const FAMILY_BY_SKILL: Readonly<Record<CanonicalSkill, readonly string[]>> = {
   ],
   "kibi-commit-review": [
     "staged-impact-missing",
-    "coordinate-refresh-only",
+    "coordinate-cache-staged",
     "impact-review-preparation",
     "staged-rule-conflict",
   ],

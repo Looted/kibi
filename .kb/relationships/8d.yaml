@@ -538,13 +538,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0a4960a105fe
-  - type: requires_property
-    from: REQ-bootstrap-claim-restatement
-    to: FACT-bootstrap-claim-restatement-near-jaccard
-    created_at: 2026-10-14T08:55:53.180Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-901925aca9cf
   - type: relates_to
     from: REQ-bootstrap-claim-restatement
     to: REQ-bootstrap-intent-claim-accounting
@@ -650,3 +643,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3ac6942bbc6d
+  - type: executable_for
+    from: SYM-e2e-packed-source-proof-kinds
+    to: TEST-kibi-source-proof-kinds
+    created_at: 2026-10-26T17:38:52.204Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70d20cd4f422
+  - type: executable_for
+    from: SYM-proof-zcode-skills
+    to: TEST-proof-zcode-skills
+    created_at: 2026-10-27T07:27:39.431Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1907cadc17cb

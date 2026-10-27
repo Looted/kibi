@@ -204,7 +204,7 @@ context_domain(Members, Domain, Reason) :-
     ;   Types == [string]
     ->  Domain = string, context_scalar_reason(Members, Reason)
     ;   Types == [set]
-    ->  Domain = set, context_scalar_reason(Members, Reason)
+    ->  Domain = set, context_set_reason(Members, Reason)
     ;   Types = [_, _|_]
     ->  Domain = none, Reason = "the facts use different value types"
     ;   Domain = none, Reason = "the value type is not supported"
@@ -225,6 +225,25 @@ context_scalar_reason(Members, Reason) :-
     (   member(_-tuple(_, _, Op, _, _, _, _, _, _, _), Members),
         \+ memberchk(Op, [eq, neq])
     ->  Reason = "only eq and neq compare non-numeric values"
+    ;   Reason = none
+    ).
+
+% Sets also compare with includes (every member of the bound has the
+% property), subset_of (every member with the property is in the bound) and
+% excludes (no member of the bound has it), but only as requirements: a
+% forbidden one has no single negation among the set operators.  neq beside
+% subset_of or excludes is left unresolved: the finite candidates below decide
+% those only without neq.
+context_set_reason(Members, Reason) :-
+    (   member(_-tuple(_, _, Op, _, _, _, _, Polarity, _, _), Members),
+        (   \+ memberchk(Op, [eq, neq, includes, subset_of, excludes])
+        ;   memberchk(Op, [includes, subset_of, excludes]), Polarity == forbid
+        )
+    ->  Reason = "only eq, neq and a required includes, subset_of or excludes compare set values"
+    ;   member(_-tuple(_, _, neq, _, _, _, _, _, _, _), Members),
+        member(_-tuple(_, _, Bounding, _, _, _, _, _, _, _), Members),
+        memberchk(Bounding, [subset_of, excludes])
+    ->  Reason = "neq beside subset_of or excludes on one set property is not compared"
     ;   Reason = none
     ).
 
@@ -250,13 +269,17 @@ certificate_member_holds(Domain, m(_, Op, Bound, _, _), Value) :-
     ;   Op == neq -> ValueText \== BoundText
     ).
 
-% A set value is the exact set of allowed values: eq holds for the same
-% members in any order, neq for any other set.
+% A set value is the exact set of members with the property: eq holds for
+% the same members in any order, neq for any other set, includes for any set
+% that contains every member of the bound.
 certificate_member_holds(set, m(_, Op, Bound, _, _), Value) :-
     set_texts(Value, ValueTexts),
     set_texts(Bound, BoundTexts),
     (   Op == eq -> ValueTexts == BoundTexts
     ;   Op == neq -> ValueTexts \== BoundTexts
+    ;   Op == includes -> subtract(BoundTexts, ValueTexts, [])
+    ;   Op == subset_of -> subtract(ValueTexts, BoundTexts, [])
+    ;   Op == excludes -> \+ ( member(Text, ValueTexts), memberchk(Text, BoundTexts) )
     ).
 
 %% set_texts(+Value, -Texts)
@@ -308,7 +331,18 @@ scalar_candidates(set, Members, Candidates) :-
     sort(Texts0, Texts),
     atomic_list_concat(["kibi:fresh"|Texts], '|', FreshAtom),
     atom_string(FreshAtom, Fresh),
-    append(Sets, [[Fresh]], Candidates).
+    % The union of every bound satisfies any set of includes facts alone; the
+    % union of the includes bounds is the least set every includes fact
+    % allows, so with subset_of and excludes (and no eq or neq) it is
+    % satisfiable exactly when that union is.
+    includes_union(Members, Included),
+    append(Sets, [Texts, Included, [Fresh]], Candidates).
+
+includes_union(Members, Union) :-
+    findall(Text,
+        (member(m(_, includes, Bound, _, _), Members), set_texts(Bound, Set), member(Text, Set)),
+        Texts),
+    sort(Texts, Union).
 
 property_theorem(Contexts, Numbered, Theorem, Used, Rejected) :-
     findall(Index-Certificate,

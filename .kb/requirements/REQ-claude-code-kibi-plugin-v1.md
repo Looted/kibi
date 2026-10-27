@@ -8,41 +8,10 @@ tags:
   - hooks
   - progressive-disclosure
   - review:context-missing
-semantic_text: |-
-  The kibi-claude package must remain optional.
-
-  When kibi-claude is installed or enabled, it must not modify core Kibi runtime components.
-
-  When kibi-claude is enabled, it must expose a Claude Code plugin manifest.
-
-  When kibi-claude is enabled, it must expose bundled Kibi skills.
-
-  When kibi-claude is enabled, it must expose an MCP configuration.
-
-  When kibi-claude is enabled, it must expose advisory lifecycle hooks.
-
-  When the resolved project root does not own .kb/manifest.json, kibi-claude hooks must emit no output.
-
-  When the resolved project root does not own .kb/manifest.json, the kibi-claude MCP endpoint must expose no tools.
-
-  When the agent is about to read or edit a source file whose symbols are linked to requirements, kibi-claude hooks must add the linked requirement identifiers to the agent context.
-
-  kibi-claude hooks must add at most one knowledge snippet per file per session.
-
-  When a kibi-claude hook runs, it must not invoke the Kibi CLI or the Kibi engine.
-
-  When a kibi-claude hook runs, it must not deny a tool call.
-
-  At session stop, kibi-claude hooks must remind the agent at most once about each edited source file that lacks a later impact check.
-
-  Before an edit changes code that implements a current firm requirement, a kibi-claude hook may ask the person to confirm the tool call.
+semantic_text: The kibi-claude package must remain optional. When kibi-claude is installed or enabled, it must not modify core Kibi runtime components. When the resolved project root does not own .kb/manifest.json, kibi-claude hooks must emit no output. When the resolved project root does not own .kb/manifest.json, the kibi-claude MCP endpoint must expose no tools. When the agent is about to read or edit a source file whose symbols are linked to requirements, kibi-claude hooks must add the linked requirement identifiers to the agent context. kibi-claude hooks must add at most one knowledge snippet per file per session. When a kibi-claude hook runs, it must not invoke the Kibi CLI or the Kibi engine. When a kibi-claude hook runs, it must not deny a tool call. At session stop, kibi-claude hooks must remind the agent at most once about each edited source file that lacks a later impact check. Before an edit changes code that implements a current firm requirement, a kibi-claude hook may ask the person to confirm the tool call.
 logic_claims:
   - CLAIM-94B3A133D10BFB98
   - CLAIM-33E4D5BB01AD55FF
-  - CLAIM-1B4BDC604FA68207
-  - CLAIM-C7368A6EED6243C8
-  - CLAIM-DEE3AAAF4BEED03E
-  - CLAIM-14D90B7686DEB631
   - CLAIM-B0C7CD09A216CE9D
   - CLAIM-882BAB3F3C3572F9
   - CLAIM-86B85730B99AF0C9
@@ -59,163 +28,100 @@ semantic_inventory:
     span:
       start: 0
       end: 44
-    payload_hash: c9749c28760af9183536dcb790fafe4b6ff6e3f8d299164a8ec6d405d7a4b65b
   - claim_key: CLAIM-33E4D5BB01AD55FF
     claim_text: When kibi-claude is installed or enabled, it must not modify core Kibi runtime components
     role: condition
     status: modeled
     span:
-      start: 47
-      end: 136
-    payload_hash: c9749c28760af9183536dcb790fafe4b6ff6e3f8d299164a8ec6d405d7a4b65b
-  - claim_key: CLAIM-1B4BDC604FA68207
-    claim_text: When kibi-claude is enabled, it must expose a Claude Code plugin manifest
-    role: condition
-    status: modeled
-    span:
-      start: 139
-      end: 212
-    payload_hash: c9749c28760af9183536dcb790fafe4b6ff6e3f8d299164a8ec6d405d7a4b65b
-  - claim_key: CLAIM-C7368A6EED6243C8
-    claim_text: When kibi-claude is enabled, it must expose bundled Kibi skills
-    role: condition
-    status: modeled
-    span:
-      start: 215
-      end: 278
-    payload_hash: c9749c28760af9183536dcb790fafe4b6ff6e3f8d299164a8ec6d405d7a4b65b
-  - claim_key: CLAIM-DEE3AAAF4BEED03E
-    claim_text: When kibi-claude is enabled, it must expose an MCP configuration
-    role: condition
-    status: modeled
-    span:
-      start: 281
-      end: 345
-    payload_hash: c9749c28760af9183536dcb790fafe4b6ff6e3f8d299164a8ec6d405d7a4b65b
-  - claim_key: CLAIM-14D90B7686DEB631
-    claim_text: When kibi-claude is enabled, it must expose advisory lifecycle hooks
-    role: condition
-    status: modeled
-    span:
-      start: 348
-      end: 416
-    payload_hash: c9749c28760af9183536dcb790fafe4b6ff6e3f8d299164a8ec6d405d7a4b65b
+      start: 46
+      end: 135
   - claim_key: CLAIM-B0C7CD09A216CE9D
     claim_text: When the resolved project root does not own .kb/manifest.json, kibi-claude hooks must emit no output
     role: condition
     status: modeled
     span:
-      start: 419
-      end: 519
-    payload_hash: c9749c28760af9183536dcb790fafe4b6ff6e3f8d299164a8ec6d405d7a4b65b
+      start: 137
+      end: 237
   - claim_key: CLAIM-882BAB3F3C3572F9
     claim_text: When the resolved project root does not own .kb/manifest.json, the kibi-claude MCP endpoint must expose no tools
     role: condition
     status: modeled
     span:
-      start: 522
-      end: 634
-    payload_hash: c9749c28760af9183536dcb790fafe4b6ff6e3f8d299164a8ec6d405d7a4b65b
+      start: 239
+      end: 351
   - claim_key: CLAIM-86B85730B99AF0C9
     claim_text: When the agent is about to read or edit a source file whose symbols are linked to requirements, kibi-claude hooks must add the linked requirement identifiers to the agent context
     role: condition
     status: modeled
     span:
-      start: 637
-      end: 815
-    payload_hash: c9749c28760af9183536dcb790fafe4b6ff6e3f8d299164a8ec6d405d7a4b65b
+      start: 353
+      end: 531
   - claim_key: CLAIM-B8B9B523CCC37CE5
     claim_text: kibi-claude hooks must add at most one knowledge snippet per file per session
     role: normative
     status: modeled
     span:
-      start: 818
-      end: 895
-    payload_hash: c9749c28760af9183536dcb790fafe4b6ff6e3f8d299164a8ec6d405d7a4b65b
+      start: 533
+      end: 610
   - claim_key: CLAIM-7B062DA2D111C910
     claim_text: When a kibi-claude hook runs, it must not invoke the Kibi CLI or the Kibi engine
     role: condition
     status: modeled
     span:
-      start: 898
-      end: 978
-    payload_hash: c9749c28760af9183536dcb790fafe4b6ff6e3f8d299164a8ec6d405d7a4b65b
+      start: 612
+      end: 692
   - claim_key: CLAIM-EB2FC292489174F2
     claim_text: When a kibi-claude hook runs, it must not deny a tool call
     role: condition
     status: modeled
     span:
-      start: 981
-      end: 1039
-    payload_hash: c9749c28760af9183536dcb790fafe4b6ff6e3f8d299164a8ec6d405d7a4b65b
+      start: 694
+      end: 752
   - claim_key: CLAIM-6BD137F24FF5D674
     claim_text: At session stop, kibi-claude hooks must remind the agent at most once about each edited source file that lacks a later impact check
     role: normative
     status: modeled
     span:
-      start: 1042
-      end: 1173
-    payload_hash: c9749c28760af9183536dcb790fafe4b6ff6e3f8d299164a8ec6d405d7a4b65b
+      start: 754
+      end: 885
   - claim_key: CLAIM-4107EC64A4208A83
     claim_text: Before an edit changes code that implements a current firm requirement, a kibi-claude hook may ask the person to confirm the tool call
     role: normative
     status: modeled
     span:
-      start: 1176
-      end: 1310
+      start: 887
+      end: 1021
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: ca21e770fd2fbcc573bcaa0616d38131644aadde4422ddcf60103b5b7ff550aa
+semantic_source_hash: 6f145e88646a34e9a35f2145813910304b4cbcc551b69c593b79373d84ae4b60
 semantic_clauses:
-  - The kibi-claude package must remain optional
-  - When kibi-claude is installed or enabled, it must not modify core Kibi runtime components
-  - When kibi-claude is enabled, it must expose a Claude Code plugin manifest
-  - When kibi-claude is enabled, it must expose bundled Kibi skills
-  - When kibi-claude is enabled, it must expose an MCP configuration
-  - When kibi-claude is enabled, it must expose advisory lifecycle hooks
-  - When the resolved project root does not own .kb/manifest.json, kibi-claude hooks must emit no output
-  - When the resolved project root does not own .kb/manifest.json, the kibi-claude MCP endpoint must expose no tools
-  - When the agent is about to read or edit a source file whose symbols are linked to requirements, kibi-claude hooks must add the linked requirement identifiers to the agent context
-  - kibi-claude hooks must add at most one knowledge snippet per file per session
-  - When a kibi-claude hook runs, it must not invoke the Kibi CLI or the Kibi engine
-  - When a kibi-claude hook runs, it must not deny a tool call
-  - At session stop, kibi-claude hooks must remind the agent at most once about each edited source file that lacks a later impact check
-  - Before an edit changes code that implements a current firm requirement, a kibi-claude hook may ask the person to confirm the tool call
+  - The kibi-claude package must remain optional.
+  - When kibi-claude is installed or enabled, it must not modify core Kibi runtime components.
+  - When the resolved project root does not own .kb/manifest.json, kibi-claude hooks must emit no output.
+  - When the resolved project root does not own .kb/manifest.json, the kibi-claude MCP endpoint must expose no tools.
+  - When the agent is about to read or edit a source file whose symbols are linked to requirements, kibi-claude hooks must add the linked requirement identifiers to the agent context.
+  - kibi-claude hooks must add at most one knowledge snippet per file per session.
+  - When a kibi-claude hook runs, it must not invoke the Kibi CLI or the Kibi engine.
+  - When a kibi-claude hook runs, it must not deny a tool call.
+  - At session stop, kibi-claude hooks must remind the agent at most once about each edited source file that lacks a later impact check.
+  - Before an edit changes code that implements a current firm requirement, a kibi-claude hook may ask the person to confirm the tool call.
 id: REQ-claude-code-kibi-plugin-v1
 type: req
 origin:
-  kind: human
-  ref: 'Maintainer decision, 2026-10-14: a kibi-claude hook may ask the person to confirm an edit of code that implements a firm requirement; hooks still never deny a call.'
-  recorded_at: '2026-10-14T17:07:25Z'
+  kind: agent
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof."'
+  approved_by: maintainer
+  recorded_at: '2026-10-27T07:42:54.389Z'
+firmness: firm
 ---
-The kibi-claude package must remain optional.
+The kibi-claude package must remain optional. When kibi-claude is installed or enabled, it must not modify core Kibi runtime components. When the resolved project root does not own .kb/manifest.json, kibi-claude hooks must emit no output. When the resolved project root does not own .kb/manifest.json, the kibi-claude MCP endpoint must expose no tools. When the agent is about to read or edit a source file whose symbols are linked to requirements, kibi-claude hooks must add the linked requirement identifiers to the agent context. kibi-claude hooks must add at most one knowledge snippet per file per session. When a kibi-claude hook runs, it must not invoke the Kibi CLI or the Kibi engine. When a kibi-claude hook runs, it must not deny a tool call. At session stop, kibi-claude hooks must remind the agent at most once about each edited source file that lacks a later impact check. Before an edit changes code that implements a current firm requirement, a kibi-claude hook may ask the person to confirm the tool call.
 
-When kibi-claude is installed or enabled, it must not modify core Kibi runtime components.
+## Context
 
-When kibi-claude is enabled, it must expose a Claude Code plugin manifest.
-
-When kibi-claude is enabled, it must expose bundled Kibi skills.
-
-When kibi-claude is enabled, it must expose an MCP configuration.
-
-When kibi-claude is enabled, it must expose advisory lifecycle hooks.
-
-When the resolved project root does not own .kb/manifest.json, kibi-claude hooks must emit no output.
-
-When the resolved project root does not own .kb/manifest.json, the kibi-claude MCP endpoint must expose no tools.
-
-When the agent is about to read or edit a source file whose symbols are linked to requirements, kibi-claude hooks must add the linked requirement identifiers to the agent context.
-
-kibi-claude hooks must add at most one knowledge snippet per file per session.
-
-When a kibi-claude hook runs, it must not invoke the Kibi CLI or the Kibi engine.
-
-When a kibi-claude hook runs, it must not deny a tool call.
-
-At session stop, kibi-claude hooks must remind the agent at most once about each edited source file that lacks a later impact check.
-
-Before an edit changes code that implements a current firm requirement, a kibi-claude hook may ask the person to confirm the tool call.
+What the kibi-claude package ships (its manifest, skills, MCP configuration and lifecycle hooks) is stated in REQ-claude-plugin-package, where each claim is proved from the package files. This requirement keeps the runtime behaviour of the hooks and the MCP endpoint.
 
 ## Why this changed
 
 The maintainer decided on 2026-10-14 that the hooks should stop an agent before it changes code a firm requirement governs, not only describe the requirement. Asking the person to confirm the edit keeps the hooks from denying any call while putting the decision to the person at the moment the code would change.
+
+The packaging claims moved to REQ-claude-plugin-package on 2026-10-27 so that each one can be proved from the files the package publishes.

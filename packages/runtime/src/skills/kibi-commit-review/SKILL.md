@@ -1,8 +1,8 @@
 ---
 id: kibi-commit-review
 name: kibi-commit-review
-description: "Use when kibi check --staged or the Kibi pre-commit hook blocks a commit (kibi_impact_evidence_missing, symbols_manifest_stale, symbol_granularity_violation, symbol-coverage, kibi check-generated drift, Staged impact review failed), or when preparing a commit or pull-request impact review. Covers reading the per-file Detail lines, authoring .kb/symbols.yaml symbol entries through kb_upsert, kibi sync --refresh-symbol-coordinates, staging the tracked Kibi evidence with git add, kb_prepare_impact_review for a staged or diff scope, the kibi signoff requirements summary to show before a commit, and how merge commits and migration renames are judged."
-version: 1.2.2
+description: "Use when kibi check --staged or the Kibi pre-commit hook blocks a commit (kibi_impact_evidence_missing, symbols_manifest_stale, symbol_granularity_violation, symbol-coverage, kibi check-generated drift, Staged impact review failed), or when preparing a commit or pull-request impact review. Covers reading the per-file Detail lines, authoring .kb/symbols.yaml symbol entries through kb_upsert, staging the tracked Kibi evidence with git add (symbol coordinates are derived and never staged), kb_prepare_impact_review for a staged or diff scope, the kibi signoff requirements summary to show before a commit, and how merge commits and migration renames are judged."
+version: 1.3.0
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -55,17 +55,17 @@ Never read or open any file under `.kb`, not even read-only with a file tool to 
    - New or uncovered symbols: author a `symbol` entity per listed symbol
      through `kb_upsert` (`title` = the member the extractor names,
      `sourceFile`, `status: active`, `symbol_role: behavioral`, `implements`
-     to the requirement, `covered_by` to the test). Then run
-     `kibi sync --refresh-symbol-coordinates`.
-   - Only coordinates moved: `kibi sync --refresh-symbol-coordinates`.
+     to the requirement, `covered_by` to the test).
+   - Only lines moved: nothing to do. Symbol coordinates are derived locally
+     by every sync and never committed.
    - No behavior change (a genuine false positive): see the audited
      no-impact note in `resources/staged-gate.md`; it never covers a real
      behavior change.
 4. **Stage the evidence.** Kibi authors tracked files but never Git-stages or
    commits them. `git status --short .kb` lists what it wrote; `git add` the
-   entity Markdown, `.kb/relationships/` shards, `.kb/symbols.yaml` and
-   `.kb/symbol-coordinates.yaml` that belong to this change (use `git add -p`
-   when the files hold unrelated edits).
+   entity Markdown, `.kb/relationships/` shards and `.kb/symbols.yaml` that
+   belong to this change (use `git add -p` when the files hold unrelated
+   edits). `.kb/symbol-coordinates.yaml` is gitignored; never stage it.
 5. **Re-run** `kibi check --staged` (and `kibi check-generated --staged` when it
    failed) until it passes. Never bypass the hook (`--no-verify`) unless the
    person says so.

@@ -1,4 +1,6 @@
 import type { SemanticClaim } from "../../public/check-types.js";
+import { detectStrictSuggestion } from "../semantic-advisor/strict-rules.js";
+import type { SemanticStrictPropertyClaim } from "../semantic-advisor/types.js";
 import {
   buildFallbackClaim,
   extractHeuristicClaim,
@@ -15,6 +17,12 @@ import {
   normalizeText,
   stripListPrefix,
 } from "./requirement-utils.js";
+
+const SET_OPERATORS: ReadonlySet<string> = new Set([
+  "includes",
+  "subset_of",
+  "excludes",
+]);
 
 const NORMATIVE_SECTION_PATTERN = /\b(requirements?|polic(?:y|ies)|rules?)\b/i;
 
@@ -75,12 +83,22 @@ export function extractRequirementClaim(
         "Requirement modeling failed: subjectKey, propertyKey, operator, and value must all be provided when any extracted claim field is supplied",
       );
     }
+    const value = normalizeClaimValue(args.value);
+    const setOperator = SET_OPERATORS.has(args.operator);
+    if (setOperator && !Array.isArray(value))
+      throw new Error(
+        `Requirement modeling failed: operator ${args.operator} takes a set value (a list of strings)`,
+      );
+    if (Array.isArray(value) && !setOperator && args.operator !== "eq")
+      throw new Error(
+        `Requirement modeling failed: a set value takes operator eq, includes, subset_of or excludes, not ${args.operator}`,
+      );
     const claim: SemanticClaim = {
       source,
       subjectKey,
       propertyKey,
       operator: args.operator,
-      value: normalizeClaimValue(args.value),
+      value,
       confidence,
       ...(provenance ? { provenance } : {}),
     };
@@ -94,6 +112,13 @@ export function extractRequirementClaim(
     };
   }
 
+  // implements REQ-kibi-source-proof-kinds
+  // Set and pattern claims (every route uses a middleware, a state can never
+  // reach another, a format) take the advisor's strict shapes, so the fact is
+  // one a source, state_machine or regex proof can derive.
+  const strict = strictSetClaim(statement, source, confidence, provenance);
+  if (strict) return { statement, source, sourceFiles, ...strict };
+
   const heuristic = extractHeuristicClaim(
     statement,
     source,
@@ -106,5 +131,41 @@ export function extractRequirementClaim(
     source,
     sourceFiles,
     ...buildFallbackClaim(statement, source, confidence, provenance),
+  };
+}
+
+/** A set or pattern claim from the advisor's strict shapes, or null. */
+function strictSetClaim(
+  statement: string,
+  source: string,
+  confidence: number,
+  provenance: string | undefined,
+): ExtractedRequirementClaim | null {
+  const normalized = stripListPrefix(statement);
+  const suggestion = detectStrictSuggestion(
+    { semantic_text: normalized },
+    normalized,
+  );
+  if (suggestion?.kind !== "strict_property") return null;
+  const strict: SemanticStrictPropertyClaim = suggestion.claim;
+  const value =
+    strict.value_type === "set" && strict.value_set !== undefined
+      ? [...strict.value_set]
+      : strict.operator === "matches" && strict.value_string !== undefined
+        ? strict.value_string
+        : undefined;
+  if (value === undefined) return null;
+  return {
+    claim: {
+      source,
+      subjectKey: strict.subject_key,
+      propertyKey: strict.property_key,
+      operator: strict.operator as SemanticClaim["operator"],
+      value,
+      confidence,
+      ...(provenance ? { provenance } : {}),
+    },
+    extractionMode: "heuristic",
+    extractionWarnings: [],
   };
 }

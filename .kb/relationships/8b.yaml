@@ -377,3 +377,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2724905c942b
+  - type: validates
+    from: TEST-proof-codex-peer-dependencies
+    to: SCEN-codex-kibi-plugin-v1
+    created_at: 2026-10-27T07:49:25.014Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a7919727bf9

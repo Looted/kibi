@@ -120,25 +120,11 @@ relationships:
     id: rel-c0c0def4ff20
   - type: requires_rule
     from: REQ-impact-policy-stage-e-content-bound-review
-    to: FACT-RULE-098040AC7C39E841
-    created_at: 2026-09-27T17:29:57.514Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a411418b197a
-  - type: requires_rule
-    from: REQ-impact-policy-stage-e-content-bound-review
     to: FACT-RULE-15D61E3C996A067D
     created_at: 2026-09-27T17:29:57.539Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5f67cd4be47c
-  - type: requires_rule
-    from: REQ-impact-policy-stage-e-content-bound-review
-    to: FACT-RULE-1A11DEAAB3F57889
-    created_at: 2026-09-27T17:29:57.568Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c15187bc6b59
   - type: requires_rule
     from: REQ-impact-policy-stage-e-content-bound-review
     to: FACT-RULE-359964D359902E1D
@@ -223,13 +209,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1982fe4e0e04
-  - type: requires_rule
-    from: REQ-impact-policy-stage-e-content-bound-review
-    to: FACT-RULE-D234290865673C07
-    created_at: 2026-09-27T17:29:58.025Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-aee704310961
   - type: requires_rule
     from: REQ-impact-policy-stage-e-content-bound-review
     to: FACT-RULE-E85C9F57248B78E5
@@ -328,3 +307,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5c332f2f3ce6
+  - type: implements
+    from: SYM-bootstrap-near-restatement-jaccard
+    to: REQ-bootstrap-claim-restatement-threshold
+    created_at: 2026-10-27T08:06:09.469Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d76b1455b50

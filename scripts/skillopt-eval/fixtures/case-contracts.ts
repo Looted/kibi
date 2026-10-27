@@ -321,13 +321,13 @@ export const OBJECTIVE_CASE_CONTRACTS: Readonly<Record<string, CaseContract>> =
       ],
       forbiddenTools: ["kb_delete", "kb_apply_plan"],
     },
-    coordinate_refresh_only: {
+    coordinate_cache_staged: {
       fixtureSetup: "seeded_staged_coordinates_kb",
       requiredTools: ["kb_search", "kb_query"],
       requiredCalls: [SOURCE_LINKED_SEARCH, { tool: "kb_query" }],
       forbiddenTools: ["kb_upsert", "kb_delete", "kb_apply_plan"],
     },
-    refactor_refresh_only: {
+    refactor_cache_staged: {
       fixtureSetup: "seeded_staged_refactor_kb",
       requiredTools: ["kb_search", "kb_query"],
       requiredCalls: [SOURCE_LINKED_SEARCH, { tool: "kb_query" }],

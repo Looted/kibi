@@ -1,8 +1,8 @@
 # symbols.yaml
 # AUTHORED fields (edit freely):
 #   id, title, sourceFile, links, status, tags, owner, priority
-# Generated coordinates are stored separately in symbol-coordinates.yaml.
-# Run `kibi sync --refresh-symbol-coordinates` to refresh them.
+# Coordinates are derived from source by every `kibi sync` into the
+# gitignored symbol-coordinates.yaml; they are never authored or committed.
 #
 # Coordinate refresh granularity gate:
 #   The AST extractor locates per-declaration spans for code files. When it
@@ -2857,8 +2857,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-symbol-coordinates-derived-locally
       - type: implements
         target: REQ-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-symbol-coordinates-derived-locally
   - id: SYM-atomicPublish
     title: atomicPublish
     sourceFile: packages/cli/src/commands/sync/staging.ts
@@ -6121,6 +6125,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cursor-agent-plugin-v1
+      - type: implements
+        target: REQ-cursor-agent-plugin-package
       - type: implements
         target: REQ-cursor-agent-plugin-standard-v1
   - id: SYM-cursor-BOOTSTRAP_REMINDER
@@ -11036,6 +11042,8 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-schema6-migration-cli
+      - type: covered_by
+        target: TEST-symbol-coordinates-derived-locally
       - type: implements
         target: REQ-011
       - type: implements
@@ -11046,6 +11054,8 @@ symbols:
         target: REQ-cli-migration-first-commit
       - type: implements
         target: REQ-kibi-schema6-migration-v2
+      - type: implements
+        target: REQ-symbol-coordinates-derived-locally
   - id: SYM-mirrorSkillsDir
     title: mirrorSkillsDir
     sourceFile: scripts/sync-agent-skills.ts
@@ -14188,8 +14198,12 @@ symbols:
         target: TEST-cli-sync-discovery-readme-ignore
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-symbol-coordinates-derived-locally
       - type: implements
         target: REQ-core-extractors
+      - type: implements
+        target: REQ-symbol-coordinates-derived-locally
   - id: SYM-registerAllTools
     title: registerAllTools
     status: active
@@ -31051,6 +31065,8 @@ symbols:
       - type: implements
         target: REQ-cursor-kibi-plugin-v1
       - type: implements
+        target: REQ-cursor-plugin-package
+      - type: implements
         target: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
   - id: SYM-codex-packed-plugin-e2e
     title: packed Codex plugin consumer-local MCP registration
@@ -31690,6 +31706,8 @@ symbols:
         target: TEST-zcode-kibi-plugin-v1
       - type: implements
         target: REQ-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-plugin-package
   - id: SYM-kibi-predicate-suggestion-relevance-e2e
     title: predicate suggestion relevance e2e
     status: active
@@ -31875,6 +31893,8 @@ symbols:
         target: TEST-kibi-predicate-suggestion-relevance-v1
       - type: implements
         target: REQ-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-thresholds
   - id: 4fad501950207b0b
     title: STRONG_APPLICABILITY_SCORE
     sourceFile: packages/cli/src/operations/modeling/predicate-applicability.ts
@@ -31897,6 +31917,8 @@ symbols:
         target: TEST-kibi-predicate-suggestion-relevance-v1
       - type: implements
         target: REQ-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-kibi-predicate-suggestion-thresholds
   - id: 26e0fdf782563d2c
     title: aggregateBindingProvenance
     sourceFile: packages/cli/src/operations/modeling/predicate-bindings.ts
@@ -37460,16 +37482,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-cli-quality-diagnostics-contract
-  - id: SYM-quality-staged-parsedCoordinateOrNull
-    title: parsedCoordinateOrNull
-    sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
-    status: active
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-quality-staged-manifestRecordSourcePath
     title: manifestRecordSourcePath
     sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
@@ -37829,16 +37841,6 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
   - id: SYM-manifest-record-source-path
     title: manifestRecordSourcePath
-    status: active
-    sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
-  - id: SYM-parsed-coordinate-or-null
-    title: parsedCoordinateOrNull
     status: active
     sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
     granularity_reason: legacy-link
@@ -41329,8 +41331,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-004
+      - type: covered_by
+        target: TEST-symbol-coordinates-derived-locally
       - type: implements
         target: REQ-cli-check
+      - type: implements
+        target: REQ-symbol-coordinates-derived-locally
   - id: SYM-normalizeResultPayload
     title: normalizeResultPayload
     status: active
@@ -43995,20 +44001,6 @@ symbols:
     symbol_role: behavioral
     sourceFile: packages/cli/src/traceability/impact-evaluator.ts
     status: active
-    relationships:
-      - type: covered_by
-        target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
-  - id: SYM-impact-stage-e-createrevieweddecoratorcoordinateverifier
-    status: active
-    tags:
-      - multilingual
-      - impact-policy
-      - stage-e
-    sourceFile: packages/cli/src/traceability/reviewed-coordinate-refresh.ts
-    title: createReviewedDecoratorCoordinateVerifier
-    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-impact-policy-stage-e-installed-e2e
@@ -46875,6 +46867,8 @@ symbols:
         target: TEST-claude-code-kibi-plugin-v1
       - type: implements
         target: REQ-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-plugin-package
   - id: SYM-codex-mcp-launcher
     title: Codex MCP launcher (workspace-gated kibi-mcp proxy)
     status: active
@@ -46886,6 +46880,8 @@ symbols:
         target: TEST-codex-kibi-plugin-v1
       - type: implements
         target: REQ-codex-kibi-plugin-v1
+      - type: implements
+        target: REQ-codex-plugin-package
   - id: SYM-cursor-nextAncestorDirectory
     title: nextAncestorDirectory
     status: active
@@ -53996,6 +53992,8 @@ symbols:
         target: TEST-kibi-bootstrap-knowledge-sources
       - type: implements
         target: REQ-bootstrap-claim-restatement
+      - type: implements
+        target: REQ-bootstrap-claim-restatement-threshold
   - id: SYM-bootstrap-existing-requirement-type
     title: ExistingRequirement
     status: active
@@ -56983,7 +56981,7 @@ symbols:
       - proof
     origin:
       kind: agent
-      recorded_at: 2026-10-24T19:32:37.268Z
+      recorded_at: 2026-10-26T09:48:16.565Z
     relationships:
       - type: covered_by
         target: TEST-kibi-code-proof-kinds
@@ -56991,6 +56989,8 @@ symbols:
         target: TEST-kibi-code-proof-kinds-exhaustive
       - type: covered_by
         target: TEST-kibi-code-proof-kinds-typecheck
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds-rule
       - type: implements
         target: REQ-kibi-code-proof-kinds
   - id: SYM-cli-evidence-levels
@@ -57403,3 +57403,939 @@ symbols:
         target: TEST-kibi-claim-bound-proofs-exhaustive
       - type: implements
         target: REQ-kibi-claim-bound-proofs
+  - id: SYM-e2e-packed-non-numeric-proof-kinds
+    title: checkNonNumericProofKinds
+    status: active
+    sourceFile: documentation/tests/e2e/packed/non-numeric-proof-kinds.test.ts
+    symbol_role: behavioral
+    tags:
+      - e2e
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:47:55.836Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-non-numeric-proof-kinds
+  - id: SYM-test-non-numeric-proof-kinds-rule
+    title: nonNumericProofKindsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/non-numeric-proof-kinds.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - rule
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:48:03.222Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-non-numeric-proof-kinds-rule
+  - id: SYM-is-certificate-proof-kind
+    title: isCertificateProofKind
+    status: active
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:48:10.545Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds-rule
+      - type: implements
+        target: REQ-kibi-non-numeric-proof-kinds
+  - id: SYM-regular-language-equal
+    title: languagesEqual
+    status: active
+    sourceFile: packages/cli/src/operations/proof/regular-language.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:48:25.244Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds
+      - type: implements
+        target: REQ-kibi-non-numeric-proof-kinds
+  - id: SYM-regular-language-compile
+    title: compileLanguage
+    status: active
+    sourceFile: packages/cli/src/operations/proof/regular-language.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:48:33.455Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds
+      - type: implements
+        target: REQ-kibi-non-numeric-proof-kinds
+  - id: SYM-code-models-evaluate
+    title: evaluateCodeModel
+    status: active
+    sourceFile: packages/cli/src/operations/proof/code-models.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:48:41.696Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds
+      - type: implements
+        target: REQ-kibi-non-numeric-proof-kinds
+  - id: SYM-code-models-rule-certificate-problem
+    title: ruleCertificateProblem
+    status: active
+    sourceFile: packages/cli/src/operations/proof/code-models.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:48:50.522Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds
+      - type: implements
+        target: REQ-kibi-non-numeric-proof-kinds
+  - id: SYM-code-models-machine-certificate-problem
+    title: machineCertificateProblem
+    status: active
+    sourceFile: packages/cli/src/operations/proof/code-models.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:48:58.676Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds
+      - type: implements
+        target: REQ-kibi-non-numeric-proof-kinds
+  - id: SYM-code-models-pattern-certificate-problem
+    title: patternCertificateProblem
+    status: active
+    sourceFile: packages/cli/src/operations/proof/code-models.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:49:07.412Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds
+      - type: implements
+        target: REQ-kibi-non-numeric-proof-kinds
+  - id: SYM-code-models-string-constraint-problem
+    title: stringConstraintProblem
+    status: active
+    sourceFile: packages/cli/src/operations/proof/code-models.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:49:16.421Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds
+      - type: implements
+        target: REQ-kibi-non-numeric-proof-kinds
+  - id: SYM-claim-bindings-required-fields-witness
+    title: requiredFieldsWitness
+    status: active
+    sourceFile: packages/cli/src/operations/proof/claim-bindings.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:49:24.239Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds
+      - type: implements
+        target: REQ-kibi-non-numeric-proof-kinds
+  - id: SYM-proof-certificates-rule-certificate
+    title: ruleCertificate
+    status: active
+    sourceFile: packages/cli/src/public/proof-certificates.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:49:30.756Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds
+      - type: implements
+        target: REQ-kibi-non-numeric-proof-kinds
+  - id: SYM-proof-certificates-state-machine-certificate
+    title: stateMachineCertificate
+    status: active
+    sourceFile: packages/cli/src/public/proof-certificates.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:49:36.502Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds
+      - type: implements
+        target: REQ-kibi-non-numeric-proof-kinds
+  - id: SYM-proof-certificates-regex-certificate
+    title: regexCertificate
+    status: active
+    sourceFile: packages/cli/src/public/proof-certificates.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T09:49:41.952Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds
+      - type: implements
+        target: REQ-kibi-non-numeric-proof-kinds
+  - id: SYM-e2e-packed-cli-subdirectory-workspace
+    title: checkSubdirectoryWorkspace
+    status: active
+    sourceFile: documentation/tests/e2e/packed/cli-subdirectory-workspace.test.ts
+    symbol_role: behavioral
+    tags:
+      - e2e
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T13:32:51.211Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-subdirectory-workspace
+  - id: SYM-cli-resolve-workspace-cwd
+    title: resolveWorkspaceCwd
+    status: active
+    sourceFile: packages/cli/src/workspace-cwd.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T13:32:55.653Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-subdirectory-workspace
+      - type: implements
+        target: REQ-cli-subdirectory-workspace
+  - id: SYM-claim-bindings-required-fields-failures
+    title: requiredFieldsFailures
+    status: active
+    sourceFile: packages/cli/src/operations/proof/claim-bindings.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T13:42:04.949Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds
+      - type: implements
+        target: REQ-kibi-non-numeric-proof-kinds
+  - id: SYM-claim-bindings-receipt-evidence-level
+    title: receiptEvidenceLevel
+    status: active
+    sourceFile: packages/cli/src/operations/proof/claim-bindings.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T15:58:24.242Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-claim-bound-proofs
+      - type: implements
+        target: REQ-kibi-claim-bound-proofs
+  - id: SYM-cli-with-witness-diagnosis
+    title: withWitnessDiagnosis
+    status: active
+    sourceFile: packages/cli/src/operations/proof/code-certificates.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T15:58:28.949Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-code-proof-kinds
+      - type: implements
+        target: REQ-kibi-code-proof-kinds
+  - id: SYM-e2e-packed-source-proof-kinds
+    title: checkSourceProofKinds
+    status: active
+    sourceFile: documentation/tests/e2e/packed/source-proof-kinds.test.ts
+    symbol_role: behavioral
+    tags:
+      - e2e
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T17:38:51.431Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-source-proof-kinds
+  - id: SYM-test-source-proof-kinds-readers
+    title: sourceReadersCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/source-proof-kinds.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T17:38:54.807Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-source-proof-kinds-readers
+  - id: SYM-proof-sources-read-source
+    title: readSource
+    status: active
+    sourceFile: packages/cli/src/public/proof-sources.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T17:38:58.318Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-source-proof-kinds
+      - type: covered_by
+        target: TEST-kibi-source-proof-kinds-readers
+      - type: implements
+        target: REQ-kibi-source-proof-kinds
+  - id: SYM-code-certificates-complete-source-certificate
+    title: completeSourceCertificate
+    status: active
+    sourceFile: packages/cli/src/operations/proof/code-certificates.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T17:39:02.085Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-source-proof-kinds
+      - type: covered_by
+        target: TEST-kibi-source-proof-kinds-readers
+      - type: implements
+        target: REQ-kibi-source-proof-kinds
+  - id: SYM-source-code-readers-evaluate-source-code
+    title: evaluateSourceCode
+    status: active
+    sourceFile: packages/cli/src/operations/proof/source-code-readers.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T17:39:06.139Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-source-proof-kinds
+      - type: implements
+        target: REQ-kibi-source-proof-kinds
+  - id: SYM-code-scope-contract-sources
+    title: contractSources
+    status: active
+    sourceFile: packages/cli/src/operations/proof/code-scope.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T17:39:09.824Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-source-proof-kinds
+      - type: implements
+        target: REQ-kibi-source-proof-kinds
+  - id: SYM-strict-rules-detect-source-shape
+    title: detectSourceShape
+    status: active
+    sourceFile: packages/cli/src/operations/semantic-advisor/strict-rules.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-26T17:39:13.887Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-source-proof-kinds
+      - type: implements
+        target: REQ-kibi-source-proof-kinds
+  - id: SYM-untrackCoordinateArtifact
+    title: untrackCoordinateArtifact
+    status: active
+    sourceFile: packages/cli/src/operations/migration/untrack-symbol-coordinates.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T00:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-symbol-coordinates-derived-locally
+      - type: implements
+        target: REQ-symbol-coordinates-derived-locally
+  - id: SYM-isCoordinateArtifactTracked
+    title: isCoordinateArtifactTracked
+    status: active
+    sourceFile: packages/cli/src/operations/migration/untrack-symbol-coordinates.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T00:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-symbol-coordinates-derived-locally
+      - type: implements
+        target: REQ-symbol-coordinates-derived-locally
+  - id: SYM-test-derived-coordinates-parallel-merge
+    title: parallel edits to one source file merge cleanly and sync rebuilds the cache
+    status: active
+    sourceFile: packages/cli/tests/commands/derived-symbol-coordinates.test.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T00:00:00.000Z
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-symbol-coordinates-derived-locally
+  - id: SYM-test-derived-coordinates-staged-titles
+    title: the staged gate names the declarations the authored manifest does not cover
+    status: active
+    sourceFile: packages/cli/tests/commands/derived-symbol-coordinates.test.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T00:00:00.000Z
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-symbol-coordinates-derived-locally
+  - id: SYM-test-derived-coordinates-reject-staged-cache
+    title: check-generated rejects a commit that stages the coordinate cache
+    status: active
+    sourceFile: packages/cli/tests/commands/derived-symbol-coordinates.test.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T00:00:00.000Z
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-symbol-coordinates-derived-locally
+  - id: SYM-test-derived-coordinates-migrate-untracks
+    title: kibi migrate untracks a coordinate artifact an older schema committed
+    status: active
+    sourceFile: packages/cli/tests/commands/derived-symbol-coordinates.test.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T00:00:00.000Z
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-symbol-coordinates-derived-locally
+  - id: SYM-test-proof-entity-type-count
+    title: entityTypeCountCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/entity-schema.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:19:04.247Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-entity-type-count
+  - id: SYM-test-proof-entity-required-fields
+    title: entityRequiredFieldsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/entity-schema.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:19:15.420Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-entity-required-fields
+  - id: SYM-test-proof-entity-accepted-fields
+    title: entityAcceptedFieldsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/entity-schema.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:19:25.909Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-entity-accepted-fields
+  - id: SYM-proof-zcode-manifest-fields
+    title: zcodeManifestFieldsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/zcode-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:27:17.055Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-zcode-manifest-fields
+  - id: SYM-proof-zcode-commands
+    title: zcodeCommandsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/zcode-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:27:27.217Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-zcode-commands
+  - id: SYM-proof-zcode-skills
+    title: zcodeSkillsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/zcode-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:27:37.766Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-zcode-skills
+  - id: SYM-proof-zcode-mcp-launcher
+    title: zcodeMcpLauncherCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/zcode-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:27:47.749Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-zcode-mcp-launcher
+  - id: SYM-proof-zcode-lifecycle-hooks
+    title: zcodeLifecycleHooksCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/zcode-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:27:58.129Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-zcode-lifecycle-hooks
+  - id: SYM-proof-claude-published-parts
+    title: claudePublishedPartsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/claude-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:43:30.195Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-claude-published-parts
+  - id: SYM-proof-claude-skills
+    title: claudeSkillsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/claude-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:43:40.415Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-claude-skills
+  - id: SYM-proof-claude-mcp-launcher
+    title: claudeMcpLauncherCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/claude-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:43:50.783Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-claude-mcp-launcher
+  - id: SYM-proof-claude-lifecycle-hooks
+    title: claudeLifecycleHooksCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/claude-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:44:01.265Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-claude-lifecycle-hooks
+  - id: SYM-proof-codex-published-parts
+    title: codexPublishedPartsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/codex-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:48:48.989Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-codex-published-parts
+  - id: SYM-proof-codex-manifest-fields
+    title: codexManifestFieldsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/codex-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:48:58.674Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-codex-manifest-fields
+  - id: SYM-proof-codex-skills
+    title: codexSkillsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/codex-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:49:08.334Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-codex-skills
+  - id: SYM-proof-codex-lifecycle-hooks
+    title: codexLifecycleHooksCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/codex-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:49:18.199Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-codex-lifecycle-hooks
+  - id: SYM-proof-codex-peer-dependencies
+    title: codexPeerDependenciesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/codex-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:49:28.112Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-codex-peer-dependencies
+  - id: SYM-proof-cursor-published-parts
+    title: cursorPublishedPartsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:52:33.084Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-cursor-published-parts
+  - id: SYM-proof-cursor-manifest-fields
+    title: cursorManifestFieldsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:52:43.745Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-cursor-manifest-fields
+  - id: SYM-proof-cursor-skills
+    title: cursorSkillsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:52:54.659Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-cursor-skills
+  - id: SYM-proof-cursor-rules
+    title: cursorRulesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:53:05.481Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-cursor-rules
+  - id: SYM-proof-cursor-commands
+    title: cursorCommandsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:53:15.838Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-cursor-commands
+  - id: SYM-proof-cursor-mcp-launcher
+    title: cursorMcpLauncherCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:53:25.727Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-cursor-mcp-launcher
+  - id: SYM-proof-cursor-lifecycle-hooks
+    title: cursorLifecycleHooksCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:53:35.464Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-cursor-lifecycle-hooks
+  - id: SYM-proof-cursor-peer-dependencies
+    title: cursorPeerDependenciesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:53:45.485Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-cursor-peer-dependencies
+  - id: SYM-proof-cursor-agent-plugin-published
+    title: agentPluginPublishedCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:57:10.226Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-cursor-agent-plugin-published
+  - id: SYM-proof-cursor-agent-plugin-plugin-schema
+    title: agentPluginManifestSchemaCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:57:21.004Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-cursor-agent-plugin-plugin-schema
+  - id: SYM-proof-cursor-agent-plugin-plugin-fields
+    title: agentPluginManifestFieldsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:57:31.874Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-cursor-agent-plugin-plugin-fields
+  - id: SYM-proof-cursor-agent-plugin-skills
+    title: agentPluginSkillsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:57:43.283Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-cursor-agent-plugin-skills
+  - id: SYM-proof-cursor-agent-plugin-mcp-schema
+    title: agentPluginMcpSchemaCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:57:53.648Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-cursor-agent-plugin-mcp-schema
+  - id: SYM-proof-cursor-agent-plugin-mcp-fields
+    title: agentPluginMcpFieldsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/cursor-agent-plugin.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T07:58:03.020Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-cursor-agent-plugin-mcp-fields
+  - id: SYM-proof-applicability-threshold
+    title: applicabilityThresholdCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/numeric-thresholds.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T08:05:24.279Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-applicability-threshold
+  - id: SYM-proof-weak-candidate-margin
+    title: weakCandidateMarginCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/numeric-thresholds.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T08:05:34.055Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-weak-candidate-margin
+  - id: SYM-proof-near-restatement-jaccard
+    title: nearRestatementJaccardCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/numeric-thresholds.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T08:06:15.769Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-near-restatement-jaccard

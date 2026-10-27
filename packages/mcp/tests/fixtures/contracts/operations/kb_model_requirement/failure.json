@@ -48,8 +48,21 @@
           "type": "object"
         },
         "operator": {
-          "description": "Optional extracted semantic claim operator. Use gt/lt for strict bounds ('greater than zero' is gt 0, not gte 0). Example: 'eq'.",
-          "enum": ["eq", "gt", "gte", "lt", "lte", "neq", "bool", "polarity"],
+          "description": "Optional extracted semantic claim operator. Use gt/lt for strict bounds ('greater than zero' is gt 0, not gte 0). A set claim takes a list value with eq (exactly these), includes (at least these), subset_of (only these) or excludes (none of these); matches takes a regular expression string. Example: 'eq'.",
+          "enum": [
+            "eq",
+            "gt",
+            "gte",
+            "lt",
+            "lte",
+            "neq",
+            "bool",
+            "polarity",
+            "matches",
+            "includes",
+            "subset_of",
+            "excludes"
+          ],
           "type": "string"
         },
         "propertyKey": {
@@ -84,7 +97,25 @@
           "type": "string"
         },
         "value": {
-          "description": "Optional extracted semantic claim value. Accepts string, number, or boolean."
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ],
+          "description": "Optional extracted semantic claim value: a string, number or boolean, or a list of strings for a set claim. Example: ['requireAuth'] with operator includes."
         },
         "workspaceRoot": {
           "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",

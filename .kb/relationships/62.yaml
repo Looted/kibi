@@ -321,3 +321,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7d73dafbc6a4
+  - type: implements
+    from: SYM-proof-certificates-state-machine-certificate
+    to: REQ-kibi-non-numeric-proof-kinds
+    created_at: 2026-10-26T09:49:37.825Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e593f782cf55
+  - type: covered_by
+    from: SYM-proof-certificates-state-machine-certificate
+    to: TEST-kibi-non-numeric-proof-kinds
+    created_at: 2026-10-26T09:49:37.860Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82ca2e8ae92f
+  - type: executable_for
+    from: SYM-proof-codex-lifecycle-hooks
+    to: TEST-proof-codex-lifecycle-hooks
+    created_at: 2026-10-27T07:49:20.016Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a4717d3fc52

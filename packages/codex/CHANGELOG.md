@@ -1,5 +1,101 @@
 # kibi-codex
 
+## 2.8.6
+
+### Patch Changes
+
+- 90e1657: Source proofs no longer prove false claims about module paths, routes and file captures, and they read real projects' schemas, validators and middleware.
+
+  Fixed, where a false claim could be proved:
+  - Set fact members that contain a slash (`rxjs/operators`, `node:fs/promises`, `GET /api/users`, `finance/de`) were cut to their last path segment before Kibi compared them, so "the app must never import rxjs/operators" could prove while the app imported it. Members are now compared whole.
+  - The environment extractor now reads through `as`, `<T>` and `satisfies` casts, so `(import.meta as X).env.FOO` is read and an environment object (or `import.meta` itself) handed to a variable fails the read instead of hiding later reads.
+  - A glob that matches no file, and SQL migrations with no `CREATE TABLE`, now fail the read, so a mistyped pattern cannot decide a `subset_of` or `excludes` fact over an empty set.
+  - A `required_fields` or `nullable_fields` fact with `subset_of` or `excludes` is refused with a reason instead of being compared with whatever members the contract selected.
+
+  Readers:
+  - The SQL migration replay reads quoted and schema-qualified names (`"public"."messages"`), several actions per `ALTER TABLE`, `ADD PRIMARY KEY` and `DROP CONSTRAINT` of a foreign key, keeps `$$` function bodies whole, and skips actions that change no column, nullability or foreign key (row level security, triggers, ownership, defaults, column types). Supabase migration folders now read.
+  - The validator reader reads valibot objects, and any field that is a Standard Schema.
+  - `names_from` names middleware that a zero-argument factory export makes (`requireAuthentication()`) after the factory.
+  - The `thrown` extractor reads `throw createX()` as `createX`.
+  - A glob `capture` with `**` reads `finance/de` instead of `finance/de/`.
+  - A source read's dependencies follow tsconfig `extends` and workspace packages linked into `node_modules`, so a change in a sibling package stales the receipt.
+  - A claim a source proof derives is bound with the new scope `source`.
+
+  Modeling:
+  - "Every X must have Y" becomes a `required_fields` fact only when the sentence names a schema (a table, object, model and similar, or the words field, column or property), so "Every organization must have an owner" stays a behavioural claim.
+  - "A member can never become owner" models `member->owner` (the article was read as the state), and the machine may go unnamed.
+  - Scoped package names (`@supabase/supabase-js`), "must be exactly A and B" sets and "at least 30 routes under /api/orgs" counts are recognised.
+  - `kb_model` in requirement mode accepts the `includes`, `subset_of`, `excludes` and `matches` operators and a list `value` for set facts.
+
+  The kibi-usage skill (2.32.0) and the proof guide describe the reader details, the empty-read rule and the minimum kibi-cli for the certificate builders.
+
+## 2.8.5
+
+### Patch Changes
+
+- c118085: Formal proofs now reach the claims real services make about their routes, database schemas, configuration and code. A new `source` certificate proof kind lets Kibi read a project source itself and check a set fact against what it read, so the test only has to run:
+  - `json` and `yaml` read keys, values or items at a path; `glob` reads matching files (or what each `*` matched); `openapi` reads operations, unsecured operations, security schemes or responses.
+  - `references` reads environment variables, imports, calls, string arguments, thrown errors or property accesses from TypeScript, JavaScript and Python files. A member Kibi cannot read statically, such as a computed environment variable name, fails the read with its location instead of leaving it out.
+  - `schema` reads tables, columns, required or nullable columns and foreign keys from Drizzle, Prisma or SQL migrations.
+  - `routes` reads a Hono or Express app's routes and the middleware each route runs, including mounted routers.
+  - `validator` reads a zod or pydantic schema's fields, required fields or optional fields.
+
+  A receipt for a source proof goes stale when any file the read touched changes.
+
+  Set facts gain the `subset_of` ("must be one of") and `excludes` ("must never use") operators alongside `eq` and `includes`. Field claims (`required_fields`, `nullable_fields`) accept `table.field` members, and a `middleware` fact with `includes` requires every matching route to run the listed middleware.
+
+  State machine proofs decide temporal claims: a `reachable_pairs` fact with `excludes` ("a cancelled invoice can never become paid") and a `required_waypoints` fact ("every path from draft to paid must pass through approved"). Every machine projection accepts the four set operators.
+
+  A `rule` contract can take a domain from a project source, and a predicate with `harness_for: [SYM-...]` proves its claim at the new `harness` scope when the predicate is a test harness that drives real code. `value_source` accepts `{source, measure: count}`.
+
+  The semantic advisor and `kibi model` turn these sentence shapes into the matching facts. `kibi-cli/proof-certificates` adds `sourceCertificate` and `readProjectSource`.
+
+  The kibi-usage skill (2.31.0) explains the new kind and operators. kibi-traceability (2.3.0) lists every certificate kind that reaches proved and the code or harness scope it needs, kibi-freshness (2.3.0) says a changed file a source proof read also leaves its receipt pending re-proof, and kibi-decisions (1.4.0) says a firm rule a certificate kind can check is proved by a certificate test.
+
+## 2.8.4
+
+### Patch Changes
+
+- 4d55860: Claim-bound proofs are easier to adopt on an existing project.
+  - A count claim over a collection reads the collection itself: a `value_source` entry with `measure: count` uses the size of a list, set, map or object export, so "exactly 32 tools" no longer needs a number export added beside the list just for the proof.
+  - `kibi migrate`'s claim-binding reviews now list every modeled claim the test reaches through its scenarios, with the binding a certificate of its kind would get (provable, attested only, or why the kind cannot express the fact), instead of an empty list when no claim was provable as modeled.
+  - The semantic advisor models "every member of S has P" requirements as a set fact named for P whose value is S, so the property stays in the requirement instead of only in the test.
+
+  Deleting an `implements` relationship now also removes the target from a symbol's legacy `links:` list in `symbols.yaml` (dropping the list when it empties), so the deleted edge no longer comes back on the next `kibi sync --rebuild`.
+
+  The kibi-usage skill (2.28.0) explains count measures and every-member claims.
+
+- 42566ee: Formal proofs now reach claims that are not numbers. Three new certificate proof kinds read their model from the code and decide the claim exactly:
+  - `rule`: Kibi calls the code's predicate functions (`predicate_source`) on every combination of the finite domains the code exports (`domains`) and model checks the claim's fact against that table. A `kibi.logic.v1` rule must hold for every assignment of its variables, a predicate fact (including decision predicates such as `permission_rule`) must be decided as it says, and a set fact whose property names a predicate needs it to hold for every member. A failure names the assignment that breaks the rule.
+  - `state_machine`: Kibi reads a transition table or a `next(state, event)` function and checks the transitions, states, initial, terminal or reachable states a set fact names, exactly. Rules over a machine can use `transition`, `reachable`, `initial`, `terminal` and `state`.
+  - `regex`: Kibi decides whether the code's pattern (a JavaScript `RegExp` or a Python `re.compile`) accepts exactly the strings a fact's pattern describes, with each engine's own semantics for anchors, `.`, `\d` and case folding, and reports the shortest string only one side accepts. Patterns outside the regular subset (backreferences, lookaround, word boundaries and similar) are refused with the reason. A string constant is checked against an exact string fact the same way.
+
+  String facts gain the `matches` operator, and the semantic advisor models "X must match `re`", "X must be `value`" and "X transitions must be one of a -> b, ..." (and terminal, initial or reachable states) as facts these kinds prove. A `typecheck` proof of a set fact with `property_key: required_fields` checks that every member is a required, non-nullable field of the domain type. `kibi-cli/proof-certificates` adds `ruleCertificate`, `stateMachineCertificate`, `regexCertificate` and `failedCalls`.
+
+  The kibi-usage skill (2.29.0) explains the new kinds.
+
+- 4f06fd5: The kibi-usage skill (2.27.1) now links the full proof reference to its published page, https://looted.github.io/kibi/reference/proving.html, instead of a repository path that does not exist in the projects using Kibi.
+- 03197d8: The kibi-usage skill (2.29.3) lists all seven certificate proof kinds (`exhaustive`, `typecheck`, `arithmetic`, `smt`, `rule`, `state_machine` and `regex`) where it explains which tests reach `proved`.
+- c99f89b: Fixes for the certificate proof kinds and for running Kibi from inside a repository:
+  - `kibi` run from a subdirectory of a Kibi workspace now uses the workspace's knowledge base (the nearest enclosing `.kb/manifest.json`), the way git finds its repository. Before, it compiled a second, empty branch store in the subdirectory, so queries returned nothing and `kibi prove` reported no proof integration. Relative `--input`, `--output`, `--certificates` and `--write-certificates` paths still resolve from where the command was typed. `kibi init` and an explicit `KIBI_WORKSPACE` keep the current directory.
+  - A receipt whose certificate re-checks but derives none of the claims it names now records `evidence_level: tested`, the level coverage reports, instead of `proved`. The same holds for the `kibi prove` result rows.
+  - Kibi compiles typecheck witnesses with the import resolution of the nearest `tsconfig.json` (`module`, `moduleResolution`, `paths` and similar), while the checking options stay fixed and strict. A project that resolves like a bundler no longer needs `.js` extensions in witness imports.
+  - TypeScript is loaded from the package nearest the witness first. TypeScript 7, which ships without the compiler API, is skipped for an older install further up, and named in the rejection when there is none ("add typescript@6 as a dev dependency"), instead of being reported as missing.
+  - A rejected `required_fields` claim names each field that breaks it ("deletedAt is optional or nullable", "x is not a field"), also when the test's own witness failed to compile.
+  - A rejected arithmetic certificate, including a `measure: count` claim, names a value that satisfies the assumptions and breaks the claim ("count = 5 satisfies them and breaks it").
+  - The typecheck exhaustiveness check reads the witness's syntax tree: a `never` type or a `satisfies` map counts, the word "never" in a comment does not. It now applies only to contracts without `proves`; with `proves`, Kibi checks each claim with its own witness.
+  - Set facts gain the `includes` operator for "every member of the set has the property" claims, which the semantic advisor now proposes. Two `includes` facts on the same property never contradict, and one contradicts an `eq` set only when it names a member the `eq` set leaves out. Before, "every role in owner and admin can invite" and "every role in owner, admin and member can invite" were refused as a value conflict. The KB consistency certificates model `includes` as containment.
+
+  The kibi-usage skill (2.29.1) describes the `includes` operator and the typecheck changes.
+
+- bcbeebe: Follow-up fixes for the certificate proof kinds:
+  - A `rule` certificate now derives an `includes` set fact ("every role in owner and admin can invite"), checking the property on each listed member, so a true every-member claim reaches `proved`. Before, an `includes` fact was never read as a set and every binding to it was only attested. A `typecheck` certificate derives an `includes` fact on `required_fields`; the kinds that compare the whole set (`exhaustive`, a set-equality `typecheck`, `state_machine`) reject one, since they would read "at least these" as "exactly these".
+  - An arithmetic certificate whose assumptions contradict each other, such as a code count of 5 against a fact of exactly 4, is rejected with both values ("the assumptions contradict each other (count = 4 and count = 5) ...") instead of "the claim holds vacuously".
+  - A typecheck certificate whose own compile failed is rejected with the first error Kibi's compile of the witness reports, or with a note that Kibi's compile accepts it, instead of only "the type checker did not accept the witness". The declaration files the nearest `tsconfig.json` includes (a `reset.d.ts`, for example) are now part of the witness program.
+  - A receipt whose only derived claims are intent-scope (derived from the knowledge base's facts, with no value read from the code) records `evidence_level: tested`, the level coverage reports, instead of `proved`.
+
+  The kibi-usage skill (2.29.2) describes these and how to wire a count claim.
+
 ## 2.8.3
 
 ### Patch Changes

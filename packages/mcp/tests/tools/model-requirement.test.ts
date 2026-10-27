@@ -257,7 +257,7 @@ describe("kb_model_requirement", () => {
         operator: "eq",
         value: { years: 7 },
       }),
-    ).toThrow(/value must be a string, number, or boolean/);
+    ).toThrow(/value must be a string, number, boolean, or a list of strings/);
 
     const extracted = extractRequirementClaim({
       text: "Customer data must be retained for 7 years.",

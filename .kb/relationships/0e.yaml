@@ -412,3 +412,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ba87445fbf7f
+  - type: executable_for
+    from: SYM-proof-near-restatement-jaccard
+    to: TEST-proof-near-restatement-jaccard
+    created_at: 2026-10-27T08:06:17.388Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b02b0aadf272

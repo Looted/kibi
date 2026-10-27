@@ -74,7 +74,7 @@ export function proofContractClaimViolations(
     suggestion:
       issue.claim_key === undefined
         ? `Add proof_contract.proves to ${issue.test_id} with the claim keys (CLAIM-...) of the requirement its certificate establishes; kibi proof explain on the requirement lists its claims.`
-        : `Name a modeled claim of a requirement ${issue.test_id} reaches through its scenarios, grounded by a fact this proof kind can express (a set fact for exhaustive or typecheck, a numeric fact for arithmetic or smt), or remove ${issue.claim_key} from proves.`,
+        : `Name a modeled claim of a requirement ${issue.test_id} reaches through its scenarios, grounded by a fact this proof kind can express (a set fact for exhaustive or typecheck, a numeric fact for arithmetic or smt, a rule, predicate or set fact for rule or state_machine, a string fact for regex), or remove ${issue.claim_key} from proves.`,
     evidence: {
       testId: issue.test_id,
       ...(issue.claim_key === undefined ? {} : { claimKey: issue.claim_key }),

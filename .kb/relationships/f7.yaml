@@ -223,3 +223,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-32836da08f40
+  - type: implements
+    from: SYM-cli-resolve-workspace-cwd
+    to: REQ-cli-subdirectory-workspace
+    created_at: 2026-10-26T13:32:56.660Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ffc08a741552
+  - type: covered_by
+    from: SYM-cli-resolve-workspace-cwd
+    to: TEST-cli-subdirectory-workspace
+    created_at: 2026-10-26T13:32:56.681Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4baf0396e17

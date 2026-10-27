@@ -272,3 +272,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e22717caab5f
+  - type: requires_property
+    from: REQ-kibi-predicate-suggestion-thresholds
+    to: FACT-PROP-6CB6EAF6F48DC108
+    created_at: 2026-10-27T08:04:57.916Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d660bcf01f2
+  - type: requires_property
+    from: REQ-kibi-predicate-suggestion-thresholds
+    to: FACT-PROP-60F32F10D6BCB433
+    created_at: 2026-10-27T08:04:57.962Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60c1e712c618
+  - type: specified_by
+    from: REQ-kibi-predicate-suggestion-thresholds
+    to: SCEN-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-10-27T08:04:57.997Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df05236e9b2b
+  - type: constrains
+    from: REQ-kibi-predicate-suggestion-thresholds
+    to: FACT-SUBJECT-79C92ADA34274409
+    created_at: 2026-10-27T08:08:13.141Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3546ee4a357c

@@ -20,7 +20,7 @@ proof_contract:
   witness:
     path: packages/cli/tests/proofs/witness/proof-kind-levels.ts
   proves:
-    - CLAIM-296F27003E43BA8A
+    - CLAIM-AEDC5DE05A243DB4
 origin:
   kind: agent
   recorded_at: '2026-10-24T19:31:49.356Z'
@@ -28,20 +28,20 @@ id: TEST-kibi-code-proof-kinds-typecheck
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-68528343c27e113e2de6f3ec
+    receipt_id: PR-e32e1ce73b2816db3709a94b
     test_id: TEST-kibi-code-proof-kinds-typecheck
     scope: unit
     outcome: passed
-    code_snapshot: 88f72ac7863bc053137ae0fbd6e7ea179d4fbf9dd5cb363152f2b4fc11739754
+    code_snapshot: e7ef7119bcc90f0b8409339ad2246d8e19fdffcaa2429ca3ccda3a5b7dc8f4b1
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-25T18:53:46.427Z'
-    finished_at: '2026-10-25T18:53:47.327Z'
-    artifact_digest: dd68699b4690c5db850cd19455bbe328bf396e45404f047939800f8dd18c4b82
-    contract_hash: 066bcf205dfce6c11fe820ddfbfd1d0514564cabda4efe15eac7b5c860e2490e
-    binding_hash: b1ef752eb8676f5cda48b3e3b7a1a1496e69d7d15e7cfd9235fc3565d5fd479d
-    fingerprint: f124203071181b24f097f8f21a34358d792b1e67a5b8aea14b84daa3afb1bd63
+    started_at: '2026-10-27T08:01:07.365Z'
+    finished_at: '2026-10-27T08:01:10.872Z'
+    artifact_digest: 7ad59d1e8e946a4ce3376438eb1d87a3372223cbdf4c85eedc66d1c8f9da03af
+    contract_hash: 5c5e6c891cebfed5cdaf90f417f85bc2be49c0b2b98c573d3a68e394e3fe5df2
+    binding_hash: bb2b099a2e7ece519c7621e44a19fa1a1f9c12fe523382da059218ba74649e18
+    fingerprint: 7b0d3807f8988e88403ec7d1583505fa629f273b63a58bc586447875e8b6832c
     fingerprint_components:
-      contract: 066bcf205dfce6c11fe820ddfbfd1d0514564cabda4efe15eac7b5c860e2490e
+      contract: 5c5e6c891cebfed5cdaf90f417f85bc2be49c0b2b98c573d3a68e394e3fe5df2
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -70,14 +70,14 @@ proof_receipts:
         symbol_id: SYM-proof-kinds
       witness:
         path: packages/cli/tests/proofs/witness/proof-kind-levels.ts
-        sha256: 494b8c49703159b97ca5e60dc885810fbcb73855ba9d081c9b4a2e8d39527afa
+        sha256: c2a5b3a9bd3136ab98fb80d43b6f84baaa569f907b206cd033bd803546326d93
       compiler:
         name: tsc
         version: 5.9.3
       outcome: passed
-    certificate_digest: 1a4875180506dc597f961bc6d0fd5106b734d2ec3f83ca667d55aae64a3c4b9f
+    certificate_digest: 2cd3ada745a61a77a6a5685aaa6a2df7860909e3c461aa0714606be14edb1c4c
     claim_bindings:
-      - claim_key: CLAIM-296F27003E43BA8A
+      - claim_key: CLAIM-AEDC5DE05A243DB4
         requirement_id: REQ-kibi-code-proof-kinds
         fact_id: FACT-kibi-code-proof-kind-vocabulary-closed
         binding: derived
@@ -90,7 +90,11 @@ proof_receipts:
             - example
             - exhaustive
             - property
+            - regex
+            - rule
             - smt
+            - source
+            - state_machine
             - typecheck
 ---
 Compiles the proof-kind witness with the TypeScript compiler in strict mode: a map over PROOF_KINDS and a switch ending in a never check, so a new proof kind without an evidence level fails to compile; the run leaves a typecheck certificate naming the witness hash and compiler version.

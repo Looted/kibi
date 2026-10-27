@@ -1,7 +1,11 @@
 import { afterAll, describe, expect, test } from "bun:test";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { withProofContractProves } from "../../src/operations/migration/proof-contract-claims.js";
+import {
+  claimReviewInstruction,
+  planProofContractClaimPins,
+  withProofContractProves,
+} from "../../src/operations/migration/proof-contract-claims.js";
 import { setEqualityWitness } from "../../src/operations/proof/claim-bindings.js";
 import { compileWitness } from "../../src/operations/proof/code-certificates.js";
 import { proofContractClaimViolations } from "../../src/public/operations/proof-contract-claims.js";
@@ -157,5 +161,66 @@ describe("schema 12 migration", () => {
         ["CLAIM-ABC"],
       ),
     ).toBeNull();
+  });
+});
+
+describe("schema 12 claim review", () => {
+  const workspace = path.join(scratch, "review-workspace");
+  mkdirSync(path.join(workspace, ".kb", "tests"), { recursive: true });
+  const testDocument = (id: string) =>
+    [
+      "---",
+      `id: ${id}`,
+      "title: Colors",
+      "proof_contract:",
+      "  version: kibi.proof-contract.v1",
+      "  kind: exhaustive",
+      "  domain_source:",
+      "    symbol_id: SYM-COLORS",
+      "type: test",
+      "---",
+      "Body.",
+      "",
+    ].join("\n");
+  for (const id of ["TEST-PIN", "TEST-ATTESTED"])
+    writeFileSync(
+      path.join(workspace, ".kb", "tests", `${id}.md`),
+      testDocument(id),
+    );
+  const claim = (key: string, binding: "derived" | "attested") => ({
+    claim_key: key,
+    requirement_id: "REQ-COLORS",
+    fact_id: `FACT-${key}`,
+    binding,
+  });
+
+  test("pins the one derived claim and lists every reached claim for review", () => {
+    const plan = planProofContractClaimPins(workspace, [
+      {
+        test_id: "TEST-PIN",
+        kind: "exhaustive",
+        candidates: [
+          claim("CLAIM-SET", "derived"),
+          claim("CLAIM-RENDERS", "attested"),
+        ],
+      },
+      {
+        test_id: "TEST-ATTESTED",
+        kind: "exhaustive",
+        candidates: [claim("CLAIM-RENDERS", "attested")],
+      },
+    ]);
+    expect(plan.targets.map((target) => target.id)).toEqual(["TEST-PIN"]);
+    expect(plan.targets[0]?.after).toContain("  proves:\n    - CLAIM-SET\n");
+    expect(plan.review.map((row) => row.id)).toEqual(["TEST-ATTESTED"]);
+    const [row] = plan.review;
+    if (!row) throw new Error("expected a review row");
+    const instruction = claimReviewInstruction(row);
+    expect(instruction).toContain(
+      "CLAIM-RENDERS (REQ-COLORS, FACT-CLAIM-RENDERS): attested only",
+    );
+    expect(instruction).toContain(
+      "model that claim's grounding fact as a set fact",
+    );
   });
 });

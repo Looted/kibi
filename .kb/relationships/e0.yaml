@@ -339,3 +339,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f6c33aec7957
+  - type: executable_for
+    from: SYM-proof-zcode-lifecycle-hooks
+    to: TEST-proof-zcode-lifecycle-hooks
+    created_at: 2026-10-27T07:27:59.945Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c6b04756311

@@ -42,7 +42,20 @@ export function clampConfidence(confidence: number | undefined): number {
 }
 
 // implements REQ-002
-export function normalizeClaimValue(value: unknown): string | number | boolean {
+export function normalizeClaimValue(
+  value: unknown,
+): string | number | boolean | readonly string[] {
+  // implements REQ-kibi-source-proof-kinds
+  if (Array.isArray(value)) {
+    const members = value.map((member) =>
+      typeof member === "string" ? member.trim() : "",
+    );
+    if (members.length === 0 || members.some((member) => member === ""))
+      throw new Error(
+        "Requirement modeling failed: a set value must be a non-empty list of non-empty strings",
+      );
+    return [...new Set(members)].sort();
+  }
   if (
     typeof value === "string" ||
     typeof value === "number" ||
@@ -56,7 +69,7 @@ export function normalizeClaimValue(value: unknown): string | number | boolean {
     return value;
   }
   throw new Error(
-    "Requirement modeling failed: value must be a string, number, or boolean",
+    "Requirement modeling failed: value must be a string, number, boolean, or a list of strings",
   );
 }
 

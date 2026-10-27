@@ -167,6 +167,10 @@ tested. The contract says so with `kind`:
 | `typecheck` | Kibi compiles a witness that fails to compile when a member goes unhandled | proved |
 | `arithmetic` | Kibi decides a one-variable claim exactly from the typed facts in `constraint_source` or the code constants in `value_source` | proved |
 | `smt` | Kibi re-runs z3 or cvc5 on a query that asserts those assumptions and needs `unsat` | proved |
+| `rule` | Kibi calls the code's predicate functions on every combination of the finite domains the code exports and model checks a rule, predicate or every-member claim | proved |
+| `state_machine` | Kibi reads the code's transition table or next-state function and checks the transitions, initial, terminal or reachable states a claim names | proved |
+| `regex` | Kibi decides whether the code's pattern (or string constant) accepts exactly the strings a string fact describes | proved |
+| `source` | Kibi reads a project source itself (a JSON or YAML file, a glob, an OpenAPI document, the references the code makes, a data schema, a route table, a validator) and decides a set, field or middleware claim against it | proved |
 
 "Proved" here is what the certificate supports; a requirement is proved only
 for the claims a certificate binds to (see "Binding a certificate to claims").
@@ -323,6 +327,12 @@ proof_contract:
 | a set fact | `typecheck` | the domain export, as a type, is exactly the fact's set (Kibi compiles a set-equality witness itself) |
 | a numeric fact (`value_type: int` or `number`, a comparison) | `arithmetic` | the certificate's claim is the fact's constraint (negated for `polarity: forbid`) |
 | a numeric fact | `smt` | the query asserts the negation of the fact's constraint |
+| a set fact with `property_key: required_fields` | `typecheck` | every member is a required, non-nullable field of the domain type (Kibi compiles that witness itself) |
+| a set fact whose `property_key` names a predicate (`eq` or `includes`) | `rule` | the code decides the predicate true for every member |
+| a rule fact (`kibi.logic.v1`, from `kibi model-requirement` with `logic`) | `rule`, `state_machine` | the rule holds for every assignment of its variables over the domains the code exports |
+| a predicate fact (a ground atom, or a decision predicate such as `permission_rule`) | `rule`, `state_machine` | the code decides the atom as the fact says (for a decision predicate: the key arguments are allowed exactly when the effective decision is allow) |
+| a set fact with `property_key` `transitions`, `states`, `initial_states`, `terminal_states` or `reachable_states` | `state_machine` | that projection of the machine is exactly the set (`transitions` members are spelled `from->to`) |
+| a string fact (`eq`, `neq` or `matches`) | `regex` | the code's string meets the constraint, or the code's pattern accepts exactly the fact's string (`eq`), rejects it (`neq`) or accepts exactly the strings the fact's pattern matches (`matches`); `polarity: forbid` negates it, and a forbidden match means no string matches both |
 
 A legacy `property_key: allowed_values` fact whose `value_string` joins the
 members with `|` reads as a set fact. Each claim gets one binding per test,
@@ -330,9 +340,10 @@ recorded in the receipt's `claim_bindings`:
 
 - **derived**: Kibi checked the certificate against the claim's own fact.
   Only a derived binding proves a claim.
-- **attested**: the fact has no derivation (a boolean placeholder, a
-  predicate, a rule, a free string). The author says the certificate
-  expresses the claim; Kibi reports it and counts it as tested, never proved.
+- **attested**: the fact has no derivation for the kind (a boolean
+  placeholder, a rule fact under `exhaustive`). The author says the
+  certificate expresses the claim; Kibi reports it and counts it as tested,
+  never proved.
 - **rejected**: the key is not a modeled claim of a current requirement the
   test reaches through its scenarios, its fact is the wrong shape for the
   kind (a set fact under `arithmetic`), or the certificate does not establish
@@ -356,6 +367,37 @@ binding has scope `code`:
     - CLAIM-0A1B2C3D4E5F6071       # "Clients retry at most 3 times"
 ```
 
+A count claim over a collection reads the collection itself: with
+`measure: count`, Kibi evaluates a list, set, map or object export and uses
+its size, so "exactly 32 tools" needs no separate number kept beside the list
+for the proof:
+
+```yaml
+  kind: arithmetic
+  value_source:
+    - symbol_id: SYM-tool-names
+      export: TOOL_NAMES
+      measure: count               # the number of members of TOOL_NAMES
+  proves:
+    - CLAIM-5D6E7F8091A2B3C4       # "There are exactly 32 tools"
+```
+
+A claim that every member of a closed set has a property ("Every currency in
+GBP, ILS and ZAR must fail closed") is modeled as a set fact named for the
+property: the semantic advisor proposes `property_key: fail_closed`,
+`operator: includes` and `value_set: [GBP, ILS, ZAR]`, so the property stays in
+the requirement instead of living only in the test. `includes` says every
+listed member has the property and leaves the others open, so "every role in
+owner and admin can invite" and "every role in owner, admin and member can
+invite" are both valid facts; the code decides which holds. `eq` on a set
+means exactly those members, and an `includes` fact contradicts an `eq` fact
+on the same property only when it names a member the `eq` set leaves out.
+A `rule` certificate derives an `includes` fact by checking the property on
+each listed member, and a `typecheck` certificate derives one on
+`required_fields`; the kinds that compare the whole set (`exhaustive`, a
+set-equality `typecheck`, `state_machine`) reject an `includes` fact, because
+they would read "at least these" as "exactly these".
+
 Kibi judges bindings at ingest and judges them again whenever it reports
 evidence: a binding whose fact changed since ingest (another set, another
 bound), whose claim is no longer modeled, or whose certificate no longer
@@ -365,7 +407,220 @@ binding as it ingests a receipt.
 From schema 12 the blocking `proof-contract-claims` rule reports a
 certificate-kind contract without `proves` and a named claim no certificate of
 its kind could prove. `kibi migrate` pins `proves` where the test reaches
-exactly one claim its kind can derive and lists the other contracts.
+exactly one claim its kind can derive. For every other contract its review
+lists each modeled claim the test reaches through its scenarios with the
+binding a certificate of its kind would get (provable, attested only, or the
+reason its kind cannot express the fact), so the person binding it knows which
+keys to name and which facts to remodel.
+
+### Rules, state machines and patterns
+
+These kinds prove claims that are not numbers. In each one Kibi reads the
+model from the code itself at ingest, with the same runners as an exhaustive
+domain (TypeScript, JavaScript or Python), needs the certificate to be that
+model, and decides the claim exactly: nothing is sampled. Every symbol a
+contract names must link `covered_by` the test.
+
+A **rule** contract names the function behind each predicate the claims use
+in `predicate_source`, and the export listing each argument type's values in
+`domains`. Each function takes the predicate's arguments in order and returns
+a boolean; Kibi calls it on every combination of its argument domains (up to
+100,000 rows) and records the table. A rule holds when, for every assignment
+of its variables, its head has the value the modality requires (true for
+`assert`, `oblige` and `permit`, false for `deny` and `forbid`) wherever its
+body holds and no exception applies. A domain's type name is also a
+predicate of one argument that holds for its members (`role(R)`), so every
+variable can be ranged over a domain. A failure names the assignment:
+
+```yaml
+  kind: rule
+  predicate_source:
+    can_share:
+      symbol_id: SYM-can-share          # canShare(status, role) -> boolean
+    archived:
+      symbol_id: SYM-is-archived
+      export: isArchived                # when the export is not the symbol's title
+  domains:
+    document_status:
+      symbol_id: SYM-document-statuses  # ["draft", "active", "archived"]
+    role:
+      symbol_id: SYM-roles
+  proves:
+    - CLAIM-15C388CF1E89C595            # "Archived documents must never be shared"
+```
+
+```
+rejected: the rule fails for V1=archived, V2=owner: the code decides can_share(archived, owner) is true, but the rule requires false
+```
+
+Rules with existential quantifiers, counts, temporal expressions or
+durations are refused with the reason.
+
+A **state_machine** contract names the transition table in `domain_source`:
+an object or `Map` from each state to its next states (a list, a set, one
+state, or an event map), or a list of `[from, to]` pairs. A next-state
+function `next(state, event)` works too, with `domains: {state, event}` naming
+the exports it is called on (a throw or `null` means no transition).
+`initial_source` names the initial state, which reachable states need. A
+statement such as "Invoice status transitions must be one of draft -> sent,
+sent -> paid" is modeled as a `transitions` set fact; terminal, initial and
+reachable states the same way. A rule over a machine can use `transition`,
+`reachable` (one or more steps), `initial`, `terminal` and `state`.
+
+A **regex** contract names the pattern in `pattern_source`: a `RegExp` or a
+Python `re.compile(...)` (its flags included), or a string constant. "Invoice
+numbers must match `INV-[0-9]{6}`" is modeled as a string fact with
+`operator: matches`, whose value is a JavaScript pattern (with the `u` flag)
+that must match the whole string. Kibi compares the two languages exactly
+(over well-formed UTF-16 strings, with each engine's own rules for `$`, `.`,
+`\d` and case folding) and, when they differ, reports the shortest string
+only one of them accepts:
+
+```
+rejected: the code's pattern /INV-\d{6}/ does not accept exactly the strings matching /INV-[0-9]{6}/: "0INV-000000" is in the code's pattern only
+```
+
+Only the regular subset is decided: backreferences, lookaround, `\b`,
+Unicode property escapes, the `g`, `y`, `m` and `v` flags (Python
+`MULTILINE`, `VERBOSE` and `LOCALE`), Python `\d` and `\w` without
+`re.ASCII`, and non-ASCII letters under case-insensitive matching are refused
+with the reason. The certificate builders are `ruleCertificate`,
+`stateMachineCertificate` and `regexCertificate` in
+`kibi-cli/proof-certificates`; `failedCalls` lists predicate calls that
+threw.
+
+### Project sources: routes, schemas, configuration and references
+
+Many claims in a real product are about sets the project already declares:
+every route under `/api` runs the auth middleware, every table has
+`created_at`, the app reads only the environment variables in the deploy
+docs, a module never imports `node:fs`, every validator field the API
+accepts is a column of the table. A **source** proof reads that set from the
+project itself and decides the claim; the test does not have to compute or
+list anything. The contract names the source:
+
+```yaml
+  kind: source
+  source:
+    reader: routes
+    file: src/app.ts
+    export: app            # a Hono or Express app, or a function returning one
+    path_prefix: /api
+    names_from: [src/middleware.ts]   # name middleware by the export they are (or that makes them)
+  proves:
+    - CLAIM-...            # "Every route under /api must use requireAuth"
+```
+
+| Reader | Reads | `select` |
+| --- | --- | --- |
+| `json`, `yaml` | `file` at `path` (dotted, or a JSON pointer) | `keys`, `values`, `items` |
+| `glob` | the files `pattern` matches (`capture: true` reads what each `*` and `**` matched, joined with `/`: `i18n/**/*.json` reads `finance/de` from `i18n/finance/de.json`) | |
+| `openapi` | `file`'s operations (`GET /invoices`) | `operations`, `unsecured_operations`, `security_schemes`, `responses` |
+| `references` | the code in `files` (TypeScript, JavaScript, Python): `extract` `env`, `imports`, `calls`, `string_args` (with `callee`), `thrown` (the class of `throw new X()`, or the factory of `throw createX()`) or `property` (with `key`) | |
+| `schema` | `format: drizzle` or `prisma` (`file`), or `sql` migrations replayed in order (`files`); `table` filters by name or glob | `tables`, `columns`, `required_columns`, `nullable_columns`, `foreign_keys` |
+| `routes` | a Hono or Express app's route table, with the middleware that runs before each route (mounted routers included); `path_prefix` keeps the routes under a prefix | `routes`, `middleware` |
+| `validator` | a zod or valibot object (or one wrapped in refine, transform or pipe; any field that is a Standard Schema), or a pydantic model | `fields`, `required_fields`, `optional_fields` |
+
+Details that decide what a reader sees:
+
+- **Environment variables.** `extract: env` reads `process.env`,
+  `import.meta.env` (without Vite's built-ins `MODE`, `BASE_URL`, `PROD`,
+  `DEV`, `SSR`), `Bun.env` and `Deno.env.get` in TypeScript and JavaScript,
+  and `os.environ` and `os.getenv` in Python, through casts
+  (`(import.meta as X).env`), `!` and parentheses. An environment object, or
+  `import.meta` itself, handed to a variable or a function fails the read,
+  because its later reads could use any name. A framework's own runtime
+  object (`globalThis._NGX_ENV_`) is not an environment object Kibi reads.
+- **SQL migrations.** The replay reads `CREATE TABLE` (quoted and
+  schema-qualified names such as `"public"."messages"` included), `DROP TABLE`
+  and the `ALTER TABLE` actions that change columns, nullability or foreign
+  keys, one or several per statement. Actions that change none of them (row
+  level security, triggers, ownership, defaults, column types, statistics,
+  replica identity, other constraints) are skipped. Function bodies in
+  `$$ ... $$` stay whole. Dropping a foreign key by a name the replay never
+  saw fails the read, unless the statement says `IF EXISTS`. A set of files
+  with no `CREATE TABLE` fails the read, as does a glob that matches no file,
+  so a mistyped pattern never proves a negative.
+- **Middleware names.** `names_from` modules name middleware by the export it
+  is, or by the export that makes it: a zero-argument factory such as
+  `requireAuthentication()` that returns a fresh function per route is
+  called once at read time and its result is recognised by its source text,
+  so routes guarded by `requireAuthentication()` list `requireAuthentication`.
+  Async functions, generators and classes are never called. Without
+  `names_from` a middleware is its function's name, or `(anonymous)`.
+- **Importing the app.** The `routes`, `validator` and drizzle readers import
+  the module, so it must load without side effects (no `listen`, no database
+  connection at import). Export a factory or a wrapper when the app needs
+  dependencies.
+
+Every reader is exact or refuses: a member Kibi cannot read statically
+(`process.env[name]`, a dynamic `import()`, an `ALTER TABLE` form it does not
+know, a router mounted on a pattern) fails the read and names the file and
+line, so a set claim is never decided over a set Kibi only partly saw.
+
+The test leaves no certificate (or `sourceCertificate({testId})` from
+`kibi-cli/proof-certificates`): Kibi reads the source at ingest and stores
+its own read as the certificate. What the set fact means depends on its
+property and operator:
+
+| Fact | The source must |
+| --- | --- |
+| operator `eq`, `includes`, `subset_of` or `excludes` | have exactly, at least, only, or none of the members |
+| property `required_fields` | have each member as a required, non-null field of every selected table or object; a bare name (`id`) applies to every table, including tables added later, while `table.field` names one table. Only `eq` and `includes` |
+| property `nullable_fields` | have each member nullable. Only `eq` and `includes` |
+| property `middleware` | run the members (by the operator) before every selected route |
+
+The receipt's binding covers what the read depends on: each file it parses,
+the list of files a glob matches, and the modules a drizzle schema, route
+table or validator imports (through relative imports, tsconfig `paths`
+including those inherited through `extends`, and workspace packages linked
+into `node_modules`). Change any of them and the receipt is stale. A claim a
+source proof derives is bound with scope `source`, so coverage and signoff
+show that the proof rests on project files Kibi read.
+
+The certificate builders (`sourceCertificate`, `readProjectSource`) are in
+`kibi-cli/proof-certificates` from kibi-cli 2.33.0; a project that pins an
+older kibi-cli has to upgrade before its tests can import them.
+
+Sources also feed the other kinds. An arithmetic or smt `value_source` entry
+`{source: {...}, measure: count}` counts the members ("at most 40 routes"),
+and a rule domain `{source: {...}}` ranges a predicate over the members
+("every route Kibi reads is guarded"); `readProjectSource` in
+`kibi-cli/proof-certificates` gives the test the same members. A rule
+predicate whose function is a test harness that drives the code (it calls
+the handler for each role) says so with `harness_for: [SYM-...]`; its
+claims are bound with scope `harness`.
+
+The semantic advisor models these statements for you: "Every route under
+/api must use requireAuth" (middleware, includes), "Every table must have id
+and created_at" or "Every table in schema.ts must have a required org_id
+column" (required_fields), "The deleted_at column of organizations must be
+nullable" (nullable_fields), "Every environment variable the app reads must
+be one of A, B or C" (subset_of), "The web app must never import node:fs" or
+"... @supabase/supabase-js" (imports, excludes), "The top-level keys of
+scenarios.json must be exactly groups and scenarios" (eq), and "The server
+must expose at least 30 routes under /api/orgs" (count). A field claim needs
+a schema word (table, object, schema, row, record, model, entity, type,
+payload, DTO, or field, column or property next to the names): "Every
+organization must have an owner" is about membership and stays a behavioural
+claim. `kb_model` in requirement mode writes the same set facts when you pass
+`operator` (`eq`, `includes`, `subset_of`, `excludes`) and a list `value`.
+
+### Temporal claims on state machines
+
+A state_machine set fact can name `reachable_pairs` (`from->to` pairs joined
+by a path of one or more transitions) and `required_waypoints`
+(`from->to via state`: the target is reachable and every path to it passes
+through the state), and any machine projection can use `includes`,
+`subset_of` or `excludes`. "A cancelled invoice can never become paid" is a
+`reachable_pairs` fact with `excludes` (and "A member can never become
+owner", with no machine named, one on subject `workflow`); "Every path from draft to paid must
+pass through approved" is a `required_waypoints` fact. A failure names the
+path or the state:
+
+```
+rejected: a path from draft reaches paid without passing through approved
+```
 
 ### What `proved` covers
 
@@ -381,7 +636,9 @@ requirement below proved until it is.
 
 `arithmetic` and `smt` certificates pay off only when the requirement rests on
 typed numeric facts (bounds, limits, counts). For an enumerable domain use
-`exhaustive` or `typecheck`.
+`exhaustive` or `typecheck`; for decisions, lifecycles and formats use
+`rule`, `state_machine` or `regex`; for routes, schemas, configuration and
+the references the code makes use `source`.
 
 Kibi never takes a certificate's word for it. At ingest it re-checks the
 certificate (every member listed once and passed; the arithmetic decided by
@@ -391,10 +648,22 @@ it checks the workspace. For an exhaustive proof Kibi loads the
 node with type stripping) and needs the certificate to cover exactly its
 members (or, for non-primitive members, as many of them), so a hand-listed
 subset is rejected; the proof file must also import the symbol. A typecheck
-witness must import the domain, be the file in the workspace (its sha256) and
-contain a `never` check, and Kibi compiles it itself with the workspace's
-TypeScript under fixed strict options, so a test cannot report a pass the
-compiler would not give. Arithmetic and SMT certificates must match their
+witness must import the domain and be the file in the workspace (its sha256),
+and Kibi compiles it itself with the workspace's TypeScript under fixed strict
+options, so a test cannot report a pass the compiler would not give. Imports
+resolve the way the nearest `tsconfig.json` says (`module`,
+`moduleResolution`, `paths`, ...), and the declaration files that tsconfig
+includes (a `reset.d.ts`, for example) are part of the witness program;
+without one, NodeNext. When the test's own compile failed, the rejection adds
+the first error Kibi's compile of the witness reports, or that Kibi's compile
+accepts it. TypeScript 7 ships
+without the compiler API, so Kibi falls back to an older `typescript` further
+up the workspace and otherwise asks for `typescript@6` as a dev dependency. A
+contract without `proves` rests on the witness alone, so the witness must also
+contain an exhaustiveness check, a `never` type or a `satisfies` map, read
+from its syntax (the word in a comment does not count). With `proves`, Kibi
+checks each claim with a witness it writes itself, and a rejection names the
+fields that are missing, optional or nullable. Arithmetic and SMT certificates must match their
 `constraint_source` facts as described above. The receipt
 (`kibi.proof-receipt.v2`) records `kind`,
 `evidence_level`, the certificate and its digest (the sha256 of its canonical

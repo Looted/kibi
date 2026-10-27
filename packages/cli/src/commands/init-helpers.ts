@@ -126,10 +126,11 @@ const PRE_COMMIT_HOOK = `#!/bin/sh
 # Hard enforcement boundary: commits are blocked only here via kibi check.
 # The OpenCode plugin remains advisory and must not replace this gate.
 # Behavior-changing source edits require staged Kibi impact evidence
-# (KB entity docs under .kb/, authored symbols metadata, or refreshed
-# symbol coordinates). Test-only and docs-only edits are exempt.
-# Generated manifests are checked against the exact staged snapshot before
-# traceability validation. The check never stages files on the user's behalf.
+# (KB entity docs under .kb/, or authored symbols metadata covering every
+# staged declaration). Test-only and docs-only edits are exempt.
+# The symbols manifest is checked against the exact staged snapshot before
+# traceability validation; symbol coordinates are derived locally and never
+# committed. The check never stages files on the user's behalf.
 
 set -e
 
@@ -208,7 +209,8 @@ export function updateGitIgnore(cwd: string): boolean {
   // Derived runtime state stays ignored. Authored knowledge lanes, the
   // symbols manifest, relationship shards, schema, and the lifecycle
   // manifest stay committable. `.kb/migrations/` is derived runtime
-  // audit state, not tracked project knowledge.
+  // audit state and `.kb/symbol-coordinates.yaml` is derived from source
+  // by every sync; neither is tracked project knowledge.
   let updatedContent = stripLegacyKibiGitIgnoreStanza(gitignoreContent);
   for (const entry of CANONICAL_DERIVED_GITIGNORE_ENTRIES) {
     updatedContent = ensureEntry(updatedContent, entry);
@@ -229,6 +231,7 @@ const CANONICAL_DERIVED_GITIGNORE_ENTRIES = [
   ".kb/proof/runs/",
   ".kb/briefs/",
   ".kb/migrations/",
+  ".kb/symbol-coordinates.yaml",
   ".kb/usage.log",
   ".env.kibi",
 ] as const;

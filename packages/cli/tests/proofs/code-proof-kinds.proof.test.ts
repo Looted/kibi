@@ -11,7 +11,11 @@ import {
   certificateDigest,
   exhaustiveCertificate,
   failedMembers,
+  regexCertificate,
+  ruleCertificate,
   smtCertificate,
+  sourceCertificate,
+  stateMachineCertificate,
   writeCodeCertificate,
 } from "../../src/public/proof-certificates.js";
 import {
@@ -136,6 +140,152 @@ async function certificates(kind: ProofKind): Promise<{
           "a query that never asks": {
             ...valid,
             query: "(declare-const x Int)(assert (> x 0))",
+          },
+        },
+      };
+    }
+    case "rule": {
+      const valid = await ruleCertificate({
+        testId: TEST_ID,
+        domains: {
+          role: { symbolId: "SYM-ROLES", members: ["viewer", "owner"] },
+        },
+        predicates: {
+          can_edit: {
+            symbolId: "SYM-CAN-EDIT",
+            argTypes: ["role"],
+            decide: (role: string) => role === "owner",
+          },
+        },
+      });
+      const predicates = valid.predicates as Record<
+        string,
+        Record<string, unknown>
+      >;
+      const table = predicates.can_edit ?? {};
+      const rows = table.rows as unknown[];
+      return {
+        valid,
+        tampered: {
+          "a missing combination": {
+            ...valid,
+            predicates: { can_edit: { ...table, rows: rows.slice(0, 1) } },
+          },
+          "a call that threw": {
+            ...valid,
+            predicates: {
+              can_edit: {
+                ...table,
+                rows: [rows[0], { args: ["owner"], error: "boom" }],
+              },
+            },
+          },
+          "a value outside the domain": {
+            ...valid,
+            predicates: {
+              can_edit: {
+                ...table,
+                rows: [rows[0], { args: ["admin"], value: true }],
+              },
+            },
+          },
+        },
+      };
+    }
+    case "state_machine": {
+      const valid = await stateMachineCertificate({
+        testId: TEST_ID,
+        symbolId: "SYM-MACHINE",
+        transitions: { draft: ["sent"], sent: ["paid"], paid: [] },
+        initial: "draft",
+      });
+      const machine = valid.machine as Record<string, unknown>;
+      return {
+        valid,
+        tampered: {
+          "an edge to an unknown state": {
+            ...valid,
+            machine: { ...machine, transitions: [["draft", "lost"]] },
+          },
+          "an edge listed twice": {
+            ...valid,
+            machine: {
+              ...machine,
+              transitions: [
+                ["draft", "sent"],
+                ["draft", "sent"],
+              ],
+            },
+          },
+          "no states": { ...valid, machine: { ...machine, states: [] } },
+        },
+      };
+    }
+    case "regex": {
+      const valid = regexCertificate({
+        testId: TEST_ID,
+        symbolId: "SYM-PATTERN",
+        value: /^INV-\d{6}$/,
+      });
+      const pattern = valid.pattern as Record<string, unknown>;
+      return {
+        valid,
+        tampered: {
+          "an unknown flavor": {
+            ...valid,
+            pattern: { ...pattern, flavor: "perl" },
+          },
+          "a pattern without a symbol": {
+            ...valid,
+            pattern: { ...pattern, symbol_id: "" },
+          },
+        },
+      };
+    }
+    case "source": {
+      // Kibi stores its own read of the source as the certificate's model.
+      const valid = {
+        ...sourceCertificate({
+          testId: TEST_ID,
+          source: {
+            reader: "schema",
+            format: "sql",
+            files: ["migrations/*.sql"],
+          },
+        }),
+        model: {
+          members: ["invitations", "organizations"],
+          entities: [
+            {
+              name: "organizations",
+              columns: [{ name: "id", nullable: false, optional: false }],
+              foreign_keys: [],
+            },
+          ],
+        },
+      };
+      return {
+        valid,
+        tampered: {
+          "unsorted members": {
+            ...valid,
+            model: {
+              ...valid.model,
+              members: ["organizations", "invitations"],
+            },
+          },
+          "no reader": { ...valid, source: {} },
+          "a column without nullable": {
+            ...valid,
+            model: {
+              ...valid.model,
+              entities: [
+                {
+                  name: "organizations",
+                  columns: [{ name: "id", optional: false }],
+                },
+              ],
+            },
           },
         },
       };

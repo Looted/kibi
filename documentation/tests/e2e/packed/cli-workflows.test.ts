@@ -256,16 +256,16 @@ export async function verifyHtmlRequirementHealthReport(
   }));
   assert.deepStrictEqual(
     gates.map((gate) => gate.label),
-    ["Semantic model", "Scenario", "Implementation", "E2E", "Evidence"],
+    ["Semantic model", "Scenario", "Implementation", "E2E", "Tested", "Proved"],
   );
   assert.deepStrictEqual(
     gates.map((gate) => gate.remaining),
-    [0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
     "the single known fixture row should leave the rail at its semantic gate",
   );
   assert.deepStrictEqual(
     gates.map((gate) => gate.drop),
-    ["−1 blocked here", "No drop", "No drop", "No drop", "No drop"],
+    ["−1 blocked here", "No drop", "No drop", "No drop", "No drop", "No drop"],
     "the row's actual earliest unmet gate should receive the only drop",
   );
   assert.ok(
@@ -282,8 +282,9 @@ export async function verifyHtmlRequirementHealthReport(
     const count = gate.drop.match(/−([\d,]+) blocked here/)?.[1];
     return total + Number(count?.replaceAll(",", "") ?? 0);
   }, 0);
-  assert.strictEqual(blocked, current - (gates.at(-1)?.remaining ?? 0));
-  assert.strictEqual(gates.at(-1)?.remaining, tested);
+  const testedGate = gates.find((gate) => gate.label === "Tested");
+  assert.strictEqual(blocked, current - (testedGate?.remaining ?? 0));
+  assert.strictEqual(testedGate?.remaining, tested);
   assert.match(
     html,
     /Counts are sequential\. Each drop is the earliest unmet gate/,
@@ -899,6 +900,21 @@ if (RUN_NODE_TEST_SUITE) {
             0,
             authored.stdout + authored.stderr,
           );
+          // The hand-written manifest is not in the canonical layout.
+          const drift = await kibi(driftSandbox, [
+            "check-generated",
+            "--staged",
+          ]);
+          assert.notStrictEqual(drift.exitCode, 0);
+          assert.match(
+            drift.stdout + drift.stderr,
+            /generated manifest drift in staged snapshot: \.kb\/symbols\.yaml/,
+          );
+          assert.match(
+            drift.stdout + drift.stderr,
+            /kibi sync --refresh-symbol-coordinates/,
+          );
+
           const refreshed = await kibi(driftSandbox, [
             "sync",
             "--refresh-symbol-coordinates",
@@ -908,11 +924,10 @@ if (RUN_NODE_TEST_SUITE) {
             0,
             refreshed.stdout + refreshed.stderr,
           );
-          const staged = await run(
-            "git",
-            ["add", ".kb/symbols.yaml", ".kb/symbol-coordinates.yaml"],
-            { cwd: driftSandbox.repoDir, env: driftSandbox.env },
-          );
+          const staged = await run("git", ["add", ".kb/symbols.yaml"], {
+            cwd: driftSandbox.repoDir,
+            env: driftSandbox.env,
+          });
           assert.strictEqual(staged.exitCode, 0, staged.stdout + staged.stderr);
 
           const clean = await kibi(driftSandbox, [
@@ -922,6 +937,8 @@ if (RUN_NODE_TEST_SUITE) {
           assert.strictEqual(clean.exitCode, 0, clean.stdout + clean.stderr);
           assert.match(clean.stdout, /staged generated manifests are current/);
 
+          // Moving a declaration only moves derived coordinates, which are
+          // never committed: nothing to refresh or stage.
           await writeFile(
             source,
             "// changed\nexport function sample() { return 1; }\n",
@@ -935,18 +952,26 @@ if (RUN_NODE_TEST_SUITE) {
             0,
             restaged.stdout + restaged.stderr,
           );
-          const drift = await kibi(driftSandbox, [
+          const moved = await kibi(driftSandbox, [
             "check-generated",
             "--staged",
           ]);
-          assert.notStrictEqual(drift.exitCode, 0);
-          assert.match(
-            drift.stdout + drift.stderr,
-            /\.kb\/symbol-coordinates\.yaml/,
+          assert.strictEqual(moved.exitCode, 0, moved.stdout + moved.stderr);
+
+          const forced = await run(
+            "git",
+            ["add", "-f", ".kb/symbol-coordinates.yaml"],
+            { cwd: driftSandbox.repoDir, env: driftSandbox.env },
           );
+          assert.strictEqual(forced.exitCode, 0, forced.stdout + forced.stderr);
+          const rejected = await kibi(driftSandbox, [
+            "check-generated",
+            "--staged",
+          ]);
+          assert.notStrictEqual(rejected.exitCode, 0);
           assert.match(
-            drift.stdout + drift.stderr,
-            /kibi sync --refresh-symbol-coordinates/,
+            rejected.stdout + rejected.stderr,
+            /symbol coordinates are derived locally and never committed/,
           );
         } finally {
           await driftSandbox.cleanup();

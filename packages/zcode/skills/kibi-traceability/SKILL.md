@@ -4,7 +4,7 @@ description: Maintain source-first requirement, scenario, test, symbol, and proo
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-traceability
-  version: 2.2.0
+  version: 2.3.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -69,7 +69,8 @@ coverage and a green check are not proof by themselves.
 
 Report each requirement's `evidenceLevel` from `kb_coverage` as it is:
 `proved` only when certificate proofs (exhaustive, typecheck, arithmetic,
-smt) derive every applicable claim, named in each contract's `proves`
+smt, rule, state_machine, regex, source) bound at code or harness scope
+derive every applicable claim (intent-scope bindings stay `tested`), named in each contract's `proves`
 (`claimSummary` and `unprovedClaims` say which are missing), `tested` for fresh passing E2E receipts,
 `asserted` when only a person stands behind it, `unverified` otherwise. Its
 `evidenceFloor` says what `kb_check`'s `evidence-floor` rule requires:

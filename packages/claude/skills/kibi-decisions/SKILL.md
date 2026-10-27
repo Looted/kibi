@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: kibi-decisions
   id: kibi-decisions
-  version: 1.3.0
+  version: 1.4.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -83,7 +83,10 @@ name the missing capability. Never read or edit `.kb/` files directly.
   run `kibi prove`. Otherwise set `required_evidence: asserted`, say in the
   body that no end-to-end test proves the rule yet, and report it as
   asserted, not tested. Kibi's bootstrap and migration give an untested firm
-  rule the same floor.
+  rule the same floor. When the rule is a claim a certificate kind checks
+  (allowed values, transitions, a pattern, a rule over roles, a config,
+  route or schema read), a certificate test proves it instead: see
+  Certificate proof kinds in kibi-usage `resources/proof.md`.
 - **The person changes a rule:** supersede it (new requirement linked
   `supersedes` new -> old, `firmness: firm` when the old one was firm, a
   `## Why this changed` section of at least 12 words naming their instruction

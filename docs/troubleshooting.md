@@ -19,7 +19,7 @@ Kibi is in beta. Package upgrades do not require deleting the knowledge base. `k
    kibi migrate --yes
    ```
 
-Migration upgrades entity schemas and the on-disk layout, including a leftover `documentation/` tree or `.kb/config.json`. It keeps authored knowledge. It does not wipe `.kb/`. When it rewrites or moves `.kb/symbols.yaml` it also refreshes `.kb/symbol-coordinates.yaml`, so stage both with the migration. The pre-commit hook does not count symbols that only the migration changed (legacy-link marks) as changed by that commit; it says so in a `Migration commit:` line. When a predicate fact is in the wrong namespace or still uses an old argument spelling, the same plan can move it to the only matching schema and rewrite that spelling to the declared constant. Review the plan hash before applying. Repairs that need a judgment stay as review items.
+Migration upgrades entity schemas and the on-disk layout, including a leftover `documentation/` tree or `.kb/config.json`. It keeps authored knowledge. It does not wipe `.kb/`. When it rewrites or moves `.kb/symbols.yaml` it also refreshes the local `.kb/symbol-coordinates.yaml`; stage `.kb/symbols.yaml` with the migration. The schema 13 step removes `.kb/symbol-coordinates.yaml` from the Git index and gitignores it; commit that removal too. The pre-commit hook does not count symbols that only the migration changed (legacy-link marks) as changed by that commit; it says so in a `Migration commit:` line. When a predicate fact is in the wrong namespace or still uses an old argument spelling, the same plan can move it to the only matching schema and rewrite that spelling to the declared constant. Review the plan hash before applying. Repairs that need a judgment stay as review items.
 
 If the compiled store for this branch is incomplete or unreadable, preview a rebuild before applying it. Recovery recompiles that store from authored sources and moves the previous bytes under `.kb/recovery/`. See [kibi branch](cli-reference.md#kibi-branch).
 
@@ -30,27 +30,15 @@ kibi branch recover --apply
 
 `kibi sync` recompiles the branch store from the authored Markdown and manifests. Use it after you have fixed those sources. It is not the upgrade command, and deleting `.kb/branches` is not the upgrade path.
 
-## Stale or Dirty Symbol Coordinates
+## Symbol Coordinates
 
-If `kibi check --staged` or the pre-commit hook fails with errors about unstaged symbol changes:
+`.kb/symbol-coordinates.yaml` holds the source spans of your symbols. It is a gitignored local cache: every `kibi sync` re-extracts the symbols whose identity or source file changed, and a fresh clone builds it on its first sync. Never stage it.
 
-**Symptom:**
-- Commit blocked due to modified code symbols not being reflected in the manifest.
-- Error message indicates `.kb/symbol-coordinates.yaml` is out of sync.
+**`symbols_manifest_stale` from `kibi check --staged`:** a staged behavior file declares symbols `.kb/symbols.yaml` has no entry for, or an entry names a declaration that is gone. The Detail lines name them. Author the missing entries (`kibi upsert`), re-point or retire the orphaned ones, stage `.kb/symbols.yaml`, and retry. A declaration that only moved is never a finding.
 
-**Resolution:**
-1. **Refresh the coordinates:**
-   ```bash
-   kibi sync --refresh-symbol-coordinates
-   ```
-   This command rescans your source code and updates the line/character coordinates in `.kb/symbol-coordinates.yaml`.
+**`kibi check-generated --staged` says `.kb/symbol-coordinates.yaml` is staged:** the repository still tracks it from before schema 13. Run `kibi migrate --yes` (or `git rm --cached .kb/symbol-coordinates.yaml` and add it to `.gitignore`), then commit.
 
-2. **Stage the changes:**
-   ```bash
-   git add .kb/symbol-coordinates.yaml
-   ```
-
-3. **Retry the commit.**
+**Coordinates look wrong locally:** `kibi sync --refresh-symbol-coordinates` rebuilds them from scratch.
 
 ## Dangling References
 

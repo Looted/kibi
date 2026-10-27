@@ -1,6 +1,6 @@
 {
   "name": "kibi-cursor",
-  "version": "2.9.3",
+  "version": "2.9.6",
   "description": "Kibi Cursor plugin - thin adapter for Cursor MCP integration and editor hooks",
   "type": "module",
   "main": "dist/index.js",

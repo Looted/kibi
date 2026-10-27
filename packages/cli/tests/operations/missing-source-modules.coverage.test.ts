@@ -39,6 +39,28 @@ describe("CLI modules previously absent from LCOV", () => {
     expect(Object.keys(relationshipTypes).length).toBeGreaterThanOrEqual(0);
   });
 
+  test("detectStrictSuggestion models every member of a set having a property as a set fact named for the property", () => {
+    const suggestion = detectStrictSuggestion(
+      payload,
+      "Every currency in GBP, ILS and ZAR must fail closed.",
+    );
+    expect(
+      suggestion?.kind === "strict_property" ? suggestion.claim : undefined,
+    ).toMatchObject({
+      subject_key: "currency",
+      property_key: "fail_closed",
+      operator: "includes",
+      value_type: "set",
+      value_set: ["GBP", "ILS", "ZAR"],
+    });
+    expect(
+      detectStrictSuggestion(
+        payload,
+        "Every currency in GBP must fail closed.",
+      ),
+    ).toBeNull();
+  });
+
   test("detectStrictSuggestion covers expiry, comparison, precision, latency, boolean, retention, and enum", () => {
     expect(
       detectStrictSuggestion(payload, "Session tokens expire after 24 hours.")

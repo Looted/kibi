@@ -251,3 +251,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ec549d5da8eb
+  - type: implements
+    from: SYM-code-scope-contract-sources
+    to: REQ-kibi-source-proof-kinds
+    created_at: 2026-10-26T17:39:10.615Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6e5d3ec2caa
+  - type: covered_by
+    from: SYM-code-scope-contract-sources
+    to: TEST-kibi-source-proof-kinds
+    created_at: 2026-10-26T17:39:10.629Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b204b37e60ec

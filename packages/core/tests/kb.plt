@@ -8025,6 +8025,33 @@ test(set_fact_obligation_for_exhaustive_and_typecheck, [setup(setup_kb), cleanup
     claim_obligations:fact_obligation('FACT-COLOR-RENDERS', exhaustive, Attested),
     assertion(Attested == attested).
 
+test(set_fact_members_keep_slashes, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(fact, 'FACT-SLASH-SET', "Forbidden imports", active, [
+        fact_kind=property_value, subject_key="src/app", property_key="imports",
+        operator=excludes, value_type=set,
+        value_set=["rxjs/operators", "node:fs/promises", "GET /api/users"]
+    ]),
+    assert_fixture_entity(fact, 'FACT-SLASH-OTHER', "Other imports", active, [
+        fact_kind=property_value, subject_key="src/app", property_key="imports",
+        operator=eq, value_type=set, value_set=["lodash/operators"]
+    ]),
+    claim_obligations:fact_obligation('FACT-SLASH-SET', source, obligation(O)),
+    assertion(O.members == ["GET /api/users", "node:fs/promises", "rxjs/operators"]),
+    kb_entity('FACT-SLASH-SET', fact, PropsA),
+    kb_entity('FACT-SLASH-OTHER', fact, PropsB),
+    kb:value_from_props(PropsA, set, ValueA),
+    kb:value_from_props(PropsB, set, ValueB),
+    assertion(ValueA == ['GET /api/users', 'node:fs/promises', 'rxjs/operators']),
+    assertion(ValueB == ['lodash/operators']).
+
+test(required_fields_needs_eq_or_includes, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(fact, 'FACT-FIELDS-EXCLUDES', "No deleted_at", active, [
+        fact_kind=property_value, subject_key="tables", property_key="required_fields",
+        operator=excludes, value_type=set, value_set=["deleted_at"]
+    ]),
+    claim_obligations:fact_obligation('FACT-FIELDS-EXCLUDES', source, incompatible(Reason)),
+    assertion(sub_string(Reason, _, _, _, "only with eq or includes")).
+
 test(legacy_allowed_values_string_is_a_set, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(fact, 'FACT-LEGACY-SET', "Legacy set", active, [
         fact_kind=property_value, subject_key="order", property_key="allowed_values",
@@ -8181,16 +8208,27 @@ test(proof_contract_claim_issues_report_missing_and_unprovable_claims, [setup(se
                          "TEST-COLORS-BAD"-"CLAIM-00000000000000A3",
                          "TEST-COLORS-NONE"-none]).
 
-test(proof_contract_claim_candidates_list_derivable_claims, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+test(proof_contract_claim_candidates_list_every_reached_claim, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     claim_fixture,
     colors_contract_test('TEST-COLORS-NONE', _{kind: "typecheck"}),
     colors_contract_test('TEST-COLORS-NUMERIC', _{kind: "smt"}),
     claim_obligations:proof_contract_claim_candidates_json(Json),
     atom_json_dict(Json, Rows, [value_string_as(string)]),
+    % Every modeled claim the test reaches is listed with the binding its
+    % kind would get, so a review never comes back empty.
     member(None, Rows), None.test_id == "TEST-COLORS-NONE", !,
-    assertion(None.candidates = [_{claim_key: "CLAIM-00000000000000A1",
-        requirement_id: "REQ-COLORS", fact_id: "FACT-COLOR-SET"}]),
+    assertion(None.candidates = [
+        _{claim_key: "CLAIM-00000000000000A1", requirement_id: "REQ-COLORS",
+          fact_id: "FACT-COLOR-SET", binding: "derived"},
+        _{claim_key: "CLAIM-00000000000000A2", requirement_id: "REQ-COLORS",
+          fact_id: "FACT-COLOR-RENDERS", binding: "attested"}]),
     member(Numeric, Rows), Numeric.test_id == "TEST-COLORS-NUMERIC", !,
-    assertion(Numeric.candidates == []).
+    findall(Key-Binding,
+        (member(C, Numeric.candidates), Key = C.claim_key, Binding = C.binding),
+        Bindings),
+    assertion(Bindings == ["CLAIM-00000000000000A1"-"incompatible",
+                           "CLAIM-00000000000000A2"-"attested"]),
+    Numeric.candidates = [Set|_],
+    assertion(sub_string(Set.reason, _, _, _, "set fact")).
 
 :- end_tests(claim_bound_proofs).

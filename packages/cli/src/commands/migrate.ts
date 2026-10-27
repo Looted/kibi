@@ -38,7 +38,10 @@ import {
   applyOriginBackfill,
   planOriginBackfill,
 } from "../operations/migration/origin-backfill.js";
-import type { ProofContractClaimsPlan } from "../operations/migration/proof-contract-claims.js";
+import {
+  type ProofContractClaimsPlan,
+  claimReviewInstruction,
+} from "../operations/migration/proof-contract-claims.js";
 import {
   type RequirementStatusFinding,
   applyDeliveredStatusMappings,
@@ -74,7 +77,7 @@ import {
   readKbManifestStatus,
   writeKbManifest,
 } from "../utils/kb-manifest.js";
-import { CANONICAL_ENTITY_PATHS } from "../utils/kb-paths.js";
+import { CANONICAL_ENTITY_PATHS, KB_PATHS } from "../utils/kb-paths.js";
 import {
   manifestMergeDriverGaps,
   mergeDriverSetup,
@@ -237,6 +240,13 @@ const SCHEMA_MIGRATION_STEPS: readonly SchemaMigrationStep[] = [
     description:
       "Require every certificate-kind proof contract to name the requirement claims it proves, and pin proves on contracts whose test reaches exactly one claim the proof kind can derive an obligation for; front matter only. Other contracts are listed for a person to bind.",
   },
+  {
+    id: "derived-symbol-coordinates-v13",
+    from: 12,
+    to: 13,
+    description:
+      "Derive symbol coordinates on every sync instead of committing them: add .kb/symbol-coordinates.yaml to .gitignore and remove it from the Git index (the local file stays).",
+  },
 ];
 
 function migrationStepsFor(
@@ -261,11 +271,7 @@ function printClaimBindingReview(
       `${prefix}no synced store could be read, so no proof_contract.proves was pinned; run kibi sync and rerun kibi migrate, or add proves by hand where kibi check --rules proof-contract-claims reports a contract.`,
     );
   for (const row of plan.review)
-    console.log(
-      row.candidates.length === 0
-        ? `${prefix}${row.id} (${row.kind}) reaches no claim ${/^[aeiou]/.test(row.kind) ? "an" : "a"} ${row.kind} certificate can derive an obligation for; add proves with the claim it establishes (it will be attested, not proved) or model the claim's fact as a ${row.kind === "exhaustive" || row.kind === "typecheck" ? "set" : "numeric"} fact.`
-        : `${prefix}${row.id} (${row.kind}) could prove any of ${row.candidates.join(", ")}; add proof_contract.proves with the ones its certificate establishes.`,
-    );
+    console.log(`${prefix}${claimReviewInstruction(row)}`);
   for (const skip of plan.skipped)
     printWarning(`Cannot pin proves on ${skip.path}: ${skip.reason}.`);
 }
@@ -420,7 +426,7 @@ async function refreshMigratedSymbolCoordinates(
   const refresh = await refreshCoordinatesAfterMigration(cwd, before);
   if (refresh.outcome === "refreshed")
     console.log(
-      "Refreshed generated symbol coordinates for the migrated .kb/symbols.yaml; stage .kb/symbols.yaml and .kb/symbol-coordinates.yaml with the migration.",
+      "Refreshed generated symbol coordinates for the migrated .kb/symbols.yaml; stage .kb/symbols.yaml with the migration.",
     );
   else if (refresh.outcome === "failed")
     printWarning(coordinateRefreshFailureMessage(refresh.reason));
@@ -1001,6 +1007,19 @@ export async function migrateCommand(
         );
       printClaimBindingReview(claims, claimCandidates === null, true);
     }
+    if (
+      migrationSteps.some(
+        (step) => step.id === "derived-symbol-coordinates-v13",
+      )
+    ) {
+      const { isCoordinateArtifactTracked } = await import(
+        "../operations/migration/untrack-symbol-coordinates.js"
+      );
+      if (isCoordinateArtifactTracked(cwd) === true)
+        console.log(
+          `dry run: would remove ${KB_PATHS.symbolCoordinates} from the Git index and gitignore it; sync derives symbol coordinates from schema 13.`,
+        );
+    }
     if (storagePlan.moves.length > 0) {
       console.log(
         `dry run: would move ${storagePlan.moves.length} legacy knowledge file(s) into .kb/:`,
@@ -1253,6 +1272,22 @@ export async function migrateCommand(
     );
   }
   const gitignoreUpdated = updateGitIgnore(cwd);
+  if (
+    migrationSteps.some((step) => step.id === "derived-symbol-coordinates-v13")
+  ) {
+    const { untrackCoordinateArtifact } = await import(
+      "../operations/migration/untrack-symbol-coordinates.js"
+    );
+    const untrack = untrackCoordinateArtifact(cwd);
+    if (untrack.outcome === "untracked")
+      console.log(
+        `Removed ${KB_PATHS.symbolCoordinates} from the Git index (the local file stays); commit the removal with the migration. Sync derives symbol coordinates from now on.`,
+      );
+    else if (untrack.outcome === "failed")
+      printWarning(
+        `Could not remove ${KB_PATHS.symbolCoordinates} from the Git index (${untrack.reason}); run git rm --cached ${KB_PATHS.symbolCoordinates} before the next commit.`,
+      );
+  }
 
   return {
     exitCode: 0,

@@ -18,36 +18,81 @@ links:
     target: SCEN-cursor-kibi-plugin-v1
   - type: verified_by
     target: TEST-cursor-kibi-plugin-v1
-semantic_text: The `kibi-cursor` package is an optional Cursor adapter for teams who want Kibi in Cursor workflows without changing core Kibi runtime components.\n\nWhen installed and enabled, it should:\n\nKeep `kibi-core`, `kibi-cli`, `kibi-mcp`, and SWI-Prolog as the required foundation for project-local Kibi operations.\nBundle and expose a Cursor plugin manifest, rules, skills, commands, hooks, and MCP server config that points to the local project `kibi-mcp` binary.\nRun hook-driven reminders and warnings only, so it does not replace MCP tooling behavior or write directly to `.kb`.\nRemain clearly documented as optional, with a supported manual MCP configuration path when teams do not use the plugin installer path.\n\nThis requirement is scoped to plugin documentation and operational guidance.
+semantic_text: The kibi-cursor package must remain optional. When kibi-cursor is installed or enabled, it must not modify core Kibi runtime components. The kibi-cursor MCP launcher must start the project-local kibi-mcp binary. kibi-cursor hooks must only emit reminders and warnings. kibi-cursor hooks must not write to the .kb directory. The kibi-cursor documentation must describe a manual MCP configuration for teams that do not use the plugin installer.
 logic_claims:
-  - CLAIM-C27AC44AF1CAFFF4
+  - CLAIM-53B43B16D3EB8252
+  - CLAIM-6B1861EAA48FF0C3
+  - CLAIM-DBFE455AFAFC2F35
+  - CLAIM-915BBD5BF9462870
+  - CLAIM-E5CB2AA3485D7A30
+  - CLAIM-25D92215ADE7D7CB
 semantic_clauses:
-  - The `kibi-cursor` package is an optional Cursor adapter for teams who want Kibi in Cursor workflows without changing core Kibi runtime components.\n\nWhen installed and enabled, it should:\n\nKeep `kibi-core`, `kibi-cli`, `kibi-mcp`, and SWI-Prolog as the required foundation for project-local Kibi operations.\nBundle and expose a Cursor plugin manifest, rules, skills, commands, hooks, and MCP server config that points to the local project `kibi-mcp` binary.\nRun hook-driven reminders and warnings only, so it does not replace MCP tooling behavior or write directly to `.kb`.\nRemain clearly documented as optional, with a supported manual MCP configuration path when teams do not use the plugin installer path.\n\nThis requirement is scoped to plugin documentation and operational guidance
+  - The kibi-cursor package must remain optional.
+  - When kibi-cursor is installed or enabled, it must not modify core Kibi runtime components.
+  - The kibi-cursor MCP launcher must start the project-local kibi-mcp binary.
+  - kibi-cursor hooks must only emit reminders and warnings.
+  - kibi-cursor hooks must not write to the .kb directory.
+  - The kibi-cursor documentation must describe a manual MCP configuration for teams that do not use the plugin installer.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: 171fb6be935b55973b0a0489890a4add3711716f988d1fb4b7047fd25856a8d9
+semantic_source_hash: 4e67f186a82ed41a91ce34cd629077f4ff17f90201a9efd17f2297bfe4d15588
 semantic_inventory:
-  - claim_key: CLAIM-C27AC44AF1CAFFF4
-    claim_text: The `kibi-cursor` package is an optional Cursor adapter for teams who want Kibi in Cursor workflows without changing core Kibi runtime components.\n\nWhen installed and enabled, it should:\n\nKeep `kibi-core`, `kibi-cli`, `kibi-mcp`, and SWI-Prolog as the required foundation for project-local Kibi operations.\nBundle and expose a Cursor plugin manifest, rules, skills, commands, hooks, and MCP server config that points to the local project `kibi-mcp` binary.\nRun hook-driven reminders and warnings only, so it does not replace MCP tooling behavior or write directly to `.kb`.\nRemain clearly documented as optional, with a supported manual MCP configuration path when teams do not use the plugin installer path.\n\nThis requirement is scoped to plugin documentation and operational guidance
+  - claim_key: CLAIM-53B43B16D3EB8252
+    claim_text: The kibi-cursor package must remain optional
     role: normative
     status: modeled
     span:
       start: 0
-      end: 794
+      end: 44
+  - claim_key: CLAIM-6B1861EAA48FF0C3
+    claim_text: When kibi-cursor is installed or enabled, it must not modify core Kibi runtime components
+    role: condition
+    status: modeled
+    span:
+      start: 46
+      end: 135
+  - claim_key: CLAIM-DBFE455AFAFC2F35
+    claim_text: The kibi-cursor MCP launcher must start the project-local kibi-mcp binary
+    role: normative
+    status: modeled
+    span:
+      start: 137
+      end: 210
+  - claim_key: CLAIM-915BBD5BF9462870
+    claim_text: kibi-cursor hooks must only emit reminders and warnings
+    role: normative
+    status: modeled
+    span:
+      start: 212
+      end: 267
+  - claim_key: CLAIM-E5CB2AA3485D7A30
+    claim_text: kibi-cursor hooks must not write to the .kb directory
+    role: normative
+    status: modeled
+    span:
+      start: 269
+      end: 322
+  - claim_key: CLAIM-25D92215ADE7D7CB
+    claim_text: The kibi-cursor documentation must describe a manual MCP configuration for teams that do not use the plugin installer
+    role: normative
+    status: modeled
+    span:
+      start: 324
+      end: 441
 type: req
 origin:
-  kind: migration
-  ref: kibi migrate v5->v6
-  recorded_at: '2026-10-04T01:17:15.284Z'
+  kind: agent
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof."'
+  approved_by: maintainer
+  recorded_at: '2026-10-27T07:51:58.946Z'
+firmness: firm
 ---
+The kibi-cursor package must remain optional. When kibi-cursor is installed or enabled, it must not modify core Kibi runtime components. The kibi-cursor MCP launcher must start the project-local kibi-mcp binary. kibi-cursor hooks must only emit reminders and warnings. kibi-cursor hooks must not write to the .kb directory. The kibi-cursor documentation must describe a manual MCP configuration for teams that do not use the plugin installer.
 
-The `kibi-cursor` package is an optional Cursor adapter for teams who want Kibi in Cursor workflows without changing core Kibi runtime components.
+## Context
 
-When installed and enabled, it should:
+kibi-cursor integrates Kibi with Cursor through a plugin manifest, rules, skills, commands, advisory hooks and an MCP launcher. What the package publishes is stated in REQ-cursor-plugin-package, where each claim is proved from the package files. This requirement keeps the adapter's runtime behaviour.
 
-1. Keep `kibi-core`, `kibi-cli`, `kibi-mcp`, and SWI-Prolog as the required foundation for project-local Kibi operations.
-2. Bundle and expose a Cursor plugin manifest, rules, skills, commands, hooks, and MCP server config that points to the local project `kibi-mcp` binary.
-3. Run hook-driven reminders and warnings only, so it does not replace MCP tooling behavior or write directly to `.kb`.
-4. Remain clearly documented as optional, with a supported manual MCP configuration path when teams do not use the plugin installer path.
+## Why this changed
 
-This requirement is scoped to plugin documentation and operational guidance.
+The migrated statement was a single paragraph that the advisor read as one claim. On 2026-10-27 it was restated as one claim per sentence, and the packaging claims moved to REQ-cursor-plugin-package so that they can be proved from the package files. The foundation claim is now the peer dependency claim there: kibi-cursor declares kibi-cli and kibi-mcp, kibi-cli brings kibi-core, and SWI-Prolog is bundled on Linux and macOS.

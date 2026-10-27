@@ -1,5 +1,5 @@
 % Module: claim_obligations
-% implements REQ-kibi-claim-bound-proofs
+% implements REQ-kibi-claim-bound-proofs, REQ-kibi-non-numeric-proof-kinds
 %
 % What a certificate has to establish for it to prove one requirement claim.
 % A claim is grounded by exactly one typed fact; the obligation is derived
@@ -8,16 +8,47 @@
 %
 %   set fact (value_type set, or the legacy allowed_values string "a|b|c")
 %       exhaustive, typecheck  the domain is exactly the fact's set
+%       typecheck              with property required_fields: every member
+%                              is a required, non-nullable field of the type
+%       rule                   every member satisfies the predicate the
+%                              fact's property names
+%       state_machine          with property transitions, states,
+%                              initial_states, terminal_states or
+%                              reachable_states: that projection of the
+%                              machine is exactly the set
 %   numeric fact (value_type int or number, a comparison operator)
 %       arithmetic, smt        the certificate's claim is the fact's constraint
 %                              (negated for polarity forbid)
+%   rule fact (kibi.logic.v1)
+%       rule, state_machine    the rule holds for every assignment of its
+%                              variables over their domains (model_check.pl)
+%   predicate fact (a ground atom asserted or denied)
+%       rule, state_machine    the code decides the atom as the fact says
+%   string fact (value_type string, operator eq, neq or matches)
+%       regex                  the code's string or pattern meets the
+%                              constraint (decided in the CLI, exactly)
+%   set fact under source (any operator: eq, includes, subset_of, excludes)
+%       source                 the members Kibi read from the project source
+%                              stand in the operator's relation to the set;
+%                              with property required_fields or
+%                              nullable_fields every selected table or object
+%                              has each member as a required (or nullable)
+%                              field; with property middleware every
+%                              selected route's middleware stands in the
+%                              relation
+%   set fact under state_machine with operator includes, subset_of or
+%   excludes, or with property reachable_pairs or required_waypoints
+%       state_machine          the projection stands in the operator's
+%                              relation to the set; a required waypoint
+%                              "from->to via mid" holds when every path from
+%                              one state to the other passes through mid
 %
-% Any other pairing that appears in the table with a different proof kind is
-% incompatible (a set fact under arithmetic, a numeric fact under
-% exhaustive).  A fact kind with no derivation at all (boolean placeholders,
-% predicates, rules, other strings) can only be attested: the test author
-% says the certificate expresses the claim, and Kibi never counts that as
-% proved.
+% Any other pairing of a set, numeric or string fact with a certificate kind
+% is incompatible (a set fact under arithmetic, a numeric fact under
+% exhaustive).  A fact kind with no derivation for the proof kind (boolean
+% placeholders, a rule under exhaustive) can only be attested: the test
+% author says the certificate expresses the claim, and Kibi never counts that
+% as proved.
 
 :- module(claim_obligations, [
     claim_obligation/3,
@@ -25,37 +56,236 @@
     obligation_equal/2,
     proof_contract_claim_candidates_json/1,
     proof_contract_claim_issues_json/1,
-    test_claim_obligations_json/4
+    test_claim_obligations_json/4,
+    claim_model_check_json/4
 ]).
 
 :- use_module(library(http/json)).
 :- use_module(library(apply)).
 :- use_module(library(lists)).
 :- use_module('kb.pl').
+:- use_module('model_check.pl', [model_check_obligation/4, edge_text/3]).
 
 %% fact_obligation(+FactId, +ProofKind, -Result)
 % Result is obligation(Dict), attested, or incompatible(Reason).
 fact_obligation(FactId, ProofKind, Result) :-
-    (   fact_set(FactId, Members)
-    ->  (   memberchk(ProofKind, [exhaustive, typecheck])
-        ->  Result = obligation(_{kind: "set_equals", members: Members})
+    (   fact_set(FactId, Members, Operator)
+    ->  (   ProofKind == source
+        ->  source_obligation(FactId, Members, Operator, Result)
+        ;   ProofKind == state_machine
+        ->  machine_obligation(FactId, Members, Operator, Result)
+        ;   Operator == includes
+        ->  includes_obligation(FactId, Members, ProofKind, Result)
+        ;   Operator == eq
+        ->  set_obligation(FactId, Members, ProofKind, Result)
         ;   format(string(Reason),
-                   "~w is a set fact, which an ~w certificate cannot express (use exhaustive or typecheck)",
-                   [FactId, ProofKind]),
+                   "~w is a ~w set fact, which only source and state_machine certificates can derive (a ~w certificate compares the whole set)",
+                   [FactId, Operator, ProofKind]),
             Result = incompatible(Reason)
         )
     ;   fact_numeric_constraint(FactId, Variable, ValueType, Operator, Value)
     ->  (   memberchk(ProofKind, [arithmetic, smt])
         ->  Result = obligation(_{kind: "numeric_constraint", variable: Variable,
                                   value_type: ValueType, operator: Operator, value: Value})
-        ;   (   ProofKind == typecheck -> Article = a ; Article = an ),
+        ;   (   memberchk(ProofKind, [typecheck, source]) -> Article = a ; Article = an ),
             format(string(Reason),
                    "~w is a numeric fact, which ~w ~w certificate cannot express (use arithmetic or smt)",
                    [FactId, Article, ProofKind]),
             Result = incompatible(Reason)
         )
+    ;   memberchk(ProofKind, [rule, state_machine]),
+        fact_rule_hash(FactId, Hash)
+    ->  atom_string(FactId, FactString),
+        Result = obligation(_{kind: "rule_holds", fact_id: FactString, rule_hash: Hash})
+    ;   memberchk(ProofKind, [rule, state_machine]),
+        predicate_expectation(FactId, Name, Args, Value)
+    ->  atom_string(Name, NameString),
+        maplist(atom_string, Args, ArgStrings),
+        Result = obligation(_{kind: "predicate_holds", predicate: NameString,
+                              args: ArgStrings, value: Value})
+    ;   fact_string_constraint(FactId, Operator, Value, Polarity)
+    ->  (   ProofKind == regex
+        ->  Result = obligation(_{kind: "string_constraint", operator: Operator,
+                                  value: Value, polarity: Polarity})
+        ;   memberchk(ProofKind, [exhaustive, typecheck, arithmetic, smt])
+        ->  Result = attested
+        ;   format(string(Reason),
+                   "~w is a string fact, which a ~w certificate cannot express (use regex)",
+                   [FactId, ProofKind]),
+            Result = incompatible(Reason)
+        )
     ;   Result = attested
     ).
+
+% Set facts: what each kind derives from the members, by the property the
+% fact names where the kind reads one.
+set_obligation(_FactId, Members, exhaustive, obligation(_{kind: "set_equals", members: Members})) :- !.
+set_obligation(FactId, Members, typecheck, obligation(Obligation)) :- !,
+    (   fact_property_key(FactId, required_fields)
+    ->  Obligation = _{kind: "required_fields", members: Members}
+    ;   Obligation = _{kind: "set_equals", members: Members}
+    ).
+set_obligation(FactId, Members, rule, obligation(_{kind: "every_member", predicate: Predicate, members: Members})) :-
+    fact_property_key(FactId, Property),
+    atom_string(Property, Predicate),
+    !.
+set_obligation(FactId, Members, state_machine, Result) :- !,
+    machine_obligation(FactId, Members, eq, Result).
+set_obligation(FactId, _Members, rule, incompatible(Reason)) :- !,
+    format(string(Reason),
+           "~w is a set fact with no property to read as the predicate every member satisfies",
+           [FactId]).
+set_obligation(FactId, _Members, ProofKind, incompatible(Reason)) :-
+    (   ProofKind == regex -> Article = a ; Article = an ),
+    format(string(Reason),
+           "~w is a set fact, which ~w ~w certificate cannot express (use exhaustive, typecheck, rule or state_machine)",
+           [FactId, Article, ProofKind]).
+
+% includes set facts ("every member of A has P") state containment only, so
+% only the kinds that check each member on its own can derive them: a rule
+% checks the property on every member, and a typecheck checks each field is
+% required. Kinds that compare the whole set would read containment as
+% equality.
+includes_obligation(FactId, Members, rule, Result) :- !,
+    set_obligation(FactId, Members, rule, Result).
+includes_obligation(FactId, Members, typecheck, obligation(_{kind: "required_fields", members: Members})) :-
+    fact_property_key(FactId, required_fields),
+    !.
+includes_obligation(FactId, _Members, ProofKind, incompatible(Reason)) :-
+    format(string(Reason),
+           "~w is an includes set fact (every member has the property), which a ~w certificate cannot derive: it compares the whole set (use rule, or an eq set fact for exactly these members)",
+           [FactId, ProofKind]).
+
+% implements REQ-kibi-source-proof-kinds
+% A state machine set fact: the projection its property names stands in the
+% fact operator's relation to the members.  eq on a plain projection keeps
+% the machine_set obligation earlier receipts recorded.
+machine_obligation(FactId, Members, Operator, Result) :-
+    (   fact_property_key(FactId, Projection),
+        memberchk(Projection, [transitions, states, initial_states, terminal_states,
+                               reachable_states, reachable_pairs, required_waypoints])
+    ->  (   memberchk(Projection, [transitions, reachable_pairs])
+        ->  maplist(edge_member, Members, Edges0),
+            sort(Edges0, Spelled)
+        ;   Projection == required_waypoints
+        ->  maplist(waypoint_member, Members, Spelled0),
+            sort(Spelled0, Spelled)
+        ;   Spelled = Members
+        ),
+        atom_string(Projection, ProjectionString),
+        atom_string(Operator, OperatorString),
+        (   Projection == required_waypoints,
+            Operator == subset_of
+        ->  format(string(Reason),
+                   "~w names required waypoints with subset_of; state each waypoint with includes (they hold) or excludes (they do not)",
+                   [FactId]),
+            Result = incompatible(Reason)
+        ;   Projection == required_waypoints,
+            \+ ( member(M, Spelled), sub_string(M, _, _, _, " via ") )
+        ->  format(string(Reason),
+                   "~w names required waypoints that are not spelled \"from->to via state\"",
+                   [FactId]),
+            Result = incompatible(Reason)
+        ;   Operator == eq,
+            Projection \== required_waypoints
+        ->  Result = obligation(_{kind: "machine_set", projection: ProjectionString, members: Spelled})
+        ;   Result = obligation(_{kind: "machine_relation", projection: ProjectionString,
+                                  operator: OperatorString, members: Spelled})
+        )
+    ;   format(string(Reason),
+               "~w is a set fact whose property is not a machine projection (transitions, states, initial_states, terminal_states, reachable_states, reachable_pairs or required_waypoints)",
+               [FactId]),
+        Result = incompatible(Reason)
+    ).
+
+% A required waypoint "from -> to via state", spelled "from->to via state".
+waypoint_member(Member, Spelled) :-
+    (   sub_string(Member, Before, _, After, " via ")
+    ->  sub_string(Member, 0, Before, _, Edge0),
+        sub_string(Member, _, After, 0, Via0),
+        edge_member(Edge0, Edge),
+        normalize_space(atom(Via), Via0),
+        format(string(Spelled), "~w via ~w", [Edge, Via])
+    ;   Spelled = Member
+    ).
+
+% implements REQ-kibi-source-proof-kinds
+% A set fact under the source kind.  The property decides what the members
+% are about: fields every selected table or object has as required or
+% nullable, middleware every selected route runs, or (any other property)
+% the members of the source itself.
+% A required_fields or nullable_fields fact says which fields have the
+% property; with subset_of or excludes it would be decided against whatever
+% members the contract selects, so it is refused instead.
+source_obligation(FactId, Members, Operator, Result) :-
+    atom_string(Operator, OperatorString),
+    (   fact_property_key(FactId, Property) -> true ; Property = none ),
+    (   memberchk(Property-Kind, [required_fields-"required_fields", nullable_fields-"nullable_fields"])
+    ->  (   memberchk(Operator, [eq, includes])
+        ->  Result = obligation(_{kind: Kind, members: Members})
+        ;   format(string(Reason),
+                   "~w is a ~w fact with operator ~w; a source proof decides ~w only with eq or includes (to bound the fields, use a columns or fields fact)",
+                   [FactId, Property, Operator, Property]),
+            Result = incompatible(Reason)
+        )
+    ;   Property == middleware
+    ->  Result = obligation(_{kind: "route_middleware", operator: OperatorString, members: Members})
+    ;   Result = obligation(_{kind: "set_relation", operator: OperatorString, members: Members})
+    ).
+
+% A transition member "from -> to" (or with U+2192 as the arrow) spelled "from->to".
+edge_member(Member, Spelled) :-
+    (   sub_string(Member, Before, _, After, "->")
+    ->  sub_string(Member, 0, Before, _, From0),
+        sub_string(Member, _, After, 0, To0)
+    ;   sub_string(Member, Before, _, After, "\u2192")
+    ->  sub_string(Member, 0, Before, _, From0),
+        sub_string(Member, _, After, 0, To0)
+    ;   From0 = Member, To0 = ""
+    ),
+    normalize_space(atom(From), From0),
+    normalize_space(atom(To), To0),
+    edge_text(From, To, Spelled).
+
+% What a predicate fact says the code decides.  A decision predicate (the
+% built-in permission_rule, or a schema with key_arguments and a decision
+% argument) is about the key arguments: the code's function takes them and
+% returns whether the effective decision is allow.  Any other predicate is
+% true when asserted and false when denied.
+predicate_expectation(FactId, Name, KeyArgs, Value) :-
+    kb:predicate_fact(FactId, Namespace, Name, Args, Polarity),
+    length(Args, Arity),
+    (   kb:decision_signatures(Signatures),
+        memberchk(decision_signature(Namespace, Name, Arity, KeyPositions, DecisionPosition), Signatures)
+    ->  findall(Arg, ( member(Position, KeyPositions), nth1(Position, Args, Arg) ), KeyArgs),
+        nth1(DecisionPosition, Args, Decision),
+        kb:effective_decision(Decision, Polarity, Effect),
+        (   Effect == allow -> Value = true ; Value = false )
+    ;   memberchk(Polarity-Value, [assert-true, deny-false]),
+        KeyArgs = Args
+    ).
+
+fact_property_key(FactId, Property) :-
+    kb_entity(FactId, fact, Props),
+    prop_atom(Props, property_key, Property).
+
+fact_rule_hash(FactId, Hash) :-
+    kb_entity(FactId, fact, Props),
+    prop_atom(Props, fact_kind, rule),
+    memberchk(rule_ir=_, Props),
+    (   prop_atom(Props, rule_hash, HashAtom)
+    ->  atom_string(HashAtom, Hash)
+    ;   Hash = ""
+    ).
+
+% A string property_value fact: eq, neq or matches on a string value.
+fact_string_constraint(FactId, Operator, Value, Polarity) :-
+    kb:fact_property_tuple(FactId, _Subject, Property, Op, string, Raw, _Unit, _Scope, Polarity0),
+    Property \== allowed_values,
+    memberchk(Op, [eq, neq, matches]),
+    text_string(Raw, Value),
+    atom_string(Op, Operator),
+    atom_string(Polarity0, Polarity).
 
 %% claim_obligation(+ReqId, +ClaimKey, +ProofKind, -Result)
 % As fact_obligation/3 for the fact grounding ClaimKey in ReqId, with the
@@ -102,6 +332,59 @@ obligation_key(Obligation, set(Members)) :-
     maplist(text_string, Raw, Strings),
     sort(Strings, Members),
     !.
+obligation_key(Obligation, required_fields(Members)) :-
+    dict_text(Obligation, kind, "required_fields"),
+    obligation_members(Obligation, Members),
+    !.
+obligation_key(Obligation, every(Predicate, Members)) :-
+    dict_text(Obligation, kind, "every_member"),
+    dict_text(Obligation, predicate, Predicate),
+    obligation_members(Obligation, Members),
+    !.
+obligation_key(Obligation, nullable_fields(Members)) :-
+    dict_text(Obligation, kind, "nullable_fields"),
+    obligation_members(Obligation, Members),
+    !.
+obligation_key(Obligation, relation(Operator, Members)) :-
+    dict_text(Obligation, kind, "set_relation"),
+    dict_text(Obligation, operator, Operator),
+    obligation_members(Obligation, Members),
+    !.
+obligation_key(Obligation, middleware(Operator, Members)) :-
+    dict_text(Obligation, kind, "route_middleware"),
+    dict_text(Obligation, operator, Operator),
+    obligation_members(Obligation, Members),
+    !.
+obligation_key(Obligation, machine(Projection, Operator, Members)) :-
+    dict_text(Obligation, kind, "machine_relation"),
+    dict_text(Obligation, projection, Projection),
+    dict_text(Obligation, operator, Operator),
+    obligation_members(Obligation, Members),
+    !.
+obligation_key(Obligation, machine(Projection, Members)) :-
+    dict_text(Obligation, kind, "machine_set"),
+    dict_text(Obligation, projection, Projection),
+    obligation_members(Obligation, Members),
+    !.
+obligation_key(Obligation, rule(FactId, Hash)) :-
+    dict_text(Obligation, kind, "rule_holds"),
+    dict_text(Obligation, fact_id, FactId),
+    dict_text(Obligation, rule_hash, Hash),
+    !.
+obligation_key(Obligation, predicate(Name, Args, Value)) :-
+    dict_text(Obligation, kind, "predicate_holds"),
+    dict_text(Obligation, predicate, Name),
+    get_dict(args, Obligation, RawArgs),
+    is_list(RawArgs),
+    maplist(text_string, RawArgs, Args),
+    dict_text(Obligation, value, Value),
+    !.
+obligation_key(Obligation, string(Operator, Value, Polarity)) :-
+    dict_text(Obligation, kind, "string_constraint"),
+    dict_text(Obligation, operator, Operator),
+    dict_text(Obligation, value, Value),
+    dict_text(Obligation, polarity, Polarity),
+    !.
 obligation_key(Obligation, numeric(Variable, Type, Operator, Value)) :-
     dict_text(Obligation, kind, "numeric_constraint"),
     dict_text(Obligation, variable, Variable),
@@ -109,6 +392,12 @@ obligation_key(Obligation, numeric(Variable, Type, Operator, Value)) :-
     dict_text(Obligation, operator, Operator),
     get_dict(value, Obligation, Raw),
     number_value(Raw, Value).
+
+obligation_members(Obligation, Members) :-
+    get_dict(members, Obligation, Raw),
+    is_list(Raw),
+    maplist(text_string, Raw, Strings),
+    sort(Strings, Members).
 
 dict_text(Dict, Key, String) :-
     is_dict(Dict),
@@ -126,13 +415,15 @@ text_string(Raw, String) :- atom(Raw), !, atom_string(Raw, String).
 text_string(Raw, String) :- number(Raw), !, number_string(Raw, String).
 text_string(^^(Raw, _), String) :- !, text_string(Raw, String).
 
-% The members of a set fact, sorted and unique.
-fact_set(FactId, Members) :-
+% The members of a set fact, sorted and unique, and its operator: eq (the
+% set is exactly these members), includes (it contains at least these),
+% subset_of (it contains only these) or excludes (it contains none of them).
+fact_set(FactId, Members, Operator) :-
     kb_entity(FactId, fact, Props),
     prop_atom(Props, fact_kind, property_value),
     (   prop_atom(Props, value_type, set)
     ->  memberchk(value_set=Raw, Props),
-        kb:normalize_term_atom_list(Raw, Atoms)
+        kb:normalize_literal_atom_list(Raw, Atoms)
     ;   prop_atom(Props, property_key, allowed_values),
         \+ (memberchk(value_type=RawType, Props),
             kb:normalize_term_atom(RawType, Type),
@@ -144,7 +435,8 @@ fact_set(FactId, Members) :-
         exclude(==(""), Parts, NonEmpty),
         maplist([S, A]>>atom_string(A, S), NonEmpty, Atoms)
     ),
-    (   prop_atom(Props, operator, Operator) -> Operator == eq ; true ),
+    (   prop_atom(Props, operator, Operator0) -> Operator = Operator0 ; Operator = eq ),
+    memberchk(Operator, [eq, includes, subset_of, excludes]),
     \+ prop_atom(Props, polarity, forbid),
     maplist([A, S]>>atom_string(A, S), Atoms, Strings),
     sort(Strings, Members),
@@ -311,6 +603,10 @@ certificate_kind(exhaustive).
 certificate_kind(typecheck).
 certificate_kind(arithmetic).
 certificate_kind(smt).
+certificate_kind(rule).
+certificate_kind(state_machine).
+certificate_kind(regex).
+certificate_kind(source).
 
 test_certificate_contract(TestId, Kind, Contract) :-
     kb_entity(TestId, test, Props),
@@ -352,10 +648,14 @@ proof_contract_claim_issue(_{test_id: TestString, claim_key: KeyString, reason: 
 
 %% proof_contract_claim_candidates_json(-Json)
 % For the schema 12 migration: one row {test_id, kind, candidates} per
-% certificate-kind proof contract without proves, where candidates are the
-% claims {claim_key, requirement_id, fact_id} of current requirements the
-% test reaches whose grounding fact derives an obligation for its kind.  The
-% migration pins proves only when exactly one claim is a candidate.
+% certificate-kind proof contract without proves.  Candidates are the
+% modeled claims {claim_key, requirement_id, fact_id, binding, reason?} of
+% current requirements the test reaches through its scenarios, with the
+% binding a certificate of its kind would get: derived when the grounding
+% fact derives an obligation for the kind, attested when the fact has no
+% derivation, incompatible (with the reason) when the kind cannot express
+% it.  The migration pins proves only when exactly one claim is derived;
+% the review lists every candidate so a person can bind the rest.
 proof_contract_claim_candidates_json(Json) :-
     findall(Row, proof_contract_claim_candidates(Row), Rows0),
     sort(Rows0, Rows),
@@ -364,15 +664,43 @@ proof_contract_claim_candidates_json(Json) :-
 proof_contract_claim_candidates(_{test_id: TestString, kind: KindString, candidates: Candidates}) :-
     test_certificate_contract(TestId, Kind, Contract),
     \+ ( get_dict(proves, Contract, Proves), is_list(Proves), Proves \== [] ),
-    findall(_{claim_key: KeyString, requirement_id: ReqString, fact_id: FactString},
+    findall(Candidate,
         (   test_requirement(TestId, ReqId),
             requirement_claim_status(ReqId, ClaimKey, modeled),
-            claim_obligation(ReqId-ClaimKey, Kind, obligation(FactId, _)),
-            atom_string(ClaimKey, KeyString),
-            atom_string(ReqId, ReqString),
-            atom_string(FactId, FactString)
+            claim_obligation(ReqId-ClaimKey, Kind, Result),
+            claim_candidate(ReqId, ClaimKey, Result, Candidate)
         ),
         Candidates0),
-    sort(Candidates0, Candidates),
+    sort(Candidates0, Candidates1),
+    sort(claim_key, @=<, Candidates1, Candidates),
     atom_string(TestId, TestString),
     atom_string(Kind, KindString).
+
+claim_candidate(ReqId, ClaimKey, Result, Candidate) :-
+    (   Result = obligation(FactId, _)
+    ->  Binding = "derived"
+    ;   Result = attested(FactId)
+    ->  Binding = "attested"
+    ;   Result = incompatible(FactId, Reason)
+    ->  Binding = "incompatible"
+    ),
+    atom_string(ClaimKey, KeyString),
+    atom_string(ReqId, ReqString),
+    atom_string(FactId, FactString),
+    Base = _{claim_key: KeyString, requirement_id: ReqString, fact_id: FactString, binding: Binding},
+    (   var(Reason) -> Candidate = Base ; Candidate = Base.put(reason, Reason) ).
+
+%% claim_model_check_json(+Kind, +ObligationJson, +CertificateJson, -Json)
+% For `kibi prove`: whether a rule or state_machine certificate's model meets
+% one derived obligation, {"ok": true} or {"ok": false, "reason": R}.
+claim_model_check_json(Kind0, ObligationJson, CertificateJson, Json) :-
+    kb:normalize_term_atom(Kind0, Kind),
+    atom_json_dict(ObligationJson, Obligation, [value_string_as(string)]),
+    atom_json_dict(CertificateJson, Certificate, [value_string_as(string)]),
+    model_check_obligation(Kind, Obligation, Certificate, Result),
+    (   Result == ok
+    ->  Out = _{ok: true}
+    ;   Result = problem(Reason),
+        Out = _{ok: false, reason: Reason}
+    ),
+    with_output_to(string(Json), json_write_dict(current_output, Out, [width(0)])).

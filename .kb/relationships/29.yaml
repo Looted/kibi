@@ -62,41 +62,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-80821794a827
-  - type: requires_property
-    from: REQ-cursor-agent-plugin-standard-v1
-    to: FACT-PROP-REQ-CURSOR-AGENT-PLUGIN-STANDARD-V1-N01
-    created_at: 2026-09-05T14:35:32.462Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6aada0723e3c
-  - type: requires_property
-    from: REQ-cursor-agent-plugin-standard-v1
-    to: FACT-PROP-REQ-CURSOR-AGENT-PLUGIN-STANDARD-V1-N02
-    created_at: 2026-09-05T14:35:32.466Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c52c87d2d753
-  - type: requires_property
-    from: REQ-cursor-agent-plugin-standard-v1
-    to: FACT-PROP-REQ-CURSOR-AGENT-PLUGIN-STANDARD-V1-N03
-    created_at: 2026-09-05T14:35:32.469Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ddfce2e5acaf
-  - type: requires_property
-    from: REQ-cursor-agent-plugin-standard-v1
-    to: FACT-PROP-REQ-CURSOR-AGENT-PLUGIN-STANDARD-V1-N04
-    created_at: 2026-09-05T14:35:32.472Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d349c13e07f1
-  - type: requires_property
-    from: REQ-cursor-agent-plugin-standard-v1
-    to: FACT-PROP-REQ-CURSOR-AGENT-PLUGIN-STANDARD-V1-N05
-    created_at: 2026-09-05T14:35:32.476Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5e85a5174fbc
   - type: covered_by
     from: SYM-modeling-predicate-inference-2-inferCodingStandardRuleArgs
     to: TEST-mcp-suggest-predicates
@@ -244,3 +209,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3cd3a4a3fbb1
+  - type: requires_property
+    from: REQ-cursor-agent-plugin-standard-v1
+    to: FACT-cursor-agent-plugin-portable-load
+    created_at: 2026-10-27T07:56:30.761Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c94340469f68

@@ -267,7 +267,7 @@ Telemetry diagnostics are also advisory in `kb_check`, but `kibi usage-metrics -
 `kibi migrate` prints `Blocked: ...`, `kibi doctor` fails `Canonical storage`, and the plan's `schema-config-upgrade` action (`legacy_storage_migration`) is `blocked` for an `operator` when a legacy knowledge file outside `.kb/` cannot be moved. All three report the same resolution:
 
 - `... is a stale subset of .kb/symbols.yaml`: every symbol of the legacy manifest is already in `.kb/symbols.yaml`. Remove the legacy copy with `git rm`.
-- `... is a generated coordinates file`: keep `.kb/symbol-coordinates.yaml` and remove the legacy copy; `kibi sync --refresh-symbol-coordinates` regenerates coordinates.
+- `... is a generated coordinates file`: remove the legacy copy (`git rm`); every `kibi sync` derives `.kb/symbol-coordinates.yaml`, which is never committed.
 - `... names no symbols manifest`: the legacy config places its lanes under another folder and Kibi cannot tell which symbols manifest is current. Set `paths.symbols` in `.kb/config.json`, or remove the stale copy.
 - `Destination ... already exists with different content`: compare both copies and keep the current one.
 

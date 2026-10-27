@@ -405,3 +405,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dbe5226bed4e
+  - type: implements
+    from: SYM-code-models-pattern-certificate-problem
+    to: REQ-kibi-non-numeric-proof-kinds
+    created_at: 2026-10-26T09:49:09.352Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-111d5c1b1195
+  - type: covered_by
+    from: SYM-code-models-pattern-certificate-problem
+    to: TEST-kibi-non-numeric-proof-kinds
+    created_at: 2026-10-26T09:49:09.406Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-349f1cc4e380

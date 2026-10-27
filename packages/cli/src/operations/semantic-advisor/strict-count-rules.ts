@@ -41,7 +41,7 @@ export function detectCountStrictSuggestion(
   statement: string,
 ): SemanticModelingSuggestion | null {
   const cardinality = statement.match(
-    /\b(?<operator>at\s+most|at\s+least|exactly|no\s+more\s+than|up\s+to)\s+(?<value>\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?<resource>[a-z][a-z\s_-]*?)\.?$/i,
+    /\b(?<operator>at\s+most|at\s+least|exactly|no\s+more\s+than|up\s+to)\s+(?<value>\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?<resource>[a-z][a-z\s_-]*?)(?:\s+(?:under|in|below)\s+`?(?<scope>\/[^\s`]*)`?)?\.?$/i,
   );
   const cardinalityGroups = cardinality?.groups;
   if (
@@ -65,8 +65,13 @@ export function detectCountStrictSuggestion(
         payload,
         `${operatorText} ${valueText}`,
         {
-          subject_key:
-            tail === "session" ? "user.session" : normalized.replace(/_/g, "."),
+          // "at least 30 routes under /api/orgs" counts the routes under the
+          // prefix, the subject a source proof with path_prefix reads.
+          subject_key: cardinalityGroups.scope
+            ? normalizeSubjectKey(`${resourceText} ${cardinalityGroups.scope}`)
+            : tail === "session"
+              ? "user.session"
+              : normalized.replace(/_/g, "."),
           property_key: normalized.includes("active_session")
             ? "active_count"
             : "count",

@@ -170,7 +170,17 @@ export interface ExtractedEntity {
     | "rule";
   subject_key?: string;
   property_key?: string;
-  operator?: "eq" | "neq" | "lt" | "lte" | "gt" | "gte";
+  operator?:
+    | "eq"
+    | "neq"
+    | "lt"
+    | "lte"
+    | "gt"
+    | "gte"
+    | "matches"
+    | "includes"
+    | "subset_of"
+    | "excludes";
   value_type?: "string" | "int" | "number" | "bool" | "set";
   value_string?: string;
   value_set?: string[];

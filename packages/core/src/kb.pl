@@ -72,6 +72,7 @@
     check_req_contradiction/1,
     normalize_term_atom/2,
     normalize_term_atom_list/2,
+    normalize_literal_atom_list/2,
     changeset/4, % Export for testing
     kb_uri/1
 ]).
@@ -85,7 +86,7 @@
 :- use_module(library(sha), [sha_hash/3, hash_atom/2]).
 :- use_module(library(http/json)).
 :- use_module(library(aggregate), [aggregate_all/3]).
-:- use_module(library(lists), [sum_list/2]).
+:- use_module(library(lists), [sum_list/2, subtract/3, intersection/3]).
 :- use_module(library(ordsets)).
 :- use_module(library(solution_sequences), [distinct/1, limit/2, offset/2, order_by/2]).
 :- use_module('../schema/entities.pl', [entity_type/1, entity_property/3, required_property/2]).
@@ -3080,6 +3081,23 @@ normalize_term_atom_list(Raw, Atoms) :-
     !,
     maplist(normalize_term_atom, Value, Atoms).
 
+%% normalize_literal_atom_list(+Raw, -Atoms)
+% The members of a stored list as atoms, verbatim. Unlike
+% normalize_term_atom_list it keeps a member's '/' segments, so set members
+% such as rxjs/operators, GET /api/users or finance/de stay whole.
+normalize_literal_atom_list(Raw, Atoms) :-
+    unwrap_rdf_value(Raw, Value),
+    is_list(Value),
+    maplist(normalize_literal_atom, Value, Atoms).
+
+normalize_literal_atom(Raw, Atom) :-
+    unwrap_rdf_value(Raw, Value),
+    (   atom(Value) -> Atom = Value
+    ;   string(Value) -> atom_string(Atom, Value)
+    ;   number(Value) -> atom_number(Atom, Value)
+    ;   term_string(Value, String), atom_string(Atom, String)
+    ).
+
 normalize_term_integer(Raw, Integer) :-
     unwrap_rdf_value(Raw, Value),
     (   integer(Value)
@@ -3125,7 +3143,7 @@ value_from_props(Props, bool, Value) :- memberchk(value_bool=ValueRaw, Props), !
 % in any order compare equal.
 value_from_props(Props, set, Value) :-
     memberchk(value_set=ValueRaw, Props),
-    normalize_term_atom_list(ValueRaw, Atoms),
+    normalize_literal_atom_list(ValueRaw, Atoms),
     !,
     sort(Atoms, Value).
 value_from_props(_, _, '').
@@ -3225,6 +3243,35 @@ same_value(TypeA, ValA, TypeB, ValB) :-
 % Exact value conflict: eq X vs eq Y where X \= Y
 values_conflict(eq, ValA, eq, ValB, Type) :-
     \+ same_value(Type, ValA, Type, ValB).
+
+% A set fact with includes says every member of its set has the property;
+% eq on a set says exactly those members do. Two includes facts always agree
+% (the members having the property include both sets); includes conflicts
+% with eq only when it names a member the eq set leaves out.
+% implements REQ-kibi-non-numeric-proof-kinds
+values_conflict(includes, Included, eq, Exact, set) :-
+    \+ subtract(Included, Exact, []).
+values_conflict(eq, Exact, includes, Included, set) :-
+    \+ subtract(Included, Exact, []).
+
+% subset_of says every member with the property is in its set, excludes that
+% no member of its set has it.  subset_of conflicts with a set that must have
+% the property (eq or includes) when that set names a member outside it;
+% excludes conflicts when the two sets share a member.  subset_of and excludes
+% never conflict with each other or themselves: the empty set satisfies them.
+% implements REQ-kibi-source-proof-kinds
+values_conflict(subset_of, Allowed, Op, Required, set) :-
+    memberchk(Op, [eq, includes]),
+    \+ subtract(Required, Allowed, []).
+values_conflict(Op, Required, subset_of, Allowed, set) :-
+    memberchk(Op, [eq, includes]),
+    \+ subtract(Required, Allowed, []).
+values_conflict(excludes, Excluded, Op, Required, set) :-
+    memberchk(Op, [eq, includes]),
+    intersection(Excluded, Required, [_|_]).
+values_conflict(Op, Required, excludes, Excluded, set) :-
+    memberchk(Op, [eq, includes]),
+    intersection(Excluded, Required, [_|_]).
 
 % Eq/neq conflict on the same scalar value.
 values_conflict(eq, ValA, neq, ValB, Type) :-

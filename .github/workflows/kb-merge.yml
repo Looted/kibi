@@ -3,9 +3,10 @@ name: Kibi KB merge
 # When develop moves, open pull requests often stop merging only because both
 # sides appended records to .kb/symbols.yaml (or a .kb/relationships shard).
 # This workflow merges develop into each such same-repository PR branch with
-# `kibi merge-driver`, regenerates .kb/symbol-coordinates.yaml from the merged
-# tree, runs the proof gate, and pushes the merge commit. PRs with any other conflict, or a real
-# conflict inside a manifest, are left for a person.
+# `kibi merge-driver`, runs the proof gate, and pushes the merge commit. PRs
+# with any other conflict, or a real conflict inside a manifest, are left for
+# a person. Symbol coordinates are derived locally and never committed, so a
+# branch that still carries .kb/symbol-coordinates.yaml has it removed.
 #
 # Pushes made with the default GITHUB_TOKEN do not start other workflows, so
 # the PR's checks would not re-run on the merge commit. Add a repository
@@ -146,10 +147,9 @@ jobs:
             echo "::error::Nothing to merge; the branch already contains $BASE or the merge could not start."
             exit 1
           fi
-          # Generated: take this side's copy, then regenerate from the merged tree.
-          if git diff --name-only --diff-filter=U | grep -qx '.kb/symbol-coordinates.yaml'; then
-            git checkout --ours -- .kb/symbol-coordinates.yaml
-            git add .kb/symbol-coordinates.yaml
+          # Derived and no longer tracked: drop the branch's copy.
+          if git ls-files --error-unmatch .kb/symbol-coordinates.yaml >/dev/null 2>&1; then
+            git rm --cached --quiet -- .kb/symbol-coordinates.yaml
           fi
           unmerged=$(git diff --name-only --diff-filter=U)
           if [ -n "$unmerged" ]; then
@@ -158,18 +158,12 @@ jobs:
             exit 1
           fi
 
-      - name: Regenerate symbol coordinates
-        working-directory: pr
-        run: |
-          bun "$GITHUB_WORKSPACE/packages/cli/bin/kibi" sync --refresh-symbol-coordinates
-          git add .kb/symbol-coordinates.yaml
-
       - name: Commit the merge
         working-directory: pr
         run: |
           set -euo pipefail
           git commit -m "Merge $BASE into $KIBI_BRANCH" \
-            -m "Kibi merge driver resolved the .kb manifest conflicts; symbol coordinates regenerated."
+            -m "Kibi merge driver resolved the .kb manifest conflicts."
 
       # The proof gate a person runs before pushing (integrity rules and every
       # requirement's evidence floor), evaluated with develop's Kibi build. A
