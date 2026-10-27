@@ -1,5 +1,13 @@
 # kibi-mcp
 
+## 3.20.1
+
+### Patch Changes
+
+- kibi-runtime and kibi-mcp bundle the same Prolog query fix: a query completes only once SWI-Prolog's whole answer frame has been read, so the MCP server's engine no longer stops reading the Prolog child under Bun.
+- Updated dependencies
+  - kibi-runtime@2.24.1
+
 ## 3.20.0
 
 ### Minor Changes
