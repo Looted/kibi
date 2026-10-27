@@ -439,6 +439,7 @@ variable can be ranged over a domain. A failure names the assignment:
       symbol_id: SYM-can-share          # canShare(status, role) -> boolean
     archived:
       symbol_id: SYM-is-archived
+      export: isArchived                # when the export is not the symbol's title
   domains:
     document_status:
       symbol_id: SYM-document-statuses  # ["draft", "active", "archived"]
@@ -505,7 +506,7 @@ list anything. The contract names the source:
     file: src/app.ts
     export: app            # a Hono or Express app, or a function returning one
     path_prefix: /api
-    names_from: [src/middleware.ts]   # name middleware by the export they are
+    names_from: [src/middleware.ts]   # name middleware by the export they are (or that makes them)
   proves:
     - CLAIM-...            # "Every route under /api must use requireAuth"
 ```
@@ -513,12 +514,44 @@ list anything. The contract names the source:
 | Reader | Reads | `select` |
 | --- | --- | --- |
 | `json`, `yaml` | `file` at `path` (dotted, or a JSON pointer) | `keys`, `values`, `items` |
-| `glob` | the files `pattern` matches (`capture: true` reads what each `*` matched) | |
+| `glob` | the files `pattern` matches (`capture: true` reads what each `*` and `**` matched, joined with `/`: `i18n/**/*.json` reads `finance/de` from `i18n/finance/de.json`) | |
 | `openapi` | `file`'s operations (`GET /invoices`) | `operations`, `unsecured_operations`, `security_schemes`, `responses` |
-| `references` | the code in `files` (TypeScript, JavaScript, Python): `extract` `env`, `imports`, `calls`, `string_args` (with `callee`), `thrown` or `property` (with `key`) | |
+| `references` | the code in `files` (TypeScript, JavaScript, Python): `extract` `env`, `imports`, `calls`, `string_args` (with `callee`), `thrown` (the class of `throw new X()`, or the factory of `throw createX()`) or `property` (with `key`) | |
 | `schema` | `format: drizzle` or `prisma` (`file`), or `sql` migrations replayed in order (`files`); `table` filters by name or glob | `tables`, `columns`, `required_columns`, `nullable_columns`, `foreign_keys` |
-| `routes` | a Hono or Express app's route table, with the middleware that runs before each route (mounted routers included) | `routes`, `middleware` |
-| `validator` | a zod object (or one wrapped in refine, transform or pipe), or a pydantic model | `fields`, `required_fields`, `optional_fields` |
+| `routes` | a Hono or Express app's route table, with the middleware that runs before each route (mounted routers included); `path_prefix` keeps the routes under a prefix | `routes`, `middleware` |
+| `validator` | a zod or valibot object (or one wrapped in refine, transform or pipe; any field that is a Standard Schema), or a pydantic model | `fields`, `required_fields`, `optional_fields` |
+
+Details that decide what a reader sees:
+
+- **Environment variables.** `extract: env` reads `process.env`,
+  `import.meta.env` (without Vite's built-ins `MODE`, `BASE_URL`, `PROD`,
+  `DEV`, `SSR`), `Bun.env` and `Deno.env.get` in TypeScript and JavaScript,
+  and `os.environ` and `os.getenv` in Python, through casts
+  (`(import.meta as X).env`), `!` and parentheses. An environment object, or
+  `import.meta` itself, handed to a variable or a function fails the read,
+  because its later reads could use any name. A framework's own runtime
+  object (`globalThis._NGX_ENV_`) is not an environment object Kibi reads.
+- **SQL migrations.** The replay reads `CREATE TABLE` (quoted and
+  schema-qualified names such as `"public"."messages"` included), `DROP TABLE`
+  and the `ALTER TABLE` actions that change columns, nullability or foreign
+  keys, one or several per statement. Actions that change none of them (row
+  level security, triggers, ownership, defaults, column types, statistics,
+  replica identity, other constraints) are skipped. Function bodies in
+  `$$ ... $$` stay whole. Dropping a foreign key by a name the replay never
+  saw fails the read, unless the statement says `IF EXISTS`. A set of files
+  with no `CREATE TABLE` fails the read, as does a glob that matches no file,
+  so a mistyped pattern never proves a negative.
+- **Middleware names.** `names_from` modules name middleware by the export it
+  is, or by the export that makes it: a zero-argument factory such as
+  `requireAuthentication()` that returns a fresh function per route is
+  called once at read time and its result is recognised by its source text,
+  so routes guarded by `requireAuthentication()` list `requireAuthentication`.
+  Async functions, generators and classes are never called. Without
+  `names_from` a middleware is its function's name, or `(anonymous)`.
+- **Importing the app.** The `routes`, `validator` and drizzle readers import
+  the module, so it must load without side effects (no `listen`, no database
+  connection at import). Export a factory or a wrapper when the app needs
+  dependencies.
 
 Every reader is exact or refuses: a member Kibi cannot read statically
 (`process.env[name]`, a dynamic `import()`, an `ALTER TABLE` form it does not
@@ -533,13 +566,21 @@ property and operator:
 | Fact | The source must |
 | --- | --- |
 | operator `eq`, `includes`, `subset_of` or `excludes` | have exactly, at least, only, or none of the members |
-| property `required_fields` | have each member as a required, non-null field of every selected table or object (`table.field` names one table) |
-| property `nullable_fields` | have each member nullable |
+| property `required_fields` | have each member as a required, non-null field of every selected table or object; a bare name (`id`) applies to every table, including tables added later, while `table.field` names one table. Only `eq` and `includes` |
+| property `nullable_fields` | have each member nullable. Only `eq` and `includes` |
 | property `middleware` | run the members (by the operator) before every selected route |
 
 The receipt's binding covers what the read depends on: each file it parses,
 the list of files a glob matches, and the modules a drizzle schema, route
-table or validator imports. Change any of them and the receipt is stale.
+table or validator imports (through relative imports, tsconfig `paths`
+including those inherited through `extends`, and workspace packages linked
+into `node_modules`). Change any of them and the receipt is stale. A claim a
+source proof derives is bound with scope `source`, so coverage and signoff
+show that the proof rests on project files Kibi read.
+
+The certificate builders (`sourceCertificate`, `readProjectSource`) are in
+`kibi-cli/proof-certificates` from kibi-cli 2.33.0; a project that pins an
+older kibi-cli has to upgrade before its tests can import them.
 
 Sources also feed the other kinds. An arithmetic or smt `value_source` entry
 `{source: {...}, measure: count}` counts the members ("at most 40 routes"),
@@ -552,10 +593,18 @@ claims are bound with scope `harness`.
 
 The semantic advisor models these statements for you: "Every route under
 /api must use requireAuth" (middleware, includes), "Every table must have id
-and created_at" (required_fields), "The deleted_at column of organizations
-must be nullable" (nullable_fields), "Every environment variable the app
-reads must be one of A, B or C" (subset_of), "The web app must never import
-node:fs" (imports, excludes).
+and created_at" or "Every table in schema.ts must have a required org_id
+column" (required_fields), "The deleted_at column of organizations must be
+nullable" (nullable_fields), "Every environment variable the app reads must
+be one of A, B or C" (subset_of), "The web app must never import node:fs" or
+"... @supabase/supabase-js" (imports, excludes), "The top-level keys of
+scenarios.json must be exactly groups and scenarios" (eq), and "The server
+must expose at least 30 routes under /api/orgs" (count). A field claim needs
+a schema word (table, object, schema, row, record, model, entity, type,
+payload, DTO, or field, column or property next to the names): "Every
+organization must have an owner" is about membership and stays a behavioural
+claim. `kb_model` in requirement mode writes the same set facts when you pass
+`operator` (`eq`, `includes`, `subset_of`, `excludes`) and a list `value`.
 
 ### Temporal claims on state machines
 
@@ -564,7 +613,8 @@ by a path of one or more transitions) and `required_waypoints`
 (`from->to via state`: the target is reachable and every path to it passes
 through the state), and any machine projection can use `includes`,
 `subset_of` or `excludes`. "A cancelled invoice can never become paid" is a
-`reachable_pairs` fact with `excludes`; "Every path from draft to paid must
+`reachable_pairs` fact with `excludes` (and "A member can never become
+owner", with no machine named, one on subject `workflow`); "Every path from draft to paid must
 pass through approved" is a `required_waypoints` fact. A failure names the
 path or the state:
 

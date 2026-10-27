@@ -100,6 +100,20 @@ export function extractScriptReferences(
     node !== undefined && (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node))
       ? node.text
       : null;
+  // The expression under parentheses, `!`, `as T`, `<T>x` and `satisfies T`:
+  // a cast does not change what is read, so `(import.meta as X).env` is
+  // import.meta.env.
+  const unwrapped = (node: Node): Node => {
+    if (
+      ts.isNonNullExpression(node) ||
+      ts.isParenthesizedExpression(node) ||
+      ts.isAsExpression(node) ||
+      ts.isTypeAssertionExpression(node) ||
+      ts.isSatisfiesExpression(node)
+    )
+      return unwrapped(node.expression);
+    return node;
+  };
   // a.b.c for identifier and property chains, a["b"] for literal element access
   const chain = (node: Node): string | null => {
     if (ts.isIdentifier(node)) return node.text;
@@ -114,8 +128,22 @@ export function extractScriptReferences(
       return left === null || key === null ? null : `${left}.${key}`;
     }
     if (ts.isMetaProperty(node)) return `${ts.tokenToString(node.keywordToken)}.${node.name.text}`;
-    if (ts.isNonNullExpression(node) || ts.isParenthesizedExpression(node)) return chain(node.expression);
-    return null;
+    const inner = unwrapped(node);
+    return inner === node ? null : chain(inner);
+  };
+  // Whether the expression, under any casts, is the object of a property read.
+  const readsAProperty = (node: Node): boolean => {
+    let current = node;
+    let parent = node.parent;
+    while (parent !== undefined && unwrapped(parent) !== parent) {
+      current = parent;
+      parent = parent.parent;
+    }
+    return (
+      parent !== undefined &&
+      (ts.isPropertyAccessExpression(parent) || ts.isElementAccessExpression(parent)) &&
+      parent.expression === current
+    );
   };
   const extract = spec.extract;
   const callee = typeof spec.callee === "string" ? spec.callee : "";
@@ -165,6 +193,11 @@ export function extractScriptReferences(
           unresolved.push(at(node));
           return;
         }
+        // So can import.meta itself, when it is handed on instead of read.
+        if (ts.isMetaProperty(node) && chain(node) === "import.meta" && !readsAProperty(node)) {
+          unresolved.push(at(node));
+          return;
+        }
         break;
       }
       case "imports": {
@@ -211,8 +244,11 @@ export function extractScriptReferences(
       }
       case "thrown": {
         if (ts.isThrowStatement(node) && node.expression) {
-          const thrown = node.expression;
-          const name = ts.isNewExpression(thrown) ? chain(thrown.expression) : null;
+          const thrown = unwrapped(node.expression);
+          // throw new ForbiddenError(...) names the class; throw
+          // createForbiddenError(...) names the factory.
+          const name =
+            ts.isNewExpression(thrown) || ts.isCallExpression(thrown) ? chain(thrown.expression) : null;
           if (name !== null) members.push(name);
           else if (!(ts.isIdentifier(thrown) && catchNames.includes(thrown.text))) unresolved.push(at(node));
         }
@@ -406,13 +442,43 @@ if (plan.reader === "routes") {
 async function exportsOf(file) {
   return await import(pathToFileURL(file).href);
 }
+// Middleware by identity, and middleware a factory export makes: a factory
+// such as requireAuth() returns a fresh closure per route, so its result is
+// known by its source text and labelled with the factory name. A text two
+// factories share names neither.
 async function names() {
   const byValue = new Map();
+  const byText = new Map();
   for (const file of plan.names_from ?? []) {
     const mod = await exportsOf(file);
-    for (const [name, value] of Object.entries(mod)) if (typeof value === "function" && !byValue.has(value)) byValue.set(value, name);
+    for (const [name, value] of Object.entries(mod)) {
+      if (typeof value !== "function") continue;
+      if (!byValue.has(value)) byValue.set(value, name);
+      // Only plain zero-argument functions: never a class, an async function
+      // or a generator, whose call could do work.
+      if (value.length !== 0 || value.constructor?.name !== "Function" || /^class\b/.test(Function.prototype.toString.call(value))) continue;
+      let made;
+      try {
+        made = value();
+      } catch {
+        continue;
+      }
+      if (made && typeof made.then === "function") {
+        made.then(() => {}, () => {});
+        continue;
+      }
+      if (typeof made !== "function") continue;
+      const text = Function.prototype.toString.call(made);
+      byText.set(text, byText.has(text) && byText.get(text) !== name ? null : name);
+    }
   }
-  return byValue;
+  return {
+    get(handler) {
+      if (byValue.has(handler)) return byValue.get(handler);
+      if (typeof handler !== "function") return undefined;
+      return byText.get(Function.prototype.toString.call(handler)) ?? undefined;
+    },
+  };
 }
 const symbolNamed = (object, pattern) => Object.getOwnPropertySymbols(object).find((symbol) => pattern.test(String(symbol.description)));
 async function drizzle(mod) {
@@ -540,13 +606,27 @@ async function routes(mod) {
   if (framework === "express") return { routes: expressRoutes(app, named) };
   throw new Error(plan.export + " is neither a Hono nor an Express app; name the framework");
 }
+// The fields of an object schema: zod's shape (under refine, transform,
+// pipe or effects), or valibot's entries (under pipe).
 function shapeOf(schema) {
   let current = schema;
   for (let depth = 0; depth < 10 && current; depth++) {
     const shape = typeof current.shape === "function" ? current.shape() : current.shape;
     if (shape && typeof shape === "object") return shape;
+    if (current.kind === "schema" && current.entries && typeof current.entries === "object") return current.entries;
     const def = current._def ?? current._zod?.def;
-    current = def?.schema ?? def?.innerType ?? def?.in;
+    current = def?.schema ?? def?.innerType ?? def?.in ?? (Array.isArray(current.pipe) && current.pipe[0] !== current ? current.pipe[0] : undefined);
+  }
+  return null;
+}
+// Whether a field accepts a value: zod's safeParse, or any Standard Schema
+// (valibot, arktype, zod 3.24+).
+async function accepts(field, value) {
+  if (typeof field?.safeParse === "function") return field.safeParse(value).success === true;
+  const standard = field?.["~standard"];
+  if (standard && typeof standard.validate === "function") {
+    const result = await standard.validate(value);
+    return !result.issues;
   }
   return null;
 }
@@ -554,11 +634,14 @@ async function validator(mod) {
   const schema = mod[plan.export];
   if (schema === undefined) throw new Error(plan.export + " is not exported from " + plan.file);
   const shape = shapeOf(schema);
-  if (shape === null) throw new Error(plan.export + " is not an object schema whose fields Kibi can list (a zod object, or one wrapped in refine, transform or pipe)");
-  const columns = Object.entries(shape).map(([name, field]) => {
-    if (typeof field?.safeParse !== "function") throw new Error("field " + name + " of " + plan.export + " has no safeParse");
-    return { name, optional: field.safeParse(undefined).success === true, nullable: field.safeParse(null).success === true };
-  });
+  if (shape === null) throw new Error(plan.export + " is not an object schema whose fields Kibi can list (a zod or valibot object, or one wrapped in refine, transform or pipe)");
+  const columns = [];
+  for (const [name, field] of Object.entries(shape)) {
+    const optional = await accepts(field, undefined);
+    const nullable = await accepts(field, null);
+    if (optional === null || nullable === null) throw new Error("field " + name + " of " + plan.export + " is neither a zod schema nor a Standard Schema");
+    columns.push({ name, optional, nullable });
+  }
   return { entities: [{ name: plan.export, columns, foreign_keys: [] }] };
 }
 try {

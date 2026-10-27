@@ -226,6 +226,8 @@ left:
   harness that drives real code (it calls the handler with each role), add
   `harness_for: [SYM-...]` naming that code; the claim binds with scope
   `harness`, which proves, and those symbols must be `covered_by` the test.
+  Add `export: <name>` to a `predicate_source` entry when the function's
+  export is not the symbol's title.
 - `state_machine`: set `domain_source` to the transition table (object or
   Map from state to next states, or `[from, to]` pairs) or to a
   `next(state, event)` function with `domains: {state, event}`;
@@ -257,16 +259,27 @@ left:
   `references` (`files`, `extract: env|imports|calls|string_args|thrown|
   property`), `schema` (`format: drizzle|prisma|sql`, `select:
   tables|columns|required_columns|nullable_columns|foreign_keys`), `routes`
-  (Hono or Express app export, `select: routes|middleware`) or `validator`
-  (zod or pydantic, `select: fields|required_fields|optional_fields`). A
-  member Kibi cannot read statically (a computed env name, a dynamic
-  import) fails the read with its location, so a read is never silently
-  partial. Model the claim as a set fact: `eq` (exactly), `includes` (at
-  least), `subset_of` ("must be one of"), `excludes` ("must never use");
-  `property_key: required_fields` or `nullable_fields` with members `name`
-  or `table.name`; `middleware` with `includes` for "every route under /p
-  must use M" (Kibi checks each route). The receipt stales when a file the
-  read touched changes. `value_source` accepts `{source, measure: count}`.
+  (Hono or Express app export, `path_prefix`, `names_from`, `select:
+  routes|middleware`) or `validator` (zod, valibot or pydantic, `select:
+  fields|required_fields|optional_fields`). A member Kibi cannot read
+  statically (a computed env name, a dynamic import, an env object handed
+  to a variable) fails the read with its location, and so does an empty
+  read (a glob matching no file, migrations with no `CREATE TABLE`), so a
+  read is never silently partial. Model the claim as a set fact: `eq`
+  (exactly), `includes` (at least), `subset_of` ("must be one of"),
+  `excludes` ("must never use"); `property_key: required_fields` or
+  `nullable_fields` (only `eq`/`includes`) with bare members `name` for
+  "every table" (it also covers tables added later) or `table.name` for
+  one; `middleware` with `includes` for "every route under /p must use M"
+  (Kibi checks each route). Name middleware with `names_from`: a
+  zero-argument factory export such as `requireAuth()` names the
+  middleware it returns `requireAuth`. Write the fact with `kb_model`
+  (requirement mode, `operator` plus a list `value`) or `kb_upsert`. The
+  receipt stales when a file the read touched changes, and the claim binds
+  with scope `source`. `value_source` accepts `{source, measure: count}`.
+  The builders need kibi-cli 2.33.0 or newer in the project. The env
+  extractor reads `process.env`, `import.meta.env`, `Bun.env`,
+  `Deno.env.get`, `os.environ` and `os.getenv`, through casts.
 
 `arithmetic` and `smt` from `constraint_source` alone prove that the
 knowledge base's facts entail the claim, not that code follows the facts:

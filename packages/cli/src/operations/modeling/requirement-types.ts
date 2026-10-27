@@ -14,7 +14,8 @@ export type ModelRequirementArgs = Readonly<Record<string, unknown>> & {
   readonly subjectKey?: string;
   readonly propertyKey?: string;
   readonly operator?: SemanticClaim["operator"];
-  readonly value?: string | number | boolean;
+  /** A list of strings is a set value (operators eq, includes, subset_of, excludes). */
+  readonly value?: string | number | boolean | readonly string[];
   readonly provenance?: string;
   /** Existing requirement claim manifest. Returned req updates merge this list. */
   readonly existingLogicClaims?: readonly string[];

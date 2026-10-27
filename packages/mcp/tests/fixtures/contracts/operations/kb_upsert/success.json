@@ -592,6 +592,7 @@
                     "additionalProperties": false,
                     "properties": {
                       "export": {
+                        "description": "The exported function's name in the symbol's source file. Without it Kibi reads the export named by the symbol's title.",
                         "minLength": 1,
                         "type": "string"
                       },
@@ -798,7 +799,7 @@
                           "type": "string"
                         },
                         "scope": {
-                          "enum": ["code", "harness", "intent"],
+                          "enum": ["code", "source", "harness", "intent"],
                           "type": "string"
                         }
                       },
@@ -1247,7 +1248,7 @@
               "type": "string"
             },
             "value_type": {
-              "description": "Optional typed value discriminator for property_value facts. Pair with exactly one value_string, value_int, value_number, value_bool, or value_set (set: an exact list of allowed values, operator eq or neq); do not use generic value.",
+              "description": "Optional typed value discriminator for property_value facts. Pair with exactly one value_string, value_int, value_number, value_bool, or value_set (set: a list of members, with operator eq, includes, subset_of or excludes); do not use generic value.",
               "enum": ["string", "int", "number", "bool", "set"],
               "type": "string"
             },
