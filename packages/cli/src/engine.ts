@@ -1602,13 +1602,15 @@ export class EngineClient {
       this.socket = null;
     }
     const pidPath = enginePidPath(this.workspaceRoot, this.branch);
-    const deadline = Date.now() + 5_000;
+    const __stopStart = Date.now();
+    const deadline = Date.now() + 40_000;
     while (
       (existsSync(socketPath) || existsSync(pidPath)) &&
       Date.now() < deadline
     ) {
       await new Promise((resolve) => setTimeout(resolve, 25));
     }
+    console.error("PROBE client stop waited", Date.now() - __stopStart, "socket", existsSync(socketPath), "pid", existsSync(pidPath));
     if (existsSync(socketPath) || existsSync(pidPath)) {
       const detail =
         requestError instanceof Error ? `: ${requestError.message}` : "";
@@ -2653,11 +2655,14 @@ export async function runEngineDaemon(requestedOptions: {
     // Stop accepting clients before the first asynchronous durability step.
     // Keep the PID published until Prolog releases the branch-store lock.
     server.close();
+    const __t0 = Date.now();
     await queue.catch(() => undefined);
+    console.error("PROBE shutdown queue", Date.now() - __t0, "recycle", session.needsRecycle());
     const saved = session.needsRecycle()
       ? null
       : await prolog.query("kb_save").catch(() => null);
     let detached = false;
+    console.error("PROBE shutdown saved", Date.now() - __t0, JSON.stringify(saved)?.slice(0, 300));
     if (saved?.success) {
       try {
         fsyncJournaledBranchStore(branchPath);
@@ -2678,9 +2683,11 @@ export async function runEngineDaemon(requestedOptions: {
     // Once kb_detach released the store, nothing in at_halt is needed and the
     // child is signalled at once. Otherwise let SWI halt on stdin EOF (running
     // its at_halt cleanup) for a bounded moment; the wait ends on exit.
+    console.error("PROBE shutdown detached", Date.now() - __t0, detached);
     await prolog
       .terminate({ graceMs: detached ? 0 : ENGINE_PROLOG_EXIT_GRACE_MS })
       .catch(() => undefined);
+    console.error("PROBE shutdown terminated", Date.now() - __t0);
     for (const client of clients) client.destroy();
     // A close callback can remain pending on older Node releases when a
     // client disconnects during `server.close()`. The daemon has already

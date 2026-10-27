@@ -610,6 +610,40 @@ export class PrologProcess {
           if (found || this.outputOverflowed) checkResult();
         };
         this.outputWaiter = wake;
+        const __probe = setInterval(() => {
+          if (settled) {
+            clearInterval(__probe);
+            return;
+          }
+          const pid = this.process?.pid ?? 0;
+          const read = (f: string): string => {
+            try {
+              return require("node:fs").readFileSync(f, "utf8").trim().slice(0, 300);
+            } catch (e) {
+              return `ERR ${(e as Error).message}`;
+            }
+          };
+          const out = this.process?.stdout as unknown as Record<string, unknown> | undefined;
+          console.error(
+            "PROBE slow query",
+            JSON.stringify({
+              goal: goalLabel,
+              elapsed: Date.now() - start,
+              pid,
+              stat: read(`/proc/${pid}/stat`).split(" ").slice(2, 3).join(" "),
+              wchan: read(`/proc/${pid}/wchan`),
+              syscall: read(`/proc/${pid}/syscall`),
+              outLen: this.outputBuffer.length,
+              outTail: this.outputBuffer.slice(-200),
+              errTail: this.errorBuffer.slice(-300),
+              flowing: out?.readableFlowing,
+              paused: typeof out?.isPaused === "function" ? (out.isPaused as () => boolean).call(out) : null,
+              readableLength: out?.readableLength,
+              destroyed: out?.destroyed,
+              usable: this.isProcessUsable(),
+            }),
+          );
+        }, 1000);
         checkResult();
       });
     };
