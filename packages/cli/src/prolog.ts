@@ -46,6 +46,15 @@ const DEFAULT_PROLOG_OUTPUT_MAX_BUFFER_BYTES = 8 * 1024 * 1024;
 const PROLOG_OUTPUT_OVERFLOW_ERROR =
   "Query exceeded bounded Prolog output capacity (ENOBUFS); narrow the operation or reduce stored entity size";
 const INTERACTIVE_QUERY_FRAME_END = "__KIBI_QUERY_FRAME_END__";
+/**
+ * Everything SWI prints for the frame goal: the marker, then the toplevel's
+ * own answer to `writeln/1`. That answer arrives in later writes, so a frame
+ * counts as complete only once it has been read too. A query resolved on the
+ * marker alone left those bytes in flight while its caller answered over a
+ * socket, and Bun can then drop the pipe's one-shot readiness event and
+ * never read the Prolog child again.
+ */
+const INTERACTIVE_QUERY_FRAME_TERMINATOR = `${INTERACTIVE_QUERY_FRAME_END}\ntrue.\n\n`;
 
 const require = createRequire(import.meta.url);
 
@@ -542,7 +551,7 @@ export class PrologProcess {
           }
 
           const frameEnd = this.outputBuffer.indexOf(
-            INTERACTIVE_QUERY_FRAME_END,
+            INTERACTIVE_QUERY_FRAME_TERMINATOR,
           );
           if (frameEnd >= 0) {
             settle();
@@ -600,12 +609,13 @@ export class PrologProcess {
           if (settled) return;
           const found =
             this.outputBuffer.indexOf(
-              INTERACTIVE_QUERY_FRAME_END,
+              INTERACTIVE_QUERY_FRAME_TERMINATOR,
               frameScanFrom,
             ) >= 0;
           frameScanFrom = Math.max(
             0,
-            this.outputBuffer.length - INTERACTIVE_QUERY_FRAME_END.length,
+            this.outputBuffer.length -
+              INTERACTIVE_QUERY_FRAME_TERMINATOR.length,
           );
           if (found || this.outputOverflowed) checkResult();
         };
