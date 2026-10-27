@@ -139,3 +139,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a874bfd95013
+  - type: executable_for
+    from: SYM-proof-claude-published-parts
+    to: TEST-proof-claude-published-parts
+    created_at: 2026-10-27T07:43:32.018Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c863bcdf635

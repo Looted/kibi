@@ -318,3 +318,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1c59eca05958
+  - type: implements
+    from: SYM-claude-mcp-launcher
+    to: REQ-claude-plugin-package
+    created_at: 2026-10-27T07:43:22.875Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-515f281517a7

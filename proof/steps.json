@@ -3340,5 +3340,45 @@
         "./packages/cli/tests/proofs/claims/zcode-plugin-package.proof.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-proof-claude-published-parts",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/claude-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-claude-skills",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/claude-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-claude-mcp-launcher",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/claude-plugin-package.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-claude-lifecycle-hooks",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/claude-plugin-package.proof.test.ts"
+      ]
+    ]
   }
 ]

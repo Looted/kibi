@@ -23451,6 +23451,38 @@ coordinates:
     sourceEndLine: 479
     sourceFile: packages/cli/src/public/proof-certificates.ts
     sourceLine: 406
+  SYM-proof-claude-lifecycle-hooks:
+    identityHash: fd854fc2610a192fbc563cc88aaad31cc437f1b89e33ec43b130b1b00b7a1331
+    sourceHash: 28df74c94bec99ce0c072a4f17d65e00191a7179908983f03ec0a964ae69dd01
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 36
+    sourceFile: packages/cli/tests/proofs/claims/claude-plugin-package.proof.test.ts
+    sourceLine: 34
+  SYM-proof-claude-mcp-launcher:
+    identityHash: 6a86c5c925fdf72849271eea66b60c736fc97bde0f714ded11557c9fa4683277
+    sourceHash: 28df74c94bec99ce0c072a4f17d65e00191a7179908983f03ec0a964ae69dd01
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 31
+    sourceFile: packages/cli/tests/proofs/claims/claude-plugin-package.proof.test.ts
+    sourceLine: 29
+  SYM-proof-claude-published-parts:
+    identityHash: bfec5681c628ba0af94dca3a783c4605888bd1053b09fc0c99ee5b36afb5baee
+    sourceHash: 28df74c94bec99ce0c072a4f17d65e00191a7179908983f03ec0a964ae69dd01
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 21
+    sourceFile: packages/cli/tests/proofs/claims/claude-plugin-package.proof.test.ts
+    sourceLine: 19
+  SYM-proof-claude-skills:
+    identityHash: 70d76771be7bf5383cb5a0d2e49022f3f1833091171e5b4682da24e31e3f5c56
+    sourceHash: 28df74c94bec99ce0c072a4f17d65e00191a7179908983f03ec0a964ae69dd01
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 26
+    sourceFile: packages/cli/tests/proofs/claims/claude-plugin-package.proof.test.ts
+    sourceLine: 24
   SYM-proof-compactProofReceipts:
     identityHash: fe07a0dea80f6de9dd5f8578cfea4ed9ed1c19977adcbd0abcaf562ef6df3237
     sourceHash: 01593531130e8792a1e232de8f2bd46b389a25defc691a05329ff37f737a0205
