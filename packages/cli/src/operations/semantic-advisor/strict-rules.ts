@@ -36,7 +36,13 @@ const splitValues = (text: string): string[] =>
     ),
   ].sort();
 
-const IDENTIFIER = /^[A-Za-z_][\w.:/@-]*$/;
+// A member name: an identifier, a dotted or scoped module specifier
+// (@scope/pkg, node:fs/promises, ./local) or a key.
+const IDENTIFIER = /^[@.]?[A-Za-z_][\w.:/@-]*$/;
+
+// A subject whose members have fields: "every table", "each request body".
+const FIELD_OWNER =
+  /\b(?:tables?|objects?|schemas?|rows?|records?|models?|entit(?:y|ies)|types?|payloads?|dtos?|interfaces?|request\s+bod(?:y|ies)|response\s+bod(?:y|ies))\b/i;
 
 const NEVER_VERBS: Readonly<Record<string, string>> = {
   use: "uses",
@@ -58,15 +64,19 @@ export function detectSourceShape(
   payload: Payload,
   statement: string,
 ): SemanticModelingSuggestion | null {
-  const never = statement.match(
-    /^(?:an?\s+|the\s+)?(?<from>[\w-]+)\s+(?<base>[\w\s-]+?)\s+(?:can|may|must|shall|should)\s+never\s+(?:become|reach|transition\s+to|move\s+to|go\s+(?:back\s+)?to)\s+(?<to>[\w-]+)\.?$/i,
-  );
-  if (never?.groups?.from && never.groups.base && never.groups.to)
+  // The article is not a state: "A member can never become owner" is about
+  // the member state, with no machine named.
+  const never = statement
+    .replace(/^(?:an?|the)\s+/i, "")
+    .match(
+      /^(?<from>[\w-]+)(?:\s+(?<base>[\w\s-]+?))?\s+(?:can|may|must|shall|should)\s+never\s+(?:become|reach|transition\s+to|move\s+to|go\s+(?:back\s+)?to)\s+(?<to>[\w-]+)\.?$/i,
+    );
+  if (never?.groups?.from && never.groups.to)
     return suggestion(
       payload,
       never,
       {
-        subject_key: normalizeSubjectKey(never.groups.base),
+        subject_key: normalizeSubjectKey(never.groups.base ?? "workflow"),
         property_key: "reachable_pairs",
         operator: "excludes",
         value_type: "set",
@@ -124,10 +134,20 @@ export function detectSourceShape(
       );
   }
 
+  // Fields need a schema word: "every table must have id", "every
+  // organization must have the field owner_id" or "... an id column".
+  // "Every organization must have an owner" is about membership, not a
+  // column, and stays out.
   const fields = statement.match(
-    /^(?:every|each|all)\s+(?<subject>[\w\s-]+?)\s+(?:must|shall|should)\s+(?:have|include|contain|define)\s+(?:the\s+)?(?:(?:required\s+)?(?:fields?|columns?|properties)\s+)?(?<values>.+?)\.?$/i,
+    /^(?:every|each|all)\s+(?<subject>.+?)\s+(?:must|shall|should)\s+(?:have|include|contain|define|declare)\s+(?:an?\s+|the\s+)?(?:(?:required|non-null)\s+)?(?:(?<lead>fields?|columns?|properties)\s+)?(?<values>.+?)(?:\s+(?:as\s+)?(?:(?:required|non-null)\s+)?(?<trail>fields?|columns?|properties))?\.?$/i,
   );
-  if (fields?.groups?.subject && fields.groups.values) {
+  if (
+    fields?.groups?.subject &&
+    fields.groups.values &&
+    (fields.groups.lead !== undefined ||
+      fields.groups.trail !== undefined ||
+      FIELD_OWNER.test(fields.groups.subject))
+  ) {
     const values = splitValues(fields.groups.values);
     if (values.length > 0 && values.every((value) => IDENTIFIER.test(value)))
       return suggestion(
@@ -218,6 +238,28 @@ export function detectSourceShape(
         "Something the code must never use is a set fact with operator excludes; a source proof reads every reference the code makes (imports, calls, environment variables) and checks none is listed.",
         0.84,
         `never ${forbidden.groups.verb} ${forbidden.groups.values}`,
+      );
+  }
+
+  const exactly = statement.match(
+    /^(?<subject>.+?)\s+(?:must|shall|should)\s+(?:be|contain|list|declare|have|provide)\s+exactly\s+(?:the\s+[\w-]+\s+)?(?<values>.+?)\.?$/i,
+  );
+  if (exactly?.groups?.subject && exactly.groups.values) {
+    const values = splitValues(exactly.groups.values);
+    if (values.length > 0 && values.every((value) => IDENTIFIER.test(value)))
+      return suggestion(
+        payload,
+        exactly,
+        {
+          subject_key: normalizeSubjectKey(exactly.groups.subject),
+          property_key: "members",
+          operator: "eq",
+          value_type: "set",
+          value_set: values,
+        },
+        "Members a set must have exactly are a set fact with operator eq; a source proof reads the members from the project (json or yaml keys, glob matches) and compares the whole set.",
+        0.84,
+        `exactly ${exactly.groups.values}`,
       );
   }
 

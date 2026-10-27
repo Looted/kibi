@@ -925,7 +925,8 @@
               },
               "export": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "description": "The exported function's name in the symbol's source file. Without it Kibi reads the export named by the symbol's title."
               },
               "harness_for": {
                 "type": "array",
@@ -1438,6 +1439,7 @@
                   "type": "string",
                   "enum": [
                     "code",
+                    "source",
                     "harness",
                     "intent"
                   ]

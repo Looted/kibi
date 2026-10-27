@@ -72,6 +72,7 @@
     check_req_contradiction/1,
     normalize_term_atom/2,
     normalize_term_atom_list/2,
+    normalize_literal_atom_list/2,
     changeset/4, % Export for testing
     kb_uri/1
 ]).
@@ -3080,6 +3081,23 @@ normalize_term_atom_list(Raw, Atoms) :-
     !,
     maplist(normalize_term_atom, Value, Atoms).
 
+%% normalize_literal_atom_list(+Raw, -Atoms)
+% The members of a stored list as atoms, verbatim. Unlike
+% normalize_term_atom_list it keeps a member's '/' segments, so set members
+% such as rxjs/operators, GET /api/users or finance/de stay whole.
+normalize_literal_atom_list(Raw, Atoms) :-
+    unwrap_rdf_value(Raw, Value),
+    is_list(Value),
+    maplist(normalize_literal_atom, Value, Atoms).
+
+normalize_literal_atom(Raw, Atom) :-
+    unwrap_rdf_value(Raw, Value),
+    (   atom(Value) -> Atom = Value
+    ;   string(Value) -> atom_string(Atom, Value)
+    ;   number(Value) -> atom_number(Atom, Value)
+    ;   term_string(Value, String), atom_string(Atom, String)
+    ).
+
 normalize_term_integer(Raw, Integer) :-
     unwrap_rdf_value(Raw, Value),
     (   integer(Value)
@@ -3125,7 +3143,7 @@ value_from_props(Props, bool, Value) :- memberchk(value_bool=ValueRaw, Props), !
 % in any order compare equal.
 value_from_props(Props, set, Value) :-
     memberchk(value_set=ValueRaw, Props),
-    normalize_term_atom_list(ValueRaw, Atoms),
+    normalize_literal_atom_list(ValueRaw, Atoms),
     !,
     sort(Atoms, Value).
 value_from_props(_, _, '').

@@ -55,13 +55,32 @@ export const modelRequirementSpec = {
       },
       operator: {
         type: "string",
-        enum: ["eq", "gt", "gte", "lt", "lte", "neq", "bool", "polarity"],
+        enum: [
+          "eq",
+          "gt",
+          "gte",
+          "lt",
+          "lte",
+          "neq",
+          "bool",
+          "polarity",
+          "matches",
+          "includes",
+          "subset_of",
+          "excludes",
+        ],
         description:
-          "Optional extracted semantic claim operator. Use gt/lt for strict bounds ('greater than zero' is gt 0, not gte 0). Example: 'eq'.",
+          "Optional extracted semantic claim operator. Use gt/lt for strict bounds ('greater than zero' is gt 0, not gte 0). A set claim takes a list value with eq (exactly these), includes (at least these), subset_of (only these) or excludes (none of these); matches takes a regular expression string. Example: 'eq'.",
       },
       value: {
+        anyOf: [
+          { type: "string" },
+          { type: "number" },
+          { type: "boolean" },
+          { type: "array", items: { type: "string" }, minItems: 1 },
+        ],
         description:
-          "Optional extracted semantic claim value. Accepts string, number, or boolean.",
+          "Optional extracted semantic claim value: a string, number or boolean, or a list of strings for a set claim. Example: ['requireAuth'] with operator includes.",
       },
       provenance: {
         type: "string",

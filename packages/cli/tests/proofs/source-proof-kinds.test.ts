@@ -1,11 +1,19 @@
 import { afterAll, describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
 import path from "node:path";
+import { extractRequirementClaim } from "../../src/operations/modeling/requirement-modeler.js";
 import { evaluateSourceCode } from "../../src/operations/proof/source-code-readers.js";
 import { detectStrictSuggestion } from "../../src/operations/semantic-advisor/strict-rules.js";
 import { proofContractErrors } from "../../src/public/proof-protocol.js";
 import {
   type SourceSpec,
+  importClosure,
   readSource,
   sourceDependencies,
   sourceSpecErrors,
@@ -192,6 +200,18 @@ describe("file readers", () => {
         capture: true,
       }),
     ).toEqual(["0001/init", "0002/orgs"]);
+    write("i18n/finance/de.json", "{}");
+    write("i18n/hr/en.json", "{}");
+    expect(
+      await members({
+        reader: "glob",
+        pattern: "i18n/**/*.json",
+        capture: true,
+      }),
+    ).toEqual(["finance/de", "hr/en"]);
+    const none = await read({ reader: "glob", pattern: "nowhere/*.sql" });
+    expect(none.ok).toBe(false);
+    if (!none.ok) expect(none.reason).toContain("matches no file");
   });
 
   test("SQL migrations are replayed in order", async () => {
@@ -224,7 +244,7 @@ describe("file readers", () => {
     ).toEqual(["users.deleted_at"]);
     write(
       "bad/0001.sql",
-      "CREATE TABLE a (id int);\nALTER TABLE a SET SCHEMA other;\n",
+      "CREATE TABLE a (id int);\nALTER TABLE a OF some_type;\n",
     );
     const refused = await read({
       reader: "schema",
@@ -232,6 +252,53 @@ describe("file readers", () => {
       files: "bad/*.sql",
     });
     expect(refused.ok).toBe(false);
+  });
+
+  test("Postgres migrations: quoted schema names, RLS, function bodies and constraint drops", async () => {
+    write(
+      "supabase/migrations/0001_init.sql",
+      [
+        'CREATE TABLE IF NOT EXISTS "public"."profiles" ("id" uuid PRIMARY KEY, "name" text, "team_id" uuid CONSTRAINT profiles_team_fk REFERENCES "public"."teams" ("id"));',
+        'ALTER TABLE "public"."profiles" ENABLE ROW LEVEL SECURITY;',
+        "ALTER TABLE public.profiles OWNER TO postgres;",
+        "ALTER TABLE ONLY public.profiles ALTER COLUMN name SET DEFAULT 'x', ALTER COLUMN name TYPE varchar(80);",
+        "CREATE OR REPLACE FUNCTION public.touch() RETURNS trigger AS $$ BEGIN NEW.name := 'y'; ALTER TABLE nowhere DROP COLUMN x; RETURN NEW; END; $$ LANGUAGE plpgsql;",
+        "ALTER TABLE public.profiles ADD COLUMN email text NOT NULL, ADD COLUMN bio text;",
+        "ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;",
+      ].join("\n"),
+    );
+    write(
+      "supabase/migrations/0002_drop_fk.sql",
+      "ALTER TABLE public.profiles DROP CONSTRAINT profiles_team_fk;\n",
+    );
+    const spec = {
+      reader: "schema",
+      format: "sql",
+      files: "supabase/migrations/*.sql",
+    };
+    expect(await members({ ...spec, select: "required_columns" })).toEqual([
+      "profiles.email",
+      "profiles.id",
+    ]);
+    expect(await members({ ...spec, select: "foreign_keys" })).toEqual([]);
+    write("ts-migrations/0001.sql", "CREATE INDEX a_idx ON a (id);\n");
+    const empty = await read({
+      reader: "schema",
+      format: "sql",
+      files: "ts-migrations/*.sql",
+    });
+    expect(empty.ok).toBe(false);
+    if (!empty.ok) expect(empty.reason).toContain("no CREATE TABLE");
+    write(
+      "fk-drop/0001.sql",
+      "CREATE TABLE a (id int);\nALTER TABLE a DROP CONSTRAINT a_b_id_fkey;\n",
+    );
+    const unknownFk = await read({
+      reader: "schema",
+      format: "sql",
+      files: "fk-drop/*.sql",
+    });
+    expect(unknownFk.ok).toBe(false);
   });
 
   test("Prisma models, mapped names and relations", async () => {
@@ -313,6 +380,7 @@ describe("references the code makes", () => {
         "const { PORT, HOST: host } = process.env;",
         'const key = import.meta.env["VITE_KEY"];',
         'if (!url) throw new ConfigError("missing");',
+        "if (!url) throw createForbiddenError();",
         'track("signup"); analytics.track("login");',
         'export const errors = { code: "E_LIMIT" };',
         "try { url } catch (error) { throw error; }",
@@ -338,7 +406,7 @@ describe("references the code makes", () => {
         files: "src/config.ts",
         extract: "thrown",
       }),
-    ).toEqual(["ConfigError"]);
+    ).toEqual(["ConfigError", "createForbiddenError"]);
     expect(
       await members({
         reader: "references",
@@ -369,6 +437,44 @@ describe("references the code makes", () => {
     });
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.reason).toContain("src/dynamic.ts:2");
+  });
+
+  test("casts do not hide an env read or an escaping env object", async () => {
+    write(
+      "src/cast.ts",
+      [
+        "const a = (process.env as Record<string, string>).API_URL;",
+        'const b = (<any>import.meta).env["VITE_MODE"];',
+        "const c = (import.meta.env satisfies object).VITE_C;",
+        "const d = (import.meta as { url: string }).url;",
+      ].join("\n"),
+    );
+    expect(
+      await members({
+        reader: "references",
+        files: "src/cast.ts",
+        extract: "env",
+      }),
+    ).toEqual(["API_URL", "VITE_C", "VITE_MODE"]);
+    for (const [name, text] of [
+      [
+        "escape-env.ts",
+        "const env = (import.meta as { env: Record<string, string> }).env;\nexport const x = env?.['NG_APP_URL'];\n",
+      ],
+      [
+        "escape-meta.ts",
+        "const meta = import.meta as any;\nexport const x = meta.env.NG_APP_URL;\n",
+      ],
+    ] as const) {
+      write(`src/${name}`, text);
+      const result = await read({
+        reader: "references",
+        files: `src/${name}`,
+        extract: "env",
+      });
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.reason).toContain(`src/${name}:1`);
+    }
   });
 
   test("Python env and imports", async () => {
@@ -524,6 +630,57 @@ describe("readers that load a module", () => {
     ]);
   });
 
+  test("middleware a factory export makes is named after the factory", async () => {
+    write(
+      "web/factory.mjs",
+      [
+        "export function requireAuthentication(options = {}) { return async (c, next) => next(); }",
+        "export function rateLimit(options = {}) { return async (c, next) => { await next(); }; }",
+        "const handler = () => null;",
+        "export const app = { fetch() {}, routes: [",
+        '  { method: "GET", path: "/api/a", handler: requireAuthentication() },',
+        '  { method: "GET", path: "/api/a", handler },',
+        '  { method: "POST", path: "/api/b", handler: rateLimit() },',
+        '  { method: "POST", path: "/api/b", handler: requireAuthentication({ admin: true }) },',
+        '  { method: "POST", path: "/api/b", handler },',
+        "] };",
+      ].join("\n"),
+    );
+    const result = await read({
+      reader: "routes",
+      file: "web/factory.mjs",
+      export: "app",
+      names_from: ["web/factory.mjs"],
+    });
+    if (!result.ok) throw new Error(result.reason);
+    expect(result.model.routes?.map((route) => route.middleware)).toEqual([
+      ["requireAuthentication"],
+      ["rateLimit", "requireAuthentication"],
+    ]);
+  });
+
+  test("a valibot-style object read through its Standard Schema fields", async () => {
+    write(
+      "web/valibot.mjs",
+      [
+        "const field = (accepts) => ({ kind: 'schema', '~standard': { version: 1, vendor: 'valibot', validate: (v) => (accepts(v) ? { value: v } : { issues: [{ message: 'x' }] }) } });",
+        "const string = field((v) => typeof v === 'string');",
+        "const optional = field((v) => v === undefined || typeof v === 'string');",
+        "const nullable = field((v) => v === null || typeof v === 'string');",
+        "const object = { kind: 'schema', type: 'object', entries: { id: string, note: optional, paidAt: nullable } };",
+        "export const Invoice = { kind: 'schema', type: 'object', pipe: [object, { kind: 'validation' }] };",
+      ].join("\n"),
+    );
+    expect(
+      await members({
+        reader: "validator",
+        file: "web/valibot.mjs",
+        export: "Invoice",
+        select: "required_fields",
+      }),
+    ).toEqual(["id"]);
+  });
+
   test("a zod object's required, optional and nullable fields", async () => {
     write(
       "web/schema.mjs",
@@ -571,6 +728,43 @@ describe("source dependencies stale a receipt", () => {
     } as SourceSpec;
     const ids = sourceDependencies(root, schema).map((row) => row.id);
     expect(ids).toContain("source-file:db/schema.mjs");
+  });
+
+  test("the closure follows workspace package links and tsconfig extends", () => {
+    write(
+      "mono/packages/std/package.json",
+      JSON.stringify({
+        name: "@acme/std",
+        exports: { ".": "./dist/index.js" },
+      }),
+    );
+    write("mono/packages/std/src/index.ts", "export const id = 1;\n");
+    write(
+      "mono/tsconfig.base.json",
+      JSON.stringify({
+        compilerOptions: { paths: { "@app/*": ["./apps/server/src/*"] } },
+      }),
+    );
+    write(
+      "mono/apps/server/tsconfig.json",
+      JSON.stringify({ extends: "../../tsconfig.base.json" }),
+    );
+    write("mono/apps/server/src/util.ts", "export const util = 1;\n");
+    write(
+      "mono/apps/server/src/app.ts",
+      'import { id } from "@acme/std";\nimport { util } from "@app/util";\nimport { z } from "zod";\n',
+    );
+    mkdirSync(path.join(root, "mono/apps/server/node_modules/@acme"), {
+      recursive: true,
+    });
+    symlinkSync(
+      path.join(root, "mono/packages/std"),
+      path.join(root, "mono/apps/server/node_modules/@acme/std"),
+    );
+    expect(importClosure(root, "mono/apps/server/src/app.ts")).toEqual([
+      "mono/apps/server/src/util.ts",
+      "mono/packages/std/src/index.ts",
+    ]);
   });
 });
 
@@ -800,5 +994,102 @@ describe("the advisor names set claims a source or state_machine proof decides",
       property_key: "nullable_fields",
       value_set: ["deleted_at"],
     });
+  });
+});
+
+describe("the advisor keeps set shapes to sentences they fit", () => {
+  const claim = (text: string) => {
+    const suggestion = detectStrictSuggestion({ semantic_text: text }, text);
+    return suggestion?.kind === "strict_property" ? suggestion.claim : null;
+  };
+  test("a field claim needs a schema word; membership prose is not a column", () => {
+    for (const text of [
+      "Every organization must have an owner.",
+      "Every invoice must have a customer.",
+    ])
+      expect(claim(text)?.property_key).not.toBe("required_fields");
+    expect(
+      claim(
+        "Every table defined in organizations.table.ts must have id, created_at and updated_at as required columns.",
+      ),
+    ).toMatchObject({
+      property_key: "required_fields",
+      value_set: ["created_at", "id", "updated_at"],
+    });
+    expect(
+      claim("Every organization must have a required owner_id column."),
+    ).toMatchObject({
+      property_key: "required_fields",
+      value_set: ["owner_id"],
+    });
+  });
+
+  test("the article is not a state, and the machine may go unnamed", () => {
+    expect(claim("A member can never become owner.")).toMatchObject({
+      subject_key: "workflow",
+      value_set: ["member->owner"],
+    });
+    expect(claim("Pending can never become accepted.")).toMatchObject({
+      value_set: ["pending->accepted"],
+    });
+    expect(
+      claim("A completed analysis request can never become in_progress."),
+    ).toMatchObject({ value_set: ["completed->in_progress"] });
+  });
+
+  test("scoped module names, exact sets and counts under a prefix", () => {
+    expect(
+      claim(
+        "Components under src/app must never import @supabase/supabase-js.",
+      ),
+    ).toMatchObject({
+      operator: "excludes",
+      value_set: ["@supabase/supabase-js"],
+    });
+    expect(
+      claim(
+        "The top-level keys of scenarios.json must be exactly groups and scenarios.",
+      ),
+    ).toMatchObject({ operator: "eq", value_set: ["groups", "scenarios"] });
+    expect(
+      claim(
+        "The server must expose at least 30 routes under /api/organizations.",
+      ),
+    ).toMatchObject({ property_key: "count", operator: "gte", value_int: 30 });
+  });
+
+  test("requirement modeling takes set operators and list values", () => {
+    const extracted = extractRequirementClaim({
+      text: "The server code must never import axios.",
+      source: "docs/requirements.md",
+      subjectKey: "server",
+      propertyKey: "imports",
+      operator: "excludes",
+      value: ["node:fs/promises", "axios"],
+    });
+    expect(extracted.claim).toMatchObject({
+      operator: "excludes",
+      value: ["axios", "node:fs/promises"],
+    });
+    expect(() =>
+      extractRequirementClaim({
+        text: "x",
+        source: "docs/requirements.md",
+        subjectKey: "server",
+        propertyKey: "imports",
+        operator: "subset_of",
+        value: "axios",
+      }),
+    ).toThrow("takes a set value");
+    expect(() =>
+      extractRequirementClaim({
+        text: "x",
+        source: "docs/requirements.md",
+        subjectKey: "server",
+        propertyKey: "imports",
+        operator: "gt",
+        value: ["axios"],
+      }),
+    ).toThrow("a set value takes operator");
   });
 });

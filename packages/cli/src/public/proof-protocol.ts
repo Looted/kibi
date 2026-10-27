@@ -313,7 +313,12 @@ const PREDICATE_SOURCE_SCHEMA = {
   required: ["symbol_id"],
   properties: {
     symbol_id: { type: "string", minLength: 1 },
-    export: { type: "string", minLength: 1 },
+    export: {
+      type: "string",
+      minLength: 1,
+      description:
+        "The exported function's name in the symbol's source file. Without it Kibi reads the export named by the symbol's title.",
+    },
     harness_for: {
       type: "array",
       minItems: 1,
