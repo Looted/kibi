@@ -55,15 +55,6 @@ const DEFAULT_SHARD_TIMEOUT_MS = 15_000;
 const SHARD_PROCESS_TIMEOUT_MS = 15 * 60 * 1000;
 /** Per-file bound for process-isolated shards. A clean file should finish well under this. */
 const FILE_PROCESS_TIMEOUT_MS = 5 * 60 * 1000;
-/**
- * Files whose in-process engine daemon can lose its child pipe reads under
- * Bun coverage: the Prolog answer sits unread in the socket and the daemon's
- * shutdown save never returns. The same file passes without --coverage, so a
- * failed run of one of these files is run once more before it counts.
- */
-const COVERAGE_IO_STALL_RETRY_FILES: ReadonlySet<string> = new Set([
-  "./packages/cli/tests/engine-daemon-inprocess.test.ts",
-]);
 /** Journaled engine and packed SkillOpt tests start Prolog/daemons; 15s isolate kills them. */
 const CLI_ENGINE_SHARD_TIMEOUT_MS = 120_000;
 const COVERAGE_ARGS = [
@@ -1150,35 +1141,16 @@ export async function runUnitCoverage(
         if (coverageLcovPath !== BUN_DEFAULT_LCOV_PATH) {
           rmSync(BUN_DEFAULT_LCOV_PATH, { force: true });
         }
-        const runUnit = () =>
-          runBunTest(
-            unit.label,
-            unit.paths,
-            unit.coverageDir,
-            shard.timeoutMs ?? DEFAULT_SHARD_TIMEOUT_MS,
-            unit.setup,
-            unit.processTimeoutMs,
-            unit.captureOutput,
-            unit.junitPath,
-          );
-        let result = await runUnit();
-        if (
-          result.exitCode !== 0 &&
-          unit.file !== undefined &&
-          COVERAGE_IO_STALL_RETRY_FILES.has(unit.file)
-        ) {
-          console.warn(
-            `Unit coverage ${unit.label} failed (exit ${result.exitCode}); running it once more for the Bun coverage pipe stall.`,
-          );
-          console.warn(
-            testFailureOutput(result.lastOutput).slice(-FAILURE_OUTPUT_CHARS),
-          );
-          rmSync(coverageLcovPath, { force: true });
-          if (coverageLcovPath !== BUN_DEFAULT_LCOV_PATH) {
-            rmSync(BUN_DEFAULT_LCOV_PATH, { force: true });
-          }
-          result = await runUnit();
-        }
+        const result = await runBunTest(
+          unit.label,
+          unit.paths,
+          unit.coverageDir,
+          shard.timeoutMs ?? DEFAULT_SHARD_TIMEOUT_MS,
+          unit.setup,
+          unit.processTimeoutMs,
+          unit.captureOutput,
+          unit.junitPath,
+        );
         // Only a passing unit's files are recorded; a failed or timed-out
         // unit leaves its files absent, so nothing about them is reusable.
         if (
