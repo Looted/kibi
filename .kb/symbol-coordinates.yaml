@@ -2381,12 +2381,12 @@ coordinates:
     sourceLine: 26
   SYM-BranchCoverageSummary:
     identityHash: b9edbb270fe0753fcf3e2da2b927c293b23fa75b50107800b2b34b25cc1e1b43
-    sourceHash: 1b1464cf00391608dd9a02447af9c016c5245b57b6e64d3126ea91e9992c32dd
+    sourceHash: 485a0cfdcc2ce2dcdb52e8913cd1a0f83f2e2b3e889e276eea342e0ac7b9aaa8
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 900
+    sourceEndLine: 925
     sourceFile: scripts/run-unit-coverage.ts
-    sourceLine: 896
+    sourceLine: 921
   SYM-branchEnsureCommand:
     identityHash: cf924e3af8488d527c1ba39c08011448aa953db67af68f170a536bd8f251ce12
     sourceHash: 4fdf0d9fd60b194c3abd8bead3a3a3cbbe5c85a336e511c16f5501283cc963ea
@@ -11085,7 +11085,7 @@ coordinates:
     sourceLine: 9
   SYM-COVERAGE_SHARDS:
     identityHash: a85045cd5ad8cac175a632809ca7b95f87d288d8bb58c3154c5d4864f49e51aa
-    sourceHash: 1b1464cf00391608dd9a02447af9c016c5245b57b6e64d3126ea91e9992c32dd
+    sourceHash: 485a0cfdcc2ce2dcdb52e8913cd1a0f83f2e2b3e889e276eea342e0ac7b9aaa8
     sourceColumn: 13
     sourceEndColumn: 10
     sourceEndLine: 533
@@ -23957,12 +23957,12 @@ coordinates:
     sourceLine: 1
   SYM-quality-coverage-branch-summary:
     identityHash: c306ba36be5c79747a5f6bbbcb20c8d482fa2216a2560ab2d7e580a0a1ab8233
-    sourceHash: 1b1464cf00391608dd9a02447af9c016c5245b57b6e64d3126ea91e9992c32dd
+    sourceHash: 485a0cfdcc2ce2dcdb52e8913cd1a0f83f2e2b3e889e276eea342e0ac7b9aaa8
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 919
+    sourceEndLine: 944
     sourceFile: scripts/run-unit-coverage.ts
-    sourceLine: 907
+    sourceLine: 932
   SYM-quality-eval-assertLiveHeldOutEvaluation:
     identityHash: 5bf15e6c7fdd419a4c6b0864a9eaa23560bba0046f8ec79d4debca886d0205fe
     sourceHash: ed7981d06dd5dff803e8baf4a1c1656f4ed511a0d328fc3238c4a5d9faf39593
@@ -24117,12 +24117,12 @@ coordinates:
     sourceLine: 678
   SYM-quality-inventory-19897951a119:
     identityHash: 061698f963a7ea72645e5d1947c188d07ab9c4d75def7b101b32e228466ab2f2
-    sourceHash: 1b1464cf00391608dd9a02447af9c016c5245b57b6e64d3126ea91e9992c32dd
+    sourceHash: 485a0cfdcc2ce2dcdb52e8913cd1a0f83f2e2b3e889e276eea342e0ac7b9aaa8
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 900
+    sourceEndLine: 925
     sourceFile: scripts/run-unit-coverage.ts
-    sourceLine: 896
+    sourceLine: 921
   SYM-quality-inventory-19e4335e4a46:
     identityHash: a3ed97b5bbbe66dfade65031e1823a229a707ad2013ac47e80bfc96f19c78c5a
     sourceHash: 04fba664a9d86375a55ba2bf6cc14441d8032605ab70f4d99c23a4d7609797ff
@@ -24205,12 +24205,12 @@ coordinates:
     sourceLine: 29
   SYM-quality-inventory-57b01c22b501:
     identityHash: 78ea1f43c4d04db40676c9cd76ccb56b00028df956a0acb97a3651fb71a522f1
-    sourceHash: 1b1464cf00391608dd9a02447af9c016c5245b57b6e64d3126ea91e9992c32dd
+    sourceHash: 485a0cfdcc2ce2dcdb52e8913cd1a0f83f2e2b3e889e276eea342e0ac7b9aaa8
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1414
+    sourceEndLine: 1442
     sourceFile: scripts/run-unit-coverage.ts
-    sourceLine: 1377
+    sourceLine: 1405
   SYM-quality-inventory-63efea15346c:
     identityHash: 420932d24b8d73f183c557bd8b55936fd0b3971acea332c2df717ec4d0884538
     sourceHash: 04fba664a9d86375a55ba2bf6cc14441d8032605ab70f4d99c23a4d7609797ff
@@ -25909,7 +25909,7 @@ coordinates:
     sourceLine: 29
   SYM-run-unit-coverage-failure:
     identityHash: 2a2229c379d11856ff0a5eade4c1260edec133da01072295ae4f3718afdf9498
-    sourceHash: 1b1464cf00391608dd9a02447af9c016c5245b57b6e64d3126ea91e9992c32dd
+    sourceHash: 485a0cfdcc2ce2dcdb52e8913cd1a0f83f2e2b3e889e276eea342e0ac7b9aaa8
     sourceColumn: 13
     sourceEndColumn: 1
     sourceEndLine: 90
@@ -25917,15 +25917,15 @@ coordinates:
     sourceLine: 85
   SYM-run-unit-coverage-format-failure:
     identityHash: 5d80a2ec3410fada590fa1ba87301c2edce6b19ec651bc33e0e2c09def0e6277
-    sourceHash: 1b1464cf00391608dd9a02447af9c016c5245b57b6e64d3126ea91e9992c32dd
+    sourceHash: 485a0cfdcc2ce2dcdb52e8913cd1a0f83f2e2b3e889e276eea342e0ac7b9aaa8
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 734
+    sourceEndLine: 759
     sourceFile: scripts/run-unit-coverage.ts
-    sourceLine: 714
+    sourceLine: 735
   SYM-run-unit-coverage-selectedShards:
     identityHash: 98eda57ddb3e752d81bb24205fdbdf36d0cc3ad01964c3d01cf5f02999dab551
-    sourceHash: 1b1464cf00391608dd9a02447af9c016c5245b57b6e64d3126ea91e9992c32dd
+    sourceHash: 485a0cfdcc2ce2dcdb52e8913cd1a0f83f2e2b3e889e276eea342e0ac7b9aaa8
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 618
@@ -25933,7 +25933,7 @@ coordinates:
     sourceLine: 600
   SYM-run-unit-coverage-shardLabelsFromArgv:
     identityHash: 89a861e89f64136f9c49858f67f4404f4c3221a7a5bdd9b0c7281dc6f6ad111b
-    sourceHash: 1b1464cf00391608dd9a02447af9c016c5245b57b6e64d3126ea91e9992c32dd
+    sourceHash: 485a0cfdcc2ce2dcdb52e8913cd1a0f83f2e2b3e889e276eea342e0ac7b9aaa8
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 598
@@ -26117,20 +26117,20 @@ coordinates:
     sourceLine: 40
   SYM-runUnitCoverage:
     identityHash: ac969275ec07c2ede66beea48f2f826b9aaf2548a8de2afbebee3bc08c662213
-    sourceHash: 1b1464cf00391608dd9a02447af9c016c5245b57b6e64d3126ea91e9992c32dd
+    sourceHash: 485a0cfdcc2ce2dcdb52e8913cd1a0f83f2e2b3e889e276eea342e0ac7b9aaa8
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1250
+    sourceEndLine: 1278
     sourceFile: scripts/run-unit-coverage.ts
-    sourceLine: 1014
+    sourceLine: 1039
   SYM-runUnitCoverageIfMain:
     identityHash: ed9c8ce1a89164bbb31d4d0c35a3302b685b84cc0a7593b3903dbd5da39a5775
-    sourceHash: 1b1464cf00391608dd9a02447af9c016c5245b57b6e64d3126ea91e9992c32dd
+    sourceHash: 485a0cfdcc2ce2dcdb52e8913cd1a0f83f2e2b3e889e276eea342e0ac7b9aaa8
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1414
+    sourceEndLine: 1442
     sourceFile: scripts/run-unit-coverage.ts
-    sourceLine: 1377
+    sourceLine: 1405
   SYM-SchedulerOptions:
     identityHash: 6cfe8ad8ba8824161bc44d943a7139d276276b3e1ce4c19ffeb05f23f4de09fb
     sourceHash: d79651b4cf2925b8cab8402eb4d36a24c94bcb9120fae1cdbe24a36cb80440ab
@@ -26533,7 +26533,7 @@ coordinates:
     sourceLine: 32
   SYM-SCRIPT_TESTS:
     identityHash: c672b317c0f1e7760d14e8096eeb0b30882e963b298817931150812a9b61b392
-    sourceHash: 1b1464cf00391608dd9a02447af9c016c5245b57b6e64d3126ea91e9992c32dd
+    sourceHash: 485a0cfdcc2ce2dcdb52e8913cd1a0f83f2e2b3e889e276eea342e0ac7b9aaa8
     sourceColumn: 6
     sourceEndColumn: 18
     sourceEndLine: 109
@@ -26581,12 +26581,12 @@ coordinates:
     sourceLine: 268
   SYM-scripts-runUnitCoverage:
     identityHash: 0a45c2accda0d8883b93684564d0b93a415b99a57df65b9e95b13bbd99484197
-    sourceHash: 1b1464cf00391608dd9a02447af9c016c5245b57b6e64d3126ea91e9992c32dd
+    sourceHash: 485a0cfdcc2ce2dcdb52e8913cd1a0f83f2e2b3e889e276eea342e0ac7b9aaa8
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1250
+    sourceEndLine: 1278
     sourceFile: scripts/run-unit-coverage.ts
-    sourceLine: 1014
+    sourceLine: 1039
   SYM-scripts-skillopt-eval-scoring-held-out-predicate-PredicateVariant:
     identityHash: c6dc8fabae506a1b9a264ba37e1a306b5be1a7ad79cd5868fa59028d6ad4ed45
     sourceHash: 5ccd52c4ed95f251cdd24b198169d25b4b26a27a3a7d281e45e166f7cc03c7c0
@@ -35797,12 +35797,12 @@ coordinates:
     sourceLine: 179
   SYM-summarizeBranchCoverage:
     identityHash: 1b99a988acb5005575bb981240a5dcdd3e13acd92fb43a7ed4f0d1422d9088bf
-    sourceHash: 1b1464cf00391608dd9a02447af9c016c5245b57b6e64d3126ea91e9992c32dd
+    sourceHash: 485a0cfdcc2ce2dcdb52e8913cd1a0f83f2e2b3e889e276eea342e0ac7b9aaa8
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 919
+    sourceEndLine: 944
     sourceFile: scripts/run-unit-coverage.ts
-    sourceLine: 907
+    sourceLine: 932
   SYM-superseded-closure-applySupersededClosures:
     identityHash: 66e2eed6b22ef4d7a8937ca9852bc7582ae8c527433884af7c285f0d425cd1bc
     sourceHash: c6809e32d7a9a774c8b52f84547f6d2f66ec79a0d4bbb0af7d972bc2d1092ab5
@@ -37693,12 +37693,12 @@ coordinates:
     sourceLine: 20
   SYM-test-scripts-coverage-shard-isolation:
     identityHash: 358a0acc7c7e322fed3f31964205a52cbb821c76f0b7bfa068b1b60cd4017d41
-    sourceHash: d763c27cb3c11ad705fddd3ffa7548fc027620058ce9fa0c40e65a021ade4421
+    sourceHash: 4c6de17c448f56ae2bfa8dc01858a12614c58c5f5610549d0cbc55c40ecb564a
     sourceColumn: 10
     sourceEndColumn: 39
-    sourceEndLine: 19
+    sourceEndLine: 20
     sourceFile: scripts/tests/unit-coverage-runner.test.ts
-    sourceLine: 19
+    sourceLine: 20
   SYM-test-search-answer-hygiene:
     identityHash: ffb86f287643ddb57cf6d8aa37ef5cd24465a4597f3b89d4a769a3ec5340328d
     sourceHash: edb4fac16a561a4820eda456676061bd8f9eff7504ecd8dd8f0e25f2ae92d4d0
