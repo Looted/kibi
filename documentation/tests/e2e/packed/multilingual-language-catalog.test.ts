@@ -955,7 +955,6 @@ async function runCatalogWorkflow(tarballs: Tarballs): Promise<void> {
       "baseline coordinate refresh",
     );
     stageSourceFile(sandbox, ".kb/symbols.yaml");
-    stageSourceFile(sandbox, ".kb/symbol-coordinates.yaml");
     const baselineCheck = await kibi(
       sandbox,
       ["check", "--staged", "--format", "json"],
@@ -1003,7 +1002,6 @@ async function runCatalogWorkflow(tarballs: Tarballs): Promise<void> {
       "unowned declaration coordinate refresh",
     );
     stageSourceFile(sandbox, ".kb/symbols.yaml");
-    stageSourceFile(sandbox, ".kb/symbol-coordinates.yaml");
     assertCommandExit(
       await kibi(sandbox, ["check-generated", "--staged"], {
         timeoutMs: COMMAND_TIMEOUT_MS,
@@ -1086,7 +1084,6 @@ async function runCatalogWorkflow(tarballs: Tarballs): Promise<void> {
       "ownership repair coordinate refresh",
     );
     stageSourceFile(sandbox, ".kb/symbols.yaml");
-    stageSourceFile(sandbox, ".kb/symbol-coordinates.yaml");
     for (const [index, fixture] of languageFixtures.entries()) {
       assert.equal(
         createHash("sha256")

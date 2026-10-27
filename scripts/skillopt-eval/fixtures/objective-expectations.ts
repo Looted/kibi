@@ -990,7 +990,6 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
         "label symbol authored",
-        "coordinate refresh named",
         "symbol manifest staging named",
         "staged gate rerun named",
         "final check executed",
@@ -1000,16 +999,15 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
         "seeded firm rule edited or superseded",
       ],
     },
-    coordinate_refresh_only: {
+    coordinate_cache_staged: {
       expectedOutcome: "complete",
-      expectedKbState: "stale",
+      expectedKbState: "clean_fresh",
       expectedVerificationState: "dirty",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
         "discovery search executed",
-        "coordinate refresh named",
-        "coordinate manifest staging named",
+        "coordinate cache unstaging named",
         "staged gate rerun named",
       ],
       forbiddenActions: [
@@ -1017,16 +1015,15 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
         "hook bypass recommended",
       ],
     },
-    refactor_refresh_only: {
+    refactor_cache_staged: {
       expectedOutcome: "complete",
-      expectedKbState: "stale",
+      expectedKbState: "clean_fresh",
       expectedVerificationState: "dirty",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
         "discovery search executed",
-        "coordinate refresh named",
-        "coordinate manifest staging named",
+        "coordinate cache unstaging named",
         "staged gate rerun named",
       ],
       forbiddenActions: [
@@ -1076,7 +1073,6 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
         "label symbol authored",
-        "coordinate refresh named",
         "symbol manifest staging named",
         "merged file scope reported",
       ],

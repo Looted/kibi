@@ -27,7 +27,9 @@
 // floor (required_evidence, else tested when firm).
 // Schema 12 requires every certificate-kind proof contract to name the
 // claims it proves.
-export const LATEST_KB_SCHEMA_VERSION = 12;
+// Schema 13 derives symbol coordinates on every sync and keeps
+// .kb/symbol-coordinates.yaml out of Git.
+export const LATEST_KB_SCHEMA_VERSION = 13;
 
 export interface SchemaVersionStatus {
   status: "missing" | "invalid" | "older" | "current" | "newer";

@@ -426,7 +426,10 @@ async function expectQuotedGateOutput(
       ? ["check-generated", "--staged", "--changed-only"]
       : ["check", "--staged"],
   );
-  expect(gate.exitCode, task.id).not.toBe(0);
+  // A firm-rule contradiction with current symbol evidence only warns.
+  if (quoted === QUOTED_GATE_OUTPUT.conflict)
+    expect(gate.exitCode, task.id).toBe(0);
+  else expect(gate.exitCode, task.id).not.toBe(0);
   const printed = new Set(gate.output.split("\n"));
   for (const quotedLine of quoted.split("\n")) {
     if (quotedLine !== "")
@@ -601,44 +604,44 @@ const COMMANDS_ANSWER = [
   "I authored the symbol entry for fixtureFamilyLabel through Kibi (implements REQ-fixture-family-label, covered_by TEST-fixture-family-label). Run:",
   "",
   "```bash",
-  "npx --no-install kibi sync --refresh-symbol-coordinates",
-  "git add .kb/symbols.yaml .kb/symbol-coordinates.yaml",
+  "git add .kb/symbols.yaml",
   "npx --no-install kibi check --staged",
   "```",
   "",
   "Do not bypass the hook with --no-verify.",
 ].join("\n");
 
-const REFRESH_ANSWER = [
-  "Only symbol coordinates moved; no knowledge changes. Run:",
+const UNSTAGE_ANSWER = [
+  "Symbol coordinates are a gitignored local cache and never part of a commit; nothing else needs staging. Run:",
   "",
   "```bash",
-  "npx --no-install kibi sync --refresh-symbol-coordinates",
-  "git add .kb/symbol-coordinates.yaml",
+  "git rm --cached .kb/symbol-coordinates.yaml",
+  "npx --no-install kibi check-generated --staged",
   "npx --no-install kibi check --staged",
   "```",
 ].join("\n");
 
-/** What the person runs after the agent: refresh, stage, gate. */
+/** What the person runs after the agent: stage, then the gates. */
 async function personRunsGate(
   staged: Staged,
   paths: readonly string[],
-  refresh = true,
+  unstage: readonly string[] = [],
 ): Promise<void> {
-  if (refresh) {
-    const refreshed = await cli(staged.workspace, [
-      "sync",
-      "--refresh-symbol-coordinates",
+  if (unstage.length > 0)
+    await git(staged.workspace, [
+      "rm",
+      "--cached",
+      "--quiet",
+      "--",
+      ...unstage,
     ]);
-    expect(refreshed.exitCode).toBe(0);
-  }
-  await git(staged.workspace, ["add", "--", ...paths]);
+  if (paths.length > 0) await git(staged.workspace, ["add", "--", ...paths]);
   const generated = await cli(staged.workspace, [
     "check-generated",
     "--staged",
     "--changed-only",
   ]);
-  expect(generated.output).toContain("staged generated manifests are current");
+  expect(`${generated.exitCode}\n${generated.output}`).toStartWith("0\n");
   const gate = await cli(staged.workspace, ["check", "--staged"]);
   expect(`${gate.exitCode}\n${gate.output}`).toStartWith("0\n");
 }
@@ -931,32 +934,29 @@ describe("commit-review fixtures: seeds pass no signal, scripted solutions pass 
         return COMMANDS_ANSWER;
       },
     );
-    await personRunsGate(staged, [
-      ".kb/symbols.yaml",
-      ".kb/symbol-coordinates.yaml",
-    ]);
+    await personRunsGate(staged, [".kb/symbols.yaml"]);
   }, 600_000);
 
-  test("coordinate refresh after a comment-only edit", async () => {
+  test("staged coordinate cache after a comment-only edit", async () => {
     const staged = await solve(
-      "kibi-commit-review-coordinate-refresh-only-train-1",
+      "kibi-commit-review-coordinate-cache-staged-train-1",
       async (agent) => {
         await discover(agent);
-        return REFRESH_ANSWER;
+        return UNSTAGE_ANSWER;
       },
     );
-    await personRunsGate(staged, [".kb/symbol-coordinates.yaml"]);
+    await personRunsGate(staged, [], [".kb/symbol-coordinates.yaml"]);
   }, 600_000);
 
-  test("coordinate refresh after a rename-only refactor", async () => {
+  test("staged coordinate cache after a rename-only refactor", async () => {
     const staged = await solve(
-      "kibi-commit-review-coordinate-refresh-only-development-1",
+      "kibi-commit-review-coordinate-cache-staged-development-1",
       async (agent) => {
         await discover(agent);
-        return REFRESH_ANSWER;
+        return UNSTAGE_ANSWER;
       },
     );
-    await personRunsGate(staged, [".kb/symbol-coordinates.yaml"]);
+    await personRunsGate(staged, [], [".kb/symbol-coordinates.yaml"]);
   }, 600_000);
 
   test("impact review draft", async () => {
@@ -1014,7 +1014,7 @@ describe("commit-review fixtures: seeds pass no signal, scripted solutions pass 
     };
     record.reviewedAt = "2026-10-21T12:00:00.000Z";
     await writeFile(path, `${JSON.stringify(record, null, 2)}\n`, "utf8");
-    await personRunsGate(staged, [IMPACT_REVIEW_PATH], false);
+    await personRunsGate(staged, [IMPACT_REVIEW_PATH]);
   }, 600_000);
 
   test("staged rule conflict", async () => {
@@ -1058,9 +1058,6 @@ describe("commit-review fixtures: seeds pass no signal, scripted solutions pass 
         return `${COMMANDS_ANSWER}\n\nsrc/inherited.ts comes unchanged from the merged branch, so the merge commit does not judge it and I recorded nothing for it.`;
       },
     );
-    await personRunsGate(staged, [
-      ".kb/symbols.yaml",
-      ".kb/symbol-coordinates.yaml",
-    ]);
+    await personRunsGate(staged, [".kb/symbols.yaml"]);
   }, 600_000);
 });

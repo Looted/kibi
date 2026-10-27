@@ -46,6 +46,7 @@ async function fixture() {
   expect(git(cwd, ["config", "user.name", "Kibi Test"]).status).toBe(0);
   write(cwd, "src/sample.ts", "export function sample() { return 1; }\n");
   write(cwd, "notes.txt", "base note\n");
+  write(cwd, ".gitignore", ".kb/symbol-coordinates.yaml\n");
   write(
     cwd,
     ".kb/symbols.yaml",
@@ -59,8 +60,8 @@ async function fixture() {
       "add",
       "src/sample.ts",
       "notes.txt",
+      ".gitignore",
       ".kb/symbols.yaml",
-      ".kb/symbol-coordinates.yaml",
     ]).status,
   ).toBe(0);
   expect(
@@ -116,10 +117,10 @@ describe("installed pre-commit generated-manifest gate", () => {
       PATH: `${binDir}:${process.env.PATH ?? ""}`,
     });
     expect(commit.status).toBe(0);
-    expect(commit.output).toContain("no coordinates to refresh");
+    expect(commit.output).toContain("nothing to check");
   });
 
-  test("allows a commit with current generated manifests", async () => {
+  test("allows a commit that only moves a declaration, with no coordinates staged", async () => {
     const { cwd, env } = await fixture();
     write(
       cwd,
@@ -127,43 +128,50 @@ describe("installed pre-commit generated-manifest gate", () => {
       "// moved\nexport function sample() { return 1; }\n",
     );
     await refresh(cwd);
-    expect(
-      git(cwd, [
-        "add",
-        "src/sample.ts",
-        ".kb/symbols.yaml",
-        ".kb/symbol-coordinates.yaml",
-      ]).status,
-    ).toBe(0);
+    expect(git(cwd, ["add", "src/sample.ts", ".kb/symbols.yaml"]).status).toBe(
+      0,
+    );
     const previousCwd = process.cwd();
     try {
       process.chdir(cwd);
-      expect(await checkGeneratedManifests({ changedOnly: true })).toEqual({
-        exitCode: 0,
-      });
+      expect(await checkGeneratedManifests()).toEqual({ exitCode: 0 });
     } finally {
       process.chdir(previousCwd);
     }
+    const commit = git(cwd, ["commit", "-m", "moved"], env);
+    expect(commit.output).toContain("staged symbols manifest unchanged");
+    expect(commit.status).toBe(0);
+    expect(
+      git(cwd, ["ls-files", "--", ".kb/symbol-coordinates.yaml"]).output.trim(),
+    ).toBe("");
+  });
+
+  test("allows a commit with a current staged symbols manifest", async () => {
+    const { cwd, env } = await fixture();
+    write(
+      cwd,
+      ".kb/symbols.yaml",
+      "symbols:\n  - id: SYMBOL-sample\n    title: sample\n    sourceFile: src/sample.ts\n    status: active\n",
+    );
+    await refresh(cwd);
+    expect(git(cwd, ["add", ".kb/symbols.yaml"]).status).toBe(0);
     const commit = git(cwd, ["commit", "-m", "current"], env);
     expect(commit.output).toContain("staged generated manifests are current");
     expect(commit.status).toBe(0);
   });
 
-  test("blocks drift and reports the generated paths and repair command", async () => {
+  test("blocks a staged coordinate file and names the untracking command", async () => {
     const { cwd, env } = await fixture();
-    write(
-      cwd,
-      "src/sample.ts",
-      "// moved\nexport function sample() { return 1; }\n",
-    );
-    expect(git(cwd, ["add", "src/sample.ts"]).status).toBe(0);
-    const commit = git(cwd, ["commit", "-m", "drift"], env);
+    expect(
+      git(cwd, ["add", "--force", ".kb/symbol-coordinates.yaml"]).status,
+    ).toBe(0);
+    const commit = git(cwd, ["commit", "-m", "tracked coordinates"], env);
     expect(commit.status).not.toBe(0);
-    expect(commit.output).toContain(".kb/symbol-coordinates.yaml");
-    expect(commit.output).toContain("kibi sync --refresh-symbol-coordinates");
-    expect(commit.output).toContain("git add -p");
-    expect(git(cwd, ["diff", "--cached", "--name-only"]).output.trim()).toBe(
-      "src/sample.ts",
+    expect(commit.output).toContain(
+      ".kb/symbol-coordinates.yaml is staged, but symbol coordinates are derived locally and never committed",
+    );
+    expect(commit.output).toContain(
+      "git rm --cached .kb/symbol-coordinates.yaml",
     );
   });
 
@@ -182,35 +190,20 @@ describe("installed pre-commit generated-manifest gate", () => {
     );
   });
 
-  test("uses staged source bytes when a file is only partly staged", async () => {
+  test("checks the staged manifest bytes when the file is only partly staged", async () => {
     const { cwd, env } = await fixture();
     write(
       cwd,
-      "src/sample.ts",
-      "// staged\nexport function sample() { return 1; }\n",
+      ".kb/symbols.yaml",
+      "symbols:\n  - id: SYMBOL-sample\n    title: sample\n    sourceFile: src/sample.ts\n    status: active\n",
     );
     await refresh(cwd);
-    expect(
-      git(cwd, [
-        "add",
-        "src/sample.ts",
-        ".kb/symbols.yaml",
-        ".kb/symbol-coordinates.yaml",
-      ]).status,
-    ).toBe(0);
-    write(
-      cwd,
-      "src/sample.ts",
-      "// unstaged\n// staged\nexport function sample() { return 1; }\n",
-    );
+    expect(git(cwd, ["add", ".kb/symbols.yaml"]).status).toBe(0);
     const manifest = path.join(cwd, ".kb/symbols.yaml");
     writeFileSync(manifest, `${readFileSync(manifest, "utf8")}# unstaged\n`);
     const commit = git(cwd, ["commit", "-m", "partial"], env);
     expect(commit.status).toBe(0);
     expect(commit.output).toContain("staged generated manifests are current");
-    expect(readFileSync(path.join(cwd, "src/sample.ts"), "utf8")).toContain(
-      "// unstaged",
-    );
     expect(readFileSync(manifest, "utf8")).toContain("# unstaged");
   });
 
@@ -223,7 +216,7 @@ describe("installed pre-commit generated-manifest gate", () => {
       env,
     );
     expect(commit.status).toBe(0);
-    expect(commit.output).toContain("no staged symbol sources");
+    expect(commit.output).toContain("staged symbols manifest unchanged");
     expect(git(cwd, ["status", "--short", "--", "notes.txt"]).output).toContain(
       " M notes.txt",
     );

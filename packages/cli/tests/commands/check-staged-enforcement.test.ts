@@ -75,16 +75,18 @@ function syncKb(kibiBin: string, cwd: string, args: string[] = []): void {
   );
 }
 
-function commitRefreshedCoordinates(kibiBin: string, cwd: string): void {
+// Coordinates stay a gitignored local cache; only the normalized authored
+// manifest is committed.
+function commitRefreshedManifest(kibiBin: string, cwd: string): void {
   syncKb(kibiBin, cwd, ["--refresh-symbol-coordinates"]);
-  execSync("git add .kb/symbol-coordinates.yaml .kb/symbols.yaml", {
-    cwd,
-    stdio: "pipe",
-  });
-  execSync('git commit -m "refresh symbol coordinates" --no-verify', {
-    cwd,
-    stdio: "pipe",
-  });
+  execSync("git add .kb/symbols.yaml", { cwd, stdio: "pipe" });
+  execSync(
+    'git commit --allow-empty -m "refresh symbols manifest" --no-verify',
+    {
+      cwd,
+      stdio: "pipe",
+    },
+  );
 }
 
 /**
@@ -573,13 +575,22 @@ describe("kibi check --staged impact enforcement", () => {
   );
 
   test(
-    "fails behavior edits without staged Kibi evidence",
+    "fails behavior edits that add a declaration without staged Kibi evidence",
     async () => {
       writeFiles(tmpDir, createBehaviorLinkedFixture());
       commitAll(tmpDir, "initial");
-      commitRefreshedCoordinates(kibiBin, tmpDir);
+      commitRefreshedManifest(kibiBin, tmpDir);
 
-      writeSameCoordinateBehaviorEdit(tmpDir);
+      writeFiles(tmpDir, {
+        "src/greet.ts": `export function greet() {
+  return "hello";
+}
+
+export function farewell() {
+  return "bye";
+}
+`,
+      });
       execSync("git add src/greet.ts", { cwd: tmpDir, stdio: "pipe" });
 
       const { status, stdout, stderr } = runKibi(
@@ -591,28 +602,27 @@ describe("kibi check --staged impact enforcement", () => {
       const output = stdoutToString(stdout || stderr);
       expect(status).toBe(1);
       expect(output).toContain("kibi_impact_evidence_missing");
-      expect(output).toContain("src/greet.ts");
+      expect(output).toContain("symbols without authored evidence: farewell");
     },
     TEST_TIMEOUT_MS,
   );
 
   test(
-    "passes behavior edits when linked requirement and refreshed coordinates are staged",
+    "passes behavior edits when the linked requirement is staged",
     async () => {
       writeFiles(tmpDir, createBehaviorLinkedFixture());
       commitAll(tmpDir, "initial");
-      commitRefreshedCoordinates(kibiBin, tmpDir);
+      commitRefreshedManifest(kibiBin, tmpDir);
 
       writeSameCoordinateBehaviorEdit(tmpDir);
       stageRequirementEvidence(
         tmpDir,
         "Updated to reflect the staged greeting change.",
       );
-      syncKb(kibiBin, tmpDir, ["--refresh-symbol-coordinates"]);
-      execSync(
-        "git add src/greet.ts .kb/requirements/REQ-BEHAVIOR-001.md .kb/symbol-coordinates.yaml .kb/symbols.yaml",
-        { cwd: tmpDir, stdio: "pipe" },
-      );
+      execSync("git add src/greet.ts .kb/requirements/REQ-BEHAVIOR-001.md", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
       const { status, stdout, stderr } = runKibi(
         kibiBin,
@@ -629,19 +639,18 @@ describe("kibi check --staged impact enforcement", () => {
   );
 
   test(
-    "passes behavior edits when authored symbols metadata and refreshed coordinates are staged",
+    "passes behavior edits when authored symbols metadata is staged",
     async () => {
       writeFiles(tmpDir, createBehaviorLinkedFixture());
       commitAll(tmpDir, "initial");
-      commitRefreshedCoordinates(kibiBin, tmpDir);
+      commitRefreshedManifest(kibiBin, tmpDir);
 
       writeSameCoordinateBehaviorEdit(tmpDir);
       stageAuthoredSymbolsEvidence(tmpDir);
-      syncKb(kibiBin, tmpDir, ["--refresh-symbol-coordinates"]);
-      execSync(
-        "git add src/greet.ts .kb/symbols.yaml .kb/symbol-coordinates.yaml",
-        { cwd: tmpDir, stdio: "pipe" },
-      );
+      execSync("git add src/greet.ts .kb/symbols.yaml", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
       const { status, stdout, stderr } = runKibi(
         kibiBin,
@@ -658,11 +667,11 @@ describe("kibi check --staged impact enforcement", () => {
   );
 
   test(
-    "fails behavior edits when symbol coordinates are stale and unstaged",
+    "passes a line-shifting behavior edit without staging any coordinates",
     async () => {
       writeFiles(tmpDir, createBehaviorLinkedFixture());
       commitAll(tmpDir, "initial");
-      commitRefreshedCoordinates(kibiBin, tmpDir);
+      commitRefreshedManifest(kibiBin, tmpDir);
 
       writeShiftedBehaviorEdit(tmpDir);
       stageRequirementEvidence(
@@ -681,69 +690,22 @@ describe("kibi check --staged impact enforcement", () => {
       );
 
       const output = stdoutToString(stdout || stderr);
-      expect(status).toBe(1);
-      expect(output).toContain("symbols_manifest_stale");
-      expect(output).toContain(".kb/symbol-coordinates.yaml");
-      expect(output).toContain(
-        "kibi sync --refresh-symbol-coordinates && git add .kb/symbol-coordinates.yaml .kb/symbols.yaml",
-      );
-      expect(output).not.toContain("kibi_impact_evidence_missing");
+      expect(status).toBe(0);
+      expect(output).not.toContain("symbols_manifest_stale");
+      expect(output).not.toContain("symbol-coordinates");
     },
     TEST_TIMEOUT_MS,
   );
 
   test(
-    "fails when refreshed symbol coordinates exist only in the working tree",
+    "treats a covering symbols manifest as evidence for a body-only edit, with the semantic review warning",
     async () => {
       writeFiles(tmpDir, createBehaviorLinkedFixture());
       commitAll(tmpDir, "initial");
-      commitRefreshedCoordinates(kibiBin, tmpDir);
+      commitRefreshedManifest(kibiBin, tmpDir);
 
-      writeShiftedBehaviorEdit(tmpDir);
-      stageRequirementEvidence(
-        tmpDir,
-        "Staged requirement note proving KB evidence exists for this edit.",
-      );
-      syncKb(kibiBin, tmpDir, ["--refresh-symbol-coordinates"]);
-      execSync("git add src/greet.ts .kb/requirements/REQ-BEHAVIOR-001.md", {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
-
-      const { status, stdout, stderr } = runKibi(
-        kibiBin,
-        ["check", "--staged"],
-        tmpDir,
-      );
-
-      const output = stdoutToString(stdout || stderr);
-      expect(status).toBe(1);
-      expect(output).toContain("symbols_manifest_stale");
-      expect(output).toContain(".kb/symbol-coordinates.yaml");
-      expect(output).toContain(
-        "kibi sync --refresh-symbol-coordinates && git add .kb/symbol-coordinates.yaml .kb/symbols.yaml",
-      );
-      expect(output).not.toContain("kibi_impact_evidence_missing");
-    },
-    TEST_TIMEOUT_MS,
-  );
-
-  test(
-    "passes behavior edits when refreshed symbol coordinates are staged",
-    async () => {
-      writeFiles(tmpDir, createBehaviorLinkedFixture());
-      commitAll(tmpDir, "initial");
-      commitRefreshedCoordinates(kibiBin, tmpDir);
-
-      writeShiftedBehaviorEdit(tmpDir);
-      syncKb(kibiBin, tmpDir, ["--refresh-symbol-coordinates"]);
-      execSync(
-        "git add src/greet.ts .kb/symbol-coordinates.yaml .kb/symbols.yaml",
-        {
-          cwd: tmpDir,
-          stdio: "pipe",
-        },
-      );
+      writeSameCoordinateBehaviorEdit(tmpDir);
+      execSync("git add src/greet.ts", { cwd: tmpDir, stdio: "pipe" });
 
       const { status, stdout, stderr } = runKibi(
         kibiBin,
@@ -753,8 +715,8 @@ describe("kibi check --staged impact enforcement", () => {
 
       const output = stdoutToString(stdout || stderr);
       expect(status).toBe(0);
-      expect(output).not.toContain("symbols_manifest_stale");
       expect(output).not.toContain("kibi_impact_evidence_missing");
+      expect(output).toContain("symbol_semantic_review_needed");
     },
     TEST_TIMEOUT_MS,
   );
@@ -787,14 +749,10 @@ links:
 `,
       });
       commitAll(tmpDir, "initial");
-      commitRefreshedCoordinates(kibiBin, tmpDir);
+      commitRefreshedManifest(kibiBin, tmpDir);
 
       writeShiftedBehaviorEdit(tmpDir);
-      syncKb(kibiBin, tmpDir, ["--refresh-symbol-coordinates"]);
-      execSync("git add src/greet.ts .kb/symbol-coordinates.yaml", {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
+      execSync("git add src/greet.ts", { cwd: tmpDir, stdio: "pipe" });
 
       const rejected = runKibi(kibiBin, ["check", "--staged"], tmpDir);
       const rejectedOutput = stdoutToString(rejected.stdout || rejected.stderr);
@@ -920,11 +878,11 @@ Calls the covered function through its public export and asserts the value it re
   );
 
   test(
-    "keeps changed_symbol_violation output alongside the new impact diagnostic",
+    "keeps changed_symbol_violation output for an unlinked changed symbol",
     async () => {
       writeFiles(tmpDir, createUnlinkedSymbolFixture());
       commitAll(tmpDir, "initial");
-      commitRefreshedCoordinates(kibiBin, tmpDir);
+      commitRefreshedManifest(kibiBin, tmpDir);
 
       writeFiles(tmpDir, {
         "src/unlinked.ts": `export function unlinkedAction() {
@@ -942,7 +900,7 @@ Calls the covered function through its public export and asserts the value it re
 
       const output = stdoutToString(stdout || stderr);
       expect(status).toBe(1);
-      expect(output).toContain("kibi_impact_evidence_missing");
+      expect(output).toContain("[symbol-coverage] SYM-UNLINKED-001");
       expect(output).toContain("Traceability failed");
     },
     TEST_TIMEOUT_MS,
@@ -953,7 +911,7 @@ Calls the covered function through its public export and asserts the value it re
     async () => {
       writeFiles(tmpDir, createCoarseSymbolFixture());
       commitAll(tmpDir, "initial");
-      commitRefreshedCoordinates(kibiBin, tmpDir);
+      commitRefreshedManifest(kibiBin, tmpDir);
 
       writeGranularBehaviorEdit(tmpDir);
       stageGranularRequirementEvidence(
@@ -985,17 +943,15 @@ Calls the covered function through its public export and asserts the value it re
     async () => {
       writeFiles(tmpDir, createJustifiedCoarseAndGranularFixture());
       commitAll(tmpDir, "initial");
-      commitRefreshedCoordinates(kibiBin, tmpDir);
+      commitRefreshedManifest(kibiBin, tmpDir);
 
       writeGranularBehaviorEdit(tmpDir);
-      execSync("git add src/greet.ts", { cwd: tmpDir, stdio: "pipe" });
-      syncKb(kibiBin, tmpDir, ["--refresh-symbol-coordinates"]);
       stageGranularRequirementEvidence(
         tmpDir,
         "Staged requirement note proving KB evidence exists for this edit.",
       );
       execSync(
-        "git add src/greet.ts .kb/requirements/REQ-GRANULAR-001.md .kb/symbol-coordinates.yaml .kb/symbols.yaml",
+        "git add src/greet.ts .kb/requirements/REQ-GRANULAR-001.md .kb/symbols.yaml",
         { cwd: tmpDir, stdio: "pipe" },
       );
 

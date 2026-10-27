@@ -221,9 +221,8 @@ record id instead of by line:
   `status` values) is a real conflict: the driver names it, leaves ordinary
   conflict markers, and exits non-zero so the file stays unmerged
 
-`.kb/symbol-coordinates.yaml` is generated, so it is never merged by hand:
-take either side and run `kibi sync --refresh-symbol-coordinates` on the
-merged tree.
+`.kb/symbol-coordinates.yaml` is a gitignored local cache derived by every
+`kibi sync`, so it never takes part in a merge.
 
 ### Locally
 
@@ -250,9 +249,9 @@ Copy [docs/examples/github/kibi-kb-merge.yml](examples/github/kibi-kb-merge.yml)
 to `.github/workflows/kibi-kb-merge.yml`. On every push to the default branch
 it test-merges each open same-repository pull request with
 `git merge-tree`. When the only conflicts are Kibi manifests, it merges the
-default branch into the PR branch with `kibi merge-driver`, regenerates
-`.kb/symbol-coordinates.yaml` from the merged tree, and pushes the merge
-commit. Pull requests with any other conflict, or a real conflict inside a
+default branch into the PR branch with `kibi merge-driver` and pushes the
+merge commit. A branch that still tracks `.kb/symbol-coordinates.yaml` from
+before schema 13 has it removed in that merge. Pull requests with any other conflict, or a real conflict inside a
 manifest, are left untouched for a person. Fork pull requests are skipped
 because the workflow cannot push to them.
 

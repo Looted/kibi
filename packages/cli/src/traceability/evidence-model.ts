@@ -83,7 +83,7 @@ export interface KibiImpactSymbolsManifestFileDetail {
   /** Symbol count extraction finds in the staged source content. */
   expectedCount: number;
   /**
-   * Extracted symbols that have a matching staged manifest+coordinates entry
+   * Extracted symbols that have a matching staged symbols manifest entry
    * (`expectedCount - missing.length`); evidence-only entries in `extra` are
    * not counted.
    */
@@ -95,20 +95,21 @@ export interface KibiImpactSymbolsManifestFileDetail {
 }
 
 /**
- * Deterministic symbol coordinates artifact state for the staged change-set.
+ * Whether the staged symbol manifest covers the declarations of the staged
+ * behavior files. Coordinates are derived from source, so only titles count.
  *
- * - `not_required`: symbol extraction output did not change for the listed
- *   staged source paths.
- * - `fresh`: a staged coordinate refresh covers the listed source paths.
- * - `stale`: coordinate artifact content is reverted, outdated, or otherwise does not match
- *   the staged symbol extraction result.
- * - `missing`: a refresh is required but no staged coordinate artifact exists.
+ * - `not_required`: the listed files declare nothing and own no records.
+ * - `fresh`: every declaration in the listed files has a manifest record and
+ *   every granular record names a declaration; this is evidence for their
+ *   behavior edits.
+ * - `stale`: the listed files have uncovered declarations or records whose
+ *   declaration is gone.
  */
 export interface KibiImpactSymbolsManifest {
-  /** Canonical repo-relative symbol coordinate artifact path. */
+  /** Canonical repo-relative symbol manifest path. */
   path: string;
-  /** Explicit manifest freshness state. */
-  state: "not_required" | "fresh" | "stale" | "missing";
+  /** Explicit manifest coverage state. */
+  state: "not_required" | "fresh" | "stale";
   /** Repo-relative staged source paths whose symbol output this state describes. */
   sourcePaths: string[];
   /**
@@ -210,7 +211,7 @@ export function getKbCoveredSourcePaths(
   );
 }
 
-/** Returns staged source paths covered by a fresh symbol coordinate refresh. */
+/** Returns staged source paths whose declarations the symbol manifest covers. */
 export function getFreshSymbolsManifestSourcePaths(
   evidence: KibiImpactEvidence,
 ): string[] {

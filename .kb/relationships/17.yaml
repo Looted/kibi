@@ -269,3 +269,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-14331f6ea41e
+  - type: assumes
+    from: SCEN-symbol-coordinates-derived-locally
+    to: FACT-symbol-coordinates-init-gitignored
+    created_at: 2026-10-27T10:36:23.045Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cec2cb2752b5
+  - type: assumes
+    from: SCEN-symbol-coordinates-derived-locally
+    to: FACT-symbol-coordinates-sync-refreshes-incrementally
+    created_at: 2026-10-27T10:36:23.075Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eebb14c984c0
+  - type: assumes
+    from: SCEN-symbol-coordinates-derived-locally
+    to: FACT-symbol-coordinates-staged-check-uses-titles
+    created_at: 2026-10-27T10:36:23.095Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7fa44bf5d37
+  - type: assumes
+    from: SCEN-symbol-coordinates-derived-locally
+    to: FACT-symbol-coordinates-check-generated-rejects-cache
+    created_at: 2026-10-27T10:36:23.111Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-454623c5e57e
+  - type: assumes
+    from: SCEN-symbol-coordinates-derived-locally
+    to: FACT-symbol-coordinates-migrate-untracks-cache
+    created_at: 2026-10-27T10:36:23.126Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e125390bc25
+  - type: verified_by
+    from: SCEN-symbol-coordinates-derived-locally
+    to: TEST-symbol-coordinates-derived-locally
+    created_at: 2026-10-27T10:36:24.753Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-952ab7144a41

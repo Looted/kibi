@@ -57,9 +57,6 @@ const DECORATOR_SOURCE_PATH = "src/decorated.py";
 const DECORATOR_BASELINE_SOURCE = 'def decorated():\n    return "decorated"\n';
 const DECORATOR_STAGED_SOURCE =
   '@identity\ndef decorated():\n    return "decorated"\n';
-const DECORATOR_PARTIAL_DIAGNOSTIC =
-  "TREESITTER_DECORATOR_EXPANSION_UNAVAILABLE";
-const DECORATOR_LIMITATION_CLASS = "python-decorator-expansion";
 
 type CommandResult = Readonly<{
   stdout: string;
@@ -313,14 +310,6 @@ function objectArray(value: unknown, label: string): Record<string, unknown>[] {
   return value.map((entry, index) =>
     requireRecord(entry, `${label}[${index}]`),
   );
-}
-
-function jsonStringify(value: unknown, label: string): string {
-  const serialized = JSON.stringify(value);
-  if (typeof serialized !== "string") {
-    throw new Error(`${label} could not be serialized as JSON`);
-  }
-  return serialized;
 }
 
 function assertModuleFunctions<T extends object>(
@@ -1169,18 +1158,14 @@ function stagedFileDiagnostics(
   return objectArray(content.diagnostics, "staged check file diagnostics");
 }
 
-async function runInstalledGeneratedCoordinateWorkflow(
+async function runInstalledDerivedCoordinateWorkflow(
   tarballs: Tarballs,
 ): Promise<void> {
   const sandbox = createSandbox();
   try {
     await sandbox.install(tarballs);
-    // This fixture proves local-HEAD review behavior. Keep runner CI state
-    // away from its normal path; the explicit negative below opts back in.
-    sandbox.env.CI = undefined;
     assertInstalledTarballProvenance(sandbox, tarballs);
     await sandbox.verifyKibiCliResolution();
-    const api = await loadImpactApi(sandbox);
     await sandbox.initGitRepo();
     await assertGit(
       sandbox,
@@ -1254,78 +1239,18 @@ async function runInstalledGeneratedCoordinateWorkflow(
       requireString(installedParser, "name", "installed Tree-sitter package"),
       "kibi-plugin-treesitter",
     );
-    const installedParserVersion = requireString(
+    packageConfig.dependencies["kibi-plugin-treesitter"] = requireString(
       installedParser,
       "version",
       "installed Tree-sitter package",
     );
-    const parserTarballHash = createHash("sha256")
-      .update(readFileSync(tarballs["plugin-treesitter"]))
-      .digest("hex");
-    process.stdout.write(
-      `STAGE_E_COORDINATE_PARSER_PROVENANCE ${JSON.stringify({
-        package: installedParser.name,
-        version: installedParserVersion,
-        tarball: tarballs["plugin-treesitter"],
-        sha256: parserTarballHash,
-      })}\n`,
-    );
-    packageConfig.dependencies["kibi-plugin-treesitter"] =
-      installedParserVersion;
     writeFileSync(
       join(sandbox.repoDir, "package.json"),
       `${JSON.stringify(packageConfig, null, 2)}\n`,
       "utf8",
     );
 
-    const sourceService =
-      api.maintenance.createMaintenanceSourceAnalysisService(
-        sandbox.repoDir,
-        sourceConfig,
-      );
-    const baselineAnalysis = await sourceService.analyzeTextV2(
-      DECORATOR_SOURCE_PATH,
-      DECORATOR_BASELINE_SOURCE,
-    );
-    assert.equal(
-      baselineAnalysis.status,
-      "ok",
-      JSON.stringify(baselineAnalysis),
-    );
-    assert.equal(
-      baselineAnalysis.providerId,
-      "kibi-plugin-treesitter.tree-sitter.v2",
-    );
-    assert.match(
-      String(baselineAnalysis.providerFingerprint),
-      /^[0-9a-f]{64}$/,
-    );
-
-    mkdirSync(join(sandbox.repoDir, ".kibi"), { recursive: true });
-    writeFileSync(
-      join(sandbox.repoDir, ".kibi/impact-policy.json"),
-      `${JSON.stringify(
-        {
-          contractVersion: "kibi.impact-policy.v1",
-          id: "stage-e-installed-decorator-policy",
-          version: "1",
-          allowUnsupportedReview: true,
-          allowedPartial: [
-            {
-              providerId: baselineAnalysis.providerId,
-              providerFingerprint: `sha256:${baselineAnalysis.providerFingerprint}`,
-              diagnosticCode: DECORATOR_PARTIAL_DIAGNOSTIC,
-              limitationClass: DECORATOR_LIMITATION_CLASS,
-            },
-          ],
-          notApplicablePaths: [],
-        },
-        null,
-        2,
-      )}\n`,
-      "utf8",
-    );
-
+    const api = await loadImpactApi(sandbox);
     const initialized = await kibi(sandbox, ["init", "--no-hooks"], {
       timeoutMs: COMMAND_TIMEOUT_MS,
     });
@@ -1333,6 +1258,11 @@ async function runInstalledGeneratedCoordinateWorkflow(
       initialized,
       0,
       "initialize the isolated generated-coordinate fixture",
+    );
+    assert.match(
+      readFileSync(join(sandbox.repoDir, ".gitignore"), "utf8"),
+      /^\.kb\/symbol-coordinates\.yaml$/m,
+      "kibi init must gitignore the derived coordinate cache",
     );
     await upsert(
       sandbox,
@@ -1369,7 +1299,6 @@ async function runInstalledGeneratedCoordinateWorkflow(
     // Sync only discovers tracked manifests, so stage the authored baseline first.
     const baselineSources = await stage(sandbox, [
       "package.json",
-      ".kibi",
       ".kb",
       ".gitignore",
       "src",
@@ -1390,7 +1319,21 @@ async function runInstalledGeneratedCoordinateWorkflow(
       "compile and coordinate the authored Python baseline",
     );
     const baselineGenerated = await stage(sandbox, [".kb"]);
-    assertExit(baselineGenerated, 0, "stage refreshed baseline manifests");
+    assertExit(baselineGenerated, 0, "stage the normalized baseline manifest");
+    const coordinatesPath = join(
+      sandbox.repoDir,
+      ".kb/symbol-coordinates.yaml",
+    );
+    assert.equal(existsSync(coordinatesPath), true);
+    assert.equal(
+      await assertGit(
+        sandbox,
+        ["ls-files", "--", ".kb/symbol-coordinates.yaml"],
+        "list tracked coordinate cache",
+      ),
+      "",
+      "the derived coordinate cache must stay out of the index",
+    );
     const baselineCoordinateCheck = await kibi(
       sandbox,
       ["check-generated", "--staged"],
@@ -1399,100 +1342,36 @@ async function runInstalledGeneratedCoordinateWorkflow(
     assertExit(
       baselineCoordinateCheck,
       0,
-      "confirm the un-decorated baseline has current generated coordinates",
-    );
-    const committedBase = await assertGit(
-      sandbox,
-      ["commit", "-m", "trusted parser policy and authored Python coordinates"],
-      "commit the protected fixture base",
-    );
-    assert.ok(committedBase.length > 0);
-    const policyFromBase = parseJsonObject(
-      await assertGit(
-        sandbox,
-        ["show", "HEAD:.kibi/impact-policy.json"],
-        "read the committed base policy",
-      ),
-      "committed base impact policy",
-    );
-    const allowedPartial = objectArray(
-      policyFromBase.allowedPartial,
-      "base policy allowedPartial",
-    );
-    assert.deepEqual(allowedPartial, [
-      {
-        providerId: baselineAnalysis.providerId,
-        providerFingerprint: `sha256:${baselineAnalysis.providerFingerprint}`,
-        diagnosticCode: DECORATOR_PARTIAL_DIAGNOSTIC,
-        limitationClass: DECORATOR_LIMITATION_CLASS,
-      },
-    ]);
-    const baseCommit = await assertGit(
-      sandbox,
-      ["rev-parse", "HEAD"],
-      "capture generated-coordinate base commit",
+      "confirm the baseline symbols manifest is in canonical layout",
     );
     await assertGit(
       sandbox,
-      ["switch", "-c", "feature/reviewed-python-coordinates"],
+      ["commit", "-m", "authored Python baseline"],
+      "commit the fixture base",
+    );
+    await assertGit(
+      sandbox,
+      ["switch", "-c", "feature/decorated-python"],
       "create generated-coordinate feature branch",
     );
 
     const sourcePath = join(sandbox.repoDir, DECORATOR_SOURCE_PATH);
     const symbolsPath = join(sandbox.repoDir, ".kb/symbols.yaml");
-    const coordinatesPath = join(
-      sandbox.repoDir,
-      ".kb/symbol-coordinates.yaml",
-    );
-    const reviewPath = join(sandbox.repoDir, ".kibi/impact-review.json");
     const stagedSourceBytes = Buffer.from(DECORATOR_STAGED_SOURCE, "utf8");
     writeFileSync(sourcePath, stagedSourceBytes);
     const sourceStage = await stage(sandbox, [DECORATOR_SOURCE_PATH]);
     assertExit(sourceStage, 0, "stage the decorated Python declaration");
 
-    const defaultBeforeReviewIndex = await assertGit(
-      sandbox,
-      ["write-tree"],
-      "capture index before generated gate without review",
-    );
-    const defaultBeforeReviewHead = await assertGit(
-      sandbox,
-      ["rev-parse", "HEAD"],
-      "capture HEAD before generated gate without review",
-    );
-    const defaultGenerated = await kibi(
-      sandbox,
-      ["check-generated", "--staged"],
-      { timeoutMs: COMMAND_TIMEOUT_MS },
-    );
-    assert.notEqual(
-      defaultGenerated.exitCode,
+    // Partial decorator analysis only moves coordinates, which are derived
+    // locally: the generated gate passes without any review record.
+    const generatedPass = await kibi(sandbox, ["check-generated", "--staged"], {
+      timeoutMs: COMMAND_TIMEOUT_MS,
+    });
+    assertExit(
+      generatedPass,
       0,
-      "generated gate must reject partial decorator analysis without its exact E review",
+      "generated gate needs no review for derived decorator coordinates",
     );
-    assert.match(
-      outputOf(defaultGenerated),
-      /Reviewed coordinate migration failed/i,
-    );
-    assert.match(outputOf(defaultGenerated), /impact review record missing/i);
-    assert.deepEqual(readFileSync(sourcePath), stagedSourceBytes);
-    assert.equal(
-      await assertGit(
-        sandbox,
-        ["write-tree"],
-        "verify no-review gate preserved index",
-      ),
-      defaultBeforeReviewIndex,
-    );
-    assert.equal(
-      await assertGit(
-        sandbox,
-        ["rev-parse", "HEAD"],
-        "verify no-review gate preserved HEAD",
-      ),
-      defaultBeforeReviewHead,
-    );
-    assert.equal(defaultBeforeReviewHead, baseCommit);
 
     const coordinateSync = await kibi(
       sandbox,
@@ -1519,158 +1398,14 @@ async function runInstalledGeneratedCoordinateWorkflow(
       ["show", "HEAD:.kb/symbols.yaml"],
       "read authored baseline symbols",
     );
-    const refreshedSymbols = readFileSync(symbolsPath, "utf8");
     const declaredSymbolIds = (content: string): string[] =>
       [...content.matchAll(/\bid:\s*(SYM-[A-Z0-9-]+)/g)]
         .map((match) => match[1] as string)
         .sort();
     assert.deepEqual(
-      declaredSymbolIds(refreshedSymbols),
+      declaredSymbolIds(readFileSync(symbolsPath, "utf8")),
       declaredSymbolIds(authoredBaseline),
       "coordinate refresh must retain authored identities without synthesizing symbol declarations",
-    );
-    const coordinateStage = await stage(sandbox, [
-      ".kb/symbol-coordinates.yaml",
-    ]);
-    assertExit(coordinateStage, 0, "stage the canonical generated coordinates");
-
-    const reviewedSnapshot = api.snapshot.captureStagedSnapshot(
-      sandbox.repoDir,
-    );
-    const trustedConfig = api.maintenance.readSnapshotSourceConfig(
-      reviewedSnapshot,
-      reviewedSnapshot.baseTree,
-    );
-    const trustedService =
-      api.maintenance.createMaintenanceSourceAnalysisService(
-        sandbox.repoDir,
-        trustedConfig,
-      );
-    const analyses = await api.sourceAnalysis.analyzeSourceChanges(
-      reviewedSnapshot.inventory,
-      trustedService,
-    );
-    const pythonChange = analyses.get(DECORATOR_SOURCE_PATH);
-    assert.equal(pythonChange?.after?.status, "partial");
-    assert.equal(
-      pythonChange?.after?.providerId,
-      baselineAnalysis.providerId,
-      "review uses the same installed Tree-sitter provider as the base policy",
-    );
-    assert.equal(
-      pythonChange?.after?.providerFingerprint,
-      baselineAnalysis.providerFingerprint,
-    );
-    assert.ok(
-      pythonChange?.after?.diagnostics?.some(
-        (diagnostic: { code: string }) =>
-          diagnostic.code === DECORATOR_PARTIAL_DIAGNOSTIC,
-      ),
-      "decorator expansion limitation must be an explicit partial diagnostic",
-    );
-    assert.ok(
-      (pythonChange?.after?.uncoveredRanges.length ?? 0) > 0,
-      "partial provider result must expose exact residual ranges for review",
-    );
-
-    const partialReview = await prepareReview(sandbox);
-    const prepared = partialReview.prepared;
-    const preparedPython = prepared.files.find(
-      (file) => file.path === DECORATOR_SOURCE_PATH,
-    );
-    assert.equal(preparedPython?.after?.analysis?.status, "partial");
-    const allowance = prepared.policy.allowedPartial.find(
-      (candidate) =>
-        candidate.providerId === preparedPython?.after?.analysis?.providerId &&
-        candidate.providerFingerprint ===
-          preparedPython?.after?.analysis?.providerFingerprint &&
-        candidate.diagnosticCode === DECORATOR_PARTIAL_DIAGNOSTIC &&
-        candidate.limitationClass === DECORATOR_LIMITATION_CLASS,
-    );
-    assert.ok(
-      allowance,
-      "public preparation omitted the trusted partial-review obligation",
-    );
-    assert.deepEqual(
-      preparedPython?.after?.analysis?.uncoveredRanges,
-      pythonChange?.after?.uncoveredRanges,
-      "public preparation must retain the exact provider-reported ranges",
-    );
-    const record = partialReview.record;
-    writeFileSync(reviewPath, `${JSON.stringify(record, null, 2)}\n`, "utf8");
-    const reviewStage = await stage(sandbox, [".kibi/impact-review.json"]);
-    assertExit(
-      reviewStage,
-      0,
-      "stage the exact partial-analysis impact review",
-    );
-
-    const exactSnapshot = api.snapshot.captureStagedSnapshot(sandbox.repoDir);
-    const exactConfig = api.maintenance.readSnapshotSourceConfig(
-      exactSnapshot,
-      exactSnapshot.baseTree,
-    );
-    const exactService = api.maintenance.createMaintenanceSourceAnalysisService(
-      sandbox.repoDir,
-      exactConfig,
-    );
-    const exactAnalyses = await api.sourceAnalysis.analyzeSourceChanges(
-      exactSnapshot.inventory,
-      exactService,
-    );
-    const exactEvaluation = api.evaluator.evaluateImpactReview(exactSnapshot, {
-      providerSetFingerprint: api.maintenance.fingerprintMaintenanceSourceSet(
-        sandbox.repoDir,
-        exactConfig,
-      ),
-      evaluatorFingerprint: api.evaluator.fingerprintImpactEvaluator(),
-      analyses: exactAnalyses,
-    });
-    assert.equal(exactEvaluation.passed, true, JSON.stringify(exactEvaluation));
-
-    const exactSourceBytes = readFileSync(sourcePath);
-    const exactSymbolsBytes = readFileSync(symbolsPath);
-    const exactCoordinatesBytes = readFileSync(coordinatesPath);
-    const exactIndex = await assertGit(
-      sandbox,
-      ["write-tree"],
-      "capture exact reviewed generated-coordinate index",
-    );
-    const exactHead = await assertGit(
-      sandbox,
-      ["rev-parse", "HEAD"],
-      "capture exact reviewed generated-coordinate HEAD",
-    );
-    const generatedPass = await kibi(sandbox, ["check-generated", "--staged"], {
-      timeoutMs: COMMAND_TIMEOUT_MS,
-    });
-    assertExit(
-      generatedPass,
-      0,
-      "installed generated gate accepts exact reviewed decorator coordinates",
-    );
-    assert.match(
-      outputOf(generatedPass),
-      /staged generated manifests are current/i,
-    );
-    assert.deepEqual(readFileSync(sourcePath), exactSourceBytes);
-    assert.deepEqual(readFileSync(symbolsPath), exactSymbolsBytes);
-    assert.deepEqual(readFileSync(coordinatesPath), exactCoordinatesBytes);
-    assert.equal(
-      await assertGit(
-        sandbox,
-        ["write-tree"],
-        "verify successful gate preserved index",
-      ),
-      exactIndex,
-    );
-    assert.equal(
-      await assertGit(
-        sandbox,
-        ["rev-parse", "HEAD"],
-        "verify successful gate preserved HEAD",
-      ),
-      exactHead,
     );
 
     const queried = await kibi(sandbox, [
@@ -1686,9 +1421,8 @@ async function runInstalledGeneratedCoordinateWorkflow(
       0,
       "query authored Python coordinate through the installed CLI",
     );
-    const queriedSymbolValue: unknown = JSON.parse(queried.stdout);
     const queriedSymbols = objectArray(
-      queriedSymbolValue,
+      JSON.parse(queried.stdout) as unknown,
       "installed symbol query result",
     );
     assert.equal(queriedSymbols.length, 1);
@@ -1712,115 +1446,33 @@ async function runInstalledGeneratedCoordinateWorkflow(
         sourceEndColumn: 22,
       },
     );
-    assert.deepEqual(
-      [
-        ...readFileSync(symbolsPath, "utf8").matchAll(
-          /^\s+- id: ([^\r\n]+)$/gm,
-        ),
-      ].map((match) => match[1]),
-      [DECORATOR_SYMBOL_ID],
-      "coordinate refresh retains only the authored symbol identity",
-    );
 
-    const providerTamper = parseJsonObject(
-      jsonStringify(record, "impact review record"),
-      "cloned impact review record",
+    // A force-staged coordinate cache is rejected without touching the
+    // source, the index or HEAD.
+    const forced = await run(
+      "git",
+      ["add", "-f", "--", ".kb/symbol-coordinates.yaml"],
+      { cwd: sandbox.repoDir, env: sandbox.env, timeoutMs: COMMAND_TIMEOUT_MS },
     );
-    const providerTamperScope = requireRecord(
-      providerTamper.scope,
-      "impact review scope",
-    );
-    providerTamperScope.providerSetFingerprint = `sha256:${"0".repeat(64)}`;
-    writeFileSync(
-      reviewPath,
-      `${JSON.stringify(providerTamper, null, 2)}\n`,
-      "utf8",
-    );
-    const providerReviewStage = await stage(sandbox, [
-      ".kibi/impact-review.json",
-    ]);
-    assertExit(
-      providerReviewStage,
-      0,
-      "stage a deliberately stale provider binding",
-    );
-    const providerTamperBeforeGate = await captureGateInputSnapshot(
+    assertExit(forced, 0, "force-stage the derived coordinate cache");
+    const forcedBeforeGate = await captureGateInputSnapshot(
       sandbox,
       sourcePath,
-      "stale-provider gate",
+      "staged coordinate cache gate",
     );
-    const providerMismatch = await kibi(
-      sandbox,
-      ["check-generated", "--staged"],
-      { timeoutMs: COMMAND_TIMEOUT_MS },
-    );
-    assert.notEqual(providerMismatch.exitCode, 0);
-    assert.match(outputOf(providerMismatch), /provider-set binding is stale/i);
-    await assertGateInputsPreserved(
-      sandbox,
-      sourcePath,
-      providerTamperBeforeGate,
-      "stale-provider gate",
-    );
-    writeFileSync(reviewPath, `${JSON.stringify(record, null, 2)}\n`, "utf8");
-    const restoreReview = await stage(sandbox, [".kibi/impact-review.json"]);
-    assertExit(restoreReview, 0, "restore exact provider-bound review");
-
-    const staleSourceBytes = Buffer.concat([
-      exactSourceBytes,
-      Buffer.from("# changed after review\n", "utf8"),
-    ]);
-    writeFileSync(sourcePath, staleSourceBytes);
-    const staleSourceStage = await stage(sandbox, [DECORATOR_SOURCE_PATH]);
-    assertExit(staleSourceStage, 0, "stage source bytes changed after review");
-    const staleSourceBeforeGate = await captureGateInputSnapshot(
-      sandbox,
-      sourcePath,
-      "stale-source gate",
-    );
-    const staleSource = await kibi(sandbox, ["check-generated", "--staged"], {
+    const forcedGate = await kibi(sandbox, ["check-generated", "--staged"], {
       timeoutMs: COMMAND_TIMEOUT_MS,
     });
-    assert.notEqual(staleSource.exitCode, 0);
+    assert.notEqual(forcedGate.exitCode, 0);
     assert.match(
-      outputOf(staleSource),
-      /Per-file Git or analysis fingerprint is stale: src\/decorated\.py \(after, newHunkRanges\)/i,
+      outputOf(forcedGate),
+      /symbol coordinates are derived locally and never committed/i,
     );
     await assertGateInputsPreserved(
       sandbox,
       sourcePath,
-      staleSourceBeforeGate,
-      "stale-source gate",
-    );
-    writeFileSync(sourcePath, exactSourceBytes);
-    const restoreSource = await stage(sandbox, [DECORATOR_SOURCE_PATH]);
-    assertExit(restoreSource, 0, "restore reviewed source bytes");
-
-    const ciLocalHeadBeforeGate = await captureGateInputSnapshot(
-      sandbox,
-      sourcePath,
-      "CI local-HEAD gate",
-    );
-    const ciLocalHead = await run(
-      "node",
-      [sandbox.kibiBin, "check-generated", "--staged"],
-      {
-        cwd: sandbox.repoDir,
-        env: { ...sandbox.env, CI: "true" },
-        timeoutMs: COMMAND_TIMEOUT_MS,
-      },
-    );
-    assert.notEqual(ciLocalHead.exitCode, 0);
-    assert.match(
-      outputOf(ciLocalHead),
-      /unavailable in CI without a protected target-base snapshot/i,
-      "local HEAD review must refuse CI rather than claim protected-target authorization",
-    );
-    await assertGateInputsPreserved(
-      sandbox,
-      sourcePath,
-      ciLocalHeadBeforeGate,
-      "CI local-HEAD gate",
+      forcedBeforeGate,
+      "staged coordinate cache gate",
     );
   } finally {
     await sandbox.cleanup();
@@ -2373,7 +2025,7 @@ export async function runInstalledImpactPolicyE2E(
   tarballs: Tarballs,
 ): Promise<void> {
   await runInstalledImpactPolicyWorkflow(tarballs);
-  await runInstalledGeneratedCoordinateWorkflow(tarballs);
+  await runInstalledDerivedCoordinateWorkflow(tarballs);
 }
 
 if (RUN_NODE_TEST_SUITE) {

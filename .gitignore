@@ -91,3 +91,4 @@ artifacts/skillopt/
 # Lean build output
 proof/lean/.lake/
 proof/lean/axioms.txt
+.kb/symbol-coordinates.yaml

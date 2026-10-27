@@ -79,8 +79,8 @@ function resolveDeps(overrides?: Partial<ManifestDeps>): ManifestDeps {
 export const SYMBOLS_MANIFEST_COMMENT_BLOCK = `# symbols.yaml
 # AUTHORED fields (edit freely):
 #   id, title, sourceFile, links, status, tags, owner, priority
-# Generated coordinates are stored separately in symbol-coordinates.yaml.
-# Run \`kibi sync --refresh-symbol-coordinates\` to refresh them.
+# Coordinates are derived from source by every \`kibi sync\` into the
+# gitignored symbol-coordinates.yaml; they are never authored or committed.
 #
 # Coordinate refresh granularity gate:
 #   The AST extractor locates per-declaration spans for code files. When it
@@ -102,6 +102,11 @@ function sameCoordinateSpan(
     GENERATED_COORD_FIELDS.every((field) => stored[field] === next[field])
   );
 }
+
+type BoundCoordinates = SymbolCoordinatesRecord & {
+  identityHash: string;
+  sourceHash: string;
+};
 
 const GENERATED_COORD_FIELDS = [
   "sourceLine",
@@ -252,6 +257,7 @@ function coarseAnchorFailureReason(entry: ManifestSymbolEntry): string {
   return "extractor produced no coordinates and the whole-file coarse fallback found no span for this symbol";
 }
 
+// implements REQ-symbol-coordinates-derived-locally
 export async function refreshManifestCoordinates(
   // implements REQ-003
   manifestPath: string,
@@ -259,11 +265,20 @@ export async function refreshManifestCoordinates(
   deps?: Partial<ManifestDeps> & {
     refreshSymbolCoordinates?: boolean;
     quiet?: boolean;
+    /**
+     * Reuse every stored record still bound to the symbol's identity and its
+     * current source bytes, extract only the rest, and write the coordinate
+     * artifact alone (never the authored manifest). Plain `kibi sync` keeps
+     * the gitignored artifact current this way.
+     */
+    incremental?: boolean;
   },
-): Promise<void> {
+): Promise<{ artifactChanged: boolean }> {
   const resolved = resolveDeps(deps);
 
-  const shouldRefreshCoordinates = deps?.refreshSymbolCoordinates ?? false;
+  const incremental = deps?.incremental === true;
+  const shouldRefreshCoordinates =
+    incremental || (deps?.refreshSymbolCoordinates ?? false);
 
   const rawContent = resolved.readFileSync(manifestPath, "utf8");
   const parsed = resolved.parseYAML(rawContent);
@@ -292,30 +307,91 @@ export async function refreshManifestCoordinates(
   // authored manifest never holds coordinates, so comparing against it would
   // report every symbol as refreshed.
   let storedCoordinates: Record<string, SymbolCoordinatesRecord> | null = null;
+  let storedArtifactBytes: string | null = null;
   if (shouldRefreshCoordinates) {
     coordinatesPath =
       resolved.resolveSymbolsManifestPaths(workspaceRoot).coordinatesPath;
     storedCoordinates = {};
     if (resolved.existsSync(coordinatesPath)) {
-      const existing = parseCoordinateArtifact(
-        String(resolved.readFileSync(coordinatesPath, "utf8")),
+      storedArtifactBytes = String(
+        resolved.readFileSync(coordinatesPath, "utf8"),
       );
+      const existing = parseCoordinateArtifact(storedArtifactBytes);
       if (existing.status === "invalid") {
-        throw new Error(
-          `Failed to parse coordinate artifact ${coordinatesPath}: ${existing.reason}`,
-        );
+        // The artifact is a local cache: an incremental refresh rebuilds a
+        // damaged one instead of refusing.
+        if (!incremental) {
+          throw new Error(
+            `Failed to parse coordinate artifact ${coordinatesPath}: ${existing.reason}`,
+          );
+        }
+      } else {
+        storedCoordinates = existing.coordinates;
       }
-      storedCoordinates = existing.coordinates;
     }
   }
 
-  const enriched = await resolved.enrichSymbolCoordinates(
-    before,
-    workspaceRoot,
-    shouldRefreshCoordinates
-      ? { allowPythonDecoratorCoordinates: true }
-      : undefined,
-  );
+  // Records still bound to the symbol's identity and its current source
+  // bytes are exactly what a fresh extraction would produce, so an
+  // incremental refresh keeps them and extracts only the remaining symbols.
+  const reused = new Map<number, BoundCoordinates>();
+  if (incremental && storedCoordinates !== null) {
+    const sourceHashes = new Map<string, string | null>();
+    const currentSourceHash = (sourceFile: string): string | null => {
+      if (!sourceHashes.has(sourceFile)) {
+        const text = readSourceText(sourceFile, workspaceRoot, resolved);
+        sourceHashes.set(
+          sourceFile,
+          text === null ? null : coordinateSourceHash(text),
+        );
+      }
+      return sourceHashes.get(sourceFile) ?? null;
+    };
+    for (let index = 0; index < before.length; index++) {
+      const entry = before[index];
+      const id = typeof entry?.id === "string" ? entry.id : undefined;
+      if (!entry || !id) continue;
+      const stored = storedCoordinates[id] as
+        | Partial<BoundCoordinates>
+        | undefined;
+      if (
+        stored === undefined ||
+        typeof stored.identityHash !== "string" ||
+        typeof stored.sourceHash !== "string" ||
+        typeof stored.sourceFile !== "string" ||
+        stored.identityHash !==
+          coordinateIdentityHash(manifestEntryIdentity(entry)) ||
+        stored.sourceHash !== currentSourceHash(stored.sourceFile)
+      ) {
+        continue;
+      }
+      reused.set(index, stored as BoundCoordinates);
+    }
+  }
+
+  const pendingIndices = before
+    .map((_, index) => index)
+    .filter((index) => !reused.has(index));
+  const extracted =
+    incremental && pendingIndices.length === 0
+      ? []
+      : await resolved.enrichSymbolCoordinates(
+          pendingIndices.map((index) => before[index] as ManifestSymbolEntry),
+          workspaceRoot,
+          shouldRefreshCoordinates
+            ? { allowPythonDecoratorCoordinates: true }
+            : undefined,
+        );
+  const enriched: ManifestSymbolEntry[] = before.map((entry, index) => {
+    const kept = reused.get(index);
+    if (kept === undefined) return entry;
+    const { identityHash: _identity, sourceHash: _source, ...span } = kept;
+    return { ...entry, ...span };
+  });
+  pendingIndices.forEach((index, position) => {
+    const entry = extracted[position];
+    if (entry !== undefined) enriched[index] = entry;
+  });
 
   // Publish the generated coordinate artifact when explicitly requested.
   // Parse and I/O failures are fatal so sync never advances cache state on a
@@ -327,9 +403,14 @@ export async function refreshManifestCoordinates(
     SymbolCoordinatesRecord & { identityHash: string; sourceHash: string }
   > = {};
   if (shouldRefreshCoordinates) {
-    for (const entry of enriched) {
+    for (const [index, entry] of enriched.entries()) {
       const id = typeof entry?.id === "string" ? entry.id : undefined;
       if (!id) continue;
+      const kept = reused.get(index);
+      if (kept !== undefined) {
+        boundEntries[id] = kept;
+        continue;
+      }
       const span =
         extractedCoordinates(entry) ??
         fallbackCoarseCoordinates(entry, workspaceRoot, resolved);
@@ -417,12 +498,20 @@ export async function refreshManifestCoordinates(
   const nextContent = `${SYMBOLS_MANIFEST_COMMENT_BLOCK}${dumped}`;
 
   let manifestPublished = false;
+  const artifactChanged =
+    refreshedArtifactBytes !== null &&
+    coordinatesPath !== null &&
+    refreshedArtifactBytes !== storedArtifactBytes;
   try {
-    if (rawContent !== nextContent) {
+    if (!incremental && rawContent !== nextContent) {
       publishAtomically(manifestPath, nextContent, resolved);
       manifestPublished = true;
     }
-    if (refreshedArtifactBytes !== null && coordinatesPath !== null) {
+    if (
+      artifactChanged &&
+      refreshedArtifactBytes !== null &&
+      coordinatesPath !== null
+    ) {
       publishAtomically(coordinatesPath, refreshedArtifactBytes, resolved);
     }
   } catch (error) {
@@ -448,7 +537,12 @@ export async function refreshManifestCoordinates(
   // The generated coordinates live in the artifact beside the manifest, not
   // in the authored symbols.yaml this command also rewrites; naming the
   // artifact keeps diff audits pointed at the file that actually changed.
-  if (!deps?.quiet) {
+  // An incremental refresh that changed nothing stays silent: plain sync
+  // runs it every time.
+  const quiet =
+    deps?.quiet === true ||
+    (incremental && !artifactChanged && failures.length === 0);
+  if (!quiet) {
     const counts = `(refreshed=${refreshed}, unchanged=${unchanged}, failed=${failures.length})`;
     if (coordinatesPath !== null) {
       console.log(
@@ -470,10 +564,11 @@ export async function refreshManifestCoordinates(
     }
     if (failures.length > 0) {
       console.log(
-        "  Symbols without a published coordinate entry are dropped from coverage on the next plain sync until they succeed.",
+        "  Symbols without a published coordinate entry are dropped from coverage until they succeed.",
       );
     }
   }
+  return { artifactChanged };
 }
 
 /**

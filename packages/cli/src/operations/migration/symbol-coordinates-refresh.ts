@@ -72,8 +72,9 @@ export type MigrationCoordinateRefresh =
  * `kibi sync --refresh-symbol-coordinates` does, after a migration rewrote or
  * moved the symbols manifest. The coordinate artifact binds each record by an
  * identity hash that includes `granularity_reason`, so a legacy-link mark
- * leaves the committed coordinates stale; without this refresh the pre-commit
- * generated-manifest gate rejects the first commit after a migration.
+ * leaves the local coordinates stale, and the refresh also writes the
+ * symbols manifest in the canonical layout the pre-commit
+ * generated-manifest gate expects for the first commit after a migration.
  *
  * Skipped when `before` shows the run left both files untouched, or when the
  * manifest has no symbols. A refresh failure is returned, not thrown: the
@@ -131,5 +132,5 @@ export async function refreshCoordinatesAfterMigration(
 /** The line a migration prints when its coordinate refresh failed. */
 // implements REQ-cli-migration-first-commit
 export function coordinateRefreshFailureMessage(reason: string): string {
-  return `Could not refresh symbol coordinates after the migration (${reason}). Run 'kibi sync --refresh-symbol-coordinates' and stage .kb/symbols.yaml and .kb/symbol-coordinates.yaml before the first commit, or the pre-commit hook reports generated manifest drift.`;
+  return `Could not refresh symbol coordinates after the migration (${reason}). Run 'kibi sync --refresh-symbol-coordinates' and stage .kb/symbols.yaml before the first commit, or the pre-commit hook reports generated manifest drift.`;
 }

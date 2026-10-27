@@ -82,8 +82,8 @@ function commitLegacyKb(root: string): void {
     "---\nid: REQ-greet\ntitle: Greet\nstatus: open\n---\n\nThe greeter must greet.\n",
   );
   write(root, "documentation/symbols.yaml", LEGACY_SYMBOLS);
-  // A generated artifact older than the manifest: it moves with the
-  // migration and is stale until refreshed.
+  // A generated artifact older than the manifest: the migration moves it
+  // into .kb/, refreshes it and takes it out of the index.
   write(
     root,
     "documentation/symbol-coordinates.yaml",
@@ -139,6 +139,12 @@ describe("the first commit after kibi migrate", () => {
       expect(
         existsSync(path.join(root, ".kb", "symbol-coordinates.yaml")),
       ).toBe(true);
+      expect(
+        execSync("git ls-files .kb/symbol-coordinates.yaml", {
+          cwd: root,
+          encoding: "utf8",
+        }).trim(),
+      ).toBe("");
 
       const generated = kibi(root, [
         "check-generated",
@@ -150,9 +156,13 @@ describe("the first commit after kibi migrate", () => {
 
       const staged = kibi(root, ["check", "--staged"]);
       // The small legacy files fall under Git's rename similarity once
-      // migrated; they are still judged as moves, not as new files.
+      // migrated; they are still judged as moves, not as new files. The
+      // coordinate artifact leaves the index instead of moving.
       expect(staged.output).toContain(
-        "Baseline: HEAD with 3 staged knowledge rename(s) into .kb/ resolved",
+        "Baseline: HEAD with 2 staged knowledge rename(s) into .kb/ resolved",
+      );
+      expect(staged.output).toContain(
+        "D documentation/symbol-coordinates.yaml",
       );
       expect(staged.output).toContain(
         "Migration commit: 1 symbol record(s) changed only by kibi migrate",

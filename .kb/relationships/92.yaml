@@ -178,3 +178,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-15fbe1733d8c
+  - type: constrains
+    from: REQ-symbol-coordinates-derived-locally
+    to: FACT-SUBJ-symbol-coordinates-derived-locally
+    created_at: 2026-10-27T10:35:36.552Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45462484e882
+  - type: requires_property
+    from: REQ-symbol-coordinates-derived-locally
+    to: FACT-symbol-coordinates-init-gitignored
+    created_at: 2026-10-27T10:35:36.583Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61bd3cf954dc
+  - type: requires_property
+    from: REQ-symbol-coordinates-derived-locally
+    to: FACT-symbol-coordinates-sync-refreshes-incrementally
+    created_at: 2026-10-27T10:35:36.604Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-050311ba9d64
+  - type: requires_property
+    from: REQ-symbol-coordinates-derived-locally
+    to: FACT-symbol-coordinates-staged-check-uses-titles
+    created_at: 2026-10-27T10:35:36.627Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2aa486983417
+  - type: requires_property
+    from: REQ-symbol-coordinates-derived-locally
+    to: FACT-symbol-coordinates-check-generated-rejects-cache
+    created_at: 2026-10-27T10:35:36.639Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c236212ae303
+  - type: requires_property
+    from: REQ-symbol-coordinates-derived-locally
+    to: FACT-symbol-coordinates-migrate-untracks-cache
+    created_at: 2026-10-27T10:35:36.653Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa7f8c376aa7
+  - type: relates_to
+    from: REQ-symbol-coordinates-derived-locally
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-10-27T10:35:36.667Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2768e833e8d8
+  - type: relates_to
+    from: REQ-symbol-coordinates-derived-locally
+    to: REQ-cli-staged-impact-enforcement
+    created_at: 2026-10-27T10:35:36.679Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c10e4cd2527b
+  - type: relates_to
+    from: REQ-symbol-coordinates-derived-locally
+    to: REQ-cli-migration-first-commit
+    created_at: 2026-10-27T10:35:36.691Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-731c1ddd9025
+  - type: relates_to
+    from: REQ-symbol-coordinates-derived-locally
+    to: REQ-cli-init-canonical
+    created_at: 2026-10-27T10:35:36.704Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2cdc8cb3079d
+  - type: specified_by
+    from: REQ-symbol-coordinates-derived-locally
+    to: SCEN-symbol-coordinates-derived-locally
+    created_at: 2026-10-27T10:36:25.728Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50b989d025c2

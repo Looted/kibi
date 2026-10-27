@@ -997,11 +997,23 @@ test("authors prepared file decisions with reviewer and timestamp fields", () =>
   const workspace = mkdtempSync(
     path.join(os.tmpdir(), "kibi-review-authoring-test-"),
   );
+  const context = {
+    id: "REQ-BENCH-PARSER-001",
+    state: "present",
+    entityFingerprint: "sha256:fixture",
+  };
   try {
     const result = authorPreparedRecord(
       {
         preparationVersion: "kibi.impact-review-preparation.v1",
-        requirementScopes: [],
+        requirementScopes: [
+          {
+            path: "src/parser-0.ts",
+            requirementIds: ["REQ-BENCH-PARSER-001"],
+            before: [context],
+            after: [context],
+          },
+        ],
         residualReviewObligations: [],
         authorship: {
           recordTemplate: {
@@ -1011,7 +1023,7 @@ test("authors prepared file decisions with reviewer and timestamp fields", () =>
               reviewedAt: null,
               files: [
                 {
-                  path: ".kb/symbol-coordinates.yaml",
+                  path: "src/parser-0.ts",
                   analysisReviews: null,
                   decision: null,
                 },
@@ -1020,14 +1032,56 @@ test("authors prepared file decisions with reviewer and timestamp fields", () =>
           },
         },
       },
-      [],
+      [{ relativePath: "src/parser-0.ts" }],
       workspace,
     );
     const authored = JSON.parse(readFileSync(result.recordPath, "utf8"));
     assert.equal(authored.reviewer.id, "synthetic-benchmark-author");
     assert.match(authored.reviewedAt, /^\d{4}-\d{2}-\d{2}T.*Z$/);
     assert.equal(authored.files[0].analysisReviews.length, 0);
-    assert.equal(authored.files[0].decision.kind, "no_impact");
+    assert.equal(authored.files[0].decision.kind, "impact");
+    assert.deepEqual(authored.files[0].decision.requirementIds, [
+      "REQ-BENCH-PARSER-001",
+    ]);
+  } finally {
+    rmSync(workspace, { recursive: true, force: true });
+  }
+});
+
+test("refuses to author a decision for a path no benchmark rule covers", () => {
+  const workspace = mkdtempSync(
+    path.join(os.tmpdir(), "kibi-review-authoring-test-"),
+  );
+  try {
+    assert.throws(
+      () =>
+        authorPreparedRecord(
+          {
+            preparationVersion: "kibi.impact-review-preparation.v1",
+            requirementScopes: [],
+            residualReviewObligations: [],
+            authorship: {
+              recordTemplate: {
+                isValidImpactReviewRecord: false,
+                record: {
+                  reviewer: { id: null, source: "self-claimed-local" },
+                  reviewedAt: null,
+                  files: [
+                    {
+                      path: ".kb/symbol-coordinates.yaml",
+                      analysisReviews: null,
+                      decision: null,
+                    },
+                  ],
+                },
+              },
+            },
+          },
+          [],
+          workspace,
+        ),
+      /No explicit benchmark decision rule covers prepared path \.kb\/symbol-coordinates\.yaml/,
+    );
   } finally {
     rmSync(workspace, { recursive: true, force: true });
   }

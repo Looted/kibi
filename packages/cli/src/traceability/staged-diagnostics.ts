@@ -1,4 +1,3 @@
-import * as path from "node:path";
 import type { QualityDiagnostic } from "../public/impact/types.js";
 import {
   KIBI_STAGED_IMPACT_EVIDENCE_DOC,
@@ -9,12 +8,6 @@ import {
   getMissingBehaviorSourcePaths,
   hasOverrideRationale,
 } from "./evidence-model.js";
-
-function deriveCoordinatesPath(symbolsManifestPath: string): string {
-  return path
-    .join(path.dirname(symbolsManifestPath), "symbol-coordinates.yaml")
-    .replace(/\\/g, "/");
-}
 
 export type KibiImpactDiagnosticId =
   | "kibi_impact_evidence_missing"
@@ -99,7 +92,6 @@ function manifestDetailLines(
 function createMissingEvidenceDiagnostic(
   paths: string[],
   symbolsManifestPath: string,
-  coordinatesPath: string,
   fileDetails: readonly KibiImpactSymbolsManifestFileDetail[] = [],
 ): KibiImpactDiagnostic {
   const uncoveredByPath = new Map(
@@ -128,7 +120,7 @@ function createMissingEvidenceDiagnostic(
     files: [...paths],
     docs: [KIBI_STAGED_IMPACT_EVIDENCE_DOC],
     message: `Behavior-changing staged files are missing staged Kibi impact evidence (see ${KIBI_STAGED_IMPACT_EVIDENCE_DOC}): ${formatFileList(paths)}`,
-    suggestion: `Query Kibi via MCP before deciding. MCP writes update KB state but do not stage tracked evidence; also stage requirement/scenario/test/fact/symbol markdown, authored ${symbolsManifestPath} metadata, or refreshed ${coordinatesPath}. Re-run kibi check --staged after staging tracked evidence.${suggestionSuffix}`,
+    suggestion: `Query Kibi via MCP before deciding. MCP writes update KB state but do not stage tracked evidence; also stage requirement/scenario/test/fact/symbol markdown or authored ${symbolsManifestPath} metadata. Re-run kibi check --staged after staging tracked evidence.${suggestionSuffix}`,
     ...(details.length > 0
       ? {
           details,
@@ -146,27 +138,40 @@ function createMissingEvidenceDiagnostic(
 function createSymbolsManifestStaleDiagnostic(
   paths: string[],
   symbolsManifestPath: string,
-  coordinatesPath: string,
   fileDetails: readonly KibiImpactSymbolsManifestFileDetail[] = [],
 ): KibiImpactDiagnostic {
   const hasMissingSymbols = fileDetails.some(
     (detail) => detail.missing.length > 0,
   );
+  const hasExtraSymbols = fileDetails.some((detail) => detail.extra.length > 0);
   const details = fileDetails.flatMap((detail) =>
     manifestDetailLines(detail, symbolsManifestPath),
   );
-  const refreshSteps = `kibi sync --refresh-symbol-coordinates && git add ${coordinatesPath} ${symbolsManifestPath}, then re-run kibi check --staged.`;
-  const suggestion = hasMissingSymbols
-    ? `Author ${symbolsManifestPath} entries for the uncovered symbols (kibi upsert, with implements/covered_by links), then run ${refreshSteps}`
-    : `Run ${refreshSteps}`;
+  const steps = [
+    ...(hasMissingSymbols
+      ? [
+          `author ${symbolsManifestPath} entries for the uncovered symbols (kibi upsert, with implements/covered_by links)`,
+        ]
+      : []),
+    ...(hasExtraSymbols
+      ? [
+          `re-point or remove (kibi delete) the ${symbolsManifestPath} entries whose declaration is gone`,
+        ]
+      : []),
+  ];
+  const suggestion = `${
+    steps.length > 0
+      ? `${steps.join(", and ").replace(/^./, (first) => first.toUpperCase())}. `
+      : ""
+  }Stage ${symbolsManifestPath} with the behavior edit, then re-run kibi check --staged.`;
   return {
     id: "symbols_manifest_stale",
     severity: "error",
     blocking: true,
     category: "symbol",
-    files: [coordinatesPath, ...paths],
+    files: [symbolsManifestPath, ...paths],
     docs: [KIBI_STAGED_IMPACT_EVIDENCE_DOC],
-    message: `${coordinatesPath} is stale or missing for staged source files: ${formatFileList(paths)}`,
+    message: `${symbolsManifestPath} does not cover the declarations of staged source files: ${formatFileList(paths)}`,
     suggestion,
     ...(fileDetails.length > 0
       ? {
@@ -221,8 +226,6 @@ export function collectStagedKibiDiagnostics(
   symbolsManifestPath: string = KIBI_SYMBOLS_MANIFEST_PATH,
 ): KibiImpactDiagnostic[] {
   const diagnostics: KibiImpactDiagnostic[] = [];
-  const coordinatesPath =
-    evidence.symbolsManifest.path || deriveCoordinatesPath(symbolsManifestPath);
 
   if (
     evidence.mode.kind === "no_impact_override" &&
@@ -232,8 +235,7 @@ export function collectStagedKibiDiagnostics(
   }
 
   if (
-    (evidence.symbolsManifest.state === "stale" ||
-      evidence.symbolsManifest.state === "missing") &&
+    evidence.symbolsManifest.state === "stale" &&
     evidence.symbolsManifest.sourcePaths.length > 0
   ) {
     const stalePaths = [...evidence.symbolsManifest.sourcePaths].sort();
@@ -241,7 +243,6 @@ export function collectStagedKibiDiagnostics(
       createSymbolsManifestStaleDiagnostic(
         stalePaths,
         symbolsManifestPath,
-        coordinatesPath,
         symbolsManifestFileDetails(evidence, stalePaths),
       ),
     );
@@ -253,7 +254,6 @@ export function collectStagedKibiDiagnostics(
       createMissingEvidenceDiagnostic(
         missingBehaviorPaths,
         symbolsManifestPath,
-        coordinatesPath,
         symbolsManifestFileDetails(evidence, missingBehaviorPaths),
       ),
     );

@@ -325,3 +325,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b6f0f0537bf
+  - type: implements
+    from: SYM-assessStagedSymbolsManifest
+    to: REQ-symbol-coordinates-derived-locally
+    created_at: 2026-10-27T10:37:32.018Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18fa5d2b4bc4
+  - type: covered_by
+    from: SYM-assessStagedSymbolsManifest
+    to: TEST-symbol-coordinates-derived-locally
+    created_at: 2026-10-27T10:37:32.044Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5269a64b94fd

@@ -1,8 +1,8 @@
 # symbols.yaml
 # AUTHORED fields (edit freely):
 #   id, title, sourceFile, links, status, tags, owner, priority
-# Generated coordinates are stored separately in symbol-coordinates.yaml.
-# Run `kibi sync --refresh-symbol-coordinates` to refresh them.
+# Coordinates are derived from source by every `kibi sync` into the
+# gitignored symbol-coordinates.yaml; they are never authored or committed.
 #
 # Coordinate refresh granularity gate:
 #   The AST extractor locates per-declaration spans for code files. When it
@@ -2857,8 +2857,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-symbol-coordinates-derived-locally
       - type: implements
         target: REQ-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-symbol-coordinates-derived-locally
   - id: SYM-atomicPublish
     title: atomicPublish
     sourceFile: packages/cli/src/commands/sync/staging.ts
@@ -11038,6 +11042,8 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-schema6-migration-cli
+      - type: covered_by
+        target: TEST-symbol-coordinates-derived-locally
       - type: implements
         target: REQ-011
       - type: implements
@@ -11048,6 +11054,8 @@ symbols:
         target: REQ-cli-migration-first-commit
       - type: implements
         target: REQ-kibi-schema6-migration-v2
+      - type: implements
+        target: REQ-symbol-coordinates-derived-locally
   - id: SYM-mirrorSkillsDir
     title: mirrorSkillsDir
     sourceFile: scripts/sync-agent-skills.ts
@@ -14190,8 +14198,12 @@ symbols:
         target: TEST-cli-sync-discovery-readme-ignore
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-symbol-coordinates-derived-locally
       - type: implements
         target: REQ-core-extractors
+      - type: implements
+        target: REQ-symbol-coordinates-derived-locally
   - id: SYM-registerAllTools
     title: registerAllTools
     status: active
@@ -37470,16 +37482,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-cli-quality-diagnostics-contract
-  - id: SYM-quality-staged-parsedCoordinateOrNull
-    title: parsedCoordinateOrNull
-    sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
-    status: active
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-quality-staged-manifestRecordSourcePath
     title: manifestRecordSourcePath
     sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
@@ -37839,16 +37841,6 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
   - id: SYM-manifest-record-source-path
     title: manifestRecordSourcePath
-    status: active
-    sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
-  - id: SYM-parsed-coordinate-or-null
-    title: parsedCoordinateOrNull
     status: active
     sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
     granularity_reason: legacy-link
@@ -41339,8 +41331,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-004
+      - type: covered_by
+        target: TEST-symbol-coordinates-derived-locally
       - type: implements
         target: REQ-cli-check
+      - type: implements
+        target: REQ-symbol-coordinates-derived-locally
   - id: SYM-normalizeResultPayload
     title: normalizeResultPayload
     status: active
@@ -44005,20 +44001,6 @@ symbols:
     symbol_role: behavioral
     sourceFile: packages/cli/src/traceability/impact-evaluator.ts
     status: active
-    relationships:
-      - type: covered_by
-        target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
-  - id: SYM-impact-stage-e-createrevieweddecoratorcoordinateverifier
-    status: active
-    tags:
-      - multilingual
-      - impact-policy
-      - stage-e
-    sourceFile: packages/cli/src/traceability/reviewed-coordinate-refresh.ts
-    title: createReviewedDecoratorCoordinateVerifier
-    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-impact-policy-stage-e-installed-e2e
@@ -57807,6 +57789,80 @@ symbols:
         target: TEST-kibi-source-proof-kinds
       - type: implements
         target: REQ-kibi-source-proof-kinds
+  - id: SYM-untrackCoordinateArtifact
+    title: untrackCoordinateArtifact
+    status: active
+    sourceFile: packages/cli/src/operations/migration/untrack-symbol-coordinates.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T00:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-symbol-coordinates-derived-locally
+      - type: implements
+        target: REQ-symbol-coordinates-derived-locally
+  - id: SYM-isCoordinateArtifactTracked
+    title: isCoordinateArtifactTracked
+    status: active
+    sourceFile: packages/cli/src/operations/migration/untrack-symbol-coordinates.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T00:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-symbol-coordinates-derived-locally
+      - type: implements
+        target: REQ-symbol-coordinates-derived-locally
+  - id: SYM-test-derived-coordinates-parallel-merge
+    title: parallel edits to one source file merge cleanly and sync rebuilds the cache
+    status: active
+    sourceFile: packages/cli/tests/commands/derived-symbol-coordinates.test.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T00:00:00.000Z
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-symbol-coordinates-derived-locally
+  - id: SYM-test-derived-coordinates-staged-titles
+    title: the staged gate names the declarations the authored manifest does not cover
+    status: active
+    sourceFile: packages/cli/tests/commands/derived-symbol-coordinates.test.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T00:00:00.000Z
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-symbol-coordinates-derived-locally
+  - id: SYM-test-derived-coordinates-reject-staged-cache
+    title: check-generated rejects a commit that stages the coordinate cache
+    status: active
+    sourceFile: packages/cli/tests/commands/derived-symbol-coordinates.test.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T00:00:00.000Z
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-symbol-coordinates-derived-locally
+  - id: SYM-test-derived-coordinates-migrate-untracks
+    title: kibi migrate untracks a coordinate artifact an older schema committed
+    status: active
+    sourceFile: packages/cli/tests/commands/derived-symbol-coordinates.test.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-27T00:00:00.000Z
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-symbol-coordinates-derived-locally
   - id: SYM-test-proof-entity-type-count
     title: entityTypeCountCertificate
     status: active

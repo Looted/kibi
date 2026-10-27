@@ -293,3 +293,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5eaba1cabfe0
+  - type: executable_for
+    from: SYM-test-derived-coordinates-reject-staged-cache
+    to: TEST-symbol-coordinates-derived-locally
+    created_at: 2026-10-27T10:37:53.238Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-feeac8f0d90f
