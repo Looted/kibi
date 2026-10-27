@@ -18,10 +18,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        slot: [1, 2, 3, 4]
+        slot: [1, 2, 3]
         bun: ['1.4.2']
         cov: ['--coverage']
-        variant: ['baseline']
+        variant: ['baseline', 'no-unref']
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -37,7 +37,7 @@ jobs:
       - run: bun run build
       - name: Standalone pipe stall repro
         run: |
-          for m in node bun node bun; do timeout 120 bun scripts/probe/bun-pipe-stall.ts $m 3000 || echo "exit $?"; done
+          for m in node node-sock node-sock; do timeout 120 bun scripts/probe/bun-pipe-stall.ts $m 3000 || echo "exit $?"; done
       - name: Loop the in-process daemon file under coverage
         run: |
           bun --version; lscpu | grep -E "Model name|^CPU\(s\)"

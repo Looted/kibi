@@ -1171,7 +1171,7 @@ export class EngineClient {
     // An idle connection must not keep its client alive: a host that is done
     // with an MCP server or CLI command lets it exit while the shared daemon
     // keeps serving. request() holds the socket while a reply is pending.
-    socket.unref();
+    if (process.env.KIBI_PROBE_VARIANT !== "no-unref") socket.unref();
     socket.on("data", (chunk) => {
       if (this.socket !== socket) return;
       try {
@@ -1308,7 +1308,7 @@ export class EngineClient {
       assertWithinQueryLimits(value);
       return value;
     } finally {
-      if (held !== null && this.pending.size === 0) held.unref();
+      if (held !== null && this.pending.size === 0 && process.env.KIBI_PROBE_VARIANT !== "no-unref") held.unref();
       release();
     }
   }
