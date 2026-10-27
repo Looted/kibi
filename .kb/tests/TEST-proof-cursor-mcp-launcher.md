@@ -29,17 +29,17 @@ proof_contract:
     - CLAIM-EC9C4089EB04AF7B
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-f30e43668b4a2baba650efaa
+    receipt_id: PR-86aa11bd15f30de1c6dd4f22
     test_id: TEST-proof-cursor-mcp-launcher
     scope: unit
     outcome: passed
-    code_snapshot: 408bad0aae430e34672d3be58afde18487a6a55e7255f14f4c355346f29a8bf1
+    code_snapshot: deaa38704483739241c070e9b69174f84cdb3a042e29025eeecfcee689f8b8db
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-27T07:54:43.794Z'
-    finished_at: '2026-10-27T07:54:43.977Z'
-    artifact_digest: 9bc2dba932c6cd2382f2582af27bc1b90132318fb0682463af23257bda86ed77
+    started_at: '2026-10-27T09:25:13.221Z'
+    finished_at: '2026-10-27T09:25:13.416Z'
+    artifact_digest: cc78c612d7d5a44311295110d94c6a0b4170ec183d4866c0b5746446a8ae62d0
     contract_hash: d86f19eae5b7a13f79192cd86e24164b0c425bb67dd657961462d8a4da53c251
-    binding_hash: c1ef660ebf258b5af3ee187f1247786cb24a183e06b507cf55cfd923274717d5
+    binding_hash: 72735e883fc97920d70e6956d5db287887566e42cdc3e53d1126a193a0febc1e
     fingerprint: 429bef2cb14ded63005309776e08b78fab11af15a906c2ce6320f49436eab65e
     fingerprint_components:
       contract: d86f19eae5b7a13f79192cd86e24164b0c425bb67dd657961462d8a4da53c251
