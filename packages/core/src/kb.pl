@@ -72,7 +72,6 @@
     check_req_contradiction/1,
     normalize_term_atom/2,
     normalize_term_atom_list/2,
-    normalize_literal_atom_list/2,
     changeset/4, % Export for testing
     kb_uri/1
 ]).
@@ -3081,20 +3080,6 @@ normalize_term_atom_list(Raw, Atoms) :-
     !,
     maplist(normalize_term_atom, Value, Atoms).
 
-%% normalize_literal_atom_list(+Raw, -Atoms)
-% The members of a literal list as atoms. Unlike normalize_term_atom_list,
-% a member that holds a path or URL keeps its whole text.
-normalize_literal_atom_list(Raw, Atoms) :-
-    unwrap_rdf_value(Raw, Value),
-    is_list(Value),
-    maplist(normalize_literal_atom, Value, Atoms).
-
-normalize_literal_atom(Val^^_Type, Atom) :- !, normalize_literal_atom(Val, Atom).
-normalize_literal_atom(literal(type(_, Val)), Atom) :- !, normalize_literal_atom(Val, Atom).
-normalize_literal_atom(Val, Atom) :- string(Val), !, atom_string(Atom, Val).
-normalize_literal_atom(Val, Atom) :- atom(Val), !, Atom = Val.
-normalize_literal_atom(Val, Atom) :- term_string(Val, String), atom_string(Atom, String).
-
 normalize_term_integer(Raw, Integer) :-
     unwrap_rdf_value(Raw, Value),
     (   integer(Value)
@@ -3140,7 +3125,7 @@ value_from_props(Props, bool, Value) :- memberchk(value_bool=ValueRaw, Props), !
 % in any order compare equal.
 value_from_props(Props, set, Value) :-
     memberchk(value_set=ValueRaw, Props),
-    normalize_literal_atom_list(ValueRaw, Atoms),
+    normalize_term_atom_list(ValueRaw, Atoms),
     !,
     sort(Atoms, Value).
 value_from_props(_, _, '').

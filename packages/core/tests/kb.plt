@@ -8033,18 +8033,6 @@ test(legacy_allowed_values_string_is_a_set, [setup(setup_kb), cleanup(cleanup_kb
     claim_obligations:fact_obligation('FACT-LEGACY-SET', exhaustive, obligation(O)),
     assertion(O.members == ["closed", "open"]).
 
-test(set_members_keep_paths, [setup(setup_kb), cleanup(cleanup_kb)]) :-
-    assert_fixture_entity(fact, 'FACT-PATH-SET', "Launcher path", active, [
-        fact_kind=property_value, subject_key="plugin", property_key="server_args",
-        operator=eq, value_type=set,
-        value_set=["${PLUGIN_ROOT}/bin/launcher.cjs", "https://example.com/a/b"]
-    ]),
-    claim_obligations:fact_obligation('FACT-PATH-SET', source, obligation(O)),
-    assertion(O.members == ["${PLUGIN_ROOT}/bin/launcher.cjs", "https://example.com/a/b"]),
-    kb_entity('FACT-PATH-SET', fact, Props),
-    kb:value_from_props(Props, set, Value),
-    assertion(Value == ['${PLUGIN_ROOT}/bin/launcher.cjs', 'https://example.com/a/b']).
-
 test(numeric_fact_obligation_negates_forbid, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(fact, 'FACT-RETRY-MIN', "Retry minimum", active, [
         fact_kind=property_value, subject_key="client", property_key="retry_count",
