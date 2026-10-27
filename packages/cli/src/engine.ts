@@ -567,6 +567,7 @@ function fsyncPath(filePath: string): void {
  */
 // implements REQ-core-journaled-engine-persistence
 export function fsyncJournaledBranchStore(branchPath: string): void {
+  if (process.env.KIBI_PROBE_VARIANT === "no-fsync") return;
   const rdfRoot = path.join(branchPath, "rdf");
   const directories: string[] = [];
   const pending = existsSync(rdfRoot) ? [rdfRoot] : [];
