@@ -624,6 +624,26 @@ export class PrologProcess {
             }
           };
           const out = this.process?.stdout as unknown as Record<string, unknown> | undefined;
+          const inp = this.process?.stdin as unknown as Record<string, unknown> | undefined;
+          const tick = Math.round((Date.now() - start) / 1000);
+          let action = "none";
+          if (tick === 2) {
+            try {
+              action = `ss=${require("node:child_process").execSync(`ss -xpn 2>/dev/null | grep -E "pid=(${pid}|${process.pid})," | head -20`, { encoding: "utf8" }).replace(/\s+/g, " ")}`;
+            } catch (e) {
+              action = `ss ERR ${(e as Error).message}`;
+            }
+          } else if (tick === 3) {
+            action = "pause-resume";
+            (out?.pause as () => void)?.call(out);
+            (out?.resume as () => void)?.call(out);
+          } else if (tick === 5) {
+            action = "read0";
+            (out?.read as (n: number) => void)?.call(out, 0);
+          } else if (tick === 7) {
+            action = "stdin-newline";
+            (inp?.write as (d: string) => void)?.call(inp, "\n");
+          }
           console.error(
             "PROBE slow query",
             JSON.stringify({
@@ -641,6 +661,9 @@ export class PrologProcess {
               readableLength: out?.readableLength,
               destroyed: out?.destroyed,
               usable: this.isProcessUsable(),
+              stdinPending: inp?.writableLength,
+              stdinNeedDrain: inp?.writableNeedDrain,
+              action,
             }),
           );
         }, 1000);
