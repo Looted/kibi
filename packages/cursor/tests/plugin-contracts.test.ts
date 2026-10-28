@@ -308,6 +308,10 @@ describe("Cursor hook state storage", () => {
           { length: maxGuidedPaths + 5 },
           (_, i) => `src/c${i}.ts`,
         ),
+        guidedPreEditPaths: Array.from(
+          { length: maxGuidedPaths + 5 },
+          (_, i) => `src/e${i}.ts`,
+        ),
       }),
       "utf8",
     );
@@ -318,6 +322,8 @@ describe("Cursor hook state storage", () => {
     expect(state.guidedWritePaths[0]).toBe("src/w5.ts");
     expect(state.impactCheckedPaths).toHaveLength(maxGuidedPaths);
     expect(state.impactCheckedPaths[0]).toBe("src/c5.ts");
+    expect(state.guidedPreEditPaths).toHaveLength(maxGuidedPaths);
+    expect(state.guidedPreEditPaths[0]).toBe("src/e5.ts");
   });
 
   test("true flags coerce to true through a snapshot", () => {

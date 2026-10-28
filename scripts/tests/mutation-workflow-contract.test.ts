@@ -115,6 +115,21 @@ describe("mutation testing workflow contract", () => {
     expect(gitignore).toContain("reports/mutation/");
   });
 
+  test("CI runs the suite and triggers on every mutated package", () => {
+    const workflow = readFileSync(
+      join(ROOT, ".github", "workflows", "mutation.yml"),
+      "utf8",
+    );
+    expect(workflow).toContain("run: bun run build");
+    expect(workflow).toContain("run: bun run test:mutation");
+    expect(workflow).toContain("schedule:");
+    for (const pkg of MUTATION_PACKAGES) {
+      expect(workflow).toContain(`- '${pkg}/src/**'`);
+      expect(workflow).toContain(`- '${pkg}/tests/**'`);
+    }
+    expect(workflow).toContain("- 'stryker.conf.mjs'");
+  });
+
   test("Stryker disable comments in scope must carry a nearby rationale", () => {
     for (const pkg of MUTATION_PACKAGES) {
       for (const file of walkTsFiles(pkg, "src", ".ts")) {

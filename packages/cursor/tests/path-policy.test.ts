@@ -59,6 +59,8 @@ describe("Cursor hook path policy", () => {
     expect(isKbFreshnessRelevantPath(".kb/symbol-coordinates.yaml")).toBe(true);
     expect(isKbFreshnessRelevantPath("documentation/guide.md")).toBe(true);
     expect(isKbFreshnessRelevantPath("packages/core/src/kb.pl")).toBe(true);
+    // Empty segments from doubled separators do not shift the classification.
+    expect(isKbFreshnessRelevantPath("packages//core/src/kb.pl")).toBe(true);
     expect(isKbFreshnessRelevantPath("packages/cursor/src/hook.ts")).toBe(
       false,
     );

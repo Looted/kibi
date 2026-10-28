@@ -11,9 +11,15 @@ fails `bun run test:mutation`**.
 
 | Task | Command |
 | --- | --- |
+| Build the workspace packages (once per checkout) | `bun run build` |
 | Run the mutation suite | `bun run test:mutation` |
 | Inspect the report | open `reports/mutation/html/index.html` |
 | Raw machine report | `reports/mutation/mutation.json` |
+
+The codex and cursor suites rebuild their package, which needs the workspace
+`dist/` outputs (`kibi-agent-core`, `kibi-plugin-sdk`, ...), so a fresh clone
+needs `bun run build` before the first run. A full run takes about three
+minutes on four cores.
 
 Every run is a full run: incremental mode is deliberately off because the bun
 runner's incremental cache has been observed to under-invalidate when only
@@ -36,6 +42,15 @@ Prolog engines, git workspaces, and daemons, which makes per-mutant runs
 prohibitively slow), `packages/core` (SWI-Prolog sources — a JS mutator cannot
 touch them; Prolog has its own coverage lane via `test:coverage:prolog`), and
 `packages/opencode`/`vscode` (candidates for later passes).
+
+## In CI
+
+`.github/workflows/mutation.yml` runs the suite nightly against `develop`, on
+demand, and on pull requests into `develop` that touch a mutated package's
+`src/` or `tests/`, `kibi-agent-core` (which the hook packages import), the
+Stryker setup, or the lockfile. Pull requests that touch none of these do not
+pay for it. The HTML and JSON reports are uploaded as the `mutation-report`
+artifact.
 
 ## How it runs
 
@@ -116,6 +131,7 @@ production runtime; the remaining excluded mutants fall into these groups:
 | `packages/runtime/src/skill-system/loader.ts` | Module-init skills-directory literal (per-test coverage attribution impossible; behavior pinned by the canonical-usage test); `listRoots` directory filter and the empty declared-resources fallback are observationally equivalent. |
 | `packages/codex/src/hook-input.ts`, `packages/cursor/src/hook-input.ts` | `isRecord` type-check removal and stdin chunk buffering are unobservable through `parseHookInput`/`readStdin`; the empty-event guard is inert for empty strings. |
 | `packages/codex/src/hook-runner.ts`, `packages/cursor/src/hook-runner.ts` | `SessionStart` case falls through to the identical default; the codex dirty-path clear term is implied by the kb-check flag; cursor write-bucket literals and the mutation-tool clear term are subsumed by equivalent branches. |
+| `packages/codex/src/hook-runner.ts`, `packages/cursor/src/hook-runner.ts` (telemetry and context guards) | The telemetry opt-in guard repeats the one `appendHookUsageRows` applies (it only skips loading the index); the codex no-target early return only skips loading the index; the codex focus lookup always has one target, because only Edit-style input carries `old_string`; the missing-prompt and missing-session-id fallback literals are never observable; the cursor `"read"` snippet surface is equivalent to any non-`"edit"` value. |
 | `packages/codex/src/hook-state.ts`, `packages/cursor/src/hook-state*.ts` | Redundant guards whose removal converges on the same state (blank-name, blank-path, missing-dir early returns); journal events subsumed by the snapshot write; Bun empty-encoding equivalents. |
 | `packages/codex/src/path-policy.ts`, `packages/cursor/src/path-policy.ts` | Extension-computation fallback literals (`?? ""`, `: ""`, `includes("")`) yield non-matching extensions for every input. |
 | `packages/cursor/src/kb-mcp-tools.ts` | `extractKbMcpToolName` fallbacks re-derive the same name from the same inputs. |

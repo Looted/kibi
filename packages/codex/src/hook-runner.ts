@@ -123,6 +123,9 @@ function isEditLikeTool(toolName: string | undefined): boolean {
 }
 
 function isKnownEditTool(toolName: string | undefined): boolean {
+  // rationale: the undefined check only narrows the type for Set.has; at
+  // runtime Set.has(undefined) is false, so dropping it changes nothing.
+  // Stryker disable next-line ConditionalExpression
   return toolName !== undefined && editableTools.has(toolName);
 }
 
@@ -162,6 +165,9 @@ function preEditContext(
   env: NodeJS.ProcessEnv,
 ): string | undefined {
   const targets = editTargets(workspaceRoot, input);
+  // rationale: with no targets every later step yields nothing, so this
+  // early return only skips loading the index.
+  // Stryker disable next-line ConditionalExpression
   if (targets.length === 0) return undefined;
   const index = loadKnowledgeIndex(workspaceRoot, stateDir);
   const summarize = createEntitySummarizer(workspaceRoot);
@@ -183,6 +189,9 @@ function preEditContext(
     sessionId: input.sessionId,
     focusFor: (relativePath) => {
       const target = targets.find(
+        // rationale: only Edit-style input carries old_string, and it names a
+        // single file, so a focused edit always has exactly one target.
+        // Stryker disable next-line ConditionalExpression
         (candidate) => candidate.relative === relativePath,
       );
       return target ? editFocus(target.absolute, input.toolInput) : undefined;
@@ -206,6 +215,9 @@ function preEditContext(
             words,
           ),
         );
+      // rationale: any constant fallback keys a session without an id the
+      // same way; only the per-session part is observable.
+      // Stryker disable next-line StringLiteral
       const noticeKey = `${input.sessionId ?? ""}\u0000notice\u0000manifest-unreadable`;
       return claimSnippetSlot(stateDir, noticeKey)
         ? unreadableManifestNote(relativePath)
@@ -215,7 +227,7 @@ function preEditContext(
   const parts = [notice, knowledge].filter(
     (part): part is string => part !== undefined,
   );
-  return parts.length > 0 ? parts.join("\n\n") : undefined;
+  return parts.join("\n\n") || undefined;
 }
 
 // implements REQ-agent-hosts-decision-guard
@@ -254,20 +266,30 @@ function firmNotice(
   return undefined;
 }
 
-let cachedPackageVersion: string | null | undefined;
-
 function packageVersion(): string | null {
   // bin/hook-runner.mjs and dist/hook-runner.js sit one level below the
-  // plugin root that holds package.json.
-  if (cachedPackageVersion !== undefined) return cachedPackageVersion;
-  cachedPackageVersion = readPackageVersion(
+  // plugin root that holds package.json. Each hook event is its own process,
+  // so the version is read at most once per event anyway.
+  return readPackageVersion(
     path.join(
       path.dirname(fileURLToPath(import.meta.url)),
       "..",
       "package.json",
     ),
   );
-  return cachedPackageVersion;
+}
+
+/** One `edited` trace per edited file, with the requirements it implements. */
+function editTelemetryTraces(
+  workspaceRoot: string,
+  stateDir: string | undefined,
+  input: ReturnType<typeof parseHookInput>,
+): ReturnType<typeof editTraces> {
+  const files = loadKnowledgeIndex(workspaceRoot, stateDir).files;
+  return editTraces(
+    editTargets(workspaceRoot, input).map((target) => target.relative),
+    (relativePath) => implementedRequirementIds(files[relativePath] ?? []),
+  );
 }
 
 /**
@@ -283,16 +305,15 @@ function recordToolTelemetry(
   startedAt: Date,
   env: NodeJS.ProcessEnv | undefined,
 ): void {
+  // rationale: appendHookUsageRows applies the same opt-in; this guard only
+  // skips loading the index when telemetry is off.
+  // Stryker disable next-line ConditionalExpression
   if (!hookTelemetryEnabled(env)) return;
   const kbUsage = kbUsageTrace(input.toolName, input.toolInput);
-  let traces = kbUsage ? [kbUsage] : [];
-  if (!kbUsage && isKnownEditTool(input.toolName)) {
-    const files = loadKnowledgeIndex(workspaceRoot, stateDir).files;
-    traces = editTraces(
-      editTargets(workspaceRoot, input).map((target) => target.relative),
-      (relativePath) => implementedRequirementIds(files[relativePath] ?? []),
-    );
-  }
+  if (!kbUsage && !isKnownEditTool(input.toolName)) return;
+  const traces = kbUsage
+    ? [kbUsage]
+    : editTelemetryTraces(workspaceRoot, stateDir, input);
   appendHookUsageRows(
     {
       host: "codex",
@@ -339,6 +360,8 @@ export async function runHook(
     case "UserPromptSubmit": {
       const rule = recordRequest(
         { stateDir, sessionId: input.sessionId },
+        // rationale: a missing prompt states no rule whatever text stands in.
+        // Stryker disable next-line StringLiteral
         input.prompt ?? "",
       );
       if (rule === undefined) return defaultResult();
@@ -392,7 +415,6 @@ export async function runHook(
       } catch {
         // Requirement context is advisory; an unreadable manifest or file
         // leaves the edit without it rather than reporting a hook error.
-        context = undefined;
       }
       if (context) {
         return {

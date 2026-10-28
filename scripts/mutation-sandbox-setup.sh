@@ -12,4 +12,6 @@ set -e
 mkdir -p plugins
 ln -sfn ../packages/cursor/agent-plugin plugins/kibi-agent-plugin
 ln -sfn ../packages/cursor plugins/kibi-cursor
+# .kibi is local state (untracked), so it is absent in a fresh clone.
+mkdir -p .kibi
 chmod 700 .kibi
