@@ -36,6 +36,8 @@ on:
       - 'packages/cli/tests/diagnostics-pure.test.ts'
       - 'packages/cli/src/engine-limits.ts'
       - 'packages/cli/tests/engine-limits.test.ts'
+      - 'packages/cli/src/decision-firmness.ts'
+      - 'packages/cli/tests/decision-firmness.test.ts'
       - 'stryker.conf.mjs'
       - 'scripts/mutation-sandbox-setup.sh'
       - '.github/workflows/mutation.yml'

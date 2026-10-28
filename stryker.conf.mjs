@@ -35,6 +35,9 @@ export const CLI_MUTATION_MODULES = {
   "packages/cli/src/engine-limits.ts": [
     "packages/cli/tests/engine-limits.test.ts",
   ],
+  "packages/cli/src/decision-firmness.ts": [
+    "packages/cli/tests/decision-firmness.test.ts",
+  ],
 };
 
 // Explicit test-file list, enumerated relative to the repo root (the Stryker
