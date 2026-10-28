@@ -1,6 +1,7 @@
 ---
 title: Capability plugin configuration
 status: open
+firmness: firm
 tags:
   - plugins
   - review:context-missing

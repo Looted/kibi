@@ -1,6 +1,7 @@
 ---
 title: KB merge workflow resolves PRs with the base branch driver and a proof-checked merge
 status: open
+firmness: firm
 priority: should
 tags:
   - ci

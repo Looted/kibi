@@ -1,6 +1,7 @@
 ---
 title: MCP exposes 16 consolidated agent-facing tools with composite parity and env-gated optional tools
 status: open
+firmness: firm
 priority: must
 tags:
   - mcp
