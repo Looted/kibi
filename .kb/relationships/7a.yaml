@@ -349,3 +349,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fe47290c6514
+  - type: executable_for
+    from: SYM-proof-decision-firmness-schema-version
+    to: TEST-proof-decision-firmness-schema-version
+    created_at: 2026-10-28T11:03:34.493Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d4455f02702

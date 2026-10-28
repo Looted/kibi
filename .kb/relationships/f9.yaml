@@ -339,3 +339,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5269a64b94fd
+  - type: implements
+    from: SYM-const-max-review-candidates
+    to: REQ-kibi-contradiction-review-limits
+    created_at: 2026-10-28T10:43:36.767Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2f9effba3ba7
+  - type: covered_by
+    from: SYM-const-max-review-candidates
+    to: TEST-proof-max-review-candidates
+    created_at: 2026-10-28T10:43:48.153Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a59775a80c41
+  - type: covered_by
+    from: SYM-const-max-review-candidates
+    to: TEST-kibi-contradiction-review-cli
+    created_at: 2026-10-28T10:43:48.178Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c249f5d223e0

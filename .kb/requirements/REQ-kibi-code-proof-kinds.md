@@ -8,62 +8,54 @@ tags:
   - certificate
   - evidence-levels
 firmness: default
-semantic_text: A proof contract kind must be one of e2e, example, property, exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex or source. A proof contract without a kind must count as e2e. Kibi must record a receipt as proved only when its contract kind is exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex or source and the certificate the run left re-checks. Kibi must reject an exhaustive or typecheck certificate whose proof does not import its domain from the domain_source symbol. Kibi must reject an arithmetic certificate whose assumptions admit no value or do not entail its claim. Kibi must reject an smt certificate unless the named solver answers unsat when Kibi re-runs the query. Kibi coverage must report a tested requirement as proved only when certificates prove every applicable claim of it.
+semantic_text: A proof contract without a kind must count as e2e. Kibi must record a receipt as proved only when its contract kind is exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex or source and the certificate the run left re-checks. Kibi must reject an exhaustive or typecheck certificate whose proof does not import its domain from the domain_source symbol. Kibi must reject an arithmetic certificate whose assumptions admit no value or do not entail its claim. Kibi must reject an smt certificate unless the named solver answers unsat when Kibi re-runs the query. Kibi coverage must report a tested requirement as proved only when certificates prove every applicable claim of it.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: 8819290f52b3c1415a7df9b2783c1d9d1ae5e75ab471bb2fa54be63ea5473399
+semantic_source_hash: 301b156e15a97bc311c346c129653bdcd7053a9cdc43823029b0635eec1eb6e3
 semantic_inventory:
-  - claim_key: CLAIM-AEDC5DE05A243DB4
-    claim_text: A proof contract kind must be one of e2e, example, property, exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex or source
-    role: normative
-    status: modeled
-    span:
-      start: 0
-      end: 137
   - claim_key: CLAIM-5961DA4504D30523
     claim_text: A proof contract without a kind must count as e2e
     role: normative
     status: modeled
     span:
-      start: 139
-      end: 188
+      start: 0
+      end: 49
   - claim_key: CLAIM-CE2EA1EA90BC9595
     claim_text: Kibi must record a receipt as proved only when its contract kind is exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex or source and the certificate the run left re-checks
     role: normative
     status: modeled
     span:
-      start: 190
-      end: 377
+      start: 51
+      end: 238
   - claim_key: CLAIM-0FCC0A21849A9EC4
     claim_text: Kibi must reject an exhaustive or typecheck certificate whose proof does not import its domain from the domain_source symbol
     role: normative
     status: modeled
     span:
-      start: 379
-      end: 503
+      start: 240
+      end: 364
   - claim_key: CLAIM-B3898990A43E743F
     claim_text: Kibi must reject an arithmetic certificate whose assumptions admit no value or do not entail its claim
     role: normative
     status: modeled
     span:
-      start: 505
-      end: 607
+      start: 366
+      end: 468
   - claim_key: CLAIM-0142A9B66D65F28F
     claim_text: Kibi must reject an smt certificate unless the named solver answers unsat when Kibi re-runs the query
     role: exception
     status: modeled
     span:
-      start: 609
-      end: 710
+      start: 470
+      end: 571
   - claim_key: CLAIM-83222148D2E46CC8
     claim_text: Kibi coverage must report a tested requirement as proved only when certificates prove every applicable claim of it
     role: normative
     status: modeled
     span:
-      start: 712
-      end: 826
+      start: 573
+      end: 687
 logic_claims:
-  - CLAIM-AEDC5DE05A243DB4
   - CLAIM-5961DA4504D30523
   - CLAIM-CE2EA1EA90BC9595
   - CLAIM-0FCC0A21849A9EC4
@@ -72,11 +64,20 @@ logic_claims:
   - CLAIM-83222148D2E46CC8
 origin:
   kind: agent
-  recorded_at: '2026-10-24T19:31:50.325Z'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  approved_by: maintainer
+  recorded_at: '2026-10-28T13:38:25.885Z'
 id: REQ-kibi-code-proof-kinds
 type: req
+semantic_clauses:
+  - A proof contract without a kind must count as e2e.
+  - Kibi must record a receipt as proved only when its contract kind is exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex or source and the certificate the run left re-checks.
+  - Kibi must reject an exhaustive or typecheck certificate whose proof does not import its domain from the domain_source symbol.
+  - Kibi must reject an arithmetic certificate whose assumptions admit no value or do not entail its claim.
+  - Kibi must reject an smt certificate unless the named solver answers unsat when Kibi re-runs the query.
+  - Kibi coverage must report a tested requirement as proved only when certificates prove every applicable claim of it.
 ---
-A proof contract kind must be one of e2e, example, property, exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex or source. A proof contract without a kind must count as e2e. Kibi must record a receipt as proved only when its contract kind is exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex or source and the certificate the run left re-checks. Kibi must reject an exhaustive or typecheck certificate whose proof does not import its domain from the domain_source symbol. Kibi must reject an arithmetic certificate whose assumptions admit no value or do not entail its claim. Kibi must reject an smt certificate unless the named solver answers unsat when Kibi re-runs the query. Kibi coverage must report a tested requirement as proved only when certificates prove every applicable claim of it.
+A proof contract without a kind must count as e2e. Kibi must record a receipt as proved only when its contract kind is exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex or source and the certificate the run left re-checks. Kibi must reject an exhaustive or typecheck certificate whose proof does not import its domain from the domain_source symbol. Kibi must reject an arithmetic certificate whose assumptions admit no value or do not entail its claim. Kibi must reject an smt certificate unless the named solver answers unsat when Kibi re-runs the query. Kibi coverage must report a tested requirement as proved only when certificates prove every applicable claim of it.
 
 ## Context
 

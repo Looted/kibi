@@ -229,13 +229,6 @@ relationships:
     id: rel-92412a62adf3
   - type: requires_property
     from: REQ-kibi-non-numeric-proof-kinds
-    to: FACT-kibi-non-numeric-certificate-kinds
-    created_at: 2026-10-26T09:46:30.101Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e80dba79a550
-  - type: requires_property
-    from: REQ-kibi-non-numeric-proof-kinds
     to: FACT-kibi-non-numeric-recheck-code-model
     created_at: 2026-10-26T09:46:30.118Z
     created_by: kibi/upsert
@@ -276,3 +269,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-806ade44bbca
+  - type: implements
+    from: SYM-engine-limits-read-time-limit-env
+    to: REQ-core-engine-read-limit-settings
+    created_at: 2026-10-28T10:30:43.699Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99fcc64522fa
+  - type: covered_by
+    from: SYM-engine-limits-read-time-limit-env
+    to: TEST-proof-engine-read-time-limit-env
+    created_at: 2026-10-28T10:30:56.449Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37dd4634acf9
+  - type: covered_by
+    from: SYM-engine-limits-read-time-limit-env
+    to: TEST-core-engine-read-limits-cli
+    created_at: 2026-10-28T10:30:56.474Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a75e92219172

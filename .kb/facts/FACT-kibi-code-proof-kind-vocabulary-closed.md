@@ -20,7 +20,7 @@ value_set:
   - typecheck
 claim_key: CLAIM-AEDC5DE05A243DB4
 claim_text: A proof contract kind must be one of e2e, example, property, exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex or source
-text_ref: REQ-kibi-code-proof-kinds
+text_ref: REQ-kibi-proof-kind-vocabulary
 tags:
   - strict-modeling
   - lane:strict

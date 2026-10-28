@@ -405,3 +405,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-615ce32971a3
+  - type: implements
+    from: SYM-env-bootstrap-kibi-legacy-env-file
+    to: REQ-kibi-env-bootstrap-files
+    created_at: 2026-10-28T10:41:05.903Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19ee02260a0d
+  - type: covered_by
+    from: SYM-env-bootstrap-kibi-legacy-env-file
+    to: TEST-proof-env-legacy-file
+    created_at: 2026-10-28T10:41:19.585Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fea67998d36d
+  - type: covered_by
+    from: SYM-env-bootstrap-kibi-legacy-env-file
+    to: TEST-e2e-kibi-env-bootstrap
+    created_at: 2026-10-28T10:41:19.613Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e04795c2bae
+  - type: validates
+    from: TEST-proof-proof-run-version
+    to: SCEN-kibi-claim-bound-proofs
+    created_at: 2026-10-28T12:03:48.530Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42be4408ae38

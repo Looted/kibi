@@ -230,3 +230,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6df160cffca5
+  - type: validates
+    from: TEST-proof-firmness-types
+    to: SCEN-kb-decision-firmness
+    created_at: 2026-10-28T10:33:20.083Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60d502d6717d
+  - type: executable_for
+    from: SYM-proof-jev-subject-top-k
+    to: TEST-proof-jev-subject-top-k
+    created_at: 2026-10-28T10:45:46.282Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e12084d7793

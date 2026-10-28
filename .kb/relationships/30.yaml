@@ -384,3 +384,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e180c22584fe
+  - type: executable_for
+    from: SYM-proof-engine-query-limit-code
+    to: TEST-proof-engine-query-limit-code
+    created_at: 2026-10-28T10:31:36.812Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f978dd50aaed

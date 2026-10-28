@@ -28,18 +28,18 @@ origin:
 id: TEST-core-engine-read-limits-cli
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-99e8991038693591918923ea
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-cd614169599d43a9bd919be9
     test_id: TEST-core-engine-read-limits-cli
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
+    code_snapshot: 7e969ef237f833cbd278efff81b932f3dfabb54a084313f49df8411b804224eb
+    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
+    started_at: '2026-10-28T10:32:14.463Z'
+    finished_at: '2026-10-28T10:32:20.224Z'
+    artifact_digest: 8f0bd9292ee02e437d63b77faf6e21310890060d6e5b07c1cbf5776671cf35f7
     contract_hash: 02b52a831815fd95b32a33bc700fafc9fed6262b53e26ee0cd004a9ea9045e00
-    binding_hash: 684a534d45f921f38362b2c9714c6093b31d8e528e8496ae18c88e89f2afea5d
+    binding_hash: cf1a09516730922ae853133328f6e6ef4f96b820f4681041f5b99ce46c312b80
     fingerprint: e4a304a2173367012c5a35e569f7b4a766338a306c8dfca0c358b61433f6f6f1
     fingerprint_components:
       contract: 02b52a831815fd95b32a33bc700fafc9fed6262b53e26ee0cd004a9ea9045e00
@@ -61,6 +61,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 # Consumer CLI reads over their engine limit fail with QUERY_LIMIT_EXCEEDED and the engine keeps serving other clients
 

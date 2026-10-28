@@ -300,3 +300,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-339be40b0cbc
+  - type: implements
+    from: SYM-claim-binding-verdicts
+    to: REQ-kibi-claim-binding-verdicts
+    created_at: 2026-10-28T13:43:43.616Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6820a21f30bc

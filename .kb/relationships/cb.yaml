@@ -202,3 +202,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7b230415b21c
+  - type: validates
+    from: TEST-proof-agent-requirement-review-limit
+    to: SCEN-kibi-entity-origin
+    created_at: 2026-10-28T10:36:24.813Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1be570d86c6a
+  - type: requires_property
+    from: REQ-kibi-source-proof-reader-vocabulary
+    to: FACT-kibi-source-proof-readers
+    created_at: 2026-10-28T13:41:01.791Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ca52edce972
+  - type: specified_by
+    from: REQ-kibi-source-proof-reader-vocabulary
+    to: SCEN-kibi-source-proof-kinds
+    created_at: 2026-10-28T13:41:01.819Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48d49a1170c2
+  - type: constrains
+    from: REQ-kibi-source-proof-reader-vocabulary
+    to: FACT-SUBJECT-KIBI-SOURCE-PROOF
+    created_at: 2026-10-28T13:41:04.720Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3919a9a4bcd4

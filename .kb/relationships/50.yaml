@@ -272,3 +272,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5e37694874e8
+  - type: executable_for
+    from: SYM-proof-env-project-file
+    to: TEST-proof-env-project-file
+    created_at: 2026-10-28T10:40:48.249Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c1427cf2318

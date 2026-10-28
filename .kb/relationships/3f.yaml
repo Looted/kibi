@@ -356,3 +356,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-744d3a5a421f
+  - type: executable_for
+    from: SYM-proof-ci-integration-system-swipl
+    to: TEST-proof-ci-integration-system-swipl
+    created_at: 2026-10-28T10:37:19.844Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e638ff9ef859

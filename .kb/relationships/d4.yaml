@@ -272,3 +272,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2acc9ffe5f4c
+  - type: executable_for
+    from: SYM-proof-firmness-types
+    to: TEST-proof-firmness-types
+    created_at: 2026-10-28T10:33:22.279Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a1f4b448585
+  - type: validates
+    from: TEST-proof-body-context-schema-version
+    to: SCEN-kb-entity-body-context
+    created_at: 2026-10-28T11:05:38.885Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41277a432751

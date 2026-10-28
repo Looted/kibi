@@ -286,3 +286,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2652ff519910
+  - type: validates
+    from: TEST-proof-why-this-changed-heading
+    to: SCEN-kb-decision-firmness
+    created_at: 2026-10-28T10:33:43.883Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d1a7b0ee807
+  - type: validates
+    from: TEST-proof-context-restatement-jaccard
+    to: SCEN-kb-entity-body-context
+    created_at: 2026-10-28T10:39:33.963Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b6ac71c258e
+  - type: executable_for
+    from: SYM-proof-proof-test-report-env
+    to: TEST-proof-proof-test-report-env
+    created_at: 2026-10-28T11:07:15.995Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0bab4685a502

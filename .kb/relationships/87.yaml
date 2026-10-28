@@ -454,3 +454,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9702c62de1b8
+  - type: executable_for
+    from: SYM-proof-why-this-changed-heading
+    to: TEST-proof-why-this-changed-heading
+    created_at: 2026-10-28T10:33:46.092Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8658a6f6254

@@ -405,3 +405,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b1b2b41ac8b7
+  - type: implements
+    from: SYM-canonical-LEGACY_KB_MIGRATION_COMMAND
+    to: REQ-legacy-kb-migrate-command
+    created_at: 2026-10-28T11:15:49.352Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7cd14987d513
+  - type: covered_by
+    from: SYM-canonical-LEGACY_KB_MIGRATION_COMMAND
+    to: TEST-proof-legacy-kb-migration-command
+    created_at: 2026-10-28T11:16:00.937Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df0363aa9311

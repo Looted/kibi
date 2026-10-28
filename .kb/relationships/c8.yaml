@@ -335,3 +335,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d1b3ec3ba8a6
+  - type: validates
+    from: TEST-proof-proof-test-report-env
+    to: SCEN-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T11:07:13.803Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d3cebe2c819

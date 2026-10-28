@@ -482,3 +482,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a36a53a8b06a
+  - type: implements
+    from: SYM-decision-firmness-rules
+    to: REQ-kb-decision-firmness-rule-ids
+    created_at: 2026-10-28T11:02:44.689Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df1b85678b71
+  - type: covered_by
+    from: SYM-decision-firmness-rules
+    to: TEST-proof-decision-firmness-rules
+    created_at: 2026-10-28T11:02:57.357Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7150c4e04ae5
+  - type: executable_for
+    from: SYM-proof-search-answer-governing
+    to: TEST-proof-search-answer-governing
+    created_at: 2026-10-28T11:11:15.560Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-860cf6ed4798

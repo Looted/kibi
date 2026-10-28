@@ -370,3 +370,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-015295172cf7
+  - type: executable_for
+    from: SYM-proof-new-subject-choice
+    to: TEST-proof-new-subject-choice
+    created_at: 2026-10-28T10:46:07.795Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd9c9a6d5fca
+  - type: validates
+    from: TEST-proof-claim-binding-schema-version
+    to: SCEN-kibi-claim-bound-proofs
+    created_at: 2026-10-28T10:58:09.218Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df1059a93573

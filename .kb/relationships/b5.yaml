@@ -517,3 +517,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b778db841269
+  - type: validates
+    from: TEST-proof-ci-integration-system-swipl
+    to: SCEN-prolog-bundled-ci
+    created_at: 2026-10-28T10:37:16.866Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39e4f778ac7d
+  - type: executable_for
+    from: SYM-proof-search-answer-facts-per-requirement
+    to: TEST-proof-search-answer-facts-per-requirement
+    created_at: 2026-10-28T11:11:39.457Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a6998297afa

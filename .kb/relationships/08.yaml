@@ -314,3 +314,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c1d9d36d8fda
+  - type: validates
+    from: TEST-proof-review-candidate-min-score
+    to: SCEN-kibi-contradiction-review-candidates
+    created_at: 2026-10-28T10:43:15.607Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0f84326ff4b

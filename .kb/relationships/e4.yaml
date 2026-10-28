@@ -216,3 +216,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0f5fa2c65fc5
+  - type: validates
+    from: TEST-proof-search-answer-max-bytes
+    to: SCEN-kibi-search-answer-layer
+    created_at: 2026-10-28T11:10:25.878Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e0fe42c634e

@@ -232,13 +232,6 @@ relationships:
     id: rel-c3f0791b8893
   - type: requires_property
     from: REQ-kibi-code-proof-kinds
-    to: FACT-kibi-code-proof-kind-vocabulary-closed
-    created_at: 2026-10-24T19:31:50.406Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-89780db2c943
-  - type: requires_property
-    from: REQ-kibi-code-proof-kinds
     to: FACT-kibi-code-proof-kindless-contract-is-e2e
     created_at: 2026-10-24T19:31:50.428Z
     created_by: kibi/upsert
@@ -279,3 +272,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-632ceb8bd360
+  - type: executable_for
+    from: SYM-proof-plugin-api-version
+    to: TEST-proof-plugin-api-version
+    created_at: 2026-10-28T10:48:58.908Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c50a3d25b91e

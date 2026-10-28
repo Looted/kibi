@@ -349,3 +349,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-780defdeb5af
+  - type: implements
+    from: SYM-entity-body-context-min-words
+    to: REQ-kb-entity-body-context-settings
+    created_at: 2026-10-28T10:39:08.119Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0b1d4ee3bda
+  - type: covered_by
+    from: SYM-entity-body-context-min-words
+    to: TEST-proof-min-context-words
+    created_at: 2026-10-28T10:39:20.314Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c691854f365
+  - type: covered_by
+    from: SYM-entity-body-context-min-words
+    to: TEST-kb-entity-body-context
+    created_at: 2026-10-28T10:39:20.340Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b0094bd203f

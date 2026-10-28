@@ -426,3 +426,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-32b2b903b929
+  - type: executable_for
+    from: SYM-proof-check-policy-capability-id
+    to: TEST-proof-check-policy-capability-id
+    created_at: 2026-10-28T10:49:35.587Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ce2d79aae49

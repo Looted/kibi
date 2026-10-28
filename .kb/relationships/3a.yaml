@@ -265,3 +265,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-746c3a50b23c
+  - type: validates
+    from: TEST-proof-context-required-types
+    to: SCEN-kb-entity-body-context
+    created_at: 2026-10-28T10:38:21.535Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-444dfac51a3d

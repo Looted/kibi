@@ -237,3 +237,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-21046d8b1f54
+  - type: validates
+    from: TEST-proof-engine-read-time-limit-env
+    to: SCEN-core-engine-read-limits
+    created_at: 2026-10-28T10:30:45.905Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca0e6d9154b8

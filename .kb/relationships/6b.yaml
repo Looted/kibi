@@ -363,3 +363,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-abbb3edb5ef7
+  - type: implements
+    from: SYM-const-default-firmness
+    to: REQ-kb-decision-firmness-rule-ids
+    created_at: 2026-10-28T11:03:09.277Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a94c9a1a53d
+  - type: covered_by
+    from: SYM-const-default-firmness
+    to: TEST-proof-default-firmness
+    created_at: 2026-10-28T11:03:21.144Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e694bc79f9bb
+  - type: covered_by
+    from: SYM-const-default-firmness
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-28T11:03:21.172Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30efa6411a7c

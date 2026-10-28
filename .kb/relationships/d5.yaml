@@ -188,3 +188,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6deb309bd2c5
+  - type: implements
+    from: SYM-const-jev-subject-top-k
+    to: REQ-kibi-vocabulary-alignment-settings
+    created_at: 2026-10-28T10:45:42.197Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6964af39937d
+  - type: covered_by
+    from: SYM-const-jev-subject-top-k
+    to: TEST-proof-jev-subject-top-k
+    created_at: 2026-10-28T10:45:54.180Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a6f5a086d4b
+  - type: covered_by
+    from: SYM-const-jev-subject-top-k
+    to: TEST-kibi-vocabulary-convergence-e2e
+    created_at: 2026-10-28T10:45:54.197Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebf8e571a302

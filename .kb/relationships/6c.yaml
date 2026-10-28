@@ -321,3 +321,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8cb45e192869
+  - type: executable_for
+    from: SYM-proof-engine-read-inference-limit-env
+    to: TEST-proof-engine-read-inference-limit-env
+    created_at: 2026-10-28T10:31:13.772Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39036999dd85
+  - type: validates
+    from: TEST-proof-engine-read-time-limit-cap
+    to: SCEN-core-engine-read-limits
+    created_at: 2026-10-28T10:31:58.569Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f859fec7d6c1
+  - type: implements
+    from: SYM-cli-signoff-signoff-format-env
+    to: REQ-kibi-signoff-format-setting
+    created_at: 2026-10-28T11:16:42.337Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0181535b71bc
+  - type: covered_by
+    from: SYM-cli-signoff-signoff-format-env
+    to: TEST-proof-signoff-format-env
+    created_at: 2026-10-28T11:16:54.480Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5bc12957f35a
