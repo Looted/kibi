@@ -16,4 +16,4 @@ origin:
 id: FACT-body-context-schema-version
 type: fact
 ---
-REQ-kb-entity-body-context reports missing context under its own kb_check rules, honors the review:context-missing tag for entities the schema 8 migration recorded, and arrived with KB schema 8. Each is stated here so it is proved against the constant.
+Kibi proves this claim with a certificate it re-runs against the code itself, so the claim stays proved only while the code still holds the stated value.

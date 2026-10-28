@@ -328,13 +328,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6bee9fd71184
-  - type: constrains
-    from: REQ-core-engine-read-limit-settings
-    to: FACT-SUBJECT-kibi-engine-read-limits
-    created_at: 2026-10-28T10:30:32.477Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-50f3fc765c85
   - type: implements
     from: SYM-schema6-BODY_CONTEXT_SCHEMA_VERSION
     to: REQ-kb-entity-context-rule-ids
@@ -378,9 +371,16 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-10fde0120924
   - type: constrains
-    from: REQ-generated-coordinate-settings
-    to: FACT-SUBJECT-kibi-symbols-coordinates
-    created_at: 2026-10-28T11:13:23.759Z
+    from: REQ-core-engine-read-limit-settings
+    to: FACT-kibi-engine-read-limits-component
+    created_at: 2026-10-28T14:36:43.388Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-488ce3823b11
+    id: rel-a30394da185f
+  - type: constrains
+    from: REQ-generated-coordinate-settings
+    to: FACT-kibi-symbols-coordinates-component
+    created_at: 2026-10-28T14:37:10.987Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c67cd8789a5d

@@ -351,8 +351,8 @@ relationships:
     id: rel-b3065b255991
   - type: constrains
     from: REQ-kibi-signoff-format-setting
-    to: FACT-SUBJECT-kibi-signoff-views-format
-    created_at: 2026-10-28T11:16:35.862Z
+    to: FACT-kibi-signoff-views-format-component
+    created_at: 2026-10-28T14:37:09.013Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-f7452f696df4
+    id: rel-11c82796541c

@@ -16,4 +16,4 @@ origin:
 id: FACT-why-this-changed-heading
 type: fact
 ---
-packages/cli/src/decision-firmness.ts fixes the entity types REQ-kb-decision-firmness applies firmness to, the heading a superseding decision explains itself under and how long that explanation must be. They are stated here so each is proved against the constant; the violations Kibi reports stay in REQ-kb-decision-firmness.
+Kibi proves this claim with a certificate it re-runs against the code itself, so the claim stays proved only while the code still holds the stated value.

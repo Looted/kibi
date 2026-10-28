@@ -26,15 +26,15 @@ id: TEST-proof-why-this-changed-heading
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-6a8577df41aa95f5e7430c09
+    receipt_id: PR-16ec3071137723294d02500c
     test_id: TEST-proof-why-this-changed-heading
     scope: unit
     outcome: passed
-    code_snapshot: d1a0d2ef8f66c9c334383a818f6f2125685d0b4f5590d2f4a61aaeadee65c910
+    code_snapshot: bf6dc28c237eeec059b86c44f4831693a4d73c2fae9e3e3657e51164096248f7
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T10:34:53.676Z'
-    finished_at: '2026-10-28T10:34:53.822Z'
-    artifact_digest: d7c21c3e5f78c1db6d065e96ccb12c636122b4152d37f604a2cbae70de6a92d5
+    started_at: '2026-10-28T14:58:30.076Z'
+    finished_at: '2026-10-28T14:58:30.203Z'
+    artifact_digest: 38c3b654dfa79835870b96a2e6206fd82e81371f5cabf0b4b733bc321a3ba76b
     contract_hash: 98bbafe46f9f2b72e816b509c2728a47ff3144ef015352ac251743471f3c151a
     binding_hash: 0bbbd5d1c591cb53ff4fc4a359d07510f26edda28bbfe5c6df00d00b53dc9c42
     fingerprint: 82c0dcf8fc409b3ab6d3dabb82290d3a87aea43ab301292d1c7ae35baa6748de

@@ -370,24 +370,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-62187d3fa9ab
-  - type: implements
-    from: SYM-const-new-subject-choice
-    to: REQ-kibi-vocabulary-alignment-settings
-    created_at: 2026-10-28T10:46:04.246Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-efefe42904d5
-  - type: covered_by
-    from: SYM-const-new-subject-choice
-    to: TEST-proof-new-subject-choice
-    created_at: 2026-10-28T10:46:14.676Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b28919d9fd50
-  - type: covered_by
-    from: SYM-const-new-subject-choice
-    to: TEST-kibi-vocabulary-convergence-e2e
-    created_at: 2026-10-28T10:46:14.712Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2bf3376e8a4f

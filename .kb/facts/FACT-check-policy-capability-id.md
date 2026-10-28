@@ -16,4 +16,4 @@ origin:
 id: FACT-check-policy-capability-id
 type: fact
 ---
-kibi-plugin-sdk defines the identifiers a capability plugin must use (REQ-capability-plugin-protocol-v1): the plugin API version and the capability ids. They are stated here so each is proved against the SDK constant.
+Kibi proves this claim with a certificate it re-runs against the code itself, so the claim stays proved only while the code still holds the stated value.

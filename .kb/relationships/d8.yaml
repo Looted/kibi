@@ -442,8 +442,8 @@ relationships:
     id: rel-11167cfcc22a
   - type: constrains
     from: REQ-capability-plugin-source-analysis-input-limit
-    to: FACT-SUBJECT-kibi-plugin-source-analysis
-    created_at: 2026-10-28T10:52:12.147Z
+    to: FACT-kibi-plugin-source-analysis-component
+    created_at: 2026-10-28T14:36:58.825Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-e1c966ffb2f8
+    id: rel-06ed84cf4c35

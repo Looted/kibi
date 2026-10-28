@@ -344,8 +344,8 @@ relationships:
     id: rel-dd5b4f4240f1
   - type: constrains
     from: REQ-kibi-contradiction-review-limits
-    to: FACT-SUBJECT-kibi-contradiction-review-limits
-    created_at: 2026-10-28T10:43:02.346Z
+    to: FACT-kibi-contradiction-review-limits-component
+    created_at: 2026-10-28T14:36:37.055Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-1690b12b713a
+    id: rel-d18d47eea0f0

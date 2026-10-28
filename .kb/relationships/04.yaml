@@ -342,10 +342,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7ef2d4dbf2c1
-  - type: executable_for
-    from: SYM-proof-builtin-subject-reuse-threshold
-    to: TEST-proof-builtin-subject-reuse-threshold
-    created_at: 2026-10-28T10:44:59.061Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6ddbf064a219

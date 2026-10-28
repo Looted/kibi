@@ -16,4 +16,4 @@ origin:
 id: FACT-swipl-minimum-major
 type: fact
 ---
-MINIMUM_SWIPL_MAJOR in packages/cli/src/prolog/swipl-resolver.ts is the version floor REQ-prolog-bundled-runtime applies when it rejects a swipl on PATH older than 9.0. It is stated here as a number so it is proved against the constant; the resolution order stays in REQ-prolog-bundled-runtime.
+Kibi proves this claim with a certificate it re-runs against the code itself, so the claim stays proved only while the code still holds the stated value.

@@ -17,4 +17,4 @@ origin:
 id: FACT-ci-integration-system-swipl
 type: fact
 ---
-REQ-prolog-bundled-ci says Kibi's own CI must keep one job that runs a system SWI-Prolog selected with KIBI_SWIPL=system. That job is ci-integration in .github/workflows/ci.yml, which sets KIBI_SWIPL to system for every step; this requirement states that setting so it is proved against the workflow file.
+Kibi proves this claim with a certificate it re-runs against the code itself, so the claim stays proved only while the code still holds the stated value.

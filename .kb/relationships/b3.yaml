@@ -281,8 +281,8 @@ relationships:
     id: rel-c7a625291eee
   - type: constrains
     from: REQ-kibi-proof-step-settings
-    to: FACT-SUBJECT-kibi-proof-steps
-    created_at: 2026-10-28T11:06:34.421Z
+    to: FACT-kibi-proof-steps-component
+    created_at: 2026-10-28T14:37:05.056Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-28b1c57088a0
+    id: rel-0db9b8aa99f7

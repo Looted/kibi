@@ -302,32 +302,11 @@ relationships:
     id: rel-ea337fca2910
   - type: requires_property
     from: REQ-kibi-vocabulary-alignment-settings
-    to: FACT-builtin-subject-reuse-threshold
-    created_at: 2026-10-28T10:44:42.488Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-72945843c162
-  - type: requires_property
-    from: REQ-kibi-vocabulary-alignment-settings
     to: FACT-builtin-claim-similarity-threshold
     created_at: 2026-10-28T10:44:42.520Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3adb78c4d2fa
-  - type: requires_property
-    from: REQ-kibi-vocabulary-alignment-settings
-    to: FACT-jev-subject-top-k
-    created_at: 2026-10-28T10:44:42.541Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a9193dd5216a
-  - type: requires_property
-    from: REQ-kibi-vocabulary-alignment-settings
-    to: FACT-new-subject-choice
-    created_at: 2026-10-28T10:44:42.560Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9731b9cad414
   - type: requires_property
     from: REQ-kibi-vocabulary-alignment-settings
     to: FACT-external-vocabulary-alignment-operations
@@ -344,8 +323,8 @@ relationships:
     id: rel-4a7ed565e416
   - type: constrains
     from: REQ-kibi-vocabulary-alignment-settings
-    to: FACT-SUBJECT-kibi-vocabulary-alignment-settings
-    created_at: 2026-10-28T10:44:44.768Z
+    to: FACT-kibi-vocabulary-alignment-settings-component
+    created_at: 2026-10-28T14:37:13.035Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-945de9f31ba1
+    id: rel-9c185e6a9c73

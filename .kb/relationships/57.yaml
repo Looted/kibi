@@ -120,8 +120,8 @@ relationships:
     id: rel-a430a67459b3
   - type: constrains
     from: REQ-kibi-agent-requirement-review-limit
-    to: FACT-SUBJECT-kibi-origin-review-queue
-    created_at: 2026-10-28T10:36:12.051Z
+    to: FACT-kibi-origin-review-queue-component
+    created_at: 2026-10-28T14:36:52.981Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-4caf3e8852dc
+    id: rel-b1cf0496e747

@@ -16,4 +16,4 @@ origin:
 id: FACT-max-review-candidates
 type: fact
 ---
-packages/cli/src/operations/planning/conflict-review.ts bounds the review candidates REQ-kibi-contradiction-review-candidates describes: a candidate needs at least the minimum score and the list is cut at the maximum count. Both are stated here so they are proved against the constants.
+Kibi proves this claim with a certificate it re-runs against the code itself, so the claim stays proved only while the code still holds the stated value.

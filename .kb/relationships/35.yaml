@@ -307,13 +307,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d8ed29d1abad
-  - type: constrains
-    from: REQ-prolog-ci-system-swipl-job
-    to: FACT-SUBJECT-kibi-ci-integration-job
-    created_at: 2026-10-28T10:37:09.124Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-479f24409284
   - type: requires_property
     from: REQ-kibi-proof-kind-vocabulary
     to: FACT-kibi-code-proof-kind-vocabulary-closed
@@ -335,3 +328,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0927c3caae64
+  - type: constrains
+    from: REQ-prolog-ci-system-swipl-job
+    to: FACT-kibi-ci-integration-job-component
+    created_at: 2026-10-28T14:36:33.187Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7f7b38837f31

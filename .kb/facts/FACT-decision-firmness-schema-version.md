@@ -16,4 +16,4 @@ origin:
 id: FACT-decision-firmness-schema-version
 type: fact
 ---
-REQ-kb-decision-firmness reports firmness problems under a closed set of kb_check rules, treats a requirement without firmness as the default value, and arrived with KB schema 9. Each is stated here so it is proved against the constant.
+Kibi proves this claim with a certificate it re-runs against the code itself, so the claim stays proved only while the code still holds the stated value.

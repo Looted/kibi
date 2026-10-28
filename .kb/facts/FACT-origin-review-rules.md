@@ -20,4 +20,4 @@ origin:
 id: FACT-origin-review-rules
 type: fact
 ---
-REQ-kibi-entity-origin records who wrote each entity with an origin kind from a closed list, stamps entities the schema 6 migration backfilled with a fixed reference, and reports unreviewed origins under its own check rules. Each is stated here so it is proved against the constant.
+Kibi proves this claim with a certificate it re-runs against the code itself, so the claim stays proved only while the code still holds the stated value.

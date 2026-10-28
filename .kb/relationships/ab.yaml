@@ -376,8 +376,8 @@ relationships:
     id: rel-ae9fae0314cd
   - type: constrains
     from: REQ-legacy-kb-migrate-command
-    to: FACT-SUBJECT-kibi-legacy-kb-migration
-    created_at: 2026-10-28T11:15:42.579Z
+    to: FACT-kibi-legacy-kb-migration-component
+    created_at: 2026-10-28T14:36:51.028Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-2689c13273af
+    id: rel-4c161dd19352

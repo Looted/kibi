@@ -6,8 +6,8 @@ subject_key: kibi.claim_bound_proof.settings
 canonical_key: kibi_claim_bound_proof_settings
 origin:
   kind: agent
-  recorded_at: '2026-10-28T10:57:40.329Z'
-id: FACT-SUBJECT-kibi-claim-bound-proof-settings
+  recorded_at: '2026-10-28T14:36:34.272Z'
+id: FACT-kibi-claim-bound-proof-settings-component
 type: fact
 ---
-The subject kibi.claim_bound_proof.settings.
+The kibi.claim_bound_proof.settings component, as the structural requirements that name it constrain it.

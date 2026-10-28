@@ -3994,37 +3994,7 @@
     ]
   },
   {
-    "test_id": "TEST-proof-builtin-subject-reuse-threshold",
-    "steps": [
-      [
-        "bun",
-        "test",
-        "./packages/cli/tests/proofs/claims/vocabulary-alignment-settings.proof.test.ts"
-      ]
-    ]
-  },
-  {
     "test_id": "TEST-proof-builtin-claim-similarity-threshold",
-    "steps": [
-      [
-        "bun",
-        "test",
-        "./packages/cli/tests/proofs/claims/vocabulary-alignment-settings.proof.test.ts"
-      ]
-    ]
-  },
-  {
-    "test_id": "TEST-proof-jev-subject-top-k",
-    "steps": [
-      [
-        "bun",
-        "test",
-        "./packages/cli/tests/proofs/claims/vocabulary-alignment-settings.proof.test.ts"
-      ]
-    ]
-  },
-  {
-    "test_id": "TEST-proof-new-subject-choice",
     "steps": [
       [
         "bun",

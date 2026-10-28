@@ -16,4 +16,4 @@ origin:
 id: FACT-agent-requirement-review-limit
 type: fact
 ---
-AGENT_REQUIREMENT_REVIEW_LIMIT in packages/cli/src/public/operations/origin-review.ts bounds the review queue REQ-kibi-entity-origin describes: kb_check lists that many agent-authored requirements without origin.approved_by by id, then one summary finding, so a large agent-authored KB yields a bounded queue. The bound is stated here so it is proved against the constant.
+Kibi proves this claim with a certificate it re-runs against the code itself, so the claim stays proved only while the code still holds the stated value.

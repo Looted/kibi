@@ -293,13 +293,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9daffb28efaa
-  - type: constrains
-    from: REQ-kb-entity-body-context-settings
-    to: FACT-SUBJECT-kibi-entity-body-context
-    created_at: 2026-10-28T10:38:08.643Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6b20ad18ee45
   - type: executable_for
     from: SYM-proof-source-analysis-max-input
     to: TEST-proof-source-analysis-max-input
@@ -307,3 +300,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f6490067ca2e
+  - type: constrains
+    from: REQ-kb-entity-body-context-settings
+    to: FACT-kibi-entity-body-context-component
+    created_at: 2026-10-28T14:36:45.447Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-edf378531562

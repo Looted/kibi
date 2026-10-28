@@ -330,8 +330,8 @@ relationships:
     id: rel-76c105cc96ae
   - type: constrains
     from: REQ-capability-plugin-protocol-identifiers
-    to: FACT-SUBJECT-kibi-plugin-protocol
-    created_at: 2026-10-28T10:48:49.082Z
+    to: FACT-kibi-plugin-protocol-component
+    created_at: 2026-10-28T14:36:56.921Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-dffeaaec3199
+    id: rel-571c857d80d6

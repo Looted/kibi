@@ -223,13 +223,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-52ca47a7a8c8
-  - type: constrains
-    from: REQ-kb-decision-firmness-rule-ids
-    to: FACT-SUBJECT-kibi-decision-firmness-rules
-    created_at: 2026-10-28T11:02:37.812Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1ea03bdeb485
   - type: validates
     from: TEST-proof-proof-integration-version
     to: SCEN-kibi-claim-bound-proofs
@@ -237,3 +230,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c3116548ac69
+  - type: constrains
+    from: REQ-kb-decision-firmness-rule-ids
+    to: FACT-kibi-decision-firmness-rules-component
+    created_at: 2026-10-28T14:36:39.092Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b1ea455a30e

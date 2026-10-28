@@ -16,4 +16,4 @@ origin:
 id: FACT-symbol-coordinates-format-version
 type: fact
 ---
-REQ-generated-coordinate-persistence keeps symbol coordinates out of the authored manifest: the generated fields are the line and column bounds and their timestamp, and the derived coordinates file carries a format version. Both are stated here so they are proved against the constants.
+Kibi proves this claim with a certificate it re-runs against the code itself, so the claim stays proved only while the code still holds the stated value.

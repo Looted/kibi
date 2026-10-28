@@ -384,27 +384,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1e2096159ad4
-  - type: implements
-    from: SYM-const-builtin-subject-reuse-threshold
-    to: REQ-kibi-vocabulary-alignment-settings
-    created_at: 2026-10-28T10:44:55.019Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c5bc789dd63a
-  - type: covered_by
-    from: SYM-const-builtin-subject-reuse-threshold
-    to: TEST-proof-builtin-subject-reuse-threshold
-    created_at: 2026-10-28T10:45:06.401Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-447a3400e5f4
-  - type: covered_by
-    from: SYM-const-builtin-subject-reuse-threshold
-    to: TEST-kibi-vocabulary-convergence-e2e
-    created_at: 2026-10-28T10:45:06.436Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e5055b331a06
   - type: requires_property
     from: REQ-kibi-claim-binding-verdicts
     to: FACT-kibi-claim-binding-verdicts

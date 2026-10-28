@@ -16,4 +16,4 @@ origin:
 id: FACT-proof-run-version
 type: fact
 ---
-packages/cli/src/public/proof-protocol.ts versions every proof document REQ-kibi-verification-evidence-contract defines (contracts, receipts, runs and integrations) and closes the list of outcomes a proof run can report. They are stated here so each is proved against the constant.
+Kibi proves this claim with a certificate it re-runs against the code itself, so the claim stays proved only while the code still holds the stated value.

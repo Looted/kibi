@@ -26,15 +26,15 @@ id: TEST-proof-decision-firmness-rules
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-73b5eee5e02beb909b118a6a
+    receipt_id: PR-b4bb1a9229b032950f3679b5
     test_id: TEST-proof-decision-firmness-rules
     scope: unit
     outcome: passed
-    code_snapshot: 8f943f21fb235bc55121047965e970d19b2358702a2524537fc13cc25d316246
+    code_snapshot: bf6dc28c237eeec059b86c44f4831693a4d73c2fae9e3e3657e51164096248f7
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T11:04:10.741Z'
-    finished_at: '2026-10-28T11:04:10.954Z'
-    artifact_digest: 789e09d98276fe7301f3125273662cdf5dda7a1d5838db30419a0ec70fec56be
+    started_at: '2026-10-28T14:59:26.536Z'
+    finished_at: '2026-10-28T14:59:26.726Z'
+    artifact_digest: 74b188efb8a6fc943f048a045abd7396be811d29d8f71c8174cc983fd9f7c481
     contract_hash: a6aa64d165e04cdf45a4f4b9c1cc959eb28b5c0802cafa2f634037960d6833bd
     binding_hash: 16e31dfa389e0f899d57e2b61bb7fc8af8b95aaefbaf06f74b0936c158cdc4a6
     fingerprint: ad844c0befd6cb2ab5074426d7a29c36b71f63e5bf91c6ca554b432fad45e754

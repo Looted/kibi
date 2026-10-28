@@ -293,13 +293,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bb7388991395
-  - type: constrains
-    from: REQ-prolog-swipl-minimum-version
-    to: FACT-SUBJECT-kibi-prolog-swipl-version
-    created_at: 2026-10-28T10:35:16.460Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8a4cc8d61e7d
   - type: validates
     from: TEST-proof-origin-review-rules
     to: SCEN-kibi-entity-origin
@@ -307,3 +300,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c64936aaaa77
+  - type: constrains
+    from: REQ-prolog-swipl-minimum-version
+    to: FACT-kibi-prolog-swipl-version-component
+    created_at: 2026-10-28T14:37:00.994Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a694f1d71a7

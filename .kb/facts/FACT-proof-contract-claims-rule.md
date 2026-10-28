@@ -16,4 +16,4 @@ origin:
 id: FACT-proof-contract-claims-rule
 type: fact
 ---
-REQ-kibi-claim-bound-proofs binds proofs to claims: a receipt records one of a closed list of outcomes, the binding arrived with KB schema 12, and kb_check reports contracts that name no claims under its own rule. Each is stated here so it is proved against the constant.
+Kibi proves this claim with a certificate it re-runs against the code itself, so the claim stays proved only while the code still holds the stated value.

@@ -16,4 +16,4 @@ origin:
 id: FACT-source-analysis-max-input
 type: fact
 ---
-SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS in kibi-plugin-sdk is the input bound REQ-capability-plugin-protocol-v1 sets for source analysis v2: 5 MiB of UTF-16 code units. It is stated here as a number so it is proved against the constant.
+Kibi proves this claim with a certificate it re-runs against the code itself, so the claim stays proved only while the code still holds the stated value.

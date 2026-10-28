@@ -16,4 +16,4 @@ origin:
 id: FACT-env-legacy-file
 type: fact
 ---
-packages/cli/src/env/bootstrap.ts names the files REQ-kibi-env-bootstrap loads before a command runs: the project file Kibi owns and the legacy shared file it still reads. They are stated here so each name is proved against the constant; precedence and resolver use stay in REQ-kibi-env-bootstrap.
+Kibi proves this claim with a certificate it re-runs against the code itself, so the claim stays proved only while the code still holds the stated value.

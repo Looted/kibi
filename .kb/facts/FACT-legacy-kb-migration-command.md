@@ -16,4 +16,4 @@ origin:
 id: FACT-legacy-kb-migration-command
 type: fact
 ---
-LEGACY_KB_MIGRATION_COMMAND in packages/cli/src/utils/config.ts is the command REQ-legacy-kb-first-step-migrate has every surface name first when it finds a legacy KB. It is stated here so the exact command is proved against the constant.
+Kibi proves this claim with a certificate it re-runs against the code itself, so the claim stays proved only while the code still holds the stated value.

@@ -328,13 +328,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4257c4f7648b
-  - type: constrains
-    from: REQ-kibi-proof-protocol-versions
-    to: FACT-SUBJECT-kibi-proof-protocol
-    created_at: 2026-10-28T10:54:02.873Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f1fe0b3480de
   - type: validates
     from: TEST-proof-schema6-migration-origin-ref
     to: SCEN-kibi-entity-origin
@@ -349,3 +342,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9d00c9e951b0
+  - type: constrains
+    from: REQ-kibi-proof-protocol-versions
+    to: FACT-kibi-proof-protocol-component
+    created_at: 2026-10-28T14:37:03.084Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7cb564cc507

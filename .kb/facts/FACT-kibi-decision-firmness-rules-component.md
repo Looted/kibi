@@ -6,8 +6,8 @@ subject_key: kibi.decision_firmness.rules
 canonical_key: kibi_decision_firmness_rules
 origin:
   kind: agent
-  recorded_at: '2026-10-28T11:02:36.760Z'
-id: FACT-SUBJECT-kibi-decision-firmness-rules
+  recorded_at: '2026-10-28T14:36:38.219Z'
+id: FACT-kibi-decision-firmness-rules-component
 type: fact
 ---
-The subject kibi.decision_firmness.rules.
+The kibi.decision_firmness.rules component, as the structural requirements that name it constrain it.

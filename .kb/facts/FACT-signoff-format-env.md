@@ -16,4 +16,4 @@ origin:
 id: FACT-signoff-format-env
 type: fact
 ---
-SIGNOFF_FORMAT_ENV in packages/cli/src/commands/signoff.ts names the variable a host sets to choose the signoff view format instead of REQ-kibi-signoff-views' default unfenced Markdown. It is stated here so the name is proved against the constant.
+Kibi proves this claim with a certificate it re-runs against the code itself, so the claim stays proved only while the code still holds the stated value.
