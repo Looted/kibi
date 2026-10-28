@@ -36,8 +36,9 @@ fast enough for per-mutant runs (see `stryker.conf.mjs`):
 | `packages/runtime` | `src/**/*.ts` except `src/index.ts` | `index.ts` is a pure re-export barrel of `kibi-cli` with no logic of its own. |
 | `packages/codex` | `src/**/*.ts` | |
 | `packages/cursor` | `src/**/*.ts` | |
+| `packages/cli` | modules listed in `CLI_MUTATION_MODULES` | Added one module at a time, each mutated only against its own unit tests. Currently `src/cli-input.ts`. |
 
-Deliberately out of scope: `packages/cli` and `packages/mcp` (their tests spawn
+Deliberately out of scope: the rest of `packages/cli`, and `packages/mcp` (their tests spawn
 Prolog engines, git workspaces, and daemons, which makes per-mutant runs
 prohibitively slow), `packages/core` (SWI-Prolog sources — a JS mutator cannot
 touch them; Prolog has its own coverage lane via `test:coverage:prolog`), and
@@ -79,6 +80,12 @@ To add a package or directory to `mutate`:
 3. Add the package to `MUTATION_PACKAGES` in
    `scripts/tests/mutation-workflow-contract.test.ts`.
 4. Run `bun run test:mutation` and fix every survivor before committing.
+
+To add a `kibi-cli` module, add it to `CLI_MUTATION_MODULES` in
+`stryker.conf.mjs` with the hermetic unit test files that pin it, and add the
+module and those test files to the `paths` of
+`.github/workflows/mutation.yml` (the contract test checks both). Kill every
+survivor in the same change; a module joins the suite only at 100%.
 
 A survivor is fixed by adding a **behavioral test** (assert the observable
 output, state transition, or error contract the mutant changed) — not by

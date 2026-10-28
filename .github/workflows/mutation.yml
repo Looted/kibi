@@ -27,6 +27,9 @@ on:
       - 'packages/cursor/src/**'
       - 'packages/cursor/tests/**'
       - 'packages/agent-core/src/**'
+      # kibi-cli modules in scope (CLI_MUTATION_MODULES in stryker.conf.mjs)
+      - 'packages/cli/src/cli-input.ts'
+      - 'packages/cli/tests/cli-input.test.ts'
       - 'stryker.conf.mjs'
       - 'scripts/mutation-sandbox-setup.sh'
       - '.github/workflows/mutation.yml'

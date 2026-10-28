@@ -1,9 +1,10 @@
 // Mutation testing configuration for kibi.
 //
 // Scope: the three small packages (runtime, codex, cursor) whose unit suites
-// are fast enough for per-mutant `bun test` runs. The gate is absolute: any
-// surviving mutant fails the run. Before extending scope, read
-// docs/mutation-testing.md — cli/mcp/core are deliberately out of scope
+// are fast enough for per-mutant `bun test` runs, plus kibi-cli modules added
+// one at a time (CLI_MUTATION_MODULES). The gate is absolute: any surviving
+// mutant fails the run. Before extending scope, read
+// docs/mutation-testing.md — the rest of cli, mcp and core stay out of scope
 // (engine-heavy tests, Prolog sources).
 //
 // The test runner is @hughescr/stryker-bun-runner: it spawns a fresh
@@ -19,6 +20,13 @@ const MUTATION_PACKAGES = [
   "packages/codex",
   "packages/cursor",
 ];
+
+// kibi-cli is too large and engine-heavy to mutate whole. Each module joins
+// once its own hermetic unit tests kill every mutant; the value lists those
+// tests (only they run against the module's mutants).
+export const CLI_MUTATION_MODULES = {
+  "packages/cli/src/cli-input.ts": ["packages/cli/tests/cli-input.test.ts"],
+};
 
 // Explicit test-file list, enumerated relative to the repo root (the Stryker
 // sandbox root). Helpers and fixtures are never picked up — only *.test.ts.
@@ -38,7 +46,10 @@ function scopedTestFiles() {
     };
     walk("");
   }
-  return files.sort();
+  for (const tests of Object.values(CLI_MUTATION_MODULES)) {
+    for (const test of tests) files.push(`./${test}`);
+  }
+  return [...new Set(files)].sort();
 }
 
 /** @type {import('@stryker-mutator/api/core').StrykerOptions} */
@@ -54,6 +65,7 @@ const config = {
     "!packages/runtime/src/index.ts",
     "packages/codex/src/**/*.ts",
     "packages/cursor/src/**/*.ts",
+    ...Object.keys(CLI_MUTATION_MODULES),
   ],
   bun: {
     testFiles: scopedTestFiles(),
