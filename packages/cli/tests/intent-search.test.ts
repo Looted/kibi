@@ -72,6 +72,40 @@ describe("intent-v1 search ranking", () => {
     expect(result.matches[0]?.entity.id).toBe("REQ-CONFLICTS");
   });
 
+  test("meets a question's past tense with the entity's base verb", async () => {
+    const result = await rankIntentEntities(
+      [
+        entity("REQ-PLAN-APPLY", "Bootstrap plan review and apply safety"),
+        entity("REQ-HOOK-ORDER", "Hooks run before and after every bootstrap"),
+      ],
+      { query: "what must a bootstrap plan guarantee before it is applied?" },
+      workspaceRoot,
+      [],
+    );
+    expect(result.matches[0]?.entity.id).toBe("REQ-PLAN-APPLY");
+  });
+
+  test("does not rank on the connecting words of a question", async () => {
+    const result = await rankIntentEntities(
+      [
+        entity(
+          "REQ-CONTRADICTIONS",
+          "Contradiction checks decide rule conflicts",
+        ),
+        entity(
+          "REQ-HOST-LISTS",
+          "Each host gets the other requirement list once",
+        ),
+      ],
+      {
+        query: "what happens when two requirements contradict each other?",
+      },
+      workspaceRoot,
+      [],
+    );
+    expect(result.matches[0]?.entity.id).toBe("REQ-CONTRADICTIONS");
+  });
+
   test("ranks superseded entities below current ones and says why", async () => {
     const result = await rankIntentEntities(
       [
