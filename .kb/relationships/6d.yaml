@@ -335,3 +335,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b0b8600cda60
+  - type: covered_by
+    from: SYM-cli-mutation-RELATIONSHIP_TYPES
+    to: TEST-kibi-vocabulary-convergence-e2e
+    created_at: 2026-10-28T10:08:30.978Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0475c8167736
+  - type: implements
+    from: SYM-cli-mutation-RELATIONSHIP_TYPES
+    to: REQ-kibi-relationship-type-vocabulary
+    created_at: 2026-10-28T10:21:47.268Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ae715e885aa
+  - type: covered_by
+    from: SYM-cli-mutation-RELATIONSHIP_TYPES
+    to: TEST-proof-relationship-type-vocabulary
+    created_at: 2026-10-28T10:21:58.518Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b341592bdd8d

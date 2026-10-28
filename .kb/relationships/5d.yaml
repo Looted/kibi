@@ -398,3 +398,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-231b26330eb3
+  - type: executable_for
+    from: SYM-proof-relationship-type-vocabulary
+    to: TEST-proof-relationship-type-vocabulary
+    created_at: 2026-10-28T10:21:52.495Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-615ce32971a3

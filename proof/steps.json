@@ -3612,5 +3612,205 @@
         "./packages/cli/tests/commands/derived-symbol-coordinates.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-proof-mcp-default-tool-count",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/mcp/tests/proofs/tool-catalog.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-mcp-optional-tools",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/mcp/tests/proofs/tool-catalog.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-jev-default-model",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/jev-defaults.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-jev-max-timeout",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/jev-defaults.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-kb-merge-gate-order",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/kb-merge-workflow.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-telemetry-event-limit",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/telemetry-thresholds.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-telemetry-evidence-age",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/telemetry-thresholds.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-telemetry-preflight-age",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/telemetry-thresholds.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-telemetry-advisor-age",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/telemetry-thresholds.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-telemetry-retry-threshold",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/telemetry-thresholds.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-evidence-level-vocabulary",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/evidence-levels.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-canonical-kb-lanes",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/canonical-kb-lanes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-proof-receipt-max-age",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/proof-receipt-max-age.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-binding-word-limit",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/binding-word-limit.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-signoff-brief-dir",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/signoff-brief-location.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-signoff-markdown-limit",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/signoff-brief-location.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-cli-excludes-jev",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/jev-optional-dependency.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-mcp-excludes-jev",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/jev-optional-dependency.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-runtime-excludes-jev",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/jev-optional-dependency.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-relationship-type-vocabulary",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/relationship-types.proof.test.ts"
+      ]
+    ]
   }
 ]

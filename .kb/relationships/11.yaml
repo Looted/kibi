@@ -405,3 +405,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7c1d8724864b
+  - type: executable_for
+    from: SYM-proof-signoff-markdown-limit
+    to: TEST-proof-signoff-markdown-limit
+    created_at: 2026-10-28T10:15:34.462Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d1bd65e593f

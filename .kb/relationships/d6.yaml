@@ -290,3 +290,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0d506fd1b4b8
+  - type: implements
+    from: SYM-proof-receipt-max-age-seconds
+    to: REQ-kibi-proof-receipt-max-age
+    created_at: 2026-10-28T10:12:17.422Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69852ee5528a
+  - type: covered_by
+    from: SYM-proof-receipt-max-age-seconds
+    to: TEST-proof-proof-receipt-max-age
+    created_at: 2026-10-28T10:12:28.960Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d43f59643ee
+  - type: implements
+    from: SYM-mcp-release-package-metadata
+    to: REQ-capability-plugin-jev-optional-dependency
+    created_at: 2026-10-28T10:19:36.159Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a06759b93da
+  - type: covered_by
+    from: SYM-mcp-release-package-metadata
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-10-28T10:19:36.180Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4849a7c8ab4b
+  - type: covered_by
+    from: SYM-mcp-release-package-metadata
+    to: TEST-proof-mcp-excludes-jev
+    created_at: 2026-10-28T10:19:36.192Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49b0c04ef108

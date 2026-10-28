@@ -19,18 +19,18 @@ proof_bindings:
     target: default
     native_id: documentation/tests/e2e/capability-plugins.e2e.ts::capability plugin e2e
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-df9050518ee6209f74ad7888
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-4114b1a66f70e6d7fbee8fed
     test_id: TEST-e2e-capability-plugins
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
+    code_snapshot: bdaf6778db7b4bd8038f4810e2f16d71b67f6fcfa8bc512d4e83a235f1b5b5c5
+    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
+    started_at: '2026-10-28T10:26:34.126Z'
+    finished_at: '2026-10-28T10:26:35.989Z'
+    artifact_digest: 27ee4da4d3ad9535469df75066bc1c50f8a80af0988243c62b6748aac3e32fa2
     contract_hash: f6d6ffef7afb404c969f85b63a2da379197e4d59593d58329a581ff267c11047
-    binding_hash: c9e6cb0c1bbbf59212171fbd8685df94fe6429c989c66739e4ad4347b06010f6
+    binding_hash: 9ad747d10977368f9c024d95138beb2bc8d74fd0844e4cb0de49866cd25113fa
     fingerprint: ce2fe4dc187f6e941f0ef40030042e4ba378ba652b20424de848aee001dd81c9
     fingerprint_components:
       contract: f6d6ffef7afb404c969f85b63a2da379197e4d59593d58329a581ff267c11047
@@ -52,6 +52,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 origin:
   kind: migration
   ref: kibi migrate v5->v6

@@ -35,7 +35,10 @@
 %                              has each member as a required (or nullable)
 %                              field; with property middleware every
 %                              selected route's middleware stands in the
-%                              relation
+%                              relation; with property precedes and
+%                              operator includes each member "A -> B"
+%                              holds in the list read: A and B are in it
+%                              and every A comes before every B
 %   set fact under state_machine with operator includes, subset_of or
 %   excludes, or with property reachable_pairs or required_waypoints
 %       state_machine          the projection stands in the operator's
@@ -230,6 +233,14 @@ source_obligation(FactId, Members, Operator, Result) :-
         )
     ;   Property == middleware
     ->  Result = obligation(_{kind: "route_middleware", operator: OperatorString, members: Members})
+    ;   Property == precedes
+    ->  (   Operator == includes
+        ->  Result = obligation(_{kind: "sequence_precedes", members: Members})
+        ;   format(string(Reason),
+                   "~w is a precedes fact with operator ~w; a source proof decides precedes only with includes (each member \"A -> B\" holds)",
+                   [FactId, Operator]),
+            Result = incompatible(Reason)
+        )
     ;   Result = obligation(_{kind: "set_relation", operator: OperatorString, members: Members})
     ).
 
@@ -348,6 +359,10 @@ obligation_key(Obligation, nullable_fields(Members)) :-
 obligation_key(Obligation, relation(Operator, Members)) :-
     dict_text(Obligation, kind, "set_relation"),
     dict_text(Obligation, operator, Operator),
+    obligation_members(Obligation, Members),
+    !.
+obligation_key(Obligation, precedes(Members)) :-
+    dict_text(Obligation, kind, "sequence_precedes"),
     obligation_members(Obligation, Members),
     !.
 obligation_key(Obligation, middleware(Operator, Members)) :-

@@ -85,6 +85,8 @@ export type SourceRoute = {
 // implements REQ-kibi-source-proof-kinds
 export type SourceModel = {
   members: string[];
+  /** A list read in document order, duplicates kept, for precedes claims. */
+  sequence?: string[];
   entities?: SourceEntity[];
   routes?: SourceRoute[];
 };
@@ -130,8 +132,8 @@ export const REFERENCE_EXTRACTS = [
 ] as const;
 
 const KEYS: Readonly<Record<SourceReader, readonly string[]>> = {
-  json: ["reader", "file", "path", "select"],
-  yaml: ["reader", "file", "path", "select"],
+  json: ["reader", "file", "path", "select", "field"],
+  yaml: ["reader", "file", "path", "select", "field"],
   glob: ["reader", "pattern", "capture", "ignore"],
   openapi: ["reader", "file", "select"],
   references: ["reader", "files", "extract", "callee", "key", "ignore"],
@@ -225,6 +227,16 @@ export function sourceSpecErrors(value: unknown, label: string): string[] {
       file("file", true);
       if (row.path !== undefined && typeof row.path !== "string")
         errors.push(`${label}.path must be a dotted path or a JSON pointer`);
+      if (row.field !== undefined && !nonEmpty(row.field))
+        errors.push(
+          `${label}.field must name the key read from each item of the list`,
+        );
+      if (
+        row.field !== undefined &&
+        row.select !== undefined &&
+        row.select !== "items"
+      )
+        errors.push(`${label}.field applies only to select items`);
       break;
     case "glob":
       globs("pattern", true);
@@ -773,6 +785,7 @@ function readDocumentMembers(
   if (!at.ok) return at;
   const value = at.value;
   const select = typeof spec.select === "string" ? spec.select : undefined;
+  const field = typeof spec.field === "string" ? spec.field : undefined;
   let raw: unknown[];
   if (Array.isArray(value)) {
     if (select === "keys")
@@ -780,7 +793,20 @@ function readDocumentMembers(
         ok: false,
         reason: `${spec.path ?? "the document"} is a list, which has no keys (use select items)`,
       };
-    raw = value;
+    // With field, each item is an object and the member is its value at
+    // that key; an item without the key has no member (a step list where
+    // only some steps have a name).
+    raw =
+      field === undefined
+        ? value
+        : value
+            .map((item) => record(item)?.[field])
+            .filter((item) => item !== undefined);
+  } else if (field !== undefined) {
+    return {
+      ok: false,
+      reason: `${spec.path ?? "the document"} is not a list, so it has no items to read ${field} from`,
+    };
   } else if (record(value) !== null) {
     const object = value as Record<string, unknown>;
     if (select === "items")
@@ -797,11 +823,16 @@ function readDocumentMembers(
     if (text === null)
       return {
         ok: false,
-        reason: `${spec.path ?? "the document"} holds a value that is not a string, number or boolean, so it cannot be a member (select keys, or point path at the list)`,
+        reason: `${spec.path ?? "the document"} holds a value that is not a string, number or boolean, so it cannot be a member (select keys, point path at the list, or name the item field to read)`,
       };
     members.push(text);
   }
-  return { ok: true, model: { members: sortedUnique(members) } };
+  return {
+    ok: true,
+    model: Array.isArray(value)
+      ? { members: sortedUnique(members), sequence: members }
+      : { members: sortedUnique(members) },
+  };
 }
 
 function globCaptureRegex(pattern: string): RegExp {
@@ -1629,7 +1660,7 @@ export function describeSource(spec: SourceSpec): string {
     case "json":
     case "yaml":
     case "openapi":
-      return `${spec.reader} ${spec.file}${spec.path ? ` at ${spec.path}` : ""}`;
+      return `${spec.reader} ${spec.file}${spec.path ? ` at ${spec.path}` : ""}${spec.field ? ` (${spec.field} of each item)` : ""}`;
     case "glob":
       return `files matching ${globList(spec.pattern).join(", ")}`;
     case "references":

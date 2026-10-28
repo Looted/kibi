@@ -377,3 +377,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-38fcd05f488e
+  - type: implements
+    from: SYM-predicate-bindings-max-naming-binding-words
+    to: REQ-model-predicates-binding-word-limit
+    created_at: 2026-10-28T10:14:21.836Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87f90a0d8028
+  - type: covered_by
+    from: SYM-predicate-bindings-max-naming-binding-words
+    to: TEST-proof-binding-word-limit
+    created_at: 2026-10-28T10:14:33.781Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0ea2ae025c6
+  - type: covered_by
+    from: SYM-predicate-bindings-max-naming-binding-words
+    to: TEST-model-predicates-binding-clauses
+    created_at: 2026-10-28T10:14:33.806Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c865f9d89a8

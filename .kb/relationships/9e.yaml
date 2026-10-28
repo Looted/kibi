@@ -440,3 +440,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d0efd39c4407
+  - type: requires_property
+    from: REQ-capability-plugin-jev-defaults
+    to: FACT-jev-default-model
+    created_at: 2026-10-28T09:36:39.682Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9023fa9e8465
+  - type: requires_property
+    from: REQ-capability-plugin-jev-defaults
+    to: FACT-jev-max-timeout-ms
+    created_at: 2026-10-28T09:36:39.727Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1472cbcaa5f
+  - type: specified_by
+    from: REQ-capability-plugin-jev-defaults
+    to: SCEN-capability-plugin-configuration-v1
+    created_at: 2026-10-28T09:36:39.762Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a311127c500e
+  - type: constrains
+    from: REQ-capability-plugin-jev-defaults
+    to: FACT-SUBJECT-kibi-plugin-jev
+    created_at: 2026-10-28T09:36:41.751Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34cde9755f41
+  - type: implements
+    from: SYM-proof-gate
+    to: REQ-ci-kb-merge-gate-order
+    created_at: 2026-10-28T09:39:49.555Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55757060fb19

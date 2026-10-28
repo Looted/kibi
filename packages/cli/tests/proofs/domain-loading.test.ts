@@ -11,6 +11,7 @@ import path from "node:path";
 import {
   compiledToSourcePath,
   evaluateDomain,
+  evaluateScalar,
   importsDomain,
   pythonDomainInterpreters,
 } from "../../src/operations/proof/code-certificates.js";
@@ -42,6 +43,29 @@ describe("domain loading without bun", () => {
     expect(
       evaluateDomain(root, "src/domain.ts", "LEVELS", { runners: ["node"] }),
     ).toEqual({ ok: true, count: 3, members: ["a", "b", "3"] });
+  });
+});
+
+describe("a dotted export reads one field of an object", () => {
+  test("TypeScript and Python policy objects", () => {
+    const root = workspace({
+      "src/policy.ts":
+        "export const POLICY = { eventLimit: 200, windows: { hours: 24 } } as const;\n",
+      "app/policy.py": "POLICY = {'event_limit': 200}\n",
+    });
+    expect(evaluateScalar(root, "src/policy.ts", "POLICY.eventLimit")).toEqual({
+      ok: true,
+      value: 200,
+    });
+    expect(
+      evaluateScalar(root, "src/policy.ts", "POLICY.windows.hours"),
+    ).toEqual({ ok: true, value: 24 });
+    expect(evaluateScalar(root, "src/policy.ts", "POLICY.missing").ok).toBe(
+      false,
+    );
+    expect(evaluateScalar(root, "app/policy.py", "POLICY.event_limit")).toEqual(
+      { ok: true, value: 200 },
+    );
   });
 });
 

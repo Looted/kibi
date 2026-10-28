@@ -272,3 +272,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-019c1ccd31eb
+  - type: validates
+    from: TEST-proof-signoff-markdown-limit
+    to: SCEN-kibi-signoff-views
+    created_at: 2026-10-28T10:15:32.290Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-320cdf50829d

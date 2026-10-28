@@ -251,3 +251,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a7344d4f4ac6
+  - type: executable_for
+    from: SYM-proof-kb-merge-gate-order
+    to: TEST-proof-kb-merge-gate-order
+    created_at: 2026-10-28T09:39:54.129Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aec577ed3ee4
+  - type: validates
+    from: TEST-proof-telemetry-event-limit
+    to: SCEN-kibi-telemetry-acceptance-gate
+    created_at: 2026-10-28T09:43:25.411Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-766d10798fbb

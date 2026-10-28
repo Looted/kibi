@@ -291,6 +291,10 @@ kind_problem(source, Certificate, Reason) :-
     ;   get_dict(routes, Model, Routes),
         \+ ( is_list(Routes), maplist(source_route_ok, Routes) )
     ->  Reason = "every source route must have a method, a path and a middleware list"
+    ;   get_dict(sequence, Model, Sequence),
+        \+ ( is_list(Sequence), forall(member(Item, Sequence), string(Item)),
+              sort(Sequence, Members) )
+    ->  Reason = "the source model's sequence must list the members in the order read"
     ).
 
 sorted_distinct_strings(List) :-

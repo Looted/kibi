@@ -251,3 +251,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2f6b14a8bef0
+  - type: validates
+    from: TEST-proof-evidence-level-vocabulary
+    to: SCEN-kibi-evidence-levels
+    created_at: 2026-10-28T10:06:11.226Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9b8dfcaa8b2
+  - type: requires_property
+    from: REQ-model-predicates-binding-word-limit
+    to: FACT-binding-word-limit
+    created_at: 2026-10-28T10:14:09.713Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb3a79fddd59
+  - type: specified_by
+    from: REQ-model-predicates-binding-word-limit
+    to: SCEN-model-predicates-binding-clauses
+    created_at: 2026-10-28T10:14:09.750Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59b90337f475
+  - type: constrains
+    from: REQ-model-predicates-binding-word-limit
+    to: FACT-SUBJECT-kibi-predicate-suggestion-binding
+    created_at: 2026-10-28T10:14:11.878Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a94a8ce9b3b

@@ -363,3 +363,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a6395177550c
+  - type: validates
+    from: TEST-proof-telemetry-evidence-age
+    to: SCEN-kibi-telemetry-acceptance-gate
+    created_at: 2026-10-28T09:43:38.775Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-477d11b1001d

@@ -265,3 +265,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-144148af0905
+  - type: executable_for
+    from: SYM-proof-signoff-brief-dir
+    to: TEST-proof-signoff-brief-dir
+    created_at: 2026-10-28T10:15:15.035Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84620d5d538d

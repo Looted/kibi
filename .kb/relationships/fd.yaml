@@ -99,13 +99,6 @@ relationships:
     id: rel-debd38512545
   - type: requires_predicate
     from: REQ-ci-kb-merge-resolution
-    to: FACT-PRED-ci-kb-merge-gate-before-push
-    created_at: 2026-10-02T08:22:30.245Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cece306a6a09
-  - type: requires_predicate
-    from: REQ-ci-kb-merge-resolution
     to: FACT-PRED-ci-kb-merge-no-push-on-gate-failure
     created_at: 2026-10-02T08:22:30.251Z
     created_by: kibi/upsert
@@ -251,3 +244,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f6b29c20e6f5
+  - type: implements
+    from: SYM-cli-package-manifest
+    to: REQ-capability-plugin-jev-optional-dependency
+    created_at: 2026-10-28T10:19:29.365Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9282f0f74bc
+  - type: covered_by
+    from: SYM-cli-package-manifest
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-10-28T10:19:29.379Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23734ee3fcb2
+  - type: covered_by
+    from: SYM-cli-package-manifest
+    to: TEST-proof-cli-excludes-jev
+    created_at: 2026-10-28T10:19:29.395Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e911c77d311

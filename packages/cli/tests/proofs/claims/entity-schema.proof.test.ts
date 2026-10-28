@@ -60,9 +60,15 @@ describe("entity schema claims", () => {
       { reader: "json", file: SCHEMA, path: "/required", select: "items" },
       WORKSPACE,
     );
-    expect([...read.members].sort()).toEqual(
-      ["created_at", "id", "source", "status", "title", "type", "updated_at"],
-    );
+    expect([...read.members].sort()).toEqual([
+      "created_at",
+      "id",
+      "source",
+      "status",
+      "title",
+      "type",
+      "updated_at",
+    ]);
   });
 
   test("the schema accepts the optional record fields", async () => {

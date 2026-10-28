@@ -461,3 +461,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-88817760e51f
+  - type: requires_property
+    from: REQ-cli-canonical-kb-lanes
+    to: FACT-canonical-kb-lanes
+    created_at: 2026-10-28T10:10:05.370Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed2a58ce2b35
+  - type: specified_by
+    from: REQ-cli-canonical-kb-lanes
+    to: SCEN-cli-canonical-runtime
+    created_at: 2026-10-28T10:10:05.413Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-955a36fd7f8a
+  - type: constrains
+    from: REQ-cli-canonical-kb-lanes
+    to: FACT-SUBJECT-kibi-kb-canonical-lanes
+    created_at: 2026-10-28T10:10:07.749Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c5b55c6f8ea

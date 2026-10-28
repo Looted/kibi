@@ -265,3 +265,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aecaa93a03dc
+  - type: validates
+    from: TEST-proof-mcp-default-tool-count
+    to: SCEN-kibi-mcp-tool-consolidation
+    created_at: 2026-10-28T09:29:59.262Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da3a6703d980

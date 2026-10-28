@@ -195,7 +195,8 @@ left:
   evaluates the number export itself and adds `variable eq value` as an
   assumption. For a count claim over a collection ("exactly 32 tools") add
   `measure: count` and name the list, set, map or object export; Kibi uses
-  its size, so do not add a number export just for the proof. A count
+  its size, so do not add a number export just for the proof. A dotted
+  export (`POLICY.eventLimit`) reads one field of an object export. A count
   claim needs only `value_source`. Naming the claim's own fact in
   `constraint_source` assumes the claim: without `value_source` Kibi counts
   that derivation as intent only (tested), and with it a code value that
@@ -254,7 +255,8 @@ left:
 - `source`: Kibi reads a project source itself and checks a set fact
   against what it read, so the test only runs the proof (it may write
   nothing, or `sourceCertificate({ testId })`). Set `source: {reader, ...}`:
-  `json`/`yaml` (`file`, `path`, `select`), `glob` (`pattern`, `capture`),
+  `json`/`yaml` (`file`, `path`, `select`, `field` to read one key of
+  each list item, such as the `run` of each workflow step), `glob` (`pattern`, `capture`),
   `openapi` (`file`, `select: operations|unsecured_operations|...`),
   `references` (`files`, `extract: env|imports|calls|string_args|thrown|
   property`), `schema` (`format: drizzle|prisma|sql`, `select:
@@ -271,7 +273,10 @@ left:
   `nullable_fields` (only `eq`/`includes`) with bare members `name` for
   "every table" (it also covers tables added later) or `table.name` for
   one; `middleware` with `includes` for "every route under /p must use M"
-  (Kibi checks each route). Name middleware with `names_from`: a
+  (Kibi checks each route); `precedes` with `includes` and members
+  `"A -> B"` for an order in a list ("the gate runs before the push"):
+  A and B are both in the list and every A comes before every B. Name
+  middleware with `names_from`: a
   zero-argument factory export such as `requireAuth()` names the
   middleware it returns `requireAuth`. Write the fact with `kb_model`
   (requirement mode, `operator` plus a list `value`) or `kb_upsert`. The

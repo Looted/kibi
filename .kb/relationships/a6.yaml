@@ -237,3 +237,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c8a7ae21edda
+  - type: implements
+    from: SYM-canonical-ENTITY_LANES
+    to: REQ-cli-canonical-kb-lanes
+    created_at: 2026-10-28T10:10:13.519Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d2f2f619871
+  - type: covered_by
+    from: SYM-canonical-ENTITY_LANES
+    to: TEST-proof-canonical-kb-lanes
+    created_at: 2026-10-28T10:10:24.767Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0fc6420ffc34
+  - type: covered_by
+    from: SYM-canonical-ENTITY_LANES
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-10-28T10:10:24.785Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca586f3a55c5

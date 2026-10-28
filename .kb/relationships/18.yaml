@@ -419,3 +419,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a8caa4432128
+  - type: requires_property
+    from: REQ-kibi-evidence-level-vocabulary
+    to: FACT-evidence-level-vocabulary
+    created_at: 2026-10-28T10:06:01.454Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a499c683e620
+  - type: specified_by
+    from: REQ-kibi-evidence-level-vocabulary
+    to: SCEN-kibi-evidence-levels
+    created_at: 2026-10-28T10:06:01.513Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b637b82b92f9
+  - type: constrains
+    from: REQ-kibi-evidence-level-vocabulary
+    to: FACT-SUBJECT-kibi-evidence-levels-vocabulary
+    created_at: 2026-10-28T10:06:03.613Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb0b8778d334

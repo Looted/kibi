@@ -258,3 +258,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-46d851dd27b5
+  - type: implements
+    from: SYM-cap-plugin-jev-default-model
+    to: REQ-capability-plugin-jev-defaults
+    created_at: 2026-10-28T09:36:47.561Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-258cbe959952
+  - type: covered_by
+    from: SYM-cap-plugin-jev-default-model
+    to: TEST-proof-jev-default-model
+    created_at: 2026-10-28T09:37:08.507Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1bf684e746d4

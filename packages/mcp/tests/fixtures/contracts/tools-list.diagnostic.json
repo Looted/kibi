@@ -4142,7 +4142,7 @@
                     ]
                   },
                   "value_source": {
-                    "description": "arithmetic and smt: code constants the assumptions read. Kibi evaluates each export at ingest and requires the certificate to assume the variable equals that value, so the proof is about the code and not only the knowledge base. With measure count the value is the size of a list, set, map or object export, so a count claim reads the collection itself. An entry {source, measure: count} counts the members Kibi reads from a project source (routes, tables, environment variables).",
+                    "description": "arithmetic and smt: code constants the assumptions read. Kibi evaluates each export at ingest and requires the certificate to assume the variable equals that value, so the proof is about the code and not only the knowledge base. With measure count the value is the size of a list, set, map or object export, so a count claim reads the collection itself. A dotted export (POLICY.eventLimit) reads one field of an object export. An entry {source, measure: count} counts the members Kibi reads from a project source (routes, tables, environment variables).",
                     "items": {
                       "additionalProperties": false,
                       "properties": {

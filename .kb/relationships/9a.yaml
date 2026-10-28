@@ -314,3 +314,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2d76b1455b50
+  - type: executable_for
+    from: SYM-proof-cli-excludes-jev
+    to: TEST-proof-cli-excludes-jev
+    created_at: 2026-10-28T10:17:43.049Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7a6f03d48d2
