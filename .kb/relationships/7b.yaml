@@ -286,3 +286,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6331a7694d4b
+  - type: validates
+    from: TEST-proof-symbol-roles
+    to: SCEN-symbol-behavioral-anchors
+    created_at: 2026-10-28T19:09:49.194Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ac8fd0eefcd
+  - type: executable_for
+    from: SYM-proof-granularity-violation-code
+    to: TEST-proof-granularity-violation-code
+    created_at: 2026-10-28T19:10:59.811Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7bcc8cf16ee8

@@ -419,3 +419,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-75dc196573a3
+  - type: validates
+    from: TEST-proof-skill-resource-max-bytes
+    to: SCEN-reusable-skill-subsystem
+    created_at: 2026-10-28T19:13:22.020Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b31c807f7f6

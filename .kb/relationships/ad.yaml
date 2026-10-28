@@ -283,3 +283,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eba0734e9314
+  - type: requires_property
+    from: REQ-semantic-advisor-version
+    to: FACT-semantic-advisor-version
+    created_at: 2026-10-28T19:15:05.359Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a55f53ee9b64
+  - type: specified_by
+    from: REQ-semantic-advisor-version
+    to: SCEN-mcp-semantic-advisor-preflight
+    created_at: 2026-10-28T19:15:05.388Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c59ef0f944b
+  - type: constrains
+    from: REQ-semantic-advisor-version
+    to: FACT-kibi-semantic-advisor-version-component
+    created_at: 2026-10-28T19:15:07.364Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b4eb372e817

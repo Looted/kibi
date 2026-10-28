@@ -244,3 +244,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d5b0cdf268fe
+  - type: validates
+    from: TEST-proof-origin-schema-version
+    to: SCEN-cli-migrate
+    created_at: 2026-10-28T18:49:05.715Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e9a786400c0
+  - type: implements
+    from: SYM-decision-firmness-firmness-from-origin-schema-version
+    to: REQ-kb-firmness-origin-schema
+    created_at: 2026-10-28T19:20:51.993Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7aaac2a2100d
+  - type: covered_by
+    from: SYM-decision-firmness-firmness-from-origin-schema-version
+    to: TEST-proof-firmness-origin-schema-version
+    created_at: 2026-10-28T19:21:04.442Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61944f3e5ece

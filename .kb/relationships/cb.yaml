@@ -230,3 +230,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3919a9a4bcd4
+  - type: validates
+    from: TEST-proof-polarity-backfill-code
+    to: SCEN-cli-migrate
+    created_at: 2026-10-28T18:51:06.690Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb2b822a585f

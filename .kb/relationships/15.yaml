@@ -300,3 +300,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-311b2d162b46
+  - type: validates
+    from: TEST-proof-migration-plan-version
+    to: SCEN-agent-guided-migration-orchestration
+    created_at: 2026-10-28T18:53:39.607Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af10cd9f3b9a

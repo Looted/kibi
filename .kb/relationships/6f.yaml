@@ -321,3 +321,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-70c64a1f8fe1
+  - type: executable_for
+    from: SYM-proof-no-impact-declaration
+    to: TEST-proof-no-impact-declaration
+    created_at: 2026-10-28T18:57:12.085Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8a972d16c06
+  - type: executable_for
+    from: SYM-proof-symbols-manifest-path
+    to: TEST-proof-symbols-manifest-path
+    created_at: 2026-10-28T18:57:29.266Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee2d81574fd6

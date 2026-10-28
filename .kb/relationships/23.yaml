@@ -248,3 +248,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b88d90106af8
+  - type: executable_for
+    from: SYM-proof-kb-root
+    to: TEST-proof-kb-root
+    created_at: 2026-10-28T19:01:11.096Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff82885159c0

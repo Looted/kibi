@@ -297,3 +297,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-29bde760cb73
+  - type: executable_for
+    from: SYM-proof-origin-schema-version
+    to: TEST-proof-origin-schema-version
+    created_at: 2026-10-28T18:49:07.829Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af9713b7ba58

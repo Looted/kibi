@@ -328,3 +328,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-36f76a816cc1
+  - type: requires_property
+    from: REQ-ingestion-inventory-settings
+    to: FACT-semantic-inventory-version
+    created_at: 2026-10-28T19:05:13.155Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7def8ecc0b7
+  - type: requires_property
+    from: REQ-ingestion-inventory-settings
+    to: FACT-inventory-drift-rule
+    created_at: 2026-10-28T19:05:13.186Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a318c41129c8
+  - type: requires_property
+    from: REQ-ingestion-inventory-settings
+    to: FACT-sync-cache-version
+    created_at: 2026-10-28T19:05:13.210Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2858dcf449e6
+  - type: requires_property
+    from: REQ-ingestion-inventory-settings
+    to: FACT-sync-cache-ttl
+    created_at: 2026-10-28T19:05:13.234Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56c8a34f6768
+  - type: specified_by
+    from: REQ-ingestion-inventory-settings
+    to: SCEN-kibi-proposition-complete-ingestion
+    created_at: 2026-10-28T19:05:13.245Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50535ef308f4
+  - type: constrains
+    from: REQ-ingestion-inventory-settings
+    to: FACT-kibi-ingestion-inventory-component
+    created_at: 2026-10-28T19:05:15.286Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0bdb7cc83b18
+  - type: executable_for
+    from: SYM-proof-granularity-link-types
+    to: TEST-proof-granularity-link-types
+    created_at: 2026-10-28T19:10:41.676Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8058ddd25533

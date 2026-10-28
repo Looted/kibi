@@ -181,3 +181,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fcf3661ca900
+  - type: implements
+    from: SYM-semantic-inventory-version
+    to: REQ-ingestion-inventory-settings
+    created_at: 2026-10-28T19:05:21.027Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-255793976a74
+  - type: covered_by
+    from: SYM-semantic-inventory-version
+    to: TEST-proof-semantic-inventory-version
+    created_at: 2026-10-28T19:05:32.366Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-064fe5f6fb80

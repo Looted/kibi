@@ -475,3 +475,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6f9375fdecc0
+  - type: validates
+    from: TEST-proof-no-impact-declaration
+    to: SCEN-cli-staged-impact-enforcement
+    created_at: 2026-10-28T18:57:10.067Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a5306a06df0
+  - type: executable_for
+    from: SYM-proof-engine-protocol-version
+    to: TEST-proof-engine-protocol-version
+    created_at: 2026-10-28T19:03:50.328Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80d57ee14d6b

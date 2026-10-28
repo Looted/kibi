@@ -223,3 +223,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-06ba358d822b
+  - type: implements
+    from: SYM-sync-source-extraction-failed-code
+    to: REQ-uncompiled-source-code
+    created_at: 2026-10-28T19:08:30.642Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7fff641928b1
+  - type: covered_by
+    from: SYM-sync-source-extraction-failed-code
+    to: TEST-proof-source-extraction-failed
+    created_at: 2026-10-28T19:08:42.170Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9721a630c1f

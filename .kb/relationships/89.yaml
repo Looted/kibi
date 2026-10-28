@@ -349,3 +349,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-52bce74b9b7d
+  - type: implements
+    from: SYM-canonical-DERIVED_KB_PREFIXES
+    to: REQ-cli-kb-layout-paths
+    created_at: 2026-10-28T19:01:24.029Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a9213e2977c
+  - type: covered_by
+    from: SYM-canonical-DERIVED_KB_PREFIXES
+    to: TEST-proof-derived-kb-prefixes
+    created_at: 2026-10-28T19:01:34.158Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da6d44472242

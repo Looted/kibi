@@ -328,3 +328,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9c185e6a9c73
+  - type: executable_for
+    from: SYM-proof-engine-idle-timeout
+    to: TEST-proof-engine-idle-timeout
+    created_at: 2026-10-28T19:04:09.338Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f6b8728ead8

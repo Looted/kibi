@@ -265,3 +265,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7c3e91a0d5b2
+  - type: validates
+    from: TEST-proof-symbols-manifest-path
+    to: SCEN-cli-staged-impact-enforcement
+    created_at: 2026-10-28T18:57:27.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc1af2700cbf

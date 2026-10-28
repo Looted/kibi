@@ -24,15 +24,15 @@ id: TEST-kibi-predicate-suggestion-relevance-v1
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-228cab3bd223d49effff448e
+    receipt_id: PR-0cc82ee4a186482d51d77c51
     test_id: TEST-kibi-predicate-suggestion-relevance-v1
     scope: end_to_end
     outcome: passed
-    code_snapshot: a9c62e5097336d21bdb27c462a081d0ef0c1bbf78da42dd885a526e4c4ea4f5d
+    code_snapshot: 22167f86b92b569f6025fc027363fc3255f14eaf8bb0d6afc9c70b78a5eac329
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-27T19:00:21.357Z'
-    finished_at: '2026-10-27T19:01:45.973Z'
-    artifact_digest: 30114b10dbad22ffdaf612a6b8de0f3a1a84fff8a9e16c59937ca5f71c040d01
+    started_at: '2026-10-28T19:17:43.062Z'
+    finished_at: '2026-10-28T19:18:49.336Z'
+    artifact_digest: 34791c82ffe368217e9498af74b2eb933cf671dec392f83660083244bff55d5c
     contract_hash: 591f5200542a98be532340312e47ae45a2d9fc3475eaa6db6c7abfa6d063bf37
     binding_hash: 1ae1c839b244a82e70e44cf54ce98ba2bc9b93890067e4ed1e5e4a3dfd8148b4
     fingerprint: 66c49dedca0fab50fa69126a13f443c32c13439ffc5fdb5d189a638b3b04e599

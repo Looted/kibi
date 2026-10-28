@@ -384,3 +384,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4488f55a6d06
+  - type: implements
+    from: SYM-cli-engine-protocol-version
+    to: REQ-engine-protocol-settings
+    created_at: 2026-10-28T19:03:45.638Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a36474cc83dc
+  - type: covered_by
+    from: SYM-cli-engine-protocol-version
+    to: TEST-proof-engine-protocol-version
+    created_at: 2026-10-28T19:03:56.588Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba29c44e395d

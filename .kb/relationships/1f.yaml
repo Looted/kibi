@@ -307,3 +307,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ca7bc103071b
+  - type: executable_for
+    from: SYM-proof-allowed-granularity-reasons
+    to: TEST-proof-allowed-granularity-reasons
+    created_at: 2026-10-28T19:10:08.154Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d99e4e0f5daa

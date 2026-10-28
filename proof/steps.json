@@ -4862,5 +4862,415 @@
         "./packages/cli/tests/proofs/claims/signoff-version.proof.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-proof-origin-schema-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/schema-migration-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-origin-backfill-action",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/schema-migration-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-origin-backfill-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/schema-migration-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-status-vocabulary-map-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/schema-migration-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-inventory-rederive-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/schema-migration-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-inventory-review-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/schema-migration-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-polarity-backfill-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/schema-migration-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-migration-plan-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-plan-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-predicate-alignment-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-plan-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-untracked-sources-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-plan-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-freshness-resync-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-plan-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-impact-diagnostic-ids",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/staged-impact-identifiers.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-no-impact-declaration",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/staged-impact-identifiers.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-symbols-manifest-path",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/staged-impact-identifiers.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-symbol-coordinates-path",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/staged-impact-identifiers.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-entity-schema-doc",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/staged-impact-identifiers.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-kb-root",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/kb-layout-paths.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-derived-kb-prefixes",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/kb-layout-paths.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-kb-manifest-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/kb-layout-paths.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-engine-protocol-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/engine-protocol-settings.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-engine-idle-timeout",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/engine-protocol-settings.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-semantic-inventory-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/ingestion-inventory-settings.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-inventory-drift-rule",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/ingestion-inventory-settings.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-sync-cache-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/ingestion-inventory-settings.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-sync-cache-ttl",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/ingestion-inventory-settings.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-source-extraction-failed",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/uncompiled-source-code.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-symbol-roles",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/symbol-granularity-vocabulary.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-allowed-granularity-reasons",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/symbol-granularity-vocabulary.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-coarse-granularity-reasons",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/symbol-granularity-vocabulary.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-granularity-link-types",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/symbol-granularity-vocabulary.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-granularity-violation-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/symbol-granularity-vocabulary.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-skill-file-name",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/skill-file-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-skill-resource-max-bytes",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/skill-file-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-semantic-advisor-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/semantic-advisor-version.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-strong-applicability-score",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/predicate-applicability-threshold.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-knowledge-source-kinds",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/knowledge-source-vocabulary.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-knowledge-source-authorities",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/knowledge-source-vocabulary.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-intent-claim-kinds",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/knowledge-source-vocabulary.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-firmness-origin-schema-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/firmness-origin-schema.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-required-swipl-libraries",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/prolog-runtime-libraries.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-prolog-error-prefix",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/prolog-runtime-libraries.proof.test.ts"
+      ]
+    ]
   }
 ]

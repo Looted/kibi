@@ -454,3 +454,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bf8cf1224a07
+  - type: implements
+    from: SYM-KIBI-SYMBOLS-MANIFEST-PATH
+    to: REQ-staged-impact-identifiers
+    created_at: 2026-10-28T18:57:24.997Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-512579e66c03
+  - type: covered_by
+    from: SYM-KIBI-SYMBOLS-MANIFEST-PATH
+    to: TEST-proof-symbols-manifest-path
+    created_at: 2026-10-28T18:57:35.619Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57dbcbbd24af

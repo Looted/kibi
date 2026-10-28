@@ -356,3 +356,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3d4455f02702
+  - type: validates
+    from: TEST-proof-status-vocabulary-map-code
+    to: SCEN-cli-migrate
+    created_at: 2026-10-28T18:50:07.522Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-183c015a25b2
+  - type: validates
+    from: TEST-proof-derived-kb-prefixes
+    to: SCEN-cli-canonical-init
+    created_at: 2026-10-28T19:01:26.276Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37a5f207f2c9

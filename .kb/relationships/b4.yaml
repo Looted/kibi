@@ -258,3 +258,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-24d18ad8f42d
+  - type: executable_for
+    from: SYM-proof-migration-plan-version
+    to: TEST-proof-migration-plan-version
+    created_at: 2026-10-28T18:53:41.705Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3aae25a806e4

@@ -307,3 +307,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-648d486990aa
+  - type: validates
+    from: TEST-proof-untracked-sources-code
+    to: SCEN-agent-guided-migration-orchestration
+    created_at: 2026-10-28T18:54:18.366Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2aabc7094e5

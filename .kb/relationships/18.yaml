@@ -454,3 +454,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0c1a8c34939a
+  - type: executable_for
+    from: SYM-proof-polarity-backfill-code
+    to: TEST-proof-polarity-backfill-code
+    created_at: 2026-10-28T18:51:08.774Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-288b3a3c649a

@@ -181,3 +181,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3faa3201aec7
+  - type: implements
+    from: SYM-cli-PrologErrorTermPrefix
+    to: REQ-prolog-runtime-libraries
+    created_at: 2026-10-28T19:22:32.475Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d5c30381a99
+  - type: covered_by
+    from: SYM-cli-PrologErrorTermPrefix
+    to: TEST-proof-prolog-error-prefix
+    created_at: 2026-10-28T19:22:43.721Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5871f6bbdc7
+  - type: covered_by
+    from: SYM-cli-PrologErrorTermPrefix
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-10-28T19:22:43.739Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72112276a5d2

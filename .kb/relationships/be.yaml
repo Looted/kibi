@@ -307,3 +307,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-71e0a32486c8
+  - type: validates
+    from: TEST-proof-intent-claim-kinds
+    to: SCEN-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-28T19:19:55.328Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4a3cbd047f3

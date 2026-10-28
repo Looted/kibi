@@ -353,3 +353,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a67a89692710
+  - type: implements
+    from: SYM-TRACEABILITY_RELATIONSHIP_TYPES
+    to: REQ-symbol-granularity-vocabulary
+    created_at: 2026-10-28T19:10:37.540Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f51ebd52298c
+  - type: covered_by
+    from: SYM-TRACEABILITY_RELATIONSHIP_TYPES
+    to: TEST-proof-granularity-link-types
+    created_at: 2026-10-28T19:10:48.153Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6d51a5110ad
