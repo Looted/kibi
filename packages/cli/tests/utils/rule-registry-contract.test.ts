@@ -1,7 +1,14 @@
 /// <reference types="bun-types" />
 import { describe, expect, test } from "bun:test";
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import {
+  closeSync,
+  mkdtempSync,
+  openSync,
+  readFileSync,
+  rmSync,
+} from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { SELECTABLE_RULE_NAMES } from "../../src/public/operations/specs/check-rules.generated.js";
@@ -26,6 +33,26 @@ const registryJson = JSON.parse(
 };
 const jsonNames = registryJson.rules.map((rule) => rule.name);
 
+// swipl writes to a file, not a pipe: on CI runners Bun can miss a readiness
+// event on a child's pipe and leave a synchronous spawn blocked after swipl
+// has exited, which hangs the whole test process. The timeout turns any
+// other hang into a failure.
+function runSwiplGoal(goal: string): string {
+  const outputRoot = mkdtempSync(path.join(os.tmpdir(), "kibi-rule-registry-"));
+  const outputPath = path.join(outputRoot, "stdout");
+  const outputFd = openSync(outputPath, "w");
+  try {
+    execFileSync("swipl", ["-q", "-g", goal], {
+      stdio: ["ignore", outputFd, "inherit"],
+      timeout: 60_000,
+    });
+    return readFileSync(outputPath, "utf8");
+  } finally {
+    closeSync(outputFd);
+    rmSync(outputRoot, { recursive: true, force: true });
+  }
+}
+
 describe("check-rule registry single-source contract", () => {
   test("TS rule registry matches the registry JSON", () => {
     expect(RULES.map((rule) => rule.name)).toEqual(jsonNames);
@@ -46,7 +73,7 @@ describe("check-rule registry single-source contract", () => {
       execFileSync(
         "node",
         [path.join(repoRoot, "scripts/generate-rule-registry.mjs"), "--check"],
-        { stdio: "pipe" },
+        { stdio: ["ignore", "ignore", "inherit"], timeout: 60_000 },
       );
     }).not.toThrow();
   });
@@ -71,27 +98,15 @@ describe("check-rule registry single-source contract", () => {
   });
 
   test("Prolog rejects unknown rule names loudly", () => {
-    const output = execFileSync(
-      "swipl",
-      [
-        "-q",
-        "-g",
-        `use_module('${path.join(repoRoot, "packages/core/src/checks.pl")}'), catch(checks:check_selected(['totally-bogus-rule'], _), error(domain_error(check_rule, ['totally-bogus-rule']), _), (write(unknown_rejected), nl)), halt.`,
-      ],
-      { stdio: ["ignore", "pipe", "inherit"], encoding: "utf8" },
+    const output = runSwiplGoal(
+      `use_module('${path.join(repoRoot, "packages/core/src/checks.pl")}'), catch(checks:check_selected(['totally-bogus-rule'], _), error(domain_error(check_rule, ['totally-bogus-rule']), _), (write(unknown_rejected), nl)), halt.`,
     );
     expect(output).toContain("unknown_rejected");
   });
 
   test("Prolog accepts typescript-implemented rule names without violations", () => {
-    const output = execFileSync(
-      "swipl",
-      [
-        "-q",
-        "-g",
-        `use_module('${path.join(repoRoot, "packages/core/src/checks.pl")}'), checks:check_selected(['source-relationship-parity'], Dict), write(ts_rule_ok), nl, halt.`,
-      ],
-      { stdio: ["ignore", "pipe", "inherit"], encoding: "utf8" },
+    const output = runSwiplGoal(
+      `use_module('${path.join(repoRoot, "packages/core/src/checks.pl")}'), checks:check_selected(['source-relationship-parity'], Dict), write(ts_rule_ok), nl, halt.`,
     );
     expect(output).toContain("ts_rule_ok");
   });
