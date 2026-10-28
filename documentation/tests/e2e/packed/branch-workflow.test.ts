@@ -64,7 +64,10 @@ if (RUN_NODE_TEST_SUITE) {
         await sandbox.install(tarballs);
         await sandbox.initGitRepo();
       },
-      { timeout: 120000 },
+      // The first install bootstraps the shared npm prefix and may take up to
+      // its own 300s limit; a shorter hook timeout leaves it running while the
+      // next test starts a second install into the same npm cache.
+      { timeout: 330000 },
     );
 
     afterEach(

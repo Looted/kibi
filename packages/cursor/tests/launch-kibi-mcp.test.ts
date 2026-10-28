@@ -1,9 +1,11 @@
 import { spawn, spawnSync } from "node:child_process";
 import {
+  closeSync,
   cpSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
+  openSync,
   readFileSync,
   rmSync,
   symlinkSync,
@@ -12,7 +14,7 @@ import {
 import os from "node:os";
 import path from "node:path";
 
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, setDefaultTimeout, test } from "bun:test";
 
 import {
   parseWorkspaceFolderPaths,
@@ -25,6 +27,11 @@ const launcherPath = path.resolve(
   "../bin/launch-kibi-mcp.mjs",
 );
 const fixtureRoots: string[] = [];
+
+// Each launcher run waits up to LAUNCHER_TIMEOUT_MS, so a hung run fails with
+// its own output instead of a test timeout.
+const LAUNCHER_TIMEOUT_MS = 15_000;
+setDefaultTimeout(30_000);
 
 type CursorMcpServer = {
   command?: string;
@@ -125,16 +132,40 @@ function cleanEnv(overrides: NodeJS.ProcessEnv = {}) {
   return env;
 }
 
+// The launcher's output goes to files, not pipes: on CI runners Bun can miss a
+// readiness event on a child's pipe and leave spawnSync blocked after the
+// child has exited.
 function runLauncher(
   fixture: { pluginRoot: string; consumerRoot: string },
   args: string[],
   env = cleanEnv(),
+  cwd = fixture.pluginRoot,
 ) {
-  return spawnSync(process.execPath, [launcherPath, ...args], {
-    cwd: fixture.pluginRoot,
-    env,
-    encoding: "utf8",
-  });
+  const outputRoot = mkdtempSync(
+    path.join(os.tmpdir(), "kibi-cursor-launcher-out-"),
+  );
+  fixtureRoots.push(outputRoot);
+  const stdoutPath = path.join(outputRoot, "stdout");
+  const stderrPath = path.join(outputRoot, "stderr");
+  const stdoutFd = openSync(stdoutPath, "w");
+  const stderrFd = openSync(stderrPath, "w");
+  let status: number | null;
+  try {
+    status = spawnSync(process.execPath, [launcherPath, ...args], {
+      cwd,
+      env,
+      stdio: ["ignore", stdoutFd, stderrFd],
+      timeout: LAUNCHER_TIMEOUT_MS,
+    }).status;
+  } finally {
+    closeSync(stdoutFd);
+    closeSync(stderrFd);
+  }
+  return {
+    status,
+    stdout: readFileSync(stdoutPath, "utf8"),
+    stderr: readFileSync(stderrPath, "utf8"),
+  };
 }
 
 afterEach(() => {
@@ -343,11 +374,7 @@ describe("Cursor consumer workspace MCP launcher", () => {
 
   test("falls back to cwd only for a demonstrably project-local package", () => {
     const fixture = createFixture();
-    const result = spawnSync(process.execPath, [launcherPath], {
-      cwd: fixture.consumerRoot,
-      env: cleanEnv(),
-      encoding: "utf8",
-    });
+    const result = runLauncher(fixture, [], cleanEnv(), fixture.consumerRoot);
 
     expect(result.status).toBe(0);
     expect(JSON.parse(result.stdout).cwd).toBe(fixture.consumerRoot);

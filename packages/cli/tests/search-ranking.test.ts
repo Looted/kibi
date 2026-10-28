@@ -8,11 +8,52 @@
  * (at your option) any later version.
  */
 
-import { beforeEach, describe, expect, mock, spyOn, test } from "bun:test";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  mock,
+  spyOn,
+  test,
+} from "bun:test";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import matter from "gray-matter";
-import { loadMarkdownBody, rankEntities } from "../src/search-ranking.js";
+import {
+  loadMarkdownBody,
+  rankEntities,
+  snippetFromMatchedLine,
+} from "../src/search-ranking.js";
+import { isolateKibiEnv } from "./helpers/in-process-workspace.js";
+
+const spies: Array<{ mockRestore: () => void }> = [];
+const temporaryDirectories: string[] = [];
+let restoreEnv: (() => void) | undefined;
+
+afterEach(() => {
+  for (const spy of spies.splice(0)) spy.mockRestore();
+  restoreEnv?.();
+  restoreEnv = undefined;
+  for (const directory of temporaryDirectories.splice(0))
+    rmSync(directory, { recursive: true, force: true });
+});
+
+function mockFile(content: string) {
+  const spy = spyOn(fs, "readFile").mockResolvedValue(content);
+  spies.push(spy);
+  return spy;
+}
+
+async function rankOne(
+  entity: Record<string, unknown>,
+  query: string,
+): Promise<{ score: number; reasons: string[]; snippet?: string } | undefined> {
+  const [match] = await rankEntities([entity], query, "/workspace");
+  return match;
+}
 
 // ---------------------------------------------------------------------------
 // Helper: build a minimal entity object
@@ -909,5 +950,355 @@ describe("rankEntities — search quality corpus", () => {
       "ADR-auth-b",
       "REQ-auth-b",
     ]);
+  });
+});
+
+describe("rankEntities — queries, inline bodies and snippets", () => {
+  test("stop-word-only queries and non-array tags produce no matches", async () => {
+    restoreEnv = isolateKibiEnv();
+    expect(
+      await rankEntities(
+        [{ id: "REQ-1", title: "The logged user" }],
+        "the a an is",
+        "/workspace",
+      ),
+    ).toEqual([]);
+    expect(
+      await rankEntities(
+        [{ id: "REQ-2", title: "Other", tags: "security" }],
+        "security",
+        "/workspace",
+      ),
+    ).toEqual([]);
+  });
+
+  test("compact phrase matches, simple plurals, and missing fields still rank", async () => {
+    restoreEnv = isolateKibiEnv();
+    const matches = await rankEntities(
+      [
+        {
+          id: "REQ-CLASS",
+          title: "classnames",
+        },
+        {
+          title: "status",
+          type: "req",
+        },
+      ],
+      "class-names",
+      "/workspace",
+    );
+    expect(matches[0]?.reasons).toEqual(
+      expect.arrayContaining(["exact title match"]),
+    );
+    expect(
+      await rankEntities(
+        [{ id: "REQ-BUS", title: "buses and classes and this" }],
+        "buses classes this",
+        "/workspace",
+      ),
+    ).toHaveLength(1);
+  });
+
+  test("inline bodies, token coverage, and long snippets are used when files are absent", async () => {
+    restoreEnv = isolateKibiEnv();
+    const longLine = `checkout ${"word ".repeat(80)}omega`;
+    const matches = await rankEntities(
+      [
+        {
+          id: "REQ-BODY",
+          title: "Unrelated title",
+          markdownBody: "The checkout cart token lives here",
+        },
+        {
+          id: "REQ-CONTENT",
+          title: "Still unrelated",
+          content: longLine,
+        },
+        {
+          id: "REQ-MD",
+          title: "Also unrelated",
+          markdown_body: "\n\n",
+          body: "fallback body checkout",
+        },
+      ],
+      "checkout",
+      "/workspace",
+    );
+    expect(
+      matches.some((match) => match.reasons.includes("markdown body match")),
+    ).toBe(true);
+    const long = matches.find((match) => match.entity.id === "REQ-CONTENT");
+    expect(long?.snippet?.endsWith("...")).toBe(true);
+    expect((long?.snippet ?? "").length).toBeLessThanOrEqual(160);
+  });
+
+  test("stripFrontmatter keeps content without a closing delimiter or opening match", async () => {
+    restoreEnv = isolateKibiEnv();
+    const unclosed = spyOn(fs, "readFile").mockResolvedValue(
+      "---\ntitle: Open\nThis never closes",
+    );
+    spies.push(unclosed);
+    expect(await loadMarkdownBody("docs/open.md", "/workspace")).toBe(
+      "---\ntitle: Open\nThis never closes",
+    );
+    unclosed.mockRestore();
+
+    const noNewline = spyOn(fs, "readFile").mockResolvedValue("---title: x");
+    spies.push(noNewline);
+    expect(await loadMarkdownBody("docs/tight.md", "/workspace")).toBe(
+      "---title: x",
+    );
+    noNewline.mockRestore();
+
+    const plain = spyOn(fs, "readFile").mockResolvedValue(
+      "plain body checkout",
+    );
+    spies.push(plain);
+    const ranked = await rankEntities(
+      [
+        {
+          id: "REQ-FILE",
+          title: "Unrelated",
+          source: "docs/plain.md",
+        },
+      ],
+      "checkout",
+      "/workspace",
+    );
+    expect(ranked[0]?.reasons).toContain("markdown body match");
+  });
+
+  test("body token coverage is used when the full phrase is absent", async () => {
+    restoreEnv = isolateKibiEnv();
+    const matches = await rankEntities(
+      [
+        {
+          id: "REQ-TOKENS",
+          title: "Something else",
+          body: "alpha beta gamma",
+        },
+      ],
+      "alpha zeta",
+      "/workspace",
+    );
+    expect(matches[0]?.reasons).toContain("markdown body token coverage");
+    expect(matches[0]?.snippet).toBe("alpha beta gamma");
+  });
+
+  test("snippetFromMatchedLine handles missing and long lines", () => {
+    expect(snippetFromMatchedLine(undefined)).toBeUndefined();
+    expect(snippetFromMatchedLine("short")).toBe("short");
+    expect(snippetFromMatchedLine("x".repeat(200))?.endsWith("...")).toBe(true);
+  });
+});
+
+describe("rankEntities — scoring contracts", () => {
+  test("each signal adds its fixed score and reason", async () => {
+    const cases: Array<[Record<string, unknown>, number, string[]]> = [
+      [{ title: "Alpha" }, 108, ["exact title match", "title token coverage"]],
+      [
+        { title: "alpha beta" },
+        68,
+        ["title phrase match", "title token coverage"],
+      ],
+      [{ id: "alpha", title: "x" }, 90, ["exact ID match"]],
+      [{ id: "REQ-alpha", title: "x" }, 55, ["ID match"]],
+      [{ title: "x", owner: "alpha team" }, 20, ["metadata match"]],
+      [{ title: "x", tags: ["other", "alphas"] }, 30, ["tag match"]],
+      [
+        { title: "Alpha", body: "unrelated text" },
+        108,
+        ["exact title match", "title token coverage"],
+      ],
+    ];
+    for (const [entity, score, reasons] of cases) {
+      const match = await rankOne(entity, "alpha");
+      expect(match?.score).toBe(score);
+      expect(match?.reasons).toEqual(reasons);
+      expect(match !== undefined && "snippet" in match).toBe(false);
+    }
+  });
+
+  test("body matches add a trimmed snippet", async () => {
+    expect(
+      await rankOne({ title: "x", body: "Intro\n  alpha here  \n" }, "alpha"),
+    ).toMatchObject({
+      score: 15,
+      reasons: ["markdown body match"],
+      snippet: "alpha here",
+    });
+    expect(
+      await rankOne({ title: "x", body: "alpha beta zeta" }, "alpha zeta"),
+    ).toMatchObject({
+      score: 6,
+      reasons: ["markdown body token coverage"],
+      snippet: "alpha beta zeta",
+    });
+    expect(
+      await rankOne(
+        { title: "x", body: "  \n", content: "alpha here" },
+        "alpha",
+      ),
+    ).toMatchObject({ score: 15, snippet: "alpha here" });
+  });
+
+  test("stop words alone never match", async () => {
+    const stopWords = [
+      "to",
+      "in",
+      "out",
+      "log",
+      "logged",
+      "unable",
+      "the",
+      "a",
+      "an",
+      "is",
+      "are",
+      "was",
+      "were",
+      "be",
+      "been",
+      "being",
+      "have",
+      "has",
+      "had",
+      "do",
+      "does",
+      "did",
+      "will",
+      "would",
+      "could",
+      "should",
+      "may",
+      "might",
+      "shall",
+      "can",
+      "not",
+    ];
+    for (const word of stopWords)
+      expect(await rankEntities([{ title: word }], word, "/workspace")).toEqual(
+        [],
+      );
+    expect(
+      await rankEntities([{ title: "x" }], "!!! ---", "/workspace"),
+    ).toEqual([]);
+  });
+
+  test("absent fields and non-array tags contribute no text", async () => {
+    for (const query of ["undefined", "Stryker was here"])
+      expect(
+        await rankEntities([{ tags: "security" }], query, "/workspace"),
+      ).toEqual([]);
+  });
+
+  test("simple plurals of five or more letters are singularized", async () => {
+    for (const [title, query] of [
+      ["user", "users"],
+      ["usage", "usages"],
+      ["issue", "issues"],
+    ])
+      expect((await rankOne({ title }, query))?.reasons).toContain(
+        "exact title match",
+      );
+    for (const [title, query] of [
+      ["bug", "bugs"],
+      ["stac", "stack"],
+      ["glas", "glass"],
+      ["statu", "status"],
+      ["analysi", "analysis"],
+    ])
+      expect(await rankOne({ title }, query)).toBeUndefined();
+  });
+});
+
+describe("rankEntities — ordering contracts", () => {
+  const stub = (title: string) => ({
+    type: "fact",
+    title,
+    tags: ["bootstrap:provenance-stub"],
+  });
+
+  test("provenance stubs sort after every claim and say so", async () => {
+    const ranked = await rankEntities(
+      [stub("alpha beta"), stub("alpha"), { id: "C", title: "alpha gamma" }],
+      "alpha",
+      "/workspace",
+    );
+    expect(
+      ranked.map((match) => [
+        match.entity.title,
+        match.score,
+        match.reasons.at(-1),
+      ]),
+    ).toEqual([
+      ["alpha gamma", 68, "title token coverage"],
+      ["alpha", 108, "demoted: provenance stub"],
+      ["alpha beta", 68, "demoted: provenance stub"],
+    ]);
+  });
+
+  test("ties sort a missing type and a missing id first", async () => {
+    const noType = { id: "B", title: "alpha" };
+    const typed = { id: "A", title: "alpha", type: "req" };
+    const noId = { title: "alpha", type: "req" };
+    for (const order of [
+      [noType, typed, noId],
+      [noId, typed, noType],
+    ])
+      expect(
+        (await rankEntities(order, "alpha", "/workspace")).map(
+          (match) => match.entity,
+        ),
+      ).toEqual([noType, noId, typed]);
+  });
+});
+
+describe("loadMarkdownBody — files on disk", () => {
+  function workspace(): string {
+    const root = mkdtempSync(path.join(os.tmpdir(), "kibi-search-ranking-"));
+    temporaryDirectories.push(root, `${root}-other`);
+    mkdirSync(`${root}-other`);
+    writeFileSync(path.join(root, "doc.md"), "---\na: 1\n---\nbody\n");
+    writeFileSync(path.join(root, "notes.ts"), "alpha\n");
+    writeFileSync(path.join(`${root}-other`, "doc.md"), "outside\n");
+    return root;
+  }
+
+  test("reads only markdown inside the workspace", async () => {
+    const root = workspace();
+    expect(await loadMarkdownBody("doc.md  ", root)).toBe("body\n");
+    expect(await loadMarkdownBody("notes.ts", root)).toBeNull();
+    expect(
+      await loadMarkdownBody(path.join(`${root}-other`, "doc.md"), root),
+    ).toBeNull();
+    expect(await loadMarkdownBody("../x/doc.md", root)).toBeNull();
+  });
+
+  test("front matter is stripped only when it opens the file and closes", async () => {
+    const cases: Array<[string, string]> = [
+      ["\n\n---\na: 1\n---\nbody", "body"],
+      ["intro\n---\nmid\n---\nrest", "intro\n---\nmid\n---\nrest"],
+      ["--- \na: 1\n---\t\nbody", "body"],
+      ["---\r\na: 1\r\n---\r\nbody", "body"],
+      ["---\na: 1\n---", ""],
+      ["---", "---"],
+    ];
+    for (const [content, body] of cases) {
+      mockFile(content);
+      expect(await loadMarkdownBody("doc.md", "/workspace")).toBe(body);
+      spies.pop()?.mockRestore();
+    }
+  });
+});
+
+describe("snippetFromMatchedLine", () => {
+  test("keeps lines of up to 160 characters", () => {
+    expect(snippetFromMatchedLine("x".repeat(160))).toBe("x".repeat(160));
+    expect(snippetFromMatchedLine("x".repeat(161))).toBe(
+      `${"x".repeat(157)}...`,
+    );
+    expect(snippetFromMatchedLine("")).toBeUndefined();
   });
 });

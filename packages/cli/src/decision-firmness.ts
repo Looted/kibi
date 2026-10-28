@@ -63,18 +63,12 @@ export function supersedeAcknowledgement(from: string, to: string): string {
 
 // implements REQ-kb-decision-firmness
 export function isFirmness(value: unknown): value is Firmness {
-  return (
-    typeof value === "string" &&
-    (FIRMNESS_VALUES as readonly string[]).includes(value)
-  );
+  return (FIRMNESS_VALUES as readonly unknown[]).includes(value);
 }
 
 // implements REQ-kb-decision-firmness
 export function carriesFirmness(type: unknown): boolean {
-  return (
-    typeof type === "string" &&
-    (FIRMNESS_TYPES as readonly string[]).includes(type)
-  );
+  return (FIRMNESS_TYPES as readonly unknown[]).includes(type);
 }
 
 /**
@@ -140,7 +134,7 @@ export function firmnessRef(entity: {
 }
 
 function wordCount(text: string): number {
-  return text.split(/\s+/).filter((word) => /[\p{L}\p{N}]/u.test(word)).length;
+  return text.split(/\s/).filter((word) => /[\p{L}\p{N}]/u.test(word)).length;
 }
 
 /**
@@ -149,21 +143,19 @@ function wordCount(text: string): number {
  */
 // implements REQ-kb-decision-firmness
 export function whyThisChangedWords(body: string): number {
-  const sections = parseBodySections(body);
-  let level: number | null = null;
+  // The open section's heading level, 0 outside one (and for the preamble,
+  // whose empty heading never matches).
+  let level = 0;
   let words = 0;
-  for (const section of sections) {
-    if (level !== null && section.level > 0 && section.level <= level) {
-      level = null;
-    }
+  for (const section of parseBodySections(body)) {
+    if (section.level <= level) level = 0;
     if (
-      level === null &&
-      section.level > 0 &&
+      level === 0 &&
       WHY_THIS_CHANGED.test(section.heading.replace(/^[*_`\s]+/, ""))
     ) {
       level = section.level;
     }
-    if (level !== null) words += wordCount(section.text);
+    if (level > 0) words += wordCount(section.text);
   }
   return words;
 }

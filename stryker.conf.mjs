@@ -32,6 +32,19 @@ export const CLI_MUTATION_MODULES = {
   "packages/cli/src/diagnostics.ts": [
     "packages/cli/tests/diagnostics-pure.test.ts",
   ],
+  "packages/cli/src/engine-limits.ts": [
+    "packages/cli/tests/engine-limits.test.ts",
+  ],
+  "packages/cli/src/decision-firmness.ts": [
+    "packages/cli/tests/decision-firmness.test.ts",
+  ],
+  "packages/cli/src/entity-body-context.ts": [
+    "packages/cli/tests/entity-body-context.test.ts",
+  ],
+  "packages/cli/src/search-ranking.ts": [
+    "packages/cli/tests/search-ranking.test.ts",
+  ],
+  "packages/cli/src/logic/ir.ts": ["packages/cli/tests/logic/ir.test.ts"],
 };
 
 // Explicit test-file list, enumerated relative to the repo root (the Stryker
