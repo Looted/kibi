@@ -216,3 +216,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-34a43aa781db
+  - type: implements
+    from: SYM-schema6-check-actions-AGENT_REQUIREMENTS_REVIEW_ACTION_ID
+    to: REQ-kibi-lifecycle-review-actions
+    created_at: 2026-10-28T20:25:39.322Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b39247720f3
+  - type: covered_by
+    from: SYM-schema6-check-actions-AGENT_REQUIREMENTS_REVIEW_ACTION_ID
+    to: TEST-proof-agent-review-action
+    created_at: 2026-10-28T20:25:51.015Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d42ce4f5d6ad
+  - type: covered_by
+    from: SYM-schema6-check-actions-AGENT_REQUIREMENTS_REVIEW_ACTION_ID
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:25:51.031Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5d248d2f9f3

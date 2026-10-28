@@ -363,3 +363,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-98faac696e01
+  - type: validates
+    from: TEST-proof-integration-configure-step
+    to: SCEN-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T21:20:42.548Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d003c12f4fa

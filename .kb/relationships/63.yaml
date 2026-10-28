@@ -220,3 +220,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6c85b73dfc8d
+  - type: covered_by
+    from: SYM-const-proof-receipt-v1-version
+    to: TEST-proof-receipt-v1-version
+    created_at: 2026-10-28T20:41:33.871Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7cbdaa7625d
+  - type: covered_by
+    from: SYM-const-proof-receipt-v1-version
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T20:41:33.887Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b50cdf3680ae
+  - type: implements
+    from: SYM-const-proof-receipt-v1-version
+    to: REQ-kibi-proof-receipt-format
+    created_at: 2026-10-28T21:19:09.527Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ffd78f9ed98

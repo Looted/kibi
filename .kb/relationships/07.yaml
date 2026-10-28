@@ -524,3 +524,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4bbc647b1600
+  - type: validates
+    from: TEST-proof-lock-takeover-file
+    to: SCEN-branch-detached-head-read-only
+    created_at: 2026-10-28T20:44:01.396Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-261afcde9885
+  - type: validates
+    from: TEST-proof-plan-apply-journal-version
+    to: SCEN-kibi-change-to-proof-plan-compiler
+    created_at: 2026-10-28T20:58:40.808Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ca376418da1

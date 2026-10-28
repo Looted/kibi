@@ -412,3 +412,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d9210a5433b0
+  - type: covered_by
+    from: SYM-const-proof-receipt-versions
+    to: TEST-proof-receipt-versions
+    created_at: 2026-10-28T20:41:57.187Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4a3f06d9eccd
+  - type: covered_by
+    from: SYM-const-proof-receipt-versions
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T20:41:57.219Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e2b3efeab07
+  - type: implements
+    from: SYM-const-proof-receipt-versions
+    to: REQ-kibi-proof-receipt-format
+    created_at: 2026-10-28T21:19:29.336Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-781d6bed2651

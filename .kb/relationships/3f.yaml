@@ -384,3 +384,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3201e19463ac
+  - type: requires_property
+    from: REQ-kibi-code-certificate-settings
+    to: FACT-code-certificate-version
+    created_at: 2026-10-28T20:37:17.032Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7b45afd9e92
+  - type: requires_property
+    from: REQ-kibi-code-certificate-settings
+    to: FACT-proof-certificates-env
+    created_at: 2026-10-28T20:37:17.072Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fb1ea1a1d78
+  - type: requires_property
+    from: REQ-kibi-code-certificate-settings
+    to: FACT-reference-extracts
+    created_at: 2026-10-28T20:37:17.094Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c963433b1213
+  - type: requires_property
+    from: REQ-kibi-code-certificate-settings
+    to: FACT-max-table-rows
+    created_at: 2026-10-28T20:37:17.117Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b24ddad1171c
+  - type: specified_by
+    from: REQ-kibi-code-certificate-settings
+    to: SCEN-kibi-code-proof-kinds
+    created_at: 2026-10-28T20:37:17.135Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9ec10fb3eb8
+  - type: constrains
+    from: REQ-kibi-code-certificate-settings
+    to: FACT-kibi-proof-code-certificates-component
+    created_at: 2026-10-28T20:37:19.265Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c217bb22cd73

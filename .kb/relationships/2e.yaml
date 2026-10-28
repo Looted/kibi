@@ -168,3 +168,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b47640dcebf8
+  - type: executable_for
+    from: SYM-proof-lookup-before-edit-operations
+    to: TEST-proof-lookup-before-edit-operations
+    created_at: 2026-10-28T20:53:13.522Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e9efc7b773f

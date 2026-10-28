@@ -251,3 +251,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ae196589bcc0
+  - type: implements
+    from: SYM-const-symbol-granularity-rule
+    to: REQ-kibi-check-rule-names
+    created_at: 2026-10-28T20:22:54.918Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93ce6759cefd
+  - type: covered_by
+    from: SYM-const-symbol-granularity-rule
+    to: TEST-proof-symbol-granularity-rule
+    created_at: 2026-10-28T20:23:06.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df10b3035438
+  - type: covered_by
+    from: SYM-const-symbol-granularity-rule
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:23:06.305Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-562062a256d6

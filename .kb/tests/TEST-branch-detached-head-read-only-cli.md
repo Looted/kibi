@@ -29,18 +29,18 @@ origin:
 id: TEST-branch-detached-head-read-only-cli
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-9ffb2cb73b88399aa8869a62
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-bc53014b6a114e89025e4e87
     test_id: TEST-branch-detached-head-read-only-cli
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
+    code_snapshot: 6c1d4b48c8c790bbc509e46899ccd457757c7db5641cef07df4b567f347481bf
+    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
+    started_at: '2026-10-28T20:44:40.777Z'
+    finished_at: '2026-10-28T20:44:51.151Z'
+    artifact_digest: c30a2f3ea2ddb061f984d7ab0c47c1c70df73e93ee63542bc08fe973c1d02da9
     contract_hash: 492f39c53ff2cd18ee0935119b8a94c267bc336619a913b2d1c0a23c4c3c814c
-    binding_hash: 468891006ff3b48e802c400053d514831b0bc26657ead60c744da62f49a0ac43
+    binding_hash: 5253d95d77b08470b266fa7540c7eb9c62381065382c03dda7a85d10e4f03eb8
     fingerprint: 1b3d09f844fc4e885b36530e2efe7f195a371991fbe853158b7b0dea9b2caf3d
     fingerprint_components:
       contract: 492f39c53ff2cd18ee0935119b8a94c267bc336619a913b2d1c0a23c4c3c814c
@@ -62,6 +62,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 # Consumer CLI answers reads on a detached HEAD from a read-only snapshot and refuses writes with an error envelope
 

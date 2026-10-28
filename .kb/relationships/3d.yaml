@@ -335,3 +335,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-571c857d80d6
+  - type: executable_for
+    from: SYM-proof-legacy-link-mark-action
+    to: TEST-proof-legacy-link-mark-action
+    created_at: 2026-10-28T20:32:53.578Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f59e0938419b
+  - type: validates
+    from: TEST-proof-telemetry-remediation-version
+    to: SCEN-kibi-telemetry-acceptance-gate
+    created_at: 2026-10-28T20:52:44.197Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e4f5bac98c7a
+  - type: requires_property
+    from: REQ-staged-file-coverage-version
+    to: FACT-staged-file-coverage-version
+    created_at: 2026-10-28T21:03:11.201Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ed7d6a0d3b2
+  - type: specified_by
+    from: REQ-staged-file-coverage-version
+    to: SCEN-cli-staged-impact-enforcement
+    created_at: 2026-10-28T21:03:11.236Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f315fd52a01f
+  - type: constrains
+    from: REQ-staged-file-coverage-version
+    to: FACT-kibi-staged-impact-file-coverage-component
+    created_at: 2026-10-28T21:03:13.555Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48ce0143d5eb

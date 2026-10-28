@@ -265,3 +265,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6a160fd08107
+  - type: validates
+    from: TEST-proof-rederive-drop-grounding-code
+    to: SCEN-cli-migrate
+    created_at: 2026-10-28T20:32:07.952Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3e01441c69a
+  - type: implements
+    from: SYM-staged-file-coverage-version
+    to: REQ-staged-file-coverage-version
+    created_at: 2026-10-28T21:03:19.997Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4e607e40947
+  - type: covered_by
+    from: SYM-staged-file-coverage-version
+    to: TEST-proof-staged-file-coverage-version
+    created_at: 2026-10-28T21:03:32.572Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0974ae575bf

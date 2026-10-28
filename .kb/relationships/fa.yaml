@@ -244,3 +244,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ca0e6d9154b8
+  - type: executable_for
+    from: SYM-proof-policy-ownership-rule
+    to: TEST-proof-policy-ownership-rule
+    created_at: 2026-10-28T20:22:35.989Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a81f98b107e0

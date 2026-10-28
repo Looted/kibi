@@ -237,3 +237,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9b1ea455a30e
+  - type: executable_for
+    from: SYM-proof-migration-plan-refused
+    to: TEST-proof-migration-plan-refused
+    created_at: 2026-10-28T20:56:15.864Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-971e81c0fc3b
+  - type: implements
+    from: SYM-const-proof-integration-configure
+    to: REQ-kibi-proof-receipt-format
+    created_at: 2026-10-28T21:20:40.035Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1d452b5c845
+  - type: covered_by
+    from: SYM-const-proof-integration-configure
+    to: TEST-proof-integration-configure-step
+    created_at: 2026-10-28T21:20:52.261Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4cbe95261d8e
+  - type: covered_by
+    from: SYM-const-proof-integration-configure
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T21:20:52.277Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99edd8aa47f8

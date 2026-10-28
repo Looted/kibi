@@ -311,3 +311,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-952ab7144a41
+  - type: executable_for
+    from: SYM-proof-predicate-key-review-code
+    to: TEST-proof-predicate-key-review-code
+    created_at: 2026-10-28T20:27:27.974Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-78439dcf25e4

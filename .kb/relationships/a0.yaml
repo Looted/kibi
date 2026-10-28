@@ -370,3 +370,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7f604a4e5cdf
+  - type: executable_for
+    from: SYM-proof-firm-supersede-code
+    to: TEST-proof-firm-supersede-code
+    created_at: 2026-10-28T20:31:02.784Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-062d8102f921

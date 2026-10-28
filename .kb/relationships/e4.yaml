@@ -244,3 +244,108 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a7fe8bcb580f
+  - type: requires_property
+    from: REQ-kibi-check-rule-names
+    to: FACT-evidence-floor-rule
+    created_at: 2026-10-28T20:19:31.690Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2cc2e42d4c82
+  - type: requires_property
+    from: REQ-kibi-check-rule-names
+    to: FACT-evidence-floor-schema-version
+    created_at: 2026-10-28T20:19:31.718Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23acc7ff4843
+  - type: requires_property
+    from: REQ-kibi-check-rule-names
+    to: FACT-agent-requirement-unapproved-rule
+    created_at: 2026-10-28T20:19:31.737Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c3e9bbe5869
+  - type: requires_property
+    from: REQ-kibi-check-rule-names
+    to: FACT-exception-unapproved-rule
+    created_at: 2026-10-28T20:19:31.753Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c9ebc822089
+  - type: requires_property
+    from: REQ-kibi-check-rule-names
+    to: FACT-exception-self-attested-rule
+    created_at: 2026-10-28T20:19:31.774Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07a59d30505c
+  - type: requires_property
+    from: REQ-kibi-check-rule-names
+    to: FACT-rationale-missing-rule
+    created_at: 2026-10-28T20:19:31.788Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1fbcbbd6bc11
+  - type: requires_property
+    from: REQ-kibi-check-rule-names
+    to: FACT-policy-markers-rule
+    created_at: 2026-10-28T20:19:31.802Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b1b4125294e
+  - type: requires_property
+    from: REQ-kibi-check-rule-names
+    to: FACT-policy-ownership-rule
+    created_at: 2026-10-28T20:19:31.815Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b937896d7ae1
+  - type: requires_property
+    from: REQ-kibi-check-rule-names
+    to: FACT-symbol-granularity-rule
+    created_at: 2026-10-28T20:19:31.827Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d1ce938b374
+  - type: requires_property
+    from: REQ-kibi-check-rule-names
+    to: FACT-supersedes-acknowledged-rule
+    created_at: 2026-10-28T20:19:31.839Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9121f70c392
+  - type: requires_property
+    from: REQ-kibi-check-rule-names
+    to: FACT-scoped-check-omitted-id
+    created_at: 2026-10-28T20:19:31.850Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6dde1fde4afc
+  - type: specified_by
+    from: REQ-kibi-check-rule-names
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:19:31.861Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2591d657907
+  - type: constrains
+    from: REQ-kibi-check-rule-names
+    to: FACT-kibi-check-rule-names-component
+    created_at: 2026-10-28T20:19:33.938Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a4403079189
+  - type: executable_for
+    from: SYM-proof-contract-claims-review-code
+    to: TEST-proof-contract-claims-review-code
+    created_at: 2026-10-28T20:31:49.293Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2be1c9f950a7
+  - type: validates
+    from: TEST-proof-receipt-v1-version
+    to: SCEN-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T20:41:23.965Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d1f761497c0

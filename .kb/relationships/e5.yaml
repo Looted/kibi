@@ -314,3 +314,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-96771f7188dd
+  - type: implements
+    from: SYM-schema6-check-actions-EXCEPTION_SELF_ATTESTED_REVIEW_CODE
+    to: REQ-kibi-lifecycle-review-actions
+    created_at: 2026-10-28T20:27:03.388Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84ada123ca0f
+  - type: covered_by
+    from: SYM-schema6-check-actions-EXCEPTION_SELF_ATTESTED_REVIEW_CODE
+    to: TEST-proof-self-attested-review-code
+    created_at: 2026-10-28T20:27:15.241Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-205451cb27a9
+  - type: covered_by
+    from: SYM-schema6-check-actions-EXCEPTION_SELF_ATTESTED_REVIEW_CODE
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:27:15.256Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4111fb9e534
+  - type: implements
+    from: SYM-const-migration-plan-refused
+    to: REQ-agent-migration-plan-versions
+    created_at: 2026-10-28T20:56:11.772Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41e907bd6e47
+  - type: covered_by
+    from: SYM-const-migration-plan-refused
+    to: TEST-proof-migration-plan-refused
+    created_at: 2026-10-28T20:56:22.453Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc985442cf63
+  - type: covered_by
+    from: SYM-const-migration-plan-refused
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-10-28T20:56:22.477Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ffae99e43ae

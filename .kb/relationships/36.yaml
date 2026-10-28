@@ -398,3 +398,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ba29c44e395d
+  - type: implements
+    from: SYM-reqcompiler-remediation-version
+    to: REQ-kibi-telemetry-versions
+    created_at: 2026-10-28T20:52:40.950Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c6f245c3d76
+  - type: covered_by
+    from: SYM-reqcompiler-remediation-version
+    to: TEST-proof-telemetry-remediation-version
+    created_at: 2026-10-28T20:52:53.808Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7edd0bbe0ae1
+  - type: covered_by
+    from: SYM-reqcompiler-remediation-version
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-10-28T20:52:53.833Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf7d954b0dbc

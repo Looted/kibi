@@ -356,3 +356,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-47ee13f802b7
+  - type: executable_for
+    from: SYM-proof-evidence-floor-pin-code
+    to: TEST-proof-evidence-floor-pin-code
+    created_at: 2026-10-28T20:30:41.836Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46e456ca0bfb
+  - type: executable_for
+    from: SYM-proof-firmness-values
+    to: TEST-proof-firmness-values
+    created_at: 2026-10-28T20:51:15.669Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb4ab019294f

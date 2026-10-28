@@ -503,3 +503,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-860cf6ed4798
+  - type: executable_for
+    from: SYM-proof-code-certificate-version
+    to: TEST-proof-code-certificate-version
+    created_at: 2026-10-28T20:37:33.904Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c6d68055766

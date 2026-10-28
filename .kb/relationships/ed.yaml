@@ -447,3 +447,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6c48326a29c9
+  - type: validates
+    from: TEST-proof-migration-plan-refused
+    to: SCEN-agent-guided-migration-orchestration
+    created_at: 2026-10-28T20:56:13.462Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c2c2da241c26

@@ -409,3 +409,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aec97da05317
+  - type: executable_for
+    from: SYM-proof-engine-idle-check
+    to: TEST-proof-engine-idle-check
+    created_at: 2026-10-28T20:46:07.272Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45fda44483e2

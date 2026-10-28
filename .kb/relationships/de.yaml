@@ -367,3 +367,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b6d51a5110ad
+  - type: executable_for
+    from: SYM-proof-feasibility-review-code
+    to: TEST-proof-feasibility-review-code
+    created_at: 2026-10-28T20:28:08.045Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8813165b2f6

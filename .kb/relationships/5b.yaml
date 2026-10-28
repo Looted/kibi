@@ -272,3 +272,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ce2760cbf3c1
+  - type: executable_for
+    from: SYM-proof-detached-head-code
+    to: TEST-proof-detached-head-code
+    created_at: 2026-10-28T20:42:33.357Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-029782431196
+  - type: implements
+    from: SYM-const-firmness-values
+    to: REQ-kb-firmness-values
+    created_at: 2026-10-28T20:51:11.175Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84b238df9131
+  - type: covered_by
+    from: SYM-const-firmness-values
+    to: TEST-proof-firmness-values
+    created_at: 2026-10-28T20:51:23.918Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce929aed0ee6
+  - type: covered_by
+    from: SYM-const-firmness-values
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-28T20:51:23.945Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f317d75ad028

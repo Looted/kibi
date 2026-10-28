@@ -321,3 +321,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c412e8ddb8ba
+  - type: implements
+    from: SYM-schema6-check-actions-SCENARIO_FEASIBILITY_REVIEW_CODE
+    to: REQ-kibi-lifecycle-review-actions
+    created_at: 2026-10-28T20:28:03.711Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-15041805baaa
+  - type: covered_by
+    from: SYM-schema6-check-actions-SCENARIO_FEASIBILITY_REVIEW_CODE
+    to: TEST-proof-feasibility-review-code
+    created_at: 2026-10-28T20:28:15.882Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1fc222127ad
+  - type: covered_by
+    from: SYM-schema6-check-actions-SCENARIO_FEASIBILITY_REVIEW_CODE
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:28:15.902Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d6e8332625c

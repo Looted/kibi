@@ -391,3 +391,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f978dd50aaed
+  - type: validates
+    from: TEST-proof-derived-coordinates-schema
+    to: SCEN-cli-migrate
+    created_at: 2026-10-28T20:34:03.034Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc8fc7bf1a80

@@ -300,3 +300,101 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-579e2fa7e4eb
+  - type: requires_property
+    from: REQ-cli-migration-pin-codes
+    to: FACT-context-missing-tag-code
+    created_at: 2026-10-28T20:29:36.393Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e75d381f2e5c
+  - type: requires_property
+    from: REQ-cli-migration-pin-codes
+    to: FACT-semantic-text-pin-code
+    created_at: 2026-10-28T20:29:36.430Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a4f16444f1f
+  - type: requires_property
+    from: REQ-cli-migration-pin-codes
+    to: FACT-evidence-floor-pin-code
+    created_at: 2026-10-28T20:29:36.454Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99b3856ee4af
+  - type: requires_property
+    from: REQ-cli-migration-pin-codes
+    to: FACT-firm-supersede-code
+    created_at: 2026-10-28T20:29:36.476Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d78cfcefce5c
+  - type: requires_property
+    from: REQ-cli-migration-pin-codes
+    to: FACT-contract-claims-pin-code
+    created_at: 2026-10-28T20:29:36.496Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e653ce479465
+  - type: requires_property
+    from: REQ-cli-migration-pin-codes
+    to: FACT-contract-claims-review-code
+    created_at: 2026-10-28T20:29:36.516Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b49c62644045
+  - type: requires_property
+    from: REQ-cli-migration-pin-codes
+    to: FACT-rederive-drop-grounding-code
+    created_at: 2026-10-28T20:29:36.527Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb7e51a857ae
+  - type: requires_property
+    from: REQ-cli-migration-pin-codes
+    to: FACT-supersedes-acknowledge-code
+    created_at: 2026-10-28T20:29:36.540Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e4dd02372b46
+  - type: requires_property
+    from: REQ-cli-migration-pin-codes
+    to: FACT-legacy-link-mark-action
+    created_at: 2026-10-28T20:29:36.551Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-271ed00ad916
+  - type: requires_property
+    from: REQ-cli-migration-pin-codes
+    to: FACT-legacy-link-mark-code
+    created_at: 2026-10-28T20:29:36.565Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c17c4f12e9b
+  - type: requires_property
+    from: REQ-cli-migration-pin-codes
+    to: FACT-closed-requirement-status
+    created_at: 2026-10-28T20:29:36.577Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-432143b976b4
+  - type: requires_property
+    from: REQ-cli-migration-pin-codes
+    to: FACT-derived-coordinates-schema
+    created_at: 2026-10-28T20:29:36.588Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a44c6eb90649
+  - type: specified_by
+    from: REQ-cli-migration-pin-codes
+    to: SCEN-cli-migrate
+    created_at: 2026-10-28T20:29:36.598Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e4e751bd5d5
+  - type: constrains
+    from: REQ-cli-migration-pin-codes
+    to: FACT-kibi-migration-pin-codes-component
+    created_at: 2026-10-28T20:29:38.577Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd7af7fffc44

@@ -461,3 +461,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b8658a6f6254
+  - type: executable_for
+    from: SYM-proof-closed-requirement-status
+    to: TEST-proof-closed-requirement-status
+    created_at: 2026-10-28T20:33:41.566Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60545e9c0b9d

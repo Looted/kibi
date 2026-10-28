@@ -342,3 +342,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f74350a993cc
+  - type: executable_for
+    from: SYM-proof-supersedes-acknowledge-code
+    to: TEST-proof-supersedes-acknowledge-code
+    created_at: 2026-10-28T20:32:31.582Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff15a1cdf8ee
+  - type: requires_property
+    from: REQ-kibi-telemetry-versions
+    to: FACT-telemetry-acceptance-version
+    created_at: 2026-10-28T20:52:12.135Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-88e2f9467b84
+  - type: requires_property
+    from: REQ-kibi-telemetry-versions
+    to: FACT-telemetry-remediation-version
+    created_at: 2026-10-28T20:52:12.176Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1df82859f3b
+  - type: requires_property
+    from: REQ-kibi-telemetry-versions
+    to: FACT-lookup-before-edit-operations
+    created_at: 2026-10-28T20:52:12.207Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ffe89ef1bf8a
+  - type: specified_by
+    from: REQ-kibi-telemetry-versions
+    to: SCEN-kibi-telemetry-acceptance-gate
+    created_at: 2026-10-28T20:52:12.238Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9711797dc377
+  - type: constrains
+    from: REQ-kibi-telemetry-versions
+    to: FACT-kibi-telemetry-versions-component
+    created_at: 2026-10-28T20:52:14.525Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a8d63465dd5
