@@ -18,6 +18,15 @@ function createFixture(contents: string): { cwd: string; input: string } {
   return { cwd, input };
 }
 
+async function rejectionOf(promise: Promise<unknown>): Promise<Error> {
+  try {
+    await promise;
+  } catch (error) {
+    if (error instanceof Error) return error;
+  }
+  throw new Error("expected an Error rejection");
+}
+
 afterEach(() => {
   for (const restore of restores.splice(0)) restore();
   for (const directory of temporaryDirectories.splice(0)) {
@@ -29,7 +38,7 @@ describe("loadInput", () => {
   test("rejects malformed JSON with the parser's reason", async () => {
     const fixture = createFixture('{"query":');
 
-    const error = await loadInput(fixture).catch((caught) => caught);
+    const error = await rejectionOf(loadInput(fixture));
     expect(error).toMatchObject({ code: "INVALID_JSON", exitCode: 2 });
     expect(error.message).toStartWith("Invalid JSON input: ");
     expect(error.message.length).toBeGreaterThan("Invalid JSON input: ".length);
@@ -68,9 +77,7 @@ describe("loadInput", () => {
     const cwd = mkdtempSync(path.join(os.tmpdir(), "kibi-cli-input-"));
     temporaryDirectories.push(cwd);
 
-    const error = await loadInput({ input: "missing.json", cwd }).catch(
-      (caught) => caught,
-    );
+    const error = await rejectionOf(loadInput({ input: "missing.json", cwd }));
     expect(error).toMatchObject({ code: "INPUT_READ_FAILED", exitCode: 2 });
     expect(error.message).toStartWith(
       "Unable to read JSON input 'missing.json': ENOENT",
