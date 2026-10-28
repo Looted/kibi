@@ -377,3 +377,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-df1059a93573
+  - type: validates
+    from: TEST-proof-operation-protocol-version
+    to: SCEN-kibi-operation-interface-parity
+    created_at: 2026-10-28T17:23:54.071Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ea294f5e7b2
+  - type: executable_for
+    from: SYM-proof-proof-integrations-path
+    to: TEST-proof-proof-integrations-path
+    created_at: 2026-10-28T17:49:31.658Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef934051e454

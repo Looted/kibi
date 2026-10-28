@@ -286,3 +286,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4e4e216929aa
+  - type: executable_for
+    from: SYM-proof-logic-rule-max-atoms
+    to: TEST-proof-logic-rule-max-atoms
+    created_at: 2026-10-28T17:19:14.459Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b95ea65253bb
+  - type: validates
+    from: TEST-proof-proof-integrations-path
+    to: SCEN-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T17:49:29.349Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b206aa4d527b

@@ -332,3 +332,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d25164a6c801
+  - type: implements
+    from: SYM-success-policies
+    to: REQ-kibi-proof-run-vocabulary
+    created_at: 2026-10-28T17:48:12.670Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62c198ffce16
+  - type: covered_by
+    from: SYM-success-policies
+    to: TEST-proof-success-policies
+    created_at: 2026-10-28T17:48:23.695Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4a4723ee5a66
+  - type: covered_by
+    from: SYM-success-policies
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T17:48:23.711Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-351d875634ba

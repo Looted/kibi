@@ -454,3 +454,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-115593caef30
+  - type: implements
+    from: SYM-performance-trace-max-bytes
+    to: REQ-kibi-perf-trace-limits
+    created_at: 2026-10-28T17:36:30.373Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c96f85bddad
+  - type: covered_by
+    from: SYM-performance-trace-max-bytes
+    to: TEST-proof-perf-trace-max-bytes
+    created_at: 2026-10-28T17:36:42.298Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e372733027e1
+  - type: validates
+    from: TEST-proof-entity-type-backfill-code
+    to: SCEN-cli-migrate-legacy-requirement-status
+    created_at: 2026-10-28T17:43:37.205Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e8a1bd8581a

@@ -510,3 +510,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-238a637ec1fa
+  - type: validates
+    from: TEST-proof-perf-trace-max-bytes
+    to: SCEN-installed-staged-impact-timing-integrity
+    created_at: 2026-10-28T17:36:33.043Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5bc6b425bdd1

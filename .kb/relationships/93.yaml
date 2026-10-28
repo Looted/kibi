@@ -202,3 +202,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ff7f6d7b1eb1
+  - type: executable_for
+    from: SYM-proof-logic-ir-version
+    to: TEST-proof-logic-ir-version
+    created_at: 2026-10-28T17:18:54.793Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec0ddeede215
+  - type: validates
+    from: TEST-proof-query-entity-types
+    to: SCEN-kibi-operation-interface-parity
+    created_at: 2026-10-28T17:24:14.502Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc24126fe745

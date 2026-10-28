@@ -356,3 +356,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-11c82796541c
+  - type: implements
+    from: SYM-discovery-query-body-max-chars
+    to: REQ-kibi-operation-page-sizes
+    created_at: 2026-10-28T17:23:29.829Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-91a264363391
+  - type: covered_by
+    from: SYM-discovery-query-body-max-chars
+    to: TEST-proof-query-body-max-chars
+    created_at: 2026-10-28T17:23:43.237Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e503fe8b311d
+  - type: covered_by
+    from: SYM-discovery-query-body-max-chars
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-10-28T17:23:43.264Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b4550968f50

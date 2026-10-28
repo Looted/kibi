@@ -349,3 +349,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d7cb564cc507
+  - type: implements
+    from: SYM-impact-stage-e-impact-policy-version
+    to: REQ-impact-review-identifiers
+    created_at: 2026-10-28T17:32:15.775Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae63628d2702
+  - type: covered_by
+    from: SYM-impact-stage-e-impact-policy-version
+    to: TEST-proof-impact-policy-version
+    created_at: 2026-10-28T17:32:26.990Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab829ddc6b75

@@ -251,3 +251,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a8180057998f
+  - type: executable_for
+    from: SYM-proof-adr-unlinked-review-code
+    to: TEST-proof-adr-unlinked-review-code
+    created_at: 2026-10-28T17:26:09.346Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37d233f04291

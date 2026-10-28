@@ -356,3 +356,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-77021099a55b
+  - type: executable_for
+    from: SYM-proof-search-candidate-page-size
+    to: TEST-proof-search-candidate-page-size
+    created_at: 2026-10-28T17:23:13.185Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98faac696e01

@@ -398,3 +398,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f2b868addeb4
+  - type: implements
+    from: SYM-cli-logic-ir-LOGIC_RULE_MAX_DEPTH
+    to: REQ-kibi-logic-rule-limits
+    created_at: 2026-10-28T17:19:29.025Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37ecbc65b1bb
+  - type: covered_by
+    from: SYM-cli-logic-ir-LOGIC_RULE_MAX_DEPTH
+    to: TEST-proof-logic-rule-max-depth
+    created_at: 2026-10-28T17:19:40.632Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c52f144c06a4
+  - type: validates
+    from: TEST-proof-symbol-owner-review-code
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T17:29:53.086Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8be9029e052

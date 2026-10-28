@@ -286,3 +286,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3da7c3f06a90
+  - type: executable_for
+    from: SYM-proof-proof-runs-dir
+    to: TEST-proof-proof-runs-dir
+    created_at: 2026-10-28T17:49:51.099Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01cd54d57312

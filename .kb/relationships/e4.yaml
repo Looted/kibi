@@ -223,3 +223,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5e0fe42c634e
+  - type: validates
+    from: TEST-proof-adr-proposed-review-code
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T17:25:45.926Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea16cddb004a
+  - type: implements
+    from: SYM-impact-stage-e-impact-policy-path
+    to: REQ-impact-review-identifiers
+    created_at: 2026-10-28T17:31:57.536Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f00db3409ff1
+  - type: covered_by
+    from: SYM-impact-stage-e-impact-policy-path
+    to: TEST-proof-impact-policy-path
+    created_at: 2026-10-28T17:32:08.705Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7fe8bcb580f

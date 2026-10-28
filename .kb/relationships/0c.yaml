@@ -370,3 +370,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-477d11b1001d
+  - type: executable_for
+    from: SYM-proof-impact-policy-path
+    to: TEST-proof-impact-policy-path
+    created_at: 2026-10-28T17:32:02.337Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd56d4d2c837

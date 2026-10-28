@@ -4352,5 +4352,515 @@
         "./packages/cli/tests/proofs/claims/signoff-format-setting.proof.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-proof-logic-ir-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/logic-rule-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-logic-rule-max-atoms",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/logic-rule-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-logic-rule-max-depth",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/logic-rule-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-logic-rule-max-variables",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/logic-rule-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-entity-query-chunk-size",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/operation-page-sizes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-proof-contract-page-size",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/operation-page-sizes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-search-candidate-page-size",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/operation-page-sizes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-query-body-max-chars",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/operation-page-sizes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-operation-protocol-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/operation-page-sizes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-query-entity-types",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/operation-page-sizes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-adr-proposed-review-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-adr-unlinked-review-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-exception-unapproved-review-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-rationale-review-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-supersession-cycle-review-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-source-path-review-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-source-path-dangling-rule",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-source-path-rewrite-action",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-source-path-rewrite-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-migration-sync-action",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-migration-sync-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-symbol-owner-review-action",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-symbol-owner-review-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-impact-policy-path",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/impact-review-identifiers.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-impact-policy-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/impact-review-identifiers.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-impact-review-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/impact-review-identifiers.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-impact-evaluator-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/impact-review-identifiers.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-perf-timings-env",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/perf-trace-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-perf-trace-dir-env",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/perf-trace-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-perf-trace-max-bytes",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/perf-trace-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-perf-trace-max-events",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/perf-trace-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-delivered-requirement-tag",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-action-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-delivered-map-action",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-action-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-delivered-map-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-action-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-entity-type-backfill-action",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-action-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-entity-type-backfill-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-action-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-compile-plan-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/plan-document-versions.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-plan-apply-result-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/plan-document-versions.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-repair-plan-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/plan-document-versions.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-symbol-repair-plan-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/plan-document-versions.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-proof-result-outcomes",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/proof-run-vocabulary.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-run-failure-phases",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/proof-run-vocabulary.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-success-policies",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/proof-run-vocabulary.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-proof-binding-kinds",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/proof-run-vocabulary.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-attempts-status",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/proof-run-vocabulary.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-producer-kinds",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/proof-run-vocabulary.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-proof-integrations-path",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/proof-run-vocabulary.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-proof-runs-dir",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/proof-run-vocabulary.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-max-proof-receipts",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/proof-run-vocabulary.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-coverage-row-page-size",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/proof-run-vocabulary.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-signoff-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/signoff-version.proof.test.ts"
+      ]
+    ]
   }
 ]

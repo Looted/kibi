@@ -384,3 +384,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c6e7c76de71c
+  - type: implements
+    from: SYM-schema6-check-actions-SYMBOL_OWNER_REVIEW_ACTION_ID
+    to: REQ-kibi-lifecycle-check-codes
+    created_at: 2026-10-28T17:29:30.411Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17dacb20c4ae
+  - type: covered_by
+    from: SYM-schema6-check-actions-SYMBOL_OWNER_REVIEW_ACTION_ID
+    to: TEST-proof-symbol-owner-review-action
+    created_at: 2026-10-28T17:29:42.302Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ede0b078c0a
+  - type: covered_by
+    from: SYM-schema6-check-actions-SYMBOL_OWNER_REVIEW_ACTION_ID
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T17:29:42.324Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be164d544bd1

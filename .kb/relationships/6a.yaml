@@ -279,3 +279,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c50a3d25b91e
+  - type: validates
+    from: TEST-proof-delivered-requirement-tag
+    to: SCEN-cli-migrate-legacy-requirement-status
+    created_at: 2026-10-28T17:42:13.507Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9af7ff9dc99f

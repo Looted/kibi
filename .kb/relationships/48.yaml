@@ -286,3 +286,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dcf5f9f55e06
+  - type: executable_for
+    from: SYM-proof-success-policies
+    to: TEST-proof-success-policies
+    created_at: 2026-10-28T17:48:17.738Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d846604d525

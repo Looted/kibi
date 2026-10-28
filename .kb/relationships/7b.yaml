@@ -251,3 +251,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-afef58b04239
+  - type: implements
+    from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-plan-apply-result-version
+    to: REQ-kibi-plan-document-versions
+    created_at: 2026-10-28T17:45:37.453Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4bbe4026ed1
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-plan-apply-result-version
+    to: TEST-proof-plan-apply-result-version
+    created_at: 2026-10-28T17:45:50.007Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f93e225a585a
+  - type: implements
+    from: SYM-proof-integrations-path
+    to: REQ-kibi-proof-run-vocabulary
+    created_at: 2026-10-28T17:49:26.592Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b5c77f803f9
+  - type: covered_by
+    from: SYM-proof-integrations-path
+    to: TEST-proof-proof-integrations-path
+    created_at: 2026-10-28T17:49:38.061Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4c00ae815a9
+  - type: covered_by
+    from: SYM-proof-integrations-path
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T17:49:38.086Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6331a7694d4b

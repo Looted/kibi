@@ -293,3 +293,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-280e8effc09c
+  - type: implements
+    from: SYM-schema6-check-actions-SOURCE_PATH_REVIEW_CODE
+    to: REQ-kibi-lifecycle-check-codes
+    created_at: 2026-10-28T17:27:29.011Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3294ef7a4568
+  - type: covered_by
+    from: SYM-schema6-check-actions-SOURCE_PATH_REVIEW_CODE
+    to: TEST-proof-source-path-review-code
+    created_at: 2026-10-28T17:27:41.175Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de3c15323d9c
+  - type: covered_by
+    from: SYM-schema6-check-actions-SOURCE_PATH_REVIEW_CODE
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T17:27:41.202Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51cae3fe1f6f

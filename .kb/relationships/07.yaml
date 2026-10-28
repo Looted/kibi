@@ -461,3 +461,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-337ede773ea1
+  - type: executable_for
+    from: SYM-proof-source-path-rewrite-action
+    to: TEST-proof-source-path-rewrite-action
+    created_at: 2026-10-28T17:28:14.552Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72b5fa23f559

@@ -125,3 +125,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b1cf0496e747
+  - type: validates
+    from: TEST-proof-logic-ir-version
+    to: SCEN-kibi-proposition-complete-ingestion
+    created_at: 2026-10-28T17:18:52.734Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c87721d1699d
+  - type: executable_for
+    from: SYM-proof-rationale-review-code
+    to: TEST-proof-rationale-review-code
+    created_at: 2026-10-28T17:26:52.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bbbd92ce3698
+  - type: implements
+    from: SYM-schema6-check-actions-SYMBOL_OWNER_REVIEW_CODE
+    to: REQ-kibi-lifecycle-check-codes
+    created_at: 2026-10-28T17:29:50.609Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e87acd665418
+  - type: covered_by
+    from: SYM-schema6-check-actions-SYMBOL_OWNER_REVIEW_CODE
+    to: TEST-proof-symbol-owner-review-code
+    created_at: 2026-10-28T17:30:02.347Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c20d1fc5f078
+  - type: covered_by
+    from: SYM-schema6-check-actions-SYMBOL_OWNER_REVIEW_CODE
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T17:30:02.359Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-413599007b47
