@@ -40545,8 +40545,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-e2e-capability-plugins
+      - type: covered_by
+        target: TEST-proof-jev-default-model
       - type: implements
         target: REQ-capability-plugin-configuration-v1
+      - type: implements
+        target: REQ-capability-plugin-jev-defaults
   - id: SYM-cap-plugin-jev-provider-error-model
     title: JevProviderError.model
     status: active
@@ -40754,8 +40758,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-e2e-capability-plugins
+      - type: covered_by
+        target: TEST-proof-jev-max-timeout
       - type: implements
         target: REQ-capability-plugin-configuration-v1
+      - type: implements
+        target: REQ-capability-plugin-jev-defaults
   - id: SYM-jev-resolve-model
     title: resolveJevModel
     status: active
@@ -58390,3 +58398,31 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-mcp-optional-tools
+  - id: SYM-proof-jev-default-model
+    title: jevDefaultModelCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/jev-defaults.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T09:36:58.162Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-jev-default-model
+  - id: SYM-proof-jev-max-timeout
+    title: jevMaxTimeoutCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/jev-defaults.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T09:37:02.014Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-jev-max-timeout
