@@ -113,8 +113,7 @@ export function unapprovedFirmEdit(
   )
     return [];
   const changed = decisionClaimChanges(before, after);
-  if (changed.length === 0 || citesNewHumanWords(before, after)) return [];
-  return changed;
+  return citesNewHumanWords(before, after) ? [] : changed;
 }
 
 /** What to do instead of editing a firm decision in place. */
