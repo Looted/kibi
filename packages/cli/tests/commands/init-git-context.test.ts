@@ -1,8 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import {
-  constants,
-  accessSync,
-  chmodSync,
   existsSync,
   lstatSync,
   mkdirSync,
@@ -21,6 +18,7 @@ import {
   branchStorePath,
   legacyBranchStorePath,
 } from "../../src/utils/branch-store-locator.js";
+import { denyGitInternals } from "../helpers/deny-git-internals.js";
 import {
   captureIo,
   createGitWorkspace,
@@ -279,12 +277,12 @@ describe("kibi init repository-context fixes", () => {
     const repo = makeRepo("unreadable-git");
     commitReadme(repo);
     const before = snapshotDirectory(repo);
-    chmodSync(path.join(repo, ".git"), 0o000);
+    const restore = denyGitInternals(repo, ".git");
     let run: { output: string; exitCode: number };
     try {
       run = refusalRun("init", repo, "review-probe");
     } finally {
-      chmodSync(path.join(repo, ".git"), 0o755);
+      restore();
     }
     expect(run.exitCode).not.toBe(0);
     expect(run.output).toContain("Git reported no repository");
@@ -303,12 +301,12 @@ describe("kibi init repository-context fixes", () => {
     const sub = path.join(repo, "sub");
     mkdirSync(sub, { recursive: true });
     const before = snapshotDirectory(repo);
-    chmodSync(path.join(repo, ".git"), 0o000);
+    const restore = denyGitInternals(repo, ".git");
     let run: { output: string; exitCode: number };
     try {
       run = refusalRun("init", sub, "review-probe");
     } finally {
-      chmodSync(path.join(repo, ".git"), 0o755);
+      restore();
     }
     expect(run.exitCode).not.toBe(0);
     expect(run.output).toContain("Git reported no repository");
@@ -339,13 +337,9 @@ describe("kibi init repository-context fixes", () => {
         commitReadme(repo);
         const sub = path.join(repo, "sub");
         mkdirSync(sub, { recursive: true });
-        const targetPath = path.join(repo, ".git", internal);
         const before = snapshotDirectory(repo);
-        chmodSync(targetPath, 0o000);
+        const restore = denyGitInternals(repo, internal);
         try {
-          // Precondition: the fixture must actually deny the executing user
-          // read access, otherwise the scenario is not exercised.
-          expect(() => accessSync(targetPath, constants.R_OK)).toThrow();
           const cwd = from === "root" ? repo : sub;
           const run = refusalRun("init", cwd, "review-probe");
           expect(run.exitCode).not.toBe(0);
@@ -353,7 +347,7 @@ describe("kibi init repository-context fixes", () => {
           expect(run.output).toContain("a .git entry exists at");
           expect(run.output).toContain("refusing to create workspace state");
         } finally {
-          chmodSync(targetPath, 0o755);
+          restore();
         }
         // No workspace, gitignore, symbols-manifest, or hook mutations.
         expect(existsSync(path.join(repo, ".kb"))).toBe(false);

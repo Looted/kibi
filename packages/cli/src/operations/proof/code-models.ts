@@ -81,8 +81,14 @@ if (typeof globalThis.Bun === "undefined") {
 const modules = new Map();
 async function load(ref) {
   if (!modules.has(ref.file)) modules.set(ref.file, await import(pathToFileURL(ref.file).href));
-  const value = modules.get(ref.file)[ref.export];
-  if (value === undefined) throw new Error(ref.export + " is not exported from " + ref.file);
+  // A dotted name reads a field of the export (BRAND.name).
+  const [head, ...fields] = ref.export.split(".");
+  let value = modules.get(ref.file)[head];
+  if (value === undefined) throw new Error(head + " is not exported from " + ref.file);
+  for (const field of fields) {
+    value = value !== null && typeof value === "object" ? value[field] : undefined;
+    if (value === undefined) throw new Error(ref.export + " has no field " + field + " in " + ref.file);
+  }
   return value;
 }
 function items(value, name) {
@@ -219,9 +225,17 @@ def module_for(file):
     return modules[file]
 def load(ref):
     module = module_for(ref["file"])
-    if not hasattr(module, ref["export"]):
-        raise ValueError(ref["export"] + " is not defined in " + ref["file"])
-    return getattr(module, ref["export"])
+    # A dotted name reads a field of the export (BRAND.name).
+    head, *fields = ref["export"].split(".")
+    if not hasattr(module, head):
+        raise ValueError(head + " is not defined in " + ref["file"])
+    value = getattr(module, head)
+    missing = object()
+    for field in fields:
+        value = value.get(field, missing) if isinstance(value, dict) else getattr(value, field, missing)
+        if value is missing:
+            raise ValueError(ref["export"] + " has no field " + field + " in " + ref["file"])
+    return value
 def text(item):
     if isinstance(item, enum.Enum):
         return text(item.value)

@@ -335,6 +335,30 @@ describe("proof_contract fields of the non-numeric kinds", () => {
     expect(
       proofContractErrors(
         contract({
+          kind: "exhaustive",
+          domain_source: { symbol_id: "SYM-D", field: "name" },
+        }),
+      ),
+    ).toEqual([]);
+    expect(
+      proofContractErrors(
+        contract({
+          kind: "state_machine",
+          domain_source: { symbol_id: "SYM-D", field: "name" },
+        }),
+      ).join("\n"),
+    ).toContain("domain_source.field applies only to kind exhaustive");
+    expect(
+      proofContractErrors(
+        contract({
+          kind: "exhaustive",
+          domain_source: { symbol_id: "SYM-D", field: "" },
+        }),
+      ).join("\n"),
+    ).toContain("{symbol_id, export?, field?}");
+    expect(
+      proofContractErrors(
+        contract({
           kind: "rule",
           predicate_source: { p: {} },
           domains: { t: { symbol_id: "S" } },

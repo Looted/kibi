@@ -831,6 +831,11 @@
               "type": "string",
               "minLength": 1,
               "description": "The name the domain is exported under in the symbol's source file, when the symbol's title is not that name."
+            },
+            "field": {
+              "type": "string",
+              "minLength": 1,
+              "description": "exhaustive: when the export is a list of records, the field of each record that names a domain member (a catalog's name)."
             }
           },
           "additionalProperties": false
