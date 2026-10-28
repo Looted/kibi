@@ -260,7 +260,10 @@ if (typeof globalThis.Bun === "undefined") {
   const { register } = await import("node:module");
   register?.("data:text/javascript," + encodeURIComponent(${JSON.stringify(TS_RESOLVE_HOOKS)}));
 }
-const value = (await import(pathToFileURL(file).href))[name];
+// A dotted name reads a field of the export (POLICY.eventLimit).
+const [head, ...fields] = name.split(".");
+let value = (await import(pathToFileURL(file).href))[head];
+for (const field of fields) value = value !== null && typeof value === "object" ? value[field] : undefined;
 let items = null;
 if (Array.isArray(value)) items = value;
 else if (value instanceof Set) items = [...value];
@@ -288,7 +291,11 @@ while os.path.exists(os.path.join(directory, "__init__.py")):
     parts.insert(0, package)
 sys.path.insert(0, directory)
 module = importlib.import_module(".".join(parts))
-value = getattr(module, name, None)
+# A dotted name reads a field of the export (POLICY.event_limit).
+head, *fields = name.split(".")
+value = getattr(module, head, None)
+for field in fields:
+    value = value.get(field) if isinstance(value, dict) else getattr(value, field, None)
 if isinstance(value, type) and issubclass(value, enum.Enum):
     items = [member.value for member in value]
 elif isinstance(value, dict):

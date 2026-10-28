@@ -315,6 +315,7 @@ const NON_NUMERIC_OBLIGATIONS = new Set([
   "set_relation",
   "nullable_fields",
   "route_middleware",
+  "sequence_precedes",
 ]);
 
 async function derivedProblem(
