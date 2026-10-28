@@ -314,3 +314,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-90546c7eca96
+  - type: implements
+    from: SYM-const-proof-contract-claims-review-code
+    to: REQ-cli-migration-pin-codes
+    created_at: 2026-10-28T20:31:44.688Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68817512dec8
+  - type: covered_by
+    from: SYM-const-proof-contract-claims-review-code
+    to: TEST-proof-contract-claims-review-code
+    created_at: 2026-10-28T20:31:56.531Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-974ae3fc77db
+  - type: covered_by
+    from: SYM-const-proof-contract-claims-review-code
+    to: TEST-cli-migrate
+    created_at: 2026-10-28T20:31:56.551Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d17867dc8ce5

@@ -433,3 +433,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-42be4408ae38
+  - type: validates
+    from: TEST-proof-branch-store-manifest-version
+    to: SCEN-branch-detached-head-read-only
+    created_at: 2026-10-28T20:42:48.569Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4979a1d36cfa

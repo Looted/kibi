@@ -461,3 +461,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-288b3a3c649a
+  - type: executable_for
+    from: SYM-proof-supersedes-acknowledged-rule
+    to: TEST-proof-supersedes-acknowledged-rule
+    created_at: 2026-10-28T20:23:18.693Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9faaf840f3ad

@@ -188,3 +188,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3e91dfc1eea1
+  - type: executable_for
+    from: SYM-proof-prove-progress-file
+    to: TEST-proof-prove-progress-file
+    created_at: 2026-10-28T21:20:18.495Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d4070b46adb

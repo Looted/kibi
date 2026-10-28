@@ -279,3 +279,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1fa0f5075056
+  - type: validates
+    from: TEST-proof-semantic-text-pin-code
+    to: SCEN-cli-migrate
+    created_at: 2026-10-28T20:30:15.559Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a845449a6ae
+  - type: validates
+    from: TEST-proof-legacy-link-mark-code
+    to: SCEN-cli-migrate
+    created_at: 2026-10-28T20:33:15.656Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7129523d7b4d

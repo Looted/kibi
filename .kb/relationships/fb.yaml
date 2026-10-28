@@ -412,3 +412,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e75c0322a66f
+  - type: validates
+    from: TEST-proof-agent-review-code
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:26:02.420Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c2f350ede7a
+  - type: executable_for
+    from: SYM-proof-engine-exit-grace
+    to: TEST-proof-engine-exit-grace
+    created_at: 2026-10-28T20:46:35.350Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-097662ecc1a0

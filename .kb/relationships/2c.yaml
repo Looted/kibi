@@ -314,3 +314,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cdc09ef3d7e5
+  - type: implements
+    from: SYM-const-scoped-check-omitted-id
+    to: REQ-kibi-check-rule-names
+    created_at: 2026-10-28T20:23:38.537Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0b6b7d7f296
+  - type: covered_by
+    from: SYM-const-scoped-check-omitted-id
+    to: TEST-proof-scoped-check-omitted-id
+    created_at: 2026-10-28T20:23:50.983Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b33fdac94d78
+  - type: covered_by
+    from: SYM-const-scoped-check-omitted-id
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:23:51.003Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac7b8387260e
+  - type: executable_for
+    from: SYM-proof-telemetry-remediation-version
+    to: TEST-proof-telemetry-remediation-version
+    created_at: 2026-10-28T20:52:46.456Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84e9483377ed

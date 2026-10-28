@@ -363,3 +363,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f8a114ec4ff4
+  - type: executable_for
+    from: SYM-proof-close-superseded-code
+    to: TEST-proof-close-superseded-code
+    created_at: 2026-10-28T20:26:46.999Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76b1f4753878
+  - type: validates
+    from: TEST-proof-reference-extracts
+    to: SCEN-kibi-code-proof-kinds
+    created_at: 2026-10-28T20:38:17.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93aa0b2fb08c

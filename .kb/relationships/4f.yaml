@@ -360,3 +360,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ebb0df801c15
+  - type: implements
+    from: SYM-schema6-SEMANTIC_INVENTORY_REDERIVE_DROP_GROUNDING_CODE
+    to: REQ-cli-migration-pin-codes
+    created_at: 2026-10-28T20:32:05.275Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee5590cbef6b
+  - type: covered_by
+    from: SYM-schema6-SEMANTIC_INVENTORY_REDERIVE_DROP_GROUNDING_CODE
+    to: TEST-proof-rederive-drop-grounding-code
+    created_at: 2026-10-28T20:32:17.176Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2e48c472c4c
+  - type: covered_by
+    from: SYM-schema6-SEMANTIC_INVENTORY_REDERIVE_DROP_GROUNDING_CODE
+    to: TEST-cli-migrate
+    created_at: 2026-10-28T20:32:17.197Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e99bbccf1d8b
+  - type: validates
+    from: TEST-proof-migration-plan-digest-version
+    to: SCEN-agent-guided-migration-orchestration
+    created_at: 2026-10-28T20:55:49.554Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1691d45e99b7

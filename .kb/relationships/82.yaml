@@ -349,3 +349,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f1ce6303c748
+  - type: validates
+    from: TEST-proof-exception-self-attested-rule
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:21:23.960Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb70d95e9872

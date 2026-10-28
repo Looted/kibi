@@ -223,3 +223,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1b66be3dd8a5
+  - type: implements
+    from: SYM-const-agent-requirement-unapproved-rule
+    to: REQ-kibi-check-rule-names
+    created_at: 2026-10-28T20:20:35.786Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2983f158351
+  - type: covered_by
+    from: SYM-const-agent-requirement-unapproved-rule
+    to: TEST-proof-agent-requirement-unapproved-rule
+    created_at: 2026-10-28T20:20:47.006Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aef3a620601a
+  - type: covered_by
+    from: SYM-const-agent-requirement-unapproved-rule
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:20:47.022Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59eb9f38a89e

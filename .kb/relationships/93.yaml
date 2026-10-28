@@ -216,3 +216,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cc24126fe745
+  - type: implements
+    from: SYM-const-evidence-floor-schema-version
+    to: REQ-kibi-check-rule-names
+    created_at: 2026-10-28T20:20:11.810Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f48b4ab901d4
+  - type: covered_by
+    from: SYM-const-evidence-floor-schema-version
+    to: TEST-proof-evidence-floor-schema-version
+    created_at: 2026-10-28T20:20:23.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85a38b0628e3
+  - type: covered_by
+    from: SYM-const-evidence-floor-schema-version
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:20:23.852Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a039d58ae347
+  - type: executable_for
+    from: SYM-proof-derived-coordinates-schema
+    to: TEST-proof-derived-coordinates-schema
+    created_at: 2026-10-28T20:34:04.993Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc2d802f302d

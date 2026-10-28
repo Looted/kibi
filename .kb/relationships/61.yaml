@@ -314,3 +314,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a55b1d7cb7bd
+  - type: validates
+    from: TEST-proof-detached-head-code
+    to: SCEN-branch-detached-head-read-only
+    created_at: 2026-10-28T20:42:31.036Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82c93f15aa27

@@ -300,3 +300,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c37e01260122
+  - type: validates
+    from: TEST-proof-close-superseded-code
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:26:44.758Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98bbba58484f
+  - type: executable_for
+    from: SYM-proof-reference-extracts
+    to: TEST-proof-reference-extracts
+    created_at: 2026-10-28T20:38:19.486Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0ae47218a57
+  - type: requires_property
+    from: REQ-kibi-operation-row-limits
+    to: FACT-entity-row-batch-limit
+    created_at: 2026-10-28T21:33:54.159Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa339d128fe9
+  - type: specified_by
+    from: REQ-kibi-operation-row-limits
+    to: SCEN-kibi-operation-interface-parity
+    created_at: 2026-10-28T21:33:54.208Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ed5af635b81
+  - type: constrains
+    from: REQ-kibi-operation-row-limits
+    to: FACT-kibi-operations-rows-component
+    created_at: 2026-10-28T21:33:56.660Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f903e525fbf

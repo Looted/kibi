@@ -307,3 +307,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-135935bd6855
+  - type: implements
+    from: SYM-const-plan-apply-journal-version
+    to: REQ-kibi-plan-apply-journal-version
+    created_at: 2026-10-28T20:58:38.335Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7fcc01520470
+  - type: covered_by
+    from: SYM-const-plan-apply-journal-version
+    to: TEST-proof-plan-apply-journal-version
+    created_at: 2026-10-28T20:58:50.422Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06e170833dc1
+  - type: covered_by
+    from: SYM-const-plan-apply-journal-version
+    to: TEST-e2e-plan-compiler-hash
+    created_at: 2026-10-28T20:58:50.441Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1399e4890737

@@ -202,3 +202,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-72112276a5d2
+  - type: executable_for
+    from: SYM-proof-agent-requirement-unapproved-rule
+    to: TEST-proof-agent-requirement-unapproved-rule
+    created_at: 2026-10-28T20:20:39.845Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4810ee756d0d

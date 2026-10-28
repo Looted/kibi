@@ -391,3 +391,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b31ca11c47ff
+  - type: validates
+    from: TEST-proof-firm-supersede-code
+    to: SCEN-cli-migrate
+    created_at: 2026-10-28T20:31:00.632Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a4cd145de6d
+  - type: validates
+    from: TEST-proof-entity-row-batch-limit
+    to: SCEN-kibi-operation-interface-parity
+    created_at: 2026-10-28T21:34:07.119Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1682133f3197

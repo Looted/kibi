@@ -272,3 +272,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-da3a6703d980
+  - type: validates
+    from: TEST-proof-engine-idle-check
+    to: SCEN-core-journaled-engine-lifecycle
+    created_at: 2026-10-28T20:46:04.860Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ceb5be57b77

@@ -279,3 +279,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-46e144cc0d1e
+  - type: implements
+    from: SYM-const-detached-head-read-only-code
+    to: REQ-branch-store-settings
+    created_at: 2026-10-28T20:42:29.513Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f875c0b125f1
+  - type: covered_by
+    from: SYM-const-detached-head-read-only-code
+    to: TEST-proof-detached-head-code
+    created_at: 2026-10-28T20:42:40.170Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73938392790d
+  - type: covered_by
+    from: SYM-const-detached-head-read-only-code
+    to: TEST-branch-detached-head-read-only-cli
+    created_at: 2026-10-28T20:42:40.185Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-415877686e56
+  - type: requires_property
+    from: REQ-engine-timing-settings
+    to: FACT-engine-idle-check
+    created_at: 2026-10-28T20:45:45.123Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ee49327fc90
+  - type: requires_property
+    from: REQ-engine-timing-settings
+    to: FACT-engine-exit-grace
+    created_at: 2026-10-28T20:45:45.158Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd07cb13a345
+  - type: specified_by
+    from: REQ-engine-timing-settings
+    to: SCEN-core-journaled-engine-lifecycle
+    created_at: 2026-10-28T20:45:45.195Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-35fd092c52ed
+  - type: constrains
+    from: REQ-engine-timing-settings
+    to: FACT-kibi-engine-timing-component
+    created_at: 2026-10-28T20:45:47.721Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b5b7ade4dbd

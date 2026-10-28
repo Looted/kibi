@@ -370,3 +370,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-37a5f207f2c9
+  - type: implements
+    from: SYM-const-policy-markers-rule
+    to: REQ-kibi-check-rule-names
+    created_at: 2026-10-28T20:22:08.807Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d14c76f3f8ac
+  - type: covered_by
+    from: SYM-const-policy-markers-rule
+    to: TEST-proof-policy-markers-rule
+    created_at: 2026-10-28T20:22:20.212Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0fdc83718f9d
+  - type: covered_by
+    from: SYM-const-policy-markers-rule
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:22:20.233Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bfd583a3c9e2
+  - type: executable_for
+    from: SYM-proof-migration-plan-digest-version
+    to: TEST-proof-migration-plan-digest-version
+    created_at: 2026-10-28T20:55:51.922Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79ff3432170e

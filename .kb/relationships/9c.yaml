@@ -311,3 +311,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-43c710ddfc72
+  - type: validates
+    from: TEST-proof-context-missing-tag-code
+    to: SCEN-cli-migrate
+    created_at: 2026-10-28T20:29:51.709Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dcc76f7ea6db

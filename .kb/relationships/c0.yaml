@@ -314,3 +314,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2c8a0628b4d7
+  - type: validates
+    from: TEST-proof-contract-claims-review-code
+    to: SCEN-cli-migrate
+    created_at: 2026-10-28T20:31:47.291Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8bcf734e00ab

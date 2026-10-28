@@ -272,3 +272,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b0fd3be29e23
+  - type: covered_by
+    from: SYM-const-entity-row-batch-limit
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-10-28T20:48:17.366Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1ef3455f2d0
+  - type: implements
+    from: SYM-const-entity-row-batch-limit
+    to: REQ-kibi-operation-row-limits
+    created_at: 2026-10-28T21:34:04.619Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79b65415a2f4
+  - type: covered_by
+    from: SYM-const-entity-row-batch-limit
+    to: TEST-proof-entity-row-batch-limit
+    created_at: 2026-10-28T21:34:17.885Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d90781fa94e

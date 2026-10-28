@@ -685,3 +685,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-96b096389319
+  - type: validates
+    from: TEST-proof-predicate-key-review-code
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:27:25.852Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18f3b0cba0f8
+  - type: executable_for
+    from: SYM-proof-max-table-rows
+    to: TEST-proof-max-table-rows
+    created_at: 2026-10-28T20:38:43.509Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d70cdc895e4e
+  - type: implements
+    from: SYM-legacy-migration-plan-version
+    to: REQ-agent-migration-plan-versions
+    created_at: 2026-10-28T20:55:21.577Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-447e14c72a7d
+  - type: covered_by
+    from: SYM-legacy-migration-plan-version
+    to: TEST-proof-legacy-migration-plan-version
+    created_at: 2026-10-28T20:55:34.127Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce2dc3ea7270
+  - type: covered_by
+    from: SYM-legacy-migration-plan-version
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-10-28T20:55:34.171Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-249acaf6f8a2
+  - type: executable_for
+    from: SYM-proof-plan-apply-journal-version
+    to: TEST-proof-plan-apply-journal-version
+    created_at: 2026-10-28T20:58:43.030Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-94a6d878e5e0

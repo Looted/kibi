@@ -363,3 +363,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-988f2689a429
+  - type: executable_for
+    from: SYM-proof-rationale-review-action
+    to: TEST-proof-rationale-review-action
+    created_at: 2026-10-28T20:27:48.289Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64bcf7467cea

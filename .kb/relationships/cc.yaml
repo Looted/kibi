@@ -307,3 +307,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f7e97550b8f6
+  - type: executable_for
+    from: SYM-proof-fingerprint-part-names
+    to: TEST-proof-fingerprint-part-names
+    created_at: 2026-10-28T21:19:53.179Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc0bfc5c23da

@@ -216,3 +216,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b185ad6773d2
+  - type: requires_property
+    from: REQ-kb-firmness-values
+    to: FACT-firmness-values
+    created_at: 2026-10-28T20:50:57.128Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b505068874c
+  - type: specified_by
+    from: REQ-kb-firmness-values
+    to: SCEN-kb-decision-firmness
+    created_at: 2026-10-28T20:50:57.169Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d961f4e5e55e
+  - type: constrains
+    from: REQ-kb-firmness-values
+    to: FACT-kibi-firmness-values-component
+    created_at: 2026-10-28T20:50:59.373Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ac3a3dfa9bd

@@ -279,3 +279,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-487176cb4b15
+  - type: implements
+    from: SYM-const-migration-plan-digest-version
+    to: REQ-agent-migration-plan-versions
+    created_at: 2026-10-28T20:55:46.756Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-38d91374d7cd
+  - type: covered_by
+    from: SYM-const-migration-plan-digest-version
+    to: TEST-proof-migration-plan-digest-version
+    created_at: 2026-10-28T20:56:00.096Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b85bf3792d72
+  - type: covered_by
+    from: SYM-const-migration-plan-digest-version
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-10-28T20:56:00.119Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-363bea0d1d46

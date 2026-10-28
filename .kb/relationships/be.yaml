@@ -314,3 +314,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f4a3cbd047f3
+  - type: implements
+    from: SYM-const-symbol-legacy-link-mark-action-id
+    to: REQ-cli-migration-pin-codes
+    created_at: 2026-10-28T20:32:49.468Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb13ade7548b
+  - type: covered_by
+    from: SYM-const-symbol-legacy-link-mark-action-id
+    to: TEST-proof-legacy-link-mark-action
+    created_at: 2026-10-28T20:33:00.979Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-185a93aaa96a
+  - type: covered_by
+    from: SYM-const-symbol-legacy-link-mark-action-id
+    to: TEST-cli-migrate
+    created_at: 2026-10-28T20:33:00.998Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a3cd20c1029

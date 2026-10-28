@@ -314,3 +314,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-851b7145f9ab
+  - type: executable_for
+    from: SYM-proof-scoped-check-omitted-id
+    to: TEST-proof-scoped-check-omitted-id
+    created_at: 2026-10-28T20:23:43.617Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c3917ff4404

@@ -297,3 +297,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b57ed3c0c01
+  - type: implements
+    from: SYM-fingerprint-component-names
+    to: REQ-kibi-proof-receipt-format
+    created_at: 2026-10-28T21:19:48.330Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b924a4a0209a
+  - type: covered_by
+    from: SYM-fingerprint-component-names
+    to: TEST-proof-fingerprint-part-names
+    created_at: 2026-10-28T21:19:59.752Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b33b481535a
+  - type: covered_by
+    from: SYM-fingerprint-component-names
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T21:19:59.771Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4fdd3a1bf3b

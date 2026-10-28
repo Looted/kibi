@@ -209,3 +209,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-71756b669306
+  - type: executable_for
+    from: SYM-proof-branch-store-not-compiled-code
+    to: TEST-proof-branch-store-not-compiled-code
+    created_at: 2026-10-28T20:43:13.946Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19579cbf83b8
+  - type: requires_property
+    from: REQ-impact-review-file
+    to: FACT-impact-review-path
+    created_at: 2026-10-28T21:00:24.433Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0be684db9837
+  - type: specified_by
+    from: REQ-impact-review-file
+    to: SCEN-impact-policy-stage-e-installed-consumer
+    created_at: 2026-10-28T21:00:24.464Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad3819d6f553
+  - type: constrains
+    from: REQ-impact-review-file
+    to: FACT-kibi-impact-review-file-component
+    created_at: 2026-10-28T21:00:26.700Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-847787725994

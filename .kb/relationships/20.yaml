@@ -377,3 +377,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8058ddd25533
+  - type: executable_for
+    from: SYM-proof-agent-review-code
+    to: TEST-proof-agent-review-code
+    created_at: 2026-10-28T20:26:04.684Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4e13a8375d8
+  - type: implements
+    from: SYM-const-semantic-text-pin-code
+    to: REQ-cli-migration-pin-codes
+    created_at: 2026-10-28T20:30:13.135Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e15f93b41f98
+  - type: covered_by
+    from: SYM-const-semantic-text-pin-code
+    to: TEST-proof-semantic-text-pin-code
+    created_at: 2026-10-28T20:30:24.935Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c801c95ee6e
+  - type: covered_by
+    from: SYM-const-semantic-text-pin-code
+    to: TEST-cli-migrate
+    created_at: 2026-10-28T20:30:24.956Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8a4fcbcac8b
+  - type: implements
+    from: SYM-const-engine-prolog-exit-grace-ms
+    to: REQ-engine-timing-settings
+    created_at: 2026-10-28T20:46:30.195Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c12c5c17cc57
+  - type: covered_by
+    from: SYM-const-engine-prolog-exit-grace-ms
+    to: TEST-proof-engine-exit-grace
+    created_at: 2026-10-28T20:46:43.282Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d86a650c7ca5
+  - type: covered_by
+    from: SYM-const-engine-prolog-exit-grace-ms
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-10-28T20:46:43.314Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae086d07a24d

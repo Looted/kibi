@@ -328,3 +328,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b88125c1dbd
+  - type: executable_for
+    from: SYM-proof-entity-row-batch-limit
+    to: TEST-proof-entity-row-batch-limit
+    created_at: 2026-10-28T21:34:09.396Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-085c23d6258a

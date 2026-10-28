@@ -370,3 +370,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6b0094bd203f
+  - type: implements
+    from: SYM-const-supersedes-reason-acknowledge-code
+    to: REQ-cli-migration-pin-codes
+    created_at: 2026-10-28T20:32:27.880Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2bb6300a7b2
+  - type: covered_by
+    from: SYM-const-supersedes-reason-acknowledge-code
+    to: TEST-proof-supersedes-acknowledge-code
+    created_at: 2026-10-28T20:32:37.724Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-826f77c6ca04
+  - type: covered_by
+    from: SYM-const-supersedes-reason-acknowledge-code
+    to: TEST-cli-migrate
+    created_at: 2026-10-28T20:32:37.740Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1e4f31ef647

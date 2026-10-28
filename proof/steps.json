@@ -5272,5 +5272,605 @@
         "./packages/cli/tests/proofs/claims/prolog-runtime-libraries.proof.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-proof-evidence-floor-rule",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/check-rule-names.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-evidence-floor-schema-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/check-rule-names.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-agent-requirement-unapproved-rule",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/check-rule-names.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-exception-unapproved-rule",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/check-rule-names.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-exception-self-attested-rule",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/check-rule-names.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-rationale-missing-rule",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/check-rule-names.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-policy-markers-rule",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/check-rule-names.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-policy-ownership-rule",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/check-rule-names.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-symbol-granularity-rule",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/check-rule-names.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-supersedes-acknowledged-rule",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/check-rule-names.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-scoped-check-omitted-id",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/check-rule-names.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-agent-review-action",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/lifecycle-review-actions.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-agent-review-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/lifecycle-review-actions.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-close-superseded-action",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/lifecycle-review-actions.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-close-superseded-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/lifecycle-review-actions.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-self-attested-review-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/lifecycle-review-actions.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-predicate-key-review-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/lifecycle-review-actions.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-rationale-review-action",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/lifecycle-review-actions.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-feasibility-review-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/lifecycle-review-actions.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-context-missing-tag-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-pin-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-semantic-text-pin-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-pin-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-evidence-floor-pin-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-pin-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-firm-supersede-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-pin-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-contract-claims-pin-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-pin-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-contract-claims-review-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-pin-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-rederive-drop-grounding-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-pin-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-supersedes-acknowledge-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-pin-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-legacy-link-mark-action",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-pin-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-legacy-link-mark-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-pin-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-closed-requirement-status",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-pin-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-derived-coordinates-schema",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-pin-codes.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-code-certificate-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/code-certificate-settings.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-proof-certificates-env",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/code-certificate-settings.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-reference-extracts",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/code-certificate-settings.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-max-table-rows",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/code-certificate-settings.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-detached-head-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/branch-store-settings.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-branch-store-manifest-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/branch-store-settings.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-branch-store-not-compiled-code",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/branch-store-settings.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-branch-store-not-compiled-rule",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/branch-store-settings.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-lock-takeover-file",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/branch-store-settings.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-lock-takeover-visible",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/branch-store-settings.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-engine-idle-check",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/engine-timing-settings.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-engine-exit-grace",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/engine-timing-settings.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-firmness-values",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/firmness-values.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-telemetry-acceptance-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/telemetry-versions.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-telemetry-remediation-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/telemetry-versions.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-lookup-before-edit-operations",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/telemetry-versions.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-legacy-migration-plan-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-plan-versions.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-migration-plan-digest-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-plan-versions.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-migration-plan-refused",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-plan-versions.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-plan-apply-journal-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/plan-apply-journal-version.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-impact-review-path",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/impact-review-file.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-staged-file-coverage-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/staged-file-coverage-version.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-distribution-parity-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/distribution-parity-version.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-receipt-v1-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/proof-receipt-format.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-receipt-versions",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/proof-receipt-format.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-fingerprint-part-names",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/proof-receipt-format.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-prove-progress-file",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/proof-receipt-format.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-integration-configure-step",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/proof-receipt-format.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-entity-row-batch-limit",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/operation-row-limits.proof.test.ts"
+      ]
+    ]
   }
 ]

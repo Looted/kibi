@@ -426,3 +426,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b3fa22685cbc
+  - type: implements
+    from: SYM-reqcompiler-telemetry-acceptance-version
+    to: REQ-kibi-telemetry-versions
+    created_at: 2026-10-28T20:52:20.781Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4752d95dbd55
+  - type: covered_by
+    from: SYM-reqcompiler-telemetry-acceptance-version
+    to: TEST-proof-telemetry-acceptance-version
+    created_at: 2026-10-28T20:52:32.813Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca085b8b6bba
