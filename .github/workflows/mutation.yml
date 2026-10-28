@@ -30,6 +30,8 @@ on:
       # kibi-cli modules in scope (CLI_MUTATION_MODULES in stryker.conf.mjs)
       - 'packages/cli/src/cli-input.ts'
       - 'packages/cli/tests/cli-input.test.ts'
+      - 'packages/cli/src/firm-decision-edit.ts'
+      - 'packages/cli/tests/firm-decision-edit.test.ts'
       - 'stryker.conf.mjs'
       - 'scripts/mutation-sandbox-setup.sh'
       - '.github/workflows/mutation.yml'

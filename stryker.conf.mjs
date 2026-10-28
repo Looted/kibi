@@ -26,6 +26,9 @@ const MUTATION_PACKAGES = [
 // tests (only they run against the module's mutants).
 export const CLI_MUTATION_MODULES = {
   "packages/cli/src/cli-input.ts": ["packages/cli/tests/cli-input.test.ts"],
+  "packages/cli/src/firm-decision-edit.ts": [
+    "packages/cli/tests/firm-decision-edit.test.ts",
+  ],
 };
 
 // Explicit test-file list, enumerated relative to the repo root (the Stryker
