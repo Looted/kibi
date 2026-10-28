@@ -279,3 +279,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1a94a8ce9b3b
+  - type: executable_for
+    from: SYM-proof-proof-contract-version
+    to: TEST-proof-proof-contract-version
+    created_at: 2026-10-28T10:54:13.926Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cfdbe6e78ce4

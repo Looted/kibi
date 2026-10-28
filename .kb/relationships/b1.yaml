@@ -195,3 +195,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a265c3326e1b
+  - type: requires_property
+    from: REQ-kb-decision-firmness-rule-ids
+    to: FACT-decision-firmness-rules
+    created_at: 2026-10-28T11:02:35.473Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b6677e33c8d
+  - type: requires_property
+    from: REQ-kb-decision-firmness-rule-ids
+    to: FACT-default-firmness
+    created_at: 2026-10-28T11:02:35.493Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e49024a3ff17
+  - type: requires_property
+    from: REQ-kb-decision-firmness-rule-ids
+    to: FACT-decision-firmness-schema-version
+    created_at: 2026-10-28T11:02:35.508Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6c6004cb1ca
+  - type: specified_by
+    from: REQ-kb-decision-firmness-rule-ids
+    to: SCEN-kb-decision-firmness
+    created_at: 2026-10-28T11:02:35.518Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52ca47a7a8c8
+  - type: validates
+    from: TEST-proof-proof-integration-version
+    to: SCEN-kibi-claim-bound-proofs
+    created_at: 2026-10-28T12:04:08.250Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3116548ac69
+  - type: constrains
+    from: REQ-kb-decision-firmness-rule-ids
+    to: FACT-kibi-decision-firmness-rules-component
+    created_at: 2026-10-28T14:36:39.092Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b1ea455a30e

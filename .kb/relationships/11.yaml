@@ -412,3 +412,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2d1bd65e593f
+  - type: requires_property
+    from: REQ-kibi-claim-bound-proof-settings
+    to: FACT-proof-receipt-outcomes
+    created_at: 2026-10-28T10:57:39.079Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49a80d276c43
+  - type: requires_property
+    from: REQ-kibi-claim-bound-proof-settings
+    to: FACT-claim-binding-schema-version
+    created_at: 2026-10-28T10:57:39.119Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00a677f8b4bb
+  - type: requires_property
+    from: REQ-kibi-claim-bound-proof-settings
+    to: FACT-proof-contract-claims-rule
+    created_at: 2026-10-28T10:57:39.148Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce9e33e39146
+  - type: specified_by
+    from: REQ-kibi-claim-bound-proof-settings
+    to: SCEN-kibi-claim-bound-proofs
+    created_at: 2026-10-28T10:57:39.172Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-38648891c01d
+  - type: constrains
+    from: REQ-kibi-claim-bound-proof-settings
+    to: FACT-kibi-claim-bound-proof-settings-component
+    created_at: 2026-10-28T14:36:35.137Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1bc8cc4c8029

@@ -230,3 +230,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b082b2febbcd
+  - type: executable_for
+    from: SYM-proof-min-context-words
+    to: TEST-proof-min-context-words
+    created_at: 2026-10-28T10:39:12.762Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-686910669624

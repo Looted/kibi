@@ -300,3 +300,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3546ee4a357c
+  - type: validates
+    from: TEST-proof-search-answer-entity-loads
+    to: SCEN-kibi-search-answer-layer
+    created_at: 2026-10-28T11:10:49.954Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7dec83db53b2

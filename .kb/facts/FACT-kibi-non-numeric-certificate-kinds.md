@@ -7,7 +7,7 @@ property_key: certificate_proof_kind
 operator: eq
 claim_key: CLAIM-289608FF49F0F9C6
 claim_text: Rule, state_machine and regex must each be certificate proof kinds
-text_ref: REQ-kibi-non-numeric-proof-kinds
+text_ref: REQ-kibi-non-numeric-certificate-kinds
 tags:
   - strict-modeling
   - lane:strict

@@ -279,3 +279,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7634cc88fadd
+  - type: validates
+    from: TEST-proof-ontology-pack-capability-id
+    to: SCEN-capability-plugin-host-resolution-v1
+    created_at: 2026-10-28T10:49:13.948Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-65b5c120b740
+  - type: validates
+    from: TEST-proof-proof-test-report-version
+    to: SCEN-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T11:07:37.208Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e606b647cfa

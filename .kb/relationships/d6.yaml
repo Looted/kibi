@@ -325,3 +325,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-49b0c04ef108
+  - type: executable_for
+    from: SYM-proof-engine-read-time-limit-cap
+    to: TEST-proof-engine-read-time-limit-cap
+    created_at: 2026-10-28T10:32:00.841Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d00fb9a51033

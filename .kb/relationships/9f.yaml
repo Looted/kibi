@@ -255,3 +255,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ac4e54265328
+  - type: implements
+    from: SYM-const-context-missing-tag
+    to: REQ-kb-entity-context-rule-ids
+    created_at: 2026-10-28T11:05:16.805Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae4fc8368c06
+  - type: covered_by
+    from: SYM-const-context-missing-tag
+    to: TEST-proof-context-missing-tag
+    created_at: 2026-10-28T11:05:28.402Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de93f5012421
+  - type: covered_by
+    from: SYM-const-context-missing-tag
+    to: TEST-kb-entity-body-context
+    created_at: 2026-10-28T11:05:28.426Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5bda9eb04309

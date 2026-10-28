@@ -475,3 +475,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-55757060fb19
+  - type: implements
+    from: SYM-source-analysis-v2-max-input-code-units
+    to: REQ-capability-plugin-source-analysis-input-limit
+    created_at: 2026-10-28T10:52:17.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aeab2d418429
+  - type: covered_by
+    from: SYM-source-analysis-v2-max-input-code-units
+    to: TEST-proof-source-analysis-max-input
+    created_at: 2026-10-28T10:52:28.059Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ecaf5d063094

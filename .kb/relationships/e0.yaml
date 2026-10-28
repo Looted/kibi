@@ -346,3 +346,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0c6b04756311
+  - type: validates
+    from: TEST-proof-swipl-minimum-major
+    to: SCEN-prolog-bundled-runtime
+    created_at: 2026-10-28T10:35:25.463Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99e7dc441efc

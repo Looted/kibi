@@ -216,3 +216,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e82eb9185c55
+  - type: executable_for
+    from: SYM-proof-decision-firmness-rules
+    to: TEST-proof-decision-firmness-rules
+    created_at: 2026-10-28T11:02:49.555Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c5d7a868ce3

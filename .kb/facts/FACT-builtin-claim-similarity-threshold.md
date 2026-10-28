@@ -1,0 +1,19 @@
+---
+title: The built-in claim similarity threshold shall be 0.75
+status: active
+fact_kind: property_value
+subject_key: kibi.vocabulary_alignment.settings
+claim_key: CLAIM-50F8B11033E58CB8
+claim_text: The built-in claim similarity threshold shall be 0.75
+text_ref: REQ-kibi-vocabulary-alignment-settings
+property_key: claim_similarity_threshold
+operator: eq
+value_type: number
+value_number: 0.75
+origin:
+  kind: agent
+  recorded_at: '2026-10-28T10:44:39.204Z'
+id: FACT-builtin-claim-similarity-threshold
+type: fact
+---
+Kibi proves this claim with a certificate it re-runs against the code itself, so the claim stays proved only while the code still holds the stated value.

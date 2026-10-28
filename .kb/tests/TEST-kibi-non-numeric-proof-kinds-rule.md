@@ -30,17 +30,17 @@ id: TEST-kibi-non-numeric-proof-kinds-rule
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-70106c3d8a8a830912e17beb
+    receipt_id: PR-d26ce0fa832b3ae5dbf6ddee
     test_id: TEST-kibi-non-numeric-proof-kinds-rule
     scope: unit
     outcome: passed
-    code_snapshot: 051ba88699030af009b93f61e09414de603b6cef3f5ec5fd60cac8818da3f839
+    code_snapshot: 5cd63ae2d123c329d0f327961e5bd248bf2ec09473953b646a5ae51a11d4014d
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-26T09:55:37.119Z'
-    finished_at: '2026-10-26T09:55:37.188Z'
-    artifact_digest: db228030985127448da66d14663eb7dbc1a468d43d2c4ded4c2a550bf583a154
+    started_at: '2026-10-28T13:48:06.391Z'
+    finished_at: '2026-10-28T13:48:06.518Z'
+    artifact_digest: 4d7e78a6391dce9de7f095f8b75ca4205f4f9067ee2f8fe9f63b62686b15c7ba
     contract_hash: 8bea2f893deb7c093328a1092e7e7232f5d310282d008753b7641859bb6b19a0
-    binding_hash: 73d57eda4701cbd4bccc48d032d38a1a02501fdbcc99c60c232e069dc5fbaafe
+    binding_hash: 3b7b9b499581cd36023db242a13ade1f654e5f7326d9d1037a3c53aebbda92ea
     fingerprint: 8693ea47063630def80565422453b26b807dddead76dc018ee9c0b00495d87dc
     fingerprint_components:
       contract: 8bea2f893deb7c093328a1092e7e7232f5d310282d008753b7641859bb6b19a0
@@ -82,6 +82,7 @@ proof_receipts:
             - rule
             - state_machine
             - regex
+            - source
       predicates:
         certificate_proof_kind:
           symbol_id: SYM-is-certificate-proof-kind
@@ -118,10 +119,13 @@ proof_receipts:
             - args:
                 - regex
               value: true
-    certificate_digest: e76291681456802e4f225ccfdd800f808e2208cbee143abf75c9e04dc77d7808
+            - args:
+                - source
+              value: true
+    certificate_digest: 412d921126e14b5fee0a25438442b8670ca2572bbab83ae00f2e58a198dfa271
     claim_bindings:
       - claim_key: CLAIM-289608FF49F0F9C6
-        requirement_id: REQ-kibi-non-numeric-proof-kinds
+        requirement_id: REQ-kibi-non-numeric-certificate-kinds
         fact_id: FACT-kibi-non-numeric-certificate-kinds
         binding: derived
         scope: code

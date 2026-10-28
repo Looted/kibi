@@ -18,18 +18,18 @@ proof_bindings:
     native_id: 'documentation/tests/e2e/packed/runtime-symbol-analysis.test.ts::Packed E2E: relocated runtime preserves ts-morph analysis'
     source_file: documentation/tests/e2e/packed/runtime-symbol-analysis.test.ts
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-39f24056ca032e1687e07f68
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-bfd2eb0e6b5961e8c9fd92dc
     test_id: TEST-e2e-runtime-symbol-portability
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
+    code_snapshot: 5477dc3831d7d1aad6ba7410b71c7f2e3fded37be9c633af99695e7be22a613f
+    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
+    started_at: '2026-10-28T13:36:29.963Z'
+    finished_at: '2026-10-28T13:37:44.836Z'
+    artifact_digest: bbb9f85ef6811d93f5ce71ce4befab9eadaa8d2a86c9e7bff222c0b4d6f697f5
     contract_hash: c2633824048151cca929554e20f0350577bc55f3489610a26bce9ed4ac7035ac
-    binding_hash: 4e149888310b66e1d37da864748a8df3fe5488226496f77d9b5512fe1e514c0f
+    binding_hash: 6ac5a3ef895308ada5fd8180a9e4d4d0783fa1f5021e7c2ef75f7da2fb9219df
     fingerprint: e3accf6ed1fd9253aa856876bd13d13572f6ae9a71672699ccefdff6da8624a5
     fingerprint_components:
       contract: c2633824048151cca929554e20f0350577bc55f3489610a26bce9ed4ac7035ac
@@ -51,6 +51,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 origin:
   kind: migration
   ref: kibi migrate v5->v6

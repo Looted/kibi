@@ -300,3 +300,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3fd9a4b5c780
+  - type: validates
+    from: TEST-proof-engine-query-limit-code
+    to: SCEN-core-engine-read-limits
+    created_at: 2026-10-28T10:31:34.579Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-135935bd6855

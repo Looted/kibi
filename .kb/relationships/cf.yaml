@@ -258,3 +258,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2b81b1b9c30d
+  - type: requires_property
+    from: REQ-kb-entity-context-rule-ids
+    to: FACT-entity-context-rules
+    created_at: 2026-10-28T11:04:40.564Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f7a86bb7f97
+  - type: requires_property
+    from: REQ-kb-entity-context-rule-ids
+    to: FACT-context-missing-tag
+    created_at: 2026-10-28T11:04:40.596Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd885d5eb7b8
+  - type: requires_property
+    from: REQ-kb-entity-context-rule-ids
+    to: FACT-body-context-schema-version
+    created_at: 2026-10-28T11:04:40.612Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf3c7f6bbefb
+  - type: specified_by
+    from: REQ-kb-entity-context-rule-ids
+    to: SCEN-kb-entity-body-context
+    created_at: 2026-10-28T11:04:40.627Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2343e4795bea
+  - type: constrains
+    from: REQ-kb-entity-context-rule-ids
+    to: FACT-kibi-entity-body-rules-component
+    created_at: 2026-10-28T14:36:47.174Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c3ae23095ba

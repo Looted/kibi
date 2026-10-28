@@ -272,3 +272,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1eef0a93c7ed
+  - type: implements
+    from: SYM-const-proof-test-report-env
+    to: REQ-kibi-proof-step-settings
+    created_at: 2026-10-28T11:07:11.826Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e928f8079bee
+  - type: covered_by
+    from: SYM-const-proof-test-report-env
+    to: TEST-proof-proof-test-report-env
+    created_at: 2026-10-28T11:07:23.712Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29f1ee5d3824
+  - type: covered_by
+    from: SYM-const-proof-test-report-env
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T11:07:23.731Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2a5da0c6569

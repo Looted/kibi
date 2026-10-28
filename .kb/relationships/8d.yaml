@@ -657,3 +657,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1907cadc17cb
+  - type: validates
+    from: TEST-proof-entity-origin-kinds
+    to: SCEN-kibi-entity-origin
+    created_at: 2026-10-28T11:00:53.099Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31405a80e9fc
+  - type: validates
+    from: TEST-proof-decision-firmness-schema-version
+    to: SCEN-kb-decision-firmness
+    created_at: 2026-10-28T11:03:31.991Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5200e5e2af1b
+  - type: validates
+    from: TEST-proof-proof-run-outcomes
+    to: SCEN-kibi-claim-bound-proofs
+    created_at: 2026-10-28T12:04:28.043Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1fddbc1e054

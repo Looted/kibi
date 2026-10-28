@@ -307,3 +307,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2067a555666a
+  - type: implements
+    from: SYM-proof-contract-version
+    to: REQ-kibi-proof-protocol-versions
+    created_at: 2026-10-28T10:54:08.748Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25ee61ff819b
+  - type: covered_by
+    from: SYM-proof-contract-version
+    to: TEST-proof-proof-contract-version
+    created_at: 2026-10-28T10:54:19.920Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b04154af00b5
+  - type: covered_by
+    from: SYM-proof-contract-version
+    to: TEST-kibi-claim-bound-proofs
+    created_at: 2026-10-28T12:03:12.197Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7977192afba7

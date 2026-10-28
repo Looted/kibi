@@ -272,3 +272,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1bf684e746d4
+  - type: implements
+    from: SYM-origin-review-agent-requirement-review-limit
+    to: REQ-kibi-agent-requirement-review-limit
+    created_at: 2026-10-28T10:36:22.564Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6db572458880
+  - type: covered_by
+    from: SYM-origin-review-agent-requirement-review-limit
+    to: TEST-proof-agent-requirement-review-limit
+    created_at: 2026-10-28T10:36:34.306Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07460b70c788
+  - type: covered_by
+    from: SYM-origin-review-agent-requirement-review-limit
+    to: TEST-kibi-entity-origin-cli
+    created_at: 2026-10-28T10:36:34.322Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d90e2875ddab

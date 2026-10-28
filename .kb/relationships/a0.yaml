@@ -321,3 +321,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d0d3484a3d43
+  - type: requires_property
+    from: REQ-kibi-contradiction-review-limits
+    to: FACT-review-candidate-min-score
+    created_at: 2026-10-28T10:43:00.109Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ec220dba319
+  - type: requires_property
+    from: REQ-kibi-contradiction-review-limits
+    to: FACT-max-review-candidates
+    created_at: 2026-10-28T10:43:00.143Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f8cb6ed2f5b2
+  - type: specified_by
+    from: REQ-kibi-contradiction-review-limits
+    to: SCEN-kibi-contradiction-review-candidates
+    created_at: 2026-10-28T10:43:00.165Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd5b4f4240f1
+  - type: constrains
+    from: REQ-kibi-contradiction-review-limits
+    to: FACT-kibi-contradiction-review-limits-component
+    created_at: 2026-10-28T14:36:37.055Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d18d47eea0f0

@@ -391,3 +391,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3828b9c1af2c
+  - type: validates
+    from: TEST-proof-generated-symbol-fields
+    to: SCEN-generated-coordinate-repair
+    created_at: 2026-10-28T11:13:32.829Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c03993c5a148

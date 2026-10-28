@@ -230,3 +230,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-109276d38563
+  - type: executable_for
+    from: SYM-proof-swipl-minimum-major
+    to: TEST-proof-swipl-minimum-major
+    created_at: 2026-10-28T10:35:27.510Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5254e2315a32
+  - type: executable_for
+    from: SYM-proof-context-heading-words
+    to: TEST-proof-context-heading-words
+    created_at: 2026-10-28T10:38:48.164Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc929b2ad451

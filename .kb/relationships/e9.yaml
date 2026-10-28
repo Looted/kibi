@@ -342,3 +342,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9a3dce31daaf
+  - type: executable_for
+    from: SYM-proof-proof-receipt-version
+    to: TEST-proof-proof-receipt-version
+    created_at: 2026-10-28T10:54:32.509Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aaf56d2d462c

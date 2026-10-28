@@ -482,3 +482,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-96ed066c60d3
+  - type: requires_property
+    from: REQ-kibi-entity-origin-vocabulary
+    to: FACT-entity-origin-kinds
+    created_at: 2026-10-28T11:00:38.532Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b3bd5b988a1
+  - type: requires_property
+    from: REQ-kibi-entity-origin-vocabulary
+    to: FACT-schema6-migration-origin-ref
+    created_at: 2026-10-28T11:00:38.573Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18de3c3e7b00
+  - type: requires_property
+    from: REQ-kibi-entity-origin-vocabulary
+    to: FACT-origin-review-rules
+    created_at: 2026-10-28T11:00:38.601Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c03bb323ed80
+  - type: specified_by
+    from: REQ-kibi-entity-origin-vocabulary
+    to: SCEN-kibi-entity-origin
+    created_at: 2026-10-28T11:00:38.627Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b27ea7051f3
+  - type: constrains
+    from: REQ-kibi-entity-origin-vocabulary
+    to: FACT-kibi-origin-vocabulary-component
+    created_at: 2026-10-28T14:36:54.945Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1149f9cbe6f6

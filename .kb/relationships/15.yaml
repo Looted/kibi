@@ -272,3 +272,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-19472db71396
+  - type: requires_property
+    from: REQ-kibi-env-bootstrap-files
+    to: FACT-env-project-file
+    created_at: 2026-10-28T10:40:34.820Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a82bb2fada6e
+  - type: requires_property
+    from: REQ-kibi-env-bootstrap-files
+    to: FACT-env-legacy-file
+    created_at: 2026-10-28T10:40:34.852Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da6b670447a6
+  - type: specified_by
+    from: REQ-kibi-env-bootstrap-files
+    to: SCEN-kibi-env-bootstrap
+    created_at: 2026-10-28T10:40:34.868Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b48c725db32
+  - type: constrains
+    from: REQ-kibi-env-bootstrap-files
+    to: FACT-kibi-env-bootstrap-files-component
+    created_at: 2026-10-28T14:36:49.127Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-311b2d162b46

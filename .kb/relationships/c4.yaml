@@ -307,3 +307,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-48106d78152f
+  - type: implements
+    from: SYM-engine-limits-read-time-limit-cap
+    to: REQ-core-engine-read-limit-settings
+    created_at: 2026-10-28T10:31:56.499Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85a59c44f6dd
+  - type: covered_by
+    from: SYM-engine-limits-read-time-limit-cap
+    to: TEST-proof-engine-read-time-limit-cap
+    created_at: 2026-10-28T10:32:08.688Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ff22abf8190
+  - type: covered_by
+    from: SYM-engine-limits-read-time-limit-cap
+    to: TEST-core-engine-read-limits-cli
+    created_at: 2026-10-28T10:32:08.706Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b56cd0e964c
+  - type: validates
+    from: TEST-proof-max-review-candidates
+    to: SCEN-kibi-contradiction-review-candidates
+    created_at: 2026-10-28T10:43:39.253Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8add2283537b
+  - type: requires_property
+    from: REQ-kibi-signoff-format-setting
+    to: FACT-signoff-format-env
+    created_at: 2026-10-28T11:16:33.859Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a17f76b53652
+  - type: specified_by
+    from: REQ-kibi-signoff-format-setting
+    to: SCEN-kibi-signoff-views
+    created_at: 2026-10-28T11:16:33.898Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3065b255991
+  - type: constrains
+    from: REQ-kibi-signoff-format-setting
+    to: FACT-kibi-signoff-views-format-component
+    created_at: 2026-10-28T14:37:09.013Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11c82796541c

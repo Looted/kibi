@@ -286,3 +286,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-314136b6cbeb
+  - type: executable_for
+    from: SYM-proof-context-missing-tag
+    to: TEST-proof-context-missing-tag
+    created_at: 2026-10-28T11:05:21.023Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c31f88dbb5f5

@@ -267,13 +267,6 @@ relationships:
     id: rel-ed1360bdc8fc
   - type: requires_property
     from: REQ-kibi-claim-bound-proofs
-    to: FACT-kibi-claim-binding-verdicts
-    created_at: 2026-10-25T18:21:10.004Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-60732c525c06
-  - type: requires_property
-    from: REQ-kibi-claim-bound-proofs
     to: FACT-kibi-claim-bound-derived-needs-obligation
     created_at: 2026-10-25T18:21:10.026Z
     created_by: kibi/upsert

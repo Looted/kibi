@@ -258,3 +258,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-61b3aae38594
+  - type: executable_for
+    from: SYM-proof-entity-context-rules
+    to: TEST-proof-entity-context-rules
+    created_at: 2026-10-28T11:04:58.155Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9aa63b945f77

@@ -412,3 +412,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e500effd6373
+  - type: executable_for
+    from: SYM-proof-claim-binding-schema-version
+    to: TEST-proof-claim-binding-schema-version
+    created_at: 2026-10-28T10:58:11.226Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5f9e0674aec

@@ -332,3 +332,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2d40d7dd40cd
+  - type: implements
+    from: SYM-entity-body-context-heading-words
+    to: REQ-kb-entity-body-context-settings
+    created_at: 2026-10-28T10:38:43.755Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d0d1c2fb904
+  - type: covered_by
+    from: SYM-entity-body-context-heading-words
+    to: TEST-proof-context-heading-words
+    created_at: 2026-10-28T10:38:56.110Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d6f74cab8395
+  - type: covered_by
+    from: SYM-entity-body-context-heading-words
+    to: TEST-kb-entity-body-context
+    created_at: 2026-10-28T10:38:56.140Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c295eb83b43
+  - type: executable_for
+    from: SYM-proof-env-legacy-file
+    to: TEST-proof-env-legacy-file
+    created_at: 2026-10-28T10:41:11.787Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06b989cdd939
+  - type: requires_property
+    from: REQ-legacy-kb-migrate-command
+    to: FACT-legacy-kb-migration-command
+    created_at: 2026-10-28T11:15:40.531Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-644f0fe4a15a
+  - type: specified_by
+    from: REQ-legacy-kb-migrate-command
+    to: SCEN-legacy-kb-first-step-migrate
+    created_at: 2026-10-28T11:15:40.566Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae9fae0314cd
+  - type: constrains
+    from: REQ-legacy-kb-migrate-command
+    to: FACT-kibi-legacy-kb-migration-component
+    created_at: 2026-10-28T14:36:51.028Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c161dd19352

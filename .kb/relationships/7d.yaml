@@ -384,3 +384,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1e2096159ad4
+  - type: requires_property
+    from: REQ-kibi-claim-binding-verdicts
+    to: FACT-kibi-claim-binding-verdicts
+    created_at: 2026-10-28T13:43:33.111Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32d29bf2009e
+  - type: specified_by
+    from: REQ-kibi-claim-binding-verdicts
+    to: SCEN-kibi-claim-bound-proofs
+    created_at: 2026-10-28T13:43:33.156Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4be0698299a5
+  - type: constrains
+    from: REQ-kibi-claim-binding-verdicts
+    to: FACT-SUBJECT-KIBI-CLAIM-BOUND-PROOF
+    created_at: 2026-10-28T13:43:36.479Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4704e82133a7

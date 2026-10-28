@@ -370,3 +370,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d2aabc4cbdfb
+  - type: executable_for
+    from: SYM-proof-default-proof-steps-path
+    to: TEST-proof-default-proof-steps-path
+    created_at: 2026-10-28T11:06:50.956Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb2f290bf783

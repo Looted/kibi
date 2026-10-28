@@ -258,3 +258,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-930ddd4367bf
+  - type: executable_for
+    from: SYM-proof-proof-test-report-outcomes
+    to: TEST-proof-proof-test-report-outcomes
+    created_at: 2026-10-28T11:08:03.052Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed7e182e7154
+  - type: validates
+    from: TEST-proof-search-answer-excerpt-chars
+    to: SCEN-kibi-search-answer-layer
+    created_at: 2026-10-28T11:12:01.365Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9763fef6b089
+  - type: executable_for
+    from: SYM-proof-generated-symbol-fields
+    to: TEST-proof-generated-symbol-fields
+    created_at: 2026-10-28T11:13:34.859Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3642e1496961

@@ -272,3 +272,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c11ca7525198
+  - type: validates
+    from: TEST-proof-min-context-words
+    to: SCEN-kb-entity-body-context
+    created_at: 2026-10-28T10:39:10.377Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49645767d2f2
+  - type: implements
+    from: SYM-const-claim-binding-schema-version
+    to: REQ-kibi-claim-bound-proof-settings
+    created_at: 2026-10-28T10:58:07.752Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f685120866d
+  - type: covered_by
+    from: SYM-const-claim-binding-schema-version
+    to: TEST-proof-claim-binding-schema-version
+    created_at: 2026-10-28T10:58:17.450Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7d3490a457a
+  - type: covered_by
+    from: SYM-const-claim-binding-schema-version
+    to: TEST-kibi-claim-bound-proofs
+    created_at: 2026-10-28T10:58:17.467Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-537661bf7a5b

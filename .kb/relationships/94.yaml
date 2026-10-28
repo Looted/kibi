@@ -216,3 +216,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-68059cf0e506
+  - type: executable_for
+    from: SYM-proof-engine-read-time-limit-env
+    to: TEST-proof-engine-read-time-limit-env
+    created_at: 2026-10-28T10:30:48.184Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c889aafdd8f5
+  - type: implements
+    from: SYM-ci-workflow-integration-job
+    to: REQ-prolog-ci-system-swipl-job
+    created_at: 2026-10-28T10:37:15.282Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-213d59d25134
+  - type: covered_by
+    from: SYM-ci-workflow-integration-job
+    to: TEST-prolog-bundled-ci
+    created_at: 2026-10-28T10:37:15.309Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1b34a265a91
+  - type: implements
+    from: SYM-SYMBOL_COORDINATES_FORMAT_VERSION
+    to: REQ-generated-coordinate-settings
+    created_at: 2026-10-28T11:13:48.613Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5358905e023a
+  - type: covered_by
+    from: SYM-SYMBOL_COORDINATES_FORMAT_VERSION
+    to: TEST-proof-symbol-coordinates-format-version
+    created_at: 2026-10-28T11:13:59.366Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8180057998f

@@ -419,3 +419,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c51a3454a49c
+  - type: validates
+    from: TEST-proof-proof-test-report-outcomes
+    to: SCEN-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T11:08:00.861Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d33472fac7f

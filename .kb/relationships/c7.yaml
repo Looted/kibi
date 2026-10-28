@@ -335,3 +335,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c7b43493a61f
+  - type: executable_for
+    from: SYM-proof-builtin-claim-similarity-threshold
+    to: TEST-proof-builtin-claim-similarity-threshold
+    created_at: 2026-10-28T10:45:22.964Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f33dbde61430
+  - type: executable_for
+    from: SYM-proof-proof-integration-version
+    to: TEST-proof-proof-integration-version
+    created_at: 2026-10-28T10:55:10.318Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-374a882cbe0a
+  - type: implements
+    from: SYM-const-proof-test-report-version
+    to: REQ-kibi-proof-step-settings
+    created_at: 2026-10-28T11:07:35.197Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0438386f6fec
+  - type: executable_for
+    from: SYM-proof-proof-test-report-version
+    to: TEST-proof-proof-test-report-version
+    created_at: 2026-10-28T11:07:39.394Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10ea09d1d6a5
+  - type: covered_by
+    from: SYM-const-proof-test-report-version
+    to: TEST-proof-proof-test-report-version
+    created_at: 2026-10-28T11:07:47.245Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-148a85929072
+  - type: covered_by
+    from: SYM-const-proof-test-report-version
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T11:07:47.267Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7063f98f8ec9

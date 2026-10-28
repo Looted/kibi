@@ -342,3 +342,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a797ddc67878
+  - type: implements
+    from: SYM-proof-receipt-outcomes
+    to: REQ-kibi-claim-bound-proof-settings
+    created_at: 2026-10-28T10:57:46.950Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5648388616c0
+  - type: covered_by
+    from: SYM-proof-receipt-outcomes
+    to: TEST-proof-proof-receipt-outcomes
+    created_at: 2026-10-28T10:57:57.537Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d12df7419ce9
+  - type: covered_by
+    from: SYM-proof-receipt-outcomes
+    to: TEST-kibi-claim-bound-proofs
+    created_at: 2026-10-28T10:57:57.557Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b5472867185

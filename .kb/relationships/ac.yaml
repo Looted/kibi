@@ -293,3 +293,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b24b91d3f88e
+  - type: requires_property
+    from: REQ-kibi-proof-protocol-versions
+    to: FACT-proof-contract-version
+    created_at: 2026-10-28T10:54:00.601Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5997ae8a7723
+  - type: requires_property
+    from: REQ-kibi-proof-protocol-versions
+    to: FACT-proof-receipt-version
+    created_at: 2026-10-28T10:54:00.635Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4a790d5054fb
+  - type: requires_property
+    from: REQ-kibi-proof-protocol-versions
+    to: FACT-proof-run-version
+    created_at: 2026-10-28T10:54:00.659Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c72cb3603a6
+  - type: requires_property
+    from: REQ-kibi-proof-protocol-versions
+    to: FACT-proof-integration-version
+    created_at: 2026-10-28T10:54:00.674Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6ec8a67a809
+  - type: requires_property
+    from: REQ-kibi-proof-protocol-versions
+    to: FACT-proof-run-outcomes
+    created_at: 2026-10-28T10:54:00.691Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4257c4f7648b
+  - type: validates
+    from: TEST-proof-schema6-migration-origin-ref
+    to: SCEN-kibi-entity-origin
+    created_at: 2026-10-28T11:01:15.312Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c45f26aa11c2
+  - type: specified_by
+    from: REQ-kibi-proof-protocol-versions
+    to: SCEN-kibi-claim-bound-proofs
+    created_at: 2026-10-28T12:02:43.033Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d00c9e951b0
+  - type: constrains
+    from: REQ-kibi-proof-protocol-versions
+    to: FACT-kibi-proof-protocol-component
+    created_at: 2026-10-28T14:37:03.084Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7cb564cc507

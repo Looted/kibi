@@ -223,3 +223,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4acbad163da1
+  - type: implements
+    from: SYM-const-schema6-migration-origin-ref
+    to: REQ-kibi-entity-origin-vocabulary
+    created_at: 2026-10-28T11:01:13.286Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d23249a7e54
+  - type: covered_by
+    from: SYM-const-schema6-migration-origin-ref
+    to: TEST-proof-schema6-migration-origin-ref
+    created_at: 2026-10-28T11:01:24.439Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32cfc09c8a5f
+  - type: covered_by
+    from: SYM-const-schema6-migration-origin-ref
+    to: TEST-kibi-entity-origin-cli
+    created_at: 2026-10-28T11:01:24.456Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07704b2412ca
+  - type: requires_property
+    from: REQ-kibi-proof-step-settings
+    to: FACT-default-proof-steps-path
+    created_at: 2026-10-28T11:06:32.178Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cfcb188e776a
+  - type: requires_property
+    from: REQ-kibi-proof-step-settings
+    to: FACT-proof-test-report-env
+    created_at: 2026-10-28T11:06:32.213Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d1595f2a707
+  - type: requires_property
+    from: REQ-kibi-proof-step-settings
+    to: FACT-proof-test-report-version
+    created_at: 2026-10-28T11:06:32.233Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1aa93718d49f
+  - type: requires_property
+    from: REQ-kibi-proof-step-settings
+    to: FACT-proof-test-report-outcomes
+    created_at: 2026-10-28T11:06:32.250Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc910185083c
+  - type: specified_by
+    from: REQ-kibi-proof-step-settings
+    to: SCEN-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T11:06:32.267Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7a625291eee
+  - type: constrains
+    from: REQ-kibi-proof-step-settings
+    to: FACT-kibi-proof-steps-component
+    created_at: 2026-10-28T14:37:05.056Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0db9b8aa99f7

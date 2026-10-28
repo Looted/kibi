@@ -7,7 +7,7 @@ property_key: binding_verdicts
 operator: eq
 claim_key: CLAIM-B5DC77B02767FF31
 claim_text: A claim binding must be one of derived, attested or rejected
-text_ref: REQ-kibi-claim-bound-proofs
+text_ref: REQ-kibi-claim-binding-verdicts
 tags:
   - strict-modeling
   - lane:strict
