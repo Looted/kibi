@@ -3652,5 +3652,15 @@
         "./packages/cli/tests/proofs/claims/jev-defaults.proof.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-proof-kb-merge-gate-order",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/kb-merge-workflow.proof.test.ts"
+      ]
+    ]
   }
 ]

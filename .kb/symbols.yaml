@@ -56874,6 +56874,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-local-proof-parity
       - type: implements
+        target: REQ-ci-kb-merge-gate-order
+      - type: implements
         target: REQ-ci-kb-merge-resolution
       - type: implements
         target: REQ-kibi-local-proof-parity
@@ -58426,3 +58428,17 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-jev-max-timeout
+  - id: SYM-proof-kb-merge-gate-order
+    title: kbMergeGateOrderCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/kb-merge-workflow.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T09:39:53.129Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-kb-merge-gate-order

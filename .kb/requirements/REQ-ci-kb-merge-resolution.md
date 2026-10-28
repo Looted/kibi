@@ -8,52 +8,49 @@ tags:
   - proof
   - kb
   - review:context-missing
-semantic_text: The Kibi KB merge workflow must build the merge driver from the base branch. The Kibi KB merge workflow must not install the pull request branch dependencies before merging. The Kibi KB merge workflow must run the proof gate before pushing a merge. When the proof gate fails, the Kibi KB merge workflow must not push the merge.
+semantic_text: The Kibi KB merge workflow must build the merge driver from the base branch. The Kibi KB merge workflow must not install the pull request branch dependencies before merging. When the proof gate fails, the Kibi KB merge workflow must not push the merge.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: 359acfe7f0c6cbb30767d33f491bc691837d952959bb83efb55ed199044b4c00
+semantic_source_hash: a8c4b33519b1bfd3f3fbdf472f0312e7667eafc485160beacc27ea668c4f86c7
 semantic_inventory:
   - claim_key: CLAIM-F23EBD496387C5E3
     claim_text: The Kibi KB merge workflow must build the merge driver from the base branch
     role: normative
+    status: modeled
     span:
       start: 0
       end: 75
-    status: modeled
   - claim_key: CLAIM-2EE353F4577820C0
     claim_text: The Kibi KB merge workflow must not install the pull request branch dependencies before merging
     role: normative
+    status: modeled
     span:
       start: 77
       end: 172
-    status: modeled
-  - claim_key: CLAIM-8948B0F74FEC41BA
-    claim_text: The Kibi KB merge workflow must run the proof gate before pushing a merge
-    role: normative
-    span:
-      start: 174
-      end: 247
-    status: modeled
   - claim_key: CLAIM-50B73DAECD56E5FB
     claim_text: When the proof gate fails, the Kibi KB merge workflow must not push the merge
     role: condition
-    span:
-      start: 249
-      end: 326
     status: modeled
+    span:
+      start: 174
+      end: 251
 logic_claims:
   - CLAIM-F23EBD496387C5E3
   - CLAIM-2EE353F4577820C0
-  - CLAIM-8948B0F74FEC41BA
   - CLAIM-50B73DAECD56E5FB
 id: REQ-ci-kb-merge-resolution
 type: req
 origin:
-  kind: human
-  ref: 'Maintainer decision, 2026-10-24, approving the formal-proof design phase that replaces proof/baseline.json with evidence floors: "I''d like to do all the remaining phases."'
-  recorded_at: '2026-10-24T09:00:00.000Z'
+  kind: agent
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  approved_by: maintainer
+  recorded_at: '2026-10-28T09:39:38.707Z'
+semantic_clauses:
+  - The Kibi KB merge workflow must build the merge driver from the base branch.
+  - The Kibi KB merge workflow must not install the pull request branch dependencies before merging.
+  - When the proof gate fails, the Kibi KB merge workflow must not push the merge.
 ---
-The Kibi KB merge workflow must build the merge driver from the base branch. The Kibi KB merge workflow must not install the pull request branch dependencies before merging. The Kibi KB merge workflow must run the proof gate before pushing a merge. When the proof gate fails, the Kibi KB merge workflow must not push the merge.
+The Kibi KB merge workflow must build the merge driver from the base branch. The Kibi KB merge workflow must not install the pull request branch dependencies before merging. When the proof gate fails, the Kibi KB merge workflow must not push the merge.
 
 ## Context
 

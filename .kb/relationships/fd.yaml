@@ -99,13 +99,6 @@ relationships:
     id: rel-debd38512545
   - type: requires_predicate
     from: REQ-ci-kb-merge-resolution
-    to: FACT-PRED-ci-kb-merge-gate-before-push
-    created_at: 2026-10-02T08:22:30.245Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cece306a6a09
-  - type: requires_predicate
-    from: REQ-ci-kb-merge-resolution
     to: FACT-PRED-ci-kb-merge-no-push-on-gate-failure
     created_at: 2026-10-02T08:22:30.251Z
     created_by: kibi/upsert
