@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import {
+  BOUNDED_READ_HELPER_DEFINITION,
   ENGINE_READ_INFERENCE_LIMIT_ENV,
   ENGINE_READ_TIME_LIMIT_CAP_MS,
   ENGINE_READ_TIME_LIMIT_ENV,
@@ -177,5 +178,114 @@ describe("limit errors", () => {
     expect(() =>
       assertWithinQueryLimits({ limitExceeded: { kind: "time", limit: 5 } }),
     ).toThrow(EngineQueryLimitError);
+  });
+});
+
+describe("engine limit contracts", () => {
+  test("the error code and environment variable names are stable", () => {
+    expect(QUERY_LIMIT_EXCEEDED_CODE).toBe("QUERY_LIMIT_EXCEEDED");
+    expect(ENGINE_READ_TIME_LIMIT_ENV).toBe("KIBI_ENGINE_READ_TIME_LIMIT_MS");
+    expect(ENGINE_READ_INFERENCE_LIMIT_ENV).toBe(
+      "KIBI_ENGINE_READ_INFERENCE_LIMIT",
+    );
+    expect(
+      queryLimitsFromEnv({
+        KIBI_ENGINE_READ_TIME_LIMIT_MS: "300",
+        KIBI_ENGINE_READ_INFERENCE_LIMIT: "1e3",
+      }),
+    ).toEqual({ timeMs: 300, inferences: 1000 });
+    expect(
+      queryLimitsFromEnv({ KIBI_ENGINE_READ_INFERENCE_LIMIT: "0" }),
+    ).toBeUndefined();
+  });
+
+  test("normalized limits carry only the budgets that were set", () => {
+    expect(
+      Object.keys(normalizeQueryLimits({ timeMs: 5 }) ?? {}),
+    ).toStrictEqual(["timeMs"]);
+    expect(
+      Object.keys(normalizeQueryLimits({ inferences: 5 }) ?? {}),
+    ).toStrictEqual(["inferences"]);
+    expect(normalizeQueryLimits({ inferences: 1_000_000_000_000 })).toEqual({
+      inferences: 1_000_000_000_000,
+    });
+  });
+
+  test("the helper definition asserts all three clauses once", () => {
+    expect(BOUNDED_READ_HELPER_DEFINITION).toMatch(
+      /^\(current_predicate\(kibi_engine_bounded_read\/4\) -> true ; assertz\(\(kibi_engine_bounded_read\(Goal, Seconds, Inferences, kibi_read_outcome\(Outcome\)\) :- .+\)\), assertz\(\(kibi_engine_bounded_call\(Goal, Seconds, Inferences, Inner\) :- .+call_with_time_limit.+\)\), assertz\(\(kibi_engine_inference_call\(Goal, Inferences, Inner\) :- .+call_with_inference_limit.+\)\)\)$/,
+    );
+  });
+
+  test("a read without a well-formed outcome binding is not a limit hit", () => {
+    const limits = { timeMs: 100, inferences: 100 };
+    for (const outcome of [
+      undefined,
+      "garbage",
+      "xkibi_read_outcome(time)",
+      "kibi_read_outcome(time)x",
+    ]) {
+      const bindings: Record<string, string> = { X: "1" };
+      if (outcome !== undefined) bindings.KibiReadOutcome = outcome;
+      expect<unknown>(
+        settleBoundedRead({ success: true, bindings }, limits),
+      ).toEqual({ success: true, bindings: { X: "1" } });
+    }
+    expect<unknown>(
+      settleBoundedRead(
+        {
+          success: true,
+          bindings: { KibiReadOutcome: "kibi_read_outcome(inferences)" },
+        },
+        { timeMs: 100 },
+      ),
+    ).toEqual({ success: true, bindings: {} });
+  });
+
+  test("queryLimitExceededOf trusts a typed limit over the message", () => {
+    const typed = (limitExceeded: unknown, code = QUERY_LIMIT_EXCEEDED_CODE) =>
+      Object.assign(new Error("rewrapped"), { code, limitExceeded });
+    expect(queryLimitExceededOf(typed({ kind: "time", limit: 7 }))).toEqual({
+      kind: "time",
+      limit: 7,
+    });
+    expect(
+      queryLimitExceededOf(typed({ kind: "inferences", limit: 8 })),
+    ).toEqual({ kind: "inferences", limit: 8 });
+    for (const error of [
+      typed({ kind: "time", limit: 7 }, "OTHER"),
+      typed(null),
+      typed(undefined),
+      typed({ kind: "time", limit: "7" }),
+      typed({ kind: "", limit: 7 }),
+    ])
+      expect(queryLimitExceededOf(error)).toBeNull();
+  });
+
+  test("queryLimitExceededOf recovers an inference limit from a message", () => {
+    expect(
+      queryLimitExceededOf(
+        new Error(
+          "QUERY_LIMIT_EXCEEDED: read stopped at its inference limit of 40 (x)",
+        ),
+      ),
+    ).toEqual({ kind: "inferences", limit: 40 });
+  });
+
+  test("assertWithinQueryLimits reports the limit it threw for", () => {
+    expect(() => assertWithinQueryLimits(undefined)).not.toThrow();
+    let thrown: unknown;
+    try {
+      assertWithinQueryLimits({
+        limitExceeded: { kind: "inferences", limit: 3 },
+      });
+    } catch (error) {
+      thrown = error;
+    }
+    expect(thrown).toBeInstanceOf(EngineQueryLimitError);
+    expect((thrown as EngineQueryLimitError).limitExceeded).toEqual({
+      kind: "inferences",
+      limit: 3,
+    });
   });
 });
