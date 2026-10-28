@@ -9,6 +9,7 @@
     coverage_report_json/12,
     coverage_report_json/13,
     coverage_evidence_json/5,
+    coverage_evidence_json/7,
     evidence_floor_json/6,
     requirement_proof_json/5,
     requirement_proof_json/7,
@@ -352,6 +353,16 @@ search_answer_clip(Text, Max, Clipped) :-
 % the full coverage row set, keeping the response small on large KBs.
 coverage_evidence_json(Tags, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
     requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, ProofContext),
+    coverage_evidence_rows_json(Tags, ProofContext, JsonString).
+
+% The same rows under a receipt binding mode, so kb_check judges receipts
+% like kb_coverage and kibi proof explain: per_contract with the TestId ->
+% binding hash dict, or strict_snapshot.
+coverage_evidence_json(Tags, BindingMode, TestBindings, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
+    requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, BindingMode, TestBindings, ProofContext),
+    coverage_evidence_rows_json(Tags, ProofContext, JsonString).
+
+coverage_evidence_rows_json(Tags, ProofContext, JsonString) :-
     findall(Evidence,
         (   kb_entity(Id, req, Props),
             matches_tags(Tags, Props),

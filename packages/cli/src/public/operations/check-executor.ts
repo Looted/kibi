@@ -239,6 +239,10 @@ export async function executeCheck(
       ? snapshotEvidence.snapshot.hash
       : undefined;
     const checkedAt = context.clock().toISOString();
+    const proofTestBindings = async () => {
+      const { perContractTestBindings } = await import("./specs/reporting.js");
+      return perContractTestBindings({ ...context, prolog });
+    };
     // Enforcement policy is Kibi-owned and deterministic from the installed
     // version. `args.rules` is an invocation-time diagnostic selector only.
     const rulesAllowlist = resolveCheckRules(args);
@@ -316,6 +320,7 @@ export async function executeCheck(
                 workspaceRoot,
                 ...(proofSnapshot !== undefined ? { proofSnapshot } : {}),
                 checkedAt,
+                proofTestBindings,
                 now: context.clock(),
                 ...maxDiagnosticsOption,
               });
@@ -442,6 +447,7 @@ export async function executeCheck(
             workspaceRoot,
             ...(proofSnapshot !== undefined ? { proofSnapshot } : {}),
             checkedAt,
+            proofTestBindings,
             now: context.clock(),
             ...maxDiagnosticsOption,
           });
