@@ -40,6 +40,8 @@ on:
       - 'packages/cli/tests/decision-firmness.test.ts'
       - 'packages/cli/src/entity-body-context.ts'
       - 'packages/cli/tests/entity-body-context.test.ts'
+      - 'packages/cli/src/search-ranking.ts'
+      - 'packages/cli/tests/search-ranking.test.ts'
       - 'stryker.conf.mjs'
       - 'scripts/mutation-sandbox-setup.sh'
       - '.github/workflows/mutation.yml'

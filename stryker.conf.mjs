@@ -41,6 +41,9 @@ export const CLI_MUTATION_MODULES = {
   "packages/cli/src/entity-body-context.ts": [
     "packages/cli/tests/entity-body-context.test.ts",
   ],
+  "packages/cli/src/search-ranking.ts": [
+    "packages/cli/tests/search-ranking.test.ts",
+  ],
 };
 
 // Explicit test-file list, enumerated relative to the repo root (the Stryker
