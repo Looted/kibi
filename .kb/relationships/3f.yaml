@@ -426,3 +426,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c217bb22cd73
+  - type: validates
+    from: TEST-proof-signoff-change-retired-label
+    to: SCEN-kibi-signoff-views
+    created_at: 2026-10-28T22:24:51.500Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ee0efa411cb

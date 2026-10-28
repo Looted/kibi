@@ -223,3 +223,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eb962fcf20e9
+  - type: executable_for
+    from: SYM-proof-canonical-symbols-path
+    to: TEST-proof-canonical-symbols-path
+    created_at: 2026-10-28T22:36:11.105Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee3187b26d2a

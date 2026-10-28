@@ -349,3 +349,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9b03e84090e6
+  - type: validates
+    from: TEST-proof-canonical-tests-path
+    to: SCEN-cli-canonical-init
+    created_at: 2026-10-28T22:34:49.555Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b250aa9f35a7

@@ -195,3 +195,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6bc4f0eccdb5
+  - type: executable_for
+    from: SYM-proof-signoff-change-new-label
+    to: TEST-proof-signoff-change-new-label
+    created_at: 2026-10-28T22:24:16.686Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26c8f70bb486

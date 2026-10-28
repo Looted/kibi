@@ -153,3 +153,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7bea15467ecb
+  - type: requires_property
+    from: REQ-cli-kb-entity-paths
+    to: FACT-canonical-path-kinds
+    created_at: 2026-10-28T22:33:34.403Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31709f738d4c
+  - type: requires_property
+    from: REQ-cli-kb-entity-paths
+    to: FACT-legacy-config-path-keys
+    created_at: 2026-10-28T22:33:34.423Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c0b8fbd657b
+  - type: requires_property
+    from: REQ-cli-kb-entity-paths
+    to: FACT-canonical-requirements-path
+    created_at: 2026-10-28T22:33:34.435Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0cbc9db018cb
+  - type: requires_property
+    from: REQ-cli-kb-entity-paths
+    to: FACT-canonical-scenarios-path
+    created_at: 2026-10-28T22:33:34.444Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-232f4efde800
+  - type: requires_property
+    from: REQ-cli-kb-entity-paths
+    to: FACT-canonical-tests-path
+    created_at: 2026-10-28T22:33:34.452Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aeb7d9bd4022
+  - type: requires_property
+    from: REQ-cli-kb-entity-paths
+    to: FACT-canonical-adr-path
+    created_at: 2026-10-28T22:33:34.463Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26eb7d1ac7a4
+  - type: requires_property
+    from: REQ-cli-kb-entity-paths
+    to: FACT-canonical-flags-path
+    created_at: 2026-10-28T22:33:34.472Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c26e45b56c3a
+  - type: requires_property
+    from: REQ-cli-kb-entity-paths
+    to: FACT-canonical-events-path
+    created_at: 2026-10-28T22:33:34.480Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c3f313d2413
+  - type: requires_property
+    from: REQ-cli-kb-entity-paths
+    to: FACT-canonical-facts-path
+    created_at: 2026-10-28T22:33:34.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf564fd024f0
+  - type: requires_property
+    from: REQ-cli-kb-entity-paths
+    to: FACT-canonical-symbols-path
+    created_at: 2026-10-28T22:33:34.502Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0eaf49055801
+  - type: specified_by
+    from: REQ-cli-kb-entity-paths
+    to: SCEN-cli-canonical-init
+    created_at: 2026-10-28T22:33:34.511Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b23e25ebfa7
+  - type: constrains
+    from: REQ-cli-kb-entity-paths
+    to: FACT-kibi-kb-layout-entity-paths-component
+    created_at: 2026-10-28T22:33:36.437Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd353b09160a

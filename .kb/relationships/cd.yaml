@@ -370,3 +370,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cb4ab019294f
+  - type: executable_for
+    from: SYM-proof-brand-color-names
+    to: TEST-proof-brand-color-names
+    created_at: 2026-10-28T22:27:55.491Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-244240ea36c1

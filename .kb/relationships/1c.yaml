@@ -223,3 +223,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9c49d8110e8c
+  - type: executable_for
+    from: SYM-proof-hook-block-begin
+    to: TEST-proof-hook-block-begin
+    created_at: 2026-10-28T22:40:30.287Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7cb66db3ac8

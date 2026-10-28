@@ -398,3 +398,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-79ff3432170e
+  - type: validates
+    from: TEST-proof-signoff-gate-e2e-label
+    to: SCEN-kibi-signoff-views
+    created_at: 2026-10-28T22:23:18.296Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-755865addfd9
+  - type: executable_for
+    from: SYM-proof-canonical-tests-path
+    to: TEST-proof-canonical-tests-path
+    created_at: 2026-10-28T22:34:51.368Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d26200bcd013

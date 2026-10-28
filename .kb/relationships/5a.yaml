@@ -426,3 +426,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1d33472fac7f
+  - type: validates
+    from: TEST-proof-brand-ice-color
+    to: SCEN-kibi-branded-health-report
+    created_at: 2026-10-28T22:28:59.120Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-03cddebae306

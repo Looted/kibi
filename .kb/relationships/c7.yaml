@@ -384,3 +384,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d4131d11a93c
+  - type: validates
+    from: TEST-proof-tree-sitter-python-extensions
+    to: SCEN-tree-sitter-language-authoring-scaffold
+    created_at: 2026-10-28T22:41:59.598Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64f31492c963

@@ -423,3 +423,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-64ca8fb73588
+  - type: executable_for
+    from: SYM-proof-managed-hook-names
+    to: TEST-proof-managed-hook-names
+    created_at: 2026-10-28T22:40:47.245Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2415c7ee9297

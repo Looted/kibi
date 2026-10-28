@@ -503,3 +503,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4fcddee36b75
+  - type: validates
+    from: TEST-proof-signoff-gate-tested-label
+    to: SCEN-kibi-signoff-views
+    created_at: 2026-10-28T22:23:55.747Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a434df958c1

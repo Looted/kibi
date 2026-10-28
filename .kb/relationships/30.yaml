@@ -398,3 +398,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bc8fc7bf1a80
+  - type: validates
+    from: TEST-proof-brand-rail-color
+    to: SCEN-kibi-branded-health-report
+    created_at: 2026-10-28T22:30:04.402Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59ec30df8493
+  - type: executable_for
+    from: SYM-proof-canonical-facts-path
+    to: TEST-proof-canonical-facts-path
+    created_at: 2026-10-28T22:35:55.882Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e02e1b11029d

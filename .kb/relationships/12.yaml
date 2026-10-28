@@ -335,3 +335,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-240b250fe171
+  - type: executable_for
+    from: SYM-proof-brand-danger-color
+    to: TEST-proof-brand-danger-color
+    created_at: 2026-10-28T22:30:55.953Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a5f7e116cfd

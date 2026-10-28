@@ -307,3 +307,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-021917ab5e77
+  - type: validates
+    from: TEST-proof-brand-mist-color
+    to: SCEN-kibi-branded-health-report
+    created_at: 2026-10-28T22:29:48.252Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-464139d95edd
+  - type: validates
+    from: TEST-proof-canonical-path-kinds
+    to: SCEN-cli-canonical-init
+    created_at: 2026-10-28T22:33:44.277Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff6d174b86eb

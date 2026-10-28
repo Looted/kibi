@@ -314,3 +314,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-16934d7bf997
+  - type: executable_for
+    from: SYM-proof-brand-panel-color
+    to: TEST-proof-brand-panel-color
+    created_at: 2026-10-28T22:28:44.978Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bbe7d7a804c3

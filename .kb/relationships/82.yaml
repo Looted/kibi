@@ -356,3 +356,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eb70d95e9872
+  - type: validates
+    from: TEST-proof-brand-warning-color
+    to: SCEN-kibi-branded-health-report
+    created_at: 2026-10-28T22:30:37.408Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52fc469fbcea

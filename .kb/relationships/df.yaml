@@ -272,3 +272,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f0f10356cf12
+  - type: executable_for
+    from: SYM-proof-canonical-scenarios-path
+    to: TEST-proof-canonical-scenarios-path
+    created_at: 2026-10-28T22:34:35.065Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06106ff8391a

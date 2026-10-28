@@ -405,3 +405,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a8e719324015
+  - type: validates
+    from: TEST-proof-signoff-gate-evidence-label
+    to: SCEN-kibi-signoff-views
+    created_at: 2026-10-28T22:23:36.562Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48d132790a05
+  - type: executable_for
+    from: SYM-proof-canonical-flags-path
+    to: TEST-proof-canonical-flags-path
+    created_at: 2026-10-28T22:35:23.628Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f3b90e6522f9

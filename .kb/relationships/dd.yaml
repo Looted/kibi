@@ -538,3 +538,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b2d5f8bbdca6
+  - type: validates
+    from: TEST-proof-brand-color-names
+    to: SCEN-kibi-branded-health-report
+    created_at: 2026-10-28T22:27:53.651Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1322feaa7c9

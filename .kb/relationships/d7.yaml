@@ -321,3 +321,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4f09909a463a
+  - type: requires_property
+    from: REQ-kibi-operation-catalog-names
+    to: FACT-operation-catalog-names
+    created_at: 2026-10-28T22:38:28.621Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f194467bb7d
+  - type: specified_by
+    from: REQ-kibi-operation-catalog-names
+    to: SCEN-kibi-operation-interface-parity
+    created_at: 2026-10-28T22:38:28.650Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4610fb8e4a78
+  - type: constrains
+    from: REQ-kibi-operation-catalog-names
+    to: FACT-kibi-operations-catalog-names-component
+    created_at: 2026-10-28T22:38:30.559Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40cce36a9f58

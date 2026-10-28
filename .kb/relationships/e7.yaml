@@ -342,3 +342,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e7997ca1e394
+  - type: executable_for
+    from: SYM-proof-tree-sitter-go-extensions
+    to: TEST-proof-tree-sitter-go-extensions
+    created_at: 2026-10-28T22:42:16.967Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e8e367f742a

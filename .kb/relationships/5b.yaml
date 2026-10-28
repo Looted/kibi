@@ -300,3 +300,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f317d75ad028
+  - type: requires_property
+    from: REQ-git-hook-managed-names
+    to: FACT-hook-block-begin
+    created_at: 2026-10-28T22:40:19.022Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd50ec762760
+  - type: requires_property
+    from: REQ-git-hook-managed-names
+    to: FACT-managed-hook-names
+    created_at: 2026-10-28T22:40:19.050Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-20abefca1849
+  - type: specified_by
+    from: REQ-git-hook-managed-names
+    to: SCEN-git-hook-effective-install
+    created_at: 2026-10-28T22:40:19.069Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a09181d40e02
+  - type: constrains
+    from: REQ-git-hook-managed-names
+    to: FACT-kibi-git-hooks-managed-component
+    created_at: 2026-10-28T22:40:20.802Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-889c60fb6697

@@ -377,3 +377,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-822f4dc97ae8
+  - type: executable_for
+    from: SYM-proof-tree-sitter-rust-extensions
+    to: TEST-proof-tree-sitter-rust-extensions
+    created_at: 2026-10-28T22:42:33.384Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac04a492c311

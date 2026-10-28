@@ -18,15 +18,15 @@ proof_contract:
   success_policy: all_required_first_attempt
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-f86f3f259c82045e18ec5772
+    receipt_id: PR-621579514021f77dbbe597dc
     test_id: TEST-cli-canonical-init
     scope: end_to_end
     outcome: passed
-    code_snapshot: 5d36459f22881f6c22e3bac5ea8974c74bd15e1de4958b06df142b9e5eb07350
+    code_snapshot: a7ee6e75591f23c8003fd7cb5df9dc7fcc2863290a587f8517f61d409fca336c
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T19:01:58.002Z'
-    finished_at: '2026-10-28T19:03:06.631Z'
-    artifact_digest: 71d69a2b2814746088ed8026a66daf6d8475630d188d7d9b4926048478517bb3
+    started_at: '2026-10-28T22:36:21.304Z'
+    finished_at: '2026-10-28T22:37:24.513Z'
+    artifact_digest: 80118b270dcb561c176221cd51a53a316c2ffcd78b3f1e82a1cdb7bca63dda03
     contract_hash: f0336a97461e249c8341c463b551646ea0e5e557840e9150ea0dc07a8fe2a693
     binding_hash: 7047ce9025cbb24bf4edbb473dc605e595fb9f19c4dee20ab76f94d2baca0019
     fingerprint: 2386a4203ece7377b464400025e46eec9d924b44db71c44b738cab5056fc4cca

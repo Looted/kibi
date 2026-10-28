@@ -538,3 +538,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0ca376418da1
+  - type: validates
+    from: TEST-proof-canonical-events-path
+    to: SCEN-cli-canonical-init
+    created_at: 2026-10-28T22:35:37.894Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-213571d03ec0
