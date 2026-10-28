@@ -17,7 +17,16 @@
 */
 
 import { spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import {
+  closeSync,
+  existsSync,
+  mkdtempSync,
+  openSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
 /**
@@ -97,6 +106,45 @@ export function pythonDomainInterpreters(
   return interpreters;
 }
 
+/**
+ * spawnSync with the child's stdin, stdout and stderr in temp files instead
+ * of pipes. Bun can miss the readiness event of a child's pipe, which leaves
+ * a synchronous spawn waiting until its timeout although the child has long
+ * exited; with no pipes the call only waits for the process to exit.
+ */
+export function spawnSyncThroughFiles(
+  command: string,
+  args: readonly string[],
+  options: Readonly<{ cwd?: string; input?: string; timeout: number }>,
+): { error: Error | undefined; status: number | null; stdout: string; stderr: string } {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "kibi-spawn-"));
+  try {
+    const inPath = path.join(dir, "stdin");
+    const outPath = path.join(dir, "stdout");
+    const errPath = path.join(dir, "stderr");
+    writeFileSync(inPath, options.input ?? "");
+    const fds = [openSync(inPath, "r"), openSync(outPath, "w"), openSync(errPath, "w")];
+    let run: ReturnType<typeof spawnSync>;
+    try {
+      run = spawnSync(command, [...args], {
+        cwd: options.cwd,
+        stdio: fds,
+        timeout: options.timeout,
+      });
+    } finally {
+      for (const fd of fds) closeSync(fd);
+    }
+    return {
+      error: run.error,
+      status: run.status,
+      stdout: readFileSync(outPath, "utf8"),
+      stderr: readFileSync(errPath, "utf8"),
+    };
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
 /** The line of a runner's stderr that names the failure. */
 function failureLine(stderr: string, python: boolean): string {
   const lines = stderr
@@ -161,21 +209,19 @@ export function runCodeEvaluator(
       );
   let failure = "";
   for (const [command, argv] of runners) {
-    const run = spawnSync(command, [...argv, ...args], {
+    const run = spawnSyncThroughFiles(command, [...argv, ...args], {
       cwd: workspaceRoot,
-      encoding: "utf8",
       timeout: 60_000,
-      maxBuffer: 64 * 1024 * 1024,
     });
     if (run.error) continue;
-    const line = (run.stdout ?? "").trim().split("\n").pop() ?? "";
+    const line = run.stdout.trim().split("\n").pop() ?? "";
     try {
       const parsed = JSON.parse(line) as unknown;
       if (accept(parsed)) return { ok: true, value: parsed, python };
     } catch {
       // Fall through to the next runner.
     }
-    failure = failureLine(run.stderr ?? "", python);
+    failure = failureLine(run.stderr, python);
   }
   return { ok: false, failure, python };
 }
