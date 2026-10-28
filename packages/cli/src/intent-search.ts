@@ -132,6 +132,7 @@ const FACET_NAMES: readonly IntentSearchFacetName[] = [
 const STOP_WORDS = new Set([
   "a",
   "about",
+  "after",
   "an",
   "and",
   "any",
@@ -139,12 +140,14 @@ const STOP_WORDS = new Set([
   "as",
   "at",
   "be",
+  "before",
   "by",
   "can",
   "could",
   "did",
   "do",
   "does",
+  "each",
   "for",
   "from",
   "govern",
@@ -164,6 +167,7 @@ const STOP_WORDS = new Set([
   "of",
   "on",
   "or",
+  "other",
   "our",
   "should",
   "so",
@@ -290,7 +294,10 @@ function normalize(value: string): string {
     .split(/\s+/)
     .filter(Boolean)
     .map((token) =>
-      token.length > 4 && token.endsWith("s") && !token.endsWith("ss")
+      token.length > 4 &&
+      token.endsWith("s") &&
+      !token.endsWith("ss") &&
+      !token.endsWith("ies")
         ? token.slice(0, -1)
         : token,
     )
@@ -300,10 +307,13 @@ function normalize(value: string): string {
 
 // A deliberately small suffix stripper so a question's verb meets the
 // entity's noun ("contradict" / "contradiction" / "contradictory",
-// "detached" / "detach"). Short tokens are left alone.
+// "detached" / "detach", "applied" / "applies" / "apply"). Short tokens are
+// left alone.
 const STEM_SUFFIXES = ["ation", "ion", "ing", "ory", "ed"] as const;
+const Y_SUFFIX = /(?<=[^aeiou])i(?:es|ed)$/;
 function stem(token: string): string {
   if (token.length < 6 || /\d/.test(token)) return token;
+  if (Y_SUFFIX.test(token)) return token.replace(Y_SUFFIX, "y");
   let stemmed = token;
   for (const suffix of STEM_SUFFIXES) {
     if (stemmed.endsWith(suffix) && stemmed.length - suffix.length >= 4) {
@@ -316,12 +326,18 @@ function stem(token: string): string {
     : stemmed;
 }
 
+// Stop words as normalize leaves them ("before" becomes "befor"), so a
+// stemmed stop word is dropped too.
+const STOP_TOKENS = new Set(
+  Array.from(STOP_WORDS).flatMap((word) => [word, normalize(word)]),
+);
+
 function tokens(value: string): readonly string[] {
   return Array.from(
     new Set(
       normalize(value)
         .split(" ")
-        .filter((token) => token.length > 0 && !STOP_WORDS.has(token)),
+        .filter((token) => token.length > 0 && !STOP_TOKENS.has(token)),
     ),
   );
 }
