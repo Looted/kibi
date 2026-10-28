@@ -216,3 +216,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2232653f749b
+  - type: executable_for
+    from: SYM-proof-migration-sync-action
+    to: TEST-proof-migration-sync-action
+    created_at: 2026-10-28T17:28:54.710Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-676c791928e5

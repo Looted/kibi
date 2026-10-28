@@ -258,3 +258,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8ad6818cb70d
+  - type: validates
+    from: TEST-proof-perf-trace-dir-env
+    to: SCEN-installed-staged-impact-timing-integrity
+    created_at: 2026-10-28T17:36:14.483Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-03e328b4b34e

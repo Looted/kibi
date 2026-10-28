@@ -363,3 +363,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2c1a4f5740da
+  - type: validates
+    from: TEST-proof-impact-policy-path
+    to: SCEN-impact-policy-stage-e-installed-consumer
+    created_at: 2026-10-28T17:32:00.173Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54b9b577ec76

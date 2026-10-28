@@ -321,3 +321,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3bc567b84cfc
+  - type: implements
+    from: SYM-cli-logic-ir-LOGIC_IR_VERSION
+    to: REQ-kibi-logic-rule-limits
+    created_at: 2026-10-28T17:18:49.886Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f6d4c4324df
+  - type: covered_by
+    from: SYM-cli-logic-ir-LOGIC_IR_VERSION
+    to: TEST-proof-logic-ir-version
+    created_at: 2026-10-28T17:19:02.027Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e691cae52e93
+  - type: validates
+    from: TEST-proof-proof-binding-kinds
+    to: SCEN-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T17:48:33.838Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73ee78a13df8

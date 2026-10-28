@@ -265,3 +265,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f729f913f81d
+  - type: implements
+    from: SYM-proof-binding-kinds
+    to: REQ-kibi-proof-run-vocabulary
+    created_at: 2026-10-28T17:48:31.270Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-650da345f25a
+  - type: covered_by
+    from: SYM-proof-binding-kinds
+    to: TEST-proof-proof-binding-kinds
+    created_at: 2026-10-28T17:48:42.310Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cefc73ca1b5a
+  - type: covered_by
+    from: SYM-proof-binding-kinds
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T17:48:42.330Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a62b08cedcdc

@@ -346,3 +346,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e5f816f4ba36
+  - type: implements
+    from: SYM-cli-discovery-proof-contract-page-size
+    to: REQ-kibi-operation-page-sizes
+    created_at: 2026-10-28T17:22:46.364Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97abfb560ff3
+  - type: covered_by
+    from: SYM-cli-discovery-proof-contract-page-size
+    to: TEST-proof-proof-contract-page-size
+    created_at: 2026-10-28T17:22:59.332Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4a6545b6fdf
+  - type: covered_by
+    from: SYM-cli-discovery-proof-contract-page-size
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-10-28T17:22:59.355Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c179e0c91d58

@@ -377,3 +377,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a337c446eacd
+  - type: executable_for
+    from: SYM-proof-logic-rule-max-variables
+    to: TEST-proof-logic-rule-max-variables
+    created_at: 2026-10-28T17:19:52.925Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d3a2087c70e
+  - type: validates
+    from: TEST-proof-migration-sync-code
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T17:29:12.573Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0950f6fa208
+  - type: validates
+    from: TEST-proof-plan-apply-result-version
+    to: SCEN-kibi-change-to-proof-plan-compiler
+    created_at: 2026-10-28T17:45:41.309Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1395ea402ea

@@ -321,3 +321,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0502992938db
+  - type: executable_for
+    from: SYM-proof-delivered-map-code
+    to: TEST-proof-delivered-map-code
+    created_at: 2026-10-28T17:43:01.019Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61101ec3b6f7
+  - type: implements
+    from: SYM-proof-runs-dir
+    to: REQ-kibi-proof-run-vocabulary
+    created_at: 2026-10-28T17:49:45.825Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47b6826ac43e
+  - type: covered_by
+    from: SYM-proof-runs-dir
+    to: TEST-proof-proof-runs-dir
+    created_at: 2026-10-28T17:49:58.499Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b44b6e63ed1
+  - type: covered_by
+    from: SYM-proof-runs-dir
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T17:49:58.520Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1ce6303c748

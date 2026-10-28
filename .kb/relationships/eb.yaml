@@ -209,3 +209,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8e16b26cbae1
+  - type: executable_for
+    from: SYM-proof-entity-query-chunk-size
+    to: TEST-proof-entity-query-chunk-size
+    created_at: 2026-10-28T17:22:29.619Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-657b3cb06c20
+  - type: requires_property
+    from: REQ-kibi-plan-document-versions
+    to: FACT-compile-plan-version
+    created_at: 2026-10-28T17:45:09.124Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a4d03b1a36f
+  - type: requires_property
+    from: REQ-kibi-plan-document-versions
+    to: FACT-plan-apply-result-version
+    created_at: 2026-10-28T17:45:09.150Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-434dd5cef8fc
+  - type: requires_property
+    from: REQ-kibi-plan-document-versions
+    to: FACT-repair-plan-version
+    created_at: 2026-10-28T17:45:09.167Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24c5ac18bc54
+  - type: requires_property
+    from: REQ-kibi-plan-document-versions
+    to: FACT-symbol-repair-plan-version
+    created_at: 2026-10-28T17:45:09.180Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b9f551669d0
+  - type: specified_by
+    from: REQ-kibi-plan-document-versions
+    to: SCEN-kibi-change-to-proof-plan-compiler
+    created_at: 2026-10-28T17:45:09.193Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca916e7fb428
+  - type: constrains
+    from: REQ-kibi-plan-document-versions
+    to: FACT-kibi-plans-versions-component
+    created_at: 2026-10-28T17:45:11.265Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f409da08a4c
+  - type: specified_by
+    from: REQ-kibi-plan-document-versions
+    to: SCEN-kibi-dependency-ordered-repair-plan
+    created_at: 2026-10-28T18:05:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c3e91a0d5b2

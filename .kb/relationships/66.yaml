@@ -188,3 +188,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b1e916e0db0d
+  - type: executable_for
+    from: SYM-proof-operation-protocol-version
+    to: TEST-proof-operation-protocol-version
+    created_at: 2026-10-28T17:23:56.406Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d89b38b688b
+  - type: validates
+    from: TEST-proof-entity-type-backfill-action
+    to: SCEN-cli-migrate-legacy-requirement-status
+    created_at: 2026-10-28T17:43:19.161Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81c206957f01

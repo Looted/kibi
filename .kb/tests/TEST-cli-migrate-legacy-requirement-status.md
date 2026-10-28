@@ -28,18 +28,18 @@ origin:
 id: TEST-cli-migrate-legacy-requirement-status
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-865d21d9e0b7709ecc17d217
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-31918b2cdaf178a2ad0c1865
     test_id: TEST-cli-migrate-legacy-requirement-status
     scope: end_to_end
     outcome: passed
-    code_snapshot: bfda05f172480564af2a87e3a04ce34f85ceb1530759e633da450cbf50bfe3f5
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-14T10:32:59.333Z'
-    finished_at: '2026-10-14T10:33:16.123Z'
-    artifact_digest: 82749eb43b6796dfaa35fc913549d36e51bcb5048bdfafbc3d0d4ee556a3daf1
+    code_snapshot: 6c5b25823ef6cbf009fe70ee8955458c0021056cbc5b1d725647c41af19ef199
+    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
+    started_at: '2026-10-28T17:43:52.095Z'
+    finished_at: '2026-10-28T17:44:21.365Z'
+    artifact_digest: 558f87695e07b892ff20355f418ffe2cb297a2bf408f79bd06e5f762b1cf8283
     contract_hash: 5e792ee1ca632f23a4f93907b64712b5b3ac5feb899ccc02d704345755f0d55f
-    binding_hash: e2feccf9b65570db91cbedf605c68285cdd7e091d463b97e50a97f6e782fd980
+    binding_hash: efb17b32d3018bf4eaeaeb9a3aa0d2d20aba3073af63200ec2d48d1865b97bbf
     fingerprint: 23be39ba2ea43dbb463b4d08812c1dbe4645c58d330275e312fd5a37e3489463
     fingerprint_components:
       contract: 5e792ee1ca632f23a4f93907b64712b5b3ac5feb899ccc02d704345755f0d55f
@@ -61,5 +61,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs the CLI on a temporary legacy workspace: a dry run lists the mapping, `kibi migrate --yes` maps `implemented` and `done` to `closed` with the tag `implemented` and records `legacyStatusesMapped` in the audit, and `kibi sync` compiles the requirements so `kibi query` returns them. A store whose first sync ran before the mapping keeps the legacy baseline, and an unknown status leaves the run reporting `Migration incomplete` with the requirement and its fix. Unit tests cover the status plan, the single automatic plan action and the in-place front matter rewrite.

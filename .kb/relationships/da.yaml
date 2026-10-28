@@ -402,3 +402,108 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bd59d1c0da86
+  - type: implements
+    from: SYM-schema6-check-actions-RATIONALE_REVIEW_CODE
+    to: REQ-kibi-lifecycle-check-codes
+    created_at: 2026-10-28T17:26:47.397Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7464e4150310
+  - type: covered_by
+    from: SYM-schema6-check-actions-RATIONALE_REVIEW_CODE
+    to: TEST-proof-rationale-review-code
+    created_at: 2026-10-28T17:26:59.507Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd77a427f208
+  - type: covered_by
+    from: SYM-schema6-check-actions-RATIONALE_REVIEW_CODE
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T17:26:59.545Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe8365b7758e
+  - type: requires_property
+    from: REQ-kibi-proof-run-vocabulary
+    to: FACT-proof-result-outcomes
+    created_at: 2026-10-28T17:47:25.903Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f457b034fe06
+  - type: requires_property
+    from: REQ-kibi-proof-run-vocabulary
+    to: FACT-run-failure-phases
+    created_at: 2026-10-28T17:47:25.955Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73ba35910d27
+  - type: requires_property
+    from: REQ-kibi-proof-run-vocabulary
+    to: FACT-success-policies
+    created_at: 2026-10-28T17:47:25.984Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d73960858ec
+  - type: requires_property
+    from: REQ-kibi-proof-run-vocabulary
+    to: FACT-proof-binding-kinds
+    created_at: 2026-10-28T17:47:26.014Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fedcc42f7443
+  - type: requires_property
+    from: REQ-kibi-proof-run-vocabulary
+    to: FACT-attempts-status
+    created_at: 2026-10-28T17:47:26.045Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8959a451472c
+  - type: requires_property
+    from: REQ-kibi-proof-run-vocabulary
+    to: FACT-producer-kinds
+    created_at: 2026-10-28T17:47:26.063Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f3ace5fb0453
+  - type: requires_property
+    from: REQ-kibi-proof-run-vocabulary
+    to: FACT-proof-integrations-path
+    created_at: 2026-10-28T17:47:26.084Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0194b49137a4
+  - type: requires_property
+    from: REQ-kibi-proof-run-vocabulary
+    to: FACT-proof-runs-dir
+    created_at: 2026-10-28T17:47:26.104Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-91befd80037f
+  - type: requires_property
+    from: REQ-kibi-proof-run-vocabulary
+    to: FACT-max-proof-receipts
+    created_at: 2026-10-28T17:47:26.127Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a0074b243dc
+  - type: requires_property
+    from: REQ-kibi-proof-run-vocabulary
+    to: FACT-coverage-row-page-size
+    created_at: 2026-10-28T17:47:26.143Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f861cd77f0cf
+  - type: specified_by
+    from: REQ-kibi-proof-run-vocabulary
+    to: SCEN-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T17:47:26.157Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9731de3f46a
+  - type: constrains
+    from: REQ-kibi-proof-run-vocabulary
+    to: FACT-kibi-proof-run-vocabulary-component
+    created_at: 2026-10-28T17:47:28.370Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2275af5b079

@@ -402,3 +402,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-afb3ec9362c8
+  - type: validates
+    from: TEST-proof-symbol-owner-review-action
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T17:29:32.946Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aec97da05317

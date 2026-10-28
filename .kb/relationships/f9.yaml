@@ -360,3 +360,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c249f5d223e0
+  - type: implements
+    from: SYM-schema6-check-actions-MIGRATION_SYNC_ACTION_ID
+    to: REQ-kibi-lifecycle-check-codes
+    created_at: 2026-10-28T17:28:50.199Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55a4213a5c77
+  - type: covered_by
+    from: SYM-schema6-check-actions-MIGRATION_SYNC_ACTION_ID
+    to: TEST-proof-migration-sync-action
+    created_at: 2026-10-28T17:29:02.018Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c57b3273788
+  - type: covered_by
+    from: SYM-schema6-check-actions-MIGRATION_SYNC_ACTION_ID
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T17:29:02.044Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a90ad8c27b4e

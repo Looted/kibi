@@ -356,3 +356,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b341592bdd8d
+  - type: validates
+    from: TEST-proof-query-body-max-chars
+    to: SCEN-kibi-operation-interface-parity
+    created_at: 2026-10-28T17:23:32.861Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c60c23edd1a9

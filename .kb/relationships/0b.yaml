@@ -307,3 +307,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f064b0644310
+  - type: implements
+    from: SYM-schema6-check-actions-SOURCE_PATH_REWRITE_ACTION_ID
+    to: REQ-kibi-lifecycle-check-codes
+    created_at: 2026-10-28T17:28:09.786Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0cfcaaa1efd9
+  - type: covered_by
+    from: SYM-schema6-check-actions-SOURCE_PATH_REWRITE_ACTION_ID
+    to: TEST-proof-source-path-rewrite-action
+    created_at: 2026-10-28T17:28:21.845Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d879de7ff5af
+  - type: covered_by
+    from: SYM-schema6-check-actions-SOURCE_PATH_REWRITE_ACTION_ID
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T17:28:21.873Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ed035aea7e4
+  - type: validates
+    from: TEST-proof-producer-kinds
+    to: SCEN-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T17:49:10.278Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed9d0a353448

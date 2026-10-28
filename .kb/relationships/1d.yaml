@@ -398,3 +398,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c03993c5a148
+  - type: implements
+    from: SYM-performance-timings-env
+    to: REQ-kibi-perf-trace-limits
+    created_at: 2026-10-28T17:35:53.119Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f9310b28243
+  - type: covered_by
+    from: SYM-performance-timings-env
+    to: TEST-proof-perf-timings-env
+    created_at: 2026-10-28T17:36:04.432Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-026f2850ab3f

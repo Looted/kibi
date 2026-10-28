@@ -174,3 +174,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-df88b2cd2fd8
+  - type: executable_for
+    from: SYM-proof-exception-unapproved-review-code
+    to: TEST-proof-exception-unapproved-review-code
+    created_at: 2026-10-28T17:26:30.507Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95d2b49129c3

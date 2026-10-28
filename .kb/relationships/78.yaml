@@ -279,3 +279,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9c5839363af4
+  - type: validates
+    from: TEST-proof-proof-runs-dir
+    to: SCEN-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T17:49:48.636Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f79be1acc12

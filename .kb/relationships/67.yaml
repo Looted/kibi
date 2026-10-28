@@ -454,3 +454,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-157ccb2b16fc
+  - type: implements
+    from: SYM-migration-delivered-requirement-tag
+    to: REQ-cli-migration-action-codes
+    created_at: 2026-10-28T17:42:10.376Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4344c1b6c3e8
+  - type: covered_by
+    from: SYM-migration-delivered-requirement-tag
+    to: TEST-proof-delivered-requirement-tag
+    created_at: 2026-10-28T17:42:23.639Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e047ac6a18c1
+  - type: implements
+    from: SYM-attempts-status-2
+    to: REQ-kibi-proof-run-vocabulary
+    created_at: 2026-10-28T17:48:49.543Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-536b05c76d34
+  - type: covered_by
+    from: SYM-attempts-status-2
+    to: TEST-proof-attempts-status
+    created_at: 2026-10-28T17:49:00.637Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c17522565501
+  - type: covered_by
+    from: SYM-attempts-status-2
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T17:49:00.659Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9732d9796f8e

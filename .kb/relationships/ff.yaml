@@ -433,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f8ebdd6e0aa7
+  - type: implements
+    from: SYM-max-proof-receipts
+    to: REQ-kibi-proof-run-vocabulary
+    created_at: 2026-10-28T17:50:06.012Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d002dde8811
+  - type: covered_by
+    from: SYM-max-proof-receipts
+    to: TEST-proof-max-proof-receipts
+    created_at: 2026-10-28T17:50:16.780Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3df85bb907e0

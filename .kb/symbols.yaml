@@ -939,8 +939,12 @@ symbols:
         target: TEST-e2e-plan-compiler-hash
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-proof-plan-apply-result-version
       - type: implements
         target: REQ-kibi-change-to-proof-plan-compiler-v2
+      - type: implements
+        target: REQ-kibi-plan-document-versions
   - id: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compileplanhash
     title: compilePlanHash
     sourceFile: packages/cli/src/operations/planning/compile-intent.ts
@@ -1078,8 +1082,12 @@ symbols:
         target: TEST-e2e-plan-compiler-hash
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-proof-compile-plan-version
       - type: implements
         target: REQ-kibi-change-to-proof-plan-compiler-v2
+      - type: implements
+        target: REQ-kibi-plan-document-versions
   - id: SYM-kibi-cli-src-public-operations-specs-planning-ts-compileintentspec
     title: compileIntentSpec
     sourceFile: packages/cli/src/public/operations/specs/planning.ts
@@ -1388,8 +1396,12 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-proof-query-entity-types
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-page-sizes
   - id: SYM-cli-discovery-build-entity-goal
     title: buildEntityGoal
     status: active
@@ -25469,6 +25481,10 @@ symbols:
         target: TEST-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-proof-logic-ir-version
+      - type: implements
+        target: REQ-kibi-logic-rule-limits
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
   - id: SYM-cli-logic-ir-LOGIC_RULE_MAX_DEPTH
@@ -25482,6 +25498,10 @@ symbols:
         target: TEST-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-proof-logic-rule-max-depth
+      - type: implements
+        target: REQ-kibi-logic-rule-limits
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
   - id: SYM-cli-logic-ir-LOGIC_RULE_MAX_ATOMS
@@ -25495,6 +25515,10 @@ symbols:
         target: TEST-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-proof-logic-rule-max-atoms
+      - type: implements
+        target: REQ-kibi-logic-rule-limits
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
   - id: SYM-cli-logic-ir-LOGIC_RULE_MAX_VARIABLES
@@ -25508,6 +25532,10 @@ symbols:
         target: TEST-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-proof-logic-rule-max-variables
+      - type: implements
+        target: REQ-kibi-logic-rule-limits
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
   - id: SYM-cli-logic-ir-LogicModality
@@ -26992,9 +27020,15 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
         target: TEST-kibi-dependency-ordered-repair-plan
+      - type: covered_by
+        target: TEST-proof-repair-plan-version
       - type: implements
         target: REQ-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-plan-document-versions
   - id: SYM-reqcompiler-runtime-workspace-snapshot
     title: WorkspaceSnapshot
     status: active
@@ -28101,8 +28135,12 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-proof-operation-protocol-version
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-page-sizes
   - id: SYM-auto-20020A915D46
     title: EnginePort
     status: active
@@ -34717,7 +34755,13 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-proof-proof-integrations-path
+      - type: implements
+        target: REQ-kibi-proof-run-vocabulary
       - type: implements
         target: REQ-kibi-verification-evidence-contract
   - id: SYM-proof-runs-dir
@@ -34728,7 +34772,13 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-proof-proof-runs-dir
+      - type: implements
+        target: REQ-kibi-proof-run-vocabulary
       - type: implements
         target: REQ-kibi-verification-evidence-contract
   - id: SYM-producer-kinds
@@ -34739,7 +34789,13 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-proof-producer-kinds
+      - type: implements
+        target: REQ-kibi-proof-run-vocabulary
       - type: implements
         target: REQ-kibi-verification-evidence-contract
   - id: SYM-proof-receipt-outcome
@@ -35171,7 +35227,13 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-proof-proof-result-outcomes
+      - type: implements
+        target: REQ-kibi-proof-run-vocabulary
       - type: implements
         target: REQ-kibi-verification-evidence-contract
   - id: SYM-proof-binding-kinds
@@ -35182,7 +35244,13 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-proof-proof-binding-kinds
+      - type: implements
+        target: REQ-kibi-proof-run-vocabulary
       - type: implements
         target: REQ-kibi-verification-evidence-contract
   - id: SYM-attempts-status-2
@@ -35193,7 +35261,13 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-proof-attempts-status
+      - type: implements
+        target: REQ-kibi-proof-run-vocabulary
       - type: implements
         target: REQ-kibi-verification-evidence-contract
   - id: SYM-run-failure-phases
@@ -35204,7 +35278,13 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-proof-run-failure-phases
+      - type: implements
+        target: REQ-kibi-proof-run-vocabulary
       - type: implements
         target: REQ-kibi-verification-evidence-contract
   - id: SYM-success-policies
@@ -35215,7 +35295,13 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-proof-success-policies
+      - type: implements
+        target: REQ-kibi-proof-run-vocabulary
       - type: implements
         target: REQ-kibi-verification-evidence-contract
   - id: SYM-proof-result-schema
@@ -35402,8 +35488,12 @@ symbols:
         target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
         target: TEST-kibi-verification-receipts-v2
+      - type: covered_by
+        target: TEST-proof-max-proof-receipts
       - type: implements
         target: REQ-kibi-fresh-verification-receipts-v2
+      - type: implements
+        target: REQ-kibi-proof-run-vocabulary
       - type: implements
         target: REQ-kibi-verification-receipts-v2
   - id: SYM-ingest-proof-spec
@@ -38142,9 +38232,15 @@ symbols:
     symbol_role: structural
     relationships:
       - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
         target: TEST-kibi-dependency-ordered-repair-plan
+      - type: covered_by
+        target: TEST-proof-symbol-repair-plan-version
       - type: implements
         target: REQ-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-plan-document-versions
   - id: SYM-test-coordinate-repair-capability
     title: coordinate repair capability
     status: active
@@ -41576,11 +41672,17 @@ symbols:
     symbol_role: config
     relationships:
       - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-mcp-search-discovery
+      - type: covered_by
+        target: TEST-proof-search-candidate-page-size
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-page-sizes
       - type: implements
         target: REQ-mcp-search-discovery
   - id: SYM-registerJobStatusTool
@@ -41740,11 +41842,17 @@ symbols:
     symbol_role: config
     relationships:
       - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-proof-contract-projection-pagination
+      - type: covered_by
+        target: TEST-proof-proof-contract-page-size
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-page-sizes
   - id: SYM-core-kb-query-proof-contracts
     title: kb_query_proof_contracts
     status: active
@@ -42011,7 +42119,13 @@ symbols:
     granularity_reason: config-artifact
     relationships:
       - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-proof-coverage-row-page-size
+      - type: implements
+        target: REQ-kibi-proof-run-vocabulary
       - type: implements
         target: REQ-kibi-verification-evidence-contract
   - id: SYM-cli-receiptCodeScopeSymbolIds
@@ -42091,9 +42205,15 @@ symbols:
     granularity_reason: config-artifact
     relationships:
       - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-proof-entity-query-chunk-size
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-page-sizes
   - id: SYM-test-packed-vocabulary-convergence
     title: assertVocabularyConvergenceOutcome
     status: active
@@ -43706,8 +43826,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-installed-staged-impact-timing-integrity
+      - type: covered_by
+        target: TEST-proof-perf-trace-dir-env
       - type: implements
         target: REQ-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-kibi-perf-trace-limits
   - id: SYM-performance-timings-env
     title: KIBI_PERF_TIMINGS_ENV
     status: active
@@ -43720,8 +43844,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-installed-staged-impact-timing-integrity
+      - type: covered_by
+        target: TEST-proof-perf-timings-env
       - type: implements
         target: REQ-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-kibi-perf-trace-limits
   - id: SYM-performance-trace-max-events
     title: KIBI_PERF_TRACE_MAX_EVENTS
     status: active
@@ -43734,8 +43862,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-installed-staged-impact-timing-integrity
+      - type: covered_by
+        target: TEST-proof-perf-trace-max-events
       - type: implements
         target: REQ-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-kibi-perf-trace-limits
   - id: SYM-performance-trace-max-bytes
     title: KIBI_PERF_TRACE_MAX_BYTES
     status: active
@@ -43748,8 +43880,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-installed-staged-impact-timing-integrity
+      - type: covered_by
+        target: TEST-proof-perf-trace-max-bytes
       - type: implements
         target: REQ-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-kibi-perf-trace-limits
   - id: SYM-source-analysis-timing-emitter
     title: createBoundedSourceAnalysisTimingEmitter
     status: active
@@ -44180,8 +44316,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-impact-policy-stage-e-installed-e2e
+      - type: covered_by
+        target: TEST-proof-impact-evaluator-version
       - type: implements
         target: REQ-impact-policy-stage-e-content-bound-review
+      - type: implements
+        target: REQ-impact-review-identifiers
   - id: SYM-impact-stage-e-impact-policy-path
     granularity_reason: config-artifact
     symbol_role: config
@@ -44195,8 +44335,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-impact-policy-stage-e-installed-e2e
+      - type: covered_by
+        target: TEST-proof-impact-policy-path
       - type: implements
         target: REQ-impact-policy-stage-e-content-bound-review
+      - type: implements
+        target: REQ-impact-review-identifiers
   - id: SYM-impact-stage-e-impact-policy-version
     title: IMPACT_POLICY_VERSION
     tags:
@@ -44210,8 +44354,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-impact-policy-stage-e-installed-e2e
+      - type: covered_by
+        target: TEST-proof-impact-policy-version
       - type: implements
         target: REQ-impact-policy-stage-e-content-bound-review
+      - type: implements
+        target: REQ-impact-review-identifiers
   - id: SYM-impact-stage-e-impact-review-version
     status: active
     tags:
@@ -44225,8 +44373,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-impact-policy-stage-e-installed-e2e
+      - type: covered_by
+        target: TEST-proof-impact-review-version
       - type: implements
         target: REQ-impact-policy-stage-e-content-bound-review
+      - type: implements
+        target: REQ-impact-review-identifiers
   - id: SYM-impact-stage-e-impactevaluation
     title: ImpactEvaluation
     status: active
@@ -52349,8 +52501,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
+      - type: covered_by
+        target: TEST-proof-adr-proposed-review-code
       - type: implements
         target: REQ-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-lifecycle-check-codes
   - id: SYM-schema6-check-actions-ADR_UNLINKED_REVIEW_CODE
     title: ADR_UNLINKED_REVIEW_CODE
     status: active
@@ -52362,8 +52518,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
+      - type: covered_by
+        target: TEST-proof-adr-unlinked-review-code
       - type: implements
         target: REQ-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-lifecycle-check-codes
   - id: SYM-schema6-check-actions-AGENT_REQUIREMENTS_REVIEW_ACTION_ID
     title: AGENT_REQUIREMENTS_REVIEW_ACTION_ID
     status: active
@@ -52440,8 +52600,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
+      - type: covered_by
+        target: TEST-proof-exception-unapproved-review-code
       - type: implements
         target: REQ-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-lifecycle-check-codes
   - id: SYM-schema6-check-actions-exceptionUnapprovedActionId
     title: exceptionUnapprovedActionId
     status: active
@@ -52492,8 +52656,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
+      - type: covered_by
+        target: TEST-proof-migration-sync-action
       - type: implements
         target: REQ-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-lifecycle-check-codes
   - id: SYM-schema6-check-actions-MIGRATION_SYNC_CODE
     title: MIGRATION_SYNC_CODE
     status: active
@@ -52505,8 +52673,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
+      - type: covered_by
+        target: TEST-proof-migration-sync-code
       - type: implements
         target: REQ-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-lifecycle-check-codes
   - id: SYM-schema6-check-actions-MigrationActionInput
     title: MigrationActionInput
     status: active
@@ -52570,8 +52742,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
+      - type: covered_by
+        target: TEST-proof-rationale-review-code
       - type: implements
         target: REQ-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-lifecycle-check-codes
   - id: SYM-schema6-check-actions-SCENARIO_FEASIBILITY_REVIEW_CODE
     title: SCENARIO_FEASIBILITY_REVIEW_CODE
     status: active
@@ -52609,8 +52785,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
+      - type: covered_by
+        target: TEST-proof-source-path-review-code
       - type: implements
         target: REQ-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-lifecycle-check-codes
   - id: SYM-schema6-check-actions-SOURCE_PATH_REWRITE_ACTION_ID
     title: SOURCE_PATH_REWRITE_ACTION_ID
     status: active
@@ -52622,8 +52802,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
+      - type: covered_by
+        target: TEST-proof-source-path-rewrite-action
       - type: implements
         target: REQ-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-lifecycle-check-codes
   - id: SYM-schema6-check-actions-SOURCE_PATH_REWRITE_CODE
     title: SOURCE_PATH_REWRITE_CODE
     status: active
@@ -52635,8 +52819,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
+      - type: covered_by
+        target: TEST-proof-source-path-rewrite-code
       - type: implements
         target: REQ-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-lifecycle-check-codes
   - id: SYM-schema6-check-actions-SOURCE_PLANNED_LIFECYCLE_CODES
     title: SOURCE_PLANNED_LIFECYCLE_CODES
     status: active
@@ -52700,8 +52888,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
+      - type: covered_by
+        target: TEST-proof-supersession-cycle-review-code
       - type: implements
         target: REQ-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-lifecycle-check-codes
   - id: SYM-schema6-check-actions-SYMBOL_OWNER_REVIEW_ACTION_ID
     title: SYMBOL_OWNER_REVIEW_ACTION_ID
     status: active
@@ -52713,8 +52905,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
+      - type: covered_by
+        target: TEST-proof-symbol-owner-review-action
       - type: implements
         target: REQ-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-lifecycle-check-codes
   - id: SYM-schema6-check-actions-SYMBOL_OWNER_REVIEW_CODE
     title: SYMBOL_OWNER_REVIEW_CODE
     status: active
@@ -52726,8 +52922,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
+      - type: covered_by
+        target: TEST-proof-symbol-owner-review-code
       - type: implements
         target: REQ-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-lifecycle-check-codes
   - id: SYM-source-path-dangling-SOURCE_PATH_DANGLING_RULE
     title: SOURCE_PATH_DANGLING_RULE
     status: active
@@ -52739,8 +52939,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
+      - type: covered_by
+        target: TEST-proof-source-path-dangling-rule
       - type: implements
         target: REQ-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-lifecycle-check-codes
   - id: SYM-source-path-dangling-sourcePathDanglingViolations
     title: sourcePathDanglingViolations
     status: active
@@ -53142,8 +53346,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-migrate-legacy-requirement-status
+      - type: covered_by
+        target: TEST-proof-delivered-requirement-tag
       - type: implements
         target: REQ-cli-migrate-legacy-requirement-status
+      - type: implements
+        target: REQ-cli-migration-action-codes
   - id: SYM-migration-delivered-status-mapping-result
     title: DeliveredStatusMappingResult
     status: active
@@ -53198,8 +53406,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-migrate-legacy-requirement-status
+      - type: covered_by
+        target: TEST-proof-delivered-map-action
       - type: implements
         target: REQ-cli-migrate-legacy-requirement-status
+      - type: implements
+        target: REQ-cli-migration-action-codes
   - id: SYM-schema6-REQ_STATUS_DELIVERED_MAP_CODE
     title: REQ_STATUS_DELIVERED_MAP_CODE
     status: active
@@ -53211,8 +53423,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-migrate-legacy-requirement-status
+      - type: covered_by
+        target: TEST-proof-delivered-map-code
       - type: implements
         target: REQ-cli-migrate-legacy-requirement-status
+      - type: implements
+        target: REQ-cli-migration-action-codes
   - id: SYM-source-authoring-authored-frontmatter
     title: authoredFrontmatter
     status: active
@@ -53465,9 +53681,15 @@ symbols:
       recorded_at: 2026-10-14T10:14:51.357Z
     relationships:
       - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-proof-query-body-max-chars
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-page-sizes
   - id: SYM-test-cli-migration-first-commit
     title: Migration first-commit consumer suite
     status: active
@@ -54670,9 +54892,15 @@ symbols:
       recorded_at: 2026-10-14T21:20:50.037Z
     relationships:
       - type: covered_by
+        target: TEST-cli-migrate-legacy-requirement-status
+      - type: covered_by
         target: TEST-cli-migrated-kb-type-backfill-sync-totals
+      - type: covered_by
+        target: TEST-proof-entity-type-backfill-code
       - type: implements
         target: REQ-cli-migrate-entity-type-backfill
+      - type: implements
+        target: REQ-cli-migration-action-codes
   - id: SYM-migration-entity-type-backfill-action-id
     title: ENTITY_TYPE_BACKFILL_ACTION_ID
     status: active
@@ -54683,9 +54911,15 @@ symbols:
       recorded_at: 2026-10-14T21:20:55.160Z
     relationships:
       - type: covered_by
+        target: TEST-cli-migrate-legacy-requirement-status
+      - type: covered_by
         target: TEST-cli-migrated-kb-type-backfill-sync-totals
+      - type: covered_by
+        target: TEST-proof-entity-type-backfill-action
       - type: implements
         target: REQ-cli-migrate-entity-type-backfill
+      - type: implements
+        target: REQ-cli-migration-action-codes
   - id: SYM-migration-entity-type-backfill-target
     title: EntityTypeBackfillTarget
     status: active
@@ -56534,6 +56768,10 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-signoff-views
+      - type: covered_by
+        target: TEST-proof-signoff-version
+      - type: implements
+        target: REQ-kibi-signoff-version
       - type: implements
         target: REQ-kibi-signoff-views
   - id: SYM-agent-core-decision-flag
@@ -60074,3 +60312,717 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-signoff-format-env
+  - id: SYM-proof-logic-ir-version
+    title: logicIrVersionCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/logic-rule-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:18:53.839Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-logic-ir-version
+  - id: SYM-proof-logic-rule-max-atoms
+    title: logicRuleMaxAtomsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/logic-rule-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:19:13.450Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-logic-rule-max-atoms
+  - id: SYM-proof-logic-rule-max-depth
+    title: logicRuleMaxDepthCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/logic-rule-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:19:32.852Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-logic-rule-max-depth
+  - id: SYM-proof-logic-rule-max-variables
+    title: logicRuleMaxVariablesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/logic-rule-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:19:51.933Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-logic-rule-max-variables
+  - id: SYM-proof-entity-query-chunk-size
+    title: entityQueryChunkSizeCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/operation-page-sizes.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:22:28.524Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-entity-query-chunk-size
+  - id: SYM-proof-proof-contract-page-size
+    title: proofContractPageSizeCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/operation-page-sizes.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:22:49.892Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-proof-contract-page-size
+  - id: SYM-proof-search-candidate-page-size
+    title: searchCandidatePageSizeCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/operation-page-sizes.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:23:12.099Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-search-candidate-page-size
+  - id: SYM-proof-query-body-max-chars
+    title: queryBodyMaxCharsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/operation-page-sizes.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:23:33.999Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-query-body-max-chars
+  - id: SYM-proof-operation-protocol-version
+    title: operationProtocolVersionCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/operation-page-sizes.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:23:55.255Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-operation-protocol-version
+  - id: SYM-proof-query-entity-types
+    title: queryEntityTypesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/operation-page-sizes.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:24:15.689Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-query-entity-types
+  - id: SYM-proof-adr-proposed-review-code
+    title: adrProposedReviewCodeCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:25:47.038Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-adr-proposed-review-code
+  - id: SYM-proof-adr-unlinked-review-code
+    title: adrUnlinkedReviewCodeCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:26:08.255Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-adr-unlinked-review-code
+  - id: SYM-proof-exception-unapproved-review-code
+    title: exceptionUnapprovedReviewCodeCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:26:29.271Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-exception-unapproved-review-code
+  - id: SYM-proof-rationale-review-code
+    title: rationaleReviewCodeCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:26:51.426Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-rationale-review-code
+  - id: SYM-proof-supersession-cycle-review-code
+    title: supersessionCycleReviewCodeCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:27:11.449Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-supersession-cycle-review-code
+  - id: SYM-proof-source-path-review-code
+    title: sourcePathReviewCodeCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:27:32.733Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-source-path-review-code
+  - id: SYM-proof-source-path-dangling-rule
+    title: sourcePathDanglingRuleCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:27:53.285Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-source-path-dangling-rule
+  - id: SYM-proof-source-path-rewrite-action
+    title: sourcePathRewriteActionCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:28:13.607Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-source-path-rewrite-action
+  - id: SYM-proof-source-path-rewrite-code
+    title: sourcePathRewriteCodeCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:28:33.971Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-source-path-rewrite-code
+  - id: SYM-proof-migration-sync-action
+    title: migrationSyncActionCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:28:53.764Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-migration-sync-action
+  - id: SYM-proof-migration-sync-code
+    title: migrationSyncCodeCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:29:13.682Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-migration-sync-code
+  - id: SYM-proof-symbol-owner-review-action
+    title: symbolOwnerReviewActionCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:29:34.001Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-symbol-owner-review-action
+  - id: SYM-proof-symbol-owner-review-code
+    title: symbolOwnerReviewCodeCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:29:54.176Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-symbol-owner-review-code
+  - id: SYM-proof-impact-policy-path
+    title: impactPolicyPathCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/impact-review-identifiers.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:32:01.340Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-impact-policy-path
+  - id: SYM-proof-impact-policy-version
+    title: impactPolicyVersionCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/impact-review-identifiers.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:32:19.472Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-impact-policy-version
+  - id: SYM-proof-impact-review-version
+    title: impactReviewVersionCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/impact-review-identifiers.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:32:37.939Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-impact-review-version
+  - id: SYM-proof-impact-evaluator-version
+    title: impactEvaluatorVersionCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/impact-review-identifiers.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:32:56.216Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-impact-evaluator-version
+  - id: SYM-proof-perf-timings-env
+    title: perfTimingsEnvCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/perf-trace-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:35:56.978Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-perf-timings-env
+  - id: SYM-proof-perf-trace-dir-env
+    title: perfTraceDirEnvCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/perf-trace-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:36:15.614Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-perf-trace-dir-env
+  - id: SYM-proof-perf-trace-max-bytes
+    title: perfTraceMaxBytesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/perf-trace-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:36:34.159Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-perf-trace-max-bytes
+  - id: SYM-proof-perf-trace-max-events
+    title: perfTraceMaxEventsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/perf-trace-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:36:53.393Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-perf-trace-max-events
+  - id: SYM-proof-delivered-requirement-tag
+    title: deliveredRequirementTagCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/migration-action-codes.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:42:14.681Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-delivered-requirement-tag
+  - id: SYM-proof-delivered-map-action
+    title: deliveredMapActionCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/migration-action-codes.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:42:36.602Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-delivered-map-action
+  - id: SYM-proof-delivered-map-code
+    title: deliveredMapCodeCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/migration-action-codes.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:42:59.958Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-delivered-map-code
+  - id: SYM-proof-entity-type-backfill-action
+    title: entityTypeBackfillActionCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/migration-action-codes.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:43:20.345Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-entity-type-backfill-action
+  - id: SYM-proof-entity-type-backfill-code
+    title: entityTypeBackfillCodeCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/migration-action-codes.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:43:38.414Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-entity-type-backfill-code
+  - id: SYM-proof-compile-plan-version
+    title: compilePlanVersionCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/plan-document-versions.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:45:22.231Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-compile-plan-version
+  - id: SYM-proof-plan-apply-result-version
+    title: planApplyResultVersionCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/plan-document-versions.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:45:42.429Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-plan-apply-result-version
+  - id: SYM-proof-repair-plan-version
+    title: repairPlanVersionCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/plan-document-versions.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:46:02.110Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-repair-plan-version
+  - id: SYM-proof-symbol-repair-plan-version
+    title: symbolRepairPlanVersionCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/plan-document-versions.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:46:21.905Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-symbol-repair-plan-version
+  - id: SYM-proof-proof-result-outcomes
+    title: proofResultOutcomesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/proof-run-vocabulary.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:47:38.522Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-proof-result-outcomes
+  - id: SYM-proof-run-failure-phases
+    title: runFailurePhasesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/proof-run-vocabulary.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:47:57.318Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-run-failure-phases
+  - id: SYM-proof-success-policies
+    title: successPoliciesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/proof-run-vocabulary.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:48:16.765Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-success-policies
+  - id: SYM-proof-proof-binding-kinds
+    title: proofBindingKindsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/proof-run-vocabulary.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:48:34.973Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-proof-binding-kinds
+  - id: SYM-proof-attempts-status
+    title: attemptsStatusCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/proof-run-vocabulary.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:48:53.249Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-attempts-status
+  - id: SYM-proof-producer-kinds
+    title: producerKindsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/proof-run-vocabulary.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:49:11.458Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-producer-kinds
+  - id: SYM-proof-proof-integrations-path
+    title: proofIntegrationsPathCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/proof-run-vocabulary.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:49:30.569Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-proof-integrations-path
+  - id: SYM-proof-proof-runs-dir
+    title: proofRunsDirCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/proof-run-vocabulary.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:49:49.876Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-proof-runs-dir
+  - id: SYM-proof-max-proof-receipts
+    title: maxProofReceiptsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/proof-run-vocabulary.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:50:09.670Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-max-proof-receipts
+  - id: SYM-proof-coverage-row-page-size
+    title: coverageRowPageSizeCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/proof-run-vocabulary.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:50:28.752Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-coverage-row-page-size
+  - id: SYM-proof-signoff-version
+    title: signoffVersionCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/signoff-version.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T17:53:20.663Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-signoff-version

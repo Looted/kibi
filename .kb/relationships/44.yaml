@@ -216,3 +216,108 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-41093367a0b7
+  - type: requires_property
+    from: REQ-kibi-lifecycle-check-codes
+    to: FACT-adr-proposed-review-code
+    created_at: 2026-10-28T17:25:33.935Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2180369d40b9
+  - type: requires_property
+    from: REQ-kibi-lifecycle-check-codes
+    to: FACT-adr-unlinked-review-code
+    created_at: 2026-10-28T17:25:33.970Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-db991e9f0af1
+  - type: requires_property
+    from: REQ-kibi-lifecycle-check-codes
+    to: FACT-exception-unapproved-review-code
+    created_at: 2026-10-28T17:25:33.994Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-96edcf43a7a8
+  - type: requires_property
+    from: REQ-kibi-lifecycle-check-codes
+    to: FACT-rationale-review-code
+    created_at: 2026-10-28T17:25:34.008Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ed1be286dba
+  - type: requires_property
+    from: REQ-kibi-lifecycle-check-codes
+    to: FACT-supersession-cycle-review-code
+    created_at: 2026-10-28T17:25:34.021Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f8ca89b02674
+  - type: requires_property
+    from: REQ-kibi-lifecycle-check-codes
+    to: FACT-source-path-review-code
+    created_at: 2026-10-28T17:25:34.035Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d86091bca989
+  - type: requires_property
+    from: REQ-kibi-lifecycle-check-codes
+    to: FACT-source-path-dangling-rule
+    created_at: 2026-10-28T17:25:34.047Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0cf68de7e7e
+  - type: requires_property
+    from: REQ-kibi-lifecycle-check-codes
+    to: FACT-source-path-rewrite-action
+    created_at: 2026-10-28T17:25:34.061Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e18e646c8f40
+  - type: requires_property
+    from: REQ-kibi-lifecycle-check-codes
+    to: FACT-source-path-rewrite-code
+    created_at: 2026-10-28T17:25:34.072Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e34bbfaadbb
+  - type: requires_property
+    from: REQ-kibi-lifecycle-check-codes
+    to: FACT-migration-sync-action
+    created_at: 2026-10-28T17:25:34.083Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54941c809d72
+  - type: requires_property
+    from: REQ-kibi-lifecycle-check-codes
+    to: FACT-migration-sync-code
+    created_at: 2026-10-28T17:25:34.093Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f7a2fe37a4a
+  - type: requires_property
+    from: REQ-kibi-lifecycle-check-codes
+    to: FACT-symbol-owner-review-action
+    created_at: 2026-10-28T17:25:34.104Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f34a86a9857e
+  - type: requires_property
+    from: REQ-kibi-lifecycle-check-codes
+    to: FACT-symbol-owner-review-code
+    created_at: 2026-10-28T17:25:34.115Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-754b044e344d
+  - type: specified_by
+    from: REQ-kibi-lifecycle-check-codes
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T17:25:34.123Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7656c666323
+  - type: constrains
+    from: REQ-kibi-lifecycle-check-codes
+    to: FACT-kibi-lifecycle-check-codes-component
+    created_at: 2026-10-28T17:25:36.152Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c412e8ddb8ba

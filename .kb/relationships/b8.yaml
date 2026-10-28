@@ -307,3 +307,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6820a21f30bc
+  - type: implements
+    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compile-plan-version
+    to: REQ-kibi-plan-document-versions
+    created_at: 2026-10-28T17:45:17.501Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5cb6f532a2c6
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compile-plan-version
+    to: TEST-proof-compile-plan-version
+    created_at: 2026-10-28T17:45:29.410Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3efc6ec94513

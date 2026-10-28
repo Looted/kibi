@@ -332,3 +332,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d00fb9a51033
+  - type: validates
+    from: TEST-proof-proof-contract-page-size
+    to: SCEN-kibi-operation-interface-parity
+    created_at: 2026-10-28T17:22:48.617Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9113d486c32

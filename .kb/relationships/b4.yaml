@@ -237,3 +237,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b276ee0f9b17
+  - type: requires_property
+    from: REQ-kibi-signoff-version
+    to: FACT-signoff-version
+    created_at: 2026-10-28T17:53:08.617Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-efa3d89f439d
+  - type: specified_by
+    from: REQ-kibi-signoff-version
+    to: SCEN-kibi-signoff-views
+    created_at: 2026-10-28T17:53:08.647Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef84b6d6ec5f
+  - type: constrains
+    from: REQ-kibi-signoff-version
+    to: FACT-kibi-signoff-views-version-component
+    created_at: 2026-10-28T17:53:10.695Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24d18ad8f42d
