@@ -325,3 +325,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-515f281517a7
+  - type: implements
+    from: SYM-mcp-optional-tool-names
+    to: REQ-kibi-mcp-tool-catalog
+    created_at: 2026-10-28T09:29:50.071Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-167b82bda410
+  - type: covered_by
+    from: SYM-mcp-optional-tool-names
+    to: TEST-proof-mcp-optional-tools
+    created_at: 2026-10-28T09:30:18.366Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32e223c250ec
+  - type: covered_by
+    from: SYM-mcp-optional-tool-names
+    to: TEST-kibi-mcp-tool-consolidation
+    created_at: 2026-10-28T09:32:37.938Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67ca06ffcc87

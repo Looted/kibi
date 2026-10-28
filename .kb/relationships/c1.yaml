@@ -111,3 +111,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7a97b8ca06fe
+  - type: executable_for
+    from: SYM-proof-mcp-default-tool-count
+    to: TEST-proof-mcp-default-tool-count
+    created_at: 2026-10-28T09:30:01.323Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-88c2ec7738b8

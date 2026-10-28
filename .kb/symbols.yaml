@@ -24201,10 +24201,14 @@ symbols:
         target: TEST-kibi-mcp-tool-consolidation
       - type: covered_by
         target: TEST-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-proof-mcp-default-tool-count
       - type: implements
         target: REQ-002
       - type: implements
         target: REQ-013
+      - type: implements
+        target: REQ-kibi-mcp-tool-catalog
       - type: implements
         target: REQ-kibi-mcp-tool-consolidation
       - type: implements
@@ -58343,3 +58347,46 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-near-restatement-jaccard
+  - id: SYM-mcp-optional-tool-names
+    status: active
+    title: OPTIONAL_TOOL_NAMES
+    sourceFile: packages/mcp/src/tools-config.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T09:29:49.171Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-mcp-tool-consolidation
+      - type: covered_by
+        target: TEST-proof-mcp-optional-tools
+      - type: implements
+        target: REQ-kibi-mcp-tool-catalog
+  - id: SYM-proof-mcp-default-tool-count
+    title: mcpDefaultToolCountCertificate
+    status: active
+    sourceFile: packages/mcp/tests/proofs/tool-catalog.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T09:30:00.396Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-mcp-default-tool-count
+  - id: SYM-proof-mcp-optional-tools
+    title: mcpOptionalToolsCertificate
+    status: active
+    sourceFile: packages/mcp/tests/proofs/tool-catalog.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T09:30:03.803Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-mcp-optional-tools

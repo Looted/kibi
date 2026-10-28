@@ -279,3 +279,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6aca13e6717c
+  - type: executable_for
+    from: SYM-proof-mcp-optional-tools
+    to: TEST-proof-mcp-optional-tools
+    created_at: 2026-10-28T09:30:04.590Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-283e66244533

@@ -26,18 +26,18 @@ proof_bindings:
     source_file: packages/mcp/tests/server/tool-surface-consumer.test.ts
     line: 147
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-2128066a91945a4afbeb644d
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-965e38d843656ee38c49639a
     test_id: TEST-kibi-mcp-tool-consolidation
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
+    code_snapshot: 6712d2faaeb276bece810a9f47b776cabff5dc9c840f0c7ef69c09efba35fb39
+    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
+    started_at: '2026-10-28T09:32:56.469Z'
+    finished_at: '2026-10-28T09:33:03.501Z'
+    artifact_digest: 5d7413837319f0de112dcba51c9a21d6ca166948599a8077c9352f29f82d6df0
     contract_hash: 767bde45e0093aa0265e597c1b00f37629ddc1940b6c13ec9f85e2b082b9aeca
-    binding_hash: 7e52bfed5e408844e11a347e022418767965ca095a6f1265f4c4cd66db361e75
+    binding_hash: 01cc4613effcad59398f093d97d745b2d713e1d719cd0d8fdc019ac9e009707c
     fingerprint: 8c52d166c356d68081970067c98960928e51098879660239f1a175dfb4c66d7a
     fingerprint_components:
       contract: 767bde45e0093aa0265e597c1b00f37629ddc1940b6c13ec9f85e2b082b9aeca
@@ -59,6 +59,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 origin:
   kind: migration
   ref: kibi migrate v5->v6
