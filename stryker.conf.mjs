@@ -29,6 +29,9 @@ export const CLI_MUTATION_MODULES = {
   "packages/cli/src/firm-decision-edit.ts": [
     "packages/cli/tests/firm-decision-edit.test.ts",
   ],
+  "packages/cli/src/diagnostics.ts": [
+    "packages/cli/tests/diagnostics-pure.test.ts",
+  ],
 };
 
 // Explicit test-file list, enumerated relative to the repo root (the Stryker

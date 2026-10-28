@@ -32,6 +32,8 @@ on:
       - 'packages/cli/tests/cli-input.test.ts'
       - 'packages/cli/src/firm-decision-edit.ts'
       - 'packages/cli/tests/firm-decision-edit.test.ts'
+      - 'packages/cli/src/diagnostics.ts'
+      - 'packages/cli/tests/diagnostics-pure.test.ts'
       - 'stryker.conf.mjs'
       - 'scripts/mutation-sandbox-setup.sh'
       - '.github/workflows/mutation.yml'
