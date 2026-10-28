@@ -370,3 +370,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-54b9b577ec76
+  - type: requires_property
+    from: REQ-staged-impact-identifiers
+    to: FACT-impact-diagnostic-ids
+    created_at: 2026-10-28T18:56:42.472Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67da76430865
+  - type: requires_property
+    from: REQ-staged-impact-identifiers
+    to: FACT-no-impact-declaration
+    created_at: 2026-10-28T18:56:42.510Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e9c951d72d5
+  - type: requires_property
+    from: REQ-staged-impact-identifiers
+    to: FACT-symbols-manifest-path
+    created_at: 2026-10-28T18:56:42.532Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9492f9208cd7
+  - type: requires_property
+    from: REQ-staged-impact-identifiers
+    to: FACT-symbol-coordinates-path
+    created_at: 2026-10-28T18:56:42.553Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9b074e36812
+  - type: requires_property
+    from: REQ-staged-impact-identifiers
+    to: FACT-entity-schema-doc
+    created_at: 2026-10-28T18:56:42.575Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fddbec439b34
+  - type: specified_by
+    from: REQ-staged-impact-identifiers
+    to: SCEN-cli-staged-impact-enforcement
+    created_at: 2026-10-28T18:56:42.591Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-65a4486282ee
+  - type: constrains
+    from: REQ-staged-impact-identifiers
+    to: FACT-kibi-staged-impact-identifiers-component
+    created_at: 2026-10-28T18:56:44.657Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0d0bfe90852

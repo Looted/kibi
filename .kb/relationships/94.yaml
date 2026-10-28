@@ -258,3 +258,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-37d233f04291
+  - type: executable_for
+    from: SYM-proof-untracked-sources-code
+    to: TEST-proof-untracked-sources-code
+    created_at: 2026-10-28T18:54:20.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-27bd70e0b1d5

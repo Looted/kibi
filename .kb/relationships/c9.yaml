@@ -251,3 +251,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e57d2d5ee8a6
+  - type: implements
+    from: SYM-canonical-KB_MANIFEST_VERSION
+    to: REQ-cli-kb-layout-paths
+    created_at: 2026-10-28T19:01:41.459Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7035f4033c51
+  - type: covered_by
+    from: SYM-canonical-KB_MANIFEST_VERSION
+    to: TEST-proof-kb-manifest-version
+    created_at: 2026-10-28T19:01:52.058Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1942c9982286
+  - type: executable_for
+    from: SYM-proof-skill-file-name
+    to: TEST-proof-skill-file-name
+    created_at: 2026-10-28T19:13:07.127Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e98c47ea3feb

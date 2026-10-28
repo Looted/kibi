@@ -286,3 +286,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cfdbe6e78ce4
+  - type: implements
+    from: SYM-migration-entity-origin-backfill-action-id
+    to: REQ-cli-schema-migration-codes
+    created_at: 2026-10-28T18:49:23.292Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89688d46511d
+  - type: covered_by
+    from: SYM-migration-entity-origin-backfill-action-id
+    to: TEST-proof-origin-backfill-action
+    created_at: 2026-10-28T18:49:35.846Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c37e01260122

@@ -510,3 +510,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1d6386fea159
+  - type: implements
+    from: SYM-KIBI-ENTITY-SCHEMA-DOC
+    to: REQ-staged-impact-identifiers
+    created_at: 2026-10-28T18:58:00.517Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-03a561296cd2
+  - type: covered_by
+    from: SYM-KIBI-ENTITY-SCHEMA-DOC
+    to: TEST-proof-entity-schema-doc
+    created_at: 2026-10-28T18:58:11.252Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cfe02c8b1c5d
+  - type: requires_property
+    from: REQ-skill-file-limits
+    to: FACT-skill-file-name
+    created_at: 2026-10-28T19:12:55.573Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff6acd27e70b
+  - type: requires_property
+    from: REQ-skill-file-limits
+    to: FACT-skill-resource-max-bytes
+    created_at: 2026-10-28T19:12:55.635Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44ccc39d05ec
+  - type: specified_by
+    from: REQ-skill-file-limits
+    to: SCEN-reusable-skill-subsystem
+    created_at: 2026-10-28T19:12:55.677Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7193456fb3e3
+  - type: constrains
+    from: REQ-skill-file-limits
+    to: FACT-kibi-skills-files-component
+    created_at: 2026-10-28T19:12:57.713Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d950cbf9733

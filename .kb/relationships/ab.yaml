@@ -381,3 +381,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4c161dd19352
+  - type: implements
+    from: SYM-migration-plan-freshness-resync
+    to: REQ-agent-migration-plan-codes
+    created_at: 2026-10-28T18:54:35.559Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd6cb1fde045
+  - type: covered_by
+    from: SYM-migration-plan-freshness-resync
+    to: TEST-proof-freshness-resync-code
+    created_at: 2026-10-28T18:54:47.222Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ecaaa986fa0

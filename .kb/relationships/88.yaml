@@ -258,3 +258,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-db6a12127e78
+  - type: executable_for
+    from: SYM-proof-semantic-inventory-version
+    to: TEST-proof-semantic-inventory-version
+    created_at: 2026-10-28T19:05:25.701Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a160fd08107

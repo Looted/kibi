@@ -300,3 +300,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aacddbf840a6
+  - type: executable_for
+    from: SYM-proof-semantic-advisor-version
+    to: TEST-proof-semantic-advisor-version
+    created_at: 2026-10-28T19:15:18.457Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4c36d1a5e06
+  - type: executable_for
+    from: SYM-proof-intent-claim-kinds
+    to: TEST-proof-intent-claim-kinds
+    created_at: 2026-10-28T19:19:57.418Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ac1cc7c9f58

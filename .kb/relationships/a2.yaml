@@ -300,3 +300,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b206aa4d527b
+  - type: executable_for
+    from: SYM-proof-impact-diagnostic-ids
+    to: TEST-proof-impact-diagnostic-ids
+    created_at: 2026-10-28T18:56:54.656Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea6bf204ef74

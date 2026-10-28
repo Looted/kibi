@@ -416,3 +416,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-01e9d450c058
+  - type: validates
+    from: TEST-proof-skill-file-name
+    to: SCEN-reusable-skill-subsystem
+    created_at: 2026-10-28T19:13:05.177Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64ca8fb73588

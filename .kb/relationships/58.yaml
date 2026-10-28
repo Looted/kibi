@@ -290,3 +290,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a75e92219172
+  - type: executable_for
+    from: SYM-proof-predicate-alignment-code
+    to: TEST-proof-predicate-alignment-code
+    created_at: 2026-10-28T18:54:01.305Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b57ed3c0c01

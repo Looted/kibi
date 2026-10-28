@@ -237,3 +237,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-60d502d6717d
+  - type: executable_for
+    from: SYM-proof-firmness-origin-schema-version
+    to: TEST-proof-firmness-origin-schema-version
+    created_at: 2026-10-28T19:20:56.532Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f3dd980d619

@@ -230,3 +230,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-83f7e3f83805
+  - type: validates
+    from: TEST-proof-entity-schema-doc
+    to: SCEN-cli-staged-impact-enforcement
+    created_at: 2026-10-28T18:58:02.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-078514cd637f

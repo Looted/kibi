@@ -195,3 +195,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eb94c9195562
+  - type: implements
+    from: SYM-KIBI-NO-IMPACT-DECLARATION
+    to: REQ-staged-impact-identifiers
+    created_at: 2026-10-28T18:57:07.663Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ea946aae243
+  - type: covered_by
+    from: SYM-KIBI-NO-IMPACT-DECLARATION
+    to: TEST-proof-no-impact-declaration
+    created_at: 2026-10-28T18:57:18.286Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71756b669306

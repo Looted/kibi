@@ -251,3 +251,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-04ec8ca9e78e
+  - type: validates
+    from: TEST-proof-predicate-alignment-code
+    to: SCEN-agent-guided-migration-orchestration
+    created_at: 2026-10-28T18:53:59.086Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d7eb6ecd475

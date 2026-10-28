@@ -412,3 +412,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f5fc6b8967cc
+  - type: executable_for
+    from: SYM-proof-status-vocabulary-map-code
+    to: TEST-proof-status-vocabulary-map-code
+    created_at: 2026-10-28T18:50:09.505Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4c30dbbd825

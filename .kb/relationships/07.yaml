@@ -468,3 +468,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-72b5fa23f559
+  - type: implements
+    from: SYM-kibi-migration-plan-version
+    to: REQ-agent-migration-plan-codes
+    created_at: 2026-10-28T18:53:36.613Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ad6ade49f7c
+  - type: covered_by
+    from: SYM-kibi-migration-plan-version
+    to: TEST-proof-migration-plan-version
+    created_at: 2026-10-28T18:53:48.109Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1876a4c0e40
+  - type: requires_property
+    from: REQ-engine-protocol-settings
+    to: FACT-engine-protocol-version
+    created_at: 2026-10-28T19:03:38.191Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4a16813657f
+  - type: requires_property
+    from: REQ-engine-protocol-settings
+    to: FACT-engine-idle-timeout
+    created_at: 2026-10-28T19:03:38.225Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7eae8da39016
+  - type: specified_by
+    from: REQ-engine-protocol-settings
+    to: SCEN-core-journaled-engine-lifecycle
+    created_at: 2026-10-28T19:03:38.246Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18326005e2a8
+  - type: constrains
+    from: REQ-engine-protocol-settings
+    to: FACT-kibi-engine-protocol-component
+    created_at: 2026-10-28T19:03:40.112Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8cf226bf336
+  - type: validates
+    from: TEST-proof-semantic-inventory-version
+    to: SCEN-kibi-proposition-complete-ingestion
+    created_at: 2026-10-28T19:05:23.534Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04980a65a70d
+  - type: validates
+    from: TEST-proof-sync-cache-ttl
+    to: SCEN-kibi-proposition-complete-ingestion
+    created_at: 2026-10-28T19:06:19.635Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4bbc647b1600

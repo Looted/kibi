@@ -307,3 +307,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7dec83db53b2
+  - type: validates
+    from: TEST-proof-impact-diagnostic-ids
+    to: SCEN-cli-staged-impact-enforcement
+    created_at: 2026-10-28T18:56:52.631Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5928ceaadbac
+  - type: validates
+    from: TEST-proof-symbol-coordinates-path
+    to: SCEN-cli-staged-impact-enforcement
+    created_at: 2026-10-28T18:57:44.872Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-434cf34207b3

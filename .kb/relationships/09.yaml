@@ -342,3 +342,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d4caca734f4d
+  - type: validates
+    from: TEST-proof-prolog-error-prefix
+    to: SCEN-prolog-bundled-runtime
+    created_at: 2026-10-28T19:22:35.282Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b03e84090e6

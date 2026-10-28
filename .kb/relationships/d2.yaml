@@ -272,3 +272,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e51d9a224682
+  - type: executable_for
+    from: SYM-proof-strong-applicability-score
+    to: TEST-proof-strong-applicability-score
+    created_at: 2026-10-28T19:17:30.469Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1fa0f5075056

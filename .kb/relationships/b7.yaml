@@ -216,3 +216,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ae7517abf9cb
+  - type: executable_for
+    from: SYM-proof-inventory-review-code
+    to: TEST-proof-inventory-review-code
+    created_at: 2026-10-28T18:50:51.010Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b66be3dd8a5

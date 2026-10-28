@@ -381,3 +381,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a90ad8c27b4e
+  - type: executable_for
+    from: SYM-proof-required-swipl-libraries
+    to: TEST-proof-required-swipl-libraries
+    created_at: 2026-10-28T19:22:18.668Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f291fe148ac2

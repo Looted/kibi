@@ -332,3 +332,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-345fb5d7f951
+  - type: executable_for
+    from: SYM-proof-prolog-error-prefix
+    to: TEST-proof-prolog-error-prefix
+    created_at: 2026-10-28T19:22:37.263Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f6a6433e85d7
