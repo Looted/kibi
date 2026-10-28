@@ -37,7 +37,7 @@ function withAdvisory(
     context.mcpState,
     context.workspaceTrusted,
   );
-  return advisory ? [advisory, ...guidance].join("\n") : guidance.join("\n");
+  return (advisory ? [advisory, ...guidance] : guidance).join("\n");
 }
 
 export function readGuidance(
@@ -61,11 +61,7 @@ export function readGuidance(
     `Start with kb_search, then kb_query with sourceFile="${relativePath}".`,
     "Prefer Kibi facts and requirements over long inline comments for durable knowledge.",
   ];
-  const advisory = interfaceAdvisory(
-    context.mcpState,
-    context.workspaceTrusted,
-  );
-  return advisory ? [advisory, ...guidance].join("\n") : guidance.join("\n");
+  return withAdvisory(context, guidance);
 }
 
 /**
@@ -108,11 +104,7 @@ export function preEditGuidance(
           `Discover existing constraints with kb_search, then kb_query({sourceFile:"${relativePath}"}), before changing behavior here.`,
           "Record the requirement this change serves rather than leaving the symbol unowned.",
         ];
-  const advisory = interfaceAdvisory(
-    context.mcpState,
-    context.workspaceTrusted,
-  );
-  return advisory ? [advisory, ...guidance].join("\n") : guidance.join("\n");
+  return withAdvisory(context, guidance);
 }
 
 export function writeGuidance(
@@ -134,11 +126,7 @@ export function writeGuidance(
       "Query before mutate. Update KB entities through kb_upsert sequentially. Run kb_check before completion.",
       "Do not read or edit `.kb/` files directly.",
     ];
-    const advisory = interfaceAdvisory(
-      context.mcpState,
-      context.workspaceTrusted,
-    );
-    return advisory ? [advisory, ...guidance].join("\n") : guidance.join("\n");
+    return withAdvisory(context, guidance);
   }
 
   // Retrieval is asked for before the edit; this message stays scoped to the
@@ -148,9 +136,5 @@ export function writeGuidance(
     "Check symbol granularity and whether linked requirements, scenarios, and tests still cover the changed behavior.",
     "Prefer symbol manifest + executable_for or // implements REQ-<area>-<behavior> for traceability.",
   ];
-  const advisory = interfaceAdvisory(
-    context.mcpState,
-    context.workspaceTrusted,
-  );
-  return advisory ? [advisory, ...guidance].join("\n") : guidance.join("\n");
+  return withAdvisory(context, guidance);
 }

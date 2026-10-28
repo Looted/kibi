@@ -3,7 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { preEditGuidance } from "../src/guidance.js";
+import { PRE_EDIT_FOLLOWUP, preEditGuidance } from "../src/guidance.js";
 import { runHook } from "../src/hook-runner.js";
 import { getSourceLinkedRequirementIds } from "../src/source-linked-requirements.js";
 
@@ -476,5 +476,72 @@ describe("opt-in hook telemetry", () => {
     await post(cwd, pluginData, "MCP:kb_search", { query: "totals" }, {});
     await post(cwd, pluginData, "Write", { file_path: "src/checkout.ts" }, {});
     expect(usageRows(cwd)).toEqual([]);
+  });
+});
+
+describe("pre-edit guidance wording", () => {
+  const quiet = {
+    cwd: "/repo",
+    hasKibi: true,
+    mcpState: "observed" as const,
+    workspaceTrusted: true,
+  };
+  const cliFallback = { ...quiet, mcpState: "unknown" as const };
+
+  test("linked requirements are listed comma-separated, one instruction per line", () => {
+    expect(
+      preEditGuidance("/repo/src/checkout.ts", {
+        ...quiet,
+        linkedRequirementIds: ["REQ-a", "REQ-b"],
+      }),
+    ).toBe(
+      [
+        "Kibi pre-edit guidance: src/checkout.ts already implements REQ-a, REQ-b.",
+        'Read those requirements with kb_query before changing behavior here, and widen with kb_query({sourceFile:"src/checkout.ts"}) for scenarios and tests.',
+        "If the change contradicts an existing requirement, resolve that in Kibi before writing the edit.",
+      ].join("\n"),
+    );
+  });
+
+  test("an unlinked file asks for discovery, after the interface advisory on its own line", () => {
+    const guidance = preEditGuidance("/repo/src/new.ts", cliFallback) ?? "";
+    const lines = guidance.split("\n");
+    expect(lines).toHaveLength(4);
+    expect(lines[0]).toStartWith("Kibi MCP has not been observed");
+    expect(lines.slice(1)).toEqual([
+      "Kibi pre-edit guidance: src/new.ts has no linked requirement in the symbol manifest.",
+      'Discover existing constraints with kb_search, then kb_query({sourceFile:"src/new.ts"}), before changing behavior here.',
+      "Record the requirement this change serves rather than leaving the symbol unowned.",
+    ]);
+  });
+
+  test("shared knowledge is followed by Cursor's own ask on the next line", () => {
+    expect(
+      preEditGuidance("/repo/src/checkout.ts", {
+        ...quiet,
+        knowledge: "Kibi knowledge for src/checkout.ts",
+      }),
+    ).toBe(`Kibi knowledge for src/checkout.ts\n${PRE_EDIT_FOLLOWUP}`);
+  });
+
+  test("at most three linked requirements are named", () => {
+    const root = createWorkspace(`symbols:
+  - id: SYM-checkout
+    sourceFile: src/checkout.ts
+    relationships:
+      - type: implements
+        target: REQ-a
+      - type: implements
+        target: REQ-b
+      - type: implements
+        target: REQ-c
+      - type: implements
+        target: REQ-d
+`);
+    expect(getSourceLinkedRequirementIds(root, "src/checkout.ts")).toEqual([
+      "REQ-a",
+      "REQ-b",
+      "REQ-c",
+    ]);
   });
 });

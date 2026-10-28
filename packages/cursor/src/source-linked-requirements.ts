@@ -3,9 +3,7 @@ import path from "node:path";
 
 import {
   type IndexedSymbol,
-  buildKnowledgeIndex,
   loadKnowledgeIndex,
-  scanSymbolsManifest,
 } from "kibi-agent-core/knowledge-index";
 import { implementedRequirementIds } from "kibi-agent-core/snippets";
 
@@ -14,11 +12,6 @@ const CURSOR_INDEX_OPTIONS = {
   legacyLinksAsImplements: false,
   cacheFileName: "cursor-knowledge-index.json",
 } as const;
-
-type ManifestRow = {
-  sourceFile: string;
-  relationships: { type: string; target: string }[];
-};
 
 function toManifestPath(workspaceRoot: string, filePath: string): string {
   const absolute = path.isAbsolute(filePath)
@@ -67,33 +60,4 @@ export function getSourceLinkedRequirementIds(
     cacheDir,
   );
   return implementedRequirementIds(symbols).slice(0, MAX_LINKED_REQUIREMENTS);
-}
-
-/** Parse the canonical writer subset while retaining typed relationships. */
-// implements REQ-cursor-kibi-plugin-v1
-export function parseSymbolsManifest(content: string): ManifestRow[] {
-  const index = buildKnowledgeIndex(
-    scanSymbolsManifest(content),
-    {},
-    CURSOR_INDEX_OPTIONS,
-  );
-  return Object.entries(index.files).flatMap(([sourceFile, symbols]) =>
-    symbols.map((symbol) => ({
-      sourceFile,
-      relationships: [
-        ...symbol.implements.map((target) => ({
-          type: "implements",
-          target,
-        })),
-        ...symbol.coveredBy.map((target) => ({
-          type: "covered_by",
-          target,
-        })),
-        ...symbol.executableFor.map((target) => ({
-          type: "executable_for",
-          target,
-        })),
-      ],
-    })),
-  );
 }

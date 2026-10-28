@@ -91,8 +91,6 @@ export type HookEnvironment = {
   env?: NodeJS.ProcessEnv;
 };
 
-const MAX_LINKED_REQUIREMENTS = 3;
-
 /**
  * The shared kibi-agent-core snippet for a file that implements requirements,
  * or undefined so the generic Cursor guidance applies. Test-only links
@@ -145,19 +143,16 @@ function firmNotice(
   );
 }
 
-let cachedPackageVersion: string | null | undefined;
-
 function packageVersion(): string | null {
-  // dist/hook-runner.js sits one level below the package root.
-  if (cachedPackageVersion !== undefined) return cachedPackageVersion;
-  cachedPackageVersion = readPackageVersion(
+  // dist/hook-runner.js sits one level below the package root. Each hook
+  // event is its own process, so the version is read at most once per event.
+  return readPackageVersion(
     path.join(
       path.dirname(fileURLToPath(import.meta.url)),
       "..",
       "package.json",
     ),
   );
-  return cachedPackageVersion;
 }
 
 /**
@@ -173,22 +168,24 @@ function recordToolTelemetry(
   startedAt: Date,
   env: NodeJS.ProcessEnv | undefined,
 ): void {
+  // rationale: appendHookUsageRows applies the same opt-in; this guard only
+  // skips reading the index when telemetry is off.
+  // Stryker disable next-line ConditionalExpression
   if (!hookTelemetryEnabled(env)) return;
   const kbUsage = kbUsageTrace(input.toolName, input.toolInput);
+  if (!kbUsage && !isKnownEditableTool(input.toolName)) return;
   const traces = kbUsage
     ? [kbUsage]
-    : isKnownEditableTool(input.toolName)
-      ? editTraces(
-          extractExplicitPathFields(input.toolInput).map((candidate) =>
-            toRepoRelativePath(candidate, workspaceRoot),
+    : editTraces(
+        extractExplicitPathFields(input.toolInput).map((candidate) =>
+          toRepoRelativePath(candidate, workspaceRoot),
+        ),
+        (relativePath) =>
+          implementedRequirementIds(
+            getSourceLinkedSymbols(workspaceRoot, relativePath, stateDir)
+              .symbols,
           ),
-          (relativePath) =>
-            implementedRequirementIds(
-              getSourceLinkedSymbols(workspaceRoot, relativePath, stateDir)
-                .symbols,
-            ),
-        )
-      : [];
+      );
   appendHookUsageRows(
     {
       host: "cursor",
@@ -372,9 +369,8 @@ export async function runHook(
             hasKibi: kibiReady,
             mcpState: state.mcpState,
             workspaceTrusted,
-            linkedRequirementIds: implementedRequirementIds(
-              linked.symbols,
-            ).slice(0, MAX_LINKED_REQUIREMENTS),
+            // A file that implements requirements always gets the shared
+            // snippet, so the bare linked-requirement wording is never needed.
             knowledge: knowledgeFor(cwd, linked, "edit", focus),
           });
       if (guidance) {
@@ -419,6 +415,9 @@ export async function runHook(
         knowledge: knowledgeFor(
           cwd,
           getSourceLinkedSymbols(cwd, primaryPath, stateDir),
+          // rationale: the snippet only special-cases "edit", so any other
+          // surface literal renders the same read snippet.
+          // Stryker disable next-line StringLiteral
           "read",
         ),
       });
@@ -503,6 +502,8 @@ export async function runHook(
           knowledge: knowledgeFor(
             cwd,
             getSourceLinkedSymbols(cwd, primaryPath, stateDir),
+            // rationale: as above, only "edit" changes the snippet.
+            // Stryker disable next-line StringLiteral
             "read",
           ),
         });
@@ -563,10 +564,11 @@ export async function runHook(
         : undefined;
       // implements REQ-kibi-signoff-views
       // Requirements were written without a signoff view since: ask once.
-      const signoff =
-        capture === undefined && claimSignoffReminder(session, cwd)
-          ? signoffReminder()
-          : undefined;
+      // A recorded requirement also counts as recorded knowledge, so this
+      // never coincides with the capture request above.
+      const signoff = claimSignoffReminder(session, cwd)
+        ? signoffReminder()
+        : undefined;
       const followupMessage = [capture, signoff, stopFollowupMessage(state)]
         .filter((part): part is string => part !== undefined)
         .join("\n");

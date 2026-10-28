@@ -4,9 +4,11 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import { captureReminder } from "kibi-agent-core/decision-guard";
 import { MAX_SNIPPET_CHARS } from "kibi-agent-core/snippets";
 import { type HookResult, runHook } from "../src/hook-runner";
 import { loadHookState } from "../src/hook-state";
+import { impactCheckReminder } from "../src/messages";
 
 function createTempRoot(prefix: string): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
@@ -1138,4 +1140,358 @@ describe("Codex hook command pre-edit knowledge (end to end)", () => {
       "\nDecision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.\n",
     );
   }, 30_000);
+});
+
+describe("Codex hook runner result contracts", () => {
+  const optedIn = { KIBI_DIAGNOSTIC_MODE: "1" };
+
+  function usageRows(root: string): Record<string, unknown>[] {
+    const logPath = path.join(root, ".kb", "usage.log");
+    if (!fs.existsSync(logPath)) return [];
+    return fs
+      .readFileSync(logPath, "utf8")
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line) as Record<string, unknown>);
+  }
+
+  function contextOf(result: HookResult): string {
+    const specific = result.hookSpecificOutput;
+    return specific && "additionalContext" in specific
+      ? specific.additionalContext
+      : "";
+  }
+
+  function session(cwd: string, env: NodeJS.ProcessEnv = {}) {
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(pluginData);
+    return (payload: Record<string, unknown>, sessionId = "contract-1") =>
+      runHook({ session_id: sessionId, cwd, ...payload }, { pluginData, env });
+  }
+
+  /** Two symbols in one file, each implementing its own firm requirement. */
+  function twoSymbolWorkspace(): string {
+    const root = linkedWorkspace();
+    writeFile(
+      root,
+      ".kb/symbols.yaml",
+      [
+        "symbols:",
+        "  - id: SYM-addTax",
+        "    title: addTax",
+        "    sourceFile: src/money.ts",
+        "    sourceLine: 1",
+        "    sourceEndLine: 3",
+        "    relationships:",
+        "      - type: implements",
+        "        target: REQ-tax-included",
+        "  - id: SYM-roundCents",
+        "    title: roundCents",
+        "    sourceFile: src/money.ts",
+        "    sourceLine: 5",
+        "    sourceEndLine: 7",
+        "    relationships:",
+        "      - type: implements",
+        "        target: REQ-checkout-rounding",
+        "",
+      ].join("\n"),
+    );
+    writeFile(
+      root,
+      ".kb/requirements/REQ-tax-included.md",
+      "---\nid: REQ-tax-included\ntitle: Prices include tax\nstatus: open\n---\n",
+    );
+    writeFile(
+      root,
+      "src/money.ts",
+      [
+        "export function addTax(value: number) {",
+        "  return value * 1.2;",
+        "}",
+        "",
+        "export function roundCents(value: number) {",
+        "  return Math.round(value * 100) / 100;",
+        "}",
+        "",
+      ].join("\n"),
+    );
+    return root;
+  }
+
+  test("tools that do not edit get neither pre-edit context nor edit telemetry", async () => {
+    const cwd = linkedWorkspace();
+    const event = session(cwd, optedIn);
+
+    expect(
+      await event({
+        hook_event_name: "PreToolUse",
+        tool_name: "Read",
+        tool_input: { file_path: "src/checkout.ts" },
+      }),
+    ).toEqual({ continue: true });
+    await event({
+      hook_event_name: "PostToolUse",
+      tool_name: "Read",
+      tool_input: { file_path: "src/checkout.ts" },
+    });
+    await event({
+      hook_event_name: "PostToolUse",
+      tool_name: "Bash",
+      tool_input: { command: "ls src" },
+    });
+    expect(usageRows(cwd)).toEqual([]);
+  });
+
+  test("pre-edit context is the whole result: continue plus the PreToolUse context", async () => {
+    const event = session(linkedWorkspace());
+    const result = await event({
+      hook_event_name: "PreToolUse",
+      tool_name: "apply_patch",
+      tool_input: { command: CHECKOUT_PATCH },
+    });
+    expect(result).toEqual({
+      continue: true,
+      hookSpecificOutput: {
+        hookEventName: "PreToolUse",
+        additionalContext: expect.any(String),
+      },
+    });
+    // The firm-edit notice and the knowledge snippet are separate paragraphs.
+    expect(contextOf(result)).toContain(
+      "\n\nKibi knowledge for src/checkout.ts",
+    );
+  });
+
+  test("a rule-stating prompt result is exactly continue plus the prompt context", async () => {
+    const event = session(linkedWorkspace());
+    expect(
+      await event({
+        hook_event_name: "UserPromptSubmit",
+        prompt: "Guests must not see the export button.",
+      }),
+    ).toEqual({
+      continue: true,
+      hookSpecificOutput: {
+        hookEventName: "UserPromptSubmit",
+        additionalContext: expect.any(String),
+      },
+    });
+  });
+
+  test("a patch naming a file outside the workspace still gets context for the files inside it", async () => {
+    const event = session(linkedWorkspace(), { KIBI_CONFIRM_FIRM_EDITS: "0" });
+    const patch = [
+      "*** Begin Patch",
+      `*** Update File: ${path.join(os.tmpdir(), "kibi-codex-elsewhere", "outside.ts")}`,
+      "@@",
+      "-a",
+      "+b",
+      "*** Update File: src/checkout.ts",
+      "@@",
+      "-export const computeTotal = 1;",
+      "+export const computeTotal = 2;",
+      "*** End Patch",
+    ].join("\n");
+    const context = contextOf(
+      await event({
+        hook_event_name: "PreToolUse",
+        tool_name: "apply_patch",
+        tool_input: { command: patch },
+      }),
+    );
+    expect(context).toStartWith("Kibi knowledge for src/checkout.ts");
+  });
+
+  test("an edit inside one symbol is focused on that symbol and its firm requirement", async () => {
+    const event = session(twoSymbolWorkspace());
+    const context = contextOf(
+      await event({
+        hook_event_name: "PreToolUse",
+        tool_name: "Edit",
+        tool_input: {
+          file_path: "src/money.ts",
+          old_string: "  return Math.round(value * 100) / 100;",
+          new_string: "  return Math.floor(value * 100) / 100;",
+        },
+      }),
+    );
+    expect(context).toStartWith(
+      "Kibi: this edit changes roundCents in src/money.ts, which implements a firm requirement",
+    );
+    const [notice] = context.split("\n\n");
+    expect(notice).toContain("REQ-checkout-rounding");
+    expect(notice).not.toContain("REQ-tax-included");
+    expect(context).toContain(
+      "The edit is inside roundCents, which implements REQ-checkout-rounding.",
+    );
+  });
+
+  test("a file the coordinates bind but the manifest lost gets the unreadable note once per session", async () => {
+    const cwd = linkedWorkspace();
+    writeFile(
+      cwd,
+      ".kb/symbol-coordinates.yaml",
+      "version: 2\ncoordinates:\n  SYM-ghost:\n    sourceFile: src/ghost.ts\n    sourceLine: 1\n",
+    );
+    const event = session(cwd);
+    const edit = (file_path: string, sessionId: string) =>
+      event(
+        {
+          hook_event_name: "PreToolUse",
+          tool_name: "Write",
+          tool_input: { file_path },
+        },
+        sessionId,
+      );
+
+    expect(contextOf(await edit("src/ghost.ts", "s1"))).toContain(
+      "could not read .kb/symbols.yaml",
+    );
+    expect(await edit("src/ghost.ts", "s1")).toEqual({ continue: true });
+    expect(contextOf(await edit("src/ghost.ts", "s2"))).toContain(
+      "could not read .kb/symbols.yaml",
+    );
+  });
+
+  test("a recorded symbol without links is an unlinked file even when coordinates bind it", async () => {
+    const cwd = linkedWorkspace();
+    writeFile(
+      cwd,
+      ".kb/symbols.yaml",
+      "symbols:\n  - id: SYM-plain\n    title: plain\n    sourceFile: src/plain.ts\n",
+    );
+    writeFile(
+      cwd,
+      ".kb/symbol-coordinates.yaml",
+      "version: 2\ncoordinates:\n  SYM-plain:\n    sourceFile: src/plain.ts\n    sourceLine: 1\n",
+    );
+    const context = contextOf(
+      await session(cwd)({
+        hook_event_name: "PreToolUse",
+        tool_name: "Write",
+        tool_input: { file_path: "src/plain.ts" },
+      }),
+    );
+    expect(context).toStartWith(
+      "Kibi: no symbol in src/plain.ts is linked to a requirement yet",
+    );
+  });
+
+  test("edit telemetry rows carry the hook event, the plugin version and the file's requirements", async () => {
+    const cwd = linkedWorkspace();
+    const event = session(cwd, optedIn);
+    await event({
+      hook_event_name: "PostToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: "src/other.ts" },
+    });
+    const pkg = JSON.parse(
+      fs.readFileSync(path.join(import.meta.dir, "..", "package.json"), "utf8"),
+    ) as { version: string };
+    const rows = usageRows(cwd);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      hook_event: "PostToolUse",
+      package_version: pkg.version,
+      path: "src/other.ts",
+      requirement_ids: [],
+    });
+  });
+
+  test("one source file in a patch that also edits docs is enough to ask for capture", async () => {
+    const cwd = linkedWorkspace();
+    writeFile(cwd, "src/guard.ts", "export const guard = () => true;\n");
+    const event = session(cwd);
+    const patch = [
+      "*** Begin Patch",
+      "*** Update File: README.md",
+      "@@",
+      "-a",
+      "+b",
+      "*** Update File: src/guard.ts",
+      "@@",
+      "-export const guard = () => true;",
+      "+export const guard = () => false;",
+      "*** End Patch",
+    ].join("\n");
+    await event({
+      hook_event_name: "PostToolUse",
+      tool_name: "apply_patch",
+      tool_input: { command: patch },
+    });
+    expect(
+      await event({ hook_event_name: "Stop", stop_hook_active: false }),
+    ).toMatchObject({ continue: true, decision: "block" });
+  });
+
+  test("a CLI upsert counts as recording knowledge", async () => {
+    const cwd = linkedWorkspace();
+    writeFile(cwd, "src/guard.ts", "export const guard = () => true;\n");
+    const event = session(cwd);
+    await event({
+      hook_event_name: "PostToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: "src/guard.ts" },
+    });
+    await event({
+      hook_event_name: "PostToolUse",
+      tool_name: "Bash",
+      tool_input: { command: "npx --no-install kibi upsert --input -" },
+    });
+    const stop = await event({
+      hook_event_name: "Stop",
+      stop_hook_active: false,
+    });
+    expect(stop.decision).toBeUndefined();
+  });
+
+  test("the capture request adds the impact reminder only for unchecked source files", async () => {
+    const cwd = linkedWorkspace();
+    writeFile(cwd, "src/guard.ts", "export const guard = () => true;\n");
+    const event = session(cwd);
+    const edit = {
+      hook_event_name: "PostToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: "src/guard.ts" },
+    };
+    const impactCheck = {
+      hook_event_name: "PostToolUse",
+      tool_name: "mcp__kibi__kb_check",
+      tool_input: {
+        sourceFiles: ["src/guard.ts"],
+        includeImpactDiagnostics: true,
+        includeWorkingTreeDiff: true,
+      },
+    };
+
+    await event(edit, "checked");
+    await event(impactCheck, "checked");
+    expect(
+      await event(
+        { hook_event_name: "Stop", stop_hook_active: false },
+        "checked",
+      ),
+    ).toEqual({
+      continue: true,
+      decision: "block",
+      reason: captureReminder(false),
+    });
+  });
+
+  test("an unchecked source file puts the impact reminder on its own line after the capture request", async () => {
+    const cwd = linkedWorkspace();
+    writeFile(cwd, "src/guard.ts", "export const guard = () => true;\n");
+    const event = session(cwd);
+    await event({
+      hook_event_name: "PostToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: "src/guard.ts" },
+    });
+    expect(
+      (await event({ hook_event_name: "Stop", stop_hook_active: false }))
+        .reason,
+    ).toBe(
+      `${captureReminder(false)}\n${impactCheckReminder(["src/guard.ts"])}`,
+    );
+  });
 });
