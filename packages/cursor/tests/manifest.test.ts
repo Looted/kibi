@@ -81,11 +81,13 @@ describe("kibi-cursor plugin manifest", () => {
     }
   });
 
+  // Rebuilding the package can take well past the 5s default when other test
+  // runners share the machine, as in the mutation dry run.
   test("build copies manifest-referenced assets into dist", () => {
     execSync("bun run build", { cwd: packageRoot, stdio: "ignore" });
 
     for (const asset of manifestAssets) {
       expect(fs.existsSync(path.join(packageRoot, "dist", asset))).toBe(true);
     }
-  });
+  }, 60_000);
 });
