@@ -12,13 +12,17 @@ import {
 import os from "node:os";
 import path from "node:path";
 
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, setDefaultTimeout, test } from "bun:test";
 
 import {
   parseWorkspaceFolderPaths,
   resolveProjectLocalMcp,
   resolveWorkspaceRoot,
 } from "../bin/launch-kibi-mcp.mjs";
+
+// The launcher tests spawn a child process; the mutation dry run runs them
+// alongside other runners, where a spawn can exceed the 5s default.
+setDefaultTimeout(30_000);
 
 const launcherPath = path.resolve(
   import.meta.dir,
