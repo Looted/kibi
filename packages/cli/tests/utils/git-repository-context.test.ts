@@ -1,9 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { execSync as nodeExecSync } from "node:child_process";
 import {
-  constants,
-  accessSync,
-  chmodSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
@@ -17,6 +14,7 @@ import {
   type GitRepositoryContext,
   resolveGitRepository,
 } from "../../src/utils/git-repository-context.js";
+import { denyGitInternals } from "../helpers/deny-git-internals.js";
 
 // executable_for TEST-git-hook-effective-install
 
@@ -198,7 +196,7 @@ describe("resolveGitRepository", () => {
 
   test("reports git-refused when the .git directory is unreadable", () => {
     const repo = makeRepo(tmpRoot, "locked");
-    chmodSync(path.join(repo, ".git"), 0o000);
+    const restore = denyGitInternals(repo, ".git");
     try {
       const resolution = resolveGitRepository(repo);
       // Git's generic "not a git repository" fatal for an unreadable .git
@@ -209,7 +207,7 @@ describe("resolveGitRepository", () => {
         expect(resolution.reason).toContain("refusing to guess");
       }
     } finally {
-      chmodSync(path.join(repo, ".git"), 0o755);
+      restore();
     }
   });
 
@@ -217,12 +215,8 @@ describe("resolveGitRepository", () => {
     const repo = makeRepo(tmpRoot, "locked-objects");
     const sub = path.join(repo, "sub");
     mkdirSync(sub, { recursive: true });
-    const objects = path.join(repo, ".git", "objects");
-    chmodSync(objects, 0o000);
+    const restore = denyGitInternals(repo, "objects");
     try {
-      // Precondition: the fixture must actually deny access to the executing
-      // user, otherwise the scenario does not exercise the refusal.
-      expect(() => accessSync(objects, constants.R_OK)).toThrow();
       const resolution = resolveGitRepository(sub);
       expect(resolution.status).toBe("git-refused");
       if (resolution.status === "git-refused") {
@@ -230,7 +224,7 @@ describe("resolveGitRepository", () => {
         expect(resolution.reason).toContain("refusing to guess");
       }
     } finally {
-      chmodSync(objects, 0o755);
+      restore();
     }
   });
 

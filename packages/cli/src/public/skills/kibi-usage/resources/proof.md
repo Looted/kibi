@@ -173,7 +173,10 @@ left:
   Enum values, dict keys, list/tuple/set items) and rejects a
   certificate that does not cover exactly its members, so a hand-listed or
   partial domain stays `tested`. An import from build output is mapped back
-  to its source through `tsconfig.json` `outDir`/`rootDir`.
+  to its source through `tsconfig.json` `outDir`/`rootDir`. For a list of
+  records (a catalog), add `field: <name>` and pass
+  `key: (item) => item.<name>` to `exhaustiveCertificate`; the members are
+  that field's values.
 - `typecheck`: a witness file that stops compiling when a domain member
   goes unhandled (a switch ending in a `never` assignment, or a
   `satisfies Record<Domain, ...>` map). Set `witness.path` and
@@ -245,7 +248,7 @@ left:
   `subset_of` and `excludes`. Rules over a machine use `transition`,
   `reachable`, `initial`, `terminal`, `state`.
 - `regex`: set `pattern_source` to a `RegExp`, a Python `re.compile(...)` or
-  a string constant. Model "X must match `re`" as a string fact with
+  a string constant (`export: BRAND.name` reads one field of an object). Model "X must match `re`" as a string fact with
   `operator: matches` (a JavaScript pattern with the `u` flag, matched
   whole); Kibi decides exact language equality and reports the shortest
   string only one side accepts. Backreferences, lookaround, `\b`, the `g`,

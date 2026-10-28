@@ -99,7 +99,7 @@ export type ProofContract = Readonly<{
     | "state_machine"
     | "regex"
     | "source";
-  domain_source?: Readonly<{ symbol_id: string; export?: string }>;
+  domain_source?: Readonly<{ symbol_id: string; export?: string; field?: string }>;
   witness?: Readonly<{ path: string }>;
   constraint_source?: Readonly<{ fact_ids: readonly string[] }>;
   value_source?: readonly (

@@ -439,6 +439,11 @@
                       "minLength": 1,
                       "type": "string"
                     },
+                    "field": {
+                      "description": "exhaustive: when the export is a list of records, the field of each record that names a domain member (a catalog's name).",
+                      "minLength": 1,
+                      "type": "string"
+                    },
                     "symbol_id": {
                       "minLength": 1,
                       "type": "string"

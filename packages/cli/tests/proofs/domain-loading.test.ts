@@ -15,6 +15,10 @@ import {
   importsDomain,
   pythonDomainInterpreters,
 } from "../../src/operations/proof/code-certificates.js";
+import {
+  type PatternModel,
+  evaluateCodeModel,
+} from "../../src/operations/proof/code-models.js";
 
 const roots: string[] = [];
 afterEach(() => {
@@ -66,6 +70,91 @@ describe("a dotted export reads one field of an object", () => {
     expect(evaluateScalar(root, "app/policy.py", "POLICY.event_limit")).toEqual(
       { ok: true, value: 200 },
     );
+  });
+});
+
+describe("a dotted string export and a projected record field", () => {
+  test("a regex certificate reads one string field of an object export", () => {
+    const root = workspace({
+      "src/brand.ts":
+        "export const BRAND = { name: 'kibi', nested: { slug: 'kb' } } as const;\n",
+      "app/brand.py":
+        "BRAND = {'name': 'kibi'}\nclass Paths:\n    ROOT = '.kb'\n",
+    });
+    const read = (file: string, name: string) =>
+      evaluateCodeModel<PatternModel>(
+        root,
+        [{ file: path.join(root, file), export: name }],
+        {
+          mode: "pattern",
+          pattern: { file: path.join(root, file), export: name },
+        },
+      );
+    expect(read("src/brand.ts", "BRAND.name")).toEqual({
+      ok: true,
+      model: { type: "string", value: "kibi" },
+    });
+    expect(read("src/brand.ts", "BRAND.nested.slug")).toEqual({
+      ok: true,
+      model: { type: "string", value: "kb" },
+    });
+    const missing = read("src/brand.ts", "BRAND.title");
+    expect(missing.ok ? "" : missing.reason).toContain(
+      "BRAND.title has no field title",
+    );
+    expect(read("app/brand.py", "BRAND.name")).toEqual({
+      ok: true,
+      model: { type: "string", value: "kibi" },
+    });
+    expect(read("app/brand.py", "Paths.ROOT")).toEqual({
+      ok: true,
+      model: { type: "string", value: ".kb" },
+    });
+  });
+
+  test("a dotted export counts as imported under its head", () => {
+    expect(
+      importsDomain(
+        "import { BRAND } from '../src/brand.js';\nexpect(BRAND.name).toBe('kibi');\n",
+        "tests/brand.test.ts",
+        "src/brand.ts",
+        "BRAND.name",
+      ),
+    ).toBe(true);
+    expect(
+      importsDomain(
+        "expect('kibi').toBe('kibi');\n",
+        "tests/brand.test.ts",
+        "src/brand.ts",
+        "BRAND.name",
+      ),
+    ).toBe(false);
+  });
+
+  test("field reads one field of each record in a catalog", () => {
+    const root = workspace({
+      "src/catalog.ts":
+        "export const CATALOG = [{ name: 'search', rows: 1 }, { name: 'check', rows: 2 }];\nexport const PARTIAL = [{ name: 'a' }, { title: 'b' }];\n",
+      "app/catalog.py":
+        "from dataclasses import dataclass\n@dataclass\nclass Op:\n    name: str\nCATALOG = (Op('search'), Op('check'))\nROWS = [{'name': 'a'}, {'name': 'b'}]\n",
+    });
+    expect(
+      evaluateDomain(root, "src/catalog.ts", "CATALOG", { field: "name" }),
+    ).toEqual({ ok: true, count: 2, members: ["search", "check"] });
+    expect(evaluateDomain(root, "src/catalog.ts", "CATALOG")).toEqual({
+      ok: true,
+      count: 2,
+      members: null,
+    });
+    expect(
+      evaluateDomain(root, "src/catalog.ts", "PARTIAL", { field: "name" }),
+    ).toEqual({ ok: false, reason: "a member of PARTIAL has no field name" });
+    expect(
+      evaluateDomain(root, "app/catalog.py", "CATALOG", { field: "name" }),
+    ).toEqual({ ok: true, count: 2, members: ["search", "check"] });
+    expect(
+      evaluateDomain(root, "app/catalog.py", "ROWS", { field: "name" }),
+    ).toEqual({ ok: true, count: 2, members: ["a", "b"] });
   });
 });
 
