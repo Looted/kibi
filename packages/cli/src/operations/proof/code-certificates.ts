@@ -16,7 +16,6 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -45,6 +44,7 @@ import {
 import {
   pythonDomainInterpreters,
   runCodeEvaluator,
+  spawnSyncThroughFiles,
   TS_RESOLVE_HOOKS,
 } from "./code-runner.js";
 import { evaluateSourceCode } from "./source-code-readers.js";
@@ -872,9 +872,8 @@ export function rerunSmtQuery(
         : null;
   if (argv === null)
     return { ok: false, reason: `solver ${solver} is not z3 or cvc5` };
-  const run = spawnSync(solver, argv, {
+  const run = spawnSyncThroughFiles(solver, argv, {
     input: query,
-    encoding: "utf8",
     timeout: 60_000,
   });
   if (run.error)
@@ -882,7 +881,7 @@ export function rerunSmtQuery(
       ok: false,
       reason: `Kibi could not re-run ${solver} on the query: ${run.error.message}`,
     };
-  const answer = (run.stdout ?? "").trim().split(/\s+/)[0] ?? "";
+  const answer = run.stdout.trim().split(/\s+/)[0] ?? "";
   return answer === "unsat"
     ? { ok: true }
     : {
