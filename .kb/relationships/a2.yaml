@@ -279,3 +279,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6494a110805b
+  - type: executable_for
+    from: SYM-proof-telemetry-advisor-age
+    to: TEST-proof-telemetry-advisor-age
+    created_at: 2026-10-28T09:44:09.084Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e4e216929aa

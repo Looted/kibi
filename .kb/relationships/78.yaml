@@ -230,3 +230,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b3ffadfe05a1
+  - type: implements
+    from: SYM-reqcompiler-telemetry-default-policy
+    to: REQ-kibi-telemetry-acceptance-thresholds
+    created_at: 2026-10-28T09:43:22.393Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a7f86984ca5
+  - type: executable_for
+    from: SYM-proof-telemetry-event-limit
+    to: TEST-proof-telemetry-event-limit
+    created_at: 2026-10-28T09:43:28.567Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4fd2a8361608
+  - type: covered_by
+    from: SYM-reqcompiler-telemetry-default-policy
+    to: TEST-proof-telemetry-event-limit
+    created_at: 2026-10-28T09:43:35.793Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64064f2d2630
+  - type: covered_by
+    from: SYM-reqcompiler-telemetry-default-policy
+    to: TEST-proof-telemetry-evidence-age
+    created_at: 2026-10-28T09:43:49.254Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5845fb4c045
+  - type: covered_by
+    from: SYM-reqcompiler-telemetry-default-policy
+    to: TEST-proof-telemetry-preflight-age
+    created_at: 2026-10-28T09:44:03.181Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e779dd72ea90
+  - type: covered_by
+    from: SYM-reqcompiler-telemetry-default-policy
+    to: TEST-proof-telemetry-advisor-age
+    created_at: 2026-10-28T09:44:17.244Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23cce6bb819c
+  - type: covered_by
+    from: SYM-reqcompiler-telemetry-default-policy
+    to: TEST-proof-telemetry-retry-threshold
+    created_at: 2026-10-28T09:44:32.044Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c5839363af4

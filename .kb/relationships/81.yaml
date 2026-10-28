@@ -314,3 +314,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f4bd5ad1d1c9
+  - type: validates
+    from: TEST-proof-telemetry-preflight-age
+    to: SCEN-kibi-telemetry-acceptance-gate
+    created_at: 2026-10-28T09:43:52.393Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce1118bbbd7f

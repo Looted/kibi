@@ -3662,5 +3662,55 @@
         "./packages/cli/tests/proofs/claims/kb-merge-workflow.proof.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-proof-telemetry-event-limit",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/telemetry-thresholds.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-telemetry-evidence-age",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/telemetry-thresholds.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-telemetry-preflight-age",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/telemetry-thresholds.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-telemetry-advisor-age",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/telemetry-thresholds.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-telemetry-retry-threshold",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/telemetry-thresholds.proof.test.ts"
+      ]
+    ]
   }
 ]

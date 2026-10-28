@@ -258,3 +258,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aec577ed3ee4
+  - type: validates
+    from: TEST-proof-telemetry-event-limit
+    to: SCEN-kibi-telemetry-acceptance-gate
+    created_at: 2026-10-28T09:43:25.411Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-766d10798fbb

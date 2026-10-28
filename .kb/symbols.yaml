@@ -27128,8 +27128,20 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-telemetry-acceptance-gate
+      - type: covered_by
+        target: TEST-proof-telemetry-advisor-age
+      - type: covered_by
+        target: TEST-proof-telemetry-event-limit
+      - type: covered_by
+        target: TEST-proof-telemetry-evidence-age
+      - type: covered_by
+        target: TEST-proof-telemetry-preflight-age
+      - type: covered_by
+        target: TEST-proof-telemetry-retry-threshold
       - type: implements
         target: REQ-kibi-telemetry-acceptance-gate-v2
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-thresholds
   - id: SYM-reqcompiler-remediation-event-reference
     title: TelemetryRemediationEventReference
     sourceFile: packages/cli/src/public/telemetry-remediation.ts
@@ -58442,3 +58454,73 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-kb-merge-gate-order
+  - id: SYM-proof-telemetry-event-limit
+    title: telemetryEventLimitCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/telemetry-thresholds.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T09:43:27.437Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-telemetry-event-limit
+  - id: SYM-proof-telemetry-evidence-age
+    title: telemetryEvidenceAgeCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/telemetry-thresholds.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T09:43:40.766Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-telemetry-evidence-age
+  - id: SYM-proof-telemetry-preflight-age
+    title: telemetryPreflightAgeCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/telemetry-thresholds.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T09:43:54.489Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-telemetry-preflight-age
+  - id: SYM-proof-telemetry-advisor-age
+    title: telemetryAdvisorAgeCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/telemetry-thresholds.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T09:44:08.126Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-telemetry-advisor-age
+  - id: SYM-proof-telemetry-retry-threshold
+    title: telemetryRetryThresholdCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/telemetry-thresholds.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T09:44:22.418Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-telemetry-retry-threshold

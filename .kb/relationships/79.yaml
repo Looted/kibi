@@ -265,3 +265,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-965334f93d53
+  - type: executable_for
+    from: SYM-proof-telemetry-retry-threshold
+    to: TEST-proof-telemetry-retry-threshold
+    created_at: 2026-10-28T09:44:23.575Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69ef60618f83
