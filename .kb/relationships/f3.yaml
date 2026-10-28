@@ -248,3 +248,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-836ea78dc7ca
+  - type: validates
+    from: TEST-proof-binding-word-limit
+    to: SCEN-model-predicates-binding-clauses
+    created_at: 2026-10-28T10:14:24.090Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0cc348bd9d06

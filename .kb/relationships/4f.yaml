@@ -346,3 +346,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-67ca06ffcc87
+  - type: implements
+    from: SYM-cli-signoff-model-signoff-brief-dir
+    to: REQ-kibi-signoff-brief-location
+    created_at: 2026-10-28T10:15:10.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c29b11fb184e
+  - type: covered_by
+    from: SYM-cli-signoff-model-signoff-brief-dir
+    to: TEST-proof-signoff-brief-dir
+    created_at: 2026-10-28T10:15:22.333Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebb0df801c15

@@ -300,3 +300,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cf853f0c29b7
+  - type: validates
+    from: TEST-proof-relationship-type-vocabulary
+    to: SCEN-kibi-restates-relationship
+    created_at: 2026-10-28T10:21:50.314Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48106d78152f

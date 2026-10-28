@@ -419,3 +419,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2d8d36517e79
+  - type: implements
+    from: SYM-cli-evidence-levels
+    to: REQ-kibi-evidence-level-vocabulary
+    created_at: 2026-10-28T10:06:09.695Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e63e07e6bbe7
+  - type: covered_by
+    from: SYM-cli-evidence-levels
+    to: TEST-proof-evidence-level-vocabulary
+    created_at: 2026-10-28T10:06:19.426Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-979a7a07f467

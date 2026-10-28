@@ -29571,7 +29571,13 @@ symbols:
       - type: covered_by
         target: TEST-cli-relationship-type-contract
       - type: covered_by
+        target: TEST-kibi-vocabulary-convergence-e2e
+      - type: covered_by
         target: TEST-mcp-relationship-preflight
+      - type: covered_by
+        target: TEST-proof-relationship-type-vocabulary
+      - type: implements
+        target: REQ-kibi-relationship-type-vocabulary
       - type: implements
         target: REQ-mcp-relationship-preflight
   - id: SYM-RelationshipParityRecord
@@ -29981,6 +29987,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-canonical-init
+      - type: covered_by
+        target: TEST-cli-canonical-runtime
+      - type: covered_by
+        target: TEST-proof-canonical-kb-lanes
+      - type: implements
+        target: REQ-cli-canonical-kb-lanes
       - type: implements
         target: REQ-cli-init-canonical
   - id: SYM-canonical-LEGACY_CONFIG_PATH_KEYS
@@ -35297,8 +35309,12 @@ symbols:
         target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
         target: TEST-kibi-verification-receipts-v2
+      - type: covered_by
+        target: TEST-proof-proof-receipt-max-age
       - type: implements
         target: REQ-kibi-fresh-verification-receipts-v2
+      - type: implements
+        target: REQ-kibi-proof-receipt-max-age
       - type: implements
         target: REQ-kibi-verification-receipts-v2
   - id: SYM-proof-receipt-outcomes
@@ -45507,8 +45523,14 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-014
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: covered_by
+        target: TEST-proof-mcp-excludes-jev
       - type: implements
         target: REQ-020
+      - type: implements
+        target: REQ-capability-plugin-jev-optional-dependency
   - id: SYM-mcp-release-registry-metadata
     title: server.json
     status: active
@@ -56283,6 +56305,10 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-signoff-views
+      - type: covered_by
+        target: TEST-proof-signoff-markdown-limit
+      - type: implements
+        target: REQ-kibi-signoff-brief-location
       - type: implements
         target: REQ-kibi-signoff-views
   - id: SYM-cli-signoff-model-signoff-brief-dir
@@ -56299,6 +56325,10 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-signoff-views
+      - type: covered_by
+        target: TEST-proof-signoff-brief-dir
+      - type: implements
+        target: REQ-kibi-signoff-brief-location
       - type: implements
         target: REQ-kibi-signoff-views
   - id: SYM-cli-signoff-model-signoff-change-labels
@@ -57038,8 +57068,12 @@ symbols:
         target: TEST-kibi-evidence-floors
       - type: covered_by
         target: TEST-kibi-evidence-levels
+      - type: covered_by
+        target: TEST-proof-evidence-level-vocabulary
       - type: implements
         target: REQ-kibi-evidence-floors
+      - type: implements
+        target: REQ-kibi-evidence-level-vocabulary
       - type: implements
         target: REQ-kibi-evidence-levels
   - id: SYM-cli-check-code-certificate
@@ -58524,3 +58558,190 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-telemetry-retry-threshold
+  - id: SYM-proof-evidence-level-vocabulary
+    title: evidenceLevelVocabularyCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/evidence-levels.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T10:06:12.291Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-evidence-level-vocabulary
+  - id: SYM-proof-canonical-kb-lanes
+    title: canonicalKbLanesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/canonical-kb-lanes.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T10:10:17.573Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-canonical-kb-lanes
+  - id: SYM-proof-proof-receipt-max-age
+    title: proofReceiptMaxAgeCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/proof-receipt-max-age.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T10:12:21.775Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-proof-receipt-max-age
+  - id: SYM-predicate-bindings-max-naming-binding-words
+    status: active
+    title: MAX_NAMING_BINDING_WORDS
+    sourceFile: packages/cli/src/operations/modeling/predicate-bindings.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T10:14:12.983Z
+    relationships:
+      - type: covered_by
+        target: TEST-model-predicates-binding-clauses
+      - type: covered_by
+        target: TEST-proof-binding-word-limit
+      - type: implements
+        target: REQ-model-predicates-binding-word-limit
+  - id: SYM-proof-binding-word-limit
+    title: bindingWordLimitCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/binding-word-limit.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T10:14:25.245Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-binding-word-limit
+  - id: SYM-proof-signoff-brief-dir
+    title: signoffBriefDirCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/signoff-brief-location.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T10:15:13.950Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-signoff-brief-dir
+  - id: SYM-proof-signoff-markdown-limit
+    title: signoffMarkdownLimitCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/signoff-brief-location.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T10:15:33.442Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-signoff-markdown-limit
+  - id: SYM-proof-cli-excludes-jev
+    title: cliExcludesJevCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/jev-optional-dependency.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T10:17:41.902Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-cli-excludes-jev
+  - id: SYM-proof-mcp-excludes-jev
+    title: mcpExcludesJevCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/jev-optional-dependency.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T10:17:47.402Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-mcp-excludes-jev
+  - id: SYM-proof-runtime-excludes-jev
+    title: runtimeExcludesJevCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/jev-optional-dependency.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T10:17:52.976Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-runtime-excludes-jev
+  - id: SYM-cli-package-manifest
+    title: kibi-cli package.json
+    status: active
+    sourceFile: packages/cli/package.json
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T10:19:19.039Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: covered_by
+        target: TEST-proof-cli-excludes-jev
+      - type: implements
+        target: REQ-capability-plugin-jev-optional-dependency
+  - id: SYM-runtime-package-manifest
+    title: kibi-runtime package.json
+    status: active
+    sourceFile: packages/runtime/package.json
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T10:19:21.739Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: covered_by
+        target: TEST-proof-runtime-excludes-jev
+      - type: implements
+        target: REQ-capability-plugin-jev-optional-dependency
+  - id: SYM-proof-relationship-type-vocabulary
+    title: relationshipTypeVocabularyCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/relationship-types.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T10:21:51.448Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-relationship-type-vocabulary

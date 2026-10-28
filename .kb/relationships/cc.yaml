@@ -230,3 +230,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a5f8b9012613
+  - type: implements
+    from: SYM-runtime-package-manifest
+    to: REQ-capability-plugin-jev-optional-dependency
+    created_at: 2026-10-28T10:19:42.168Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af10398b0c69
+  - type: covered_by
+    from: SYM-runtime-package-manifest
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-10-28T10:19:42.183Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6c55353cd4e
+  - type: covered_by
+    from: SYM-runtime-package-manifest
+    to: TEST-proof-runtime-excludes-jev
+    created_at: 2026-10-28T10:19:42.193Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92d36d366e4c

@@ -167,3 +167,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f10e16772348
+  - type: requires_property
+    from: REQ-kibi-relationship-type-vocabulary
+    to: FACT-relationship-type-vocabulary
+    created_at: 2026-10-28T10:21:38.419Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f97c768dacba
+  - type: specified_by
+    from: REQ-kibi-relationship-type-vocabulary
+    to: SCEN-kibi-restates-relationship
+    created_at: 2026-10-28T10:21:38.452Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14e5c8f0ab1e
+  - type: constrains
+    from: REQ-kibi-relationship-type-vocabulary
+    to: FACT-SUBJECT-kibi-relationships-vocabulary
+    created_at: 2026-10-28T10:21:40.974Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b1e916e0db0d

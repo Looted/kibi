@@ -251,3 +251,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-30aee636984f
+  - type: validates
+    from: TEST-proof-proof-receipt-max-age
+    to: SCEN-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T10:12:20.495Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ad6818cb70d

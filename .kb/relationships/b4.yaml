@@ -223,3 +223,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9bee2bd9f147
+  - type: validates
+    from: TEST-proof-signoff-brief-dir
+    to: SCEN-kibi-signoff-views
+    created_at: 2026-10-28T10:15:12.667Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d5f66abb6ee

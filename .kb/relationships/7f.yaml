@@ -363,3 +363,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0a80cf3d62eb
+  - type: executable_for
+    from: SYM-proof-binding-word-limit
+    to: TEST-proof-binding-word-limit
+    created_at: 2026-10-28T10:14:26.408Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b2519470dc3

@@ -272,3 +272,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-69ef60618f83
+  - type: executable_for
+    from: SYM-proof-runtime-excludes-jev
+    to: TEST-proof-runtime-excludes-jev
+    created_at: 2026-10-28T10:17:54.058Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-adeb14a09197
