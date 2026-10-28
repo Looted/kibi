@@ -36,7 +36,7 @@ fast enough for per-mutant runs (see `stryker.conf.mjs`):
 | `packages/runtime` | `src/**/*.ts` except `src/index.ts` | `index.ts` is a pure re-export barrel of `kibi-cli` with no logic of its own. |
 | `packages/codex` | `src/**/*.ts` | |
 | `packages/cursor` | `src/**/*.ts` | |
-| `packages/cli` | modules listed in `CLI_MUTATION_MODULES` | Added one module at a time, each mutated only against its own unit tests. Currently `src/cli-input.ts`, `src/firm-decision-edit.ts`, `src/diagnostics.ts`, `src/engine-limits.ts`, `src/decision-firmness.ts`, `src/entity-body-context.ts` and `src/search-ranking.ts`. |
+| `packages/cli` | modules listed in `CLI_MUTATION_MODULES` | Added one module at a time, each mutated only against its own unit tests. Currently `src/cli-input.ts`, `src/firm-decision-edit.ts`, `src/diagnostics.ts`, `src/engine-limits.ts`, `src/decision-firmness.ts`, `src/entity-body-context.ts`, `src/search-ranking.ts` and `src/logic/ir.ts`. |
 
 Deliberately out of scope: the rest of `packages/cli`, and `packages/mcp` (their tests spawn
 Prolog engines, git workspaces, and daemons, which makes per-mutant runs
@@ -147,3 +147,4 @@ production runtime; the remaining excluded mutants fall into these groups:
 | `packages/cursor/src/hook-runner.ts`, `packages/cursor/src/hook-state-storage.ts` (type-narrowing guards) | `toolName !== undefined` and `lane === undefined` checks narrow types for `Set<string>.has`; at runtime `Set.has(undefined)` is false, so the outcome is identical with or without them. |
 | `packages/cli/src/engine-limits.ts` (`boundedInteger`) | The `typeof value === "number"` check narrows the type for the comparisons; `Number.isSafeInteger` already rejects every non-number. |
 | `packages/cli/src/entity-body-context.ts` (`classifyLines`) | A prose row's `heading: ""` is never read, and `match[1]?.length` only satisfies the indexed-access type (the pattern always captures the hashes). |
+| `packages/cli/src/logic/ir.ts` | `renameTerm`'s variable guard and the declared-name guard only narrow types (a missing name is never looked up), and the `?? []` fallback over declared variables yields entries without a name, which rename nothing. |

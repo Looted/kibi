@@ -42,6 +42,8 @@ on:
       - 'packages/cli/tests/entity-body-context.test.ts'
       - 'packages/cli/src/search-ranking.ts'
       - 'packages/cli/tests/search-ranking.test.ts'
+      - 'packages/cli/src/logic/ir.ts'
+      - 'packages/cli/tests/logic/ir.test.ts'
       - 'stryker.conf.mjs'
       - 'scripts/mutation-sandbox-setup.sh'
       - '.github/workflows/mutation.yml'

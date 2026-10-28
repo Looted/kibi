@@ -44,6 +44,7 @@ export const CLI_MUTATION_MODULES = {
   "packages/cli/src/search-ranking.ts": [
     "packages/cli/tests/search-ranking.test.ts",
   ],
+  "packages/cli/src/logic/ir.ts": ["packages/cli/tests/logic/ir.test.ts"],
 };
 
 // Explicit test-file list, enumerated relative to the repo root (the Stryker
