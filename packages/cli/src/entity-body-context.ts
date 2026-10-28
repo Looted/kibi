@@ -66,7 +66,7 @@ export type BodySection = Readonly<{
 /** True when a heading's text starts with a context heading word. */
 // implements REQ-kb-entity-body-context
 export function isContextHeading(heading: string): boolean {
-  return CONTEXT_HEADING.test(heading.trim().replace(/^[*_`\s]+/, ""));
+  return CONTEXT_HEADING.test(heading.replace(/^[*_`\s]+/, ""));
 }
 
 type ClassifiedLine = Readonly<{
@@ -84,25 +84,33 @@ type ClassifiedLine = Readonly<{
  */
 function classifyLines(body: string): ClassifiedLine[] {
   const classified: ClassifiedLine[] = [];
-  let contextLevel: number | null = null;
+  // The open context section's heading level, 0 outside one.
+  let contextLevel = 0;
   for (const line of body.replace(/\r\n?/g, "\n").split("\n")) {
     const match = HEADING_LINE.exec(line);
     if (match === null) {
       classified.push({
         line,
         level: 0,
+        // rationale: prose rows' heading is never read (sections take the
+        // heading of a heading row, and "" or any non-heading word is not a
+        // context heading).
+        // Stryker disable next-line StringLiteral
         heading: "",
-        inContext: contextLevel !== null,
+        inContext: contextLevel > 0,
       });
       continue;
     }
+    // rationale: the regex always captures the hashes; ?. only satisfies the
+    // indexed-access type.
+    // Stryker disable next-line OptionalChaining
     const level = match[1]?.length ?? 1;
-    const heading = (match[2] ?? "").replace(/[ \t]+#+$/, "").trim();
-    if (contextLevel !== null && level <= contextLevel) contextLevel = null;
-    if (contextLevel === null && isContextHeading(heading)) {
-      contextLevel = level;
-    }
-    classified.push({ line, level, heading, inContext: contextLevel !== null });
+    // The pattern already drops surrounding blanks, so only a closing
+    // sequence of hashes is left to strip.
+    const heading = (match[2] ?? "").replace(/[ \t]+#+$/, "");
+    if (level <= contextLevel) contextLevel = 0;
+    if (contextLevel === 0 && isContextHeading(heading)) contextLevel = level;
+    classified.push({ line, level, heading, inContext: contextLevel > 0 });
   }
   return classified;
 }
@@ -214,7 +222,7 @@ export function contextProse(
 function tokens(text: string): string[] {
   return text
     .toLowerCase()
-    .split(/[^\p{L}\p{N}]+/u)
+    .split(/[^\p{L}\p{N}]/u)
     .filter((token) => token !== "");
 }
 
@@ -223,10 +231,10 @@ function tokens(text: string): string[] {
 export function tokenSetJaccard(left: string, right: string): number {
   const a = new Set(tokens(left));
   const b = new Set(tokens(right));
-  if (a.size === 0 && b.size === 0) return 0;
   let shared = 0;
   for (const token of a) if (b.has(token)) shared += 1;
-  return shared / (a.size + b.size - shared);
+  const union = a.size + b.size - shared;
+  return union === 0 ? 0 : shared / union;
 }
 
 // implements REQ-kb-entity-body-context
@@ -255,11 +263,9 @@ export function assessContext(
   if (words < MIN_CONTEXT_WORDS)
     return { ok: false, reason: "too_short", words };
   const references = [
-    typeof entity.title === "string" ? entity.title : "",
-    type === "req" && typeof entity.semantic_text === "string"
-      ? entity.semantic_text
-      : "",
-  ].filter((text) => text.trim() !== "");
+    entity.title,
+    type === "req" ? entity.semantic_text : undefined,
+  ].filter((text): text is string => typeof text === "string");
   if (
     references.some(
       (reference) => tokenSetJaccard(prose, reference) >= RESTATEMENT_JACCARD,
@@ -313,15 +319,14 @@ export function contextFinding(
   entity: ContextEntity,
   acknowledged = false,
 ): ContextFinding | null {
-  const assessment = assessContext(type, body, entity);
-  if (assessment.ok || assessment.reason === undefined) return null;
-  if (acknowledged) return null;
+  const { reason, words } = assessContext(type, body, entity);
+  if (reason === undefined || acknowledged) return null;
   return {
     type,
     id,
-    reason: assessment.reason,
-    words: assessment.words,
-    description: `${TYPE_LABEL[type] ?? type} ${id} has no body context: ${missingContextDescription(type, assessment.reason)}`,
+    reason,
+    words,
+    description: `${TYPE_LABEL[type] ?? type} ${id} has no body context: ${missingContextDescription(type, reason)}`,
     suggestion: CONTEXT_MISSING_HINT,
   };
 }
@@ -375,14 +380,13 @@ export type BodySource = Readonly<{
 function blockquote(text: string): string {
   return text
     .replace(/\r\n?/g, "\n")
-    .trim()
     .split("\n")
     .map((line) => (line.trim() === "" ? ">" : `> ${line}`))
     .join("\n");
 }
 
 function contextSectionBlock(context: string): string {
-  return `## Context\n\n${context.trim()}`;
+  return `## Context\n\n${context}`;
 }
 
 function sourceSectionBlock(source: BodySource | undefined): string | null {
@@ -446,20 +450,21 @@ export function reviseRequirementBody(input: {
       open = null;
       continue;
     }
-    const startsBlock =
-      row.level > 0 &&
-      isContextHeading(row.heading) &&
-      (open === null || row.level <= openLevel);
-    if (startsBlock) {
-      const word = row.heading
-        .trim()
+    // A context run always opens with its context heading; a later one
+    // starts a block only at the same or a higher level.
+    if (
+      open === null ||
+      (row.level <= openLevel && isContextHeading(row.heading))
+    ) {
+      const key = row.heading
         .replace(/^[*_`\s]+/, "")
-        .split(/\W+/, 1)[0];
-      open = { key: (word ?? "").toLowerCase(), lines: [] };
+        .replace(/\W.*/, "")
+        .toLowerCase();
+      open = { key, lines: [] };
       openLevel = row.level;
       blocks.push(open);
     }
-    open?.lines.push(row.line);
+    open.lines.push(row.line);
   }
 
   const used = new Set<string>();

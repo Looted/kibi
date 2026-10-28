@@ -38,6 +38,8 @@ on:
       - 'packages/cli/tests/engine-limits.test.ts'
       - 'packages/cli/src/decision-firmness.ts'
       - 'packages/cli/tests/decision-firmness.test.ts'
+      - 'packages/cli/src/entity-body-context.ts'
+      - 'packages/cli/tests/entity-body-context.test.ts'
       - 'stryker.conf.mjs'
       - 'scripts/mutation-sandbox-setup.sh'
       - '.github/workflows/mutation.yml'
