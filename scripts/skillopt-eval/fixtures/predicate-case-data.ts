@@ -21,7 +21,7 @@ export function assertMatchingSemanticClass(
 // implements REQ-skillopt-predicate-first-requirements
 
 /**
- * Semantically distinct case declarations: seven core cases and three
+ * Semantically distinct case declarations: seven core cases and five
  * rule-lane cases. Public claims use a factory so the shared publicSchema
  * shape is not repeated verbatim; only the distinct claimText and
  * projectLocalSchemas vary per case.
@@ -44,9 +44,11 @@ function makeClaim(
   claimText: string,
   projectLocalSchemas: readonly PublicPredicateSchema[] = [],
   coverageFamilies: readonly LogicCoverageFamily[] = [],
+  requestScenarios = false,
 ): PublicClaim {
   return {
     claimText,
+    ...(requestScenarios ? { requestScenarios } : {}),
     publicSchema: {
       kind: "predicate-modeling-task",
       schemaVersion: PUBLIC_SCHEMA_VERSION,
@@ -140,6 +142,21 @@ const EXCEPTION_UNLESS_CLAIM = makeClaim(
     },
   ],
   ["exception_handling", "deontic_modality", "implicit_condition"],
+);
+
+// Quantified claims: the boolean verdict (`... = true`) hides the dimension
+// that varies, so the task also asks for the scenarios that specify it.
+const QUANTIFIED_DIMENSION_CLAIM = makeClaim(
+  "Every file loaded into a module must be instrumented.",
+  [],
+  ["quantifier_cardinality", "deontic_modality"],
+  true,
+);
+const QUANTIFIED_CARDINALITY_CLAIM = makeClaim(
+  "Each organization member must hold exactly one role.",
+  [],
+  ["quantifier_cardinality", "deontic_modality"],
+  true,
 );
 
 // --- Private expectations. Held by the evaluator/verifier lane only. ---
@@ -324,6 +341,38 @@ const EXCEPTION_UNLESS_EXPECTATION: PrivateExpectation = {
   coverageFamilies: EXCEPTION_UNLESS_CLAIM.publicSchema.coverageFamilies,
 };
 
+const QUANTIFIED_DIMENSION_EXPECTATION: PrivateExpectation = {
+  semanticClass: "quantified_dimension",
+  expectedLane: "typed_dimension",
+  expectedPredicateName: null,
+  expectedPredicateArgs: null,
+  expectedPolarity: null,
+  expectedEdges: [],
+  expectedGroundFactKinds: [],
+  expectedLogicClaimCount: 1,
+  forbiddenGroundingValueTypes: ["bool"],
+  expectedScenarios: { rejectionOrError: true, minWithAssumes: 2 },
+  privateRationale:
+    "'Every loaded file' ranges over files: ground it on a count or a rule over a file variable, never a boolean verdict, and specify it with an accepted and a refused scenario that each assume the varying value.",
+  coverageFamilies: QUANTIFIED_DIMENSION_CLAIM.publicSchema.coverageFamilies,
+};
+
+const QUANTIFIED_CARDINALITY_EXPECTATION: PrivateExpectation = {
+  semanticClass: "quantified_cardinality",
+  expectedLane: "typed_dimension",
+  expectedPredicateName: null,
+  expectedPredicateArgs: null,
+  expectedPolarity: null,
+  expectedEdges: [],
+  expectedGroundFactKinds: [],
+  expectedLogicClaimCount: 1,
+  forbiddenGroundingValueTypes: ["bool"],
+  expectedScenarios: { rejectionOrError: true, minWithAssumes: 2 },
+  privateRationale:
+    "'Exactly one role' is a count per member: ground it on an integer role count (or a rule over it), not a boolean, and specify it with a one-role success and a zero- or two-role rejection that each assume the count.",
+  coverageFamilies: QUANTIFIED_CARDINALITY_CLAIM.publicSchema.coverageFamilies,
+};
+
 function caseFor(
   split: TaskSplit,
   semanticClass: PredicateSemanticClass,
@@ -401,7 +450,7 @@ export const PREDICATE_CASES: readonly PredicateCase[] = [
 
 /**
  * Rule-lane registry for the supplemental `rule-lane-modeling` family. Index
- * order fills the 0/2/1 split allocation.
+ * order fills the 0/3/2 split allocation.
  */
 export const RULE_LANE_PREDICATE_CASES: readonly PredicateCase[] = [
   caseFor(
@@ -421,11 +470,27 @@ export const RULE_LANE_PREDICATE_CASES: readonly PredicateCase[] = [
     "rule-lane-modeling",
   ),
   caseFor(
+    "development",
+    "quantified_dimension",
+    "kibi-usage-rule-lane-modeling-development-3",
+    QUANTIFIED_DIMENSION_CLAIM,
+    QUANTIFIED_DIMENSION_EXPECTATION,
+    "rule-lane-modeling",
+  ),
+  caseFor(
     "held-out",
     "exception_unless",
     "kibi-usage-rule-lane-modeling-held-out-1",
     EXCEPTION_UNLESS_CLAIM,
     EXCEPTION_UNLESS_EXPECTATION,
+    "rule-lane-modeling",
+  ),
+  caseFor(
+    "held-out",
+    "quantified_cardinality",
+    "kibi-usage-rule-lane-modeling-held-out-2",
+    QUANTIFIED_CARDINALITY_CLAIM,
+    QUANTIFIED_CARDINALITY_EXPECTATION,
     "rule-lane-modeling",
   ),
 ];

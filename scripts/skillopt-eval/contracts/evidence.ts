@@ -67,6 +67,19 @@ const FinalStateFactSchema = z
       .regex(/^CLAIM-[A-F0-9]{16}$/)
       .optional(),
     claimText: z.string().min(1).optional(),
+    /** `value_type` of a `property_value` fact. */
+    valueType: z.enum(["int", "number", "string", "bool"]).optional(),
+  })
+  .strict();
+
+const FinalStateScenarioSchema = z
+  .object({
+    id: z.string().min(1),
+    expects: z.enum(["success", "rejection", "error"]).optional(),
+    /** `assumes` links that reach a `property_value` fact. */
+    assumes: z.int().nonnegative(),
+    /** Some requirement links this scenario through `specified_by`. */
+    specifiesRequirement: z.boolean(),
   })
   .strict();
 
@@ -84,6 +97,7 @@ export const PredicateCaseSnapshotSchema = z
     facts: z.array(FinalStateFactSchema),
     relationships: z.array(FinalStateRelationshipSchema),
     logicClaims: z.array(z.string().regex(/^CLAIM-[A-F0-9]{16}$/)).default([]),
+    scenarios: z.array(FinalStateScenarioSchema).default([]),
   })
   .strict();
 

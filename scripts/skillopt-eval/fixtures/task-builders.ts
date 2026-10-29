@@ -417,7 +417,7 @@ function predicatePayload(
   index: number,
 ): FamilyPayload {
   const semanticCase = predicateCaseBySplitIndex(split, index, family);
-  const claimPrompt = `Model the complete normative claim through Kibi's clause-complete logical workflow using only the public MCP surface. Before any kb_upsert (including a dryRun: true validation), call kb_search then kb_query. Claim: "${semanticCase.publicClaim.claimText}" Decompose the claim into its atomic obligations: compound prose with independent obligations needs one ground fact and claim key per obligation, while one obligation that relates several arguments stays a single fact with a single claim key. Preserve each advisor-issued claim key on its ground fact and merge the complete logic_claims manifest. Treat structured projectLocalSchemas in predicate-claim.json as approved ontology declarations; when a declared schema endpoint is absent, create that schema before its ground predicate fact. Relationship types remain graph edges, not predicate names.`;
+  const claimPrompt = `Model the complete normative claim through Kibi's clause-complete logical workflow using only the public MCP surface. Before any kb_upsert (including a dryRun: true validation), call kb_search then kb_query. Claim: "${semanticCase.publicClaim.claimText}" Decompose the claim into its atomic obligations: compound prose with independent obligations needs one ground fact and claim key per obligation, while one obligation that relates several arguments stays a single fact with a single claim key. Preserve each advisor-issued claim key on its ground fact and merge the complete logic_claims manifest. Treat structured projectLocalSchemas in predicate-claim.json as approved ontology declarations; when a declared schema endpoint is absent, create that schema before its ground predicate fact. Relationship types remain graph edges, not predicate names.${semanticCase.publicClaim.requestScenarios === true ? " Record the claim as a requirement together with the scenarios that specify it." : ""}`;
   const objectiveByClass: Readonly<Record<PredicateSemanticClass, string>> = {
     builtin_relational: "model_predicate_builtin_relational",
     strict_scalar_counterexample: "model_predicate_strict_scalar",
@@ -429,6 +429,8 @@ function predicatePayload(
     necessary_condition: "model_predicate_necessary_condition",
     compound_obligations: "model_predicate_compound_obligations",
     exception_unless: "model_predicate_exception_unless",
+    quantified_dimension: "model_predicate_quantified_dimension",
+    quantified_cardinality: "model_predicate_quantified_cardinality",
   };
   const conditionalFiles = [
     ...(definition.worktree === "dirty" ? ["changes/uncommitted.patch"] : []),

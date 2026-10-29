@@ -263,9 +263,40 @@ function normalizeMcpPredicateSnapshot(
         ...(typeof entity.claim_text === "string"
           ? { claimText: entity.claim_text }
           : {}),
+        ...(factKind === "property_value" &&
+        (entity.value_type === "int" ||
+          entity.value_type === "number" ||
+          entity.value_type === "string" ||
+          entity.value_type === "bool")
+          ? { valueType: entity.value_type }
+          : {}),
       },
     ];
   });
+  const specifiedScenarios = new Set(
+    entities.flatMap((entity) =>
+      entity.type === "req" ? relationshipTargets(entity.specified_by) : [],
+    ),
+  );
+  const scenarios = entities.flatMap((entity) =>
+    entity.type === "scenario" && typeof entity.id === "string"
+      ? [
+          {
+            id: entity.id,
+            ...(entity.expects === "success" ||
+            entity.expects === "rejection" ||
+            entity.expects === "error"
+              ? { expects: entity.expects }
+              : {}),
+            assumes: relationshipTargets(entity.assumes).filter(
+              (targetId) =>
+                factById.get(targetId)?.fact_kind === "property_value",
+            ).length,
+            specifiesRequirement: specifiedScenarios.has(entity.id),
+          },
+        ]
+      : [],
+  );
   const relationships = new Map<
     string,
     { relationship: string; target: string }
@@ -315,6 +346,7 @@ function normalizeMcpPredicateSnapshot(
         ),
       ),
     ),
+    scenarios,
   });
 }
 
