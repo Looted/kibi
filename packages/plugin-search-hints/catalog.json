@@ -1,6 +1,6 @@
 {
   "plugin": "kibi-plugin-search-hints",
-  "pluginVersion": "0.0.0",
+  "pluginVersion": "0.1.0",
   "model": {
     "id": "minishlab/potion-base-8M",
     "revision": "bf8b056651a2c21b8d2565580b8569da283cab23",
