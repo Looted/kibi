@@ -1059,5 +1059,44 @@ if (RUN_NODE_TEST_SUITE) {
       assert.equal(source?.sourceAnalysis?.after?.status, "ok");
       assert.equal(source?.sourceAnalysis?.after?.symbolCount, 1);
     });
+
+    it("rejects a staged behavior edit that carries no Kibi impact evidence", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+      assertCommandExit(
+        await run("git", ["reset", "-q", "--hard", "HEAD"], gitOptions(sandbox)),
+        0,
+        "discarding the previous case's staged fixture",
+      );
+      assertCommandExit(
+        await run("git", ["clean", "-q", "-fd"], gitOptions(sandbox)),
+        0,
+        "removing the previous case's untracked fixture",
+      );
+      assertCommandExit(
+        await kibi(sandbox, ["sync"], { timeoutMs: CHECK_TIMEOUT_MS }),
+        0,
+        "syncing the committed baseline",
+      );
+      writeSandboxFile(
+        sandbox,
+        "src/sample.js",
+        "export function hello() { return 'ok'; }\nexport function missingLink() { return 1; }\nexport function farewell() { return 'bye'; }\n",
+      );
+      assertCommandExit(
+        await run("git", ["add", "--", "src/sample.js"], gitOptions(sandbox)),
+        0,
+        "staging a behavior edit without requirement, test or manifest changes",
+      );
+      const result = await kibi(sandbox, ["check", "--staged"], {
+        timeoutMs: CHECK_TIMEOUT_MS,
+      });
+      assertCommandExit(result, 1, "staged check for a behavior edit without impact evidence");
+      const output = commandText(result);
+      assert.match(output, /kibi_impact_evidence_missing/);
+      assert.match(output, /src\/sample\.js/);
+    });
   });
 }

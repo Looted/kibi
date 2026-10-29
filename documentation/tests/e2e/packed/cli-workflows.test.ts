@@ -637,6 +637,24 @@ if (RUN_NODE_TEST_SUITE) {
       console.log("  ✓ Doctor ran successfully (diagnostic output captured)");
     });
 
+    it("should fail kibi doctor before init with a remediation step for each failed check", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+
+      const { stdout, stderr, exitCode } = await kibi(sandbox, ["doctor"]);
+      const output = stdout + stderr;
+
+      assert.notStrictEqual(exitCode, 0, "doctor must fail before init");
+      assert.match(output, /✗ \.kb\/ directory: Not found\n\s*→ Run: kibi init/);
+      assert.match(output, /✗ \.kb\/ manifest: Not found\n\s*→ Run: kibi init/);
+      assert.ok(
+        output.includes("Some checks failed"),
+        `doctor should summarize the failure: ${output}`,
+      );
+    });
+
     it("should initialize kibi with hooks", async (testContext) => {
       if (!hasProlog) {
         testContext.skip("SWI-Prolog is unavailable");
@@ -744,6 +762,23 @@ if (RUN_NODE_TEST_SUITE) {
       );
 
       console.log("  ✓ Query returned entities");
+    });
+
+    it("should reject a query filter naming an entity type Kibi does not have", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+
+      const { stdout, stderr, exitCode } = await kibi(sandbox, [
+        "query",
+        "widget",
+      ]);
+      const output = stdout + stderr;
+
+      assert.notStrictEqual(exitCode, 0, "query must fail for an unknown type");
+      assert.match(output, /Invalid type 'widget'/);
+      assert.match(output, /Valid types: req, scenario, test/);
     });
 
     it("should run kibi check after sync", async (testContext) => {
@@ -975,6 +1010,62 @@ if (RUN_NODE_TEST_SUITE) {
           );
         } finally {
           await driftSandbox.cleanup();
+        }
+      },
+    );
+
+    it(
+      "should fail kibi check when a must-priority requirement has no scenario or test",
+      { timeout: 180000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        // A fresh workspace: its first sync takes the fixture as authored
+        // baseline, so the coverage rule is the only thing under test.
+        const mustSandbox = createSandbox();
+        try {
+          await mustSandbox.install(tarballs);
+          await mustSandbox.initGitRepo();
+          const initialized = await kibi(mustSandbox, ["init", "--no-hooks"]);
+          assert.strictEqual(
+            initialized.exitCode,
+            0,
+            initialized.stdout + initialized.stderr,
+          );
+          createMarkdownFile(
+            mustSandbox,
+            ".kb/requirements/REQ-MUST-UNCOVERED.md",
+            {
+              id: "REQ-MUST-UNCOVERED",
+              title: "Uncovered must requirement",
+              status: "open",
+              priority: "must",
+            },
+            [
+              "Exports must keep their column order.",
+              "",
+              "## Context",
+              "",
+              "Fixture for the packed CLI workflow suite: a must-priority requirement that no scenario specifies and no test verifies, so the coverage rule has something to reject.",
+            ].join("\n"),
+          );
+          const synced = await kibi(mustSandbox, ["sync"]);
+          assert.strictEqual(synced.exitCode, 0, synced.stdout + synced.stderr);
+
+          const { stdout, stderr, exitCode } = await kibi(
+            mustSandbox,
+            ["check", "--rules", "must-priority-coverage"],
+            { timeoutMs: 60000 },
+          );
+          const output = stdout + stderr;
+          assert.strictEqual(exitCode, 1, `check must fail: ${output}`);
+          assert.match(output, /must-priority-coverage/);
+          assert.match(output, /REQ-MUST-UNCOVERED/);
+        } finally {
+          await mustSandbox.cleanup();
         }
       },
     );
