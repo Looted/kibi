@@ -433,3 +433,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-840b155dc51a
+  - type: specified_by
+    from: REQ-generated-coordinate-persistence
+    to: SCEN-NEG-generated-coordinate-persistence-AUTHORED-COORDINATES
+    created_at: 2026-10-29T22:00:33.882Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-78c50b825781

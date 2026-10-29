@@ -391,3 +391,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d67fa2593c4a
+  - type: specified_by
+    from: REQ-mcp-tag-filtering-server-side
+    to: SCEN-NEG-mcp-tag-filtering-server-side-UNMATCHED-TAGS
+    created_at: 2026-10-29T22:00:39.339Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3fb0c18048f

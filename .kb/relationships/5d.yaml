@@ -629,3 +629,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-02108603d325
+  - type: specified_by
+    from: REQ-core-prolog-process-management
+    to: SCEN-NEG-core-prolog-process-management-STALE-ATTACHED-SNAPSHOT
+    created_at: 2026-10-29T22:00:31.938Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bbd36231c1f4

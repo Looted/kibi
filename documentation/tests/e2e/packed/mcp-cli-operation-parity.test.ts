@@ -226,6 +226,72 @@ describe("packed MCP and CLI operation parity", { concurrency: false }, () => {
   );
 
   it(
+    "excludes an entity that carries none of the requested tags from a tag-filtered kb_query",
+    { timeout: 180_000 },
+    async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+      const body =
+        "Given a tagged fixture\nWhen kb_query filters by tag\nThen only matching fixtures are listed.";
+      for (const [id, tags] of [
+        ["SCEN-PACKED-TAG-ALT", ["alt"]],
+        ["SCEN-PACKED-TAG-PARITY", ["parity"]],
+        ["SCEN-PACKED-TAG-OTHER", ["unrelated"]],
+      ] as const) {
+        createMarkdownFile(
+          sandbox,
+          `.kb/scenarios/${id}.md`,
+          {
+            id,
+            title: `Tag filter fixture ${id}`,
+            status: "active",
+            tags: [...tags],
+          },
+          body,
+        );
+      }
+      const sync = await kibi(sandbox, ["sync"], { timeoutMs: 120_000 });
+      assert.strictEqual(sync.exitCode, 0, `${sync.stdout}${sync.stderr}`);
+
+      const process = startMcpServer(sandbox);
+      let ids: string[] = [];
+      try {
+        await sendMcpRequest(process, 1, "initialize", {
+          protocolVersion: "2024-11-05",
+          capabilities: {},
+          clientInfo: { name: "packed-parity", version: "1.0.0" },
+        });
+        process.stdin?.write(
+          `${JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" })}\n`,
+        );
+        const response = await sendMcpRequest(process, 2, "tools/call", {
+          name: "kb_query",
+          arguments: { type: "scenario", tags: ["parity", "alt"] },
+        });
+        assert.ifError(response.error);
+        assert.notStrictEqual(response.result?.isError, true);
+        const envelope = response.result?.structuredContent as
+          | { status?: string; data?: { entities?: Array<{ id: string }> } }
+          | undefined;
+        assert.strictEqual(envelope?.status, "success");
+        ids = (envelope?.data?.entities ?? []).map((entity) => entity.id);
+      } finally {
+        process.kill();
+      }
+      // Any-of: an entity tagged with either requested tag is returned, and
+      // the untagged and differently tagged scenarios are excluded.
+      assert.deepStrictEqual([...ids].sort(), [
+        "SCEN-PACKED-TAG-ALT",
+        "SCEN-PACKED-TAG-PARITY",
+      ]);
+      assert.ok(!ids.includes("SCEN-PACKED-TAG-OTHER"));
+      assert.ok(!ids.includes("SCEN-PACKED-PARITY"));
+    },
+  );
+
+  it(
     "ships all generated skills and resources in Cursor and Codex tarballs",
     { timeout: 120_000 },
     async (testContext) => {

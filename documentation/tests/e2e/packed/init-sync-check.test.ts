@@ -388,6 +388,70 @@ if (RUN_NODE_TEST_SUITE) {
     );
 
     it(
+      "should query by source file return only entities whose source matches that path",
+      { timeout: 20000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        await kibi(sandbox, ["init"]);
+
+        createMarkdownFile(
+          sandbox,
+          ".kb/requirements/req-billing.md",
+          {
+            id: "req-billing",
+            title: "Billing Requirement",
+            type: "req",
+            status: "open",
+          },
+          "# Billing\n\n## Context\n\nFixture requirement for the packed init, sync and check test; it exists only to exercise the CLI and no further reason is stated.",
+        );
+
+        createMarkdownFile(
+          sandbox,
+          ".kb/requirements/req-audit.md",
+          {
+            id: "req-audit",
+            title: "Audit Requirement",
+            type: "req",
+            status: "open",
+          },
+          "# Audit\n\n## Context\n\nFixture requirement for the packed init, sync and check test; it exists only to exercise the CLI and no further reason is stated.",
+        );
+
+        const sync = await kibi(sandbox, ["sync"]);
+        assert.strictEqual(sync.exitCode, 0, `${sync.stdout}${sync.stderr}`);
+
+        const result = await kibi(sandbox, [
+          "query",
+          "req",
+          "--source",
+          ".kb/requirements/req-billing.md",
+          "--format",
+          "json",
+        ]);
+        assert.strictEqual(result.exitCode, 0, result.stderr);
+        const rows = JSON.parse(result.stdout) as Array<{
+          id: string;
+          source?: string;
+        }>;
+        assert.deepStrictEqual(
+          rows.map((row) => row.id),
+          ["req-billing"],
+          `only the entity from the queried source file may be returned: ${result.stdout}`,
+        );
+        assert.strictEqual(rows[0]?.source, ".kb/requirements/req-billing.md");
+        assert.ok(
+          !result.stdout.includes("req-audit"),
+          "an entity whose source does not match the path must be excluded",
+        );
+      },
+    );
+
+    it(
       "should reject a query for an unknown entity type and name the valid types",
       { timeout: 20000 },
       async (testContext) => {

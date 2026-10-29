@@ -433,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2e8126914ac7
+  - type: assumes
+    from: SCEN-NEG-skillopt-cursor-compat-UNQUALIFIED-CELLS
+    to: FACT-NEG-skillopt-cursor-compat-UNQUALIFIED-CELLS
+    created_at: 2026-10-29T22:00:06.037Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-856677903a2c
+  - type: verified_by
+    from: SCEN-NEG-skillopt-cursor-compat-UNQUALIFIED-CELLS
+    to: TEST-skillopt-cursor-compat
+    created_at: 2026-10-29T22:00:06.098Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-322795b47e4a

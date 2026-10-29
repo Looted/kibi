@@ -1,6 +1,16 @@
 // implements REQ-ci-kb-merge-resolution
 import { describe, expect, test } from "bun:test";
-import { existsSync, readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
 const ROOT = path.join(import.meta.dir, "..", "..");
@@ -11,6 +21,8 @@ type Step = {
   run?: string;
   with?: Record<string, unknown>;
   "working-directory"?: string;
+  if?: unknown;
+  "continue-on-error"?: unknown;
 };
 
 function resolveSteps(file: string): Step[] {
@@ -68,5 +80,94 @@ describe("KB merge workflow", () => {
     for (const index of [commit, gate, push]) {
       expect(steps[index]?.["working-directory"]).toBe("pr");
     }
+  });
+
+  // Runs the workflow's own gate and push steps, in order, the way a runner
+  // does (bash -e, stop at the first failing step), against a scratch remote.
+  // The fake Kibi only answers `status`, so the gate decides from that alone.
+  function runGateAndPush(syncState: "fresh" | "stale") {
+    const root = mkdtempSync(path.join(os.tmpdir(), "kibi-kb-merge-gate-"));
+    try {
+      const git = (cwd: string, ...args: string[]) => {
+        const result = spawnSync("git", args, { cwd, encoding: "utf8" });
+        expect(result.status, `git ${args.join(" ")}: ${result.stderr}`).toBe(
+          0,
+        );
+        return result.stdout.trim();
+      };
+      const remote = path.join(root, "remote.git");
+      git(root, "init", "--bare", "-q", "-b", "develop", remote);
+      const pr = path.join(root, "pr");
+      git(root, "clone", "-q", remote, pr);
+      git(pr, "config", "user.email", "test@example.com");
+      git(pr, "config", "user.name", "Kibi Test");
+      git(pr, "checkout", "-q", "-b", "feature/stale");
+      writeFileSync(path.join(pr, "README.md"), "base\n");
+      git(pr, "add", "README.md");
+      git(pr, "commit", "-q", "-m", "base");
+      git(pr, "push", "-q", "origin", "HEAD:refs/heads/feature/stale");
+      const before = git(remote, "rev-parse", "refs/heads/feature/stale");
+      writeFileSync(path.join(pr, "README.md"), "merged\n");
+      git(pr, "commit", "-q", "-am", "Merge develop into feature/stale");
+
+      mkdirSync(path.join(pr, "scripts"));
+      copyFileSync(
+        path.join(ROOT, "scripts", "proof-gate.sh"),
+        path.join(pr, "scripts", "proof-gate.sh"),
+      );
+      const fakeKibi = path.join(root, "fake-kibi.mjs");
+      writeFileSync(
+        fakeKibi,
+        `if (process.argv[2] === "status") {
+  console.log(JSON.stringify({ syncState: ${JSON.stringify(syncState)}, dirty: false }));
+} else if (process.argv[2] !== "check") {
+  process.exit(3);
+}
+`,
+      );
+
+      const gate = indexOf(steps, /scripts\/proof-gate\.sh/);
+      const ran: { name: string; status: number | null; stderr: string }[] = [];
+      for (const step of steps.slice(gate)) {
+        // A step after the gate that ran on failure would defeat it.
+        expect(step.if).toBeUndefined();
+        expect(step["continue-on-error"]).toBeUndefined();
+        const result = spawnSync("bash", ["-e", "-c", step.run ?? ""], {
+          cwd: pr,
+          encoding: "utf8",
+          env: {
+            ...process.env,
+            KIBI_CLI: fakeKibi,
+            KIBI_BRANCH: "feature/stale",
+          },
+        });
+        ran.push({
+          name: step.name ?? "",
+          status: result.status,
+          stderr: result.stderr,
+        });
+        if (result.status !== 0) break;
+      }
+      const after = git(remote, "rev-parse", "refs/heads/feature/stale");
+      return { ran, pushed: after !== before };
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  }
+
+  test("a failing proof gate stops the job before the merge is pushed", () => {
+    const failing = runGateAndPush("stale");
+    expect(failing.ran).toHaveLength(1);
+    expect(failing.ran[0]?.status).not.toBe(0);
+    expect(failing.ran[0]?.stderr).toContain(
+      "The proof gate needs a fresh Kibi store",
+    );
+    expect(failing.pushed).toBe(false);
+
+    // Control: with a passing gate the same steps do push, so the refusal
+    // above comes from the gate and not from a broken harness.
+    const passing = runGateAndPush("fresh");
+    expect(passing.ran.map((step) => step.status)).toEqual([0, 0]);
+    expect(passing.pushed).toBe(true);
   });
 });
