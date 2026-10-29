@@ -223,3 +223,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-72a57e0e32e6
+  - type: executable_for
+    from: SYM-proof-bootstrap-aspect-max-chars
+    to: TEST-proof-bootstrap-aspect-max-chars
+    created_at: 2026-10-29T16:52:00.992Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bdd0eefab3ab

@@ -388,3 +388,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f161b90ea8e7
+  - type: implements
+    from: SYM-agent-core-confirm-firm-edits-env
+    to: REQ-agent-core-hook-limits
+    created_at: 2026-10-29T16:31:20.730Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0322f52a5abc
+  - type: covered_by
+    from: SYM-agent-core-confirm-firm-edits-env
+    to: TEST-proof-confirm-firm-edits-env
+    created_at: 2026-10-29T16:31:41.611Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8db16fa8940f
+  - type: covered_by
+    from: SYM-agent-core-confirm-firm-edits-env
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-10-29T16:31:41.646Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e616b249d47a

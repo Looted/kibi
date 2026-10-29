@@ -468,3 +468,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-97235bbf1122
+  - type: executable_for
+    from: SYM-proof-jev-alignment-top-k
+    to: TEST-proof-jev-alignment-top-k
+    created_at: 2026-10-29T16:55:27.306Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e231b4873b93

@@ -251,3 +251,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d9715651f0ed
+  - type: requires_property
+    from: REQ-capability-check-policy-version
+    to: FACT-check-policy-contract-version
+    created_at: 2026-10-29T16:59:00.027Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c45974a71ed
+  - type: specified_by
+    from: REQ-capability-check-policy-version
+    to: SCEN-capability-check-policy
+    created_at: 2026-10-29T16:59:00.091Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2dcbe612838
+  - type: constrains
+    from: REQ-capability-check-policy-version
+    to: FACT-kibi-check-policy-version-component
+    created_at: 2026-10-29T16:59:03.418Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62fb4af4ab36

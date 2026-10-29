@@ -216,3 +216,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-47c4aba4fc54
+  - type: executable_for
+    from: SYM-proof-bootstrap-aspect-max-words
+    to: TEST-proof-bootstrap-aspect-max-words
+    created_at: 2026-10-29T16:51:20.678Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eacf4e6ffe68

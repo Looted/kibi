@@ -21,18 +21,18 @@ origin:
 id: TEST-bootstrap-claim-name-length
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-8fa96dd6178298a811a44c0f
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-fdadc9645161964ff061fe58
     test_id: TEST-bootstrap-claim-name-length
     scope: end_to_end
     outcome: passed
-    code_snapshot: 958d97d1ca714d740f6d17315006a0e8f256102a370d9ee44f2b88223fb57c12
+    code_snapshot: e0f271c55f28ef76d28b12bb7a4ce9a61c3b2c2bf54ee95b4744051c4e0237d8
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-08T09:33:57.508Z'
-    finished_at: '2026-10-08T09:33:57.637Z'
-    artifact_digest: 9fd0e85780a3fe84d2700acde632ff5abd1f88b7b06d924a8aa02f8ae4eb3139
+    started_at: '2026-10-29T16:52:21.521Z'
+    finished_at: '2026-10-29T16:52:21.795Z'
+    artifact_digest: cba981bb54609d4925d0feae58173e8261229b9d436ba344716fb716f2b02b78
     contract_hash: c024a2e6c0d0913279a1c33f4c21e4960084bc500d9e3cbd64028d0a5037ae4f
-    binding_hash: 2066991902aa82d0aa1e59193054d14425190d51672f737f37c3b8baa26bc5a0
+    binding_hash: 76fb641673e07937d690e16fb0b34d6788642ebcfffe0bfc77444812772d86d9
     fingerprint: 8db04a1695904e4127675e5294fd799797a74fc5b8202ef951d85a13ac469d06
     fingerprint_components:
       contract: c024a2e6c0d0913279a1c33f4c21e4960084bc500d9e3cbd64028d0a5037ae4f
@@ -54,5 +54,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs `packages/cli/tests/operations/bootstrap-claim-name-length.test.ts`, which shortens long aspects, plans intent claims and repository Markdown with long and colliding claim names, and checks the planned names, the shortening and disambiguation diagnostics and determinism.

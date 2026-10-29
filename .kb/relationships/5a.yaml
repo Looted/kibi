@@ -433,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-03cddebae306
+  - type: executable_for
+    from: SYM-proof-rule-entity-context-missing
+    to: TEST-proof-rule-entity-context-missing
+    created_at: 2026-10-29T16:42:47.273Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33348651512b
+  - type: executable_for
+    from: SYM-proof-opencode-bootstrap-command
+    to: TEST-proof-opencode-bootstrap-command
+    created_at: 2026-10-29T17:02:39.466Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87ee157786df

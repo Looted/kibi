@@ -391,3 +391,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6a933ab8f1b3
+  - type: requires_property
+    from: REQ-kb-decision-firmness-rule-names
+    to: FACT-rule-decision-firm-unreferenced
+    created_at: 2026-10-29T16:38:12.801Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b35c1cd5a20
+  - type: requires_property
+    from: REQ-kb-decision-firmness-rule-names
+    to: FACT-rule-decision-firm-superseded
+    created_at: 2026-10-29T16:38:12.885Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cdc8cabb352f
+  - type: requires_property
+    from: REQ-kb-decision-firmness-rule-names
+    to: FACT-rule-decision-firm-edited
+    created_at: 2026-10-29T16:38:12.938Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-619af8c5f9de
+  - type: requires_property
+    from: REQ-kb-decision-firmness-rule-names
+    to: FACT-rule-supersedes-reason-missing
+    created_at: 2026-10-29T16:38:12.983Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-569c24f4ea50
+  - type: specified_by
+    from: REQ-kb-decision-firmness-rule-names
+    to: SCEN-kb-decision-firmness
+    created_at: 2026-10-29T16:38:13.019Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89fa349b29ad
+  - type: constrains
+    from: REQ-kb-decision-firmness-rule-names
+    to: FACT-kibi-decision-firmness-rules-component
+    created_at: 2026-10-29T16:38:16.880Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-acf1eee5d72f

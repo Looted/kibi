@@ -24,18 +24,18 @@ proof_contract:
 id: TEST-bootstrap-provenance-stubs
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-2f20e23530e5c0806869b097
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-f73d86d899eb18e259c4e117
     test_id: TEST-bootstrap-provenance-stubs
     scope: end_to_end
     outcome: passed
-    code_snapshot: ef462154276e18a22fc27d7e05cb5710d76da971a9db3fecf51033784cb2c51b
+    code_snapshot: a30c5405eea70e799be9d7e6691afbc947056c9986ccf1b9c9ee8c2f836b8849
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-09T07:25:54.498Z'
-    finished_at: '2026-10-09T07:25:56.141Z'
-    artifact_digest: 535be6d2252d97c2f2f8d6ab8f8b33a454729b98980827426067e076f8322d81
+    started_at: '2026-10-29T16:53:47.265Z'
+    finished_at: '2026-10-29T16:53:49.765Z'
+    artifact_digest: 5253da181552862522e6389d1aeef8f59b51f4ab109aa52b4421bc791fe876a8
     contract_hash: 9f9dd2c314a8deb6fc2e5d1c4ebe39e4cc57e44ffe5d17040af66f6e8c09a7c9
-    binding_hash: 8e91d143f36ee3323bf5ed88c0a30924e41d2e785e743138cd6274abc149ad5f
+    binding_hash: e1ccbd62e6761a42cd479fae838c7c417a8ee899b78bd85cbf99187aaf8997a3
     fingerprint: b8db6ba306b1225219ce8528bbb31841b73c01c8de769765a76ebb5c056bb840
     fingerprint_components:
       contract: 9f9dd2c314a8deb6fc2e5d1c4ebe39e4cc57e44ffe5d17040af66f6e8c09a7c9
@@ -63,5 +63,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs the bootstrap provenance stub suite, which plans provider candidates with and without a claim and checks the meta fact kind, the bootstrap:provenance-stub tag, the selection lane, the over_limit accounting and the plan summary, and the search provenance stub suite, which checks that a stub sorts last in intent and legacy ranking, is dropped under the default threshold and never appears in the answer layer notes. The Prolog discovery_provenance_stubs unit checks that find_gaps and type coverage skip the stub.

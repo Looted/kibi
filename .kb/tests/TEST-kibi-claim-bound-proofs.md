@@ -21,17 +21,17 @@ id: TEST-kibi-claim-bound-proofs
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-f9e2dbada2632bfaa349bd35
+    receipt_id: PR-9485de4ca0154ee03e6c0203
     test_id: TEST-kibi-claim-bound-proofs
     scope: end_to_end
     outcome: passed
-    code_snapshot: b84ddb858f4016ac55babc0490670eee4de516c04efbaaae0fc177216e2de60b
+    code_snapshot: 3ef679be4889b29bbf2035f91775c6f274ff1378dfca354d2d0e2fee8d047f47
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T13:43:49.559Z'
-    finished_at: '2026-10-28T13:45:19.027Z'
-    artifact_digest: 4106f59ebf652350e35638f8dbe2c37121fbb937466b9bb9b2726c36c80dd033
+    started_at: '2026-10-29T16:47:17.973Z'
+    finished_at: '2026-10-29T16:49:51.010Z'
+    artifact_digest: 43d0088ec56a9763f736e12256d1dd7b6307b0664e99f6d7af5d45d93f5d477b
     contract_hash: 6050cd455db24a896f0fde16796170752eb9e11716e75f5e94fc262b4126be38
-    binding_hash: 34034231d3ce66da9cc7fc97330d335d090b1aae1c2b9ab288d8eb1a6e83fabd
+    binding_hash: 5ff6b6f0bad80ba2a023cafec647b79f13f915f9b50e1a6debdd20dcadc23da4
     fingerprint: 3aaec151dd9939d667900f2219880079ad655f5b34d6b67d3c3da840c36b593e
     fingerprint_components:
       contract: 6050cd455db24a896f0fde16796170752eb9e11716e75f5e94fc262b4126be38

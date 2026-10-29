@@ -349,3 +349,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aaf56d2d462c
+  - type: validates
+    from: TEST-proof-rule-entity-context-missing
+    to: SCEN-kb-entity-body-context
+    created_at: 2026-10-29T16:42:43.771Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8e522795479
+  - type: validates
+    from: TEST-proof-jev-alignment-top-k
+    to: SCEN-kibi-vocabulary-alignment-capability
+    created_at: 2026-10-29T16:55:23.638Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4656cbe51b5b
+  - type: implements
+    from: SYM-KIBI-REFRESH-TREE-COMMAND
+    to: REQ-vscode-extension-ids
+    created_at: 2026-10-29T17:07:27.648Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-38b0e7753b98
+  - type: covered_by
+    from: SYM-KIBI-REFRESH-TREE-COMMAND
+    to: TEST-proof-vscode-refresh-command
+    created_at: 2026-10-29T17:07:44.299Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28fd992d08c6

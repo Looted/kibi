@@ -307,3 +307,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e2af7b8847d5
+  - type: executable_for
+    from: SYM-proof-vscode-view-id
+    to: TEST-proof-vscode-view-id
+    created_at: 2026-10-29T17:07:06.389Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f832545860e

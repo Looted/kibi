@@ -545,3 +545,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d1322feaa7c9
+  - type: executable_for
+    from: SYM-proof-claim-binding-verdicts
+    to: TEST-proof-claim-binding-verdicts
+    created_at: 2026-10-29T16:46:54.927Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-242b0c0e1fd9

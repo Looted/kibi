@@ -262,3 +262,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-af01df5d1ec6
+  - type: executable_for
+    from: SYM-proof-provenance-stub-tag
+    to: TEST-proof-provenance-stub-tag
+    created_at: 2026-10-29T16:53:25.523Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a257d42c0c6
