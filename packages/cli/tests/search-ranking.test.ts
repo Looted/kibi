@@ -17,13 +17,14 @@ import {
   spyOn,
   test,
 } from "bun:test";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import syncFs, { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import matter from "gray-matter";
 import {
   loadMarkdownBody,
+  loadMarkdownBodySync,
   rankEntities,
   snippetFromMatchedLine,
 } from "../src/search-ranking.js";
@@ -77,7 +78,51 @@ function makeEntity(
 // ---------------------------------------------------------------------------
 // loadMarkdownBody
 // ---------------------------------------------------------------------------
+describe("loadMarkdownBodySync", () => {
+  function workspace(): string {
+    const root = mkdtempSync(path.join(os.tmpdir(), "kibi-body-sync-"));
+    temporaryDirectories.push(root);
+    return root;
+  }
+
+  test("reads a Markdown body without its frontmatter", () => {
+    const root = workspace();
+    mkdirSync(path.join(root, "docs"));
+    writeFileSync(
+      path.join(root, "docs", "req.md"),
+      "---\ntitle: Sync\n---\nSynchronous body.",
+    );
+    expect(loadMarkdownBodySync("docs/req.md#L3", root)).toBe(
+      "Synchronous body.",
+    );
+    expect(loadMarkdownBodySync(path.join(root, "docs", "req.md"), root)).toBe(
+      "Synchronous body.",
+    );
+  });
+
+  test("never reads a source that is not a workspace Markdown file", () => {
+    const root = workspace();
+    const read = spyOn(syncFs, "readFileSync");
+    spies.push(read);
+    expect(loadMarkdownBodySync("src/file.ts", root)).toBeNull();
+    expect(loadMarkdownBodySync("../outside.md", root)).toBeNull();
+    expect(read).not.toHaveBeenCalled();
+  });
+
+  test("a missing file has no body", () => {
+    expect(loadMarkdownBodySync("docs/missing.md", workspace())).toBeNull();
+  });
+});
+
 describe("loadMarkdownBody", () => {
+  test("never reads a source that is not a workspace Markdown file", async () => {
+    const read = spyOn(fs, "readFile");
+    spies.push(read);
+    expect(await loadMarkdownBody("src/file.ts", "/workspace")).toBeNull();
+    expect(await loadMarkdownBody("../outside.md", "/workspace")).toBeNull();
+    expect(read).not.toHaveBeenCalled();
+  });
+
   test("returns null for empty source string", async () => {
     const result = await loadMarkdownBody("", "/workspace");
     expect(result).toBeNull();

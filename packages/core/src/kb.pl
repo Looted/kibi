@@ -27,6 +27,7 @@
     kb_indexed_sources/1,
     kb_query_entities/8,
     kb_search_entities/6,
+    kb_relationship_edges/3,
     kb_list_search_candidates/5,
     kb_list_search_candidates/6,
     kb_entity_ids/1,
@@ -88,6 +89,8 @@
 :- use_module(library(aggregate), [aggregate_all/3]).
 :- use_module(library(lists), [sum_list/2, subtract/3, intersection/3]).
 :- use_module(library(ordsets)).
+:- use_module(library(assoc), [list_to_assoc/2, get_assoc/3]).
+:- use_module(library(pairs), [group_pairs_by_key/2]).
 :- use_module(library(solution_sequences), [distinct/1, limit/2, offset/2, order_by/2]).
 :- use_module('../schema/entities.pl', [entity_type/1, entity_property/3, required_property/2]).
 :- use_module('../schema/relationships.pl', [relationship_type/1, valid_relationship/3]).
@@ -140,6 +143,8 @@ kb_uri('urn-kibi:').
 :- dynamic kb_entity_props_memo/2.
 :- dynamic kb_entity_props_memo_key/1.
 :- dynamic kb_decision_signature_memo/2.
+:- dynamic kb_req_predicate_memo/2.
+:- dynamic kb_search_ids_memo/4.
 :- dynamic kb_index_verified_key/1.
 :- dynamic entity/4.  % Support legacy .pl file format (Type, Id, Title, Props)
 
@@ -367,6 +372,8 @@ kb_detach :-
             retractall(kb_entity_props_memo(_, _)),
             retractall(kb_entity_props_memo_key(_)),
             retractall(kb_decision_signature_memo(_, _)),
+            retractall(kb_req_predicate_memo(_, _)),
+            retractall(kb_search_ids_memo(_, _, _, _)),
             retractall(kb_index_entity(_, _)),
             retractall(kb_index_type(_, _)),
             retractall(kb_index_tag(_, _)),
@@ -1848,18 +1855,36 @@ kb_search_entities(TypeFilter, Query, Limit, Offset, Rows, Count) :-
     kb_ensure_indexes,
     index_text_tokens(Query, QueryTokens),
     QueryTokens \= [],
-    findall(Id,
-            ( kb_index_entity(Id, _),
-              (TypeFilter == none -> true ; kb_index_type(TypeFilter, Id)),
-              ( indexed_markdown_source(Id)
-              ; forall(member(QueryToken, QueryTokens),
-                       indexed_token_match(QueryToken, Id)) ) ),
-            RawIds),
-    sort(RawIds, Ids),
+    search_index_ids(TypeFilter, QueryTokens, Ids),
     length(Ids, Count),
     drop_index_ids(Offset, Ids, Remaining),
     take_index_ids(Limit, Remaining, PageIds),
     search_candidate_rows(PageIds, Rows).
+
+% Callers read a large candidate set page by page, each page a separate
+% query, so the ids matched for the last query are kept for its next pages
+% instead of scanning the token index again. The memo is keyed like the index
+% verification (graph, RDF generation and index size), so any write starts a
+% fresh scan.
+search_index_ids(TypeFilter, QueryTokens, Ids) :-
+    (   kb_index_entity_count(IndexCount)
+    ->  true
+    ;   IndexCount = none
+    ),
+    index_verification_key(IndexCount, Key),
+    (   kb_search_ids_memo(Key, TypeFilter, QueryTokens, Cached)
+    ->  Ids = Cached
+    ;   findall(Id,
+                ( kb_index_entity(Id, _),
+                  (TypeFilter == none -> true ; kb_index_type(TypeFilter, Id)),
+                  ( indexed_markdown_source(Id)
+                  ; forall(member(QueryToken, QueryTokens),
+                           indexed_token_match(QueryToken, Id)) ) ),
+                RawIds),
+        sort(RawIds, Ids),
+        retractall(kb_search_ids_memo(_, _, _, _)),
+        assertz(kb_search_ids_memo(Key, TypeFilter, QueryTokens, Ids))
+    ).
 
 %% kb_list_search_candidates(+Type, +Limit, +Offset, -Rows, -Count)
 % Page every indexed entity (optionally of one type) as projected search
@@ -2180,6 +2205,37 @@ kb_relationship_with_reluri(RelURI, Graph, FromId, ToId) :-
     rdf(FromURI, RelURI, ToURI, Graph),
     entity_uri_to_id(FromURI, FromId),
     entity_uri_to_id(ToURI, ToId).
+
+%% kb_relationship_edges(+Types, +Ids, -Edges)
+% implements REQ-mcp-search-discovery
+% Every [Type, From, To] relationship of one of Types that starts or ends at
+% one of Ids (a set), in the order and with the multiplicity of
+%   findall([T,F,O], (member(T, Types), kb_relationship(T, F, O),
+%                     (member(F, Ids) ; member(O, Ids))), Edges)
+% Search reads the graph around its results this way. Ends are compared as
+% URIs, so only the matching edges are converted back to ids rather than
+% every edge of every type.
+kb_relationship_edges(Types, Ids, Edges) :-
+    kb_graph(Graph),
+    kb_uri(BaseURI),
+    atom_concat(BaseURI, 'entity/', Prefix),
+    findall(URI,
+            ( member(Id, Ids),
+              (   atom_concat(Prefix, Id, URI)
+              ;   atom_concat('kb:entity/', Id, URI)
+              ) ),
+            URIs0),
+    sort(URIs0, URIs),
+    findall([Type, From, To],
+            ( member(Type, Types),
+              atom_concat(BaseURI, Type, RelURI),
+              rdf(FromURI, RelURI, ToURI, Graph),
+              (   ord_memberchk(FromURI, URIs)
+              ;   ord_memberchk(ToURI, URIs)
+              ),
+              entity_uri_to_id(FromURI, From),
+              entity_uri_to_id(ToURI, To) ),
+            Edges).
 
 % Helper predicates
 
@@ -2639,13 +2695,7 @@ contradicting_reqs(ReqA, ReqB, Reason) :-
 % contradiction.  This remains deliberately syntactic: differently shaped
 % terms are never treated as equivalent merely because their prose is similar.
 req_conflict_witness(ReqA, ReqB, Witness) :-
-    current_req(ReqA),
-    current_req(ReqB),
-    ReqA @< ReqB,
-    kb_relationship(constrains, ReqA, SubjectFactA),
-    kb_relationship(constrains, ReqB, SubjectFactB),
-    fact_subject_key(SubjectFactA, SubjectKey),
-    fact_subject_key(SubjectFactB, SubjectKey),
+    subject_conflict_pair(ReqA, ReqB, SubjectKey),
     effective_req_property_fact(ReqA, SubjectKey, FactA, PropertyKey, OpA, ValTypeA, ValA, UnitA, ScopeA, PolarityA, ValidFromA, ValidToA),
     effective_req_property_fact(ReqB, SubjectKey, FactB, PropertyKey, OpB, ValTypeB, ValB, UnitB, ScopeB, PolarityB, ValidFromB, ValidToB),
     FactA \= FactB,
@@ -2673,11 +2723,7 @@ req_conflict_witness(ReqA, ReqB, Witness) :-
         right: Right
     }.
 req_conflict_witness(ReqA, ReqB, Witness) :-
-    current_req(ReqA),
-    current_req(ReqB),
-    ReqA @< ReqB,
-    effective_req_predicate(ReqA, FactA, Namespace, Name, Args, PolarityA),
-    effective_req_predicate(ReqB, FactB, Namespace, Name, Args, PolarityB),
+    predicate_conflict_pair(ReqA, ReqB, FactA, FactB, Namespace, Name, Args, PolarityA, PolarityB),
     FactA \= FactB,
     opposite_predicate_polarity(PolarityA, PolarityB),
     atomic_list_concat(Args, ',', ArgsText),
@@ -2756,6 +2802,88 @@ req_conflict_witness(ReqA, ReqB, Witness) :-
         left: Left,
         right: Right
     }.
+
+% Cost: the search answer layer and the upsert contradiction check ask for
+% the witnesses of one requirement with the other side unbound. Enumerating
+% every current requirement as the partner and only then reading the bound
+% side's facts cost a full requirement scan per lookup, even for a
+% requirement that states no such fact. The pairings below return the same
+% solutions in the same order as that enumeration: a bound requirement
+% without subject facts fails at once, and predicate partners come from an
+% index of the requirements stating each predicate, visited in the order
+% current_req/1 enumerates them.
+subject_conflict_pair(ReqA, ReqB, SubjectKey) :-
+    (   nonvar(ReqA), var(ReqB)
+    ->  once(req_subject_fact(ReqA))
+    ;   nonvar(ReqB), var(ReqA)
+    ->  once(req_subject_fact(ReqB))
+    ;   true
+    ),
+    current_req(ReqA),
+    current_req(ReqB),
+    ReqA @< ReqB,
+    kb_relationship(constrains, ReqA, SubjectFactA),
+    kb_relationship(constrains, ReqB, SubjectFactB),
+    fact_subject_key(SubjectFactA, SubjectKey),
+    fact_subject_key(SubjectFactB, SubjectKey).
+
+req_subject_fact(ReqId) :-
+    kb_relationship(constrains, ReqId, SubjectFactId),
+    fact_subject_key(SubjectFactId, _).
+
+predicate_conflict_pair(ReqA, ReqB, FactA, FactB, Namespace, Name, Args, PolarityA, PolarityB) :-
+    (   nonvar(ReqA), var(ReqB)
+    ->  current_req(ReqA),
+        findall(Position-Partner,
+                ( effective_req_predicate(ReqA, _, PartnerNs, PartnerName, PartnerArgs, _),
+                  current_req_predicate(PartnerNs-PartnerName-PartnerArgs, Position, Partner),
+                  ReqA @< Partner ),
+                Partners0),
+        sort(Partners0, Partners),
+        member(_-ReqB, Partners)
+    ;   nonvar(ReqB), var(ReqA)
+    ->  current_req(ReqB),
+        findall(Position-Partner,
+                ( effective_req_predicate(ReqB, _, PartnerNs, PartnerName, PartnerArgs, _),
+                  current_req_predicate(PartnerNs-PartnerName-PartnerArgs, Position, Partner),
+                  Partner @< ReqB ),
+                Partners0),
+        sort(Partners0, Partners),
+        member(_-ReqA, Partners)
+    ;   current_req(ReqA),
+        current_req(ReqB),
+        ReqA @< ReqB
+    ),
+    effective_req_predicate(ReqA, FactA, Namespace, Name, Args, PolarityA),
+    effective_req_predicate(ReqB, FactB, Namespace, Name, Args, PolarityB).
+
+%% current_req_predicate(+Signature, -Position, -ReqId)
+% A current requirement stating a predicate fact with Signature
+% (Namespace-Name-Args), and its position in current_req/1 order.
+current_req_predicate(Signature, Position, ReqId) :-
+    req_predicate_index(Index),
+    get_assoc(Signature, Index, Entries),
+    member(Position-ReqId, Entries).
+
+% Memoized per KB generation, like the decision signatures: reading a
+% predicate fact decodes its entity, and every lookup would otherwise read
+% the predicate facts of every requirement.
+req_predicate_index(Index) :-
+    index_verification_key(req_predicates, Key),
+    (   kb_req_predicate_memo(Key, Cached)
+    ->  Index = Cached
+    ;   findall(ReqId, current_req(ReqId), ReqIds),
+        findall((Namespace-Name-Args)-(Position-ReqId),
+                ( nth1(Position, ReqIds, ReqId),
+                  effective_req_predicate(ReqId, _, Namespace, Name, Args, _) ),
+                Pairs0),
+        sort(Pairs0, Pairs),
+        group_pairs_by_key(Pairs, Grouped),
+        list_to_assoc(Grouped, Computed),
+        retractall(kb_req_predicate_memo(_, _)),
+        assertz(kb_req_predicate_memo(Key, Computed)),
+        Index = Computed
+    ).
 
 %% kb_domain_contradiction_pairs_examined(-Count)
 % implements REQ-search-answer-hygiene

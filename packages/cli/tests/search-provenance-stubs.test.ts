@@ -104,7 +104,7 @@ describe("provenance stubs never outrank knowledge in search", () => {
     const prolog = {
       query: async (goal: string): Promise<PrologQueryResult> => {
         const bindings: Record<string, string> = {};
-        if (goal.includes("member(From, [")) bindings.Edges = "[]";
+        if (goal.includes("kb_relationship_edges(")) bindings.Edges = "[]";
         const rowIds = /member\(Id, \[([^\]]*)\]\)/.exec(goal)?.[1];
         if (rowIds !== undefined) {
           const results = [...rowIds.matchAll(/'([^']+)'/g)].flatMap(
