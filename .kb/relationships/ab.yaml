@@ -395,3 +395,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6ecaaa986fa0
+  - type: implements
+    from: SYM-search-hints-trigger
+    to: REQ-kibi-search-hints-host
+    created_at: 2026-10-29T19:22:55.292Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66861749e5fa
+  - type: covered_by
+    from: SYM-search-hints-trigger
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-10-29T19:22:55.335Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0df60da054c1

@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "kibi.package-integrity.v1",
+  "package": "kibi-plugin-search-hints",
+  "version": "0.0.0",
+  "algorithm": "sha256",
+  "selfHash": {
+    "path": "integrity.json",
+    "excluded": true,
+    "reason": "A manifest cannot contain its own digest; the host approval digest covers this file."
+  },
+  "files": [
+    {
+      "path": "CHANGELOG.md",
+      "bytes": 27,
+      "sha256": "99b077a0dde493917d3e5a6a722f3b4493e9c0c38f677942143e301760c4d75a"
+    },
+    {
+      "path": "LICENSE.md",
+      "bytes": 34519,
+      "sha256": "068de0a1cda6e78feb18db2150be2f023dca2b157062257b0fb8de50a359b22c"
+    },
+    {
+      "path": "README.md",
+      "bytes": 1474,
+      "sha256": "0607469f6a6a35aa3eb6a5eecf7d7ebe4663f1f707dd8dcd8c292183372955e8"
+    },
+    {
+      "path": "SBOM.spdx.json",
+      "bytes": 2353,
+      "sha256": "6e0cf5f63e09c6767734fab5e3dbd0294f1170121a68eee5da1a3f735f30e0fe"
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "bytes": 993,
+      "sha256": "3b0b169c9173957364e4b03aeab1ebe87efd488fb3b465c022027ce7adc8c331"
+    },
+    {
+      "path": "assets/potion-base-8M.int8.bin",
+      "bytes": 7677296,
+      "sha256": "02eb3b486a152a01c49055e109cce3e483fc3b49761f5343b5518c0cfc76f54f"
+    },
+    {
+      "path": "assets/vocab.txt",
+      "bytes": 219690,
+      "sha256": "1394523a67ddd404a825428018c0582a6998bcfa044ecbcbf1f4d71adb94c61c"
+    },
+    {
+      "path": "catalog.json",
+      "bytes": 900,
+      "sha256": "cdf70dcbdbfec395782dc8b346c83e7e9cc4fec66fd04be7ba217f47e10ed484"
+    },
+    {
+      "path": "dist/cache.d.ts",
+      "bytes": 1010,
+      "sha256": "c2db8a1d4a325865af465356066234ccc49bf3d59381364904f63812ccef7178"
+    },
+    {
+      "path": "dist/cache.d.ts.map",
+      "bytes": 683,
+      "sha256": "5cc8c98823a3e173dae2082b2e9bc13624b2f31df1240fe4f19f3e065ad6ab99"
+    },
+    {
+      "path": "dist/cache.js",
+      "bytes": 4156,
+      "sha256": "84a420f95fab7f4b96607353fd38d78c23eb3185f90b5ef308d744e3b3264ccf"
+    },
+    {
+      "path": "dist/index.d.ts",
+      "bytes": 1288,
+      "sha256": "73eb11ee7415166394fd4df7cee6c53b9e12f0e149b2681721a28a36053c33ec"
+    },
+    {
+      "path": "dist/index.d.ts.map",
+      "bytes": 720,
+      "sha256": "00d163aea3a3f3dfe385e2bb2a8cbacce456d68af09c87012d4fe8f84aa5e9aa"
+    },
+    {
+      "path": "dist/index.js",
+      "bytes": 3000,
+      "sha256": "ba2a127873d9d309bb8981eea03364658f7748ed64ec9bb2075998d62d8202bd"
+    },
+    {
+      "path": "dist/model.d.ts",
+      "bytes": 807,
+      "sha256": "d14d8ddf3a9b0cc730faefcb1a4b0c1a3e538a611f376badce4496aa70c9180a"
+    },
+    {
+      "path": "dist/model.d.ts.map",
+      "bytes": 434,
+      "sha256": "0558d2fd06e389cb9a1e4ccf44a505917bfb486cbc0462e0d1c60da30e75be5c"
+    },
+    {
+      "path": "dist/model.js",
+      "bytes": 2798,
+      "sha256": "c190fc98c657a5183f80de157f0c21f3fab28a066d4227cedd7e81626d8270b1"
+    },
+    {
+      "path": "dist/tokenizer.d.ts",
+      "bytes": 704,
+      "sha256": "d949a9244fae4f6a29d53d3a75c554d517c3b3fe684028d52ef26d3b0981ab21"
+    },
+    {
+      "path": "dist/tokenizer.d.ts.map",
+      "bytes": 476,
+      "sha256": "947a8ca99fcfd3fd36f67c3c819459dd2efaf62b6c89151d4ebe91c7ca80c05c"
+    },
+    {
+      "path": "dist/tokenizer.js",
+      "bytes": 4474,
+      "sha256": "4ba0c3dcb3533373eb535dc401bbc72fe25a3eafd5aa10bcd7cd87081c2a1126"
+    },
+    {
+      "path": "licenses/bge-base-en-v1.5-vocabulary-MIT.txt",
+      "bytes": 1065,
+      "sha256": "587a673933425dbc36ec61268d3b954051b2d3ef3c9b322ede357976055ffdd5"
+    },
+    {
+      "path": "licenses/potion-base-8M-MIT.txt",
+      "bytes": 1074,
+      "sha256": "b0214f148eceae739f916209e78cfe15712c4b810c8bc9d44b6c2d1d1616aab6"
+    },
+    {
+      "path": "package.json",
+      "bytes": 1320,
+      "sha256": "5b54b4d3d7fbcc5faceb5b96a018e65e0d29ec09e838d22cd869322259bac820"
+    }
+  ]
+}

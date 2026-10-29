@@ -374,3 +374,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4f3064867579
+  - type: implements
+    from: SYM-bootstrap-plugin-offers-pluginoffers
+    to: REQ-kibi-plugin-search-hints
+    created_at: 2026-10-29T19:22:20.705Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c784858d7c8b
+  - type: covered_by
+    from: SYM-bootstrap-plugin-offers-pluginoffers
+    to: TEST-kibi-plugin-search-hints
+    created_at: 2026-10-29T19:22:20.744Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b9c23dbbf0e

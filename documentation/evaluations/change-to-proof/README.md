@@ -88,6 +88,9 @@ then asks each question once and prints:
   names no governing requirement.
 - `latencyMs`: warm-up time, then p50, p95 and max per question, including CLI
   start-up.
+- `recallWithHints`: share of positive cases with an expected id in the top
+  three or among `queryAnalysis.hints`, which a `kibi.search-hints.v1` plugin
+  adds to weak answers.
 
 `repo-search-thresholds.json` holds the gate, set just under the measured
 baseline (recall@3 0.94, no superseded results, abstention precision and recall
@@ -96,3 +99,12 @@ metric tolerates one more failing case than the baseline and fails on the
 second, and the latency ceilings are the 3 s budget for p95 and 2.5 s for p50. The `proof` workflow runs this gate after the proof
 baseline. Misses, superseded results and false abstentions are listed in the
 output so a failure says which question regressed.
+
+`repo-search-hints-gold.v1.jsonl` holds 20 reworded questions: each names a
+current requirement in words it does not use (for example "the cleanup
+command" for `kibi gc`). Kibi's repository activates `kibi-plugin-search-hints`,
+so the same runner measures what an agent sees in one call. Lexical ranking
+alone finds 2 of the 20 in its top three; with hints 14 of 20 show the expected
+requirement. `repo-search-hints-thresholds.json` gates `recallWithHints` at
+0.6, two cases under that baseline; the `proof` workflow runs it after the
+gold-set gate.

@@ -30,9 +30,11 @@ import {
   type PluginProviderStamp,
   type ProjectKibiConfig,
   type ProjectPluginEntry,
+  SEARCH_HINTS_CAPABILITY_ID,
   SEMANTIC_CLASSIFIER_CAPABILITY_ID,
   SYMBOL_EXTRACTOR_CAPABILITY_ID,
   SYMBOL_EXTRACTOR_V2_CAPABILITY_ID,
+  type SearchHintsV1,
   type SemanticClassifierV1,
   type SymbolExtractorV1,
   type SymbolExtractorV2,
@@ -96,7 +98,8 @@ type CapabilitySlot =
   | "symbolExtractor"
   | "symbolExtractorV2"
   | "vocabularyAlignment"
-  | "checkPolicy";
+  | "checkPolicy"
+  | "searchHints";
 
 const CAPABILITY_SLOT: Record<CapabilityId, CapabilitySlot> = {
   [SEMANTIC_CLASSIFIER_CAPABILITY_ID]: "semanticClassifier",
@@ -105,6 +108,19 @@ const CAPABILITY_SLOT: Record<CapabilityId, CapabilitySlot> = {
   [SYMBOL_EXTRACTOR_V2_CAPABILITY_ID]: "symbolExtractorV2",
   [VOCABULARY_ALIGNMENT_CAPABILITY_ID]: "vocabularyAlignment",
   [CHECK_POLICY_CAPABILITY_ID]: "checkPolicy",
+  [SEARCH_HINTS_CAPABILITY_ID]: "searchHints",
+};
+
+/**
+ * Search hints have no builtin answer: without a configured provider there
+ * are no hints. A builtin package that predates the capability resolves to
+ * this host no-op instead of failing the search.
+ */
+// implements REQ-kibi-search-hints-host
+export const NO_SEARCH_HINTS: SearchHintsV1 = {
+  id: "kibi-host.search-hints.none",
+  model: "none",
+  hint: () => ({ hints: [] }),
 };
 
 /**
@@ -279,6 +295,7 @@ function capabilityFromPlugin(
   | SymbolExtractorV2
   | VocabularyAlignmentV1
   | CheckPolicyV1
+  | SearchHintsV1
   | undefined {
   const slot = CAPABILITY_SLOT[capabilityId];
   return plugin.capabilities[slot];
@@ -376,6 +393,13 @@ export class CapabilityRegistry {
     ) as Promise<CapabilityModeResolution<VocabularyAlignmentV1>>;
   }
 
+  // implements REQ-kibi-search-hints-host
+  async resolveSearchHints(): Promise<CapabilityModeResolution<SearchHintsV1>> {
+    return this.resolveCapability(SEARCH_HINTS_CAPABILITY_ID) as Promise<
+      CapabilityModeResolution<SearchHintsV1>
+    >;
+  }
+
   async resolveCapability(
     capabilityId: CapabilityId,
   ): Promise<CapabilityModeResolution<unknown>> {
@@ -409,7 +433,11 @@ export class CapabilityRegistry {
     capabilityId: CapabilityId,
   ): Promise<CapabilityModeResolution<unknown>> {
     const builtinPlugin = await this.getBuiltinPlugin();
-    const builtinCapability = capabilityFromPlugin(builtinPlugin, capabilityId);
+    const builtinCapability =
+      capabilityFromPlugin(builtinPlugin, capabilityId) ??
+      (capabilityId === SEARCH_HINTS_CAPABILITY_ID
+        ? NO_SEARCH_HINTS
+        : undefined);
     if (!builtinCapability) {
       throw new PluginResolutionError(
         "BUILTIN_MISSING_CAPABILITY",
@@ -438,7 +466,7 @@ export class CapabilityRegistry {
       [builtinPlugin.id, "kibi-plugin-builtin"],
     ]);
     const providerIds = new Set<string>([
-      capabilityFromPlugin(builtinPlugin, capabilityId)?.id ?? builtinPlugin.id,
+      builtinCapability.id ?? builtinPlugin.id,
     ]);
 
     for (const entry of relevant) {

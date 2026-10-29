@@ -12,6 +12,12 @@ import {
   type PredicateSchemaDefinition,
 } from "./capabilities/ontology-pack.js";
 import {
+  SEARCH_HINTS_MAX_LIMIT,
+  type SearchHint,
+  type SearchHintsResult,
+  type SearchHintsV1,
+} from "./capabilities/search-hints.js";
+import {
   SEMANTIC_LANES,
   SEMANTIC_SIGNAL_KINDS,
   type SemanticClassificationDecision,
@@ -51,6 +57,7 @@ import {
   type PluginPermissions,
   type ProjectKibiConfig,
   type ProjectPluginEntry,
+  SEARCH_HINTS_CAPABILITY_ID,
   SEMANTIC_CLASSIFIER_CAPABILITY_ID,
   SYMBOL_EXTRACTOR_CAPABILITY_ID,
   SYMBOL_EXTRACTOR_V2_CAPABILITY_ID,
@@ -127,7 +134,8 @@ export function isCapabilityId(value: string): value is CapabilityId {
     value === SYMBOL_EXTRACTOR_CAPABILITY_ID ||
     value === SYMBOL_EXTRACTOR_V2_CAPABILITY_ID ||
     value === VOCABULARY_ALIGNMENT_CAPABILITY_ID ||
-    value === CHECK_POLICY_CAPABILITY_ID
+    value === CHECK_POLICY_CAPABILITY_ID ||
+    value === SEARCH_HINTS_CAPABILITY_ID
   );
 }
 
@@ -261,6 +269,24 @@ function validateVocabularyAlignment(value: unknown): VocabularyAlignmentV1 {
   };
 }
 
+function validateSearchHints(value: unknown): SearchHintsV1 {
+  if (!isRecord(value) || typeof value.hint !== "function") {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY",
+      "searchHints must expose hint()",
+    );
+  }
+  return {
+    id: requireString(value.id, "searchHints.id", "INVALID_CAPABILITY"),
+    model: requireString(
+      value.model,
+      "searchHints.model",
+      "INVALID_CAPABILITY",
+    ),
+    hint: value.hint as SearchHintsV1["hint"],
+  };
+}
+
 function validateSymbolExtractorV2(value: unknown): SymbolExtractorV2 {
   if (
     !isRecord(value) ||
@@ -346,13 +372,20 @@ export function validateKibiPlugin(value: unknown): KibiPluginV1 {
     });
   }
 
+  if (value.capabilities.searchHints !== undefined) {
+    Object.assign(capabilities, {
+      searchHints: validateSearchHints(value.capabilities.searchHints),
+    });
+  }
+
   if (
     capabilities.semanticClassifier === undefined &&
     capabilities.ontologyPack === undefined &&
     capabilities.symbolExtractor === undefined &&
     capabilities.symbolExtractorV2 === undefined &&
     capabilities.vocabularyAlignment === undefined &&
-    capabilities.checkPolicy === undefined
+    capabilities.checkPolicy === undefined &&
+    capabilities.searchHints === undefined
   ) {
     throw new PluginValidationError(
       "INVALID_CAPABILITY",
@@ -367,6 +400,7 @@ export function validateKibiPlugin(value: unknown): KibiPluginV1 {
     capabilities.symbolExtractorV2?.id,
     capabilities.vocabularyAlignment?.id,
     capabilities.checkPolicy?.id,
+    capabilities.searchHints?.id,
   ].filter((entry): entry is string => typeof entry === "string");
   if (new Set(capabilityIds).size !== capabilityIds.length) {
     throw new PluginValidationError(
@@ -461,6 +495,17 @@ export function validateProjectKibiConfig(value: unknown): ProjectKibiConfig {
         throw new PluginValidationError(
           "INVALID_MODE",
           `${capabilityId} supports only mode 'augment'`,
+        );
+      }
+      // Search hints have no builtin result to refine: a provider either
+      // owns the hints or is only compared.
+      if (
+        capabilityId === SEARCH_HINTS_CAPABILITY_ID &&
+        config.mode === "augment"
+      ) {
+        throw new PluginValidationError(
+          "INVALID_MODE",
+          `${capabilityId} supports only modes 'replace' and 'shadow'`,
         );
       }
       Object.assign(capabilities, {
@@ -1059,6 +1104,79 @@ export function validateRankSubjectsResult(
     };
   });
   return { decisions };
+}
+
+/**
+ * Validate a search-hints result against the entities that were sent. Every
+ * hint must name a supplied entity once, scores must lie in [0, 1] and run
+ * from highest to lowest (ties by id), and no more than `limit` hints may be
+ * returned, so a provider cannot invent or reorder evidence.
+ */
+// implements REQ-capability-search-hints-v1
+export function validateSearchHintsResult(
+  value: unknown,
+  entityIds: readonly string[],
+  limit: number,
+): SearchHintsResult {
+  if (!isRecord(value) || !Array.isArray(value.hints)) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      "searchHints result must include hints[]",
+    );
+  }
+  const max = Math.min(limit, SEARCH_HINTS_MAX_LIMIT);
+  if (value.hints.length > max) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      `searchHints returned ${value.hints.length} hints; at most ${max} were requested`,
+    );
+  }
+  const allowed = new Set(entityIds);
+  const seen = new Set<string>();
+  const hints: SearchHint[] = value.hints.map((hint, index) => {
+    if (!isRecord(hint)) {
+      throw new PluginValidationError(
+        "INVALID_CAPABILITY_RESULT",
+        `hints[${index}] must be an object`,
+      );
+    }
+    const id = requireString(
+      hint.id,
+      `hints[${index}].id`,
+      "INVALID_CAPABILITY_RESULT",
+    );
+    if (!allowed.has(id)) {
+      throw new PluginValidationError(
+        "INVALID_CAPABILITY_RESULT",
+        `hints[${index}].id '${id}' is not a supplied entity`,
+      );
+    }
+    if (seen.has(id)) {
+      throw new PluginValidationError(
+        "INVALID_CAPABILITY_RESULT",
+        `duplicate hint for '${id}'`,
+      );
+    }
+    seen.add(id);
+    return {
+      id,
+      score: requireUnitInterval(hint.score, `hints[${index}].score`),
+    };
+  });
+  for (let index = 1; index < hints.length; index++) {
+    const previous = hints[index - 1] as SearchHint;
+    const current = hints[index] as SearchHint;
+    if (
+      current.score > previous.score ||
+      (current.score === previous.score && current.id < previous.id)
+    ) {
+      throw new PluginValidationError(
+        "INVALID_CAPABILITY_RESULT",
+        `hints[${index}] is out of order: hints run from highest score to lowest, ties by id`,
+      );
+    }
+  }
+  return { hints };
 }
 
 /** Validate a compareClaims result against the pairs that were sent. */

@@ -150,7 +150,7 @@ export const searchSpec = {
   name: "kb_search",
   cliName: "search",
   description:
-    "Ask the KB a question or search it. Default intent-v1 ranking accepts questions, host-agent semantic facets and changed-code source locations, returns evidence, abstains below its confidence threshold and adds an answer layer: the current requirements that govern the topic, what must stay true (linked facts), why (ADRs) and what verifies it (scenarios, tests). Use before changing behavior, then kb_query for exact follow-up. No mutation side effects.",
+    "Ask the KB a question or search it. Default intent-v1 ranking accepts questions, host-agent semantic facets and changed-code source locations, returns evidence, abstains below its confidence threshold and adds an answer layer: the current requirements that govern the topic, what must stay true (linked facts), why (ADRs) and what verifies it (scenarios, tests). A weak answer may add queryAnalysis.hints from a search-hints plugin: requirements the question may mean, to re-ask with. Use before changing behavior, then kb_query for exact follow-up. No mutation side effects.",
   businessInputSchema: {
     type: "object",
     required: ["query"],
@@ -194,6 +194,12 @@ export const searchSpec = {
         description:
           "Intent-v1 only, first page only. When true (default) the result includes an answer layer: current governing requirements with their linked facts, scenarios, tests and ADRs, superseded requirements listed separately, and observation facts labelled as notes. Bounded in size; discovery, not proof.",
       },
+      hints: {
+        type: "boolean",
+        default: true,
+        description:
+          "Intent-v1 only, first page only. When true (default) and the project activates a kibi.search-hints.v1 plugin, a weak or abstained answer adds queryAnalysis.hints: requirements the question may mean, to re-ask with. Hints never change results or the answer layer.",
+      },
       semanticFacets: {
         type: "object",
         additionalProperties: false,
@@ -209,7 +215,7 @@ export const searchSpec = {
           aliases: { type: "array", items: { type: "string" }, maxItems: 20 },
         },
         description:
-          "Optional host-agent semantic interpretation. Kibi uses these strings as deterministic aliases/facets; it does not call a model itself.",
+          "Optional host-agent semantic interpretation. Kibi uses these strings as deterministic aliases/facets; ranking never calls a model.",
       },
       sourceLocations: {
         type: "array",

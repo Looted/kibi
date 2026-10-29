@@ -41,3 +41,18 @@ export function allowsExternalVocabularyAlignment(
     EXTERNAL_VOCABULARY_ALIGNMENT_OPERATIONS as readonly string[]
   ).includes(operationName);
 }
+
+/**
+ * Operations that may call external kibi.search-hints.v1 providers. Hints are
+ * advice next to a search answer; checks, proofs and every write stay
+ * builtin-only.
+ */
+// implements REQ-kibi-search-hints-host
+export const EXTERNAL_SEARCH_HINTS_OPERATIONS = ["kb_search"] as const;
+
+// implements REQ-kibi-search-hints-host
+export function allowsExternalSearchHints(operationName: string): boolean {
+  return (EXTERNAL_SEARCH_HINTS_OPERATIONS as readonly string[]).includes(
+    operationName,
+  );
+}

@@ -1,0 +1,18 @@
+{
+  "plugin": "kibi-plugin-search-hints",
+  "pluginVersion": "0.0.0",
+  "model": {
+    "id": "minishlab/potion-base-8M",
+    "revision": "bf8b056651a2c21b8d2565580b8569da283cab23",
+    "license": "MIT",
+    "source": "https://huggingface.co/minishlab/potion-base-8M",
+    "upstreamFile": "model.safetensors",
+    "upstreamSha256": "f65d0f325faadc1e121c319e2faa41170d3fa07d8c89abd48ca5358d9a223de2",
+    "asset": "assets/potion-base-8M.int8.bin",
+    "assetSha256": "02eb3b486a152a01c49055e109cce3e483fc3b49761f5343b5518c0cfc76f54f",
+    "vocabulary": "assets/vocab.txt",
+    "vocabularySha256": "1394523a67ddd404a825428018c0582a6998bcfa044ecbcbf1f4d71adb94c61c",
+    "vocabularyOrigin": "baai/bge-base-en-v1.5 WordPiece vocabulary (MIT), as shipped in the potion-base-8M tokenizer.json",
+    "quantization": "symmetric int8 per row with a float32 scale; built by scripts/build-model-asset.mjs"
+  }
+}
