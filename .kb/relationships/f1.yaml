@@ -370,3 +370,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a12a30094028
+  - type: verified_by
+    from: REQ-kibi-anonymous-usage-telemetry
+    to: TEST-kibi-anonymous-usage-telemetry-cli
+    created_at: 2026-10-29T10:10:09.812Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9db8eabdb224
