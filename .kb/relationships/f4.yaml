@@ -510,3 +510,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9d004794c926
+  - type: assumes
+    from: SCEN-NEG-skillopt-operator-selected-harness-UNKNOWN-HARNESS
+    to: FACT-NEG-skillopt-operator-selected-harness-UNKNOWN-HARNESS
+    created_at: 2026-10-29T21:03:17.799Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04e5d81e415e
+  - type: verified_by
+    from: SCEN-NEG-skillopt-operator-selected-harness-UNKNOWN-HARNESS
+    to: TEST-e2e-skillopt-claude-code-host
+    created_at: 2026-10-29T21:03:17.891Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80aa339079b8

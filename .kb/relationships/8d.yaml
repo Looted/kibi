@@ -755,3 +755,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-70bf6938485c
+  - type: assumes
+    from: SCEN-NEG-prolog-daemon-runtime-identity-FOREIGN-SWIPL-CLIENT
+    to: FACT-NEG-prolog-daemon-runtime-identity-FOREIGN-SWIPL-CLIENT
+    created_at: 2026-10-29T20:54:06.906Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ca56449e132
+  - type: verified_by
+    from: SCEN-NEG-prolog-daemon-runtime-identity-FOREIGN-SWIPL-CLIENT
+    to: TEST-prolog-daemon-runtime-identity
+    created_at: 2026-10-29T20:54:07.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36e47f8c7831

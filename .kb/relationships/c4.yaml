@@ -391,3 +391,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1a7be8604bc1
+  - type: specified_by
+    from: REQ-upsert-unknown-field-guidance
+    to: SCEN-NEG-upsert-unknown-field-guidance-SEVERAL-UNKNOWN-PROPERTIES
+    created_at: 2026-10-29T21:11:09.680Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2298a853a58

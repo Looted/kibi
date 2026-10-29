@@ -328,3 +328,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-adf5e24ac7d6
+  - type: assumes
+    from: SCEN-NEG-prolog-doctor-runtime-report-MISSING-LIBRARY
+    to: FACT-NEG-prolog-doctor-runtime-report-MISSING-LIBRARY
+    created_at: 2026-10-29T20:54:24.906Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d79d041e6f72
+  - type: verified_by
+    from: SCEN-NEG-prolog-doctor-runtime-report-MISSING-LIBRARY
+    to: TEST-prolog-doctor-runtime-report
+    created_at: 2026-10-29T20:54:24.982Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb42b8feb070

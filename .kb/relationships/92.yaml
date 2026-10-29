@@ -332,3 +332,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ae6047f08ca5
+  - type: specified_by
+    from: REQ-symbol-coordinates-derived-locally
+    to: SCEN-NEG-symbol-coordinates-derived-locally-STAGED-COORDINATE-CACHE
+    created_at: 2026-10-29T21:09:50.201Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8c635bb3eeb

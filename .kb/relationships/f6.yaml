@@ -349,3 +349,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-232d9060d789
+  - type: specified_by
+    from: REQ-prolog-mutation-lane
+    to: SCEN-NEG-prolog-mutation-lane-STALE-PACK
+    created_at: 2026-10-29T20:54:38.843Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a429d0209bd

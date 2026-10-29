@@ -314,3 +314,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-abe0b5b285e6
+  - type: assumes
+    from: SCEN-NEG-skillopt-paid-launch-accounting-UNPAID-OPTIMIZE
+    to: FACT-NEG-skillopt-paid-launch-accounting-UNPAID-OPTIMIZE
+    created_at: 2026-10-29T21:04:41.627Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ede7a06d15f2
+  - type: verified_by
+    from: SCEN-NEG-skillopt-paid-launch-accounting-UNPAID-OPTIMIZE
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-10-29T21:04:41.701Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6bbb858adcd4

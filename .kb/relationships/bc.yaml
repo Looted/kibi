@@ -167,3 +167,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-de8383ce39c9
+  - type: assumes
+    from: SCEN-NEG-vscode-kb-to-source-ENTITY-WITHOUT-SOURCE
+    to: FACT-NEG-vscode-kb-to-source-ENTITY-WITHOUT-SOURCE
+    created_at: 2026-10-29T21:13:03.800Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-087491eba086
+  - type: verified_by
+    from: SCEN-NEG-vscode-kb-to-source-ENTITY-WITHOUT-SOURCE
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-10-29T21:13:03.833Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28a7c1993295

@@ -475,3 +475,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ec432cc1692e
+  - type: specified_by
+    from: REQ-prolog-library-adoption
+    to: SCEN-NEG-prolog-library-adoption-NON-SELECT-SPARQL
+    created_at: 2026-10-29T21:05:12.655Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c5f4fd73d8b

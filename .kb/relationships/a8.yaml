@@ -377,3 +377,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b6f4f239d583
+  - type: assumes
+    from: SCEN-NEG-prolog-spike-config-validation-UNSUPPORTED-TARGET
+    to: FACT-NEG-prolog-spike-config-validation-UNSUPPORTED-TARGET
+    created_at: 2026-10-29T20:54:43.717Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-efee500db176
+  - type: verified_by
+    from: SCEN-NEG-prolog-spike-config-validation-UNSUPPORTED-TARGET
+    to: TEST-prolog-spike-config-validation
+    created_at: 2026-10-29T20:54:43.772Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4de643d70fe

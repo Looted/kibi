@@ -447,3 +447,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4d3fc9280a56
+  - type: specified_by
+    from: REQ-prolog-coverage-test-selection
+    to: SCEN-NEG-prolog-coverage-test-selection-SWALLOWED-FAILURE
+    created_at: 2026-10-29T20:52:57.249Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f960eb3af70

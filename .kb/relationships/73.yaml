@@ -314,3 +314,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d47d88f7d441
+  - type: assumes
+    from: SCEN-NEG-skillopt-claude-code-host-UNCONFINED-FILE-TOOLS
+    to: FACT-NEG-skillopt-claude-code-host-UNCONFINED-FILE-TOOLS
+    created_at: 2026-10-29T21:00:43.433Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d248ccddc8df
+  - type: verified_by
+    from: SCEN-NEG-skillopt-claude-code-host-UNCONFINED-FILE-TOOLS
+    to: TEST-e2e-skillopt-claude-code-host
+    created_at: 2026-10-29T21:00:43.519Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5261ad628ec2

@@ -335,3 +335,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1f77e243385c
+  - type: assumes
+    from: SCEN-NEG-vscode-traceability-ENTITY-WITHOUT-SOURCE
+    to: FACT-NEG-vscode-traceability-ENTITY-WITHOUT-SOURCE
+    created_at: 2026-10-29T21:13:17.107Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68d151288436
+  - type: verified_by
+    from: SCEN-NEG-vscode-traceability-ENTITY-WITHOUT-SOURCE
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-10-29T21:13:17.197Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83b15ca930dc
