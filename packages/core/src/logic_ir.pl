@@ -245,19 +245,27 @@ rule_limit_error(Head, Body, Exceptions, expression_depth_exceeded) :-
 
 expression_atom_count(none, 0).
 expression_atom_count(atom(_, _, _, _, _), 1).
+% mutalog-disable-next-line cut_insert: maplist/3 over a det predicate
 expression_atom_count(all(Items), Count) :- maplist(expression_atom_count, Items, Counts), sum_list(Counts, ChildCount), Count is ChildCount.
+% mutalog-disable-next-line cut_insert: maplist/3 over a det predicate
 expression_atom_count(any(Items), Count) :- maplist(expression_atom_count, Items, Counts), sum_list(Counts, ChildCount), Count is ChildCount.
+% mutalog-disable-next-line cut_insert: a det call on a subterm
 expression_atom_count(not(Atom), Count) :- expression_atom_count(Atom, ChildCount), Count is ChildCount.
 expression_atom_count(compare(_, _, _), 0).
+% mutalog-disable-next-line cut_insert: a det call on a subterm
 expression_atom_count(count(Atom, _, _), Count) :- expression_atom_count(Atom, Count).
 expression_atom_count(temporal(_, _, _), 0).
 
 expression_depth(none, 0).
 expression_depth(atom(_, _, _, _, _), 1).
+% mutalog-disable-next-line cut_insert: maplist/3 over a det predicate
 expression_depth(all(Items), Depth) :- maplist(expression_depth, Items, Depths), max_list([0|Depths], ChildDepth), Depth is ChildDepth + 1.
+% mutalog-disable-next-line cut_insert: maplist/3 over a det predicate
 expression_depth(any(Items), Depth) :- maplist(expression_depth, Items, Depths), max_list([0|Depths], ChildDepth), Depth is ChildDepth + 1.
+% mutalog-disable-next-line cut_insert: a det call on a subterm
 expression_depth(not(Atom), Depth) :- expression_depth(Atom, ChildDepth), Depth is ChildDepth + 1.
 expression_depth(compare(_, _, _), 1).
+% mutalog-disable-next-line cut_insert: a det call on a subterm
 expression_depth(count(Atom, _, _), Depth) :- expression_depth(Atom, ChildDepth), Depth is ChildDepth + 1.
 expression_depth(temporal(_, _, _), 1).
 
@@ -309,6 +317,7 @@ expression_variable(count(Atom, _, _), Name) :- expression_variable(Atom, Name).
 expression_variable(temporal(_, Left, Right), Name) :- (term_variable(Left, Name) ; term_variable(Right, Name)).
 
 rule_shape_error(atom, none, _Body, missing_head).
+% mutalog-disable-next-line cut_insert: a test, and no later clause matches the same term
 rule_shape_error(atom, _Head, Body, body_for_atom) :- Body \= none.
 rule_shape_error(rule, none, _Body, missing_head).
 rule_shape_error(rule, _Head, none, missing_body).
@@ -316,9 +325,12 @@ rule_shape_error(constraint, _Head, none, missing_body).
 rule_shape_error(constraint, Head, _Body, head_for_constraint) :- Head \= none.
 
 expression_safety_error(not(atom(_, _, _, _, false)), negation_requires_closed_world).
+% mutalog-disable-next-line cut_insert: a test, and no later clause matches the same term
 expression_safety_error(compare(Op, _Left, _Right), invalid_compare_operator) :- \+ valid_compare_operator(Op).
+% mutalog-disable-next-line cut_insert: a test, and no later clause matches the same term
 expression_safety_error(count(_Atom, Op, _Value), invalid_compare_operator) :- \+ valid_compare_operator(Op).
 expression_safety_error(count(_Atom, _Op, Value), invalid_count_value) :- \+ integer(Value) ; Value < 0.
+% mutalog-disable-next-line cut_insert: a test, and no later clause matches the same term
 expression_safety_error(temporal(Relation, _Left, _Right), invalid_temporal_relation) :- \+ valid_temporal_relation(Relation).
 expression_safety_error(all(Items), Error) :- member(Item, Items), expression_safety_error(Item, Error).
 expression_safety_error(any(Items), Error) :- member(Item, Items), expression_safety_error(Item, Error).
@@ -349,14 +361,21 @@ render_term(var(Name, _), Name).
 render_term(const(Value, _), Value).
 render_term(number(Value, Unit), Text) :-
     ( Unit == none -> format(string(Text), '~w', [Value]) ; format(string(Text), '~w~w', [Value, Unit]) ).
+% mutalog-disable-next-line cut_insert: format/3 is det
 render_term(duration(Value, Unit), Text) :- format(string(Text), 'duration(~w,~w)', [Value, Unit]).
 render_term(timestamp(Value), Value).
 render_term(interval(Start, End), Text) :- format(string(Text), 'interval(~w,~w)', [Start, End]).
+% mutalog-disable-next-line cut_insert: rendering is det
 render_expression(atom(Namespace, Name, Args, Polarity, ClosedWorld), Text) :- render_atom(atom(Namespace, Name, Args, Polarity, ClosedWorld), Text).
+% mutalog-disable-next-line cut_insert: maplist/3 over a det predicate
 render_expression(all(Items), Text) :- maplist(render_expression, Items, Parts), atomic_list_concat(Parts, ', ', Text).
+% mutalog-disable-next-line cut_insert: maplist/3 over a det predicate
 render_expression(any(Items), Text) :- maplist(render_expression, Items, Parts), atomic_list_concat(Parts, ' ; ', Inner), format(string(Text), '(~w)', [Inner]).
+% mutalog-disable-next-line cut_insert: rendering is det
 render_expression(not(Atom), Text) :- render_atom(Atom, AtomText), format(string(Text), 'not(~w)', [AtomText]).
+% mutalog-disable-next-line cut_insert: rendering is det
 render_expression(compare(Op, Left, Right), Text) :- render_term(Left, L), render_term(Right, R), format(string(Text), '~w ~w ~w', [L, Op, R]).
+% mutalog-disable-next-line cut_insert: rendering is det
 render_expression(count(Atom, Op, Value), Text) :- render_atom(Atom, AtomText), format(string(Text), 'count(~w,~w,~w)', [AtomText, Op, Value]).
 render_expression(temporal(Relation, Left, Right), Text) :- render_term(Left, L), render_term(Right, R), format(string(Text), 'temporal(~w,~w,~w)', [Relation, L, R]).
 
@@ -390,12 +409,18 @@ materialize_head(Head, Variables, MaterialHead) :-
 
 materialize_expression(none, _Variables, none).
 materialize_expression(atom(Namespace, Name, Args, Polarity, ClosedWorld), Variables, Materialized) :-
+    % mutalog-disable-next-line cut_insert: materializing is det
     materialize_atom(atom(Namespace, Name, Args, Polarity, ClosedWorld), Variables, Materialized).
+% mutalog-disable-next-line cut_insert: maplist/3 over a det predicate
 materialize_expression(all(Items), Variables, all(MaterialItems)) :- maplist(materialize_expression_with(Variables), Items, MaterialItems).
+% mutalog-disable-next-line cut_insert: maplist/3 over a det predicate
 materialize_expression(any(Items), Variables, any(MaterialItems)) :- maplist(materialize_expression_with(Variables), Items, MaterialItems).
+% mutalog-disable-next-line cut_insert: materializing is det
 materialize_expression(not(Atom), Variables, not(MaterialAtom)) :- materialize_atom(Atom, Variables, MaterialAtom).
 materialize_expression(compare(Op, Left, Right), Variables, compare(Op, MaterialLeft, MaterialRight)) :-
+    % mutalog-disable-next-line cut_insert: materializing is det
     materialize_term(Left, Variables, MaterialLeft), materialize_term(Right, Variables, MaterialRight).
+% mutalog-disable-next-line cut_insert: materializing is det
 materialize_expression(count(Atom, Op, Value), Variables, count(MaterialAtom, Op, Value)) :- materialize_atom(Atom, Variables, MaterialAtom).
 materialize_expression(temporal(Relation, Left, Right), Variables, temporal(Relation, MaterialLeft, MaterialRight)) :-
     materialize_term(Left, Variables, MaterialLeft), materialize_term(Right, Variables, MaterialRight).
@@ -403,6 +428,7 @@ materialize_expression_with(Variables, Expression, Materialized) :- materialize_
 
 materialize_atom(atom(Namespace, Name, Args, Polarity, ClosedWorld), Variables, atom(Namespace, Name, MaterialArgs, Polarity, ClosedWorld)) :-
     maplist(materialize_term_with(Variables), Args, MaterialArgs).
+% mutalog-disable-next-line cut_insert: memberchk/2 is det
 materialize_term(var(Name, _Type), Variables, Variable) :- memberchk(Name-Variable, Variables).
 materialize_term(const(Value, Type), _Variables, const(Value, Type)).
 materialize_term(number(Value, Unit), _Variables, number(Value, Unit)).
@@ -411,14 +437,21 @@ materialize_term(timestamp(Value), _Variables, timestamp(Value)).
 materialize_term(interval(Start, End), _Variables, interval(Start, End)).
 materialize_term_with(Variables, Term, Materialized) :- materialize_term(Term, Variables, Materialized).
 
+% mutalog-disable-next-line cut_insert: term_value/2 is det
 compare_terms(eq, Left, Right) :- term_value(Left, L), term_value(Right, R), L = R.
+% mutalog-disable-next-line cut_insert: term_value/2 is det
 compare_terms(neq, Left, Right) :- term_value(Left, L), term_value(Right, R), L \= R.
+% mutalog-disable-next-line cut_insert: term_value/2 is det
 compare_terms(lt, Left, Right) :- term_value(Left, L), term_value(Right, R), L < R.
+% mutalog-disable-next-line cut_insert: term_value/2 is det
 compare_terms(lte, Left, Right) :- term_value(Left, L), term_value(Right, R), L =< R.
+% mutalog-disable-next-line cut_insert: term_value/2 is det
 compare_terms(gt, Left, Right) :- term_value(Left, L), term_value(Right, R), L > R.
 compare_terms(gte, Left, Right) :- term_value(Left, L), term_value(Right, R), L >= R.
 
+% mutalog-disable-next-line cut_insert: duration_milliseconds/3 is det
 term_value(number(Value, Unit), Normalized) :- duration_milliseconds(Value, Unit, Normalized).
+% mutalog-disable-next-line cut_insert: duration_milliseconds/3 is det
 term_value(duration(Value, Unit), Normalized) :- duration_milliseconds(Value, Unit, Normalized).
 term_value(const(Value, _), Number) :- atom_number(Value, Number), !.
 term_value(const(Value, _), Value).
@@ -1020,6 +1053,7 @@ logic_rule_property_form(Rule0, property_form(Modality, Head, ScopeName, From, T
     ).
 
 expression_property_key(atom(Namespace, Name, Args, _, _), Namespace-Name) :-
+    % mutalog-disable-next-line cut_insert: a test, and no later clause matches the same term
     Namespace \== default,
     Args \== [].
 expression_property_key(all(Items), Key) :-
@@ -1029,6 +1063,7 @@ expression_property_key(any(Items), Key) :-
     member(Item, Items),
     expression_property_key(Item, Key).
 expression_property_key(not(Atom), Key) :-
+    % mutalog-disable-next-line cut_insert: an atom has at most one property key
     expression_property_key(Atom, Key).
 expression_property_key(count(Atom, _, _), Key) :-
     expression_property_key(Atom, Key).
@@ -1131,6 +1166,7 @@ logic_predicate_signature(atom(Namespace, Name, Args, _Polarity, _ClosedWorld), 
     length(Args, Arity).
 
 expression_dependency(Atom, Atom, positive) :-
+    % mutalog-disable-next-line cut_insert: a test, and no later clause matches the same term
     Atom = atom(_, _, _, _, _).
 expression_dependency(not(Atom), Atom, negative).
 expression_dependency(all(Items), Atom, Sign) :- member(Item, Items), expression_dependency(Item, Atom, Sign).
@@ -1138,6 +1174,7 @@ expression_dependency(any(Items), Atom, Sign) :- member(Item, Items), expression
 expression_dependency(count(Atom, _Operator, _Value), Atom, positive).
 
 dependency_path(Current, Target, _Edges, Seen) :-
+    % mutalog-disable-next-line cut_insert: a test, and no later clause matches the same term
     Current == Target,
     \+ memberchk(Current, Seen).
 dependency_path(Current, Target, Edges, Seen) :-

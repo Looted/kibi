@@ -27,17 +27,21 @@ the repository root:
 | `mutalog.backlog.config.pl` | `kb.pl` (tested by `logic_ir.plt` and `kb.plt`) | `break(0)`, report only | 4,840, 32.1% | about 10 minutes on 3 workers |
 
 - Like the Stryker gate, `mutalog.config.pl` **gates at 100%**: any
-  surviving mutant fails the run. Mutalog has no inline disable comments,
-  so equivalent mutants go in `ignore_mutants` by id, with the reason in a
-  comment above the list. Today that list holds only cuts inserted after a
-  deterministic goal.
-- Ignore ids carry line and column, so an edit to `logic_ir.pl` shifts the
-  ids below it. Those mutants then show up as survivors, and Mutalog warns
-  about the stale ids. Rerun the lane, check that every survivor is still an
-  equivalent of the listed kind (kill anything else with a test), and replace
-  the list with the new ids.
+  surviving mutant fails the run. An equivalent mutant is suppressed in the
+  source, with a comment on the line above it that names the operator and
+  gives the reason:
+
+  ```prolog
+  % mutalog-disable-next-line cut_insert: maplist/3 over a det predicate
+  expression_depth(all(Items), Depth) :- maplist(expression_depth, Items, Depths), ...
+  ```
+
+  The comment moves with the code, unlike an `ignore_mutants` id, which
+  carries line and column. Today every suppression in `logic_ir.pl` is a
+  `cut_insert` mutant: a cut inserted after a deterministic first goal of a
+  clause that no later clause can also match.
 - `mutalog.backlog.config.pl` holds modules whose survivors are not triaged
-  yet. Once a module's survivors are killed or listed as equivalents, move it
+  yet. Once a module's survivors are killed or suppressed as equivalents, move it
   to `mutalog.config.pl`.
 - `scripts/run-prolog-mutation.pl` pins the Mutalog version. On first use
   it downloads the release archive with `curl` and unpacks it with `tar`
