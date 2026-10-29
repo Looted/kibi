@@ -2,9 +2,9 @@ name: Prolog mutation
 
 # Mutalog mutation run over the Prolog core (see docs/mutation-testing.md).
 # It runs nightly on develop, on demand, and on pull requests that touch the
-# mutated sources, their tests or the lane's setup. It reports only: the
-# score is in the job log and the uploaded report, and survivors never fail
-# the job until mutalog.config.pl sets a break threshold.
+# mutated sources, their tests or the lane's setup. Modules in
+# mutalog.config.pl gate at 100%: a surviving mutant fails the job. Modules in
+# mutalog.backlog.config.pl only report.
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -28,6 +28,7 @@ on:
       - 'packages/core/src/kb.pl'
       - 'packages/core/tests/kb.plt'
       - 'mutalog.config.pl'
+      - 'mutalog.backlog.config.pl'
       - 'scripts/run-prolog-mutation.pl'
       - '.github/workflows/mutation-prolog.yml'
   workflow_dispatch:
@@ -55,14 +56,20 @@ jobs:
       - name: Use the pipeline-built SWI-Prolog
         uses: ./.github/actions/use-bundled-swipl
 
-      - name: Run Mutalog
+      - name: Run Mutalog on the gated modules
         run: bun run test:mutation:prolog -- --reporters clear_text,html,json
+
+      - name: Run Mutalog on the backlog modules (report only)
+        if: ${{ !cancelled() }}
+        run: bun run test:mutation:prolog:backlog -- --reporters clear_text,html,json
 
       - name: Upload mutation report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: prolog-mutation-report
-          path: reports/mutation/prolog/
+          path: |
+            reports/mutation/prolog/
+            reports/mutation/prolog-backlog/
           if-no-files-found: ignore
           retention-days: 14

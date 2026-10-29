@@ -11,129 +11,49 @@ fails `bun run test:mutation`**.
 
 | Task | Command |
 | --- | --- |
-| Build the workspace packages (once per checkout) | `bun run build` |
-| Run the mutation suite | `bun run test:mutation` |
-| Inspect the report | open `reports/mutation/html/index.html` |
-| Raw machine report | `reports/mutation/mutation.json` |
-
-The codex and cursor suites rebuild their package, which needs the workspace
-`dist/` outputs (`kibi-agent-core`, `kibi-plugin-sdk`, ...), so a fresh clone
-needs `bun run build` before the first run. A full run takes about three
-minutes on four cores.
-
-Every run is a full run: incremental mode is deliberately off because the bun
-runner's incremental cache has been observed to under-invalidate when only
-test files change, which masks survivors. Reports and the `.stryker-tmp/`
-sandbox are gitignored.
-
-## Scope
-
-The suite currently targets the three small packages whose unit suites are
-fast enough for per-mutant runs (see `stryker.conf.mjs`):
-
-| Package | Mutated | Notes |
-| --- | --- | --- |
-| `packages/runtime` | `src/**/*.ts` except `src/index.ts` | `index.ts` is a pure re-export barrel of `kibi-cli` with no logic of its own. |
-| `packages/codex` | `src/**/*.ts` | |
-| `packages/cursor` | `src/**/*.ts` | |
-| `packages/cli` | modules listed in `CLI_MUTATION_MODULES` | Added one module at a time, each mutated only against its own unit tests. Currently `src/cli-input.ts`, `src/firm-decision-edit.ts`, `src/diagnostics.ts`, `src/engine-limits.ts`, `src/decision-firmness.ts`, `src/entity-body-context.ts`, `src/search-ranking.ts` and `src/logic/ir.ts`. |
-
-Deliberately out of scope: the rest of `packages/cli`, and `packages/mcp` (their tests spawn
-Prolog engines, git workspaces, and daemons, which makes per-mutant runs
-prohibitively slow), `packages/core` (SWI-Prolog sources — a JS mutator cannot
-touch them; see [Prolog mutation lane](#prolog-mutation-lane) below), and
-`packages/opencode`/`vscode` (candidates for later passes).
-
-## In CI
-
-`.github/workflows/mutation.yml` runs the suite nightly against `develop`, on
-demand, and on pull requests into `develop` that touch a mutated package's
-`src/` or `tests/`, `kibi-agent-core` (which the hook packages import), the
-Stryker setup, or the lockfile. Pull requests that touch none of these do not
-pay for it. The HTML and JSON reports are uploaded as the `mutation-report`
-artifact.
-
-## How it runs
-
-- Test runner: [`@hughescr/stryker-bun-runner`](https://github.com/hughescr/stryker-bun-runner)
-  spawns a fresh `bun test` child per run and correlates tests to mutants via
-  Bun's inspector protocol (`coverageAnalysis: "perTest"`). Stryker core runs
-  on Node; the children run on Bun (repo pins bun ≥ 1.3.10; the plugin needs
-  ≥ 1.3.7).
-- Test files are passed as an explicit `./`-prefixed list
-  (`bun.testFiles` in `stryker.conf.mjs`) because `bunfig.toml` sets
-  `[test] root = "test"`, which breaks bun's directory-argument discovery.
-- The sandbox rebuilds the tracked `plugins/` symlinks and restores `.kibi` to
-  mode 0700 via `scripts/mutation-sandbox-setup.sh` (Stryker's copier cannot
-  copy symlinks and recreates directories with default modes).
-
-## Extending scope
-
-To add a package or directory to `mutate`:
-
-1. Make sure a fast, hermetic unit suite covers it — the whole scoped dry run
-   must stay well under a minute, and every test must pass inside the Stryker
-   sandbox.
-2. Add the glob to `mutate` in `stryker.conf.mjs` (and the package's tests to
-   the `bun.testFiles` enumeration) — package lists live in both
-   `MUTATION_PACKAGES` and `mutate`.
-3. Add the package to `MUTATION_PACKAGES` in
-   `scripts/tests/mutation-workflow-contract.test.ts`.
-4. Run `bun run test:mutation` and fix every survivor before committing.
-
-To add a `kibi-cli` module, add it to `CLI_MUTATION_MODULES` in
-`stryker.conf.mjs` with the hermetic unit test files that pin it, and add the
-module and those test files to the `paths` of
-`.github/workflows/mutation.yml` (the contract test checks both). Kill every
-survivor in the same change; a module joins the suite only at 100%.
-
-A survivor is fixed by adding a **behavioral test** (assert the observable
-output, state transition, or error contract the mutant changed) — not by
-weakening the gate. This matches the repo-wide testing policy: assert
-behavior, not lines.
-
-## Prolog mutation lane
-
-The Prolog core gets its own lane, run by
-[Mutalog](https://github.com/Looted/Mutalog), a mutation testing tool for
-SWI-Prolog and plunit that writes the same report schema as Stryker.
-
-| Task | Command |
-| --- | --- |
-| Run the Prolog mutation suite | `bun run test:mutation:prolog` |
+| Run the gated Prolog mutation suite | `bun run test:mutation:prolog` |
+| Run the report-only backlog | `bun run test:mutation:prolog:backlog` |
 | List the mutants without running tests | `swipl scripts/run-prolog-mutation.pl list` |
 | Re-run chosen mutants | `bun run test:mutation:prolog -- --only <id>,<id>` |
-| Inspect the report | open `reports/mutation/prolog/mutation.html` |
+| Inspect the reports | open `reports/mutation/prolog/mutation.html` or `reports/mutation/prolog-backlog/mutation.html` |
 | Raw machine report | `reports/mutation/prolog/mutation.json` |
 
-- `mutalog.config.pl` at the repository root sets what is mutated and which
-  plunit files run:
+Mutalog's thresholds apply to a whole run, so the lane has two configs at
+the repository root:
 
-  | Module | Mutants | Score | Covered-code score |
-  | --- | --- | --- | --- |
-  | `packages/core/src/logic_ir.pl` | 2,804 | 47.0% | 62.3% |
-  | `packages/core/src/kb.pl` | 4,840 | 32.1% | 38.7% |
+| Config | Modules | Gate | Mutants | Run time |
+| --- | --- | --- | --- | --- |
+| `mutalog.config.pl` | `logic_ir.pl` (tested by `logic_ir.plt`) | `break(100)` | ~2,500 | about 3 minutes on 4 cores |
+| `mutalog.backlog.config.pl` | `kb.pl` (tested by `logic_ir.plt` and `kb.plt`) | `break(0)`, report only | 4,840, 32.1% | about 10 minutes on 3 workers |
 
-  Both plunit files run against both modules (`kb.plt` exercises the logic
-  IR too). The whole run takes about 10 minutes on 3 workers.
-  `kb.pl`'s report is mostly survivors until `kb.plt` gains tests for them.
+- Like the Stryker gate, `mutalog.config.pl` **gates at 100%**: any
+  surviving mutant fails the run. Mutalog has no inline disable comments,
+  so equivalent mutants go in `ignore_mutants` by id, with the reason in a
+  comment above the list. Today that list holds only cuts inserted after a
+  deterministic goal.
+- Ignore ids carry line and column, so an edit to `logic_ir.pl` shifts the
+  ids below it. Those mutants then show up as survivors, and Mutalog warns
+  about the stale ids. Rerun the lane, check that every survivor is still an
+  equivalent of the listed kind (kill anything else with a test), and replace
+  the list with the new ids.
+- `mutalog.backlog.config.pl` holds modules whose survivors are not triaged
+  yet. Once a module's survivors are killed or listed as equivalents, move it
+  to `mutalog.config.pl`.
 - `scripts/run-prolog-mutation.pl` pins the Mutalog version. On first use
   it downloads the release archive with `curl` and unpacks it with `tar`
   into `.cache/prolog-packs` (gitignored), leaving the user's own packs
   alone. Set `MUTALOG_HOME` to a
   Mutalog checkout to run that instead.
-- Unlike the Stryker gate, this lane **reports only**: `break(0)` in
-  `mutalog.config.pl` never fails the run. The first survivors include
-  equivalent mutants that need triage; once they are killed or listed in
-  `ignore_mutants`, raise `break` to gate on the score.
-- `.github/workflows/mutation-prolog.yml` runs it nightly on `develop`, on
-  demand, and on pull requests that touch the mutated modules, their tests or
-  the lane's setup, on the bundled SWI-Prolog. The reports are uploaded as
-  the `prolog-mutation-report` artifact.
+- `.github/workflows/mutation-prolog.yml` runs both configs nightly on
+  `develop`, on demand, and on pull requests that touch the mutated modules,
+  their tests or the lane's setup, on the bundled SWI-Prolog. Only the gated
+  run can fail the job. Both reports are uploaded as the
+  `prolog-mutation-report` artifact.
 
 To add a module, add it to `mutate` and its plunit file to `tests` in
-`mutalog.config.pl`, and both paths to the workflow's `paths`. Measure the
-module's run time first and raise the job's `timeout-minutes` if needed.
+`mutalog.backlog.config.pl`, and both paths to the workflow's `paths`.
+Measure the module's run time first and raise the job's `timeout-minutes` if
+needed.
 
 ## Equivalent mutants and exclusions
 
