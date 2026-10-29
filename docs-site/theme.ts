@@ -1103,7 +1103,7 @@ export function landingContent(args: {
     <div class="pm-tablist" role="tablist" aria-label="Setup method">${installTabs}</div>
     ${installPanels}
   </div>
-  <p class="fineprint">Requires Node.js 22+. SWI-Prolog is bundled on Linux (x64, arm64) and macOS; other platforms need <code>swipl</code> (SWI-Prolog 9.0+) on your <code>PATH</code>. A system <code>swipl</code> is only a fallback; set <code>KIBI_SWIPL=system</code> to prefer it. Bun commands and per-platform setup are in the <a href="${root}guide/install.html">installation guide</a>.</p>
+  <p class="fineprint">Requires Node.js 22+. SWI-Prolog is bundled on Linux (x64, arm64) and macOS; other platforms need <code>swipl</code> (SWI-Prolog 9.0+) on your <code>PATH</code>. A system <code>swipl</code> is only a fallback; set <code>KIBI_SWIPL=system</code> to prefer it. Bun commands and per-platform setup are in the <a href="${root}guide/install.html">installation guide</a>. Kibi sends anonymous usage statistics; <a href="${root}guide/telemetry.html">see what is sent and how to turn it off</a>.</p>
 </section>
 <section>
   <h2>Questions people ask first</h2>

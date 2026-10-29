@@ -320,9 +320,12 @@ The guide and reference are published at **<https://looted.github.io/kibi/>**. L
 - [Entity schema](https://looted.github.io/kibi/reference/entity-schema.html) and [inference rules](https://looted.github.io/kibi/reference/inference-rules.html)
 - [Architecture](https://looted.github.io/kibi/reference/architecture.html) — storage, branch isolation, and data flow
 - [Troubleshooting](https://looted.github.io/kibi/guide/troubleshooting.html)
+- [Usage telemetry](https://looted.github.io/kibi/guide/telemetry.html) — what anonymous statistics Kibi sends and how to turn them off
 
 ## Beta status
 
 Kibi is in beta and ready for use in real projects. Public interfaces may still evolve before 1.0, so pin exact package versions when reproducibility matters.
+
+Kibi sends anonymous usage statistics (operation names, durations, error categories and versions, never code, paths, queries or KB content) to help prioritize fixes. Turn them off with `kibi telemetry disable`, `KIBI_TELEMETRY=0` or `DO_NOT_TRACK=1`; see [Usage telemetry](https://looted.github.io/kibi/guide/telemetry.html).
 
 Kibi is licensed under [AGPL-3.0-or-later](LICENSE.md).

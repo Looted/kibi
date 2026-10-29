@@ -1000,6 +1000,21 @@ kibi usage-remediation [--format json|table] [--limit N]
 - The report uses exact canonical payload fingerprints for validation correlation when available and a deterministic legacy fingerprint otherwise. Requirement-advisor correlation requires the same requirement and, when both events expose it, the same semantic source hash.
 
 
+
+## `kibi telemetry`
+
+Shows or changes the anonymous usage telemetry setting for the current user.
+
+```bash
+kibi telemetry [status|enable|disable] [--format text|json]
+```
+
+- `status` (the default) prints whether telemetry is on, why (for example `KIBI_TELEMETRY=0`, `CI environment` or `on by default`), and where the settings and queue live
+- `disable` saves the opt-out for this user and deletes any events still queued; `enable` saves an opt-in, which also applies in CI
+- `KIBI_TELEMETRY=0` and `DO_NOT_TRACK=1` always win over the saved choice
+- `--format json` prints `{ enabled, reason, directory, docs }`
+
+What is sent and when is described in [Usage telemetry](./telemetry.md).
 ## `kibi migrate`
 
 Previews or applies the structured branch migration plan. With no mutation
