@@ -2344,7 +2344,17 @@ test(requirement_proof_requires_the_complete_semantic_scenario_e2e_symbol_chain,
         verification_scope=end_to_end,
         proof_receipts=ReceiptJson
     ]),
-    assert_fixture_entity(scenario, 'SCEN-PROOF-COMPLETE-SECOND', "Inspect a second requirement proof path", active, []),
+    % The second scenario exercises the failure side: an optimistic outcome is refused.
+    assert_fixture_entity(scenario, 'SCEN-PROOF-COMPLETE-SECOND', "Inspect a second requirement proof path", active, [expects=rejection]),
+    assert_fixture_entity(fact, 'FACT-PROOF-OPTIMISTIC', "Optimistic proof outcome", active, [
+        fact_kind=property_value,
+        subject_key="kibi.coverage.report",
+        property_key="proof_outcome",
+        operator=eq,
+        value_type=string,
+        value_string="optimistic"
+    ]),
+    kb_assert_relationship(assumes, 'SCEN-PROOF-COMPLETE-SECOND', 'FACT-PROOF-OPTIMISTIC', []),
     assert_fixture_entity(test, 'TEST-PROOF-COMPLETE-SECOND-E2E', "Second requirement proof E2E", passing, [
         verification_scope=end_to_end,
         proof_receipts=SecondReceiptJson
@@ -2492,8 +2502,18 @@ test(requirement_proof_extra_missing_receipts_block_when_strict_proof_exists, [s
         source=".kb/scenarios/SCEN-PROOF-ADVISORY.md"
     ]),
     assert_fixture_entity(scenario, 'SCEN-PROOF-ADVISORY-EXTRA', "Inspect extra evidence", active, [
+        expects=rejection,
         source=".kb/scenarios/SCEN-PROOF-ADVISORY-EXTRA.md"
     ]),
+    assert_fixture_entity(fact, 'FACT-PROOF-ADV-OPTIMISTIC', "Optimistic proof outcome", active, [
+        fact_kind=property_value,
+        subject_key="kibi.coverage.report",
+        property_key="proof_outcome",
+        operator=eq,
+        value_type=string,
+        value_string="optimistic"
+    ]),
+    kb_assert_relationship(assumes, 'SCEN-PROOF-ADVISORY-EXTRA', 'FACT-PROOF-ADV-OPTIMISTIC', []),
     assert_fixture_entity(test, 'TEST-PROOF-ADVISORY-E2E', "Requirement proof E2E", passing, [
         verification_scope=end_to_end,
         proof_receipts=ReceiptJson,
@@ -4963,6 +4983,185 @@ test(numeric_looking_strings_in_numeric_comparisons_are_flagged_not_coerced, [se
     % The value is reported, never converted: the string stays incomparable.
     assertion(kb:fact_property_tuple('FACT-TOTAL-TEXT-ABOVE', _, _, _, string, "5", _, _, _)).
 
+% implements REQ-kibi-happy-path-gap
+happy_path_fixture :-
+    feasibility_fixture(success),
+    kb_assert_relationship(specified_by, 'REQ-QUOTA-CALL', 'SCEN-ZERO-QUOTA-CALL', []).
+
+negative_stage(ReqId, Stage) :-
+    requirement_proof:scenario_stage(ReqId, ScenarioStage, _),
+    requirement_proof:negative_path_stage(ReqId, ScenarioStage, _{tests: []},
+                                          _{proofSnapshot: unknown}, Stage).
+
+test(rejection_scenario_assuming_a_forbidden_value_targets_the_requirement, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    feasibility_fixture(rejection),
+    kb_assert_relationship(specified_by, 'REQ-QUOTA-CALL', 'SCEN-ZERO-QUOTA-CALL', []),
+    assertion(checks:negative_scenario_witness('SCEN-ZERO-QUOTA-CALL', 'REQ-QUOTA-CALL', _)),
+    negative_stage('REQ-QUOTA-CALL', Stage),
+    assertion(Stage.status == passed),
+    assertion(Stage.negativeScenarios == ['SCEN-ZERO-QUOTA-CALL']),
+    assertion(Stage.claims == ['FACT-QUOTA-POSITIVE']),
+    assertion(\+ requirement_proof:proof_gap_present(happy_path_only, _{negativePath: Stage})).
+
+test(success_scenarios_alone_leave_the_happy_path_gap, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    happy_path_fixture,
+    assert_fixture_entity(fact, 'FACT-QUOTA-FIVE', "Remaining quota is five", active,
+        [fact_kind=property_value, subject_key="client.call_quota", property_key="remaining",
+         operator=eq, value_type=int, value_int=5]),
+    assert_fixture_entity(scenario, 'SCEN-FIVE', "A call with quota succeeds", active, [expects=success]),
+    kb_assert_relationship(assumes, 'SCEN-FIVE', 'FACT-QUOTA-FIVE', []),
+    kb_assert_relationship(specified_by, 'REQ-QUOTA-CALL', 'SCEN-FIVE', []),
+    negative_stage('REQ-QUOTA-CALL', Stage),
+    assertion(Stage.status == missing),
+    assertion(Stage.negativeScenarios == []),
+    Stages = _{negativePath: Stage},
+    assertion(requirement_proof:proof_gap_present(happy_path_only, Stages)),
+    assertion(\+ requirement_proof:proof_issue_advisory(happy_path_only, Stages)),
+    assertion(requirement_proof:proof_status(Stages, missing)).
+
+test(rejection_scenario_the_requirements_permit_targets_nothing, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    happy_path_fixture,
+    assert_fixture_entity(fact, 'FACT-QUOTA-FIVE', "Remaining quota is five", active,
+        [fact_kind=property_value, subject_key="client.call_quota", property_key="remaining",
+         operator=eq, value_type=int, value_int=5]),
+    assert_fixture_entity(scenario, 'SCEN-FIVE-REJECTED', "A call with quota is rejected", active,
+        [expects=rejection]),
+    kb_assert_relationship(assumes, 'SCEN-FIVE-REJECTED', 'FACT-QUOTA-FIVE', []),
+    kb_assert_relationship(specified_by, 'REQ-QUOTA-CALL', 'SCEN-FIVE-REJECTED', []),
+    assertion(\+ checks:negative_scenario_witness('SCEN-FIVE-REJECTED', _, _)),
+    negative_stage('REQ-QUOTA-CALL', Stage),
+    assertion(Stage.status == missing),
+    check_scenario_outcome_mismatch(Mismatches),
+    assertion(Mismatches = [violation('scenario-outcome-mismatch', 'SCEN-FIVE-REJECTED', _, _, _)]),
+    Mismatches = [violation(_, _, Description, Suggestion, _)],
+    assertion(sub_string(Description, _, _, _, "FACT-QUOTA-FIVE")),
+    assertion(sub_string(Description, _, _, _, "predicts success")),
+    assertion(sub_string(Suggestion, _, _, _, "forbids")).
+
+test(outcome_mismatch_ignores_undecided_negative_scenarios, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    feasibility_fixture(rejection),
+    assert_fixture_entity(scenario, 'SCEN-REJECTED', "A call is rejected", active, [expects=error]),
+    assert_fixture_entity(fact, 'FACT-QUOTA-REGION', "Region is EU", active,
+        [fact_kind=property_value, subject_key="client.call_quota", property_key="region",
+         operator=eq, value_type=string, value_string="eu"]),
+    assert_fixture_entity(scenario, 'SCEN-UNMATCHED-REJECTED', "An EU call is rejected", active,
+        [expects=rejection]),
+    kb_assert_relationship(assumes, 'SCEN-UNMATCHED-REJECTED', 'FACT-QUOTA-REGION', []),
+    check_scenario_outcome_mismatch(Mismatches),
+    assertion(Mismatches == []).
+
+test(boolean_claim_is_targeted_by_an_opposing_assumption, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(fact, 'FACT-FLAG-ON', "Audit logging is on", active,
+        [fact_kind=property_value, subject_key="audit", property_key="enabled",
+         operator=eq, value_type=bool, value_bool=true]),
+    assert_fixture_entity(req, 'REQ-AUDIT-ON', "Audit logging stays on", open, []),
+    kb_assert_relationship(requires_property, 'REQ-AUDIT-ON', 'FACT-FLAG-ON', []),
+    assert_fixture_entity(scenario, 'SCEN-AUDIT', "An audited action is logged", active, [expects=success]),
+    kb_assert_relationship(specified_by, 'REQ-AUDIT-ON', 'SCEN-AUDIT', []),
+    negative_stage('REQ-AUDIT-ON', Missing),
+    assertion(Missing.status == missing),
+    assertion(Missing.claims == ['FACT-FLAG-ON']),
+    assert_fixture_entity(fact, 'FACT-FLAG-OFF', "Audit logging is off", active,
+        [fact_kind=property_value, subject_key="audit", property_key="enabled",
+         operator=eq, value_type=bool, value_bool=false]),
+    assert_fixture_entity(scenario, 'SCEN-AUDIT-OFF', "Turning audit logging off is refused", active,
+        [expects=rejection]),
+    kb_assert_relationship(assumes, 'SCEN-AUDIT-OFF', 'FACT-FLAG-OFF', []),
+    % Not yet specified by the requirement: it targets nothing.
+    assertion(\+ checks:negative_scenario_witness('SCEN-AUDIT-OFF', 'REQ-AUDIT-ON', _)),
+    kb_assert_relationship(specified_by, 'REQ-AUDIT-ON', 'SCEN-AUDIT-OFF', []),
+    assertion(checks:negative_scenario_witness('SCEN-AUDIT-OFF', 'REQ-AUDIT-ON', _)),
+    negative_stage('REQ-AUDIT-ON', Passed),
+    assertion(Passed.status == passed),
+    assertion(Passed.negativeScenarios == ['SCEN-AUDIT-OFF']).
+
+test(predicate_claim_is_targeted_by_the_opposite_polarity, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(fact, 'FACT-PRED-REQUIRES', "Checkout requires payment", active,
+        [fact_kind=predicate, predicate_name="dependency_rule", predicate_namespace="default",
+         predicate_args=["checkout", "payment_authorization", "order_submission"], polarity=assert,
+         canonical_key="dependency_rule(checkout,payment_authorization,order_submission)"]),
+    assert_fixture_entity(req, 'REQ-CHECKOUT-PAYMENT', "Checkout requires payment authorization", open, []),
+    kb_assert_relationship(requires_predicate, 'REQ-CHECKOUT-PAYMENT', 'FACT-PRED-REQUIRES', []),
+    assert_fixture_entity(fact, 'FACT-PRED-SKIPPED', "Checkout without payment", active,
+        [fact_kind=predicate, predicate_name="dependency_rule", predicate_namespace="default",
+         predicate_args=["checkout", "payment_authorization", "order_submission"], polarity=deny,
+         canonical_key="dependency_rule(checkout,payment_authorization,order_submission).deny"]),
+    assert_fixture_entity(scenario, 'SCEN-NO-PAYMENT', "Submitting without authorization is refused", active,
+        [expects=rejection]),
+    kb_assert_relationship(assumes, 'SCEN-NO-PAYMENT', 'FACT-PRED-SKIPPED', []),
+    kb_assert_relationship(specified_by, 'REQ-CHECKOUT-PAYMENT', 'SCEN-NO-PAYMENT', []),
+    assertion(checks:negative_scenario_witness('SCEN-NO-PAYMENT', 'REQ-CHECKOUT-PAYMENT',
+                                               opposed('FACT-PRED-SKIPPED', 'FACT-PRED-REQUIRES'))),
+    % The same polarity does not oppose the claim.
+    assertion(\+ checks:facts_oppose('FACT-PRED-REQUIRES', 'FACT-PRED-REQUIRES')).
+
+test(suggested_assumptions_oppose_their_claims, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    Cases = [
+        [value_type=int, operator=gte, value_int=5]-(eq-4),
+        [value_type=int, operator=lte, value_int=5]-(eq-6),
+        [value_type=int, operator=gt, value_int=0]-(eq-0),
+        [value_type=number, operator=gte, value_number=1.5]-(lt-1.5),
+        [value_type=number, operator=lte, value_number=1.5]-(gt-1.5),
+        [value_type=bool, operator=eq, value_bool=true]-(eq-false),
+        [value_type=string, operator=eq, value_string="strict"]-(neq-strict),
+        [value_type=set, operator=eq, value_set=["a", "b"]]-(eq-[a]),
+        [value_type=set, operator=includes, value_set=["a"]]-(eq-[]),
+        [value_type=set, operator=excludes, value_set=["x", "y"]]-(includes-[x]),
+        [value_type=set, operator=subset_of, value_set=["a"]]-(includes-[unlisted_member])
+    ],
+    forall(nth1(I, Cases, Props-(Op-Value)),
+        (   format(atom(ClaimId), 'FACT-CLAIM-~w', [I]),
+            format(atom(AssumedId), 'FACT-ASSUMED-~w', [I]),
+            assert_fixture_entity(fact, ClaimId, "Claim", active,
+                [fact_kind=property_value, subject_key="svc", property_key="p"|Props]),
+            checks:opposing_assumption(ClaimId, Assumption),
+            assertion(Assumption.operator == Op),
+            (   string(Assumption.value)
+            ->  assertion(atom_string(Value, Assumption.value))
+            ;   assertion(Assumption.value == Value)
+            ),
+            suggestion_props(Assumption, AssumedProps),
+            assert_fixture_entity(fact, AssumedId, "Assumed", active, AssumedProps),
+            assertion(checks:facts_oppose(AssumedId, ClaimId))
+        )),
+    assert_fixture_entity(fact, 'FACT-FORBID', "Forbidden value", active,
+        [fact_kind=property_value, subject_key="svc", property_key="mode", polarity=forbid,
+         operator=eq, value_type=string, value_string="legacy"]),
+    checks:opposing_assumption('FACT-FORBID', Forbid),
+    assertion(Forbid.operator == eq),
+    assertion(Forbid.value == "legacy"),
+    assertion(\+ get_dict(polarity, Forbid, _)).
+
+suggestion_props(Assumption, Props) :-
+    atom_string(Assumption.subject_key, Subject),
+    atom_string(Assumption.property_key, Property),
+    Base = [fact_kind=property_value, subject_key=Subject, property_key=Property,
+            operator=Assumption.operator, value_type=Assumption.value_type],
+    suggestion_value_prop(Assumption.value_type, Assumption.value, ValueProp),
+    append(Base, [ValueProp], Props).
+
+suggestion_value_prop(int, V, value_int=V).
+suggestion_value_prop(number, V, value_number=V).
+suggestion_value_prop(bool, V, value_bool=V).
+suggestion_value_prop(string, V, value_string=S) :- string_concat(V, "", S).
+suggestion_value_prop(set, V, value_set=S) :- maplist([A, B]>>atom_string(A, B), V, S).
+
+test(requirement_without_claims_needs_no_negative, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-PROSE-ONLY', "A prose-only requirement", open, []),
+    assert_fixture_entity(scenario, 'SCEN-PROSE', "Something happens", active, [expects=success]),
+    kb_assert_relationship(specified_by, 'REQ-PROSE-ONLY', 'SCEN-PROSE', []),
+    negative_stage('REQ-PROSE-ONLY', Stage),
+    assertion(Stage.status == not_required),
+    assertion(Stage.claims == []).
+
+test(coverage_row_reports_the_happy_path_gap, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    happy_path_fixture,
+    coverage_report_json(req, [], true, true, 100, 0, JsonString),
+    json_string_dict(JsonString, Report),
+    coverage_row(Report.rows, 'REQ-QUOTA-CALL', Row),
+    assertion(Row.proofStages.negativePath.status == missing),
+    assertion(memberchk(happy_path_only, Row.proofGaps)).
+
 :- end_tests(kb_scenario_feasibility).
 
 % Strict-lane pairing validation tests (REQ-011)
@@ -6838,7 +7037,16 @@ proved_fixture(Snapshot) :-
     kb_assert_relationship(verified_by, 'SCEN-PROVED', 'TEST-PROVED-E2E', []),
     kb_assert_relationship(implements, 'SYM-PROVED-PRODUCTION', 'REQ-PROVED', []),
     kb_assert_relationship(covered_by, 'SYM-PROVED-PRODUCTION', 'TEST-PROVED-E2E', []),
-    kb_assert_relationship(executable_for, 'SYM-PROVED-E2E', 'TEST-PROVED-E2E', []).
+    kb_assert_relationship(executable_for, 'SYM-PROVED-E2E', 'TEST-PROVED-E2E', []),
+    % The failure side: an outcome set missing b is refused.
+    assert_fixture_entity(fact, 'FACT-PROVED-PARTIAL', "Partial proof outcomes", active, [
+        fact_kind=property_value, subject_key="kibi.coverage.report",
+        property_key="proof_outcomes", operator=eq, value_type=set, value_set=["a"]]),
+    assert_fixture_entity(scenario, 'SCEN-PROVED-NEGATIVE', "A partial proof is refused", active,
+        [expects=rejection]),
+    kb_assert_relationship(assumes, 'SCEN-PROVED-NEGATIVE', 'FACT-PROVED-PARTIAL', []),
+    kb_assert_relationship(specified_by, 'REQ-PROVED', 'SCEN-PROVED-NEGATIVE', []),
+    kb_assert_relationship(verified_by, 'SCEN-PROVED-NEGATIVE', 'TEST-PROVED-E2E', []).
 
 % The coverage row of REQ-PROVED with TEST-PROVED-EXHAUSTIVE verifying
 % SCEN-PROVED through a v2 receipt that carries Certificate and Digest.
@@ -6849,10 +7057,11 @@ proved_level(Snapshot, Certificate, Digest, Row) :-
 proved_level_json(Json, Row) :-
     assert_fixture_entity(test, 'TEST-PROVED-EXHAUSTIVE', "Exhaustive proof", passing, [
         verification_scope=unit, proof_receipts=Json]),
-    ( kb_relationship(verified_by, 'SCEN-PROVED', 'TEST-PROVED-EXHAUSTIVE')
-    -> true
-    ;  kb_assert_relationship(verified_by, 'SCEN-PROVED', 'TEST-PROVED-EXHAUSTIVE', [])
-    ),
+    forall(member(ScenarioId, ['SCEN-PROVED', 'SCEN-PROVED-NEGATIVE']),
+        (   kb_relationship(verified_by, ScenarioId, 'TEST-PROVED-EXHAUSTIVE')
+        ->  true
+        ;   kb_assert_relationship(verified_by, ScenarioId, 'TEST-PROVED-EXHAUSTIVE', [])
+        )),
     coverage_report_json(req, [], true, true, 100, 0,
         'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
         '2026-08-10T12:05:00Z', 604800, JsonString),
