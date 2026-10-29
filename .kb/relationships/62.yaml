@@ -363,3 +363,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-72a3553e792b
+  - type: assumes
+    from: SCEN-NEG-bootstrap-authoring-claim-review-UNCOMPARED-AUTHORING
+    to: FACT-NEG-bootstrap-authoring-claim-review-UNCOMPARED-AUTHORING
+    created_at: 2026-10-29T21:03:18.930Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-373340cf2114
+  - type: verified_by
+    from: SCEN-NEG-bootstrap-authoring-claim-review-UNCOMPARED-AUTHORING
+    to: TEST-kibi-contradiction-review-cli
+    created_at: 2026-10-29T21:03:19.041Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0df523e1309a

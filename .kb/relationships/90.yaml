@@ -538,3 +538,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-32ccb3532611
+  - type: specified_by
+    from: REQ-bootstrap-authoring-claim-review
+    to: SCEN-NEG-bootstrap-authoring-claim-review-UNCOMPARED-AUTHORING
+    created_at: 2026-10-29T21:03:22.385Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5be618f21895

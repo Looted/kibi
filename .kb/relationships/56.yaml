@@ -377,3 +377,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a93fe4f6fd90
+  - type: specified_by
+    from: REQ-002
+    to: SCEN-NEG-002-UNCURATED-METHOD
+    created_at: 2026-10-29T20:53:30.975Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-483dd9564388

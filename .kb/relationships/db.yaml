@@ -349,3 +349,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fa34867d4142
+  - type: specified_by
+    from: REQ-014
+    to: SCEN-NEG-014-FAILING-COMMIT
+    created_at: 2026-10-29T21:05:55.066Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-914fb4b1fb57

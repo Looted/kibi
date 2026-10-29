@@ -545,3 +545,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e3a762d3aaf6
+  - type: assumes
+    from: SCEN-NEG-bootstrap-discovered-candidate-budget-GENERIC-MARKDOWN
+    to: FACT-NEG-bootstrap-discovered-candidate-budget-GENERIC-MARKDOWN
+    created_at: 2026-10-29T21:04:24.122Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e605520a7561
+  - type: verified_by
+    from: SCEN-NEG-bootstrap-discovered-candidate-budget-GENERIC-MARKDOWN
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-10-29T21:04:24.218Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc7b086e6de8

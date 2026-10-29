@@ -727,3 +727,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-94a6d878e5e0
+  - type: specified_by
+    from: REQ-bootstrap-claim-restatement
+    to: SCEN-NEG-bootstrap-claim-restatement-RESTATED-REQUIREMENT
+    created_at: 2026-10-29T21:04:11.260Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b88c00acedd4

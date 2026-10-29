@@ -356,3 +356,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b250aa9f35a7
+  - type: assumes
+    from: SCEN-NEG-002-UNCURATED-METHOD
+    to: FACT-NEG-002-UNCURATED-METHOD
+    created_at: 2026-10-29T20:53:28.802Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-997a9c7f1c12
+  - type: verified_by
+    from: SCEN-NEG-002-UNCURATED-METHOD
+    to: TEST-mcp-upsert-coverage
+    created_at: 2026-10-29T20:53:28.868Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0bddce44ad97

@@ -272,3 +272,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-914e79b52b1c
+  - type: assumes
+    from: SCEN-NEG-agent-core-edit-snippets-RETIRED-LEAD
+    to: FACT-NEG-agent-core-edit-snippets-RETIRED-LEAD
+    created_at: 2026-10-29T21:02:26.341Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1edbe35321a7
+  - type: verified_by
+    from: SCEN-NEG-agent-core-edit-snippets-RETIRED-LEAD
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-10-29T21:02:26.452Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c428f2f332b

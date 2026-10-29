@@ -384,3 +384,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7cf9037a529b
+  - type: assumes
+    from: SCEN-NEG-bootstrap-claim-restatement-RESTATED-REQUIREMENT
+    to: FACT-NEG-bootstrap-claim-restatement-RESTATED-REQUIREMENT
+    created_at: 2026-10-29T21:04:07.471Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-841f9aa8da6e
+  - type: verified_by
+    from: SCEN-NEG-bootstrap-claim-restatement-RESTATED-REQUIREMENT
+    to: TEST-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-29T21:04:07.721Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67cbdd3f5f08
