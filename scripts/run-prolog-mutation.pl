@@ -14,7 +14,7 @@
 :- use_module(library(filesex)).
 :- use_module(library(process)).
 
-mutalog_version('0.3.0').
+mutalog_version('0.3.2').
 
 pack_dir('.cache/prolog-packs').
 
