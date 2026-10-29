@@ -71,8 +71,26 @@ export function readShard(shardPath: string): RelationshipRecord[] {
     return [];
   }
 
-  return parseShardText(fs.readFileSync(shardPath, "utf8"), shardPath);
+  const content = fs.readFileSync(shardPath, "utf8");
+  const parsed = parsedShards.get(content);
+  if (parsed !== undefined) return parsed.map((record) => ({ ...record }));
+  const records = parseShardText(content, shardPath);
+  if (parsedShards.size >= PARSED_SHARD_LIMIT) parsedShards.clear();
+  parsedShards.set(
+    content,
+    records.map((record) => ({ ...record })),
+  );
+  return records;
 }
+
+/**
+ * Parsed shards by their text. One check reads every shard for several rules
+ * (relationship parity, entity context); a shard's records are a pure
+ * function of its text, so an unchanged shard is parsed once per process.
+ * Callers get their own record copies.
+ */
+const PARSED_SHARD_LIMIT = 1024;
+const parsedShards = new Map<string, RelationshipRecord[]>();
 
 /**
  * Parses relationship shard text read from `shardPath`.

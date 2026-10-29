@@ -57,8 +57,10 @@ requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds,
     % Everything else in the context follows from the KB, so the proof memo
     % key needs only the caller's parameters.
     variant_sha1(params(Snapshot, CheckedAtAtom, MaxAge, BindingModeAtom, TestBindings), ParamsKey),
+    variant_sha1(findings(Contradictions, ContradictionWitnesses, UnsafeRules, UnverifiableRules), FindingsKey),
     Context = _{
         proofMemoKey: ParamsKey,
+        ladderMemoKey: FindingsKey,
         contradictions: Contradictions,
         contradictionWitnesses: ContradictionWitnesses,
         unsafeRules: UnsafeRules,
@@ -94,6 +96,42 @@ requirement_proof(ReqId, ReqProps, Context, Proof) :-
     ;   compute_requirement_proof(ReqId, ReqProps, Context, Proof)
     ).
 
+% The stages before passing_e2e read the KB and the context's KB-derived
+% findings (contradictions, unsafe and unverifiable rules) only, never the
+% caller's snapshot, receipt bindings or checkedAt.  A check passes a new
+% checkedAt every run, so these stages are kept per KB generation and those
+% findings apart from the full proof; inside a transaction they are computed
+% afresh.
+receipt_independent_stages(ReqId, ReqProps, Context, Ladder) :-
+    (   \+ rdf_db:rdf_active_transaction(_),
+        get_dict(ladderMemoKey, Context, FindingsKey),
+        kb:index_verification_key(requirement_ladder, IndexKey)
+    ->  variant_sha1(ReqProps, PropsKey),
+        Key = key(IndexKey, FindingsKey, PropsKey),
+        (   kb:kb_requirement_ladder_memo(ReqId, Key, Ladder0)
+        ->  Ladder = Ladder0
+        ;   compute_receipt_independent_stages(ReqId, ReqProps, Context, Ladder),
+            (   once(kb:kb_requirement_ladder_memo(_, key(Stored, _, _), _)),
+                Stored \== IndexKey
+            ->  retractall(kb:kb_requirement_ladder_memo(_, _, _))
+            ;   true
+            ),
+            retractall(kb:kb_requirement_ladder_memo(ReqId, _, _)),
+            assertz(kb:kb_requirement_ladder_memo(ReqId, Key, Ladder))
+        )
+    ;   compute_receipt_independent_stages(ReqId, ReqProps, Context, Ladder)
+    ).
+
+compute_receipt_independent_stages(ReqId, ReqProps, Context,
+        ladder(SemanticStage, Inventory, LogicStage, ContradictionStage,
+               ScenarioStage, ScenarioTestStage, ScenarioTests, SymbolSets)) :-
+    semantic_inventory_stage(ReqProps, SemanticStage, Inventory),
+    logic_grounding_stage(ReqId, ReqProps, Inventory, Context, LogicStage),
+    contradiction_stage(ReqId, LogicStage.status, SemanticStage.status, Context, ContradictionStage),
+    scenario_stage(ReqId, ScenarioStage, ScenarioIds),
+    scenario_test_stage(ScenarioIds, ScenarioTestStage, ScenarioTests),
+    production_symbol_sets(ReqId, SymbolSets).
+
 % Exemption first: a current requirement explicitly marked proof_exempt with a
 % reason is intentionally outside E2E-proof scope and must never fall through
 % to the ladder (which would report misleading receipt gaps).
@@ -108,14 +146,14 @@ compute_requirement_proof(ReqId, ReqProps, _Context, Proof) :-
     applicability_exclusion_reason(ReqId, Reason),
     exempt_requirement_proof(Reason, ReqProps, Proof).
 compute_requirement_proof(ReqId, ReqProps, Context, Proof) :-
-    semantic_inventory_stage(ReqProps, SemanticStage, Inventory),
-    logic_grounding_stage(ReqId, ReqProps, Inventory, Context, LogicStage),
-    contradiction_stage(ReqId, LogicStage.status, SemanticStage.status, Context, ContradictionStage),
-    scenario_stage(ReqId, ScenarioStage, ScenarioIds),
-    scenario_test_stage(ScenarioIds, ScenarioTestStage, ScenarioTests),
+    receipt_independent_stages(ReqId, ReqProps, Context,
+        ladder(SemanticStage, Inventory, LogicStage, ContradictionStage,
+               ScenarioStage, ScenarioTestStage, ScenarioTests, SymbolSets)),
     passing_e2e_stage(ScenarioTestStage, Context, PassingE2eStage, PassingE2eTests),
     executable_symbol_stage(PassingE2eTests, ExecutableStage, ExecutableSymbols),
-    production_symbol_stage(ReqId, PassingE2eTests, ScenarioTests, PassingE2eStage.receiptEvidence, Context, ProductionStage, ProductionSymbols),
+    production_symbol_stage_from_sets(ReqId, SymbolSets, PassingE2eTests, ScenarioTests,
+                                      PassingE2eStage.receiptEvidence, Context,
+                                      ProductionStage, ProductionSymbols),
     source_coordinate_stage(ReqProps, ExecutableSymbols, ProductionSymbols, CoordinateStage),
     Stages = _{
         semanticInventory: SemanticStage,
@@ -1406,6 +1444,14 @@ production_symbol_stage(ReqId, PassingE2eTests, Stage, ProductionSymbols) :-
     production_symbol_stage(ReqId, PassingE2eTests, ScenarioTests, [], Context, Stage, ProductionSymbols).
 
 production_symbol_stage(ReqId, PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, Stage, ProductionSymbols) :-
+    production_symbol_sets(ReqId, Sets),
+    production_symbol_stage_from_sets(ReqId, Sets, PassingE2eTests, ScenarioTests,
+                                      ReceiptEvidence, Context, Stage, ProductionSymbols).
+
+% The implementing symbols of a requirement, split into structural
+% (type-shape with a unit-test contract) and production ones, with the
+% production symbols' coordinates: all read from the KB alone.
+production_symbol_sets(ReqId, symbol_sets(StructuralSymbols, ProductionSymbols, Coordinates)) :-
     findall(SymbolId,
         (kb_relationship(implements, SymbolId, ReqId),
          kb_entity(SymbolId, symbol, _),
@@ -1414,13 +1460,17 @@ production_symbol_stage(ReqId, PassingE2eTests, ScenarioTests, ReceiptEvidence, 
     sort(Implementing0, ImplementingSymbols),
     include(type_shape_symbol_with_structural_contract, ImplementingSymbols, StructuralSymbols),
     exclude(type_shape_symbol_with_structural_contract, ImplementingSymbols, ProductionSymbols),
+    maplist(symbol_coordinate_ref, ProductionSymbols, Coordinates).
+
+production_symbol_stage_from_sets(ReqId, symbol_sets(StructuralSymbols, ProductionSymbols, Coordinates),
+                                  PassingE2eTests, ScenarioTests, ReceiptEvidence, Context,
+                                  Stage, ProductionSymbols) :-
     include(symbol_not_covered_by_tests(PassingE2eTests), ProductionSymbols, UncoveredProduction),
     structural_unit_receipts(StructuralSymbols, Context, UnitReceipts),
     exclude(structural_symbol_covered(PassingE2eTests, UnitReceipts), StructuralSymbols, UncoveredStructural),
     append(UncoveredProduction, UncoveredStructural, UncoveredSymbols),
     production_stage_status(ProductionSymbols, StructuralSymbols, PassingE2eTests,
                             UncoveredProduction, UncoveredStructural, Status, StatusReason),
-    maplist(symbol_coordinate_ref, ProductionSymbols, Coordinates),
     production_coverage_explanations(
         ReqId, ProductionSymbols, StructuralSymbols, UncoveredSymbols,
         PassingE2eTests, ScenarioTests, ReceiptEvidence, UnitReceipts-Context, Explanations),

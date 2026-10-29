@@ -1,8 +1,16 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import type { PrologPort } from "../../src/public/operations/runtime-types.js";
+import { SOURCE_ANALYSIS_CACHE_FILE } from "../../src/public/operations/source-analysis-cache.js";
 import {
   SYMBOL_GRANULARITY_RULE,
   collectSymbolGranularityViolations,
@@ -222,5 +230,142 @@ describe("collectSymbolGranularityViolations", () => {
     ).rejects.toThrow(
       "symbol-granularity relationship projection failed: timeout",
     );
+  });
+
+  describe("analysis cache", () => {
+    const symbols: SymbolRow[] = [
+      { id: "SYM-module", title: "invoices", sourceFile: "src/invoices.ts" },
+      {
+        id: "SYM-create",
+        title: "createInvoice",
+        sourceFile: "src/invoices.ts",
+      },
+    ];
+    const links: [string, string, string][] = [
+      ["SYM-module", "REQ-billing", "implements"],
+      ["SYM-create", "REQ-billing", "implements"],
+    ];
+    type CacheFile = {
+      analyzers: string;
+      entries: Record<string, { status: string; symbols: unknown[] }>;
+    };
+    const readCache = (store: string): CacheFile =>
+      JSON.parse(readFileSync(join(store, SOURCE_ANALYSIS_CACHE_FILE), "utf8"));
+    const writeCache = (store: string, cache: CacheFile) =>
+      writeFileSync(
+        join(store, SOURCE_ANALYSIS_CACHE_FILE),
+        JSON.stringify(cache),
+      );
+
+    test("a repeated check reads the file's analysis from the store", async () => {
+      const root = workspace({ "src/invoices.ts": SERVICE });
+      const store = join(root, ".kb", "branches", "main");
+      mkdirSync(store, { recursive: true });
+
+      const first = await collectSymbolGranularityViolations(
+        prolog(symbols, links),
+        root,
+        RULES,
+        store,
+      );
+      expect(first).toHaveLength(1);
+      const cache = readCache(store);
+      const keys = Object.keys(cache.entries);
+      expect(keys).toHaveLength(1);
+      expect(cache.entries[keys[0] as string]?.status).toBe("ok");
+
+      // Empty the cached symbols: a second run that reads the cache instead
+      // of parsing the file again finds no narrower symbol to report.
+      const entry = cache.entries[keys[0] as string] as { symbols: unknown[] };
+      entry.symbols = [];
+      writeCache(store, cache);
+      const cached = await collectSymbolGranularityViolations(
+        prolog(symbols, links),
+        root,
+        RULES,
+        store,
+      );
+      expect(cached).toEqual([]);
+    });
+
+    test("a changed file is analyzed again and the stale entry is dropped", async () => {
+      const root = workspace({ "src/invoices.ts": SERVICE });
+      const store = join(root, ".kb", "branches", "main");
+      mkdirSync(store, { recursive: true });
+      await collectSymbolGranularityViolations(
+        prolog(symbols, links),
+        root,
+        RULES,
+        store,
+      );
+      const before = Object.keys(readCache(store).entries);
+
+      writeFileSync(
+        join(root, "src/invoices.ts"),
+        `${SERVICE}\nexport function refundInvoice(id: string): string {\n  return id;\n}\n`,
+      );
+      const violations = await collectSymbolGranularityViolations(
+        prolog(symbols, links),
+        root,
+        RULES,
+        store,
+      );
+      expect(
+        (violations[0]?.evidence as { granularSymbols: string[] })
+          .granularSymbols,
+      ).toEqual(expect.arrayContaining(["refundInvoice"]));
+      const after = Object.keys(readCache(store).entries);
+      expect(after).toHaveLength(1);
+      expect(after).not.toEqual(before);
+    });
+
+    test("a cache from another analyzer set or a corrupt file is ignored", async () => {
+      const root = workspace({ "src/invoices.ts": SERVICE });
+      const store = join(root, ".kb", "branches", "main");
+      mkdirSync(store, { recursive: true });
+      await collectSymbolGranularityViolations(
+        prolog(symbols, links),
+        root,
+        RULES,
+        store,
+      );
+      const cache = readCache(store);
+      for (const entry of Object.values(cache.entries)) entry.symbols = [];
+      writeCache(store, { ...cache, analyzers: "another-analyzer-set" });
+      expect(
+        await collectSymbolGranularityViolations(
+          prolog(symbols, links),
+          root,
+          RULES,
+          store,
+        ),
+      ).toHaveLength(1);
+      expect(readCache(store).analyzers).toBe(cache.analyzers);
+
+      writeFileSync(join(store, SOURCE_ANALYSIS_CACHE_FILE), "{not json");
+      expect(
+        await collectSymbolGranularityViolations(
+          prolog(symbols, links),
+          root,
+          RULES,
+          store,
+        ),
+      ).toHaveLength(1);
+      expect(Object.keys(readCache(store).entries)).toHaveLength(1);
+    });
+
+    test("no store directory means no cache file", async () => {
+      const root = workspace({ "src/invoices.ts": SERVICE });
+      const store = join(root, ".kb", "branches", "missing");
+      expect(
+        await collectSymbolGranularityViolations(
+          prolog(symbols, links),
+          root,
+          RULES,
+          store,
+        ),
+      ).toHaveLength(1);
+      expect(existsSync(store)).toBe(false);
+    });
   });
 });

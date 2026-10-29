@@ -118,11 +118,13 @@ async function workspaceSnapshot(workspaceRoot: string) {
     );
   const digest = createHash("sha256");
   digest.update("kibi.workspace-snapshot.v2\0");
+  // Synchronous reads: one awaited read per file paid a file-handle round
+  // trip each, about eight times the time of reading the same files directly.
   for (const { raw, key: relativePath } of paths) {
     digest.update(relativePath);
     digest.update("\0");
     try {
-      const content = await fs.readFile(path.join(workspaceRoot, raw));
+      const content = fsSync.readFileSync(path.join(workspaceRoot, raw));
       digest.update(snapshotFileContent(relativePath, content));
     } catch (error) {
       const code =

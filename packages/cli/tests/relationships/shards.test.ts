@@ -893,3 +893,51 @@ describe("integration", () => {
     expect(pruned2).toHaveLength(1);
   });
 });
+
+describe("readShard parse reuse", () => {
+  let dir: string;
+  beforeEach(() => {
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-shard-reuse-"));
+  });
+  afterEach(() => {
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  const record = (to: string): RelationshipRecord => ({
+    id: relationshipIdFor("implements", "SYM-001", to),
+    type: "implements",
+    from: "SYM-001",
+    to,
+    created_at: "2026-01-01T00:00:00.000Z",
+    created_by: "test",
+    source: "test",
+  });
+
+  test("an unchanged shard read twice returns equal records the caller owns", () => {
+    const shardPath = path.join(dir, "ab.yaml");
+    writeShard(shardPath, [record("REQ-001")]);
+    const first = readShard(shardPath);
+    (first[0] as RelationshipRecord).to = "REQ-MUTATED";
+    const second = readShard(shardPath);
+    expect(second.map((item) => item.to)).toEqual(["REQ-001"]);
+    expect(second[0]).not.toBe(first[0]);
+  });
+
+  test("a rewritten shard is parsed again", () => {
+    const shardPath = path.join(dir, "ab.yaml");
+    writeShard(shardPath, [record("REQ-001")]);
+    expect(readShard(shardPath).map((item) => item.to)).toEqual(["REQ-001"]);
+    writeShard(shardPath, [record("REQ-001"), record("REQ-002")]);
+    expect(readShard(shardPath).map((item) => item.to)).toEqual([
+      "REQ-001",
+      "REQ-002",
+    ]);
+  });
+
+  test("an invalid shard still throws on every read", () => {
+    const shardPath = path.join(dir, "ab.yaml");
+    fs.writeFileSync(shardPath, "relationships: nope\n");
+    expect(() => readShard(shardPath)).toThrow("Invalid shard file");
+    expect(() => readShard(shardPath)).toThrow("Invalid shard file");
+  });
+});

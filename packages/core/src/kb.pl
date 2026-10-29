@@ -150,6 +150,8 @@ kb_uri('urn-kibi:').
 :- dynamic kb_consistency_memo/3.
 :- dynamic kb_predicate_schema_memo/2.
 :- dynamic kb_requirement_proof_memo/3.
+:- dynamic kb_requirement_ladder_memo/3.
+:- dynamic kb_status_source_index_memo/2.
 :- dynamic kb_scenario_feasibility_memo/3.
 :- dynamic kb_search_ids_memo/4.
 :- dynamic kb_query_ids_memo/3.
@@ -386,6 +388,8 @@ kb_detach :-
             retractall(kb_consistency_memo(_, _, _)),
             retractall(kb_predicate_schema_memo(_, _)),
             retractall(kb_requirement_proof_memo(_, _, _)),
+            retractall(kb_requirement_ladder_memo(_, _, _)),
+            retractall(kb_status_source_index_memo(_, _)),
             retractall(kb_scenario_feasibility_memo(_, _, _)),
             retractall(kb_search_ids_memo(_, _, _, _)),
             retractall(kb_query_ids_memo(_, _, _)),

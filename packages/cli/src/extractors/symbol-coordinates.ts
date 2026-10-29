@@ -465,8 +465,26 @@ export function mergeCoordinatesWithManifest(
       throw new CoordinateArtifactError(coordinateArtifact.reason);
     }
   }
-  const resolveSourceText =
-    options.resolveSourceText ?? defaultResolveSourceText;
+  const readSourceText = options.resolveSourceText ?? defaultResolveSourceText;
+  // Many symbols share a source file: read and hash each file once per merge.
+  const sourceTexts = new Map<string, string | null>();
+  const resolveSourceText = (sourceFile: string): string | null => {
+    if (!sourceTexts.has(sourceFile)) {
+      sourceTexts.set(sourceFile, readSourceText(sourceFile));
+    }
+    return sourceTexts.get(sourceFile) ?? null;
+  };
+  const sourceHashes = new Map<string, string | null>();
+  const sourceHashOf = (sourceFile: string): string | null => {
+    if (!sourceHashes.has(sourceFile)) {
+      const text = resolveSourceText(sourceFile);
+      sourceHashes.set(
+        sourceFile,
+        text === null ? null : coordinateSourceHash(text),
+      );
+    }
+    return sourceHashes.get(sourceFile) ?? null;
+  };
   const rawCoordinates = coordinateArtifact?.coordinates ?? {};
   return symbolRecords.map((symbolRecord) => {
     const stripped = stripGeneratedFields(symbolRecord);
@@ -506,11 +524,8 @@ export function mergeCoordinatesWithManifest(
       ) {
         return stripped;
       }
-      const sourceText = resolveSourceText(candidate.sourceFile);
-      if (
-        sourceText === null ||
-        coordinateSourceHash(sourceText) !== sourceHash
-      ) {
+      const currentSourceHash = sourceHashOf(candidate.sourceFile);
+      if (currentSourceHash === null || currentSourceHash !== sourceHash) {
         return stripped;
       }
       return overlaySpan(stripped, candidate);
