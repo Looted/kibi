@@ -293,3 +293,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4d846604d525
+  - type: implements
+    from: SYM-source-analysis-timing-max-bytes
+    to: REQ-source-analysis-timing-limits
+    created_at: 2026-10-29T10:52:22.407Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e32c1e3a86b
+  - type: covered_by
+    from: SYM-source-analysis-timing-max-bytes
+    to: TEST-proof-source-timing-max-bytes
+    created_at: 2026-10-29T10:52:40.332Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e735c9a79f04

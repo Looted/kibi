@@ -4689,8 +4689,12 @@ symbols:
         target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
+      - type: covered_by
+        target: TEST-proof-github-badge-workflow-path
       - type: implements
         target: REQ-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-settings
   - id: SYM-cli-github-pages-namespace
     title: GITHUB_PAGES_NAMESPACE
     status: active
@@ -4702,8 +4706,12 @@ symbols:
         target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
+      - type: covered_by
+        target: TEST-proof-github-pages-namespace
       - type: implements
         target: REQ-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-settings
   - id: SYM-cli-github-badge-alt
     title: KIBI_BADGE_ALT
     status: active
@@ -4715,8 +4723,12 @@ symbols:
         target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
+      - type: covered_by
+        target: TEST-proof-github-badge-alt
       - type: implements
         target: REQ-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-settings
   - id: SYM-cli-github-metric-docs-url
     title: KIBI_METRIC_DOCS_URL
     status: active
@@ -4741,8 +4753,12 @@ symbols:
         target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
+      - type: covered_by
+        target: TEST-proof-github-placeholder-owner
       - type: implements
         target: REQ-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-settings
   - id: SYM-cli-github-placeholder-repo
     title: PLACEHOLDER_REPO
     status: active
@@ -4754,8 +4770,12 @@ symbols:
         target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
+      - type: covered_by
+        target: TEST-proof-github-placeholder-repo
       - type: implements
         target: REQ-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-settings
   - id: SYM-cli-github-repo
     title: GitHubRepo
     status: active
@@ -10056,10 +10076,16 @@ symbols:
         target: TEST-cli-migrate
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-schema6-migration-cli
+      - type: covered_by
+        target: TEST-proof-latest-kb-schema-version
       - type: implements
         target: REQ-011
       - type: implements
         target: REQ-cli-schema-migration
+      - type: implements
+        target: REQ-kibi-latest-kb-schema-version
   - id: SYM-LinkedEntityResult
     title: LinkedEntityResult
     status: active
@@ -30962,8 +30988,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-html-health-report
+      - type: covered_by
+        target: TEST-proof-report-filter-names
       - type: implements
         target: REQ-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-report-filters-and-gates
   - id: SYM-cli-report-proof-gate-keys
     title: PROOF_GATE_KEYS
     status: active
@@ -30973,8 +31003,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-html-health-report
+      - type: covered_by
+        target: TEST-proof-report-proof-gate-keys
       - type: implements
         target: REQ-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-report-filters-and-gates
   - id: SYM-cli-report-filter-type
     title: ReportFilter
     status: active
@@ -32516,6 +32550,10 @@ symbols:
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-proof-bootstrap-providers
+      - type: implements
+        target: REQ-kibi-bootstrap-evidence-providers
       - type: implements
         target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapaction
@@ -39153,8 +39191,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-e2e-capability-plugins
+      - type: covered_by
+        target: TEST-proof-external-classifier-operations
       - type: implements
         target: REQ-capability-plugin-observable-behavior-v1
+      - type: implements
+        target: REQ-capability-plugin-vocabulary
   - id: SYM-cap-plugin-loadpluginpackage-007aa5b1
     title: loadPluginPackage
     sourceFile: packages/cli/src/plugins/load-plugin.ts
@@ -40255,8 +40297,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-e2e-capability-plugins
+      - type: covered_by
+        target: TEST-proof-ontology-polarities
       - type: implements
         target: REQ-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-vocabulary
   - id: SYM-cap-plugin-semanticclassifierproposition-00b0b710
     title: SemanticClassifierProposition
     sourceFile: packages/plugin-sdk/src/capabilities/semantic-classifier.ts
@@ -40337,8 +40383,12 @@ symbols:
         target: TEST-e2e-capability-plugins
       - type: covered_by
         target: TEST-e2e-runtime-symbol-portability
+      - type: covered_by
+        target: TEST-proof-semantic-lanes
       - type: implements
         target: REQ-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-vocabulary
   - id: SYM-cap-plugin-semantic-signal-kinds-eb004334
     title: SEMANTIC_SIGNAL_KINDS
     sourceFile: packages/plugin-sdk/src/capabilities/semantic-classifier.ts
@@ -40349,8 +40399,12 @@ symbols:
         target: TEST-e2e-capability-plugins
       - type: covered_by
         target: TEST-e2e-runtime-symbol-portability
+      - type: covered_by
+        target: TEST-proof-semantic-signal-kinds
       - type: implements
         target: REQ-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-vocabulary
   - id: SYM-cap-plugin-tosourceanalysisprovider-624e8fb1
     title: toSourceAnalysisProvider
     sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
@@ -40621,8 +40675,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-e2e-capability-plugins
+      - type: covered_by
+        target: TEST-proof-plugin-modes
       - type: implements
         target: REQ-capability-plugin-three-capabilities-v1
+      - type: implements
+        target: REQ-capability-plugin-vocabulary
   - id: SYM-cap-plugin-iscapabilityid-2e16a4ad
     title: isCapabilityId
     sourceFile: packages/plugin-sdk/src/validate.ts
@@ -44121,8 +44179,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-installed-staged-impact-timing-integrity
+      - type: covered_by
+        target: TEST-proof-source-timing-max-events
       - type: implements
         target: REQ-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-source-analysis-timing-limits
   - id: SYM-source-analysis-timing-max-bytes
     title: MAX_SOURCE_ANALYSIS_TIMING_BYTES
     status: active
@@ -44135,8 +44197,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-installed-staged-impact-timing-integrity
+      - type: covered_by
+        target: TEST-proof-source-timing-max-bytes
       - type: implements
         target: REQ-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-source-analysis-timing-limits
   - id: SYM-test-tree-sitter-language-scaffold-draft-output
     title: Tree-sitter language author scaffold CLI
     status: active
@@ -52300,8 +52366,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-query-fact-filters
+      - type: covered_by
+        target: TEST-proof-query-fact-kinds
       - type: implements
         target: REQ-kibi-query-fact-filters
+      - type: implements
+        target: REQ-kibi-query-fact-kinds
   - id: SYM-discovery-search-branch-store-notice-type
     title: SearchBranchStoreNotice
     status: active
@@ -53707,6 +53777,24 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-migrate
+      - type: covered_by
+        target: TEST-cli-migration-first-commit
+      - type: covered_by
+        target: TEST-proof-legacy-status-accepted
+      - type: covered_by
+        target: TEST-proof-legacy-status-deprecated
+      - type: covered_by
+        target: TEST-proof-legacy-status-draft
+      - type: covered_by
+        target: TEST-proof-legacy-status-proposed
+      - type: covered_by
+        target: TEST-proof-legacy-status-rejected
+      - type: covered_by
+        target: TEST-proof-legacy-status-superseded
+      - type: covered_by
+        target: TEST-proof-legacy-status-words
+      - type: implements
+        target: REQ-cli-migration-suggested-status
       - type: implements
         target: REQ-cli-schema-migration
   - id: SYM-schema6-REQ_STATUS_DELIVERED_MAP_ACTION_ID
@@ -57026,6 +57114,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-signoff-views
+      - type: covered_by
+        target: TEST-proof-signoff-questions-fence
+      - type: covered_by
+        target: TEST-proof-signoff-summary-fence
+      - type: implements
+        target: REQ-kibi-signoff-fences
       - type: implements
         target: REQ-kibi-signoff-views
   - id: SYM-cli-signoff-model-signoff-gate-labels
@@ -63999,3 +64093,367 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-tree-sitter-rust-extensions
+  - id: SYM-proof-github-badge-workflow-path
+    title: githubBadgeWorkflowPathCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/github-report-settings.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:18:47.501Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-github-badge-workflow-path
+  - id: SYM-proof-github-pages-namespace
+    title: githubPagesNamespaceCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/github-report-settings.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:19:19.795Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-github-pages-namespace
+  - id: SYM-proof-github-badge-alt
+    title: githubBadgeAltCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/github-report-settings.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:19:51.892Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-github-badge-alt
+  - id: SYM-proof-github-placeholder-owner
+    title: githubPlaceholderOwnerCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/github-report-settings.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:20:24.626Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-github-placeholder-owner
+  - id: SYM-proof-github-placeholder-repo
+    title: githubPlaceholderRepoCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/github-report-settings.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:20:57.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-github-placeholder-repo
+  - id: SYM-proof-report-filter-names
+    title: reportFilterNamesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/report-filters-gates.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:25:15.605Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-report-filter-names
+  - id: SYM-proof-report-proof-gate-keys
+    title: reportProofGateKeysCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/report-filters-gates.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:25:45.395Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-report-proof-gate-keys
+  - id: SYM-proof-plugin-modes
+    title: pluginModesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/capability-plugin-vocabulary.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:29:20.213Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-plugin-modes
+  - id: SYM-proof-ontology-polarities
+    title: ontologyPolaritiesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/capability-plugin-vocabulary.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:29:50.965Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-ontology-polarities
+  - id: SYM-proof-semantic-lanes
+    title: semanticLanesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/capability-plugin-vocabulary.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:30:21.891Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-semantic-lanes
+  - id: SYM-proof-semantic-signal-kinds
+    title: semanticSignalKindsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/capability-plugin-vocabulary.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:30:53.180Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-semantic-signal-kinds
+  - id: SYM-proof-external-classifier-operations
+    title: externalClassifierOperationsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/capability-plugin-vocabulary.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:31:24.203Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-external-classifier-operations
+  - id: SYM-proof-query-fact-kinds
+    title: queryFactKindsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/query-fact-kinds.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:33:49.037Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-query-fact-kinds
+  - id: SYM-proof-bootstrap-providers
+    title: bootstrapProvidersCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/bootstrap-evidence-providers.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:35:24.446Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-bootstrap-providers
+  - id: SYM-proof-legacy-status-words
+    title: legacyStatusWordsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/migration-suggested-status.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:39:50.288Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-legacy-status-words
+  - id: SYM-proof-legacy-status-accepted
+    title: legacyStatusAcceptedCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/migration-suggested-status.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:40:22.784Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-legacy-status-accepted
+  - id: SYM-proof-legacy-status-proposed
+    title: legacyStatusProposedCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/migration-suggested-status.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:40:58.319Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-legacy-status-proposed
+  - id: SYM-proof-legacy-status-draft
+    title: legacyStatusDraftCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/migration-suggested-status.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:41:35.532Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-legacy-status-draft
+  - id: SYM-proof-legacy-status-deprecated
+    title: legacyStatusDeprecatedCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/migration-suggested-status.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:42:10.204Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-legacy-status-deprecated
+  - id: SYM-proof-legacy-status-superseded
+    title: legacyStatusSupersededCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/migration-suggested-status.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:42:46.246Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-legacy-status-superseded
+  - id: SYM-proof-legacy-status-rejected
+    title: legacyStatusRejectedCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/migration-suggested-status.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:43:22.837Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-legacy-status-rejected
+  - id: SYM-proof-signoff-summary-fence
+    title: signoffSummaryFenceCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/signoff-fences.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:46:29.334Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-signoff-summary-fence
+  - id: SYM-proof-signoff-questions-fence
+    title: signoffQuestionsFenceCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/signoff-fences.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:47:05.474Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-signoff-questions-fence
+  - id: SYM-proof-source-timing-max-events
+    title: sourceTimingMaxEventsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/source-analysis-timing-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:51:58.256Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-source-timing-max-events
+  - id: SYM-proof-source-timing-max-bytes
+    title: sourceTimingMaxBytesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/source-analysis-timing-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:52:28.204Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-source-timing-max-bytes
+  - id: SYM-proof-latest-kb-schema-version
+    title: latestKbSchemaVersionCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/latest-kb-schema-version.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:58:23.087Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-latest-kb-schema-version

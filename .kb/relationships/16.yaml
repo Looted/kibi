@@ -300,3 +300,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2a0304076cb3
+  - type: executable_for
+    from: SYM-proof-legacy-status-accepted
+    to: TEST-proof-legacy-status-accepted
+    created_at: 2026-10-29T10:40:24.442Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-687c85451135

@@ -370,3 +370,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7d003c12f4fa
+  - type: executable_for
+    from: SYM-proof-github-badge-alt
+    to: TEST-proof-github-badge-alt
+    created_at: 2026-10-29T10:19:53.757Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-588dd8e47224

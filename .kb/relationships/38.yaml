@@ -297,3 +297,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a96b63189248
+  - type: executable_for
+    from: SYM-proof-legacy-status-draft
+    to: TEST-proof-legacy-status-draft
+    created_at: 2026-10-29T10:41:37.545Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21e1e1fef773

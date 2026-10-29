@@ -433,3 +433,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-781d6bed2651
+  - type: executable_for
+    from: SYM-proof-legacy-status-superseded
+    to: TEST-proof-legacy-status-superseded
+    created_at: 2026-10-29T10:42:48.184Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0ef4bc5956a

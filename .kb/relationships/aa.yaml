@@ -458,3 +458,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-623e5710490e
+  - type: executable_for
+    from: SYM-proof-report-filter-names
+    to: TEST-proof-report-filter-names
+    created_at: 2026-10-29T10:25:17.324Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f32e62f5d3a1

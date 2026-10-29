@@ -27,18 +27,18 @@ proof_bindings:
     native_id: packages/cli/tests/commands/migrate-first-commit.test.ts::the first commit after kibi migrate::passes both pre-commit gates when the commit adds nothing else
     source_file: packages/cli/tests/commands/migrate-first-commit.test.ts
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-4b482d22758fd26b843766d2
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-5e47f829a88f9105703e24b4
     test_id: TEST-cli-migration-first-commit
     scope: end_to_end
     outcome: passed
-    code_snapshot: d121c696ddfcde79251facc6b485dd599322d5b54c19808a7bddfc3cabd236ba
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-14T09:02:24.151Z'
-    finished_at: '2026-10-14T09:02:41.608Z'
-    artifact_digest: af5b0cb244d139b3c3e77816e4db73db6ee9675756ff93655420292848b9864a
+    code_snapshot: faf065f2781c1044c030ed22ef2de1f9fa5ba7e2c43b903b7407837a816cfb65
+    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
+    started_at: '2026-10-29T10:43:49.109Z'
+    finished_at: '2026-10-29T10:44:09.809Z'
+    artifact_digest: dd8cd9701fd678bf2c076fe3250d0ca23702e7534d5a29740b14becda106cc1f
     contract_hash: 5eda75c2f8fc058098b9e899240055e60d6ddf847784ca2498e5aac154a6cdf0
-    binding_hash: d9730fb08d3b5bf338312bf61a692b1665a9794091621b74406cce8fbe9dec42
+    binding_hash: f5480b5d4fe50ef9ec3edf9e2cf7d641a4d9c25175400bec4d900b179d0f6095
     fingerprint: d3c95c66be5fee6ba5a7edce1702e53a91d4f2400f10adfc2ae811439aae130b
     fingerprint_components:
       contract: 5eda75c2f8fc058098b9e899240055e60d6ddf847784ca2498e5aac154a6cdf0
@@ -60,6 +60,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Consumer test for REQ-cli-migration-first-commit (SCEN-cli-migration-first-commit). In a temporary Git repository with a committed legacy-layout KB (schema 4, knowledge under `documentation/`, one class-level symbol link that migrate marks legacy-link, no covering tests), it runs `kibi migrate --yes`, `kibi init` and `kibi sync`, stages everything and runs the two pre-commit gates through the CLI.
 

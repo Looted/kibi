@@ -412,3 +412,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d26200bcd013
+  - type: executable_for
+    from: SYM-proof-semantic-lanes
+    to: TEST-proof-semantic-lanes
+    created_at: 2026-10-29T10:30:23.830Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d60cca270a5

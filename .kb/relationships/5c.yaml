@@ -454,3 +454,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e4153a29f7b0
+  - type: implements
+    from: SYM-cap-plugin-semantic-signal-kinds-eb004334
+    to: REQ-capability-plugin-vocabulary
+    created_at: 2026-10-29T10:30:48.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6eec043225d6
+  - type: covered_by
+    from: SYM-cap-plugin-semantic-signal-kinds-eb004334
+    to: TEST-proof-semantic-signal-kinds
+    created_at: 2026-10-29T10:31:06.496Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97235bbf1122

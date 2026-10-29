@@ -272,3 +272,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-562062a256d6
+  - type: validates
+    from: TEST-proof-github-placeholder-repo
+    to: SCEN-kibi-github-report-integration
+    created_at: 2026-10-29T10:20:55.061Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-360e061e03cd

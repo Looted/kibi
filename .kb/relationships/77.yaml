@@ -398,3 +398,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-656392ab082a
+  - type: validates
+    from: TEST-proof-legacy-status-accepted
+    to: SCEN-cli-migration-first-commit
+    created_at: 2026-10-29T10:40:21.177Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebdcdf3b5d3b

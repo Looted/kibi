@@ -300,3 +300,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7bcc8cf16ee8
+  - type: executable_for
+    from: SYM-proof-github-placeholder-owner
+    to: TEST-proof-github-placeholder-owner
+    created_at: 2026-10-29T10:20:26.411Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74fd4163de76

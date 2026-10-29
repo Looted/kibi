@@ -146,3 +146,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-04078a617f32
+  - type: requires_property
+    from: REQ-kibi-query-fact-kinds
+    to: FACT-query-fact-kinds
+    created_at: 2026-10-29T10:33:24.464Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0851f08ab5e5
+  - type: specified_by
+    from: REQ-kibi-query-fact-kinds
+    to: SCEN-kibi-query-fact-filters
+    created_at: 2026-10-29T10:33:24.506Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-740d5711d5c0
+  - type: constrains
+    from: REQ-kibi-query-fact-kinds
+    to: FACT-kibi-query-fact-kinds-component
+    created_at: 2026-10-29T10:33:28.212Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bac841adc33d
+  - type: executable_for
+    from: SYM-proof-legacy-status-deprecated
+    to: TEST-proof-legacy-status-deprecated
+    created_at: 2026-10-29T10:42:12.461Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa507ea6e6f5

@@ -300,3 +300,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e6ddad0d5abc
+  - type: validates
+    from: TEST-proof-query-fact-kinds
+    to: SCEN-kibi-query-fact-filters
+    created_at: 2026-10-29T10:33:46.997Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c220ae1e1006

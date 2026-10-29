@@ -419,3 +419,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bf7d954b0dbc
+  - type: executable_for
+    from: SYM-proof-external-classifier-operations
+    to: TEST-proof-external-classifier-operations
+    created_at: 2026-10-29T10:31:26.329Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04a7e61aa55c

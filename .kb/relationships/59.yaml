@@ -307,3 +307,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-06345629c886
+  - type: executable_for
+    from: SYM-proof-latest-kb-schema-version
+    to: TEST-proof-latest-kb-schema-version
+    created_at: 2026-10-29T10:58:24.839Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d971de2b0a56

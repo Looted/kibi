@@ -230,3 +230,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b7cb66db3ac8
+  - type: requires_property
+    from: REQ-kibi-report-filters-and-gates
+    to: FACT-report-filter-names
+    created_at: 2026-10-29T10:24:57.467Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f005198f8ec
+  - type: requires_property
+    from: REQ-kibi-report-filters-and-gates
+    to: FACT-report-proof-gate-keys
+    created_at: 2026-10-29T10:24:57.507Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b832263b6965
+  - type: specified_by
+    from: REQ-kibi-report-filters-and-gates
+    to: SCEN-kibi-html-health-report
+    created_at: 2026-10-29T10:24:57.533Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32b4b3a3147f
+  - type: constrains
+    from: REQ-kibi-report-filters-and-gates
+    to: FACT-kibi-report-filters-component
+    created_at: 2026-10-29T10:25:01.206Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed6bb06b523b

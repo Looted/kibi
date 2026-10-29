@@ -412,3 +412,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e02e1b11029d
+  - type: executable_for
+    from: SYM-proof-semantic-signal-kinds
+    to: TEST-proof-semantic-signal-kinds
+    created_at: 2026-10-29T10:30:55.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2e7d317f378
+  - type: executable_for
+    from: SYM-proof-bootstrap-providers
+    to: TEST-proof-bootstrap-providers
+    created_at: 2026-10-29T10:35:26.339Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e73ef64038d0

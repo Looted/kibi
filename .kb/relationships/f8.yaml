@@ -335,3 +335,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8f903e525fbf
+  - type: requires_property
+    from: REQ-kibi-github-report-settings
+    to: FACT-github-badge-workflow-path
+    created_at: 2026-10-29T10:18:25.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6723dc0dd7a0
+  - type: requires_property
+    from: REQ-kibi-github-report-settings
+    to: FACT-github-pages-namespace
+    created_at: 2026-10-29T10:18:25.998Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aed954eafe41
+  - type: requires_property
+    from: REQ-kibi-github-report-settings
+    to: FACT-github-badge-alt
+    created_at: 2026-10-29T10:18:26.056Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8a2bb17daf3
+  - type: requires_property
+    from: REQ-kibi-github-report-settings
+    to: FACT-github-placeholder-owner
+    created_at: 2026-10-29T10:18:26.106Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f901e88a3ed9
+  - type: requires_property
+    from: REQ-kibi-github-report-settings
+    to: FACT-github-placeholder-repo
+    created_at: 2026-10-29T10:18:26.147Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e45fb79d5aa
+  - type: specified_by
+    from: REQ-kibi-github-report-settings
+    to: SCEN-kibi-github-report-integration
+    created_at: 2026-10-29T10:18:26.184Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-88c24e0b58a9
+  - type: constrains
+    from: REQ-kibi-github-report-settings
+    to: FACT-kibi-github-report-settings-component
+    created_at: 2026-10-29T10:18:29.705Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a20c56facde7
