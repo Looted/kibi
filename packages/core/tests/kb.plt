@@ -5496,6 +5496,54 @@ test(check_selected_json_file_writes_the_selected_rules, [setup(setup_kb), clean
     assertion(JsonDict.get(no_dangling_refs) == []),
     assertion(JsonDict.get(symbol_traceability) == []).
 
+test(check_all_json_transport_writes_the_file_when_it_can, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-ADR-NEEDED', "ADR needed req", open, []),
+    assert_fixture_entity(symbol, 'SYM-ADR-NEEDED', "ADR needed symbol", active, []),
+    kb_assert_relationship(implements, 'SYM-ADR-NEEDED', 'REQ-ADR-NEEDED', []),
+    checks:check_all_json_with_options(Json, true),
+    tmp_file(kibi_check_transport, Path),
+    checks:check_all_json_transport(Path, true, Transport, Answer),
+    read_file_to_string(Path, FileJson, [encoding(utf8)]),
+    delete_file(Path),
+    assertion(Transport == file),
+    assertion(Answer == ''),
+    assertion(FileJson == Json).
+
+test(check_all_json_transport_answers_without_a_file, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-ADR-NEEDED', "ADR needed req", open, []),
+    assert_fixture_entity(symbol, 'SYM-ADR-NEEDED', "ADR needed symbol", active, []),
+    kb_assert_relationship(implements, 'SYM-ADR-NEEDED', 'REQ-ADR-NEEDED', []),
+    checks:check_all_json_with_options(Json, true),
+    checks:check_all_json_transport(none, true, Transport, Answer),
+    assertion(Transport == answer),
+    assertion(Answer == Json).
+
+test(check_all_json_transport_answers_when_the_file_cannot_be_written, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-ADR-NEEDED', "ADR needed req", open, []),
+    checks:check_all_json_with_options(Json, false),
+    tmp_file(kibi_check_missing_dir, Dir),
+    directory_file_path(Dir, 'violations.json', Path),
+    checks:check_all_json_transport(Path, false, Transport, Answer),
+    assertion(Transport == answer),
+    assertion(Answer == Json),
+    assertion(\+ exists_file(Path)).
+
+test(check_all_json_transport_rethrows_errors_that_are_not_about_the_file,
+     [setup(setup_kb), cleanup(cleanup_kb), error(type_error(_, 42))]) :-
+    checks:check_all_json_transport(42, false, _, _).
+
+test(check_selected_json_transport_writes_or_answers_the_selected_rules, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-ADR-NEEDED', "ADR needed req", open, []),
+    checks:check_selected_json(['no-dangling-refs'], Json),
+    tmp_file(kibi_check_selected_transport, Path),
+    checks:check_selected_json_transport(['no-dangling-refs'], Path, FileTransport, FileAnswer),
+    read_file_to_string(Path, FileJson, [encoding(utf8)]),
+    delete_file(Path),
+    assertion(FileTransport-FileAnswer == file-''),
+    assertion(FileJson == Json),
+    checks:check_selected_json_transport(['no-dangling-refs'], none, Transport, Answer),
+    assertion(Transport-Answer == answer-Json).
+
 test(check_rule_verifiability_normalizes_typed_schema_reference, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     rule_fixture_json(oblige, typed_schema_reference, RuleJson),
     assert_fixture_entity(fact, 'FACT-RULE-SCHEMA-TYPED', "Typed rule schema", active, [

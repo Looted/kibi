@@ -175,8 +175,126 @@ describe("MCP check-prolog aggregated parser", () => {
     );
   });
 
-  test("uses check_all_json when requireAdr is false and unwraps nested JSON", async () => {
+  test("prefers the transport predicate and reads the file it wrote", async () => {
+    const goals: string[] = [];
     const query = async (goal: string) => {
+      goals.push(goal);
+      const match = goal.match(
+        /check_all_json_transport\('([^']+)', true, Transport, JsonString\)/,
+      );
+      if (!match?.[1]) throw new Error(`no result file in goal: ${goal}`);
+      writeFileSync(match[1], "{}", "utf8");
+      return { success: true, bindings: { Transport: "file", JsonString: "" } };
+    };
+    const violations = await runAggregatedChecks(
+      { query } as unknown as PrologProcess,
+      new Set(["required-fields"]),
+      true,
+    );
+    expect(violations).toEqual([]);
+    expect(goals).toHaveLength(1);
+    const transportAt = goals[0]?.indexOf("check_all_json_transport(") ?? -1;
+    expect(transportAt).toBeGreaterThan(-1);
+    expect(goals[0]?.indexOf("check_all_json_file(")).toBeGreaterThan(
+      transportAt,
+    );
+  });
+
+  test("a result file this process cannot read is asked for again as an answer", async () => {
+    const goals: string[] = [];
+    let resultPath = "";
+    const query = async (goal: string) => {
+      goals.push(goal);
+      const match = goal.match(/check_all_json_file\('([^']+)', true\)/);
+      if (match?.[1]) {
+        resultPath = match[1];
+        return { success: true, bindings: { Transport: "file" } };
+      }
+      return {
+        success: true,
+        bindings: {
+          Transport: "answer",
+          JsonString: JSON.stringify({
+            "required-fields": [
+              {
+                rule: "required-fields",
+                entityId: "REQ-ANSWER",
+                description: "from answer",
+              },
+            ],
+          }),
+        },
+      };
+    };
+    const violations = await runAggregatedChecks(
+      { query } as unknown as PrologProcess,
+      new Set(["required-fields"]),
+      true,
+    );
+    expect(violations.map((v) => v.entityId)).toEqual(["REQ-ANSWER"]);
+    expect(goals).toHaveLength(2);
+    expect(goals[1]).toContain(
+      "check_all_json_transport(none, true, Transport, JsonString)",
+    );
+    expect(goals[1]).not.toContain("check_all_json_file(");
+    expect(existsSync(dirname(resultPath))).toBe(false);
+  });
+
+  test("a failed second ask is reported as a failed check", async () => {
+    let calls = 0;
+    const query = async () => {
+      calls += 1;
+      return calls === 1
+        ? { success: true, bindings: { Transport: "file" } }
+        : { success: false, bindings: {}, error: "engine gone" };
+    };
+    await expect(
+      runAggregatedChecks(
+        { query } as unknown as PrologProcess,
+        new Set(["required-fields"]),
+        false,
+      ),
+    ).rejects.toThrow("engine gone");
+  });
+
+  test("an unusable temp dir asks the engine for an answer", async () => {
+    const base = mkdtempSync(join(tmpdir(), "kibi-mcp-tmp-"));
+    const previous = process.env.TMPDIR;
+    process.env.TMPDIR = join(base, "missing");
+    const goals: string[] = [];
+    try {
+      const query = async (goal: string) => {
+        goals.push(goal);
+        return {
+          success: true,
+          bindings: { Transport: "answer", JsonString: "{}" },
+        };
+      };
+      const violations = await runAggregatedChecks(
+        { query } as unknown as PrologProcess,
+        new Set(["required-fields"]),
+        false,
+      );
+      expect(violations).toEqual([]);
+    } finally {
+      if (previous === undefined) Reflect.deleteProperty(process.env, "TMPDIR");
+      else process.env.TMPDIR = previous;
+      rmSync(base, { recursive: true, force: true });
+    }
+    expect(goals).toHaveLength(1);
+    expect(goals[0]).toContain(
+      "check_all_json_transport(none, false, Transport, JsonString)",
+    );
+    expect(goals[0]).not.toContain("check_all_json_file(");
+    expect(goals[0]).toMatch(
+      /JsonString\)\)\s*;\s*predicate_property\(checks:check_all_json_with_options/,
+    );
+  });
+
+  test("uses check_all_json when requireAdr is false and unwraps nested JSON", async () => {
+    let queries = 0;
+    const query = async (goal: string) => {
+      queries += 1;
       expect(goal).toContain("check_all_json(JsonString)");
       expect(goal).not.toContain("true");
       return {
@@ -203,6 +321,8 @@ describe("MCP check-prolog aggregated parser", () => {
     );
     expect(violations[0]?.entityId).toBe("REQ-NESTED");
     expect(violations[0]?.suggestion).toBeUndefined();
+    // An answer is used as it is: no result file is read, nothing is asked again.
+    expect(queries).toBe(1);
   });
 
   test("includes query-plan-safety violations when that rule is allowlisted", async () => {
