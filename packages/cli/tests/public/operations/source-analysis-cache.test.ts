@@ -127,12 +127,16 @@ describe("source analysis cache", () => {
       expect(
         openSourceAnalysisCache(store, root)?.get("a.ts", "export {}\n"),
       ).toBeUndefined();
+      // The fresh cache serves entries saved under the new analyzer.
+      seed(root, store);
+      expect(
+        openSourceAnalysisCache(store, root)?.get("a.ts", "export {}\n"),
+      ).toBeDefined();
     } finally {
+      // Restoring through a Date loses sub-millisecond precision, so the
+      // original signature is not asserted after this.
       utimesSync(builtPath, before.atime, before.mtime);
     }
-    expect(
-      openSourceAnalysisCache(store, root)?.get("a.ts", "export {}\n"),
-    ).toBeDefined();
   });
 
   test("an analysis that is not ok is neither stored nor served", () => {
