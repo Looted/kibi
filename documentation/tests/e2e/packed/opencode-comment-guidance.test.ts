@@ -510,6 +510,97 @@ class Account:
           console.log("  ✓ Ordinary comment block routed no durable guidance");
         },
       );
+
+      // implements REQ-opencode-file-context-guidance-v1
+      it(
+        "shows file-context guidance once per path in a session",
+        { timeout: 60000 },
+        async () => {
+          const distIndex = join(
+            installDir,
+            "node_modules/kibi-opencode/dist/index.js",
+          );
+          const plugin = await loadPackedV1Plugin(distIndex);
+          const projectDir = join(tmpDir, "test-project-repeat");
+          for (const dir of [
+            ".opencode",
+            "src",
+            ".kb/requirements",
+            ".kb/scenarios",
+            ".kb/tests",
+            ".kb/adr",
+            ".kb/flags",
+            ".kb/events",
+            ".kb/facts",
+          ]) {
+            mkdirSync(join(projectDir, dir), { recursive: true });
+          }
+          writeFileSync(
+            join(projectDir, ".opencode", "kibi.json"),
+            JSON.stringify({ enabled: true }),
+            "utf8",
+          );
+          writeFileSync(
+            join(projectDir, ".kb", "manifest.json"),
+            JSON.stringify({
+              manifestVersion: 1,
+              schemaVersion: 5,
+              semanticAdvisorBackfill: "not_applicable",
+            }),
+            "utf8",
+          );
+          writeFileSync(join(projectDir, ".kb", "symbols.yaml"), "[]", "utf8");
+          for (const file of ["src/billing.ts", "src/invoice.ts"]) {
+            writeFileSync(
+              join(projectDir, file),
+              "export function total(): number {\n  return 1;\n}\n",
+              "utf8",
+            );
+          }
+
+          const hooks = (await plugin({
+            worktree: projectDir,
+            directory: projectDir,
+          })) as {
+            event?: EventHook;
+            "experimental.chat.system.transform"?: TransformHook;
+          };
+          const promptAfter = async (
+            type: string,
+            file: string,
+          ): Promise<string> => {
+            await hooks.event?.({ event: { type, properties: { file } } });
+            await new Promise((r) => setTimeout(r, 100));
+            const output: SystemTransformOutput = {
+              system: ["Initial system prompt"],
+            };
+            await hooks["experimental.chat.system.transform"]?.(
+              { focusFilePath: file },
+              output,
+            );
+            return output.system.join("\n");
+          };
+
+          const first = await promptAfter("file.edited", "src/billing.ts");
+          assert.ok(
+            first.includes("Edited source file detected"),
+            `The first edit of a path must get file-context guidance: ${first}`,
+          );
+          const repeat = await promptAfter("file.edited", "src/billing.ts");
+          assert.ok(
+            !repeat.includes("Edited source file detected"),
+            `A second edit of the same path must not repeat it: ${repeat}`,
+          );
+          // Control: suppression is per path, not for the whole session.
+          const other = await promptAfter("file.edited", "src/invoice.ts");
+          assert.ok(
+            other.includes("Edited source file detected"),
+            `Another path must still get file-context guidance: ${other}`,
+          );
+
+          console.log("  ✓ File-context guidance shown once per path");
+        },
+      );
     },
   );
 }
