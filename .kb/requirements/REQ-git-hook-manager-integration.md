@@ -34,6 +34,7 @@ logic_claims:
   - CLAIM-4607FB568E1208EC
 id: REQ-git-hook-manager-integration
 type: req
+firmness: firm
 ---
 `kibi init` must not install Git hooks when lefthook, husky or the pre-commit framework manages them, and must print that manager's configuration for Kibi's hook commands instead. `kibi init --print-hook` must print Kibi's hook commands in shell, lefthook, husky and pre-commit formats. `kibi doctor` must read Kibi's hook commands from the hook manager configuration and must report a managed hook whose Kibi commands it cannot see as a warning, not a failure.
 
