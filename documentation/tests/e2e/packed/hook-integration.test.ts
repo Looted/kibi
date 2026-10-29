@@ -463,6 +463,64 @@ Fixture requirement committed through the real hook so the branch KB has knowled
     );
 
     it(
+      "should block a commit whose staged KB fails kibi check",
+      { timeout: TEST_TIMEOUT_MS },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        const init = await kibi(sandbox, ["init"]);
+        assert.strictEqual(init.exitCode, 0, init.stderr || init.stdout);
+
+        const scenarioDir = join(sandbox.repoDir, ".kb/scenarios");
+        mkdirSync(scenarioDir, { recursive: true });
+        writeFileSync(
+          join(scenarioDir, "SCEN-DANGLING.md"),
+          `---
+id: SCEN-DANGLING
+title: Scenario pointing at a missing test
+type: scenario
+status: active
+links:
+  - type: verified_by
+    target: TEST-MISSING
+---
+
+Given a widget, when it is named, then it keeps the name.
+
+This fixture scenario links a test that does not exist so the staged check refuses the commit.
+`,
+        );
+
+        await run("git", ["add", "."], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
+        const blocked = await run("git", ["commit", "-m", "dangling"], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
+        assert.notStrictEqual(
+          blocked.exitCode,
+          0,
+          "the pre-commit hook must refuse a KB that fails kibi check",
+        );
+        assert.match(
+          blocked.stdout + blocked.stderr,
+          /missing endpoint: SCEN-DANGLING -> TEST-MISSING/,
+        );
+
+        const head = await run("git", ["rev-parse", "--verify", "HEAD"], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
+        assert.notStrictEqual(head.exitCode, 0, "no commit should be created");
+      },
+    );
+
+    it(
       "should handle sync failures gracefully",
       { timeout: 20000 },
       async (testContext) => {
