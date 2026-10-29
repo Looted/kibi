@@ -337,9 +337,12 @@ type TopLevelScan = {
   readonly balanced: boolean;
 };
 
+// Parts are sliced from the input rather than built a character at a time:
+// candidate pages run to megabytes, and per-character concatenation made
+// scanning them most of a search's parsing time.
 function scanTopLevelGeneral(str: string, delimiter: string): TopLevelScan {
   const results: string[] = [];
-  let current = "";
+  let partStart = 0;
   let quote: PrologQuote | null = null;
   const delimiters: string[] = [];
   let balanced = true;
@@ -348,17 +351,11 @@ function scanTopLevelGeneral(str: string, delimiter: string): TopLevelScan {
     const char = str[i];
 
     if (quote !== null) {
-      current += char;
       if (char === "\\") {
-        const escaped = str[i + 1];
-        if (escaped !== undefined) {
-          current += escaped;
-          i++;
-        }
+        if (i + 1 < str.length) i++;
       } else if (char === quote) {
         const doubledPrologQuote = quote === "'" && str[i + 1] === "'";
         if (doubledPrologQuote) {
-          current += str[i + 1] ?? "";
           i++;
         } else {
           quote = null;
@@ -369,13 +366,11 @@ function scanTopLevelGeneral(str: string, delimiter: string): TopLevelScan {
 
     if (char === "'" || char === '"') {
       quote = char;
-      current += char;
       continue;
     }
 
     if (char === "[" || char === "(" || char === "{") {
       delimiters.push(char);
-      current += char;
       continue;
     }
 
@@ -386,7 +381,6 @@ function scanTopLevelGeneral(str: string, delimiter: string): TopLevelScan {
       } else {
         delimiters.pop();
       }
-      current += char;
       continue;
     }
 
@@ -395,19 +389,13 @@ function scanTopLevelGeneral(str: string, delimiter: string): TopLevelScan {
       delimiter.length > 0 &&
       str.startsWith(delimiter, i)
     ) {
-      if (current) {
-        results.push(current);
-        current = "";
-      }
+      if (i > partStart) results.push(str.slice(partStart, i));
       i += delimiter.length - 1;
-    } else {
-      current += char;
+      partStart = i + 1;
     }
   }
 
-  if (current) {
-    results.push(current);
-  }
+  if (str.length > partStart) results.push(str.slice(partStart));
 
   return {
     parts: results,

@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { bodySnippetLine } from "./entity-body-context.js";
@@ -203,6 +204,40 @@ export async function loadMarkdownBody(
   source: string,
   workspaceRoot: string,
 ): Promise<string | null> {
+  const resolved = markdownBodyPath(source, workspaceRoot);
+  if (resolved === null) return null;
+  try {
+    const fileContent = await fs.readFile(resolved, "utf8");
+    return stripFrontmatter(fileContent);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * loadMarkdownBody, reading synchronously. Search reads the bodies of
+ * thousands of candidates at once; each asynchronous read is four thread-pool
+ * round trips (open, stat, read, close), which made reading them take ten
+ * times as long as reading them in turn.
+ */
+// implements REQ-mcp-search-discovery
+export function loadMarkdownBodySync(
+  source: string,
+  workspaceRoot: string,
+): string | null {
+  const resolved = markdownBodyPath(source, workspaceRoot);
+  if (resolved === null) return null;
+  try {
+    return stripFrontmatter(readFileSync(resolved, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+function markdownBodyPath(
+  source: string,
+  workspaceRoot: string,
+): string | null {
   const normalizedSource = source.replace(/#.*/, "").trim();
   if (!normalizedSource.endsWith(".md")) {
     return null;
@@ -220,13 +255,7 @@ export async function loadMarkdownBody(
   if (!resolved.startsWith(normalizedRoot + path.sep)) {
     return null;
   }
-
-  try {
-    const fileContent = await fs.readFile(resolved, "utf8");
-    return stripFrontmatter(fileContent);
-  } catch {
-    return null;
-  }
+  return resolved;
 }
 
 // implements REQ-mcp-search-discovery

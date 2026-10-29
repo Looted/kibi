@@ -52,7 +52,10 @@ function fakeKb(
     query: async (goal: string): Promise<PrologQueryResult> => {
       goals.push(goal);
       const bindings: Record<string, string> = {};
-      const edgeIds = idsIn(goal, /member\(From, \[([^\]]*)\]\)/);
+      const edgeIds = idsIn(
+        goal,
+        /kb_relationship_edges\(\[[^\]]*\], \[([^\]]*)\]/,
+      );
       if (edgeIds !== undefined) {
         const rows = edges
           .filter(

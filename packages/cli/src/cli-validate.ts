@@ -21,6 +21,27 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+// One validator per operation schema. Building an Ajv instance compiles the
+// JSON Schema meta-schema, and a CLI call validates its input more than once.
+const inputValidator = new Ajv({ allErrors: true, strict: false });
+const compiledInputSchemas = new WeakMap<object, ReturnType<Ajv["compile"]>>();
+
+function compileInputSchema(schema: object): ReturnType<Ajv["compile"]> {
+  let validator = compiledInputSchemas.get(schema);
+  if (validator === undefined) {
+    const exact = { ...schema, additionalProperties: false };
+    try {
+      validator = inputValidator.compile(exact);
+    } catch {
+      // A schema whose $id the shared instance already holds for another
+      // schema object compiles on an instance of its own.
+      validator = new Ajv({ allErrors: true, strict: false }).compile(exact);
+    }
+    compiledInputSchemas.set(schema, validator);
+  }
+  return validator;
+}
+
 function formatValidationErrors(
   errors: NonNullable<ReturnType<Ajv["compile"]>["errors"]>,
 ): string[] {
@@ -51,10 +72,7 @@ export function prepareOperationInput(
   const businessInput = Object.fromEntries(
     Object.entries(input).filter(([key]) => key !== "_diagnostic_telemetry"),
   );
-  const schemaWithExactTopLevel = { ...schema, additionalProperties: false };
-  const validator = new Ajv({ allErrors: true, strict: false }).compile(
-    schemaWithExactTopLevel,
-  );
+  const validator = compileInputSchema(schema);
   if (!validator(businessInput)) {
     return {
       valid: false,

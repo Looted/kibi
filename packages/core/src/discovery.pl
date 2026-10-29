@@ -156,12 +156,14 @@ symbol_explain_role(_SymbolId, unknown).
 % not used: they take seconds on a large KB. The functional-predicate
 % declarations a rule comparison reads are collected once per call rather
 % than once per compared pair, which dominated the cost for requirements with
-% many rules. A requirement whose checks raise an error reports that error
-% instead of failing the answer. Scope names the snapshot the verdicts were
-% computed from.
+% many rules; the infeasible success scenarios are likewise analysed once per
+% call rather than once per requirement. A requirement whose checks raise an
+% error reports that error instead of failing the answer. Scope names the
+% snapshot the verdicts were computed from.
 search_answer_verdicts_json(ReqIds, JsonString) :-
     search_answer_functional(Functional),
-    maplist(search_answer_verdict(Functional), ReqIds, Verdicts),
+    search_answer_infeasible(Infeasible),
+    maplist(search_answer_verdict(Functional, Infeasible), ReqIds, Verdicts),
     status_scope_dict(Scope),
     dict_json_string(_{requirements: Verdicts, scope: Scope}, JsonString).
 
@@ -172,14 +174,27 @@ search_answer_functional(some(Functional)) :-
     !.
 search_answer_functional(none).
 
+% Every infeasible success scenario, analysed once per call: the analysis
+% walks every success scenario, so running it per requirement multiplied a
+% whole-KB pass by the number of requirements in the answer. When it raises,
+% each requirement's forbids check raises the same error itself and reports
+% it as that requirement's error, as before.
+search_answer_infeasible(some(Infeasible)) :-
+    catch(findall(infeasible(ScenarioId, ReqIds, AssumedFacts, ReqFacts, Reason),
+                  infeasible_scenario(ScenarioId, ReqIds, AssumedFacts, ReqFacts, Reason),
+                  Infeasible),
+          _, fail),
+    !.
+search_answer_infeasible(none).
+
 search_answer_rule_status(some(Functional), RuleA, RuleB, Status) :-
     !,
     logic_rule_conflict(RuleA, RuleB, Functional, Status).
 search_answer_rule_status(none, RuleA, RuleB, Status) :-
     logic_rule_conflict(RuleA, RuleB, Status).
 
-search_answer_verdict(Functional, ReqId, Verdict) :-
-    catch(search_answer_verdict_(Functional, ReqId, Verdict0), Error, true),
+search_answer_verdict(Functional, Infeasible, ReqId, Verdict) :-
+    catch(search_answer_verdict_(Functional, Infeasible, ReqId, Verdict0), Error, true),
     (   var(Error)
     ->  Verdict = Verdict0
     ;   format(string(Text0), "~q", [Error]),
@@ -187,7 +202,7 @@ search_answer_verdict(Functional, ReqId, Verdict) :-
         Verdict = _{id: ReqId, error: Text}
     ).
 
-search_answer_verdict_(Functional, ReqId, _{
+search_answer_verdict_(Functional, Infeasible, ReqId, _{
     id: ReqId,
     contradictions: Contradictions,
     scenarios: Scenarios,
@@ -198,7 +213,7 @@ search_answer_verdict_(Functional, ReqId, _{
     sort(Contradictions0, Contradictions),
     findall(S, search_answer_scenario_outcome(ReqId, S), Scenarios0),
     sort(Scenarios0, Scenarios),
-    findall(F, search_answer_forbidden_scenario(ReqId, F), Forbids0),
+    findall(F, search_answer_forbidden_scenario(Infeasible, ReqId, F), Forbids0),
     sort(Forbids0, Forbids),
     search_answer_inventory(ReqId, Inventory).
 
@@ -292,7 +307,18 @@ search_answer_outcome(ScenarioId, Result, _{scenario: ScenarioId, outcome: Outco
     ;   format(atom(Outcome), "~q", [Result])
     ).
 
-search_answer_forbidden_scenario(ReqId, _{
+search_answer_forbidden_scenario(some(Infeasible), ReqId, _{
+    scenario: ScenarioId,
+    assumed: AssumedFacts,
+    fact: ReqFacts,
+    reason: Reason
+}) :-
+    member(infeasible(ScenarioId, ReqIds, AssumedFacts, ReqFacts, RawReason), Infeasible),
+    memberchk(ReqId, ReqIds),
+    \+ kb_relationship(specified_by, ReqId, ScenarioId),
+    search_answer_text(RawReason, Reason).
+
+search_answer_forbidden_scenario(none, ReqId, _{
     scenario: ScenarioId,
     assumed: AssumedFacts,
     fact: ReqFacts,

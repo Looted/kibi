@@ -276,6 +276,32 @@ test(retracts_one_relationship_without_clearing_siblings, [setup(setup_kb), clea
     \+ kb_relationship(relates_to, 'REQ-EDGE-A', 'REQ-EDGE-B'),
     kb_relationship(relates_to, 'REQ-EDGE-A', 'REQ-EDGE-C').
 
+test(relationship_edges_match_the_findall_they_replace, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    forall(member(Id, ['REQ-EDGES-A', 'REQ-EDGES-B', 'REQ-EDGES-C']),
+           assert_fixture_entity(req, Id, "Edge fixture", active, [])),
+    assert_fixture_entity(test, 'TEST-EDGES', "Edge fixture test", active, []),
+    kb_assert_relationship(depends_on, 'REQ-EDGES-A', 'REQ-EDGES-B', []),
+    kb_assert_relationship(depends_on, 'REQ-EDGES-C', 'REQ-EDGES-A', []),
+    kb_assert_relationship(depends_on, 'REQ-EDGES-B', 'REQ-EDGES-C', []),
+    kb_assert_relationship(verified_by, 'REQ-EDGES-A', 'TEST-EDGES', []),
+    Types = [verified_by, depends_on, relates_to],
+    Ids = ['REQ-EDGES-A', 'REQ-EDGES-B'],
+    findall([Type, From, To],
+            ( member(Type, Types),
+              kb_relationship(Type, From, To),
+              ( member(From, Ids) ; member(To, Ids) ) ),
+            Expected),
+    kb_relationship_edges(Types, Ids, Edges),
+    assertion(Edges == Expected),
+    % An edge between two listed ids is reported once per listed end.
+    assertion(msort(Edges, [[depends_on, 'REQ-EDGES-A', 'REQ-EDGES-B'],
+                            [depends_on, 'REQ-EDGES-A', 'REQ-EDGES-B'],
+                            [depends_on, 'REQ-EDGES-B', 'REQ-EDGES-C'],
+                            [depends_on, 'REQ-EDGES-C', 'REQ-EDGES-A'],
+                            [verified_by, 'REQ-EDGES-A', 'TEST-EDGES']])),
+    kb_relationship_edges(Types, ['REQ-EDGES-MISSING'], None),
+    assertion(None == []).
+
 :- end_tests(kb_relationships).
 
 :- begin_tests(kb_persistence).
@@ -546,6 +572,23 @@ test(list_search_candidates_filters_by_source_without_full_payloads, [setup(setu
            assertion(\+ memberchk(proof_receipts=_, Props))),
     kb_list_search_candidates(none, none, 10, 0, _, AllCount),
     assertion(AllCount == 4).
+
+% Later pages of a query reuse the ids its first page matched, until a write.
+test(search_pages_reuse_matched_ids_until_a_write, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    forall(member(Id, ['TEST-PAGE-A', 'TEST-PAGE-B', 'TEST-PAGE-C']),
+           assert_fixture_entity(test, Id, "Paged search", active, [])),
+    kb_search_entities(test, "paged search", 2, 0, First, Count),
+    kb_search_entities(test, "paged search", 2, 2, Second, _),
+    assertion(Count == 3),
+    findall(Id, member([Id, _, _], First), FirstIds),
+    findall(Id, member([Id, _, _], Second), SecondIds),
+    assertion(FirstIds == ['TEST-PAGE-A', 'TEST-PAGE-B']),
+    assertion(SecondIds == ['TEST-PAGE-C']),
+    assert_fixture_entity(test, 'TEST-PAGE-D', "Paged search", active, []),
+    kb_search_entities(test, "paged search", 2, 2, Fresh, FreshCount),
+    assertion(FreshCount == 4),
+    findall(Id, member([Id, _, _], Fresh), FreshIds),
+    assertion(FreshIds == ['TEST-PAGE-C', 'TEST-PAGE-D']).
 
 :- end_tests(search_candidates).
 
@@ -971,7 +1014,14 @@ test(opposite_ground_predicate_polarities_contradict, [setup(setup_kb), cleanup(
         logic_claims=["CLAIM-2222222222222222"]
     ]),
     kb_assert_relationship(requires_predicate, 'REQ-PUBLISH-ASSERT', 'FACT-PUBLISH-ASSERT', []),
+    % A one-sided lookup before the opposing fact is linked must not leave a
+    % stale predicate index behind for the lookups after it.
+    assertion(\+ req_conflict_witness('REQ-PUBLISH-ASSERT', _, _)),
     kb_assert_relationship(requires_predicate, 'REQ-PUBLISH-DENY', 'FACT-PUBLISH-DENY', []),
+    findall(Other, req_conflict_witness('REQ-PUBLISH-ASSERT', Other, _), Others),
+    assertion(Others == ['REQ-PUBLISH-DENY']),
+    findall(Other, req_conflict_witness(Other, 'REQ-PUBLISH-DENY', _), Partners),
+    assertion(Partners == ['REQ-PUBLISH-ASSERT']),
     contradicting_reqs('REQ-PUBLISH-ASSERT', 'REQ-PUBLISH-DENY', Reason),
     sub_string(Reason, _, _, _, "Predicate conflict"),
     req_conflict_witness('REQ-PUBLISH-ASSERT', 'REQ-PUBLISH-DENY', Witness),
