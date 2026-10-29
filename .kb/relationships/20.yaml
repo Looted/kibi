@@ -475,3 +475,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5cb8e666d859
+  - type: specified_by
+    from: REQ-kibi-ontology-convergence-witnesses
+    to: SCEN-NEG-kibi-ontology-convergence-witnesses-UNBOUND-ARGUMENT
+    created_at: 2026-10-29T21:02:49.133Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e27b9b06ca0

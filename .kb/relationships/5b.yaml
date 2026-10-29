@@ -328,3 +328,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-889c60fb6697
+  - type: assumes
+    from: SCEN-NEG-kibi-search-answer-layer-v2-SUPERSEDED-MATCH
+    to: FACT-NEG-kibi-search-answer-layer-v2-SUPERSEDED-MATCH
+    created_at: 2026-10-29T21:10:13.197Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf069e84d3e4
+  - type: verified_by
+    from: SCEN-NEG-kibi-search-answer-layer-v2-SUPERSEDED-MATCH
+    to: TEST-kibi-search-answer-layer
+    created_at: 2026-10-29T21:10:13.280Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72898d52f4cc

@@ -346,5 +346,100 @@ if (RUN_NODE_TEST_SUITE) {
         );
       },
     );
+
+    it(
+      "skips ontology-quality for a predicate with fewer facts than the configured minimum",
+      { timeout: 240000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+        seedFixture(sandbox);
+        await run("git", ["commit", "-m", "vocabulary fixtures"], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
+        assert.strictEqual(
+          (await kibi(sandbox, ["init", "--no-hooks"])).exitCode,
+          0,
+        );
+        const sync = await kibi(sandbox, ["sync"]);
+        assert.strictEqual(sync.exitCode, 0, `${sync.stdout}${sync.stderr}`);
+
+        const ontologyFindings = async (minFacts: string) => {
+          sandbox.env.KIBI_ONTOLOGY_QUALITY_MIN_FACTS = minFacts;
+          const check = await kibi(sandbox, [
+            "check",
+            "--rules",
+            "ontology-quality",
+            "--format",
+            "json",
+          ]);
+          assert.strictEqual(
+            check.exitCode,
+            0,
+            `${check.stdout}${check.stderr}`,
+          );
+          const payload = (
+            JSON.parse(check.stdout) as { structuredContent: CheckPayload }
+          ).structuredContent;
+          return findings(payload, "ontology-quality");
+        };
+
+        // prose_rule has three facts of one-off arguments: reported at a
+        // minimum of three, skipped once the minimum exceeds its fact count.
+        assert.strictEqual((await ontologyFindings("3")).length, 1);
+        assert.deepStrictEqual(await ontologyFindings("4"), []);
+      },
+    );
+
+    it(
+      "rejects a restates link whose target is not a requirement",
+      { timeout: 240000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+        seedFixture(sandbox);
+        await run("git", ["commit", "-m", "vocabulary fixtures"], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
+        assert.strictEqual(
+          (await kibi(sandbox, ["init", "--no-hooks"])).exitCode,
+          0,
+        );
+        const sync = await kibi(sandbox, ["sync"]);
+        assert.strictEqual(sync.exitCode, 0, `${sync.stdout}${sync.stderr}`);
+
+        const inputPath = join(sandbox.baseDir, "restates-fact.json");
+        writeFileSync(
+          inputPath,
+          JSON.stringify({
+            type: "req",
+            id: "REQ-billing-session-ttl",
+            properties: {
+              title: "REQ-billing-session-ttl",
+              status: "open",
+            },
+            relationships: [
+              {
+                type: "restates",
+                from: "REQ-billing-session-ttl",
+                to: "FACT-SESSION-TTL-MINUTES",
+              },
+            ],
+          }),
+        );
+        const rejected = await kibi(sandbox, ["upsert", "--input", inputPath]);
+        assert.notStrictEqual(rejected.exitCode, 0);
+        assert.match(
+          `${rejected.stdout}${rejected.stderr}`,
+          /Invalid relationship: restates from req to fact/,
+        );
+      },
+    );
   });
 }

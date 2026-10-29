@@ -391,3 +391,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9797403281f5
+  - type: specified_by
+    from: REQ-kibi-mcp-tool-consolidation
+    to: SCEN-NEG-kibi-mcp-tool-consolidation-OPTIONAL-TOOLS-UNNAMED
+    created_at: 2026-10-29T20:55:07.671Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-900dedfd1800

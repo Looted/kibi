@@ -507,3 +507,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-180c8815f313
+  - type: specified_by
+    from: REQ-kibi-signoff-views
+    to: SCEN-NEG-kibi-signoff-views-MALFORMED-QUESTIONS
+    created_at: 2026-10-29T21:10:47.510Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f274f406381

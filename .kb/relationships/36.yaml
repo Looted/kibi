@@ -461,3 +461,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-adf78a3092f6
+  - type: specified_by
+    from: REQ-kibi-legacy-migration-preview-v2
+    to: SCEN-NEG-kibi-legacy-migration-preview-v2-SEMANTIC-DRIFT
+    created_at: 2026-10-29T20:54:18.407Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e1635a0cd0c

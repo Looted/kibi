@@ -293,3 +293,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f39f0cab66dd
+  - type: assumes
+    from: SCEN-NEG-kibi-signoff-views-MALFORMED-QUESTIONS
+    to: FACT-NEG-kibi-signoff-views-MALFORMED-QUESTIONS
+    created_at: 2026-10-29T21:10:42.770Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-445780fe580f
+  - type: verified_by
+    from: SCEN-NEG-kibi-signoff-views-MALFORMED-QUESTIONS
+    to: TEST-kibi-signoff-views
+    created_at: 2026-10-29T21:10:42.869Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-baf375a67e32

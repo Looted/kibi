@@ -447,3 +447,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-10eae06f7ff2
+  - type: specified_by
+    from: REQ-kibi-predicate-schema-conformance
+    to: SCEN-NEG-kibi-predicate-schema-conformance-UNDECLARED-CONSTANT
+    created_at: 2026-10-29T21:04:25.541Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7826f947cf85

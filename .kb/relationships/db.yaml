@@ -349,3 +349,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fa34867d4142
+  - type: specified_by
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: SCEN-NEG-kibi-predicate-suggestion-relevance-v1-UNRELATED-SCHEMA
+    created_at: 2026-10-29T21:05:32.609Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79041a58603b
