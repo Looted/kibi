@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
@@ -114,6 +114,67 @@ const OWNED_HELLO_SYMBOL: SymbolFixture = {
 
 function commandText(result: CommandResult): string {
   return result.stdout + result.stderr;
+}
+
+type McpToolCallResult = Readonly<{
+  isError?: boolean;
+  content?: readonly { type: string; text?: string }[];
+}>;
+
+function callMcpTool(
+  sandbox: TestSandbox,
+  name: string,
+  args: Record<string, unknown>,
+): Promise<McpToolCallResult> {
+  return new Promise((resolve, reject) => {
+    const child = spawn("node", [sandbox.kibiMcpBin], {
+      cwd: sandbox.repoDir,
+      env: sandbox.env,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    let buffer = "";
+    const timeout = setTimeout(() => {
+      child.kill();
+      reject(new Error(`MCP tools/call ${name} timed out`));
+    }, CHECK_TIMEOUT_MS);
+    child.on("error", (error) => {
+      clearTimeout(timeout);
+      reject(error);
+    });
+    child.stdout.on("data", (chunk: Buffer) => {
+      buffer += chunk.toString();
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        let message: { id?: number; result?: McpToolCallResult };
+        try {
+          message = JSON.parse(line);
+        } catch {
+          continue;
+        }
+        if (message.id === 2) {
+          clearTimeout(timeout);
+          child.kill();
+          resolve(message.result ?? {});
+          return;
+        }
+      }
+    });
+    const send = (message: Record<string, unknown>) =>
+      child.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", ...message })}\n`);
+    send({
+      id: 1,
+      method: "initialize",
+      params: {
+        protocolVersion: "2024-11-05",
+        capabilities: {},
+        clientInfo: { name: "traceability-gate", version: "1.0.0" },
+      },
+    });
+    send({ method: "notifications/initialized" });
+    send({ id: 2, method: "tools/call", params: { name, arguments: args } });
+  });
 }
 
 function assertCommandExit(
@@ -1058,6 +1119,21 @@ if (RUN_NODE_TEST_SUITE) {
       const source = files.find((file) => file.path === "src/cov.js");
       assert.equal(source?.sourceAnalysis?.after?.status, "ok");
       assert.equal(source?.sourceAnalysis?.after?.symbolCount, 1);
+    });
+
+    it("refuses a raw inference tool call outside the curated MCP surface", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+      const result = await callMcpTool(sandbox, "kb_infer", {
+        goal: "current_adr(Adr)",
+      });
+      assert.equal(result.isError, true);
+      assert.match(
+        result.content?.map((part) => part.text ?? "").join("\n") ?? "",
+        /Tool kb_infer not found/,
+      );
     });
   });
 }

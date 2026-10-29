@@ -978,5 +978,105 @@ if (RUN_NODE_TEST_SUITE) {
         }
       },
     );
+
+    it(
+      "keeps an objectively invalid relationship in the hard violations lane",
+      { timeout: 120000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        const invalidSandbox = createSandbox();
+        try {
+          await invalidSandbox.install(tarballs);
+          await invalidSandbox.initGitRepo();
+          const initialized = await kibi(invalidSandbox, [
+            "init",
+            "--no-hooks",
+          ]);
+          assert.strictEqual(
+            initialized.exitCode,
+            0,
+            initialized.stdout + initialized.stderr,
+          );
+          await mkdir(path.join(invalidSandbox.repoDir, ".kb", "scenarios"), {
+            recursive: true,
+          });
+          await writeFile(
+            path.join(
+              invalidSandbox.repoDir,
+              ".kb",
+              "scenarios",
+              "SCEN-DANGLING.md",
+            ),
+            [
+              "---",
+              "id: SCEN-DANGLING",
+              "type: scenario",
+              "title: Scenario pointing at a missing test",
+              "status: active",
+              "links:",
+              "  - type: verified_by",
+              "    target: TEST-MISSING",
+              "---",
+              "",
+              "Given a widget, when it is named, then it keeps the name.",
+              "",
+              "This fixture scenario links a test that does not exist, so the check must report a hard violation.",
+              "",
+            ].join("\n"),
+          );
+          const staged = await run("git", ["add", "-A"], {
+            cwd: invalidSandbox.repoDir,
+            env: invalidSandbox.env,
+          });
+          assert.strictEqual(staged.exitCode, 0, staged.stdout + staged.stderr);
+          const synced = await kibi(invalidSandbox, ["sync"]);
+          assert.strictEqual(synced.exitCode, 0, synced.stdout + synced.stderr);
+
+          const checked = await kibi(
+            invalidSandbox,
+            ["check", "--format", "json"],
+            {
+              timeoutMs: 60000,
+            },
+          );
+          assert.notStrictEqual(
+            checked.exitCode,
+            0,
+            "an invalid graph state must fail the check",
+          );
+          const report = JSON.parse(checked.stdout) as {
+            structuredContent: {
+              violations: Array<{ rule: string; entityId?: string }>;
+              qualityDiagnostics?: Array<{
+                entityId?: string;
+                blocking?: boolean;
+              }>;
+            };
+          };
+          assert.ok(
+            report.structuredContent.violations.some(
+              (violation) => violation.entityId === "SCEN-DANGLING",
+            ),
+            `the dangling relationship should be a hard violation: ${checked.stdout}`,
+          );
+          const quality = report.structuredContent.qualityDiagnostics ?? [];
+          assert.ok(
+            !quality.some(
+              (diagnostic) => diagnostic.entityId === "SCEN-DANGLING",
+            ),
+            "an invalid graph state must not be demoted to a quality diagnostic",
+          );
+          assert.ok(
+            quality.every((diagnostic) => diagnostic.blocking === false),
+          );
+        } finally {
+          await invalidSandbox.cleanup();
+        }
+      },
+    );
   });
 }

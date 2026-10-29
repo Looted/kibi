@@ -468,6 +468,56 @@ try {
     "advisor and compile-intent remain the classifier allowlist",
   );
 
+  const driftedRoot = join(root, "node_modules", "example-drifted-plugin");
+  mkdirSync(driftedRoot, { recursive: true });
+  writeFileSync(
+    join(driftedRoot, "package.json"),
+    JSON.stringify({
+      name: "example-drifted-plugin",
+      version: "1.0.0",
+      type: "module",
+      main: "index.js",
+    }),
+  );
+  writeFileSync(
+    join(driftedRoot, "index.js"),
+    `export const kibiPlugin = {
+      apiVersion: "kibi.plugin.v1",
+      id: "example-drifted-plugin",
+      version: "2.0.0",
+      permissions: { network: false, metered: false, secrets: [] },
+      capabilities: {
+        semanticClassifier: {
+          id: "example.drifted",
+          model: "drifted-model",
+          async classify() {
+            return { decisions: [] };
+          },
+        },
+      },
+    };
+`,
+  );
+  writeFileSync(
+    join(root, "package.json"),
+    JSON.stringify({
+      name: "consumer",
+      dependencies: { "example-drifted-plugin": "1.0.0" },
+    }),
+  );
+  let versionDriftRefused = false;
+  try {
+    await loadPluginPackage(root, "example-drifted-plugin");
+  } catch (error) {
+    versionDriftRefused =
+      error instanceof Error &&
+      (error as Error & { code?: string }).code === "PLUGIN_VERSION_MISMATCH";
+  }
+  assert(
+    versionDriftRefused,
+    "an exported provider version that differs from the resolved package version is refused",
+  );
+
   const replaceRoot = join(root, "node_modules", "example-replace-plugin");
   mkdirSync(replaceRoot, { recursive: true });
   writeFileSync(
