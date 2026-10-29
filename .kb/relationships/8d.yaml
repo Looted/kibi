@@ -734,3 +734,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b88c00acedd4
+  - type: specified_by
+    from: REQ-claude-decision-capture-nudges
+    to: SCEN-NEG-claude-decision-capture-nudges-UNRECORDED-STOP
+    created_at: 2026-10-29T21:18:13.287Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ccbbb9db4c35

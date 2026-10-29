@@ -328,3 +328,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-889c60fb6697
+  - type: specified_by
+    from: REQ-capability-plugin-configuration-v1
+    to: SCEN-NEG-capability-plugin-configuration-v1-MALFORMED-TIMEOUT
+    created_at: 2026-10-29T21:21:34.971Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1a4b522dd76

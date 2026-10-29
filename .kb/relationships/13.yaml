@@ -328,3 +328,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9b5b7ade4dbd
+  - type: assumes
+    from: SCEN-NEG-claude-decision-capture-nudges-UNRECORDED-STOP
+    to: FACT-NEG-claude-decision-capture-nudges-UNRECORDED-STOP
+    created_at: 2026-10-29T21:18:09.804Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33cdad6246ea
+  - type: verified_by
+    from: SCEN-NEG-claude-decision-capture-nudges-UNRECORDED-STOP
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-10-29T21:18:09.927Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-418530e000a4

@@ -328,3 +328,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c3dbecfb5c0e
+  - type: assumes
+    from: SCEN-NEG-branch-store-recovery-v4-DETACHED-WRITE
+    to: FACT-NEG-branch-store-recovery-v4-DETACHED-WRITE
+    created_at: 2026-10-29T21:17:07.655Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9fc6fdb879f
+  - type: verified_by
+    from: SCEN-NEG-branch-store-recovery-v4-DETACHED-WRITE
+    to: TEST-branch-detached-head-read-only-cli
+    created_at: 2026-10-29T21:17:07.809Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b60309fdf695

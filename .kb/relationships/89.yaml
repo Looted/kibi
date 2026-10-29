@@ -391,3 +391,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-977235241b40
+  - type: assumes
+    from: SCEN-NEG-capability-check-policy-UNREADABLE-POLICY
+    to: FACT-NEG-capability-check-policy-UNREADABLE-POLICY
+    created_at: 2026-10-29T21:17:23.719Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4823d21313a4
+  - type: verified_by
+    from: SCEN-NEG-capability-check-policy-UNREADABLE-POLICY
+    to: TEST-capability-check-policy
+    created_at: 2026-10-29T21:17:23.792Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d5cb7340889

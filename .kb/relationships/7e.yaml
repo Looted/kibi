@@ -377,3 +377,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-df8f1422823b
+  - type: assumes
+    from: SCEN-NEG-capability-plugin-observable-behavior-v1-MAINTENANCE-CLASSIFIER
+    to: FACT-NEG-capability-plugin-observable-behavior-v1-MAINTENANCE-CLASSIFIER
+    created_at: 2026-10-29T21:16:26.754Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc961cbb782c
+  - type: verified_by
+    from: SCEN-NEG-capability-plugin-observable-behavior-v1-MAINTENANCE-CLASSIFIER
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-10-29T21:16:26.874Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cbedb1d87cb1

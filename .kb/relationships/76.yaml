@@ -286,3 +286,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-db156db95999
+  - type: specified_by
+    from: REQ-capability-plugin-observable-behavior-v1
+    to: SCEN-NEG-capability-plugin-observable-behavior-v1-MAINTENANCE-CLASSIFIER
+    created_at: 2026-10-29T21:22:01.588Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c5714493953

@@ -440,3 +440,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e0ef4bc5956a
+  - type: specified_by
+    from: REQ-capability-check-policy
+    to: SCEN-NEG-capability-check-policy-UNREADABLE-POLICY
+    created_at: 2026-10-29T21:17:27.786Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e205762530ab
