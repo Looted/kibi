@@ -15,6 +15,9 @@
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import type { PrologProcess } from "kibi-runtime";
 import type { Violation } from "kibi-runtime";
 import { resolveCorePlPath } from "./core-module.js";
@@ -36,13 +39,32 @@ export async function runAggregatedChecks(
   const checksPlPathEscaped = normalizedChecksPlPath.replace(/'/g, "''");
 
   const requireAdrStr = requireAdr ? "true" : "false";
+  // A large KB's violations JSON can exceed the engine's bounded output
+  // capacity, so the engine writes it to a private file and the answer
+  // carries only a transport marker. The string answer remains the fallback
+  // for an engine whose loaded core predates the file predicate.
+  const resultDir = mkdtempSync(path.join(tmpdir(), "kibi-check-"));
+  const resultPath = path.join(resultDir, "violations.json");
+  const resultPathEscaped = resultPath.replace(/\\/g, "/").replace(/'/g, "''");
   const query = `(load_files('${checksPlPathEscaped}', [if(changed)]),
-    (   predicate_property(checks:check_all_json_with_options(_, _), _)
-    ->  call(checks:check_all_json_with_options(JsonString, ${requireAdrStr}))
-    ;   call(checks:check_all_json(JsonString))
+    (   predicate_property(checks:check_all_json_file(_, _), _)
+    ->  call(checks:check_all_json_file('${resultPathEscaped}', ${requireAdrStr})), Transport = file
+    ;   predicate_property(checks:check_all_json_with_options(_, _), _)
+    ->  call(checks:check_all_json_with_options(JsonString, ${requireAdrStr})), Transport = answer
+    ;   call(checks:check_all_json(JsonString)), Transport = answer
     ))`;
 
-  const result = await prolog.query(query);
+  let result: Awaited<ReturnType<PrologProcess["query"]>>;
+  let jsonString: unknown;
+  try {
+    result = await prolog.query(query);
+    jsonString =
+      result.success && result.bindings.Transport === "file"
+        ? readFileSync(resultPath, "utf8")
+        : result.bindings.JsonString;
+  } finally {
+    rmSync(resultDir, { recursive: true, force: true });
+  }
 
   if (!result.success) {
     throw new Error(
@@ -50,7 +72,7 @@ export async function runAggregatedChecks(
     );
   }
 
-  const violationsDict = parseViolations(result.bindings.JsonString);
+  const violationsDict = parseViolations(jsonString);
 
   for (const ruleViolations of Object.values(violationsDict)) {
     for (const v of ruleViolations) {
