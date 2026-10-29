@@ -258,3 +258,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5d7eb6ecd475
+  - type: specified_by
+    from: REQ-bootstrap-claim-restatement-threshold
+    to: SCEN-NEG-bootstrap-claim-restatement-threshold-LOWER-THRESHOLD
+    created_at: 2026-10-29T22:11:22.737Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8b69436ca28

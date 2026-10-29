@@ -419,3 +419,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-563fcf4d9cab
+  - type: assumes
+    from: SCEN-NEG-kb-decision-firmness-settings-SHORT-EXPLANATION
+    to: FACT-NEG-kb-decision-firmness-settings-SHORT-EXPLANATION
+    created_at: 2026-10-29T22:11:07.244Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fac7ca362525
+  - type: verified_by
+    from: SCEN-NEG-kb-decision-firmness-settings-SHORT-EXPLANATION
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-29T22:11:07.295Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-509654a082a4

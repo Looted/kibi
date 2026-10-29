@@ -594,3 +594,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cdf46fea9251
+  - type: specified_by
+    from: REQ-claude-plugin-package
+    to: SCEN-NEG-claude-plugin-package-MISSING-SKILL
+    created_at: 2026-10-29T22:11:27.051Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e816bfd93062

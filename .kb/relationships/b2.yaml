@@ -461,3 +461,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9f1f50d76310
+  - type: assumes
+    from: SCEN-NEG-bootstrap-claim-restatement-threshold-LOWER-THRESHOLD
+    to: FACT-NEG-bootstrap-claim-restatement-threshold-LOWER-THRESHOLD
+    created_at: 2026-10-29T22:10:51.386Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6739fcff46b
+  - type: verified_by
+    from: SCEN-NEG-bootstrap-claim-restatement-threshold-LOWER-THRESHOLD
+    to: TEST-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-29T22:10:51.453Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb87a1ba6d23

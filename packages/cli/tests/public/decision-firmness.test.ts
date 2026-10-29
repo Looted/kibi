@@ -236,6 +236,51 @@ describe("decision firmness rules", () => {
     expect(findings[1]?.evidence).toEqual({ total: 1, ids: ["ADR-legacy"] });
   });
 
+  test("an explanation under 12 words, or under another heading, does not count", () => {
+    const twelve =
+      "The nightly batch missed its window twice, so the old limit failed.";
+    const eleven =
+      "The nightly batch missed its window twice, so the limit failed.";
+    const findings = evaluateDecisionFirmness(
+      [
+        decision("req", "REQ-a", ""),
+        decision("req", "REQ-b", ""),
+        decision("req", "REQ-c", ""),
+        decision(
+          "req",
+          "REQ-short",
+          "",
+          `Short.\n\n## Why this changed\n\n${eleven}\n`,
+        ),
+        decision(
+          "req",
+          "REQ-enough",
+          "",
+          `Enough.\n\n## Why this changed\n\n${twelve}\n`,
+        ),
+        decision(
+          "req",
+          "REQ-elsewhere",
+          "",
+          `Elsewhere.\n\n## Rationale\n\n${twelve}\n`,
+        ),
+      ],
+      edges(
+        ["REQ-short", "REQ-a"],
+        ["REQ-enough", "REQ-b"],
+        ["REQ-elsewhere", "REQ-c"],
+      ),
+    );
+    expect(whyThisChangedWords(`## Why this changed\n\n${eleven}\n`)).toBe(11);
+    expect(whyThisChangedWords(`## Why this changed\n\n${twelve}\n`)).toBe(12);
+    expect(findings.map((finding) => [finding.rule, finding.entityId])).toEqual(
+      [
+        [SUPERSEDES_REASON_MISSING_RULE, "REQ-elsewhere"],
+        [SUPERSEDES_REASON_MISSING_RULE, "REQ-short"],
+      ],
+    );
+  });
+
   test("an acknowledgement covers only the edges it lists", () => {
     const findings = evaluateDecisionFirmness(
       [
