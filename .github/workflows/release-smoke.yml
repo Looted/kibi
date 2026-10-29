@@ -19,6 +19,10 @@ on:
         type: string
         required: true
 
+env:
+  # Kibi's own CI never sends anonymous usage telemetry.
+  KIBI_TELEMETRY: "0"
+
 permissions:
   contents: read
 

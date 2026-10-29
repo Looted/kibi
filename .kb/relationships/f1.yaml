@@ -300,3 +300,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ac387d9fb5a0
+  - type: specified_by
+    from: REQ-kibi-anonymous-usage-telemetry
+    to: SCEN-kibi-anonymous-usage-telemetry
+    created_at: 2026-10-29T09:37:23.954Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6e6d486958c
+  - type: verified_by
+    from: REQ-kibi-anonymous-usage-telemetry
+    to: TEST-kibi-anonymous-usage-telemetry
+    created_at: 2026-10-29T09:37:23.999Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb307b54f04c
+  - type: relates_to
+    from: REQ-kibi-anonymous-usage-telemetry
+    to: REQ-claude-hook-usage-telemetry-v2
+    created_at: 2026-10-29T09:37:24.032Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ecb848469736
+  - type: requires_predicate
+    from: REQ-kibi-anonymous-usage-telemetry
+    to: FACT-PRED-telemetry-anonymous-default
+    created_at: 2026-10-29T09:39:35.509Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23e45a44d356
+  - type: requires_predicate
+    from: REQ-kibi-anonymous-usage-telemetry
+    to: FACT-PRED-telemetry-summary-fields-only
+    created_at: 2026-10-29T09:39:35.541Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df5122183acf
+  - type: requires_predicate
+    from: REQ-kibi-anonymous-usage-telemetry
+    to: FACT-PRED-telemetry-no-workspace-content
+    created_at: 2026-10-29T09:39:35.581Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ce26b9272f3
+  - type: requires_predicate
+    from: REQ-kibi-anonymous-usage-telemetry
+    to: FACT-PRED-telemetry-opt-out
+    created_at: 2026-10-29T09:39:35.623Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-331a7a5eaf28
+  - type: requires_predicate
+    from: REQ-kibi-anonymous-usage-telemetry
+    to: FACT-PRED-telemetry-off-in-ci-and-tests
+    created_at: 2026-10-29T09:39:35.658Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d860a491d70b
+  - type: requires_predicate
+    from: REQ-kibi-anonymous-usage-telemetry
+    to: FACT-PRED-telemetry-first-run-notice
+    created_at: 2026-10-29T09:39:35.696Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ddd94d26bda2
+  - type: requires_predicate
+    from: REQ-kibi-anonymous-usage-telemetry
+    to: FACT-PRED-telemetry-failure-harmless
+    created_at: 2026-10-29T09:39:35.724Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a12a30094028
+  - type: verified_by
+    from: REQ-kibi-anonymous-usage-telemetry
+    to: TEST-kibi-anonymous-usage-telemetry-cli
+    created_at: 2026-10-29T10:10:09.812Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9db8eabdb224

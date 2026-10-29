@@ -384,3 +384,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-260c818cea1a
+  - type: implements
+    from: SYM-agent-core-usage-telemetry-recordoperationtelemetry
+    to: REQ-kibi-anonymous-usage-telemetry
+    created_at: 2026-10-29T10:10:29.290Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-abee8bee0efc
+  - type: covered_by
+    from: SYM-agent-core-usage-telemetry-recordoperationtelemetry
+    to: TEST-kibi-anonymous-usage-telemetry-cli
+    created_at: 2026-10-29T10:10:29.320Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18f5585135cf
