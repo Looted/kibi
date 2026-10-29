@@ -405,7 +405,7 @@ describe("persistRelationships batch fallback and untracked tips", () => {
         bindings: {},
         error: "batch txn aborted",
       }),
-      query: (goal) => {
+      query: (goal): QueryResult => {
         if (goal.startsWith("kb_assert_relationships_reporting(")) {
           return { success: true, bindings: { Failed: "[2]" } };
         }
@@ -440,9 +440,7 @@ describe("persistRelationships batch fallback and untracked tips", () => {
     expect(reporting).toHaveLength(1);
     expect(reporting[0]).toContain("rel(specified_by, 'REQ-001', 'SCEN-1')");
     expect(singles.length).toBeGreaterThan(0);
-    expect(singles.every((goal) => goal.includes("'SCEN-MISSING'"))).toBe(
-      true,
-    );
+    expect(singles.every((goal) => goal.includes("'SCEN-MISSING'"))).toBe(true);
   });
 
   test("warns with an untracked-document hint for unstaged missing targets", async () => {
