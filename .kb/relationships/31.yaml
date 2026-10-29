@@ -507,3 +507,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-180c8815f313
+  - type: specified_by
+    from: REQ-agent-core-edit-snippets
+    to: SCEN-NEG-agent-core-edit-snippets-RETIRED-LEAD
+    created_at: 2026-10-29T21:02:29.825Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a42309222628
+  - type: assumes
+    from: SCEN-NEG-bootstrap-subject-key-shape-COMPONENTLESS-CLAIM
+    to: FACT-NEG-bootstrap-subject-key-shape-COMPONENTLESS-CLAIM
+    created_at: 2026-10-29T21:05:05.614Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d32378d41dd
+  - type: verified_by
+    from: SCEN-NEG-bootstrap-subject-key-shape-COMPONENTLESS-CLAIM
+    to: TEST-bootstrap-subject-key-shape
+    created_at: 2026-10-29T21:05:05.750Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66c468138eee

@@ -503,3 +503,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-01ca17ccecd6
+  - type: specified_by
+    from: REQ-claude-code-kibi-plugin-v1
+    to: SCEN-NEG-claude-code-kibi-plugin-v1-UNOWNED-PROJECT-TOOLS
+    created_at: 2026-10-29T21:17:58.227Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-abc80c72efb3

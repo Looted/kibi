@@ -363,3 +363,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-94778a95b27d
+  - type: specified_by
+    from: REQ-capability-plugin-builtin-parity-v1
+    to: SCEN-NEG-capability-plugin-builtin-parity-v1-PLUGINS-ABSENT-IMPORT
+    created_at: 2026-10-29T21:21:23.860Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fae2795a7b3c

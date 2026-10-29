@@ -433,3 +433,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a9afedfc5e07
+  - type: specified_by
+    from: REQ-agent-hosts-decision-guard
+    to: SCEN-NEG-agent-hosts-decision-guard-UNRECORDED-STOP
+    created_at: 2026-10-29T21:02:45.495Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-750dbba511d2

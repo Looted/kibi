@@ -461,3 +461,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e67b3c91f4f2
+  - type: assumes
+    from: SCEN-NEG-014-FAILING-COMMIT
+    to: FACT-NEG-014-FAILING-COMMIT
+    created_at: 2026-10-29T21:05:52.720Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17d015b115d3
+  - type: verified_by
+    from: SCEN-NEG-014-FAILING-COMMIT
+    to: TEST-006
+    created_at: 2026-10-29T21:05:52.775Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-deba3728ed0f
