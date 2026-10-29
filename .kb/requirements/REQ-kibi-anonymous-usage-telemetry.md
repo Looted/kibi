@@ -1,6 +1,7 @@
 ---
 title: Kibi sends anonymous opt-out usage telemetry with summary fields only
 status: open
+required_evidence: tested
 priority: should
 tags:
   - telemetry
