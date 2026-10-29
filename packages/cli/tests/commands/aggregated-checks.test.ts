@@ -1,5 +1,7 @@
 // @ts-ignore
 import { describe, expect, test } from "bun:test";
+import { existsSync, writeFileSync } from "node:fs";
+import path from "node:path";
 import { runAggregatedChecks } from "../../src/commands/aggregated-checks";
 import type { PrologProcess } from "../../src/prolog";
 
@@ -55,6 +57,71 @@ describe("runAggregatedChecks", () => {
         witnesses: [{ kind: "strict_property", status: "contradiction" }],
       },
     });
+  });
+
+  test("reads violations from the engine's result file when the answer says so", async () => {
+    const violations = {
+      "rule-a": [
+        {
+          rule: "rule-a",
+          entityId: "E1",
+          description: "desc",
+          suggestion: "",
+          source: "",
+        },
+      ],
+    };
+    let resultPath = "";
+    const prolog = {
+      async query(goal: string) {
+        const match = goal.match(/check_all_json_file\('([^']+)', false\)/);
+        if (!match?.[1]) throw new Error(`no result file in goal: ${goal}`);
+        resultPath = match[1];
+        expect(path.isAbsolute(resultPath)).toBe(true);
+        writeFileSync(resultPath, JSON.stringify(violations), "utf8");
+        return { success: true, bindings: { Transport: "file" } };
+      },
+    } as unknown as PrologProcess;
+
+    const out = await runAggregatedChecks(prolog, null);
+    expect(out).toEqual([
+      { rule: "rule-a", entityId: "E1", description: "desc" },
+    ]);
+    expect(existsSync(path.dirname(resultPath))).toBe(false);
+  });
+
+  test("selected rules go through the result file too", async () => {
+    let resultPath = "";
+    const capture: { lastQuery?: string } = {};
+    const prolog = {
+      async query(goal: string) {
+        capture.lastQuery = goal;
+        const match = goal.match(
+          /check_selected_json_file\(\['rule-a'\], '([^']+)'\)/,
+        );
+        if (!match?.[1]) throw new Error(`no result file in goal: ${goal}`);
+        resultPath = match[1];
+        writeFileSync(resultPath, JSON.stringify({ "rule-a": [] }), "utf8");
+        return { success: true, bindings: { Transport: "file" } };
+      },
+    } as unknown as PrologProcess;
+
+    const out = await runAggregatedChecks(prolog, new Set(["rule-a"]));
+    expect(out).toEqual([]);
+    expect(capture.lastQuery).toContain("check_selected_json([");
+    expect(existsSync(path.dirname(resultPath))).toBe(false);
+  });
+
+  test("an engine without the file predicates still answers through the binding", async () => {
+    const result = {
+      success: true,
+      bindings: {
+        Transport: "answer",
+        JsonString: JSON.stringify({ "rule-a": [] }),
+      },
+    };
+    const out = await runAggregatedChecks(makeProlog(result), null);
+    expect(out).toHaveLength(0);
   });
 
   test("empty violations (no issues found)", async () => {

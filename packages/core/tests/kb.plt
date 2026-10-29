@@ -5467,6 +5467,34 @@ test(check_all_json_with_options_serializes_dict, [setup(setup_kb), cleanup(clea
     assertion(Row.get(entityId) == "SYM-ADR-NEEDED"),
     assertion(Row.get(description) == "Symbol has no ADR constraint.").
 
+test(check_all_json_file_writes_the_answer_json, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-ADR-NEEDED', "ADR needed req", open, []),
+    assert_fixture_entity(symbol, 'SYM-ADR-NEEDED', "ADR needed symbol", active, []),
+    kb_assert_relationship(implements, 'SYM-ADR-NEEDED', 'REQ-ADR-NEEDED', []),
+    checks:check_all_json_with_options(Json, true),
+    tmp_file(kibi_check_result, Path),
+    checks:check_all_json_file(Path, true),
+    read_file_to_string(Path, FileJson, [encoding(utf8)]),
+    delete_file(Path),
+    assertion(FileJson == Json),
+    atom_json_dict(FileJson, JsonDict, []),
+    member(Row, JsonDict.get(symbol_traceability)),
+    assertion(Row.get(entityId) == "SYM-ADR-NEEDED").
+
+test(check_selected_json_file_writes_the_selected_rules, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-ADR-NEEDED', "ADR needed req", open, []),
+    assert_fixture_entity(symbol, 'SYM-ADR-NEEDED', "ADR needed symbol", active, []),
+    kb_assert_relationship(implements, 'SYM-ADR-NEEDED', 'REQ-ADR-NEEDED', []),
+    checks:check_selected_json(['no-dangling-refs'], Json),
+    tmp_file(kibi_check_selected, Path),
+    checks:check_selected_json_file(['no-dangling-refs'], Path),
+    read_file_to_string(Path, FileJson, [encoding(utf8)]),
+    delete_file(Path),
+    assertion(FileJson == Json),
+    atom_json_dict(FileJson, JsonDict, []),
+    assertion(JsonDict.get(no_dangling_refs) == []),
+    assertion(JsonDict.get(symbol_traceability) == []).
+
 test(check_rule_verifiability_normalizes_typed_schema_reference, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     rule_fixture_json(oblige, typed_schema_reference, RuleJson),
     assert_fixture_entity(fact, 'FACT-RULE-SCHEMA-TYPED', "Typed rule schema", active, [

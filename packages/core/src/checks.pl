@@ -6,7 +6,9 @@
 :- module(checks, [
     check_all/1,                    % Returns all violations as a dict
     check_all_json/1,               % Returns all violations as JSON string
+    check_all_json_file/2,          % Writes all violations as JSON to a file
     check_selected_json/2,           % Returns only selected rule violations as JSON
+    check_selected_json_file/2,      % Writes selected rule violations as JSON to a file
     check_must_priority_coverage/1, % Returns list of must-priority violations
     check_symbol_coverage/1,        % Returns list of uncovered symbols
     check_changed_symbol_coverage/2, % symbol-coverage restricted to a staged change set
@@ -3780,6 +3782,28 @@ check_all_json_with_options(JsonString, RequireAdr) :-
     with_output_to_string(
         json_write_dict(current_output, JsonDict, [width(0)]),
         JsonString
+    ).
+
+%% check_all_json_file(+Path, +RequireAdr)
+% Writes the JSON check_all_json_with_options/2 would answer to Path.
+% The answer itself carries no violations, so a large KB's report is never
+% bounded by the engine's output capacity; the caller reads the file.
+check_all_json_file(Path, RequireAdr) :-
+    check_all_with_options(ViolationsDict, RequireAdr),
+    violations_json_to_file(ViolationsDict, Path).
+
+%% check_selected_json_file(+Rules, +Path)
+% File-transport form of check_selected_json/2.
+check_selected_json_file(Rules, Path) :-
+    check_selected(Rules, ViolationsDict),
+    violations_json_to_file(ViolationsDict, Path).
+
+violations_json_to_file(ViolationsDict, Path) :-
+    violations_dict_to_json(ViolationsDict, JsonDict),
+    setup_call_cleanup(
+        open(Path, write, Stream, [encoding(utf8)]),
+        json_write_dict(Stream, JsonDict, [width(0)]),
+        close(Stream)
     ).
 
 %% check_all_with_options(-ViolationsDict, +RequireAdr)

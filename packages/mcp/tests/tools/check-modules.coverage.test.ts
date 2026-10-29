@@ -1,7 +1,13 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import type { PrologProcess } from "kibi-runtime";
 
 import type { ToolConfig, ToolsRuntime } from "../../src/server/tool-types.js";
@@ -103,6 +109,36 @@ describe("MCP check-prolog aggregated parser", () => {
         evidence: { field: "source" },
       },
     ]);
+  });
+
+  test("reads the violations from the engine's result file and removes it", async () => {
+    let resultPath = "";
+    const query = async (goal: string) => {
+      const match = goal.match(/check_all_json_file\('([^']+)', true\)/);
+      if (!match?.[1]) throw new Error(`no result file in goal: ${goal}`);
+      resultPath = match[1];
+      writeFileSync(
+        resultPath,
+        JSON.stringify({
+          "required-fields": [
+            {
+              rule: "required-fields",
+              entityId: "REQ-FILE",
+              description: "from file",
+            },
+          ],
+        }),
+        "utf8",
+      );
+      return { success: true, bindings: { Transport: "file" } };
+    };
+    const violations = await runAggregatedChecks(
+      { query } as unknown as PrologProcess,
+      new Set(["required-fields"]),
+      true,
+    );
+    expect(violations.map((v) => v.entityId)).toEqual(["REQ-FILE"]);
+    expect(existsSync(dirname(resultPath))).toBe(false);
   });
 
   test("uses check_all_json when requireAdr is false and unwraps nested JSON", async () => {

@@ -1,3 +1,5 @@
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { type PrologProcess, resolveKbPlPath } from "../prolog.js";
 import { escapeAtom, toPrologAtom } from "../prolog/codec.js";
@@ -42,6 +44,20 @@ export function ontologyQualityOverridesGoal(
 }
 
 /**
+ * A private file the engine writes the violations JSON to. A large KB's
+ * report can exceed the engine's bounded output capacity, so the answer
+ * carries only a transport marker and the JSON travels through this file.
+ */
+// implements REQ-003
+function checkResultFile(): { path: string; dispose: () => void } {
+  const dir = mkdtempSync(path.join(tmpdir(), "kibi-check-"));
+  return {
+    path: path.join(dir, "violations.json"),
+    dispose: () => rmSync(dir, { recursive: true, force: true }),
+  };
+}
+
+/**
  * Run all checks using the aggregated Prolog predicates.
  * This makes a single Prolog call and parses JSON output, significantly
  * faster than running individual checks with multiple round-trips.
@@ -57,21 +73,40 @@ export async function runAggregatedChecks(
 
   const checksPlPath = path.join(path.dirname(resolveKbPlPath()), "checks.pl");
   const checksPlPathEscaped = escapeAtom(checksPlPath);
-  const fallbackQuery = `(   predicate_property(checks:check_all_json_with_options(_, _), _)
-    ->  call(checks:check_all_json_with_options(JsonString, false))
-    ;   call(checks:check_all_json(JsonString))
+  const resultFile = checkResultFile();
+  const resultPath = toPrologAtom(resultFile.path);
+  // The string answer remains the fallback for an engine whose loaded core
+  // predates the file predicates.
+  const fallbackQuery = `(   predicate_property(checks:check_all_json_file(_, _), _)
+    ->  call(checks:check_all_json_file(${resultPath}, false)), Transport = file
+    ;   predicate_property(checks:check_all_json_with_options(_, _), _)
+    ->  call(checks:check_all_json_with_options(JsonString, false)), Transport = answer
+    ;   call(checks:check_all_json(JsonString)), Transport = answer
     )`;
   const checksQuery = rulesAllowlist
-    ? `(   predicate_property(checks:check_selected_json(_, _), _)
+    ? `(   predicate_property(checks:check_selected_json_file(_, _), _)
+      ->  call(checks:check_selected_json_file([${[...rulesAllowlist]
+        .map(toPrologAtom)
+        .join(",")}], ${resultPath})), Transport = file
+      ;   predicate_property(checks:check_selected_json(_, _), _)
       ->  call(checks:check_selected_json([${[...rulesAllowlist]
         .map(toPrologAtom)
-        .join(",")}], JsonString))
+        .join(",")}], JsonString)), Transport = answer
       ;   ${fallbackQuery}
       )`
     : fallbackQuery;
   const query = `(use_module('${checksPlPathEscaped}'), ${ontologyQualityOverridesGoal()}, ${checksQuery})`;
 
-  const result = await prolog.query(query);
+  let result: Awaited<ReturnType<PrologProcess["query"]>>;
+  let jsonString: string | undefined;
+  try {
+    result = await prolog.query(query);
+    if (result.success && result.bindings.Transport === "file") {
+      jsonString = readFileSync(resultFile.path, "utf8");
+    }
+  } finally {
+    resultFile.dispose();
+  }
 
   if (!result.success) {
     throw new Error(
@@ -81,7 +116,7 @@ export async function runAggregatedChecks(
 
   let violationsDict: Record<string, JsonViolation[]>;
   try {
-    const jsonString = result.bindings.JsonString;
+    jsonString ??= result.bindings.JsonString;
     if (!jsonString) {
       throw new Error("No JSON string in binding");
     }
