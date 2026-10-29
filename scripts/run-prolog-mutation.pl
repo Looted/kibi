@@ -11,6 +11,7 @@
 
 :- initialization(main, main).
 
+:- use_module(library(filesex)).
 :- use_module(library(process)).
 
 mutalog_version('0.1.2').
@@ -37,27 +38,33 @@ use_mutalog :-
     (   pack_property(mutalog, version(Version))
     ->  true
     ;   format(user_error, "Installing Mutalog ~w into ~w~n", [Version, Dir]),
-        format(atom(URL),
-               'https://github.com/Looted/mutalog/archive/v~w.zip', [Version]),
-        download_archive(URL, Dir, Version, Archive),
-        pack_install(Archive, [ package_directory(Dir),
-                                interactive(false),
-                                upgrade(true)
-                              ]),
+        install_mutalog(Version, Dir),
         attach_packs(Dir, [duplicate(replace)])
     ),
     use_module(library(mutalog), []).
 
-% Downloads go through curl, which uses the system's certificate store: the
-% relocated SWI-Prolog bundle has no CA path of its own, so its HTTPS client
-% fails to verify github.com. The archive keeps the name SWI-Prolog derives
-% the pack name and version from.
-download_archive(URL, Dir, Version, Archive) :-
-    format(atom(Archive), '~w/mutalog-~w.zip', [Dir, Version]),
-    process_create(path(curl), ['-fsSL', '-o', Archive, URL],
-                   [process(Pid)]),
+% Mutalog is plain Prolog, so installing it is unpacking its release archive
+% into Dir/mutalog. curl and tar do the work rather than pack_install/2: the
+% relocated SWI-Prolog bundle has neither a CA path for its HTTPS client nor
+% library(archive).
+install_mutalog(Version, Dir) :-
+    format(atom(URL),
+           'https://github.com/Looted/mutalog/archive/v~w.tar.gz', [Version]),
+    format(atom(Archive), '~w/mutalog-~w.tar.gz', [Dir, Version]),
+    directory_file_path(Dir, mutalog, PackDir),
+    (   exists_directory(PackDir)
+    ->  delete_directory_and_contents(PackDir)
+    ;   true
+    ),
+    make_directory(PackDir),
+    run_program(curl, ['-fsSL', '-o', Archive, URL]),
+    run_program(tar, ['-xzf', Archive, '--strip-components=1', '-C', PackDir]),
+    delete_file(Archive).
+
+run_program(Program, Args) :-
+    process_create(path(Program), Args, [process(Pid)]),
     process_wait(Pid, Status),
     (   Status == exit(0)
     ->  true
-    ;   throw(error(mutalog_download_failed(URL, Status), _))
+    ;   throw(error(process_error(Program, Status), _))
     ).

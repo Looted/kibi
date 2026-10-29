@@ -46,6 +46,7 @@ origin:
   recorded_at: '2026-10-29T16:12:13.562Z'
 id: REQ-prolog-mutation-lane
 type: req
+required_evidence: tested
 ---
 The Prolog mutation runner must run the Mutalog checkout named by the MUTALOG_HOME environment variable when it is set. The Prolog mutation runner must otherwise run the pinned Mutalog version from the repository-local pack directory, installing it there only when that version is missing. The Prolog mutation runner must pass its command-line arguments to Mutalog unchanged.
 

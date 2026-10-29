@@ -117,9 +117,10 @@ SWI-Prolog and plunit that writes the same report schema as Stryker.
   Both plunit files run against both modules (`kb.plt` exercises the logic
   IR too). The whole run takes about 10 minutes on 3 workers.
   `kb.pl`'s report is mostly survivors until `kb.plt` gains tests for them.
-- `scripts/run-prolog-mutation.pl` pins the Mutalog version, downloads it
-  with `curl` on first use and installs it into `.cache/prolog-packs`
-  (gitignored), leaving the user's own packs alone. Set `MUTALOG_HOME` to a
+- `scripts/run-prolog-mutation.pl` pins the Mutalog version. On first use
+  it downloads the release archive with `curl` and unpacks it with `tar`
+  into `.cache/prolog-packs` (gitignored), leaving the user's own packs
+  alone. Set `MUTALOG_HOME` to a
   Mutalog checkout to run that instead.
 - Unlike the Stryker gate, this lane **reports only**: `break(0)` in
   `mutalog.config.pl` never fails the run. The first survivors include
