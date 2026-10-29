@@ -748,6 +748,7 @@ negative_path_stage(ReqId, ScenarioStage, ScenarioTestStage, Context, Stage) :-
     exclude(certified_claim(Certified), ClaimFacts, OpenFacts),
     pairs_keys(OpenFacts, Open0),
     sort(Open0, Open),
+    pending_certified_claim_keys(ScenarioTestStage, Context, Open, Pending),
     (   get_dict(negativeScenarios, ScenarioStage, Negatives) -> true ; Negatives = [] ),
     failure_side_waiver(ReqId, Waiver),
     (   Open == []
@@ -770,8 +771,30 @@ negative_path_stage(ReqId, ScenarioStage, ScenarioTestStage, Context, Stage) :-
         certifiedClaims: Certified,
         negativeScenarios: Negatives,
         suggestedNegatives: Suggestions,
+        pendingReproofClaims: Pending,
         waiver: Waiver
     }.
+
+% Open claims a certificate test proves (its contract lists them in proves)
+% whose receipt is only older than the code: re-running kibi prove certifies
+% them, so the evidence floor treats them like any other stale receipt.
+pending_certified_claim_keys(ScenarioTestStage, Context, Open, Keys) :-
+    (   get_dict(tests, ScenarioTestStage, Tests) -> true ; Tests = [] ),
+    findall(Key,
+        (   member(TestId, Tests),
+            test_receipt_evidence(Context, [unit, integration, end_to_end], TestId, Evidence),
+            get_dict(state, Evidence, stale),
+            kb_entity(TestId, test, Props),
+            memberchk(proof_contract=RawContract, Props),
+            proof_contract_dict(RawContract, Contract),
+            get_dict(proves, Contract, Proves),
+            is_list(Proves),
+            member(RawKey, Proves),
+            normalize_atom(RawKey, Key),
+            memberchk(Key, Open)
+        ),
+        Keys0),
+    sort(Keys0, Keys).
 
 %% failure_side_waiver(+ReqId, -Waiver)
 % A requirement whose claims state a capability or an output shape has no
@@ -2396,12 +2419,24 @@ freshness_gap(proof_contract_mismatch).
 
 freshness_only_gaps(Gaps, Stages) :-
     include(freshness_gap, Gaps, [_|_]),
-    exclude(freshness_gap, Gaps, Rest),
+    exclude(freshness_gap, Gaps, Rest0),
+    (   negative_path_freshness_only(Stages)
+    ->  exclude(==(happy_path_only), Rest0, Rest)
+    ;   Rest = Rest0
+    ),
     (   Rest == []
     ->  true
     ;   Rest == [missing_production_symbol_coverage],
         production_coverage_freshness_only(Stages)
     ).
+
+% The failure side is open only because certificate receipts that prove
+% every open claim are stale.
+negative_path_freshness_only(Stages) :-
+    get_dict(negativePath, Stages, Stage),
+    Stage.status == missing,
+    Stage.claims \== [],
+    subtract(Stage.claims, Stage.pendingReproofClaims, []).
 
 production_coverage_freshness_only(Stages) :-
     Stage = Stages.productionSymbols,
