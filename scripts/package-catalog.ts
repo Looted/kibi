@@ -90,6 +90,15 @@ export const PACKAGE_CATALOG = [
     optional: true,
     packAll: true,
   },
+  {
+    dir: "plugin-search-hints",
+    npmName: "kibi-plugin-search-hints",
+    publishable: true,
+    packInCi: true,
+    includedInDefaultInstall: false,
+    optional: true,
+    packAll: true,
+  },
   // Platform packages carry the SWI-Prolog binaries, which are populated from
   // the verified swipl-build pipeline archives at release time
   // (scripts/populate-swipl-platform-packages.mjs) and never committed. They

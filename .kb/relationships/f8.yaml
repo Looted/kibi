@@ -384,6 +384,55 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a20c56facde7
+  - type: specified_by
+    from: REQ-capability-search-hints-v1
+    to: SCEN-capability-search-hints-v1
+    created_at: 2026-10-29T19:19:15.051Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b338c528deac
+  - type: constrains
+    from: REQ-capability-search-hints-v1
+    to: FACT-search-hints-cap-subject
+    created_at: 2026-10-29T19:21:30.864Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e9f37d26c8f
+  - type: requires_property
+    from: REQ-capability-search-hints-v1
+    to: FACT-search-hints-cap-only-supplied-ids
+    created_at: 2026-10-29T19:21:30.925Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0615c71f9cbe
+  - type: requires_property
+    from: REQ-capability-search-hints-v1
+    to: FACT-search-hints-cap-max-hints
+    created_at: 2026-10-29T19:21:30.958Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-146c33bd1d0a
+  - type: requires_property
+    from: REQ-capability-search-hints-v1
+    to: FACT-search-hints-cap-score-range
+    created_at: 2026-10-29T19:21:31.001Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33c29e19f2bb
+  - type: requires_property
+    from: REQ-capability-search-hints-v1
+    to: FACT-search-hints-cap-ordered
+    created_at: 2026-10-29T19:21:31.041Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0d32a94a61f
+  - type: requires_property
+    from: REQ-capability-search-hints-v1
+    to: FACT-search-hints-cap-no-augment
+    created_at: 2026-10-29T19:21:31.064Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-828666954384
   - type: implements
     from: SYM-hook-managers-hook-manager-name-type
     to: REQ-git-hook-manager-integration

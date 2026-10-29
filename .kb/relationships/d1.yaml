@@ -405,6 +405,69 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0f950babfa05
+  - type: specified_by
+    from: REQ-kibi-search-hints-host
+    to: SCEN-kibi-search-hints-host
+    created_at: 2026-10-29T19:19:18.949Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f12d7f3a44df
+  - type: constrains
+    from: REQ-kibi-search-hints-host
+    to: FACT-search-hints-host-subject
+    created_at: 2026-10-29T19:21:41.781Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b47a390842f
+  - type: requires_property
+    from: REQ-kibi-search-hints-host
+    to: FACT-search-hints-host-weak-score
+    created_at: 2026-10-29T19:21:41.850Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9650469c34be
+  - type: requires_property
+    from: REQ-kibi-search-hints-host
+    to: FACT-search-hints-host-answer-unchanged
+    created_at: 2026-10-29T19:21:41.897Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f55a0e2c050
+  - type: requires_property
+    from: REQ-kibi-search-hints-host
+    to: FACT-search-hints-host-failure-safe
+    created_at: 2026-10-29T19:21:41.938Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41524519526d
+  - type: requires_property
+    from: REQ-kibi-search-hints-host
+    to: FACT-search-hints-host-lifted
+    created_at: 2026-10-29T19:21:41.979Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2a3924ba0d1
+  - type: requires_property
+    from: REQ-kibi-search-hints-host
+    to: FACT-search-hints-host-max-shown
+    created_at: 2026-10-29T19:21:42.013Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9992813cd75c
+  - type: requires_property
+    from: REQ-kibi-search-hints-host
+    to: FACT-search-hints-host-omit-governing
+    created_at: 2026-10-29T19:21:42.043Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea9ba0210993
+  - type: requires_property
+    from: REQ-kibi-search-hints-host
+    to: FACT-search-hints-host-shadow-compare
+    created_at: 2026-10-29T19:21:42.075Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-388340bd49bd
   - type: executable_for
     from: SYM-git-hook-manager-integration-verifier
     to: TEST-git-hook-manager-integration

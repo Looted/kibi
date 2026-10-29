@@ -11,6 +11,7 @@ export interface Tarballs {
   "plugin-builtin": string;
   "plugin-jev": string;
   "plugin-ui": string;
+  "plugin-search-hints": string;
   swipl: string;
   swiplPlatform?: string | undefined;
 }

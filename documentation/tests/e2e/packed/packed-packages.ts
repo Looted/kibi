@@ -7,6 +7,7 @@ export const packagesForPack = [
   "plugin-builtin",
   "plugin-jev",
   "plugin-ui",
+  "plugin-search-hints",
   "plugin-treesitter",
   "swipl",
   "runtime",

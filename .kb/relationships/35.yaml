@@ -342,3 +342,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-26b3c05a7b2c
+  - type: implements
+    from: SYM-search-hint-weak-score
+    to: REQ-kibi-search-hints-limits
+    created_at: 2026-10-29T21:27:46.307Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5a562aac629
+  - type: implements
+    from: SYM-search-hint-weak-score
+    to: REQ-kibi-search-hints-host
+    created_at: 2026-10-29T21:27:46.348Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-374a8aff371a
+  - type: covered_by
+    from: SYM-search-hint-weak-score
+    to: TEST-proof-search-hint-weak-score
+    created_at: 2026-10-29T21:29:09.987Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b39887c52de0
+  - type: covered_by
+    from: SYM-search-hint-weak-score
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-10-29T21:29:10.037Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47aecf8c4857

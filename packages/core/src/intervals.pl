@@ -22,6 +22,7 @@
 %% numeric_constraints_satisfiable(+Constraints)
 % True when some assignment of reals satisfies every constraint.
 numeric_constraints_satisfiable(Constraints) :-
+    % mutalog-disable-next-line literal: [_] names no variable, so it equals []
     numeric_constraints_satisfiable(Constraints, []).
 
 %% numeric_constraints_satisfiable(+Constraints, +IntegerVariables)
@@ -43,6 +44,7 @@ numeric_constraints_satisfiable(Constraints, IntegerVariables) :-
 %% numeric_constraint_entailed(+Premises, +Constraint)
 % True when every assignment that satisfies Premises satisfies Constraint.
 numeric_constraint_entailed(Premises, Constraint) :-
+    % mutalog-disable-next-line literal: [_] names no variable, so it equals []
     numeric_constraint_entailed(Premises, Constraint, []).
 
 %% numeric_constraint_entailed(+Premises, +Constraint, +IntegerVariables)
@@ -60,12 +62,12 @@ finite_constraint(c(_Op, _Variable, Value)) :-
     ;   true
     ).
 
-integer_variable(_, all) :- !.
+% Only called as an if-then-else condition, which keeps the first answer.
+integer_variable(_, all).
 integer_variable(Variable, IntegerVariables) :-
     is_list(IntegerVariables),
     member(Candidate, IntegerVariables),
-    Candidate == Variable,
-    !.
+    Candidate == Variable.
 
 %% numeric_constraint_negation(+Constraint, -Negated)
 numeric_constraint_negation(c(Op, Variable, Value), c(Negated, Variable, Value)) :-
@@ -80,10 +82,15 @@ negated_operator(gt, lte).
 
 %% numeric_constraint_holds(+Op, +Left, +Right)
 % Evaluate a comparison between two numbers.
+% mutalog-disable-next-line cut_insert: a comparison has one answer and the operators are distinct
 numeric_constraint_holds(eq, Left, Right) :- Left =:= Right.
+% mutalog-disable-next-line cut_insert: a comparison has one answer and the operators are distinct
 numeric_constraint_holds(neq, Left, Right) :- Left =\= Right.
+% mutalog-disable-next-line cut_insert: a comparison has one answer and the operators are distinct
 numeric_constraint_holds(lt, Left, Right) :- Left < Right.
+% mutalog-disable-next-line cut_insert: a comparison has one answer and the operators are distinct
 numeric_constraint_holds(lte, Left, Right) :- Left =< Right.
+% mutalog-disable-next-line cut_insert: a comparison has one answer and the operators are distinct
 numeric_constraint_holds(gt, Left, Right) :- Left > Right.
 numeric_constraint_holds(gte, Left, Right) :- Left >= Right.
 
@@ -94,14 +101,18 @@ variable_feasible(Variable, Constraints) :-
 
 % interval(Low, LowKind, High, HighKind, Excluded)
 apply_bound(eq-Value, interval(Lo, LoK, Hi, HiK, Ex), interval(Lo1, LoK1, Hi1, HiK1, Ex)) :-
+    % mutalog-disable-next-line cut_insert: raise_low/6 and lower_high/6 are det and the operators are distinct
     raise_low(Lo, LoK, Value, closed, Lo1, LoK1),
     lower_high(Hi, HiK, Value, closed, Hi1, HiK1).
 apply_bound(neq-Value, interval(Lo, LoK, Hi, HiK, Ex), interval(Lo, LoK, Hi, HiK, [Value|Ex])).
 apply_bound(lt-Value, interval(Lo, LoK, Hi, HiK, Ex), interval(Lo, LoK, Hi1, HiK1, Ex)) :-
+    % mutalog-disable-next-line cut_insert: raise_low/6 and lower_high/6 are det and the operators are distinct
     lower_high(Hi, HiK, Value, open, Hi1, HiK1).
 apply_bound(lte-Value, interval(Lo, LoK, Hi, HiK, Ex), interval(Lo, LoK, Hi1, HiK1, Ex)) :-
+    % mutalog-disable-next-line cut_insert: raise_low/6 and lower_high/6 are det and the operators are distinct
     lower_high(Hi, HiK, Value, closed, Hi1, HiK1).
 apply_bound(gt-Value, interval(Lo, LoK, Hi, HiK, Ex), interval(Lo1, LoK1, Hi, HiK, Ex)) :-
+    % mutalog-disable-next-line cut_insert: raise_low/6 and lower_high/6 are det and the operators are distinct
     raise_low(Lo, LoK, Value, open, Lo1, LoK1).
 apply_bound(gte-Value, interval(Lo, LoK, Hi, HiK, Ex), interval(Lo1, LoK1, Hi, HiK, Ex)) :-
     raise_low(Lo, LoK, Value, closed, Lo1, LoK1).
@@ -116,13 +127,18 @@ lower_high(Hi, _, Value, Kind, Value, Kind) :- Value < Hi, !.
 lower_high(Hi, HiK, Value, Kind, Hi, Kind1) :- Value =:= Hi, !, tighter_kind(HiK, Kind, Kind1).
 lower_high(Hi, HiK, _, _, Hi, HiK).
 
+% mutalog-disable-next-line cut: the second answer, open, only shrinks the interval
 tighter_kind(closed, closed, closed) :- !.
 tighter_kind(_, _, open).
 
 % An unbounded or non-degenerate real interval cannot be emptied by finitely
 % many excluded points.  A degenerate interval is a single closed point.
+% The callers keep only the first answer, so the cuts are not observable.
+% mutalog-disable-next-line cut
 interval_non_empty(interval(ninf, _, _, _, _)) :- !.
+% mutalog-disable-next-line cut
 interval_non_empty(interval(_, _, pinf, _, _)) :- !.
+% mutalog-disable-next-line cut
 interval_non_empty(interval(Lo, _, Hi, _, _)) :- Lo < Hi, !.
 interval_non_empty(interval(Lo, closed, Hi, closed, Excluded)) :-
     Lo =:= Hi,
@@ -131,34 +147,37 @@ interval_non_empty(interval(Lo, closed, Hi, closed, Excluded)) :-
 % Integer variables: every strict or fractional bound is tightened to the
 % nearest admissible integer, so the set is an integer range [Lo, Hi] minus
 % finitely many excluded integers.  An eq bound with a fractional value admits
-% no integer at all.
+% no integer at all, so the fold fails.  The operators are distinct, so the
+% cuts after the heads are not observable.
 integer_variable_feasible(Variable, Constraints) :-
     findall(Op-Value, (member(c(Op, Other, Value), Constraints), Other == Variable), Bounds),
     foldl(apply_integer_bound, Bounds, ibox(ninf, pinf, []), Box),
     integer_box_non_empty(Box).
 
-apply_integer_bound(_, empty, empty) :- !.
-apply_integer_bound(eq-Value, ibox(Lo, Hi, Ex), Box) :- !,
-    (   integral_value(Value, Integer)
-    ->  integer_raise_low(Lo, Integer, Lo1),
-        integer_lower_high(Hi, Integer, Hi1),
-        Box = ibox(Lo1, Hi1, Ex)
-    ;   Box = empty
-    ).
+% mutalog-disable-next-line cut
+apply_integer_bound(eq-Value, ibox(Lo, Hi, Ex), ibox(Lo1, Hi1, Ex)) :- !,
+    integral_value(Value, Integer),
+    integer_raise_low(Lo, Integer, Lo1),
+    integer_lower_high(Hi, Integer, Hi1).
+% mutalog-disable-next-line cut
 apply_integer_bound(neq-Value, ibox(Lo, Hi, Ex), ibox(Lo, Hi, Ex1)) :- !,
     (   integral_value(Value, Integer)
     ->  Ex1 = [Integer|Ex]
     ;   Ex1 = Ex
     ).
+% mutalog-disable-next-line cut
 apply_integer_bound(gt-Value, ibox(Lo, Hi, Ex), ibox(Lo1, Hi, Ex)) :- !,
     Bound is floor(Value) + 1,
     integer_raise_low(Lo, Bound, Lo1).
+% mutalog-disable-next-line cut
 apply_integer_bound(gte-Value, ibox(Lo, Hi, Ex), ibox(Lo1, Hi, Ex)) :- !,
     Bound is ceiling(Value),
     integer_raise_low(Lo, Bound, Lo1).
+% mutalog-disable-next-line cut
 apply_integer_bound(lt-Value, ibox(Lo, Hi, Ex), ibox(Lo, Hi1, Ex)) :- !,
     Bound is ceiling(Value) - 1,
     integer_lower_high(Hi, Bound, Hi1).
+% mutalog-disable-next-line cut
 apply_integer_bound(lte-Value, ibox(Lo, Hi, Ex), ibox(Lo, Hi1, Ex)) :- !,
     Bound is floor(Value),
     integer_lower_high(Hi, Bound, Hi1).
@@ -175,11 +194,13 @@ integer_lower_high(pinf, Bound, Bound) :- !.
 integer_lower_high(Hi, Bound, Hi1) :- Hi1 is min(Hi, Bound).
 
 % An unbounded integer range cannot be emptied by finitely many exclusions.
-integer_box_non_empty(empty) :- !, fail.
+% A range with Lo above Hi has a non-positive size, so it fails the count.
+% The callers keep only the first answer, so the cuts are not observable.
+% mutalog-disable-next-line cut
 integer_box_non_empty(ibox(ninf, _, _)) :- !.
+% mutalog-disable-next-line cut
 integer_box_non_empty(ibox(_, pinf, _)) :- !.
 integer_box_non_empty(ibox(Lo, Hi, Excluded)) :-
-    Lo =< Hi,
     findall(Value, (member(Value, Excluded), Value >= Lo, Value =< Hi), Inside0),
     sort(Inside0, Inside),
     length(Inside, ExcludedCount),

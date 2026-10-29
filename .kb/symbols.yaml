@@ -40799,7 +40799,7 @@ symbols:
         target: REQ-capability-plugin-protocol-v1
   - id: SYM-cap-plugin-pluginvalidationerror-edc38c60
     title: PluginValidationError
-    sourceFile: packages/plugin-sdk/src/validate.ts
+    sourceFile: packages/plugin-sdk/src/validation-error.ts
     status: active
     symbol_role: behavioral
     granularity_reason: module-level-behavior
@@ -40810,7 +40810,7 @@ symbols:
         target: REQ-capability-plugin-protocol-v1
   - id: SYM-cap-plugin-pluginvalidationerror-code-0a3bc917
     title: PluginValidationError.code
-    sourceFile: packages/plugin-sdk/src/validate.ts
+    sourceFile: packages/plugin-sdk/src/validation-error.ts
     status: active
     symbol_role: behavioral
     relationships:
@@ -51788,8 +51788,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-bootstrap-ui-plugin-offer
+      - type: covered_by
+        target: TEST-kibi-plugin-search-hints
       - type: implements
         target: REQ-bootstrap-ui-plugin-offer
+      - type: implements
+        target: REQ-kibi-plugin-search-hints
   - id: SYM-agent-core-manifestStateOf
     title: manifestStateOf
     status: active
@@ -64607,6 +64611,158 @@ symbols:
         target: TEST-kibi-anonymous-usage-telemetry-cli
       - type: implements
         target: REQ-kibi-anonymous-usage-telemetry
+  - id: SYM-test-prolog-mutation-lane
+    title: prolog-mutation-runner.test.ts
+    status: active
+    sourceFile: packages/core/tests/prolog-mutation-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:12:50.973Z
+    relationships:
+      - type: executable_for
+        target: TEST-prolog-mutation-lane
+  - id: SYM-prolog-mutation-use-mutalog
+    title: use_mutalog
+    status: active
+    sourceFile: scripts/run-prolog-mutation.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:12:55.961Z
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-mutation-lane
+      - type: implements
+        target: REQ-prolog-mutation-lane
+  - id: SYM-prolog-mutation-main
+    title: main
+    status: active
+    sourceFile: scripts/run-prolog-mutation.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:12:59.189Z
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-mutation-lane
+      - type: implements
+        target: REQ-prolog-mutation-lane
+  - id: SYM-test-capability-search-hints-v1
+    title: search-hints.test.ts
+    status: active
+    sourceFile: packages/plugin-sdk/tests/search-hints.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T19:18:52.884Z
+    relationships:
+      - type: executable_for
+        target: TEST-capability-search-hints-v1
+  - id: SYM-test-kibi-plugin-search-hints
+    title: plugin.test.ts
+    status: active
+    sourceFile: packages/plugin-search-hints/tests/plugin.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T19:18:58.609Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-plugin-search-hints
+  - id: SYM-test-kibi-search-hints-host
+    title: search-hints.test.ts
+    status: active
+    sourceFile: packages/cli/tests/search-hints.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T19:19:04.577Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-search-hints-host
+  - id: SYM-build-search-hints
+    title: buildSearchHints
+    status: active
+    sourceFile: packages/cli/src/search-hints.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T19:22:26.032Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: implements
+        target: REQ-kibi-search-hints-host
+  - id: SYM-compose-search-hints
+    title: composeSearchHints
+    status: active
+    sourceFile: packages/cli/src/plugins/compose-search-hints.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T19:22:33.597Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: implements
+        target: REQ-kibi-search-hints-host
+  - id: SYM-rank-by-meaning
+    title: rankByMeaning
+    status: active
+    sourceFile: packages/plugin-search-hints/src/index.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T19:22:40.838Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-plugin-search-hints
+      - type: implements
+        target: REQ-kibi-plugin-search-hints
+  - id: SYM-search-hints-load-static-model
+    title: loadStaticModel
+    status: active
+    sourceFile: packages/plugin-search-hints/src/model.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T19:22:47.111Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-plugin-search-hints
+      - type: implements
+        target: REQ-kibi-plugin-search-hints
+  - id: SYM-search-hints-trigger
+    title: searchHintsTrigger
+    status: active
+    sourceFile: packages/cli/src/search-hints.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T19:22:53.400Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: implements
+        target: REQ-kibi-search-hints-host
+  - id: SYM-validate-search-hints-result
+    title: validateSearchHintsResult
+    status: active
+    sourceFile: packages/plugin-sdk/src/validate-search-hints.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T19:23:01.053Z
+    relationships:
+      - type: covered_by
+        target: TEST-capability-search-hints-v1
+      - type: implements
+        target: REQ-capability-search-hints-v1
   - id: SYM-const-default-telemetry-host
     status: active
     title: DEFAULT_TELEMETRY_HOST
@@ -65308,44 +65464,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-vscode-focus-command
-  - id: SYM-test-prolog-mutation-lane
-    title: prolog-mutation-runner.test.ts
-    status: active
-    sourceFile: packages/core/tests/prolog-mutation-runner.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-10-29T16:12:50.973Z
-    relationships:
-      - type: executable_for
-        target: TEST-prolog-mutation-lane
-  - id: SYM-prolog-mutation-use-mutalog
-    title: use_mutalog
-    status: active
-    sourceFile: scripts/run-prolog-mutation.pl
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-29T16:12:55.961Z
-    relationships:
-      - type: covered_by
-        target: TEST-prolog-mutation-lane
-      - type: implements
-        target: REQ-prolog-mutation-lane
-  - id: SYM-prolog-mutation-main
-    title: main
-    status: active
-    sourceFile: scripts/run-prolog-mutation.pl
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-29T16:12:59.189Z
-    relationships:
-      - type: covered_by
-        target: TEST-prolog-mutation-lane
-      - type: implements
-        target: REQ-prolog-mutation-lane
   - id: SYM-hook-managers-hook-manager-names
     title: HOOK_MANAGER_NAMES
     status: active
@@ -65501,3 +65619,127 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-git-hook-manager-integration
+  - id: SYM-search-hint-weak-score
+    title: SEARCH_HINT_WEAK_SCORE
+    status: active
+    sourceFile: packages/cli/src/search-hints.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T21:27:43.941Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: covered_by
+        target: TEST-proof-search-hint-weak-score
+      - type: implements
+        target: REQ-kibi-search-hints-host
+      - type: implements
+        target: REQ-kibi-search-hints-limits
+  - id: SYM-proof-search-hint-weak-score
+    title: searchHintWeakScoreCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/search-hints-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T21:27:50.094Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-search-hint-weak-score
+  - id: SYM-search-hint-limit
+    title: SEARCH_HINT_LIMIT
+    status: active
+    sourceFile: packages/cli/src/search-hints.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T21:27:59.255Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: covered_by
+        target: TEST-proof-search-hint-shown-limit
+      - type: implements
+        target: REQ-kibi-search-hints-host
+      - type: implements
+        target: REQ-kibi-search-hints-limits
+  - id: SYM-proof-search-hint-shown-limit
+    title: searchHintShownLimitCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/search-hints-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T21:28:06.295Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-search-hint-shown-limit
+  - id: SYM-search-hints-max-limit
+    title: SEARCH_HINTS_MAX_LIMIT
+    status: active
+    sourceFile: packages/plugin-sdk/src/capabilities/search-hints.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T21:28:14.067Z
+    relationships:
+      - type: covered_by
+        target: TEST-capability-search-hints-v1
+      - type: covered_by
+        target: TEST-proof-search-hints-result-limit
+      - type: implements
+        target: REQ-capability-search-hints-v1
+      - type: implements
+        target: REQ-kibi-search-hints-limits
+  - id: SYM-proof-search-hints-result-limit
+    title: searchHintsResultLimitCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/search-hints-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T21:28:19.270Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-search-hints-result-limit
+  - id: SYM-search-hints-offer-requirements
+    title: SEARCH_HINTS_OFFER_REQUIREMENTS
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/plugin-offers.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T21:28:28.679Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-plugin-search-hints
+      - type: covered_by
+        target: TEST-proof-search-hints-offer-requirements
+      - type: implements
+        target: REQ-kibi-plugin-search-hints
+      - type: implements
+        target: REQ-kibi-search-hints-limits
+  - id: SYM-proof-search-hints-offer-requirements
+    title: searchHintsOfferCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/search-hints-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T21:28:35.387Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-search-hints-offer-requirements

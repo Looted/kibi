@@ -420,7 +420,7 @@
         "readOnlyHint": true,
         "title": "Search Kibi knowledge base"
       },
-      "description": "Ask the KB a question or search it. Default intent-v1 ranking accepts questions, host-agent semantic facets and changed-code source locations, returns evidence, abstains below its confidence threshold and adds an answer layer: the current requirements that govern the topic, what must stay true (linked facts), why (ADRs) and what verifies it (scenarios, tests). Use before changing behavior, then kb_query for exact follow-up. No mutation side effects.",
+      "description": "Ask the KB a question or search it. Default intent-v1 ranking accepts questions, host-agent semantic facets and changed-code source locations, returns evidence, abstains below its confidence threshold and adds an answer layer: the current requirements that govern the topic, what must stay true (linked facts), why (ADRs) and what verifies it (scenarios, tests). A weak answer may add queryAnalysis.hints from a search-hints plugin: requirements the question may mean, to re-ask with. Use before changing behavior, then kb_query for exact follow-up. No mutation side effects.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": {},
@@ -479,6 +479,10 @@
             ],
             "description": "Optional result detail. 'summary' returns identifying metadata plus the match snippet for discovery. Use 'full' to include complete entity bodies, or follow up with kb_query for the exact entities you need."
           },
+          "hints": {
+            "description": "Intent-v1 only, first page only. When true (default) and the project activates a kibi.search-hints.v1 plugin, a weak or abstained answer adds queryAnalysis.hints: requirements the question may mean, to re-ask with. Hints never change results or the answer layer.",
+            "type": "boolean"
+          },
           "limit": {
             "description": "Optional max rows to return after ranking. Default: 10; raise it or page with offset when the answer layer is not enough.",
             "maximum": 9007199254740991,
@@ -518,7 +522,7 @@
           },
           "semanticFacets": {
             "additionalProperties": false,
-            "description": "Optional host-agent semantic interpretation. Kibi uses these strings as deterministic aliases/facets; it does not call a model itself.",
+            "description": "Optional host-agent semantic interpretation. Kibi uses these strings as deterministic aliases/facets; ranking never calls a model.",
             "properties": {
               "actions": {
                 "items": {

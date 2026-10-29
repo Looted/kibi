@@ -202,3 +202,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c78feefeddc1
+  - type: implements
+    from: SYM-search-hints-offer-requirements
+    to: REQ-kibi-search-hints-limits
+    created_at: 2026-10-29T21:28:30.766Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8603fb50c324
+  - type: implements
+    from: SYM-search-hints-offer-requirements
+    to: REQ-kibi-plugin-search-hints
+    created_at: 2026-10-29T21:28:30.795Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f32c813b37a3
+  - type: covered_by
+    from: SYM-search-hints-offer-requirements
+    to: TEST-proof-search-hints-offer-requirements
+    created_at: 2026-10-29T21:29:47.569Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8fc1c966840
+  - type: covered_by
+    from: SYM-search-hints-offer-requirements
+    to: TEST-kibi-plugin-search-hints
+    created_at: 2026-10-29T21:29:47.598Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ddf205747a5

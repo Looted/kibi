@@ -483,6 +483,13 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-cbfc578a2d4b
   - type: executable_for
+    from: SYM-test-kibi-search-hints-host
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-10-29T19:19:06.413Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1db56a2a0491
+  - type: executable_for
     from: SYM-proof-rule-decision-firm-superseded
     to: TEST-proof-rule-decision-firm-superseded
     created_at: 2026-10-29T16:39:17.179Z

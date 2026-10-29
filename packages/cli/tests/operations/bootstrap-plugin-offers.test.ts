@@ -4,6 +4,7 @@ import path from "node:path";
 
 import { discoverBootstrap } from "../../src/operations/bootstrap/discovery.js";
 import { buildActions } from "../../src/operations/bootstrap/guidance-actions.js";
+import { SEARCH_HINTS_OFFER_REQUIREMENTS } from "../../src/operations/bootstrap/plugin-offers.js";
 import { normalizeBootstrapContext } from "../../src/operations/bootstrap/presentation.js";
 import {
   nodeFilesystem,
@@ -77,6 +78,7 @@ describe("bootstrap plugin offers", () => {
       {
         package: "kibi-plugin-ui",
         capability: "kibi.check-policy.v1",
+        mode: "augment",
         reason: "2 UI component file(s) found",
         fileCount: 2,
         evidence: [
@@ -141,6 +143,7 @@ describe("bootstrap plugin offers", () => {
         {
           package: "kibi-plugin-ui",
           capability: "kibi.check-policy.v1",
+          mode: "augment",
           reason: "1 UI component file(s) found",
           fileCount: 1,
           evidence: ["src/feed/ActivityFeed.tsx"],
@@ -153,6 +156,48 @@ describe("bootstrap plugin offers", () => {
       evidence: ["src/feed/ActivityFeed.tsx"],
     });
     expect(String(offer?.description)).toContain("kibi.declinedPlugins");
+    expect(String(offer?.description)).toContain('{ "mode": "augment" }');
     expect(actions.at(-1)?.kind).toBe("check");
+  });
+
+  // executable_for TEST-kibi-plugin-search-hints
+  it("offers kibi-plugin-search-hints in replace mode once the KB holds enough requirements", async () => {
+    for (let index = 0; index < SEARCH_HINTS_OFFER_REQUIREMENTS - 1; index++)
+      write(
+        fixture.root,
+        `.kb/requirements/REQ-${String(index).padStart(3, "0")}.md`,
+        `---\nid: REQ-${index}\n---\n`,
+      );
+    expect(
+      (await discoverBootstrap(runtime(fixture.root))).pluginOffers,
+    ).toEqual([]);
+
+    write(
+      fixture.root,
+      ".kb/requirements/REQ-last.md",
+      "---\nid: REQ-last\n---\n",
+    );
+    const [offer] = (await discoverBootstrap(runtime(fixture.root)))
+      .pluginOffers;
+    expect(offer).toMatchObject({
+      package: "kibi-plugin-search-hints",
+      capability: "kibi.search-hints.v1",
+      mode: "replace",
+      fileCount: SEARCH_HINTS_OFFER_REQUIREMENTS,
+      evidence: [
+        ".kb/requirements/REQ-000.md",
+        ".kb/requirements/REQ-001.md",
+        ".kb/requirements/REQ-002.md",
+        ".kb/requirements/REQ-003.md",
+        ".kb/requirements/REQ-004.md",
+      ],
+    });
+
+    setKibiConfig(fixture.root, {
+      declinedPlugins: ["kibi-plugin-search-hints"],
+    });
+    expect(
+      (await discoverBootstrap(runtime(fixture.root))).pluginOffers,
+    ).toEqual([]);
   });
 });

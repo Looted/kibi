@@ -209,7 +209,7 @@ const STOP_WORDS = new Set([
 
 // Statuses whose entities no longer govern. They stay findable but rank
 // below current entities and are labelled in the match reasons.
-const NON_GOVERNING_STATUSES = new Set([
+export const NON_GOVERNING_STATUSES = new Set([
   "superseded",
   "deprecated",
   "rejected",
@@ -959,7 +959,7 @@ export function graphGoal(seedIds: readonly string[], depth: 1 | 2): string {
   return `kb_relationship_edges([${relationships}], [${ids}], Edges)`;
 }
 
-async function queryGraphEdges(
+export async function queryGraphEdges(
   prolog: Pick<PrologPort, "query">,
   seedIds: readonly string[],
 ): Promise<GraphEdge[]> {
@@ -1055,10 +1055,17 @@ export async function executeIntentSearch(
   options: IntentSearchOptions,
   prolog: PrologPort,
   workspaceRoot: string,
+  // implements REQ-kibi-search-hints-host
+  /** Receives the candidate rows and bodies the ranking read, for reuse. */
+  onCorpus?: (
+    entities: readonly Record<string, unknown>[],
+    bodies: MarkdownBodyCache,
+  ) => void,
 ): Promise<IntentSearchResult> {
   const candidates = await loadIntentCandidates(prolog, options);
   // Both ranking passes read the same Markdown bodies; read each file once.
   const bodies: MarkdownBodyCache = new Map();
+  onCorpus?.(candidates, bodies);
   const firstPass = await rankIntentEntities(
     candidates,
     options,

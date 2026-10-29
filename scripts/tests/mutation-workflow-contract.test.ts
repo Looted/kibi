@@ -8,7 +8,10 @@ import {
 } from "node:fs";
 import { join } from "node:path";
 
-import strykerConfig, { CLI_MUTATION_MODULES } from "../../stryker.conf.mjs";
+import strykerConfig, {
+  CLI_MUTATION_MODULES,
+  PLUGIN_MUTATION_MODULES,
+} from "../../stryker.conf.mjs";
 
 const ROOT = join(import.meta.dir, "..", "..");
 const MUTATION_PACKAGES = [
@@ -100,6 +103,7 @@ describe("mutation testing workflow contract", () => {
           walkTsFiles(pkg, "tests", ".test.ts"),
         ),
         ...Object.values(CLI_MUTATION_MODULES).flat(),
+        ...Object.values(PLUGIN_MUTATION_MODULES).flat(),
       ]),
     ].sort();
     expect(registered.sort()).toEqual(onDisk);
@@ -133,6 +137,14 @@ describe("mutation testing workflow contract", () => {
       expect(workflow).toContain(`- '${pkg}/tests/**'`);
     }
     expect(workflow).toContain("- 'stryker.conf.mjs'");
+    for (const [module, tests] of Object.entries(PLUGIN_MUTATION_MODULES)) {
+      const pkg = module.split("/src/")[0];
+      const covered = (path: string, leaf: string) =>
+        workflow.includes(`- '${path}'`) ||
+        workflow.includes(`- '${pkg}/${leaf}/**'`);
+      expect(covered(module, "src")).toBe(true);
+      for (const test of tests) expect(covered(test, "tests")).toBe(true);
+    }
     for (const [module, tests] of Object.entries(CLI_MUTATION_MODULES)) {
       expect(workflow).toContain(`- '${module}'`);
       for (const test of tests) expect(workflow).toContain(`- '${test}'`);
@@ -153,10 +165,27 @@ describe("mutation testing workflow contract", () => {
     }
   });
 
+  test("every plugin module in scope is mutated and tested by its own package", () => {
+    const modules = Object.entries(PLUGIN_MUTATION_MODULES);
+    expect(modules.length).toBeGreaterThan(0);
+    for (const [module, tests] of modules) {
+      expect(config.mutate).toContain(module);
+      expect(statSync(join(ROOT, module)).isFile()).toBe(true);
+      const pkg = module.split("/src/")[0];
+      expect(tests.length).toBeGreaterThan(0);
+      for (const test of tests) {
+        expect(test.startsWith(`${pkg}/tests/`)).toBe(true);
+        expect(test.endsWith(".test.ts")).toBe(true);
+        expect(statSync(join(ROOT, test)).isFile()).toBe(true);
+      }
+    }
+  });
+
   test("Stryker disable comments in scope must carry a nearby rationale", () => {
     const sources = [
       ...MUTATION_PACKAGES.flatMap((pkg) => walkTsFiles(pkg, "src", ".ts")),
       ...Object.keys(CLI_MUTATION_MODULES),
+      ...Object.keys(PLUGIN_MUTATION_MODULES),
     ];
     for (const file of sources) {
       const lines = readFileSync(join(ROOT, file), "utf8").split("\n");

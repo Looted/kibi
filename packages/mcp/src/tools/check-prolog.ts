@@ -41,35 +41,73 @@ export async function runAggregatedChecks(
   const requireAdrStr = requireAdr ? "true" : "false";
   // A large KB's violations JSON can exceed the engine's bounded output
   // capacity, so the engine writes it to a private file and the answer
-  // carries only a transport marker. The string answer remains the fallback
-  // for an engine whose loaded core predates the file predicate.
-  const resultDir = mkdtempSync(path.join(tmpdir(), "kibi-check-"));
-  const resultPath = path.join(resultDir, "violations.json");
-  // rationale: separators are normalized for Windows paths; a POSIX temp
-  // path has no backslash, so no test on a POSIX runner can tell.
-  // Stryker disable next-line StringLiteral
-  const resultPathEscaped = resultPath.replace(/\\/g, "/").replace(/'/g, "''");
-  const query = `(load_files('${checksPlPathEscaped}', [if(changed)]),
-    (   predicate_property(checks:check_all_json_file(_, _), _)
-    ->  call(checks:check_all_json_file('${resultPathEscaped}', ${requireAdrStr})), Transport = file
-    ;   predicate_property(checks:check_all_json_with_options(_, _), _)
+  // carries only a transport marker. The transport predicate answers the
+  // JSON instead when it cannot write the file; the string answer also
+  // remains the fallback for an engine whose loaded core predates the file
+  // predicates.
+  const query = (resultPath: string | undefined): string => {
+    let target = "none";
+    if (resultPath !== undefined) {
+      // rationale: separators are normalized for Windows paths; a POSIX temp
+      // path has no backslash, so no test on a POSIX runner can tell.
+      // Stryker disable next-line StringLiteral
+      target = `'${resultPath.replace(/\\/g, "/").replace(/'/g, "''")}'`;
+    }
+    const fileOnly =
+      resultPath === undefined
+        ? ""
+        : `predicate_property(checks:check_all_json_file(_, _), _)
+    ->  call(checks:check_all_json_file(${target}, ${requireAdrStr})), Transport = file
+    ;   `;
+    return `(load_files('${checksPlPathEscaped}', [if(changed)]),
+    (   predicate_property(checks:check_all_json_transport(_, _, _, _), _)
+    ->  call(checks:check_all_json_transport(${target}, ${requireAdrStr}, Transport, JsonString))
+    ;   ${fileOnly}predicate_property(checks:check_all_json_with_options(_, _), _)
     ->  call(checks:check_all_json_with_options(JsonString, ${requireAdrStr})), Transport = answer
     ;   call(checks:check_all_json(JsonString)), Transport = answer
     ))`;
+  };
+
+  // A temp folder that cannot be written gives no result file; the engine
+  // then answers the JSON.
+  let resultDir: string | undefined;
+  try {
+    resultDir = mkdtempSync(path.join(tmpdir(), "kibi-check-"));
+  } catch {
+    // Left undefined: the query asks for an answer.
+  }
+  const resultPath =
+    resultDir === undefined
+      ? undefined
+      : path.join(resultDir, "violations.json");
 
   let result: Awaited<ReturnType<PrologProcess["query"]>>;
   let jsonString: unknown;
   try {
-    result = await prolog.query(query);
-    jsonString =
-      result.success && result.bindings.Transport === "file"
-        ? readFileSync(resultPath, "utf8")
-        : result.bindings.JsonString;
+    result = await prolog.query(query(resultPath));
+    jsonString = result.bindings.JsonString;
+    // rationale: the engine answers Transport "file" only after a successful
+    // query that was given a path, so neither guard changes which answers
+    // are read; they only narrow the path for the read.
+    // Stryker disable next-line ConditionalExpression,LogicalOperator
+    const mayRead = result.success && resultPath !== undefined;
+    if (mayRead && result.bindings.Transport === "file") {
+      try {
+        jsonString = readFileSync(resultPath as string, "utf8");
+      } catch {
+        // The engine wrote a file this process cannot read (an engine with
+        // another view of the temp folder): ask for the JSON as an answer.
+        result = await prolog.query(query(undefined));
+        jsonString = result.bindings.JsonString;
+      }
+    }
   } finally {
-    // rationale: the directory always exists here, so `force` (which only
-    // ignores a missing path) never changes the outcome.
-    // Stryker disable next-line BooleanLiteral
-    rmSync(resultDir, { recursive: true, force: true });
+    if (resultDir !== undefined) {
+      // rationale: the directory always exists here, so `force` (which only
+      // ignores a missing path) never changes the outcome.
+      // Stryker disable next-line BooleanLiteral
+      rmSync(resultDir, { recursive: true, force: true });
+    }
   }
 
   if (!result.success) {

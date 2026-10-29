@@ -25,6 +25,7 @@ describe("canonical package catalog", () => {
       "plugin-builtin",
       "plugin-jev",
       "plugin-ui",
+      "plugin-search-hints",
       "swipl-linux-x64-gnu",
       "swipl-linux-arm64-gnu",
       "swipl-darwin-arm64",
