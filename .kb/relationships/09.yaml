@@ -356,3 +356,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b250aa9f35a7
+  - type: assumes
+    from: SCEN-NEG-cli-doctor-packed-provenance-FALSE-PROVENANCE-ACTION
+    to: FACT-NEG-cli-doctor-packed-provenance-FALSE-PROVENANCE-ACTION
+    created_at: 2026-10-29T20:58:06.486Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28f631e66d44
+  - type: verified_by
+    from: SCEN-NEG-cli-doctor-packed-provenance-FALSE-PROVENANCE-ACTION
+    to: TEST-cli-doctor-packed-provenance
+    created_at: 2026-10-29T20:58:06.568Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bee8ce9b982f

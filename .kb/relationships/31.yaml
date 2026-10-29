@@ -507,3 +507,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-180c8815f313
+  - type: specified_by
+    from: REQ-cli-subdirectory-workspace
+    to: SCEN-NEG-cli-subdirectory-workspace-SECOND-KB-IN-SUBDIR
+    created_at: 2026-10-29T21:05:13.621Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab00be45a39d

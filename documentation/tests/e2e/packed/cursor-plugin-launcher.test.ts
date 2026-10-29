@@ -1,6 +1,13 @@
 // Packed Cursor plugin E2E: plugin cwd versus consumer workspace cwd.
 import assert from "node:assert/strict";
-import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { isAbsolute, join, relative, resolve } from "node:path";
 import { after, before, describe, it } from "node:test";
@@ -78,6 +85,81 @@ describe(
           `entrypoint escaped consumer prefix: ${entrypoint}`,
         );
         assert.match(relativeEntrypoint, /kibi-mcp/);
+      }
+    });
+
+    it("refuses to start any other kibi-mcp when the consumer workspace lacks one, with an actionable error", () => {
+      const launcher = join(pluginRoot, "bin", "launch-kibi-mcp.mjs");
+      const workspace = mkdtempSync(join(tmpdir(), "kibi-cursor-no-mcp-"));
+      try {
+        mkdirSync(join(workspace, ".kb"), { recursive: true });
+        writeFileSync(join(workspace, ".kb", "manifest.json"), "{}\n");
+        writeFileSync(
+          join(workspace, "package.json"),
+          '{"name":"consumer-without-kibi-mcp","private":true}\n',
+        );
+
+        const result = spawnSync(
+          process.execPath,
+          [launcher, workspace, "--print-resolution"],
+          { cwd: pluginRoot, env: sandbox.env, encoding: "utf8" },
+        );
+        assert.equal(result.status, 1, result.stdout + result.stderr);
+        assert.equal(result.stdout, "", "no server resolution may be printed");
+        assert.match(
+          result.stderr,
+          /No project-local kibi-mcp package was found for .*kibi-cursor-no-mcp-/,
+        );
+        assert.match(result.stderr, /npm install --save-dev kibi-mcp/);
+      } finally {
+        rmSync(workspace, { recursive: true, force: true });
+      }
+    });
+
+    it("the packed stop hook still asks for an impact check when a plan turn also edited source", () => {
+      // The installed package resolves kibi-agent-core from the consumer.
+      const hookRunner = join(
+        sandbox.npmPrefix,
+        "node_modules",
+        "kibi-cursor",
+        "dist",
+        "hook-runner.js",
+      );
+      assert.equal(existsSync(hookRunner), true, "kibi-cursor is not installed");
+      const workspace = mkdtempSync(join(tmpdir(), "kibi-cursor-plan-edit-"));
+      const pluginData = mkdtempSync(join(tmpdir(), "kibi-cursor-plan-data-"));
+      const hook = (event: Record<string, unknown>) => {
+        const result = spawnSync(process.execPath, [hookRunner], {
+          cwd: workspace,
+          env: { ...sandbox.env, PLUGIN_DATA: pluginData },
+          input: JSON.stringify({
+            conversation_id: "plan-and-edit",
+            workspace_roots: [workspace],
+            ...event,
+          }),
+          encoding: "utf8",
+        });
+        assert.equal(result.status, 0, result.stderr);
+        return JSON.parse(result.stdout) as { followup_message?: string };
+      };
+      try {
+        mkdirSync(join(workspace, "src"), { recursive: true });
+        hook({
+          hook_event_name: "postToolUse",
+          tool_name: "CreatePlan",
+          tool_input: {},
+        });
+        hook({
+          hook_event_name: "postToolUse",
+          tool_name: "Write",
+          tool_input: { file_path: "src/app.ts" },
+        });
+        const stop = hook({ hook_event_name: "stop", status: "completed" });
+        assert.match(stop.followup_message ?? "", /run impact-enabled kb_check/);
+        assert.match(stop.followup_message ?? "", /src\/app\.ts/);
+      } finally {
+        rmSync(workspace, { recursive: true, force: true });
+        rmSync(pluginData, { recursive: true, force: true });
       }
     });
   },

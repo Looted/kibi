@@ -342,3 +342,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-98c8a4c6f5a8
+  - type: assumes
+    from: SCEN-NEG-claude-firm-edit-confirmation-UNCONFIRMED-EDIT
+    to: FACT-NEG-claude-firm-edit-confirmation-UNCONFIRMED-EDIT
+    created_at: 2026-10-29T20:53:13.931Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56770844fb11
+  - type: verified_by
+    from: SCEN-NEG-claude-firm-edit-confirmation-UNCONFIRMED-EDIT
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-10-29T20:53:14.032Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ccaf2449d8d6
+  - type: specified_by
+    from: REQ-cli-doctor
+    to: SCEN-NEG-cli-doctor-FAILED-CHECK-NO-REMEDY
+    created_at: 2026-10-29T20:57:34.613Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-13f347948f0f

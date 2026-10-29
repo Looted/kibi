@@ -286,3 +286,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bbc9b9f3a852
+  - type: specified_by
+    from: REQ-core-engine-read-limits
+    to: SCEN-NEG-core-engine-read-limits-PARTIAL-ANSWER
+    created_at: 2026-10-29T21:09:20.951Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a378e88c1882

@@ -342,3 +342,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-26b3c05a7b2c
+  - type: assumes
+    from: SCEN-NEG-cli-canonical-runtime-README-INGESTED
+    to: FACT-NEG-cli-canonical-runtime-README-INGESTED
+    created_at: 2026-10-29T21:00:03.786Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-960ca32e5b25
+  - type: verified_by
+    from: SCEN-NEG-cli-canonical-runtime-README-INGESTED
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-10-29T21:00:03.846Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af2c95b8f509

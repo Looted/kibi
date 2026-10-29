@@ -409,3 +409,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e616b249d47a
+  - type: specified_by
+    from: REQ-cli-usage-metrics-v1
+    to: SCEN-NEG-cli-usage-metrics-v1-FAILURES-HIDDEN
+    created_at: 2026-10-29T21:06:09.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fceb6179db10

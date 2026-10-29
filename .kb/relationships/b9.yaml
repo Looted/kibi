@@ -230,3 +230,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1af98576ca08
+  - type: assumes
+    from: SCEN-NEG-cli-query-UNKNOWN-TYPE-FILTER
+    to: FACT-NEG-cli-query-UNKNOWN-TYPE-FILTER
+    created_at: 2026-10-29T21:04:31.110Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-342f9aec8d99
+  - type: verified_by
+    from: SCEN-NEG-cli-query-UNKNOWN-TYPE-FILTER
+    to: TEST-001
+    created_at: 2026-10-29T21:04:31.159Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5efc6e7224bb

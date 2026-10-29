@@ -531,3 +531,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c27b1086a547
+  - type: specified_by
+    from: REQ-claude-request-topic-candidates
+    to: SCEN-NEG-claude-request-topic-candidates-ALL-CLEAR-NOTE
+    created_at: 2026-10-29T20:53:25.610Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b9b8dd842cc
+  - type: specified_by
+    from: REQ-cursor-stop-job-vs-plan
+    to: SCEN-NEG-cursor-stop-job-vs-plan-PLAN-HIDES-EDIT
+    created_at: 2026-10-29T21:16:38.349Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9d3ec43f09b

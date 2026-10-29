@@ -454,3 +454,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bb23295d2765
+  - type: specified_by
+    from: REQ-cli-query
+    to: SCEN-NEG-cli-query-UNKNOWN-TYPE-FILTER
+    created_at: 2026-10-29T21:04:36.835Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-515616020a5e
