@@ -7034,6 +7034,209 @@ dict_has_key(Dict, Key) :- is_dict(Dict), get_dict(Key, Dict, _).
 :- end_tests(requirement_applicability).
 
 % ------------------------------------------------------------------
+% Per-generation proof memos and bounded JSON decode memos
+% implements REQ-kibi-conservative-requirement-proof, REQ-kibi-scenario-feasibility-v2
+:- begin_tests(kb_proof_memos).
+
+memo_proof(ReqId, Context, Proof) :-
+    kb_entity(ReqId, req, Props),
+    requirement_proof:requirement_proof(ReqId, Props, Context, Proof).
+
+memo_compute(ReqId, Context, Proof) :-
+    kb_entity(ReqId, req, Props),
+    requirement_proof:compute_requirement_proof(ReqId, Props, Context, Proof).
+
+proof_memo_keys(Keys) :-
+    findall(Key, kb:kb_requirement_proof_memo(_, Key, _), Keys0),
+    sort(Keys0, Keys).
+
+proof_memo_count(Count) :-
+    aggregate_all(count, kb:kb_requirement_proof_memo(_, _, _), Count).
+
+feasibility_memo_count(Count) :-
+    aggregate_all(count, kb:kb_scenario_feasibility_memo(_, _, _), Count).
+
+memo_feasibility_fixture :-
+    assert_fixture_entity(fact, 'FACT-QUOTA-SUBJECT', "Client call quota", active,
+        [fact_kind=subject, subject_key="client.call_quota"]),
+    assert_fixture_entity(fact, 'FACT-QUOTA-POSITIVE', "Remaining quota above zero", active,
+        [fact_kind=property_value, subject_key="client.call_quota", property_key="remaining",
+         operator=gt, value_type=int, value_int=0]),
+    assert_fixture_entity(fact, 'FACT-QUOTA-ZERO', "Remaining quota is zero", active,
+        [fact_kind=property_value, subject_key="client.call_quota", property_key="remaining",
+         operator=eq, value_type=int, value_int=0]),
+    assert_fixture_entity(req, 'REQ-QUOTA-CALL', "A client may call only with remaining quota", open, []),
+    kb_assert_relationship(constrains, 'REQ-QUOTA-CALL', 'FACT-QUOTA-SUBJECT', []),
+    kb_assert_relationship(requires_property, 'REQ-QUOTA-CALL', 'FACT-QUOTA-POSITIVE', []),
+    assert_fixture_entity(scenario, 'SCEN-ZERO-QUOTA-CALL', "A zero-quota promo call succeeds", active,
+        [expects=success]),
+    kb_assert_relationship(assumes, 'SCEN-ZERO-QUOTA-CALL', 'FACT-QUOTA-ZERO', []).
+
+% A warm engine keeps a requirement's proof only for the generation it was
+% computed on: a link written after the first read changes the next one.
+test(requirement_proof_memo_follows_writes, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-MEMO-PROOF', "Memoized proof", open, [priority=must]),
+    requirement_proof:requirement_proof_context(unknown, "1970-01-01T00:00:00Z", 604800, Context),
+    memo_proof('REQ-MEMO-PROOF', Context, First),
+    assertion(First.proofStages.scenarios.status == missing),
+    assertion(kb:kb_requirement_proof_memo('REQ-MEMO-PROOF', _, _)),
+    memo_proof('REQ-MEMO-PROOF', Context, Again),
+    assertion(Again =@= First),
+    assert_fixture_entity(scenario, 'SCEN-MEMO-PROOF', "Memoized scenario", active, [expects=success]),
+    kb_assert_relationship(specified_by, 'REQ-MEMO-PROOF', 'SCEN-MEMO-PROOF', []),
+    memo_proof('REQ-MEMO-PROOF', Context, Linked),
+    assertion(Linked.proofStages.scenarios.scenarios == ['SCEN-MEMO-PROOF']),
+    assertion(Linked.proofStages.scenarios.status \== missing),
+    memo_compute('REQ-MEMO-PROOF', Context, Computed),
+    assertion(Linked =@= Computed),
+    % The stale generation's entries are gone: one key is live at a time.
+    proof_memo_keys(Keys),
+    assertion(Keys = [_]).
+
+% The memo key carries the proof parameters: a different checkedAt or
+% binding mode is a different proof, not a memo hit.
+test(requirement_proof_memo_is_keyed_by_proof_parameters, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-MEMO-PARAMS', "Parameterized proof", open, [priority=must]),
+    requirement_proof:requirement_proof_context(unknown, "1970-01-01T00:00:00Z", 604800, ContextA),
+    requirement_proof:requirement_proof_context(unknown, "2026-05-01T00:00:00Z", 604800, ContextB),
+    requirement_proof:requirement_proof_context(unknown, "1970-01-01T00:00:00Z", 604800,
+                                                per_contract, _{}, ContextC),
+    assertion(ContextA.proofMemoKey \== ContextB.proofMemoKey),
+    assertion(ContextA.proofMemoKey \== ContextC.proofMemoKey),
+    memo_proof('REQ-MEMO-PARAMS', ContextA, ProofA),
+    proof_memo_keys([KeyA]),
+    assertion(KeyA = key(_, ContextA.proofMemoKey)),
+    memo_proof('REQ-MEMO-PARAMS', ContextB, ProofB),
+    proof_memo_keys([KeyB]),
+    assertion(KeyB = key(_, ContextB.proofMemoKey)),
+    assertion(KeyA \== KeyB),
+    memo_compute('REQ-MEMO-PARAMS', ContextA, ComputedA),
+    memo_compute('REQ-MEMO-PARAMS', ContextB, ComputedB),
+    assertion(ProofA =@= ComputedA),
+    assertion(ProofB =@= ComputedB),
+    memo_proof('REQ-MEMO-PARAMS', ContextC, ProofC),
+    memo_compute('REQ-MEMO-PARAMS', ContextC, ComputedC),
+    assertion(ProofC =@= ComputedC),
+    % A context without the key (an older caller) is never memoized.
+    del_dict(proofMemoKey, ContextA, _, Legacy),
+    proof_memo_count(BeforeLegacy),
+    memo_proof('REQ-MEMO-PARAMS', Legacy, ProofLegacy),
+    proof_memo_count(AfterLegacy),
+    assertion(AfterLegacy == BeforeLegacy),
+    assertion(ProofLegacy =@= ComputedA).
+
+% What-if staging runs inside an RDF transaction: the proof there reads the
+% staged KB and leaves no memo entry behind, and the rollback restores the
+% generation's proof.
+test(requirement_proof_memo_is_bypassed_inside_a_transaction, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-MEMO-TX', "Staged proof", open, [priority=must]),
+    requirement_proof:requirement_proof_context(unknown, "1970-01-01T00:00:00Z", 604800, Context),
+    memo_proof('REQ-MEMO-TX', Context, Before),
+    assertion(Before.proofStages.scenarios.status == missing),
+    proof_memo_count(CountBefore),
+    catch(rdf_transaction((
+              assert_fixture_entity(scenario, 'SCEN-MEMO-TX', "Staged scenario", active, [expects=success]),
+              kb_assert_relationship(specified_by, 'REQ-MEMO-TX', 'SCEN-MEMO-TX', []),
+              memo_proof('REQ-MEMO-TX', Context, Staged),
+              assertion(Staged.proofStages.scenarios.scenarios == ['SCEN-MEMO-TX']),
+              proof_memo_count(CountInside),
+              assertion(CountInside == CountBefore),
+              throw(rollback_probe)
+          )),
+          rollback_probe,
+          true),
+    memo_proof('REQ-MEMO-TX', Context, After),
+    assertion(After =@= Before),
+    memo_compute('REQ-MEMO-TX', Context, Computed),
+    assertion(After =@= Computed).
+
+% The feasibility analysis of a scenario follows the KB the same way.
+test(scenario_feasibility_memo_follows_writes_and_skips_transactions, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    memo_feasibility_fixture,
+    assertion(checks:scenario_feasibility_outcome('SCEN-ZERO-QUOTA-CALL', infeasible(_))),
+    assertion(kb:kb_scenario_feasibility_memo('SCEN-ZERO-QUOTA-CALL', _, _)),
+    checks:scenario_feasibility_analysis('SCEN-ZERO-QUOTA-CALL', Memoized),
+    checks:compute_scenario_feasibility_analysis('SCEN-ZERO-QUOTA-CALL', Computed),
+    assertion(Memoized =@= Computed),
+    assert_fixture_entity(req, 'REQ-QUOTA-PROMO-EXCEPTION', "Promo calls are exempt from the quota", open,
+        [approved_by="Product owner", approval_ref="DEC-42"]),
+    kb_assert_relationship(exempts, 'REQ-QUOTA-PROMO-EXCEPTION', 'REQ-QUOTA-CALL', []),
+    kb_assert_relationship(specified_by, 'REQ-QUOTA-PROMO-EXCEPTION', 'SCEN-ZERO-QUOTA-CALL', []),
+    assertion(checks:scenario_feasibility_outcome('SCEN-ZERO-QUOTA-CALL', feasible_by_exception)),
+    feasibility_memo_count(CountBefore),
+    catch(rdf_transaction((
+              assert_fixture_entity(scenario, 'SCEN-STAGED-ZERO-QUOTA', "Staged zero-quota call", active,
+                  [expects=success]),
+              kb_assert_relationship(assumes, 'SCEN-STAGED-ZERO-QUOTA', 'FACT-QUOTA-ZERO', []),
+              assertion(checks:scenario_feasibility_outcome('SCEN-STAGED-ZERO-QUOTA', infeasible(_))),
+              feasibility_memo_count(CountInside),
+              assertion(CountInside == CountBefore),
+              throw(rollback_probe)
+          )),
+          rollback_probe,
+          true),
+    assertion(\+ kb:kb_scenario_feasibility_memo('SCEN-STAGED-ZERO-QUOTA', _, _)),
+    assertion(checks:scenario_feasibility_outcome('SCEN-ZERO-QUOTA-CALL', feasible_by_exception)).
+
+:- end_tests(kb_proof_memos).
+
+:- begin_tests(kb_json_memos).
+
+reset_json_memo :-
+    retractall(checks:json_text_memo(_, _)),
+    retractall(checks:json_text_memo_size(_)).
+
+% The same text is one memo entry whether a rule asks for an object or a
+% list, and the shape check stays with the caller.
+test(json_text_memo_keeps_one_entry_per_text, [setup(reset_json_memo), cleanup(reset_json_memo)]) :-
+    checks:json_text_term('{"a": 1}', Object),
+    assertion(is_dict(Object)),
+    assertion(get_dict(a, Object, 1)),
+    assertion(checks:parse_json_object('{"a": 1}', _)),
+    assertion(\+ checks:parse_json_list('{"a": 1}', _)),
+    checks:json_text_term("[1, 2]", List),
+    assertion(List == [1, 2]),
+    assertion(checks:parse_json_list('[1, 2]', _)),
+    assertion(\+ checks:parse_json_object('[1, 2]', _)),
+    assertion(\+ checks:json_text_term('not json', _)),
+    assertion(\+ checks:json_text_term('not json', _)),
+    assertion(checks:json_text_memo('not json', invalid)),
+    checks:json_text_memo_size(Size),
+    assertion(Size == 3).
+
+% The memo is bounded: once full it starts over, and a text parsed before
+% the reset parses the same afterwards.
+test(json_text_memo_resets_at_its_limit, [setup(reset_json_memo), cleanup(reset_json_memo)]) :-
+    checks:json_text_memo_limit(Limit),
+    Overflow is Limit + 2,
+    forall(between(1, Overflow, Index),
+           (   format(atom(Text), '{"index": ~d}', [Index]),
+               checks:json_text_term(Text, Term),
+               assertion(get_dict(index, Term, Index))
+           )),
+    checks:json_text_memo_size(Size),
+    assertion(Size == 2),
+    aggregate_all(count, checks:json_text_memo(_, _), Entries),
+    assertion(Entries == 2),
+    checks:json_text_term('{"index": 1}', First),
+    assertion(get_dict(index, First, 1)),
+    checks:json_text_memo_size(SizeAfter),
+    assertion(SizeAfter == 3).
+
+test(logic_rule_memo_remembers_rejected_bodies, [cleanup((retractall(logic_ir:logic_rule_memo(_, _)), retractall(logic_ir:logic_rule_memo_size(_))))]) :-
+    retractall(logic_ir:logic_rule_memo(_, _)),
+    retractall(logic_ir:logic_rule_memo_size(_)),
+    assertion(\+ logic_ir:logic_rule_from_json('{"version": "kibi.logic.v0"}', _)),
+    assertion(\+ logic_ir:logic_rule_from_json('not json', _)),
+    assertion(\+ logic_ir:logic_rule_from_json('{"version": "kibi.logic.v0"}', _)),
+    assertion(logic_ir:logic_rule_memo('{"version": "kibi.logic.v0"}', invalid)),
+    assertion(logic_ir:logic_rule_memo('not json', invalid)),
+    logic_ir:logic_rule_memo_size(Size),
+    assertion(Size == 2).
+
+:- end_tests(kb_json_memos).
+
+% ------------------------------------------------------------------
 % Vocabulary convergence, redundancy, and unit canonicalization
 % implements REQ-kibi-domain-redundancy, REQ-kibi-unit-canonicalization,
 % REQ-kibi-subject-vocabulary, REQ-kibi-ontology-quality,
