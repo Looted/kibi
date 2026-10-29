@@ -531,3 +531,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bed6e472ca48
+  - type: assumes
+    from: SCEN-NEG-kb-entity-body-context-settings-SHORT-CONTEXT
+    to: FACT-NEG-kb-entity-body-context-settings-SHORT-CONTEXT
+    created_at: 2026-10-29T22:11:11.381Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd8a1fc498bb
+  - type: verified_by
+    from: SCEN-NEG-kb-entity-body-context-settings-SHORT-CONTEXT
+    to: TEST-kb-entity-body-context
+    created_at: 2026-10-29T22:11:11.442Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d777fa96fd57

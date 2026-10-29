@@ -7,6 +7,7 @@ const ROOT = path.join(import.meta.dir, "..", "..");
 
 type Step = {
   name?: string;
+  if?: string;
   uses?: string;
   run?: string;
   with?: Record<string, unknown>;
@@ -28,6 +29,26 @@ function indexOf(steps: Step[], pattern: RegExp): number {
   );
   expect(index, `no step matches ${pattern}`).toBeGreaterThanOrEqual(0);
   return index;
+}
+
+/**
+ * The steps GitHub Actions runs when the step matching `failing` fails: the
+ * job stops at the first failing step, and only a step whose `if:` asks for
+ * always() or failure() still runs after it.
+ */
+function stepsRunWhenFailing(steps: Step[], failing: RegExp): Step[] {
+  const ran: Step[] = [];
+  let failed = false;
+  for (const step of steps) {
+    if (failed && !/\b(always|failure)\(\)/.test(step.if ?? "")) continue;
+    ran.push(step);
+    if (pattern(step, failing)) failed = true;
+  }
+  return ran;
+}
+
+function pattern(step: Step, regex: RegExp): boolean {
+  return regex.test(`${step.name ?? ""}\n${step.run ?? ""}`);
 }
 
 describe("KB merge workflow", () => {
@@ -68,5 +89,38 @@ describe("KB merge workflow", () => {
     for (const index of [commit, gate, push]) {
       expect(steps[index]?.["working-directory"]).toBe("pr");
     }
+  });
+
+  test("a merge that fails the proof gate is never pushed, and a push ordered before the gate is refused", () => {
+    const ranAfterFailedGate = stepsRunWhenFailing(
+      steps,
+      /scripts\/proof-gate\.sh/,
+    );
+    expect(
+      ranAfterFailedGate.some((step) =>
+        pattern(step, /scripts\/proof-gate\.sh/),
+      ),
+    ).toBe(true);
+    expect(ranAfterFailedGate.some((step) => pattern(step, /git push/))).toBe(
+      false,
+    );
+    // The same workflow with the push moved ahead of the gate: the failing
+    // gate no longer stops the push, and the order check rejects it.
+    const gate = steps.findIndex((step) =>
+      pattern(step, /scripts\/proof-gate\.sh/),
+    );
+    const push = steps.findIndex((step) => pattern(step, /git push/));
+    const reordered = steps.filter((_, index) => index !== push);
+    reordered.splice(gate, 0, steps[push] as Step);
+    expect(
+      stepsRunWhenFailing(reordered, /scripts\/proof-gate\.sh/).some((step) =>
+        pattern(step, /git push/),
+      ),
+    ).toBe(true);
+    expect(() =>
+      expect(indexOf(reordered, /scripts\/proof-gate\.sh/)).toBeLessThan(
+        indexOf(reordered, /git push/),
+      ),
+    ).toThrow();
   });
 });

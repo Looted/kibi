@@ -300,3 +300,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4998834fae29
+  - type: specified_by
+    from: REQ-kb-entity-context-rule-ids
+    to: SCEN-NEG-kb-entity-context-rule-ids-LOOKALIKE-TAG
+    created_at: 2026-10-29T22:11:36.240Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aaf89e521831

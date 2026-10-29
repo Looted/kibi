@@ -219,6 +219,24 @@ describe("schema 8 planning", () => {
       "SCEN-thin",
     ]);
   });
+
+  test("a look-alike review tag is not the context review tag", () => {
+    const root = workspace({
+      ".kb/requirements/REQ-lookalike.md":
+        "---\nid: REQ-lookalike\ntitle: L\ntags: [review:missing-context, context-missing]\n---\nL.\n",
+      ".kb/manifest.json": JSON.stringify({
+        manifestVersion: 1,
+        schemaVersion: 7,
+        semanticAdvisorBackfill: "not_applicable",
+      }),
+    });
+    const plan = planContextMissingTags(root);
+    expect(plan.alreadyTagged).toEqual([]);
+    expect(plan.targets.map((target) => target.id)).toEqual(["REQ-lookalike"]);
+    expect(plan.targets[0]?.after).toContain(
+      "tags: [review:missing-context, context-missing, review:context-missing]",
+    );
+  });
 });
 
 describe("schema 8 migration plan actions", () => {

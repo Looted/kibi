@@ -388,3 +388,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-396826d3e015
+  - type: assumes
+    from: SCEN-NEG-kb-entity-context-rule-ids-LOOKALIKE-TAG
+    to: FACT-NEG-kb-entity-context-rule-ids-LOOKALIKE-TAG
+    created_at: 2026-10-29T22:11:15.126Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5dc582e3a83
+  - type: verified_by
+    from: SCEN-NEG-kb-entity-context-rule-ids-LOOKALIKE-TAG
+    to: TEST-kb-entity-body-context
+    created_at: 2026-10-29T22:11:15.213Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f6bbc5fba548

@@ -559,3 +559,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-19869c56c89a
+  - type: assumes
+    from: SCEN-NEG-kb-decision-firmness-rule-ids-UNSET-AS-FIRM
+    to: FACT-NEG-kb-decision-firmness-rule-ids-UNSET-AS-FIRM
+    created_at: 2026-10-29T22:11:03.800Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1a388d497c9
+  - type: verified_by
+    from: SCEN-NEG-kb-decision-firmness-rule-ids-UNSET-AS-FIRM
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-29T22:11:03.880Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a02fdf16169
