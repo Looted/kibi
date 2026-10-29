@@ -60,6 +60,13 @@ export type EvidenceFloorOptions = Readonly<{
    * `kibi prove --all`.
    */
   freshEvidence?: boolean;
+  /**
+   * The instant and workspace snapshot the whole check judges receipts at,
+   * so the floor reads the same requirement proofs the coverage evidence
+   * read instead of computing them again.
+   */
+  checkedAt?: string;
+  snapshotEvidence?: Awaited<ReturnType<typeof readWorkspaceSnapshot>>;
 }>;
 
 function floorSource(row: EvidenceFloorRow): string {
@@ -145,6 +152,7 @@ export function evidenceFloorViolations(
 export async function readEvidenceFloorRows(
   context: OperationContext,
   snapshotEvidence?: Awaited<ReturnType<typeof readWorkspaceSnapshot>>,
+  checkedAt: string = context.clock().toISOString(),
 ): Promise<readonly EvidenceFloorRow[]> {
   const prolog = context.prolog ?? (await context.ensureProlog?.());
   if (prolog === undefined) return [];
@@ -152,7 +160,6 @@ export async function readEvidenceFloorRows(
   const snapshot = evidence.available ? evidence.snapshot.hash : "unknown";
   const { perContractTestBindings } = await import("./specs/reporting.js");
   const bindings = await perContractTestBindings({ ...context, prolog });
-  const checkedAt = context.clock().toISOString();
   const goal = `discovery:evidence_floor_json(${bindings === null ? "strict_snapshot, _{}" : `per_contract, ${bindings}`}, ${toPrologAtom(snapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`;
   const payload = await runOperationJsonQuery<EvidenceFloorPayload>(
     prolog,
@@ -182,8 +189,13 @@ export async function collectEvidenceFloorViolations(
     schemaVersion < EVIDENCE_FLOOR_SCHEMA_VERSION
   )
     return [];
-  const snapshotEvidence = await readWorkspaceSnapshot(context);
-  const rows = await readEvidenceFloorRows(context, snapshotEvidence);
+  const snapshotEvidence =
+    options.snapshotEvidence ?? (await readWorkspaceSnapshot(context));
+  const rows = await readEvidenceFloorRows(
+    context,
+    snapshotEvidence,
+    options.checkedAt,
+  );
   const violations = evidenceFloorViolations(rows, options);
   if (options.freshEvidence === true) {
     const clean =
