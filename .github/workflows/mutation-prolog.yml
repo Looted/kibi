@@ -25,6 +25,12 @@ on:
     paths:
       - 'packages/core/src/logic_ir.pl'
       - 'packages/core/tests/logic_ir.plt'
+      - 'packages/core/src/intervals.pl'
+      - 'packages/core/tests/intervals.plt'
+      - 'packages/core/src/units.pl'
+      - 'packages/core/tests/units.plt'
+      - 'packages/core/src/symbol_classification.pl'
+      - 'packages/core/tests/symbol_classification.plt'
       - 'packages/core/src/kb.pl'
       - 'packages/core/tests/kb.plt'
       - 'mutalog.config.pl'

@@ -23,7 +23,7 @@ the repository root:
 
 | Config | Modules | Gate | Mutants | Run time |
 | --- | --- | --- | --- | --- |
-| `mutalog.config.pl` | `logic_ir.pl` (tested by `logic_ir.plt`) | `break(100)` | ~2,500 | about 3 minutes on 4 cores |
+| `mutalog.config.pl` | `logic_ir.pl`, `intervals.pl`, `units.pl` and `symbol_classification.pl`, each tested by its own `.plt` | `break(100)` | ~3,100 | about 4 minutes on 4 cores |
 | `mutalog.backlog.config.pl` | `kb.pl` (tested by `logic_ir.plt` and `kb.plt`) | `break(0)`, report only | 4,840, 32.1% | about 10 minutes on 3 workers |
 
 - Like the Stryker gate, `mutalog.config.pl` **gates at 100%**: any
@@ -37,9 +37,10 @@ the repository root:
   ```
 
   The comment moves with the code, unlike an `ignore_mutants` id, which
-  carries line and column. Today every suppression in `logic_ir.pl` is a
-  `cut_insert` mutant: a cut inserted after a deterministic first goal of a
-  clause that no later clause can also match.
+  carries line and column. Most suppressions are `cut_insert` mutants: a cut
+  inserted after a deterministic first goal of a clause that no later clause
+  can also match. In `intervals.pl` they also cover cuts whose caller keeps
+  only the first answer.
 - `mutalog.backlog.config.pl` holds modules whose survivors are not triaged
   yet. Once a module's survivors are killed or suppressed as equivalents, move it
   to `mutalog.config.pl`.

@@ -4,14 +4,18 @@
 :- use_module(library(filesex)).
 :- use_module('../src/kb.pl', [kb_attach/1, kb_detach/0]).
 :- use_module('../src/logic_ir.pl').
+:- use_module(test_helpers).
 
 % Shared helpers for the decoding and evaluation units below.
 
-% Goal succeeds without leaving a choicepoint behind.
-:- meta_predicate deterministic(0), decode_cases(2, +), decode_case(2, +, +).
-deterministic(Goal) :-
-    call_cleanup(Goal, Det = true),
-    Det == true.
+:- meta_predicate decode_cases(2, +), decode_case(2, +, +).
+
+% logic_rule_from_json/2 memoizes each decoded text. Every unit starts from an
+% empty memo, so its tests run the decoder instead of reading answers that an
+% earlier unit (or, under the mutation lane, an earlier mutant run) stored.
+clear_rule_memo :-
+    retractall(logic_ir:logic_rule_memo(_, _)),
+    retractall(logic_ir:logic_rule_memo_size(_)).
 
 % Each case is Input-Expected; Expected is the decoded term, or fail when
 % Pred must reject Input.  Every accepted input must decode deterministically.
@@ -32,7 +36,7 @@ decode_case(Pred, Input, Expected) :-
     ;   format(user_error, "~w rejected ~q or left a choicepoint~n", [Pred, Input]), fail
     ).
 
-:- begin_tests(logic_ir).
+:- begin_tests(logic_ir, [setup(clear_rule_memo)]).
 
 safe_rule_json('{"version":"kibi.logic.v1","kind":"rule","modality":"oblige","head":{"kind":"atom","name":"must_retain","args":[{"kind":"var","name":"X","type":"entity"}]},"body":{"kind":"atom","name":"customer","args":[{"kind":"var","name":"X","type":"entity"}]},"variables":[{"name":"X","type":"entity","quantifier":"forall"}],"ruleSchemaId":"FACT-RULE-SCHEMA-LOGIC-V1"}').
 
@@ -154,7 +158,7 @@ test(property_form_reads_rule_conditions_as_property_constraints) :-
 
 :- end_tests(logic_ir).
 
-:- begin_tests(logic_ir_terms).
+:- begin_tests(logic_ir_terms, [setup(clear_rule_memo)]).
 
 
 test(var_terms) :-
@@ -244,7 +248,7 @@ test(non_dict_terms_are_rejected) :-
 
 :- end_tests(logic_ir_terms).
 
-:- begin_tests(logic_ir_expressions).
+:- begin_tests(logic_ir_expressions, [setup(clear_rule_memo)]).
 
 
 p_json(_{kind:atom, name:p, args:[]}).
@@ -370,7 +374,7 @@ test(non_dict_expressions_are_rejected) :-
 
 :- end_tests(logic_ir_expressions).
 
-:- begin_tests(logic_ir_rules).
+:- begin_tests(logic_ir_rules, [setup(clear_rule_memo)]).
 
 % Fields override a minimal atom rule; head:none drops the head.
 rule_json(Fields, Json) :-
@@ -392,6 +396,60 @@ test(decodes_defaults) :-
     rule_json(_{}, Json),
     deterministic(logic_rule_from_props([title=x, rule_ir=Json], Rule)),
     Rule == rule(atom, assert, P, none, [], scope('', '', []), '', '', '', []).
+
+test(answers_a_decoded_text_from_the_memo, [setup(clear_rule_memo), cleanup(clear_rule_memo)]) :-
+    rule_json(_{}, Json),
+    assertz(logic_ir:logic_rule_memo(Json, rule(memoized))),
+    deterministic(logic_rule_from_props([rule_ir=Json], Rule)),
+    Rule == memoized.
+
+test(memoizes_rejected_texts, [setup(clear_rule_memo)]) :-
+    \+ logic_rule_from_props([rule_ir='{not json'], _),
+    findall(Stored, logic_ir:logic_rule_memo('{not json', Stored), Entries),
+    Entries == [invalid].
+
+test(counts_each_new_text, [setup(clear_rule_memo)]) :-
+    rule_json(_{modality:deny}, First),
+    rule_json(_{modality:permit}, Second),
+    logic_rule_from_props([rule_ir=First], _),
+    logic_rule_from_props([rule_ir=Second], _),
+    logic_ir:logic_rule_memo_size(Size),
+    Size == 2.
+
+% The memo holds at most 16384 texts; the next one starts it afresh.
+test(starts_the_memo_afresh_at_its_limit, [setup(clear_rule_memo), cleanup(clear_rule_memo)]) :-
+    rule_json(_{modality:deny}, Old),
+    rule_json(_{modality:permit}, New),
+    logic_rule_from_props([rule_ir=Old], _),
+    retractall(logic_ir:logic_rule_memo_size(_)),
+    assertz(logic_ir:logic_rule_memo_size(16384)),
+    logic_rule_from_props([rule_ir=New], _),
+    findall(Json, logic_ir:logic_rule_memo(Json, _), Texts),
+    Texts == [New],
+    findall(Size, logic_ir:logic_rule_memo_size(Size), Sizes),
+    Sizes == [1].
+
+test(keeps_the_memo_below_its_limit, [setup(clear_rule_memo), cleanup(clear_rule_memo)]) :-
+    rule_json(_{modality:deny}, Old),
+    rule_json(_{modality:permit}, New),
+    logic_rule_from_props([rule_ir=Old], _),
+    retractall(logic_ir:logic_rule_memo_size(_)),
+    assertz(logic_ir:logic_rule_memo_size(16383)),
+    logic_rule_from_props([rule_ir=New], _),
+    findall(Json, logic_ir:logic_rule_memo(Json, _), Texts),
+    Texts == [Old, New],
+    findall(Size, logic_ir:logic_rule_memo_size(Size), Sizes),
+    Sizes == [16384].
+
+test(remembers_each_text_once, [setup(clear_rule_memo)]) :-
+    rule_json(_{modality:deny}, Json),
+    logic_rule_from_props([rule_ir=Json], Rule),
+    logic_rule_from_props([rule_ir=Json], Again),
+    Again == Rule,
+    findall(Stored, logic_ir:logic_rule_memo(Json, Stored), Entries),
+    Entries == [rule(Rule)],
+    logic_ir:logic_rule_memo_size(Size),
+    Size == 1.
 
 test(decodes_every_optional_field) :-
     p_atom(P),
@@ -453,7 +511,11 @@ test(reads_rule_ir_from_typed_literals_and_strings) :-
     rule_json(_{}, Json),
     atom_string(Json, String),
     logic_rule_from_props([rule_ir=String], Rule),
+    % Each wrapped form must unwrap to the text itself, not reach an
+    % unrelated memo entry, so every read starts from an empty memo.
+    clear_rule_memo,
     deterministic(logic_rule_from_props([rule_ir='^^'(Json, xsd)], Rule)),
+    clear_rule_memo,
     deterministic(logic_rule_from_props([rule_ir=literal(type(xsd, String))], Rule)),
     \+ logic_rule_from_props([rule_ir='{not json'], _),
     \+ logic_rule_from_props([rule_ir=42], _),
@@ -461,10 +523,13 @@ test(reads_rule_ir_from_typed_literals_and_strings) :-
 
 test(decodes_quantifiers_and_modalities_given_as_strings) :-
     logic_ir:json_quantifier("exists", exists),
-    logic_ir:json_quantifier(forall, forall),
+    deterministic(logic_ir:json_quantifier(forall, Forall)),
+    Forall == forall,
     \+ logic_ir:json_quantifier("some", _),
     \+ logic_ir:json_quantifier(3, _),
     logic_ir:json_modality("deny", deny),
+    deterministic(logic_ir:json_modality(permit, Permit)),
+    Permit == permit,
     \+ logic_ir:json_modality("maybe", _),
     \+ logic_ir:json_modality(3, _),
     logic_ir:json_polarity("negative", negative),
@@ -509,7 +574,7 @@ test(name_rules) :-
 
 :- end_tests(logic_ir_rules).
 
-:- begin_tests(logic_ir_safety).
+:- begin_tests(logic_ir_safety, [setup(clear_rule_memo)]).
 
 r(Kind, Head, Body, Exceptions, Variables, rule(Kind, assert, Head, Body, Exceptions, scope('', '', []), '', '', '', Variables)).
 
@@ -678,7 +743,7 @@ test(positive_variables) :-
 
 :- end_tests(logic_ir_safety).
 
-:- begin_tests(logic_ir_rendering).
+:- begin_tests(logic_ir_rendering, [setup(clear_rule_memo)]).
 
 render(Rule, Text) :- deterministic(logic_ir:render_rule(Rule, Text)).
 
@@ -729,7 +794,7 @@ test(atom_signature) :-
 
 :- end_tests(logic_ir_rendering).
 
-:- begin_tests(logic_ir_evaluation).
+:- begin_tests(logic_ir_evaluation, [setup(clear_rule_memo)]).
 
 test(compare_terms) :-
     forall(member(Op-L-R-Holds, [
@@ -794,7 +859,7 @@ test(materializes_declared_variables, [nondet]) :-
 
 :- end_tests(logic_ir_evaluation).
 
-:- begin_tests(logic_ir_conflicts).
+:- begin_tests(logic_ir_conflicts, [setup(clear_rule_memo)]).
 
 rr(Modality, Head, Body, Exceptions, Variables, rule(rule, Modality, Head, Body, Exceptions, scope('', '', []), '', '', '', Variables)).
 
@@ -1123,7 +1188,7 @@ test(conflict_witness_fields) :-
 
 :- end_tests(logic_ir_conflicts).
 
-:- begin_tests(logic_ir_property_form).
+:- begin_tests(logic_ir_property_form, [setup(clear_rule_memo)]).
 
 base_rule(Head, Body, Exceptions, rule(rule, forbid, Head, Body, Exceptions, scope(a, s, []), f, t, '', [])).
 
@@ -1221,7 +1286,7 @@ test(condition_operands) :-
 
 :- end_tests(logic_ir_property_form).
 
-:- begin_tests(logic_ir_stratification).
+:- begin_tests(logic_ir_stratification, [setup(clear_rule_memo)]).
 
 p(Name, atom(default, Name, [], positive, true)).
 r(Head, Body, rule(rule, assert, Head, Body, [], scope('', '', []), '', '', '', [])).
@@ -1258,7 +1323,7 @@ test(dependency_edges, [nondet]) :-
 
 :- end_tests(logic_ir_stratification).
 
-:- begin_tests(logic_ir_conflict_internals).
+:- begin_tests(logic_ir_conflict_internals, [setup(clear_rule_memo)]).
 
 at(Name, Args, atom(default, Name, Args, positive, false)).
 n(Value, number(Value, none)).
@@ -1385,7 +1450,7 @@ test(witness_reads_declarations) :-
 
 :- end_tests(logic_ir_conflict_internals).
 
-:- begin_tests(logic_ir_declarations, [setup(attach_kb), cleanup(detach_kb)]).
+:- begin_tests(logic_ir_declarations, [setup((clear_rule_memo, attach_kb)), cleanup(detach_kb)]).
 
 :- dynamic kb_dir/1.
 
