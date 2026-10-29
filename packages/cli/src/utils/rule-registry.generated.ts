@@ -105,6 +105,13 @@ export const GENERATED_RULES = [
     category: "integrity",
   },
   {
+    name: "scenario-outcome-mismatch",
+    description:
+      "A scenario that expects rejection or error must assume a value or situation a current requirement forbids: when every assumption is governed by current requirements and they permit all of them together, the knowledge base predicts success and the scenario exercises no failure side",
+    enforcementClass: "canonical",
+    category: "integrity",
+  },
+  {
     name: "exception-claim-keys",
     description:
       "An exception requirement's exempts_claims must name claim keys of a requirement it exempts, and requires an exempts link",

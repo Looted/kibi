@@ -99,9 +99,22 @@ export type RequirementProofExplainView = {
   /** One entry per inventory claim, with the certificate bindings behind it. */
   readonly claims?: readonly ClaimExplainEntry[];
   readonly scenarios: readonly { id: string; tests: readonly string[] }[];
+  /** Whether a scenario exercises the requirement's failure side. */
+  readonly negativePath?: NegativePathExplain;
   readonly tests: readonly ProofExplainTestBlock[];
   readonly productionSymbols: readonly ProofExplainSymbolBlock[];
   readonly structuralSymbols: readonly ProofExplainSymbolBlock[];
+};
+
+export type NegativePathExplain = {
+  readonly status: string;
+  readonly negativeScenarios: readonly string[];
+  readonly claims: readonly string[];
+  readonly suggestedNegatives: readonly {
+    readonly claimKey: string;
+    readonly factId: string;
+    readonly assumption: Readonly<Record<string, unknown>>;
+  }[];
 };
 
 export type SymbolProofExplainView = {
@@ -274,6 +287,7 @@ export function projectRequirementExplain(
       : {}),
     ...claimFields(proof),
     scenarios,
+    ...negativePathField(stages.negativePath),
     tests,
     productionSymbols: explanations.filter(
       (item) => !structuralIds.has(item.symbolId),
@@ -282,6 +296,45 @@ export function projectRequirementExplain(
       structuralIds.has(item.symbolId),
     ),
   };
+}
+
+// implements REQ-kibi-happy-path-gap
+function negativePathField(stage: unknown): { negativePath?: NegativePathExplain } {
+  if (stage === undefined) return {};
+  const record = asRecord(stage);
+  const suggestions = Array.isArray(record.suggestedNegatives)
+    ? record.suggestedNegatives.map((item) => {
+        const entry = asRecord(item);
+        return {
+          claimKey: asString(entry.claimKey),
+          factId: asString(entry.factId),
+          assumption: asRecord(entry.assumption),
+        };
+      })
+    : [];
+  return {
+    negativePath: {
+      status: asString(record.status),
+      negativeScenarios: asStringArray(record.negativeScenarios),
+      claims: asStringArray(record.claims),
+      suggestedNegatives: suggestions,
+    },
+  };
+}
+
+function renderNegativePath(view: RequirementProofExplainView): string[] {
+  const negative = view.negativePath;
+  if (negative === undefined || negative.status === "not_required") return [];
+  const lines = ["", `Failure side: ${negative.status}`];
+  for (const scenarioId of negative.negativeScenarios) {
+    lines.push(`  ${scenarioId} expects rejection or error`);
+  }
+  for (const suggestion of negative.suggestedNegatives) {
+    lines.push(
+      `  ${suggestion.claimKey} (${suggestion.factId}): assume ${JSON.stringify(suggestion.assumption)} and expect rejection`,
+    );
+  }
+  return lines;
 }
 
 function claimFields(proof: Record<string, unknown>): {
@@ -412,6 +465,7 @@ function renderRequirementExplain(view: RequirementProofExplainView): string {
       `  ${scenario.id} -> ${scenario.tests.join(", ") || "(no tests)"}`,
     );
   }
+  lines.push(...renderNegativePath(view));
   lines.push("");
   for (const test of view.tests) {
     lines.push(`TEST ${test.testId}`);
