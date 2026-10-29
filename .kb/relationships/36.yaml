@@ -461,3 +461,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-adf78a3092f6
+  - type: specified_by
+    from: REQ-kb-upsert-keeps-omitted-proof-receipts
+    to: SCEN-NEG-kb-upsert-keeps-omitted-proof-receipts-update-omits-receipts
+    created_at: 2026-10-29T21:01:57.738Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26f4ec247448

@@ -405,3 +405,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-727a62bfbe09
+  - type: assumes
+    from: SCEN-NEG-kb-decision-firmness-from-origin-imported-rule-edit
+    to: FACT-NEG-kb-decision-firmness-from-origin-imported-rule-edit
+    created_at: 2026-10-29T21:00:27.873Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e4af55d2a11c
+  - type: verified_by
+    from: SCEN-NEG-kb-decision-firmness-from-origin-imported-rule-edit
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-29T21:00:28.037Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb3b0783c9fe

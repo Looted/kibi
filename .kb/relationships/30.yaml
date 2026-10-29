@@ -426,3 +426,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e73ef64038d0
+  - type: assumes
+    from: SCEN-NEG-git-hook-manager-integration-lefthook-owned-hooks
+    to: FACT-NEG-git-hook-manager-integration-lefthook-owned-hooks
+    created_at: 2026-10-29T20:57:19.861Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5328a52388e0
+  - type: verified_by
+    from: SCEN-NEG-git-hook-manager-integration-lefthook-owned-hooks
+    to: TEST-git-hook-manager-integration
+    created_at: 2026-10-29T20:57:20.040Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-174646a4dbcb
