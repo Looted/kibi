@@ -371,7 +371,7 @@ function searchContext(
   const rows =
     '[[REQ-EXPORT,req,[title="Export report as CSV",status=open,tags=[download,reporting]]] , [REQ-LOGIN,req,[title="Authenticate an account",status=open]]]';
   const prolog: PrologPort = {
-    query: async (goal) => {
+    query: async (goal): Promise<PrologQueryResult> => {
       if (goal.includes("kb_relationship"))
         return { success: true, bindings: { Edges: "[]" } };
       return {
