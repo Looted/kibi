@@ -107,26 +107,32 @@ SWI-Prolog and plunit that writes the same report schema as Stryker.
 | Raw machine report | `reports/mutation/prolog/mutation.json` |
 
 - `mutalog.config.pl` at the repository root sets what is mutated and which
-  plunit files run. The lane starts with `packages/core/src/logic_ir.pl`
-  against `packages/core/tests/logic_ir.plt`: a hermetic suite of about a
-  dozen tests that finishes the module's ~2,800 mutants in a few minutes on
-  four cores.
-- `scripts/run-prolog-mutation.pl` pins the Mutalog version and installs it
-  on first use into `.cache/prolog-packs` (gitignored, downloaded with `curl`), leaving the user's own
-  packs alone. Set `MUTALOG_HOME` to a Mutalog checkout to run that instead.
+  plunit files run:
+
+  | Module | Mutants | Score | Covered-code score |
+  | --- | --- | --- | --- |
+  | `packages/core/src/logic_ir.pl` | 2,804 | 47.0% | 62.3% |
+  | `packages/core/src/kb.pl` | 4,840 | 32.1% | 38.7% |
+
+  Both plunit files run against both modules (`kb.plt` exercises the logic
+  IR too). The whole run takes about 10 minutes on 3 workers.
+  `kb.pl`'s report is mostly survivors until `kb.plt` gains tests for them.
+- `scripts/run-prolog-mutation.pl` pins the Mutalog version, downloads it
+  with `curl` on first use and installs it into `.cache/prolog-packs`
+  (gitignored), leaving the user's own packs alone. Set `MUTALOG_HOME` to a
+  Mutalog checkout to run that instead.
 - Unlike the Stryker gate, this lane **reports only**: `break(0)` in
   `mutalog.config.pl` never fails the run. The first survivors include
   equivalent mutants that need triage; once they are killed or listed in
   `ignore_mutants`, raise `break` to gate on the score.
 - `.github/workflows/mutation-prolog.yml` runs it nightly on `develop`, on
-  demand, and on pull requests that touch the mutated module, its tests or
+  demand, and on pull requests that touch the mutated modules, their tests or
   the lane's setup, on the bundled SWI-Prolog. The reports are uploaded as
   the `prolog-mutation-report` artifact.
 
 To add a module, add it to `mutate` and its plunit file to `tests` in
-`mutalog.config.pl`, and both paths to the workflow's `paths`. `kb.plt` is
-the realistic ceiling: its tests create RDF stores per test, so measure its
-dry run first.
+`mutalog.config.pl`, and both paths to the workflow's `paths`. Measure the
+module's run time first and raise the job's `timeout-minutes` if needed.
 
 ## Equivalent mutants and exclusions
 

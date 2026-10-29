@@ -25,6 +25,8 @@ on:
     paths:
       - 'packages/core/src/logic_ir.pl'
       - 'packages/core/tests/logic_ir.plt'
+      - 'packages/core/src/kb.pl'
+      - 'packages/core/tests/kb.plt'
       - 'mutalog.config.pl'
       - 'scripts/run-prolog-mutation.pl'
       - '.github/workflows/mutation-prolog.yml'
@@ -37,7 +39,7 @@ jobs:
   prolog-mutation:
     needs: [swipl-bundle]
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

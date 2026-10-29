@@ -3,9 +3,12 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
 import {
+  closeSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
+  openSync,
+  readFileSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -17,6 +20,10 @@ const importMetaDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(importMetaDir, "../../..");
 const runnerPath = path.join(repoRoot, "scripts", "run-prolog-mutation.pl");
 const tempDirs: string[] = [];
+
+// Each runner call waits up to RUNNER_TIMEOUT_MS, so a hung run fails with its
+// own output instead of a test timeout.
+const RUNNER_TIMEOUT_MS = 15_000;
 
 // A stand-in for Mutalog's library(mutalog): its entry point prints where it
 // was loaded from and the arguments it received, so a test can tell which
@@ -43,13 +50,33 @@ function writeStub(prologDir: string, label: string) {
   writeFileSync(path.join(prologDir, "mutalog.pl"), stubMutalog(label), "utf8");
 }
 
+// The runner's output goes to files, not pipes: on CI runners Bun can miss a
+// readiness event on a child's pipe and leave spawnSync blocked after the
+// child has exited.
 function runMutation(cwd: string, args: string[], env: NodeJS.ProcessEnv = {}) {
   const { MUTALOG_HOME: _ignored, ...base } = process.env;
-  return spawnSync("swipl", [runnerPath, ...args], {
-    cwd,
-    encoding: "utf8",
-    env: { ...base, ...env },
-  });
+  const outputRoot = tempDir("mutalog-out");
+  const stdoutPath = path.join(outputRoot, "stdout");
+  const stderrPath = path.join(outputRoot, "stderr");
+  const stdoutFd = openSync(stdoutPath, "w");
+  const stderrFd = openSync(stderrPath, "w");
+  let status: number | null;
+  try {
+    status = spawnSync("swipl", [runnerPath, ...args], {
+      cwd,
+      env: { ...base, ...env },
+      stdio: ["ignore", stdoutFd, stderrFd],
+      timeout: RUNNER_TIMEOUT_MS,
+    }).status;
+  } finally {
+    closeSync(stdoutFd);
+    closeSync(stderrFd);
+  }
+  return {
+    status,
+    stdout: readFileSync(stdoutPath, "utf8"),
+    stderr: readFileSync(stderrPath, "utf8"),
+  };
 }
 
 afterEach(() => {
