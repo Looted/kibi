@@ -6949,5 +6949,45 @@
         "./packages/cli/tests/operations/bootstrap-plugin-offers.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-proof-search-hint-weak-score",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/search-hints-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-search-hint-shown-limit",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/search-hints-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-search-hints-result-limit",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/search-hints-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-search-hints-offer-requirements",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/search-hints-limits.proof.test.ts"
+      ]
+    ]
   }
 ]

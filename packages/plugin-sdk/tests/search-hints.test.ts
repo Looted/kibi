@@ -147,4 +147,168 @@ describe("kibi.search-hints.v1 protocol", () => {
       "INVALID_CAPABILITY_RESULT",
     );
   });
+
+  test("plugin validation names the field it rejects and trims ids", () => {
+    const plugin = (capability: unknown) =>
+      validateKibiPlugin({
+        apiVersion: KIBI_PLUGIN_API_VERSION,
+        id: "hints",
+        version: "0.1.0",
+        permissions,
+        capabilities: { searchHints: capability },
+      });
+    expect(
+      plugin({ id: " x ", model: " m ", hint: () => ({ hints: [] }) })
+        .capabilities.searchHints,
+    ).toMatchObject({ id: "x", model: "m" });
+    const cases: [unknown, string][] = [
+      [null, "searchHints must expose hint()"],
+      [{ id: "x", model: "m", hint: "no" }, "searchHints must expose hint()"],
+      [
+        { id: "  ", model: "m", hint: () => ({}) },
+        "searchHints.id must be a non-empty string",
+      ],
+      [
+        { id: 1, model: "m", hint: () => ({}) },
+        "searchHints.id must be a non-empty string",
+      ],
+      [
+        { id: "x", model: "", hint: () => ({}) },
+        "searchHints.model must be a non-empty string",
+      ],
+    ];
+    for (const [capability, message] of cases) {
+      expectValidationCode(() => plugin(capability), "INVALID_CAPABILITY");
+      expect(() => plugin(capability)).toThrow(message);
+    }
+  });
+
+  test("each rejected result says what is wrong with it", () => {
+    const ids = ["REQ-a", "REQ-b"];
+    const order =
+      "is out of order: hints run from highest score to lowest, ties by id";
+    const cases: [unknown, number, string][] = [
+      [null, 3, "searchHints result must include hints[]"],
+      ["hints", 3, "searchHints result must include hints[]"],
+      [[], 3, "searchHints result must include hints[]"],
+      [{}, 3, "searchHints result must include hints[]"],
+      [{ hints: {} }, 3, "searchHints result must include hints[]"],
+      [
+        {
+          hints: [
+            { id: "REQ-a", score: 0.5 },
+            { id: "REQ-b", score: 0.4 },
+          ],
+        },
+        1,
+        "searchHints returned 2 hints; at most 1 were requested",
+      ],
+      [{ hints: [null] }, 3, "hints[0] must be an object"],
+      [{ hints: [[]] }, 3, "hints[0] must be an object"],
+      [{ hints: ["REQ-a"] }, 3, "hints[0] must be an object"],
+      [
+        { hints: [{ score: 0.5 }] },
+        3,
+        "hints[0].id must be a non-empty string",
+      ],
+      [
+        { hints: [{ id: " ", score: 0.5 }] },
+        3,
+        "hints[0].id must be a non-empty string",
+      ],
+      [
+        { hints: [{ id: "REQ-x", score: 0.5 }] },
+        3,
+        "hints[0].id 'REQ-x' is not a supplied entity",
+      ],
+      [
+        {
+          hints: [
+            { id: "REQ-a", score: 0.5 },
+            { id: "REQ-a", score: 0.4 },
+          ],
+        },
+        3,
+        "duplicate hint for 'REQ-a'",
+      ],
+      [
+        { hints: [{ id: "REQ-a", score: "0.5" }] },
+        3,
+        "hints[0].score must be a number between 0 and 1",
+      ],
+      [
+        { hints: [{ id: "REQ-a", score: -0.01 }] },
+        3,
+        "hints[0].score must be a number between 0 and 1",
+      ],
+      [
+        { hints: [{ id: "REQ-a", score: 1.01 }] },
+        3,
+        "hints[0].score must be a number between 0 and 1",
+      ],
+      [
+        { hints: [{ id: "REQ-a", score: Number.NaN }] },
+        3,
+        "hints[0].score must be a number between 0 and 1",
+      ],
+      [
+        {
+          hints: [
+            { id: "REQ-a", score: 0.4 },
+            { id: "REQ-b", score: 0.5 },
+          ],
+        },
+        3,
+        `hints[1] ${order}`,
+      ],
+      [
+        {
+          hints: [
+            { id: "REQ-b", score: 0.5 },
+            { id: "REQ-a", score: 0.5 },
+          ],
+        },
+        3,
+        `hints[1] ${order}`,
+      ],
+    ];
+    for (const [value, limit, message] of cases) {
+      expectValidationCode(
+        () => validateSearchHintsResult(value, ids, limit),
+        "INVALID_CAPABILITY_RESULT",
+      );
+      expect(() => validateSearchHintsResult(value, ids, limit)).toThrow(
+        message,
+      );
+    }
+  });
+
+  test("scores 0 and 1 are valid, ids are trimmed, and the cap is 20", () => {
+    expect(
+      validateSearchHintsResult(
+        {
+          hints: [
+            { id: " REQ-a ", score: 1 },
+            { id: "REQ-b", score: 0 },
+          ],
+        },
+        ["REQ-a", "REQ-b"],
+        2,
+      ).hints,
+    ).toEqual([
+      { id: "REQ-a", score: 1 },
+      { id: "REQ-b", score: 0 },
+    ]);
+    const many = Array.from({ length: 21 }, (_, index) => ({
+      id: `REQ-${String(index).padStart(2, "0")}`,
+      score: 0.5,
+    }));
+    const ids = many.map((hint) => hint.id);
+    expect(
+      validateSearchHintsResult({ hints: many.slice(0, 20) }, ids, 50).hints,
+    ).toHaveLength(20);
+    expect(() => validateSearchHintsResult({ hints: many }, ids, 50)).toThrow(
+      "searchHints returned 21 hints; at most 20 were requested",
+    );
+  });
 });

@@ -32,10 +32,10 @@ const caches = new Map<string, VectorCache>();
 const MAX_LIMIT = 20;
 
 function dot(left: Float32Array, right: Float32Array): number {
-  let sum = 0;
-  for (let index = 0; index < left.length; index++)
-    sum += (left[index] ?? 0) * (right[index] ?? 0);
-  return sum;
+  return left.reduce(
+    (sum, value, index) => sum + value * (right[index] as number),
+    0,
+  );
 }
 
 /**
@@ -65,14 +65,13 @@ export function rankByMeaning(
       ),
     }))
     .filter((hint) => hint.score > 0)
-    .sort((left, right) =>
-      right.score !== left.score
-        ? right.score - left.score
-        : left.id < right.id
-          ? -1
-          : left.id > right.id
-            ? 1
-            : 0,
+    .sort(
+      (left, right) =>
+        right.score - left.score ||
+        // rationale: the host sends each id once, so ids never tie and < and
+        // <= order alike.
+        // Stryker disable next-line EqualityOperator
+        (left.id < right.id ? -1 : 1),
     )
     .slice(0, limit);
 }

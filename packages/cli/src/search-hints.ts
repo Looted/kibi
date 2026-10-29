@@ -43,7 +43,8 @@ const ENTITY_TEXT_CHARS = 2000;
 /** A provider's first call in a process may build its index. */
 const FIRST_CALL_TIMEOUT_MS = 3000;
 const WARM_CALL_TIMEOUT_MS = 500;
-const warmedProviders = new Set<string>();
+/** Providers that answered once in this process; later calls get less time. */
+const warmedProviders = new WeakSet<object>();
 
 // implements REQ-kibi-search-hints-host
 export type SearchHintsTrigger = "abstained" | "weak";
@@ -79,9 +80,7 @@ export function searchHintsTrigger(
 }
 
 function isCurrent(entity: Record<string, unknown>): boolean {
-  const status = String(entity.status ?? "")
-    .trim()
-    .toLowerCase();
+  const status = String(entity.status).trim().toLowerCase();
   return (
     !NON_GOVERNING_STATUSES.has(status) &&
     status !== "closed" &&
@@ -89,20 +88,30 @@ function isCurrent(entity: Record<string, unknown>): boolean {
   );
 }
 
-function entityText(
+function entityBody(
   entity: Record<string, unknown>,
   bodies: MarkdownBodyCache,
   workspaceRoot: string,
 ): string {
   // The ranking may not have read every body; read the rest so an entity's
   // text, and so its cached vector, never depends on the query.
-  const source = String(entity.source ?? "");
-  let body = bodies.get(source);
-  if (body === undefined) {
-    body = loadMarkdownBodySync(source, workspaceRoot);
-    bodies.set(source, body);
-  }
-  return [entity.title, entity.semantic_text, body ?? ""]
+  const source = entity.source;
+  if (typeof source !== "string") return "";
+  if (!bodies.has(source))
+    bodies.set(source, loadMarkdownBodySync(source, workspaceRoot));
+  return bodies.get(source) as string;
+}
+
+function entityText(
+  entity: Record<string, unknown>,
+  bodies: MarkdownBodyCache,
+  workspaceRoot: string,
+): string {
+  return [
+    entity.title,
+    entity.semantic_text,
+    entityBody(entity, bodies, workspaceRoot),
+  ]
     .filter((part): part is string => typeof part === "string" && part !== "")
     .join("\n")
     .slice(0, ENTITY_TEXT_CHARS);
@@ -153,37 +162,31 @@ async function liftToRequirements(
   hints: readonly { readonly id: string; readonly score: number }[],
   byId: ReadonlyMap<string, SearchHintsEntity>,
 ): Promise<SearchHintItem[]> {
-  const nonRequirements = hints
-    .map((hint) => hint.id)
-    .filter((id) => byId.get(id)?.type !== "req");
-  const edges = await queryGraphEdges(prolog, nonRequirements);
-  const requirementsOf = new Map<string, string[]>();
-  for (const edge of edges) {
-    for (const [entity, other] of [
+  const isRequirement = (id: string) => byId.get(id)?.type === "req";
+  const seeds = new Set(
+    hints.map((hint) => hint.id).filter((id) => !isRequirement(id)),
+  );
+  const requirementsOf = new Map<string, Set<string>>();
+  for (const edge of await queryGraphEdges(prolog, [...seeds]))
+    for (const [seed, other] of [
       [edge.from, edge.to],
       [edge.to, edge.from],
-    ] as const) {
-      if (byId.get(other)?.type !== "req") continue;
-      const list = requirementsOf.get(entity) ?? [];
-      if (!list.includes(other)) list.push(other);
-      requirementsOf.set(entity, list);
-    }
-  }
+    ] as const)
+      if (seeds.has(seed) && isRequirement(other))
+        requirementsOf.set(
+          seed,
+          (requirementsOf.get(seed) ?? new Set()).add(other),
+        );
   const items: SearchHintItem[] = [];
   const shown = new Set<string>();
   for (const hint of hints) {
-    const entity = byId.get(hint.id);
-    if (entity === undefined) continue;
-    const targets =
-      entity.type === "req"
-        ? [hint.id]
-        : (requirementsOf.get(hint.id)?.sort() ?? [hint.id]);
-    for (const target of targets) {
+    const linked = requirementsOf.get(hint.id);
+    for (const target of linked ? [...linked].sort() : [hint.id]) {
       if (shown.has(target)) continue;
       shown.add(target);
       items.push({
         id: target,
-        title: byId.get(target)?.title ?? entity.title,
+        title: (byId.get(target) as SearchHintsEntity).title,
         score: hint.score,
         ...(target !== hint.id ? { via: hint.id } : {}),
       });
@@ -222,10 +225,6 @@ export async function buildSearchHints(
     options.workspaceRoot,
   );
   if (entities.length === 0) return undefined;
-  const providerKey = [
-    resolution.replace?.stamp.pluginId,
-    ...resolution.shadow.map((binding) => binding.stamp.pluginId),
-  ].join("|");
   const composed = await composeSearchHints(
     resolution,
     {
@@ -236,12 +235,14 @@ export async function buildSearchHints(
     },
     {
       operationName: "kb_search",
-      timeoutMs: warmedProviders.has(providerKey)
-        ? WARM_CALL_TIMEOUT_MS
-        : FIRST_CALL_TIMEOUT_MS,
+      timeoutMs: (binding) =>
+        warmedProviders.has(binding.capability)
+          ? WARM_CALL_TIMEOUT_MS
+          : FIRST_CALL_TIMEOUT_MS,
     },
   );
-  warmedProviders.add(providerKey);
+  for (const binding of [resolution.replace, ...resolution.shadow])
+    if (binding) warmedProviders.add(binding.capability);
   const byId = new Map(entities.map((entity) => [entity.id, entity]));
   const answered = new Set(options.governingIds.slice(0, 3));
   const items = (await liftToRequirements(options.prolog, composed.hints, byId))

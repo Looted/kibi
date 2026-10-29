@@ -40799,7 +40799,7 @@ symbols:
         target: REQ-capability-plugin-protocol-v1
   - id: SYM-cap-plugin-pluginvalidationerror-edc38c60
     title: PluginValidationError
-    sourceFile: packages/plugin-sdk/src/validate.ts
+    sourceFile: packages/plugin-sdk/src/validation-error.ts
     status: active
     symbol_role: behavioral
     granularity_reason: module-level-behavior
@@ -40810,7 +40810,7 @@ symbols:
         target: REQ-capability-plugin-protocol-v1
   - id: SYM-cap-plugin-pluginvalidationerror-code-0a3bc917
     title: PluginValidationError.code
-    sourceFile: packages/plugin-sdk/src/validate.ts
+    sourceFile: packages/plugin-sdk/src/validation-error.ts
     status: active
     symbol_role: behavioral
     relationships:
@@ -64753,7 +64753,7 @@ symbols:
   - id: SYM-validate-search-hints-result
     title: validateSearchHintsResult
     status: active
-    sourceFile: packages/plugin-sdk/src/validate.ts
+    sourceFile: packages/plugin-sdk/src/validate-search-hints.ts
     symbol_role: behavioral
     origin:
       kind: agent
@@ -65619,3 +65619,127 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-git-hook-manager-integration
+  - id: SYM-search-hint-weak-score
+    title: SEARCH_HINT_WEAK_SCORE
+    status: active
+    sourceFile: packages/cli/src/search-hints.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T21:27:43.941Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: covered_by
+        target: TEST-proof-search-hint-weak-score
+      - type: implements
+        target: REQ-kibi-search-hints-host
+      - type: implements
+        target: REQ-kibi-search-hints-limits
+  - id: SYM-proof-search-hint-weak-score
+    title: searchHintWeakScoreCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/search-hints-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T21:27:50.094Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-search-hint-weak-score
+  - id: SYM-search-hint-limit
+    title: SEARCH_HINT_LIMIT
+    status: active
+    sourceFile: packages/cli/src/search-hints.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T21:27:59.255Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: covered_by
+        target: TEST-proof-search-hint-shown-limit
+      - type: implements
+        target: REQ-kibi-search-hints-host
+      - type: implements
+        target: REQ-kibi-search-hints-limits
+  - id: SYM-proof-search-hint-shown-limit
+    title: searchHintShownLimitCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/search-hints-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T21:28:06.295Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-search-hint-shown-limit
+  - id: SYM-search-hints-max-limit
+    title: SEARCH_HINTS_MAX_LIMIT
+    status: active
+    sourceFile: packages/plugin-sdk/src/capabilities/search-hints.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T21:28:14.067Z
+    relationships:
+      - type: covered_by
+        target: TEST-capability-search-hints-v1
+      - type: covered_by
+        target: TEST-proof-search-hints-result-limit
+      - type: implements
+        target: REQ-capability-search-hints-v1
+      - type: implements
+        target: REQ-kibi-search-hints-limits
+  - id: SYM-proof-search-hints-result-limit
+    title: searchHintsResultLimitCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/search-hints-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T21:28:19.270Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-search-hints-result-limit
+  - id: SYM-search-hints-offer-requirements
+    title: SEARCH_HINTS_OFFER_REQUIREMENTS
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/plugin-offers.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T21:28:28.679Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-plugin-search-hints
+      - type: covered_by
+        target: TEST-proof-search-hints-offer-requirements
+      - type: implements
+        target: REQ-kibi-plugin-search-hints
+      - type: implements
+        target: REQ-kibi-search-hints-limits
+  - id: SYM-proof-search-hints-offer-requirements
+    title: searchHintsOfferCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/search-hints-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T21:28:35.387Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-search-hints-offer-requirements

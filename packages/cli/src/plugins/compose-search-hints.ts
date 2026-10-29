@@ -70,8 +70,15 @@ async function ask(
 > {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
+    const answer = Promise.resolve(binding.capability.hint(input));
+    // rationale: clearing only frees the timer early; a timer left to fire
+    // rejects a race that already settled, which nothing observes.
+    // Stryker disable all
+    const clear = () => clearTimeout(timer);
+    answer.then(clear, clear);
+    // Stryker restore all
     const result = await Promise.race([
-      Promise.resolve(binding.capability.hint(input)),
+      answer,
       new Promise<never>((_, reject) => {
         timer = setTimeout(
           () => reject(new SearchHintsTimeout(timeoutMs)),
@@ -87,8 +94,6 @@ async function ask(
     return { ok: true, hints: validated.hints };
   } catch (error) {
     return { ok: false, diagnostic: diagnosticFromError(binding, error) };
-  } finally {
-    if (timer !== undefined) clearTimeout(timer);
   }
 }
 
@@ -103,7 +108,11 @@ async function ask(
 export async function composeSearchHints(
   resolution: CapabilityModeResolution<SearchHintsV1>,
   input: SearchHintsInput,
-  options: Readonly<{ operationName: string; timeoutMs: number }>,
+  options: Readonly<{
+    operationName: string;
+    /** How long one provider may take to answer. */
+    timeoutMs: (binding: CapabilityProviderBinding<SearchHintsV1>) => number;
+  }>,
 ): Promise<ComposedSearchHints> {
   const empty: ComposedSearchHints = {
     hints: [],
@@ -118,7 +127,11 @@ export async function composeSearchHints(
   let stamp: PluginProviderStamp | null = null;
   let fallbackUsed = false;
   if (resolution.replace) {
-    const answer = await ask(resolution.replace, input, options.timeoutMs);
+    const answer = await ask(
+      resolution.replace,
+      input,
+      options.timeoutMs(resolution.replace),
+    );
     if (answer.ok) {
       hints = answer.hints;
       stamp = resolution.replace.stamp;
@@ -133,7 +146,7 @@ export async function composeSearchHints(
     readonly hints: readonly SearchHint[];
   }> = [];
   for (const shadow of resolution.shadow) {
-    const answer = await ask(shadow, input, options.timeoutMs);
+    const answer = await ask(shadow, input, options.timeoutMs(shadow));
     if (answer.ok)
       shadowComparisons.push({ stamp: shadow.stamp, hints: answer.hints });
     else diagnostics.push(answer.diagnostic);

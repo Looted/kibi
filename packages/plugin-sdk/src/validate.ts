@@ -12,12 +12,6 @@ import {
   type PredicateSchemaDefinition,
 } from "./capabilities/ontology-pack.js";
 import {
-  SEARCH_HINTS_MAX_LIMIT,
-  type SearchHint,
-  type SearchHintsResult,
-  type SearchHintsV1,
-} from "./capabilities/search-hints.js";
-import {
   SEMANTIC_LANES,
   SEMANTIC_SIGNAL_KINDS,
   type SemanticClassificationDecision,
@@ -63,6 +57,13 @@ import {
   SYMBOL_EXTRACTOR_V2_CAPABILITY_ID,
   VOCABULARY_ALIGNMENT_CAPABILITY_ID,
 } from "./protocol.js";
+import {
+  validateSearchHints,
+  validateSearchHintsResult,
+} from "./validate-search-hints.js";
+import { PluginValidationError } from "./validation-error.js";
+
+export { PluginValidationError, validateSearchHintsResult };
 
 const SOURCE_SYMBOL_KINDS = [
   "function",
@@ -76,17 +77,6 @@ const SOURCE_SYMBOL_KINDS = [
   "variable",
   "unknown",
 ] as const satisfies readonly SourceSymbolKind[];
-
-// implements REQ-capability-plugin-protocol-v1
-export class PluginValidationError extends Error {
-  readonly code: string;
-
-  constructor(code: string, message: string) {
-    super(message);
-    this.name = "PluginValidationError";
-    this.code = code;
-  }
-}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -266,24 +256,6 @@ function validateVocabularyAlignment(value: unknown): VocabularyAlignmentV1 {
     compareClaims:
       value.compareClaims as VocabularyAlignmentV1["compareClaims"],
     ...(model !== undefined ? { model } : {}),
-  };
-}
-
-function validateSearchHints(value: unknown): SearchHintsV1 {
-  if (!isRecord(value) || typeof value.hint !== "function") {
-    throw new PluginValidationError(
-      "INVALID_CAPABILITY",
-      "searchHints must expose hint()",
-    );
-  }
-  return {
-    id: requireString(value.id, "searchHints.id", "INVALID_CAPABILITY"),
-    model: requireString(
-      value.model,
-      "searchHints.model",
-      "INVALID_CAPABILITY",
-    ),
-    hint: value.hint as SearchHintsV1["hint"],
   };
 }
 
@@ -1104,79 +1076,6 @@ export function validateRankSubjectsResult(
     };
   });
   return { decisions };
-}
-
-/**
- * Validate a search-hints result against the entities that were sent. Every
- * hint must name a supplied entity once, scores must lie in [0, 1] and run
- * from highest to lowest (ties by id), and no more than `limit` hints may be
- * returned, so a provider cannot invent or reorder evidence.
- */
-// implements REQ-capability-search-hints-v1
-export function validateSearchHintsResult(
-  value: unknown,
-  entityIds: readonly string[],
-  limit: number,
-): SearchHintsResult {
-  if (!isRecord(value) || !Array.isArray(value.hints)) {
-    throw new PluginValidationError(
-      "INVALID_CAPABILITY_RESULT",
-      "searchHints result must include hints[]",
-    );
-  }
-  const max = Math.min(limit, SEARCH_HINTS_MAX_LIMIT);
-  if (value.hints.length > max) {
-    throw new PluginValidationError(
-      "INVALID_CAPABILITY_RESULT",
-      `searchHints returned ${value.hints.length} hints; at most ${max} were requested`,
-    );
-  }
-  const allowed = new Set(entityIds);
-  const seen = new Set<string>();
-  const hints: SearchHint[] = value.hints.map((hint, index) => {
-    if (!isRecord(hint)) {
-      throw new PluginValidationError(
-        "INVALID_CAPABILITY_RESULT",
-        `hints[${index}] must be an object`,
-      );
-    }
-    const id = requireString(
-      hint.id,
-      `hints[${index}].id`,
-      "INVALID_CAPABILITY_RESULT",
-    );
-    if (!allowed.has(id)) {
-      throw new PluginValidationError(
-        "INVALID_CAPABILITY_RESULT",
-        `hints[${index}].id '${id}' is not a supplied entity`,
-      );
-    }
-    if (seen.has(id)) {
-      throw new PluginValidationError(
-        "INVALID_CAPABILITY_RESULT",
-        `duplicate hint for '${id}'`,
-      );
-    }
-    seen.add(id);
-    return {
-      id,
-      score: requireUnitInterval(hint.score, `hints[${index}].score`),
-    };
-  });
-  for (let index = 1; index < hints.length; index++) {
-    const previous = hints[index - 1] as SearchHint;
-    const current = hints[index] as SearchHint;
-    if (
-      current.score > previous.score ||
-      (current.score === previous.score && current.id < previous.id)
-    ) {
-      throw new PluginValidationError(
-        "INVALID_CAPABILITY_RESULT",
-        `hints[${index}] is out of order: hints run from highest score to lowest, ties by id`,
-      );
-    }
-  }
-  return { hints };
 }
 
 /** Validate a compareClaims result against the pairs that were sent. */

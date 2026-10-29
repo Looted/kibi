@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { WordPieceTokenizer } from "./tokenizer.js";
@@ -20,9 +21,7 @@ export type StaticModel = Readonly<{
   encode(text: string): Float32Array;
 }>;
 
-function assetPath(name: string): string {
-  return fileURLToPath(new URL(`../assets/${name}`, import.meta.url));
-}
+const ASSETS_DIRECTORY = fileURLToPath(new URL("../assets/", import.meta.url));
 
 /**
  * A static embedding: the mean of the int8 table rows of a text's tokens,
@@ -30,30 +29,38 @@ function assetPath(name: string): string {
  * the same vector on every platform and in every batch.
  */
 // implements REQ-kibi-plugin-search-hints
-export function loadStaticModel(): StaticModel {
-  const table = readFileSync(assetPath("potion-base-8M.int8.bin"));
+export function loadStaticModel(
+  assetsDirectory = ASSETS_DIRECTORY,
+): StaticModel {
+  const table = readFileSync(
+    path.join(assetsDirectory, "potion-base-8M.int8.bin"),
+  );
   if (table.toString("ascii", 0, 4) !== "KSHM" || table.readUInt32LE(4) !== 1)
     throw new Error("search hints model asset has an unknown format");
   const rows = table.readUInt32LE(8);
   const dims = table.readUInt32LE(12);
-  const scales = new Float32Array(rows);
-  for (let row = 0; row < rows; row++)
-    scales[row] = table.readFloatLE(16 + row * 4);
+  const scales = Float64Array.from({ length: rows }, (_, row) =>
+    table.readFloatLE(16 + row * 4),
+  );
   const weights = new Int8Array(
     table.buffer,
     table.byteOffset + 16 + rows * 4,
     rows * dims,
   );
-  const vocabulary = readFileSync(assetPath("vocab.txt"), "utf8")
-    .split("\n")
-    .slice(0, rows);
+  const vocabulary = readFileSync(
+    path.join(assetsDirectory, "vocab.txt"),
+    "utf8",
+  )
+    .trimEnd()
+    .split("\n");
+  if (vocabulary.length !== rows)
+    throw new Error(
+      `search hints vocabulary has ${vocabulary.length} tokens for ${rows} table rows`,
+    );
   const tokenizer = new WordPieceTokenizer(vocabulary);
-  const id = `${MODEL_LABEL}-${createHash("sha256")
-    .update(table)
-    .digest("hex")
-    .slice(0, 12)}`;
+  const digest = createHash("sha256").update(table).digest("hex");
   return {
-    id,
+    id: `${MODEL_LABEL}-${digest.slice(0, 12)}`,
     dims,
     encode(text: string): Float32Array {
       const ids = tokenizer
@@ -62,18 +69,17 @@ export function loadStaticModel(): StaticModel {
         .slice(0, MAX_TOKENS);
       const sum = new Float64Array(dims);
       for (const token of ids) {
-        const scale = scales[token] ?? 0;
-        const offset = token * dims;
-        for (let col = 0; col < dims; col++)
-          sum[col] = (sum[col] ?? 0) + (weights[offset + col] ?? 0) * scale;
+        const scale = scales[token] as number;
+        weights
+          .subarray(token * dims, (token + 1) * dims)
+          .forEach((weight, col) => {
+            sum[col] = (sum[col] as number) + weight * scale;
+          });
       }
-      let norm = 0;
-      for (let col = 0; col < dims; col++) norm += (sum[col] ?? 0) ** 2;
-      norm = Math.sqrt(norm);
-      const vector = new Float32Array(dims);
-      if (norm === 0) return vector;
-      for (let col = 0; col < dims; col++) vector[col] = (sum[col] ?? 0) / norm;
-      return vector;
+      const norm = Math.sqrt(
+        sum.reduce((total, value) => total + value * value, 0),
+      );
+      return Float32Array.from(sum, (value) => (norm === 0 ? 0 : value / norm));
     },
   };
 }

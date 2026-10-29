@@ -11,10 +11,12 @@ export const UNK_TOKEN = "[UNK]";
 const SPECIAL_TOKENS = ["[PAD]", "[UNK]", "[CLS]", "[SEP]", "[MASK]"];
 const SPECIAL_SPLIT = /(\[PAD\]|\[UNK\]|\[CLS\]|\[SEP\]|\[MASK\])/;
 
-const CONTROL = /[\p{Cc}\p{Cf}\p{Co}\p{Cn}]/u;
+// Unassigned code points (Cn) are kept, as the upstream normalizer does.
+const CONTROL = /[\p{Cc}\p{Cf}\p{Co}]/u;
 const CLEAN_WHITESPACE = /[\t\n\r\p{Zs}]/u;
 const WHITESPACE = /\p{White_Space}/u;
-const PUNCTUATION = /\p{P}/u;
+// BERT also counts every ASCII symbol as punctuation, not only Unicode P.
+const PUNCTUATION = /[\p{P}$+<=>^`|~]/u;
 const NONSPACING_MARK = /\p{Mn}/gu;
 
 function isControl(char: string): boolean {
@@ -29,21 +31,14 @@ function isChineseChar(code: number): boolean {
     (code >= 0x20000 && code <= 0x2a6df) ||
     (code >= 0x2a700 && code <= 0x2b73f) ||
     (code >= 0x2b740 && code <= 0x2b81f) ||
-    (code >= 0x2b820 && code <= 0x2ceaf) ||
+    // Upstream starts this range at 0x2B920, not Unicode's 0x2B820.
+    (code >= 0x2b920 && code <= 0x2ceaf) ||
     (code >= 0xf900 && code <= 0xfaff) ||
     (code >= 0x2f800 && code <= 0x2fa1f)
   );
 }
 
 function isPunctuation(char: string): boolean {
-  const code = char.codePointAt(0) ?? 0;
-  if (
-    (code >= 33 && code <= 47) ||
-    (code >= 58 && code <= 64) ||
-    (code >= 91 && code <= 96) ||
-    (code >= 123 && code <= 126)
-  )
-    return true;
   return PUNCTUATION.test(char);
 }
 
@@ -52,7 +47,8 @@ export function normalize(text: string): string {
   let cleaned = "";
   for (const char of text) {
     const code = char.codePointAt(0) ?? 0;
-    if (code === 0 || code === 0xfffd || isControl(char)) continue;
+    // NUL is a control character too.
+    if (code === 0xfffd || isControl(char)) continue;
     if (CLEAN_WHITESPACE.test(char)) cleaned += " ";
     else if (isChineseChar(code)) cleaned += ` ${char} `;
     else cleaned += char;
@@ -103,6 +99,9 @@ export class WordPieceTokenizer {
     while (start < chars.length) {
       let end = chars.length;
       let found: number | undefined;
+      // rationale: at start === end the piece is empty, and neither "" nor
+      // "##" is a vocabulary entry, so the loop ends the same way.
+      // Stryker disable next-line EqualityOperator
       while (start < end) {
         const piece = chars.slice(start, end).join("");
         found = this.ids.get(start > 0 ? CONTINUING_PREFIX + piece : piece);

@@ -552,3 +552,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-242b0c0e1fd9
+  - type: validates
+    from: TEST-proof-search-hints-offer-requirements
+    to: SCEN-kibi-plugin-search-hints
+    created_at: 2026-10-29T21:35:42.690Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55880e265097
