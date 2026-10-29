@@ -132,3 +132,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c0b55c2dacd8
+  - type: assumes
+    from: SCEN-NEG-kibi-html-health-report-partial-coverage-page
+    to: FACT-NEG-kibi-html-health-report-partial-coverage-page
+    created_at: 2026-10-29T21:34:36.230Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-613ee510cecd
+  - type: verified_by
+    from: SCEN-NEG-kibi-html-health-report-partial-coverage-page
+    to: TEST-kibi-html-health-report
+    created_at: 2026-10-29T21:34:36.256Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98dbe7cb21ef

@@ -384,3 +384,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-522054ad41f1
+  - type: assumes
+    from: SCEN-NEG-kibi-conditional-requirement-authoring-untranslatable-conditional
+    to: FACT-NEG-kibi-conditional-requirement-authoring-untranslatable-conditional
+    created_at: 2026-10-29T21:08:31.653Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60082687a891
+  - type: verified_by
+    from: SCEN-NEG-kibi-conditional-requirement-authoring-untranslatable-conditional
+    to: TEST-kibi-conditional-feasibility-cli
+    created_at: 2026-10-29T21:08:31.785Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4de9f56238d6

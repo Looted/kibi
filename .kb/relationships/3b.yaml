@@ -342,3 +342,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bc55798e3548
+  - type: assumes
+    from: SCEN-NEG-installed-staged-impact-timing-integrity-malformed-timing
+    to: FACT-NEG-installed-staged-impact-timing-integrity-malformed-timing
+    created_at: 2026-10-29T20:59:41.211Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01d041378803
+  - type: verified_by
+    from: SCEN-NEG-installed-staged-impact-timing-integrity-malformed-timing
+    to: TEST-installed-staged-impact-timing-integrity
+    created_at: 2026-10-29T20:59:41.336Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-624ce233e7bc

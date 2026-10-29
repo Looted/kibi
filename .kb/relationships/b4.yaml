@@ -328,3 +328,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0aa244c9fbf2
+  - type: assumes
+    from: SCEN-NEG-kibi-hooks-flow-manifest-flow-manifest-unlinked
+    to: FACT-NEG-kibi-hooks-flow-manifest-flow-manifest-unlinked
+    created_at: 2026-10-29T21:13:36.670Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-acba747d512d
+  - type: verified_by
+    from: SCEN-NEG-kibi-hooks-flow-manifest-flow-manifest-unlinked
+    to: TEST-kibi-hooks-flow-manifest
+    created_at: 2026-10-29T21:13:36.760Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9da13ede84d7

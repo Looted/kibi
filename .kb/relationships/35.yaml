@@ -356,3 +356,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-af2c95b8f509
+  - type: assumes
+    from: SCEN-NEG-kb-upsert-statement-follows-semantic-text-stale-body-statement
+    to: FACT-NEG-kb-upsert-statement-follows-semantic-text-stale-body-statement
+    created_at: 2026-10-29T21:02:30.246Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71f0cd5744b4
+  - type: verified_by
+    from: SCEN-NEG-kb-upsert-statement-follows-semantic-text-stale-body-statement
+    to: TEST-kb-entity-body-context
+    created_at: 2026-10-29T21:02:30.396Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a176cc81a475
+  - type: specified_by
+    from: REQ-kb-upsert-statement-follows-semantic-text
+    to: SCEN-NEG-kb-upsert-statement-follows-semantic-text-stale-body-statement
+    created_at: 2026-10-29T21:02:38.447Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff8eb7292be9

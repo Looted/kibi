@@ -321,3 +321,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6668179d9230
+  - type: assumes
+    from: SCEN-NEG-kb-decision-firmness-unexplained-supersede
+    to: FACT-NEG-kb-decision-firmness-unexplained-supersede
+    created_at: 2026-10-29T21:00:11.635Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0edf51882be
+  - type: verified_by
+    from: SCEN-NEG-kb-decision-firmness-unexplained-supersede
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-29T21:00:11.724Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14d7e2e006b5

@@ -412,3 +412,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c12c99ec6818
+  - type: assumes
+    from: SCEN-NEG-kibi-contradiction-review-candidates-uncompared-requirement
+    to: FACT-NEG-kibi-contradiction-review-candidates-uncompared-requirement
+    created_at: 2026-10-29T21:09:04.001Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3edddcc42a66
+  - type: verified_by
+    from: SCEN-NEG-kibi-contradiction-review-candidates-uncompared-requirement
+    to: TEST-kibi-contradiction-review-cli
+    created_at: 2026-10-29T21:09:04.069Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e968eba92448

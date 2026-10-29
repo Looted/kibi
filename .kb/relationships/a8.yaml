@@ -349,3 +349,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-28e409fe5ba0
+  - type: specified_by
+    from: REQ-kb-unowned-file-candidates
+    to: SCEN-NEG-kb-unowned-file-candidates-unlinked-file-ungoverned
+    created_at: 2026-10-29T21:01:37.849Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12dfad0e0d5d

@@ -384,3 +384,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5701a06b32ca
+  - type: specified_by
+    from: REQ-installed-staged-impact-timing-integrity
+    to: SCEN-NEG-installed-staged-impact-timing-integrity-malformed-timing
+    created_at: 2026-10-29T20:59:47.350Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f806bdb6b1d0

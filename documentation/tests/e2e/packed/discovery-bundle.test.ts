@@ -488,6 +488,34 @@ This requirement is intentionally not must-priority.
     );
 
     it(
+      "abstains with an explicit zero-result state when no entity matches the intent",
+      { timeout: 120000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        const searchCli = await kibi(sandbox, [
+          "search",
+          "qzxv plorbnik wuggle",
+          "--format",
+          "json",
+        ]);
+        const searchCliJson = parseKibiResult<{
+          count: number;
+          results: Array<{ entity: { id: string } }>;
+          queryAnalysis?: { abstained?: boolean; acceptedCount?: number };
+        }>(searchCli.stdout);
+        // An unmatched intent is an explicit abstention, never a weak match.
+        assert.strictEqual(searchCliJson.count, 0);
+        assert.deepStrictEqual(searchCliJson.results, []);
+        assert.strictEqual(searchCliJson.queryAnalysis?.abstained, true);
+        assert.strictEqual(searchCliJson.queryAnalysis?.acceptedCount, 0);
+      },
+    );
+
+    it(
       "writes derived diagnostic fields in MCP diagnostic mode",
       { timeout: 120000 },
       async (testContext) => {

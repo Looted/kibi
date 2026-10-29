@@ -307,3 +307,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-597e4e57b57e
+  - type: specified_by
+    from: REQ-kibi-dependency-ordered-repair-plan
+    to: SCEN-NEG-kibi-dependency-ordered-repair-plan-paginated-plan
+    created_at: 2026-10-29T21:09:28.429Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1ef1b39d956

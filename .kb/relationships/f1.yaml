@@ -377,3 +377,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9db8eabdb224
+  - type: specified_by
+    from: REQ-kibi-anonymous-usage-telemetry
+    to: SCEN-NEG-kibi-anonymous-usage-telemetry-opted-out-send
+    created_at: 2026-10-29T21:06:36.747Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-effe917b6ff1

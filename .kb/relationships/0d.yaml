@@ -258,3 +258,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-27e3d7de91dc
+  - type: specified_by
+    from: REQ-kb-decision-firmness
+    to: SCEN-NEG-kb-decision-firmness-unexplained-supersede
+    created_at: 2026-10-29T21:00:16.779Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77a708923151

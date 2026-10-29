@@ -342,3 +342,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2aaefe02dc2d
+  - type: specified_by
+    from: REQ-kb-check-unverified-requirement-statements
+    to: SCEN-NEG-kb-check-unverified-requirement-statements-bare-pass-summary
+    created_at: 2026-10-29T21:00:02.641Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cee14312d2aa

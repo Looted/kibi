@@ -342,3 +342,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b60309fdf695
+  - type: assumes
+    from: SCEN-NEG-kibi-anonymous-usage-telemetry-opted-out-send
+    to: FACT-NEG-kibi-anonymous-usage-telemetry-opted-out-send
+    created_at: 2026-10-29T21:06:29.318Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-edb04e21d22a
+  - type: verified_by
+    from: SCEN-NEG-kibi-anonymous-usage-telemetry-opted-out-send
+    to: TEST-kibi-anonymous-usage-telemetry-cli
+    created_at: 2026-10-29T21:06:29.402Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33b392945be0

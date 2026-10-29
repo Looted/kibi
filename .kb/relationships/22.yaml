@@ -433,3 +433,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a11d68c2cc01
+  - type: specified_by
+    from: REQ-kibi-github-report-integration
+    to: SCEN-NEG-kibi-github-report-integration-badge-only-without-github
+    created_at: 2026-10-29T21:13:26.867Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1c4c8c94141

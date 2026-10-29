@@ -7,6 +7,7 @@ import {
   type Tarballs,
   type TestSandbox,
   checkPrologAvailable,
+  createInventoriedRequirement,
   createMarkdownFile,
   createSandbox,
   exactBranchStorePath,
@@ -894,6 +895,65 @@ if (RUN_NODE_TEST_SUITE) {
       );
 
       console.log("  ✓ KB directory structure validated");
+    });
+
+    it("should refuse a requirement health report from a partial coverage page", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+
+      // A second current requirement makes a one-row coverage page partial.
+      const secondPath = ".kb/requirements/REQ-002.md";
+      await createInventoriedRequirement(
+        sandbox,
+        secondPath,
+        {
+          id: "REQ-002",
+          title: "Second test requirement",
+          status: "open",
+          tags: ["test"],
+        },
+        [
+          "This is a second test requirement for E2E validation.",
+          "",
+          "## Context",
+          "",
+          "This second entry gives the packed report suite more current requirements than a one-row coverage page holds, which is the situation the partial-page refusal covers.",
+        ].join("\n"),
+      );
+      try {
+        const synced = await kibi(sandbox, ["sync"]);
+        assert.strictEqual(synced.exitCode, 0, synced.stdout + synced.stderr);
+
+        const { stdout, stderr, exitCode } = await kibi(
+          sandbox,
+          ["report", "--limit", "1", "--output", "kibi-report-partial"],
+          { timeoutMs: 120000 },
+        );
+        assert.notStrictEqual(
+          exitCode,
+          0,
+          `a partial coverage page must fail the report. Output: ${stdout}${stderr}`,
+        );
+        assert.match(
+          `${stdout}${stderr}`,
+          /Report requires complete requirement rows, but 1 of 2 were returned/,
+        );
+        await assert.rejects(
+          readFile(
+            path.join(sandbox.repoDir, "kibi-report-partial", "index.html"),
+            "utf8",
+          ),
+          "no report may be written from incomplete metrics",
+        );
+      } finally {
+        await run("git", ["rm", "-q", "-f", "--", secondPath], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
+        await kibi(sandbox, ["sync"]);
+      }
     });
 
     it(

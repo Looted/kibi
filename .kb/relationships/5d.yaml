@@ -573,3 +573,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9845d9abe0e0
+  - type: assumes
+    from: SCEN-NEG-kb-entity-body-context-thin-body
+    to: FACT-NEG-kb-entity-body-context-thin-body
+    created_at: 2026-10-29T21:00:49.065Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d59988ae35f0
+  - type: verified_by
+    from: SCEN-NEG-kb-entity-body-context-thin-body
+    to: TEST-kb-entity-body-context
+    created_at: 2026-10-29T21:00:49.329Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3853e5a9c8a
+  - type: assumes
+    from: SCEN-NEG-kibi-branded-health-report-later-gate-drop
+    to: FACT-NEG-kibi-branded-health-report-later-gate-drop
+    created_at: 2026-10-29T21:07:05.797Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af24002cbe06
+  - type: verified_by
+    from: SCEN-NEG-kibi-branded-health-report-later-gate-drop
+    to: TEST-kibi-branded-health-report
+    created_at: 2026-10-29T21:07:06.027Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dcc819e9e414

@@ -419,3 +419,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8deb77fdd44b
+  - type: assumes
+    from: SCEN-NEG-impact-review-public-preparation-malformed-source-preparation
+    to: FACT-NEG-impact-review-public-preparation-malformed-source-preparation
+    created_at: 2026-10-29T20:59:27.654Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e6142946e7f9
+  - type: verified_by
+    from: SCEN-NEG-impact-review-public-preparation-malformed-source-preparation
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-10-29T20:59:27.732Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-369db2797480

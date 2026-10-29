@@ -293,3 +293,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6de45c6e17f7
+  - type: specified_by
+    from: REQ-git-hook-sync-v2
+    to: SCEN-NEG-git-hook-sync-v2-foreign-post-checkout
+    created_at: 2026-10-29T20:57:48.261Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90e22ed8f79b

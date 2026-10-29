@@ -587,3 +587,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9c317ee7eae8
+  - type: specified_by
+    from: REQ-impact-review-public-preparation
+    to: SCEN-NEG-impact-review-public-preparation-malformed-source-preparation
+    created_at: 2026-10-29T20:59:33.032Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-878f91d66a3a
