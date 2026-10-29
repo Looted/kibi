@@ -1155,7 +1155,7 @@ export function landingContent(args: {
     </details>
     <details>
       <summary>Will Kibi decide the product for me?</summary>
-      <p>No. <code>kibi init</code> creates the directory and the Git hooks; it leaves hooks it did not write alone, and <code>kibi init --print-hook pre-commit</code> prints a snippet you can add to them. What it commits is what you and the agent authored: symbol line positions are derived by every sync into a gitignored cache, so parallel branches do not conflict over them. It does not infer behavior. Checks prove what was encoded. Missing knowledge stays visible.</p>
+      <p>No. <code>kibi init</code> creates the directory and the Git hooks; it leaves hooks it did not write alone, and with lefthook, husky or the pre-commit framework it installs none and prints the configuration to add (<code>kibi init --print-hook all --format lefthook</code>). What it commits is what you and the agent authored: symbol line positions are derived by every sync into a gitignored cache, so parallel branches do not conflict over them. It does not infer behavior. Checks prove what was encoded. Missing knowledge stays visible.</p>
     </details>
   </div>
 </section>

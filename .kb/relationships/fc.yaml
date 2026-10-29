@@ -433,3 +433,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-11dacf2d5237
+  - type: executable_for
+    from: SYM-proof-certificate-proof-kinds
+    to: TEST-proof-certificate-proof-kinds
+    created_at: 2026-10-29T16:45:39.936Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06593dfb7ad7

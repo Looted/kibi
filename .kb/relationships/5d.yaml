@@ -538,3 +538,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ff644a922c05
+  - type: validates
+    from: TEST-proof-telemetry-default-host
+    to: SCEN-kibi-anonymous-usage-telemetry
+    created_at: 2026-10-29T16:27:15.110Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3a762d3aaf6

@@ -225,6 +225,35 @@ export function uncompiledBranchStoreViolation(
   };
 }
 
+/**
+ * The branch store this check reads, when the engine is known to read it, as
+ * the place to keep parsed source analyses. A read-only detached snapshot
+ * and an unknown store (an explicit --kb-path) get no cache.
+ */
+// implements REQ-cli-check
+export function analysisCacheDir(
+  context: OperationContext,
+  workspaceRoot: string,
+  options: CheckExecutionOptions,
+): string | undefined {
+  if (
+    context.branchAttachment === undefined &&
+    options.branchStoreAttached !== true
+  ) {
+    return undefined;
+  }
+  try {
+    const attachment =
+      context.branchAttachment ?? resolveBranchAttachment(workspaceRoot);
+    if ("storePath" in attachment && attachment.readOnly === undefined) {
+      return attachment.storePath;
+    }
+  } catch {
+    // A branch that cannot be resolved gets no cache.
+  }
+  return undefined;
+}
+
 // implements REQ-kibi-operation-interface-parity, REQ-002
 export async function executeCheck(
   args: CheckInput,
@@ -383,6 +412,7 @@ export async function executeCheck(
       prolog,
       workspaceRoot,
       rulesAllowlist,
+      analysisCacheDir(context, workspaceRoot, options),
     );
     const originReviewFindings = await collectOriginReviewViolations(
       prolog,

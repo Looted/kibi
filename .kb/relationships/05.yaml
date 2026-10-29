@@ -367,3 +367,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c179e0c91d58
+  - type: executable_for
+    from: SYM-proof-rule-entity-context-acknowledged
+    to: TEST-proof-rule-entity-context-acknowledged
+    created_at: 2026-10-29T16:43:27.805Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7fb878c87e7b

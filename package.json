@@ -51,6 +51,7 @@
     "proof:replay": "bun scripts/replay-proof-ci.ts",
     "test:coverage:prolog": "swipl -q -s scripts/run-prolog-coverage.pl -- --source-root packages/core/src --test packages/core/tests/kb.plt --output-dir coverage/prolog --summary-json coverage/prolog/summary.json --summary-text coverage/prolog/summary.txt --fail-under 50",
     "test:mutation:prolog": "swipl scripts/run-prolog-mutation.pl run",
+    "test:mutation:prolog:backlog": "swipl scripts/run-prolog-mutation.pl run --config mutalog.backlog.config.pl",
     "test:coverage:manifest": "bun run scripts/coverage-manifest.ts . coverage/unit",
     "test:e2e": "./scripts/docker/test.sh e2e",
     "test:e2e:local": "if [ -z \"${TMPDIR:-}\" ]; then export TMPDIR=/tmp; fi; bun run build:runtime && node scripts/run-e2e-local.mjs",

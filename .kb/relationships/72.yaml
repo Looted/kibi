@@ -524,3 +524,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9c38e1a76ff8
+  - type: executable_for
+    from: SYM-proof-hook-max-requirement-candidates
+    to: TEST-proof-hook-max-requirement-candidates
+    created_at: 2026-10-29T16:30:55.381Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c27b1086a547

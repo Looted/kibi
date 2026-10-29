@@ -26,18 +26,18 @@ proof_contract:
 id: TEST-capability-check-policy
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-11b94b4f802f156f1843a38b
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-17194fc316bccea7bf1c14aa
     test_id: TEST-capability-check-policy
     scope: end_to_end
     outcome: passed
-    code_snapshot: 06bcb9d0b41a820d7ba77a759d45cbb22b0404df99c99db8f9b25cdbc68306f0
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-09T12:33:47.656Z'
-    finished_at: '2026-10-09T12:33:49.433Z'
-    artifact_digest: 818fa2a060a3606d75e1eb3a00ee055b363521ab490b3e384a3c29d2329b81b2
+    code_snapshot: 5cf1b6f3d9ec9f667fb67722a085c1d8935f2fee5aa8dfd80b2e7a83820ab8aa
+    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
+    started_at: '2026-10-29T16:59:45.378Z'
+    finished_at: '2026-10-29T16:59:50.092Z'
+    artifact_digest: b6173b996880d31de6bfcecbfff35bb39c594f4193f982bd396950cfa90b6f58
     contract_hash: 00027fa6b581d82f856e28a51a2c59440b151c258648bf9bd97dbe5c9f25b20e
-    binding_hash: 17d173581398f56352a8b2869880ac646e734df322f2f6e62af6f82fd8e33a5c
+    binding_hash: eecf5a43ea57037ce63314e21fd0a7cd493ee336445a548696544062990262e9
     fingerprint: f9c52f38ce33477d69d6c912e14d069803ed18f0ae2f940a2e5b02e97f4a8cd5
     fingerprint_components:
       contract: 00027fa6b581d82f856e28a51a2c59440b151c258648bf9bd97dbe5c9f25b20e
@@ -71,5 +71,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs the plugin SDK check policy suite, which validates policy documents, the capability slot and declinedPlugins parsing; the check policy rules suite, which evaluates ownership, exemption, supersession, marker and load-error cases and reads a policy from a package whose module throws on import; and the kibi check end-to-end case, which activates a policy in a temporary workspace and expects one ownership and one marker violation.

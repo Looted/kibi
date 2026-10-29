@@ -465,8 +465,29 @@ export function mergeCoordinatesWithManifest(
       throw new CoordinateArtifactError(coordinateArtifact.reason);
     }
   }
-  const resolveSourceText =
-    options.resolveSourceText ?? defaultResolveSourceText;
+  const readSourceText = options.resolveSourceText ?? defaultResolveSourceText;
+  // Many symbols share a source file: read and hash each file once per merge.
+  const sourceTexts = new Map<string, string | null>();
+  const resolveSourceText = (sourceFile: string): string | null => {
+    if (!sourceTexts.has(sourceFile)) {
+      sourceTexts.set(sourceFile, readSourceText(sourceFile));
+    }
+    return sourceTexts.get(sourceFile) ?? null;
+  };
+  const sourceHashes = new Map<string, string | null>();
+  const sourceHashOf = (sourceFile: string): string | null => {
+    // rationale: hashing is a pure function of the text, which is read once
+    // above, so recomputing the hash changes only the time a merge takes.
+    // Stryker disable next-line ConditionalExpression
+    if (!sourceHashes.has(sourceFile)) {
+      const text = resolveSourceText(sourceFile);
+      sourceHashes.set(
+        sourceFile,
+        text === null ? null : coordinateSourceHash(text),
+      );
+    }
+    return sourceHashes.get(sourceFile) ?? null;
+  };
   const rawCoordinates = coordinateArtifact?.coordinates ?? {};
   return symbolRecords.map((symbolRecord) => {
     const stripped = stripGeneratedFields(symbolRecord);
@@ -506,11 +527,9 @@ export function mergeCoordinatesWithManifest(
       ) {
         return stripped;
       }
-      const sourceText = resolveSourceText(candidate.sourceFile);
-      if (
-        sourceText === null ||
-        coordinateSourceHash(sourceText) !== sourceHash
-      ) {
+      const currentSourceHash = sourceHashOf(candidate.sourceFile);
+      // `sourceHash` is a valid hash here, so an unreadable file never matches.
+      if (currentSourceHash !== sourceHash) {
         return stripped;
       }
       return overlaySpan(stripped, candidate);

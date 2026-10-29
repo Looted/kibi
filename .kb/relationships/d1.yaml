@@ -468,3 +468,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-388340bd49bd
+  - type: executable_for
+    from: SYM-git-hook-manager-integration-verifier
+    to: TEST-git-hook-manager-integration
+    created_at: 2026-10-29T18:39:41.574Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-310f8fdb4277

@@ -202,3 +202,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8dc146652225
+  - type: validates
+    from: TEST-proof-rule-decision-firm-edited
+    to: SCEN-kb-decision-firmness
+    created_at: 2026-10-29T16:39:49.298Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f17f7082c31

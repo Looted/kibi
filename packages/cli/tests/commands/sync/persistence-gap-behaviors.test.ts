@@ -438,7 +438,9 @@ describe("persistRelationships batch fallback and untracked tips", () => {
       goal.startsWith("kb_assert_relationships_reporting("),
     );
     expect(reporting).toHaveLength(1);
-    expect(reporting[0]).toContain("rel(specified_by, 'REQ-001', 'SCEN-1')");
+    expect(reporting[0]).toContain(
+      "[rel(specified_by, 'REQ-001', 'SCEN-1'), rel(specified_by, 'REQ-001', 'SCEN-MISSING'), rel(specified_by, 'REQ-001', 'SCEN-3')]",
+    );
     expect(singles.length).toBeGreaterThan(0);
     expect(singles.every((goal) => goal.includes("'SCEN-MISSING'"))).toBe(true);
   });
@@ -503,6 +505,44 @@ describe("persistRelationships batch fallback and untracked tips", () => {
 
     expect(result.relationshipCount).toBe(3);
     expect(result.kbModified).toBe(true);
+    expect(singleGoals(goals)).toHaveLength(3);
+  });
+
+  test("a failed reporting goal is not read even when it names failures", async () => {
+    const { prolog, goals } = makeProlog({
+      queryBatch: failedBatch,
+      query: (goal): QueryResult => {
+        if (goal.startsWith("kb_assert_relationships_reporting(")) {
+          return { success: false, bindings: { Failed: "[]" } };
+        }
+        return { success: true, bindings: {} };
+      },
+    });
+    const io = captureIo();
+    restores.push(io.restore);
+
+    const result = await persistRelationships(prolog, threeLinks(), []);
+
+    expect(result.relationshipCount).toBe(3);
+    expect(singleGoals(goals)).toHaveLength(3);
+  });
+
+  test("a reporting goal that throws falls back to retrying the whole batch", async () => {
+    const { prolog, goals } = makeProlog({
+      queryBatch: failedBatch,
+      query: (goal): QueryResult => {
+        if (goal.startsWith("kb_assert_relationships_reporting(")) {
+          throw new Error("engine went away");
+        }
+        return { success: true, bindings: {} };
+      },
+    });
+    const io = captureIo();
+    restores.push(io.restore);
+
+    const result = await persistRelationships(prolog, threeLinks(), []);
+
+    expect(result.relationshipCount).toBe(3);
     expect(singleGoals(goals)).toHaveLength(3);
   });
 

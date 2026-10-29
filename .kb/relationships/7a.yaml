@@ -419,3 +419,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9d60cca270a5
+  - type: executable_for
+    from: SYM-proof-vscode-refresh-command
+    to: TEST-proof-vscode-refresh-command
+    created_at: 2026-10-29T17:07:33.986Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc1305cfaa4d

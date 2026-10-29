@@ -1459,6 +1459,18 @@
     ]
   },
   {
+    "test_id": "TEST-git-hook-manager-integration",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "180000",
+        "./packages/cli/tests/commands/hook-managers.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-kibi-vocabulary-convergence-e2e",
     "steps": [
       [
@@ -6552,6 +6564,346 @@
         "bun",
         "test",
         "./packages/cli/tests/proofs/claims/latest-kb-schema-version.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-telemetry-default-host",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/telemetry-automation-keys.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-telemetry-ci-env-keys",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/telemetry-automation-keys.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-telemetry-test-env-keys",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/telemetry-automation-keys.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-snippet-max-chars",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/agent-hook-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-hook-max-requirement-candidates",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/agent-hook-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-confirm-firm-edits-env",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/agent-hook-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-snippet-grounding-links",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/agent-hook-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-claude-workspace-env-keys",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/agent-workspace-keys.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-agent-workspace-argument",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/agent-workspace-keys.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-mcp-workspace-root-argument",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/mcp-workspace-argument.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-rule-decision-firm-unreferenced",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/decision-firmness-rule-names.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-rule-decision-firm-superseded",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/decision-firmness-rule-names.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-rule-decision-firm-edited",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/decision-firmness-rule-names.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-rule-supersedes-reason-missing",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/decision-firmness-rule-names.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-rule-entity-context-missing",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/entity-context-rule-names.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-rule-entity-context-acknowledged",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/entity-context-rule-names.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-proof-contract-kinds",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/proof-vocabulary.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-certificate-proof-kinds",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/proof-vocabulary.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-source-proof-readers",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/proof-vocabulary.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-claim-binding-verdicts",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/proof-vocabulary.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-bootstrap-aspect-max-words",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/bootstrap-aspect-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-bootstrap-aspect-max-chars",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/bootstrap-aspect-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-provenance-stub-tag",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/provenance-stub-tag.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-builtin-alignment-reuse-threshold",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/vocabulary-alignment-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-jev-alignment-top-k",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/vocabulary-alignment-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-alignment-new-choice",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/vocabulary-alignment-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-check-policy-contract-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/check-policy-version.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-builtin-predicate-confidence",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/builtin-predicate-confidence.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-opencode-plugin-id",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/opencode-plugin-ids.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-opencode-bootstrap-command",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/opencode-plugin-ids.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-vscode-container-id",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/vscode-extension-ids.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-vscode-view-id",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/vscode-extension-ids.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-vscode-refresh-command",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/vscode-extension-ids.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-vscode-focus-command",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/vscode-extension-ids.proof.test.ts"
       ]
     ]
   },

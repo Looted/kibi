@@ -9,6 +9,8 @@
     check_all_json_file/2,          % Writes all violations as JSON to a file
     check_selected_json/2,           % Returns only selected rule violations as JSON
     check_selected_json_file/2,      % Writes selected rule violations as JSON to a file
+    check_all_json_transport/4,      % File transport with an answer fallback
+    check_selected_json_transport/4, % Same, for selected rules
     check_must_priority_coverage/1, % Returns list of must-priority violations
     check_symbol_coverage/1,        % Returns list of uncovered symbols
     check_changed_symbol_coverage/2, % symbol-coverage restricted to a staged change set
@@ -495,13 +497,11 @@ parse_json_list(Raw, Entries) :-
 :- dynamic json_text_memo/2.
 :- dynamic json_text_memo_size/1.
 
+% mutalog-disable-next-line literal: the bound is a tuning value; any size gives the same answers
 json_text_memo_limit(16384).
 
 json_text_term(Raw, Term) :-
-    (   atom(Raw)
-    ->  Text = Raw
-    ;   atom_string(Text, Raw)
-    ),
+    atom_string(Text, Raw),
     (   json_text_memo(Text, Stored)
     ->  Stored = parsed(Term)
     ;   (   catch(atom_json_dict(Text, Parsed, [value_string_as(string)]), _, fail)
@@ -2795,6 +2795,7 @@ opposing_rule_requirement_facts(ReqA, ReqB, FactA, FactB, RuleA, RuleB) :-
     member(FactA-RuleA, RulesA),
     member(FactB-RuleB, RulesB),
     FactA \== FactB,
+    % mutalog-disable-next-line compare: equal endpoints need ReqA == ReqB, which is excluded above
     ReqA-FactA @< ReqB-FactB.
 
 % Each requirement's rule facts with their parsed rules, read once rather
@@ -2807,12 +2808,14 @@ rule_requirement_links(Links) :-
                       ( kb_relationship(requires_rule, ReqId, FactId),
                         rule_fact_rule(FactId, Rule) ),
                       Rules),
+              % mutalog-disable-next-line goal_true,literal: a requirement without rules never pairs; this only prunes
               Rules \== [] ),
             Links).
 
 rule_fact_rule(FactId, Rule) :-
     kb_entity(FactId, fact, Props),
     memberchk(fact_kind=Kind, Props),
+    % mutalog-disable-next-line goal_true: only a rule fact carries a rule body to decode
     normalize_term_atom(Kind, rule),
     logic_rule_from_props(Props, Rule).
 
@@ -3859,6 +3862,44 @@ check_all_json_file(Path, RequireAdr) :-
 check_selected_json_file(Rules, Path) :-
     check_selected(Rules, ViolationsDict),
     violations_json_to_file(ViolationsDict, Path).
+
+%% check_all_json_transport(+Path, +RequireAdr, -Transport, -JsonString)
+% Writes the violations JSON to Path (Transport = file, JsonString = ''), or
+% answers it as JsonString (Transport = answer) when Path is `none` or the
+% file cannot be written: a full or read-only temp folder, or an engine that
+% cannot reach the caller's temp folder, must not fail a check that fits in
+% an answer.
+check_all_json_transport(Path, RequireAdr, Transport, JsonString) :-
+    check_all_with_options(ViolationsDict, RequireAdr),
+    violations_json_transport(ViolationsDict, Path, Transport, JsonString).
+
+%% check_selected_json_transport(+Rules, +Path, -Transport, -JsonString)
+% check_all_json_transport/4 for the named rules only.
+check_selected_json_transport(Rules, Path, Transport, JsonString) :-
+    check_selected(Rules, ViolationsDict),
+    violations_json_transport(ViolationsDict, Path, Transport, JsonString).
+
+violations_json_transport(ViolationsDict, Path, Transport, JsonString) :-
+    (   Path \== none,
+        catch(violations_json_to_file(ViolationsDict, Path), Error,
+              (   file_transport_error(Error)
+              ->  fail
+              ;   throw(Error)
+              ))
+    ->  Transport = file,
+        JsonString = ''
+    ;   Transport = answer,
+        violations_dict_to_json(ViolationsDict, JsonDict),
+        with_output_to_string(
+            json_write_dict(current_output, JsonDict, [width(0)]),
+            JsonString
+        )
+    ).
+
+file_transport_error(error(permission_error(_, _, _), _)).
+file_transport_error(error(existence_error(_, _), _)).
+file_transport_error(error(resource_error(_), _)).
+file_transport_error(error(io_error(_, _), _)).
 
 violations_json_to_file(ViolationsDict, Path) :-
     violations_dict_to_json(ViolationsDict, JsonDict),

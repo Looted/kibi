@@ -71,7 +71,34 @@ export function readShard(shardPath: string): RelationshipRecord[] {
     return [];
   }
 
-  return parseShardText(fs.readFileSync(shardPath, "utf8"), shardPath);
+  const content = fs.readFileSync(shardPath, "utf8");
+  const parsed = parsedShards.get(content);
+  // rationale: parsing is a pure function of the text and callers get copies
+  // either way, so skipping the memo changes only the time a read takes.
+  // Stryker disable next-line ConditionalExpression
+  if (parsed !== undefined) return parsed.map((record) => ({ ...record }));
+  const records = parseShardText(content, shardPath);
+  if (parsedShards.size >= PARSED_SHARD_LIMIT) parsedShards.clear();
+  parsedShards.set(
+    content,
+    records.map((record) => ({ ...record })),
+  );
+  return records;
+}
+
+/**
+ * Parsed shards by their text. One check reads every shard for several rules
+ * (relationship parity, entity context); a shard's records are a pure
+ * function of its text, so an unchanged shard is parsed once per process.
+ * Callers get their own record copies.
+ */
+const PARSED_SHARD_LIMIT = 1024;
+const parsedShards = new Map<string, RelationshipRecord[]>();
+
+/** How many parsed shards the reuse memo holds; for tests of its bound. */
+// implements REQ-005
+export function parsedShardMemoSize(): number {
+  return parsedShards.size;
 }
 
 /**

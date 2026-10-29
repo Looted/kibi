@@ -88,9 +88,12 @@ commit generated files, and does not use an orphan `gh-pages` branch.
 [![Kibi requirement health](https://OWNER.github.io/REPOSITORY/kibi-report/badge.svg)](https://OWNER.github.io/REPOSITORY/kibi-report/)
 ```
 
-Replace `OWNER` and `REPOSITORY` with the lowercase GitHub Pages owner and
-repository path. Clicking the badge must open the report. Files are published
-under `/kibi-report/` so Kibi does not occupy the Pages site root.
+Replace `OWNER` with the repository owner (lower case is fine, since the
+`*.github.io` host is case-insensitive) and `REPOSITORY` with the repository name
+exactly as GitHub spells it. The project-site path is case-sensitive, so
+`MyRepo` and `myrepo` are different URLs. Clicking the badge must open the
+report. Files are published under `/kibi-report/` so Kibi does not occupy the
+Pages site root.
 
 This workflow still **replaces** the GitHub Pages deployment. If the repository
 already publishes a site, copy `kibi-report/` into that site's output instead
@@ -101,6 +104,7 @@ of using this workflow as the only deploy.
 | Repository | Report | Badge |
 | --- | --- | --- |
 | `OWNER/REPOSITORY` | `https://OWNER.github.io/REPOSITORY/kibi-report/` | `https://OWNER.github.io/REPOSITORY/kibi-report/badge.svg` |
+| `Owner/MyRepo` (mixed case) | `https://owner.github.io/MyRepo/kibi-report/` | `https://owner.github.io/MyRepo/kibi-report/badge.svg` |
 | `OWNER/OWNER.github.io` (owner site) | `https://OWNER.github.io/kibi-report/` | `https://OWNER.github.io/kibi-report/badge.svg` |
 
 The image URL must be anonymously reachable for GitHub to render it in a public

@@ -173,7 +173,7 @@ function dependencyOrder(
   // its dependents in the order a scan over every action would.
   const dependents = new Map<string, string[]>();
   for (const action of actions) {
-    for (const dependency of remaining.get(action.id) ?? []) {
+    for (const dependency of remaining.get(action.id) as Set<string>) {
       const list = dependents.get(dependency);
       if (list === undefined) dependents.set(dependency, [action.id]);
       else list.push(action.id);
@@ -204,13 +204,12 @@ function dependencyOrder(
     const id = ready[head] as string;
     head += 1;
     queued.delete(id);
-    const action = byId.get(id);
-    if (action === undefined) continue;
+    // Only ids of `actions` are ever queued or listed as dependents.
+    const action = byId.get(id) as MigrationAction;
     ordered.push(action);
     for (const candidateId of dependents.get(id) ?? []) {
-      const dependencies = remaining.get(candidateId);
+      const dependencies = remaining.get(candidateId) as Set<string>;
       if (
-        dependencies === undefined ||
         !dependencies.delete(id) ||
         dependencies.size !== 0 ||
         queued.has(candidateId)

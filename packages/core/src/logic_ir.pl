@@ -8,7 +8,6 @@
     logic_rule_safety/2,
     logic_rule_render/2,
     logic_rule_semantic_key/2,
-    logic_derive/2,
     logic_rule_conflict/3,
     logic_rule_conflict/4,
     logic_rule_conflict_witness/3,
@@ -22,10 +21,9 @@
 ]).
 
 :- use_module(library(http/json)).
-:- use_module(library(aggregate)).
 :- use_module(library(clpfd)).
 :- use_module('intervals.pl', [numeric_constraints_satisfiable/2, numeric_constraint_entailed/3, numeric_constraint_holds/3]).
-:- use_module('kb.pl', [kb_entity/3, predicate_fact/5, predicate_schema_keys/4]).
+:- use_module('kb.pl', [predicate_schema_keys/4]).
 
 %% logic_rule_from_props(+Props, -Rule)
 % Props is an entity property list from a fact_kind=rule fact.
@@ -41,6 +39,7 @@ logic_rule_from_props(Props, Rule) :-
 :- dynamic logic_rule_memo/2.
 :- dynamic logic_rule_memo_size/1.
 
+% mutalog-disable-next-line literal: the bound is a tuning value; any size gives the same answers
 logic_rule_memo_limit(16384).
 
 logic_rule_from_json(Json, Rule) :-
@@ -71,10 +70,10 @@ logic_rule_remember(Json, Stored) :-
     assertz(logic_rule_memo(Json, Stored)),
     assertz(logic_rule_memo_size(Next)).
 
-raw_json_atom(^^(Value, _), Atom) :- !, raw_json_atom(Value, Atom).
-raw_json_atom(literal(type(_, Value)), Atom) :- !, raw_json_atom(Value, Atom).
-raw_json_atom(Value, Atom) :- atom(Value), !, Atom = Value.
-raw_json_atom(Value, Atom) :- string(Value), !, atom_string(Atom, Value).
+% Anything that is not JSON text is rejected by atom_json_dict/3.
+raw_json_atom(^^(Value, _), Text) :- !, raw_json_atom(Value, Text).
+raw_json_atom(literal(type(_, Value)), Text) :- !, raw_json_atom(Value, Text).
+raw_json_atom(Text, Text).
 
 json_rule(Dict, rule(Kind, Modality, Head, Body, Exceptions, Scope, From, To, SchemaId, Variables)) :-
     json_rule_keys(Dict),
@@ -107,7 +106,7 @@ json_quantifier(Value, Value) :- memberchk(Value, [forall, exists]), !.
 json_quantifier(Value, Quantifier) :- string(Value), atom_string(Atom, Value), json_quantifier(Atom, Quantifier).
 
 json_modality(Value, Value) :- memberchk(Value, [assert, deny, oblige, permit, forbid]), !.
-json_modality(Value, Value) :- string(Value), atom_string(Atom, Value), json_modality(Atom, Value).
+json_modality(Value, Modality) :- string(Value), atom_string(Atom, Value), json_modality(Atom, Modality).
 
 json_atom(Dict, atom(Namespace, Name, Args, Polarity, ClosedWorld)) :-
     is_dict(Dict),
@@ -125,7 +124,7 @@ json_atom(Dict, atom(Namespace, Name, Args, Polarity, ClosedWorld)) :-
     ( get_dict(closedWorld, Dict, RawClosedWorld) -> memberchk(RawClosedWorld, [true, false]), ClosedWorld = RawClosedWorld ; ClosedWorld = false ).
 
 json_atom_name(Value, Atom) :- atom(Value), !, Atom = Value.
-json_atom_name(Value, Atom) :- string(Value), !, atom_string(Atom, Value).
+json_atom_name(Value, Atom) :- string(Value), atom_string(Atom, Value).
 
 valid_variable_name(Name) :-
     atom(Name),
@@ -155,11 +154,7 @@ valid_predicate_name(Name) :-
     char_type(First, lower),
     forall(member(Char, Rest), allowed_predicate_char(Char)).
 
-allowed_predicate_char(Char) :- char_type(Char, alnum), !.
-allowed_predicate_char('_').
-allowed_predicate_char('-').
-allowed_predicate_char('/').
-allowed_predicate_char('.').
+allowed_predicate_char(Char) :- char_type(Char, alnum) -> true ; memberchk(Char, ['_', '-', '/', '.']).
 
 json_text(Value, Expected) :- atom(Value), !, Value = Expected.
 json_text(Value, Expected) :- string(Value), atom_string(Expected, Value).
@@ -181,7 +176,7 @@ json_term(Dict, number(Value, Unit)) :-
     ( get_dict(unit, Dict, RawUnit) -> json_atom_name(RawUnit, Unit), valid_type_name(Unit) ; Unit = none ), !.
 json_term(Dict, duration(Value, Unit)) :-
     is_dict(Dict), dict_keys_allowed(Dict, [kind, value, unit]), get_dict(kind, Dict, Kind), json_text(Kind, duration),
-    get_dict(value, Dict, Value), number(Value), Value =:= Value, Value >= 0,
+    get_dict(value, Dict, Value), number(Value), Value >= 0,
     get_dict(unit, Dict, RawUnit), json_atom_name(RawUnit, Unit), memberchk(Unit, [ms, s, m, h, d, w]), !.
 json_term(Dict, timestamp(Value)) :-
     is_dict(Dict), dict_keys_allowed(Dict, [kind, value]), get_dict(kind, Dict, Kind), json_text(Kind, timestamp),
@@ -189,15 +184,15 @@ json_term(Dict, timestamp(Value)) :-
 json_term(Dict, interval(Start, End)) :-
     is_dict(Dict), dict_keys_allowed(Dict, [kind, start, end]), get_dict(kind, Dict, Kind), json_text(Kind, interval),
     get_dict(start, Dict, RawStart), json_timestamp(RawStart, Start),
-    get_dict(end, Dict, RawEnd), json_timestamp(RawEnd, End), Start @=< End, !.
+    get_dict(end, Dict, RawEnd), json_timestamp(RawEnd, End), Start @=< End.
 
-json_expression(Dict, Atom) :- is_dict(Dict), dict_keys_allowed(Dict, [kind, namespace, name, args, polarity, closedWorld]), get_dict(kind, Dict, Kind), json_text(Kind, atom), !, json_atom(Dict, Atom).
+json_expression(Dict, Atom) :- is_dict(Dict), get_dict(kind, Dict, Kind), json_text(Kind, atom), !, json_atom(Dict, Atom).
 json_expression(Dict, all(Items)) :- is_dict(Dict), dict_keys_allowed(Dict, [kind, items]), get_dict(kind, Dict, Kind), json_text(Kind, all), !, get_dict(items, Dict, Raw), is_list(Raw), Raw \= [], length(Raw, Count), Count =< 32, maplist(json_expression, Raw, Items).
 json_expression(Dict, any(Items)) :- is_dict(Dict), dict_keys_allowed(Dict, [kind, items]), get_dict(kind, Dict, Kind), json_text(Kind, any), !, get_dict(items, Dict, Raw), is_list(Raw), Raw \= [], length(Raw, Count), Count =< 32, maplist(json_expression, Raw, Items).
 json_expression(Dict, not(Atom)) :- is_dict(Dict), dict_keys_allowed(Dict, [kind, item]), get_dict(kind, Dict, Kind), json_text(Kind, not), !, get_dict(item, Dict, Raw), json_atom(Raw, Atom).
 json_expression(Dict, compare(Op, Left, Right)) :- is_dict(Dict), dict_keys_allowed(Dict, [kind, operator, left, right]), get_dict(kind, Dict, Kind), json_text(Kind, compare), !, get_dict(operator, Dict, OpRaw), json_atom_name(OpRaw, Op), valid_compare_operator(Op), get_dict(left, Dict, LeftRaw), get_dict(right, Dict, RightRaw), json_term(LeftRaw, Left), json_term(RightRaw, Right).
 json_expression(Dict, count(Atom, Op, Value)) :- is_dict(Dict), dict_keys_allowed(Dict, [kind, atom, operator, value]), get_dict(kind, Dict, Kind), json_text(Kind, count), !, get_dict(atom, Dict, AtomRaw), json_atom(AtomRaw, Atom), get_dict(operator, Dict, OpRaw), json_atom_name(OpRaw, Op), valid_compare_operator(Op), get_dict(value, Dict, Value), integer(Value), Value >= 0.
-json_expression(Dict, temporal(Relation, Left, Right)) :- is_dict(Dict), dict_keys_allowed(Dict, [kind, relation, left, right]), get_dict(kind, Dict, Kind), json_text(Kind, temporal), !, get_dict(relation, Dict, RelationRaw), json_atom_name(RelationRaw, Relation), valid_temporal_relation(Relation), get_dict(left, Dict, LeftRaw), get_dict(right, Dict, RightRaw), json_term(LeftRaw, Left), json_term(RightRaw, Right).
+json_expression(Dict, temporal(Relation, Left, Right)) :- is_dict(Dict), dict_keys_allowed(Dict, [kind, relation, left, right]), get_dict(kind, Dict, Kind), json_text(Kind, temporal), get_dict(relation, Dict, RelationRaw), json_atom_name(RelationRaw, Relation), valid_temporal_relation(Relation), get_dict(left, Dict, LeftRaw), get_dict(right, Dict, RightRaw), json_term(LeftRaw, Left), json_term(RightRaw, Right).
 
 valid_compare_operator(Op) :- memberchk(Op, [eq, neq, lt, lte, gt, gte]).
 valid_temporal_relation(Relation) :- memberchk(Relation, [before, after, during, overlaps, starts, finishes]).
@@ -251,19 +246,27 @@ rule_limit_error(Head, Body, Exceptions, expression_depth_exceeded) :-
 
 expression_atom_count(none, 0).
 expression_atom_count(atom(_, _, _, _, _), 1).
+% mutalog-disable-next-line cut_insert: maplist/3 over a det predicate
 expression_atom_count(all(Items), Count) :- maplist(expression_atom_count, Items, Counts), sum_list(Counts, ChildCount), Count is ChildCount.
+% mutalog-disable-next-line cut_insert: maplist/3 over a det predicate
 expression_atom_count(any(Items), Count) :- maplist(expression_atom_count, Items, Counts), sum_list(Counts, ChildCount), Count is ChildCount.
+% mutalog-disable-next-line cut_insert: a det call on a subterm
 expression_atom_count(not(Atom), Count) :- expression_atom_count(Atom, ChildCount), Count is ChildCount.
 expression_atom_count(compare(_, _, _), 0).
+% mutalog-disable-next-line cut_insert: a det call on a subterm
 expression_atom_count(count(Atom, _, _), Count) :- expression_atom_count(Atom, Count).
 expression_atom_count(temporal(_, _, _), 0).
 
 expression_depth(none, 0).
 expression_depth(atom(_, _, _, _, _), 1).
+% mutalog-disable-next-line cut_insert: maplist/3 over a det predicate
 expression_depth(all(Items), Depth) :- maplist(expression_depth, Items, Depths), max_list([0|Depths], ChildDepth), Depth is ChildDepth + 1.
+% mutalog-disable-next-line cut_insert: maplist/3 over a det predicate
 expression_depth(any(Items), Depth) :- maplist(expression_depth, Items, Depths), max_list([0|Depths], ChildDepth), Depth is ChildDepth + 1.
+% mutalog-disable-next-line cut_insert: a det call on a subterm
 expression_depth(not(Atom), Depth) :- expression_depth(Atom, ChildDepth), Depth is ChildDepth + 1.
 expression_depth(compare(_, _, _), 1).
+% mutalog-disable-next-line cut_insert: a det call on a subterm
 expression_depth(count(Atom, _, _), Depth) :- expression_depth(Atom, ChildDepth), Depth is ChildDepth + 1.
 expression_depth(temporal(_, _, _), 1).
 
@@ -274,7 +277,6 @@ expression_term(not(Atom), Term) :- expression_term(Atom, Term).
 expression_term(compare(_, Left, Right), Term) :- member(Term, [Left, Right]).
 expression_term(count(Atom, _, _), Term) :- expression_term(Atom, Term).
 expression_term(temporal(_, Left, Right), Term) :- member(Term, [Left, Right]).
-expression_term(Term, Term) :- Term = interval(_, _).
 
 variable_safety_error(Head, Body, _Variables, head_variable_not_range_restricted(Name)) :-
     head_variable(Name, Head),
@@ -305,7 +307,6 @@ positive_variable(Name, atom(_, _, Args, positive, _)) :- member(Arg, Args), ter
 positive_variable(Name, all(Items)) :- member(Item, Items), positive_variable(Name, Item).
 positive_variable(Name, any(Items)) :- member(Item, Items), positive_variable(Name, Item).
 positive_variable(Name, count(Atom, _, _)) :- positive_variable(Name, Atom).
-positive_variable(_, _) :- fail.
 
 term_variable(var(Name, _), Name).
 expression_variable(atom(_, _, Args, _, _), Name) :- member(Arg, Args), term_variable(Arg, Name).
@@ -317,99 +318,78 @@ expression_variable(count(Atom, _, _), Name) :- expression_variable(Atom, Name).
 expression_variable(temporal(_, Left, Right), Name) :- (term_variable(Left, Name) ; term_variable(Right, Name)).
 
 rule_shape_error(atom, none, _Body, missing_head).
+% mutalog-disable-next-line cut_insert: a test, and no later clause matches the same term
 rule_shape_error(atom, _Head, Body, body_for_atom) :- Body \= none.
 rule_shape_error(rule, none, _Body, missing_head).
 rule_shape_error(rule, _Head, none, missing_body).
 rule_shape_error(constraint, _Head, none, missing_body).
 rule_shape_error(constraint, Head, _Body, head_for_constraint) :- Head \= none.
-rule_shape_error(_, _, _, _) :- fail.
 
-expression_safety_error(none, _) :- fail.
 expression_safety_error(not(atom(_, _, _, _, false)), negation_requires_closed_world).
+% mutalog-disable-next-line cut_insert: a test, and no later clause matches the same term
 expression_safety_error(compare(Op, _Left, _Right), invalid_compare_operator) :- \+ valid_compare_operator(Op).
+% mutalog-disable-next-line cut_insert: a test, and no later clause matches the same term
 expression_safety_error(count(_Atom, Op, _Value), invalid_compare_operator) :- \+ valid_compare_operator(Op).
 expression_safety_error(count(_Atom, _Op, Value), invalid_count_value) :- \+ integer(Value) ; Value < 0.
+% mutalog-disable-next-line cut_insert: a test, and no later clause matches the same term
 expression_safety_error(temporal(Relation, _Left, _Right), invalid_temporal_relation) :- \+ valid_temporal_relation(Relation).
 expression_safety_error(all(Items), Error) :- member(Item, Items), expression_safety_error(Item, Error).
 expression_safety_error(any(Items), Error) :- member(Item, Items), expression_safety_error(Item, Error).
 expression_safety_error(not(Atom), Error) :- expression_safety_error(Atom, Error).
-expression_safety_error(_, _) :- fail.
 
 %% logic_rule_render(+Props, -Text)
 logic_rule_render(Props, Text) :-
     logic_rule_from_props(Props, Rule),
     render_rule(Rule, Text).
 
-render_rule(rule(_Kind, Modality, Head, none, _Exceptions, _Scope, _From, _To, _Schema, _Variables), Text) :-
-    render_head(Modality, Head, HeadText), format(string(Text), '~w.', [HeadText]).
 render_rule(rule(_Kind, Modality, Head, Body, _Exceptions, _Scope, _From, _To, _Schema, _Variables), Text) :-
-    render_head(Modality, Head, HeadText), render_expression(Body, BodyText), format(string(Text), '~w :- ~w.', [HeadText, BodyText]).
+    render_head(Modality, Head, HeadText),
+    (   Body == none
+    ->  format(string(Text), '~w.', [HeadText])
+    ;   render_expression(Body, BodyText), format(string(Text), '~w :- ~w.', [HeadText, BodyText])
+    ).
 
-render_head(Modality, none, Text) :- format(string(Text), '~w', [Modality]).
-render_head(Modality, Atom, Text) :- render_atom(Atom, AtomText), format(string(Text), '~w(~w)', [Modality, AtomText]).
+render_head(Modality, Head, Text) :-
+    (   Head == none
+    ->  format(string(Text), '~w', [Modality])
+    ;   render_atom(Head, AtomText), format(string(Text), '~w(~w)', [Modality, AtomText])
+    ).
 render_atom(atom(Namespace, Name, Args, Polarity, _), Text) :-
     ( Namespace == default -> Full = Name ; format(atom(Full), '~w:~w', [Namespace, Name]) ),
     maplist(render_term, Args, Rendered), atomic_list_concat(Rendered, ',', ArgsText),
     ( Polarity == negative -> format(string(Text), 'negative(~w(~w))', [Full, ArgsText]) ; format(string(Text), '~w(~w)', [Full, ArgsText]) ).
 render_term(var(Name, _), Name).
 render_term(const(Value, _), Value).
-render_term(number(Value, none), Text) :- format(string(Text), '~w', [Value]).
-render_term(number(Value, Unit), Text) :- format(string(Text), '~w~w', [Value, Unit]).
+render_term(number(Value, Unit), Text) :-
+    ( Unit == none -> format(string(Text), '~w', [Value]) ; format(string(Text), '~w~w', [Value, Unit]) ).
+% mutalog-disable-next-line cut_insert: format/3 is det
 render_term(duration(Value, Unit), Text) :- format(string(Text), 'duration(~w,~w)', [Value, Unit]).
 render_term(timestamp(Value), Value).
 render_term(interval(Start, End), Text) :- format(string(Text), 'interval(~w,~w)', [Start, End]).
-render_expression(Atom, Text) :- Atom = atom(_, _, _, _, _), !, render_atom(Atom, Text).
+% mutalog-disable-next-line cut_insert: rendering is det
+render_expression(atom(Namespace, Name, Args, Polarity, ClosedWorld), Text) :- render_atom(atom(Namespace, Name, Args, Polarity, ClosedWorld), Text).
+% mutalog-disable-next-line cut_insert: maplist/3 over a det predicate
 render_expression(all(Items), Text) :- maplist(render_expression, Items, Parts), atomic_list_concat(Parts, ', ', Text).
+% mutalog-disable-next-line cut_insert: maplist/3 over a det predicate
 render_expression(any(Items), Text) :- maplist(render_expression, Items, Parts), atomic_list_concat(Parts, ' ; ', Inner), format(string(Text), '(~w)', [Inner]).
+% mutalog-disable-next-line cut_insert: rendering is det
 render_expression(not(Atom), Text) :- render_atom(Atom, AtomText), format(string(Text), 'not(~w)', [AtomText]).
+% mutalog-disable-next-line cut_insert: rendering is det
 render_expression(compare(Op, Left, Right), Text) :- render_term(Left, L), render_term(Right, R), format(string(Text), '~w ~w ~w', [L, Op, R]).
+% mutalog-disable-next-line cut_insert: rendering is det
 render_expression(count(Atom, Op, Value), Text) :- render_atom(Atom, AtomText), format(string(Text), 'count(~w,~w,~w)', [AtomText, Op, Value]).
 render_expression(temporal(Relation, Left, Right), Text) :- render_term(Left, L), render_term(Right, R), format(string(Text), 'temporal(~w,~w,~w)', [Relation, L, R]).
 
 logic_rule_semantic_key(Props, Key) :-
     memberchk(semantic_key=Key, Props), !.
 logic_rule_semantic_key(Props, Key) :-
-    memberchk(rule_hash=Hash, Props), !, Key = Hash.
+    memberchk(rule_hash=Key, Props).
 
 logic_atom_signature(atom(Namespace, Name, Args, Polarity, _), signature(Namespace, Name, Args, Polarity)).
-
-%% logic_derive(+Goal, -Proof)
-% Goal is atom(Namespace, Name, Args, Polarity), with ground arguments.  Rules
-% are interpreted by a finite, data-driven evaluator; no stored source is
-% consulted and recursive rule chains are bounded.
-logic_derive(Goal, Proof) :-
-    ground(Goal),
-    derive_goal(Goal, [], 0, Proof).
-
-logic_max_depth(16).
-
-derive_goal(Goal, _Seen, _Depth, direct(FactId)) :-
-    Goal = atom(Namespace, Name, Args, Polarity, _),
-    predicate_fact(FactId, Namespace, Name, Args, Polarity), !.
-derive_goal(Goal, Seen, Depth, rule(FactId, BodyProof)) :-
-    logic_max_depth(MaxDepth),
-    Depth < MaxDepth,
-    logic_rule_fact(FactId, StoredRule),
-    materialize_rule(StoredRule, Rule),
-    Rule = rule(rule, _Modality, Head, Body, Exceptions, _Scope, _From, _To, _Schema, _Variables),
-    Goal = Head,
-    atom_signature_for_seen(Head, Signature),
-    \+ memberchk(Signature, Seen),
-    NextDepth is Depth + 1,
-    prove_expression(Body, [Signature|Seen], NextDepth, BodyProof),
-    exceptions_do_not_hold(Exceptions, [Signature|Seen], NextDepth).
-
-logic_rule_fact(FactId, Rule) :-
-    kb_entity(FactId, fact, Props),
-    memberchk(fact_kind=Kind, Props), normalize_atom(Kind, rule),
-    logic_rule_from_props(Props, Rule).
 
 % The JSON decoder keeps variable names as data terms for validation and
 % rendering.  Evaluation reifies those names into fresh Prolog variables so
 % ordinary unification can be used without ever evaluating caller source.
-materialize_rule(Rule, Materialized) :-
-    materialize_rule_environment(Rule, Materialized, _Environment).
-
 % Environment maps each declared variable name to its fresh Prolog variable.
 materialize_rule_environment(
     rule(Kind, Modality, Head, Body, Exceptions, Scope, From, To, Schema, Variables),
@@ -425,18 +405,23 @@ variable_environment([], []).
 variable_environment([variable(Name, _Type, _Quantifier)|Rest], [Name-_Variable|Environment]) :-
     variable_environment(Rest, Environment).
 
-materialize_head(none, _Variables, none).
-materialize_head(Head, Variables, MaterialHead) :- materialize_atom(Head, Variables, MaterialHead).
+materialize_head(Head, Variables, MaterialHead) :-
+    ( Head == none -> MaterialHead = none ; materialize_atom(Head, Variables, MaterialHead) ).
 
 materialize_expression(none, _Variables, none).
-materialize_expression(Expression, Variables, Materialized) :-
-    Expression = atom(_, _, _, _, _), !,
-    materialize_atom(Expression, Variables, Materialized).
+materialize_expression(atom(Namespace, Name, Args, Polarity, ClosedWorld), Variables, Materialized) :-
+    % mutalog-disable-next-line cut_insert: materializing is det
+    materialize_atom(atom(Namespace, Name, Args, Polarity, ClosedWorld), Variables, Materialized).
+% mutalog-disable-next-line cut_insert: maplist/3 over a det predicate
 materialize_expression(all(Items), Variables, all(MaterialItems)) :- maplist(materialize_expression_with(Variables), Items, MaterialItems).
+% mutalog-disable-next-line cut_insert: maplist/3 over a det predicate
 materialize_expression(any(Items), Variables, any(MaterialItems)) :- maplist(materialize_expression_with(Variables), Items, MaterialItems).
+% mutalog-disable-next-line cut_insert: materializing is det
 materialize_expression(not(Atom), Variables, not(MaterialAtom)) :- materialize_atom(Atom, Variables, MaterialAtom).
 materialize_expression(compare(Op, Left, Right), Variables, compare(Op, MaterialLeft, MaterialRight)) :-
+    % mutalog-disable-next-line cut_insert: materializing is det
     materialize_term(Left, Variables, MaterialLeft), materialize_term(Right, Variables, MaterialRight).
+% mutalog-disable-next-line cut_insert: materializing is det
 materialize_expression(count(Atom, Op, Value), Variables, count(MaterialAtom, Op, Value)) :- materialize_atom(Atom, Variables, MaterialAtom).
 materialize_expression(temporal(Relation, Left, Right), Variables, temporal(Relation, MaterialLeft, MaterialRight)) :-
     materialize_term(Left, Variables, MaterialLeft), materialize_term(Right, Variables, MaterialRight).
@@ -444,7 +429,8 @@ materialize_expression_with(Variables, Expression, Materialized) :- materialize_
 
 materialize_atom(atom(Namespace, Name, Args, Polarity, ClosedWorld), Variables, atom(Namespace, Name, MaterialArgs, Polarity, ClosedWorld)) :-
     maplist(materialize_term_with(Variables), Args, MaterialArgs).
-materialize_term(var(Name, _Type), Variables, Variable) :- memberchk(Name-Variable, Variables), !.
+% mutalog-disable-next-line cut_insert: memberchk/2 is det
+materialize_term(var(Name, _Type), Variables, Variable) :- memberchk(Name-Variable, Variables).
 materialize_term(const(Value, Type), _Variables, const(Value, Type)).
 materialize_term(number(Value, Unit), _Variables, number(Value, Unit)).
 materialize_term(duration(Value, Unit), _Variables, duration(Value, Unit)).
@@ -452,87 +438,33 @@ materialize_term(timestamp(Value), _Variables, timestamp(Value)).
 materialize_term(interval(Start, End), _Variables, interval(Start, End)).
 materialize_term_with(Variables, Term, Materialized) :- materialize_term(Term, Variables, Materialized).
 
-prove_expression(Atom, Seen, Depth, Proof) :-
-    Atom = atom(_, _, _, _, _),
-    derive_goal(Atom, Seen, Depth, Proof).
-prove_expression(all(Items), Seen, Depth, all(Proofs)) :- maplist(prove_expression_seen(Seen, Depth), Items, Proofs).
-prove_expression(any(Items), Seen, Depth, Proof) :- member(Item, Items), prove_expression(Item, Seen, Depth, Proof), !.
-prove_expression(not(Atom), Seen, Depth, negated(Atom)) :-
-    Atom = atom(Namespace, Name, Args, Polarity, _),
-    \+ derive_goal(atom(Namespace, Name, Args, Polarity, _), Seen, Depth, _).
-prove_expression(compare(Op, Left, Right), _Seen, _Depth, comparison(Op, Left, Right)) :- compare_terms(Op, Left, Right).
-prove_expression(count(Atom, Op, Value), _Seen, _Depth, count(Atom, Op, Value)) :-
-    Atom = atom(Namespace, Name, Args, Polarity, _),
-    aggregate_all(count, predicate_fact(_, Namespace, Name, Args, Polarity), Count),
-    compare_numbers(Op, Count, Value).
-prove_expression(temporal(Relation, Left, Right), _Seen, _Depth, temporal(Relation, Left, Right)) :- temporal_holds(Relation, Left, Right).
-prove_expression_seen(Seen, Depth, Item, Proof) :- prove_expression(Item, Seen, Depth, Proof).
-
-exceptions_do_not_hold([], _Seen, _Depth).
-exceptions_do_not_hold([Exception|Rest], Seen, Depth) :-
-    \+ prove_expression(Exception, Seen, Depth, _),
-    exceptions_do_not_hold(Rest, Seen, Depth).
-
-atom_signature_for_seen(atom(Namespace, Name, Args, Polarity, _), signature(Namespace, Name, Args, Polarity)).
-
+% mutalog-disable-next-line cut_insert: term_value/2 is det
 compare_terms(eq, Left, Right) :- term_value(Left, L), term_value(Right, R), L = R.
+% mutalog-disable-next-line cut_insert: term_value/2 is det
 compare_terms(neq, Left, Right) :- term_value(Left, L), term_value(Right, R), L \= R.
+% mutalog-disable-next-line cut_insert: term_value/2 is det
 compare_terms(lt, Left, Right) :- term_value(Left, L), term_value(Right, R), L < R.
+% mutalog-disable-next-line cut_insert: term_value/2 is det
 compare_terms(lte, Left, Right) :- term_value(Left, L), term_value(Right, R), L =< R.
+% mutalog-disable-next-line cut_insert: term_value/2 is det
 compare_terms(gt, Left, Right) :- term_value(Left, L), term_value(Right, R), L > R.
 compare_terms(gte, Left, Right) :- term_value(Left, L), term_value(Right, R), L >= R.
 
-term_value(number(Value, Unit), Normalized) :- normalize_numeric_unit(Value, Unit, Normalized).
+% mutalog-disable-next-line cut_insert: duration_milliseconds/3 is det
+term_value(number(Value, Unit), Normalized) :- duration_milliseconds(Value, Unit, Normalized).
+% mutalog-disable-next-line cut_insert: duration_milliseconds/3 is det
 term_value(duration(Value, Unit), Normalized) :- duration_milliseconds(Value, Unit, Normalized).
 term_value(const(Value, _), Number) :- atom_number(Value, Number), !.
 term_value(const(Value, _), Value).
 term_value(Value, Value) :- number(Value).
 
-normalize_numeric_unit(Value, none, Value) :- !.
-normalize_numeric_unit(Value, Unit, Normalized) :-
-    duration_milliseconds(Value, Unit, Normalized).
-
-duration_milliseconds(Value, ms, Value) :- !.
+% Other units, none and ms among them, keep their value.
 duration_milliseconds(Value, s, Normalized) :- Normalized is Value * 1000, !.
 duration_milliseconds(Value, m, Normalized) :- Normalized is Value * 60000, !.
 duration_milliseconds(Value, h, Normalized) :- Normalized is Value * 3600000, !.
 duration_milliseconds(Value, d, Normalized) :- Normalized is Value * 86400000, !.
 duration_milliseconds(Value, w, Normalized) :- Normalized is Value * 604800000, !.
 duration_milliseconds(Value, _Unit, Value).
-
-compare_numbers(eq, L, R) :- L =:= R.
-compare_numbers(neq, L, R) :- L =\= R.
-compare_numbers(lt, L, R) :- L < R.
-compare_numbers(lte, L, R) :- L =< R.
-compare_numbers(gt, L, R) :- L > R.
-compare_numbers(gte, L, R) :- L >= R.
-
-temporal_holds(before, Left, Right) :-
-    temporal_end(Left, LeftEnd),
-    temporal_start(Right, RightStart),
-    LeftEnd @< RightStart.
-temporal_holds(after, Left, Right) :-
-    temporal_start(Left, LeftStart),
-    temporal_end(Right, RightEnd),
-    LeftStart @> RightEnd.
-temporal_holds(during, timestamp(Point), interval(Start, End)) :-
-    Point @>= Start,
-    Point @=< End.
-temporal_holds(during, interval(InnerStart, InnerEnd), interval(Start, End)) :-
-    InnerStart @>= Start,
-    InnerEnd @=< End.
-temporal_holds(overlaps, interval(LeftStart, LeftEnd), interval(RightStart, RightEnd)) :-
-    LeftStart @< RightEnd,
-    RightStart @< LeftEnd.
-temporal_holds(starts, interval(LeftStart, _), interval(RightStart, _)) :-
-    LeftStart == RightStart.
-temporal_holds(finishes, interval(_, LeftEnd), interval(_, RightEnd)) :-
-    LeftEnd == RightEnd.
-
-temporal_start(timestamp(Value), Value).
-temporal_start(interval(Start, _), Start).
-temporal_end(timestamp(Value), Value).
-temporal_end(interval(_, End), End).
 
 %% logic_rule_conflict(+RuleA, +RuleB, -Status)
 % implements REQ-kibi-truthful-consistency
@@ -613,7 +545,6 @@ logic_rule_missing_keys(RuleA, RuleB, Functional, Missing) :-
         (   Single \== []
         ->  Missing = Single
         ;   value_last_declarations(Undeclared, Declarations),
-            Declarations \== [],
             append(Declarations, Functional, Assumed),
             logic_rule_conflict(RuleA, RuleB, Assumed, AssumedStatus),
             AssumedStatus \== unresolved
@@ -741,8 +672,9 @@ body_pair_status(PartsA, PartsB, ExceptionsA, ExceptionsB, Functional, Declared,
 rule_context_compatible(scope(AuthA, ScopeA, _), FromA, ToA, scope(AuthB, ScopeB, _), FromB, ToB) :-
     (AuthA == '' ; AuthB == '' ; AuthA == AuthB),
     (ScopeA == '' ; ScopeB == '' ; ScopeA == ScopeB),
-    (FromA == '' ; ToB == '' ; FromA @=< ToB),
-    (FromB == '' ; ToA == '' ; FromB @=< ToA).
+    % An open start ('') sorts before every timestamp.
+    (ToB == '' ; FromA @=< ToB),
+    (ToA == '' ; FromB @=< ToA).
 
 conflicting_modality(assert, deny).
 conflicting_modality(deny, assert).
@@ -797,8 +729,7 @@ every_declaration_integer(Declared, Variable) :-
 some_declaration_integer(Declared, Variable) :-
     member(Other-Type, Declared),
     Other == Variable,
-    integer_type(Type),
-    !.
+    integer_type(Type).
 
 integer_type(int).
 integer_type(integer).
@@ -978,7 +909,6 @@ comparison_entailed(Premises, Integers, compare(Op, Left, Right)) :-
 exception_entailed(Exceptions, OtherParts, Declared) :-
     member(Exception, Exceptions),
     expression_parts(Exception, ExceptionParts),
-    ExceptionParts = parts(_, _, []),
     \+ \+ parts_subsume(ExceptionParts, OtherParts, Declared), !.
 
 %% translate_comparisons(+Comparisons, -Constraints, -Status)
@@ -1023,13 +953,14 @@ reflexive_operator(gte).
 comparison_operand(Term, var(Term)) :- var(Term), !.
 comparison_operand(Term, num(Value)) :-
     ir_ground(Term),
-    catch(term_value(Term, Value), _, fail),
-    number(Value), !.
+    catch((term_value(Term, Value), number(Value)), _, fail), !.
 comparison_operand(Term, ground(Term)) :- ir_ground(Term), !.
 comparison_operand(Term, other(Term)).
 
 % IR terms keep variables as var(Name, Type) data until materialized.
-ir_ground(Term) :- ground(Term), \+ sub_term(var(_, _), Term).
+% An unbound Prolog variable unifies with var(_, _), so this also rejects
+% terms that are not ground.
+ir_ground(Term) :- \+ sub_term(var(_, _), Term).
 
 flipped_operator(eq, eq).
 flipped_operator(neq, neq).
@@ -1123,6 +1054,7 @@ logic_rule_property_form(Rule0, property_form(Modality, Head, ScopeName, From, T
     ).
 
 expression_property_key(atom(Namespace, Name, Args, _, _), Namespace-Name) :-
+    % mutalog-disable-next-line cut_insert: a test, and no later clause matches the same term
     Namespace \== default,
     Args \== [].
 expression_property_key(all(Items), Key) :-
@@ -1132,13 +1064,13 @@ expression_property_key(any(Items), Key) :-
     member(Item, Items),
     expression_property_key(Item, Key).
 expression_property_key(not(Atom), Key) :-
+    % mutalog-disable-next-line cut_insert: an atom has at most one property key
     expression_property_key(Atom, Key).
 expression_property_key(count(Atom, _, _), Key) :-
     expression_property_key(Atom, Key).
 
 property_read(atom(Namespace, Name, Args, positive, _), read(Namespace-Name, Value, Instance)) :-
     Namespace \== default,
-    Args \== [],
     append(Instance, [Value], Args).
 
 % Bindings maps each value variable name to its property and declared type.
@@ -1159,16 +1091,19 @@ property_value_bindings(Reads, Head, Bindings, ConstantConditions) :-
         ValueA == ValueB
     ).
 
-read_binding(IdentityNames, read(Key, var(Name, Type), _), acc(Bindings0, Conditions), acc(Bindings, Conditions)) :-
-    !,
-    \+ memberchk(Name, IdentityNames),
-    (   memberchk(Name-OtherKey-_, Bindings0)
-    ->  OtherKey == Key,
-        Bindings = Bindings0
-    ;   Bindings = [Name-Key-Type|Bindings0]
+read_binding(IdentityNames, read(Key, Value, _), acc(Bindings0, Conditions0), acc(Bindings, Conditions)) :-
+    (   Value = var(Name, Type)
+    ->  \+ memberchk(Name, IdentityNames),
+        Conditions = Conditions0,
+        (   memberchk(Name-OtherKey-_, Bindings0)
+        ->  OtherKey == Key,
+            Bindings = Bindings0
+        ;   Bindings = [Name-Key-Type|Bindings0]
+        )
+    ;   constant_term(Value),
+        Bindings = Bindings0,
+        Conditions = [cond(Key, eq, Value, value)|Conditions0]
     ).
-read_binding(_, read(Key, Value, _), acc(Bindings, Conditions), acc(Bindings, [cond(Key, eq, Value, value)|Conditions])) :-
-    constant_term(Value).
 
 constant_term(number(_, _)).
 constant_term(duration(_, _)).
@@ -1232,6 +1167,7 @@ logic_predicate_signature(atom(Namespace, Name, Args, _Polarity, _ClosedWorld), 
     length(Args, Arity).
 
 expression_dependency(Atom, Atom, positive) :-
+    % mutalog-disable-next-line cut_insert: a test, and no later clause matches the same term
     Atom = atom(_, _, _, _, _).
 expression_dependency(not(Atom), Atom, negative).
 expression_dependency(all(Items), Atom, Sign) :- member(Item, Items), expression_dependency(Item, Atom, Sign).
@@ -1239,9 +1175,9 @@ expression_dependency(any(Items), Atom, Sign) :- member(Item, Items), expression
 expression_dependency(count(Atom, _Operator, _Value), Atom, positive).
 
 dependency_path(Current, Target, _Edges, Seen) :-
+    % mutalog-disable-next-line cut_insert: a test, and no later clause matches the same term
     Current == Target,
-    \+ memberchk(Current, Seen),
-    !.
+    \+ memberchk(Current, Seen).
 dependency_path(Current, Target, Edges, Seen) :-
     \+ memberchk(Current, Seen),
     member(edge(Current, Next, _Sign), Edges),
@@ -1283,6 +1219,3 @@ logic_rule_conflict_witness(RuleA, RuleB, Functional, Witness) :-
         rule_schema_b: SchemaB
     }.
 
-
-normalize_atom(Value, Atom) :- atom(Value), !, Atom = Value.
-normalize_atom(Value, Atom) :- string(Value), atom_string(Atom, Value).

@@ -39,6 +39,10 @@ import {
   isTraceabilityRelationshipType,
 } from "../symbol-granularity.js";
 import type { PrologPort } from "./runtime-types.js";
+import {
+  type SourceAnalysisCache,
+  openSourceAnalysisCache,
+} from "./source-analysis-cache.js";
 
 /**
  * Full-check form of the staged gate's `symbol_granularity_violation`: a
@@ -148,18 +152,30 @@ async function analyzeFiles(
   files: readonly string[],
   results: readonly ExtractionResult[],
   workspaceRoot: string,
+  cache: SourceAnalysisCache | null,
 ): Promise<Map<string, readonly ExtractedSymbol[]>> {
   const manifestLookup = createImpactManifestLookup(results);
-  const service = createMaintenanceSourceAnalysisService(workspaceRoot);
+  let service: ReturnType<
+    typeof createMaintenanceSourceAnalysisService
+  > | null = null;
   const analyses = new Map<string, readonly ExtractedSymbol[]>();
   for (const file of files) {
     const content = readRegularFile(path.resolve(workspaceRoot, file));
     if (content === null) continue;
     try {
-      const analysis = await service.analyzeTextV2(file, content);
+      let analysis = cache?.get(file, content);
+      if (analysis === undefined) {
+        service ??= createMaintenanceSourceAnalysisService(workspaceRoot);
+        analysis = await service.analyzeTextV2(file, content);
+        cache?.set(file, content, analysis);
+      }
+      const decided = analysis;
       // Only a complete parser-backed analysis decides; the staged gate
       // reports an incomplete one itself when the file is touched.
-      if (analysis.status !== "ok") continue;
+      // rationale: an incomplete analysis carries no symbols, so extracting
+      // from it finds none either; the check only skips that work.
+      // Stryker disable next-line ConditionalExpression
+      if (decided.status !== "ok") continue;
       const symbols = await extractSymbolsFromStagedFileAsync(
         {
           path: file,
@@ -168,7 +184,7 @@ async function analyzeFiles(
           hunkRanges: [{ start: 1, end: Number.MAX_SAFE_INTEGER }],
         },
         manifestLookup,
-        { analyzeText: async () => analysis },
+        { analyzeText: async () => decided },
       );
       analyses.set(file, symbols);
     } catch {
@@ -218,6 +234,8 @@ export async function collectSymbolGranularityViolations(
   prolog: Pick<PrologPort, "query">,
   workspaceRoot: string,
   rules: ReadonlySet<string>,
+  /** A branch store directory to keep parsed analyses in across runs. */
+  analysisCacheDir?: string,
 ): Promise<Violation[]> {
   if (!rules.has(SYMBOL_GRANULARITY_RULE)) return [];
   const results = await loadSymbolResults(prolog, workspaceRoot);
@@ -228,6 +246,8 @@ export async function collectSymbolGranularityViolations(
     .filter((file) => file.length > 0)
     .sort();
   if (files.length === 0) return [];
-  const analyses = await analyzeFiles(files, results, workspaceRoot);
+  const cache = openSourceAnalysisCache(analysisCacheDir, workspaceRoot);
+  const analyses = await analyzeFiles(files, results, workspaceRoot, cache);
+  cache?.save();
   return granularityViolations(candidates, analyses, workspaceRoot);
 }

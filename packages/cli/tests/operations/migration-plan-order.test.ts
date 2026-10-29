@@ -207,6 +207,29 @@ describe("migration plan dependency order", () => {
     expect(orderedIds(actions)).toEqual(expectedIds(actions));
   });
 
+  test("freed actions whose ids collate equal keep their plan order", () => {
+    // Canonically equivalent ids compare equal under localeCompare, so the
+    // ready queue must place the second one after the first like a stable
+    // sort, in either plan order.
+    const composed = "freed-\u00e9";
+    const decomposed = "freed-e\u0301";
+    expect(composed.localeCompare(decomposed)).toBe(0);
+    const forward = [
+      action({ id: "root" }),
+      action({ id: composed, dependsOn: ["root"] }),
+      action({ id: decomposed, dependsOn: ["root"] }),
+    ];
+    expect(orderedIds(forward)).toEqual(["root", composed, decomposed]);
+    expect(orderedIds(forward)).toEqual(expectedIds(forward));
+    const backward = [
+      action({ id: "root" }),
+      action({ id: decomposed, dependsOn: ["root"] }),
+      action({ id: composed, dependsOn: ["root"] }),
+    ];
+    expect(orderedIds(backward)).toEqual(["root", decomposed, composed]);
+    expect(orderedIds(backward)).toEqual(expectedIds(backward));
+  });
+
   test("an id given twice is ordered once, by its later definition", () => {
     const actions = [
       action({ id: "dup" }),

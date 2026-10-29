@@ -52,7 +52,7 @@ The Prolog mutation runner must run the Mutalog checkout named by the MUTALOG_HO
 
 ## Context
 
-The Stryker lane cannot mutate the SWI-Prolog sources in packages/core, so the core had coverage but no mutation testing. Mutalog fills that gap. The maintainer asked for a `test:mutation:prolog` lane that starts report-only on logic_ir.pl. Pinning the version and installing into `.cache/prolog-packs` keeps runs reproducible and leaves contributors' own SWI-Prolog packs untouched.
+The Stryker lane cannot mutate the SWI-Prolog sources in packages/core, so the core had coverage but no mutation testing. Mutalog fills that gap. The maintainer asked for a `test:mutation:prolog` lane that starts report-only on logic_ir.pl; once its survivors were killed or listed as equivalents, the lane gates at 100% like the Stryker lanes. Pinning the version and installing into `.cache/prolog-packs` keeps runs reproducible and leaves contributors' own SWI-Prolog packs untouched.
 
 ## Source
 

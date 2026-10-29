@@ -398,3 +398,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-18f5585135cf
+  - type: implements
+    from: SYM-decision-firmness-decision-firm-edited-rule
+    to: REQ-kb-decision-firmness-rule-names
+    created_at: 2026-10-29T16:39:45.249Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3423ef40ebb
+  - type: covered_by
+    from: SYM-decision-firmness-decision-firm-edited-rule
+    to: TEST-proof-rule-decision-firm-edited
+    created_at: 2026-10-29T16:40:05.896Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1257615a992b

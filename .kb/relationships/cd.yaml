@@ -377,3 +377,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-244240ea36c1
+  - type: requires_property
+    from: REQ-vscode-extension-ids
+    to: FACT-vscode-container-id
+    created_at: 2026-10-29T17:06:19.577Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34da83161743
+  - type: requires_property
+    from: REQ-vscode-extension-ids
+    to: FACT-vscode-view-id
+    created_at: 2026-10-29T17:06:19.666Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9af29b22c588
+  - type: requires_property
+    from: REQ-vscode-extension-ids
+    to: FACT-vscode-refresh-command
+    created_at: 2026-10-29T17:06:19.710Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-045ed35d0a1c
+  - type: requires_property
+    from: REQ-vscode-extension-ids
+    to: FACT-vscode-focus-command
+    created_at: 2026-10-29T17:06:19.747Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85245dc922df
+  - type: specified_by
+    from: REQ-vscode-extension-ids
+    to: SCEN-vscode-sidebar-kb-tree
+    created_at: 2026-10-29T17:06:19.787Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fbb615e1b564
+  - type: constrains
+    from: REQ-vscode-extension-ids
+    to: FACT-kibi-vscode-ids-component
+    created_at: 2026-10-29T17:06:22.941Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9062603f53ed

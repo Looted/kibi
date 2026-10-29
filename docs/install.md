@@ -186,30 +186,97 @@ After installing the packages, use this short path:
 3. After approval, the agent passes the unchanged returned plan to `kb_apply_plan`, then runs `kb_check` and `kb_status`.
 4. Continue normal work with the seeded Kibi context. Use `kibi doctor` only when typed status says infrastructure is degraded.
 
-### Existing Git hooks (husky, lefthook, hand-written)
+### Existing Git hooks and hook managers
 
-`kibi init` only manages hooks it wrote (the section between
-`# BEGIN kibi-managed` and `# END kibi-managed`). It never edits a hook that
-already exists without those markers; it reports the hook as skipped instead.
-To keep your hook manager and still get Kibi's commit gate, delegate to Kibi
-from your own hook:
+Git runs one script per hook, so Kibi and another tool cannot both own
+`.git/hooks`. `kibi init` never edits a hook it did not write (the section
+between `# BEGIN kibi-managed` and `# END kibi-managed` is the only part it
+touches); it reports such a hook as skipped instead. When the repository uses
+a hook manager, Kibi leaves the hooks to the manager and you add Kibi's
+commands to the manager's configuration.
 
-- **husky** (or any hand-written shell hook): append the snippet Kibi prints.
-  It finds a project-local `kibi` even when `node_modules/.bin` is not on the
-  hook's `PATH`, and stops the commit if either check fails.
+These are the commands Kibi's own hooks run. Any setup that runs the same
+commands under the same conditions is equivalent:
+
+| Git hook | When | Commands (all must succeed) |
+| --- | --- | --- |
+| `pre-commit` | every commit | `kibi check-generated --staged --changed-only`, then `kibi check --staged` |
+| `post-checkout` | branch checkouts only (third hook argument is `1`) | `kibi sync` |
+| `post-merge` | every merge | `kibi sync` |
+| `post-rewrite` | rebases only (first hook argument is `rebase`) | `kibi sync` |
+
+The sync hooks compile the checked-out branch's KB store, so tools and the
+next commit see current knowledge; the pre-commit commands are Kibi's commit
+gate. Hooks never run in CI: run `kibi sync` there (with `KIBI_BRANCH` set
+when the checkout is a detached HEAD) before `kibi check`.
+
+**What `kibi init` does.** It detects lefthook (a `lefthook.yml` or its
+variants, or hook runners lefthook generated), husky (`core.hooksPath` set to
+`.husky` or `.husky/_`, or a `.husky/` directory) and the pre-commit framework
+(`.pre-commit-config.yaml` or hooks it generated). With one present it
+installs nothing into the hooks directory and prints the configuration to add
+for every hook the manager does not visibly run Kibi's commands for yet. Use
+`--no-hooks` to skip hook setup altogether.
+
+**Print the configuration** in your manager's format at any time; it writes
+nothing:
+
+```bash
+npx --no-install kibi init --print-hook all --format lefthook    # or husky, pre-commit
+npx --no-install kibi init --print-hook pre-commit               # one hook, as a shell snippet
+```
+
+`--print-hook` takes `pre-commit`, `post-checkout`, `post-merge`,
+`post-rewrite` or `all`; `--format` takes `shell` (the default), `lefthook`,
+`husky` or `pre-commit`.
+
+- **lefthook**: merge the printed entries into `lefthook.yml`, then run
+  `lefthook install`:
+
+  ```yaml
+  pre-commit:
+    commands:
+      kibi-check:
+        run: npx --no-install kibi check-generated --staged --changed-only && npx --no-install kibi check --staged
+  post-checkout:
+    commands:
+      # {3} is 1 for a branch checkout, 0 for a file checkout.
+      kibi-sync:
+        run: if [ "{3}" = "1" ]; then npx --no-install kibi sync; fi
+  post-merge:
+    commands:
+      kibi-sync:
+        run: npx --no-install kibi sync
+  post-rewrite:
+    commands:
+      kibi-sync:
+        run: if [ "{1}" = "rebase" ]; then npx --no-install kibi sync; fi
+  ```
+
+- **husky** (or any hand-written shell hook): append the printed snippet to
+  each hook file. It finds a project-local `kibi` even when
+  `node_modules/.bin` is not on the hook's `PATH`, and stops the commit if
+  either check fails:
 
   ```bash
   npx --no-install kibi init --print-hook pre-commit >> .husky/pre-commit
+  npx --no-install kibi init --print-hook post-checkout >> .husky/post-checkout
+  npx --no-install kibi init --print-hook post-merge >> .husky/post-merge
+  npx --no-install kibi init --print-hook post-rewrite >> .husky/post-rewrite
   ```
 
-- **lefthook**: run both checks from a `pre-commit` command through your
-  package manager's local runner, for example
-  `npx --no-install kibi check-generated --staged --changed-only && npx --no-install kibi check --staged`.
+- **pre-commit framework**: merge the printed local hooks into
+  `.pre-commit-config.yaml` and add the hook types to
+  `default_install_hook_types`, then run `pre-commit install`. The
+  post-checkout and post-rewrite entries read the hook arguments from
+  `PRE_COMMIT_CHECKOUT_TYPE` and `PRE_COMMIT_REWRITE_COMMAND`.
 
-`--print-hook` also accepts `post-checkout`, `post-merge` and `post-rewrite`
-(each runs `kibi sync` under the same conditions as the managed hook).
-`kibi doctor` reports a custom pre-commit hook as passing only when it runs
-both `kibi check-generated --staged --changed-only` and `kibi check --staged`.
+Calling the commands through a task runner (`task`, `make`, `just`, an npm
+script) works too. `kibi doctor` reads the manager's configuration (lefthook
+YAML or JSON, `.husky/<hook>`, `.pre-commit-config.yaml`) and passes each hook
+that visibly runs Kibi's commands. It cannot follow a task runner, so a hook
+that reaches Kibi that way is reported as a warning naming the commands to
+check, never as a failure.
 
 Avoid auto-install or hot-load commands for MCP startup (`npx -y`, `pnpm dlx` /
 `pnx`, or `yarn dlx`) unless you intentionally

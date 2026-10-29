@@ -241,3 +241,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2ffd78f9ed98
+  - type: executable_for
+    from: SYM-proof-opencode-plugin-id
+    to: TEST-proof-opencode-plugin-id
+    created_at: 2026-10-29T17:02:03.359Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31703d02b424

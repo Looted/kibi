@@ -363,3 +363,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c60c23edd1a9
+  - type: executable_for
+    from: SYM-proof-vscode-focus-command
+    to: TEST-proof-vscode-focus-command
+    created_at: 2026-10-29T17:08:01.197Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe0de6e259ae
+  - type: implements
+    from: SYM-hook-managers-hook-manager-coverage
+    to: REQ-git-hook-manager-integration
+    created_at: 2026-10-29T18:39:37.603Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-94cb8705b859
+  - type: covered_by
+    from: SYM-hook-managers-hook-manager-coverage
+    to: TEST-git-hook-manager-integration
+    created_at: 2026-10-29T18:39:37.632Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7cf9037a529b

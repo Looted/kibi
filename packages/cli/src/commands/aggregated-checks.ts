@@ -47,14 +47,68 @@ export function ontologyQualityOverridesGoal(
  * A private file the engine writes the violations JSON to. A large KB's
  * report can exceed the engine's bounded output capacity, so the answer
  * carries only a transport marker and the JSON travels through this file.
+ * A temp folder that cannot be written gives no file, and the engine answers
+ * the JSON instead.
  */
 // implements REQ-003
-function checkResultFile(): { path: string; dispose: () => void } {
-  const dir = mkdtempSync(path.join(tmpdir(), "kibi-check-"));
+function checkResultFile(): { path: string | undefined; dispose: () => void } {
+  let dir: string;
+  try {
+    dir = mkdtempSync(path.join(tmpdir(), "kibi-check-"));
+  } catch {
+    return { path: undefined, dispose: () => {} };
+  }
   return {
     path: path.join(dir, "violations.json"),
+    // rationale: the directory always exists when disposed, so `force` (which
+    // only ignores a missing path) never changes the outcome.
+    // Stryker disable next-line BooleanLiteral
     dispose: () => rmSync(dir, { recursive: true, force: true }),
   };
+}
+
+/**
+ * The aggregated checks goal. With a result file it prefers the transport
+ * predicate, which falls back to an answer when the engine cannot write the
+ * file, then the older file predicates; without one (or with an engine whose
+ * core predates both) it asks for the JSON as an answer.
+ */
+function aggregatedChecksQuery(
+  checksPlPath: string,
+  rulesAllowlist: Set<string> | null,
+  resultPath: string | undefined,
+): string {
+  const target = resultPath === undefined ? "none" : toPrologAtom(resultPath);
+  const rules = rulesAllowlist
+    ? `[${[...rulesAllowlist].map(toPrologAtom).join(",")}]`
+    : undefined;
+  const transport = rules
+    ? `predicate_property(checks:check_selected_json_transport(_, _, _, _), _)
+    ->  call(checks:check_selected_json_transport(${rules}, ${target}, Transport, JsonString))`
+    : `predicate_property(checks:check_all_json_transport(_, _, _, _), _)
+    ->  call(checks:check_all_json_transport(${target}, false, Transport, JsonString))`;
+  const fileOnly =
+    resultPath === undefined
+      ? ""
+      : rules
+        ? `predicate_property(checks:check_selected_json_file(_, _), _)
+    ->  call(checks:check_selected_json_file(${rules}, ${target})), Transport = file
+    ;   `
+        : `predicate_property(checks:check_all_json_file(_, _), _)
+    ->  call(checks:check_all_json_file(${target}, false)), Transport = file
+    ;   `;
+  const allAnswer = `predicate_property(checks:check_all_json_with_options(_, _), _)
+    ->  call(checks:check_all_json_with_options(JsonString, false)), Transport = answer
+    ;   call(checks:check_all_json(JsonString)), Transport = answer`;
+  const answer = rules
+    ? `predicate_property(checks:check_selected_json(_, _), _)
+    ->  call(checks:check_selected_json(${rules}, JsonString)), Transport = answer
+    ;   ${allAnswer}`
+    : allAnswer;
+  const goal = `(   ${transport}
+    ;   ${fileOnly}${answer}
+    )`;
+  return `(use_module('${escapeAtom(checksPlPath)}'), ${ontologyQualityOverridesGoal()}, ${goal})`;
 }
 
 /**
@@ -72,37 +126,29 @@ export async function runAggregatedChecks(
   const violations: Violation[] = [];
 
   const checksPlPath = path.join(path.dirname(resolveKbPlPath()), "checks.pl");
-  const checksPlPathEscaped = escapeAtom(checksPlPath);
   const resultFile = checkResultFile();
-  const resultPath = toPrologAtom(resultFile.path);
-  // The string answer remains the fallback for an engine whose loaded core
-  // predates the file predicates.
-  const fallbackQuery = `(   predicate_property(checks:check_all_json_file(_, _), _)
-    ->  call(checks:check_all_json_file(${resultPath}, false)), Transport = file
-    ;   predicate_property(checks:check_all_json_with_options(_, _), _)
-    ->  call(checks:check_all_json_with_options(JsonString, false)), Transport = answer
-    ;   call(checks:check_all_json(JsonString)), Transport = answer
-    )`;
-  const checksQuery = rulesAllowlist
-    ? `(   predicate_property(checks:check_selected_json_file(_, _), _)
-      ->  call(checks:check_selected_json_file([${[...rulesAllowlist]
-        .map(toPrologAtom)
-        .join(",")}], ${resultPath})), Transport = file
-      ;   predicate_property(checks:check_selected_json(_, _), _)
-      ->  call(checks:check_selected_json([${[...rulesAllowlist]
-        .map(toPrologAtom)
-        .join(",")}], JsonString)), Transport = answer
-      ;   ${fallbackQuery}
-      )`
-    : fallbackQuery;
-  const query = `(use_module('${checksPlPathEscaped}'), ${ontologyQualityOverridesGoal()}, ${checksQuery})`;
 
   let result: Awaited<ReturnType<PrologProcess["query"]>>;
   let jsonString: string | undefined;
   try {
-    result = await prolog.query(query);
-    if (result.success && result.bindings.Transport === "file") {
-      jsonString = readFileSync(resultFile.path, "utf8");
+    result = await prolog.query(
+      aggregatedChecksQuery(checksPlPath, rulesAllowlist, resultFile.path),
+    );
+    // rationale: the engine answers Transport "file" only after a successful
+    // query that was given a path, so neither guard changes which answers
+    // are read; they only narrow the path for the read.
+    // Stryker disable next-line ConditionalExpression,LogicalOperator
+    const mayRead = result.success && resultFile.path !== undefined;
+    if (mayRead && result.bindings.Transport === "file") {
+      try {
+        jsonString = readFileSync(resultFile.path as string, "utf8");
+      } catch {
+        // The engine wrote a file this process cannot read (an engine with
+        // another view of the temp folder): ask for the JSON as an answer.
+        result = await prolog.query(
+          aggregatedChecksQuery(checksPlPath, rulesAllowlist, undefined),
+        );
+      }
     }
   } finally {
     resultFile.dispose();

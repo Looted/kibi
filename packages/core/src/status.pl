@@ -203,7 +203,23 @@ kb_snapshot_time(SnapshotTime) :-
 % made kb_status_json quadratic (paths x entities) and could wedge large KBs
 % for minutes whenever mtime churn (e.g. a git checkout) marked whole lanes
 % newer than the snapshot.
+% The source -> entity id index reads every entity, so it is kept per KB
+% generation (whose key names the attached store's graph): status runs it on
+% each freshness probe while the KB is unchanged.  Inside a transaction it is
+% built afresh.
 entity_source_id_index(Index) :-
+    (   \+ rdf_db:rdf_active_transaction(_),
+        kb:index_verification_key(status_source_index, Key)
+    ->  (   kb:kb_status_source_index_memo(Key, Index0)
+        ->  Index = Index0
+        ;   compute_entity_source_id_index(Index),
+            retractall(kb:kb_status_source_index_memo(_, _)),
+            assertz(kb:kb_status_source_index_memo(Key, Index))
+        )
+    ;   compute_entity_source_id_index(Index)
+    ).
+
+compute_entity_source_id_index(Index) :-
     findall(RelativeSource-Id,
         (   kb_entity(Id, _Type, Props),
             entity_source_property(Props, RawSource),
