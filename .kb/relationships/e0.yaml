@@ -430,3 +430,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2415c7ee9297
+  - type: verified_by
+    from: SCEN-prolog-mutation-lane
+    to: TEST-prolog-mutation-lane
+    created_at: 2026-10-29T16:13:02.249Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7752f84d0e4

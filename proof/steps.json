@@ -1646,6 +1646,16 @@
     ]
   },
   {
+    "test_id": "TEST-prolog-mutation-lane",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/core/tests/prolog-mutation-runner.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-native-cli-suite-diagnostics",
     "steps": [
       [

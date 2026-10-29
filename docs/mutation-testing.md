@@ -41,7 +41,7 @@ fast enough for per-mutant runs (see `stryker.conf.mjs`):
 Deliberately out of scope: the rest of `packages/cli`, and `packages/mcp` (their tests spawn
 Prolog engines, git workspaces, and daemons, which makes per-mutant runs
 prohibitively slow), `packages/core` (SWI-Prolog sources — a JS mutator cannot
-touch them; Prolog has its own coverage lane via `test:coverage:prolog`), and
+touch them; see [Prolog mutation lane](#prolog-mutation-lane) below), and
 `packages/opencode`/`vscode` (candidates for later passes).
 
 ## In CI
@@ -91,6 +91,49 @@ A survivor is fixed by adding a **behavioral test** (assert the observable
 output, state transition, or error contract the mutant changed) — not by
 weakening the gate. This matches the repo-wide testing policy: assert
 behavior, not lines.
+
+## Prolog mutation lane
+
+The Prolog core gets its own lane, run by
+[Mutalog](https://github.com/Looted/Mutalog), a mutation testing tool for
+SWI-Prolog and plunit that writes the same report schema as Stryker.
+
+| Task | Command |
+| --- | --- |
+| Run the Prolog mutation suite | `bun run test:mutation:prolog` |
+| List the mutants without running tests | `swipl scripts/run-prolog-mutation.pl list` |
+| Re-run chosen mutants | `bun run test:mutation:prolog -- --only <id>,<id>` |
+| Inspect the report | open `reports/mutation/prolog/mutation.html` |
+| Raw machine report | `reports/mutation/prolog/mutation.json` |
+
+- `mutalog.config.pl` at the repository root sets what is mutated and which
+  plunit files run:
+
+  | Module | Mutants | Score | Covered-code score |
+  | --- | --- | --- | --- |
+  | `packages/core/src/logic_ir.pl` | 2,804 | 47.0% | 62.3% |
+  | `packages/core/src/kb.pl` | 4,840 | 32.1% | 38.7% |
+
+  Both plunit files run against both modules (`kb.plt` exercises the logic
+  IR too). The whole run takes about 10 minutes on 3 workers.
+  `kb.pl`'s report is mostly survivors until `kb.plt` gains tests for them.
+- `scripts/run-prolog-mutation.pl` pins the Mutalog version. On first use
+  it downloads the release archive with `curl` and unpacks it with `tar`
+  into `.cache/prolog-packs` (gitignored), leaving the user's own packs
+  alone. Set `MUTALOG_HOME` to a
+  Mutalog checkout to run that instead.
+- Unlike the Stryker gate, this lane **reports only**: `break(0)` in
+  `mutalog.config.pl` never fails the run. The first survivors include
+  equivalent mutants that need triage; once they are killed or listed in
+  `ignore_mutants`, raise `break` to gate on the score.
+- `.github/workflows/mutation-prolog.yml` runs it nightly on `develop`, on
+  demand, and on pull requests that touch the mutated modules, their tests or
+  the lane's setup, on the bundled SWI-Prolog. The reports are uploaded as
+  the `prolog-mutation-report` artifact.
+
+To add a module, add it to `mutate` and its plunit file to `tests` in
+`mutalog.config.pl`, and both paths to the workflow's `paths`. Measure the
+module's run time first and raise the job's `timeout-minutes` if needed.
 
 ## Equivalent mutants and exclusions
 
