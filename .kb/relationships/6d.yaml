@@ -426,3 +426,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e968eba92448
+  - type: specified_by
+    from: REQ-prolog-bundled-runtime
+    to: SCEN-NEG-prolog-bundled-runtime-OLD-PATH-SWIPL
+    created_at: 2026-10-29T21:06:49.389Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-840b155dc51a

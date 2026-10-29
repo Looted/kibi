@@ -293,3 +293,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0380311fa63e
+  - type: assumes
+    from: SCEN-NEG-opencode-posture-detection-VENDORED-TREE
+    to: FACT-NEG-opencode-posture-detection-VENDORED-TREE
+    created_at: 2026-10-29T21:04:38.332Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-031d6fa7eafe
+  - type: verified_by
+    from: SCEN-NEG-opencode-posture-detection-VENDORED-TREE
+    to: TEST-e2e-opencode-enforcement-surface
+    created_at: 2026-10-29T21:04:38.389Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1213b584f46
+  - type: assumes
+    from: SCEN-NEG-prolog-bundled-ci-CACHED-WITHOUT-FLAG
+    to: FACT-NEG-prolog-bundled-ci-CACHED-WITHOUT-FLAG
+    created_at: 2026-10-29T21:05:56.929Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea6038e953d5
+  - type: verified_by
+    from: SCEN-NEG-prolog-bundled-ci-CACHED-WITHOUT-FLAG
+    to: TEST-prolog-bundled-ci
+    created_at: 2026-10-29T21:05:57.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42847b1358eb

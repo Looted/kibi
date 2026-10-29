@@ -237,3 +237,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-95ea110c531b
+  - type: specified_by
+    from: REQ-opencode-posture-detection
+    to: SCEN-NEG-opencode-posture-detection-VENDORED-TREE
+    created_at: 2026-10-29T21:04:42.151Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ee54ec90b45

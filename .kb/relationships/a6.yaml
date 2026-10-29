@@ -300,3 +300,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d45bbf28f3ed
+  - type: specified_by
+    from: REQ-opencode-guidance-caching
+    to: SCEN-NEG-opencode-guidance-caching-STALE-POSTURE
+    created_at: 2026-10-29T21:05:06.772Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4269f567192e

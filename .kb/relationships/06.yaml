@@ -178,3 +178,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f78874ee576a
+  - type: assumes
+    from: SCEN-NEG-mcp-skills-resource-discoverability-UNDECLARED-RESOURCE
+    to: FACT-NEG-mcp-skills-resource-discoverability-UNDECLARED-RESOURCE
+    created_at: 2026-10-29T21:23:20.594Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-826d26482176
+  - type: verified_by
+    from: SCEN-NEG-mcp-skills-resource-discoverability-UNDECLARED-RESOURCE
+    to: TEST-mcp-skills-resource-discoverability
+    created_at: 2026-10-29T21:23:20.635Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a004ebd37e49

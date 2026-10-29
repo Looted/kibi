@@ -353,3 +353,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-529b31ed0bb4
+  - type: assumes
+    from: SCEN-NEG-prolog-bundled-quickstart-MISSING-QUICKSTART
+    to: FACT-NEG-prolog-bundled-quickstart-MISSING-QUICKSTART
+    created_at: 2026-10-29T21:06:10.922Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aee52392eee0
+  - type: verified_by
+    from: SCEN-NEG-prolog-bundled-quickstart-MISSING-QUICKSTART
+    to: TEST-prolog-bundled-quickstart
+    created_at: 2026-10-29T21:06:10.984Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf09e838f53e

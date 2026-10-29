@@ -391,3 +391,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5a1a30852c9c
+  - type: assumes
+    from: SCEN-NEG-mcp-tool-upsert-CONTRADICTION
+    to: FACT-NEG-mcp-tool-upsert-CONTRADICTION
+    created_at: 2026-10-29T21:00:26.224Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd24f16c16e8
+  - type: verified_by
+    from: SCEN-NEG-mcp-tool-upsert-CONTRADICTION
+    to: TEST-mcp-upsert-coverage
+    created_at: 2026-10-29T21:00:26.335Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4e8213753cd

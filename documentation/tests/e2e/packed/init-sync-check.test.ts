@@ -387,6 +387,38 @@ if (RUN_NODE_TEST_SUITE) {
       },
     );
 
+    it(
+      "should reject a query for an unknown entity type and name the valid types",
+      { timeout: 20000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        await kibi(sandbox, ["init"]);
+        await kibi(sandbox, ["sync"]);
+
+        const result = await kibi(sandbox, ["query", "requirement-typo"]);
+
+        assert.notStrictEqual(
+          result.exitCode,
+          0,
+          "an unknown entity type must not be answered as an empty result",
+        );
+        assert.ok(
+          result.stderr.includes("Invalid type 'requirement-typo'"),
+          `the error must name the rejected type: ${result.stderr}`,
+        );
+        assert.ok(
+          result.stderr.includes("Valid types:") &&
+            result.stderr.includes("req"),
+          `the error must list the valid types: ${result.stderr}`,
+        );
+        assert.ok(!result.stdout.includes("[]"));
+      },
+    );
+
     it("should handle empty repository gracefully", async (testContext) => {
       if (!hasProlog) {
         testContext.skip("SWI-Prolog is unavailable");

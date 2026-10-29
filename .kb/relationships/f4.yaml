@@ -503,3 +503,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-effd72e7e930
+  - type: specified_by
+    from: REQ-model-predicates-binding-clauses
+    to: SCEN-NEG-model-predicates-binding-clauses-LONG-ACTOR
+    created_at: 2026-10-29T21:01:32.765Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d004794c926

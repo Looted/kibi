@@ -325,3 +325,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c1cda11d0f97
+  - type: assumes
+    from: SCEN-NEG-native-cli-suite-diagnostics-UNWRITABLE-OUTPUT
+    to: FACT-NEG-native-cli-suite-diagnostics-UNWRITABLE-OUTPUT
+    created_at: 2026-10-29T21:04:25.498Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd458fd5941b
+  - type: verified_by
+    from: SCEN-NEG-native-cli-suite-diagnostics-UNWRITABLE-OUTPUT
+    to: TEST-native-cli-suite-diagnostics
+    created_at: 2026-10-29T21:04:25.592Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bcc2ed3c2f2e

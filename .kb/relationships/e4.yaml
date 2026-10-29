@@ -370,3 +370,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fae2795a7b3c
+  - type: specified_by
+    from: REQ-mcp-structured-text-per-host
+    to: SCEN-NEG-mcp-structured-text-per-host-UNBOUNDED-SEARCH
+    created_at: 2026-10-29T20:57:07.734Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c4f88750552

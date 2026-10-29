@@ -328,3 +328,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fd5a8dd35e27
+  - type: specified_by
+    from: REQ-mcp-tool-upsert
+    to: SCEN-NEG-mcp-tool-upsert-CONTRADICTION
+    created_at: 2026-10-29T21:00:32.997Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f43fc1bb7e3e
