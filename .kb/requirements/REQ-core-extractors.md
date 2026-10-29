@@ -47,6 +47,7 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 failure_side_waiver: "The claims describe extraction and idempotent refresh. Malformed front matter is reported as a warning, which other requirements govern, so this one refuses nothing."
+failure_side_waiver_approved_by: Piotr Franczyk
 ---
 
 Kibi extracts entities and relationships from source files using specialized extractors:

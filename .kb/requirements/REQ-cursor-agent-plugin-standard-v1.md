@@ -43,6 +43,7 @@ origin:
   recorded_at: '2026-10-27T08:36:26.457Z'
 firmness: firm
 failure_side_waiver: "A capability claim: Agent Plugins clients can load the portable artifact. Its opposite is only that the artifact does not load."
+failure_side_waiver_approved_by: Piotr Franczyk
 ---
 Any client that supports the open Agent Plugins standard must be able to load Kibi Agent Skills and the MCP server from the kibi-cursor portable Agent Plugin artifact.
 

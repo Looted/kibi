@@ -49,6 +49,7 @@ semantic_inventory:
 id: REQ-bootstrap-advisor-proposition-roles
 type: req
 failure_side_waiver: "The claims say which proposition role the semantic advisor assigns; a role classification is an output with no refusal side."
+failure_side_waiver_approved_by: Piotr Franczyk
 ---
 Bootstrap requirement candidates must take each semantic inventory role from the semantic advisor. The semantic advisor must classify an obligation with a definition verb inside a relative clause as normative. Proposition-complete ingestion must keep accepting stored inventories that recorded the earlier definition role.
 

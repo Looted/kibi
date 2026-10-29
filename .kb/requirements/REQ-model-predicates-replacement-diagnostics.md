@@ -41,6 +41,7 @@ semantic_inventory:
 id: REQ-model-predicates-replacement-diagnostics
 type: req
 failure_side_waiver: "The claims fix which findings and rollback condition a replacement plan states; this is plan content, not a refusal."
+failure_side_waiver_approved_by: Piotr Franczyk
 ---
 A grounding replacement plan must list logic-coverage and strict-req-fact-pairing as the expected kb_check findings between the retraction and the link. A grounding replacement plan must state rollback as the response to a kb_check that is not clean after the last step.
 

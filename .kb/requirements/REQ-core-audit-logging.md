@@ -51,6 +51,7 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 failure_side_waiver: "The claims promise that mutations are recorded with their fields; recording has no refusal side."
+failure_side_waiver_approved_by: Piotr Franczyk
 ---
 
 All entity and relationship mutations in the KB are recorded in a persistent audit log (`audit.log`) in the branch directory.

@@ -56,6 +56,7 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 failure_side_waiver: "The claims are documentation content (optional adapter, manual MCP path); they are checked by reading the README and have no refusal side."
+failure_side_waiver_approved_by: Piotr Franczyk
 ---
 Documentation must identify the kibi-zcode adapter as optional.
 
