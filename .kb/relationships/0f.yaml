@@ -328,3 +328,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-581c645c55e9
+  - type: specified_by
+    from: REQ-kibi-claim-bound-proofs
+    to: SCEN-NEG-kibi-claim-bound-proofs-unbound-contract
+    created_at: 2026-10-29T21:08:02.669Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f77e243385c

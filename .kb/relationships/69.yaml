@@ -461,3 +461,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e67b3c91f4f2
+  - type: assumes
+    from: SCEN-NEG-kibi-entity-origin-unknown-origin
+    to: FACT-NEG-kibi-entity-origin-unknown-origin
+    created_at: 2026-10-29T21:12:18.430Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ab1c6dc4a45
+  - type: verified_by
+    from: SCEN-NEG-kibi-entity-origin-unknown-origin
+    to: TEST-kibi-entity-origin-cli
+    created_at: 2026-10-29T21:12:18.510Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5cd9d26183e
+  - type: specified_by
+    from: REQ-kibi-fresh-verification-receipts-v2
+    to: SCEN-NEG-kibi-fresh-verification-receipts-v2-missing-or-stale-receipt
+    created_at: 2026-10-29T21:13:11.353Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1645b65e874d

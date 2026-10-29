@@ -433,3 +433,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f48f9b92c364
+  - type: specified_by
+    from: REQ-kibi-branded-health-report
+    to: SCEN-NEG-kibi-branded-health-report-later-gate-drop
+    created_at: 2026-10-29T21:07:15.566Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1e0d1c266ad

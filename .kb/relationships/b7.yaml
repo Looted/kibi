@@ -272,3 +272,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1e03c73f0c13
+  - type: assumes
+    from: SCEN-NEG-kibi-dependency-ordered-repair-plan-paginated-plan
+    to: FACT-NEG-kibi-dependency-ordered-repair-plan-paginated-plan
+    created_at: 2026-10-29T21:09:23.014Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-13573d2c02a6
+  - type: verified_by
+    from: SCEN-NEG-kibi-dependency-ordered-repair-plan-paginated-plan
+    to: TEST-kibi-dependency-ordered-repair-plan
+    created_at: 2026-10-29T21:09:23.088Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c8dc874d6d0

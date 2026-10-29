@@ -440,3 +440,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e0ef4bc5956a
+  - type: assumes
+    from: SCEN-NEG-kibi-evidence-floors-below-floor
+    to: FACT-NEG-kibi-evidence-floors-below-floor
+    created_at: 2026-10-29T21:12:39.699Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c20d31e1095e
+  - type: verified_by
+    from: SCEN-NEG-kibi-evidence-floors-below-floor
+    to: TEST-kibi-evidence-floors
+    created_at: 2026-10-29T21:12:39.786Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b50b13fc15d
