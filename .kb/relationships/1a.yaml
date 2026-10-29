@@ -426,3 +426,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f5801db4ad88
+  - type: specified_by
+    from: REQ-kibi-html-health-report
+    to: SCEN-NEG-kibi-html-health-report-partial-coverage-page
+    created_at: 2026-10-29T21:34:39.370Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e8126914ac7
