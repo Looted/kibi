@@ -45,6 +45,35 @@ export const CLI_MUTATION_MODULES = {
     "packages/cli/tests/search-ranking.test.ts",
   ],
   "packages/cli/src/logic/ir.ts": ["packages/cli/tests/logic/ir.test.ts"],
+  "packages/cli/src/search-hints.ts": [
+    "packages/cli/tests/search-hints.test.ts",
+  ],
+  "packages/cli/src/plugins/compose-search-hints.ts": [
+    "packages/cli/tests/search-hints.test.ts",
+  ],
+};
+
+// Plugin package modules gated the same way: each with the hermetic tests of
+// its own package.
+export const PLUGIN_MUTATION_MODULES = {
+  "packages/plugin-sdk/src/validate-search-hints.ts": [
+    "packages/plugin-sdk/tests/search-hints.test.ts",
+  ],
+  "packages/plugin-search-hints/src/tokenizer.ts": [
+    "packages/plugin-search-hints/tests/tokenizer.test.ts",
+  ],
+  "packages/plugin-search-hints/src/model.ts": [
+    "packages/plugin-search-hints/tests/plugin.test.ts",
+    "packages/plugin-search-hints/tests/edges.test.ts",
+  ],
+  "packages/plugin-search-hints/src/cache.ts": [
+    "packages/plugin-search-hints/tests/plugin.test.ts",
+    "packages/plugin-search-hints/tests/edges.test.ts",
+  ],
+  "packages/plugin-search-hints/src/index.ts": [
+    "packages/plugin-search-hints/tests/plugin.test.ts",
+    "packages/plugin-search-hints/tests/edges.test.ts",
+  ],
 };
 
 // Explicit test-file list, enumerated relative to the repo root (the Stryker
@@ -65,7 +94,10 @@ function scopedTestFiles() {
     };
     walk("");
   }
-  for (const tests of Object.values(CLI_MUTATION_MODULES)) {
+  for (const tests of [
+    ...Object.values(CLI_MUTATION_MODULES),
+    ...Object.values(PLUGIN_MUTATION_MODULES),
+  ]) {
     for (const test of tests) files.push(`./${test}`);
   }
   return [...new Set(files)].sort();
@@ -85,6 +117,7 @@ const config = {
     "packages/codex/src/**/*.ts",
     "packages/cursor/src/**/*.ts",
     ...Object.keys(CLI_MUTATION_MODULES),
+    ...Object.keys(PLUGIN_MUTATION_MODULES),
   ],
   bun: {
     testFiles: scopedTestFiles(),

@@ -4,7 +4,7 @@ description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware op
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-usage
-  version: 2.34.0
+  version: 2.35.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -139,7 +139,9 @@ For an edit that keeps the governing rule, limit the consultation before the edi
    `unknown`, or `none`, which is not proof), the `exceptions` that exempt it,
    and the `unknowns` the checks could not decide. Those links and verdicts are
    discovery, not proof. Pass `sourceLocations` before changing a source file,
-   and `rankingMode: "legacy"` for literal identifier lookups. See
+   and `rankingMode: "legacy"` for literal identifier lookups. A weak answer
+   may add `queryAnalysis.hints` (requirements the question may mean): re-ask
+   in their words, never cite a hint as the rule. See
    `resources/workflows.md` for the mode recipe.
 2. Resolve genuine ambiguity with the human; use `kb_model` for deterministic
    interpretation and typed facts.

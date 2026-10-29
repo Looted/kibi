@@ -168,10 +168,12 @@ writes with different content is suppressed as `duplicate_entity`. Only a
 
 `pluginOffers` lists optional plugins that fit the workspace and that
 `package.json` neither activates in `kibi.plugins` nor lists in
-`kibi.declinedPlugins`; each has `package`, `capability`, `reason`, `fileCount`
-and up to five `evidence` paths, and `recommendedActions` repeats it as a
-`plugin_offer` action. Today the only offer is `kibi-plugin-ui`, made when
-production `*.tsx`, `*.jsx` or `*.component.ts` files exist. Offers are outside
+`kibi.declinedPlugins`; each has `package`, `capability`, the `mode` to
+activate it in, `reason`, `fileCount` and up to five `evidence` paths, and
+`recommendedActions` repeats it as a `plugin_offer` action. Kibi offers
+`kibi-plugin-ui` (`augment`) when production `*.tsx`, `*.jsx` or
+`*.component.ts` files exist, and `kibi-plugin-search-hints` (`replace`) when
+`.kb/requirements/` holds 50 or more requirement documents. Offers are outside
 the plan and its hash; the agent asks the human, and Kibi never edits
 `package.json` itself.
 
@@ -391,6 +393,7 @@ Ask the KB a question or search it. The default `intent-v1` ranking accepts natu
 - `offset` (optional): Number of results to skip
 - `rankingMode` (optional): `intent-v1` (default) or `legacy`
 - `answer` (optional, default `true`): Intent mode, first page only. Adds the answer layer described below.
+- `hints` (optional, default `true`): Intent mode, first page only. With a `kibi.search-hints.v1` plugin activated, a weak or abstained answer adds `queryAnalysis.hints`, described below.
 - `semanticFacets` (optional): Host-provided `actors`, `actions`, `objects`, `constraints`, or `aliases` arrays
 - `sourceLocations` (optional): Workspace-relative `{path, line?, column?, symbol?}` locations for changed code. The symbols at those locations match, and so do the requirements they `implements`, even when the question shares no word with them (their `sourceMatches` name the implementing symbol with `distance: 3` and the reason `implemented at the source location`).
 - `minScore` (optional): Intent acceptance threshold between `0` and `1`; defaults to `0.18`
@@ -422,6 +425,8 @@ On the first intent-mode page, `data.answer` (`kibi.search-answer.v1`) turns the
 - `note`: how to read the layer. An empty `governing` list is not evidence that nothing governs the change.
 
 The answer layer is graph traversal plus the existing checks scoped to the governing requirements: discovery, not proof. Use `kb_check` and `kb_coverage` for full consistency and proof status. Pass `answer: false` to skip it.
+
+When the project activates a `kibi.search-hints.v1` provider (such as `kibi-plugin-search-hints`) and the intent answer abstained or its top score is below 0.44, `queryAnalysis.hints` lists what the question may mean, found by meaning rather than shared words. It has `trigger` (`abstained` or `weak`), the `provider` stamp (with its `model`), and `items`: up to ten current requirements with `id`, `title` and `score`. A hit on a scenario, test or fact is shown as the current requirement linked to it, with the matched entity under `via`; one no requirement owns is shown as itself. The answer's top three governing requirements are left out. Shadow providers appear under `shadow` only, and `diagnostics` names a provider that failed, timed out, returned an invalid result or could not load; the search answers as usual in every case. The text names the first five hints. Hints never change the results, the answer layer or abstention: re-ask in a hint's words or pass them as `semanticFacets.aliases`, then read the requirement with `kb_query`. Pass `hints: false` to skip them.
 
 **Example:**
 ```json

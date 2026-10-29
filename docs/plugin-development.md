@@ -105,6 +105,7 @@ comparison metadata only.
 | Ontology pack | Catalog starts with builtin for `augment` | `replace` excludes the builtin provider catalog. Valid empty `match()` is abstention (no builtin consult). Allowed wherever Kibi already matches ontology |
 | Symbol extractor v1 | Builtin first for supported files under `augment` | Legacy replacement and fallback behavior |
 | Symbol extractor v2 | Builtin first for supported files under `augment` | First claiming provider owns the result; partial, failed, or unsupported output never becomes a successful fallback |
+| Search hints | None; the builtin gives no hints | `replace` or `shadow` only; `augment` is rejected. Runs only from `kb_search`, and only when the intent answer abstained or its top score is below 0.44. A provider may name only the entities it was given, at most 20, scored in [0, 1] in score then id order; a failing, late (3 s first call, 0.5 s after) or invalid answer gives no hints and a diagnostic. Hints never change results, the answer layer or abstention |
 | Vocabulary alignment | Builtin always runs first; fallback for `replace` failure | External providers run only from requirement modeling (`kb_model` mode `requirement`, CLI `model-requirement`). `augment` refines only clauses the builtin left as `new_subject` and pairs it did not judge duplicates (it can add candidates, never remove them). A provider may only choose among the builtin-ranked candidates or `new_subject`; any other answer is rejected and falls back to builtin with `fallbackUsed`. Results are advice in the modeling plan, never check outcomes |
 
 Sync maintenance paths (`sync`, `check`, `kb_upsert`, `status`, proof, and
@@ -281,6 +282,34 @@ no runtime code path. The UI vocabulary it relies on (`ui_pattern`,
 pattern requirements are part of Kibi core. See
 [packages/plugin-ui/README.md](../packages/plugin-ui/README.md) and
 [ui-requirements.md](./ui-requirements.md).
+
+## Optional search hints plugin
+
+`kibi-plugin-search-hints` implements `kibi.search-hints.v1` with the bundled,
+MIT-licensed potion-base-8M static embedding (int8, about 7.7 MB) and a pure
+JavaScript tokenizer checked against the upstream one. It needs no network,
+native code or model download. Activate it in `replace` mode:
+
+```json
+{
+  "kibi": {
+    "plugins": [
+      {
+        "package": "kibi-plugin-search-hints",
+        "capabilities": { "kibi.search-hints.v1": { "mode": "replace" } }
+      }
+    ]
+  }
+}
+```
+
+When a `kb_search` answer is weak, the host sends the question and the current
+entities (title, statement and body, up to 2000 characters each) and shows the
+closest ones as `queryAnalysis.hints`. Entity vectors are cached under Kibi's
+runtime directory and rebuilt only for entities whose text changed; on a KB of
+about 3,000 entities the first weak search builds them in under a second.
+`/kibi-bootstrap` offers the plugin once the KB holds 50 or more requirement
+documents. See [packages/plugin-search-hints/README.md](../packages/plugin-search-hints/README.md).
 
 ## Optional Jev provider
 

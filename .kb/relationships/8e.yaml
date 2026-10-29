@@ -384,3 +384,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0320a38abd60
+  - type: validates
+    from: TEST-kibi-search-hints-host
+    to: SCEN-kibi-search-hints-host
+    created_at: 2026-10-29T19:18:51.785Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56dac31e26d1

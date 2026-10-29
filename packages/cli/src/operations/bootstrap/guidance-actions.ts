@@ -115,8 +115,9 @@ export function buildActions(
       kind: "plugin_offer",
       package: offer.package,
       capability: offer.capability,
+      mode: offer.mode,
       evidence: offer.evidence,
-      description: `${offer.reason} (${summary(offer.evidence)}). Ask the operator whether to enable the experimental ${offer.package}; on yes, install it as a dev dependency and add it to package.json kibi.plugins with "${offer.capability}": { "mode": "augment" }; on no, add "${offer.package}" to kibi.declinedPlugins so bootstrap stops offering it.`,
+      description: `${offer.reason} (${summary(offer.evidence)}). Ask the operator whether to enable the experimental ${offer.package}; on yes, install it as a dev dependency and add it to package.json kibi.plugins with "${offer.capability}": { "mode": "${offer.mode}" }; on no, add "${offer.package}" to kibi.declinedPlugins so bootstrap stops offering it.`,
     });
   result.push({
     order,

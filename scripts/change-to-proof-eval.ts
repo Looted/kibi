@@ -664,6 +664,8 @@ export type RepoSearchObservation = Readonly<{
   governingIds: readonly string[];
   /** Ranked result ids, in rank order. */
   resultIds: readonly string[];
+  /** `queryAnalysis.hints` ids, in hint order; absent without hints. */
+  hintIds?: readonly string[];
   latencyMs: number;
 }>;
 
@@ -673,6 +675,11 @@ export type RepoSearchEvaluation = Readonly<{
   positiveCaseCount: number;
   /** Share of positive cases with an expected id in the top three. */
   recallAt3: number;
+  /**
+   * Share of positive cases with an expected id in the top three or among
+   * the search hints, so what an agent sees in one call.
+   */
+  recallWithHints: number;
   /**
    * Share of positive cases whose governing answer or top three results
    * include a requirement the gold set labels superseded.
@@ -693,6 +700,7 @@ export type RepoSearchEvaluation = Readonly<{
     expectedIds: readonly string[];
     governingIds: readonly string[];
     resultIds: readonly string[];
+    hintIds?: readonly string[];
   }>[];
   supersededResults: readonly Readonly<{ id: string; ids: string[] }>[];
   falseAbstentions: readonly string[];
@@ -701,6 +709,7 @@ export type RepoSearchEvaluation = Readonly<{
 // implements REQ-kibi-search-gold-set-gate, REQ-kibi-change-to-proof-evaluation
 export type RepoSearchThresholds = Readonly<{
   minRecallAt3?: number;
+  minRecallWithHints?: number;
   maxSupersededResultRate?: number;
   minAbstentionPrecision?: number;
   minAbstentionRecall?: number;
@@ -729,6 +738,7 @@ export function scoreRepoSearch(
   const supersededResults: { id: string; ids: string[] }[] = [];
   const falseAbstentions: string[] = [];
   let hits = 0;
+  let hintedHits = 0;
   let abstentions = 0;
   let correctAbstentions = 0;
   const latencies: number[] = [];
@@ -747,6 +757,9 @@ export function scoreRepoSearch(
       ...observed.governingIds.slice(0, 3),
       ...observed.resultIds.slice(0, 3),
     ]);
+    const hinted = new Set(observed.hintIds ?? []);
+    if (gold.expectedIds.some((id) => topThree.has(id) || hinted.has(id)))
+      hintedHits += 1;
     if (gold.expectedIds.some((id) => topThree.has(id))) hits += 1;
     else
       misses.push({
@@ -754,6 +767,7 @@ export function scoreRepoSearch(
         expectedIds: gold.expectedIds,
         governingIds: observed.governingIds,
         resultIds: observed.resultIds.slice(0, 5),
+        ...(observed.hintIds ? { hintIds: observed.hintIds } : {}),
       });
     const shown = [
       ...new Set([...observed.governingIds, ...observed.resultIds.slice(0, 3)]),
@@ -767,6 +781,7 @@ export function scoreRepoSearch(
     caseCount: cases.length,
     positiveCaseCount: positive.length,
     recallAt3: positive.length ? hits / positive.length : 0,
+    recallWithHints: positive.length ? hintedHits / positive.length : 0,
     supersededResultRate: positive.length
       ? supersededResults.length / positive.length
       : 0,
@@ -806,6 +821,11 @@ export function repoSearchThresholdFailures(
       failures.push(`${name} ${value} is above ${max}`);
   };
   below("recall@3", evaluation.recallAt3, thresholds.minRecallAt3);
+  below(
+    "recall with hints",
+    evaluation.recallWithHints,
+    thresholds.minRecallWithHints,
+  );
   above(
     "superseded-result rate",
     evaluation.supersededResultRate,
@@ -836,6 +856,7 @@ export function parseCliSearchOutput(
     data?: {
       results?: { entity?: { id?: unknown } }[];
       answer?: { governing?: { id?: unknown }[] };
+      queryAnalysis?: { hints?: { items?: { id?: unknown }[] } };
     };
   };
   if (envelope.status !== "success" || !envelope.data) {
@@ -850,6 +871,13 @@ export function parseCliSearchOutput(
     resultIds: (envelope.data.results ?? []).map((row) =>
       String(row.entity?.id ?? ""),
     ),
+    ...(envelope.data.queryAnalysis?.hints
+      ? {
+          hintIds: (envelope.data.queryAnalysis.hints.items ?? []).map((row) =>
+            String(row.id ?? ""),
+          ),
+        }
+      : {}),
   };
 }
 

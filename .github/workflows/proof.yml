@@ -218,6 +218,16 @@ jobs:
           documentation/evaluations/change-to-proof/repo-search-gold.v2.jsonl
           --thresholds documentation/evaluations/change-to-proof/repo-search-thresholds.json
 
+      # Reworded questions the lexical ranker misses: with the repository's
+      # search-hints plugin active, the expected requirement must be in the
+      # top three or among the hints.
+      - name: Gate kb_search hints on reworded questions
+        if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
+        run: >-
+          bun run scripts/change-to-proof-eval.ts --repo-kb
+          documentation/evaluations/change-to-proof/repo-search-hints-gold.v1.jsonl
+          --thresholds documentation/evaluations/change-to-proof/repo-search-hints-thresholds.json
+
       - name: Generate requirement health report
         if: ${{ !cancelled() && steps.integrity.outcome == 'success' && (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
         run: |

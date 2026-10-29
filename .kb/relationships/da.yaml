@@ -591,3 +591,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b92c446ee53a
+  - type: implements
+    from: SYM-search-hints-max-limit
+    to: REQ-kibi-search-hints-limits
+    created_at: 2026-10-29T21:28:16.504Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82189591c4d0
+  - type: implements
+    from: SYM-search-hints-max-limit
+    to: REQ-capability-search-hints-v1
+    created_at: 2026-10-29T21:28:16.674Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb5bcf6896a0
+  - type: covered_by
+    from: SYM-search-hints-max-limit
+    to: TEST-proof-search-hints-result-limit
+    created_at: 2026-10-29T21:29:34.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e99e11fb027
+  - type: covered_by
+    from: SYM-search-hints-max-limit
+    to: TEST-capability-search-hints-v1
+    created_at: 2026-10-29T21:29:34.451Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a8f588cf947

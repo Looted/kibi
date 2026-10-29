@@ -377,3 +377,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-588dd8e47224
+  - type: implements
+    from: SYM-rank-by-meaning
+    to: REQ-kibi-plugin-search-hints
+    created_at: 2026-10-29T19:22:42.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c90fd5c9973a
+  - type: covered_by
+    from: SYM-rank-by-meaning
+    to: TEST-kibi-plugin-search-hints
+    created_at: 2026-10-29T19:22:42.549Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e8b3081355a

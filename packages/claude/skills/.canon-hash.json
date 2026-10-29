@@ -1,5 +1,5 @@
 {
-  "kibi-bootstrap/SKILL.md": "27396380866a6098c1838e443317757ad516503c9c6c580da649112ad73a2ac2",
+  "kibi-bootstrap/SKILL.md": "8303ff8c74a77edb41722ab0bd4cc465e64420de5d29b08172d706a4ab53630e",
   "kibi-bootstrap/resources/bootstrap.md": "e93fae88a6853d0092cde7eee33f7d4943a8141e3841bfe3f64ab73247867b6a",
   "kibi-bootstrap/resources/branch-lifecycle.md": "c854264ce888439140883a3fc636db5e522f020dd27b30a5c1ecc4105b64ed13",
   "kibi-bootstrap/resources/operation-access.md": "b5a6a59e72d800c376e7fad79132897623c32a0ce152a1e8d73f9628b444db51",
@@ -18,7 +18,7 @@
   "kibi-traceability/resources/operation-access.md": "39f7972ab7f4ae7479e78f7072bb50e8e6c4cdf4f857425f69d2522d37db437c",
   "kibi-traceability/resources/source-authoring.md": "408c6ee2bef1b84e0194c0538ef929c26a0a617e631b2234247388140dbbdd08",
   "kibi-traceability/resources/traceability.md": "38c290a0bc71bd1692e115f22694743946e2f69630e134acfd43cee5f613fb88",
-  "kibi-usage/SKILL.md": "c1c6d652dee519cce4f0d9086afe2e6ad6917d77dcd4369076b51018e8c0d393",
+  "kibi-usage/SKILL.md": "1006d81ea47dd707f5faf8a04052db3cf6ba75cb2df0e54e4274b373ee8cb39d",
   "kibi-usage/resources/branch-lifecycle.md": "f1bf359e9826e83c548f3cd0287f8175a62456527b0132b06b3f9f74aa59b7d6",
   "kibi-usage/resources/fact-lanes.md": "899218f90396aa469b6e34aeb5f7ea1f38bf11bb326102319f376c213859fb33",
   "kibi-usage/resources/kb-improvement.md": "a8408fce27342bdce6415a6718599e53fe00bb33aa1fd3dc42353ec6f61adcd7",
@@ -28,5 +28,5 @@
   "kibi-usage/resources/relationship-directions.md": "0fdd67032c2d15299f772845fc4f807eb9435b09507bd87a5911ab33db2f143d",
   "kibi-usage/resources/source-authoring.md": "cad93f1e0ae08a676f2de7492f9227677880302327e74d159618fea86ca50abe",
   "kibi-usage/resources/ui-requirements.md": "f99c2a9a73bbb7bd92ce1f231db3056d544588be149a5b0d3f7cc6f28bc9eee9",
-  "kibi-usage/resources/workflows.md": "9d248791dd95462a42af678d6768c08fdbe060382cfb43d8a6d99fddfe758417"
+  "kibi-usage/resources/workflows.md": "cdffbb2b7956826147832b1af890532f9c83693ab5b2e1c559bb5c1d56d05ef2"
 }

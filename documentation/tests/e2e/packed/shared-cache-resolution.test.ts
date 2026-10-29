@@ -143,6 +143,7 @@ if (fixtureChild) {
       "plugin-builtin": archive("plugin-builtin"),
       "plugin-jev": archive("plugin-jev"),
       "plugin-ui": archive("plugin-ui"),
+      "plugin-search-hints": archive("plugin-search-hints"),
       "plugin-treesitter": archive("plugin-treesitter"),
       swipl: archive("swipl"),
     };

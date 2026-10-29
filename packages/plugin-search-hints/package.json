@@ -1,0 +1,56 @@
+{
+  "name": "kibi-plugin-search-hints",
+  "version": "0.0.0",
+  "description": "Offline meaning-based hints for weak Kibi search answers",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "assets",
+    "licenses",
+    "integrity.json",
+    "SBOM.spdx.json",
+    "THIRD_PARTY_NOTICES.md",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "bun test --timeout 30000 tests",
+    "prepack": "bun run build && node scripts/verify-assets.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "AGPL-3.0-or-later",
+  "author": "Piotr Franczyk",
+  "homepage": "https://looted.github.io/kibi/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Looted/kibi.git",
+    "directory": "packages/plugin-search-hints"
+  },
+  "bugs": {
+    "url": "https://github.com/Looted/kibi/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@types/node": "25.9.8",
+    "kibi-plugin-sdk": "^0.5.0",
+    "typescript": "^5.7.0"
+  },
+  "peerDependencies": {
+    "kibi-plugin-sdk": "^0.5.0"
+  }
+}

@@ -10,6 +10,7 @@ import {
   type IntentSearchAnalysis,
   type IntentSearchFacets,
   type IntentSearchMatch,
+  type MarkdownBodyCache,
   type SourceLocation,
   executeIntentSearch,
   questionPaths,
@@ -18,6 +19,12 @@ import {
 import { classifyActivation } from "../../operations/bootstrap/activation.js";
 import { SwiplResolutionError } from "../../prolog/swipl-resolver.js";
 import { type SearchAnswer, buildSearchAnswer } from "../../search-answer.js";
+import {
+  type SearchHintsAnalysis,
+  buildSearchHints,
+  searchHintsNote,
+  searchHintsTrigger,
+} from "../../search-hints.js";
 import { rankEntities } from "../../search-ranking.js";
 import type { SearchMatch } from "../../search-ranking.js";
 import { resolveBranchAttachment } from "../../utils/branch-resolver.js";
@@ -51,7 +58,11 @@ import {
   runOperationJsonQuery,
   toPrologAtom,
 } from "./prolog-json.js";
-import type { OperationContext, PrologPort } from "./runtime-types.js";
+import type {
+  CapabilityRegistry,
+  OperationContext,
+  PrologPort,
+} from "./runtime-types.js";
 import type { OperationResult } from "./types.js";
 import { readWorkspaceSnapshot } from "./workspace-snapshot.js";
 
@@ -176,6 +187,7 @@ export type SearchInput = {
   readonly minScore?: number;
   readonly fields?: "summary" | "full";
   readonly answer?: boolean;
+  readonly hints?: boolean;
 };
 
 export type SearchPayload = {
@@ -185,7 +197,9 @@ export type SearchPayload = {
   /** Rows in `results`: the page this call returned. */
   readonly returned: number;
   readonly truncated?: boolean;
-  readonly queryAnalysis?: IntentSearchAnalysis;
+  readonly queryAnalysis?: IntentSearchAnalysis & {
+    readonly hints?: SearchHintsAnalysis;
+  };
   readonly answer?: SearchAnswer;
   /** The Kibi branch whose store was searched, when the runtime attached one. */
   readonly branch?: string | null;
@@ -912,6 +926,51 @@ function questionPathHint(
     : ` The question names ${list}; their words were left out of the topic. Pass them as sourceLocations to also see the requirements linked to those files.`;
 }
 
+/**
+ * Hints from the workspace's kibi.search-hints.v1 provider. A host without a
+ * plugin runtime, or a registry that fails to load, gives no hints rather than
+ * failing the search.
+ */
+// implements REQ-kibi-search-hints-host
+async function searchHintsFor(
+  context: OperationContext,
+  options: Omit<
+    Parameters<typeof buildSearchHints>[0],
+    "resolution" | "workspaceRoot"
+  >,
+): Promise<SearchHintsAnalysis | undefined> {
+  if (!context.ensurePlugins) return undefined;
+  let resolution: Awaited<ReturnType<CapabilityRegistry["resolveSearchHints"]>>;
+  try {
+    resolution = await (await context.ensurePlugins()).resolveSearchHints();
+  } catch (error) {
+    // A configured provider that cannot load is reported, not thrown: the
+    // lexical answer stands on its own.
+    const trigger = searchHintsTrigger(options.analysis);
+    return trigger === null
+      ? undefined
+      : {
+          trigger,
+          provider: null,
+          items: [],
+          diagnostics: [
+            {
+              pluginId: "unresolved",
+              packageName: null,
+              mode: "replace",
+              code: "provider_unavailable",
+              message: error instanceof Error ? error.message : String(error),
+            },
+          ],
+        };
+  }
+  return buildSearchHints({
+    ...options,
+    resolution,
+    workspaceRoot: context.workspaceRoot,
+  });
+}
+
 export async function executeSearch(
   input: SearchInput,
   context: OperationContext,
@@ -928,6 +987,7 @@ export async function executeSearch(
     minScore,
     fields = "summary",
     answer,
+    hints: hintsWanted = true,
   } = input;
   const trimmedQuery = query.trim();
   if (!trimmedQuery) {
@@ -960,10 +1020,19 @@ export async function executeSearch(
         ...(minScore !== undefined ? { minScore } : {}),
       } as const;
       validateIntentSearchInput(intentInput);
+      let corpus:
+        | {
+            entities: readonly Record<string, unknown>[];
+            bodies: MarkdownBodyCache;
+          }
+        | undefined;
       const intentResult = await executeIntentSearch(
         intentInput,
         prolog,
         context.workspaceRoot,
+        (entities, bodies) => {
+          corpus = { entities, bodies };
+        },
       );
       const paginated = paginateResults(intentResult.matches, limit, offset);
       // The answer layer summarizes the whole ranking, so it belongs to the
@@ -982,6 +1051,22 @@ export async function executeSearch(
       const topUngoverned = answerLayer?.ungoverned.find(
         (entry) => entry.rank === 1,
       );
+      // Hints come after the lexical answer and never change it; a strong
+      // answer never reaches a provider.
+      const hints =
+        hintsWanted &&
+        offset === 0 &&
+        corpus !== undefined &&
+        searchHintsTrigger(intentResult.analysis) !== null
+          ? await searchHintsFor(context, {
+              query: trimmedQuery,
+              analysis: intentResult.analysis,
+              entities: corpus.entities,
+              bodies: corpus.bodies,
+              governingIds: (answerLayer?.governing ?? []).map((req) => req.id),
+              prolog,
+            })
+          : undefined;
       const text = `${
         intentResult.matches.length === 0
           ? `No intent search results for '${trimmedQuery}' (abstained). No entity shares enough of the question's words: ask again in the words and language the KB is written in, or pass sourceLocations.`
@@ -991,7 +1076,7 @@ export async function executeSearch(
               .join(
                 ", ",
               )}${answerLayer ? `. Governing: ${answerLayer.governing.map((req) => req.id).join(", ") || "none found"}` : ""}${topUngoverned ? ` (the top match ${topUngoverned.id} is linked to no requirement)` : ""}.`
-      }${questionPathHint(trimmedQuery, sourceLocations)}${CONTRADICTION_QUESTION.test(trimmedQuery) ? CONTRADICTION_HINT : ""}${storeNote}`;
+      }${searchHintsNote(hints)}${questionPathHint(trimmedQuery, sourceLocations)}${CONTRADICTION_QUESTION.test(trimmedQuery) ? CONTRADICTION_HINT : ""}${storeNote}`;
       return {
         content: [{ type: "text", text }],
         structuredContent: {
@@ -999,7 +1084,10 @@ export async function executeSearch(
           count: intentResult.matches.length,
           returned: paginated.length,
           truncated: offset + paginated.length < intentResult.matches.length,
-          queryAnalysis: intentResult.analysis,
+          queryAnalysis:
+            hints !== undefined
+              ? { ...intentResult.analysis, hints }
+              : intentResult.analysis,
           ...(answerLayer ? { answer: answerLayer } : {}),
           ...branchFields,
         },
