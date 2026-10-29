@@ -447,3 +447,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e67ddda50c44
+  - type: implements
+    from: SYM-core-opposing-assumption
+    to: REQ-kibi-happy-path-gap
+    created_at: 2026-10-29T21:57:07.046Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c06eec0eadb1
+  - type: covered_by
+    from: SYM-core-opposing-assumption
+    to: TEST-kibi-happy-path-gap
+    created_at: 2026-10-29T21:57:07.088Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9dc8b1892b9

@@ -65501,3 +65501,93 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-git-hook-manager-integration
+  - id: SYM-core-negative-path-stage
+    title: negative_path_stage
+    status: active
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T22:40:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-happy-path-gap
+      - type: implements
+        target: REQ-kibi-happy-path-gap
+  - id: SYM-core-failure-side-waiver
+    title: failure_side_waiver
+    status: active
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T22:40:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-happy-path-gap
+      - type: implements
+        target: REQ-kibi-happy-path-gap
+  - id: SYM-core-negative-scenario-witness
+    title: negative_scenario_witness
+    status: active
+    sourceFile: packages/core/src/checks.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T22:40:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-happy-path-gap
+      - type: implements
+        target: REQ-kibi-happy-path-gap
+  - id: SYM-core-check-scenario-outcome-mismatch
+    title: check_scenario_outcome_mismatch
+    status: active
+    sourceFile: packages/core/src/checks.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T22:40:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-happy-path-gap
+      - type: implements
+        target: REQ-kibi-happy-path-gap
+  - id: SYM-core-opposing-assumption
+    title: opposing_assumption
+    status: active
+    sourceFile: packages/core/src/checks.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T22:40:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-happy-path-gap
+      - type: implements
+        target: REQ-kibi-happy-path-gap
+  - id: SYM-kibi-happy-path-gap-verifier
+    title: Happy-path gap verifier
+    status: active
+    sourceFile: packages/cli/tests/consumer/happy-path-gap.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T22:40:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-happy-path-gap
+  - id: SYM-cli-proof-explain-project-requirement
+    title: projectRequirementExplain
+    status: active
+    sourceFile: packages/cli/src/operations/proof/explain.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T22:40:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-happy-path-gap
+      - type: implements
+        target: REQ-kibi-happy-path-gap

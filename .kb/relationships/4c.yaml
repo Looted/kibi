@@ -433,3 +433,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b99cf86fa76d
+  - type: requires_predicate
+    from: REQ-kibi-happy-path-gap
+    to: FACT-PRED-kibi-happy-path-gap-tested
+    created_at: 2026-10-29T21:56:04.528Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df95abe38de5
+  - type: requires_predicate
+    from: REQ-kibi-happy-path-gap
+    to: FACT-PRED-kibi-happy-path-gap-waiver
+    created_at: 2026-10-29T21:56:04.580Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6342748e6863
+  - type: requires_predicate
+    from: REQ-kibi-happy-path-gap
+    to: FACT-PRED-kibi-happy-path-gap-outcome-mismatch
+    created_at: 2026-10-29T21:56:04.613Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-02f62d23555c
+  - type: relates_to
+    from: REQ-kibi-happy-path-gap
+    to: REQ-kibi-scenario-feasibility-v2
+    created_at: 2026-10-29T21:56:04.644Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40543164ff04
+  - type: specified_by
+    from: REQ-kibi-happy-path-gap
+    to: SCEN-kibi-happy-path-gap
+    created_at: 2026-10-29T21:56:29.153Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-726e6fc84dfa
+  - type: specified_by
+    from: REQ-kibi-happy-path-gap
+    to: SCEN-NEG-kibi-happy-path-gap-SUCCESS-ONLY
+    created_at: 2026-10-29T21:56:29.196Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0634133b2efd
