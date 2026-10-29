@@ -11,6 +11,8 @@
 
 :- initialization(main, main).
 
+:- use_module(library(process)).
+
 mutalog_version('0.1.2').
 
 pack_dir('.cache/prolog-packs').
@@ -26,7 +28,7 @@ use_mutalog :-
     !,
     directory_file_path(Home, prolog, Lib),
     asserta(user:file_search_path(library, Lib)),
-    use_module(library(mutalog)).
+    use_module(library(mutalog), []).
 use_mutalog :-
     mutalog_version(Version),
     pack_dir(Dir),
@@ -35,29 +37,27 @@ use_mutalog :-
     (   pack_property(mutalog, version(Version))
     ->  true
     ;   format(user_error, "Installing Mutalog ~w into ~w~n", [Version, Dir]),
-        use_system_ca_bundle,
         format(atom(URL),
                'https://github.com/Looted/mutalog/archive/v~w.zip', [Version]),
-        pack_install(URL, [ package_directory(Dir),
-                            interactive(false),
-                            upgrade(true)
-                          ]),
+        download_archive(URL, Dir, Version, Archive),
+        pack_install(Archive, [ package_directory(Dir),
+                                interactive(false),
+                                upgrade(true)
+                              ]),
         attach_packs(Dir, [duplicate(replace)])
     ),
-    use_module(library(mutalog)).
+    use_module(library(mutalog), []).
 
-% The relocated SWI-Prolog bundle has no compiled-in certificate path, so
-% HTTPS downloads fail verification unless OpenSSL is pointed at the
-% system's CA bundle. An SSL_CERT_FILE set by the caller wins.
-use_system_ca_bundle :-
-    getenv('SSL_CERT_FILE', _),
-    !.
-use_system_ca_bundle :-
-    member(File, [ '/etc/ssl/certs/ca-certificates.crt',
-                   '/etc/pki/tls/certs/ca-bundle.crt',
-                   '/etc/ssl/cert.pem'
-                 ]),
-    exists_file(File),
-    !,
-    setenv('SSL_CERT_FILE', File).
-use_system_ca_bundle.
+% Downloads go through curl, which uses the system's certificate store: the
+% relocated SWI-Prolog bundle has no CA path of its own, so its HTTPS client
+% fails to verify github.com. The archive keeps the name SWI-Prolog derives
+% the pack name and version from.
+download_archive(URL, Dir, Version, Archive) :-
+    format(atom(Archive), '~w/mutalog-~w.zip', [Dir, Version]),
+    process_create(path(curl), ['-fsSL', '-o', Archive, URL],
+                   [process(Pid)]),
+    process_wait(Pid, Status),
+    (   Status == exit(0)
+    ->  true
+    ;   throw(error(mutalog_download_failed(URL, Status), _))
+    ).

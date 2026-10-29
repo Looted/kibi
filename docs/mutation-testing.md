@@ -112,7 +112,7 @@ SWI-Prolog and plunit that writes the same report schema as Stryker.
   dozen tests that finishes the module's ~2,800 mutants in a few minutes on
   four cores.
 - `scripts/run-prolog-mutation.pl` pins the Mutalog version and installs it
-  on first use into `.cache/prolog-packs` (gitignored), leaving the user's own
+  on first use into `.cache/prolog-packs` (gitignored, downloaded with `curl`), leaving the user's own
   packs alone. Set `MUTALOG_HOME` to a Mutalog checkout to run that instead.
 - Unlike the Stryker gate, this lane **reports only**: `break(0)` in
   `mutalog.config.pl` never fails the run. The first survivors include
