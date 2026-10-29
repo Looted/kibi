@@ -402,3 +402,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-44818726eafc
+  - type: specified_by
+    from: REQ-015
+    to: SCEN-NEG-015-OTHER-SOURCE-ENTITY
+    created_at: 2026-10-29T22:00:26.214Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57ac939d2a51

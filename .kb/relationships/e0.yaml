@@ -472,3 +472,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3a68a18d4671
+  - type: specified_by
+    from: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+    to: SCEN-NEG-kibi-consumer-local-plugin-launcher-ontology-v1-MISSING-LOCAL-MCP
+    created_at: 2026-10-29T22:00:37.609Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d71ac2c4f7b3

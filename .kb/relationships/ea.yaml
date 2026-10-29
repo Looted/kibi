@@ -265,3 +265,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-829430d269c9
+  - type: assumes
+    from: SCEN-NEG-mcp-tag-filtering-server-side-UNMATCHED-TAGS
+    to: FACT-NEG-mcp-tag-filtering-server-side-UNMATCHED-TAGS
+    created_at: 2026-10-29T22:00:04.888Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cecc468dcae4
+  - type: verified_by
+    from: SCEN-NEG-mcp-tag-filtering-server-side-UNMATCHED-TAGS
+    to: TEST-mcp-tag-filtering-server-side
+    created_at: 2026-10-29T22:00:04.928Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0eb72d36d8c3

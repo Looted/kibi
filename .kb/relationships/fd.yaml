@@ -405,3 +405,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e77d2a85d3db
+  - type: specified_by
+    from: REQ-ci-kb-merge-resolution
+    to: SCEN-NEG-ci-kb-merge-resolution-PUSH-AFTER-FAILED-GATE
+    created_at: 2026-10-29T22:00:28.033Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd0498394f47

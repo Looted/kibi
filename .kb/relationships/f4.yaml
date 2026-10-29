@@ -524,3 +524,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-80aa339079b8
+  - type: specified_by
+    from: REQ-cli-gc
+    to: SCEN-NEG-cli-gc-LIVE-STORE-REMOVAL
+    created_at: 2026-10-29T22:00:30.084Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a35a0d8fdcf

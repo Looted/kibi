@@ -335,3 +335,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f43fc1bb7e3e
+  - type: specified_by
+    from: REQ-opencode-file-context-guidance-v1
+    to: SCEN-NEG-opencode-file-context-guidance-v1-REPEATED-GUIDANCE
+    created_at: 2026-10-29T22:20:16.088Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b71487e1652

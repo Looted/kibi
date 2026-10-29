@@ -598,3 +598,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a27285de8310
+  - type: assumes
+    from: SCEN-NEG-generated-coordinate-persistence-AUTHORED-COORDINATES
+    to: FACT-NEG-generated-coordinate-persistence-AUTHORED-COORDINATES
+    created_at: 2026-10-29T22:00:01.461Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28f565d29772
+  - type: verified_by
+    from: SCEN-NEG-generated-coordinate-persistence-AUTHORED-COORDINATES
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-10-29T22:00:01.524Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c33ce7b3b293
