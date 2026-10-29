@@ -633,7 +633,7 @@ describe("kibi init", () => {
       }
       expect(caught?.status).toBe(1);
       expect(caught?.stderr ?? "").toContain(
-        "unknown hook 'pre-push' for --print-hook. Expected one of: post-checkout, post-merge, post-rewrite, pre-commit.",
+        "unknown hook 'pre-push' for --print-hook. Expected one of: post-checkout, post-merge, post-rewrite, pre-commit, all.",
       );
     });
   });

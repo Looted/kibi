@@ -510,3 +510,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8c6d68055766
+  - type: relates_to
+    from: REQ-git-hook-manager-integration
+    to: REQ-git-hook-effective-install
+    created_at: 2026-10-29T18:38:06.108Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e15ef20e8192
+  - type: requires_predicate
+    from: REQ-git-hook-manager-integration
+    to: FACT-PRED-git-hook-manager-init
+    created_at: 2026-10-29T18:38:06.155Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a630a5d0d7d7
+  - type: requires_predicate
+    from: REQ-git-hook-manager-integration
+    to: FACT-PRED-git-hook-manager-doctor-warning
+    created_at: 2026-10-29T18:38:06.188Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-65028bb117c9
+  - type: specified_by
+    from: REQ-git-hook-manager-integration
+    to: SCEN-git-hook-manager-integration
+    created_at: 2026-10-29T18:38:30.138Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4b500a642fe

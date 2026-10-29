@@ -1459,6 +1459,18 @@
     ]
   },
   {
+    "test_id": "TEST-git-hook-manager-integration",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "180000",
+        "./packages/cli/tests/commands/hook-managers.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-kibi-vocabulary-convergence-e2e",
     "steps": [
       [

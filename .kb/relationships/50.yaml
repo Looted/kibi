@@ -307,3 +307,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8301def24267
+  - type: validates
+    from: TEST-git-hook-manager-integration
+    to: SCEN-git-hook-manager-integration
+    created_at: 2026-10-29T18:38:31.508Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4fbe5a7e62cc

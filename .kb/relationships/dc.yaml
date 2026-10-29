@@ -181,3 +181,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-06504d0362d2
+  - type: implements
+    from: SYM-hook-managers-hook-snippet-formats
+    to: REQ-git-hook-manager-integration
+    created_at: 2026-10-29T18:38:57.449Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-362480dd03e8
+  - type: covered_by
+    from: SYM-hook-managers-hook-snippet-formats
+    to: TEST-git-hook-manager-integration
+    created_at: 2026-10-29T18:38:57.467Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b1eafe868e43
