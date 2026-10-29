@@ -1,5 +1,48 @@
 # kibi-core
 
+## 0.27.0
+
+### Minor Changes
+
+- 8aea1b0: Source proofs can now prove the order of a list. A set fact with property `precedes` and operator `includes` lists pairs spelled `"A -> B"`; it holds when Kibi's read of the source has both A and B and every A comes before every B, and a failed check names the items that are out of order or missing. JSON and YAML sources take a new `field` key with `select: items`, which reads one key of each list item in document order (for example the `run` command of each workflow step).
+
+  An arithmetic `value_source` export can be dotted (`POLICY.eventLimit`) to read one field of an object export, in TypeScript, JavaScript and Python.
+
+  The kibi-usage skill (2.33.0) documents `field`, `precedes` and dotted exports.
+
+### Patch Changes
+
+- 90a4dc1: `kibi check` no longer reports `coverage_depth_review` for a requirement whose passing end-to-end receipt is still current. Check judged receipts against the whole-workspace snapshot, so any unrelated change after `kibi prove` (a migration, an edit elsewhere) made them read as stale, while `kibi coverage` and `kibi proof explain` already used the per-contract binding and showed the requirement as proved. Check now uses the same binding.
+- ff9ac45: `kibi check` spends far less time after the engine has answered on a large knowledge base, and the engine reads each requirement's proof once per check. On a KB four times the size of this repository's own (about 1,700 requirements, 7,500 facts and 35,000 relationships) a check takes about 95 seconds instead of 205; on this repository's KB about 35 seconds instead of 42. Results are unchanged.
+  - The migration plan orders its actions by following each action's dependents instead of scanning every action for every action emitted.
+  - The broad-requirement and coverage-depth quality diagnostics read a relationship index built once instead of scanning every manifest result per requirement.
+  - The engine keeps each requirement's proof and each scenario's feasibility analysis per KB generation, so the evidence-floor rule, the coverage evidence and the scenario rules share them instead of recomputing them; rule bodies, claim inventories and receipt JSON are decoded once per text.
+  - A check judges receipts at one instant and one workspace snapshot for all of its rules.
+
+- 0b82de0: `kibi check` and `kb_check` no longer fail when the check result file can't be used. If the temp folder can't be written, or the engine writes the file somewhere the caller can't read (for example a shared engine started from a sandbox), the engine returns the violations directly, as it did before result files existed.
+- 542a592: `kibi check` and the `kb_check` tool no longer fail with "Query exceeded bounded Prolog output capacity (ENOBUFS)" on a knowledge base whose violations JSON is larger than the engine's 8 MB answer limit. The engine writes the violations to a private temporary file and the command reads it from there, so the report is the same at any size.
+- d0d5fc8: `kibi check` and `kibi status` are faster on a warm engine. On Kibi's own KB a repeated check went from 32 s to 16 s and status from 3.7 s to 1.1 s, with identical output.
+  - The symbol-granularity check keeps each source file's parsed analysis in the branch store (`source-analysis-cache.json`, untracked), keyed by the file's path and content and by the active source analyzers, so unchanged files are not parsed again.
+  - A requirement's proof stages that do not depend on the check time (semantic inventory, logic grounding, contradictions, scenarios, scenario tests, implementing symbols) are kept per KB generation, so a new check reuses them and only re-judges receipts.
+  - Status keeps its source-to-entity index per KB generation, which every freshness probe of every command reads.
+  - The workspace proof snapshot reads files directly instead of one awaited read per file, relationship shards are parsed once per process, and the symbol coordinate overlay reads and hashes each source file once.
+
+- df9f2d4: `kibi search` and `kb_search` answer faster on large knowledge bases, with the same results. On this repository's own KB a warm search takes about half as long as before.
+  - The answer's contradiction and scenario checks no longer repeat whole-KB work for every requirement they report on: infeasible scenarios are analysed once per answer, and contradiction partners come from a predicate index kept per KB generation.
+  - Later pages of a candidate query reuse the ids the first page matched instead of scanning the token index again, until the next write.
+  - The graph around the results is read with one indexed relationship query that compares edge ends before decoding them.
+  - Markdown bodies are read synchronously, engine rows are parsed by slicing instead of character-by-character concatenation, and the CLI compiles its input validator once per call.
+  - Each entity's search tokens are kept between calls in the private engine runtime directory, keyed by the text they came from; set `KIBI_SEARCH_TOKEN_CACHE=0` to turn this off.
+
+- 3dbac25: `kibi check`, `kibi coverage`, `kibi report` and `kibi sync` scale to much larger knowledge bases. On a KB four times the size of this repository's own (about 1,700 requirements and 7,500 facts), check, coverage and report now finish instead of hitting the 120 second query timeout, and on this repository's KB `kibi check` takes about half as long. Results are unchanged.
+  - Contradiction candidates are paired through subject and predicate indexes instead of comparing every requirement with every other one, and opposing-rule checks pair only requirements that actually link rule facts.
+  - Contradiction witnesses, the consistency verification bundle and the predicate schema table are computed once per KB generation and reused by every check that needs them, until the next write.
+  - Later pages of an entity query reuse the ids the first page matched, and coverage pages reuse the status metadata computed with the first page.
+  - When a sync relationship batch contains a link that cannot be stored, the valid links in that batch are still written in one call and only the failing ones are retried one by one, instead of falling back to one round trip per relationship.
+
+- e5a84fa: Proof contracts with a boolean or null field (such as a glob source with `capture: true`) no longer read as changed after `kibi prove`. Kibi hashed `true`, `false` and `null` as strings when checking a receipt, so the receipt's contract hash never matched, the test counted as a contract mismatch and the claims it proves stayed tested.
+- 239eaf4: Remove dead branches in the check speedups found by mutation testing (an unused subject helper, impossible fallbacks in plan ordering, redundant cache and attachment guards). Behavior is unchanged.
+
 ## 0.26.1
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "kibi-claude",
-  "version": "0.10.7",
+  "version": "0.11.0",
   "description": "Kibi Claude Code plugin - progressive-disclosure knowledge snippets, advisory freshness hooks, bundled skills, and the workspace-gated Kibi MCP server",
   "type": "module",
   "main": "dist/index.js",
@@ -62,7 +62,7 @@
   },
   "devDependencies": {
     "@types/node": "latest",
-    "kibi-agent-core": "^0.9.1",
+    "kibi-agent-core": "^0.10.0",
     "typescript": "^5.7.0",
     "yaml": "^2.9.1"
   }
