@@ -342,3 +342,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2d6e8332625c
+  - type: executable_for
+    from: SYM-proof-ontology-polarities
+    to: TEST-proof-ontology-polarities
+    created_at: 2026-10-29T10:29:53.113Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-092de847149a

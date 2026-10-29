@@ -143,3 +143,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9c76c299ee8f
+  - type: executable_for
+    from: SYM-proof-plugin-modes
+    to: TEST-proof-plugin-modes
+    created_at: 2026-10-29T10:29:22.024Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6ce4cdd39bf

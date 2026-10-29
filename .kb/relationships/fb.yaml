@@ -426,3 +426,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-097662ecc1a0
+  - type: requires_property
+    from: REQ-kibi-latest-kb-schema-version
+    to: FACT-latest-kb-schema-version
+    created_at: 2026-10-29T10:58:04.419Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dee11e99d177
+  - type: specified_by
+    from: REQ-kibi-latest-kb-schema-version
+    to: SCEN-kibi-schema6-migration
+    created_at: 2026-10-29T10:58:04.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2de2c30996d3
+  - type: constrains
+    from: REQ-kibi-latest-kb-schema-version
+    to: FACT-kibi-kb-schema-latest-version-component
+    created_at: 2026-10-29T10:58:08.113Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c95dffd2a058

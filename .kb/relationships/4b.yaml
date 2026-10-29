@@ -454,3 +454,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bd703613d1c7
+  - type: executable_for
+    from: SYM-proof-signoff-summary-fence
+    to: TEST-proof-signoff-summary-fence
+    created_at: 2026-10-29T10:46:31.466Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0444e65b9a5

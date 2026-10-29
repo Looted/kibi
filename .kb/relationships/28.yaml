@@ -304,3 +304,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d612a221c120
+  - type: implements
+    from: SYM-cli-report-proof-gate-keys
+    to: REQ-kibi-report-filters-and-gates
+    created_at: 2026-10-29T10:25:40.135Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11027810634d
+  - type: covered_by
+    from: SYM-cli-report-proof-gate-keys
+    to: TEST-proof-report-proof-gate-keys
+    created_at: 2026-10-29T10:25:59.140Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c8965f7a14f

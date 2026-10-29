@@ -6284,5 +6284,265 @@
         "./packages/cli/tests/usage-telemetry-e2e.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-proof-github-badge-workflow-path",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/github-report-settings.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-github-pages-namespace",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/github-report-settings.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-github-badge-alt",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/github-report-settings.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-github-placeholder-owner",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/github-report-settings.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-github-placeholder-repo",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/github-report-settings.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-report-filter-names",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/report-filters-gates.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-report-proof-gate-keys",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/report-filters-gates.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-plugin-modes",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/capability-plugin-vocabulary.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-ontology-polarities",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/capability-plugin-vocabulary.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-semantic-lanes",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/capability-plugin-vocabulary.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-semantic-signal-kinds",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/capability-plugin-vocabulary.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-external-classifier-operations",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/capability-plugin-vocabulary.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-query-fact-kinds",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/query-fact-kinds.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-bootstrap-providers",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/bootstrap-evidence-providers.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-legacy-status-words",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-suggested-status.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-legacy-status-accepted",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-suggested-status.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-legacy-status-proposed",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-suggested-status.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-legacy-status-draft",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-suggested-status.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-legacy-status-deprecated",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-suggested-status.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-legacy-status-superseded",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-suggested-status.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-legacy-status-rejected",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/migration-suggested-status.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-signoff-summary-fence",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/signoff-fences.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-signoff-questions-fence",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/signoff-fences.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-source-timing-max-events",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/source-analysis-timing-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-source-timing-max-bytes",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/source-analysis-timing-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-latest-kb-schema-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/latest-kb-schema-version.proof.test.ts"
+      ]
+    ]
   }
 ]

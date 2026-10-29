@@ -328,3 +328,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-605e451598ee
+  - type: executable_for
+    from: SYM-proof-signoff-questions-fence
+    to: TEST-proof-signoff-questions-fence
+    created_at: 2026-10-29T10:47:07.357Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ce25cb60487

@@ -577,3 +577,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7c390a1d076b
+  - type: validates
+    from: TEST-proof-source-timing-max-events
+    to: SCEN-installed-staged-impact-timing-integrity
+    created_at: 2026-10-29T10:51:56.539Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3493018debee
+  - type: validates
+    from: TEST-proof-latest-kb-schema-version
+    to: SCEN-kibi-schema6-migration
+    created_at: 2026-10-29T10:58:21.169Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b92c446ee53a

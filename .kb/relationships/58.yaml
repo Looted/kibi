@@ -325,3 +325,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1e19a42545cb
+  - type: validates
+    from: TEST-proof-bootstrap-providers
+    to: SCEN-KIBI-BOOTSTRAP-PLAN-APPROVAL
+    created_at: 2026-10-29T10:35:22.827Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2af35acb0f32
