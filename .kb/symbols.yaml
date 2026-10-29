@@ -65346,3 +65346,158 @@ symbols:
         target: TEST-prolog-mutation-lane
       - type: implements
         target: REQ-prolog-mutation-lane
+  - id: SYM-hook-managers-hook-manager-names
+    title: HOOK_MANAGER_NAMES
+    status: active
+    sourceFile: packages/cli/src/commands/hook-managers.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T18:38:45.939Z
+    relationships:
+      - type: covered_by
+        target: TEST-git-hook-manager-integration
+      - type: implements
+        target: REQ-git-hook-manager-integration
+  - id: SYM-hook-managers-hook-manager-name-type
+    title: HookManagerName
+    status: active
+    sourceFile: packages/cli/src/commands/hook-managers.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T18:38:50.735Z
+    relationships:
+      - type: covered_by
+        target: TEST-git-hook-manager-integration
+      - type: implements
+        target: REQ-git-hook-manager-integration
+  - id: SYM-hook-managers-hook-snippet-formats
+    title: HOOK_SNIPPET_FORMATS
+    status: active
+    sourceFile: packages/cli/src/commands/hook-managers.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T18:38:56.191Z
+    relationships:
+      - type: covered_by
+        target: TEST-git-hook-manager-integration
+      - type: implements
+        target: REQ-git-hook-manager-integration
+  - id: SYM-hook-managers-hook-snippet-format-type
+    title: HookSnippetFormat
+    status: active
+    sourceFile: packages/cli/src/commands/hook-managers.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T18:39:01.254Z
+    relationships:
+      - type: covered_by
+        target: TEST-git-hook-manager-integration
+      - type: implements
+        target: REQ-git-hook-manager-integration
+  - id: SYM-hook-managers-detected-hook-manager-type
+    title: DetectedHookManager
+    status: active
+    sourceFile: packages/cli/src/commands/hook-managers.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T18:39:05.968Z
+    relationships:
+      - type: covered_by
+        target: TEST-git-hook-manager-integration
+      - type: implements
+        target: REQ-git-hook-manager-integration
+  - id: SYM-hook-managers-detect-hook-manager
+    title: detectHookManager
+    status: active
+    sourceFile: packages/cli/src/commands/hook-managers.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T18:39:10.962Z
+    relationships:
+      - type: covered_by
+        target: TEST-git-hook-manager-integration
+      - type: implements
+        target: REQ-git-hook-manager-integration
+  - id: SYM-hook-managers-hook-manager-commands
+    title: hookManagerCommands
+    status: active
+    sourceFile: packages/cli/src/commands/hook-managers.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T18:39:15.999Z
+    relationships:
+      - type: covered_by
+        target: TEST-git-hook-manager-integration
+      - type: implements
+        target: REQ-git-hook-manager-integration
+  - id: SYM-hook-managers-missing-kibi-hook-commands
+    title: missingKibiHookCommands
+    status: active
+    sourceFile: packages/cli/src/commands/hook-managers.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T18:39:21.101Z
+    relationships:
+      - type: covered_by
+        target: TEST-git-hook-manager-integration
+      - type: implements
+        target: REQ-git-hook-manager-integration
+  - id: SYM-hook-managers-hook-manager-snippet
+    title: hookManagerSnippet
+    status: active
+    sourceFile: packages/cli/src/commands/hook-managers.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T18:39:26.195Z
+    relationships:
+      - type: covered_by
+        target: TEST-git-hook-manager-integration
+      - type: implements
+        target: REQ-git-hook-manager-integration
+  - id: SYM-hook-managers-hook-manager-coverage-type
+    title: HookManagerCoverage
+    status: active
+    sourceFile: packages/cli/src/commands/hook-managers.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T18:39:31.290Z
+    relationships:
+      - type: covered_by
+        target: TEST-git-hook-manager-integration
+      - type: implements
+        target: REQ-git-hook-manager-integration
+  - id: SYM-hook-managers-hook-manager-coverage
+    title: hookManagerCoverage
+    status: active
+    sourceFile: packages/cli/src/commands/hook-managers.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T18:39:36.381Z
+    relationships:
+      - type: covered_by
+        target: TEST-git-hook-manager-integration
+      - type: implements
+        target: REQ-git-hook-manager-integration
+  - id: SYM-git-hook-manager-integration-verifier
+    title: Hook manager integration verifier
+    status: active
+    sourceFile: packages/cli/tests/commands/hook-managers.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T18:39:40.339Z
+    relationships:
+      - type: executable_for
+        target: TEST-git-hook-manager-integration
