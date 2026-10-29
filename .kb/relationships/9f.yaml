@@ -304,3 +304,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-af9713b7ba58
+  - type: implements
+    from: SYM-const-entity-context-acknowledged-rule
+    to: REQ-kb-entity-context-rule-names
+    created_at: 2026-10-29T16:43:20.117Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eaf75ba6a4c3
+  - type: covered_by
+    from: SYM-const-entity-context-acknowledged-rule
+    to: TEST-proof-rule-entity-context-acknowledged
+    created_at: 2026-10-29T16:43:39.843Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c094bc7763b
+  - type: covered_by
+    from: SYM-const-entity-context-acknowledged-rule
+    to: TEST-kb-entity-body-context
+    created_at: 2026-10-29T16:43:39.887Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1cda11d0f97

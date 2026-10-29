@@ -9513,9 +9513,13 @@ symbols:
       - type: covered_by
         target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
+        target: TEST-proof-vscode-container-id
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
+      - type: implements
+        target: REQ-vscode-extension-ids
       - type: implements
         target: REQ-vscode-traceability
   - id: SYM-KIBI-ENTITY-SCHEMA-DOC
@@ -9541,9 +9545,13 @@ symbols:
       - type: covered_by
         target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
+        target: TEST-proof-vscode-focus-command
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
+      - type: implements
+        target: REQ-vscode-extension-ids
       - type: implements
         target: REQ-vscode-traceability
   - id: SYM-KIBI-IMPACT-DIAGNOSTIC-IDS
@@ -9612,9 +9620,13 @@ symbols:
       - type: covered_by
         target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
+        target: TEST-proof-vscode-refresh-command
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
+      - type: implements
+        target: REQ-vscode-extension-ids
       - type: implements
         target: REQ-vscode-traceability
   - id: SYM-KIBI-STAGED-IMPACT-EVIDENCE-DOC
@@ -9697,9 +9709,13 @@ symbols:
       - type: covered_by
         target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
+        target: TEST-proof-vscode-view-id
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
+      - type: implements
+        target: REQ-vscode-extension-ids
       - type: implements
         target: REQ-vscode-traceability
   - id: SYM-KibiCheckpointContext
@@ -32871,8 +32887,14 @@ symbols:
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-proof-opencode-bootstrap-command
       - type: implements
         target: REQ-KIBI-BOOTSTRAP-PLAN
+      - type: implements
+        target: REQ-opencode-plugin-ids
   - id: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibi-bootstrap-command-template
     title: KIBI_BOOTSTRAP_COMMAND_TEMPLATE
     status: active
@@ -39842,6 +39864,10 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-e2e-capability-plugins
+      - type: covered_by
+        target: TEST-proof-builtin-predicate-confidence
+      - type: implements
+        target: REQ-capability-builtin-predicate-confidence
       - type: implements
         target: REQ-capability-plugin-builtin-parity-v1
   - id: SYM-cap-plugin-core-predicate-rules-f2358fc4
@@ -43188,6 +43214,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: covered_by
+        target: TEST-proof-snippet-max-chars
+      - type: implements
+        target: REQ-agent-core-hook-limits
       - type: implements
         target: REQ-claude-code-kibi-plugin-v1
   - id: SYM-claude-DIRECT_KB_ACCESS_NOTE
@@ -43228,6 +43260,10 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-proof-claude-workspace-env-keys
+      - type: implements
+        target: REQ-agent-workspace-opt-in-keys
       - type: implements
         target: REQ-claude-code-kibi-plugin-v1
   - id: SYM-claude-test-tempDir
@@ -47755,6 +47791,10 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-mcp-workspace-routing
+      - type: covered_by
+        target: TEST-proof-mcp-workspace-root-argument
+      - type: implements
+        target: REQ-mcp-workspace-root-argument
       - type: implements
         target: REQ-mcp-workspace-routing
   - id: SYM-mcp-WORKSPACE_ROOT_SCHEMA
@@ -47814,7 +47854,13 @@ symbols:
     symbol_role: config
     relationships:
       - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: covered_by
         target: TEST-mcp-workspace-routing
+      - type: covered_by
+        target: TEST-proof-agent-workspace-argument
+      - type: implements
+        target: REQ-agent-workspace-opt-in-keys
       - type: implements
         target: REQ-mcp-workspace-routing
   - id: SYM-agent-core-isKibiMcpToolName
@@ -52239,8 +52285,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kb-decision-firmness
+      - type: covered_by
+        target: TEST-proof-rule-decision-firm-unreferenced
       - type: implements
         target: REQ-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness-rule-names
   - id: SYM-decision-firmness-firm-superseded-rule
     title: DECISION_FIRM_SUPERSEDED_RULE
     status: active
@@ -52252,8 +52302,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kb-decision-firmness
+      - type: covered_by
+        target: TEST-proof-rule-decision-firm-superseded
       - type: implements
         target: REQ-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness-rule-names
   - id: SYM-decision-firmness-supersedes-reason-missing-rule
     title: SUPERSEDES_REASON_MISSING_RULE
     status: active
@@ -52265,8 +52319,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kb-decision-firmness
+      - type: covered_by
+        target: TEST-proof-rule-supersedes-reason-missing
       - type: implements
         target: REQ-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness-rule-names
   - id: SYM-decision-firmness-supersedes-reason-acknowledged-rule
     title: SUPERSEDES_REASON_ACKNOWLEDGED_RULE
     status: active
@@ -54408,6 +54466,10 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kb-decision-firmness
+      - type: covered_by
+        target: TEST-proof-rule-decision-firm-edited
+      - type: implements
+        target: REQ-kb-decision-firmness-rule-names
       - type: implements
         target: REQ-kb-firm-decision-edit
   - id: SYM-decision-firmness-firmness-from-origin-schema-version
@@ -54494,6 +54556,10 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-claude-edit-snippet-hook
+      - type: covered_by
+        target: TEST-proof-hook-max-requirement-candidates
+      - type: implements
+        target: REQ-agent-core-hook-limits
       - type: implements
         target: REQ-kb-unowned-file-candidates
   - id: SYM-cli-unowned-files-pathtopicwords
@@ -54671,8 +54737,12 @@ symbols:
         target: TEST-agent-core-edit-snippets
       - type: covered_by
         target: TEST-claude-edit-snippet-hook
+      - type: covered_by
+        target: TEST-proof-snippet-grounding-links
       - type: implements
         target: REQ-agent-core-edit-snippets
+      - type: implements
+        target: REQ-agent-core-hook-limits
   - id: SYM-agent-core-snippets-implementedrequirementids
     title: implementedRequirementIds
     status: active
@@ -56995,7 +57065,13 @@ symbols:
       recorded_at: 2026-10-23T10:51:51.935Z
     relationships:
       - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: covered_by
+        target: TEST-proof-confirm-firm-edits-env
+      - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-core-hook-limits
       - type: implements
         target: REQ-agent-hosts-decision-guard
   - id: SYM-agent-core-signoff-latest-json
@@ -57823,6 +57899,8 @@ symbols:
       recorded_at: 2026-10-26T09:48:16.565Z
     relationships:
       - type: covered_by
+        target: TEST-kibi-claim-bound-proofs
+      - type: covered_by
         target: TEST-kibi-code-proof-kinds
       - type: covered_by
         target: TEST-kibi-code-proof-kinds-exhaustive
@@ -57830,10 +57908,14 @@ symbols:
         target: TEST-kibi-code-proof-kinds-typecheck
       - type: covered_by
         target: TEST-kibi-non-numeric-proof-kinds-rule
+      - type: covered_by
+        target: TEST-proof-proof-contract-kinds
       - type: implements
         target: REQ-kibi-code-proof-kinds
       - type: implements
         target: REQ-kibi-proof-kind-vocabulary
+      - type: implements
+        target: REQ-kibi-proof-vocabulary
   - id: SYM-cli-evidence-levels
     title: EVIDENCE_LEVELS
     status: active
@@ -58246,10 +58328,14 @@ symbols:
         target: TEST-kibi-claim-bound-proofs
       - type: covered_by
         target: TEST-kibi-claim-bound-proofs-exhaustive
+      - type: covered_by
+        target: TEST-proof-claim-binding-verdicts
       - type: implements
         target: REQ-kibi-claim-binding-verdicts
       - type: implements
         target: REQ-kibi-claim-bound-proofs
+      - type: implements
+        target: REQ-kibi-proof-vocabulary
   - id: SYM-e2e-packed-non-numeric-proof-kinds
     title: checkNonNumericProofKinds
     status: active
@@ -64521,6 +64607,707 @@ symbols:
         target: TEST-kibi-anonymous-usage-telemetry-cli
       - type: implements
         target: REQ-kibi-anonymous-usage-telemetry
+  - id: SYM-const-default-telemetry-host
+    status: active
+    title: DEFAULT_TELEMETRY_HOST
+    sourceFile: packages/agent-core/src/usage-telemetry.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:26:55.371Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-anonymous-usage-telemetry-cli
+      - type: covered_by
+        target: TEST-proof-telemetry-default-host
+      - type: implements
+        target: REQ-kibi-telemetry-automation-keys
+  - id: SYM-proof-telemetry-default-host
+    title: telemetryDefaultHostCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/telemetry-automation-keys.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:27:16.911Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-telemetry-default-host
+  - id: SYM-const-ci-env-keys
+    status: active
+    title: CI_ENV_KEYS
+    sourceFile: packages/agent-core/src/usage-telemetry.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:27:34.430Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-anonymous-usage-telemetry-cli
+      - type: covered_by
+        target: TEST-proof-telemetry-ci-env-keys
+      - type: implements
+        target: REQ-kibi-telemetry-automation-keys
+  - id: SYM-proof-telemetry-ci-env-keys
+    title: telemetryCiEnvKeysCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/telemetry-automation-keys.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:27:55.400Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-telemetry-ci-env-keys
+  - id: SYM-const-test-env-keys
+    status: active
+    title: TEST_ENV_KEYS
+    sourceFile: packages/agent-core/src/usage-telemetry.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:28:13.213Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-anonymous-usage-telemetry-cli
+      - type: covered_by
+        target: TEST-proof-telemetry-test-env-keys
+      - type: implements
+        target: REQ-kibi-telemetry-automation-keys
+  - id: SYM-proof-telemetry-test-env-keys
+    title: telemetryTestEnvKeysCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/telemetry-automation-keys.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:28:34.166Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-telemetry-test-env-keys
+  - id: SYM-proof-snippet-max-chars
+    title: snippetMaxCharsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/agent-hook-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:30:19.545Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-snippet-max-chars
+  - id: SYM-proof-hook-max-requirement-candidates
+    title: hookMaxRequirementCandidatesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/agent-hook-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:30:53.540Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-hook-max-requirement-candidates
+  - id: SYM-proof-confirm-firm-edits-env
+    title: confirmFirmEditsEnvCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/agent-hook-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:31:26.125Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-confirm-firm-edits-env
+  - id: SYM-proof-snippet-grounding-links
+    title: snippetGroundingLinksCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/agent-hook-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:32:00.154Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-snippet-grounding-links
+  - id: SYM-proof-claude-workspace-env-keys
+    title: claudeWorkspaceEnvKeysCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/agent-workspace-keys.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:33:47.895Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-claude-workspace-env-keys
+  - id: SYM-proof-agent-workspace-argument
+    title: agentWorkspaceArgumentCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/agent-workspace-keys.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:34:20.034Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-agent-workspace-argument
+  - id: SYM-proof-mcp-workspace-root-argument
+    title: mcpWorkspaceRootArgumentCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/mcp-workspace-argument.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:35:47.765Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-mcp-workspace-root-argument
+  - id: SYM-proof-rule-decision-firm-unreferenced
+    title: ruleDecisionFirmUnreferencedCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/decision-firmness-rule-names.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:38:36.545Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-rule-decision-firm-unreferenced
+  - id: SYM-proof-rule-decision-firm-superseded
+    title: ruleDecisionFirmSupersededCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/decision-firmness-rule-names.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:39:15.061Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-rule-decision-firm-superseded
+  - id: SYM-proof-rule-decision-firm-edited
+    title: ruleDecisionFirmEditedCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/decision-firmness-rule-names.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:39:51.114Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-rule-decision-firm-edited
+  - id: SYM-proof-rule-supersedes-reason-missing
+    title: ruleSupersedesReasonMissingCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/decision-firmness-rule-names.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:40:25.577Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-rule-supersedes-reason-missing
+  - id: SYM-const-entity-context-missing-rule
+    status: active
+    title: ENTITY_CONTEXT_MISSING_RULE
+    sourceFile: packages/cli/src/public/operations/entity-context.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:42:22.991Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-entity-body-context
+      - type: covered_by
+        target: TEST-proof-rule-entity-context-missing
+      - type: implements
+        target: REQ-kb-entity-context-rule-names
+  - id: SYM-proof-rule-entity-context-missing
+    title: ruleEntityContextMissingCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/entity-context-rule-names.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:42:45.464Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-rule-entity-context-missing
+  - id: SYM-const-entity-context-acknowledged-rule
+    status: active
+    title: ENTITY_CONTEXT_ACKNOWLEDGED_RULE
+    sourceFile: packages/cli/src/public/operations/entity-context.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:43:03.444Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-entity-body-context
+      - type: covered_by
+        target: TEST-proof-rule-entity-context-acknowledged
+      - type: implements
+        target: REQ-kb-entity-context-rule-names
+  - id: SYM-proof-rule-entity-context-acknowledged
+    title: ruleEntityContextAcknowledgedCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/entity-context-rule-names.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:43:26.058Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-rule-entity-context-acknowledged
+  - id: SYM-proof-proof-contract-kinds
+    title: proofContractKindsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/proof-vocabulary.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:45:00.043Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-proof-contract-kinds
+  - id: SYM-const-certificate-proof-kinds
+    status: active
+    title: CERTIFICATE_PROOF_KINDS
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:45:17.230Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-claim-bound-proofs
+      - type: covered_by
+        target: TEST-proof-certificate-proof-kinds
+      - type: implements
+        target: REQ-kibi-proof-vocabulary
+  - id: SYM-proof-certificate-proof-kinds
+    title: certificateProofKindsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/proof-vocabulary.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:45:38.142Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-certificate-proof-kinds
+  - id: SYM-const-source-readers
+    status: active
+    title: SOURCE_READERS
+    sourceFile: packages/cli/src/public/proof-sources.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:45:55.586Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-claim-bound-proofs
+      - type: covered_by
+        target: TEST-proof-source-proof-readers
+      - type: implements
+        target: REQ-kibi-proof-vocabulary
+  - id: SYM-proof-source-proof-readers
+    title: sourceProofReadersCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/proof-vocabulary.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:46:19.100Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-source-proof-readers
+  - id: SYM-proof-claim-binding-verdicts
+    title: claimBindingVerdictsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/proof-vocabulary.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:46:53.098Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-claim-binding-verdicts
+  - id: SYM-const-max-aspect-words
+    status: active
+    title: MAX_ASPECT_WORDS
+    sourceFile: packages/cli/src/operations/bootstrap/requirement-claims.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:50:56.705Z
+    relationships:
+      - type: covered_by
+        target: TEST-bootstrap-claim-name-length
+      - type: covered_by
+        target: TEST-proof-bootstrap-aspect-max-words
+      - type: implements
+        target: REQ-bootstrap-claim-aspect-limits
+  - id: SYM-proof-bootstrap-aspect-max-words
+    title: bootstrapAspectMaxWordsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/bootstrap-aspect-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:51:18.840Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-bootstrap-aspect-max-words
+  - id: SYM-const-max-aspect-chars
+    status: active
+    title: MAX_ASPECT_CHARS
+    sourceFile: packages/cli/src/operations/bootstrap/requirement-claims.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:51:37.332Z
+    relationships:
+      - type: covered_by
+        target: TEST-bootstrap-claim-name-length
+      - type: covered_by
+        target: TEST-proof-bootstrap-aspect-max-chars
+      - type: implements
+        target: REQ-bootstrap-claim-aspect-limits
+  - id: SYM-proof-bootstrap-aspect-max-chars
+    title: bootstrapAspectMaxCharsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/bootstrap-aspect-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:51:59.271Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-bootstrap-aspect-max-chars
+  - id: SYM-const-provenance-stub-tag
+    status: active
+    title: PROVENANCE_STUB_TAG
+    sourceFile: packages/cli/src/provenance-stub.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:53:03.439Z
+    relationships:
+      - type: covered_by
+        target: TEST-bootstrap-provenance-stubs
+      - type: covered_by
+        target: TEST-proof-provenance-stub-tag
+      - type: implements
+        target: REQ-bootstrap-provenance-stub-tag
+  - id: SYM-proof-provenance-stub-tag
+    title: provenanceStubTagCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/provenance-stub-tag.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:53:23.787Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-provenance-stub-tag
+  - id: SYM-const-builtin-subject-reuse-threshold
+    status: active
+    title: BUILTIN_SUBJECT_REUSE_THRESHOLD
+    sourceFile: packages/plugin-builtin/src/vocabulary/builtin-vocabulary-alignment.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:54:25.251Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-vocabulary-convergence-e2e
+      - type: covered_by
+        target: TEST-proof-builtin-alignment-reuse-threshold
+      - type: implements
+        target: REQ-kibi-vocabulary-alignment-limits
+  - id: SYM-proof-builtin-alignment-reuse-threshold
+    title: builtinAlignmentReuseThresholdCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/vocabulary-alignment-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:54:46.287Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-builtin-alignment-reuse-threshold
+  - id: SYM-const-jev-subject-top-k
+    status: active
+    title: JEV_SUBJECT_TOP_K
+    sourceFile: packages/plugin-jev/src/vocabulary-alignment.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:55:04.203Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-vocabulary-convergence-e2e
+      - type: covered_by
+        target: TEST-proof-jev-alignment-top-k
+      - type: implements
+        target: REQ-kibi-vocabulary-alignment-limits
+  - id: SYM-proof-jev-alignment-top-k
+    title: jevAlignmentTopKCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/vocabulary-alignment-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:55:25.410Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-jev-alignment-top-k
+  - id: SYM-const-new-subject-choice
+    status: active
+    title: NEW_SUBJECT_CHOICE
+    sourceFile: packages/plugin-sdk/src/capabilities/vocabulary-alignment.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:55:43.108Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-vocabulary-convergence-e2e
+      - type: covered_by
+        target: TEST-proof-alignment-new-choice
+      - type: implements
+        target: REQ-kibi-vocabulary-alignment-limits
+  - id: SYM-proof-alignment-new-choice
+    title: alignmentNewChoiceCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/vocabulary-alignment-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:56:00.859Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-alignment-new-choice
+  - id: SYM-const-check-policy-contract-version
+    status: active
+    title: CHECK_POLICY_CONTRACT_VERSION
+    sourceFile: packages/plugin-sdk/src/capabilities/check-policy.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:59:05.380Z
+    relationships:
+      - type: covered_by
+        target: TEST-capability-check-policy
+      - type: covered_by
+        target: TEST-proof-check-policy-contract-version
+      - type: implements
+        target: REQ-capability-check-policy-version
+  - id: SYM-proof-check-policy-contract-version
+    title: checkPolicyContractVersionCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/check-policy-version.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:59:23.439Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-check-policy-contract-version
+  - id: SYM-proof-builtin-predicate-confidence
+    title: builtinPredicateConfidenceCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/builtin-predicate-confidence.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T17:00:37.192Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-builtin-predicate-confidence
+  - id: SYM-const-kibi-opencode-plugin-id
+    status: active
+    title: KIBI_OPENCODE_PLUGIN_ID
+    sourceFile: packages/opencode/src/opencode-v2.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T17:01:40.134Z
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-proof-opencode-plugin-id
+      - type: implements
+        target: REQ-opencode-plugin-ids
+  - id: SYM-proof-opencode-plugin-id
+    title: opencodePluginIdCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/opencode-plugin-ids.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T17:02:01.443Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-opencode-plugin-id
+  - id: SYM-proof-opencode-bootstrap-command
+    title: opencodeBootstrapCommandCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/opencode-plugin-ids.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T17:02:37.695Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-opencode-bootstrap-command
+  - id: SYM-proof-vscode-container-id
+    title: vscodeContainerIdCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/vscode-extension-ids.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T17:06:37.019Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-vscode-container-id
+  - id: SYM-proof-vscode-view-id
+    title: vscodeViewIdCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/vscode-extension-ids.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T17:07:04.696Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-vscode-view-id
+  - id: SYM-proof-vscode-refresh-command
+    title: vscodeRefreshCommandCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/vscode-extension-ids.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T17:07:32.116Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-vscode-refresh-command
+  - id: SYM-proof-vscode-focus-command
+    title: vscodeFocusCommandCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/vscode-extension-ids.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T17:07:59.398Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-vscode-focus-command
   - id: SYM-test-prolog-mutation-lane
     title: prolog-mutation-runner.test.ts
     status: active

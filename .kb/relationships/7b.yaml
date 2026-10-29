@@ -307,3 +307,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-74fd4163de76
+  - type: validates
+    from: TEST-proof-rule-decision-firm-unreferenced
+    to: SCEN-kb-decision-firmness
+    created_at: 2026-10-29T16:38:34.692Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-db499e5dfe75
+  - type: executable_for
+    from: SYM-proof-check-policy-contract-version
+    to: TEST-proof-check-policy-contract-version
+    created_at: 2026-10-29T16:59:25.242Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16b2f8724966

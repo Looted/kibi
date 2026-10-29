@@ -29,18 +29,18 @@ origin:
 id: TEST-codex-edit-snippet-hook
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-e9667259cc282c1d0fc56c47
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-bf5705e4b8e1a95b3dbef786
     test_id: TEST-codex-edit-snippet-hook
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
+    code_snapshot: 91111697f44f76ef846b59b9d6ba6cfc1da295a8a8076e33d9a46e6c923c8a5f
+    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
+    started_at: '2026-10-29T17:09:30.581Z'
+    finished_at: '2026-10-29T17:09:31.269Z'
+    artifact_digest: 594425b86d7c32156fbd893c7fc94944aaba756f675cbbe167d1b221ea9ba7fa
     contract_hash: f5d94da48dbfc4a5caa59bb12fb18dba8c24b696b9fb87563539289f33ba8948
-    binding_hash: f0df86df64eeed40160ddb3580f3c0bb2cd5292dd07b2cb9c7e0f5e3c33acf45
+    binding_hash: e7f868456e10c510149cb1f1a44a90a073c9d71b9a71e73730657024afd91ea2
     fingerprint: 868668d562c7c87e99fac1f9240632e64437739f08446692482e50c67b054901
     fingerprint_components:
       contract: f5d94da48dbfc4a5caa59bb12fb18dba8c24b696b9fb87563539289f33ba8948
@@ -62,6 +62,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 # The Codex PreToolUse hook command gives an edit of linked code its requirement, what it must keep true and its decision, once per session
 

@@ -244,3 +244,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-59eb9f38a89e
+  - type: implements
+    from: SYM-mcp-WORKSPACE_ROOT_ARGUMENT
+    to: REQ-mcp-workspace-root-argument
+    created_at: 2026-10-29T16:35:41.870Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9be284b4581
+  - type: validates
+    from: TEST-proof-mcp-workspace-root-argument
+    to: SCEN-mcp-workspace-routing
+    created_at: 2026-10-29T16:35:45.907Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b5359d26658
+  - type: covered_by
+    from: SYM-mcp-WORKSPACE_ROOT_ARGUMENT
+    to: TEST-proof-mcp-workspace-root-argument
+    created_at: 2026-10-29T16:36:02.874Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-02c3c5217b2e
+  - type: validates
+    from: TEST-proof-bootstrap-aspect-max-chars
+    to: SCEN-bootstrap-claim-name-length
+    created_at: 2026-10-29T16:51:57.468Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e03c73f0c13

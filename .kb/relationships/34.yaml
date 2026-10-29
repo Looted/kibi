@@ -398,3 +398,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-653a2b995e2f
+  - type: implements
+    from: SYM-const-new-subject-choice
+    to: REQ-kibi-vocabulary-alignment-limits
+    created_at: 2026-10-29T16:55:56.298Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a619a075b6ae
+  - type: covered_by
+    from: SYM-const-new-subject-choice
+    to: TEST-proof-alignment-new-choice
+    created_at: 2026-10-29T16:56:13.905Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d4b718ec108
+  - type: covered_by
+    from: SYM-const-new-subject-choice
+    to: TEST-kibi-vocabulary-convergence-e2e
+    created_at: 2026-10-29T16:56:13.943Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2bf3376e8a4f
+  - type: executable_for
+    from: SYM-proof-vscode-container-id
+    to: TEST-proof-vscode-container-id
+    created_at: 2026-10-29T17:06:38.765Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12f5d8984d70
