@@ -120,6 +120,25 @@ export function registerMaintenanceCommands(program: Command): void {
     );
 
   program
+    .command("telemetry [action]")
+    .description(
+      "Show, enable or disable anonymous usage telemetry (status|enable|disable)",
+    )
+    .option("--format <format>", "Output format: json|text", "text")
+    .action(
+      withExitCode(
+        async (
+          action: string | undefined,
+          options: { format?: "json" | "text" },
+        ) =>
+          (await import("./commands/telemetry.js")).telemetryCommand(
+            action,
+            options,
+          ),
+      ),
+    );
+
+  program
     .command("merge-driver")
     .description(
       "Git merge driver: three-way merge .kb/symbols.yaml or a relationship shard by record id",

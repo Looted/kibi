@@ -96,6 +96,7 @@ function pinLocalKibiTransitives(
       `  kibi-cli: ${JSON.stringify(tarballs.cli)}`,
       `  kibi-runtime: ${JSON.stringify(tarballs.runtime)}`,
       `  kibi-core: ${JSON.stringify(tarballs.core)}`,
+      `  kibi-agent-core: ${JSON.stringify(tarballs["agent-core"])}`,
       `  kibi-plugin-sdk: ${JSON.stringify(tarballs["plugin-sdk"])}`,
       `  kibi-plugin-builtin: ${JSON.stringify(tarballs["plugin-builtin"])}`,
       `  kibi-swipl: ${JSON.stringify(tarballs.swipl)}`,
@@ -212,6 +213,7 @@ if (RUN_NODE_TEST_SUITE) {
 
         const upgrade = await installTarballsWithPnpm(sandbox, [
           tarballs.core,
+          tarballs["agent-core"],
           tarballs["plugin-sdk"],
           tarballs["plugin-builtin"],
           tarballs.swipl,

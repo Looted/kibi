@@ -279,3 +279,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3ceb5be57b77
+  - type: validates
+    from: TEST-kibi-anonymous-usage-telemetry
+    to: SCEN-kibi-anonymous-usage-telemetry
+    created_at: 2026-10-29T09:37:22.723Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bbc9b9f3a852

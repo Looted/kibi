@@ -34,6 +34,10 @@
       "types": "./dist/requirement-candidates.d.ts",
       "default": "./dist/requirement-candidates.js"
     },
+    "./usage-telemetry": {
+      "types": "./dist/usage-telemetry.d.ts",
+      "default": "./dist/usage-telemetry.js"
+    },
     "./snippets": {
       "types": "./dist/snippets.d.ts",
       "default": "./dist/snippets.js"

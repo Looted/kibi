@@ -10,6 +10,8 @@ concurrency:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  # Kibi's own CI never sends anonymous usage telemetry.
+  KIBI_TELEMETRY: "0"
 
 permissions:
   contents: read

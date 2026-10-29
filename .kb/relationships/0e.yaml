@@ -475,3 +475,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-96fed6fb3a24
+  - type: validates
+    from: TEST-kibi-anonymous-usage-telemetry-cli
+    to: SCEN-kibi-anonymous-usage-telemetry
+    created_at: 2026-10-29T10:10:00.796Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cbfc578a2d4b

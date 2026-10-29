@@ -34,6 +34,7 @@ import type { z } from "zod";
 import { routedBusinessArgs, routedOperationName } from "../diagnostics.js";
 import { isMcpDebugEnabled } from "../env.js";
 import { enabledOptionalTools } from "../tools-config.js";
+import { recordMcpToolTelemetry } from "../usage-telemetry.js";
 import {
   appendDiagnosticErrorUsage,
   appendDiagnosticSuccessUsage,
@@ -516,6 +517,12 @@ export function addTool<TProlog>(
           observed.notice(),
         );
 
+        recordMcpToolTelemetry({
+          operation: routedOperationName(name, businessArgs),
+          startedAt,
+          status: envelope.status === "error" ? "error" : "success",
+        });
+
         // Log usage in diagnostic mode
         if (diagnosticModeEnabled) {
           await appendDiagnosticSuccessUsage({
@@ -564,6 +571,13 @@ export function addTool<TProlog>(
           ...(envelope.status === "error" ? { isError: true } : {}),
         };
       } catch (error) {
+        recordMcpToolTelemetry({
+          operation: routedOperationName(name, businessArgs),
+          startedAt,
+          status: "error",
+          error,
+        });
+
         // Log error in diagnostic mode
         if (diagnosticModeEnabled) {
           await appendDiagnosticErrorUsage({

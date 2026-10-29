@@ -78,6 +78,7 @@ import {
 import {
   type HookTrace,
   appendHookUsage,
+  flushHookTelemetry,
   hookTelemetryEnabled,
 } from "./usage-log.js";
 import { resolveKibiWorkspace } from "./workspace-optin.js";
@@ -917,6 +918,7 @@ export async function runHook(
     },
     environment.env,
   );
+  await flushHookTelemetry(input.event, environment.env);
   return output;
 }
 

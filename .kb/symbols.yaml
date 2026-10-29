@@ -64457,3 +64457,67 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-latest-kb-schema-version
+  - id: SYM-test-kibi-anonymous-usage-telemetry-cli
+    title: kibi CLI anonymous usage telemetry end-to-end suite
+    status: active
+    sourceFile: packages/cli/tests/usage-telemetry-e2e.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:10:02.120Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-anonymous-usage-telemetry-cli
+  - id: SYM-agent-core-usage-telemetry-flushtelemetry
+    title: flushTelemetry
+    status: active
+    sourceFile: packages/agent-core/src/usage-telemetry.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:10:13.128Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-anonymous-usage-telemetry-cli
+      - type: implements
+        target: REQ-kibi-anonymous-usage-telemetry
+  - id: SYM-agent-core-usage-telemetry-telemetrystatus
+    title: telemetryStatus
+    status: active
+    sourceFile: packages/agent-core/src/usage-telemetry.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:10:20.181Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-anonymous-usage-telemetry-cli
+      - type: implements
+        target: REQ-kibi-anonymous-usage-telemetry
+  - id: SYM-agent-core-usage-telemetry-recordoperationtelemetry
+    title: recordOperationTelemetry
+    status: active
+    sourceFile: packages/agent-core/src/usage-telemetry.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:10:27.575Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-anonymous-usage-telemetry-cli
+      - type: implements
+        target: REQ-kibi-anonymous-usage-telemetry
+  - id: SYM-cli-usage-telemetry-finishclitelemetry
+    title: finishCliTelemetry
+    status: active
+    sourceFile: packages/cli/src/usage-telemetry.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T10:10:34.375Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-anonymous-usage-telemetry-cli
+      - type: implements
+        target: REQ-kibi-anonymous-usage-telemetry

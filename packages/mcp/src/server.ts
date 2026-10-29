@@ -33,6 +33,7 @@ import {
   WorkspaceRouter,
   setWorkspaceRouter,
 } from "./server/workspace-router.js";
+import { startMcpTelemetry } from "./usage-telemetry.js";
 import { resolveWorkspaceRoot } from "./workspace.js";
 
 // Read version from package.json to prevent drift
@@ -57,6 +58,7 @@ export async function startServer(): Promise<void> {
 
   // Initialize diagnostic mode if --diagnostic-mode flag is present
   initializeDiagnosticMode();
+  startMcpTelemetry();
 
   // Create MCP server
   const server = new McpServer(

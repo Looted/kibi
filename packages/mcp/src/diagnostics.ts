@@ -89,7 +89,7 @@ function resolveOriginFields(workspaceRoot: string): Record<string, unknown> {
   };
 }
 
-function readMcpPackageVersion(): string | null {
+export function readMcpPackageVersion(): string | null {
   let current = path.dirname(fileURLToPath(import.meta.url));
   while (true) {
     const candidate = path.join(current, "package.json");
