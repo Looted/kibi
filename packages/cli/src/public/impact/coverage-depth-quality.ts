@@ -33,11 +33,59 @@ type RelationshipLookup = {
 };
 
 type IncomingLookup = {
-  readonly manifestResults: readonly ExtractionResult[];
+  readonly index: CoverageIndex;
   readonly targetId: string;
   readonly relationshipType: string;
   readonly type: string;
 };
+
+/**
+ * Built once per report, so each requirement's coverage is a lookup rather
+ * than a scan over every manifest result.
+ */
+type CoverageIndex = {
+  readonly resultsById: ReadonlyMap<string, ExtractionResult>;
+  /** Source entities by `${type}\0${relationshipType}\0${targetId}`, in manifest order. */
+  readonly incomingByTarget: ReadonlyMap<string, readonly ExtractedEntity[]>;
+};
+
+function incomingKey(
+  type: string,
+  relationshipType: string,
+  targetId: string,
+): string {
+  return `${type}\0${relationshipType}\0${targetId}`;
+}
+
+function coverageIndex(
+  manifestResults: readonly ExtractionResult[],
+): CoverageIndex {
+  const incomingByTarget = new Map<string, ExtractedEntity[]>();
+  for (const result of manifestResults) {
+    const seen = new Set<string>();
+    for (const relationship of result.relationships) {
+      const key = incomingKey(
+        result.entity.type,
+        relationship.type,
+        relationship.to,
+      );
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const list = incomingByTarget.get(key);
+      if (list === undefined) incomingByTarget.set(key, [result.entity]);
+      else list.push(result.entity);
+    }
+  }
+  return {
+    resultsById: new Map(
+      manifestResults.map((manifestResult) => [
+        manifestResult.entity.id,
+        manifestResult,
+      ]),
+    ),
+    incomingByTarget,
+  };
+}
 
 function entitiesById(
   manifestResults: readonly ExtractionResult[],
@@ -58,16 +106,11 @@ function outgoingTargets(
 }
 
 function incomingSources(lookup: IncomingLookup): readonly ExtractedEntity[] {
-  return lookup.manifestResults.flatMap((result) => {
-    if (result.entity.type !== lookup.type) return [];
-    return result.relationships.some(
-      (relationship) =>
-        relationship.type === lookup.relationshipType &&
-        relationship.to === lookup.targetId,
-    )
-      ? [result.entity]
-      : [];
-  });
+  return (
+    lookup.index.incomingByTarget.get(
+      incomingKey(lookup.type, lookup.relationshipType, lookup.targetId),
+    ) ?? []
+  );
 }
 
 function uniqueEntities(
@@ -213,15 +256,10 @@ function createDiagnostic(
 
 function coverageForRequirement(
   result: ExtractionResult,
-  manifestResults: readonly ExtractionResult[],
+  index: CoverageIndex,
   entities: ReadonlyMap<string, ExtractedEntity>,
 ): RequirementCoverage {
-  const resultsById = new Map(
-    manifestResults.map((manifestResult) => [
-      manifestResult.entity.id,
-      manifestResult,
-    ]),
-  );
+  const resultsById = index.resultsById;
   const scenarios = outgoingTargets({
     result,
     relationshipType: "specified_by",
@@ -242,7 +280,7 @@ function coverageForRequirement(
       entities,
     }),
     ...incomingSources({
-      manifestResults,
+      index,
       targetId: result.entity.id,
       relationshipType: "validates",
       type: "test",
@@ -253,7 +291,7 @@ function coverageForRequirement(
       const scenarioResult = resultsById.get(scenario.id);
       return [
         ...incomingSources({
-          manifestResults,
+          index,
           targetId: scenario.id,
           relationshipType: "validates",
           type: "test",
@@ -331,6 +369,7 @@ export function createCoverageDepthQualityDiagnostics(
 ): readonly QualityDiagnostic[] {
   const entities = entitiesById(manifestResults);
   const superseded = supersededRequirementIds(manifestResults);
+  const index = coverageIndex(manifestResults);
   return manifestResults
     .filter(
       (result) =>
@@ -339,7 +378,7 @@ export function createCoverageDepthQualityDiagnostics(
     )
     .flatMap((result) => {
       const diagnostic = createDiagnostic(
-        coverageForRequirement(result, manifestResults, entities),
+        coverageForRequirement(result, index, entities),
         proofByRequirement.get(result.entity.id),
       );
       return diagnostic === undefined ? [] : [diagnostic];

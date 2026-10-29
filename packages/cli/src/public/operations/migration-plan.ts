@@ -169,30 +169,56 @@ function dependencyOrder(
       new Set(action.dependsOn.filter((dependency) => byId.has(dependency))),
     ]),
   );
+  // Dependents of each action in action order, so an emitted action frees
+  // its dependents in the order a scan over every action would.
+  const dependents = new Map<string, string[]>();
+  for (const action of actions) {
+    for (const dependency of remaining.get(action.id) ?? []) {
+      const list = dependents.get(dependency);
+      if (list === undefined) dependents.set(dependency, [action.id]);
+      else list.push(action.id);
+    }
+  }
   const ordered: MigrationAction[] = [];
   const ready = actions
     .filter((action) => (remaining.get(action.id)?.size ?? 0) === 0)
     .sort(actionSort)
     .map((action) => action.id);
   const queued = new Set(ready);
-  while (ready.length > 0) {
-    const id = ready.shift();
-    if (id === undefined) break;
+  const compareReady = (left: string, right: string): number =>
+    compareReadyActionIds(left, right, byId);
+  // `ready` stays sorted; a freed action is inserted after its equals, where
+  // a stable sort of the pushed list would have put it.
+  const enqueue = (id: string, head: number): void => {
+    let low = head;
+    let high = ready.length;
+    while (low < high) {
+      const middle = (low + high) >>> 1;
+      if (compareReady(ready[middle] as string, id) <= 0) low = middle + 1;
+      else high = middle;
+    }
+    ready.splice(low, 0, id);
+  };
+  let head = 0;
+  while (head < ready.length) {
+    const id = ready[head] as string;
+    head += 1;
     queued.delete(id);
     const action = byId.get(id);
     if (action === undefined) continue;
     ordered.push(action);
-    for (const [candidateId, dependencies] of remaining) {
+    for (const candidateId of dependents.get(id) ?? []) {
+      const dependencies = remaining.get(candidateId);
       if (
+        dependencies === undefined ||
         !dependencies.delete(id) ||
         dependencies.size !== 0 ||
         queued.has(candidateId)
       ) {
         continue;
       }
-      ready.push(candidateId);
       queued.add(candidateId);
-      ready.sort((left, right) => compareReadyActionIds(left, right, byId));
+      enqueue(candidateId, head);
     }
   }
   // Preserve cyclic/missing-dependency actions in canonical order; validation will block them.
