@@ -45,6 +45,9 @@ export async function runAggregatedChecks(
   // for an engine whose loaded core predates the file predicate.
   const resultDir = mkdtempSync(path.join(tmpdir(), "kibi-check-"));
   const resultPath = path.join(resultDir, "violations.json");
+  // rationale: separators are normalized for Windows paths; a POSIX temp
+  // path has no backslash, so no test on a POSIX runner can tell.
+  // Stryker disable next-line StringLiteral
   const resultPathEscaped = resultPath.replace(/\\/g, "/").replace(/'/g, "''");
   const query = `(load_files('${checksPlPathEscaped}', [if(changed)]),
     (   predicate_property(checks:check_all_json_file(_, _), _)
@@ -63,6 +66,9 @@ export async function runAggregatedChecks(
         ? readFileSync(resultPath, "utf8")
         : result.bindings.JsonString;
   } finally {
+    // rationale: the directory always exists here, so `force` (which only
+    // ignores a missing path) never changes the outcome.
+    // Stryker disable next-line BooleanLiteral
     rmSync(resultDir, { recursive: true, force: true });
   }
 

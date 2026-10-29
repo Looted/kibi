@@ -75,6 +75,34 @@ describe("createCoverageDepthQualityDiagnostics", () => {
     );
   });
 
+  it("counts every test that validates a requirement, each once", () => {
+    const requirement = result({ id: "REQ-VALIDATED", type: "req" });
+    const testB = result(
+      { id: "TEST-VALIDATES-B", type: "test", status: "open" },
+      [
+        { type: "validates", from: "TEST-VALIDATES-B", to: "REQ-VALIDATED" },
+        { type: "validates", from: "TEST-VALIDATES-B", to: "REQ-VALIDATED" },
+      ],
+    );
+    const testA = result(
+      { id: "TEST-VALIDATES-A", type: "test", status: "open" },
+      [{ type: "validates", from: "TEST-VALIDATES-A", to: "REQ-VALIDATED" }],
+    );
+
+    const diagnostics = createCoverageDepthQualityDiagnostics([
+      requirement,
+      testB,
+      testA,
+    ]);
+
+    expect(diagnostics[0]?.evidence).toEqual(
+      expect.objectContaining({
+        directTests: ["TEST-VALIDATES-A", "TEST-VALIDATES-B"],
+        testStatuses: ["open"],
+      }),
+    );
+  });
+
   it("emits open-test review when linked tests are not passing", () => {
     const requirement = result({ id: "REQ-OPEN", type: "req" }, [
       { type: "verified_by", from: "REQ-OPEN", to: "TEST-OPEN" },

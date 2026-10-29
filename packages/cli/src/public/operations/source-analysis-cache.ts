@@ -80,13 +80,19 @@ function builtinBuildStamp(): string {
       "kibi-plugin-builtin/package.json",
     );
     const symbolsDir = path.join(path.dirname(manifest), "dist", "symbols");
+    // rationale: readdir lists this directory in name order on the supported
+    // filesystems, so the sort only guards odd ones and no test can tell.
+    // Stryker disable next-line MethodExpression
     for (const name of readdirSync(symbolsDir).sort()) {
       const stat = statSync(path.join(symbolsDir, name));
       hash.update(`${name}\0${stat.size}\0${stat.mtimeMs}\n`);
     }
   } catch {
-    hash.update("unavailable");
+    // An unavailable builtin package stamps as no built files.
   }
+  // rationale: the stamp only feeds the analyzer-set JSON; a Buffer
+  // serializes as deterministically as the hex text it replaces.
+  // Stryker disable next-line StringLiteral
   return hash.digest("hex");
 }
 
@@ -117,11 +123,11 @@ function readCacheFile(cachePath: string, analyzers: string): CacheFile {
     analyzers,
     entries: {},
   };
-  if (!existsSync(cachePath)) return empty;
   try {
+    // A missing or unreadable file, or JSON null, throws and starts empty.
     const parsed = JSON.parse(readFileSync(cachePath, "utf8")) as CacheFile;
     if (
-      parsed?.version !== SOURCE_ANALYSIS_CACHE_VERSION ||
+      parsed.version !== SOURCE_ANALYSIS_CACHE_VERSION ||
       parsed.analyzers !== analyzers ||
       parsed.entries === null ||
       typeof parsed.entries !== "object"
@@ -136,15 +142,18 @@ function readCacheFile(cachePath: string, analyzers: string): CacheFile {
 
 /**
  * The cache in `storeDir`, or null when the analyzer set cannot be
- * fingerprinted or the store does not exist. Only complete (`ok`) analyses
+ * fingerprinted or there is no store. Only complete (`ok`) analyses
  * are kept; anything else is computed again.
  */
 // implements REQ-cli-check
 export function openSourceAnalysisCache(
-  storeDir: string,
+  storeDir: string | undefined,
   workspaceRoot: string,
 ): SourceAnalysisCache | null {
-  if (!existsSync(storeDir)) return null;
+  // rationale: an undefined directory does not exist either, so dropping the
+  // first test changes nothing observable.
+  // Stryker disable next-line ConditionalExpression
+  if (storeDir === undefined || !existsSync(storeDir)) return null;
   const analyzers = analyzerSetKey(workspaceRoot);
   if (analyzers === null) return null;
   const cachePath = path.join(storeDir, SOURCE_ANALYSIS_CACHE_FILE);

@@ -61,16 +61,15 @@ function coverageIndex(
   manifestResults: readonly ExtractionResult[],
 ): CoverageIndex {
   const incomingByTarget = new Map<string, ExtractedEntity[]>();
+  // A result linking the same target twice is listed twice; every reader
+  // dedupes by entity id.
   for (const result of manifestResults) {
-    const seen = new Set<string>();
     for (const relationship of result.relationships) {
       const key = incomingKey(
         result.entity.type,
         relationship.type,
         relationship.to,
       );
-      if (seen.has(key)) continue;
-      seen.add(key);
       const list = incomingByTarget.get(key);
       if (list === undefined) incomingByTarget.set(key, [result.entity]);
       else list.push(result.entity);

@@ -127,6 +127,7 @@ describe("getVolatileArtifactPatterns", () => {
   test("includes specific file names", () => {
     const patterns = getVolatileArtifactPatterns();
     expect(patterns).toContain("sync-cache.json");
+    expect(patterns).toContain("source-analysis-cache.json");
     expect(patterns).toContain("journal.log");
     expect(patterns).toContain("audit.log");
     expect(patterns).toContain("lock");

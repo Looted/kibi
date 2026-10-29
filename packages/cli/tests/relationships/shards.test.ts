@@ -26,6 +26,7 @@ import {
   computeShardPath,
   listShards,
   mergeRecords,
+  parsedShardMemoSize,
   pruneDangling,
   readAllShards,
   readShard,
@@ -932,6 +933,25 @@ describe("readShard parse reuse", () => {
       "REQ-001",
       "REQ-002",
     ]);
+  });
+
+  test("the memo is bounded and still parses correctly once it resets", () => {
+    const shardPath = path.join(dir, "ab.yaml");
+    writeShard(shardPath, [record("REQ-FIRST")]);
+    expect(readShard(shardPath).map((item) => item.to)).toEqual(["REQ-FIRST"]);
+    let largest = 0;
+    for (let index = 0; index < 1100; index += 1) {
+      writeShard(shardPath, [record(`REQ-${index}`)]);
+      expect(readShard(shardPath).map((item) => item.to)).toEqual([
+        `REQ-${index}`,
+      ]);
+      largest = Math.max(largest, parsedShardMemoSize());
+    }
+    // Full at the limit, then cleared rather than growing past it.
+    expect(largest).toBe(1024);
+    expect(parsedShardMemoSize()).toBeLessThan(1024);
+    writeShard(shardPath, [record("REQ-FIRST")]);
+    expect(readShard(shardPath).map((item) => item.to)).toEqual(["REQ-FIRST"]);
   });
 
   test("an invalid shard still throws on every read", () => {

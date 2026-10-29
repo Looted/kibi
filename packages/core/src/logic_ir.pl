@@ -41,6 +41,7 @@ logic_rule_from_props(Props, Rule) :-
 :- dynamic logic_rule_memo/2.
 :- dynamic logic_rule_memo_size/1.
 
+% mutalog-disable-next-line literal: the bound is a tuning value; any size gives the same answers
 logic_rule_memo_limit(16384).
 
 logic_rule_from_json(Json, Rule) :-

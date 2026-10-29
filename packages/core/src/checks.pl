@@ -495,13 +495,11 @@ parse_json_list(Raw, Entries) :-
 :- dynamic json_text_memo/2.
 :- dynamic json_text_memo_size/1.
 
+% mutalog-disable-next-line literal: the bound is a tuning value; any size gives the same answers
 json_text_memo_limit(16384).
 
 json_text_term(Raw, Term) :-
-    (   atom(Raw)
-    ->  Text = Raw
-    ;   atom_string(Text, Raw)
-    ),
+    atom_string(Text, Raw),
     (   json_text_memo(Text, Stored)
     ->  Stored = parsed(Term)
     ;   (   catch(atom_json_dict(Text, Parsed, [value_string_as(string)]), _, fail)
@@ -2795,6 +2793,7 @@ opposing_rule_requirement_facts(ReqA, ReqB, FactA, FactB, RuleA, RuleB) :-
     member(FactA-RuleA, RulesA),
     member(FactB-RuleB, RulesB),
     FactA \== FactB,
+    % mutalog-disable-next-line compare: equal endpoints need ReqA == ReqB, which is excluded above
     ReqA-FactA @< ReqB-FactB.
 
 % Each requirement's rule facts with their parsed rules, read once rather
@@ -2807,12 +2806,14 @@ rule_requirement_links(Links) :-
                       ( kb_relationship(requires_rule, ReqId, FactId),
                         rule_fact_rule(FactId, Rule) ),
                       Rules),
+              % mutalog-disable-next-line goal_true,literal: a requirement without rules never pairs; this only prunes
               Rules \== [] ),
             Links).
 
 rule_fact_rule(FactId, Rule) :-
     kb_entity(FactId, fact, Props),
     memberchk(fact_kind=Kind, Props),
+    % mutalog-disable-next-line goal_true: only a rule fact carries a rule body to decode
     normalize_term_atom(Kind, rule),
     logic_rule_from_props(Props, Rule).
 

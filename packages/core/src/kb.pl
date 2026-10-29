@@ -1737,11 +1737,9 @@ kb_query_entities(TypeFilter, IdFilter, Tags, SourceFilter, Limit, Offset, Rows,
 % so the ids matched for the last filter are kept for its next pages instead
 % of matching and sorting the whole index again per page. Keyed like the
 % search memo, so any write starts a fresh match.
+% The caller ensured the indexes, so the entity count is known.
 query_index_ids(TypeFilter, IdFilter, Tags, SourceFilter, Ids) :-
-    (   kb_index_entity_count(IndexCount)
-    ->  true
-    ;   IndexCount = none
-    ),
+    kb_index_entity_count(IndexCount),
     index_verification_key(IndexCount, Key),
     Filters = filters(TypeFilter, IdFilter, Tags, SourceFilter),
     (   kb_query_ids_memo(Key, Filters, Cached)
@@ -2053,6 +2051,7 @@ kb_assert_relationships_reporting(Relationships, FailedPositions) :-
 
 assert_relationship_reporting(rel(RelType, FromId, ToId), Position-Failed0, Next-Failed) :-
     Next is Position + 1,
+    % mutalog-disable-next-line literal: an unbound metadata entry is ignored like an empty list
     (   catch(kb_assert_relationship(RelType, FromId, ToId, []), _, fail)
     ->  Failed = Failed0
     ;   Failed = [Position|Failed0]
@@ -2868,10 +2867,14 @@ req_conflict_witness(ReqA, ReqB, Witness) :-
 % each predicate, visited in the order current_req/1 enumerates them, so a
 % requirement without such facts has no partners at all.
 subject_conflict_pair(ReqA, ReqB, SubjectKey) :-
+    % The mode tests only pick the cheapest route: every route gives the
+    % same solutions in the same order for the arguments it is given.
+    % mutalog-disable-next-line negate,goal_true,goal_fail: routing only; the later branches give the same pairs
     (   nonvar(ReqA), nonvar(ReqB)
     ->  current_req(ReqA),
         current_req(ReqB),
         ReqA @< ReqB
+    % mutalog-disable-next-line negate,goal_true,goal_fail: routing only; the last branch gives the same pairs
     ;   nonvar(ReqB)
     ->  current_req(ReqB),
         req_subject_partners(ReqB, before, Partners),
@@ -2884,10 +2887,6 @@ subject_conflict_pair(ReqA, ReqB, SubjectKey) :-
     kb_relationship(constrains, ReqB, SubjectFactB),
     fact_subject_key(SubjectFactA, SubjectKey),
     fact_subject_key(SubjectFactB, SubjectKey).
-
-req_subject_fact(ReqId) :-
-    kb_relationship(constrains, ReqId, SubjectFactId),
-    fact_subject_key(SubjectFactId, _).
 
 %% req_subject_partners(+ReqId, +Side, -Partners)
 % Current requirements constraining a subject that ReqId constrains, in
@@ -2904,10 +2903,12 @@ req_subject_partners(ReqId, Side, Partners) :-
     sort(Partners0, Partners1),
     pairs_values(Partners1, Partners).
 
+% mutalog-disable-next-line cut_insert: the comparison has at most one solution
 subject_partner_side(after, ReqId, Partner) :- ReqId @< Partner.
 subject_partner_side(before, ReqId, Partner) :- Partner @< ReqId.
 
 req_subject_fact_key(ReqId, SubjectKey) :-
+    % mutalog-disable-next-line goal_true: extra partners are dropped by the pair's own constrains check
     kb_relationship(constrains, ReqId, SubjectFactId),
     fact_subject_key(SubjectFactId, SubjectKey).
 
@@ -2948,6 +2949,7 @@ predicate_conflict_pair(ReqA, ReqB, FactA, FactB, Namespace, Name, Args, Polarit
                 Partners0),
         sort(Partners0, Partners),
         member(_-ReqA, Partners)
+    % mutalog-disable-next-line negate,goal_true,goal_fail: routing only; the last branch gives the same pairs
     ;   nonvar(ReqA), nonvar(ReqB)
     ->  current_req(ReqA),
         current_req(ReqB),

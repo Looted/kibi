@@ -183,6 +183,97 @@ describe("requirement quality impact diagnostics", () => {
         }),
       }),
     ]);
+    // Reverse dependents are requirements, never implementers.
+    expect(diagnostics[0]?.evidence).toEqual(
+      expect.objectContaining({ implementingSymbolIds: [] }),
+    );
+  });
+
+  it("reads fanout from known target types, every link kind and split records", () => {
+    const entity = (id: string, type: string): ExtractionResult => ({
+      entity: {
+        id,
+        type,
+        title: id,
+        status: "active",
+        created_at: "2026-06-30T00:00:00.000Z",
+        updated_at: "2026-06-30T00:00:00.000Z",
+        source: `.kb/${id}.md`,
+      },
+      relationships: [],
+    });
+    const scenarios = Array.from({ length: 7 }, (_unused, index) =>
+      entity(`SCEN-KNOWN-${index + 1}`, "scenario"),
+    );
+    const tests = Array.from({ length: 9 }, (_unused, index) =>
+      entity(`TEST-KNOWN-${index + 1}`, "test"),
+    );
+    const dependencies = Array.from({ length: 6 }, (_unused, index) =>
+      entity(`REQ-KNOWN-DEP-${index + 1}`, "req"),
+    );
+    // The requirement's links are split over two records with its id.
+    const first = makeRequirementResult({
+      id: "REQ-KNOWN",
+      relationships: [
+        ...scenarios.map((item) => ({
+          type: "specified_by",
+          to: item.entity.id,
+        })),
+        ...tests
+          .slice(0, 5)
+          .map((item) => ({ type: "covered_by", to: item.entity.id })),
+      ],
+    });
+    const second = makeRequirementResult({
+      id: "REQ-KNOWN",
+      relationships: [
+        ...tests
+          .slice(5)
+          .map((item) => ({ type: "verified_by", to: item.entity.id })),
+        ...dependencies.map((item) => ({
+          type: "depends_on",
+          to: item.entity.id,
+        })),
+      ],
+    });
+    // Only a requirement depending on it is a dependent; a test depending
+    // on it or a requirement relating to it is not.
+    const testDependsOn: ExtractionResult = {
+      ...entity("TEST-DEPENDS", "test"),
+      relationships: [
+        { type: "depends_on", from: "TEST-DEPENDS", to: "REQ-KNOWN" },
+      ],
+    };
+    const relatedRequirement = makeRequirementResult({
+      id: "REQ-RELATED",
+      relationships: [{ type: "relates_to", to: "REQ-KNOWN" }],
+    });
+
+    const broad = createRequirementQualityDiagnostics({
+      manifestResults: [
+        first,
+        second,
+        ...scenarios,
+        ...tests,
+        ...dependencies,
+        testDependsOn,
+        relatedRequirement,
+      ],
+    }).filter(
+      (diagnostic) =>
+        diagnostic.entityId === "REQ-KNOWN" &&
+        diagnostic.id === "broad_requirement_review",
+    );
+
+    expect(broad).toHaveLength(2);
+    expect(broad[0]?.evidence).toEqual(
+      expect.objectContaining({
+        implementingSymbolIds: [],
+        scenarioCount: 7,
+        testCount: 9,
+        dependentRequirementIds: dependencies.map((item) => item.entity.id),
+      }),
+    );
   });
 
   it("ignores fanout targets with known mismatched entity types", () => {

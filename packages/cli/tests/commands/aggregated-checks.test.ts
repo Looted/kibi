@@ -113,6 +113,42 @@ describe("runAggregatedChecks", () => {
     expect(existsSync(path.dirname(resultPath))).toBe(false);
   });
 
+  test("several selected rules reach the engine as one Prolog list", async () => {
+    const goals: string[] = [];
+    const prolog = {
+      async query(goal: string) {
+        goals.push(goal);
+        const match = goal.match(
+          /check_selected_json_file\(\[[^\]]*\], '([^']+)'\)/,
+        );
+        if (!match?.[1]) throw new Error(`no result file in goal: ${goal}`);
+        writeFileSync(match[1], JSON.stringify({}), "utf8");
+        return { success: true, bindings: { Transport: "file" } };
+      },
+    } as unknown as PrologProcess;
+
+    await runAggregatedChecks(prolog, new Set(["rule-a", "rule-b"]));
+    expect(goals[0]).toContain(
+      "check_selected_json_file(['rule-a','rule-b'], ",
+    );
+    expect(goals[0]).toContain("check_selected_json(['rule-a','rule-b'], ");
+  });
+
+  test("an empty result file is reported as a missing answer", async () => {
+    const prolog = {
+      async query(goal: string) {
+        const match = goal.match(/check_all_json_file\('([^']+)', false\)/);
+        if (!match?.[1]) throw new Error(`no result file in goal: ${goal}`);
+        writeFileSync(match[1], "", "utf8");
+        return { success: true, bindings: { Transport: "file" } };
+      },
+    } as unknown as PrologProcess;
+
+    await expect(runAggregatedChecks(prolog, null)).rejects.toThrow(
+      "No JSON string in binding",
+    );
+  });
+
   test("a file answer without a written file fails clearly and removes the temp dir", async () => {
     let resultPath = "";
     const prolog = {
