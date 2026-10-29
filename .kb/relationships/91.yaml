@@ -237,3 +237,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-49b718e0b234
+  - type: requires_property
+    from: REQ-kibi-vocabulary-alignment-limits
+    to: FACT-builtin-alignment-reuse-threshold
+    created_at: 2026-10-29T16:54:20.002Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-017083ed8ec7
+  - type: requires_property
+    from: REQ-kibi-vocabulary-alignment-limits
+    to: FACT-jev-alignment-top-k
+    created_at: 2026-10-29T16:54:20.064Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be566c34ab74
+  - type: requires_property
+    from: REQ-kibi-vocabulary-alignment-limits
+    to: FACT-alignment-new-choice
+    created_at: 2026-10-29T16:54:20.092Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e81cb88b20d3
+  - type: specified_by
+    from: REQ-kibi-vocabulary-alignment-limits
+    to: SCEN-kibi-vocabulary-alignment-capability
+    created_at: 2026-10-29T16:54:20.113Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab518a93f747
+  - type: constrains
+    from: REQ-kibi-vocabulary-alignment-limits
+    to: FACT-kibi-vocabulary-alignment-limits-component
+    created_at: 2026-10-29T16:54:23.389Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30e7ba408886

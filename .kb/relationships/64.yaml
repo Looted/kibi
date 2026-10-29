@@ -202,3 +202,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c0eace65d745
+  - type: validates
+    from: TEST-proof-opencode-plugin-id
+    to: SCEN-opencode-kibi-plugin-v1
+    created_at: 2026-10-29T17:01:59.690Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72f33f8d718e

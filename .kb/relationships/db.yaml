@@ -328,3 +328,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1399e4890737
+  - type: implements
+    from: SYM-const-ci-env-keys
+    to: REQ-kibi-telemetry-automation-keys
+    created_at: 2026-10-29T16:27:49.981Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-213cc4fbb149
+  - type: covered_by
+    from: SYM-const-ci-env-keys
+    to: TEST-proof-telemetry-ci-env-keys
+    created_at: 2026-10-29T16:28:09.488Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00339a45388b
+  - type: covered_by
+    from: SYM-const-ci-env-keys
+    to: TEST-kibi-anonymous-usage-telemetry-cli
+    created_at: 2026-10-29T16:28:09.526Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa34867d4142

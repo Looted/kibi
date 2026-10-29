@@ -430,3 +430,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2415c7ee9297
+  - type: requires_property
+    from: REQ-mcp-workspace-root-argument
+    to: FACT-mcp-workspace-root-argument
+    created_at: 2026-10-29T16:35:26.935Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba357d9df280
+  - type: specified_by
+    from: REQ-mcp-workspace-root-argument
+    to: SCEN-mcp-workspace-routing
+    created_at: 2026-10-29T16:35:27.033Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5cf16fb9a9f
+  - type: constrains
+    from: REQ-mcp-workspace-root-argument
+    to: FACT-kibi-mcp-workspace-argument-component
+    created_at: 2026-10-29T16:35:30.352Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-030071e93fff

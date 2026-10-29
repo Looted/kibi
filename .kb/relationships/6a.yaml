@@ -286,3 +286,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9af7ff9dc99f
+  - type: validates
+    from: TEST-proof-proof-contract-kinds
+    to: SCEN-kibi-claim-bound-proofs
+    created_at: 2026-10-29T16:44:58.357Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2fe34c449f2

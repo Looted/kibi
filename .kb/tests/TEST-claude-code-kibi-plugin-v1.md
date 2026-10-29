@@ -94,18 +94,18 @@ proof_bindings:
     source_file: packages/claude/tests/hook-runner.test.ts
     line: 472
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-d6fd2e1ff23d02088398d956
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-a5658b13aa1240a0b503b4c0
     test_id: TEST-claude-code-kibi-plugin-v1
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
+    code_snapshot: dc322ea99b905a7f62915c1ab44e1d46704fb6d9a8bb5c5a94cfe8e2545b705f
+    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
+    started_at: '2026-10-29T16:34:44.297Z'
+    finished_at: '2026-10-29T16:34:46.683Z'
+    artifact_digest: 748f388968b826c3793720f464dbe1f1865a1f0ae56fa9d67e6ceeb30b48b370
     contract_hash: 252c4871c7b4f76dc0f90349ab4541e69844fe3ff8881fd17a1a9f502599a2a6
-    binding_hash: 471cd941a606eeec137cb3cb0b32cec2278f8282de45d0bf2feb1310e8af8155
+    binding_hash: 806d78624c122a645528e9078c5b8f8853cbc2fc84d3fa88e3e3647e07847899
     fingerprint: ed0726a57196b5a8adbc0e4f435e2abc69c56759ce0846e90905f6f9679cab6d
     fingerprint_components:
       contract: 252c4871c7b4f76dc0f90349ab4541e69844fe3ff8881fd17a1a9f502599a2a6
@@ -187,6 +187,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 origin:
   kind: migration
   ref: kibi migrate v5->v6

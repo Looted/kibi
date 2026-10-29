@@ -314,3 +314,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1ac1cc7c9f58
+  - type: executable_for
+    from: SYM-proof-telemetry-test-env-keys
+    to: TEST-proof-telemetry-test-env-keys
+    created_at: 2026-10-29T16:28:35.833Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39f61cfd4bae

@@ -29,18 +29,18 @@ origin:
 id: TEST-claude-edit-snippet-hook
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-8ef35b7a74266285d9bb4edb
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-421af64e02d3a7a8b1f5a029
     test_id: TEST-claude-edit-snippet-hook
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
+    code_snapshot: 8d023642f2d3b7e5339d3b88aef78ca7225877c8dc42ff4f947c96219805b463
+    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
+    started_at: '2026-10-29T16:32:23.939Z'
+    finished_at: '2026-10-29T16:32:26.380Z'
+    artifact_digest: 265f12da2773ea84372d8609edc9433a1ded54d000895b2341fbefffa0a36ea8
     contract_hash: 6cb86e9434ba5bee65a60372dcd5fec03da4b3c5eaa870a2d94540aaf8f83e74
-    binding_hash: e48e4aecb272038959d6515c68bf18de268efefd11b21e7ade09e52d68b2e9c9
+    binding_hash: 172b1aabcfa86f185905434cc2aaf3b52c5c991d0a52344d6159ff051d7e02e6
     fingerprint: 27a8fbb9ce6f903b195e832174dbd09a5d43afe7df0dde71f8db4f5c66c16cb7
     fingerprint_components:
       contract: 6cb86e9434ba5bee65a60372dcd5fec03da4b3c5eaa870a2d94540aaf8f83e74
@@ -62,6 +62,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 # The Claude Code PreToolUse hook command gives a first edit of linked code its requirement, what it must keep true and its decision within the snippet budget
 

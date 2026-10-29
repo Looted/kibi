@@ -251,3 +251,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cc7fe1c556ca
+  - type: validates
+    from: TEST-proof-vscode-refresh-command
+    to: SCEN-vscode-sidebar-kb-tree
+    created_at: 2026-10-29T17:07:30.453Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7d2101bc57d

@@ -559,3 +559,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-448065fc4e97
+  - type: implements
+    from: SYM-claude-MAX_SNIPPET_CHARS
+    to: REQ-agent-core-hook-limits
+    created_at: 2026-10-29T16:30:13.971Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eff283452f65
+  - type: covered_by
+    from: SYM-claude-MAX_SNIPPET_CHARS
+    to: TEST-proof-snippet-max-chars
+    created_at: 2026-10-29T16:30:34.396Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67af4671cac9
+  - type: covered_by
+    from: SYM-claude-MAX_SNIPPET_CHARS
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-10-29T16:30:34.448Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-88c64be39104
+  - type: validates
+    from: TEST-proof-rule-supersedes-reason-missing
+    to: SCEN-kb-decision-firmness
+    created_at: 2026-10-29T16:40:23.772Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c317ee7eae8
