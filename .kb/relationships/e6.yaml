@@ -181,3 +181,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-231d43f5a2e7
+  - type: assumes
+    from: SCEN-NEG-mcp-kb-freshness-EXTERNAL-REPLACE
+    to: FACT-NEG-mcp-kb-freshness-EXTERNAL-REPLACE
+    created_at: 2026-10-29T21:21:49.374Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebd8e6cd40bd
+  - type: verified_by
+    from: SCEN-NEG-mcp-kb-freshness-EXTERNAL-REPLACE
+    to: TEST-e2e-mcp-freshness-external-replace
+    created_at: 2026-10-29T21:21:49.434Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5bf0a86e5580

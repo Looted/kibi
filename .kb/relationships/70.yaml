@@ -286,3 +286,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bbc9b9f3a852
+  - type: assumes
+    from: SCEN-NEG-kibi-subject-vocabulary-REQ-DERIVED-SUBJECT
+    to: FACT-NEG-kibi-subject-vocabulary-REQ-DERIVED-SUBJECT
+    created_at: 2026-10-29T21:15:31.139Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d953cc6cb5ed
+  - type: verified_by
+    from: SCEN-NEG-kibi-subject-vocabulary-REQ-DERIVED-SUBJECT
+    to: TEST-kibi-vocabulary-convergence-e2e
+    created_at: 2026-10-29T21:15:31.216Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0516043d9246

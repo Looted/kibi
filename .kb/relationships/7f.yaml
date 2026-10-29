@@ -391,3 +391,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b4f6e47db261
+  - type: specified_by
+    from: REQ-kibi-uncompiled-source-visibility
+    to: SCEN-NEG-kibi-uncompiled-source-visibility-UNCOMPILABLE-WRITE
+    created_at: 2026-10-29T21:18:51.241Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4cfe2e1f1f47

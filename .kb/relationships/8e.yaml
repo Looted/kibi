@@ -384,3 +384,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0320a38abd60
+  - type: specified_by
+    from: REQ-mcp-kb-freshness
+    to: SCEN-NEG-mcp-kb-freshness-EXTERNAL-REPLACE
+    created_at: 2026-10-29T21:21:55.089Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67772799b0c1

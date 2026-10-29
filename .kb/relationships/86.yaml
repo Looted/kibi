@@ -321,3 +321,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b2460b694494
+  - type: specified_by
+    from: REQ-kibi-upsert-preserves-requirement-semantics
+    to: SCEN-NEG-kibi-upsert-preserves-requirement-semantics-PROSE-CHANGE-WITHOUT-LEDGER
+    created_at: 2026-10-29T21:18:36.145Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f048e955b17f

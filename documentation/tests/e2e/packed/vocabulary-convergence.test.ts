@@ -1,5 +1,11 @@
 import assert from "node:assert";
-import { mkdirSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, join } from "node:path";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
 import {
@@ -391,6 +397,221 @@ if (RUN_NODE_TEST_SUITE) {
         // minimum of three, skipped once the minimum exceeds its fact count.
         assert.strictEqual((await ontologyFindings("3")).length, 1);
         assert.deepStrictEqual(await ontologyFindings("4"), []);
+      },
+    );
+
+    it(
+      "falls back to the builtin when a replace-mode provider fails, and kibi check never calls it",
+      { timeout: 240000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+        seedFixture(sandbox);
+        // A project-local vocabulary-alignment provider that records each
+        // call and always fails.
+        const callLog = join(sandbox.baseDir, "provider-calls.log");
+        const pluginRoot = join(
+          sandbox.repoDir,
+          "node_modules",
+          "example-vocabulary-plugin",
+        );
+        mkdirSync(pluginRoot, { recursive: true });
+        writeFileSync(
+          join(pluginRoot, "package.json"),
+          JSON.stringify({
+            name: "example-vocabulary-plugin",
+            version: "1.0.0",
+            type: "module",
+            main: "index.js",
+          }),
+        );
+        writeFileSync(
+          join(pluginRoot, "index.js"),
+          `import { appendFileSync } from "node:fs";
+const record = (name) => appendFileSync(${JSON.stringify(callLog)}, name + "\\n");
+export const kibiPlugin = {
+  apiVersion: "kibi.plugin.v1",
+  id: "example-vocabulary-plugin",
+  version: "1.0.0",
+  permissions: { network: false, metered: false, secrets: [] },
+  capabilities: {
+    vocabularyAlignment: {
+      id: "example.vocabulary",
+      model: "example-model",
+      async rankSubjects() { record("rankSubjects"); throw new Error("provider down"); },
+      async compareClaims() { record("compareClaims"); throw new Error("provider down"); },
+    },
+  },
+};
+`,
+        );
+        const manifestPath = join(sandbox.repoDir, "package.json");
+        const manifest = existsSync(manifestPath)
+          ? (JSON.parse(readFileSync(manifestPath, "utf8")) as Record<
+              string,
+              unknown
+            >)
+          : { name: "consumer", private: true };
+        writeFileSync(
+          manifestPath,
+          JSON.stringify({
+            ...manifest,
+            dependencies: {
+              ...((manifest.dependencies as Record<string, string>) ?? {}),
+              "example-vocabulary-plugin": "1.0.0",
+            },
+            kibi: {
+              plugins: [
+                {
+                  package: "example-vocabulary-plugin",
+                  capabilities: {
+                    "kibi.vocabulary-alignment.v1": { mode: "replace" },
+                  },
+                },
+              ],
+            },
+          }),
+        );
+        await run("git", ["commit", "-m", "vocabulary fixtures"], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
+        assert.strictEqual(
+          (await kibi(sandbox, ["init", "--no-hooks"])).exitCode,
+          0,
+        );
+        const sync = await kibi(sandbox, ["sync"]);
+        assert.strictEqual(sync.exitCode, 0, `${sync.stdout}${sync.stderr}`);
+
+        const inputPath = join(sandbox.baseDir, "model-requirement.json");
+        writeFileSync(
+          inputPath,
+          JSON.stringify({
+            text: "Session lifetime must expire after 45 minutes of inactivity.",
+            source: ".kb/requirements/REQ-session-expiry-demo.md",
+          }),
+        );
+        const modeled = await kibi(sandbox, [
+          "model-requirement",
+          "--input",
+          inputPath,
+        ]);
+        assert.strictEqual(
+          modeled.exitCode,
+          0,
+          `${modeled.stdout}${modeled.stderr}`,
+        );
+        const alignment = (
+          JSON.parse(modeled.stdout) as {
+            data: {
+              vocabularyAlignment: {
+                fallbackUsed: boolean;
+                stamps: Array<{ pluginId: string }>;
+                diagnostics: Array<{ pluginId: string; message: string }>;
+              };
+            };
+          }
+        ).data.vocabularyAlignment;
+        // The provider was asked, failed, and the builtin decided.
+        assert.match(readFileSync(callLog, "utf8"), /rankSubjects/);
+        assert.strictEqual(alignment.fallbackUsed, true);
+        assert.ok(
+          alignment.stamps.every(
+            (stamp) => stamp.pluginId === "kibi-plugin-builtin",
+          ),
+          JSON.stringify(alignment.stamps),
+        );
+        assert.ok(
+          alignment.diagnostics.some(
+            (diagnostic) =>
+              diagnostic.pluginId === "example-vocabulary-plugin" &&
+              diagnostic.message.includes("provider down"),
+          ),
+          JSON.stringify(alignment.diagnostics),
+        );
+
+        rmSync(callLog, { force: true });
+        // The vocabulary checks compare subjects and claims themselves; they
+        // never reach the provider.
+        const check = await kibi(sandbox, [
+          "check",
+          "--rules",
+          "domain-redundancy,domain-implication,subject-key-identity,subject-key-shape,ontology-quality",
+          "--format",
+          "json",
+        ]);
+        assert.strictEqual(check.exitCode, 0, `${check.stdout}${check.stderr}`);
+        assert.strictEqual(existsSync(callLog), false);
+      },
+    );
+
+    it(
+      "never equates an ambiguous unit with a known one when looking for redundancy",
+      { timeout: 240000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+        fact(sandbox, "FACT-SUBJ-UPLOAD-SIZE", {
+          fact_kind: "subject",
+          subject_key: "upload.size",
+        });
+        const size = (id: string, value: string, unit: string) =>
+          fact(sandbox, id, {
+            fact_kind: "property_value",
+            subject_key: "upload.size",
+            property_key: "max_bytes",
+            operator: "lte",
+            value_type: "int",
+            value_int: value,
+            unit,
+          });
+        // KB is ambiguous (1000 or 1024 bytes); kB is exactly 1000 bytes.
+        size("FACT-UPLOAD-AMBIGUOUS", "1", "KB");
+        size("FACT-UPLOAD-KILOBYTE", "1", "kB");
+        size("FACT-UPLOAD-BYTES", "1000", "B");
+        for (const [id, property] of [
+          ["REQ-upload-ambiguous", "FACT-UPLOAD-AMBIGUOUS"],
+          ["REQ-upload-kilobyte", "FACT-UPLOAD-KILOBYTE"],
+          ["REQ-upload-bytes", "FACT-UPLOAD-BYTES"],
+        ] as const) {
+          requirement(sandbox, id, [
+            ["constrains", "FACT-SUBJ-UPLOAD-SIZE"],
+            ["requires_property", property],
+          ]);
+        }
+        await run("git", ["commit", "-m", "unit fixtures"], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
+        assert.strictEqual(
+          (await kibi(sandbox, ["init", "--no-hooks"])).exitCode,
+          0,
+        );
+        const sync = await kibi(sandbox, ["sync"]);
+        assert.strictEqual(sync.exitCode, 0, `${sync.stdout}${sync.stderr}`);
+
+        const check = await kibi(sandbox, [
+          "check",
+          "--rules",
+          "domain-redundancy",
+          "--format",
+          "json",
+        ]);
+        assert.strictEqual(check.exitCode, 0, `${check.stdout}${check.stderr}`);
+        const payload = (
+          JSON.parse(check.stdout) as { structuredContent: CheckPayload }
+        ).structuredContent;
+        // 1 kB and 1000 B are one quantity; 1 KB is never equated with either.
+        assert.deepStrictEqual(
+          findings(payload, "domain-redundancy").map(
+            (diagnostic) => diagnostic.entityId,
+          ),
+          ["REQ-upload-bytes/REQ-upload-kilobyte"],
+        );
       },
     );
 

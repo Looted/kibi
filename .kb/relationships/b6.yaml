@@ -356,3 +356,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ccaaac2d1d87
+  - type: specified_by
+    from: REQ-kibi-source-proof-kinds
+    to: SCEN-NEG-kibi-source-proof-kinds-DYNAMIC-MEMBER
+    created_at: 2026-10-29T21:15:07.235Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-089c77cc166d

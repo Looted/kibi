@@ -314,3 +314,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fc0bfc5c23da
+  - type: assumes
+    from: SCEN-NEG-legacy-kb-first-step-migrate-INIT-ON-LEGACY
+    to: FACT-NEG-legacy-kb-first-step-migrate-INIT-ON-LEGACY
+    created_at: 2026-10-29T21:20:04.231Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0738f82d53c8
+  - type: verified_by
+    from: SCEN-NEG-legacy-kb-first-step-migrate-INIT-ON-LEGACY
+    to: TEST-cli-legacy-kb-first-migrate
+    created_at: 2026-10-29T21:20:04.296Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a53461c2c525

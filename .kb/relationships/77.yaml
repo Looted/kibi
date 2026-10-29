@@ -412,3 +412,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ed5eb9a0b017
+  - type: specified_by
+    from: REQ-kibi-subject-vocabulary
+    to: SCEN-NEG-kibi-subject-vocabulary-REQ-DERIVED-SUBJECT
+    created_at: 2026-10-29T21:15:37.142Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-311f81f61ae3
