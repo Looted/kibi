@@ -454,3 +454,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bb23295d2765
+  - type: assumes
+    from: SCEN-NEG-runtime-packed-engine-daemon-MISSING-BUNDLED-DAEMON
+    to: FACT-NEG-runtime-packed-engine-daemon-MISSING-BUNDLED-DAEMON
+    created_at: 2026-10-29T21:05:21.151Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a6b6548cd9e
+  - type: verified_by
+    from: SCEN-NEG-runtime-packed-engine-daemon-MISSING-BUNDLED-DAEMON
+    to: TEST-runtime-packed-engine-daemon
+    created_at: 2026-10-29T21:05:21.300Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56fac47dcd09

@@ -468,3 +468,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c1f14770a5a2
+  - type: specified_by
+    from: REQ-skillopt-claude-code-host
+    to: SCEN-NEG-skillopt-claude-code-host-UNCONFINED-FILE-TOOLS
+    created_at: 2026-10-29T21:03:06.121Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9a615ad7158

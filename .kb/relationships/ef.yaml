@@ -202,3 +202,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c78feefeddc1
+  - type: assumes
+    from: SCEN-NEG-skillopt-description-candidates-ORPHAN-DESCRIPTION
+    to: FACT-NEG-skillopt-description-candidates-ORPHAN-DESCRIPTION
+    created_at: 2026-10-29T21:03:36.131Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5ec8fc170c4
+  - type: verified_by
+    from: SCEN-NEG-skillopt-description-candidates-ORPHAN-DESCRIPTION
+    to: TEST-e2e-skillopt-description-candidates
+    created_at: 2026-10-29T21:03:36.225Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa25ede08f2b

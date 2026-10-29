@@ -321,3 +321,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-16b2f8724966
+  - type: specified_by
+    from: REQ-prolog-doctor-runtime-report
+    to: SCEN-NEG-prolog-doctor-runtime-report-MISSING-LIBRARY
+    created_at: 2026-10-29T20:54:28.911Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2c0a73994bd

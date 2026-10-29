@@ -328,3 +328,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7977192afba7
+  - type: assumes
+    from: SCEN-NEG-reusable-skill-subsystem-RESOURCE-TRAVERSAL
+    to: FACT-NEG-reusable-skill-subsystem-RESOURCE-TRAVERSAL
+    created_at: 2026-10-29T20:57:35.885Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2940f76d08ec
+  - type: verified_by
+    from: SCEN-NEG-reusable-skill-subsystem-RESOURCE-TRAVERSAL
+    to: TEST-skill-cli-load-validate
+    created_at: 2026-10-29T20:57:35.976Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d95bab434f2

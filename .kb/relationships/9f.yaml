@@ -325,3 +325,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c1cda11d0f97
+  - type: specified_by
+    from: REQ-skillopt-paid-launch-accounting
+    to: SCEN-NEG-skillopt-paid-launch-accounting-UNPAID-OPTIMIZE
+    created_at: 2026-10-29T21:04:45.609Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c502131dc9e7

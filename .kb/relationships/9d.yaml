@@ -374,3 +374,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4f3064867579
+  - type: assumes
+    from: SCEN-NEG-prolog-coverage-test-selection-SWALLOWED-FAILURE
+    to: FACT-NEG-prolog-coverage-test-selection-SWALLOWED-FAILURE
+    created_at: 2026-10-29T20:52:53.508Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-875435c392e3
+  - type: verified_by
+    from: SCEN-NEG-prolog-coverage-test-selection-SWALLOWED-FAILURE
+    to: TEST-prolog-coverage-test-selection
+    created_at: 2026-10-29T20:52:53.567Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f2cbb5e00ac

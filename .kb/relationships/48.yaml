@@ -328,3 +328,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-80ec9b575ec6
+  - type: specified_by
+    from: REQ-prolog-spike-config-validation
+    to: SCEN-NEG-prolog-spike-config-validation-UNSUPPORTED-TARGET
+    created_at: 2026-10-29T20:54:47.057Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10f5a1c51459

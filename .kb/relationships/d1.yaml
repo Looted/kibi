@@ -412,3 +412,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-310f8fdb4277
+  - type: specified_by
+    from: REQ-search-answer-hygiene
+    to: SCEN-NEG-search-answer-hygiene-UNOWNED-TOP-MATCH
+    created_at: 2026-10-29T20:58:36.611Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6699041852e5

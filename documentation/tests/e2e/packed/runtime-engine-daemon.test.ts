@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import { existsSync } from "node:fs";
+import { existsSync, renameSync } from "node:fs";
 import { join } from "node:path";
 import { after, before, describe, it } from "node:test";
 import { pathToFileURL } from "node:url";
@@ -161,6 +161,34 @@ if (RUN_NODE_TEST_SUITE) {
           result.success,
           `kb_storage_status query failed: ${result.error ?? "unknown error"}`,
         );
+      });
+
+      it("EngineClient from the installed runtime must refuse to start without its bundled daemon instead of borrowing one from kibi-cli", async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        // The sandbox also installs kibi-cli, which ships its own daemon. Hide
+        // the runtime's bundled entry point: the installed client must fail to
+        // start rather than fall back to a daemon outside kibi-runtime.
+        const daemonEntry = join(
+          sandbox.npmPrefix,
+          "node_modules",
+          "kibi-runtime",
+          "dist",
+          "engine-daemon.js",
+        );
+        const hidden = `${daemonEntry}.hidden`;
+        renameSync(daemonEntry, hidden);
+        try {
+          await assert.rejects(
+            startPackedEngineDaemonAndQuery(sandbox),
+            /The Kibi engine is not built/,
+          );
+        } finally {
+          renameSync(hidden, daemonEntry);
+        }
       });
     },
   );

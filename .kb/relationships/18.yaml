@@ -468,3 +468,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9faaf840f3ad
+  - type: assumes
+    from: SCEN-NEG-prolog-library-adoption-NON-SELECT-SPARQL
+    to: FACT-NEG-prolog-library-adoption-NON-SELECT-SPARQL
+    created_at: 2026-10-29T21:05:05.881Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d13addc773b
+  - type: verified_by
+    from: SCEN-NEG-prolog-library-adoption-NON-SELECT-SPARQL
+    to: TEST-e2e-prolog-library-adoption
+    created_at: 2026-10-29T21:05:05.993Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ccecf0460a75

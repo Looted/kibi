@@ -265,3 +265,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-527947420445
+  - type: assumes
+    from: SCEN-NEG-root-suite-batch-diagnostics-UNNAMED-BATCH-FAILURE
+    to: FACT-NEG-root-suite-batch-diagnostics-UNNAMED-BATCH-FAILURE
+    created_at: 2026-10-29T20:57:53.301Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b6aec12765f
+  - type: verified_by
+    from: SCEN-NEG-root-suite-batch-diagnostics-UNNAMED-BATCH-FAILURE
+    to: TEST-e2e-root-batch-diagnostics
+    created_at: 2026-10-29T20:57:53.473Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab20f7affdd7

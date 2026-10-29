@@ -202,3 +202,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-26c8f70bb486
+  - type: specified_by
+    from: REQ-skillopt-logical-evidence-fidelity
+    to: SCEN-NEG-skillopt-logical-evidence-fidelity-MISSING-COVERAGE-LINK
+    created_at: 2026-10-29T21:04:36.041Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56a07777e3b2

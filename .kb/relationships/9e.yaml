@@ -503,3 +503,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-01ca17ccecd6
+  - type: assumes
+    from: SCEN-NEG-skillopt-logical-evidence-fidelity-MISSING-COVERAGE-LINK
+    to: FACT-NEG-skillopt-logical-evidence-fidelity-MISSING-COVERAGE-LINK
+    created_at: 2026-10-29T21:04:31.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34443162001a
+  - type: verified_by
+    from: SCEN-NEG-skillopt-logical-evidence-fidelity-MISSING-COVERAGE-LINK
+    to: TEST-skillopt-logical-evidence-fidelity
+    created_at: 2026-10-29T21:04:31.174Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d13545f12a0
