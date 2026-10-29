@@ -156,6 +156,12 @@ guarantee, and `rejection` means the system refuses or contains it.
 - `not_required`: the requirement grounds no claim, or a fresh certificate
   proves every claim at code scope (`certifiedClaims`): a certificate decides
   both sides of the claim already.
+- `waived`: the requirement has no failure side to test. Its claims state a
+  capability or an output shape, so there is no input or attempt to refuse.
+  The requirement records why in `failure_side_waiver` and who accepted it in
+  `failure_side_waiver_approved_by`, and `waiver` shows both. A reason without
+  an approver stays `missing`, and `kibi proof explain` reports the waiver as
+  awaiting approval.
 
 The negative scenario needs a test like any other linked scenario, so the
 failure side is proven by the same passing E2E receipts. The canonical

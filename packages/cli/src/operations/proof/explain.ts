@@ -115,6 +115,8 @@ export type NegativePathExplain = {
     readonly factId: string;
     readonly assumption: Readonly<Record<string, unknown>>;
   }[];
+  /** An approved waiver carries approvedBy; a reason alone awaits approval. */
+  readonly waiver?: { readonly reason: string; readonly approvedBy?: string };
 };
 
 export type SymbolProofExplainView = {
@@ -312,12 +314,18 @@ function negativePathField(stage: unknown): { negativePath?: NegativePathExplain
         };
       })
     : [];
+  const waiver = asRecord(record.waiver);
+  const reason = asString(waiver.reason);
+  const approvedBy = asString(waiver.approvedBy);
   return {
     negativePath: {
       status: asString(record.status),
       negativeScenarios: asStringArray(record.negativeScenarios),
       claims: asStringArray(record.claims),
       suggestedNegatives: suggestions,
+      ...(reason === ""
+        ? {}
+        : { waiver: { reason, ...(approvedBy === "" ? {} : { approvedBy }) } }),
     },
   };
 }
@@ -326,6 +334,13 @@ function renderNegativePath(view: RequirementProofExplainView): string[] {
   const negative = view.negativePath;
   if (negative === undefined || negative.status === "not_required") return [];
   const lines = ["", `Failure side: ${negative.status}`];
+  if (negative.waiver !== undefined) {
+    lines.push(
+      negative.waiver.approvedBy === undefined
+        ? `  waiver awaiting approval (set failure_side_waiver_approved_by): ${negative.waiver.reason}`
+        : `  waived by ${negative.waiver.approvedBy}: ${negative.waiver.reason}`,
+    );
+  }
   for (const scenarioId of negative.negativeScenarios) {
     lines.push(`  ${scenarioId} expects rejection or error`);
   }

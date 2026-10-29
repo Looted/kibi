@@ -601,6 +601,8 @@ export async function persistEntities(
       for (const field of [
         "approved_by",
         "approval_ref",
+        "failure_side_waiver",
+        "failure_side_waiver_approved_by",
         "rationale",
       ] as const) {
         const value = entity.type === "req" ? entity[field] : undefined;

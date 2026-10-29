@@ -5154,6 +5154,37 @@ test(requirement_without_claims_needs_no_negative, [setup(setup_kb), cleanup(cle
     assertion(Stage.status == not_required),
     assertion(Stage.claims == []).
 
+waiver_fixture(Extra) :-
+    append([failure_side_waiver="The plugin only has to load; there is no input to refuse"], Extra, Props),
+    assert_fixture_entity(req, 'REQ-PLUGIN-LOADS', "The plugin loads in the host", open, Props),
+    assert_fixture_entity(fact, 'FACT-PLUGIN-LOADABLE', "The plugin is loadable", active,
+        [fact_kind=property_value, subject_key="kibi.plugin", property_key="loadable",
+         operator=eq, value_type=bool, value_bool=true]),
+    kb_assert_relationship(requires_property, 'REQ-PLUGIN-LOADS', 'FACT-PLUGIN-LOADABLE', []).
+
+test(unapproved_failure_side_waiver_leaves_the_gap_open, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    waiver_fixture([]),
+    negative_stage('REQ-PLUGIN-LOADS', Stage),
+    assertion(Stage.status == missing),
+    assertion(Stage.waiver.reason == "The plugin only has to load; there is no input to refuse"),
+    assertion(\+ get_dict(approvedBy, Stage.waiver, _)),
+    assertion(requirement_proof:proof_gap_present(happy_path_only, _{negativePath: Stage})).
+
+test(approved_failure_side_waiver_closes_the_gap, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    waiver_fixture([failure_side_waiver_approved_by="Release owner"]),
+    negative_stage('REQ-PLUGIN-LOADS', Stage),
+    assertion(Stage.status == waived),
+    assertion(Stage.waiver.approvedBy == "Release owner"),
+    assertion(\+ requirement_proof:proof_gap_present(happy_path_only, _{negativePath: Stage})).
+
+test(negative_scenario_outranks_a_waiver, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    feasibility_fixture(rejection),
+    kb_assert_relationship(specified_by, 'REQ-QUOTA-CALL', 'SCEN-ZERO-QUOTA-CALL', []),
+    waiver_fixture([failure_side_waiver_approved_by="Release owner"]),
+    negative_stage('REQ-QUOTA-CALL', Stage),
+    assertion(Stage.status == passed),
+    assertion(dict_pairs(Stage.waiver, _, [])).
+
 test(coverage_row_reports_the_happy_path_gap, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     happy_path_fixture,
     coverage_report_json(req, [], true, true, 100, 0, JsonString),

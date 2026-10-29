@@ -734,7 +734,8 @@ existing_scenario(ScenarioId) :-
 % scenario must expect rejection or error and assume a value or situation
 % the requirement forbids.  Claims a fresh certificate proves at code scope
 % decide their failure side already and need none.  Status is not_required
-% (no such claim, or all certified), passed or missing.
+% (no such claim, or all certified), passed, waived (an approved
+% failure_side_waiver) or missing.
 negative_path_stage(ReqId, ScenarioStage, ScenarioTestStage, Context, Stage) :-
     findall(Key-FactId,
         (   negative_path_link(Link),
@@ -748,10 +749,13 @@ negative_path_stage(ReqId, ScenarioStage, ScenarioTestStage, Context, Stage) :-
     pairs_keys(OpenFacts, Open0),
     sort(Open0, Open),
     (   get_dict(negativeScenarios, ScenarioStage, Negatives) -> true ; Negatives = [] ),
+    failure_side_waiver(ReqId, Waiver),
     (   Open == []
     ->  Status = not_required
     ;   Negatives \== []
     ->  Status = passed
+    ;   get_dict(approvedBy, Waiver, _)
+    ->  Status = waived
     ;   Status = missing
     ),
     (   Status == missing
@@ -765,8 +769,31 @@ negative_path_stage(ReqId, ScenarioStage, ScenarioTestStage, Context, Stage) :-
         claims: Open,
         certifiedClaims: Certified,
         negativeScenarios: Negatives,
-        suggestedNegatives: Suggestions
+        suggestedNegatives: Suggestions,
+        waiver: Waiver
     }.
+
+%% failure_side_waiver(+ReqId, -Waiver)
+% A requirement whose claims state a capability or an output shape has no
+% input to refuse, so its failure side can be waived: failure_side_waiver
+% gives the reason and failure_side_waiver_approved_by names the human who
+% accepted it.  Only an approved waiver satisfies the stage; a reason alone
+% is reported as pending approval.  Waiver is _{} when none is recorded.
+failure_side_waiver(ReqId, Waiver) :-
+    (   kb_entity(ReqId, req, Props),
+        memberchk(failure_side_waiver=RawReason, Props),
+        normalize_atom(RawReason, Reason),
+        Reason \== ''
+    ->  atom_string(Reason, ReasonText),
+        (   memberchk(failure_side_waiver_approved_by=RawBy, Props),
+            normalize_atom(RawBy, By),
+            By \== ''
+        ->  atom_string(By, ByText),
+            Waiver = _{reason: ReasonText, approvedBy: ByText}
+        ;   Waiver = _{reason: ReasonText}
+        )
+    ;   Waiver = _{}
+    ).
 
 certified_claim(Certified, Key-_) :- memberchk(Key, Certified).
 

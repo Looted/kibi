@@ -105,6 +105,10 @@ export type Requirement = BaseEntity & {
   approved_by?: string;
   /** Optional reference to the approval decision record. */
   approval_ref?: string;
+  /** Why the requirement has no failure side to test. */
+  failure_side_waiver?: string;
+  /** The person who accepted the failure-side waiver. */
+  failure_side_waiver_approved_by?: string;
   /** Why the requirement exists; explanation, not checked meaning. */
   rationale?: string;
   /** How firmly it was decided; absent reads as `default` when an agent wrote it, else `firm`. */
