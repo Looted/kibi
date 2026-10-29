@@ -314,3 +314,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6301cf6135d0
+  - type: specified_by
+    from: REQ-model-predicates-requirement-subject-v2
+    to: SCEN-NEG-model-predicates-requirement-subject-v2-UNPAIRED-SUBJECT
+    created_at: 2026-10-29T21:03:27.666Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-509e781c8b9c
+  - type: specified_by
+    from: REQ-prolog-bundled-ci
+    to: SCEN-NEG-prolog-bundled-ci-CACHED-WITHOUT-FLAG
+    created_at: 2026-10-29T21:06:02.775Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-868d7b15325b

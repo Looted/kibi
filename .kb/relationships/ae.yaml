@@ -433,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-acf1eee5d72f
+  - type: assumes
+    from: SCEN-NEG-opencode-smart-enforcement-v1-STRICT-ON-VENDORED
+    to: FACT-NEG-opencode-smart-enforcement-v1-STRICT-ON-VENDORED
+    created_at: 2026-10-29T21:05:16.013Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0ce7c550e81
+  - type: verified_by
+    from: SCEN-NEG-opencode-smart-enforcement-v1-STRICT-ON-VENDORED
+    to: TEST-e2e-opencode-enforcement-surface
+    created_at: 2026-10-29T21:05:16.096Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d3fc9280a56

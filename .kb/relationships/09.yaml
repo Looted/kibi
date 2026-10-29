@@ -356,3 +356,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b250aa9f35a7
+  - type: assumes
+    from: SCEN-NEG-model-what-if-planned-facts-CONFLICTING-PLAN
+    to: FACT-NEG-model-what-if-planned-facts-CONFLICTING-PLAN
+    created_at: 2026-10-29T21:03:39.538Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3de5acae629
+  - type: verified_by
+    from: SCEN-NEG-model-what-if-planned-facts-CONFLICTING-PLAN
+    to: TEST-model-what-if-planned-facts
+    created_at: 2026-10-29T21:03:39.708Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a51f06b7aa2c
+  - type: specified_by
+    from: REQ-opencode-background-sync
+    to: SCEN-NEG-opencode-background-sync-FAILING-SYNC
+    created_at: 2026-10-29T21:23:52.845Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a943f5163c46

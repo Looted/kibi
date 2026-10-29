@@ -349,3 +349,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-28e409fe5ba0
+  - type: assumes
+    from: SCEN-NEG-opencode-risk-classification-MANUAL-KB-EDIT
+    to: FACT-NEG-opencode-risk-classification-MANUAL-KB-EDIT
+    created_at: 2026-10-29T21:04:48.557Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b97ddd8f58f1
+  - type: verified_by
+    from: SCEN-NEG-opencode-risk-classification-MANUAL-KB-EDIT
+    to: TEST-e2e-opencode-enforcement-surface
+    created_at: 2026-10-29T21:04:48.619Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c81ea5db9343
+  - type: specified_by
+    from: REQ-opencode-guidance-injection
+    to: SCEN-NEG-opencode-guidance-injection-OVERSIZED-GUIDANCE
+    created_at: 2026-10-29T21:24:19.759Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6f4f239d583

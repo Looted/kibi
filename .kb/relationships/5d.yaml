@@ -545,3 +545,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e3a762d3aaf6
+  - type: assumes
+    from: SCEN-NEG-opencode-background-sync-FAILING-SYNC
+    to: FACT-NEG-opencode-background-sync-FAILING-SYNC
+    created_at: 2026-10-29T21:23:48.040Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b610aa4a2179
+  - type: verified_by
+    from: SCEN-NEG-opencode-background-sync-FAILING-SYNC
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-10-29T21:23:48.192Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-02108603d325

@@ -300,3 +300,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-13608a1c949c
+  - type: specified_by
+    from: REQ-model-predicates-participant-not-subject
+    to: SCEN-NEG-model-predicates-participant-not-subject-SUBJECT-AS-ACTOR
+    created_at: 2026-10-29T21:03:10.794Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7914f64ddc4e

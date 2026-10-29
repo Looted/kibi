@@ -538,3 +538,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c4b500a642fe
+  - type: specified_by
+    from: REQ-prolog-build-pipeline-validation
+    to: SCEN-NEG-prolog-build-pipeline-validation-FOREIGN-TARGET
+    created_at: 2026-10-29T21:05:48.201Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d84618287ebb

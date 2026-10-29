@@ -363,3 +363,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-72a3553e792b
+  - type: specified_by
+    from: REQ-mcp-workspace-routing
+    to: SCEN-NEG-mcp-workspace-routing-PINNED-ROUTE
+    created_at: 2026-10-29T20:56:54.225Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4cb8858f24b6

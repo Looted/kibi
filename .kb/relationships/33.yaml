@@ -265,3 +265,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a1bba43b3906
+  - type: specified_by
+    from: REQ-mcp-oneof-guard-input-validation
+    to: SCEN-NEG-mcp-oneof-guard-input-validation-NO-BRANCH
+    created_at: 2026-10-29T20:53:59.380Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d57c98c13559
+  - type: assumes
+    from: SCEN-NEG-mcp-structured-text-per-host-UNBOUNDED-SEARCH
+    to: FACT-NEG-mcp-structured-text-per-host-UNBOUNDED-SEARCH
+    created_at: 2026-10-29T20:57:01.894Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc20e2df8cd6
+  - type: verified_by
+    from: SCEN-NEG-mcp-structured-text-per-host-UNBOUNDED-SEARCH
+    to: TEST-mcp-structured-text-per-host
+    created_at: 2026-10-29T20:57:01.985Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7dcca104be8

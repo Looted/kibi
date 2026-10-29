@@ -384,3 +384,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-08e90f68f655
+  - type: assumes
+    from: SCEN-NEG-prolog-build-pipeline-validation-FOREIGN-TARGET
+    to: FACT-NEG-prolog-build-pipeline-validation-FOREIGN-TARGET
+    created_at: 2026-10-29T21:05:43.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0b9a74b3fc5
+  - type: verified_by
+    from: SCEN-NEG-prolog-build-pipeline-validation-FOREIGN-TARGET
+    to: TEST-prolog-build-pipeline-validation
+    created_at: 2026-10-29T21:05:43.897Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18a1360dd996

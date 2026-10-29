@@ -461,3 +461,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-df1334b58a90
+  - type: specified_by
+    from: REQ-model-predicates-grounding-guards
+    to: SCEN-NEG-model-predicates-grounding-guards-UNSTATED-CLAIM
+    created_at: 2026-10-29T21:02:48.523Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec432cc1692e

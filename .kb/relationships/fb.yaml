@@ -468,3 +468,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c1f14770a5a2
+  - type: assumes
+    from: SCEN-NEG-opencode-comment-routing-ORDINARY-COMMENT
+    to: FACT-NEG-opencode-comment-routing-ORDINARY-COMMENT
+    created_at: 2026-10-29T21:23:34.220Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5aee5f129da7
+  - type: verified_by
+    from: SCEN-NEG-opencode-comment-routing-ORDINARY-COMMENT
+    to: TEST-opencode-python-comment-routing
+    created_at: 2026-10-29T21:23:34.323Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e371a68a977f
