@@ -213,6 +213,7 @@ if (RUN_NODE_TEST_SUITE) {
 
         const upgrade = await installTarballsWithPnpm(sandbox, [
           tarballs.core,
+          tarballs["agent-core"],
           tarballs["plugin-sdk"],
           tarballs["plugin-builtin"],
           tarballs.swipl,
