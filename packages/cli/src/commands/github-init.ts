@@ -144,9 +144,11 @@ export function parseGitHubRemote(url: string): GitHubRepo | undefined {
 }
 
 export function githubPagesUrls(repo: GitHubRepo): GitHubPagesUrls {
+  // The *.github.io host is case-insensitive, but the project-site path is
+  // case-sensitive, so the repository segment keeps its exact case.
   const owner = repo.owner.toLowerCase();
-  const name = repo.repo.toLowerCase();
-  const isUserSite = name === `${owner}.github.io`;
+  const name = repo.repo;
+  const isUserSite = name.toLowerCase() === `${owner}.github.io`;
   const origin = isUserSite
     ? `https://${owner}.github.io/`
     : `https://${owner}.github.io/${name}/`;

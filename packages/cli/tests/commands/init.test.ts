@@ -671,7 +671,7 @@ describe("kibi init", () => {
     expect(workflow).toContain("name: kibi-pr-report");
     const readme = readFileSync(path.join(tmpDir, "README.md"), "utf8");
     expect(readme).toContain(
-      "[![Kibi requirement health](https://acme.github.io/widgets/kibi-report/badge.svg)](https://acme.github.io/widgets/kibi-report/)",
+      "[![Kibi requirement health](https://acme.github.io/Widgets/kibi-report/badge.svg)](https://acme.github.io/Widgets/kibi-report/)",
     );
     expect(readFileSync(path.join(tmpDir, ".gitignore"), "utf8")).toContain(
       "kibi-report/",
