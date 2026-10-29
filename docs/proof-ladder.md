@@ -155,7 +155,10 @@ guarantee, and `rejection` means the system refuses or contains it.
   set missing a required member, the opposite polarity of a predicate).
 - `not_required`: the requirement grounds no claim, or a fresh certificate
   proves every claim at code scope (`certifiedClaims`): a certificate decides
-  both sides of the claim already.
+  both sides of the claim already. When every open claim is proved by a
+  certificate test whose receipt is only older than the code
+  (`pendingReproofClaims`), the evidence floor reports `pending_reproof`
+  rather than `below`, as for any other stale receipt.
 - `waived`: the requirement has no failure side to test. Its claims state a
   capability or an output shape, so there is no input or attempt to refuse.
   The requirement records why in `failure_side_waiver` and who accepted it in

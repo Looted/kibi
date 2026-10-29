@@ -7166,6 +7166,15 @@ test(evidence_floor_sets_aside_only_freshness_gaps) :-
     assertion(\+ requirement_proof:freshness_only_gaps([missing_proof_receipt], Stale)),
     assertion(\+ requirement_proof:freshness_only_gaps([], Stale)).
 
+% implements REQ-kibi-happy-path-gap
+test(failure_side_waits_for_reproof_only_when_stale_certificates_prove_every_open_claim) :-
+    Pending = _{negativePath: _{status: missing, claims: ['CLAIM-A', 'CLAIM-B'], pendingReproofClaims: ['CLAIM-A', 'CLAIM-B']}},
+    assertion(requirement_proof:freshness_only_gaps([stale_proof_receipt, happy_path_only], Pending)),
+    Partial = _{negativePath: _{status: missing, claims: ['CLAIM-A', 'CLAIM-B'], pendingReproofClaims: ['CLAIM-A']}},
+    assertion(\+ requirement_proof:freshness_only_gaps([stale_proof_receipt, happy_path_only], Partial)),
+    % Without a stale receipt nothing re-proves the claims.
+    assertion(\+ requirement_proof:freshness_only_gaps([happy_path_only], Pending)).
+
 :- end_tests(requirement_evidence_floors).
 
 :- begin_tests(requirement_applicability).
