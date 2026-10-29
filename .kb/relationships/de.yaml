@@ -374,3 +374,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e8813165b2f6
+  - type: executable_for
+    from: SYM-proof-brand-warning-color
+    to: TEST-proof-brand-warning-color
+    created_at: 2026-10-28T22:30:39.301Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b7003dbba2d

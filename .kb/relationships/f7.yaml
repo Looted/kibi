@@ -293,3 +293,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-238c98b47460
+  - type: validates
+    from: TEST-proof-brand-deepcarbon-color
+    to: SCEN-kibi-branded-health-report
+    created_at: 2026-10-28T22:28:26.767Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d9c2c463ed0

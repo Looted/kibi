@@ -426,3 +426,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cfc297903b79
+  - type: validates
+    from: TEST-proof-canonical-facts-path
+    to: SCEN-cli-canonical-init
+    created_at: 2026-10-28T22:35:54.007Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f48f9b92c364

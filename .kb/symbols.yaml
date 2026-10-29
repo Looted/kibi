@@ -12322,6 +12322,10 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-proof-operation-catalog-names
+      - type: implements
+        target: REQ-kibi-operation-catalog-names
       - type: implements
         target: REQ-kibi-operation-interface-parity
   - id: SYM-operation-get-spec
@@ -27561,8 +27565,34 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-branded-health-report
+      - type: covered_by
+        target: TEST-proof-brand-carbon-color
+      - type: covered_by
+        target: TEST-proof-brand-color-names
+      - type: covered_by
+        target: TEST-proof-brand-danger-color
+      - type: covered_by
+        target: TEST-proof-brand-deepcarbon-color
+      - type: covered_by
+        target: TEST-proof-brand-ice-color
+      - type: covered_by
+        target: TEST-proof-brand-mist-color
+      - type: covered_by
+        target: TEST-proof-brand-panel-color
+      - type: covered_by
+        target: TEST-proof-brand-rail-color
+      - type: covered_by
+        target: TEST-proof-brand-signal-color
+      - type: covered_by
+        target: TEST-proof-brand-snow-color
+      - type: covered_by
+        target: TEST-proof-brand-success-color
+      - type: covered_by
+        target: TEST-proof-brand-warning-color
       - type: implements
         target: REQ-kibi-branded-health-report
+      - type: implements
+        target: REQ-kibi-report-brand-colors
   - id: SYM-cli-report-brand-logo
     title: renderKibiLogo
     status: active
@@ -30148,8 +30178,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-canonical-init
+      - type: covered_by
+        target: TEST-proof-legacy-config-path-keys
       - type: implements
         target: REQ-cli-init-canonical
+      - type: implements
+        target: REQ-cli-kb-entity-paths
   - id: SYM-canonical-KB_PATHS
     title: KB_PATHS
     status: active
@@ -30185,8 +30219,28 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-canonical-init
+      - type: covered_by
+        target: TEST-proof-canonical-adr-path
+      - type: covered_by
+        target: TEST-proof-canonical-events-path
+      - type: covered_by
+        target: TEST-proof-canonical-facts-path
+      - type: covered_by
+        target: TEST-proof-canonical-flags-path
+      - type: covered_by
+        target: TEST-proof-canonical-path-kinds
+      - type: covered_by
+        target: TEST-proof-canonical-requirements-path
+      - type: covered_by
+        target: TEST-proof-canonical-scenarios-path
+      - type: covered_by
+        target: TEST-proof-canonical-symbols-path
+      - type: covered_by
+        target: TEST-proof-canonical-tests-path
       - type: implements
         target: REQ-cli-init-canonical
+      - type: implements
+        target: REQ-cli-kb-entity-paths
   - id: SYM-canonical-LEGACY_DEFAULT_ENTITY_PATHS
     title: LEGACY_DEFAULT_ENTITY_PATHS
     status: active
@@ -45033,11 +45087,23 @@ symbols:
       - type: covered_by
         target: TEST-multilingual-language-catalog
       - type: covered_by
+        target: TEST-proof-tree-sitter-go-extensions
+      - type: covered_by
+        target: TEST-proof-tree-sitter-language-ids
+      - type: covered_by
+        target: TEST-proof-tree-sitter-python-extensions
+      - type: covered_by
+        target: TEST-proof-tree-sitter-rust-extensions
+      - type: covered_by
         target: TEST-source-analysis-v2-contract
+      - type: covered_by
+        target: TEST-tree-sitter-language-authoring-scaffold-cli-e2e
       - type: implements
         target: REQ-multilingual-language-catalog
       - type: implements
         target: REQ-source-analysis-v2
+      - type: implements
+        target: REQ-tree-sitter-language-set
   - id: SYM-source-analysis-v2-validatesourceanalysisresultv2-213d878d
     title: validateSourceAnalysisResultV2
     symbol_role: behavioral
@@ -51987,8 +52053,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-git-hook-effective-install
+      - type: covered_by
+        target: TEST-proof-hook-block-begin
       - type: implements
         target: REQ-git-hook-effective-install
+      - type: implements
+        target: REQ-git-hook-managed-names
   - id: SYM-init-helpers-managed-hook-names
     title: MANAGED_HOOK_NAMES
     status: active
@@ -52000,8 +52070,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-git-hook-effective-install
+      - type: covered_by
+        target: TEST-proof-managed-hook-names
       - type: implements
         target: REQ-git-hook-effective-install
+      - type: implements
+        target: REQ-git-hook-managed-names
   - id: SYM-init-helpers-managed-hook-name-type
     title: ManagedHookName
     status: active
@@ -56926,6 +57000,16 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-signoff-views
+      - type: covered_by
+        target: TEST-proof-signoff-change-changed-label
+      - type: covered_by
+        target: TEST-proof-signoff-change-names
+      - type: covered_by
+        target: TEST-proof-signoff-change-new-label
+      - type: covered_by
+        target: TEST-proof-signoff-change-retired-label
+      - type: implements
+        target: REQ-kibi-signoff-labels
       - type: implements
         target: REQ-kibi-signoff-views
   - id: SYM-cli-signoff-model-signoff-fences
@@ -56958,6 +57042,22 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-signoff-views
+      - type: covered_by
+        target: TEST-proof-signoff-gate-e2e-label
+      - type: covered_by
+        target: TEST-proof-signoff-gate-evidence-label
+      - type: covered_by
+        target: TEST-proof-signoff-gate-implementation-label
+      - type: covered_by
+        target: TEST-proof-signoff-gate-names
+      - type: covered_by
+        target: TEST-proof-signoff-gate-scenario-label
+      - type: covered_by
+        target: TEST-proof-signoff-gate-semantic-label
+      - type: covered_by
+        target: TEST-proof-signoff-gate-tested-label
+      - type: implements
+        target: REQ-kibi-signoff-labels
       - type: implements
         target: REQ-kibi-signoff-views
   - id: SYM-cli-signoff-model-signoff-latest-html
@@ -63339,3 +63439,563 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-entity-row-batch-limit
+  - id: SYM-proof-signoff-gate-names
+    title: signoffGateNamesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/signoff-labels.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:21:44.667Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-signoff-gate-names
+  - id: SYM-proof-signoff-change-names
+    title: signoffChangeNamesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/signoff-labels.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:22:03.714Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-signoff-change-names
+  - id: SYM-proof-signoff-gate-semantic-label
+    title: signoffGateSemanticLabelCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/signoff-labels.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:22:22.390Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-signoff-gate-semantic-label
+  - id: SYM-proof-signoff-gate-scenario-label
+    title: signoffGateScenarioLabelCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/signoff-labels.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:22:41.417Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-signoff-gate-scenario-label
+  - id: SYM-proof-signoff-gate-implementation-label
+    title: signoffGateImplementationLabelCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/signoff-labels.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:23:00.174Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-signoff-gate-implementation-label
+  - id: SYM-proof-signoff-gate-e2e-label
+    title: signoffGateE2eLabelCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/signoff-labels.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:23:19.358Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-signoff-gate-e2e-label
+  - id: SYM-proof-signoff-gate-evidence-label
+    title: signoffGateEvidenceLabelCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/signoff-labels.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:23:37.632Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-signoff-gate-evidence-label
+  - id: SYM-proof-signoff-gate-tested-label
+    title: signoffGateTestedLabelCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/signoff-labels.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:23:56.792Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-signoff-gate-tested-label
+  - id: SYM-proof-signoff-change-new-label
+    title: signoffChangeNewLabelCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/signoff-labels.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:24:15.633Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-signoff-change-new-label
+  - id: SYM-proof-signoff-change-changed-label
+    title: signoffChangeChangedLabelCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/signoff-labels.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:24:34.221Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-signoff-change-changed-label
+  - id: SYM-proof-signoff-change-retired-label
+    title: signoffChangeRetiredLabelCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/signoff-labels.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:24:52.502Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-signoff-change-retired-label
+  - id: SYM-proof-brand-color-names
+    title: brandColorNamesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/report-brand-colors.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:27:54.580Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-brand-color-names
+  - id: SYM-proof-brand-carbon-color
+    title: brandCarbonColorCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/report-brand-colors.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:28:11.173Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-brand-carbon-color
+  - id: SYM-proof-brand-deepcarbon-color
+    title: brandDeepcarbonColorCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/report-brand-colors.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:28:27.775Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-brand-deepcarbon-color
+  - id: SYM-proof-brand-panel-color
+    title: brandPanelColorCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/report-brand-colors.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:28:44.163Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-brand-panel-color
+  - id: SYM-proof-brand-ice-color
+    title: brandIceColorCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/report-brand-colors.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:29:00.073Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-brand-ice-color
+  - id: SYM-proof-brand-signal-color
+    title: brandSignalColorCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/report-brand-colors.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:29:16.353Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-brand-signal-color
+  - id: SYM-proof-brand-snow-color
+    title: brandSnowColorCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/report-brand-colors.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:29:32.832Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-brand-snow-color
+  - id: SYM-proof-brand-mist-color
+    title: brandMistColorCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/report-brand-colors.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:29:49.238Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-brand-mist-color
+  - id: SYM-proof-brand-rail-color
+    title: brandRailColorCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/report-brand-colors.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:30:05.329Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-brand-rail-color
+  - id: SYM-proof-brand-success-color
+    title: brandSuccessColorCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/report-brand-colors.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:30:21.895Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-brand-success-color
+  - id: SYM-proof-brand-warning-color
+    title: brandWarningColorCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/report-brand-colors.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:30:38.393Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-brand-warning-color
+  - id: SYM-proof-brand-danger-color
+    title: brandDangerColorCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/report-brand-colors.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:30:55.041Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-brand-danger-color
+  - id: SYM-proof-canonical-path-kinds
+    title: canonicalPathKindsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/kb-entity-paths.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:33:45.163Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-canonical-path-kinds
+  - id: SYM-proof-legacy-config-path-keys
+    title: legacyConfigPathKeysCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/kb-entity-paths.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:34:01.650Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-legacy-config-path-keys
+  - id: SYM-proof-canonical-requirements-path
+    title: canonicalRequirementsPathCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/kb-entity-paths.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:34:18.032Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-canonical-requirements-path
+  - id: SYM-proof-canonical-scenarios-path
+    title: canonicalScenariosPathCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/kb-entity-paths.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:34:34.190Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-canonical-scenarios-path
+  - id: SYM-proof-canonical-tests-path
+    title: canonicalTestsPathCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/kb-entity-paths.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:34:50.510Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-canonical-tests-path
+  - id: SYM-proof-canonical-adr-path
+    title: canonicalAdrPathCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/kb-entity-paths.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:35:06.691Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-canonical-adr-path
+  - id: SYM-proof-canonical-flags-path
+    title: canonicalFlagsPathCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/kb-entity-paths.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:35:22.771Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-canonical-flags-path
+  - id: SYM-proof-canonical-events-path
+    title: canonicalEventsPathCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/kb-entity-paths.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:35:38.834Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-canonical-events-path
+  - id: SYM-proof-canonical-facts-path
+    title: canonicalFactsPathCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/kb-entity-paths.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:35:54.985Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-canonical-facts-path
+  - id: SYM-proof-canonical-symbols-path
+    title: canonicalSymbolsPathCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/kb-entity-paths.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:36:10.305Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-canonical-symbols-path
+  - id: SYM-proof-operation-catalog-names
+    title: operationCatalogNamesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/operation-catalog-names.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:38:39.756Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-operation-catalog-names
+  - id: SYM-proof-hook-block-begin
+    title: hookBlockBeginCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/git-hook-managed-names.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:40:29.442Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-hook-block-begin
+  - id: SYM-proof-managed-hook-names
+    title: managedHookNamesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/git-hook-managed-names.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:40:46.354Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-managed-hook-names
+  - id: SYM-proof-tree-sitter-language-ids
+    title: treeSitterLanguageIdsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/tree-sitter-languages.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:41:45.604Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-tree-sitter-language-ids
+  - id: SYM-proof-tree-sitter-python-extensions
+    title: treeSitterPythonExtensionsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/tree-sitter-languages.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:42:00.541Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-tree-sitter-python-extensions
+  - id: SYM-proof-tree-sitter-go-extensions
+    title: treeSitterGoExtensionsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/tree-sitter-languages.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:42:16.120Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-tree-sitter-go-extensions
+  - id: SYM-proof-tree-sitter-rust-extensions
+    title: treeSitterRustExtensionsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/tree-sitter-languages.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-28T22:42:32.474Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-tree-sitter-rust-extensions

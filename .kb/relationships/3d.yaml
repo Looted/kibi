@@ -370,3 +370,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-48ce0143d5eb
+  - type: validates
+    from: TEST-proof-signoff-change-names
+    to: SCEN-kibi-signoff-views
+    created_at: 2026-10-28T22:22:02.652Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-072bc7abdfa1

@@ -370,3 +370,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-64bcf7467cea
+  - type: validates
+    from: TEST-proof-canonical-symbols-path
+    to: SCEN-cli-canonical-init
+    created_at: 2026-10-28T22:36:09.394Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a93fe4f6fd90

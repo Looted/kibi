@@ -258,3 +258,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1e97a19481ff
+  - type: executable_for
+    from: SYM-proof-signoff-gate-scenario-label
+    to: TEST-proof-signoff-gate-scenario-label
+    created_at: 2026-10-28T22:22:42.377Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48ecea8384af

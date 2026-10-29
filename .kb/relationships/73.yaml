@@ -293,3 +293,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f34e787147b0
+  - type: executable_for
+    from: SYM-proof-legacy-config-path-keys
+    to: TEST-proof-legacy-config-path-keys
+    created_at: 2026-10-28T22:34:02.523Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b19c3c864586

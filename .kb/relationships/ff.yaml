@@ -447,3 +447,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3df85bb907e0
+  - type: validates
+    from: TEST-proof-legacy-config-path-keys
+    to: SCEN-cli-canonical-init
+    created_at: 2026-10-28T22:34:00.709Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-425a7a84b10f

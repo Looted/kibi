@@ -223,3 +223,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6dfe08bab3e7
+  - type: executable_for
+    from: SYM-proof-brand-success-color
+    to: TEST-proof-brand-success-color
+    created_at: 2026-10-28T22:30:22.865Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04aba0402971

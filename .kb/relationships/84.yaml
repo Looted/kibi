@@ -265,3 +265,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-599090df9398
+  - type: validates
+    from: TEST-proof-signoff-change-changed-label
+    to: SCEN-kibi-signoff-views
+    created_at: 2026-10-28T22:24:33.291Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b2ea371ef2b

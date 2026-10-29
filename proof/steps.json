@@ -5872,5 +5872,405 @@
         "./packages/cli/tests/proofs/claims/operation-row-limits.proof.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-proof-signoff-gate-names",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/signoff-labels.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-signoff-change-names",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/signoff-labels.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-signoff-gate-semantic-label",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/signoff-labels.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-signoff-gate-scenario-label",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/signoff-labels.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-signoff-gate-implementation-label",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/signoff-labels.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-signoff-gate-e2e-label",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/signoff-labels.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-signoff-gate-evidence-label",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/signoff-labels.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-signoff-gate-tested-label",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/signoff-labels.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-signoff-change-new-label",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/signoff-labels.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-signoff-change-changed-label",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/signoff-labels.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-signoff-change-retired-label",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/signoff-labels.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-brand-color-names",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/report-brand-colors.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-brand-carbon-color",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/report-brand-colors.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-brand-deepcarbon-color",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/report-brand-colors.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-brand-panel-color",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/report-brand-colors.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-brand-ice-color",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/report-brand-colors.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-brand-signal-color",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/report-brand-colors.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-brand-snow-color",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/report-brand-colors.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-brand-mist-color",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/report-brand-colors.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-brand-rail-color",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/report-brand-colors.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-brand-success-color",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/report-brand-colors.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-brand-warning-color",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/report-brand-colors.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-brand-danger-color",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/report-brand-colors.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-canonical-path-kinds",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/kb-entity-paths.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-legacy-config-path-keys",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/kb-entity-paths.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-canonical-requirements-path",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/kb-entity-paths.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-canonical-scenarios-path",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/kb-entity-paths.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-canonical-tests-path",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/kb-entity-paths.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-canonical-adr-path",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/kb-entity-paths.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-canonical-flags-path",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/kb-entity-paths.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-canonical-events-path",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/kb-entity-paths.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-canonical-facts-path",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/kb-entity-paths.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-canonical-symbols-path",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/kb-entity-paths.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-operation-catalog-names",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/operation-catalog-names.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-hook-block-begin",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/git-hook-managed-names.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-managed-hook-names",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/git-hook-managed-names.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-tree-sitter-language-ids",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/tree-sitter-languages.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-tree-sitter-python-extensions",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/tree-sitter-languages.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-tree-sitter-go-extensions",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/tree-sitter-languages.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-tree-sitter-rust-extensions",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/tree-sitter-languages.proof.test.ts"
+      ]
+    ]
   }
 ]

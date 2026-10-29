@@ -314,3 +314,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0c0f33484883
+  - type: executable_for
+    from: SYM-proof-brand-rail-color
+    to: TEST-proof-brand-rail-color
+    created_at: 2026-10-28T22:30:06.300Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd6e799313fe
+  - type: implements
+    from: SYM-canonical-LEGACY_CONFIG_PATH_KEYS
+    to: REQ-cli-kb-entity-paths
+    created_at: 2026-10-28T22:33:58.493Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d31455f92da7
+  - type: covered_by
+    from: SYM-canonical-LEGACY_CONFIG_PATH_KEYS
+    to: TEST-proof-legacy-config-path-keys
+    created_at: 2026-10-28T22:34:08.383Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8cea39a79bbb

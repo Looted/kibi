@@ -426,3 +426,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9b31c807f7f6
+  - type: implements
+    from: SYM-init-helpers-kibi-hook-begin
+    to: REQ-git-hook-managed-names
+    created_at: 2026-10-28T22:40:26.683Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b947f3e84f36
+  - type: covered_by
+    from: SYM-init-helpers-kibi-hook-begin
+    to: TEST-proof-hook-block-begin
+    created_at: 2026-10-28T22:40:36.801Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb6bf9c80bff

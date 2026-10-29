@@ -272,3 +272,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f9bd47a5c008
+  - type: validates
+    from: TEST-proof-signoff-gate-scenario-label
+    to: SCEN-kibi-signoff-views
+    created_at: 2026-10-28T22:22:40.316Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c423288eb7e0

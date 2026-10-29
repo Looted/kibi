@@ -398,3 +398,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8d22cb5ad3b8
+  - type: executable_for
+    from: SYM-proof-signoff-gate-semantic-label
+    to: TEST-proof-signoff-gate-semantic-label
+    created_at: 2026-10-28T22:22:23.372Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4a4b3763642

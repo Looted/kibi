@@ -321,3 +321,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2fd566c7735b
+  - type: executable_for
+    from: SYM-proof-signoff-gate-evidence-label
+    to: TEST-proof-signoff-gate-evidence-label
+    created_at: 2026-10-28T22:23:38.659Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-96c57a052a60

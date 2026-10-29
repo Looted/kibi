@@ -440,3 +440,101 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4979a1d36cfa
+  - type: requires_property
+    from: REQ-kibi-report-brand-colors
+    to: FACT-brand-color-names
+    created_at: 2026-10-28T22:27:43.958Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-96f081428f5b
+  - type: requires_property
+    from: REQ-kibi-report-brand-colors
+    to: FACT-brand-carbon-color
+    created_at: 2026-10-28T22:27:43.991Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0fb43ddf5f29
+  - type: requires_property
+    from: REQ-kibi-report-brand-colors
+    to: FACT-brand-deepcarbon-color
+    created_at: 2026-10-28T22:27:44.015Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6e8a2b52ce0
+  - type: requires_property
+    from: REQ-kibi-report-brand-colors
+    to: FACT-brand-panel-color
+    created_at: 2026-10-28T22:27:44.037Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71b35860e809
+  - type: requires_property
+    from: REQ-kibi-report-brand-colors
+    to: FACT-brand-ice-color
+    created_at: 2026-10-28T22:27:44.055Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-136a05f0231e
+  - type: requires_property
+    from: REQ-kibi-report-brand-colors
+    to: FACT-brand-signal-color
+    created_at: 2026-10-28T22:27:44.073Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf6a681a2e9a
+  - type: requires_property
+    from: REQ-kibi-report-brand-colors
+    to: FACT-brand-snow-color
+    created_at: 2026-10-28T22:27:44.089Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cfeae09bc3ae
+  - type: requires_property
+    from: REQ-kibi-report-brand-colors
+    to: FACT-brand-mist-color
+    created_at: 2026-10-28T22:27:44.105Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49555763bd2f
+  - type: requires_property
+    from: REQ-kibi-report-brand-colors
+    to: FACT-brand-rail-color
+    created_at: 2026-10-28T22:27:44.120Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45bda7f35f04
+  - type: requires_property
+    from: REQ-kibi-report-brand-colors
+    to: FACT-brand-success-color
+    created_at: 2026-10-28T22:27:44.135Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5a944cd05c9
+  - type: requires_property
+    from: REQ-kibi-report-brand-colors
+    to: FACT-brand-warning-color
+    created_at: 2026-10-28T22:27:44.148Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12733dca29f8
+  - type: requires_property
+    from: REQ-kibi-report-brand-colors
+    to: FACT-brand-danger-color
+    created_at: 2026-10-28T22:27:44.162Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28ee85bebced
+  - type: specified_by
+    from: REQ-kibi-report-brand-colors
+    to: SCEN-kibi-branded-health-report
+    created_at: 2026-10-28T22:27:44.175Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa17700dc903
+  - type: constrains
+    from: REQ-kibi-report-brand-colors
+    to: FACT-kibi-report-brand-colors-component
+    created_at: 2026-10-28T22:27:46.069Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff644a922c05

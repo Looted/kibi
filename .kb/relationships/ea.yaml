@@ -181,3 +181,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-95d2b49129c3
+  - type: validates
+    from: TEST-proof-tree-sitter-go-extensions
+    to: SCEN-tree-sitter-language-authoring-scaffold
+    created_at: 2026-10-28T22:42:15.194Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c32c1c4b5b9

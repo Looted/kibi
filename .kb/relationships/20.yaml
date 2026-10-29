@@ -426,3 +426,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ae086d07a24d
+  - type: implements
+    from: SYM-cli-signoff-model-signoff-change-labels
+    to: REQ-kibi-signoff-labels
+    created_at: 2026-10-28T22:22:00.676Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ea616a9d50a
+  - type: covered_by
+    from: SYM-cli-signoff-model-signoff-change-labels
+    to: TEST-proof-signoff-change-names
+    created_at: 2026-10-28T22:22:11.630Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c5708fa7e8d
+  - type: covered_by
+    from: SYM-cli-signoff-model-signoff-change-labels
+    to: TEST-proof-signoff-change-new-label
+    created_at: 2026-10-28T22:24:23.963Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b1f5349ca63d
+  - type: covered_by
+    from: SYM-cli-signoff-model-signoff-change-labels
+    to: TEST-proof-signoff-change-changed-label
+    created_at: 2026-10-28T22:24:41.964Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c89341678257
+  - type: covered_by
+    from: SYM-cli-signoff-model-signoff-change-labels
+    to: TEST-proof-signoff-change-retired-label
+    created_at: 2026-10-28T22:25:00.725Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-289207517182
+  - type: executable_for
+    from: SYM-proof-tree-sitter-language-ids
+    to: TEST-proof-tree-sitter-language-ids
+    created_at: 2026-10-28T22:41:46.407Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d666ea7e3adb

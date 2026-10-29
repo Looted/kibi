@@ -195,3 +195,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4d4070b46adb
+  - type: validates
+    from: TEST-proof-brand-carbon-color
+    to: SCEN-kibi-branded-health-report
+    created_at: 2026-10-28T22:28:10.173Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ccdce8658ca

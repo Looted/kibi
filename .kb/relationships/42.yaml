@@ -293,3 +293,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-01cd54d57312
+  - type: executable_for
+    from: SYM-proof-canonical-path-kinds
+    to: TEST-proof-canonical-path-kinds
+    created_at: 2026-10-28T22:33:45.937Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b371bfecc87a
