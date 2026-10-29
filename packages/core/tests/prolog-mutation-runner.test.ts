@@ -114,7 +114,7 @@ describe("run-prolog-mutation.pl", () => {
     writeStub(path.join(packDir, "prolog"), "pack");
     writeFileSync(
       path.join(packDir, "pack.pl"),
-      "name(mutalog).\nversion('0.1.2').\ntitle('Mutalog stub').\n",
+      "name(mutalog).\nversion('0.2.0').\ntitle('Mutalog stub').\n",
       "utf8",
     );
 

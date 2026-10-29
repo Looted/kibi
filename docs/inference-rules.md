@@ -22,7 +22,6 @@ Kibi includes deterministic derived predicates for internal analysis and automat
 - `predicate_fact(FactId, Namespace, Name, Args, Polarity)`
 - `logic_rule_from_props(Props, Rule)`
 - `logic_rule_safety(Props, Errors)`
-- `logic_derive(Goal, Proof)` (bounded, data-driven closure)
 - `logic_rule_conflict(RuleA, RuleB, Status)`
 
 ## Must-priority coverage semantics
