@@ -51,6 +51,7 @@ origin:
   recorded_at: '2026-10-24T20:31:49.266Z'
 id: REQ-kibi-intervals-verified
 type: req
+failure_side_waiver: "The claims are exactness and agreement properties proved in Lean and checked differentially; an unsatisfiable answer is correct output, not a refusal."
 ---
 Kibi must decide whether one-variable numeric comparisons are satisfiable exactly, for real and for integer variables. Kibi must decide that numeric premises entail a comparison exactly when no admissible value satisfies the premises and breaks the comparison. Kibi must keep a Lean 4 model of the interval and integer-range folds whose soundness and completeness proofs build in CI without sorry. The Lean model, intervals.pl and a CLP(Q) and CLP(FD) oracle must agree on every generated differential case.
 

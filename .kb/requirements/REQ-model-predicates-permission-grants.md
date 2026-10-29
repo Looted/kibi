@@ -61,6 +61,7 @@ origin:
   recorded_at: '2026-10-11T18:43:17.680Z'
 id: REQ-model-predicates-permission-grants
 type: req
+failure_side_waiver: "The claims widen what kb_model accepts (capability-grant wording becomes permission rules); they are acceptance claims with nothing to refuse."
 ---
 # kb_model accepts capability grants as permission rules
 

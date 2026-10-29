@@ -34,6 +34,7 @@ origin:
   recorded_at: '2026-10-14T21:06:48.606Z'
 id: REQ-cli-migrate-entity-type-backfill
 type: req
+failure_side_waiver: "The claims describe a file transformation (add the folder-implied type, leave every other line unchanged); migrate refuses nothing here."
 ---
 kibi migrate must add the folder-implied type to the front matter of every authored entity file that has no type field, at any schema version. That edit must leave every other line of the file unchanged.
 

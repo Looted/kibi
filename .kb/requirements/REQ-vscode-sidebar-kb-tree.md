@@ -40,6 +40,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+failure_side_waiver: "Structural tree rendering in the VS Code sidebar; nothing is refused."
 ---
 
 The VS Code extension must provide a structural View of the KB:

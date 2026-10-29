@@ -42,6 +42,7 @@ origin:
   recorded_at: '2026-10-06T21:26:34.223Z'
 id: REQ-docs-site-terminal-demo
 type: req
+failure_side_waiver: "The claims require the README image to be generated from the landing-page scenes; the test compares committed and generated output, and nothing is refused."
 ---
 The documentation landing page and the README show the same animated terminal scenes of Kibi use cases. The README terminal image is generated from the landing page terminal scenes.
 

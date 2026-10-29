@@ -70,6 +70,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+failure_side_waiver: "The claims govern the wording of agent guidance (MCP and CLI as peers); guidance text has no input or attempt for Kibi to refuse."
 ---
 
 Agent-facing guidance must treat the Kibi public MCP and CLI surfaces as peers.

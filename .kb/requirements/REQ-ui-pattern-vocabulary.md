@@ -40,6 +40,7 @@ id: REQ-ui-pattern-vocabulary
 type: req
 firmness: firm
 approval_ref: Maintainer confirmed this as a firm rule on 2026-10-16
+failure_side_waiver: "The claims say the catalog offers the UI predicates and routes UI prose to them; vocabulary presence has no refusal side."
 ---
 The built-in predicate catalog must offer the ui_pattern, same_pattern, pattern_marker and ui_container schemas. Predicate suggestions must route UI pattern prose to the UI predicates instead of coding standard rules.
 

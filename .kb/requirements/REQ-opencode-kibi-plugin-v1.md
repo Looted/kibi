@@ -77,5 +77,6 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+failure_side_waiver: "An umbrella requirement; its claims point at granular requirements, which carry the failure-side scenarios."
 ---
 The OpenCode Kibi Plugin provides Kibi context and synchronization within OpenCode. Agent-facing bootstrap guidance routes to the canonical kibi-bootstrap skill and kb_plan_bootstrap plan/apply contract; other work follows typed status and the canonical usage, freshness, and traceability skills.

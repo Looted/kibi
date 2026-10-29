@@ -49,5 +49,6 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+failure_side_waiver: "The claims describe a static shard configuration (which paths, process isolation, one summary test); the runner refuses nothing."
 ---
 For the scripts coverage shard, the runner must list every recursively discovered scripts/tests path matching the test/spec filename pattern. The scripts coverage shard must include test/root-summary.test.ts exactly once after those paths. The scripts coverage shard must request process-per-file isolation.

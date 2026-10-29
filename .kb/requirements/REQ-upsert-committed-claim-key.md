@@ -27,6 +27,7 @@ origin:
   recorded_at: '2026-10-12T18:54:49.600Z'
 id: REQ-upsert-committed-claim-key
 type: req
+failure_side_waiver: "An output guarantee: a committed fact upsert returns its stored claim key. There is no input for Kibi to refuse."
 ---
 ## Context
 

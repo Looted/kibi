@@ -34,6 +34,7 @@ origin:
   recorded_at: '2026-10-08T21:05:24.863Z'
 id: REQ-check-strict-pairing-predicate-grounding-v2
 type: req
+failure_side_waiver: "Both claims say what strict pairing must accept. They are acceptance claims, so the opposing fact would describe a broken check rather than an attempt Kibi refuses."
 ---
 Strict pairing checks must accept a requires_predicate fact whose argument named subject holds the constrained subject key. Strict pairing checks must accept a requires_predicate fact whose own subject key is the constrained subject key.
 
