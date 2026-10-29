@@ -517,3 +517,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5d13545f12a0
+  - type: specified_by
+    from: REQ-test-journaled-engine-harness
+    to: SCEN-NEG-test-journaled-engine-harness-LEAKED-OWNED-ENGINE
+    created_at: 2026-10-29T21:10:17.985Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bed6e472ca48

@@ -426,3 +426,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9ca230eefa24
+  - type: specified_by
+    from: REQ-symbol-sourcefile-workspace-confinement
+    to: SCEN-NEG-symbol-sourcefile-workspace-confinement-ESCAPING-SOURCEFILE
+    created_at: 2026-10-29T21:10:02.736Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b99cf86fa76d

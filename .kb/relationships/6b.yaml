@@ -440,3 +440,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eb6bf9c80bff
+  - type: assumes
+    from: SCEN-NEG-tree-sitter-language-authoring-scaffold-EXISTING-LANGUAGE-DIR
+    to: FACT-NEG-tree-sitter-language-authoring-scaffold-EXISTING-LANGUAGE-DIR
+    created_at: 2026-10-29T21:10:27.274Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b12baa73642
+  - type: verified_by
+    from: SCEN-NEG-tree-sitter-language-authoring-scaffold-EXISTING-LANGUAGE-DIR
+    to: TEST-tree-sitter-language-authoring-scaffold-cli-e2e
+    created_at: 2026-10-29T21:10:27.375Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05bb901a1250

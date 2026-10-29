@@ -524,3 +524,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f44fa4c97ce4
+  - type: specified_by
+    from: REQ-ui-pattern-component-proof
+    to: SCEN-NEG-ui-pattern-component-proof-UNIT-TEST-FOR-LAYOUT
+    created_at: 2026-10-29T21:10:46.199Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd3d867bc48b
