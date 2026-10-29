@@ -35,6 +35,7 @@ use_mutalog :-
     (   pack_property(mutalog, version(Version))
     ->  true
     ;   format(user_error, "Installing Mutalog ~w into ~w~n", [Version, Dir]),
+        use_system_ca_bundle,
         format(atom(URL),
                'https://github.com/Looted/mutalog/archive/v~w.zip', [Version]),
         pack_install(URL, [ package_directory(Dir),
@@ -44,3 +45,19 @@ use_mutalog :-
         attach_packs(Dir, [duplicate(replace)])
     ),
     use_module(library(mutalog)).
+
+% The relocated SWI-Prolog bundle has no compiled-in certificate path, so
+% HTTPS downloads fail verification unless OpenSSL is pointed at the
+% system's CA bundle. An SSL_CERT_FILE set by the caller wins.
+use_system_ca_bundle :-
+    getenv('SSL_CERT_FILE', _),
+    !.
+use_system_ca_bundle :-
+    member(File, [ '/etc/ssl/certs/ca-certificates.crt',
+                   '/etc/pki/tls/certs/ca-bundle.crt',
+                   '/etc/ssl/cert.pem'
+                 ]),
+    exists_file(File),
+    !,
+    setenv('SSL_CERT_FILE', File).
+use_system_ca_bundle.
