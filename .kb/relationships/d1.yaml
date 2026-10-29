@@ -412,3 +412,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-310f8fdb4277
+  - type: assumes
+    from: SCEN-NEG-cli-doctor-FAILED-CHECK-NO-REMEDY
+    to: FACT-NEG-cli-doctor-FAILED-CHECK-NO-REMEDY
+    created_at: 2026-10-29T20:57:24.595Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4b972682c49
+  - type: verified_by
+    from: SCEN-NEG-cli-doctor-FAILED-CHECK-NO-REMEDY
+    to: TEST-001
+    created_at: 2026-10-29T20:57:24.725Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5c7e7675416
+  - type: specified_by
+    from: REQ-cli-migration-first-commit
+    to: SCEN-NEG-cli-migration-first-commit-HIDDEN-LINK-EDIT
+    created_at: 2026-10-29T21:01:28.951Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c7a09c8df88

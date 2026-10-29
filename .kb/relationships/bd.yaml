@@ -342,3 +342,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8ca90d0a2732
+  - type: specified_by
+    from: REQ-cli-doctor-packed-provenance
+    to: SCEN-NEG-cli-doctor-packed-provenance-FALSE-PROVENANCE-ACTION
+    created_at: 2026-10-29T20:58:14.892Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d0fbace1ec6

@@ -531,3 +531,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cdbdab7f18cf
+  - type: specified_by
+    from: REQ-cursor-consumer-local-mcp-launcher-v1
+    to: SCEN-NEG-cursor-consumer-local-mcp-launcher-v1-MISSING-LOCAL-MCP
+    created_at: 2026-10-29T21:16:05.172Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-867a80a003fc

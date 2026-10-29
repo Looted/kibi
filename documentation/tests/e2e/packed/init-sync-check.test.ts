@@ -83,6 +83,29 @@ if (RUN_NODE_TEST_SUITE) {
       assert.ok(!Object.hasOwn(manifest, "paths"));
     });
 
+    it("should init write no .kb/config.json, path overrides or check-disabling policy", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+
+      await kibi(sandbox, ["init"]);
+
+      assert.ok(
+        !existsSync(join(sandbox.repoDir, ".kb/config.json")),
+        "init must not write a user-configurable .kb/config.json",
+      );
+      const manifest = JSON.parse(
+        readFileSync(join(sandbox.repoDir, ".kb/manifest.json"), "utf8"),
+      ) as Record<string, unknown>;
+      for (const key of ["paths", "checks", "rules", "disabledRules"]) {
+        assert.ok(
+          !Object.hasOwn(manifest, key),
+          `manifest.json must not carry a ${key} override: ${JSON.stringify(manifest)}`,
+        );
+      }
+    });
+
     it("should sync imports entities from documents", async (testContext) => {
       if (!hasProlog) {
         testContext.skip("SWI-Prolog is unavailable");
@@ -189,6 +212,52 @@ if (RUN_NODE_TEST_SUITE) {
 
         assert.ok(stdout.includes("Authentication Required"));
         assert.ok(stdout.includes("security"));
+      },
+    );
+
+    it(
+      "should not import a README.md inside an entity directory",
+      { timeout: 20000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        await kibi(sandbox, ["init"]);
+
+        createMarkdownFile(
+          sandbox,
+          ".kb/requirements/req-kept.md",
+          {
+            id: "req-kept",
+            title: "Kept Requirement",
+            type: "req",
+            status: "open",
+          },
+          "A real requirement next to the directory README.\n\n## Context\n\nFixture requirement for the packed init, sync and check test; it exists only to exercise the CLI and no further reason is stated.",
+        );
+        createMarkdownFile(
+          sandbox,
+          ".kb/requirements/README.md",
+          {
+            id: "req-readme",
+            title: "Directory Readme Posing As Requirement",
+            type: "req",
+            status: "open",
+          },
+          "This file explains the directory and must never become an entity.",
+        );
+
+        await kibi(sandbox, ["sync"]);
+
+        const { stdout } = await kibi(sandbox, ["query", "req"]);
+
+        assert.ok(stdout.includes("Kept Requirement"));
+        assert.ok(
+          !stdout.includes("Directory Readme Posing As Requirement"),
+          `README.md must not be imported as an entity: ${stdout}`,
+        );
       },
     );
 

@@ -258,3 +258,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a7d2101bc57d
+  - type: specified_by
+    from: REQ-codex-consumer-local-mcp-registration-v1
+    to: SCEN-NEG-codex-consumer-local-mcp-registration-v1-NON-LOCAL-MCP
+    created_at: 2026-10-29T21:06:21.711Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-829430d269c9

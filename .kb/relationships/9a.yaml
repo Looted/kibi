@@ -328,3 +328,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-12ca6242f773
+  - type: specified_by
+    from: REQ-core-journaled-engine-persistence
+    to: SCEN-NEG-core-journaled-engine-persistence-UNVERIFIED-MIGRATION
+    created_at: 2026-10-29T21:11:29.065Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18e553a92f56

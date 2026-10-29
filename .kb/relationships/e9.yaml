@@ -377,3 +377,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-28fd992d08c6
+  - type: specified_by
+    from: REQ-docs-site-root-pages
+    to: SCEN-NEG-docs-site-root-pages-BROKEN-LINK-PUBLISHED
+    created_at: 2026-10-29T21:15:00.088Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-522054ad41f1

@@ -293,3 +293,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-132c8281d7c3
+  - type: assumes
+    from: SCEN-NEG-docs-site-root-pages-BROKEN-LINK-PUBLISHED
+    to: FACT-NEG-docs-site-root-pages-BROKEN-LINK-PUBLISHED
+    created_at: 2026-10-29T21:14:55.010Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39cef4d57c41
+  - type: verified_by
+    from: SCEN-NEG-docs-site-root-pages-BROKEN-LINK-PUBLISHED
+    to: TEST-docs-site-pages
+    created_at: 2026-10-29T21:14:55.112Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-597e4e57b57e

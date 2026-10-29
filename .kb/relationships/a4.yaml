@@ -447,3 +447,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e205762530ab
+  - type: assumes
+    from: SCEN-NEG-core-validation-rules-UNCOVERED-MUST
+    to: FACT-NEG-core-validation-rules-UNCOVERED-MUST
+    created_at: 2026-10-29T21:10:56.783Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44fd5db0a29a
+  - type: verified_by
+    from: SCEN-NEG-core-validation-rules-UNCOVERED-MUST
+    to: TEST-001
+    created_at: 2026-10-29T21:10:56.846Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0993c0867933

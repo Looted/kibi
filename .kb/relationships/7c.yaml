@@ -321,3 +321,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-39f61cfd4bae
+  - type: assumes
+    from: SCEN-NEG-cli-staged-impact-enforcement-NO-IMPACT-EVIDENCE
+    to: FACT-NEG-cli-staged-impact-enforcement-NO-IMPACT-EVIDENCE
+    created_at: 2026-10-29T21:03:36.894Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-caea56b52203
+  - type: verified_by
+    from: SCEN-NEG-cli-staged-impact-enforcement-NO-IMPACT-EVIDENCE
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-10-29T21:03:37.034Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-948f344869fe
