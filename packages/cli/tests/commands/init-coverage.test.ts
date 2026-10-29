@@ -99,7 +99,7 @@ describe("initCommand remaining branches", () => {
     expect(io.logText()).toContain("Kibi initialized");
     expect(io.logText()).toContain("Added .github/workflows/kibi-report.yml");
     expect(readFileSync(path.join(cwd, "README.md"), "utf8")).toContain(
-      "https://acme.github.io/widgets/kibi-report/badge.svg",
+      "https://acme.github.io/Widgets/kibi-report/badge.svg",
     );
   });
 

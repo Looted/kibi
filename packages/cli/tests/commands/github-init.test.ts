@@ -120,10 +120,22 @@ describe("GitHub remote parsing", () => {
 });
 
 describe("GitHub Pages URLs", () => {
-  test("builds project-site URLs in lowercase", () => {
+  test("lower-cases the owner host and keeps a lowercase repository path", () => {
     expect(githubPagesUrls({ owner: "Looted", repo: "kibi" })).toEqual({
       siteUrl: "https://looted.github.io/kibi/kibi-report/",
       badgeUrl: "https://looted.github.io/kibi/kibi-report/badge.svg",
+    });
+  });
+
+  test("keeps the repository name's case in the project-site path", () => {
+    const repo = resolveGitHubRepo([
+      { name: "origin", url: "git@github.com:Owner/MyRepo.git" },
+    ]);
+    expect(repo).toEqual({ owner: "Owner", repo: "MyRepo" });
+    if (!repo) throw new Error("expected a GitHub remote");
+    expect(githubPagesUrls(repo)).toEqual({
+      siteUrl: "https://owner.github.io/MyRepo/kibi-report/",
+      badgeUrl: "https://owner.github.io/MyRepo/kibi-report/badge.svg",
     });
   });
 
@@ -137,6 +149,13 @@ describe("GitHub Pages URLs", () => {
 
   test("builds owner-site URLs without a repository segment", () => {
     expect(githubPagesUrls({ owner: "Acme", repo: "Acme.github.io" })).toEqual({
+      siteUrl: "https://acme.github.io/kibi-report/",
+      badgeUrl: "https://acme.github.io/kibi-report/badge.svg",
+    });
+  });
+
+  test("detects owner sites case-insensitively", () => {
+    expect(githubPagesUrls({ owner: "acme", repo: "ACME.GitHub.io" })).toEqual({
       siteUrl: "https://acme.github.io/kibi-report/",
       badgeUrl: "https://acme.github.io/kibi-report/badge.svg",
     });
@@ -367,7 +386,7 @@ describe("GitHub workflow and README scaffolding", () => {
     expect(written).toBe(loadGitHubWorkflowTemplate("report"));
     const readme = readFileSync(path.join(tmpDir, "README.md"), "utf8");
     expect(readme).toContain(
-      "[![Kibi requirement health](https://acme.github.io/widgets/kibi-report/badge.svg)](https://acme.github.io/widgets/kibi-report/)",
+      "[![Kibi requirement health](https://acme.github.io/Widgets/kibi-report/badge.svg)](https://acme.github.io/Widgets/kibi-report/)",
     );
     expect(readme).toContain("# Widgets");
     expect(logs.join("\n")).toContain(
@@ -397,6 +416,24 @@ describe("GitHub workflow and README scaffolding", () => {
     expect(second.readme).toBe("unchanged");
     const readme = readFileSync(path.join(tmpDir, "README.md"), "utf8");
     expect(readme.split("Kibi requirement health").length - 1).toBe(1);
+  });
+
+  test("keeps a manually edited badge instead of adding a second one", () => {
+    const manual =
+      "# Widgets\n\n[![kibi Requirement Health](https://ACME.github.io/Widgets/kibi-report/badge.svg)](https://ACME.github.io/Widgets/kibi-report/)\n";
+    writeFileSync(path.join(tmpDir, "README.md"), manual);
+    const result = scaffoldGitHubIntegration(
+      { cwd: tmpDir, badgeOnly: false },
+      {
+        listRemotes: () => [
+          { name: "origin", url: "git@github.com:Acme/Widgets.git" },
+        ],
+        log: () => {},
+        error: () => {},
+      },
+    );
+    expect(result.readme).toBe("unchanged");
+    expect(readFileSync(path.join(tmpDir, "README.md"), "utf8")).toBe(manual);
   });
 
   test("does not overwrite a customized workflow", () => {
@@ -442,7 +479,7 @@ describe("GitHub workflow and README scaffolding", () => {
       true,
     );
     expect(logs.join("\n")).toContain(
-      "https://acme.github.io/widgets/kibi-report/badge.svg",
+      "https://acme.github.io/Widgets/kibi-report/badge.svg",
     );
   });
 
@@ -490,7 +527,7 @@ describe("GitHub workflow and README scaffolding", () => {
     ).toBe(loadGitHubWorkflowTemplate("badge"));
     const readme = readFileSync(path.join(tmpDir, "README.md"), "utf8");
     expect(readme).toContain(
-      "https://acme.github.io/widgets/kibi-report/badge.svg",
+      "https://acme.github.io/Widgets/kibi-report/badge.svg",
     );
     expect(readme).toContain(KIBI_METRIC_DOCS_URL);
     expect(readme).toContain(`](${KIBI_METRIC_DOCS_URL})`);
