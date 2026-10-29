@@ -1131,4 +1131,39 @@ describe("coordinate merge source reads", () => {
       undefined,
     ]);
   });
+
+  test("legacy spans of one file share its single read", async () => {
+    const symbolCoordinatesExports = await loadSymbolCoordinatesModule();
+    const merge = symbolCoordinatesExports.mergeCoordinatesWithManifest as (
+      symbolRecords: Array<Record<string, unknown>>,
+      coordinateArtifact: { coordinates: Record<string, unknown> } | null,
+      options?: {
+        readonly resolveSourceText?: (sourceFile: string) => string | null;
+      },
+    ) => Array<Record<string, unknown>>;
+    const text = "export const one = 1;\nexport const two = 2;\n";
+    const legacy = (line: number, column: number) => ({
+      sourceFile: "src/a.ts",
+      sourceLine: line,
+      sourceColumn: column,
+      sourceEndLine: line,
+      sourceEndColumn: column + 3,
+    });
+    const reads: string[] = [];
+    const merged = merge(
+      [
+        { id: "SYM-one", title: "one", sourceFile: "src/a.ts" },
+        { id: "SYM-two", title: "two", sourceFile: "src/a.ts" },
+      ],
+      { coordinates: { "SYM-one": legacy(1, 13), "SYM-two": legacy(2, 13) } },
+      {
+        resolveSourceText: (sourceFile) => {
+          reads.push(sourceFile);
+          return sourceFile === "src/a.ts" ? text : null;
+        },
+      },
+    );
+    expect(reads).toEqual(["src/a.ts"]);
+    expect(merged.map((record) => record.sourceLine)).toEqual([1, 2]);
+  });
 });

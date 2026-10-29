@@ -232,6 +232,57 @@ describe("collectSymbolGranularityViolations", () => {
     );
   });
 
+  test("a file whose analysis failed decides nothing", async () => {
+    // A configured source analyzer that is not approved fails every
+    // analysis; the check then leaves the file to the staged gate.
+    const root = workspace({
+      "src/invoices.ts": SERVICE,
+      "package.json": JSON.stringify({
+        name: "p",
+        kibi: {
+          plugins: [
+            {
+              package: "kibi-plugin-unapproved",
+              capabilities: {
+                "kibi.symbol-extractor.v2": { mode: "augment" },
+              },
+            },
+          ],
+        },
+      }),
+      "node_modules/kibi-plugin-unapproved/package.json": JSON.stringify({
+        name: "kibi-plugin-unapproved",
+        version: "1.0.0",
+        type: "module",
+        main: "index.js",
+      }),
+      "node_modules/kibi-plugin-unapproved/index.js": "export {};\n",
+    });
+    const violations = await collectSymbolGranularityViolations(
+      prolog(
+        [
+          {
+            id: "SYM-module",
+            title: "invoices",
+            sourceFile: "src/invoices.ts",
+          },
+          {
+            id: "SYM-create",
+            title: "createInvoice",
+            sourceFile: "src/invoices.ts",
+          },
+        ],
+        [
+          ["SYM-module", "REQ-billing", "implements"],
+          ["SYM-create", "REQ-billing", "implements"],
+        ],
+      ),
+      root,
+      RULES,
+    );
+    expect(violations).toEqual([]);
+  });
+
   describe("analysis cache", () => {
     const symbols: SymbolRow[] = [
       { id: "SYM-module", title: "invoices", sourceFile: "src/invoices.ts" },

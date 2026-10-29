@@ -476,6 +476,9 @@ export function mergeCoordinatesWithManifest(
   };
   const sourceHashes = new Map<string, string | null>();
   const sourceHashOf = (sourceFile: string): string | null => {
+    // rationale: hashing is a pure function of the text, which is read once
+    // above, so recomputing the hash changes only the time a merge takes.
+    // Stryker disable next-line ConditionalExpression
     if (!sourceHashes.has(sourceFile)) {
       const text = resolveSourceText(sourceFile);
       sourceHashes.set(
@@ -525,7 +528,8 @@ export function mergeCoordinatesWithManifest(
         return stripped;
       }
       const currentSourceHash = sourceHashOf(candidate.sourceFile);
-      if (currentSourceHash === null || currentSourceHash !== sourceHash) {
+      // `sourceHash` is a valid hash here, so an unreadable file never matches.
+      if (currentSourceHash !== sourceHash) {
         return stripped;
       }
       return overlaySpan(stripped, candidate);

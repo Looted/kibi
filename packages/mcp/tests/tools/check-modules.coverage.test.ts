@@ -7,7 +7,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import type { PrologProcess } from "kibi-runtime";
 
 import type { ToolConfig, ToolsRuntime } from "../../src/server/tool-types.js";
@@ -139,6 +139,40 @@ describe("MCP check-prolog aggregated parser", () => {
     );
     expect(violations.map((v) => v.entityId)).toEqual(["REQ-FILE"]);
     expect(existsSync(dirname(resultPath))).toBe(false);
+  });
+
+  test("a temp dir with a quote in its path reaches the engine as a valid atom", async () => {
+    const base = mkdtempSync(join(tmpdir(), "kibi-mcp-quote-"));
+    const quoted = join(base, "it's");
+    mkdirSync(quoted);
+    const previous = process.env.TMPDIR;
+    process.env.TMPDIR = quoted;
+    let atom = "";
+    try {
+      const query = async (goal: string) => {
+        const match = goal.match(
+          /check_all_json_file\('((?:[^']|'')+)', true\)/,
+        );
+        if (!match?.[1]) throw new Error(`no result file in goal: ${goal}`);
+        atom = match[1];
+        writeFileSync(atom.replaceAll("''", "'"), "{}", "utf8");
+        return { success: true, bindings: { Transport: "file" } };
+      };
+      const violations = await runAggregatedChecks(
+        { query } as unknown as PrologProcess,
+        new Set(["required-fields"]),
+        true,
+      );
+      expect(violations).toEqual([]);
+    } finally {
+      if (previous === undefined) Reflect.deleteProperty(process.env, "TMPDIR");
+      else process.env.TMPDIR = previous;
+      rmSync(base, { recursive: true, force: true });
+    }
+    expect(atom).toContain("it''s");
+    expect(basename(dirname(atom.replaceAll("''", "'")))).toStartWith(
+      "kibi-check-",
+    );
   });
 
   test("uses check_all_json when requireAdr is false and unwraps nested JSON", async () => {

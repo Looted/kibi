@@ -172,6 +172,9 @@ async function analyzeFiles(
       const decided = analysis;
       // Only a complete parser-backed analysis decides; the staged gate
       // reports an incomplete one itself when the file is touched.
+      // rationale: an incomplete analysis carries no symbols, so extracting
+      // from it finds none either; the check only skips that work.
+      // Stryker disable next-line ConditionalExpression
       if (decided.status !== "ok") continue;
       const symbols = await extractSymbolsFromStagedFileAsync(
         {
@@ -243,10 +246,7 @@ export async function collectSymbolGranularityViolations(
     .filter((file) => file.length > 0)
     .sort();
   if (files.length === 0) return [];
-  const cache =
-    analysisCacheDir === undefined
-      ? null
-      : openSourceAnalysisCache(analysisCacheDir, workspaceRoot);
+  const cache = openSourceAnalysisCache(analysisCacheDir, workspaceRoot);
   const analyses = await analyzeFiles(files, results, workspaceRoot, cache);
   cache?.save();
   return granularityViolations(candidates, analyses, workspaceRoot);

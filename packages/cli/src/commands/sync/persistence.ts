@@ -196,6 +196,9 @@ async function assertRelationshipsReporting(
     const result = await prolog.query(
       `kb_assert_relationships_reporting([${rels.join(", ")}], Failed)`,
     );
+    // rationale: a non-string answer fails to parse below and the catch
+    // returns null too; the type test only narrows for the parser.
+    // Stryker disable next-line ConditionalExpression
     if (!result.success || typeof result.bindings.Failed !== "string") {
       return null;
     }

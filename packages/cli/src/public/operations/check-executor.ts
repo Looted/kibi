@@ -230,7 +230,8 @@ export function uncompiledBranchStoreViolation(
  * the place to keep parsed source analyses. A read-only detached snapshot
  * and an unknown store (an explicit --kb-path) get no cache.
  */
-function analysisCacheDir(
+// implements REQ-cli-check
+export function analysisCacheDir(
   context: OperationContext,
   workspaceRoot: string,
   options: CheckExecutionOptions,
@@ -244,13 +245,13 @@ function analysisCacheDir(
   try {
     const attachment =
       context.branchAttachment ?? resolveBranchAttachment(workspaceRoot);
-    if ("error" in attachment || attachment.readOnly !== undefined) {
-      return undefined;
+    if ("storePath" in attachment && attachment.readOnly === undefined) {
+      return attachment.storePath;
     }
-    return attachment.storePath;
   } catch {
-    return undefined;
+    // A branch that cannot be resolved gets no cache.
   }
+  return undefined;
 }
 
 // implements REQ-kibi-operation-interface-parity, REQ-002

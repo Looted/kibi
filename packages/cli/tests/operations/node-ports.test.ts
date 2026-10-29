@@ -105,6 +105,37 @@ Body
     expect(testContractChanged?.hash).not.toBe(codeChanged?.hash);
   });
 
+  test("hashes a listed file that cannot be read by its error code", async () => {
+    const workspaceRoot = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-workspace-snapshot-unreadable-"),
+    );
+    tempDirs.push(workspaceRoot);
+    execFileSync("git", ["init", "-b", "main"], {
+      cwd: workspaceRoot,
+      stdio: "ignore",
+    });
+    mkdirSync(path.join(workspaceRoot, "src"), { recursive: true });
+    writeFileSync(path.join(workspaceRoot, "src", "a.ts"), "a\n");
+    writeFileSync(path.join(workspaceRoot, "src", "b.ts"), "b\n");
+    execFileSync("git", ["add", "src"], { cwd: workspaceRoot });
+
+    const present = await nodeGit.workspaceSnapshot?.(workspaceRoot);
+    // Still in the index, gone from disk: ENOENT.
+    rmSync(path.join(workspaceRoot, "src", "a.ts"));
+    const removed = await nodeGit.workspaceSnapshot?.(workspaceRoot);
+    const removedAgain = await nodeGit.workspaceSnapshot?.(workspaceRoot);
+    // A directory in its place: EISDIR.
+    mkdirSync(path.join(workspaceRoot, "src", "a.ts"));
+    const replaced = await nodeGit.workspaceSnapshot?.(workspaceRoot);
+
+    expect(removed?.fileCount).toBe(2);
+    expect(removed?.hash).toMatch(/^[a-f0-9]{64}$/);
+    expect(removed?.hash).not.toBe(present?.hash);
+    expect(removedAgain?.hash).toBe(removed?.hash);
+    expect(replaced?.hash).not.toBe(removed?.hash);
+    expect(replaced?.hash).not.toBe(present?.hash);
+  });
+
   test("reports operational artifacts without marking the verification snapshot dirty", async () => {
     const workspaceRoot = mkdtempSync(
       path.join(os.tmpdir(), "kibi-workspace-snapshot-dirty-"),

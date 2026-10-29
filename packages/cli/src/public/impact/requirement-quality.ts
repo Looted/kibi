@@ -142,8 +142,11 @@ function collectFanout(
   const testIds: string[] = [];
   const dependentRequirementIds: string[] = [];
 
-  for (const relationship of index.relationshipsByEntityId.get(requirementId) ??
-    []) {
+  // rationale: every requirement this is called for is in the index, so the
+  // fallback list is never read.
+  // Stryker disable next-line ArrayDeclaration
+  const relationships = index.relationshipsByEntityId.get(requirementId) ?? [];
+  for (const relationship of relationships) {
     if (
       relationship.type === "specified_by" &&
       targetHasType(relationship.to, "scenario", typesByEntityId)

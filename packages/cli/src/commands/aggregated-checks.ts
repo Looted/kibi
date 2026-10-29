@@ -53,6 +53,9 @@ function checkResultFile(): { path: string; dispose: () => void } {
   const dir = mkdtempSync(path.join(tmpdir(), "kibi-check-"));
   return {
     path: path.join(dir, "violations.json"),
+    // rationale: the directory always exists when disposed, so `force` (which
+    // only ignores a missing path) never changes the outcome.
+    // Stryker disable next-line BooleanLiteral
     dispose: () => rmSync(dir, { recursive: true, force: true }),
   };
 }
