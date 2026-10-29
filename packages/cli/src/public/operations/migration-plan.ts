@@ -254,7 +254,14 @@ function summarize(actions: readonly MigrationAction[]) {
 
 // implements REQ-agent-guided-migration-orchestration
 export function buildMigrationPlan(input: PlanInput = {}): MigrationPlan {
-  const actions = dependencyOrder([...(input.actions ?? [])].sort(actionSort));
+  // An id names one action, as in a merged plan: a later definition of the
+  // same id replaces the earlier one instead of being ordered twice.
+  const uniqueActions = [
+    ...new Map(
+      (input.actions ?? []).map((action) => [action.id, action]),
+    ).values(),
+  ];
+  const actions = dependencyOrder(uniqueActions.sort(actionSort));
   const evaluatedDomains = uniqueSorted(input.evaluatedDomains);
   const incompleteDomains = uniqueSorted(input.incompleteDomains);
   const expected = {
