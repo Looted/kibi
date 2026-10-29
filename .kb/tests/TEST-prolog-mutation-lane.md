@@ -21,15 +21,15 @@ id: TEST-prolog-mutation-lane
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-159a6305c121de1311724cf5
+    receipt_id: PR-3aeea4eed68f84353dbc4086
     test_id: TEST-prolog-mutation-lane
     scope: end_to_end
     outcome: passed
-    code_snapshot: 41743ad8ee6448607ad8bb9d7adbd0643f7fa980778c83ace32ffec97dce7e25
+    code_snapshot: 6ccf3709f2500a892ae8740b27b5ea72248412746f41c3ce2d084134433f8ec9
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-29T17:31:47.792Z'
-    finished_at: '2026-10-29T17:31:48.037Z'
-    artifact_digest: 82525d228b60d725dd0348dde8039752a9532bf4efb6e3bd8ea76ea2d2f02778
+    started_at: '2026-10-29T17:59:25.785Z'
+    finished_at: '2026-10-29T17:59:26.127Z'
+    artifact_digest: bf2a04f41c6bb89d13e8f5cd054be10b427e1ee764ced18529520828eba42ca0
     contract_hash: 1972213e220903999e0bf9a7512987ff3795e82702f18c486cb9626873bcfece
     binding_hash: 6214939e1e657fc99e25f78193478e650f5b17328c3f0ef32b07f51dcb0169a8
     fingerprint: 15252e0927abe57b3e972d7f3e058dac53851fe2ac89e33768405613b0dfff5b
