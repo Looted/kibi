@@ -601,3 +601,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dcc819e9e414
+  - type: assumes
+    from: SCEN-NEG-kibi-ontology-quality-BELOW-MINIMUM
+    to: FACT-NEG-kibi-ontology-quality-BELOW-MINIMUM
+    created_at: 2026-10-29T21:03:03.243Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85faa83808df
+  - type: verified_by
+    from: SCEN-NEG-kibi-ontology-quality-BELOW-MINIMUM
+    to: TEST-kibi-vocabulary-convergence-e2e
+    created_at: 2026-10-29T21:03:03.483Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cddf5f2f27cd

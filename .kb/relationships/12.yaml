@@ -342,3 +342,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9a5f7e116cfd
+  - type: specified_by
+    from: REQ-kibi-logical-requirement-coverage
+    to: SCEN-NEG-kibi-logical-requirement-coverage-UNGROUNDED-CLAUSE
+    created_at: 2026-10-29T20:54:57.773Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e465fdc4bed

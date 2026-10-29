@@ -426,3 +426,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-12f5d8984d70
+  - type: specified_by
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: SCEN-NEG-kibi-telemetry-acceptance-gate-v2-REPEATED-FAILURES
+    created_at: 2026-10-29T21:16:39.218Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa99318a42cf

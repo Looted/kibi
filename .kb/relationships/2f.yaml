@@ -496,3 +496,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-99a2312acccf
+  - type: specified_by
+    from: REQ-kibi-ontology-quality
+    to: SCEN-NEG-kibi-ontology-quality-BELOW-MINIMUM
+    created_at: 2026-10-29T21:03:11.390Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26fb9ca0866e

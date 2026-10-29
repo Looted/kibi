@@ -496,3 +496,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f8a97eac1389
+  - type: specified_by
+    from: REQ-kibi-verification-evidence-contract
+    to: SCEN-NEG-kibi-verification-evidence-contract-STALE-RECEIPT
+    created_at: 2026-10-29T21:19:56.673Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-effd72e7e930

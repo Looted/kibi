@@ -489,3 +489,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9732d9796f8e
+  - type: specified_by
+    from: REQ-kibi-query-fact-filters
+    to: SCEN-NEG-kibi-query-fact-filters-UNDECLARED-ARGUMENT
+    created_at: 2026-10-29T21:07:56.353Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4accd37fbc7
+  - type: assumes
+    from: SCEN-NEG-kibi-scenario-feasibility-v2-FORBIDDEN-ASSUMPTION
+    to: FACT-NEG-kibi-scenario-feasibility-v2-FORBIDDEN-ASSUMPTION
+    created_at: 2026-10-29T21:08:52.906Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93d9a5e7ccd9
+  - type: verified_by
+    from: SCEN-NEG-kibi-scenario-feasibility-v2-FORBIDDEN-ASSUMPTION
+    to: TEST-kibi-scenario-feasibility
+    created_at: 2026-10-29T21:08:53.061Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9878d817e15a

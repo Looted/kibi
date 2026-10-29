@@ -286,3 +286,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3c428f2f332b
+  - type: specified_by
+    from: REQ-kibi-predicate-argument-constants
+    to: SCEN-NEG-kibi-predicate-argument-constants-ALIAS-UPSERT
+    created_at: 2026-10-29T21:04:06.745Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f2995c81217f

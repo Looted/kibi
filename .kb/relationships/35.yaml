@@ -377,3 +377,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ff8eb7292be9
+  - type: assumes
+    from: SCEN-NEG-kibi-predicate-vocabulary-migration-UNDECLARED-VALUE
+    to: FACT-NEG-kibi-predicate-vocabulary-migration-UNDECLARED-VALUE
+    created_at: 2026-10-29T21:05:10.754Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-276bff1a14d3
+  - type: verified_by
+    from: SCEN-NEG-kibi-predicate-vocabulary-migration-UNDECLARED-VALUE
+    to: TEST-kibi-predicate-vocabulary-migration-e2e
+    created_at: 2026-10-29T21:05:10.808Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a972488a98dd

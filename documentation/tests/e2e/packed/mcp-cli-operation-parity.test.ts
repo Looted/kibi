@@ -172,6 +172,60 @@ describe("packed MCP and CLI operation parity", { concurrency: false }, () => {
   );
 
   it(
+    "refuses an invalid input with the same coded error on MCP and the CLI JSON route",
+    { timeout: 120_000 },
+    async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+      // The clause is not a verbatim fragment of the intent, so both peers
+      // must refuse it, and with one error contract.
+      const input = {
+        intent: "Refunds must not exceed the original charge.",
+        mode: "create",
+        context: "Reason not stated.",
+        clauses: ["Refunds are capped at the charge."],
+      };
+      const process = startMcpServer(sandbox);
+      let mcpError: Record<string, unknown> | undefined;
+      try {
+        await sendMcpRequest(process, 1, "initialize", {
+          protocolVersion: "2024-11-05",
+          capabilities: {},
+          clientInfo: { name: "packed-parity", version: "1.0.0" },
+        });
+        process.stdin?.write(
+          `${JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" })}\n`,
+        );
+        const response = await sendMcpRequest(process, 2, "tools/call", {
+          name: "kb_compile_intent",
+          arguments: input,
+        });
+        assert.ifError(response.error);
+        assert.strictEqual(response.result?.isError, true);
+        const envelope = response.result?.structuredContent as
+          | { status?: string; error?: Record<string, unknown> }
+          | undefined;
+        assert.strictEqual(envelope?.status, "error");
+        mcpError = envelope?.error;
+      } finally {
+        process.kill();
+      }
+      assert.strictEqual(mcpError?.code, "VALIDATION_FAILED");
+
+      const cli = await runStdinRoute(sandbox, "compile-intent", input);
+      assert.notStrictEqual(cli.exitCode, 0);
+      const cliEnvelope = JSON.parse(cli.stdout) as {
+        status: string;
+        error: Record<string, unknown>;
+      };
+      assert.strictEqual(cliEnvelope.status, "error");
+      assert.deepStrictEqual(cliEnvelope.error, mcpError);
+    },
+  );
+
+  it(
     "ships all generated skills and resources in Cursor and Codex tarballs",
     { timeout: 120_000 },
     async (testContext) => {

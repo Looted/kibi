@@ -524,3 +524,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5ffc812a59f2
+  - type: assumes
+    from: SCEN-NEG-kibi-operation-interface-parity-REJECTED-INPUT-PARITY
+    to: FACT-NEG-kibi-operation-interface-parity-REJECTED-INPUT-PARITY
+    created_at: 2026-10-29T21:36:10.241Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f304ca516636
+  - type: verified_by
+    from: SCEN-NEG-kibi-operation-interface-parity-REJECTED-INPUT-PARITY
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-10-29T21:36:10.334Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ba8ebba0a8d

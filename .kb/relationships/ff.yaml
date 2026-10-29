@@ -475,3 +475,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-387520cead70
+  - type: specified_by
+    from: REQ-kibi-search-answer-layer-v2
+    to: SCEN-NEG-kibi-search-answer-layer-v2-SUPERSEDED-MATCH
+    created_at: 2026-10-29T21:10:19.040Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf74a016a150
+  - type: specified_by
+    from: REQ-legacy-kb-first-step-migrate
+    to: SCEN-NEG-legacy-kb-first-step-migrate-INIT-ON-LEGACY
+    created_at: 2026-10-29T21:20:09.555Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd1216ed5b61

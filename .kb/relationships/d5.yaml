@@ -230,3 +230,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ebf8e571a302
+  - type: assumes
+    from: SCEN-NEG-kibi-vocabulary-alignment-capability-REPLACE-PROVIDER-FAILS
+    to: FACT-NEG-kibi-vocabulary-alignment-capability-REPLACE-PROVIDER-FAILS
+    created_at: 2026-10-29T21:37:55.649Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f5d7daa293e
+  - type: verified_by
+    from: SCEN-NEG-kibi-vocabulary-alignment-capability-REPLACE-PROVIDER-FAILS
+    to: TEST-kibi-vocabulary-convergence-e2e
+    created_at: 2026-10-29T21:37:55.684Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ff63dc959b7

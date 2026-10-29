@@ -496,3 +496,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1645b65e874d
+  - type: specified_by
+    from: REQ-kibi-vocabulary-alignment-capability
+    to: SCEN-NEG-kibi-vocabulary-alignment-capability-REPLACE-PROVIDER-FAILS
+    created_at: 2026-10-29T21:37:58.346Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a9a0b0a50a3

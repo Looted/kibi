@@ -286,3 +286,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0c8dc874d6d0
+  - type: specified_by
+    from: REQ-kibi-source-relationship-parity
+    to: SCEN-NEG-kibi-source-relationship-parity-AUTHORED-EDGE-MISSING
+    created_at: 2026-10-29T21:15:22.044Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-35746005719c

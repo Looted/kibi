@@ -223,3 +223,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7cd2ed1829a4
+  - type: assumes
+    from: SCEN-NEG-kibi-non-numeric-proof-kinds-LOOSE-PATTERN
+    to: FACT-NEG-kibi-non-numeric-proof-kinds-LOOSE-PATTERN
+    created_at: 2026-10-29T21:02:19.527Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4125a5c6a7e8
+  - type: verified_by
+    from: SCEN-NEG-kibi-non-numeric-proof-kinds-LOOSE-PATTERN
+    to: TEST-kibi-non-numeric-proof-kinds
+    created_at: 2026-10-29T21:02:19.637Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae4c78e8e1a1

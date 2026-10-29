@@ -181,3 +181,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6309494fd2d8
+  - type: assumes
+    from: SCEN-NEG-kibi-uncompiled-source-semantic-baseline-NEW-AUTHORING-CLOSE
+    to: FACT-NEG-kibi-uncompiled-source-semantic-baseline-NEW-AUTHORING-CLOSE
+    created_at: 2026-10-29T21:18:57.887Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48fa6ce2de03
+  - type: verified_by
+    from: SCEN-NEG-kibi-uncompiled-source-semantic-baseline-NEW-AUTHORING-CLOSE
+    to: TEST-kibi-uncompiled-source-visibility
+    created_at: 2026-10-29T21:18:57.917Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-817d11cfe91c
