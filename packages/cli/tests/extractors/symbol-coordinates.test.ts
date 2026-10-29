@@ -1062,3 +1062,73 @@ coordinates:
     });
   });
 });
+
+describe("coordinate merge source reads", () => {
+  test("reads and hashes a shared source file once for all its symbols", async () => {
+    const symbolCoordinatesExports = await loadSymbolCoordinatesModule();
+    const merge = symbolCoordinatesExports.mergeCoordinatesWithManifest as (
+      symbolRecords: Array<Record<string, unknown>>,
+      coordinateArtifact: { coordinates: Record<string, unknown> } | null,
+      options?: {
+        readonly resolveSourceText?: (sourceFile: string) => string | null;
+      },
+    ) => Array<Record<string, unknown>>;
+    const identity = symbolCoordinatesExports.coordinateIdentityHash as (
+      identity: Record<string, unknown>,
+    ) => string;
+    const texts: Record<string, string> = {
+      "src/a.ts": "export const one = 1;\nexport const two = 2;\n",
+      "src/b.ts": "export const three = 3;\n",
+    };
+    const records = [
+      { id: "SYM-one", title: "one", sourceFile: "src/a.ts" },
+      { id: "SYM-two", title: "two", sourceFile: "src/a.ts" },
+      { id: "SYM-three", title: "three", sourceFile: "src/b.ts" },
+      { id: "SYM-stale", title: "stale", sourceFile: "src/b.ts" },
+    ];
+    const span = (record: (typeof records)[number], text: string) => ({
+      identityHash: identity(record),
+      sourceHash: sourceHash(text),
+      sourceFile: record.sourceFile,
+      sourceLine: 1,
+      sourceColumn: 0,
+      sourceEndLine: 1,
+      sourceEndColumn: 10,
+    });
+    const reads: string[] = [];
+    const merged = merge(
+      records,
+      {
+        coordinates: {
+          "SYM-one": span(
+            records[0] as (typeof records)[number],
+            texts["src/a.ts"] as string,
+          ),
+          "SYM-two": span(
+            records[1] as (typeof records)[number],
+            texts["src/a.ts"] as string,
+          ),
+          "SYM-three": span(
+            records[2] as (typeof records)[number],
+            texts["src/b.ts"] as string,
+          ),
+          // Recorded against an older text of src/b.ts: it must stay stripped.
+          "SYM-stale": span(records[3] as (typeof records)[number], "old text"),
+        },
+      },
+      {
+        resolveSourceText: (sourceFile) => {
+          reads.push(sourceFile);
+          return texts[sourceFile] ?? null;
+        },
+      },
+    );
+    expect(reads.sort()).toEqual(["src/a.ts", "src/b.ts"]);
+    expect(merged.map((record) => record.sourceLine)).toEqual([
+      1,
+      1,
+      1,
+      undefined,
+    ]);
+  });
+});

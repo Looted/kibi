@@ -7178,6 +7178,85 @@ test(scenario_feasibility_memo_follows_writes_and_skips_transactions, [setup(set
     assertion(\+ kb:kb_scenario_feasibility_memo('SCEN-STAGED-ZERO-QUOTA', _, _)),
     assertion(checks:scenario_feasibility_outcome('SCEN-ZERO-QUOTA-CALL', feasible_by_exception)).
 
+% The stages before the receipt judgement are kept per generation apart from
+% checkedAt: two checks a second apart share them, and each still gets the
+% proof its own parameters give.
+test(receipt_independent_stages_are_shared_across_checked_at, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-MEMO-LADDER', "Shared ladder", open, [priority=must]),
+    assert_fixture_entity(scenario, 'SCEN-MEMO-LADDER', "Ladder scenario", active, [expects=success]),
+    kb_assert_relationship(specified_by, 'REQ-MEMO-LADDER', 'SCEN-MEMO-LADDER', []),
+    requirement_proof:requirement_proof_context(unknown, "2026-05-01T00:00:00Z", 604800, ContextA),
+    requirement_proof:requirement_proof_context(unknown, "2026-05-01T00:00:01Z", 604800, ContextB),
+    assertion(ContextA.ladderMemoKey == ContextB.ladderMemoKey),
+    memo_proof('REQ-MEMO-LADDER', ContextA, ProofA),
+    memo_proof('REQ-MEMO-LADDER', ContextB, ProofB),
+    aggregate_all(count, kb:kb_requirement_ladder_memo('REQ-MEMO-LADDER', _, _), Ladders),
+    assertion(Ladders == 1),
+    assertion(ProofA.proofStages.passingE2e.checkedAt == '2026-05-01T00:00:00Z'),
+    assertion(ProofB.proofStages.passingE2e.checkedAt == '2026-05-01T00:00:01Z'),
+    retractall(kb:kb_requirement_ladder_memo(_, _, _)),
+    retractall(kb:kb_requirement_proof_memo(_, _, _)),
+    memo_compute('REQ-MEMO-LADDER', ContextB, Fresh),
+    assertion(ProofB =@= Fresh),
+    % A write starts a new generation: the next proof reads the new scenario.
+    assert_fixture_entity(scenario, 'SCEN-MEMO-LADDER-2', "Second ladder scenario", active, [expects=success]),
+    kb_assert_relationship(specified_by, 'REQ-MEMO-LADDER', 'SCEN-MEMO-LADDER-2', []),
+    memo_proof('REQ-MEMO-LADDER', ContextB, Linked),
+    assertion(Linked.proofStages.scenarios.scenarios == ['SCEN-MEMO-LADDER', 'SCEN-MEMO-LADDER-2']),
+    % A context without the findings key (an older caller) is not memoized.
+    del_dict(ladderMemoKey, ContextA, _, Legacy),
+    retractall(kb:kb_requirement_ladder_memo(_, _, _)),
+    del_dict(proofMemoKey, Legacy, _, LegacyNoProofKey),
+    memo_proof('REQ-MEMO-LADDER', LegacyNoProofKey, _),
+    assertion(\+ kb:kb_requirement_ladder_memo(_, _, _)).
+
+test(receipt_independent_stages_skip_transactions, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-MEMO-LADDER-TX', "Staged ladder", open, [priority=must]),
+    requirement_proof:requirement_proof_context(unknown, "1970-01-01T00:00:00Z", 604800, Context),
+    memo_proof('REQ-MEMO-LADDER-TX', Context, Before),
+    findall(K, kb:kb_requirement_ladder_memo(_, K, _), KeysBefore),
+    catch(rdf_transaction((
+              assert_fixture_entity(scenario, 'SCEN-MEMO-LADDER-TX', "Staged scenario", active, [expects=success]),
+              kb_assert_relationship(specified_by, 'REQ-MEMO-LADDER-TX', 'SCEN-MEMO-LADDER-TX', []),
+              memo_proof('REQ-MEMO-LADDER-TX', Context, Staged),
+              assertion(Staged.proofStages.scenarios.scenarios == ['SCEN-MEMO-LADDER-TX']),
+              findall(K, kb:kb_requirement_ladder_memo(_, K, _), KeysInside),
+              assertion(KeysInside == KeysBefore),
+              throw(rollback_probe)
+          )),
+          rollback_probe,
+          true),
+    memo_proof('REQ-MEMO-LADDER-TX', Context, After),
+    assertion(After =@= Before).
+
+% Status's source index is kept per generation; a write is seen at once and
+% a staged write leaves the kept index alone.
+test(status_source_index_follows_writes, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-STATUS-INDEX', "Indexed source", open,
+        [source="docs/requirements/REQ-STATUS-INDEX.md"]),
+    status:entity_source_id_index(First),
+    assertion(get_dict('docs/requirements/REQ-STATUS-INDEX.md', First, ['REQ-STATUS-INDEX'])),
+    status:entity_source_id_index(Again),
+    assertion(Again == First),
+    assertion(kb:kb_status_source_index_memo(_, _)),
+    assert_fixture_entity(req, 'REQ-STATUS-INDEX-2', "Second source", open,
+        [source="docs/requirements/REQ-STATUS-INDEX-2.md"]),
+    status:entity_source_id_index(Second),
+    assertion(get_dict('docs/requirements/REQ-STATUS-INDEX-2.md', Second, ['REQ-STATUS-INDEX-2'])),
+    catch(rdf_transaction((
+              assert_fixture_entity(req, 'REQ-STATUS-STAGED', "Staged source", open,
+                  [source="docs/requirements/REQ-STATUS-STAGED.md"]),
+              status:entity_source_id_index(Staged),
+              assertion(get_dict('docs/requirements/REQ-STATUS-STAGED.md', Staged, _)),
+              throw(rollback_probe)
+          )),
+          rollback_probe,
+          true),
+    status:entity_source_id_index(AfterRollback),
+    assertion(\+ get_dict('docs/requirements/REQ-STATUS-STAGED.md', AfterRollback, _)),
+    status:compute_entity_source_id_index(Computed),
+    assertion(AfterRollback == Computed).
+
 :- end_tests(kb_proof_memos).
 
 :- begin_tests(kb_json_memos).
