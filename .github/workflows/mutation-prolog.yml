@@ -1,0 +1,66 @@
+name: Prolog mutation
+
+# Mutalog mutation run over the Prolog core (see docs/mutation-testing.md).
+# It runs nightly on develop, on demand, and on pull requests that touch the
+# mutated sources, their tests or the lane's setup. It reports only: the
+# score is in the job log and the uploaded report, and survivors never fail
+# the job until mutalog.config.pl sets a break threshold.
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  KIBI_TELEMETRY: "0"
+
+permissions:
+  contents: read
+
+on:
+  schedule:
+    - cron: '47 3 * * *'
+  pull_request:
+    branches: [develop]
+    paths:
+      - 'packages/core/src/logic_ir.pl'
+      - 'packages/core/tests/logic_ir.plt'
+      - 'mutalog.config.pl'
+      - 'scripts/run-prolog-mutation.pl'
+      - '.github/workflows/mutation-prolog.yml'
+  workflow_dispatch:
+
+jobs:
+  swipl-bundle:
+    uses: ./.github/workflows/swipl-ci-bundle.yml
+
+  prolog-mutation:
+    needs: [swipl-bundle]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event_name == 'schedule' && 'develop' || '' }}
+          fetch-depth: 1
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: '1.4.2'
+
+      - name: Use the pipeline-built SWI-Prolog
+        uses: ./.github/actions/use-bundled-swipl
+
+      - name: Run Mutalog
+        run: bun run test:mutation:prolog -- --reporters clear_text,html,json
+
+      - name: Upload mutation report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: prolog-mutation-report
+          path: reports/mutation/prolog/
+          if-no-files-found: ignore
+          retention-days: 14
