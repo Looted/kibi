@@ -175,6 +175,38 @@ function parsePrologList(value: unknown): string[] {
   return values;
 }
 
+/**
+ * Assert a batch of relationships, keeping each one that succeeds, and return
+ * the 1-based positions of those that failed. Null when the store could not
+ * run the batch at all, so the caller retries every relationship.
+ */
+async function assertRelationshipsReporting(
+  prolog: PrologProcess,
+  chunk: ReadonlyArray<{
+    readonly rel: ExtractedRelationship;
+    readonly fromId: string;
+    readonly toId: string;
+  }>,
+): Promise<Set<number> | null> {
+  try {
+    const rels = chunk.map(
+      ({ rel, fromId, toId }) =>
+        `rel(${toPrologAtom(rel.type)}, ${toPrologAtom(fromId)}, ${toPrologAtom(toId)})`,
+    );
+    const result = await prolog.query(
+      `kb_assert_relationships_reporting([${rels.join(", ")}], Failed)`,
+    );
+    if (!result.success || typeof result.bindings.Failed !== "string") {
+      return null;
+    }
+    const failed = parsePrologList(result.bindings.Failed).map(Number);
+    if (failed.some((position) => !Number.isInteger(position))) return null;
+    return new Set(failed);
+  } catch {
+    return null;
+  }
+}
+
 function sourceLookupCandidates(sourceFile: string): string[] {
   return [
     ...new Set([
@@ -846,7 +878,25 @@ export async function persistRelationships(
       kbModified = true;
       continue;
     }
-    for (const item of chunk) {
+    // One failing relationship (a dangling link is enough) rolls the whole
+    // batch back. Keep the ones that do assert in one more round trip and
+    // retry only the failures one by one for their exact errors, instead of
+    // one round trip per relationship of the batch.
+    const failedPositions = relationshipBatchRunner
+      ? await assertRelationshipsReporting(prolog, chunk)
+      : null;
+    const retried =
+      failedPositions === null
+        ? chunk
+        : chunk.filter((_, index) => failedPositions.has(index + 1));
+    if (failedPositions !== null) {
+      chunk.forEach((item, index) => {
+        if (failedPositions.has(index + 1)) return;
+        countEdge(item.rel.type, item.fromId, item.toId);
+        kbModified = true;
+      });
+    }
+    for (const item of retried) {
       try {
         const single = await prolog.query(item.goal);
         if (single.success) {

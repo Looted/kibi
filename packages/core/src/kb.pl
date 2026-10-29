@@ -35,6 +35,7 @@
     kb_entity/3,
     kb_entities_by_source/2,
     kb_assert_relationship/4,
+    kb_assert_relationships_reporting/2,
     kb_query_proof_contracts/4,
     kb_assert_relationship_no_audit/4,
     kb_log_relationship_upsert/4,
@@ -90,7 +91,7 @@
 :- use_module(library(lists), [sum_list/2, subtract/3, intersection/3]).
 :- use_module(library(ordsets)).
 :- use_module(library(assoc), [list_to_assoc/2, get_assoc/3]).
-:- use_module(library(pairs), [group_pairs_by_key/2]).
+:- use_module(library(pairs), [group_pairs_by_key/2, pairs_values/2]).
 :- use_module(library(solution_sequences), [distinct/1, limit/2, offset/2, order_by/2]).
 :- use_module('../schema/entities.pl', [entity_type/1, entity_property/3, required_property/2]).
 :- use_module('../schema/relationships.pl', [relationship_type/1, valid_relationship/3]).
@@ -144,7 +145,12 @@ kb_uri('urn-kibi:').
 :- dynamic kb_entity_props_memo_key/1.
 :- dynamic kb_decision_signature_memo/2.
 :- dynamic kb_req_predicate_memo/2.
+:- dynamic kb_req_subject_memo/2.
+:- dynamic kb_contradiction_witness_memo/2.
+:- dynamic kb_consistency_memo/3.
+:- dynamic kb_predicate_schema_memo/2.
 :- dynamic kb_search_ids_memo/4.
+:- dynamic kb_query_ids_memo/3.
 :- dynamic kb_index_verified_key/1.
 :- dynamic entity/4.  % Support legacy .pl file format (Type, Id, Title, Props)
 
@@ -373,7 +379,12 @@ kb_detach :-
             retractall(kb_entity_props_memo_key(_)),
             retractall(kb_decision_signature_memo(_, _)),
             retractall(kb_req_predicate_memo(_, _)),
+            retractall(kb_req_subject_memo(_, _)),
+            retractall(kb_contradiction_witness_memo(_, _)),
+            retractall(kb_consistency_memo(_, _, _)),
+            retractall(kb_predicate_schema_memo(_, _)),
             retractall(kb_search_ids_memo(_, _, _, _)),
+            retractall(kb_query_ids_memo(_, _, _)),
             retractall(kb_index_entity(_, _)),
             retractall(kb_index_type(_, _)),
             retractall(kb_index_tag(_, _)),
@@ -1705,10 +1716,7 @@ kb_query_entities(TypeFilter, IdFilter, Tags, SourceFilter, Limit, Offset, Rows,
     Offset >= 0,
     is_list(Tags),
     kb_ensure_indexes,
-    findall(Id,
-            indexed_entity_match(TypeFilter, IdFilter, Tags, SourceFilter, Id),
-            RawIds),
-    sort(RawIds, Ids),
+    query_index_ids(TypeFilter, IdFilter, Tags, SourceFilter, Ids),
     length(Ids, Count),
     drop_index_ids(Offset, Ids, Remaining),
     take_index_ids(Limit, Remaining, PageIds),
@@ -1716,6 +1724,27 @@ kb_query_entities(TypeFilter, IdFilter, Tags, SourceFilter, Limit, Offset, Rows,
             ( member(Id, PageIds),
               kb_entity(Id, Type, Props) ),
             Rows).
+
+% Clients read a large result in bounded pages, each page a separate query,
+% so the ids matched for the last filter are kept for its next pages instead
+% of matching and sorting the whole index again per page. Keyed like the
+% search memo, so any write starts a fresh match.
+query_index_ids(TypeFilter, IdFilter, Tags, SourceFilter, Ids) :-
+    (   kb_index_entity_count(IndexCount)
+    ->  true
+    ;   IndexCount = none
+    ),
+    index_verification_key(IndexCount, Key),
+    Filters = filters(TypeFilter, IdFilter, Tags, SourceFilter),
+    (   kb_query_ids_memo(Key, Filters, Cached)
+    ->  Ids = Cached
+    ;   findall(Id,
+                indexed_entity_match(TypeFilter, IdFilter, Tags, SourceFilter, Id),
+                RawIds),
+        sort(RawIds, Ids),
+        retractall(kb_query_ids_memo(_, _, _)),
+        assertz(kb_query_ids_memo(Key, Filters, Ids))
+    ).
 
 %% kb_query_proof_contracts(+Id, +Limit, +Offset, -Rows)
 % Page proof-campaign candidates while reading only contract and binding RDF
@@ -2001,6 +2030,24 @@ kb_assert_relationship(RelType, FromId, ToId, Metadata) :-
     ;   kb_mark_dirty,
         kb_assert_relationship_no_audit(RelType, FromId, ToId, Metadata),
         kb_log_relationship_upsert(RelType, FromId, ToId, Metadata)
+    ).
+
+%% kb_assert_relationships_reporting(+Relationships, -FailedPositions)
+% Assert each rel(Type, From, To) of Relationships with kb_assert_relationship/4
+% (empty metadata), in order, keeping every one that succeeds. FailedPositions
+% lists the 1-based positions of those that failed or raised; their writes are
+% rolled back with their own transaction. Sync uses it after a batch
+% transaction fails, so one dangling link no longer sends the whole batch
+% through one round trip per relationship.
+kb_assert_relationships_reporting(Relationships, FailedPositions) :-
+    foldl(assert_relationship_reporting, Relationships, 1-[], _-Failed0),
+    reverse(Failed0, FailedPositions).
+
+assert_relationship_reporting(rel(RelType, FromId, ToId), Position-Failed0, Next-Failed) :-
+    Next is Position + 1,
+    (   catch(kb_assert_relationship(RelType, FromId, ToId, []), _, fail)
+    ->  Failed = Failed0
+    ;   Failed = [Position|Failed0]
     ).
 
 %% kb_assert_relationship_no_audit(+Type, +From, +To, +Metadata)
@@ -2804,24 +2851,27 @@ req_conflict_witness(ReqA, ReqB, Witness) :-
     }.
 
 % Cost: the search answer layer and the upsert contradiction check ask for
-% the witnesses of one requirement with the other side unbound. Enumerating
-% every current requirement as the partner and only then reading the bound
-% side's facts cost a full requirement scan per lookup, even for a
-% requirement that states no such fact. The pairings below return the same
-% solutions in the same order as that enumeration: a bound requirement
-% without subject facts fails at once, and predicate partners come from an
-% index of the requirements stating each predicate, visited in the order
-% current_req/1 enumerates them.
+% the witnesses of one requirement with the other side unbound, and kb_check
+% asks for every pair. Enumerating every current requirement as the partner
+% and only then reading either side's facts cost a full requirement scan per
+% requirement (quadratic for kb_check). The pairings below return the same
+% solutions in the same order as that enumeration: partners come from an
+% index of the current requirements constraining each subject or stating
+% each predicate, visited in the order current_req/1 enumerates them, so a
+% requirement without such facts has no partners at all.
 subject_conflict_pair(ReqA, ReqB, SubjectKey) :-
-    (   nonvar(ReqA), var(ReqB)
-    ->  once(req_subject_fact(ReqA))
-    ;   nonvar(ReqB), var(ReqA)
-    ->  once(req_subject_fact(ReqB))
-    ;   true
+    (   nonvar(ReqA), nonvar(ReqB)
+    ->  current_req(ReqA),
+        current_req(ReqB),
+        ReqA @< ReqB
+    ;   nonvar(ReqB)
+    ->  current_req(ReqB),
+        req_subject_partners(ReqB, before, Partners),
+        member(ReqA, Partners)
+    ;   current_req(ReqA),
+        req_subject_partners(ReqA, after, Partners),
+        member(ReqB, Partners)
     ),
-    current_req(ReqA),
-    current_req(ReqB),
-    ReqA @< ReqB,
     kb_relationship(constrains, ReqA, SubjectFactA),
     kb_relationship(constrains, ReqB, SubjectFactB),
     fact_subject_key(SubjectFactA, SubjectKey),
@@ -2830,6 +2880,46 @@ subject_conflict_pair(ReqA, ReqB, SubjectKey) :-
 req_subject_fact(ReqId) :-
     kb_relationship(constrains, ReqId, SubjectFactId),
     fact_subject_key(SubjectFactId, _).
+
+%% req_subject_partners(+ReqId, +Side, -Partners)
+% Current requirements constraining a subject that ReqId constrains, in
+% current_req/1 order: those after ReqId in standard order (Side = after) or
+% before it (Side = before).
+req_subject_partners(ReqId, Side, Partners) :-
+    req_subject_index(Index),
+    findall(Position-Partner,
+            ( req_subject_fact_key(ReqId, SubjectKey),
+              get_assoc(SubjectKey, Index, Entries),
+              member(Position-Partner, Entries),
+              subject_partner_side(Side, ReqId, Partner) ),
+            Partners0),
+    sort(Partners0, Partners1),
+    pairs_values(Partners1, Partners).
+
+subject_partner_side(after, ReqId, Partner) :- ReqId @< Partner.
+subject_partner_side(before, ReqId, Partner) :- Partner @< ReqId.
+
+req_subject_fact_key(ReqId, SubjectKey) :-
+    kb_relationship(constrains, ReqId, SubjectFactId),
+    fact_subject_key(SubjectFactId, SubjectKey).
+
+% Memoized per KB generation, like the predicate index below.
+req_subject_index(Index) :-
+    index_verification_key(req_subjects, Key),
+    (   kb_req_subject_memo(Key, Cached)
+    ->  Index = Cached
+    ;   findall(ReqId, current_req(ReqId), ReqIds),
+        findall(SubjectKey-(Position-ReqId),
+                ( nth1(Position, ReqIds, ReqId),
+                  req_subject_fact_key(ReqId, SubjectKey) ),
+                Pairs0),
+        sort(Pairs0, Pairs),
+        group_pairs_by_key(Pairs, Grouped),
+        list_to_assoc(Grouped, Computed),
+        retractall(kb_req_subject_memo(_, _)),
+        assertz(kb_req_subject_memo(Key, Computed)),
+        Index = Computed
+    ).
 
 predicate_conflict_pair(ReqA, ReqB, FactA, FactB, Namespace, Name, Args, PolarityA, PolarityB) :-
     (   nonvar(ReqA), var(ReqB)
@@ -2850,9 +2940,18 @@ predicate_conflict_pair(ReqA, ReqB, FactA, FactB, Namespace, Name, Args, Polarit
                 Partners0),
         sort(Partners0, Partners),
         member(_-ReqA, Partners)
-    ;   current_req(ReqA),
+    ;   nonvar(ReqA), nonvar(ReqB)
+    ->  current_req(ReqA),
         current_req(ReqB),
         ReqA @< ReqB
+    ;   current_req(ReqA),
+        findall(Position-Partner,
+                ( effective_req_predicate(ReqA, _, PartnerNs, PartnerName, PartnerArgs, _),
+                  current_req_predicate(PartnerNs-PartnerName-PartnerArgs, Position, Partner),
+                  ReqA @< Partner ),
+                Partners0),
+        sort(Partners0, Partners),
+        member(_-ReqB, Partners)
     ),
     effective_req_predicate(ReqA, FactA, Namespace, Name, Args, PolarityA),
     effective_req_predicate(ReqB, FactB, Namespace, Name, Args, PolarityB).
@@ -2900,22 +2999,12 @@ kb_domain_contradiction_pairs_examined(Count) :-
     length(Pairs, Count).
 
 domain_contradiction_candidate_pair(FactA, FactB) :-
-    current_req(ReqA),
-    current_req(ReqB),
-    ReqA @< ReqB,
-    kb_relationship(constrains, ReqA, SubjectFactA),
-    kb_relationship(constrains, ReqB, SubjectFactB),
-    fact_subject_key(SubjectFactA, SubjectKey),
-    fact_subject_key(SubjectFactB, SubjectKey),
+    subject_conflict_pair(ReqA, ReqB, SubjectKey),
     effective_req_property_fact(ReqA, SubjectKey, FactA, PropertyKey, _, _, _, _, _, _, _, _),
     effective_req_property_fact(ReqB, SubjectKey, FactB, PropertyKey, _, _, _, _, _, _, _, _),
     FactA \= FactB.
 domain_contradiction_candidate_pair(FactA, FactB) :-
-    current_req(ReqA),
-    current_req(ReqB),
-    ReqA @< ReqB,
-    effective_req_predicate(ReqA, FactA, Namespace, Name, Args, _),
-    effective_req_predicate(ReqB, FactB, Namespace, Name, Args, _),
+    predicate_conflict_pair(_ReqA, _ReqB, FactA, FactB, _Namespace, _Name, _Args, _, _),
     FactA \= FactB.
 domain_contradiction_candidate_pair(FactA, FactB) :-
     decision_signatures(Signatures),
@@ -3151,7 +3240,32 @@ comparison_quantity(ValType, Value, Unit, Type, CanonValue, CanonUnit) :-
 
 %% predicate_schema(+FactId, -Namespace, -Name, -Arity, -ArgumentNames, -ArgumentTypes)
 % Read one project-local ontology predicate schema fact.
+% Finding the schemas of a predicate scans every fact, and contradiction
+% witnesses, decision signatures and key lookups ask for them per candidate,
+% so the schema rows are memoized per KB generation (outside RDF
+% transactions), in the order the scan finds them.
 predicate_schema(FactId, Namespace, Name, Arity, ArgumentNames, ArgumentTypes) :-
+    var(FactId),
+    \+ rdf_active_transaction(_),
+    !,
+    predicate_schema_rows(Rows),
+    member(schema(FactId, Namespace, Name, Arity, ArgumentNames, ArgumentTypes), Rows).
+predicate_schema(FactId, Namespace, Name, Arity, ArgumentNames, ArgumentTypes) :-
+    predicate_schema_scan(FactId, Namespace, Name, Arity, ArgumentNames, ArgumentTypes).
+
+predicate_schema_rows(Rows) :-
+    index_verification_key(predicate_schemas, Key),
+    (   kb_predicate_schema_memo(Key, Cached)
+    ->  Rows = Cached
+    ;   findall(schema(FactId, Namespace, Name, Arity, ArgumentNames, ArgumentTypes),
+                predicate_schema_scan(FactId, Namespace, Name, Arity, ArgumentNames, ArgumentTypes),
+                Computed),
+        retractall(kb_predicate_schema_memo(_, _)),
+        assertz(kb_predicate_schema_memo(Key, Computed)),
+        Rows = Computed
+    ).
+
+predicate_schema_scan(FactId, Namespace, Name, Arity, ArgumentNames, ArgumentTypes) :-
     kb_entity(FactId, fact, Props),
     memberchk(fact_kind=KindRaw, Props),
     normalize_term_atom(KindRaw, predicate_schema),
