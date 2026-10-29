@@ -98,7 +98,7 @@ export async function verifyGitHubReportIntegration(
   const readme = readFileSync(join(sandbox.repoDir, "README.md"), "utf8");
   assert.ok(
     readme.includes(
-      "[![Kibi requirement health](https://acme.github.io/widgets/kibi-report/badge.svg)](https://acme.github.io/widgets/kibi-report/)",
+      "[![Kibi requirement health](https://acme.github.io/Widgets/kibi-report/badge.svg)](https://acme.github.io/Widgets/kibi-report/)",
     ),
     "README must gain a badge that links to the namespaced report",
   );
