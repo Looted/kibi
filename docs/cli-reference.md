@@ -1010,7 +1010,7 @@ kibi telemetry [status|enable|disable] [--format text|json]
 ```
 
 - `status` (the default) prints whether telemetry is on, why (for example `KIBI_TELEMETRY=0`, `CI environment` or `on by default`), and where the settings and queue live
-- `disable` saves the opt-out for this user and deletes any events still queued; `enable` saves an opt-in, which also applies in CI
+- `disable` saves the opt-out for this user and deletes any events still queued; `enable` saves an opt-in, which does not apply in CI or test runs
 - `KIBI_TELEMETRY=0` and `DO_NOT_TRACK=1` always win over the saved choice
 - `--format json` prints `{ enabled, reason, directory, docs }`
 

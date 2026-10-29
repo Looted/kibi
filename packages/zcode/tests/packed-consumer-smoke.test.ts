@@ -14,6 +14,7 @@ const packageRoot = path.resolve(import.meta.dir, "..");
 const repoRoot = path.resolve(packageRoot, "../..");
 const coreRoot = path.join(repoRoot, "packages", "core");
 const pluginSdkRoot = path.join(repoRoot, "packages", "plugin-sdk");
+const agentCoreRoot = path.join(repoRoot, "packages", "agent-core");
 const pluginBuiltinRoot = path.join(repoRoot, "packages", "plugin-builtin");
 const cliRoot = path.join(repoRoot, "packages", "cli");
 const runtimeRoot = path.join(repoRoot, "packages", "runtime");
@@ -75,6 +76,7 @@ function buildProofArtifacts(): Promise<void> {
       // Always build the complete first-party runtime chain before packing. A
       // pre-existing dist directory may belong to a different source snapshot.
       runBun(["run", "build:plugin-sdk"], repoRoot);
+      runBun(["run", "build:agent-core"], repoRoot);
       runBun(["run", "build:plugin-builtin"], repoRoot);
       runBun(["run", "build:cli"], repoRoot);
       runBun(["run", "build:runtime"], repoRoot);
@@ -173,6 +175,7 @@ describe("packed kibi-mcp consumer resolution", () => {
       await buildProofArtifacts();
       const coreTarball = makeTarball(coreRoot, "kibi-core");
       const pluginSdkTarball = makeTarball(pluginSdkRoot, "kibi-plugin-sdk");
+      const agentCoreTarball = makeTarball(agentCoreRoot, "kibi-agent-core");
       const pluginBuiltinTarball = makeTarball(
         pluginBuiltinRoot,
         "kibi-plugin-builtin",
@@ -212,6 +215,7 @@ describe("packed kibi-mcp consumer resolution", () => {
           coreTarball,
           pluginBuiltinTarball,
           pluginSdkTarball,
+          agentCoreTarball,
         ],
         { cwd: consumerRoot, stdio: "inherit" },
       );

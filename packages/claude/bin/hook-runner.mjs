@@ -1988,6 +1988,49 @@ function flagValue(value) {
     return false;
   return;
 }
+var CI_ENV_KEYS = [
+  "CI",
+  "CONTINUOUS_INTEGRATION",
+  "GITHUB_ACTIONS",
+  "GITLAB_CI",
+  "BUILDKITE",
+  "CIRCLECI",
+  "TRAVIS",
+  "TF_BUILD",
+  "JENKINS_URL",
+  "TEAMCITY_VERSION",
+  "BITBUCKET_BUILD_NUMBER",
+  "CODEBUILD_BUILD_ID",
+  "DRONE",
+  "APPVEYOR",
+  "SEMAPHORE",
+  "BUILDKITE_BUILD_ID",
+  "CF_BUILD_ID",
+  "HEROKU_TEST_RUN_ID"
+];
+var TEST_ENV_KEYS = [
+  "NODE_ENV=test",
+  "JEST_WORKER_ID",
+  "VITEST",
+  "VITEST_WORKER_ID",
+  "NODE_TEST_CONTEXT"
+];
+function automationName(env, keys) {
+  for (const key of keys) {
+    const [name, expected] = key.split("=");
+    const value = env[name]?.trim();
+    if (!value)
+      continue;
+    if (expected !== undefined) {
+      if (value === expected)
+        return key;
+      continue;
+    }
+    if (flagValue(value) !== false)
+      return name;
+  }
+  return;
+}
 function telemetryDirectory(env = process.env) {
   const explicit = env.KIBI_TELEMETRY_DIR?.trim();
   if (explicit)
@@ -2034,14 +2077,15 @@ function telemetryStatus(env = process.env) {
   if (explicit === true)
     return status(true, "KIBI_TELEMETRY=1");
   const processEnv = process.env;
-  if (env.NODE_ENV === "test" || processEnv.NODE_ENV === "test") {
-    return status(false, "test environment");
-  }
+  const ciName = automationName(env, CI_ENV_KEYS) ?? automationName(processEnv, CI_ENV_KEYS);
+  if (ciName)
+    return status(false, `CI environment (${ciName})`);
+  const testName = automationName(env, TEST_ENV_KEYS) ?? automationName(processEnv, TEST_ENV_KEYS);
+  if (testName)
+    return status(false, `test environment (${testName})`);
   if (preference === "enabled") {
     return status(true, "enabled with `kibi telemetry enable`");
   }
-  if (flagValue(env.CI) === true)
-    return status(false, "CI environment");
   return status(true, "on by default; anonymous, opt-out");
 }
 function telemetryEnabled(env = process.env) {

@@ -10,7 +10,7 @@ Any one of these turns telemetry off:
 - `KIBI_TELEMETRY=0` in the environment.
 - `DO_NOT_TRACK=1` in the environment.
 
-Telemetry is also off in CI (`CI=true`) and under test runners (`NODE_ENV=test`). `KIBI_TELEMETRY=1` turns it on in those environments.
+Telemetry is also off in CI and under test runners, even after `kibi telemetry enable`. Kibi treats a run as CI when `CI`, `CONTINUOUS_INTEGRATION`, `GITHUB_ACTIONS`, `GITLAB_CI`, `BUILDKITE`, `CIRCLECI`, `TRAVIS`, `TF_BUILD`, `JENKINS_URL`, `TEAMCITY_VERSION`, `BITBUCKET_BUILD_NUMBER`, `CODEBUILD_BUILD_ID`, `DRONE`, `APPVEYOR`, `SEMAPHORE`, `BUILDKITE_BUILD_ID`, `CF_BUILD_ID` or `HEROKU_TEST_RUN_ID` is set, and as a test run when `NODE_ENV=test`, `JEST_WORKER_ID`, `VITEST`, `VITEST_WORKER_ID` or `NODE_TEST_CONTEXT` is set. Only an explicit `KIBI_TELEMETRY=1` sends from those environments.
 
 ## What is sent
 

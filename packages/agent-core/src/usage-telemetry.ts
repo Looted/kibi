@@ -119,6 +119,53 @@ function flagValue(value: string | undefined): boolean | undefined {
 }
 
 // implements REQ-kibi-anonymous-usage-telemetry
+/** Variables CI providers set; any non-false value marks a CI run. */
+export const CI_ENV_KEYS = [
+  "CI",
+  "CONTINUOUS_INTEGRATION",
+  "GITHUB_ACTIONS",
+  "GITLAB_CI",
+  "BUILDKITE",
+  "CIRCLECI",
+  "TRAVIS",
+  "TF_BUILD",
+  "JENKINS_URL",
+  "TEAMCITY_VERSION",
+  "BITBUCKET_BUILD_NUMBER",
+  "CODEBUILD_BUILD_ID",
+  "DRONE",
+  "APPVEYOR",
+  "SEMAPHORE",
+  "BUILDKITE_BUILD_ID",
+  "CF_BUILD_ID",
+  "HEROKU_TEST_RUN_ID",
+] as const;
+
+// implements REQ-kibi-anonymous-usage-telemetry
+/** Variables test runners set for the code under test (`NAME=value` must match). */
+export const TEST_ENV_KEYS = [
+  "NODE_ENV=test",
+  "JEST_WORKER_ID",
+  "VITEST",
+  "VITEST_WORKER_ID",
+  "NODE_TEST_CONTEXT",
+] as const;
+
+function automationName(env: Env, keys: readonly string[]): string | undefined {
+  for (const key of keys) {
+    const [name, expected] = key.split("=") as [string, string | undefined];
+    const value = env[name]?.trim();
+    if (!value) continue;
+    if (expected !== undefined) {
+      if (value === expected) return key;
+      continue;
+    }
+    if (flagValue(value) !== false) return name;
+  }
+  return undefined;
+}
+
+// implements REQ-kibi-anonymous-usage-telemetry
 /** Per-user directory holding the telemetry config and queue. */
 export function telemetryDirectory(env: Env = process.env): string {
   const explicit = env.KIBI_TELEMETRY_DIR?.trim();
@@ -173,8 +220,8 @@ export function setTelemetryPreference(
 // implements REQ-kibi-anonymous-usage-telemetry
 /**
  * Whether events are recorded and sent, and why. Explicit opt-outs win over
- * everything; an explicit `KIBI_TELEMETRY=1` wins over the CI and test
- * defaults, and `kibi telemetry enable` over the CI default.
+ * everything. CI and test runs are off even after `kibi telemetry enable`;
+ * only an explicit `KIBI_TELEMETRY=1` sends from them.
  */
 export function telemetryStatus(env: Env = process.env): TelemetryStatus {
   const directory = telemetryDirectory(env);
@@ -194,17 +241,20 @@ export function telemetryStatus(env: Env = process.env): TelemetryStatus {
   }
   if (telemetryKey(env) === "") return status(false, "no telemetry key");
   if (explicit === true) return status(true, "KIBI_TELEMETRY=1");
-  // Test runners set NODE_ENV on the process; checking it there too keeps
-  // suites that pass their own env object from sending events. It is read
-  // through a variable because bundlers inline `process.env.NODE_ENV`.
+  // Read through a variable: bundlers inline `process.env.NODE_ENV`.
   const processEnv: Env = process.env;
-  if (env.NODE_ENV === "test" || processEnv.NODE_ENV === "test") {
-    return status(false, "test environment");
-  }
+  // CI and test runs are checked in both the given env and the process env,
+  // so a suite that passes its own env object cannot leak events either.
+  const ciName =
+    automationName(env, CI_ENV_KEYS) ?? automationName(processEnv, CI_ENV_KEYS);
+  if (ciName) return status(false, `CI environment (${ciName})`);
+  const testName =
+    automationName(env, TEST_ENV_KEYS) ??
+    automationName(processEnv, TEST_ENV_KEYS);
+  if (testName) return status(false, `test environment (${testName})`);
   if (preference === "enabled") {
     return status(true, "enabled with `kibi telemetry enable`");
   }
-  if (flagValue(env.CI) === true) return status(false, "CI environment");
   return status(true, "on by default; anonymous, opt-out");
 }
 

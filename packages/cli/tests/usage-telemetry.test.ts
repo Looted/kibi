@@ -102,28 +102,29 @@ describe("CLI anonymous usage telemetry", () => {
   });
 
   test("kibi telemetry disable and enable persist the choice", async () => {
-    const env = telemetryEnv({ CI: "true" });
+    const env = telemetryEnv();
     const log = spyOn(console, "log").mockImplementation(() => undefined);
-    // The runner's NODE_ENV=test would turn telemetry off regardless.
-    const savedNodeEnv = process.env.NODE_ENV;
-    Reflect.deleteProperty(process.env, "NODE_ENV");
+    const lastJson = () => JSON.parse(String(log.mock.calls.at(-1)?.[0]));
     try {
-      expect(
-        (await telemetryCommand("status", { format: "json" }, env)).exitCode,
-      ).toBe(0);
-      expect(JSON.parse(String(log.mock.calls.at(-1)?.[0]))).toMatchObject({
+      await telemetryCommand("disable", { format: "json" }, env);
+      expect(lastJson()).toMatchObject({
         enabled: false,
-        reason: "CI environment",
+        reason: "disabled with `kibi telemetry disable`",
       });
-      await telemetryCommand("enable", { format: "json" }, env);
-      expect(JSON.parse(String(log.mock.calls.at(-1)?.[0])).enabled).toBe(true);
-      await telemetryCommand("disable", {}, env);
-      expect(String(log.mock.calls.at(-3)?.[0])).toContain(
-        "telemetry is off (disabled with `kibi telemetry disable`)",
+      await telemetryCommand("enable", {}, env);
+      expect(String(log.mock.calls.at(-3)?.[0])).toContain("telemetry is");
+      // CI runs stay off even after an explicit enable.
+      await telemetryCommand(
+        "status",
+        { format: "json" },
+        { ...env, CI: "true" },
       );
+      expect(lastJson()).toMatchObject({
+        enabled: false,
+        reason: "CI environment (CI)",
+      });
     } finally {
       log.mockRestore();
-      if (savedNodeEnv !== undefined) process.env.NODE_ENV = savedNodeEnv;
     }
     const error = spyOn(console, "error").mockImplementation(() => undefined);
     try {

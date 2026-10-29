@@ -23,6 +23,8 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  # Kibi's own CI never sends anonymous usage telemetry.
+  KIBI_TELEMETRY: "0"
   KIBI_CLI: ./packages/cli/bin/kibi
   # The intervals differential must run its CLP(Q)/CLP(FD) oracle here.
   KIBI_REQUIRE_ORACLE: "1"

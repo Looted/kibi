@@ -5,7 +5,9 @@ import os from "node:os";
 import path from "node:path";
 
 import {
+  CI_ENV_KEYS,
   DEFAULT_TELEMETRY_HOST,
+  TEST_ENV_KEYS,
   flushTelemetry,
   hashTelemetryId,
   readTelemetryConfig,
@@ -36,12 +38,17 @@ function telemetryEnv(extra: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv {
 }
 
 function onByDefault<T>(run: () => T): T {
-  const saved = process.env.NODE_ENV;
-  Reflect.deleteProperty(process.env, "NODE_ENV");
+  const names = [...CI_ENV_KEYS, ...TEST_ENV_KEYS].map(
+    (key) => key.split("=")[0] as string,
+  );
+  const saved = new Map(names.map((name) => [name, process.env[name]]));
+  for (const name of names) Reflect.deleteProperty(process.env, name);
   try {
     return run();
   } finally {
-    if (saved !== undefined) process.env.NODE_ENV = saved;
+    for (const [name, value] of saved) {
+      if (value !== undefined) process.env[name] = value;
+    }
   }
 }
 
@@ -97,7 +104,15 @@ describe("anonymous usage telemetry switches", () => {
       { DO_NOT_TRACK: "1", KIBI_TELEMETRY: "1" },
       { KIBI_TELEMETRY: "0", CI: "true" },
       { CI: "true" },
+      { CI: "1" },
+      { GITHUB_ACTIONS: "true" },
+      { GITLAB_CI: "true" },
+      { BUILDKITE: "true" },
+      { JENKINS_URL: "https://ci.example" },
+      { TF_BUILD: "True" },
       { NODE_ENV: "test" },
+      { JEST_WORKER_ID: "1" },
+      { VITEST: "true" },
       { KIBI_TELEMETRY_KEY: "" },
     ]) {
       expect(telemetryStatus(telemetryEnv(off)).enabled).toBe(false);
@@ -135,9 +150,25 @@ describe("anonymous usage telemetry switches", () => {
     setTelemetryPreference("enabled", env);
     const { KIBI_TELEMETRY: _explicit, ...withoutExplicit } = env;
     onByDefault(() => {
+      expect(telemetryStatus(withoutExplicit).enabled).toBe(true);
+      // CI and test runs stay off even after `kibi telemetry enable`.
       expect(telemetryStatus({ ...withoutExplicit, CI: "true" }).enabled).toBe(
-        true,
+        false,
       );
+    });
+  });
+
+  test("a CI or test marker on the process wins over an env object without it", () => {
+    onByDefault(() => {
+      process.env.GITHUB_ACTIONS = "true";
+      try {
+        expect(telemetryStatus(telemetryEnv())).toMatchObject({
+          enabled: false,
+          reason: "CI environment (GITHUB_ACTIONS)",
+        });
+      } finally {
+        Reflect.deleteProperty(process.env, "GITHUB_ACTIONS");
+      }
     });
   });
 
