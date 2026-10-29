@@ -472,7 +472,7 @@ parse_json_object(Dict, Dict) :-
     !.
 parse_json_object(Raw, Dict) :-
     (atom(Raw) ; string(Raw)),
-    catch(atom_json_dict(Raw, Dict, [value_string_as(string)]), _, fail),
+    json_text_term(Raw, Dict),
     is_dict(Dict).
 
 parse_json_list(Raw, Entries) :-
@@ -484,8 +484,49 @@ parse_json_list(^^(Value, _), Entries) :-
     parse_json_list(Value, Entries).
 parse_json_list(Raw, Entries) :-
     (atom(Raw) ; string(Raw)),
-    catch(atom_json_dict(Raw, Entries, [value_string_as(string)]), _, fail),
+    json_text_term(Raw, Entries),
     is_list(Entries).
+
+% The same JSON text (a rule body, a claim inventory, a receipt history) is
+% parsed by several rules and by every requirement that links the fact, so
+% the parsed term is kept by its text.  Parsing is a pure function of the
+% text, so the memo never goes stale; it is bounded so a long-lived engine
+% cannot grow it without limit.
+:- dynamic json_text_memo/2.
+:- dynamic json_text_memo_size/1.
+
+json_text_memo_limit(16384).
+
+json_text_term(Raw, Term) :-
+    (   atom(Raw)
+    ->  Text = Raw
+    ;   atom_string(Text, Raw)
+    ),
+    (   json_text_memo(Text, Stored)
+    ->  Stored = parsed(Term)
+    ;   (   catch(atom_json_dict(Text, Parsed, [value_string_as(string)]), _, fail)
+        ->  Stored = parsed(Parsed)
+        ;   Stored = invalid
+        ),
+        json_text_remember(Text, Stored),
+        Stored = parsed(Term)
+    ).
+
+json_text_remember(Text, Stored) :-
+    (   json_text_memo_size(Size)
+    ->  true
+    ;   Size = 0
+    ),
+    json_text_memo_limit(Limit),
+    (   Size >= Limit
+    ->  retractall(json_text_memo(_, _)),
+        retractall(json_text_memo_size(_)),
+        Next = 1
+    ;   retractall(json_text_memo_size(_)),
+        Next is Size + 1
+    ),
+    assertz(json_text_memo(Text, Stored)),
+    assertz(json_text_memo_size(Next)).
 
 %% check_no_dangling_refs(-Violations)
 % Finds all relationships referencing non-existent entities.
@@ -1283,7 +1324,28 @@ analysis_outcome(analysis([], [], false, []), feasible).
 % advisory reasons in reporting order; ByException is true when some check is
 % satisfiable only because an approved exception waived a constraint;
 % NotApplicable is non-empty only when no assumption is governed at all.
-scenario_feasibility_analysis(ScenarioId, analysis(Witnesses, Unknowns, ByException, NotApplicable)) :-
+% The analysis of a scenario is kept per KB generation: the blocking rule,
+% the unknown-feasibility rule and every requirement's proof ladder ask for
+% the same scenarios.  Inside a transaction (what-if staging) the KB is not
+% the generation's, so the analysis is computed afresh.
+scenario_feasibility_analysis(ScenarioId, Analysis) :-
+    (   nonvar(ScenarioId),
+        \+ rdf_db:rdf_active_transaction(_),
+        kb:index_verification_key(scenario_feasibility, Key)
+    ->  (   kb:kb_scenario_feasibility_memo(ScenarioId, Key, Analysis0)
+        ->  Analysis = Analysis0
+        ;   compute_scenario_feasibility_analysis(ScenarioId, Analysis),
+            (   once(kb:kb_scenario_feasibility_memo(_, Stored, _)),
+                Stored \== Key
+            ->  retractall(kb:kb_scenario_feasibility_memo(_, _, _))
+            ;   true
+            ),
+            assertz(kb:kb_scenario_feasibility_memo(ScenarioId, Key, Analysis))
+        )
+    ;   compute_scenario_feasibility_analysis(ScenarioId, Analysis)
+    ).
+
+compute_scenario_feasibility_analysis(ScenarioId, analysis(Witnesses, Unknowns, ByException, NotApplicable)) :-
     findall(FactId, kb_relationship(assumes, ScenarioId, FactId), Assumed0),
     sort(Assumed0, Assumed),
     (   Assumed == []
@@ -3508,7 +3570,7 @@ inventory_entries(Raw, Entries) :-
     (   is_list(Raw) -> Entries = Raw
     ;   Raw = ^^(Value, _) -> inventory_entries(Value, Entries)
     ;   (atom(Raw) ; string(Raw)),
-        catch(atom_json_dict(Raw, JsonEntries, [value_string_as(string)]), _, fail),
+        json_text_term(Raw, JsonEntries),
         is_list(JsonEntries)
     ->  Entries = JsonEntries
     ;   (atom(Raw) ; string(Raw)),

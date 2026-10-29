@@ -54,7 +54,11 @@ requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds,
     (catch(parse_time(CheckedAtAtom, CheckedAtStamp), _, fail) -> true ; CheckedAtStamp = -1),
     normalize_integer(MaxAgeSeconds, MaxAge),
     normalize_atom(BindingMode, BindingModeAtom),
+    % Everything else in the context follows from the KB, so the proof memo
+    % key needs only the caller's parameters.
+    variant_sha1(params(Snapshot, CheckedAtAtom, MaxAge, BindingModeAtom, TestBindings), ParamsKey),
     Context = _{
+        proofMemoKey: ParamsKey,
         contradictions: Contradictions,
         contradictionWitnesses: ContradictionWitnesses,
         unsafeRules: UnsafeRules,
@@ -68,20 +72,42 @@ requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds,
     }.
 
 % implements REQ-kibi-conservative-requirement-proof
+% A requirement's proof is kept per KB generation and proof parameters, so
+% the evidence-floor rule, the coverage evidence and a coverage report in one
+% check read each ladder once.  Inside a transaction (what-if staging) the
+% KB is not the generation's, so the proof is computed afresh.
+requirement_proof(ReqId, ReqProps, Context, Proof) :-
+    (   \+ rdf_db:rdf_active_transaction(_),
+        get_dict(proofMemoKey, Context, ParamsKey),
+        kb:index_verification_key(requirement_proof, IndexKey)
+    ->  Key = key(IndexKey, ParamsKey),
+        (   kb:kb_requirement_proof_memo(ReqId, Key, Proof0)
+        ->  Proof = Proof0
+        ;   compute_requirement_proof(ReqId, ReqProps, Context, Proof),
+            (   once(kb:kb_requirement_proof_memo(_, Stored, _)),
+                Stored \== Key
+            ->  retractall(kb:kb_requirement_proof_memo(_, _, _))
+            ;   true
+            ),
+            assertz(kb:kb_requirement_proof_memo(ReqId, Key, Proof))
+        )
+    ;   compute_requirement_proof(ReqId, ReqProps, Context, Proof)
+    ).
+
 % Exemption first: a current requirement explicitly marked proof_exempt with a
 % reason is intentionally outside E2E-proof scope and must never fall through
 % to the ladder (which would report misleading receipt gaps).
-requirement_proof(ReqId, ReqProps, _Context, Proof) :-
+compute_requirement_proof(ReqId, ReqProps, _Context, Proof) :-
     kb:current_req(ReqId),
     proof_exempt(ReqProps, Reason),
     !,
     exempt_requirement_proof(Reason, ReqProps, Proof).
-requirement_proof(ReqId, ReqProps, _Context, Proof) :-
+compute_requirement_proof(ReqId, ReqProps, _Context, Proof) :-
     \+ kb:current_req(ReqId),
     !,
     applicability_exclusion_reason(ReqId, Reason),
     exempt_requirement_proof(Reason, ReqProps, Proof).
-requirement_proof(ReqId, ReqProps, Context, Proof) :-
+compute_requirement_proof(ReqId, ReqProps, Context, Proof) :-
     semantic_inventory_stage(ReqProps, SemanticStage, Inventory),
     logic_grounding_stage(ReqId, ReqProps, Inventory, Context, LogicStage),
     contradiction_stage(ReqId, LogicStage.status, SemanticStage.status, Context, ContradictionStage),
