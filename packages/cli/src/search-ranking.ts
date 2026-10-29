@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import syncFs from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { bodySnippetLine } from "./entity-body-context.js";
@@ -228,7 +228,7 @@ export function loadMarkdownBodySync(
   const resolved = markdownBodyPath(source, workspaceRoot);
   if (resolved === null) return null;
   try {
-    return stripFrontmatter(readFileSync(resolved, "utf8"));
+    return stripFrontmatter(syncFs.readFileSync(resolved, "utf8"));
   } catch {
     return null;
   }
