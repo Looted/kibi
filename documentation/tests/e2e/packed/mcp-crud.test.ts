@@ -32,6 +32,7 @@ interface JsonRpcResponse {
     tools?: Array<{ name: string }>;
     content?: Array<{ type: string; text: string }>;
     structuredContent?: Record<string, unknown>;
+    isError?: boolean;
   };
   error?: {
     code: number;
@@ -699,6 +700,115 @@ if (RUN_NODE_TEST_SUITE) {
         assert.ok(
           !queryText.includes("Requirement B: 60 min timeout"),
           "The rejected requirement must not be queryable",
+        );
+      },
+    );
+
+    it(
+      "should reject a relationship to a missing target before persisting the entity",
+      { timeout: TEST_TIMEOUT_MS },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        const response = await sendJsonRpc(
+          sandbox.kibiMcpBin,
+          sandbox.repoDir,
+          sandbox.env,
+          {
+            jsonrpc: "2.0",
+            id: 30,
+            method: "tools/call",
+            params: {
+              name: "kb_upsert",
+              arguments: {
+                type: "req",
+                id: "REQ-E2E-DANGLING",
+                properties: {
+                  title: "Requirement with a dangling scenario link",
+                  status: "open",
+                  source: "test://e2e-relationship-preflight",
+                },
+                relationships: [
+                  {
+                    type: "specified_by",
+                    from: "REQ-E2E-DANGLING",
+                    to: "SCEN-E2E-MISSING",
+                  },
+                ],
+                document: { path: ".kb/requirements/REQ-E2E-DANGLING.md" },
+              },
+            },
+          },
+        );
+
+        const responseText = JSON.stringify(response);
+        assert.ok(
+          response.error || response.result?.isError,
+          "A relationship to a missing target must fail the write",
+        );
+        assert.ok(
+          responseText.includes(
+            "Target entity does not exist: SCEN-E2E-MISSING",
+          ),
+          "The diagnostic must name the missing target",
+        );
+
+        const queryResponse = await sendJsonRpc(
+          sandbox.kibiMcpBin,
+          sandbox.repoDir,
+          sandbox.env,
+          {
+            jsonrpc: "2.0",
+            id: 31,
+            method: "tools/call",
+            params: { name: "kb_query", arguments: { id: "REQ-E2E-DANGLING" } },
+          },
+        );
+        assert.ok(
+          !JSON.stringify(queryResponse.result ?? {}).includes(
+            "Requirement with a dangling scenario link",
+          ),
+          "The rejected requirement must not be persisted",
+        );
+      },
+    );
+
+    it(
+      "should reject a kb_check rule outside the generated registry",
+      { timeout: TEST_TIMEOUT_MS },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        const response = await sendJsonRpc(
+          sandbox.kibiMcpBin,
+          sandbox.repoDir,
+          sandbox.env,
+          {
+            jsonrpc: "2.0",
+            id: 32,
+            method: "tools/call",
+            params: {
+              name: "kb_check",
+              arguments: { rules: ["no-such-rule"] },
+            },
+          },
+        );
+
+        const responseText = JSON.stringify(response);
+        assert.ok(
+          response.error || response.result?.isError,
+          "An unknown rule name must not run as an empty rule selection",
+        );
+        assert.ok(
+          /Input validation error/.test(responseText) &&
+            responseText.includes("rules[0]"),
+          "The error must point at the rejected rule name",
         );
       },
     );
