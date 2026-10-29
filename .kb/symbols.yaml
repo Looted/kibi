@@ -65308,3 +65308,41 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-vscode-focus-command
+  - id: SYM-test-prolog-mutation-lane
+    title: prolog-mutation-runner.test.ts
+    status: active
+    sourceFile: packages/core/tests/prolog-mutation-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:12:50.973Z
+    relationships:
+      - type: executable_for
+        target: TEST-prolog-mutation-lane
+  - id: SYM-prolog-mutation-use-mutalog
+    title: use_mutalog
+    status: active
+    sourceFile: scripts/run-prolog-mutation.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:12:55.961Z
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-mutation-lane
+      - type: implements
+        target: REQ-prolog-mutation-lane
+  - id: SYM-prolog-mutation-main
+    title: main
+    status: active
+    sourceFile: scripts/run-prolog-mutation.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:12:59.189Z
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-mutation-lane
+      - type: implements
+        target: REQ-prolog-mutation-lane

@@ -524,3 +524,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0a7612df7f42
+  - type: implements
+    from: SYM-prolog-mutation-main
+    to: REQ-prolog-mutation-lane
+    created_at: 2026-10-29T16:13:00.192Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8633319cdd92
+  - type: covered_by
+    from: SYM-prolog-mutation-main
+    to: TEST-prolog-mutation-lane
+    created_at: 2026-10-29T16:13:00.228Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-085dc74a867a

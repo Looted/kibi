@@ -405,7 +405,11 @@ export async function executeCheck(
     const evidenceFloorFindings = await collectEvidenceFloorViolations(
       context,
       rulesAllowlist,
-      { freshEvidence: args.freshEvidence === true },
+      {
+        freshEvidence: args.freshEvidence === true,
+        checkedAt,
+        snapshotEvidence,
+      },
     );
     const proofContractClaimFindings =
       await collectProofContractClaimViolations(context, rulesAllowlist);
