@@ -15,21 +15,21 @@ semantic_inventory:
   - claim_key: CLAIM-9D8D115490D80266
     claim_text: The Prolog mutation runner must run the Mutalog checkout named by the MUTALOG_HOME environment variable when it is set
     role: normative
-    status: ontology_gap
+    status: modeled
     span:
       start: 0
       end: 118
   - claim_key: CLAIM-4E587E213B341F06
     claim_text: The Prolog mutation runner must otherwise run the pinned Mutalog version from the repository-local pack directory, installing it there only when that version is missing
     role: normative
-    status: missing
+    status: modeled
     span:
       start: 120
       end: 288
   - claim_key: CLAIM-25D770C07A103D90
     claim_text: The Prolog mutation runner must pass its command-line arguments to Mutalog unchanged
     role: normative
-    status: ontology_gap
+    status: modeled
     span:
       start: 290
       end: 374
