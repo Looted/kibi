@@ -1,6 +1,7 @@
 // @ts-ignore
 import { describe, expect, test } from "bun:test";
-import { existsSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { runAggregatedChecks } from "../../src/commands/aggregated-checks";
 import type { PrologProcess } from "../../src/prolog";
@@ -110,6 +111,85 @@ describe("runAggregatedChecks", () => {
     expect(out).toEqual([]);
     expect(capture.lastQuery).toContain("check_selected_json([");
     expect(existsSync(path.dirname(resultPath))).toBe(false);
+  });
+
+  test("a file answer without a written file fails clearly and removes the temp dir", async () => {
+    let resultPath = "";
+    const prolog = {
+      async query(goal: string) {
+        const match = goal.match(/check_all_json_file\('([^']+)', false\)/);
+        if (!match?.[1]) throw new Error(`no result file in goal: ${goal}`);
+        resultPath = match[1];
+        // The engine claims the file transport but never writes the file.
+        return { success: true, bindings: { Transport: "file" } };
+      },
+    } as unknown as PrologProcess;
+
+    await expect(runAggregatedChecks(prolog, null)).rejects.toThrow(
+      /ENOENT|no such file/i,
+    );
+    expect(resultPath).not.toBe("");
+    expect(existsSync(path.dirname(resultPath))).toBe(false);
+  });
+
+  test("an unusable temp dir is reported before the engine is asked", async () => {
+    const previous = process.env.TMPDIR;
+    const base = mkdtempSync(path.join(tmpdir(), "kibi-check-tmp-"));
+    process.env.TMPDIR = path.join(base, "missing");
+    let queried = false;
+    const prolog = {
+      async query() {
+        queried = true;
+        return { success: true, bindings: { Transport: "file" } };
+      },
+    } as unknown as PrologProcess;
+    try {
+      await expect(runAggregatedChecks(prolog, null)).rejects.toThrow(
+        /ENOENT|no such file/i,
+      );
+      expect(queried).toBe(false);
+    } finally {
+      // biome-ignore lint/performance/noDelete: unset it, an assignment would store "undefined"
+      if (previous === undefined) delete process.env.TMPDIR;
+      else process.env.TMPDIR = previous;
+      rmSync(base, { recursive: true, force: true });
+    }
+  });
+
+  test("a temp dir with a quote in its path reaches the engine as a valid atom", async () => {
+    const previous = process.env.TMPDIR;
+    const base = mkdtempSync(path.join(tmpdir(), "kibi-check-quote-"));
+    const quoted = path.join(base, "it's here");
+    process.env.TMPDIR = quoted;
+    let resultPath = "";
+    let goalText = "";
+    const prolog = {
+      async query(goal: string) {
+        goalText = goal;
+        // The atom is single-quoted, so a quote inside it is doubled.
+        const match = goal.match(
+          /check_all_json_file\('((?:[^']|'')+)', false\)/,
+        );
+        if (!match?.[1]) throw new Error(`no result file in goal: ${goal}`);
+        resultPath = match[1].replaceAll("''", "'");
+        writeFileSync(resultPath, JSON.stringify({ "rule-a": [] }), "utf8");
+        return { success: true, bindings: { Transport: "file" } };
+      },
+    } as unknown as PrologProcess;
+    try {
+      const { mkdirSync } = await import("node:fs");
+      mkdirSync(quoted, { recursive: true });
+      const out = await runAggregatedChecks(prolog, null);
+      expect(out).toEqual([]);
+      expect(resultPath.startsWith(quoted)).toBe(true);
+      expect(goalText).toContain("it''s here");
+      expect(existsSync(path.dirname(resultPath))).toBe(false);
+    } finally {
+      // biome-ignore lint/performance/noDelete: unset it, an assignment would store "undefined"
+      if (previous === undefined) delete process.env.TMPDIR;
+      else process.env.TMPDIR = previous;
+      rmSync(base, { recursive: true, force: true });
+    }
   });
 
   test("an engine without the file predicates still answers through the binding", async () => {

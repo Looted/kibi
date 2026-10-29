@@ -30,8 +30,44 @@
 logic_rule_from_props(Props, Rule) :-
     memberchk(rule_ir=Raw, Props),
     raw_json_atom(Raw, Json),
-    catch(atom_json_dict(Json, Dict, [value_string_as(atom)]), _, fail),
-    json_rule(Dict, Rule).
+    logic_rule_from_json(Json, Rule).
+
+% A rule body is decoded once per text: the feasibility analysis of every
+% scenario and every requirement's proof ladder read the same rule facts.
+% Decoding is a pure function of the text, so the memo never goes stale; it
+% is bounded so a long-lived engine cannot grow it without limit.
+:- dynamic logic_rule_memo/2.
+:- dynamic logic_rule_memo_size/1.
+
+logic_rule_memo_limit(16384).
+
+logic_rule_from_json(Json, Rule) :-
+    (   logic_rule_memo(Json, Stored)
+    ->  Stored = rule(Rule)
+    ;   (   catch(atom_json_dict(Json, Dict, [value_string_as(atom)]), _, fail),
+            json_rule(Dict, Rule0)
+        ->  Stored = rule(Rule0)
+        ;   Stored = invalid
+        ),
+        logic_rule_remember(Json, Stored),
+        Stored = rule(Rule)
+    ).
+
+logic_rule_remember(Json, Stored) :-
+    (   logic_rule_memo_size(Size)
+    ->  true
+    ;   Size = 0
+    ),
+    logic_rule_memo_limit(Limit),
+    (   Size >= Limit
+    ->  retractall(logic_rule_memo(_, _)),
+        retractall(logic_rule_memo_size(_)),
+        Next = 1
+    ;   retractall(logic_rule_memo_size(_)),
+        Next is Size + 1
+    ),
+    assertz(logic_rule_memo(Json, Stored)),
+    assertz(logic_rule_memo_size(Next)).
 
 % Anything that is not JSON text is rejected by atom_json_dict/3.
 raw_json_atom(^^(Value, _), Text) :- !, raw_json_atom(Value, Text).
