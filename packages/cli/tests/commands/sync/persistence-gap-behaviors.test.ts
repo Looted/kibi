@@ -397,6 +397,54 @@ describe("persistRelationships batch fallback and untracked tips", () => {
     expect(io.warns.length).toBe(0);
   });
 
+  test("keeps a failed batch's valid links in one call and retries only the failures", async () => {
+    const singles: string[] = [];
+    const { prolog, goals } = makeProlog({
+      queryBatch: () => ({
+        success: false,
+        bindings: {},
+        error: "batch txn aborted",
+      }),
+      query: (goal) => {
+        if (goal.startsWith("kb_assert_relationships_reporting(")) {
+          return { success: true, bindings: { Failed: "[2]" } };
+        }
+        singles.push(goal);
+        return {
+          success: false,
+          bindings: {},
+          error: "Target entity does not exist: SCEN-MISSING",
+        };
+      },
+    });
+    const io = captureIo();
+    restores.push(io.restore);
+
+    const result = await persistRelationships(
+      prolog,
+      [
+        makeResult(makeEntity(), [
+          { type: "specified_by", from: "REQ-001", to: "SCEN-1" },
+          { type: "specified_by", from: "REQ-001", to: "SCEN-MISSING" },
+          { type: "specified_by", from: "REQ-001", to: "SCEN-3" },
+        ]),
+      ],
+      [],
+    );
+
+    expect(result.relationshipCount).toBe(2);
+    expect(result.kbModified).toBe(true);
+    const reporting = goals.filter((goal) =>
+      goal.startsWith("kb_assert_relationships_reporting("),
+    );
+    expect(reporting).toHaveLength(1);
+    expect(reporting[0]).toContain("rel(specified_by, 'REQ-001', 'SCEN-1')");
+    expect(singles.length).toBeGreaterThan(0);
+    expect(singles.every((goal) => goal.includes("'SCEN-MISSING'"))).toBe(
+      true,
+    );
+  });
+
   test("warns with an untracked-document hint for unstaged missing targets", async () => {
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);

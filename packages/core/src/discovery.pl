@@ -516,9 +516,9 @@ coverage_report_json(By, Tags, IncludePassing, BindingMode, TestBindings, Includ
         binding(By, Tags, IncludePassing, BindingMode, TestBindings, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds),
         binding_coverage_rows(By, Tags, IncludePassing, BindingMode, TestBindings, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds),
         SortedRows,
-        Summary),
+        Summary,
+        Meta),
     paginate_rows(SortedRows, Offset, Limit, Rows),
-    status_meta_dict(Meta),
     Response = _{summary: Summary, rows: Rows, meta: Meta},
     dict_json_string(Response, JsonString).
 
@@ -534,9 +534,9 @@ coverage_report_json(By, Tags, IncludePassing, StatusFilter, IncludeTransitive, 
         status(By, Tags, IncludePassing, StatusFilter, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds),
         status_filtered_coverage_rows(By, Tags, IncludePassing, StatusFilter, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds),
         SortedRows,
-        Summary),
+        Summary,
+        Meta),
     paginate_rows(SortedRows, Offset, Limit, Rows),
-    status_meta_dict(Meta),
     Response = _{summary: Summary, rows: Rows, meta: Meta},
     dict_json_string(Response, JsonString).
 
@@ -549,9 +549,9 @@ coverage_report_json(By, Tags, IncludePassing, StatusFilter, BindingMode, TestBi
         status_binding(By, Tags, IncludePassing, StatusFilter, BindingMode, TestBindings, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds),
         status_binding_coverage_rows(By, Tags, IncludePassing, StatusFilter, BindingMode, TestBindings, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds),
         SortedRows,
-        Summary),
+        Summary,
+        Meta),
     paginate_rows(SortedRows, Offset, Limit, Rows),
-    status_meta_dict(Meta),
     Response = _{summary: Summary, rows: Rows, meta: Meta},
     dict_json_string(Response, JsonString).
 
@@ -568,26 +568,31 @@ binding_coverage_rows(req, Tags, IncludePassing, BindingMode, TestBindings, Incl
 binding_coverage_rows(By, Tags, IncludePassing, _BindingMode, _TestBindings, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary) :-
     coverage_rows(By, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary).
 
-:- dynamic coverage_memo/3.
+:- dynamic coverage_memo/4.
 
-%% memo_sorted_coverage(+Args, :Compute, -SortedRows, -Summary)
+%% memo_sorted_coverage(+Args, :Compute, -SortedRows, -Summary, -Meta)
 % Large coverage reports are fetched in bounded pages so no single answer
 % approaches the engine's output cap. Every page would otherwise recompute
 % the whole report; keep the most recent sorted result for the exact
 % arguments, graph, and RDF generation. Coverage reads only the store and its
-% arguments, so the memo is invalidated by any store change.
-memo_sorted_coverage(Args, Compute, SortedRows, Summary) :-
+% arguments, so the memo is invalidated by any store change. The status meta
+% is kept with it: its freshness check stats every indexed source, which cost
+% more than the page itself, and the pages of one report share its arguments
+% (including the check time), so they describe the same snapshot.
+memo_sorted_coverage(Args, Compute, SortedRows, Summary, Meta) :-
     (kb:kb_graph(Graph) -> true ; Graph = none),
     rdf_generation(Generation),
     Key = key(Args, Graph, Generation),
-    (   coverage_memo(Stored, StoredRows, StoredSummary),
+    (   coverage_memo(Stored, StoredRows, StoredSummary, StoredMeta),
         Stored =@= Key
     ->  SortedRows = StoredRows,
-        Summary = StoredSummary
+        Summary = StoredSummary,
+        Meta = StoredMeta
     ;   call(Compute, Rows0, Summary),
         sort_dict_rows(Rows0, SortedRows),
-        retractall(coverage_memo(_, _, _)),
-        assertz(coverage_memo(Key, SortedRows, Summary))
+        status_meta_dict(Meta),
+        retractall(coverage_memo(_, _, _, _)),
+        assertz(coverage_memo(Key, SortedRows, Summary, Meta))
     ).
 
 status_filtered_coverage_rows(By, Tags, IncludePassing, [], IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary) :-

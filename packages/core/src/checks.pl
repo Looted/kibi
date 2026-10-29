@@ -2526,7 +2526,24 @@ check_domain_contradictions_and_witnesses(Violations, Witnesses) :-
 % Exact, JSON-safe evidence for every strict-property, ground-predicate, and
 % safe-rule contradiction result.  Rule overlap that cannot be proven or
 % disproven remains status=unresolved rather than becoming consistency.
+%
+% kb_check, kb_coverage and the proof context each ask for every witness, so
+% the result is memoized per KB generation, like the entity property memo.
+% Inside an RDF transaction (the what-if staging) it is always recomputed.
 check_domain_contradiction_witnesses(Witnesses) :-
+    (   \+ rdf_db:rdf_active_transaction(_),
+        kb:index_verification_key(domain_contradictions, Key)
+    ->  (   kb:kb_contradiction_witness_memo(Key, Cached)
+        ->  Witnesses = Cached
+        ;   compute_domain_contradiction_witnesses(Computed),
+            retractall(kb:kb_contradiction_witness_memo(_, _)),
+            assertz(kb:kb_contradiction_witness_memo(Key, Computed)),
+            Witnesses = Computed
+        )
+    ;   compute_domain_contradiction_witnesses(Witnesses)
+    ).
+
+compute_domain_contradiction_witnesses(Witnesses) :-
     findall(Witness, req_conflict_witness(_ReqA, _ReqB, Witness), GroundWitnesses),
     functional_predicate_declarations(Functional),
     findall(Witness, rule_contradiction_witness(Functional, Witness), RuleWitnesses),
@@ -2701,22 +2718,39 @@ opposing_rule_requirements(ReqA, ReqB, RuleA, RuleB) :-
 % Each unordered pair of (requirement, rule fact) endpoints is compared once,
 % ordered by the requirement-fact pair: ordering requirements and facts
 % independently would never compare REQ-A->FACT-Z with REQ-Z->FACT-A.
+%
+% Only current requirements with requires_rule links can pair, so the pairs
+% are drawn from that list (in current_req/1 order, each with its rule links
+% in relationship order) rather than from every pair of current
+% requirements; solutions and their order are unchanged.
 opposing_rule_requirement_facts(ReqA, ReqB, FactA, FactB, RuleA, RuleB) :-
-    kb:current_req(ReqA),
-    kb:current_req(ReqB),
+    rule_requirement_links(Links),
+    member(ReqA-RulesA, Links),
+    member(ReqB-RulesB, Links),
     ReqA \== ReqB,
-    kb_relationship(requires_rule, ReqA, FactA),
-    kb_relationship(requires_rule, ReqB, FactB),
+    member(FactA-RuleA, RulesA),
+    member(FactB-RuleB, RulesB),
     FactA \== FactB,
-    ReqA-FactA @< ReqB-FactB,
-    kb_entity(FactA, fact, PropsA),
-    kb_entity(FactB, fact, PropsB),
-    memberchk(fact_kind=KindA, PropsA),
-    memberchk(fact_kind=KindB, PropsB),
-    normalize_term_atom(KindA, rule),
-    normalize_term_atom(KindB, rule),
-    logic_rule_from_props(PropsA, RuleA),
-    logic_rule_from_props(PropsB, RuleB).
+    ReqA-FactA @< ReqB-FactB.
+
+% Each requirement's rule facts with their parsed rules, read once rather
+% than once per pair: a link to a fact that is not a rule, or whose rule does
+% not parse, never pairs.
+rule_requirement_links(Links) :-
+    findall(ReqId-Rules,
+            ( kb:current_req(ReqId),
+              findall(FactId-Rule,
+                      ( kb_relationship(requires_rule, ReqId, FactId),
+                        rule_fact_rule(FactId, Rule) ),
+                      Rules),
+              Rules \== [] ),
+            Links).
+
+rule_fact_rule(FactId, Rule) :-
+    kb_entity(FactId, fact, Props),
+    memberchk(fact_kind=Kind, Props),
+    normalize_term_atom(Kind, rule),
+    logic_rule_from_props(Props, Rule).
 
 rule_contradiction_witness(Functional, Witness) :-
     opposing_rule_requirement_facts(ReqA, ReqB, FactA, FactB, RuleA, RuleB),

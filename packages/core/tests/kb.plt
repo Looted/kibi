@@ -302,6 +302,32 @@ test(relationship_edges_match_the_findall_they_replace, [setup(setup_kb), cleanu
     kb_relationship_edges(Types, ['REQ-EDGES-MISSING'], None),
     assertion(None == []).
 
+test(reporting_batch_keeps_valid_links_and_names_failures, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    forall(member(Id, ['REQ-BATCH-A', 'REQ-BATCH-B', 'REQ-BATCH-C']),
+           assert_fixture_entity(req, Id, "Batch fixture", active, [])),
+    kb_assert_relationships_reporting(
+        [ rel(depends_on, 'REQ-BATCH-A', 'REQ-BATCH-B'),
+          rel(depends_on, 'REQ-BATCH-A', 'REQ-BATCH-MISSING'),
+          rel(depends_on, 'REQ-BATCH-B', 'REQ-BATCH-C'),
+          rel(not_a_relationship, 'REQ-BATCH-C', 'REQ-BATCH-A')
+        ],
+        Failed),
+    assertion(Failed == [2, 4]),
+    assertion(kb_relationship(depends_on, 'REQ-BATCH-A', 'REQ-BATCH-B')),
+    assertion(kb_relationship(depends_on, 'REQ-BATCH-B', 'REQ-BATCH-C')),
+    assertion(\+ kb_relationship(depends_on, 'REQ-BATCH-A', 'REQ-BATCH-MISSING')).
+
+test(entity_pages_follow_writes_between_pages, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    forall(member(Id, ['REQ-PAGE-A', 'REQ-PAGE-C']),
+           assert_fixture_entity(req, Id, "Paging fixture", active, [])),
+    kb_query_entities(req, none, [], none, 1, 0, [[First|_]], Count0),
+    assertion(First == 'REQ-PAGE-A'),
+    assertion(Count0 == 2),
+    assert_fixture_entity(req, 'REQ-PAGE-B', "Paging fixture", active, []),
+    kb_query_entities(req, none, [], none, 1, 1, [[Second|_]], Count1),
+    assertion(Second == 'REQ-PAGE-B'),
+    assertion(Count1 == 3).
+
 :- end_tests(kb_relationships).
 
 :- begin_tests(kb_persistence).
@@ -1034,6 +1060,18 @@ test(opposite_ground_predicate_polarities_contradict, [setup(setup_kb), cleanup(
     assertion(Witness.right.claimKey == 'CLAIM-2222222222222222'),
     assertion(Witness.right.term.polarity == deny),
     assertion(Witness.predicateArgs == [suspended_user, publish, article]).
+
+test(memoized_contradiction_witnesses_follow_writes, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_permission_decision_fixture('FACT-MEMO-ALLOW', 'REQ-MEMO-ALLOW', "CLAIM-7777777777777777",
+        ["coach", "read", "memo_request", "allow"], assert),
+    check_domain_contradictions(Before),
+    assertion(Before == []),
+    assert_permission_decision_fixture('FACT-MEMO-DENY', 'REQ-MEMO-DENY', "CLAIM-8888888888888888",
+        ["coach", "read", "memo_request", "deny"], deny),
+    check_domain_contradictions(After),
+    assertion(memberchk(violation('domain-contradictions', "REQ-MEMO-ALLOW/REQ-MEMO-DENY", _, _, _), After)),
+    kb_domain_contradiction_pairs_examined(Pairs),
+    assertion(Pairs == 1).
 
 assert_permission_decision_fixture(FactId, ReqId, ClaimKey, Args, Polarity) :-
     atomic_list_concat(Args, ',', ArgsText),
