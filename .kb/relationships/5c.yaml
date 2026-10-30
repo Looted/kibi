@@ -503,3 +503,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-adc9e097a794
+  - type: specified_by
+    from: REQ-kb-entity-body-context
+    to: SCEN-CASE-kb-entity-body-context-UNCHECKED-TYPE
+    created_at: 2026-10-30T15:59:39.178Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3754a8a0e28b

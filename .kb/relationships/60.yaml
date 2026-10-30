@@ -237,3 +237,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ae4c78e8e1a1
+  - type: assumes
+    from: SCEN-CASE-kb-entity-body-context-UNCHECKED-TYPE
+    to: FACT-CASE-kb-entity-body-context-UNCHECKED-TYPE
+    created_at: 2026-10-30T15:59:34.681Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d638cc0d8560
+  - type: verified_by
+    from: SCEN-CASE-kb-entity-body-context-UNCHECKED-TYPE
+    to: TEST-kb-entity-body-context
+    created_at: 2026-10-30T15:59:34.745Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b84fe316c7f

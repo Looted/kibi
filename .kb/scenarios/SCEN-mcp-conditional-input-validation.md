@@ -13,6 +13,6 @@ origin:
 id: SCEN-mcp-conditional-input-validation
 type: scenario
 ---
-Given the MCP server's kb_upsert input schema, when an agent writes an observation or meta fact with claim_text and no claim_key, then validation passes; when it writes a subject, property_value or predicate fact with claim_text and no claim_key, then validation fails naming claim_key, as the CLI does.
+Given the MCP server's kb_upsert input schema, when an agent writes an observation or meta fact with claim_text and no claim_key, then validation passes; when it writes a subject, property_value or predicate fact with claim_text and no claim_key, then validation also passes and Kibi derives the key from the claim text, as the CLI does.
 
 This came from an evaluation where 73 ontology-gap notes were rejected over MCP only. Assumes the claim provenance rule in the operation schema is unchanged.

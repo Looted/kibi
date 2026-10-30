@@ -346,3 +346,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d5425803c128
+  - type: specified_by
+    from: REQ-codex-kibi-plugin-v1
+    to: SCEN-CASE-codex-kibi-plugin-v1-DENYING-HOOK
+    created_at: 2026-10-30T15:59:36.413Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1428eca1cdcf

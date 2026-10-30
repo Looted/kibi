@@ -19,4 +19,6 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+case_waiver: 'One shared writer builds every hook row from a fixed record shape, so no row can lack this field; the happy-path tests check it.'
+case_waiver_approved_by: Piotr Franczyk
 ---

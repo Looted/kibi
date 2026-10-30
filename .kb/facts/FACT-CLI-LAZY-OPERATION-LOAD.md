@@ -25,6 +25,8 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+case_waiver: 'The parity test asserts equality of the real registration and catalog tables and fails on any drift; no runtime path can refuse it.'
+case_waiver_approved_by: Piotr Franczyk
 ---
 
 Ground representation of CLI lazy loading and authoritative metadata parity.

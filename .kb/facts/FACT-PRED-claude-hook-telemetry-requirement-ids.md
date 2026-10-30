@@ -19,4 +19,6 @@ origin:
   recorded_at: '2026-10-04T02:13:00.997Z'
 id: FACT-PRED-claude-hook-telemetry-requirement-ids
 type: fact
+case_waiver: 'One shared writer builds every hook row from a fixed record shape, so no row can lack this field; the happy-path tests check it.'
+case_waiver_approved_by: Piotr Franczyk
 ---
