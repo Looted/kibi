@@ -1,5 +1,5 @@
 ---
-title: Each host caps the shared snippet at its size budget
+title: No host emits a shared snippet over its own size budget
 status: active
 tags:
   - lane:ontology
@@ -8,15 +8,12 @@ tags:
 claim_key: CLAIM-A8B41A3ADA698846
 claim_text: Each host must cap the shared snippet at its own size budget
 text_ref: .kb/requirements/REQ-agent-core-edit-snippets.md
-fact_kind: predicate
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.host.edit_snippets
-  - shared_snippet_size
-  - capped_at_host_budget
-polarity: assert
-canonical_key: logical_requirement_rule(kibi.host.edit_snippets,shared_snippet_size,capped_at_host_budget)
-predicate_namespace: kibi.requirements
+fact_kind: property_value
+subject_key: kibi.host.edit_snippets
+property_key: hosts_with_snippet_over_own_size_budget
+operator: eq
+value_type: int
+value_int: 0
 origin:
   kind: agent
   recorded_at: '2026-10-04T02:42:05.929Z'

@@ -9,10 +9,10 @@ tags:
 text_ref: REQ-ui-plugin-design-policy
 fact_kind: property_value
 subject_key: ui_plugin.design_policy
-property_key: requires_pattern_markers
+property_key: pattern_markers_missing_from_implementing_files
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 claim_key: CLAIM-46DC37CA36AB76CF
 claim_text: The kibi-plugin-ui policy must require implementing component files and their html templates to contain every pattern marker of their requirement pattern
 origin:
@@ -24,4 +24,4 @@ type: fact
 ---
 The kibi-plugin-ui policy must require implementing component files and their html templates to contain every pattern marker of their requirement pattern.
 
-Recorded as a strict boolean semantic fact about `ui_plugin.design_policy` so REQ-ui-plugin-design-policy can be checked for contradictions.
+Recorded as a count of missing pattern markers on `ui_plugin.design_policy` so REQ-ui-plugin-design-policy can be checked for contradictions.

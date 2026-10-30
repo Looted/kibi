@@ -195,7 +195,7 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-caecd7161952
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-git-hook-effective-install
     to: FACT-PRED-9941160A203B
     created_at: 2026-09-26T08:57:00.055Z
@@ -412,3 +412,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a943f5163c46
+  - type: constrains
+    from: REQ-git-hook-effective-install
+    to: FACT-SUBJECT-KIBI-INIT-GIT-HOOKS
+    created_at: 2026-10-30T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7b0c0a3a806
