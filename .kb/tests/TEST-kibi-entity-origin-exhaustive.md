@@ -27,17 +27,17 @@ id: TEST-kibi-entity-origin-exhaustive
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-f2086aef905bf277affd287b
+    receipt_id: PR-52700285543f1ad2f06d0c4a
     test_id: TEST-kibi-entity-origin-exhaustive
     scope: unit
     outcome: passed
-    code_snapshot: 88f72ac7863bc053137ae0fbd6e7ea179d4fbf9dd5cb363152f2b4fc11739754
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-25T18:53:59.319Z'
-    finished_at: '2026-10-25T18:53:59.586Z'
-    artifact_digest: 35b8b1a733dd95f5b26a5e75e43ffb6bb9f9c42a2dd1a74c152f2a8c0fe68262
+    code_snapshot: f28722f7660a882a57ee32674c16399e57f709d942764918804ea85d33167119
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-10-30T12:51:54.035Z'
+    finished_at: '2026-10-30T12:51:54.468Z'
+    artifact_digest: 0143105c26a9303cd116b37b0c9e3ed0cc4aacc2f362fc374d7af833b19243d1
     contract_hash: a824a4dc07b59cbef7d472e7fa4391ae25c56e8ea1be90a8b864fb7a81d6550b
-    binding_hash: dedc71a7ea7c746af0998e29d9101f99df228996af7002d46dd95b6d7e2c2fb8
+    binding_hash: cbaa8c1318e03dfcf8f19ffc5655249a5ba9dd4d62680b81e5a3e815e80c15c4
     fingerprint: bd20a63c371b25944e0b547bdcaf3be1ffad53b15da2dee0d98ed29f15007954
     fingerprint_components:
       contract: a824a4dc07b59cbef7d472e7fa4391ae25c56e8ea1be90a8b864fb7a81d6550b
@@ -98,8 +98,19 @@ proof_receipts:
       - claim_key: CLAIM-7AC3394BD0DCD7A9
         requirement_id: REQ-kibi-entity-origin
         fact_id: FACT-PRED-entity-origin-field
-        binding: attested
+        binding: derived
         scope: code
+        obligation:
+          kind: set_equals
+          members:
+            - adr
+            - event
+            - fact
+            - flag
+            - req
+            - scenario
+            - symbol
+            - test
       - claim_key: CLAIM-E77E686DE934A103
         requirement_id: REQ-kibi-entity-origin
         fact_id: FACT-PRED-entity-origin-rejects-unknown

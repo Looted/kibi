@@ -1,5 +1,5 @@
 ---
-title: No entity type rejects the optional origin field
+title: Every entity type accepts an optional origin
 status: active
 tags:
   - lane:ontology
@@ -10,10 +10,18 @@ claim_text: Every entity type must accept an optional origin field with kind hum
 text_ref: .kb/requirements/REQ-kibi-entity-origin.md
 fact_kind: property_value
 subject_key: kibi.entity.origin
-property_key: entity_types_rejecting_optional_origin_field
+property_key: entity_types_accepting_optional_origin
 operator: eq
-value_type: int
-value_int: 0
+value_type: set
+value_set:
+  - req
+  - scenario
+  - test
+  - adr
+  - flag
+  - event
+  - symbol
+  - fact
 origin:
   kind: agent
   recorded_at: '2026-10-04T02:21:21.188Z'

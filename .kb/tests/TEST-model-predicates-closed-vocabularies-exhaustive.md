@@ -26,17 +26,17 @@ id: TEST-model-predicates-closed-vocabularies-exhaustive
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-16340566e9abc2e621f848eb
+    receipt_id: PR-95519ece5041fc3377652e77
     test_id: TEST-model-predicates-closed-vocabularies-exhaustive
     scope: unit
     outcome: passed
-    code_snapshot: 88f72ac7863bc053137ae0fbd6e7ea179d4fbf9dd5cb363152f2b4fc11739754
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-25T18:54:15.848Z'
-    finished_at: '2026-10-25T18:54:15.919Z'
-    artifact_digest: 969144c8320850a137e0ef2d9a544372e5cedcff6f0c7d6cf3e7c8ccfc3ec577
+    code_snapshot: f28722f7660a882a57ee32674c16399e57f709d942764918804ea85d33167119
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-10-30T12:52:07.210Z'
+    finished_at: '2026-10-30T12:52:07.413Z'
+    artifact_digest: 056fbdc730d4e9e717f22818f054d6eba8d62e26f254c19590110ee65ef64dda
     contract_hash: b9ebbd0638f2be4b478ed9c2e0c85bf7ace6ee7f8ae3bd4f4c95d6fd48891f44
-    binding_hash: 0219d1e1fa2f9aa2755bf0026a2256caab571c95de383db688dd3b58c9f4c3d8
+    binding_hash: 2c03fadcb2095e22af0f9bbd6bb0ac0c84a15eecfea2eb6ba1731053055fbf70
     fingerprint: d9f1c46a1fa13c0ee21e47e7493ed8340df1cebfb86dea5e3f1a00d6ca6c0138
     fingerprint_components:
       contract: b9ebbd0638f2be4b478ed9c2e0c85bf7ace6ee7f8ae3bd4f4c95d6fd48891f44
@@ -304,7 +304,87 @@ proof_receipts:
       - claim_key: CLAIM-17EA6E80A17D81E7
         requirement_id: REQ-model-predicates-closed-vocabularies
         fact_id: FACT-model-predicates-closed-vocabularies-declared
-        binding: attested
+        binding: derived
         scope: code
+        obligation:
+          kind: set_equals
+          members:
+            - FACT-SCHEMA-ABSENCE-REQUIREMENT
+            - FACT-SCHEMA-ABSTRACTION-BOUNDARY-RULE
+            - FACT-SCHEMA-ACCEPTANCE-RULE
+            - FACT-SCHEMA-ACCESSIBILITY
+            - FACT-SCHEMA-ASYNC-BOUNDARY-RULE
+            - FACT-SCHEMA-AUDIT-EVENT-RULE
+            - FACT-SCHEMA-AVAILABILITY-SLA
+            - FACT-SCHEMA-BATCH-OPERATION-RULE
+            - FACT-SCHEMA-BUILD-CONSTRAINT
+            - FACT-SCHEMA-CANONICAL-IDENTIFIER-RULE
+            - FACT-SCHEMA-CODING-STANDARD-RULE
+            - FACT-SCHEMA-COMMIT-ACTION
+            - FACT-SCHEMA-CONDITIONAL-BEHAVIOR
+            - FACT-SCHEMA-CONFLICT-RESOLUTION-RULE
+            - FACT-SCHEMA-CONSENT-RULE
+            - FACT-SCHEMA-CONSISTENCY-RULE
+            - FACT-SCHEMA-DATA-MIGRATION-RULE
+            - FACT-SCHEMA-DATA-RESIDENCY-RULE
+            - FACT-SCHEMA-DEFAULT-VALUE
+            - FACT-SCHEMA-DEPENDENCY-RESOLUTION-POLICY
+            - FACT-SCHEMA-DEPENDENCY-RULE
+            - FACT-SCHEMA-DEPLOYMENT-PRECONDITION-RULE
+            - FACT-SCHEMA-DIAGNOSTIC-VISIBILITY-RULE
+            - FACT-SCHEMA-DISCARD-ACTION
+            - FACT-SCHEMA-DOCUMENTATION-STANDARD-RULE
+            - FACT-SCHEMA-ENFORCEMENT-LOCATION-RULE
+            - FACT-SCHEMA-ENVIRONMENT-SAFETY-RULE
+            - FACT-SCHEMA-ESCALATION-RULE
+            - FACT-SCHEMA-EVENT-PUBLISH
+            - FACT-SCHEMA-EXCEPTION-RULE
+            - FACT-SCHEMA-FAIL-CLOSED-AUTHORIZATION-RULE
+            - FACT-SCHEMA-FAILURE-BEHAVIOR
+            - FACT-SCHEMA-FALLBACK-RULE
+            - FACT-SCHEMA-FEATURE-GATE
+            - FACT-SCHEMA-GUARD
+            - FACT-SCHEMA-HAS-UNSAVED-CHANGES
+            - FACT-SCHEMA-IDEMPOTENCY-RULE
+            - FACT-SCHEMA-LIFECYCLE-RULE
+            - FACT-SCHEMA-MIGRATION-BOUNDARY-RULE
+            - FACT-SCHEMA-MUTATION-AUTHORITY-RULE
+            - FACT-SCHEMA-MUTUAL-EXCLUSION
+            - FACT-SCHEMA-NOTIFICATION-ROUTE
+            - FACT-SCHEMA-OFFLINE-BEHAVIOR-RULE
+            - FACT-SCHEMA-OPERATIONAL-PAUSE-RULE
+            - FACT-SCHEMA-ORDERED-RESOLUTION-STRATEGY
+            - FACT-SCHEMA-ORDERED-STRATEGY-RULE
+            - FACT-SCHEMA-OWNERSHIP-RULE
+            - FACT-SCHEMA-PATTERN-MARKER
+            - FACT-SCHEMA-PERMISSION-RULE
+            - FACT-SCHEMA-PLATFORM-CONSISTENCY-RULE
+            - FACT-SCHEMA-PRESERVATION-RULE
+            - FACT-SCHEMA-PROCESS-DELEGATION-CONTRACT
+            - FACT-SCHEMA-RATE-LIMIT
+            - FACT-SCHEMA-RECONCILIATION-RULE
+            - FACT-SCHEMA-REFRESH-POLICY-RULE
+            - FACT-SCHEMA-RELEASE-GATE-RULE
+            - FACT-SCHEMA-REQUEST-DEDUPLICATION-RULE
+            - FACT-SCHEMA-RESOLUTION-FAILURE-POLICY
+            - FACT-SCHEMA-RESOURCE-CONSTRAINT
+            - FACT-SCHEMA-RESPONSIVE-BREAKPOINT-RULE
+            - FACT-SCHEMA-RETENTION-POLICY
+            - FACT-SCHEMA-RETRY-POLICY
+            - FACT-SCHEMA-SAME-PATTERN
+            - FACT-SCHEMA-SCHEMA-INVARIANT-RULE
+            - FACT-SCHEMA-SCOPED-AUTHORIZATION-RULE
+            - FACT-SCHEMA-SECURITY-CONFIGURATION-RULE
+            - FACT-SCHEMA-STATE
+            - FACT-SCHEMA-STATE-MEMBERSHIP
+            - FACT-SCHEMA-STATE-TRANSITION
+            - FACT-SCHEMA-TEMPORAL-ORDER
+            - FACT-SCHEMA-THROTTLE-POLICY-RULE
+            - FACT-SCHEMA-TRANSITION
+            - FACT-SCHEMA-UI-CONTAINER
+            - FACT-SCHEMA-UI-PATTERN
+            - FACT-SCHEMA-UNIQUENESS-CONSTRAINT
+            - FACT-SCHEMA-VISUAL-LAYOUT-RULE
+            - FACT-SCHEMA-WARMUP-POLICY-RULE
 ---
 Checks every member of BUILT_IN_PREDICATE_SCHEMAS: its vocabulary has no errors, each closed argument lists distinct constants that the schema examples use, the binding hint of each unbound closed argument lists exactly those constants as allowedValues, and no open argument lists any; the run leaves an exhaustive certificate over BUILT_IN_PREDICATE_SCHEMAS.

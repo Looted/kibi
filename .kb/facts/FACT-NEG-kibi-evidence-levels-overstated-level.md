@@ -3,10 +3,13 @@ title: A requirement without passing end-to-end proof could be reported at a str
 status: active
 fact_kind: property_value
 subject_key: kibi.evidence_levels
-property_key: requirements_with_level_stronger_than_evidence
+property_key: evidence_levels_reported_per_requirement
 operator: eq
-value_type: int
-value_int: 1
+value_type: set
+value_set:
+  - proved
+  - tested
+  - asserted
 origin:
   kind: agent
   recorded_at: '2026-10-29T21:12:47.733Z'
