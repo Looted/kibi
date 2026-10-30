@@ -2760,7 +2760,7 @@ gap_definition(contradiction_check_incomplete, 41, contradictions, "Complete log
 gap_definition(unknown_scenario_feasibility, 49, scenarios, "Link the property values the success scenario relies on with assumes facts that a current requirement constrains, so its feasibility can be decided.").
 gap_definition(missing_scenario, 50, scenarios, "Add a specified_by scenario for the requirement.").
 gap_definition(infeasible_scenario, 49, scenarios, "Set expects: rejection on the scenario, correct its assumes fact, or record a human-approved exception requirement that exempts the forbidding requirement.").
-gap_definition(dimension_unrepresented, 47, dimension, "Ground the quantified claim on what varies: an integer count or bound, a set of members, a rule over a variable, or a state machine. If the quantifier word ranges over nothing, record a dimension_waiver on the grounding fact for a person to approve.").
+gap_definition(dimension_unrepresented, 47, dimension, "Ground the quantified claim on what varies: an integer count or bound, a set of members, a rule over a variable, or a state machine. If the quantifier word ranges over nothing, record a dimension_waiver on the grounding fact for a person to approve, and record their approval in the same pull request.").
 gap_definition(happy_path_only, 48, negative_path, "Add a scenario that expects rejection or error and assumes a value this requirement forbids, link it with specified_by, and verify it with a passing end-to-end test.").
 gap_definition(missing_scenario_test, 51, scenario_tests, "Link the scenario to a test with verified_by or validates.").
 gap_definition(missing_passing_e2e, 52, passing_e2e, "Record fresh passing end-to-end evidence on a scenario-backed test.").

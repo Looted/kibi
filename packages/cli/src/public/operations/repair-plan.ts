@@ -113,7 +113,7 @@ const REPAIR_PHASES = {
   dimension_grounding: {
     order: 64,
     objective:
-      "Ground each quantified claim (each, every, all, or a cardinality bound) on what varies: an integer count or bound, a set of members, a rule over a variable, or a state machine. If the quantifier ranges over nothing, record a dimension_waiver on the grounding fact for a person to approve.",
+      "Ground each quantified claim (each, every, all, or a cardinality bound) on what varies: an integer count or bound, a set of members, a rule over a variable, or a state machine. If the quantifier ranges over nothing, record a dimension_waiver on the grounding fact for a person to approve, and record their approval in the same pull request.",
     workflowSteps: [
       "kb_model_requirement",
       "kb_validate_upsert",

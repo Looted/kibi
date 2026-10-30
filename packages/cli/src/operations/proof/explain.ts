@@ -404,7 +404,7 @@ function renderDimension(view: RequirementProofExplainView): string[] {
     if (rewrites !== "") lines.push(`    ground it on ${rewrites}`);
     if (claim.waiver !== undefined)
       lines.push(
-        `    waiver awaiting approval (set dimension_waiver_approved_by): ${claim.waiver.reason}`,
+        `    waiver awaiting approval (set dimension_waiver_approved_by to the person who accepts it, in this pull request): ${claim.waiver.reason}`,
       );
   }
   for (const claim of dimension.waivedClaims) {
@@ -422,7 +422,7 @@ function renderNegativePath(view: RequirementProofExplainView): string[] {
   if (negative.waiver !== undefined) {
     lines.push(
       negative.waiver.approvedBy === undefined
-        ? `  waiver awaiting approval (set failure_side_waiver_approved_by): ${negative.waiver.reason}`
+        ? `  waiver awaiting approval (set failure_side_waiver_approved_by to the person who accepts it, in this pull request): ${negative.waiver.reason}`
         : `  waived by ${negative.waiver.approvedBy}: ${negative.waiver.reason}`,
     );
   }

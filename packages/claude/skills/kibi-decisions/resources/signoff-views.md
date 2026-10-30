@@ -51,7 +51,9 @@ writes and opens the page; `--format json` prints the view.
 The person answers by number ("1 yes, 2 exploratory, 3 reword: ..."). Copy
 each answer into `answer`, render again, and record the rules only once every
 question is answered. An answer is the person's words: quote it in
-`origin.ref`; a view itself is never an approval.
+`origin.ref`; a view itself is never an approval. Record the answers on the
+branch of the change they approve and push them to its pull request, never to
+a separate one.
 
 ## Summary contents
 

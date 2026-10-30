@@ -4,7 +4,7 @@ description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware op
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-usage
-  version: 2.36.0
+  version: 2.37.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -373,6 +373,14 @@ An exception (a requirement that `exempts` another) exempts nothing until a
 human sets `approved_by`; `kb_check` flags approvals an agent recorded without
 corroboration. Never fill in an approval yourself. Record why a requirement
 exists in `rationale`, or link the ADR that explains it.
+
+A signoff belongs to the change it approves. Ask for it before you open or
+merge the pull request, and when the person answers, record their answer
+(`approved_by` or a `*_waiver_approved_by` field set to them, their words in
+`origin.ref` or `approval_ref`) on the same branch and push it to the same pull
+request. Writing down an answer the person gave is not approving it yourself.
+Never open a separate pull request only to carry a signoff, firmness or waiver
+approval.
 
 ## Decision firmness
 
