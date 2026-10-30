@@ -216,3 +216,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5bf0a86e5580
+  - type: assumes
+    from: SCEN-CASE-cli-kb-merge-driver-BOTH-SIDES-APPEND
+    to: FACT-CASE-cli-kb-merge-driver-BOTH-SIDES-APPEND
+    created_at: 2026-10-30T14:56:34.124Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-444a09a0d271
+  - type: verified_by
+    from: SCEN-CASE-cli-kb-merge-driver-BOTH-SIDES-APPEND
+    to: TEST-cli-kb-merge-driver
+    created_at: 2026-10-30T14:56:34.187Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52ed7351efbe

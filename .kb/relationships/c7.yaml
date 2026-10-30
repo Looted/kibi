@@ -412,3 +412,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-46dd2f956b61
+  - type: specified_by
+    from: REQ-skillopt-host-neutral-optimization
+    to: SCEN-CASE-skillopt-host-neutral-optimization-UNAPPROVED-ADOPTION
+    created_at: 2026-10-30T14:58:48.602Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-801a239bfeb8
+  - type: specified_by
+    from: REQ-skillopt-host-neutral-optimization
+    to: SCEN-CASE-skillopt-host-neutral-optimization-UNRECORDED-HARNESS
+    created_at: 2026-10-30T14:58:51.690Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-88dfe2a33124

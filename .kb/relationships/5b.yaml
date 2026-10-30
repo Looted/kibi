@@ -412,3 +412,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-75611f0a7bc3
+  - type: specified_by
+    from: REQ-kibi-evidence-floors
+    to: SCEN-CASE-kibi-evidence-floors-UNPINNED-FIRM
+    created_at: 2026-10-30T14:58:39.519Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59c18ad5619f

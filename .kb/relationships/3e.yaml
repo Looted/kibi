@@ -440,3 +440,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eb3b0783c9fe
+  - type: specified_by
+    from: REQ-cli-kb-merge-driver
+    to: SCEN-CASE-cli-kb-merge-driver-BOTH-SIDES-APPEND
+    created_at: 2026-10-30T14:58:20.923Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b48f539b097a

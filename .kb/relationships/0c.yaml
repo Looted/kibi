@@ -454,3 +454,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-acfa03ee3475
+  - type: assumes
+    from: SCEN-NEG-skillopt-host-neutral-optimization-CROSS-HARNESS-CONFIRM
+    to: FACT-CASE-skillopt-host-neutral-optimization-CROSS-HARNESS-CELLS
+    created_at: 2026-10-30T14:56:55.873Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62299be4f597

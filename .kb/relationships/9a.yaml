@@ -349,3 +349,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-44a74d9358fd
+  - type: specified_by
+    from: REQ-core-journaled-engine-persistence
+    to: SCEN-CASE-core-journaled-engine-persistence-NO-WRITER
+    created_at: 2026-10-30T14:58:26.388Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a10f12324e86
+  - type: specified_by
+    from: REQ-core-journaled-engine-persistence
+    to: SCEN-CASE-core-journaled-engine-persistence-SECOND-WRITER
+    created_at: 2026-10-30T14:58:31.743Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a7563c251b8
