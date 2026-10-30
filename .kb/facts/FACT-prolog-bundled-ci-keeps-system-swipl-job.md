@@ -8,10 +8,10 @@ tags:
 text_ref: .github/workflows/ci.yml
 fact_kind: property_value
 subject_key: kibi.prolog.bundled_ci
-property_key: ci_keeps_system_swipl_job
-operator: eq
-value_type: bool
-value_bool: true
+property_key: system_swipl_ci_jobs
+operator: gte
+value_type: int
+value_int: 1
 claim_key: CLAIM-CA83D697C22842DC
 claim_text: Kibi's own CI must keep one job that runs a system SWI-Prolog selected with KIBI_SWIPL=system
 claim_span_start: 152

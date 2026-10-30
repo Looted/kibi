@@ -9,10 +9,12 @@ tags:
 text_ref: REQ-model-predicates-replacement-diagnostics
 fact_kind: property_value
 subject_key: kibi.predicate_suggestion.plan
-property_key: replacement_plan_lists_transient_findings
+property_key: expected_transient_findings
 operator: eq
-value_type: bool
-value_bool: true
+value_type: set
+value_set:
+  - logic-coverage
+  - strict-req-fact-pairing
 claim_key: CLAIM-433E11881CA6CC7A
 claim_text: A grounding replacement plan must list logic-coverage and strict-req-fact-pairing as the expected kb_check findings between the retraction and the link
 origin:
@@ -23,4 +25,4 @@ type: fact
 ---
 A grounding replacement plan must list logic-coverage and strict-req-fact-pairing as the expected kb_check findings between the retraction and the link.
 
-Recorded as a strict boolean semantic fact about `kibi.predicate_suggestion.plan` so REQ-model-predicates-replacement-diagnostics can be checked for contradictions.
+Recorded as a typed semantic fact about `kibi.predicate_suggestion.plan` so REQ-model-predicates-replacement-diagnostics can be checked for contradictions.

@@ -11,11 +11,11 @@ tags:
   - fact:property_value
 fact_kind: property_value
 subject_key: opencode.plugin.package_root
-property_key: function_export
-canonical_key: mcp-kibi-model-requirement:opencode.plugin.package_root:function_export:polarity:forbid
+property_key: exported_functions
+canonical_key: opencode.plugin.package_root:exported_functions:eq:0
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 polarity: forbid
 claim_key: CLAIM-733DF122ABFEFA77
 claim_text: The package root must not export any function.
