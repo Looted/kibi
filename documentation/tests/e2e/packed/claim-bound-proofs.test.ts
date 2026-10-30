@@ -27,7 +27,9 @@ const RUN_NODE_TEST_SUITE =
  * requirement get rejected bindings with the reason. kibi prove prints each
  * binding, kibi check reports the contracts that cannot prove their claims
  * and a certificate contract without proves, and kibi proof explain lists
- * the claim with its bindings.
+ * the claim with its bindings. A requirement with two claims, only one of
+ * them certified, is tested end to end with its failure side covered, yet
+ * kibi coverage reports it tested, not proved, and names the unproved claim.
  */
 
 type Step = Readonly<{
@@ -40,6 +42,8 @@ type Step = Readonly<{
 const STATEMENT = "Palette colors must be one of red, green or blue.";
 const COUNT_STATEMENT = "The palette must have exactly 3 colors.";
 const UNKNOWN_CLAIM = "CLAIM-0000000000000BAD";
+// Two claims in one requirement; only the set claim gets a certificate.
+const PAIR_STATEMENT = `${STATEMENT} ${COUNT_STATEMENT}`;
 
 const SOURCES: Record<string, string> = {
   "colors.mjs": 'export const COLORS = ["red", "green", "blue"];\n',
@@ -66,6 +70,7 @@ export function proveColors() {
   emit("TEST-COLORS-EXACT", "SYM-COLORS", COLORS);
   emit("TEST-COLORS-UNKNOWN", "SYM-COLORS", COLORS);
   emit("TEST-COLORS-UNBOUND", "SYM-COLORS", COLORS);
+  emit("TEST-COLORS-PAIR", "SYM-COLORS", COLORS);
 }
 proveColors();
 `,
@@ -99,8 +104,20 @@ export function proveCount() {
 }
 proveCount();
 `,
+  // The guard behind the failure side of the two-claim requirement: a
+  // palette with any other number of colors is refused.
+  "guard-proof.mjs": `export function guardCount(colors) {
+  if (colors.length !== 3) throw new Error("a palette has exactly 3 colors");
+  return colors;
+}
+for (const colors of [["red"], ["red", "green"], ["red", "green", "blue", "cyan"]]) {
+  let refused = false;
+  try { guardCount(colors); } catch { refused = true; }
+  if (!refused) throw new Error("accepted " + colors.length + " colors");
+}
+`,
   "run-proofs.mjs":
-    'await import("./colors-proof.mjs");\nawait import("./warm-proof.mjs");\nawait import("./count-proof.mjs");\n',
+    'await import("./colors-proof.mjs");\nawait import("./warm-proof.mjs");\nawait import("./count-proof.mjs");\nawait import("./guard-proof.mjs");\n',
 };
 
 async function upsert(sandbox: TestSandbox, payload: unknown): Promise<void> {
@@ -158,6 +175,51 @@ async function applyPlan(
   return claimKey ?? "";
 }
 
+/**
+ * Applies the advisor's plans for a requirement with two claims as one
+ * requirement whose inventory models both claims and whose facts ground each.
+ */
+async function applyPairPlans(
+  sandbox: TestSandbox,
+  plans: readonly (readonly Step[])[],
+  scenario: string,
+): Promise<string[]> {
+  type Claim = { claim_key: string; status: string };
+  const requirements = plans.map((plan) => {
+    const requirement = plan.find((step) => step.type === "req");
+    assert.ok(requirement, "plan without a requirement step");
+    return requirement;
+  });
+  const first = requirements[0] as Step;
+  const inventory = (first.properties.semantic_inventory as Claim[]).map(
+    (claim) =>
+      requirements
+        .flatMap((step) => step.properties.semantic_inventory as Claim[])
+        .find(
+          (row) =>
+            row.claim_key === claim.claim_key && row.status === "modeled",
+        ) ?? claim,
+  );
+  assert.ok(inventory.length === 2, JSON.stringify(inventory));
+  assert.ok(
+    inventory.every((claim) => claim.status === "modeled"),
+    JSON.stringify(inventory),
+  );
+  for (const plan of plans)
+    for (const step of plan.filter((row) => row.type !== "req"))
+      await upsert(sandbox, step);
+  await upsert(sandbox, {
+    type: first.type,
+    id: first.id,
+    properties: { ...first.properties, semantic_inventory: inventory },
+    relationships: [
+      ...requirements.flatMap((step) => step.relationships ?? []),
+      { type: "specified_by", from: first.id, to: scenario },
+    ],
+  });
+  return inventory.map((claim) => claim.claim_key);
+}
+
 function testDocument(
   id: string,
   proofSymbol: string,
@@ -187,9 +249,84 @@ Leaves a certificate for kibi prove.
 `;
 }
 
+/** A test with no certificate kind: its receipt shows the guard ran. */
+function guardDocument(id: string, proofSymbol: string): string {
+  return `---
+id: ${id}
+title: Palette guard ${id}
+status: passing
+verification_scope: end_to_end
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: command
+  required_proofs:
+    - symbol_id: ${proofSymbol}
+      target: default
+  success_policy: all_required_first_attempt
+type: test
+---
+
+Refuses a palette with the wrong number of colors.
+`;
+}
+
+/**
+ * The failure side of the uncertified count claim of REQ-PALETTE-PAIR: one
+ * scenario per rejected count class (more and fewer than 3 colors), so the
+ * requirement is tested end to end and only its claims decide proved.
+ */
+async function provisionPairFailureSide(sandbox: TestSandbox): Promise<void> {
+  for (const [suffix, count, title] of [
+    ["MANY", 4, "Refuse a palette with 4 colors"],
+    ["FEW", 2, "Refuse a palette with 2 colors"],
+  ] as const) {
+    await upsert(sandbox, {
+      type: "fact",
+      id: `FACT-PALETTE-PAIR-${suffix}`,
+      properties: {
+        title: `The palette has ${count} colors`,
+        status: "active",
+        fact_kind: "property_value",
+        subject_key: "colors",
+        property_key: "count",
+        operator: "eq",
+        value_type: "int",
+        value_int: count,
+      },
+    });
+    await upsert(sandbox, {
+      type: "scenario",
+      id: `SCEN-PALETTE-PAIR-${suffix}`,
+      properties: { title, status: "active", expects: "rejection" },
+      relationships: [
+        {
+          type: "assumes",
+          from: `SCEN-PALETTE-PAIR-${suffix}`,
+          to: `FACT-PALETTE-PAIR-${suffix}`,
+        },
+      ],
+    });
+    await upsert(sandbox, {
+      type: "req",
+      id: "REQ-PALETTE-PAIR",
+      properties: {
+        title: "Palette colors must be one of red, green or blue",
+        status: "open",
+      },
+      relationships: [
+        {
+          type: "specified_by",
+          from: "REQ-PALETTE-PAIR",
+          to: `SCEN-PALETTE-PAIR-${suffix}`,
+        },
+      ],
+    });
+  }
+}
+
 async function provision(
   sandbox: TestSandbox,
-): Promise<{ claimKey: string; countKey: string }> {
+): Promise<{ claimKey: string; countKey: string; pairKeys: string[] }> {
   for (const [file, content] of Object.entries(SOURCES)) {
     writeFileSync(join(sandbox.repoDir, file), content);
     stageSourceFile(sandbox, file);
@@ -200,6 +337,7 @@ async function provision(
   for (const [id, title] of [
     ["SCEN-PALETTE", "Render the palette"],
     ["SCEN-PALETTE-COUNT", "Count the palette"],
+    ["SCEN-PALETTE-PAIR", "Render and count the palette"],
   ])
     await upsert(sandbox, {
       type: "scenario",
@@ -216,6 +354,15 @@ async function provision(
     await advisorPlan(sandbox, "REQ-PALETTE-COUNT", COUNT_STATEMENT, "int"),
     "SCEN-PALETTE-COUNT",
   );
+  const pairKeys = await applyPairPlans(
+    sandbox,
+    [
+      await advisorPlan(sandbox, "REQ-PALETTE-PAIR", PAIR_STATEMENT, "set"),
+      await advisorPlan(sandbox, "REQ-PALETTE-PAIR", PAIR_STATEMENT, "int"),
+    ],
+    "SCEN-PALETTE-PAIR",
+  );
+  await provisionPairFailureSide(sandbox);
 
   const tests: [string, string, string, string[], string][] = [
     [
@@ -253,6 +400,14 @@ async function provision(
       [countKey],
       "SCEN-PALETTE-COUNT",
     ],
+    // Certifies only the set claim of the two-claim requirement.
+    [
+      "TEST-COLORS-PAIR",
+      "SYM-PROOF-COLORS",
+      "SYM-COLORS",
+      [pairKeys[0] as string],
+      "SCEN-PALETTE-PAIR",
+    ],
   ];
   for (const [id, proofSymbol, domain, proves] of tests) {
     const relative = `.kb/tests/${id}.md`;
@@ -262,6 +417,12 @@ async function provision(
     );
     stageSourceFile(sandbox, relative);
   }
+  const guardRelative = ".kb/tests/TEST-COLORS-PAIR-GUARD.md";
+  writeFileSync(
+    join(sandbox.repoDir, guardRelative),
+    guardDocument("TEST-COLORS-PAIR-GUARD", "SYM-PROOF-GUARD"),
+  );
+  stageSourceFile(sandbox, guardRelative);
   const testsSynced = await kibi(sandbox, ["sync"]);
   assert.strictEqual(
     testsSynced.exitCode,
@@ -275,27 +436,43 @@ async function provision(
       properties: { title: `Palette proof ${id}`, status: "passing" },
       relationships: [{ type: "validates", from: id, to: scenario }],
     });
+  await upsert(sandbox, {
+    type: "test",
+    id: "TEST-COLORS-PAIR-GUARD",
+    properties: {
+      title: "Palette guard TEST-COLORS-PAIR-GUARD",
+      status: "passing",
+    },
+    relationships: ["MANY", "FEW"].map((suffix) => ({
+      type: "validates",
+      from: "TEST-COLORS-PAIR-GUARD",
+      to: `SCEN-PALETTE-PAIR-${suffix}`,
+    })),
+  });
   const symbols: [string, string, string, string[], string[]][] = [
     [
       "SYM-COLORS",
       "COLORS",
       "colors.mjs",
-      ["TEST-COLORS-EXACT", "TEST-COLORS-COUNT"],
-      ["REQ-PALETTE", "REQ-PALETTE-COUNT"],
+      ["TEST-COLORS-EXACT", "TEST-COLORS-COUNT", "TEST-COLORS-PAIR"],
+      ["REQ-PALETTE", "REQ-PALETTE-COUNT", "REQ-PALETTE-PAIR"],
     ],
     ["SYM-WARM", "WARM", "warm.mjs", ["TEST-COLORS-NARROW"], ["REQ-PALETTE"]],
     ["SYM-PROOF-COLORS", "proveColors", "colors-proof.mjs", [], []],
     ["SYM-PROOF-WARM", "proveWarm", "warm-proof.mjs", [], []],
     ["SYM-PROOF-COUNT", "proveCount", "count-proof.mjs", [], []],
+    ["SYM-PROOF-GUARD", "guardCount", "guard-proof.mjs", [], []],
   ];
   const executableFor: Record<string, string[]> = {
     "SYM-PROOF-COLORS": [
       "TEST-COLORS-EXACT",
       "TEST-COLORS-UNKNOWN",
       "TEST-COLORS-UNBOUND",
+      "TEST-COLORS-PAIR",
     ],
     "SYM-PROOF-WARM": ["TEST-COLORS-NARROW"],
     "SYM-PROOF-COUNT": ["TEST-COLORS-COUNT"],
+    "SYM-PROOF-GUARD": ["TEST-COLORS-PAIR-GUARD"],
   };
   for (const [id, title, sourceFile, coveredBy, implementsReqs] of symbols)
     await upsert(sandbox, {
@@ -346,7 +523,7 @@ async function provision(
   );
   const sync = await kibi(sandbox, ["sync", "--refresh-symbol-coordinates"]);
   assert.strictEqual(sync.exitCode, 0, sync.stdout + sync.stderr);
-  return { claimKey, countKey };
+  return { claimKey, countKey, pairKeys };
 }
 
 /** The claim_bindings block of a test's latest receipt, as YAML text. */
@@ -367,7 +544,7 @@ function latestBindings(sandbox: TestSandbox, testId: string): string {
 export async function checkClaimBoundProofs(
   sandbox: TestSandbox,
 ): Promise<void> {
-  const { claimKey, countKey } = await provision(sandbox);
+  const { claimKey, countKey, pairKeys } = await provision(sandbox);
   const prove = await kibi(sandbox, ["prove", "--all"], { timeoutMs: 240000 });
   assert.strictEqual(prove.exitCode, 0, prove.stdout + prove.stderr);
   assert.match(
@@ -426,6 +603,52 @@ export async function checkClaimBoundProofs(
   );
   const count = await kibi(sandbox, ["proof", "explain", "REQ-PALETTE-COUNT"]);
   assert.match(count.stdout, /Claims \(1\/1 proved/, count.stdout);
+
+  // One of two applicable claims is certified: the requirement is not proved.
+  const [pairSetKey, pairCountKey] = pairKeys;
+  assert.match(
+    prove.stderr,
+    new RegExp(
+      `TEST-COLORS-PAIR ${pairSetKey} \\(REQ-PALETTE-PAIR\\): derived, code scope`,
+    ),
+    prove.stderr,
+  );
+  assert.match(explain.stdout, /evidenceLevel: proved/, explain.stdout);
+  const coverage = await kibi(sandbox, [
+    "coverage",
+    "--include-passing",
+    "--format",
+    "json",
+  ]);
+  assert.strictEqual(coverage.exitCode, 0, coverage.stdout + coverage.stderr);
+  const rows = JSON.parse(coverage.stdout).rows as {
+    id: string;
+    proofStatus: string;
+    evidenceLevel: string;
+    unprovedClaims: string[];
+    claimSummary: { applicable: number; proved: number; tested: number };
+  }[];
+  const pairRow = rows.find((row) => row.id === "REQ-PALETTE-PAIR");
+  assert.ok(pairRow, coverage.stdout);
+  // Tested end to end, failure side included, yet not proved.
+  assert.strictEqual(pairRow.proofStatus, "tested", JSON.stringify(pairRow));
+  assert.strictEqual(pairRow.evidenceLevel, "tested", JSON.stringify(pairRow));
+  assert.deepStrictEqual(pairRow.unprovedClaims, [pairCountKey]);
+  assert.strictEqual(pairRow.claimSummary.applicable, 2);
+  assert.strictEqual(pairRow.claimSummary.proved, 1);
+  assert.strictEqual(
+    rows.find((row) => row.id === "REQ-PALETTE")?.evidenceLevel,
+    "proved",
+  );
+  const pair = await kibi(sandbox, ["proof", "explain", "REQ-PALETTE-PAIR"]);
+  assert.strictEqual(pair.exitCode, 0, pair.stdout + pair.stderr);
+  assert.match(pair.stdout, /evidenceLevel: tested/, pair.stdout);
+  assert.match(pair.stdout, /Claims \(1\/2 proved/, pair.stdout);
+  assert.match(
+    pair.stdout,
+    new RegExp(`${pairCountKey} tested \\(modeled\\)`),
+    pair.stdout,
+  );
 }
 
 if (RUN_NODE_TEST_SUITE) {

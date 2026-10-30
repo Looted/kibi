@@ -461,3 +461,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-86f42b0ac1b3
+  - type: specified_by
+    from: REQ-skillopt-operator-selected-harness
+    to: SCEN-CASE-skillopt-operator-selected-harness-LEAK-SCAN-BYPASS
+    created_at: 2026-10-30T15:34:12.048Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9aad3bd4366

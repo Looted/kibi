@@ -18,11 +18,15 @@
  *      `{ body }` answer becomes the accepted baseline-insertion output.
  *      The target also gets the skill under evaluation preloaded.
  *   4. An unknown host value is a CLI error before any paid preparation.
+ *   5. A cell on the Claude host whose stub answer repeats a hidden marker
+ *      goes through the shared leak scan: the receipt records
+ *      hidden_data_leakage and the cell is a behavioral failure.
  *
  * Run via `bun run documentation/tests/e2e/skillopt-claude-code-host.e2e.ts`.
  */
 import "../../../scripts/skillopt-eval/offline-test-preload";
 import { spawnSync } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import {
   chmodSync,
   existsSync,
@@ -36,8 +40,22 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+import { buildSkillCatalog } from "../../../scripts/skillopt-eval/catalog";
+import { EpisodeRequestSchema } from "../../../scripts/skillopt-eval/contracts/episode";
+import { materializeFixtureRun } from "../../../scripts/skillopt-eval/fixtures/materialize";
 import { surface } from "../../../scripts/skillopt-eval/real-workflow";
+import { taskScopedPublicSkillDescriptors } from "../../../scripts/skillopt-eval/real-workflow-setup";
 import { runClaudeSkillOptStep } from "../../../scripts/skillopt-eval/runtime/claude-optimizer";
+import { runCodexCell } from "../../../scripts/skillopt-eval/runtime/codex-cell-runner";
+import { PublicTaskClaimSchema } from "../../../scripts/skillopt-eval/runtime/file-bridge";
+import { taskFinalStateRequests } from "../../../scripts/skillopt-eval/runtime/final-state-requests";
+import {
+  envWithSkillOptHost,
+  resolveSkillOptHost,
+} from "../../../scripts/skillopt-eval/runtime/skillopt-host";
+import { skillOptHostImplementation } from "../../../scripts/skillopt-eval/runtime/skillopt-host-registry";
+import { resolveTaskFixture } from "../../../scripts/skillopt-eval/runtime/task-fixture";
+import { initializeTargetEpisodeBudget } from "../../../scripts/skillopt-eval/target-episode-budget";
 import { sha256Text } from "../../../scripts/skillopt-eval/variants";
 
 const REPO_ROOT = process.cwd();
@@ -82,6 +100,9 @@ case "$*" in
   ;;
 esac
 printf '%s\\n' '{"type":"system","subtype":"init","model":"claude-sonnet-5-5"}'
+if [ -f "$out/leak" ]; then
+  printf '{"type":"assistant","message":{"content":[{"type":"text","text":"The expected answer is %s."}]}}\\n' "$(cat "$out/leak")"
+fi
 printf '%s\\n' '{"type":"assistant","message":{"content":[{"type":"text","text":"Stopping before any write."}]}}'
 printf '%s\\n' '{"type":"result","subtype":"success","is_error":false,"num_turns":1,"total_cost_usd":0,"structured_output":{"completed":false,"answer":"stub"},"usage":{"input_tokens":1,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":1}}'
 `,
@@ -303,6 +324,116 @@ printf '%s\\n' '{"type":"result","subtype":"success","is_error":false,"num_turns
     },
   );
   assert(unknown.status === 2, `unknown host exited ${unknown.status}`);
+
+  // 5. A hidden marker the Claude stub repeats is caught by the shared
+  // leak scan, as it is for Codex cells.
+  const hiddenMarker = `skillopt-hidden-${randomUUID()}`;
+  writeFileSync(join(record, "leak"), hiddenMarker);
+  const leakRoot = join(root, "leak");
+  mkdirSync(leakRoot, { recursive: true, mode: 0o700 });
+  const leakEnv = { ...process.env };
+  Object.assign(process.env, env);
+  try {
+    const host = resolveSkillOptHost({ requested: "claude-code" });
+    assert(host === "claude-code", `leak cell resolved host ${host}`);
+    const fixtureRunRoot = materializeFixtureRun({
+      runRoot: join(leakRoot, "fixtures"),
+      canonicalSkillRoot: join(REPO_ROOT, "packages/cli/src/public/skills"),
+      publicTasks: buildSkillCatalog("kibi-bootstrap").filter(
+        (task) => task.split !== "held-out",
+      ),
+      heldOutTasks: [],
+    }).roots.runRoot;
+    const task = (
+      await taskScopedPublicSkillDescriptors(
+        "development",
+        fixtureRunRoot,
+        "kibi-bootstrap",
+      )
+    ).find((entry) => entry.family === "approval-plan-apply");
+    assert(task !== undefined, "no approval-plan-apply development task");
+    const leakTask = task as NonNullable<typeof task>;
+    const budgetEnv = await initializeTargetEpisodeBudget(
+      join(leakRoot, "target-budget"),
+      1,
+    );
+    const cellEnv = envWithSkillOptHost({ ...env, ...budgetEnv }, host);
+    const fixture = await resolveTaskFixture({
+      fixtureRunRoot,
+      taskId: leakTask.id,
+      publicClaim: PublicTaskClaimSchema.parse(leakTask.publicClaim),
+    });
+    const runId = randomUUID();
+    const request = EpisodeRequestSchema.parse({
+      schemaVersion: "1.0.0",
+      artifactType: "episode-request",
+      episodeId: randomUUID(),
+      runId,
+      runLockHash: sha256Text(`leak-cell\0${runId}`),
+      variant: "baseline",
+      skill: "kibi-bootstrap",
+      taskId: leakTask.id,
+      attempt: 1,
+      replicate: 1,
+      prompt: fixture.publicClaim.text,
+      workspaceFixtureHash: fixture.workspaceHash,
+    });
+    const lease = await skillOptHostImplementation(host).createRuntimeLease(
+      { artifactRoot: leakRoot },
+      cellEnv,
+    );
+    try {
+      const completed = await runCodexCell({
+        request,
+        fixtureRoot: fixture.workspaceRoot,
+        sourceWorktree: REPO_ROOT,
+        artifactRoot: leakRoot,
+        targetSkill: "kibi-bootstrap",
+        codexExecutable: lease.codexExecutable,
+        bwrapExecutable: lease.bwrapExecutable,
+        env: cellEnv,
+        finalStateRequests: taskFinalStateRequests(
+          leakTask.id,
+          fixture.evaluatorManifest.protocolContract?.exactMigrationApply !==
+            undefined,
+        ),
+        evaluatorManifest: fixture.evaluatorManifest,
+        hiddenMarkers: [hiddenMarker],
+        pricingHash: "0".repeat(64),
+        priceAmount: 0,
+        timeoutMs: 180_000,
+      });
+      assert(
+        readFileSync(
+          join(completed.artifactDirectory, "raw-host.jsonl"),
+          "utf8",
+        ).includes(hiddenMarker),
+        "the leaked marker did not reach the normalized transcript",
+      );
+      assert(
+        completed.receipt.violations.includes("hidden_data_leakage"),
+        `leak scan missed the marker: ${JSON.stringify(completed.receipt.violations)}`,
+      );
+      assert(
+        completed.receipt.result.criticalFailures.includes(
+          "hidden_data_leakage",
+        ),
+        "the leak is not a critical failure of the cell",
+      );
+      assert(
+        completed.receipt.result.status === "behavioral-failure" &&
+          completed.receipt.result.score === 0,
+        `leaking cell was scored: ${completed.receipt.result.status} ${completed.receipt.result.score}`,
+      );
+    } finally {
+      await lease.cleanup();
+    }
+  } finally {
+    for (const name of Object.keys(process.env)) {
+      if (!(name in leakEnv)) delete process.env[name];
+    }
+    Object.assign(process.env, leakEnv);
+  }
 
   console.log("skillopt Claude Code host e2e: all assertions passed");
 } finally {
