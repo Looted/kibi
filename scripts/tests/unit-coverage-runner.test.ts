@@ -390,6 +390,33 @@ describe("unit coverage runner contract", () => {
     expect(runnerSource).toContain("recording an empty coverage artifact");
   });
 
+  test("runs every cli support test file in its own process", () => {
+    const supportDirectories = [
+      "extractors",
+      "utils",
+      "logic",
+      "proof",
+      "proofs",
+      "relationships",
+      "prolog",
+      "helpers",
+    ].map((name) => `./packages/cli/tests/${name}`);
+    const supportShard = COVERAGE_SHARDS.find(
+      (shard) => shard.label === "cli.support",
+    );
+    const expected = supportDirectories
+      .flatMap((directory) =>
+        readdirSync(directory, { recursive: true, encoding: "utf8" })
+          .filter((entry) => /\.(?:test|spec)\.ts$/.test(entry))
+          .map((entry) => `${directory}/${entry}`),
+      )
+      .sort();
+
+    expect(supportShard?.isolation).toBe("process-per-file");
+    expect(expected.length).toBeGreaterThan(0);
+    expect(supportShard?.paths).toEqual(expected);
+  });
+
   test("isolates staged-symbols-manifest without dropping traceability coverage", () => {
     const traceabilityDirectory = "./packages/cli/tests/traceability";
     const isolatedTest =

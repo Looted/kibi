@@ -137,6 +137,21 @@ const CLI_SUPPORT_TRACEABILITY_TESTS = readdirSync(
   .map((entry) => `${CLI_SUPPORT_TRACEABILITY_TEST_DIRECTORY}/${entry.name}`)
   .filter((path) => path !== CLI_SUPPORT_STAGED_SYMBOLS_MANIFEST_TEST)
   .sort();
+const CLI_SUPPORT_TEST_DIRECTORIES = [
+  "./packages/cli/tests/extractors",
+  "./packages/cli/tests/utils",
+  "./packages/cli/tests/logic",
+  "./packages/cli/tests/proof",
+  "./packages/cli/tests/proofs",
+  "./packages/cli/tests/relationships",
+  "./packages/cli/tests/prolog",
+  "./packages/cli/tests/helpers",
+];
+const CLI_SUPPORT_TESTS = CLI_SUPPORT_TEST_DIRECTORIES.flatMap((directory) =>
+  readdirSync(directory, { recursive: true, encoding: "utf8" })
+    .filter((entry) => /\.(?:test|spec)\.ts$/.test(entry))
+    .map((entry) => `${directory}/${entry}`),
+).sort();
 const CLI_OPERATIONS_DIR = "./packages/cli/tests/operations";
 const CLI_OPERATIONS_TESTS = readdirSync(CLI_OPERATIONS_DIR, {
   recursive: true,
@@ -264,19 +279,15 @@ export const COVERAGE_SHARDS: readonly {
     isolation: "process-per-file",
   },
   {
+    // Utils, proof and Prolog tests spawn Git, swipl and evaluator children.
+    // Three times the shared Bun 1.4 coverage process stalled between files
+    // after such a child exited and the shard hit its 15-minute bound, so
+    // every support test runs in its own process like cli.operations.
     label: "cli.support",
     costSeconds: 35,
-    paths: [
-      "./packages/cli/tests/extractors",
-      "./packages/cli/tests/utils",
-      "./packages/cli/tests/logic",
-      "./packages/cli/tests/proof",
-      "./packages/cli/tests/proofs",
-      "./packages/cli/tests/relationships",
-      "./packages/cli/tests/prolog",
-      "./packages/cli/tests/helpers",
-    ],
+    paths: CLI_SUPPORT_TESTS,
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+    isolation: "process-per-file",
   },
   {
     label: "parser.node",
