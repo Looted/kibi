@@ -10,21 +10,22 @@ Any one of these turns telemetry off:
 - `KIBI_TELEMETRY=0` in the environment.
 - `DO_NOT_TRACK=1` in the environment.
 
-Telemetry is also off in CI and under test runners, even after `kibi telemetry enable`. Kibi treats a run as CI when `CI`, `CONTINUOUS_INTEGRATION`, `GITHUB_ACTIONS`, `GITLAB_CI`, `BUILDKITE`, `CIRCLECI`, `TRAVIS`, `TF_BUILD`, `JENKINS_URL`, `TEAMCITY_VERSION`, `BITBUCKET_BUILD_NUMBER`, `CODEBUILD_BUILD_ID`, `DRONE`, `APPVEYOR`, `SEMAPHORE`, `BUILDKITE_BUILD_ID`, `CF_BUILD_ID` or `HEROKU_TEST_RUN_ID` is set, and as a test run when `NODE_ENV=test`, `JEST_WORKER_ID`, `VITEST`, `VITEST_WORKER_ID` or `NODE_TEST_CONTEXT` is set. Only an explicit `KIBI_TELEMETRY=1` sends from those environments.
+Telemetry is also off in CI and under test runners, even after `kibi telemetry enable`. Kibi treats a run as CI when `CI`, `CONTINUOUS_INTEGRATION`, `GITHUB_ACTIONS`, `GITLAB_CI`, `BUILDKITE`, `CIRCLECI`, `TRAVIS`, `TF_BUILD`, `JENKINS_URL`, `TEAMCITY_VERSION`, `BITBUCKET_BUILD_NUMBER`, `CODEBUILD_BUILD_ID`, `DRONE`, `APPVEYOR`, `SEMAPHORE`, `BUILDKITE_BUILD_ID`, `CF_BUILD_ID` or `HEROKU_TEST_RUN_ID` is set, and as a test run when `NODE_ENV=test`, `JEST_WORKER_ID`, `VITEST`, `VITEST_WORKER_ID` or `NODE_TEST_CONTEXT` is set. It is off as well when the home directory (`HOME`) lies inside the system temp directory, which is how eval, packaging and end-to-end harnesses isolate each run. Only an explicit `KIBI_TELEMETRY=1` sends from those environments.
 
 ## What is sent
 
 Kibi sends two kinds of event to its PostHog project in the EU region:
 
-- `kibi_operation`, once for each MCP tool call and each CLI command. It contains the interface (`mcp` or `cli`), the registered tool or command name (for example `kb_search` or `storage compact`), whether it succeeded, its duration, the CLI exit code, and for MCP errors a fixed category such as `tool_timeout` or `stale_snapshot`.
+- `kibi_operation`, once for each MCP tool call and each CLI command. It contains the interface (`mcp` or `cli`), the registered tool or command name (for example `kb_search` or `storage compact`), whether it succeeded, its duration, the CLI exit code, and for a failure a fixed category: an error code such as `tool_timeout`, `stale_snapshot` or `upsert_dry_run_invalid`, or the names of the failing checks for `kibi doctor` (for example `doctor:git_hooks`). A category that isn't a fixed identifier is sent as `unclassified`.
 - `kibi_hook`, once for each Kibi Claude Code hook decision. It contains the hook event, the action Kibi took (for example `read_snippet` or `edit_silent`), the kind of path touched (`source`, `test`, `kb`), the Kibi operation a tool call ran, whether Kibi had already been used in the session, and how many requirements the touched file implements.
 
 Every event also carries:
 
-- the Kibi package and its version, and the host agent (for example `claude-code` or `cursor`);
+- the Kibi package and its version, and the host agent (for example `claude-code` or `cursor`), taken from `KIBI_HOST`, the launcher's `KIBI_MCP_HOST`, the variables hosts set for their processes (`CLAUDECODE`, `CURSOR_AGENT`, `CODEX_SANDBOX`, `GEMINI_CLI`, `OPENCODE`, `AI_AGENT`), or the client name an MCP host sends;
+- whether it runs in a hosted cloud workspace (`CLAUDE_CODE_REMOTE`, GitHub Codespaces or Gitpod);
 - the operating system, CPU architecture, and JavaScript runtime with its major version;
 - a random install id, created on first use and stored only on your machine;
-- a one-way hash of the host's session id, so events from one agent session can be grouped.
+- a one-way hash of the host's session id (from the hook input, or `KIBI_SESSION_ID`, `CLAUDE_CODE_SESSION_ID` or `CODEX_THREAD_ID`), so events from one agent session can be grouped.
 
 ## What is never sent
 

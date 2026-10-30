@@ -99,10 +99,12 @@ export async function main(): Promise<never> {
   const program = buildProgram();
   const commandPath = trackCommandPath(program);
   let exitCode = process.exitCode ?? 0;
+  let failure: unknown;
   try {
     await program.parseAsync(workspace.argv);
     exitCode = process.exitCode ?? 0;
   } catch (error) {
+    failure = error;
     exitCode = exitCodeFromCliFailure(error);
   }
   try {
@@ -111,6 +113,7 @@ export async function main(): Promise<never> {
       packageVersion: packageVersion(packageJson),
       startedAt,
       exitCode: Number(exitCode),
+      error: failure,
     });
   } catch {
     // Telemetry is best effort and never changes the exit code.

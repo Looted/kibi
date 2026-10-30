@@ -43,6 +43,7 @@ import {
   buildMigrationPlan,
   migrationAction,
 } from "../public/operations/migration-plan.js";
+import { noteCliErrorCategory } from "../usage-telemetry.js";
 import {
   resolveBranchAttachment,
   resolveReadBranchAttachment,
@@ -114,6 +115,22 @@ export interface DoctorOptions {
   format?: "json" | "table";
 }
 
+// implements REQ-kibi-anonymous-usage-telemetry
+/** `doctor:capability_plugins+git_hooks` for the checks that failed. */
+export function doctorFailureCategory(
+  results: readonly { name: string; passed: boolean }[],
+): string | undefined {
+  const failed = results
+    .filter((result) => !result.passed)
+    .map((result) =>
+      result.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_|_$/g, ""),
+    );
+  return failed.length === 0 ? undefined : `doctor:${failed.join("+")}`;
+}
+
 // implements REQ-003
 export async function doctorCommand(
   options: DoctorOptions = {},
@@ -182,6 +199,8 @@ export async function doctorCommand(
     results.push({ name, ...(await check()) });
   }
   const allPassed = results.every((result) => result.passed);
+  // Usage telemetry names the failing checks by their fixed names.
+  noteCliErrorCategory(doctorFailureCategory(results));
   const warnings = results.filter(
     (result) => result.passed && result.warning === true,
   ).length;

@@ -126,12 +126,14 @@ describe("kibi CLI anonymous usage telemetry (end to end)", () => {
     }
   });
 
-  test("kibi telemetry disable and KIBI_TELEMETRY=0 stop recording and sending", async () => {
+  test("kibi telemetry disable, KIBI_TELEMETRY=0 and a harness home stop recording and sending", async () => {
     const workspace = temporaryDirectory("kibi-telem-off-");
     const collector = startCollector();
     try {
       const disabledState = temporaryDirectory("kibi-telem-disabled-");
+      // A real home: under the temp directory telemetry is off by default.
       const disabledEnv = {
+        HOME: os.homedir(),
         KIBI_TELEMETRY_DIR: disabledState,
         KIBI_TELEMETRY_HOST: collector.url,
       };
@@ -149,11 +151,30 @@ describe("kibi CLI anonymous usage telemetry (end to end)", () => {
       const offState = temporaryDirectory("kibi-telem-env-off-");
       seedDueQueue(offState);
       const off = await runKibi(["status"], workspace, {
+        HOME: os.homedir(),
         KIBI_TELEMETRY: "0",
         KIBI_TELEMETRY_DIR: offState,
         KIBI_TELEMETRY_HOST: collector.url,
       });
       expect(off.stderr).not.toContain("anonymous usage statistics");
+
+      // An eval or packaging harness gives each run a temp home: off.
+      const sandboxState = temporaryDirectory("kibi-telem-sandbox-");
+      seedDueQueue(sandboxState);
+      const sandboxEnv = {
+        KIBI_TELEMETRY_DIR: sandboxState,
+        KIBI_TELEMETRY_HOST: collector.url,
+      };
+      const sandboxStatus = await runKibi(
+        ["telemetry", "status", "--format", "json"],
+        workspace,
+        sandboxEnv,
+      );
+      expect(JSON.parse(sandboxStatus.stdout)).toMatchObject({
+        enabled: false,
+        reason: "sandboxed home in the temp directory (harness run)",
+      });
+      await runKibi(["status"], workspace, sandboxEnv);
       expect(collector.batches).toEqual([]);
     } finally {
       collector.stop();

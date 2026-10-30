@@ -70,6 +70,7 @@ import type {
   MigrationPlan,
   MigrationPlanDigest,
 } from "../public/operations/migration-plan.js";
+import { noteCliErrorCategory } from "../usage-telemetry.js";
 import { resolveBranchAttachment } from "../utils/branch-resolver.js";
 import {
   defaultKbManifest,
@@ -1641,12 +1642,16 @@ async function migratePlanCommand(
       ? plan.planHash
       : options.approvedPlanHash;
     if (!approvedPlanHash) {
-      console.error("--apply-safe requires --approved-plan-hash <sha256>.");
+      noteCliErrorCategory("migrate:approved_plan_hash_missing");
+      console.error(
+        `--apply-safe requires --approved-plan-hash <sha256>. Review the plan with 'kibi migrate', then approve its current hash: kibi migrate --apply-safe --approved-plan-hash ${plan.planHash}`,
+      );
       return { exitCode: 2 };
     }
     if (approvedPlanHash !== plan.planHash) {
+      noteCliErrorCategory("migrate:plan_hash_changed");
       console.error(
-        "Migration plan changed; regenerate the plan and approve its current hash.",
+        `Migration plan changed; regenerate the plan and approve its current hash: kibi migrate --apply-safe --approved-plan-hash ${plan.planHash}`,
       );
       return { exitCode: 2 };
     }
@@ -1694,8 +1699,10 @@ async function migratePlanCommand(
       console.log(result.content[0]?.text ?? "Migration applied.");
       printApplySummary(result.structuredContent);
     }
+    const outcome = result.structuredContent?.outcome;
+    if (outcome !== "applied") noteCliErrorCategory(`migrate:${outcome}`);
     return {
-      exitCode: result.structuredContent?.outcome === "applied" ? 0 : 1,
+      exitCode: outcome === "applied" ? 0 : 1,
     };
   }
   if (options.format === "json") {

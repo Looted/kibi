@@ -151,6 +151,8 @@ export function claudeTargetEnv(
     ENABLE_TOOL_SEARCH: "false",
     DISABLE_AUTOUPDATER: "1",
     KIBI_BRANCH: SKILLOPT_EVALUATION_BRANCH,
+    // Eval cells are not real usage: keep them out of anonymous telemetry.
+    KIBI_TELEMETRY: "0",
   };
 }
 

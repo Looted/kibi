@@ -2031,6 +2031,59 @@ function automationName(env, keys) {
   }
   return;
 }
+var HOST_ENV_KEYS = [
+  ["CLAUDECODE=1", "claude-code"],
+  ["CURSOR_AGENT=1", "cursor"],
+  ["CODEX_SANDBOX", "codex"],
+  ["CODEX_THREAD_ID", "codex"],
+  ["GEMINI_CLI=1", "gemini-cli"],
+  ["OPENCODE=1", "opencode"]
+];
+var SESSION_ENV_KEYS = [
+  "KIBI_SESSION_ID",
+  "CLAUDE_CODE_SESSION_ID",
+  "CODEX_THREAD_ID"
+];
+function hostKey(name) {
+  return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+function detectTelemetryHost(env = process.env) {
+  const explicit = env.KIBI_HOST?.trim() || env.KIBI_MCP_HOST?.trim();
+  if (explicit)
+    return hostKey(explicit) || undefined;
+  for (const [key, host] of HOST_ENV_KEYS) {
+    if (automationName(env, [key]))
+      return host;
+  }
+  const agent = env.AI_AGENT?.trim().split("_")[0];
+  return agent ? hostKey(agent) || undefined : undefined;
+}
+function detectTelemetrySession(env = process.env) {
+  for (const key of SESSION_ENV_KEYS) {
+    const value = env[key]?.trim();
+    if (value)
+      return value;
+  }
+  return;
+}
+function remoteEnvironment(env) {
+  return flagValue(env.CLAUDE_CODE_REMOTE) === true || flagValue(env.CODESPACES) === true || Boolean(env.GITPOD_WORKSPACE_ID?.trim());
+}
+function realDirectory(directory) {
+  try {
+    return fs8.realpathSync(directory);
+  } catch {
+    return path8.resolve(directory);
+  }
+}
+function sandboxedHome(env) {
+  const home = (env.HOME ?? env.USERPROFILE)?.trim();
+  if (!home)
+    return false;
+  const temp = realDirectory(os.tmpdir());
+  const resolved = realDirectory(home);
+  return resolved !== temp && resolved.startsWith(`${temp}${path8.sep}`);
+}
 function telemetryDirectory(env = process.env) {
   const explicit = env.KIBI_TELEMETRY_DIR?.trim();
   if (explicit)
@@ -2083,6 +2136,9 @@ function telemetryStatus(env = process.env) {
   const testName = automationName(env, TEST_ENV_KEYS) ?? automationName(processEnv, TEST_ENV_KEYS);
   if (testName)
     return status(false, `test environment (${testName})`);
+  if (sandboxedHome(env)) {
+    return status(false, "sandboxed home in the temp directory (harness run)");
+  }
   if (preference === "enabled") {
     return status(true, "enabled with `kibi telemetry enable`");
   }
@@ -2116,7 +2172,7 @@ function runtimeName() {
   return typeof globalThis.Bun === "undefined" ? "node" : "bun";
 }
 function baseProperties(source, env) {
-  const sessionId = source.sessionId?.trim();
+  const sessionId = source.sessionId?.trim() || detectTelemetrySession(env);
   return {
     distinct_id: installId(env),
     $process_person_profile: false,
@@ -2124,7 +2180,8 @@ function baseProperties(source, env) {
     $lib: "kibi",
     package: source.packageName,
     package_version: source.packageVersion ?? null,
-    host: source.host?.trim() || "unknown",
+    host: source.host?.trim() && hostKey(source.host) || detectTelemetryHost(env) || "unknown",
+    remote: remoteEnvironment(env),
     session: sessionId ? hashTelemetryId(sessionId) : null,
     os: process.platform,
     arch: process.arch,

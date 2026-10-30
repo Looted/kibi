@@ -8,6 +8,8 @@ import {
   CI_ENV_KEYS,
   DEFAULT_TELEMETRY_HOST,
   TEST_ENV_KEYS,
+  detectTelemetryHost,
+  detectTelemetrySession,
   flushTelemetry,
   hashTelemetryId,
   readTelemetryConfig,
@@ -15,6 +17,7 @@ import {
   recordOperationTelemetry,
   setTelemetryPreference,
   takeTelemetryNotice,
+  telemetryCategory,
   telemetryStatus,
 } from "../src/usage-telemetry";
 
@@ -172,6 +175,27 @@ describe("anonymous usage telemetry switches", () => {
     });
   });
 
+  test("a harness home under the temp directory keeps telemetry off", () => {
+    onByDefault(() => {
+      const sandboxHome = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-home-"));
+      temporaryRoots.push(sandboxHome);
+      expect(
+        telemetryStatus(telemetryEnv({ HOME: sandboxHome })),
+      ).toMatchObject({
+        enabled: false,
+        reason: "sandboxed home in the temp directory (harness run)",
+      });
+      expect(
+        telemetryStatus(telemetryEnv({ HOME: os.homedir() })).enabled,
+      ).toBe(true);
+      expect(
+        telemetryStatus(
+          telemetryEnv({ HOME: sandboxHome, KIBI_TELEMETRY: "1" }),
+        ).enabled,
+      ).toBe(true);
+    });
+  });
+
   test("the first-run notice is returned once and names the off switch", () => {
     const env = enabledEnv();
     const notice = takeTelemetryNotice(env);
@@ -182,6 +206,69 @@ describe("anonymous usage telemetry switches", () => {
     expect(takeTelemetryNotice(telemetryEnv({ KIBI_TELEMETRY: "0" }))).toBe(
       null,
     );
+  });
+});
+
+describe("anonymous usage telemetry host and session", () => {
+  test("names the host from explicit settings, host variables or AI_AGENT", () => {
+    expect(detectTelemetryHost({ KIBI_MCP_HOST: "Claude Code" })).toBe(
+      "claude-code",
+    );
+    expect(detectTelemetryHost({ KIBI_HOST: "cursor", CLAUDECODE: "1" })).toBe(
+      "cursor",
+    );
+    expect(detectTelemetryHost({ CLAUDECODE: "1" })).toBe("claude-code");
+    expect(detectTelemetryHost({ CURSOR_AGENT: "1" })).toBe("cursor");
+    expect(detectTelemetryHost({ CODEX_SANDBOX: "seatbelt" })).toBe("codex");
+    expect(detectTelemetryHost({ GEMINI_CLI: "1" })).toBe("gemini-cli");
+    expect(detectTelemetryHost({ OPENCODE: "1" })).toBe("opencode");
+    expect(detectTelemetryHost({ AI_AGENT: "amp_1-2_agent" })).toBe("amp");
+    expect(detectTelemetryHost({})).toBeUndefined();
+  });
+
+  test("reads the host session id from the environment", () => {
+    expect(detectTelemetrySession({ CLAUDE_CODE_SESSION_ID: "s-1" })).toBe(
+      "s-1",
+    );
+    expect(
+      detectTelemetrySession({
+        KIBI_SESSION_ID: "own",
+        CLAUDE_CODE_SESSION_ID: "s-1",
+      }),
+    ).toBe("own");
+    expect(detectTelemetrySession({})).toBeUndefined();
+  });
+
+  test("fills host, session and remote from the environment when the caller has none", async () => {
+    const env = enabledEnv({
+      CLAUDECODE: "1",
+      CLAUDE_CODE_SESSION_ID: "env-session",
+      CLAUDE_CODE_REMOTE: "true",
+    });
+    recordOperationTelemetry({ packageName: "kibi-cli" }, OPERATION, env);
+    const { fetchImpl, sent } = recordingFetch();
+    await flushTelemetry({ force: true, fetchImpl }, env);
+    const [event] = sent[0]?.body.batch as {
+      properties: Record<string, unknown>;
+    }[];
+    expect(event?.properties).toMatchObject({
+      host: "claude-code",
+      session: hashTelemetryId("env-session"),
+      remote: true,
+    });
+  });
+
+  test("sends error categories only as fixed identifiers", () => {
+    expect(telemetryCategory("UPSERT_DRY_RUN_INVALID")).toBe(
+      "upsert_dry_run_invalid",
+    );
+    expect(telemetryCategory("doctor:git_hooks+capability_plugins")).toBe(
+      "doctor:git_hooks+capability_plugins",
+    );
+    expect(telemetryCategory("Cannot read /home/me/secret.ts")).toBe(
+      "unclassified",
+    );
+    expect(telemetryCategory(undefined)).toBeNull();
   });
 });
 
@@ -220,6 +307,7 @@ describe("anonymous usage telemetry events", () => {
       package_version: "9.9.9",
       host: "claude-code",
       session: hashTelemetryId("session-secret-id"),
+      remote: false,
       interface: "mcp",
       operation: "kb_search",
       status: "error",
@@ -241,6 +329,7 @@ describe("anonymous usage telemetry events", () => {
         "operation",
         "os",
         "package",
+        "remote",
         "package_version",
         "runtime",
         "runtime_version",
