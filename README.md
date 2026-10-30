@@ -32,7 +32,7 @@ Most project knowledge is scattered across prompts, tickets, code, and conversat
 - **Works across languages** — TypeScript and JavaScript symbols are built in. The optional [`kibi-plugin-treesitter`](https://looted.github.io/kibi/reference/plugins.html) adds offline symbol extraction for Python, Go, Rust, Java, C#, PHP, C, C++, Bash, Ruby, and Terraform/HCL using pinned WASM grammars.
 - **Optional UI design guard (experimental)** — [`kibi-plugin-ui`](https://looted.github.io/kibi/reference/plugins.html#optional-ui-design-plugin) keeps React and Angular components on their agreed design patterns. Pixels, colours and spacing stay with your linter.
 - **Questions in your own words (optional)** — [`kibi-plugin-search-hints`](https://looted.github.io/kibi/reference/plugins.html#optional-search-hints-plugin) suggests which requirements a weakly answered `kb_search` question probably means, by meaning rather than shared words, with a small offline model.
-- **Keep knowledge local** — KB state lives in your repository's `.kb/` directory; the Kibi packages send no external telemetry or analytics. Only the documentation website counts visits, with cookieless [Umami](https://umami.is) analytics.
+- **Keep knowledge local** — KB state lives in your repository's `.kb/` directory and is never sent anywhere. The Kibi packages send anonymous usage statistics, which you can turn off (see [Usage telemetry](https://looted.github.io/kibi/guide/telemetry.html)); the documentation website counts visits with cookieless [Umami](https://umami.is) analytics.
 
 ## Quick start
 

@@ -1260,7 +1260,7 @@ ${pagerHtml}
 ${tocBlock}
 </div>
 <footer class="footer">
-  <span>Kibi documentation &mdash; built from the repository <code style="font-family:var(--mono)">docs/</code> sources.${analyticsId ? " Visits are counted with cookieless Umami analytics; the Kibi packages send none." : ""} ${editLink}</span>
+  <span>Kibi documentation &mdash; built from the repository <code style="font-family:var(--mono)">docs/</code> sources.${analyticsId ? " Visits are counted with cookieless Umami analytics." : ""} ${editLink}</span>
   <nav aria-label="Footer">
     <a class="external" href="${githubUrl}" target="_blank" rel="noopener noreferrer" data-umami-event="github-click" data-umami-event-location="footer">GitHub</a>
     ${reportHref ? `<a href="${reportHref}">Requirement health</a>` : ""}

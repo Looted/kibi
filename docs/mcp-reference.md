@@ -32,7 +32,7 @@ The discovery tools (`kb_query`, `kb_search`, `kb_status`,
 summary, for hosts that hide `structuredContent` from the agent. On Claude
 Code, which shows `structuredContent`, the text is the summary alone, so each
 result is sent once. `KIBI_MCP_STRUCTURED_TEXT=omit` or `embed` overrides that
-choice for any host (see [Usage Telemetry](#usage-telemetry-opt-in)).
+choice for any host (see [Diagnostic usage log](#diagnostic-usage-log-opt-in)).
 
 ### Tool list
 
@@ -947,10 +947,12 @@ envelope under `result`), `failed` (error message under `error`), or
 { "kb_job_status": { "jobId": "job-kb_apply_plan-2-4c1d" } }
 ```
 
-## Usage Telemetry (opt-in)
+## Diagnostic usage log (opt-in)
 
-Kibi records no usage telemetry by default. Installing a host plugin, enabling
-it, or running the MCP server never turns logging on. Until an operator opts in,
+This local log is separate from the anonymous usage statistics described in
+[Usage telemetry](telemetry.md), and is never sent. Kibi writes no diagnostic
+log by default. Installing a host plugin, enabling it, or running the MCP
+server never turns logging on. Until an operator opts in,
 `.kb/usage.log` is not created and no row is written.
 
 Opt in per workspace with either signal:
