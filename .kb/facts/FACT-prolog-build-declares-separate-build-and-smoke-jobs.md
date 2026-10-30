@@ -1,5 +1,5 @@
 ---
-title: Declares Separate Build And Smoke Jobs = true
+title: The build workflow declares separate build and smoke jobs for four launch targets
 status: active
 text_ref: scripts/swipl-spike.py
 tags:
@@ -11,11 +11,11 @@ tags:
   - fact:property_value
 fact_kind: property_value
 subject_key: kibi.prolog.build_pipeline_validation
-property_key: declares_separate_build_and_smoke_jobs
-canonical_key: scripts-swipl-spike-py:kibi.prolog.build_pipeline_validation:declares_separate_build_and_smoke_jobs:eq:true
+property_key: launch_targets_with_separate_build_and_smoke_jobs
+canonical_key: scripts-swipl-spike-py:kibi.prolog.build_pipeline_validation:launch_targets_with_separate_build_and_smoke_jobs:eq:4
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 4
 claim_key: CLAIM-04831D475A5D0250
 claim_text: The SWI-Prolog build workflow must declare separate build and clean-consumer smoke jobs for each of the four launch targets
 claim_span_start: 118

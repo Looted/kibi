@@ -314,3 +314,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c1ef1b39d956
+  - type: constrains
+    from: REQ-kibi-dependency-ordered-repair-plan
+    to: FACT-SUBJECT-kibi-coverage-repair-plan
+    created_at: 2026-10-30T12:24:39.899Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-018b42b3a2e4

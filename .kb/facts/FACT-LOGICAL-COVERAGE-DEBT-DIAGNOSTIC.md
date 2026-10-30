@@ -9,15 +9,12 @@ tags:
   - requirements
   - logical-coverage
   - diagnostics
-fact_kind: predicate
-predicate_namespace: kibi.requirements
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.logic.coverage
-  - missing_logic_claims
-  - non_blocking_debt_diagnostic
-canonical_key: logical_requirement_rule(kibi.logic.coverage,missing_logic_claims,non_blocking_debt_diagnostic)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.logic.coverage
+property_key: unmanifested_requirements_without_debt_diagnostic
+operator: eq
+value_type: int
+value_int: 0
 claim_key: CLAIM-5C075A0CE1F05208
 claim_text: Every current requirement without a logic_claims manifest must receive a non-blocking logical-coverage debt diagnostic
 type: fact

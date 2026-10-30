@@ -3,11 +3,11 @@ title: Every scored cell, cohort binding and package must use the exact recorded
 status: active
 fact_kind: property_value
 subject_key: kibi.skillopt.candidate_description
-property_key: scored_cells_bindings_packages_use_recorded_description
-canonical_key: req.req_skillopt_description_candidates.scored_cells_bindings_packages_use_recorded_description.eq.true
+property_key: scored_cells_bindings_packages_with_unrecorded_description
+canonical_key: req.req_skillopt_description_candidates.scored_cells_bindings_packages_with_unrecorded_description.eq.0
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 polarity: require
 claim_key: CLAIM-B9A653CF45D02C5D
 claim_text: Every scored cell, cohort binding and package must use the exact recorded description

@@ -349,3 +349,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3e465fdc4bed
+  - type: constrains
+    from: REQ-kibi-logical-requirement-coverage
+    to: FACT-SUBJECT-kibi-logic-coverage
+    created_at: 2026-10-30T12:24:43.994Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2dd70d60eb43
+  - type: constrains
+    from: REQ-kibi-logical-requirement-coverage
+    to: FACT-SUBJECT-C8D6ADF7EFA7EDF0
+    created_at: 2026-10-30T12:24:44.076Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4007c29014fa

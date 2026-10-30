@@ -9,15 +9,12 @@ tags:
   - requirements
   - repair
   - dependencies
-fact_kind: predicate
-predicate_namespace: kibi.requirements
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.coverage.repair_plan
-  - dependency_declaration
-  - explicit
-canonical_key: logical_requirement_rule(kibi.coverage.repair_plan,dependency_declaration,explicit)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.coverage.repair_plan
+property_key: downstream_batches_without_named_dependencies
+operator: eq
+value_type: int
+value_int: 0
 claim_key: CLAIM-607ED4AD800C206F
 claim_text: every downstream batch must name its dependencies
 claim_span_start: 438

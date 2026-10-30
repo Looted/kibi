@@ -9,10 +9,10 @@ tags:
 text_ref: REQ-bootstrap-provenance-stubs
 fact_kind: property_value
 subject_key: bootstrap.provenance_stubs
-property_key: stubs_selected_after_candidates_with_claims
+property_key: provenance_stubs_selected_before_claim_candidates
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 claim_key: CLAIM-DF00F8E42E49F51E
 claim_text: The bootstrap planner must select provenance stubs after every discovered candidate that states a claim
 origin:
@@ -23,4 +23,4 @@ type: fact
 ---
 The bootstrap planner must select provenance stubs after every discovered candidate that states a claim.
 
-Recorded as a strict boolean semantic fact about `bootstrap.provenance_stubs` so REQ-bootstrap-provenance-stubs can be checked for contradictions.
+Recorded as a strict count fact about `bootstrap.provenance_stubs` so REQ-bootstrap-provenance-stubs can be checked for contradictions.

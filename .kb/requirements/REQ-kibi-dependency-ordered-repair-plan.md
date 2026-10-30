@@ -75,15 +75,15 @@ links:
     target: REQ-kibi-proposition-complete-ingestion
   - type: specified_by
     target: SCEN-kibi-dependency-ordered-repair-plan
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-REPAIR-PLAN-READ-ONLY
   - type: requires_predicate
     target: FACT-REPAIR-PLAN-DEPENDENCY-ORDER
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-REPAIR-PLAN-EARLIEST-READY
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-REPAIR-PLAN-EXPLICIT-DEPENDENCIES
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-REPAIR-PLAN-NON-AUTO
   - type: requires_predicate
     target: FACT-REPAIR-PLAN-STABLE-ID

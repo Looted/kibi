@@ -3,10 +3,10 @@ title: Predicate modeling must list the type and example values of each unbound 
 status: active
 fact_kind: property_value
 subject_key: kibi.predicate_suggestion.plan
-property_key: unbound_argument_hints_listed
+property_key: unbound_arguments_without_type_and_example_hints
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 claim_key: CLAIM-73D2B4426A75A923
 claim_text: Predicate modeling must list the type and example values of each unbound argument
 text_ref: REQ-model-predicates-binding-placeholders
@@ -23,4 +23,4 @@ type: fact
 ---
 Predicate modeling must list the type and example values of each unbound argument.
 
-Recorded as a strict boolean property of `kibi.predicate_suggestion.plan` so REQ-model-predicates-binding-placeholders can be checked for contradictions.
+Recorded as a strict count property of `kibi.predicate_suggestion.plan` so REQ-model-predicates-binding-placeholders can be checked for contradictions.

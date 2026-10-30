@@ -9,15 +9,12 @@ tags:
   - requirements
   - logical-coverage
   - staged-validation
-fact_kind: predicate
-predicate_namespace: kibi.requirements
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.cli.check.staged
-  - every_typed_predicate_field
-  - preserved
-canonical_key: logical_requirement_rule(kibi.cli.check.staged,every_typed_predicate_field,preserved)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.cli.check.staged
+property_key: typed_predicate_fields_dropped_by_staged_overlay
+operator: eq
+value_type: int
+value_int: 0
 claim_key: CLAIM-20FA89A0E6B17C19
 claim_text: Staged validation overlays must preserve every typed predicate fact field
 type: fact
