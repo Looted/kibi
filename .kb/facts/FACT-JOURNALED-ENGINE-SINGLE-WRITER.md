@@ -2,6 +2,13 @@
 id: FACT-JOURNALED-ENGINE-SINGLE-WRITER
 title: One Node engine owns each workspace and branch
 status: active
+fact_kind: property_value
+subject_key: kibi.engine.journal
+property_key: writer_engines_per_workspace_branch
+operator: eq
+value_type: int
+value_int: 1
+canonical_key: kibi.engine.journal:writer_engines_per_workspace_branch:eq:1
 created_at: 2026-08-11T00:00:00.000Z
 updated_at: 2026-08-11T00:00:00.000Z
 source: packages/cli/src/engine.ts
@@ -9,15 +16,6 @@ tags:
   - lane:ontology
   - engine
   - concurrency
-fact_kind: predicate
-predicate_namespace: kibi.requirements
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.engine.journal
-  - single_writer
-  - one_per_workspace_branch
-canonical_key: logical_requirement_rule(kibi.engine.journal,single_writer,one_per_workspace_branch)
-polarity: assert
 claim_key: CLAIM-D1C9836C4BA9898F
 claim_text: Kibi MUST run one Node.js 18+ single-writer engine for each canonical workspace and branch
 claim_span_start: 0

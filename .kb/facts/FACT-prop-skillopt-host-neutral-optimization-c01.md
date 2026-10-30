@@ -3,11 +3,11 @@ title: SkillOpt must run every cell of a run on the agent harness chosen for tha
 status: active
 fact_kind: property_value
 subject_key: kibi.skillopt.host_neutral_optimization
-property_key: run_uses_chosen_harness
-canonical_key: req.req_skillopt_host_neutral_optimization.run_uses_chosen_harness.eq.true
+property_key: cells_run_off_chosen_harness
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
+canonical_key: kibi.skillopt.host_neutral_optimization:cells_run_off_chosen_harness:eq:0
 polarity: require
 claim_key: CLAIM-9BEF03F5EEE96A3C
 claim_text: SkillOpt must run every cell of a run on the agent harness chosen for that run before it starts

@@ -1,12 +1,12 @@
 ---
-title: A current requirement's evidence level is below its evidence floor
+title: A current requirement below its evidence floor passes check
 status: active
 fact_kind: property_value
 subject_key: kibi.evidence_floor
-property_key: fails_requirements_below_floor
+property_key: below_floor_requirements_passing_check
 operator: eq
-value_type: bool
-value_bool: false
+value_type: int
+value_int: 1
 origin:
   kind: agent
   recorded_at: '2026-10-29T21:12:36.430Z'
