@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: kibi-decisions
   id: kibi-decisions
-  version: 1.4.0
+  version: 1.5.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -118,7 +118,12 @@ again until none is open, then record each rule with their words in
 `origin.ref`. Fields and outputs: `resources/signoff-views.md`.
 
 Never invent words for `origin.ref`, never set `approved_by` yourself, and
-mark your own picks `default` and guesses `exploratory`. Payload shapes,
+mark your own picks `default` and guesses `exploratory`. Once the person has
+answered, recording their answer (their name in `approved_by` or a
+`*_waiver_approved_by` field, their words in `origin.ref` or `approval_ref`)
+is yours to do: put it on the branch of the change it approves and push it to
+that pull request, never to a separate one. Ask before you open or merge the
+pull request, so the answer lands in it. Payload shapes,
 refusal messages and the `kb_compile_intent` review loop are in
 `resources/decision-records.md`.
 

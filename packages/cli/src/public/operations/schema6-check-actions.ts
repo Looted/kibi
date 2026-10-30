@@ -728,7 +728,7 @@ export function schema6ReviewActionsFromCheck(
       safety: "review",
       invocation: {
         kind: "review",
-        instruction: `${total} agent-authored requirement(s) have no human approval${total > listed.length ? `; these ${listed.length} come first` : ""}: ${listed.join(", ")}. Have a person read each one; when it states the intended behavior, kb_upsert it with origin.approved_by set to the reviewer (keep kind: agent and the rest of origin). Rerun kb_check for the next page.`,
+        instruction: `${total} agent-authored requirement(s) have no human approval${total > listed.length ? `; these ${listed.length} come first` : ""}: ${listed.join(", ")}. Have a person read each one; when it states the intended behavior, kb_upsert it with origin.approved_by set to the reviewer (keep kind: agent and the rest of origin), in the same change and pull request as the requirement, not a separate one. Rerun kb_check for the next page.`,
       },
       affectedEntityIds: listed,
       affectedFiles: [...new Set(agentRequirementFiles)].sort(),

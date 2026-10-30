@@ -2,7 +2,7 @@
 id: kibi-commit-review
 name: kibi-commit-review
 description: "Use when kibi check --staged or the Kibi pre-commit hook blocks a commit (kibi_impact_evidence_missing, symbols_manifest_stale, symbol_granularity_violation, symbol-coverage, kibi check-generated drift, Staged impact review failed), or when preparing a commit or pull-request impact review. Covers reading the per-file Detail lines, authoring .kb/symbols.yaml symbol entries through kb_upsert, staging the tracked Kibi evidence with git add (symbol coordinates are derived and never staged), kb_prepare_impact_review for a staged or diff scope, the kibi signoff requirements summary to show before a commit, and how merge commits and migration renames are judged."
-version: 1.3.0
+version: 1.4.0
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -91,7 +91,11 @@ apps); never attach the `.html` as a file, which chat apps show as raw source;
 past 15 requirements the Markdown stops and only the page lists them all.
 Host details: `kibi-decisions`, `resources/signoff-views.md`. `--no-proof` skips the proof lookup, which reads coverage and is slow
 on a large knowledge base. The summary is not an approval: never set
-`approved_by` or `origin.ref` from it.
+`approved_by` or `origin.ref` from it. Show it before you open or merge the
+pull request. When the person answers, record their answer in the same
+change (their name in `approved_by`, their words in `origin.ref` or
+`approval_ref`) and push it to the same pull request; never move a signoff,
+firmness or waiver approval into a separate pull request.
 
 ## Impact reviews
 

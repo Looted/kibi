@@ -113,7 +113,7 @@ const REPAIR_PHASES = {
   dimension_grounding: {
     order: 64,
     objective:
-      "Ground each quantified claim (each, every, all, or a cardinality bound) on what varies: an integer count or bound, a set of members, a rule over a variable, or a state machine. If the quantifier ranges over nothing, record a dimension_waiver on the grounding fact for a person to approve.",
+      "Ground each quantified claim (each, every, all, or a cardinality bound) on what varies: an integer count or bound, a set of members, a rule over a variable, or a state machine. If the quantifier ranges over nothing, record a dimension_waiver on the grounding fact for a person to approve, and record their approval in the same pull request.",
     workflowSteps: [
       "kb_model_requirement",
       "kb_validate_upsert",
@@ -126,7 +126,7 @@ const REPAIR_PHASES = {
   case_scenarios: {
     order: 66,
     objective:
-      "Cover each uncovered rejection case: add a scenario whose assumes fact states the case's assumption (a value past the bound, a value outside the set), expects rejection or error, is linked with specified_by and is verified by a passing end-to-end test. Each repair lists caseSkeletons, upsert-ready draft scenarios and their assumed facts: fill in the placeholders, verify the scenario by a test, then set its status to active (a draft never covers a case). If a person accepts the cases as covered another way, record a case_waiver on the grounding fact for them to approve.",
+      "Cover each uncovered rejection case: add a scenario whose assumes fact states the case's assumption (a value past the bound, a value outside the set), expects rejection or error, is linked with specified_by and is verified by a passing end-to-end test. Each repair lists caseSkeletons, upsert-ready draft scenarios and their assumed facts: fill in the placeholders, verify the scenario by a test, then set its status to active (a draft never covers a case). If a person accepts the cases as covered another way, record a case_waiver on the grounding fact for them to approve, and record their approval in the same pull request.",
     workflowSteps: [
       "kb_coverage",
       "kb_validate_upsert",
