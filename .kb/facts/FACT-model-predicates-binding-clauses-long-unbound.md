@@ -9,10 +9,10 @@ tags:
   - provenance:req-model-predicates-binding-clauses
 fact_kind: property_value
 subject_key: kibi.predicate_suggestion.plan
-property_key: predicate_participant_clause_unbound
-operator: eq
-value_type: bool
-value_bool: true
+property_key: bound_participant_max_words
+operator: lte
+value_type: int
+value_int: 3
 claim_key: CLAIM-62C58B45D5A1729A
 claim_text: Predicate modeling must leave a participant argument unbound when its value taken from the claim text has more than three words
 origin:

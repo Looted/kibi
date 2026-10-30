@@ -3,11 +3,11 @@ title: Omits the top three governing requirements
 status: active
 fact_kind: property_value
 subject_key: kibi.search.hints
-property_key: omits_top_governing
+property_key: omitted_top_governing_requirements
 operator: eq
-value_type: bool
-value_bool: true
-canonical_key: kibi.search.hints.omits_top_governing.eq.true
+value_type: int
+value_int: 3
+canonical_key: kibi.search.hints:omitted_top_governing_requirements:eq:3
 claim_key: CLAIM-4B16FFAFEA181051
 claim_text: the top three governing requirements of the answer must be omitted from them
 text_ref: packages/cli/src/search-hints.ts

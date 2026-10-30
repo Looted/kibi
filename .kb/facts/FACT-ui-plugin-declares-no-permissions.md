@@ -9,10 +9,10 @@ tags:
 text_ref: REQ-ui-plugin-design-policy
 fact_kind: property_value
 subject_key: ui_plugin.design_policy
-property_key: declares_no_permissions
+property_key: declared_permissions
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 claim_key: CLAIM-3E9D243F8B18A315
 claim_text: The kibi-plugin-ui package must declare no permissions
 origin:
@@ -24,4 +24,4 @@ type: fact
 ---
 The kibi-plugin-ui package must declare no permissions.
 
-Recorded as a strict boolean semantic fact about `ui_plugin.design_policy` so REQ-ui-plugin-design-policy can be checked for contradictions.
+Recorded as a typed semantic fact about `ui_plugin.design_policy` so REQ-ui-plugin-design-policy can be checked for contradictions.

@@ -3,10 +3,10 @@ title: Bootstrap planning must write one subject fact for each subject key and l
 status: active
 fact_kind: property_value
 subject_key: kibi.bootstrap.plan
-property_key: one_subject_fact_per_key
+property_key: subject_facts_per_subject_key
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 1
 claim_key: CLAIM-B8DB90CDAE3ACFE9
 claim_text: Bootstrap planning must write one subject fact for each subject key and link every requirement about that subject to it
 text_ref: REQ-bootstrap-subject-fact-shared
@@ -23,4 +23,4 @@ type: fact
 ---
 Bootstrap planning must write one subject fact for each subject key and link every requirement about that subject to it.
 
-Recorded as a strict boolean semantic fact about `kibi.bootstrap.plan` so REQ-bootstrap-subject-fact-shared can be checked for contradictions.
+Recorded as a typed semantic fact about `kibi.bootstrap.plan` so REQ-bootstrap-subject-fact-shared can be checked for contradictions.
