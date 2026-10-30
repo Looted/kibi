@@ -696,6 +696,32 @@
           },
           "reason": {
             "type": "string"
+          },
+          "dimension": {
+            "type": "object",
+            "required": [
+              "quantifier",
+              "rewrites"
+            ],
+            "properties": {
+              "quantifier": {
+                "type": "string",
+                "minLength": 1
+              },
+              "rewrites": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "bound",
+                    "rule",
+                    "count",
+                    "set"
+                  ]
+                }
+              }
+            },
+            "additionalProperties": false
           }
         },
         "additionalProperties": false

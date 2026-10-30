@@ -511,6 +511,23 @@ const entitySchema: Record<string, unknown> = {
           semantic_key: { type: "string" },
           payload_hash: { type: "string" },
           reason: { type: "string" },
+          // The advisor's hint for a quantified clause, kept so its receipt
+          // propositions can be copied into the inventory unchanged.
+          dimension: {
+            type: "object",
+            required: ["quantifier", "rewrites"],
+            properties: {
+              quantifier: { type: "string", minLength: 1 },
+              rewrites: {
+                type: "array",
+                items: {
+                  type: "string",
+                  enum: ["bound", "rule", "count", "set"],
+                },
+              },
+            },
+            additionalProperties: false,
+          },
         },
         additionalProperties: false,
       },
