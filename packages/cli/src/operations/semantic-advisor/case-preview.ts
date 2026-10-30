@@ -72,16 +72,52 @@ function region({ op, value }: Constraint, integer: boolean): Region {
       return { kind: "except", value: v };
     case "lt":
       return integer
-        ? { kind: "interval", lo: -Infinity, loOpen: true, hi: v - 1, hiOpen: false }
-        : { kind: "interval", lo: -Infinity, loOpen: true, hi: v, hiOpen: true };
+        ? {
+            kind: "interval",
+            lo: Number.NEGATIVE_INFINITY,
+            loOpen: true,
+            hi: v - 1,
+            hiOpen: false,
+          }
+        : {
+            kind: "interval",
+            lo: Number.NEGATIVE_INFINITY,
+            loOpen: true,
+            hi: v,
+            hiOpen: true,
+          };
     case "lte":
-      return { kind: "interval", lo: -Infinity, loOpen: true, hi: v, hiOpen: false };
+      return {
+        kind: "interval",
+        lo: Number.NEGATIVE_INFINITY,
+        loOpen: true,
+        hi: v,
+        hiOpen: false,
+      };
     case "gt":
       return integer
-        ? { kind: "interval", lo: v + 1, loOpen: false, hi: Infinity, hiOpen: true }
-        : { kind: "interval", lo: v, loOpen: true, hi: Infinity, hiOpen: true };
+        ? {
+            kind: "interval",
+            lo: v + 1,
+            loOpen: false,
+            hi: Number.POSITIVE_INFINITY,
+            hiOpen: true,
+          }
+        : {
+            kind: "interval",
+            lo: v,
+            loOpen: true,
+            hi: Number.POSITIVE_INFINITY,
+            hiOpen: true,
+          };
     case "gte":
-      return { kind: "interval", lo: v, loOpen: false, hi: Infinity, hiOpen: true };
+      return {
+        kind: "interval",
+        lo: v,
+        loOpen: false,
+        hi: Number.POSITIVE_INFINITY,
+        hiOpen: true,
+      };
   }
 }
 
@@ -100,11 +136,9 @@ function entails(a: Constraint, b: Constraint, integer: boolean): boolean {
     return rb.kind === "except" && rb.value === ra.value;
   if (rb.kind === "except") return !contains(ra, rb.value);
   const loInside =
-    ra.lo > rb.lo ||
-    (ra.lo === rb.lo && (ra.loOpen || !rb.loOpen));
+    ra.lo > rb.lo || (ra.lo === rb.lo && (ra.loOpen || !rb.loOpen));
   const hiInside =
-    ra.hi < rb.hi ||
-    (ra.hi === rb.hi && (ra.hiOpen || !rb.hiOpen));
+    ra.hi < rb.hi || (ra.hi === rb.hi && (ra.hiOpen || !rb.hiOpen));
   return loInside && hiInside;
 }
 
@@ -113,14 +147,13 @@ type RawCase = {
   readonly constraint: Constraint;
 };
 
-function numericCases(
-  integer: boolean,
-  op: NumericOp,
-  v: number,
-): RawCase[] {
+function numericCases(integer: boolean, op: NumericOp, v: number): RawCase[] {
   const cases: RawCase[] = [];
-  const add = (generator: RawCase["generator"], caseOp: NumericOp, value: number) =>
-    cases.push({ generator, constraint: { op: caseOp, value } });
+  const add = (
+    generator: RawCase["generator"],
+    caseOp: NumericOp,
+    value: number,
+  ) => cases.push({ generator, constraint: { op: caseOp, value } });
   if (["eq", "neq", "lte", "gte"].includes(op)) add("boundary", "eq", v);
   if (integer && op === "lt") add("boundary", "eq", v - 1);
   if (integer && op === "gt") add("boundary", "eq", v + 1);
@@ -147,7 +180,9 @@ function predict(
   integer: boolean,
 ): "success" | "rejection" | undefined {
   if (entails(candidate, claim, integer)) return "success";
-  if (entails(candidate, { op: NEGATED[claim.op], value: claim.value }, integer))
+  if (
+    entails(candidate, { op: NEGATED[claim.op], value: claim.value }, integer)
+  )
     return "rejection";
   return undefined;
 }
@@ -231,9 +266,10 @@ function setPreviews(claim: SemanticStrictPropertyClaim): CasePreview[] {
   return previews;
 }
 
-export function previewCases(
-  claim: SemanticStrictPropertyClaim,
-): { cases: CasePreview[]; limitReached: boolean } {
+export function previewCases(claim: SemanticStrictPropertyClaim): {
+  cases: CasePreview[];
+  limitReached: boolean;
+} {
   const op = claim.operator;
   const all =
     claim.value_type === "set"

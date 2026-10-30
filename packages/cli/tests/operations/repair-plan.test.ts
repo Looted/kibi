@@ -110,10 +110,18 @@ describe("dependency-ordered requirement repair plans", () => {
           row({
             proofGaps: ["uncovered_case"],
             proofRepairs: [
-              { gap: "uncovered_case", priority: 46, stage: "cases", action: "Cover each case." },
+              {
+                gap: "uncovered_case",
+                priority: 46,
+                stage: "cases",
+                action: "Cover each case.",
+              },
             ],
             proofStages: {
-              cases: { status: "missing", uncoveredCases: [uncovered, outside] },
+              cases: {
+                status: "missing",
+                uncoveredCases: [uncovered, outside],
+              },
             },
           }),
         ],
@@ -149,14 +157,22 @@ describe("dependency-ordered requirement repair plans", () => {
       expects: "rejection",
     });
     expect(scenario?.relationships).toEqual([
-      { type: "assumes", from: "SCEN-CASE-0123456789AB", to: "FACT-CASE-0123456789AB" },
-      { type: "specified_by", from: "REQ-PLAN-001", to: "SCEN-CASE-0123456789AB" },
+      {
+        type: "assumes",
+        from: "SCEN-CASE-0123456789AB",
+        to: "FACT-CASE-0123456789AB",
+      },
+      {
+        type: "specified_by",
+        from: "REQ-PLAN-001",
+        to: "SCEN-CASE-0123456789AB",
+      },
     ]);
     expect(repair?.caseSkeletons?.[0]?.placeholder).toBe(false);
     expect(repair?.caseSkeletons?.[1]?.placeholder).toBe(true);
-    expect(repair?.caseSkeletons?.[1]?.entities[0].properties.value_set).toEqual([
-      "<a value outside the set>",
-    ]);
+    expect(
+      repair?.caseSkeletons?.[1]?.entities[0].properties.value_set,
+    ).toEqual(["<a value outside the set>"]);
   });
 
   test("groups one requirement into small safe batches and blocks downstream work", () => {

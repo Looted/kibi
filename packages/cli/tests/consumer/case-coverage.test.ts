@@ -154,10 +154,17 @@ describe("edge-case proof stage through the kibi CLI", () => {
       ws.json(["semantic-advisor"], { text: PROSE }).data as Json
     ).receipt as { suggestions: Array<Json & { casesPreview?: Json }> };
     const preview = receipt.suggestions.find((item) => item.casesPreview)
-      ?.casesPreview as { cases: Array<{ constraint: string; predicted: string }> };
+      ?.casesPreview as {
+      cases: Array<{ constraint: string; predicted: string }>;
+    };
     expect(
       preview.cases.map((item) => `${item.constraint}:${item.predicted}`),
-    ).toEqual(["eq 5:success", "gt 5:rejection", "eq 0:success", "eq 1:success"]);
+    ).toEqual([
+      "eq 5:success",
+      "gt 5:rejection",
+      "eq 0:success",
+      "eq 1:success",
+    ]);
 
     author(ws);
     const open = cases(ws);

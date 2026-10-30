@@ -648,7 +648,10 @@ if (RUN_NODE_TEST_SUITE) {
       const output = stdout + stderr;
 
       assert.notStrictEqual(exitCode, 0, "doctor must fail before init");
-      assert.match(output, /✗ \.kb\/ directory: Not found\n\s*→ Run: kibi init/);
+      assert.match(
+        output,
+        /✗ \.kb\/ directory: Not found\n\s*→ Run: kibi init/,
+      );
       assert.match(output, /✗ \.kb\/ manifest: Not found\n\s*→ Run: kibi init/);
       assert.ok(
         output.includes("Some checks failed"),

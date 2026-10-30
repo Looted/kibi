@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 
-import { semanticClaimKey } from "./clauses.js";
 import { previewCases } from "./case-preview.js";
+import { semanticClaimKey } from "./clauses.js";
 import type {
   SemanticModelingSuggestion,
   SemanticPredicateClaim,

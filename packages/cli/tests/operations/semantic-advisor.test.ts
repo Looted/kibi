@@ -1279,7 +1279,12 @@ describe("edge-case preview on a strict-property suggestion", () => {
       suggestion.casesPreview?.cases.map(
         (item) => `${item.constraint}:${item.predicted}`,
       ),
-    ).toEqual(["eq 2:success", "gt 2:rejection", "eq 0:success", "eq 1:success"]);
+    ).toEqual([
+      "eq 2:success",
+      "gt 2:rejection",
+      "eq 0:success",
+      "eq 1:success",
+    ]);
     expect(suggestion.casesPreview?.limitReached).toBe(false);
   });
 });

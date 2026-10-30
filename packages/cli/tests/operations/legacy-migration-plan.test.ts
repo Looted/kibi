@@ -327,7 +327,7 @@ describe("read-only legacy requirement migration plans", () => {
     expect(new Set(spans).size).toBe(spans.length);
     for (const proposition of propositions) {
       expect(typeof proposition.disposition).toBe("string");
-      expect(proposition.recommendedLane).toBe(
+      expect<string>(proposition.recommendedLane).toBe(
         LANE_BY_DISPOSITION[proposition.disposition],
       );
     }

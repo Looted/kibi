@@ -1,5 +1,5 @@
-import type { CasePreview } from "./case-preview.js";
 import type { LogicRuleIR } from "../../logic/ir.js";
+import type { CasePreview } from "./case-preview.js";
 
 export type SemanticAdvisorLane =
   | "strict_property"

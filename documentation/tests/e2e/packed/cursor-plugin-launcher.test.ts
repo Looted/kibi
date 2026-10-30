@@ -124,7 +124,11 @@ describe(
         "dist",
         "hook-runner.js",
       );
-      assert.equal(existsSync(hookRunner), true, "kibi-cursor is not installed");
+      assert.equal(
+        existsSync(hookRunner),
+        true,
+        "kibi-cursor is not installed",
+      );
       const workspace = mkdtempSync(join(tmpdir(), "kibi-cursor-advisory-"));
       const pluginData = mkdtempSync(
         join(tmpdir(), "kibi-cursor-advisory-data-"),
@@ -176,7 +180,11 @@ describe(
         "dist",
         "hook-runner.js",
       );
-      assert.equal(existsSync(hookRunner), true, "kibi-cursor is not installed");
+      assert.equal(
+        existsSync(hookRunner),
+        true,
+        "kibi-cursor is not installed",
+      );
       const workspace = mkdtempSync(join(tmpdir(), "kibi-cursor-plan-edit-"));
       const pluginData = mkdtempSync(join(tmpdir(), "kibi-cursor-plan-data-"));
       const hook = (event: Record<string, unknown>) => {
@@ -206,7 +214,10 @@ describe(
           tool_input: { file_path: "src/app.ts" },
         });
         const stop = hook({ hook_event_name: "stop", status: "completed" });
-        assert.match(stop.followup_message ?? "", /run impact-enabled kb_check/);
+        assert.match(
+          stop.followup_message ?? "",
+          /run impact-enabled kb_check/,
+        );
         assert.match(stop.followup_message ?? "", /src\/app\.ts/);
       } finally {
         rmSync(workspace, { recursive: true, force: true });
