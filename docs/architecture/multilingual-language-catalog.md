@@ -20,6 +20,7 @@ the analyzed program, a compiler, or Terraform.
 | C, C++ | Declared types, functions, methods, prototypes, C++ destructors and overloads | Includes, conditional compilation, macros and unresolved collisions remain partial |
 | Bash | Explicit Bash functions | Other shell dialects have file-level scope; dynamic evaluation, sourcing and conditional definitions remain partial |
 | Ruby | Modules, classes and explicit methods | Dynamic method APIs and redefinitions remain partial |
+| SWI-Prolog | One symbol per predicate (`name/arity`, `name//arity` for DCG rules) spanning its PlDoc block through its last clause; plunit units and tests in `.plt` files and `begin_tests`/`end_tests` blocks | Module qualification follows the file's `:- module` directive; directives, `term_expansion` output and clauses built at run time are not symbols |
 | Terraform, HCL | Static labeled root blocks; Terraform local attributes | Structural records do not imply executable functions; unsupported or dynamic labels and nested blocks remain uncovered |
 | SQL, HTML, CSS, JSON, YAML | File-level documents | No symbol extraction or executable-proof substitution |
 | Unknown formats | Explicit unsupported analysis | Files stay in the change inventory and require the configured file-review policy |
@@ -40,7 +41,10 @@ with its operand; unknown options do not authorize interpreter execution or
 silently select a parser.
 
 `.h` alone is ambiguous between C and C++. `.pl` alone is ambiguous between
-Perl and Prolog; neither is supplied by this catalog. A `.sh` suffix alone does
+Perl and Prolog: without a hint or shebang, the host reads at most the first
+64 KiB and selects a language only when the leading lines match Prolog syntax
+and not Perl syntax, or the reverse. Perl stays file-level; `.plt` is always
+Prolog test source. A `.sh` suffix alone does
 not identify a shell dialect. The direct Bash plugin can parse its documented
 Bash subset, while the host requires a Bash signal before selecting that parser.
 

@@ -549,6 +549,48 @@ describe("bootstrap discovery", () => {
     );
   });
 
+  it("scans Prolog modules with their exports and plunit files, but not Perl", async () => {
+    if (!fixture) throw new Error("missing fixture");
+    fs.mkdirSync(path.join(fixture.root, "src"), { recursive: true });
+    fs.writeFileSync(
+      path.join(fixture.root, "src", "shapes.pl"),
+      ":- module(shapes, [area/2, % surface\n  describe//1]).\narea(square(S), A) :- A is S * S.\n",
+    );
+    fs.writeFileSync(
+      path.join(fixture.root, "src", "report.pl"),
+      "use strict;\nmy $total = 0;\n",
+    );
+    fs.writeFileSync(
+      path.join(fixture.root, "src", "shapes.plt"),
+      ":- begin_tests(shapes).\ntest(area) :- true.\n:- end_tests(shapes).\n",
+    );
+
+    const discovery = await discoverProviderEvidence(
+      fixture.root,
+      coldStartActivation(),
+    );
+    const prolog = discovery.evidence.find(
+      (item) => item.relativePath === "src/shapes.pl",
+    );
+    expect(prolog?.kind).toBe("source_symbols");
+    expect(prolog?.data).toMatchObject({
+      title: "Source module: shapes",
+      module: "shapes",
+      exports: ["area/2", "describe//1"],
+      claim:
+        "Prolog module shapes (src/shapes.pl) exports area/2, describe//1.",
+    });
+    expect(
+      discovery.evidence.some((item) => item.relativePath === "src/report.pl"),
+    ).toBe(false);
+    const plunit = discovery.evidence.find(
+      (item) => item.relativePath === "src/shapes.plt",
+    );
+    expect(plunit?.kind).toBe("test_topology");
+    expect(plunit?.data.frameworks).toEqual(["plunit"]);
+    expect(discovery.summary.detectedLanguages).toContain("prolog");
+  });
+
   it("detects metadata languages from package scripts, bin strings, cargo, go, and pyproject", async () => {
     if (!fixture) throw new Error("missing fixture");
     fs.writeFileSync(

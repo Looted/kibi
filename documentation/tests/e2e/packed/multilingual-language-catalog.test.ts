@@ -479,7 +479,18 @@ function analysisCases(sandbox: TestSandbox): Record<string, unknown> {
     language: "cpp",
     content: "struct Header { int value; };\n",
   };
-  cases["prolog-ambiguous"] = { path: "logic/module.pl", content: "task.\n" };
+  cases["prolog-ambiguous"] = {
+    path: "logic/module.pl",
+    content: "# shared\n",
+  };
+  cases["prolog-content"] = {
+    path: "logic/module.pl",
+    content: ":- module(module, [task/0]).\ntask.\n",
+  };
+  cases["perl-content"] = {
+    path: "logic/module.pl",
+    content: "use strict;\nsub task { 1 }\n",
+  };
   cases["prolog-hint"] = {
     path: "logic/module.pl",
     language: "prolog",
@@ -808,9 +819,11 @@ async function runCatalogWorkflow(tarballs: Tarballs): Promise<void> {
     );
     assertProvider(headerC as Analysis, "c");
     assertProvider(headerCpp as Analysis, "cpp");
+    assertProvider(analyses["prolog-hint"] as Analysis, "prolog");
+    assertProvider(analyses["prolog-content"] as Analysis, "prolog");
     for (const [key, language] of [
-      ["prolog-hint", "prolog"],
       ["perl-hint", "perl"],
+      ["perl-content", "perl"],
     ] as const) {
       const result = analyses[key];
       assert.equal(result?.language, language);

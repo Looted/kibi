@@ -1,5 +1,5 @@
 ---
-title: A tree-sitter plugin language shall be python, go, rust, java, csharp, php, c, cpp, bash, ruby, terraform or hcl, by an exhaustive proof
+title: A tree-sitter plugin language shall be python, go, rust, java, csharp, php, c, cpp, bash, ruby, prolog, terraform or hcl, by an exhaustive proof
 status: passing
 tags:
   - proof
@@ -18,7 +18,7 @@ proof_contract:
   domain_source:
     symbol_id: SYM-source-analysis-v2-tree-sitter-languages-dae6879e
   proves:
-    - CLAIM-792D57510F335E69
+    - CLAIM-65D3E23B3522B092
 origin:
   kind: agent
   recorded_at: '2026-10-28T22:41:44.658Z'

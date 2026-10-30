@@ -38,6 +38,7 @@ const LANGUAGE_NAMES: Readonly<Record<string, string>> = {
   py: "python",
   rb: "ruby",
   rs: "rust",
+  pl: "prolog",
 };
 
 async function migrationWarning(
