@@ -3,10 +3,10 @@ title: A publishable package drifts from the shared release version
 status: active
 fact_kind: property_value
 subject_key: kibi.release.versioning
-property_key: clause_01_consistent_semantic_versioning_across_all_npm_pa
+property_key: npm_packages_off_shared_semver_version
 operator: eq
-value_type: bool
-value_bool: false
+value_type: int
+value_int: 1
 origin:
   kind: agent
   recorded_at: '2026-10-29T21:01:47.684Z'

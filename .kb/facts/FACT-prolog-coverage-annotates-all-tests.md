@@ -2,11 +2,11 @@
 title: Annotates every selected Prolog test file
 fact_kind: property_value
 subject_key: kibi.testing.prolog_coverage
-property_key: annotates_all_selected_test_files
+property_key: selected_test_files_missing_from_annotated_coverage
 operator: eq
-value_type: bool
-value_bool: true
-canonical_key: kibi.testing.prolog_coverage.annotates_all_selected_test_files.eq.true
+value_type: int
+value_int: 0
+canonical_key: kibi.testing.prolog_coverage:selected_test_files_missing_from_annotated_coverage:eq:0
 claim_key: CLAIM-4F7C962FC04DA2DA
 claim_text: The Prolog coverage runner must include each selected test file in annotated coverage artifacts
 status: active

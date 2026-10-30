@@ -79,6 +79,7 @@ also carries a typed `reason` when it does not pass.
 | 4 | [Scenarios](#4-scenarios) | `scenarios` |
 | 5 | [Scenario tests](#5-scenario-tests) | `scenarioTests` |
 | 5a | [Failure side](#5a-failure-side) | `negativePath` |
+| 5b | [Quantified claims](#5b-quantified-claims) | `dimension` |
 | 6 | [Passing E2E tests](#6-passing-e2e-tests) | `passingE2e` |
 | 7 | [Executable test symbols](#7-executable-test-symbols) | `executableSymbols` |
 | 8 | [Production symbols](#8-production-symbols) | `productionSymbols` |
@@ -171,6 +172,38 @@ failure side is proven by the same passing E2E receipts. The canonical
 `scenario-outcome-mismatch` check rule reports a scenario that expects
 rejection or error while current requirements govern and permit everything it
 assumes.
+
+### 5b. Quantified claims
+
+**Checks:** a claim that quantifies over a collection (`each`, `every`,
+`all`) or bounds a cardinality (`exactly`, `at least`, `at most`, `no more
+than`) is grounded on what varies, not only on its verdict. When every fact
+grounding such a claim is a boolean `property_value` or a ground `predicate`,
+the claim states that the behavior holds without naming the dimension it
+holds over, and a scenario with one item can pass where several items break.
+Ground it on an integer count or bound, a set of members, a rule over a
+variable, or a state machine instead. `only`, `any` and `some` are not
+counted: they mostly scope a condition ("only when", "before any write")
+rather than range over one.
+
+- `missing`: `claims` lists each such claim with its `quantifier`, the
+  grounding `factIds`, and `rewrites`, the typed groundings that would
+  represent it, likeliest first (`bound` for a cardinality; `rule`, `count`
+  or `set` for a collection). The requirement gets the
+  `dimension_unrepresented` gap.
+- `not_required`: no grounded claim is quantified this way, or a fresh
+  certificate proves the claim at code scope. Stale certificate receipts are
+  reported as `pendingReproofClaims`, as in the failure-side stage.
+- `waived`: every such claim has an approved waiver. When the quantifier
+  word ranges over nothing ("start without all network access"), the
+  grounding fact records why in `dimension_waiver` and who accepted it in
+  `dimension_waiver_approved_by`; `waivedClaims` lists them. A reason without
+  an approver keeps the claim in `claims`, and `kibi proof explain` reports
+  it as awaiting approval.
+
+`kb_semantic_advisor` marks the same clauses: each normative proposition
+with such a quantifier carries `dimension` with its `quantifier` and
+`rewrites`, so the grounding can be chosen before the fact is written.
 
 ### 6. Passing E2E tests
 

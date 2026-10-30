@@ -1,5 +1,5 @@
 ---
-title: The MCP server must require a claim key for every other fact kind that quotes claim text
+title: Fact kinds quoting claim text that MCP accepts without a claim key = 0
 status: active
 text_ref: REQ-mcp-conditional-input-validation
 tags:
@@ -9,10 +9,10 @@ tags:
   - provenance:req-mcp-conditional-input-validation
 fact_kind: property_value
 subject_key: kibi.mcp_input_validation
-property_key: grounding_fact_claim_key_required
+property_key: claim_text_fact_kinds_accepted_without_claim_key
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 claim_key: CLAIM-E4D4C67F8BF9FE7A
 claim_text: The MCP server must require a claim key for every other fact kind that quotes claim text
 origin:

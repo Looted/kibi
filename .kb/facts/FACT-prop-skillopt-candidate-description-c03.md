@@ -3,11 +3,11 @@ title: 'A replacement description must be one non-empty line of at most 1024 cha
 status: active
 fact_kind: property_value
 subject_key: kibi.skillopt.candidate_description
-property_key: description_single_line_bounded_policy_checked
-canonical_key: req.req_skillopt_description_candidates.description_single_line_bounded_policy_checked.eq.true
-operator: eq
-value_type: bool
-value_bool: true
+property_key: replacement_description_max_characters
+canonical_key: req.req_skillopt_description_candidates.replacement_description_max_characters.lte.1024
+operator: lte
+value_type: int
+value_int: 1024
 polarity: require
 claim_key: CLAIM-12A1BC1F98E83E97
 claim_text: A replacement description must be one non-empty line of at most 1024 characters without angle brackets and must follow the candidate content policy

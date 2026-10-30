@@ -3,10 +3,10 @@ title: 'Signoff views: decisions numbered with the recorded rule they change or 
 status: active
 fact_kind: property_value
 subject_key: kibi.signoff_views
-property_key: numbers_decisions
+property_key: decisions_unnumbered_or_unquoted
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 claim_key: CLAIM-B670D0ADBB0870D2
 claim_text: Kibi signoff with a questions file must number each decision and quote the recorded requirement it changes or conflicts with
 text_ref: REQ-kibi-signoff-views

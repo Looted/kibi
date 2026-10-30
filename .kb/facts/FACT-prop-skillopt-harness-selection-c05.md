@@ -3,11 +3,11 @@ title: Every supported harness must feed the same scorers, evidence replay and l
 status: active
 fact_kind: property_value
 subject_key: kibi.skillopt.harness_selection
-property_key: harnesses_share_scoring_and_scans
-canonical_key: req.req_skillopt_operator_selected_harness.harnesses_share_scoring_and_scans.eq.true
+property_key: supported_harnesses_bypassing_shared_scorers_replay_or_leak_scans
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
+canonical_key: kibi.skillopt.harness_selection:supported_harnesses_bypassing_shared_scorers_replay_or_leak_scans:eq:0
 polarity: require
 claim_key: CLAIM-F5CC69E60EB0C987
 claim_text: Every supported harness must feed the same scorers, evidence replay and leak scans

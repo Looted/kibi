@@ -1,14 +1,14 @@
 ---
-title: A user has opted out of telemetry and a Kibi command would still send its usage event
+title: A user has opted out of telemetry with DO_NOT_TRACK=1 and a Kibi command would still send its usage event
 status: active
-fact_kind: predicate
-predicate_name: conditional_behavior
-predicate_args:
-  - kibi_usage_telemetry
-  - opt_out_set
-  - send_anonymous_events_to_posthog
-polarity: assert
-canonical_key: conditional_behavior(kibi_usage_telemetry,opt_out_set,send_anonymous_events_to_posthog)
+fact_kind: property_value
+subject_key: kibi.usage_telemetry
+property_key: opt_out_switches_that_disable_telemetry
+operator: eq
+value_type: set
+value_set:
+  - 'KIBI_TELEMETRY=0'
+  - 'kibi telemetry disable'
 origin:
   kind: agent
   recorded_at: '2026-10-29T21:06:24.861Z'

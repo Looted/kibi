@@ -223,3 +223,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-69dc056ed180
+  - type: constrains
+    from: REQ-kibi-distribution-parity-matrix
+    to: FACT-kibi-distribution-parity-component
+    created_at: 2026-10-30T12:40:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fbe7f5a158b9

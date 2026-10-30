@@ -110,6 +110,19 @@ const REPAIR_PHASES = {
     validationRules: ["must-priority-coverage", "no-dangling-refs"],
     writePolicy: "sequential_upsert",
   },
+  dimension_grounding: {
+    order: 64,
+    objective:
+      "Ground each quantified claim (each, every, all, or a cardinality bound) on what varies: an integer count or bound, a set of members, a rule over a variable, or a state machine. If the quantifier ranges over nothing, record a dimension_waiver on the grounding fact for a person to approve.",
+    workflowSteps: [
+      "kb_model_requirement",
+      "kb_validate_upsert",
+      "kb_upsert",
+      "kb_check",
+    ],
+    validationRules: ["no-dangling-refs"],
+    writePolicy: "sequential_upsert",
+  },
   negative_scenarios: {
     order: 65,
     objective:
@@ -214,6 +227,7 @@ const GAP_PHASE: Readonly<Record<string, RepairPhase>> = {
   missing_scenario: "scenario_endpoints",
   infeasible_scenario: "scenario_endpoints",
   unknown_scenario_feasibility: "scenario_endpoints",
+  dimension_unrepresented: "dimension_grounding",
   happy_path_only: "negative_scenarios",
   missing_scenario_test: "scenario_tests",
   proof_snapshot_unavailable: "snapshot_runtime",
@@ -244,6 +258,7 @@ const GAP_STAGE: Readonly<Record<string, string>> = {
   missing_scenario: "scenarios",
   infeasible_scenario: "scenarios",
   unknown_scenario_feasibility: "scenarios",
+  dimension_unrepresented: "dimension",
   happy_path_only: "negative_path",
   missing_scenario_test: "scenario_tests",
   missing_passing_e2e: "passing_e2e",
@@ -266,6 +281,7 @@ const PROOF_STAGE_KEY: Readonly<Record<string, string>> = {
   scenarios: "scenarios",
   scenario_tests: "scenarioTests",
   negative_path: "negativePath",
+  dimension: "dimension",
   passing_e2e: "passingE2e",
   executable_symbols: "executableSymbols",
   production_symbols: "productionSymbols",

@@ -10,15 +10,12 @@ tags:
   - cli
   - startup
   - parity
-fact_kind: predicate
-predicate_namespace: kibi.requirements
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.cli.startup
-  - operation_loading
-  - lazy_with_catalog_parity
-canonical_key: logical_requirement_rule(kibi.cli.startup,operation_loading,lazy_with_catalog_parity)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.cli.startup
+property_key: registration_metadata_entries_differing_from_operation_catalog
+operator: eq
+value_type: int
+value_int: 0
 claim_key: CLAIM-86A9CDC403DEED58
 claim_text: CLI startup MUST lazily load selected command implementations while lightweight registration metadata remains exactly equivalent to the authoritative operation catalog
 claim_span_start: 654

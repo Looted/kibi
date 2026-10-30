@@ -199,7 +199,7 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-302e12051956
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-agent-core-edit-snippets
     to: FACT-PRED-edit-snippets-shared-builder
     created_at: 2026-10-04T02:42:12.411Z
@@ -234,7 +234,7 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7bebfb73d2b6
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-agent-core-edit-snippets
     to: FACT-PRED-edit-snippets-size-budget
     created_at: 2026-10-04T02:42:12.498Z
@@ -248,7 +248,7 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-25993d6cd9c1
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-agent-core-edit-snippets
     to: FACT-PRED-edit-snippets-once-per-session
     created_at: 2026-10-04T02:42:12.514Z
@@ -556,3 +556,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e3949edee086
+  - type: constrains
+    from: REQ-agent-core-edit-snippets
+    to: FACT-SUBJECT-kibi-host-edit-snippets
+    created_at: 2026-10-30T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf8319bd6836

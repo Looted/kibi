@@ -1,5 +1,5 @@
 ---
-title: Every host builds file knowledge snippets with the shared agent-core builder
+title: No host plugin builds file knowledge snippets outside the shared agent-core builder
 status: active
 tags:
   - lane:ontology
@@ -8,15 +8,12 @@ tags:
 claim_key: CLAIM-D31A297558A2DB4D
 claim_text: Every Kibi host plugin must build its file knowledge snippet with the shared kibi-agent-core snippet builder
 text_ref: .kb/requirements/REQ-agent-core-edit-snippets.md
-fact_kind: predicate
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.host.edit_snippets
-  - host_file_knowledge_snippet
-  - built_with_shared_agent_core_builder
-polarity: assert
-canonical_key: logical_requirement_rule(kibi.host.edit_snippets,host_file_knowledge_snippet,built_with_shared_agent_core_builder)
-predicate_namespace: kibi.requirements
+fact_kind: property_value
+subject_key: kibi.host.edit_snippets
+property_key: host_plugins_without_shared_snippet_builder
+operator: eq
+value_type: int
+value_int: 0
 origin:
   kind: agent
   recorded_at: '2026-10-04T02:41:53.968Z'

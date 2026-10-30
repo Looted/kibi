@@ -3,10 +3,14 @@ title: 'Evidence levels: one level per requirement, never stronger than its evid
 status: active
 fact_kind: property_value
 subject_key: kibi.evidence_levels
-property_key: reports_level_per_requirement
+property_key: evidence_levels_reported_per_requirement
 operator: eq
-value_type: bool
-value_bool: true
+value_type: set
+value_set:
+  - proved
+  - tested
+  - asserted
+  - unverified
 claim_key: CLAIM-6A120A441BC6AD42
 claim_text: Kibi coverage must report for each requirement an evidence level of proved, tested, asserted or unverified that is never stronger than the evidence behind it
 text_ref: REQ-kibi-evidence-levels

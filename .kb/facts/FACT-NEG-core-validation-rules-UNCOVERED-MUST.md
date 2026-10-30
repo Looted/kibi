@@ -1,15 +1,12 @@
 ---
 title: A must-priority requirement has no scenario and no test and the coverage rule would not enforce them
 status: active
-fact_kind: predicate
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.checks.core_rules
-  - must_priority_coverage_rule
-  - scenario_and_test_enforced
-predicate_namespace: kibi.requirements
-polarity: deny
-canonical_key: logical_requirement_rule(kibi.checks.core_rules,must_priority_coverage_rule,scenario_and_test_enforced)
+fact_kind: property_value
+subject_key: kibi.checks.core_rules
+property_key: must_priority_requirements_lacking_scenario_or_test_accepted
+operator: eq
+value_type: int
+value_int: 1
 origin:
   kind: agent
   recorded_at: '2026-10-29T21:10:53.585Z'

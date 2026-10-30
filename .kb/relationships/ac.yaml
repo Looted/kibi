@@ -412,3 +412,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-18a1360dd996
+  - type: implements
+    from: SYM-core-dimension-stage
+    to: REQ-kibi-dimension-gap
+    created_at: 2026-10-30T12:06:45.301Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b49c27dd234f
+  - type: covered_by
+    from: SYM-core-dimension-stage
+    to: TEST-kibi-dimension-gap
+    created_at: 2026-10-30T12:06:45.345Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17f7d7dd9be3

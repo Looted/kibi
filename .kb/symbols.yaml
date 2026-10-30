@@ -3206,6 +3206,8 @@ symbols:
         target: TEST-mcp-suggest-predicates
       - type: implements
         target: REQ-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-model-predicates-closed-vocabularies-exhaustive
   - id: SYM-canonicalSkillsDir
     title: canonicalSkillsDir
     sourceFile: scripts/sync-agent-skills.ts
@@ -12220,6 +12222,8 @@ symbols:
         target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-entity-origin-exhaustive
   - id: SYM-mutation-relationships-schema
     title: RELATIONSHIPS_SCHEMA
     status: active
@@ -30211,6 +30215,8 @@ symbols:
         target: REQ-cli-canonical-kb-lanes
       - type: implements
         target: REQ-cli-init-canonical
+      - type: covered_by
+        target: TEST-cli-migrate-entity-type-backfill-exhaustive
   - id: SYM-canonical-LEGACY_CONFIG_PATH_KEYS
     title: LEGACY_CONFIG_PATH_KEYS
     status: active
@@ -57943,6 +57949,10 @@ symbols:
         target: REQ-kibi-evidence-level-vocabulary
       - type: implements
         target: REQ-kibi-evidence-levels
+      - type: covered_by
+        target: TEST-kibi-evidence-levels-exhaustive
+      - type: covered_by
+        target: TEST-kibi-evidence-floors-exhaustive
   - id: SYM-cli-check-code-certificate
     title: checkCodeCertificate
     status: active
@@ -65833,3 +65843,67 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-search-hints-offer-requirements
+  - id: SYM-core-dimension-stage
+    title: dimension_stage
+    status: active
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T12:10:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-dimension-gap
+      - type: implements
+        target: REQ-kibi-dimension-gap
+  - id: SYM-core-claim-quantifier
+    title: claim_quantifier
+    status: active
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T12:10:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-dimension-gap
+      - type: implements
+        target: REQ-kibi-dimension-gap
+  - id: SYM-core-dimension-waiver
+    title: dimension_waiver
+    status: active
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T12:10:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-dimension-gap
+      - type: implements
+        target: REQ-kibi-dimension-gap
+  - id: SYM-cli-advisor-claim-dimension
+    title: claimDimension
+    status: active
+    sourceFile: packages/cli/src/operations/semantic-advisor/analyze-prose.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T12:10:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-dimension-gap
+      - type: implements
+        target: REQ-kibi-dimension-gap
+  - id: SYM-kibi-dimension-gap-verifier
+    title: Dimension gap verifier
+    status: active
+    sourceFile: packages/cli/tests/consumer/dimension-gap.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T12:10:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-dimension-gap

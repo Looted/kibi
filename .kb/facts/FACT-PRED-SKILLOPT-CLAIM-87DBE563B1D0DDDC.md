@@ -1,15 +1,12 @@
 ---
-title: 'SkillOpt evidence: exact_entity_query'
+title: 'SkillOpt evidence: exact entity query targets dropped for a repeated relationship type = 0'
 status: active
-fact_kind: predicate
-predicate_namespace: kibi.skillopt
-predicate_name: evaluation_evidence_rule
-predicate_args:
-  - exact_entity_query
-  - repeated_relationship_type
-  - preserve_all_targets
-canonical_key: evaluation_evidence_rule(exact_entity_query,repeated_relationship_type,preserve_all_targets)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.skillopt.logical_evidence
+property_key: exact_query_targets_dropped_for_repeated_relationship_type
+operator: eq
+value_type: int
+value_int: 0
 claim_key: CLAIM-87DBE563B1D0DDDC
 claim_text: Exact entity queries must preserve every target when a relationship type occurs more than once
 id: FACT-PRED-SKILLOPT-CLAIM-87DBE563B1D0DDDC

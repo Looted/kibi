@@ -181,3 +181,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-28a7c1993295
+  - type: requires_predicate
+    from: REQ-kibi-dimension-gap
+    to: FACT-PRED-kibi-dimension-gap-tested
+    created_at: 2026-10-30T12:06:39.982Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56da2613820e
+  - type: requires_predicate
+    from: REQ-kibi-dimension-gap
+    to: FACT-PRED-kibi-dimension-gap-waiver
+    created_at: 2026-10-30T12:06:40.025Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97fdd426f41d
+  - type: requires_predicate
+    from: REQ-kibi-dimension-gap
+    to: FACT-PRED-kibi-dimension-gap-advisor
+    created_at: 2026-10-30T12:06:40.058Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e92aee79ad51
+  - type: specified_by
+    from: REQ-kibi-dimension-gap
+    to: SCEN-kibi-dimension-gap
+    created_at: 2026-10-30T12:06:40.075Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b724d6b610e
+  - type: specified_by
+    from: REQ-kibi-dimension-gap
+    to: SCEN-NEG-kibi-dimension-gap-VERDICT-ONLY
+    created_at: 2026-10-30T12:06:40.097Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-745b534f3885

@@ -117,11 +117,11 @@ links:
     target: SCEN-kibi-logical-requirement-coverage
   - type: verified_by
     target: TEST-kibi-logical-requirement-coverage
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-LOGICAL-COVERAGE-ATOMIC-CLAUSE
   - type: requires_predicate
     target: FACT-LOGICAL-COVERAGE-POLARITY-CONFLICT
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-LOGICAL-COVERAGE-DEBT-DIAGNOSTIC
   - type: requires_predicate
     target: FACT-LOGICAL-COVERAGE-DEFAULT-RULE
@@ -135,7 +135,7 @@ links:
     target: FACT-LOGICAL-COVERAGE-MCP-PROVENANCE-PAIR
   - type: requires_predicate
     target: FACT-LOGICAL-COVERAGE-STAGED-MANIFEST
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-LOGICAL-COVERAGE-STAGED-PREDICATE-FIELDS
   - type: requires_predicate
     target: FACT-LOGICAL-COVERAGE-STAGED-TEST-METADATA

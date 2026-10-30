@@ -9,15 +9,12 @@ tags:
   - requirements
   - predicates
   - bindings
-fact_kind: predicate
-predicate_namespace: kibi.requirements
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.modeling.predicates
-  - unbound_ordered_argument
-  - no_applicable_plan
-canonical_key: logical_requirement_rule(kibi.modeling.predicates,unbound_ordered_argument,no_applicable_plan)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.modeling.predicates
+property_key: unbound_ordered_arguments_in_applicable_plan
+operator: eq
+value_type: int
+value_int: 0
 claim_key: CLAIM-5D43551AD833A708
 claim_text: It must not emit an applicable predicate plan until every ordered argument has an exact binding
 claim_span_start: 87

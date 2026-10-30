@@ -119,11 +119,11 @@ links:
     target: FACT-LEGACY-MIGRATION-OPT-IN
   - type: requires_predicate
     target: FACT-LEGACY-MIGRATION-READY-SCOPE
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-LEGACY-MIGRATION-SOURCE-BOUND
   - type: requires_predicate
     target: FACT-LEGACY-MIGRATION-PRESERVE-TEXT-REF
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-LEGACY-MIGRATION-ONE-DISPOSITION
   - type: requires_predicate
     target: FACT-LEGACY-MIGRATION-SCHEMA-PROVENANCE
@@ -131,7 +131,7 @@ links:
     target: FACT-LEGACY-MIGRATION-NO-INCOMPLETE-WRITE
   - type: requires_predicate
     target: FACT-LEGACY-MIGRATION-PAGINATION
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-LEGACY-MIGRATION-READ-ONLY
   - type: requires_predicate
     target: FACT-LEGACY-MIGRATION-PARITY

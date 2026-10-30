@@ -307,14 +307,14 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2439d4279201
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-kibi-truthful-consistency
     to: FACT-CONSISTENCY-NUMERIC-EXACT
     created_at: 2026-10-03T09:15:41.330Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5330ebf448ce
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-kibi-truthful-consistency
     to: FACT-CONSISTENCY-RULE-CONFLICT-THREE-VALUED
     created_at: 2026-10-03T09:15:41.375Z
@@ -433,3 +433,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-509654a082a4
+  - type: constrains
+    from: REQ-kibi-truthful-consistency
+    to: FACT-SUBJECT-kibi-checks-contradictions
+    created_at: 2026-10-30T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c65ca4a9cc2

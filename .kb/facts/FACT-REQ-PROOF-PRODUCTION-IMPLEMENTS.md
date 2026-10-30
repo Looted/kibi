@@ -1,6 +1,6 @@
 ---
 id: FACT-REQ-PROOF-PRODUCTION-IMPLEMENTS
-title: Proof-bearing production symbols implement the requirement
+title: No proof-bearing production symbol fails to implement the requirement
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
@@ -9,15 +9,12 @@ tags:
   - requirements
   - proof
   - symbols
-fact_kind: predicate
-predicate_namespace: kibi.requirements
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.proof.requirement
-  - ownership
-  - implements_requirement
-canonical_key: logical_requirement_rule(kibi.proof.requirement,ownership,implements_requirement)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.proof.requirement
+property_key: proof_bearing_production_symbols_not_implementing_requirement
+operator: eq
+value_type: int
+value_int: 0
 claim_key: CLAIM-C716C2DA63A93BDF
 claim_text: Every proof-bearing production symbol must implement the requirement
 type: fact

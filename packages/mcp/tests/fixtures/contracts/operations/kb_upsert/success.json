@@ -254,6 +254,16 @@
               "description": "Optional closed-world marker for strict fact interpretation.",
               "type": "boolean"
             },
+            "dimension_waiver": {
+              "description": "Fact-only. Why the quantifier word in claim_text ranges over nothing, so the claim needs no count, set or rule. Waives dimension_unrepresented once dimension_waiver_approved_by is set.",
+              "minLength": 1,
+              "type": "string"
+            },
+            "dimension_waiver_approved_by": {
+              "description": "Fact-only. The person who accepted dimension_waiver.",
+              "minLength": 1,
+              "type": "string"
+            },
             "examples": {
               "description": "Optional ground-term examples for a predicate schema.",
               "items": {

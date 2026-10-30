@@ -1,13 +1,13 @@
 ---
-title: Reports Conflicting Fields With Markers And Nonzero Exit = true
+title: Conflicting fields resolved without a report, markers and nonzero exit = 0
 status: active
 fact_kind: property_value
 subject_key: kibi.cli.kb_merge_driver
-property_key: reports_conflicting_fields_with_markers_and_nonzero_exit
+property_key: conflicting_fields_resolved_silently
 operator: eq
-value_type: bool
-value_bool: true
-canonical_key: packages-cli-src-commands-merge-driver-ts:kibi.cli.kb_merge_driver:reports_conflicting_fields_with_markers_and_nonzero_exit:eq:true
+value_type: int
+value_int: 0
+canonical_key: kibi.cli.kb_merge_driver:conflicting_fields_resolved_silently:eq:0
 claim_key: CLAIM-5726B98D50309CB5
 claim_text: Kibi merge-driver must report each field that both sides changed differently, leave conflict markers, and exit non-zero
 claim_span_start: 301

@@ -1,15 +1,12 @@
 ---
-title: The Prolog KB core implements a no-dangling-refs validation rule ensur
+title: The Prolog KB core no-dangling-refs rule accepts no relationship target missing from the KB
 status: active
-fact_kind: predicate
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.checks.core_rules
-  - no_dangling_refs_rule
-  - existing_relationship_targets
-predicate_namespace: kibi.requirements
-canonical_key: logical_requirement_rule(kibi.checks.core_rules,no_dangling_refs_rule,existing_relationship_targets)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.checks.core_rules
+property_key: dangling_relationship_targets_accepted
+operator: eq
+value_type: int
+value_int: 0
 claim_key: CLAIM-6189F8978EDF093D
 claim_text: The Prolog KB core implements a no-dangling-refs validation rule ensuring all relationship targets exist as entities in the KB
 tags:

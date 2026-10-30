@@ -342,3 +342,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7de1c309eef4
+  - type: assumes
+    from: SCEN-NEG-kibi-dimension-gap-VERDICT-ONLY
+    to: FACT-NEG-kibi-dimension-gap-VERDICT-ONLY
+    created_at: 2026-10-30T12:06:38.764Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-828371a86be4
+  - type: verified_by
+    from: SCEN-NEG-kibi-dimension-gap-VERDICT-ONLY
+    to: TEST-kibi-dimension-gap
+    created_at: 2026-10-30T12:06:38.818Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e23583389e72

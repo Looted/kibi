@@ -3,10 +3,17 @@ title: kibi migrate must add the folder-implied type to the front matter of ever
 status: active
 fact_kind: property_value
 subject_key: kibi.migration.entity_type
-property_key: adds_folder_implied_type
+property_key: entity_folders_backfilled_with_implied_type
 operator: eq
-value_type: bool
-value_bool: true
+value_type: set
+value_set:
+  - requirements
+  - scenarios
+  - tests
+  - facts
+  - adr
+  - flags
+  - events
 claim_key: CLAIM-7D2B678A106147C3
 claim_text: kibi migrate must add the folder-implied type to the front matter of every authored entity file that has no type field, at any schema version
 text_ref: REQ-cli-migrate-entity-type-backfill

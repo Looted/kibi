@@ -96,21 +96,23 @@ links:
     target: REQ-kibi-operation-interface-parity
   - type: specified_by
     target: SCEN-kibi-telemetry-remediation-evidence
+  - type: constrains
+    target: FACT-SUBJECT-KIBI-TELEMETRY-REMEDIATION
   - type: requires_predicate
     target: FACT-TELEM-CLI-LOGGING
   - type: requires_predicate
     target: FACT-TELEM-MCP-LOGGING
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-TELEM-SESSION
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-TELEM-ACTOR
   - type: requires_predicate
     target: FACT-TELEM-ADVISOR-CORRELATION
   - type: requires_predicate
     target: FACT-TELEM-PREFLIGHT-CORRELATION
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-TELEM-REPORT-CONTRACT
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-TELEM-EVENT-FIELDS
   - type: requires_predicate
     target: FACT-TELEM-ORDERING

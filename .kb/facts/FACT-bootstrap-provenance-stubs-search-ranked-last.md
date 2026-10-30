@@ -9,10 +9,10 @@ tags:
 text_ref: REQ-bootstrap-provenance-stubs
 fact_kind: property_value
 subject_key: bootstrap.provenance_stubs
-property_key: search_ranks_stubs_last
+property_key: provenance_stubs_ranked_before_non_stub_matches
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 claim_key: CLAIM-3F757D98EB87A085
 claim_text: Search ranking must sort a provenance stub after every match that is not a provenance stub
 origin:
@@ -23,4 +23,4 @@ type: fact
 ---
 Search ranking must sort a provenance stub after every match that is not a provenance stub.
 
-Recorded as a strict boolean semantic fact about `bootstrap.provenance_stubs` so REQ-bootstrap-provenance-stubs can be checked for contradictions.
+Recorded as a strict count fact about `bootstrap.provenance_stubs` so REQ-bootstrap-provenance-stubs can be checked for contradictions.

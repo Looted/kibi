@@ -48,6 +48,8 @@ semantic_inventory:
     status: modeled
     span: {start: 433, end: 570}
 links:
+  - type: constrains
+    target: FACT-kibi-ingestion-inventory-component
   - type: specified_by
     target: SCEN-kibi-proposition-complete-ingestion
   - type: requires_predicate
@@ -58,7 +60,7 @@ links:
     target: FACT-INGESTION-REJECTS-DUPLICATES
   - type: requires_predicate
     target: FACT-INGESTION-UNRESOLVED-NOT-CONSISTENT
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-INGESTION-ONE-GROUNDING
   - type: requires_predicate
     target: FACT-INGESTION-SYNC-MIGRATION

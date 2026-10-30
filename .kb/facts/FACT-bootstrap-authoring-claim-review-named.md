@@ -3,10 +3,10 @@ title: kb_plan_bootstrap must name each current requirement without a logical re
 status: active
 fact_kind: property_value
 subject_key: kibi.bootstrap.authoring_claim_review
-property_key: names_unmodeled_requirements
+property_key: unchecked_unmodeled_requirements_not_named
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 claim_key: CLAIM-24C26960E95A71A7
 claim_text: kb_plan_bootstrap must name each current requirement without a logical representation that an intent claim left for authoring was not checked against
 text_ref: REQ-bootstrap-authoring-claim-review

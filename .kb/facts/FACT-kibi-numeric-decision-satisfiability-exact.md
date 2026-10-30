@@ -3,10 +3,10 @@ title: 'Numeric decision: satisfiability is exact for real and integer variables
 status: active
 fact_kind: property_value
 subject_key: kibi.numeric_decision
-property_key: satisfiability_exact
+property_key: one_variable_satisfiability_misdecisions
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 claim_key: CLAIM-78AA4F24B55F43BC
 claim_text: Kibi must decide whether one-variable numeric comparisons are satisfiable exactly, for real and for integer variables
 text_ref: REQ-kibi-intervals-verified

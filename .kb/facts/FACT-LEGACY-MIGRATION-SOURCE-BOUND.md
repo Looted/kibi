@@ -9,15 +9,12 @@ tags:
   - requirements
   - migration
   - source-binding
-fact_kind: predicate
-predicate_namespace: kibi.requirements
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.migration.legacy_plan
-  - authored_markdown_normalization
-  - exact_sha256_and_utf8_spans
-canonical_key: logical_requirement_rule(kibi.migration.legacy_plan,authored_markdown_normalization,exact_sha256_and_utf8_spans)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.migration.legacy_plan
+property_key: preview_propositions_without_exact_source_binding
+operator: eq
+value_type: int
+value_int: 0
 claim_key: CLAIM-06AF50DD30B2936E
 claim_text: Each preview batch must reconstruct the normalized authored Markdown body and bind every proposition to an exact SHA-256 source hash and UTF-8 span
 claim_span_start: 233
@@ -29,4 +26,4 @@ origin:
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
-Ground representation of source-bound proposition inventories.
+Ground count of preview propositions that lack an exact source hash and UTF-8 span.

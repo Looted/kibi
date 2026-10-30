@@ -125,14 +125,14 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a8819d35b8b1
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-capability-plugin-configuration-v1
     to: FACT-PRED-4F2880B080A3
     created_at: 2026-09-22T19:13:55.539Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0a5360af8173
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-capability-plugin-configuration-v1
     to: FACT-PRED-61EC1F54D4EB
     created_at: 2026-09-22T19:13:55.544Z
@@ -370,3 +370,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-da56ffec3201
+  - type: constrains
+    from: REQ-capability-plugin-configuration-v1
+    to: FACT-SUBJECT-kibi-plugin-jev
+    created_at: 2026-10-30T12:40:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f60f471f6c5c

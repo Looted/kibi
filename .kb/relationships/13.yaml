@@ -349,3 +349,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-81ae5420f557
+  - type: verified_by
+    from: SCEN-kibi-dimension-gap
+    to: TEST-kibi-dimension-gap
+    created_at: 2026-10-30T12:06:37.441Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72ac629a7c7a

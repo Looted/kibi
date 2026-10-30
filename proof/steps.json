@@ -1883,6 +1883,18 @@
     ]
   },
   {
+    "test_id": "TEST-kibi-dimension-gap",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "300000",
+        "./packages/cli/tests/consumer/dimension-gap.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-kibi-search-answer-layer",
     "steps": [
       [

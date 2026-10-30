@@ -48,6 +48,20 @@ export interface SemanticProposition {
   readonly payload_hash?: string;
   readonly semantic_key?: string;
   readonly reason?: string;
+  /**
+   * Set when the clause quantifies over a collection (each, every, all) or
+   * bounds a cardinality (exactly, at least, at most, no more than). A
+   * boolean or ground-predicate grounding would state only the verdict, so
+   * the proof ladder reports dimension_unrepresented until the claim is
+   * grounded on one of `rewrites`.
+   */
+  readonly dimension?: SemanticPropositionDimension;
+}
+
+export interface SemanticPropositionDimension {
+  readonly quantifier: string;
+  /** Typed groundings that represent what varies, likeliest first. */
+  readonly rewrites: readonly ("bound" | "rule" | "count" | "set")[];
 }
 
 export interface SemanticInterpretationInput {

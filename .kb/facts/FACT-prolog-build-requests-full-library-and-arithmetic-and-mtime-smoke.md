@@ -1,5 +1,5 @@
 ---
-title: Requests Full Library And Arithmetic And Mtime Smoke = true
+title: The consumer smoke checks all 18 required libraries with version, arithmetic and timestamp checks
 status: active
 text_ref: scripts/swipl-spike.py
 tags:
@@ -11,11 +11,11 @@ tags:
   - fact:property_value
 fact_kind: property_value
 subject_key: kibi.prolog.build_pipeline_validation
-property_key: requests_full_library_and_arithmetic_and_mtime_smoke
-canonical_key: scripts-swipl-spike-py:kibi.prolog.build_pipeline_validation:requests_full_library_and_arithmetic_and_mtime_smoke:eq:true
+property_key: consumer_smoke_required_libraries_checked
+canonical_key: scripts-swipl-spike-py:kibi.prolog.build_pipeline_validation:consumer_smoke_required_libraries_checked:eq:18
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 18
 claim_key: CLAIM-58124B5D9E47F417
 claim_text: The SWI-Prolog consumer smoke must check the pinned version, LibBF arithmetic, subsecond file timestamps, and all 18 required libraries
 claim_span_start: 1511

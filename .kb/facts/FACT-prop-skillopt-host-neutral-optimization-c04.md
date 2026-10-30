@@ -3,11 +3,11 @@ title: Candidate adoption must stay blocked until every individual gate passes a
 status: active
 fact_kind: property_value
 subject_key: kibi.skillopt.host_neutral_optimization
-property_key: adoption_blocked_until_gates_and_exact_approval
-canonical_key: req.req_skillopt_host_neutral_optimization.adoption_blocked_until_gates_and_exact_approval.eq.true
+property_key: adoptions_without_passing_gates_and_exact_approval
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
+canonical_key: kibi.skillopt.host_neutral_optimization:adoptions_without_passing_gates_and_exact_approval:eq:0
 polarity: require
 claim_key: CLAIM-FEB7DB627F63E85C
 claim_text: Candidate adoption must stay blocked until every individual gate passes and a reviewer approves the exact candidate hashes

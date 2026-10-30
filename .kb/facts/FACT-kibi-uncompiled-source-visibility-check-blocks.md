@@ -1,12 +1,13 @@
 ---
-title: The kb_check operation must report a blocking violation that names each authored source kibi sync cannot extract and its extraction error
+title: kb_check leaves no unextractable authored source without a blocking violation
 status: active
 fact_kind: property_value
 subject_key: kibi.sync.uncompiled_sources
-property_key: kb_check_blocks_with_file_and_error
+property_key: unextractable_sources_without_blocking_violation
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
+canonical_key: kibi.sync.uncompiled_sources:unextractable_sources_without_blocking_violation:eq:0
 claim_key: CLAIM-D1ECF79429CD6E71
 claim_text: The kb_check operation must report a blocking violation that names each authored source kibi sync cannot extract and its extraction error
 text_ref: REQ-kibi-uncompiled-source-visibility

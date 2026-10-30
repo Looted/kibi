@@ -8,15 +8,12 @@ tags:
   - lane:ontology
   - requirements
   - logical-coverage
-fact_kind: predicate
-predicate_namespace: kibi.requirements
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.logic.coverage
-  - every_atomic_clause
-  - keyed_ground_fact
-canonical_key: logical_requirement_rule(kibi.logic.coverage,every_atomic_clause,keyed_ground_fact)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.logic.coverage
+property_key: atomic_clauses_without_keyed_ground_fact
+operator: eq
+value_type: int
+value_int: 0
 claim_key: CLAIM-B7EDA6002F1B38E1
 claim_text: Every atomic normative clause in a requirement must have a stable claim key and a linked ground property or predicate fact
 type: fact

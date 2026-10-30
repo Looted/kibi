@@ -101,6 +101,8 @@ export type RequirementProofExplainView = {
   readonly scenarios: readonly { id: string; tests: readonly string[] }[];
   /** Whether a scenario exercises the requirement's failure side. */
   readonly negativePath?: NegativePathExplain;
+  /** Quantified claims grounded only on booleans or ground predicates. */
+  readonly dimension?: DimensionExplain;
   readonly tests: readonly ProofExplainTestBlock[];
   readonly productionSymbols: readonly ProofExplainSymbolBlock[];
   readonly structuralSymbols: readonly ProofExplainSymbolBlock[];
@@ -117,6 +119,23 @@ export type NegativePathExplain = {
   }[];
   /** An approved waiver carries approvedBy; a reason alone awaits approval. */
   readonly waiver?: { readonly reason: string; readonly approvedBy?: string };
+};
+
+export type DimensionClaimExplain = {
+  readonly claimKey: string;
+  readonly claimText: string;
+  readonly quantifier: string;
+  readonly factIds: readonly string[];
+  /** Typed groundings that would represent the quantifier, likeliest first. */
+  readonly rewrites: readonly string[];
+  /** An approved waiver carries approvedBy; a reason alone awaits approval. */
+  readonly waiver?: { readonly reason: string; readonly approvedBy?: string };
+};
+
+export type DimensionExplain = {
+  readonly status: string;
+  readonly claims: readonly DimensionClaimExplain[];
+  readonly waivedClaims: readonly DimensionClaimExplain[];
 };
 
 export type SymbolProofExplainView = {
@@ -290,6 +309,7 @@ export function projectRequirementExplain(
     ...claimFields(proof),
     scenarios,
     ...negativePathField(stages.negativePath),
+    ...dimensionField(stages.dimension),
     tests,
     productionSymbols: explanations.filter(
       (item) => !structuralIds.has(item.symbolId),
@@ -314,20 +334,85 @@ function negativePathField(stage: unknown): { negativePath?: NegativePathExplain
         };
       })
     : [];
-  const waiver = asRecord(record.waiver);
-  const reason = asString(waiver.reason);
-  const approvedBy = asString(waiver.approvedBy);
   return {
     negativePath: {
       status: asString(record.status),
       negativeScenarios: asStringArray(record.negativeScenarios),
       claims: asStringArray(record.claims),
       suggestedNegatives: suggestions,
-      ...(reason === ""
-        ? {}
-        : { waiver: { reason, ...(approvedBy === "" ? {} : { approvedBy }) } }),
+      ...waiverField(record.waiver),
     },
   };
+}
+
+function waiverField(raw: unknown): {
+  waiver?: { reason: string; approvedBy?: string };
+} {
+  const waiver = asRecord(raw);
+  const reason = asString(waiver.reason);
+  const approvedBy = asString(waiver.approvedBy);
+  return reason === ""
+    ? {}
+    : { waiver: { reason, ...(approvedBy === "" ? {} : { approvedBy }) } };
+}
+
+// implements REQ-kibi-dimension-gap
+function dimensionField(stage: unknown): { dimension?: DimensionExplain } {
+  if (stage === undefined) return {};
+  const record = asRecord(stage);
+  const claims = (raw: unknown): DimensionClaimExplain[] =>
+    Array.isArray(raw)
+      ? raw.map((item) => {
+          const entry = asRecord(item);
+          return {
+            claimKey: asString(entry.claimKey),
+            claimText: asString(entry.claimText),
+            quantifier: asString(entry.quantifier),
+            factIds: asStringArray(entry.factIds),
+            rewrites: asStringArray(entry.rewrites),
+            ...waiverField(entry.waiver),
+          };
+        })
+      : [];
+  return {
+    dimension: {
+      status: asString(record.status),
+      claims: claims(record.claims),
+      waivedClaims: claims(record.waivedClaims),
+    },
+  };
+}
+
+const DIMENSION_REWRITES: Readonly<Record<string, string>> = {
+  bound: "an integer property with the bound (lte, gte or eq)",
+  rule: "a rule over a variable (every X with P must Q)",
+  count: "an integer count of what varies",
+  set: "a set fact over the members",
+};
+
+function renderDimension(view: RequirementProofExplainView): string[] {
+  const dimension = view.dimension;
+  if (dimension === undefined || dimension.status === "not_required") return [];
+  const lines = ["", `Quantified claims: ${dimension.status}`];
+  for (const claim of dimension.claims) {
+    lines.push(
+      `  ${claim.claimKey} (${claim.factIds.join(", ")}): "${claim.quantifier.replaceAll("_", " ")}" is grounded on a boolean: ${claim.claimText}`,
+    );
+    const rewrites = claim.rewrites
+      .map((rewrite) => DIMENSION_REWRITES[rewrite] ?? rewrite)
+      .join("; or ");
+    if (rewrites !== "") lines.push(`    ground it on ${rewrites}`);
+    if (claim.waiver !== undefined)
+      lines.push(
+        `    waiver awaiting approval (set dimension_waiver_approved_by): ${claim.waiver.reason}`,
+      );
+  }
+  for (const claim of dimension.waivedClaims) {
+    lines.push(
+      `  ${claim.claimKey} waived by ${claim.waiver?.approvedBy ?? ""}: ${claim.waiver?.reason ?? ""}`,
+    );
+  }
+  return lines;
 }
 
 function renderNegativePath(view: RequirementProofExplainView): string[] {
@@ -481,6 +566,7 @@ function renderRequirementExplain(view: RequirementProofExplainView): string {
     );
   }
   lines.push(...renderNegativePath(view));
+  lines.push(...renderDimension(view));
   lines.push("");
   for (const test of view.tests) {
     lines.push(`TEST ${test.testId}`);

@@ -3,10 +3,10 @@ title: Both sides of a merge change the same manifest field differently and the 
 status: active
 fact_kind: property_value
 subject_key: kibi.cli.kb_merge_driver
-property_key: reports_conflicting_fields_with_markers_and_nonzero_exit
+property_key: conflicting_fields_resolved_silently
 operator: eq
-value_type: bool
-value_bool: false
+value_type: int
+value_int: 1
 origin:
   kind: agent
   recorded_at: '2026-10-29T20:58:55.822Z'

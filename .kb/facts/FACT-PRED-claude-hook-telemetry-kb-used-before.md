@@ -1,19 +1,16 @@
 ---
-title: 'Predicate: conditional_behavior(hook_usage_record,read_edit_search_or_kibi_call,record_kb_used_before)'
+title: Read, edit, search or Kibi call records without the prior Kibi use flag = 0
 status: active
-fact_kind: predicate
-predicate_name: conditional_behavior
-predicate_args:
-  - hook_usage_record
-  - read_edit_search_or_kibi_call
-  - record_kb_used_before
-canonical_key: conditional_behavior(hook_usage_record,read_edit_search_or_kibi_call,record_kb_used_before)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.telemetry.hook_usage_records
+property_key: read_edit_search_or_kibi_records_without_kb_used_before
+operator: eq
+value_type: int
+value_int: 0
 claim_key: CLAIM-80E1ED04FE7E1D64
 claim_text: Every hook usage record for a read, edit, search, or Kibi call must record whether the session had used Kibi before that call
 tags:
   - lane:ontology
-  - predicate:conditional-behavior
   - telemetry
   - claude
 id: FACT-PRED-claude-hook-telemetry-kb-used-before

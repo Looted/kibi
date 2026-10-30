@@ -9,15 +9,12 @@ tags:
   - lane:ontology
   - telemetry
   - validation
-fact_kind: predicate
-predicate_namespace: kibi.requirements
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.telemetry.acceptance
-  - match_canonical_payload_and_recent_successful_preflight
-  - eligible_upsert
-canonical_key: logical_requirement_rule(kibi.telemetry.acceptance,match_canonical_payload_and_recent_successful_preflight,eligible_upsert)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.telemetry.acceptance
+property_key: correlated_preflight_age_before_upsert_minutes
+operator: lte
+value_type: int
+value_int: 60
 claim_key: CLAIM-A632F920AC680BA9
 claim_text: Validation correlation must match the canonical payload and a successful preflight no more than one hour before the upsert
 claim_span_start: 534

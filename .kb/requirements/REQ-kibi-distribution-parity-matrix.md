@@ -96,7 +96,7 @@ links:
     target: REQ-kibi-conservative-requirement-proof
   - type: specified_by
     target: SCEN-kibi-distribution-parity-matrix
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-PARITY-RUNTIME-SET
   - type: requires_predicate
     target: FACT-PARITY-FIXTURE-SET
@@ -104,13 +104,13 @@ links:
     target: FACT-PARITY-PROVENANCE
   - type: requires_predicate
     target: FACT-PARITY-NORMALIZATION
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-PARITY-CAPABILITY-STATE
   - type: requires_predicate
     target: FACT-PARITY-UNSUPPORTED
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-PARITY-SOURCE-PACKED
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-PARITY-ACTION
   - type: requires_predicate
     target: FACT-PARITY-GATE

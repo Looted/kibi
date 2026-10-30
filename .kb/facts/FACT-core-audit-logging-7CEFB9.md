@@ -1,15 +1,15 @@
 ---
-title: Each audit log entry includes a timestamp, the operation type, and the
+title: Each audit log entry includes a timestamp, the operation type and the affected entity data
 status: active
-fact_kind: predicate
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.audit.log
-  - entry_fields
-  - timestamp_operation_affected_data
-predicate_namespace: kibi.requirements
-canonical_key: logical_requirement_rule(kibi.audit.log,entry_fields,timestamp_operation_affected_data)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.audit.log
+property_key: audit_entry_fields
+operator: includes
+value_type: set
+value_set:
+  - timestamp
+  - operation_type
+  - affected_entity_data
 claim_key: CLAIM-33C75F0D3C7CEFB9
 claim_text: Each audit log entry includes a timestamp, the operation type, and the affected entity data
 tags:

@@ -1,5 +1,5 @@
 ---
-title: Rationale ADRs in a search answer carry their source and a decision excerpt
+title: Rationale ADRs in a search answer without their source and decision excerpt = 0
 status: active
 tags:
   - lane:ontology
@@ -9,15 +9,12 @@ tags:
 claim_key: CLAIM-F0C56A36DC78EF80
 claim_text: Each rationale ADR in the search answer layer must carry its source path and an excerpt of its decision
 text_ref: .kb/requirements/REQ-kibi-search-answer-layer-v2.md
-fact_kind: predicate
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.discovery.search
-  - rationale_adr_in_answer
-  - source_path_and_decision_excerpt
-polarity: assert
-canonical_key: logical_requirement_rule(kibi.discovery.search,rationale_adr_in_answer,source_path_and_decision_excerpt)
-predicate_namespace: kibi.requirements
+fact_kind: property_value
+subject_key: kibi.discovery.search
+property_key: rationale_adrs_without_source_or_decision_excerpt
+operator: eq
+value_type: int
+value_int: 0
 origin:
   kind: agent
   recorded_at: '2026-10-04T02:35:02.165Z'

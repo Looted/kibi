@@ -3,10 +3,10 @@ title: Bootstrap planning must name each planned claim as a dotted component and
 status: active
 fact_kind: property_value
 subject_key: kibi.bootstrap.plan
-property_key: subject_key_component_aspect_generated
+property_key: planned_claims_without_component_aspect_subject_key
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 claim_key: CLAIM-100A008EF1D0B501
 claim_text: Bootstrap planning must name each planned claim as a dotted component and aspect pair
 text_ref: REQ-bootstrap-subject-key-shape
@@ -23,4 +23,4 @@ type: fact
 ---
 Bootstrap planning must name each planned claim as a dotted component and aspect pair.
 
-Recorded as a strict boolean property of `kibi.bootstrap.plan` so REQ-bootstrap-subject-key-shape can be checked for contradictions.
+Recorded as a strict count of planned claims without a component and aspect subject key on `kibi.bootstrap.plan` so REQ-bootstrap-subject-key-shape can be checked for contradictions.

@@ -91,7 +91,7 @@ links:
     target: FACT-PRED-F77549FC997F
   - type: requires_predicate
     target: FACT-PRED-BFDEDAFC1AD7
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-PRED-8F2A30505648
   - type: requires_predicate
     target: FACT-PRED-6D2DA8F7F701

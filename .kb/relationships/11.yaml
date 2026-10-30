@@ -482,3 +482,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8884d9a112f6
+  - type: implements
+    from: SYM-core-claim-quantifier
+    to: REQ-kibi-dimension-gap
+    created_at: 2026-10-30T12:06:50.250Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7efa470eb96
+  - type: covered_by
+    from: SYM-core-claim-quantifier
+    to: TEST-kibi-dimension-gap
+    created_at: 2026-10-30T12:06:50.283Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cfb60428984f

@@ -9,10 +9,10 @@ tags:
   - provenance:req-bootstrap-apply-long-running
 fact_kind: property_value
 subject_key: kibi.bootstrap_apply
-property_key: progress_notifications_sent
+property_key: progress_reports_not_sent_as_notifications_with_token
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 claim_key: CLAIM-20889CFB64AD837A
 claim_text: The MCP server must send each progress report as a progress notification when the request carries a progress token
 origin:
