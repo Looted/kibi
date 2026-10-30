@@ -465,3 +465,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-56e4d42004a1
+  - type: assumes
+    from: SCEN-CASE-skillopt-description-candidates-changed-frontmatter-field
+    to: FACT-CASE-skillopt-description-candidates-changed-frontmatter-field
+    created_at: 2026-10-30T15:00:50.366Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77e1023ba812
+  - type: verified_by
+    from: SCEN-CASE-skillopt-description-candidates-changed-frontmatter-field
+    to: TEST-e2e-skillopt-description-candidates
+    created_at: 2026-10-30T15:00:50.498Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53db84cb375a

@@ -339,3 +339,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f87ef3a14b45
+  - type: assumes
+    from: SCEN-CASE-kibi-dependency-ordered-repair-plan-two-ready-batches
+    to: FACT-CASE-kibi-dependency-ordered-repair-plan-two-ready-batches
+    created_at: 2026-10-30T14:59:24.663Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d4ea5abb28b
+  - type: verified_by
+    from: SCEN-CASE-kibi-dependency-ordered-repair-plan-two-ready-batches
+    to: TEST-kibi-dependency-ordered-repair-plan
+    created_at: 2026-10-30T14:59:24.727Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad6930f837a4

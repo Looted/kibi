@@ -328,3 +328,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b34f50a203f7
+  - type: assumes
+    from: SCEN-CASE-kibi-search-gold-set-gate-gold-question-skipped
+    to: FACT-CASE-kibi-search-gold-set-gate-gold-question-skipped
+    created_at: 2026-10-30T15:00:21.735Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec66268d1065
+  - type: verified_by
+    from: SCEN-CASE-kibi-search-gold-set-gate-gold-question-skipped
+    to: TEST-kibi-search-gold-set-gate-cli
+    created_at: 2026-10-30T15:00:21.814Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04569f0e4eeb

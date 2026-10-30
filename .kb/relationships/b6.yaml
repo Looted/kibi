@@ -370,3 +370,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c71daeece87b
+  - type: specified_by
+    from: REQ-kibi-source-proof-kinds
+    to: SCEN-CASE-kibi-source-proof-kinds-bypassed-waypoint
+    created_at: 2026-10-30T15:01:47.082Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72b43088f4f3

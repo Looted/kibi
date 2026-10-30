@@ -454,3 +454,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4a68cfbd6e98
+  - type: assumes
+    from: SCEN-CASE-kibi-dependency-ordered-repair-plan-requirement-without-plan
+    to: FACT-CASE-kibi-dependency-ordered-repair-plan-requirement-without-plan
+    created_at: 2026-10-30T14:59:48.864Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4e540cec3d0
+  - type: verified_by
+    from: SCEN-CASE-kibi-dependency-ordered-repair-plan-requirement-without-plan
+    to: TEST-kibi-dependency-ordered-repair-plan
+    created_at: 2026-10-30T14:59:49.060Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc2d78ca6fc0

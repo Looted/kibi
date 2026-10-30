@@ -356,3 +356,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-39b2f3b5057a
+  - type: assumes
+    from: SCEN-CASE-kibi-logical-requirement-coverage-staged-predicate-fields
+    to: FACT-CASE-kibi-logical-requirement-coverage-staged-predicate-fields
+    created_at: 2026-10-30T15:01:21.030Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8b94ebf0b64
+  - type: verified_by
+    from: SCEN-CASE-kibi-logical-requirement-coverage-staged-predicate-fields
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-10-30T15:01:21.106Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7485c92acd8
