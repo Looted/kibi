@@ -482,3 +482,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-490527c8a78e
+  - type: specified_by
+    from: REQ-kb-entity-body-context
+    to: SCEN-CASE-kb-entity-body-context-MIGRATION-BODY-BYTES
+    created_at: 2026-10-30T15:11:51.361Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-adc9e097a794

@@ -454,3 +454,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-447756b3ae34
+  - type: assumes
+    from: SCEN-NEG-kibi-kb-certificates-tampered-certificate
+    to: FACT-CASE-kibi-kb-certificates-UNCHECKED-CERTIFICATE
+    created_at: 2026-10-30T15:12:17.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-230183b69a3f

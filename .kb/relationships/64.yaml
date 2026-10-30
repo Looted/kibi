@@ -251,3 +251,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-006c02dc8fe5
+  - type: assumes
+    from: SCEN-CASE-native-cli-suite-diagnostics-OVER-TASK-LIMIT
+    to: FACT-CASE-native-cli-suite-diagnostics-OVER-TASK-LIMIT
+    created_at: 2026-10-30T15:12:18.233Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cfac51d31c5e
+  - type: verified_by
+    from: SCEN-CASE-native-cli-suite-diagnostics-OVER-TASK-LIMIT
+    to: TEST-native-cli-suite-diagnostics
+    created_at: 2026-10-30T15:12:18.286Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7a027b06d1d
