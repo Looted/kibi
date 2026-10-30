@@ -255,6 +255,88 @@ describe("read-only legacy requirement migration plans", () => {
     );
   });
 
+  const MIXED_PROSE =
+    "Drafts must be retained for 7 days. The system should be fast where appropriate. Exports must be signed by the release key. For example, operators may inspect a sample.";
+  const LANE_BY_DISPOSITION: Readonly<Record<string, string>> = {
+    strict_property_candidate: "strict_property",
+    predicate_candidate: "predicate",
+    rule_candidate: "rule",
+    unresolved_ambiguity: "unresolved",
+    unresolved_ontology_gap: "unresolved",
+    nonlogical: "nonlogical",
+  };
+
+  async function mixedProsePlan() {
+    const plan = repairPlan(["REQ-LEGACY-MIXED"]);
+    return buildLegacyMigrationPlan(
+      plan,
+      { migrationPredicateMinScore: 0 },
+      "1".repeat(64),
+      {
+        requirements: [
+          {
+            id: "REQ-LEGACY-MIXED",
+            title: "Mixed legacy prose",
+            status: "open",
+            source: "documentation/requirements/REQ-LEGACY-MIXED.md",
+          },
+        ],
+        projectPredicateSchemas: [projectSchema],
+        readSource: async () => MIXED_PROSE,
+      },
+    );
+  }
+
+  test("leaves no assertive sentence of the authored prose without a disposition", async () => {
+    const result = await mixedProsePlan();
+    const propositions = result.batches[0]?.propositions ?? [];
+    const sentences = MIXED_PROSE.split(/(?<=\.)\s+/).map((sentence) =>
+      sentence.replace(/\.$/, ""),
+    );
+
+    // Every sentence of the source is a proposition bound to its exact span.
+    expect(propositions.map((proposition) => proposition.claimText)).toEqual(
+      sentences,
+    );
+    for (const proposition of propositions) {
+      expect(
+        MIXED_PROSE.slice(proposition.span.start, proposition.span.end),
+      ).toBe(proposition.claimText);
+      expect(Object.keys(LANE_BY_DISPOSITION)).toContain(
+        proposition.disposition,
+      );
+    }
+    const assertive = propositions.filter(
+      (proposition) => proposition.disposition !== "nonlogical",
+    );
+    expect(assertive.length).toBe(3);
+    expect(result.summary.assertivePropositionCount).toBe(assertive.length);
+    expect(result.summary.propositionCount).toBe(propositions.length);
+  });
+
+  test("never gives one proposition two dispositions", async () => {
+    const result = await mixedProsePlan();
+    const propositions = result.batches[0]?.propositions ?? [];
+    expect(propositions.length).toBeGreaterThan(0);
+
+    const claimKeys = propositions.map((proposition) => proposition.claimKey);
+    expect(new Set(claimKeys).size).toBe(claimKeys.length);
+    const spans = propositions.map(
+      (proposition) => `${proposition.span.start}:${proposition.span.end}`,
+    );
+    expect(new Set(spans).size).toBe(spans.length);
+    for (const proposition of propositions) {
+      expect(typeof proposition.disposition).toBe("string");
+      expect(proposition.recommendedLane).toBe(
+        LANE_BY_DISPOSITION[proposition.disposition],
+      );
+    }
+    const unresolved = propositions.filter((proposition) =>
+      proposition.disposition.startsWith("unresolved_"),
+    );
+    expect(result.summary.unresolvedPropositionCount).toBe(unresolved.length);
+  });
+
   test("fails closed for partial repair scope and missing source", async () => {
     const full = repairPlan(["REQ-MISSING-SOURCE"]);
     const partial = { ...full, scope: { ...full.scope, complete: false } };
