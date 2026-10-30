@@ -6,6 +6,10 @@ import path from "node:path";
 
 import { captureReminder } from "kibi-agent-core/decision-guard";
 import { MAX_SNIPPET_CHARS } from "kibi-agent-core/snippets";
+import {
+  hashTelemetryId,
+  workspaceSessionHash,
+} from "kibi-agent-core/usage-telemetry";
 import { type HookResult, runHook } from "../src/hook-runner";
 import { loadHookState } from "../src/hook-state";
 import { impactCheckReminder } from "../src/messages";
@@ -964,6 +968,42 @@ describe("Codex opt-in hook telemetry", () => {
     tempRoots.push(pluginData);
     await post(cwd, pluginData, "apply_patch", { command: CHECKOUT_PATCH }, {});
     expect(usageRows(cwd)).toEqual([]);
+  });
+
+  // implements REQ-kibi-anonymous-usage-telemetry
+  test("sends an anonymous kibi_hook and remembers the session for the workspace", async () => {
+    const cwd = linkedWorkspace();
+    const pluginData = createTempRoot("kibi-codex-data-");
+    const telemetryDir = createTempRoot("kibi-codex-telemetry-");
+    tempRoots.push(pluginData, telemetryDir);
+    const env = { KIBI_TELEMETRY: "1", KIBI_TELEMETRY_DIR: telemetryDir };
+
+    await post(
+      cwd,
+      pluginData,
+      "apply_patch",
+      { command: CHECKOUT_PATCH },
+      env,
+    );
+
+    expect(usageRows(cwd)).toEqual([]);
+    const [queued] = fs
+      .readFileSync(path.join(telemetryDir, "telemetry-queue.jsonl"), "utf8")
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line));
+    expect(queued).toMatchObject({
+      event: "kibi_hook",
+      properties: {
+        package: "kibi-codex",
+        host: "codex",
+        hook_action: "edited",
+        session: hashTelemetryId("codex-session-1"),
+      },
+    });
+    expect(workspaceSessionHash(cwd, env)).toBe(
+      hashTelemetryId("codex-session-1"),
+    );
   });
 });
 

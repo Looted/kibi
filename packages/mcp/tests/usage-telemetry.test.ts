@@ -62,6 +62,58 @@ describe("MCP anonymous usage telemetry", () => {
     expect(text).not.toContain("/home/me/private");
   });
 
+  test("names a returned failure by its error code and the host by its client name", () => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-telem-"));
+    temporaryRoots.push(directory);
+    for (const name of [
+      "KIBI_HOST",
+      "KIBI_MCP_HOST",
+      "CLAUDECODE",
+      "CURSOR_AGENT",
+      "CODEX_SANDBOX",
+      "CODEX_THREAD_ID",
+      "GEMINI_CLI",
+      "OPENCODE",
+      "AI_AGENT",
+    ]) {
+      Reflect.deleteProperty(process.env, name);
+    }
+    process.env.KIBI_TELEMETRY = "1";
+    process.env.KIBI_TELEMETRY_DIR = directory;
+
+    recordMcpToolTelemetry({
+      operation: "kb_validate_upsert",
+      startedAt: new Date(),
+      status: "error",
+      clientName: "claude-code",
+      result: {
+        status: "error",
+        error: { code: "UPSERT_DRY_RUN_INVALID", message: "REQ-secret" },
+      },
+    });
+    recordMcpToolTelemetry({
+      operation: "kb_status",
+      startedAt: new Date(),
+      status: "success",
+      result: { status: "success" },
+    });
+
+    const text = fs.readFileSync(
+      path.join(directory, "telemetry-queue.jsonl"),
+      "utf8",
+    );
+    const [failed, passed] = text
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line).properties);
+    expect(failed).toMatchObject({
+      host: "claude-code",
+      error_category: "upsert_dry_run_invalid",
+    });
+    expect(passed).toMatchObject({ host: "unknown", error_category: null });
+    expect(text).not.toContain("REQ-secret");
+  });
+
   test("queues nothing when telemetry is off", () => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-telem-"));
     temporaryRoots.push(directory);

@@ -521,6 +521,8 @@ export function addTool<TProlog>(
           operation: routedOperationName(name, businessArgs),
           startedAt,
           status: envelope.status === "error" ? "error" : "success",
+          result: envelope,
+          clientName: clientName(server),
         });
 
         // Log usage in diagnostic mode
@@ -576,6 +578,7 @@ export function addTool<TProlog>(
           startedAt,
           status: "error",
           error,
+          clientName: clientName(server),
         });
 
         // Log error in diagnostic mode

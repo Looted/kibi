@@ -1913,63 +1913,21 @@ import path9 from "node:path";
 import { fileURLToPath } from "node:url";
 
 // ../agent-core/dist/hook-usage-log.js
-import { randomUUID as randomUUID2 } from "node:crypto";
-import fs7 from "node:fs";
-import path7 from "node:path";
-function hookTelemetryEnabled(env = process.env) {
-  const value = env.KIBI_DIAGNOSTIC_MODE?.trim().toLowerCase();
-  return value === "1" || value === "true";
-}
-function appendHookUsage(row, env = process.env) {
-  if (!hookTelemetryEnabled(env) || row.trace.action === undefined)
-    return;
-  const finishedAt = new Date;
-  const { trace } = row;
-  const record = {
-    timestamp: finishedAt.toISOString(),
-    request_id: `hook-${randomUUID2()}`,
-    tool: `hook_${row.event}`,
-    interface: "hook",
-    host: row.host,
-    package_version: row.packageVersion ?? null,
-    workspace_root: row.workspaceRoot,
-    session_id: row.sessionId ?? null,
-    hook_event: row.event,
-    host_tool: row.hostTool ?? null,
-    hook_action: trace.action,
-    path: trace.path ?? null,
-    path_kind: trace.pathKind ?? null,
-    requirement_ids: trace.requirementIds ?? [],
-    kb_operation: trace.kbOperation ?? null,
-    kb_used_before: trace.kbUsedBefore ?? null,
-    status: "success",
-    duration_ms: finishedAt.getTime() - row.startedAt.getTime()
-  };
-  try {
-    const logPath = path7.join(row.workspaceRoot, ".kb", "usage.log");
-    fs7.mkdirSync(path7.dirname(logPath), { recursive: true });
-    fs7.appendFileSync(logPath, `${JSON.stringify(record)}
-`, "utf8");
-  } catch {}
-}
-function readPackageVersion(packageJsonPath) {
-  try {
-    const parsed = JSON.parse(fs7.readFileSync(packageJsonPath, "utf8"));
-    if (typeof parsed === "object" && parsed !== null && "version" in parsed && typeof parsed.version === "string") {
-      return parsed.version;
-    }
-  } catch {}
-  return null;
-}
+import { randomUUID as randomUUID3 } from "node:crypto";
+import fs8 from "node:fs";
+import path8 from "node:path";
 
 // ../agent-core/dist/usage-telemetry.js
-import { createHash as createHash4, randomUUID as randomUUID3 } from "node:crypto";
-import fs8 from "node:fs";
+import { createHash as createHash4, randomUUID as randomUUID2 } from "node:crypto";
+import fs7 from "node:fs";
 import os from "node:os";
-import path8 from "node:path";
+import path7 from "node:path";
 var DEFAULT_TELEMETRY_KEY = "phc_A5z8jRhD528abGJiTtPfgu4d4hpbEbfiJr9iUGn9TMsY";
 var DEFAULT_TELEMETRY_HOST = "https://eu.i.posthog.com";
 var QUEUE_FILE = "telemetry-queue.jsonl";
+var SESSIONS_FILE = "telemetry-sessions.json";
+var SESSION_MARKER_MAX_AGE_MS = 30 * 60 * 1000;
+var MAX_SESSION_MARKERS = 200;
 var CONFIG_FILE = "telemetry.json";
 var SENDING_SUFFIX = ".sending";
 var FLUSH_BATCH_EVENTS = 20;
@@ -2031,19 +1989,72 @@ function automationName(env, keys) {
   }
   return;
 }
+var HOST_ENV_KEYS = [
+  ["CLAUDECODE=1", "claude-code"],
+  ["CURSOR_AGENT=1", "cursor"],
+  ["CODEX_SANDBOX", "codex"],
+  ["CODEX_THREAD_ID", "codex"],
+  ["GEMINI_CLI=1", "gemini-cli"],
+  ["OPENCODE=1", "opencode"]
+];
+var SESSION_ENV_KEYS = [
+  "KIBI_SESSION_ID",
+  "CLAUDE_CODE_SESSION_ID",
+  "CODEX_THREAD_ID"
+];
+function hostKey(name) {
+  return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+function detectTelemetryHost(env = process.env) {
+  const explicit = env.KIBI_HOST?.trim() || env.KIBI_MCP_HOST?.trim();
+  if (explicit)
+    return hostKey(explicit) || undefined;
+  for (const [key, host] of HOST_ENV_KEYS) {
+    if (automationName(env, [key]))
+      return host;
+  }
+  const agent = env.AI_AGENT?.trim().split("_")[0];
+  return agent ? hostKey(agent) || undefined : undefined;
+}
+function detectTelemetrySession(env = process.env) {
+  for (const key of SESSION_ENV_KEYS) {
+    const value = env[key]?.trim();
+    if (value)
+      return value;
+  }
+  return;
+}
+function remoteEnvironment(env) {
+  return flagValue(env.CLAUDE_CODE_REMOTE) === true || flagValue(env.CODESPACES) === true || Boolean(env.GITPOD_WORKSPACE_ID?.trim());
+}
+function realDirectory(directory) {
+  try {
+    return fs7.realpathSync(directory);
+  } catch {
+    return path7.resolve(directory);
+  }
+}
+function sandboxedHome(env) {
+  const home = (env.HOME ?? env.USERPROFILE)?.trim();
+  if (!home)
+    return false;
+  const temp = realDirectory(os.tmpdir());
+  const resolved = realDirectory(home);
+  return resolved !== temp && resolved.startsWith(`${temp}${path7.sep}`);
+}
 function telemetryDirectory(env = process.env) {
   const explicit = env.KIBI_TELEMETRY_DIR?.trim();
   if (explicit)
     return explicit;
   if (process.platform === "win32" && env.LOCALAPPDATA) {
-    return path8.join(env.LOCALAPPDATA, "kibi");
+    return path7.join(env.LOCALAPPDATA, "kibi");
   }
   const stateHome = env.XDG_STATE_HOME?.trim();
-  return path8.join(stateHome || path8.join(env.HOME || os.homedir(), ".local", "state"), "kibi");
+  return path7.join(stateHome || path7.join(env.HOME || os.homedir(), ".local", "state"), "kibi");
 }
 function readTelemetryConfig(env = process.env) {
   try {
-    const parsed = JSON.parse(fs8.readFileSync(path8.join(telemetryDirectory(env), CONFIG_FILE), "utf8"));
+    const parsed = JSON.parse(fs7.readFileSync(path7.join(telemetryDirectory(env), CONFIG_FILE), "utf8"));
     return typeof parsed === "object" && parsed !== null ? parsed : {};
   } catch {
     return {};
@@ -2051,8 +2062,8 @@ function readTelemetryConfig(env = process.env) {
 }
 function writeTelemetryConfig(config, env) {
   const directory = telemetryDirectory(env);
-  fs8.mkdirSync(directory, { recursive: true });
-  fs8.writeFileSync(path8.join(directory, CONFIG_FILE), `${JSON.stringify(config, null, 2)}
+  fs7.mkdirSync(directory, { recursive: true });
+  fs7.writeFileSync(path7.join(directory, CONFIG_FILE), `${JSON.stringify(config, null, 2)}
 `, "utf8");
 }
 function telemetryStatus(env = process.env) {
@@ -2083,6 +2094,9 @@ function telemetryStatus(env = process.env) {
   const testName = automationName(env, TEST_ENV_KEYS) ?? automationName(processEnv, TEST_ENV_KEYS);
   if (testName)
     return status(false, `test environment (${testName})`);
+  if (sandboxedHome(env)) {
+    return status(false, "sandboxed home in the temp directory (harness run)");
+  }
   if (preference === "enabled") {
     return status(true, "enabled with `kibi telemetry enable`");
   }
@@ -2103,7 +2117,7 @@ function installId(env) {
   if (typeof config.installId === "string" && config.installId !== "") {
     return config.installId;
   }
-  const created = randomUUID3();
+  const created = randomUUID2();
   try {
     writeTelemetryConfig({ ...config, installId: created }, env);
   } catch {}
@@ -2115,8 +2129,60 @@ function hashTelemetryId(value) {
 function runtimeName() {
   return typeof globalThis.Bun === "undefined" ? "node" : "bun";
 }
+function sessionMarkersPath(env) {
+  return path7.join(telemetryDirectory(env), SESSIONS_FILE);
+}
+function readSessionMarkers(env) {
+  try {
+    const parsed = JSON.parse(fs7.readFileSync(sessionMarkersPath(env), "utf8"));
+    return parsed !== null && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+function workspaceKey(workspaceRoot) {
+  return hashTelemetryId(`workspace\x00${path7.resolve(workspaceRoot)}`);
+}
+function rememberHookSession(workspaceRoot, sessionId, env = process.env) {
+  if (!sessionId.trim() || !telemetryEnabled(env))
+    return;
+  const now = Date.now();
+  const markers = readSessionMarkers(env);
+  markers[workspaceKey(workspaceRoot)] = {
+    session: hashTelemetryId(sessionId.trim()),
+    at: now
+  };
+  const kept = Object.entries(markers).filter(([, marker]) => typeof marker?.at === "number" && now - marker.at <= SESSION_MARKER_MAX_AGE_MS).sort(([, left], [, right]) => right.at - left.at).slice(0, MAX_SESSION_MARKERS);
+  try {
+    const file = sessionMarkersPath(env);
+    fs7.mkdirSync(path7.dirname(file), { recursive: true });
+    const temporary = `${file}.${process.pid}.${randomUUID2()}.tmp`;
+    fs7.writeFileSync(temporary, JSON.stringify(Object.fromEntries(kept)));
+    fs7.renameSync(temporary, file);
+  } catch {}
+}
+function workspaceSessionHash(startDirectory, env = process.env) {
+  const markers = readSessionMarkers(env);
+  const now = Date.now();
+  let current = path7.resolve(startDirectory);
+  for (;; ) {
+    const marker = markers[workspaceKey(current)];
+    if (marker && typeof marker.session === "string" && typeof marker.at === "number" && now - marker.at <= SESSION_MARKER_MAX_AGE_MS) {
+      return marker.session;
+    }
+    const parent = path7.dirname(current);
+    if (parent === current)
+      return;
+    current = parent;
+  }
+}
+function sessionProperty(source, env) {
+  const sessionId = source.sessionId?.trim() || detectTelemetrySession(env);
+  if (sessionId)
+    return hashTelemetryId(sessionId);
+  return source.workspaceRoot ? workspaceSessionHash(source.workspaceRoot, env) ?? null : null;
+}
 function baseProperties(source, env) {
-  const sessionId = source.sessionId?.trim();
   return {
     distinct_id: installId(env),
     $process_person_profile: false,
@@ -2124,8 +2190,9 @@ function baseProperties(source, env) {
     $lib: "kibi",
     package: source.packageName,
     package_version: source.packageVersion ?? null,
-    host: source.host?.trim() || "unknown",
-    session: sessionId ? hashTelemetryId(sessionId) : null,
+    host: source.host?.trim() && hostKey(source.host) || detectTelemetryHost(env) || "unknown",
+    remote: remoteEnvironment(env),
+    session: sessionProperty(source, env),
     os: process.platform,
     arch: process.arch,
     runtime: runtimeName(),
@@ -2133,17 +2200,17 @@ function baseProperties(source, env) {
   };
 }
 function queuePath(env) {
-  return path8.join(telemetryDirectory(env), QUEUE_FILE);
+  return path7.join(telemetryDirectory(env), QUEUE_FILE);
 }
 function appendEvent(event, env) {
   try {
     const file = queuePath(env);
-    fs8.mkdirSync(path8.dirname(file), { recursive: true });
+    fs7.mkdirSync(path7.dirname(file), { recursive: true });
     try {
-      if (fs8.statSync(file).size > MAX_QUEUE_BYTES)
+      if (fs7.statSync(file).size > MAX_QUEUE_BYTES)
         return;
     } catch {}
-    fs8.appendFileSync(file, `${JSON.stringify(event)}
+    fs7.appendFileSync(file, `${JSON.stringify(event)}
 `, "utf8");
   } catch {}
 }
@@ -2182,7 +2249,7 @@ function parseQueued(text, now) {
 function flushDue(file, now) {
   let text;
   try {
-    text = fs8.readFileSync(file, "utf8");
+    text = fs7.readFileSync(file, "utf8");
   } catch {
     return false;
   }
@@ -2203,26 +2270,26 @@ function claimBatches(directory, now) {
   const claimed = [];
   let names;
   try {
-    names = fs8.readdirSync(directory);
+    names = fs7.readdirSync(directory);
   } catch {
     return claimed;
   }
   for (const name of names) {
     if (!name.endsWith(SENDING_SUFFIX))
       continue;
-    const file = path8.join(directory, name);
+    const file = path7.join(directory, name);
     try {
-      if (now - fs8.statSync(file).mtimeMs < STALE_CLAIM_MS)
+      if (now - fs7.statSync(file).mtimeMs < STALE_CLAIM_MS)
         continue;
-      const reclaimed = `${file}.${randomUUID3()}${SENDING_SUFFIX}`;
-      fs8.renameSync(file, reclaimed);
+      const reclaimed = `${file}.${randomUUID2()}${SENDING_SUFFIX}`;
+      fs7.renameSync(file, reclaimed);
       claimed.push(reclaimed);
     } catch {}
   }
-  const queue = path8.join(directory, QUEUE_FILE);
-  const target = path8.join(directory, `${QUEUE_FILE}.${process.pid}.${randomUUID3()}${SENDING_SUFFIX}`);
+  const queue = path7.join(directory, QUEUE_FILE);
+  const target = path7.join(directory, `${QUEUE_FILE}.${process.pid}.${randomUUID2()}${SENDING_SUFFIX}`);
   try {
-    fs8.renameSync(queue, target);
+    fs7.renameSync(queue, target);
     claimed.push(target);
   } catch {}
   return claimed;
@@ -2240,12 +2307,12 @@ async function flushTelemetry(options = {}, env = process.env) {
   const events = [];
   for (const file of claimed) {
     try {
-      events.push(...parseQueued(fs8.readFileSync(file, "utf8"), now));
+      events.push(...parseQueued(fs7.readFileSync(file, "utf8"), now));
     } catch {}
   }
   const release = () => {
     for (const file of claimed)
-      fs8.rmSync(file, { force: true });
+      fs7.rmSync(file, { force: true });
   };
   if (events.length === 0) {
     release();
@@ -2280,21 +2347,21 @@ async function flushTelemetry(options = {}, env = process.env) {
   }
 }
 
-// src/usage-log.ts
-var cachedPluginVersion;
-function pluginVersion() {
-  if (cachedPluginVersion !== undefined)
-    return cachedPluginVersion;
-  cachedPluginVersion = readPackageVersion(path9.join(path9.dirname(fileURLToPath(import.meta.url)), "..", "package.json"));
-  return cachedPluginVersion;
+// ../agent-core/dist/hook-usage-log.js
+function hookTelemetryEnabled(env = process.env) {
+  const value = env.KIBI_DIAGNOSTIC_MODE?.trim().toLowerCase();
+  return value === "1" || value === "true";
 }
-function appendHookUsage2(row, env = process.env) {
+function adapterPackage(host) {
+  return host === "claude-code" ? "kibi-claude" : `kibi-${host}`;
+}
+function appendHookUsage(row, env = process.env) {
   if (row.trace.action === undefined)
     return;
   recordHookTelemetry({
-    packageName: "kibi-claude",
-    packageVersion: pluginVersion(),
-    host: "claude-code",
+    packageName: row.packageName ?? adapterPackage(row.host),
+    packageVersion: row.packageVersion,
+    host: row.host,
     sessionId: row.sessionId
   }, {
     hookEvent: row.event,
@@ -2306,12 +2373,73 @@ function appendHookUsage2(row, env = process.env) {
   }, env);
   if (!hookTelemetryEnabled(env))
     return;
-  appendHookUsage({ ...row, host: "claude-code", packageVersion: pluginVersion() }, env);
+  const finishedAt = new Date;
+  const { trace } = row;
+  const record = {
+    timestamp: finishedAt.toISOString(),
+    request_id: `hook-${randomUUID3()}`,
+    tool: `hook_${row.event}`,
+    interface: "hook",
+    host: row.host,
+    package_version: row.packageVersion ?? null,
+    workspace_root: row.workspaceRoot,
+    session_id: row.sessionId ?? null,
+    hook_event: row.event,
+    host_tool: row.hostTool ?? null,
+    hook_action: trace.action,
+    path: trace.path ?? null,
+    path_kind: trace.pathKind ?? null,
+    requirement_ids: trace.requirementIds ?? [],
+    kb_operation: trace.kbOperation ?? null,
+    kb_used_before: trace.kbUsedBefore ?? null,
+    status: "success",
+    duration_ms: finishedAt.getTime() - row.startedAt.getTime()
+  };
+  try {
+    const logPath = path8.join(row.workspaceRoot, ".kb", "usage.log");
+    fs8.mkdirSync(path8.dirname(logPath), { recursive: true });
+    fs8.appendFileSync(logPath, `${JSON.stringify(record)}
+`, "utf8");
+  } catch {}
 }
-async function flushHookTelemetry(event, env = process.env) {
-  if (event !== "Stop")
-    return;
-  await flushTelemetry({ force: true }, env);
+var TURN_END_EVENTS = new Set(["stop", "sessionend"]);
+async function finishHookTelemetry(input, env = process.env) {
+  try {
+    if (input.workspaceRoot && input.sessionId) {
+      rememberHookSession(input.workspaceRoot, input.sessionId, env);
+    }
+    const turnEnd = TURN_END_EVENTS.has(input.event.toLowerCase().replace(/[^a-z]/g, ""));
+    await flushTelemetry({ force: turnEnd }, env);
+  } catch {}
+}
+function readPackageVersion(packageJsonPath) {
+  try {
+    const parsed = JSON.parse(fs8.readFileSync(packageJsonPath, "utf8"));
+    if (typeof parsed === "object" && parsed !== null && "version" in parsed && typeof parsed.version === "string") {
+      return parsed.version;
+    }
+  } catch {}
+  return null;
+}
+
+// src/usage-log.ts
+var cachedPluginVersion;
+function pluginVersion() {
+  if (cachedPluginVersion !== undefined)
+    return cachedPluginVersion;
+  cachedPluginVersion = readPackageVersion(path9.join(path9.dirname(fileURLToPath(import.meta.url)), "..", "package.json"));
+  return cachedPluginVersion;
+}
+function appendHookUsage2(row, env = process.env) {
+  appendHookUsage({
+    ...row,
+    host: "claude-code",
+    packageName: "kibi-claude",
+    packageVersion: pluginVersion()
+  }, env);
+}
+async function flushHookTelemetry(input, env = process.env) {
+  await finishHookTelemetry(input, env);
 }
 
 // src/workspace-optin.ts
@@ -2853,7 +2981,11 @@ async function runHook(rawInput, environment = {}) {
     trace,
     startedAt
   }, environment.env);
-  await flushHookTelemetry(input.event, environment.env);
+  await flushHookTelemetry({
+    event: input.event,
+    workspaceRoot: resolved.root,
+    sessionId: input.sessionId
+  }, environment.env);
   return output;
 }
 function dispatchHook(input, workspace, trace) {

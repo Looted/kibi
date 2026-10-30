@@ -25,7 +25,8 @@ import {
 import {
   appendHookUsageRows,
   editTraces,
-  hookTelemetryEnabled,
+  finishHookTelemetry,
+  hookTracesWanted,
   kbUsageTrace,
   readPackageVersion,
 } from "kibi-agent-core/hook-usage-log";
@@ -171,7 +172,7 @@ function recordToolTelemetry(
   // rationale: appendHookUsageRows applies the same opt-in; this guard only
   // skips reading the index when telemetry is off.
   // Stryker disable next-line ConditionalExpression
-  if (!hookTelemetryEnabled(env)) return;
+  if (!hookTracesWanted(env)) return;
   const kbUsage = kbUsageTrace(input.toolName, input.toolInput);
   if (!kbUsage && !isKnownEditableTool(input.toolName)) return;
   const traces = kbUsage
@@ -300,198 +301,119 @@ export async function runHook(
     sessionId: input.conversationId,
   };
 
-  switch (input.event) {
-    case "sessionStart":
-      if (!kibiReady) {
-        const advisory = interfaceAdvisory(
-          initialState.mcpState,
-          workspaceTrusted,
-        );
-        return {
-          additional_context: advisory
-            ? `${BOOTSTRAP_REMINDER}\n${advisory}`
-            : BOOTSTRAP_REMINDER,
-        };
-      }
-      {
-        const advisory = interfaceAdvisory(
-          initialState.mcpState,
-          workspaceTrusted,
-        );
-        return advisory ? { additional_context: advisory } : emptyResult();
-      }
-
-    case "preToolUse": {
-      // Name the agent's workspace on every Kibi MCP call so the launcher
-      // answers from it, also for agents working in a git worktree. The
-      // per-call cwd wins over workspace_roots, which can be the window's
-      // folders rather than the agent's checkout.
-      const stamped = stampKibiWorkspace(
-        input.toolName,
-        input.toolInput,
-        kibiWorkspaceFor(input.cwd ?? input.workspaceRoots?.[0]),
-      );
-      if (stamped) {
-        return { updated_input: stamped };
-      }
-      const explicitPaths = extractExplicitPathFields(input.toolInput);
-      const hasDirectKbEdit =
-        isEditLikeTool(input.toolName) && explicitPaths.some(isDirectKbPath);
-
-      if (hasDirectKbEdit) {
-        return {
-          permission: "allow",
-          agent_message: DIRECT_KB_EDIT_WARNING,
-        };
-      }
-
-      const primaryPath = resolvePrimaryPath(input);
-      if (!primaryPath || !kibiReady || !isKnownEditableTool(input.toolName)) {
-        return emptyResult();
-      }
-
-      const relativePath = toRepoRelativePath(primaryPath, cwd);
-      const state = loadHookState(stateDir);
-      const linked = getSourceLinkedSymbols(cwd, primaryPath, stateDir);
-      const focus = editFocus(path.resolve(cwd, primaryPath), input.toolInput);
-      const ruleNote = takeRuleNote(session);
-      const notice = firmNotice(
-        cwd,
-        linked,
-        focus,
-        session,
-        environment.env ?? process.env,
-      );
-      const guidance = hasGuidedPath(state, "pre-edit", relativePath)
-        ? undefined
-        : preEditGuidance(primaryPath, {
-            cwd,
-            hasKibi: kibiReady,
-            mcpState: state.mcpState,
+  try {
+    switch (input.event) {
+      case "sessionStart":
+        if (!kibiReady) {
+          const advisory = interfaceAdvisory(
+            initialState.mcpState,
             workspaceTrusted,
-            // A file that implements requirements always gets the shared
-            // snippet, so the bare linked-requirement wording is never needed.
-            knowledge: knowledgeFor(cwd, linked, "edit", focus),
-          });
-      if (guidance) {
-        rememberGuidedPath(stateDir, "pre-edit", relativePath);
-      }
-      const parts = [ruleNote, notice, guidance].filter(
-        (part): part is string => part !== undefined,
-      );
-      return parts.length > 0
-        ? { permission: "allow", agent_message: parts.join("\n\n") }
-        : emptyResult();
-    }
-
-    // implements REQ-agent-hosts-decision-guard
-    case "beforeSubmitPrompt": {
-      // Cursor's prompt hook cannot add context: the request's rule note
-      // waits for the next pre-edit message.
-      if (kibiReady && input.prompt) {
-        const rule = recordRequest(session, input.prompt);
-        if (rule !== undefined) holdRuleNote(session, rule);
-      }
-      return { continue: true };
-    }
-
-    case "beforeReadFile": {
-      const primaryPath = resolvePrimaryPath(input);
-      if (!primaryPath || !kibiReady) {
-        return { permission: "allow" };
-      }
-
-      const relativePath = toRepoRelativePath(primaryPath, cwd);
-      const state = loadHookState(stateDir);
-      if (hasGuidedPath(state, "read", relativePath)) {
-        return { permission: "allow" };
-      }
-
-      const guidance = readGuidance(primaryPath, {
-        cwd,
-        hasKibi: kibiReady,
-        mcpState: state.mcpState,
-        workspaceTrusted,
-        knowledge: knowledgeFor(
-          cwd,
-          getSourceLinkedSymbols(cwd, primaryPath, stateDir),
-          // rationale: the snippet only special-cases "edit", so any other
-          // surface literal renders the same read snippet.
-          // Stryker disable next-line StringLiteral
-          "read",
-        ),
-      });
-      if (!guidance) {
-        return { permission: "allow" };
-      }
-
-      rememberGuidedPath(stateDir, "read", relativePath);
-      return {
-        permission: "allow",
-        agent_message: guidance,
-      };
-    }
-
-    case "postToolUse": {
-      if (kibiReady) {
-        try {
-          recordToolTelemetry(input, cwd, stateDir, startedAt, environment.env);
-        } catch {
-          // Telemetry is best effort and must never change the hook's output.
-        }
-      }
-      const kbToolCall = extractKbMcpToolCall(input.toolName, input.toolInput);
-      if (kbToolCall) {
-        recordKbMcpTool(stateDir, kbToolCall.toolName, {
-          impactCheckRun: kbToolCall.impactCheckRun,
-          sourceFiles: kbToolCall.sourceFiles,
-        });
-      }
-
-      if (isPlanDeliveryTool(input.toolName)) {
-        recordPlanDelivered(stateDir);
-      }
-
-      const explicitPaths = extractExplicitPathFields(input.toolInput);
-      if (isKnownEditableTool(input.toolName)) {
-        const dirtyPaths = explicitPaths
-          .map((candidate) => toRepoRelativePath(candidate, cwd))
-          .filter(
-            (candidate) =>
-              isMeaningfulTrackedPath(candidate) ||
-              isKbFreshnessRelevantPath(candidate),
           );
-
-        if (dirtyPaths.length > 0) {
-          addDirtyPaths(stateDir, dirtyPaths);
+          return {
+            additional_context: advisory
+              ? `${BOOTSTRAP_REMINDER}\n${advisory}`
+              : BOOTSTRAP_REMINDER,
+          };
         }
-        if (dirtyPaths.some(isSourceImpactRelevantPath)) {
-          markDecisionFlag(session, "source-edited");
+        {
+          const advisory = interfaceAdvisory(
+            initialState.mcpState,
+            workspaceTrusted,
+          );
+          return advisory ? { additional_context: advisory } : emptyResult();
         }
-      }
-      if (
-        kbToolCall?.toolName === "kb_upsert" ||
-        kbUsageTrace(input.toolName, input.toolInput)?.kbOperation ===
-          "kb_upsert"
-      ) {
-        markDecisionFlag(session, "kb-recorded");
-        // implements REQ-kibi-signoff-views
-        if (isRequirementUpsert(input.toolInput)) {
-          markDecisionFlag(session, "requirement-recorded");
+
+      case "preToolUse": {
+        // Name the agent's workspace on every Kibi MCP call so the launcher
+        // answers from it, also for agents working in a git worktree. The
+        // per-call cwd wins over workspace_roots, which can be the window's
+        // folders rather than the agent's checkout.
+        const stamped = stampKibiWorkspace(
+          input.toolName,
+          input.toolInput,
+          kibiWorkspaceFor(input.cwd ?? input.workspaceRoots?.[0]),
+        );
+        if (stamped) {
+          return { updated_input: stamped };
         }
-      }
+        const explicitPaths = extractExplicitPathFields(input.toolInput);
+        const hasDirectKbEdit =
+          isEditLikeTool(input.toolName) && explicitPaths.some(isDirectKbPath);
 
-      const primaryPath = resolvePrimaryPath(input);
-      if (!primaryPath || !kibiReady) {
-        return emptyResult();
-      }
+        if (hasDirectKbEdit) {
+          return {
+            permission: "allow",
+            agent_message: DIRECT_KB_EDIT_WARNING,
+          };
+        }
 
-      const relativePath = toRepoRelativePath(primaryPath, cwd);
-      const state = loadHookState(stateDir);
-
-      if (isReadLikeTool(input.toolName)) {
-        if (hasGuidedPath(state, "read", relativePath)) {
+        const primaryPath = resolvePrimaryPath(input);
+        if (
+          !primaryPath ||
+          !kibiReady ||
+          !isKnownEditableTool(input.toolName)
+        ) {
           return emptyResult();
+        }
+
+        const relativePath = toRepoRelativePath(primaryPath, cwd);
+        const state = loadHookState(stateDir);
+        const linked = getSourceLinkedSymbols(cwd, primaryPath, stateDir);
+        const focus = editFocus(
+          path.resolve(cwd, primaryPath),
+          input.toolInput,
+        );
+        const ruleNote = takeRuleNote(session);
+        const notice = firmNotice(
+          cwd,
+          linked,
+          focus,
+          session,
+          environment.env ?? process.env,
+        );
+        const guidance = hasGuidedPath(state, "pre-edit", relativePath)
+          ? undefined
+          : preEditGuidance(primaryPath, {
+              cwd,
+              hasKibi: kibiReady,
+              mcpState: state.mcpState,
+              workspaceTrusted,
+              // A file that implements requirements always gets the shared
+              // snippet, so the bare linked-requirement wording is never needed.
+              knowledge: knowledgeFor(cwd, linked, "edit", focus),
+            });
+        if (guidance) {
+          rememberGuidedPath(stateDir, "pre-edit", relativePath);
+        }
+        const parts = [ruleNote, notice, guidance].filter(
+          (part): part is string => part !== undefined,
+        );
+        return parts.length > 0
+          ? { permission: "allow", agent_message: parts.join("\n\n") }
+          : emptyResult();
+      }
+
+      // implements REQ-agent-hosts-decision-guard
+      case "beforeSubmitPrompt": {
+        // Cursor's prompt hook cannot add context: the request's rule note
+        // waits for the next pre-edit message.
+        if (kibiReady && input.prompt) {
+          const rule = recordRequest(session, input.prompt);
+          if (rule !== undefined) holdRuleNote(session, rule);
+        }
+        return { continue: true };
+      }
+
+      case "beforeReadFile": {
+        const primaryPath = resolvePrimaryPath(input);
+        if (!primaryPath || !kibiReady) {
+          return { permission: "allow" };
+        }
+
+        const relativePath = toRepoRelativePath(primaryPath, cwd);
+        const state = loadHookState(stateDir);
+        if (hasGuidedPath(state, "read", relativePath)) {
+          return { permission: "allow" };
         }
 
         const guidance = readGuidance(primaryPath, {
@@ -502,90 +424,198 @@ export async function runHook(
           knowledge: knowledgeFor(
             cwd,
             getSourceLinkedSymbols(cwd, primaryPath, stateDir),
-            // rationale: as above, only "edit" changes the snippet.
+            // rationale: the snippet only special-cases "edit", so any other
+            // surface literal renders the same read snippet.
             // Stryker disable next-line StringLiteral
             "read",
           ),
         });
         if (!guidance) {
-          return emptyResult();
+          return { permission: "allow" };
         }
 
         rememberGuidedPath(stateDir, "read", relativePath);
-        return { additional_context: guidance };
+        return {
+          permission: "allow",
+          agent_message: guidance,
+        };
       }
 
-      if (isEditLikeTool(input.toolName)) {
-        // rationale: the runner only ever passes "read" or "write"; an empty
-        // kind selects the same write bucket.
-        // Stryker disable StringLiteral
-        if (hasGuidedPath(state, "write", relativePath)) {
+      case "postToolUse": {
+        if (kibiReady) {
+          try {
+            recordToolTelemetry(
+              input,
+              cwd,
+              stateDir,
+              startedAt,
+              environment.env,
+            );
+          } catch {
+            // Telemetry is best effort and must never change the hook's output.
+          }
+        }
+        const kbToolCall = extractKbMcpToolCall(
+          input.toolName,
+          input.toolInput,
+        );
+        if (kbToolCall) {
+          recordKbMcpTool(stateDir, kbToolCall.toolName, {
+            impactCheckRun: kbToolCall.impactCheckRun,
+            sourceFiles: kbToolCall.sourceFiles,
+          });
+        }
+
+        if (isPlanDeliveryTool(input.toolName)) {
+          recordPlanDelivered(stateDir);
+        }
+
+        const explicitPaths = extractExplicitPathFields(input.toolInput);
+        if (isKnownEditableTool(input.toolName)) {
+          const dirtyPaths = explicitPaths
+            .map((candidate) => toRepoRelativePath(candidate, cwd))
+            .filter(
+              (candidate) =>
+                isMeaningfulTrackedPath(candidate) ||
+                isKbFreshnessRelevantPath(candidate),
+            );
+
+          if (dirtyPaths.length > 0) {
+            addDirtyPaths(stateDir, dirtyPaths);
+          }
+          if (dirtyPaths.some(isSourceImpactRelevantPath)) {
+            markDecisionFlag(session, "source-edited");
+          }
+        }
+        if (
+          kbToolCall?.toolName === "kb_upsert" ||
+          kbUsageTrace(input.toolName, input.toolInput)?.kbOperation ===
+            "kb_upsert"
+        ) {
+          markDecisionFlag(session, "kb-recorded");
+          // implements REQ-kibi-signoff-views
+          if (isRequirementUpsert(input.toolInput)) {
+            markDecisionFlag(session, "requirement-recorded");
+          }
+        }
+
+        const primaryPath = resolvePrimaryPath(input);
+        if (!primaryPath || !kibiReady) {
           return emptyResult();
         }
-        // Stryker restore
 
-        const guidance = writeGuidance(primaryPath, {
-          cwd,
-          hasKibi: kibiReady,
-          mcpState: state.mcpState,
-          workspaceTrusted,
-        });
-        if (!guidance) {
-          return emptyResult();
+        const relativePath = toRepoRelativePath(primaryPath, cwd);
+        const state = loadHookState(stateDir);
+
+        if (isReadLikeTool(input.toolName)) {
+          if (hasGuidedPath(state, "read", relativePath)) {
+            return emptyResult();
+          }
+
+          const guidance = readGuidance(primaryPath, {
+            cwd,
+            hasKibi: kibiReady,
+            mcpState: state.mcpState,
+            workspaceTrusted,
+            knowledge: knowledgeFor(
+              cwd,
+              getSourceLinkedSymbols(cwd, primaryPath, stateDir),
+              // rationale: as above, only "edit" changes the snippet.
+              // Stryker disable next-line StringLiteral
+              "read",
+            ),
+          });
+          if (!guidance) {
+            return emptyResult();
+          }
+
+          rememberGuidedPath(stateDir, "read", relativePath);
+          return { additional_context: guidance };
         }
 
-        // rationale: same bucket equivalence as the lookup above.
-        // Stryker disable StringLiteral
-        rememberGuidedPath(stateDir, "write", relativePath);
-        // Stryker restore
-        return { additional_context: guidance };
-      }
+        if (isEditLikeTool(input.toolName)) {
+          // rationale: the runner only ever passes "read" or "write"; an empty
+          // kind selects the same write bucket.
+          // Stryker disable StringLiteral
+          if (hasGuidedPath(state, "write", relativePath)) {
+            return emptyResult();
+          }
+          // Stryker restore
 
-      return emptyResult();
-    }
+          const guidance = writeGuidance(primaryPath, {
+            cwd,
+            hasKibi: kibiReady,
+            mcpState: state.mcpState,
+            workspaceTrusted,
+          });
+          if (!guidance) {
+            return emptyResult();
+          }
 
-    case "stop": {
-      const state = loadHookState(stateDir);
-      const shouldClearSession =
-        state.dirtyPaths.length > 0 || state.kbCheckRun || state.planDelivered;
-
-      if (input.status === "aborted" || input.status === "error") {
-        if (shouldClearSession) {
-          clearSessionHookState(stateDir);
+          // rationale: same bucket equivalence as the lookup above.
+          // Stryker disable StringLiteral
+          rememberGuidedPath(stateDir, "write", relativePath);
+          // Stryker restore
+          return { additional_context: guidance };
         }
+
         return emptyResult();
       }
 
-      // implements REQ-agent-hosts-decision-guard
-      // Source changed and nothing was recorded: the follow-up asks for the
-      // decision to be recorded, once per conversation.
-      const capture = claimCaptureReminder(session)
-        ? captureReminder(hasDecisionFlag(session, "rule-prompt"))
-        : undefined;
-      // implements REQ-kibi-signoff-views
-      // Requirements were written without a signoff view since: ask once.
-      // A recorded requirement also counts as recorded knowledge, so this
-      // never coincides with the capture request above.
-      const signoff = claimSignoffReminder(session, cwd)
-        ? signoffReminder()
-        : undefined;
-      const followupMessage = [capture, signoff, stopFollowupMessage(state)]
-        .filter((part): part is string => part !== undefined)
-        .join("\n");
-      if (followupMessage) {
-        clearSessionHookState(stateDir);
-        return { followup_message: followupMessage };
+      case "stop": {
+        const state = loadHookState(stateDir);
+        const shouldClearSession =
+          state.dirtyPaths.length > 0 ||
+          state.kbCheckRun ||
+          state.planDelivered;
+
+        if (input.status === "aborted" || input.status === "error") {
+          if (shouldClearSession) {
+            clearSessionHookState(stateDir);
+          }
+          return emptyResult();
+        }
+
+        // implements REQ-agent-hosts-decision-guard
+        // Source changed and nothing was recorded: the follow-up asks for the
+        // decision to be recorded, once per conversation.
+        const capture = claimCaptureReminder(session)
+          ? captureReminder(hasDecisionFlag(session, "rule-prompt"))
+          : undefined;
+        // implements REQ-kibi-signoff-views
+        // Requirements were written without a signoff view since: ask once.
+        // A recorded requirement also counts as recorded knowledge, so this
+        // never coincides with the capture request above.
+        const signoff = claimSignoffReminder(session, cwd)
+          ? signoffReminder()
+          : undefined;
+        const followupMessage = [capture, signoff, stopFollowupMessage(state)]
+          .filter((part): part is string => part !== undefined)
+          .join("\n");
+        if (followupMessage) {
+          clearSessionHookState(stateDir);
+          return { followup_message: followupMessage };
+        }
+
+        if (shouldClearSession) {
+          clearSessionHookState(stateDir);
+        }
+
+        return emptyResult();
       }
 
-      if (shouldClearSession) {
-        clearSessionHookState(stateDir);
-      }
-
-      return emptyResult();
+      default:
+        return emptyResult();
     }
-
-    default:
-      return emptyResult();
+  } finally {
+    await finishHookTelemetry(
+      {
+        event: input.event,
+        workspaceRoot: kibiReady ? cwd : undefined,
+        sessionId: input.conversationId,
+      },
+      environment.env ?? process.env,
+    );
   }
 }
 

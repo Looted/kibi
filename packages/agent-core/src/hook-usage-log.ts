@@ -5,6 +5,12 @@ import path from "node:path";
 
 import { hostKbOperation } from "./kb-mcp-tools.js";
 import { classifyPath } from "./path-policy.js";
+import {
+  flushTelemetry,
+  recordHookTelemetry,
+  rememberHookSession,
+  telemetryEnabled,
+} from "./usage-telemetry.js";
 
 /**
  * Opt-in hook telemetry shared by every host adapter.
@@ -57,6 +63,8 @@ export function hookTelemetryEnabled(
 export type HookUsageRow = {
   /** Host agent, e.g. `claude-code`, `cursor`, `codex`, `zcode`, `opencode`. */
   host: string;
+  /** Adapter npm package; defaults to `kibi-<host>` (`kibi-claude` for Claude Code). */
+  packageName?: string | undefined;
   /** Version of the adapter package that wrote the row, when known. */
   packageVersion?: string | null | undefined;
   workspaceRoot: string;
@@ -68,12 +76,48 @@ export type HookUsageRow = {
 };
 
 // implements REQ-claude-hook-usage-telemetry-v2
-/** Append one hook row to `.kb/usage.log` when the operator opted in. */
+/**
+ * Whether a host should build hook traces at all: for the opt-in
+ * `.kb/usage.log` rows or for anonymous usage telemetry.
+ */
+export function hookTracesWanted(
+  env: NodeJS.ProcessEnv = process.env,
+): boolean {
+  return hookTelemetryEnabled(env) || telemetryEnabled(env);
+}
+
+function adapterPackage(host: string): string {
+  return host === "claude-code" ? "kibi-claude" : `kibi-${host}`;
+}
+
+// implements REQ-claude-hook-usage-telemetry-v2, REQ-kibi-anonymous-usage-telemetry
+/**
+ * Record one hook decision: an anonymous summary event (unless telemetry is
+ * off) and, when the operator opted in, the detailed `.kb/usage.log` row.
+ */
 export function appendHookUsage(
   row: HookUsageRow,
   env: NodeJS.ProcessEnv = process.env,
 ): void {
-  if (!hookTelemetryEnabled(env) || row.trace.action === undefined) return;
+  if (row.trace.action === undefined) return;
+  recordHookTelemetry(
+    {
+      packageName: row.packageName ?? adapterPackage(row.host),
+      packageVersion: row.packageVersion,
+      host: row.host,
+      sessionId: row.sessionId,
+    },
+    {
+      hookEvent: row.event,
+      hookAction: row.trace.action,
+      pathKind: row.trace.pathKind,
+      kbOperation: row.trace.kbOperation,
+      kbUsedBefore: row.trace.kbUsedBefore,
+      requirementCount: row.trace.requirementIds?.length,
+    },
+    env,
+  );
+  if (!hookTelemetryEnabled(env)) return;
   const finishedAt = new Date();
   const { trace } = row;
   const record = {
@@ -151,8 +195,39 @@ export function appendHookUsageRows(
   traces: readonly HookTrace[],
   env: NodeJS.ProcessEnv = process.env,
 ): void {
-  if (!hookTelemetryEnabled(env)) return;
+  if (!hookTracesWanted(env)) return;
   for (const trace of traces) appendHookUsage({ ...row, trace }, env);
+}
+
+/** Host events that end a turn or a session: the queue is sent right away. */
+const TURN_END_EVENTS = new Set(["stop", "sessionend"]);
+
+// implements REQ-kibi-anonymous-usage-telemetry
+/**
+ * End-of-hook bookkeeping every host runs: remember the host session for the
+ * workspace, so CLI and MCP events from that workspace can carry it, and send
+ * the anonymous telemetry queue when it is due, or always at the end of a
+ * turn. Never throws.
+ */
+export async function finishHookTelemetry(
+  input: {
+    readonly event: string;
+    readonly workspaceRoot: string | undefined;
+    readonly sessionId: string | undefined;
+  },
+  env: NodeJS.ProcessEnv = process.env,
+): Promise<void> {
+  try {
+    if (input.workspaceRoot && input.sessionId) {
+      rememberHookSession(input.workspaceRoot, input.sessionId, env);
+    }
+    const turnEnd = TURN_END_EVENTS.has(
+      input.event.toLowerCase().replace(/[^a-z]/g, ""),
+    );
+    await flushTelemetry({ force: turnEnd }, env);
+  } catch {
+    // Telemetry is best effort and must never disturb the hook.
+  }
 }
 
 // implements REQ-claude-hook-usage-telemetry-v2

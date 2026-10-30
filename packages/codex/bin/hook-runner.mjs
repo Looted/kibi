@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // src/hook-runner.ts
-import path9 from "node:path";
+import path10 from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 // ../agent-core/dist/decision-guard.js
@@ -1359,9 +1359,9 @@ function settleFirmRequirements(session, ids) {
 }
 
 // ../agent-core/dist/hook-usage-log.js
-import { randomUUID as randomUUID2 } from "node:crypto";
-import fs5 from "node:fs";
-import path6 from "node:path";
+import { randomUUID as randomUUID3 } from "node:crypto";
+import fs6 from "node:fs";
+import path7 from "node:path";
 
 // ../agent-core/dist/kb-mcp-tools.js
 function isRecord2(value) {
@@ -1722,6 +1722,436 @@ function isSourceImpactRelevantPath(candidate) {
   return classifyPath(normalizeWorkspacePath(candidate)) === "source";
 }
 
+// ../agent-core/dist/usage-telemetry.js
+import { createHash as createHash4, randomUUID as randomUUID2 } from "node:crypto";
+import fs5 from "node:fs";
+import os from "node:os";
+import path6 from "node:path";
+var DEFAULT_TELEMETRY_KEY = "phc_A5z8jRhD528abGJiTtPfgu4d4hpbEbfiJr9iUGn9TMsY";
+var DEFAULT_TELEMETRY_HOST = "https://eu.i.posthog.com";
+var QUEUE_FILE = "telemetry-queue.jsonl";
+var SESSIONS_FILE = "telemetry-sessions.json";
+var SESSION_MARKER_MAX_AGE_MS = 30 * 60 * 1000;
+var MAX_SESSION_MARKERS = 200;
+var CONFIG_FILE = "telemetry.json";
+var SENDING_SUFFIX = ".sending";
+var FLUSH_BATCH_EVENTS = 20;
+var FLUSH_MAX_AGE_MS = 5 * 60 * 1000;
+var STALE_CLAIM_MS = 10 * 60 * 1000;
+var MAX_EVENT_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+var MAX_QUEUE_BYTES = 1024 * 1024;
+var DEFAULT_FLUSH_TIMEOUT_MS = 1500;
+function flagValue(value) {
+  const normalized = value?.trim().toLowerCase();
+  if (normalized === undefined || normalized === "")
+    return;
+  if (["1", "true", "yes", "on"].includes(normalized))
+    return true;
+  if (["0", "false", "no", "off"].includes(normalized))
+    return false;
+  return;
+}
+var CI_ENV_KEYS = [
+  "CI",
+  "CONTINUOUS_INTEGRATION",
+  "GITHUB_ACTIONS",
+  "GITLAB_CI",
+  "BUILDKITE",
+  "CIRCLECI",
+  "TRAVIS",
+  "TF_BUILD",
+  "JENKINS_URL",
+  "TEAMCITY_VERSION",
+  "BITBUCKET_BUILD_NUMBER",
+  "CODEBUILD_BUILD_ID",
+  "DRONE",
+  "APPVEYOR",
+  "SEMAPHORE",
+  "BUILDKITE_BUILD_ID",
+  "CF_BUILD_ID",
+  "HEROKU_TEST_RUN_ID"
+];
+var TEST_ENV_KEYS = [
+  "NODE_ENV=test",
+  "JEST_WORKER_ID",
+  "VITEST",
+  "VITEST_WORKER_ID",
+  "NODE_TEST_CONTEXT"
+];
+function automationName(env, keys) {
+  for (const key of keys) {
+    const [name, expected] = key.split("=");
+    const value = env[name]?.trim();
+    if (!value)
+      continue;
+    if (expected !== undefined) {
+      if (value === expected)
+        return key;
+      continue;
+    }
+    if (flagValue(value) !== false)
+      return name;
+  }
+  return;
+}
+var HOST_ENV_KEYS = [
+  ["CLAUDECODE=1", "claude-code"],
+  ["CURSOR_AGENT=1", "cursor"],
+  ["CODEX_SANDBOX", "codex"],
+  ["CODEX_THREAD_ID", "codex"],
+  ["GEMINI_CLI=1", "gemini-cli"],
+  ["OPENCODE=1", "opencode"]
+];
+var SESSION_ENV_KEYS = [
+  "KIBI_SESSION_ID",
+  "CLAUDE_CODE_SESSION_ID",
+  "CODEX_THREAD_ID"
+];
+function hostKey(name) {
+  return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+function detectTelemetryHost(env = process.env) {
+  const explicit = env.KIBI_HOST?.trim() || env.KIBI_MCP_HOST?.trim();
+  if (explicit)
+    return hostKey(explicit) || undefined;
+  for (const [key, host] of HOST_ENV_KEYS) {
+    if (automationName(env, [key]))
+      return host;
+  }
+  const agent = env.AI_AGENT?.trim().split("_")[0];
+  return agent ? hostKey(agent) || undefined : undefined;
+}
+function detectTelemetrySession(env = process.env) {
+  for (const key of SESSION_ENV_KEYS) {
+    const value = env[key]?.trim();
+    if (value)
+      return value;
+  }
+  return;
+}
+function remoteEnvironment(env) {
+  return flagValue(env.CLAUDE_CODE_REMOTE) === true || flagValue(env.CODESPACES) === true || Boolean(env.GITPOD_WORKSPACE_ID?.trim());
+}
+function realDirectory(directory) {
+  try {
+    return fs5.realpathSync(directory);
+  } catch {
+    return path6.resolve(directory);
+  }
+}
+function sandboxedHome(env) {
+  const home = (env.HOME ?? env.USERPROFILE)?.trim();
+  if (!home)
+    return false;
+  const temp = realDirectory(os.tmpdir());
+  const resolved = realDirectory(home);
+  return resolved !== temp && resolved.startsWith(`${temp}${path6.sep}`);
+}
+function telemetryDirectory(env = process.env) {
+  const explicit = env.KIBI_TELEMETRY_DIR?.trim();
+  if (explicit)
+    return explicit;
+  if (process.platform === "win32" && env.LOCALAPPDATA) {
+    return path6.join(env.LOCALAPPDATA, "kibi");
+  }
+  const stateHome = env.XDG_STATE_HOME?.trim();
+  return path6.join(stateHome || path6.join(env.HOME || os.homedir(), ".local", "state"), "kibi");
+}
+function readTelemetryConfig(env = process.env) {
+  try {
+    const parsed = JSON.parse(fs5.readFileSync(path6.join(telemetryDirectory(env), CONFIG_FILE), "utf8"));
+    return typeof parsed === "object" && parsed !== null ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+function writeTelemetryConfig(config, env) {
+  const directory = telemetryDirectory(env);
+  fs5.mkdirSync(directory, { recursive: true });
+  fs5.writeFileSync(path6.join(directory, CONFIG_FILE), `${JSON.stringify(config, null, 2)}
+`, "utf8");
+}
+function telemetryStatus(env = process.env) {
+  const directory = telemetryDirectory(env);
+  const status = (enabled, reason) => ({
+    enabled,
+    reason,
+    directory
+  });
+  const explicit = flagValue(env.KIBI_TELEMETRY);
+  if (explicit === false)
+    return status(false, "KIBI_TELEMETRY=0");
+  if (flagValue(env.DO_NOT_TRACK) === true) {
+    return status(false, "DO_NOT_TRACK=1");
+  }
+  const preference = readTelemetryConfig(env).preference;
+  if (preference === "disabled") {
+    return status(false, "disabled with `kibi telemetry disable`");
+  }
+  if (telemetryKey(env) === "")
+    return status(false, "no telemetry key");
+  if (explicit === true)
+    return status(true, "KIBI_TELEMETRY=1");
+  const processEnv = process.env;
+  const ciName = automationName(env, CI_ENV_KEYS) ?? automationName(processEnv, CI_ENV_KEYS);
+  if (ciName)
+    return status(false, `CI environment (${ciName})`);
+  const testName = automationName(env, TEST_ENV_KEYS) ?? automationName(processEnv, TEST_ENV_KEYS);
+  if (testName)
+    return status(false, `test environment (${testName})`);
+  if (sandboxedHome(env)) {
+    return status(false, "sandboxed home in the temp directory (harness run)");
+  }
+  if (preference === "enabled") {
+    return status(true, "enabled with `kibi telemetry enable`");
+  }
+  return status(true, "on by default; anonymous, opt-out");
+}
+function telemetryEnabled(env = process.env) {
+  return telemetryStatus(env).enabled;
+}
+function telemetryKey(env) {
+  const override = env.KIBI_TELEMETRY_KEY;
+  return (override === undefined ? DEFAULT_TELEMETRY_KEY : override).trim();
+}
+function telemetryHost(env) {
+  return (env.KIBI_TELEMETRY_HOST?.trim() || DEFAULT_TELEMETRY_HOST).replace(/\/+$/, "");
+}
+function installId(env) {
+  const config = readTelemetryConfig(env);
+  if (typeof config.installId === "string" && config.installId !== "") {
+    return config.installId;
+  }
+  const created = randomUUID2();
+  try {
+    writeTelemetryConfig({ ...config, installId: created }, env);
+  } catch {}
+  return created;
+}
+function hashTelemetryId(value) {
+  return createHash4("sha256").update("kibi-telemetry\x00").update(value).digest("hex").slice(0, 16);
+}
+function runtimeName() {
+  return typeof globalThis.Bun === "undefined" ? "node" : "bun";
+}
+function sessionMarkersPath(env) {
+  return path6.join(telemetryDirectory(env), SESSIONS_FILE);
+}
+function readSessionMarkers(env) {
+  try {
+    const parsed = JSON.parse(fs5.readFileSync(sessionMarkersPath(env), "utf8"));
+    return parsed !== null && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+function workspaceKey(workspaceRoot) {
+  return hashTelemetryId(`workspace\x00${path6.resolve(workspaceRoot)}`);
+}
+function rememberHookSession(workspaceRoot, sessionId, env = process.env) {
+  if (!sessionId.trim() || !telemetryEnabled(env))
+    return;
+  const now = Date.now();
+  const markers = readSessionMarkers(env);
+  markers[workspaceKey(workspaceRoot)] = {
+    session: hashTelemetryId(sessionId.trim()),
+    at: now
+  };
+  const kept = Object.entries(markers).filter(([, marker]) => typeof marker?.at === "number" && now - marker.at <= SESSION_MARKER_MAX_AGE_MS).sort(([, left], [, right]) => right.at - left.at).slice(0, MAX_SESSION_MARKERS);
+  try {
+    const file = sessionMarkersPath(env);
+    fs5.mkdirSync(path6.dirname(file), { recursive: true });
+    const temporary = `${file}.${process.pid}.${randomUUID2()}.tmp`;
+    fs5.writeFileSync(temporary, JSON.stringify(Object.fromEntries(kept)));
+    fs5.renameSync(temporary, file);
+  } catch {}
+}
+function workspaceSessionHash(startDirectory, env = process.env) {
+  const markers = readSessionMarkers(env);
+  const now = Date.now();
+  let current = path6.resolve(startDirectory);
+  for (;; ) {
+    const marker = markers[workspaceKey(current)];
+    if (marker && typeof marker.session === "string" && typeof marker.at === "number" && now - marker.at <= SESSION_MARKER_MAX_AGE_MS) {
+      return marker.session;
+    }
+    const parent = path6.dirname(current);
+    if (parent === current)
+      return;
+    current = parent;
+  }
+}
+function sessionProperty(source, env) {
+  const sessionId = source.sessionId?.trim() || detectTelemetrySession(env);
+  if (sessionId)
+    return hashTelemetryId(sessionId);
+  return source.workspaceRoot ? workspaceSessionHash(source.workspaceRoot, env) ?? null : null;
+}
+function baseProperties(source, env) {
+  return {
+    distinct_id: installId(env),
+    $process_person_profile: false,
+    $geoip_disable: true,
+    $lib: "kibi",
+    package: source.packageName,
+    package_version: source.packageVersion ?? null,
+    host: source.host?.trim() && hostKey(source.host) || detectTelemetryHost(env) || "unknown",
+    remote: remoteEnvironment(env),
+    session: sessionProperty(source, env),
+    os: process.platform,
+    arch: process.arch,
+    runtime: runtimeName(),
+    runtime_version: process.versions.node.split(".")[0] ?? null
+  };
+}
+function queuePath(env) {
+  return path6.join(telemetryDirectory(env), QUEUE_FILE);
+}
+function appendEvent(event, env) {
+  try {
+    const file = queuePath(env);
+    fs5.mkdirSync(path6.dirname(file), { recursive: true });
+    try {
+      if (fs5.statSync(file).size > MAX_QUEUE_BYTES)
+        return;
+    } catch {}
+    fs5.appendFileSync(file, `${JSON.stringify(event)}
+`, "utf8");
+  } catch {}
+}
+function recordHookTelemetry(source, hook, env = process.env) {
+  if (!telemetryEnabled(env))
+    return;
+  appendEvent({
+    event: "kibi_hook",
+    timestamp: new Date().toISOString(),
+    properties: {
+      ...baseProperties(source, env),
+      hook_event: hook.hookEvent,
+      hook_action: hook.hookAction,
+      path_kind: hook.pathKind ?? null,
+      kb_operation: hook.kbOperation ?? null,
+      kb_used_before: hook.kbUsedBefore ?? null,
+      requirement_count: hook.requirementCount ?? null
+    }
+  }, env);
+}
+function parseQueued(text, now) {
+  const events = [];
+  for (const line of text.split(`
+`)) {
+    if (line.trim() === "")
+      continue;
+    try {
+      const event = JSON.parse(line);
+      const age = now - Date.parse(event.timestamp);
+      if (Number.isFinite(age) && age <= MAX_EVENT_AGE_MS)
+        events.push(event);
+    } catch {}
+  }
+  return events;
+}
+function flushDue(file, now) {
+  let text;
+  try {
+    text = fs5.readFileSync(file, "utf8");
+  } catch {
+    return false;
+  }
+  const lines = text.split(`
+`).filter((line) => line.trim() !== "");
+  if (lines.length === 0)
+    return false;
+  if (lines.length >= FLUSH_BATCH_EVENTS)
+    return true;
+  try {
+    const first = JSON.parse(lines[0] ?? "");
+    return now - Date.parse(first.timestamp) >= FLUSH_MAX_AGE_MS;
+  } catch {
+    return true;
+  }
+}
+function claimBatches(directory, now) {
+  const claimed = [];
+  let names;
+  try {
+    names = fs5.readdirSync(directory);
+  } catch {
+    return claimed;
+  }
+  for (const name of names) {
+    if (!name.endsWith(SENDING_SUFFIX))
+      continue;
+    const file = path6.join(directory, name);
+    try {
+      if (now - fs5.statSync(file).mtimeMs < STALE_CLAIM_MS)
+        continue;
+      const reclaimed = `${file}.${randomUUID2()}${SENDING_SUFFIX}`;
+      fs5.renameSync(file, reclaimed);
+      claimed.push(reclaimed);
+    } catch {}
+  }
+  const queue = path6.join(directory, QUEUE_FILE);
+  const target = path6.join(directory, `${QUEUE_FILE}.${process.pid}.${randomUUID2()}${SENDING_SUFFIX}`);
+  try {
+    fs5.renameSync(queue, target);
+    claimed.push(target);
+  } catch {}
+  return claimed;
+}
+async function flushTelemetry(options = {}, env = process.env) {
+  if (!telemetryEnabled(env))
+    return 0;
+  const directory = telemetryDirectory(env);
+  const now = Date.now();
+  if (!options.force && !flushDue(queuePath(env), now))
+    return 0;
+  const claimed = claimBatches(directory, now);
+  if (claimed.length === 0)
+    return 0;
+  const events = [];
+  for (const file of claimed) {
+    try {
+      events.push(...parseQueued(fs5.readFileSync(file, "utf8"), now));
+    } catch {}
+  }
+  const release = () => {
+    for (const file of claimed)
+      fs5.rmSync(file, { force: true });
+  };
+  if (events.length === 0) {
+    release();
+    return 0;
+  }
+  const fetchImpl = options.fetchImpl ?? globalThis.fetch;
+  const controller = new AbortController;
+  const timer = setTimeout(() => controller.abort(), options.timeoutMs ?? DEFAULT_FLUSH_TIMEOUT_MS);
+  timer.unref?.();
+  try {
+    const response = await fetchImpl(`${telemetryHost(env)}/batch/`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        api_key: telemetryKey(env),
+        historical_migration: false,
+        batch: events
+      }),
+      signal: controller.signal
+    });
+    if (!response.ok && response.status >= 500)
+      throw new Error("retry");
+    release();
+    return response.ok ? events.length : 0;
+  } catch {
+    release();
+    for (const event of events)
+      appendEvent(event, env);
+    return 0;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // ../agent-core/dist/hook-usage-log.js
 var HOOK_ACTION_EDITED = "edited";
 var HOOK_ACTION_KB_USAGE = "kb_usage";
@@ -1729,14 +2159,35 @@ function hookTelemetryEnabled(env = process.env) {
   const value = env.KIBI_DIAGNOSTIC_MODE?.trim().toLowerCase();
   return value === "1" || value === "true";
 }
+function hookTracesWanted(env = process.env) {
+  return hookTelemetryEnabled(env) || telemetryEnabled(env);
+}
+function adapterPackage(host) {
+  return host === "claude-code" ? "kibi-claude" : `kibi-${host}`;
+}
 function appendHookUsage(row, env = process.env) {
-  if (!hookTelemetryEnabled(env) || row.trace.action === undefined)
+  if (row.trace.action === undefined)
+    return;
+  recordHookTelemetry({
+    packageName: row.packageName ?? adapterPackage(row.host),
+    packageVersion: row.packageVersion,
+    host: row.host,
+    sessionId: row.sessionId
+  }, {
+    hookEvent: row.event,
+    hookAction: row.trace.action,
+    pathKind: row.trace.pathKind,
+    kbOperation: row.trace.kbOperation,
+    kbUsedBefore: row.trace.kbUsedBefore,
+    requirementCount: row.trace.requirementIds?.length
+  }, env);
+  if (!hookTelemetryEnabled(env))
     return;
   const finishedAt = new Date;
   const { trace } = row;
   const record = {
     timestamp: finishedAt.toISOString(),
-    request_id: `hook-${randomUUID2()}`,
+    request_id: `hook-${randomUUID3()}`,
     tool: `hook_${row.event}`,
     interface: "hook",
     host: row.host,
@@ -1755,9 +2206,9 @@ function appendHookUsage(row, env = process.env) {
     duration_ms: finishedAt.getTime() - row.startedAt.getTime()
   };
   try {
-    const logPath = path6.join(row.workspaceRoot, ".kb", "usage.log");
-    fs5.mkdirSync(path6.dirname(logPath), { recursive: true });
-    fs5.appendFileSync(logPath, `${JSON.stringify(record)}
+    const logPath = path7.join(row.workspaceRoot, ".kb", "usage.log");
+    fs6.mkdirSync(path7.dirname(logPath), { recursive: true });
+    fs6.appendFileSync(logPath, `${JSON.stringify(record)}
 `, "utf8");
   } catch {}
 }
@@ -1781,14 +2232,24 @@ function editTraces(relativePaths, requirementIdsFor) {
   return traces;
 }
 function appendHookUsageRows(row, traces, env = process.env) {
-  if (!hookTelemetryEnabled(env))
+  if (!hookTracesWanted(env))
     return;
   for (const trace of traces)
     appendHookUsage({ ...row, trace }, env);
 }
+var TURN_END_EVENTS = new Set(["stop", "sessionend"]);
+async function finishHookTelemetry(input, env = process.env) {
+  try {
+    if (input.workspaceRoot && input.sessionId) {
+      rememberHookSession(input.workspaceRoot, input.sessionId, env);
+    }
+    const turnEnd = TURN_END_EVENTS.has(input.event.toLowerCase().replace(/[^a-z]/g, ""));
+    await flushTelemetry({ force: turnEnd }, env);
+  } catch {}
+}
 function readPackageVersion(packageJsonPath) {
   try {
-    const parsed = JSON.parse(fs5.readFileSync(packageJsonPath, "utf8"));
+    const parsed = JSON.parse(fs6.readFileSync(packageJsonPath, "utf8"));
     if (typeof parsed === "object" && parsed !== null && "version" in parsed && typeof parsed.version === "string") {
       return parsed.version;
     }
@@ -1866,9 +2327,9 @@ function parseStdinJson(rawInput) {
 }
 
 // src/hook-state.ts
-import { createHash as createHash4, randomUUID as randomUUID3 } from "node:crypto";
-import fs6 from "node:fs";
-import path7 from "node:path";
+import { createHash as createHash5, randomUUID as randomUUID4 } from "node:crypto";
+import fs7 from "node:fs";
+import path8 from "node:path";
 var stateFileName = "hook-state.json";
 var journalFileName = "hook-state.events.jsonl";
 var maxDirtyPaths = 50;
@@ -1877,8 +2338,8 @@ function resolveWorkspaceStateDir(pluginData, workspaceRoot) {
   if (!pluginData) {
     return;
   }
-  const workspaceKey = createHash4("sha256").update(path7.resolve(workspaceRoot)).digest("hex");
-  return path7.join(pluginData, workspaceStateRoot, workspaceKey);
+  const workspaceKey = createHash5("sha256").update(path8.resolve(workspaceRoot)).digest("hex");
+  return path8.join(pluginData, workspaceStateRoot, workspaceKey);
 }
 function emptyHookState() {
   return {
@@ -1889,7 +2350,7 @@ function emptyHookState() {
   };
 }
 function statePath(pluginData) {
-  return path7.join(pluginData, stateFileName);
+  return path8.join(pluginData, stateFileName);
 }
 function isRecord5(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -1898,7 +2359,7 @@ function normalizeDirtyPath(dirtyPath) {
   return dirtyPath.trim().replaceAll("\\", "/");
 }
 function uniqueTempPath(pluginData) {
-  return path7.join(pluginData, `${stateFileName}.${process.pid}.${Date.now()}.${randomUUID3()}.tmp`);
+  return path8.join(pluginData, `${stateFileName}.${process.pid}.${Date.now()}.${randomUUID4()}.tmp`);
 }
 function mergeDirtyPaths(existingPaths, dirtyPaths) {
   const merged = [...existingPaths, ...dirtyPaths].map(normalizeDirtyPath).filter((dirtyPath) => dirtyPath.length > 0);
@@ -1921,7 +2382,7 @@ function coerceHookState(value) {
   };
 }
 function journalPath(pluginData) {
-  return path7.join(pluginData, journalFileName);
+  return path8.join(pluginData, journalFileName);
 }
 function applyJournalEvent(state, event) {
   switch (event.kind) {
@@ -1946,7 +2407,7 @@ function applyJournalEvent(state, event) {
 function readJournal(pluginData, initialState) {
   let contents;
   try {
-    contents = fs6.readFileSync(journalPath(pluginData), "utf8");
+    contents = fs7.readFileSync(journalPath(pluginData), "utf8");
   } catch {
     return initialState;
   }
@@ -1984,8 +2445,8 @@ function readJournal(pluginData, initialState) {
   }, initialState);
 }
 function appendJournalEvent(pluginData, event) {
-  fs6.mkdirSync(pluginData, { recursive: true });
-  fs6.appendFileSync(journalPath(pluginData), `${JSON.stringify(event)}
+  fs7.mkdirSync(pluginData, { recursive: true });
+  fs7.appendFileSync(journalPath(pluginData), `${JSON.stringify(event)}
 `, "utf8");
 }
 function loadHookState(pluginData) {
@@ -1993,7 +2454,7 @@ function loadHookState(pluginData) {
     return emptyHookState();
   }
   try {
-    return readJournal(pluginData, coerceHookState(JSON.parse(fs6.readFileSync(statePath(pluginData), "utf8"))));
+    return readJournal(pluginData, coerceHookState(JSON.parse(fs7.readFileSync(statePath(pluginData), "utf8"))));
   } catch {
     return readJournal(pluginData, emptyHookState());
   }
@@ -2004,11 +2465,11 @@ function saveHookState(pluginData, state) {
   }
   const boundedState = coerceHookState(state);
   appendJournalEvent(pluginData, { kind: "replace", state: boundedState });
-  fs6.mkdirSync(pluginData, { recursive: true });
+  fs7.mkdirSync(pluginData, { recursive: true });
   const tempPath = uniqueTempPath(pluginData);
-  fs6.writeFileSync(tempPath, `${JSON.stringify(boundedState)}
+  fs7.writeFileSync(tempPath, `${JSON.stringify(boundedState)}
 `);
-  fs6.renameSync(tempPath, statePath(pluginData));
+  fs7.renameSync(tempPath, statePath(pluginData));
 }
 function addDirtyPaths(pluginData, dirtyPaths) {
   const initialState = loadHookState(pluginData);
@@ -2115,22 +2576,22 @@ function isSourceImpactRelevantPath2(candidate) {
 }
 
 // src/workspace-optin.ts
-import fs7 from "node:fs";
-import path8 from "node:path";
+import fs8 from "node:fs";
+import path9 from "node:path";
 var KIBI_WORKSPACE_ENV_KEYS = [
   "KIBI_WORKSPACE",
   "KIBI_PROJECT_ROOT",
   "KIBI_ROOT"
 ];
 function nextAncestorDirectory(current) {
-  const parent = path8.dirname(current);
+  const parent = path9.dirname(current);
   return parent === current ? undefined : parent;
 }
 function hasKibiManifest(directory) {
-  return fs7.existsSync(path8.join(directory, ".kb", "manifest.json"));
+  return fs8.existsSync(path9.join(directory, ".kb", "manifest.json"));
 }
 function hasGitBoundary(directory) {
-  return fs7.existsSync(path8.join(directory, ".git"));
+  return fs8.existsSync(path9.join(directory, ".git"));
 }
 function resolutionFor(root) {
   return { root, optedIn: hasKibiManifest(root) };
@@ -2139,10 +2600,10 @@ function resolveKibiWorkspace(startDir, env = process.env) {
   for (const key of KIBI_WORKSPACE_ENV_KEYS) {
     const value = env[key]?.trim();
     if (value) {
-      return resolutionFor(path8.resolve(value));
+      return resolutionFor(path9.resolve(value));
     }
   }
-  let current = path8.resolve(startDir && startDir.trim().length > 0 ? startDir : process.cwd());
+  let current = path9.resolve(startDir && startDir.trim().length > 0 ? startDir : process.cwd());
   while (current !== undefined) {
     if (hasKibiManifest(current)) {
       return { root: current, optedIn: true };
@@ -2152,7 +2613,7 @@ function resolveKibiWorkspace(startDir, env = process.env) {
     }
     current = nextAncestorDirectory(current);
   }
-  return resolutionFor(path8.resolve(startDir ?? process.cwd()));
+  return resolutionFor(path9.resolve(startDir ?? process.cwd()));
 }
 
 // src/hook-runner.ts
@@ -2230,14 +2691,14 @@ function firmNotice(targets, files, summarize, session, input, env) {
   return;
 }
 function packageVersion() {
-  return readPackageVersion(path9.join(path9.dirname(fileURLToPath(import.meta.url)), "..", "package.json"));
+  return readPackageVersion(path10.join(path10.dirname(fileURLToPath(import.meta.url)), "..", "package.json"));
 }
 function editTelemetryTraces(workspaceRoot, stateDir, input) {
   const files = loadKnowledgeIndex(workspaceRoot, stateDir).files;
   return editTraces(editTargets(workspaceRoot, input).map((target) => target.relative), (relativePath) => implementedRequirementIds(files[relativePath] ?? []));
 }
 function recordToolTelemetry(workspaceRoot, stateDir, input, startedAt, env) {
-  if (!hookTelemetryEnabled(env))
+  if (!hookTracesWanted(env))
     return;
   const kbUsage = kbUsageTrace(input.toolName, input.toolInput);
   if (!kbUsage && !isKnownEditTool(input.toolName))
@@ -2262,122 +2723,130 @@ async function runHook(rawInput, environment = {}) {
     return defaultResult();
   }
   const stateDir = resolveWorkspaceStateDir(pluginData, workspace.root);
-  switch (input.event) {
-    case "SessionStart":
-      return defaultResult();
-    case "UserPromptSubmit": {
-      const rule = recordRequest({ stateDir, sessionId: input.sessionId }, input.prompt ?? "");
-      if (rule === undefined)
+  try {
+    switch (input.event) {
+      case "SessionStart":
         return defaultResult();
-      return {
-        continue: true,
-        hookSpecificOutput: {
-          hookEventName: "UserPromptSubmit",
-          additionalContext: rulePromptNote(rule)
-        }
-      };
-    }
-    case "PreToolUse": {
-      const stamped = stampKibiWorkspace(input.toolName, input.toolInput, workspace.root);
-      if (stamped) {
+      case "UserPromptSubmit": {
+        const rule = recordRequest({ stateDir, sessionId: input.sessionId }, input.prompt ?? "");
+        if (rule === undefined)
+          return defaultResult();
         return {
           continue: true,
           hookSpecificOutput: {
-            hookEventName: "PreToolUse",
-            permissionDecision: "allow",
-            updatedInput: stamped
+            hookEventName: "UserPromptSubmit",
+            additionalContext: rulePromptNote(rule)
           }
         };
       }
-      const explicitPaths = extractEditedPaths(input.toolInput);
-      const hasDirectKbEdit = isEditLikeTool(input.toolName) && explicitPaths.some(isDirectKbPath);
-      if (hasDirectKbEdit) {
-        return { continue: true, systemMessage: DIRECT_KB_EDIT_WARNING };
-      }
-      let context;
-      try {
-        context = isKnownEditTool(input.toolName) ? preEditContext(workspace.root, stateDir, input, environment.env ?? process.env) : undefined;
-      } catch {}
-      if (context) {
-        return {
-          continue: true,
-          hookSpecificOutput: {
-            hookEventName: "PreToolUse",
-            additionalContext: context
-          }
-        };
-      }
-      return defaultResult();
-    }
-    case "PostToolUse": {
-      try {
-        recordToolTelemetry(workspace.root, stateDir, input, startedAt, environment.env);
-      } catch {}
-      const kbToolCall = extractKbMcpToolCall2(input.toolName, input.toolInput);
-      if (kbToolCall) {
-        recordKbMcpTool(stateDir, kbToolCall.toolName, {
-          impactCheckRun: kbToolCall.impactCheckRun,
-          sourceFiles: kbToolCall.sourceFiles
-        });
-      }
-      const dirtyPaths = extractEditedPaths(input.toolInput).filter(isMeaningfulTrackedPath2);
-      if (dirtyPaths.length > 0) {
-        addDirtyPaths(stateDir, dirtyPaths);
-      }
-      const session = { stateDir, sessionId: input.sessionId };
-      if (isKnownEditTool(input.toolName) && dirtyPaths.some(isSourceImpactRelevantPath2)) {
-        markDecisionFlag(session, "source-edited");
-      }
-      if (kbToolCall?.toolName === "kb_upsert" || kbUsageTrace(input.toolName, input.toolInput)?.kbOperation === "kb_upsert") {
-        markDecisionFlag(session, "kb-recorded");
-        if (isRequirementUpsert(input.toolInput)) {
-          markDecisionFlag(session, "requirement-recorded");
+      case "PreToolUse": {
+        const stamped = stampKibiWorkspace(input.toolName, input.toolInput, workspace.root);
+        if (stamped) {
+          return {
+            continue: true,
+            hookSpecificOutput: {
+              hookEventName: "PreToolUse",
+              permissionDecision: "allow",
+              updatedInput: stamped
+            }
+          };
         }
+        const explicitPaths = extractEditedPaths(input.toolInput);
+        const hasDirectKbEdit = isEditLikeTool(input.toolName) && explicitPaths.some(isDirectKbPath);
+        if (hasDirectKbEdit) {
+          return { continue: true, systemMessage: DIRECT_KB_EDIT_WARNING };
+        }
+        let context;
+        try {
+          context = isKnownEditTool(input.toolName) ? preEditContext(workspace.root, stateDir, input, environment.env ?? process.env) : undefined;
+        } catch {}
+        if (context) {
+          return {
+            continue: true,
+            hookSpecificOutput: {
+              hookEventName: "PreToolUse",
+              additionalContext: context
+            }
+          };
+        }
+        return defaultResult();
       }
-      return defaultResult();
-    }
-    case "Stop": {
-      const state = loadHookState(stateDir);
-      const uncheckedSourcePaths = state.dirtyPaths.filter(isSourceImpactRelevantPath2).filter((sourcePath) => !state.impactCheckedPaths.includes(sourcePath));
-      const session = { stateDir, sessionId: input.sessionId };
-      if (!input.stopHookActive && claimCaptureReminder(session)) {
-        const reason = [
-          captureReminder(hasDecisionFlag(session, "rule-prompt")),
-          ...uncheckedSourcePaths.length > 0 ? [impactCheckReminder(uncheckedSourcePaths)] : []
-        ].join(`
+      case "PostToolUse": {
+        try {
+          recordToolTelemetry(workspace.root, stateDir, input, startedAt, environment.env);
+        } catch {}
+        const kbToolCall = extractKbMcpToolCall2(input.toolName, input.toolInput);
+        if (kbToolCall) {
+          recordKbMcpTool(stateDir, kbToolCall.toolName, {
+            impactCheckRun: kbToolCall.impactCheckRun,
+            sourceFiles: kbToolCall.sourceFiles
+          });
+        }
+        const dirtyPaths = extractEditedPaths(input.toolInput).filter(isMeaningfulTrackedPath2);
+        if (dirtyPaths.length > 0) {
+          addDirtyPaths(stateDir, dirtyPaths);
+        }
+        const session = { stateDir, sessionId: input.sessionId };
+        if (isKnownEditTool(input.toolName) && dirtyPaths.some(isSourceImpactRelevantPath2)) {
+          markDecisionFlag(session, "source-edited");
+        }
+        if (kbToolCall?.toolName === "kb_upsert" || kbUsageTrace(input.toolName, input.toolInput)?.kbOperation === "kb_upsert") {
+          markDecisionFlag(session, "kb-recorded");
+          if (isRequirementUpsert(input.toolInput)) {
+            markDecisionFlag(session, "requirement-recorded");
+          }
+        }
+        return defaultResult();
+      }
+      case "Stop": {
+        const state = loadHookState(stateDir);
+        const uncheckedSourcePaths = state.dirtyPaths.filter(isSourceImpactRelevantPath2).filter((sourcePath) => !state.impactCheckedPaths.includes(sourcePath));
+        const session = { stateDir, sessionId: input.sessionId };
+        if (!input.stopHookActive && claimCaptureReminder(session)) {
+          const reason = [
+            captureReminder(hasDecisionFlag(session, "rule-prompt")),
+            ...uncheckedSourcePaths.length > 0 ? [impactCheckReminder(uncheckedSourcePaths)] : []
+          ].join(`
 `);
-        clearDirtyPaths(stateDir);
-        return { continue: true, decision: "block", reason };
+          clearDirtyPaths(stateDir);
+          return { continue: true, decision: "block", reason };
+        }
+        if (!input.stopHookActive && claimSignoffReminder(session, workspace.root)) {
+          return {
+            continue: true,
+            decision: "block",
+            reason: signoffReminder()
+          };
+        }
+        if (uncheckedSourcePaths.length > 0) {
+          clearDirtyPaths(stateDir);
+          return {
+            continue: true,
+            systemMessage: impactCheckReminder(uncheckedSourcePaths)
+          };
+        }
+        const freshnessPaths = state.dirtyPaths.filter((dirtyPath) => !isSourceImpactRelevantPath2(dirtyPath));
+        if (freshnessPaths.length > 0) {
+          clearDirtyPaths(stateDir);
+          return {
+            continue: true,
+            systemMessage: freshnessReminder(freshnessPaths)
+          };
+        }
+        if (state.dirtyPaths.length > 0 || state.kbCheckRun) {
+          clearDirtyPaths(stateDir);
+        }
+        return defaultResult();
       }
-      if (!input.stopHookActive && claimSignoffReminder(session, workspace.root)) {
-        return {
-          continue: true,
-          decision: "block",
-          reason: signoffReminder()
-        };
-      }
-      if (uncheckedSourcePaths.length > 0) {
-        clearDirtyPaths(stateDir);
-        return {
-          continue: true,
-          systemMessage: impactCheckReminder(uncheckedSourcePaths)
-        };
-      }
-      const freshnessPaths = state.dirtyPaths.filter((dirtyPath) => !isSourceImpactRelevantPath2(dirtyPath));
-      if (freshnessPaths.length > 0) {
-        clearDirtyPaths(stateDir);
-        return {
-          continue: true,
-          systemMessage: freshnessReminder(freshnessPaths)
-        };
-      }
-      if (state.dirtyPaths.length > 0 || state.kbCheckRun) {
-        clearDirtyPaths(stateDir);
-      }
-      return defaultResult();
+      default:
+        return defaultResult();
     }
-    default:
-      return defaultResult();
+  } finally {
+    await finishHookTelemetry({
+      event: input.event,
+      workspaceRoot: workspace.root,
+      sessionId: input.sessionId
+    }, environment.env ?? process.env);
   }
 }
 async function main() {
@@ -2386,7 +2855,7 @@ async function main() {
 `);
 }
 function isInvokedAsCli(argv1, moduleUrl) {
-  const invokedPath = argv1 ? pathToFileURL(path9.resolve(argv1)).href : "";
+  const invokedPath = argv1 ? pathToFileURL(path10.resolve(argv1)).href : "";
   return moduleUrl === invokedPath;
 }
 async function runHookCli() {

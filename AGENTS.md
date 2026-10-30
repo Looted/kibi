@@ -89,6 +89,7 @@ Applies to publishable packages (`kibi-core`, `kibi-cli`, `kibi-mcp`, `kibi-open
 
 - **Pre-existing issues are yours.** Never hand off past broken tests, validation failures, stale KB state or diagnostics, even if they predate your change, unless the user explicitly narrows scope.
 - **Tests:** assert observable behavior, not lines. Don't add coverage-only files or refactor production code just to cover it; consolidate existing `*.coverage.test.ts` files when you touch their code. Restore mocks, isolate filesystem effects and reset global state; verify both isolated and full-suite runs.
+- **Every host:** each feature must work in every agent host Kibi supports (Claude Code, Codex, Cursor, OpenCode, ZCode) and in a setup with no agent host (plain CLI, any MCP client, CI). A feature built through one host's hook, plugin or environment variable needs the equivalent for the others and a fallback for the hostless setup, or the PR must say why a host cannot have it.
 - **Proof:** run `bun run proof:prepush` on the clean, committed branch after refreshing Kibi. For changes to proof contracts, coverage links or proof tooling, also run `bun run proof:replay`. Passing tests alone do not establish the proof baseline.
 - **Self-review:** before committing or opening a PR, review the diff with `ocr delegate preview` (or the `open-code-review-delegate` skill) and fix or report every finding.
 - **Clean tree:** delete session artifacts (`.playwright-mcp/`, ad hoc logs, scratch files) and review `git status` before staging; avoid `git add -A`.

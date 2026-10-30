@@ -5,6 +5,10 @@ import os from "node:os";
 import path from "node:path";
 
 import { MAX_SNIPPET_CHARS } from "kibi-agent-core/snippets";
+import {
+  hashTelemetryId,
+  workspaceSessionHash,
+} from "kibi-agent-core/usage-telemetry";
 import { PRE_EDIT_FOLLOWUP } from "../src/guidance";
 import { type CursorHookResult, runHook } from "../src/hook-runner";
 import { loadHookState } from "../src/hook-state";
@@ -1025,6 +1029,29 @@ describe("Cursor hook runner result contracts", () => {
     fs.mkdirSync(path.join(bare, ".kb"), { recursive: true });
     fs.mkdirSync(path.join(bare, ".git"), { recursive: true });
     expect(kibiWorkspaceFor(bare)).toBeUndefined();
+  });
+
+  // implements REQ-kibi-anonymous-usage-telemetry
+  test("every hook remembers the conversation for the workspace when telemetry is on", async () => {
+    const telemetryDir = createTempRoot("kibi-cursor-telemetry-");
+    tempRoots.push(telemetryDir);
+    const env = { KIBI_TELEMETRY: "1", KIBI_TELEMETRY_DIR: telemetryDir };
+    const { event, workspace } = conversation(cursorLinkedWorkspace(), env);
+
+    await event({ hook_event_name: "stop", status: "completed" }, "conv-7");
+
+    expect(workspaceSessionHash(workspace, env)).toBe(
+      hashTelemetryId("conv-7"),
+    );
+  });
+
+  test("no session is remembered when telemetry is off", async () => {
+    const telemetryDir = createTempRoot("kibi-cursor-telemetry-");
+    tempRoots.push(telemetryDir);
+    const env = { KIBI_TELEMETRY: "0", KIBI_TELEMETRY_DIR: telemetryDir };
+    const { event } = conversation(cursorLinkedWorkspace(), env);
+    await event({ hook_event_name: "stop", status: "completed" }, "conv-8");
+    expect(fs.readdirSync(telemetryDir)).toEqual([]);
   });
 
   test("an edit call without a path gets no pre-edit message", async () => {
