@@ -209,3 +209,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1d71b8c4d05c
+  - type: implements
+    from: SYM-migration-entity-origin-backfill-code
+    to: REQ-cli-schema-migration-codes
+    created_at: 2026-10-28T18:49:43.919Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f34f5373605
+  - type: covered_by
+    from: SYM-migration-entity-origin-backfill-code
+    to: TEST-proof-origin-backfill-code
+    created_at: 2026-10-28T18:49:55.440Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb962fcf20e9
+  - type: executable_for
+    from: SYM-proof-canonical-symbols-path
+    to: TEST-proof-canonical-symbols-path
+    created_at: 2026-10-28T22:36:11.105Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee3187b26d2a
+  - type: validates
+    from: TEST-proof-ontology-polarities
+    to: SCEN-capability-plugin-host-resolution-v1
+    created_at: 2026-10-29T10:29:49.106Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49b718e0b234
+  - type: requires_property
+    from: REQ-kibi-vocabulary-alignment-limits
+    to: FACT-builtin-alignment-reuse-threshold
+    created_at: 2026-10-29T16:54:20.002Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-017083ed8ec7
+  - type: requires_property
+    from: REQ-kibi-vocabulary-alignment-limits
+    to: FACT-jev-alignment-top-k
+    created_at: 2026-10-29T16:54:20.064Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be566c34ab74
+  - type: requires_property
+    from: REQ-kibi-vocabulary-alignment-limits
+    to: FACT-alignment-new-choice
+    created_at: 2026-10-29T16:54:20.092Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e81cb88b20d3
+  - type: specified_by
+    from: REQ-kibi-vocabulary-alignment-limits
+    to: SCEN-kibi-vocabulary-alignment-capability
+    created_at: 2026-10-29T16:54:20.113Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab518a93f747
+  - type: constrains
+    from: REQ-kibi-vocabulary-alignment-limits
+    to: FACT-kibi-vocabulary-alignment-limits-component
+    created_at: 2026-10-29T16:54:23.389Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30e7ba408886

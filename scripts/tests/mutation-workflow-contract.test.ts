@@ -8,7 +8,10 @@ import {
 } from "node:fs";
 import { join } from "node:path";
 
-import strykerConfig from "../../stryker.conf.mjs";
+import strykerConfig, {
+  CLI_MUTATION_MODULES,
+  PLUGIN_MUTATION_MODULES,
+} from "../../stryker.conf.mjs";
 
 const ROOT = join(import.meta.dir, "..", "..");
 const MUTATION_PACKAGES = [
@@ -94,9 +97,15 @@ describe("mutation testing workflow contract", () => {
       f.replace(/^\.\//, ""),
     );
     expect(registered.length).toBeGreaterThan(0);
-    const onDisk = MUTATION_PACKAGES.flatMap((pkg) =>
-      walkTsFiles(pkg, "tests", ".test.ts"),
-    ).sort();
+    const onDisk = [
+      ...new Set([
+        ...MUTATION_PACKAGES.flatMap((pkg) =>
+          walkTsFiles(pkg, "tests", ".test.ts"),
+        ),
+        ...Object.values(CLI_MUTATION_MODULES).flat(),
+        ...Object.values(PLUGIN_MUTATION_MODULES).flat(),
+      ]),
+    ].sort();
     expect(registered.sort()).toEqual(onDisk);
     for (const rel of registered) {
       expect(statSync(join(ROOT, rel)).isFile()).toBe(true);
@@ -115,19 +124,79 @@ describe("mutation testing workflow contract", () => {
     expect(gitignore).toContain("reports/mutation/");
   });
 
-  test("Stryker disable comments in scope must carry a nearby rationale", () => {
+  test("CI runs the suite and triggers on every mutated package", () => {
+    const workflow = readFileSync(
+      join(ROOT, ".github", "workflows", "mutation.yml"),
+      "utf8",
+    );
+    expect(workflow).toContain("run: bun run build");
+    expect(workflow).toContain("run: bun run test:mutation");
+    expect(workflow).toContain("schedule:");
     for (const pkg of MUTATION_PACKAGES) {
-      for (const file of walkTsFiles(pkg, "src", ".ts")) {
-        const lines = readFileSync(join(ROOT, file), "utf8").split("\n");
-        lines.forEach((line, index) => {
-          if (!line.includes("Stryker disable")) return;
-          const preceding = lines.slice(Math.max(0, index - 3), index);
-          expect(
-            preceding.some((context) => context.includes("rationale:")),
-            `${file}:${index + 1} disables mutants without a "rationale:" comment above`,
-          ).toBe(true);
-        });
+      expect(workflow).toContain(`- '${pkg}/src/**'`);
+      expect(workflow).toContain(`- '${pkg}/tests/**'`);
+    }
+    expect(workflow).toContain("- 'stryker.conf.mjs'");
+    for (const [module, tests] of Object.entries(PLUGIN_MUTATION_MODULES)) {
+      const pkg = module.split("/src/")[0];
+      const covered = (path: string, leaf: string) =>
+        workflow.includes(`- '${path}'`) ||
+        workflow.includes(`- '${pkg}/${leaf}/**'`);
+      expect(covered(module, "src")).toBe(true);
+      for (const test of tests) expect(covered(test, "tests")).toBe(true);
+    }
+    for (const [module, tests] of Object.entries(CLI_MUTATION_MODULES)) {
+      expect(workflow).toContain(`- '${module}'`);
+      for (const test of tests) expect(workflow).toContain(`- '${test}'`);
+    }
+  });
+
+  test("every kibi-cli module in scope is mutated and has its own tests", () => {
+    const modules = Object.entries(CLI_MUTATION_MODULES);
+    expect(modules.length).toBeGreaterThan(0);
+    for (const [module, tests] of modules) {
+      expect(config.mutate).toContain(module);
+      expect(statSync(join(ROOT, module)).isFile()).toBe(true);
+      expect(tests.length).toBeGreaterThan(0);
+      for (const test of tests) {
+        expect(test).toMatch(/^packages\/cli\/tests\/.+\.test\.ts$/);
+        expect(statSync(join(ROOT, test)).isFile()).toBe(true);
       }
+    }
+  });
+
+  test("every plugin module in scope is mutated and tested by its own package", () => {
+    const modules = Object.entries(PLUGIN_MUTATION_MODULES);
+    expect(modules.length).toBeGreaterThan(0);
+    for (const [module, tests] of modules) {
+      expect(config.mutate).toContain(module);
+      expect(statSync(join(ROOT, module)).isFile()).toBe(true);
+      const pkg = module.split("/src/")[0];
+      expect(tests.length).toBeGreaterThan(0);
+      for (const test of tests) {
+        expect(test.startsWith(`${pkg}/tests/`)).toBe(true);
+        expect(test.endsWith(".test.ts")).toBe(true);
+        expect(statSync(join(ROOT, test)).isFile()).toBe(true);
+      }
+    }
+  });
+
+  test("Stryker disable comments in scope must carry a nearby rationale", () => {
+    const sources = [
+      ...MUTATION_PACKAGES.flatMap((pkg) => walkTsFiles(pkg, "src", ".ts")),
+      ...Object.keys(CLI_MUTATION_MODULES),
+      ...Object.keys(PLUGIN_MUTATION_MODULES),
+    ];
+    for (const file of sources) {
+      const lines = readFileSync(join(ROOT, file), "utf8").split("\n");
+      lines.forEach((line, index) => {
+        if (!line.includes("Stryker disable")) return;
+        const preceding = lines.slice(Math.max(0, index - 3), index);
+        expect(
+          preceding.some((context) => context.includes("rationale:")),
+          `${file}:${index + 1} disables mutants without a "rationale:" comment above`,
+        ).toBe(true);
+      });
     }
   });
 });

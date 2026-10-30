@@ -237,3 +237,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b4baf0396e17
+  - type: implements
+    from: SYM-prolog-swipl-minimum-swipl-major-src
+    to: REQ-prolog-swipl-minimum-version
+    created_at: 2026-10-28T10:35:22.641Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-214c2f22649d
+  - type: covered_by
+    from: SYM-prolog-swipl-minimum-swipl-major-src
+    to: TEST-proof-swipl-minimum-major
+    created_at: 2026-10-28T10:35:34.250Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42ad97a4ed88
+  - type: implements
+    from: SYM-const-review-candidate-min-score
+    to: REQ-kibi-contradiction-review-limits
+    created_at: 2026-10-28T10:43:13.126Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc3fd75fe554
+  - type: covered_by
+    from: SYM-const-review-candidate-min-score
+    to: TEST-proof-review-candidate-min-score
+    created_at: 2026-10-28T10:43:25.168Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5846fa8f8ec4
+  - type: covered_by
+    from: SYM-const-review-candidate-min-score
+    to: TEST-kibi-contradiction-review-cli
+    created_at: 2026-10-28T10:43:25.184Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33fbd9e51f45
+  - type: validates
+    from: TEST-proof-symbol-coordinates-format-version
+    to: SCEN-generated-coordinate-repair
+    created_at: 2026-10-28T11:13:51.031Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3486b843ba32
+  - type: validates
+    from: TEST-proof-exception-unapproved-rule
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:21:00.941Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e876a28812a
+  - type: validates
+    from: TEST-proof-rationale-review-action
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:27:46.318Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-238c98b47460
+  - type: validates
+    from: TEST-proof-brand-deepcarbon-color
+    to: SCEN-kibi-branded-health-report
+    created_at: 2026-10-28T22:28:26.767Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d9c2c463ed0

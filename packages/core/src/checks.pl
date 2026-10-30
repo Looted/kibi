@@ -6,7 +6,11 @@
 :- module(checks, [
     check_all/1,                    % Returns all violations as a dict
     check_all_json/1,               % Returns all violations as JSON string
+    check_all_json_file/2,          % Writes all violations as JSON to a file
     check_selected_json/2,           % Returns only selected rule violations as JSON
+    check_selected_json_file/2,      % Writes selected rule violations as JSON to a file
+    check_all_json_transport/4,      % File transport with an answer fallback
+    check_selected_json_transport/4, % Same, for selected rules
     check_must_priority_coverage/1, % Returns list of must-priority violations
     check_symbol_coverage/1,        % Returns list of uncovered symbols
     check_changed_symbol_coverage/2, % symbol-coverage restricted to a staged change set
@@ -470,7 +474,7 @@ parse_json_object(Dict, Dict) :-
     !.
 parse_json_object(Raw, Dict) :-
     (atom(Raw) ; string(Raw)),
-    catch(atom_json_dict(Raw, Dict, [value_string_as(string)]), _, fail),
+    json_text_term(Raw, Dict),
     is_dict(Dict).
 
 parse_json_list(Raw, Entries) :-
@@ -482,8 +486,47 @@ parse_json_list(^^(Value, _), Entries) :-
     parse_json_list(Value, Entries).
 parse_json_list(Raw, Entries) :-
     (atom(Raw) ; string(Raw)),
-    catch(atom_json_dict(Raw, Entries, [value_string_as(string)]), _, fail),
+    json_text_term(Raw, Entries),
     is_list(Entries).
+
+% The same JSON text (a rule body, a claim inventory, a receipt history) is
+% parsed by several rules and by every requirement that links the fact, so
+% the parsed term is kept by its text.  Parsing is a pure function of the
+% text, so the memo never goes stale; it is bounded so a long-lived engine
+% cannot grow it without limit.
+:- dynamic json_text_memo/2.
+:- dynamic json_text_memo_size/1.
+
+% mutalog-disable-next-line literal: the bound is a tuning value; any size gives the same answers
+json_text_memo_limit(16384).
+
+json_text_term(Raw, Term) :-
+    atom_string(Text, Raw),
+    (   json_text_memo(Text, Stored)
+    ->  Stored = parsed(Term)
+    ;   (   catch(atom_json_dict(Text, Parsed, [value_string_as(string)]), _, fail)
+        ->  Stored = parsed(Parsed)
+        ;   Stored = invalid
+        ),
+        json_text_remember(Text, Stored),
+        Stored = parsed(Term)
+    ).
+
+json_text_remember(Text, Stored) :-
+    (   json_text_memo_size(Size)
+    ->  true
+    ;   Size = 0
+    ),
+    json_text_memo_limit(Limit),
+    (   Size >= Limit
+    ->  retractall(json_text_memo(_, _)),
+        retractall(json_text_memo_size(_)),
+        Next = 1
+    ;   retractall(json_text_memo_size(_)),
+        Next is Size + 1
+    ),
+    assertz(json_text_memo(Text, Stored)),
+    assertz(json_text_memo_size(Next)).
 
 %% check_no_dangling_refs(-Violations)
 % Finds all relationships referencing non-existent entities.
@@ -1281,7 +1324,28 @@ analysis_outcome(analysis([], [], false, []), feasible).
 % advisory reasons in reporting order; ByException is true when some check is
 % satisfiable only because an approved exception waived a constraint;
 % NotApplicable is non-empty only when no assumption is governed at all.
-scenario_feasibility_analysis(ScenarioId, analysis(Witnesses, Unknowns, ByException, NotApplicable)) :-
+% The analysis of a scenario is kept per KB generation: the blocking rule,
+% the unknown-feasibility rule and every requirement's proof ladder ask for
+% the same scenarios.  Inside a transaction (what-if staging) the KB is not
+% the generation's, so the analysis is computed afresh.
+scenario_feasibility_analysis(ScenarioId, Analysis) :-
+    (   nonvar(ScenarioId),
+        \+ rdf_db:rdf_active_transaction(_),
+        kb:index_verification_key(scenario_feasibility, Key)
+    ->  (   kb:kb_scenario_feasibility_memo(ScenarioId, Key, Analysis0)
+        ->  Analysis = Analysis0
+        ;   compute_scenario_feasibility_analysis(ScenarioId, Analysis),
+            (   once(kb:kb_scenario_feasibility_memo(_, Stored, _)),
+                Stored \== Key
+            ->  retractall(kb:kb_scenario_feasibility_memo(_, _, _))
+            ;   true
+            ),
+            assertz(kb:kb_scenario_feasibility_memo(ScenarioId, Key, Analysis))
+        )
+    ;   compute_scenario_feasibility_analysis(ScenarioId, Analysis)
+    ).
+
+compute_scenario_feasibility_analysis(ScenarioId, analysis(Witnesses, Unknowns, ByException, NotApplicable)) :-
     findall(FactId, kb_relationship(assumes, ScenarioId, FactId), Assumed0),
     sort(Assumed0, Assumed),
     (   Assumed == []
@@ -2526,7 +2590,24 @@ check_domain_contradictions_and_witnesses(Violations, Witnesses) :-
 % Exact, JSON-safe evidence for every strict-property, ground-predicate, and
 % safe-rule contradiction result.  Rule overlap that cannot be proven or
 % disproven remains status=unresolved rather than becoming consistency.
+%
+% kb_check, kb_coverage and the proof context each ask for every witness, so
+% the result is memoized per KB generation, like the entity property memo.
+% Inside an RDF transaction (the what-if staging) it is always recomputed.
 check_domain_contradiction_witnesses(Witnesses) :-
+    (   \+ rdf_db:rdf_active_transaction(_),
+        kb:index_verification_key(domain_contradictions, Key)
+    ->  (   kb:kb_contradiction_witness_memo(Key, Cached)
+        ->  Witnesses = Cached
+        ;   compute_domain_contradiction_witnesses(Computed),
+            retractall(kb:kb_contradiction_witness_memo(_, _)),
+            assertz(kb:kb_contradiction_witness_memo(Key, Computed)),
+            Witnesses = Computed
+        )
+    ;   compute_domain_contradiction_witnesses(Witnesses)
+    ).
+
+compute_domain_contradiction_witnesses(Witnesses) :-
     findall(Witness, req_conflict_witness(_ReqA, _ReqB, Witness), GroundWitnesses),
     functional_predicate_declarations(Functional),
     findall(Witness, rule_contradiction_witness(Functional, Witness), RuleWitnesses),
@@ -2701,22 +2782,42 @@ opposing_rule_requirements(ReqA, ReqB, RuleA, RuleB) :-
 % Each unordered pair of (requirement, rule fact) endpoints is compared once,
 % ordered by the requirement-fact pair: ordering requirements and facts
 % independently would never compare REQ-A->FACT-Z with REQ-Z->FACT-A.
+%
+% Only current requirements with requires_rule links can pair, so the pairs
+% are drawn from that list (in current_req/1 order, each with its rule links
+% in relationship order) rather than from every pair of current
+% requirements; solutions and their order are unchanged.
 opposing_rule_requirement_facts(ReqA, ReqB, FactA, FactB, RuleA, RuleB) :-
-    kb:current_req(ReqA),
-    kb:current_req(ReqB),
+    rule_requirement_links(Links),
+    member(ReqA-RulesA, Links),
+    member(ReqB-RulesB, Links),
     ReqA \== ReqB,
-    kb_relationship(requires_rule, ReqA, FactA),
-    kb_relationship(requires_rule, ReqB, FactB),
+    member(FactA-RuleA, RulesA),
+    member(FactB-RuleB, RulesB),
     FactA \== FactB,
-    ReqA-FactA @< ReqB-FactB,
-    kb_entity(FactA, fact, PropsA),
-    kb_entity(FactB, fact, PropsB),
-    memberchk(fact_kind=KindA, PropsA),
-    memberchk(fact_kind=KindB, PropsB),
-    normalize_term_atom(KindA, rule),
-    normalize_term_atom(KindB, rule),
-    logic_rule_from_props(PropsA, RuleA),
-    logic_rule_from_props(PropsB, RuleB).
+    % mutalog-disable-next-line compare: equal endpoints need ReqA == ReqB, which is excluded above
+    ReqA-FactA @< ReqB-FactB.
+
+% Each requirement's rule facts with their parsed rules, read once rather
+% than once per pair: a link to a fact that is not a rule, or whose rule does
+% not parse, never pairs.
+rule_requirement_links(Links) :-
+    findall(ReqId-Rules,
+            ( kb:current_req(ReqId),
+              findall(FactId-Rule,
+                      ( kb_relationship(requires_rule, ReqId, FactId),
+                        rule_fact_rule(FactId, Rule) ),
+                      Rules),
+              % mutalog-disable-next-line goal_true,literal: a requirement without rules never pairs; this only prunes
+              Rules \== [] ),
+            Links).
+
+rule_fact_rule(FactId, Rule) :-
+    kb_entity(FactId, fact, Props),
+    memberchk(fact_kind=Kind, Props),
+    % mutalog-disable-next-line goal_true: only a rule fact carries a rule body to decode
+    normalize_term_atom(Kind, rule),
+    logic_rule_from_props(Props, Rule).
 
 rule_contradiction_witness(Functional, Witness) :-
     opposing_rule_requirement_facts(ReqA, ReqB, FactA, FactB, RuleA, RuleB),
@@ -3472,7 +3573,7 @@ inventory_entries(Raw, Entries) :-
     (   is_list(Raw) -> Entries = Raw
     ;   Raw = ^^(Value, _) -> inventory_entries(Value, Entries)
     ;   (atom(Raw) ; string(Raw)),
-        catch(atom_json_dict(Raw, JsonEntries, [value_string_as(string)]), _, fail),
+        json_text_term(Raw, JsonEntries),
         is_list(JsonEntries)
     ->  Entries = JsonEntries
     ;   (atom(Raw) ; string(Raw)),
@@ -3746,6 +3847,66 @@ check_all_json_with_options(JsonString, RequireAdr) :-
     with_output_to_string(
         json_write_dict(current_output, JsonDict, [width(0)]),
         JsonString
+    ).
+
+%% check_all_json_file(+Path, +RequireAdr)
+% Writes the JSON check_all_json_with_options/2 would answer to Path.
+% The answer itself carries no violations, so a large KB's report is never
+% bounded by the engine's output capacity; the caller reads the file.
+check_all_json_file(Path, RequireAdr) :-
+    check_all_with_options(ViolationsDict, RequireAdr),
+    violations_json_to_file(ViolationsDict, Path).
+
+%% check_selected_json_file(+Rules, +Path)
+% File-transport form of check_selected_json/2.
+check_selected_json_file(Rules, Path) :-
+    check_selected(Rules, ViolationsDict),
+    violations_json_to_file(ViolationsDict, Path).
+
+%% check_all_json_transport(+Path, +RequireAdr, -Transport, -JsonString)
+% Writes the violations JSON to Path (Transport = file, JsonString = ''), or
+% answers it as JsonString (Transport = answer) when Path is `none` or the
+% file cannot be written: a full or read-only temp folder, or an engine that
+% cannot reach the caller's temp folder, must not fail a check that fits in
+% an answer.
+check_all_json_transport(Path, RequireAdr, Transport, JsonString) :-
+    check_all_with_options(ViolationsDict, RequireAdr),
+    violations_json_transport(ViolationsDict, Path, Transport, JsonString).
+
+%% check_selected_json_transport(+Rules, +Path, -Transport, -JsonString)
+% check_all_json_transport/4 for the named rules only.
+check_selected_json_transport(Rules, Path, Transport, JsonString) :-
+    check_selected(Rules, ViolationsDict),
+    violations_json_transport(ViolationsDict, Path, Transport, JsonString).
+
+violations_json_transport(ViolationsDict, Path, Transport, JsonString) :-
+    (   Path \== none,
+        catch(violations_json_to_file(ViolationsDict, Path), Error,
+              (   file_transport_error(Error)
+              ->  fail
+              ;   throw(Error)
+              ))
+    ->  Transport = file,
+        JsonString = ''
+    ;   Transport = answer,
+        violations_dict_to_json(ViolationsDict, JsonDict),
+        with_output_to_string(
+            json_write_dict(current_output, JsonDict, [width(0)]),
+            JsonString
+        )
+    ).
+
+file_transport_error(error(permission_error(_, _, _), _)).
+file_transport_error(error(existence_error(_, _), _)).
+file_transport_error(error(resource_error(_), _)).
+file_transport_error(error(io_error(_, _), _)).
+
+violations_json_to_file(ViolationsDict, Path) :-
+    violations_dict_to_json(ViolationsDict, JsonDict),
+    setup_call_cleanup(
+        open(Path, write, Stream, [encoding(utf8)]),
+        json_write_dict(Stream, JsonDict, [width(0)]),
+        close(Stream)
     ).
 
 %% check_all_with_options(-ViolationsDict, +RequireAdr)

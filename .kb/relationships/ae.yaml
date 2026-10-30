@@ -335,3 +335,101 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-46a1a5dd27a4
+  - type: executable_for
+    from: SYM-proof-canonical-kb-lanes
+    to: TEST-proof-canonical-kb-lanes
+    created_at: 2026-10-28T10:10:18.661Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a797ddc67878
+  - type: implements
+    from: SYM-proof-receipt-outcomes
+    to: REQ-kibi-claim-bound-proof-settings
+    created_at: 2026-10-28T10:57:46.950Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5648388616c0
+  - type: covered_by
+    from: SYM-proof-receipt-outcomes
+    to: TEST-proof-proof-receipt-outcomes
+    created_at: 2026-10-28T10:57:57.537Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d12df7419ce9
+  - type: covered_by
+    from: SYM-proof-receipt-outcomes
+    to: TEST-kibi-claim-bound-proofs
+    created_at: 2026-10-28T10:57:57.557Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b5472867185
+  - type: implements
+    from: SYM-prolog-swipl-required-swipl-libraries-src
+    to: REQ-prolog-runtime-libraries
+    created_at: 2026-10-28T19:22:13.886Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33dbffcc291b
+  - type: covered_by
+    from: SYM-prolog-swipl-required-swipl-libraries-src
+    to: TEST-proof-required-swipl-libraries
+    created_at: 2026-10-28T19:22:25.235Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a77d48fc2c0
+  - type: implements
+    from: SYM-cli-github-placeholder-repo
+    to: REQ-kibi-github-report-settings
+    created_at: 2026-10-29T10:20:50.236Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04c81c92f0c9
+  - type: covered_by
+    from: SYM-cli-github-placeholder-repo
+    to: TEST-proof-github-placeholder-repo
+    created_at: 2026-10-29T10:21:10.335Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a933ab8f1b3
+  - type: requires_property
+    from: REQ-kb-decision-firmness-rule-names
+    to: FACT-rule-decision-firm-unreferenced
+    created_at: 2026-10-29T16:38:12.801Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b35c1cd5a20
+  - type: requires_property
+    from: REQ-kb-decision-firmness-rule-names
+    to: FACT-rule-decision-firm-superseded
+    created_at: 2026-10-29T16:38:12.885Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cdc8cabb352f
+  - type: requires_property
+    from: REQ-kb-decision-firmness-rule-names
+    to: FACT-rule-decision-firm-edited
+    created_at: 2026-10-29T16:38:12.938Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-619af8c5f9de
+  - type: requires_property
+    from: REQ-kb-decision-firmness-rule-names
+    to: FACT-rule-supersedes-reason-missing
+    created_at: 2026-10-29T16:38:12.983Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-569c24f4ea50
+  - type: specified_by
+    from: REQ-kb-decision-firmness-rule-names
+    to: SCEN-kb-decision-firmness
+    created_at: 2026-10-29T16:38:13.019Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89fa349b29ad
+  - type: constrains
+    from: REQ-kb-decision-firmness-rule-names
+    to: FACT-kibi-decision-firmness-rules-component
+    created_at: 2026-10-29T16:38:16.880Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-acf1eee5d72f

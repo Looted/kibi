@@ -381,3 +381,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e1e838efb23d
+  - type: implements
+    from: SYM-entity-body-context-required-types
+    to: REQ-kb-entity-body-context-settings
+    created_at: 2026-10-28T10:38:19.355Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19ef8db2e1c6
+  - type: covered_by
+    from: SYM-entity-body-context-required-types
+    to: TEST-proof-context-required-types
+    created_at: 2026-10-28T10:38:31.885Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff6e555ce857
+  - type: covered_by
+    from: SYM-entity-body-context-required-types
+    to: TEST-kb-entity-body-context
+    created_at: 2026-10-28T10:38:31.921Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-afb3ec9362c8
+  - type: validates
+    from: TEST-proof-symbol-owner-review-action
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T17:29:32.946Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aec97da05317
+  - type: executable_for
+    from: SYM-proof-engine-idle-check
+    to: TEST-proof-engine-idle-check
+    created_at: 2026-10-28T20:46:07.272Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45fda44483e2
+  - type: implements
+    from: SYM-source-analysis-v2-tree-sitter-languages-dae6879e
+    to: REQ-tree-sitter-language-set
+    created_at: 2026-10-28T22:41:42.491Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-972b941d7f49
+  - type: covered_by
+    from: SYM-source-analysis-v2-tree-sitter-languages-dae6879e
+    to: TEST-proof-tree-sitter-language-ids
+    created_at: 2026-10-28T22:41:51.597Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-13908ceeae28
+  - type: covered_by
+    from: SYM-source-analysis-v2-tree-sitter-languages-dae6879e
+    to: TEST-tree-sitter-language-authoring-scaffold-cli-e2e
+    created_at: 2026-10-28T22:41:51.618Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6247a53ee518
+  - type: covered_by
+    from: SYM-source-analysis-v2-tree-sitter-languages-dae6879e
+    to: TEST-proof-tree-sitter-python-extensions
+    created_at: 2026-10-28T22:42:06.964Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-780806c27f95
+  - type: covered_by
+    from: SYM-source-analysis-v2-tree-sitter-languages-dae6879e
+    to: TEST-proof-tree-sitter-go-extensions
+    created_at: 2026-10-28T22:42:22.676Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e8bb2a962e2
+  - type: covered_by
+    from: SYM-source-analysis-v2-tree-sitter-languages-dae6879e
+    to: TEST-proof-tree-sitter-rust-extensions
+    created_at: 2026-10-28T22:42:38.790Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-623e5710490e
+  - type: executable_for
+    from: SYM-proof-report-filter-names
+    to: TEST-proof-report-filter-names
+    created_at: 2026-10-29T10:25:17.324Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f32e62f5d3a1

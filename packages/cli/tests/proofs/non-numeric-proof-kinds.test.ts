@@ -335,6 +335,30 @@ describe("proof_contract fields of the non-numeric kinds", () => {
     expect(
       proofContractErrors(
         contract({
+          kind: "exhaustive",
+          domain_source: { symbol_id: "SYM-D", field: "name" },
+        }),
+      ),
+    ).toEqual([]);
+    expect(
+      proofContractErrors(
+        contract({
+          kind: "state_machine",
+          domain_source: { symbol_id: "SYM-D", field: "name" },
+        }),
+      ).join("\n"),
+    ).toContain("domain_source.field applies only to kind exhaustive");
+    expect(
+      proofContractErrors(
+        contract({
+          kind: "exhaustive",
+          domain_source: { symbol_id: "SYM-D", field: "" },
+        }),
+      ).join("\n"),
+    ).toContain("{symbol_id, export?, field?}");
+    expect(
+      proofContractErrors(
+        contract({
           kind: "rule",
           predicate_source: { p: {} },
           domains: { t: { symbol_id: "S" } },
@@ -505,7 +529,11 @@ describe("Kibi reads the model from the code", () => {
     });
   });
 
-  const hasPython = spawnSync("python3", ["--version"]).status === 0;
+  // No pipes: Bun can miss a pipe's readiness event and leave spawnSync blocked
+  // after the child exits, which stalled this file at collection on CI.
+  const hasPython =
+    spawnSync("python3", ["--version"], { stdio: "ignore", timeout: 10_000 })
+      .status === 0;
   test.skipIf(!hasPython)("Python code is read the same way", () => {
     const root = workspace({
       "pkg/__init__.py": "",

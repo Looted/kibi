@@ -11,7 +11,12 @@ import {
 } from "./public/operations/discovery-entities.js";
 import type { PrologPort } from "./public/operations/runtime-types.js";
 import type { SearchMatch } from "./search-ranking.js";
-import { loadMarkdownBody } from "./search-ranking.js";
+import { loadMarkdownBodySync } from "./search-ranking.js";
+import {
+  type SearchTokenCache,
+  openSearchTokenCache,
+  tokenSourceHash,
+} from "./search-token-cache.js";
 
 // implements REQ-kibi-intent-aware-source-discovery
 export type IntentSearchFacetName =
@@ -132,6 +137,7 @@ const FACET_NAMES: readonly IntentSearchFacetName[] = [
 const STOP_WORDS = new Set([
   "a",
   "about",
+  "after",
   "an",
   "and",
   "any",
@@ -139,12 +145,14 @@ const STOP_WORDS = new Set([
   "as",
   "at",
   "be",
+  "before",
   "by",
   "can",
   "could",
   "did",
   "do",
   "does",
+  "each",
   "for",
   "from",
   "govern",
@@ -164,6 +172,7 @@ const STOP_WORDS = new Set([
   "of",
   "on",
   "or",
+  "other",
   "our",
   "should",
   "so",
@@ -200,7 +209,7 @@ const STOP_WORDS = new Set([
 
 // Statuses whose entities no longer govern. They stay findable but rank
 // below current entities and are labelled in the match reasons.
-const NON_GOVERNING_STATUSES = new Set([
+export const NON_GOVERNING_STATUSES = new Set([
   "superseded",
   "deprecated",
   "rejected",
@@ -290,7 +299,10 @@ function normalize(value: string): string {
     .split(/\s+/)
     .filter(Boolean)
     .map((token) =>
-      token.length > 4 && token.endsWith("s") && !token.endsWith("ss")
+      token.length > 4 &&
+      token.endsWith("s") &&
+      !token.endsWith("ss") &&
+      !token.endsWith("ies")
         ? token.slice(0, -1)
         : token,
     )
@@ -300,10 +312,13 @@ function normalize(value: string): string {
 
 // A deliberately small suffix stripper so a question's verb meets the
 // entity's noun ("contradict" / "contradiction" / "contradictory",
-// "detached" / "detach"). Short tokens are left alone.
+// "detached" / "detach", "applied" / "applies" / "apply"). Short tokens are
+// left alone.
 const STEM_SUFFIXES = ["ation", "ion", "ing", "ory", "ed"] as const;
+const Y_SUFFIX = /(?<=[^aeiou])i(?:es|ed)$/;
 function stem(token: string): string {
   if (token.length < 6 || /\d/.test(token)) return token;
+  if (Y_SUFFIX.test(token)) return token.replace(Y_SUFFIX, "y");
   let stemmed = token;
   for (const suffix of STEM_SUFFIXES) {
     if (stemmed.endsWith(suffix) && stemmed.length - suffix.length >= 4) {
@@ -316,12 +331,18 @@ function stem(token: string): string {
     : stemmed;
 }
 
+// Stop words as normalize leaves them ("before" becomes "befor"), so a
+// stemmed stop word is dropped too.
+const STOP_TOKENS = new Set(
+  Array.from(STOP_WORDS).flatMap((word) => [word, normalize(word)]),
+);
+
 function tokens(value: string): readonly string[] {
   return Array.from(
     new Set(
       normalize(value)
         .split(" ")
-        .filter((token) => token.length > 0 && !STOP_WORDS.has(token)),
+        .filter((token) => token.length > 0 && !STOP_TOKENS.has(token)),
     ),
   );
 }
@@ -482,34 +503,104 @@ type EntityTokens = Readonly<{
 // search that loaded it.
 const ENTITY_TOKENS = new WeakMap<Record<string, unknown>, EntityTokens>();
 
-// implements REQ-kibi-intent-aware-source-discovery
-function entityTokens(
+// The tokenizer a cached entry was built with: the code of every function
+// that decides an entity's tokens, so a change to any of them starts a fresh
+// cache instead of reusing tokens the new code would not produce.
+let tokenizerFingerprint: string | undefined;
+function tokenizer(): string {
+  tokenizerFingerprint ??= tokenSourceHash([
+    ...[
+      normalize,
+      stem,
+      tokens,
+      expandIdentifiers,
+      splitIdentifier,
+      entityText,
+      stringValues,
+      metadataText,
+      computeEntityTokens,
+    ].map(String),
+    ...STOP_TOKENS,
+  ]);
+  return tokenizerFingerprint;
+}
+
+const TOKEN_CACHES = new Map<string, SearchTokenCache>();
+function tokenCache(workspaceRoot: string): SearchTokenCache {
+  let cache = TOKEN_CACHES.get(workspaceRoot);
+  if (cache === undefined) {
+    cache = openSearchTokenCache(workspaceRoot, tokenizer());
+    TOKEN_CACHES.set(workspaceRoot, cache);
+  }
+  return cache;
+}
+
+function metadataText(entity: Record<string, unknown>): string {
+  return [
+    entity.id,
+    entity.type,
+    entity.source,
+    entity.sourceFile,
+    entity.semantic_text,
+    entity.text_ref,
+    ...stringValues(entity.tags),
+  ]
+    .filter((value): value is string => typeof value === "string")
+    .join(" ");
+}
+
+function computeEntityTokens(
   entity: Record<string, unknown>,
   body: string | null,
-): EntityTokens {
-  const cached = ENTITY_TOKENS.get(entity);
-  if (cached !== undefined && cached.body === body) return cached;
+): Omit<EntityTokens, "body"> {
   const title = normalize(String(entity.title ?? ""));
-  const metadata = normalize(
-    [
-      entity.id,
-      entity.type,
-      entity.source,
-      entity.sourceFile,
-      entity.semantic_text,
-      entity.text_ref,
-      ...stringValues(entity.tags),
-    ]
-      .filter((value): value is string => typeof value === "string")
-      .join(" "),
-  );
-  const computed: EntityTokens = {
-    body,
+  const metadata = normalize(metadataText(entity));
+  return {
     title: new Set(tokens(title)),
     metadata: new Set(tokens(metadata)),
     bodyTokens: new Set(tokens(normalize(body ?? ""))),
     document: tokens(`${entityText(entity)} ${body ?? ""}`),
   };
+}
+
+// implements REQ-kibi-intent-aware-source-discovery
+function entityTokens(
+  entity: Record<string, unknown>,
+  body: string | null,
+  cache?: SearchTokenCache,
+): EntityTokens {
+  const cached = ENTITY_TOKENS.get(entity);
+  if (cached !== undefined && cached.body === body) return cached;
+  let computed: EntityTokens;
+  if (cache === undefined) {
+    computed = { body, ...computeEntityTokens(entity, body) };
+  } else {
+    const key = `${String(entity.type ?? "")}::${String(entity.id ?? "")}`;
+    const hash = tokenSourceHash([
+      String(entity.title ?? ""),
+      metadataText(entity),
+      entityText(entity),
+      body ?? "",
+    ]);
+    const stored = cache.get(key, hash);
+    if (stored !== undefined) {
+      computed = {
+        body,
+        title: new Set(stored.title),
+        metadata: new Set(stored.metadata),
+        bodyTokens: new Set(stored.bodyTokens),
+        document: stored.document,
+      };
+    } else {
+      computed = { body, ...computeEntityTokens(entity, body) };
+      cache.set(key, hash, {
+        title: [...computed.title],
+        metadata: [...computed.metadata],
+        bodyTokens: [...computed.bodyTokens],
+        document: computed.document,
+      });
+    }
+  }
   ENTITY_TOKENS.set(entity, computed);
   return computed;
 }
@@ -622,10 +713,15 @@ function scoreEntity(
 function buildDocumentFrequency(
   entities: readonly Record<string, unknown>[],
   bodies: ReadonlyMap<Record<string, unknown>, string | null>,
+  cache: SearchTokenCache,
 ): Map<string, number> {
   const frequency = new Map<string, number>();
   for (const entity of entities) {
-    const seen = entityTokens(entity, bodies.get(entity) ?? null).document;
+    const seen = entityTokens(
+      entity,
+      bodies.get(entity) ?? null,
+      cache,
+    ).document;
     for (const token of seen)
       frequency.set(token, (frequency.get(token) ?? 0) + 1);
   }
@@ -636,24 +732,19 @@ function buildDocumentFrequency(
 // implements REQ-kibi-search-answer-layer-v2
 export type MarkdownBodyCache = Map<string, string | null>;
 
-/** Files read at once, well under common open-file limits. */
-const BODY_READ_CONCURRENCY = 32;
-
+// Bodies are read one after another: a search reads thousands of small
+// files, and synchronous reads of those finish many times sooner than
+// batches of asynchronous ones.
 // implements REQ-kibi-intent-aware-source-discovery
-async function readBodies(
+function readBodies(
   entities: readonly Record<string, unknown>[],
   workspaceRoot: string,
   cache: MarkdownBodyCache,
-): Promise<Map<Record<string, unknown>, string | null>> {
-  const missing = [
-    ...new Set(entities.map((entity) => String(entity.source ?? ""))),
-  ].filter((source) => !cache.has(source));
-  for (let start = 0; start < missing.length; start += BODY_READ_CONCURRENCY) {
-    const batch = missing.slice(start, start + BODY_READ_CONCURRENCY);
-    const loaded = await Promise.all(
-      batch.map((source) => loadMarkdownBody(source, workspaceRoot)),
-    );
-    batch.forEach((source, index) => cache.set(source, loaded[index] ?? null));
+): Map<Record<string, unknown>, string | null> {
+  for (const entity of entities) {
+    const source = String(entity.source ?? "");
+    if (!cache.has(source))
+      cache.set(source, loadMarkdownBodySync(source, workspaceRoot));
   }
   return new Map(
     entities.map((entity) => [
@@ -682,8 +773,10 @@ export async function rankIntentEntities(
     Array.from(new Set([...clause, ...facetTokens])),
   );
   const emphasis = codeSpanTokens(query);
-  const bodies = await readBodies(entities, workspaceRoot, bodyCache);
-  const documentFrequency = buildDocumentFrequency(entities, bodies);
+  const bodies = readBodies(entities, workspaceRoot, bodyCache);
+  const cache = tokenCache(workspaceRoot);
+  const documentFrequency = buildDocumentFrequency(entities, bodies, cache);
+  cache.save();
   const supersededIds = new Set(
     graphEdges
       .filter((edge) => edge.relationship === "supersedes")
@@ -861,12 +954,12 @@ export function graphGoal(seedIds: readonly string[], depth: 1 | 2): string {
   const ids = seedIds.map((id) => `'${escapeAtom(id)}'`).join(",");
   const relationships = GRAPH_RELATIONSHIPS.join(",");
   if (depth === 1) {
-    return `findall([Rel,From,To], (member(Rel, [${relationships}]), kb_relationship(Rel, From, To), (member(From, [${ids}]); member(To, [${ids}]))), Edges)`;
+    return `kb_relationship_edges([${relationships}], [${ids}], Edges)`;
   }
-  return `findall([Rel,From,To], (member(Rel, [${relationships}]), kb_relationship(Rel, From, To), (member(From, [${ids}]); member(To, [${ids}]))), Edges)`;
+  return `kb_relationship_edges([${relationships}], [${ids}], Edges)`;
 }
 
-async function queryGraphEdges(
+export async function queryGraphEdges(
   prolog: Pick<PrologPort, "query">,
   seedIds: readonly string[],
 ): Promise<GraphEdge[]> {
@@ -962,10 +1055,17 @@ export async function executeIntentSearch(
   options: IntentSearchOptions,
   prolog: PrologPort,
   workspaceRoot: string,
+  // implements REQ-kibi-search-hints-host
+  /** Receives the candidate rows and bodies the ranking read, for reuse. */
+  onCorpus?: (
+    entities: readonly Record<string, unknown>[],
+    bodies: MarkdownBodyCache,
+  ) => void,
 ): Promise<IntentSearchResult> {
   const candidates = await loadIntentCandidates(prolog, options);
   // Both ranking passes read the same Markdown bodies; read each file once.
   const bodies: MarkdownBodyCache = new Map();
+  onCorpus?.(candidates, bodies);
   const firstPass = await rankIntentEntities(
     candidates,
     options,

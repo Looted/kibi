@@ -105,7 +105,7 @@ not infer or write product knowledge.
 
 **Behavior:**
 - Creates `.kb/` directory structure with canonical knowledge lanes (`requirements/`, `scenarios/`, `tests/`, `facts/`, `adr/`, `flags/`, `events/`)
-- Installs git hooks (pre-commit, post-checkout, post-merge, post-rewrite) by default, into the directory Git reads hooks from (`git rev-parse --git-path hooks`), so linked worktrees and `core.hooksPath` are honored. Re-running `kibi init` refreshes only the kibi-managed section of each hook. A hook without a kibi-managed section (hand-written, husky, lefthook, ...) is never edited: init reports it as skipped and points at `--print-hook` so you can delegate from it yourself. Hooks resolve the `kibi` binary at run time (PATH first, then `node_modules/.bin` walking up from the repository root), so they work with both global and project-local installs even though git does not put `node_modules/.bin` on the hook's `PATH`.
+- Installs git hooks (pre-commit, post-checkout, post-merge, post-rewrite) by default, into the directory Git reads hooks from (`git rev-parse --git-path hooks`), so linked worktrees and `core.hooksPath` are honored. Re-running `kibi init` refreshes only the kibi-managed section of each hook. A hook without a kibi-managed section (hand-written, husky, lefthook, ...) is never edited: init reports it as skipped and points at `--print-hook` so you can delegate from it yourself. When the repository uses a hook manager (lefthook, husky or the pre-commit framework), init installs no hooks at all and prints the manager configuration for every hook it does not visibly run Kibi's commands for yet; see [existing Git hooks and hook managers](install.md#existing-git-hooks-and-hook-managers). Hooks resolve the `kibi` binary at run time (PATH first, then `node_modules/.bin` walking up from the repository root), so they work with both global and project-local installs even though git does not put `node_modules/.bin` on the hook's `PATH`.
 - Ignores derived `.kb/` runtime state in `.gitignore` (`.kb/branches/`, `.kb/recovery/`, `.kb/proof/runs/`, `.kb/briefs/`, `.kb/migrations/`, `.kb/symbol-coordinates.yaml`, `.kb/usage.log`). Authored knowledge under `.kb/` stays tracked. `kibi migrate` also removes the pre-canonical blanket `.kb/` ignore stanza so migrated knowledge files are not left Git-ignored.
 - Creates Kibi-owned `.kb/manifest.json` (lifecycle metadata only; not a user configuration file)
 - Creates `.kb/symbols.yaml` (authored, committed) and the local `.kb/symbol-coordinates.yaml` cache when they do not already exist
@@ -115,10 +115,13 @@ not infer or write product knowledge.
 - `--no-hooks` - Skip git hook installation (hooks are installed by default)
 - `--github` - Scaffold the documented GitHub Pages badge + full report integration (workflow, README badge, `kibi-report/` gitignore entry)
 - `--badge-only` - With `--github` only: publish the badge without the HTML report. Rejected if used alone.
-- `--print-hook <hook>` - Print a copy-paste snippet that wires Kibi into an existing hook, then exit without writing anything. `<hook>` is one of `pre-commit`, `post-checkout`, `post-merge`, `post-rewrite`. The snippet resolves the `kibi` binary the same way the managed hooks do (PATH, then `node_modules/.bin`), so it works with project-local installs, and runs the same commands as the managed template with failures propagated. For `pre-commit` that is `kibi check-generated --staged --changed-only` followed by `kibi check --staged`.
+- `--print-hook <hook>` - Print a copy-paste snippet that wires Kibi into an existing hook, then exit without writing anything. `<hook>` is one of `pre-commit`, `post-checkout`, `post-merge`, `post-rewrite`, or `all`. The shell snippet resolves the `kibi` binary the same way the managed hooks do (PATH, then `node_modules/.bin`), so it works with project-local installs, and runs the same commands as the managed template with failures propagated. For `pre-commit` that is `kibi check-generated --staged --changed-only` followed by `kibi check --staged`.
+
+- `--format <format>` - With `--print-hook` only: `shell` (default), `lefthook` (entries to merge into `lefthook.yml`), `husky` (one shell snippet per `.husky/<hook>` file) or `pre-commit` (local hooks for `.pre-commit-config.yaml`). Every format runs the same commands under the same conditions as the managed hooks.
 
 ```bash
 kibi init --print-hook pre-commit >> .husky/pre-commit
+kibi init --print-hook all --format lefthook
 ```
 
 **GitHub integration:**
@@ -646,6 +649,20 @@ dashboard:
 [![Kibi requirement health](https://OWNER.github.io/REPOSITORY/kibi-report/badge.svg)](https://OWNER.github.io/REPOSITORY/kibi-report/)
 ```
 
+To publish requirement health in a documentation site you already have
+(Hugo, Docusaurus, MkDocs, ...), generate both views in the site build: the
+JSON for your own templates and the self-contained report as a static page.
+
+```bash
+kibi sync
+kibi coverage --by req --include-passing --format json > site/data/requirements.json
+kibi report --output site/static/requirements
+```
+
+Run `kibi sync` first, with `KIBI_BRANCH` set in CI. Every requirement row in
+the JSON carries its `proofStatus`, `evidenceLevel` and coverage stages, so a
+page template can list them; the report directory can be linked as-is.
+
 Actions artifacts expire and do not provide a stable anonymous URL, so the
 badge and its target should use the GitHub Pages deployment rather than the
 ordinary downloadable artifact. The Pages URL must be anonymously reachable for
@@ -904,7 +921,8 @@ Verifies environment setup and diagnostics.
 - Checks git repository presence
 - Checks the current branch's KB store ("Branch store"): it fails when `.kb/` holds authored sources but the store is missing or empty (journal sequence 0, nothing compiled), naming `kibi sync`; an incomplete or unreadable store points at `kibi branch recover`
 - Verifies git hooks are installed and executable, reading them from the directory Git uses (`git rev-parse --git-path hooks`). Missing hooks are a warning (`!`, `"warning": true` in JSON, counted in the top-level `warnings`), not a failure: without them a new branch is not compiled on checkout and commits skip `kibi check --staged`
-- Treats a hook without a kibi-managed section as the project's own hook (hand-written, husky, lefthook, ...). A custom pre-commit passes when it runs both `kibi check-generated --staged --changed-only` and `kibi check --staged` (via `kibi`, `npx kibi`, `node_modules/.bin/kibi` or `"$KIBI_BIN"`; commented lines do not count), and a custom post-rewrite passes when it runs `kibi sync`. Otherwise the check fails and the remediation shows what to delegate to and `kibi init --print-hook <hook>`, because `kibi init` never edits a custom hook
+- When a hook manager owns the hooks (lefthook, husky, the pre-commit framework), reads the commands from its configuration instead of the generated hook files. A hook whose configuration visibly runs Kibi's commands passes; one that does not (for example because it calls a task runner) is a warning with `kibi init --print-hook <hook> --format <manager>` as the remediation, since doctor cannot see through the runner
+- Otherwise treats a hook without a kibi-managed section as the project's own hook (hand-written, husky, lefthook, ...). A custom pre-commit passes when it runs both `kibi check-generated --staged --changed-only` and `kibi check --staged` (via `kibi`, `npx kibi`, `node_modules/.bin/kibi` or `"$KIBI_BIN"`; commented lines do not count), and a custom post-rewrite passes when it runs `kibi sync`. Otherwise the check fails and the remediation shows what to delegate to and `kibi init --print-hook <hook>`, because `kibi init` never edits a custom hook
 - Fails when an installed kibi-managed hook section differs from what the running CLI installs ("Kibi-managed hook sections"), for example a pre-commit hook written before the generated-manifest gate
 - Reports the engine daemon serving this workspace and branch ("Engine daemon"), without starting one: its package versions and SWI-Prolog from the daemon handshake. A daemon with other package versions than this CLI is reported, not failed; the next Kibi command stops and replaces it
 - Warns ("Manifest merge driver"), once `.kb/symbols.yaml` holds a symbol, when Git does not route `.kb/symbols.yaml` to `kibi merge-driver` (`merge=kibi` in `.gitattributes`) or `merge.kibi.driver` is not set, and prints both setup lines; merges still work without it, with ordinary line conflicts; the driver command names the project's package manager (from its lockfile)
@@ -1000,6 +1018,21 @@ kibi usage-remediation [--format json|table] [--limit N]
 - The report uses exact canonical payload fingerprints for validation correlation when available and a deterministic legacy fingerprint otherwise. Requirement-advisor correlation requires the same requirement and, when both events expose it, the same semantic source hash.
 
 
+
+## `kibi telemetry`
+
+Shows or changes the anonymous usage telemetry setting for the current user.
+
+```bash
+kibi telemetry [status|enable|disable] [--format text|json]
+```
+
+- `status` (the default) prints whether telemetry is on, why (for example `KIBI_TELEMETRY=0`, `CI environment` or `on by default`), and where the settings and queue live
+- `disable` saves the opt-out for this user and deletes any events still queued; `enable` saves an opt-in, which does not apply in CI or test runs
+- `KIBI_TELEMETRY=0` and `DO_NOT_TRACK=1` always win over the saved choice
+- `--format json` prints `{ enabled, reason, directory, docs }`
+
+What is sent and when is described in [Usage telemetry](./telemetry.md).
 ## `kibi migrate`
 
 Previews or applies the structured branch migration plan. With no mutation

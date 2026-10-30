@@ -328,3 +328,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0e0d30041379
+  - type: implements
+    from: SYM-const-external-vocabulary-alignment-operations
+    to: REQ-kibi-vocabulary-alignment-settings
+    created_at: 2026-10-28T10:46:25.806Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cff585ee2592
+  - type: covered_by
+    from: SYM-const-external-vocabulary-alignment-operations
+    to: TEST-proof-external-vocabulary-alignment-operations
+    created_at: 2026-10-28T10:46:37.721Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4839c59d3bb9
+  - type: covered_by
+    from: SYM-const-external-vocabulary-alignment-operations
+    to: TEST-kibi-vocabulary-convergence-e2e
+    created_at: 2026-10-28T10:46:37.744Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83f68d1b2769
+  - type: validates
+    from: TEST-proof-default-proof-steps-path
+    to: SCEN-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T11:06:48.375Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4a6c78d85933
+  - type: executable_for
+    from: SYM-proof-telemetry-default-host
+    to: TEST-proof-telemetry-default-host
+    created_at: 2026-10-29T16:27:18.639Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a12d67d54b12
+  - type: executable_for
+    from: SYM-proof-snippet-max-chars
+    to: TEST-proof-snippet-max-chars
+    created_at: 2026-10-29T16:30:21.305Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8bc354e36423

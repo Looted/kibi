@@ -223,3 +223,108 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9bee2bd9f147
+  - type: validates
+    from: TEST-proof-signoff-brief-dir
+    to: SCEN-kibi-signoff-views
+    created_at: 2026-10-28T10:15:12.667Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d5f66abb6ee
+  - type: executable_for
+    from: SYM-proof-proof-run-outcomes
+    to: TEST-proof-proof-run-outcomes
+    created_at: 2026-10-28T10:55:28.276Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b276ee0f9b17
+  - type: requires_property
+    from: REQ-kibi-signoff-version
+    to: FACT-signoff-version
+    created_at: 2026-10-28T17:53:08.617Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-efa3d89f439d
+  - type: specified_by
+    from: REQ-kibi-signoff-version
+    to: SCEN-kibi-signoff-views
+    created_at: 2026-10-28T17:53:08.647Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef84b6d6ec5f
+  - type: constrains
+    from: REQ-kibi-signoff-version
+    to: FACT-kibi-signoff-views-version-component
+    created_at: 2026-10-28T17:53:10.695Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24d18ad8f42d
+  - type: executable_for
+    from: SYM-proof-migration-plan-version
+    to: TEST-proof-migration-plan-version
+    created_at: 2026-10-28T18:53:41.705Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3aae25a806e4
+  - type: requires_property
+    from: REQ-kibi-telemetry-automation-keys
+    to: FACT-telemetry-default-host
+    created_at: 2026-10-29T16:26:49.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3bafb5434fa
+  - type: requires_property
+    from: REQ-kibi-telemetry-automation-keys
+    to: FACT-telemetry-ci-env-keys
+    created_at: 2026-10-29T16:26:49.905Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a18edc0aceab
+  - type: requires_property
+    from: REQ-kibi-telemetry-automation-keys
+    to: FACT-telemetry-test-env-keys
+    created_at: 2026-10-29T16:26:49.949Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-573e1575a2c2
+  - type: specified_by
+    from: REQ-kibi-telemetry-automation-keys
+    to: SCEN-kibi-anonymous-usage-telemetry
+    created_at: 2026-10-29T16:26:49.985Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76964c572d69
+  - type: constrains
+    from: REQ-kibi-telemetry-automation-keys
+    to: FACT-kibi-telemetry-automation-keys-component
+    created_at: 2026-10-29T16:26:53.500Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3fcf0677524
+  - type: requires_property
+    from: REQ-bootstrap-claim-aspect-limits
+    to: FACT-bootstrap-aspect-max-words
+    created_at: 2026-10-29T16:50:51.512Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74aceb2530ed
+  - type: requires_property
+    from: REQ-bootstrap-claim-aspect-limits
+    to: FACT-bootstrap-aspect-max-chars
+    created_at: 2026-10-29T16:50:51.565Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4fcb319c61d
+  - type: specified_by
+    from: REQ-bootstrap-claim-aspect-limits
+    to: SCEN-bootstrap-claim-name-length
+    created_at: 2026-10-29T16:50:51.600Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dbb751957a29
+  - type: constrains
+    from: REQ-bootstrap-claim-aspect-limits
+    to: FACT-kibi-bootstrap-aspect-limits-component
+    created_at: 2026-10-29T16:50:54.769Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0aa244c9fbf2

@@ -111,3 +111,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7a97b8ca06fe
+  - type: executable_for
+    from: SYM-proof-mcp-default-tool-count
+    to: TEST-proof-mcp-default-tool-count
+    created_at: 2026-10-28T09:30:01.323Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-88c2ec7738b8
+  - type: validates
+    from: TEST-proof-context-heading-words
+    to: SCEN-kb-entity-body-context
+    created_at: 2026-10-28T10:38:45.896Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05e40172552d
+  - type: executable_for
+    from: SYM-proof-receipt-v1-version
+    to: TEST-proof-receipt-v1-version
+    created_at: 2026-10-28T20:41:26.047Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0b55c2dacd8

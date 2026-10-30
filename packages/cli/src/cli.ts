@@ -29,6 +29,7 @@ import { registerProofCommand } from "./cli-register-proof.js";
 import { registerReportingCommands } from "./cli-register-reporting.js";
 import { registerSkillsCommands } from "./cli-register-skills.js";
 import { bootstrapKibiEnvironment } from "./env/bootstrap.js";
+import { finishCliTelemetry, trackCommandPath } from "./usage-telemetry.js";
 import { resolveWorkspaceCwd } from "./workspace-cwd.js";
 export type { CommandResult } from "./cli-command.js";
 
@@ -94,12 +95,25 @@ export async function main(): Promise<never> {
   );
   if (workspace.cwd !== process.cwd()) process.chdir(workspace.cwd);
   bootstrapKibiEnvironment();
+  const startedAt = new Date();
+  const program = buildProgram();
+  const commandPath = trackCommandPath(program);
   let exitCode = process.exitCode ?? 0;
   try {
-    await buildProgram().parseAsync(workspace.argv);
+    await program.parseAsync(workspace.argv);
     exitCode = process.exitCode ?? 0;
   } catch (error) {
     exitCode = exitCodeFromCliFailure(error);
+  }
+  try {
+    await finishCliTelemetry({
+      commandPath: commandPath(),
+      packageVersion: packageVersion(packageJson),
+      startedAt,
+      exitCode: Number(exitCode),
+    });
+  } catch {
+    // Telemetry is best effort and never changes the exit code.
   }
   await Promise.all(
     [process.stdout, process.stderr].map((stream) =>

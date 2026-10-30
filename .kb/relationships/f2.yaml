@@ -209,3 +209,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6d3159e5316e
+  - type: validates
+    from: TEST-proof-default-firmness
+    to: SCEN-kb-decision-firmness
+    created_at: 2026-10-28T11:03:11.171Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3eb24a2e88e2
+  - type: executable_for
+    from: SYM-proof-default-firmness
+    to: TEST-proof-default-firmness
+    created_at: 2026-10-28T11:03:13.477Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7d6c0522ee6
+  - type: executable_for
+    from: SYM-proof-body-context-schema-version
+    to: TEST-proof-body-context-schema-version
+    created_at: 2026-10-28T11:05:40.902Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83f7e3f83805
+  - type: validates
+    from: TEST-proof-entity-schema-doc
+    to: SCEN-cli-staged-impact-enforcement
+    created_at: 2026-10-28T18:58:02.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-078514cd637f
+  - type: implements
+    from: SYM-const-branch-store-not-compiled
+    to: REQ-branch-store-settings
+    created_at: 2026-10-28T20:43:09.548Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8ab7789f29f
+  - type: covered_by
+    from: SYM-const-branch-store-not-compiled
+    to: TEST-proof-branch-store-not-compiled-code
+    created_at: 2026-10-28T20:43:21.832Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4822411bc93e
+  - type: covered_by
+    from: SYM-const-branch-store-not-compiled
+    to: TEST-branch-detached-head-read-only-cli
+    created_at: 2026-10-28T20:43:21.852Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed82804746b9
+  - type: executable_for
+    from: SYM-proof-canonical-events-path
+    to: TEST-proof-canonical-events-path
+    created_at: 2026-10-28T22:35:39.687Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51deec7f4039

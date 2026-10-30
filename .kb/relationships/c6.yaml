@@ -202,3 +202,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-05619ef35f3b
+  - type: executable_for
+    from: SYM-proof-context-restatement-jaccard
+    to: TEST-proof-context-restatement-jaccard
+    created_at: 2026-10-28T10:39:36.271Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01c1fe6a0a49
+  - type: implements
+    from: SYM-migration-plan-untracked-knowledge-sources-code
+    to: REQ-agent-migration-plan-codes
+    created_at: 2026-10-28T18:54:15.951Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42ba7cd913d6
+  - type: covered_by
+    from: SYM-migration-plan-untracked-knowledge-sources-code
+    to: TEST-proof-untracked-sources-code
+    created_at: 2026-10-28T18:54:27.543Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6dfe08bab3e7
+  - type: executable_for
+    from: SYM-proof-brand-success-color
+    to: TEST-proof-brand-success-color
+    created_at: 2026-10-28T22:30:22.865Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04aba0402971

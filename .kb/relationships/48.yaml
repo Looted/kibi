@@ -286,3 +286,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dcf5f9f55e06
+  - type: executable_for
+    from: SYM-proof-success-policies
+    to: TEST-proof-success-policies
+    created_at: 2026-10-28T17:48:17.738Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d846604d525
+  - type: implements
+    from: SYM-source-analysis-timing-max-bytes
+    to: REQ-source-analysis-timing-limits
+    created_at: 2026-10-29T10:52:22.407Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e32c1e3a86b
+  - type: covered_by
+    from: SYM-source-analysis-timing-max-bytes
+    to: TEST-proof-source-timing-max-bytes
+    created_at: 2026-10-29T10:52:40.332Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e735c9a79f04
+  - type: validates
+    from: TEST-proof-vscode-view-id
+    to: SCEN-vscode-sidebar-kb-tree
+    created_at: 2026-10-29T17:07:03.079Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6db8b84e0b8
+  - type: implements
+    from: SYM-KIBI-FOCUS-KB-COMMAND
+    to: REQ-vscode-extension-ids
+    created_at: 2026-10-29T17:07:54.733Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a04626056b6c
+  - type: covered_by
+    from: SYM-KIBI-FOCUS-KB-COMMAND
+    to: TEST-proof-vscode-focus-command
+    created_at: 2026-10-29T17:08:12.573Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80ec9b575ec6

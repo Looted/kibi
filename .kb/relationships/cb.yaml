@@ -202,3 +202,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7b230415b21c
+  - type: validates
+    from: TEST-proof-agent-requirement-review-limit
+    to: SCEN-kibi-entity-origin
+    created_at: 2026-10-28T10:36:24.813Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1be570d86c6a
+  - type: requires_property
+    from: REQ-kibi-source-proof-reader-vocabulary
+    to: FACT-kibi-source-proof-readers
+    created_at: 2026-10-28T13:41:01.791Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ca52edce972
+  - type: specified_by
+    from: REQ-kibi-source-proof-reader-vocabulary
+    to: SCEN-kibi-source-proof-kinds
+    created_at: 2026-10-28T13:41:01.819Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48d49a1170c2
+  - type: constrains
+    from: REQ-kibi-source-proof-reader-vocabulary
+    to: FACT-SUBJECT-KIBI-SOURCE-PROOF
+    created_at: 2026-10-28T13:41:04.720Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3919a9a4bcd4
+  - type: validates
+    from: TEST-proof-polarity-backfill-code
+    to: SCEN-cli-migrate
+    created_at: 2026-10-28T18:51:06.690Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb2b822a585f
+  - type: implements
+    from: SYM-schema6-check-actions-RATIONALE_REVIEW_ACTION_ID
+    to: REQ-kibi-lifecycle-review-actions
+    created_at: 2026-10-28T20:27:43.962Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f04365851d59
+  - type: covered_by
+    from: SYM-schema6-check-actions-RATIONALE_REVIEW_ACTION_ID
+    to: TEST-proof-rationale-review-action
+    created_at: 2026-10-28T20:27:55.494Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07cb5fbec8ed
+  - type: covered_by
+    from: SYM-schema6-check-actions-RATIONALE_REVIEW_ACTION_ID
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:27:55.513Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e97a19481ff
+  - type: executable_for
+    from: SYM-proof-signoff-gate-scenario-label
+    to: TEST-proof-signoff-gate-scenario-label
+    created_at: 2026-10-28T22:22:42.377Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48ecea8384af
+  - type: validates
+    from: TEST-proof-github-pages-namespace
+    to: SCEN-kibi-github-report-integration
+    created_at: 2026-10-29T10:19:17.964Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0074c79621ff
+  - type: validates
+    from: TEST-proof-bootstrap-aspect-max-words
+    to: SCEN-bootstrap-claim-name-length
+    created_at: 2026-10-29T16:51:17.229Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43b1888068a2

@@ -174,3 +174,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ee74aa34d348
+  - type: executable_for
+    from: SYM-proof-perf-trace-max-bytes
+    to: TEST-proof-perf-trace-max-bytes
+    created_at: 2026-10-28T17:36:35.471Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3faa3201aec7
+  - type: implements
+    from: SYM-cli-PrologErrorTermPrefix
+    to: REQ-prolog-runtime-libraries
+    created_at: 2026-10-28T19:22:32.475Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d5c30381a99
+  - type: covered_by
+    from: SYM-cli-PrologErrorTermPrefix
+    to: TEST-proof-prolog-error-prefix
+    created_at: 2026-10-28T19:22:43.721Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5871f6bbdc7
+  - type: covered_by
+    from: SYM-cli-PrologErrorTermPrefix
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-10-28T19:22:43.739Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72112276a5d2
+  - type: executable_for
+    from: SYM-proof-agent-requirement-unapproved-rule
+    to: TEST-proof-agent-requirement-unapproved-rule
+    created_at: 2026-10-28T20:20:39.845Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4810ee756d0d
+  - type: executable_for
+    from: SYM-proof-brand-deepcarbon-color
+    to: TEST-proof-brand-deepcarbon-color
+    created_at: 2026-10-28T22:28:28.724Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-db67c92326c2
+  - type: implements
+    from: SYM-cli-github-badge-alt
+    to: REQ-kibi-github-report-settings
+    created_at: 2026-10-29T10:19:45.272Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1d0a176e1a8
+  - type: covered_by
+    from: SYM-cli-github-badge-alt
+    to: TEST-proof-github-badge-alt
+    created_at: 2026-10-29T10:20:05.067Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1af98576ca08

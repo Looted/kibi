@@ -384,3 +384,150 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1e2096159ad4
+  - type: requires_property
+    from: REQ-kibi-claim-binding-verdicts
+    to: FACT-kibi-claim-binding-verdicts
+    created_at: 2026-10-28T13:43:33.111Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32d29bf2009e
+  - type: specified_by
+    from: REQ-kibi-claim-binding-verdicts
+    to: SCEN-kibi-claim-bound-proofs
+    created_at: 2026-10-28T13:43:33.156Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4be0698299a5
+  - type: constrains
+    from: REQ-kibi-claim-binding-verdicts
+    to: FACT-SUBJECT-KIBI-CLAIM-BOUND-PROOF
+    created_at: 2026-10-28T13:43:36.479Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4704e82133a7
+  - type: implements
+    from: SYM-cli-logic-ir-LOGIC_RULE_MAX_VARIABLES
+    to: REQ-kibi-logic-rule-limits
+    created_at: 2026-10-28T17:19:48.237Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f8c20d29bac0
+  - type: covered_by
+    from: SYM-cli-logic-ir-LOGIC_RULE_MAX_VARIABLES
+    to: TEST-proof-logic-rule-max-variables
+    created_at: 2026-10-28T17:19:59.328Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d267acb917e3
+  - type: implements
+    from: SYM-source-path-dangling-SOURCE_PATH_DANGLING_RULE
+    to: REQ-kibi-lifecycle-check-codes
+    created_at: 2026-10-28T17:27:49.582Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f86fe4935a0
+  - type: covered_by
+    from: SYM-source-path-dangling-SOURCE_PATH_DANGLING_RULE
+    to: TEST-proof-source-path-dangling-rule
+    created_at: 2026-10-28T17:28:01.204Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aaa4a9623658
+  - type: covered_by
+    from: SYM-source-path-dangling-SOURCE_PATH_DANGLING_RULE
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T17:28:01.233Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-27e1229775b7
+  - type: validates
+    from: TEST-proof-symbol-granularity-rule
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:22:57.223Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec900660fe3f
+  - type: validates
+    from: TEST-proof-semantic-lanes
+    to: SCEN-capability-plugin-host-resolution-v1
+    created_at: 2026-10-29T10:30:19.956Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce15cfbfe68c
+  - type: validates
+    from: TEST-capability-search-hints-v1
+    to: SCEN-capability-search-hints-v1
+    created_at: 2026-10-29T19:18:49.383Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-707efcdca50b
+  - type: implements
+    from: SYM-const-default-telemetry-host
+    to: REQ-kibi-telemetry-automation-keys
+    created_at: 2026-10-29T16:27:11.601Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e48976a35638
+  - type: covered_by
+    from: SYM-const-default-telemetry-host
+    to: TEST-proof-telemetry-default-host
+    created_at: 2026-10-29T16:27:31.047Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24bc2693d6dc
+  - type: covered_by
+    from: SYM-const-default-telemetry-host
+    to: TEST-kibi-anonymous-usage-telemetry-cli
+    created_at: 2026-10-29T16:27:31.086Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa3084753768
+  - type: implements
+    from: SYM-const-builtin-subject-reuse-threshold
+    to: REQ-kibi-vocabulary-alignment-limits
+    created_at: 2026-10-29T16:54:41.289Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d9545b774e1
+  - type: covered_by
+    from: SYM-const-builtin-subject-reuse-threshold
+    to: TEST-proof-builtin-alignment-reuse-threshold
+    created_at: 2026-10-29T16:55:00.980Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82cbd3824597
+  - type: covered_by
+    from: SYM-const-builtin-subject-reuse-threshold
+    to: TEST-kibi-vocabulary-convergence-e2e
+    created_at: 2026-10-29T16:55:01.018Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5055b331a06
+  - type: implements
+    from: SYM-cap-plugin-builtin-predicate-confidence-685e50a6
+    to: REQ-capability-builtin-predicate-confidence
+    created_at: 2026-10-29T17:00:31.792Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b4a281ea3a7
+  - type: covered_by
+    from: SYM-cap-plugin-builtin-predicate-confidence-685e50a6
+    to: TEST-proof-builtin-predicate-confidence
+    created_at: 2026-10-29T17:00:51.776Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19f398d33956
+  - type: implements
+    from: SYM-hook-managers-detect-hook-manager
+    to: REQ-git-hook-manager-integration
+    created_at: 2026-10-29T18:39:12.161Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe1f82d8218f
+  - type: covered_by
+    from: SYM-hook-managers-detect-hook-manager
+    to: TEST-git-hook-manager-integration
+    created_at: 2026-10-29T18:39:12.189Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f44fa4c97ce4

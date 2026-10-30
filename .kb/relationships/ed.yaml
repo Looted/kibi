@@ -405,3 +405,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b1b2b41ac8b7
+  - type: implements
+    from: SYM-canonical-LEGACY_KB_MIGRATION_COMMAND
+    to: REQ-legacy-kb-migrate-command
+    created_at: 2026-10-28T11:15:49.352Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7cd14987d513
+  - type: covered_by
+    from: SYM-canonical-LEGACY_KB_MIGRATION_COMMAND
+    to: TEST-proof-legacy-kb-migration-command
+    created_at: 2026-10-28T11:16:00.937Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df0363aa9311
+  - type: validates
+    from: TEST-proof-compile-plan-version
+    to: SCEN-kibi-change-to-proof-plan-compiler
+    created_at: 2026-10-28T17:45:21.095Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23e1be9cf70c
+  - type: executable_for
+    from: SYM-proof-derived-kb-prefixes
+    to: TEST-proof-derived-kb-prefixes
+    created_at: 2026-10-28T19:01:28.235Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7fb79b489acb
+  - type: implements
+    from: 4fad501950207b0b
+    to: REQ-predicate-applicability-threshold
+    created_at: 2026-10-28T19:17:25.631Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-901ec8510b41
+  - type: covered_by
+    from: 4fad501950207b0b
+    to: TEST-proof-strong-applicability-score
+    created_at: 2026-10-28T19:17:36.952Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c48326a29c9
+  - type: validates
+    from: TEST-proof-migration-plan-refused
+    to: SCEN-agent-guided-migration-orchestration
+    created_at: 2026-10-28T20:56:13.462Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c2c2da241c26

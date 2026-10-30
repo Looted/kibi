@@ -346,3 +346,115 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0c6b04756311
+  - type: validates
+    from: TEST-proof-swipl-minimum-major
+    to: SCEN-prolog-bundled-runtime
+    created_at: 2026-10-28T10:35:25.463Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99e7dc441efc
+  - type: requires_property
+    from: REQ-kibi-logic-rule-limits
+    to: FACT-logic-ir-version
+    created_at: 2026-10-28T17:18:41.406Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-08b0bbe0af7a
+  - type: requires_property
+    from: REQ-kibi-logic-rule-limits
+    to: FACT-logic-rule-max-atoms
+    created_at: 2026-10-28T17:18:41.442Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb6d86c767a7
+  - type: requires_property
+    from: REQ-kibi-logic-rule-limits
+    to: FACT-logic-rule-max-depth
+    created_at: 2026-10-28T17:18:41.465Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1f69ff5e3bd
+  - type: requires_property
+    from: REQ-kibi-logic-rule-limits
+    to: FACT-logic-rule-max-variables
+    created_at: 2026-10-28T17:18:41.487Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5e2cfe84bb9
+  - type: specified_by
+    from: REQ-kibi-logic-rule-limits
+    to: SCEN-kibi-proposition-complete-ingestion
+    created_at: 2026-10-28T17:18:41.506Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a61242297d1d
+  - type: constrains
+    from: REQ-kibi-logic-rule-limits
+    to: FACT-kibi-logic-rule-limits-component
+    created_at: 2026-10-28T17:18:43.582Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d54fcd93ee87
+  - type: implements
+    from: SYM-cli-COVERAGE_ROW_PAGE_SIZE
+    to: REQ-kibi-proof-run-vocabulary
+    created_at: 2026-10-28T17:50:24.080Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28991bd32d5a
+  - type: covered_by
+    from: SYM-cli-COVERAGE_ROW_PAGE_SIZE
+    to: TEST-proof-coverage-row-page-size
+    created_at: 2026-10-28T17:50:36.708Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40a7510a594c
+  - type: covered_by
+    from: SYM-cli-COVERAGE_ROW_PAGE_SIZE
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T17:50:36.793Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01e9d450c058
+  - type: validates
+    from: TEST-proof-skill-file-name
+    to: SCEN-reusable-skill-subsystem
+    created_at: 2026-10-28T19:13:05.177Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64ca8fb73588
+  - type: executable_for
+    from: SYM-proof-managed-hook-names
+    to: TEST-proof-managed-hook-names
+    created_at: 2026-10-28T22:40:47.245Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2415c7ee9297
+  - type: requires_property
+    from: REQ-mcp-workspace-root-argument
+    to: FACT-mcp-workspace-root-argument
+    created_at: 2026-10-29T16:35:26.935Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba357d9df280
+  - type: specified_by
+    from: REQ-mcp-workspace-root-argument
+    to: SCEN-mcp-workspace-routing
+    created_at: 2026-10-29T16:35:27.033Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5cf16fb9a9f
+  - type: constrains
+    from: REQ-mcp-workspace-root-argument
+    to: FACT-kibi-mcp-workspace-argument-component
+    created_at: 2026-10-29T16:35:30.352Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-030071e93fff
+  - type: verified_by
+    from: SCEN-prolog-mutation-lane
+    to: TEST-prolog-mutation-lane
+    created_at: 2026-10-29T16:13:02.249Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7752f84d0e4

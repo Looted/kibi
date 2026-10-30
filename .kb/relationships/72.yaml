@@ -440,3 +440,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-19c545e24c0d
+  - type: implements
+    from: SYM-proof-integration-version
+    to: REQ-kibi-proof-protocol-versions
+    created_at: 2026-10-28T10:55:05.426Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b91cb6d03a36
+  - type: covered_by
+    from: SYM-proof-integration-version
+    to: TEST-proof-proof-integration-version
+    created_at: 2026-10-28T10:55:16.388Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98e94363fdb6
+  - type: covered_by
+    from: SYM-proof-integration-version
+    to: TEST-kibi-claim-bound-proofs
+    created_at: 2026-10-28T12:04:16.946Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b1d7d04d019c
+  - type: requires_property
+    from: REQ-cli-kb-layout-paths
+    to: FACT-kb-root
+    created_at: 2026-10-28T19:00:58.732Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dde663ff24c6
+  - type: requires_property
+    from: REQ-cli-kb-layout-paths
+    to: FACT-derived-kb-prefixes
+    created_at: 2026-10-28T19:00:58.777Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ad8b7c83030
+  - type: requires_property
+    from: REQ-cli-kb-layout-paths
+    to: FACT-kb-manifest-version
+    created_at: 2026-10-28T19:00:58.805Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf36ce908776
+  - type: specified_by
+    from: REQ-cli-kb-layout-paths
+    to: SCEN-cli-canonical-init
+    created_at: 2026-10-28T19:00:58.826Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93eb39e27d6b
+  - type: constrains
+    from: REQ-cli-kb-layout-paths
+    to: FACT-kibi-kb-layout-paths-component
+    created_at: 2026-10-28T19:01:00.850Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c72935ca9ac0
+  - type: validates
+    from: TEST-proof-source-extraction-failed
+    to: SCEN-kibi-uncompiled-source-visibility
+    created_at: 2026-10-28T19:08:32.684Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-378e9bd691c6
+  - type: validates
+    from: TEST-proof-knowledge-source-authorities
+    to: SCEN-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-28T19:19:38.927Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cdea74341f62
+  - type: executable_for
+    from: SYM-proof-legacy-link-mark-code
+    to: TEST-proof-legacy-link-mark-code
+    created_at: 2026-10-28T20:33:17.727Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53f5a82f3610
+  - type: validates
+    from: TEST-proof-lookup-before-edit-operations
+    to: SCEN-kibi-telemetry-acceptance-gate
+    created_at: 2026-10-28T20:53:11.226Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c38e1a76ff8
+  - type: executable_for
+    from: SYM-proof-hook-max-requirement-candidates
+    to: TEST-proof-hook-max-requirement-candidates
+    created_at: 2026-10-29T16:30:55.381Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c27b1086a547

@@ -7,7 +7,7 @@ property_key: source_reader
 operator: eq
 claim_key: CLAIM-80131AF672B06C75
 claim_text: Source proof readers must be one of json, yaml, glob, openapi, references, schema, routes or validator
-text_ref: REQ-kibi-source-proof-kinds
+text_ref: REQ-kibi-source-proof-reader-vocabulary
 tags:
   - strict-modeling
   - lane:strict

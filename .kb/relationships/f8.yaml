@@ -251,3 +251,199 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2f6b14a8bef0
+  - type: validates
+    from: TEST-proof-evidence-level-vocabulary
+    to: SCEN-kibi-evidence-levels
+    created_at: 2026-10-28T10:06:11.226Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9b8dfcaa8b2
+  - type: requires_property
+    from: REQ-model-predicates-binding-word-limit
+    to: FACT-binding-word-limit
+    created_at: 2026-10-28T10:14:09.713Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb3a79fddd59
+  - type: specified_by
+    from: REQ-model-predicates-binding-word-limit
+    to: SCEN-model-predicates-binding-clauses
+    created_at: 2026-10-28T10:14:09.750Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59b90337f475
+  - type: constrains
+    from: REQ-model-predicates-binding-word-limit
+    to: FACT-SUBJECT-kibi-predicate-suggestion-binding
+    created_at: 2026-10-28T10:14:11.878Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a94a8ce9b3b
+  - type: executable_for
+    from: SYM-proof-proof-contract-version
+    to: TEST-proof-proof-contract-version
+    created_at: 2026-10-28T10:54:13.926Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cfdbe6e78ce4
+  - type: implements
+    from: SYM-migration-entity-origin-backfill-action-id
+    to: REQ-cli-schema-migration-codes
+    created_at: 2026-10-28T18:49:23.292Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89688d46511d
+  - type: covered_by
+    from: SYM-migration-entity-origin-backfill-action-id
+    to: TEST-proof-origin-backfill-action
+    created_at: 2026-10-28T18:49:35.846Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c37e01260122
+  - type: validates
+    from: TEST-proof-close-superseded-code
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:26:44.758Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98bbba58484f
+  - type: executable_for
+    from: SYM-proof-reference-extracts
+    to: TEST-proof-reference-extracts
+    created_at: 2026-10-28T20:38:19.486Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0ae47218a57
+  - type: requires_property
+    from: REQ-kibi-operation-row-limits
+    to: FACT-entity-row-batch-limit
+    created_at: 2026-10-28T21:33:54.159Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa339d128fe9
+  - type: specified_by
+    from: REQ-kibi-operation-row-limits
+    to: SCEN-kibi-operation-interface-parity
+    created_at: 2026-10-28T21:33:54.208Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ed5af635b81
+  - type: constrains
+    from: REQ-kibi-operation-row-limits
+    to: FACT-kibi-operations-rows-component
+    created_at: 2026-10-28T21:33:56.660Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f903e525fbf
+  - type: requires_property
+    from: REQ-kibi-github-report-settings
+    to: FACT-github-badge-workflow-path
+    created_at: 2026-10-29T10:18:25.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6723dc0dd7a0
+  - type: requires_property
+    from: REQ-kibi-github-report-settings
+    to: FACT-github-pages-namespace
+    created_at: 2026-10-29T10:18:25.998Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aed954eafe41
+  - type: requires_property
+    from: REQ-kibi-github-report-settings
+    to: FACT-github-badge-alt
+    created_at: 2026-10-29T10:18:26.056Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8a2bb17daf3
+  - type: requires_property
+    from: REQ-kibi-github-report-settings
+    to: FACT-github-placeholder-owner
+    created_at: 2026-10-29T10:18:26.106Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f901e88a3ed9
+  - type: requires_property
+    from: REQ-kibi-github-report-settings
+    to: FACT-github-placeholder-repo
+    created_at: 2026-10-29T10:18:26.147Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e45fb79d5aa
+  - type: specified_by
+    from: REQ-kibi-github-report-settings
+    to: SCEN-kibi-github-report-integration
+    created_at: 2026-10-29T10:18:26.184Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-88c24e0b58a9
+  - type: constrains
+    from: REQ-kibi-github-report-settings
+    to: FACT-kibi-github-report-settings-component
+    created_at: 2026-10-29T10:18:29.705Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a20c56facde7
+  - type: specified_by
+    from: REQ-capability-search-hints-v1
+    to: SCEN-capability-search-hints-v1
+    created_at: 2026-10-29T19:19:15.051Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b338c528deac
+  - type: constrains
+    from: REQ-capability-search-hints-v1
+    to: FACT-search-hints-cap-subject
+    created_at: 2026-10-29T19:21:30.864Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e9f37d26c8f
+  - type: requires_property
+    from: REQ-capability-search-hints-v1
+    to: FACT-search-hints-cap-only-supplied-ids
+    created_at: 2026-10-29T19:21:30.925Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0615c71f9cbe
+  - type: requires_property
+    from: REQ-capability-search-hints-v1
+    to: FACT-search-hints-cap-max-hints
+    created_at: 2026-10-29T19:21:30.958Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-146c33bd1d0a
+  - type: requires_property
+    from: REQ-capability-search-hints-v1
+    to: FACT-search-hints-cap-score-range
+    created_at: 2026-10-29T19:21:31.001Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33c29e19f2bb
+  - type: requires_property
+    from: REQ-capability-search-hints-v1
+    to: FACT-search-hints-cap-ordered
+    created_at: 2026-10-29T19:21:31.041Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0d32a94a61f
+  - type: requires_property
+    from: REQ-capability-search-hints-v1
+    to: FACT-search-hints-cap-no-augment
+    created_at: 2026-10-29T19:21:31.064Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-828666954384
+  - type: implements
+    from: SYM-hook-managers-hook-manager-name-type
+    to: REQ-git-hook-manager-integration
+    created_at: 2026-10-29T18:38:52.084Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f49a03b09c76
+  - type: covered_by
+    from: SYM-hook-managers-hook-manager-name-type
+    to: TEST-git-hook-manager-integration
+    created_at: 2026-10-29T18:38:52.107Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7dcb378ec14

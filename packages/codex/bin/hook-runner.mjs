@@ -2205,9 +2205,9 @@ function preEditContext(workspaceRoot, stateDir, input, env) {
     }
   });
   const parts = [notice, knowledge].filter((part) => part !== undefined);
-  return parts.length > 0 ? parts.join(`
+  return parts.join(`
 
-`) : undefined;
+`) || undefined;
 }
 function firmNotice(targets, files, summarize, session, input, env) {
   if (!confirmFirmEdits(env))
@@ -2229,22 +2229,20 @@ function firmNotice(targets, files, summarize, session, input, env) {
   }
   return;
 }
-var cachedPackageVersion;
 function packageVersion() {
-  if (cachedPackageVersion !== undefined)
-    return cachedPackageVersion;
-  cachedPackageVersion = readPackageVersion(path9.join(path9.dirname(fileURLToPath(import.meta.url)), "..", "package.json"));
-  return cachedPackageVersion;
+  return readPackageVersion(path9.join(path9.dirname(fileURLToPath(import.meta.url)), "..", "package.json"));
+}
+function editTelemetryTraces(workspaceRoot, stateDir, input) {
+  const files = loadKnowledgeIndex(workspaceRoot, stateDir).files;
+  return editTraces(editTargets(workspaceRoot, input).map((target) => target.relative), (relativePath) => implementedRequirementIds(files[relativePath] ?? []));
 }
 function recordToolTelemetry(workspaceRoot, stateDir, input, startedAt, env) {
   if (!hookTelemetryEnabled(env))
     return;
   const kbUsage = kbUsageTrace(input.toolName, input.toolInput);
-  let traces = kbUsage ? [kbUsage] : [];
-  if (!kbUsage && isKnownEditTool(input.toolName)) {
-    const files = loadKnowledgeIndex(workspaceRoot, stateDir).files;
-    traces = editTraces(editTargets(workspaceRoot, input).map((target) => target.relative), (relativePath) => implementedRequirementIds(files[relativePath] ?? []));
-  }
+  if (!kbUsage && !isKnownEditTool(input.toolName))
+    return;
+  const traces = kbUsage ? [kbUsage] : editTelemetryTraces(workspaceRoot, stateDir, input);
   appendHookUsageRows({
     host: "codex",
     packageVersion: packageVersion(),
@@ -2299,9 +2297,7 @@ async function runHook(rawInput, environment = {}) {
       let context;
       try {
         context = isKnownEditTool(input.toolName) ? preEditContext(workspace.root, stateDir, input, environment.env ?? process.env) : undefined;
-      } catch {
-        context = undefined;
-      }
+      } catch {}
       if (context) {
         return {
           continue: true,

@@ -31,6 +31,7 @@ import {
   resolveReadBranchAttachment,
 } from "kibi-runtime";
 import { getBranchOverride, isMcpDebugEnabled } from "../env.js";
+import { flushMcpTelemetry } from "../usage-telemetry.js";
 import { resolveKbPath, resolveWorkspaceRoot } from "../workspace.js";
 import {
   type BranchKbStamp,
@@ -249,6 +250,8 @@ export async function initiateGracefulShutdown(exitCode = 0): Promise<void> {
       }
     }
   }
+
+  await flushMcpTelemetry();
 
   // Exit
   process.exit(exitCode);

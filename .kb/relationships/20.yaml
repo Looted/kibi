@@ -321,3 +321,157 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eea70dc3becd
+  - type: validates
+    from: TEST-proof-decision-firmness-rules
+    to: SCEN-kb-decision-firmness
+    created_at: 2026-10-28T11:02:47.241Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36f76a816cc1
+  - type: requires_property
+    from: REQ-ingestion-inventory-settings
+    to: FACT-semantic-inventory-version
+    created_at: 2026-10-28T19:05:13.155Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7def8ecc0b7
+  - type: requires_property
+    from: REQ-ingestion-inventory-settings
+    to: FACT-inventory-drift-rule
+    created_at: 2026-10-28T19:05:13.186Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a318c41129c8
+  - type: requires_property
+    from: REQ-ingestion-inventory-settings
+    to: FACT-sync-cache-version
+    created_at: 2026-10-28T19:05:13.210Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2858dcf449e6
+  - type: requires_property
+    from: REQ-ingestion-inventory-settings
+    to: FACT-sync-cache-ttl
+    created_at: 2026-10-28T19:05:13.234Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56c8a34f6768
+  - type: specified_by
+    from: REQ-ingestion-inventory-settings
+    to: SCEN-kibi-proposition-complete-ingestion
+    created_at: 2026-10-28T19:05:13.245Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50535ef308f4
+  - type: constrains
+    from: REQ-ingestion-inventory-settings
+    to: FACT-kibi-ingestion-inventory-component
+    created_at: 2026-10-28T19:05:15.286Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0bdb7cc83b18
+  - type: executable_for
+    from: SYM-proof-granularity-link-types
+    to: TEST-proof-granularity-link-types
+    created_at: 2026-10-28T19:10:41.676Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8058ddd25533
+  - type: executable_for
+    from: SYM-proof-agent-review-code
+    to: TEST-proof-agent-review-code
+    created_at: 2026-10-28T20:26:04.684Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4e13a8375d8
+  - type: implements
+    from: SYM-const-semantic-text-pin-code
+    to: REQ-cli-migration-pin-codes
+    created_at: 2026-10-28T20:30:13.135Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e15f93b41f98
+  - type: covered_by
+    from: SYM-const-semantic-text-pin-code
+    to: TEST-proof-semantic-text-pin-code
+    created_at: 2026-10-28T20:30:24.935Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c801c95ee6e
+  - type: covered_by
+    from: SYM-const-semantic-text-pin-code
+    to: TEST-cli-migrate
+    created_at: 2026-10-28T20:30:24.956Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8a4fcbcac8b
+  - type: implements
+    from: SYM-const-engine-prolog-exit-grace-ms
+    to: REQ-engine-timing-settings
+    created_at: 2026-10-28T20:46:30.195Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c12c5c17cc57
+  - type: covered_by
+    from: SYM-const-engine-prolog-exit-grace-ms
+    to: TEST-proof-engine-exit-grace
+    created_at: 2026-10-28T20:46:43.282Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d86a650c7ca5
+  - type: covered_by
+    from: SYM-const-engine-prolog-exit-grace-ms
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-10-28T20:46:43.314Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae086d07a24d
+  - type: implements
+    from: SYM-cli-signoff-model-signoff-change-labels
+    to: REQ-kibi-signoff-labels
+    created_at: 2026-10-28T22:22:00.676Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ea616a9d50a
+  - type: covered_by
+    from: SYM-cli-signoff-model-signoff-change-labels
+    to: TEST-proof-signoff-change-names
+    created_at: 2026-10-28T22:22:11.630Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c5708fa7e8d
+  - type: covered_by
+    from: SYM-cli-signoff-model-signoff-change-labels
+    to: TEST-proof-signoff-change-new-label
+    created_at: 2026-10-28T22:24:23.963Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b1f5349ca63d
+  - type: covered_by
+    from: SYM-cli-signoff-model-signoff-change-labels
+    to: TEST-proof-signoff-change-changed-label
+    created_at: 2026-10-28T22:24:41.964Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c89341678257
+  - type: covered_by
+    from: SYM-cli-signoff-model-signoff-change-labels
+    to: TEST-proof-signoff-change-retired-label
+    created_at: 2026-10-28T22:25:00.725Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-289207517182
+  - type: executable_for
+    from: SYM-proof-tree-sitter-language-ids
+    to: TEST-proof-tree-sitter-language-ids
+    created_at: 2026-10-28T22:41:46.407Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d666ea7e3adb
+  - type: validates
+    from: TEST-proof-github-placeholder-owner
+    to: SCEN-kibi-github-report-integration
+    created_at: 2026-10-29T10:20:22.875Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5cb8e666d859

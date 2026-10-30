@@ -12,6 +12,7 @@
 :- use_module('../src/certificate_check.pl').
 :- use_module('../src/claim_obligations.pl').
 :- use_module('../src/requirement_proof.pl').
+:- use_module('../src/kb_consistency.pl', []).
 :- use_module(library(http/json)).
 :- use_module(library(date)).
 :- use_module(library(plunit)).
@@ -275,6 +276,58 @@ test(retracts_one_relationship_without_clearing_siblings, [setup(setup_kb), clea
     kb_retract_relationship(relates_to, 'REQ-EDGE-A', 'REQ-EDGE-B'),
     \+ kb_relationship(relates_to, 'REQ-EDGE-A', 'REQ-EDGE-B'),
     kb_relationship(relates_to, 'REQ-EDGE-A', 'REQ-EDGE-C').
+
+test(relationship_edges_match_the_findall_they_replace, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    forall(member(Id, ['REQ-EDGES-A', 'REQ-EDGES-B', 'REQ-EDGES-C']),
+           assert_fixture_entity(req, Id, "Edge fixture", active, [])),
+    assert_fixture_entity(test, 'TEST-EDGES', "Edge fixture test", active, []),
+    kb_assert_relationship(depends_on, 'REQ-EDGES-A', 'REQ-EDGES-B', []),
+    kb_assert_relationship(depends_on, 'REQ-EDGES-C', 'REQ-EDGES-A', []),
+    kb_assert_relationship(depends_on, 'REQ-EDGES-B', 'REQ-EDGES-C', []),
+    kb_assert_relationship(verified_by, 'REQ-EDGES-A', 'TEST-EDGES', []),
+    Types = [verified_by, depends_on, relates_to],
+    Ids = ['REQ-EDGES-A', 'REQ-EDGES-B'],
+    findall([Type, From, To],
+            ( member(Type, Types),
+              kb_relationship(Type, From, To),
+              ( member(From, Ids) ; member(To, Ids) ) ),
+            Expected),
+    kb_relationship_edges(Types, Ids, Edges),
+    assertion(Edges == Expected),
+    % An edge between two listed ids is reported once per listed end.
+    assertion(msort(Edges, [[depends_on, 'REQ-EDGES-A', 'REQ-EDGES-B'],
+                            [depends_on, 'REQ-EDGES-A', 'REQ-EDGES-B'],
+                            [depends_on, 'REQ-EDGES-B', 'REQ-EDGES-C'],
+                            [depends_on, 'REQ-EDGES-C', 'REQ-EDGES-A'],
+                            [verified_by, 'REQ-EDGES-A', 'TEST-EDGES']])),
+    kb_relationship_edges(Types, ['REQ-EDGES-MISSING'], None),
+    assertion(None == []).
+
+test(reporting_batch_keeps_valid_links_and_names_failures, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    forall(member(Id, ['REQ-BATCH-A', 'REQ-BATCH-B', 'REQ-BATCH-C']),
+           assert_fixture_entity(req, Id, "Batch fixture", active, [])),
+    kb_assert_relationships_reporting(
+        [ rel(depends_on, 'REQ-BATCH-A', 'REQ-BATCH-B'),
+          rel(depends_on, 'REQ-BATCH-A', 'REQ-BATCH-MISSING'),
+          rel(depends_on, 'REQ-BATCH-B', 'REQ-BATCH-C'),
+          rel(not_a_relationship, 'REQ-BATCH-C', 'REQ-BATCH-A')
+        ],
+        Failed),
+    assertion(Failed == [2, 4]),
+    assertion(kb_relationship(depends_on, 'REQ-BATCH-A', 'REQ-BATCH-B')),
+    assertion(kb_relationship(depends_on, 'REQ-BATCH-B', 'REQ-BATCH-C')),
+    assertion(\+ kb_relationship(depends_on, 'REQ-BATCH-A', 'REQ-BATCH-MISSING')).
+
+test(entity_pages_follow_writes_between_pages, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    forall(member(Id, ['REQ-PAGE-A', 'REQ-PAGE-C']),
+           assert_fixture_entity(req, Id, "Paging fixture", active, [])),
+    kb_query_entities(req, none, [], none, 1, 0, [[First|_]], Count0),
+    assertion(First == 'REQ-PAGE-A'),
+    assertion(Count0 == 2),
+    assert_fixture_entity(req, 'REQ-PAGE-B', "Paging fixture", active, []),
+    kb_query_entities(req, none, [], none, 1, 1, [[Second|_]], Count1),
+    assertion(Second == 'REQ-PAGE-B'),
+    assertion(Count1 == 3).
 
 :- end_tests(kb_relationships).
 
@@ -546,6 +599,23 @@ test(list_search_candidates_filters_by_source_without_full_payloads, [setup(setu
            assertion(\+ memberchk(proof_receipts=_, Props))),
     kb_list_search_candidates(none, none, 10, 0, _, AllCount),
     assertion(AllCount == 4).
+
+% Later pages of a query reuse the ids its first page matched, until a write.
+test(search_pages_reuse_matched_ids_until_a_write, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    forall(member(Id, ['TEST-PAGE-A', 'TEST-PAGE-B', 'TEST-PAGE-C']),
+           assert_fixture_entity(test, Id, "Paged search", active, [])),
+    kb_search_entities(test, "paged search", 2, 0, First, Count),
+    kb_search_entities(test, "paged search", 2, 2, Second, _),
+    assertion(Count == 3),
+    findall(Id, member([Id, _, _], First), FirstIds),
+    findall(Id, member([Id, _, _], Second), SecondIds),
+    assertion(FirstIds == ['TEST-PAGE-A', 'TEST-PAGE-B']),
+    assertion(SecondIds == ['TEST-PAGE-C']),
+    assert_fixture_entity(test, 'TEST-PAGE-D', "Paged search", active, []),
+    kb_search_entities(test, "paged search", 2, 2, Fresh, FreshCount),
+    assertion(FreshCount == 4),
+    findall(Id, member([Id, _, _], Fresh), FreshIds),
+    assertion(FreshIds == ['TEST-PAGE-C', 'TEST-PAGE-D']).
 
 :- end_tests(search_candidates).
 
@@ -971,7 +1041,14 @@ test(opposite_ground_predicate_polarities_contradict, [setup(setup_kb), cleanup(
         logic_claims=["CLAIM-2222222222222222"]
     ]),
     kb_assert_relationship(requires_predicate, 'REQ-PUBLISH-ASSERT', 'FACT-PUBLISH-ASSERT', []),
+    % A one-sided lookup before the opposing fact is linked must not leave a
+    % stale predicate index behind for the lookups after it.
+    assertion(\+ req_conflict_witness('REQ-PUBLISH-ASSERT', _, _)),
     kb_assert_relationship(requires_predicate, 'REQ-PUBLISH-DENY', 'FACT-PUBLISH-DENY', []),
+    findall(Other, req_conflict_witness('REQ-PUBLISH-ASSERT', Other, _), Others),
+    assertion(Others == ['REQ-PUBLISH-DENY']),
+    findall(Other, req_conflict_witness(Other, 'REQ-PUBLISH-DENY', _), Partners),
+    assertion(Partners == ['REQ-PUBLISH-ASSERT']),
     contradicting_reqs('REQ-PUBLISH-ASSERT', 'REQ-PUBLISH-DENY', Reason),
     sub_string(Reason, _, _, _, "Predicate conflict"),
     req_conflict_witness('REQ-PUBLISH-ASSERT', 'REQ-PUBLISH-DENY', Witness),
@@ -984,6 +1061,18 @@ test(opposite_ground_predicate_polarities_contradict, [setup(setup_kb), cleanup(
     assertion(Witness.right.claimKey == 'CLAIM-2222222222222222'),
     assertion(Witness.right.term.polarity == deny),
     assertion(Witness.predicateArgs == [suspended_user, publish, article]).
+
+test(memoized_contradiction_witnesses_follow_writes, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_permission_decision_fixture('FACT-MEMO-ALLOW', 'REQ-MEMO-ALLOW', "CLAIM-7777777777777777",
+        ["coach", "read", "memo_request", "allow"], assert),
+    check_domain_contradictions(Before),
+    assertion(Before == []),
+    assert_permission_decision_fixture('FACT-MEMO-DENY', 'REQ-MEMO-DENY', "CLAIM-8888888888888888",
+        ["coach", "read", "memo_request", "deny"], deny),
+    check_domain_contradictions(After),
+    assertion(memberchk(violation('domain-contradictions', "REQ-MEMO-ALLOW/REQ-MEMO-DENY", _, _, _), After)),
+    kb_domain_contradiction_pairs_examined(Pairs),
+    assertion(Pairs == 1).
 
 assert_permission_decision_fixture(FactId, ReqId, ClaimKey, Args, Polarity) :-
     atomic_list_concat(Args, ',', ArgsText),
@@ -2634,6 +2723,14 @@ test(requirement_proof_preserves_old_contract_receipts_but_only_current_contract
     assertion(CurrentRow.proofStages.passingE2e.tests == ['TEST-PROOF-CONTRACT-DRIFT']),
     assertion(CurrentRow.proofStages.passingE2e.status == passed),
     assertion(\+ memberchk(proof_contract_mismatch, CurrentRow.proofGaps)).
+
+test(proof_contract_hash_keeps_json_literals) :-
+    % The CLI hashes true, false and null as JSON literals, not strings.
+    ContractJson = "{\"version\":\"kibi.proof-contract.v1\",\"kind\":\"source\",\"source\":{\"reader\":\"glob\",\"pattern\":\"skills/*/SKILL.md\",\"capture\":true,\"strict\":false,\"label\":null}}",
+    Canonical = "{\"kind\":\"source\",\"source\":{\"capture\":true,\"label\":null,\"pattern\":\"skills/*/SKILL.md\",\"reader\":\"glob\",\"strict\":false},\"version\":\"kibi.proof-contract.v1\"}",
+    crypto_data_hash(Canonical, Expected, [algorithm(sha256), encoding(utf8)]),
+    requirement_proof:proof_contract_hash(ContractJson, Hash),
+    assertion(Hash == Expected).
 
 test(symbol_coverage_does_not_count_executable_test_symbols_as_production_coverage, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(test, 'TEST-SYMBOL-ROLE', "Executable symbol test", passing, [verification_scope=end_to_end]),
@@ -5371,6 +5468,82 @@ test(check_all_json_with_options_serializes_dict, [setup(setup_kb), cleanup(clea
     assertion(Row.get(entityId) == "SYM-ADR-NEEDED"),
     assertion(Row.get(description) == "Symbol has no ADR constraint.").
 
+test(check_all_json_file_writes_the_answer_json, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-ADR-NEEDED', "ADR needed req", open, []),
+    assert_fixture_entity(symbol, 'SYM-ADR-NEEDED', "ADR needed symbol", active, []),
+    kb_assert_relationship(implements, 'SYM-ADR-NEEDED', 'REQ-ADR-NEEDED', []),
+    checks:check_all_json_with_options(Json, true),
+    tmp_file(kibi_check_result, Path),
+    checks:check_all_json_file(Path, true),
+    read_file_to_string(Path, FileJson, [encoding(utf8)]),
+    delete_file(Path),
+    assertion(FileJson == Json),
+    atom_json_dict(FileJson, JsonDict, []),
+    member(Row, JsonDict.get(symbol_traceability)),
+    assertion(Row.get(entityId) == "SYM-ADR-NEEDED").
+
+test(check_selected_json_file_writes_the_selected_rules, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-ADR-NEEDED', "ADR needed req", open, []),
+    assert_fixture_entity(symbol, 'SYM-ADR-NEEDED', "ADR needed symbol", active, []),
+    kb_assert_relationship(implements, 'SYM-ADR-NEEDED', 'REQ-ADR-NEEDED', []),
+    checks:check_selected_json(['no-dangling-refs'], Json),
+    tmp_file(kibi_check_selected, Path),
+    checks:check_selected_json_file(['no-dangling-refs'], Path),
+    read_file_to_string(Path, FileJson, [encoding(utf8)]),
+    delete_file(Path),
+    assertion(FileJson == Json),
+    atom_json_dict(FileJson, JsonDict, []),
+    assertion(JsonDict.get(no_dangling_refs) == []),
+    assertion(JsonDict.get(symbol_traceability) == []).
+
+test(check_all_json_transport_writes_the_file_when_it_can, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-ADR-NEEDED', "ADR needed req", open, []),
+    assert_fixture_entity(symbol, 'SYM-ADR-NEEDED', "ADR needed symbol", active, []),
+    kb_assert_relationship(implements, 'SYM-ADR-NEEDED', 'REQ-ADR-NEEDED', []),
+    checks:check_all_json_with_options(Json, true),
+    tmp_file(kibi_check_transport, Path),
+    checks:check_all_json_transport(Path, true, Transport, Answer),
+    read_file_to_string(Path, FileJson, [encoding(utf8)]),
+    delete_file(Path),
+    assertion(Transport == file),
+    assertion(Answer == ''),
+    assertion(FileJson == Json).
+
+test(check_all_json_transport_answers_without_a_file, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-ADR-NEEDED', "ADR needed req", open, []),
+    assert_fixture_entity(symbol, 'SYM-ADR-NEEDED', "ADR needed symbol", active, []),
+    kb_assert_relationship(implements, 'SYM-ADR-NEEDED', 'REQ-ADR-NEEDED', []),
+    checks:check_all_json_with_options(Json, true),
+    checks:check_all_json_transport(none, true, Transport, Answer),
+    assertion(Transport == answer),
+    assertion(Answer == Json).
+
+test(check_all_json_transport_answers_when_the_file_cannot_be_written, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-ADR-NEEDED', "ADR needed req", open, []),
+    checks:check_all_json_with_options(Json, false),
+    tmp_file(kibi_check_missing_dir, Dir),
+    directory_file_path(Dir, 'violations.json', Path),
+    checks:check_all_json_transport(Path, false, Transport, Answer),
+    assertion(Transport == answer),
+    assertion(Answer == Json),
+    assertion(\+ exists_file(Path)).
+
+test(check_all_json_transport_rethrows_errors_that_are_not_about_the_file,
+     [setup(setup_kb), cleanup(cleanup_kb), error(type_error(_, 42))]) :-
+    checks:check_all_json_transport(42, false, _, _).
+
+test(check_selected_json_transport_writes_or_answers_the_selected_rules, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-ADR-NEEDED', "ADR needed req", open, []),
+    checks:check_selected_json(['no-dangling-refs'], Json),
+    tmp_file(kibi_check_selected_transport, Path),
+    checks:check_selected_json_transport(['no-dangling-refs'], Path, FileTransport, FileAnswer),
+    read_file_to_string(Path, FileJson, [encoding(utf8)]),
+    delete_file(Path),
+    assertion(FileTransport-FileAnswer == file-''),
+    assertion(FileJson == Json),
+    checks:check_selected_json_transport(['no-dangling-refs'], none, Transport, Answer),
+    assertion(Transport-Answer == answer-Json).
+
 test(check_rule_verifiability_normalizes_typed_schema_reference, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     rule_fixture_json(oblige, typed_schema_reference, RuleJson),
     assert_fixture_entity(fact, 'FACT-RULE-SCHEMA-TYPED', "Typed rule schema", active, [
@@ -6908,6 +7081,706 @@ test(production_symbol_stage_reports_reason_with_status, [setup(setup_kb), clean
 dict_has_key(Dict, Key) :- is_dict(Dict), get_dict(Key, Dict, _).
 
 :- end_tests(requirement_applicability).
+
+% ------------------------------------------------------------------
+% Per-generation proof memos and bounded JSON decode memos
+% implements REQ-kibi-conservative-requirement-proof, REQ-kibi-scenario-feasibility-v2
+:- begin_tests(kb_proof_memos).
+
+memo_proof(ReqId, Context, Proof) :-
+    kb_entity(ReqId, req, Props),
+    requirement_proof:requirement_proof(ReqId, Props, Context, Proof).
+
+memo_compute(ReqId, Context, Proof) :-
+    kb_entity(ReqId, req, Props),
+    requirement_proof:compute_requirement_proof(ReqId, Props, Context, Proof).
+
+proof_memo_keys(Keys) :-
+    findall(Key, kb:kb_requirement_proof_memo(_, Key, _), Keys0),
+    sort(Keys0, Keys).
+
+proof_memo_count(Count) :-
+    aggregate_all(count, kb:kb_requirement_proof_memo(_, _, _), Count).
+
+feasibility_memo_count(Count) :-
+    aggregate_all(count, kb:kb_scenario_feasibility_memo(_, _, _), Count).
+
+memo_feasibility_fixture :-
+    assert_fixture_entity(fact, 'FACT-QUOTA-SUBJECT', "Client call quota", active,
+        [fact_kind=subject, subject_key="client.call_quota"]),
+    assert_fixture_entity(fact, 'FACT-QUOTA-POSITIVE', "Remaining quota above zero", active,
+        [fact_kind=property_value, subject_key="client.call_quota", property_key="remaining",
+         operator=gt, value_type=int, value_int=0]),
+    assert_fixture_entity(fact, 'FACT-QUOTA-ZERO', "Remaining quota is zero", active,
+        [fact_kind=property_value, subject_key="client.call_quota", property_key="remaining",
+         operator=eq, value_type=int, value_int=0]),
+    assert_fixture_entity(req, 'REQ-QUOTA-CALL', "A client may call only with remaining quota", open, []),
+    kb_assert_relationship(constrains, 'REQ-QUOTA-CALL', 'FACT-QUOTA-SUBJECT', []),
+    kb_assert_relationship(requires_property, 'REQ-QUOTA-CALL', 'FACT-QUOTA-POSITIVE', []),
+    assert_fixture_entity(scenario, 'SCEN-ZERO-QUOTA-CALL', "A zero-quota promo call succeeds", active,
+        [expects=success]),
+    kb_assert_relationship(assumes, 'SCEN-ZERO-QUOTA-CALL', 'FACT-QUOTA-ZERO', []).
+
+% A warm engine keeps a requirement's proof only for the generation it was
+% computed on: a link written after the first read changes the next one.
+test(requirement_proof_memo_follows_writes, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-MEMO-PROOF', "Memoized proof", open, [priority=must]),
+    requirement_proof:requirement_proof_context(unknown, "1970-01-01T00:00:00Z", 604800, Context),
+    memo_proof('REQ-MEMO-PROOF', Context, First),
+    assertion(First.proofStages.scenarios.status == missing),
+    assertion(kb:kb_requirement_proof_memo('REQ-MEMO-PROOF', _, _)),
+    memo_proof('REQ-MEMO-PROOF', Context, Again),
+    assertion(Again =@= First),
+    assert_fixture_entity(scenario, 'SCEN-MEMO-PROOF', "Memoized scenario", active, [expects=success]),
+    kb_assert_relationship(specified_by, 'REQ-MEMO-PROOF', 'SCEN-MEMO-PROOF', []),
+    memo_proof('REQ-MEMO-PROOF', Context, Linked),
+    assertion(Linked.proofStages.scenarios.scenarios == ['SCEN-MEMO-PROOF']),
+    assertion(Linked.proofStages.scenarios.status \== missing),
+    memo_compute('REQ-MEMO-PROOF', Context, Computed),
+    assertion(Linked =@= Computed),
+    % The stale generation's entries are gone: one key is live at a time.
+    proof_memo_keys(Keys),
+    assertion(Keys = [_]).
+
+% The memo key carries the proof parameters: a different checkedAt or
+% binding mode is a different proof, not a memo hit.
+test(requirement_proof_memo_is_keyed_by_proof_parameters, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-MEMO-PARAMS', "Parameterized proof", open, [priority=must]),
+    requirement_proof:requirement_proof_context(unknown, "1970-01-01T00:00:00Z", 604800, ContextA),
+    requirement_proof:requirement_proof_context(unknown, "2026-05-01T00:00:00Z", 604800, ContextB),
+    requirement_proof:requirement_proof_context(unknown, "1970-01-01T00:00:00Z", 604800,
+                                                per_contract, _{}, ContextC),
+    assertion(ContextA.proofMemoKey \== ContextB.proofMemoKey),
+    assertion(ContextA.proofMemoKey \== ContextC.proofMemoKey),
+    memo_proof('REQ-MEMO-PARAMS', ContextA, ProofA),
+    proof_memo_keys([KeyA]),
+    assertion(KeyA = key(_, ContextA.proofMemoKey)),
+    memo_proof('REQ-MEMO-PARAMS', ContextB, ProofB),
+    proof_memo_keys([KeyB]),
+    assertion(KeyB = key(_, ContextB.proofMemoKey)),
+    assertion(KeyA \== KeyB),
+    memo_compute('REQ-MEMO-PARAMS', ContextA, ComputedA),
+    memo_compute('REQ-MEMO-PARAMS', ContextB, ComputedB),
+    assertion(ProofA =@= ComputedA),
+    assertion(ProofB =@= ComputedB),
+    memo_proof('REQ-MEMO-PARAMS', ContextC, ProofC),
+    memo_compute('REQ-MEMO-PARAMS', ContextC, ComputedC),
+    assertion(ProofC =@= ComputedC),
+    % A context without the key (an older caller) is never memoized.
+    del_dict(proofMemoKey, ContextA, _, Legacy),
+    proof_memo_count(BeforeLegacy),
+    memo_proof('REQ-MEMO-PARAMS', Legacy, ProofLegacy),
+    proof_memo_count(AfterLegacy),
+    assertion(AfterLegacy == BeforeLegacy),
+    assertion(ProofLegacy =@= ComputedA).
+
+% What-if staging runs inside an RDF transaction: the proof there reads the
+% staged KB and leaves no memo entry behind, and the rollback restores the
+% generation's proof.
+test(requirement_proof_memo_is_bypassed_inside_a_transaction, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-MEMO-TX', "Staged proof", open, [priority=must]),
+    requirement_proof:requirement_proof_context(unknown, "1970-01-01T00:00:00Z", 604800, Context),
+    memo_proof('REQ-MEMO-TX', Context, Before),
+    assertion(Before.proofStages.scenarios.status == missing),
+    proof_memo_count(CountBefore),
+    catch(rdf_transaction((
+              assert_fixture_entity(scenario, 'SCEN-MEMO-TX', "Staged scenario", active, [expects=success]),
+              kb_assert_relationship(specified_by, 'REQ-MEMO-TX', 'SCEN-MEMO-TX', []),
+              memo_proof('REQ-MEMO-TX', Context, Staged),
+              assertion(Staged.proofStages.scenarios.scenarios == ['SCEN-MEMO-TX']),
+              proof_memo_count(CountInside),
+              assertion(CountInside == CountBefore),
+              throw(rollback_probe)
+          )),
+          rollback_probe,
+          true),
+    memo_proof('REQ-MEMO-TX', Context, After),
+    assertion(After =@= Before),
+    memo_compute('REQ-MEMO-TX', Context, Computed),
+    assertion(After =@= Computed).
+
+% The feasibility analysis of a scenario follows the KB the same way.
+test(scenario_feasibility_memo_follows_writes_and_skips_transactions, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    memo_feasibility_fixture,
+    assertion(checks:scenario_feasibility_outcome('SCEN-ZERO-QUOTA-CALL', infeasible(_))),
+    assertion(kb:kb_scenario_feasibility_memo('SCEN-ZERO-QUOTA-CALL', _, _)),
+    checks:scenario_feasibility_analysis('SCEN-ZERO-QUOTA-CALL', Memoized),
+    checks:compute_scenario_feasibility_analysis('SCEN-ZERO-QUOTA-CALL', Computed),
+    assertion(Memoized =@= Computed),
+    assert_fixture_entity(req, 'REQ-QUOTA-PROMO-EXCEPTION', "Promo calls are exempt from the quota", open,
+        [approved_by="Product owner", approval_ref="DEC-42"]),
+    kb_assert_relationship(exempts, 'REQ-QUOTA-PROMO-EXCEPTION', 'REQ-QUOTA-CALL', []),
+    kb_assert_relationship(specified_by, 'REQ-QUOTA-PROMO-EXCEPTION', 'SCEN-ZERO-QUOTA-CALL', []),
+    assertion(checks:scenario_feasibility_outcome('SCEN-ZERO-QUOTA-CALL', feasible_by_exception)),
+    feasibility_memo_count(CountBefore),
+    catch(rdf_transaction((
+              assert_fixture_entity(scenario, 'SCEN-STAGED-ZERO-QUOTA', "Staged zero-quota call", active,
+                  [expects=success]),
+              kb_assert_relationship(assumes, 'SCEN-STAGED-ZERO-QUOTA', 'FACT-QUOTA-ZERO', []),
+              assertion(checks:scenario_feasibility_outcome('SCEN-STAGED-ZERO-QUOTA', infeasible(_))),
+              feasibility_memo_count(CountInside),
+              assertion(CountInside == CountBefore),
+              throw(rollback_probe)
+          )),
+          rollback_probe,
+          true),
+    assertion(\+ kb:kb_scenario_feasibility_memo('SCEN-STAGED-ZERO-QUOTA', _, _)),
+    assertion(checks:scenario_feasibility_outcome('SCEN-ZERO-QUOTA-CALL', feasible_by_exception)).
+
+% The stages before the receipt judgement are kept per generation apart from
+% checkedAt: two checks a second apart share them, and each still gets the
+% proof its own parameters give.
+test(receipt_independent_stages_are_shared_across_checked_at, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-MEMO-LADDER', "Shared ladder", open, [priority=must]),
+    assert_fixture_entity(scenario, 'SCEN-MEMO-LADDER', "Ladder scenario", active, [expects=success]),
+    kb_assert_relationship(specified_by, 'REQ-MEMO-LADDER', 'SCEN-MEMO-LADDER', []),
+    requirement_proof:requirement_proof_context(unknown, "2026-05-01T00:00:00Z", 604800, ContextA),
+    requirement_proof:requirement_proof_context(unknown, "2026-05-01T00:00:01Z", 604800, ContextB),
+    assertion(ContextA.ladderMemoKey == ContextB.ladderMemoKey),
+    memo_proof('REQ-MEMO-LADDER', ContextA, ProofA),
+    memo_proof('REQ-MEMO-LADDER', ContextB, ProofB),
+    aggregate_all(count, kb:kb_requirement_ladder_memo('REQ-MEMO-LADDER', _, _), Ladders),
+    assertion(Ladders == 1),
+    assertion(ProofA.proofStages.passingE2e.checkedAt == '2026-05-01T00:00:00Z'),
+    assertion(ProofB.proofStages.passingE2e.checkedAt == '2026-05-01T00:00:01Z'),
+    retractall(kb:kb_requirement_ladder_memo(_, _, _)),
+    retractall(kb:kb_requirement_proof_memo(_, _, _)),
+    memo_compute('REQ-MEMO-LADDER', ContextB, Fresh),
+    assertion(ProofB =@= Fresh),
+    % A write starts a new generation: the next proof reads the new scenario.
+    assert_fixture_entity(scenario, 'SCEN-MEMO-LADDER-2', "Second ladder scenario", active, [expects=success]),
+    kb_assert_relationship(specified_by, 'REQ-MEMO-LADDER', 'SCEN-MEMO-LADDER-2', []),
+    memo_proof('REQ-MEMO-LADDER', ContextB, Linked),
+    assertion(Linked.proofStages.scenarios.scenarios == ['SCEN-MEMO-LADDER', 'SCEN-MEMO-LADDER-2']),
+    % A context without the findings key (an older caller) is not memoized.
+    del_dict(ladderMemoKey, ContextA, _, Legacy),
+    retractall(kb:kb_requirement_ladder_memo(_, _, _)),
+    del_dict(proofMemoKey, Legacy, _, LegacyNoProofKey),
+    memo_proof('REQ-MEMO-LADDER', LegacyNoProofKey, _),
+    assertion(\+ kb:kb_requirement_ladder_memo(_, _, _)).
+
+test(receipt_independent_stages_skip_transactions, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-MEMO-LADDER-TX', "Staged ladder", open, [priority=must]),
+    requirement_proof:requirement_proof_context(unknown, "1970-01-01T00:00:00Z", 604800, Context),
+    memo_proof('REQ-MEMO-LADDER-TX', Context, Before),
+    findall(K, kb:kb_requirement_ladder_memo(_, K, _), KeysBefore),
+    catch(rdf_transaction((
+              assert_fixture_entity(scenario, 'SCEN-MEMO-LADDER-TX', "Staged scenario", active, [expects=success]),
+              kb_assert_relationship(specified_by, 'REQ-MEMO-LADDER-TX', 'SCEN-MEMO-LADDER-TX', []),
+              memo_proof('REQ-MEMO-LADDER-TX', Context, Staged),
+              assertion(Staged.proofStages.scenarios.scenarios == ['SCEN-MEMO-LADDER-TX']),
+              findall(K, kb:kb_requirement_ladder_memo(_, K, _), KeysInside),
+              assertion(KeysInside == KeysBefore),
+              throw(rollback_probe)
+          )),
+          rollback_probe,
+          true),
+    memo_proof('REQ-MEMO-LADDER-TX', Context, After),
+    assertion(After =@= Before).
+
+% Status's source index is kept per generation; a write is seen at once and
+% a staged write leaves the kept index alone.
+test(status_source_index_follows_writes, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-STATUS-INDEX', "Indexed source", open,
+        [source="docs/requirements/REQ-STATUS-INDEX.md"]),
+    status:entity_source_id_index(First),
+    assertion(get_dict('docs/requirements/REQ-STATUS-INDEX.md', First, ['REQ-STATUS-INDEX'])),
+    status:entity_source_id_index(Again),
+    assertion(Again == First),
+    assertion(kb:kb_status_source_index_memo(_, _)),
+    assert_fixture_entity(req, 'REQ-STATUS-INDEX-2', "Second source", open,
+        [source="docs/requirements/REQ-STATUS-INDEX-2.md"]),
+    status:entity_source_id_index(Second),
+    assertion(get_dict('docs/requirements/REQ-STATUS-INDEX-2.md', Second, ['REQ-STATUS-INDEX-2'])),
+    catch(rdf_transaction((
+              assert_fixture_entity(req, 'REQ-STATUS-STAGED', "Staged source", open,
+                  [source="docs/requirements/REQ-STATUS-STAGED.md"]),
+              status:entity_source_id_index(Staged),
+              assertion(get_dict('docs/requirements/REQ-STATUS-STAGED.md', Staged, _)),
+              throw(rollback_probe)
+          )),
+          rollback_probe,
+          true),
+    status:entity_source_id_index(AfterRollback),
+    assertion(\+ get_dict('docs/requirements/REQ-STATUS-STAGED.md', AfterRollback, _)),
+    status:compute_entity_source_id_index(Computed),
+    assertion(AfterRollback == Computed).
+
+:- end_tests(kb_proof_memos).
+
+:- begin_tests(kb_json_memos).
+
+reset_json_memo :-
+    retractall(checks:json_text_memo(_, _)),
+    retractall(checks:json_text_memo_size(_)).
+
+% The same text is one memo entry whether a rule asks for an object or a
+% list, and the shape check stays with the caller.
+test(json_text_memo_keeps_one_entry_per_text, [setup(reset_json_memo), cleanup(reset_json_memo)]) :-
+    checks:json_text_term('{"a": 1}', Object),
+    assertion(is_dict(Object)),
+    assertion(get_dict(a, Object, 1)),
+    assertion(checks:parse_json_object('{"a": 1}', _)),
+    assertion(\+ checks:parse_json_list('{"a": 1}', _)),
+    checks:json_text_term("[1, 2]", List),
+    assertion(List == [1, 2]),
+    assertion(checks:parse_json_list('[1, 2]', _)),
+    assertion(\+ checks:parse_json_object('[1, 2]', _)),
+    assertion(\+ checks:json_text_term('not json', _)),
+    assertion(\+ checks:json_text_term('not json', _)),
+    assertion(checks:json_text_memo('not json', invalid)),
+    checks:json_text_memo_size(Size),
+    assertion(Size == 3).
+
+% The memo is bounded: once full it starts over, and a text parsed before
+% the reset parses the same afterwards.
+test(json_text_memo_resets_at_its_limit, [setup(reset_json_memo), cleanup(reset_json_memo)]) :-
+    checks:json_text_memo_limit(Limit),
+    Overflow is Limit + 2,
+    forall(between(1, Overflow, Index),
+           (   format(atom(Text), '{"index": ~d}', [Index]),
+               checks:json_text_term(Text, Term),
+               assertion(get_dict(index, Term, Index))
+           )),
+    checks:json_text_memo_size(Size),
+    assertion(Size == 2),
+    aggregate_all(count, checks:json_text_memo(_, _), Entries),
+    assertion(Entries == 2),
+    checks:json_text_term('{"index": 1}', First),
+    assertion(get_dict(index, First, 1)),
+    checks:json_text_memo_size(SizeAfter),
+    assertion(SizeAfter == 3).
+
+test(logic_rule_memo_remembers_rejected_bodies, [cleanup((retractall(logic_ir:logic_rule_memo(_, _)), retractall(logic_ir:logic_rule_memo_size(_))))]) :-
+    retractall(logic_ir:logic_rule_memo(_, _)),
+    retractall(logic_ir:logic_rule_memo_size(_)),
+    assertion(\+ logic_ir:logic_rule_from_json('{"version": "kibi.logic.v0"}', _)),
+    assertion(\+ logic_ir:logic_rule_from_json('not json', _)),
+    assertion(\+ logic_ir:logic_rule_from_json('{"version": "kibi.logic.v0"}', _)),
+    assertion(logic_ir:logic_rule_memo('{"version": "kibi.logic.v0"}', invalid)),
+    assertion(logic_ir:logic_rule_memo('not json', invalid)),
+    logic_ir:logic_rule_memo_size(Size),
+    assertion(Size == 2).
+
+% The rule memo is bounded like the JSON memo: once full it starts over,
+% and every body still decodes.
+test(logic_rule_memo_resets_at_its_limit, [cleanup((retractall(logic_ir:logic_rule_memo(_, _)), retractall(logic_ir:logic_rule_memo_size(_))))]) :-
+    retractall(logic_ir:logic_rule_memo(_, _)),
+    retractall(logic_ir:logic_rule_memo_size(_)),
+    logic_ir:logic_rule_memo_limit(Limit),
+    Overflow is Limit + 2,
+    forall(between(1, Overflow, Index),
+           (   format(atom(Text), '{"version":"kibi.logic.v1","kind":"k~d","modality":"assert"}', [Index]),
+               logic_ir:logic_rule_from_json(Text, Rule),
+               format(atom(Kind), 'k~d', [Index]),
+               assertion(arg(1, Rule, Kind))
+           )),
+    logic_ir:logic_rule_memo_size(Size),
+    assertion(Size == 2),
+    aggregate_all(count, logic_ir:logic_rule_memo(_, _), Entries),
+    assertion(Entries == 2).
+
+:- end_tests(kb_json_memos).
+
+:- begin_tests(kb_memo_contracts).
+
+% Every generation memo answers from its entry for the current key, keeps
+% one generation's entries, and is bypassed inside an RDF transaction.  A
+% planted sentinel under the current key tells a memo answer from a
+% computed one.
+
+memo_rollback(Goal) :-
+    catch(rdf_transaction((Goal, throw(memo_rollback))), memo_rollback, true).
+
+memo_req(Id) :-
+    assert_fixture_entity(req, Id, "Memo contract requirement", open, [priority=must]).
+
+test(contradiction_witness_memo_contract, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb:index_verification_key(domain_contradictions, Key),
+    retractall(kb:kb_contradiction_witness_memo(_, _)),
+    assertz(kb:kb_contradiction_witness_memo(Key, [sentinel])),
+    checks:check_domain_contradiction_witnesses(Memo),
+    assertion(Memo == [sentinel]),
+    memo_rollback(( checks:check_domain_contradiction_witnesses(Staged),
+                    assertion(Staged == []) )),
+    findall(K-W, kb:kb_contradiction_witness_memo(K, W), AfterStaging),
+    assertion(AfterStaging == [Key-[sentinel]]),
+    retractall(kb:kb_contradiction_witness_memo(_, _)),
+    assertz(kb:kb_contradiction_witness_memo(stale_key, [stale])),
+    checks:check_domain_contradiction_witnesses(Fresh),
+    assertion(Fresh == []),
+    findall(K, kb:kb_contradiction_witness_memo(K, _), Keys),
+    assertion(Keys == [Key]).
+
+test(req_subject_memo_contract, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb:index_verification_key(req_subjects, Key),
+    list_to_assoc([sentinel-[1-'REQ-SENTINEL']], Sentinel),
+    retractall(kb:kb_req_subject_memo(_, _)),
+    assertz(kb:kb_req_subject_memo(Key, Sentinel)),
+    kb:req_subject_index(Memo),
+    assertion(Memo == Sentinel),
+    retractall(kb:kb_req_subject_memo(_, _)),
+    assertz(kb:kb_req_subject_memo(stale_key, Sentinel)),
+    kb:req_subject_index(Fresh),
+    assertion(assoc_to_list(Fresh, [])),
+    findall(K, kb:kb_req_subject_memo(K, _), Keys),
+    assertion(Keys == [Key]).
+
+test(query_ids_memo_contract, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    memo_req('REQ-QUERY-MEMO'),
+    kb_query_entities(req, none, [], none, 10, 0, _, Count0),
+    assertion(Count0 == 1),
+    findall(K-F, kb:kb_query_ids_memo(K, F, _), [Key-Filters]),
+    % A hit answers from the kept ids.
+    retractall(kb:kb_query_ids_memo(_, _, _)),
+    assertz(kb:kb_query_ids_memo(Key, Filters, ['REQ-KEPT-A', 'REQ-KEPT-B'])),
+    kb_query_entities(req, none, [], none, 10, 0, Rows, Count1),
+    assertion(Count1 == 2),
+    assertion(Rows == []),
+    % An entry for another entity count is not this index's.
+    Key = key(Graph, Generation, Legacy, _),
+    retractall(kb:kb_query_ids_memo(_, _, _)),
+    assertz(kb:kb_query_ids_memo(key(Graph, Generation, Legacy, other_count), Filters,
+                                 ['REQ-KEPT-A', 'REQ-KEPT-B'])),
+    kb_query_entities(req, none, [], none, 10, 0, _, Count2),
+    assertion(Count2 == 1),
+    findall(K, kb:kb_query_ids_memo(K, _, _), Keys),
+    assertion(Keys == [Key]).
+
+test(predicate_schema_memo_contract, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb:index_verification_key(predicate_schemas, Key),
+    Row = schema('FACT-KEPT-SCHEMA', kept, schema, 1, [subject], [thing]),
+    retractall(kb:kb_predicate_schema_memo(_, _)),
+    assertz(kb:kb_predicate_schema_memo(Key, [Row])),
+    findall(F, predicate_schema(F, kept, schema, 1, _, _), Found),
+    assertion(Found == ['FACT-KEPT-SCHEMA']),
+    % A named fact is read from the KB, never from the kept rows.
+    assertion(\+ predicate_schema('FACT-KEPT-SCHEMA', _, _, _, _, _)),
+    memo_rollback(assertion(\+ predicate_schema(_, kept, schema, 1, _, _))),
+    retractall(kb:kb_predicate_schema_memo(_, _)),
+    assertz(kb:kb_predicate_schema_memo(stale_key, [Row])),
+    assertion(\+ predicate_schema(_, kept, schema, 1, _, _)),
+    findall(K, kb:kb_predicate_schema_memo(K, _), Keys),
+    assertion(Keys == [Key]).
+
+test(scenario_feasibility_memo_contract, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(scenario, 'SCEN-MEMO-B', "Second scenario", active, [expects=success]),
+    kb:index_verification_key(scenario_feasibility, Key),
+    retractall(kb:kb_scenario_feasibility_memo(_, _, _)),
+    assertz(kb:kb_scenario_feasibility_memo('SCEN-MEMO-A', Key, kept_a)),
+    checks:scenario_feasibility_analysis('SCEN-MEMO-A', A),
+    assertion(A == kept_a),
+    % An unbound scenario is never answered from the memo.
+    (   checks:scenario_feasibility_analysis(_, Unbound)
+    ->  assertion(Unbound \== kept_a)
+    ;   true
+    ),
+    % Another scenario of the same generation joins the kept one.
+    checks:scenario_feasibility_analysis('SCEN-MEMO-B', B),
+    assertion(B \== kept_a),
+    assertion(kb:kb_scenario_feasibility_memo('SCEN-MEMO-A', Key, kept_a)),
+    assertion(kb:kb_scenario_feasibility_memo('SCEN-MEMO-B', Key, _)),
+    memo_rollback(( checks:scenario_feasibility_analysis('SCEN-MEMO-A', Staged),
+                    assertion(Staged \== kept_a) )),
+    aggregate_all(count, kb:kb_scenario_feasibility_memo(_, _, _), AfterStaging),
+    assertion(AfterStaging == 2),
+    % A new generation drops the old one's entries.
+    retractall(kb:kb_scenario_feasibility_memo(_, _, _)),
+    assertz(kb:kb_scenario_feasibility_memo('SCEN-MEMO-A', stale_key, kept_a)),
+    checks:scenario_feasibility_analysis('SCEN-MEMO-B', _),
+    findall(S-K, kb:kb_scenario_feasibility_memo(S, K, _), Rows),
+    assertion(Rows == ['SCEN-MEMO-B'-Key]).
+
+test(requirement_proof_memo_contract, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    memo_req('REQ-PROOF-A'),
+    memo_req('REQ-PROOF-B'),
+    requirement_proof:requirement_proof_context(unknown, "1970-01-01T00:00:00Z", 604800, Context),
+    kb:index_verification_key(requirement_proof, IndexKey),
+    Key = key(IndexKey, Context.proofMemoKey),
+    retractall(kb:kb_requirement_proof_memo(_, _, _)),
+    assertz(kb:kb_requirement_proof_memo('REQ-PROOF-A', Key, kept_a)),
+    memo_proof('REQ-PROOF-A', Context, A),
+    assertion(A == kept_a),
+    memo_proof('REQ-PROOF-B', Context, B),
+    assertion(B \== kept_a),
+    assertion(kb:kb_requirement_proof_memo('REQ-PROOF-A', Key, kept_a)),
+    memo_rollback(( memo_proof('REQ-PROOF-A', Context, Staged),
+                    assertion(Staged \== kept_a) )),
+    aggregate_all(count, kb:kb_requirement_proof_memo(_, _, _), AfterStaging),
+    assertion(AfterStaging == 2),
+    retractall(kb:kb_requirement_proof_memo(_, _, _)),
+    assertz(kb:kb_requirement_proof_memo('REQ-PROOF-A', stale_key, kept_a)),
+    memo_proof('REQ-PROOF-B', Context, _),
+    findall(R-K, kb:kb_requirement_proof_memo(R, K, _), Rows),
+    assertion(Rows == ['REQ-PROOF-B'-Key]).
+
+memo_proof(ReqId, Context, Proof) :-
+    kb_entity(ReqId, req, Props),
+    requirement_proof:requirement_proof(ReqId, Props, Context, Proof).
+
+memo_ladder(ReqId, Context, Ladder) :-
+    kb_entity(ReqId, req, Props),
+    requirement_proof:receipt_independent_stages(ReqId, Props, Context, Ladder).
+
+ladder_key(ReqId, Context, key(IndexKey, Context.ladderMemoKey, PropsKey)) :-
+    kb_entity(ReqId, req, Props),
+    variant_sha1(Props, PropsKey),
+    kb:index_verification_key(requirement_ladder, IndexKey).
+
+test(requirement_ladder_memo_contract, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    memo_req('REQ-LADDER-A'),
+    memo_req('REQ-LADDER-B'),
+    requirement_proof:requirement_proof_context(unknown, "1970-01-01T00:00:00Z", 604800, Context),
+    ladder_key('REQ-LADDER-A', Context, KeyA),
+    ladder_key('REQ-LADDER-B', Context, KeyB),
+    retractall(kb:kb_requirement_ladder_memo(_, _, _)),
+    assertz(kb:kb_requirement_ladder_memo('REQ-LADDER-A', KeyA, kept_a)),
+    memo_ladder('REQ-LADDER-A', Context, A),
+    assertion(A == kept_a),
+    memo_ladder('REQ-LADDER-B', Context, B),
+    assertion(B \== kept_a),
+    assertion(kb:kb_requirement_ladder_memo('REQ-LADDER-A', KeyA, kept_a)),
+    memo_rollback(( memo_ladder('REQ-LADDER-A', Context, Staged),
+                    assertion(Staged \== kept_a) )),
+    aggregate_all(count, kb:kb_requirement_ladder_memo(_, _, _), AfterStaging),
+    assertion(AfterStaging == 2),
+    % One entry per requirement: other findings replace its earlier entry.
+    KeyB = key(IndexKey, _, PropsB),
+    retractall(kb:kb_requirement_ladder_memo(_, _, _)),
+    assertz(kb:kb_requirement_ladder_memo('REQ-LADDER-B', key(IndexKey, other_findings, PropsB), old_b)),
+    memo_ladder('REQ-LADDER-B', Context, _),
+    findall(K, kb:kb_requirement_ladder_memo('REQ-LADDER-B', K, _), KeysB),
+    assertion(KeysB == [KeyB]),
+    % A new generation drops the old one's entries.
+    retractall(kb:kb_requirement_ladder_memo(_, _, _)),
+    assertz(kb:kb_requirement_ladder_memo('REQ-LADDER-A', key(stale_key, x, y), kept_a)),
+    memo_ladder('REQ-LADDER-B', Context, _),
+    findall(R, kb:kb_requirement_ladder_memo(R, _, _), Rows),
+    assertion(Rows == ['REQ-LADDER-B']).
+
+test(status_source_index_memo_contract, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb:index_verification_key(status_source_index, Key),
+    retractall(kb:kb_status_source_index_memo(_, _)),
+    assertz(kb:kb_status_source_index_memo(Key, kept{})),
+    status:entity_source_id_index(Memo),
+    assertion(Memo == kept{}),
+    memo_rollback(( status:entity_source_id_index(Staged),
+                    assertion(Staged \== kept{}) )),
+    assertion(kb:kb_status_source_index_memo(Key, kept{})),
+    retractall(kb:kb_status_source_index_memo(_, _)),
+    assertz(kb:kb_status_source_index_memo(stale_key, kept{})),
+    status:entity_source_id_index(Fresh),
+    assertion(Fresh \== kept{}),
+    findall(K, kb:kb_status_source_index_memo(K, _), Keys),
+    assertion(Keys == [Key]).
+
+memo_cov_compute(Rows, Summary) :-
+    flag(memo_cov_calls, N, N + 1),
+    Rows = [_{id:"b", type:req}, _{id:"a", type:req}],
+    Summary = _{rows:2}.
+
+test(coverage_memo_contract, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    retractall(discovery:coverage_memo(_, _, _, _)),
+    flag(memo_cov_calls, _, 0),
+    Compute = plunit_kb_memo_contracts:memo_cov_compute,
+    discovery:memo_sorted_coverage(args(one), Compute, Rows, Summary, _),
+    assertion(get_dict(rows, Summary, 2)),
+    length(Rows, 2),
+    discovery:memo_sorted_coverage(args(one), Compute, Again, _, _),
+    assertion(Again =@= Rows),
+    flag(memo_cov_calls, AfterRepeat, AfterRepeat),
+    assertion(AfterRepeat == 1),
+    discovery:memo_sorted_coverage(args(two), Compute, _, _, _),
+    flag(memo_cov_calls, AfterOther, AfterOther),
+    assertion(AfterOther == 2),
+    aggregate_all(count, discovery:coverage_memo(_, _, _, _), Kept),
+    assertion(Kept == 1).
+
+test(consistency_memo_contract, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb:index_verification_key(kb_consistency, Key),
+    retractall(kb:kb_consistency_memo(_, _, _)),
+    assertz(kb:kb_consistency_memo(Key, kept_bundle, kept_report)),
+    kb_consistency:consistency_verification(Bundle, Report),
+    assertion(Bundle-Report == kept_bundle-kept_report),
+    memo_rollback(( kb_consistency:consistency_verification(StagedBundle, _),
+                    assertion(is_dict(StagedBundle)) )),
+    assertion(kb:kb_consistency_memo(Key, kept_bundle, kept_report)),
+    retractall(kb:kb_consistency_memo(_, _, _)),
+    assertz(kb:kb_consistency_memo(stale_key, kept_bundle, kept_report)),
+    kb_consistency:consistency_verification(FreshBundle, FreshReport),
+    kb_consistency:compute_consistency_verification(ComputedBundle, ComputedReport),
+    assertion(FreshBundle-FreshReport =@= ComputedBundle-ComputedReport),
+    assertion(is_dict(FreshBundle)),
+    findall(K, kb:kb_consistency_memo(K, _, _), Keys),
+    assertion(Keys == [Key]).
+
+% Detaching drops every generation memo, so a store attached next never
+% answers from another store's entries.
+test(detach_drops_generation_memos, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assertz(kb:kb_req_subject_memo(k, v)),
+    assertz(kb:kb_contradiction_witness_memo(k, v)),
+    assertz(kb:kb_consistency_memo(k, v, v)),
+    assertz(kb:kb_predicate_schema_memo(k, v)),
+    assertz(kb:kb_requirement_proof_memo(r, k, v)),
+    assertz(kb:kb_requirement_ladder_memo(r, k, v)),
+    assertz(kb:kb_status_source_index_memo(k, v)),
+    assertz(kb:kb_scenario_feasibility_memo(s, k, v)),
+    assertz(kb:kb_query_ids_memo(k, f, v)),
+    kb_detach,
+    assertion(\+ kb:kb_req_subject_memo(_, _)),
+    assertion(\+ kb:kb_contradiction_witness_memo(_, _)),
+    assertion(\+ kb:kb_consistency_memo(_, _, _)),
+    assertion(\+ kb:kb_predicate_schema_memo(_, _)),
+    assertion(\+ kb:kb_requirement_proof_memo(_, _, _)),
+    assertion(\+ kb:kb_requirement_ladder_memo(_, _, _)),
+    assertion(\+ kb:kb_status_source_index_memo(_, _)),
+    assertion(\+ kb:kb_scenario_feasibility_memo(_, _, _)),
+    assertion(\+ kb:kb_query_ids_memo(_, _, _)).
+
+test(reporting_batch_with_no_failures_lists_none, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    memo_req('REQ-REPORT-A'),
+    assert_fixture_entity(scenario, 'SCEN-REPORT-A', "Report scenario", active, [expects=success]),
+    assert_fixture_entity(scenario, 'SCEN-REPORT-B', "Report scenario", active, [expects=success]),
+    kb_assert_relationships_reporting(
+        [ rel(specified_by, 'REQ-REPORT-A', 'SCEN-REPORT-A'),
+          rel(specified_by, 'REQ-REPORT-A', 'SCEN-REPORT-B') ],
+        Failed),
+    assertion(Failed == []).
+
+% A JSON inventory is read as JSON, so its objects stay dicts.
+test(inventory_entries_reads_json_objects, []) :-
+    checks:inventory_entries('[{"text": "a"}]', Entries),
+    Entries = [Entry],
+    assertion(is_dict(Entry)),
+    assertion(get_dict(text, Entry, "a")).
+
+:- end_tests(kb_memo_contracts).
+
+:- begin_tests(kb_conflict_pairing).
+
+% The indexed pairings must give the solutions, in the order, that pairing
+% every current requirement with every other one gives, in each binding
+% mode a caller uses.
+
+pairing_fixture :-
+    assert_fixture_entity(fact, 'FACT-PAIR-SUBJECT-X', "Subject x", active,
+        [fact_kind=subject, subject_key="pair.x"]),
+    assert_fixture_entity(fact, 'FACT-PAIR-SUBJECT-Y', "Subject y", active,
+        [fact_kind=subject, subject_key="pair.y"]),
+    forall(member(Id-Value, ['FACT-PAIR-LIMIT-1'-1, 'FACT-PAIR-LIMIT-2'-2, 'FACT-PAIR-LIMIT-3'-3]),
+           assert_fixture_entity(fact, Id, "Limit", active,
+               [fact_kind=property_value, subject_key="pair.x", property_key="limit",
+                operator=eq, value_type=int, value_int=Value])),
+    assert_fixture_entity(fact, 'FACT-PAIR-CAN', "User can read", active,
+        [fact_kind=predicate, predicate_name="can", predicate_namespace="auth",
+         predicate_args=["user", "read", "post"], polarity=assert,
+         canonical_key="auth.can(user,read,post).assert"]),
+    assert_fixture_entity(fact, 'FACT-PAIR-CANNOT', "User cannot read", active,
+        [fact_kind=predicate, predicate_name="can", predicate_namespace="auth",
+         predicate_args=["user", "read", "post"], polarity=deny,
+         canonical_key="auth.can(user,read,post).deny"]),
+    assert_fixture_entity(fact, 'FACT-PAIR-WRITE', "User can write", active,
+        [fact_kind=predicate, predicate_name="can", predicate_namespace="auth",
+         predicate_args=["user", "write", "post"], polarity=assert,
+         canonical_key="auth.can(user,write,post).assert"]),
+    forall(member(Id, ['REQ-PAIR-A', 'REQ-PAIR-B', 'REQ-PAIR-C', 'REQ-PAIR-D']),
+           assert_fixture_entity(req, Id, "Pairing requirement", open, [])),
+    assert_fixture_entity(req, 'REQ-PAIR-AOLD', "Deprecated requirement", deprecated, []),
+    forall(member(Req-Fact, [ 'REQ-PAIR-A'-'FACT-PAIR-SUBJECT-X',
+                              'REQ-PAIR-B'-'FACT-PAIR-SUBJECT-X',
+                              'REQ-PAIR-B'-'FACT-PAIR-SUBJECT-Y',
+                              'REQ-PAIR-C'-'FACT-PAIR-SUBJECT-X',
+                              'REQ-PAIR-C'-'FACT-PAIR-SUBJECT-Y',
+                              'REQ-PAIR-D'-'FACT-PAIR-SUBJECT-X',
+                              'REQ-PAIR-AOLD'-'FACT-PAIR-SUBJECT-X' ]),
+           kb_assert_relationship(constrains, Req, Fact, [])),
+    forall(member(Req-Fact, [ 'REQ-PAIR-A'-'FACT-PAIR-LIMIT-1',
+                              'REQ-PAIR-B'-'FACT-PAIR-LIMIT-2',
+                              'REQ-PAIR-C'-'FACT-PAIR-LIMIT-3' ]),
+           kb_assert_relationship(requires_property, Req, Fact, [])),
+    forall(member(Req-Fact, [ 'REQ-PAIR-A'-'FACT-PAIR-CAN',
+                              'REQ-PAIR-B'-'FACT-PAIR-CANNOT',
+                              'REQ-PAIR-B'-'FACT-PAIR-WRITE',
+                              'REQ-PAIR-C'-'FACT-PAIR-CAN',
+                              'REQ-PAIR-D'-'FACT-PAIR-CANNOT',
+                              'REQ-PAIR-AOLD'-'FACT-PAIR-CANNOT' ]),
+           kb_assert_relationship(requires_predicate, Req, Fact, [])).
+
+pairing_reqs(['REQ-PAIR-A', 'REQ-PAIR-AOLD', 'REQ-PAIR-B', 'REQ-PAIR-C', 'REQ-PAIR-D', 'REQ-PAIR-NONE']).
+
+reference_subject_pair(ReqA, ReqB, SubjectKey) :-
+    kb:current_req(ReqA),
+    kb:current_req(ReqB),
+    ReqA @< ReqB,
+    kb_relationship(constrains, ReqA, SubjectFactA),
+    kb_relationship(constrains, ReqB, SubjectFactB),
+    kb:fact_subject_key(SubjectFactA, SubjectKey),
+    kb:fact_subject_key(SubjectFactB, SubjectKey).
+
+reference_predicate_pair(ReqA, ReqB, FactA, FactB, Ns, Name, Args, PolarityA, PolarityB) :-
+    kb:current_req(ReqA),
+    kb:current_req(ReqB),
+    ReqA @< ReqB,
+    kb:effective_req_predicate(ReqA, FactA, Ns, Name, Args, PolarityA),
+    kb:effective_req_predicate(ReqB, FactB, Ns, Name, Args, PolarityB).
+
+same_subject_pairs(ReqA, ReqB) :-
+    findall(ReqA-ReqB-K, kb:subject_conflict_pair(ReqA, ReqB, K), Actual),
+    findall(ReqA-ReqB-K, reference_subject_pair(ReqA, ReqB, K), Expected),
+    assertion(Actual == Expected).
+
+same_predicate_pairs(ReqA, ReqB) :-
+    findall(p(ReqA, ReqB, FA, FB, Ns, N, Args, PA, PB),
+            kb:predicate_conflict_pair(ReqA, ReqB, FA, FB, Ns, N, Args, PA, PB),
+            Actual),
+    findall(p(ReqA, ReqB, FA, FB, Ns, N, Args, PA, PB),
+            reference_predicate_pair(ReqA, ReqB, FA, FB, Ns, N, Args, PA, PB),
+            Expected),
+    assertion(Actual == Expected).
+
+test(subject_pairs_match_the_full_enumeration_in_every_mode, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    pairing_fixture,
+    findall(A-B, reference_subject_pair(A, B, _), AllPairs),
+    assertion(AllPairs \== []),
+    same_subject_pairs(_, _),
+    pairing_reqs(Reqs),
+    forall(member(Req, Reqs),
+           ( same_subject_pairs(Req, _),
+             same_subject_pairs(_, Req) )),
+    forall(( member(A, Reqs), member(B, Reqs) ),
+           same_subject_pairs(A, B)).
+
+test(predicate_pairs_match_the_full_enumeration_in_every_mode, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    pairing_fixture,
+    findall(A-B, reference_predicate_pair(A, B, _, _, _, _, _, _, _), AllPairs),
+    assertion(AllPairs \== []),
+    same_predicate_pairs(_, _),
+    pairing_reqs(Reqs),
+    forall(member(Req, Reqs),
+           ( same_predicate_pairs(Req, _),
+             same_predicate_pairs(_, Req) )),
+    forall(( member(A, Reqs), member(B, Reqs) ),
+           same_predicate_pairs(A, B)).
+
+reference_candidate_pair(FactA, FactB) :-
+    reference_subject_pair(ReqA, ReqB, SubjectKey),
+    kb:effective_req_property_fact(ReqA, SubjectKey, FactA, PropertyKey, _, _, _, _, _, _, _, _),
+    kb:effective_req_property_fact(ReqB, SubjectKey, FactB, PropertyKey, _, _, _, _, _, _, _, _),
+    FactA \= FactB.
+reference_candidate_pair(FactA, FactB) :-
+    reference_predicate_pair(_, _, FactA, FactB, _, _, _, _, _),
+    FactA \= FactB.
+
+test(examined_pair_count_matches_the_full_enumeration, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    pairing_fixture,
+    findall(A-B, reference_candidate_pair(A, B), Pairs0),
+    sort(Pairs0, Pairs),
+    length(Pairs, Expected),
+    assertion(Expected == 5),
+    kb_domain_contradiction_pairs_examined(Count),
+    assertion(Count == Expected).
+
+:- end_tests(kb_conflict_pairing).
 
 % ------------------------------------------------------------------
 % Vocabulary convergence, redundancy, and unit canonicalization

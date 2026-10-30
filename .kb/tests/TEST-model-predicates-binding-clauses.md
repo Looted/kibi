@@ -21,18 +21,18 @@ origin:
 id: TEST-model-predicates-binding-clauses
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-80bab59fa9ddec78d15fdb59
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-fdadf11e8184039ae98a1596
     test_id: TEST-model-predicates-binding-clauses
     scope: end_to_end
     outcome: passed
-    code_snapshot: 3464ae42f083c2b6e9ed9b482fa7e54f58e94f0d5628e4ace6c2f8d99ecacd37
+    code_snapshot: c4d9d166a9ab4e76d943d7d63ccf7c0b34eaa49fd1054dbfd9d0a4a29aa9998f
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-08T21:31:14.248Z'
-    finished_at: '2026-10-08T21:31:14.419Z'
-    artifact_digest: fd2028e00742c610c3d03ae0d2cea71bbd4900e5d5ae1d8c9d293dbf67526df3
+    started_at: '2026-10-28T10:14:39.655Z'
+    finished_at: '2026-10-28T10:14:39.881Z'
+    artifact_digest: c597b177f4219d2abcb30c9a35648ccbe99cc060fd9d4e08d36f4fd8c9082472
     contract_hash: 6b930095c673fe8204f6234877bfd53b294df1b23434b8f513c2b314adf6a64c
-    binding_hash: 89aa3813754a29aabedebdef21bd506b9dbacea268686cd1ec761ac759b275ed
+    binding_hash: 0a2de6ee5752079a645dbaf2f27d4823acdeb6842cebe14337f3cd9a00ca0a0e
     fingerprint: a9ee6a6d7d805201152e6c7cc125e7539f3ad3719b47c79697ea4d6cf0bc5fe1
     fingerprint_components:
       contract: 6b930095c673fe8204f6234877bfd53b294df1b23434b8f513c2b314adf6a64c
@@ -54,5 +54,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs the predicate binding placeholder suite, which models a claim whose actor is a seven-word clause and checks that the actor stays unbound with a hint, that a short noun still binds, and that explicit bindings and non-participant arguments are not judged by length.

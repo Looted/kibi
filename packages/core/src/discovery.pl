@@ -9,6 +9,7 @@
     coverage_report_json/12,
     coverage_report_json/13,
     coverage_evidence_json/5,
+    coverage_evidence_json/7,
     evidence_floor_json/6,
     requirement_proof_json/5,
     requirement_proof_json/7,
@@ -155,12 +156,14 @@ symbol_explain_role(_SymbolId, unknown).
 % not used: they take seconds on a large KB. The functional-predicate
 % declarations a rule comparison reads are collected once per call rather
 % than once per compared pair, which dominated the cost for requirements with
-% many rules. A requirement whose checks raise an error reports that error
-% instead of failing the answer. Scope names the snapshot the verdicts were
-% computed from.
+% many rules; the infeasible success scenarios are likewise analysed once per
+% call rather than once per requirement. A requirement whose checks raise an
+% error reports that error instead of failing the answer. Scope names the
+% snapshot the verdicts were computed from.
 search_answer_verdicts_json(ReqIds, JsonString) :-
     search_answer_functional(Functional),
-    maplist(search_answer_verdict(Functional), ReqIds, Verdicts),
+    search_answer_infeasible(Infeasible),
+    maplist(search_answer_verdict(Functional, Infeasible), ReqIds, Verdicts),
     status_scope_dict(Scope),
     dict_json_string(_{requirements: Verdicts, scope: Scope}, JsonString).
 
@@ -171,14 +174,27 @@ search_answer_functional(some(Functional)) :-
     !.
 search_answer_functional(none).
 
+% Every infeasible success scenario, analysed once per call: the analysis
+% walks every success scenario, so running it per requirement multiplied a
+% whole-KB pass by the number of requirements in the answer. When it raises,
+% each requirement's forbids check raises the same error itself and reports
+% it as that requirement's error, as before.
+search_answer_infeasible(some(Infeasible)) :-
+    catch(findall(infeasible(ScenarioId, ReqIds, AssumedFacts, ReqFacts, Reason),
+                  infeasible_scenario(ScenarioId, ReqIds, AssumedFacts, ReqFacts, Reason),
+                  Infeasible),
+          _, fail),
+    !.
+search_answer_infeasible(none).
+
 search_answer_rule_status(some(Functional), RuleA, RuleB, Status) :-
     !,
     logic_rule_conflict(RuleA, RuleB, Functional, Status).
 search_answer_rule_status(none, RuleA, RuleB, Status) :-
     logic_rule_conflict(RuleA, RuleB, Status).
 
-search_answer_verdict(Functional, ReqId, Verdict) :-
-    catch(search_answer_verdict_(Functional, ReqId, Verdict0), Error, true),
+search_answer_verdict(Functional, Infeasible, ReqId, Verdict) :-
+    catch(search_answer_verdict_(Functional, Infeasible, ReqId, Verdict0), Error, true),
     (   var(Error)
     ->  Verdict = Verdict0
     ;   format(string(Text0), "~q", [Error]),
@@ -186,7 +202,7 @@ search_answer_verdict(Functional, ReqId, Verdict) :-
         Verdict = _{id: ReqId, error: Text}
     ).
 
-search_answer_verdict_(Functional, ReqId, _{
+search_answer_verdict_(Functional, Infeasible, ReqId, _{
     id: ReqId,
     contradictions: Contradictions,
     scenarios: Scenarios,
@@ -197,7 +213,7 @@ search_answer_verdict_(Functional, ReqId, _{
     sort(Contradictions0, Contradictions),
     findall(S, search_answer_scenario_outcome(ReqId, S), Scenarios0),
     sort(Scenarios0, Scenarios),
-    findall(F, search_answer_forbidden_scenario(ReqId, F), Forbids0),
+    findall(F, search_answer_forbidden_scenario(Infeasible, ReqId, F), Forbids0),
     sort(Forbids0, Forbids),
     search_answer_inventory(ReqId, Inventory).
 
@@ -291,7 +307,18 @@ search_answer_outcome(ScenarioId, Result, _{scenario: ScenarioId, outcome: Outco
     ;   format(atom(Outcome), "~q", [Result])
     ).
 
-search_answer_forbidden_scenario(ReqId, _{
+search_answer_forbidden_scenario(some(Infeasible), ReqId, _{
+    scenario: ScenarioId,
+    assumed: AssumedFacts,
+    fact: ReqFacts,
+    reason: Reason
+}) :-
+    member(infeasible(ScenarioId, ReqIds, AssumedFacts, ReqFacts, RawReason), Infeasible),
+    memberchk(ReqId, ReqIds),
+    \+ kb_relationship(specified_by, ReqId, ScenarioId),
+    search_answer_text(RawReason, Reason).
+
+search_answer_forbidden_scenario(none, ReqId, _{
     scenario: ScenarioId,
     assumed: AssumedFacts,
     fact: ReqFacts,
@@ -352,6 +379,16 @@ search_answer_clip(Text, Max, Clipped) :-
 % the full coverage row set, keeping the response small on large KBs.
 coverage_evidence_json(Tags, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
     requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, ProofContext),
+    coverage_evidence_rows_json(Tags, ProofContext, JsonString).
+
+% The same rows under a receipt binding mode, so kb_check judges receipts
+% like kb_coverage and kibi proof explain: per_contract with the TestId ->
+% binding hash dict, or strict_snapshot.
+coverage_evidence_json(Tags, BindingMode, TestBindings, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
+    requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, BindingMode, TestBindings, ProofContext),
+    coverage_evidence_rows_json(Tags, ProofContext, JsonString).
+
+coverage_evidence_rows_json(Tags, ProofContext, JsonString) :-
     findall(Evidence,
         (   kb_entity(Id, req, Props),
             matches_tags(Tags, Props),
@@ -479,9 +516,9 @@ coverage_report_json(By, Tags, IncludePassing, BindingMode, TestBindings, Includ
         binding(By, Tags, IncludePassing, BindingMode, TestBindings, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds),
         binding_coverage_rows(By, Tags, IncludePassing, BindingMode, TestBindings, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds),
         SortedRows,
-        Summary),
+        Summary,
+        Meta),
     paginate_rows(SortedRows, Offset, Limit, Rows),
-    status_meta_dict(Meta),
     Response = _{summary: Summary, rows: Rows, meta: Meta},
     dict_json_string(Response, JsonString).
 
@@ -497,9 +534,9 @@ coverage_report_json(By, Tags, IncludePassing, StatusFilter, IncludeTransitive, 
         status(By, Tags, IncludePassing, StatusFilter, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds),
         status_filtered_coverage_rows(By, Tags, IncludePassing, StatusFilter, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds),
         SortedRows,
-        Summary),
+        Summary,
+        Meta),
     paginate_rows(SortedRows, Offset, Limit, Rows),
-    status_meta_dict(Meta),
     Response = _{summary: Summary, rows: Rows, meta: Meta},
     dict_json_string(Response, JsonString).
 
@@ -512,9 +549,9 @@ coverage_report_json(By, Tags, IncludePassing, StatusFilter, BindingMode, TestBi
         status_binding(By, Tags, IncludePassing, StatusFilter, BindingMode, TestBindings, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds),
         status_binding_coverage_rows(By, Tags, IncludePassing, StatusFilter, BindingMode, TestBindings, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds),
         SortedRows,
-        Summary),
+        Summary,
+        Meta),
     paginate_rows(SortedRows, Offset, Limit, Rows),
-    status_meta_dict(Meta),
     Response = _{summary: Summary, rows: Rows, meta: Meta},
     dict_json_string(Response, JsonString).
 
@@ -531,26 +568,31 @@ binding_coverage_rows(req, Tags, IncludePassing, BindingMode, TestBindings, Incl
 binding_coverage_rows(By, Tags, IncludePassing, _BindingMode, _TestBindings, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary) :-
     coverage_rows(By, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary).
 
-:- dynamic coverage_memo/3.
+:- dynamic coverage_memo/4.
 
-%% memo_sorted_coverage(+Args, :Compute, -SortedRows, -Summary)
+%% memo_sorted_coverage(+Args, :Compute, -SortedRows, -Summary, -Meta)
 % Large coverage reports are fetched in bounded pages so no single answer
 % approaches the engine's output cap. Every page would otherwise recompute
 % the whole report; keep the most recent sorted result for the exact
 % arguments, graph, and RDF generation. Coverage reads only the store and its
-% arguments, so the memo is invalidated by any store change.
-memo_sorted_coverage(Args, Compute, SortedRows, Summary) :-
+% arguments, so the memo is invalidated by any store change. The status meta
+% is kept with it: its freshness check stats every indexed source, which cost
+% more than the page itself, and the pages of one report share its arguments
+% (including the check time), so they describe the same snapshot.
+memo_sorted_coverage(Args, Compute, SortedRows, Summary, Meta) :-
     (kb:kb_graph(Graph) -> true ; Graph = none),
     rdf_generation(Generation),
     Key = key(Args, Graph, Generation),
-    (   coverage_memo(Stored, StoredRows, StoredSummary),
+    (   coverage_memo(Stored, StoredRows, StoredSummary, StoredMeta),
         Stored =@= Key
     ->  SortedRows = StoredRows,
-        Summary = StoredSummary
+        Summary = StoredSummary,
+        Meta = StoredMeta
     ;   call(Compute, Rows0, Summary),
         sort_dict_rows(Rows0, SortedRows),
-        retractall(coverage_memo(_, _, _)),
-        assertz(coverage_memo(Key, SortedRows, Summary))
+        status_meta_dict(Meta),
+        retractall(coverage_memo(_, _, _, _)),
+        assertz(coverage_memo(Key, SortedRows, Summary, Meta))
     ).
 
 status_filtered_coverage_rows(By, Tags, IncludePassing, [], IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary) :-

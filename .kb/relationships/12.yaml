@@ -258,3 +258,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-930ddd4367bf
+  - type: executable_for
+    from: SYM-proof-proof-test-report-outcomes
+    to: TEST-proof-proof-test-report-outcomes
+    created_at: 2026-10-28T11:08:03.052Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed7e182e7154
+  - type: validates
+    from: TEST-proof-search-answer-excerpt-chars
+    to: SCEN-kibi-search-answer-layer
+    created_at: 2026-10-28T11:12:01.365Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9763fef6b089
+  - type: executable_for
+    from: SYM-proof-generated-symbol-fields
+    to: TEST-proof-generated-symbol-fields
+    created_at: 2026-10-28T11:13:34.859Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3642e1496961
+  - type: implements
+    from: SYM-cli-ENTITY_QUERY_CHUNK_SIZE
+    to: REQ-kibi-operation-page-sizes
+    created_at: 2026-10-28T17:22:24.507Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57d530e2812f
+  - type: covered_by
+    from: SYM-cli-ENTITY_QUERY_CHUNK_SIZE
+    to: TEST-proof-entity-query-chunk-size
+    created_at: 2026-10-28T17:22:37.089Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-35d5da0168ce
+  - type: covered_by
+    from: SYM-cli-ENTITY_QUERY_CHUNK_SIZE
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-10-28T17:22:37.107Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d508376fb178
+  - type: executable_for
+    from: SYM-proof-proof-contract-page-size
+    to: TEST-proof-proof-contract-page-size
+    created_at: 2026-10-28T17:22:50.985Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7d390764e38
+  - type: executable_for
+    from: SYM-proof-exception-unapproved-rule
+    to: TEST-proof-exception-unapproved-rule
+    created_at: 2026-10-28T20:21:03.049Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6b5d05202c5
+  - type: implements
+    from: SYM-schema6-check-actions-PREDICATE_KEY_ARGUMENTS_REVIEW_CODE
+    to: REQ-kibi-lifecycle-review-actions
+    created_at: 2026-10-28T20:27:23.470Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8904e69ea295
+  - type: covered_by
+    from: SYM-schema6-check-actions-PREDICATE_KEY_ARGUMENTS_REVIEW_CODE
+    to: TEST-proof-predicate-key-review-code
+    created_at: 2026-10-28T20:27:35.620Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c34a593089dc
+  - type: covered_by
+    from: SYM-schema6-check-actions-PREDICATE_KEY_ARGUMENTS_REVIEW_CODE
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:27:35.637Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-240b250fe171
+  - type: executable_for
+    from: SYM-proof-brand-danger-color
+    to: TEST-proof-brand-danger-color
+    created_at: 2026-10-28T22:30:55.953Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a5f7e116cfd

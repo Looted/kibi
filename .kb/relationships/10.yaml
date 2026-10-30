@@ -384,3 +384,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4acf4501e57b
+  - type: executable_for
+    from: SYM-proof-jev-default-model
+    to: TEST-proof-jev-default-model
+    created_at: 2026-10-28T09:36:59.237Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b31ca11c47ff
+  - type: validates
+    from: TEST-proof-firm-supersede-code
+    to: SCEN-cli-migrate
+    created_at: 2026-10-28T20:31:00.632Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a4cd145de6d
+  - type: validates
+    from: TEST-proof-entity-row-batch-limit
+    to: SCEN-kibi-operation-interface-parity
+    created_at: 2026-10-28T21:34:07.119Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1682133f3197
+  - type: implements
+    from: SYM-const-max-aspect-chars
+    to: REQ-bootstrap-claim-aspect-limits
+    created_at: 2026-10-29T16:51:53.487Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-861421297e5e
+  - type: covered_by
+    from: SYM-const-max-aspect-chars
+    to: TEST-proof-bootstrap-aspect-max-chars
+    created_at: 2026-10-29T16:52:12.715Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2f75b7fecd48
+  - type: covered_by
+    from: SYM-const-max-aspect-chars
+    to: TEST-bootstrap-claim-name-length
+    created_at: 2026-10-29T16:52:12.753Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66ae6c6969e8
+  - type: executable_for
+    from: SYM-proof-builtin-predicate-confidence
+    to: TEST-proof-builtin-predicate-confidence
+    created_at: 2026-10-29T17:00:39.341Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8128acefed40

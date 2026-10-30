@@ -272,3 +272,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c11ca7525198
+  - type: validates
+    from: TEST-proof-min-context-words
+    to: SCEN-kb-entity-body-context
+    created_at: 2026-10-28T10:39:10.377Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49645767d2f2
+  - type: implements
+    from: SYM-const-claim-binding-schema-version
+    to: REQ-kibi-claim-bound-proof-settings
+    created_at: 2026-10-28T10:58:07.752Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f685120866d
+  - type: covered_by
+    from: SYM-const-claim-binding-schema-version
+    to: TEST-proof-claim-binding-schema-version
+    created_at: 2026-10-28T10:58:17.450Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7d3490a457a
+  - type: covered_by
+    from: SYM-const-claim-binding-schema-version
+    to: TEST-kibi-claim-bound-proofs
+    created_at: 2026-10-28T10:58:17.467Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-537661bf7a5b
+  - type: validates
+    from: TEST-proof-adr-unlinked-review-code
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T17:26:07.086Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97c5e716a165
+  - type: implements
+    from: SYM-migration-semantic-inventory-rederive-code
+    to: REQ-cli-schema-migration-codes
+    created_at: 2026-10-28T18:50:24.844Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e638ec5575b
+  - type: covered_by
+    from: SYM-migration-semantic-inventory-rederive-code
+    to: TEST-proof-inventory-rederive-code
+    created_at: 2026-10-28T18:50:37.175Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d37bbc1c0f4e
+  - type: validates
+    from: TEST-proof-engine-idle-timeout
+    to: SCEN-core-journaled-engine-lifecycle
+    created_at: 2026-10-28T19:04:07.265Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b88125c1dbd
+  - type: executable_for
+    from: SYM-proof-entity-row-batch-limit
+    to: TEST-proof-entity-row-batch-limit
+    created_at: 2026-10-28T21:34:09.396Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-085c23d6258a

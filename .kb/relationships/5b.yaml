@@ -113,13 +113,6 @@ relationships:
     id: rel-98ac81f3b624
   - type: requires_predicate
     from: REQ-capability-plugin-configuration-v1
-    to: FACT-PRED-3D1D5FBD7F5E
-    created_at: 2026-09-22T19:13:55.524Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ea6d47d5587a
-  - type: requires_predicate
-    from: REQ-capability-plugin-configuration-v1
     to: FACT-PRED-739269EDDB6C
     created_at: 2026-09-22T19:13:55.531Z
     created_by: kibi/upsert
@@ -279,3 +272,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ce2760cbf3c1
+  - type: executable_for
+    from: SYM-proof-detached-head-code
+    to: TEST-proof-detached-head-code
+    created_at: 2026-10-28T20:42:33.357Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-029782431196
+  - type: implements
+    from: SYM-const-firmness-values
+    to: REQ-kb-firmness-values
+    created_at: 2026-10-28T20:51:11.175Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84b238df9131
+  - type: covered_by
+    from: SYM-const-firmness-values
+    to: TEST-proof-firmness-values
+    created_at: 2026-10-28T20:51:23.918Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce929aed0ee6
+  - type: covered_by
+    from: SYM-const-firmness-values
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-28T20:51:23.945Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f317d75ad028
+  - type: requires_property
+    from: REQ-git-hook-managed-names
+    to: FACT-hook-block-begin
+    created_at: 2026-10-28T22:40:19.022Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd50ec762760
+  - type: requires_property
+    from: REQ-git-hook-managed-names
+    to: FACT-managed-hook-names
+    created_at: 2026-10-28T22:40:19.050Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-20abefca1849
+  - type: specified_by
+    from: REQ-git-hook-managed-names
+    to: SCEN-git-hook-effective-install
+    created_at: 2026-10-28T22:40:19.069Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a09181d40e02
+  - type: constrains
+    from: REQ-git-hook-managed-names
+    to: FACT-kibi-git-hooks-managed-component
+    created_at: 2026-10-28T22:40:20.802Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-889c60fb6697

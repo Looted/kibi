@@ -286,3 +286,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e200e39b88d8
+  - type: requires_property
+    from: REQ-kb-decision-firmness-settings
+    to: FACT-firmness-types
+    created_at: 2026-10-28T10:33:03.608Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6bb21ea75ab5
+  - type: requires_property
+    from: REQ-kb-decision-firmness-settings
+    to: FACT-why-this-changed-heading
+    created_at: 2026-10-28T10:33:03.660Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee4a7e480eae
+  - type: requires_property
+    from: REQ-kb-decision-firmness-settings
+    to: FACT-min-why-changed-words
+    created_at: 2026-10-28T10:33:03.693Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67147ad5e8d5
+  - type: specified_by
+    from: REQ-kb-decision-firmness-settings
+    to: SCEN-kb-decision-firmness
+    created_at: 2026-10-28T10:33:03.721Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca4663355b99
+  - type: constrains
+    from: REQ-kb-decision-firmness-settings
+    to: FACT-kibi-decision-firmness-settings-component
+    created_at: 2026-10-28T14:36:41.157Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0502992938db
+  - type: executable_for
+    from: SYM-proof-delivered-map-code
+    to: TEST-proof-delivered-map-code
+    created_at: 2026-10-28T17:43:01.019Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61101ec3b6f7
+  - type: implements
+    from: SYM-proof-runs-dir
+    to: REQ-kibi-proof-run-vocabulary
+    created_at: 2026-10-28T17:49:45.825Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47b6826ac43e
+  - type: covered_by
+    from: SYM-proof-runs-dir
+    to: TEST-proof-proof-runs-dir
+    created_at: 2026-10-28T17:49:58.499Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b44b6e63ed1
+  - type: covered_by
+    from: SYM-proof-runs-dir
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T17:49:58.520Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1ce6303c748
+  - type: validates
+    from: TEST-proof-exception-self-attested-rule
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:21:23.960Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb70d95e9872
+  - type: validates
+    from: TEST-proof-brand-warning-color
+    to: SCEN-kibi-branded-health-report
+    created_at: 2026-10-28T22:30:37.408Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52fc469fbcea
+  - type: executable_for
+    from: SYM-proof-query-fact-kinds
+    to: TEST-proof-query-fact-kinds
+    created_at: 2026-10-29T10:33:51.334Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-617d03e75aa9

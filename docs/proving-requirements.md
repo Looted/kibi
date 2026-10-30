@@ -243,6 +243,18 @@ anchor):
     export: OrderStatus
 ```
 
+When the export is a list of records, such as an operation catalog,
+`domain_source.field` names the field of each record that is the domain
+member, and the certificate's members are that field's values
+(`key: (operation) => operation.name` in `exhaustiveCertificate`). A record
+without the field fails the read. `field` applies only to `exhaustive`.
+
+```yaml
+  domain_source:
+    symbol_id: SYM-operation-catalog
+    field: name
+```
+
 - **TypeScript and JavaScript**: Kibi tries bun, then the workspace's own
   `tsx` (`node_modules/.bin/tsx`), then node with type stripping and a
   resolve hook that maps extensionless and `.js` relative imports to their
@@ -468,7 +480,9 @@ reachable states the same way. A rule over a machine can use `transition`,
 `reachable` (one or more steps), `initial`, `terminal` and `state`.
 
 A **regex** contract names the pattern in `pattern_source`: a `RegExp` or a
-Python `re.compile(...)` (its flags included), or a string constant. "Invoice
+Python `re.compile(...)` (its flags included), or a string constant. A
+dotted `export` (`BRAND.name`) reads one field of an object, dict or class
+export, and the proof file counts as importing it when it imports `BRAND`. "Invoice
 numbers must match `INV-[0-9]{6}`" is modeled as a string fact with
 `operator: matches`, whose value is a JavaScript pattern (with the `u` flag)
 that must match the whole string. Kibi compares the two languages exactly

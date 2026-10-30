@@ -47,7 +47,9 @@
 %                    routes.  set_relation compares the members with the
 %                    fact's set; required_fields and nullable_fields check
 %                    each selected table or object; route_middleware checks
-%                    each selected route's middleware.
+%                    each selected route's middleware; sequence_precedes
+%                    checks each "A -> B" member against the list in the
+%                    order read (every A before every B).
 %
 % Rules with explicit exists quantifiers, count or temporal expressions, or
 % durations, timestamps and intervals are outside what Kibi enumerates and
@@ -115,14 +117,18 @@ certificate_model(state_machine, Certificate, model(any(States), Table, machine(
     ;   Initial = none
     ),
     machine_table(States, Edges, Initial, Table).
-certificate_model(source, Certificate, model(none, none, source(Members, Entities, Routes))) :-
+certificate_model(source, Certificate, model(none, none, source(Members, Entities, Routes, Sequence))) :-
     !,
     required(Certificate, model, Model),
     required(Model, members, RawMembers),
     maplist(text_string, RawMembers, Members0),
     sort(Members0, Members),
     (   get_dict(entities, Model, Entities) -> true ; Entities = none ),
-    (   get_dict(routes, Model, Routes) -> true ; Routes = none ).
+    (   get_dict(routes, Model, Routes) -> true ; Routes = none ),
+    (   get_dict(sequence, Model, RawSequence)
+    ->  maplist(text_string, RawSequence, Sequence)
+    ;   Sequence = none
+    ).
 certificate_model(Kind, _, _) :-
     format(string(Reason), "a ~w certificate has no finite model to check", [Kind]),
     throw(model_error(Reason)).
@@ -391,14 +397,14 @@ obligation_result("machine_relation", Obligation, model(_, _, Machine), Result) 
         ;   Result = ok
         )
     ).
-obligation_result("set_relation", Obligation, model(_, _, source(Actual, _, _)), Result) :- !,
+obligation_result("set_relation", Obligation, model(_, _, source(Actual, _, _, _)), Result) :- !,
     dict_text(Obligation, operator, Operator),
     obligation_strings(Obligation, Expected),
     (   relation_problem(Operator, Actual, Expected, "the members Kibi read from the source", Reason)
     ->  Result = problem(Reason)
     ;   Result = ok
     ).
-obligation_result(FieldKind, Obligation, model(_, _, source(_, Entities, _)), Result) :-
+obligation_result(FieldKind, Obligation, model(_, _, source(_, Entities, _, _)), Result) :-
     memberchk(FieldKind, ["required_fields", "nullable_fields"]),
     !,
     (   is_list(Entities), Entities \== []
@@ -411,7 +417,7 @@ obligation_result(FieldKind, Obligation, model(_, _, source(_, Entities, _)), Re
     ->  Result = problem(Reason)
     ;   Result = ok
     ).
-obligation_result("route_middleware", Obligation, model(_, _, source(_, _, Routes)), Result) :- !,
+obligation_result("route_middleware", Obligation, model(_, _, source(_, _, Routes, _)), Result) :- !,
     (   is_list(Routes), Routes \== []
     ->  true
     ;   throw(model_error("the source has no routes; read a route table for a middleware claim"))
@@ -429,8 +435,50 @@ obligation_result("route_middleware", Obligation, model(_, _, source(_, _, Route
     ->  Result = problem(Reason)
     ;   Result = ok
     ).
+% implements REQ-kibi-source-proof-kinds
+obligation_result("sequence_precedes", Obligation, model(_, _, source(_, _, _, Sequence)), Result) :- !,
+    (   is_list(Sequence)
+    ->  true
+    ;   throw(model_error("the source has no order; read a list for a precedes claim"))
+    ),
+    obligation_strings(Obligation, Pairs),
+    (   member(Pair, Pairs),
+        precedes_problem(Pair, Sequence, Reason)
+    ->  Result = problem(Reason)
+    ;   Result = ok
+    ).
 obligation_result(Kind, _, _, problem(Reason)) :-
     format(string(Reason), "a ~w obligation cannot be checked against a finite model", [Kind]).
+
+% A precedes member "A -> B" holds when A and B are both in the list and
+% every A comes before every B.
+precedes_problem(Pair, Sequence, Reason) :-
+    (   precedes_pair(Pair, First, Second)
+    ->  findall(I, nth1(I, Sequence, First), FirstAt),
+        findall(I, nth1(I, Sequence, Second), SecondAt),
+        (   FirstAt == []
+        ->  format(string(Reason), "~w is not in the list Kibi read", [First])
+        ;   SecondAt == []
+        ->  format(string(Reason), "~w is not in the list Kibi read", [Second])
+        ;   max_list(FirstAt, LastFirst),
+            min_list(SecondAt, FirstSecond),
+            LastFirst > FirstSecond
+        ->  format(string(Reason), "~w comes before ~w in the list Kibi read (items ~w and ~w)",
+                   [Second, First, FirstSecond, LastFirst])
+        )
+    ;   format(string(Reason), "~w is not spelled \"A -> B\"", [Pair])
+    ).
+
+precedes_pair(Pair, First, Second) :-
+    sub_string(Pair, Before, 4, After, " -> "),
+    sub_string(Pair, 0, Before, _, First0),
+    sub_string(Pair, _, After, 0, Second0),
+    \+ sub_string(Second0, _, _, _, " -> "),
+    normalize_space(string(First), First0),
+    normalize_space(string(Second), Second0),
+    First \== "",
+    Second \== "",
+    !.
 
 obligation_strings(Obligation, Members) :-
     get_dict(members, Obligation, Raw),

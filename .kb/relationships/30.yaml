@@ -384,3 +384,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e180c22584fe
+  - type: executable_for
+    from: SYM-proof-engine-query-limit-code
+    to: TEST-proof-engine-query-limit-code
+    created_at: 2026-10-28T10:31:36.812Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f978dd50aaed
+  - type: validates
+    from: TEST-proof-derived-coordinates-schema
+    to: SCEN-cli-migrate
+    created_at: 2026-10-28T20:34:03.034Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc8fc7bf1a80
+  - type: validates
+    from: TEST-proof-brand-rail-color
+    to: SCEN-kibi-branded-health-report
+    created_at: 2026-10-28T22:30:04.402Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59ec30df8493
+  - type: executable_for
+    from: SYM-proof-canonical-facts-path
+    to: TEST-proof-canonical-facts-path
+    created_at: 2026-10-28T22:35:55.882Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e02e1b11029d
+  - type: executable_for
+    from: SYM-proof-semantic-signal-kinds
+    to: TEST-proof-semantic-signal-kinds
+    created_at: 2026-10-29T10:30:55.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2e7d317f378
+  - type: executable_for
+    from: SYM-proof-bootstrap-providers
+    to: TEST-proof-bootstrap-providers
+    created_at: 2026-10-29T10:35:26.339Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e73ef64038d0

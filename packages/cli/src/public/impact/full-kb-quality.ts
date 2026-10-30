@@ -47,6 +47,12 @@ type FullKbQualityDiagnosticsOptions = {
   readonly now?: Date;
   readonly proofSnapshot?: string;
   readonly checkedAt?: string;
+  /**
+   * The per-contract receipt bindings kb_coverage uses (a Prolog
+   * TestId -> binding hash dict), or null for strict snapshot binding. Read
+   * lazily so a check without proof evidence never pays for it.
+   */
+  readonly proofTestBindings?: () => Promise<string | null>;
 };
 
 type CoverageEvidencePayload = Readonly<{
@@ -633,6 +639,7 @@ async function loadCoverageProofEvidence(
   requirementCount: number,
   proofSnapshot: string | undefined,
   checkedAt: string | undefined,
+  proofTestBindings: (() => Promise<string | null>) | undefined,
 ): Promise<
   ReadonlyMap<
     string,
@@ -653,6 +660,12 @@ async function loadCoverageProofEvidence(
   }
   let payload: CoverageEvidencePayload;
   try {
+    // Judge receipts with the binding kb_coverage uses; under strict snapshot
+    // binding any unrelated change since kibi prove would read every receipt
+    // as stale and bring back the weak-depth review.
+    const bindings = (await proofTestBindings?.()) ?? null;
+    const binding =
+      bindings === null ? "strict_snapshot, _{}" : `per_contract, ${bindings}`;
     // W1 push-down: the slim evidence projection returns only the fields the
     // quality diagnostics consume, keeping the response far below the output
     // capacity limit on large KBs (the full coverage report rows were the
@@ -660,7 +673,7 @@ async function loadCoverageProofEvidence(
     payload = await runOperationJsonQuery<CoverageEvidencePayload>(
       prolog as PrologPort,
       "discovery.pl",
-      `discovery:coverage_evidence_json(${toPrologList([])}, ${toPrologAtom(proofSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`,
+      `discovery:coverage_evidence_json(${toPrologList([])}, ${binding}, ${toPrologAtom(proofSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`,
       "Quality diagnostic coverage evidence",
     );
   } catch {
@@ -776,6 +789,7 @@ export async function collectFullKbQualityDiagnostics(
     manifestResults.filter((result) => result.entity.type === "req").length,
     options.proofSnapshot,
     options.checkedAt,
+    options.proofTestBindings,
   );
   const coverageDepthDiagnostics = createCoverageDepthQualityDiagnostics(
     manifestResults,

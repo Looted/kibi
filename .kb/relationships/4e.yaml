@@ -265,3 +265,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-868f67ce94a7
+  - type: validates
+    from: TEST-proof-brand-panel-color
+    to: SCEN-kibi-branded-health-report
+    created_at: 2026-10-28T22:28:43.153Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-20bec9b7eb7c
+  - type: validates
+    from: TEST-proof-operation-catalog-names
+    to: SCEN-kibi-operation-interface-parity
+    created_at: 2026-10-28T22:38:38.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebee212a7866
+  - type: executable_for
+    from: SYM-proof-rule-decision-firm-edited
+    to: TEST-proof-rule-decision-firm-edited
+    created_at: 2026-10-29T16:39:53.237Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f6330dea76b
+  - type: implements
+    from: SYM-hook-managers-hook-manager-coverage-type
+    to: REQ-git-hook-manager-integration
+    created_at: 2026-10-29T18:39:32.538Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-debad62d94a8
+  - type: covered_by
+    from: SYM-hook-managers-hook-manager-coverage-type
+    to: TEST-git-hook-manager-integration
+    created_at: 2026-10-29T18:39:32.560Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f15bb091aef8

@@ -370,3 +370,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-64b63cd8489b
+  - type: executable_for
+    from: SYM-proof-evidence-level-vocabulary
+    to: TEST-proof-evidence-level-vocabulary
+    created_at: 2026-10-28T10:06:13.272Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd80c454c3a1
+  - type: executable_for
+    from: SYM-proof-symbol-repair-plan-version
+    to: TEST-proof-symbol-repair-plan-version
+    created_at: 2026-10-28T17:46:22.996Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4488f55a6d06
+  - type: implements
+    from: SYM-cli-engine-protocol-version
+    to: REQ-engine-protocol-settings
+    created_at: 2026-10-28T19:03:45.638Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a36474cc83dc
+  - type: covered_by
+    from: SYM-cli-engine-protocol-version
+    to: TEST-proof-engine-protocol-version
+    created_at: 2026-10-28T19:03:56.588Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba29c44e395d
+  - type: implements
+    from: SYM-reqcompiler-remediation-version
+    to: REQ-kibi-telemetry-versions
+    created_at: 2026-10-28T20:52:40.950Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c6f245c3d76
+  - type: covered_by
+    from: SYM-reqcompiler-remediation-version
+    to: TEST-proof-telemetry-remediation-version
+    created_at: 2026-10-28T20:52:53.808Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7edd0bbe0ae1
+  - type: covered_by
+    from: SYM-reqcompiler-remediation-version
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-10-28T20:52:53.833Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf7d954b0dbc
+  - type: executable_for
+    from: SYM-proof-external-classifier-operations
+    to: TEST-proof-external-classifier-operations
+    created_at: 2026-10-29T10:31:26.329Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04a7e61aa55c
+  - type: implements
+    from: SYM-const-test-env-keys
+    to: REQ-kibi-telemetry-automation-keys
+    created_at: 2026-10-29T16:28:29.078Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d2e258d2e28
+  - type: covered_by
+    from: SYM-const-test-env-keys
+    to: TEST-proof-telemetry-test-env-keys
+    created_at: 2026-10-29T16:28:47.921Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-210202b11994
+  - type: covered_by
+    from: SYM-const-test-env-keys
+    to: TEST-kibi-anonymous-usage-telemetry-cli
+    created_at: 2026-10-29T16:28:47.975Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71728c38af25
+  - type: validates
+    from: TEST-proof-hook-max-requirement-candidates
+    to: SCEN-agent-core-edit-snippets
+    created_at: 2026-10-29T16:30:51.761Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b3d214b225e
+  - type: executable_for
+    from: SYM-proof-claude-workspace-env-keys
+    to: TEST-proof-claude-workspace-env-keys
+    created_at: 2026-10-29T16:33:49.534Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-adf78a3092f6

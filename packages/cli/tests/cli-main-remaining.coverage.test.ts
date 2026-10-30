@@ -20,6 +20,7 @@ describe("cli main leftover entry and drain branches", () => {
   test("main drains stdio and exits 0 after a successful parse", async () => {
     const cli = await import("../src/cli.js");
     const parse = spyOn(cli, "buildProgram").mockReturnValue({
+      hook: () => undefined,
       parseAsync: async () => undefined,
     } as never);
     restores.push(() => parse.mockRestore());
@@ -34,6 +35,7 @@ describe("cli main leftover entry and drain branches", () => {
   test("main prints a non-Error throw and exits 1", async () => {
     const cli = await import("../src/cli.js");
     const parse = spyOn(cli, "buildProgram").mockReturnValue({
+      hook: () => undefined,
       parseAsync: async () => {
         throw "nope";
       },

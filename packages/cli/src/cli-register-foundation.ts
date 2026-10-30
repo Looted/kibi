@@ -33,7 +33,11 @@ export function registerFoundationCommands(program: Command): void {
     )
     .option(
       "--print-hook <hook>",
-      "Print a snippet that delegates an existing hook (pre-commit, post-checkout, post-merge, post-rewrite) to kibi, and write nothing",
+      "Print a snippet that delegates an existing hook (pre-commit, post-checkout, post-merge, post-rewrite, or all) to kibi, and write nothing",
+    )
+    .option(
+      "--format <format>",
+      "With --print-hook: shell (default), lefthook, husky or pre-commit",
     )
     .action(
       withExitCode(async (options: Parameters<typeof initCommand>[0]) =>

@@ -300,3 +300,150 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-40cde90f57c0
+  - type: executable_for
+    from: SYM-proof-sync-cache-ttl
+    to: TEST-proof-sync-cache-ttl
+    created_at: 2026-10-28T19:06:21.706Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7935209c1f98
+  - type: executable_for
+    from: SYM-proof-coarse-granularity-reasons
+    to: TEST-proof-coarse-granularity-reasons
+    created_at: 2026-10-28T19:10:24.995Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-96771f7188dd
+  - type: implements
+    from: SYM-schema6-check-actions-EXCEPTION_SELF_ATTESTED_REVIEW_CODE
+    to: REQ-kibi-lifecycle-review-actions
+    created_at: 2026-10-28T20:27:03.388Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84ada123ca0f
+  - type: covered_by
+    from: SYM-schema6-check-actions-EXCEPTION_SELF_ATTESTED_REVIEW_CODE
+    to: TEST-proof-self-attested-review-code
+    created_at: 2026-10-28T20:27:15.241Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-205451cb27a9
+  - type: covered_by
+    from: SYM-schema6-check-actions-EXCEPTION_SELF_ATTESTED_REVIEW_CODE
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:27:15.256Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4111fb9e534
+  - type: implements
+    from: SYM-const-migration-plan-refused
+    to: REQ-agent-migration-plan-versions
+    created_at: 2026-10-28T20:56:11.772Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41e907bd6e47
+  - type: covered_by
+    from: SYM-const-migration-plan-refused
+    to: TEST-proof-migration-plan-refused
+    created_at: 2026-10-28T20:56:22.453Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc985442cf63
+  - type: covered_by
+    from: SYM-const-migration-plan-refused
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-10-28T20:56:22.477Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ffae99e43ae
+  - type: requires_property
+    from: REQ-kibi-signoff-labels
+    to: FACT-signoff-gate-names
+    created_at: 2026-10-28T22:21:32.463Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e4a6e27ac3c
+  - type: requires_property
+    from: REQ-kibi-signoff-labels
+    to: FACT-signoff-change-names
+    created_at: 2026-10-28T22:21:32.495Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1acad0e7c39a
+  - type: requires_property
+    from: REQ-kibi-signoff-labels
+    to: FACT-signoff-gate-semantic-label
+    created_at: 2026-10-28T22:21:32.516Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b0c3a606429
+  - type: requires_property
+    from: REQ-kibi-signoff-labels
+    to: FACT-signoff-gate-scenario-label
+    created_at: 2026-10-28T22:21:32.558Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-403d43bad5fa
+  - type: requires_property
+    from: REQ-kibi-signoff-labels
+    to: FACT-signoff-gate-implementation-label
+    created_at: 2026-10-28T22:21:32.576Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca87da382aaa
+  - type: requires_property
+    from: REQ-kibi-signoff-labels
+    to: FACT-signoff-gate-e2e-label
+    created_at: 2026-10-28T22:21:32.609Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c33269376c0
+  - type: requires_property
+    from: REQ-kibi-signoff-labels
+    to: FACT-signoff-gate-evidence-label
+    created_at: 2026-10-28T22:21:32.641Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-260663a0ea16
+  - type: requires_property
+    from: REQ-kibi-signoff-labels
+    to: FACT-signoff-gate-tested-label
+    created_at: 2026-10-28T22:21:32.655Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b96ba856105
+  - type: requires_property
+    from: REQ-kibi-signoff-labels
+    to: FACT-signoff-change-new-label
+    created_at: 2026-10-28T22:21:32.670Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19a39fa6b661
+  - type: requires_property
+    from: REQ-kibi-signoff-labels
+    to: FACT-signoff-change-changed-label
+    created_at: 2026-10-28T22:21:32.691Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8b865f35852
+  - type: requires_property
+    from: REQ-kibi-signoff-labels
+    to: FACT-signoff-change-retired-label
+    created_at: 2026-10-28T22:21:32.712Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec2e4cb04890
+  - type: specified_by
+    from: REQ-kibi-signoff-labels
+    to: SCEN-kibi-signoff-views
+    created_at: 2026-10-28T22:21:32.728Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83448b1730be
+  - type: constrains
+    from: REQ-kibi-signoff-labels
+    to: FACT-kibi-signoff-views-labels-component
+    created_at: 2026-10-28T22:21:35.037Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10eae06f7ff2

@@ -398,3 +398,150 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-231b26330eb3
+  - type: executable_for
+    from: SYM-proof-relationship-type-vocabulary
+    to: TEST-proof-relationship-type-vocabulary
+    created_at: 2026-10-28T10:21:52.495Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-615ce32971a3
+  - type: implements
+    from: SYM-env-bootstrap-kibi-legacy-env-file
+    to: REQ-kibi-env-bootstrap-files
+    created_at: 2026-10-28T10:41:05.903Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19ee02260a0d
+  - type: covered_by
+    from: SYM-env-bootstrap-kibi-legacy-env-file
+    to: TEST-proof-env-legacy-file
+    created_at: 2026-10-28T10:41:19.585Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fea67998d36d
+  - type: covered_by
+    from: SYM-env-bootstrap-kibi-legacy-env-file
+    to: TEST-e2e-kibi-env-bootstrap
+    created_at: 2026-10-28T10:41:19.613Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e04795c2bae
+  - type: validates
+    from: TEST-proof-proof-run-version
+    to: SCEN-kibi-claim-bound-proofs
+    created_at: 2026-10-28T12:03:48.530Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42be4408ae38
+  - type: validates
+    from: TEST-proof-branch-store-manifest-version
+    to: SCEN-branch-detached-head-read-only
+    created_at: 2026-10-28T20:42:48.569Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4979a1d36cfa
+  - type: requires_property
+    from: REQ-kibi-report-brand-colors
+    to: FACT-brand-color-names
+    created_at: 2026-10-28T22:27:43.958Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-96f081428f5b
+  - type: requires_property
+    from: REQ-kibi-report-brand-colors
+    to: FACT-brand-carbon-color
+    created_at: 2026-10-28T22:27:43.991Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0fb43ddf5f29
+  - type: requires_property
+    from: REQ-kibi-report-brand-colors
+    to: FACT-brand-deepcarbon-color
+    created_at: 2026-10-28T22:27:44.015Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6e8a2b52ce0
+  - type: requires_property
+    from: REQ-kibi-report-brand-colors
+    to: FACT-brand-panel-color
+    created_at: 2026-10-28T22:27:44.037Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71b35860e809
+  - type: requires_property
+    from: REQ-kibi-report-brand-colors
+    to: FACT-brand-ice-color
+    created_at: 2026-10-28T22:27:44.055Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-136a05f0231e
+  - type: requires_property
+    from: REQ-kibi-report-brand-colors
+    to: FACT-brand-signal-color
+    created_at: 2026-10-28T22:27:44.073Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf6a681a2e9a
+  - type: requires_property
+    from: REQ-kibi-report-brand-colors
+    to: FACT-brand-snow-color
+    created_at: 2026-10-28T22:27:44.089Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cfeae09bc3ae
+  - type: requires_property
+    from: REQ-kibi-report-brand-colors
+    to: FACT-brand-mist-color
+    created_at: 2026-10-28T22:27:44.105Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49555763bd2f
+  - type: requires_property
+    from: REQ-kibi-report-brand-colors
+    to: FACT-brand-rail-color
+    created_at: 2026-10-28T22:27:44.120Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45bda7f35f04
+  - type: requires_property
+    from: REQ-kibi-report-brand-colors
+    to: FACT-brand-success-color
+    created_at: 2026-10-28T22:27:44.135Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5a944cd05c9
+  - type: requires_property
+    from: REQ-kibi-report-brand-colors
+    to: FACT-brand-warning-color
+    created_at: 2026-10-28T22:27:44.148Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12733dca29f8
+  - type: requires_property
+    from: REQ-kibi-report-brand-colors
+    to: FACT-brand-danger-color
+    created_at: 2026-10-28T22:27:44.162Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28ee85bebced
+  - type: specified_by
+    from: REQ-kibi-report-brand-colors
+    to: SCEN-kibi-branded-health-report
+    created_at: 2026-10-28T22:27:44.175Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa17700dc903
+  - type: constrains
+    from: REQ-kibi-report-brand-colors
+    to: FACT-kibi-report-brand-colors-component
+    created_at: 2026-10-28T22:27:46.069Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff644a922c05
+  - type: validates
+    from: TEST-proof-telemetry-default-host
+    to: SCEN-kibi-anonymous-usage-telemetry
+    created_at: 2026-10-29T16:27:15.110Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3a762d3aaf6

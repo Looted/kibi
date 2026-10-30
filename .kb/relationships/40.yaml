@@ -136,3 +136,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8b6f6515280f
+  - type: executable_for
+    from: SYM-proof-signoff-gate-tested-label
+    to: TEST-proof-signoff-gate-tested-label
+    created_at: 2026-10-28T22:23:57.847Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c76c299ee8f
+  - type: executable_for
+    from: SYM-proof-plugin-modes
+    to: TEST-proof-plugin-modes
+    created_at: 2026-10-29T10:29:22.024Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6ce4cdd39bf
+  - type: implements
+    from: SYM-prolog-mutation-use-mutalog
+    to: REQ-prolog-mutation-lane
+    created_at: 2026-10-29T16:12:57.113Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2304f3ca7c8b
+  - type: covered_by
+    from: SYM-prolog-mutation-use-mutalog
+    to: TEST-prolog-mutation-lane
+    created_at: 2026-10-29T16:12:57.125Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68cbe6358bfe
+  - type: executable_for
+    from: SYM-proof-search-hint-shown-limit
+    to: TEST-proof-search-hint-shown-limit
+    created_at: 2026-10-29T21:29:16.222Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3b4e59e65fc

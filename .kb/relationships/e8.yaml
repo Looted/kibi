@@ -398,3 +398,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-616d82607481
+  - type: validates
+    from: TEST-proof-search-answer-facts-per-requirement
+    to: SCEN-kibi-search-answer-layer
+    created_at: 2026-10-28T11:11:37.438Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9d946264e32

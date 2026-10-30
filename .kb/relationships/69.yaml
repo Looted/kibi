@@ -433,3 +433,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4b5068c82265
+  - type: executable_for
+    from: SYM-proof-logic-rule-max-depth
+    to: TEST-proof-logic-rule-max-depth
+    created_at: 2026-10-28T17:19:33.883Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e44619b60f8e
+  - type: validates
+    from: TEST-proof-source-path-dangling-rule
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T17:27:52.205Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e7eb5d4673b
+  - type: validates
+    from: TEST-proof-brand-success-color
+    to: SCEN-kibi-branded-health-report
+    created_at: 2026-10-28T22:30:20.969Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63df3f7b51c2
+  - type: validates
+    from: TEST-prolog-mutation-lane
+    to: SCEN-prolog-mutation-lane
+    created_at: 2026-10-29T16:12:36.950Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e67b3c91f4f2

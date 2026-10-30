@@ -279,3 +279,157 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-78d5329d85a3
+  - type: requires_property
+    from: REQ-kibi-perf-trace-limits
+    to: FACT-perf-timings-env
+    created_at: 2026-10-28T17:35:44.645Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fa38f48671f
+  - type: requires_property
+    from: REQ-kibi-perf-trace-limits
+    to: FACT-perf-trace-dir-env
+    created_at: 2026-10-28T17:35:44.674Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d3bf8cbb4bd
+  - type: requires_property
+    from: REQ-kibi-perf-trace-limits
+    to: FACT-perf-trace-max-bytes
+    created_at: 2026-10-28T17:35:44.694Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8c1cd8bf912
+  - type: requires_property
+    from: REQ-kibi-perf-trace-limits
+    to: FACT-perf-trace-max-events
+    created_at: 2026-10-28T17:35:44.709Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29633747c964
+  - type: specified_by
+    from: REQ-kibi-perf-trace-limits
+    to: SCEN-installed-staged-impact-timing-integrity
+    created_at: 2026-10-28T17:35:44.729Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-218da5a72c96
+  - type: constrains
+    from: REQ-kibi-perf-trace-limits
+    to: FACT-kibi-perf-trace-limits-component
+    created_at: 2026-10-28T17:35:46.945Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47cd4756ccc3
+  - type: implements
+    from: SYM-symbol-repair-plan-version
+    to: REQ-kibi-plan-document-versions
+    created_at: 2026-10-28T17:46:17.364Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebf4edb6421e
+  - type: covered_by
+    from: SYM-symbol-repair-plan-version
+    to: TEST-proof-symbol-repair-plan-version
+    created_at: 2026-10-28T17:46:29.745Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aba4aee48a25
+  - type: executable_for
+    from: SYM-proof-freshness-resync-code
+    to: TEST-proof-freshness-resync-code
+    created_at: 2026-10-28T18:54:39.810Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f74350a993cc
+  - type: executable_for
+    from: SYM-proof-supersedes-acknowledge-code
+    to: TEST-proof-supersedes-acknowledge-code
+    created_at: 2026-10-28T20:32:31.582Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff15a1cdf8ee
+  - type: requires_property
+    from: REQ-kibi-telemetry-versions
+    to: FACT-telemetry-acceptance-version
+    created_at: 2026-10-28T20:52:12.135Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-88e2f9467b84
+  - type: requires_property
+    from: REQ-kibi-telemetry-versions
+    to: FACT-telemetry-remediation-version
+    created_at: 2026-10-28T20:52:12.176Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1df82859f3b
+  - type: requires_property
+    from: REQ-kibi-telemetry-versions
+    to: FACT-lookup-before-edit-operations
+    created_at: 2026-10-28T20:52:12.207Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ffe89ef1bf8a
+  - type: specified_by
+    from: REQ-kibi-telemetry-versions
+    to: SCEN-kibi-telemetry-acceptance-gate
+    created_at: 2026-10-28T20:52:12.238Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9711797dc377
+  - type: constrains
+    from: REQ-kibi-telemetry-versions
+    to: FACT-kibi-telemetry-versions-component
+    created_at: 2026-10-28T20:52:14.525Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a8d63465dd5
+  - type: validates
+    from: TEST-proof-signoff-gate-implementation-label
+    to: SCEN-kibi-signoff-views
+    created_at: 2026-10-28T22:22:59.139Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e67a8784eed5
+  - type: requires_property
+    from: REQ-agent-core-hook-limits
+    to: FACT-snippet-max-chars
+    created_at: 2026-10-29T16:29:58.532Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1fd5cdceeeb
+  - type: requires_property
+    from: REQ-agent-core-hook-limits
+    to: FACT-hook-max-requirement-candidates
+    created_at: 2026-10-29T16:29:58.595Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05a5bfb51990
+  - type: requires_property
+    from: REQ-agent-core-hook-limits
+    to: FACT-confirm-firm-edits-env
+    created_at: 2026-10-29T16:29:58.638Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-820e92617318
+  - type: requires_property
+    from: REQ-agent-core-hook-limits
+    to: FACT-snippet-grounding-links
+    created_at: 2026-10-29T16:29:58.674Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed886fd89b98
+  - type: specified_by
+    from: REQ-agent-core-hook-limits
+    to: SCEN-agent-core-edit-snippets
+    created_at: 2026-10-29T16:29:58.707Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fedaa81a8170
+  - type: constrains
+    from: REQ-agent-core-hook-limits
+    to: FACT-kibi-agent-hooks-limits-component
+    created_at: 2026-10-29T16:30:01.910Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9afedfc5e07

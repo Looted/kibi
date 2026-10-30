@@ -265,3 +265,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-144148af0905
+  - type: executable_for
+    from: SYM-proof-signoff-brief-dir
+    to: TEST-proof-signoff-brief-dir
+    created_at: 2026-10-28T10:15:15.035Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84620d5d538d
+  - type: implements
+    from: SYM-entity-body-context-restatement-jaccard
+    to: REQ-kb-entity-body-context-settings
+    created_at: 2026-10-28T10:39:31.838Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-145d9d64305e
+  - type: covered_by
+    from: SYM-entity-body-context-restatement-jaccard
+    to: TEST-proof-context-restatement-jaccard
+    created_at: 2026-10-28T10:39:43.940Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f177f1633e26
+  - type: covered_by
+    from: SYM-entity-body-context-restatement-jaccard
+    to: TEST-kb-entity-body-context
+    created_at: 2026-10-28T10:39:43.964Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e677ceb59c33
+  - type: executable_for
+    from: SYM-proof-source-path-review-code
+    to: TEST-proof-source-path-review-code
+    created_at: 2026-10-28T17:27:33.957Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8bfa6c60a5ff
+  - type: implements
+    from: SYM-KIBI-SYMBOL-COORDINATES-PATH
+    to: REQ-staged-impact-identifiers
+    created_at: 2026-10-28T18:57:42.421Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2570eeb37cf
+  - type: covered_by
+    from: SYM-KIBI-SYMBOL-COORDINATES-PATH
+    to: TEST-proof-symbol-coordinates-path
+    created_at: 2026-10-28T18:57:53.347Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cdc09ef3d7e5
+  - type: implements
+    from: SYM-const-scoped-check-omitted-id
+    to: REQ-kibi-check-rule-names
+    created_at: 2026-10-28T20:23:38.537Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0b6b7d7f296
+  - type: covered_by
+    from: SYM-const-scoped-check-omitted-id
+    to: TEST-proof-scoped-check-omitted-id
+    created_at: 2026-10-28T20:23:50.983Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b33fdac94d78
+  - type: covered_by
+    from: SYM-const-scoped-check-omitted-id
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:23:51.003Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac7b8387260e
+  - type: executable_for
+    from: SYM-proof-telemetry-remediation-version
+    to: TEST-proof-telemetry-remediation-version
+    created_at: 2026-10-28T20:52:46.456Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84e9483377ed
+  - type: implements
+    from: SYM-KIBI-CONTAINER-ID
+    to: REQ-vscode-extension-ids
+    created_at: 2026-10-29T17:06:32.380Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57009ebe8dff
+  - type: covered_by
+    from: SYM-KIBI-CONTAINER-ID
+    to: TEST-proof-vscode-container-id
+    created_at: 2026-10-29T17:06:49.466Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-837d6413a1fd

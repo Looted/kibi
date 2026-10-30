@@ -30,18 +30,18 @@ origin:
 id: TEST-kibi-schema6-migration-cli
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-11fe0266f4f15d8ebf9edc85
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-7e74b683debbdef57065c95c
     test_id: TEST-kibi-schema6-migration-cli
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
+    code_snapshot: 7f95b60fc7c9571f2ac61dfd41473f2975dea1d250d6b29ca38549f7d6503d2e
+    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
+    started_at: '2026-10-29T10:58:44.760Z'
+    finished_at: '2026-10-29T10:58:59.854Z'
+    artifact_digest: ac110f23e66f4c7ede8b62522c2b3ea1ef94aa273ee7747e632bb821c04030fc
     contract_hash: 1464e544a41a630f7dde00234698cde9868be42c88307c19f659fa71f7dcc949
-    binding_hash: 800f80975e5cb24451de1187fce3838ae35eef43d80f1363a8184a4a48fb172b
+    binding_hash: f8eb751612601edce5cd963c3f47e4cbc11038491cb80537143d67b0799e2da3
     fingerprint: de05406f44527a4bdc93a764771f383149a3b7a32a5ca9a27d9f3173395f730c
     fingerprint_components:
       contract: 1464e544a41a630f7dde00234698cde9868be42c88307c19f659fa71f7dcc949
@@ -63,6 +63,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 # Consumer CLI migrates a schema 5 KB to schema 6 with migration origins and intact grounding, and a rerun finds nothing to do
 

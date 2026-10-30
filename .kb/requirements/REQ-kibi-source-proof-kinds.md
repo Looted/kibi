@@ -8,55 +8,47 @@ tags:
   - proof
   - certificate
   - evidence-levels
-semantic_text: Source proof readers must be one of json, yaml, glob, openapi, references, schema, routes or validator. Kibi must read the project source itself before it accepts a source certificate. Kibi must refuse a source member it cannot read statically. A state_machine proof must decide which states can never become another state. A state_machine proof must decide which states every path between two states passes through. A source proof receipt must go stale when a file its read touched changes.
+semantic_text: Kibi must read the project source itself before it accepts a source certificate. Kibi must refuse a source member it cannot read statically. A state_machine proof must decide which states can never become another state. A state_machine proof must decide which states every path between two states passes through. A source proof receipt must go stale when a file its read touched changes.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: 0cd4cf72ed7de888d3dec4283c4ffca9fe6cb9370bd0dee9817b9965a20e8c04
+semantic_source_hash: 54d88969334320d7a1577cc1c0b9f3f0c75f5bc3357a7487980fd7bf7d3d53ad
 semantic_inventory:
-  - claim_key: CLAIM-80131AF672B06C75
-    claim_text: Source proof readers must be one of json, yaml, glob, openapi, references, schema, routes or validator
-    role: normative
-    status: modeled
-    span:
-      start: 0
-      end: 102
   - claim_key: CLAIM-1F4CCEA3B8BAC8BE
     claim_text: Kibi must read the project source itself before it accepts a source certificate
     role: normative
     status: modeled
     span:
-      start: 104
-      end: 183
+      start: 0
+      end: 79
   - claim_key: CLAIM-28CF128D2DA67593
     claim_text: Kibi must refuse a source member it cannot read statically
     role: normative
     status: modeled
     span:
-      start: 185
-      end: 243
+      start: 81
+      end: 139
   - claim_key: CLAIM-7D1DC315AA6EA4D3
     claim_text: A state_machine proof must decide which states can never become another state
     role: normative
     status: modeled
     span:
-      start: 245
-      end: 322
+      start: 141
+      end: 218
   - claim_key: CLAIM-20EE317A58ABD08A
     claim_text: A state_machine proof must decide which states every path between two states passes through
     role: normative
     status: modeled
     span:
-      start: 324
-      end: 415
+      start: 220
+      end: 311
   - claim_key: CLAIM-120BB7944E691844
     claim_text: A source proof receipt must go stale when a file its read touched changes
     role: normative
     status: modeled
     span:
-      start: 417
-      end: 490
+      start: 313
+      end: 386
 logic_claims:
-  - CLAIM-80131AF672B06C75
   - CLAIM-1F4CCEA3B8BAC8BE
   - CLAIM-28CF128D2DA67593
   - CLAIM-7D1DC315AA6EA4D3
@@ -64,11 +56,19 @@ logic_claims:
   - CLAIM-120BB7944E691844
 origin:
   kind: agent
-  recorded_at: '2026-10-26T17:38:48.451Z'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  approved_by: maintainer
+  recorded_at: '2026-10-28T13:41:00.558Z'
 id: REQ-kibi-source-proof-kinds
 type: req
+semantic_clauses:
+  - Kibi must read the project source itself before it accepts a source certificate.
+  - Kibi must refuse a source member it cannot read statically.
+  - A state_machine proof must decide which states can never become another state.
+  - A state_machine proof must decide which states every path between two states passes through.
+  - A source proof receipt must go stale when a file its read touched changes.
 ---
-Source proof readers must be one of json, yaml, glob, openapi, references, schema, routes or validator. Kibi must read the project source itself before it accepts a source certificate. Kibi must refuse a source member it cannot read statically. A state_machine proof must decide which states can never become another state. A state_machine proof must decide which states every path between two states passes through. A source proof receipt must go stale when a file its read touched changes.
+Kibi must read the project source itself before it accepts a source certificate. Kibi must refuse a source member it cannot read statically. A state_machine proof must decide which states can never become another state. A state_machine proof must decide which states every path between two states passes through. A source proof receipt must go stale when a file its read touched changes.
 
 ## Context
 

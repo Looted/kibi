@@ -116,6 +116,7 @@ export function _setBranchResolverDepsForTests(
 // Files to exclude when copying branch snapshots (volatile artifacts)
 const VOLATILE_ARTIFACTS = new Set([
   "sync-cache.json",
+  "source-analysis-cache.json",
   "journal.log",
   "audit.log",
   "lock",

@@ -279,3 +279,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6aca13e6717c
+  - type: executable_for
+    from: SYM-proof-mcp-optional-tools
+    to: TEST-proof-mcp-optional-tools
+    created_at: 2026-10-28T09:30:04.590Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-283e66244533
+  - type: implements
+    from: SYM-decision-firmness-supersedes-reason-acknowledged-rule
+    to: REQ-kibi-check-rule-names
+    created_at: 2026-10-28T20:23:14.293Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea98e699ccec
+  - type: covered_by
+    from: SYM-decision-firmness-supersedes-reason-acknowledged-rule
+    to: TEST-proof-supersedes-acknowledged-rule
+    created_at: 2026-10-28T20:23:26.152Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cfe7d4dc4a73
+  - type: covered_by
+    from: SYM-decision-firmness-supersedes-reason-acknowledged-rule
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:23:26.175Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-021917ab5e77
+  - type: validates
+    from: TEST-proof-brand-mist-color
+    to: SCEN-kibi-branded-health-report
+    created_at: 2026-10-28T22:29:48.252Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-464139d95edd
+  - type: validates
+    from: TEST-proof-canonical-path-kinds
+    to: SCEN-cli-canonical-init
+    created_at: 2026-10-28T22:33:44.277Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff6d174b86eb
+  - type: executable_for
+    from: SYM-proof-github-pages-namespace
+    to: TEST-proof-github-pages-namespace
+    created_at: 2026-10-29T10:19:21.821Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e7b142d2c8c

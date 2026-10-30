@@ -177,14 +177,15 @@ describe("skill-system loader and validation", () => {
   });
 
   test("lists skills sorted by id and skips directories without SKILL.md", () => {
-    writeSkill("zeta", validFrontmatter({ id: "zeta" }));
-    writeSkill("alpha", validFrontmatter({ id: "alpha" }));
+    // readdir order is filesystem-defined, and directory names sort opposite
+    // to the ids, so only the id sort can produce this order reliably.
+    const ids = ["alpha", "bravo", "charlie", "delta", "echo", "foxtrot"];
+    ids.forEach((id, index) => {
+      writeSkill(`dir-${ids.length - index}`, validFrontmatter({ id }));
+    });
     mkdirSync(join(bundledSkillsDir, "empty-dir"), { recursive: true });
 
-    expect(listBundledSkills().map((skill) => skill.id)).toEqual([
-      "alpha",
-      "zeta",
-    ]);
+    expect(listBundledSkills().map((skill) => skill.id)).toEqual(ids);
   });
 
   test("returns an empty list when the skills directory is missing", () => {

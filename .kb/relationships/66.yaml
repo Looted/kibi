@@ -167,3 +167,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f10e16772348
+  - type: requires_property
+    from: REQ-kibi-relationship-type-vocabulary
+    to: FACT-relationship-type-vocabulary
+    created_at: 2026-10-28T10:21:38.419Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f97c768dacba
+  - type: specified_by
+    from: REQ-kibi-relationship-type-vocabulary
+    to: SCEN-kibi-restates-relationship
+    created_at: 2026-10-28T10:21:38.452Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14e5c8f0ab1e
+  - type: constrains
+    from: REQ-kibi-relationship-type-vocabulary
+    to: FACT-SUBJECT-kibi-relationships-vocabulary
+    created_at: 2026-10-28T10:21:40.974Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b1e916e0db0d
+  - type: executable_for
+    from: SYM-proof-operation-protocol-version
+    to: TEST-proof-operation-protocol-version
+    created_at: 2026-10-28T17:23:56.406Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d89b38b688b
+  - type: validates
+    from: TEST-proof-entity-type-backfill-action
+    to: SCEN-cli-migrate-legacy-requirement-status
+    created_at: 2026-10-28T17:43:19.161Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81c206957f01
+  - type: implements
+    from: SYM-const-lookup-before-edit-operations
+    to: REQ-kibi-telemetry-versions
+    created_at: 2026-10-28T20:53:08.654Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-917e06ced152
+  - type: covered_by
+    from: SYM-const-lookup-before-edit-operations
+    to: TEST-proof-lookup-before-edit-operations
+    created_at: 2026-10-28T20:53:21.594Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c5fb66d863d
+  - type: covered_by
+    from: SYM-const-lookup-before-edit-operations
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-10-28T20:53:21.610Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa7c2758a9bc
+  - type: executable_for
+    from: SYM-test-prolog-mutation-lane
+    to: TEST-prolog-mutation-lane
+    created_at: 2026-10-29T16:12:52.271Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-02c62c8eee7e

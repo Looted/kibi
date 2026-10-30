@@ -286,3 +286,108 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f5e8fbdd414b
+  - type: requires_property
+    from: REQ-kibi-telemetry-acceptance-thresholds
+    to: FACT-telemetry-event-limit
+    created_at: 2026-10-28T09:43:13.620Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-003af404d874
+  - type: requires_property
+    from: REQ-kibi-telemetry-acceptance-thresholds
+    to: FACT-telemetry-evidence-age
+    created_at: 2026-10-28T09:43:13.651Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3348f825e30b
+  - type: requires_property
+    from: REQ-kibi-telemetry-acceptance-thresholds
+    to: FACT-telemetry-preflight-age
+    created_at: 2026-10-28T09:43:13.675Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3261b6ce97a
+  - type: requires_property
+    from: REQ-kibi-telemetry-acceptance-thresholds
+    to: FACT-telemetry-advisor-age
+    created_at: 2026-10-28T09:43:13.691Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b00616e8550
+  - type: requires_property
+    from: REQ-kibi-telemetry-acceptance-thresholds
+    to: FACT-telemetry-retry-threshold
+    created_at: 2026-10-28T09:43:13.708Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd3a3c5cb98f
+  - type: specified_by
+    from: REQ-kibi-telemetry-acceptance-thresholds
+    to: SCEN-kibi-telemetry-acceptance-gate
+    created_at: 2026-10-28T09:43:13.728Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a7da79e6af9
+  - type: constrains
+    from: REQ-kibi-telemetry-acceptance-thresholds
+    to: FACT-SUBJECT-kibi-telemetry-acceptance-policy
+    created_at: 2026-10-28T09:43:15.929Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7b43493a61f
+  - type: executable_for
+    from: SYM-proof-builtin-claim-similarity-threshold
+    to: TEST-proof-builtin-claim-similarity-threshold
+    created_at: 2026-10-28T10:45:22.964Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f33dbde61430
+  - type: executable_for
+    from: SYM-proof-proof-integration-version
+    to: TEST-proof-proof-integration-version
+    created_at: 2026-10-28T10:55:10.318Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-374a882cbe0a
+  - type: implements
+    from: SYM-const-proof-test-report-version
+    to: REQ-kibi-proof-step-settings
+    created_at: 2026-10-28T11:07:35.197Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0438386f6fec
+  - type: executable_for
+    from: SYM-proof-proof-test-report-version
+    to: TEST-proof-proof-test-report-version
+    created_at: 2026-10-28T11:07:39.394Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10ea09d1d6a5
+  - type: covered_by
+    from: SYM-const-proof-test-report-version
+    to: TEST-proof-proof-test-report-version
+    created_at: 2026-10-28T11:07:47.245Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-148a85929072
+  - type: covered_by
+    from: SYM-const-proof-test-report-version
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T11:07:47.267Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7063f98f8ec9
+  - type: validates
+    from: TEST-proof-logic-rule-max-variables
+    to: SCEN-kibi-proposition-complete-ingestion
+    created_at: 2026-10-28T17:19:50.769Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4131d11a93c
+  - type: validates
+    from: TEST-proof-tree-sitter-python-extensions
+    to: SCEN-tree-sitter-language-authoring-scaffold
+    created_at: 2026-10-28T22:41:59.598Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64f31492c963

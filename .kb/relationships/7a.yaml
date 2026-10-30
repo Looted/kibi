@@ -349,3 +349,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fe47290c6514
+  - type: executable_for
+    from: SYM-proof-decision-firmness-schema-version
+    to: TEST-proof-decision-firmness-schema-version
+    created_at: 2026-10-28T11:03:34.493Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d4455f02702
+  - type: validates
+    from: TEST-proof-status-vocabulary-map-code
+    to: SCEN-cli-migrate
+    created_at: 2026-10-28T18:50:07.522Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-183c015a25b2
+  - type: validates
+    from: TEST-proof-derived-kb-prefixes
+    to: SCEN-cli-canonical-init
+    created_at: 2026-10-28T19:01:26.276Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37a5f207f2c9
+  - type: implements
+    from: SYM-const-policy-markers-rule
+    to: REQ-kibi-check-rule-names
+    created_at: 2026-10-28T20:22:08.807Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d14c76f3f8ac
+  - type: covered_by
+    from: SYM-const-policy-markers-rule
+    to: TEST-proof-policy-markers-rule
+    created_at: 2026-10-28T20:22:20.212Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0fdc83718f9d
+  - type: covered_by
+    from: SYM-const-policy-markers-rule
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:22:20.233Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bfd583a3c9e2
+  - type: executable_for
+    from: SYM-proof-migration-plan-digest-version
+    to: TEST-proof-migration-plan-digest-version
+    created_at: 2026-10-28T20:55:51.922Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79ff3432170e
+  - type: validates
+    from: TEST-proof-signoff-gate-e2e-label
+    to: SCEN-kibi-signoff-views
+    created_at: 2026-10-28T22:23:18.296Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-755865addfd9
+  - type: executable_for
+    from: SYM-proof-canonical-tests-path
+    to: TEST-proof-canonical-tests-path
+    created_at: 2026-10-28T22:34:51.368Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d26200bcd013
+  - type: executable_for
+    from: SYM-proof-semantic-lanes
+    to: TEST-proof-semantic-lanes
+    created_at: 2026-10-29T10:30:23.830Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d60cca270a5
+  - type: executable_for
+    from: SYM-proof-vscode-refresh-command
+    to: TEST-proof-vscode-refresh-command
+    created_at: 2026-10-29T17:07:33.986Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc1305cfaa4d

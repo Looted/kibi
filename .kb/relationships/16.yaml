@@ -258,3 +258,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-71cde45f65cf
+  - type: executable_for
+    from: SYM-proof-origin-backfill-code
+    to: TEST-proof-origin-backfill-code
+    created_at: 2026-10-28T18:49:49.299Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-285a67b7e2c8
+  - type: requires_property
+    from: REQ-kibi-knowledge-source-vocabulary
+    to: FACT-knowledge-source-kinds
+    created_at: 2026-10-28T19:19:11.748Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b83a22f4b4a
+  - type: requires_property
+    from: REQ-kibi-knowledge-source-vocabulary
+    to: FACT-knowledge-source-authorities
+    created_at: 2026-10-28T19:19:11.778Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc354b6e710a
+  - type: requires_property
+    from: REQ-kibi-knowledge-source-vocabulary
+    to: FACT-intent-claim-kinds
+    created_at: 2026-10-28T19:19:11.804Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66d172d2d1df
+  - type: specified_by
+    from: REQ-kibi-knowledge-source-vocabulary
+    to: SCEN-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-28T19:19:11.827Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0aa71b29cbee
+  - type: constrains
+    from: REQ-kibi-knowledge-source-vocabulary
+    to: FACT-kibi-knowledge-sources-vocabulary-component
+    created_at: 2026-10-28T19:19:14.103Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a0304076cb3
+  - type: executable_for
+    from: SYM-proof-legacy-status-accepted
+    to: TEST-proof-legacy-status-accepted
+    created_at: 2026-10-29T10:40:24.442Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-687c85451135

@@ -258,3 +258,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-46d851dd27b5
+  - type: implements
+    from: SYM-cap-plugin-jev-default-model
+    to: REQ-capability-plugin-jev-defaults
+    created_at: 2026-10-28T09:36:47.561Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-258cbe959952
+  - type: covered_by
+    from: SYM-cap-plugin-jev-default-model
+    to: TEST-proof-jev-default-model
+    created_at: 2026-10-28T09:37:08.507Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1bf684e746d4
+  - type: implements
+    from: SYM-origin-review-agent-requirement-review-limit
+    to: REQ-kibi-agent-requirement-review-limit
+    created_at: 2026-10-28T10:36:22.564Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6db572458880
+  - type: covered_by
+    from: SYM-origin-review-agent-requirement-review-limit
+    to: TEST-proof-agent-requirement-review-limit
+    created_at: 2026-10-28T10:36:34.306Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07460b70c788
+  - type: covered_by
+    from: SYM-origin-review-agent-requirement-review-limit
+    to: TEST-kibi-entity-origin-cli
+    created_at: 2026-10-28T10:36:34.322Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d90e2875ddab
+  - type: implements
+    from: SYM-const-proof-certificates-env
+    to: REQ-kibi-code-certificate-settings
+    created_at: 2026-10-28T20:37:52.648Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0cce47ccb25f
+  - type: covered_by
+    from: SYM-const-proof-certificates-env
+    to: TEST-proof-proof-certificates-env
+    created_at: 2026-10-28T20:38:03.893Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a6dd3cba59d
+  - type: covered_by
+    from: SYM-const-proof-certificates-env
+    to: TEST-kibi-code-proof-kinds
+    created_at: 2026-10-28T20:38:03.909Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c0f33484883
+  - type: executable_for
+    from: SYM-proof-brand-rail-color
+    to: TEST-proof-brand-rail-color
+    created_at: 2026-10-28T22:30:06.300Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd6e799313fe
+  - type: implements
+    from: SYM-canonical-LEGACY_CONFIG_PATH_KEYS
+    to: REQ-cli-kb-entity-paths
+    created_at: 2026-10-28T22:33:58.493Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d31455f92da7
+  - type: covered_by
+    from: SYM-canonical-LEGACY_CONFIG_PATH_KEYS
+    to: TEST-proof-legacy-config-path-keys
+    created_at: 2026-10-28T22:34:08.383Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8cea39a79bbb

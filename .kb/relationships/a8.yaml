@@ -272,3 +272,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3a427215b504
+  - type: executable_for
+    from: SYM-proof-max-review-candidates
+    to: TEST-proof-max-review-candidates
+    created_at: 2026-10-28T10:43:41.411Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5ce339b0f28
+  - type: implements
+    from: SYM-proof-run-version
+    to: REQ-kibi-proof-protocol-versions
+    created_at: 2026-10-28T10:54:46.512Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba9095d116e5
+  - type: covered_by
+    from: SYM-proof-run-version
+    to: TEST-proof-proof-run-version
+    created_at: 2026-10-28T10:54:57.888Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e6b39f2c3cbe
+  - type: covered_by
+    from: SYM-proof-run-version
+    to: TEST-kibi-claim-bound-proofs
+    created_at: 2026-10-28T12:03:57.658Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44c41412a14d
+  - type: executable_for
+    from: SYM-proof-signoff-version
+    to: TEST-proof-signoff-version
+    created_at: 2026-10-28T17:53:21.647Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b9c33a08ebe
+  - type: validates
+    from: TEST-proof-coarse-granularity-reasons
+    to: SCEN-symbol-behavioral-anchors
+    created_at: 2026-10-28T19:10:23.078Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81f77ba8d8fd
+  - type: validates
+    from: TEST-proof-agent-requirement-unapproved-rule
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:20:37.845Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-485f9a484d0e
+  - type: validates
+    from: TEST-proof-policy-markers-rule
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:22:10.867Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99cd8d693005
+  - type: implements
+    from: SYM-cap-plugin-ontology-polarities-1200e8a1
+    to: REQ-capability-plugin-vocabulary
+    created_at: 2026-10-29T10:29:46.119Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7700214346ba
+  - type: covered_by
+    from: SYM-cap-plugin-ontology-polarities-1200e8a1
+    to: TEST-proof-ontology-polarities
+    created_at: 2026-10-29T10:30:04.402Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-449ec3a43d00
+  - type: executable_for
+    from: SYM-proof-source-timing-max-events
+    to: TEST-proof-source-timing-max-events
+    created_at: 2026-10-29T10:52:00.035Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28e409fe5ba0

@@ -405,3 +405,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-849e9039a57a
+  - type: implements
+    from: SYM-TOOLS
+    to: REQ-kibi-mcp-tool-catalog
+    created_at: 2026-10-28T09:29:56.611Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e32699d9241d
+  - type: covered_by
+    from: SYM-TOOLS
+    to: TEST-proof-mcp-default-tool-count
+    created_at: 2026-10-28T09:30:10.310Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c51a3454a49c
+  - type: validates
+    from: TEST-proof-proof-test-report-outcomes
+    to: SCEN-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T11:08:00.861Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d33472fac7f
+  - type: validates
+    from: TEST-proof-brand-ice-color
+    to: SCEN-kibi-branded-health-report
+    created_at: 2026-10-28T22:28:59.120Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-03cddebae306
+  - type: executable_for
+    from: SYM-proof-rule-entity-context-missing
+    to: TEST-proof-rule-entity-context-missing
+    created_at: 2026-10-29T16:42:47.273Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33348651512b
+  - type: executable_for
+    from: SYM-proof-opencode-bootstrap-command
+    to: TEST-proof-opencode-bootstrap-command
+    created_at: 2026-10-29T17:02:39.466Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87ee157786df

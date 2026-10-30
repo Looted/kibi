@@ -269,3 +269,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ff2382ecd33f
+  - type: validates
+    from: TEST-proof-min-why-changed-words
+    to: SCEN-kb-decision-firmness
+    created_at: 2026-10-28T10:34:07.072Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5104223384b
+  - type: executable_for
+    from: SYM-proof-ontology-pack-capability-id
+    to: TEST-proof-ontology-pack-capability-id
+    created_at: 2026-10-28T10:49:16.095Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bac0a021efb4
+  - type: validates
+    from: TEST-proof-source-path-review-code
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T17:27:31.569Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a336e48342c
+  - type: executable_for
+    from: SYM-proof-rederive-drop-grounding-code
+    to: TEST-proof-rederive-drop-grounding-code
+    created_at: 2026-10-28T20:32:09.995Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a96b63189248
+  - type: executable_for
+    from: SYM-proof-legacy-status-draft
+    to: TEST-proof-legacy-status-draft
+    created_at: 2026-10-29T10:41:37.545Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21e1e1fef773

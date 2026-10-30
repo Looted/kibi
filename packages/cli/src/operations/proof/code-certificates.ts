@@ -16,7 +16,6 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -45,6 +44,7 @@ import {
 import {
   pythonDomainInterpreters,
   runCodeEvaluator,
+  spawnSyncThroughFiles,
   TS_RESOLVE_HOOKS,
 } from "./code-runner.js";
 import { evaluateSourceCode } from "./source-code-readers.js";
@@ -117,7 +117,9 @@ export function importsDomain(
   identifier: string,
   workspaceRoot?: string,
 ): boolean {
-  if (identifier === "" || !new RegExp(`\\b${escapeRegExp(identifier)}\\b`).test(source))
+  // A dotted export (BRAND.name) is imported under its head.
+  const imported = identifier.split(".")[0] ?? "";
+  if (imported === "" || !new RegExp(`\\b${escapeRegExp(imported)}\\b`).test(source))
     return false;
   const target = stripExtension(path.normalize(targetPath));
   if (/\.py$/i.test(sourcePath))
@@ -254,21 +256,30 @@ function escapeRegExp(value: string): string {
 }
 
 const DOMAIN_EVALUATOR = `
-const [file, name] = process.argv.slice(-2);
+const [file, name, projected] = process.argv.slice(-3);
 const { pathToFileURL } = await import("node:url");
 if (typeof globalThis.Bun === "undefined") {
   const { register } = await import("node:module");
   register?.("data:text/javascript," + encodeURIComponent(${JSON.stringify(TS_RESOLVE_HOOKS)}));
 }
-const value = (await import(pathToFileURL(file).href))[name];
+// A dotted name reads a field of the export (POLICY.eventLimit).
+const [head, ...fields] = name.split(".");
+let value = (await import(pathToFileURL(file).href))[head];
+for (const field of fields) value = value !== null && typeof value === "object" ? value[field] : undefined;
 let items = null;
 if (Array.isArray(value)) items = value;
 else if (value instanceof Set) items = [...value];
 else if (value instanceof Map) items = [...value.keys()];
 else if (value !== null && typeof value === "object") items = Object.keys(value);
+// A field projects a list of records onto one field of each (catalog names).
+if (projected !== "" && items !== null)
+  items = items.map((item) => (item !== null && typeof item === "object" ? item[projected] : undefined));
 const primitive = (item) => ["string", "number", "boolean", "bigint"].includes(typeof item);
+const unprojected = projected !== "" && items !== null && items.some((item) => item === undefined);
 const scalar = typeof value === "number" || typeof value === "bigint" ? Number(value) : null;
-console.log(JSON.stringify(scalar !== null
+console.log(JSON.stringify(unprojected
+  ? { error: \`a member of \${name} has no field \${projected}\` }
+  : scalar !== null
   ? { scalar }
   : items === null
   ? { error: \`\${name} is not an array, set, map or object\` }
@@ -278,7 +289,7 @@ console.log(JSON.stringify(scalar !== null
 // A Python domain: a list, tuple, set, frozenset, dict or Enum class.
 const PYTHON_DOMAIN_EVALUATOR = `
 import enum, importlib, json, os, sys
-file, name = sys.argv[-2], sys.argv[-1]
+file, name, projected = sys.argv[-3], sys.argv[-2], sys.argv[-1]
 # Import the module under its package name, from the directory above its
 # topmost package, so absolute and relative imports inside it resolve.
 directory, module_name = os.path.split(os.path.splitext(file)[0])
@@ -288,7 +299,11 @@ while os.path.exists(os.path.join(directory, "__init__.py")):
     parts.insert(0, package)
 sys.path.insert(0, directory)
 module = importlib.import_module(".".join(parts))
-value = getattr(module, name, None)
+# A dotted name reads a field of the export (POLICY.event_limit).
+head, *fields = name.split(".")
+value = getattr(module, head, None)
+for field in fields:
+    value = value.get(field) if isinstance(value, dict) else getattr(value, field, None)
 if isinstance(value, type) and issubclass(value, enum.Enum):
     items = [member.value for member in value]
 elif isinstance(value, dict):
@@ -297,13 +312,18 @@ elif isinstance(value, (list, tuple, set, frozenset)):
     items = list(value)
 else:
     items = None
+# A field projects a list of records onto one field of each (catalog names).
+if projected and items is not None:
+    items = [item.get(projected) if isinstance(item, dict) else getattr(item, projected, None) for item in items]
 def primitive(item):
     return isinstance(item, (str, int, float, bool))
 def text(item):
     if isinstance(item, bool):
         return "true" if item else "false"
     return str(item)
-if isinstance(value, (int, float)) and not isinstance(value, bool):
+if projected and items is not None and any(item is None for item in items):
+    print(json.dumps({"error": f"a member of {name} has no field {projected}"}))
+elif isinstance(value, (int, float)) and not isinstance(value, bool):
     print(json.dumps({"scalar": value}))
 elif items is None:
     print(json.dumps({"error": f"{name} is not a list, tuple, set, dict or Enum"}))
@@ -328,6 +348,8 @@ export function evaluateDomain(
   options: Readonly<{
     /** The TypeScript runners to try, in order (default all three). */
     runners?: readonly ("bun" | "tsx" | "node")[];
+    /** Read this field of each member instead of the member itself. */
+    field?: string;
   }> = {},
 ):
   | { ok: true; count: number; members: readonly string[] | null }
@@ -364,6 +386,7 @@ function evaluateExport(
   exportName: string,
   options: Readonly<{
     runners?: readonly ("bun" | "tsx" | "node")[];
+    field?: string;
   }> = {},
 ):
   | {
@@ -378,7 +401,7 @@ function evaluateExport(
     workspaceRoot,
     sourceFile,
     { js: DOMAIN_EVALUATOR, python: PYTHON_DOMAIN_EVALUATOR },
-    [absolute, exportName],
+    [absolute, exportName, options.field ?? ""],
     (parsed) => {
       const row = parsed as {
         error?: string;
@@ -865,9 +888,8 @@ export function rerunSmtQuery(
         : null;
   if (argv === null)
     return { ok: false, reason: `solver ${solver} is not z3 or cvc5` };
-  const run = spawnSync(solver, argv, {
+  const run = spawnSyncThroughFiles(solver, argv, {
     input: query,
-    encoding: "utf8",
     timeout: 60_000,
   });
   if (run.error)
@@ -875,7 +897,7 @@ export function rerunSmtQuery(
       ok: false,
       reason: `Kibi could not re-run ${solver} on the query: ${run.error.message}`,
     };
-  const answer = (run.stdout ?? "").trim().split(/\s+/)[0] ?? "";
+  const answer = run.stdout.trim().split(/\s+/)[0] ?? "";
   return answer === "unsat"
     ? { ok: true }
     : {
@@ -931,6 +953,9 @@ async function workspaceProblem(
         context.workspaceRoot,
         domain.sourceFile,
         exportName,
+        contract.domain_source?.field === undefined
+          ? {}
+          : { field: contract.domain_source.field },
       );
       if (!evaluated.ok) return evaluated.reason;
       const members = record(certificate.domain)?.members;

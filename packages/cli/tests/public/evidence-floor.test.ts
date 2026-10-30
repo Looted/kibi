@@ -120,6 +120,61 @@ describe("evidence-floor findings", () => {
     ).toEqual([]);
   });
 
+  test("judges receipts at the check's own snapshot and instant", async () => {
+    const root = workspace({
+      ".kb/manifest.json": JSON.stringify({
+        manifestVersion: 1,
+        schemaVersion: 11,
+        semanticAdvisorBackfill: "not_applicable",
+      }),
+    });
+    const goals: string[] = [];
+    let snapshots = 0;
+    const context = {
+      workspaceRoot: root,
+      signal: new AbortController().signal,
+      clock: () => new Date("2026-01-01T00:00:00.000Z"),
+      prolog: {
+        oneShotMode: true,
+        query: async (goal: string) => {
+          goals.push(goal);
+          return { success: true, bindings: { JsonString: '{"rows": []}' } };
+        },
+      } as never,
+      git: {
+        workspaceSnapshot: async () => {
+          snapshots += 1;
+          return { hash: "own-snapshot", dirty: false, fileCount: 0 };
+        },
+      } as never,
+    };
+    const floorGoal = () =>
+      goals.find((goal) => goal.includes("evidence_floor_json")) ?? "";
+
+    await collectEvidenceFloorViolations(
+      context,
+      new Set([EVIDENCE_FLOOR_RULE]),
+      {
+        checkedAt: "2026-02-02T00:00:00.000Z",
+        snapshotEvidence: {
+          available: true,
+          snapshot: { hash: "check-snapshot" },
+        } as never,
+      },
+    );
+    expect(snapshots).toBe(0);
+    expect(floorGoal()).toContain("'check-snapshot'");
+    expect(floorGoal()).toContain("'2026-02-02T00:00:00.000Z'");
+
+    goals.length = 0;
+    await collectEvidenceFloorViolations(
+      context,
+      new Set([EVIDENCE_FLOOR_RULE]),
+    );
+    expect(snapshots).toBe(1);
+    expect(floorGoal()).toContain("'own-snapshot'");
+  });
+
   test("a KB before schema 11 is not judged yet", async () => {
     const root = workspace({
       ".kb/manifest.json": JSON.stringify({

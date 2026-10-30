@@ -297,3 +297,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-002477453eed
+  - type: executable_for
+    from: SYM-proof-entity-origin-kinds
+    to: TEST-proof-entity-origin-kinds
+    created_at: 2026-10-28T11:00:55.109Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a68955d7daf4
+  - type: implements
+    from: SYM-const-derived-coordinates-schema-version
+    to: REQ-cli-migration-pin-codes
+    created_at: 2026-10-28T20:34:01.240Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc1ac3fd75fc
+  - type: covered_by
+    from: SYM-const-derived-coordinates-schema-version
+    to: TEST-proof-derived-coordinates-schema
+    created_at: 2026-10-28T20:34:11.961Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04ef1ade0554
+  - type: covered_by
+    from: SYM-const-derived-coordinates-schema-version
+    to: TEST-cli-migrate
+    created_at: 2026-10-28T20:34:11.979Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-add8854e9718
+  - type: executable_for
+    from: SYM-proof-receipt-versions
+    to: TEST-proof-receipt-versions
+    created_at: 2026-10-28T20:41:49.717Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb2ffbcf13c9
+  - type: validates
+    from: TEST-proof-report-proof-gate-keys
+    to: SCEN-kibi-html-health-report
+    created_at: 2026-10-29T10:25:43.466Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d01ac8452161

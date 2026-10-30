@@ -1,0 +1,2500 @@
+[
+  {
+    "text": "Hello, World!",
+    "ids": [6598, 16, 1094, 5]
+  },
+  {
+    "text": "naïve café résumé façade",
+    "ids": [14749, 6674, 12752, 7514]
+  },
+  {
+    "text": "Ünïcödé ÀÉÎÕÜ",
+    "ids": [26266, 28353, 2701, 1232]
+  },
+  {
+    "text": "kb_upsert dryRun:true",
+    "ids": [20683, 41, 10145, 7749, 3324, 14538, 30, 2001]
+  },
+  {
+    "text": "toggleViewMode(user)",
+    "ids": [1006, 23685, 7590, 4308, 2213, 12, 4316, 13]
+  },
+  {
+    "text": "30 minutes == 1800 seconds?",
+    "ids": [1388, 1787, 33, 33, 8813, 2829, 35]
+  },
+  {
+    "text": "SWI-Prolog 9.0.4 (bundled)",
+    "ids": [24436, 1078, 17, 3019, 20203, 29, 18, 20, 18, 24, 12, 23384, 13]
+  },
+  {
+    "text": "中文测试 mixed with English",
+    "ids": [752, 867, 1, 1, 2822, 1013, 1400]
+  },
+  {
+    "text": "日本語のテキスト",
+    "ids": [870, 882, 956, 677, 29245, 29233, 29239, 29246]
+  },
+  {
+    "text": "emoji 🚀 rocket ✓ check",
+    "ids": [6867, 28153, 1078, 1, 6602, 1, 3644]
+  },
+  {
+    "text": "tabs\tand\nnewlines\r\nhere",
+    "ids": [20634, 1021, 1004, 1053, 11741, 1188]
+  },
+  {
+    "text": "zero\u0000width​joiner‍",
+    "ids": [4723, 8154, 10933, 1238, 4564, 25461]
+  },
+  {
+    "text": "über-long-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa word",
+    "ids": [18175, 17, 1152, 17, 1, 1779]
+  },
+  {
+    "text": "e.g. i.e. etc.",
+    "ids": [47, 18, 49, 18, 51, 18, 47, 18, 3391, 18]
+  },
+  {
+    "text": "a/b\\c|d~e`f",
+    "ids": [43, 19, 44, 38, 45, 70, 46, 72, 47, 42, 48]
+  },
+  {
+    "text": "“smart quotes” and ‘single’ — dashes – en",
+    "ids": [
+      529, 5053, 15620, 530, 1004, 526, 1315, 527, 523, 10460, 1235, 522, 3378
+    ]
+  },
+  {
+    "text": "Ⅻ roman ⅻ",
+    "ids": [1, 2148, 1]
+  },
+  {
+    "text": "İstanbul ǅ ß straße",
+    "ids": [8966, 1, 102, 1364, 26813]
+  },
+  {
+    "text": "non breaking space",
+    "ids": [1518, 3917, 1692]
+  },
+  {
+    "text": "<html>&amp;</html>",
+    "ids": [32, 15135, 34, 10, 22719, 31, 32, 19, 15135, 34]
+  },
+  {
+    "text": "",
+    "ids": []
+  },
+  {
+    "text": "   ",
+    "ids": []
+  },
+  {
+    "text": "##not a prefix",
+    "ids": [7, 7, 1031, 43, 16582]
+  },
+  {
+    "text": "[UNK] [CLS] [SEP]",
+    "ids": [1, 2, 3]
+  },
+  {
+    "text": "unaffable",
+    "ids": [13483, 19967, 2474]
+  },
+  {
+    "text": "REQ-kibi-search-hints-host",
+    "ids": [1134, 3166, 17, 10388, 4644, 17, 2951, 17, 19391, 17, 2683]
+  },
+  {
+    "text": "x86_64-linux-gnu",
+    "ids": [66, 19848, 41, 3191, 17, 10609, 17, 26010]
+  },
+  {
+    "text": "Øresund Æble",
+    "ids": [106, 5078, 7636, 103, 2474]
+  },
+  {
+    "text": "Ελληνικά κείμενο",
+    "ids": [
+      165, 28733, 28733, 23830, 15183, 17205, 28732, 13614, 170, 28729, 17205,
+      28734, 28729, 15183, 28736
+    ]
+  },
+  {
+    "text": "Русский текст",
+    "ids": [
+      201, 28754, 28753, 28753, 22931, 14420, 203, 14296, 22931, 28753, 21925
+    ]
+  },
+  {
+    "text": "עברית",
+    "ids": [265, 28795, 28817, 28802, 28819]
+  },
+  {
+    "text": "العربية",
+    "ids": [276, 22679, 28836, 16155, 28822, 13504, 18439]
+  },
+  {
+    "text": "हिन्दी",
+    "ids": [345, 28883, 28869, 28867, 28884]
+  },
+  {
+    "text": "한국어 텍스트",
+    "ids": [
+      475, 29012, 29027, 28997, 29020, 29026, 29005, 29014, 473, 29015, 29026,
+      29003, 29023, 29009, 29023
+    ]
+  },
+  {
+    "text": "ﬁ ligature ﬂ",
+    "ids": [990, 7024, 10250, 991]
+  },
+  {
+    "text": "x²+y³",
+    "ids": [66, 9707, 15, 67, 17113]
+  },
+  {
+    "text": "€100 £50 ¥30",
+    "ids": [580, 17619, 26819, 1698, 77, 13148]
+  },
+  {
+    "text": "Critical Feature",
+    "ids": [3193, 2450]
+  },
+  {
+    "text": "\n# Critical Feature\n",
+    "ids": [7, 3193, 2450]
+  },
+  {
+    "text": "MCP server exposes a curated public tool surface over stdio transport",
+    "ids": [
+      10344, 1367, 7247, 13457, 1021, 43, 16946, 1276, 6000, 2308, 1064, 1364,
+      19623, 2671
+    ]
+  },
+  {
+    "text": "\nThe kibi-mcp server exposes a JSON-RPC 2.0 interface over stdin/stdout.\n\nThe public MCP surface remains intentionally curated and deterministic. It includes exact retrieval (`kb_query`), discovery/reporting (`kb_search`, `kb_status`, `kb_find_gaps`, `kb_coverage`, `kb_graph`), mutation (`kb_upsert`, `kb_delete`), and validation (`kb_check`).\n\nRead-only operations used by non-interactive clients must publish truthful MCP annotations. In particular, `kb_status` advertises read-only, non-destructive, idempotent, closed-world behavior so clients can inspect branch state without a mutation-approva",
+    "ids": [
+      1002, 10388, 4644, 17, 10344, 1367, 7247, 13457, 1021, 43, 52, 2391, 17,
+      60, 14048, 22, 18, 20, 7284, 1064, 1364, 7724, 19, 1364, 25803, 1108, 18,
+      1002, 1276, 10344, 1367, 2308, 2470, 14740, 16946, 1004, 27289, 24306,
+      9080, 18, 1015, 1956, 5641, 25390, 12, 42, 20683, 41, 22038, 42, 13, 16,
+      4462, 19, 6322, 12, 42, 20683, 41, 2951, 42, 16, 42, 20683, 41, 2576, 42,
+      16, 42, 20683, 41, 1430, 41, 15686, 42, 16, 42, 20683, 41, 5331, 42, 16,
+      42, 20683, 41, 9635, 42, 13, 16, 15227, 12, 42, 20683, 41, 10145, 7749,
+      42, 16, 42, 20683, 41, 2978, 11876, 42, 13, 16, 1004, 26360, 12, 42,
+      20683, 41, 3644, 42, 13, 18, 2197, 17, 1075, 2142, 1115, 1017, 1518, 17,
+      8129, 6852, 1448, 9178, 2612, 2999, 10344, 1367, 4760, 16293, 8291, 18,
+      1005, 2333, 16, 42, 20683, 41, 2576, 42, 3754, 15880, 12093, 2197, 17,
+      1075, 16, 1518, 17, 14621, 16, 7915, 5639, 10014, 3771, 16, 1707, 17,
+      1094, 4254, 1067, 6852, 1070, 21465, 2595, 1116, 1308, 43, 15227, 17,
+      9445, 11304, 1056
+    ]
+  },
+  {
+    "text": "CLI with init, sync, query, check, gc, doctor commands",
+    "ids": [
+      17862, 1078, 1013, 1005, 3189, 16, 25357, 16, 22038, 16, 3644, 16, 49,
+      1284, 16, 2466, 9960
+    ]
+  },
+  {
+    "text": "\nThe `kibi` CLI provides: `init` (scaffold .kb/), `sync` (import entities from files),\n`query` (filter and format KB output), `check` (run validation rules),\n`gc` (remove stale branch stores), `doctor` (diagnose KB health).\n",
+    "ids": [
+      1002, 42, 10388, 4644, 42, 17862, 1078, 2646, 30, 42, 1005, 3189, 42, 12,
+      7046, 9360, 9377, 18, 20683, 19, 13, 16, 42, 25357, 42, 12, 11330, 10428,
+      1019, 5770, 13, 16, 42, 22038, 42, 12, 10313, 1004, 3295, 20683, 5440, 13,
+      16, 42, 3644, 42, 12, 1454, 26360, 2519, 13, 16, 42, 49, 1284, 42, 12,
+      5372, 25735, 2595, 4330, 13, 16, 42, 2466, 42, 12, 21945, 25751, 2372,
+      20683, 1746, 13, 18
+    ]
+  },
+  {
+    "text": "'Eight entity types: req, scenario, test, adr, flag, event, symbol, fact'",
+    "ids": [
+      11, 1815, 8184, 3133, 30, 1134, 3166, 16, 10973, 16, 2237, 16, 3754, 1105,
+      16, 4216, 16, 1730, 16, 5460, 16, 1761, 11
+    ]
+  },
+  {
+    "text": "The KB schema supports exactly eight typed entities. Every entity record requires the fields id, type, title, status, created_at, updated_at and source. Entity records also accept the fields priority, tags, owner and links.\n\n## Context\n\nThe entity model is the base every Kibi feature reads and writes. The required-field list was corrected to match the entity schema, which also requires source (sync derives it from the file path), so that the claim can be proved against the schema itself.\n",
+    "ids": [
+      1002, 20683, 7046, 27439, 5759, 2605, 1815, 20195, 10428, 18, 1302, 8184,
+      1507, 4948, 1002, 3255, 7915, 16, 1834, 16, 1522, 16, 2576, 16, 1586, 41,
+      1018, 16, 6178, 41, 1018, 1004, 2126, 18, 8184, 1642, 1042, 4144, 1002,
+      3255, 8476, 16, 21079, 16, 2960, 1004, 5977, 18, 7, 7, 5129, 1002, 8184,
+      1950, 1009, 1002, 1924, 1302, 10388, 4644, 2450, 8637, 1004, 6015, 18,
+      1002, 2229, 17, 1498, 1868, 1007, 12377, 1006, 1680, 1002, 8184, 7046,
+      27439, 16, 1035, 1042, 4948, 2126, 12, 25357, 11159, 1015, 1019, 1002,
+      4377, 3136, 13, 16, 1067, 1014, 1002, 3372, 1070, 1028, 3934, 1120, 1002,
+      7046, 27439, 1999, 18
+    ]
+  },
+  {
+    "text": "Typed relationships between entities with audit metadata",
+    "ids": [20195, 5556, 1096, 10428, 1013, 14733, 26431]
+  },
+  {
+    "text": "\nRelationships are first-class: `implements`, `validates`, `specified_by`,\n`covered_by`, `depends_on`, `relates_to`, `constrained_by`, etc.\nEach relationship triple is stored in RDF with a provenance timestamp.\n",
+    "ids": [
+      5556, 1030, 1040, 17, 1471, 30, 42, 21170, 42, 16, 42, 8404, 7526, 42, 16,
+      42, 8681, 41, 1017, 42, 16, 42, 2145, 41, 1017, 42, 16, 42, 8047, 41,
+      1012, 42, 16, 42, 13629, 41, 1006, 42, 16, 42, 26576, 41, 1017, 42, 16,
+      3391, 18, 1175, 2282, 5426, 1009, 7256, 1005, 15434, 1552, 1013, 43, 9009,
+      5657, 1341, 14470, 1367, 18
+    ]
+  },
+  {
+    "text": "Built-in consistency validation rules (must-priority-coverage, no-cycles,",
+    "ids": [
+      1334, 17, 1005, 17706, 26360, 2519, 12, 1448, 17, 8476, 17, 5331, 16,
+      1059, 17, 11715, 16
+    ]
+  },
+  {
+    "text": "\n`kibi check` runs three built-in Prolog rules:\n- `must-priority-coverage`: every `must`-priority req must have a scenario and a test\n- `no-dangling-refs`: every relationship target must exist in the KB\n- `no-cycles`: no circular dependency chains\n",
+    "ids": [
+      42, 10388, 4644, 3644, 42, 2222, 1099, 1334, 17, 1005, 3019, 20203, 2519,
+      30, 17, 42, 1448, 17, 8476, 17, 5331, 42, 30, 1302, 42, 1448, 42, 17,
+      8476, 1134, 3166, 1448, 1037, 43, 10973, 1004, 43, 2237, 17, 42, 1059, 17,
+      17743, 17, 24422, 1021, 42, 30, 1302, 2282, 3545, 1448, 3845, 1005, 1002,
+      20683, 17, 42, 1059, 17, 11715, 42, 30, 1059, 7212, 23400, 7865
+    ]
+  },
+  {
+    "text": "Markdown and YAML manifest extractors for entity import",
+    "ids": [
+      1934, 6704, 1004, 7044, 18974, 18682, 13823, 4674, 1011, 8184, 11330
+    ]
+  },
+  {
+    "text": "\n`kibi sync` reads entity data from:\n- YAML frontmatter in Markdown files (requirements, scenarios, tests, ADRs, flags, events)\n- `symbols.yaml` manifest for code symbol entries\n- plain string Markdown `links` entries, imported as generic `relates_to` edges\n- typed Markdown `links` objects, imported with their explicit relationship type\n",
+    "ids": [
+      42, 10388, 4644, 25357, 42, 8637, 8184, 1957, 1019, 30, 17, 7044, 18974,
+      1398, 17906, 2340, 1005, 1934, 6704, 5770, 12, 4924, 16, 15826, 16, 4858,
+      16, 3754, 1875, 16, 8251, 16, 1830, 13, 17, 42, 8261, 18, 7044, 18974, 42,
+      18682, 1011, 2648, 5460, 9451, 17, 4816, 4170, 1934, 6704, 42, 5977, 42,
+      9451, 16, 9970, 1010, 11397, 42, 13629, 41, 1006, 42, 6932, 17, 20195,
+      1934, 6704, 42, 5977, 42, 4206, 16, 9970, 1013, 1043, 12222, 2282, 1834
+    ]
+  },
+  {
+    "text": "Git hooks for automated KB sync on branch checkout and merge",
+    "ids": [
+      20031, 1108, 17014, 1011, 11984, 20683, 25357, 1012, 2595, 3644, 4839,
+      1004, 12596
+    ]
+  },
+  {
+    "text": "\n`kibi init` installs `post-checkout` and `post-merge` git hooks by default. They\nkeep the KB in sync with the working tree. On branch checkout, if the branch KB does not exist, it is created by copying from the resolved default branch (see brief.md for precedence: config `defaultBranch`, then `origin/HEAD`, then `main`).\n",
+    "ids": [
+      42, 10388, 4644, 1005, 3189, 42, 15506, 1021, 42, 1701, 17, 3644, 4839,
+      42, 1004, 42, 1701, 17, 12596, 42, 20031, 1108, 17014, 1017, 11404, 18,
+      1033, 1568, 1002, 20683, 1005, 25357, 1013, 1002, 1557, 2398, 18, 1012,
+      2595, 3644, 4839, 16, 1071, 1002, 2595, 20683, 1521, 1031, 3845, 16, 1015,
+      1009, 1586, 1017, 23737, 1019, 1002, 9401, 11404, 2595, 12, 1162, 3772,
+      18, 8114, 1011, 22365, 30, 8536, 7879, 1296, 42, 11404, 9030, 11686, 42,
+      16, 1065, 42, 3767, 19, 1138, 42, 16, 1065, 42, 1370, 42, 13, 18
+    ]
+  },
+  {
+    "text": "RDF persistence using SWI-Prolog rdf_persistency library",
+    "ids": [
+      15434, 1552, 27303, 1484, 24436, 1078, 17, 3019, 20203, 15434, 1552, 41,
+      28492, 10922, 2081
+    ]
+  },
+  {
+    "text": "\nThe KB is stored as RDF triples using `library(semweb/rdf_persistency)`.\nThe on-disk format is RDF/XML at `.kb/branches/<branch>/kb.rdf`.\nProlog predicates provide the read/write interface; the CLI and MCP translate to/from JSON.\n",
+    "ids": [
+      1002, 20683, 1009, 7256, 1010, 15434, 1552, 5426, 1021, 1484, 42, 2081,
+      12, 6373, 1219, 7551, 1503, 19, 15434, 1552, 41, 28492, 10922, 13, 42, 18,
+      1002, 1012, 17, 8791, 3295, 1009, 15434, 1552, 19, 19956, 1018, 42, 18,
+      20683, 19, 4634, 19, 32, 2595, 34, 19, 20683, 18, 15434, 1552, 42, 18,
+      3019, 20203, 2659, 15473, 1021, 2079, 1002, 2197, 19, 3345, 7284, 31,
+      1002, 17862, 1078, 1004, 10344, 1367, 16643, 1006, 19, 1019, 52, 2391, 18
+    ]
+  },
+  {
+    "text": "VS Code extension with TreeView sidebar for KB navigation",
+    "ids": [4449, 2648, 4337, 1013, 2398, 7590, 1223, 7243, 1011, 20683, 8169]
+  },
+  {
+    "text": "\nThe VS Code extension contributes a sidebar panel with a tree view of all KB\nentities grouped by type. Entities with a known source file can be opened in the\neditor by clicking.\n",
+    "ids": [
+      1002, 4449, 2648, 4337, 15611, 43, 1223, 7243, 5003, 1013, 43, 2398, 2199,
+      1003, 1041, 20683, 10428, 14137, 1017, 1834, 18, 10428, 1013, 43, 1130,
+      2126, 4377, 1070, 1028, 1447, 1005, 1002, 2565, 1017, 21048, 18
+    ]
+  },
+  {
+    "text": "'Write governance: validated changesets and append-only audit log'",
+    "ids": [
+      11, 3345, 9621, 30, 8404, 3389, 2437, 7460, 1004, 9445, 9503, 17, 1075,
+      14733, 7839, 11
+    ]
+  },
+  {
+    "text": "\nAll KB writes go through `kb_upsert/2` which validates the changeset schema before\ncommitting. The RDF store is append-only; history is preserved via `rdf_persistency`.\n",
+    "ids": [
+      1041, 20683, 6015, 1181, 1089, 42, 20683, 41, 10145, 7749, 19, 22, 42,
+      1035, 8404, 7526, 1002, 2437, 2394, 7046, 27439, 1083, 15879, 18, 1002,
+      15434, 1552, 2579, 1009, 9445, 9503, 17, 1075, 31, 1387, 1009, 5566, 2087,
+      42, 15434, 1552, 41, 28492, 10922, 42, 18
+    ]
+  },
+  {
+    "text": "Copy-from-default-branch semantics for new branch KB creation",
+    "ids": [
+      5106, 17, 1019, 17, 11404, 17, 2595, 27087, 1011, 1053, 2595, 20683, 3331
+    ]
+  },
+  {
+    "text": "\nWhen a new branch is checked out and no KB store exists for it yet, kibi\nautomatically copies the resolved default branch store as the starting snapshot.\nThe default branch is determined in this order: (1) `.kb/config.json` `defaultBranch` if set, (2) `origin/HEAD` if available, (3) falls back to `main` only if neither is set.\nThis preserves continuity without requiring manual re-sync.\n",
+    "ids": [
+      1049, 43, 1053, 2595, 1009, 6045, 1047, 1004, 1059, 20683, 2579, 5532,
+      1011, 1015, 1670, 16, 10388, 4644, 7079, 3815, 1002, 9401, 11404, 2595,
+      2579, 1010, 1002, 2231, 19063, 11332, 18, 1002, 11404, 2595, 1009, 3346,
+      1005, 1029, 1350, 30, 12, 21, 13, 42, 18, 20683, 19, 8536, 7879, 1296, 18,
+      52, 2391, 42, 42, 11404, 9030, 11686, 42, 1071, 1281, 16, 12, 22, 13, 42,
+      3767, 19, 1138, 42, 1071, 1806, 16, 12, 23, 13, 3218, 1073, 1006, 42,
+      1370, 42, 1075, 1071, 3451, 1009, 1281, 18, 1029, 17542, 12723, 1308,
+      8040, 5416, 1134, 17, 25357, 18
+    ]
+  },
+  {
+    "text": "Deterministic inference remains available outside the public MCP tool surface",
+    "ids": [
+      27289, 24306, 9080, 27943, 2470, 1806, 1654, 1002, 1276, 10344, 1367,
+      6000, 2308
+    ]
+  },
+  {
+    "text": "\nKibi must keep deterministic inference capabilities available for product and\nautomation use, but they are not exposed as a raw public inference surface.\n\nThe public MCP interface remains curated: exact lookup, curated discovery/reporting,\nmutation, and validation are allowed, while arbitrary inference predicates remain\ninternal.\n",
+    "ids": [
+      10388, 4644, 1448, 1568, 27289, 24306, 9080, 27943, 8865, 1806, 1011,
+      3037, 1004, 18315, 1230, 16, 1027, 1033, 1030, 1031, 5092, 1010, 43, 5321,
+      1276, 27943, 2308, 18, 1002, 1276, 10344, 1367, 7284, 2470, 16946, 30,
+      5641, 1304, 5285, 16, 16946, 4462, 19, 6322, 16, 15227, 16, 1004, 26360,
+      1030, 2045, 16, 1102, 14281, 27943, 2659, 15473, 1021, 2967, 3728, 18
+    ]
+  },
+  {
+    "text": "Pre-commit and CI enforcement of KB consistency",
+    "ids": [2659, 17, 9803, 1004, 24028, 6291, 1003, 20683, 17706]
+  },
+  {
+    "text": "\n`kibi init` installs a pre-commit git hook by default. The hook runs `kibi check` and blocks commits when must-priority coverage rules are violated. CI also runs `kibi check` as a real gate.\n",
+    "ids": [
+      42, 10388, 4644, 1005, 3189, 42, 15506, 1021, 43, 2659, 17, 9803, 20031,
+      1108, 7109, 1017, 11404, 18, 1002, 7109, 2222, 42, 10388, 4644, 3644, 42,
+      1004, 4997, 26797, 1049, 1448, 17, 8476, 5331, 2519, 1030, 13430, 18,
+      24028, 1042, 2222, 42, 10388, 4644, 3644, 42, 1010, 43, 1619, 3802, 18
+    ]
+  },
+  {
+    "text": "Query KB entities by source file path",
+    "ids": [22038, 20683, 10428, 1017, 2126, 4377, 3136]
+  },
+  {
+    "text": "\nThe CLI and MCP server must accept a source file path as a query parameter and return\nall KB entities whose source field matches that path. Public MCP access uses\n`kb_query` with the `sourceFile` filter.\n",
+    "ids": [
+      1002, 17862, 1078, 1004, 10344, 1367, 7247, 1448, 4144, 43, 2126, 4377,
+      3136, 1010, 43, 22038, 15387, 1004, 1715, 1041, 20683, 10428, 2011, 2126,
+      1498, 2509, 1014, 3136, 18, 1276, 10344, 1367, 2235, 2600, 42, 20683, 41,
+      22038, 42, 1013, 1002, 42, 2126, 7879, 1577, 42, 10313, 18
+    ]
+  },
+  {
+    "text": "Temporal ADR supersession chain",
+    "ids": [14856, 3754, 1105, 2571, 7589, 9998, 3683]
+  },
+  {
+    "text": "\nThe KB must support a supersedes(adr, adr) relationship type so the full chain of architectural decisions is machine-readable. Inference rules expose current_adr/1, adr_chain/2, and superseded_by/2. kibi check flags superseded/deprecated ADRs with no successor.\n\nThis enables agents to query the complete history of architectural decisions for any topic, understanding how decisions have evolved over time and which ADR is currently in effect.\n",
+    "ids": [
+      1002, 20683, 1448, 1496, 43, 2571, 5930, 1235, 12, 3754, 1105, 16, 3754,
+      1105, 13, 2282, 1834, 1067, 1002, 1446, 3683, 1003, 5555, 5573, 1009,
+      2704, 17, 2197, 2091, 18, 27943, 2519, 13457, 1789, 41, 3754, 1105, 19,
+      21, 16, 3754, 1105, 41, 3683, 19, 22, 16, 1004, 18892, 41, 1017, 19, 22,
+      18, 10388, 4644, 3644, 8251, 18892, 19, 1145, 27145, 11927, 3754, 1875,
+      1013, 1059, 5338, 18, 1029, 11945, 5080, 1006, 22038, 1002, 2149, 1387,
+      1003, 5555, 5573, 1011, 1157, 7482, 16, 3830, 1135, 5573, 1037, 6970,
+      1064, 1057, 1004, 1035, 3754, 1105, 1009, 1753, 1005, 2472, 18
+    ]
+  },
+  {
+    "text": "Users have a maximum of 2 roles",
+    "ids": [4204, 1037, 43, 3561, 1003, 22, 3401]
+  },
+  {
+    "text": "\nDeprecated business rule kept as the superseded predecessor to REQ-019. \nThis requirement models a strict domain constraint using the two-lane fact model.\nIt constrains the `FACT-USER-ROLE` subject fact and requires the `FACT-LIMIT-2` property-value fact.\nThis enables Kibi to programmatically detect contradictions if another requirement attempts to impose a conflicting constraint on the same subject.\n",
+    "ids": [
+      1145, 27145, 11927, 1455, 2633, 1927, 1010, 1002, 18892, 7652, 1006, 1134,
+      3166, 17, 4896, 1689, 18, 1029, 8101, 3281, 43, 8390, 4890, 26148, 1484,
+      1002, 1054, 17, 3650, 1761, 1950, 18, 1015, 8536, 19534, 6082, 1002, 42,
+      1761, 17, 4316, 17, 1541, 42, 2401, 1761, 1004, 4948, 1002, 42, 1761, 17,
+      4793, 17, 22, 42, 2206, 17, 2649, 1761, 18, 1029, 11945, 10388, 4644,
+      1006, 1571, 11650, 2979, 10493, 25923, 1021, 1071, 1184, 8101, 3746, 1006,
+      16613, 43, 18332, 26148, 1012, 1002, 1174, 2401, 18
+    ]
+  },
+  {
+    "text": "Users can now have 3 roles (retired demo)",
+    "ids": [4204, 1070, 1091, 1037, 23, 3401, 12, 2400, 8709, 13]
+  },
+  {
+    "text": "\nCurrent business rule and canonical append-only successor to REQ-018.\nThis requirement demonstrates how to evolve strict domain constraints. \nBy using `supersedes`, Kibi understands that this requirement replaces the semantics of REQ-018, \nallowing the new constraint (maximum of 3 roles) to take precedence while maintaining a clear audit trail.\n\n\nRetained for provenance.\n",
+    "ids": [
+      1789, 1455, 2633, 1004, 17568, 9445, 9503, 17, 1075, 5338, 1006, 1134,
+      3166, 17, 4896, 1626, 18, 1029, 8101, 15697, 1135, 1006, 18858, 8390,
+      4890, 13685, 18, 1017, 1484, 42, 2571, 5930, 1235, 42, 16, 10388, 4644,
+      18827, 1014, 1029, 8101, 19742, 1002, 27087, 1003, 1134, 3166, 17, 4896,
+      1626, 16, 3358, 1002, 1053, 26148, 12, 3561, 1003, 23, 3401, 13, 1006,
+      1208, 22365, 1102, 7504, 43, 2160, 14733, 3452, 18, 5031, 1011, 9009,
+      5657, 18
+    ]
+  },
+  {
+    "text": "Release automation must use Changesets for versioning and publishing",
+    "ids": [1719, 18315, 1448, 1230, 2437, 7460, 1011, 1550, 1081, 1004, 3646]
+  },
+  {
+    "text": "\n# Requirement: Release Automation with Changesets\n\nAll Kibi npm releases (core, CLI, MCP server, OpenCode plugin) must be automated using the [Changesets](https://github.com/changesets/changesets) workflow. This ensures:\n\n- Consistent semantic versioning across all npm packages\n- Automated changelog generation\n- Safe, auditable, and reproducible releases\n- Integration with CI/CD for publish gates and release verification\n\n## Acceptance Criteria\n- **Automation**: All release steps are automated via Changesets.\n- **Versioning on Develop**: Version bumps and changelog updates happen on `develop`",
+    "ids": [
+      7, 8101, 30, 1719, 18315, 1013, 2437, 7460, 1041, 10388, 4644, 26943,
+      1219, 6091, 12, 3569, 16, 17862, 1078, 16, 10344, 1367, 7247, 16, 1336,
+      15050, 12360, 1384, 13, 1448, 1028, 11984, 1484, 1002, 37, 2437, 7460, 39,
+      12, 15776, 30, 19, 19, 20031, 1711, 11089, 18, 3018, 19, 2437, 7460, 19,
+      2437, 7460, 13, 1153, 11320, 18, 1029, 20318, 30, 17, 7341, 20647, 1550,
+      1081, 1414, 1041, 26943, 1219, 13561, 17, 11984, 1695, 20203, 3251, 17,
+      2653, 16, 14733, 2091, 16, 1004, 15366, 13133, 20110, 6091, 17, 7352,
+      1013, 24028, 19, 2735, 1011, 9178, 5739, 1004, 1719, 21622, 7, 7, 8926,
+      8187, 17, 14, 14, 18315, 14, 14, 30, 1041, 1719, 3090, 1030, 11984, 2087,
+      2437, 7460, 18, 17, 14, 14, 1550, 1081, 1012, 3509, 14, 14, 30, 1550,
+      17554, 1004, 1695, 20203, 13415, 3154, 1012, 42, 3509, 42
+    ]
+  },
+  {
+    "text": "The staged check must inventory every path in the Git index before filtering.",
+    "ids": [
+      1002, 8819, 3644, 1448, 11618, 1302, 3136, 1005, 1002, 20031, 1108, 4956,
+      1083, 21916, 18
+    ]
+  },
+  {
+    "text": "The staged check must inventory every path in the Git index before filtering.\n",
+    "ids": [
+      1002, 8819, 3644, 1448, 11618, 1302, 3136, 1005, 1002, 20031, 1108, 4956,
+      1083, 21916, 18
+    ]
+  },
+  {
+    "text": "Bootstrap Kibi onboarding and plan/apply safety",
+    "ids": [
+      5885, 5500, 1367, 10388, 4644, 26126, 1081, 1004, 1939, 19, 5617, 2814
+    ]
+  },
+  {
+    "text": "The bootstrap workflow must produce a read-only deterministic plan and apply only an explicitly approved exact plan through kb_apply_plan.\n",
+    "ids": [
+      1002, 5885, 5500, 1367, 1153, 11320, 1448, 2971, 43, 2197, 17, 1075,
+      27289, 24306, 9080, 1939, 1004, 5617, 1075, 1025, 11051, 3850, 5641, 1939,
+      1089, 20683, 41, 5617, 41, 1939, 18
+    ]
+  },
+  {
+    "text": "Host edit snippets come from one shared builder and say what a current requirement must keep true and why",
+    "ids": [
+      2683, 9092, 61, 2496, 28525, 1021, 1278, 1019, 1034, 3213, 11514, 1004,
+      1366, 1060, 43, 1789, 8101, 1448, 1568, 2001, 1004, 1345
+    ]
+  },
+  {
+    "text": "Every Kibi host plugin must build its file knowledge snippet with the shared kibi-agent-core snippet builder. An edit snippet for a file that implements a current requirement must state up to two facts that the lead requirement links through constrains, requires_property, requires_predicate, or requires_rule as what it must keep true. An edit snippet for a file that implements a current requirement must name the ADR decision behind the lead requirement. A superseded, deprecated, or retired lead requirement must get no must-keep-true or decision lines. A read snippet must list only the requirem",
+    "ids": [
+      1302, 10388, 4644, 2683, 12360, 1384, 1448, 2863, 1055, 4377, 2722, 61,
+      2496, 28525, 1013, 1002, 3213, 10388, 4644, 17, 3011, 17, 3569, 61, 2496,
+      28525, 11514, 18, 1025, 9092, 61, 2496, 28525, 1011, 43, 4377, 1014,
+      21170, 43, 1789, 8101, 1448, 1116, 1045, 1006, 1054, 7872, 1014, 1002,
+      1605, 8101, 5977, 1089, 8536, 19534, 6082, 16, 4948, 41, 2206, 16, 4948,
+      41, 2659, 15473, 16, 1036, 4948, 41, 2633, 1010, 1060, 1015, 1448, 1568,
+      2001, 18, 1025, 9092, 61, 2496, 28525, 1011, 43, 4377, 1014, 21170, 43,
+      1789, 8101, 1448, 1177, 1002, 3754, 1105, 2253, 1375, 1002, 1605, 8101,
+      18, 43, 18892, 16, 1145, 27145, 11927, 16, 1036, 2400, 1605, 8101, 1448,
+      1137, 1059, 1448, 17, 1568, 17, 2001, 1036, 2253, 2216, 18, 43, 2197, 61,
+      2496, 28525, 1448, 1868, 1075, 1002, 4484, 1219
+    ]
+  },
+  {
+    "text": "Agent-guided migration orchestration",
+    "ids": [3011, 17, 7552, 8236, 3038, 2514]
+  },
+  {
+    "text": "\nKibi exposes a single typed migration plan so agents can inspect deterministic\nrepair work and distinguish it from semantic, operator, and execution work.\nStatus and checks are read-only; only explicitly approved automatic actions may\nbe applied, and every application is followed by a fresh readback.\n",
+    "ids": [
+      10388, 4644, 13457, 1021, 43, 1315, 20195, 8236, 1939, 1067, 5080, 1070,
+      21465, 27289, 24306, 9080, 6198, 1153, 1004, 9788, 1015, 1019, 20647, 16,
+      5878, 16, 1004, 6787, 1153, 18, 2576, 1004, 13154, 1030, 2197, 17, 1075,
+      31, 1075, 11051, 3850, 5888, 3512, 1095, 1028, 3168, 16, 1004, 1302, 3652,
+      1009, 1634, 1017, 43, 3846, 2197, 4969, 18
+    ]
+  },
+  {
+    "text": "Codex, Cursor and ZCode hooks guard firm rules and capture stated decisions",
+    "ids": [
+      14769, 16, 11737, 24307, 1105, 1004, 68, 15050, 17014, 2463, 2819, 2519,
+      1004, 4431, 2096, 5573
+    ]
+  },
+  {
+    "text": "Before an edit changes code that implements a current firm requirement, the Codex, Cursor, ZCode pre-edit hooks must tell the agent to ask the person before an edit that breaks that rule, once per requirement per session. When a submitted prompt reads as a rule, the Codex, Cursor, ZCode hooks must give the agent the note that recording the rule with kb_upsert is part of the change. When a session that changed source files stops without any kb_upsert write, the Codex, Cursor, ZCode stop hooks must ask the agent once per session to record the decision behind the change.\n\n## Context\n\nThe Claude C",
+    "ids": [
+      1083, 1025, 9092, 2437, 2648, 1014, 21170, 43, 1789, 2819, 8101, 16, 1002,
+      14769, 16, 11737, 24307, 1105, 16, 68, 15050, 2659, 17, 9092, 17014, 1448,
+      1431, 1002, 3011, 1006, 2204, 1002, 1717, 1083, 1025, 9092, 1014, 6813,
+      1014, 2633, 16, 1326, 1572, 8101, 1572, 4225, 18, 1049, 43, 6870, 24738,
+      8637, 1010, 43, 2633, 16, 1002, 14769, 16, 11737, 24307, 1105, 16, 68,
+      15050, 17014, 1448, 1513, 1002, 3011, 1002, 2608, 1014, 2411, 1002, 2633,
+      1013, 20683, 41, 10145, 7749, 1009, 1118, 1003, 1002, 1695, 18, 1049, 43,
+      4225, 1014, 1910, 2126, 5770, 5768, 1308, 1157, 20683, 41, 10145, 7749,
+      3345, 16, 1002, 14769, 16, 11737, 24307, 1105, 16, 68, 15050, 1650, 17014,
+      1448, 2204, 1002, 3011, 1326, 1572, 4225, 1006, 1507, 1002, 2253, 1375,
+      1002, 1695, 18, 7, 7, 5129, 1002, 7155, 45
+    ]
+  },
+  {
+    "text": "Agent guidance selects between Kibi public surfaces without claiming exclusivity",
+    "ids": [
+      3011, 7612, 26040, 1096, 10388, 4644, 1276, 8978, 1308, 5821, 3660, 19470,
+      1277, 6736
+    ]
+  },
+  {
+    "text": "\nAgent-facing guidance must treat the Kibi public MCP and CLI surfaces as peers.\n\n1. Guidance must not present MCP as the only public surface.\n2. Guidance may name either public surface when that is the clearest route for the user.\n3. Guidance must keep historical policy changes visible through supersession links, not rewritten prose.\n",
+    "ids": [
+      3011, 17, 4313, 7612, 1448, 6444, 1002, 10388, 4644, 1276, 10344, 1367,
+      1004, 17862, 1078, 8978, 1010, 11752, 18, 21, 18, 7612, 1448, 1031, 1562,
+      10344, 1367, 1010, 1002, 1075, 1276, 2308, 18, 22, 18, 7612, 1095, 1177,
+      1599, 1276, 2308, 1049, 1014, 1009, 1002, 2160, 3361, 1805, 1011, 1002,
+      4316, 18, 23, 18, 7612, 1448, 1568, 2445, 2349, 2437, 4716, 1089, 2571,
+      7589, 9998, 5977, 16, 1031, 1134, 14779, 11394, 18
+    ]
+  },
+  {
+    "text": "Guided migration plan version and step codes",
+    "ids": [7552, 8236, 1939, 1550, 1004, 2363, 8543]
+  },
+  {
+    "text": "The guided migration plan version shall be kibi.migration-plan.v2. The predicate schema alignment step code shall be predicate_schema_alignment. The untracked knowledge sources step code shall be untracked_knowledge_sources. The freshness resync step code shall be freshness_resync.\n\n## Context\n\npackages/cli/src/public/operations/migration-plan.ts versions the plan REQ-agent-guided-migration-orchestration hands an agent and names the steps it can hold beside the schema migration. They are stated here so every value is proved against its constant.\n\n## Source\n\nMaintainer decision, 2026-10-27, app",
+    "ids": [
+      1002, 7552, 8236, 1939, 1550, 3624, 1028, 10388, 4644, 18, 8236, 17, 1939,
+      18, 64, 1481, 18, 1002, 2659, 15473, 7046, 27439, 11145, 2363, 2648, 3624,
+      1028, 2659, 15473, 41, 7046, 27439, 41, 11145, 18, 1002, 3901, 5500,
+      17147, 2722, 3222, 2363, 2648, 3624, 1028, 3901, 5500, 17147, 41, 2722,
+      41, 3222, 18, 1002, 3846, 1797, 23507, 5044, 1284, 2363, 2648, 3624, 1028,
+      3846, 1797, 41, 23507, 5044, 1284, 18, 7, 7, 5129, 13561, 19, 17862, 1078,
+      19, 4040, 1284, 19, 1276, 19, 2142, 19, 8236, 17, 1939, 18, 23535, 3623,
+      1002, 1939, 1134, 3166, 17, 3011, 17, 7552, 17, 8236, 17, 3038, 2514,
+      1404, 1025, 3011, 1004, 2421, 1002, 3090, 1015, 1070, 1913, 2881, 1002,
+      7046, 27439, 8236, 18, 1033, 1030, 2096, 1188, 1067, 1302, 2649, 1009,
+      3934, 1120, 1055, 4383, 18, 7, 7, 2126, 4447, 1127, 2253, 16, 15804, 1581,
+      17, 1190, 17, 1682, 16, 9445
+    ]
+  },
+  {
+    "text": "Legacy and digest migration plan versions",
+    "ids": [7033, 1004, 16892, 8236, 1939, 3623]
+  },
+  {
+    "text": "The legacy migration plan version shall be kibi.legacy-migration-plan.v1. The migration plan digest version shall be kibi.migration-plan-digest.v2. A refused migration plan shall return the code MIGRATION_PLAN_REFUSED.\n\n## Context\n\nREQ-agent-guided-migration-orchestration hands an agent a versioned plan, a legacy KB gets its own versioned plan, the plan is bound by a versioned digest and a plan that cannot run is refused with a fixed code. They are stated here so every value is proved against its constant.\n\n## Source\n\nMaintainer decision, 2026-10-27, approving requirement rewrites and splits t",
+    "ids": [
+      1002, 7033, 8236, 1939, 1550, 3624, 1028, 10388, 4644, 18, 7033, 17, 8236,
+      17, 1939, 18, 64, 1493, 18, 1002, 8236, 1939, 16892, 1550, 3624, 1028,
+      10388, 4644, 18, 8236, 17, 1939, 17, 16892, 18, 64, 1481, 18, 43, 3194,
+      8236, 1939, 3624, 1715, 1002, 2648, 8236, 41, 1939, 41, 3194, 18, 7, 7,
+      5129, 1134, 3166, 17, 3011, 17, 7552, 17, 8236, 17, 3038, 2514, 1404,
+      1025, 3011, 43, 1550, 1104, 1939, 16, 43, 7033, 20683, 3158, 1055, 1225,
+      1550, 1104, 1939, 16, 1002, 1939, 1009, 4397, 1017, 43, 1550, 1104, 16892,
+      1004, 43, 1939, 1014, 2691, 1454, 1009, 3194, 1013, 43, 3970, 2648, 18,
+      1033, 1030, 2096, 1188, 1067, 1302, 2649, 1009, 3934, 1120, 1055, 4383,
+      18, 7, 7, 2126, 4447, 1127, 2253, 16, 15804, 1581, 17, 1190, 17, 1682, 16,
+      9445, 21052, 8101, 1134, 25379, 1021, 1004, 18590, 62
+    ]
+  },
+  {
+    "text": "Kibi checks surface advisory audit quality diagnostics separately from hard violations",
+    "ids": [
+      10388, 4644, 13154, 2308, 6325, 14733, 2743, 15480, 1021, 9335, 1019,
+      1530, 12308
+    ]
+  },
+  {
+    "text": "\nKibi check surfaces must keep objectively invalid graph/schema/strict-fact states in the hard `violations[]` lane while surfacing heuristic modeling-quality signals in non-blocking `qualityDiagnostics[]`.\n\nQuality diagnostics must be visible automatically through existing CLI, MCP, coverage, staged-check, and OpenCode scheduled-check paths so agents are prompted to update granular requirements, symbols, facts, and tests without needing a separate audit command.\n",
+    "ids": [
+      10388, 4644, 3644, 8978, 1448, 1568, 6869, 1141, 18534, 9635, 19, 7046,
+      27439, 19, 8390, 17, 1761, 1169, 1005, 1002, 1530, 42, 12308, 37, 39, 42,
+      3650, 1102, 13181, 25223, 1008, 8502, 9080, 10649, 17, 2743, 6761, 1005,
+      1518, 17, 9857, 42, 2743, 8038, 25751, 9080, 1021, 37, 39, 42, 18, 2743,
+      15480, 1021, 1448, 1028, 4716, 7079, 1089, 3499, 17862, 1078, 16, 10344,
+      1367, 16, 5331, 16, 8819, 17, 3644, 16, 1004, 1336, 15050, 4121, 17, 3644,
+      9431, 1067, 5080, 1030, 8475, 1006, 9657, 11610, 6940, 4924, 16, 8261, 16,
+      7872, 16, 1004, 4858, 1308, 10309, 43, 2590, 14733, 2100, 18
+    ]
+  },
+  {
+    "text": "Bootstrap and modeling write the semantic advisor's proposition roles",
+    "ids": [
+      5885, 5500, 1367, 1004, 10649, 3345, 1002, 20647, 7625, 11, 61, 13854,
+      3401
+    ]
+  },
+  {
+    "text": "Bootstrap requirement candidates must take each semantic inventory role from the semantic advisor. The semantic advisor must classify an obligation with a definition verb inside a relative clause as normative. Proposition-complete ingestion must keep accepting stored inventories that recorded the earlier definition role.\n\n## Context\n\nDuring onboarding of a test project, `kb_plan_bootstrap` recorded a modality-only role for each claim, while the write-time ingestion boundary compared that role with the advisor's own classification. Conditional claims (\"If the export fails, the system must retry",
+    "ids": [
+      5885, 5500, 1367, 8101, 4353, 1448, 1208, 1175, 20647, 11618, 1541, 1019,
+      1002, 20647, 7625, 18, 1002, 20647, 7625, 1448, 25274, 1025, 13993, 1013,
+      43, 5216, 11040, 1509, 43, 4822, 10081, 1010, 19698, 5030, 18, 13854, 17,
+      2149, 12755, 3361, 2264, 1448, 1568, 9570, 7256, 11241, 2117, 1014, 1686,
+      1002, 2047, 5216, 1541, 18, 7, 7, 5129, 1082, 26126, 1081, 1003, 43, 2237,
+      1628, 16, 42, 20683, 41, 1939, 41, 5885, 5500, 1367, 42, 1686, 43, 15919,
+      22738, 17, 1075, 1541, 1011, 1175, 3372, 16, 1102, 1002, 3345, 17, 1057,
+      12755, 3361, 2264, 5198, 3108, 1014, 1541, 1013, 1002, 7625, 11, 61, 1225,
+      4585, 18, 17468, 3453, 12, 6, 1071, 1002, 8173, 10902, 16, 1002, 1297,
+      1448, 1134, 10135
+    ]
+  },
+  {
+    "text": "Long bootstrap applies survive client timeouts and interrupted processes",
+    "ids": [
+      1152, 5885, 5500, 1367, 11039, 4794, 6402, 1057, 11172, 1004, 6159, 5200
+    ]
+  },
+  {
+    "text": "The bootstrap apply operation must report progress after every applied action. The MCP server must send each progress report as a progress notification when the request carries a progress token. The MCP apply tool must return a job receipt for polling when it is called with async and the job status tool is enabled. The bootstrap recovery operation must re-apply an action that was interrupted before its checkpoint without journal edits. The bootstrap recovery operation must reclaim a source lock whose holder process is dead and record the reclaim in the journal. The source lock must keep blocki",
+    "ids": [
+      1002, 5885, 5500, 1367, 5617, 2175, 1448, 2195, 4088, 1050, 1302, 3168,
+      1901, 18, 1002, 10344, 1367, 7247, 1448, 3610, 1175, 4088, 2195, 1010, 43,
+      4088, 25834, 1049, 1002, 4233, 6889, 43, 4088, 18210, 18, 1002, 10344,
+      1367, 5617, 6000, 1448, 1715, 43, 2111, 23312, 1011, 16894, 1049, 1015,
+      1009, 1176, 1013, 1010, 5044, 1284, 1004, 1002, 2111, 2576, 6000, 1009,
+      8130, 18, 1002, 5885, 5500, 1367, 6239, 2175, 1448, 1134, 17, 5617, 1025,
+      1901, 1014, 1007, 6159, 1083, 1055, 25526, 1308, 2491, 9092, 1021, 18,
+      1002, 5885, 5500, 1367, 6239, 2175, 1448, 23110, 43, 2126, 4849, 2011,
+      8117, 1838, 1009, 1763, 1004, 1507, 1002, 23110, 1005, 1002, 2491, 18,
+      1002, 2126, 4849, 1448, 1568, 2802, 1078
+    ]
+  },
+  {
+    "text": "Bootstrap names what to compare for intent claims it leaves for authoring",
+    "ids": [
+      5885, 5500, 1367, 2421, 1060, 1006, 11832, 1011, 6854, 3453, 1015, 2733,
+      1011, 2172, 1081
+    ]
+  },
+  {
+    "text": "kb_plan_bootstrap must name each current requirement without a logical representation that an intent claim left for authoring was not checked against.\n\n## Context\n\n`kb_plan_bootstrap` compared only the intent claims it planned with the prose-only current requirements on the same topic. A claim it could not model was left as \"Intent claim needs authoring\" with no `review_against` evidence and no `conflict-review:` diagnostic, although those claims are exactly the ones Kibi cannot check. In a regression run on a test project migrated from a legacy KB, the claim that Escape saves an annotation sa",
+    "ids": [
+      20683, 41, 1939, 41, 5885, 5500, 1367, 1448, 1177, 1175, 1789, 8101, 1308,
+      43, 10183, 5636, 1014, 1025, 6854, 3372, 1193, 1011, 2172, 1081, 1007,
+      1031, 6045, 1120, 18, 7, 7, 5129, 42, 20683, 41, 1939, 41, 5885, 5500,
+      1367, 42, 3108, 1075, 1002, 6854, 3453, 1015, 2746, 1013, 1002, 11394, 17,
+      1075, 1789, 4924, 1012, 1002, 1174, 7482, 18, 43, 3372, 1015, 1077, 1031,
+      1950, 1007, 1193, 1010, 6, 6854, 3372, 2797, 2172, 1081, 6, 1013, 1059,
+      42, 2325, 41, 1120, 42, 2356, 1004, 1059, 42, 3742, 17, 2325, 30, 42,
+      15480, 16, 1354, 1222, 3453, 1030, 2605, 1002, 2930, 10388, 4644, 2691,
+      3644, 18, 1005, 43, 25243, 1454, 1012, 43, 2237, 1628, 12453, 1019, 43,
+      7033, 20683, 16, 1002, 3372, 1014, 3025, 12175, 1025, 4760, 16293, 2514,
+      6848
+    ]
+  },
+  {
+    "text": "Bootstrap keeps observations, open questions and declared conflicts as cited review facts",
+    "ids": [
+      5885, 5500, 1367, 6912, 8426, 16, 1336, 2986, 1004, 3167, 8761, 1010,
+      5569, 2325, 7872
+    ]
+  },
+  {
+    "text": "The bootstrap planner must not turn intent claims declared as observations or open questions into requirement candidates. The bootstrap planner must plan each observation or open question claim as a cited observation fact and tag open questions review:open-question. The bootstrap planner must plan each declared conflict between declared claims as a cited observation fact tagged review:conflict. The bootstrap planner must bind claim kinds and declared conflicts into the plan hash.\n",
+    "ids": [
+      1002, 5885, 5500, 1367, 23561, 1448, 1031, 1741, 6854, 3453, 3167, 1010,
+      8426, 1036, 1336, 2986, 1052, 8101, 4353, 18, 1002, 5885, 5500, 1367,
+      23561, 1448, 1939, 1175, 7095, 1036, 1336, 2166, 3372, 1010, 43, 5569,
+      7095, 1761, 1004, 5421, 1336, 2986, 2325, 30, 1336, 17, 2166, 18, 1002,
+      5885, 5500, 1367, 23561, 1448, 1939, 1175, 3167, 3742, 1096, 3167, 3453,
+      1010, 43, 5569, 7095, 1761, 25616, 2325, 30, 3742, 18, 1002, 5885, 5500,
+      1367, 23561, 1448, 13193, 3372, 6963, 1004, 3167, 8761, 1052, 1002, 1939,
+      22331, 18
+    ]
+  },
+  {
+    "text": "Bootstrap plans keep generated claim names short",
+    "ids": [5885, 5500, 1367, 2494, 1568, 6019, 3372, 2421, 1466]
+  },
+  {
+    "text": "Bootstrap planning must shorten a generated claim name longer than four words or forty characters and report the original name. Bootstrap planning must give different claims different generated names.\n\n## Context\n\nAfter a bootstrap of a test project with declared components, every generated name had the `component.aspect` shape, but 17 of 93 names had a second segment longer than 40 characters because it was the slug of a whole clause (for example a name ending in `update_in_real_time_when_a_new_request_is_assigned_...`), and two names collided. Later scenarios and facts must repeat the same n",
+    "ids": [
+      5885, 5500, 1367, 3047, 1448, 1466, 1374, 43, 6019, 3372, 1177, 1942,
+      1090, 1182, 1622, 1036, 4665, 2500, 1004, 2195, 1002, 1440, 1177, 18,
+      5885, 5500, 1367, 3047, 1448, 1513, 1373, 3453, 1373, 6019, 2421, 18, 7,
+      7, 5129, 1050, 43, 5885, 5500, 1367, 1003, 43, 2237, 1628, 1013, 3167,
+      5183, 16, 1302, 6019, 1177, 1024, 1002, 42, 5928, 18, 6820, 42, 3344, 16,
+      1027, 1465, 1003, 5115, 2421, 1024, 43, 1123, 5909, 1942, 1090, 1877,
+      2500, 1144, 1015, 1007, 1002, 22673, 1003, 43, 1884, 10081, 12, 1011,
+      1748, 43, 1177, 3572, 1005, 42, 9657, 41, 1005, 41, 1619, 41, 1057, 41,
+      1049, 41, 43, 41, 1053, 41, 4233, 41, 1009, 41, 3143, 41, 18, 18, 18, 42,
+      13, 16, 1004, 1054, 2421, 16751, 18, 1107, 15826, 1004, 7872, 1448, 8383,
+      1002, 1174, 56
+    ]
+  },
+  {
+    "text": "The bootstrap close restatement threshold is a Jaccard similarity of 0.8",
+    "ids": [
+      1002, 5885, 5500, 1367, 1491, 1723, 2692, 2678, 10213, 1009, 43, 13861,
+      15671, 3109, 13408, 1003, 20, 18, 28
+    ]
+  },
+  {
+    "text": "The close restatement threshold must be a token-set Jaccard similarity of 0.8.\n\n## Context\n\nThe bootstrap planner keeps a declared intent claim that closely restates a current requirement and names that requirement (REQ-bootstrap-claim-restatement). How close is close is the exported NEAR_RESTATEMENT_JACCARD constant, so the claim is proved against the value the code holds.\n",
+    "ids": [
+      1002, 1491, 1723, 2692, 2678, 10213, 1448, 1028, 43, 18210, 17, 1281,
+      13861, 15671, 3109, 13408, 1003, 20, 18, 28, 18, 7, 7, 5129, 1002, 5885,
+      5500, 1367, 23561, 6912, 43, 3167, 6854, 3372, 1014, 3882, 1723, 7526, 43,
+      1789, 8101, 1004, 2421, 1014, 8101, 12, 1134, 3166, 17, 5885, 5500, 1367,
+      17, 3372, 17, 1723, 2692, 2678, 13, 18, 1135, 1491, 1009, 1491, 1009,
+      1002, 14618, 1385, 41, 1723, 2692, 2678, 41, 13861, 15671, 3109, 4383, 16,
+      1067, 1002, 3372, 1009, 3934, 1120, 1002, 2649, 1002, 2648, 3330, 18
+    ]
+  },
+  {
+    "text": "Bootstrap counts intent claims that restate a current requirement as already in the KB",
+    "ids": [
+      5885, 5500, 1367, 8300, 6854, 3453, 1014, 1723, 2692, 43, 1789, 8101,
+      1010, 1531, 1005, 1002, 20683
+    ]
+  },
+  {
+    "text": "The bootstrap planner must count a declared intent claim whose normalized statement or excerpt equals the title, the semantic text or one sentence of the semantic text of a current requirement as already in the KB under that requirement id. The bootstrap planner must keep a declared intent claim that closely restates a current requirement without matching it exactly and must name that requirement in a review diagnostic.\n\n## Context\n\nAn onboarding test on a test project ran bootstrap on a knowledge base that already held human-written requirements and declared ten intent claims. Two of them res",
+    "ids": [
+      1002, 5885, 5500, 1367, 23561, 1448, 3181, 43, 3167, 6854, 3372, 2011,
+      2677, 2556, 3867, 1036, 27148, 18641, 1002, 1522, 16, 1002, 20647, 2799,
+      1036, 1034, 5257, 1003, 1002, 20647, 2799, 1003, 43, 1789, 8101, 1010,
+      1531, 1005, 1002, 20683, 1110, 1014, 8101, 7915, 18, 1002, 5885, 5500,
+      1367, 23561, 1448, 1568, 43, 3167, 6854, 3372, 1014, 3882, 1723, 7526, 43,
+      1789, 8101, 1308, 8850, 1015, 2605, 1004, 1448, 1177, 1014, 8101, 1005,
+      43, 2325, 15480, 18, 7, 7, 5129, 1025, 26126, 1081, 2237, 1012, 43, 2237,
+      1628, 1749, 5885, 5500, 1367, 1012, 43, 2722, 1924, 1014, 1531, 1224,
+      1535, 17, 1523, 4924, 1004, 3167, 1708, 6854, 3453, 18, 1054, 1003, 1074,
+      23507
+    ]
+  },
+  {
+    "text": "Bootstrap keeps a separate budget for discovered candidates and a readable suppression summary",
+    "ids": [
+      5885, 5500, 1367, 6912, 43, 2590, 4172, 1011, 2609, 4353, 1004, 43, 2197,
+      2091, 15347, 11660
+    ]
+  },
+  {
+    "text": "The bootstrap planner must give discovered candidates the full maxCandidates budget regardless of how many declared intent claims are planned. The bootstrap planner must exclude generic Markdown candidates by default when intent claims are declared and the caller does not set includeGenericMarkdown. The bootstrap planner must summarize suppressed candidates as one count per reason in the plan summary and diagnostics.\n",
+    "ids": [
+      1002, 5885, 5500, 1367, 23561, 1448, 1513, 2609, 4353, 1002, 1446, 3104,
+      8342, 3311, 26128, 4172, 6545, 1003, 1135, 1122, 3167, 6854, 3453, 1030,
+      2746, 18, 1002, 5885, 5500, 1367, 23561, 1448, 22335, 11397, 1934, 6704,
+      4353, 1017, 11404, 1049, 6854, 3453, 1030, 3167, 1004, 1002, 19593, 1521,
+      1031, 1281, 1427, 5920, 21426, 9671, 6704, 18, 1002, 5885, 5500, 1367,
+      23561, 1448, 6686, 6855, 3703, 12718, 4353, 1010, 1034, 3181, 1572, 2120,
+      1005, 1002, 1939, 11660, 1004, 15480, 1021, 18
+    ]
+  },
+  {
+    "text": "Bootstrap plans keep every declared intent claim and account for it per source",
+    "ids": [
+      5885, 5500, 1367, 2494, 1568, 1302, 3167, 6854, 3372, 1004, 3076, 1011,
+      1015, 1572, 2126
+    ]
+  },
+  {
+    "text": "The bootstrap planner must keep every declared intent claim regardless of maxCandidates and apply maxCandidates only to discovered candidates. The bootstrap planner must suppress a candidate that would rewrite an entity another planned candidate writes with different content. The bootstrap planner must run the claim key grounding check against planned writes before offering write actions. The bootstrap planner must report declared, planned and existing intent claims for each knowledge source. The bootstrap planner must not mark a plan ready when an authoritative knowledge source has no planned",
+    "ids": [
+      1002, 5885, 5500, 1367, 23561, 1448, 1568, 1302, 3167, 6854, 3372, 6545,
+      1003, 3104, 8342, 3311, 26128, 1004, 5617, 3104, 8342, 3311, 26128, 1075,
+      1006, 2609, 4353, 18, 1002, 5885, 5500, 1367, 23561, 1448, 15087, 43,
+      3024, 1014, 1058, 1134, 25379, 1025, 8184, 1184, 2746, 3024, 6015, 1013,
+      1373, 3186, 18, 1002, 5885, 5500, 1367, 23561, 1448, 1454, 1002, 3372,
+      2151, 1604, 1081, 3644, 1120, 2746, 6015, 1083, 4384, 3345, 3512, 18,
+      1002, 5885, 5500, 1367, 23561, 1448, 2195, 3167, 16, 2746, 1004, 3499,
+      6854, 3453, 1011, 1175, 2722, 2126, 18, 1002, 5885, 5500, 1367, 23561,
+      1448, 1031, 1934, 43, 1939, 2207, 1049, 1025, 22955, 2722, 2126, 1044,
+      1059, 2746
+    ]
+  },
+  {
+    "text": "Bootstrap writes claimless provider candidates as provenance stubs that search ranks last and reports skip",
+    "ids": [
+      5885, 5500, 1367, 6015, 3372, 2244, 9808, 4353, 1010, 9009, 5657, 23652,
+      4916, 1014, 2951, 5944, 1203, 1004, 3317, 12564
+    ]
+  },
+  {
+    "text": "The bootstrap planner must write a discovered provider candidate that states no claim as a meta fact tagged bootstrap:provenance-stub. The bootstrap planner must select provenance stubs after every discovered candidate that states a claim. The bootstrap plan must report planned provenance stubs separately from candidates with claims. Search ranking must sort a provenance stub after every match that is not a provenance stub. The search answer layer must not list a provenance stub as a note. Gap and type coverage reports must not count a provenance stub as a fact.\n\n## Context\n\nRound 9 of the onb",
+    "ids": [
+      1002, 5885, 5500, 1367, 23561, 1448, 3345, 43, 2609, 9808, 3024, 1014,
+      1169, 1059, 3372, 1010, 43, 17810, 1761, 25616, 5885, 5500, 1367, 30,
+      9009, 5657, 17, 23652, 1503, 18, 1002, 5885, 5500, 1367, 23561, 1448,
+      6282, 9009, 5657, 23652, 4916, 1050, 1302, 2609, 3024, 1014, 1169, 43,
+      3372, 18, 1002, 5885, 5500, 1367, 1939, 1448, 2195, 2746, 9009, 5657,
+      23652, 4916, 9335, 1019, 4353, 1013, 3453, 18, 2951, 4470, 1448, 3072, 43,
+      9009, 5657, 23652, 1503, 1050, 1302, 1680, 1014, 1009, 1031, 43, 9009,
+      5657, 23652, 1503, 18, 1002, 2951, 2443, 5747, 1448, 1031, 1868, 43, 9009,
+      5657, 23652, 1503, 1010, 43, 2608, 18, 5584, 1004, 1834, 5331, 3317, 1448,
+      1031, 3181, 43, 9009, 5657, 23652, 1503, 1010, 43, 1761, 18, 7, 7, 5129,
+      1467, 29, 1003, 1002, 1012, 1503
+    ]
+  },
+  {
+    "text": "Bootstrap plans write one subject fact per subject key",
+    "ids": [5885, 5500, 1367, 2494, 3345, 1034, 2401, 1761, 1572, 2401, 2151]
+  },
+  {
+    "text": "Bootstrap planning must write one subject fact for each subject key and link every requirement about that subject to it. Bootstrap planning must report each subject key that claims from several sources share.\n\n## Context\n\nA bootstrap plan for a test project held 95 subject facts for 93 distinct subject key values: two subjects were named by claims from two sources each (a handoff document and a ticket, or two tickets), and the subject key registry correctly gave both claims the same key, but the plan still minted one subject fact per claim. `kb_check` then reported `subject-key-identity` and a",
+    "ids": [
+      5885, 5500, 1367, 3047, 1448, 3345, 1034, 2401, 1761, 1011, 1175, 2401,
+      2151, 1004, 3963, 1302, 8101, 1061, 1014, 2401, 1006, 1015, 18, 5885,
+      5500, 1367, 3047, 1448, 2195, 1175, 2401, 2151, 1014, 3453, 1019, 1201,
+      3222, 2751, 18, 7, 7, 5129, 43, 5885, 5500, 1367, 1939, 1011, 43, 2237,
+      1628, 1224, 4351, 2401, 7872, 1011, 5115, 4670, 2401, 2151, 4306, 30,
+      1054, 4745, 1026, 1321, 1017, 3453, 1019, 1054, 3222, 1175, 12, 43, 1198,
+      6251, 5260, 1004, 43, 6287, 16, 1036, 1054, 8741, 13, 16, 1004, 1002,
+      2401, 2151, 14590, 10184, 1441, 1125, 3453, 1002, 1174, 2151, 16, 1027,
+      1002, 1939, 1151, 11933, 1104, 1034, 2401, 1761, 1572, 3372, 18, 42,
+      20683, 41, 3644, 42, 1065, 1994, 42, 2401, 17, 2151, 17, 3773, 42, 1004,
+      43
+    ]
+  },
+  {
+    "text": "Bootstrap plans keep generated claim names short",
+    "ids": [5885, 5500, 1367, 2494, 1568, 6019, 3372, 2421, 1466]
+  },
+  {
+    "text": "Bootstrap planning must shorten a generated claim name longer than four words or forty characters and report the original name. Bootstrap planning must give different claims different generated names.\n\n## Context\n\nThis requirement was renamed before release: REQ-bootstrap-claim-name-length supersedes it with the same statement, scenario and tests under a name that describes the behavior. It is closed and carries no grounding of its own.\n",
+    "ids": [
+      5885, 5500, 1367, 3047, 1448, 1466, 1374, 43, 6019, 3372, 1177, 1942,
+      1090, 1182, 1622, 1036, 4665, 2500, 1004, 2195, 1002, 1440, 1177, 18,
+      5885, 5500, 1367, 3047, 1448, 1513, 1373, 3453, 1373, 6019, 2421, 18, 7,
+      7, 5129, 1029, 8101, 1007, 3102, 1083, 1719, 30, 1134, 3166, 17, 5885,
+      5500, 1367, 17, 3372, 17, 1177, 17, 2097, 2571, 5930, 1235, 1015, 1013,
+      1002, 1174, 3867, 16, 10973, 1004, 4858, 1110, 43, 1177, 1014, 4583, 1002,
+      4254, 18, 1015, 1009, 1707, 1004, 6889, 1059, 1604, 1081, 1003, 1055,
+      1225, 18
+    ]
+  },
+  {
+    "text": "Bootstrap plans name claims component-first and carry stated rationale",
+    "ids": [
+      5885, 5500, 1367, 2494, 1177, 3453, 5928, 17, 1040, 1004, 3293, 2096,
+      10587, 1069
+    ]
+  },
+  {
+    "text": "Bootstrap planning must name each planned claim as a dotted component and aspect pair. Bootstrap planning must report an intent claim it cannot place under a component instead of planning it. Bootstrap planning must carry a declared claim rationale onto the planned requirement.\n\n## Context\n\nRight after a bootstrap apply, `kb_check` reported `subject-key-shape` on every bootstrapped requirement (95 of 95 in one evaluation) because the plan named claims such as `beginning_to_record_while_idle` with no component segment, and `requirement-rationale-missing` on requirements whose sources gave no re",
+    "ids": [
+      5885, 5500, 1367, 3047, 1448, 1177, 1175, 2746, 3372, 1010, 43, 19390,
+      5928, 1004, 6820, 2946, 18, 5885, 5500, 1367, 3047, 1448, 2195, 1025,
+      6854, 3372, 1015, 2691, 1179, 1110, 43, 5928, 1618, 1003, 3047, 1015, 18,
+      5885, 5500, 1367, 3047, 1448, 3293, 43, 3167, 3372, 10587, 1069, 2037,
+      1002, 2746, 8101, 18, 7, 7, 5129, 1163, 1050, 43, 5885, 5500, 1367, 5617,
+      16, 42, 20683, 41, 3644, 42, 1994, 42, 2401, 17, 2151, 17, 3344, 42, 1012,
+      1302, 5885, 5500, 10475, 8101, 12, 4351, 1003, 4351, 1005, 1034, 8318, 13,
+      1144, 1002, 1939, 1321, 3453, 1113, 1010, 42, 1933, 41, 1006, 41, 1507,
+      41, 1102, 41, 17379, 42, 1013, 1059, 5928, 5909, 16, 1004, 42, 8101, 17,
+      10587, 1069, 17, 3400, 42, 1012, 4924, 2011, 3222, 1441, 1059, 1134
+    ]
+  },
+  {
+    "text": "Bootstrap offers kibi-plugin-ui when it finds UI components and remembers a decline",
+    "ids": [
+      5885, 5500, 1367, 3113, 10388, 4644, 17, 12360, 1384, 17, 20324, 1049,
+      1015, 3864, 20324, 5183, 1004, 16755, 43, 5695
+    ]
+  },
+  {
+    "text": "The bootstrap plan must offer kibi-plugin-ui when production React or Angular component files exist. The bootstrap plan must not offer a plugin that package.json activates or lists in kibi.declinedPlugins. Project configuration validation must reject a kibi.declinedPlugins entry that is not a bare package name.\n\n## Context\n\nThe project owner suggested that UI support should be an init or bootstrap question, such as detecting template files and asking whether to enable UI support, rather than a manual setting. The agreed design has kb_plan_bootstrap return pluginOffers and a plugin_offer action",
+    "ids": [
+      1002, 5885, 5500, 1367, 1939, 1448, 2755, 10388, 4644, 17, 12360, 1384,
+      17, 20324, 1049, 1543, 9515, 1036, 15114, 5928, 5770, 3845, 18, 1002,
+      5885, 5500, 1367, 1939, 1448, 1031, 2755, 43, 12360, 1384, 1014, 6433, 18,
+      52, 2391, 19550, 1021, 1036, 6207, 1005, 10388, 4644, 18, 5436, 23765,
+      14922, 6082, 18, 1628, 8569, 26360, 1448, 14460, 43, 10388, 4644, 18,
+      5436, 23765, 14922, 6082, 3449, 1014, 1009, 1031, 43, 5442, 6433, 1177,
+      18, 7, 7, 5129, 1002, 1628, 2960, 3087, 1014, 20324, 1496, 1329, 1028,
+      1025, 1005, 3189, 1036, 5885, 5500, 1367, 2166, 16, 1113, 1010, 24958,
+      22567, 5770, 1004, 3857, 2257, 1006, 8591, 20324, 1496, 16, 1744, 1090,
+      43, 5416, 3298, 18, 1002, 2536, 1646, 1044, 20683, 41, 1939, 41, 5885,
+      5500, 1367, 1715, 12360, 4746, 11500, 1021, 1004, 43, 12360, 1384, 41,
+      2755, 1901
+    ]
+  },
+  {
+    "text": "Bootstrap writes are valid and failures are actionable",
+    "ids": [5885, 5500, 1367, 6015, 1030, 8404, 1004, 14434, 1030, 1901, 2091]
+  },
+  {
+    "text": "The bootstrap planner must validate candidate entity fields, relationships and semantic inventories before offering write actions. The bootstrap planner must preserve an invalid or ungroundable claim as a cited requirement authoring follow-up. The bootstrap apply operation must validate every remaining payload before creating a journal or writing an entity. The bootstrap apply operation must reject deterministic failures terminally and report every previously committed action. The bootstrap recovery operation must refuse to replay a terminally rejected journal. The bootstrap planner must strip",
+    "ids": [
+      1002, 5885, 5500, 1367, 23561, 1448, 8404, 2692, 3024, 8184, 3255, 16,
+      5556, 1004, 20647, 11241, 2117, 1083, 4384, 3345, 3512, 18, 1002, 5885,
+      5500, 1367, 23561, 1448, 6975, 1025, 18534, 1036, 3901, 15371, 2091, 3372,
+      1010, 43, 5569, 8101, 2172, 1081, 2588, 17, 1045, 18, 1002, 5885, 5500,
+      1367, 5617, 2175, 1448, 8404, 2692, 1302, 2594, 17099, 1083, 3532, 43,
+      2491, 1036, 2021, 1025, 8184, 18, 1002, 5885, 5500, 1367, 5617, 2175,
+      1448, 14460, 27289, 24306, 9080, 14434, 4542, 1141, 1004, 2195, 1302,
+      2136, 4468, 1901, 18, 1002, 5885, 5500, 1367, 6239, 2175, 1448, 9220,
+      1006, 14718, 43, 4542, 1141, 4843, 2491, 18, 1002, 5885, 5500, 1367,
+      23561, 1448, 5173
+    ]
+  },
+  {
+    "text": "Exact branch-local KB identity and recoverable storage",
+    "ids": [5641, 2595, 17, 1340, 20683, 3773, 1004, 7986, 2091, 4533]
+  },
+  {
+    "text": "\nKibi must use the exact active Git branch name as the branch-local KB identity. It must not normalize master to main, infer a default branch for a new store, or rename a Git branch. A missing exact store is created only on an explicit branch ensure; a damaged exact store is diagnosed without mutation and rebuilt only through a previewed, explicit recovery that preserves the previous bytes. The historical master to legacy main store migration is a single compatibility workflow and must reject arbitrary cross-branch moves.\n",
+    "ids": [
+      10388, 4644, 1448, 1230, 1002, 5641, 2167, 20031, 1108, 2595, 1177, 1010,
+      1002, 2595, 17, 1340, 20683, 3773, 18, 1015, 1448, 1031, 2677, 3703, 2046,
+      1006, 1370, 16, 1005, 6518, 43, 11404, 2595, 1011, 43, 1053, 2579, 16,
+      1036, 13922, 13080, 43, 20031, 1108, 2595, 18, 43, 3400, 5641, 2579, 1009,
+      1586, 1075, 1012, 1025, 12222, 2595, 4682, 31, 43, 4597, 5641, 2579, 1009,
+      10447, 1308, 15227, 1004, 6189, 1075, 1089, 43, 18242, 1104, 16, 12222,
+      6239, 1014, 17542, 1002, 2031, 26513, 18, 1002, 2445, 2046, 1006, 7033,
+      1370, 2579, 8236, 1009, 43, 1315, 20784, 1153, 11320, 1004, 1448, 14460,
+      14281, 1898, 17, 2595, 4835, 18
+    ]
+  },
+  {
+    "text": "Exact branch-local KB identity and same-identity storage migration",
+    "ids": [5641, 2595, 17, 1340, 20683, 3773, 1004, 1174, 17, 3773, 4533, 8236]
+  },
+  {
+    "text": "Kibi must use the exact active Git branch name as the branch-local KB identity. It must not normalize master to main, infer a default branch for a new store, or rename a Git branch. A missing exact store is created only on an explicit branch ensure. A damaged exact store is diagnosed without mutation and rebuilt only through a previewed, explicit recovery that preserves the previous bytes. Legacy migration may only convert a literal branch store to the hashed store for the same exact active Git branch identity. Every cross-identity pair, including main to master, must be refused.\n",
+    "ids": [
+      10388, 4644, 1448, 1230, 1002, 5641, 2167, 20031, 1108, 2595, 1177, 1010,
+      1002, 2595, 17, 1340, 20683, 3773, 18, 1015, 1448, 1031, 2677, 3703, 2046,
+      1006, 1370, 16, 1005, 6518, 43, 11404, 2595, 1011, 43, 1053, 2579, 16,
+      1036, 13922, 13080, 43, 20031, 1108, 2595, 18, 43, 3400, 5641, 2579, 1009,
+      1586, 1075, 1012, 1025, 12222, 2595, 4682, 18, 43, 4597, 5641, 2579, 1009,
+      10447, 1308, 15227, 1004, 6189, 1075, 1089, 43, 18242, 1104, 16, 12222,
+      6239, 1014, 17542, 1002, 2031, 26513, 18, 7033, 8236, 1095, 1075, 9469,
+      43, 17210, 2595, 2579, 1006, 1002, 22331, 1104, 2579, 1011, 1002, 1174,
+      5641, 2167, 20031, 1108, 2595, 3773, 18, 1302, 1898, 17, 3773, 2946, 16,
+      1170, 1370, 1006, 2046, 16, 1448, 1028, 3194, 18
+    ]
+  },
+  {
+    "text": "Exact branch-local KB identity, same-identity storage migration and read-only detached HEAD snapshots",
+    "ids": [
+      5641, 2595, 17, 1340, 20683, 3773, 16, 1174, 17, 3773, 4533, 8236, 1004,
+      2197, 17, 1075, 11236, 1138, 19063, 11332, 1021
+    ]
+  },
+  {
+    "text": "Kibi must use the exact active Git branch name as the branch-local KB identity. It must not normalize master to main, infer a default branch for a new store, or rename a Git branch. A missing exact branch store is created only on an explicit branch ensure. A damaged exact store is diagnosed without mutation and rebuilt only through a previewed, explicit recovery that preserves the previous bytes. Legacy migration may only convert a literal branch store to the hashed store for the same exact active Git branch identity. Every cross-identity pair, including main to master, must be refused. A deta",
+    "ids": [
+      10388, 4644, 1448, 1230, 1002, 5641, 2167, 20031, 1108, 2595, 1177, 1010,
+      1002, 2595, 17, 1340, 20683, 3773, 18, 1015, 1448, 1031, 2677, 3703, 2046,
+      1006, 1370, 16, 1005, 6518, 43, 11404, 2595, 1011, 43, 1053, 2579, 16,
+      1036, 13922, 13080, 43, 20031, 1108, 2595, 18, 43, 3400, 5641, 2595, 2579,
+      1009, 1586, 1075, 1012, 1025, 12222, 2595, 4682, 18, 43, 4597, 5641, 2579,
+      1009, 10447, 1308, 15227, 1004, 6189, 1075, 1089, 43, 18242, 1104, 16,
+      12222, 6239, 1014, 17542, 1002, 2031, 26513, 18, 7033, 8236, 1095, 1075,
+      9469, 43, 17210, 2595, 2579, 1006, 1002, 22331, 1104, 2579, 1011, 1002,
+      1174, 5641, 2167, 20031, 1108, 2595, 3773, 18, 1302, 1898, 17, 3773, 2946,
+      16, 1170, 1370, 1006, 2046, 16, 1448, 1028, 3194, 18, 43, 19016, 1056
+    ]
+  },
+  {
+    "text": "Branch store and store lock settings",
+    "ids": [2595, 2579, 1004, 2579, 4849, 9912]
+  },
+  {
+    "text": "The detached HEAD read-only code shall be detached_head_read_only. The branch store manifest version shall be 1. The uncompiled branch store code shall be branch_store_not_compiled. The uncompiled branch store rule shall be branch-store-not-compiled. The store lock takeover record shall be .kibi-lock-takeover.json. A store lock takeover shall stay visible for 86400000 milliseconds.\n\n## Context\n\nREQ-branch-store-recovery-v4 serves a detached HEAD from a read-only snapshot and says so with a stable code. A branch store has a versioned manifest, an uncompiled store is reported under its own code ",
+    "ids": [
+      1002, 11236, 1138, 2197, 17, 1075, 2648, 3624, 1028, 11236, 41, 1138, 41,
+      2197, 41, 1075, 18, 1002, 2595, 2579, 18682, 1550, 3624, 1028, 21, 18,
+      1002, 3901, 8012, 21096, 1100, 2595, 2579, 2648, 3624, 1028, 2595, 41,
+      2579, 41, 1031, 41, 8233, 18, 1002, 3901, 8012, 21096, 1100, 2595, 2579,
+      2633, 3624, 1028, 2595, 17, 2579, 17, 1031, 17, 8233, 18, 1002, 2579,
+      4849, 14342, 1507, 3624, 1028, 18, 10388, 4644, 17, 4849, 17, 14342, 18,
+      52, 2391, 18, 43, 2579, 4849, 14342, 3624, 2000, 4716, 1011, 5570, 28543,
+      7895, 1698, 3977, 4568, 7669, 4110, 18, 7, 7, 5129, 1134, 3166, 17, 2595,
+      17, 2579, 17, 6239, 17, 64, 1555, 3246, 43, 11236, 1138, 1019, 43, 2197,
+      17, 1075, 19063, 11332, 1004, 1764, 1067, 1013, 43, 5546, 2648, 18, 43,
+      2595, 2579, 1044, 43, 1550, 1104, 18682, 16, 1025, 3901, 8012, 21096,
+      1100, 2579, 1009, 1994, 1110, 1055, 1225, 2648
+    ]
+  },
+  {
+    "text": "kb_check enforces activated check policies as data",
+    "ids": [20683, 41, 3644, 15312, 1021, 7884, 3644, 5049, 1010, 1957]
+  },
+  {
+    "text": "The kb_check operation must read an activated check policy as JSON data without importing plugin code. The kb_check operation must report a production symbol in an ownership rule file set that implements no current requirement grounded in one of the rule predicates. The kb_check operation must report an implementing file that lacks a pattern marker declared for its requirement pattern. The kb_check operation must block when an activated check policy cannot be read.\n\n## Context\n\nThe project owner asked for an experimental, opt-in way to stop coding agents drifting from an agreed UI design, with",
+    "ids": [
+      1002, 20683, 41, 3644, 2175, 1448, 2197, 1025, 7884, 3644, 2349, 1010, 52,
+      2391, 1957, 1308, 11330, 1081, 12360, 1384, 2648, 18, 1002, 20683, 41,
+      3644, 2175, 1448, 2195, 43, 1543, 5460, 1005, 1025, 5101, 2633, 4377,
+      1281, 1014, 21170, 1059, 1789, 8101, 15770, 1005, 1034, 1003, 1002, 2633,
+      2659, 15473, 1021, 18, 1002, 20683, 41, 3644, 2175, 1448, 2195, 1025,
+      13978, 4377, 1014, 13093, 43, 4424, 11121, 3167, 1011, 1055, 8101, 4424,
+      18, 1002, 20683, 41, 3644, 2175, 1448, 2802, 1049, 1025, 7884, 3644, 2349,
+      2691, 1028, 2197, 18, 7, 7, 5129, 1002, 1628, 2960, 1362, 1011, 1025,
+      5394, 16, 22575, 17, 1005, 1132, 1006, 1650, 15867, 5080, 14019, 1019,
+      1025, 2536, 20324, 1646, 16, 1013
+    ]
+  },
+  {
+    "text": "Explicit activation and network disclosure",
+    "ids": [12222, 12797, 1004, 1903, 18386]
+  },
+  {
+    "text": "# REQ-capability-plugin-activation-disclosure-v1\n\nA capability plugin must be activated only from explicit package.json kibi.plugins configuration. A capability plugin package must resolve from the project-local dependency graph and must not use a global installation. Plugin permission metadata must not be an allowed provider operation for sandbox enforcement.\n",
+    "ids": [
+      7, 1134, 3166, 17, 9679, 17, 12360, 1384, 17, 12797, 17, 18386, 17, 64,
+      1493, 43, 9679, 12360, 1384, 1448, 1028, 7884, 1075, 1019, 12222, 6433,
+      18, 52, 2391, 10388, 4644, 18, 12360, 6082, 8569, 18, 43, 9679, 12360,
+      1384, 6433, 1448, 9669, 1019, 1002, 1628, 17, 1340, 23400, 9635, 1004,
+      1448, 1031, 1230, 43, 2801, 7278, 18, 12360, 1384, 5662, 26431, 1448,
+      1031, 1028, 1025, 2045, 9808, 2175, 1011, 4478, 7764, 6291, 18
+    ]
+  },
+  {
+    "text": "Builtin capability parity",
+    "ids": [1334, 1384, 9679, 10974, 2018]
+  },
+  {
+    "text": "# REQ-capability-plugin-builtin-parity-v1\n\nWhen kibi.plugins is absent, the host must use only automatically registered kibi-plugin-builtin providers. Builtin providers must be allowed to keep historical deterministic semantic ontology and TypeScript symbol analysis.\n",
+    "ids": [
+      7, 1134, 3166, 17, 9679, 17, 12360, 1384, 17, 1334, 1384, 17, 10974, 2018,
+      17, 64, 1493, 1049, 10388, 4644, 18, 12360, 6082, 1009, 8968, 16, 1002,
+      2683, 1448, 1230, 1075, 7079, 4074, 10388, 4644, 17, 12360, 1384, 17,
+      1334, 1384, 10676, 18, 1334, 1384, 10676, 1448, 1028, 2045, 1006, 1568,
+      2445, 27289, 24306, 9080, 20647, 2037, 5489, 1004, 3133, 22241, 5460,
+      3112, 18
+    ]
+  },
+  {
+    "text": "Capability plugin configuration",
+    "ids": [9679, 12360, 1384, 8569]
+  },
+  {
+    "text": "package.json kibi.plugins must be the canonical v1 capability plugin activation and mode surface. Plugin secrets must be supplied from the process environment outside repository plugin configuration. The TYPESAFE_API_KEY provider setting must come from the process environment source when a real TypeSafe client is required. A blank KIBI_JEV_MODEL provider setting from the environment source must remain unset. KIBI_JEV_MODEL must optionally select the Jev model as a provider setting from the process environment source. The Jev timeout must be at least 1 millisecond. The Jev timeout must be at mo",
+    "ids": [
+      6433, 18, 52, 2391, 10388, 4644, 18, 12360, 6082, 1448, 1028, 1002, 17568,
+      64, 1493, 9679, 12360, 1384, 12797, 1004, 4555, 2308, 18, 12360, 1384,
+      6806, 1448, 1028, 7133, 1019, 1002, 1838, 3050, 1654, 21415, 12360, 1384,
+      8569, 18, 1002, 3133, 9360, 1069, 41, 16934, 41, 2151, 9808, 3298, 1448,
+      1278, 1019, 1002, 1838, 3050, 2126, 1049, 43, 1619, 3133, 9360, 1069,
+      6402, 1009, 2229, 18, 43, 7750, 10388, 4644, 41, 14339, 1621, 41, 1950,
+      9808, 3298, 1019, 1002, 3050, 2126, 1448, 2967, 3901, 12468, 18, 10388,
+      4644, 41, 14339, 1621, 41, 1950, 1448, 10893, 1141, 6282, 1002, 14339,
+      1621, 1950, 1010, 43, 9808, 3298, 1019, 1002, 1838, 3050, 2126, 18, 1002,
+      14339, 1621, 1057, 4839, 1448, 1028, 1018, 1566, 21, 3977, 4568, 7669,
+      1100, 18, 1002, 14339, 1621, 1057, 4839, 1448, 1028, 1018, 8593
+    ]
+  },
+  {
+    "text": "The Jev plugin defaults to jev-latest and caps timeouts at 120000 milliseconds",
+    "ids": [
+      1002, 14339, 1621, 12360, 1384, 11404, 1021, 1006, 14339, 1621, 17, 5751,
+      1004, 8706, 1057, 11172, 1018, 13846, 7895, 3977, 4568, 7669, 4110
+    ]
+  },
+  {
+    "text": "The Jev model must default to jev-latest. The maximum Jev timeout shall be 120000 milliseconds.\n\n## Context\n\nThe Jev plugin exports its default model (JEV_DEFAULT_MODEL) and its timeout ceiling (JEV_MAX_TIMEOUT_MS) from packages/plugin-jev/src/semantic-classifier.ts. These claims were split from REQ-capability-plugin-configuration-v1 so each is proved against the export itself; how configuration is resolved and validated stays there.\n\n## Source\n\nMaintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: \"Please work towards full proof.\" Res",
+    "ids": [
+      1002, 14339, 1621, 1950, 1448, 11404, 1006, 14339, 1621, 17, 5751, 18,
+      1002, 3561, 14339, 1621, 1057, 4839, 3624, 1028, 13846, 7895, 3977, 4568,
+      7669, 4110, 18, 7, 7, 5129, 1002, 14339, 1621, 12360, 1384, 13344, 1055,
+      11404, 1950, 12, 14339, 1621, 41, 11404, 41, 1950, 13, 1004, 1055, 1057,
+      4839, 4900, 12, 14339, 1621, 41, 3104, 41, 1057, 4839, 41, 4802, 13, 1019,
+      13561, 19, 12360, 1384, 17, 14339, 1621, 19, 4040, 1284, 19, 20647, 17,
+      1471, 17101, 18, 23535, 18, 1128, 3453, 1026, 2981, 1019, 1134, 3166, 17,
+      9679, 17, 12360, 1384, 17, 8569, 17, 64, 1493, 1067, 1175, 1009, 3934,
+      1120, 1002, 8173, 1999, 31, 1135, 8569, 1009, 9401, 1004, 8404, 3389,
+      11243, 1051, 18, 7, 7, 2126, 4447, 1127, 2253, 16, 15804, 1581, 17, 1190,
+      17, 1682, 16, 9445, 21052, 8101, 1134, 25379, 1021, 1004, 18590, 1014,
+      1298, 7338, 3453, 1028, 3934, 30, 6, 2537, 1153, 1881, 1446, 5953, 18, 6,
+      23507
+    ]
+  },
+  {
+    "text": "Jev classifier optional fallback",
+    "ids": [14339, 1621, 1471, 17101, 10893, 1997, 4969]
+  },
+  {
+    "text": "# REQ-capability-plugin-jev-fallback-v1\n\nA TypeSafe client or network call must be absent when kibi-plugin-jev is imported or the registry is inactive. When the Jev semantic classifier is unavailable, classification must fall back to builtin analysis. Plugin diagnostics must not expose credentials.\n",
+    "ids": [
+      7, 1134, 3166, 17, 9679, 17, 12360, 1384, 17, 14339, 1621, 17, 1997, 4969,
+      17, 64, 1493, 43, 3133, 9360, 1069, 6402, 1036, 1903, 1661, 1448, 1028,
+      8968, 1049, 10388, 4644, 17, 12360, 1384, 17, 14339, 1621, 1009, 9970,
+      1036, 1002, 14590, 1009, 15395, 18, 1049, 1002, 14339, 1621, 20647, 1471,
+      17101, 1009, 19171, 16, 4585, 1448, 1997, 1073, 1006, 1334, 1384, 3112,
+      18, 12360, 1384, 15480, 1021, 1448, 1031, 13457, 21502, 18
+    ]
+  },
+  {
+    "text": "kibi-cli, kibi-mcp and kibi-runtime do not depend on Jev",
+    "ids": [
+      10388, 4644, 17, 17862, 1078, 16, 10388, 4644, 17, 10344, 1367, 1004,
+      10388, 4644, 17, 1454, 6298, 1085, 1031, 11536, 1012, 14339, 1621
+    ]
+  },
+  {
+    "text": "The kibi-cli package dependencies shall exclude kibi-plugin-jev. The kibi-mcp package dependencies shall exclude kibi-plugin-jev. The kibi-runtime package dependencies shall exclude kibi-plugin-jev.\n\n## Context\n\nREQ-capability-plugin-observable-behavior-v1 says optional Jev must be absent from the default CLI, MCP and runtime dependency graphs. The first step of that graph is each package's own dependencies in its package.json; this requirement states that step for kibi-cli, kibi-mcp and kibi-runtime so it is proved against the manifests. Transitive absence stays tested there.\n\n## Source\n\nMain",
+    "ids": [
+      1002, 10388, 4644, 17, 17862, 1078, 6433, 11536, 14272, 3624, 22335,
+      10388, 4644, 17, 12360, 1384, 17, 14339, 1621, 18, 1002, 10388, 4644, 17,
+      10344, 1367, 6433, 11536, 14272, 3624, 22335, 10388, 4644, 17, 12360,
+      1384, 17, 14339, 1621, 18, 1002, 10388, 4644, 17, 1454, 6298, 6433, 11536,
+      14272, 3624, 22335, 10388, 4644, 17, 12360, 1384, 17, 14339, 1621, 18, 7,
+      7, 5129, 1134, 3166, 17, 9679, 17, 12360, 1384, 17, 26891, 7049, 11429,
+      17, 4254, 17, 64, 1493, 1764, 10893, 14339, 1621, 1448, 1028, 8968, 1019,
+      1002, 11404, 17862, 1078, 16, 10344, 1367, 1004, 1454, 6298, 23400, 18293,
+      18, 1002, 1040, 2363, 1003, 1014, 9635, 1009, 1175, 6433, 11, 61, 1225,
+      11536, 14272, 1005, 1055, 6433, 18, 52, 2391, 31, 1029, 8101, 1169, 1014,
+      2363, 1011, 10388, 4644, 17, 17862, 1078, 16, 10388, 4644, 17, 10344,
+      1367, 1004, 10388, 4644, 17, 1454, 6298, 1067, 1015, 1009, 3934, 1120,
+      1002, 18682, 1021, 18, 5677, 2518, 5444, 11243, 6724, 1051, 18, 7, 7,
+      2126, 1370
+    ]
+  },
+  {
+    "text": "Observable capability plugin behavior",
+    "ids": [26891, 7049, 11429, 9679, 12360, 1384, 4254]
+  },
+  {
+    "text": "# REQ-capability-plugin-observable-behavior-v1\n\nUndeclared, path, and global plugin package names are invalid resolution inputs and must fail closed. When an installed capability plugin is not activated, the host must not import that package. An external capability provider must not run during a maintenance operation. Optional Jev must be absent from the default CLI, MCP, and runtime dependency graphs. An SDK-only third-party plugin must be allowed through the host capability seam as a provider operation. An external semantic classifier must be allowed only for kb_semantic_advisor. An external",
+    "ids": [
+      7, 1134, 3166, 17, 9679, 17, 12360, 1384, 17, 26891, 7049, 11429, 17,
+      4254, 17, 64, 1493, 5157, 7592, 7023, 1104, 16, 3136, 16, 1004, 2801,
+      12360, 1384, 6433, 2421, 1030, 18534, 4819, 19413, 1004, 1448, 7252, 1707,
+      18, 1049, 1025, 4367, 9679, 12360, 1384, 1009, 1031, 7884, 16, 1002, 2683,
+      1448, 1031, 11330, 1014, 6433, 18, 1025, 5333, 9679, 9808, 1448, 1031,
+      1454, 1082, 43, 5038, 2175, 18, 10893, 14339, 1621, 1448, 1028, 8968,
+      1019, 1002, 11404, 17862, 1078, 16, 10344, 1367, 16, 1004, 1454, 6298,
+      23400, 18293, 18, 1025, 16377, 1249, 17, 1075, 1359, 17, 1289, 12360,
+      1384, 1448, 1028, 2045, 1089, 1002, 2683, 9679, 24186, 1010, 43, 9808,
+      2175, 18, 1025, 5333, 20647, 1471, 17101, 1448, 1028, 2045, 1075, 1011,
+      20683, 41, 20647, 41, 7625, 18, 1025, 5333
+    ]
+  },
+  {
+    "text": "Capability plugin protocol identifiers",
+    "ids": [9679, 12360, 1384, 7784, 7915, 3771, 27301]
+  },
+  {
+    "text": "The Kibi plugin API version shall be kibi.plugin.v1. The ontology pack capability id shall be kibi.ontology-pack.v1. The check policy capability id shall be kibi.check-policy.v1.\n\n## Context\n\nkibi-plugin-sdk defines the identifiers a capability plugin must use (REQ-capability-plugin-protocol-v1): the plugin API version and the capability ids. They are stated here so each is proved against the SDK constant.\n\n## Source\n\nMaintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: \"Please work towards full proof.\" Restated 2026-10-28: \"Can we do",
+    "ids": [
+      1002, 10388, 4644, 12360, 1384, 16934, 1550, 3624, 1028, 10388, 4644, 18,
+      12360, 1384, 18, 64, 1493, 18, 1002, 2037, 5489, 4314, 9679, 7915, 3624,
+      1028, 10388, 4644, 18, 2037, 5489, 17, 4314, 18, 64, 1493, 18, 1002, 3644,
+      2349, 9679, 7915, 3624, 1028, 10388, 4644, 18, 3644, 17, 2349, 18, 64,
+      1493, 18, 7, 7, 5129, 10388, 4644, 17, 12360, 1384, 17, 16377, 1249,
+      10865, 1002, 7915, 3771, 27301, 43, 9679, 12360, 1384, 1448, 1230, 12,
+      1134, 3166, 17, 9679, 17, 12360, 1384, 17, 7784, 17, 64, 1493, 13, 30,
+      1002, 12360, 1384, 16934, 1550, 1004, 1002, 9679, 7915, 1021, 18, 1033,
+      1030, 2096, 1188, 1067, 1175, 1009, 3934, 1120, 1002, 16377, 1249, 4383,
+      18, 7, 7, 2126, 4447, 1127, 2253, 16, 15804, 1581, 17, 1190, 17, 1682, 16,
+      9445, 21052, 8101, 1134, 25379, 1021, 1004, 18590, 1014, 1298, 7338, 3453,
+      1028, 3934, 30, 6, 2537, 1153, 1881, 1446, 5953, 18, 6, 1723, 3389, 15804,
+      1581, 17, 1190, 17, 1660, 30, 6, 1070, 1063, 1085
+    ]
+  },
+  {
+    "text": "Capability plugin protocol safety",
+    "ids": [9679, 12360, 1384, 7784, 2814]
+  },
+  {
+    "text": "# REQ-capability-plugin-protocol-v1\n\nAn activated capability plugin must export validated protocol kibi.plugin.v1 from the named export kibiPlugin. The exported provider version must reference an existing resolved package version.\n",
+    "ids": [
+      7, 1134, 3166, 17, 9679, 17, 12360, 1384, 17, 7784, 17, 64, 1493, 1025,
+      7884, 9679, 12360, 1384, 1448, 8173, 8404, 3389, 7784, 10388, 4644, 18,
+      12360, 1384, 18, 64, 1493, 1019, 1002, 1321, 8173, 10388, 4644, 23765,
+      14922, 1384, 18, 1002, 14618, 9808, 1550, 1448, 3437, 1025, 3499, 9401,
+      6433, 1550, 18
+    ]
+  },
+  {
+    "text": "Source analysis input limit",
+    "ids": [2126, 3112, 6959, 4793]
+  },
+  {
+    "text": "The maximum source analysis input shall be 5242880 code units.\n\n## Context\n\nSOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS in kibi-plugin-sdk is the input bound REQ-capability-plugin-protocol-v1 sets for source analysis v2: 5 MiB of UTF-16 code units. It is stated here as a number so it is proved against the constant.\n\n## Source\n\nMaintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: \"Please work towards full proof.\" Restated 2026-10-28: \"Can we do more than 7? Kibi doesn't have a UI, so it should be possible to proove more?\"",
+    "ids": [
+      1002, 3561, 2126, 3112, 6959, 3624, 1028, 3726, 19964, 1626, 16920, 2648,
+      2203, 18, 7, 7, 5129, 2126, 41, 3112, 41, 64, 1481, 41, 3104, 41, 6959,
+      41, 2648, 41, 2203, 1005, 10388, 4644, 17, 12360, 1384, 17, 16377, 1249,
+      1009, 1002, 6959, 4397, 1134, 3166, 17, 9679, 17, 12360, 1384, 17, 7784,
+      17, 64, 1493, 3526, 1011, 2126, 3112, 64, 1481, 30, 25, 1777, 1503, 1003,
+      20189, 1552, 17, 1391, 2648, 2203, 18, 1015, 1009, 2096, 1188, 1010, 43,
+      1199, 1067, 1015, 1009, 3934, 1120, 1002, 4383, 18, 7, 7, 2126, 4447,
+      1127, 2253, 16, 15804, 1581, 17, 1190, 17, 1682, 16, 9445, 21052, 8101,
+      1134, 25379, 1021, 1004, 18590, 1014, 1298, 7338, 3453, 1028, 3934, 30, 6,
+      2537, 1153, 1881, 1446, 5953, 18, 6, 1723, 3389, 15804, 1581, 17, 1190,
+      17, 1660, 30, 6, 1070, 1063, 1085, 1068, 1090, 27, 35, 10388, 4644, 1993,
+      11, 62, 1037, 43, 20324, 16, 1067, 1015, 1329, 1028, 1831, 1006, 3019,
+      20824, 1068, 35, 6
+    ]
+  },
+  {
+    "text": "Three replaceable capabilities",
+    "ids": [1099, 4678, 2091, 8865]
+  },
+  {
+    "text": "# REQ-capability-plugin-three-capabilities-v1\n\nAllowed capability states are one of kibi.semantic-classifier.v1, kibi.ontology-pack.v1, and kibi.symbol-extractor.v1. Each capability must have at most one replace provider per capability. Shadow mode must leave canonical capability results unchanged. Augment mode must add capability results beside builtin providers.\n",
+    "ids": [
+      7, 1134, 3166, 17, 9679, 17, 12360, 1384, 17, 1099, 17, 8865, 17, 64,
+      1493, 2045, 9679, 1169, 1030, 1034, 1003, 10388, 4644, 18, 20647, 17,
+      1471, 17101, 18, 64, 1493, 16, 10388, 4644, 18, 2037, 5489, 17, 4314, 18,
+      64, 1493, 16, 1004, 10388, 4644, 18, 5460, 17, 13823, 1959, 18, 64, 1493,
+      18, 1175, 9679, 1448, 1037, 1018, 1093, 1034, 4678, 9808, 1572, 9679, 18,
+      4198, 4555, 1448, 1687, 17568, 9679, 2469, 14710, 18, 14482, 2678, 4555,
+      1448, 4593, 9679, 2469, 2881, 1334, 1384, 10676, 18
+    ]
+  },
+  {
+    "text": "Capability plugin modes, polarities and lanes",
+    "ids": [9679, 12360, 1384, 10589, 16, 10514, 5453, 1004, 9920]
+  },
+  {
+    "text": "A capability plugin mode shall be replace, augment or shadow. An ontology pack polarity shall be assert or deny. A semantic lane shall be strict_property, predicate, rule, observation_review or none. A semantic signal kind shall be normative_modal, numeric_cardinality, numeric_threshold, conditional, permission or state_or_default. An external semantic classifier shall load only for kb_semantic_advisor or kb_compile_intent.\n\n## Context\n\npackages/plugin-sdk/src defines the plugin vocabulary REQ-capability-plugin-protocol-v1 fixes, and packages/cli/src/plugins/external-allowlist.ts limits where ",
+    "ids": [
+      43, 9679, 12360, 1384, 4555, 3624, 1028, 4678, 16, 14482, 2678, 1036,
+      4198, 18, 1025, 2037, 5489, 4314, 10514, 2018, 3624, 1028, 19871, 1036,
+      8778, 18, 43, 20647, 3650, 3624, 1028, 8390, 41, 2206, 16, 2659, 15473,
+      16, 2633, 16, 7095, 41, 2325, 1036, 2910, 18, 43, 20647, 3748, 1791, 3624,
+      1028, 19698, 5030, 41, 15919, 1395, 16, 15377, 24537, 41, 6191, 2018, 16,
+      15377, 24537, 41, 10213, 16, 17468, 16, 5662, 1036, 1116, 41, 1036, 41,
+      11404, 18, 1025, 5333, 20647, 1471, 17101, 3624, 6176, 1075, 1011, 20683,
+      41, 20647, 41, 7625, 1036, 20683, 41, 3018, 21096, 41, 6854, 18, 7, 7,
+      5129, 13561, 19, 12360, 1384, 17, 16377, 1249, 19, 4040, 1284, 10865,
+      1002, 12360, 1384, 15194, 1134, 3166, 17, 9679, 17, 12360, 1384, 17, 7784,
+      17, 64, 1493, 7087, 1235, 16, 1004, 13561, 19, 17862, 1078, 19, 4040,
+      1284, 19, 12360, 6082, 19, 5333, 17, 2505, 8869, 18, 23535, 5543, 1079
+    ]
+  },
+  {
+    "text": "Unmodeled requirements linked to modeled ones are blocked",
+    "ids": [3901, 4308, 8253, 1104, 4924, 4805, 1006, 13446, 2930, 1030, 7540]
+  },
+  {
+    "text": "Kibi must report a current requirement that keeps missing propositions while it relates_to a current requirement modeled with strict property or ground predicate facts as a related-requirement-unmodeled violation. Kibi must treat related-requirement-unmodeled as a canonical blocking check. Kibi must name the modeled subject and property keys or predicate keys of the related requirement in the finding. Kibi must not report a requirement that has no proposition ledger or whose related requirement is superseded.\n\n## Context\n\nIssue 364 reported that an agent changed how messaging works, recorded t",
+    "ids": [
+      10388, 4644, 1448, 2195, 43, 1789, 8101, 1014, 6912, 3400, 13854, 1021,
+      1102, 1015, 13629, 41, 1006, 43, 1789, 8101, 13446, 1013, 8390, 2206,
+      1036, 1604, 2659, 15473, 7872, 1010, 43, 2147, 17, 8101, 17, 3901, 4308,
+      8253, 1104, 10377, 18, 10388, 4644, 1448, 6444, 2147, 17, 8101, 17, 3901,
+      4308, 8253, 1104, 1010, 43, 17568, 9857, 3644, 18, 10388, 4644, 1448,
+      1177, 1002, 13446, 2401, 1004, 2206, 5315, 1036, 2659, 15473, 5315, 1003,
+      1002, 2147, 8101, 1005, 1002, 3537, 18, 10388, 4644, 1448, 1031, 2195, 43,
+      8101, 1014, 1044, 1059, 13854, 26112, 1036, 2011, 2147, 8101, 1009, 18892,
+      18, 7, 7, 5129, 2283, 3035, 1555, 1994, 1014, 1025, 3011, 1910, 1135,
+      23738, 1579, 16, 1686, 62
+    ]
+  },
+  {
+    "text": "Strict pairing accepts a predicate about the constrained subject by name or subject key",
+    "ids": [
+      8390, 21784, 12391, 43, 2659, 15473, 1061, 1002, 26576, 2401, 1017, 1177,
+      1036, 2401, 2151
+    ]
+  },
+  {
+    "text": "Strict pairing checks must accept a requires_predicate fact whose argument named subject holds the constrained subject key. Strict pairing checks must accept a requires_predicate fact whose own subject key is the constrained subject key.\n\n## Context\n\nRound 8 of the external onboarding evaluation found that kb_check only paired a requires_predicate fact with the constrained subject when the predicate's first argument was the subject key. Fourteen built-in predicate schemas do not put a subject argument first or have none, so a replacement plan that kb_model offered left strict-req-fact-pairing ",
+    "ids": [
+      8390, 21784, 13154, 1448, 4144, 43, 4948, 41, 2659, 15473, 1761, 2011,
+      5691, 1321, 2401, 3330, 1002, 26576, 2401, 2151, 18, 8390, 21784, 13154,
+      1448, 4144, 43, 4948, 41, 2659, 15473, 1761, 2011, 1225, 2401, 2151, 1009,
+      1002, 26576, 2401, 2151, 18, 7, 7, 5129, 1467, 28, 1003, 1002, 5333,
+      26126, 1081, 8318, 1185, 1014, 20683, 41, 3644, 1075, 11745, 43, 4948, 41,
+      2659, 15473, 1761, 1013, 1002, 26576, 2401, 1049, 1002, 2659, 15473, 11,
+      61, 1040, 5691, 1007, 1002, 2401, 2151, 18, 6432, 1334, 17, 1005, 2659,
+      15473, 7046, 27439, 1021, 1085, 1031, 1410, 43, 2401, 5691, 1040, 1036,
+      1037, 2910, 16, 1067, 43, 5116, 1939, 1014, 20683, 41, 1950, 2259, 1193,
+      8390, 17, 1134, 3166, 17, 1761, 17, 21784
+    ]
+  },
+  {
+    "text": "Strict pairing accepts a predicate about the constrained subject",
+    "ids": [8390, 21784, 12391, 43, 2659, 15473, 1061, 1002, 26576, 2401]
+  },
+  {
+    "text": "Strict pairing checks must accept a requirement that constrains a subject fact and requires a predicate fact whose first argument is that subject key.\n\n## Context\n\nAfter an agent applied a `replace_grounding` plan from `kb_model` mode `predicates` on a test project, `kb_check` reported `strict-req-fact-pairing` on every replaced requirement: the rule only counted a `requires_property` fact as the partner of a `constrains` subject fact, while the replacement plan deliberately removes that link. Following the rule's suggestion would restore the double grounding that `proposition-complete` reject",
+    "ids": [
+      8390, 21784, 13154, 1448, 4144, 43, 8101, 1014, 8536, 19534, 6082, 43,
+      2401, 1761, 1004, 4948, 43, 2659, 15473, 1761, 2011, 1040, 5691, 1009,
+      1014, 2401, 2151, 18, 7, 7, 5129, 1050, 1025, 3011, 3168, 43, 42, 4678,
+      41, 1604, 1081, 42, 1939, 1019, 42, 20683, 41, 1950, 42, 4555, 42, 2659,
+      15473, 1021, 42, 1012, 43, 2237, 1628, 16, 42, 20683, 41, 3644, 42, 1994,
+      42, 8390, 17, 1134, 3166, 17, 1761, 17, 21784, 42, 1012, 1302, 2005, 8101,
+      30, 1002, 2633, 1075, 7903, 43, 42, 4948, 41, 2206, 42, 1761, 1010, 1002,
+      3262, 1003, 43, 42, 8536, 19534, 6082, 42, 2401, 1761, 16, 1102, 1002,
+      5116, 1939, 8975, 19368, 1014, 3963, 18, 1212, 1002, 2633, 11, 61, 9299,
+      1058, 8245, 1002, 2319, 1604, 1081, 1014, 42, 13854, 17, 2149, 42, 14460
+    ]
+  },
+  {
+    "text": "The KB merge workflow runs the proof gate before it pushes",
+    "ids": [
+      1002, 20683, 12596, 1153, 11320, 2222, 1002, 5953, 3802, 1083, 1015, 12962
+    ]
+  },
+  {
+    "text": "The Kibi KB merge workflow must run the proof gate before pushing a merge.\n\n## Context\n\nThe resolve job of .github/workflows/kb-merge.yml runs `sh scripts/proof-gate.sh` as its own step and pushes the merge in a later step; GitHub Actions stops a job at the first failing step, so the order of these two steps is what keeps a merge that fails the gate from being pushed. This claim was split from REQ-ci-kb-merge-resolution so it is proved against the workflow file itself; how the merge is built and what happens on a failed gate stay there.\n\n## Source\n\nMaintainer decision, 2026-10-27, approving re",
+    "ids": [
+      1002, 10388, 4644, 20683, 12596, 1153, 11320, 1448, 1454, 1002, 5953,
+      3802, 1083, 5189, 43, 12596, 18, 7, 7, 5129, 1002, 9669, 2111, 1003, 18,
+      20031, 1711, 11089, 19, 1153, 11320, 1021, 19, 20683, 17, 12596, 18, 67,
+      18974, 2222, 42, 13027, 13552, 19, 5953, 17, 3802, 18, 13027, 42, 1010,
+      1055, 1225, 2363, 1004, 12962, 1002, 12596, 1005, 43, 1107, 2363, 31,
+      20031, 1711, 11089, 3512, 5768, 43, 2111, 1018, 1002, 1040, 6995, 2363,
+      16, 1067, 1002, 1350, 1003, 1128, 1054, 3090, 1009, 1060, 6912, 43, 12596,
+      1014, 10902, 1002, 3802, 1019, 1114, 2730, 18, 1029, 3372, 1007, 2981,
+      1019, 1134, 3166, 17, 24028, 17, 20683, 17, 12596, 17, 4819, 1067, 1015,
+      1009, 3934, 1120, 1002, 1153, 11320, 4377, 1999, 31, 1135, 1002, 12596,
+      1009, 1334, 1004, 1060, 5439, 1012, 43, 2484, 3802, 2000, 1051, 18, 7, 7,
+      2126, 4447, 1127, 2253, 16, 15804, 1581, 17, 1190, 17, 1682, 16, 9445,
+      21052, 1134
+    ]
+  },
+  {
+    "text": "KB merge workflow resolves PRs with the base branch driver and a proof-checked merge",
+    "ids": [
+      20683, 12596, 1153, 11320, 9669, 1021, 9981, 1021, 1013, 1002, 1924, 2595,
+      3068, 1004, 43, 5953, 17, 6045, 12596
+    ]
+  },
+  {
+    "text": "The Kibi KB merge workflow must build the merge driver from the base branch. The Kibi KB merge workflow must not install the pull request branch dependencies before merging. When the proof gate fails, the Kibi KB merge workflow must not push the merge.\n\n## Context\n\nThe workflow builds Kibi from the base branch and checks the pull request out beside it, so a branch made before `kibi merge-driver` existed still merges and its stale lockfile is never installed; a lockfile that no longer matches the merged manifests is refreshed in the merge commit. Before pushing, it runs `scripts/proof-gate.sh`,",
+    "ids": [
+      1002, 10388, 4644, 20683, 12596, 1153, 11320, 1448, 2863, 1002, 12596,
+      3068, 1019, 1002, 1924, 2595, 18, 1002, 10388, 4644, 20683, 12596, 1153,
+      11320, 1448, 1031, 15506, 1002, 3145, 4233, 2595, 11536, 14272, 1083,
+      15474, 18, 1049, 1002, 5953, 3802, 10902, 16, 1002, 10388, 4644, 20683,
+      12596, 1153, 11320, 1448, 1031, 4251, 1002, 12596, 18, 7, 7, 5129, 1002,
+      1153, 11320, 15479, 10388, 4644, 1019, 1002, 1924, 2595, 1004, 13154,
+      1002, 3145, 4233, 1047, 2881, 1015, 16, 1067, 43, 2595, 1087, 1083, 42,
+      10388, 4644, 12596, 17, 3068, 42, 4845, 1151, 12596, 1021, 1004, 1055,
+      25735, 4849, 7879, 1577, 1009, 1202, 4367, 31, 43, 4849, 7879, 1577, 1014,
+      1059, 1942, 2509, 1002, 4320, 18682, 1021, 1009, 24422, 20904, 1104, 1005,
+      1002, 12596, 9803, 18, 1083, 5189, 16, 1015, 2222, 42, 13552, 19, 5953,
+      17, 3802, 18, 13027, 42, 16
+    ]
+  },
+  {
+    "text": "'Claude Code Kibi Plugin v1: progressive-disclosure knowledge hooks'",
+    "ids": [
+      11, 7155, 2648, 10388, 4644, 12360, 1384, 64, 1493, 30, 5561, 17, 18386,
+      2722, 17014, 11
+    ]
+  },
+  {
+    "text": "The kibi-claude package must remain optional. When kibi-claude is installed or enabled, it must not modify core Kibi runtime components. When the resolved project root does not own .kb/manifest.json, kibi-claude hooks must emit no output. When the resolved project root does not own .kb/manifest.json, the kibi-claude MCP endpoint must expose no tools. When the agent is about to read or edit a source file whose symbols are linked to requirements, kibi-claude hooks must add the linked requirement identifiers to the agent context. kibi-claude hooks must add at most one knowledge snippet per file p",
+    "ids": [
+      1002, 10388, 4644, 17, 7155, 6433, 1448, 2967, 10893, 18, 1049, 10388,
+      4644, 17, 7155, 1009, 4367, 1036, 8130, 16, 1015, 1448, 1031, 18939, 3569,
+      10388, 4644, 1454, 6298, 5183, 18, 1049, 1002, 9401, 1628, 6123, 1521,
+      1031, 1225, 18, 20683, 19, 18682, 18, 52, 2391, 16, 10388, 4644, 17, 7155,
+      17014, 1448, 11501, 1108, 1059, 5440, 18, 1049, 1002, 9401, 1628, 6123,
+      1521, 1031, 1225, 18, 20683, 19, 18682, 18, 52, 2391, 16, 1002, 10388,
+      4644, 17, 7155, 10344, 1367, 1209, 7406, 1448, 13457, 1059, 4912, 18,
+      1049, 1002, 3011, 1009, 1061, 1006, 2197, 1036, 9092, 43, 2126, 4377,
+      2011, 8261, 1030, 4805, 1006, 4924, 16, 10388, 4644, 17, 7155, 17014,
+      1448, 4593, 1002, 4805, 8101, 7915, 3771, 27301, 1006, 1002, 3011, 5129,
+      18, 10388, 4644, 17, 7155, 17014, 1448, 4593, 1018, 1093, 1034, 2722, 61,
+      2496, 28525, 1572, 4377, 58
+    ]
+  },
+  {
+    "text": "Rules the person states are recorded during the session",
+    "ids": [2519, 1002, 1717, 1169, 1030, 1686, 1082, 1002, 4225]
+  },
+  {
+    "text": "When a prompt reads as a rule or decision, the kibi-claude UserPromptSubmit hook must tell the agent that recording the rule with kb_upsert is part of the change. When a session that changed source files reaches its stop without any kb_upsert write, the kibi-claude Stop hook must ask the agent once per session to record the decision the person stated or to say there was none.\n\n## Context\n\nAgents implemented decisions the person stated and recorded none of them, so later sessions found no record of the decision and changed the behavior back. The hooks already surfaced recorded rules but nothing",
+    "ids": [
+      1049, 43, 24738, 8637, 1010, 43, 2633, 1036, 2253, 16, 1002, 10388, 4644,
+      17, 7155, 4316, 20578, 26724, 5348, 24532, 3189, 7109, 1448, 1431, 1002,
+      3011, 1014, 2411, 1002, 2633, 1013, 20683, 41, 10145, 7749, 1009, 1118,
+      1003, 1002, 1695, 18, 1049, 43, 4225, 1014, 1910, 2126, 5770, 5567, 1055,
+      1650, 1308, 1157, 20683, 41, 10145, 7749, 3345, 16, 1002, 10388, 4644, 17,
+      7155, 1650, 7109, 1448, 2204, 1002, 3011, 1326, 1572, 4225, 1006, 1507,
+      1002, 2253, 1002, 1717, 2096, 1036, 1006, 1366, 1051, 1007, 2910, 18, 7,
+      7, 5129, 5080, 6534, 5573, 1002, 1717, 2096, 1004, 1686, 2910, 1003, 1074,
+      16, 1067, 1107, 5527, 1185, 1059, 1507, 1003, 1002, 2253, 1004, 1910,
+      1002, 4254, 1073, 18, 1002, 17014, 1531, 14797, 1686, 2519, 1027, 1504
+    ]
+  },
+  {
+    "text": "Edits of a firm requirement's code are confirmed by the person before they land",
+    "ids": [
+      9092, 1021, 1003, 43, 2819, 8101, 11, 61, 2648, 1030, 3490, 1017, 1002,
+      1717, 1083, 1033, 1461
+    ]
+  },
+  {
+    "text": "Before an edit tool call or an in-place shell write changes a symbol that implements a current firm requirement, the kibi-claude PreToolUse hook must ask the person to confirm the call, naming the symbol and the requirement. After the person allows an edit that changes a firm requirement, the hook must not ask about that requirement again in the same session.\n\n## Context\n\nAgents shown the governing requirement before an edit still made the edit, then reported that the knowledge base now contradicted the code. Firm requirements are the decisions an agent must not override on its own, so the hoo",
+    "ids": [
+      1083, 1025, 9092, 6000, 1661, 1036, 1025, 1005, 17, 1179, 4812, 3345,
+      2437, 43, 5460, 1014, 21170, 43, 1789, 2819, 8101, 16, 1002, 10388, 4644,
+      17, 7155, 2659, 2412, 3753, 7563, 7109, 1448, 2204, 1002, 1717, 1006,
+      11216, 1002, 1661, 16, 9330, 1002, 5460, 1004, 1002, 8101, 18, 1050, 1002,
+      1717, 3479, 1025, 9092, 1014, 2437, 43, 2819, 8101, 16, 1002, 7109, 1448,
+      1031, 2204, 1061, 1014, 8101, 1159, 1005, 1002, 1174, 4225, 18, 7, 7,
+      5129, 5080, 2497, 1002, 7683, 8101, 1083, 1025, 9092, 1151, 1087, 1002,
+      9092, 16, 1065, 1994, 1014, 1002, 2722, 1924, 1091, 23534, 28207, 1104,
+      1002, 2648, 18, 2819, 4924, 1030, 1002, 5573, 1025, 3011, 1448, 1031,
+      1064, 14643, 1012, 1055, 1225, 16, 1067, 1002, 6576, 1086
+    ]
+  },
+  {
+    "text": "Kibi host hooks record opt-in agent activity around Kibi calls",
+    "ids": [
+      10388, 4644, 2683, 17014, 1507, 22575, 17, 1005, 3011, 3029, 1111, 10388,
+      4644, 3461
+    ]
+  },
+  {
+    "text": "kibi-claude hooks must append hook usage records to .kb/usage.log only when KIBI_DIAGNOSTIC_MODE is enabled. Every hook usage record must set its interface to hook. Every hook usage record must preserve the host session identifier. Every hook usage record must name the host agent that wrote it. Every edited hook usage record must list the requirements that the edited file's symbols implement. Every hook usage record for a read, edit, search, or Kibi call must record whether the session had used Kibi before that call. Every hook usage record for a read or edit must record whether knowledge cont",
+    "ids": [
+      10388, 4644, 17, 7155, 17014, 1448, 9445, 9503, 7109, 7198, 1642, 1006,
+      18, 20683, 19, 7198, 18, 7839, 1075, 1049, 10388, 4644, 41, 15480, 41,
+      4555, 1009, 8130, 18, 1302, 7109, 7198, 1507, 1448, 1281, 1055, 7284,
+      1006, 7109, 18, 1302, 7109, 7198, 1507, 1448, 6975, 1002, 2683, 4225,
+      7915, 3771, 17101, 18, 1302, 7109, 7198, 1507, 1448, 1177, 1002, 2683,
+      3011, 1014, 1632, 1015, 18, 1302, 4499, 7109, 7198, 1507, 1448, 1868,
+      1002, 4924, 1014, 1002, 4499, 4377, 11, 61, 8261, 9414, 18, 1302, 7109,
+      7198, 1507, 1011, 43, 2197, 16, 9092, 16, 2951, 16, 1036, 10388, 4644,
+      1661, 1448, 1507, 2257, 1002, 4225, 1024, 1115, 10388, 4644, 1083, 1014,
+      1661, 18, 1302, 7109, 7198, 1507, 1011, 43, 2197, 1036, 9092, 1448, 1507,
+      2257, 2722, 8536, 1108
+    ]
+  },
+  {
+    "text": "Claude hooks record opt-in agent activity around Kibi calls",
+    "ids": [
+      7155, 17014, 1507, 22575, 17, 1005, 3011, 3029, 1111, 10388, 4644, 3461
+    ]
+  },
+  {
+    "text": "kibi-claude hooks must append hook usage records to .kb/usage.log only when KIBI_DIAGNOSTIC_MODE is enabled.\n\nEvery hook usage record must set its interface to hook.\n\nEvery hook usage record must preserve the host session identifier.\n\nEvery hook usage record for a read, edit, search, or Kibi call must record whether the session had used Kibi before that call.\n\nEvery hook usage record for a read or edit must record whether knowledge context was shown or suppressed.\n\nTelemetry acceptance evaluation must exclude hook usage records.\n\nA failure to write a hook usage record must not change hook outp",
+    "ids": [
+      10388, 4644, 17, 7155, 17014, 1448, 9445, 9503, 7109, 7198, 1642, 1006,
+      18, 20683, 19, 7198, 18, 7839, 1075, 1049, 10388, 4644, 41, 15480, 41,
+      4555, 1009, 8130, 18, 1302, 7109, 7198, 1507, 1448, 1281, 1055, 7284,
+      1006, 7109, 18, 1302, 7109, 7198, 1507, 1448, 6975, 1002, 2683, 4225,
+      7915, 3771, 17101, 18, 1302, 7109, 7198, 1507, 1011, 43, 2197, 16, 9092,
+      16, 2951, 16, 1036, 10388, 4644, 1661, 1448, 1507, 2257, 1002, 4225, 1024,
+      1115, 10388, 4644, 1083, 1014, 1661, 18, 1302, 7109, 7198, 1507, 1011, 43,
+      2197, 1036, 9092, 1448, 1507, 2257, 2722, 5129, 1007, 2497, 1036, 12718,
+      18, 9099, 20388, 10135, 8926, 8318, 1448, 22335, 7109, 7198, 1642, 18, 43,
+      3951, 1006, 3345, 43, 7109, 7198, 1507, 1448, 1031, 1695, 7109, 1047, 1367
+    ]
+  },
+  {
+    "text": "Claude MCP launcher follows the session into its current workspace",
+    "ids": [
+      7155, 10344, 1367, 21748, 3082, 1002, 4225, 1052, 1055, 1789, 1579, 14333
+    ]
+  },
+  {
+    "text": "When the MCP client supports roots, the kibi-claude MCP launcher must read the client roots before each tool call.\n\nWhen the client roots name a different Kibi workspace, the kibi-claude MCP launcher must answer the tool call from that workspace.\n\nWhen the kibi-claude MCP launcher changes workspace, it must notify the client that the tool list changed.\n\nWhen a Kibi workspace environment variable is set, the kibi-claude MCP launcher must not follow the client roots.\n\nWhen the roots query fails or the new workspace server cannot start, the kibi-claude MCP launcher must keep answering from the cu",
+    "ids": [
+      1049, 1002, 10344, 1367, 6402, 5759, 5153, 16, 1002, 10388, 4644, 17,
+      7155, 10344, 1367, 21748, 1448, 2197, 1002, 6402, 5153, 1083, 1175, 6000,
+      1661, 18, 1049, 1002, 6402, 5153, 1177, 43, 1373, 10388, 4644, 1579,
+      14333, 16, 1002, 10388, 4644, 17, 7155, 10344, 1367, 21748, 1448, 2443,
+      1002, 6000, 1661, 1019, 1014, 1579, 14333, 18, 1049, 1002, 10388, 4644,
+      17, 7155, 10344, 1367, 21748, 2437, 1579, 14333, 16, 1015, 1448, 1031,
+      7763, 1002, 6402, 1014, 1002, 6000, 1868, 1910, 18, 1049, 43, 10388, 4644,
+      1579, 14333, 3050, 7029, 1009, 1281, 16, 1002, 10388, 4644, 17, 7155,
+      10344, 1367, 21748, 1448, 1031, 2588, 1002, 6402, 5153, 18, 1049, 1002,
+      5153, 22038, 10902, 1036, 1002, 1053, 1579, 14333, 7247, 2691, 1713, 16,
+      1002, 10388, 4644, 17, 7155, 10344, 1367, 21748, 1448, 1568, 9745, 1019,
+      1002, 11737
+    ]
+  },
+  {
+    "text": "The kibi-claude package ships its manifest, skills, MCP launcher and lifecycle hooks",
+    "ids": [
+      1002, 10388, 4644, 17, 7155, 6433, 2725, 1055, 18682, 16, 3819, 16, 10344,
+      1367, 21748, 1004, 1172, 22496, 17014
+    ]
+  },
+  {
+    "text": "The kibi-claude package must publish its .claude-plugin manifest directory, its .mcp.json configuration and its bin, hooks and skills directories. The kibi-claude plugin must bundle the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-traceability and kibi-usage skills. The kibi MCP server in the kibi-claude MCP configuration must run only the bundled MCP launcher. The kibi-claude hooks configuration must register the SessionStart, UserPromptSubmit, PreToolUse, PostToolUse and Stop lifecycle hooks.\n\n## Context\n\nClaude Code finds a plugin's parts by convention: the manif",
+    "ids": [
+      1002, 10388, 4644, 17, 7155, 6433, 1448, 9178, 1055, 18, 7155, 17, 12360,
+      1384, 18682, 13182, 16, 1055, 18, 10344, 1367, 18, 52, 2391, 8569, 1004,
+      1055, 7032, 16, 17014, 1004, 3819, 1478, 2117, 18, 1002, 10388, 4644, 17,
+      7155, 12360, 1384, 1448, 13018, 1002, 10388, 4644, 17, 5885, 5500, 1367,
+      16, 10388, 4644, 17, 9803, 17, 2325, 16, 10388, 4644, 17, 5573, 16, 10388,
+      4644, 17, 3846, 1797, 16, 10388, 4644, 17, 6643, 7016, 1004, 10388, 4644,
+      17, 7198, 3819, 18, 1002, 10388, 4644, 10344, 1367, 7247, 1005, 1002,
+      10388, 4644, 17, 7155, 10344, 1367, 8569, 1448, 1454, 1075, 1002, 23384,
+      10344, 1367, 21748, 18, 1002, 10388, 4644, 17, 7155, 17014, 8569, 1448,
+      3242, 1002, 5527, 6565, 1108, 16, 4316, 20578, 26724, 5348, 24532, 3189,
+      16, 2659, 2412, 3753, 7563, 16, 1701, 2412, 3753, 7563, 1004, 1650, 1172,
+      22496, 17014, 18, 7, 7, 5129, 7155, 2648, 3864, 43, 12360, 1384, 11, 61,
+      2039, 1017, 3686, 30, 1002, 22630, 1552
+    ]
+  },
+  {
+    "text": "An unlinked file's note uses the request's words and never reads as an all-clear",
+    "ids": [
+      1025, 3901, 12773, 1104, 4377, 11, 61, 2608, 2600, 1002, 4233, 11, 61,
+      1622, 1004, 1202, 8637, 1010, 1025, 1041, 17, 2160
+    ]
+  },
+  {
+    "text": "The kibi-claude edit hook note for a file that no symbol links to a requirement must rank candidate requirements by the words of the person's latest request as well as the file's path words. When no requirement title matches, that note must say that nothing recorded is known to cover the file and that a decision made for it is recorded with kb_upsert before the work is reported done.\n\n## Context\n\nWhen a file had no linked symbol and no requirement title shared its path words, the edit note said only that nothing was linked, and agents read it as no rule applying. The request usually names the ",
+    "ids": [
+      1002, 10388, 4644, 17, 7155, 9092, 7109, 2608, 1011, 43, 4377, 1014, 1059,
+      5460, 5977, 1006, 43, 8101, 1448, 3641, 3024, 4924, 1017, 1002, 1622,
+      1003, 1002, 1717, 11, 61, 5751, 4233, 1010, 1098, 1010, 1002, 4377, 11,
+      61, 3136, 1622, 18, 1049, 1059, 8101, 1522, 2509, 16, 1014, 2608, 1448,
+      1366, 1014, 1504, 1686, 1009, 1130, 1006, 2110, 1002, 4377, 1004, 1014,
+      43, 2253, 1087, 1011, 1015, 1009, 1686, 1013, 20683, 41, 10145, 7749,
+      1083, 1002, 1153, 1009, 1994, 1595, 18, 7, 7, 5129, 1049, 43, 4377, 1024,
+      1059, 4805, 5460, 1004, 1059, 8101, 1522, 3213, 1055, 3136, 1622, 16,
+      1002, 9092, 2608, 1062, 1075, 1014, 1504, 1007, 4805, 16, 1004, 5080,
+      2197, 1015, 1010, 1059, 2633, 10249, 18, 1002, 4233, 1794, 2421, 1002
+    ]
+  },
+  {
+    "text": "The canonical .kb knowledge lanes",
+    "ids": [1002, 17568, 18, 20683, 2722, 9920]
+  },
+  {
+    "text": "The canonical Kibi knowledge lanes shall be requirements, scenarios, tests, facts, adr, flags and events.\n\n## Context\n\nENTITY_LANES in packages/cli/src/utils/kb-paths.ts names the Git-tracked directories under .kb that hold authored entities. REQ-cli-canonical-runtime says how sync discovers them and how kb_upsert writes into them; this requirement states the lane list so it is proved against the code.\n\n## Source\n\nMaintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: \"Please work towards full proof.\" Restated 2026-10-28: \"Can we do mor",
+    "ids": [
+      1002, 17568, 10388, 4644, 2722, 9920, 3624, 1028, 4924, 16, 15826, 16,
+      4858, 16, 7872, 16, 3754, 1105, 16, 8251, 1004, 1830, 18, 7, 7, 5129,
+      8184, 41, 9920, 1005, 13561, 19, 17862, 1078, 19, 4040, 1284, 19, 20189,
+      11152, 19, 20683, 17, 9431, 18, 23535, 2421, 1002, 20031, 1108, 17, 11814,
+      1478, 2117, 1110, 18, 20683, 1014, 1913, 7792, 10428, 18, 1134, 3166, 17,
+      17862, 1078, 17, 17568, 17, 1454, 6298, 1764, 1135, 25357, 8424, 1074,
+      1004, 1135, 20683, 41, 10145, 7749, 6015, 1052, 1074, 31, 1029, 8101,
+      1169, 1002, 3650, 1868, 1067, 1015, 1009, 3934, 1120, 1002, 2648, 18, 7,
+      7, 2126, 4447, 1127, 2253, 16, 15804, 1581, 17, 1190, 17, 1682, 16, 9445,
+      21052, 8101, 1134, 25379, 1021, 1004, 18590, 1014, 1298, 7338, 3453, 1028,
+      3934, 30, 6, 2537, 1153, 1881, 1446, 5953, 18, 6, 1723, 3389, 15804, 1581,
+      17, 1190, 17, 1660, 30, 6, 1070, 1063, 1085, 21828
+    ]
+  },
+  {
+    "text": "Runtime operations honor the canonical .kb/ contract",
+    "ids": [1454, 6298, 2142, 2938, 1002, 17568, 18, 20683, 19, 2212]
+  },
+  {
+    "text": "Runtime operations honor the canonical `.kb/` contract after init.\n\nThis requirement supersedes `REQ-cli-sync`'s `config.json` path-discovery claim and covers sync discovery, source authoring, ignore policy, MCP activation, and Cursor hook readiness. Scaffolding itself remains `REQ-cli-init-canonical` and `ADR-026`.\n",
+    "ids": [
+      1454, 6298, 2142, 2938, 1002, 17568, 42, 18, 20683, 19, 42, 2212, 1050,
+      1005, 3189, 18, 1029, 8101, 2571, 5930, 1235, 42, 1134, 3166, 17, 17862,
+      1078, 17, 25357, 42, 11, 61, 42, 8536, 7879, 1296, 18, 52, 2391, 42, 3136,
+      17, 4462, 3372, 1004, 3478, 25357, 4462, 16, 2126, 2172, 1081, 16, 7574,
+      2349, 16, 10344, 1367, 12797, 16, 1004, 11737, 24307, 1105, 7109, 18828,
+      18, 7046, 9360, 20514, 1999, 2470, 42, 1134, 3166, 17, 17862, 1078, 17,
+      1005, 3189, 17, 17568, 42, 1004, 42, 3754, 1105, 17, 5191, 1581, 42, 18
+    ]
+  },
+  {
+    "text": "Command-line KB validation and integrity checks",
+    "ids": [2100, 17, 1246, 20683, 26360, 1004, 10115, 13154]
+  },
+  {
+    "text": "\nThe `kibi check` command runs validation rules against the branch KB to ensure structural integrity and requirement coverage.\nIt can be restricted to specific rules or focused on staged changes (used in pre-commit hooks).\nFailure results in a non-zero exit code and descriptive violation logs.\n",
+    "ids": [
+      1002, 42, 10388, 4644, 3644, 42, 2100, 2222, 26360, 2519, 1120, 1002,
+      2595, 20683, 1006, 4682, 7338, 10115, 1004, 8101, 5331, 18, 1015, 1070,
+      1028, 6781, 1006, 2569, 2519, 1036, 3214, 1012, 8819, 2437, 12, 1115,
+      1005, 2659, 17, 9803, 17014, 13, 18, 3951, 2469, 1005, 43, 1518, 17, 4723,
+      5170, 2648, 1004, 21732, 10377, 14670, 18
+    ]
+  },
+  {
+    "text": "Doctor reports installed package provenance without requiring exported manifests",
+    "ids": [2466, 3317, 4367, 6433, 9009, 5657, 1308, 8040, 14618, 18682, 1021]
+  },
+  {
+    "text": "When kibi doctor runs with JSON output on an installed consumer workspace, it must report the installed kibi-mcp package version by resolving the package entrypoint whenever the package does not export its package.json subpath. The doctor must not emit the package-provenance-unresolved migration action when every probed Kibi package resolves to an installed manifest. The package-provenance-unresolved migration action is reserved for packages that are genuinely absent from the install graph.\n",
+    "ids": [
+      1049, 10388, 4644, 2466, 2222, 1013, 52, 2391, 5440, 1012, 1025, 4367,
+      6331, 1579, 14333, 16, 1015, 1448, 2195, 1002, 4367, 10388, 4644, 17,
+      10344, 1367, 6433, 1550, 1017, 28310, 1002, 6433, 3449, 7406, 6194, 1002,
+      6433, 1521, 1031, 8173, 1055, 6433, 18, 52, 2391, 3948, 14075, 18, 1002,
+      2466, 1448, 1031, 11501, 1108, 1002, 6433, 17, 9009, 5657, 17, 3901, 5078,
+      15122, 8236, 1901, 1049, 1302, 14119, 1100, 10388, 4644, 6433, 9669, 1021,
+      1006, 1025, 4367, 18682, 18, 1002, 6433, 17, 9009, 5657, 17, 3901, 5078,
+      15122, 8236, 1901, 1009, 8241, 1011, 13561, 1014, 1030, 14964, 8968, 1019,
+      1002, 15506, 9635, 18
+    ]
+  },
+  {
+    "text": "Diagnose environment and KB health",
+    "ids": [21945, 25751, 2372, 3050, 1004, 20683, 1746]
+  },
+  {
+    "text": "\nThe `kibi doctor` command runs a series of diagnostic checks to verify that the local environment (SWI-Prolog version, git)\nand the project KB setup (.kb directory, config, hooks) are correctly configured and healthy.\nIt provides actionable remediation steps for failed checks.\n",
+    "ids": [
+      1002, 42, 10388, 4644, 2466, 42, 2100, 2222, 43, 1192, 1003, 15480, 13154,
+      1006, 19416, 1014, 1002, 1340, 3050, 12, 24436, 1078, 17, 3019, 20203,
+      1550, 16, 20031, 1108, 13, 1004, 1002, 1628, 20683, 15443, 12, 18, 20683,
+      13182, 16, 8536, 7879, 1296, 16, 17014, 13, 1030, 10184, 25934, 1004,
+      6971, 18, 1015, 2646, 1901, 2091, 1134, 15975, 2514, 3090, 1011, 2484,
+      13154, 18
+    ]
+  },
+  {
+    "text": "Garbage collection and branch store maintenance",
+    "ids": [12050, 2080, 1004, 2595, 2579, 5038]
+  },
+  {
+    "text": "\nThe `kibi gc` command removes stale KB branch stores that no longer have a corresponding local git branch.\nThis keeps the `.kb/branches/` directory clean and prevents disk bloat from long-deleted features.\n",
+    "ids": [
+      1002, 42, 10388, 4644, 49, 1284, 42, 2100, 19368, 25735, 20683, 2595,
+      4330, 1014, 1059, 1942, 1037, 43, 6984, 1340, 20031, 1108, 2595, 18, 1029,
+      6912, 1002, 42, 18, 20683, 19, 4634, 19, 42, 13182, 3556, 1004, 15269,
+      8791, 44, 3141, 3023, 1019, 1152, 17, 16165, 1844, 18
+    ]
+  },
+  {
+    "text": "Init scaffolds the canonical .kb/ contract",
+    "ids": [
+      1005, 3189, 7046, 9360, 9377, 1021, 1002, 17568, 18, 20683, 19, 2212
+    ]
+  },
+  {
+    "text": "kibi init must create the canonical .kb/ knowledge namespace: entity lanes under .kb/requirements, .kb/scenarios, .kb/tests, .kb/facts, .kb/adr, .kb/flags, and .kb/events, plus .kb/symbols.yaml, .kb/symbol-coordinates.yaml, and Kibi-owned .kb/manifest.json lifecycle metadata. It must not write user-configurable .kb/config.json, entity path overrides, or persistent check-disabling policy. Git hooks may be installed. Gitignore must track authored .kb/ knowledge lanes and ignore derived .kb/branches, .kb/recovery, .kb/verification, and .kb/briefs trees.\n",
+    "ids": [
+      10388, 4644, 1005, 3189, 1448, 2449, 1002, 17568, 18, 20683, 19, 2722,
+      2421, 14333, 30, 8184, 9920, 1110, 18, 20683, 19, 4924, 16, 18, 20683, 19,
+      15826, 16, 18, 20683, 19, 4858, 16, 18, 20683, 19, 7872, 16, 18, 20683,
+      19, 3754, 1105, 16, 18, 20683, 19, 8251, 16, 1004, 18, 20683, 19, 1830,
+      16, 3612, 18, 20683, 19, 8261, 18, 7044, 18974, 16, 18, 20683, 19, 5460,
+      17, 11099, 18, 7044, 18974, 16, 1004, 10388, 4644, 17, 2085, 18, 20683,
+      19, 18682, 18, 52, 2391, 1172, 22496, 26431, 18, 1015, 1448, 1031, 3345,
+      4316, 17, 8536, 7879, 26396, 2091, 18, 20683, 19, 8536, 7879, 1296, 18,
+      52, 2391, 16, 8184, 3136, 1064, 14643, 1021, 16, 1036, 13522, 3644, 17,
+      3493, 2742, 8715, 2349, 18, 20031, 1108, 17014, 1095, 1028, 4367, 18,
+      20031, 2781, 25751, 1896, 1448, 1656, 7792, 18, 20683, 19, 2722, 9920,
+      1004, 7574, 4179, 18, 20683, 19, 4634, 16, 18, 20683, 19, 6239, 16, 18,
+      20683, 19, 21622, 16, 1004, 18, 20683, 19, 27766, 2634, 18
+    ]
+  },
+  {
+    "text": "Scaffold .kb directory, config, and git hooks",
+    "ids": [
+      7046, 9360, 9377, 18, 20683, 13182, 16, 8536, 7879, 1296, 16, 1004, 20031,
+      1108, 17014
+    ]
+  },
+  {
+    "text": "\nThe `kibi init` command scaffolds the `.kb/` directory structure, creates a default `config.json`,\nensures `.kb/` is ignored by git, and optionally installs git hooks for automatic sync and validation.\nIt also ensures the `documentation/symbols.yaml` manifest exists.\n",
+    "ids": [
+      1002, 42, 10388, 4644, 1005, 3189, 42, 2100, 7046, 9360, 9377, 1021, 1002,
+      42, 18, 20683, 19, 42, 13182, 2258, 16, 8011, 43, 11404, 42, 8536, 7879,
+      1296, 18, 52, 2391, 42, 16, 20318, 42, 18, 20683, 19, 42, 1009, 5445,
+      1017, 20031, 1108, 16, 1004, 10893, 1141, 15506, 1021, 20031, 1108, 17014,
+      1011, 5888, 25357, 1004, 26360, 18, 1015, 1042, 20318, 1002, 42, 11659,
+      19, 8261, 18, 7044, 18974, 42, 18682, 5532, 18
+    ]
+  },
+  {
+    "text": "Canonical knowledge base entity paths",
+    "ids": [17568, 2722, 1924, 8184, 9431]
+  },
+  {
+    "text": "A canonical entity path shall belong to requirements, scenarios, tests, adr, flags, events, facts or symbols. A legacy config path key shall be requirements, scenarios, tests, facts, adr, flags or events. The canonical requirements path shall be .kb/requirements. The canonical scenarios path shall be .kb/scenarios. The canonical tests path shall be .kb/tests. The canonical adr path shall be .kb/adr. The canonical flags path shall be .kb/flags. The canonical events path shall be .kb/events. The canonical facts path shall be .kb/facts. The canonical symbols path shall be .kb/symbols.yaml.\n\n## Co",
+    "ids": [
+      43, 17568, 8184, 3136, 3624, 6147, 1006, 4924, 16, 15826, 16, 4858, 16,
+      3754, 1105, 16, 8251, 16, 1830, 16, 7872, 1036, 8261, 18, 43, 7033, 8536,
+      7879, 1296, 3136, 2151, 3624, 1028, 4924, 16, 15826, 16, 4858, 16, 7872,
+      16, 3754, 1105, 16, 8251, 1036, 1830, 18, 1002, 17568, 4924, 3136, 3624,
+      1028, 18, 20683, 19, 4924, 18, 1002, 17568, 15826, 3136, 3624, 1028, 18,
+      20683, 19, 15826, 18, 1002, 17568, 4858, 3136, 3624, 1028, 18, 20683, 19,
+      4858, 18, 1002, 17568, 3754, 1105, 3136, 3624, 1028, 18, 20683, 19, 3754,
+      1105, 18, 1002, 17568, 8251, 3136, 3624, 1028, 18, 20683, 19, 8251, 18,
+      1002, 17568, 1830, 3136, 3624, 1028, 18, 20683, 19, 1830, 18, 1002, 17568,
+      7872, 3136, 3624, 1028, 18, 20683, 19, 7872, 18, 1002, 17568, 8261, 3136,
+      3624, 1028, 18, 20683, 19, 8261, 18, 7044, 18974, 18, 7, 7, 1528
+    ]
+  },
+  {
+    "text": "KB folder layout",
+    "ids": [20683, 18628, 8627]
+  },
+  {
+    "text": "The KB folder shall be .kb. The derived KB folders shall be .kb/branches, .kb/recovery, .kb/proof/runs, .kb/briefs and .kb/migrations. The KB manifest version shall be 1.\n\n## Context\n\nREQ-cli-init-canonical has kibi init write the canonical KB layout. Its folder, the subfolders that hold derived state rather than authored entities, and the manifest version are stated here so every value is proved against its constant.\n\n## Source\n\nMaintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: \"Please work towards full proof.\" Restated 2026-10-28",
+    "ids": [
+      1002, 20683, 18628, 3624, 1028, 18, 20683, 18, 1002, 4179, 20683, 18628,
+      1021, 3624, 1028, 18, 20683, 19, 4634, 16, 18, 20683, 19, 6239, 16, 18,
+      20683, 19, 5953, 19, 2222, 16, 18, 20683, 19, 27766, 1004, 18, 20683, 19,
+      8236, 1021, 18, 1002, 20683, 18682, 1550, 3624, 1028, 21, 18, 7, 7, 5129,
+      1134, 3166, 17, 17862, 1078, 17, 1005, 3189, 17, 17568, 1044, 10388, 4644,
+      1005, 3189, 3345, 1002, 17568, 20683, 8627, 18, 1055, 18628, 16, 1002,
+      3948, 9377, 1551, 1014, 1913, 4179, 1116, 1744, 1090, 7792, 10428, 16,
+      1004, 1002, 18682, 1550, 1030, 2096, 1188, 1067, 1302, 2649, 1009, 3934,
+      1120, 1055, 4383, 18, 7, 7, 2126, 4447, 1127, 2253, 16, 15804, 1581, 17,
+      1190, 17, 1682, 16, 9445, 21052, 8101, 1134, 25379, 1021, 1004, 18590,
+      1014, 1298, 7338, 3453, 1028, 3934, 30, 6, 2537, 1153, 1881, 1446, 5953,
+      18, 6, 1723, 3389, 15804, 1581, 17, 1190, 17, 1660
+    ]
+  },
+  {
+    "text": "kibi merge-driver merges Kibi manifests by record id",
+    "ids": [
+      10388, 4644, 12596, 17, 3068, 12596, 1021, 10388, 4644, 18682, 1021, 1017,
+      1507, 7915
+    ]
+  },
+  {
+    "text": "Kibi merge-driver must keep every record that either side of a merge added to the symbols manifest or a relationship shard. Kibi merge-driver must apply a record edit or deletion made on a single side. Kibi merge-driver must union the relationships and links that both sides added to the same symbol. Kibi merge-driver must report each field that both sides changed differently, leave conflict markers, and exit non-zero. Kibi merge-driver must reproduce the current manifest byte for byte if the other side changed nothing\n",
+    "ids": [
+      10388, 4644, 12596, 17, 3068, 1448, 1568, 1302, 1507, 1014, 1599, 1223,
+      1003, 43, 12596, 1800, 1006, 1002, 8261, 18682, 1036, 43, 2282, 20152,
+      3109, 18, 10388, 4644, 12596, 17, 3068, 1448, 5617, 43, 1507, 9092, 1036,
+      2978, 19630, 1245, 1087, 1012, 43, 1315, 1223, 18, 10388, 4644, 12596, 17,
+      3068, 1448, 1592, 1002, 5556, 1004, 5977, 1014, 1125, 2909, 1800, 1006,
+      1002, 1174, 5460, 18, 10388, 4644, 12596, 17, 3068, 1448, 2195, 1175,
+      1498, 1014, 1125, 2909, 1910, 10549, 16, 1687, 3742, 15393, 16, 1004,
+      5170, 1518, 17, 4723, 18, 10388, 4644, 12596, 17, 3068, 1448, 20382, 1002,
+      1789, 18682, 23886, 1011, 23886, 1071, 1002, 1066, 1223, 1910, 1504
+    ]
+  },
+  {
+    "text": "kibi migrate states the folder-implied type on entity files without one",
+    "ids": [
+      10388, 4644, 21812, 1169, 1002, 18628, 17, 12345, 1834, 1012, 8184, 5770,
+      1308, 1034
+    ]
+  },
+  {
+    "text": "kibi migrate must add the folder-implied type to the front matter of every authored entity file that has no type field, at any schema version. That edit must leave every other line of the file unchanged.\n\n## Context\n\nEntity files written before Kibi stated `type` in front matter take their type from the folder (`.kb/requirements/` reads as `req`). `kibi migrate --yes` moved and rewrote such files (origin, pinned `semantic_text`, status mapping) but left the type implicit, and every Kibi write states it. So the first `kb_upsert` after a migration, even a status-only change, appended `type: req`",
+    "ids": [
+      10388, 4644, 21812, 1448, 4593, 1002, 18628, 17, 12345, 1834, 1006, 1002,
+      1398, 2049, 1003, 1302, 7792, 8184, 4377, 1014, 1044, 1059, 1834, 1498,
+      16, 1018, 1157, 7046, 27439, 1550, 18, 1014, 9092, 1448, 1687, 1302, 1066,
+      1246, 1003, 1002, 4377, 14710, 18, 7, 7, 5129, 8184, 5770, 1523, 1083,
+      10388, 4644, 2096, 42, 1834, 42, 1005, 1398, 2049, 1208, 1043, 1834, 1019,
+      1002, 18628, 12, 42, 18, 20683, 19, 4924, 19, 42, 8637, 1010, 42, 1134,
+      3166, 42, 13, 18, 42, 10388, 4644, 21812, 17, 17, 1754, 42, 1339, 1004,
+      1134, 12094, 11190, 1113, 5770, 12, 3767, 16, 10813, 42, 20647, 41, 2799,
+      42, 16, 2576, 11381, 13, 1027, 1193, 1002, 1834, 23661, 16, 1004, 1302,
+      10388, 4644, 3345, 1169, 1015, 18, 1067, 1002, 1040, 42, 20683, 41, 10145,
+      7749, 42, 1050, 43, 8236, 16, 1136, 43, 2576, 17, 1075, 1695, 16, 9445,
+      20951, 42, 1834, 30, 1134, 3166, 42
+    ]
+  },
+  {
+    "text": "kibi migrate maps delivered legacy statuses and reports uncompiled requirements",
+    "ids": [
+      10388, 4644, 21812, 6347, 4365, 7033, 2576, 1235, 1004, 3317, 3901, 8012,
+      21096, 1100, 4924
+    ]
+  },
+  {
+    "text": "Applying kibi migrate must rewrite the legacy requirement statuses implemented, done and completed to closed with the tag implemented. Applying kibi migrate must not report a complete migration while a requirement that kibi sync cannot compile remains.\n\nThe mapping is lossless: a closed requirement tagged `implemented` is delivered work that still owes scenario and test coverage when it is must-priority. Statuses with no safe mapping (for example `wip`) stay review actions, and the run lists each requirement that is still uncompiled with the edit that fixes it.\n\n## Context\n\nA test project's le",
+    "ids": [
+      10249, 10388, 4644, 21812, 1448, 1134, 25379, 1002, 7033, 8101, 2576,
+      1235, 6534, 16, 1595, 1004, 1955, 1006, 1707, 1013, 1002, 5421, 6534, 18,
+      10249, 10388, 4644, 21812, 1448, 1031, 2195, 43, 2149, 8236, 1102, 43,
+      8101, 1014, 10388, 4644, 25357, 2691, 3018, 21096, 2470, 18, 1002, 11381,
+      1009, 2285, 2244, 30, 43, 1707, 8101, 25616, 42, 6534, 42, 1009, 4365,
+      1153, 1014, 1151, 23387, 10973, 1004, 2237, 5331, 1049, 1015, 1009, 1448,
+      17, 8476, 18, 2576, 1235, 1013, 1059, 2653, 11381, 12, 1011, 1748, 42,
+      14542, 1367, 42, 13, 2000, 2325, 3512, 16, 1004, 1002, 1454, 6207, 1175,
+      8101, 1014, 1009, 1151, 3901, 8012, 21096, 1100, 1013, 1002, 9092, 1014,
+      7087, 1235, 1015, 18, 7, 7, 5129, 43, 2237, 1628, 11, 61, 2399
+    ]
+  },
+  {
+    "text": "Requirement status migration codes",
+    "ids": [8101, 2576, 8236, 8543]
+  },
+  {
+    "text": "A migrated delivered requirement shall carry the tag implemented. The delivered status migration action id shall be req-status-delivered-map. The delivered status migration code shall be req_status_delivered_map. The entity type backfill action id shall be entity-type-backfill. The entity type backfill code shall be entity_type_backfill.\n\n## Context\n\nREQ-cli-migrate-legacy-requirement-status has kibi migrate map a delivered requirement status to a tag and report the step under a stable action id and code; the entity type backfill reports the same way. They are stated here so every value is pro",
+    "ids": [
+      43, 12453, 4365, 8101, 3624, 3293, 1002, 5421, 6534, 18, 1002, 4365, 2576,
+      8236, 1901, 7915, 3624, 1028, 1134, 3166, 17, 2576, 17, 4365, 17, 3955,
+      18, 1002, 4365, 2576, 8236, 2648, 3624, 1028, 1134, 3166, 41, 2576, 41,
+      4365, 41, 3955, 18, 1002, 8184, 1834, 1073, 7879, 2369, 1901, 7915, 3624,
+      1028, 8184, 17, 1834, 17, 1073, 7879, 2369, 18, 1002, 8184, 1834, 1073,
+      7879, 2369, 2648, 3624, 1028, 8184, 41, 1834, 41, 1073, 7879, 2369, 18, 7,
+      7, 5129, 1134, 3166, 17, 17862, 1078, 17, 21812, 17, 7033, 17, 8101, 17,
+      2576, 1044, 10388, 4644, 21812, 3955, 43, 4365, 8101, 2576, 1006, 43,
+      5421, 1004, 2195, 1002, 2363, 1110, 43, 5546, 1901, 7915, 1004, 2648, 31,
+      1002, 8184, 1834, 1073, 7879, 2369, 3317, 1002, 1174, 1132, 18, 1033,
+      1030, 2096, 1188, 1067, 1302, 2649, 1009, 3019
+    ]
+  },
+  {
+    "text": "The first commit after kibi migrate passes the pre-commit gates when it adds nothing else",
+    "ids": [
+      1002, 1040, 9803, 1050, 10388, 4644, 21812, 4241, 1002, 2659, 17, 9803,
+      5739, 1049, 1015, 8915, 1504, 1848
+    ]
+  },
+  {
+    "text": "kibi migrate must refresh the generated symbol coordinates when it rewrites or moves the symbols manifest. In a commit that carries a kibi migrate run, the staged check must not count a symbol record as changed when it differs from its base only in fields the migration writes. The staged check must judge a symbol record that the commit changes in any other field.\n\n## Context\n\nOn a legacy KB, `kibi migrate --yes` followed by `kibi init`, `kibi sync` and `git add` produced a first commit that the pre-commit hook rejected twice. `kibi check-generated --staged` reported generated manifest drift in",
+    "ids": [
+      10388, 4644, 21812, 1448, 24422, 20904, 1002, 6019, 5460, 11099, 1049,
+      1015, 1134, 25379, 1021, 1036, 4835, 1002, 8261, 18682, 18, 1005, 43,
+      9803, 1014, 6889, 43, 10388, 4644, 21812, 1454, 16, 1002, 8819, 3644,
+      1448, 1031, 3181, 43, 5460, 1507, 1010, 1910, 1049, 1015, 11986, 1019,
+      1055, 1924, 1075, 1005, 3255, 1002, 8236, 6015, 18, 1002, 8819, 3644,
+      1448, 2654, 43, 5460, 1507, 1014, 1002, 9803, 2437, 1005, 1157, 1066,
+      1498, 18, 7, 7, 5129, 1012, 43, 7033, 20683, 16, 42, 10388, 4644, 21812,
+      17, 17, 1754, 42, 1634, 1017, 42, 10388, 4644, 1005, 3189, 42, 16, 42,
+      10388, 4644, 25357, 42, 1004, 42, 20031, 1108, 4593, 42, 1556, 43, 1040,
+      9803, 1014, 1002, 2659, 17, 9803, 7109, 4843, 2813, 18, 42, 10388, 4644,
+      3644, 17, 6019, 17, 17, 8819, 42, 1994, 6019, 18682, 10858, 1005
+    ]
+  },
+  {
+    "text": "Migration pin and acknowledgement codes",
+    "ids": [8236, 8237, 1004, 12405, 2678, 8543]
+  },
+  {
+    "text": "The missing context tag code shall be context_missing_tag. The semantic text pin code shall be semantic_text_pin. The evidence floor pin code shall be evidence_floor_pin. The firm supersede acknowledgement code shall be firm_supersede_acknowledge. The proof contract claims pin code shall be proof_contract_claims_pin. The proof contract claims review code shall be proof_contract_claims_review. The rederive with dropped grounding code shall be semantic_inventory_rederive_drop_grounding. The supersedes reason acknowledgement code shall be supersedes_reason_acknowledge. The legacy symbol link mark",
+    "ids": [
+      1002, 3400, 5129, 5421, 2648, 3624, 1028, 5129, 41, 3400, 41, 5421, 18,
+      1002, 20647, 2799, 8237, 2648, 3624, 1028, 20647, 41, 2799, 41, 8237, 18,
+      1002, 2356, 1729, 8237, 2648, 3624, 1028, 2356, 41, 1729, 41, 8237, 18,
+      1002, 2819, 2571, 5930, 1069, 12405, 2678, 2648, 3624, 1028, 2819, 41,
+      2571, 5930, 1069, 41, 12405, 18, 1002, 5953, 2212, 3453, 8237, 2648, 3624,
+      1028, 5953, 41, 2212, 41, 3453, 41, 8237, 18, 1002, 5953, 2212, 3453,
+      2325, 2648, 3624, 1028, 5953, 41, 2212, 41, 3453, 41, 2325, 18, 1002,
+      1423, 10130, 2732, 1013, 2339, 1604, 1081, 2648, 3624, 1028, 20647, 41,
+      11618, 41, 1423, 10130, 2732, 41, 3536, 41, 1604, 1081, 18, 1002, 2571,
+      5930, 1235, 2120, 12405, 2678, 2648, 3624, 1028, 2571, 5930, 1235, 41,
+      2120, 41, 12405, 18, 1002, 7033, 5460, 3963, 1934
+    ]
+  },
+  {
+    "text": "Suggested status for legacy requirement status words",
+    "ids": [3087, 2576, 1011, 7033, 8101, 2576, 1622]
+  },
+  {
+    "text": "A legacy requirement status word shall be accepted, proposed, draft, deprecated, superseded or rejected. A requirement marked accepted shall be migrated as open. A requirement marked proposed shall be migrated as open. A requirement marked draft shall be migrated as open. A requirement marked deprecated shall be migrated as closed. A requirement marked superseded shall be migrated as closed. A requirement marked rejected shall be migrated as closed.\n\n## Context\n\npackages/cli/src/operations/migration/requirement-status.ts maps the lifecycle words REQ-cli-schema-migration meets on older requirem",
+    "ids": [
+      43, 7033, 8101, 2576, 1779, 3624, 1028, 2976, 16, 2824, 16, 3439, 16,
+      1145, 27145, 11927, 16, 18892, 1036, 4843, 18, 43, 8101, 3423, 2976, 3624,
+      1028, 12453, 1010, 1336, 18, 43, 8101, 3423, 2824, 3624, 1028, 12453,
+      1010, 1336, 18, 43, 8101, 3423, 3439, 3624, 1028, 12453, 1010, 1336, 18,
+      43, 8101, 3423, 1145, 27145, 11927, 3624, 1028, 12453, 1010, 1707, 18, 43,
+      8101, 3423, 18892, 3624, 1028, 12453, 1010, 1707, 18, 43, 8101, 3423,
+      4843, 3624, 1028, 12453, 1010, 1707, 18, 7, 7, 5129, 13561, 19, 17862,
+      1078, 19, 4040, 1284, 19, 2142, 19, 8236, 19, 8101, 17, 2576, 18, 23535,
+      6347, 1002, 1172, 22496, 1622, 1134, 3166, 17, 17862, 1078, 17, 7046,
+      27439, 17, 8236, 5016, 1012, 2086, 4484, 1219
+    ]
+  },
+  {
+    "text": "Filter and format KB output via command-line",
+    "ids": [10313, 1004, 3295, 20683, 5440, 2087, 2100, 17, 1246]
+  },
+  {
+    "text": "\nThe `kibi query` command provides CLI access to the knowledge base. It supports filtering by entity type, ID, tags, and source file.\nOutput can be formatted as human-readable tables or machine-readable JSON.\nIt also supports querying relationships for specific entities.\n",
+    "ids": [
+      1002, 42, 10388, 4644, 22038, 42, 2100, 2646, 17862, 1078, 2235, 1006,
+      1002, 2722, 1924, 18, 1015, 5759, 21916, 1017, 8184, 1834, 16, 7915, 16,
+      21079, 16, 1004, 2126, 4377, 18, 5440, 1070, 1028, 3295, 2070, 1010, 1535,
+      17, 2197, 2091, 6257, 1036, 2704, 17, 2197, 2091, 52, 2391, 18, 1015,
+      1042, 5759, 22038, 1081, 5556, 1011, 2569, 10428, 18
+    ]
+  },
+  {
+    "text": "Schema migration codes",
+    "ids": [7046, 27439, 8236, 8543]
+  },
+  {
+    "text": "Entity origins shall arrive with KB schema version 6. The entity origin backfill action id shall be entity-origin-backfill. The entity origin backfill code shall be entity_origin_backfill. The requirement status vocabulary map code shall be req_status_vocabulary_map. The semantic inventory rederive code shall be semantic_inventory_rederive. The semantic inventory review code shall be semantic_inventory_review. The polarity value backfill code shall be polarity_value_backfill.\n\n## Context\n\nREQ-cli-schema-migration has kibi migrate report every step under a stable code an agent can act on: the o",
+    "ids": [
+      8184, 6327, 3624, 6186, 1013, 20683, 7046, 27439, 1550, 26, 18, 1002,
+      8184, 3767, 1073, 7879, 2369, 1901, 7915, 3624, 1028, 8184, 17, 3767, 17,
+      1073, 7879, 2369, 18, 1002, 8184, 3767, 1073, 7879, 2369, 2648, 3624,
+      1028, 8184, 41, 3767, 41, 1073, 7879, 2369, 18, 1002, 8101, 2576, 15194,
+      3955, 2648, 3624, 1028, 1134, 3166, 41, 2576, 41, 15194, 41, 3955, 18,
+      1002, 20647, 11618, 1423, 10130, 2732, 2648, 3624, 1028, 20647, 41, 11618,
+      41, 1423, 10130, 2732, 18, 1002, 20647, 11618, 2325, 2648, 3624, 1028,
+      20647, 41, 11618, 41, 2325, 18, 1002, 10514, 2018, 2649, 1073, 7879, 2369,
+      2648, 3624, 1028, 10514, 2018, 41, 2649, 41, 1073, 7879, 2369, 18, 7, 7,
+      5129, 1134, 3166, 17, 17862, 1078, 17, 7046, 27439, 17, 8236, 1044, 10388,
+      4644, 21812, 2195, 1302, 2363, 1110, 43, 5546, 2648, 1025, 3011, 1070,
+      1558, 1012, 30, 1002, 57
+    ]
+  },
+  {
+    "text": "CLI migrates branch KB schema versions",
+    "ids": [17862, 1078, 21812, 1021, 2595, 20683, 7046, 27439, 3623]
+  },
+  {
+    "text": "\nThe CLI must provide an idempotent migration path for branch KB schema changes, including dry-run preview, explicit application, audit metadata, compatibility remediation for legacy ontology data, and a non-mutating semantic-advisor backfill marker for existing requirement prose.\n",
+    "ids": [
+      1002, 17862, 1078, 1448, 2079, 1025, 7915, 5639, 10014, 3771, 8236, 3136,
+      1011, 2595, 20683, 7046, 27439, 2437, 16, 1170, 3324, 17, 1454, 18242, 16,
+      12222, 3652, 16, 14733, 26431, 16, 20784, 1134, 15975, 2514, 1011, 7033,
+      2037, 5489, 1957, 16, 1004, 43, 1518, 17, 13169, 28342, 1081, 20647, 17,
+      7625, 1073, 7879, 2369, 11121, 1011, 3499, 8101, 11394, 18
+    ]
+  },
+  {
+    "text": "Staged check blocks consistency violations a commit introduces",
+    "ids": [8819, 3644, 4997, 17706, 12308, 43, 9803, 13005]
+  },
+  {
+    "text": "The staged check must block a staged change that introduces a domain contradiction, an infeasible success scenario or an invalid exception claim key into the staged knowledge. The staged check must not block a staged change for a consistency violation that already exists at the base commit.\n\n## Context\n\nThe pre-commit hook runs `kibi check --staged`, which only checked symbol traceability, so a commit could add a success scenario that a current requirement forbids while a full `kibi check` failed on the same tree. When entity documents or relationship shards are staged, the check now runs the ",
+    "ids": [
+      1002, 8819, 3644, 1448, 2802, 43, 8819, 1695, 1014, 13005, 43, 4890,
+      25923, 16, 1025, 1005, 6965, 20375, 2474, 2118, 10973, 1036, 1025, 18534,
+      5459, 3372, 2151, 1052, 1002, 8819, 2722, 18, 1002, 8819, 3644, 1448,
+      1031, 2802, 43, 8819, 1695, 1011, 43, 17706, 10377, 1014, 1531, 5532,
+      1018, 1002, 1924, 9803, 18, 7, 7, 5129, 1002, 2659, 17, 9803, 7109, 2222,
+      42, 10388, 4644, 3644, 17, 17, 8819, 42, 16, 1035, 1075, 6045, 5460, 6643,
+      7016, 16, 1067, 43, 9803, 1077, 4593, 43, 2118, 10973, 1014, 43, 1789,
+      8101, 26212, 1021, 1102, 43, 1446, 42, 10388, 4644, 3644, 42, 2484, 1012,
+      1002, 1174, 2398, 18, 1049, 8184, 4497, 1036, 2282, 22333, 1030, 8819, 16,
+      1002, 3644, 1091, 2222, 1002
+    ]
+  },
+  {
+    "text": "The pre-commit check blocks an entity the commit adds or edits without body context",
+    "ids": [
+      1002, 2659, 17, 9803, 3644, 4997, 1025, 8184, 1002, 9803, 8915, 1036,
+      9092, 1021, 1308, 1309, 5129
+    ]
+  },
+  {
+    "text": "The staged check must block an entity document the commit adds or edits when its body lacks the context that kibi check requires. The staged check must not block an entity that already lacked context at the base commit or that the migration acknowledged.\n\n## Context\n\n`kb_upsert` warned that a test entity without a body would be blocked by `kb_check` under `entity-context-missing`, and `kb_check` reported it, yet the pre-commit hook printed that the staged files had no violations and the commit passed. The staged gate ran only the symbol rules and the staged consistency rules, so an agent could",
+    "ids": [
+      1002, 8819, 3644, 1448, 2802, 1025, 8184, 5260, 1002, 9803, 8915, 1036,
+      9092, 1021, 1049, 1055, 1309, 13093, 1002, 5129, 1014, 10388, 4644, 3644,
+      4948, 18, 1002, 8819, 3644, 1448, 1031, 2802, 1025, 8184, 1014, 1531,
+      9864, 5129, 1018, 1002, 1924, 9803, 1036, 1014, 1002, 8236, 7975, 18, 7,
+      7, 5129, 42, 20683, 41, 10145, 7749, 42, 6426, 1014, 43, 2237, 8184, 1308,
+      43, 1309, 1058, 1028, 7540, 1017, 42, 20683, 41, 3644, 42, 1110, 42, 8184,
+      17, 5129, 17, 3400, 42, 16, 1004, 42, 20683, 41, 3644, 42, 1994, 1015, 16,
+      1670, 1002, 2659, 17, 9803, 7109, 5273, 1014, 1002, 8819, 5770, 1024,
+      1059, 12308, 1004, 1002, 9803, 1985, 18, 1002, 8819, 3802, 1749, 1075,
+      1002, 5460, 2519, 1004, 1002, 8819, 17706, 2519, 16, 1067, 1025, 3011,
+      1077
+    ]
+  },
+  {
+    "text": "CLI staged check enforces Kibi impact evidence for behavior edits",
+    "ids": [
+      17862, 1078, 8819, 3644, 15312, 1021, 10388, 4644, 3260, 2356, 1011, 4254,
+      9092, 1021
+    ]
+  },
+  {
+    "text": "\nThe staged check must block behavior-changing source edits unless the staged change set includes Kibi impact evidence or a fresh symbols manifest refresh.\n",
+    "ids": [
+      1002, 8819, 3644, 1448, 2802, 4254, 17, 4284, 2126, 9092, 1021, 3989,
+      1002, 8819, 1695, 1281, 1956, 10388, 4644, 3260, 2356, 1036, 43, 3846,
+      8261, 18682, 24422, 20904, 18
+    ]
+  },
+  {
+    "text": "CLI status returns machine-readable metadata before first sync",
+    "ids": [
+      17862, 1078, 2576, 4657, 2704, 17, 2197, 2091, 26431, 1083, 1040, 25357
+    ]
+  },
+  {
+    "text": "\nKibi CLI must support `status` command immediately after `kibi init`, providing essential metadata about the repository's KB state even before the first `kibi sync` has been performed. This enables tools and agents to discover the KB presence and status programmatically in a fresh environment.\n",
+    "ids": [
+      10388, 4644, 17862, 1078, 1448, 1496, 42, 2576, 42, 2100, 2208, 1050, 42,
+      10388, 4644, 1005, 3189, 42, 16, 3352, 5833, 26431, 1061, 1002, 21415, 11,
+      61, 20683, 1116, 1136, 1083, 1002, 1040, 42, 10388, 4644, 25357, 42, 1044,
+      1048, 1870, 18, 1029, 11945, 4912, 1004, 5080, 1006, 6529, 1002, 20683,
+      2745, 1004, 2576, 1571, 11650, 2979, 1005, 43, 3846, 3050, 18
+    ]
+  },
+  {
+    "text": "kibi run in a subdirectory uses the workspace knowledge base",
+    "ids": [
+      10388, 4644, 1454, 1005, 43, 3948, 3311, 1896, 15767, 1106, 2600, 1002,
+      1579, 14333, 2722, 1924
+    ]
+  },
+  {
+    "text": "A kibi command run in a subdirectory of a Kibi workspace must use the knowledge base of the nearest enclosing directory that holds .kb/manifest.json. Relative path options must resolve from the directory where the command was typed. The init command and an explicit KIBI_WORKSPACE must keep the given directory.\n\n## Context\n\nA kibi command typed in a subdirectory of a repository, such as apps/server in a monorepo, compiled a second, empty branch store there instead of finding the repository's .kb. Queries then returned no requirements, kb_apply_plan wrote .kb/proof/integrations.json into the sub",
+    "ids": [
+      43, 10388, 4644, 2100, 1454, 1005, 43, 3948, 3311, 1896, 15767, 1106,
+      1003, 43, 10388, 4644, 1579, 14333, 1448, 1230, 1002, 2722, 1924, 1003,
+      1002, 6211, 3378, 19470, 17612, 13182, 1014, 3330, 18, 20683, 19, 18682,
+      18, 52, 2391, 18, 4822, 3136, 6053, 1448, 9669, 1019, 1002, 13182, 1079,
+      1002, 2100, 1007, 20195, 18, 1002, 1005, 3189, 2100, 1004, 1025, 12222,
+      10388, 4644, 41, 1579, 14333, 1448, 1568, 1002, 1451, 13182, 18, 7, 7,
+      5129, 43, 10388, 4644, 2100, 20195, 1005, 43, 3948, 3311, 1896, 15767,
+      1106, 1003, 43, 21415, 16, 1113, 1010, 17732, 19, 7247, 1005, 43, 17853,
+      1896, 5879, 16, 8233, 43, 1123, 16, 3070, 2595, 2579, 1051, 1618, 1003,
+      3537, 1002, 21415, 11, 61, 18, 20683, 18, 9867, 4140, 1065, 1519, 1059,
+      4924, 16, 20683, 41, 5617, 41, 1939, 1632, 18, 20683, 19, 5953, 19, 7352,
+      1021, 18, 52, 2391, 1052, 1002, 3948
+    ]
+  },
+  {
+    "text": "The kibi sync summary reports KB totals beside what the sync imported",
+    "ids": [
+      1002, 10388, 4644, 25357, 11660, 3317, 20683, 20954, 2881, 1060, 1002,
+      25357, 9970
+    ]
+  },
+  {
+    "text": "The kibi sync summary must report the number of entities of each type the KB holds after the sync. The kibi sync summary must label the entities a sync imported as counts from changed sources only.\n\n## Context\n\n`kibi sync` printed \"Entity Counts\" from the sources it recompiled, not from the KB. The first sync after a migration printed `req: 6` for a KB holding 43 requirements, and a sync after one upsert printed `req: 1`, which reads as the KB having lost its entities. Seen in a test project during a real legacy-KB migration. Reported by the project owner.\n\nThe summary now opens with the KB to",
+    "ids": [
+      1002, 10388, 4644, 25357, 11660, 1448, 2195, 1002, 1199, 1003, 10428,
+      1003, 1175, 1834, 1002, 20683, 3330, 1050, 1002, 25357, 18, 1002, 10388,
+      4644, 25357, 11660, 1448, 2836, 1002, 10428, 43, 25357, 9970, 1010, 8300,
+      1019, 1910, 3222, 1075, 18, 7, 7, 5129, 42, 10388, 4644, 25357, 42, 5273,
+      6, 8184, 8300, 6, 1019, 1002, 3222, 1015, 27673, 24383, 17456, 16, 1031,
+      1019, 1002, 20683, 18, 1002, 1040, 25357, 1050, 43, 8236, 5273, 42, 1134,
+      3166, 30, 26, 42, 1011, 43, 20683, 2179, 3730, 4924, 16, 1004, 43, 25357,
+      1050, 1034, 10145, 7749, 5273, 42, 1134, 3166, 30, 21, 42, 16, 1035, 8637,
+      1010, 1002, 20683, 1389, 1445, 1055, 10428, 18, 1470, 1005, 43, 2237,
+      1628, 1082, 43, 1619, 7033, 17, 20683, 8236, 18, 1994, 1017, 1002, 1628,
+      2960, 18, 1002, 11660, 1091, 6486, 1013, 1002, 20683, 1006
+    ]
+  },
+  {
+    "text": "Import entities from source files into the branch KB",
+    "ids": [11330, 10428, 1019, 2126, 5770, 1052, 1002, 2595, 20683]
+  },
+  {
+    "text": "\nThe `kibi sync` command performs a full import of entities from the local filesystem into the branch-specific KB.\nIt discovers files matching patterns in `config.json`, extracts Markdown and YAML metadata,\nresolves branch state, and upserts the results into the Prolog KB.\n",
+    "ids": [
+      1002, 42, 10388, 4644, 25357, 42, 2100, 9444, 43, 1446, 11330, 1003,
+      10428, 1019, 1002, 1340, 5770, 26274, 5639, 1052, 1002, 2595, 17, 2569,
+      20683, 18, 1015, 8424, 5770, 8850, 6066, 1005, 42, 8536, 7879, 1296, 18,
+      52, 2391, 42, 16, 26065, 1934, 6704, 1004, 7044, 18974, 26431, 16, 9669,
+      1021, 2595, 1116, 16, 1004, 10145, 7749, 1021, 1002, 2469, 1052, 1002,
+      3019, 20203, 20683, 18
+    ]
+  },
+  {
+    "text": "CLI usage metrics command summarizes diagnostic usage events",
+    "ids": [
+      17862, 1078, 7198, 11052, 1021, 2100, 6686, 6855, 9063, 15480, 7198, 1830
+    ]
+  },
+  {
+    "text": "\nThe CLI provides a usage metrics command that summarizes diagnostic usage events for audit and maintenance workflows.\n",
+    "ids": [
+      1002, 17862, 1078, 2646, 43, 7198, 11052, 1021, 2100, 1014, 6686, 6855,
+      9063, 15480, 7198, 1830, 1011, 14733, 1004, 5038, 1153, 11320, 1021, 18
+    ]
+  },
+  {
+    "text": "Codex Plugin Registers Consumer-Local MCP",
+    "ids": [14769, 12360, 1384, 17693, 6331, 17, 1340, 10344, 1367]
+  },
+  {
+    "text": "The kibi-codex plugin registers consumer-local MCP startup behavior for Codex.\n",
+    "ids": [
+      1002, 10388, 4644, 17, 14769, 12360, 1384, 17693, 6331, 17, 1340, 10344,
+      1367, 21758, 4254, 1011, 14769, 18
+    ]
+  },
+  {
+    "text": "'Codex Kibi Plugin v1: Optional MCP adapter package'",
+    "ids": [
+      11, 14769, 10388, 4644, 12360, 1384, 64, 1493, 30, 10893, 10344, 1367,
+      14587, 1127, 6433, 11
+    ]
+  },
+  {
+    "text": "The kibi-codex package must remain optional. When kibi-codex is installed or enabled, it must not modify core Kibi runtime components. The kibi-codex MCP launcher must start the project-local kibi-mcp binary. kibi-codex hooks must only emit reminders and warnings. kibi-codex hooks must not write to the .kb directory. The kibi-codex documentation must describe a manual MCP configuration for teams that do not use the plugin installer.\n\n## Context\n\nkibi-codex integrates Kibi with Codex through a plugin manifest, bundled skills, advisory hooks and an MCP launcher. What the package publishes is sta",
+    "ids": [
+      1002, 10388, 4644, 17, 14769, 6433, 1448, 2967, 10893, 18, 1049, 10388,
+      4644, 17, 14769, 1009, 4367, 1036, 8130, 16, 1015, 1448, 1031, 18939,
+      3569, 10388, 4644, 1454, 6298, 5183, 18, 1002, 10388, 4644, 17, 14769,
+      10344, 1367, 21748, 1448, 1713, 1002, 1628, 17, 1340, 10388, 4644, 17,
+      10344, 1367, 11447, 18, 10388, 4644, 17, 14769, 17014, 1448, 1075, 11501,
+      1108, 13770, 1021, 1004, 15240, 18, 10388, 4644, 17, 14769, 17014, 1448,
+      1031, 3345, 1006, 1002, 18, 20683, 13182, 18, 1002, 10388, 4644, 17,
+      14769, 11659, 1448, 5241, 43, 5416, 10344, 1367, 8569, 1011, 1786, 1014,
+      1085, 1031, 1230, 1002, 12360, 1384, 15506, 1127, 18, 7, 7, 5129, 10388,
+      4644, 17, 14769, 16415, 1021, 10388, 4644, 1013, 14769, 1089, 43, 12360,
+      1384, 18682, 16, 23384, 3819, 16, 6325, 17014, 1004, 1025, 10344, 1367,
+      21748, 18, 1060, 1002, 6433, 11472, 1009, 1364, 1056
+    ]
+  },
+  {
+    "text": "The kibi-codex package ships its manifest, skills, hooks and peer dependencies",
+    "ids": [
+      1002, 10388, 4644, 17, 14769, 6433, 2725, 1055, 18682, 16, 3819, 16,
+      17014, 1004, 7158, 11536, 14272
+    ]
+  },
+  {
+    "text": "The kibi-codex package must publish its .codex-plugin manifest directory, its .mcp.json configuration and its bin, hooks and skills directories. The kibi-codex plugin manifest must declare the skills, hooks and mcpServers fields. The kibi-codex plugin must bundle the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-traceability and kibi-usage skills. The kibi-codex hooks configuration must register the SessionStart, UserPromptSubmit, PreToolUse, PostToolUse and Stop lifecycle hooks. The kibi-codex package must declare exactly kibi-cli and kibi-mcp as peer dependencies.\n",
+    "ids": [
+      1002, 10388, 4644, 17, 14769, 6433, 1448, 9178, 1055, 18, 14769, 17,
+      12360, 1384, 18682, 13182, 16, 1055, 18, 10344, 1367, 18, 52, 2391, 8569,
+      1004, 1055, 7032, 16, 17014, 1004, 3819, 1478, 2117, 18, 1002, 10388,
+      4644, 17, 14769, 12360, 1384, 18682, 1448, 12526, 1002, 3819, 16, 17014,
+      1004, 10344, 28257, 1105, 13034, 3255, 18, 1002, 10388, 4644, 17, 14769,
+      12360, 1384, 1448, 13018, 1002, 10388, 4644, 17, 5885, 5500, 1367, 16,
+      10388, 4644, 17, 9803, 17, 2325, 16, 10388, 4644, 17, 5573, 16, 10388,
+      4644, 17, 3846, 1797, 16, 10388, 4644, 17, 6643, 7016, 1004, 10388, 4644,
+      17, 7198, 3819, 18, 1002, 10388, 4644, 17, 14769, 17014, 8569, 1448, 3242,
+      1002, 5527, 6565, 1108, 16, 4316, 20578, 26724, 5348, 24532, 3189, 16,
+      2659, 2412, 3753, 7563, 16, 1701, 2412, 3753, 7563, 1004, 1650, 1172,
+      22496, 17014, 18, 1002, 10388, 4644, 17, 14769, 6433, 1448, 12526, 2605,
+      10388, 4644, 17, 17862, 1078, 1004, 10388, 4644, 17, 10344, 1367, 1010,
+      7158, 11536, 14272, 18
+    ]
+  },
+  {
+    "text": "Atomic upsert persistence and bounded audit-lock failures",
+    "ids": [8599, 10145, 7749, 27303, 1004, 9357, 14733, 17, 4849, 14434]
+  },
+  {
+    "text": "\nEach `kb_upsert` mutation must execute one bounded Prolog commit that holds the branch write lock while it validates the attached snapshot, applies the entity and relationships, checks contradictions, records entity and relationship audit rows, synchronizes the audit journal, and saves one RDF snapshot. A failed or timed-out pre-save stage must not publish the entity or relationships as durable state.\n\nThe persistent audit journal must release its write lock after every append. Before RDF mutation, a commit must probe an existing journal without waiting and return an actionable stale-runtime/",
+    "ids": [
+      1175, 42, 20683, 41, 10145, 7749, 42, 15227, 1448, 14395, 1034, 9357,
+      3019, 20203, 9803, 1014, 3330, 1002, 2595, 3345, 4849, 1102, 1015, 8404,
+      7526, 1002, 3993, 19063, 11332, 16, 11039, 1002, 8184, 1004, 5556, 16,
+      13154, 25923, 1021, 16, 1642, 8184, 1004, 2282, 14733, 9287, 16, 25357,
+      7099, 9704, 10260, 1002, 14733, 2491, 16, 1004, 12175, 1034, 15434, 1552,
+      19063, 11332, 18, 43, 2484, 1036, 21319, 17, 1047, 2659, 17, 2834, 1760,
+      1448, 1031, 9178, 1002, 8184, 1036, 5556, 1010, 24640, 1116, 18, 1002,
+      13522, 14733, 2491, 1448, 1719, 1055, 3345, 4849, 1050, 1302, 9445, 9503,
+      18, 1083, 15434, 1552, 15227, 16, 43, 9803, 1448, 14119, 1025, 3499, 2491,
+      1308, 2409, 1004, 1715, 1025, 1901, 2091, 25735, 17, 1454, 6298, 19
+    ]
+  },
+  {
+    "text": "Audit logging for all KB mutations",
+    "ids": [14733, 14905, 1011, 1041, 20683, 13500]
+  },
+  {
+    "text": "\nAll entity and relationship mutations in the KB are recorded in a persistent audit log (`audit.log`) in the branch directory.\nEach entry includes a timestamp, the operation type, and the affected entity data, providing a traceable history of changes.\n",
+    "ids": [
+      1041, 8184, 1004, 2282, 13500, 1005, 1002, 20683, 1030, 1686, 1005, 43,
+      13522, 14733, 7839, 12, 42, 14733, 18, 7839, 42, 13, 1005, 1002, 2595,
+      13182, 18, 1175, 3449, 1956, 43, 1341, 14470, 1367, 16, 1002, 2175, 1834,
+      16, 1004, 1002, 4366, 8184, 1957, 16, 3352, 43, 6643, 2091, 1387, 1003,
+      2437, 18
+    ]
+  },
+  {
+    "text": "Engine read limit settings",
+    "ids": [2200, 2197, 4793, 9912]
+  },
+  {
+    "text": "The engine read time limit environment variable shall be KIBI_ENGINE_READ_TIME_LIMIT_MS. The engine read inference limit environment variable shall be KIBI_ENGINE_READ_INFERENCE_LIMIT. The error code of a read that hits its limit shall be QUERY_LIMIT_EXCEEDED. The engine read time limit cap shall be 115000 milliseconds.\n\n## Context\n\npackages/cli/src/engine-limits.ts holds the environment variable names REQ-core-engine-read-limits uses to turn read limits on, the error code a read that hits its limit fails with, and the cap that keeps a requested time limit below the engine's 120 second hard qu",
+    "ids": [
+      1002, 2200, 2197, 1057, 4793, 3050, 7029, 3624, 1028, 10388, 4644, 41,
+      2200, 41, 2197, 41, 1057, 41, 4793, 41, 4802, 18, 1002, 2200, 2197, 27943,
+      4793, 3050, 7029, 3624, 1028, 10388, 4644, 41, 2200, 41, 2197, 41, 27943,
+      41, 4793, 18, 1002, 6567, 2648, 1003, 43, 2197, 1014, 3984, 1055, 4793,
+      3624, 1028, 22038, 41, 4793, 41, 13878, 18, 1002, 2200, 2197, 1057, 4793,
+      5184, 3624, 1028, 9636, 7895, 1698, 3977, 4568, 7669, 4110, 18, 7, 7,
+      5129, 13561, 19, 17862, 1078, 19, 4040, 1284, 19, 2200, 17, 5543, 18,
+      23535, 3330, 1002, 3050, 7029, 2421, 1134, 3166, 17, 3569, 17, 2200, 17,
+      2197, 17, 5543, 2600, 1006, 1741, 2197, 5543, 1012, 16, 1002, 6567, 2648,
+      43, 2197, 1014, 3984, 1055, 4793, 10902, 1013, 16, 1004, 1002, 5184, 1014,
+      6912, 43, 6309, 1057, 4793, 1923, 1002, 2200, 11, 61, 5042, 1123, 1530,
+      23215
+    ]
+  },
+  {
+    "text": "Opt-in engine read limits stop runaway reads without partial answers",
+    "ids": [
+      22575, 17, 1005, 2200, 2197, 5543, 1650, 18056, 8637, 1308, 6710, 6004
+    ]
+  },
+  {
+    "text": "Engine read limits must apply only when KIBI_ENGINE_READ_TIME_LIMIT_MS or KIBI_ENGINE_READ_INFERENCE_LIMIT is set. Each bounded read-only engine request must stop at its configured time or inference limit. A read that hits its limit must fail with QUERY_LIMIT_EXCEEDED and the exceeded limit kind and value on the CLI and MCP envelopes instead of returning a partial answer. A stopped read must free the engine queue for the next client. The read time limit must be capped below the hard engine query timeout. Writes, module loads, and sync compilation must never be bounded by the engine read limits",
+    "ids": [
+      2200, 2197, 5543, 1448, 5617, 1075, 1049, 10388, 4644, 41, 2200, 41, 2197,
+      41, 1057, 41, 4793, 41, 4802, 1036, 10388, 4644, 41, 2200, 41, 2197, 41,
+      27943, 41, 4793, 1009, 1281, 18, 1175, 9357, 2197, 17, 1075, 2200, 4233,
+      1448, 1650, 1018, 1055, 25934, 1057, 1036, 27943, 4793, 18, 43, 2197,
+      1014, 3984, 1055, 4793, 1448, 7252, 1013, 22038, 41, 4793, 41, 13878,
+      1004, 1002, 13878, 4793, 1791, 1004, 2649, 1012, 1002, 17862, 1078, 1004,
+      10344, 1367, 10261, 1021, 1618, 1003, 3198, 43, 6710, 2443, 18, 43, 2036,
+      2197, 1448, 1495, 1002, 2200, 23246, 1011, 1002, 1285, 6402, 18, 1002,
+      2197, 1057, 4793, 1448, 1028, 12886, 1923, 1002, 1530, 2200, 22038, 1057,
+      4839, 18, 6015, 16, 10342, 14671, 16, 1004, 25357, 5274, 1448, 1202, 1028,
+      9357, 1017, 1002, 2200, 2197, 5543
+    ]
+  },
+  {
+    "text": "Markdown and YAML metadata extractors",
+    "ids": [1934, 6704, 1004, 7044, 18974, 26431, 13823, 4674]
+  },
+  {
+    "text": "\nKibi extracts entities and relationships from source files using specialized extractors:\n- Markdown extractor: Parses YAML frontmatter for core entity types and interprets Markdown links as `relates_to` edges.\n- Symbol extractor: Parses `symbols.yaml` to import code symbol definitions into the KB.\nTyped relationship objects in Markdown frontmatter are imported with their explicit types.\n\nSymbol coordinate refreshes must keep authored metadata in `symbols.yaml` and generated locations in `symbol-coordinates.yaml`. Consecutive refreshes over unchanged sources must be idempotent and must not alt",
+    "ids": [
+      10388, 4644, 26065, 10428, 1004, 5556, 1019, 2126, 5770, 1484, 6778,
+      13823, 4674, 30, 17, 1934, 6704, 13823, 1959, 30, 10974, 7589, 7044,
+      18974, 1398, 17906, 2340, 1011, 3569, 8184, 3133, 1004, 16847, 1021, 1934,
+      6704, 5977, 1010, 42, 13629, 41, 1006, 42, 6932, 18, 17, 5460, 13823,
+      1959, 30, 10974, 7589, 42, 8261, 18, 7044, 18974, 42, 1006, 11330, 2648,
+      5460, 14188, 1052, 1002, 20683, 18, 20195, 2282, 4206, 1005, 1934, 6704,
+      1398, 17906, 2340, 1030, 9970, 1013, 1043, 12222, 3133, 18, 5460, 12536,
+      24422, 20904, 1235, 1448, 1568, 7792, 26431, 1005, 42, 8261, 18, 7044,
+      18974, 42, 1004, 6019, 4275, 1005, 42, 5460, 17, 11099, 18, 7044, 18974,
+      42, 18, 4492, 24422, 20904, 1235, 1064, 14710, 3222, 1448, 1028, 7915,
+      5639, 10014, 3771, 1004, 1448, 1031, 11462
+    ]
+  },
+  {
+    "text": "Journaled single-writer engine persistence",
+    "ids": [2491, 1104, 1315, 17, 2219, 2200, 27303]
+  },
+  {
+    "text": "\nKibi MUST run one Node.js 18+ single-writer engine for each canonical workspace\nand branch. CLI and MCP clients MUST use the framed local engine protocol and\nMUST NOT start one-shot SWI-Prolog processes for normal operations.\n\nThe engine MUST attach the branch with SWI-Prolog `rdf_persistency`. Domain\ntriples, audit resources, and commit metadata MUST be committed in one RDF\ntransaction and acknowledged only after the journal is durable. `audit.log` is\na derived export, not authoritative state. A small atomic `CURRENT` pointer\nidentifies `<generation-id>:<commit-sequence>`; rebuilds publish a",
+    "ids": [
+      10388, 4644, 1448, 1454, 1034, 12051, 18, 52, 1021, 1330, 15, 1315, 17,
+      2219, 2200, 1011, 1175, 17568, 1579, 14333, 1004, 2595, 18, 17862, 1078,
+      1004, 10344, 1367, 6852, 1448, 1230, 1002, 9372, 1340, 2200, 7784, 1004,
+      1448, 1031, 1713, 1034, 17, 1921, 24436, 1078, 17, 3019, 20203, 5200,
+      1011, 2677, 2142, 18, 1002, 2200, 1448, 21482, 1002, 2595, 1013, 24436,
+      1078, 17, 3019, 20203, 42, 15434, 1552, 41, 28492, 10922, 42, 18, 4890,
+      5426, 1021, 16, 14733, 3225, 16, 1004, 9803, 26431, 1448, 1028, 4468,
+      1005, 1034, 15434, 1552, 11604, 1004, 7975, 1075, 1050, 1002, 2491, 1009,
+      24640, 18, 42, 14733, 18, 7839, 42, 1009, 43, 4179, 8173, 16, 1031, 22955,
+      1116, 18, 43, 1241, 8599, 42, 1789, 42, 19890, 13853, 42, 32, 3251, 17,
+      7915, 34, 30, 32, 9803, 17, 4543, 34, 42, 31, 13597, 1021, 9178, 43
+    ]
+  },
+  {
+    "text": "RDF persistence using SWI-Prolog rdf_persistency library",
+    "ids": [
+      15434, 1552, 27303, 1484, 24436, 1078, 17, 3019, 20203, 15434, 1552, 41,
+      28492, 10922, 2081
+    ]
+  },
+  {
+    "text": "\nKibi's knowledge base is persisted on disk using the SWI-Prolog `rdf_persistency` library.\nEntities and relationships are stored as RDF triples in a branch-specific `.kb/branches/<branch>/kb.rdf` file.\nThe storage layer handles file locking to prevent corruption during concurrent access.\n\nReplacement of the branch KB on disk must be detectable from MCP attachment state so that stale in-memory/attached views are not used after external sync operations.\n",
+    "ids": [
+      10388, 4644, 11, 61, 2722, 1924, 1009, 18041, 1012, 8791, 1484, 1002,
+      24436, 1078, 17, 3019, 20203, 42, 15434, 1552, 41, 28492, 10922, 42, 2081,
+      18, 10428, 1004, 5556, 1030, 7256, 1010, 15434, 1552, 5426, 1021, 1005,
+      43, 2595, 17, 2569, 42, 18, 20683, 19, 4634, 19, 32, 2595, 34, 19, 20683,
+      18, 15434, 1552, 42, 4377, 18, 1002, 4533, 5747, 15030, 4377, 13895, 1006,
+      3658, 6903, 1082, 15489, 2235, 18, 5116, 1003, 1002, 2595, 20683, 1012,
+      8791, 1448, 1028, 10493, 2091, 1019, 10344, 1367, 13455, 1116, 1067, 1014,
+      25735, 1005, 17, 2644, 19, 3993, 4334, 1030, 1031, 1115, 1050, 5333,
+      25357, 2142, 18
+    ]
+  },
+  {
+    "text": "SWI-Prolog process management and JSON-RPC lifecycle",
+    "ids": [
+      24436, 1078, 17, 3019, 20203, 1838, 1974, 1004, 52, 2391, 17, 60, 14048,
+      1172, 22496
+    ]
+  },
+  {
+    "text": "\nThe CLI manages the lifecycle of the SWI-Prolog child process, handling startup, shutdown, and error recovery.\nCommunication with the Prolog engine is conducted via a JSON-RPC bridge, ensuring robust serialization of complex entity graphs.\n\nMCP must refresh the attached branch KB when the same branch snapshot is replaced externally (for example, by `kibi sync --rebuild`) while remaining attached to the branch.\n\nRead-after-write consistency is preserved across one-shot (bun) queries: compound goals such as the status query must not be served from the PrologProcess query cache, so a same-sessio",
+    "ids": [
+      1002, 17862, 1078, 8026, 1002, 1172, 22496, 1003, 1002, 24436, 1078, 17,
+      3019, 20203, 1781, 1838, 16, 7310, 21758, 16, 2850, 6704, 16, 1004, 6567,
+      6239, 18, 3813, 1013, 1002, 3019, 20203, 2200, 1009, 3152, 2087, 43, 52,
+      2391, 17, 60, 14048, 1964, 16, 11731, 14879, 6648, 2995, 1003, 2381, 8184,
+      18293, 18, 10344, 1367, 1448, 24422, 20904, 1002, 3993, 2595, 20683, 1049,
+      1002, 1174, 2595, 19063, 11332, 1009, 2005, 26229, 12, 1011, 1748, 16,
+      1017, 42, 10388, 4644, 25357, 17, 17, 13597, 42, 13, 1102, 2594, 3993,
+      1006, 1002, 2595, 18, 2197, 17, 1050, 17, 3345, 17706, 1009, 5566, 1414,
+      1034, 17, 1921, 12, 20128, 13, 9867, 4140, 30, 6334, 2295, 1113, 1010,
+      1002, 2576, 22038, 1448, 1031, 1028, 1372, 1019, 1002, 3019, 20203, 20578,
+      8629, 1021, 22038, 16059, 16, 1067, 43, 1174, 17, 6373, 17725, 1086
+    ]
+  },
+  {
+    "text": "Core integrity and coverage validation rules",
+    "ids": [3569, 10115, 1004, 5331, 26360, 2519]
+  },
+  {
+    "text": "\nThe Prolog KB core implements foundational validation rules to ensure data consistency:\n- `must-priority-coverage`: ensures requirements with \"must\" priority have at least one scenario and one test.\n- `no-dangling-refs`: ensures all relationship targets exist as entities in the KB.\n- `no-cycles`: prevents circular dependency chains in requirements and ADRs.\n",
+    "ids": [
+      1002, 3019, 20203, 20683, 3569, 21170, 2198, 1395, 26360, 2519, 1006,
+      4682, 1957, 17706, 30, 17, 42, 1448, 17, 8476, 17, 5331, 42, 30, 20318,
+      4924, 1013, 6, 1448, 6, 8476, 1037, 1018, 1566, 1034, 10973, 1004, 1034,
+      2237, 18, 17, 42, 1059, 17, 17743, 17, 24422, 1021, 42, 30, 20318, 1041,
+      2282, 6895, 3845, 1010, 10428, 1005, 1002, 20683, 18, 17, 42, 1059, 17,
+      11715, 42, 30, 15269, 7212, 23400, 7865, 1005, 4924, 1004, 3754, 1875, 18
+    ]
+  },
+  {
+    "text": "The kibi-cursor portable Agent Plugin artifact has the Agent Plugins 1.0.0 layout",
+    "ids": [
+      1002, 10388, 4644, 17, 11737, 24307, 1105, 11115, 3011, 12360, 1384,
+      19791, 1044, 1002, 3011, 12360, 6082, 21, 18, 20, 18, 20, 8627
+    ]
+  },
+  {
+    "text": "The kibi-cursor package must publish its agent-plugin directory alongside its .cursor-plugin manifest directory. The root plugin.json of the kibi-cursor portable Agent Plugin artifact must declare the Agent Plugins 1.0.0 plugin schema. The root plugin.json of the kibi-cursor portable Agent Plugin artifact must use only the $schema, name, version, description, author, homepage, repository, license, keywords and extensions fields. The kibi-cursor portable Agent Plugin artifact must package the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-traceability and kibi-usage sk",
+    "ids": [
+      1002, 10388, 4644, 17, 11737, 24307, 1105, 6433, 1448, 9178, 1055, 3011,
+      17, 12360, 1384, 13182, 3083, 1055, 18, 11737, 24307, 1105, 17, 12360,
+      1384, 18682, 13182, 18, 1002, 6123, 12360, 1384, 18, 52, 2391, 1003, 1002,
+      10388, 4644, 17, 11737, 24307, 1105, 11115, 3011, 12360, 1384, 19791,
+      1448, 12526, 1002, 3011, 12360, 6082, 21, 18, 20, 18, 20, 12360, 1384,
+      7046, 27439, 18, 1002, 6123, 12360, 1384, 18, 52, 2391, 1003, 1002, 10388,
+      4644, 17, 11737, 24307, 1105, 11115, 3011, 12360, 1384, 19791, 1448, 1230,
+      1075, 1002, 8, 7046, 27439, 16, 1177, 16, 1550, 16, 5418, 16, 2172, 16,
+      1194, 12710, 16, 21415, 16, 5111, 16, 2151, 21110, 1004, 13311, 3255, 18,
+      1002, 10388, 4644, 17, 11737, 24307, 1105, 11115, 3011, 12360, 1384,
+      19791, 1448, 6433, 1002, 10388, 4644, 17, 5885, 5500, 1367, 16, 10388,
+      4644, 17, 9803, 17, 2325, 16, 10388, 4644, 17, 5573, 16, 10388, 4644, 17,
+      3846, 1797, 16, 10388, 4644, 17, 6643, 7016, 1004, 10388, 4644, 17, 7198,
+      14321
+    ]
+  },
+  {
+    "text": "Cursor Plugin Ships a Portable Agent Plugin Artifact",
+    "ids": [
+      11737, 24307, 1105, 12360, 1384, 2725, 43, 11115, 3011, 12360, 1384, 19791
+    ]
+  },
+  {
+    "text": "Any client that supports the open Agent Plugins standard must be able to load Kibi Agent Skills and the MCP server from the kibi-cursor portable Agent Plugin artifact.\n\n## Context\n\nkibi-cursor ships a portable Agent Plugin artifact next to its Cursor Plugin, so clients other than Cursor can use Kibi. What the artifact contains and which schema fields it uses is stated in REQ-cursor-agent-plugin-package, where each claim is proved from the artifact files. This requirement keeps the portability outcome, which the end-to-end test checks.\n\nPackaging details the end-to-end and package tests check: ",
+    "ids": [
+      1157, 6402, 1014, 5759, 1002, 1336, 3011, 12360, 6082, 2121, 1448, 1028,
+      1589, 1006, 6176, 10388, 4644, 3011, 3819, 1004, 1002, 10344, 1367, 7247,
+      1019, 1002, 10388, 4644, 17, 11737, 24307, 1105, 11115, 3011, 12360, 1384,
+      19791, 18, 7, 7, 5129, 10388, 4644, 17, 11737, 24307, 1105, 2725, 43,
+      11115, 3011, 12360, 1384, 19791, 1285, 1006, 1055, 11737, 24307, 1105,
+      12360, 1384, 16, 1067, 6852, 1066, 1090, 11737, 24307, 1105, 1070, 1230,
+      10388, 4644, 18, 1060, 1002, 19791, 2403, 1004, 1035, 7046, 27439, 3255,
+      1015, 2600, 1009, 2096, 1005, 1134, 3166, 17, 11737, 24307, 1105, 17,
+      3011, 17, 12360, 1384, 17, 6433, 16, 1079, 1175, 3372, 1009, 3934, 1019,
+      1002, 19791, 5770, 18, 1029, 8101, 6912, 1002, 2423, 7016, 8566, 16, 1035,
+      1002, 1209, 17, 1006, 17, 1209, 2237, 13154, 18, 13799, 3757, 1002, 1209,
+      17, 1006, 17, 1209, 1004, 6433, 4858, 3644, 30
+    ]
+  },
+  {
+    "text": "Cursor Plugin Resolves and Runs the Consumer-Local MCP",
+    "ids": [
+      11737, 24307, 1105, 12360, 1384, 9669, 1021, 1004, 2222, 1002, 6331, 17,
+      1340, 10344, 1367
+    ]
+  },
+  {
+    "text": "The published kibi-cursor plugin must resolve and execute the consumer project's project-local kibi-mcp package without downloading packages or using a global or plugin-local runtime. It must resolve the consumer workspace in deterministic order: explicit workspace argument, WORKSPACE_FOLDER_PATHS, KIBI_WORKSPACE, CURSOR_WORKSPACE, then cwd only when cwd demonstrably contains project-local kibi-mcp; unresolved placeholders are invalid and ambiguous multiple usable roots fail clearly. The launcher must resolve kibi-mcp through consumer-scoped Node package semantics including exports-restricted ",
+    "ids": [
+      1002, 1411, 10388, 4644, 17, 11737, 24307, 1105, 12360, 1384, 1448, 9669,
+      1004, 14395, 1002, 6331, 1628, 11, 61, 1628, 17, 1340, 10388, 4644, 17,
+      10344, 1367, 6433, 1308, 7822, 1081, 13561, 1036, 1484, 43, 2801, 1036,
+      12360, 1384, 17, 1340, 1454, 6298, 18, 1015, 1448, 9669, 1002, 6331, 1579,
+      14333, 1005, 27289, 24306, 9080, 1350, 30, 12222, 1579, 14333, 5691, 16,
+      1579, 14333, 41, 18628, 41, 9431, 16, 10388, 4644, 41, 1579, 14333, 16,
+      11737, 24307, 1105, 41, 1579, 14333, 16, 1065, 18302, 1100, 1075, 1049,
+      18302, 1100, 6948, 5500, 5327, 2403, 1628, 17, 1340, 10388, 4644, 17,
+      10344, 1367, 31, 3901, 5078, 15122, 1179, 16800, 1030, 18534, 1004, 19086,
+      2680, 23019, 5153, 7252, 3421, 18, 1002, 21748, 1448, 9669, 10388, 4644,
+      17, 10344, 1367, 1089, 6331, 17, 8537, 1100, 12051, 6433, 27087, 1170,
+      13344, 17, 6781
+    ]
+  },
+  {
+    "text": "'Cursor Kibi Plugin v1: Optional MCP adapter package'",
+    "ids": [
+      11, 11737, 24307, 1105, 10388, 4644, 12360, 1384, 64, 1493, 30, 10893,
+      10344, 1367, 14587, 1127, 6433, 11
+    ]
+  },
+  {
+    "text": "The kibi-cursor package must remain optional. When kibi-cursor is installed or enabled, it must not modify core Kibi runtime components. The kibi-cursor MCP launcher must start the project-local kibi-mcp binary. kibi-cursor hooks must only emit reminders and warnings. kibi-cursor hooks must not write to the .kb directory. The kibi-cursor documentation must describe a manual MCP configuration for teams that do not use the plugin installer.\n\n## Context\n\nkibi-cursor integrates Kibi with Cursor through a plugin manifest, rules, skills, commands, advisory hooks and an MCP launcher. What the package",
+    "ids": [
+      1002, 10388, 4644, 17, 11737, 24307, 1105, 6433, 1448, 2967, 10893, 18,
+      1049, 10388, 4644, 17, 11737, 24307, 1105, 1009, 4367, 1036, 8130, 16,
+      1015, 1448, 1031, 18939, 3569, 10388, 4644, 1454, 6298, 5183, 18, 1002,
+      10388, 4644, 17, 11737, 24307, 1105, 10344, 1367, 21748, 1448, 1713, 1002,
+      1628, 17, 1340, 10388, 4644, 17, 10344, 1367, 11447, 18, 10388, 4644, 17,
+      11737, 24307, 1105, 17014, 1448, 1075, 11501, 1108, 13770, 1021, 1004,
+      15240, 18, 10388, 4644, 17, 11737, 24307, 1105, 17014, 1448, 1031, 3345,
+      1006, 1002, 18, 20683, 13182, 18, 1002, 10388, 4644, 17, 11737, 24307,
+      1105, 11659, 1448, 5241, 43, 5416, 10344, 1367, 8569, 1011, 1786, 1014,
+      1085, 1031, 1230, 1002, 12360, 1384, 15506, 1127, 18, 7, 7, 5129, 10388,
+      4644, 17, 11737, 24307, 1105, 16415, 1021, 10388, 4644, 1013, 11737,
+      24307, 1105, 1089, 43, 12360, 1384, 18682, 16, 2519, 16, 3819, 16, 9960,
+      16, 6325, 17014, 1004, 1025, 10344, 1367, 21748, 18, 1060, 1002, 6433
+    ]
+  },
+  {
+    "text": "The kibi-cursor package ships its manifest, skills, rules, commands, hooks and MCP launcher",
+    "ids": [
+      1002, 10388, 4644, 17, 11737, 24307, 1105, 6433, 2725, 1055, 18682, 16,
+      3819, 16, 2519, 16, 9960, 16, 17014, 1004, 10344, 1367, 21748
+    ]
+  },
+  {
+    "text": "The kibi-cursor package must publish its .cursor-plugin manifest directory, its mcp.json configuration and its bin, hooks, skills, rules and commands directories. The kibi-cursor plugin manifest must declare the skills, rules, commands, hooks and mcpServers fields. The kibi-cursor plugin must bundle the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-traceability and kibi-usage skills. The kibi-cursor plugin must ship the kibi-traceability and kibi-workflow rules. The kibi-cursor plugin must ship a kibi-bootstrap command. The kibi MCP server in the kibi-cursor MCP conf",
+    "ids": [
+      1002, 10388, 4644, 17, 11737, 24307, 1105, 6433, 1448, 9178, 1055, 18,
+      11737, 24307, 1105, 17, 12360, 1384, 18682, 13182, 16, 1055, 10344, 1367,
+      18, 52, 2391, 8569, 1004, 1055, 7032, 16, 17014, 16, 3819, 16, 2519, 1004,
+      9960, 1478, 2117, 18, 1002, 10388, 4644, 17, 11737, 24307, 1105, 12360,
+      1384, 18682, 1448, 12526, 1002, 3819, 16, 2519, 16, 9960, 16, 17014, 1004,
+      10344, 28257, 1105, 13034, 3255, 18, 1002, 10388, 4644, 17, 11737, 24307,
+      1105, 12360, 1384, 1448, 13018, 1002, 10388, 4644, 17, 5885, 5500, 1367,
+      16, 10388, 4644, 17, 9803, 17, 2325, 16, 10388, 4644, 17, 5573, 16, 10388,
+      4644, 17, 3846, 1797, 16, 10388, 4644, 17, 6643, 7016, 1004, 10388, 4644,
+      17, 7198, 3819, 18, 1002, 10388, 4644, 17, 11737, 24307, 1105, 12360,
+      1384, 1448, 1917, 1002, 10388, 4644, 17, 6643, 7016, 1004, 10388, 4644,
+      17, 1153, 11320, 2519, 18, 1002, 10388, 4644, 17, 11737, 24307, 1105,
+      12360, 1384, 1448, 1917, 43, 10388, 4644, 17, 5885, 5500, 1367, 2100, 18,
+      1002, 10388, 4644, 10344, 1367, 7247, 1005, 1002, 10388, 4644, 17, 11737,
+      24307, 1105, 10344, 1367, 8536, 1552
+    ]
+  },
+  {
+    "text": "Cursor stop hook distinguishes plan delivery from job completion",
+    "ids": [11737, 24307, 1105, 1650, 7109, 26349, 1939, 5965, 1019, 2111, 5509]
+  },
+  {
+    "text": "\nThe Cursor Kibi `stop` hook must treat plan delivery as distinct from job completion.\n\nCursor does not expose a plan-versus-agent field on `stop`. The plugin observes tools used in that agent loop: `CreatePlan` is plan delivery, and only known editable tools (`Write`, `StrReplace`, `Edit`, and related names) record dirty paths. Reads, search, and `SwitchMode` do not count as edits.\n\nAfter a turn that observed `CreatePlan` and did not edit source or mutate the knowledge base, `stop` must not emit `followup_message`. If that same turn also edited source or ran `kb_upsert` / `kb_delete`, the exi",
+    "ids": [
+      1002, 11737, 24307, 1105, 10388, 4644, 42, 1650, 42, 7109, 1448, 6444,
+      1939, 5965, 1010, 4670, 1019, 2111, 5509, 18, 11737, 24307, 1105, 1521,
+      1031, 13457, 43, 1939, 17, 5437, 17, 3011, 1498, 1012, 42, 1650, 42, 18,
+      1002, 12360, 1384, 23457, 4912, 1115, 1005, 1014, 3011, 6083, 30, 42,
+      2449, 23765, 1325, 42, 1009, 1939, 5965, 16, 1004, 1075, 1130, 9092, 2091,
+      4912, 12, 42, 3345, 42, 16, 42, 1364, 13349, 23765, 9738, 42, 16, 42,
+      9092, 42, 16, 1004, 2147, 2421, 13, 1507, 5536, 9431, 18, 8637, 16, 2951,
+      16, 1004, 42, 5948, 4308, 2213, 42, 1085, 1031, 3181, 1010, 9092, 1021,
+      18, 1050, 43, 1741, 1014, 4165, 42, 2449, 23765, 1325, 42, 1004, 1112,
+      1031, 9092, 2126, 1036, 13169, 11265, 1002, 2722, 1924, 16, 42, 1650, 42,
+      1448, 1031, 11501, 1108, 42, 2588, 5285, 41, 3477, 42, 18, 1071, 1014,
+      1174, 1741, 1042, 4499, 2126, 1036, 1749, 42, 20683, 41, 10145, 7749, 42,
+      19, 42, 20683, 41, 2978, 11876, 42, 16, 1002, 3660, 1078
+    ]
+  },
+  {
+    "text": "Cursor worktree handoffs preserve Kibi continuity",
+    "ids": [
+      11737, 24307, 1105, 1153, 12340, 1198, 26481, 6975, 10388, 4644, 12723
+    ]
+  },
+  {
+    "text": "\nCursor worktree changes must preserve Kibi continuity across handoffs.\n\n1. A worktree switch must not change the public Kibi surface that the user sees.\n2. Guidance for the active worktree must remain consistent with the same public operation model.\n3. Continuity requirements must survive branch and worktree movement without rewriting history.\n",
+    "ids": [
+      11737, 24307, 1105, 1153, 12340, 2437, 1448, 6975, 10388, 4644, 12723,
+      1414, 1198, 26481, 18, 21, 18, 43, 1153, 12340, 5948, 1448, 1031, 1695,
+      1002, 1276, 10388, 4644, 2308, 1014, 1002, 4316, 4933, 18, 22, 18, 7612,
+      1011, 1002, 2167, 1153, 12340, 1448, 2967, 7341, 1013, 1002, 1174, 1276,
+      2175, 1950, 18, 23, 18, 12723, 4924, 1448, 4794, 2595, 1004, 1153, 12340,
+      1935, 1308, 1134, 17566, 1387, 18
+    ]
+  }
+]

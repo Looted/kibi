@@ -314,3 +314,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-77fe379333b6
+  - type: executable_for
+    from: SYM-proof-origin-review-rules
+    to: TEST-proof-origin-review-rules
+    created_at: 2026-10-28T11:01:40.953Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ffd296f26a44
+  - type: validates
+    from: TEST-proof-signoff-format-env
+    to: SCEN-kibi-signoff-views
+    created_at: 2026-10-28T11:16:45.177Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1079842ff7f
+  - type: validates
+    from: TEST-proof-alignment-new-choice
+    to: SCEN-kibi-vocabulary-alignment-capability
+    created_at: 2026-10-29T16:55:59.043Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8de04eca7600

@@ -419,3 +419,108 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-349f1cc4e380
+  - type: executable_for
+    from: SYM-proof-mcp-excludes-jev
+    to: TEST-proof-mcp-excludes-jev
+    created_at: 2026-10-28T10:17:48.395Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-08ee4d598e04
+  - type: requires_property
+    from: REQ-capability-plugin-source-analysis-input-limit
+    to: FACT-source-analysis-max-input
+    created_at: 2026-10-28T10:52:09.937Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7354f6466d3
+  - type: specified_by
+    from: REQ-capability-plugin-source-analysis-input-limit
+    to: SCEN-installed-sdk-source-analysis-input-limits
+    created_at: 2026-10-28T10:52:09.978Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11167cfcc22a
+  - type: constrains
+    from: REQ-capability-plugin-source-analysis-input-limit
+    to: FACT-kibi-plugin-source-analysis-component
+    created_at: 2026-10-28T14:36:58.825Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06ed84cf4c35
+  - type: executable_for
+    from: SYM-proof-perf-trace-max-events
+    to: TEST-proof-perf-trace-max-events
+    created_at: 2026-10-28T17:36:54.414Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2bd8162a50ea
+  - type: implements
+    from: SYM-proof-result-outcomes
+    to: REQ-kibi-proof-run-vocabulary
+    created_at: 2026-10-28T17:47:34.669Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f9190e8ca9b
+  - type: covered_by
+    from: SYM-proof-result-outcomes
+    to: TEST-proof-proof-result-outcomes
+    created_at: 2026-10-28T17:47:46.053Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f048bc3662c8
+  - type: covered_by
+    from: SYM-proof-result-outcomes
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T17:47:46.078Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f9375fdecc0
+  - type: validates
+    from: TEST-proof-no-impact-declaration
+    to: SCEN-cli-staged-impact-enforcement
+    created_at: 2026-10-28T18:57:10.067Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a5306a06df0
+  - type: executable_for
+    from: SYM-proof-engine-protocol-version
+    to: TEST-proof-engine-protocol-version
+    created_at: 2026-10-28T19:03:50.328Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80d57ee14d6b
+  - type: implements
+    from: SYM-cli-signoff-model-signoff-fences
+    to: REQ-kibi-signoff-fences
+    created_at: 2026-10-29T10:46:23.338Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2001cca2b0a1
+  - type: covered_by
+    from: SYM-cli-signoff-model-signoff-fences
+    to: TEST-proof-signoff-summary-fence
+    created_at: 2026-10-29T10:46:44.384Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5adb946e82af
+  - type: covered_by
+    from: SYM-cli-signoff-model-signoff-fences
+    to: TEST-proof-signoff-questions-fence
+    created_at: 2026-10-29T10:47:21.945Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2652fce1671
+  - type: implements
+    from: SYM-hook-managers-hook-manager-names
+    to: REQ-git-hook-manager-integration
+    created_at: 2026-10-29T18:38:47.108Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-894eba55a629
+  - type: covered_by
+    from: SYM-hook-managers-hook-manager-names
+    to: TEST-git-hook-manager-integration
+    created_at: 2026-10-29T18:38:47.141Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25e5e87b8c19

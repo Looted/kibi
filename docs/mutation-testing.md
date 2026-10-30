@@ -11,64 +11,54 @@ fails `bun run test:mutation`**.
 
 | Task | Command |
 | --- | --- |
-| Run the mutation suite | `bun run test:mutation` |
-| Inspect the report | open `reports/mutation/html/index.html` |
-| Raw machine report | `reports/mutation/mutation.json` |
+| Run the gated Prolog mutation suite | `bun run test:mutation:prolog` |
+| Run the report-only backlog | `bun run test:mutation:prolog:backlog` |
+| List the mutants without running tests | `swipl scripts/run-prolog-mutation.pl list` |
+| Re-run chosen mutants | `bun run test:mutation:prolog -- --only <id>,<id>` |
+| Inspect the reports | open `reports/mutation/prolog/mutation.html` or `reports/mutation/prolog-backlog/mutation.html` |
+| Raw machine report | `reports/mutation/prolog/mutation.json` |
 
-Every run is a full run: incremental mode is deliberately off because the bun
-runner's incremental cache has been observed to under-invalidate when only
-test files change, which masks survivors. Reports and the `.stryker-tmp/`
-sandbox are gitignored.
+Mutalog's thresholds apply to a whole run, so the lane has two configs at
+the repository root:
 
-## Scope
+| Config | Modules | Gate | Mutants | Run time |
+| --- | --- | --- | --- | --- |
+| `mutalog.config.pl` | `logic_ir.pl`, `intervals.pl`, `units.pl` and `symbol_classification.pl`, each tested by its own `.plt` | `break(100)` | ~3,100 | about 4 minutes on 4 cores |
+| `mutalog.backlog.config.pl` | `kb.pl` (tested by `logic_ir.plt` and `kb.plt`) | `break(0)`, report only | 4,840, 32.1% | about 10 minutes on 3 workers |
 
-The suite currently targets the three small packages whose unit suites are
-fast enough for per-mutant runs (see `stryker.conf.mjs`):
+- Like the Stryker gate, `mutalog.config.pl` **gates at 100%**: any
+  surviving mutant fails the run. An equivalent mutant is suppressed in the
+  source, with a comment on the line above it that names the operator and
+  gives the reason:
 
-| Package | Mutated | Notes |
-| --- | --- | --- |
-| `packages/runtime` | `src/**/*.ts` except `src/index.ts` | `index.ts` is a pure re-export barrel of `kibi-cli` with no logic of its own. |
-| `packages/codex` | `src/**/*.ts` | |
-| `packages/cursor` | `src/**/*.ts` | |
+  ```prolog
+  % mutalog-disable-next-line cut_insert: maplist/3 over a det predicate
+  expression_depth(all(Items), Depth) :- maplist(expression_depth, Items, Depths), ...
+  ```
 
-Deliberately out of scope: `packages/cli` and `packages/mcp` (their tests spawn
-Prolog engines, git workspaces, and daemons, which makes per-mutant runs
-prohibitively slow), `packages/core` (SWI-Prolog sources — a JS mutator cannot
-touch them; Prolog has its own coverage lane via `test:coverage:prolog`), and
-`packages/opencode`/`vscode` (candidates for later passes).
+  The comment moves with the code, unlike an `ignore_mutants` id, which
+  carries line and column. Most suppressions are `cut_insert` mutants: a cut
+  inserted after a deterministic first goal of a clause that no later clause
+  can also match. In `intervals.pl` they also cover cuts whose caller keeps
+  only the first answer.
+- `mutalog.backlog.config.pl` holds modules whose survivors are not triaged
+  yet. Once a module's survivors are killed or suppressed as equivalents, move it
+  to `mutalog.config.pl`.
+- `scripts/run-prolog-mutation.pl` pins the Mutalog version. On first use
+  it downloads the release archive with `curl` and unpacks it with `tar`
+  into `.cache/prolog-packs` (gitignored), leaving the user's own packs
+  alone. Set `MUTALOG_HOME` to a
+  Mutalog checkout to run that instead.
+- `.github/workflows/mutation-prolog.yml` runs both configs nightly on
+  `develop`, on demand, and on pull requests that touch the mutated modules,
+  their tests or the lane's setup, on the bundled SWI-Prolog. Only the gated
+  run can fail the job. Both reports are uploaded as the
+  `prolog-mutation-report` artifact.
 
-## How it runs
-
-- Test runner: [`@hughescr/stryker-bun-runner`](https://github.com/hughescr/stryker-bun-runner)
-  spawns a fresh `bun test` child per run and correlates tests to mutants via
-  Bun's inspector protocol (`coverageAnalysis: "perTest"`). Stryker core runs
-  on Node; the children run on Bun (repo pins bun ≥ 1.3.10; the plugin needs
-  ≥ 1.3.7).
-- Test files are passed as an explicit `./`-prefixed list
-  (`bun.testFiles` in `stryker.conf.mjs`) because `bunfig.toml` sets
-  `[test] root = "test"`, which breaks bun's directory-argument discovery.
-- The sandbox rebuilds the tracked `plugins/` symlinks and restores `.kibi` to
-  mode 0700 via `scripts/mutation-sandbox-setup.sh` (Stryker's copier cannot
-  copy symlinks and recreates directories with default modes).
-
-## Extending scope
-
-To add a package or directory to `mutate`:
-
-1. Make sure a fast, hermetic unit suite covers it — the whole scoped dry run
-   must stay well under a minute, and every test must pass inside the Stryker
-   sandbox.
-2. Add the glob to `mutate` in `stryker.conf.mjs` (and the package's tests to
-   the `bun.testFiles` enumeration) — package lists live in both
-   `MUTATION_PACKAGES` and `mutate`.
-3. Add the package to `MUTATION_PACKAGES` in
-   `scripts/tests/mutation-workflow-contract.test.ts`.
-4. Run `bun run test:mutation` and fix every survivor before committing.
-
-A survivor is fixed by adding a **behavioral test** (assert the observable
-output, state transition, or error contract the mutant changed) — not by
-weakening the gate. This matches the repo-wide testing policy: assert
-behavior, not lines.
+To add a module, add it to `mutate` and its plunit file to `tests` in
+`mutalog.backlog.config.pl`, and both paths to the workflow's `paths`.
+Measure the module's run time first and raise the job's `timeout-minutes` if
+needed.
 
 ## Equivalent mutants and exclusions
 
@@ -116,9 +106,14 @@ production runtime; the remaining excluded mutants fall into these groups:
 | `packages/runtime/src/skill-system/loader.ts` | Module-init skills-directory literal (per-test coverage attribution impossible; behavior pinned by the canonical-usage test); `listRoots` directory filter and the empty declared-resources fallback are observationally equivalent. |
 | `packages/codex/src/hook-input.ts`, `packages/cursor/src/hook-input.ts` | `isRecord` type-check removal and stdin chunk buffering are unobservable through `parseHookInput`/`readStdin`; the empty-event guard is inert for empty strings. |
 | `packages/codex/src/hook-runner.ts`, `packages/cursor/src/hook-runner.ts` | `SessionStart` case falls through to the identical default; the codex dirty-path clear term is implied by the kb-check flag; cursor write-bucket literals and the mutation-tool clear term are subsumed by equivalent branches. |
+| `packages/codex/src/hook-runner.ts`, `packages/cursor/src/hook-runner.ts` (telemetry and context guards) | The telemetry opt-in guard repeats the one `appendHookUsageRows` applies (it only skips loading the index); the codex no-target early return only skips loading the index; the codex focus lookup always has one target, because only Edit-style input carries `old_string`; the missing-prompt and missing-session-id fallback literals are never observable; the cursor `"read"` snippet surface is equivalent to any non-`"edit"` value. |
 | `packages/codex/src/hook-state.ts`, `packages/cursor/src/hook-state*.ts` | Redundant guards whose removal converges on the same state (blank-name, blank-path, missing-dir early returns); journal events subsumed by the snapshot write; Bun empty-encoding equivalents. |
 | `packages/codex/src/path-policy.ts`, `packages/cursor/src/path-policy.ts` | Extension-computation fallback literals (`?? ""`, `: ""`, `includes("")`) yield non-matching extensions for every input. |
 | `packages/cursor/src/kb-mcp-tools.ts` | `extractKbMcpToolName` fallbacks re-derive the same name from the same inputs. |
 | `packages/cursor/src/messages.ts` | Unmatched `"mcp"` switch case (an unmatched case already returns undefined). |
 | `packages/cursor/src/hook-state-storage.ts` | `sleepSync`/retry pacing is outcome-neutral; lock-outcome booleans converge; coercion tolerates primitives; Bun empty-encoding equivalents. |
 | `packages/cursor/src/hook-runner.ts`, `packages/cursor/src/hook-state-storage.ts` (type-narrowing guards) | `toolName !== undefined` and `lane === undefined` checks narrow types for `Set<string>.has`; at runtime `Set.has(undefined)` is false, so the outcome is identical with or without them. |
+| `packages/cli/src/engine-limits.ts` (`boundedInteger`) | The `typeof value === "number"` check narrows the type for the comparisons; `Number.isSafeInteger` already rejects every non-number. |
+| `packages/cli/src/entity-body-context.ts` (`classifyLines`) | A prose row's `heading: ""` is never read, and `match[1]?.length` only satisfies the indexed-access type (the pattern always captures the hashes). |
+| `packages/cli/src/logic/ir.ts` | `renameTerm`'s variable guard and the declared-name guard only narrow types (a missing name is never looked up), and the `?? []` fallback over declared variables yields entries without a name, which rename nothing. |
+| `packages/cli` check speedups (`source-analysis-cache.ts`, `symbol-coordinates.ts`, `shards.ts`, `symbol-granularity-check.ts`, `requirement-quality.ts`, `aggregated-checks.ts`) and `packages/mcp/src/tools/check-prolog.ts` | These modules are not in the gated set; their speedup lines were mutated by line range. A pure-function memo skipped or recomputed gives the same answer; the builtin analyzer always resolves where tests run; `force` on removing a directory that exists changes nothing; Windows separator normalization cannot show on a POSIX runner; an incomplete analysis carries no symbols; every requirement asked for is in the fanout index. |

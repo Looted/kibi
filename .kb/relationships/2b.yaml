@@ -405,3 +405,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-20133b0b42d9
+  - type: validates
+    from: TEST-proof-canonical-kb-lanes
+    to: SCEN-cli-canonical-runtime
+    created_at: 2026-10-28T10:10:16.426Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-553116289e77
+  - type: implements
+    from: SYM-cli-discovery-valid-entity-types
+    to: REQ-kibi-operation-page-sizes
+    created_at: 2026-10-28T17:24:12.182Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c1aa3d604f6
+  - type: covered_by
+    from: SYM-cli-discovery-valid-entity-types
+    to: TEST-proof-query-entity-types
+    created_at: 2026-10-28T17:24:24.327Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cfc297903b79
+  - type: validates
+    from: TEST-proof-canonical-facts-path
+    to: SCEN-cli-canonical-init
+    created_at: 2026-10-28T22:35:54.007Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f48f9b92c364

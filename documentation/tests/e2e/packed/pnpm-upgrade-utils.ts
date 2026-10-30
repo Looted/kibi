@@ -23,6 +23,7 @@ export interface PnpmCommand {
 // implements REQ-test-journaled-engine-harness
 export interface Tarballs {
   core: string;
+  "agent-core": string;
   cli: string;
   runtime: string;
   mcp: string;
@@ -323,6 +324,7 @@ export async function packAllForPnpmUpgrade(): Promise<Tarballs> {
   const tarballs = await packAllPackages();
   return {
     core: tarballs.core,
+    "agent-core": tarballs["agent-core"],
     cli: tarballs.cli,
     runtime: tarballs.runtime,
     mcp: tarballs.mcp,

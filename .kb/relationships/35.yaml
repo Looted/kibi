@@ -293,3 +293,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d9b049545d41
+  - type: requires_property
+    from: REQ-prolog-ci-system-swipl-job
+    to: FACT-ci-integration-system-swipl
+    created_at: 2026-10-28T10:37:06.886Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-882ea7bacf2b
+  - type: specified_by
+    from: REQ-prolog-ci-system-swipl-job
+    to: SCEN-prolog-bundled-ci
+    created_at: 2026-10-28T10:37:06.928Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8ed29d1abad
+  - type: requires_property
+    from: REQ-kibi-proof-kind-vocabulary
+    to: FACT-kibi-code-proof-kind-vocabulary-closed
+    created_at: 2026-10-28T13:38:27.182Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b0d9ca9450aa
+  - type: specified_by
+    from: REQ-kibi-proof-kind-vocabulary
+    to: SCEN-kibi-code-proof-kinds
+    created_at: 2026-10-28T13:38:27.230Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4cd0cd46727c
+  - type: constrains
+    from: REQ-kibi-proof-kind-vocabulary
+    to: FACT-SUBJECT-KIBI-CODE-PROOF
+    created_at: 2026-10-28T13:38:31.441Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0927c3caae64
+  - type: constrains
+    from: REQ-prolog-ci-system-swipl-job
+    to: FACT-kibi-ci-integration-job-component
+    created_at: 2026-10-28T14:36:33.187Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7f7b38837f31
+  - type: executable_for
+    from: SYM-proof-signoff-gate-implementation-label
+    to: TEST-proof-signoff-gate-implementation-label
+    created_at: 2026-10-28T22:23:01.100Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26b3c05a7b2c
+  - type: implements
+    from: SYM-search-hint-weak-score
+    to: REQ-kibi-search-hints-limits
+    created_at: 2026-10-29T21:27:46.307Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5a562aac629
+  - type: implements
+    from: SYM-search-hint-weak-score
+    to: REQ-kibi-search-hints-host
+    created_at: 2026-10-29T21:27:46.348Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-374a8aff371a
+  - type: covered_by
+    from: SYM-search-hint-weak-score
+    to: TEST-proof-search-hint-weak-score
+    created_at: 2026-10-29T21:29:09.987Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b39887c52de0
+  - type: covered_by
+    from: SYM-search-hint-weak-score
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-10-29T21:29:10.037Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47aecf8c4857

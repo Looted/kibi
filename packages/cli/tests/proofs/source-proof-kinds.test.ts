@@ -176,6 +176,36 @@ describe("file readers", () => {
     expect(missing.ok).toBe(false);
   });
 
+  test("a field reads one key of each list item, in document order", async () => {
+    write(
+      "workflow.yml",
+      "steps:\n  - uses: actions/checkout\n  - name: Merge\n    run: git merge\n  - name: Gate\n    run: sh gate.sh\n  - name: Push\n    run: git push\n",
+    );
+    const steps = await read({
+      reader: "yaml",
+      file: "workflow.yml",
+      path: "steps",
+      field: "run",
+    });
+    expect(steps.ok && steps.model).toEqual({
+      members: ["git merge", "git push", "sh gate.sh"],
+      sequence: ["git merge", "sh gate.sh", "git push"],
+    });
+    const notList = await read({
+      reader: "yaml",
+      file: "workflow.yml",
+      path: "steps.1",
+      field: "run",
+    });
+    expect(notList.ok).toBe(false);
+    expect(
+      sourceSpecErrors(
+        { reader: "yaml", file: "workflow.yml", field: "run", select: "keys" },
+        "source",
+      ),
+    ).toEqual(["source.field applies only to select items"]);
+  });
+
   test("glob lists files, or what each * matched", async () => {
     write(
       "migrations/0001_init.sql",
@@ -920,6 +950,42 @@ describe("model_check.pl decides source and temporal obligations", () => {
       "the middleware of GET /b do not include requireAuth",
     );
     expect(answers[10]?.reason).toContain("without passing through approved");
+  });
+
+  test("precedes members hold when every A comes before every B", () => {
+    const ordered = {
+      ...certificate,
+      model: {
+        members: ["build", "gate", "push"],
+        sequence: ["build", "gate", "push", "gate"],
+      },
+    };
+    const cases = [
+      ["build -> gate", "build -> push"],
+      ["gate -> push"],
+      ["build -> deploy"],
+      ["build gate"],
+    ].map((members) => ({
+      kind: "source",
+      obligation: { kind: "sequence_precedes", members },
+      certificate: ordered,
+    }));
+    const answers = prologCases<ModelAnswer>(
+      "model_check.pl",
+      "atom_string(K, Case.kind), model_check:model_check_obligation(K, Case.obligation, Case.certificate, Result), (Result == ok -> Out = _{ok: true} ; Result = problem(Reason), Out = _{ok: false, reason: Reason})",
+      cases,
+    );
+    expect(answers.map((answer) => answer.ok ?? false)).toEqual([
+      true,
+      false,
+      false,
+      false,
+    ]);
+    expect(answers[1]?.reason).toBe(
+      "push comes before gate in the list Kibi read (items 3 and 4)",
+    );
+    expect(answers[2]?.reason).toBe("deploy is not in the list Kibi read");
+    expect(answers[3]?.reason).toBe('build gate is not spelled "A -> B"');
   });
 
   test("subset_of and excludes set facts conflict with eq and includes only when they disagree", () => {

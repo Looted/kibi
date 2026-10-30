@@ -376,6 +376,12 @@ export const PROOF_CONTRACT_SCHEMA = {
           description:
             "The name the domain is exported under in the symbol's source file, when the symbol's title is not that name.",
         },
+        field: {
+          type: "string",
+          minLength: 1,
+          description:
+            "exhaustive: when the export is a list of records, the field of each record that names a domain member (a catalog's name).",
+        },
       },
       additionalProperties: false,
     },
@@ -398,7 +404,7 @@ export const PROOF_CONTRACT_SCHEMA = {
     value_source: {
       type: "array",
       description:
-        "arithmetic and smt: code constants the assumptions read. Kibi evaluates each export at ingest and requires the certificate to assume the variable equals that value, so the proof is about the code and not only the knowledge base. With measure count the value is the size of a list, set, map or object export, so a count claim reads the collection itself. An entry {source, measure: count} counts the members Kibi reads from a project source (routes, tables, environment variables).",
+        "arithmetic and smt: code constants the assumptions read. Kibi evaluates each export at ingest and requires the certificate to assume the variable equals that value, so the proof is about the code and not only the knowledge base. With measure count the value is the size of a list, set, map or object export, so a count claim reads the collection itself. A dotted export (POLICY.eventLimit) reads one field of an object export. An entry {source, measure: count} counts the members Kibi reads from a project source (routes, tables, environment variables).",
       minItems: 1,
       items: {
         type: "object",
@@ -812,10 +818,17 @@ function proofContractKindErrors(contract: Record<string, unknown>): string[] {
       !row ||
       !nonEmptyString(row.symbol_id) ||
       (row.export !== undefined && !nonEmptyString(row.export)) ||
-      Object.keys(row).some((key) => key !== "symbol_id" && key !== "export")
+      (row.field !== undefined && !nonEmptyString(row.field)) ||
+      Object.keys(row).some(
+        (key) => key !== "symbol_id" && key !== "export" && key !== "field",
+      )
     )
       errors.push(
-        "proof_contract.domain_source must be {symbol_id, export?} naming the symbol that defines the domain and, when its title is not the export name, the export to read",
+        "proof_contract.domain_source must be {symbol_id, export?, field?} naming the symbol that defines the domain, the export to read when its title is not the export name, and the record field that names each member",
+      );
+    else if (row.field !== undefined && kind !== "exhaustive")
+      errors.push(
+        `proof_contract.domain_source.field applies only to kind exhaustive, not ${String(kind ?? "e2e")}`,
       );
   } else if (kind === "exhaustive" || kind === "typecheck")
     errors.push(
@@ -1100,7 +1113,7 @@ export function optionalProofContractFields(
 > {
   const fields: {
     kind?: ProofKind;
-    domain_source?: { symbol_id: string; export?: string };
+    domain_source?: { symbol_id: string; export?: string; field?: string };
     witness?: { path: string };
     constraint_source?: { fact_ids: string[] };
     value_source?: ValueSourceEntry[];
@@ -1118,6 +1131,7 @@ export function optionalProofContractFields(
     fields.domain_source = {
       symbol_id: domain.symbol_id,
       ...(typeof domain.export === "string" ? { export: domain.export } : {}),
+      ...(typeof domain.field === "string" ? { field: domain.field } : {}),
     };
   const witness = record(contract.witness);
   if (witness && typeof witness.path === "string")

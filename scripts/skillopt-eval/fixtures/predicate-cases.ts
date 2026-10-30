@@ -13,12 +13,13 @@ import type { TaskSplit } from "../catalog";
  *   development — project_local_schema
  *   held-out    — deny_polarity, ambiguous, ontology_gap, keyword_false_positive
  *
- * Supplemental `rule-lane-modeling` family (typed rules and clause
- * splitting), allocation exact 0/2/1. Supplemental training slots are never
- * run (the legacy trainer keeps the core families), so both public cases are
- * development cases:
- *   development — necessary_condition, compound_obligations
- *   held-out    — exception_unless
+ * Supplemental `rule-lane-modeling` family (typed rules, clause splitting
+ * and quantified claims), allocation exact 0/3/2. Supplemental training slots
+ * are never run (the legacy trainer keeps the core families), so every public
+ * case is a development case:
+ *   development — necessary_condition, compound_obligations,
+ *                 quantified_dimension
+ *   held-out    — exception_unless, quantified_cardinality
  *
  * Only the core cases form the predicate corpus and its 36-cell held-out
  * matrix; the rule-lane cases join the catalog like any supplemental family.
@@ -35,7 +36,9 @@ export type PredicateSemanticClass =
   | "keyword_false_positive"
   | "necessary_condition"
   | "compound_obligations"
-  | "exception_unless";
+  | "exception_unless"
+  | "quantified_dimension"
+  | "quantified_cardinality";
 
 /** Task families whose slots are filled from the predicate case registry. */
 export const PREDICATE_FAMILIES = [
@@ -70,7 +73,9 @@ export type ExpectedLane =
   | "strict_property"
   | "rule"
   | "observation"
-  | "ontology_gap_observation";
+  | "ontology_gap_observation"
+  /** A rule fact or a non-boolean property value: something that can vary. */
+  | "typed_dimension";
 
 export type GroundFactKind =
   | "subject"
@@ -105,6 +110,21 @@ export type PublicClaim = Readonly<{
     /** Feature families used for semantic (not exact-wording) scoring. */
     coverageFamilies: readonly LogicCoverageFamily[];
   }>;
+  /**
+   * The task also asks for the scenarios that specify the requirement. It
+   * never says which scenarios; the expectation scores them.
+   */
+  requestScenarios?: boolean;
+}>;
+
+export type StrictValueType = "int" | "number" | "string" | "bool";
+
+/** What the scenarios specifying the modeled requirement must carry. */
+export type ScenarioExpectation = Readonly<{
+  /** Some linked scenario expects rejection or error. */
+  rejectionOrError: boolean;
+  /** Linked scenarios that both set `expects` and carry `assumes` links. */
+  minWithAssumes: number;
 }>;
 
 export type PrivateExpectation = Readonly<{
@@ -127,6 +147,12 @@ export type PrivateExpectation = Readonly<{
   expectedRuleExceptions?: Readonly<{ atomNames: readonly string[] }> | null;
   /** Fact kinds that must not be created for this claim. */
   forbiddenGroundFactKinds?: readonly GroundFactKind[];
+  /**
+   * Value types a `requires_property` target must not have, such as `bool`
+   * for a quantified claim whose varying dimension a verdict would hide.
+   */
+  forbiddenGroundingValueTypes?: readonly StrictValueType[];
+  expectedScenarios?: ScenarioExpectation | null;
   /** Short rationale kept private for the evaluator/verifier lane only. */
   privateRationale: string;
   readonly coverageFamilies?: readonly LogicCoverageFamily[];
@@ -199,18 +225,18 @@ export function predicateCaseBySplitIndex(
   const entry = matches[index];
   if (entry === undefined) {
     throw new Error(
-      `no predicate case for family=${family} split=${split} index=${index}; allocation is ${family === "fact-predicate-modeling" ? "2/1/4" : "0/2/1"}`,
+      `no predicate case for family=${family} split=${split} index=${index}; allocation is ${family === "fact-predicate-modeling" ? "2/1/4" : "0/3/2"}`,
     );
   }
   return entry;
 }
 
-/** Per-family case counts by split: 7 core and 3 rule-lane cases. */
+/** Per-family case counts by split: 7 core and 5 rule-lane cases. */
 export const PREDICATE_FAMILY_ALLOCATION: Readonly<
   Record<PredicateFamily, Readonly<Record<TaskSplit, number>>>
 > = {
   "fact-predicate-modeling": { train: 2, development: 1, "held-out": 4 },
-  "rule-lane-modeling": { train: 0, development: 2, "held-out": 1 },
+  "rule-lane-modeling": { train: 0, development: 3, "held-out": 2 },
 };
 
 export function assertDistinctSemanticClasses(): void {

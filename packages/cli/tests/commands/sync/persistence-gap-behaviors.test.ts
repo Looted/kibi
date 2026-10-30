@@ -397,6 +397,194 @@ describe("persistRelationships batch fallback and untracked tips", () => {
     expect(io.warns.length).toBe(0);
   });
 
+  test("keeps a failed batch's valid links in one call and retries only the failures", async () => {
+    const singles: string[] = [];
+    const { prolog, goals } = makeProlog({
+      queryBatch: () => ({
+        success: false,
+        bindings: {},
+        error: "batch txn aborted",
+      }),
+      query: (goal): QueryResult => {
+        if (goal.startsWith("kb_assert_relationships_reporting(")) {
+          return { success: true, bindings: { Failed: "[2]" } };
+        }
+        singles.push(goal);
+        return {
+          success: false,
+          bindings: {},
+          error: "Target entity does not exist: SCEN-MISSING",
+        };
+      },
+    });
+    const io = captureIo();
+    restores.push(io.restore);
+
+    const result = await persistRelationships(
+      prolog,
+      [
+        makeResult(makeEntity(), [
+          { type: "specified_by", from: "REQ-001", to: "SCEN-1" },
+          { type: "specified_by", from: "REQ-001", to: "SCEN-MISSING" },
+          { type: "specified_by", from: "REQ-001", to: "SCEN-3" },
+        ]),
+      ],
+      [],
+    );
+
+    expect(result.relationshipCount).toBe(2);
+    expect(result.kbModified).toBe(true);
+    const reporting = goals.filter((goal) =>
+      goal.startsWith("kb_assert_relationships_reporting("),
+    );
+    expect(reporting).toHaveLength(1);
+    expect(reporting[0]).toContain(
+      "[rel(specified_by, 'REQ-001', 'SCEN-1'), rel(specified_by, 'REQ-001', 'SCEN-MISSING'), rel(specified_by, 'REQ-001', 'SCEN-3')]",
+    );
+    expect(singles.length).toBeGreaterThan(0);
+    expect(singles.every((goal) => goal.includes("'SCEN-MISSING'"))).toBe(true);
+  });
+
+  const threeLinks = () => [
+    makeResult(makeEntity(), [
+      { type: "specified_by", from: "REQ-001", to: "SCEN-1" },
+      { type: "specified_by", from: "REQ-001", to: "SCEN-2" },
+      { type: "specified_by", from: "REQ-001", to: "SCEN-3" },
+    ]),
+  ];
+  const failedBatch = () => ({
+    success: false,
+    bindings: {},
+    error: "batch txn aborted",
+  });
+  const singleGoals = (goals: readonly string[]) =>
+    goals.filter((goal) => goal.startsWith("kb_assert_relationship("));
+
+  test("a reporting answer naming every link retries each one and counts none that fail", async () => {
+    const { prolog, goals } = makeProlog({
+      queryBatch: failedBatch,
+      query: (goal): QueryResult => {
+        if (goal.startsWith("kb_assert_relationships_reporting(")) {
+          return { success: true, bindings: { Failed: "[1,2,3]" } };
+        }
+        return {
+          success: false,
+          bindings: {},
+          error: "Target entity does not exist",
+        };
+      },
+    });
+    const io = captureIo();
+    restores.push(io.restore);
+
+    const result = await persistRelationships(prolog, threeLinks(), []);
+
+    expect(result.relationshipCount).toBe(0);
+    expect(result.kbModified).toBe(false);
+    // Every link is retried on its own (and again on the later retry passes).
+    const targets = new Set(
+      singleGoals(goals).map((goal) => goal.match(/'(SCEN-\d)'/)?.[1]),
+    );
+    expect([...targets].sort()).toEqual(["SCEN-1", "SCEN-2", "SCEN-3"]);
+  });
+
+  test("a failing reporting goal falls back to retrying the whole batch one by one", async () => {
+    const { prolog, goals } = makeProlog({
+      queryBatch: failedBatch,
+      query: (goal): QueryResult => {
+        if (goal.startsWith("kb_assert_relationships_reporting(")) {
+          return { success: false, bindings: {}, error: "no such predicate" };
+        }
+        return { success: true, bindings: {} };
+      },
+    });
+    const io = captureIo();
+    restores.push(io.restore);
+
+    const result = await persistRelationships(prolog, threeLinks(), []);
+
+    expect(result.relationshipCount).toBe(3);
+    expect(result.kbModified).toBe(true);
+    expect(singleGoals(goals)).toHaveLength(3);
+  });
+
+  test("a failed reporting goal is not read even when it names failures", async () => {
+    const { prolog, goals } = makeProlog({
+      queryBatch: failedBatch,
+      query: (goal): QueryResult => {
+        if (goal.startsWith("kb_assert_relationships_reporting(")) {
+          return { success: false, bindings: { Failed: "[]" } };
+        }
+        return { success: true, bindings: {} };
+      },
+    });
+    const io = captureIo();
+    restores.push(io.restore);
+
+    const result = await persistRelationships(prolog, threeLinks(), []);
+
+    expect(result.relationshipCount).toBe(3);
+    expect(singleGoals(goals)).toHaveLength(3);
+  });
+
+  test("a reporting goal that throws falls back to retrying the whole batch", async () => {
+    const { prolog, goals } = makeProlog({
+      queryBatch: failedBatch,
+      query: (goal): QueryResult => {
+        if (goal.startsWith("kb_assert_relationships_reporting(")) {
+          throw new Error("engine went away");
+        }
+        return { success: true, bindings: {} };
+      },
+    });
+    const io = captureIo();
+    restores.push(io.restore);
+
+    const result = await persistRelationships(prolog, threeLinks(), []);
+
+    expect(result.relationshipCount).toBe(3);
+    expect(singleGoals(goals)).toHaveLength(3);
+  });
+
+  test("an unparsable reporting answer is treated like no answer", async () => {
+    const { prolog, goals } = makeProlog({
+      queryBatch: failedBatch,
+      query: (goal): QueryResult => {
+        if (goal.startsWith("kb_assert_relationships_reporting(")) {
+          return { success: true, bindings: { Failed: "[two]" } };
+        }
+        return { success: true, bindings: {} };
+      },
+    });
+    const io = captureIo();
+    restores.push(io.restore);
+
+    const result = await persistRelationships(prolog, threeLinks(), []);
+
+    expect(result.relationshipCount).toBe(3);
+    expect(singleGoals(goals)).toHaveLength(3);
+  });
+
+  test("an empty failed list keeps every link from the reporting call without single retries", async () => {
+    const { prolog, goals } = makeProlog({
+      queryBatch: failedBatch,
+      query: (goal): QueryResult => {
+        if (goal.startsWith("kb_assert_relationships_reporting(")) {
+          return { success: true, bindings: { Failed: "[]" } };
+        }
+        throw new Error(`unexpected single retry: ${goal}`);
+      },
+    });
+    const io = captureIo();
+    restores.push(io.restore);
+
+    const result = await persistRelationships(prolog, threeLinks(), []);
+
+    expect(result.relationshipCount).toBe(3);
+    expect(result.kbModified).toBe(true);
+    expect(singleGoals(goals)).toHaveLength(0);
+  });
+
   test("warns with an untracked-document hint for unstaged missing targets", async () => {
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);

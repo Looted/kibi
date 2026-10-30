@@ -349,3 +349,115 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-780defdeb5af
+  - type: implements
+    from: SYM-entity-body-context-min-words
+    to: REQ-kb-entity-body-context-settings
+    created_at: 2026-10-28T10:39:08.119Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0b1d4ee3bda
+  - type: covered_by
+    from: SYM-entity-body-context-min-words
+    to: TEST-proof-min-context-words
+    created_at: 2026-10-28T10:39:20.314Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c691854f365
+  - type: covered_by
+    from: SYM-entity-body-context-min-words
+    to: TEST-kb-entity-body-context
+    created_at: 2026-10-28T10:39:20.340Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b0094bd203f
+  - type: implements
+    from: SYM-const-supersedes-reason-acknowledge-code
+    to: REQ-cli-migration-pin-codes
+    created_at: 2026-10-28T20:32:27.880Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2bb6300a7b2
+  - type: covered_by
+    from: SYM-const-supersedes-reason-acknowledge-code
+    to: TEST-proof-supersedes-acknowledge-code
+    created_at: 2026-10-28T20:32:37.724Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-826f77c6ca04
+  - type: covered_by
+    from: SYM-const-supersedes-reason-acknowledge-code
+    to: TEST-cli-migrate
+    created_at: 2026-10-28T20:32:37.740Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1e4f31ef647
+  - type: implements
+    from: SYM-canonical-CANONICAL_ENTITY_PATHS
+    to: REQ-cli-kb-entity-paths
+    created_at: 2026-10-28T22:33:41.992Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3b28cfa94c7
+  - type: covered_by
+    from: SYM-canonical-CANONICAL_ENTITY_PATHS
+    to: TEST-proof-canonical-path-kinds
+    created_at: 2026-10-28T22:33:51.872Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d323ad14f6c
+  - type: covered_by
+    from: SYM-canonical-CANONICAL_ENTITY_PATHS
+    to: TEST-proof-canonical-requirements-path
+    created_at: 2026-10-28T22:34:24.742Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-96f6c6dab0be
+  - type: covered_by
+    from: SYM-canonical-CANONICAL_ENTITY_PATHS
+    to: TEST-proof-canonical-scenarios-path
+    created_at: 2026-10-28T22:34:40.779Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0bac624928cf
+  - type: covered_by
+    from: SYM-canonical-CANONICAL_ENTITY_PATHS
+    to: TEST-proof-canonical-tests-path
+    created_at: 2026-10-28T22:34:57.261Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ab523a13553
+  - type: covered_by
+    from: SYM-canonical-CANONICAL_ENTITY_PATHS
+    to: TEST-proof-canonical-adr-path
+    created_at: 2026-10-28T22:35:13.379Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e84803bd6274
+  - type: covered_by
+    from: SYM-canonical-CANONICAL_ENTITY_PATHS
+    to: TEST-proof-canonical-flags-path
+    created_at: 2026-10-28T22:35:29.369Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b774b0d3cbd3
+  - type: covered_by
+    from: SYM-canonical-CANONICAL_ENTITY_PATHS
+    to: TEST-proof-canonical-events-path
+    created_at: 2026-10-28T22:35:45.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-187226340832
+  - type: covered_by
+    from: SYM-canonical-CANONICAL_ENTITY_PATHS
+    to: TEST-proof-canonical-facts-path
+    created_at: 2026-10-28T22:36:01.198Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-958e661c1468
+  - type: covered_by
+    from: SYM-canonical-CANONICAL_ENTITY_PATHS
+    to: TEST-proof-canonical-symbols-path
+    created_at: 2026-10-28T22:36:16.306Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df1334b58a90

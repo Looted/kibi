@@ -99,13 +99,6 @@ relationships:
     id: rel-debd38512545
   - type: requires_predicate
     from: REQ-ci-kb-merge-resolution
-    to: FACT-PRED-ci-kb-merge-gate-before-push
-    created_at: 2026-10-02T08:22:30.245Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cece306a6a09
-  - type: requires_predicate
-    from: REQ-ci-kb-merge-resolution
     to: FACT-PRED-ci-kb-merge-no-push-on-gate-failure
     created_at: 2026-10-02T08:22:30.251Z
     created_by: kibi/upsert
@@ -251,3 +244,164 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f6b29c20e6f5
+  - type: implements
+    from: SYM-cli-package-manifest
+    to: REQ-capability-plugin-jev-optional-dependency
+    created_at: 2026-10-28T10:19:29.365Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9282f0f74bc
+  - type: covered_by
+    from: SYM-cli-package-manifest
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-10-28T10:19:29.379Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23734ee3fcb2
+  - type: covered_by
+    from: SYM-cli-package-manifest
+    to: TEST-proof-cli-excludes-jev
+    created_at: 2026-10-28T10:19:29.395Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e911c77d311
+  - type: implements
+    from: SYM-cap-plugin-ontology-pack-capability-id-d76dee06
+    to: REQ-capability-plugin-protocol-identifiers
+    created_at: 2026-10-28T10:49:12.117Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9cdc296ac6f3
+  - type: covered_by
+    from: SYM-cap-plugin-ontology-pack-capability-id-d76dee06
+    to: TEST-proof-ontology-pack-capability-id
+    created_at: 2026-10-28T10:49:22.844Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a889e0870f0
+  - type: covered_by
+    from: SYM-cap-plugin-ontology-pack-capability-id-d76dee06
+    to: TEST-e2e-runtime-symbol-portability
+    created_at: 2026-10-28T10:49:22.865Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd392c031bd1
+  - type: validates
+    from: TEST-proof-impact-policy-version
+    to: SCEN-impact-policy-stage-e-installed-consumer
+    created_at: 2026-10-28T17:32:18.342Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f6c7a919cad6
+  - type: validates
+    from: TEST-proof-origin-backfill-code
+    to: SCEN-cli-migrate
+    created_at: 2026-10-28T18:49:47.259Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-579e2fa7e4eb
+  - type: requires_property
+    from: REQ-cli-migration-pin-codes
+    to: FACT-context-missing-tag-code
+    created_at: 2026-10-28T20:29:36.393Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e75d381f2e5c
+  - type: requires_property
+    from: REQ-cli-migration-pin-codes
+    to: FACT-semantic-text-pin-code
+    created_at: 2026-10-28T20:29:36.430Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a4f16444f1f
+  - type: requires_property
+    from: REQ-cli-migration-pin-codes
+    to: FACT-evidence-floor-pin-code
+    created_at: 2026-10-28T20:29:36.454Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99b3856ee4af
+  - type: requires_property
+    from: REQ-cli-migration-pin-codes
+    to: FACT-firm-supersede-code
+    created_at: 2026-10-28T20:29:36.476Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d78cfcefce5c
+  - type: requires_property
+    from: REQ-cli-migration-pin-codes
+    to: FACT-contract-claims-pin-code
+    created_at: 2026-10-28T20:29:36.496Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e653ce479465
+  - type: requires_property
+    from: REQ-cli-migration-pin-codes
+    to: FACT-contract-claims-review-code
+    created_at: 2026-10-28T20:29:36.516Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b49c62644045
+  - type: requires_property
+    from: REQ-cli-migration-pin-codes
+    to: FACT-rederive-drop-grounding-code
+    created_at: 2026-10-28T20:29:36.527Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb7e51a857ae
+  - type: requires_property
+    from: REQ-cli-migration-pin-codes
+    to: FACT-supersedes-acknowledge-code
+    created_at: 2026-10-28T20:29:36.540Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e4dd02372b46
+  - type: requires_property
+    from: REQ-cli-migration-pin-codes
+    to: FACT-legacy-link-mark-action
+    created_at: 2026-10-28T20:29:36.551Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-271ed00ad916
+  - type: requires_property
+    from: REQ-cli-migration-pin-codes
+    to: FACT-legacy-link-mark-code
+    created_at: 2026-10-28T20:29:36.565Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c17c4f12e9b
+  - type: requires_property
+    from: REQ-cli-migration-pin-codes
+    to: FACT-closed-requirement-status
+    created_at: 2026-10-28T20:29:36.577Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-432143b976b4
+  - type: requires_property
+    from: REQ-cli-migration-pin-codes
+    to: FACT-derived-coordinates-schema
+    created_at: 2026-10-28T20:29:36.588Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a44c6eb90649
+  - type: specified_by
+    from: REQ-cli-migration-pin-codes
+    to: SCEN-cli-migrate
+    created_at: 2026-10-28T20:29:36.598Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e4e751bd5d5
+  - type: constrains
+    from: REQ-cli-migration-pin-codes
+    to: FACT-kibi-migration-pin-codes-component
+    created_at: 2026-10-28T20:29:38.577Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd7af7fffc44
+  - type: validates
+    from: TEST-proof-legacy-status-proposed
+    to: SCEN-cli-migration-first-commit
+    created_at: 2026-10-29T10:40:56.636Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e77d2a85d3db

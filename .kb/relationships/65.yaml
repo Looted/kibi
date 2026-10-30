@@ -181,3 +181,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-629698ded232
+  - type: validates
+    from: TEST-proof-delivered-map-action
+    to: SCEN-cli-migrate-legacy-requirement-status
+    created_at: 2026-10-28T17:42:35.443Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf39f58f82a8
+  - type: executable_for
+    from: SYM-proof-signoff-gate-names
+    to: TEST-proof-signoff-gate-names
+    created_at: 2026-10-28T22:21:45.666Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5c0c7ada23a
+  - type: validates
+    from: TEST-proof-signoff-change-new-label
+    to: SCEN-kibi-signoff-views
+    created_at: 2026-10-28T22:24:14.563Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8dc146652225
+  - type: validates
+    from: TEST-proof-rule-decision-firm-edited
+    to: SCEN-kb-decision-firmness
+    created_at: 2026-10-29T16:39:49.298Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f17f7082c31

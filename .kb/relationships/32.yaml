@@ -482,3 +482,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a36a53a8b06a
+  - type: implements
+    from: SYM-decision-firmness-rules
+    to: REQ-kb-decision-firmness-rule-ids
+    created_at: 2026-10-28T11:02:44.689Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df1b85678b71
+  - type: covered_by
+    from: SYM-decision-firmness-rules
+    to: TEST-proof-decision-firmness-rules
+    created_at: 2026-10-28T11:02:57.357Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7150c4e04ae5
+  - type: executable_for
+    from: SYM-proof-search-answer-governing
+    to: TEST-proof-search-answer-governing
+    created_at: 2026-10-28T11:11:15.560Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-860cf6ed4798
+  - type: executable_for
+    from: SYM-proof-code-certificate-version
+    to: TEST-proof-code-certificate-version
+    created_at: 2026-10-28T20:37:33.904Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c6d68055766
+  - type: relates_to
+    from: REQ-git-hook-manager-integration
+    to: REQ-git-hook-effective-install
+    created_at: 2026-10-29T18:38:06.108Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e15ef20e8192
+  - type: requires_predicate
+    from: REQ-git-hook-manager-integration
+    to: FACT-PRED-git-hook-manager-init
+    created_at: 2026-10-29T18:38:06.155Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a630a5d0d7d7
+  - type: requires_predicate
+    from: REQ-git-hook-manager-integration
+    to: FACT-PRED-git-hook-manager-doctor-warning
+    created_at: 2026-10-29T18:38:06.188Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-65028bb117c9
+  - type: specified_by
+    from: REQ-git-hook-manager-integration
+    to: SCEN-git-hook-manager-integration
+    created_at: 2026-10-29T18:38:30.138Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4b500a642fe

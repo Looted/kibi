@@ -181,3 +181,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fcf3661ca900
+  - type: implements
+    from: SYM-semantic-inventory-version
+    to: REQ-ingestion-inventory-settings
+    created_at: 2026-10-28T19:05:21.027Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-255793976a74
+  - type: covered_by
+    from: SYM-semantic-inventory-version
+    to: TEST-proof-semantic-inventory-version
+    created_at: 2026-10-28T19:05:32.366Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-064fe5f6fb80
+  - type: implements
+    from: SYM-schema6-check-actions-CLOSE_SUPERSEDED_REQUIREMENTS_CODE
+    to: REQ-kibi-lifecycle-review-actions
+    created_at: 2026-10-28T20:26:42.133Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64cef7962492
+  - type: covered_by
+    from: SYM-schema6-check-actions-CLOSE_SUPERSEDED_REQUIREMENTS_CODE
+    to: TEST-proof-close-superseded-code
+    created_at: 2026-10-28T20:26:54.887Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b203a8f3df7b
+  - type: covered_by
+    from: SYM-schema6-check-actions-CLOSE_SUPERSEDED_REQUIREMENTS_CODE
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:26:54.908Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47c4aba4fc54
+  - type: executable_for
+    from: SYM-proof-bootstrap-aspect-max-words
+    to: TEST-proof-bootstrap-aspect-max-words
+    created_at: 2026-10-29T16:51:20.678Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eacf4e6ffe68
+  - type: implements
+    from: SYM-hook-managers-detected-hook-manager-type
+    to: REQ-git-hook-manager-integration
+    created_at: 2026-10-29T18:39:07.156Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41f4cb714a27
+  - type: covered_by
+    from: SYM-hook-managers-detected-hook-manager-type
+    to: TEST-git-hook-manager-integration
+    created_at: 2026-10-29T18:39:07.175Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95ea110c531b

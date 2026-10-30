@@ -138,11 +138,11 @@ describe("intent-search remaining candidate, graph, and related-id branches", ()
     expect(capped.analysis.candidateCount).toBe(10_000);
   });
 
-  test("graphGoal emits both depth-1 and depth-2 findall goals", () => {
+  test("graphGoal emits both depth-1 and depth-2 edge goals", () => {
     const depthOne = graphGoal(["REQ-A"], 1);
     const depthTwo = graphGoal(["REQ-A"], 2);
-    expect(depthOne).toContain("findall");
-    expect(depthTwo).toContain("findall");
+    expect(depthOne).toContain("kb_relationship_edges(");
+    expect(depthTwo).toContain("kb_relationship_edges(");
     expect(depthOne).toContain("REQ-A");
     expect(depthTwo).toContain("REQ-A");
   });

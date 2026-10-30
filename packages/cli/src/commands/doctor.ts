@@ -68,7 +68,14 @@ import {
 } from "../utils/merge-driver-setup.js";
 import { LATEST_KB_SCHEMA_VERSION } from "../utils/schema-version.js";
 import {
+  type DetectedHookManager,
+  detectHookManager,
+  hookManagerCommands,
+  missingKibiHookCommands,
+} from "./hook-managers.js";
+import {
   KIBI_HOOK_BEGIN,
+  type ManagedHookName,
   hasManagedHooks,
   outdatedManagedHooks,
 } from "./init-helpers.js";
@@ -1060,6 +1067,65 @@ function hooksPathSuffix(): string {
 }
 
 /**
+ * The hook manager (lefthook, husky, pre-commit) that owns this repository's
+ * hooks. Its hook files are generated runners, so the commands they run are
+ * read from the manager's configuration instead of the files Git executes.
+ */
+// implements REQ-git-hook-manager-integration
+function doctorHookManager(): DetectedHookManager | null {
+  const context = doctorRepositoryContext();
+  if (!context) return null;
+  return detectHookManager(
+    context.worktreeRoot,
+    context.effectiveHooksDir,
+    context.hooksPathConfig,
+  );
+}
+
+// implements REQ-git-hook-manager-integration
+function checkHookManagerDelegation(
+  manager: DetectedHookManager,
+  hooks: readonly ManagedHookName[],
+  consequence: string,
+): DoctorCheckResult {
+  const worktreeRoot = doctorRepositoryContext()?.worktreeRoot ?? process.cwd();
+  const owner = `Managed by ${manager.name} (${manager.configPath})`;
+  const coverage = hooks.map((hook) => ({
+    hook,
+    missing: missingKibiHookCommands(
+      hook,
+      hookManagerCommands(manager.name, worktreeRoot, hook) ?? [],
+    ),
+  }));
+  const gaps = coverage.filter((entry) => entry.missing.length > 0);
+  if (gaps.length === 0) {
+    const runs = coverage
+      .map(
+        ({ hook }) =>
+          `${hook} runs ${missingKibiHookCommands(hook, [])
+            .map((label) => `'${label}'`)
+            .join(" and ")}`,
+      )
+      .join("; ");
+    return { passed: true, message: `${owner}; ${runs}` };
+  }
+  // The manager may reach Kibi through a task runner or script that is not
+  // part of its configuration, so an invisible command is a warning only.
+  const described = gaps
+    .map(
+      ({ hook, missing }) =>
+        `${hook} does not visibly run ${missing.map((label) => `'${label}'`).join(" and ")}`,
+    )
+    .join("; ");
+  return {
+    passed: true,
+    warning: true,
+    message: `${owner}; ${described}. Kibi reads only the ${manager.name} configuration, not the task runners or scripts it calls; unless they run these commands, ${consequence}`,
+    remediation: `Add Kibi's commands to ${manager.configPath}. Print them with: kibi init --print-hook ${gaps.length === 1 ? (gaps[0]?.hook ?? "all") : "all"} --format ${manager.name}`,
+  };
+}
+
+/**
  * Kibi-managed hook sections must match what this CLI installs. A section
  * written by an older CLI keeps running while silently lacking newer gates
  * (the pre-commit `check-generated` step, for example), and the other hook
@@ -1096,6 +1162,14 @@ function checkManagedHookSections(): {
 }
 
 function checkGitHooks(): DoctorCheckResult {
+  const manager = doctorHookManager();
+  if (manager) {
+    return checkHookManagerDelegation(
+      manager,
+      ["post-checkout", "post-merge"],
+      "a new branch is not compiled on checkout or after a merge",
+    );
+  }
   const postCheckoutPath = path.join(effectiveHooksDir(), "post-checkout");
   const postMergePath = path.join(effectiveHooksDir(), "post-merge");
   const preCommitPath = path.join(effectiveHooksDir(), "pre-commit");
@@ -1151,57 +1225,14 @@ function checkGitHooks(): DoctorCheckResult {
   };
 }
 
-/**
- * Individual shell commands of a hook script, ignoring comments. Lines are
- * split on command separators so `a && b` counts as two commands.
- */
-// implements REQ-git-hook-effective-install
-function hookCommands(content: string): string[] {
-  return content
-    .split("\n")
-    .filter((line) => !line.trimStart().startsWith("#"))
-    .flatMap((line) => line.split(/&&|\|\||;|\|/))
-    .map((command) => command.trim())
-    .filter((command) => command.length > 0);
-}
-
-// Matches `kibi <sub>`, `npx kibi <sub>`, `node_modules/.bin/kibi <sub>` and
-// the template's `"$KIBI_BIN" <sub>`.
-// implements REQ-git-hook-effective-install
-function invokesKibi(command: string, subcommand: string): boolean {
-  return new RegExp(
-    `(?:\\bkibi|\\bKIBI_BIN)["'}]*\\s+${subcommand}(?=\\s|$)`,
-  ).test(command);
-}
-
-/** The pre-commit gate the managed template runs, as a custom hook must. */
-const PRE_COMMIT_DELEGATIONS: readonly {
-  readonly label: string;
-  readonly matches: (command: string) => boolean;
-}[] = [
-  {
-    label: "kibi check-generated --staged --changed-only",
-    matches: (command) =>
-      invokesKibi(command, "check-generated") &&
-      /\s--staged(?=\s|$)/.test(command) &&
-      /\s--changed-only(?=\s|$)/.test(command),
-  },
-  {
-    label: "kibi check --staged",
-    matches: (command) =>
-      invokesKibi(command, "check") && /\s--staged(?=\s|$)/.test(command),
-  },
-];
-
 // implements REQ-git-hook-effective-install
 function checkCustomPreCommitHook(
   content: string,
   executable: boolean,
 ): { passed: boolean; message: string; remediation?: string } {
-  const commands = hookCommands(content);
-  const missing = PRE_COMMIT_DELEGATIONS.filter(
-    (delegation) => !commands.some(delegation.matches),
-  ).map((delegation) => `'${delegation.label}'`);
+  const missing = missingKibiHookCommands("pre-commit", [content]).map(
+    (label) => `'${label}'`,
+  );
   if (missing.length > 0) {
     // An unmarked file that still carries the old template header is a Kibi
     // hook from before managed sections; removing it lets init reinstall it.
@@ -1227,11 +1258,15 @@ function checkCustomPreCommitHook(
   };
 }
 
-function checkPreCommitHook(): {
-  passed: boolean;
-  message: string;
-  remediation?: string;
-} {
+function checkPreCommitHook(): DoctorCheckResult {
+  const manager = doctorHookManager();
+  if (manager) {
+    return checkHookManagerDelegation(
+      manager,
+      ["pre-commit"],
+      "commits skip Kibi enforcement",
+    );
+  }
   const postCheckoutPath = path.join(effectiveHooksDir(), "post-checkout");
   const postMergePath = path.join(effectiveHooksDir(), "post-merge");
   const preCommitPath = path.join(effectiveHooksDir(), "pre-commit");
@@ -1332,11 +1367,15 @@ function checkPreCommitHook(): {
   }
 }
 
-function checkPostRewriteHook(): {
-  passed: boolean;
-  message: string;
-  remediation?: string;
-} {
+function checkPostRewriteHook(): DoctorCheckResult {
+  const manager = doctorHookManager();
+  if (manager) {
+    return checkHookManagerDelegation(
+      manager,
+      ["post-rewrite"],
+      "a rebased branch keeps a stale KB until the next 'kibi sync'",
+    );
+  }
   const postCheckoutPath = path.join(effectiveHooksDir(), "post-checkout");
   const postMergePath = path.join(effectiveHooksDir(), "post-merge");
   const postRewritePath = path.join(effectiveHooksDir(), "post-rewrite");
@@ -1372,7 +1411,7 @@ function checkPostRewriteHook(): {
     // A custom hook (no kibi-managed section) is never edited by init.
     // implements REQ-git-hook-effective-install
     if (!content.includes(KIBI_HOOK_BEGIN)) {
-      if (!hookCommands(content).some((cmd) => invokesKibi(cmd, "sync"))) {
+      if (missingKibiHookCommands("post-rewrite", [content]).length > 0) {
         return {
           passed: false,
           message: `Custom post-rewrite hook (no kibi-managed section) does not run 'kibi sync'${hooksPathSuffix()}`,

@@ -61,6 +61,9 @@ export type EngineLimitExceeded = Readonly<{
 }>;
 
 function boundedInteger(value: unknown, max: number): number | undefined {
+  // rationale: Number.isSafeInteger already rejects non-numbers; the typeof
+  // check only narrows the type for the comparisons below.
+  // Stryker disable next-line ConditionalExpression
   return typeof value === "number" &&
     Number.isSafeInteger(value) &&
     value > 0 &&
@@ -101,15 +104,11 @@ export function normalizeQueryLimits(
 export function queryLimitsFromEnv(
   env: NodeJS.ProcessEnv = process.env,
 ): EngineQueryLimits | undefined {
-  const parse = (name: string): number | undefined => {
-    const raw = env[name]?.trim();
-    if (!raw) return undefined;
-    const parsed = Number(raw);
-    return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : undefined;
-  };
+  // Number() maps blank or unset values to 0 or NaN, which
+  // normalizeQueryLimits drops along with every other unusable budget.
   return normalizeQueryLimits({
-    timeMs: parse(ENGINE_READ_TIME_LIMIT_ENV),
-    inferences: parse(ENGINE_READ_INFERENCE_LIMIT_ENV),
+    timeMs: Number(env[ENGINE_READ_TIME_LIMIT_ENV]),
+    inferences: Number(env[ENGINE_READ_INFERENCE_LIMIT_ENV]),
   });
 }
 
@@ -231,7 +230,7 @@ export function queryLimitExceededOf(
       return { kind, limit };
   }
   const match = error.message.match(QUERY_LIMIT_MESSAGE);
-  if (match?.[1] === undefined || match[2] === undefined) return null;
+  if (match === null) return null;
   return {
     kind: match[1] === "time" ? "time" : "inferences",
     limit: Number(match[2]),

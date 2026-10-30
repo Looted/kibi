@@ -1,3 +1,4 @@
+import syncFs from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { bodySnippetLine } from "./entity-body-context.js";
@@ -10,15 +11,16 @@ export interface SearchMatch {
   snippet?: string;
 }
 
-interface SearchTextForms {
-  normalized: string;
-  compact: string;
-}
+/**
+ * Text reduced to its lowercase letters and digits, singular plurals and no
+ * separators. Phrase, exact and token matching all compare these forms: a
+ * substring of the spaced form is also one of this compact form.
+ */
+type SearchText = string;
 
 interface SearchQueryContext {
-  phrase: SearchTextForms;
+  phrase: SearchText;
   signalTokens: string[];
-  rawTrimmedQuery: string;
 }
 
 const SEARCH_STOP_WORDS = new Set([
@@ -62,9 +64,7 @@ export async function rankEntities(
   workspaceRoot: string,
 ): Promise<SearchMatch[]> {
   const queryContext = buildSearchQueryContext(query);
-  if (!queryContext.rawTrimmedQuery || queryContext.signalTokens.length === 0) {
-    return [];
-  }
+  if (queryContext.signalTokens.length === 0) return [];
 
   const matches: SearchMatch[] = [];
 
@@ -119,8 +119,8 @@ async function rankEntity(
     ? entity.tags.map((tag) => String(tag))
     : [];
 
-  const titleForms = buildSearchTextForms(title);
-  const idForms = buildSearchTextForms(id);
+  const titleForms = searchText(title);
+  const idForms = searchText(id);
 
   if (isExactSearchMatch(titleForms, queryContext.phrase)) {
     score += 100;
@@ -140,7 +140,7 @@ async function rankEntity(
 
   const metadataFields = [type, source, owner, priority, severity];
   const metadataMatched = metadataFields.some((field) =>
-    isPhraseSearchMatch(buildSearchTextForms(field), queryContext.phrase),
+    isPhraseSearchMatch(searchText(field), queryContext.phrase),
   );
   if (metadataMatched) {
     score += 20;
@@ -148,7 +148,7 @@ async function rankEntity(
   }
 
   const matchingTags = tags.filter((tag) =>
-    isPhraseSearchMatch(buildSearchTextForms(tag), queryContext.phrase),
+    isPhraseSearchMatch(searchText(tag), queryContext.phrase),
   );
   if (matchingTags.length > 0) {
     score += 30;
@@ -169,7 +169,7 @@ async function rankEntity(
     getInlineBodyText(entity);
   let snippet: string | undefined;
   if (bodyText) {
-    const bodyForms = buildSearchTextForms(bodyText);
+    const bodyForms = searchText(bodyText);
     if (isPhraseSearchMatch(bodyForms, queryContext.phrase)) {
       score += 15;
       reasons.push("markdown body match");
@@ -204,11 +204,41 @@ export async function loadMarkdownBody(
   source: string,
   workspaceRoot: string,
 ): Promise<string | null> {
-  if (!source) {
+  const resolved = markdownBodyPath(source, workspaceRoot);
+  if (resolved === null) return null;
+  try {
+    const fileContent = await fs.readFile(resolved, "utf8");
+    return stripFrontmatter(fileContent);
+  } catch {
     return null;
   }
+}
 
-  const normalizedSource = source.split("#", 1)[0]?.trim() ?? "";
+/**
+ * loadMarkdownBody, reading synchronously. Search reads the bodies of
+ * thousands of candidates at once; each asynchronous read is four thread-pool
+ * round trips (open, stat, read, close), which made reading them take ten
+ * times as long as reading them in turn.
+ */
+// implements REQ-mcp-search-discovery
+export function loadMarkdownBodySync(
+  source: string,
+  workspaceRoot: string,
+): string | null {
+  const resolved = markdownBodyPath(source, workspaceRoot);
+  if (resolved === null) return null;
+  try {
+    return stripFrontmatter(syncFs.readFileSync(resolved, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+function markdownBodyPath(
+  source: string,
+  workspaceRoot: string,
+): string | null {
+  const normalizedSource = source.replace(/#.*/, "").trim();
   if (!normalizedSource.endsWith(".md")) {
     return null;
   }
@@ -225,23 +255,14 @@ export async function loadMarkdownBody(
   if (!resolved.startsWith(normalizedRoot + path.sep)) {
     return null;
   }
-
-  try {
-    const fileContent = await fs.readFile(resolved, "utf8");
-    return stripFrontmatter(fileContent);
-  } catch {
-    return null;
-  }
+  return resolved;
 }
 
 // implements REQ-mcp-search-discovery
 function stripFrontmatter(content: string): string {
   const trimmedContent = content.trimStart();
-  if (!trimmedContent.startsWith("---")) {
-    return content;
-  }
-
-  const openingDelimiter = /^---[^\S\r\n]*(?:\r?\n|$)/.exec(trimmedContent);
+  // A delimiter at the very end leaves no room for a closing one.
+  const openingDelimiter = /^---[^\S\r\n]*\r?\n/.exec(trimmedContent);
   if (!openingDelimiter) {
     return content;
   }
@@ -260,44 +281,25 @@ function stripFrontmatter(content: string): string {
 // implements REQ-mcp-search-discovery
 function buildSearchQueryContext(query: string): SearchQueryContext {
   return {
-    phrase: buildSearchTextForms(query),
-    signalTokens: tokenizeSignalTerms(query),
-    rawTrimmedQuery: query.trim(),
-  };
-}
-
-// implements REQ-mcp-search-discovery
-function buildSearchTextForms(value: string): SearchTextForms {
-  const normalized = normalizeSearchText(value);
-  return {
-    normalized,
-    compact: normalized.replace(/\s+/g, ""),
-  };
-}
-
-// implements REQ-mcp-search-discovery
-function normalizeSearchText(value: string): string {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/[-_]+/g, " ")
-    .replace(/[^a-z0-9\s]+/g, " ")
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .map(singularizeSimplePlural)
-    .join(" ");
-}
-
-// implements REQ-mcp-search-discovery
-function tokenizeSignalTerms(value: string): string[] {
-  return Array.from(
-    new Set(
-      normalizeSearchText(value)
-        .split(/\s+/)
-        .filter((token) => token && !SEARCH_STOP_WORDS.has(token)),
+    phrase: searchText(query),
+    signalTokens: Array.from(
+      new Set(
+        searchTokens(query).filter((token) => !SEARCH_STOP_WORDS.has(token)),
+      ),
     ),
+  };
+}
+
+// implements REQ-mcp-search-discovery
+function searchTokens(value: string): string[] {
+  return Array.from(value.toLowerCase().matchAll(/[a-z0-9]+/g), (match) =>
+    singularizeSimplePlural(match[0]),
   );
+}
+
+// implements REQ-mcp-search-discovery
+function searchText(value: string): SearchText {
+  return searchTokens(value).join("");
 }
 
 // implements REQ-mcp-search-discovery
@@ -316,36 +318,24 @@ function singularizeSimplePlural(token: string): string {
 }
 
 // implements REQ-mcp-search-discovery
-function isExactSearchMatch(
-  haystack: SearchTextForms,
-  needle: SearchTextForms,
-): boolean {
-  return (
-    haystack.normalized === needle.normalized ||
-    (needle.compact !== "" && haystack.compact === needle.compact)
-  );
+// implements REQ-mcp-search-discovery
+// The query phrase is never empty: a query without signal tokens ranks
+// nothing.
+function isExactSearchMatch(haystack: SearchText, needle: SearchText): boolean {
+  return haystack === needle;
 }
 
 // implements REQ-mcp-search-discovery
 function isPhraseSearchMatch(
-  haystack: SearchTextForms,
-  needle: SearchTextForms,
+  haystack: SearchText,
+  needle: SearchText,
 ): boolean {
-  return (
-    haystack.normalized.includes(needle.normalized) ||
-    (needle.compact !== "" && haystack.compact.includes(needle.compact))
-  );
+  return haystack.includes(needle);
 }
 
 // implements REQ-mcp-search-discovery
-function countTokenMatches(
-  haystack: SearchTextForms,
-  tokens: string[],
-): number {
-  return tokens.filter(
-    (token) =>
-      haystack.normalized.includes(token) || haystack.compact.includes(token),
-  ).length;
+function countTokenMatches(haystack: SearchText, tokens: string[]): number {
+  return tokens.filter((token) => haystack.includes(token)).length;
 }
 
 // implements REQ-mcp-search-discovery
@@ -369,19 +359,15 @@ function getInlineBodyText(entity: Record<string, unknown>): string | null {
 // implements REQ-mcp-search-discovery
 function buildSnippet(
   bodyText: string,
-  queryForms: SearchTextForms,
+  queryForms: SearchText,
   entity: Record<string, unknown>,
 ): string | undefined {
-  const lines = bodyText
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean);
+  const lines = bodyText.split(/\r?\n/).map((line) => line.trim());
   // The line that matches the query wins; otherwise the context prose, then
   // the first line.
   const matchedLine =
-    lines.find((line) =>
-      isPhraseSearchMatch(buildSearchTextForms(line), queryForms),
-    ) ?? bodySnippetLine(String(entity.type ?? ""), bodyText, entity);
+    lines.find((line) => isPhraseSearchMatch(searchText(line), queryForms)) ??
+    bodySnippetLine(String(entity.type), bodyText, entity);
 
   return snippetFromMatchedLine(matchedLine);
 }

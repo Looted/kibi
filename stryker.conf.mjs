@@ -1,9 +1,10 @@
 // Mutation testing configuration for kibi.
 //
 // Scope: the three small packages (runtime, codex, cursor) whose unit suites
-// are fast enough for per-mutant `bun test` runs. The gate is absolute: any
-// surviving mutant fails the run. Before extending scope, read
-// docs/mutation-testing.md — cli/mcp/core are deliberately out of scope
+// are fast enough for per-mutant `bun test` runs, plus kibi-cli modules added
+// one at a time (CLI_MUTATION_MODULES). The gate is absolute: any surviving
+// mutant fails the run. Before extending scope, read
+// docs/mutation-testing.md — the rest of cli, mcp and core stay out of scope
 // (engine-heavy tests, Prolog sources).
 //
 // The test runner is @hughescr/stryker-bun-runner: it spawns a fresh
@@ -19,6 +20,61 @@ const MUTATION_PACKAGES = [
   "packages/codex",
   "packages/cursor",
 ];
+
+// kibi-cli is too large and engine-heavy to mutate whole. Each module joins
+// once its own hermetic unit tests kill every mutant; the value lists those
+// tests (only they run against the module's mutants).
+export const CLI_MUTATION_MODULES = {
+  "packages/cli/src/cli-input.ts": ["packages/cli/tests/cli-input.test.ts"],
+  "packages/cli/src/firm-decision-edit.ts": [
+    "packages/cli/tests/firm-decision-edit.test.ts",
+  ],
+  "packages/cli/src/diagnostics.ts": [
+    "packages/cli/tests/diagnostics-pure.test.ts",
+  ],
+  "packages/cli/src/engine-limits.ts": [
+    "packages/cli/tests/engine-limits.test.ts",
+  ],
+  "packages/cli/src/decision-firmness.ts": [
+    "packages/cli/tests/decision-firmness.test.ts",
+  ],
+  "packages/cli/src/entity-body-context.ts": [
+    "packages/cli/tests/entity-body-context.test.ts",
+  ],
+  "packages/cli/src/search-ranking.ts": [
+    "packages/cli/tests/search-ranking.test.ts",
+  ],
+  "packages/cli/src/logic/ir.ts": ["packages/cli/tests/logic/ir.test.ts"],
+  "packages/cli/src/search-hints.ts": [
+    "packages/cli/tests/search-hints.test.ts",
+  ],
+  "packages/cli/src/plugins/compose-search-hints.ts": [
+    "packages/cli/tests/search-hints.test.ts",
+  ],
+};
+
+// Plugin package modules gated the same way: each with the hermetic tests of
+// its own package.
+export const PLUGIN_MUTATION_MODULES = {
+  "packages/plugin-sdk/src/validate-search-hints.ts": [
+    "packages/plugin-sdk/tests/search-hints.test.ts",
+  ],
+  "packages/plugin-search-hints/src/tokenizer.ts": [
+    "packages/plugin-search-hints/tests/tokenizer.test.ts",
+  ],
+  "packages/plugin-search-hints/src/model.ts": [
+    "packages/plugin-search-hints/tests/plugin.test.ts",
+    "packages/plugin-search-hints/tests/edges.test.ts",
+  ],
+  "packages/plugin-search-hints/src/cache.ts": [
+    "packages/plugin-search-hints/tests/plugin.test.ts",
+    "packages/plugin-search-hints/tests/edges.test.ts",
+  ],
+  "packages/plugin-search-hints/src/index.ts": [
+    "packages/plugin-search-hints/tests/plugin.test.ts",
+    "packages/plugin-search-hints/tests/edges.test.ts",
+  ],
+};
 
 // Explicit test-file list, enumerated relative to the repo root (the Stryker
 // sandbox root). Helpers and fixtures are never picked up — only *.test.ts.
@@ -38,7 +94,13 @@ function scopedTestFiles() {
     };
     walk("");
   }
-  return files.sort();
+  for (const tests of [
+    ...Object.values(CLI_MUTATION_MODULES),
+    ...Object.values(PLUGIN_MUTATION_MODULES),
+  ]) {
+    for (const test of tests) files.push(`./${test}`);
+  }
+  return [...new Set(files)].sort();
 }
 
 /** @type {import('@stryker-mutator/api/core').StrykerOptions} */
@@ -54,6 +116,8 @@ const config = {
     "!packages/runtime/src/index.ts",
     "packages/codex/src/**/*.ts",
     "packages/cursor/src/**/*.ts",
+    ...Object.keys(CLI_MUTATION_MODULES),
+    ...Object.keys(PLUGIN_MUTATION_MODULES),
   ],
   bun: {
     testFiles: scopedTestFiles(),

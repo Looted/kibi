@@ -279,3 +279,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7634cc88fadd
+  - type: validates
+    from: TEST-proof-ontology-pack-capability-id
+    to: SCEN-capability-plugin-host-resolution-v1
+    created_at: 2026-10-28T10:49:13.948Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-65b5c120b740
+  - type: validates
+    from: TEST-proof-proof-test-report-version
+    to: SCEN-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T11:07:37.208Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e606b647cfa
+  - type: validates
+    from: TEST-proof-source-path-rewrite-code
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T17:28:32.817Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aacddbf840a6
+  - type: executable_for
+    from: SYM-proof-semantic-advisor-version
+    to: TEST-proof-semantic-advisor-version
+    created_at: 2026-10-28T19:15:18.457Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4c36d1a5e06
+  - type: executable_for
+    from: SYM-proof-intent-claim-kinds
+    to: TEST-proof-intent-claim-kinds
+    created_at: 2026-10-28T19:19:57.418Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ac1cc7c9f58
+  - type: executable_for
+    from: SYM-proof-telemetry-test-env-keys
+    to: TEST-proof-telemetry-test-env-keys
+    created_at: 2026-10-29T16:28:35.833Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39f61cfd4bae

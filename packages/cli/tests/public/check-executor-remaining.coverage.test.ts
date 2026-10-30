@@ -3,6 +3,7 @@ import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import * as impact from "../../src/public/impact-diagnostics.js";
 import { executeCheck } from "../../src/public/operations/check-executor.js";
 import * as discovery from "../../src/public/operations/discovery-executors.js";
+import * as evidenceFloor from "../../src/public/operations/evidence-floor.js";
 import type {
   OperationContext,
   PrologPort,
@@ -77,5 +78,35 @@ describe("check-executor remaining empty-rule and failure branches", () => {
       expect.objectContaining({ id: "telemetry_acceptance_incomplete" }),
     ]);
     expect(result.content[0]?.text).toBeDefined();
+  });
+
+  test("passes the fresh-evidence flag to the evidence floor", async () => {
+    restores.push(isolateKibiEnv());
+    const floor = spyOn(
+      evidenceFloor,
+      "collectEvidenceFloorViolations",
+    ).mockResolvedValue([]);
+    spies.push(floor);
+    const prolog: PrologPort = {
+      query: async () => ({
+        success: true,
+        bindings: { JsonString: "{}", Transport: "answer" },
+      }),
+      nextSolution: async () => null,
+      save: async () => ({ success: true, bindings: {} }),
+    };
+    for (const freshEvidence of [true, false, undefined]) {
+      floor.mockClear();
+      await executeCheck(
+        {
+          rules: [evidenceFloor.EVIDENCE_FLOOR_RULE],
+          ...(freshEvidence === undefined ? {} : { freshEvidence }),
+        },
+        context({ prolog }),
+      );
+      expect(floor).toHaveBeenCalledTimes(1);
+      const options = floor.mock.calls[0]?.[2] as { freshEvidence: boolean };
+      expect(options.freshEvidence).toBe(freshEvidence === true);
+    }
   });
 });

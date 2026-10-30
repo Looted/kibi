@@ -272,3 +272,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1eef0a93c7ed
+  - type: implements
+    from: SYM-const-proof-test-report-env
+    to: REQ-kibi-proof-step-settings
+    created_at: 2026-10-28T11:07:11.826Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e928f8079bee
+  - type: covered_by
+    from: SYM-const-proof-test-report-env
+    to: TEST-proof-proof-test-report-env
+    created_at: 2026-10-28T11:07:23.712Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29f1ee5d3824
+  - type: covered_by
+    from: SYM-const-proof-test-report-env
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T11:07:23.731Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2a5da0c6569
+  - type: executable_for
+    from: SYM-proof-query-entity-types
+    to: TEST-proof-query-entity-types
+    created_at: 2026-10-28T17:24:16.648Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-08fc5bb74ede
+  - type: executable_for
+    from: SYM-proof-source-path-dangling-rule
+    to: TEST-proof-source-path-dangling-rule
+    created_at: 2026-10-28T17:27:54.180Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e11f27d89c4
+  - type: executable_for
+    from: SYM-proof-coverage-row-page-size
+    to: TEST-proof-coverage-row-page-size
+    created_at: 2026-10-28T17:50:29.903Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-108aad252f29
+  - type: implements
+    from: SYM-const-exception-approval-self-attested-rule
+    to: REQ-kibi-check-rule-names
+    created_at: 2026-10-28T20:21:21.699Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba2520d94e80
+  - type: covered_by
+    from: SYM-const-exception-approval-self-attested-rule
+    to: TEST-proof-exception-self-attested-rule
+    created_at: 2026-10-28T20:21:33.403Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8214bc88a365
+  - type: covered_by
+    from: SYM-const-exception-approval-self-attested-rule
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:21:33.423Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef5335ec6247
+  - type: implements
+    from: SYM-const-evidence-floor-pin-code
+    to: REQ-cli-migration-pin-codes
+    created_at: 2026-10-28T20:30:37.119Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-782ef2b2d3e5
+  - type: covered_by
+    from: SYM-const-evidence-floor-pin-code
+    to: TEST-proof-evidence-floor-pin-code
+    created_at: 2026-10-28T20:30:48.975Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-afa70d142847
+  - type: covered_by
+    from: SYM-const-evidence-floor-pin-code
+    to: TEST-cli-migrate
+    created_at: 2026-10-28T20:30:48.994Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2795b931d1b

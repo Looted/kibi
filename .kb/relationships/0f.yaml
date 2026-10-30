@@ -267,13 +267,6 @@ relationships:
     id: rel-ed1360bdc8fc
   - type: requires_property
     from: REQ-kibi-claim-bound-proofs
-    to: FACT-kibi-claim-binding-verdicts
-    created_at: 2026-10-25T18:21:10.004Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-60732c525c06
-  - type: requires_property
-    from: REQ-kibi-claim-bound-proofs
     to: FACT-kibi-claim-bound-derived-needs-obligation
     created_at: 2026-10-25T18:21:10.026Z
     created_by: kibi/upsert
@@ -314,3 +307,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-648d486990aa
+  - type: validates
+    from: TEST-proof-untracked-sources-code
+    to: SCEN-agent-guided-migration-orchestration
+    created_at: 2026-10-28T18:54:18.366Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2aabc7094e5
+  - type: implements
+    from: SYM-decision-firmness-supersedes-reason-missing-rule
+    to: REQ-kb-decision-firmness-rule-names
+    created_at: 2026-10-29T16:40:19.413Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-240b85b97b08
+  - type: covered_by
+    from: SYM-decision-firmness-supersedes-reason-missing-rule
+    to: TEST-proof-rule-supersedes-reason-missing
+    created_at: 2026-10-29T16:40:39.567Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-581c645c55e9

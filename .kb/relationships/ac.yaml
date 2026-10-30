@@ -293,3 +293,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b24b91d3f88e
+  - type: requires_property
+    from: REQ-kibi-proof-protocol-versions
+    to: FACT-proof-contract-version
+    created_at: 2026-10-28T10:54:00.601Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5997ae8a7723
+  - type: requires_property
+    from: REQ-kibi-proof-protocol-versions
+    to: FACT-proof-receipt-version
+    created_at: 2026-10-28T10:54:00.635Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4a790d5054fb
+  - type: requires_property
+    from: REQ-kibi-proof-protocol-versions
+    to: FACT-proof-run-version
+    created_at: 2026-10-28T10:54:00.659Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c72cb3603a6
+  - type: requires_property
+    from: REQ-kibi-proof-protocol-versions
+    to: FACT-proof-integration-version
+    created_at: 2026-10-28T10:54:00.674Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6ec8a67a809
+  - type: requires_property
+    from: REQ-kibi-proof-protocol-versions
+    to: FACT-proof-run-outcomes
+    created_at: 2026-10-28T10:54:00.691Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4257c4f7648b
+  - type: validates
+    from: TEST-proof-schema6-migration-origin-ref
+    to: SCEN-kibi-entity-origin
+    created_at: 2026-10-28T11:01:15.312Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c45f26aa11c2
+  - type: specified_by
+    from: REQ-kibi-proof-protocol-versions
+    to: SCEN-kibi-claim-bound-proofs
+    created_at: 2026-10-28T12:02:43.033Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d00c9e951b0
+  - type: constrains
+    from: REQ-kibi-proof-protocol-versions
+    to: FACT-kibi-proof-protocol-component
+    created_at: 2026-10-28T14:37:03.084Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7cb564cc507
+  - type: implements
+    from: SYM-impact-stage-e-impact-policy-version
+    to: REQ-impact-review-identifiers
+    created_at: 2026-10-28T17:32:15.775Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae63628d2702
+  - type: covered_by
+    from: SYM-impact-stage-e-impact-policy-version
+    to: TEST-proof-impact-policy-version
+    created_at: 2026-10-28T17:32:26.990Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab829ddc6b75
+  - type: implements
+    from: SYM-schema6-check-actions-AGENT_REQUIREMENTS_REVIEW_CODE
+    to: REQ-kibi-lifecycle-review-actions
+    created_at: 2026-10-28T20:25:59.855Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e5a862cbd4f
+  - type: covered_by
+    from: SYM-schema6-check-actions-AGENT_REQUIREMENTS_REVIEW_CODE
+    to: TEST-proof-agent-review-code
+    created_at: 2026-10-28T20:26:12.698Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d89ba7263ca
+  - type: covered_by
+    from: SYM-schema6-check-actions-AGENT_REQUIREMENTS_REVIEW_CODE
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:26:12.726Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-08e90f68f655

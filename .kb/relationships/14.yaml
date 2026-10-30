@@ -419,3 +419,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2d8d36517e79
+  - type: implements
+    from: SYM-cli-evidence-levels
+    to: REQ-kibi-evidence-level-vocabulary
+    created_at: 2026-10-28T10:06:09.695Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e63e07e6bbe7
+  - type: covered_by
+    from: SYM-cli-evidence-levels
+    to: TEST-proof-evidence-level-vocabulary
+    created_at: 2026-10-28T10:06:19.426Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-979a7a07f467
+  - type: requires_property
+    from: REQ-kibi-non-numeric-certificate-kinds
+    to: FACT-kibi-non-numeric-certificate-kinds
+    created_at: 2026-10-28T13:45:57.844Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23f00a21dd82
+  - type: specified_by
+    from: REQ-kibi-non-numeric-certificate-kinds
+    to: SCEN-kibi-non-numeric-proof-kinds
+    created_at: 2026-10-28T13:45:57.890Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-efce57bc5c64
+  - type: constrains
+    from: REQ-kibi-non-numeric-certificate-kinds
+    to: FACT-SUBJECT-KIBI-NON-NUMERIC-PROOF
+    created_at: 2026-10-28T13:46:01.726Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-115593caef30
+  - type: implements
+    from: SYM-performance-trace-max-bytes
+    to: REQ-kibi-perf-trace-limits
+    created_at: 2026-10-28T17:36:30.373Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c96f85bddad
+  - type: covered_by
+    from: SYM-performance-trace-max-bytes
+    to: TEST-proof-perf-trace-max-bytes
+    created_at: 2026-10-28T17:36:42.298Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e372733027e1
+  - type: validates
+    from: TEST-proof-entity-type-backfill-code
+    to: SCEN-cli-migrate-legacy-requirement-status
+    created_at: 2026-10-28T17:43:37.205Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e8a1bd8581a
+  - type: implements
+    from: SYM-cli-engine-idle-timeout
+    to: REQ-engine-protocol-settings
+    created_at: 2026-10-28T19:04:04.425Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-831fea11d931
+  - type: covered_by
+    from: SYM-cli-engine-idle-timeout
+    to: TEST-proof-engine-idle-timeout
+    created_at: 2026-10-28T19:04:15.524Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5923f1a0397c

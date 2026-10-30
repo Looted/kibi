@@ -146,6 +146,15 @@ export const DOCS: readonly DocPage[] = [
     source: "docs/troubleshooting.md",
   },
   {
+    slug: "telemetry",
+    section: "guide",
+    group: "Ship",
+    title: "Usage telemetry",
+    description:
+      "What anonymous usage statistics Kibi sends, what it never sends, and how to turn it off.",
+    source: "docs/telemetry.md",
+  },
+  {
     slug: "cli",
     section: "reference",
     group: "Commands",

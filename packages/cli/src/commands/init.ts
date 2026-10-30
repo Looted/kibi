@@ -29,12 +29,19 @@ import {
 } from "../utils/git-repository-context.js";
 import { scaffoldGitHubIntegration } from "./github-init.js";
 import {
+  type DetectedHookManager,
+  HOOK_SNIPPET_FORMATS,
+  type HookSnippetFormat,
+  detectHookManager,
+  hookManagerCoverage,
+  hookManagerSnippet,
+} from "./hook-managers.js";
+import {
   MANAGED_HOOK_NAMES,
   copySchemaFiles,
   createKbDirectoryStructure,
   createManifestFile,
   ensureSymbolsManifestFile,
-  hookDelegationSnippet,
   installGitHooks,
   isManagedHookName,
   updateGitIgnore,
@@ -106,6 +113,37 @@ interface InitOptions {
   github?: boolean;
   badgeOnly?: boolean;
   printHook?: string;
+  format?: string;
+}
+
+/**
+ * Hooks owned by a hook manager are left to it: Kibi installs nothing into
+ * the hooks directory and prints the manager configuration that runs Kibi's
+ * commands for every hook the manager does not visibly cover yet.
+ */
+// implements REQ-git-hook-manager-integration
+function reportHookManager(
+  manager: DetectedHookManager,
+  worktreeRoot: string,
+): void {
+  const gaps = hookManagerCoverage(manager.name, worktreeRoot).filter(
+    (entry) => entry.missing.length > 0,
+  );
+  const owner = `Git hooks are managed by ${manager.name} (${manager.configPath})`;
+  if (gaps.length === 0) {
+    console.log(
+      `✓ ${owner}, which already runs Kibi's hook commands; Kibi installed no hooks of its own.`,
+    );
+    return;
+  }
+  const hooks = gaps.map((entry) => entry.hook);
+  console.log(
+    `! ${owner}; Kibi installed no hooks of its own. ${manager.configPath} does not visibly run Kibi's commands for: ${hooks.join(", ")}. Add this (running the same commands through a task runner or script works too), or Kibi enforcement stays OFF for those hooks:\n`,
+  );
+  console.log(hookManagerSnippet(manager.name, hooks));
+  console.log(
+    `  Print it again with: kibi init --print-hook ${hooks.length === 1 ? hooks[0] : "all"} --format ${manager.name}`,
+  );
 }
 
 async function initNextAction(projectRoot: string): Promise<{
@@ -161,17 +199,34 @@ async function initNextAction(projectRoot: string): Promise<{
 export async function initCommand(
   options: InitOptions,
 ): Promise<{ exitCode: number }> {
+  if (options.format !== undefined && options.printHook === undefined) {
+    console.error("Error: --format applies only to --print-hook.");
+    return { exitCode: 1 };
+  }
   if (options.printHook !== undefined) {
     // Print-only mode: emit a delegation snippet for a hook Kibi does not
     // own and touch nothing, not even the repository context.
-    // implements REQ-git-hook-effective-install
-    if (!isManagedHookName(options.printHook)) {
+    // implements REQ-git-hook-effective-install, REQ-git-hook-manager-integration
+    const printHook = options.printHook;
+    if (printHook !== "all" && !isManagedHookName(printHook)) {
       console.error(
-        `Error: unknown hook '${options.printHook}' for --print-hook. Expected one of: ${MANAGED_HOOK_NAMES.join(", ")}.`,
+        `Error: unknown hook '${printHook}' for --print-hook. Expected one of: ${MANAGED_HOOK_NAMES.join(", ")}, all.`,
       );
       return { exitCode: 1 };
     }
-    process.stdout.write(hookDelegationSnippet(options.printHook));
+    const format = options.format ?? "shell";
+    if (!(HOOK_SNIPPET_FORMATS as readonly string[]).includes(format)) {
+      console.error(
+        `Error: unknown --format '${format}' for --print-hook. Expected one of: ${HOOK_SNIPPET_FORMATS.join(", ")}.`,
+      );
+      return { exitCode: 1 };
+    }
+    process.stdout.write(
+      hookManagerSnippet(
+        format as HookSnippetFormat,
+        printHook === "all" ? MANAGED_HOOK_NAMES : [printHook],
+      ),
+    );
     return { exitCode: 0 };
   }
 
@@ -266,8 +321,17 @@ export async function initCommand(
     }
 
     if (options.hooks) {
+      const manager = repoContext
+        ? detectHookManager(
+            repoContext.worktreeRoot,
+            repoContext.effectiveHooksDir,
+            repoContext.hooksPathConfig,
+          )
+        : null;
       if (!repoContext) {
         console.error("Warning: No git repository found, skipping hooks");
+      } else if (manager) {
+        reportHookManager(manager, repoContext.worktreeRoot);
       } else if (!isRepositoryManagedHooksDir(repoContext)) {
         // core.hooksPath is only the culprit when it is configured; the
         // default hooks directory can also escape the repository through a

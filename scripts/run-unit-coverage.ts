@@ -290,6 +290,7 @@ export const COVERAGE_SHARDS: readonly {
       "./packages/plugin-builtin",
       "./packages/plugin-jev",
       "./packages/plugin-ui",
+      "./packages/plugin-search-hints",
       "./packages/cli/tests/plugins",
     ],
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,

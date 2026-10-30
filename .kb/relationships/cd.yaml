@@ -300,3 +300,122 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-908c47a3b63f
+  - type: implements
+    from: SYM-const-default-proof-steps-path
+    to: REQ-kibi-proof-step-settings
+    created_at: 2026-10-28T11:06:45.973Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d999c3124249
+  - type: covered_by
+    from: SYM-const-default-proof-steps-path
+    to: TEST-proof-default-proof-steps-path
+    created_at: 2026-10-28T11:06:58.516Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bdbeced20645
+  - type: covered_by
+    from: SYM-const-default-proof-steps-path
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T11:06:58.536Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3bc567b84cfc
+  - type: implements
+    from: SYM-cli-logic-ir-LOGIC_IR_VERSION
+    to: REQ-kibi-logic-rule-limits
+    created_at: 2026-10-28T17:18:49.886Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f6d4c4324df
+  - type: covered_by
+    from: SYM-cli-logic-ir-LOGIC_IR_VERSION
+    to: TEST-proof-logic-ir-version
+    created_at: 2026-10-28T17:19:02.027Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e691cae52e93
+  - type: validates
+    from: TEST-proof-proof-binding-kinds
+    to: SCEN-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T17:48:33.838Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73ee78a13df8
+  - type: validates
+    from: TEST-proof-inventory-review-code
+    to: SCEN-cli-migrate
+    created_at: 2026-10-28T18:50:48.862Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b1a411c14baf
+  - type: validates
+    from: TEST-proof-granularity-violation-code
+    to: SCEN-symbol-behavioral-anchors
+    created_at: 2026-10-28T19:10:57.653Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47ee13f802b7
+  - type: executable_for
+    from: SYM-proof-evidence-floor-pin-code
+    to: TEST-proof-evidence-floor-pin-code
+    created_at: 2026-10-28T20:30:41.836Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46e456ca0bfb
+  - type: executable_for
+    from: SYM-proof-firmness-values
+    to: TEST-proof-firmness-values
+    created_at: 2026-10-28T20:51:15.669Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb4ab019294f
+  - type: executable_for
+    from: SYM-proof-brand-color-names
+    to: TEST-proof-brand-color-names
+    created_at: 2026-10-28T22:27:55.491Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-244240ea36c1
+  - type: requires_property
+    from: REQ-vscode-extension-ids
+    to: FACT-vscode-container-id
+    created_at: 2026-10-29T17:06:19.577Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34da83161743
+  - type: requires_property
+    from: REQ-vscode-extension-ids
+    to: FACT-vscode-view-id
+    created_at: 2026-10-29T17:06:19.666Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9af29b22c588
+  - type: requires_property
+    from: REQ-vscode-extension-ids
+    to: FACT-vscode-refresh-command
+    created_at: 2026-10-29T17:06:19.710Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-045ed35d0a1c
+  - type: requires_property
+    from: REQ-vscode-extension-ids
+    to: FACT-vscode-focus-command
+    created_at: 2026-10-29T17:06:19.747Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85245dc922df
+  - type: specified_by
+    from: REQ-vscode-extension-ids
+    to: SCEN-vscode-sidebar-kb-tree
+    created_at: 2026-10-29T17:06:19.787Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fbb615e1b564
+  - type: constrains
+    from: REQ-vscode-extension-ids
+    to: FACT-kibi-vscode-ids-component
+    created_at: 2026-10-29T17:06:22.941Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9062603f53ed

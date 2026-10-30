@@ -25,6 +25,13 @@ describe("Codex hook input", () => {
     });
   });
 
+  test("Given a camelCase session id When parsing Then it is kept", () => {
+    expect(parseHookInput({ event: "Stop", sessionId: "s-1" })).toEqual({
+      event: "Stop",
+      sessionId: "s-1",
+    });
+  });
+
   test("Given optional fields with invalid values When parsing Then they are omitted", () => {
     expect(
       parseHookInput({

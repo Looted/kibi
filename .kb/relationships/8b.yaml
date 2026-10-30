@@ -384,3 +384,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7a7919727bf9
+  - type: requires_property
+    from: REQ-kibi-mcp-tool-catalog
+    to: FACT-mcp-default-tool-count
+    created_at: 2026-10-28T09:26:59.330Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3661c7c7c93
+  - type: requires_property
+    from: REQ-kibi-mcp-tool-catalog
+    to: FACT-mcp-optional-tool-names
+    created_at: 2026-10-28T09:26:59.364Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ec291f937ff
+  - type: specified_by
+    from: REQ-kibi-mcp-tool-catalog
+    to: SCEN-kibi-mcp-tool-consolidation
+    created_at: 2026-10-28T09:26:59.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b691c70d867
+  - type: constrains
+    from: REQ-kibi-mcp-tool-catalog
+    to: FACT-SUBJECT-kibi-mcp-tool-catalog
+    created_at: 2026-10-28T09:32:31.190Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e500effd6373
+  - type: executable_for
+    from: SYM-proof-claim-binding-schema-version
+    to: TEST-proof-claim-binding-schema-version
+    created_at: 2026-10-28T10:58:11.226Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5f9e0674aec
+  - type: executable_for
+    from: SYM-proof-inventory-drift-rule
+    to: TEST-proof-inventory-drift-rule
+    created_at: 2026-10-28T19:05:44.931Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3fa22685cbc
+  - type: implements
+    from: SYM-reqcompiler-telemetry-acceptance-version
+    to: REQ-kibi-telemetry-versions
+    created_at: 2026-10-28T20:52:20.781Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4752d95dbd55
+  - type: covered_by
+    from: SYM-reqcompiler-telemetry-acceptance-version
+    to: TEST-proof-telemetry-acceptance-version
+    created_at: 2026-10-28T20:52:32.813Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca085b8b6bba
+  - type: executable_for
+    from: SYM-proof-brand-carbon-color
+    to: TEST-proof-brand-carbon-color
+    created_at: 2026-10-28T22:28:12.033Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2253c0eed67d
+  - type: validates
+    from: TEST-proof-managed-hook-names
+    to: SCEN-git-hook-effective-install
+    created_at: 2026-10-28T22:40:45.477Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb23295d2765

@@ -209,3 +209,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a7ab5c54ccf9
+  - type: executable_for
+    from: SYM-proof-compile-plan-version
+    to: TEST-proof-compile-plan-version
+    created_at: 2026-10-28T17:45:23.087Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae7517abf9cb
+  - type: executable_for
+    from: SYM-proof-inventory-review-code
+    to: TEST-proof-inventory-review-code
+    created_at: 2026-10-28T18:50:51.010Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b66be3dd8a5
+  - type: implements
+    from: SYM-const-agent-requirement-unapproved-rule
+    to: REQ-kibi-check-rule-names
+    created_at: 2026-10-28T20:20:35.786Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2983f158351
+  - type: covered_by
+    from: SYM-const-agent-requirement-unapproved-rule
+    to: TEST-proof-agent-requirement-unapproved-rule
+    created_at: 2026-10-28T20:20:47.006Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aef3a620601a
+  - type: covered_by
+    from: SYM-const-agent-requirement-unapproved-rule
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:20:47.022Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59eb9f38a89e
+  - type: implements
+    from: SYM-mcp-WORKSPACE_ROOT_ARGUMENT
+    to: REQ-mcp-workspace-root-argument
+    created_at: 2026-10-29T16:35:41.870Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9be284b4581
+  - type: validates
+    from: TEST-proof-mcp-workspace-root-argument
+    to: SCEN-mcp-workspace-routing
+    created_at: 2026-10-29T16:35:45.907Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b5359d26658
+  - type: covered_by
+    from: SYM-mcp-WORKSPACE_ROOT_ARGUMENT
+    to: TEST-proof-mcp-workspace-root-argument
+    created_at: 2026-10-29T16:36:02.874Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-02c3c5217b2e
+  - type: validates
+    from: TEST-proof-bootstrap-aspect-max-chars
+    to: SCEN-bootstrap-claim-name-length
+    created_at: 2026-10-29T16:51:57.468Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e03c73f0c13

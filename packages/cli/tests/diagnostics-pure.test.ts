@@ -273,3 +273,243 @@ describe("createInvalidAuthoringDiagnostic", () => {
     expect(result.suggestion).toContain("separate entity files");
   });
 });
+
+describe("diagnostic wording contracts", () => {
+  test("branch failures name the detected branch or explain how to set one", () => {
+    expect(
+      branchErrorToDiagnostic("DETACHED_HEAD", "HEAD is detached"),
+    ).toEqual({
+      category: "BRANCH_RESOLUTION_FAILURE",
+      severity: "error",
+      message: "Failed to resolve active branch: HEAD is detached",
+      suggestion:
+        "Set KIBI_BRANCH environment variable or ensure you're in a git repository with a valid checked-out branch.",
+    });
+    expect(
+      branchErrorToDiagnostic("AMBIGUOUS_ATTACHMENT", "two stores", "main"),
+    ).toEqual({
+      category: "BRANCH_RESOLUTION_FAILURE",
+      severity: "error",
+      message: "Failed to resolve active branch: two stores",
+      suggestion:
+        "Detected branch: main. Set KIBI_BRANCH environment variable to explicitly specify the branch.",
+    });
+    expect(
+      branchErrorToDiagnostic("UNKNOWN_ERROR", "boom", "").suggestion,
+    ).toStartWith("Set KIBI_BRANCH environment variable or ensure");
+  });
+
+  test("a missing KB names the branch and the path sync will create", () => {
+    expect(createKbMissingDiagnostic("main", ".kb/branches/main")).toEqual({
+      category: "KB_MISSING",
+      severity: "warning",
+      message: "Branch KB does not exist for 'main'",
+      suggestion: "Run 'kibi sync' to create the KB at .kb/branches/main",
+    });
+  });
+
+  test("unindexed docs report both counts", () => {
+    expect(createDocsNotIndexedDiagnostic(12, 7)).toEqual({
+      category: "DOCS_NOT_INDEXED",
+      severity: "warning",
+      message: "12 markdown files found but only 7 entities in KB",
+      suggestion:
+        "Some documents may have extraction errors. Run 'kibi sync --validate-only' to check.",
+    });
+  });
+
+  test("embedded authoring names every embedded type", () => {
+    expect(
+      createInvalidAuthoringDiagnostic("REQ-002.md", ["scenario", "test"]),
+    ).toEqual({
+      category: "INVALID_AUTHORING",
+      severity: "error",
+      message: "Requirement contains embedded scenario and test fields",
+      file: "REQ-002.md",
+      suggestion:
+        "Move scenario and test to separate entity files and link them using 'links' with relationship types like 'specified_by' or 'verified_by'.",
+    });
+  });
+
+  test("MCP diagnostics keep optional fields only when present", () => {
+    expect(
+      formatDiagnosticsForMcp([
+        {
+          category: "SYNC_ERROR",
+          severity: "error",
+          message: "bare",
+        },
+        {
+          category: "EXTRACTION_ERROR",
+          severity: "warning",
+          message: "full",
+          file: "a.md",
+          suggestion: "fix it",
+        },
+        {
+          category: "RELATIONSHIP_ERROR",
+          severity: "error",
+          message: "empty strings",
+          file: "",
+          suggestion: "",
+        },
+      ]),
+    ).toEqual([
+      { category: "SYNC_ERROR", severity: "error", message: "bare" },
+      {
+        category: "EXTRACTION_ERROR",
+        severity: "warning",
+        message: "full",
+        file: "a.md",
+        suggestion: "fix it",
+      },
+      {
+        category: "RELATIONSHIP_ERROR",
+        severity: "error",
+        message: "empty strings",
+        file: "",
+        suggestion: "",
+      },
+    ]);
+    const [bare] = formatDiagnosticsForMcp([
+      { category: "SYNC_ERROR", severity: "error", message: "bare" },
+    ]);
+    expect(Object.keys(bare ?? {})).toEqual([
+      "category",
+      "severity",
+      "message",
+    ]);
+  });
+});
+
+describe("formatSyncSummary output", () => {
+  const base = {
+    branch: "main",
+    timestamp: "2024-01-01T00:00:00Z",
+    relationshipCount: 3,
+  };
+
+  test("a full sync without store totals lists sorted entity counts", () => {
+    expect(
+      formatSyncSummary({
+        ...base,
+        commit: "0123456789abcdef",
+        entityCounts: { test: 2, adr: 1, req: 4 },
+        success: true,
+        published: true,
+        failures: [],
+        durationMs: 0,
+      }),
+    ).toBe(
+      [
+        "═══ Sync Summary ═══",
+        "Branch: main",
+        "Commit: 01234567",
+        "Timestamp: 2024-01-01T00:00:00Z",
+        "",
+        "Entity Counts:",
+        "  adr: 1",
+        "  req: 4",
+        "  test: 2",
+        "Total Relationships: 3",
+        "",
+        "Status: ✓ Success",
+        "Published: Yes",
+        "Duration: 0ms",
+        "═══ End Summary ═══",
+      ].join("\n"),
+    );
+  });
+
+  test("a failed sync lists each failure with its file and suggestion", () => {
+    expect(
+      formatSyncSummary({
+        ...base,
+        commit: "",
+        entityCounts: {},
+        success: false,
+        published: false,
+        failures: [
+          {
+            category: "SYNC_ERROR",
+            severity: "error",
+            message: "store locked",
+            file: "",
+            suggestion: "",
+          },
+          {
+            category: "EXTRACTION_ERROR",
+            severity: "warning",
+            message: "bad front matter",
+            file: "docs/a.md",
+            suggestion: "fix the YAML",
+          },
+        ],
+      }),
+    ).toBe(
+      [
+        "═══ Sync Summary ═══",
+        "Branch: main",
+        "Timestamp: 2024-01-01T00:00:00Z",
+        "",
+        "Entity Counts:",
+        "  (none)",
+        "Total Relationships: 3",
+        "",
+        "Status: ✗ Failed",
+        "Published: No",
+        "",
+        "Failures (2):",
+        "  [SYNC_ERROR] ERROR: store locked",
+        "  [EXTRACTION_ERROR] WARNING: bad front matter",
+        "    File: docs/a.md",
+        "    Suggestion: fix the YAML",
+        "═══ End Summary ═══",
+      ].join("\n"),
+    );
+  });
+
+  test("store totals sum every type and show an empty import", () => {
+    expect(
+      formatSyncSummary({
+        ...base,
+        entityCounts: {},
+        storeTotals: { entities: { req: 2, adr: 5 }, relationships: 9 },
+        success: true,
+        published: false,
+        failures: [],
+      }),
+    ).toBe(
+      [
+        "═══ Sync Summary ═══",
+        "Branch: main",
+        "Timestamp: 2024-01-01T00:00:00Z",
+        "",
+        "KB Totals: 7 entities",
+        "  adr: 5",
+        "  req: 2",
+        "KB Relationships: 9",
+        "Imported This Sync (changed sources only): 0 entities, 3 distinct relationships",
+        "  (none)",
+        "",
+        "Status: ✓ Success",
+        "Published: No",
+        "═══ End Summary ═══",
+      ].join("\n"),
+    );
+  });
+
+  test("imported counts are summed across types", () => {
+    const result = formatSyncSummary({
+      ...base,
+      entityCounts: { req: 2, adr: 3 },
+      storeTotals: { entities: {}, relationships: 0 },
+      success: true,
+      published: true,
+      failures: [],
+    });
+    expect(result).toContain(
+      "KB Totals: 0 entities\n  (none)\nKB Relationships: 0\nImported This Sync (changed sources only): 5 entities, 3 distinct relationships\n  adr: 3\n  req: 2\n",
+    );
+  });
+});

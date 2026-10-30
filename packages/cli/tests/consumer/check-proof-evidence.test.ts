@@ -162,6 +162,29 @@ describe("kibi check proof evidence through the kibi CLI", () => {
     expect(depthReviews(ws)).toEqual([]);
   }, 300_000);
 
+  test("kibi check keeps a receipt current after an unrelated change", () => {
+    const ws = createConsumerWorkspace("kibi-check-proof-binding-");
+    workspace = ws;
+    seed(ws);
+    const prove = ws.kibi(["prove", "--test", TEST]);
+    expect({ status: prove.status, stderr: prove.stderr }).toMatchObject({
+      status: 0,
+    });
+    // An unrelated committed change moves the workspace snapshot but not the
+    // test's per-contract binding, so coverage still reads the receipt as
+    // current and check must agree.
+    ws.write("src/unrelated.ts", "export const unrelated = 1;\n");
+    ws.git("add", "-A");
+    ws.git("commit", "-q", "-m", "unrelated change");
+    ws.sync();
+
+    expect(coverageRows(ws).get(REQ)?.proofStages.passingE2e).toMatchObject({
+      status: "passed",
+      tests: [TEST],
+    });
+    expect(depthReviews(ws)).toEqual([]);
+  }, 300_000);
+
   test("a proof-status filter judges receipts like the unfiltered report", () => {
     const ws = createConsumerWorkspace("kibi-coverage-status-binding-");
     workspace = ws;

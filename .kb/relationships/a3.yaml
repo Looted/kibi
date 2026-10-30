@@ -251,3 +251,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a7344d4f4ac6
+  - type: executable_for
+    from: SYM-proof-kb-merge-gate-order
+    to: TEST-proof-kb-merge-gate-order
+    created_at: 2026-10-28T09:39:54.129Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aec577ed3ee4
+  - type: validates
+    from: TEST-proof-telemetry-event-limit
+    to: SCEN-kibi-telemetry-acceptance-gate
+    created_at: 2026-10-28T09:43:25.411Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-766d10798fbb
+  - type: requires_property
+    from: REQ-cli-schema-migration-codes
+    to: FACT-origin-schema-version
+    created_at: 2026-10-28T18:48:53.583Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56a47d12af2c
+  - type: requires_property
+    from: REQ-cli-schema-migration-codes
+    to: FACT-origin-backfill-action
+    created_at: 2026-10-28T18:48:53.617Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3be2735f38d1
+  - type: requires_property
+    from: REQ-cli-schema-migration-codes
+    to: FACT-origin-backfill-code
+    created_at: 2026-10-28T18:48:53.636Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4957fdc55180
+  - type: requires_property
+    from: REQ-cli-schema-migration-codes
+    to: FACT-status-vocabulary-map-code
+    created_at: 2026-10-28T18:48:53.649Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d2ecfb2910df
+  - type: requires_property
+    from: REQ-cli-schema-migration-codes
+    to: FACT-inventory-rederive-code
+    created_at: 2026-10-28T18:48:53.664Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6de07809d5de
+  - type: requires_property
+    from: REQ-cli-schema-migration-codes
+    to: FACT-inventory-review-code
+    created_at: 2026-10-28T18:48:53.676Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8474fbe8c016
+  - type: requires_property
+    from: REQ-cli-schema-migration-codes
+    to: FACT-polarity-backfill-code
+    created_at: 2026-10-28T18:48:53.694Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06248408fd71
+  - type: specified_by
+    from: REQ-cli-schema-migration-codes
+    to: SCEN-cli-migrate
+    created_at: 2026-10-28T18:48:53.711Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebc8e009af47
+  - type: constrains
+    from: REQ-cli-schema-migration-codes
+    to: FACT-kibi-migration-schema-codes-component
+    created_at: 2026-10-28T18:48:55.858Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae1c67e68ffd
+  - type: validates
+    from: TEST-proof-freshness-resync-code
+    to: SCEN-agent-guided-migration-orchestration
+    created_at: 2026-10-28T18:54:37.821Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-410dbd812d32
+  - type: validates
+    from: TEST-proof-agent-review-action
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:25:41.897Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98c8a4c6f5a8

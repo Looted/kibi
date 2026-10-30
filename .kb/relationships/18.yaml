@@ -419,3 +419,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a8caa4432128
+  - type: requires_property
+    from: REQ-kibi-evidence-level-vocabulary
+    to: FACT-evidence-level-vocabulary
+    created_at: 2026-10-28T10:06:01.454Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a499c683e620
+  - type: specified_by
+    from: REQ-kibi-evidence-level-vocabulary
+    to: SCEN-kibi-evidence-levels
+    created_at: 2026-10-28T10:06:01.513Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b637b82b92f9
+  - type: constrains
+    from: REQ-kibi-evidence-level-vocabulary
+    to: FACT-SUBJECT-kibi-evidence-levels-vocabulary
+    created_at: 2026-10-28T10:06:03.613Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb0b8778d334
+  - type: executable_for
+    from: SYM-proof-search-answer-entity-loads
+    to: TEST-proof-search-answer-entity-loads
+    created_at: 2026-10-28T11:10:52.011Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12eb45584288
+  - type: executable_for
+    from: SYM-proof-legacy-kb-migration-command
+    to: TEST-proof-legacy-kb-migration-command
+    created_at: 2026-10-28T11:15:53.666Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c1a8c34939a
+  - type: executable_for
+    from: SYM-proof-polarity-backfill-code
+    to: TEST-proof-polarity-backfill-code
+    created_at: 2026-10-28T18:51:08.774Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-288b3a3c649a
+  - type: executable_for
+    from: SYM-proof-supersedes-acknowledged-rule
+    to: TEST-proof-supersedes-acknowledged-rule
+    created_at: 2026-10-28T20:23:18.693Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9faaf840f3ad

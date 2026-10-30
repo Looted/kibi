@@ -286,3 +286,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-314136b6cbeb
+  - type: executable_for
+    from: SYM-proof-context-missing-tag
+    to: TEST-proof-context-missing-tag
+    created_at: 2026-10-28T11:05:21.023Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c31f88dbb5f5
+  - type: implements
+    from: SYM-schema6-check-actions-EXCEPTION_UNAPPROVED_REVIEW_CODE
+    to: REQ-kibi-lifecycle-check-codes
+    created_at: 2026-10-28T17:26:25.395Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d81f5c9a13c9
+  - type: covered_by
+    from: SYM-schema6-check-actions-EXCEPTION_UNAPPROVED_REVIEW_CODE
+    to: TEST-proof-exception-unapproved-review-code
+    created_at: 2026-10-28T17:26:38.269Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bce63fc7b073
+  - type: covered_by
+    from: SYM-schema6-check-actions-EXCEPTION_UNAPPROVED_REVIEW_CODE
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T17:26:38.291Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a55b1d7cb7bd
+  - type: validates
+    from: TEST-proof-detached-head-code
+    to: SCEN-branch-detached-head-read-only
+    created_at: 2026-10-28T20:42:31.036Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82c93f15aa27
+  - type: implements
+    from: SYM-init-helpers-managed-hook-names
+    to: REQ-git-hook-managed-names
+    created_at: 2026-10-28T22:40:43.609Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d17a83706845
+  - type: covered_by
+    from: SYM-init-helpers-managed-hook-names
+    to: TEST-proof-managed-hook-names
+    created_at: 2026-10-28T22:40:53.834Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9810dbda8f97
+  - type: validates
+    from: TEST-proof-semantic-signal-kinds
+    to: SCEN-capability-plugin-host-resolution-v1
+    created_at: 2026-10-29T10:30:51.074Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07f5859e8263
+  - type: implements
+    from: SYM-source-analysis-timing-max-events
+    to: REQ-source-analysis-timing-limits
+    created_at: 2026-10-29T10:51:52.306Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77227c8d6587
+  - type: covered_by
+    from: SYM-source-analysis-timing-max-events
+    to: TEST-proof-source-timing-max-events
+    created_at: 2026-10-29T10:52:10.771Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aabb4ed0c46a

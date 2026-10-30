@@ -976,3 +976,249 @@ describe("Cursor decision guard", () => {
     );
   });
 });
+
+describe("Cursor hook runner result contracts", () => {
+  const optedIn = { KIBI_DIAGNOSTIC_MODE: "1" };
+  const RULE_NOTE_START = "Kibi: this request reads as a rule or decision";
+
+  function usageRows(root: string): Record<string, unknown>[] {
+    const logPath = path.join(root, ".kb", "usage.log");
+    if (!fs.existsSync(logPath)) return [];
+    return fs
+      .readFileSync(logPath, "utf8")
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line) as Record<string, unknown>);
+  }
+
+  function conversation(
+    workspace: string = cursorLinkedWorkspace(),
+    env: NodeJS.ProcessEnv = {},
+  ) {
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(pluginData);
+    const event = (payload: Record<string, unknown>, id = "contract-1") =>
+      runHook(
+        { conversation_id: id, workspace_roots: [workspace], ...payload },
+        { pluginData, env },
+      );
+    return { event, workspace, pluginData };
+  }
+
+  test("kibiWorkspaceFor finds the nearest manifest and stops at a repository boundary", async () => {
+    const { kibiWorkspaceFor } = await import("../src/hook-runner");
+    const root = createTempRoot("kibi-cursor-owner-");
+    tempRoots.push(root);
+    fs.mkdirSync(path.join(root, ".kb"), { recursive: true });
+    fs.writeFileSync(path.join(root, ".kb", "manifest.json"), "{}");
+    fs.mkdirSync(path.join(root, "src", "deep"), { recursive: true });
+    expect(kibiWorkspaceFor(path.join(root, "src", "deep"))).toBe(root);
+
+    const nested = path.join(root, "vendor", "lib");
+    fs.mkdirSync(path.join(root, "vendor", ".git"), { recursive: true });
+    fs.mkdirSync(nested, { recursive: true });
+    expect(kibiWorkspaceFor(nested)).toBeUndefined();
+
+    // A .kb directory without manifest.json is not a Kibi workspace.
+    const bare = createTempRoot("kibi-cursor-bare-");
+    tempRoots.push(bare);
+    fs.mkdirSync(path.join(bare, ".kb"), { recursive: true });
+    fs.mkdirSync(path.join(bare, ".git"), { recursive: true });
+    expect(kibiWorkspaceFor(bare)).toBeUndefined();
+  });
+
+  test("an edit call without a path gets no pre-edit message", async () => {
+    const { event } = conversation();
+    expect(
+      await event({
+        hook_event_name: "preToolUse",
+        tool_name: "Write",
+        tool_input: {},
+      }),
+    ).toEqual({});
+  });
+
+  test("a file covered only by tests gets the generic read guidance, not a requirement snippet", async () => {
+    const workspace = cursorLinkedWorkspace();
+    fs.writeFileSync(
+      path.join(workspace, ".kb", "symbols.yaml"),
+      [
+        "symbols:",
+        "  - id: SYM-computeTotal",
+        "    title: computeTotal",
+        "    sourceFile: src/checkout.ts",
+        "    relationships:",
+        "      - type: covered_by",
+        "        target: TEST-checkout-rounding",
+        "",
+      ].join("\n"),
+    );
+    const { event } = conversation(workspace);
+    const result = await event({
+      hook_event_name: "beforeReadFile",
+      file_path: path.join(workspace, "src/checkout.ts"),
+    });
+    expect(result.agent_message).toContain("\nKibi read guidance:");
+    expect(result.agent_message).not.toContain("Kibi knowledge for");
+  });
+
+  test("a whole-file write to firm code gets the firm-edit notice for the file", async () => {
+    const { event, workspace } = conversation();
+    const result = await event({
+      hook_event_name: "preToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: path.join(workspace, "src/checkout.ts") },
+    });
+    expect(result.agent_message).toStartWith(
+      "Kibi: this edit changes src/checkout.ts, which implements a firm requirement",
+    );
+  });
+
+  test("a documentation edit that gets no guidance is not remembered as guided", async () => {
+    const workspace = cursorLinkedWorkspace();
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(pluginData);
+    const result = await runHook(
+      {
+        hook_event_name: "preToolUse",
+        workspace_roots: [workspace],
+        tool_name: "Write",
+        tool_input: { file_path: path.join(workspace, "README.md") },
+      },
+      { pluginData, env: { KIBI_CONFIRM_FIRM_EDITS: "0" } },
+    );
+    expect(result).toEqual({});
+    expect(loadHookState(pluginData).guidedPreEditPaths).toEqual([]);
+  });
+
+  test("the rule note, firm notice and knowledge are separate paragraphs", async () => {
+    const { event, workspace } = conversation();
+    await event({
+      hook_event_name: "beforeSubmitPrompt",
+      prompt: "Totals must not be rounded from now on.",
+    });
+    const message =
+      (
+        await event({
+          hook_event_name: "preToolUse",
+          tool_name: "StrReplace",
+          tool_input: {
+            file_path: path.join(workspace, "src/checkout.ts"),
+            old_string: "  return Math.round(total * 100) / 100;",
+            new_string: "  return total;",
+          },
+        })
+      ).agent_message ?? "";
+    const paragraphs = message.split("\n\n");
+    expect(paragraphs[0]).toStartWith(RULE_NOTE_START);
+    expect(paragraphs[1]).toStartWith(
+      "Kibi: this edit changes computeTotal in src/checkout.ts",
+    );
+    expect(paragraphs[2]).toContain("Kibi knowledge for src/checkout.ts");
+  });
+
+  test("a prompt without a rule leaves the next edit without a rule note", async () => {
+    const { event, workspace } = conversation(undefined, {
+      KIBI_CONFIRM_FIRM_EDITS: "0",
+    });
+    expect(
+      await event({
+        hook_event_name: "beforeSubmitPrompt",
+        prompt: "Tidy up the checkout module.",
+      }),
+    ).toEqual({ continue: true });
+    expect(await event({ hook_event_name: "beforeSubmitPrompt" })).toEqual({
+      continue: true,
+    });
+    const message =
+      (
+        await event({
+          hook_event_name: "preToolUse",
+          tool_name: "Write",
+          tool_input: { file_path: path.join(workspace, "src/checkout.ts") },
+        })
+      ).agent_message ?? "";
+    expect(message).toContain("Kibi knowledge for src/checkout.ts");
+    expect(message).not.toContain(RULE_NOTE_START);
+  });
+
+  test("an unconfigured workspace keeps no prompt state and writes no telemetry", async () => {
+    const plain = createTempRoot("kibi-cursor-plain-");
+    tempRoots.push(plain);
+    const { event, pluginData } = conversation(plain, optedIn);
+    expect(
+      await event({
+        hook_event_name: "beforeSubmitPrompt",
+        prompt: "Guests must not see totals.",
+      }),
+    ).toEqual({ continue: true });
+    await event({
+      hook_event_name: "postToolUse",
+      tool_name: "Shell",
+      tool_input: { command: "npx --no-install kibi search --input -" },
+    });
+    expect(fs.readdirSync(pluginData)).toEqual([]);
+    expect(fs.existsSync(path.join(plain, ".kb"))).toBe(false);
+  });
+
+  test("telemetry rows carry the hook event and plugin version, and reads are not edits", async () => {
+    const { event, workspace } = conversation(undefined, optedIn);
+    await event({
+      hook_event_name: "postToolUse",
+      tool_name: "Read",
+      tool_input: { file_path: "src/checkout.ts" },
+    });
+    await event({
+      hook_event_name: "postToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: "src/checkout.ts" },
+    });
+    const pkg = JSON.parse(
+      fs.readFileSync(path.join(import.meta.dir, "..", "package.json"), "utf8"),
+    ) as { version: string };
+    const rows = usageRows(workspace);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      hook_action: "edited",
+      hook_event: "postToolUse",
+      package_version: pkg.version,
+      path: "src/checkout.ts",
+    });
+  });
+
+  test("one source path among an edit's paths is enough to ask for the decision record", async () => {
+    const { event, workspace } = conversation();
+    await event({
+      hook_event_name: "postToolUse",
+      tool_name: "Edit",
+      tool_input: {
+        paths: [
+          path.join(workspace, "README.md"),
+          path.join(workspace, "src/checkout.ts"),
+        ],
+      },
+    });
+    const stop = await event({ hook_event_name: "stop", status: "completed" });
+    expect(stop.followup_message).toContain(
+      "recorded nothing in the knowledge base",
+    );
+  });
+
+  test("a CLI upsert counts as recording knowledge", async () => {
+    const { event, workspace } = conversation();
+    await event({
+      hook_event_name: "postToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: path.join(workspace, "src/checkout.ts") },
+    });
+    await event({
+      hook_event_name: "postToolUse",
+      tool_name: "Shell",
+      tool_input: { command: "npx --no-install kibi upsert --input -" },
+    });
+    const stop = await event({ hook_event_name: "stop", status: "completed" });
+    expect(stop.followup_message ?? "").not.toContain(
+      "recorded nothing in the knowledge base",
+    );
+  });
+});

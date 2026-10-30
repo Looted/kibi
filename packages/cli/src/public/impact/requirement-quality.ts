@@ -70,55 +70,111 @@ function targetHasType(
   return targetType === undefined || targetType === type;
 }
 
+type FanoutIndex = {
+  readonly relationshipsByEntityId: ReadonlyMap<
+    string,
+    readonly ExtractionResult["relationships"][number][]
+  >;
+  readonly implementerIdsByRequirementId: ReadonlyMap<
+    string,
+    readonly string[]
+  >;
+  readonly dependentRequirementIdsByRequirementId: ReadonlyMap<
+    string,
+    readonly string[]
+  >;
+};
+
+/** One pass over every relationship, so each requirement's fanout is a lookup. */
+function fanoutIndex(results: readonly ExtractionResult[]): FanoutIndex {
+  const relationshipsByEntityId = new Map<
+    string,
+    ExtractionResult["relationships"][number][]
+  >();
+  const implementerIdsByRequirementId = new Map<string, string[]>();
+  const dependentRequirementIdsByRequirementId = new Map<string, string[]>();
+  const append = (
+    index: Map<string, string[]>,
+    key: string,
+    value: string,
+  ): void => {
+    const list = index.get(key);
+    if (list === undefined) index.set(key, [value]);
+    else list.push(value);
+  };
+  for (const result of results) {
+    const relationships = relationshipsByEntityId.get(result.entity.id);
+    if (relationships === undefined) {
+      relationshipsByEntityId.set(result.entity.id, [...result.relationships]);
+    } else {
+      relationships.push(...result.relationships);
+    }
+    for (const relationship of result.relationships) {
+      if (relationship.type === "implements") {
+        append(
+          implementerIdsByRequirementId,
+          relationship.to,
+          result.entity.id,
+        );
+      }
+      if (relationship.type === "depends_on" && result.entity.type === "req") {
+        append(
+          dependentRequirementIdsByRequirementId,
+          relationship.to,
+          result.entity.id,
+        );
+      }
+    }
+  }
+  return {
+    relationshipsByEntityId,
+    implementerIdsByRequirementId,
+    dependentRequirementIdsByRequirementId,
+  };
+}
+
 function collectFanout(
   requirementId: string,
-  results: readonly ExtractionResult[],
+  index: FanoutIndex,
   typesByEntityId: ReadonlyMap<string, string>,
 ): RequirementFanout {
-  const implementingSymbolIds: string[] = [];
   const scenarioIds: string[] = [];
   const testIds: string[] = [];
   const dependentRequirementIds: string[] = [];
 
-  for (const result of results) {
-    for (const relationship of result.relationships) {
-      if (
-        relationship.type === "implements" &&
-        relationship.to === requirementId
-      ) {
-        implementingSymbolIds.push(result.entity.id);
-      }
-      if (
-        result.entity.id === requirementId &&
-        relationship.type === "specified_by" &&
-        targetHasType(relationship.to, "scenario", typesByEntityId)
-      ) {
-        scenarioIds.push(relationship.to);
-      }
-      if (
-        result.entity.id === requirementId &&
-        (relationship.type === "verified_by" ||
-          relationship.type === "covered_by") &&
-        targetHasType(relationship.to, "test", typesByEntityId)
-      ) {
-        testIds.push(relationship.to);
-      }
-      if (relationship.type === "depends_on") {
-        if (
-          result.entity.id === requirementId &&
-          targetHasType(relationship.to, "req", typesByEntityId)
-        ) {
-          dependentRequirementIds.push(relationship.to);
-        }
-        if (relationship.to === requirementId && result.entity.type === "req") {
-          dependentRequirementIds.push(result.entity.id);
-        }
-      }
+  // rationale: every requirement this is called for is in the index, so the
+  // fallback list is never read.
+  // Stryker disable next-line ArrayDeclaration
+  const relationships = index.relationshipsByEntityId.get(requirementId) ?? [];
+  for (const relationship of relationships) {
+    if (
+      relationship.type === "specified_by" &&
+      targetHasType(relationship.to, "scenario", typesByEntityId)
+    ) {
+      scenarioIds.push(relationship.to);
+    }
+    if (
+      (relationship.type === "verified_by" ||
+        relationship.type === "covered_by") &&
+      targetHasType(relationship.to, "test", typesByEntityId)
+    ) {
+      testIds.push(relationship.to);
+    }
+    if (
+      relationship.type === "depends_on" &&
+      targetHasType(relationship.to, "req", typesByEntityId)
+    ) {
+      dependentRequirementIds.push(relationship.to);
     }
   }
+  dependentRequirementIds.push(
+    ...(index.dependentRequirementIdsByRequirementId.get(requirementId) ?? []),
+  );
 
   return {
-    implementingSymbolIds: sortedUnique(implementingSymbolIds),
+    implementingSymbolIds: sortedUnique(
+      index.implementerIdsByRequirementId.get(requirementId) ?? [],
+    ),
     scenarioIds: sortedUnique(scenarioIds),
     testIds: sortedUnique(testIds),
     dependentRequirementIds: sortedUnique(dependentRequirementIds),
@@ -145,9 +201,10 @@ function createBroadRequirementDiagnostics(
   results: readonly ExtractionResult[],
 ): readonly KibiImpactDiagnostic[] {
   const typesByEntityId = entityTypeById(results);
+  const index = fanoutIndex(results);
   return results.flatMap((result) => {
     if (!isCurrentRequirement(result)) return [];
-    const fanout = collectFanout(result.entity.id, results, typesByEntityId);
+    const fanout = collectFanout(result.entity.id, index, typesByEntityId);
     if (!exceedsBroadThreshold(fanout)) return [];
     if (isUmbrellaRequirement(result)) return [];
 

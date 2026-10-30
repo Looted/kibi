@@ -157,3 +157,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5e631dede512
+  - type: implements
+    from: SYM-env-bootstrap-kibi-project-env-file
+    to: REQ-kibi-env-bootstrap-files
+    created_at: 2026-10-28T10:40:44.009Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b4be7a58e8d
+  - type: covered_by
+    from: SYM-env-bootstrap-kibi-project-env-file
+    to: TEST-proof-env-project-file
+    created_at: 2026-10-28T10:40:56.464Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f321a80b7872
+  - type: covered_by
+    from: SYM-env-bootstrap-kibi-project-env-file
+    to: TEST-e2e-kibi-env-bootstrap
+    created_at: 2026-10-28T10:40:56.477Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b4d816a4b3c
+  - type: implements
+    from: SYM-const-check-policy-capability-id
+    to: REQ-capability-plugin-protocol-identifiers
+    created_at: 2026-10-28T10:49:32.061Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a28589cbc284
+  - type: covered_by
+    from: SYM-const-check-policy-capability-id
+    to: TEST-proof-check-policy-capability-id
+    created_at: 2026-10-28T10:49:42.543Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-27a6ea56a63a
+  - type: covered_by
+    from: SYM-const-check-policy-capability-id
+    to: TEST-e2e-runtime-symbol-portability
+    created_at: 2026-10-28T10:49:42.560Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac69958ea44b
+  - type: validates
+    from: TEST-proof-inventory-rederive-code
+    to: SCEN-cli-migrate
+    created_at: 2026-10-28T18:50:28.451Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee111c288aa6
+  - type: executable_for
+    from: SYM-proof-entity-schema-doc
+    to: TEST-proof-entity-schema-doc
+    created_at: 2026-10-28T18:58:04.995Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fafcc493e9e4
+  - type: validates
+    from: TEST-proof-semantic-advisor-version
+    to: SCEN-mcp-semantic-advisor-preflight
+    created_at: 2026-10-28T19:15:16.351Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c85b73dfc8d
+  - type: covered_by
+    from: SYM-const-proof-receipt-v1-version
+    to: TEST-proof-receipt-v1-version
+    created_at: 2026-10-28T20:41:33.871Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7cbdaa7625d
+  - type: covered_by
+    from: SYM-const-proof-receipt-v1-version
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T20:41:33.887Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b50cdf3680ae
+  - type: implements
+    from: SYM-const-proof-receipt-v1-version
+    to: REQ-kibi-proof-receipt-format
+    created_at: 2026-10-28T21:19:09.527Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ffd78f9ed98
+  - type: executable_for
+    from: SYM-proof-opencode-plugin-id
+    to: TEST-proof-opencode-plugin-id
+    created_at: 2026-10-29T17:02:03.359Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31703d02b424

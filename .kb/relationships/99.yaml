@@ -136,3 +136,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-076a12a0fb20
+  - type: implements
+    from: SYM-schema6-DECISION_FIRMNESS_SCHEMA_VERSION
+    to: REQ-kb-decision-firmness-rule-ids
+    created_at: 2026-10-28T11:03:29.058Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-479bada50a49
+  - type: covered_by
+    from: SYM-schema6-DECISION_FIRMNESS_SCHEMA_VERSION
+    to: TEST-proof-decision-firmness-schema-version
+    created_at: 2026-10-28T11:03:41.587Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04d3680260e3
+  - type: covered_by
+    from: SYM-schema6-DECISION_FIRMNESS_SCHEMA_VERSION
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-28T11:03:41.603Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e2aa5a65b27
+  - type: executable_for
+    from: SYM-proof-agent-review-action
+    to: TEST-proof-agent-review-action
+    created_at: 2026-10-28T20:25:44.035Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff717cc25d3c
+  - type: executable_for
+    from: SYM-proof-telemetry-acceptance-version
+    to: TEST-proof-telemetry-acceptance-version
+    created_at: 2026-10-28T20:52:26.340Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dff33be39e96

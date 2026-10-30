@@ -258,3 +258,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-61b3aae38594
+  - type: executable_for
+    from: SYM-proof-entity-context-rules
+    to: TEST-proof-entity-context-rules
+    created_at: 2026-10-28T11:04:58.155Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9aa63b945f77
+  - type: executable_for
+    from: SYM-proof-source-extraction-failed
+    to: TEST-proof-source-extraction-failed
+    created_at: 2026-10-28T19:08:34.812Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f7c1828b2c7
+  - type: validates
+    from: TEST-proof-required-swipl-libraries
+    to: SCEN-prolog-bundled-runtime
+    created_at: 2026-10-28T19:22:16.490Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-487176cb4b15
+  - type: implements
+    from: SYM-const-migration-plan-digest-version
+    to: REQ-agent-migration-plan-versions
+    created_at: 2026-10-28T20:55:46.756Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-38d91374d7cd
+  - type: covered_by
+    from: SYM-const-migration-plan-digest-version
+    to: TEST-proof-migration-plan-digest-version
+    created_at: 2026-10-28T20:56:00.096Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b85bf3792d72
+  - type: covered_by
+    from: SYM-const-migration-plan-digest-version
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-10-28T20:56:00.119Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-363bea0d1d46
+  - type: executable_for
+    from: SYM-proof-legacy-status-rejected
+    to: TEST-proof-legacy-status-rejected
+    created_at: 2026-10-29T10:43:24.874Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f8ade387c1c
+  - type: validates
+    from: TEST-kibi-plugin-search-hints
+    to: SCEN-kibi-plugin-search-hints
+    created_at: 2026-10-29T19:18:50.647Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6752a7d15b4
+  - type: implements
+    from: SYM-const-provenance-stub-tag
+    to: REQ-bootstrap-provenance-stub-tag
+    created_at: 2026-10-29T16:53:18.456Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8cceef3f04d3
+  - type: covered_by
+    from: SYM-const-provenance-stub-tag
+    to: TEST-proof-provenance-stub-tag
+    created_at: 2026-10-29T16:53:38.168Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f335c232575
+  - type: covered_by
+    from: SYM-const-provenance-stub-tag
+    to: TEST-bootstrap-provenance-stubs
+    created_at: 2026-10-29T16:53:38.215Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b24f41c7399

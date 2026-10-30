@@ -300,3 +300,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3fd9a4b5c780
+  - type: validates
+    from: TEST-proof-engine-query-limit-code
+    to: SCEN-core-engine-read-limits
+    created_at: 2026-10-28T10:31:34.579Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-135935bd6855
+  - type: implements
+    from: SYM-const-plan-apply-journal-version
+    to: REQ-kibi-plan-apply-journal-version
+    created_at: 2026-10-28T20:58:38.335Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7fcc01520470
+  - type: covered_by
+    from: SYM-const-plan-apply-journal-version
+    to: TEST-proof-plan-apply-journal-version
+    created_at: 2026-10-28T20:58:50.422Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06e170833dc1
+  - type: covered_by
+    from: SYM-const-plan-apply-journal-version
+    to: TEST-e2e-plan-compiler-hash
+    created_at: 2026-10-28T20:58:50.441Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1399e4890737
+  - type: implements
+    from: SYM-const-ci-env-keys
+    to: REQ-kibi-telemetry-automation-keys
+    created_at: 2026-10-29T16:27:49.981Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-213cc4fbb149
+  - type: covered_by
+    from: SYM-const-ci-env-keys
+    to: TEST-proof-telemetry-ci-env-keys
+    created_at: 2026-10-29T16:28:09.488Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00339a45388b
+  - type: covered_by
+    from: SYM-const-ci-env-keys
+    to: TEST-kibi-anonymous-usage-telemetry-cli
+    created_at: 2026-10-29T16:28:09.526Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa34867d4142

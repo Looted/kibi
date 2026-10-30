@@ -160,3 +160,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-07afba401720
+  - type: implements
+    from: SYM-const-reference-extracts
+    to: REQ-kibi-code-certificate-settings
+    created_at: 2026-10-28T20:38:15.358Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb20d6b6f495
+  - type: covered_by
+    from: SYM-const-reference-extracts
+    to: TEST-proof-reference-extracts
+    created_at: 2026-10-28T20:38:26.961Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8afdbe1eb992
+  - type: covered_by
+    from: SYM-const-reference-extracts
+    to: TEST-kibi-code-proof-kinds
+    created_at: 2026-10-28T20:38:26.975Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eab8a60f442f
+  - type: requires_property
+    from: REQ-kibi-distribution-parity-version
+    to: FACT-distribution-parity-version
+    created_at: 2026-10-28T21:06:10.065Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5216f2f52981
+  - type: specified_by
+    from: REQ-kibi-distribution-parity-version
+    to: SCEN-kibi-distribution-parity-matrix
+    created_at: 2026-10-28T21:06:10.092Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39b50c75beb9
+  - type: constrains
+    from: REQ-kibi-distribution-parity-version
+    to: FACT-kibi-distribution-parity-component
+    created_at: 2026-10-28T21:06:12.335Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0eace65d745
+  - type: validates
+    from: TEST-proof-opencode-plugin-id
+    to: SCEN-opencode-kibi-plugin-v1
+    created_at: 2026-10-29T17:01:59.690Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72f33f8d718e
+  - type: validates
+    from: TEST-proof-search-hint-shown-limit
+    to: SCEN-kibi-search-hints-host
+    created_at: 2026-10-29T21:35:34.741Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69dc056ed180

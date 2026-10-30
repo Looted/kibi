@@ -1,5 +1,8 @@
 // @ts-ignore
 import { describe, expect, test } from "bun:test";
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { runAggregatedChecks } from "../../src/commands/aggregated-checks";
 import type { PrologProcess } from "../../src/prolog";
 
@@ -55,6 +58,288 @@ describe("runAggregatedChecks", () => {
         witnesses: [{ kind: "strict_property", status: "contradiction" }],
       },
     });
+  });
+
+  test("reads violations from the engine's result file when the answer says so", async () => {
+    const violations = {
+      "rule-a": [
+        {
+          rule: "rule-a",
+          entityId: "E1",
+          description: "desc",
+          suggestion: "",
+          source: "",
+        },
+      ],
+    };
+    let resultPath = "";
+    const prolog = {
+      async query(goal: string) {
+        const match = goal.match(/check_all_json_file\('([^']+)', false\)/);
+        if (!match?.[1]) throw new Error(`no result file in goal: ${goal}`);
+        resultPath = match[1];
+        expect(path.isAbsolute(resultPath)).toBe(true);
+        writeFileSync(resultPath, JSON.stringify(violations), "utf8");
+        return { success: true, bindings: { Transport: "file" } };
+      },
+    } as unknown as PrologProcess;
+
+    const out = await runAggregatedChecks(prolog, null);
+    expect(out).toEqual([
+      { rule: "rule-a", entityId: "E1", description: "desc" },
+    ]);
+    expect(existsSync(path.dirname(resultPath))).toBe(false);
+  });
+
+  test("selected rules go through the result file too", async () => {
+    let resultPath = "";
+    const capture: { lastQuery?: string } = {};
+    const prolog = {
+      async query(goal: string) {
+        capture.lastQuery = goal;
+        const match = goal.match(
+          /check_selected_json_file\(\['rule-a'\], '([^']+)'\)/,
+        );
+        if (!match?.[1]) throw new Error(`no result file in goal: ${goal}`);
+        resultPath = match[1];
+        writeFileSync(resultPath, JSON.stringify({ "rule-a": [] }), "utf8");
+        return { success: true, bindings: { Transport: "file" } };
+      },
+    } as unknown as PrologProcess;
+
+    const out = await runAggregatedChecks(prolog, new Set(["rule-a"]));
+    expect(out).toEqual([]);
+    expect(capture.lastQuery).toContain("check_selected_json([");
+    expect(existsSync(path.dirname(resultPath))).toBe(false);
+  });
+
+  test("several selected rules reach the engine as one Prolog list", async () => {
+    const goals: string[] = [];
+    const prolog = {
+      async query(goal: string) {
+        goals.push(goal);
+        const match = goal.match(
+          /check_selected_json_file\(\[[^\]]*\], '([^']+)'\)/,
+        );
+        if (!match?.[1]) throw new Error(`no result file in goal: ${goal}`);
+        writeFileSync(match[1], JSON.stringify({}), "utf8");
+        return { success: true, bindings: { Transport: "file" } };
+      },
+    } as unknown as PrologProcess;
+
+    await runAggregatedChecks(prolog, new Set(["rule-a", "rule-b"]));
+    expect(goals[0]).toContain(
+      "check_selected_json_file(['rule-a','rule-b'], ",
+    );
+    expect(goals[0]).toContain("check_selected_json(['rule-a','rule-b'], ");
+  });
+
+  test("an empty result file is reported as a missing answer", async () => {
+    const prolog = {
+      async query(goal: string) {
+        const match = goal.match(/check_all_json_file\('([^']+)', false\)/);
+        if (!match?.[1]) throw new Error(`no result file in goal: ${goal}`);
+        writeFileSync(match[1], "", "utf8");
+        return { success: true, bindings: { Transport: "file" } };
+      },
+    } as unknown as PrologProcess;
+
+    await expect(runAggregatedChecks(prolog, null)).rejects.toThrow(
+      "No JSON string in binding",
+    );
+  });
+
+  test("a result file this process cannot read is asked for again as an answer", async () => {
+    let resultPath = "";
+    const goals: string[] = [];
+    const prolog = {
+      async query(goal: string) {
+        goals.push(goal);
+        const match = goal.match(/check_all_json_file\('([^']+)', false\)/);
+        if (match?.[1]) {
+          resultPath = match[1];
+          // The engine claims the file transport but the file is not there
+          // (an engine with another view of the temp folder).
+          return { success: true, bindings: { Transport: "file" } };
+        }
+        return {
+          success: true,
+          bindings: {
+            Transport: "answer",
+            JsonString: JSON.stringify({
+              "rule-a": [{ rule: "rule-a", entityId: "E1", description: "d" }],
+            }),
+          },
+        };
+      },
+    } as unknown as PrologProcess;
+
+    const out = await runAggregatedChecks(prolog, null);
+    expect(out).toEqual([{ rule: "rule-a", entityId: "E1", description: "d" }]);
+    expect(goals).toHaveLength(2);
+    expect(goals[1]).toContain(
+      "check_all_json_transport(none, false, Transport, JsonString)",
+    );
+    expect(goals[1]).not.toContain("check_all_json_file(");
+    expect(resultPath).not.toBe("");
+    expect(existsSync(path.dirname(resultPath))).toBe(false);
+  });
+
+  test("a failed second ask is reported as a failed check", async () => {
+    let calls = 0;
+    const prolog = {
+      async query() {
+        calls += 1;
+        return calls === 1
+          ? { success: true, bindings: { Transport: "file" } }
+          : { success: false, bindings: {}, error: "engine gone" };
+      },
+    } as unknown as PrologProcess;
+
+    await expect(runAggregatedChecks(prolog, null)).rejects.toThrow(
+      "Aggregated checks query failed: engine gone",
+    );
+  });
+
+  test("an unusable temp dir asks the engine for an answer", async () => {
+    const previous = process.env.TMPDIR;
+    const base = mkdtempSync(path.join(tmpdir(), "kibi-check-tmp-"));
+    process.env.TMPDIR = path.join(base, "missing");
+    const goals: string[] = [];
+    const prolog = {
+      async query(goal: string) {
+        goals.push(goal);
+        return {
+          success: true,
+          bindings: { Transport: "answer", JsonString: "{}" },
+        };
+      },
+    } as unknown as PrologProcess;
+    try {
+      expect(await runAggregatedChecks(prolog, null)).toEqual([]);
+      expect(goals).toHaveLength(1);
+      expect(goals[0]).toContain(
+        "check_all_json_transport(none, false, Transport, JsonString)",
+      );
+      expect(goals[0]).not.toContain("check_all_json_file(");
+      expect(goals[0]).toMatch(
+        /JsonString\)\)\s*;\s*predicate_property\(checks:check_all_json_with_options/,
+      );
+    } finally {
+      if (previous === undefined) Reflect.deleteProperty(process.env, "TMPDIR");
+      else process.env.TMPDIR = previous;
+      rmSync(base, { recursive: true, force: true });
+    }
+  });
+
+  test("an unusable temp dir with selected rules asks for the selected answer", async () => {
+    const previous = process.env.TMPDIR;
+    const base = mkdtempSync(path.join(tmpdir(), "kibi-check-tmp-"));
+    process.env.TMPDIR = path.join(base, "missing");
+    const goals: string[] = [];
+    const prolog = {
+      async query(goal: string) {
+        goals.push(goal);
+        return {
+          success: true,
+          bindings: { Transport: "answer", JsonString: "{}" },
+        };
+      },
+    } as unknown as PrologProcess;
+    try {
+      await runAggregatedChecks(prolog, new Set(["rule-a"]));
+      expect(goals[0]).toContain(
+        "check_selected_json_transport(['rule-a'], none, Transport, JsonString)",
+      );
+      expect(goals[0]).not.toContain("check_selected_json_file(");
+      expect(goals[0]).toContain("check_selected_json(['rule-a'], JsonString)");
+    } finally {
+      if (previous === undefined) Reflect.deleteProperty(process.env, "TMPDIR");
+      else process.env.TMPDIR = previous;
+      rmSync(base, { recursive: true, force: true });
+    }
+  });
+
+  test("the transport predicate is preferred and reads the file it wrote", async () => {
+    const goals: string[] = [];
+    const prolog = {
+      async query(goal: string) {
+        goals.push(goal);
+        const match = goal.match(
+          /check_all_json_transport\('([^']+)', false, Transport, JsonString\)/,
+        );
+        if (!match?.[1]) throw new Error(`no result file in goal: ${goal}`);
+        writeFileSync(match[1], JSON.stringify({ "rule-a": [] }), "utf8");
+        return {
+          success: true,
+          bindings: { Transport: "file", JsonString: "" },
+        };
+      },
+    } as unknown as PrologProcess;
+
+    expect(await runAggregatedChecks(prolog, null)).toEqual([]);
+    expect(goals).toHaveLength(1);
+    const transportAt = goals[0]?.indexOf("check_all_json_transport(") ?? -1;
+    const fileAt = goals[0]?.indexOf("check_all_json_file(") ?? -1;
+    expect(transportAt).toBeGreaterThan(-1);
+    expect(fileAt).toBeGreaterThan(transportAt);
+  });
+
+  test("a temp dir with a quote in its path reaches the engine as a valid atom", async () => {
+    const previous = process.env.TMPDIR;
+    const base = mkdtempSync(path.join(tmpdir(), "kibi-check-quote-"));
+    const quoted = path.join(base, "it's here");
+    process.env.TMPDIR = quoted;
+    let resultPath = "";
+    let goalText = "";
+    const prolog = {
+      async query(goal: string) {
+        goalText = goal;
+        // The atom is single-quoted, so a quote inside it is doubled.
+        const match = goal.match(
+          /check_all_json_file\('((?:[^']|'')+)', false\)/,
+        );
+        if (!match?.[1]) throw new Error(`no result file in goal: ${goal}`);
+        resultPath = match[1].replaceAll("''", "'");
+        writeFileSync(resultPath, JSON.stringify({ "rule-a": [] }), "utf8");
+        return { success: true, bindings: { Transport: "file" } };
+      },
+    } as unknown as PrologProcess;
+    try {
+      const { mkdirSync } = await import("node:fs");
+      mkdirSync(quoted, { recursive: true });
+      const out = await runAggregatedChecks(prolog, null);
+      expect(out).toEqual([]);
+      expect(resultPath.startsWith(quoted)).toBe(true);
+      expect(goalText).toContain("it''s here");
+      expect(existsSync(path.dirname(resultPath))).toBe(false);
+    } finally {
+      // biome-ignore lint/performance/noDelete: unset it, an assignment would store "undefined"
+      if (previous === undefined) delete process.env.TMPDIR;
+      else process.env.TMPDIR = previous;
+      rmSync(base, { recursive: true, force: true });
+    }
+  });
+
+  test("an engine without the file predicates still answers through the binding", async () => {
+    const result = {
+      success: true,
+      bindings: {
+        Transport: "answer",
+        JsonString: JSON.stringify({ "rule-a": [] }),
+      },
+    };
+    let queries = 0;
+    const prolog = {
+      async query() {
+        queries += 1;
+        return result;
+      },
+    } as unknown as PrologProcess;
+    const out = await runAggregatedChecks(prolog, null);
+    expect(out).toHaveLength(0);
+    // An answer is used as it is: no result file is read, nothing is asked again.
+    expect(queries).toBe(1);
   });
 
   test("empty violations (no issues found)", async () => {

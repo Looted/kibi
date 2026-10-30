@@ -20,18 +20,18 @@ origin:
 id: TEST-kb-decision-firmness
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-26d9d97341a60a818bc3a5a8
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-6d66b85fefd0b032b09de038
     test_id: TEST-kb-decision-firmness
     scope: end_to_end
     outcome: passed
-    code_snapshot: e835513455c222ab54e344a32239b0bae6e8a3931cbe76976fdb7f54201fa22f
+    code_snapshot: 13edea36515118273ba4ebf025d90a23ade856c45df9cf44ae222d5a87cd2c0b
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-12T23:06:43.090Z'
-    finished_at: '2026-10-12T23:06:51.190Z'
-    artifact_digest: 371eafe9d6d4fd578fef1f51744fa060113bfc25ae34e5b09a44cbcdd06b3dab
+    started_at: '2026-10-29T16:40:48.733Z'
+    finished_at: '2026-10-29T16:41:14.616Z'
+    artifact_digest: 1416c729848b3c4a89490c7ffaa45fd80f373125eb49c490a63b83f1bc2df4d7
     contract_hash: eb159839a2ab422217e9c043e74c5be557bea0a9f30e77c254e6ba081fbff360
-    binding_hash: 3f7b5b1d55a0a794a1bcac9e4fd7fdafa46826dd3be738c052af563ab0263b80
+    binding_hash: e55674d123d0dd51b288d8b79374f1dc671761e1202f2d3373b4040aad59823f
     fingerprint: ba6caeb3f8448b0636e6325ccd0c491fbbfe1ccc4b3302da47c66464bdb4b823
     fingerprint_components:
       contract: eb159839a2ab422217e9c043e74c5be557bea0a9f30e77c254e6ba081fbff360
@@ -53,6 +53,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs the decision firmness suite: the firmness helpers, each blocking rule over a workspace with front-matter links and relationship shards, the manifest acknowledgement, the schema 9 migration fragment and its apply, extractor validation, the kb_upsert refusal of an unreferenced firm decision, the effective firmness in search answer rows and the hook snippet suffix.
 

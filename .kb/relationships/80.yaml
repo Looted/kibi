@@ -356,3 +356,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-77021099a55b
+  - type: executable_for
+    from: SYM-proof-search-candidate-page-size
+    to: TEST-proof-search-candidate-page-size
+    created_at: 2026-10-28T17:23:13.185Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98faac696e01
+  - type: validates
+    from: TEST-proof-integration-configure-step
+    to: SCEN-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T21:20:42.548Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d003c12f4fa
+  - type: executable_for
+    from: SYM-proof-github-badge-alt
+    to: TEST-proof-github-badge-alt
+    created_at: 2026-10-29T10:19:53.757Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-588dd8e47224
+  - type: implements
+    from: SYM-rank-by-meaning
+    to: REQ-kibi-plugin-search-hints
+    created_at: 2026-10-29T19:22:42.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c90fd5c9973a
+  - type: covered_by
+    from: SYM-rank-by-meaning
+    to: TEST-kibi-plugin-search-hints
+    created_at: 2026-10-29T19:22:42.549Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e8b3081355a

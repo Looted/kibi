@@ -1,0 +1,20 @@
+{"id": "hints-dry-run", "query": "can I preview a write to the knowledge base without actually saving it?", "expectedIds": ["REQ-kibi-mcp-tool-consolidation", "REQ-mcp-tool-upsert"]}
+{"id": "hints-contradict", "query": "what if two rules in the spec say opposite things?", "expectedIds": ["REQ-kibi-truthful-consistency"]}
+{"id": "hints-gc", "query": "which on-disk copies of the database is the cleanup command allowed to remove?", "expectedIds": ["REQ-cli-gc"]}
+{"id": "hints-units", "query": "is half an hour equal to thirty minutes when values are compared?", "expectedIds": ["REQ-kibi-unit-canonicalization"]}
+{"id": "hints-ids", "query": "what naming convention do identifiers of new records follow?", "expectedIds": ["REQ-kibi-entity-id-style"]}
+{"id": "hints-bundled", "query": "if the package ships its own logic engine and the machine has one installed too, which one is used?", "expectedIds": ["REQ-prolog-bundled-runtime"]}
+{"id": "hints-stale", "query": "when does evidence from an earlier test run stop counting after the code changes?", "expectedIds": ["REQ-kibi-fresh-verification-receipts-v2"]}
+{"id": "hints-workspace", "query": "which project folder does the agent tool server use when the editor has a different repo open?", "expectedIds": ["REQ-mcp-workspace-routing"]}
+{"id": "hints-plugins", "query": "do extensions phone home or get switched on silently?", "expectedIds": ["REQ-capability-plugin-activation-disclosure-v1"]}
+{"id": "hints-release", "query": "how do we cut and ship a new version to the package registry?", "expectedIds": ["REQ-020"]}
+{"id": "hints-doctor", "query": "what does the health diagnostic command say about the logic engine install?", "expectedIds": ["REQ-prolog-doctor-runtime-report", "REQ-cli-doctor"]}
+{"id": "hints-merge", "query": "what happens when two people edit the code index file on different branches and then merge?", "expectedIds": ["REQ-cli-kb-merge-driver"]}
+{"id": "hints-constants", "query": "can I limit the allowed values of one field of a fact type?", "expectedIds": ["REQ-kibi-predicate-argument-constants"]}
+{"id": "hints-hooks", "query": "where do commit hooks get written when I work in a secondary checkout of the repo?", "expectedIds": ["REQ-git-hook-effective-install"]}
+{"id": "hints-docs", "query": "how is the documentation website deployed?", "expectedIds": ["REQ-docs-site-root-pages"]}
+{"id": "hints-branch", "query": "does switching to a fresh branch start from an empty knowledge base?", "expectedIds": ["REQ-branch-store-recovery-v4"]}
+{"id": "hints-advisory", "query": "which warnings from the checker are only suggestions and not errors?", "expectedIds": ["REQ-audit-quality-diagnostics-v1"]}
+{"id": "hints-sidebar", "query": "what must the editor side panel display?", "expectedIds": ["REQ-vscode-sidebar-kb-tree"]}
+{"id": "hints-staged", "query": "what does the check before each commit block when behaviour code changes?", "expectedIds": ["REQ-cli-staged-impact-enforcement"]}
+{"id": "hints-status", "query": "what should the status command print on a repo that was never indexed?", "expectedIds": ["REQ-cli-status-pre-first-sync"]}

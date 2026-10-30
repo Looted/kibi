@@ -370,3 +370,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ab2555277fbe
+  - type: validates
+    from: TEST-proof-mcp-optional-tools
+    to: SCEN-kibi-mcp-tool-consolidation
+    created_at: 2026-10-28T09:30:02.880Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a337c446eacd
+  - type: executable_for
+    from: SYM-proof-logic-rule-max-variables
+    to: TEST-proof-logic-rule-max-variables
+    created_at: 2026-10-28T17:19:52.925Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d3a2087c70e
+  - type: validates
+    from: TEST-proof-migration-sync-code
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T17:29:12.573Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0950f6fa208
+  - type: validates
+    from: TEST-proof-plan-apply-result-version
+    to: SCEN-kibi-change-to-proof-plan-compiler
+    created_at: 2026-10-28T17:45:41.309Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1395ea402ea
+  - type: implements
+    from: SYM-SKILL_FILE_NAME
+    to: REQ-skill-file-limits
+    created_at: 2026-10-28T19:13:03.520Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55bd64baa6fd
+  - type: covered_by
+    from: SYM-SKILL_FILE_NAME
+    to: TEST-proof-skill-file-name
+    created_at: 2026-10-28T19:13:13.334Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d9210a5433b0
+  - type: covered_by
+    from: SYM-const-proof-receipt-versions
+    to: TEST-proof-receipt-versions
+    created_at: 2026-10-28T20:41:57.187Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4a3f06d9eccd
+  - type: covered_by
+    from: SYM-const-proof-receipt-versions
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T20:41:57.219Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e2b3efeab07
+  - type: implements
+    from: SYM-const-proof-receipt-versions
+    to: REQ-kibi-proof-receipt-format
+    created_at: 2026-10-28T21:19:29.336Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-781d6bed2651
+  - type: executable_for
+    from: SYM-proof-legacy-status-superseded
+    to: TEST-proof-legacy-status-superseded
+    created_at: 2026-10-29T10:42:48.184Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0ef4bc5956a

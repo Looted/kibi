@@ -23,18 +23,18 @@ proof_contract:
       target: default
   success_policy: all_required_first_attempt
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-c86ad970efaecf860953736c
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-7211e04425e0955413dfe723
     test_id: TEST-kibi-query-fact-filters
     scope: end_to_end
     outcome: passed
-    code_snapshot: 9818fea9b2083fdb41e72bc59faea0f363d75487f90b59fdde0605328c60c381
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-11T15:21:04.385Z'
-    finished_at: '2026-10-11T15:21:09.868Z'
-    artifact_digest: eb1048d0978d3bd31b7929715be64f42014c66489ce5a3237e6afda29e8bc444
+    code_snapshot: b3aebb9a234909e19f4a25aad9772fdfeb2a1bc7927e5d064c8189d04157bd3d
+    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
+    started_at: '2026-10-29T10:34:16.428Z'
+    finished_at: '2026-10-29T10:34:29.137Z'
+    artifact_digest: bd37cfb5f458b2c323af3d9971c9359a769054530e5675f677bba1531192330b
     contract_hash: dba41c698273bb2c30a53e85b9021271ee09e72ee14eba865d8f939afac15302
-    binding_hash: 04f986358bcc5c2f32d426971b58207331c06df40602f3ae128a5f718f5dbd74
+    binding_hash: cf1529f9b970bb80a56fe4abdea5c03681015a1eb769877cba7c3a6cd05b5267
     fingerprint: b1ceec02a264cd8d6d55c670f0c5dfdfa968e0c34894c3551c8b602daf1c477c
     fingerprint_components:
       contract: dba41c698273bb2c30a53e85b9021271ee09e72ee14eba865d8f939afac15302
@@ -56,6 +56,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 # kb_query typed fact questions and the answer-layer fact claims are verified in Prolog and TypeScript
 

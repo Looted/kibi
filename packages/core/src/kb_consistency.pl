@@ -58,7 +58,22 @@ check_kb_consistency_unresolved(Violations) :-
         Unsorted),
     sort(Unsorted, Violations).
 
+% Both rules read the same verification, so it is produced once per KB
+% generation (recomputed inside an RDF transaction).
 consistency_verification(Bundle, Report) :-
+    (   \+ rdf_db:rdf_active_transaction(_),
+        kb:index_verification_key(kb_consistency, Key)
+    ->  (   kb:kb_consistency_memo(Key, Bundle0, Report0)
+        ->  Bundle = Bundle0,
+            Report = Report0
+        ;   compute_consistency_verification(Bundle, Report),
+            retractall(kb:kb_consistency_memo(_, _, _)),
+            assertz(kb:kb_consistency_memo(Key, Bundle, Report))
+        )
+    ;   compute_consistency_verification(Bundle, Report)
+    ).
+
+compute_consistency_verification(Bundle, Report) :-
     kb_certificates(Produced),
     with_output_to(string(Json), json_write_dict(current_output, Produced, [width(0)])),
     open_string(Json, Stream),

@@ -251,3 +251,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e6827bf7e743
+  - type: executable_for
+    from: SYM-proof-proof-receipt-max-age
+    to: TEST-proof-proof-receipt-max-age
+    created_at: 2026-10-28T10:12:22.894Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f26ede104253
+  - type: validates
+    from: TEST-proof-canonical-adr-path
+    to: SCEN-cli-canonical-init
+    created_at: 2026-10-28T22:35:05.776Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1bba43b3906

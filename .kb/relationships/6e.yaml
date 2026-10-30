@@ -258,3 +258,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-42a1eebd520d
+  - type: requires_property
+    from: REQ-kb-entity-body-context-settings
+    to: FACT-context-required-types
+    created_at: 2026-10-28T10:38:06.184Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3abbbbd9022d
+  - type: requires_property
+    from: REQ-kb-entity-body-context-settings
+    to: FACT-context-heading-words
+    created_at: 2026-10-28T10:38:06.232Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebeb1d25cf79
+  - type: requires_property
+    from: REQ-kb-entity-body-context-settings
+    to: FACT-min-context-words
+    created_at: 2026-10-28T10:38:06.255Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-207d6df6840d
+  - type: requires_property
+    from: REQ-kb-entity-body-context-settings
+    to: FACT-context-restatement-jaccard
+    created_at: 2026-10-28T10:38:06.272Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46ba220535f2
+  - type: specified_by
+    from: REQ-kb-entity-body-context-settings
+    to: SCEN-kb-entity-body-context
+    created_at: 2026-10-28T10:38:06.291Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9daffb28efaa
+  - type: executable_for
+    from: SYM-proof-source-analysis-max-input
+    to: TEST-proof-source-analysis-max-input
+    created_at: 2026-10-28T10:52:21.554Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f6490067ca2e
+  - type: constrains
+    from: REQ-kb-entity-body-context-settings
+    to: FACT-kibi-entity-body-context-component
+    created_at: 2026-10-28T14:36:45.447Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-edf378531562
+  - type: executable_for
+    from: SYM-proof-sync-cache-version
+    to: TEST-proof-sync-cache-version
+    created_at: 2026-10-28T19:06:04.049Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16934d7bf997
+  - type: executable_for
+    from: SYM-proof-brand-panel-color
+    to: TEST-proof-brand-panel-color
+    created_at: 2026-10-28T22:28:44.978Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bbe7d7a804c3

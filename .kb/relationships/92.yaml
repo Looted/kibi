@@ -255,3 +255,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-50b989d025c2
+  - type: validates
+    from: TEST-proof-context-missing-tag
+    to: SCEN-kb-entity-body-context
+    created_at: 2026-10-28T11:05:18.719Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a84b56b50959
+  - type: validates
+    from: TEST-proof-proof-receipt-version
+    to: SCEN-kibi-claim-bound-proofs
+    created_at: 2026-10-28T12:03:29.956Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47a92fea846a
+  - type: implements
+    from: SYM-schema6-check-actions-ADR_PROPOSED_REVIEW_CODE
+    to: REQ-kibi-lifecycle-check-codes
+    created_at: 2026-10-28T17:25:43.401Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2f221275ab5a
+  - type: covered_by
+    from: SYM-schema6-check-actions-ADR_PROPOSED_REVIEW_CODE
+    to: TEST-proof-adr-proposed-review-code
+    created_at: 2026-10-28T17:25:55.204Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81e9647a0339
+  - type: covered_by
+    from: SYM-schema6-check-actions-ADR_PROPOSED_REVIEW_CODE
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T17:25:55.229Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37e948a578d7
+  - type: implements
+    from: SYM-schema6-check-actions-SUPERSESSION_CYCLE_REVIEW_CODE
+    to: REQ-kibi-lifecycle-check-codes
+    created_at: 2026-10-28T17:27:07.810Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3dea7e977bfd
+  - type: covered_by
+    from: SYM-schema6-check-actions-SUPERSESSION_CYCLE_REVIEW_CODE
+    to: TEST-proof-supersession-cycle-review-code
+    created_at: 2026-10-28T17:27:19.896Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-800a522cfb7d
+  - type: covered_by
+    from: SYM-schema6-check-actions-SUPERSESSION_CYCLE_REVIEW_CODE
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T17:27:19.918Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43fd7a69b312
+  - type: executable_for
+    from: SYM-proof-rule-decision-firm-unreferenced
+    to: TEST-proof-rule-decision-firm-unreferenced
+    created_at: 2026-10-29T16:38:38.500Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29d31ab7d026

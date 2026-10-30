@@ -114,7 +114,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function asString(value: unknown): string | undefined {
-  return typeof value === "string" && value.trim() ? value.trim() : undefined;
+  if (typeof value !== "string") return undefined;
+  return value.trim() || undefined;
 }
 
 function invalidKeys(
@@ -134,9 +135,9 @@ function invalidKeys(
 function stableValue(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(stableValue);
   if (!isRecord(value)) return value;
+  // JSON.stringify drops undefined fields itself.
   return Object.fromEntries(
     Object.entries(value)
-      .filter(([, nested]) => nested !== undefined)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([key, nested]) => [key, stableValue(nested)]),
   );
@@ -163,15 +164,29 @@ function mergeInto(target: Set<string>, source: Iterable<string>): void {
   for (const value of source) target.add(value);
 }
 
+/** The name of a variable term, before the term itself is validated. */
+function variableName(term: unknown): string | undefined {
+  return isRecord(term) && term.kind === "var" && typeof term.name === "string"
+    ? term.name
+    : undefined;
+}
+
+function addVariables(target: Set<string>, terms: readonly unknown[]): void {
+  for (const term of terms) {
+    const name = variableName(term);
+    if (name !== undefined) target.add(name);
+  }
+}
+
 function validateTerm(
   value: unknown,
   path: string,
   declared: Set<string>,
   errors: string[],
-): value is LogicTerm {
+): void {
   if (!isRecord(value) || typeof value.kind !== "string") {
     errors.push(`${path} must be a typed term object`);
-    return false;
+    return;
   }
   switch (value.kind) {
     case "var": {
@@ -184,7 +199,7 @@ function validateTerm(
         errors.push(`${path}.type must be a lowercase type name`);
       if (name && !declared.has(name))
         errors.push(`${path}.name ${name} is not declared in variables`);
-      return true;
+      return;
     }
     case "const":
       invalidKeys(value, ["kind", "value", "type"], path, errors);
@@ -195,28 +210,24 @@ function validateTerm(
         (typeof value.type !== "string" || !TYPE_NAME.test(value.type))
       )
         errors.push(`${path}.type is invalid`);
-      return true;
+      return;
     case "number":
       invalidKeys(value, ["kind", "value", "unit"], path, errors);
-      if (typeof value.value !== "number" || !Number.isFinite(value.value))
+      if (!Number.isFinite(value.value))
         errors.push(`${path}.value must be finite`);
       if (
         value.unit !== undefined &&
         (typeof value.unit !== "string" || !TYPE_NAME.test(value.unit))
       )
         errors.push(`${path}.unit is invalid`);
-      return true;
+      return;
     case "duration":
       invalidKeys(value, ["kind", "value", "unit"], path, errors);
-      if (
-        typeof value.value !== "number" ||
-        !Number.isFinite(value.value) ||
-        value.value < 0
-      )
+      if (!Number.isFinite(value.value) || Number(value.value) < 0)
         errors.push(`${path}.value must be a non-negative finite duration`);
       if (!["ms", "s", "m", "h", "d", "w"].includes(String(value.unit)))
         errors.push(`${path}.unit is invalid`);
-      return true;
+      return;
     case "timestamp":
       invalidKeys(value, ["kind", "value"], path, errors);
       if (
@@ -224,29 +235,24 @@ function validateTerm(
         Number.isNaN(Date.parse(value.value))
       )
         errors.push(`${path}.value must be an ISO timestamp`);
-      return true;
-    case "interval":
+      return;
+    case "interval": {
       invalidKeys(value, ["kind", "start", "end"], path, errors);
-      if (
-        typeof value.start !== "string" ||
-        Number.isNaN(Date.parse(value.start))
-      )
+      const start =
+        typeof value.start === "string" ? Date.parse(value.start) : Number.NaN;
+      const end =
+        typeof value.end === "string" ? Date.parse(value.end) : Number.NaN;
+      if (Number.isNaN(start))
         errors.push(`${path}.start must be an ISO timestamp`);
-      if (typeof value.end !== "string" || Number.isNaN(Date.parse(value.end)))
+      if (Number.isNaN(end))
         errors.push(`${path}.end must be an ISO timestamp`);
-      if (
-        typeof value.start === "string" &&
-        typeof value.end === "string" &&
-        !Number.isNaN(Date.parse(value.start)) &&
-        !Number.isNaN(Date.parse(value.end)) &&
-        Date.parse(value.start) > Date.parse(value.end)
-      ) {
+      // Comparisons with NaN are false, so unparsable bounds add nothing here.
+      if (start > end)
         errors.push(`${path}.start must not be after ${path}.end`);
-      }
-      return true;
+      return;
+    }
     default:
       errors.push(`${path}.kind ${String(value.kind)} is not supported`);
-      return false;
   }
 }
 
@@ -283,16 +289,10 @@ function validateAtom(
   if (!Array.isArray(value.args) || value.args.length > 8)
     errors.push(`${path}.args must contain at most 8 terms`);
   const allVariables = new Set<string>();
-  const args = Array.isArray(value.args) ? value.args : [];
-  for (let index = 0; index < args.length; index += 1) {
-    validateTerm(args[index], `${path}.args[${index}]`, declared, errors);
-    if (
-      isRecord(args[index]) &&
-      args[index].kind === "var" &&
-      typeof args[index].name === "string"
-    )
-      allVariables.add(args[index].name);
-  }
+  const args: readonly unknown[] = Array.isArray(value.args) ? value.args : [];
+  for (const [index, arg] of args.entries())
+    validateTerm(arg, `${path}.args[${index}]`, declared, errors);
+  addVariables(allVariables, args);
   if (
     value.polarity !== undefined &&
     value.polarity !== "positive" &&
@@ -400,18 +400,7 @@ function validateExpression(
     validateTerm(value.left, `${path}.left`, declared, errors);
     validateTerm(value.right, `${path}.right`, declared, errors);
     const variables = new Set<string>();
-    if (
-      isRecord(value.left) &&
-      value.left.kind === "var" &&
-      typeof value.left.name === "string"
-    )
-      variables.add(value.left.name);
-    if (
-      isRecord(value.right) &&
-      value.right.kind === "var" &&
-      typeof value.right.name === "string"
-    )
-      variables.add(value.right.name);
+    addVariables(variables, [value.left, value.right]);
     validateComparableTerms(value.left, value.right, path, errors);
     return { positiveVariables: new Set(), allVariables: variables, atoms: 0 };
   }
@@ -422,11 +411,7 @@ function validateExpression(
       !["eq", "neq", "lt", "lte", "gt", "gte"].includes(String(value.operator))
     )
       errors.push(`${path}.operator is invalid`);
-    if (
-      typeof value.value !== "number" ||
-      !Number.isInteger(value.value) ||
-      value.value < 0
-    )
+    if (!Number.isInteger(value.value) || Number(value.value) < 0)
       errors.push(`${path}.value must be a non-negative integer`);
     return {
       positiveVariables: facts.positiveVariables,
@@ -445,13 +430,7 @@ function validateExpression(
     validateTerm(value.left, `${path}.left`, declared, errors);
     validateTerm(value.right, `${path}.right`, declared, errors);
     const variables = new Set<string>();
-    for (const term of [value.left, value.right])
-      if (
-        isRecord(term) &&
-        term.kind === "var" &&
-        typeof term.name === "string"
-      )
-        variables.add(term.name);
+    addVariables(variables, [value.left, value.right]);
     validateTemporalTerms(
       value.relation,
       value.left,
@@ -525,27 +504,14 @@ function validateTemporalTerms(
   }
 }
 
+// Validation already requires lowercase identifiers, exact const types and
+// units, and unpadded variable names in terms (a padded one is never
+// declared); normalization trims what validation trimmed and puts times in
+// ISO form.
 function normalizeTerm(term: LogicTerm): LogicTerm {
-  if (term.kind === "var")
-    return {
-      ...term,
-      name: term.name.trim(),
-      type: term.type.trim().toLowerCase(),
-    };
-  if (term.kind === "const")
-    return {
-      ...term,
-      value: term.value.trim(),
-      ...(term.type ? { type: term.type.trim().toLowerCase() } : {}),
-    };
-  if (term.kind === "number")
-    return {
-      ...term,
-      value: term.value,
-      ...(term.unit ? { unit: term.unit.trim().toLowerCase() } : {}),
-    };
-  if (term.kind === "duration")
-    return { ...term, value: term.value, unit: term.unit };
+  if (term.kind === "var") return { ...term, type: term.type.trim() };
+  if (term.kind === "const") return { ...term, value: term.value.trim() };
+  if (term.kind === "number" || term.kind === "duration") return term;
   if (term.kind === "timestamp")
     return { ...term, value: new Date(term.value).toISOString() };
   return {
@@ -559,10 +525,7 @@ function normalizeExpression(expression: LogicExpression): LogicExpression {
   if (expression.kind === "atom")
     return {
       ...expression,
-      name: expression.name.trim().toLowerCase(),
-      ...(expression.namespace
-        ? { namespace: expression.namespace.trim().toLowerCase() }
-        : {}),
+      name: expression.name.trim(),
       args: expression.args.map(normalizeTerm),
     };
   if (expression.kind === "all" || expression.kind === "any") {
@@ -576,17 +539,12 @@ function normalizeExpression(expression: LogicExpression): LogicExpression {
       kind: "not",
       item: normalizeExpression(expression.item) as LogicAtom,
     };
-  if (expression.kind === "compare")
-    return {
-      ...expression,
-      left: normalizeTerm(expression.left),
-      right: normalizeTerm(expression.right),
-    };
   if (expression.kind === "count")
     return {
       ...expression,
       atom: normalizeExpression(expression.atom) as LogicAtom,
     };
+  // compare and temporal
   return {
     ...expression,
     left: normalizeTerm(expression.left),
@@ -614,15 +572,14 @@ function variableNamesInExpression(
     for (const item of expression.items) variableNamesInExpression(item, names);
     return;
   }
-  if (expression.kind === "not") {
-    variableNamesInExpression(expression.item, names);
-    return;
-  }
   if (expression.kind === "count") {
     variableNamesInExpression(expression.atom, names);
     return;
   }
-  if (expression.kind === "compare" || expression.kind === "temporal") {
+  // A negated atom's variables are bound by a positive atom or count that
+  // sorts before it, so they are named already; a temporal expression never
+  // holds a variable (its terms are timestamps or intervals).
+  if (expression.kind === "compare") {
     variableNamesInTerm(expression.left, names);
     variableNamesInTerm(expression.right, names);
   }
@@ -632,6 +589,9 @@ function renameTerm(
   term: LogicTerm,
   names: ReadonlyMap<string, string>,
 ): LogicTerm {
+  // rationale: only a variable term has a name, so names.get misses for the
+  // others either way; the guard narrows the type.
+  // Stryker disable next-line ConditionalExpression
   if (term.kind !== "var") return term;
   const renamed = names.get(term.name);
   return renamed ? { ...term, name: renamed } : term;
@@ -669,16 +629,17 @@ function renameExpression(
 }
 
 function alphaNormalizeVariables(ir: LogicRuleIR): LogicRuleIR {
+  // Exception variables are bound by the body, so they are named already;
+  // declared but unused variables follow in name order (normalizeIr sorted
+  // them).
   const names: string[] = [];
   if (ir.head) variableNamesInExpression(ir.head, names);
   if (ir.body) variableNamesInExpression(ir.body, names);
-  for (const exception of ir.exceptions ?? [])
-    variableNamesInExpression(exception, names);
-  for (const variable of [...(ir.variables ?? [])].sort((left, right) =>
-    left.name.localeCompare(right.name),
-  )) {
-    if (!names.includes(variable.name)) names.push(variable.name);
-  }
+  // rationale: a stand-in entry has no name, and an undefined name renames
+  // nothing.
+  // Stryker disable next-line ArrayDeclaration
+  for (const { name } of ir.variables ?? [])
+    if (!names.includes(name)) names.push(name);
   const renames = new Map(
     names.map((name, index) => [name, `V${index + 1}`] as const),
   );
@@ -718,7 +679,7 @@ function normalizeIr(ir: LogicRuleIR): LogicRuleIR {
             .map((variable) => ({
               ...variable,
               name: variable.name.trim(),
-              type: variable.type.trim().toLowerCase(),
+              type: variable.type.trim(),
               quantifier: variable.quantifier ?? "forall",
             }))
             .sort((a, b) => a.name.localeCompare(b.name)),
@@ -749,7 +710,7 @@ function normalizeIr(ir: LogicRuleIR): LogicRuleIR {
       ? { validFrom: new Date(ir.validFrom).toISOString() }
       : {}),
     ...(ir.validTo ? { validTo: new Date(ir.validTo).toISOString() } : {}),
-    ...(ir.ruleSchemaId ? { ruleSchemaId: ir.ruleSchemaId.trim() } : {}),
+    ...(ir.ruleSchemaId ? { ruleSchemaId: ir.ruleSchemaId } : {}),
   });
 }
 
@@ -857,6 +818,9 @@ export function validateLogicIr(input: unknown): LogicValidationResult {
       variable.quantifier !== "exists"
     )
       errors.push(`variables[${index}].quantifier is invalid`);
+    // rationale: an undefined name is never looked up, so adding it would be
+    // harmless; the guard keeps the set typed.
+    // Stryker disable next-line ConditionalExpression
     if (name) declared.add(name);
   }
   let headFacts: ExpressionFacts = {
@@ -893,26 +857,16 @@ export function validateLogicIr(input: unknown): LogicValidationResult {
     (input.body === undefined || input.head !== undefined)
   )
     errors.push("constraint kind requires body and forbids head");
-  if (isRecord(input.head)) {
-    const headVars = new Set<string>();
-    for (const term of Array.isArray(input.head.args) ? input.head.args : [])
-      if (
-        isRecord(term) &&
-        term.kind === "var" &&
-        typeof term.name === "string"
-      )
-        headVars.add(term.name);
-    for (const variable of headVars) {
-      if (!facts.positiveVariables.has(variable))
-        errors.push(
-          `head variable ${variable} is not range-restricted by a positive body atom`,
-        );
-      const declaration = variables.find(
-        (candidate) => isRecord(candidate) && candidate.name === variable,
+  for (const variable of headFacts.allVariables) {
+    if (!facts.positiveVariables.has(variable))
+      errors.push(
+        `head variable ${variable} is not range-restricted by a positive body atom`,
       );
-      if (declaration?.quantifier === "exists")
-        errors.push(`head variable ${variable} cannot be existential`);
-    }
+    const declaration = variables.find(
+      (candidate) => isRecord(candidate) && candidate.name === variable,
+    );
+    if (declaration?.quantifier === "exists")
+      errors.push(`head variable ${variable} cannot be existential`);
   }
   for (const variable of facts.allVariables)
     if (!declared.has(variable))
@@ -927,7 +881,7 @@ export function validateLogicIr(input: unknown): LogicValidationResult {
     (!Array.isArray(input.exceptions) || input.exceptions.length > 16)
   )
     errors.push("exceptions must contain at most 16 expressions");
-  if (input.exceptions !== undefined && Array.isArray(input.exceptions)) {
+  if (Array.isArray(input.exceptions)) {
     for (const [index, exception] of input.exceptions.entries()) {
       const exceptionFacts = validateExpression(
         exception,
@@ -980,11 +934,8 @@ export function validateLogicIr(input: unknown): LogicValidationResult {
       Number.isNaN(Date.parse(input.validTo)))
   )
     errors.push("validTo must be an ISO timestamp");
-  if (
-    input.validFrom &&
-    input.validTo &&
-    Date.parse(String(input.validFrom)) > Date.parse(String(input.validTo))
-  )
+  // Missing or unparsable bounds parse to NaN, which never compares greater.
+  if (Date.parse(String(input.validFrom)) > Date.parse(String(input.validTo)))
     errors.push("validFrom must not be after validTo");
   if (errors.length > 0) return { valid: false, errors, warnings };
   const normalized = normalizeIr(input as unknown as LogicRuleIR);
@@ -1017,7 +968,7 @@ export function utf8Span(
   end: number,
 ): { readonly start: number; readonly end: number } {
   return {
-    start: Buffer.byteLength(text.slice(0, Math.max(0, start)), "utf8"),
-    end: Buffer.byteLength(text.slice(0, Math.max(start, end)), "utf8"),
+    start: Buffer.byteLength(text.slice(0, Math.max(0, start))),
+    end: Buffer.byteLength(text.slice(0, Math.max(start, end))),
   };
 }

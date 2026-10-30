@@ -424,7 +424,7 @@ function factDetail(
 
 function edgesGoal(ids: readonly string[]): string {
   const idList = ids.map((id) => `'${escapeAtom(id)}'`).join(",");
-  return `findall([Rel,From,To], (member(Rel, [${ANSWER_RELATIONSHIPS.join(",")}]), kb_relationship(Rel, From, To), (member(From, [${idList}]); member(To, [${idList}]))), Edges)`;
+  return `kb_relationship_edges([${ANSWER_RELATIONSHIPS.join(",")}], [${idList}], Edges)`;
 }
 
 /**

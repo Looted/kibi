@@ -168,3 +168,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b47640dcebf8
+  - type: executable_for
+    from: SYM-proof-lookup-before-edit-operations
+    to: TEST-proof-lookup-before-edit-operations
+    created_at: 2026-10-28T20:53:13.522Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e9efc7b773f
+  - type: implements
+    from: SYM-claude-KIBI_WORKSPACE_ENV_KEYS
+    to: REQ-agent-workspace-opt-in-keys
+    created_at: 2026-10-29T16:33:42.690Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd7383fd4a30
+  - type: covered_by
+    from: SYM-claude-KIBI_WORKSPACE_ENV_KEYS
+    to: TEST-proof-claude-workspace-env-keys
+    created_at: 2026-10-29T16:34:01.771Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd535e9cbd7b
+  - type: executable_for
+    from: SYM-proof-builtin-alignment-reuse-threshold
+    to: TEST-proof-builtin-alignment-reuse-threshold
+    created_at: 2026-10-29T16:54:48.150Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e45525b1175

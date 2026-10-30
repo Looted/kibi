@@ -363,3 +363,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bf8609457d45
+  - type: executable_for
+    from: SYM-proof-max-proof-receipts
+    to: TEST-proof-max-proof-receipts
+    created_at: 2026-10-28T17:50:10.681Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d0915fc4146
+  - type: executable_for
+    from: SYM-proof-brand-ice-color
+    to: TEST-proof-brand-ice-color
+    created_at: 2026-10-28T22:29:00.910Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df8f1422823b

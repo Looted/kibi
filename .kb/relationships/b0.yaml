@@ -118,3 +118,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d3bd436e2cef
+  - type: requires_property
+    from: REQ-kibi-proof-receipt-max-age
+    to: FACT-proof-receipt-max-age
+    created_at: 2026-10-28T10:12:08.347Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c06be20e0d94
+  - type: specified_by
+    from: REQ-kibi-proof-receipt-max-age
+    to: SCEN-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T10:12:08.372Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64f828c9b2ab
+  - type: constrains
+    from: REQ-kibi-proof-receipt-max-age
+    to: FACT-SUBJECT-kibi-proof-receipts
+    created_at: 2026-10-28T10:12:10.626Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9457dd8b5ad7
+  - type: implements
+    from: SYM-SYMBOL_ROLES
+    to: REQ-symbol-granularity-vocabulary
+    created_at: 2026-10-28T19:09:47.479Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b06019281d4
+  - type: covered_by
+    from: SYM-SYMBOL_ROLES
+    to: TEST-proof-symbol-roles
+    created_at: 2026-10-28T19:09:57.877Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97ecfe3b7896

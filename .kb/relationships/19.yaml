@@ -216,3 +216,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-53240229a105
+  - type: executable_for
+    from: SYM-proof-symbol-owner-review-code
+    to: TEST-proof-symbol-owner-review-code
+    created_at: 2026-10-28T17:29:55.240Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb9d8a989392
+  - type: requires_property
+    from: REQ-tree-sitter-language-set
+    to: FACT-tree-sitter-language-ids
+    created_at: 2026-10-28T22:41:35.385Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-885a409a9f25
+  - type: requires_property
+    from: REQ-tree-sitter-language-set
+    to: FACT-tree-sitter-python-extensions
+    created_at: 2026-10-28T22:41:35.410Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dbd837a86e89
+  - type: requires_property
+    from: REQ-tree-sitter-language-set
+    to: FACT-tree-sitter-go-extensions
+    created_at: 2026-10-28T22:41:35.424Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e96c22aba502
+  - type: requires_property
+    from: REQ-tree-sitter-language-set
+    to: FACT-tree-sitter-rust-extensions
+    created_at: 2026-10-28T22:41:35.433Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1c89c69f441
+  - type: specified_by
+    from: REQ-tree-sitter-language-set
+    to: SCEN-tree-sitter-language-authoring-scaffold
+    created_at: 2026-10-28T22:41:35.443Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf044398d422
+  - type: constrains
+    from: REQ-tree-sitter-language-set
+    to: FACT-kibi-tree-sitter-languages-component
+    created_at: 2026-10-28T22:41:37.136Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c5189ebad62
+  - type: executable_for
+    from: SYM-proof-report-proof-gate-keys
+    to: TEST-proof-report-proof-gate-keys
+    created_at: 2026-10-29T10:25:47.167Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c876d1a0db6
+  - type: executable_for
+    from: SYM-proof-source-proof-readers
+    to: TEST-proof-source-proof-readers
+    created_at: 2026-10-29T16:46:21.008Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40d809df57d9

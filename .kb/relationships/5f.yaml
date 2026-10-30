@@ -230,3 +230,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6df160cffca5
+  - type: validates
+    from: TEST-proof-firmness-types
+    to: SCEN-kb-decision-firmness
+    created_at: 2026-10-28T10:33:20.083Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60d502d6717d
+  - type: executable_for
+    from: SYM-proof-firmness-origin-schema-version
+    to: TEST-proof-firmness-origin-schema-version
+    created_at: 2026-10-28T19:20:56.532Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f3dd980d619
+  - type: validates
+    from: TEST-proof-canonical-requirements-path
+    to: SCEN-cli-canonical-init
+    created_at: 2026-10-28T22:34:17.012Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d9715651f0ed
+  - type: specified_by
+    from: REQ-kibi-plugin-search-hints
+    to: SCEN-kibi-plugin-search-hints
+    created_at: 2026-10-29T19:19:16.928Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d95646f25720
+  - type: constrains
+    from: REQ-kibi-plugin-search-hints
+    to: FACT-plugin-search-hints-subject
+    created_at: 2026-10-29T19:21:51.154Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ecd8b0c237b
+  - type: requires_property
+    from: REQ-kibi-plugin-search-hints
+    to: FACT-plugin-search-hints-offline
+    created_at: 2026-10-29T19:21:51.182Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd9b903afb0a
+  - type: requires_property
+    from: REQ-kibi-plugin-search-hints
+    to: FACT-plugin-search-hints-tokenizer-parity
+    created_at: 2026-10-29T19:21:51.218Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e55bae52a08
+  - type: requires_property
+    from: REQ-kibi-plugin-search-hints
+    to: FACT-plugin-search-hints-cache-hash
+    created_at: 2026-10-29T19:21:51.246Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62922c8f0a9e
+  - type: requires_property
+    from: REQ-kibi-plugin-search-hints
+    to: FACT-plugin-search-hints-licence-integrity
+    created_at: 2026-10-29T19:21:51.281Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d56eee8a9b5
+  - type: requires_property
+    from: REQ-kibi-plugin-search-hints
+    to: FACT-plugin-search-hints-bootstrap-offer
+    created_at: 2026-10-29T19:21:51.311Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b670248d645
+  - type: requires_property
+    from: REQ-capability-check-policy-version
+    to: FACT-check-policy-contract-version
+    created_at: 2026-10-29T16:59:00.027Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c45974a71ed
+  - type: specified_by
+    from: REQ-capability-check-policy-version
+    to: SCEN-capability-check-policy
+    created_at: 2026-10-29T16:59:00.091Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2dcbe612838
+  - type: constrains
+    from: REQ-capability-check-policy-version
+    to: FACT-kibi-check-policy-version-component
+    created_at: 2026-10-29T16:59:03.418Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62fb4af4ab36

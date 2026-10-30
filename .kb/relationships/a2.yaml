@@ -279,3 +279,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6494a110805b
+  - type: executable_for
+    from: SYM-proof-telemetry-advisor-age
+    to: TEST-proof-telemetry-advisor-age
+    created_at: 2026-10-28T09:44:09.084Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e4e216929aa
+  - type: executable_for
+    from: SYM-proof-logic-rule-max-atoms
+    to: TEST-proof-logic-rule-max-atoms
+    created_at: 2026-10-28T17:19:14.459Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b95ea65253bb
+  - type: validates
+    from: TEST-proof-proof-integrations-path
+    to: SCEN-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T17:49:29.349Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b206aa4d527b
+  - type: executable_for
+    from: SYM-proof-impact-diagnostic-ids
+    to: TEST-proof-impact-diagnostic-ids
+    created_at: 2026-10-28T18:56:54.656Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea6bf204ef74
+  - type: executable_for
+    from: SYM-proof-signoff-change-retired-label
+    to: TEST-proof-signoff-change-retired-label
+    created_at: 2026-10-28T22:24:53.483Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2de4c2a6c0ba
+  - type: implements
+    from: SYM-cap-plugin-plugin-modes-52a9d01a
+    to: REQ-capability-plugin-vocabulary
+    created_at: 2026-10-29T10:29:15.919Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d45b56b1d7ab
+  - type: covered_by
+    from: SYM-cap-plugin-plugin-modes-52a9d01a
+    to: TEST-proof-plugin-modes
+    created_at: 2026-10-29T10:29:34.102Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06d79d28b1cb
+  - type: implements
+    from: SYM-const-source-readers
+    to: REQ-kibi-proof-vocabulary
+    created_at: 2026-10-29T16:46:12.301Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ca30d37a412
+  - type: covered_by
+    from: SYM-const-source-readers
+    to: TEST-proof-source-proof-readers
+    created_at: 2026-10-29T16:46:33.879Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c6bbf0f7d78
+  - type: covered_by
+    from: SYM-const-source-readers
+    to: TEST-kibi-claim-bound-proofs
+    created_at: 2026-10-29T16:46:33.923Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0731687151ba

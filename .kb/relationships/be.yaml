@@ -293,3 +293,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a62de0a5627e
+  - type: implements
+    from: SYM-impact-stage-e-impact-evaluator-version
+    to: REQ-impact-review-identifiers
+    created_at: 2026-10-28T17:32:52.507Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-838bca9626ca
+  - type: covered_by
+    from: SYM-impact-stage-e-impact-evaluator-version
+    to: TEST-proof-impact-evaluator-version
+    created_at: 2026-10-28T17:33:03.612Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71e0a32486c8
+  - type: validates
+    from: TEST-proof-intent-claim-kinds
+    to: SCEN-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-28T19:19:55.328Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4a3cbd047f3
+  - type: implements
+    from: SYM-const-symbol-legacy-link-mark-action-id
+    to: REQ-cli-migration-pin-codes
+    created_at: 2026-10-28T20:32:49.468Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb13ade7548b
+  - type: covered_by
+    from: SYM-const-symbol-legacy-link-mark-action-id
+    to: TEST-proof-legacy-link-mark-action
+    created_at: 2026-10-28T20:33:00.979Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-185a93aaa96a
+  - type: covered_by
+    from: SYM-const-symbol-legacy-link-mark-action-id
+    to: TEST-cli-migrate
+    created_at: 2026-10-28T20:33:00.998Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a3cd20c1029
+  - type: implements
+    from: SYM-build-search-hints
+    to: REQ-kibi-search-hints-host
+    created_at: 2026-10-29T19:22:27.997Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd7d722b0b9d
+  - type: covered_by
+    from: SYM-build-search-hints
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-10-29T19:22:28.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc33575d3965

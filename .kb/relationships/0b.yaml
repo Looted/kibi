@@ -307,3 +307,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f064b0644310
+  - type: implements
+    from: SYM-schema6-check-actions-SOURCE_PATH_REWRITE_ACTION_ID
+    to: REQ-kibi-lifecycle-check-codes
+    created_at: 2026-10-28T17:28:09.786Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0cfcaaa1efd9
+  - type: covered_by
+    from: SYM-schema6-check-actions-SOURCE_PATH_REWRITE_ACTION_ID
+    to: TEST-proof-source-path-rewrite-action
+    created_at: 2026-10-28T17:28:21.845Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d879de7ff5af
+  - type: covered_by
+    from: SYM-schema6-check-actions-SOURCE_PATH_REWRITE_ACTION_ID
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T17:28:21.873Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ed035aea7e4
+  - type: validates
+    from: TEST-proof-producer-kinds
+    to: SCEN-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T17:49:10.278Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed9d0a353448
+  - type: executable_for
+    from: SYM-proof-exception-self-attested-rule
+    to: TEST-proof-exception-self-attested-rule
+    created_at: 2026-10-28T20:21:26.029Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24fa8623ee5b
+  - type: implements
+    from: SYM-const-context-missing-tag-code
+    to: REQ-cli-migration-pin-codes
+    created_at: 2026-10-28T20:29:49.428Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41022ddfb0dc
+  - type: executable_for
+    from: SYM-proof-context-missing-tag-code
+    to: TEST-proof-context-missing-tag-code
+    created_at: 2026-10-28T20:29:53.675Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5c15656aa74
+  - type: covered_by
+    from: SYM-const-context-missing-tag-code
+    to: TEST-proof-context-missing-tag-code
+    created_at: 2026-10-28T20:30:00.967Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56e07b3365e8
+  - type: covered_by
+    from: SYM-const-context-missing-tag-code
+    to: TEST-cli-migrate
+    created_at: 2026-10-28T20:30:00.989Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1564098f167

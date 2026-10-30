@@ -447,3 +447,129 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-78982fac33ec
+  - type: implements
+    from: SYM-cli-signoff-signoff-markdown-limit
+    to: REQ-kibi-signoff-brief-location
+    created_at: 2026-10-28T10:15:30.162Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-adfd68235713
+  - type: covered_by
+    from: SYM-cli-signoff-signoff-markdown-limit
+    to: TEST-proof-signoff-markdown-limit
+    created_at: 2026-10-28T10:15:41.447Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-337ede773ea1
+  - type: executable_for
+    from: SYM-proof-source-path-rewrite-action
+    to: TEST-proof-source-path-rewrite-action
+    created_at: 2026-10-28T17:28:14.552Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72b5fa23f559
+  - type: implements
+    from: SYM-kibi-migration-plan-version
+    to: REQ-agent-migration-plan-codes
+    created_at: 2026-10-28T18:53:36.613Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ad6ade49f7c
+  - type: covered_by
+    from: SYM-kibi-migration-plan-version
+    to: TEST-proof-migration-plan-version
+    created_at: 2026-10-28T18:53:48.109Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1876a4c0e40
+  - type: requires_property
+    from: REQ-engine-protocol-settings
+    to: FACT-engine-protocol-version
+    created_at: 2026-10-28T19:03:38.191Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4a16813657f
+  - type: requires_property
+    from: REQ-engine-protocol-settings
+    to: FACT-engine-idle-timeout
+    created_at: 2026-10-28T19:03:38.225Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7eae8da39016
+  - type: specified_by
+    from: REQ-engine-protocol-settings
+    to: SCEN-core-journaled-engine-lifecycle
+    created_at: 2026-10-28T19:03:38.246Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18326005e2a8
+  - type: constrains
+    from: REQ-engine-protocol-settings
+    to: FACT-kibi-engine-protocol-component
+    created_at: 2026-10-28T19:03:40.112Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8cf226bf336
+  - type: validates
+    from: TEST-proof-semantic-inventory-version
+    to: SCEN-kibi-proposition-complete-ingestion
+    created_at: 2026-10-28T19:05:23.534Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04980a65a70d
+  - type: validates
+    from: TEST-proof-sync-cache-ttl
+    to: SCEN-kibi-proposition-complete-ingestion
+    created_at: 2026-10-28T19:06:19.635Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4bbc647b1600
+  - type: validates
+    from: TEST-proof-lock-takeover-file
+    to: SCEN-branch-detached-head-read-only
+    created_at: 2026-10-28T20:44:01.396Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-261afcde9885
+  - type: validates
+    from: TEST-proof-plan-apply-journal-version
+    to: SCEN-kibi-change-to-proof-plan-compiler
+    created_at: 2026-10-28T20:58:40.808Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ca376418da1
+  - type: validates
+    from: TEST-proof-canonical-events-path
+    to: SCEN-cli-canonical-init
+    created_at: 2026-10-28T22:35:37.894Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-213571d03ec0
+  - type: requires_property
+    from: REQ-source-analysis-timing-limits
+    to: FACT-source-timing-max-events
+    created_at: 2026-10-29T10:51:39.174Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c208f6cf469
+  - type: requires_property
+    from: REQ-source-analysis-timing-limits
+    to: FACT-source-timing-max-bytes
+    created_at: 2026-10-29T10:51:39.285Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c37bf4669bc
+  - type: specified_by
+    from: REQ-source-analysis-timing-limits
+    to: SCEN-installed-staged-impact-timing-integrity
+    created_at: 2026-10-29T10:51:39.352Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-705a11b622c9
+  - type: constrains
+    from: REQ-source-analysis-timing-limits
+    to: FACT-kibi-source-analysis-timing-limits-component
+    created_at: 2026-10-29T10:51:42.726Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2fbcfa613d6f

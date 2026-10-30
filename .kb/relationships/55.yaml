@@ -195,3 +195,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-90e45d75e825
+  - type: requires_property
+    from: REQ-capability-plugin-jev-optional-dependency
+    to: FACT-cli-excludes-jev
+    created_at: 2026-10-28T10:17:36.326Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9176aa5ec9f5
+  - type: requires_property
+    from: REQ-capability-plugin-jev-optional-dependency
+    to: FACT-mcp-excludes-jev
+    created_at: 2026-10-28T10:17:36.361Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32644bd607ac
+  - type: requires_property
+    from: REQ-capability-plugin-jev-optional-dependency
+    to: FACT-runtime-excludes-jev
+    created_at: 2026-10-28T10:17:36.382Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f8be54e94bb8
+  - type: specified_by
+    from: REQ-capability-plugin-jev-optional-dependency
+    to: SCEN-capability-plugin-observable-behavior-v1
+    created_at: 2026-10-28T10:17:36.394Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-13d30c3f68d0
+  - type: constrains
+    from: REQ-capability-plugin-jev-optional-dependency
+    to: FACT-SUBJECT-kibi-packages-kibi-cli
+    created_at: 2026-10-28T10:25:19.567Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90e67816a233
+  - type: constrains
+    from: REQ-capability-plugin-jev-optional-dependency
+    to: FACT-SUBJECT-kibi-packages-kibi-mcp
+    created_at: 2026-10-28T10:25:22.854Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7224670dd3e9
+  - type: constrains
+    from: REQ-capability-plugin-jev-optional-dependency
+    to: FACT-SUBJECT-kibi-packages-kibi-runtime
+    created_at: 2026-10-28T10:25:26.228Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6139026592d8
+  - type: executable_for
+    from: SYM-proof-migration-sync-code
+    to: TEST-proof-migration-sync-code
+    created_at: 2026-10-28T17:29:14.656Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae196589bcc0
+  - type: implements
+    from: SYM-const-symbol-granularity-rule
+    to: REQ-kibi-check-rule-names
+    created_at: 2026-10-28T20:22:54.918Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93ce6759cefd
+  - type: covered_by
+    from: SYM-const-symbol-granularity-rule
+    to: TEST-proof-symbol-granularity-rule
+    created_at: 2026-10-28T20:23:06.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df10b3035438
+  - type: covered_by
+    from: SYM-const-symbol-granularity-rule
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:23:06.305Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-562062a256d6
+  - type: validates
+    from: TEST-proof-github-placeholder-repo
+    to: SCEN-kibi-github-report-integration
+    created_at: 2026-10-29T10:20:55.061Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-360e061e03cd

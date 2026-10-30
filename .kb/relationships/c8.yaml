@@ -335,3 +335,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d1b3ec3ba8a6
+  - type: validates
+    from: TEST-proof-proof-test-report-env
+    to: SCEN-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T11:07:13.803Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d3cebe2c819
+  - type: implements
+    from: SYM-schema6-check-actions-MIGRATION_SYNC_CODE
+    to: REQ-kibi-lifecycle-check-codes
+    created_at: 2026-10-28T17:29:10.135Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e50bbb943a2
+  - type: covered_by
+    from: SYM-schema6-check-actions-MIGRATION_SYNC_CODE
+    to: TEST-proof-migration-sync-code
+    created_at: 2026-10-28T17:29:22.020Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2c3366ea27e
+  - type: covered_by
+    from: SYM-schema6-check-actions-MIGRATION_SYNC_CODE
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T17:29:22.040Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7db73e05a31d
+  - type: executable_for
+    from: SYM-proof-semantic-text-pin-code
+    to: TEST-proof-semantic-text-pin-code
+    created_at: 2026-10-28T20:30:17.673Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3d022e03dde
+  - type: validates
+    from: TEST-proof-firmness-values
+    to: SCEN-kb-decision-firmness
+    created_at: 2026-10-28T20:51:13.398Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d0126244d63
+  - type: implements
+    from: SYM-cli-github-badge-workflow-relpath
+    to: REQ-kibi-github-report-settings
+    created_at: 2026-10-29T10:18:40.812Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-678aef8e7ddb
+  - type: covered_by
+    from: SYM-cli-github-badge-workflow-relpath
+    to: TEST-proof-github-badge-workflow-path
+    created_at: 2026-10-29T10:19:01.007Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-981c9b07dc64
+  - type: executable_for
+    from: SYM-proof-telemetry-ci-env-keys
+    to: TEST-proof-telemetry-ci-env-keys
+    created_at: 2026-10-29T16:27:57.349Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-283eefe248b4

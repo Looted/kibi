@@ -370,3 +370,108 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-015295172cf7
+  - type: validates
+    from: TEST-proof-claim-binding-schema-version
+    to: SCEN-kibi-claim-bound-proofs
+    created_at: 2026-10-28T10:58:09.218Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df1059a93573
+  - type: validates
+    from: TEST-proof-operation-protocol-version
+    to: SCEN-kibi-operation-interface-parity
+    created_at: 2026-10-28T17:23:54.071Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ea294f5e7b2
+  - type: executable_for
+    from: SYM-proof-proof-integrations-path
+    to: TEST-proof-proof-integrations-path
+    created_at: 2026-10-28T17:49:31.658Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef934051e454
+  - type: requires_property
+    from: REQ-kibi-lifecycle-review-actions
+    to: FACT-agent-review-action
+    created_at: 2026-10-28T20:25:29.925Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-13399e3f1b5f
+  - type: requires_property
+    from: REQ-kibi-lifecycle-review-actions
+    to: FACT-agent-review-code
+    created_at: 2026-10-28T20:25:29.965Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de0bef0358a4
+  - type: requires_property
+    from: REQ-kibi-lifecycle-review-actions
+    to: FACT-close-superseded-action
+    created_at: 2026-10-28T20:25:29.987Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3be6c9812fa
+  - type: requires_property
+    from: REQ-kibi-lifecycle-review-actions
+    to: FACT-close-superseded-code
+    created_at: 2026-10-28T20:25:30.009Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5adc30fc2172
+  - type: requires_property
+    from: REQ-kibi-lifecycle-review-actions
+    to: FACT-self-attested-review-code
+    created_at: 2026-10-28T20:25:30.033Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1146a3557f3d
+  - type: requires_property
+    from: REQ-kibi-lifecycle-review-actions
+    to: FACT-predicate-key-review-code
+    created_at: 2026-10-28T20:25:30.047Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7c507fb2a03
+  - type: requires_property
+    from: REQ-kibi-lifecycle-review-actions
+    to: FACT-rationale-review-action
+    created_at: 2026-10-28T20:25:30.063Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-add396f7cf06
+  - type: requires_property
+    from: REQ-kibi-lifecycle-review-actions
+    to: FACT-feasibility-review-code
+    created_at: 2026-10-28T20:25:30.078Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95287336b168
+  - type: specified_by
+    from: REQ-kibi-lifecycle-review-actions
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:25:30.093Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d2ef3002622
+  - type: constrains
+    from: REQ-kibi-lifecycle-review-actions
+    to: FACT-kibi-check-review-actions-component
+    created_at: 2026-10-28T20:25:32.186Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21312c5b1ac3
+  - type: executable_for
+    from: SYM-proof-snippet-grounding-links
+    to: TEST-proof-snippet-grounding-links
+    created_at: 2026-10-29T16:32:01.897Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5ef18792f88
+  - type: validates
+    from: TEST-proof-search-hints-result-limit
+    to: SCEN-capability-search-hints-v1
+    created_at: 2026-10-29T21:35:38.666Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79da02d8f66b

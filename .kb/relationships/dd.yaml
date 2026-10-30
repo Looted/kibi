@@ -461,3 +461,101 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-88817760e51f
+  - type: requires_property
+    from: REQ-cli-canonical-kb-lanes
+    to: FACT-canonical-kb-lanes
+    created_at: 2026-10-28T10:10:05.370Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed2a58ce2b35
+  - type: specified_by
+    from: REQ-cli-canonical-kb-lanes
+    to: SCEN-cli-canonical-runtime
+    created_at: 2026-10-28T10:10:05.413Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-955a36fd7f8a
+  - type: constrains
+    from: REQ-cli-canonical-kb-lanes
+    to: FACT-SUBJECT-kibi-kb-canonical-lanes
+    created_at: 2026-10-28T10:10:07.749Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c5b55c6f8ea
+  - type: implements
+    from: SYM-const-proof-test-report-outcomes
+    to: REQ-kibi-proof-step-settings
+    created_at: 2026-10-28T11:07:58.814Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd93fdf57cf2
+  - type: covered_by
+    from: SYM-const-proof-test-report-outcomes
+    to: TEST-proof-proof-test-report-outcomes
+    created_at: 2026-10-28T11:08:10.726Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53a8a819e89a
+  - type: covered_by
+    from: SYM-const-proof-test-report-outcomes
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T11:08:10.759Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d9121a6f4ef
+  - type: validates
+    from: TEST-proof-search-answer-governing
+    to: SCEN-kibi-search-answer-layer
+    created_at: 2026-10-28T11:11:13.417Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-238a637ec1fa
+  - type: validates
+    from: TEST-proof-perf-trace-max-bytes
+    to: SCEN-installed-staged-impact-timing-integrity
+    created_at: 2026-10-28T17:36:33.043Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5bc6b425bdd1
+  - type: implements
+    from: SYM-schema6-REQ_STATUS_VOCABULARY_MAP_CODE
+    to: REQ-cli-schema-migration-codes
+    created_at: 2026-10-28T18:50:04.653Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d88416d2b31
+  - type: covered_by
+    from: SYM-schema6-REQ_STATUS_VOCABULARY_MAP_CODE
+    to: TEST-proof-status-vocabulary-map-code
+    created_at: 2026-10-28T18:50:16.717Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39a761270ba6
+  - type: covered_by
+    from: SYM-schema6-REQ_STATUS_VOCABULARY_MAP_CODE
+    to: TEST-cli-migrate
+    created_at: 2026-10-28T18:50:16.743Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2d5f8bbdca6
+  - type: validates
+    from: TEST-proof-brand-color-names
+    to: SCEN-kibi-branded-health-report
+    created_at: 2026-10-28T22:27:53.651Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1322feaa7c9
+  - type: executable_for
+    from: SYM-proof-claim-binding-verdicts
+    to: TEST-proof-claim-binding-verdicts
+    created_at: 2026-10-29T16:46:54.927Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-242b0c0e1fd9
+  - type: validates
+    from: TEST-proof-search-hints-offer-requirements
+    to: SCEN-kibi-plugin-search-hints
+    created_at: 2026-10-29T21:35:42.690Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55880e265097

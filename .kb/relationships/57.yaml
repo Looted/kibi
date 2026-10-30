@@ -104,3 +104,115 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f0ac5a6d79c3
+  - type: requires_property
+    from: REQ-kibi-agent-requirement-review-limit
+    to: FACT-agent-requirement-review-limit
+    created_at: 2026-10-28T10:36:10.023Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a564fa83fd3
+  - type: specified_by
+    from: REQ-kibi-agent-requirement-review-limit
+    to: SCEN-kibi-entity-origin
+    created_at: 2026-10-28T10:36:10.045Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a430a67459b3
+  - type: constrains
+    from: REQ-kibi-agent-requirement-review-limit
+    to: FACT-kibi-origin-review-queue-component
+    created_at: 2026-10-28T14:36:52.981Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b1cf0496e747
+  - type: validates
+    from: TEST-proof-logic-ir-version
+    to: SCEN-kibi-proposition-complete-ingestion
+    created_at: 2026-10-28T17:18:52.734Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c87721d1699d
+  - type: executable_for
+    from: SYM-proof-rationale-review-code
+    to: TEST-proof-rationale-review-code
+    created_at: 2026-10-28T17:26:52.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bbbd92ce3698
+  - type: implements
+    from: SYM-schema6-check-actions-SYMBOL_OWNER_REVIEW_CODE
+    to: REQ-kibi-lifecycle-check-codes
+    created_at: 2026-10-28T17:29:50.609Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e87acd665418
+  - type: covered_by
+    from: SYM-schema6-check-actions-SYMBOL_OWNER_REVIEW_CODE
+    to: TEST-proof-symbol-owner-review-code
+    created_at: 2026-10-28T17:30:02.347Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c20d1fc5f078
+  - type: covered_by
+    from: SYM-schema6-check-actions-SYMBOL_OWNER_REVIEW_CODE
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T17:30:02.359Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-413599007b47
+  - type: validates
+    from: TEST-proof-prove-progress-file
+    to: SCEN-kibi-fresh-verification-receipts
+    created_at: 2026-10-28T21:20:16.375Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1da4d8df237e
+  - type: validates
+    from: TEST-proof-telemetry-test-env-keys
+    to: SCEN-kibi-anonymous-usage-telemetry
+    created_at: 2026-10-29T16:28:32.557Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3ad222cf848
+  - type: requires_property
+    from: REQ-kibi-proof-vocabulary
+    to: FACT-proof-contract-kinds
+    created_at: 2026-10-29T16:44:39.818Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-634fcd49fa53
+  - type: requires_property
+    from: REQ-kibi-proof-vocabulary
+    to: FACT-certificate-proof-kinds
+    created_at: 2026-10-29T16:44:39.857Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ff9b45111ed
+  - type: requires_property
+    from: REQ-kibi-proof-vocabulary
+    to: FACT-source-proof-readers
+    created_at: 2026-10-29T16:44:39.879Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59f9027ae38b
+  - type: requires_property
+    from: REQ-kibi-proof-vocabulary
+    to: FACT-claim-binding-verdicts
+    created_at: 2026-10-29T16:44:39.909Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b506ca47ba96
+  - type: specified_by
+    from: REQ-kibi-proof-vocabulary
+    to: SCEN-kibi-claim-bound-proofs
+    created_at: 2026-10-29T16:44:39.925Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9dec91ef9913
+  - type: constrains
+    from: REQ-kibi-proof-vocabulary
+    to: FACT-kibi-proofs-vocabulary-component
+    created_at: 2026-10-29T16:44:43.413Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3ac0f5b5345

@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: Kibi Usage
   id: kibi-usage
-  version: 2.32.0
+  version: 2.36.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -140,7 +140,9 @@ For an edit that keeps the governing rule, limit the consultation before the edi
    `unknown`, or `none`, which is not proof), the `exceptions` that exempt it,
    and the `unknowns` the checks could not decide. Those links and verdicts are
    discovery, not proof. Pass `sourceLocations` before changing a source file,
-   and `rankingMode: "legacy"` for literal identifier lookups. See
+   and `rankingMode: "legacy"` for literal identifier lookups. A weak answer
+   may add `queryAnalysis.hints` (requirements the question may mean): re-ask
+   in their words, never cite a hint as the rule. See
    `resources/workflows.md` for the mode recipe.
 2. Resolve genuine ambiguity with the human; use `kb_model` for deterministic
    interpretation and typed facts.
@@ -289,7 +291,9 @@ authored. Each one is the order the write path accepts.
    its scenario: `specified_by` (req → scenario) is sent in the
    requirement's write, never in the scenario's, so create the scenario
    first, with `assumes` links (scenario → `property_value` fact, sent in
-   the scenario's own write) to the values its outcome relies on. Set
+   the scenario's own write) to the values its outcome relies on; add a
+   rejection scenario that assumes a forbidden value next to the success
+   one (see Quantified claims below). Set
    `expects` only on a scenario that has `assumes` links; `expects: success`
    without them only yields `scenario-feasibility-unknown` ("assumes
    nothing"). A
@@ -444,6 +448,41 @@ arithmetic, smt, rule, state_machine, regex, source) reach `proved` for the clai
 predicate bound with `harness_for` (scope `harness`) also counts toward
 `proved`; an intent-scope binding stays `tested`. When the `evidence-floor` rule fails, follow Debugging
 proof regressions in `resources/proof.md` and use `kibi proof explain`.
+
+## Quantified claims: model the dimension
+
+When a claim says every, each, all, any, only, at least, at most, exactly, a
+role, a status or a count, ground it on what varies, never on `= true`: an int
+count or bound (`role_count eq 1`, `uninstrumented_loaded_files eq 0`), a set,
+or a typed rule with a `forall` variable. Keep `value_type: bool` for genuinely
+binary properties (a flag is on). A `shadow_analysis` cue from `kb_model`
+(`mode: "analyze"`) with `kind: quantifier` or `numeric` and `represented:
+false` means the planned grounding hides the dimension. When
+`mode: "predicates"` finds no schema for such a claim, do not stop at the
+ontology-gap observation: call `kb_model` with `mode: "requirement"` and an
+int `subjectKey`/`propertyKey`/`operator`/`value` for the count, and keep the
+gap only when no count, set or rule expresses the claim.
+
+Specify the requirement with scenarios that carry their inputs. Each scenario
+sets `expects` and `assumes` its own `property_value` fact: same `subject_key`
+and `property_key` as the grounding, with the scenario's value. These
+assumed-value facts are linked only by the scenario's `assumes`, never by the
+requirement, so a forbidden value does not contradict the grounding; it is
+what makes the scenario a rejection. Write at least:
+
+- a success scenario assuming an allowed value (`expects: success`);
+- a rejection scenario assuming a forbidden value (`expects: rejection`, or
+  `error`); a scenario that only describes the refusal in prose, without
+  `expects` and `assumes`, does not count;
+- for a quantified claim, cases at zero, one and many when they differ.
+
+```json
+{"type":"fact","id":"FACT-member-role-count-2","properties":{"title":"Member holds two roles","status":"active","fact_kind":"property_value","subject_key":"organization.member","property_key":"role_count","operator":"eq","value_type":"int","value_int":2}}
+{"type":"scenario","id":"SCEN-member-two-roles-rejected","properties":{"title":"A member with two roles is rejected","status":"active","expects":"rejection"},"relationships":[{"type":"assumes","from":"SCEN-member-two-roles-rejected","to":"FACT-member-role-count-2"}]}
+```
+
+Then send `specified_by` to every scenario in the requirement's write.
+Details: `resources/fact-lanes.md`, Model the Dimension, Not the Verdict.
 
 ## Predicate Ontology Decision Tree
 

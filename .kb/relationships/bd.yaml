@@ -279,3 +279,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3ea5faa82280
+  - type: implements
+    from: SYM-migrate-polarity-backfill-code
+    to: REQ-cli-schema-migration-codes
+    created_at: 2026-10-28T18:51:05.009Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-763b5bb74bb6
+  - type: covered_by
+    from: SYM-migrate-polarity-backfill-code
+    to: TEST-proof-polarity-backfill-code
+    created_at: 2026-10-28T18:51:15.178Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-78244addb182
+  - type: covered_by
+    from: SYM-migrate-polarity-backfill-code
+    to: TEST-cli-migrate
+    created_at: 2026-10-28T18:51:15.198Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fb17f72e87d
+  - type: requires_property
+    from: REQ-kb-firmness-origin-schema
+    to: FACT-firmness-origin-schema-version
+    created_at: 2026-10-28T19:20:42.991Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf5bf150ae90
+  - type: specified_by
+    from: REQ-kb-firmness-origin-schema
+    to: SCEN-kb-decision-firmness
+    created_at: 2026-10-28T19:20:43.023Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bac92eb62923
+  - type: constrains
+    from: REQ-kb-firmness-origin-schema
+    to: FACT-kibi-firmness-origin-schema-component
+    created_at: 2026-10-28T19:20:45.254Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b974e460c4cf
+  - type: implements
+    from: SYM-reqcompiler-parity-version
+    to: REQ-kibi-distribution-parity-version
+    created_at: 2026-10-28T21:06:18.675Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c610594a6ca
+  - type: covered_by
+    from: SYM-reqcompiler-parity-version
+    to: TEST-proof-distribution-parity-version
+    created_at: 2026-10-28T21:06:30.404Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ce0b63ff293

@@ -248,3 +248,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-836ea78dc7ca
+  - type: validates
+    from: TEST-proof-binding-word-limit
+    to: SCEN-model-predicates-binding-clauses
+    created_at: 2026-10-28T10:14:24.090Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0cc348bd9d06
+  - type: implements
+    from: SYM-const-entity-origin-kinds
+    to: REQ-kibi-entity-origin-vocabulary
+    created_at: 2026-10-28T11:00:51.021Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76d0a9ae17ab
+  - type: covered_by
+    from: SYM-const-entity-origin-kinds
+    to: TEST-proof-entity-origin-kinds
+    created_at: 2026-10-28T11:01:02.196Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3041b92d37cf
+  - type: covered_by
+    from: SYM-const-entity-origin-kinds
+    to: TEST-kibi-entity-origin-cli
+    created_at: 2026-10-28T11:01:02.217Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8dc8f6a7554a
+  - type: validates
+    from: TEST-proof-brand-snow-color
+    to: SCEN-kibi-branded-health-report
+    created_at: 2026-10-28T22:29:31.864Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d30d7eec8f0
+  - type: implements
+    from: SYM-compose-search-hints
+    to: REQ-kibi-search-hints-host
+    created_at: 2026-10-29T19:22:35.444Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d84ee4e01ebd
+  - type: covered_by
+    from: SYM-compose-search-hints
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-10-29T19:22:35.493Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-808a4da3e3fe

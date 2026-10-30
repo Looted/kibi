@@ -181,3 +181,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b79beff9446f
+  - type: implements
+    from: SYM-cap-plugin-external-semantic-classifier-operations-2fb73e29
+    to: REQ-capability-plugin-vocabulary
+    created_at: 2026-10-29T10:31:17.389Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f27c6219c8a0
+  - type: covered_by
+    from: SYM-cap-plugin-external-semantic-classifier-operations-2fb73e29
+    to: TEST-proof-external-classifier-operations
+    created_at: 2026-10-29T10:31:38.273Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8decd3417da8

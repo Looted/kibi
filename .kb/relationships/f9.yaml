@@ -339,3 +339,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5269a64b94fd
+  - type: implements
+    from: SYM-const-max-review-candidates
+    to: REQ-kibi-contradiction-review-limits
+    created_at: 2026-10-28T10:43:36.767Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2f9effba3ba7
+  - type: covered_by
+    from: SYM-const-max-review-candidates
+    to: TEST-proof-max-review-candidates
+    created_at: 2026-10-28T10:43:48.153Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a59775a80c41
+  - type: covered_by
+    from: SYM-const-max-review-candidates
+    to: TEST-kibi-contradiction-review-cli
+    created_at: 2026-10-28T10:43:48.178Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c249f5d223e0
+  - type: implements
+    from: SYM-schema6-check-actions-MIGRATION_SYNC_ACTION_ID
+    to: REQ-kibi-lifecycle-check-codes
+    created_at: 2026-10-28T17:28:50.199Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55a4213a5c77
+  - type: covered_by
+    from: SYM-schema6-check-actions-MIGRATION_SYNC_ACTION_ID
+    to: TEST-proof-migration-sync-action
+    created_at: 2026-10-28T17:29:02.018Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c57b3273788
+  - type: covered_by
+    from: SYM-schema6-check-actions-MIGRATION_SYNC_ACTION_ID
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T17:29:02.044Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a90ad8c27b4e
+  - type: executable_for
+    from: SYM-proof-required-swipl-libraries
+    to: TEST-proof-required-swipl-libraries
+    created_at: 2026-10-28T19:22:18.668Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f291fe148ac2

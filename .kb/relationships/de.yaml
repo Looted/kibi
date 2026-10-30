@@ -325,3 +325,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-189439b672e4
+  - type: implements
+    from: SYM-decision-firmness-types
+    to: REQ-kb-decision-firmness-settings
+    created_at: 2026-10-28T10:33:17.656Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7029c794ae2f
+  - type: covered_by
+    from: SYM-decision-firmness-types
+    to: TEST-proof-firmness-types
+    created_at: 2026-10-28T10:33:29.922Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45c68ba10d3b
+  - type: covered_by
+    from: SYM-decision-firmness-types
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-28T10:33:29.955Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70255eed6e24
+  - type: validates
+    from: TEST-proof-repair-plan-version
+    to: SCEN-kibi-change-to-proof-plan-compiler
+    created_at: 2026-10-28T17:46:00.964Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a67a89692710
+  - type: implements
+    from: SYM-TRACEABILITY_RELATIONSHIP_TYPES
+    to: REQ-symbol-granularity-vocabulary
+    created_at: 2026-10-28T19:10:37.540Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f51ebd52298c
+  - type: covered_by
+    from: SYM-TRACEABILITY_RELATIONSHIP_TYPES
+    to: TEST-proof-granularity-link-types
+    created_at: 2026-10-28T19:10:48.153Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6d51a5110ad
+  - type: executable_for
+    from: SYM-proof-feasibility-review-code
+    to: TEST-proof-feasibility-review-code
+    created_at: 2026-10-28T20:28:08.045Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8813165b2f6
+  - type: executable_for
+    from: SYM-proof-brand-warning-color
+    to: TEST-proof-brand-warning-color
+    created_at: 2026-10-28T22:30:39.301Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b7003dbba2d

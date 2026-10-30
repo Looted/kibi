@@ -412,3 +412,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e75c0322a66f
+  - type: validates
+    from: TEST-proof-agent-review-code
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-28T20:26:02.420Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c2f350ede7a
+  - type: executable_for
+    from: SYM-proof-engine-exit-grace
+    to: TEST-proof-engine-exit-grace
+    created_at: 2026-10-28T20:46:35.350Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-097662ecc1a0
+  - type: requires_property
+    from: REQ-kibi-latest-kb-schema-version
+    to: FACT-latest-kb-schema-version
+    created_at: 2026-10-29T10:58:04.419Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dee11e99d177
+  - type: specified_by
+    from: REQ-kibi-latest-kb-schema-version
+    to: SCEN-kibi-schema6-migration
+    created_at: 2026-10-29T10:58:04.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2de2c30996d3
+  - type: constrains
+    from: REQ-kibi-latest-kb-schema-version
+    to: FACT-kibi-kb-schema-latest-version-component
+    created_at: 2026-10-29T10:58:08.113Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c95dffd2a058
+  - type: implements
+    from: SYM-const-certificate-proof-kinds
+    to: REQ-kibi-proof-vocabulary
+    created_at: 2026-10-29T16:45:33.084Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11bda7747184
+  - type: covered_by
+    from: SYM-const-certificate-proof-kinds
+    to: TEST-proof-certificate-proof-kinds
+    created_at: 2026-10-29T16:45:52.050Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-136300d4ddeb
+  - type: covered_by
+    from: SYM-const-certificate-proof-kinds
+    to: TEST-kibi-claim-bound-proofs
+    created_at: 2026-10-29T16:45:52.101Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1f14770a5a2

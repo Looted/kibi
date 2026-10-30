@@ -279,3 +279,101 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6090e510fde1
+  - type: requires_property
+    from: REQ-prolog-swipl-minimum-version
+    to: FACT-swipl-minimum-major
+    created_at: 2026-10-28T10:35:14.059Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-466a7df3aaad
+  - type: specified_by
+    from: REQ-prolog-swipl-minimum-version
+    to: SCEN-prolog-bundled-runtime
+    created_at: 2026-10-28T10:35:14.104Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb7388991395
+  - type: validates
+    from: TEST-proof-origin-review-rules
+    to: SCEN-kibi-entity-origin
+    created_at: 2026-10-28T11:01:38.828Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c64936aaaa77
+  - type: constrains
+    from: REQ-prolog-swipl-minimum-version
+    to: FACT-kibi-prolog-swipl-version-component
+    created_at: 2026-10-28T14:37:00.994Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a694f1d71a7
+  - type: requires_property
+    from: REQ-kibi-operation-page-sizes
+    to: FACT-entity-query-chunk-size
+    created_at: 2026-10-28T17:22:16.045Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff3f0848341f
+  - type: requires_property
+    from: REQ-kibi-operation-page-sizes
+    to: FACT-proof-contract-page-size
+    created_at: 2026-10-28T17:22:16.079Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c2cd82a0767a
+  - type: requires_property
+    from: REQ-kibi-operation-page-sizes
+    to: FACT-search-candidate-page-size
+    created_at: 2026-10-28T17:22:16.101Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9ea131e9b2c
+  - type: requires_property
+    from: REQ-kibi-operation-page-sizes
+    to: FACT-query-body-max-chars
+    created_at: 2026-10-28T17:22:16.119Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8200575e2d63
+  - type: requires_property
+    from: REQ-kibi-operation-page-sizes
+    to: FACT-operation-protocol-version
+    created_at: 2026-10-28T17:22:16.137Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8bb3fa8fe321
+  - type: requires_property
+    from: REQ-kibi-operation-page-sizes
+    to: FACT-query-entity-types
+    created_at: 2026-10-28T17:22:16.160Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05e748f9d530
+  - type: specified_by
+    from: REQ-kibi-operation-page-sizes
+    to: SCEN-kibi-operation-interface-parity
+    created_at: 2026-10-28T17:22:16.170Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1dd85bc4749e
+  - type: constrains
+    from: REQ-kibi-operation-page-sizes
+    to: FACT-kibi-operations-paging-component
+    created_at: 2026-10-28T17:22:18.288Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f8a114ec4ff4
+  - type: executable_for
+    from: SYM-proof-close-superseded-code
+    to: TEST-proof-close-superseded-code
+    created_at: 2026-10-28T20:26:46.999Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76b1f4753878
+  - type: validates
+    from: TEST-proof-reference-extracts
+    to: SCEN-kibi-code-proof-kinds
+    created_at: 2026-10-28T20:38:17.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93aa0b2fb08c

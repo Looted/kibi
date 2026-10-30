@@ -29,18 +29,18 @@ origin:
 id: TEST-kibi-uncompiled-source-visibility
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-89a592a27b0923adf39d0a83
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-9004806592c54918289b431a
     test_id: TEST-kibi-uncompiled-source-visibility
     scope: end_to_end
     outcome: passed
-    code_snapshot: bfda05f172480564af2a87e3a04ce34f85ceb1530759e633da450cbf50bfe3f5
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-14T10:33:18.936Z'
-    finished_at: '2026-10-14T10:33:36.413Z'
-    artifact_digest: 609230e224d8285eb158cc008a9474ac0257ddad870854f2ecdcc348d902c33f
+    code_snapshot: 8419f49189cfc4ef7df7e024a4c0d50ffad1735007fca08087b29bdb21784ccf
+    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
+    started_at: '2026-10-28T19:08:47.421Z'
+    finished_at: '2026-10-28T19:09:15.865Z'
+    artifact_digest: 6327bae7ea7b5d8136bea08e3f57998415e1b422ed455f65a0fcafeb2f50c8d1
     contract_hash: 5e792ee1ca632f23a4f93907b64712b5b3ac5feb899ccc02d704345755f0d55f
-    binding_hash: e371c2afe0a9261935e0013d9d40513a3ddef22120b1a78759af15e089b37882
+    binding_hash: 9c4630049bcaaf243e78c4385a559da30e27924c3b597a45cc0654cc3fe088e0
     fingerprint: 68cdd3045f4933ee78981f5f3919ab971135f6ed555307531d2094121032fd8e
     fingerprint_components:
       contract: 5e792ee1ca632f23a4f93907b64712b5b3ac5feb899ccc02d704345755f0d55f
@@ -62,5 +62,7 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Runs the CLI on a temporary workspace with a requirement file that sync cannot extract: `kibi check` reports the file and its extraction error as a blocking violation and `kibi status` reports it stale until the file is fixed. An upsert that only closes a requirement with pinned `semantic_text` and no inventory is refused with the proposition-complete message and leaves the file unchanged, an upsert that would keep the file uncompilable is refused naming the file, and an upsert that repairs an uncompiled ADR updates it in place and keeps its origin. Unit tests cover the extraction failure record, the status reasons and the authored-file lookup.

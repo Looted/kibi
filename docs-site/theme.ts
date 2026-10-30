@@ -1103,7 +1103,7 @@ export function landingContent(args: {
     <div class="pm-tablist" role="tablist" aria-label="Setup method">${installTabs}</div>
     ${installPanels}
   </div>
-  <p class="fineprint">Requires Node.js 22+. SWI-Prolog is bundled on Linux (x64, arm64) and macOS; other platforms need <code>swipl</code> (SWI-Prolog 9.0+) on your <code>PATH</code>. A system <code>swipl</code> is only a fallback; set <code>KIBI_SWIPL=system</code> to prefer it. Bun commands and per-platform setup are in the <a href="${root}guide/install.html">installation guide</a>.</p>
+  <p class="fineprint">Requires Node.js 22+. SWI-Prolog is bundled on Linux (x64, arm64) and macOS; other platforms need <code>swipl</code> (SWI-Prolog 9.0+) on your <code>PATH</code>. A system <code>swipl</code> is only a fallback; set <code>KIBI_SWIPL=system</code> to prefer it. Bun commands and per-platform setup are in the <a href="${root}guide/install.html">installation guide</a>. Kibi sends anonymous usage statistics; <a href="${root}guide/telemetry.html">see what is sent and how to turn it off</a>.</p>
 </section>
 <section>
   <h2>Questions people ask first</h2>
@@ -1155,7 +1155,7 @@ export function landingContent(args: {
     </details>
     <details>
       <summary>Will Kibi decide the product for me?</summary>
-      <p>No. <code>kibi init</code> creates the directory and the Git hooks; it leaves hooks it did not write alone, and <code>kibi init --print-hook pre-commit</code> prints a snippet you can add to them. What it commits is what you and the agent authored: symbol line positions are derived by every sync into a gitignored cache, so parallel branches do not conflict over them. It does not infer behavior. Checks prove what was encoded. Missing knowledge stays visible.</p>
+      <p>No. <code>kibi init</code> creates the directory and the Git hooks; it leaves hooks it did not write alone, and with lefthook, husky or the pre-commit framework it installs none and prints the configuration to add (<code>kibi init --print-hook all --format lefthook</code>). What it commits is what you and the agent authored: symbol line positions are derived by every sync into a gitignored cache, so parallel branches do not conflict over them. It does not infer behavior. Checks prove what was encoded. Missing knowledge stays visible.</p>
     </details>
   </div>
 </section>
