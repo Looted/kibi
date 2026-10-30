@@ -65833,3 +65833,67 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-search-hints-offer-requirements
+  - id: SYM-core-dimension-stage
+    title: dimension_stage
+    status: active
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T12:10:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-dimension-gap
+      - type: implements
+        target: REQ-kibi-dimension-gap
+  - id: SYM-core-claim-quantifier
+    title: claim_quantifier
+    status: active
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T12:10:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-dimension-gap
+      - type: implements
+        target: REQ-kibi-dimension-gap
+  - id: SYM-core-dimension-waiver
+    title: dimension_waiver
+    status: active
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T12:10:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-dimension-gap
+      - type: implements
+        target: REQ-kibi-dimension-gap
+  - id: SYM-cli-advisor-claim-dimension
+    title: claimDimension
+    status: active
+    sourceFile: packages/cli/src/operations/semantic-advisor/analyze-prose.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T12:10:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-dimension-gap
+      - type: implements
+        target: REQ-kibi-dimension-gap
+  - id: SYM-kibi-dimension-gap-verifier
+    title: Dimension gap verifier
+    status: active
+    sourceFile: packages/cli/tests/consumer/dimension-gap.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T12:10:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-dimension-gap

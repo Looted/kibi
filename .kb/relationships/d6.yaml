@@ -381,3 +381,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-075775147ae3
+  - type: implements
+    from: SYM-cli-advisor-claim-dimension
+    to: REQ-kibi-dimension-gap
+    created_at: 2026-10-30T12:07:00.516Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4737e2360dd2
+  - type: covered_by
+    from: SYM-cli-advisor-claim-dimension
+    to: TEST-kibi-dimension-gap
+    created_at: 2026-10-30T12:07:00.561Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a9a84a50d0e
