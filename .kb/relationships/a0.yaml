@@ -412,3 +412,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1257615a992b
+  - type: assumes
+    from: SCEN-CASE-kibi-search-answer-layer-v2-REQ-WITHOUT-EXCEPTIONS
+    to: FACT-CASE-kibi-search-answer-layer-v2-REQ-WITHOUT-EXCEPTIONS
+    created_at: 2026-10-30T14:56:11.611Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-523ba1915370
+  - type: verified_by
+    from: SCEN-CASE-kibi-search-answer-layer-v2-REQ-WITHOUT-EXCEPTIONS
+    to: TEST-kibi-search-answer-layer
+    created_at: 2026-10-30T14:56:11.704Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0bedb791d657

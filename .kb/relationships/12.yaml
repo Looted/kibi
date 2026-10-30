@@ -363,3 +363,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4007c29014fa
+  - type: assumes
+    from: SCEN-CASE-bootstrap-subject-fact-shared-SHARED-KEY-UNREPORTED
+    to: FACT-CASE-bootstrap-subject-fact-shared-SHARED-KEY-UNREPORTED
+    created_at: 2026-10-30T14:56:51.951Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c28225568d5
+  - type: verified_by
+    from: SCEN-CASE-bootstrap-subject-fact-shared-SHARED-KEY-UNREPORTED
+    to: TEST-bootstrap-subject-fact-shared
+    created_at: 2026-10-30T14:56:52.051Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f2abeb5e4085

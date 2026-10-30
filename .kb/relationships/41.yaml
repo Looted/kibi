@@ -454,3 +454,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b722ca541dd4
+  - type: assumes
+    from: SCEN-CASE-kibi-truthful-consistency-STRICT-BOUND-INEXACT
+    to: FACT-CASE-kibi-truthful-consistency-STRICT-BOUND-INEXACT
+    created_at: 2026-10-30T14:58:22.029Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86eb206e0009
+  - type: verified_by
+    from: SCEN-CASE-kibi-truthful-consistency-STRICT-BOUND-INEXACT
+    to: TEST-kibi-truthful-consistency
+    created_at: 2026-10-30T14:58:22.253Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-895e1ce729d4

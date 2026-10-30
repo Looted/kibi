@@ -524,3 +524,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-70a0d92f1470
+  - type: specified_by
+    from: REQ-kibi-fresh-verification-receipts-v2
+    to: SCEN-CASE-kibi-fresh-verification-receipts-v2-SUPERSEDED-RECEIPT-KEPT
+    created_at: 2026-10-30T14:58:36.222Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-20ade24b6cbb

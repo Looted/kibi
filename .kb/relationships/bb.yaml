@@ -545,3 +545,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-de05d8634055
+  - type: specified_by
+    from: REQ-005
+    to: SCEN-CASE-005-UNTIMESTAMPED-TRIPLE
+    created_at: 2026-10-30T14:57:04.304Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-286d2b105bd8

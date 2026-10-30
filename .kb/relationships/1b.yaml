@@ -286,3 +286,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-62e1796ee881
+  - type: assumes
+    from: SCEN-NEG-bootstrap-claim-kinds-and-conflicts-OBSERVATION-AS-REQUIREMENT
+    to: FACT-CASE-bootstrap-claim-kinds-and-conflicts-OBSERVATION-NOT-PLANNED
+    created_at: 2026-10-30T14:56:25.963Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-076a593e9849
