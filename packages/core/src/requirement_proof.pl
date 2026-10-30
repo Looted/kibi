@@ -158,6 +158,7 @@ compute_requirement_proof(ReqId, ReqProps, Context, Proof) :-
                                       ProductionStage, ProductionSymbols),
     source_coordinate_stage(ReqProps, ExecutableSymbols, ProductionSymbols, CoordinateStage),
     negative_path_stage(ReqId, ScenarioStage, ScenarioTestStage, Context, NegativePathStage),
+    dimension_stage(ReqId, ScenarioTestStage, Context, DimensionStage),
     Stages = _{
         semanticInventory: SemanticStage,
         logicGrounding: LogicStage,
@@ -165,6 +166,7 @@ compute_requirement_proof(ReqId, ReqProps, Context, Proof) :-
         scenarios: ScenarioStage,
         scenarioTests: ScenarioTestStage,
         negativePath: NegativePathStage,
+        dimension: DimensionStage,
         passingE2e: PassingE2eStage,
         executableSymbols: ExecutableStage,
         productionSymbols: ProductionStage,
@@ -819,6 +821,158 @@ failure_side_waiver(ReqId, Waiver) :-
     ).
 
 certified_claim(Certified, Key-_) :- memberchk(Key, Certified).
+
+%% dimension_stage(+ReqId, +ScenarioTestStage, +Context, -Stage)
+% implements REQ-kibi-dimension-gap
+% A claim that quantifies over a collection (each, every, all) or bounds a
+% cardinality (at least, at most, exactly, no more than) must be grounded on what
+% varies: a count or bound, a set, a rule over a variable or a state
+% machine.  A claim whose grounding facts are all booleans or ground
+% predicates states the verdict, not the dimension, so a scenario with one
+% file can pass where many files break.  Claims a fresh certificate proves
+% at code scope are decided already.  A grounding fact can carry a
+% dimension_waiver reason and a dimension_waiver_approved_by human for a
+% quantifier word that does not range over anything ("without any network
+% access").  Only, any and some are left out: they mostly scope a
+% condition ("only when", "before any write") rather than range over one.  Status is not_required (no such claim), waived (each one has an
+% approved waiver) or missing.
+dimension_stage(ReqId, ScenarioTestStage, Context, Stage) :-
+    findall(Key-FactId,
+        (   negative_path_link(Link),
+            kb_relationship(Link, ReqId, FactId),
+            fact_claim_key_or_id(FactId, Key)
+        ),
+        ClaimFacts0),
+    sort(ClaimFacts0, ClaimFacts),
+    pairs_keys(ClaimFacts, Keys0),
+    sort(Keys0, Keys),
+    certified_claim_keys(ReqId, ScenarioTestStage, Context, Certified),
+    findall(Claim,
+        (   member(Key, Keys),
+            \+ memberchk(Key, Certified),
+            findall(FactId, member(Key-FactId, ClaimFacts), FactIds),
+            unrepresented_quantified_claim(Key, FactIds, Claim)
+        ),
+        Claims),
+    partition(approved_dimension_waiver, Claims, Waived, Open),
+    findall(Key, (member(Claim, Open), get_dict(claimKey, Claim, Key)), OpenKeys),
+    pending_certified_claim_keys(ScenarioTestStage, Context, OpenKeys, Pending),
+    (   Claims == []
+    ->  Status = not_required
+    ;   Open == []
+    ->  Status = waived
+    ;   Status = missing
+    ),
+    Stage = _{
+        status: Status,
+        claims: Open,
+        waivedClaims: Waived,
+        pendingReproofClaims: Pending
+    }.
+
+% A claim whose text quantifies and whose every grounding fact is a boolean
+% property value or a ground predicate.
+unrepresented_quantified_claim(Key, FactIds, Claim) :-
+    FactIds = [_|_],
+    forall(member(FactId, FactIds), dimensionless_fact(FactId)),
+    claim_text_of(FactIds, Text),
+    claim_quantifier(Text, Quantifier),
+    !,
+    quantifier_rewrites(Quantifier, Rewrites),
+    dimension_waiver(FactIds, Waiver),
+    atom_string(Quantifier, QuantifierText),
+    Claim = _{
+        claimKey: Key,
+        claimText: Text,
+        quantifier: QuantifierText,
+        factIds: FactIds,
+        rewrites: Rewrites,
+        waiver: Waiver
+    }.
+
+dimensionless_fact(FactId) :-
+    kb_entity(FactId, fact, Props),
+    memberchk(fact_kind=RawKind, Props),
+    normalize_atom(RawKind, Kind),
+    (   Kind == predicate
+    ->  true
+    ;   Kind == property_value,
+        memberchk(value_type=RawType, Props),
+        normalize_atom(RawType, bool)
+    ).
+
+claim_text_of(FactIds, Text) :-
+    member(FactId, FactIds),
+    kb_entity(FactId, fact, Props),
+    memberchk(claim_text=Raw, Props),
+    normalize_atom(Raw, Atom),
+    Atom \== '',
+    !,
+    atom_string(Atom, Text).
+claim_text_of(FactIds, Text) :-
+    member(FactId, FactIds),
+    kb_entity(FactId, fact, Props),
+    memberchk(title=Raw, Props),
+    !,
+    normalize_atom(Raw, Atom),
+    atom_string(Atom, Text).
+
+%% claim_quantifier(+Text, -Quantifier)
+% The first quantifier over a collection (each, every, all) or cardinality
+% bound (exactly, at least, at most, no more than) in Text.
+claim_quantifier(Text, Quantifier) :-
+    string_lower(Text, Lower),
+    split_string(Lower, " \t\n\r.,;:()[]\"'`/!?-", " \t\n\r.,;:()[]\"'`/!?-", Words0),
+    exclude(==(""), Words0, Words),
+    quantifier_in(Words, Quantifier).
+
+quantifier_in(["no", "more", "than"|_], no_more_than) :- !.
+quantifier_in(["at", "least"|_], at_least) :- !.
+quantifier_in(["at", "most"|_], at_most) :- !.
+quantifier_in([Word|_], Quantifier) :-
+    memberchk(Word, ["each", "every", "all", "exactly"]),
+    !,
+    atom_string(Quantifier, Word).
+quantifier_in([_|Rest], Quantifier) :-
+    quantifier_in(Rest, Quantifier).
+
+% The typed groundings that represent what a quantifier ranges over, most
+% likely first.
+quantifier_rewrites(Quantifier, ["bound"]) :-
+    memberchk(Quantifier, [at_least, at_most, exactly, no_more_than]),
+    !.
+quantifier_rewrites(_, ["rule", "count", "set"]).
+
+%% dimension_waiver(+FactIds, -Waiver)
+% A grounding fact's dimension_waiver reason and the human who approved it
+% in dimension_waiver_approved_by.  An approved waiver on any grounding fact
+% wins; otherwise a reason alone is reported as pending approval.  Waiver is
+% _{} when none is recorded.
+dimension_waiver(FactIds, Waiver) :-
+    findall(W, (member(FactId, FactIds), fact_dimension_waiver(FactId, W)), Waivers),
+    (   member(W, Waivers), get_dict(approvedBy, W, _)
+    ->  Waiver = W
+    ;   Waivers = [W|_]
+    ->  Waiver = W
+    ;   Waiver = _{}
+    ).
+
+fact_dimension_waiver(FactId, Waiver) :-
+    kb_entity(FactId, fact, Props),
+    memberchk(dimension_waiver=RawReason, Props),
+    normalize_atom(RawReason, Reason),
+    Reason \== '',
+    atom_string(Reason, ReasonText),
+    (   memberchk(dimension_waiver_approved_by=RawBy, Props),
+        normalize_atom(RawBy, By),
+        By \== ''
+    ->  atom_string(By, ByText),
+        Waiver = _{reason: ReasonText, approvedBy: ByText}
+    ;   Waiver = _{reason: ReasonText}
+    ).
+
+approved_dimension_waiver(Claim) :-
+    get_dict(approvedBy, Claim.waiver, _).
 
 negative_path_link(requires_property).
 negative_path_link(requires_predicate).
@@ -2421,8 +2575,12 @@ freshness_only_gaps(Gaps, Stages) :-
     include(freshness_gap, Gaps, [_|_]),
     exclude(freshness_gap, Gaps, Rest0),
     (   negative_path_freshness_only(Stages)
-    ->  exclude(==(happy_path_only), Rest0, Rest)
-    ;   Rest = Rest0
+    ->  exclude(==(happy_path_only), Rest0, Rest1)
+    ;   Rest1 = Rest0
+    ),
+    (   dimension_freshness_only(Stages)
+    ->  exclude(==(dimension_unrepresented), Rest1, Rest)
+    ;   Rest = Rest1
     ),
     (   Rest == []
     ->  true
@@ -2437,6 +2595,14 @@ negative_path_freshness_only(Stages) :-
     Stage.status == missing,
     Stage.claims \== [],
     subtract(Stage.claims, Stage.pendingReproofClaims, []).
+
+% Every open quantified claim waits only on a stale certificate receipt.
+dimension_freshness_only(Stages) :-
+    get_dict(dimension, Stages, Stage),
+    Stage.status == missing,
+    findall(Key, (member(Claim, Stage.claims), get_dict(claimKey, Claim, Key)), Keys),
+    Keys \== [],
+    subtract(Keys, Stage.pendingReproofClaims, []).
 
 production_coverage_freshness_only(Stages) :-
     Stage = Stages.productionSymbols,
@@ -2564,6 +2730,7 @@ proof_gap_present(unknown_scenario_feasibility, Stages) :-
     get_dict(unknownFeasibility, Stages.scenarios, Unknown),
     Unknown \= [].
 proof_gap_present(happy_path_only, Stages) :- Stages.negativePath.status == missing.
+proof_gap_present(dimension_unrepresented, Stages) :- Stages.dimension.status == missing.
 proof_gap_present(missing_scenario_test, Stages) :- memberchk(Stages.scenarios.status, [passed, blocked]), Stages.scenarioTests.status == missing.
 proof_gap_present(missing_passing_e2e, Stages) :- Stages.passingE2e.status == missing.
 proof_gap_present(missing_proof_receipt, Stages) :- Stages.passingE2e.missingReceiptTests \= [].
@@ -2593,6 +2760,7 @@ gap_definition(contradiction_check_incomplete, 41, contradictions, "Complete log
 gap_definition(unknown_scenario_feasibility, 49, scenarios, "Link the property values the success scenario relies on with assumes facts that a current requirement constrains, so its feasibility can be decided.").
 gap_definition(missing_scenario, 50, scenarios, "Add a specified_by scenario for the requirement.").
 gap_definition(infeasible_scenario, 49, scenarios, "Set expects: rejection on the scenario, correct its assumes fact, or record a human-approved exception requirement that exempts the forbidding requirement.").
+gap_definition(dimension_unrepresented, 47, dimension, "Ground the quantified claim on what varies: an integer count or bound, a set of members, a rule over a variable, or a state machine. If the quantifier word ranges over nothing, record a dimension_waiver on the grounding fact for a person to approve.").
 gap_definition(happy_path_only, 48, negative_path, "Add a scenario that expects rejection or error and assumes a value this requirement forbids, link it with specified_by, and verify it with a passing end-to-end test.").
 gap_definition(missing_scenario_test, 51, scenario_tests, "Link the scenario to a test with verified_by or validates.").
 gap_definition(missing_passing_e2e, 52, passing_e2e, "Record fresh passing end-to-end evidence on a scenario-backed test.").

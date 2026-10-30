@@ -5193,6 +5193,93 @@ test(coverage_row_reports_the_happy_path_gap, [setup(setup_kb), cleanup(cleanup_
     assertion(Row.proofStages.negativePath.status == missing),
     assertion(memberchk(happy_path_only, Row.proofGaps)).
 
+% implements REQ-kibi-dimension-gap
+dimension_fixture(Kind, Text, Extra) :-
+    assert_fixture_entity(req, 'REQ-LOADER', "The loader instruments loaded files", open, []),
+    (   Kind == bool
+    ->  Props0 = [fact_kind=property_value, subject_key="module.loader",
+                  property_key="instruments_loaded_files", operator=eq,
+                  value_type=bool, value_bool=true]
+    ;   Kind == count
+    ->  Props0 = [fact_kind=property_value, subject_key="module.loader",
+                  property_key="uninstrumented_files", operator=eq,
+                  value_type=int, value_int=0]
+    ;   Props0 = [fact_kind=predicate, predicate_name="instruments",
+                  predicate_namespace="module", predicate_args=["loader", "loaded_files"],
+                  polarity=assert, canonical_key="instruments(loader,loaded_files)"]
+    ),
+    append(Props0, [claim_key="CLAIM-LOADER", claim_text=Text|Extra], Props),
+    assert_fixture_entity(fact, 'FACT-LOADER', "Loader instruments files", active, Props),
+    (   Kind == predicate -> Link = requires_predicate ; Link = requires_property ),
+    kb_assert_relationship(Link, 'REQ-LOADER', 'FACT-LOADER', []).
+
+dimension_of(ReqId, Stage) :-
+    requirement_proof:dimension_stage(ReqId, _{tests: []}, _{proofSnapshot: unknown}, Stage).
+
+test(quantified_claim_grounded_on_a_boolean_leaves_the_dimension_gap, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    dimension_fixture(bool, "Every file loaded into a module must be instrumented", []),
+    dimension_of('REQ-LOADER', Stage),
+    assertion(Stage.status == missing),
+    Stage.claims = [Claim],
+    assertion(Claim.claimKey == 'CLAIM-LOADER'),
+    assertion(Claim.quantifier == "every"),
+    assertion(Claim.factIds == ['FACT-LOADER']),
+    assertion(Claim.rewrites == ["rule", "count", "set"]),
+    assertion(requirement_proof:proof_gap_present(dimension_unrepresented, _{dimension: Stage})).
+
+test(ground_predicate_and_cardinality_bound_are_unrepresented_too, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    dimension_fixture(predicate, "The loader must instrument at most 3 files at once", []),
+    dimension_of('REQ-LOADER', Stage),
+    assertion(Stage.status == missing),
+    Stage.claims = [Claim],
+    assertion(Claim.quantifier == "at_most"),
+    assertion(Claim.rewrites == ["bound"]).
+
+test(a_count_grounding_or_an_unquantified_claim_needs_no_dimension, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    dimension_fixture(count, "Every file loaded into a module must be instrumented", []),
+    dimension_of('REQ-LOADER', Counted),
+    assertion(Counted.status == not_required),
+    cleanup_kb, setup_kb,
+    % Only, any and some scope a condition rather than range over one.
+    dimension_fixture(bool, "The loader must instrument a file only when it loads", []),
+    dimension_of('REQ-LOADER', Scoped),
+    assertion(Scoped.status == not_required),
+    assertion(Scoped.claims == []).
+
+test(dimension_waiver_counts_only_once_approved, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    dimension_fixture(bool, "The loader must start without all network access",
+        [dimension_waiver="All modifies network access, not a collection"]),
+    dimension_of('REQ-LOADER', Pending),
+    assertion(Pending.status == missing),
+    Pending.claims = [Claim],
+    assertion(Claim.waiver.reason == "All modifies network access, not a collection"),
+    assertion(\+ get_dict(approvedBy, Claim.waiver, _)),
+    cleanup_kb, setup_kb,
+    dimension_fixture(bool, "The loader must start without all network access",
+        [dimension_waiver="All modifies network access, not a collection",
+         dimension_waiver_approved_by="Loader owner"]),
+    dimension_of('REQ-LOADER', Waived),
+    assertion(Waived.status == waived),
+    assertion(Waived.claims == []),
+    Waived.waivedClaims = [WaivedClaim],
+    assertion(WaivedClaim.waiver.approvedBy == "Loader owner"),
+    assertion(\+ requirement_proof:proof_gap_present(dimension_unrepresented, _{dimension: Waived})).
+
+test(dimension_gap_waits_for_reproof_only_when_stale_certificates_prove_every_open_claim) :-
+    Claim = _{claimKey: 'CLAIM-A'},
+    Pending = _{dimension: _{status: missing, claims: [Claim], pendingReproofClaims: ['CLAIM-A']}},
+    assertion(requirement_proof:freshness_only_gaps([stale_proof_receipt, dimension_unrepresented], Pending)),
+    Open = _{dimension: _{status: missing, claims: [Claim], pendingReproofClaims: []}},
+    assertion(\+ requirement_proof:freshness_only_gaps([stale_proof_receipt, dimension_unrepresented], Open)).
+
+test(coverage_row_reports_the_dimension_gap, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    dimension_fixture(bool, "Every file loaded into a module must be instrumented", []),
+    coverage_report_json(req, [], true, true, 100, 0, JsonString),
+    json_string_dict(JsonString, Report),
+    coverage_row(Report.rows, 'REQ-LOADER', Row),
+    assertion(Row.proofStages.dimension.status == missing),
+    assertion(memberchk(dimension_unrepresented, Row.proofGaps)).
+
 :- end_tests(kb_scenario_feasibility).
 
 % Strict-lane pairing validation tests (REQ-011)
