@@ -5280,6 +5280,128 @@ test(coverage_row_reports_the_dimension_gap, [setup(setup_kb), cleanup(cleanup_k
     assertion(Row.proofStages.dimension.status == missing),
     assertion(memberchk(dimension_unrepresented, Row.proofGaps)).
 
+% implements REQ-kibi-case-coverage
+case_fixture(FactProps) :-
+    assert_fixture_entity(req, 'REQ-UPLOAD', "Uploads stay within the batch limit", open, []),
+    append([fact_kind=property_value, subject_key="upload.batch",
+            property_key="files_per_batch", claim_key="CLAIM-UPLOAD",
+            claim_text="An upload batch must hold at most 5 files"], FactProps, Props),
+    assert_fixture_entity(fact, 'FACT-UPLOAD', "Batch holds at most 5 files", active, Props),
+    kb_assert_relationship(requires_property, 'REQ-UPLOAD', 'FACT-UPLOAD', []).
+
+case_scenario(ScenarioId, Expects, Status, AssumedId, AssumedProps) :-
+    assert_fixture_entity(scenario, ScenarioId, "Upload a batch", Status, [expects=Expects]),
+    kb_assert_relationship(specified_by, 'REQ-UPLOAD', ScenarioId, []),
+    append([fact_kind=property_value, subject_key="upload.batch",
+            property_key="files_per_batch"], AssumedProps, Props),
+    assert_fixture_entity(fact, AssumedId, "Assumed batch size", active, Props),
+    kb_assert_relationship(assumes, ScenarioId, AssumedId, []).
+
+cases_of(ReqId, Scenarios, Stage) :-
+    requirement_proof:cases_stage(ReqId, _{scenarios: Scenarios}, _{tests: []},
+                                  _{proofSnapshot: unknown}, Stage).
+
+case_rows(Stage, Rows) :-
+    findall(Constraint-Predicted-Coverage,
+        (   member(Row, Stage.cases),
+            Constraint = Row.constraint,
+            Predicted = Row.predicted,
+            Coverage = Row.coverage
+        ),
+        Rows).
+
+test(an_upper_bound_yields_its_boundary_past_the_bound_and_zero_one_cases, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    case_fixture([operator=lte, value_type=int, value_int=5]),
+    cases_of('REQ-UPLOAD', [], Stage),
+    case_rows(Stage, Rows),
+    assertion(Rows == ["eq 5"-success-uncovered, "gt 5"-rejection-uncovered,
+                       "eq 0"-success-uncovered, "eq 1"-success-uncovered]),
+    assertion(Stage.status == missing),
+    Stage.uncoveredCases = [Open],
+    assertion(Open.assumption.operator == gt),
+    assertion(Open.assumption.value == 5),
+    assertion(sub_atom(Open.caseId, 0, 5, _, 'CASE-')),
+    assertion(requirement_proof:proof_gap_present(uncovered_case, _{cases: Stage})).
+
+test(case_ids_are_stable_across_runs, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    case_fixture([operator=lte, value_type=int, value_int=5]),
+    cases_of('REQ-UPLOAD', [], First),
+    cases_of('REQ-UPLOAD', [], Second),
+    findall(Id, (member(Row, First.cases), Id = Row.caseId), Ids),
+    findall(Id, (member(Row, Second.cases), Id = Row.caseId), Ids2),
+    assertion(Ids == Ids2),
+    sort(Ids, Unique),
+    length(Ids, N),
+    assertion(length(Unique, N)).
+
+test(a_rejection_scenario_past_the_bound_covers_the_case, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    case_fixture([operator=lte, value_type=int, value_int=5]),
+    case_scenario('SCEN-UPLOAD-SIX', rejection, active, 'FACT-UPLOAD-SIX',
+                  [operator=eq, value_type=int, value_int=6]),
+    cases_of('REQ-UPLOAD', ['SCEN-UPLOAD-SIX'], Stage),
+    assertion(Stage.status == passed),
+    member(Row, Stage.cases),
+    Row.constraint == "gt 5",
+    !,
+    assertion(Row.coverage == covered),
+    assertion(Row.scenarios == ['SCEN-UPLOAD-SIX']).
+
+test(a_scenario_expecting_the_wrong_outcome_or_a_draft_does_not_cover, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    case_fixture([operator=lte, value_type=int, value_int=5]),
+    case_scenario('SCEN-UPLOAD-OK', success, active, 'FACT-UPLOAD-SIX',
+                  [operator=eq, value_type=int, value_int=6]),
+    case_scenario('SCEN-UPLOAD-DRAFT', rejection, draft, 'FACT-UPLOAD-SEVEN',
+                  [operator=eq, value_type=int, value_int=7]),
+    cases_of('REQ-UPLOAD', ['SCEN-UPLOAD-OK', 'SCEN-UPLOAD-DRAFT'], Stage),
+    assertion(Stage.status == missing).
+
+test(set_members_and_the_value_outside_the_set, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    case_fixture([operator=eq, value_type=set, value_set=["csv", "pdf"]]),
+    cases_of('REQ-UPLOAD', [], Stage),
+    case_rows(Stage, Rows),
+    assertion(Rows == ["includes csv"-success-uncovered, "includes pdf"-success-uncovered,
+                       "includes a value outside [csv, pdf]"-rejection-uncovered]),
+    case_scenario('SCEN-UPLOAD-EXE', error, active, 'FACT-UPLOAD-EXE',
+                  [operator=includes, value_type=set, value_set=["exe"]]),
+    cases_of('REQ-UPLOAD', ['SCEN-UPLOAD-EXE'], Covered),
+    assertion(Covered.status == passed).
+
+test(case_waiver_counts_only_once_approved, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    case_fixture([operator=lte, value_type=int, value_int=5,
+                  case_waiver="The client caps batches before upload"]),
+    cases_of('REQ-UPLOAD', [], Pending),
+    assertion(Pending.status == missing),
+    cleanup_kb, setup_kb,
+    case_fixture([operator=lte, value_type=int, value_int=5,
+                  case_waiver="The client caps batches before upload",
+                  case_waiver_approved_by="Upload owner"]),
+    cases_of('REQ-UPLOAD', [], Waived),
+    assertion(Waived.status == waived),
+    Waived.waivedCases = [Row],
+    assertion(Row.waiver.approvedBy == "Upload owner"),
+    assertion(\+ requirement_proof:proof_gap_present(uncovered_case, _{cases: Waived})).
+
+test(a_boolean_claim_has_no_cases, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    case_fixture([operator=eq, value_type=bool, value_bool=true]),
+    cases_of('REQ-UPLOAD', [], Stage),
+    assertion(Stage.status == not_required),
+    assertion(Stage.cases == []).
+
+test(uncovered_case_waits_for_reproof_only_when_stale_certificates_prove_it) :-
+    Row = _{claimKey: 'CLAIM-A'},
+    Pending = _{cases: _{status: missing, uncoveredCases: [Row], pendingReproofClaims: ['CLAIM-A']}},
+    assertion(requirement_proof:freshness_only_gaps([stale_proof_receipt, uncovered_case], Pending)),
+    Open = _{cases: _{status: missing, uncoveredCases: [Row], pendingReproofClaims: []}},
+    assertion(\+ requirement_proof:freshness_only_gaps([stale_proof_receipt, uncovered_case], Open)).
+
+test(coverage_row_reports_the_case_gap, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    case_fixture([operator=lte, value_type=int, value_int=5]),
+    coverage_report_json(req, [], true, true, 100, 0, JsonString),
+    json_string_dict(JsonString, Report),
+    coverage_row(Report.rows, 'REQ-UPLOAD', Row),
+    assertion(Row.proofStages.cases.status == missing),
+    assertion(memberchk(uncovered_case, Row.proofGaps)).
+
 :- end_tests(kb_scenario_feasibility).
 
 % Strict-lane pairing validation tests (REQ-011)
@@ -7187,7 +7309,10 @@ proved_fixture(Snapshot) :-
         fact_kind=property_value, subject_key="kibi.coverage.report",
         property_key="proof_outcomes", operator=eq, value_type=set,
         value_set=["a", "b"], claim_key="CLAIM-ABCDEF0123456789",
-        claim_text="Coverage reports expose conservative proof outcomes"]),
+        claim_text="Coverage reports expose conservative proof outcomes",
+        % Rows below read the evidence level without a certificate; the
+        % outside-the-set case is accepted so it does not hold them at asserted.
+        case_waiver="The outcome set is closed by its type", case_waiver_approved_by="Owner"]),
     assert_fixture_entity(scenario, 'SCEN-PROVED', "Inspect a proof", active, []),
     assert_fixture_entity(test, 'TEST-PROVED-E2E', "Requirement proof E2E", passing, [
         verification_scope=end_to_end, proof_receipts=ReceiptJson]),

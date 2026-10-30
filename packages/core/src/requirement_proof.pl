@@ -30,6 +30,7 @@
 :- use_module('code_certificates.pl', [code_certificate_check/2, code_certificate_digest/2]).
 :- use_module('claim_obligations.pl', [claim_obligation/3, obligation_equal/2]).
 :- use_module('model_check.pl', [model_check_obligation/4]).
+:- use_module('cases.pl', [fact_cases/3, case_covering_scenarios/3, case_dict/2, fact_case_waiver/2]).
 
 proof_version('kibi.requirement-proof.v5').
 
@@ -159,6 +160,7 @@ compute_requirement_proof(ReqId, ReqProps, Context, Proof) :-
     source_coordinate_stage(ReqProps, ExecutableSymbols, ProductionSymbols, CoordinateStage),
     negative_path_stage(ReqId, ScenarioStage, ScenarioTestStage, Context, NegativePathStage),
     dimension_stage(ReqId, ScenarioTestStage, Context, DimensionStage),
+    cases_stage(ReqId, ScenarioStage, ScenarioTestStage, Context, CasesStage),
     Stages = _{
         semanticInventory: SemanticStage,
         logicGrounding: LogicStage,
@@ -167,6 +169,7 @@ compute_requirement_proof(ReqId, ReqProps, Context, Proof) :-
         scenarioTests: ScenarioTestStage,
         negativePath: NegativePathStage,
         dimension: DimensionStage,
+        cases: CasesStage,
         passingE2e: PassingE2eStage,
         executableSymbols: ExecutableStage,
         productionSymbols: ProductionStage,
@@ -821,6 +824,97 @@ failure_side_waiver(ReqId, Waiver) :-
     ).
 
 certified_claim(Certified, Key-_) :- memberchk(Key, Certified).
+
+%% cases_stage(+ReqId, +ScenarioStage, +ScenarioTestStage, +Context, -Stage)
+% implements REQ-kibi-case-coverage
+% Edge cases derived from the requirement's typed property claims
+% (cases.pl): the bound and the value past it, zero, one and many for a
+% count, each member of a set and a value outside it.  A case is covered
+% when a linked scenario, other than a draft, assumes a value in its class
+% and expects the outcome the claim predicts.  Every case whose predicted
+% outcome is rejection must be covered: that is where a test of the one
+% case that works hides the case that breaks.  Uncovered success cases and
+% cases no claim decides (unspecified) are reported, not blocking.  Claims
+% a fresh certificate proves at code scope are decided already.  A grounding
+% fact can carry a case_waiver with case_waiver_approved_by.  Status is
+% not_required (no rejection case), passed, waived (every uncovered
+% rejection case is on a fact with an approved waiver) or missing.
+cases_stage(ReqId, ScenarioStage, ScenarioTestStage, Context, Stage) :-
+    findall(FactId, kb_relationship(requires_property, ReqId, FactId), Facts0),
+    sort(Facts0, Facts),
+    certified_claim_keys(ReqId, ScenarioTestStage, Context, Certified),
+    (   get_dict(scenarios, ScenarioStage, ScenarioIds) -> true ; ScenarioIds = [] ),
+    foldl(fact_case_rows(Certified, ScenarioIds), Facts, rows([], false), rows(Rows0, LimitReached)),
+    reverse(Rows0, Rows),
+    include(case_row_blocking, Rows, Blocking),
+    partition(case_row_waived, Blocking, WaivedRows, OpenRows),
+    findall(Key, (member(Row, OpenRows), get_dict(claimKey, Row, Key)), OpenKeys0),
+    sort(OpenKeys0, OpenKeys),
+    pending_certified_claim_keys(ScenarioTestStage, Context, OpenKeys, Pending),
+    case_summary(Rows, Summary),
+    (   \+ (member(Row, Rows), get_dict(predicted, Row, rejection))
+    ->  Status = not_required
+    ;   OpenRows == [],
+        WaivedRows == []
+    ->  Status = passed
+    ;   OpenRows == []
+    ->  Status = waived
+    ;   Status = missing
+    ),
+    Stage = _{
+        status: Status,
+        cases: Rows,
+        uncoveredCases: OpenRows,
+        waivedCases: WaivedRows,
+        summary: Summary,
+        limitReached: LimitReached,
+        pendingReproofClaims: Pending
+    }.
+
+fact_case_rows(Certified, ScenarioIds, FactId, rows(Acc0, Limit0), rows(Acc, Limit)) :-
+    (   fact_cases(FactId, Cases, FactLimit),
+        Cases = [case(_, ClaimKey, _, _, _, _, _)|_],
+        \+ memberchk(ClaimKey, Certified)
+    ->  fact_case_waiver(FactId, Waiver),
+        foldl(case_row(ScenarioIds, Waiver), Cases, Acc0, Acc),
+        (   FactLimit == true -> Limit = true ; Limit = Limit0 )
+    ;   Acc = Acc0,
+        Limit = Limit0
+    ).
+
+case_row(ScenarioIds, Waiver, Case, Acc, [Row|Acc]) :-
+    case_dict(Case, Dict),
+    case_covering_scenarios(ScenarioIds, Case, Covering),
+    (   Covering \== []
+    ->  Coverage = covered
+    ;   get_dict(predicted, Dict, unspecified)
+    ->  Coverage = unspecified
+    ;   get_dict(approvedBy, Waiver, _)
+    ->  Coverage = waived
+    ;   Coverage = uncovered
+    ),
+    Row0 = Dict.put(_{coverage: Coverage, scenarios: Covering}),
+    (   Waiver == _{} -> Row = Row0 ; Row = Row0.put(waiver, Waiver) ).
+
+% A rejection case blocks until a scenario covers it or its fact's waiver
+% is approved.
+case_row_blocking(Row) :-
+    get_dict(predicted, Row, rejection),
+    get_dict(coverage, Row, Coverage),
+    memberchk(Coverage, [uncovered, waived]).
+
+case_row_waived(Row) :- get_dict(coverage, Row, waived).
+
+case_summary(Rows, _{generated: Generated, covered: Covered, uncovered: Uncovered,
+                     unspecified: Unspecified, waived: Waived}) :-
+    length(Rows, Generated),
+    coverage_count(Rows, covered, Covered),
+    coverage_count(Rows, uncovered, Uncovered),
+    coverage_count(Rows, unspecified, Unspecified),
+    coverage_count(Rows, waived, Waived).
+
+coverage_count(Rows, Coverage, Count) :-
+    aggregate_all(count, (member(Row, Rows), get_dict(coverage, Row, Coverage)), Count).
 
 %% dimension_stage(+ReqId, +ScenarioTestStage, +Context, -Stage)
 % implements REQ-kibi-dimension-gap
@@ -2579,8 +2673,12 @@ freshness_only_gaps(Gaps, Stages) :-
     ;   Rest1 = Rest0
     ),
     (   dimension_freshness_only(Stages)
-    ->  exclude(==(dimension_unrepresented), Rest1, Rest)
-    ;   Rest = Rest1
+    ->  exclude(==(dimension_unrepresented), Rest1, Rest2)
+    ;   Rest2 = Rest1
+    ),
+    (   cases_freshness_only(Stages)
+    ->  exclude(==(uncovered_case), Rest2, Rest)
+    ;   Rest = Rest2
     ),
     (   Rest == []
     ->  true
@@ -2601,6 +2699,15 @@ dimension_freshness_only(Stages) :-
     get_dict(dimension, Stages, Stage),
     Stage.status == missing,
     findall(Key, (member(Claim, Stage.claims), get_dict(claimKey, Claim, Key)), Keys),
+    Keys \== [],
+    subtract(Keys, Stage.pendingReproofClaims, []).
+
+% Every uncovered rejection case waits only on a stale certificate receipt.
+cases_freshness_only(Stages) :-
+    get_dict(cases, Stages, Stage),
+    Stage.status == missing,
+    findall(Key, (member(Row, Stage.uncoveredCases), get_dict(claimKey, Row, Key)), Keys0),
+    sort(Keys0, Keys),
     Keys \== [],
     subtract(Keys, Stage.pendingReproofClaims, []).
 
@@ -2731,6 +2838,7 @@ proof_gap_present(unknown_scenario_feasibility, Stages) :-
     Unknown \= [].
 proof_gap_present(happy_path_only, Stages) :- Stages.negativePath.status == missing.
 proof_gap_present(dimension_unrepresented, Stages) :- Stages.dimension.status == missing.
+proof_gap_present(uncovered_case, Stages) :- Stages.cases.status == missing.
 proof_gap_present(missing_scenario_test, Stages) :- memberchk(Stages.scenarios.status, [passed, blocked]), Stages.scenarioTests.status == missing.
 proof_gap_present(missing_passing_e2e, Stages) :- Stages.passingE2e.status == missing.
 proof_gap_present(missing_proof_receipt, Stages) :- Stages.passingE2e.missingReceiptTests \= [].
@@ -2761,6 +2869,7 @@ gap_definition(unknown_scenario_feasibility, 49, scenarios, "Link the property v
 gap_definition(missing_scenario, 50, scenarios, "Add a specified_by scenario for the requirement.").
 gap_definition(infeasible_scenario, 49, scenarios, "Set expects: rejection on the scenario, correct its assumes fact, or record a human-approved exception requirement that exempts the forbidding requirement.").
 gap_definition(dimension_unrepresented, 47, dimension, "Ground the quantified claim on what varies: an integer count or bound, a set of members, a rule over a variable, or a state machine. If the quantifier word ranges over nothing, record a dimension_waiver on the grounding fact for a person to approve.").
+gap_definition(uncovered_case, 46, cases, "Cover each rejection case: add a scenario that assumes a value in the case's class (the case's assumption), expects rejection or error, is linked with specified_by and is verified by a passing end-to-end test. If a person accepts the cases as covered another way, record a case_waiver on the grounding fact for them to approve.").
 gap_definition(happy_path_only, 48, negative_path, "Add a scenario that expects rejection or error and assumes a value this requirement forbids, link it with specified_by, and verify it with a passing end-to-end test.").
 gap_definition(missing_scenario_test, 51, scenario_tests, "Link the scenario to a test with verified_by or validates.").
 gap_definition(missing_passing_e2e, 52, passing_e2e, "Record fresh passing end-to-end evidence on a scenario-backed test.").

@@ -91,6 +91,8 @@ entity_property(fact, claim_text, string).
 % needs no dimension, and the human who accepted that.
 entity_property(fact, dimension_waiver, string).
 entity_property(fact, dimension_waiver_approved_by, string).
+entity_property(fact, case_waiver, string).
+entity_property(fact, case_waiver_approved_by, string).
 entity_property(fact, predicate_name, string).
 entity_property(fact, predicate_namespace, string).
 entity_property(fact, predicate_arity, integer).
