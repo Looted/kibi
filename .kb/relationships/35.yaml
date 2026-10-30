@@ -419,3 +419,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-47aecf8c4857
+  - type: assumes
+    from: SCEN-CASE-capability-plugin-configuration-v1-zero-timeout
+    to: FACT-CASE-capability-plugin-configuration-v1-zero-timeout
+    created_at: 2026-10-30T15:01:07.447Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c55812380b3c
+  - type: verified_by
+    from: SCEN-CASE-capability-plugin-configuration-v1-zero-timeout
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-10-30T15:01:07.539Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a3637e6c058
+  - type: assumes
+    from: SCEN-CASE-capability-plugin-three-capabilities-v1-second-replace-provider
+    to: FACT-CASE-capability-plugin-three-capabilities-v1-second-replace-provider
+    created_at: 2026-10-30T15:01:40.197Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f040185f71d2
+  - type: verified_by
+    from: SCEN-CASE-capability-plugin-three-capabilities-v1-second-replace-provider
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-10-30T15:01:40.283Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3b82152e535

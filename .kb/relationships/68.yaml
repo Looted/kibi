@@ -328,3 +328,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6bbb858adcd4
+  - type: assumes
+    from: SCEN-CASE-scripts-coverage-shard-isolation-summary-twice
+    to: FACT-CASE-scripts-coverage-shard-isolation-summary-twice
+    created_at: 2026-10-30T15:01:27.056Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3193b69b04c
+  - type: verified_by
+    from: SCEN-CASE-scripts-coverage-shard-isolation-summary-twice
+    to: TEST-scripts-coverage-shard-isolation
+    created_at: 2026-10-30T15:01:27.133Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-588ed52e3c37
