@@ -4,6 +4,7 @@ import { type SpawnSyncReturns, spawnSync } from "node:child_process";
 import {
   mkdirSync,
   mkdtempSync,
+  readFileSync,
   realpathSync,
   rmSync,
   writeFileSync,
@@ -267,6 +268,33 @@ function runGate(
   ]);
 }
 
+/**
+ * A `--cli` stand-in that records every `kibi search` question it receives
+ * before handing the call to the real CLI, so a test can count the asks.
+ */
+function recordingCli(consumer: ConsumerKb): { cli: string; log: string } {
+  const log = path.join(consumer.base, "asks.jsonl");
+  const cli = path.join(consumer.base, "recording-kibi.mjs");
+  writeFileSync(
+    cli,
+    `import { appendFileSync, readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+const args = process.argv.slice(2);
+const input = args[0] === "search" ? readFileSync(0, "utf8") : undefined;
+if (input !== undefined) {
+  appendFileSync(${JSON.stringify(log)}, JSON.stringify(JSON.parse(input).query) + "\\n");
+}
+const result = spawnSync("node", [${JSON.stringify(KIBI_CLI)}, ...args], {
+  input,
+  stdio: [input === undefined ? "inherit" : "pipe", "inherit", "inherit"],
+});
+process.exit(result.status ?? 1);
+`,
+  );
+  writeFileSync(log, "");
+  return { cli, log };
+}
+
 function gateOutput(result: SpawnSyncReturns<string>): GateOutput {
   return JSON.parse(result.stdout) as GateOutput;
 }
@@ -358,6 +386,49 @@ describe("repository search gold-set gate (end to end)", () => {
       expect(result.stderr).toContain(
         "  - abstention precision 0.500 is below 1",
       );
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "the gate warms up off the gold set and asks each gold question exactly once",
+    () => {
+      const consumer = createConsumerKb();
+      const { cli, log } = recordingCli(consumer);
+      const goldPath = path.join(consumer.base, "repo-search-gold.jsonl");
+      const thresholdsPath = path.join(consumer.base, "thresholds.json");
+      writeFileSync(
+        goldPath,
+        `${GOLD.map((gold) => JSON.stringify(gold)).join("\n")}\n`,
+      );
+      writeFileSync(thresholdsPath, `${JSON.stringify(THRESHOLDS, null, 2)}\n`);
+
+      const result = run(consumer.root, process.execPath, [
+        "run",
+        SCRIPT,
+        "--repo-kb",
+        goldPath,
+        "--thresholds",
+        thresholdsPath,
+        "--cli",
+        cli,
+      ]);
+
+      expect(result.status).toBe(0);
+      const asks = readFileSync(log, "utf8")
+        .trim()
+        .split("\n")
+        .map((line) => JSON.parse(line) as string);
+      const goldQueries = GOLD.map((gold) => gold.query);
+      // The first ask warms the engine with a question outside the gold set.
+      expect(asks.length).toBe(goldQueries.length + 1);
+      expect(goldQueries).not.toContain(asks[0]);
+      // After the warm-up every gold question is asked once: none twice,
+      // none skipped.
+      for (const query of goldQueries) {
+        expect(asks.filter((ask) => ask === query)).toHaveLength(1);
+      }
+      expect(asks.slice(1)).toEqual(goldQueries);
     },
     TEST_TIMEOUT_MS,
   );

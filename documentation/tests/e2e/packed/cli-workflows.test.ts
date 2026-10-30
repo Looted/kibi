@@ -813,6 +813,40 @@ if (RUN_NODE_TEST_SUITE) {
       console.log(`  ✓ Check completed (exit code: ${exitCode})`);
     });
 
+    it("should report a non-blocking logical-coverage debt diagnostic for a requirement without a logic_claims manifest", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+
+      // REQ-001 is current and has no logic_claims manifest.
+      const { stdout, stderr, exitCode } = await kibi(
+        sandbox,
+        ["check", "--format", "json"],
+        { timeoutMs: 60000 },
+      );
+      assert.strictEqual(exitCode, 0, stdout + stderr);
+      const parsed = JSON.parse(stdout) as {
+        structuredContent?: {
+          qualityDiagnostics?: Array<{
+            id: string;
+            entityId?: string;
+            blocking: boolean;
+            message: string;
+          }>;
+        };
+      };
+      const debt = (parsed.structuredContent?.qualityDiagnostics ?? []).filter(
+        (diagnostic) => diagnostic.id === "logical_coverage_review",
+      );
+      assert.deepStrictEqual(
+        debt.map((diagnostic) => [diagnostic.entityId, diagnostic.blocking]),
+        [["REQ-001", false]],
+        stdout,
+      );
+      assert.match(debt[0]?.message ?? "", /no atomic logic_claims manifest/);
+    });
+
     it("should run kibi check with a registry-selected migration rule", async (testContext) => {
       if (!hasProlog) {
         testContext.skip("SWI-Prolog is unavailable");
@@ -955,6 +989,126 @@ if (RUN_NODE_TEST_SUITE) {
         await kibi(sandbox, ["sync"]);
       }
     });
+
+    it(
+      "keeps typed predicate fields in the staged overlay so a staged decision conflict is reported",
+      { timeout: 120000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        const stagedSandbox = createSandbox();
+        try {
+          await stagedSandbox.install(tarballs);
+          await stagedSandbox.initGitRepo();
+          const initialized = await kibi(stagedSandbox, ["init", "--no-hooks"]);
+          assert.strictEqual(
+            initialized.exitCode,
+            0,
+            initialized.stdout + initialized.stderr,
+          );
+          // Two staged requirements decide the same permission_rule key
+          // differently. Only the typed predicate fields (name, namespace,
+          // arguments, polarity) carry the conflict, so it is reported only
+          // when the staged overlay keeps every one of them.
+          for (const [decision, polarity] of [
+            ["allow", "assert"],
+            ["deny", "deny"],
+          ] as const) {
+            await mkdir(path.join(stagedSandbox.repoDir, ".kb", "facts"), {
+              recursive: true,
+            });
+            await writeFile(
+              path.join(
+                stagedSandbox.repoDir,
+                ".kb",
+                "facts",
+                `FACT-EXPORT-${decision}.md`,
+              ),
+              [
+                "---",
+                `id: FACT-EXPORT-${decision}`,
+                `title: Guests ${decision} report CSV export`,
+                "status: active",
+                "fact_kind: predicate",
+                "predicate_namespace: default",
+                "predicate_name: permission_rule",
+                `predicate_args: [guest, export, report_csv, ${decision}]`,
+                `polarity: ${polarity}`,
+                `canonical_key: permission_rule(guest,export,report_csv,${decision})`,
+                "---",
+                `Guests ${decision} exporting reports as CSV files.`,
+                "",
+              ].join("\n"),
+            );
+            await mkdir(
+              path.join(stagedSandbox.repoDir, ".kb", "requirements"),
+              { recursive: true },
+            );
+            await writeFile(
+              path.join(
+                stagedSandbox.repoDir,
+                ".kb",
+                "requirements",
+                `REQ-EXPORT-${decision}.md`,
+              ),
+              [
+                "---",
+                `id: REQ-EXPORT-${decision}`,
+                `title: Guests ${decision} report CSV export`,
+                "status: open",
+                "priority: must",
+                "links:",
+                "  - type: requires_predicate",
+                `    target: FACT-EXPORT-${decision}`,
+                "---",
+                `Guests ${decision} exporting reports as CSV files.`,
+                "",
+              ].join("\n"),
+            );
+          }
+          const added = await run("git", ["add", "-A", ".kb"], {
+            cwd: stagedSandbox.repoDir,
+            env: stagedSandbox.env,
+          });
+          assert.strictEqual(added.exitCode, 0, added.stdout + added.stderr);
+
+          const checked = await kibi(
+            stagedSandbox,
+            ["check", "--staged", "--format", "json"],
+            { timeoutMs: 60000 },
+          );
+          assert.notStrictEqual(
+            checked.exitCode,
+            0,
+            checked.stdout + checked.stderr,
+          );
+          const report = JSON.parse(checked.stdout) as {
+            structuredContent: {
+              operationalError?: string;
+              violations: Array<{ rule: string; description: string }>;
+            };
+          };
+          assert.strictEqual(
+            report.structuredContent.operationalError,
+            undefined,
+            checked.stdout,
+          );
+          const conflict = report.structuredContent.violations.find(
+            (violation) => violation.rule === "domain-contradictions",
+          );
+          assert.match(
+            conflict?.description ?? "",
+            /Decision conflict on default:permission_rule\(guest,export,report_csv\): REQ-EXPORT-allow decides allow while REQ-EXPORT-deny decides deny/,
+            checked.stdout,
+          );
+        } finally {
+          await stagedSandbox.cleanup();
+        }
+      },
+    );
 
     it(
       "rejects staged generated manifest drift through the packed CLI",

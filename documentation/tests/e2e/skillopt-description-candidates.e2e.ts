@@ -10,7 +10,8 @@
  *
  *   1. `campaign.ts compose --body-file --description-file` freezes a 1.2.0
  *      manifest that records the description and its hash.
- *   2. A multi-line description and a description without a body are refused.
+ *   2. A multi-line description, a description longer than 1024 characters
+ *      and a description without a body are refused.
  *   3. `host-cell-smoke.ts` runs one cell with the same body and description;
  *      the skill the target reads carries the new description, keeps its
  *      name, and has the candidate body.
@@ -56,6 +57,10 @@ try {
     mkdirSync(dir, { recursive: true });
   writeFileSync(join(inputs, "body.md"), BODY);
   writeFileSync(join(inputs, "description.txt"), `${DESCRIPTION}\n`);
+  writeFileSync(
+    join(inputs, "too-long.txt"),
+    `${DESCRIPTION.padEnd(1025, "x")}\n`,
+  );
   writeFileSync(
     join(inputs, "multiline.txt"),
     "Use for bootstrap.\nAlso for repair.\n",
@@ -161,6 +166,21 @@ printf '%s\\n' '{"type":"result","subtype":"success","is_error":false,"num_turns
     join(inputs, "multiline.txt"),
   ]);
   assert(multiline.status !== 0, "multi-line description was accepted");
+  const tooLong = campaign(join(root, "too-long"), [
+    "--body-file",
+    join(inputs, "body.md"),
+    "--description-file",
+    join(inputs, "too-long.txt"),
+  ]);
+  assert(tooLong.status !== 0, "a 1025-character description was accepted");
+  assert(
+    `${tooLong.stdout}${tooLong.stderr}`.includes("description_too_long"),
+    `a 1025-character description was refused for another reason: ${tooLong.stderr.slice(-2000)}`,
+  );
+  assert(
+    !existsSync(join(root, "too-long", "manifest.json")),
+    "a refused description still froze a manifest",
+  );
   const orphan = campaign(join(root, "orphan"), [
     "--description-file",
     join(inputs, "description.txt"),
@@ -209,6 +229,21 @@ printf '%s\\n' '{"type":"result","subtype":"success","is_error":false,"num_turns
   assert(
     /^name: kibi-bootstrap$/m.test(frontmatter),
     "target skill lost its frozen name",
+  );
+  // Every frontmatter field other than the description stays as the
+  // canonical skill has it.
+  const canonical = readFileSync(
+    join(REPO_ROOT, "packages/runtime/src/skills/kibi-bootstrap/SKILL.md"),
+    "utf8",
+  );
+  const frozenFields = (text: string) =>
+    (text.split(/^---$/m)[1] ?? "")
+      .split("\n")
+      .filter((line) => !line.startsWith("description:"))
+      .join("\n");
+  assert(
+    frozenFields(skill) === frozenFields(canonical),
+    `target skill changed a frontmatter field other than the description:\n${frozenFields(skill)}`,
   );
   assert(
     skill.endsWith(BODY),
