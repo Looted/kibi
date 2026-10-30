@@ -529,7 +529,11 @@ describe("Kibi reads the model from the code", () => {
     });
   });
 
-  const hasPython = spawnSync("python3", ["--version"]).status === 0;
+  // No pipes: Bun can miss a pipe's readiness event and leave spawnSync blocked
+  // after the child exits, which stalled this file at collection on CI.
+  const hasPython =
+    spawnSync("python3", ["--version"], { stdio: "ignore", timeout: 10_000 })
+      .status === 0;
   test.skipIf(!hasPython)("Python code is read the same way", () => {
     const root = workspace({
       "pkg/__init__.py": "",
