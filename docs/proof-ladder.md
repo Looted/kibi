@@ -67,7 +67,7 @@ To re-enter the proof ladder, remove both properties.
 
 ## The stages
 
-For in-scope requirements the ladder evaluates ten stages, in order. Each
+For in-scope requirements the ladder evaluates the stages below, in order. Each
 stage reports a `status` under its key in `proofStages`; `productionSymbols`
 also carries a typed `reason` when it does not pass.
 
@@ -80,6 +80,7 @@ also carries a typed `reason` when it does not pass.
 | 5 | [Scenario tests](#5-scenario-tests) | `scenarioTests` |
 | 5a | [Failure side](#5a-failure-side) | `negativePath` |
 | 5b | [Quantified claims](#5b-quantified-claims) | `dimension` |
+| 5c | [Edge cases](#5c-edge-cases) | `cases` |
 | 6 | [Passing E2E tests](#6-passing-e2e-tests) | `passingE2e` |
 | 7 | [Executable test symbols](#7-executable-test-symbols) | `executableSymbols` |
 | 8 | [Production symbols](#8-production-symbols) | `productionSymbols` |
@@ -204,6 +205,53 @@ rather than range over one.
 `kb_semantic_advisor` marks the same clauses: each normative proposition
 with such a quantifier carries `dimension` with its `quantifier` and
 `rewrites`, so the grounding can be chosen before the fact is written.
+
+### 5c. Edge cases
+
+**Checks:** every value class a typed property claim predicts is refused has
+a scenario that reaches it. Kibi derives the cases from each `property_value`
+fact the requirement grounds a claim on with `requires_property`:
+
+- a numeric bound yields the bound itself (or the nearest value inside a
+  strict bound) and the class past it: `files_per_batch lte 5` gives `eq 5`
+  (success) and `gt 5` (rejection);
+- an integer bounded at one or more also yields zero, one and many
+  (`eq 0`, `eq 1`, `gte 2`), keeping only the classes that fall wholly on
+  one side of the bound;
+- a set yields each member (success) and the value outside it: rejection
+  for `eq` and `subset_of`, `unspecified` for `includes`; each member of an
+  `excludes` set is a rejection case.
+
+A case is dropped when an earlier one already names its class with the same
+outcome, and one fact yields at most 12 (`limitReached` says when the cap
+cut). Each case has a stable `caseId` (`CASE-` and 12 hex characters) and the
+`assumption` a scenario would state to land in it.
+
+A case is covered by a scenario of the requirement that is not a draft,
+whose `expects` matches the prediction (`rejection` also accepts `error`),
+and whose `assumes` fact on the same subject and property entails the case:
+`files_per_batch eq 6` covers `gt 5`. Success cases are reported but do not
+block; the requirement's success scenarios already exercise them.
+
+- `missing`: a rejection case is uncovered; `uncoveredCases` lists them and
+  the requirement gets the `uncovered_case` gap. The repair plan's
+  `case_scenarios` phase carries `caseSkeletons`, an upsert-ready draft
+  scenario and assumed fact per case: fill in any placeholder value, verify
+  the scenario by a test and make it active.
+- `passed`: every rejection case is covered.
+- `not_required`: no grounded claim predicts a rejection case, or a fresh
+  certificate proves the claim at code scope. Stale certificate receipts are
+  reported as `pendingReproofClaims`.
+- `waived`: the uncovered rejection cases all belong to facts with an
+  approved waiver. When the cases are covered another way (a unit suite that
+  walks every value, a class the system cannot produce), the grounding fact
+  records why in `case_waiver` and who accepted it in
+  `case_waiver_approved_by`. A reason without an approver keeps the gap.
+
+`kibi coverage --cases` lists every requirement's cases with their coverage,
+and `kibi proof explain` prints the assumption each uncovered case needs.
+`kb_semantic_advisor` previews the cases of each strict-property suggestion
+in `casesPreview`, so the scenario debt shows before the fact is written.
 
 ### 6. Passing E2E tests
 
