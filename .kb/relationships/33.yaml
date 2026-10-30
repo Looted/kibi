@@ -300,3 +300,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f7dcca104be8
+  - type: assumes
+    from: SCEN-CASE-kibi-non-numeric-proof-kinds-MACHINE-EXTRA-TRANSITION
+    to: FACT-CASE-kibi-non-numeric-proof-kinds-MACHINE-EXTRA-TRANSITION
+    created_at: 2026-10-30T15:14:06.553Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6517feb439a5
+  - type: verified_by
+    from: SCEN-CASE-kibi-non-numeric-proof-kinds-MACHINE-EXTRA-TRANSITION
+    to: TEST-kibi-non-numeric-proof-kinds
+    created_at: 2026-10-30T15:14:06.598Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44573e231d0f
