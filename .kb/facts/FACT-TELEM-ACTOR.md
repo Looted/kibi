@@ -9,15 +9,12 @@ tags:
   - lane:ontology
   - telemetry
   - correlation
-fact_kind: predicate
-predicate_namespace: kibi.requirements
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.telemetry.remediation
-  - supplied_opaque_actor_identifier
-  - preserved
-canonical_key: logical_requirement_rule(kibi.telemetry.remediation,supplied_opaque_actor_identifier,preserved)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.telemetry.remediation
+property_key: usage_records_dropping_supplied_actor_identifier
+operator: eq
+value_type: int
+value_int: 0
 claim_key: CLAIM-CDA785CDD47FBA8A
 claim_text: Every usage record must preserve a supplied opaque actor identifier
 claim_span_start: 256

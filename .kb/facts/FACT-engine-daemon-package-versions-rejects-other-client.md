@@ -9,10 +9,10 @@ tags:
   - provenance:req-engine-daemon-package-versions
 fact_kind: property_value
 subject_key: kibi.engine.daemon_package_versions
-property_key: rejects_client_with_other_package_versions
+property_key: served_requests_from_other_package_versions_beyond_handshake_and_stop
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 claim_key: CLAIM-0A7F801E4BEB1559
 claim_text: The engine daemon must reject every request except handshake and stop from a client with other package versions
 origin:

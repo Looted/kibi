@@ -9,10 +9,10 @@ tags:
   - provenance:req-kibi-upsert-preserves-requirement-semantics
 fact_kind: property_value
 subject_key: mcp.kb_upsert
-property_key: checks_supplied_ledger_as_sent
+property_key: requirement_upserts_not_checked_as_sent
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 claim_key: CLAIM-D364342C4FE42BC0
 claim_text: A requirement upsert that supplies semantic ledger fields or changes the prose must be checked exactly as sent
 origin:

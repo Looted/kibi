@@ -2,11 +2,11 @@
 title: Loads every selected Prolog test file
 fact_kind: property_value
 subject_key: kibi.testing.prolog_coverage
-property_key: loads_all_selected_test_files
+property_key: selected_test_files_not_loaded
 operator: eq
-value_type: bool
-value_bool: true
-canonical_key: kibi.testing.prolog_coverage.loads_all_selected_test_files.eq.true
+value_type: int
+value_int: 0
+canonical_key: kibi.testing.prolog_coverage:selected_test_files_not_loaded:eq:0
 claim_key: CLAIM-2FCB4EC98FDD503E
 claim_text: The Prolog coverage runner must load every test file supplied by repeated --test options
 status: active

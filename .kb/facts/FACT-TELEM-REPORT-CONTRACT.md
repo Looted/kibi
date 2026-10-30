@@ -10,15 +10,12 @@ tags:
   - telemetry
   - remediation
   - report
-fact_kind: predicate
-predicate_namespace: kibi.requirements
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.telemetry.remediation
-  - failed_or_insufficient_acceptance
-  - enumerate_every_unmatched_event
-canonical_key: logical_requirement_rule(kibi.telemetry.remediation,failed_or_insufficient_acceptance,enumerate_every_unmatched_event)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.telemetry.remediation
+property_key: unmatched_events_omitted_from_report
+operator: eq
+value_type: int
+value_int: 0
 claim_key: CLAIM-968384507F407073
 claim_text: A versioned kibi.telemetry-remediation.v1 report must enumerate every unmatched event behind failed or insufficient acceptance evidence
 claim_span_start: 559
