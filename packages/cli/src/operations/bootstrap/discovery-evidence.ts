@@ -88,6 +88,9 @@ function classifyFile(
 ): readonly [EvidenceProviderName, EvidenceKind] | null {
   if (/^\.kb\/symbols\.ya?ml$/i.test(relativePath))
     return ["typed_kibi_docs", "symbol_manifest"];
+  // Kibi's own generated schema (.kb/schema/*.pl) is not project source.
+  if (/^\.kb\//.test(relativePath) && CODE_EXTENSION.test(relativePath))
+    return null;
   if (/\.md$/i.test(relativePath)) {
     return /^---\s*[\r\n]/.test(content) &&
       isTypedKibiMarkdownPath(relativePath)

@@ -91,5 +91,6 @@ origin:
   ref: 'Maintainer request, 2026-10-30, to add SWI-Prolog source analysis, including telling Perl and Prolog .pl files apart by content: "Can we now handle https://github.com/Looted/kibi/issues/614?"'
   approved_by: maintainer
   recorded_at: '2026-10-30T14:48:20.893Z'
+firmness: firm
 ---
 Source classification must retain C/C++ header ambiguity until a consistent explicit language signal is present. Source classification must resolve a .pl file to Perl or Prolog only from a consistent explicit language signal, its shebang, or bounded leading content that is unambiguous between the two languages. Source classification must derive extensionless Python, Bash, Ruby and JavaScript language hints from bounded shebang text without executing source. Qualified Java, C# and C++ callable locators must remain stable when another supported overload is added. HCL declaration records must preserve structural scope without implying executable-symbol proof. Prolog analysis must return one symbol per predicate name and arity that spans the PlDoc block above its first clause through its last clause. Prolog analysis must return each plunit test unit and each test in it as a distinct symbol.
