@@ -74,6 +74,10 @@ export interface FactFields {
   canonical_key?: string;
   claim_key?: string;
   claim_text?: string;
+  /** Why a quantifier word in claim_text ranges over nothing. */
+  dimension_waiver?: string;
+  /** The person who accepted the dimension waiver. */
+  dimension_waiver_approved_by?: string;
   predicate_name?: string;
   predicate_namespace?: string;
   predicate_arity?: number;

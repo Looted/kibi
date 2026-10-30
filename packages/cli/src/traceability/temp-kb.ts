@@ -78,6 +78,8 @@ const FACT_STRING_FIELDS = new Set([
   "canonical_key",
   "claim_key",
   "claim_text",
+  "dimension_waiver",
+  "dimension_waiver_approved_by",
   "predicate_name",
   "predicate_namespace",
   "rule_hash",

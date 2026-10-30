@@ -87,6 +87,10 @@ entity_property(fact, valid_to, datetime).
 entity_property(fact, canonical_key, string).
 entity_property(fact, claim_key, string).
 entity_property(fact, claim_text, string).
+% Why a quantifier word in claim_text ranges over nothing, so the claim
+% needs no dimension, and the human who accepted that.
+entity_property(fact, dimension_waiver, string).
+entity_property(fact, dimension_waiver_approved_by, string).
 entity_property(fact, predicate_name, string).
 entity_property(fact, predicate_namespace, string).
 entity_property(fact, predicate_arity, integer).

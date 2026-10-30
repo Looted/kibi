@@ -620,6 +620,20 @@ const entitySchema: Record<string, unknown> = {
     canonical_key: { type: "string" },
     claim_key: { type: "string", pattern: "^CLAIM-[A-F0-9]{16}$" },
     claim_text: { type: "string" },
+    dimension_waiver: {
+      type: "string",
+      minLength: 1,
+      pattern: "\\S",
+      description:
+        "Fact-only. Why the quantifier word in claim_text (each, every, all, or a cardinality bound) ranges over nothing, so the claim needs no count, set or rule. Waives dimension_unrepresented for the claim once dimension_waiver_approved_by is set.",
+    },
+    dimension_waiver_approved_by: {
+      type: "string",
+      minLength: 1,
+      pattern: "\\S",
+      description:
+        "Fact-only. The person who accepted dimension_waiver. Without it the waiver is reported as awaiting approval and the gap stays open.",
+    },
     predicate_name: { type: "string" },
     predicate_namespace: { type: "string" },
     predicate_arity: { type: "integer", minimum: 1 },
@@ -713,6 +727,8 @@ const entitySchema: Record<string, unknown> = {
             { required: ["canonical_key"] },
             { required: ["claim_key"] },
             { required: ["claim_text"] },
+            { required: ["dimension_waiver"] },
+            { required: ["dimension_waiver_approved_by"] },
             { required: ["predicate_name"] },
             { required: ["predicate_namespace"] },
             { required: ["predicate_arity"] },

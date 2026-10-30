@@ -64,6 +64,8 @@ const FACT_STRING_FIELDS = [
   "canonical_key",
   "claim_key",
   "claim_text",
+  "dimension_waiver",
+  "dimension_waiver_approved_by",
   "predicate_name",
   "predicate_namespace",
   "rule_ir",
@@ -198,6 +200,8 @@ export interface ExtractedEntity {
   canonical_key?: string;
   claim_key?: string;
   claim_text?: string;
+  dimension_waiver?: string;
+  dimension_waiver_approved_by?: string;
   predicate_name?: string;
   predicate_namespace?: string;
   predicate_arity?: number;
