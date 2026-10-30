@@ -251,3 +251,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7fdce47df1b5
+  - type: assumes
+    from: SCEN-CASE-kibi-search-hints-host-ELEVEN-SHOWN
+    to: FACT-CASE-kibi-search-hints-host-ELEVEN-SHOWN
+    created_at: 2026-10-30T14:49:14.454Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98f9553509a4
+  - type: verified_by
+    from: SCEN-CASE-kibi-search-hints-host-ELEVEN-SHOWN
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-10-30T14:49:14.498Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d6fc3fcf81ae
