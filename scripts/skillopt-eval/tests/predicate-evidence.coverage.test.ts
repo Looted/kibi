@@ -129,6 +129,7 @@ function snapshot(
       { relationship: "requires_predicate", target: "commit_action" },
     ],
     logicClaims: ["CLAIM-1111111111111111"],
+    scenarios: [],
     ...overrides,
   };
 }
@@ -295,6 +296,102 @@ describe("evaluatePredicateCase remaining lane and failure branches", () => {
     expect(mismatched.failureCodes).toEqual(
       expect.arrayContaining(["predicate-args", "predicate-polarity"]),
     );
+  });
+
+  test("scores a quantified claim on its varying dimension and its scenarios", () => {
+    const manifest = baseManifest({
+      predicateExpectation: {
+        semanticClass: "quantified_cardinality",
+        expectedLane: "typed_dimension",
+        expectedPredicateName: null,
+        expectedPredicateArgs: null,
+        expectedPolarity: null,
+        expectedEdges: [],
+        expectedGroundFactKinds: [],
+        expectedLogicClaimCount: 1,
+        forbiddenGroundingValueTypes: ["bool"],
+        expectedScenarios: { rejectionOrError: true, minWithAssumes: 2 },
+        privateRationale: "dimension",
+      },
+    });
+    const grounding = (valueType: "int" | "bool") => ({
+      id: "FACT-ROLE-COUNT",
+      factKind: "property_value" as const,
+      valueType,
+      claimKey: "CLAIM-1111111111111111",
+      claimText: "Each member must hold exactly one role.",
+    });
+    const assumedValue = {
+      id: "FACT-ROLE-COUNT-2",
+      factKind: "property_value" as const,
+      valueType: "int" as const,
+    };
+    const accepted = {
+      id: "SCEN-one-role",
+      expects: "success" as const,
+      assumes: 1,
+      specifiesRequirement: true,
+    };
+    const refused = {
+      id: "SCEN-two-roles",
+      expects: "rejection" as const,
+      assumes: 1,
+      specifiesRequirement: true,
+    };
+    const typed = snapshot({
+      facts: [grounding("int"), assumedValue],
+      relationships: [],
+      scenarios: [accepted, refused],
+    });
+    expect(
+      evaluatePredicateCase(manifest, evidence(typed)).failureCodes,
+    ).toEqual([]);
+    expect(
+      evaluatePredicateCase(
+        manifest,
+        evidence(snapshot({ ...typed, facts: [grounding("bool")] })),
+      ).failureCodes,
+    ).toEqual(["predicate-lane", "verdict-grounding"]);
+    // An assumed boolean value outside the claim manifest is not grounding.
+    expect(
+      evaluatePredicateCase(
+        manifest,
+        evidence(
+          snapshot({
+            ...typed,
+            facts: [grounding("int"), { ...assumedValue, valueType: "bool" }],
+          }),
+        ),
+      ).failureCodes,
+    ).toEqual([]);
+    expect(
+      evaluatePredicateCase(
+        manifest,
+        evidence(snapshot({ ...typed, scenarios: [accepted] })),
+      ).failureCodes,
+    ).toEqual(["scenario-rejection", "scenario-assumes"]);
+    expect(
+      evaluatePredicateCase(
+        manifest,
+        evidence(
+          snapshot({
+            ...typed,
+            scenarios: [accepted, { ...refused, assumes: 0 }],
+          }),
+        ),
+      ).failureCodes,
+    ).toEqual(["scenario-assumes"]);
+    expect(
+      evaluatePredicateCase(
+        manifest,
+        evidence(
+          snapshot({
+            ...typed,
+            scenarios: [accepted, { ...refused, specifiesRequirement: false }],
+          }),
+        ),
+      ).failureCodes,
+    ).toEqual(["scenario-rejection", "scenario-assumes"]);
   });
 
   test("checks rule exceptions and forbidden fact lanes", () => {

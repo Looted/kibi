@@ -19,6 +19,9 @@ export type PredicateCaseFailure =
   | "rule-hash"
   | "rule-exceptions"
   | "forbidden-fact-lane"
+  | "verdict-grounding"
+  | "scenario-rejection"
+  | "scenario-assumes"
   | "predicate-edges"
   | "logical-fact-lanes"
   | "logic-claim-manifest"
@@ -81,6 +84,14 @@ function predicateFailures(
         );
       case "rule":
         return snapshot.facts.some((fact) => fact.factKind === "rule");
+      case "typed_dimension":
+        return snapshot.facts.some(
+          (fact) =>
+            fact.factKind === "rule" ||
+            (fact.factKind === "property_value" &&
+              fact.valueType !== undefined &&
+              fact.valueType !== "bool"),
+        );
       case "observation":
       case "ontology_gap_observation":
         return snapshot.facts.some((fact) => fact.factKind === "observation");
@@ -189,6 +200,41 @@ function predicateFailures(
     )
   ) {
     failures.push("forbidden-fact-lane");
+  }
+  const forbiddenValueTypes = expectation.forbiddenGroundingValueTypes ?? [];
+  if (
+    snapshot.facts.some(
+      (fact) =>
+        fact.factKind === "property_value" &&
+        fact.claimKey !== undefined &&
+        manifestClaims.has(fact.claimKey) &&
+        fact.valueType !== undefined &&
+        forbiddenValueTypes.includes(fact.valueType),
+    )
+  ) {
+    failures.push("verdict-grounding");
+  }
+  const scenarioExpectation = expectation.expectedScenarios;
+  if (scenarioExpectation !== undefined && scenarioExpectation !== null) {
+    const linked = snapshot.scenarios.filter(
+      (scenario) => scenario.specifiesRequirement,
+    );
+    if (
+      scenarioExpectation.rejectionOrError &&
+      !linked.some(
+        (scenario) =>
+          scenario.expects === "rejection" || scenario.expects === "error",
+      )
+    ) {
+      failures.push("scenario-rejection");
+    }
+    if (
+      linked.filter(
+        (scenario) => scenario.expects !== undefined && scenario.assumes > 0,
+      ).length < scenarioExpectation.minWithAssumes
+    ) {
+      failures.push("scenario-assumes");
+    }
   }
   for (const edge of expectation.expectedEdges) {
     if (
