@@ -801,6 +801,113 @@ if (RUN_NODE_TEST_SUITE) {
       );
 
       it(
+        "fails the gate when capability evidence has zero or two states or an audited runtime skips the fixture set",
+        { timeout: 60_000 },
+        async (testContext) => {
+          if (!hasProlog) {
+            testContext.skip("SWI-Prolog is unavailable");
+            return;
+          }
+          const resolved = {
+            status: "resolved",
+            executable: process.execPath,
+            evidence: "executable_resolution",
+          } as const;
+          const runtime = (
+            id: string,
+            kind: DistributionRuntimeKind,
+            surface: DistributionSurface,
+            project?: string,
+          ) => ({
+            id,
+            kind,
+            surface,
+            provenance: resolved,
+            ...(project === undefined ? {} : { project }),
+          });
+          const supported = (
+            runtimeId: string,
+            capability: RequirementCompilerCapability,
+          ) => ({
+            runtimeId,
+            capability,
+            state: "supported" as const,
+            outcome: { capability, status: "ok" },
+          });
+          const capabilities = matrixApi.REQUIREMENT_COMPILER_CAPABILITIES;
+          const observations = [
+            ...capabilities.map((capability) =>
+              supported("source-cli", capability),
+            ),
+            ...capabilities.map((capability) =>
+              supported("source-mcp", capability),
+            ),
+            // The packed CLI reports repair_plan with two states.
+            ...capabilities.map((capability) =>
+              supported("packed-cli", capability),
+            ),
+            {
+              runtimeId: "packed-cli",
+              capability: "repair_plan" as const,
+              state: "failed" as const,
+              detail: "second state for the same capability",
+            },
+            // The packed MCP reports proof_receipts with no state at all.
+            ...capabilities
+              .filter((capability) => capability !== "proof_receipts")
+              .map((capability) => supported("packed-mcp", capability)),
+            // The audited project runtime never ran the fixture set.
+          ];
+          const report = matrixApi.buildDistributionParityReport(
+            [
+              runtime("source-cli", "source_checkout", "cli"),
+              runtime("source-mcp", "source_checkout", "mcp"),
+              runtime("packed-cli", "packed_artifact", "cli"),
+              runtime("packed-mcp", "packed_artifact", "mcp"),
+              runtime("audited-cli", "project_resolved", "cli", "audited"),
+            ],
+            observations,
+          );
+
+          assert.strictEqual(report.status, "failed");
+          const issues = report.issues.map(
+            (issue) =>
+              `${issue.code}:${issue.runtimeId ?? ""}:${issue.capability ?? ""}`,
+          );
+          assert.ok(
+            issues.includes(
+              "duplicate_capability_observation:packed-cli:repair_plan",
+            ),
+            JSON.stringify(issues),
+          );
+          assert.ok(
+            issues.includes(
+              "missing_capability_observation:packed-mcp:proof_receipts",
+            ),
+            JSON.stringify(issues),
+          );
+          for (const capability of capabilities) {
+            assert.ok(
+              issues.includes(
+                `missing_capability_observation:audited-cli:${capability}`,
+              ),
+              JSON.stringify(issues),
+            );
+          }
+          const audited = report.rows.filter(
+            (row) => row.runtimeId === "audited-cli",
+          );
+          assert.strictEqual(audited.length, capabilities.length);
+          assert.ok(
+            audited.every(
+              (row) =>
+                row.state === "missing" && row.comparison === "not_compared",
+            ),
+          );
+        },
+      );
+
+      it(
         "matches all stable semantic outcomes through source and packed CLI/MCP",
         { timeout: 600_000 },
         async (testContext) => {

@@ -33,6 +33,7 @@ function runControl(
   diagnostics: string,
   exitCode: number,
   child: boolean,
+  threads = 0,
 ) {
   const program = `
 import importlib.util, os, pathlib, subprocess, sys
@@ -41,13 +42,18 @@ spec = importlib.util.spec_from_file_location('spike', sys.argv[1])
 spike = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(spike)
 child_program = '''
-import subprocess, sys, threading
+import subprocess, sys, threading, time
 print("child stdout", flush=True)
 print("child stderr", file=sys.stderr, flush=True)
 if ${child ? "True" : "False"}:
     worker = threading.Thread(target=lambda: subprocess.run([sys.executable, '-c', 'import time; time.sleep(1.8)', '${SENTINEL}']))
     worker.start()
     worker.join()
+idle = [threading.Thread(target=lambda: time.sleep(2.5)) for _ in range(${threads})]
+for thread in idle:
+    thread.start()
+for thread in idle:
+    thread.join()
 sys.exit(${exitCode})
 '''
 try:
@@ -110,6 +116,33 @@ describe("native Linux CLI diagnostics", () => {
           expect(process.childDiscovery.taskLimitReached).toBe(false);
         }
       }
+    },
+  );
+
+  linuxTest(
+    "a process with more than 256 tasks has only 256 inspected and the limit reported",
+    () => {
+      const root = fixture();
+      const diagnostics = join(root, "samples.jsonl");
+      const result = runControl(root, diagnostics, 0, false, 300);
+
+      expect(result.status).toBe(0);
+      expect(result.stdout.split("\n")).toContain("child stdout");
+      const samples = readFileSync(diagnostics, "utf8")
+        .trim()
+        .split("\n")
+        .map((line) => JSON.parse(line) as ProcessSample);
+      const discoveries = samples.flatMap((sample) =>
+        sample.processes.map((process) => process.childDiscovery),
+      );
+      for (const discovery of discoveries)
+        expect(discovery.tasksInspected).toBeLessThanOrEqual(256);
+      expect(
+        discoveries.some(
+          (discovery) =>
+            discovery.taskLimitReached && discovery.tasksInspected === 256,
+        ),
+      ).toBe(true);
     },
   );
 

@@ -116,6 +116,57 @@ describe(
       }
     });
 
+    it("the packed hooks only warn: a direct .kb edit is allowed with a warning and a prompt is never held back", () => {
+      const hookRunner = join(
+        sandbox.npmPrefix,
+        "node_modules",
+        "kibi-cursor",
+        "dist",
+        "hook-runner.js",
+      );
+      assert.equal(existsSync(hookRunner), true, "kibi-cursor is not installed");
+      const workspace = mkdtempSync(join(tmpdir(), "kibi-cursor-advisory-"));
+      const pluginData = mkdtempSync(
+        join(tmpdir(), "kibi-cursor-advisory-data-"),
+      );
+      const hook = (event: Record<string, unknown>) => {
+        const result = spawnSync(process.execPath, [hookRunner], {
+          cwd: workspace,
+          env: { ...sandbox.env, PLUGIN_DATA: pluginData },
+          input: JSON.stringify({
+            conversation_id: "advisory-only",
+            workspace_roots: [workspace],
+            ...event,
+          }),
+          encoding: "utf8",
+        });
+        assert.equal(result.status, 0, result.stderr);
+        return JSON.parse(result.stdout) as Record<string, unknown>;
+      };
+      try {
+        mkdirSync(join(workspace, ".kb", "requirements"), { recursive: true });
+        // The edit a blocking hook would stop: a direct write into .kb.
+        const kbEdit = hook({
+          hook_event_name: "preToolUse",
+          tool_name: "Write",
+          tool_input: { file_path: ".kb/requirements/REQ-direct.md" },
+        });
+        assert.equal(kbEdit.permission, "allow", JSON.stringify(kbEdit));
+        assert.match(String(kbEdit.agent_message ?? ""), /Do not read or edit/);
+        const prompt = hook({
+          hook_event_name: "beforeSubmitPrompt",
+          prompt: "Edit .kb/requirements/REQ-direct.md by hand.",
+        });
+        assert.notEqual(prompt.continue, false, JSON.stringify(prompt));
+        for (const output of [kbEdit, prompt]) {
+          assert.notEqual(output.permission, "deny", JSON.stringify(output));
+        }
+      } finally {
+        rmSync(workspace, { recursive: true, force: true });
+        rmSync(pluginData, { recursive: true, force: true });
+      }
+    });
+
     it("the packed stop hook still asks for an impact check when a plan turn also edited source", () => {
       // The installed package resolves kibi-agent-core from the consumer.
       const hookRunner = join(

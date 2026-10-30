@@ -286,3 +286,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-987854628cbb
+  - type: specified_by
+    from: REQ-kibi-telemetry-remediation-evidence
+    to: SCEN-CASE-kibi-telemetry-remediation-evidence-DROPPED-ACTOR
+    created_at: 2026-10-30T14:52:14.579Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c303fda3d40
+  - type: specified_by
+    from: REQ-kibi-telemetry-remediation-evidence
+    to: SCEN-CASE-kibi-telemetry-remediation-evidence-DROPPED-SESSION
+    created_at: 2026-10-30T14:52:22.680Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cfc2dd50771b

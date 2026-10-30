@@ -454,3 +454,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1f960eb3af70
+  - type: assumes
+    from: SCEN-CASE-bootstrap-provenance-stubs-STUB-RANKED-FIRST
+    to: FACT-CASE-bootstrap-provenance-stubs-STUB-RANKED-FIRST
+    created_at: 2026-10-30T15:11:40.783Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ba6574c6508
+  - type: verified_by
+    from: SCEN-CASE-bootstrap-provenance-stubs-STUB-RANKED-FIRST
+    to: TEST-bootstrap-provenance-stubs
+    created_at: 2026-10-30T15:11:40.850Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9155e5d5a9cf

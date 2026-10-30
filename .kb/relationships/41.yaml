@@ -461,3 +461,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1e7271f8ade8
+  - type: specified_by
+    from: REQ-kibi-schema6-migration-v2
+    to: SCEN-CASE-kibi-schema6-migration-v2-GROUNDING-KEPT
+    created_at: 2026-10-30T14:52:34.798Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5bfb0c689f3
+  - type: specified_by
+    from: REQ-kibi-schema6-migration-v2
+    to: SCEN-CASE-kibi-schema6-migration-v2-ORIGIN-BYTES
+    created_at: 2026-10-30T14:52:43.354Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55cebcf233e2
+  - type: specified_by
+    from: REQ-kibi-schema6-migration-v2
+    to: SCEN-CASE-kibi-schema6-migration-v2-SYNC-NAMES-ALL
+    created_at: 2026-10-30T14:52:52.247Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d9785e1867aa

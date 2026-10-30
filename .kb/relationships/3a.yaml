@@ -342,3 +342,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1b71487e1652
+  - type: assumes
+    from: SCEN-CASE-kibi-distribution-parity-matrix-RUNTIME-SKIPS-FIXTURES
+    to: FACT-CASE-kibi-distribution-parity-matrix-RUNTIME-SKIPS-FIXTURES
+    created_at: 2026-10-30T14:51:54.098Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d35c852b4658
+  - type: verified_by
+    from: SCEN-CASE-kibi-distribution-parity-matrix-RUNTIME-SKIPS-FIXTURES
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: 2026-10-30T14:51:54.208Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39b2f3b5057a

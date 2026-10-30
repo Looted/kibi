@@ -419,3 +419,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a7b0c0a3a806
+  - type: assumes
+    from: SCEN-CASE-cli-migrate-entity-type-backfill-OTHER-LINE-CHANGED
+    to: FACT-CASE-cli-migrate-entity-type-backfill-OTHER-LINE-CHANGED
+    created_at: 2026-10-30T15:12:10.080Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5f1538037ed
+  - type: verified_by
+    from: SCEN-CASE-cli-migrate-entity-type-backfill-OTHER-LINE-CHANGED
+    to: TEST-cli-migrated-kb-type-backfill-sync-totals
+    created_at: 2026-10-30T15:12:10.165Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c86af1879d9

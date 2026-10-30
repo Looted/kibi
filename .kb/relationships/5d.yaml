@@ -636,3 +636,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bbd36231c1f4
+  - type: specified_by
+    from: REQ-cli-migrate-entity-type-backfill
+    to: SCEN-CASE-cli-migrate-entity-type-backfill-OTHER-LINE-CHANGED
+    created_at: 2026-10-30T15:12:11.534Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9aa879cda9e6

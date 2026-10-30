@@ -244,3 +244,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6ee54ec90b45
+  - type: assumes
+    from: SCEN-CASE-bootstrap-apply-long-running-PROGRESS-NOT-NOTIFIED
+    to: FACT-CASE-bootstrap-apply-long-running-PROGRESS-NOT-NOTIFIED
+    created_at: 2026-10-30T15:11:36.902Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3bb655b2ef5
+  - type: verified_by
+    from: SCEN-CASE-bootstrap-apply-long-running-PROGRESS-NOT-NOTIFIED
+    to: TEST-bootstrap-apply-long-running
+    created_at: 2026-10-30T15:11:36.950Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70494cc99036

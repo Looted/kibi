@@ -335,3 +335,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a53461c2c525
+  - type: assumes
+    from: SCEN-CASE-bootstrap-provenance-stubs-STUB-SELECTED-FIRST
+    to: FACT-CASE-bootstrap-provenance-stubs-STUB-SELECTED-FIRST
+    created_at: 2026-10-30T15:11:44.587Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf83f7c14923
+  - type: verified_by
+    from: SCEN-CASE-bootstrap-provenance-stubs-STUB-SELECTED-FIRST
+    to: TEST-bootstrap-provenance-stubs
+    created_at: 2026-10-30T15:11:44.653Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3ed8af229af

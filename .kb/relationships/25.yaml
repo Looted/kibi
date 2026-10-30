@@ -251,3 +251,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a0729b60eddd
+  - type: assumes
+    from: SCEN-NEG-kibi-telemetry-remediation-evidence-CROSS-ACTOR-PREFLIGHT
+    to: FACT-CASE-kibi-telemetry-remediation-evidence-UNMATCHED-EVENT
+    created_at: 2026-10-30T14:52:03.233Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6de3195b6ca
+  - type: assumes
+    from: SCEN-NEG-kibi-telemetry-remediation-evidence-CROSS-ACTOR-PREFLIGHT
+    to: FACT-CASE-kibi-telemetry-remediation-evidence-EVENT-AUDIT-FIELDS
+    created_at: 2026-10-30T14:52:07.960Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23dd6155ff7c
