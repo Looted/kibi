@@ -328,3 +328,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5261ad628ec2
+  - type: requires_property
+    from: REQ-search-hints-host-operations
+    to: FACT-search-hints-host-operations
+    created_at: 2026-10-30T19:40:43.202Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-27a1c74ae6c5
+  - type: constrains
+    from: REQ-search-hints-host-operations
+    to: FACT-kibi-search-hints-operations-component
+    created_at: 2026-10-30T19:40:43.239Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-442bb0e17fe3
+  - type: specified_by
+    from: REQ-search-hints-host-operations
+    to: SCEN-kibi-search-hints-host
+    created_at: 2026-10-30T19:40:43.261Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19907e5b2b37

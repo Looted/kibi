@@ -825,3 +825,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-89d10bfdbe50
+  - type: executable_for
+    from: SYM-proof-advisor-case-preview-limit
+    to: TEST-proof-advisor-case-preview-limit
+    created_at: 2026-10-30T19:41:39.233Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d68a3188406

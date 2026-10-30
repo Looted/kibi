@@ -26,15 +26,15 @@ id: TEST-proof-ontology-polarities
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-0bb33e415d9fadb4b1e364ff
+    receipt_id: PR-fd4c972aaad459dc1e1d70e3
     test_id: TEST-proof-ontology-polarities
     scope: unit
     outcome: passed
-    code_snapshot: ff8e5279c85a1d8327a39367bae1bbbfaf7995ec824dc7f7b0c782d4598c1f1b
+    code_snapshot: e2663d10a2e1a0b8fdd0d38e888ee46d8031436be2244a613e1c406fbfa714b0
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-29T10:32:20.297Z'
-    finished_at: '2026-10-29T10:32:20.489Z'
-    artifact_digest: cb9f41bd0a2ad26ef566edb73ee62e5932d34c20ca7f59a6e537beed6a58bf2f
+    started_at: '2026-10-30T19:52:06.914Z'
+    finished_at: '2026-10-30T19:52:07.030Z'
+    artifact_digest: 0a86c67a3d67275bbc24e95317bca14d841eb5c4546a418b67986abfae6d4eaa
     contract_hash: cec33b25f955f43f804ab6ad7c04ef00ed19f95f0283933830d214f5302ed3e0
     binding_hash: 703eaca6336ca56f4cac1a702bc8778a07a397ed190bb9c762be26b0af9d79eb
     fingerprint: a7371013ad80ea4eadd077a893308b864904d3aa60ea4f7313464d35d1ed3466

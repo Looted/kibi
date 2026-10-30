@@ -384,3 +384,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-96c5fe014928
+  - type: requires_property
+    from: REQ-signoff-latest-views
+    to: FACT-signoff-latest-json
+    created_at: 2026-10-30T19:41:01.497Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b695fb18c55b
+  - type: requires_property
+    from: REQ-signoff-latest-views
+    to: FACT-signoff-latest-markdown
+    created_at: 2026-10-30T19:41:01.538Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2eb9faf28bf2
+  - type: requires_property
+    from: REQ-signoff-latest-views
+    to: FACT-signoff-latest-html
+    created_at: 2026-10-30T19:41:01.565Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4eb7619f492a
+  - type: constrains
+    from: REQ-signoff-latest-views
+    to: FACT-kibi-signoff-views-latest-files-component
+    created_at: 2026-10-30T19:41:01.603Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bacde034799c
+  - type: specified_by
+    from: REQ-signoff-latest-views
+    to: SCEN-kibi-signoff-views
+    created_at: 2026-10-30T19:41:01.629Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-20a61d5f13a9
+  - type: implements
+    from: SYM-const-telemetry-docs-url
+    to: REQ-telemetry-docs-link
+    created_at: 2026-10-30T19:42:40.671Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a44450698f8a
+  - type: covered_by
+    from: SYM-const-telemetry-docs-url
+    to: TEST-proof-telemetry-docs-link
+    created_at: 2026-10-30T19:42:40.866Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff9e31f23dde
+  - type: covered_by
+    from: SYM-const-telemetry-docs-url
+    to: TEST-kibi-anonymous-usage-telemetry-cli
+    created_at: 2026-10-30T19:42:40.887Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c958daa8697
