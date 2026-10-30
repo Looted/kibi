@@ -9,10 +9,10 @@ tags:
   - provenance:req-model-predicates-grounding-aware
 fact_kind: property_value
 subject_key: kibi.predicate_modeling_grounding
-property_key: replacement_keeps_single_grounding
+property_key: grounding_relationships_per_claim
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 1
 claim_key: CLAIM-FCCA6F3E483530CE
 claim_text: Predicate modeling must offer a replacement plan that keeps one grounding relationship per claim
 origin:
