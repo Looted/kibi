@@ -7432,8 +7432,10 @@ test(failure_side_waits_for_reproof_only_when_stale_certificates_prove_every_ope
     assertion(requirement_proof:freshness_only_gaps([stale_proof_receipt, happy_path_only], Pending)),
     Partial = _{negativePath: _{status: missing, claims: ['CLAIM-A', 'CLAIM-B'], pendingReproofClaims: ['CLAIM-A']}},
     assertion(\+ requirement_proof:freshness_only_gaps([stale_proof_receipt, happy_path_only], Partial)),
-    % Without a stale receipt nothing re-proves the claims.
-    assertion(\+ requirement_proof:freshness_only_gaps([happy_path_only], Pending)).
+    % The stale certificate receipt can belong to a unit-scope test, which
+    % adds no stale_proof_receipt gap: the stage still waits only on re-proof.
+    assertion(requirement_proof:freshness_only_gaps([happy_path_only], Pending)),
+    assertion(\+ requirement_proof:freshness_only_gaps([happy_path_only], Partial)).
 
 :- end_tests(requirement_evidence_floors).
 
