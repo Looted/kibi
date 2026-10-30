@@ -349,3 +349,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d65c44c4ea2e
+  - type: assumes
+    from: SCEN-NEG-kibi-verification-evidence-contract-STALE-RECEIPT
+    to: FACT-CASE-kibi-verification-evidence-contract-UNBOUND-PROOF
+    created_at: 2026-10-30T14:56:52.858Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-652569dd7fd3

@@ -503,3 +503,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b88cf43cbca
+  - type: assumes
+    from: SCEN-CASE-kibi-plugin-search-hints-OFFER-BELOW-50
+    to: FACT-CASE-kibi-plugin-search-hints-OFFER-BELOW-50
+    created_at: 2026-10-30T14:56:49.535Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-38fc42cdda53
+  - type: verified_by
+    from: SCEN-CASE-kibi-plugin-search-hints-OFFER-BELOW-50
+    to: TEST-kibi-plugin-search-hints
+    created_at: 2026-10-30T14:56:49.713Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-524787cfe6ea

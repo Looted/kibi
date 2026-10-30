@@ -174,3 +174,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-96b8ebe8e1b9
+  - type: assumes
+    from: SCEN-CASE-core-validation-rules-DANGLING-TARGET
+    to: FACT-CASE-core-validation-rules-DANGLING-TARGET
+    created_at: 2026-10-30T14:56:42.135Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e12aa5934ea1
+  - type: verified_by
+    from: SCEN-CASE-core-validation-rules-DANGLING-TARGET
+    to: TEST-001
+    created_at: 2026-10-30T14:56:42.184Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6adac2e94887

@@ -300,3 +300,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-90e22ed8f79b
+  - type: assumes
+    from: SCEN-CASE-kibi-plugin-search-hints-OFFER-ABOVE-50
+    to: FACT-CASE-kibi-plugin-search-hints-OFFER-ABOVE-50
+    created_at: 2026-10-30T14:56:46.698Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93cabfba84d9
+  - type: verified_by
+    from: SCEN-CASE-kibi-plugin-search-hints-OFFER-ABOVE-50
+    to: TEST-kibi-plugin-search-hints
+    created_at: 2026-10-30T14:56:46.812Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-436453128ce4

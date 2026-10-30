@@ -804,3 +804,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7268dc67e3c8
+  - type: specified_by
+    from: REQ-bootstrap-claim-restatement
+    to: SCEN-CASE-bootstrap-claim-restatement-NEAR-RESTATEMENT
+    created_at: 2026-10-30T14:58:11.498Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a28192d2f540

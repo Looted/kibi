@@ -573,3 +573,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ec1903a2e58f
+  - type: specified_by
+    from: REQ-test-journaled-engine-harness
+    to: SCEN-CASE-test-journaled-engine-harness-LEAKED-BATCH-ENGINE
+    created_at: 2026-10-30T14:58:55.164Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d1999d29c28

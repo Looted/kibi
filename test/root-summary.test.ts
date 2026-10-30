@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import {
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -225,6 +226,64 @@ test(${JSON.stringify(file)}, () => {
     await expect(
       runBatch({ label: "empty partition", args: ["-e", "void 0"] }),
     ).rejects.toThrow("Expected one Bun summary for empty partition, got 0.");
+  });
+
+  it("stops an engine a batch left running and removes its runtime before returning", async () => {
+    const workspace = mkdtempSync(join(tmpdir(), "kibi-unit-leak-"));
+    const previousCwd = process.cwd();
+    const recordPath = join(workspace, "leaked.json");
+    writeFileSync(
+      join(workspace, "leak.test.ts"),
+      `
+import { expect, test } from "bun:test";
+import { spawn } from "node:child_process";
+import { writeFileSync } from "node:fs";
+import { join } from "node:path";
+test("leaves a detached engine behind", () => {
+  const runtime = process.env.KIBI_RUNTIME_DIR ?? "";
+  const engine = spawn(process.execPath, ["-e", "setInterval(() => {}, 1000)"], {
+    detached: true,
+    stdio: "ignore",
+  });
+  engine.unref();
+  writeFileSync(join(runtime, "engine.pid"), String(engine.pid));
+  writeFileSync(${JSON.stringify(recordPath)}, JSON.stringify({ pid: engine.pid, runtime }));
+  expect(engine.pid).toBeGreaterThan(0);
+});
+`,
+    );
+    let leaked: { pid: number; runtime: string } | undefined;
+    try {
+      process.chdir(workspace);
+      const summary = await runBatch({
+        label: "leaking batch",
+        args: ["test", "./leak.test.ts"],
+      });
+      expect(summary).toMatchObject({ pass: 1, fail: 0 });
+      leaked = JSON.parse(readFileSync(recordPath, "utf8")) as {
+        pid: number;
+        runtime: string;
+      };
+      expect(basename(leaked.runtime)).toStartWith("kibi-unit-engine-runtime-");
+      expect(existsSync(leaked.runtime)).toBe(false);
+      let running = true;
+      try {
+        process.kill(leaked.pid, 0);
+      } catch {
+        running = false;
+      }
+      expect(running).toBe(false);
+    } finally {
+      process.chdir(previousCwd);
+      if (leaked !== undefined) {
+        try {
+          process.kill(leaked.pid, "SIGKILL");
+        } catch {
+          // Already stopped by the batch cleanup.
+        }
+      }
+      rmSync(workspace, { recursive: true, force: true });
+    }
   });
 });
 
