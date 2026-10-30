@@ -78,6 +78,16 @@ no-answer, so widen the query or drop to lexical search rather than treating it
 as "nothing exists". A literal identifier lookup is still best served
 lexically.
 
+When the project activates a `kibi.search-hints.v1` plugin (for example
+`kibi-plugin-search-hints`), a weak or abstained intent answer also carries
+`queryAnalysis.hints`: up to ten current requirements the question may mean,
+found by meaning rather than shared words, each with a `score` and, when it
+was reached through a scenario, test or fact, that entity as `via`. Hints are
+suggestions, never governing requirements, and they never change the results
+or the answer layer. Re-ask `kb_search` in the words of a hint that fits, or
+pass them as `semanticFacets.aliases`, then read the requirement with
+`kb_query`; never cite a hint as the rule. `hints: false` turns them off.
+
 On the first page, intent mode also returns an answer layer in `data.answer`
 (`kibi.search-answer.v1`; turn it off with `answer: false`):
 

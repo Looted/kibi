@@ -72,6 +72,8 @@ const PredicateExpectationSchema = z
       "necessary_condition",
       "compound_obligations",
       "exception_unless",
+      "quantified_dimension",
+      "quantified_cardinality",
     ]),
     expectedLane: z.enum([
       "predicate",
@@ -79,6 +81,7 @@ const PredicateExpectationSchema = z
       "observation",
       "ontology_gap_observation",
       "rule",
+      "typed_dimension",
     ]),
     expectedPredicateName: z.string().min(1).nullable(),
     expectedPredicateArgs: z.array(z.string().min(1)).nullable(),
@@ -129,6 +132,17 @@ const PredicateExpectationSchema = z
           "observation",
         ]),
       )
+      .optional(),
+    forbiddenGroundingValueTypes: z
+      .array(z.enum(["int", "number", "string", "bool"]))
+      .optional(),
+    expectedScenarios: z
+      .object({
+        rejectionOrError: z.boolean(),
+        minWithAssumes: z.number().int().nonnegative(),
+      })
+      .strict()
+      .nullable()
       .optional(),
     coverageFamilies: z.array(z.string().min(1)).default([]),
   })

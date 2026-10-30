@@ -209,3 +209,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-88abf5a55459
+  - type: executable_for
+    from: SYM-proof-search-hints-result-limit
+    to: TEST-proof-search-hints-result-limit
+    created_at: 2026-10-29T21:29:29.905Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2cc98579021

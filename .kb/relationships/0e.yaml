@@ -503,3 +503,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-53d0ca03b832
+  - type: executable_for
+    from: SYM-test-kibi-search-hints-host
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-10-29T19:19:06.413Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1db56a2a0491

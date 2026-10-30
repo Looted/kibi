@@ -427,6 +427,7 @@ describe("repository KB search evaluation", () => {
       caseCount: 4,
       positiveCaseCount: 3,
       recallAt3: 2 / 3,
+      recallWithHints: 2 / 3,
       supersededResultRate: 1 / 3,
       abstentionCount: 1,
       abstentionPrecision: 1,
@@ -457,6 +458,30 @@ describe("repository KB search evaluation", () => {
     expect(() => scoreRepoSearch(REPO_GOLD, new Map(), 0)).toThrow(
       /No observation for gold case governing/,
     );
+  });
+
+  test("a hint naming an expected requirement counts toward recall with hints only", () => {
+    const evaluation = scoreRepoSearch(
+      REPO_GOLD,
+      new Map([
+        ["governing", observed(["REQ-A"], [], 1)],
+        ["result", observed(["REQ-Z"], [], 1)],
+        [
+          "deep",
+          { ...observed(["REQ-1"], [], 1), hintIds: ["REQ-9", "REQ-C"] },
+        ],
+        ["abstain", observed([], [], 1)],
+      ]),
+      0,
+    );
+    expect(evaluation.recallAt3).toBe(1 / 3);
+    expect(evaluation.recallWithHints).toBe(2 / 3);
+    expect(evaluation.misses.find((miss) => miss.id === "deep")).toMatchObject({
+      hintIds: ["REQ-9", "REQ-C"],
+    });
+    expect(
+      repoSearchThresholdFailures(evaluation, { minRecallWithHints: 0.9 }),
+    ).toEqual(["recall with hints 0.667 is below 0.9"]);
   });
 
   test("thresholds name every metric that misses its bound", () => {
@@ -499,6 +524,17 @@ describe("repository KB search evaluation", () => {
         }),
       ),
     ).toEqual({ governingIds: ["REQ-1"], resultIds: ["SCEN-1"] });
+    expect(
+      parseCliSearchOutput(
+        JSON.stringify({
+          status: "success",
+          data: {
+            results: [],
+            queryAnalysis: { hints: { items: [{ id: "REQ-2" }] } },
+          },
+        }),
+      ),
+    ).toEqual({ governingIds: [], resultIds: [], hintIds: ["REQ-2"] });
     expect(
       parseCliSearchOutput(JSON.stringify({ status: "success", data: {} })),
     ).toEqual({ governingIds: [], resultIds: [] });

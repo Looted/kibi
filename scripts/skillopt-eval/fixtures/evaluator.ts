@@ -175,9 +175,10 @@ const MODEL_REQUIREMENT_LANES: ReadonlySet<string> = new Set([
 
 function predicateReadTools(task: FixtureTaskSpec): readonly string[] {
   const lane = predicateCaseById(task.id).privateExpectation.expectedLane;
-  // A typed rule comes from the advisor's rule suggestion and kb_model mode
-  // requirement; ranking predicate schemas is not part of that workflow.
-  if (lane === "rule")
+  // A typed rule or a typed dimension comes from the advisor's suggestion and
+  // kb_model mode requirement; ranking predicate schemas is not part of that
+  // workflow.
+  if (lane === "rule" || lane === "typed_dimension")
     return ADVISOR_READ_TOOLS.filter(
       (tool) => tool !== "kb_suggest_predicates",
     );
@@ -362,6 +363,16 @@ function buildPredicateExpectation(task: FixtureTaskSpec) {
       : {
           forbiddenGroundFactKinds: [...expectation.forbiddenGroundFactKinds],
         }),
+    ...(expectation.forbiddenGroundingValueTypes === undefined
+      ? {}
+      : {
+          forbiddenGroundingValueTypes: [
+            ...expectation.forbiddenGroundingValueTypes,
+          ],
+        }),
+    ...(expectation.expectedScenarios == null
+      ? {}
+      : { expectedScenarios: { ...expectation.expectedScenarios } }),
     privateRationale: expectation.privateRationale,
     coverageFamilies: [
       ...semanticCase.publicClaim.publicSchema.coverageFamilies,

@@ -349,3 +349,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-77b99dc41814
+  - type: implements
+    from: SYM-build-search-hints
+    to: REQ-kibi-search-hints-host
+    created_at: 2026-10-29T19:22:27.997Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd7d722b0b9d
+  - type: covered_by
+    from: SYM-build-search-hints
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-10-29T19:22:28.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc33575d3965

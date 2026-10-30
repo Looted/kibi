@@ -6932,5 +6932,88 @@
         "./packages/cli/tests/proofs/claims/vscode-extension-ids.proof.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-capability-search-hints-v1",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/plugin-sdk/tests/search-hints.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-search-hints-host",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/search-hints.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-plugin-search-hints",
+    "steps": [
+      [
+        "bun",
+        "run",
+        "--cwd",
+        "packages/plugin-search-hints",
+        "test"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/operations/bootstrap-plugin-offers.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-search-hint-weak-score",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/search-hints-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-search-hint-shown-limit",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/search-hints-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-search-hints-result-limit",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/search-hints-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-search-hints-offer-requirements",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/search-hints-limits.proof.test.ts"
+      ]
+    ]
   }
 ]

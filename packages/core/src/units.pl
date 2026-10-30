@@ -120,13 +120,11 @@ numeric_value_type(number).
 
 known_unit(Unit, BaseUnit, Factor) :-
     atom(Unit),
-    Unit \== '',
     (   unit_symbol(Unit, BaseUnit, Factor)
     ->  true
     ;   downcase_atom(Unit, Lower),
         unit_word(Lower, BaseUnit, Factor)
-    ),
-    !.
+    ).
 
 % Integers (including big integers) stay exact. Floats have binary noise
 % rounded away (0.1 h * 3600 = 360.00000000000006) before deciding whether the

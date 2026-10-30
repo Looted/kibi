@@ -370,3 +370,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-868d7b15325b
+  - type: executable_for
+    from: SYM-proof-search-hint-weak-score
+    to: TEST-proof-search-hint-weak-score
+    created_at: 2026-10-29T21:29:02.172Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1bcbec4c5e9e

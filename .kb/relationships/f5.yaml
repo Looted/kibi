@@ -370,3 +370,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aee46247fbc1
+  - type: constrains
+    from: REQ-kibi-search-hints-limits
+    to: FACT-search-hint-limits-component
+    created_at: 2026-10-29T21:27:19.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0aa9e1614527
+  - type: requires_property
+    from: REQ-kibi-search-hints-limits
+    to: FACT-search-hint-weak-score-limit
+    created_at: 2026-10-29T21:27:19.092Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-db6161c92576
+  - type: requires_property
+    from: REQ-kibi-search-hints-limits
+    to: FACT-search-hint-shown-limit
+    created_at: 2026-10-29T21:27:19.131Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a01753b2a8a
+  - type: requires_property
+    from: REQ-kibi-search-hints-limits
+    to: FACT-search-hints-result-limit
+    created_at: 2026-10-29T21:27:19.167Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ef92bfaec62
+  - type: requires_property
+    from: REQ-kibi-search-hints-limits
+    to: FACT-search-hints-offer-limit
+    created_at: 2026-10-29T21:27:19.193Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4d8cabd855f
+  - type: specified_by
+    from: REQ-kibi-search-hints-limits
+    to: SCEN-kibi-search-hints-host
+    created_at: 2026-10-29T21:27:19.236Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f2bf756ebd79
+  - type: specified_by
+    from: REQ-kibi-search-hints-limits
+    to: SCEN-capability-search-hints-v1
+    created_at: 2026-10-29T21:27:19.283Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80081f04122c
+  - type: specified_by
+    from: REQ-kibi-search-hints-limits
+    to: SCEN-kibi-plugin-search-hints
+    created_at: 2026-10-29T21:27:19.304Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3b05ad0b5a4

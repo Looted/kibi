@@ -15,6 +15,40 @@ Use the advisor-returned atomic inventory as the identity boundary. Trailing pun
 
 Example compound prose: “Checkout requires payment authorization before order submission, and customer data must be retained for 7 years.” This is two claims, not one. The first becomes `dependency_rule(checkout,payment_authorization,order_submission)`; the second becomes a strict retention property. Both fact records carry different advisor-issued claim keys, and both keys appear in the requirement manifest. A single `requires_predicate` edge is incomplete.
 
+## Model the Dimension, Not the Verdict
+
+A claim that says every, each, all, any, only, at least, at most, exactly, no more than, a role, a status or a count ranges over something. Ground it on the thing that varies, not on a boolean that says the claim holds:
+
+| The claim varies over | Ground it on |
+| --- | --- |
+| a count or bound ("at most 5 owners", "exactly one role") | `property_value` with `value_type: int` and `eq`/`lte`/`gte` |
+| each member of a collection ("every loaded file") | an int count of the members that break the rule (`eq 0`), or a typed rule with a `forall` variable over the member |
+| a closed set of values ("only admins and owners") | a canonical string set, or a predicate argument with `argument_constants` |
+| a status or lifecycle ("a closed invoice cannot reopen") | a typed rule over the status, or a `state_machine` proof |
+
+Use `value_type: bool` (`= true`) only when the property itself is binary: a flag is on, a feature is enabled. `module.loader.instruments_all_loaded_files = true` restates the claim and gives Kibi nothing that can vary: no boundary, no zero/one/many case, and no contradiction with another requirement that bounds the same count.
+
+`kb_model` (`mode: "analyze"`) lists `shadow_analysis` cues. A `quantifier` or `numeric` cue with `represented: false` means the grounding does not carry the dimension yet. Do not ignore it: re-plan the grounding as a count, a rule variable or a set before writing. When no typed shape fits, keep the clause `ontology_gap` rather than downgrading it to a boolean verdict.
+
+Example: "Each organization member must hold exactly one role."
+
+```yaml
+# Avoid: the verdict
+- { fact_kind: property_value, subject_key: organization.member, property_key: holds_exactly_one_role, operator: eq, value_type: bool, value_bool: true }
+# Prefer: the dimension
+- { fact_kind: property_value, subject_key: organization.member, property_key: role_count, operator: eq, value_type: int, value_int: 1 }
+```
+
+### Scenarios carry their inputs
+
+A requirement grounded on a dimension is specified by scenarios that pick values of it. Each scenario `assumes` the `property_value` facts that state its input (same `subject_key` and `property_key` as the requirement's grounding, with the scenario's value) and sets `expects`:
+
+- one success scenario whose assumed value the requirement allows (`role_count = 1`, `expects: success`);
+- at least one rejection or error scenario whose assumed value the requirement forbids (`role_count = 2`, `expects: rejection`): a requirement that constrains behavior is not specified by its happy path alone;
+- for a quantified claim, scenarios at zero, one and many of the varying thing whenever those behave differently (no files loaded, one file, several files).
+
+Assumed-value facts are ordinary `property_value` facts linked only by the scenario's `assumes`; never link them from the requirement. Only requirement-linked facts are compared for contradictions, so an assumed forbidden value (`role_count = 2` next to the grounding `role_count eq 1`) is not a conflict: it is the input that makes the scenario a rejection. A refusal described only in prose, without `expects` and `assumes`, does not specify anything Kibi can check. Create them and the scenarios before the requirement write that sends `specified_by`. `scenario-feasibility` then checks every success scenario against the requirement, and the `happy_path_only` proof gap reports a requirement none of whose scenarios expects rejection or error while assuming a value that opposes one of its claims.
+
 ## Predicate Lane (Relational Claims)
 
 Call `kb_model` with `mode: "analyze"`, then with `mode: "predicates"`. Apply a candidate only when its schema meaning and ordered arguments fit the claim. Use the returned `applyPlan` rather than hand-writing unsupported predicate names, and link the requirement to the predicate fact with `requires_predicate`.

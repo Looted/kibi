@@ -51,11 +51,19 @@ import {
   type PluginPermissions,
   type ProjectKibiConfig,
   type ProjectPluginEntry,
+  SEARCH_HINTS_CAPABILITY_ID,
   SEMANTIC_CLASSIFIER_CAPABILITY_ID,
   SYMBOL_EXTRACTOR_CAPABILITY_ID,
   SYMBOL_EXTRACTOR_V2_CAPABILITY_ID,
   VOCABULARY_ALIGNMENT_CAPABILITY_ID,
 } from "./protocol.js";
+import {
+  validateSearchHints,
+  validateSearchHintsResult,
+} from "./validate-search-hints.js";
+import { PluginValidationError } from "./validation-error.js";
+
+export { PluginValidationError, validateSearchHintsResult };
 
 const SOURCE_SYMBOL_KINDS = [
   "function",
@@ -69,17 +77,6 @@ const SOURCE_SYMBOL_KINDS = [
   "variable",
   "unknown",
 ] as const satisfies readonly SourceSymbolKind[];
-
-// implements REQ-capability-plugin-protocol-v1
-export class PluginValidationError extends Error {
-  readonly code: string;
-
-  constructor(code: string, message: string) {
-    super(message);
-    this.name = "PluginValidationError";
-    this.code = code;
-  }
-}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -127,7 +124,8 @@ export function isCapabilityId(value: string): value is CapabilityId {
     value === SYMBOL_EXTRACTOR_CAPABILITY_ID ||
     value === SYMBOL_EXTRACTOR_V2_CAPABILITY_ID ||
     value === VOCABULARY_ALIGNMENT_CAPABILITY_ID ||
-    value === CHECK_POLICY_CAPABILITY_ID
+    value === CHECK_POLICY_CAPABILITY_ID ||
+    value === SEARCH_HINTS_CAPABILITY_ID
   );
 }
 
@@ -346,13 +344,20 @@ export function validateKibiPlugin(value: unknown): KibiPluginV1 {
     });
   }
 
+  if (value.capabilities.searchHints !== undefined) {
+    Object.assign(capabilities, {
+      searchHints: validateSearchHints(value.capabilities.searchHints),
+    });
+  }
+
   if (
     capabilities.semanticClassifier === undefined &&
     capabilities.ontologyPack === undefined &&
     capabilities.symbolExtractor === undefined &&
     capabilities.symbolExtractorV2 === undefined &&
     capabilities.vocabularyAlignment === undefined &&
-    capabilities.checkPolicy === undefined
+    capabilities.checkPolicy === undefined &&
+    capabilities.searchHints === undefined
   ) {
     throw new PluginValidationError(
       "INVALID_CAPABILITY",
@@ -367,6 +372,7 @@ export function validateKibiPlugin(value: unknown): KibiPluginV1 {
     capabilities.symbolExtractorV2?.id,
     capabilities.vocabularyAlignment?.id,
     capabilities.checkPolicy?.id,
+    capabilities.searchHints?.id,
   ].filter((entry): entry is string => typeof entry === "string");
   if (new Set(capabilityIds).size !== capabilityIds.length) {
     throw new PluginValidationError(
@@ -461,6 +467,17 @@ export function validateProjectKibiConfig(value: unknown): ProjectKibiConfig {
         throw new PluginValidationError(
           "INVALID_MODE",
           `${capabilityId} supports only mode 'augment'`,
+        );
+      }
+      // Search hints have no builtin result to refine: a provider either
+      // owns the hints or is only compared.
+      if (
+        capabilityId === SEARCH_HINTS_CAPABILITY_ID &&
+        config.mode === "augment"
+      ) {
+        throw new PluginValidationError(
+          "INVALID_MODE",
+          `${capabilityId} supports only modes 'replace' and 'shadow'`,
         );
       }
       Object.assign(capabilities, {

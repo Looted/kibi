@@ -769,3 +769,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-36e47f8c7831
+  - type: implements
+    from: SYM-search-hints-load-static-model
+    to: REQ-kibi-plugin-search-hints
+    created_at: 2026-10-29T19:22:48.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8892f0a654c0
+  - type: covered_by
+    from: SYM-search-hints-load-static-model
+    to: TEST-kibi-plugin-search-hints
+    created_at: 2026-10-29T19:22:48.908Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f6ce7f53ded7

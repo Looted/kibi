@@ -61,6 +61,7 @@ export function writePackedInstallManifest(
       ? {
           "kibi-plugin-jev": `file:${tarballs["plugin-jev"]}`,
           "kibi-plugin-ui": `file:${tarballs["plugin-ui"]}`,
+          "kibi-plugin-search-hints": `file:${tarballs["plugin-search-hints"]}`,
           "kibi-plugin-treesitter": `file:${tarballs["plugin-treesitter"]}`,
         }
       : {}),

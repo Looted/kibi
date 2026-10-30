@@ -321,3 +321,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1fb78ab5e1ed
+  - type: verified_by
+    from: SCEN-kibi-plugin-search-hints
+    to: TEST-kibi-plugin-search-hints
+    created_at: 2026-10-29T19:19:12.687Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f8944f71a95e

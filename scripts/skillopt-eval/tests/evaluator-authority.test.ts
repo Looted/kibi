@@ -377,6 +377,7 @@ describe("evaluator authority", () => {
         { relationship: "requires_predicate", target: "held_out_matrix" },
       ],
       logicClaims: ["CLAIM-AAAAAAAAAAAAAAAA"],
+      scenarios: [],
     });
   });
 
