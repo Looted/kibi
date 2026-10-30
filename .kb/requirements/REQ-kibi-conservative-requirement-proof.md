@@ -84,24 +84,26 @@ links:
     target: FACT-REQ-PROOF-SEPARATE-STATUS
   - type: requires_predicate
     target: FACT-REQ-PROOF-COMPLETE-LEDGER
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-REQ-PROOF-ONE-GROUNDING
   - type: requires_predicate
     target: FACT-REQ-PROOF-INCOMPLETE-CONTRADICTION
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-REQ-PROOF-CONTRADICTION-BLOCKS
   - type: requires_predicate
     target: FACT-REQ-PROOF-SCENARIO-E2E
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-REQ-PROOF-EXECUTABLE-SYMBOL
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-REQ-PROOF-PRODUCTION-IMPLEMENTS
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-REQ-PROOF-PRODUCTION-COVERED
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-REQ-PROOF-SOURCE-COORDINATES
   - type: requires_predicate
     target: FACT-REQ-PROOF-RANKED-REPAIRS
+  - type: constrains
+    target: FACT-SUBJECT-KIBI-PROOF-REQUIREMENT
 origin:
   kind: migration
   ref: kibi migrate v5->v6

@@ -9,10 +9,10 @@ tags:
   - provenance:req-kb-entity-body-context
 fact_kind: property_value
 subject_key: kibi.entity_body_context
-property_key: migrations_preserve_bodies
+property_key: entity_body_bytes_changed_by_migrations
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 claim_key: CLAIM-3DBD5E66B2FCF8D9
 claim_text: Kibi must preserve every entity body byte for byte in schema migrations
 origin:

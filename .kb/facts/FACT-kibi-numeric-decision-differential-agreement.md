@@ -3,10 +3,10 @@ title: 'Numeric decision: the Lean model, intervals.pl and CLP agree'
 status: active
 fact_kind: property_value
 subject_key: kibi.numeric_decision
-property_key: differential_agreement
+property_key: differential_cases_with_disagreement
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 claim_key: CLAIM-DC6A3FB8B3FD84DF
 claim_text: The Lean model, intervals.pl and a CLP(Q) and CLP(FD) oracle must agree on every generated differential case
 text_ref: REQ-kibi-intervals-verified

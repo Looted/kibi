@@ -3,10 +3,10 @@ title: 'Numeric decision: entailment is exact'
 status: active
 fact_kind: property_value
 subject_key: kibi.numeric_decision
-property_key: entailment_exact
+property_key: entailment_decisions_disagreeing_with_admissible_values
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 claim_key: CLAIM-56DB85C6D231673E
 claim_text: Kibi must decide that numeric premises entail a comparison exactly when no admissible value satisfies the premises and breaks the comparison
 text_ref: REQ-kibi-intervals-verified

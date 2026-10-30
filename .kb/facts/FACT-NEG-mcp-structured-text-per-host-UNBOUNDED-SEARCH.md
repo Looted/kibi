@@ -1,15 +1,12 @@
 ---
 title: A search without a limit matches more than ten ranked rows
 status: active
-fact_kind: predicate
-predicate_namespace: kibi.requirements
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.discovery.search
-  - search_without_limit
-  - at_most_ten_ranked_rows
-polarity: deny
-canonical_key: logical_requirement_rule(kibi.discovery.search,search_without_limit,at_most_ten_ranked_rows)
+fact_kind: property_value
+subject_key: kibi.discovery.search
+property_key: ranked_rows_returned_without_limit
+operator: gte
+value_type: int
+value_int: 11
 origin:
   kind: agent
   recorded_at: '2026-10-29T20:56:58.420Z'
