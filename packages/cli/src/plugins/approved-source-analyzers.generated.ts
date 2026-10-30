@@ -4,10 +4,10 @@
 export const qualifiedSourceAnalyzers = [
   {
     packageName: "kibi-plugin-treesitter",
-    version: "2.0.2",
+    version: "2.1.0",
     files: {
       "SBOM.spdx.json":
-        "1c485e3d61663c84ed9d46b6d10f03ae03b8dfad22fa5687fa6ef4b690fec0f3",
+        "ffab8e28376a815906c901348cdc9c31ba566c903e832e1f9808c890a0cab3c2",
       "THIRD_PARTY_NOTICES.md":
         "fff747633b08a90bf949e998892211702b021c63e3a074ded102700fc447fed3",
       "assets/queries/bash.scm":
@@ -71,7 +71,7 @@ export const qualifiedSourceAnalyzers = [
       "assets/tree-sitter-terraform.release.wasm":
         "59dbcbb0f08eb78b78f37510834559a48ce5c9d4866c978d62c6390796461cb5",
       "catalog.json":
-        "cd5cdb1eb1f4acca7cf85e472fb95d807c738b4a23f2129bc300fb509c520b12",
+        "c10f0cd5d1989abb9543c4e385ba44fa226cad4186613791061b56dbda2497a7",
       "dist/analysis-worker.js":
         "9ef76ad467f6b4e2a117a3b5656838eb5f096890931ec0480566b76b73fd64db",
       "dist/catalog.js":
@@ -83,7 +83,7 @@ export const qualifiedSourceAnalyzers = [
       "dist/performance-timing.js":
         "56cce530f627c8fd079e8ec070322f84378ae50c40a6765d88b418850692940b",
       "integrity.json":
-        "4441a636e97cf0360cdaa5d4bfd36bf4200a4570fa01e177fbc1c88e2f200e9e",
+        "fabfc50ba1392b4b0f7b9bf39e714de05d093ebfccdcc2225eb9d1fd84ad9a4e",
       "licenses/tree-sitter-bash-MIT.txt":
         "49bf33cf78ef5897e4e161ce1517df7de1ae5042a65b6bcfd44401e0fc606559",
       "licenses/tree-sitter-c-MIT.txt":
@@ -111,7 +111,7 @@ export const qualifiedSourceAnalyzers = [
       "licenses/web-tree-sitter-MIT.txt":
         "c5cfb43042b6b72045f4ba997834d0a7786d2793d91680868b5815b39f14fc78",
       "package.json":
-        "74a2fbbbde092f1c01eebcf5f8e98789e4b6a55b8464a1fc6bbc9767c6a80042",
+        "5e81c6ce4712add506e576b30d05a80d07a9ad65ba863c2765483b4150687370",
     },
     dependencies: [
       {
