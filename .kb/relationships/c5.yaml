@@ -244,3 +244,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1cd6142016a6
+  - type: assumes
+    from: SCEN-CASE-branch-store-recovery-v4-cross-identity-migration
+    to: FACT-CASE-branch-store-recovery-v4-cross-identity-migration
+    created_at: 2026-10-30T14:46:45.617Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af005418c2bd
+  - type: verified_by
+    from: SCEN-CASE-branch-store-recovery-v4-cross-identity-migration
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-10-30T14:46:45.729Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0045eeadfc8
