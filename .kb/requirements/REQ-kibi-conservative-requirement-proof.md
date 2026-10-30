@@ -103,7 +103,7 @@ links:
   - type: requires_predicate
     target: FACT-REQ-PROOF-RANKED-REPAIRS
   - type: constrains
-    target: FACT-SUBJECT-KIBI-PROOF-REQUIREMENT
+    target: FACT-SUBJECT-kibi-proof-requirement
 origin:
   kind: migration
   ref: kibi migrate v5->v6

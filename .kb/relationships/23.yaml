@@ -285,7 +285,7 @@ relationships:
     id: rel-8e7de36b689f
   - type: constrains
     from: REQ-kibi-search-gold-set-gate
-    to: FACT-SUBJECT-KIBI-DISCOVERY-SEARCH
+    to: FACT-SUBJECT-kibi-discovery-search
     created_at: 2026-10-30T13:00:00.000Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
