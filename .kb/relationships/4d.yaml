@@ -265,3 +265,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6e90bdae2cd8
+  - type: assumes
+    from: SCEN-CASE-kibi-search-hints-host-TWO-GOVERNING-OMITTED
+    to: FACT-CASE-kibi-search-hints-host-TWO-GOVERNING-OMITTED
+    created_at: 2026-10-30T14:49:33.860Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-202244756b67
+  - type: verified_by
+    from: SCEN-CASE-kibi-search-hints-host-TWO-GOVERNING-OMITTED
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-10-30T14:49:33.957Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e5601c28f1f

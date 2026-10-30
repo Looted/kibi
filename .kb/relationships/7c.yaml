@@ -349,3 +349,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b64f39632f82
+  - type: assumes
+    from: SCEN-CASE-kibi-truthful-consistency-RULE-PAIR-FOURTH-CLASS
+    to: FACT-CASE-kibi-truthful-consistency-RULE-PAIR-FOURTH-CLASS
+    created_at: 2026-10-30T15:08:40.981Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ef6eaf8eb79
+  - type: verified_by
+    from: SCEN-CASE-kibi-truthful-consistency-RULE-PAIR-FOURTH-CLASS
+    to: TEST-kibi-truthful-consistency
+    created_at: 2026-10-30T15:08:41.044Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc9d73b6e21d

@@ -206,3 +206,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5920c650d099
+  - type: assumes
+    from: SCEN-CASE-prolog-build-pipeline-validation-THREE-LAUNCH-TARGETS
+    to: FACT-CASE-prolog-build-pipeline-validation-THREE-LAUNCH-TARGETS
+    created_at: 2026-10-30T14:50:02.420Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5e3f86e9848
+  - type: verified_by
+    from: SCEN-CASE-prolog-build-pipeline-validation-THREE-LAUNCH-TARGETS
+    to: TEST-prolog-build-pipeline-validation
+    created_at: 2026-10-30T14:50:02.453Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-021cc4bc406d

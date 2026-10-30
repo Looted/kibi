@@ -286,3 +286,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b8ccdace203d
+  - type: assumes
+    from: SCEN-CASE-005-UNTIMESTAMPED-TRIPLE
+    to: FACT-CASE-005-UNTIMESTAMPED-TRIPLE
+    created_at: 2026-10-30T14:57:01.382Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-044d84c0ee75
+  - type: verified_by
+    from: SCEN-CASE-005-UNTIMESTAMPED-TRIPLE
+    to: TEST-kibi-entity-relationship-schema-roundtrip
+    created_at: 2026-10-30T14:57:01.513Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4f785ed80b2

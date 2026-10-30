@@ -325,3 +325,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ece2db7e0c39
+  - type: assumes
+    from: SCEN-CASE-bootstrap-claim-kinds-and-conflicts-CONFLICT-NOT-PLANNED
+    to: FACT-CASE-bootstrap-claim-kinds-and-conflicts-CONFLICT-NOT-PLANNED
+    created_at: 2026-10-30T14:56:32.126Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b716c1af09a
+  - type: verified_by
+    from: SCEN-CASE-bootstrap-claim-kinds-and-conflicts-CONFLICT-NOT-PLANNED
+    to: TEST-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-30T14:56:32.178Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-268cce6ab6e4

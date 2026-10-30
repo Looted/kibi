@@ -440,3 +440,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6c65ca4a9cc2
+  - type: specified_by
+    from: REQ-kibi-truthful-consistency
+    to: SCEN-CASE-kibi-truthful-consistency-STRICT-BOUND-INEXACT
+    created_at: 2026-10-30T14:58:26.027Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cde4e342f4c7
+  - type: specified_by
+    from: REQ-kibi-truthful-consistency
+    to: SCEN-CASE-kibi-truthful-consistency-RULE-PAIR-FOURTH-CLASS
+    created_at: 2026-10-30T15:08:43.257Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4a68cfbd6e98

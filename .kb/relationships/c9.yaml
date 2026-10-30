@@ -307,3 +307,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-76cb64340ade
+  - type: assumes
+    from: SCEN-CASE-bootstrap-claim-restatement-threshold-HIGHER-THRESHOLD
+    to: FACT-CASE-bootstrap-claim-restatement-threshold-HIGHER-THRESHOLD
+    created_at: 2026-10-30T14:57:11.843Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c289b107420
+  - type: verified_by
+    from: SCEN-CASE-bootstrap-claim-restatement-threshold-HIGHER-THRESHOLD
+    to: TEST-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-30T14:57:12.029Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cad0531ed7fd
+  - type: assumes
+    from: SCEN-CASE-kibi-query-fact-filters-FACT-WITHOUT-ASK
+    to: FACT-CASE-kibi-query-fact-filters-FACT-WITHOUT-ASK
+    created_at: 2026-10-30T14:57:45.742Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c09a524d21b
+  - type: verified_by
+    from: SCEN-CASE-kibi-query-fact-filters-FACT-WITHOUT-ASK
+    to: TEST-kibi-query-fact-filters
+    created_at: 2026-10-30T14:57:46.033Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-079c4519f56b

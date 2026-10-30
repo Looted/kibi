@@ -293,3 +293,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f2995c81217f
+  - type: specified_by
+    from: REQ-cli-sync-summary-kb-totals
+    to: SCEN-CASE-cli-sync-summary-kb-totals-TYPE-MISSING-FROM-TOTALS
+    created_at: 2026-10-30T14:57:28.979Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-863c43f2b685

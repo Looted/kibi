@@ -363,3 +363,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c8f9e358ee1c
+  - type: specified_by
+    from: REQ-kb-check-unverified-requirement-statements
+    to: SCEN-CASE-kb-check-unverified-requirement-statements-UNWARNED-REQUIREMENT
+    created_at: 2026-10-30T14:57:39.278Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0871e60c334d

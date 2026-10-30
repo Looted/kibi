@@ -377,3 +377,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-668102d9b7bf
+  - type: assumes
+    from: SCEN-CASE-prolog-build-pipeline-validation-NINETEEN-LIBRARIES
+    to: FACT-CASE-prolog-build-pipeline-validation-NINETEEN-LIBRARIES
+    created_at: 2026-10-30T14:50:08.557Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a6a6054547d
+  - type: verified_by
+    from: SCEN-CASE-prolog-build-pipeline-validation-NINETEEN-LIBRARIES
+    to: TEST-prolog-build-pipeline-validation
+    created_at: 2026-10-30T14:50:08.667Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7cdcba378dea

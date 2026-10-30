@@ -147,6 +147,15 @@ describe("search hints trigger", () => {
       searchHintsTrigger(analysis({ topScore: 0.9, ambiguous: true })),
     ).toBeNull();
   });
+
+  test("the weak-answer cut-off sits at a top score of 0.44, neither above nor below", () => {
+    // A cut-off below 0.44 would leave 0.43 without hints; one above it
+    // would ask for hints at 0.44 or 0.45.
+    expect(searchHintsTrigger(analysis({ topScore: 0.43 }))).toBe("weak");
+    expect(searchHintsTrigger(analysis({ topScore: 0.439 }))).toBe("weak");
+    expect(searchHintsTrigger(analysis({ topScore: 0.44 }))).toBeNull();
+    expect(searchHintsTrigger(analysis({ topScore: 0.45 }))).toBeNull();
+  });
 });
 
 // executable_for TEST-kibi-search-hints-host

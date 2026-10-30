@@ -356,3 +356,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5a429d0209bd
+  - type: assumes
+    from: SCEN-CASE-cli-sync-summary-kb-totals-TYPE-MISSING-FROM-TOTALS
+    to: FACT-CASE-cli-sync-summary-kb-totals-TYPE-MISSING-FROM-TOTALS
+    created_at: 2026-10-30T14:57:25.098Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-78fcbe4b4c86
+  - type: verified_by
+    from: SCEN-CASE-cli-sync-summary-kb-totals-TYPE-MISSING-FROM-TOTALS
+    to: TEST-cli-migrated-kb-type-backfill-sync-totals
+    created_at: 2026-10-30T14:57:25.191Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30883ee9ff90

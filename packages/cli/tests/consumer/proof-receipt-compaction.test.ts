@@ -1,5 +1,6 @@
-// implements REQ-kibi-fresh-verification-receipts-v2
 import { afterEach, describe, expect, test } from "bun:test";
+// implements REQ-kibi-fresh-verification-receipts-v2
+import { join } from "node:path";
 import {
   type CliRun,
   type ConsumerWorkspace,
@@ -513,5 +514,46 @@ describe("proof receipt compaction through the kibi CLI", () => {
     expect(again.stdout).toContain("No test had superseded receipts.");
     expect(ws.kibi(["sync", "--rebuild"]).status).toBe(0);
     expect(receipts(ws, PAY)).toEqual(kept);
+  }, 300_000);
+
+  test("a receipt binds a symbol's source file by its repository-relative path, however the manifest spells it", () => {
+    const ws = createConsumerWorkspace("kibi-receipt-binding-path-");
+    workspace = ws;
+    const manifest = (sourceFile: string) =>
+      `symbols:\n  - id: SYM-checkout-pay\n    title: payCheckout\n    sourceFile: ${JSON.stringify(sourceFile)}\n    status: active\n`;
+    ws.write(
+      "src/pay.mjs",
+      "export const payCheckout = (cart) => cart.total;\n",
+    );
+    ws.write(".kb/symbols.yaml", manifest("src/pay.mjs"));
+    seed(ws);
+
+    /** Spell the bound symbol's source file one way, prove, and read the binding. */
+    const bindingFor = (sourceFile: string): unknown => {
+      ws.write(".kb/symbols.yaml", manifest(sourceFile));
+      ws.sync();
+      prove(ws, ["--test", PAY], {}, 0);
+      const latest = receipts(ws, PAY).at(-1);
+      expect(latest?.outcome).toBe("passed");
+      return latest?.binding_hash;
+    };
+
+    const canonical = bindingFor("src/pay.mjs");
+    expect(canonical).toMatch(/^[0-9a-f]{64}$/);
+    // Every spelling of the same in-repository file binds the same receipt.
+    for (const spelling of [
+      "./src/pay.mjs",
+      "src//./pay.mjs",
+      "src\\pay.mjs",
+      join(ws.root, "src", "pay.mjs"),
+    ]) {
+      expect(bindingFor(spelling)).toBe(canonical);
+    }
+    // The repository-relative path really locates the file: its contents bind.
+    ws.write(
+      "src/pay.mjs",
+      "export const payCheckout = (cart) => cart.total + 1;\n",
+    );
+    expect(bindingFor("./src/pay.mjs")).not.toBe(canonical);
   }, 300_000);
 });
