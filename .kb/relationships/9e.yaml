@@ -545,3 +545,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d777fa96fd57
+  - type: specified_by
+    from: REQ-claude-code-kibi-plugin-v1
+    to: SCEN-CASE-claude-code-kibi-plugin-v1-SECOND-SNIPPET
+    created_at: 2026-10-30T14:53:34.417Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64607422b4a5
+  - type: specified_by
+    from: REQ-claude-code-kibi-plugin-v1
+    to: SCEN-CASE-claude-code-kibi-plugin-v1-SECOND-STOP-REMINDER
+    created_at: 2026-10-30T14:53:48.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-897e1163c7e2
+  - type: assumes
+    from: SCEN-CASE-kibi-conservative-requirement-proof-SYMBOL-NOT-IMPLEMENTING
+    to: FACT-CASE-kibi-conservative-requirement-proof-SYMBOL-NOT-IMPLEMENTING
+    created_at: 2026-10-30T15:11:40.294Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0fbd28cfd4a
+  - type: verified_by
+    from: SCEN-CASE-kibi-conservative-requirement-proof-SYMBOL-NOT-IMPLEMENTING
+    to: TEST-e2e-coverage-proof-status
+    created_at: 2026-10-30T15:11:40.395Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec1903a2e58f
+  - type: specified_by
+    from: REQ-test-journaled-engine-harness
+    to: SCEN-CASE-test-journaled-engine-harness-LEAKED-BATCH-ENGINE
+    created_at: 2026-10-30T14:58:55.164Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d1999d29c28

@@ -200,4 +200,33 @@ describe("bootstrap plugin offers", () => {
       (await discoverBootstrap(runtime(fixture.root))).pluginOffers,
     ).toEqual([]);
   });
+  // executable_for TEST-kibi-plugin-search-hints
+  it("withholds the search-hints offer at 49 requirement documents and makes it at exactly 50", async () => {
+    const offered = async () =>
+      (await discoverBootstrap(runtime(fixture.root))).pluginOffers.filter(
+        (offer) => offer.package === "kibi-plugin-search-hints",
+      );
+    for (let index = 0; index < 49; index++)
+      write(
+        fixture.root,
+        `.kb/requirements/REQ-${String(index).padStart(3, "0")}.md`,
+        `---\nid: REQ-${index}\n---\n`,
+      );
+    // One document short of the bound: no offer.
+    expect(await offered()).toEqual([]);
+
+    write(
+      fixture.root,
+      ".kb/requirements/REQ-049.md",
+      "---\nid: REQ-049\n---\n",
+    );
+    // At the bound itself the offer appears; a higher bound would miss it.
+    const offers = await offered();
+    expect(offers).toHaveLength(1);
+    expect(offers[0]).toMatchObject({
+      package: "kibi-plugin-search-hints",
+      mode: "replace",
+      fileCount: 50,
+    });
+  });
 });

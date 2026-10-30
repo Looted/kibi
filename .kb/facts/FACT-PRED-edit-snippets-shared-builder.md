@@ -19,4 +19,6 @@ origin:
   recorded_at: '2026-10-04T02:41:53.968Z'
 id: FACT-PRED-edit-snippets-shared-builder
 type: fact
+case_waiver: 'A structural claim with no runtime refusal: nothing at run time can detect a host that bypasses the shared builder.'
+case_waiver_approved_by: Piotr Franczyk
 ---

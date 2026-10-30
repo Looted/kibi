@@ -433,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-92d876def411
+  - type: assumes
+    from: SCEN-CASE-zcode-advisory-enforcement-boundary-v1-NON-ADVISORY-OUTPUT
+    to: FACT-CASE-zcode-advisory-enforcement-boundary-v1-NON-ADVISORY-OUTPUT
+    created_at: 2026-10-30T15:01:09.283Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04671d359b83
+  - type: verified_by
+    from: SCEN-CASE-zcode-advisory-enforcement-boundary-v1-NON-ADVISORY-OUTPUT
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-10-30T15:01:09.383Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64e0178971c3

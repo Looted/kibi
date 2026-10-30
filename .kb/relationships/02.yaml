@@ -279,3 +279,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d9b5aa322a53
+  - type: assumes
+    from: SCEN-CASE-prolog-build-pipeline-validation-FIVE-LAUNCH-TARGETS
+    to: FACT-CASE-prolog-build-pipeline-validation-FIVE-LAUNCH-TARGETS
+    created_at: 2026-10-30T14:49:57.419Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51e34366f2ee
+  - type: verified_by
+    from: SCEN-CASE-prolog-build-pipeline-validation-FIVE-LAUNCH-TARGETS
+    to: TEST-prolog-build-pipeline-validation
+    created_at: 2026-10-30T14:49:57.476Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5a47826c918
+  - type: assumes
+    from: SCEN-NEG-model-predicates-binding-placeholders-SCHEMA-NAMED
+    to: FACT-CASE-model-predicates-binding-placeholders-unhinted-argument
+    created_at: 2026-10-30T15:02:34.041Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9f7b3fe8c35

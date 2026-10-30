@@ -346,6 +346,17 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       minLength: 1,
       description: "Fact-only. The person who accepted dimension_waiver.",
     },
+    case_waiver: {
+      type: "string",
+      minLength: 1,
+      description:
+        "Fact-only. Why the edge cases derived from this fact are covered some other way or cannot occur. Waives uncovered_case once case_waiver_approved_by is set.",
+    },
+    case_waiver_approved_by: {
+      type: "string",
+      minLength: 1,
+      description: "Fact-only. The person who accepted case_waiver.",
+    },
     predicate_name: {
       type: "string",
       description:

@@ -377,3 +377,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f60f471f6c5c
+  - type: requires_predicate
+    from: REQ-kibi-case-coverage
+    to: FACT-PRED-kibi-case-coverage-tested
+    created_at: 2026-10-30T14:06:17.893Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0800acd4c9ab
+  - type: requires_predicate
+    from: REQ-kibi-case-coverage
+    to: FACT-PRED-kibi-case-coverage-waiver
+    created_at: 2026-10-30T14:06:17.942Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90da97ce1973
+  - type: requires_predicate
+    from: REQ-kibi-case-coverage
+    to: FACT-PRED-kibi-case-coverage-advisor
+    created_at: 2026-10-30T14:06:17.975Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc082c9c008b
+  - type: specified_by
+    from: REQ-kibi-case-coverage
+    to: SCEN-kibi-case-coverage
+    created_at: 2026-10-30T14:06:18.003Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-619f92162c6e
+  - type: specified_by
+    from: REQ-kibi-case-coverage
+    to: SCEN-NEG-kibi-case-coverage-UNCOVERED
+    created_at: 2026-10-30T14:06:18.034Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75611f0a7bc3
+  - type: specified_by
+    from: REQ-kibi-evidence-floors
+    to: SCEN-CASE-kibi-evidence-floors-UNPINNED-FIRM
+    created_at: 2026-10-30T14:58:39.519Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59c18ad5619f
+  - type: specified_by
+    from: REQ-capability-plugin-configuration-v1
+    to: SCEN-CASE-capability-plugin-configuration-v1-zero-timeout
+    created_at: 2026-10-30T15:02:01.216Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5479bed9f845
+  - type: specified_by
+    from: REQ-capability-plugin-configuration-v1
+    to: SCEN-CASE-capability-plugin-configuration-v1-timeout-over-max
+    created_at: 2026-10-30T15:02:03.790Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2569b46f777e

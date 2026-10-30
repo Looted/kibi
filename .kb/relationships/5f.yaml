@@ -349,3 +349,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-48c415289eff
+  - type: specified_by
+    from: REQ-kibi-plugin-search-hints
+    to: SCEN-CASE-kibi-plugin-search-hints-OFFER-ABOVE-50
+    created_at: 2026-10-30T14:58:42.950Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12eb17049085
+  - type: specified_by
+    from: REQ-kibi-plugin-search-hints
+    to: SCEN-CASE-kibi-plugin-search-hints-OFFER-BELOW-50
+    created_at: 2026-10-30T14:58:45.588Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-abe2532e93a8

@@ -667,6 +667,69 @@ describe("shared mutation operation specs", () => {
     expect(save).not.toHaveBeenCalled();
   });
 
+  test("validate-upsert rejects a modeled proposition grounded by two facts", async () => {
+    const text = "System must support OAuth2 authentication.";
+    const base = {
+      type: "req",
+      id: "REQ-DOUBLE-GROUNDING",
+      properties: { title: "OAuth support", status: "open", text_ref: text },
+      relationships: [
+        {
+          type: "requires_predicate",
+          from: "REQ-DOUBLE-GROUNDING",
+          to: "FACT-OAUTH-A",
+        },
+        {
+          type: "requires_predicate",
+          from: "REQ-DOUBLE-GROUNDING",
+          to: "FACT-OAUTH-B",
+        },
+      ],
+    };
+    const semantic = analyzeSemanticAdvisorInput({ payload: base });
+    const contract = semantic.receipt.inventory_contract;
+    const [modeledKey] = semantic.receipt.logic_coverage.expected_claim_keys;
+    // Both grounding facts declare the claim_key of the one modeled claim.
+    const { context, save } = createContext((goal): PrologQueryResult => {
+      if (goal.includes("_SemanticGroundProps")) {
+        return { success: true, bindings: { ClaimKey: modeledKey } };
+      }
+      if (goal.includes("Type, _")) {
+        return { success: true, bindings: { Type: "fact" } };
+      }
+      return { success: true, bindings: {} };
+    });
+
+    const result = await validateUpsertSpec.execute(
+      {
+        ...base,
+        properties: {
+          ...base.properties,
+          logic_claims: semantic.receipt.logic_coverage.expected_claim_keys,
+          semantic_inventory_version: contract.version,
+          semantic_source_field: contract.source_field,
+          semantic_source_hash: contract.source_hash,
+          semantic_inventory: semantic.receipt.propositions.map(
+            (proposition) => ({ ...proposition, status: "modeled" }),
+          ),
+        },
+      },
+      context,
+    );
+
+    expect(result.structuredContent).toMatchObject({ valid: false });
+    const errors = (
+      result.structuredContent as { errors: readonly unknown[] }
+    ).errors.map((reported) =>
+      reported instanceof Error ? reported.message : String(reported),
+    );
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toContain(
+      "modeled semantic_inventory entries (1) must equal logical grounding relationships (2) [requires_predicate->FACT-OAUTH-A, requires_predicate->FACT-OAUTH-B]",
+    );
+    expect(save).not.toHaveBeenCalled();
+  });
+
   test("upsert persists through the Prolog save port after one atomic write", async () => {
     // Given
     const { context, query, save } = createContext(

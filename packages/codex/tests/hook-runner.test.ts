@@ -887,6 +887,53 @@ describe("Codex decision guard", () => {
     });
     expect(again.decision).toBeUndefined();
   });
+
+  test("no hook denies a tool call: firm edits, .kb edits and Kibi calls go ahead, and Stop only continues the turn", async () => {
+    const event = session();
+    const results: [string, HookResult][] = [];
+    const record = async (payload: Record<string, unknown>) => {
+      results.push([String(payload.hook_event_name), await event(payload)]);
+    };
+    await record({
+      hook_event_name: "UserPromptSubmit",
+      prompt: "Guards should never pass by default.",
+    });
+    for (const command of [
+      CHECKOUT_PATCH,
+      GUARD_PATCH,
+      [
+        "*** Begin Patch",
+        "*** Update File: .kb/requirements/REQ-guards.md",
+        "@@",
+        "-status: open",
+        "+status: closed",
+        "*** End Patch",
+      ].join("\n"),
+    ]) {
+      const call = { tool_name: "apply_patch", tool_input: { command } };
+      await record({ hook_event_name: "PreToolUse", ...call });
+      await record({ hook_event_name: "PostToolUse", ...call });
+    }
+    await record({
+      hook_event_name: "PreToolUse",
+      tool_name: "mcp__kibi__kb_query",
+      tool_input: { type: "req" },
+    });
+    await record({ hook_event_name: "Stop", stop_hook_active: false });
+
+    for (const [hookEvent, result] of results) {
+      expect(result.continue).not.toBe(false);
+      const specific = result.hookSpecificOutput as
+        | { permissionDecision?: string }
+        | undefined;
+      expect([undefined, "allow"]).toContain(specific?.permissionDecision);
+      if (hookEvent !== "Stop") expect(result.decision).toBeUndefined();
+    }
+    expect(results.at(-1)?.[1]).toMatchObject({
+      continue: true,
+      decision: "block",
+    });
+  });
 });
 
 describe("Codex opt-in hook telemetry", () => {

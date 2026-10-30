@@ -171,3 +171,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dff33be39e96
+  - type: assumes
+    from: SCEN-CASE-kibi-conservative-requirement-proof-TEST-NO-EXECUTABLE-SYMBOL
+    to: FACT-CASE-kibi-conservative-requirement-proof-TEST-NO-EXECUTABLE-SYMBOL
+    created_at: 2026-10-30T15:11:19.182Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8be6ac804762
+  - type: verified_by
+    from: SCEN-CASE-kibi-conservative-requirement-proof-TEST-NO-EXECUTABLE-SYMBOL
+    to: TEST-e2e-coverage-proof-status
+    created_at: 2026-10-30T15:11:19.222Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51f59f5bfed9

@@ -55,6 +55,6 @@ proof_receipts:
         attempts:
           status: unavailable
 ---
-Converts the published kb_upsert inputSchema with the MCP converter and checks observation and meta facts with claim_text pass without claim_key, other fact kinds still require it, claim_key still requires claim_text, and the condition evaluator handles not, properties, enum, const, type, oneOf and boolean schemas (packages/mcp/tests/server/kb-upsert-claim-conditional.test.ts).
+Converts the published kb_upsert inputSchema with the MCP converter and checks that observation, meta, subject, property_value and predicate facts with claim_text pass without claim_key, claim_key still requires claim_text, and the condition evaluator handles not, properties, enum, const, type, oneOf and boolean schemas (packages/mcp/tests/server/kb-upsert-claim-conditional.test.ts).
 
 A false pass would be a test that builds its own schema instead of the published one; the suite reads the registered kb_upsert tool.

@@ -1,5 +1,5 @@
 ---
-title: Fact kinds quoting claim text that MCP accepts without a claim key = 0
+title: MCP accepts subject, property value and predicate facts that quote claim text without a claim key
 status: active
 text_ref: REQ-mcp-conditional-input-validation
 tags:
@@ -10,11 +10,14 @@ tags:
 fact_kind: property_value
 subject_key: kibi.mcp_input_validation
 property_key: claim_text_fact_kinds_accepted_without_claim_key
-operator: eq
-value_type: int
-value_int: 0
-claim_key: CLAIM-E4D4C67F8BF9FE7A
-claim_text: The MCP server must require a claim key for every other fact kind that quotes claim text
+operator: includes
+value_type: set
+value_set:
+  - predicate
+  - property_value
+  - subject
+claim_key: CLAIM-AA98C628B5151CE6
+claim_text: 'The MCP server must accept a subject, property value or predicate fact that quotes claim text without a claim key'
 origin:
   kind: agent
   recorded_at: '2026-10-07T12:27:14.892Z'

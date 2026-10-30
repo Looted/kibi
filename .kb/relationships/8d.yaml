@@ -797,3 +797,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e153d5af04d9
+  - type: specified_by
+    from: REQ-claude-decision-capture-nudges
+    to: SCEN-CASE-claude-decision-capture-nudges-ASKED-TWICE
+    created_at: 2026-10-30T14:57:00.636Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7268dc67e3c8
+  - type: specified_by
+    from: REQ-bootstrap-claim-restatement
+    to: SCEN-CASE-bootstrap-claim-restatement-NEAR-RESTATEMENT
+    created_at: 2026-10-30T14:58:11.498Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a28192d2f540
+  - type: assumes
+    from: SCEN-CASE-kibi-schema6-migration-v2-ORIGIN-BYTES
+    to: FACT-CASE-kibi-schema6-migration-v2-ORIGIN-BYTES
+    created_at: 2026-10-30T14:52:39.737Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c18a637ebdb
+  - type: verified_by
+    from: SCEN-CASE-kibi-schema6-migration-v2-ORIGIN-BYTES
+    to: TEST-kibi-schema6-migration-cli
+    created_at: 2026-10-30T14:52:39.998Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89d10bfdbe50

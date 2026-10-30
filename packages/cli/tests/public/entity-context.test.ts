@@ -68,6 +68,21 @@ describe("entity-context-missing evaluation", () => {
     expect(findings).toEqual([]);
   });
 
+  test("types outside the checked set are never reported, even with an empty body", () => {
+    const findings = evaluateEntityContext(
+      [
+        entity("symbol", "SYM-bare", "", "\n"),
+        entity("fact", "FACT-bare-subject", "fact_kind: subject\n", "\n"),
+        entity("fact", "FACT-bare-value", "fact_kind: property_value\n", "\n"),
+        entity("fact", "FACT-bare-meta", "fact_kind: meta\n", "\n"),
+      ],
+      new Set(),
+    );
+    expect(findings.map((finding) => finding.entityId)).toEqual([
+      "FACT-bare-meta",
+    ]);
+  });
+
   test("a req body that is only a statement does not count as context", () => {
     const findings = evaluateEntityContext(
       [entity("req", "REQ-flat", "", `${REASON}\n`)],

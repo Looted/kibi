@@ -1,9 +1,9 @@
 ---
 id: REQ-core-audit-logging
 title: Audit logging for all KB mutations
-status: open
+status: closed
 created_at: 2026-05-13T10:00:00.000Z
-updated_at: 2026-05-13T10:00:00.000Z
+updated_at: 2026-10-30T00:00:00.000Z
 source: REQ-009
 priority: must
 tags:
@@ -11,6 +11,7 @@ tags:
   - prolog
   - audit
   - review:context-missing
+  - historical-status:retired
 links:
   - type: supersedes
     target: REQ-009
@@ -52,7 +53,14 @@ origin:
   recorded_at: '2026-10-04T01:17:15.284Z'
 failure_side_waiver: "The claims promise that mutations are recorded with their fields; recording has no refusal side."
 failure_side_waiver_approved_by: Piotr Franczyk
+proof_exempt: true
+approval_ref: Maintainer approved retiring this requirement on 2026-10-30 during the edge-case coverage review
+proof_exempt_reason: Retired on 2026-10-30 because branch storage no longer writes audit.log; retained for provenance, outside current implementation proof scope.
 ---
 
 All entity and relationship mutations in the KB are recorded in a persistent audit log (`audit.log`) in the branch directory.
 Each entry includes a timestamp, the operation type, and the affected entity data, providing a traceable history of changes.
+
+## Why this changed
+
+Closed on 2026-10-30: branch storage no longer writes `audit.log`; it is attached only in legacy mode. This requirement no longer states current intent.

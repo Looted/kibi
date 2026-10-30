@@ -601,3 +601,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e816bfd93062
+  - type: assumes
+    from: SCEN-CASE-kibi-search-hints-host-CUTOFF-ABOVE
+    to: FACT-CASE-kibi-search-hints-host-CUTOFF-ABOVE
+    created_at: 2026-10-30T14:49:41.611Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24576bff4145
+  - type: verified_by
+    from: SCEN-CASE-kibi-search-hints-host-CUTOFF-ABOVE
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-10-30T14:49:41.730Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5e85697ec38

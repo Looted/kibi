@@ -563,3 +563,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bf8319bd6836
+  - type: specified_by
+    from: REQ-kibi-signoff-views
+    to: SCEN-CASE-kibi-signoff-views-CHANGED-REQ-OMITTED
+    created_at: 2026-10-30T14:50:54.295Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac2c4409c0a7
+  - type: specified_by
+    from: REQ-kibi-signoff-views
+    to: SCEN-CASE-kibi-signoff-views-ASKED-TWICE
+    created_at: 2026-10-30T14:51:15.463Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dbf7b40a6b78
+  - type: specified_by
+    from: REQ-kibi-signoff-views
+    to: SCEN-CASE-kibi-signoff-views-NEVER-ASKED
+    created_at: 2026-10-30T14:51:32.095Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb5fa46aeb5d
+  - type: specified_by
+    from: REQ-agent-core-edit-snippets
+    to: SCEN-CASE-agent-core-edit-snippets-OVER-BUDGET
+    created_at: 2026-10-30T14:58:02.702Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-676829425951
+  - type: specified_by
+    from: REQ-agent-core-edit-snippets
+    to: SCEN-CASE-agent-core-edit-snippets-REPEAT-DESCRIPTION
+    created_at: 2026-10-30T14:58:06.992Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18da1e6b91d2
+  - type: assumes
+    from: SCEN-NEG-bootstrap-subject-key-shape-COMPONENTLESS-CLAIM
+    to: FACT-CASE-bootstrap-subject-key-shape-componentless-claim
+    created_at: 2026-10-30T15:02:16.790Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5adb322244e8

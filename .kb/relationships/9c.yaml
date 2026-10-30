@@ -346,3 +346,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-769ce51efa5d
+  - type: specified_by
+    from: REQ-claude-hook-usage-telemetry-v2
+    to: SCEN-CASE-claude-hook-usage-telemetry-v2-SESSIONLESS-ROW
+    created_at: 2026-10-30T14:58:16.152Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-953e1097d0a5
+  - type: assumes
+    from: SCEN-CASE-prolog-bundled-ci-NO-SYSTEM-SWIPL-JOB
+    to: FACT-CASE-prolog-bundled-ci-NO-SYSTEM-SWIPL-JOB
+    created_at: 2026-10-30T14:58:09.903Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc5e16b3a3b5
+  - type: verified_by
+    from: SCEN-CASE-prolog-bundled-ci-NO-SYSTEM-SWIPL-JOB
+    to: TEST-prolog-bundled-ci
+    created_at: 2026-10-30T14:58:10.009Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-174e61c9d046

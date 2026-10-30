@@ -78,6 +78,10 @@ export interface FactFields {
   dimension_waiver?: string;
   /** The person who accepted the dimension waiver. */
   dimension_waiver_approved_by?: string;
+  /** Why the fact's derived edge cases are covered some other way. */
+  case_waiver?: string;
+  /** The person who accepted the case waiver. */
+  case_waiver_approved_by?: string;
   predicate_name?: string;
   predicate_namespace?: string;
   predicate_arity?: number;

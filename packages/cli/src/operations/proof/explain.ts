@@ -103,6 +103,8 @@ export type RequirementProofExplainView = {
   readonly negativePath?: NegativePathExplain;
   /** Quantified claims grounded only on booleans or ground predicates. */
   readonly dimension?: DimensionExplain;
+  /** Edge cases derived from the typed claims and the scenarios covering them. */
+  readonly cases?: CasesExplain;
   readonly tests: readonly ProofExplainTestBlock[];
   readonly productionSymbols: readonly ProofExplainSymbolBlock[];
   readonly structuralSymbols: readonly ProofExplainSymbolBlock[];
@@ -136,6 +138,29 @@ export type DimensionExplain = {
   readonly status: string;
   readonly claims: readonly DimensionClaimExplain[];
   readonly waivedClaims: readonly DimensionClaimExplain[];
+};
+
+export type CaseExplain = {
+  readonly caseId: string;
+  readonly claimKey: string;
+  readonly factId: string;
+  readonly generator: string;
+  readonly constraint: string;
+  /** success, rejection or unspecified */
+  readonly predicted: string;
+  /** covered, uncovered, unspecified or waived */
+  readonly coverage: string;
+  readonly scenarios: readonly string[];
+  /** The assumes fact a scenario would state to land in the case. */
+  readonly assumption: Readonly<Record<string, unknown>>;
+  readonly waiver?: { readonly reason: string; readonly approvedBy?: string };
+};
+
+export type CasesExplain = {
+  readonly status: string;
+  readonly cases: readonly CaseExplain[];
+  readonly summary: Readonly<Record<string, number>>;
+  readonly limitReached: boolean;
 };
 
 export type SymbolProofExplainView = {
@@ -310,6 +335,7 @@ export function projectRequirementExplain(
     scenarios,
     ...negativePathField(stages.negativePath),
     ...dimensionField(stages.dimension),
+    ...casesField(stages.cases),
     tests,
     productionSymbols: explanations.filter(
       (item) => !structuralIds.has(item.symbolId),
@@ -381,6 +407,70 @@ function dimensionField(stage: unknown): { dimension?: DimensionExplain } {
       waivedClaims: claims(record.waivedClaims),
     },
   };
+}
+
+// implements REQ-kibi-case-coverage
+function casesField(stage: unknown): { cases?: CasesExplain } {
+  if (stage === undefined) return {};
+  const record = asRecord(stage);
+  const cases = Array.isArray(record.cases)
+    ? record.cases.map((item): CaseExplain => {
+        const entry = asRecord(item);
+        return {
+          caseId: asString(entry.caseId),
+          claimKey: asString(entry.claimKey),
+          factId: asString(entry.factId),
+          generator: asString(entry.generator),
+          constraint: asString(entry.constraint),
+          predicted: asString(entry.predicted),
+          coverage: asString(entry.coverage),
+          scenarios: asStringArray(entry.scenarios),
+          assumption: asRecord(entry.assumption),
+          ...waiverField(entry.waiver),
+        };
+      })
+    : [];
+  const summary = asRecord(record.summary);
+  return {
+    cases: {
+      status: asString(record.status),
+      cases,
+      summary: Object.fromEntries(
+        Object.entries(summary).filter(
+          (entry): entry is [string, number] => typeof entry[1] === "number",
+        ),
+      ),
+      limitReached: record.limitReached === true,
+    },
+  };
+}
+
+function renderCases(view: RequirementProofExplainView): string[] {
+  const cases = view.cases;
+  if (cases === undefined || cases.cases.length === 0) return [];
+  const summary = cases.summary;
+  const lines = [
+    "",
+    `Edge cases: ${cases.status} (${summary.covered ?? 0} covered, ${summary.uncovered ?? 0} uncovered, ${summary.unspecified ?? 0} unspecified, ${summary.waived ?? 0} waived)`,
+  ];
+  for (const row of cases.cases) {
+    const where =
+      row.coverage === "covered" ? ` by ${row.scenarios.join(", ")}` : "";
+    lines.push(
+      `  ${row.caseId} ${row.factId} ${row.constraint} -> ${row.predicted}: ${row.coverage}${where}`,
+    );
+    if (row.coverage === "uncovered" && row.predicted === "rejection")
+      lines.push(
+        `    add a scenario that assumes ${JSON.stringify(row.assumption)} and expects rejection`,
+      );
+    if (row.waiver !== undefined && row.waiver.approvedBy === undefined)
+      lines.push(
+        `    waiver awaiting approval (set case_waiver_approved_by to the person who accepts it, in this pull request): ${row.waiver.reason}`,
+      );
+  }
+  if (cases.limitReached)
+    lines.push("  (some facts have more cases than the per-fact limit of 12)");
+  return lines;
 }
 
 const DIMENSION_REWRITES: Readonly<Record<string, string>> = {
@@ -567,6 +657,7 @@ function renderRequirementExplain(view: RequirementProofExplainView): string {
   }
   lines.push(...renderNegativePath(view));
   lines.push(...renderDimension(view));
+  lines.push(...renderCases(view));
   lines.push("");
   for (const test of view.tests) {
     lines.push(`TEST ${test.testId}`);

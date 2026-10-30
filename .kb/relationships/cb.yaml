@@ -321,3 +321,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-018b42b3a2e4
+  - type: specified_by
+    from: REQ-kibi-dependency-ordered-repair-plan
+    to: SCEN-CASE-kibi-dependency-ordered-repair-plan-two-ready-batches
+    created_at: 2026-10-30T14:59:27.171Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a24f04abc7f8
+  - type: specified_by
+    from: REQ-kibi-dependency-ordered-repair-plan
+    to: SCEN-CASE-kibi-dependency-ordered-repair-plan-unnamed-dependency
+    created_at: 2026-10-30T14:59:34.951Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8f3f20aadd2
+  - type: specified_by
+    from: REQ-kibi-dependency-ordered-repair-plan
+    to: SCEN-CASE-kibi-dependency-ordered-repair-plan-auto-applicable-batch
+    created_at: 2026-10-30T14:59:43.308Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc79201e2bf8
+  - type: specified_by
+    from: REQ-kibi-dependency-ordered-repair-plan
+    to: SCEN-CASE-kibi-dependency-ordered-repair-plan-requirement-without-plan
+    created_at: 2026-10-30T14:59:52.078Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5f843c6238d

@@ -300,5 +300,141 @@ Packed quota must equal ${value}
         );
       },
     );
+
+    it(
+      "keeps advisor readiness partial while a normative claim has no grounding edge",
+      { timeout: 300_000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+        const prose =
+          "An export must finish within 5 minutes. An export must keep at most 3 retries.";
+        const advice = await cliJson<{
+          receipt: {
+            inventory_contract: {
+              version: string;
+              source_field: string;
+              source_hash: string;
+            };
+            propositions: Array<{
+              claim_key: string;
+              claim_text: string;
+              role: string;
+              status: string;
+              span: { start: number; end: number };
+            }>;
+          };
+        }>(sandbox, [
+          "semantic-advisor",
+          "--input",
+          writeInput(sandbox, "advice", { text: prose }),
+        ]);
+        const contract = advice.receipt.inventory_contract;
+        const [grounded, ungrounded] = advice.receipt.propositions;
+        assert.ok(grounded && ungrounded, "the advisor must find two claims");
+        assert.strictEqual(ungrounded.role, "normative");
+        mkdirSync(join(sandbox.repoDir, ".kb", "facts"), { recursive: true });
+        writeFileSync(
+          join(sandbox.repoDir, ".kb/facts/FACT-EXPORT-SUBJECT.md"),
+          "---\nid: FACT-EXPORT-SUBJECT\ntitle: Export job\ntype: fact\nstatus: active\nfact_kind: subject\nsubject_key: export.job\n---\n",
+        );
+        writeFileSync(
+          join(sandbox.repoDir, ".kb/facts/FACT-EXPORT-DURATION.md"),
+          `---
+id: FACT-EXPORT-DURATION
+title: An export finishes within 5 minutes
+type: fact
+status: active
+fact_kind: property_value
+subject_key: export.job
+property_key: duration_minutes
+operator: lte
+value_type: int
+value_int: 5
+claim_key: ${grounded.claim_key}
+claim_text: ${grounded.claim_text}
+---
+`,
+        );
+        stageSourceFile(sandbox, ".kb/facts/FACT-EXPORT-SUBJECT.md");
+        stageSourceFile(sandbox, ".kb/facts/FACT-EXPORT-DURATION.md");
+        assert.strictEqual((await kibi(sandbox, ["sync"])).exitCode, 0);
+
+        // Two normative claims and one grounding edge, for the first claim.
+        const payload = (secondStatus: string) => ({
+          type: "req",
+          id: "REQ-EXPORT-LIMITS",
+          dryRun: true,
+          properties: {
+            title: "Export limits",
+            status: "open",
+            semantic_text: prose,
+            semantic_inventory_version: contract.version,
+            semantic_source_field: contract.source_field,
+            semantic_source_hash: contract.source_hash,
+            semantic_inventory: [
+              { ...grounded, status: "modeled" },
+              { ...ungrounded, status: secondStatus },
+            ].map(({ claim_key, claim_text, role, status, span }) => ({
+              claim_key,
+              claim_text,
+              role,
+              status,
+              span,
+            })),
+            logic_claims: [grounded.claim_key, ungrounded.claim_key],
+          },
+          relationships: [
+            {
+              type: "constrains",
+              from: "REQ-EXPORT-LIMITS",
+              to: "FACT-EXPORT-SUBJECT",
+            },
+            {
+              type: "requires_property",
+              from: "REQ-EXPORT-LIMITS",
+              to: "FACT-EXPORT-DURATION",
+            },
+          ],
+        });
+        const preview = await cliJson<{
+          semanticAdvisor: {
+            logic_readiness: string;
+            logic_coverage: {
+              status: string;
+              unresolved_claim_keys: string[];
+            };
+          };
+        }>(sandbox, [
+          "upsert",
+          "--input",
+          writeInput(sandbox, "partial", payload(ungrounded.status)),
+        ]);
+        assert.notStrictEqual(preview.semanticAdvisor.logic_readiness, "ready");
+        assert.strictEqual(
+          preview.semanticAdvisor.logic_coverage.status,
+          "partial",
+        );
+        assert.ok(
+          preview.semanticAdvisor.logic_coverage.unresolved_claim_keys.includes(
+            ungrounded.claim_key,
+          ),
+        );
+
+        // Declaring the ungrounded claim modeled anyway is refused.
+        const refused = await kibi(sandbox, [
+          "upsert",
+          "--input",
+          writeInput(sandbox, "claimed", payload("modeled")),
+        ]);
+        assert.notStrictEqual(refused.exitCode, 0, refused.stdout);
+        assert.match(
+          `${refused.stdout}${refused.stderr}`,
+          /modeled semantic_inventory entries \(2\) must equal logical grounding relationships \(1\)/,
+        );
+      },
+    );
   });
 }

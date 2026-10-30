@@ -66,6 +66,8 @@ const FACT_STRING_FIELDS = [
   "claim_text",
   "dimension_waiver",
   "dimension_waiver_approved_by",
+  "case_waiver",
+  "case_waiver_approved_by",
   "predicate_name",
   "predicate_namespace",
   "rule_ir",
@@ -202,6 +204,8 @@ export interface ExtractedEntity {
   claim_text?: string;
   dimension_waiver?: string;
   dimension_waiver_approved_by?: string;
+  case_waiver?: string;
+  case_waiver_approved_by?: string;
   predicate_name?: string;
   predicate_namespace?: string;
   predicate_arity?: number;

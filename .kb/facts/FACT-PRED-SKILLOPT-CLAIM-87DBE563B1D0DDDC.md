@@ -15,4 +15,6 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+case_waiver: 'No CLI path shows repeated relationship keys; the codec unit test that preserves every target of a repeated relationship covers it.'
+case_waiver_approved_by: Piotr Franczyk
 ---

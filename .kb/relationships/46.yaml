@@ -419,3 +419,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-900dedfd1800
+  - type: implements
+    from: SYM-core-case-waiver
+    to: REQ-kibi-case-coverage
+    created_at: 2026-10-30T14:06:34.289Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7199a68ef059
+  - type: covered_by
+    from: SYM-core-case-waiver
+    to: TEST-kibi-case-coverage
+    created_at: 2026-10-30T14:06:34.340Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a86b87a9b943
+  - type: specified_by
+    from: REQ-kibi-conservative-requirement-proof
+    to: SCEN-CASE-kibi-conservative-requirement-proof-CONTRADICTION-UNBLOCKED
+    created_at: 2026-10-30T14:47:05.641Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33cabb5a79f5
+  - type: specified_by
+    from: REQ-kibi-conservative-requirement-proof
+    to: SCEN-CASE-kibi-conservative-requirement-proof-SYMBOL-NO-COORDINATES
+    created_at: 2026-10-30T14:47:27.582Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef9c2740cb9e
+  - type: assumes
+    from: SCEN-CASE-claude-code-kibi-plugin-v1-SECOND-SNIPPET
+    to: FACT-CASE-claude-code-kibi-plugin-v1-SECOND-SNIPPET
+    created_at: 2026-10-30T14:53:28.946Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba99f1bc14cc
+  - type: verified_by
+    from: SCEN-CASE-claude-code-kibi-plugin-v1-SECOND-SNIPPET
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-10-30T14:53:29.055Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba1efa9bf1f4
+  - type: specified_by
+    from: REQ-kibi-conservative-requirement-proof
+    to: SCEN-CASE-kibi-conservative-requirement-proof-TEST-NO-EXECUTABLE-SYMBOL
+    created_at: 2026-10-30T15:11:23.669Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b4d070ecad2
+  - type: specified_by
+    from: REQ-kibi-conservative-requirement-proof
+    to: SCEN-CASE-kibi-conservative-requirement-proof-SYMBOL-UNCOVERED
+    created_at: 2026-10-30T15:11:34.317Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f571ce5acdac
+  - type: specified_by
+    from: REQ-kibi-conservative-requirement-proof
+    to: SCEN-CASE-kibi-conservative-requirement-proof-SYMBOL-NOT-IMPLEMENTING
+    created_at: 2026-10-30T15:11:44.512Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2a0bde0c22d
+  - type: specified_by
+    from: REQ-kibi-conservative-requirement-proof
+    to: SCEN-CASE-kibi-conservative-requirement-proof-TWO-GROUNDINGS
+    created_at: 2026-10-30T15:11:55.359Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-198a8ed71e89
+  - type: specified_by
+    from: REQ-kibi-conservative-requirement-proof
+    to: SCEN-CASE-kibi-conservative-requirement-proof-NO-GROUNDING
+    created_at: 2026-10-30T15:12:06.640Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d60b1012ed4

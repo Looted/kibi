@@ -35,6 +35,8 @@ type RemediationReport = {
     readonly metric: string;
     readonly scope: string;
     readonly target: string;
+    readonly reason: string;
+    readonly action: string;
     readonly event: null | {
       readonly logLine: number;
       readonly requestId: string | null;
@@ -291,6 +293,11 @@ if (RUN_NODE_TEST_SUITE) {
                 candidate.metric === metric && candidate.event?.logLine === 23,
             );
             assert.ok(item, `missing exact ${metric} remediation`);
+            // Every audit field the event exposes is carried into the repair.
+            assert.strictEqual(item.scope, "event");
+            assert.match(item.target, /(^|:)REQ-PACKED-REMEDIATION$/);
+            assert.ok(item.reason.length > 0, `${metric} has no reason`);
+            assert.ok(item.action.length > 0, `${metric} has no action`);
             assert.deepStrictEqual(item.event, {
               logLine: 23,
               requestId: "unmatched-upsert",

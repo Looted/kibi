@@ -20,4 +20,6 @@ origin:
   recorded_at: '2026-10-24T19:31:41.527Z'
 id: FACT-kibi-code-proof-coverage-reports-proved
 type: fact
+case_waiver: 'Covered at unit scope by kb.plt (claim_summary unproved claims, proved_requires_a_rechecked_certificate_on_every_scenario); an end-to-end fixture would need a fully tested requirement with a multi-claim certificate.'
+case_waiver_approved_by: Piotr Franczyk
 ---

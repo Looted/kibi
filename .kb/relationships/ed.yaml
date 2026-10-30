@@ -475,3 +475,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ca08415cfa2f
+  - type: assumes
+    from: SCEN-CASE-kibi-fresh-verification-receipts-v2-UNNORMALIZED-BINDING-PATH
+    to: FACT-CASE-kibi-fresh-verification-receipts-v2-UNNORMALIZED-BINDING-PATH
+    created_at: 2026-10-30T15:04:13.753Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5ac43502f59
+  - type: verified_by
+    from: SCEN-CASE-kibi-fresh-verification-receipts-v2-UNNORMALIZED-BINDING-PATH
+    to: TEST-kibi-proof-receipt-compaction-cli
+    created_at: 2026-10-30T15:04:13.819Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d9c1a2882ee
+  - type: specified_by
+    from: REQ-kibi-change-to-proof-plan-compiler-v2
+    to: SCEN-CASE-kibi-change-to-proof-plan-compiler-v2-split-commit
+    created_at: 2026-10-30T15:00:30.997Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f43bb6f1cf6e
+  - type: specified_by
+    from: REQ-kibi-change-to-proof-plan-compiler-v2
+    to: SCEN-CASE-kibi-change-to-proof-plan-compiler-v2-entity-without-document
+    created_at: 2026-10-30T15:00:37.822Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ef3453ad4f4
+  - type: specified_by
+    from: REQ-kibi-change-to-proof-plan-compiler-v2
+    to: SCEN-CASE-kibi-change-to-proof-plan-compiler-v2-unjournaled-write
+    created_at: 2026-10-30T15:00:46.447Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0583eac27bbc

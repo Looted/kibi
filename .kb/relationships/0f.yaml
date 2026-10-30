@@ -349,3 +349,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-83b15ca930dc
+  - type: specified_by
+    from: REQ-kibi-claim-bound-proofs
+    to: SCEN-CASE-kibi-claim-bound-proofs-ONE-UNPROVED-CLAIM
+    created_at: 2026-10-30T15:31:50.266Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec08a7aec166

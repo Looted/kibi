@@ -1895,6 +1895,18 @@
     ]
   },
   {
+    "test_id": "TEST-kibi-case-coverage",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "300000",
+        "./packages/cli/tests/consumer/case-coverage.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-kibi-search-answer-layer",
     "steps": [
       [
@@ -3012,6 +3024,13 @@
         "proof/lean/.lake/build/bin/kibi-intervals",
         "--cases",
         "200000"
+      ],
+      [
+        "bun",
+        "run",
+        "documentation/tests/e2e/intervals-differential-planted.e2e.ts",
+        "--lean",
+        "proof/lean/.lake/build/bin/kibi-intervals"
       ]
     ]
   },

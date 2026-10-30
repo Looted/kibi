@@ -412,3 +412,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fd0498394f47
+  - type: assumes
+    from: SCEN-CASE-prolog-bundled-release-symlinked-payload
+    to: FACT-CASE-prolog-bundled-release-symlinked-payload
+    created_at: 2026-10-30T15:05:18.580Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59dfdb48c886
+  - type: verified_by
+    from: SCEN-CASE-prolog-bundled-release-symlinked-payload
+    to: TEST-prolog-bundled-release
+    created_at: 2026-10-30T15:05:18.676Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a99b43200ff8

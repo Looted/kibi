@@ -321,3 +321,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c2a3c6617642
+  - type: specified_by
+    from: REQ-skillopt-description-candidates
+    to: SCEN-CASE-skillopt-description-candidates-changed-frontmatter-field
+    created_at: 2026-10-30T15:00:52.257Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d122b3fd941f
+  - type: specified_by
+    from: REQ-skillopt-description-candidates
+    to: SCEN-CASE-skillopt-description-candidates-description-too-long
+    created_at: 2026-10-30T15:00:58.439Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e438314915e
+  - type: specified_by
+    from: REQ-skillopt-description-candidates
+    to: SCEN-CASE-skillopt-description-candidates-unrecorded-description
+    created_at: 2026-10-30T15:01:03.591Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58af8b9f9994

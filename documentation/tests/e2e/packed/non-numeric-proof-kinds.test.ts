@@ -28,7 +28,9 @@ const RUN_NODE_TEST_SUITE =
  * anchored pattern, a state_machine test over its transition table and a
  * rule test over its sharing function each get a derived binding. A pattern
  * that also accepts longer strings is rejected with a string that tells the
- * two apart, and a sharing function that lets owners share archived
+ * two apart, a transition table with one transition the set fact does not
+ * name is rejected with that transition, and a sharing function that lets
+ * owners share archived
  * documents is rejected with the assignment that breaks the rule. The
  * advisor models "Every role in owner and editor must be able to invite
  * members" as an includes set fact; a rule test over the invite check derives
@@ -81,6 +83,7 @@ function sources(certificatesModule: string): Record<string, string> {
     "invoices.mjs": `export const INVOICE_NUMBER = /^INV-\\d{6}$/;
 export const LOOSE_NUMBER = /INV-\\d{6}/;
 export const TRANSITIONS = { draft: ["sent", "void"], sent: ["paid", "void"], paid: [], void: [] };
+export const LEAKY_TRANSITIONS = { draft: ["sent", "void"], sent: ["paid", "void"], paid: ["draft"], void: [] };
 `,
     "documents.mjs": `export const STATUSES = ["draft", "active", "archived"];
 export const ROLES = ["viewer", "editor", "owner"];
@@ -110,7 +113,7 @@ export async function emit(testId, build) {
 }
 export { regexCertificate, ruleCertificate, stateMachineCertificate };
 `,
-    "invoice-proof.mjs": `import { INVOICE_NUMBER, LOOSE_NUMBER, TRANSITIONS } from "./invoices.mjs";
+    "invoice-proof.mjs": `import { INVOICE_NUMBER, LEAKY_TRANSITIONS, LOOSE_NUMBER, TRANSITIONS } from "./invoices.mjs";
 import { emit, regexCertificate, stateMachineCertificate } from "./emit.mjs";
 export async function proveInvoices() {
   await emit("TEST-INVOICE-NUMBER", (testId) =>
@@ -119,6 +122,8 @@ export async function proveInvoices() {
     regexCertificate({ testId, symbolId: "SYM-LOOSE-NUMBER", value: LOOSE_NUMBER }));
   await emit("TEST-INVOICE-MACHINE", (testId) =>
     stateMachineCertificate({ testId, symbolId: "SYM-TRANSITIONS", transitions: TRANSITIONS }));
+  await emit("TEST-INVOICE-MACHINE-LEAKY", (testId) =>
+    stateMachineCertificate({ testId, symbolId: "SYM-LEAKY-TRANSITIONS", transitions: LEAKY_TRANSITIONS }));
 }
 await proveInvoices();
 `,
@@ -369,6 +374,14 @@ async function provision(
       contract: "  domain_source:\n    symbol_id: SYM-TRANSITIONS\n",
     },
     {
+      id: "TEST-INVOICE-MACHINE-LEAKY",
+      requirement: "REQ-INVOICE-STATES",
+      runner: "SYM-PROOF-INVOICES",
+      kind: "state_machine",
+      claim: claims.machine,
+      contract: "  domain_source:\n    symbol_id: SYM-LEAKY-TRANSITIONS\n",
+    },
+    {
       id: "TEST-SHARING-RULE",
       requirement: "REQ-SHARING",
       runner: "SYM-PROOF-SHARING",
@@ -456,6 +469,13 @@ async function provision(
       ["TEST-INVOICE-MACHINE"],
     ],
     [
+      "SYM-LEAKY-TRANSITIONS",
+      "LEAKY_TRANSITIONS",
+      "invoices.mjs",
+      "REQ-INVOICE-STATES",
+      ["TEST-INVOICE-MACHINE-LEAKY"],
+    ],
+    [
       "SYM-STATUSES",
       "STATUSES",
       "documents.mjs",
@@ -510,6 +530,7 @@ async function provision(
       "TEST-INVOICE-NUMBER",
       "TEST-INVOICE-NUMBER-LOOSE",
       "TEST-INVOICE-MACHINE",
+      "TEST-INVOICE-MACHINE-LEAKY",
     ],
     "SYM-PROOF-SHARING": [
       "TEST-SHARING-RULE",
@@ -609,6 +630,11 @@ export async function checkNonNumericProofKinds(
   assert.match(machine, /evidence_level: proved/, machine);
   assert.match(machine, /binding: derived/, machine);
   assert.match(machine, /kind: machine_set/);
+  // A table with one transition the set fact does not name proves nothing.
+  const leakyMachine = latestReceipt(sandbox, "TEST-INVOICE-MACHINE-LEAKY");
+  assert.match(leakyMachine, /binding: rejected/, leakyMachine);
+  assert.match(leakyMachine, /paid->draft/, leakyMachine);
+  assert.match(leakyMachine, /evidence_level: tested/, leakyMachine);
 
   const rule = latestReceipt(sandbox, "TEST-SHARING-RULE");
   assert.match(rule, /evidence_level: proved/, rule);

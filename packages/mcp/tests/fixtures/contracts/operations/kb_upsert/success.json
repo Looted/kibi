@@ -233,6 +233,16 @@
               "description": "Optional canonical identity key for predicate or strict fact claims.",
               "type": "string"
             },
+            "case_waiver": {
+              "description": "Fact-only. Why the edge cases derived from this fact are covered some other way or cannot occur. Waives uncovered_case once case_waiver_approved_by is set.",
+              "minLength": 1,
+              "type": "string"
+            },
+            "case_waiver_approved_by": {
+              "description": "Fact-only. The person who accepted case_waiver.",
+              "minLength": 1,
+              "type": "string"
+            },
             "claim_key": {
               "description": "Stable key of the atomic prose clause grounded by this fact, derived from claim_text. Optional: when omitted, Kibi derives it; when sent, it must equal the derived key.",
               "pattern": "^CLAIM-[A-F0-9]{16}$",

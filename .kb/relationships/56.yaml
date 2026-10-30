@@ -384,3 +384,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-483dd9564388
+  - type: assumes
+    from: SCEN-CASE-kibi-signoff-views-CHANGED-REQ-OMITTED
+    to: FACT-CASE-kibi-signoff-views-CHANGED-REQ-OMITTED
+    created_at: 2026-10-30T14:50:46.794Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9932a8b92e1
+  - type: verified_by
+    from: SCEN-CASE-kibi-signoff-views-CHANGED-REQ-OMITTED
+    to: TEST-kibi-signoff-views
+    created_at: 2026-10-30T14:50:46.881Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-834188b947f6
