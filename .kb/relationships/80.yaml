@@ -377,6 +377,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-588dd8e47224
+  - type: specified_by
+    from: REQ-runtime-packed-engine-daemon
+    to: SCEN-NEG-runtime-packed-engine-daemon-MISSING-BUNDLED-DAEMON
+    created_at: 2026-10-29T21:05:26.869Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-712a926074da
   - type: implements
     from: SYM-rank-by-meaning
     to: REQ-kibi-plugin-search-hints

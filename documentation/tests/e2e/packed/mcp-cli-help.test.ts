@@ -9,6 +9,7 @@ import {
   kibiMcp,
   packAll,
 } from "./helpers.js";
+import { startMcpStdioServer } from "./mcp-stdio-client.js";
 
 const RUN_NODE_TEST_SUITE =
   typeof (globalThis as { Bun?: unknown }).Bun === "undefined";
@@ -188,6 +189,54 @@ if (RUN_NODE_TEST_SUITE) {
           );
 
           console.log("  ✓ --help --diagnostic-mode works correctly");
+        },
+      );
+
+      it(
+        "should refuse an undeclared skill resource path and list the declared ones",
+        { timeout: 60000 },
+        async () => {
+          const server = await startMcpStdioServer({
+            command: "node",
+            args: [sandbox.kibiMcpBin],
+            cwd: sandbox.repoDir,
+            env: sandbox.env,
+          });
+          try {
+            const declared = await server.call("kb_skills", {
+              action: "read",
+              id: "kibi-usage",
+              resource: "resources/workflows.md",
+            });
+            assert.notStrictEqual(
+              declared.isError,
+              true,
+              `a declared resource must be readable: ${JSON.stringify(declared).slice(0, 500)}`,
+            );
+
+            for (const resource of [
+              "resources/missing.md",
+              "../../package.json",
+            ]) {
+              const refused = await server.call("kb_skills", {
+                action: "read",
+                id: "kibi-usage",
+                resource,
+              });
+              const text = JSON.stringify(refused);
+              assert.strictEqual(
+                refused.isError,
+                true,
+                `an undeclared resource must be refused: ${resource}`,
+              );
+              assert.ok(
+                text.includes("Declared resources: resources/"),
+                `the refusal must list the declared resources: ${text.slice(0, 500)}`,
+              );
+            }
+          } finally {
+            await server.close();
+          }
         },
       );
     },

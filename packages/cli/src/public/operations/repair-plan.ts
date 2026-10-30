@@ -110,6 +110,14 @@ const REPAIR_PHASES = {
     validationRules: ["must-priority-coverage", "no-dangling-refs"],
     writePolicy: "sequential_upsert",
   },
+  negative_scenarios: {
+    order: 65,
+    objective:
+      "Add a scenario that expects rejection or error and assumes a value the requirement forbids (see suggestedNegatives), link it with specified_by and verify it with a passing end-to-end test.",
+    workflowSteps: ["kb_query", "kb_validate_upsert", "kb_upsert", "kb_check"],
+    validationRules: ["scenario-outcome-mismatch", "no-dangling-refs"],
+    writePolicy: "sequential_upsert",
+  },
   scenario_tests: {
     order: 70,
     objective:
@@ -206,6 +214,7 @@ const GAP_PHASE: Readonly<Record<string, RepairPhase>> = {
   missing_scenario: "scenario_endpoints",
   infeasible_scenario: "scenario_endpoints",
   unknown_scenario_feasibility: "scenario_endpoints",
+  happy_path_only: "negative_scenarios",
   missing_scenario_test: "scenario_tests",
   proof_snapshot_unavailable: "snapshot_runtime",
   missing_passing_e2e: "proof_evidence",
@@ -235,6 +244,7 @@ const GAP_STAGE: Readonly<Record<string, string>> = {
   missing_scenario: "scenarios",
   infeasible_scenario: "scenarios",
   unknown_scenario_feasibility: "scenarios",
+  happy_path_only: "negative_path",
   missing_scenario_test: "scenario_tests",
   missing_passing_e2e: "passing_e2e",
   missing_proof_receipt: "passing_e2e",
@@ -255,6 +265,7 @@ const PROOF_STAGE_KEY: Readonly<Record<string, string>> = {
   contradictions: "contradictions",
   scenarios: "scenarios",
   scenario_tests: "scenarioTests",
+  negative_path: "negativePath",
   passing_e2e: "passingE2e",
   executable_symbols: "executableSymbols",
   production_symbols: "productionSymbols",

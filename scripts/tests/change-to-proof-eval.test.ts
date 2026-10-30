@@ -226,6 +226,39 @@ describe(changeToProofEvaluationSuite(), () => {
     await expect(readJsonl(bad)).rejects.toThrow(/Invalid JSONL/);
   });
 
+  test("the live run refuses a malformed gold fixture with its line and prints no metrics", async () => {
+    const corpusRoot = path.resolve(
+      import.meta.dir,
+      "../../documentation/evaluations/change-to-proof",
+    );
+    const dir = mkdtempSync(path.join(os.tmpdir(), "kibi-ctp-live-bad-"));
+    try {
+      const searchGold = readFileSync(
+        path.join(corpusRoot, "search-gold.jsonl"),
+        "utf8",
+      );
+      const bad = path.join(dir, "search-gold.jsonl");
+      // A truncated second record: the run must stop on it, not skip it.
+      writeFileSync(bad, `${searchGold.split("\n")[0]}\n{"id":"cut-off",\n`);
+      const run = Bun.spawnSync(
+        [
+          process.execPath,
+          "run",
+          path.resolve(import.meta.dir, "../change-to-proof-eval.ts"),
+          "--live",
+          bad,
+          path.join(corpusRoot, "compile-gold.jsonl"),
+        ],
+        { stdout: "pipe", stderr: "pipe" },
+      );
+      expect(run.exitCode).not.toBe(0);
+      expect(run.stderr.toString()).toContain(`Invalid JSONL at ${bad}:2`);
+      expect(run.stdout.toString()).not.toContain("recallAt5");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   test("empty gold sets and unused abstention branches stay defined", async () => {
     expect(
       await evaluateSearch([], async () => ({ results: [], abstained: false })),

@@ -573,3 +573,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2fbcfa613d6f
+  - type: assumes
+    from: SCEN-NEG-kb-check-unverified-requirement-statements-bare-pass-summary
+    to: FACT-NEG-kb-check-unverified-requirement-statements-bare-pass-summary
+    created_at: 2026-10-29T20:59:56.518Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e89b56209cd7
+  - type: verified_by
+    from: SCEN-NEG-kb-check-unverified-requirement-statements-bare-pass-summary
+    to: TEST-search-answer-hygiene
+    created_at: 2026-10-29T20:59:56.628Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7884c2ac14d3
+  - type: specified_by
+    from: REQ-mcp-apply-plan-async-preflight
+    to: SCEN-NEG-mcp-apply-plan-async-preflight-HASH-MISMATCH
+    created_at: 2026-10-29T21:20:22.291Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cdf46fea9251
+  - type: specified_by
+    from: REQ-claude-plugin-package
+    to: SCEN-NEG-claude-plugin-package-MISSING-SKILL
+    created_at: 2026-10-29T22:11:27.051Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e816bfd93062

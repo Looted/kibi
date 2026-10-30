@@ -468,3 +468,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c1f14770a5a2
+  - type: assumes
+    from: SCEN-NEG-kibi-search-gold-set-gate-METRIC-BELOW-THRESHOLD
+    to: FACT-NEG-kibi-search-gold-set-gate-METRIC-BELOW-THRESHOLD
+    created_at: 2026-10-29T21:10:29.671Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6fbb8e52bbf8
+  - type: verified_by
+    from: SCEN-NEG-kibi-search-gold-set-gate-METRIC-BELOW-THRESHOLD
+    to: TEST-kibi-search-gold-set-gate-cli
+    created_at: 2026-10-29T21:10:29.784Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73a1001c46db
+  - type: assumes
+    from: SCEN-NEG-opencode-comment-routing-ORDINARY-COMMENT
+    to: FACT-NEG-opencode-comment-routing-ORDINARY-COMMENT
+    created_at: 2026-10-29T21:23:34.220Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5aee5f129da7
+  - type: verified_by
+    from: SCEN-NEG-opencode-comment-routing-ORDINARY-COMMENT
+    to: TEST-opencode-python-comment-routing
+    created_at: 2026-10-29T21:23:34.323Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e371a68a977f
+  - type: specified_by
+    from: REQ-skillopt-claude-code-host
+    to: SCEN-NEG-skillopt-claude-code-host-UNCONFINED-FILE-TOOLS
+    created_at: 2026-10-29T21:03:06.121Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9a615ad7158

@@ -20,6 +20,8 @@
 :- use_module('checks.pl', [
     check_domain_contradictions_and_witnesses/2,
     infeasible_scenario/5,
+    negative_scenario_witness/3,
+    opposing_assumption/2,
     scenario_feasibility_outcome/2,
     check_rule_safety/1,
     check_rule_verifiability/1
@@ -155,12 +157,14 @@ compute_requirement_proof(ReqId, ReqProps, Context, Proof) :-
                                       PassingE2eStage.receiptEvidence, Context,
                                       ProductionStage, ProductionSymbols),
     source_coordinate_stage(ReqProps, ExecutableSymbols, ProductionSymbols, CoordinateStage),
+    negative_path_stage(ReqId, ScenarioStage, ScenarioTestStage, Context, NegativePathStage),
     Stages = _{
         semanticInventory: SemanticStage,
         logicGrounding: LogicStage,
         contradictions: ContradictionStage,
         scenarios: ScenarioStage,
         scenarioTests: ScenarioTestStage,
+        negativePath: NegativePathStage,
         passingE2e: PassingE2eStage,
         executableSymbols: ExecutableStage,
         productionSymbols: ProductionStage,
@@ -688,6 +692,12 @@ scenario_stage(ReqId, Stage, ScenarioIds) :-
             unknown_feasibility_reason(Reason, ReasonText)
         ),
         UnknownFeasibility),
+    % implements REQ-kibi-happy-path-gap
+    % The linked scenarios that exercise this requirement's failure side: they
+    % expect rejection or error and assume a value it forbids.
+    findall(ScenarioId,
+        (member(ScenarioId, ScenarioIds), once(negative_scenario_witness(ScenarioId, ReqId, _))),
+        NegativeScenarios),
     (   (ScenarioIds = [] ; InvalidScenarioTargets \= [])
     ->  Status = missing
     ;   InfeasibleScenarios \= []
@@ -702,6 +712,7 @@ scenario_stage(ReqId, Stage, ScenarioIds) :-
         invalidScenarioTargets: InvalidScenarioTargets,
         infeasibleScenarios: InfeasibleScenarios,
         unknownFeasibility: UnknownFeasibility,
+        negativeScenarios: NegativeScenarios,
         sources: Sources
     }.
 
@@ -715,6 +726,133 @@ unknown_feasibility_reason(undetermined_validity(_), undetermined_validity).
 
 existing_scenario(ScenarioId) :-
     kb_entity(ScenarioId, scenario, _).
+
+%% negative_path_stage(+ReqId, +ScenarioStage, +ScenarioTestStage, +Context, -Stage)
+% implements REQ-kibi-happy-path-gap
+% A requirement is not tested while only its happy path is: when it grounds
+% a claim (a property value, predicate or rule), at least one linked
+% scenario must expect rejection or error and assume a value or situation
+% the requirement forbids.  Claims a fresh certificate proves at code scope
+% decide their failure side already and need none.  Status is not_required
+% (no such claim, or all certified), passed, waived (an approved
+% failure_side_waiver) or missing.
+negative_path_stage(ReqId, ScenarioStage, ScenarioTestStage, Context, Stage) :-
+    findall(Key-FactId,
+        (   negative_path_link(Link),
+            kb_relationship(Link, ReqId, FactId),
+            fact_claim_key_or_id(FactId, Key)
+        ),
+        ClaimFacts0),
+    sort(ClaimFacts0, ClaimFacts),
+    certified_claim_keys(ReqId, ScenarioTestStage, Context, Certified),
+    exclude(certified_claim(Certified), ClaimFacts, OpenFacts),
+    pairs_keys(OpenFacts, Open0),
+    sort(Open0, Open),
+    pending_certified_claim_keys(ScenarioTestStage, Context, Open, Pending),
+    (   get_dict(negativeScenarios, ScenarioStage, Negatives) -> true ; Negatives = [] ),
+    failure_side_waiver(ReqId, Waiver),
+    (   Open == []
+    ->  Status = not_required
+    ;   Negatives \== []
+    ->  Status = passed
+    ;   get_dict(approvedBy, Waiver, _)
+    ->  Status = waived
+    ;   Status = missing
+    ),
+    (   Status == missing
+    ->  findall(_{claimKey: Key, factId: FactId, assumption: Assumption, expects: rejection},
+            (member(Key-FactId, OpenFacts), once(opposing_assumption(FactId, Assumption))),
+            Suggestions)
+    ;   Suggestions = []
+    ),
+    Stage = _{
+        status: Status,
+        claims: Open,
+        certifiedClaims: Certified,
+        negativeScenarios: Negatives,
+        suggestedNegatives: Suggestions,
+        pendingReproofClaims: Pending,
+        waiver: Waiver
+    }.
+
+% Open claims a certificate test proves (its contract lists them in proves)
+% whose receipt is only older than the code: re-running kibi prove certifies
+% them, so the evidence floor treats them like any other stale receipt.
+pending_certified_claim_keys(ScenarioTestStage, Context, Open, Keys) :-
+    (   get_dict(tests, ScenarioTestStage, Tests) -> true ; Tests = [] ),
+    findall(Key,
+        (   member(TestId, Tests),
+            test_receipt_evidence(Context, [unit, integration, end_to_end], TestId, Evidence),
+            get_dict(state, Evidence, stale),
+            kb_entity(TestId, test, Props),
+            memberchk(proof_contract=RawContract, Props),
+            proof_contract_dict(RawContract, Contract),
+            get_dict(proves, Contract, Proves),
+            is_list(Proves),
+            member(RawKey, Proves),
+            normalize_atom(RawKey, Key),
+            memberchk(Key, Open)
+        ),
+        Keys0),
+    sort(Keys0, Keys).
+
+%% failure_side_waiver(+ReqId, -Waiver)
+% A requirement whose claims state a capability or an output shape has no
+% input to refuse, so its failure side can be waived: failure_side_waiver
+% gives the reason and failure_side_waiver_approved_by names the human who
+% accepted it.  Only an approved waiver satisfies the stage; a reason alone
+% is reported as pending approval.  Waiver is _{} when none is recorded.
+failure_side_waiver(ReqId, Waiver) :-
+    (   kb_entity(ReqId, req, Props),
+        memberchk(failure_side_waiver=RawReason, Props),
+        normalize_atom(RawReason, Reason),
+        Reason \== ''
+    ->  atom_string(Reason, ReasonText),
+        (   memberchk(failure_side_waiver_approved_by=RawBy, Props),
+            normalize_atom(RawBy, By),
+            By \== ''
+        ->  atom_string(By, ByText),
+            Waiver = _{reason: ReasonText, approvedBy: ByText}
+        ;   Waiver = _{reason: ReasonText}
+        )
+    ;   Waiver = _{}
+    ).
+
+certified_claim(Certified, Key-_) :- memberchk(Key, Certified).
+
+negative_path_link(requires_property).
+negative_path_link(requires_predicate).
+negative_path_link(requires_rule).
+
+fact_claim_key_or_id(FactId, Key) :-
+    (   kb_entity(FactId, fact, Props),
+        memberchk(claim_key=Raw, Props),
+        normalize_atom(Raw, Key0),
+        Key0 \== ''
+    ->  Key = Key0
+    ;   Key = FactId
+    ).
+
+% Claims of ReqId a passed receipt binds with a derived obligation outside
+% intent scope: a certificate decides them, both sides.
+certified_claim_keys(ReqId, ScenarioTestStage, Context, Keys) :-
+    (   get_dict(tests, ScenarioTestStage, Tests) -> true ; Tests = [] ),
+    findall(Key,
+        (   member(TestId, Tests),
+            test_receipt_evidence(Context, [unit, integration, end_to_end], TestId, Evidence),
+            get_dict(state, Evidence, passed),
+            get_dict(claimBindings, Evidence, Recorded),
+            member(Entry, Recorded),
+            inventory_entry_field(Entry, requirement_id, RawReq),
+            normalize_atom(RawReq, ReqId),
+            inventory_entry_field(Entry, claim_key, RawKey),
+            normalize_atom(RawKey, Key),
+            test_claim_binding(ReqId, Key, [TestId-Evidence], Binding),
+            get_dict(binding, Binding, derived),
+            \+ get_dict(scope, Binding, intent)
+        ),
+        Keys0),
+    sort(Keys0, Keys).
 
 scenario_test_stage(ScenarioIds, Stage, ScenarioTests) :-
     maplist(scenario_test_obligation, ScenarioIds, Obligations),
@@ -2281,12 +2419,24 @@ freshness_gap(proof_contract_mismatch).
 
 freshness_only_gaps(Gaps, Stages) :-
     include(freshness_gap, Gaps, [_|_]),
-    exclude(freshness_gap, Gaps, Rest),
+    exclude(freshness_gap, Gaps, Rest0),
+    (   negative_path_freshness_only(Stages)
+    ->  exclude(==(happy_path_only), Rest0, Rest)
+    ;   Rest = Rest0
+    ),
     (   Rest == []
     ->  true
     ;   Rest == [missing_production_symbol_coverage],
         production_coverage_freshness_only(Stages)
     ).
+
+% The failure side is open only because certificate receipts that prove
+% every open claim are stale.
+negative_path_freshness_only(Stages) :-
+    get_dict(negativePath, Stages, Stage),
+    Stage.status == missing,
+    Stage.claims \== [],
+    subtract(Stage.claims, Stage.pendingReproofClaims, []).
 
 production_coverage_freshness_only(Stages) :-
     Stage = Stages.productionSymbols,
@@ -2413,6 +2563,7 @@ proof_gap_present(infeasible_scenario, Stages) :- Stages.scenarios.infeasibleSce
 proof_gap_present(unknown_scenario_feasibility, Stages) :-
     get_dict(unknownFeasibility, Stages.scenarios, Unknown),
     Unknown \= [].
+proof_gap_present(happy_path_only, Stages) :- Stages.negativePath.status == missing.
 proof_gap_present(missing_scenario_test, Stages) :- memberchk(Stages.scenarios.status, [passed, blocked]), Stages.scenarioTests.status == missing.
 proof_gap_present(missing_passing_e2e, Stages) :- Stages.passingE2e.status == missing.
 proof_gap_present(missing_proof_receipt, Stages) :- Stages.passingE2e.missingReceiptTests \= [].
@@ -2442,6 +2593,7 @@ gap_definition(contradiction_check_incomplete, 41, contradictions, "Complete log
 gap_definition(unknown_scenario_feasibility, 49, scenarios, "Link the property values the success scenario relies on with assumes facts that a current requirement constrains, so its feasibility can be decided.").
 gap_definition(missing_scenario, 50, scenarios, "Add a specified_by scenario for the requirement.").
 gap_definition(infeasible_scenario, 49, scenarios, "Set expects: rejection on the scenario, correct its assumes fact, or record a human-approved exception requirement that exempts the forbidding requirement.").
+gap_definition(happy_path_only, 48, negative_path, "Add a scenario that expects rejection or error and assumes a value this requirement forbids, link it with specified_by, and verify it with a passing end-to-end test.").
 gap_definition(missing_scenario_test, 51, scenario_tests, "Link the scenario to a test with verified_by or validates.").
 gap_definition(missing_passing_e2e, 52, passing_e2e, "Record fresh passing end-to-end evidence on a scenario-backed test.").
 gap_definition(missing_proof_receipt, 53, passing_e2e, "Run the configured proof integration through kibi prove and append its kibi.proof-receipt.v1 result for the scenario-backed proof-bearing test.").

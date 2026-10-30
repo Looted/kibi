@@ -356,3 +356,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aabb4ed0c46a
+  - type: specified_by
+    from: REQ-kibi-kb-certificates
+    to: SCEN-NEG-kibi-kb-certificates-tampered-certificate
+    created_at: 2026-10-29T21:13:54.521Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-366755a54019
+  - type: assumes
+    from: SCEN-NEG-kibi-change-to-proof-evaluation-MALFORMED-GOLD
+    to: FACT-NEG-kibi-change-to-proof-evaluation-MALFORMED-GOLD
+    created_at: 2026-10-29T22:00:02.610Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7c76fc12d3d
+  - type: verified_by
+    from: SCEN-NEG-kibi-change-to-proof-evaluation-MALFORMED-GOLD
+    to: TEST-kibi-change-to-proof-evaluation-live
+    created_at: 2026-10-29T22:00:02.681Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4fd3bf10a994

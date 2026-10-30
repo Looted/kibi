@@ -328,3 +328,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ffc5111f235f
+  - type: specified_by
+    from: REQ-vscode-traceability
+    to: SCEN-NEG-vscode-traceability-ENTITY-WITHOUT-SOURCE
+    created_at: 2026-10-29T21:13:22.829Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-374ee34a1dc2

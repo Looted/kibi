@@ -545,3 +545,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e3a762d3aaf6
+  - type: assumes
+    from: SCEN-NEG-bootstrap-discovered-candidate-budget-GENERIC-MARKDOWN
+    to: FACT-NEG-bootstrap-discovered-candidate-budget-GENERIC-MARKDOWN
+    created_at: 2026-10-29T21:04:24.122Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e605520a7561
+  - type: verified_by
+    from: SCEN-NEG-bootstrap-discovered-candidate-budget-GENERIC-MARKDOWN
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-10-29T21:04:24.218Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc7b086e6de8
+  - type: assumes
+    from: SCEN-NEG-cli-migration-first-commit-HIDDEN-LINK-EDIT
+    to: FACT-NEG-cli-migration-first-commit-HIDDEN-LINK-EDIT
+    created_at: 2026-10-29T21:01:20.936Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-519b09179457
+  - type: verified_by
+    from: SCEN-NEG-cli-migration-first-commit-HIDDEN-LINK-EDIT
+    to: TEST-cli-migration-first-commit
+    created_at: 2026-10-29T21:01:21.156Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9845d9abe0e0
+  - type: assumes
+    from: SCEN-NEG-kb-entity-body-context-thin-body
+    to: FACT-NEG-kb-entity-body-context-thin-body
+    created_at: 2026-10-29T21:00:49.065Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d59988ae35f0
+  - type: verified_by
+    from: SCEN-NEG-kb-entity-body-context-thin-body
+    to: TEST-kb-entity-body-context
+    created_at: 2026-10-29T21:00:49.329Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3853e5a9c8a
+  - type: assumes
+    from: SCEN-NEG-kibi-branded-health-report-later-gate-drop
+    to: FACT-NEG-kibi-branded-health-report-later-gate-drop
+    created_at: 2026-10-29T21:07:05.797Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af24002cbe06
+  - type: verified_by
+    from: SCEN-NEG-kibi-branded-health-report-later-gate-drop
+    to: TEST-kibi-branded-health-report
+    created_at: 2026-10-29T21:07:06.027Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dcc819e9e414
+  - type: assumes
+    from: SCEN-NEG-kibi-ontology-quality-BELOW-MINIMUM
+    to: FACT-NEG-kibi-ontology-quality-BELOW-MINIMUM
+    created_at: 2026-10-29T21:03:03.243Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85faa83808df
+  - type: verified_by
+    from: SCEN-NEG-kibi-ontology-quality-BELOW-MINIMUM
+    to: TEST-kibi-vocabulary-convergence-e2e
+    created_at: 2026-10-29T21:03:03.483Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cddf5f2f27cd
+  - type: assumes
+    from: SCEN-NEG-opencode-background-sync-FAILING-SYNC
+    to: FACT-NEG-opencode-background-sync-FAILING-SYNC
+    created_at: 2026-10-29T21:23:48.040Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b610aa4a2179
+  - type: verified_by
+    from: SCEN-NEG-opencode-background-sync-FAILING-SYNC
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-10-29T21:23:48.192Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-02108603d325
+  - type: specified_by
+    from: REQ-core-prolog-process-management
+    to: SCEN-NEG-core-prolog-process-management-STALE-ATTACHED-SNAPSHOT
+    created_at: 2026-10-29T22:00:31.938Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bbd36231c1f4

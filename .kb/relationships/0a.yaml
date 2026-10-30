@@ -440,3 +440,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0e7369927308
+  - type: assumes
+    from: SCEN-NEG-opencode-file-context-guidance-v1-REPEATED-GUIDANCE
+    to: FACT-NEG-opencode-file-context-guidance-v1-REPEATED-GUIDANCE
+    created_at: 2026-10-29T22:20:14.409Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4fd44f2c828c
+  - type: verified_by
+    from: SCEN-NEG-opencode-file-context-guidance-v1-REPEATED-GUIDANCE
+    to: TEST-opencode-file-context-guidance-v1
+    created_at: 2026-10-29T22:20:14.490Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1025ca7d35a

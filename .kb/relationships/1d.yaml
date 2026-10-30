@@ -482,3 +482,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-705257375bd0
+  - type: assumes
+    from: SCEN-NEG-kibi-change-to-proof-plan-compiler-v2-mismatched-plan-hash
+    to: FACT-NEG-kibi-change-to-proof-plan-compiler-v2-mismatched-plan-hash
+    created_at: 2026-10-29T21:07:29.359Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d041b95cdcb2
+  - type: verified_by
+    from: SCEN-NEG-kibi-change-to-proof-plan-compiler-v2-mismatched-plan-hash
+    to: TEST-e2e-plan-compiler-hash
+    created_at: 2026-10-29T21:07:29.649Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e2207f49db7

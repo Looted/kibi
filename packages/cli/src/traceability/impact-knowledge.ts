@@ -62,6 +62,8 @@ function semanticEntityFingerprint(
       "required_evidence",
       "approved_by",
       "approval_ref",
+      "failure_side_waiver",
+      "failure_side_waiver_approved_by",
       "exempts_claims",
       "proof_contract",
       "proof_bindings",

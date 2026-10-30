@@ -396,20 +396,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-6ecaaa986fa0
   - type: implements
-    from: SYM-search-hints-trigger
-    to: REQ-kibi-search-hints-host
-    created_at: 2026-10-29T19:22:55.292Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-66861749e5fa
-  - type: covered_by
-    from: SYM-search-hints-trigger
-    to: TEST-kibi-search-hints-host
-    created_at: 2026-10-29T19:22:55.335Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0df60da054c1
-  - type: implements
     from: SYM-const-max-aspect-words
     to: REQ-bootstrap-claim-aspect-limits
     created_at: 2026-10-29T16:51:13.350Z
@@ -437,3 +423,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d62150b0cf5f
+  - type: assumes
+    from: SCEN-NEG-kibi-query-fact-filters-UNDECLARED-ARGUMENT
+    to: FACT-NEG-kibi-query-fact-filters-UNDECLARED-ARGUMENT
+    created_at: 2026-10-29T21:07:47.198Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b77a602d00a
+  - type: verified_by
+    from: SCEN-NEG-kibi-query-fact-filters-UNDECLARED-ARGUMENT
+    to: TEST-kibi-query-fact-filters
+    created_at: 2026-10-29T21:07:47.371Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-65a45e924a32
+  - type: implements
+    from: SYM-search-hints-trigger
+    to: REQ-kibi-search-hints-host
+    created_at: 2026-10-29T19:22:55.292Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66861749e5fa
+  - type: covered_by
+    from: SYM-search-hints-trigger
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-10-29T19:22:55.335Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0df60da054c1

@@ -102,6 +102,118 @@ if (RUN_NODE_TEST_SUITE) {
           assert.ok(typeof fileFilterModule.shouldHandleFile === "function");
         },
       );
+
+      it(
+        "trims oversized guidance to one block within the bullet and word budget",
+        {
+          timeout: 30000,
+        },
+        async () => {
+          const configModule = await import(
+            join(installDir, "node_modules/kibi-opencode/dist/config.js")
+          );
+          const promptModule = await import(
+            join(installDir, "node_modules/kibi-opencode/dist/prompt.js")
+          );
+          const sentinel = "<!-- kibi-opencode -->";
+          const reminder =
+            "- Kibi impact evidence is required before completion/commit: run `kb_check` before completing this task.";
+          const oversized = Array.from(
+            { length: 90 },
+            (_, index) => `detail${index}`,
+          ).join(" ");
+          const edit = { path: "src/feature.ts", kind: "source" };
+
+          const prompt: string = promptModule.injectPrompt(
+            "Initial system prompt",
+            configModule.DEFAULTS,
+            {
+              recentEdits: [edit],
+              focusEdit: edit,
+              posture: "root_active",
+              riskClass: "behavior_candidate",
+              completionReminder: true,
+              fileOperationReminder: {
+                path: edit.path,
+                lifecycleReminder: oversized,
+                e2eReminder: oversized,
+              },
+            },
+          );
+
+          assert.strictEqual(prompt.split(sentinel).length - 1, 1);
+          const block = prompt.slice(prompt.indexOf(sentinel));
+          assert.ok(block.includes(reminder), block);
+          const guidance = block.slice(0, block.indexOf(reminder));
+          const words = guidance.split(/\s+/).filter(Boolean).length;
+          assert.ok(words <= 120, `guidance has ${words} words: ${guidance}`);
+          const bullets = block
+            .split("\n")
+            .filter((line) => line.startsWith("-")).length;
+          assert.ok(bullets <= 5, `guidance has ${bullets} bullets`);
+          // Both reminders end in detail89; trimming keeps at most one of them.
+          assert.ok(
+            guidance.split("detail89").length - 1 <= 1,
+            "the oversized reminders must be trimmed",
+          );
+        },
+      );
+
+      it(
+        "contains a failing background sync, reports it, and keeps scheduling",
+        {
+          timeout: 30000,
+        },
+        async () => {
+          const configModule = await import(
+            join(installDir, "node_modules/kibi-opencode/dist/config.js")
+          );
+          const schedulerModule = await import(
+            join(installDir, "node_modules/kibi-opencode/dist/scheduler.js")
+          );
+
+          const completed: Array<{
+            exitCode: number;
+            reason: string;
+            syncErrorMessage?: string;
+          }> = [];
+          let syncCalls = 0;
+          const scheduler = schedulerModule.createSyncScheduler({
+            worktree: tmpDir,
+            config: {
+              ...configModule.DEFAULTS,
+              sync: { ...configModule.DEFAULTS.sync, debounceMs: 10 },
+            },
+            runSync: async () => {
+              syncCalls += 1;
+              if (syncCalls === 1) {
+                throw new Error("kibi sync exploded");
+              }
+              return { exitCode: 0, syncCommand: "kibi sync" };
+            },
+            onRunComplete: (meta: (typeof completed)[number]) => {
+              completed.push(meta);
+            },
+          });
+          try {
+            scheduler.scheduleSync("e2e.failing-sync");
+            await scheduler.flush();
+            assert.strictEqual(completed.length, 1);
+            assert.strictEqual(completed[0]?.exitCode, 1);
+            assert.match(
+              completed[0]?.syncErrorMessage ?? "",
+              /kibi sync exploded/,
+            );
+
+            scheduler.scheduleSync("e2e.after-failure");
+            await scheduler.flush();
+            assert.strictEqual(completed.length, 2);
+            assert.strictEqual(completed[1]?.exitCode, 0);
+          } finally {
+            scheduler.dispose();
+          }
+        },
+      );
     },
   );
 }

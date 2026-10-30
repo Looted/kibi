@@ -433,3 +433,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a9afedfc5e07
+  - type: specified_by
+    from: REQ-agent-hosts-decision-guard
+    to: SCEN-NEG-agent-hosts-decision-guard-UNRECORDED-STOP
+    created_at: 2026-10-29T21:02:45.495Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-750dbba511d2
+  - type: assumes
+    from: SCEN-NEG-ui-plugin-design-policy-NON-DESIGN-OWNER
+    to: FACT-NEG-ui-plugin-design-policy-NON-DESIGN-OWNER
+    created_at: 2026-10-29T21:10:52.338Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b0c61d02e3e3
+  - type: verified_by
+    from: SCEN-NEG-ui-plugin-design-policy-NON-DESIGN-OWNER
+    to: TEST-ui-plugin-design-policy
+    created_at: 2026-10-29T21:10:52.408Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34c83a11d95a

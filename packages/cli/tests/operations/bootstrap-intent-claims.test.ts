@@ -681,6 +681,42 @@ describe("intent claims that restate current requirements", () => {
     ).toBe(false);
   });
 
+  test("the restatement signal starts at token overlap 0.8 and not below it", () => {
+    // 7 of the 9 tokens of the first requirement sentence: overlap 0.78.
+    const justBelow = build([
+      claim(
+        "H-6",
+        "Users must be able to export reports.",
+        "The handover lists report export.",
+      ),
+    ]);
+    expect(justBelow.candidates).toHaveLength(1);
+    expect(
+      justBelow.candidates[0]?.evidence.some((line) =>
+        line.startsWith("possible_restatement:"),
+      ),
+    ).toBe(false);
+    expect(
+      justBelow.diagnostics.some((line) => line.includes("closely restates")),
+    ).toBe(false);
+    // 8 shared of 10 distinct tokens: overlap exactly 0.8 is flagged.
+    const atThreshold = build([
+      claim(
+        "H-7",
+        "Users must be able to export reports as PDF.",
+        "The handover lists PDF export.",
+      ),
+    ]);
+    expect(atThreshold.candidates[0]?.evidence).toContain(
+      "possible_restatement:REQ-reports-export",
+    );
+    expect(
+      atThreshold.diagnostics.some((line) =>
+        line.includes("(token overlap 0.8 with its semantic text"),
+      ),
+    ).toBe(true);
+  });
+
   test("the match does not depend on the order requirements are read in", () => {
     const twin = {
       id: "REQ-reports-csv",

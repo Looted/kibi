@@ -321,3 +321,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-39f61cfd4bae
+  - type: assumes
+    from: SCEN-NEG-cli-staged-impact-enforcement-NO-IMPACT-EVIDENCE
+    to: FACT-NEG-cli-staged-impact-enforcement-NO-IMPACT-EVIDENCE
+    created_at: 2026-10-29T21:03:36.894Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-caea56b52203
+  - type: verified_by
+    from: SCEN-NEG-cli-staged-impact-enforcement-NO-IMPACT-EVIDENCE
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-10-29T21:03:37.034Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-948f344869fe
+  - type: specified_by
+    from: REQ-mcp-coded-error-envelope
+    to: SCEN-NEG-mcp-coded-error-envelope-CODED-TOOL-FAILURE
+    created_at: 2026-10-29T21:21:29.681Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-172d0d6ea0fd
+  - type: specified_by
+    from: REQ-prolog-bundled-quickstart
+    to: SCEN-NEG-prolog-bundled-quickstart-MISSING-QUICKSTART
+    created_at: 2026-10-29T21:06:16.803Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b64f39632f82

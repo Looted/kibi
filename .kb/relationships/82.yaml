@@ -370,3 +370,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-617d03e75aa9
+  - type: assumes
+    from: SCEN-NEG-015-OTHER-SOURCE-ENTITY
+    to: FACT-NEG-015-OTHER-SOURCE-ENTITY
+    created_at: 2026-10-29T21:59:56.869Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76dc83fdff07
+  - type: verified_by
+    from: SCEN-NEG-015-OTHER-SOURCE-ENTITY
+    to: TEST-012
+    created_at: 2026-10-29T21:59:56.928Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-378e044d97bb
+  - type: specified_by
+    from: REQ-kb-decision-firmness-settings
+    to: SCEN-NEG-kb-decision-firmness-settings-SHORT-EXPLANATION
+    created_at: 2026-10-29T22:11:31.563Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d6a6ad75a4d

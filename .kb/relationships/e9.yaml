@@ -377,3 +377,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-28fd992d08c6
+  - type: specified_by
+    from: REQ-docs-site-root-pages
+    to: SCEN-NEG-docs-site-root-pages-BROKEN-LINK-PUBLISHED
+    created_at: 2026-10-29T21:15:00.088Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-522054ad41f1
+  - type: assumes
+    from: SCEN-NEG-kibi-conditional-requirement-authoring-untranslatable-conditional
+    to: FACT-NEG-kibi-conditional-requirement-authoring-untranslatable-conditional
+    created_at: 2026-10-29T21:08:31.653Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60082687a891
+  - type: verified_by
+    from: SCEN-NEG-kibi-conditional-requirement-authoring-untranslatable-conditional
+    to: TEST-kibi-conditional-feasibility-cli
+    created_at: 2026-10-29T21:08:31.785Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4de9f56238d6
+  - type: assumes
+    from: SCEN-NEG-kibi-predicate-argument-constants-ALIAS-UPSERT
+    to: FACT-NEG-kibi-predicate-argument-constants-ALIAS-UPSERT
+    created_at: 2026-10-29T21:03:58.964Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-723cd54a9f43
+  - type: verified_by
+    from: SCEN-NEG-kibi-predicate-argument-constants-ALIAS-UPSERT
+    to: TEST-kibi-predicate-vocabulary-migration-e2e
+    created_at: 2026-10-29T21:03:59.050Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe47d6f622dc
+  - type: specified_by
+    from: REQ-kibi-review-observation-claim-text-v2
+    to: SCEN-NEG-kibi-review-observation-claim-text-v2-MISMATCHED-CLAIM-KEY
+    created_at: 2026-10-29T21:08:42.265Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f5a36d1ecd6
+  - type: assumes
+    from: SCEN-NEG-skillopt-external-adoption-verdict-LIVE-ADOPT-LOCAL-EVIDENCE
+    to: FACT-NEG-skillopt-external-adoption-verdict-LIVE-ADOPT-LOCAL-EVIDENCE
+    created_at: 2026-10-29T21:03:53.951Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e1c3f37174e
+  - type: verified_by
+    from: SCEN-NEG-skillopt-external-adoption-verdict-LIVE-ADOPT-LOCAL-EVIDENCE
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-10-29T21:03:54.113Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92d876def411

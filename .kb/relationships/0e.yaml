@@ -483,16 +483,30 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-cbfc578a2d4b
   - type: executable_for
-    from: SYM-test-kibi-search-hints-host
-    to: TEST-kibi-search-hints-host
-    created_at: 2026-10-29T19:19:06.413Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1db56a2a0491
-  - type: executable_for
     from: SYM-proof-rule-decision-firm-superseded
     to: TEST-proof-rule-decision-firm-superseded
     created_at: 2026-10-29T16:39:17.179Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6cef9cf63235
+  - type: implements
+    from: SYM-cli-proof-explain-project-requirement
+    to: REQ-kibi-happy-path-gap
+    created_at: 2026-10-29T21:57:35.854Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1e4f3d9c417
+  - type: covered_by
+    from: SYM-cli-proof-explain-project-requirement
+    to: TEST-kibi-happy-path-gap
+    created_at: 2026-10-29T21:57:35.911Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53d0ca03b832
+  - type: executable_for
+    from: SYM-test-kibi-search-hints-host
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-10-29T19:19:06.413Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1db56a2a0491

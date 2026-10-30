@@ -332,4 +332,32 @@ links:
     expect(ws.text(["migrate", "--yes"])).toContain("No migration needed");
     expect(ws.read(TEST_PATH)).toBe(testAfter);
   }, 300_000);
+
+  test("an upgrade applied with a hash other than the planned one is refused and changes nothing", () => {
+    const ws = createConsumerWorkspace("kibi-schema6-wrong-hash-");
+    workspace = ws;
+    const manifest = JSON.parse(ws.read(".kb/manifest.json")) as Json;
+    ws.write(
+      ".kb/manifest.json",
+      `${JSON.stringify({ ...manifest, schemaVersion: 5 }, null, 2)}\n`,
+    );
+    ws.stage();
+    const manifestBefore = ws.read(".kb/manifest.json");
+
+    const { plan } = planActions(ws);
+    expect(typeof plan.planHash).toBe("string");
+    const refused = ws.kibi([
+      "migrate",
+      "--apply-safe",
+      "--approved-plan-hash",
+      "0".repeat(64),
+      "--format",
+      "json",
+    ]);
+    expect(refused.status).not.toBe(0);
+    expect(`${refused.stdout}${refused.stderr}`).toContain(
+      "regenerate the plan and approve its current hash",
+    );
+    expect(ws.read(".kb/manifest.json")).toBe(manifestBefore);
+  }, 300_000);
 });

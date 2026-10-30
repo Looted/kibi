@@ -209,6 +209,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-72f33f8d718e
+  - type: specified_by
+    from: REQ-kibi-distribution-parity-matrix
+    to: SCEN-NEG-kibi-distribution-parity-matrix-parity-gate-drift
+    created_at: 2026-10-29T21:34:54.493Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b822b6172c0
   - type: validates
     from: TEST-proof-search-hint-shown-limit
     to: SCEN-kibi-search-hints-host

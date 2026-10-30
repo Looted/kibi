@@ -335,6 +335,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3a3cd20c1029
+  - type: assumes
+    from: SCEN-NEG-bootstrap-intent-claim-accounting-EMPTY-AUTHORITATIVE-SOURCE
+    to: FACT-NEG-bootstrap-intent-claim-accounting-EMPTY-AUTHORITATIVE-SOURCE
+    created_at: 2026-10-29T21:04:36.092Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab8591141b5d
+  - type: verified_by
+    from: SCEN-NEG-bootstrap-intent-claim-accounting-EMPTY-AUTHORITATIVE-SOURCE
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-10-29T21:04:36.177Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77b99dc41814
   - type: implements
     from: SYM-build-search-hints
     to: REQ-kibi-search-hints-host

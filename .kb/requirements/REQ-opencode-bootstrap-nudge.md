@@ -35,5 +35,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+failure_side_waiver: "The claim is a nudge: the plugin detects an unseeded repository and suggests onboarding. Guidance has no refusal side."
+failure_side_waiver_approved_by: Piotr Franczyk
 ---
 When OpenCode observes an uninitialized or thin repository, it reads typed bootstrap status and routes the agent to the canonical kibi-bootstrap skill. The agent answers only questions returned by the planner, reviews the exact kb_plan_bootstrap plan, applies that unchanged approved plan through kb_apply_plan, and runs typed check and status afterward.

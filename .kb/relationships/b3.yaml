@@ -314,3 +314,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4f832545860e
+  - type: assumes
+    from: SCEN-NEG-kibi-kb-lifecycle-integrity-DANGLING-SOURCE
+    to: FACT-NEG-kibi-kb-lifecycle-integrity-DANGLING-SOURCE
+    created_at: 2026-10-29T20:53:33.502Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-898c87285e04
+  - type: verified_by
+    from: SCEN-NEG-kibi-kb-lifecycle-integrity-DANGLING-SOURCE
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-29T20:53:33.555Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72a95855c812

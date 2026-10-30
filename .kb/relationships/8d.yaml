@@ -727,6 +727,48 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-94a6d878e5e0
+  - type: specified_by
+    from: REQ-bootstrap-claim-restatement
+    to: SCEN-NEG-bootstrap-claim-restatement-RESTATED-REQUIREMENT
+    created_at: 2026-10-29T21:04:11.260Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b88c00acedd4
+  - type: specified_by
+    from: REQ-claude-decision-capture-nudges
+    to: SCEN-NEG-claude-decision-capture-nudges-UNRECORDED-STOP
+    created_at: 2026-10-29T21:18:13.287Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ccbbb9db4c35
+  - type: specified_by
+    from: REQ-kibi-domain-redundancy
+    to: SCEN-NEG-kibi-domain-redundancy-identical-ground-term
+    created_at: 2026-10-29T21:11:50.697Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-78f48498b0a3
+  - type: specified_by
+    from: REQ-kibi-entity-origin
+    to: SCEN-NEG-kibi-entity-origin-unknown-origin
+    created_at: 2026-10-29T21:12:22.991Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70bf6938485c
+  - type: assumes
+    from: SCEN-NEG-prolog-daemon-runtime-identity-FOREIGN-SWIPL-CLIENT
+    to: FACT-NEG-prolog-daemon-runtime-identity-FOREIGN-SWIPL-CLIENT
+    created_at: 2026-10-29T20:54:06.906Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ca56449e132
+  - type: verified_by
+    from: SCEN-NEG-prolog-daemon-runtime-identity-FOREIGN-SWIPL-CLIENT
+    to: TEST-prolog-daemon-runtime-identity
+    created_at: 2026-10-29T20:54:07.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36e47f8c7831
   - type: implements
     from: SYM-search-hints-load-static-model
     to: REQ-kibi-plugin-search-hints

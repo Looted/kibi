@@ -67,7 +67,7 @@ To re-enter the proof ladder, remove both properties.
 
 ## The stages
 
-For in-scope requirements the ladder evaluates nine stages, in order. Each
+For in-scope requirements the ladder evaluates ten stages, in order. Each
 stage reports a `status` under its key in `proofStages`; `productionSymbols`
 also carries a typed `reason` when it does not pass.
 
@@ -78,6 +78,7 @@ also carries a typed `reason` when it does not pass.
 | 3 | [Contradictions](#3-contradictions) | `contradictions` |
 | 4 | [Scenarios](#4-scenarios) | `scenarios` |
 | 5 | [Scenario tests](#5-scenario-tests) | `scenarioTests` |
+| 5a | [Failure side](#5a-failure-side) | `negativePath` |
 | 6 | [Passing E2E tests](#6-passing-e2e-tests) | `passingE2e` |
 | 7 | [Executable test symbols](#7-executable-test-symbols) | `executableSymbols` |
 | 8 | [Production symbols](#8-production-symbols) | `productionSymbols` |
@@ -132,6 +133,44 @@ facts.
 
 - `passed`: every scenario has a test.
 - `missing`: a scenario has no test, or links a test that does not exist.
+
+### 5a. Failure side
+
+**Checks:** a requirement that grounds a claim (a `requires_property`,
+`requires_predicate` or `requires_rule` fact) is not tested through its happy
+path alone. At least one linked scenario must expect `rejection` or `error`
+and assume a value or situation the requirement forbids: either the
+scenario-feasibility analysis finds a witness naming the requirement, or one
+of its `assumes` facts opposes one of the requirement's claim facts directly
+(a conflicting value or polarity on the same subject and property, the
+opposite polarity of the same predicate, or, for a rule over predicates, a
+predicate fact instantiating one of the rule's atoms). For a guarantee rather
+than an input constraint, the assumed fact describes the attempt to break the
+guarantee, and `rejection` means the system refuses or contains it.
+
+- `passed`: `negativeScenarios` lists the linked scenarios that do this.
+- `missing`: none does; the requirement gets the `happy_path_only` gap, and
+  `suggestedNegatives` gives, per open claim, a fact that opposes it (the
+  value just past a numeric bound, the other boolean, a different string, a
+  set missing a required member, the opposite polarity of a predicate).
+- `not_required`: the requirement grounds no claim, or a fresh certificate
+  proves every claim at code scope (`certifiedClaims`): a certificate decides
+  both sides of the claim already. When every open claim is proved by a
+  certificate test whose receipt is only older than the code
+  (`pendingReproofClaims`), the evidence floor reports `pending_reproof`
+  rather than `below`, as for any other stale receipt.
+- `waived`: the requirement has no failure side to test. Its claims state a
+  capability or an output shape, so there is no input or attempt to refuse.
+  The requirement records why in `failure_side_waiver` and who accepted it in
+  `failure_side_waiver_approved_by`, and `waiver` shows both. A reason without
+  an approver stays `missing`, and `kibi proof explain` reports the waiver as
+  awaiting approval.
+
+The negative scenario needs a test like any other linked scenario, so the
+failure side is proven by the same passing E2E receipts. The canonical
+`scenario-outcome-mismatch` check rule reports a scenario that expects
+rejection or error while current requirements govern and permit everything it
+assumes.
 
 ### 6. Passing E2E tests
 

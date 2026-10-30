@@ -28,6 +28,7 @@ known_rule('deprecated-adr-no-successor').
 known_rule('superseded-requirement-open').
 known_rule('scenario-feasibility').
 known_rule('scenario-feasibility-unknown').
+known_rule('scenario-outcome-mismatch').
 known_rule('exception-claim-keys').
 known_rule('numeric-string-value').
 known_rule('rule-key-arguments-missing').
@@ -86,6 +87,7 @@ rule_enforcement_class('deprecated-adr-no-successor', canonical).
 rule_enforcement_class('superseded-requirement-open', canonical).
 rule_enforcement_class('scenario-feasibility', canonical).
 rule_enforcement_class('scenario-feasibility-unknown', advisory).
+rule_enforcement_class('scenario-outcome-mismatch', canonical).
 rule_enforcement_class('exception-claim-keys', canonical).
 rule_enforcement_class('numeric-string-value', advisory).
 rule_enforcement_class('rule-key-arguments-missing', advisory).
@@ -144,6 +146,7 @@ rule_implementation('deprecated-adr-no-successor', prolog).
 rule_implementation('superseded-requirement-open', prolog).
 rule_implementation('scenario-feasibility', prolog).
 rule_implementation('scenario-feasibility-unknown', prolog).
+rule_implementation('scenario-outcome-mismatch', prolog).
 rule_implementation('exception-claim-keys', prolog).
 rule_implementation('numeric-string-value', prolog).
 rule_implementation('rule-key-arguments-missing', prolog).
@@ -198,6 +201,7 @@ rule_predicate('deprecated-adr-no-successor', check_deprecated_adrs).
 rule_predicate('superseded-requirement-open', check_superseded_requirement_open).
 rule_predicate('scenario-feasibility', check_scenario_feasibility).
 rule_predicate('scenario-feasibility-unknown', check_scenario_feasibility_unknown).
+rule_predicate('scenario-outcome-mismatch', check_scenario_outcome_mismatch).
 rule_predicate('exception-claim-keys', check_exception_claim_keys).
 rule_predicate('numeric-string-value', check_numeric_string_values).
 rule_predicate('rule-key-arguments-missing', check_rule_key_arguments_missing).
@@ -235,6 +239,7 @@ rule_predicate_arity('deprecated-adr-no-successor', 1).
 rule_predicate_arity('superseded-requirement-open', 1).
 rule_predicate_arity('scenario-feasibility', 1).
 rule_predicate_arity('scenario-feasibility-unknown', 1).
+rule_predicate_arity('scenario-outcome-mismatch', 1).
 rule_predicate_arity('exception-claim-keys', 1).
 rule_predicate_arity('numeric-string-value', 1).
 rule_predicate_arity('rule-key-arguments-missing', 1).
@@ -276,6 +281,7 @@ rule_description('deprecated-adr-no-successor', 'Deprecated ADRs must have a suc
 rule_description('superseded-requirement-open', 'A requirement that another requirement supersedes must have status closed, and supersedes links between requirements must not form a cycle').
 rule_description('scenario-feasibility', 'A scenario that expects success must not assume property values that cannot hold, alone or together, with what current requirements require through typed property values or rules, unless an approved exception requirement waives that requirement or the listed clauses').
 rule_description('scenario-feasibility-unknown', 'Advisory: a scenario that expects success assumes nothing, assumes values that contradict each other, assumes a property value no governing requirement constrains comparably (type, unit or operator mismatch, or conflicting requirements), leaves a governing rule\'s conditions undecided, or conflicts only with constraints whose validity window may not cover it, so its feasibility cannot be decided').
+rule_description('scenario-outcome-mismatch', 'A scenario that expects rejection or error must assume a value or situation a current requirement forbids: when every assumption is governed by current requirements and they permit all of them together, the knowledge base predicts success and the scenario exercises no failure side').
 rule_description('exception-claim-keys', 'An exception requirement\'s exempts_claims must name claim keys of a requirement it exempts, and requires an exempts link').
 rule_description('numeric-string-value', 'Advisory: a property value stores a numeric-looking string where the comparison is numeric (ordering operator, or an int/number fact on the same property); the finding names the fact and the typed value, without converting it').
 rule_description('rule-key-arguments-missing', 'Advisory: an opposing rule pair stays unresolved only because a body predicate declares no key_arguments; the finding names the predicate and the key positions that would decide the pair').

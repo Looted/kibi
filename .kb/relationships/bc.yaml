@@ -153,3 +153,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-523ce4de441d
+  - type: assumes
+    from: SCEN-NEG-kibi-source-relationship-parity-AUTHORED-EDGE-MISSING
+    to: FACT-NEG-kibi-source-relationship-parity-AUTHORED-EDGE-MISSING
+    created_at: 2026-10-29T21:15:15.472Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-342dda5b100a
+  - type: verified_by
+    from: SCEN-NEG-kibi-source-relationship-parity-AUTHORED-EDGE-MISSING
+    to: TEST-kibi-source-relationship-parity
+    created_at: 2026-10-29T21:15:15.522Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de8383ce39c9
+  - type: assumes
+    from: SCEN-NEG-vscode-kb-to-source-ENTITY-WITHOUT-SOURCE
+    to: FACT-NEG-vscode-kb-to-source-ENTITY-WITHOUT-SOURCE
+    created_at: 2026-10-29T21:13:03.800Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-087491eba086
+  - type: verified_by
+    from: SCEN-NEG-vscode-kb-to-source-ENTITY-WITHOUT-SOURCE
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-10-29T21:13:03.833Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28a7c1993295

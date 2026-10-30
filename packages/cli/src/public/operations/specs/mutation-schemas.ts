@@ -126,6 +126,18 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       description:
         "Requirement-only. Optional reference to the exception's approval decision record.",
     },
+    failure_side_waiver: {
+      type: "string",
+      minLength: 1,
+      description:
+        "Requirement-only. Why the requirement has no failure side to test (its claims state a capability or output shape). Waives happy_path_only once failure_side_waiver_approved_by is set.",
+    },
+    failure_side_waiver_approved_by: {
+      type: "string",
+      minLength: 1,
+      description:
+        "Requirement-only. The person who accepted failure_side_waiver.",
+    },
     firmness: {
       type: "string",
       enum: ["firm", "default", "exploratory"],

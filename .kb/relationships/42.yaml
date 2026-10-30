@@ -307,3 +307,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a9f0bbdcf574
+  - type: specified_by
+    from: REQ-bootstrap-intent-claim-accounting
+    to: SCEN-NEG-bootstrap-intent-claim-accounting-EMPTY-AUTHORITATIVE-SOURCE
+    created_at: 2026-10-29T21:04:38.106Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70c0a968b59c

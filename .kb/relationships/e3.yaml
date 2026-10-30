@@ -356,3 +356,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e2795b931d1b
+  - type: specified_by
+    from: REQ-check-related-requirement-unmodeled
+    to: SCEN-NEG-check-related-requirement-unmodeled-UNMODELED-NEIGHBOUR
+    created_at: 2026-10-29T21:17:42.857Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bdea4c4f11f2

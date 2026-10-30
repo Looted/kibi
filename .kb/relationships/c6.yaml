@@ -230,3 +230,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-04aba0402971
+  - type: specified_by
+    from: REQ-cli-staged-consistency
+    to: SCEN-NEG-cli-staged-consistency-STAGED-INFEASIBLE-SCENARIO
+    created_at: 2026-10-29T21:02:57.585Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a526fb17bcf2

@@ -377,3 +377,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-93aa0b2fb08c
+  - type: assumes
+    from: SCEN-NEG-codex-kibi-plugin-v1-NON-LOCAL-SERVER
+    to: FACT-NEG-codex-kibi-plugin-v1-NON-LOCAL-SERVER
+    created_at: 2026-10-29T21:09:43.631Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f894a2a20083
+  - type: verified_by
+    from: SCEN-NEG-codex-kibi-plugin-v1-NON-LOCAL-SERVER
+    to: TEST-codex-kibi-plugin-v1
+    created_at: 2026-10-29T21:09:43.694Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a1a30852c9c
+  - type: assumes
+    from: SCEN-NEG-mcp-tool-upsert-CONTRADICTION
+    to: FACT-NEG-mcp-tool-upsert-CONTRADICTION
+    created_at: 2026-10-29T21:00:26.224Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd24f16c16e8
+  - type: verified_by
+    from: SCEN-NEG-mcp-tool-upsert-CONTRADICTION
+    to: TEST-mcp-upsert-coverage
+    created_at: 2026-10-29T21:00:26.335Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4e8213753cd
+  - type: specified_by
+    from: REQ-reusable-skill-subsystem
+    to: SCEN-NEG-reusable-skill-subsystem-RESOURCE-TRAVERSAL
+    created_at: 2026-10-29T20:57:43.059Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d77c3bf27922

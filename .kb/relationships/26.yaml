@@ -328,3 +328,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3e7b142d2c8c
+  - type: assumes
+    from: SCEN-NEG-kibi-distribution-parity-matrix-parity-gate-drift
+    to: FACT-NEG-kibi-distribution-parity-matrix-parity-gate-drift
+    created_at: 2026-10-29T21:34:51.095Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44eebcdcea65
+  - type: verified_by
+    from: SCEN-NEG-kibi-distribution-parity-matrix-parity-gate-drift
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: 2026-10-29T21:34:51.144Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e116e1dceea
+  - type: assumes
+    from: SCEN-NEG-kibi-legacy-migration-preview-v2-SEMANTIC-DRIFT
+    to: FACT-NEG-kibi-legacy-migration-preview-v2-SEMANTIC-DRIFT
+    created_at: 2026-10-29T20:54:10.149Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28e43efef771
+  - type: verified_by
+    from: SCEN-NEG-kibi-legacy-migration-preview-v2-SEMANTIC-DRIFT
+    to: TEST-kibi-legacy-migration-preview-v2
+    created_at: 2026-10-29T20:54:10.311Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c68e4c4206fb

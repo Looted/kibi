@@ -272,3 +272,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a123fb99b765
+  - type: specified_by
+    from: REQ-kibi-telemetry-remediation-evidence
+    to: SCEN-NEG-kibi-telemetry-remediation-evidence-CROSS-ACTOR-PREFLIGHT
+    created_at: 2026-10-29T21:16:55.331Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-164b11b5ca4b
+  - type: specified_by
+    from: REQ-ci-kb-merge-gate-order
+    to: SCEN-NEG-ci-kb-merge-gate-order-PUSH-BEFORE-GATE
+    created_at: 2026-10-29T22:11:24.871Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-987854628cbb

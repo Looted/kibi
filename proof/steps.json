@@ -1046,6 +1046,11 @@
     "test_id": "TEST-skillopt-cursor-compat",
     "steps": [
       [
+        "bun",
+        "test",
+        "./scripts/skillopt-eval/tests/cursor-lane.test.ts"
+      ],
+      [
         "node",
         "scripts/run-proof-packed-e2e.mjs",
         "documentation/tests/e2e/packed/cursor-plugin-launcher.test.ts"
@@ -1335,6 +1340,15 @@
         "--live",
         "documentation/evaluations/change-to-proof/search-gold.jsonl",
         "documentation/evaluations/change-to-proof/compile-gold.jsonl"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./scripts/tests/change-to-proof-eval.test.ts",
+        "-t",
+        "the live run refuses a malformed gold fixture"
       ]
     ]
   },
@@ -1853,6 +1867,18 @@
         "--timeout",
         "300000",
         "./packages/cli/tests/consumer/scenario-feasibility.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-happy-path-gap",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "300000",
+        "./packages/cli/tests/consumer/happy-path-gap.test.ts"
       ]
     ]
   },

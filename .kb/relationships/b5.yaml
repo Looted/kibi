@@ -559,3 +559,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-954797cc4300
+  - type: assumes
+    from: SCEN-NEG-kibi-mcp-tool-consolidation-OPTIONAL-TOOLS-UNNAMED
+    to: FACT-NEG-kibi-mcp-tool-consolidation-OPTIONAL-TOOLS-UNNAMED
+    created_at: 2026-10-29T20:55:04.107Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a407901dca1b
+  - type: verified_by
+    from: SCEN-NEG-kibi-mcp-tool-consolidation-OPTIONAL-TOOLS-UNNAMED
+    to: TEST-kibi-mcp-tool-consolidation
+    created_at: 2026-10-29T20:55:04.193Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-843cc5c7b97e

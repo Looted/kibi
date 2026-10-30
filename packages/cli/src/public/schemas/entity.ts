@@ -411,6 +411,20 @@ const entitySchema: Record<string, unknown> = {
       description:
         "Requirement-only. Optional reference to the approval decision record (ticket, ADR or review link) for an exception requirement.",
     },
+    failure_side_waiver: {
+      type: "string",
+      minLength: 1,
+      pattern: "\\S",
+      description:
+        "Requirement-only. Why the requirement has no failure side to test: its claims state a capability or an output shape, so there is no input or attempt for Kibi to refuse. Waives the happy_path_only gap once failure_side_waiver_approved_by is set.",
+    },
+    failure_side_waiver_approved_by: {
+      type: "string",
+      minLength: 1,
+      pattern: "\\S",
+      description:
+        "Requirement-only. The person who accepted failure_side_waiver. Without it the waiver is reported as awaiting approval and the gap stays open.",
+    },
     rationale: {
       type: "string",
       minLength: 1,
@@ -760,6 +774,8 @@ const entitySchema: Record<string, unknown> = {
             { required: ["proof_exempt_reason"] },
             { required: ["approved_by"] },
             { required: ["approval_ref"] },
+            { required: ["failure_side_waiver"] },
+            { required: ["failure_side_waiver_approved_by"] },
             { required: ["rationale"] },
             { required: ["exempts_claims"] },
             { required: ["required_evidence"] },

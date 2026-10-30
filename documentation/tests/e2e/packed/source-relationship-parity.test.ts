@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
 import {
@@ -135,6 +135,85 @@ if (RUN_NODE_TEST_SUITE) {
           0,
           `${reconciled.stdout}${reconciled.stderr}`,
         );
+      },
+    );
+
+    it(
+      "refuses an upsert that authors symbol coordinates and keeps the generated ones",
+      { timeout: 120000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        assert.strictEqual(
+          (await kibi(sandbox, ["init", "--no-hooks"])).exitCode,
+          0,
+        );
+        mkdirSync(join(sandbox.repoDir, "src"), { recursive: true });
+        writeFileSync(
+          join(sandbox.repoDir, "src", "sample.ts"),
+          "export function sample(): number {\n  return 1;\n}\n",
+        );
+        mkdirSync(join(sandbox.repoDir, ".kb"), { recursive: true });
+        const manifestPath = join(sandbox.repoDir, ".kb", "symbols.yaml");
+        writeFileSync(
+          manifestPath,
+          "symbols:\n  - id: SYM-sample\n    title: sample\n    status: active\n    sourceFile: src/sample.ts\n",
+        );
+        await run("git", ["add", "src", ".kb/symbols.yaml"], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
+        await run("git", ["commit", "-m", "add symbol fixture"], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
+        const initialSync = await kibi(sandbox, ["sync"]);
+        assert.strictEqual(initialSync.exitCode, 0, initialSync.stderr);
+        const manifestBefore = readFileSync(manifestPath, "utf8");
+
+        const inputPath = join(sandbox.repoDir, "authored-coordinates.json");
+        writeFileSync(
+          inputPath,
+          JSON.stringify({
+            type: "symbol",
+            id: "SYM-sample",
+            properties: {
+              title: "sample",
+              status: "active",
+              sourceFile: "src/sample.ts",
+              sourceLine: 99,
+              sourceColumn: 1,
+            },
+          }),
+        );
+        const authored = await kibi(sandbox, ["upsert", "--input", inputPath]);
+        const authoredOutput = authored.stdout + authored.stderr;
+        assert.notStrictEqual(authored.exitCode, 0, authoredOutput);
+        assert.match(authoredOutput, /unknown properties 'sourceLine'/);
+        assert.strictEqual(
+          readFileSync(manifestPath, "utf8"),
+          manifestBefore,
+          "a refused coordinate write must leave the authored manifest untouched",
+        );
+
+        const query = await kibi(sandbox, [
+          "query",
+          "symbol",
+          "--id",
+          "SYM-sample",
+          "--format",
+          "json",
+        ]);
+        assert.strictEqual(query.exitCode, 0, query.stderr);
+        const [symbol] = JSON.parse(query.stdout) as Array<{
+          sourceLine?: number;
+          sourceEndLine?: number;
+        }>;
+        assert.strictEqual(symbol?.sourceLine, 1);
+        assert.strictEqual(symbol?.sourceEndLine, 3);
       },
     );
   });

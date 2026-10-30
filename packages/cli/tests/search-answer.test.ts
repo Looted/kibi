@@ -1274,6 +1274,51 @@ describe("search answer verification paths", () => {
   });
 });
 
+describe("search answer failure-side assumptions", () => {
+  const entities: Record<string, Row> = {
+    ...CHAIN,
+    "SCEN-UNPAID": {
+      id: "SCEN-UNPAID",
+      type: "scenario",
+      title: "An unpaid order is refused shipping",
+      status: "active",
+    },
+    "FACT-UNPAID": {
+      id: "FACT-UNPAID",
+      type: "fact",
+      title: "The order is unpaid",
+      status: "active",
+      fact_kind: "property_value",
+    },
+  };
+
+  test("a matched fact that a requirement's scenario assumes is lifted to that requirement", async () => {
+    const answer = await buildSearchAnswer(
+      fakeKb(entities, [
+        ["specified_by", "REQ-A", "SCEN-UNPAID"],
+        ["assumes", "SCEN-UNPAID", "FACT-UNPAID"],
+      ]),
+      [match(entities["FACT-UNPAID"] as Row, 0.6)],
+    );
+    expect(answer.governing).toEqual([
+      expect.objectContaining({
+        id: "REQ-A",
+        via: "fact FACT-UNPAID via SCEN-UNPAID",
+      }),
+    ]);
+    expect(answer.ungoverned).toEqual([]);
+  });
+
+  test("an assumed fact whose scenario no requirement specifies stays ungoverned", async () => {
+    const answer = await buildSearchAnswer(
+      fakeKb(entities, [["assumes", "SCEN-UNPAID", "FACT-UNPAID"]]),
+      [match(entities["FACT-UNPAID"] as Row, 0.6)],
+    );
+    expect(answer.governing).toEqual([]);
+    expect(answer.ungoverned.map((row) => row.id)).toEqual(["FACT-UNPAID"]);
+  });
+});
+
 describe("search answer byte ceiling", () => {
   const maxBytes = SEARCH_ANSWER_LIMITS.maxBytes;
   const size = (value: unknown) =>
@@ -1484,6 +1529,48 @@ describe("search answer byte ceiling", () => {
     expect(answer.governing[0]?.exceptions).toEqual([]);
     expect(answer.governing[0]?.facts.length).toBeGreaterThan(0);
     expect(answer.scope).toEqual(scope);
+  });
+
+  test("a requirement's extra scenarios and tests go before another governing requirement", () => {
+    const pad = "p".repeat(2_000);
+    const requirement = (index: number) => ({
+      id: `REQ-${index}`,
+      title: "t",
+      score: 1 - index / 10,
+      via: "matched",
+      facts: [],
+      scenarios: [0, 1, 2].map((scenario) => ({
+        id: `SCEN-${index}-${scenario}-${pad}`,
+        title: "t",
+      })),
+      tests: [0, 1].map((test) => ({
+        id: `TEST-${index}-${test}-${pad}`,
+        title: "t",
+        via: "direct" as const,
+      })),
+      adrs: [],
+      verdict: emptyVerdict,
+      exceptions: [],
+      unknowns: [],
+    });
+    const input: SearchAnswer = {
+      version: "kibi.search-answer.v1",
+      governing: [0, 1].map(requirement),
+      rationale: [],
+      notGoverning: [],
+      observations: [],
+      ungoverned: [],
+      scope,
+      truncated: false,
+      note: "n",
+    };
+    // Ten 2 KB links do not fit; one scenario and one test per requirement do.
+    const answer = fitSearchAnswer(input, maxBytes);
+    expect(size(answer)).toBeLessThanOrEqual(maxBytes);
+    expect(answer.truncated).toBe(true);
+    expect(answer.governing.map((req) => req.id)).toEqual(["REQ-0", "REQ-1"]);
+    expect(answer.governing[1]?.scenarios).toHaveLength(1);
+    expect(answer.governing[1]?.tests).toHaveLength(1);
   });
 
   test("an answer already under the ceiling is returned unchanged", async () => {

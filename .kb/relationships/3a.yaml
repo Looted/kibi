@@ -286,3 +286,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-48d7fa182c30
+  - type: assumes
+    from: SCEN-NEG-cursor-stop-job-vs-plan-PLAN-HIDES-EDIT
+    to: FACT-NEG-cursor-stop-job-vs-plan-PLAN-HIDES-EDIT
+    created_at: 2026-10-29T21:16:30.767Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-268681fef4ef
+  - type: verified_by
+    from: SCEN-NEG-cursor-stop-job-vs-plan-PLAN-HIDES-EDIT
+    to: TEST-cursor-stop-job-vs-plan
+    created_at: 2026-10-29T21:16:30.877Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24a4339066aa
+  - type: assumes
+    from: SCEN-NEG-kibi-fresh-verification-receipts-v2-missing-or-stale-receipt
+    to: FACT-NEG-kibi-fresh-verification-receipts-v2-missing-or-stale-receipt
+    created_at: 2026-10-29T21:13:05.420Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-763af6c871f1
+  - type: verified_by
+    from: SCEN-NEG-kibi-fresh-verification-receipts-v2-missing-or-stale-receipt
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-10-29T21:13:05.470Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e5012e87508
+  - type: assumes
+    from: SCEN-NEG-kibi-intent-aware-source-discovery-unmatched-intent
+    to: FACT-NEG-kibi-intent-aware-source-discovery-unmatched-intent
+    created_at: 2026-10-29T21:34:43.840Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-453d5ef38329
+  - type: verified_by
+    from: SCEN-NEG-kibi-intent-aware-source-discovery-unmatched-intent
+    to: TEST-kibi-intent-aware-source-discovery
+    created_at: 2026-10-29T21:34:43.893Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd5a8dd35e27
+  - type: specified_by
+    from: REQ-mcp-tool-upsert
+    to: SCEN-NEG-mcp-tool-upsert-CONTRADICTION
+    created_at: 2026-10-29T21:00:32.997Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f43fc1bb7e3e
+  - type: specified_by
+    from: REQ-opencode-file-context-guidance-v1
+    to: SCEN-NEG-opencode-file-context-guidance-v1-REPEATED-GUIDANCE
+    created_at: 2026-10-29T22:20:16.088Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b71487e1652

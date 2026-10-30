@@ -233,5 +233,63 @@ if (RUN_NODE_TEST_SUITE) {
         assert.ok(existsSync(unrelated));
       },
     );
+
+    it(
+      "gc previews by default and quarantines only stores whose git branch is gone",
+      { timeout: 120000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        assert.strictEqual(
+          (await kibi(sandbox, ["init", "--no-hooks"])).exitCode,
+          0,
+        );
+        const initialSync = await kibi(sandbox, ["sync"]);
+        assert.strictEqual(initialSync.exitCode, 0, initialSync.stderr);
+
+        const git = (args: string[]) =>
+          run("git", args, { cwd: sandbox.repoDir, env: sandbox.env });
+        await git(["add", "-A"]);
+        await git(["commit", "--no-verify", "-m", "initial"]);
+        for (const branch of ["feature/live", "feature/gone"]) {
+          await git(["checkout", "-b", branch]);
+          const ensured = await kibi(sandbox, ["branch", "ensure"]);
+          assert.strictEqual(ensured.exitCode, 0, ensured.stderr);
+          await git(["checkout", "develop"]);
+        }
+        await git(["branch", "-D", "feature/gone"]);
+
+        const developStore = exactBranchStorePath(sandbox.repoDir, "develop");
+        const liveStore = exactBranchStorePath(sandbox.repoDir, "feature/live");
+        const goneStore = exactBranchStorePath(sandbox.repoDir, "feature/gone");
+        for (const store of [developStore, liveStore, goneStore]) {
+          assert.ok(existsSync(store), `${store} should exist before gc`);
+        }
+
+        const preview = await kibi(sandbox, ["gc"]);
+        assert.strictEqual(preview.exitCode, 0, preview.stderr);
+        assert.match(preview.stdout, /Found 1 stale branch KB\(s\) \(dry run/);
+        assert.match(preview.stdout, /feature\/gone/);
+        assert.doesNotMatch(preview.stdout, /feature\/live|develop:/);
+        assert.ok(existsSync(goneStore), "a dry run must not remove anything");
+
+        const forced = await kibi(sandbox, ["gc", "--force"]);
+        assert.strictEqual(forced.exitCode, 0, forced.stderr);
+        assert.match(forced.stdout, /Quarantined feature\/gone/);
+        assert.ok(!existsSync(goneStore), "the stale store must be removed");
+        assert.ok(existsSync(developStore), "the checked-out store is kept");
+        assert.ok(existsSync(liveStore), "a live branch store is kept");
+        const quarantine = join(
+          sandbox.repoDir,
+          ".kb",
+          "quarantine",
+          "branches",
+        );
+        assert.strictEqual(readdirSync(quarantine).length, 1);
+      },
+    );
   });
 }

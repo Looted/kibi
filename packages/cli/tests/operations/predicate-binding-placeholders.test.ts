@@ -359,6 +359,39 @@ describe("built-in schemas close arguments with a natural vocabulary", () => {
     );
   });
 
+  test("an explicit binding outside the closed vocabulary is refused with the allowed values", async () => {
+    const result = await handleKbSuggestPredicates(null, {
+      text: "The editor must save the draft when the user teleports.",
+      includeExistingSchemas: false,
+      schemaId: "FACT-SCHEMA-COMMIT-ACTION",
+      argumentBindings: {
+        subject: "editor.draft",
+        trigger: "teleport",
+        scope: "draft",
+      },
+    });
+    const data = result.structuredContent;
+    expect(data.recommendedAction).toBe("provide_argument_bindings");
+    expect(data.applyPlan).toEqual([]);
+    expect(data.candidates[0]?.binding_status).toBe("incomplete");
+    expect(data.candidates[0]?.unbound_arguments).toEqual(["trigger"]);
+    const trigger = data.bindingHints?.find(
+      (hint) => hint.argument === "trigger",
+    );
+    expect(trigger?.currentValue).toBe("teleport");
+    expect(trigger?.allowedValues).toEqual([
+      "escape",
+      "cancel",
+      "submit",
+      "navigation",
+      "click",
+      "timeout",
+    ]);
+    expect(trigger?.reason).toContain(
+      "not one of this argument's declared constants",
+    );
+  });
+
   test("a constant the claim names in other words is bound", async () => {
     const bound = async (text: string, schemaId: string) => {
       const result = await handleKbSuggestPredicates(null, {

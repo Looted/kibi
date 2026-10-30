@@ -349,3 +349,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-28e409fe5ba0
+  - type: specified_by
+    from: REQ-kb-unowned-file-candidates
+    to: SCEN-NEG-kb-unowned-file-candidates-unlinked-file-ungoverned
+    created_at: 2026-10-29T21:01:37.849Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12dfad0e0d5d
+  - type: assumes
+    from: SCEN-NEG-opencode-risk-classification-MANUAL-KB-EDIT
+    to: FACT-NEG-opencode-risk-classification-MANUAL-KB-EDIT
+    created_at: 2026-10-29T21:04:48.557Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b97ddd8f58f1
+  - type: verified_by
+    from: SCEN-NEG-opencode-risk-classification-MANUAL-KB-EDIT
+    to: TEST-e2e-opencode-enforcement-surface
+    created_at: 2026-10-29T21:04:48.619Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c81ea5db9343
+  - type: specified_by
+    from: REQ-opencode-guidance-injection
+    to: SCEN-NEG-opencode-guidance-injection-OVERSIZED-GUIDANCE
+    created_at: 2026-10-29T21:24:19.759Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6f4f239d583
+  - type: assumes
+    from: SCEN-NEG-prolog-spike-config-validation-UNSUPPORTED-TARGET
+    to: FACT-NEG-prolog-spike-config-validation-UNSUPPORTED-TARGET
+    created_at: 2026-10-29T20:54:43.717Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-efee500db176
+  - type: verified_by
+    from: SCEN-NEG-prolog-spike-config-validation-UNSUPPORTED-TARGET
+    to: TEST-prolog-spike-config-validation
+    created_at: 2026-10-29T20:54:43.772Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4de643d70fe

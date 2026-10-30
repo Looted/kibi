@@ -251,3 +251,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f96c0862c13a
+  - type: assumes
+    from: SCEN-NEG-model-predicates-binding-placeholders-SCHEMA-NAMED
+    to: FACT-NEG-model-predicates-binding-placeholders-SCHEMA-NAMED
+    created_at: 2026-10-29T21:01:44.210Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f6059ed0d540
+  - type: verified_by
+    from: SCEN-NEG-model-predicates-binding-placeholders-SCHEMA-NAMED
+    to: TEST-model-predicates-binding-placeholders
+    created_at: 2026-10-29T21:01:44.271Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18eb7083cbaf
+  - type: assumes
+    from: SCEN-NEG-search-answer-hygiene-UNOWNED-TOP-MATCH
+    to: FACT-NEG-search-answer-hygiene-UNOWNED-TOP-MATCH
+    created_at: 2026-10-29T20:58:28.995Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46626d8bf676
+  - type: verified_by
+    from: SCEN-NEG-search-answer-hygiene-UNOWNED-TOP-MATCH
+    to: TEST-search-answer-hygiene
+    created_at: 2026-10-29T20:58:29.051Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d9b5aa322a53

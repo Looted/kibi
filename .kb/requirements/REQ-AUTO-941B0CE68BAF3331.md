@@ -30,5 +30,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+failure_side_waiver: "The claim fixes what the staged check reads (every Git index path before filtering); it describes an inventory step, and there is no input for the check to refuse."
+failure_side_waiver_approved_by: Piotr Franczyk
 ---
 The staged check must inventory every path in the Git index before filtering.

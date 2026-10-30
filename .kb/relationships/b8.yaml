@@ -356,3 +356,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0912960b1693
+  - type: specified_by
+    from: REQ-kb-upsert-ledger-contract-in-error
+    to: SCEN-NEG-kb-upsert-ledger-contract-in-error-omitted-ledger
+    created_at: 2026-10-29T21:02:16.397Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0538fbd61fbf
+  - type: specified_by
+    from: REQ-mcp-skills-resource-discoverability
+    to: SCEN-NEG-mcp-skills-resource-discoverability-UNDECLARED-RESOURCE
+    created_at: 2026-10-29T21:23:26.211Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8affa761310c

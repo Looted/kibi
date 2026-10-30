@@ -321,3 +321,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bbe7d7a804c3
+  - type: assumes
+    from: SCEN-NEG-bootstrap-claim-name-length-COLLIDING-NAMES
+    to: FACT-NEG-bootstrap-claim-name-length-COLLIDING-NAMES
+    created_at: 2026-10-29T21:03:49.463Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63a960241de2
+  - type: verified_by
+    from: SCEN-NEG-bootstrap-claim-name-length-COLLIDING-NAMES
+    to: TEST-bootstrap-claim-name-length
+    created_at: 2026-10-29T21:03:49.561Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-416c02d4b4a0
+  - type: specified_by
+    from: REQ-kb-entity-body-context-settings
+    to: SCEN-NEG-kb-entity-body-context-settings-SHORT-CONTEXT
+    created_at: 2026-10-29T22:11:34.184Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3fad0a69103

@@ -507,3 +507,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-180c8815f313
+  - type: specified_by
+    from: REQ-agent-core-edit-snippets
+    to: SCEN-NEG-agent-core-edit-snippets-RETIRED-LEAD
+    created_at: 2026-10-29T21:02:29.825Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a42309222628
+  - type: assumes
+    from: SCEN-NEG-bootstrap-subject-key-shape-COMPONENTLESS-CLAIM
+    to: FACT-NEG-bootstrap-subject-key-shape-COMPONENTLESS-CLAIM
+    created_at: 2026-10-29T21:05:05.614Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d32378d41dd
+  - type: verified_by
+    from: SCEN-NEG-bootstrap-subject-key-shape-COMPONENTLESS-CLAIM
+    to: TEST-bootstrap-subject-key-shape
+    created_at: 2026-10-29T21:05:05.750Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66c468138eee
+  - type: specified_by
+    from: REQ-cli-subdirectory-workspace
+    to: SCEN-NEG-cli-subdirectory-workspace-SECOND-KB-IN-SUBDIR
+    created_at: 2026-10-29T21:05:13.621Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab00be45a39d
+  - type: specified_by
+    from: REQ-kibi-signoff-views
+    to: SCEN-NEG-kibi-signoff-views-MALFORMED-QUESTIONS
+    created_at: 2026-10-29T21:10:47.510Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f274f406381
+  - type: assumes
+    from: SCEN-NEG-source-analysis-v2-OVERSIZED-OK-STATUS
+    to: FACT-NEG-source-analysis-v2-OVERSIZED-OK-STATUS
+    created_at: 2026-10-29T21:09:16.423Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df9ac9213928
+  - type: verified_by
+    from: SCEN-NEG-source-analysis-v2-OVERSIZED-OK-STATUS
+    to: TEST-installed-sdk-source-analysis-input-limits
+    created_at: 2026-10-29T21:09:16.583Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3949edee086

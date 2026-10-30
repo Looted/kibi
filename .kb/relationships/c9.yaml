@@ -279,3 +279,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0b5c001f5a39
+  - type: specified_by
+    from: REQ-bootstrap-apply-long-running
+    to: SCEN-NEG-bootstrap-apply-long-running-LIVE-LOCK-TAKEOVER
+    created_at: 2026-10-29T21:03:04.912Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba09b3c63397

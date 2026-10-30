@@ -202,3 +202,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-26c8f70bb486
+  - type: assumes
+    from: SCEN-NEG-kibi-telemetry-remediation-evidence-CROSS-ACTOR-PREFLIGHT
+    to: FACT-NEG-kibi-telemetry-remediation-evidence-CROSS-ACTOR-PREFLIGHT
+    created_at: 2026-10-29T21:16:48.510Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e36c212807ad
+  - type: verified_by
+    from: SCEN-NEG-kibi-telemetry-remediation-evidence-CROSS-ACTOR-PREFLIGHT
+    to: TEST-kibi-telemetry-remediation-evidence
+    created_at: 2026-10-29T21:16:48.550Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87ffd030d807
+  - type: assumes
+    from: SCEN-NEG-model-predicates-requirement-subject-v2-UNPAIRED-SUBJECT
+    to: FACT-NEG-model-predicates-requirement-subject-v2-UNPAIRED-SUBJECT
+    created_at: 2026-10-29T21:03:21.546Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-78ca31a54f98
+  - type: verified_by
+    from: SCEN-NEG-model-predicates-requirement-subject-v2-UNPAIRED-SUBJECT
+    to: TEST-model-predicates-requirement-subject
+    created_at: 2026-10-29T21:03:21.591Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f8397d7690b2
+  - type: specified_by
+    from: REQ-skillopt-logical-evidence-fidelity
+    to: SCEN-NEG-skillopt-logical-evidence-fidelity-MISSING-COVERAGE-LINK
+    created_at: 2026-10-29T21:04:36.041Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56a07777e3b2

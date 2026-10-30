@@ -475,3 +475,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5610ecc8a7a9
+  - type: specified_by
+    from: REQ-model-predicates-grounding-aware-v2
+    to: SCEN-NEG-model-predicates-grounding-aware-v2-SECOND-GROUNDING
+    created_at: 2026-10-29T21:02:28.386Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-224d870b292d
+  - type: specified_by
+    from: REQ-symbol-behavioral-anchors
+    to: SCEN-NEG-symbol-behavioral-anchors-COARSE-LINK-WITH-GRANULAR
+    created_at: 2026-10-29T21:09:36.029Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77a73c9dd134
+  - type: specified_by
+    from: REQ-zcode-advisory-enforcement-boundary-v1
+    to: SCEN-NEG-zcode-advisory-enforcement-boundary-v1-HOOK-KB-WRITE
+    created_at: 2026-10-29T21:11:57.288Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-770f20501019

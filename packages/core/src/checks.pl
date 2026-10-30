@@ -26,6 +26,9 @@
     check_adr_proposed/1,
     check_scenario_feasibility/1,
     check_scenario_feasibility_unknown/1,
+    check_scenario_outcome_mismatch/1,
+    negative_scenario_witness/3,
+    opposing_assumption/2,
     check_exception_claim_keys/1,
     check_numeric_string_values/1,
     check_rule_key_arguments_missing/1,
@@ -111,6 +114,7 @@ check_all(ViolationsDict) :-
     check_adr_proposed(AdrProposed),
     check_scenario_feasibility(ScenarioFeasibility),
     check_scenario_feasibility_unknown(ScenarioFeasibilityUnknown),
+    check_scenario_outcome_mismatch(ScenarioOutcomeMismatch),
     check_exception_claim_keys(ExceptionClaimKeys),
     check_numeric_string_values(NumericStringValues),
     check_domain_contradictions(Contradictions),
@@ -148,6 +152,7 @@ check_all(ViolationsDict) :-
         adr_proposed: AdrProposed,
         scenario_feasibility: ScenarioFeasibility,
         scenario_feasibility_unknown: ScenarioFeasibilityUnknown,
+        scenario_outcome_mismatch: ScenarioOutcomeMismatch,
         exception_claim_keys: ExceptionClaimKeys,
         numeric_string_value: NumericStringValues,
         domain_contradictions: Contradictions,
@@ -2132,6 +2137,176 @@ bool_domain_exhausted(bool, Different) :-
     memberchk(true, Different),
     memberchk(false, Different).
 
+%% negative_scenario_witness(?ScenarioId, ?ReqId, -Witness)
+% implements REQ-kibi-happy-path-gap
+% A scenario that expects rejection or error is a targeted negative for a
+% requirement when its assumptions break that requirement: the feasibility
+% analysis finds a witness naming it, or (below) an assumption opposes one of
+% the requirement's claim facts directly.  A rejection scenario whose assumptions
+% the requirements permit, or that an approved exception waives, exercises no
+% requirement's failure side.
+negative_scenario_witness(ScenarioId, ReqId,
+                          infeasibility(ReqIds, AssumedFacts, ReqFacts, Reason)) :-
+    negative_scenario(ScenarioId),
+    scenario_feasibility_analysis(ScenarioId, analysis(Witnesses, _, _, _)),
+    member(infeasibility(ReqIds, AssumedFacts, ReqFacts, Reason), Witnesses),
+    member(ReqId, ReqIds).
+% A scenario the requirement specifies may also target one of its claims
+% directly: it assumes a fact that opposes the claim's fact (a conflicting
+% property value or polarity, the opposite polarity of the same predicate),
+% or, for a rule over predicates, a fact instantiating one of the rule's
+% atoms, so the scenario is about the situation the rule governs.
+negative_scenario_witness(ScenarioId, ReqId, opposed(AssumedFact, ReqFact)) :-
+    negative_scenario(ScenarioId),
+    kb_relationship(specified_by, ReqId, ScenarioId),
+    kb:current_req(ReqId),
+    kb_relationship(assumes, ScenarioId, AssumedFact),
+    member(Link, [requires_property, requires_predicate, requires_rule]),
+    kb_relationship(Link, ReqId, ReqFact),
+    facts_oppose(AssumedFact, ReqFact).
+
+facts_oppose(AssumedFact, ReqFact) :-
+    kb:fact_property_tuple(AssumedFact, Subject, Property, OpA, TypeA, ValueA, UnitA, ScopeA, PolarityA),
+    kb:fact_property_tuple(ReqFact, Subject, Property, OpB, TypeB, ValueB, UnitB, ScopeB, PolarityB),
+    !,
+    kb:scope_intersects(ScopeA, ScopeB),
+    (   kb:polarity_conflict(Subject, Property, OpA, TypeA, ValueA, UnitA, ScopeA, PolarityA,
+                             OpB, TypeB, ValueB, UnitB, ScopeB, PolarityB, _)
+    ->  true
+    ;   PolarityA == PolarityB,
+        kb:property_conflict(Subject, Property, OpA, TypeA, ValueA, UnitA, PolarityA,
+                             OpB, TypeB, ValueB, UnitB, PolarityB, _)
+    ->  true
+    ).
+facts_oppose(AssumedFact, ReqFact) :-
+    kb:predicate_fact(AssumedFact, Namespace, Name, Args, PolarityA),
+    kb:predicate_fact(ReqFact, Namespace, Name, Args, PolarityB),
+    !,
+    PolarityA \== PolarityB.
+facts_oppose(AssumedFact, ReqFact) :-
+    kb:predicate_fact(AssumedFact, Namespace, Name, _, _),
+    stored_rule_fact(ReqFact, _, Rule),
+    sub_term(atom(Namespace, Name, _, _, _), Rule),
+    !.
+
+%% opposing_assumption(+FactId, -Assumption)
+% implements REQ-kibi-happy-path-gap
+% A fact a negative scenario can assume to oppose the claim fact FactId, as
+% the fields of a new fact: the boundary value just past a numeric bound, the
+% other boolean, a different string, a set missing a required member or
+% holding an unlisted or excluded one, the opposite polarity of a predicate,
+% or, for a rule over predicates, its head instantiated with the variable
+% names.  Fails when no such fact can be derived (a matches pattern).
+opposing_assumption(FactId, Assumption) :-
+    kb:fact_property_tuple(FactId, Subject, Property, Op, Type, Value, Unit, Scope, Polarity),
+    !,
+    (   Polarity == forbid
+    ->  Op1 = Op, Value1 = Value
+    ;   opposing_value(Type, Op, Value, Op1, Value1)
+    ),
+    Base = _{fact_kind: property_value, subject_key: Subject, property_key: Property,
+             operator: Op1, value_type: Type, value: Value1},
+    (   Unit == '' -> Assumption0 = Base ; Assumption0 = Base.put(unit, Unit) ),
+    (   Scope == '' -> Assumption = Assumption0 ; Assumption = Assumption0.put(scope, Scope) ).
+opposing_assumption(FactId, _{fact_kind: predicate, predicate_namespace: Namespace,
+                              predicate_name: Name, predicate_args: Args, polarity: Opposite}) :-
+    kb:predicate_fact(FactId, Namespace, Name, Args, Polarity),
+    !,
+    kb:opposite_predicate_polarity(Polarity, Opposite).
+opposing_assumption(FactId, _{fact_kind: predicate, predicate_namespace: Namespace,
+                              predicate_name: Name, predicate_args: Args, polarity: assert}) :-
+    stored_rule_fact(FactId, _, rule(_, _, Head, Body, _, _, _, _, _, _)),
+    (   Head = atom(Namespace, Name, Terms, _, _)
+    ->  true
+    ;   sub_term(atom(Namespace, Name, Terms, _, _), Body)
+    ),
+    !,
+    maplist(term_constant, Terms, Args).
+
+term_constant(Term, Constant) :-
+    (   Term = var(Name, _)
+    ->  downcase_atom(Name, Constant)
+    ;   Term = const(Value, _)
+    ->  term_to_atom(Value, Constant)
+    ;   term_to_atom(Term, Constant)
+    ).
+
+opposing_value(bool, eq, Value, eq, Opposite) :-
+    !,
+    (   memberchk(Value, [true, "true", 'True']) -> Opposite = false ; Opposite = true ).
+opposing_value(Type, Op, Value, Op1, Value1) :-
+    kb:is_numeric_type(Type),
+    number(Value),
+    !,
+    opposing_number(Type, Op, Value, Op1, Value1).
+opposing_value(set, Op, Members, Op1, Value1) :-
+    !,
+    opposing_set(Op, Members, Op1, Value1).
+opposing_value(_, eq, Value, neq, Value) :- !.
+opposing_value(_, neq, Value, eq, Value).
+
+opposing_number(_, gt, Bound, eq, Bound).
+opposing_number(_, lt, Bound, eq, Bound).
+opposing_number(int, gte, Bound, eq, Value) :- !, Value is Bound - 1.
+opposing_number(_, gte, Bound, lt, Bound).
+opposing_number(int, lte, Bound, eq, Value) :- !, Value is Bound + 1.
+opposing_number(_, lte, Bound, gt, Bound).
+opposing_number(_, eq, Value, neq, Value).
+opposing_number(_, neq, Value, eq, Value).
+
+opposing_set(eq, Members, eq, Fewer) :- members_but_last(Members, Fewer).
+opposing_set(includes, Members, eq, Fewer) :- members_but_last(Members, Fewer).
+opposing_set(subset_of, _, includes, [unlisted_member]).
+opposing_set(excludes, [First|_], includes, [First]).
+
+members_but_last(Members, Fewer) :-
+    (   append(Fewer, [_], Members) -> true ; Fewer = [] ).
+
+negative_scenario(ScenarioId) :-
+    (   var(ScenarioId)
+    ->  findall(Id,
+            (scenario_expects(Id, Outcome), memberchk(Outcome, [rejection, error])),
+            Ids0),
+        sort(Ids0, Ids),
+        member(ScenarioId, Ids)
+    ;   scenario_expects(ScenarioId, Outcome),
+        memberchk(Outcome, [rejection, error])
+    ).
+
+%% check_scenario_outcome_mismatch(-Violations)
+% implements REQ-kibi-happy-path-gap
+% A scenario that expects rejection or error but whose assumptions current
+% requirements govern and permit together aims at no failure: the knowledge
+% base predicts success for it.  Only a decided feasible outcome is reported;
+% a scenario that assumes nothing, or whose assumptions no requirement
+% governs, is left alone.
+check_scenario_outcome_mismatch(Violations) :-
+    findall(Violation, scenario_outcome_mismatch_violation(Violation), Unsorted),
+    sort(Unsorted, Violations).
+
+scenario_outcome_mismatch_violation(violation(
+    'scenario-outcome-mismatch',
+    ScenarioId,
+    Description,
+    "Assume a value a current requirement forbids, so the scenario exercises that requirement's failure side, or set expects: success when the scenario describes a permitted situation",
+    Source
+)) :-
+    negative_scenario(ScenarioId),
+    scenario_expects(ScenarioId, Expected),
+    scenario_feasibility_analysis(ScenarioId, Analysis),
+    analysis_outcome(Analysis, feasible),
+    findall(FactId, kb_relationship(assumes, ScenarioId, FactId), FactIds0),
+    sort(FactIds0, FactIds),
+    atomic_list_concat(FactIds, ', ', FactText),
+    format(string(Description),
+        "Scenario expects ~w, but current requirements permit everything it assumes (~w), so the knowledge base predicts success",
+        [Expected, FactText]),
+    (   kb_entity(ScenarioId, scenario, Props),
+        memberchk(source=Source, Props)
+    ->  true
+    ;   Source = ""
+    ).
+
 %% check_scenario_feasibility_unknown(-Violations)
 % implements REQ-kibi-scenario-feasibility-v2
 % Advisory: success scenarios whose feasibility the checker cannot decide.
@@ -3754,6 +3929,7 @@ check_selected_dispatch(Rules, _{
     adr_proposed: AdrProposed,
     scenario_feasibility: ScenarioFeasibility,
     scenario_feasibility_unknown: ScenarioFeasibilityUnknown,
+    scenario_outcome_mismatch: ScenarioOutcomeMismatch,
     exception_claim_keys: ExceptionClaimKeys,
     numeric_string_value: NumericStringValues,
     domain_contradictions: Contradictions,
@@ -3791,6 +3967,7 @@ check_selected_dispatch(Rules, _{
     selected_rule(Rules, 'adr-proposed', check_adr_proposed, AdrProposed),
     selected_rule(Rules, 'scenario-feasibility', check_scenario_feasibility, ScenarioFeasibility),
     selected_rule(Rules, 'scenario-feasibility-unknown', check_scenario_feasibility_unknown, ScenarioFeasibilityUnknown),
+    selected_rule(Rules, 'scenario-outcome-mismatch', check_scenario_outcome_mismatch, ScenarioOutcomeMismatch),
     selected_rule(Rules, 'exception-claim-keys', check_exception_claim_keys, ExceptionClaimKeys),
     selected_rule(Rules, 'numeric-string-value', check_numeric_string_values, NumericStringValues),
     selected_rule(Rules, 'domain-contradictions', check_domain_contradictions, Contradictions),
@@ -3925,6 +4102,7 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
     check_adr_proposed(AdrProposed),
     check_scenario_feasibility(ScenarioFeasibility),
     check_scenario_feasibility_unknown(ScenarioFeasibilityUnknown),
+    check_scenario_outcome_mismatch(ScenarioOutcomeMismatch),
     check_exception_claim_keys(ExceptionClaimKeys),
     check_numeric_string_values(NumericStringValues),
     check_domain_contradictions(Contradictions),
@@ -3961,6 +4139,7 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
         adr_proposed: AdrProposed,
         scenario_feasibility: ScenarioFeasibility,
         scenario_feasibility_unknown: ScenarioFeasibilityUnknown,
+        scenario_outcome_mismatch: ScenarioOutcomeMismatch,
         exception_claim_keys: ExceptionClaimKeys,
         numeric_string_value: NumericStringValues,
         domain_contradictions: Contradictions,

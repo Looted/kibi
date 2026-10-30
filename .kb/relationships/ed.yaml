@@ -454,3 +454,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c2c2da241c26
+  - type: specified_by
+    from: REQ-kibi-change-to-proof-plan-compiler-v2
+    to: SCEN-NEG-kibi-change-to-proof-plan-compiler-v2-mismatched-plan-hash
+    created_at: 2026-10-29T21:07:39.978Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9450698e1fdd
+  - type: assumes
+    from: SCEN-NEG-kibi-entity-id-style-new-numeric-id
+    to: FACT-NEG-kibi-entity-id-style-new-numeric-id
+    created_at: 2026-10-29T21:12:01.696Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2aafc26f88d0
+  - type: verified_by
+    from: SCEN-NEG-kibi-entity-id-style-new-numeric-id
+    to: TEST-kibi-vocabulary-convergence-e2e
+    created_at: 2026-10-29T21:12:01.908Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca08415cfa2f
