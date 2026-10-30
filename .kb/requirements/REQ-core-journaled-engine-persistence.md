@@ -79,7 +79,7 @@ links:
     target: TEST-core-journaled-engine-persistence
   - type: verified_by
     target: TEST-core-journaled-engine-lifecycle
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-JOURNALED-ENGINE-SINGLE-WRITER
   - type: requires_predicate
     target: FACT-JOURNALED-ENGINE-PROTOCOL

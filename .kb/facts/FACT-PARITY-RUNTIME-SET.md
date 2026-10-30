@@ -1,22 +1,20 @@
 ---
 id: FACT-PARITY-RUNTIME-SET
-title: Parity fixtures run through every audited runtime class
+title: No audited runtime skips the canonical fixture set
 status: active
+fact_kind: property_value
+subject_key: kibi.distribution.parity
+property_key: audited_runtimes_without_fixture_run
+operator: eq
+value_type: int
+value_int: 0
+canonical_key: kibi.distribution.parity:audited_runtimes_without_fixture_run:eq:0
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
 tags:
   - lane:ontology
   - parity
   - distribution
-fact_kind: predicate
-predicate_namespace: kibi.requirements
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.distribution.parity
-  - execute_canonical_fixture_set
-  - source_packed_and_project_resolved_runtimes
-canonical_key: logical_requirement_rule(kibi.distribution.parity,execute_canonical_fixture_set,source_packed_and_project_resolved_runtimes)
-polarity: assert
 claim_key: CLAIM-46D4F2FCBD3E4628
 claim_text: The runner must execute the same canonical fixture set against the source checkout, fresh CLI and MCP packages, and every project-resolved runtime
 claim_span_start: 0
