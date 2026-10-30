@@ -4,7 +4,7 @@ status: active
 fact_kind: property_value
 subject_key: kibi.usage_telemetry
 property_key: opt_out_switches_that_disable_telemetry
-operator: eq
+operator: includes
 value_type: set
 value_set:
   - 'KIBI_TELEMETRY=0'

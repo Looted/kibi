@@ -2666,7 +2666,14 @@ freshness_gap(stale_proof_receipt).
 freshness_gap(proof_contract_mismatch).
 
 freshness_only_gaps(Gaps, Stages) :-
-    include(freshness_gap, Gaps, [_|_]),
+    % A stale certificate receipt of a unit-scope test is not a gap of its
+    % own, so a stage that waits only on one counts as the freshness gap.
+    (   include(freshness_gap, Gaps, [_|_])
+    ->  true
+    ;   negative_path_freshness_only(Stages)
+    ;   dimension_freshness_only(Stages)
+    ;   cases_freshness_only(Stages)
+    ),
     exclude(freshness_gap, Gaps, Rest0),
     (   negative_path_freshness_only(Stages)
     ->  exclude(==(happy_path_only), Rest0, Rest1)
