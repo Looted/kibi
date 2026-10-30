@@ -405,3 +405,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0d5cb7340889
+  - type: assumes
+    from: SCEN-CASE-model-predicates-binding-clauses-two-word-limit
+    to: FACT-CASE-model-predicates-binding-clauses-two-word-limit
+    created_at: 2026-10-30T15:04:39.726Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f56439ab4e78
+  - type: verified_by
+    from: SCEN-CASE-model-predicates-binding-clauses-two-word-limit
+    to: TEST-model-predicates-binding-clauses
+    created_at: 2026-10-30T15:04:39.795Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c37f9aff7ce

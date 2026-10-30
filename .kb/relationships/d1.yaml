@@ -566,3 +566,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-66c626ab2c1b
+  - type: specified_by
+    from: REQ-prolog-bundled-release
+    to: SCEN-CASE-prolog-bundled-release-symlinked-payload
+    created_at: 2026-10-30T15:05:20.743Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a48389ef5fc

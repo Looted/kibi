@@ -447,3 +447,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-90093fb9a146
+  - type: specified_by
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: SCEN-CASE-kibi-telemetry-acceptance-gate-v2-eight-day-old-evidence
+    created_at: 2026-10-30T15:00:33.869Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72ce2c52fd24
+  - type: specified_by
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: SCEN-CASE-kibi-telemetry-acceptance-gate-v2-preflight-61-minutes-before-upsert
+    created_at: 2026-10-30T15:00:46.517Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6168e1292947
+  - type: specified_by
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: SCEN-CASE-kibi-telemetry-acceptance-gate-v2-session-without-lookup-result
+    created_at: 2026-10-30T15:00:55.601Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40aaa19f3fe2

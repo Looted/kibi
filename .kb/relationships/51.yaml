@@ -349,3 +349,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-05ebb776237b
+  - type: assumes
+    from: SCEN-CASE-bootstrap-write-safety-terminal-failure-after-commit
+    to: FACT-CASE-bootstrap-write-safety-terminal-failure-after-commit
+    created_at: 2026-10-30T14:57:02.645Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a840b1a7ca79
+  - type: verified_by
+    from: SCEN-CASE-bootstrap-write-safety-terminal-failure-after-commit
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-10-30T14:57:02.732Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2f3f84501d3c

@@ -210,4 +210,59 @@ describe("detached HEAD checkouts through the kibi CLI", () => {
       "SCEN-login-password",
     ]);
   }, 300_000);
+
+  test("do not choose between two local branches at HEAD: reads use the snapshot and upsert is refused", () => {
+    const ws = createConsumerWorkspace("kibi-detached-two-branches-");
+    workspace = ws;
+
+    ws.write(".kb/requirements/REQ-login-password.md", REQUIREMENT);
+    ws.write(
+      ".kb/scenarios/SCEN-login-password.md",
+      scenario("SCEN-login-password", "The user logs in with a password"),
+    );
+    ws.git("add", "-A");
+    ws.git("commit", "-q", "-m", "login requirement");
+    const head = ws.git("rev-parse", "HEAD");
+    ws.sync();
+    ws.kibi(["engine", "stop"]);
+
+    // Two local branches point at the same commit: neither KB is attached.
+    ws.git("branch", "release");
+    ws.git("checkout", "-q", "--detach");
+
+    const query = ws.json(["query"], { type: "scenario" });
+    expect(query.status).toBe("success");
+    expect(ids(query)).toEqual(["SCEN-login-password"]);
+    expect(detachedNotice(query)).toMatchObject({
+      severity: "warning",
+      detail: {
+        head,
+        branchesAtHead: ["main", "release"],
+        kbBranch: "kibi-internal/detached-head-snapshot",
+        writes: "refused",
+      },
+    });
+
+    const upsert = ws.kibi(["upsert"], {
+      input: {
+        type: "scenario",
+        id: "SCEN-login-refused",
+        properties: { title: "A refused scenario", status: "active" },
+      },
+    });
+    expect(upsert.status).toBe(1);
+    const refusal = JSON.parse(upsert.stdout) as Json;
+    expect(refusal).toMatchObject({
+      operation: "kb_upsert",
+      status: "error",
+      data: null,
+      error: { code: "OPERATION_FAILED", retryable: false },
+    });
+    const message = (refusal.error as Json).message as string;
+    expect(message).toContain("'git switch main' (or another branch at HEAD)");
+    expect(
+      existsSync(path.join(ws.root, ".kb/scenarios/SCEN-login-refused.md")),
+    ).toBe(false);
+    ws.kibi(["engine", "stop"]);
+  }, 300_000);
 });

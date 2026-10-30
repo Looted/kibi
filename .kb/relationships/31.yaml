@@ -598,3 +598,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-18da1e6b91d2
+  - type: assumes
+    from: SCEN-NEG-bootstrap-subject-key-shape-COMPONENTLESS-CLAIM
+    to: FACT-CASE-bootstrap-subject-key-shape-componentless-claim
+    created_at: 2026-10-30T15:02:16.790Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5adb322244e8
