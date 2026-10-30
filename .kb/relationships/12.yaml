@@ -363,3 +363,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4007c29014fa
+  - type: assumes
+    from: SCEN-CASE-model-predicates-grounding-aware-v2-CLAIM-LEFT-UNGROUNDED
+    to: FACT-CASE-model-predicates-grounding-aware-v2-CLAIM-LEFT-UNGROUNDED
+    created_at: 2026-10-30T15:00:22.792Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28a2888ac00a
+  - type: verified_by
+    from: SCEN-CASE-model-predicates-grounding-aware-v2-CLAIM-LEFT-UNGROUNDED
+    to: TEST-model-predicates-grounding-aware
+    created_at: 2026-10-30T15:00:22.861Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f003a21c5ba5

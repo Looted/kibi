@@ -545,3 +545,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d777fa96fd57
+  - type: specified_by
+    from: REQ-claude-code-kibi-plugin-v1
+    to: SCEN-CASE-claude-code-kibi-plugin-v1-SECOND-SNIPPET
+    created_at: 2026-10-30T14:53:34.417Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64607422b4a5
+  - type: specified_by
+    from: REQ-claude-code-kibi-plugin-v1
+    to: SCEN-CASE-claude-code-kibi-plugin-v1-SECOND-STOP-REMINDER
+    created_at: 2026-10-30T14:53:48.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-897e1163c7e2

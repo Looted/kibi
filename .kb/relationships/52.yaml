@@ -496,3 +496,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-770f20501019
+  - type: specified_by
+    from: REQ-model-predicates-grounding-aware-v2
+    to: SCEN-CASE-model-predicates-grounding-aware-v2-CLAIM-LEFT-UNGROUNDED
+    created_at: 2026-10-30T15:00:28.355Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-94233874ea78
+  - type: specified_by
+    from: REQ-zcode-advisory-enforcement-boundary-v1
+    to: SCEN-CASE-zcode-advisory-enforcement-boundary-v1-NON-ADVISORY-OUTPUT
+    created_at: 2026-10-30T15:01:13.914Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bcee7b590303

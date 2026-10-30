@@ -545,3 +545,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-de05d8634055
+  - type: assumes
+    from: SCEN-CASE-kibi-signoff-views-ASKED-TWICE
+    to: FACT-CASE-kibi-signoff-views-ASKED-TWICE
+    created_at: 2026-10-30T14:51:06.216Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ebaa06ce587
+  - type: verified_by
+    from: SCEN-CASE-kibi-signoff-views-ASKED-TWICE
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-10-30T14:51:06.548Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5668f922353a

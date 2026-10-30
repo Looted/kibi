@@ -419,3 +419,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-83f2962cd5dd
+  - type: assumes
+    from: SCEN-CASE-bootstrap-advisor-proposition-roles-ROLE-NOT-FROM-ADVISOR
+    to: FACT-CASE-bootstrap-advisor-proposition-roles-ROLE-NOT-FROM-ADVISOR
+    created_at: 2026-10-30T14:57:40.735Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d4c28d3c34e
+  - type: verified_by
+    from: SCEN-CASE-bootstrap-advisor-proposition-roles-ROLE-NOT-FROM-ADVISOR
+    to: TEST-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-30T14:57:40.799Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae57b565dac4
+  - type: assumes
+    from: SCEN-NEG-core-engine-read-limits-PARTIAL-ANSWER
+    to: FACT-CASE-core-engine-read-limits-READ-PAST-LIMIT
+    created_at: 2026-10-30T14:58:27.914Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0593d34a8c2
+  - type: specified_by
+    from: REQ-kibi-uncompiled-source-visibility
+    to: SCEN-CASE-kibi-uncompiled-source-visibility-UNEXTRACTABLE-UNREPORTED
+    created_at: 2026-10-30T14:59:56.478Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0bdd3802ee2

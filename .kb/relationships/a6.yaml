@@ -321,3 +321,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f600ced0d9b9
+  - type: assumes
+    from: SCEN-CASE-kibi-signoff-views-NEVER-ASKED
+    to: FACT-CASE-kibi-signoff-views-NEVER-ASKED
+    created_at: 2026-10-30T14:51:26.367Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-351ff3d03fdb
+  - type: verified_by
+    from: SCEN-CASE-kibi-signoff-views-NEVER-ASKED
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-10-30T14:51:26.560Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a03577258c9

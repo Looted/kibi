@@ -367,3 +367,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bf09e838f53e
+  - type: specified_by
+    from: REQ-kibi-non-numeric-proof-kinds
+    to: SCEN-CASE-kibi-non-numeric-proof-kinds-RULE-ASSIGNMENT-VIOLATED
+    created_at: 2026-10-30T15:01:36.044Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f65c43f8cf51

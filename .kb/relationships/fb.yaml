@@ -503,3 +503,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a9a615ad7158
+  - type: assumes
+    from: SCEN-CASE-bootstrap-discovered-candidate-budget-REASON-UNCOUNTED
+    to: FACT-CASE-bootstrap-discovered-candidate-budget-REASON-UNCOUNTED
+    created_at: 2026-10-30T14:52:40.347Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7ac914cdce7
+  - type: verified_by
+    from: SCEN-CASE-bootstrap-discovered-candidate-budget-REASON-UNCOUNTED
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-10-30T14:52:40.597Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8483ac997a4

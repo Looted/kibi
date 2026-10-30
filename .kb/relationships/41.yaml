@@ -454,3 +454,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b722ca541dd4
+  - type: specified_by
+    from: REQ-bootstrap-advisor-proposition-roles
+    to: SCEN-CASE-bootstrap-advisor-proposition-roles-ROLE-NOT-FROM-ADVISOR
+    created_at: 2026-10-30T14:57:49.331Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e7271f8ade8
