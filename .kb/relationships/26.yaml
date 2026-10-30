@@ -356,3 +356,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c68e4c4206fb
+  - type: assumes
+    from: SCEN-NEG-kibi-legacy-migration-preview-v2-SEMANTIC-DRIFT
+    to: FACT-CASE-kibi-legacy-migration-preview-v2-unbound-proposition
+    created_at: 2026-10-30T14:53:09.520Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-916272714141

@@ -265,3 +265,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6e90bdae2cd8
+  - type: assumes
+    from: SCEN-CASE-kibi-legacy-migration-preview-v2-two-dispositions
+    to: FACT-CASE-kibi-legacy-migration-preview-v2-two-dispositions
+    created_at: 2026-10-30T14:52:26.092Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd800e80273a
+  - type: verified_by
+    from: SCEN-CASE-kibi-legacy-migration-preview-v2-two-dispositions
+    to: TEST-kibi-legacy-migration-preview-v2
+    created_at: 2026-10-30T14:52:26.278Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4efa224bd618

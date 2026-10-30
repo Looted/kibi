@@ -524,3 +524,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4e5052231d9a
+  - type: assumes
+    from: SCEN-NEG-kibi-scenario-feasibility-v2-FORBIDDEN-ASSUMPTION
+    to: FACT-CASE-kibi-scenario-feasibility-v2-infeasibly-specified-requirement
+    created_at: 2026-10-30T15:04:01.716Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7149223743f5
