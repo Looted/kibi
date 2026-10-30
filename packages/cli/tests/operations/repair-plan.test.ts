@@ -70,6 +70,95 @@ function row(overrides: Readonly<Record<string, unknown>> = {}) {
 }
 
 describe("dependency-ordered requirement repair plans", () => {
+  // implements REQ-kibi-case-coverage
+  test("an uncovered_case repair carries a draft scenario per uncovered case", () => {
+    const uncovered = {
+      caseId: "CASE-0123456789AB",
+      claimKey: "CLAIM-A",
+      factId: "FACT-UPLOAD",
+      subjectKey: "upload.batch",
+      propertyKey: "files_per_batch",
+      generator: "upper_past",
+      constraint: "gt 5",
+      predicted: "rejection",
+      coverage: "uncovered",
+      assumption: {
+        fact_kind: "property_value",
+        subject_key: "upload.batch",
+        property_key: "files_per_batch",
+        operator: "gt",
+        value_type: "int",
+        value: 5,
+      },
+    };
+    const outside = {
+      ...uncovered,
+      caseId: "CASE-BA9876543210",
+      generator: "non_member",
+      constraint: "includes a value outside [a, b]",
+      assumption: {
+        ...uncovered.assumption,
+        operator: "includes",
+        value_type: "set",
+        value: ["<a value outside the set>"],
+      },
+    };
+    const plan = buildRepairPlan(
+      {
+        summary: { proofMissing: 1, proofUnresolved: 0 },
+        rows: [
+          row({
+            proofGaps: ["uncovered_case"],
+            proofRepairs: [
+              { gap: "uncovered_case", priority: 46, stage: "cases", action: "Cover each case." },
+            ],
+            proofStages: {
+              cases: { status: "missing", uncoveredCases: [uncovered, outside] },
+            },
+          }),
+        ],
+      },
+      { by: "req", limit: 100, offset: 0 },
+      "a".repeat(64),
+    );
+    const repair = plan?.batches[0]?.repairs[0];
+    expect(plan?.batches[0]?.phase).toBe("case_scenarios");
+    expect(repair?.caseSkeletons?.map((skeleton) => skeleton.caseId)).toEqual([
+      "CASE-0123456789AB",
+      "CASE-BA9876543210",
+    ]);
+    const [fact, scenario] = repair?.caseSkeletons?.[0]?.entities ?? [];
+    expect(fact).toEqual({
+      type: "fact",
+      id: "FACT-CASE-0123456789AB",
+      properties: {
+        title: "files_per_batch gt 5",
+        status: "active",
+        fact_kind: "property_value",
+        subject_key: "upload.batch",
+        property_key: "files_per_batch",
+        operator: "gt",
+        value_type: "int",
+        value_int: 5,
+      },
+      relationships: [],
+    });
+    expect(scenario?.properties).toEqual({
+      title: "files_per_batch gt 5 is refused",
+      status: "draft",
+      expects: "rejection",
+    });
+    expect(scenario?.relationships).toEqual([
+      { type: "assumes", from: "SCEN-CASE-0123456789AB", to: "FACT-CASE-0123456789AB" },
+      { type: "specified_by", from: "REQ-PLAN-001", to: "SCEN-CASE-0123456789AB" },
+    ]);
+    expect(repair?.caseSkeletons?.[0]?.placeholder).toBe(false);
+    expect(repair?.caseSkeletons?.[1]?.placeholder).toBe(true);
+    expect(repair?.caseSkeletons?.[1]?.entities[0].properties.value_set).toEqual([
+      "<a value outside the set>",
+    ]);
+  });
+
   test("groups one requirement into small safe batches and blocks downstream work", () => {
     const plan = buildRepairPlan(
       {

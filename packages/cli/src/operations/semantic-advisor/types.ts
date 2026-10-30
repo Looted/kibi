@@ -1,3 +1,4 @@
+import type { CasePreview } from "./case-preview.js";
 import type { LogicRuleIR } from "../../logic/ir.js";
 
 export type SemanticAdvisorLane =
@@ -179,6 +180,15 @@ export type SemanticModelingSuggestion =
       readonly rationale: string;
       readonly suggested_next_tool: "kb_model_requirement";
       readonly claim: SemanticStrictPropertyClaim;
+      /**
+       * The edge cases the proof ladder derives from this claim once it is
+       * written; each rejection case needs a scenario that assumes it.
+       * Omitted when the claim yields none (a boolean or string value).
+       */
+      readonly casesPreview?: {
+        readonly cases: readonly CasePreview[];
+        readonly limitReached: boolean;
+      };
       readonly rejected_alternatives: readonly string[];
       readonly applyPlan: readonly Readonly<Record<string, unknown>>[];
     }

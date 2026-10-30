@@ -651,6 +651,20 @@ const entitySchema: Record<string, unknown> = {
       description:
         "Fact-only. The person who accepted dimension_waiver. Without it the waiver is reported as awaiting approval and the gap stays open.",
     },
+    case_waiver: {
+      type: "string",
+      minLength: 1,
+      pattern: "\\S",
+      description:
+        "Fact-only. Why the edge cases Kibi derives from this fact (the value past a bound, a value outside a set) are covered some other way or cannot occur. Waives uncovered_case for the fact once case_waiver_approved_by is set.",
+    },
+    case_waiver_approved_by: {
+      type: "string",
+      minLength: 1,
+      pattern: "\\S",
+      description:
+        "Fact-only. The person who accepted case_waiver. Without it the waiver is reported as awaiting approval and the gap stays open.",
+    },
     predicate_name: { type: "string" },
     predicate_namespace: { type: "string" },
     predicate_arity: { type: "integer", minimum: 1 },
@@ -746,6 +760,8 @@ const entitySchema: Record<string, unknown> = {
             { required: ["claim_text"] },
             { required: ["dimension_waiver"] },
             { required: ["dimension_waiver_approved_by"] },
+            { required: ["case_waiver"] },
+            { required: ["case_waiver_approved_by"] },
             { required: ["predicate_name"] },
             { required: ["predicate_namespace"] },
             { required: ["predicate_arity"] },

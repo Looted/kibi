@@ -1254,3 +1254,32 @@ describe("quantified claim dimension", () => {
     expect(log?.dimension).toBeUndefined();
   });
 });
+
+// implements REQ-kibi-case-coverage
+describe("edge-case preview on a strict-property suggestion", () => {
+  test("a bounded count lists the cases its scenarios must reach", () => {
+    const { receipt } = analyzeSemanticAdvisorInput({
+      payload: {
+        type: "req",
+        id: "REQ-SESSIONS",
+        properties: {
+          title: "Limit active sessions",
+          status: "open",
+          semantic_text: "Users may have at most two active sessions.",
+        },
+        relationships: [],
+      },
+    });
+    const suggestion = receipt.suggestions.find(
+      (item) => item.kind === "strict_property",
+    );
+    expect(suggestion?.kind).toBe("strict_property");
+    if (suggestion?.kind !== "strict_property") return;
+    expect(
+      suggestion.casesPreview?.cases.map(
+        (item) => `${item.constraint}:${item.predicted}`,
+      ),
+    ).toEqual(["eq 2:success", "gt 2:rejection", "eq 0:success", "eq 1:success"]);
+    expect(suggestion.casesPreview?.limitReached).toBe(false);
+  });
+});
