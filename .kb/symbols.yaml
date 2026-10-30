@@ -26524,7 +26524,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-kibi-case-coverage
+      - type: covered_by
         target: TEST-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-case-coverage
       - type: implements
         target: REQ-kibi-dependency-ordered-repair-plan
   - id: SYM-legacy-migration-plan-build
@@ -65907,3 +65911,67 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-dimension-gap
+  - id: SYM-kibi-case-coverage-verifier
+    title: Case coverage verifier
+    status: active
+    sourceFile: packages/cli/tests/consumer/case-coverage.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T15:00:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-case-coverage
+  - id: SYM-core-case-generator
+    title: fact_cases
+    status: active
+    sourceFile: packages/core/src/cases.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T15:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-case-coverage
+      - type: implements
+        target: REQ-kibi-case-coverage
+  - id: SYM-core-cases-stage
+    title: cases_stage
+    status: active
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T15:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-case-coverage
+      - type: implements
+        target: REQ-kibi-case-coverage
+  - id: SYM-core-case-waiver
+    title: fact_case_waiver
+    status: active
+    sourceFile: packages/core/src/cases.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T15:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-case-coverage
+      - type: implements
+        target: REQ-kibi-case-coverage
+  - id: SYM-cli-case-preview
+    title: previewCases
+    status: active
+    sourceFile: packages/cli/src/operations/semantic-advisor/case-preview.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T15:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-case-coverage
+      - type: implements
+        target: REQ-kibi-case-coverage

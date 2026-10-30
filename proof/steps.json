@@ -1895,6 +1895,18 @@
     ]
   },
   {
+    "test_id": "TEST-kibi-case-coverage",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "300000",
+        "./packages/cli/tests/consumer/case-coverage.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-kibi-search-answer-layer",
     "steps": [
       [

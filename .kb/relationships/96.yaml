@@ -482,3 +482,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1c5f4fd73d8b
+  - type: assumes
+    from: SCEN-NEG-kibi-case-coverage-UNCOVERED
+    to: FACT-NEG-kibi-case-coverage-UNCOVERED
+    created_at: 2026-10-30T14:06:16.650Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54eec9f76575
+  - type: verified_by
+    from: SCEN-NEG-kibi-case-coverage-UNCOVERED
+    to: TEST-kibi-case-coverage
+    created_at: 2026-10-30T14:06:16.711Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af9dcc185296

@@ -419,3 +419,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-900dedfd1800
+  - type: implements
+    from: SYM-core-case-waiver
+    to: REQ-kibi-case-coverage
+    created_at: 2026-10-30T14:06:34.289Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7199a68ef059
+  - type: covered_by
+    from: SYM-core-case-waiver
+    to: TEST-kibi-case-coverage
+    created_at: 2026-10-30T14:06:34.340Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a86b87a9b943

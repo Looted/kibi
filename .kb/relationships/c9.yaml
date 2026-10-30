@@ -286,3 +286,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ba09b3c63397
+  - type: verified_by
+    from: SCEN-kibi-case-coverage
+    to: TEST-kibi-case-coverage
+    created_at: 2026-10-30T14:06:15.520Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5fbe574a0a29
