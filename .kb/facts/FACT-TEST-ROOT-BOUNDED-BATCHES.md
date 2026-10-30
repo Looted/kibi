@@ -10,15 +10,12 @@ tags:
   - testing
   - root-suite
   - concurrency
-fact_kind: predicate
-predicate_namespace: kibi.requirements
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.testing.harness
-  - batch_execution
-  - bounded_deterministic_awaited_cleanup
-canonical_key: logical_requirement_rule(kibi.testing.harness,batch_execution,bounded_deterministic_awaited_cleanup)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.testing.harness
+property_key: root_suite_batches_unbounded_unawaited_or_uncleaned
+operator: eq
+value_type: int
+value_int: 0
 claim_key: CLAIM-06A81A38F99959C8
 claim_text: The curated root suite MUST run package batches with bounded concurrency preserve deterministic summaries await all workers and clean test-owned engines after each batch
 claim_span_start: 483

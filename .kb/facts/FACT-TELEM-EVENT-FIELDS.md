@@ -10,15 +10,12 @@ tags:
   - telemetry
   - remediation
   - audit
-fact_kind: predicate
-predicate_namespace: kibi.requirements
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.telemetry.remediation
-  - audit_coordinates_and_repair
-  - complete_when_available
-canonical_key: logical_requirement_rule(kibi.telemetry.remediation,audit_coordinates_and_repair,complete_when_available)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.telemetry.remediation
+property_key: event_remediations_missing_available_audit_field
+operator: eq
+value_type: int
+value_int: 0
 claim_key: CLAIM-44E8E0E1CE004387
 claim_text: Every event remediation must identify its log line, request identifier, timestamp, tool, target, reason, repair action, session identifier, and actor identifier when available
 claim_span_start: 696

@@ -10,15 +10,12 @@ tags:
   - testing
   - engine
   - cleanup
-fact_kind: predicate
-predicate_namespace: kibi.requirements
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.testing.harness
-  - runtime_ownership
-  - private_and_durable_teardown
-canonical_key: logical_requirement_rule(kibi.testing.harness,runtime_ownership,private_and_durable_teardown)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.testing.harness
+property_key: owned_engines_running_at_fixture_deletion
+operator: eq
+value_type: int
+value_int: 0
 claim_key: CLAIM-E29FB93757B5BA4B
 claim_text: Test harnesses MUST assign spawned engines to private runtime directories and durably terminate every owned engine before deleting fixture state
 claim_span_start: 0

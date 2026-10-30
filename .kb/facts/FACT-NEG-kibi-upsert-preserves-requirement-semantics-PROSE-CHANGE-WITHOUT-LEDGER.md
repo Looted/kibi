@@ -3,10 +3,10 @@ title: A requirement upsert changes the prose but sends no new proposition ledge
 status: active
 fact_kind: property_value
 subject_key: mcp.kb_upsert
-property_key: checks_supplied_ledger_as_sent
+property_key: requirement_upserts_not_checked_as_sent
 operator: eq
-value_type: bool
-value_bool: false
+value_type: int
+value_int: 1
 origin:
   kind: agent
   recorded_at: '2026-10-29T21:18:25.127Z'
