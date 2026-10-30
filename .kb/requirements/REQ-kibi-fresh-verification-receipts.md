@@ -79,7 +79,7 @@ links:
     target: SCEN-kibi-fresh-verification-receipts
   - type: requires_predicate
     target: FACT-VERIFICATION-RECEIPT-HISTORY
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-VERIFICATION-RECEIPT-BINDING
   - type: requires_predicate
     target: FACT-VERIFICATION-RECEIPT-FRESHNESS

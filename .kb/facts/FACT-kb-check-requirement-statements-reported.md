@@ -1,12 +1,12 @@
 ---
-title: 'Check requirement statements: implemented requirements quoted as unverified'
+title: 'Check requirement statements: implemented requirements left without an unverified-statement warning = 0'
 status: active
 fact_kind: property_value
 subject_key: kibi.check_requirement_statements
-property_key: implemented_statement_reported
+property_key: implemented_requirements_without_statement_warning
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 claim_key: CLAIM-1A5070F7DFD71B2E
 claim_text: Kibi kb_check with impact diagnostics must report each current requirement that a changed behavioral symbol implements, with its statement and firmness, as a requirement_statement_unverified warning unless the requirement document changed in the same change
 text_ref: REQ-kb-check-unverified-requirement-statements
