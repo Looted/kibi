@@ -251,14 +251,14 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-015dfa274f86
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-kibi-search-answer-layer-v2
     to: FACT-PRED-search-answer-verdict
     created_at: 2026-10-04T02:35:09.278Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-43c2ac01d072
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-kibi-search-answer-layer-v2
     to: FACT-PRED-search-answer-exceptions-unknowns
     created_at: 2026-10-04T02:35:09.291Z
@@ -272,7 +272,7 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bd26b71ddab6
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-kibi-search-answer-layer-v2
     to: FACT-PRED-search-answer-adr-excerpt
     created_at: 2026-10-04T02:35:09.315Z
@@ -496,3 +496,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a0aff57ee405
+  - type: constrains
+    from: REQ-kibi-search-answer-layer-v2
+    to: FACT-SUBJECT-kibi-discovery-search
+    created_at: 2026-10-30T12:23:34.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b88cf43cbca

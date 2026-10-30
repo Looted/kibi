@@ -9,15 +9,15 @@ tags:
 claim_key: CLAIM-EAC6FD7EE537498D
 claim_text: Every proof ingest must compact receipt history to the newest receipt, the newest passing receipt, and the newest receipt per scope and contract hash for the current binding and for the live snapshot
 text_ref: .kb/requirements/REQ-kibi-fresh-verification-receipts-v2.md
-fact_kind: predicate
-predicate_name: verification_receipt_rule
-predicate_args:
-  - proof_ingest
-  - receipt_history
-  - compacted_to_proof_deciding_receipts
-polarity: assert
-canonical_key: verification_receipt_rule(proof_ingest,receipt_history,compacted_to_proof_deciding_receipts)
-predicate_namespace: kibi.verification
+fact_kind: property_value
+subject_key: kibi.proof.receipts
+property_key: receipts_kept_by_ingest_compaction
+operator: subset_of
+value_type: set
+value_set:
+  - newest_receipt
+  - newest_passing_receipt
+  - newest_receipt_per_scope_and_contract_hash
 origin:
   kind: agent
   recorded_at: '2026-10-04T02:16:14.317Z'

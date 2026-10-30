@@ -3,10 +3,10 @@ title: A background kibi sync run fails while the agent keeps working
 status: active
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_01_the_plugin_must_provide_clear_feedback_about_syn
+property_key: sync_events_without_structured_log
 operator: eq
-value_type: bool
-value_bool: false
+value_type: int
+value_int: 1
 origin:
   kind: agent
   recorded_at: '2026-10-29T21:23:56.779Z'

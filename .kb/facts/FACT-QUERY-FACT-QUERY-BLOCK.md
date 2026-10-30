@@ -1,15 +1,18 @@
 ---
 title: Typed kb_query answers carry rows and a factQuery block with schema, distinct counts, suggestions, warnings and next call
 status: active
-fact_kind: predicate
-predicate_namespace: kibi.requirements
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.cli.query
-  - typed_answer_contents
-  - rows_schema_distinct_suggestions_warnings_next_call
-canonical_key: logical_requirement_rule(kibi.cli.query,typed_answer_contents,rows_schema_distinct_suggestions_warnings_next_call)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.cli.query
+property_key: typed_answer_contents
+operator: includes
+value_type: set
+value_set:
+  - matching_fact_rows
+  - schema_used
+  - distinct_value_counts
+  - existing_values_when_nothing_matched
+  - undeclared_argument_warnings
+  - next_kb_query_call
 claim_key: CLAIM-D8380B9B3A13AC50
 claim_text: Every typed kb_query answer must return the matching fact rows and a factQuery block with the schema used, distinct value counts, the values that exist when nothing matched, warnings for undeclared argument names and the next kb_query call to make
 text_ref: .kb/requirements/REQ-kibi-query-fact-filters.md
