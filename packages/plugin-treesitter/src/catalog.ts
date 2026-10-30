@@ -23,6 +23,11 @@ export const TREE_SITTER_LANGUAGES = {
   ruby: { extensions: [".rb"], aliases: ["ruby", "rb"] },
   terraform: { extensions: [".tf"], aliases: ["terraform", "tf"] },
   hcl: { extensions: [".hcl"], aliases: ["hcl"] },
+  prolog: {
+    extensions: [".plt"],
+    explicitOnlyExtensions: [".pl"],
+    aliases: ["prolog", "swipl", "swi-prolog"],
+  },
 } as const;
 
 export type TreeSitterLanguage = keyof typeof TREE_SITTER_LANGUAGES;

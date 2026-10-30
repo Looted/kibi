@@ -7,9 +7,9 @@ export const qualifiedSourceAnalyzers = [
     version: "2.0.2",
     files: {
       "SBOM.spdx.json":
-        "8027fb0c6b5a9f6f325d6aa836b87c1cddf580df4cfd4c25310bc83c2173de50",
+        "1c485e3d61663c84ed9d46b6d10f03ae03b8dfad22fa5687fa6ef4b690fec0f3",
       "THIRD_PARTY_NOTICES.md":
-        "0b1ede96cb261dab73fd1ec8c51d7bb5b2492eed0502f6c10ed071736daa263c",
+        "fff747633b08a90bf949e998892211702b021c63e3a074ded102700fc447fed3",
       "assets/queries/bash.scm":
         "6ca535e8fe652b51203ac272831881dab001f7ac508e50551bc2cdc4a15d7b6c",
       "assets/queries/c.scm":
@@ -32,6 +32,8 @@ export const qualifiedSourceAnalyzers = [
         "bcb22147b8582d92743fc973864cefb894a4c12b3957f16f3d472b2ec7cd4c49",
       "assets/queries/php.scm":
         "4ac5e30f99f3abe5417dcb42219e0790c66f9b4bb3be071bc60160dd012f3cd8",
+      "assets/queries/prolog.scm":
+        "df6af374b121bc85ff5b471763b542894ba9602b37f3ec7c17ab70944a7486b1",
       "assets/queries/python.scm":
         "d0f3e577878167bfabc30e526e497bce58d1699b9bcabf8ab3a50698efb5ca3e",
       "assets/queries/ruby.scm":
@@ -64,14 +66,16 @@ export const qualifiedSourceAnalyzers = [
         "09a96427d7c72f0613ed470cd9812223fc4a91d6a9c025c0235cc6bd59ff96f4",
       "assets/tree-sitter-rust.wasm":
         "f65f354215611fd94ad34134b3427eb3d58cbb745df7b6509ba722184db73d57",
+      "assets/tree-sitter-swi_prolog.wasm":
+        "a9872f0369b51c1eed2ef04267382c34aeaeba7c97b6f55b829fbf625bdb22dd",
       "assets/tree-sitter-terraform.release.wasm":
         "59dbcbb0f08eb78b78f37510834559a48ce5c9d4866c978d62c6390796461cb5",
       "catalog.json":
-        "585a67f97fbc352f45ebfc628db71ad9f9bd504f1c0b63dfa0f1859a98e9ec02",
+        "cd5cdb1eb1f4acca7cf85e472fb95d807c738b4a23f2129bc300fb509c520b12",
       "dist/analysis-worker.js":
-        "e62a7aac822837c584b7071d86b04defdbf6e6c40db981beac863672b0f5bb6f",
+        "9ef76ad467f6b4e2a117a3b5656838eb5f096890931ec0480566b76b73fd64db",
       "dist/catalog.js":
-        "460243c48cb6a03b8c7971273729d8a1134955186978b6c0d04182c71960ebff",
+        "c485cd1bf81098c3e2e86d37f78bf9f55af122f5d6b9587c0c57b494d68e4968",
       "dist/extractor.js":
         "1d8cd819e7ec8fcc291a44e5ffe4ccfe77099301677913fcfe0d92e7ce971f33",
       "dist/index.js":
@@ -79,7 +83,7 @@ export const qualifiedSourceAnalyzers = [
       "dist/performance-timing.js":
         "56cce530f627c8fd079e8ec070322f84378ae50c40a6765d88b418850692940b",
       "integrity.json":
-        "34b40e997aad777c888ab12a616c2d55423b29c7c54203678edaad055506a347",
+        "4441a636e97cf0360cdaa5d4bfd36bf4200a4570fa01e177fbc1c88e2f200e9e",
       "licenses/tree-sitter-bash-MIT.txt":
         "49bf33cf78ef5897e4e161ce1517df7de1ae5042a65b6bcfd44401e0fc606559",
       "licenses/tree-sitter-c-MIT.txt":
@@ -102,6 +106,8 @@ export const qualifiedSourceAnalyzers = [
         "9c99b99e93d3c6461bef9f6bac45d17b8bf014172625c24f76319bbd235a7b80",
       "licenses/tree-sitter-rust-MIT.txt":
         "31d5b6f4243d5c7c6e1c4ebbbb9f6407bd1457a08bcc4f706521710341acba36",
+      "licenses/tree-sitter-swi-prolog-MIT.txt":
+        "c51ac4800457c57ddabdee5486605df9452705491f806cb87241b7a8acc7ab2d",
       "licenses/web-tree-sitter-MIT.txt":
         "c5cfb43042b6b72045f4ba997834d0a7786d2793d91680868b5815b39f14fc78",
       "package.json":

@@ -2,12 +2,12 @@ export type SourceClassification =
   | Readonly<{
       kind: "language";
       language: string;
-      source: "extension" | "shebang" | "explicit";
+      source: "extension" | "shebang" | "explicit" | "content";
     }>
   | Readonly<{
       kind: "file-level";
       language: string;
-      source: "extension" | "shebang" | "explicit";
+      source: "extension" | "shebang" | "explicit" | "content";
       reason: string;
     }>
   | Readonly<{
@@ -46,6 +46,7 @@ type ExtensionSignal =
     }>;
 
 const MAX_SHEBANG_LENGTH = 512;
+const MAX_CONTENT_SNIFF_LENGTH = 65_536;
 const MAX_SHEBANG_TOKENS = 16;
 const MAX_TOKEN_LENGTH = 128;
 
@@ -81,6 +82,7 @@ const EXTENSIONS: Readonly<Record<string, ExtensionSignal>> = {
   ".mjs": { kind: "language", language: "javascript" },
   ".mts": { kind: "language", language: "typescript" },
   ".php": { kind: "language", language: "php" },
+  ".plt": { kind: "language", language: "prolog" },
   ".pl": {
     kind: "ambiguous",
     language: "perl-or-prolog",
@@ -168,7 +170,6 @@ const FILE_LEVEL_LANGUAGES = new Set([
   "html",
   "json",
   "perl",
-  "prolog",
   "shell",
   "sql",
   "yaml",
@@ -387,9 +388,30 @@ function shebangFor(content: string): ShebangInterpreter | undefined {
   return interpreterFor(words[0]);
 }
 
+// Lines only Prolog source starts with: a directive, a clause or DCG rule
+// whose head is an atom or compound term, or a one-line fact.
+const PROLOG_LINE =
+  /^(?::-\s|[a-z][A-Za-z0-9_]*(?:\([^\n]*\))?\s*(?::-|-->)(?:\s|$)|[a-z][A-Za-z0-9_]*\([^\n;]*\)\.[ \t]*(?:%[^\n]*)?$)/m;
+// Lines only Perl source starts with.
+const PERL_LINE =
+  /^(?:\s*use\s+(?:strict|warnings|utf8|[A-Z][\w:]*)\b[^\n]*;|\s*package\s+[A-Za-z_][\w:]*\s*;|\s*sub\s+[A-Za-z_]\w*\s*\{|\s*my\s+[$@%]|=(?:pod|head1)\b|__(?:END|DATA)__$)/m;
+
+/**
+ * Resolves a `.pl` file without a shebang to Prolog or Perl when only one of
+ * them matches its leading content. Both or neither leaves it ambiguous.
+ */
+// implements REQ-multilingual-language-catalog
+function perlOrPrologByContent(content: string): string | undefined {
+  const prefix = content.slice(0, MAX_CONTENT_SNIFF_LENGTH);
+  const prolog = PROLOG_LINE.test(prefix);
+  const perl = PERL_LINE.test(prefix);
+  if (prolog === perl) return undefined;
+  return prolog ? "prolog" : "perl";
+}
+
 function classificationForLanguage(
   language: string,
-  source: "extension" | "shebang" | "explicit",
+  source: "extension" | "shebang" | "explicit" | "content",
 ): SourceClassification {
   if (FILE_LEVEL_LANGUAGES.has(language)) {
     return {
@@ -477,6 +499,12 @@ export function classifySource(
   }
 
   if (extension?.kind === "ambiguous") {
+    const contentLanguage =
+      shebang === undefined && extension.language === "perl-or-prolog"
+        ? perlOrPrologByContent(content)
+        : undefined;
+    if (contentLanguage !== undefined)
+      return classificationForLanguage(contentLanguage, "content");
     if (shebang === undefined) {
       return {
         kind: "ambiguous",

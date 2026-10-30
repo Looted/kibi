@@ -353,6 +353,33 @@
       "queryBytes": 210,
       "querySha256": "cad52e3fd81bc5584ea181c920bdb8fa4be007f05f8c5e08f95e9ccb40aee93a",
       "assetSource": "https://github.com/tree-sitter-grammars/tree-sitter-hcl/releases/download/v1.2.0/tree-sitter-hcl.wasm"
+    },
+    {
+      "id": "prolog",
+      "extensions": [".plt"],
+      "explicitOnlyExtensions": [".pl"],
+      "aliases": ["prolog", "swipl", "swi-prolog"],
+      "package": "tree-sitter-swi-prolog",
+      "version": "0.1.0",
+      "gitCommit": "f6633ce273a2153636f1f463d41fb43acff7b741",
+      "sourceUrl": "https://github.com/Looted/tree-sitter-swi-prolog/tree/f6633ce273a2153636f1f463d41fb43acff7b741",
+      "npmTarball": "https://registry.npmjs.org/tree-sitter-swi-prolog/-/tree-sitter-swi-prolog-0.1.0.tgz",
+      "npmIntegrity": "sha512-kU56M+vcflLXY4YurE/HM5DRBpBdtQnstIl/vakVM6Q0qsitJsu/ByGhZmt8zIiBAm/X4nC/SmiidS7cknX4ug==",
+      "license": "MIT",
+      "scanner": {
+        "present": true,
+        "path": "src/scanner.c",
+        "license": "MIT"
+      },
+      "parserAbi": 15,
+      "asset": "assets/tree-sitter-swi_prolog.wasm",
+      "assetBytes": 210131,
+      "assetSha256": "a9872f0369b51c1eed2ef04267382c34aeaeba7c97b6f55b829fbf625bdb22dd",
+      "query": "assets/queries/prolog.scm",
+      "querySource": "Kibi-authored clause query; predicates, plunit units and tests are grouped by the analyzer",
+      "queryBytes": 198,
+      "querySha256": "df6af374b121bc85ff5b471763b542894ba9602b37f3ec7c17ab70944a7486b1",
+      "assetSource": "tree-sitter-swi_prolog.wasm inside the pinned npm tarball"
     }
   ],
   "runtimeNetworkRequired": false,
