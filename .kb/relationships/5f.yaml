@@ -342,3 +342,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5b670248d645
+  - type: specified_by
+    from: REQ-kibi-plugin-search-hints
+    to: SCEN-NEG-kibi-plugin-search-hints-STALE-VECTOR
+    created_at: 2026-10-30T08:42:59.459Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48c415289eff

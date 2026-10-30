@@ -349,3 +349,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-438a88f414e4
+  - type: assumes
+    from: SCEN-NEG-kibi-search-hints-host-FAILING-PROVIDER
+    to: FACT-NEG-kibi-search-hints-host-FAILING-PROVIDER
+    created_at: 2026-10-30T08:43:03.199Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-035da2466a18
+  - type: verified_by
+    from: SCEN-NEG-kibi-search-hints-host-FAILING-PROVIDER
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-10-30T08:43:03.267Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ca2c4233ab9

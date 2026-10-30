@@ -573,3 +573,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0a02fdf16169
+  - type: assumes
+    from: SCEN-NEG-capability-search-hints-v1-AUGMENT-MODE
+    to: FACT-NEG-capability-search-hints-v1-AUGMENT-MODE
+    created_at: 2026-10-30T08:42:53.375Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9ecb10b1129
+  - type: verified_by
+    from: SCEN-NEG-capability-search-hints-v1-AUGMENT-MODE
+    to: TEST-capability-search-hints-v1
+    created_at: 2026-10-30T08:42:53.472Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df153b2ff19c
