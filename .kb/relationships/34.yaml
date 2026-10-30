@@ -160,7 +160,7 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-83fc8ad40dc2
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-kibi-telemetry-acceptance-gate-v2
     to: FACT-PRED-56D7C9AC1D9E
     created_at: 2026-10-04T02:14:53.618Z
@@ -181,7 +181,7 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-58a46ba08fe8
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-kibi-telemetry-acceptance-gate-v2
     to: FACT-PRED-A29952A9FDA9
     created_at: 2026-10-04T02:14:53.656Z
@@ -237,7 +237,7 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e2c5d46f25b1
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-kibi-telemetry-acceptance-gate-v2
     to: FACT-PRED-telemetry-lookup-before-first-edit
     created_at: 2026-10-04T02:14:53.743Z
@@ -440,3 +440,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8447ed444860
+  - type: constrains
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: FACT-SUBJECT-kibi-telemetry-acceptance
+    created_at: 2026-10-30T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90093fb9a146

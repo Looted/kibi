@@ -11,10 +11,10 @@ tags:
   - fact:property_value
 fact_kind: property_value
 subject_key: kibi.bootstrap_knowledge_sources
-property_key: review_claims_as_observation_facts
+property_key: review_claims_not_planned_as_observation_facts
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 claim_key: CLAIM-4AF117BA4320367A
 claim_text: The bootstrap planner must plan each observation or open question claim as a cited observation fact and tag open questions review:open-question
 origin:

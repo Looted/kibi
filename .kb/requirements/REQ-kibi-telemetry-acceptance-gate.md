@@ -136,13 +136,13 @@ links:
     target: SCEN-kibi-telemetry-acceptance-gate
   - type: requires_predicate
     target: FACT-PRED-E8FA9DDC5BEA
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-PRED-56D7C9AC1D9E
   - type: requires_predicate
     target: FACT-PRED-A4FBBF88EA6B
   - type: requires_predicate
     target: FACT-PRED-21C26F8E64F4
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-PRED-A29952A9FDA9
   - type: requires_predicate
     target: FACT-PRED-9577B3E62F04

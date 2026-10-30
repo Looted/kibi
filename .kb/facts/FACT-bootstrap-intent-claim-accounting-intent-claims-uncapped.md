@@ -3,10 +3,10 @@ title: The bootstrap planner must keep every declared intent claim regardless of
 status: active
 fact_kind: property_value
 subject_key: bootstrap.intent_claim_accounting
-property_key: intent_claims_uncapped
+property_key: declared_intent_claims_dropped_by_max_candidates
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 claim_key: CLAIM-0D8D71DB60BC0D38
 claim_text: The bootstrap planner must keep every declared intent claim regardless of maxCandidates and apply maxCandidates only to discovered candidates
 origin:

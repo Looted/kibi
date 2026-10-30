@@ -1,15 +1,12 @@
 ---
-title: All entity and relationship mutations in the KB are recorded in a pers
+title: No entity or relationship mutation is missing from the branch audit log
 status: active
-fact_kind: predicate
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.audit.log
-  - branch_audit_log
-  - recorded_persistent_entry
-predicate_namespace: kibi.requirements
-canonical_key: logical_requirement_rule(kibi.audit.log,branch_audit_log,recorded_persistent_entry)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.audit.log
+property_key: kb_mutations_missing_from_branch_audit_log
+operator: eq
+value_type: int
+value_int: 0
 claim_key: CLAIM-3F9DB0AE7FC227B0
 claim_text: All entity and relationship mutations in the KB are recorded in a persistent audit log (audit.log) in the branch directory
 tags:

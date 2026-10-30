@@ -10,10 +10,10 @@ tags:
   - e2e
 fact_kind: property_value
 subject_key: kibi.proof.verification
-property_key: verification_case_snapshot_bound_proof
+property_key: proof_obligations_without_snapshot_bound_case_proof
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 polarity: require
 claim_key: CLAIM-90DA2167F7920924
 claim_text: Kibi must give each proof obligation a stable symbol identity, connect executable test symbols to that obligation, and accept proof only from fresh, passed proof receipts bound to the current proof contract, execution fingerprint, and snapshot

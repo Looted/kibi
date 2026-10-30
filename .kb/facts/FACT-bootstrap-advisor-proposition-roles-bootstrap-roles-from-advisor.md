@@ -9,10 +9,10 @@ tags:
   - provenance:req-bootstrap-advisor-proposition-roles
 fact_kind: property_value
 subject_key: kibi.proposition_roles
-property_key: bootstrap_roles_from_advisor
+property_key: inventory_roles_not_from_advisor
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 claim_key: CLAIM-A8D0102FA831B456
 claim_text: Bootstrap requirement candidates must take each semantic inventory role from the semantic advisor
 origin:
