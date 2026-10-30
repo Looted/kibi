@@ -419,7 +419,7 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b37d4865bbbd
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-kibi-entity-origin
     to: FACT-PRED-entity-origin-field
     created_at: 2026-10-04T02:21:35.284Z
@@ -783,3 +783,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f6ce7f53ded7
+  - type: constrains
+    from: REQ-kibi-entity-origin
+    to: FACT-SUBJECT-KIBI-ENTITY-ORIGIN
+    created_at: 2026-10-30T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e153d5af04d9

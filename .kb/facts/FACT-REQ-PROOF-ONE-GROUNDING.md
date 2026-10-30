@@ -8,15 +8,12 @@ tags:
   - lane:ontology
   - requirements
   - proof
-fact_kind: predicate
-predicate_namespace: kibi.requirements
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.proof.requirement
-  - logical_grounding
-  - exactly_one_valid_representation
-canonical_key: logical_requirement_rule(kibi.proof.requirement,logical_grounding,exactly_one_valid_representation)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.proof.requirement
+property_key: valid_logical_groundings_per_modeled_proposition
+operator: eq
+value_type: int
+value_int: 1
 claim_key: CLAIM-AFD4D2B6803EA1B3
 claim_text: Every modeled proposition must have exactly one valid logical grounding
 type: fact

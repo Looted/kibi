@@ -1,6 +1,6 @@
 ---
 id: FACT-REQ-PROOF-CONTRADICTION-BLOCKS
-title: Detected contradictions block proof
+title: No detected contradiction leaves proof unblocked
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
@@ -9,15 +9,12 @@ tags:
   - requirements
   - proof
   - contradictions
-fact_kind: predicate
-predicate_namespace: kibi.requirements
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.proof.requirement
-  - proof_outcome
-  - blocked
-canonical_key: logical_requirement_rule(kibi.proof.requirement,proof_outcome,blocked)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.proof.requirement
+property_key: detected_contradictions_not_blocking_proof
+operator: eq
+value_type: int
+value_int: 0
 claim_key: CLAIM-78DCDEACB0D210A3
 claim_text: Every detected contradiction must block proof
 type: fact
