@@ -21,6 +21,9 @@
  *      wins over KIBI_SKILLOPT_HOST in both directions.
  *   4. `campaign.ts package --evaluation --host claude-code` refuses it with
  *      package_evidence_host_mismatch before assembly.
+ *      Evidence whose run recorded no harness (no host in the evaluation
+ *      context, no CLI version in its preflight receipt) is refused with
+ *      evaluation_host_unrecorded before writing anything.
  *   5. An unknown `--host` exits 2 on campaign.ts; `cli.ts` and `operator.ts`
  *      refuse the Codex-only workflow on another host with exit 2.
  *   6. The offline workflow contracts are at 1.1.0 and carry no bundle.
@@ -42,7 +45,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { runEvaluateCampaign } from "../../../scripts/skillopt-eval/campaign-workflow";
-import { OFFLINE_CONTRACT_SCHEMA_VERSION } from "../../../scripts/skillopt-eval/contracts/common";
+import {
+  JsonValueSchema,
+  OFFLINE_CONTRACT_SCHEMA_VERSION,
+  contractHash,
+} from "../../../scripts/skillopt-eval/contracts/common";
 import { firstMissingRequiredCall } from "../../../scripts/skillopt-eval/scoring/cell";
 import {
   candidateManifest,
@@ -232,6 +239,64 @@ try {
   assert(
     !existsSync(packageRoot) || readdirSync(packageRoot).length === 0,
     "refused package assembled skills",
+  );
+
+  // 4b. Evidence whose run recorded no harness is refused before any work.
+  const { contentHash: _sealed, ...sealedBody } = JSON.parse(
+    readFileSync(evaluationPath, "utf8"),
+  ) as {
+    contentHash: string;
+    context: Record<string, unknown>;
+    runs: { artifactRoot: string }[];
+  };
+  const { host: _host, ...unrecordedContext } = sealedBody.context;
+  const unrecorded = { ...sealedBody, context: unrecordedContext };
+  for (const entry of unrecorded.runs) {
+    const preflightPath = join(entry.artifactRoot, "preflight.json");
+    if (!existsSync(preflightPath)) continue;
+    const preflight = JSON.parse(readFileSync(preflightPath, "utf8")) as {
+      codexVersion?: unknown;
+    };
+    writeFileSync(
+      preflightPath,
+      JSON.stringify({ ...preflight, codexVersion: null }),
+    );
+  }
+  const unrecordedPath = join(root, "unrecorded-evaluation.json");
+  writeFileSync(
+    unrecordedPath,
+    JSON.stringify({
+      ...unrecorded,
+      contentHash: contractHash(JsonValueSchema.parse(unrecorded)),
+    }),
+  );
+  const unrecordedRoot = join(root, "confirm-unrecorded");
+  const refusedUnrecorded = run(
+    "campaign.ts",
+    [
+      "confirm",
+      "--artifact-root",
+      unrecordedRoot,
+      "--previous-evaluation",
+      unrecordedPath,
+      "--repeats",
+      "1",
+      "--max-target-episodes",
+      "20",
+      "--allow-paid",
+      "--host",
+      "codex",
+    ],
+    { KIBI_SKILLOPT_HOST: undefined },
+  );
+  assert(
+    refusedUnrecorded.status === 1 &&
+      refusedUnrecorded.stderr.includes("evaluation_host_unrecorded"),
+    `confirm of evidence without a recorded harness exited ${refusedUnrecorded.status}: ${refusedUnrecorded.stderr}`,
+  );
+  assert(
+    !existsSync(unrecordedRoot),
+    "refused confirm of unrecorded evidence wrote artifacts",
   );
 
   // 5. Unknown hosts and the Codex-only workflow are refused with exit 2.
