@@ -25,6 +25,12 @@ const tempDirs: string[] = [];
 // own output instead of a test timeout.
 const RUNNER_TIMEOUT_MS = 15_000;
 
+// The Mutalog version the runner pins, read from the runner itself so a pin
+// bump does not have to touch this test.
+const pinnedMutalogVersion =
+  /mutalog_version\('([^']+)'\)/.exec(readFileSync(runnerPath, "utf8"))?.[1] ??
+  "unknown";
+
 // A stand-in for Mutalog's library(mutalog): its entry point prints where it
 // was loaded from and the arguments it received, so a test can tell which
 // copy the runner chose without running a real mutation pass.
@@ -145,7 +151,9 @@ describe("run-prolog-mutation.pl", () => {
     });
 
     expect(result.status, `${result.stdout}\n${result.stderr}`).not.toBe(0);
-    expect(result.stderr).toContain("Installing Mutalog 0.1.2");
+    expect(result.stderr).toContain(
+      `Installing Mutalog ${pinnedMutalogVersion}`,
+    );
     expect(result.stdout).not.toContain("stub stale");
   });
 });
