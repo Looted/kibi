@@ -12,7 +12,7 @@ import { TREE_SITTER_LANGUAGES } from "../../../../plugin-treesitter/src/catalog
  * The languages the tree-sitter plugin extracts symbols from and the file extensions it claims for some of them. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */
 
-/** A tree-sitter plugin language shall be python, go, rust, java, csharp, php, c, cpp, bash, ruby, terraform or hcl. */
+/** A tree-sitter plugin language shall be python, go, rust, java, csharp, php, c, cpp, bash, ruby, prolog, terraform or hcl. */
 export async function treeSitterLanguageIdsCertificate(): Promise<CodeCertificate> {
   return exhaustiveCertificate({
     testId: "TEST-proof-tree-sitter-language-ids",
@@ -69,7 +69,7 @@ export async function treeSitterRustExtensionsCertificate(): Promise<CodeCertifi
 }
 
 describe("Tree-sitter plugin languages and extensions", () => {
-  test("A tree-sitter plugin language shall be python, go, rust, java, csharp, php, c, cpp, bash, ruby, terraform or hcl", async () => {
+  test("A tree-sitter plugin language shall be python, go, rust, java, csharp, php, c, cpp, bash, ruby, prolog, terraform or hcl", async () => {
     writeCodeCertificate(await treeSitterLanguageIdsCertificate());
     expect([...Object.keys(TREE_SITTER_LANGUAGES)].sort()).toEqual([
       "bash",
@@ -80,6 +80,7 @@ describe("Tree-sitter plugin languages and extensions", () => {
       "hcl",
       "java",
       "php",
+      "prolog",
       "python",
       "ruby",
       "rust",

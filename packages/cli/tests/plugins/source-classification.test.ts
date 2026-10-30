@@ -82,7 +82,7 @@ function serviceFor(capability: SymbolExtractorV2): SourceAnalysisService {
 }
 
 describe("deterministic source classification", () => {
-  test("keeps ambiguous headers and Prolog/Perl paths explicit until selected", () => {
+  test("keeps ambiguous headers explicit and resolves .pl by shebang, hint or content", () => {
     expect(
       classifySource("include/shared.h", "int shared(void);"),
     ).toMatchObject({
@@ -93,13 +93,13 @@ describe("deterministic source classification", () => {
     expect(
       classifySource("include/shared.h", "int shared(void);", "c++"),
     ).toMatchObject({ kind: "language", language: "cpp", source: "explicit" });
-    expect(
-      classifySource("rules/shared.pl", "member(alice, bob)."),
-    ).toMatchObject({
-      kind: "ambiguous",
-      language: "perl-or-prolog",
-      candidates: ["perl", "prolog"],
-    });
+    for (const content of ["", "1;\n", "% notes only\n"]) {
+      expect(classifySource("rules/shared.pl", content)).toMatchObject({
+        kind: "ambiguous",
+        language: "perl-or-prolog",
+        candidates: ["perl", "prolog"],
+      });
+    }
     expect(
       classifySource("rules/shared.pl", "member(alice, bob).", "perl"),
     ).toMatchObject({
@@ -108,11 +108,44 @@ describe("deterministic source classification", () => {
       source: "explicit",
     });
     expect(
-      classifySource("rules/shared.pl", "#!/usr/bin/env prolog\nmember(a,b)."),
+      classifySource("rules/shared.pl", "#!/usr/bin/env swipl\nmember(a,b)."),
     ).toMatchObject({
-      kind: "file-level",
+      kind: "language",
       language: "prolog",
       source: "shebang",
+    });
+    for (const content of [
+      ":- module(rules, [member/2]).\n",
+      "% facts\nmember(alice, bob).\n",
+      "path(X, Y) :-\n    edge(X, Y).\n",
+      "greeting --> [hello].\n",
+    ]) {
+      expect(classifySource("rules/shared.pl", content)).toMatchObject({
+        kind: "language",
+        language: "prolog",
+        source: "content",
+      });
+    }
+    for (const content of [
+      'use strict;\nuse warnings;\nprint "hi\\n";\n',
+      "package Rules::Shared;\n1;\n",
+      "sub member { return 1 }\n",
+      "my $name = shift;\n",
+    ]) {
+      expect(classifySource("rules/shared.pl", content)).toMatchObject({
+        kind: "file-level",
+        language: "perl",
+        source: "content",
+      });
+    }
+    // Signals for both languages leave the choice to a hint or shebang.
+    expect(
+      classifySource("rules/shared.pl", "use strict;\nmember(alice, bob).\n"),
+    ).toMatchObject({ kind: "ambiguous", language: "perl-or-prolog" });
+    expect(classifySource("tests/rules.plt", "")).toMatchObject({
+      kind: "language",
+      language: "prolog",
+      source: "extension",
     });
   });
 

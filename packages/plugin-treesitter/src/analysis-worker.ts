@@ -57,6 +57,8 @@ interface DefinitionCandidate {
   readonly definitionNode: Node;
   readonly nameNode: Node;
   readonly nameRange?: SourceAnalysisRangeV2;
+  /** Span when it differs from definitionNode, e.g. all clauses of a Prolog predicate. */
+  readonly range?: SourceAnalysisRangeV2;
   readonly baseQualifiedName: string;
   readonly qualifiedName: string;
   readonly signature?: string;
@@ -115,6 +117,7 @@ const CONTAINER_NODE_TYPES: Readonly<
   bash: new Set(),
   terraform: new Set(),
   hcl: new Set(),
+  prolog: new Set(),
 };
 
 const SIGNATURE_IDENTITY_LANGUAGES: ReadonlySet<TreeSitterLanguage> = new Set([
@@ -550,11 +553,12 @@ function leadingDirective(
   startLine: number,
   language: TreeSitterLanguage,
 ): string | undefined {
-  const marker = ["python", "bash", "ruby", "terraform", "hcl"].includes(
-    language,
-  )
-    ? "#"
-    : "//";
+  const marker =
+    language === "prolog"
+      ? "%"
+      : ["python", "bash", "ruby", "terraform", "hcl"].includes(language)
+        ? "#"
+        : "//";
   const lines = content.split(/\r\n|\n|\r/);
   const directives: string[] = [];
   for (let index = startLine - 2; index >= 0; index -= 1) {
@@ -1037,6 +1041,322 @@ function collectHclCandidates(
   return candidates;
 }
 
+/** Text of a Prolog atom, without the quotes of a quoted atom. */
+function prologAtomText(node: Node): string {
+  const text = node.text;
+  return text.length >= 2 && text.startsWith("'") && text.endsWith("'")
+    ? text.slice(1, -1).replaceAll("''", "'")
+    : text;
+}
+
+function prologArguments(term: Node): Node[] {
+  const list = term.childForFieldName("arguments");
+  return list === null
+    ? []
+    : namedChildren(list).filter((child) => child.type !== "comment");
+}
+
+function prologOperator(term: Node): string | undefined {
+  return term.childForFieldName("operator")?.text;
+}
+
+/** `Name(Args)` or a bare atom, as name, arity and the name node. */
+function prologCallable(
+  term: Node,
+): { name: string; arity: number; nameNode: Node } | undefined {
+  if (term.type === "parenthesized_term") {
+    const inner = namedChildren(term).find((child) => child.type !== "comment");
+    return inner === undefined ? undefined : prologCallable(inner);
+  }
+  if (term.type === "atom") {
+    return { name: prologAtomText(term), arity: 0, nameNode: term };
+  }
+  if (term.type === "compound_term") {
+    const functor = term.childForFieldName("functor");
+    if (functor === null) return undefined;
+    return {
+      name: prologAtomText(functor),
+      arity: prologArguments(term).length,
+      nameNode: functor,
+    };
+  }
+  const operator = term.childForFieldName("operator");
+  if (operator === null) return undefined;
+  if (term.type === "binary_operation")
+    return { name: operator.text, arity: 2, nameNode: operator };
+  if (term.type === "prefix_operation")
+    return { name: operator.text, arity: 1, nameNode: operator };
+  return undefined;
+}
+
+interface PrologHead {
+  readonly name: string;
+  readonly arity: number;
+  readonly nameNode: Node;
+  readonly head: Node;
+  readonly qualifier?: string;
+}
+
+/**
+ * The predicate a clause defines. Strips a module qualifier (`m:Head`), the
+ * guard of a single-sided-unification rule (`Head, Guard => Body`) and DCG
+ * pushback (`Head, Pushback --> Body`); DCG rules add two arguments.
+ */
+function prologClauseHead(clause: Node): PrologHead | undefined {
+  let head = clause.childForFieldName("head");
+  const neck = clause.childForFieldName("neck")?.text;
+  if (head === null) return undefined;
+  if (
+    (neck === "=>" || neck === "-->") &&
+    head.type === "binary_operation" &&
+    prologOperator(head) === ","
+  ) {
+    head = head.childForFieldName("left");
+    if (head === null) return undefined;
+  }
+  let qualifier: string | undefined;
+  if (head.type === "binary_operation" && prologOperator(head) === ":") {
+    const module = head.childForFieldName("left");
+    const inner = head.childForFieldName("right");
+    if (module === null || inner === null || module.type !== "atom")
+      return undefined;
+    qualifier = prologAtomText(module);
+    head = inner;
+  }
+  const callable = prologCallable(head);
+  if (callable === undefined) return undefined;
+  return {
+    ...callable,
+    arity: neck === "-->" ? callable.arity + 2 : callable.arity,
+    head,
+    ...(qualifier === undefined ? {} : { qualifier }),
+  };
+}
+
+/** The module a `:- module(Name, Exports)` directive declares. */
+function prologModuleName(directive: Node): string | undefined {
+  const body = directive.childForFieldName("body");
+  if (body === null || body.type !== "compound_term") return undefined;
+  if (body.childForFieldName("functor")?.text !== "module") return undefined;
+  const name = prologArguments(body)[0];
+  return name?.type === "atom" ? prologAtomText(name) : undefined;
+}
+
+/** `begin_tests(Unit)` / `begin_tests(Unit, Options)` / `end_tests(Unit)`. */
+function prologTestUnitDirective(
+  directive: Node,
+): { kind: "begin" | "end"; unit: string; unitNode: Node } | undefined {
+  const body = directive.childForFieldName("body");
+  if (body === null || body.type !== "compound_term") return undefined;
+  const functor = body.childForFieldName("functor")?.text;
+  const args = prologArguments(body);
+  const unitNode = args[0];
+  if (unitNode === undefined || unitNode.type !== "atom") return undefined;
+  if (functor === "begin_tests" && (args.length === 1 || args.length === 2))
+    return { kind: "begin", unit: prologAtomText(unitNode), unitNode };
+  if (functor === "end_tests" && args.length === 1)
+    return { kind: "end", unit: prologAtomText(unitNode), unitNode };
+  return undefined;
+}
+
+/**
+ * Where a predicate's span starts: its first clause, or the PlDoc block
+ * (`%!` lines or a `/** ... *\/` comment) directly above it. Other comments
+ * between the PlDoc block and the clause, such as `% implements` lines, stay
+ * inside the span.
+ */
+function prologDocumentationStart(clause: Node): Node {
+  const run: Node[] = [];
+  let below = clause;
+  let previous = clause.previousNamedSibling;
+  while (
+    previous !== null &&
+    previous.type === "comment" &&
+    previous.endPosition.row >= below.startPosition.row - 1
+  ) {
+    run.unshift(previous);
+    below = previous;
+    previous = previous.previousNamedSibling;
+  }
+  return (
+    run.find(
+      (comment) =>
+        comment.text.startsWith("%!") || comment.text.startsWith("/**"),
+    ) ?? clause
+  );
+}
+
+interface PrologGroup {
+  readonly name: string;
+  readonly qualifiedName: string;
+  readonly kind: SourceSymbolKind;
+  readonly nativeKind: string;
+  readonly nameNode: Node;
+  readonly first: Node;
+  last: Node;
+  readonly containerName?: string;
+}
+
+/**
+ * One symbol per predicate (`Name/Arity`), spanning its PlDoc block and all
+ * of its clauses; a predicate whose clauses are spread over the file spans
+ * from its first to its last clause. Inside a plunit unit, `test(Name)`
+ * clauses become test symbols and the unit becomes a container symbol.
+ */
+// implements REQ-multilingual-language-catalog
+function collectPrologCandidates(
+  content: string,
+  root: Node,
+  omissions: Omission[],
+): DefinitionCandidate[] {
+  const groups = new Map<string, PrologGroup>();
+  const units: DefinitionCandidate[] = [];
+  let unit: { name: string; begin: Node; nameNode: Node } | undefined;
+  let fileModule: string | undefined;
+  for (const node of namedChildren(root)) {
+    if (node.type === "directive") {
+      fileModule ??= prologModuleName(node);
+      const directive = prologTestUnitDirective(node);
+      if (directive?.kind === "begin") {
+        if (unit !== undefined) {
+          omissions.push({
+            node,
+            code: "TREESITTER_PROLOG_TEST_UNIT_NESTED",
+            message: `begin_tests(${directive.unit}) starts inside unit '${unit.name}', which plunit does not allow.`,
+            reason: "prolog-test-unit-nesting",
+          });
+          continue;
+        }
+        unit = {
+          name: directive.unit,
+          begin: node,
+          nameNode: directive.unitNode,
+        };
+      } else if (directive?.kind === "end") {
+        if (unit === undefined || unit.name !== directive.unit) {
+          omissions.push({
+            node,
+            code: "TREESITTER_PROLOG_TEST_UNIT_UNMATCHED",
+            message: `end_tests(${directive.unit}) does not close the open test unit.`,
+            reason: "prolog-test-unit-unmatched",
+          });
+          continue;
+        }
+        const range = rangeForNode(unit.begin);
+        const end = rangeForNode(node);
+        units.push({
+          name: unit.name,
+          kind: "class",
+          nativeKind: "plunit_unit",
+          definitionNode: unit.begin,
+          nameNode: unit.nameNode,
+          range: { ...range, endLine: end.endLine, endColumn: end.endColumn },
+          baseQualifiedName: unit.name,
+          qualifiedName: unit.name,
+          isDefinition: true,
+        });
+        unit = undefined;
+      }
+      continue;
+    }
+    if (node.type !== "clause" || node.hasError) continue;
+    const head = prologClauseHead(node);
+    if (head === undefined) {
+      omissions.push({
+        node,
+        code: "TREESITTER_PROLOG_HEAD_UNSUPPORTED",
+        message:
+          "The clause head is not an atom, compound term or operator term, so its predicate is unknown.",
+        reason: "prolog-clause-head-unsupported",
+      });
+      continue;
+    }
+    const indicator = `${head.name}/${head.arity}`;
+    const testName =
+      unit !== undefined &&
+      head.qualifier === undefined &&
+      head.name === "test" &&
+      (head.arity === 1 || head.arity === 2) &&
+      head.head.type === "compound_term"
+        ? prologArguments(head.head)[0]
+        : undefined;
+    // `m:p(...)` in module m's own file defines its p/N.
+    const qualifier =
+      head.qualifier === fileModule ? undefined : head.qualifier;
+    const prefix =
+      unit !== undefined
+        ? `${unit.name}:`
+        : qualifier !== undefined
+          ? `${qualifier}:`
+          : "";
+    const name =
+      testName === undefined
+        ? head.name
+        : testName.type === "atom"
+          ? prologAtomText(testName)
+          : testName.text;
+    const qualifiedName = `${prefix}${testName === undefined ? indicator : name}`;
+    const existing = groups.get(qualifiedName);
+    if (existing !== undefined) {
+      existing.last = node;
+      continue;
+    }
+    groups.set(qualifiedName, {
+      name,
+      qualifiedName,
+      kind: testName !== undefined ? "method" : "function",
+      nativeKind:
+        testName !== undefined
+          ? "plunit_test"
+          : node.childForFieldName("neck")?.text === "-->"
+            ? "dcg_rule"
+            : "predicate",
+      nameNode: testName ?? head.nameNode,
+      first: node,
+      last: node,
+      ...(unit === undefined ? {} : { containerName: unit.name }),
+    });
+  }
+  if (unit !== undefined) {
+    omissions.push({
+      node: unit.begin,
+      code: "TREESITTER_PROLOG_TEST_UNIT_UNCLOSED",
+      message: `begin_tests(${unit.name}) has no matching end_tests(${unit.name}).`,
+      reason: "prolog-test-unit-unclosed",
+    });
+  }
+  const predicates = [...groups.values()].map((group): DefinitionCandidate => {
+    const start = rangeForNode(prologDocumentationStart(group.first));
+    const end = rangeForNode(group.last);
+    const directiveText = leadingDirective(
+      content,
+      group.first.startPosition.row + 1,
+      "prolog",
+    );
+    return {
+      name: group.name,
+      kind: group.kind,
+      nativeKind: group.nativeKind,
+      definitionNode: group.first,
+      nameNode: group.nameNode,
+      range: {
+        startLine: start.startLine,
+        startColumn: start.startColumn,
+        endLine: end.endLine,
+        endColumn: end.endColumn,
+      },
+      baseQualifiedName: group.qualifiedName,
+      qualifiedName: group.qualifiedName,
+      ...(group.containerName === undefined
+        ? {}
+        : { containerName: group.containerName }),
+      ...(directiveText === undefined ? {} : { directiveText }),
+      isDefinition: true,
+    };
+  });
+  return [...units, ...predicates];
+}
+
 function errorRanges(root: Node): Node[] {
   const result: Node[] = [];
   const pending = [root];
@@ -1358,7 +1678,7 @@ function buildSymbol(candidate: DefinitionCandidate): SourceSymbolAnalysisV2 {
   return {
     name: candidate.name,
     kind: candidate.kind,
-    ...rangeForNode(candidate.definitionNode),
+    ...(candidate.range ?? rangeForNode(candidate.definitionNode)),
     qualifiedName: candidate.qualifiedName,
     nativeKind: candidate.nativeKind,
     nameRange: candidate.nameRange ?? rangeForNode(candidate.nameNode),
@@ -1387,6 +1707,8 @@ function analyzeInput(
   let candidates: DefinitionCandidate[];
   if (language === "terraform" || language === "hcl") {
     candidates = collectHclCandidates(root, language, matches, omissions);
+  } else if (language === "prolog") {
+    candidates = collectPrologCandidates(content, root, omissions);
   } else {
     candidates = [];
     for (const match of matches) {
@@ -1550,6 +1872,7 @@ const GRAMMAR_ASSETS: Readonly<Record<TreeSitterLanguage, string>> = {
   ruby: "tree-sitter-ruby.wasm",
   terraform: "tree-sitter-terraform.release.wasm",
   hcl: "tree-sitter-hcl.release.wasm",
+  prolog: "tree-sitter-swi_prolog.wasm",
 };
 
 const SUPPLEMENTAL_QUERIES: Readonly<

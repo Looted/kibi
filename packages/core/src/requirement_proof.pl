@@ -2781,12 +2781,16 @@ prop_text(Props, Key, Text) :-
     normalize_atom(Raw, Text),
     Text \== ''.
 
+% The origin is JSON text, read whole: normalize_atom/2 keeps only what
+% follows the last "/", which cut an origin.ref quoting a URL down to a
+% fragment of the JSON.
 origin_field(Props, Key, Value) :-
     memberchk(origin=Raw, Props),
-    normalize_atom(Raw, Json),
+    kb:source_value_atom(Raw, Json),
     catch(atom_json_dict(Json, Origin, [value_string_as(atom)]), _, fail),
+    is_dict(Origin),
     get_dict(Key, Origin, Value0),
-    normalize_atom(Value0, Value),
+    kb:source_value_atom(Value0, Value),
     Value \== ''.
 
 stage_dict(Stages, Stage) :-

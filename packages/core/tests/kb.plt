@@ -7184,6 +7184,7 @@ test(evidence_level_follows_human_backing_without_passing_e2e, [setup(setup_kb),
     assert_fixture_entity(req, 'REQ-EVIDENCE-PERSON', "Person stated", open, [priority=must]),
     assert_fixture_entity(req, 'REQ-EVIDENCE-EXPLORATORY', "Exploratory guess", open, [priority=must, firmness=exploratory]),
     assert_fixture_entity(req, 'REQ-EVIDENCE-SELF', "Agent exception approval", open, [priority=must, approved_by="Owner", origin="{\"kind\":\"agent\"}"]),
+    assert_fixture_entity(req, 'REQ-EVIDENCE-URL', "Approved from an issue link", open, [priority=must, origin="{\"kind\":\"agent\",\"approved_by\":\"Owner\",\"ref\":\"Owner: \\\"handle https://example.com/issues/42?\\\"\"}"]),
     coverage_report_json(req, [], true, true, 100, 0, JsonString),
     json_string_dict(JsonString, Report),
     coverage_row(Report.rows, 'REQ-EVIDENCE-AGENT', Agent),
@@ -7200,7 +7201,10 @@ test(evidence_level_follows_human_backing_without_passing_e2e, [setup(setup_kb),
     % The top-level approved_by approves an exception; an agent can write it.
     coverage_row(Report.rows, 'REQ-EVIDENCE-SELF', Self),
     assertion(Self.evidenceLevel == unverified),
-    assertion(Report.summary.evidenceLevels = _{proved: 0, tested: 0, asserted: 2, unverified: 3}).
+    % A ref quoting a URL is read whole, not cut at its last slash.
+    coverage_row(Report.rows, 'REQ-EVIDENCE-URL', Url),
+    assertion(Url.evidence = [_{kind: human_intent, scope: intent, level: asserted, basis: approved, ref: 'Owner: "handle https://example.com/issues/42?"'}]),
+    assertion(Report.summary.evidenceLevels = _{proved: 0, tested: 0, asserted: 3, unverified: 3}).
 
 % implements REQ-kibi-evidence-floors
 % The summary counts requirements with a floor by status; a floor of

@@ -21,18 +21,18 @@
     },
     {
       "path": "README.md",
-      "bytes": 3993,
-      "sha256": "458d85c560da1737a7a68fd2dfb7bb08da06b7b59929f4a5abaf17778dc02e15"
+      "bytes": 5012,
+      "sha256": "4e20fcd679a9fb0afaa8216c2667846e068fa6d1263d69ee949a50ffb88bd941"
     },
     {
       "path": "SBOM.spdx.json",
-      "bytes": 11302,
-      "sha256": "8027fb0c6b5a9f6f325d6aa836b87c1cddf580df4cfd4c25310bc83c2173de50"
+      "bytes": 12171,
+      "sha256": "1c485e3d61663c84ed9d46b6d10f03ae03b8dfad22fa5687fa6ef4b690fec0f3"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
-      "bytes": 1874,
-      "sha256": "0b1ede96cb261dab73fd1ec8c51d7bb5b2492eed0502f6c10ed071736daa263c"
+      "bytes": 2139,
+      "sha256": "fff747633b08a90bf949e998892211702b021c63e3a074ded102700fc447fed3"
     },
     {
       "path": "assets/queries/bash.scm",
@@ -88,6 +88,11 @@
       "path": "assets/queries/php.scm",
       "bytes": 947,
       "sha256": "4ac5e30f99f3abe5417dcb42219e0790c66f9b4bb3be071bc60160dd012f3cd8"
+    },
+    {
+      "path": "assets/queries/prolog.scm",
+      "bytes": 198,
+      "sha256": "df6af374b121bc85ff5b471763b542894ba9602b37f3ec7c17ab70944a7486b1"
     },
     {
       "path": "assets/queries/python.scm",
@@ -170,14 +175,19 @@
       "sha256": "f65f354215611fd94ad34134b3427eb3d58cbb745df7b6509ba722184db73d57"
     },
     {
+      "path": "assets/tree-sitter-swi_prolog.wasm",
+      "bytes": 210131,
+      "sha256": "a9872f0369b51c1eed2ef04267382c34aeaeba7c97b6f55b829fbf625bdb22dd"
+    },
+    {
       "path": "assets/tree-sitter-terraform.release.wasm",
       "bytes": 93876,
       "sha256": "59dbcbb0f08eb78b78f37510834559a48ce5c9d4866c978d62c6390796461cb5"
     },
     {
       "path": "catalog.json",
-      "bytes": 16469,
-      "sha256": "585a67f97fbc352f45ebfc628db71ad9f9bd504f1c0b63dfa0f1859a98e9ec02"
+      "bytes": 17787,
+      "sha256": "cd5cdb1eb1f4acca7cf85e472fb95d807c738b4a23f2129bc300fb509c520b12"
     },
     {
       "path": "dist/analysis-worker.d.ts",
@@ -191,23 +201,23 @@
     },
     {
       "path": "dist/analysis-worker.js",
-      "bytes": 53415,
-      "sha256": "e62a7aac822837c584b7071d86b04defdbf6e6c40db981beac863672b0f5bb6f"
+      "bytes": 64691,
+      "sha256": "9ef76ad467f6b4e2a117a3b5656838eb5f096890931ec0480566b76b73fd64db"
     },
     {
       "path": "dist/catalog.d.ts",
-      "bytes": 2056,
-      "sha256": "70d9870ca4d470928da73320d40e6e47c4c142a2f3c8e52a18860a136772a338"
+      "bytes": 2263,
+      "sha256": "fe15b19c844186b2d5c244a66b6be03fe093f6ab13a18276f47b4b8dc95dda90"
     },
     {
       "path": "dist/catalog.d.ts.map",
-      "bytes": 389,
-      "sha256": "67907a136cc8ce7e85036f9478a623a13323143a2a1eabb5080d0728efbb37e3"
+      "bytes": 394,
+      "sha256": "39dc2b42352c3e6eddfba42ea32c37d7e365828ba975d7585a0013239642d167"
     },
     {
       "path": "dist/catalog.js",
-      "bytes": 1822,
-      "sha256": "460243c48cb6a03b8c7971273729d8a1134955186978b6c0d04182c71960ebff"
+      "bytes": 1966,
+      "sha256": "c485cd1bf81098c3e2e86d37f78bf9f55af122f5d6b9587c0c57b494d68e4968"
     },
     {
       "path": "dist/extractor.d.ts",
@@ -308,6 +318,11 @@
       "path": "licenses/tree-sitter-rust-MIT.txt",
       "bytes": 1080,
       "sha256": "31d5b6f4243d5c7c6e1c4ebbbb9f6407bd1457a08bcc4f706521710341acba36"
+    },
+    {
+      "path": "licenses/tree-sitter-swi-prolog-MIT.txt",
+      "bytes": 1071,
+      "sha256": "c51ac4800457c57ddabdee5486605df9452705491f806cb87241b7a8acc7ab2d"
     },
     {
       "path": "licenses/web-tree-sitter-MIT.txt",

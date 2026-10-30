@@ -1,10 +1,10 @@
 ---
-title: A tree-sitter plugin language shall be python, go, rust, java, csharp, php, c, cpp, bash, ruby, terraform or hcl
+title: A tree-sitter plugin language shall be python, go, rust, java, csharp, php, c, cpp, bash, ruby, prolog, terraform or hcl
 status: active
 fact_kind: property_value
 subject_key: kibi.tree_sitter.languages
-claim_key: CLAIM-792D57510F335E69
-claim_text: A tree-sitter plugin language shall be python, go, rust, java, csharp, php, c, cpp, bash, ruby, terraform or hcl
+claim_key: CLAIM-65D3E23B3522B092
+claim_text: A tree-sitter plugin language shall be python, go, rust, java, csharp, php, c, cpp, bash, ruby, prolog, terraform or hcl
 text_ref: REQ-tree-sitter-language-set
 property_key: language_ids
 operator: eq
@@ -20,6 +20,7 @@ value_set:
   - cpp
   - bash
   - ruby
+  - prolog
   - terraform
   - hcl
 origin:

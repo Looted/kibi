@@ -241,6 +241,24 @@
           "referenceLocator": "pkg:npm/@tree-sitter-grammars/tree-sitter-hcl@1.2.0"
         }
       ]
+    },
+    {
+      "name": "tree-sitter-swi-prolog",
+      "SPDXID": "SPDXRef-treesitterswiprolog-010",
+      "versionInfo": "0.1.0",
+      "downloadLocation": "https://registry.npmjs.org/tree-sitter-swi-prolog/-/tree-sitter-swi-prolog-0.1.0.tgz",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION",
+      "comment": "Only the pinned SWI-Prolog WASM from the npm tarball is vendored; the query is Kibi-authored.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/tree-sitter-swi-prolog@0.1.0"
+        }
+      ]
     }
   ],
   "relationships": [
@@ -308,6 +326,11 @@
       "spdxElementId": "SPDXRef-KibiPluginTreeSitter",
       "relationshipType": "CONTAINS",
       "relatedSpdxElement": "SPDXRef-treesitterhcl-120"
+    },
+    {
+      "spdxElementId": "SPDXRef-KibiPluginTreeSitter",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-treesitterswiprolog-010"
     }
   ]
 }
