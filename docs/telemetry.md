@@ -17,7 +17,7 @@ Telemetry is also off in CI and under test runners, even after `kibi telemetry e
 Kibi sends two kinds of event to its PostHog project in the EU region:
 
 - `kibi_operation`, once for each MCP tool call and each CLI command. It contains the interface (`mcp` or `cli`), the registered tool or command name (for example `kb_search` or `storage compact`), whether it succeeded, its duration, the CLI exit code, and for a failure a fixed category: an error code such as `tool_timeout`, `stale_snapshot` or `upsert_dry_run_invalid`, or the names of the failing checks for `kibi doctor` (for example `doctor:git_hooks`). A category that isn't a fixed identifier is sent as `unclassified`.
-- `kibi_hook`, once for each Kibi Claude Code hook decision. It contains the hook event, the action Kibi took (for example `read_snippet` or `edit_silent`), the kind of path touched (`source`, `test`, `kb`), the Kibi operation a tool call ran, whether Kibi had already been used in the session, and how many requirements the touched file implements.
+- `kibi_hook`, once for each Kibi hook decision in Claude Code, Codex, Cursor, ZCode or OpenCode. It contains the hook event, the action Kibi took (for example `read_snippet` or `edit_silent`), the kind of path touched (`source`, `test`, `kb`), the Kibi operation a tool call ran, whether Kibi had already been used in the session, and how many requirements the touched file implements.
 
 Every event also carries:
 
@@ -25,7 +25,7 @@ Every event also carries:
 - whether it runs in a hosted cloud workspace (`CLAUDE_CODE_REMOTE`, GitHub Codespaces or Gitpod);
 - the operating system, CPU architecture, and JavaScript runtime with its major version;
 - a random install id, created on first use and stored only on your machine;
-- a one-way hash of the host's session id (from the hook input, or `KIBI_SESSION_ID`, `CLAUDE_CODE_SESSION_ID` or `CODEX_THREAD_ID`), so events from one agent session can be grouped.
+- a one-way hash of the host's session id, so events from one agent session can be grouped. Hooks take it from the host's hook input. The CLI and MCP server take it from `KIBI_SESSION_ID`, `CLAUDE_CODE_SESSION_ID` or `CODEX_THREAD_ID` when the host sets one; otherwise they use the session a Kibi hook reported for the same workspace in the last 30 minutes. Hooks keep that link in `telemetry-sessions.json` next to the queue, as hashes of the workspace path and the session id only. Without a host, events carry no session.
 
 ## What is never sent
 
@@ -38,7 +38,7 @@ The detailed diagnostic log that `KIBI_DIAGNOSTIC_MODE` writes to `.kb/usage.log
 Events are appended to a queue file in your user state directory (`$XDG_STATE_HOME/kibi` or `~/.local/state/kibi`; `%LOCALAPPDATA%\kibi` on Windows). They are sent in batches:
 
 - by the MCP server every minute and when it shuts down;
-- by the Claude Code Stop hook at the end of each turn;
+- by every host's Kibi hook once a batch is due, and right away at the end of a turn (Claude Code's `Stop`, Codex's and ZCode's `Stop`, Cursor's `stop`);
 - by the CLI once a batch is due (20 events, or the oldest is five minutes old).
 
 A send waits at most 1.5 seconds. If it fails, the events are kept for the next attempt, and they are dropped once they are older than seven days. Telemetry never changes a command's output or exit code.

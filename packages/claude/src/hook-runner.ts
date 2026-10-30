@@ -918,7 +918,14 @@ export async function runHook(
     },
     environment.env,
   );
-  await flushHookTelemetry(input.event, environment.env);
+  await flushHookTelemetry(
+    {
+      event: input.event,
+      workspaceRoot: resolved.root,
+      sessionId: input.sessionId,
+    },
+    environment.env,
+  );
   return output;
 }
 

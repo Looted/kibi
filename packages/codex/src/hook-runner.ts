@@ -24,7 +24,8 @@ import {
 import {
   appendHookUsageRows,
   editTraces,
-  hookTelemetryEnabled,
+  finishHookTelemetry,
+  hookTracesWanted,
   kbUsageTrace,
   readPackageVersion,
 } from "kibi-agent-core/hook-usage-log";
@@ -308,7 +309,7 @@ function recordToolTelemetry(
   // rationale: appendHookUsageRows applies the same opt-in; this guard only
   // skips loading the index when telemetry is off.
   // Stryker disable next-line ConditionalExpression
-  if (!hookTelemetryEnabled(env)) return;
+  if (!hookTracesWanted(env)) return;
   const kbUsage = kbUsageTrace(input.toolName, input.toolInput);
   if (!kbUsage && !isKnownEditTool(input.toolName)) return;
   const traces = kbUsage
@@ -346,206 +347,222 @@ export async function runHook(
   }
   const stateDir = resolveWorkspaceStateDir(pluginData, workspace.root);
 
-  switch (input.event) {
-    // rationale: the default case below returns the same defaultResult, so
-    // this case is behaviorally redundant.
-    // Stryker disable next-line ConditionalExpression, StringLiteral
-    case "SessionStart":
-      // rationale: same redundancy as above; the default case already
-      // returns defaultResult.
-      // Stryker disable next-line StringLiteral
-      return defaultResult();
-
-    // implements REQ-agent-hosts-decision-guard
-    case "UserPromptSubmit": {
-      const rule = recordRequest(
-        { stateDir, sessionId: input.sessionId },
-        // rationale: a missing prompt states no rule whatever text stands in.
+  try {
+    switch (input.event) {
+      // rationale: the default case below returns the same defaultResult, so
+      // this case is behaviorally redundant.
+      // Stryker disable next-line ConditionalExpression, StringLiteral
+      case "SessionStart":
+        // rationale: same redundancy as above; the default case already
+        // returns defaultResult.
         // Stryker disable next-line StringLiteral
-        input.prompt ?? "",
-      );
-      if (rule === undefined) return defaultResult();
-      return {
-        continue: true,
-        hookSpecificOutput: {
-          hookEventName: "UserPromptSubmit",
-          additionalContext: rulePromptNote(rule),
-        },
-      };
-    }
+        return defaultResult();
 
-    case "PreToolUse": {
-      // Name the session's workspace on every Kibi MCP call so the launcher
-      // answers from it, even after the thread moves into a git worktree.
-      const stamped = stampKibiWorkspace(
-        input.toolName,
-        input.toolInput,
-        workspace.root,
-      );
-      if (stamped) {
-        return {
-          continue: true,
-          hookSpecificOutput: {
-            hookEventName: "PreToolUse",
-            permissionDecision: "allow",
-            updatedInput: stamped,
-          },
-        };
-      }
-      // Paths come from explicit fields and from `apply_patch` headers, so a
-      // patch to .kb/ is warned about like an explicit-path edit.
-      const explicitPaths = extractEditedPaths(input.toolInput);
-      const hasDirectKbEdit =
-        isEditLikeTool(input.toolName) && explicitPaths.some(isDirectKbPath);
-
-      if (hasDirectKbEdit) {
-        return { continue: true, systemMessage: DIRECT_KB_EDIT_WARNING };
-      }
-
-      let context: string | undefined;
-      try {
-        context = isKnownEditTool(input.toolName)
-          ? preEditContext(
-              workspace.root,
-              stateDir,
-              input,
-              environment.env ?? process.env,
-            )
-          : undefined;
-      } catch {
-        // Requirement context is advisory; an unreadable manifest or file
-        // leaves the edit without it rather than reporting a hook error.
-      }
-      if (context) {
-        return {
-          continue: true,
-          hookSpecificOutput: {
-            hookEventName: "PreToolUse",
-            additionalContext: context,
-          },
-        };
-      }
-
-      return defaultResult();
-    }
-
-    case "PostToolUse": {
-      try {
-        recordToolTelemetry(
-          workspace.root,
-          stateDir,
-          input,
-          startedAt,
-          environment.env,
-        );
-      } catch {
-        // Telemetry is best effort and must never change the hook's output.
-      }
-      const kbToolCall = extractKbMcpToolCall(input.toolName, input.toolInput);
-      if (kbToolCall) {
-        recordKbMcpTool(stateDir, kbToolCall.toolName, {
-          impactCheckRun: kbToolCall.impactCheckRun,
-          sourceFiles: kbToolCall.sourceFiles,
-        });
-      }
-
-      // `apply_patch` names its files only in the patch text, so the explicit
-      // path fields alone would leave those edits untracked and the Stop
-      // reminder silent.
-      const dirtyPaths = extractEditedPaths(input.toolInput).filter(
-        isMeaningfulTrackedPath,
-      );
-
-      if (dirtyPaths.length > 0) {
-        addDirtyPaths(stateDir, dirtyPaths);
-      }
-      const session = { stateDir, sessionId: input.sessionId };
-      if (
-        isKnownEditTool(input.toolName) &&
-        dirtyPaths.some(isSourceImpactRelevantPath)
-      ) {
-        markDecisionFlag(session, "source-edited");
-      }
-      if (
-        kbToolCall?.toolName === "kb_upsert" ||
-        kbUsageTrace(input.toolName, input.toolInput)?.kbOperation ===
-          "kb_upsert"
-      ) {
-        markDecisionFlag(session, "kb-recorded");
-        // implements REQ-kibi-signoff-views
-        if (isRequirementUpsert(input.toolInput)) {
-          markDecisionFlag(session, "requirement-recorded");
-        }
-      }
-
-      return defaultResult();
-    }
-
-    case "Stop": {
-      const state = loadHookState(stateDir);
-      const uncheckedSourcePaths = state.dirtyPaths
-        .filter(isSourceImpactRelevantPath)
-        .filter((sourcePath) => !state.impactCheckedPaths.includes(sourcePath));
       // implements REQ-agent-hosts-decision-guard
-      // Source changed and nothing was recorded: continue the turn once with
-      // the capture request, before the context that holds the decision ends.
-      const session = { stateDir, sessionId: input.sessionId };
-      if (!input.stopHookActive && claimCaptureReminder(session)) {
-        const reason = [
-          captureReminder(hasDecisionFlag(session, "rule-prompt")),
-          ...(uncheckedSourcePaths.length > 0
-            ? [impactCheckReminder(uncheckedSourcePaths)]
-            : []),
-        ].join("\n");
-        clearDirtyPaths(stateDir);
-        return { continue: true, decision: "block", reason };
-      }
-      // implements REQ-kibi-signoff-views
-      // Requirements were written and the person has not seen them as a
-      // signoff view: continue once with the request to show `kibi signoff`.
-      if (
-        !input.stopHookActive &&
-        claimSignoffReminder(session, workspace.root)
-      ) {
+      case "UserPromptSubmit": {
+        const rule = recordRequest(
+          { stateDir, sessionId: input.sessionId },
+          // rationale: a missing prompt states no rule whatever text stands in.
+          // Stryker disable next-line StringLiteral
+          input.prompt ?? "",
+        );
+        if (rule === undefined) return defaultResult();
         return {
           continue: true,
-          decision: "block",
-          reason: signoffReminder(),
-        };
-      }
-      if (uncheckedSourcePaths.length > 0) {
-        clearDirtyPaths(stateDir);
-        return {
-          continue: true,
-          systemMessage: impactCheckReminder(uncheckedSourcePaths),
+          hookSpecificOutput: {
+            hookEventName: "UserPromptSubmit",
+            additionalContext: rulePromptNote(rule),
+          },
         };
       }
 
-      const freshnessPaths = state.dirtyPaths.filter(
-        (dirtyPath) => !isSourceImpactRelevantPath(dirtyPath),
-      );
+      case "PreToolUse": {
+        // Name the session's workspace on every Kibi MCP call so the launcher
+        // answers from it, even after the thread moves into a git worktree.
+        const stamped = stampKibiWorkspace(
+          input.toolName,
+          input.toolInput,
+          workspace.root,
+        );
+        if (stamped) {
+          return {
+            continue: true,
+            hookSpecificOutput: {
+              hookEventName: "PreToolUse",
+              permissionDecision: "allow",
+              updatedInput: stamped,
+            },
+          };
+        }
+        // Paths come from explicit fields and from `apply_patch` headers, so a
+        // patch to .kb/ is warned about like an explicit-path edit.
+        const explicitPaths = extractEditedPaths(input.toolInput);
+        const hasDirectKbEdit =
+          isEditLikeTool(input.toolName) && explicitPaths.some(isDirectKbPath);
 
-      if (freshnessPaths.length > 0) {
-        clearDirtyPaths(stateDir);
-        return {
-          continue: true,
-          systemMessage: freshnessReminder(freshnessPaths),
-        };
+        if (hasDirectKbEdit) {
+          return { continue: true, systemMessage: DIRECT_KB_EDIT_WARNING };
+        }
+
+        let context: string | undefined;
+        try {
+          context = isKnownEditTool(input.toolName)
+            ? preEditContext(
+                workspace.root,
+                stateDir,
+                input,
+                environment.env ?? process.env,
+              )
+            : undefined;
+        } catch {
+          // Requirement context is advisory; an unreadable manifest or file
+          // leaves the edit without it rather than reporting a hook error.
+        }
+        if (context) {
+          return {
+            continue: true,
+            hookSpecificOutput: {
+              hookEventName: "PreToolUse",
+              additionalContext: context,
+            },
+          };
+        }
+
+        return defaultResult();
       }
 
-      // rationale: reaching this line with dirty paths implies every path is
-      // source-impact relevant and impact checked, and recording a check also
-      // sets kbCheckRun, so the length term cannot change the outcome.
-      // Stryker disable next-line ConditionalExpression
-      if (state.dirtyPaths.length > 0 || state.kbCheckRun) {
-        clearDirtyPaths(stateDir);
+      case "PostToolUse": {
+        try {
+          recordToolTelemetry(
+            workspace.root,
+            stateDir,
+            input,
+            startedAt,
+            environment.env,
+          );
+        } catch {
+          // Telemetry is best effort and must never change the hook's output.
+        }
+        const kbToolCall = extractKbMcpToolCall(
+          input.toolName,
+          input.toolInput,
+        );
+        if (kbToolCall) {
+          recordKbMcpTool(stateDir, kbToolCall.toolName, {
+            impactCheckRun: kbToolCall.impactCheckRun,
+            sourceFiles: kbToolCall.sourceFiles,
+          });
+        }
+
+        // `apply_patch` names its files only in the patch text, so the explicit
+        // path fields alone would leave those edits untracked and the Stop
+        // reminder silent.
+        const dirtyPaths = extractEditedPaths(input.toolInput).filter(
+          isMeaningfulTrackedPath,
+        );
+
+        if (dirtyPaths.length > 0) {
+          addDirtyPaths(stateDir, dirtyPaths);
+        }
+        const session = { stateDir, sessionId: input.sessionId };
+        if (
+          isKnownEditTool(input.toolName) &&
+          dirtyPaths.some(isSourceImpactRelevantPath)
+        ) {
+          markDecisionFlag(session, "source-edited");
+        }
+        if (
+          kbToolCall?.toolName === "kb_upsert" ||
+          kbUsageTrace(input.toolName, input.toolInput)?.kbOperation ===
+            "kb_upsert"
+        ) {
+          markDecisionFlag(session, "kb-recorded");
+          // implements REQ-kibi-signoff-views
+          if (isRequirementUpsert(input.toolInput)) {
+            markDecisionFlag(session, "requirement-recorded");
+          }
+        }
+
+        return defaultResult();
       }
 
-      return defaultResult();
+      case "Stop": {
+        const state = loadHookState(stateDir);
+        const uncheckedSourcePaths = state.dirtyPaths
+          .filter(isSourceImpactRelevantPath)
+          .filter(
+            (sourcePath) => !state.impactCheckedPaths.includes(sourcePath),
+          );
+        // implements REQ-agent-hosts-decision-guard
+        // Source changed and nothing was recorded: continue the turn once with
+        // the capture request, before the context that holds the decision ends.
+        const session = { stateDir, sessionId: input.sessionId };
+        if (!input.stopHookActive && claimCaptureReminder(session)) {
+          const reason = [
+            captureReminder(hasDecisionFlag(session, "rule-prompt")),
+            ...(uncheckedSourcePaths.length > 0
+              ? [impactCheckReminder(uncheckedSourcePaths)]
+              : []),
+          ].join("\n");
+          clearDirtyPaths(stateDir);
+          return { continue: true, decision: "block", reason };
+        }
+        // implements REQ-kibi-signoff-views
+        // Requirements were written and the person has not seen them as a
+        // signoff view: continue once with the request to show `kibi signoff`.
+        if (
+          !input.stopHookActive &&
+          claimSignoffReminder(session, workspace.root)
+        ) {
+          return {
+            continue: true,
+            decision: "block",
+            reason: signoffReminder(),
+          };
+        }
+        if (uncheckedSourcePaths.length > 0) {
+          clearDirtyPaths(stateDir);
+          return {
+            continue: true,
+            systemMessage: impactCheckReminder(uncheckedSourcePaths),
+          };
+        }
+
+        const freshnessPaths = state.dirtyPaths.filter(
+          (dirtyPath) => !isSourceImpactRelevantPath(dirtyPath),
+        );
+
+        if (freshnessPaths.length > 0) {
+          clearDirtyPaths(stateDir);
+          return {
+            continue: true,
+            systemMessage: freshnessReminder(freshnessPaths),
+          };
+        }
+
+        // rationale: reaching this line with dirty paths implies every path is
+        // source-impact relevant and impact checked, and recording a check also
+        // sets kbCheckRun, so the length term cannot change the outcome.
+        // Stryker disable next-line ConditionalExpression
+        if (state.dirtyPaths.length > 0 || state.kbCheckRun) {
+          clearDirtyPaths(stateDir);
+        }
+
+        return defaultResult();
+      }
+
+      default:
+        return defaultResult();
     }
-
-    default:
-      return defaultResult();
+  } finally {
+    await finishHookTelemetry(
+      {
+        event: input.event,
+        workspaceRoot: workspace.root,
+        sessionId: input.sessionId,
+      },
+      environment.env ?? process.env,
+    );
   }
 }
 

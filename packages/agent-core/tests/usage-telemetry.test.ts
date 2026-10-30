@@ -4,6 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import { appendHookUsage, finishHookTelemetry } from "../src/hook-usage-log";
 import {
   CI_ENV_KEYS,
   DEFAULT_TELEMETRY_HOST,
@@ -15,10 +16,12 @@ import {
   readTelemetryConfig,
   recordHookTelemetry,
   recordOperationTelemetry,
+  rememberHookSession,
   setTelemetryPreference,
   takeTelemetryNotice,
   telemetryCategory,
   telemetryStatus,
+  workspaceSessionHash,
 } from "../src/usage-telemetry";
 
 const temporaryRoots: string[] = [];
@@ -256,6 +259,126 @@ describe("anonymous usage telemetry host and session", () => {
       session: hashTelemetryId("env-session"),
       remote: true,
     });
+  });
+
+  test("CLI and MCP events take the session a hook last reported for the workspace", async () => {
+    const env = enabledEnv();
+    const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-ws-"));
+    temporaryRoots.push(workspace);
+    const nested = path.join(workspace, "packages", "app");
+    fs.mkdirSync(nested, { recursive: true });
+
+    expect(workspaceSessionHash(nested, env)).toBeUndefined();
+    rememberHookSession(workspace, "codex-thread-7", env);
+    expect(workspaceSessionHash(nested, env)).toBe(
+      hashTelemetryId("codex-thread-7"),
+    );
+    const stored = fs.readFileSync(
+      path.join(env.KIBI_TELEMETRY_DIR as string, "telemetry-sessions.json"),
+      "utf8",
+    );
+    expect(stored).not.toContain("codex-thread-7");
+    expect(stored).not.toContain(workspace);
+
+    recordOperationTelemetry(
+      { packageName: "kibi-cli", workspaceRoot: nested },
+      OPERATION,
+      env,
+    );
+    const { fetchImpl, sent } = recordingFetch();
+    await flushTelemetry({ force: true, fetchImpl }, env);
+    const [event] = sent[0]?.body.batch as {
+      properties: Record<string, unknown>;
+    }[];
+    expect(event?.properties.session).toBe(hashTelemetryId("codex-thread-7"));
+  });
+
+  test("an explicit session wins over the workspace marker, and no marker is kept when telemetry is off", () => {
+    const env = enabledEnv();
+    const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-ws-"));
+    temporaryRoots.push(workspace);
+    rememberHookSession(workspace, "hook-session", env);
+    recordOperationTelemetry(
+      { packageName: "kibi-cli", workspaceRoot: workspace, sessionId: "own" },
+      OPERATION,
+      env,
+    );
+    const queued = fs.readFileSync(
+      path.join(env.KIBI_TELEMETRY_DIR as string, "telemetry-queue.jsonl"),
+      "utf8",
+    );
+    expect(JSON.parse(queued.trim()).properties.session).toBe(
+      hashTelemetryId("own"),
+    );
+
+    const off = telemetryEnv({ KIBI_TELEMETRY: "0" });
+    rememberHookSession(workspace, "hook-session", off);
+    expect(fs.readdirSync(off.KIBI_TELEMETRY_DIR as string)).toEqual([]);
+  });
+
+  test("every host's hook sends kibi_hook without diagnostic mode and flushes at the end of a turn", async () => {
+    const received: {
+      batch: { event: string; properties: Record<string, unknown> }[];
+    }[] = [];
+    const server = Bun.serve({
+      port: 0,
+      async fetch(request) {
+        received.push(await request.json());
+        return new Response("{}");
+      },
+    });
+    try {
+      const env = enabledEnv({
+        KIBI_TELEMETRY_HOST: `http://127.0.0.1:${server.port}`,
+      });
+      const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-ws-"));
+      temporaryRoots.push(workspace);
+      appendHookUsage(
+        {
+          host: "cursor",
+          packageVersion: "1.2.3",
+          workspaceRoot: workspace,
+          event: "afterFileEdit",
+          sessionId: "cursor-conversation",
+          hostTool: "edit",
+          trace: { action: "edited", pathKind: "source" },
+          startedAt: new Date(),
+        },
+        env,
+      );
+      expect(fs.existsSync(path.join(workspace, ".kb", "usage.log"))).toBe(
+        false,
+      );
+
+      await finishHookTelemetry(
+        {
+          event: "afterFileEdit",
+          workspaceRoot: workspace,
+          sessionId: "cursor-conversation",
+        },
+        env,
+      );
+      expect(received).toHaveLength(0);
+      expect(workspaceSessionHash(workspace, env)).toBe(
+        hashTelemetryId("cursor-conversation"),
+      );
+
+      await finishHookTelemetry(
+        { event: "Stop", workspaceRoot: workspace, sessionId: undefined },
+        env,
+      );
+      expect(received).toHaveLength(1);
+      const [hook] = received[0]?.batch ?? [];
+      expect(hook?.event).toBe("kibi_hook");
+      expect(hook?.properties).toMatchObject({
+        package: "kibi-cursor",
+        host: "cursor",
+        session: hashTelemetryId("cursor-conversation"),
+        hook_action: "edited",
+      });
+    } finally {
+      server.stop(true);
+    }
   });
 
   test("sends error categories only as fixed identifiers", () => {

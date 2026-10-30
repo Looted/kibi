@@ -32,6 +32,10 @@ function telemetrySource(clientName: string | undefined): TelemetrySource {
     packageName: "kibi-mcp",
     packageVersion,
     host: detectTelemetryHost() ?? clientName,
+    workspaceRoot:
+      process.env.KIBI_MCP_ATTACH_ROOT ??
+      process.env.KIBI_WORKSPACE ??
+      process.cwd(),
   };
 }
 

@@ -102,6 +102,7 @@ export async function finishCliTelemetry(input: {
       packageName: "kibi-cli",
       packageVersion: input.packageVersion,
       host: detectTelemetryHost(env),
+      workspaceRoot: process.cwd(),
     },
     {
       interface: "cli",

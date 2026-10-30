@@ -35,6 +35,10 @@ export const TELEMETRY_DOCS_URL =
   "https://looted.github.io/kibi/guide/telemetry.html";
 
 const QUEUE_FILE = "telemetry-queue.jsonl";
+const SESSIONS_FILE = "telemetry-sessions.json";
+/** A hook-recorded session older than this no longer names the workspace's session. */
+const SESSION_MARKER_MAX_AGE_MS = 30 * 60 * 1000;
+const MAX_SESSION_MARKERS = 200;
 const CONFIG_FILE = "telemetry.json";
 const SENDING_SUFFIX = ".sending";
 /** Queue size that makes a flush due regardless of age. */
@@ -103,6 +107,11 @@ export type TelemetrySource = {
   host?: string | undefined;
   /** Host session id; only its hash is sent. */
   sessionId?: string | null | undefined;
+  /**
+   * Workspace the CLI or MCP server works in. Without a session id of its
+   * own, the event takes the session a host hook last reported there.
+   */
+  workspaceRoot?: string | undefined;
 };
 
 type QueuedEvent = {
@@ -422,11 +431,109 @@ function runtimeName(): string {
     : "bun";
 }
 
+type SessionMarkers = Record<string, { session: string; at: number }>;
+
+function sessionMarkersPath(env: Env): string {
+  return path.join(telemetryDirectory(env), SESSIONS_FILE);
+}
+
+function readSessionMarkers(env: Env): SessionMarkers {
+  try {
+    const parsed: unknown = JSON.parse(
+      fs.readFileSync(sessionMarkersPath(env), "utf8"),
+    );
+    return parsed !== null &&
+      typeof parsed === "object" &&
+      !Array.isArray(parsed)
+      ? (parsed as SessionMarkers)
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+function workspaceKey(workspaceRoot: string): string {
+  return hashTelemetryId(`workspace\0${path.resolve(workspaceRoot)}`);
+}
+
+// implements REQ-kibi-anonymous-usage-telemetry
+/**
+ * Remember which host session last ran a hook in a workspace. Every host
+ * hands its hooks the session id, but only some expose it to the CLI and MCP
+ * server through the environment. Only hashes are stored: of the workspace
+ * path and of the session id.
+ */
+export function rememberHookSession(
+  workspaceRoot: string,
+  sessionId: string,
+  env: Env = process.env,
+): void {
+  if (!sessionId.trim() || !telemetryEnabled(env)) return;
+  const now = Date.now();
+  const markers = readSessionMarkers(env);
+  markers[workspaceKey(workspaceRoot)] = {
+    session: hashTelemetryId(sessionId.trim()),
+    at: now,
+  };
+  const kept = Object.entries(markers)
+    .filter(
+      ([, marker]) =>
+        typeof marker?.at === "number" &&
+        now - marker.at <= SESSION_MARKER_MAX_AGE_MS,
+    )
+    .sort(([, left], [, right]) => right.at - left.at)
+    .slice(0, MAX_SESSION_MARKERS);
+  try {
+    const file = sessionMarkersPath(env);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    const temporary = `${file}.${process.pid}.${randomUUID()}.tmp`;
+    fs.writeFileSync(temporary, JSON.stringify(Object.fromEntries(kept)));
+    fs.renameSync(temporary, file);
+  } catch {
+    // Telemetry is best effort and must never disturb the hook.
+  }
+}
+
+// implements REQ-kibi-anonymous-usage-telemetry
+/**
+ * Hashed session a host hook recently reported for this directory or the
+ * nearest ancestor that has one, or undefined.
+ */
+export function workspaceSessionHash(
+  startDirectory: string,
+  env: Env = process.env,
+): string | undefined {
+  const markers = readSessionMarkers(env);
+  const now = Date.now();
+  let current = path.resolve(startDirectory);
+  for (;;) {
+    const marker = markers[workspaceKey(current)];
+    if (
+      marker &&
+      typeof marker.session === "string" &&
+      typeof marker.at === "number" &&
+      now - marker.at <= SESSION_MARKER_MAX_AGE_MS
+    ) {
+      return marker.session;
+    }
+    const parent = path.dirname(current);
+    if (parent === current) return undefined;
+    current = parent;
+  }
+}
+
+function sessionProperty(source: TelemetrySource, env: Env): string | null {
+  const sessionId = source.sessionId?.trim() || detectTelemetrySession(env);
+  if (sessionId) return hashTelemetryId(sessionId);
+  return source.workspaceRoot
+    ? (workspaceSessionHash(source.workspaceRoot, env) ?? null)
+    : null;
+}
+
 function baseProperties(
   source: TelemetrySource,
   env: Env,
 ): Record<string, unknown> {
-  const sessionId = source.sessionId?.trim() || detectTelemetrySession(env);
   return {
     distinct_id: installId(env),
     $process_person_profile: false,
@@ -439,7 +546,7 @@ function baseProperties(
       detectTelemetryHost(env) ||
       "unknown",
     remote: remoteEnvironment(env),
-    session: sessionId ? hashTelemetryId(sessionId) : null,
+    session: sessionProperty(source, env),
     os: process.platform,
     arch: process.arch,
     runtime: runtimeName(),
@@ -540,7 +647,11 @@ export function clearTelemetryQueue(env: Env = process.env): void {
     return;
   }
   for (const name of names) {
-    if (name === QUEUE_FILE || name.endsWith(SENDING_SUFFIX)) {
+    if (
+      name === QUEUE_FILE ||
+      name === SESSIONS_FILE ||
+      name.endsWith(SENDING_SUFFIX)
+    ) {
       fs.rmSync(path.join(directory, name), { force: true });
     }
   }
