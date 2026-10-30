@@ -257,6 +257,19 @@ if (openEntityById) {
     showTextDocumentCalls.length === 1,
     "the editor must reveal the document",
   );
+
+  // An ID the KB does not index must not open some other document.
+  await openEntityById("SYM-NOT-IN-KB");
+  expect(
+    openTextDocumentCalls.length === 1,
+    "an entity without a source file must not open a document",
+  );
+  expect(
+    infoMessages.some((message) =>
+      message.includes('Entity "SYM-NOT-IN-KB" has no local source file.'),
+    ),
+    "navigation to an entity without a source file must say so",
+  );
 }
 
 // ── Source-to-KB: code lenses bind indexed symbols to their files ──────────

@@ -468,6 +468,56 @@ try {
     "advisor and compile-intent remain the classifier allowlist",
   );
 
+  const driftedRoot = join(root, "node_modules", "example-drifted-plugin");
+  mkdirSync(driftedRoot, { recursive: true });
+  writeFileSync(
+    join(driftedRoot, "package.json"),
+    JSON.stringify({
+      name: "example-drifted-plugin",
+      version: "1.0.0",
+      type: "module",
+      main: "index.js",
+    }),
+  );
+  writeFileSync(
+    join(driftedRoot, "index.js"),
+    `export const kibiPlugin = {
+      apiVersion: "kibi.plugin.v1",
+      id: "example-drifted-plugin",
+      version: "2.0.0",
+      permissions: { network: false, metered: false, secrets: [] },
+      capabilities: {
+        semanticClassifier: {
+          id: "example.drifted",
+          model: "drifted-model",
+          async classify() {
+            return { decisions: [] };
+          },
+        },
+      },
+    };
+`,
+  );
+  writeFileSync(
+    join(root, "package.json"),
+    JSON.stringify({
+      name: "consumer",
+      dependencies: { "example-drifted-plugin": "1.0.0" },
+    }),
+  );
+  let versionDriftRefused = false;
+  try {
+    await loadPluginPackage(root, "example-drifted-plugin");
+  } catch (error) {
+    versionDriftRefused =
+      error instanceof Error &&
+      (error as Error & { code?: string }).code === "PLUGIN_VERSION_MISMATCH";
+  }
+  assert(
+    versionDriftRefused,
+    "an exported provider version that differs from the resolved package version is refused",
+  );
+
   const replaceRoot = join(root, "node_modules", "example-replace-plugin");
   mkdirSync(replaceRoot, { recursive: true });
   writeFileSync(
@@ -546,6 +596,94 @@ try {
     "fallback diagnostics include the model and not credentials",
   );
 
+  // A second package asking to replace the same capability is refused: a
+  // capability has at most one replace provider.
+  const secondReplaceRoot = join(
+    root,
+    "node_modules",
+    "example-second-replace-plugin",
+  );
+  mkdirSync(secondReplaceRoot, { recursive: true });
+  writeFileSync(
+    join(secondReplaceRoot, "package.json"),
+    JSON.stringify({
+      name: "example-second-replace-plugin",
+      version: "1.0.0",
+      type: "module",
+      main: "index.js",
+    }),
+  );
+  writeFileSync(
+    join(secondReplaceRoot, "index.js"),
+    `export const kibiPlugin = {
+      apiVersion: "kibi.plugin.v1",
+      id: "example-second-replace-plugin",
+      version: "1.0.0",
+      permissions: { network: false, metered: false, secrets: [] },
+      capabilities: {
+        semanticClassifier: {
+          id: "example.second-replace",
+          model: "second-replace-model",
+          async classify() {
+            return { decisions: [] };
+          },
+        },
+      },
+    };
+`,
+  );
+  writeFileSync(
+    join(root, "package.json"),
+    JSON.stringify({
+      name: "consumer",
+      dependencies: {
+        "example-replace-plugin": "2.0.0",
+        "example-second-replace-plugin": "1.0.0",
+      },
+    }),
+  );
+  let secondReplaceRefused = false;
+  let secondReplaceClassified = false;
+  try {
+    const doubleReplaceRegistry = new CapabilityRegistry({
+      workspaceRoot: root,
+      builtinFactory: () => createStubBuiltinPlugin(),
+      projectConfig: {
+        plugins: [
+          "example-replace-plugin",
+          "example-second-replace-plugin",
+        ].map((pluginPackage) => ({
+          package: pluginPackage,
+          capabilities: {
+            [SEMANTIC_CLASSIFIER_CAPABILITY_ID]: { mode: "replace" as const },
+          },
+        })),
+      },
+      loadPlugin: async (_workspaceRoot: string, pluginPackage: string) =>
+        loadPluginPackage(root, pluginPackage),
+    });
+    await doubleReplaceRegistry.resolveSemanticClassifiers();
+    secondReplaceClassified = true;
+  } catch (error) {
+    secondReplaceRefused =
+      error instanceof Error &&
+      error.message.includes(
+        `At most one replace provider is allowed for ${SEMANTIC_CLASSIFIER_CAPABILITY_ID}`,
+      ) &&
+      error.message.includes("example-second-replace-plugin");
+  }
+  assert(
+    secondReplaceRefused && !secondReplaceClassified,
+    "a second replace provider for the same capability is refused",
+  );
+  writeFileSync(
+    join(root, "package.json"),
+    JSON.stringify({
+      name: "consumer",
+      dependencies: { "example-replace-plugin": "2.0.0" },
+    }),
+  );
+
   // biome-ignore lint/performance/noDelete: unset must remove the key; assigning undefined stringifies it.
   delete process.env.KIBI_JEV_MODEL;
   // biome-ignore lint/performance/noDelete: unset must remove the key; assigning undefined stringifies it.
@@ -586,6 +724,30 @@ try {
     malformed,
     "malformed KIBI_JEV_TIMEOUT_MS fails with the effective model",
   );
+  for (const outOfRange of ["0", String(JEV_MAX_TIMEOUT_MS + 1)]) {
+    process.env.KIBI_JEV_TIMEOUT_MS = outOfRange;
+    let refused = false;
+    let clientCalls = 0;
+    try {
+      createJevSemanticClassifier({
+        model: "explicit-model",
+        clientFactory: () => {
+          clientCalls += 1;
+          throw new Error("client constructed");
+        },
+      });
+    } catch (error) {
+      refused =
+        error instanceof JevProviderError &&
+        error.code === "malformed" &&
+        error.model === "explicit-model" &&
+        error.message.includes(String(JEV_MAX_TIMEOUT_MS));
+    }
+    assert(
+      refused && clientCalls === 0,
+      `KIBI_JEV_TIMEOUT_MS=${outOfRange} outside 1..${JEV_MAX_TIMEOUT_MS} fails before any client call`,
+    );
+  }
   process.env.KIBI_JEV_TIMEOUT_MS = "1500";
   assert(resolveJevTimeoutMs(4000) === 4000, "programmatic timeout wins");
   assert(

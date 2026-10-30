@@ -174,3 +174,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f9fac92ce88d
+  - type: assumes
+    from: SCEN-CASE-kibi-search-gold-set-gate-unasked-gold-question
+    to: FACT-CASE-kibi-search-gold-set-gate-unasked-gold-question
+    created_at: 2026-10-30T14:59:58.134Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-775eec9bd427
+  - type: verified_by
+    from: SCEN-CASE-kibi-search-gold-set-gate-unasked-gold-question
+    to: TEST-kibi-search-gold-set-gate-cli
+    created_at: 2026-10-30T14:59:58.182Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab09a7fa3939

@@ -74,6 +74,14 @@ export interface FactFields {
   canonical_key?: string;
   claim_key?: string;
   claim_text?: string;
+  /** Why a quantifier word in claim_text ranges over nothing. */
+  dimension_waiver?: string;
+  /** The person who accepted the dimension waiver. */
+  dimension_waiver_approved_by?: string;
+  /** Why the fact's derived edge cases are covered some other way. */
+  case_waiver?: string;
+  /** The person who accepted the case waiver. */
+  case_waiver_approved_by?: string;
   predicate_name?: string;
   predicate_namespace?: string;
   predicate_arity?: number;
@@ -105,6 +113,10 @@ export type Requirement = BaseEntity & {
   approved_by?: string;
   /** Optional reference to the approval decision record. */
   approval_ref?: string;
+  /** Why the requirement has no failure side to test. */
+  failure_side_waiver?: string;
+  /** The person who accepted the failure-side waiver. */
+  failure_side_waiver_approved_by?: string;
   /** Why the requirement exists; explanation, not checked meaning. */
   rationale?: string;
   /** How firmly it was decided; absent reads as `default` when an agent wrote it, else `firm`. */

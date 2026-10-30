@@ -195,7 +195,7 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-caecd7161952
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-git-hook-effective-install
     to: FACT-PRED-9941160A203B
     created_at: 2026-09-26T08:57:00.055Z
@@ -356,3 +356,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b250aa9f35a7
+  - type: assumes
+    from: SCEN-NEG-002-UNCURATED-METHOD
+    to: FACT-NEG-002-UNCURATED-METHOD
+    created_at: 2026-10-29T20:53:28.802Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-997a9c7f1c12
+  - type: verified_by
+    from: SCEN-NEG-002-UNCURATED-METHOD
+    to: TEST-mcp-upsert-coverage
+    created_at: 2026-10-29T20:53:28.868Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0bddce44ad97
+  - type: assumes
+    from: SCEN-NEG-cli-doctor-packed-provenance-FALSE-PROVENANCE-ACTION
+    to: FACT-NEG-cli-doctor-packed-provenance-FALSE-PROVENANCE-ACTION
+    created_at: 2026-10-29T20:58:06.486Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28f631e66d44
+  - type: verified_by
+    from: SCEN-NEG-cli-doctor-packed-provenance-FALSE-PROVENANCE-ACTION
+    to: TEST-cli-doctor-packed-provenance
+    created_at: 2026-10-29T20:58:06.568Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bee8ce9b982f
+  - type: specified_by
+    from: REQ-git-hook-effective-install
+    to: SCEN-NEG-git-hook-effective-install-foreign-hook-success
+    created_at: 2026-10-29T20:53:37.937Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b0241ee83f88
+  - type: assumes
+    from: SCEN-NEG-model-what-if-planned-facts-CONFLICTING-PLAN
+    to: FACT-NEG-model-what-if-planned-facts-CONFLICTING-PLAN
+    created_at: 2026-10-29T21:03:39.538Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3de5acae629
+  - type: verified_by
+    from: SCEN-NEG-model-what-if-planned-facts-CONFLICTING-PLAN
+    to: TEST-model-what-if-planned-facts
+    created_at: 2026-10-29T21:03:39.708Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a51f06b7aa2c
+  - type: specified_by
+    from: REQ-opencode-background-sync
+    to: SCEN-NEG-opencode-background-sync-FAILING-SYNC
+    created_at: 2026-10-29T21:23:52.845Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a943f5163c46
+  - type: constrains
+    from: REQ-git-hook-effective-install
+    to: FACT-SUBJECT-KIBI-INIT-GIT-HOOKS
+    created_at: 2026-10-30T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7b0c0a3a806
+  - type: assumes
+    from: SCEN-CASE-cli-migrate-entity-type-backfill-OTHER-LINE-CHANGED
+    to: FACT-CASE-cli-migrate-entity-type-backfill-OTHER-LINE-CHANGED
+    created_at: 2026-10-30T15:12:10.080Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5f1538037ed
+  - type: verified_by
+    from: SCEN-CASE-cli-migrate-entity-type-backfill-OTHER-LINE-CHANGED
+    to: TEST-cli-migrated-kb-type-backfill-sync-totals
+    created_at: 2026-10-30T15:12:10.165Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c86af1879d9

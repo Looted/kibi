@@ -349,3 +349,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0731687151ba
+  - type: specified_by
+    from: REQ-root-suite-batch-diagnostics
+    to: SCEN-NEG-root-suite-batch-diagnostics-UNNAMED-BATCH-FAILURE
+    created_at: 2026-10-29T20:58:01.688Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-310c163f3161

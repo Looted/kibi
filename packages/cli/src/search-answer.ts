@@ -205,6 +205,7 @@ const ANSWER_RELATIONSHIPS = [
   "specified_by",
   "verified_by",
   "validates",
+  "assumes",
   "implements",
   "constrains",
   "requires_property",
@@ -946,6 +947,10 @@ export async function buildSearchAnswer(
   // A matched test may verify a scenario rather than a requirement; its
   // targets are resolved to their governing requirements after the loop.
   const testTargets: { id: string; score: number; targets: string[] }[] = [];
+  // A matched fact that no requirement grounds may be the assumption of a
+  // requirement's scenario, such as its failure side; it is resolved through
+  // that scenario after the loop.
+  const assumedFacts: { id: string; score: number; scenarios: string[] }[] = [];
   for (const [index, match] of seeds.entries()) {
     const id = text(match.entity.id);
     const entity = graph.row(id) ?? match.entity;
@@ -976,6 +981,19 @@ export async function buildSearchAnswer(
       testTargets.push({ id, score: match.score, targets: owners });
       continue;
     }
+    if (type === "fact" && owners.length === 0) {
+      const scenarios = seedEdges
+        .filter((edge) => edge.rel === "assumes" && edge.to === id)
+        .map((edge) => edge.from);
+      if (scenarios.length > 0) {
+        assumedFacts.push({
+          id,
+          score: match.score,
+          scenarios: unique(scenarios),
+        });
+        continue;
+      }
+    }
     if (owners.length === 0 && ["fact", "scenario", "symbol"].includes(type)) {
       // A fact's claim and ask are filled in once its schema is known.
       if (ungoverned.length < limits.ungoverned)
@@ -990,7 +1008,10 @@ export async function buildSearchAnswer(
     [...candidates.entries()]
       .sort(([, left], [, right]) => right.score - left.score)
       .map(([id]) => id);
-  const targetIds = unique(testTargets.flatMap((test) => test.targets));
+  const targetIds = unique([
+    ...testTargets.flatMap((test) => test.targets),
+    ...assumedFacts.flatMap((fact) => fact.scenarios),
+  ]);
   // Test targets and the candidates found so far share one round trip.
   await graph.fetch({
     edges: [...targetIds, ...byScore()],
@@ -1020,6 +1041,24 @@ export async function buildSearchAnswer(
       for (const owner of scenarioOwners)
         propose(owner, test.score * 0.85, `test ${test.id} via ${target}`);
     }
+  }
+
+  for (const fact of assumedFacts) {
+    const owners = fact.scenarios.flatMap((scenario) =>
+      targetEdges
+        .filter((edge) => edge.rel === "specified_by" && edge.to === scenario)
+        .map((edge) => ({ owner: edge.from, scenario })),
+    );
+    if (owners.length === 0) {
+      const row = graph.row(fact.id);
+      const rank = seedIds.indexOf(fact.id) + 1;
+      if (row !== null && ungoverned.length < limits.ungoverned)
+        ungoverned.push({ ...brief(row), type: "fact", rank });
+      else if (row !== null) truncated = true;
+      continue;
+    }
+    for (const { owner, scenario } of owners)
+      propose(owner, fact.score * 0.85, `fact ${fact.id} via ${scenario}`);
   }
 
   const supersededBy = new Map<string, string>();
@@ -1377,8 +1416,9 @@ const REQUIREMENT_TRIM_ORDER = [
 /**
  * Hold the whole answer under `maxBytes`, marking it truncated when anything
  * is cut. In order: long titles, excerpts and details are clipped; ADR
- * excerpts are dropped, last rationale entry first; the least relevant
- * governing requirements are dropped;
+ * excerpts are dropped, last rationale entry first; each governing
+ * requirement keeps only its first scenario and test, last requirement first;
+ * the least relevant governing requirements are dropped;
  * list items are dropped (notes and side lists before the remaining
  * requirement's own lists, its verdict witnesses last); then the remaining
  * requirement's title and `via` are clipped. A verdict keeps its status when
@@ -1435,6 +1475,25 @@ export function fitSearchAnswer(
       rationale[index] as SearchAnswerRationale,
     );
     current = { ...current, rationale };
+  }
+
+  // A requirement's second scenario or test matters less than another
+  // governing requirement: keep one of each, last requirement first, before
+  // dropping a requirement.
+  for (
+    let index = current.governing.length - 1;
+    index >= 0 && over();
+    index -= 1
+  ) {
+    const governing = [...current.governing];
+    const req = governing[index] as SearchAnswerRequirement;
+    if (req.scenarios.length <= 1 && req.tests.length <= 1) continue;
+    governing[index] = {
+      ...req,
+      scenarios: req.scenarios.slice(0, 1),
+      tests: req.tests.slice(0, 1),
+    };
+    current = { ...current, governing };
   }
 
   while (over() && current.governing.length > 1)

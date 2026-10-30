@@ -1,15 +1,12 @@
 ---
-title: 'SkillOpt evidence: semantic_advisor'
+title: 'SkillOpt evidence: normative claims without a distinct grounding edge when the semantic advisor is ready = 0'
 status: active
-fact_kind: predicate
-predicate_namespace: kibi.skillopt
-predicate_name: evaluation_evidence_rule
-predicate_args:
-  - semantic_advisor
-  - every_normative_claim
-  - distinct_logical_grounding_edge
-canonical_key: evaluation_evidence_rule(semantic_advisor,every_normative_claim,distinct_logical_grounding_edge)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.skillopt.logical_evidence
+property_key: ungrounded_normative_claims_when_advisor_ready
+operator: eq
+value_type: int
+value_int: 0
 claim_key: CLAIM-DE4082419A031E05
 claim_text: Semantic-advisor readiness must remain partial until every normative claim has a distinct logical grounding edge
 id: FACT-PRED-SKILLOPT-CLAIM-DE4082419A031E05

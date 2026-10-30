@@ -363,3 +363,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bb7853f564b0
+  - type: assumes
+    from: SCEN-NEG-capability-plugin-jev-fallback-v1-CLASSIFIER-DOWN
+    to: FACT-NEG-capability-plugin-jev-fallback-v1-CLASSIFIER-DOWN
+    created_at: 2026-10-29T21:19:05.137Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3778ce170c65
+  - type: verified_by
+    from: SCEN-NEG-capability-plugin-jev-fallback-v1-CLASSIFIER-DOWN
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-10-29T21:19:05.205Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d10d3458259
+  - type: assumes
+    from: SCEN-CASE-kibi-distribution-parity-matrix-NO-CAPABILITY-STATE
+    to: FACT-CASE-kibi-distribution-parity-matrix-NO-CAPABILITY-STATE
+    created_at: 2026-10-30T14:51:46.903Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0193eaa19a0c
+  - type: verified_by
+    from: SCEN-CASE-kibi-distribution-parity-matrix-NO-CAPABILITY-STATE
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: 2026-10-30T14:51:47.079Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0aa59b91fc2e

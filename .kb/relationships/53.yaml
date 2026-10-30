@@ -328,3 +328,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d22077df90af
+  - type: assumes
+    from: SCEN-CASE-kibi-conservative-requirement-proof-SYMBOL-UNCOVERED
+    to: FACT-CASE-kibi-conservative-requirement-proof-SYMBOL-UNCOVERED
+    created_at: 2026-10-30T15:11:29.954Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6284d47c726b
+  - type: verified_by
+    from: SCEN-CASE-kibi-conservative-requirement-proof-SYMBOL-UNCOVERED
+    to: TEST-e2e-coverage-proof-status
+    created_at: 2026-10-30T15:11:30.020Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14cfa662a5d1
+  - type: assumes
+    from: SCEN-CASE-kibi-search-answer-layer-v2-REQ-WITHOUT-VERDICT
+    to: FACT-CASE-kibi-search-answer-layer-v2-REQ-WITHOUT-VERDICT
+    created_at: 2026-10-30T14:56:18.087Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-260b0577b9f8
+  - type: verified_by
+    from: SCEN-CASE-kibi-search-answer-layer-v2-REQ-WITHOUT-VERDICT
+    to: TEST-kibi-search-answer-layer
+    created_at: 2026-10-30T14:56:18.153Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4368da3d11d8

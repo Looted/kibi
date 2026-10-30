@@ -405,3 +405,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-727a62bfbe09
+  - type: specified_by
+    from: REQ-cli-kb-merge-driver
+    to: SCEN-NEG-cli-kb-merge-driver-SILENT-CONFLICT
+    created_at: 2026-10-29T20:59:05.213Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40caeafa2dc4
+  - type: assumes
+    from: SCEN-NEG-cli-init-canonical-CONFIG-JSON-WRITTEN
+    to: FACT-NEG-cli-init-canonical-CONFIG-JSON-WRITTEN
+    created_at: 2026-10-29T20:59:48.501Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fdb4e52a544b
+  - type: verified_by
+    from: SCEN-NEG-cli-init-canonical-CONFIG-JSON-WRITTEN
+    to: TEST-cli-canonical-init
+    created_at: 2026-10-29T20:59:48.672Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0dae6d5a3c8e
+  - type: assumes
+    from: SCEN-NEG-kb-decision-firmness-from-origin-imported-rule-edit
+    to: FACT-NEG-kb-decision-firmness-from-origin-imported-rule-edit
+    created_at: 2026-10-29T21:00:27.873Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e4af55d2a11c
+  - type: verified_by
+    from: SCEN-NEG-kb-decision-firmness-from-origin-imported-rule-edit
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-29T21:00:28.037Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb3b0783c9fe
+  - type: specified_by
+    from: REQ-cli-kb-merge-driver
+    to: SCEN-CASE-cli-kb-merge-driver-BOTH-SIDES-APPEND
+    created_at: 2026-10-30T14:58:20.923Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b48f539b097a

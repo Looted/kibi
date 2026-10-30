@@ -129,6 +129,65 @@ test("staged Python impact preserves authored identity and ignores unstaged cont
   );
 }, 15000);
 
+test("staged Prolog impact maps a change inside one predicate to that predicate only", async () => {
+  const { root } = consumer();
+  const git = (...args: string[]) =>
+    execFileSync("git", args, { cwd: root, stdio: "pipe" });
+  git("init", "-q");
+  git("config", "user.email", "review@example.test");
+  git("config", "user.name", "Review");
+  mkdirSync(join(root, ".kb/requirements"), { recursive: true });
+  writeFileSync(
+    join(root, ".kb/requirements/REQ-area.md"),
+    "---\nid: REQ-area\ntitle: Compute shape areas\nstatus: open\n---\nCompute shape areas.\n",
+  );
+  writeFileSync(
+    join(root, ".kb/symbols.yaml"),
+    [
+      "symbols:",
+      "  - id: SYM-area",
+      "    title: area/2",
+      "    sourceFile: shapes.pl",
+      "    relationships:",
+      "      - type: implements",
+      "        target: REQ-area",
+      "  - id: SYM-perimeter",
+      "    title: perimeter/2",
+      "    sourceFile: shapes.pl",
+      "    relationships:",
+      "      - type: implements",
+      "        target: REQ-area",
+      "",
+    ].join("\n"),
+  );
+  const source = (areaBody: string) =>
+    [
+      ":- module(shapes, [area/2, perimeter/2]).",
+      "",
+      "%!  area(+Shape, -Area) is det.",
+      "area(square(S), A) :-",
+      `    ${areaBody}.`,
+      "area(circle(R), A) :-",
+      "    A is pi * R ** 2.",
+      "",
+      "perimeter(square(S), P) :-",
+      "    P is 4 * S.",
+      "",
+    ].join("\n");
+  writeFileSync(join(root, "shapes.pl"), source("A is S * S"));
+  git("add", "package.json", ".kb", "shapes.pl");
+  git("commit", "-qm", "base");
+  writeFileSync(join(root, "shapes.pl"), source("A is S ** 2"));
+  git("add", "shapes.pl");
+  const result = await analyzeChangedFileImpact({
+    workspaceRoot: root,
+    staged: true,
+  });
+  expect(
+    result.extractedSymbols.map((symbol) => [symbol.id, symbol.name]),
+  ).toEqual([["SYM-area", "area/2"]]);
+}, 15000);
+
 test("coordinate refresh uses the approved parser and retains authored symbol IDs", async () => {
   const { root } = consumer();
   writeFileSync(

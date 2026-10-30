@@ -125,14 +125,14 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a8819d35b8b1
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-capability-plugin-configuration-v1
     to: FACT-PRED-4F2880B080A3
     created_at: 2026-09-22T19:13:55.539Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0a5360af8173
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-capability-plugin-configuration-v1
     to: FACT-PRED-61EC1F54D4EB
     created_at: 2026-09-22T19:13:55.544Z
@@ -328,3 +328,108 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-889c60fb6697
+  - type: specified_by
+    from: REQ-capability-plugin-configuration-v1
+    to: SCEN-NEG-capability-plugin-configuration-v1-MALFORMED-TIMEOUT
+    created_at: 2026-10-29T21:21:34.971Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1a4b522dd76
+  - type: specified_by
+    from: REQ-kibi-evidence-floors
+    to: SCEN-NEG-kibi-evidence-floors-below-floor
+    created_at: 2026-10-29T21:12:44.449Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ab73ae09d36
+  - type: assumes
+    from: SCEN-NEG-kibi-search-answer-layer-v2-SUPERSEDED-MATCH
+    to: FACT-NEG-kibi-search-answer-layer-v2-SUPERSEDED-MATCH
+    created_at: 2026-10-29T21:10:13.197Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf069e84d3e4
+  - type: verified_by
+    from: SCEN-NEG-kibi-search-answer-layer-v2-SUPERSEDED-MATCH
+    to: TEST-kibi-search-answer-layer
+    created_at: 2026-10-29T21:10:13.280Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72898d52f4cc
+  - type: assumes
+    from: SCEN-NEG-opencode-sync-feedback-SYNC-FAILURE
+    to: FACT-NEG-opencode-sync-feedback-SYNC-FAILURE
+    created_at: 2026-10-29T21:24:01.654Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d184d1e8ff6a
+  - type: verified_by
+    from: SCEN-NEG-opencode-sync-feedback-SYNC-FAILURE
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-10-29T21:24:01.731Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da56ffec3201
+  - type: constrains
+    from: REQ-capability-plugin-configuration-v1
+    to: FACT-SUBJECT-kibi-plugin-jev
+    created_at: 2026-10-30T12:40:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f60f471f6c5c
+  - type: requires_predicate
+    from: REQ-kibi-case-coverage
+    to: FACT-PRED-kibi-case-coverage-tested
+    created_at: 2026-10-30T14:06:17.893Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0800acd4c9ab
+  - type: requires_predicate
+    from: REQ-kibi-case-coverage
+    to: FACT-PRED-kibi-case-coverage-waiver
+    created_at: 2026-10-30T14:06:17.942Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90da97ce1973
+  - type: requires_predicate
+    from: REQ-kibi-case-coverage
+    to: FACT-PRED-kibi-case-coverage-advisor
+    created_at: 2026-10-30T14:06:17.975Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc082c9c008b
+  - type: specified_by
+    from: REQ-kibi-case-coverage
+    to: SCEN-kibi-case-coverage
+    created_at: 2026-10-30T14:06:18.003Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-619f92162c6e
+  - type: specified_by
+    from: REQ-kibi-case-coverage
+    to: SCEN-NEG-kibi-case-coverage-UNCOVERED
+    created_at: 2026-10-30T14:06:18.034Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75611f0a7bc3
+  - type: specified_by
+    from: REQ-kibi-evidence-floors
+    to: SCEN-CASE-kibi-evidence-floors-UNPINNED-FIRM
+    created_at: 2026-10-30T14:58:39.519Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59c18ad5619f
+  - type: specified_by
+    from: REQ-capability-plugin-configuration-v1
+    to: SCEN-CASE-capability-plugin-configuration-v1-zero-timeout
+    created_at: 2026-10-30T15:02:01.216Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5479bed9f845
+  - type: specified_by
+    from: REQ-capability-plugin-configuration-v1
+    to: SCEN-CASE-capability-plugin-configuration-v1-timeout-over-max
+    created_at: 2026-10-30T15:02:03.790Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2569b46f777e

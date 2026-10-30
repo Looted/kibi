@@ -56,4 +56,4 @@ proof_receipts:
     kind: e2e
     evidence_level: tested
 ---
-Builds the Lean project in proof/lean (the proofs and the executable model), then generates 200000 seeded cases and decides each with intervals.pl on the bundled SWI-Prolog, with the Lean executable and with a CLP(Q) and CLP(FD) oracle, failing on any disagreement.
+Builds the Lean project in proof/lean (the proofs and the executable model), then generates 200000 seeded cases and decides each with intervals.pl on the bundled SWI-Prolog, with the Lean executable and with a CLP(Q) and CLP(FD) oracle, failing on any disagreement. A second run plants a misdecision: intervals.pl runs through a wrapper that flips its answer on the first one-variable satisfiability case, then on the first one-variable entailment case, and documentation/tests/e2e/intervals-differential-planted.e2e.ts requires the differential to exit 1, count one disagreement and print that case with each side's answer.

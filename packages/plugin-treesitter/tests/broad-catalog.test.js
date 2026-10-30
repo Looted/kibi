@@ -610,6 +610,105 @@ describe("qualified offline Tree-sitter catalog", () => {
     );
   });
 
+  it("returns one span per SWI-Prolog predicate and plunit test", async () => {
+    assert.equal(extractor.supports({ path: "src/shapes.plt" }), true);
+    assert.equal(extractor.supports({ path: "src/shapes.pl" }), false);
+    assert.equal(
+      extractor.supports({ path: "src/shapes.pl", language: "swipl" }),
+      true,
+    );
+
+    const sourceInput = {
+      path: "shapes.pl",
+      language: "prolog",
+      content: await fixture("prolog/shapes.pl"),
+    };
+    const source = await extractor.analyze(sourceInput);
+    assert.equal(source.status, "ok");
+    assertValid(source, sourceInput);
+    assertUniqueLocators(source);
+    assert.deepEqual(
+      source.symbols.map((item) => [item.qualifiedName, item.nativeKind]),
+      [
+        ["area/2", "predicate"],
+        ["area/1", "predicate"],
+        ["describe/3", "dcg_rule"],
+        ["scale/3", "predicate"],
+        ["user:portray/1", "predicate"],
+        ["normalize/2", "predicate"],
+        ["quoted pred/1", "predicate"],
+      ],
+    );
+    const area = symbol(source, "area/2");
+    // The PlDoc block above the first clause through the last clause.
+    assert.deepEqual(
+      [area.name, area.kind, area.startLine, area.endLine],
+      ["area", "function", 4, 11],
+    );
+    assert.equal(area.nameRange.startLine, 8);
+    assert.equal(area.directiveText, "% implements REQ-demo-shape-area");
+    assert.equal(symbol(source, "area/1").startLine, 13);
+
+    const testInput = {
+      path: "shapes.plt",
+      content: await fixture("prolog/shapes.plt"),
+    };
+    const tests = await extractor.analyze(testInput);
+    assert.equal(tests.status, "ok");
+    assertValid(tests, testInput);
+    assertUniqueLocators(tests);
+    assert.deepEqual(
+      tests.symbols.map((item) => [
+        item.qualifiedName,
+        item.kind,
+        item.nativeKind,
+        item.startLine,
+        item.endLine,
+      ]),
+      [
+        ["area", "class", "plunit_unit", 3, 12],
+        ["area:near/2", "function", "predicate", 5, 5],
+        ["area:square", "method", "plunit_test", 7, 8],
+        ["area:circle", "method", "plunit_test", 9, 10],
+        ["describe", "class", "plunit_unit", 14, 19],
+        ["describe:square", "method", "plunit_test", 16, 17],
+      ],
+    );
+    assert.equal(symbol(tests, "area:circle").containerName, "area");
+
+    const unicodeInput = {
+      path: "names.pl",
+      language: "prolog",
+      content:
+        "% ünïcödé 🙂\r\nnaïve(X) :-\r\n    X = 'Grüße 🙂'.\r\nnaïve(_).\r\n",
+    };
+    const unicode = await extractor.analyze(unicodeInput);
+    assert.equal(unicode.status, "ok");
+    assertValid(unicode, unicodeInput);
+    assert.deepEqual(
+      unicode.symbols.map((item) => [
+        item.qualifiedName,
+        item.startLine,
+        item.endLine,
+        item.endColumn,
+      ]),
+      [["naïve/1", 2, 4, 9]],
+    );
+
+    const unclosedInput = {
+      path: "open.plt",
+      content: ":- begin_tests(open).\ntest(a) :- true.\n",
+    };
+    const unclosed = await extractor.analyze(unclosedInput);
+    assert.equal(unclosed.status, "partial");
+    assertValid(unclosed, unclosedInput);
+    assert(
+      unclosed.diagnostics.some(
+        (item) => item.code === "TREESITTER_PROLOG_TEST_UNIT_UNCLOSED",
+      ),
+    );
+  });
+
   it("marks malformed fixtures partial and omits damaged declarations", async () => {
     const cases = [
       ["java", "java/Incomplete.java"],
@@ -621,6 +720,7 @@ describe("qualified offline Tree-sitter catalog", () => {
       ["bash", "bash-incomplete.sh"],
       ["terraform", "terraform-incomplete.tf"],
       ["hcl", "hcl/incomplete.hcl"],
+      ["prolog", "prolog/incomplete.pl"],
     ];
     for (const [language, path] of cases) {
       const content = await fixture(path);
@@ -649,6 +749,9 @@ describe("qualified offline Tree-sitter catalog", () => {
       );
       if (language === "hcl") {
         assert(symbol(result, 'hcl:["resource","aws_instance","clean"]'));
+      }
+      if (language === "prolog") {
+        assert(symbol(result, "clean/1"));
       }
     }
   });

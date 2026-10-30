@@ -3,10 +3,10 @@ title: The bootstrap planner must report declared, planned and existing intent c
 status: active
 fact_kind: property_value
 subject_key: bootstrap.intent_claim_accounting
-property_key: per_source_claim_report
+property_key: knowledge_sources_without_intent_claim_report
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 claim_key: CLAIM-96F8CEA7B9EF97DE
 claim_text: The bootstrap planner must report declared, planned and existing intent claims for each knowledge source
 origin:

@@ -321,3 +321,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-39f61cfd4bae
+  - type: assumes
+    from: SCEN-NEG-cli-staged-impact-enforcement-NO-IMPACT-EVIDENCE
+    to: FACT-NEG-cli-staged-impact-enforcement-NO-IMPACT-EVIDENCE
+    created_at: 2026-10-29T21:03:36.894Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-caea56b52203
+  - type: verified_by
+    from: SCEN-NEG-cli-staged-impact-enforcement-NO-IMPACT-EVIDENCE
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-10-29T21:03:37.034Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-948f344869fe
+  - type: specified_by
+    from: REQ-mcp-coded-error-envelope
+    to: SCEN-NEG-mcp-coded-error-envelope-CODED-TOOL-FAILURE
+    created_at: 2026-10-29T21:21:29.681Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-172d0d6ea0fd
+  - type: specified_by
+    from: REQ-prolog-bundled-quickstart
+    to: SCEN-NEG-prolog-bundled-quickstart-MISSING-QUICKSTART
+    created_at: 2026-10-29T21:06:16.803Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b64f39632f82
+  - type: assumes
+    from: SCEN-CASE-kibi-truthful-consistency-RULE-PAIR-FOURTH-CLASS
+    to: FACT-CASE-kibi-truthful-consistency-RULE-PAIR-FOURTH-CLASS
+    created_at: 2026-10-30T15:08:40.981Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ef6eaf8eb79
+  - type: verified_by
+    from: SCEN-CASE-kibi-truthful-consistency-RULE-PAIR-FOURTH-CLASS
+    to: TEST-kibi-truthful-consistency
+    created_at: 2026-10-30T15:08:41.044Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc9d73b6e21d

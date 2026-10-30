@@ -3,10 +3,10 @@ title: The bootstrap planner must report every over limit candidate and every so
 status: active
 fact_kind: property_value
 subject_key: bootstrap.write_safety
-property_key: candidate_accounting
+property_key: unreported_over_limit_candidates_and_extraction_failures
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 claim_key: CLAIM-4A5B1781285CBE2E
 claim_text: The bootstrap planner must report every over limit candidate and every source extraction failure
 origin:

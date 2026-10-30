@@ -160,7 +160,7 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-83fc8ad40dc2
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-kibi-telemetry-acceptance-gate-v2
     to: FACT-PRED-56D7C9AC1D9E
     created_at: 2026-10-04T02:14:53.618Z
@@ -181,7 +181,7 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-58a46ba08fe8
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-kibi-telemetry-acceptance-gate-v2
     to: FACT-PRED-A29952A9FDA9
     created_at: 2026-10-04T02:14:53.656Z
@@ -237,7 +237,7 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e2c5d46f25b1
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-kibi-telemetry-acceptance-gate-v2
     to: FACT-PRED-telemetry-lookup-before-first-edit
     created_at: 2026-10-04T02:14:53.743Z
@@ -426,3 +426,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-12f5d8984d70
+  - type: specified_by
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: SCEN-NEG-kibi-telemetry-acceptance-gate-v2-REPEATED-FAILURES
+    created_at: 2026-10-29T21:16:39.218Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa99318a42cf
+  - type: executable_for
+    from: SYM-kibi-happy-path-gap-verifier
+    to: TEST-kibi-happy-path-gap
+    created_at: 2026-10-29T21:57:12.828Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8447ed444860
+  - type: constrains
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: FACT-SUBJECT-kibi-telemetry-acceptance
+    created_at: 2026-10-30T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90093fb9a146
+  - type: specified_by
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: SCEN-CASE-kibi-telemetry-acceptance-gate-v2-eight-day-old-evidence
+    created_at: 2026-10-30T15:00:33.869Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72ce2c52fd24
+  - type: specified_by
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: SCEN-CASE-kibi-telemetry-acceptance-gate-v2-preflight-61-minutes-before-upsert
+    created_at: 2026-10-30T15:00:46.517Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6168e1292947
+  - type: specified_by
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: SCEN-CASE-kibi-telemetry-acceptance-gate-v2-session-without-lookup-result
+    created_at: 2026-10-30T15:00:55.601Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40aaa19f3fe2

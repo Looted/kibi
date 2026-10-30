@@ -3,10 +3,10 @@ title: MCP input validation must reject input that matches more than one branch 
 status: active
 fact_kind: property_value
 subject_key: kibi.mcp_input_validation
-property_key: oneof_guard_multiple_match_rejected
-operator: eq
-value_type: bool
-value_bool: true
+property_key: accepted_input_guard_branch_matches
+operator: lte
+value_type: int
+value_int: 1
 claim_key: CLAIM-B52DED294D277CBF
 claim_text: MCP input validation must reject input that matches more than one branch of a guard oneOf
 text_ref: REQ-mcp-oneof-guard-input-validation
@@ -23,4 +23,4 @@ type: fact
 ---
 MCP input validation must reject input that matches more than one branch of a guard oneOf.
 
-Recorded as a strict boolean property of `kibi.mcp_input_validation` so REQ-mcp-oneof-guard-input-validation can be checked for contradictions.
+Recorded as a typed property of `kibi.mcp_input_validation` so REQ-mcp-oneof-guard-input-validation can be checked for contradictions.

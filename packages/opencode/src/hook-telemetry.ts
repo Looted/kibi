@@ -6,7 +6,8 @@ import { fileURLToPath } from "node:url";
 import {
   appendHookUsageRows,
   editTraces,
-  hookTelemetryEnabled,
+  finishHookTelemetry,
+  hookTracesWanted,
   kbUsageTrace,
   readPackageVersion,
 } from "kibi-agent-core/hook-usage-log";
@@ -46,7 +47,8 @@ function packageVersion(): string | null {
 
 // implements REQ-opencode-kibi-plugin-v1, REQ-kibi-telemetry-acceptance-gate-v2
 /**
- * Opt-in (`KIBI_DIAGNOSTIC_MODE`) hook rows for the lookup-before-first-edit
+ * Anonymous usage telemetry for each traced tool call and, when opted in
+ * with `KIBI_DIAGNOSTIC_MODE`, hook rows for the lookup-before-first-edit
  * telemetry metric, written through the shared kibi-agent-core format: Kibi
  * lookups through MCP or the CLI, and edits with the requirements the edited
  * files implement (`implements` links in the configured symbols manifest).
@@ -55,12 +57,23 @@ export function recordOpencodeToolTelemetry(
   call: OpencodeToolCall,
   env: NodeJS.ProcessEnv = process.env,
 ): void {
-  if (!hookTelemetryEnabled(env)) return;
+  if (!hookTracesWanted(env)) return;
   try {
     recordToolCall(call, env);
   } catch {
     // Telemetry is best effort and must never disturb the tool call.
   }
+  // The plugin lives as long as OpenCode: send the queue whenever it is due.
+  void finishHookTelemetry(
+    {
+      event: "tool.execute.after",
+      workspaceRoot: existsSync(path.join(call.worktree, ".kb"))
+        ? call.worktree
+        : undefined,
+      sessionId: call.sessionId,
+    },
+    env,
+  );
 }
 
 function recordToolCall(call: OpencodeToolCall, env: NodeJS.ProcessEnv): void {

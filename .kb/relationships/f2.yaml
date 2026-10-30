@@ -265,3 +265,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-51deec7f4039
+  - type: assumes
+    from: SCEN-NEG-cli-gc-LIVE-STORE-REMOVAL
+    to: FACT-NEG-cli-gc-LIVE-STORE-REMOVAL
+    created_at: 2026-10-29T21:59:59.263Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b823d50246e
+  - type: verified_by
+    from: SCEN-NEG-cli-gc-LIVE-STORE-REMOVAL
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-10-29T21:59:59.299Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7cb35d3e357
+  - type: assumes
+    from: SCEN-CASE-kibi-claim-bound-proofs-ONE-UNPROVED-CLAIM
+    to: FACT-CASE-kibi-claim-bound-proofs-ONE-UNPROVED-CLAIM
+    created_at: 2026-10-30T15:31:48.505Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97ccb1446e9d
+  - type: verified_by
+    from: SCEN-CASE-kibi-claim-bound-proofs-ONE-UNPROVED-CLAIM
+    to: TEST-kibi-claim-bound-proofs
+    created_at: 2026-10-30T15:31:48.571Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ea1ef8befc7

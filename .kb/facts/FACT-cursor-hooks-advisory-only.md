@@ -3,10 +3,12 @@ title: kibi-cursor hooks only remind and warn
 status: active
 fact_kind: property_value
 subject_key: cursor.kibi_plugin
-property_key: hooks_advisory_only
-operator: eq
-value_type: bool
-value_bool: true
+property_key: hook_output_kinds
+operator: subset_of
+value_type: set
+value_set:
+  - reminder
+  - warning
 claim_text: kibi-cursor hooks must only emit reminders and warnings
 claim_key: CLAIM-915BBD5BF9462870
 text_ref: REQ-cursor-kibi-plugin-v1

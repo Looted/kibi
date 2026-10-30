@@ -1,6 +1,6 @@
 {
   "name": "kibi-opencode",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "description": "Kibi OpenCode plugin - thin adapter to integrate Kibi with OpenCode sessions",
   "type": "module",
   "main": "dist/index.js",
@@ -65,8 +65,8 @@
     "@opencode-ai/plugin": "^1.19.3",
     "@opentui/core": "^0.6.6",
     "@opentui/solid": "^0.6.6",
-    "kibi-agent-core": "^0.10.0",
-    "kibi-runtime": "^2.26.0"
+    "kibi-agent-core": "^0.11.0",
+    "kibi-runtime": "^2.27.1"
   },
   "devDependencies": {
     "@types/node": "latest",

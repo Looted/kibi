@@ -47,9 +47,11 @@ links:
     target: REQ-kibi-logical-requirement-coverage
   - type: specified_by
     target: SCEN-kibi-ontology-convergence-witnesses
+  - type: constrains
+    target: FACT-SUBJECT-79C92ADA34274409
   - type: requires_predicate
     target: FACT-ONTOLOGY-SCHEMA-DISCOVERY
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-ONTOLOGY-EXACT-BINDINGS
   - type: requires_predicate
     target: FACT-CONTRADICTION-SOURCE-WITNESSES

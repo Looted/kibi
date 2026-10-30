@@ -244,3 +244,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1cd6142016a6
+  - type: assumes
+    from: SCEN-CASE-bootstrap-claim-restatement-NEAR-RESTATEMENT
+    to: FACT-CASE-bootstrap-claim-restatement-NEAR-RESTATEMENT
+    created_at: 2026-10-30T14:56:28.551Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e189c226f75
+  - type: verified_by
+    from: SCEN-CASE-bootstrap-claim-restatement-NEAR-RESTATEMENT
+    to: TEST-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-30T14:56:28.662Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b0eb37433a2
+  - type: assumes
+    from: SCEN-CASE-branch-store-recovery-v4-cross-identity-migration
+    to: FACT-CASE-branch-store-recovery-v4-cross-identity-migration
+    created_at: 2026-10-30T14:46:45.617Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af005418c2bd
+  - type: verified_by
+    from: SCEN-CASE-branch-store-recovery-v4-cross-identity-migration
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-10-30T14:46:45.729Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0045eeadfc8

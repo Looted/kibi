@@ -1,15 +1,12 @@
 ---
 title: Numeric comparisons, strict bounds included, are decided exactly
 status: active
-fact_kind: predicate
-predicate_namespace: kibi.requirements
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.checks.contradictions
-  - numeric_comparison_with_strict_bounds
-  - decided_exactly
-canonical_key: logical_requirement_rule(kibi.checks.contradictions,numeric_comparison_with_strict_bounds,decided_exactly)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.checks.contradictions
+property_key: numeric_comparisons_decided_inexactly
+operator: eq
+value_type: int
+value_int: 0
 claim_key: CLAIM-AF9ED781C6092797
 claim_text: Contradiction checking must decide numeric comparisons exactly, including strict greater-than and less-than bounds
 text_ref: .kb/requirements/REQ-kibi-truthful-consistency.md

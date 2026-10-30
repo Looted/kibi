@@ -126,6 +126,18 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       description:
         "Requirement-only. Optional reference to the exception's approval decision record.",
     },
+    failure_side_waiver: {
+      type: "string",
+      minLength: 1,
+      description:
+        "Requirement-only. Why the requirement has no failure side to test (its claims state a capability or output shape). Waives happy_path_only once failure_side_waiver_approved_by is set.",
+    },
+    failure_side_waiver_approved_by: {
+      type: "string",
+      minLength: 1,
+      description:
+        "Requirement-only. The person who accepted failure_side_waiver.",
+    },
     firmness: {
       type: "string",
       enum: ["firm", "default", "exploratory"],
@@ -322,6 +334,28 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       type: "string",
       description:
         "Exact atomic requirement clause represented by this fact, retained for human audit. On a grounding fact Kibi derives claim_key from it; an observation or meta fact quotes the clause it is about without a key.",
+    },
+    dimension_waiver: {
+      type: "string",
+      minLength: 1,
+      description:
+        "Fact-only. Why the quantifier word in claim_text ranges over nothing, so the claim needs no count, set or rule. Waives dimension_unrepresented once dimension_waiver_approved_by is set.",
+    },
+    dimension_waiver_approved_by: {
+      type: "string",
+      minLength: 1,
+      description: "Fact-only. The person who accepted dimension_waiver.",
+    },
+    case_waiver: {
+      type: "string",
+      minLength: 1,
+      description:
+        "Fact-only. Why the edge cases derived from this fact are covered some other way or cannot occur. Waives uncovered_case once case_waiver_approved_by is set.",
+    },
+    case_waiver_approved_by: {
+      type: "string",
+      minLength: 1,
+      description: "Fact-only. The person who accepted case_waiver.",
     },
     predicate_name: {
       type: "string",

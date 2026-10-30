@@ -7,6 +7,7 @@ import {
   type Tarballs,
   type TestSandbox,
   checkPrologAvailable,
+  createInventoriedRequirement,
   createMarkdownFile,
   createSandbox,
   exactBranchStorePath,
@@ -637,6 +638,27 @@ if (RUN_NODE_TEST_SUITE) {
       console.log("  ✓ Doctor ran successfully (diagnostic output captured)");
     });
 
+    it("should fail kibi doctor before init with a remediation step for each failed check", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+
+      const { stdout, stderr, exitCode } = await kibi(sandbox, ["doctor"]);
+      const output = stdout + stderr;
+
+      assert.notStrictEqual(exitCode, 0, "doctor must fail before init");
+      assert.match(
+        output,
+        /✗ \.kb\/ directory: Not found\n\s*→ Run: kibi init/,
+      );
+      assert.match(output, /✗ \.kb\/ manifest: Not found\n\s*→ Run: kibi init/);
+      assert.ok(
+        output.includes("Some checks failed"),
+        `doctor should summarize the failure: ${output}`,
+      );
+    });
+
     it("should initialize kibi with hooks", async (testContext) => {
       if (!hasProlog) {
         testContext.skip("SWI-Prolog is unavailable");
@@ -746,6 +768,23 @@ if (RUN_NODE_TEST_SUITE) {
       console.log("  ✓ Query returned entities");
     });
 
+    it("should reject a query filter naming an entity type Kibi does not have", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+
+      const { stdout, stderr, exitCode } = await kibi(sandbox, [
+        "query",
+        "widget",
+      ]);
+      const output = stdout + stderr;
+
+      assert.notStrictEqual(exitCode, 0, "query must fail for an unknown type");
+      assert.match(output, /Invalid type 'widget'/);
+      assert.match(output, /Valid types: req, scenario, test/);
+    });
+
     it("should run kibi check after sync", async (testContext) => {
       if (!hasProlog) {
         testContext.skip("SWI-Prolog is unavailable");
@@ -775,6 +814,40 @@ if (RUN_NODE_TEST_SUITE) {
       );
 
       console.log(`  ✓ Check completed (exit code: ${exitCode})`);
+    });
+
+    it("should report a non-blocking logical-coverage debt diagnostic for a requirement without a logic_claims manifest", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+
+      // REQ-001 is current and has no logic_claims manifest.
+      const { stdout, stderr, exitCode } = await kibi(
+        sandbox,
+        ["check", "--format", "json"],
+        { timeoutMs: 60000 },
+      );
+      assert.strictEqual(exitCode, 0, stdout + stderr);
+      const parsed = JSON.parse(stdout) as {
+        structuredContent?: {
+          qualityDiagnostics?: Array<{
+            id: string;
+            entityId?: string;
+            blocking: boolean;
+            message: string;
+          }>;
+        };
+      };
+      const debt = (parsed.structuredContent?.qualityDiagnostics ?? []).filter(
+        (diagnostic) => diagnostic.id === "logical_coverage_review",
+      );
+      assert.deepStrictEqual(
+        debt.map((diagnostic) => [diagnostic.entityId, diagnostic.blocking]),
+        [["REQ-001", false]],
+        stdout,
+      );
+      assert.match(debt[0]?.message ?? "", /no atomic logic_claims manifest/);
     });
 
     it("should run kibi check with a registry-selected migration rule", async (testContext) => {
@@ -860,6 +933,185 @@ if (RUN_NODE_TEST_SUITE) {
 
       console.log("  ✓ KB directory structure validated");
     });
+
+    it("should refuse a requirement health report from a partial coverage page", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+
+      // A second current requirement makes a one-row coverage page partial.
+      const secondPath = ".kb/requirements/REQ-002.md";
+      await createInventoriedRequirement(
+        sandbox,
+        secondPath,
+        {
+          id: "REQ-002",
+          title: "Second test requirement",
+          status: "open",
+          tags: ["test"],
+        },
+        [
+          "This is a second test requirement for E2E validation.",
+          "",
+          "## Context",
+          "",
+          "This second entry gives the packed report suite more current requirements than a one-row coverage page holds, which is the situation the partial-page refusal covers.",
+        ].join("\n"),
+      );
+      try {
+        const synced = await kibi(sandbox, ["sync"]);
+        assert.strictEqual(synced.exitCode, 0, synced.stdout + synced.stderr);
+
+        const { stdout, stderr, exitCode } = await kibi(
+          sandbox,
+          ["report", "--limit", "1", "--output", "kibi-report-partial"],
+          { timeoutMs: 120000 },
+        );
+        assert.notStrictEqual(
+          exitCode,
+          0,
+          `a partial coverage page must fail the report. Output: ${stdout}${stderr}`,
+        );
+        assert.match(
+          `${stdout}${stderr}`,
+          /Report requires complete requirement rows, but 1 of 2 were returned/,
+        );
+        await assert.rejects(
+          readFile(
+            path.join(sandbox.repoDir, "kibi-report-partial", "index.html"),
+            "utf8",
+          ),
+          "no report may be written from incomplete metrics",
+        );
+      } finally {
+        await run("git", ["rm", "-q", "-f", "--", secondPath], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
+        await kibi(sandbox, ["sync"]);
+      }
+    });
+
+    it(
+      "keeps typed predicate fields in the staged overlay so a staged decision conflict is reported",
+      { timeout: 120000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        const stagedSandbox = createSandbox();
+        try {
+          await stagedSandbox.install(tarballs);
+          await stagedSandbox.initGitRepo();
+          const initialized = await kibi(stagedSandbox, ["init", "--no-hooks"]);
+          assert.strictEqual(
+            initialized.exitCode,
+            0,
+            initialized.stdout + initialized.stderr,
+          );
+          // Two staged requirements decide the same permission_rule key
+          // differently. Only the typed predicate fields (name, namespace,
+          // arguments, polarity) carry the conflict, so it is reported only
+          // when the staged overlay keeps every one of them.
+          for (const [decision, polarity] of [
+            ["allow", "assert"],
+            ["deny", "deny"],
+          ] as const) {
+            await mkdir(path.join(stagedSandbox.repoDir, ".kb", "facts"), {
+              recursive: true,
+            });
+            await writeFile(
+              path.join(
+                stagedSandbox.repoDir,
+                ".kb",
+                "facts",
+                `FACT-EXPORT-${decision}.md`,
+              ),
+              [
+                "---",
+                `id: FACT-EXPORT-${decision}`,
+                `title: Guests ${decision} report CSV export`,
+                "status: active",
+                "fact_kind: predicate",
+                "predicate_namespace: default",
+                "predicate_name: permission_rule",
+                `predicate_args: [guest, export, report_csv, ${decision}]`,
+                `polarity: ${polarity}`,
+                `canonical_key: permission_rule(guest,export,report_csv,${decision})`,
+                "---",
+                `Guests ${decision} exporting reports as CSV files.`,
+                "",
+              ].join("\n"),
+            );
+            await mkdir(
+              path.join(stagedSandbox.repoDir, ".kb", "requirements"),
+              { recursive: true },
+            );
+            await writeFile(
+              path.join(
+                stagedSandbox.repoDir,
+                ".kb",
+                "requirements",
+                `REQ-EXPORT-${decision}.md`,
+              ),
+              [
+                "---",
+                `id: REQ-EXPORT-${decision}`,
+                `title: Guests ${decision} report CSV export`,
+                "status: open",
+                "priority: must",
+                "links:",
+                "  - type: requires_predicate",
+                `    target: FACT-EXPORT-${decision}`,
+                "---",
+                `Guests ${decision} exporting reports as CSV files.`,
+                "",
+              ].join("\n"),
+            );
+          }
+          const added = await run("git", ["add", "-A", ".kb"], {
+            cwd: stagedSandbox.repoDir,
+            env: stagedSandbox.env,
+          });
+          assert.strictEqual(added.exitCode, 0, added.stdout + added.stderr);
+
+          const checked = await kibi(
+            stagedSandbox,
+            ["check", "--staged", "--format", "json"],
+            { timeoutMs: 60000 },
+          );
+          assert.notStrictEqual(
+            checked.exitCode,
+            0,
+            checked.stdout + checked.stderr,
+          );
+          const report = JSON.parse(checked.stdout) as {
+            structuredContent: {
+              operationalError?: string;
+              violations: Array<{ rule: string; description: string }>;
+            };
+          };
+          assert.strictEqual(
+            report.structuredContent.operationalError,
+            undefined,
+            checked.stdout,
+          );
+          const conflict = report.structuredContent.violations.find(
+            (violation) => violation.rule === "domain-contradictions",
+          );
+          assert.match(
+            conflict?.description ?? "",
+            /Decision conflict on default:permission_rule\(guest,export,report_csv\): REQ-EXPORT-allow decides allow while REQ-EXPORT-deny decides deny/,
+            checked.stdout,
+          );
+        } finally {
+          await stagedSandbox.cleanup();
+        }
+      },
+    );
 
     it(
       "rejects staged generated manifest drift through the packed CLI",
@@ -975,6 +1227,162 @@ if (RUN_NODE_TEST_SUITE) {
           );
         } finally {
           await driftSandbox.cleanup();
+        }
+      },
+    );
+
+    it(
+      "should fail kibi check when a must-priority requirement has no scenario or test",
+      { timeout: 180000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        // A fresh workspace: its first sync takes the fixture as authored
+        // baseline, so the coverage rule is the only thing under test.
+        const mustSandbox = createSandbox();
+        try {
+          await mustSandbox.install(tarballs);
+          await mustSandbox.initGitRepo();
+          const initialized = await kibi(mustSandbox, ["init", "--no-hooks"]);
+          assert.strictEqual(
+            initialized.exitCode,
+            0,
+            initialized.stdout + initialized.stderr,
+          );
+          createMarkdownFile(
+            mustSandbox,
+            ".kb/requirements/REQ-MUST-UNCOVERED.md",
+            {
+              id: "REQ-MUST-UNCOVERED",
+              title: "Uncovered must requirement",
+              status: "open",
+              priority: "must",
+            },
+            [
+              "Exports must keep their column order.",
+              "",
+              "## Context",
+              "",
+              "Fixture for the packed CLI workflow suite: a must-priority requirement that no scenario specifies and no test verifies, so the coverage rule has something to reject.",
+            ].join("\n"),
+          );
+          const synced = await kibi(mustSandbox, ["sync"]);
+          assert.strictEqual(synced.exitCode, 0, synced.stdout + synced.stderr);
+
+          const { stdout, stderr, exitCode } = await kibi(
+            mustSandbox,
+            ["check", "--rules", "must-priority-coverage"],
+            { timeoutMs: 60000 },
+          );
+          const output = stdout + stderr;
+          assert.strictEqual(exitCode, 1, `check must fail: ${output}`);
+          assert.match(output, /must-priority-coverage/);
+          assert.match(output, /REQ-MUST-UNCOVERED/);
+        } finally {
+          await mustSandbox.cleanup();
+        }
+      },
+    );
+
+    it(
+      "keeps an objectively invalid relationship in the hard violations lane",
+      { timeout: 120000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        const invalidSandbox = createSandbox();
+        try {
+          await invalidSandbox.install(tarballs);
+          await invalidSandbox.initGitRepo();
+          const initialized = await kibi(invalidSandbox, [
+            "init",
+            "--no-hooks",
+          ]);
+          assert.strictEqual(
+            initialized.exitCode,
+            0,
+            initialized.stdout + initialized.stderr,
+          );
+          await mkdir(path.join(invalidSandbox.repoDir, ".kb", "scenarios"), {
+            recursive: true,
+          });
+          await writeFile(
+            path.join(
+              invalidSandbox.repoDir,
+              ".kb",
+              "scenarios",
+              "SCEN-DANGLING.md",
+            ),
+            [
+              "---",
+              "id: SCEN-DANGLING",
+              "type: scenario",
+              "title: Scenario pointing at a missing test",
+              "status: active",
+              "links:",
+              "  - type: verified_by",
+              "    target: TEST-MISSING",
+              "---",
+              "",
+              "Given a widget, when it is named, then it keeps the name.",
+              "",
+              "This fixture scenario links a test that does not exist, so the check must report a hard violation.",
+              "",
+            ].join("\n"),
+          );
+          const staged = await run("git", ["add", "-A"], {
+            cwd: invalidSandbox.repoDir,
+            env: invalidSandbox.env,
+          });
+          assert.strictEqual(staged.exitCode, 0, staged.stdout + staged.stderr);
+          const synced = await kibi(invalidSandbox, ["sync"]);
+          assert.strictEqual(synced.exitCode, 0, synced.stdout + synced.stderr);
+
+          const checked = await kibi(
+            invalidSandbox,
+            ["check", "--format", "json"],
+            {
+              timeoutMs: 60000,
+            },
+          );
+          assert.notStrictEqual(
+            checked.exitCode,
+            0,
+            "an invalid graph state must fail the check",
+          );
+          const report = JSON.parse(checked.stdout) as {
+            structuredContent: {
+              violations: Array<{ rule: string; entityId?: string }>;
+              qualityDiagnostics?: Array<{
+                entityId?: string;
+                blocking?: boolean;
+              }>;
+            };
+          };
+          assert.ok(
+            report.structuredContent.violations.some(
+              (violation) => violation.entityId === "SCEN-DANGLING",
+            ),
+            `the dangling relationship should be a hard violation: ${checked.stdout}`,
+          );
+          const quality = report.structuredContent.qualityDiagnostics ?? [];
+          assert.ok(
+            !quality.some(
+              (diagnostic) => diagnostic.entityId === "SCEN-DANGLING",
+            ),
+            "an invalid graph state must not be demoted to a quality diagnostic",
+          );
+          assert.ok(
+            quality.every((diagnostic) => diagnostic.blocking === false),
+          );
+        } finally {
+          await invalidSandbox.cleanup();
         }
       },
     );

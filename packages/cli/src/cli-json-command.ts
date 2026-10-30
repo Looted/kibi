@@ -14,6 +14,7 @@ import {
 } from "./public/diagnostic-usage.js";
 import type { OperationName } from "./public/operations/types.js";
 import { createCliRuntime } from "./runtime/cli-runtime.js";
+import { noteCliErrorCategory, noteCliResultError } from "./usage-telemetry.js";
 
 export function writeOptionalStderr(stderr: string | undefined): void {
   if (stderr !== undefined) {
@@ -52,6 +53,7 @@ export type JsonInvocation = {
 };
 
 function writeInputError(error: InputError): void {
+  noteCliErrorCategory(error.code);
   process.stderr.write(`Error [${error.code}]: ${error.detail}\n`);
   process.exitCode = error.exitCode;
 }
@@ -211,5 +213,6 @@ export async function runJsonInvocation(
     await writeAndWaitForDrain(process.stdout, result.stdout);
   }
   writeOptionalStderr(result.stderr);
+  if (result.exitCode !== 0) noteCliResultError(result.stdout);
   process.exitCode = result.exitCode;
 }

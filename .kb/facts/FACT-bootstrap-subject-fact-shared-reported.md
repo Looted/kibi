@@ -1,12 +1,13 @@
 ---
-title: Bootstrap planning must report each subject key that claims from several sources share
+title: Bootstrap planning leaves no shared subject key unreported
 status: active
 fact_kind: property_value
 subject_key: kibi.bootstrap.plan
-property_key: shared_subject_key_reported
+property_key: unreported_shared_subject_keys
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
+canonical_key: kibi.bootstrap.plan:unreported_shared_subject_keys:eq:0
 claim_key: CLAIM-ED3A9A64EB821F3F
 claim_text: Bootstrap planning must report each subject key that claims from several sources share
 text_ref: REQ-bootstrap-subject-fact-shared

@@ -377,6 +377,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-588dd8e47224
+  - type: specified_by
+    from: REQ-runtime-packed-engine-daemon
+    to: SCEN-NEG-runtime-packed-engine-daemon-MISSING-BUNDLED-DAEMON
+    created_at: 2026-10-29T21:05:26.869Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-712a926074da
   - type: implements
     from: SYM-rank-by-meaning
     to: REQ-kibi-plugin-search-hints
@@ -391,3 +398,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9e8b3081355a
+  - type: implements
+    from: SYM-repair-plan-build
+    to: REQ-kibi-case-coverage
+    created_at: 2026-10-30T14:07:15.271Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e27c90e71f6
+  - type: covered_by
+    from: SYM-repair-plan-build
+    to: TEST-kibi-case-coverage
+    created_at: 2026-10-30T14:07:15.304Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb58eb432bb1

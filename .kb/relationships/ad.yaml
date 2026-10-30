@@ -304,6 +304,27 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9b4eb372e817
+  - type: specified_by
+    from: REQ-codex-kibi-plugin-v1
+    to: SCEN-NEG-codex-kibi-plugin-v1-NON-LOCAL-SERVER
+    created_at: 2026-10-29T21:09:49.123Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f362422402d1
+  - type: assumes
+    from: SCEN-NEG-prolog-mutation-lane-STALE-PACK
+    to: FACT-NEG-prolog-mutation-lane-STALE-PACK
+    created_at: 2026-10-29T20:54:35.253Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ed1ae6c6067
+  - type: verified_by
+    from: SCEN-NEG-prolog-mutation-lane-STALE-PACK
+    to: TEST-prolog-mutation-lane
+    created_at: 2026-10-29T20:54:35.347Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1703280c6444
   - type: executable_for
     from: SYM-test-kibi-plugin-search-hints
     to: TEST-kibi-plugin-search-hints
@@ -311,3 +332,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ab3fb6df2d31
+  - type: assumes
+    from: SCEN-CASE-kibi-telemetry-acceptance-gate-v2-session-without-lookup-result
+    to: FACT-CASE-kibi-telemetry-acceptance-gate-v2-session-without-lookup-result
+    created_at: 2026-10-30T15:00:52.932Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d77ec9274530
+  - type: verified_by
+    from: SCEN-CASE-kibi-telemetry-acceptance-gate-v2-session-without-lookup-result
+    to: TEST-kibi-telemetry-lookup-before-first-edit-cli
+    created_at: 2026-10-30T15:00:53.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5425803c128
+  - type: specified_by
+    from: REQ-codex-kibi-plugin-v1
+    to: SCEN-CASE-codex-kibi-plugin-v1-DENYING-HOOK
+    created_at: 2026-10-30T15:59:36.413Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1428eca1cdcf

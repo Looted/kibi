@@ -328,3 +328,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9b5b7ade4dbd
+  - type: assumes
+    from: SCEN-NEG-claude-decision-capture-nudges-UNRECORDED-STOP
+    to: FACT-NEG-claude-decision-capture-nudges-UNRECORDED-STOP
+    created_at: 2026-10-29T21:18:09.804Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33cdad6246ea
+  - type: verified_by
+    from: SCEN-NEG-claude-decision-capture-nudges-UNRECORDED-STOP
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-10-29T21:18:09.927Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-418530e000a4
+  - type: specified_by
+    from: REQ-model-predicates-closed-vocabularies
+    to: SCEN-NEG-model-predicates-closed-vocabularies-OFF-VOCABULARY
+    created_at: 2026-10-29T21:02:08.827Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81ae5420f557
+  - type: verified_by
+    from: SCEN-kibi-dimension-gap
+    to: TEST-kibi-dimension-gap
+    created_at: 2026-10-30T12:06:37.441Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72ac629a7c7a

@@ -110,6 +110,40 @@ const REPAIR_PHASES = {
     validationRules: ["must-priority-coverage", "no-dangling-refs"],
     writePolicy: "sequential_upsert",
   },
+  dimension_grounding: {
+    order: 64,
+    objective:
+      "Ground each quantified claim (each, every, all, or a cardinality bound) on what varies: an integer count or bound, a set of members, a rule over a variable, or a state machine. If the quantifier ranges over nothing, record a dimension_waiver on the grounding fact for a person to approve, and record their approval in the same pull request.",
+    workflowSteps: [
+      "kb_model_requirement",
+      "kb_validate_upsert",
+      "kb_upsert",
+      "kb_check",
+    ],
+    validationRules: ["no-dangling-refs"],
+    writePolicy: "sequential_upsert",
+  },
+  case_scenarios: {
+    order: 66,
+    objective:
+      "Cover each uncovered rejection case: add a scenario whose assumes fact states the case's assumption (a value past the bound, a value outside the set), expects rejection or error, is linked with specified_by and is verified by a passing end-to-end test. Each repair lists caseSkeletons, upsert-ready draft scenarios and their assumed facts: fill in the placeholders, verify the scenario by a test, then set its status to active (a draft never covers a case). If a person accepts the cases as covered another way, record a case_waiver on the grounding fact for them to approve, and record their approval in the same pull request.",
+    workflowSteps: [
+      "kb_coverage",
+      "kb_validate_upsert",
+      "kb_upsert",
+      "kb_check",
+    ],
+    validationRules: ["scenario-outcome-mismatch", "no-dangling-refs"],
+    writePolicy: "sequential_upsert",
+  },
+  negative_scenarios: {
+    order: 65,
+    objective:
+      "Add a scenario that expects rejection or error and assumes a value the requirement forbids (see suggestedNegatives), link it with specified_by and verify it with a passing end-to-end test.",
+    workflowSteps: ["kb_query", "kb_validate_upsert", "kb_upsert", "kb_check"],
+    validationRules: ["scenario-outcome-mismatch", "no-dangling-refs"],
+    writePolicy: "sequential_upsert",
+  },
   scenario_tests: {
     order: 70,
     objective:
@@ -206,6 +240,9 @@ const GAP_PHASE: Readonly<Record<string, RepairPhase>> = {
   missing_scenario: "scenario_endpoints",
   infeasible_scenario: "scenario_endpoints",
   unknown_scenario_feasibility: "scenario_endpoints",
+  dimension_unrepresented: "dimension_grounding",
+  happy_path_only: "negative_scenarios",
+  uncovered_case: "case_scenarios",
   missing_scenario_test: "scenario_tests",
   proof_snapshot_unavailable: "snapshot_runtime",
   missing_passing_e2e: "proof_evidence",
@@ -235,6 +272,9 @@ const GAP_STAGE: Readonly<Record<string, string>> = {
   missing_scenario: "scenarios",
   infeasible_scenario: "scenarios",
   unknown_scenario_feasibility: "scenarios",
+  dimension_unrepresented: "dimension",
+  happy_path_only: "negative_path",
+  uncovered_case: "cases",
   missing_scenario_test: "scenario_tests",
   missing_passing_e2e: "passing_e2e",
   missing_proof_receipt: "passing_e2e",
@@ -255,6 +295,9 @@ const PROOF_STAGE_KEY: Readonly<Record<string, string>> = {
   contradictions: "contradictions",
   scenarios: "scenarios",
   scenario_tests: "scenarioTests",
+  negative_path: "negativePath",
+  dimension: "dimension",
+  cases: "cases",
   passing_e2e: "passingE2e",
   executable_symbols: "executableSymbols",
   production_symbols: "productionSymbols",
@@ -268,6 +311,34 @@ export type RepairPlanRepair = {
   readonly proofStage: string;
   readonly action: string;
   readonly evidence: Readonly<Record<string, unknown>>;
+  /** Draft scenarios for an uncovered_case repair, one per uncovered case. */
+  readonly caseSkeletons?: readonly CaseSkeleton[];
+};
+
+type SkeletonEntity = {
+  readonly type: "fact" | "scenario";
+  readonly id: string;
+  readonly properties: Readonly<Record<string, unknown>>;
+  readonly relationships: readonly {
+    readonly type: string;
+    readonly from: string;
+    readonly to: string;
+  }[];
+};
+
+// implements REQ-kibi-case-coverage
+/**
+ * An upsert-ready draft scenario for one uncovered case: the fact it assumes
+ * (the case's value class) and the scenario that expects the predicted
+ * outcome. Drafts never count as coverage, so writing one changes no gap
+ * until it is verified and made active. placeholder is true when the value
+ * must be chosen by the author (a value outside a set).
+ */
+export type CaseSkeleton = {
+  readonly caseId: string;
+  readonly constraint: string;
+  readonly placeholder: boolean;
+  readonly entities: readonly [SkeletonEntity, SkeletonEntity];
 };
 
 export type RepairPlanBatch = {
@@ -379,6 +450,82 @@ function stageEvidence(
   return isRecord(stable) ? stable : {};
 }
 
+const VALUE_FIELD: Readonly<Record<string, string>> = {
+  int: "value_int",
+  number: "value_number",
+  set: "value_set",
+  string: "value_string",
+};
+
+function caseSkeleton(
+  requirementId: string,
+  row: Readonly<Record<string, unknown>>,
+): CaseSkeleton | undefined {
+  const caseId = typeof row.caseId === "string" ? row.caseId : undefined;
+  const assumption = isRecord(row.assumption) ? row.assumption : undefined;
+  const valueType =
+    typeof assumption?.value_type === "string" ? assumption.value_type : "";
+  const valueField = VALUE_FIELD[valueType];
+  if (caseId === undefined || assumption === undefined || !valueField)
+    return undefined;
+  const constraint = typeof row.constraint === "string" ? row.constraint : "";
+  const property =
+    typeof assumption.property_key === "string" ? assumption.property_key : "";
+  const expects = row.predicted === "rejection" ? "rejection" : "success";
+  const placeholder = JSON.stringify(assumption.value).includes("<");
+  const suffix = caseId.replace(/^CASE-/, "");
+  const factId = `FACT-CASE-${suffix}`;
+  const scenarioId = `SCEN-CASE-${suffix}`;
+  return {
+    caseId,
+    constraint,
+    placeholder,
+    entities: [
+      {
+        type: "fact",
+        id: factId,
+        properties: {
+          title: `${property} ${constraint}`,
+          status: "active",
+          fact_kind: "property_value",
+          subject_key: assumption.subject_key,
+          property_key: property,
+          operator: assumption.operator,
+          value_type: valueType,
+          [valueField]: assumption.value,
+        },
+        relationships: [],
+      },
+      {
+        type: "scenario",
+        id: scenarioId,
+        properties: {
+          title: `${property} ${constraint} is ${expects === "rejection" ? "refused" : "accepted"}`,
+          status: "draft",
+          expects,
+        },
+        relationships: [
+          { type: "assumes", from: scenarioId, to: factId },
+          { type: "specified_by", from: requirementId, to: scenarioId },
+        ],
+      },
+    ],
+  };
+}
+
+function caseSkeletons(
+  requirementId: string,
+  evidence: Readonly<Record<string, unknown>>,
+): CaseSkeleton[] {
+  const rows = Array.isArray(evidence.uncoveredCases)
+    ? evidence.uncoveredCases.filter(isRecord)
+    : [];
+  return rows.flatMap((row) => {
+    const skeleton = caseSkeleton(requirementId, row);
+    return skeleton === undefined ? [] : [skeleton];
+  });
+}
+
 function batchId(requirementId: string, phase: RepairPhase): string {
   const order = String(REPAIR_PHASES[phase].order).padStart(3, "0");
   const safeRequirementId = requirementId.replace(/[^A-Za-z0-9_-]/g, "-");
@@ -408,6 +555,7 @@ function buildRequirementBatches(
       typeof sourceRepair?.stage === "string"
         ? sourceRepair.stage
         : (GAP_STAGE[gap] ?? "manual_review");
+    const evidence = stageEvidence(row, proofStage);
     const repair: RepairPlanRepair = {
       requirementId,
       gap,
@@ -417,7 +565,10 @@ function buildRequirementBatches(
       ),
       proofStage,
       action: actionForRepair(sourceRepair, phase),
-      evidence: stageEvidence(row, proofStage),
+      evidence,
+      ...(gap === "uncovered_case"
+        ? { caseSkeletons: caseSkeletons(requirementId, evidence) }
+        : {}),
     };
     const phaseRepairs = byPhase.get(phase) ?? [];
     phaseRepairs.push(repair);

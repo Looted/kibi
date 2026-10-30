@@ -307,3 +307,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c220ae1e1006
+  - type: specified_by
+    from: REQ-capability-plugin-protocol-v1
+    to: SCEN-NEG-capability-plugin-protocol-v1-VERSION-DRIFT
+    created_at: 2026-10-29T21:22:14.543Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dec381a9bf96
+  - type: assumes
+    from: SCEN-NEG-kibi-domain-redundancy-identical-ground-term
+    to: FACT-NEG-kibi-domain-redundancy-identical-ground-term
+    created_at: 2026-10-29T21:11:44.163Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bade81e00eeb
+  - type: verified_by
+    from: SCEN-NEG-kibi-domain-redundancy-identical-ground-term
+    to: TEST-kibi-vocabulary-convergence-e2e
+    created_at: 2026-10-29T21:11:44.260Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3db60447e38f
+  - type: assumes
+    from: SCEN-NEG-kibi-github-report-integration-badge-only-without-github
+    to: FACT-NEG-kibi-github-report-integration-badge-only-without-github
+    created_at: 2026-10-29T21:13:19.958Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7ff656ab397
+  - type: verified_by
+    from: SCEN-NEG-kibi-github-report-integration-badge-only-without-github
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-10-29T21:13:20.051Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7de1c309eef4
+  - type: assumes
+    from: SCEN-NEG-kibi-dimension-gap-VERDICT-ONLY
+    to: FACT-NEG-kibi-dimension-gap-VERDICT-ONLY
+    created_at: 2026-10-30T12:06:38.764Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-828371a86be4
+  - type: verified_by
+    from: SCEN-NEG-kibi-dimension-gap-VERDICT-ONLY
+    to: TEST-kibi-dimension-gap
+    created_at: 2026-10-30T12:06:38.818Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e23583389e72

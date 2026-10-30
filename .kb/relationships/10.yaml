@@ -433,3 +433,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8128acefed40
+  - type: assumes
+    from: SCEN-NEG-kibi-kb-certificates-tampered-certificate
+    to: FACT-NEG-kibi-kb-certificates-tampered-certificate
+    created_at: 2026-10-29T21:13:48.904Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eea64136cf9e
+  - type: verified_by
+    from: SCEN-NEG-kibi-kb-certificates-tampered-certificate
+    to: TEST-kibi-kb-certificates
+    created_at: 2026-10-29T21:13:49.016Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d73aed6a9407
+  - type: specified_by
+    from: REQ-vscode-kb-to-source
+    to: SCEN-NEG-vscode-kb-to-source-ENTITY-WITHOUT-SOURCE
+    created_at: 2026-10-29T21:13:08.845Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-447756b3ae34
+  - type: assumes
+    from: SCEN-NEG-kibi-kb-certificates-tampered-certificate
+    to: FACT-CASE-kibi-kb-certificates-UNCHECKED-CERTIFICATE
+    created_at: 2026-10-30T15:12:17.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-230183b69a3f

@@ -1,9 +1,10 @@
 // implements REQ-claude-code-kibi-plugin-v1
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
+import { syncAgentSkillsUnlocked } from "../../../scripts/sync-agent-skills";
 import {
   cleanupTempDirs,
   createKibiWorkspace,
@@ -180,6 +181,40 @@ describe("kibi-claude distribution artifacts", () => {
       expect(skill.split("\n")[1]).toBe(`name: ${id}`);
       expect(skill).toMatch(/\ndescription: \S/);
     }
+  });
+  test("a kibi-claude skills directory missing a bundled skill fails the skills check, and the prepack build restores it", () => {
+    const root = tempDir("kibi-claude-skills-");
+    fs.cpSync(
+      path.join(repoRoot, "packages/runtime/src/skills"),
+      path.join(root, "packages/runtime/src/skills"),
+      { recursive: true },
+    );
+    const mirror = path.join(root, "packages/claude/skills");
+    fs.cpSync(path.join(packageRoot, "skills"), mirror, { recursive: true });
+    const options = { mode: "check", targets: ["claude"] } as const;
+    expect(syncAgentSkillsUnlocked(root, options).driftedTargets).toEqual([]);
+
+    fs.rmSync(path.join(mirror, "kibi-usage"), { recursive: true });
+    const stderr = spyOn(process.stderr, "write").mockImplementation(
+      () => true,
+    );
+    try {
+      expect(syncAgentSkillsUnlocked(root, options).driftedTargets).toEqual([
+        "claude",
+      ]);
+      expect(String(stderr.mock.calls.flat().join(""))).toContain(
+        "kibi-usage/SKILL.md",
+      );
+    } finally {
+      stderr.mockRestore();
+    }
+
+    // The package's build, which prepack runs, writes the mirror again.
+    syncAgentSkillsUnlocked(root, { mode: "write", targets: ["claude"] });
+    expect(fs.existsSync(path.join(mirror, "kibi-usage", "SKILL.md"))).toBe(
+      true,
+    );
+    expect(syncAgentSkillsUnlocked(root, options).driftedTargets).toEqual([]);
   });
 });
 

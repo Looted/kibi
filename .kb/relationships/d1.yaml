@@ -405,6 +405,48 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0f950babfa05
+  - type: executable_for
+    from: SYM-git-hook-manager-integration-verifier
+    to: TEST-git-hook-manager-integration
+    created_at: 2026-10-29T18:39:41.574Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-310f8fdb4277
+  - type: assumes
+    from: SCEN-NEG-cli-doctor-FAILED-CHECK-NO-REMEDY
+    to: FACT-NEG-cli-doctor-FAILED-CHECK-NO-REMEDY
+    created_at: 2026-10-29T20:57:24.595Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4b972682c49
+  - type: verified_by
+    from: SCEN-NEG-cli-doctor-FAILED-CHECK-NO-REMEDY
+    to: TEST-001
+    created_at: 2026-10-29T20:57:24.725Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5c7e7675416
+  - type: specified_by
+    from: REQ-cli-migration-first-commit
+    to: SCEN-NEG-cli-migration-first-commit-HIDDEN-LINK-EDIT
+    created_at: 2026-10-29T21:01:28.951Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c7a09c8df88
+  - type: specified_by
+    from: REQ-prolog-bundled-release
+    to: SCEN-NEG-prolog-bundled-release-TAMPERED-ARCHIVE
+    created_at: 2026-10-29T21:06:30.157Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54cede046c10
+  - type: specified_by
+    from: REQ-search-answer-hygiene
+    to: SCEN-NEG-search-answer-hygiene-UNOWNED-TOP-MATCH
+    created_at: 2026-10-29T20:58:36.611Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6699041852e5
   - type: specified_by
     from: REQ-kibi-search-hints-host
     to: SCEN-kibi-search-hints-host
@@ -468,10 +510,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-388340bd49bd
-  - type: executable_for
-    from: SYM-git-hook-manager-integration-verifier
-    to: TEST-git-hook-manager-integration
-    created_at: 2026-10-29T18:39:41.574Z
+  - type: specified_by
+    from: REQ-kibi-search-hints-host
+    to: SCEN-NEG-kibi-search-hints-host-FAILING-PROVIDER
+    created_at: 2026-10-30T08:43:04.535Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-310f8fdb4277
+    id: rel-4f076fd03906
+  - type: assumes
+    from: SCEN-CASE-kb-entity-body-context-MIGRATION-BODY-BYTES
+    to: FACT-CASE-kb-entity-body-context-MIGRATION-BODY-BYTES
+    created_at: 2026-10-30T15:11:49.367Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c366f407d93c
+  - type: verified_by
+    from: SCEN-CASE-kb-entity-body-context-MIGRATION-BODY-BYTES
+    to: TEST-kb-entity-body-context
+    created_at: 2026-10-30T15:11:49.445Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab3f9baf91f4
+  - type: specified_by
+    from: REQ-kibi-search-hints-host
+    to: SCEN-CASE-kibi-search-hints-host-ELEVEN-SHOWN
+    created_at: 2026-10-30T14:49:16.868Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07931275550e
+  - type: specified_by
+    from: REQ-kibi-search-hints-host
+    to: SCEN-CASE-kibi-search-hints-host-FOURTH-GOVERNING-OMITTED
+    created_at: 2026-10-30T14:49:27.633Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-119af59fa3e8
+  - type: specified_by
+    from: REQ-kibi-search-hints-host
+    to: SCEN-CASE-kibi-search-hints-host-TWO-GOVERNING-OMITTED
+    created_at: 2026-10-30T14:49:36.759Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9e05b6f22b0
+  - type: specified_by
+    from: REQ-kibi-search-hints-host
+    to: SCEN-CASE-kibi-search-hints-host-CUTOFF-ABOVE
+    created_at: 2026-10-30T14:49:43.770Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2867721147fc
+  - type: specified_by
+    from: REQ-kibi-search-hints-host
+    to: SCEN-CASE-kibi-search-hints-host-CUTOFF-BELOW
+    created_at: 2026-10-30T14:49:52.447Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66c626ab2c1b
+  - type: specified_by
+    from: REQ-prolog-bundled-release
+    to: SCEN-CASE-prolog-bundled-release-symlinked-payload
+    created_at: 2026-10-30T15:05:20.743Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a48389ef5fc

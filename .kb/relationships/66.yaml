@@ -230,3 +230,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-02c62c8eee7e
+  - type: specified_by
+    from: REQ-kb-decision-firmness-from-origin
+    to: SCEN-NEG-kb-decision-firmness-from-origin-imported-rule-edit
+    created_at: 2026-10-29T21:00:35.422Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b9b60c86081
+  - type: assumes
+    from: SCEN-CASE-capability-search-hints-v1-score-outside-unit
+    to: FACT-CASE-capability-search-hints-v1-score-outside-unit
+    created_at: 2026-10-30T14:54:24.632Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e509165da506
+  - type: verified_by
+    from: SCEN-CASE-capability-search-hints-v1-score-outside-unit
+    to: TEST-capability-search-hints-v1
+    created_at: 2026-10-30T14:54:24.701Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3abbc0506f44

@@ -458,3 +458,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f7752f84d0e4
+  - type: assumes
+    from: SCEN-NEG-mcp-coded-error-envelope-CODED-TOOL-FAILURE
+    to: FACT-NEG-mcp-coded-error-envelope-CODED-TOOL-FAILURE
+    created_at: 2026-10-29T21:21:25.815Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f152567286f
+  - type: verified_by
+    from: SCEN-NEG-mcp-coded-error-envelope-CODED-TOOL-FAILURE
+    to: TEST-kibi-mcp-tool-consolidation
+    created_at: 2026-10-29T21:21:25.900Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a68a18d4671
+  - type: specified_by
+    from: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+    to: SCEN-NEG-kibi-consumer-local-plugin-launcher-ontology-v1-MISSING-LOCAL-MCP
+    created_at: 2026-10-29T22:00:37.609Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d71ac2c4f7b3

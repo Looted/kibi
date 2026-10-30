@@ -11,10 +11,10 @@ tags:
   - fact:property_value
 fact_kind: property_value
 subject_key: kibi.bootstrap_knowledge_sources
-property_key: conflicts_as_review_facts
+property_key: declared_conflicts_not_planned_as_review_facts
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 claim_key: CLAIM-DB9DBDAC9B9E3D41
 claim_text: The bootstrap planner must plan each declared conflict between declared claims as a cited observation fact tagged review:conflict
 origin:

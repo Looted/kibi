@@ -3,10 +3,14 @@ title: 'Evidence floors: fails requirements below their floor'
 status: active
 fact_kind: property_value
 subject_key: kibi.evidence_floor
-property_key: fails_requirements_below_floor
+property_key: evidence_levels_failed_below_floor
 operator: eq
-value_type: bool
-value_bool: true
+value_type: set
+value_set:
+  - proved
+  - tested
+  - asserted
+  - unverified
 claim_key: CLAIM-5E55F75819F9B574
 claim_text: Kibi check must fail every current requirement whose evidence level is below its evidence floor
 text_ref: REQ-kibi-evidence-floors

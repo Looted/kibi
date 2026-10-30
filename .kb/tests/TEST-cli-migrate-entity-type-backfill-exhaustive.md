@@ -26,17 +26,17 @@ id: TEST-cli-migrate-entity-type-backfill-exhaustive
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-928f28a42b270bd1593bc306
+    receipt_id: PR-04e04974b18107d82d5b22b6
     test_id: TEST-cli-migrate-entity-type-backfill-exhaustive
     scope: unit
     outcome: passed
-    code_snapshot: 88f72ac7863bc053137ae0fbd6e7ea179d4fbf9dd5cb363152f2b4fc11739754
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-25T18:53:53.939Z'
-    finished_at: '2026-10-25T18:53:54.287Z'
-    artifact_digest: 84d8fab4dfd8526216d207b913e1a1cd0a60d69a0630ecfbdcdc914af94d4021
+    code_snapshot: f28722f7660a882a57ee32674c16399e57f709d942764918804ea85d33167119
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-10-30T12:52:02.914Z'
+    finished_at: '2026-10-30T12:52:03.609Z'
+    artifact_digest: 1560077bf30ac918ab409b2f9bb84252cbabf293dfd464fa6778e4d29d03151d
     contract_hash: a49abf31711051d577254ec03a86ae30e36a54fc804d104997fd1aa3d1702c50
-    binding_hash: 98e0544185d1c986a585ca5f24cfa28bd2946b20cc1b10e742d53bfdfb0ff67b
+    binding_hash: ffe508cbd1daa42193e36d917dda9e3c5dd21a6bf1842a748dfcb18be3eef6fc
     fingerprint: 57476c6d8487d92e9016eb4b8d825bba1cd4efb3bf240f9211893a3755019708
     fingerprint_components:
       contract: a49abf31711051d577254ec03a86ae30e36a54fc804d104997fd1aa3d1702c50
@@ -94,7 +94,17 @@ proof_receipts:
       - claim_key: CLAIM-7D2B678A106147C3
         requirement_id: REQ-cli-migrate-entity-type-backfill
         fact_id: FACT-cli-migrate-entity-type-backfill-adds-type
-        binding: attested
+        binding: derived
         scope: code
+        obligation:
+          kind: set_equals
+          members:
+            - adr
+            - events
+            - facts
+            - flags
+            - requirements
+            - scenarios
+            - tests
 ---
 Checks every member of ENTITY_LANES at every KB schema version from 1 to 11 with plain, nested and CRLF documents: the type backfill plans and writes exactly the folder-implied type line, changes no other line and plans nothing on a second run; the run leaves an exhaustive certificate over ENTITY_LANES.

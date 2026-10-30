@@ -251,6 +251,48 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d9715651f0ed
+  - type: requires_property
+    from: REQ-capability-check-policy-version
+    to: FACT-check-policy-contract-version
+    created_at: 2026-10-29T16:59:00.027Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c45974a71ed
+  - type: specified_by
+    from: REQ-capability-check-policy-version
+    to: SCEN-capability-check-policy
+    created_at: 2026-10-29T16:59:00.091Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2dcbe612838
+  - type: constrains
+    from: REQ-capability-check-policy-version
+    to: FACT-kibi-check-policy-version-component
+    created_at: 2026-10-29T16:59:03.418Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62fb4af4ab36
+  - type: specified_by
+    from: REQ-cli-staged-entity-context
+    to: SCEN-NEG-cli-staged-entity-context-STAGED-NO-CONTEXT
+    created_at: 2026-10-29T21:03:17.744Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ada4c38340a8
+  - type: implements
+    from: SYM-core-negative-path-stage
+    to: REQ-kibi-happy-path-gap
+    created_at: 2026-10-29T21:56:47.022Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4f17761632d
+  - type: covered_by
+    from: SYM-core-negative-path-stage
+    to: TEST-kibi-happy-path-gap
+    created_at: 2026-10-29T21:56:47.052Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e09861af08e8
   - type: specified_by
     from: REQ-kibi-plugin-search-hints
     to: SCEN-kibi-plugin-search-hints
@@ -300,24 +342,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5b670248d645
-  - type: requires_property
-    from: REQ-capability-check-policy-version
-    to: FACT-check-policy-contract-version
-    created_at: 2026-10-29T16:59:00.027Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5c45974a71ed
   - type: specified_by
-    from: REQ-capability-check-policy-version
-    to: SCEN-capability-check-policy
-    created_at: 2026-10-29T16:59:00.091Z
+    from: REQ-kibi-plugin-search-hints
+    to: SCEN-NEG-kibi-plugin-search-hints-STALE-VECTOR
+    created_at: 2026-10-30T08:42:59.459Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-e2dcbe612838
-  - type: constrains
-    from: REQ-capability-check-policy-version
-    to: FACT-kibi-check-policy-version-component
-    created_at: 2026-10-29T16:59:03.418Z
+    id: rel-48c415289eff
+  - type: specified_by
+    from: REQ-kibi-plugin-search-hints
+    to: SCEN-CASE-kibi-plugin-search-hints-OFFER-ABOVE-50
+    created_at: 2026-10-30T14:58:42.950Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-62fb4af4ab36
+    id: rel-12eb17049085
+  - type: specified_by
+    from: REQ-kibi-plugin-search-hints
+    to: SCEN-CASE-kibi-plugin-search-hints-OFFER-BELOW-50
+    created_at: 2026-10-30T14:58:45.588Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-abe2532e93a8

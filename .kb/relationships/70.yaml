@@ -174,7 +174,7 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a45e9195e0ad
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-core-engine-read-limits
     to: FACT-PRED-engine-read-limits-stop
     created_at: 2026-10-04T02:19:03.341Z
@@ -286,3 +286,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bbc9b9f3a852
+  - type: specified_by
+    from: REQ-core-engine-read-limits
+    to: SCEN-NEG-core-engine-read-limits-PARTIAL-ANSWER
+    created_at: 2026-10-29T21:09:20.951Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a378e88c1882
+  - type: assumes
+    from: SCEN-NEG-kibi-subject-vocabulary-REQ-DERIVED-SUBJECT
+    to: FACT-NEG-kibi-subject-vocabulary-REQ-DERIVED-SUBJECT
+    created_at: 2026-10-29T21:15:31.139Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d953cc6cb5ed
+  - type: verified_by
+    from: SCEN-NEG-kibi-subject-vocabulary-REQ-DERIVED-SUBJECT
+    to: TEST-kibi-vocabulary-convergence-e2e
+    created_at: 2026-10-29T21:15:31.216Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0516043d9246
+  - type: constrains
+    from: REQ-core-engine-read-limits
+    to: FACT-kibi-engine-read-limits-component
+    created_at: 2026-10-30T12:24:52.307Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04f273f91fa0
+  - type: assumes
+    from: SCEN-CASE-kibi-logical-requirement-coverage-unreported-manifest-debt
+    to: FACT-CASE-kibi-logical-requirement-coverage-unreported-manifest-debt
+    created_at: 2026-10-30T15:01:16.269Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-118b5b551549
+  - type: verified_by
+    from: SCEN-CASE-kibi-logical-requirement-coverage-unreported-manifest-debt
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-10-30T15:01:16.315Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8469bf7073b

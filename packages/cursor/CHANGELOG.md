@@ -1,5 +1,21 @@
 # kibi-cursor
 
+## 2.10.1
+
+### Patch Changes
+
+- ce41f02: Agents now keep a signoff in the pull request it approves. The guidance used to time the signoff as an end-of-work step and said only that an agent must never set `approved_by` itself, so agents often opened the pull request first and then carried the person's answer in a separate follow-up pull request.
+  - kibi-usage 2.37.0, kibi-decisions 1.5.0 and kibi-commit-review 1.4.0 (and the signoff-views resource) say to ask for the signoff before opening or merging the pull request, and to record the person's answer (their name in `approved_by` or a `*_waiver_approved_by` field, their words in `origin.ref` or `approval_ref`) on the same branch and pull request. Writing down an answer the person gave is not self-approval. A pull request that only carries a signoff, firmness or waiver approval is ruled out.
+  - The stop-hook signoff reminder (Claude Code, Codex, Cursor, ZCode) adds the same rule. So do the `agent-requirement-unapproved` check action, the `dimension_unrepresented` repair hint and the waiver lines of `kibi proof explain`.
+
+- 43d4366: Usage telemetry data is cleaner and more complete. Telemetry is now off when the home directory lies inside the temp directory, as eval, packaging and end-to-end harnesses set it, so each harness run no longer counts as a new install; Kibi's own eval and packed-test sandboxes also set `KIBI_TELEMETRY=0`. Events now name the host agent from `CLAUDECODE`, `CURSOR_AGENT`, `CODEX_SANDBOX`, `GEMINI_CLI`, `OPENCODE`, `AI_AGENT` or the MCP client name, carry a hashed host session id in every host, and say whether they come from a hosted cloud workspace. Failed CLI commands and MCP tool results now carry a fixed error category: the result's error code (for example `upsert_dry_run_invalid`), the failing `kibi doctor` checks, or the `kibi migrate` approval problem. `kibi migrate --apply-safe` now prints the current plan hash when the approved hash is missing or out of date.
+
+  Hooks in Claude Code, Codex, Cursor, ZCode and OpenCode now all send the anonymous `kibi_hook` event (before, only Claude Code did, and only in diagnostic mode for the others), and each hook remembers, as hashes in `telemetry-sessions.json`, which host session last ran in the workspace. CLI and MCP events take the session id from `KIBI_SESSION_ID`, `CLAUDE_CODE_SESSION_ID` or `CODEX_THREAD_ID` when the host exposes one, and otherwise from that workspace marker (at most 30 minutes old), so events from Cursor and OpenCode sessions, which expose no session variable, can be grouped too. Every host's hook also sends the queue when it is due, and right away at the end of a turn.
+
+- Updated dependencies [ce41f02]
+- Updated dependencies [43d4366]
+  - kibi-agent-core@0.11.0
+
 ## 2.10.0
 
 ### Minor Changes

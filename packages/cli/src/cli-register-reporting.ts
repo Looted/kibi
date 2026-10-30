@@ -152,6 +152,11 @@ export function registerReportingCommands(program: Command): void {
       "Minimum predicate schema rank score",
       "0.35",
     )
+    .option(
+      "--cases",
+      "Print the edge cases derived from each requirement's typed claims, with their predicted outcome and covering scenarios",
+      false,
+    )
     .option("--format <format>", "Output format: json|table", "table")
     .action(async (options, command: Command) => {
       if (options.input !== undefined) {

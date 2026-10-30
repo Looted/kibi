@@ -1,5 +1,56 @@
 # kibi-mcp
 
+## 3.23.0
+
+### Minor Changes
+
+- 73a4f67: A requirement is no longer `tested` while a value class its typed claims predict is refused has no scenario. Kibi now derives edge cases from each `property_value` fact a requirement grounds a claim on: the bound and the class past it, zero, one and many for an integer count, each set member and the value outside the set, each with a predicted outcome and a stable `CASE-` id. A scenario covers a case when it is not a draft, expects the predicted outcome and assumes a value in the case's class. An uncovered rejection case gives the blocking `uncovered_case` proof gap, so a firm requirement falls below its `tested` evidence floor and `kibi check` fails `evidence-floor`; success cases are reported without blocking. The new `cases` proof stage lists every case with its coverage, `kibi coverage --cases` prints them, `kibi proof explain` names the assumption each uncovered case needs, and the repair plan gains a `case_scenarios` phase whose repairs carry upsert-ready draft scenarios (`caseSkeletons`). `kb_semantic_advisor` previews the cases of each strict-property suggestion in `casesPreview`. When the cases are covered another way, the grounding fact can record a `case_waiver` reason; it counts only once `case_waiver_approved_by` names the person who accepted it.
+
+  ## Migration
+
+  No files change shape. Requirements that were `tested` with a numeric bound or a closed set and no scenario past the bound or outside the set now report `uncovered_case`. Run `kibi coverage --cases` or `kibi proof explain <REQ>`, then for each uncovered case add a scenario that `assumes` a fact in the case's class (for `files_per_batch lte 5`, a fact `files_per_batch eq 6`), `expects: rejection`, is linked with `specified_by` and is verified by a passing end-to-end test. The repair plan's `caseSkeletons` give the fact and draft scenario to start from; a draft never counts until it is made active. If the cases are covered another way, set `case_waiver` on the grounding fact and have a person approve it with `case_waiver_approved_by`.
+
+- 9f18c16: A requirement is no longer `tested` while a quantified claim is grounded only on its verdict. A claim that quantifies over a collection (`each`, `every`, `all`) or bounds a cardinality (`exactly`, `at least`, `at most`, `no more than`) must be grounded on what varies: an integer count or bound, a set of members, a rule over a variable, or a state machine. When every fact grounding it is a boolean `property_value` or a ground `predicate`, the requirement gets the blocking `dimension_unrepresented` proof gap, so a firm requirement falls below its `tested` evidence floor and `kibi check` fails `evidence-floor`. The new `dimension` proof stage lists each such claim with its quantifier and the typed groundings that would represent it, `kibi proof explain` prints them, and the repair plan gains a `dimension_grounding` phase. `kb_semantic_advisor` marks the same clauses with a `dimension` field on each proposition. When a quantifier word ranges over nothing ("start without all network access"), the grounding fact can record a `dimension_waiver` reason; it counts only once `dimension_waiver_approved_by` names the person who accepted it.
+
+  ## Migration
+
+  No files change shape. Requirements that were `tested` with a boolean or ground-predicate fact behind an every/each/all or bounded claim now report `dimension_unrepresented`. Follow `kibi proof explain <REQ>` or the repair plan: replace the boolean with a typed fact from the claim's `rewrites` (for example `uninstrumented_files eq 0` or a rule over the files instead of `instruments_all_loaded_files eq true`), retype any failure-side assumption that opposed it so the requirement keeps its failure side, and re-run `kibi check`. If the quantifier word ranges over nothing, set `dimension_waiver` on the grounding fact and have a person approve it with `dimension_waiver_approved_by`.
+
+- 12b468f: A requirement is no longer `tested` when its scenarios only cover the happy path. A current requirement that grounds a claim (a `requires_property`, `requires_predicate` or `requires_rule` fact) now needs at least one linked scenario that expects `rejection` or `error` and assumes a value or situation the requirement forbids. Without one it gets the blocking `happy_path_only` proof gap, so a firm requirement falls below its `tested` evidence floor and `kibi check` fails `evidence-floor`. Claims that a fresh certificate proves at code scope are exempt, because the certificate already decides both sides. A requirement whose claims state only a capability or an output shape, with no input or attempt to refuse, can record a `failure_side_waiver` reason. The waiver counts only once `failure_side_waiver_approved_by` names the person who accepted it.
+  - kibi-core adds the `negativePath` proof stage (`negativeScenarios`, `claims`, `certifiedClaims`, `suggestedNegatives` with an opposing fact per open claim, and `waiver`) and the canonical `scenario-outcome-mismatch` check rule, which reports a scenario that expects rejection or error while current requirements permit everything it assumes.
+  - kibi-cli and kibi-mcp add the `negative_scenarios` repair-plan phase, and `kibi proof explain` prints the requirement's failure side.
+
+  **Migration.** No files change shape, but requirements that were `tested` through success scenarios alone now report `happy_path_only`. For each one, run `kibi coverage --by req` (or `kb_coverage`) and follow the repair plan: create the fact from `suggestedNegatives` (or one that matches your test), a scenario with `expects: rejection` (or `error`) that `assumes` it, link it from the requirement with `specified_by`, and verify it with an end-to-end test that exercises the refusal. Then re-run `kibi prove` for that test. If a requirement truly has nothing to refuse, set `failure_side_waiver` with the reason and have a person approve it with `failure_side_waiver_approved_by`.
+
+- cd5b519: Kibi now understands SWI-Prolog source. With `kibi-plugin-treesitter` installed, each predicate is one symbol named `name/arity` (`name//arity` for DCG rules), spanning its PlDoc block through its last clause, so a symbol in `.kb/symbols.yaml` can point at a single predicate and staged impact names the predicate whose clauses changed instead of the whole file. Clauses for another module (`lists:append(...)`) are qualified with that module. plunit tests are symbols too: a `begin_tests(Unit)` block is a `Unit` symbol and each `test(Name)` inside it is `Unit:Name`. The grammar is `tree-sitter-swi-prolog` 0.1.0 (MIT), pinned and shipped as WASM like the other grammars.
+
+  `.plt` files are classified as Prolog test source. A `.pl` file without a language hint or shebang is no longer always left ambiguous between Perl and Prolog: Kibi reads its first 64 KiB and picks Prolog when the leading lines look like Prolog (`:-` directives, clauses, DCG rules) and not Perl, or Perl when they look like Perl (`use strict`, `package`, `sub`, `my $x`) and not Prolog. A file that matches both or neither stays ambiguous. Perl remains file-level.
+
+  Bootstrap discovery (`kibi plan-bootstrap`, `kb_plan_bootstrap`) now scans `.pl` and `.plt` files. A `:- module(Name, Exports)` directive becomes source-module evidence that lists the module's exported predicates, and `.plt` files count as plunit test topology.
+
+  `kibi check` no longer fails with "get_dict/3: Type error" when a requirement's `origin.ref` quotes a URL. Origin values containing `/` were cut at their last slash, so such a requirement also lost its `approved_by` and `kind`, which changed its evidence level.
+
+### Patch Changes
+
+- 8d4d1d4: The `kb_search` answer layer keeps more governing requirements now that requirements carry failure-side scenarios. A matched fact that a requirement's scenario assumes, such as the opposing value a rejection scenario tests, is lifted to that requirement instead of being listed as ungoverned. When an answer must shrink to fit 16 KB, each requirement keeps only its first scenario and test before a lower-ranked requirement is dropped.
+- ce41f02: Agents now keep a signoff in the pull request it approves. The guidance used to time the signoff as an end-of-work step and said only that an agent must never set `approved_by` itself, so agents often opened the pull request first and then carried the person's answer in a separate follow-up pull request.
+  - kibi-usage 2.37.0, kibi-decisions 1.5.0 and kibi-commit-review 1.4.0 (and the signoff-views resource) say to ask for the signoff before opening or merging the pull request, and to record the person's answer (their name in `approved_by` or a `*_waiver_approved_by` field, their words in `origin.ref` or `approval_ref`) on the same branch and pull request. Writing down an answer the person gave is not self-approval. A pull request that only carries a signoff, firmness or waiver approval is ruled out.
+  - The stop-hook signoff reminder (Claude Code, Codex, Cursor, ZCode) adds the same rule. So do the `agent-requirement-unapproved` check action, the `dimension_unrepresented` repair hint and the waiver lines of `kibi proof explain`.
+
+- 43d4366: Usage telemetry data is cleaner and more complete. Telemetry is now off when the home directory lies inside the temp directory, as eval, packaging and end-to-end harnesses set it, so each harness run no longer counts as a new install; Kibi's own eval and packed-test sandboxes also set `KIBI_TELEMETRY=0`. Events now name the host agent from `CLAUDECODE`, `CURSOR_AGENT`, `CODEX_SANDBOX`, `GEMINI_CLI`, `OPENCODE`, `AI_AGENT` or the MCP client name, carry a hashed host session id in every host, and say whether they come from a hosted cloud workspace. Failed CLI commands and MCP tool results now carry a fixed error category: the result's error code (for example `upsert_dry_run_invalid`), the failing `kibi doctor` checks, or the `kibi migrate` approval problem. `kibi migrate --apply-safe` now prints the current plan hash when the approved hash is missing or out of date.
+
+  Hooks in Claude Code, Codex, Cursor, ZCode and OpenCode now all send the anonymous `kibi_hook` event (before, only Claude Code did, and only in diagnostic mode for the others), and each hook remembers, as hashes in `telemetry-sessions.json`, which host session last ran in the workspace. CLI and MCP events take the session id from `KIBI_SESSION_ID`, `CLAUDE_CODE_SESSION_ID` or `CODEX_THREAD_ID` when the host exposes one, and otherwise from that workspace marker (at most 30 minutes old), so events from Cursor and OpenCode sessions, which expose no session variable, can be grouped too. Every host's hook also sends the queue when it is due, and right away at the end of a turn.
+
+- Updated dependencies [73a4f67]
+- Updated dependencies [9f18c16]
+- Updated dependencies [12b468f]
+- Updated dependencies [ce41f02]
+- Updated dependencies [cd5b519]
+- Updated dependencies [43d4366]
+  - kibi-core@0.28.0
+  - kibi-runtime@2.27.1
+  - kibi-agent-core@0.11.0
+
 ## 3.22.0
 
 ### Minor Changes

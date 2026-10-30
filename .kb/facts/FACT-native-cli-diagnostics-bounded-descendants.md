@@ -1,5 +1,5 @@
 ---
-title: Bounded Descendant Sampling = true
+title: Descendant sampling takes at most 256 processes and 256 tasks per process
 status: active
 text_ref: scripts/swipl-spike.py
 tags:
@@ -11,11 +11,11 @@ tags:
   - fact:property_value
 fact_kind: property_value
 subject_key: kibi.testing.native_cli_diagnostics
-property_key: bounded_descendant_sampling
-canonical_key: scripts-swipl-spike-py:kibi.testing.native_cli_diagnostics:bounded_descendant_sampling:eq:true
-operator: eq
-value_type: bool
-value_bool: true
+property_key: max_sampled_processes_or_tasks_per_process
+operator: lte
+value_type: int
+value_int: 256
+canonical_key: kibi.testing.native_cli_diagnostics:max_sampled_processes_or_tasks_per_process:lte:256
 claim_key: CLAIM-F0A7ABEF357F32A5
 claim_text: On Linux, native CLI diagnostics must observe descendants launched by background threads while sampling at most 256 processes and 256 tasks per process
 id: FACT-native-cli-diagnostics-bounded-descendants

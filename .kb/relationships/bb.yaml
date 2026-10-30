@@ -76,7 +76,7 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6fc6104127a2
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-005
     to: FACT-RELATIONSHIP-PROVENANCE-TIMESTAMP
     created_at: 2026-08-17T08:16:57.481Z
@@ -510,3 +510,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0a434df958c1
+  - type: specified_by
+    from: REQ-005
+    to: SCEN-NEG-005-UNTYPED-RELATIONSHIP
+    created_at: 2026-10-29T21:01:24.253Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b4a36d6dcd1
+  - type: specified_by
+    from: REQ-KIBI-BOOTSTRAP-PLAN
+    to: SCEN-NEG-KIBI-BOOTSTRAP-PLAN-UNAPPROVED-APPLY
+    created_at: 2026-10-29T21:02:13.219Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ffc812a59f2
+  - type: assumes
+    from: SCEN-NEG-kibi-operation-interface-parity-REJECTED-INPUT-PARITY
+    to: FACT-NEG-kibi-operation-interface-parity-REJECTED-INPUT-PARITY
+    created_at: 2026-10-29T21:36:10.241Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f304ca516636
+  - type: verified_by
+    from: SCEN-NEG-kibi-operation-interface-parity-REJECTED-INPUT-PARITY
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-10-29T21:36:10.334Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ba8ebba0a8d
+  - type: constrains
+    from: REQ-005
+    to: FACT-SCHEMA-RELATIONSHIP-MODEL
+    created_at: 2026-10-30T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de05d8634055
+  - type: assumes
+    from: SCEN-CASE-kibi-signoff-views-ASKED-TWICE
+    to: FACT-CASE-kibi-signoff-views-ASKED-TWICE
+    created_at: 2026-10-30T14:51:06.216Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ebaa06ce587
+  - type: verified_by
+    from: SCEN-CASE-kibi-signoff-views-ASKED-TWICE
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-10-30T14:51:06.548Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5668f922353a
+  - type: specified_by
+    from: REQ-005
+    to: SCEN-CASE-005-UNTIMESTAMPED-TRIPLE
+    created_at: 2026-10-30T14:57:04.304Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-286d2b105bd8

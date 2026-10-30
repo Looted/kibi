@@ -64,6 +64,10 @@ const FACT_STRING_FIELDS = [
   "canonical_key",
   "claim_key",
   "claim_text",
+  "dimension_waiver",
+  "dimension_waiver_approved_by",
+  "case_waiver",
+  "case_waiver_approved_by",
   "predicate_name",
   "predicate_namespace",
   "rule_ir",
@@ -152,6 +156,8 @@ export interface ExtractedEntity {
   proof_exempt_reason?: string;
   approved_by?: string;
   approval_ref?: string;
+  failure_side_waiver?: string;
+  failure_side_waiver_approved_by?: string;
   rationale?: string;
   exempts_claims?: string[];
   expects?: "success" | "rejection" | "error";
@@ -196,6 +202,10 @@ export interface ExtractedEntity {
   canonical_key?: string;
   claim_key?: string;
   claim_text?: string;
+  dimension_waiver?: string;
+  dimension_waiver_approved_by?: string;
+  case_waiver?: string;
+  case_waiver_approved_by?: string;
   predicate_name?: string;
   predicate_namespace?: string;
   predicate_arity?: number;
@@ -822,6 +832,26 @@ function extractFromMarkdownContent(
           {
             classification: "Invalid Exception Approval",
             hint: "Set approved_by to the approving person or role (and optionally approval_ref to the decision record) on the exception requirement.",
+          },
+        );
+      }
+      entity[field] = data[field];
+    }
+    // implements REQ-kibi-happy-path-gap
+    // A requirement with no failure side to test records why, and who
+    // accepted it; the waiver counts only once approved.
+    for (const field of [
+      "failure_side_waiver",
+      "failure_side_waiver_approved_by",
+    ] as const) {
+      if (type !== "req" || data[field] === undefined) continue;
+      if (typeof data[field] !== "string" || data[field].trim() === "") {
+        throw new FrontmatterError(
+          `Invalid ${field}; expected a non-empty string`,
+          filePath,
+          {
+            classification: "Invalid Failure Side Waiver",
+            hint: "Set failure_side_waiver to why the requirement has no input or attempt to refuse, and failure_side_waiver_approved_by to the person who accepted it.",
           },
         );
       }

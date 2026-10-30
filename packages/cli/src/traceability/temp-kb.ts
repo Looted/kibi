@@ -78,6 +78,10 @@ const FACT_STRING_FIELDS = new Set([
   "canonical_key",
   "claim_key",
   "claim_text",
+  "dimension_waiver",
+  "dimension_waiver_approved_by",
+  "case_waiver",
+  "case_waiver_approved_by",
   "predicate_name",
   "predicate_namespace",
   "rule_hash",
@@ -239,7 +243,13 @@ function buildEntityAssertionGoal(
       `semantic_inventory=${toPrologString(JSON.stringify(entity.semantic_inventory))}`,
     );
   }
-  for (const field of ["approved_by", "approval_ref", "rationale"] as const) {
+  for (const field of [
+    "approved_by",
+    "approval_ref",
+    "failure_side_waiver",
+    "failure_side_waiver_approved_by",
+    "rationale",
+  ] as const) {
     const value = entity.type === "req" ? entity[field] : undefined;
     if (value !== undefined) props.push(`${field}=${toPrologString(value)}`);
   }

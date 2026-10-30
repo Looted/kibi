@@ -1,5 +1,5 @@
 ---
-title: The upsert validation error must name every unknown entity property
+title: Unknown entity properties the upsert error does not name = 0
 status: active
 text_ref: REQ-upsert-unknown-field-guidance
 tags:
@@ -9,10 +9,10 @@ tags:
   - provenance:req-upsert-unknown-field-guidance
 fact_kind: property_value
 subject_key: kibi.upsert_field_guidance
-property_key: unknown_properties_named
+property_key: unknown_properties_not_named
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 claim_key: CLAIM-209246E615EFD4EA
 claim_text: The upsert validation error must name every unknown entity property
 origin:

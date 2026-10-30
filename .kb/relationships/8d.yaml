@@ -111,14 +111,14 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9eb26f15cb21
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-core-audit-logging
     to: FACT-core-audit-logging-C227B0
     created_at: 2026-08-26T07:20:38.985Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9cd2bb3b02d1
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-core-audit-logging
     to: FACT-core-audit-logging-7CEFB9
     created_at: 2026-08-26T07:20:39.020Z
@@ -419,7 +419,7 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b37d4865bbbd
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-kibi-entity-origin
     to: FACT-PRED-entity-origin-field
     created_at: 2026-10-04T02:21:35.284Z
@@ -727,6 +727,48 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-94a6d878e5e0
+  - type: specified_by
+    from: REQ-bootstrap-claim-restatement
+    to: SCEN-NEG-bootstrap-claim-restatement-RESTATED-REQUIREMENT
+    created_at: 2026-10-29T21:04:11.260Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b88c00acedd4
+  - type: specified_by
+    from: REQ-claude-decision-capture-nudges
+    to: SCEN-NEG-claude-decision-capture-nudges-UNRECORDED-STOP
+    created_at: 2026-10-29T21:18:13.287Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ccbbb9db4c35
+  - type: specified_by
+    from: REQ-kibi-domain-redundancy
+    to: SCEN-NEG-kibi-domain-redundancy-identical-ground-term
+    created_at: 2026-10-29T21:11:50.697Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-78f48498b0a3
+  - type: specified_by
+    from: REQ-kibi-entity-origin
+    to: SCEN-NEG-kibi-entity-origin-unknown-origin
+    created_at: 2026-10-29T21:12:22.991Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70bf6938485c
+  - type: assumes
+    from: SCEN-NEG-prolog-daemon-runtime-identity-FOREIGN-SWIPL-CLIENT
+    to: FACT-NEG-prolog-daemon-runtime-identity-FOREIGN-SWIPL-CLIENT
+    created_at: 2026-10-29T20:54:06.906Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ca56449e132
+  - type: verified_by
+    from: SCEN-NEG-prolog-daemon-runtime-identity-FOREIGN-SWIPL-CLIENT
+    to: TEST-prolog-daemon-runtime-identity
+    created_at: 2026-10-29T20:54:07.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36e47f8c7831
   - type: implements
     from: SYM-search-hints-load-static-model
     to: REQ-kibi-plugin-search-hints
@@ -741,3 +783,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f6ce7f53ded7
+  - type: constrains
+    from: REQ-core-audit-logging
+    to: FACT-SUBJECT-kibi-audit-log
+    created_at: 2026-10-30T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-610f377aa049
+  - type: constrains
+    from: REQ-kibi-entity-origin
+    to: FACT-SUBJECT-KIBI-ENTITY-ORIGIN
+    created_at: 2026-10-30T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e153d5af04d9
+  - type: specified_by
+    from: REQ-claude-decision-capture-nudges
+    to: SCEN-CASE-claude-decision-capture-nudges-ASKED-TWICE
+    created_at: 2026-10-30T14:57:00.636Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7268dc67e3c8
+  - type: specified_by
+    from: REQ-bootstrap-claim-restatement
+    to: SCEN-CASE-bootstrap-claim-restatement-NEAR-RESTATEMENT
+    created_at: 2026-10-30T14:58:11.498Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a28192d2f540
+  - type: assumes
+    from: SCEN-CASE-kibi-schema6-migration-v2-ORIGIN-BYTES
+    to: FACT-CASE-kibi-schema6-migration-v2-ORIGIN-BYTES
+    created_at: 2026-10-30T14:52:39.737Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c18a637ebdb
+  - type: verified_by
+    from: SCEN-CASE-kibi-schema6-migration-v2-ORIGIN-BYTES
+    to: TEST-kibi-schema6-migration-cli
+    created_at: 2026-10-30T14:52:39.998Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89d10bfdbe50

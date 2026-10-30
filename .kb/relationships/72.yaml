@@ -531,3 +531,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c27b1086a547
+  - type: specified_by
+    from: REQ-claude-request-topic-candidates
+    to: SCEN-NEG-claude-request-topic-candidates-ALL-CLEAR-NOTE
+    created_at: 2026-10-29T20:53:25.610Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b9b8dd842cc
+  - type: specified_by
+    from: REQ-cursor-stop-job-vs-plan
+    to: SCEN-NEG-cursor-stop-job-vs-plan-PLAN-HIDES-EDIT
+    created_at: 2026-10-29T21:16:38.349Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9d3ec43f09b
+  - type: assumes
+    from: SCEN-NEG-kibi-review-observation-claim-text-v2-MISMATCHED-CLAIM-KEY
+    to: FACT-NEG-kibi-review-observation-claim-text-v2-MISMATCHED-CLAIM-KEY
+    created_at: 2026-10-29T21:08:36.441Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7c164e89d93
+  - type: verified_by
+    from: SCEN-NEG-kibi-review-observation-claim-text-v2-MISMATCHED-CLAIM-KEY
+    to: TEST-kibi-upsert-review-lanes
+    created_at: 2026-10-29T21:08:36.608Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19869c56c89a
+  - type: assumes
+    from: SCEN-NEG-kb-decision-firmness-rule-ids-UNSET-AS-FIRM
+    to: FACT-NEG-kb-decision-firmness-rule-ids-UNSET-AS-FIRM
+    created_at: 2026-10-29T22:11:03.800Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1a388d497c9
+  - type: verified_by
+    from: SCEN-NEG-kb-decision-firmness-rule-ids-UNSET-AS-FIRM
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-29T22:11:03.880Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a02fdf16169
+  - type: assumes
+    from: SCEN-NEG-capability-search-hints-v1-AUGMENT-MODE
+    to: FACT-NEG-capability-search-hints-v1-AUGMENT-MODE
+    created_at: 2026-10-30T08:42:53.375Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9ecb10b1129
+  - type: verified_by
+    from: SCEN-NEG-capability-search-hints-v1-AUGMENT-MODE
+    to: TEST-capability-search-hints-v1
+    created_at: 2026-10-30T08:42:53.472Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df153b2ff19c

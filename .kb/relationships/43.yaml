@@ -321,3 +321,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b120562c869f
+  - type: specified_by
+    from: REQ-bootstrap-claim-name-length
+    to: SCEN-NEG-bootstrap-claim-name-length-COLLIDING-NAMES
+    created_at: 2026-10-29T21:03:53.333Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7503ee2c34d4
+  - type: assumes
+    from: SCEN-NEG-symbol-sourcefile-workspace-confinement-ESCAPING-SOURCEFILE
+    to: FACT-NEG-symbol-sourcefile-workspace-confinement-ESCAPING-SOURCEFILE
+    created_at: 2026-10-29T21:09:57.973Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4fd80d28f62
+  - type: verified_by
+    from: SCEN-NEG-symbol-sourcefile-workspace-confinement-ESCAPING-SOURCEFILE
+    to: TEST-symbol-sourcefile-workspace-confinement
+    created_at: 2026-10-29T21:09:58.031Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-988760d59a4e
+  - type: assumes
+    from: SCEN-NEG-ui-pattern-component-proof-UNIT-TEST-FOR-LAYOUT
+    to: FACT-NEG-ui-pattern-component-proof-UNIT-TEST-FOR-LAYOUT
+    created_at: 2026-10-29T21:10:41.173Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d94908c8c451
+  - type: verified_by
+    from: SCEN-NEG-ui-pattern-component-proof-UNIT-TEST-FOR-LAYOUT
+    to: TEST-ui-pattern-component-proof
+    created_at: 2026-10-29T21:10:41.250Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b42652ec8d51
+  - type: assumes
+    from: SCEN-CASE-kibi-evidence-floors-UNPINNED-FIRM
+    to: FACT-CASE-kibi-evidence-floors-UNPINNED-FIRM
+    created_at: 2026-10-30T14:56:44.071Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4212d885621b
+  - type: verified_by
+    from: SCEN-CASE-kibi-evidence-floors-UNPINNED-FIRM
+    to: TEST-kibi-evidence-floors
+    created_at: 2026-10-30T14:56:44.197Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2ac4bc54be4
+  - type: assumes
+    from: SCEN-CASE-test-journaled-engine-harness-LEAKED-BATCH-ENGINE
+    to: FACT-CASE-test-journaled-engine-harness-LEAKED-BATCH-ENGINE
+    created_at: 2026-10-30T14:57:03.972Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c7824c699ff
+  - type: verified_by
+    from: SCEN-CASE-test-journaled-engine-harness-LEAKED-BATCH-ENGINE
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-10-30T14:57:04.094Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82011082db9a
+  - type: assumes
+    from: SCEN-CASE-ui-plugin-design-policy-DECLARED-PERMISSION
+    to: FACT-CASE-ui-plugin-design-policy-DECLARED-PERMISSION
+    created_at: 2026-10-30T15:12:02.339Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ffbf39a46ab0
+  - type: verified_by
+    from: SCEN-CASE-ui-plugin-design-policy-DECLARED-PERMISSION
+    to: TEST-ui-plugin-design-policy
+    created_at: 2026-10-30T15:12:02.418Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f305ea2fc416

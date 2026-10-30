@@ -157,42 +157,42 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-538fa89381a1
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-claude-hook-usage-telemetry-v2
     to: FACT-PRED-claude-hook-telemetry-interface
     created_at: 2026-10-04T02:13:09.612Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-656c80e7078f
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-claude-hook-usage-telemetry-v2
     to: FACT-PRED-claude-hook-telemetry-session
     created_at: 2026-10-04T02:13:09.623Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b811d7a1f736
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-claude-hook-usage-telemetry-v2
     to: FACT-PRED-claude-hook-telemetry-host
     created_at: 2026-10-04T02:13:09.631Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2b9ec3a3daad
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-claude-hook-usage-telemetry-v2
     to: FACT-PRED-claude-hook-telemetry-requirement-ids
     created_at: 2026-10-04T02:13:09.639Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4d8abaec61da
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-claude-hook-usage-telemetry-v2
     to: FACT-PRED-claude-hook-telemetry-kb-used-before
     created_at: 2026-10-04T02:13:09.646Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-73e7f0880830
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-claude-hook-usage-telemetry-v2
     to: FACT-PRED-claude-hook-telemetry-context-shown
     created_at: 2026-10-04T02:13:09.656Z
@@ -318,3 +318,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dcc76f7ea6db
+  - type: assumes
+    from: SCEN-NEG-013-RAW-INFERENCE-CALL
+    to: FACT-NEG-013-RAW-INFERENCE-CALL
+    created_at: 2026-10-29T21:28:12.474Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43f95597a41d
+  - type: verified_by
+    from: SCEN-NEG-013-RAW-INFERENCE-CALL
+    to: TEST-010
+    created_at: 2026-10-29T21:28:12.553Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1cd83d19208
+  - type: specified_by
+    from: REQ-claude-hook-usage-telemetry-v2
+    to: SCEN-NEG-claude-hook-usage-telemetry-v2-LOG-WITHOUT-OPT-IN
+    created_at: 2026-10-29T20:55:05.515Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fabb129e5fe3
+  - type: constrains
+    from: REQ-claude-hook-usage-telemetry-v2
+    to: FACT-SUBJECT-kibi-telemetry-hook-usage-records
+    created_at: 2026-10-30T12:23:34.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-769ce51efa5d
+  - type: specified_by
+    from: REQ-claude-hook-usage-telemetry-v2
+    to: SCEN-CASE-claude-hook-usage-telemetry-v2-SESSIONLESS-ROW
+    created_at: 2026-10-30T14:58:16.152Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-953e1097d0a5
+  - type: assumes
+    from: SCEN-CASE-prolog-bundled-ci-NO-SYSTEM-SWIPL-JOB
+    to: FACT-CASE-prolog-bundled-ci-NO-SYSTEM-SWIPL-JOB
+    created_at: 2026-10-30T14:58:09.903Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc5e16b3a3b5
+  - type: verified_by
+    from: SCEN-CASE-prolog-bundled-ci-NO-SYSTEM-SWIPL-JOB
+    to: TEST-prolog-bundled-ci
+    created_at: 2026-10-30T14:58:10.009Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-174e61c9d046

@@ -196,3 +196,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5e45525b1175
+  - type: specified_by
+    from: REQ-skillopt-cursor-compat
+    to: SCEN-NEG-skillopt-cursor-compat-UNQUALIFIED-CELLS
+    created_at: 2026-10-29T22:00:41.189Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-141537c9b2c2

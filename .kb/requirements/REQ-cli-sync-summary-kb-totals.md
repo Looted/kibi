@@ -33,6 +33,8 @@ origin:
   recorded_at: '2026-10-14T21:06:53.102Z'
 id: REQ-cli-sync-summary-kb-totals
 type: req
+failure_side_waiver: "The claims fix what the sync summary prints; an output format has no input to refuse."
+failure_side_waiver_approved_by: Piotr Franczyk
 ---
 The kibi sync summary must report the number of entities of each type the KB holds after the sync. The kibi sync summary must label the entities a sync imported as counts from changed sources only.
 

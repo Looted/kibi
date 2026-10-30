@@ -10,7 +10,7 @@ tags:
 links:
   - type: specified_by
     target: SCEN-kibi-source-relationship-parity
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-SOURCE-PARITY-AUTHORED-BLOCK
   - type: requires_predicate
     target: FACT-SOURCE-PARITY-DISCOVERY-BLOCK

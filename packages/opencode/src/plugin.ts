@@ -793,9 +793,7 @@ const kibiOpencodePlugin: Plugin = async (
             const reminderKindsForLifecycle: ReminderKind[] =
               pendingLifecycle.lifecycle === "deleted"
                 ? ["kibi_delete", "e2e_delete"]
-                : pendingLifecycle.lifecycle === "created"
-                  ? ["kibi_write", "e2e_write"]
-                  : ["e2e_write"];
+                : ["kibi_write", "e2e_write"];
             const hasUnshownReminder = reminderKindsForLifecycle.some(
               (kind) =>
                 !promptFileOperationState.hasShown(normalizedFocusPath, kind),
@@ -1043,11 +1041,29 @@ const kibiOpencodePlugin: Plugin = async (
           const focusPathForConsume = fileOperationReminder.path;
 
           // Determine which reminders were actually emitted in guidance
-          const lifecycleEmitted =
-            lifecycleReminderText !== null &&
-            guidance.includes(lifecycleReminderText);
-          const e2eEmitted =
-            e2eReminderText !== null && guidance.includes(e2eReminderText);
+          // The word budget can keep only a reminder's first line, which
+          // still shows it.
+          const emitted = (text: string | null): boolean =>
+            text !== null && guidance.includes(text.split("\n")[0] ?? text);
+          const lifecycleEmitted = emitted(lifecycleReminderText);
+          const e2eEmitted = emitted(e2eReminderText);
+
+          // Once guidance for the path was shown, a reminder kind that had no
+          // text this time has nothing left to show for it; otherwise a later
+          // event for the same path would look unshown and repeat the guidance.
+          if (lifecycleEmitted || e2eEmitted) {
+            const kinds =
+              promptFileOperationState.peekPending(focusPathForConsume)
+                ?.lifecycle === "deleted"
+                ? (["kibi_delete", "e2e_delete"] as const)
+                : (["kibi_write", "e2e_write"] as const);
+            if (lifecycleReminderText === null) {
+              promptFileOperationState.markShown(focusPathForConsume, kinds[0]);
+            }
+            if (e2eReminderText === null) {
+              promptFileOperationState.markShown(focusPathForConsume, kinds[1]);
+            }
+          }
 
           // Mark shown and log only for reminders that were actually emitted
           if (lifecycleEmitted) {

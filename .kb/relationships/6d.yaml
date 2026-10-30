@@ -384,3 +384,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7cf9037a529b
+  - type: assumes
+    from: SCEN-NEG-bootstrap-claim-restatement-RESTATED-REQUIREMENT
+    to: FACT-NEG-bootstrap-claim-restatement-RESTATED-REQUIREMENT
+    created_at: 2026-10-29T21:04:07.471Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-841f9aa8da6e
+  - type: verified_by
+    from: SCEN-NEG-bootstrap-claim-restatement-RESTATED-REQUIREMENT
+    to: TEST-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-29T21:04:07.721Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67cbdd3f5f08
+  - type: assumes
+    from: SCEN-NEG-check-related-requirement-unmodeled-UNMODELED-NEIGHBOUR
+    to: FACT-NEG-check-related-requirement-unmodeled-UNMODELED-NEIGHBOUR
+    created_at: 2026-10-29T21:17:38.893Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5bfad1f3c0cb
+  - type: verified_by
+    from: SCEN-NEG-check-related-requirement-unmodeled-UNMODELED-NEIGHBOUR
+    to: TEST-check-related-requirement-unmodeled
+    created_at: 2026-10-29T21:17:39.048Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c12c99ec6818
+  - type: assumes
+    from: SCEN-NEG-kibi-contradiction-review-candidates-uncompared-requirement
+    to: FACT-NEG-kibi-contradiction-review-candidates-uncompared-requirement
+    created_at: 2026-10-29T21:09:04.001Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3edddcc42a66
+  - type: verified_by
+    from: SCEN-NEG-kibi-contradiction-review-candidates-uncompared-requirement
+    to: TEST-kibi-contradiction-review-cli
+    created_at: 2026-10-29T21:09:04.069Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e968eba92448
+  - type: specified_by
+    from: REQ-prolog-bundled-runtime
+    to: SCEN-NEG-prolog-bundled-runtime-OLD-PATH-SWIPL
+    created_at: 2026-10-29T21:06:49.389Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-840b155dc51a
+  - type: specified_by
+    from: REQ-generated-coordinate-persistence
+    to: SCEN-NEG-generated-coordinate-persistence-AUTHORED-COORDINATES
+    created_at: 2026-10-29T22:00:33.882Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-78c50b825781

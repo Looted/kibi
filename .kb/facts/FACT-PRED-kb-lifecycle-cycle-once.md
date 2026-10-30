@@ -1,6 +1,13 @@
 ---
 title: Each supersession cycle is reported once
 status: active
+fact_kind: property_value
+subject_key: kibi.kb.lifecycle
+property_key: violations_per_supersession_cycle
+operator: eq
+value_type: int
+value_int: 1
+canonical_key: kibi.kb.lifecycle:violations_per_supersession_cycle:eq:1
 tags:
   - lane:ontology
   - lifecycle
@@ -9,15 +16,6 @@ tags:
 claim_key: CLAIM-5477F33D482A3C02
 claim_text: kb_check must report each supersession cycle once, naming every member, without reporting its members again as open
 text_ref: .kb/requirements/REQ-kibi-kb-lifecycle-integrity.md
-fact_kind: predicate
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.kb.lifecycle
-  - supersession_cycle
-  - one_violation_naming_every_member
-polarity: assert
-canonical_key: logical_requirement_rule(kibi.kb.lifecycle,supersession_cycle,one_violation_naming_every_member)
-predicate_namespace: kibi.requirements
 origin:
   kind: agent
   recorded_at: '2026-10-04T05:38:14.438Z'

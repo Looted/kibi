@@ -472,5 +472,47 @@ if (RUN_NODE_TEST_SUITE) {
         assert.strictEqual(afterStatus.dirty, beforeStatus.dirty);
       },
     );
+
+    it(
+      "refuses apply-safe for a plan hash that does not match the current migration plan",
+      { timeout: 300_000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+        const beforeStatus = await cliJson<{
+          snapshotId: string;
+          dirty: boolean;
+        }>(sandbox, ["status", "--format", "json"]);
+
+        const refused = await kibi(sandbox, [
+          "migrate",
+          "--apply-safe",
+          "--approved-plan-hash",
+          "0".repeat(64),
+          "--approved-action",
+          "not-a-current-action",
+          "--format",
+          "json",
+        ]);
+        assert.notStrictEqual(
+          refused.exitCode,
+          0,
+          `${refused.stdout}${refused.stderr}`,
+        );
+        assert.match(
+          `${refused.stdout}${refused.stderr}`,
+          /Migration plan changed; regenerate the plan and approve its current hash/,
+        );
+
+        const afterStatus = await cliJson<{
+          snapshotId: string;
+          dirty: boolean;
+        }>(sandbox, ["status", "--format", "json"]);
+        assert.strictEqual(afterStatus.snapshotId, beforeStatus.snapshotId);
+        assert.strictEqual(afterStatus.dirty, beforeStatus.dirty);
+      },
+    );
   });
 }

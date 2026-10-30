@@ -41,6 +41,8 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+failure_side_waiver: "A continuity claim: a worktree switch keeps the same Kibi surface. Nothing is submitted for Kibi to refuse."
+failure_side_waiver_approved_by: Piotr Franczyk
 ---
 
 Cursor worktree changes must preserve Kibi continuity across handoffs.

@@ -68,17 +68,21 @@ links:
     target: SCEN-test-journaled-engine-harness
   - type: verified_by
     target: TEST-test-journaled-engine-harness
+  - type: constrains
+    target: FACT-SUBJ-REQ-ROOT-SUITE-BATCH-DIAGNOSTICS
+  - type: constrains
+    target: FACT-SUBJECT-KIBI-CLI-STARTUP
   - type: relates_to
     target: REQ-root-suite-batch-diagnostics
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-TEST-ENGINE-OWNED-TEARDOWN
   - type: requires_predicate
     target: FACT-TEST-ENGINE-PROCESS-REUSE
   - type: requires_predicate
     target: FACT-TEST-PACKED-SHARED-INSTALL
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-TEST-ROOT-BOUNDED-BATCHES
-  - type: requires_predicate
+  - type: requires_property
     target: FACT-CLI-LAZY-OPERATION-LOAD
 origin:
   kind: migration

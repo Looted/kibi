@@ -3599,6 +3599,16 @@
                 "description": "Optional canonical identity key for predicate or strict fact claims.",
                 "type": "string"
               },
+              "case_waiver": {
+                "description": "Fact-only. Why the edge cases derived from this fact are covered some other way or cannot occur. Waives uncovered_case once case_waiver_approved_by is set.",
+                "minLength": 1,
+                "type": "string"
+              },
+              "case_waiver_approved_by": {
+                "description": "Fact-only. The person who accepted case_waiver.",
+                "minLength": 1,
+                "type": "string"
+              },
               "claim_key": {
                 "description": "Stable key of the atomic prose clause grounded by this fact, derived from claim_text. Optional: when omitted, Kibi derives it; when sent, it must equal the derived key.",
                 "pattern": "^CLAIM-[A-F0-9]{16}$",
@@ -3621,6 +3631,16 @@
               "closed_world": {
                 "description": "Optional closed-world marker for strict fact interpretation.",
                 "type": "boolean"
+              },
+              "dimension_waiver": {
+                "description": "Fact-only. Why the quantifier word in claim_text ranges over nothing, so the claim needs no count, set or rule. Waives dimension_unrepresented once dimension_waiver_approved_by is set.",
+                "minLength": 1,
+                "type": "string"
+              },
+              "dimension_waiver_approved_by": {
+                "description": "Fact-only. The person who accepted dimension_waiver.",
+                "minLength": 1,
+                "type": "string"
               },
               "examples": {
                 "description": "Optional ground-term examples for a predicate schema.",
@@ -3675,6 +3695,16 @@
                   }
                 ],
                 "description": "Optional fact lane kind for fact entities. Strict lane uses 'subject' and 'property_value'; context lane uses 'observation' or 'meta'; ontology lane uses 'predicate_schema' or 'predicate'. Use kb_model (mode requirement or predicates) when starting from prose."
+              },
+              "failure_side_waiver": {
+                "description": "Requirement-only. Why the requirement has no failure side to test (its claims state a capability or output shape). Waives happy_path_only once failure_side_waiver_approved_by is set.",
+                "minLength": 1,
+                "type": "string"
+              },
+              "failure_side_waiver_approved_by": {
+                "description": "Requirement-only. The person who accepted failure_side_waiver.",
+                "minLength": 1,
+                "type": "string"
               },
               "firmness": {
                 "anyOf": [
@@ -5867,7 +5897,7 @@
             "type": "integer"
           },
           "rules": {
-            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, symbol-granularity, no-dangling-refs, source-relationship-parity, branch-store-not-compiled, source-path-dangling, no-cycles, required-fields, deprecated-adr-no-successor, superseded-requirement-open, scenario-feasibility, scenario-feasibility-unknown, exception-claim-keys, numeric-string-value, rule-key-arguments-missing, domain-contradictions, logic-coverage, rule-safety, rule-verifiability, query-plan-safety, req-status-vocabulary, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, strict-readiness, semantic-completeness, related-requirement-unmodeled, proof-contract-symbols, entity-id-style, domain-redundancy, domain-implication, subject-key-identity, subject-key-shape, ontology-quality, exception-unapproved, exception-approval-self-attested, agent-requirement-unapproved, requirement-rationale-missing, symbol-owner-superseded, adr-unlinked, adr-proposed, predicate-schema-conformance, entity-context-missing, entity-context-acknowledged, decision-firm-unreferenced, decision-firm-superseded, decision-firm-edited, supersedes-reason-missing, supersedes-reason-acknowledged, policy-ownership, policy-markers, kb-consistency, kb-consistency-unresolved, evidence-floor, proof-contract-claims. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
+            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, symbol-granularity, no-dangling-refs, source-relationship-parity, branch-store-not-compiled, source-path-dangling, no-cycles, required-fields, deprecated-adr-no-successor, superseded-requirement-open, scenario-feasibility, scenario-feasibility-unknown, scenario-outcome-mismatch, exception-claim-keys, numeric-string-value, rule-key-arguments-missing, domain-contradictions, logic-coverage, rule-safety, rule-verifiability, query-plan-safety, req-status-vocabulary, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, strict-readiness, semantic-completeness, related-requirement-unmodeled, proof-contract-symbols, entity-id-style, domain-redundancy, domain-implication, subject-key-identity, subject-key-shape, ontology-quality, exception-unapproved, exception-approval-self-attested, agent-requirement-unapproved, requirement-rationale-missing, symbol-owner-superseded, adr-unlinked, adr-proposed, predicate-schema-conformance, entity-context-missing, entity-context-acknowledged, decision-firm-unreferenced, decision-firm-superseded, decision-firm-edited, supersedes-reason-missing, supersedes-reason-acknowledged, policy-ownership, policy-markers, kb-consistency, kb-consistency-unresolved, evidence-floor, proof-contract-claims. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
             "items": {
               "anyOf": [
                 {
@@ -5924,6 +5954,10 @@
                 },
                 {
                   "const": "scenario-feasibility-unknown",
+                  "type": "string"
+                },
+                {
+                  "const": "scenario-outcome-mismatch",
                   "type": "string"
                 },
                 {

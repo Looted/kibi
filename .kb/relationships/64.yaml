@@ -209,6 +209,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-72f33f8d718e
+  - type: specified_by
+    from: REQ-kibi-distribution-parity-matrix
+    to: SCEN-NEG-kibi-distribution-parity-matrix-parity-gate-drift
+    created_at: 2026-10-29T21:34:54.493Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b822b6172c0
   - type: validates
     from: TEST-proof-search-hint-shown-limit
     to: SCEN-kibi-search-hints-host
@@ -216,3 +223,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-69dc056ed180
+  - type: constrains
+    from: REQ-kibi-distribution-parity-matrix
+    to: FACT-kibi-distribution-parity-component
+    created_at: 2026-10-30T12:40:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fbe7f5a158b9
+  - type: specified_by
+    from: REQ-kibi-distribution-parity-matrix
+    to: SCEN-CASE-kibi-distribution-parity-matrix-TWO-CAPABILITY-STATES
+    created_at: 2026-10-30T14:51:43.321Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f1a7979b5f2
+  - type: specified_by
+    from: REQ-kibi-distribution-parity-matrix
+    to: SCEN-CASE-kibi-distribution-parity-matrix-NO-CAPABILITY-STATE
+    created_at: 2026-10-30T14:51:50.631Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-528f2941e7ea
+  - type: specified_by
+    from: REQ-kibi-distribution-parity-matrix
+    to: SCEN-CASE-kibi-distribution-parity-matrix-RUNTIME-SKIPS-FIXTURES
+    created_at: 2026-10-30T14:51:57.991Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-006c02dc8fe5
+  - type: assumes
+    from: SCEN-CASE-native-cli-suite-diagnostics-OVER-TASK-LIMIT
+    to: FACT-CASE-native-cli-suite-diagnostics-OVER-TASK-LIMIT
+    created_at: 2026-10-30T15:12:18.233Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cfac51d31c5e
+  - type: verified_by
+    from: SCEN-CASE-native-cli-suite-diagnostics-OVER-TASK-LIMIT
+    to: TEST-native-cli-suite-diagnostics
+    created_at: 2026-10-30T15:12:18.286Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7a027b06d1d

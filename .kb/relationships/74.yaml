@@ -307,14 +307,14 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2439d4279201
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-kibi-truthful-consistency
     to: FACT-CONSISTENCY-NUMERIC-EXACT
     created_at: 2026-10-03T09:15:41.330Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5330ebf448ce
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-kibi-truthful-consistency
     to: FACT-CONSISTENCY-RULE-CONFLICT-THREE-VALUED
     created_at: 2026-10-03T09:15:41.375Z
@@ -412,3 +412,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bce7f2609529
+  - type: specified_by
+    from: REQ-kibi-truthful-consistency
+    to: SCEN-NEG-kibi-truthful-consistency-UNMODELED-CLAUSE
+    created_at: 2026-10-29T21:17:15.326Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-563fcf4d9cab
+  - type: assumes
+    from: SCEN-NEG-kb-decision-firmness-settings-SHORT-EXPLANATION
+    to: FACT-NEG-kb-decision-firmness-settings-SHORT-EXPLANATION
+    created_at: 2026-10-29T22:11:07.244Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fac7ca362525
+  - type: verified_by
+    from: SCEN-NEG-kb-decision-firmness-settings-SHORT-EXPLANATION
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-29T22:11:07.295Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-509654a082a4
+  - type: constrains
+    from: REQ-kibi-truthful-consistency
+    to: FACT-SUBJECT-kibi-checks-contradictions
+    created_at: 2026-10-30T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c65ca4a9cc2
+  - type: specified_by
+    from: REQ-kibi-truthful-consistency
+    to: SCEN-CASE-kibi-truthful-consistency-STRICT-BOUND-INEXACT
+    created_at: 2026-10-30T14:58:26.027Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cde4e342f4c7
+  - type: specified_by
+    from: REQ-kibi-truthful-consistency
+    to: SCEN-CASE-kibi-truthful-consistency-RULE-PAIR-FOURTH-CLASS
+    created_at: 2026-10-30T15:08:43.257Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4a68cfbd6e98
+  - type: assumes
+    from: SCEN-CASE-kibi-dependency-ordered-repair-plan-requirement-without-plan
+    to: FACT-CASE-kibi-dependency-ordered-repair-plan-requirement-without-plan
+    created_at: 2026-10-30T14:59:48.864Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4e540cec3d0
+  - type: verified_by
+    from: SCEN-CASE-kibi-dependency-ordered-repair-plan-requirement-without-plan
+    to: TEST-kibi-dependency-ordered-repair-plan
+    created_at: 2026-10-30T14:59:49.060Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc2d78ca6fc0

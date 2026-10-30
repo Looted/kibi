@@ -32,7 +32,7 @@ The discovery tools (`kb_query`, `kb_search`, `kb_status`,
 summary, for hosts that hide `structuredContent` from the agent. On Claude
 Code, which shows `structuredContent`, the text is the summary alone, so each
 result is sent once. `KIBI_MCP_STRUCTURED_TEXT=omit` or `embed` overrides that
-choice for any host (see [Usage Telemetry](#usage-telemetry-opt-in)).
+choice for any host (see [Diagnostic usage log](#diagnostic-usage-log-opt-in)).
 
 ### Tool list
 
@@ -419,9 +419,9 @@ On the first intent-mode page, `data.answer` (`kibi.search-answer.v1`) turns the
 - `rationale`: ADRs that explain the decisions, each with its `source` path and an `excerpt`: the opening sentences of its Decision section (falling back to Rationale, then the first paragraph), at most 280 characters.
 - `notGoverning`: superseded or deprecated requirements, with `supersededBy` when known. They are listed so they are never read as current policy.
 - `observations`: observation/meta facts, labelled as notes rather than rules.
-- `ungoverned`: matched facts, scenarios, symbols and tests that no requirement owns, each with its `type`, its 1-based `rank` in the results and, for typed facts, the `claim` and `ask` above. An unlinked predicate fact that states the same predicate and key arguments as a governing requirement's fact, with another value or polarity, carries `overriddenBy` (`fact`, `requirement`, `claim`) naming the fact that holds, and the `note` names the pair. When the top-ranked match is one of them, the `note` says so first: the `governing` list, if any, was reached through lower-ranked matches and is not the top match's requirement.
+- `ungoverned`: matched facts, scenarios, symbols and tests that no requirement owns (a fact that a requirement's scenario assumes, such as its failure side, is lifted to that requirement instead), each with its `type`, its 1-based `rank` in the results and, for typed facts, the `claim` and `ask` above. An unlinked predicate fact that states the same predicate and key arguments as a governing requirement's fact, with another value or polarity, carries `overriddenBy` (`fact`, `requirement`, `claim`) naming the fact that holds, and the `note` names the pair. When the top-ranked match is one of them, the `note` says so first: the `governing` list, if any, was reached through lower-ranked matches and is not the top match's requirement.
 - `scope`: the KB the answer was computed from: `branch`, `snapshotId`, and `syncedAt`. `kb_status` says whether that snapshot is stale.
-- `truncated`: `true` when a size bound cut the layer short. The whole answer stays under 16 KB: long titles, excerpts and details are clipped, then ADR excerpts are dropped, then lower-ranked requirements and list entries; a verdict keeps its `status` when its witnesses are dropped.
+- `truncated`: `true` when a size bound cut the layer short. The whole answer stays under 16 KB: long titles, excerpts and details are clipped, then ADR excerpts are dropped, then each requirement keeps only its first scenario and test, then lower-ranked requirements and list entries; a verdict keeps its `status` when its witnesses are dropped.
 - `note`: how to read the layer. An empty `governing` list is not evidence that nothing governs the change.
 
 The answer layer is graph traversal plus the existing checks scoped to the governing requirements: discovery, not proof. Use `kb_check` and `kb_coverage` for full consistency and proof status. Pass `answer: false` to skip it.
@@ -947,10 +947,12 @@ envelope under `result`), `failed` (error message under `error`), or
 { "kb_job_status": { "jobId": "job-kb_apply_plan-2-4c1d" } }
 ```
 
-## Usage Telemetry (opt-in)
+## Diagnostic usage log (opt-in)
 
-Kibi records no usage telemetry by default. Installing a host plugin, enabling
-it, or running the MCP server never turns logging on. Until an operator opts in,
+This local log is separate from the anonymous usage statistics described in
+[Usage telemetry](telemetry.md), and is never sent. Kibi writes no diagnostic
+log by default. Installing a host plugin, enabling it, or running the MCP
+server never turns logging on. Until an operator opts in,
 `.kb/usage.log` is not created and no row is written.
 
 Opt in per workspace with either signal:

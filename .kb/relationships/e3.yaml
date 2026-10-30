@@ -356,3 +356,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e2795b931d1b
+  - type: specified_by
+    from: REQ-check-related-requirement-unmodeled
+    to: SCEN-NEG-check-related-requirement-unmodeled-UNMODELED-NEIGHBOUR
+    created_at: 2026-10-29T21:17:42.857Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bdea4c4f11f2
+  - type: assumes
+    from: SCEN-CASE-kibi-conservative-requirement-proof-CONTRADICTION-UNBLOCKED
+    to: FACT-CASE-kibi-conservative-requirement-proof-CONTRADICTION-UNBLOCKED
+    created_at: 2026-10-30T14:47:00.119Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-233810323976
+  - type: verified_by
+    from: SCEN-CASE-kibi-conservative-requirement-proof-CONTRADICTION-UNBLOCKED
+    to: TEST-kibi-truthful-consistency
+    created_at: 2026-10-30T14:47:00.280Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5683b7191bee

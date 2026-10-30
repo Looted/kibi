@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import {
   analyzeSemanticAdvisorInput,
+  claimDimension,
   semanticClaimKey,
 } from "../../src/operations/semantic-advisor/analyze-prose.js";
 import { validateSemanticInventoryBoundary } from "../../src/operations/semantic-advisor/ingestion-boundary.js";
@@ -1215,5 +1216,75 @@ describe("caller-supplied clauses", () => {
       'not occur in it: "Choosing a different report preserves the filters during sorts"',
     );
     expect(run).toThrow("must be verbatim fragments of the requirement prose");
+  });
+});
+
+// implements REQ-kibi-dimension-gap
+describe("quantified claim dimension", () => {
+  test("a collection quantifier or cardinality bound names the groundings that represent it", () => {
+    expect(
+      claimDimension("Every file loaded into a module must be instrumented"),
+    ).toEqual({ quantifier: "every", rewrites: ["rule", "count", "set"] });
+    expect(
+      claimDimension("The plugin must show no more than 10 hints"),
+    ).toEqual({ quantifier: "no_more_than", rewrites: ["bound"] });
+    // Only, any and some scope a condition rather than range over one.
+    expect(claimDimension("Hints are shown only when the answer is weak")).toBe(
+      undefined,
+    );
+    expect(claimDimension("Start without any network access")).toBe(undefined);
+  });
+
+  test("a normative proposition carries its dimension; a statement without one does not", () => {
+    const text =
+      "The loader must instrument every file loaded into a module. The loader must log its start.";
+    const { receipt } = analyzeSemanticAdvisorInput({
+      payload: {
+        type: "req",
+        id: "REQ-LOADER",
+        properties: { title: "Loader", status: "open", semantic_text: text },
+        relationships: [],
+      },
+    });
+    const [every, log] = receipt.propositions;
+    expect(every?.dimension).toEqual({
+      quantifier: "every",
+      rewrites: ["rule", "count", "set"],
+    });
+    expect(log?.dimension).toBeUndefined();
+  });
+});
+
+// implements REQ-kibi-case-coverage
+describe("edge-case preview on a strict-property suggestion", () => {
+  test("a bounded count lists the cases its scenarios must reach", () => {
+    const { receipt } = analyzeSemanticAdvisorInput({
+      payload: {
+        type: "req",
+        id: "REQ-SESSIONS",
+        properties: {
+          title: "Limit active sessions",
+          status: "open",
+          semantic_text: "Users may have at most two active sessions.",
+        },
+        relationships: [],
+      },
+    });
+    const suggestion = receipt.suggestions.find(
+      (item) => item.kind === "strict_property",
+    );
+    expect(suggestion?.kind).toBe("strict_property");
+    if (suggestion?.kind !== "strict_property") return;
+    expect(
+      suggestion.casesPreview?.cases.map(
+        (item) => `${item.constraint}:${item.predicted}`,
+      ),
+    ).toEqual([
+      "eq 2:success",
+      "gt 2:rejection",
+      "eq 0:success",
+      "eq 1:success",
+    ]);
+    expect(suggestion.casesPreview?.limitReached).toBe(false);
   });
 });

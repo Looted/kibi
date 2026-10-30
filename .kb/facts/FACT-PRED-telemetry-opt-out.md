@@ -1,19 +1,19 @@
 ---
-title: 'Predicate: not conditional_behavior(kibi_usage_telemetry,opt_out_set,send_anonymous_events_to_posthog)'
+title: Each telemetry opt-out switch turns telemetry off
 status: active
-fact_kind: predicate
-predicate_name: conditional_behavior
-predicate_args:
-  - kibi_usage_telemetry
-  - opt_out_set
-  - send_anonymous_events_to_posthog
-canonical_key: conditional_behavior(kibi_usage_telemetry,opt_out_set,send_anonymous_events_to_posthog)
-polarity: deny
+fact_kind: property_value
+subject_key: kibi.usage_telemetry
+property_key: opt_out_switches_that_disable_telemetry
+operator: includes
+value_type: set
+value_set:
+  - 'KIBI_TELEMETRY=0'
+  - 'DO_NOT_TRACK=1'
+  - 'kibi telemetry disable'
 claim_key: CLAIM-3B08B01970785EE6
 claim_text: KIBI_TELEMETRY=0, DO_NOT_TRACK=1 and kibi telemetry disable shall each turn telemetry off
 tags:
   - lane:ontology
-  - predicate:conditional-behavior
   - telemetry
   - privacy
 origin:

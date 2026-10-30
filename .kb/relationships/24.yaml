@@ -468,6 +468,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c5ef18792f88
+  - type: specified_by
+    from: REQ-opencode-sync-feedback
+    to: SCEN-NEG-opencode-sync-feedback-SYNC-FAILURE
+    created_at: 2026-10-29T21:24:06.795Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7401b0b684c2
   - type: validates
     from: TEST-proof-search-hints-result-limit
     to: SCEN-capability-search-hints-v1

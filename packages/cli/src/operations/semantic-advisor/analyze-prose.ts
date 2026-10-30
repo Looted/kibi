@@ -45,6 +45,7 @@ import type {
   SemanticInterpretationResult,
   SemanticModelingSuggestion,
   SemanticProposition,
+  SemanticPropositionDimension,
   SemanticPropositionRole,
   SemanticPropositionStatus,
   SemanticShadowCue,
@@ -896,6 +897,30 @@ function interpretationResults(
   return { results, warnings };
 }
 
+// implements REQ-kibi-dimension-gap
+/**
+ * The first quantifier over a collection or cardinality bound in a clause,
+ * and the typed groundings that represent it. The proof ladder's
+ * dimension_unrepresented gap uses the same words (requirement_proof.pl,
+ * claim_quantifier/2): only, any and some mostly scope a condition, so they
+ * are left out.
+ */
+export function claimDimension(
+  text: string,
+): SemanticPropositionDimension | undefined {
+  const match =
+    /\b(no more than|at least|at most|each|every|all|exactly)\b/i.exec(text);
+  if (!match?.[1]) return undefined;
+  const quantifier = match[1].toLowerCase().replaceAll(" ", "_");
+  const bound = ["exactly", "at_least", "at_most", "no_more_than"].includes(
+    quantifier,
+  );
+  return {
+    quantifier,
+    rewrites: bound ? ["bound"] : ["rule", "count", "set"],
+  };
+}
+
 function propositionInventory(
   statement: string,
   clauses: readonly SemanticClause[],
@@ -948,6 +973,8 @@ function propositionInventory(
       reason =
         "No accepted typed interpretation grounds this assertive proposition.";
     }
+    const dimension =
+      role === "normative" ? claimDimension(located.sourceText) : undefined;
     return {
       claim_key: clause.claim_key,
       claim_text: located.sourceText,
@@ -957,6 +984,7 @@ function propositionInventory(
       payload_hash: inputPayloadHash,
       ...(semanticKey ? { semantic_key: semanticKey } : {}),
       ...(reason ? { reason } : {}),
+      ...(dimension ? { dimension } : {}),
     };
   });
 }

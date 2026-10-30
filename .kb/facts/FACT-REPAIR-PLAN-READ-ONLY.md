@@ -9,15 +9,12 @@ tags:
   - requirements
   - repair
   - planning
-fact_kind: predicate
-predicate_namespace: kibi.requirements
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.coverage.requirement
-  - repair_plan_emission
-  - deterministic_read_only_for_returned_gap_requirements
-canonical_key: logical_requirement_rule(kibi.coverage.requirement,repair_plan_emission,deterministic_read_only_for_returned_gap_requirements)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.coverage.repair_plan
+property_key: returned_gap_requirements_without_read_only_repair_plan
+operator: eq
+value_type: int
+value_int: 0
 claim_key: CLAIM-64B7C0764B97AD46
 claim_text: Requirement coverage must emit a deterministic read-only repair plan for every returned requirement with proof gaps
 claim_span_start: 0

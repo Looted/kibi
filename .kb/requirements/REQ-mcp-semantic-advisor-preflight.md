@@ -36,6 +36,8 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+failure_side_waiver: "The claim makes upsert preflight return advisory receipts; advisory output never refuses a write."
+failure_side_waiver_approved_by: Piotr Franczyk
 ---
 
 The MCP server must analyze raw requirement prose and requirement upsert payloads for deterministic semantic modeling signals and return advisory receipts that guide agents toward strict facts, ontology predicates, ambiguity review, or ontology-gap observations before prose is treated as contradiction-checkable knowledge.

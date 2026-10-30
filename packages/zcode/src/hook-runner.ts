@@ -23,7 +23,8 @@ import {
 import {
   appendHookUsageRows,
   editTraces,
-  hookTelemetryEnabled,
+  finishHookTelemetry,
+  hookTracesWanted,
   kbUsageTrace,
   readPackageVersion,
 } from "kibi-agent-core/hook-usage-log";
@@ -255,7 +256,7 @@ function recordToolTelemetry(
   startedAt: Date,
   env: NodeJS.ProcessEnv | undefined,
 ): void {
-  if (!hookTelemetryEnabled(env)) return;
+  if (!hookTracesWanted(env)) return;
   const kbUsage = kbUsageTrace(input.toolName, input.toolInput);
   let traces = kbUsage ? [kbUsage] : [];
   if (!kbUsage && isMutatingTool(input.toolName)) {
@@ -357,189 +358,205 @@ export async function runHook(
 
   const session: DecisionSession = { stateDir, sessionId: input.sessionId };
 
-  switch (input.event) {
-    case "SessionStart":
-      return contextResult(input.event, SESSION_START_CONTEXT);
+  try {
+    switch (input.event) {
+      case "SessionStart":
+        return contextResult(input.event, SESSION_START_CONTEXT);
 
-    // implements REQ-agent-hosts-decision-guard
-    case "UserPromptSubmit": {
-      const rule = input.prompt
-        ? recordRequest(session, input.prompt)
-        : undefined;
-      return rule === undefined
-        ? defaultResult()
-        : contextResult(input.event, rulePromptNote(rule));
-    }
-
-    case "PreToolUse": {
-      // Name the session's workspace on every Kibi MCP call so the launcher
-      // answers from it, also after the session moves into a git worktree.
-      const stamped = stampKibiWorkspace(
-        input.toolName,
-        input.toolInput,
-        workspace.root,
-      );
-      if (stamped) {
-        return {
-          continue: true,
-          hookSpecificOutput: {
-            hookEventName: "PreToolUse",
-            updatedInput: stamped,
-          },
-        };
-      }
-      const explicitPaths = extractExplicitPathFields(input.toolInput);
-      const hasDirectKbEdit =
-        isEditLikeTool(input.toolName) &&
-        explicitPaths.some((rawPath) => {
-          const canonical = canonicalizeWorkspacePath(workspace.root, {
-            eventCwd: input.cwd,
-            rawPath,
-          });
-          return (
-            canonical !== undefined &&
-            isDirectKbPath(canonical.workspaceRelative)
-          );
-        });
-
-      if (hasDirectKbEdit) {
-        return contextResult(input.event, DIRECT_KB_EDIT_WARNING);
-      }
-
-      let knowledge: string | undefined;
-      try {
-        knowledge = isMutatingTool(input.toolName)
-          ? preEditContext(
-              workspace.root,
-              stateDir,
-              input,
-              environment.env ?? process.env,
-            )
+      // implements REQ-agent-hosts-decision-guard
+      case "UserPromptSubmit": {
+        const rule = input.prompt
+          ? recordRequest(session, input.prompt)
           : undefined;
-      } catch {
-        // Requirement context is advisory; an unreadable manifest or file
-        // leaves the edit without it rather than reporting a hook error.
-        knowledge = undefined;
-      }
-      if (knowledge) {
-        return contextResult(input.event, knowledge);
+        return rule === undefined
+          ? defaultResult()
+          : contextResult(input.event, rulePromptNote(rule));
       }
 
-      return defaultResult();
-    }
-
-    case "PostToolUse": {
-      try {
-        recordToolTelemetry(
+      case "PreToolUse": {
+        // Name the session's workspace on every Kibi MCP call so the launcher
+        // answers from it, also after the session moves into a git worktree.
+        const stamped = stampKibiWorkspace(
+          input.toolName,
+          input.toolInput,
           workspace.root,
-          stateDir,
-          input,
-          startedAt,
-          environment.env,
         );
-      } catch {
-        // Telemetry is best effort and must never change the hook's output.
-      }
-      const kbToolCall = extractKbMcpToolCall(input.toolName, input.toolInput);
-      if (kbToolCall) {
-        recordKbMcpTool(stateDir, kbToolCall.toolName, {
-          impactCheckRun: kbToolCall.impactCheckRun,
-          // kb_check sourceFiles follow the repo-relative contract: normalize
-          // them against the workspace root so a check acknowledges exactly
-          // the canonical paths dirty tracking recorded.
-          sourceFiles: canonicalizeCheckSourceFiles(
-            workspace.root,
-            kbToolCall.sourceFiles,
-          ),
-        });
+        if (stamped) {
+          return {
+            continue: true,
+            hookSpecificOutput: {
+              hookEventName: "PreToolUse",
+              updatedInput: stamped,
+            },
+          };
+        }
+        const explicitPaths = extractExplicitPathFields(input.toolInput);
+        const hasDirectKbEdit =
+          isEditLikeTool(input.toolName) &&
+          explicitPaths.some((rawPath) => {
+            const canonical = canonicalizeWorkspacePath(workspace.root, {
+              eventCwd: input.cwd,
+              rawPath,
+            });
+            return (
+              canonical !== undefined &&
+              isDirectKbPath(canonical.workspaceRelative)
+            );
+          });
+
+        if (hasDirectKbEdit) {
+          return contextResult(input.event, DIRECT_KB_EDIT_WARNING);
+        }
+
+        let knowledge: string | undefined;
+        try {
+          knowledge = isMutatingTool(input.toolName)
+            ? preEditContext(
+                workspace.root,
+                stateDir,
+                input,
+                environment.env ?? process.env,
+              )
+            : undefined;
+        } catch {
+          // Requirement context is advisory; an unreadable manifest or file
+          // leaves the edit without it rather than reporting a hook error.
+          knowledge = undefined;
+        }
+        if (knowledge) {
+          return contextResult(input.event, knowledge);
+        }
+
+        return defaultResult();
       }
 
-      // Only file-mutating tool events create dirty paths; a path argument
-      // inside a read-only tool call is not evidence of a change.
-      if (isMutatingTool(input.toolName)) {
-        const dirtyPaths = extractMutatedWorkspacePaths(
-          workspace.root,
-          input.cwd,
+      case "PostToolUse": {
+        try {
+          recordToolTelemetry(
+            workspace.root,
+            stateDir,
+            input,
+            startedAt,
+            environment.env,
+          );
+        } catch {
+          // Telemetry is best effort and must never change the hook's output.
+        }
+        const kbToolCall = extractKbMcpToolCall(
+          input.toolName,
           input.toolInput,
         );
+        if (kbToolCall) {
+          recordKbMcpTool(stateDir, kbToolCall.toolName, {
+            impactCheckRun: kbToolCall.impactCheckRun,
+            // kb_check sourceFiles follow the repo-relative contract: normalize
+            // them against the workspace root so a check acknowledges exactly
+            // the canonical paths dirty tracking recorded.
+            sourceFiles: canonicalizeCheckSourceFiles(
+              workspace.root,
+              kbToolCall.sourceFiles,
+            ),
+          });
+        }
 
-        if (dirtyPaths.length > 0) {
-          addDirtyPaths(stateDir, dirtyPaths);
+        // Only file-mutating tool events create dirty paths; a path argument
+        // inside a read-only tool call is not evidence of a change.
+        if (isMutatingTool(input.toolName)) {
+          const dirtyPaths = extractMutatedWorkspacePaths(
+            workspace.root,
+            input.cwd,
+            input.toolInput,
+          );
+
+          if (dirtyPaths.length > 0) {
+            addDirtyPaths(stateDir, dirtyPaths);
+          }
+          if (dirtyPaths.some(isSourceImpactRelevantPath)) {
+            markDecisionFlag(session, "source-edited");
+          }
         }
-        if (dirtyPaths.some(isSourceImpactRelevantPath)) {
-          markDecisionFlag(session, "source-edited");
+        if (
+          kbToolCall?.toolName === "kb_upsert" ||
+          kbUsageTrace(input.toolName, input.toolInput)?.kbOperation ===
+            "kb_upsert"
+        ) {
+          markDecisionFlag(session, "kb-recorded");
+          // implements REQ-kibi-signoff-views
+          if (isRequirementUpsert(input.toolInput)) {
+            markDecisionFlag(session, "requirement-recorded");
+          }
         }
+
+        return defaultResult();
       }
-      if (
-        kbToolCall?.toolName === "kb_upsert" ||
-        kbUsageTrace(input.toolName, input.toolInput)?.kbOperation ===
-          "kb_upsert"
-      ) {
-        markDecisionFlag(session, "kb-recorded");
-        // implements REQ-kibi-signoff-views
-        if (isRequirementUpsert(input.toolInput)) {
-          markDecisionFlag(session, "requirement-recorded");
-        }
-      }
 
-      return defaultResult();
-    }
-
-    case "Stop": {
-      const state = loadHookState(stateDir);
-      const uncheckedSourcePaths = state.dirtyPaths
-        .filter(isSourceImpactRelevantPath)
-        .filter((sourcePath) => !state.impactCheckedPaths.includes(sourcePath));
-      // implements REQ-agent-hosts-decision-guard
-      // Source changed and nothing was recorded: ask once per session for
-      // the decision behind the change, with any impact-check reminder.
-      const capture = claimCaptureReminder(session)
-        ? captureReminder(hasDecisionFlag(session, "rule-prompt"))
-        : undefined;
-      // implements REQ-kibi-signoff-views
-      // Requirements were written without a signoff view since: ask once.
-      const signoff =
-        capture === undefined && claimSignoffReminder(session, workspace.root)
-          ? signoffReminder()
+      case "Stop": {
+        const state = loadHookState(stateDir);
+        const uncheckedSourcePaths = state.dirtyPaths
+          .filter(isSourceImpactRelevantPath)
+          .filter(
+            (sourcePath) => !state.impactCheckedPaths.includes(sourcePath),
+          );
+        // implements REQ-agent-hosts-decision-guard
+        // Source changed and nothing was recorded: ask once per session for
+        // the decision behind the change, with any impact-check reminder.
+        const capture = claimCaptureReminder(session)
+          ? captureReminder(hasDecisionFlag(session, "rule-prompt"))
           : undefined;
-      if (
-        capture !== undefined ||
-        signoff !== undefined ||
-        uncheckedSourcePaths.length > 0
-      ) {
-        clearDirtyPaths(stateDir);
-        return contextResult(
-          input.event,
-          [
-            capture,
-            signoff,
-            uncheckedSourcePaths.length > 0
-              ? impactCheckReminder(uncheckedSourcePaths)
-              : undefined,
-          ]
-            .filter((part): part is string => part !== undefined)
-            .join("\n"),
+        // implements REQ-kibi-signoff-views
+        // Requirements were written without a signoff view since: ask once.
+        const signoff =
+          capture === undefined && claimSignoffReminder(session, workspace.root)
+            ? signoffReminder()
+            : undefined;
+        if (
+          capture !== undefined ||
+          signoff !== undefined ||
+          uncheckedSourcePaths.length > 0
+        ) {
+          clearDirtyPaths(stateDir);
+          return contextResult(
+            input.event,
+            [
+              capture,
+              signoff,
+              uncheckedSourcePaths.length > 0
+                ? impactCheckReminder(uncheckedSourcePaths)
+                : undefined,
+            ]
+              .filter((part): part is string => part !== undefined)
+              .join("\n"),
+          );
+        }
+
+        const freshnessPaths = state.dirtyPaths.filter(
+          (dirtyPath) => !isSourceImpactRelevantPath(dirtyPath),
         );
+
+        if (freshnessPaths.length > 0) {
+          clearDirtyPaths(stateDir);
+          return contextResult(input.event, freshnessReminder(freshnessPaths));
+        }
+
+        if (state.dirtyPaths.length > 0 || state.kbCheckRun) {
+          clearDirtyPaths(stateDir);
+        }
+
+        return defaultResult();
       }
 
-      const freshnessPaths = state.dirtyPaths.filter(
-        (dirtyPath) => !isSourceImpactRelevantPath(dirtyPath),
-      );
-
-      if (freshnessPaths.length > 0) {
-        clearDirtyPaths(stateDir);
-        return contextResult(input.event, freshnessReminder(freshnessPaths));
-      }
-
-      if (state.dirtyPaths.length > 0 || state.kbCheckRun) {
-        clearDirtyPaths(stateDir);
-      }
-
-      return defaultResult();
+      default:
+        return defaultResult();
     }
-
-    default:
-      return defaultResult();
+  } finally {
+    await finishHookTelemetry(
+      {
+        event: input.event,
+        workspaceRoot: workspace.root,
+        sessionId: input.sessionId,
+      },
+      environment.env ?? process.env,
+    );
   }
 }
 

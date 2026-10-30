@@ -433,6 +433,46 @@ export async function packedTypedRelationshipRoundTrip(
   );
 }
 
+// implements REQ-005
+export async function packedUntypedRelationshipRejected(
+  sandbox: TestSandbox,
+): Promise<void> {
+  const untyped = {
+    type: "req",
+    id: "REQ-SCHEMA-ROUNDTRIP",
+    properties: { title: "Schema round-trip fixture", status: "open" },
+    relationships: [
+      {
+        type: "blesses",
+        from: "REQ-SCHEMA-ROUNDTRIP",
+        to: "SCEN-SCHEMA-ROUNDTRIP",
+      },
+    ],
+  };
+  const rejected = await runStdinRoute(sandbox, "upsert", untyped);
+  assert.notStrictEqual(rejected.exitCode, 0, rejected.stdout);
+  const envelope = parseEnvelope(rejected.stdout);
+  assert.strictEqual(envelope.status, "error");
+  const error = envelope.error as JsonRecord | undefined;
+  assert.strictEqual(error?.code, "VALIDATION_FAILED");
+  assert.match(String(error?.message), /relationships\/0\/type/);
+  assert.match(String(error?.message), /specified_by/);
+
+  const query = await kibi(sandbox, [
+    "query",
+    "--relationships",
+    "REQ-SCHEMA-ROUNDTRIP",
+    "--format",
+    "json",
+  ]);
+  assert.strictEqual(query.exitCode, 0, query.stderr || query.stdout);
+  const stored = JSON.parse(query.stdout) as ExpectedRelationship[];
+  assert.ok(
+    !stored.some((relationship) => relationship.type === "blesses"),
+    "an untyped relationship must not be stored",
+  );
+}
+
 if (RUN_NODE_TEST_SUITE) {
   describe("E2E: entity and relationship schema round-trip", () => {
     let tarballs: Tarballs;
@@ -470,6 +510,18 @@ if (RUN_NODE_TEST_SUITE) {
         }
         await packedEightEntitySchemaRoundTrip(sandbox);
         await packedTypedRelationshipRoundTrip(sandbox);
+      },
+    );
+
+    it(
+      "rejects a relationship type outside the typed vocabulary",
+      { timeout: 120_000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+        await packedUntypedRelationshipRejected(sandbox);
       },
     );
   });

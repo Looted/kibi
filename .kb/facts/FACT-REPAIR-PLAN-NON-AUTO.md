@@ -9,15 +9,12 @@ tags:
   - requirements
   - repair
   - safety
-fact_kind: predicate
-predicate_namespace: kibi.requirements
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.coverage.repair_plan
-  - application_policy
-  - reviewed_non_auto_sequential_validated
-canonical_key: logical_requirement_rule(kibi.coverage.repair_plan,application_policy,reviewed_non_auto_sequential_validated)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.coverage.repair_plan
+property_key: batches_auto_applicable_or_missing_mutation_safeguards
+operator: eq
+value_type: int
+value_int: 0
 claim_key: CLAIM-CCE119E4B7EFD7D0
 claim_text: Every batch must remain non-auto-applicable and require query-before-mutation, endpoint-before-relationship creation, validation before writes, sequential upserts, and coverage rechecking
 claim_span_start: 489

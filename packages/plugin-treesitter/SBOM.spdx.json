@@ -2,8 +2,8 @@
   "spdxVersion": "SPDX-2.3",
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
-  "name": "kibi-plugin-treesitter-2.0.2",
-  "documentNamespace": "https://github.com/Looted/kibi/spdx/plugin-treesitter/2.0.2",
+  "name": "kibi-plugin-treesitter-2.1.0",
+  "documentNamespace": "https://github.com/Looted/kibi/spdx/plugin-treesitter/2.1.0",
   "creationInfo": {
     "creators": ["Tool: Kibi qualification record"],
     "created": "2026-09-25T00:00:00Z"
@@ -12,7 +12,7 @@
     {
       "name": "kibi-plugin-treesitter",
       "SPDXID": "SPDXRef-KibiPluginTreeSitter",
-      "versionInfo": "2.0.2",
+      "versionInfo": "2.1.0",
       "downloadLocation": "https://github.com/Looted/kibi/tree/develop/packages/plugin-treesitter",
       "filesAnalyzed": false,
       "licenseConcluded": "AGPL-3.0-or-later",
@@ -22,7 +22,7 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/kibi-plugin-treesitter@2.0.2"
+          "referenceLocator": "pkg:npm/kibi-plugin-treesitter@2.1.0"
         }
       ]
     },
@@ -241,6 +241,24 @@
           "referenceLocator": "pkg:npm/@tree-sitter-grammars/tree-sitter-hcl@1.2.0"
         }
       ]
+    },
+    {
+      "name": "tree-sitter-swi-prolog",
+      "SPDXID": "SPDXRef-treesitterswiprolog-010",
+      "versionInfo": "0.1.0",
+      "downloadLocation": "https://registry.npmjs.org/tree-sitter-swi-prolog/-/tree-sitter-swi-prolog-0.1.0.tgz",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION",
+      "comment": "Only the pinned SWI-Prolog WASM from the npm tarball is vendored; the query is Kibi-authored.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/tree-sitter-swi-prolog@0.1.0"
+        }
+      ]
     }
   ],
   "relationships": [
@@ -308,6 +326,11 @@
       "spdxElementId": "SPDXRef-KibiPluginTreeSitter",
       "relationshipType": "CONTAINS",
       "relatedSpdxElement": "SPDXRef-treesitterhcl-120"
+    },
+    {
+      "spdxElementId": "SPDXRef-KibiPluginTreeSitter",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-treesitterswiprolog-010"
     }
   ]
 }

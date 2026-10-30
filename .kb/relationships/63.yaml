@@ -248,3 +248,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-31703d02b424
+  - type: assumes
+    from: SCEN-NEG-kibi-evidence-levels-overstated-level
+    to: FACT-NEG-kibi-evidence-levels-overstated-level
+    created_at: 2026-10-29T21:12:51.970Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4bf3d5919b2
+  - type: verified_by
+    from: SCEN-NEG-kibi-evidence-levels-overstated-level
+    to: TEST-kibi-evidence-levels
+    created_at: 2026-10-29T21:12:52.086Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da7deb51b41b
+  - type: implements
+    from: SYM-cli-case-preview
+    to: REQ-kibi-case-coverage
+    created_at: 2026-10-30T14:06:39.861Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-346e6860999e
+  - type: covered_by
+    from: SYM-cli-case-preview
+    to: TEST-kibi-case-coverage
+    created_at: 2026-10-30T14:06:39.886Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de8c34c00989

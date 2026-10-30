@@ -323,6 +323,35 @@ proof_exempt: false
     expect(nonExempt.entity.proof_exempt).toBe(false);
   });
 
+  test("carries a failure-side waiver and refuses an empty one", () => {
+    const result = extractFromMarkdownString(
+      `---
+id: REQ-WAIVED
+title: Plugin loads in the host
+type: req
+failure_side_waiver: The plugin only has to load; there is no input to refuse.
+failure_side_waiver_approved_by: Release owner
+---`,
+      "/tmp/requirements/REQ-WAIVED.md",
+    );
+    expect(result.entity.failure_side_waiver).toBe(
+      "The plugin only has to load; there is no input to refuse.",
+    );
+    expect(result.entity.failure_side_waiver_approved_by).toBe("Release owner");
+
+    expect(() =>
+      extractFromMarkdownString(
+        `---
+id: REQ-EMPTY-WAIVER
+title: Empty waiver
+type: req
+failure_side_waiver: "  "
+---`,
+        "/tmp/requirements/REQ-EMPTY-WAIVER.md",
+      ),
+    ).toThrow(/Invalid failure_side_waiver/);
+  });
+
   test("rejects non-boolean proof_exempt flags", () => {
     expect(() =>
       extractFromMarkdownString(

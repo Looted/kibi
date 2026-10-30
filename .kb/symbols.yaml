@@ -3206,6 +3206,8 @@ symbols:
         target: TEST-mcp-suggest-predicates
       - type: implements
         target: REQ-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-model-predicates-closed-vocabularies-exhaustive
   - id: SYM-canonicalSkillsDir
     title: canonicalSkillsDir
     sourceFile: scripts/sync-agent-skills.ts
@@ -12220,6 +12222,8 @@ symbols:
         target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-entity-origin-exhaustive
   - id: SYM-mutation-relationships-schema
     title: RELATIONSHIPS_SCHEMA
     status: active
@@ -26520,7 +26524,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-kibi-case-coverage
+      - type: covered_by
         target: TEST-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-case-coverage
       - type: implements
         target: REQ-kibi-dependency-ordered-repair-plan
   - id: SYM-legacy-migration-plan-build
@@ -30211,6 +30219,8 @@ symbols:
         target: REQ-cli-canonical-kb-lanes
       - type: implements
         target: REQ-cli-init-canonical
+      - type: covered_by
+        target: TEST-cli-migrate-entity-type-backfill-exhaustive
   - id: SYM-canonical-LEGACY_CONFIG_PATH_KEYS
     title: LEGACY_CONFIG_PATH_KEYS
     status: active
@@ -57943,6 +57953,10 @@ symbols:
         target: REQ-kibi-evidence-level-vocabulary
       - type: implements
         target: REQ-kibi-evidence-levels
+      - type: covered_by
+        target: TEST-kibi-evidence-levels-exhaustive
+      - type: covered_by
+        target: TEST-kibi-evidence-floors-exhaustive
   - id: SYM-cli-check-code-certificate
     title: checkCodeCertificate
     status: active
@@ -64611,158 +64625,6 @@ symbols:
         target: TEST-kibi-anonymous-usage-telemetry-cli
       - type: implements
         target: REQ-kibi-anonymous-usage-telemetry
-  - id: SYM-test-prolog-mutation-lane
-    title: prolog-mutation-runner.test.ts
-    status: active
-    sourceFile: packages/core/tests/prolog-mutation-runner.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-10-29T16:12:50.973Z
-    relationships:
-      - type: executable_for
-        target: TEST-prolog-mutation-lane
-  - id: SYM-prolog-mutation-use-mutalog
-    title: use_mutalog
-    status: active
-    sourceFile: scripts/run-prolog-mutation.pl
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-29T16:12:55.961Z
-    relationships:
-      - type: covered_by
-        target: TEST-prolog-mutation-lane
-      - type: implements
-        target: REQ-prolog-mutation-lane
-  - id: SYM-prolog-mutation-main
-    title: main
-    status: active
-    sourceFile: scripts/run-prolog-mutation.pl
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-29T16:12:59.189Z
-    relationships:
-      - type: covered_by
-        target: TEST-prolog-mutation-lane
-      - type: implements
-        target: REQ-prolog-mutation-lane
-  - id: SYM-test-capability-search-hints-v1
-    title: search-hints.test.ts
-    status: active
-    sourceFile: packages/plugin-sdk/tests/search-hints.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-10-29T19:18:52.884Z
-    relationships:
-      - type: executable_for
-        target: TEST-capability-search-hints-v1
-  - id: SYM-test-kibi-plugin-search-hints
-    title: plugin.test.ts
-    status: active
-    sourceFile: packages/plugin-search-hints/tests/plugin.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-10-29T19:18:58.609Z
-    relationships:
-      - type: executable_for
-        target: TEST-kibi-plugin-search-hints
-  - id: SYM-test-kibi-search-hints-host
-    title: search-hints.test.ts
-    status: active
-    sourceFile: packages/cli/tests/search-hints.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-10-29T19:19:04.577Z
-    relationships:
-      - type: executable_for
-        target: TEST-kibi-search-hints-host
-  - id: SYM-build-search-hints
-    title: buildSearchHints
-    status: active
-    sourceFile: packages/cli/src/search-hints.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-29T19:22:26.032Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-search-hints-host
-      - type: implements
-        target: REQ-kibi-search-hints-host
-  - id: SYM-compose-search-hints
-    title: composeSearchHints
-    status: active
-    sourceFile: packages/cli/src/plugins/compose-search-hints.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-29T19:22:33.597Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-search-hints-host
-      - type: implements
-        target: REQ-kibi-search-hints-host
-  - id: SYM-rank-by-meaning
-    title: rankByMeaning
-    status: active
-    sourceFile: packages/plugin-search-hints/src/index.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-29T19:22:40.838Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-plugin-search-hints
-      - type: implements
-        target: REQ-kibi-plugin-search-hints
-  - id: SYM-search-hints-load-static-model
-    title: loadStaticModel
-    status: active
-    sourceFile: packages/plugin-search-hints/src/model.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-29T19:22:47.111Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-plugin-search-hints
-      - type: implements
-        target: REQ-kibi-plugin-search-hints
-  - id: SYM-search-hints-trigger
-    title: searchHintsTrigger
-    status: active
-    sourceFile: packages/cli/src/search-hints.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-29T19:22:53.400Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-search-hints-host
-      - type: implements
-        target: REQ-kibi-search-hints-host
-  - id: SYM-validate-search-hints-result
-    title: validateSearchHintsResult
-    status: active
-    sourceFile: packages/plugin-sdk/src/validate-search-hints.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-29T19:23:01.053Z
-    relationships:
-      - type: covered_by
-        target: TEST-capability-search-hints-v1
-      - type: implements
-        target: REQ-capability-search-hints-v1
   - id: SYM-const-default-telemetry-host
     status: active
     title: DEFAULT_TELEMETRY_HOST
@@ -65464,6 +65326,44 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-vscode-focus-command
+  - id: SYM-test-prolog-mutation-lane
+    title: prolog-mutation-runner.test.ts
+    status: active
+    sourceFile: packages/core/tests/prolog-mutation-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:12:50.973Z
+    relationships:
+      - type: executable_for
+        target: TEST-prolog-mutation-lane
+  - id: SYM-prolog-mutation-use-mutalog
+    title: use_mutalog
+    status: active
+    sourceFile: scripts/run-prolog-mutation.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:12:55.961Z
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-mutation-lane
+      - type: implements
+        target: REQ-prolog-mutation-lane
+  - id: SYM-prolog-mutation-main
+    title: main
+    status: active
+    sourceFile: scripts/run-prolog-mutation.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T16:12:59.189Z
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-mutation-lane
+      - type: implements
+        target: REQ-prolog-mutation-lane
   - id: SYM-hook-managers-hook-manager-names
     title: HOOK_MANAGER_NAMES
     status: active
@@ -65619,6 +65519,210 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-git-hook-manager-integration
+  - id: SYM-core-negative-path-stage
+    title: negative_path_stage
+    status: active
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T22:40:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-happy-path-gap
+      - type: implements
+        target: REQ-kibi-happy-path-gap
+  - id: SYM-core-failure-side-waiver
+    title: failure_side_waiver
+    status: active
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T22:40:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-happy-path-gap
+      - type: implements
+        target: REQ-kibi-happy-path-gap
+  - id: SYM-core-negative-scenario-witness
+    title: negative_scenario_witness
+    status: active
+    sourceFile: packages/core/src/checks.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T22:40:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-happy-path-gap
+      - type: implements
+        target: REQ-kibi-happy-path-gap
+  - id: SYM-core-check-scenario-outcome-mismatch
+    title: check_scenario_outcome_mismatch
+    status: active
+    sourceFile: packages/core/src/checks.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T22:40:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-happy-path-gap
+      - type: implements
+        target: REQ-kibi-happy-path-gap
+  - id: SYM-core-opposing-assumption
+    title: opposing_assumption
+    status: active
+    sourceFile: packages/core/src/checks.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T22:40:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-happy-path-gap
+      - type: implements
+        target: REQ-kibi-happy-path-gap
+  - id: SYM-kibi-happy-path-gap-verifier
+    title: Happy-path gap verifier
+    status: active
+    sourceFile: packages/cli/tests/consumer/happy-path-gap.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T22:40:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-happy-path-gap
+  - id: SYM-cli-proof-explain-project-requirement
+    title: projectRequirementExplain
+    status: active
+    sourceFile: packages/cli/src/operations/proof/explain.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T22:40:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-happy-path-gap
+      - type: implements
+        target: REQ-kibi-happy-path-gap
+  - id: SYM-test-capability-search-hints-v1
+    title: search-hints.test.ts
+    status: active
+    sourceFile: packages/plugin-sdk/tests/search-hints.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T19:18:52.884Z
+    relationships:
+      - type: executable_for
+        target: TEST-capability-search-hints-v1
+  - id: SYM-test-kibi-plugin-search-hints
+    title: plugin.test.ts
+    status: active
+    sourceFile: packages/plugin-search-hints/tests/plugin.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T19:18:58.609Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-plugin-search-hints
+  - id: SYM-test-kibi-search-hints-host
+    title: search-hints.test.ts
+    status: active
+    sourceFile: packages/cli/tests/search-hints.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T19:19:04.577Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-search-hints-host
+  - id: SYM-build-search-hints
+    title: buildSearchHints
+    status: active
+    sourceFile: packages/cli/src/search-hints.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T19:22:26.032Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: implements
+        target: REQ-kibi-search-hints-host
+  - id: SYM-compose-search-hints
+    title: composeSearchHints
+    status: active
+    sourceFile: packages/cli/src/plugins/compose-search-hints.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T19:22:33.597Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: implements
+        target: REQ-kibi-search-hints-host
+  - id: SYM-rank-by-meaning
+    title: rankByMeaning
+    status: active
+    sourceFile: packages/plugin-search-hints/src/index.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T19:22:40.838Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-plugin-search-hints
+      - type: implements
+        target: REQ-kibi-plugin-search-hints
+  - id: SYM-search-hints-load-static-model
+    title: loadStaticModel
+    status: active
+    sourceFile: packages/plugin-search-hints/src/model.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T19:22:47.111Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-plugin-search-hints
+      - type: implements
+        target: REQ-kibi-plugin-search-hints
+  - id: SYM-search-hints-trigger
+    title: searchHintsTrigger
+    status: active
+    sourceFile: packages/cli/src/search-hints.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T19:22:53.400Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: implements
+        target: REQ-kibi-search-hints-host
+  - id: SYM-validate-search-hints-result
+    title: validateSearchHintsResult
+    status: active
+    sourceFile: packages/plugin-sdk/src/validate-search-hints.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-29T19:23:01.053Z
+    relationships:
+      - type: covered_by
+        target: TEST-capability-search-hints-v1
+      - type: implements
+        target: REQ-capability-search-hints-v1
   - id: SYM-search-hint-weak-score
     title: SEARCH_HINT_WEAK_SCORE
     status: active
@@ -65743,3 +65847,131 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-search-hints-offer-requirements
+  - id: SYM-core-dimension-stage
+    title: dimension_stage
+    status: active
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T12:10:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-dimension-gap
+      - type: implements
+        target: REQ-kibi-dimension-gap
+  - id: SYM-core-claim-quantifier
+    title: claim_quantifier
+    status: active
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T12:10:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-dimension-gap
+      - type: implements
+        target: REQ-kibi-dimension-gap
+  - id: SYM-core-dimension-waiver
+    title: dimension_waiver
+    status: active
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T12:10:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-dimension-gap
+      - type: implements
+        target: REQ-kibi-dimension-gap
+  - id: SYM-cli-advisor-claim-dimension
+    title: claimDimension
+    status: active
+    sourceFile: packages/cli/src/operations/semantic-advisor/analyze-prose.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T12:10:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-dimension-gap
+      - type: implements
+        target: REQ-kibi-dimension-gap
+  - id: SYM-kibi-dimension-gap-verifier
+    title: Dimension gap verifier
+    status: active
+    sourceFile: packages/cli/tests/consumer/dimension-gap.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T12:10:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-dimension-gap
+  - id: SYM-kibi-case-coverage-verifier
+    title: Case coverage verifier
+    status: active
+    sourceFile: packages/cli/tests/consumer/case-coverage.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T15:00:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-case-coverage
+  - id: SYM-core-case-generator
+    title: fact_cases
+    status: active
+    sourceFile: packages/core/src/cases.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T15:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-case-coverage
+      - type: implements
+        target: REQ-kibi-case-coverage
+  - id: SYM-core-cases-stage
+    title: cases_stage
+    status: active
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T15:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-case-coverage
+      - type: implements
+        target: REQ-kibi-case-coverage
+  - id: SYM-core-case-waiver
+    title: fact_case_waiver
+    status: active
+    sourceFile: packages/core/src/cases.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T15:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-case-coverage
+      - type: implements
+        target: REQ-kibi-case-coverage
+  - id: SYM-cli-case-preview
+    title: previewCases
+    status: active
+    sourceFile: packages/cli/src/operations/semantic-advisor/case-preview.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T15:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-case-coverage
+      - type: implements
+        target: REQ-kibi-case-coverage

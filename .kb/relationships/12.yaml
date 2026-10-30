@@ -342,3 +342,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9a5f7e116cfd
+  - type: specified_by
+    from: REQ-kibi-logical-requirement-coverage
+    to: SCEN-NEG-kibi-logical-requirement-coverage-UNGROUNDED-CLAUSE
+    created_at: 2026-10-29T20:54:57.773Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e465fdc4bed
+  - type: constrains
+    from: REQ-kibi-logical-requirement-coverage
+    to: FACT-SUBJECT-kibi-logic-coverage
+    created_at: 2026-10-30T12:24:43.994Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2dd70d60eb43
+  - type: constrains
+    from: REQ-kibi-logical-requirement-coverage
+    to: FACT-SUBJECT-C8D6ADF7EFA7EDF0
+    created_at: 2026-10-30T12:24:44.076Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4007c29014fa
+  - type: assumes
+    from: SCEN-CASE-model-predicates-grounding-aware-v2-CLAIM-LEFT-UNGROUNDED
+    to: FACT-CASE-model-predicates-grounding-aware-v2-CLAIM-LEFT-UNGROUNDED
+    created_at: 2026-10-30T15:00:22.792Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28a2888ac00a
+  - type: verified_by
+    from: SCEN-CASE-model-predicates-grounding-aware-v2-CLAIM-LEFT-UNGROUNDED
+    to: TEST-model-predicates-grounding-aware
+    created_at: 2026-10-30T15:00:22.861Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f003a21c5ba5
+  - type: assumes
+    from: SCEN-CASE-bootstrap-subject-fact-shared-SHARED-KEY-UNREPORTED
+    to: FACT-CASE-bootstrap-subject-fact-shared-SHARED-KEY-UNREPORTED
+    created_at: 2026-10-30T14:56:51.951Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c28225568d5
+  - type: verified_by
+    from: SCEN-CASE-bootstrap-subject-fact-shared-SHARED-KEY-UNREPORTED
+    to: TEST-bootstrap-subject-fact-shared
+    created_at: 2026-10-30T14:56:52.051Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f2abeb5e4085
+  - type: specified_by
+    from: REQ-kibi-logical-requirement-coverage
+    to: SCEN-CASE-kibi-logical-requirement-coverage-unreported-manifest-debt
+    created_at: 2026-10-30T15:01:17.669Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8829dc34a5d
+  - type: specified_by
+    from: REQ-kibi-logical-requirement-coverage
+    to: SCEN-CASE-kibi-logical-requirement-coverage-staged-predicate-fields
+    created_at: 2026-10-30T15:01:22.599Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3f812e14101

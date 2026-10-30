@@ -300,3 +300,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5d9c2c463ed0
+  - type: specified_by
+    from: REQ-kibi-uncompiled-source-semantic-baseline
+    to: SCEN-NEG-kibi-uncompiled-source-semantic-baseline-NEW-AUTHORING-CLOSE
+    created_at: 2026-10-29T21:19:02.321Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe03265c4540
+  - type: assumes
+    from: SCEN-CASE-claude-decision-capture-nudges-ASKED-TWICE
+    to: FACT-CASE-claude-decision-capture-nudges-ASKED-TWICE
+    created_at: 2026-10-30T14:56:53.966Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da3478dbd397
+  - type: verified_by
+    from: SCEN-CASE-claude-decision-capture-nudges-ASKED-TWICE
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-10-30T14:56:54.140Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d01ce7409c4

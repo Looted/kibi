@@ -37,6 +37,8 @@ origin:
   recorded_at: '2026-10-08T08:34:10.426Z'
 id: REQ-model-predicates-plan-roundtrip
 type: req
+failure_side_waiver: "The claims say returned plans apply unchanged through kb_upsert and kb_delete; plan shape is output, with no input to refuse."
+failure_side_waiver_approved_by: Piotr Franczyk
 ---
 Predicate modeling must return an ontology gap observation plan that kb_upsert accepts unchanged. Predicate modeling must return grounding replacement steps that kb_upsert and kb_delete accept unchanged in their stated order.
 

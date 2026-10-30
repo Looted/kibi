@@ -247,5 +247,72 @@ if (RUN_NODE_TEST_SUITE) {
         );
       },
     );
+
+    it(
+      "keeps otherwise complete evidence older than seven days insufficient",
+      { timeout: 300_000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+        const eightDaysAgo = Date.now() - 8 * 24 * 60 * 60_000;
+        writeUsageLog(sandbox, passingEvents(eightDaysAgo));
+
+        const gated = await kibi(sandbox, [
+          "usage-metrics",
+          "--format",
+          "json",
+          "--require-acceptance",
+        ]);
+        assert.strictEqual(gated.exitCode, 1, `${gated.stdout}${gated.stderr}`);
+        const report = JSON.parse(gated.stdout) as AcceptanceResult & {
+          readonly acceptance: { readonly diagnostics: readonly string[] };
+        };
+        assert.strictEqual(
+          report.acceptance.version,
+          "kibi.telemetry-acceptance.v1",
+        );
+        assert.strictEqual(report.acceptance.status, "insufficient_evidence");
+        assert.ok(report.acceptance.diagnostics.includes("usage_log_stale"));
+      },
+    );
+
+    it(
+      "does not credit a preflight more than one hour before the upsert",
+      { timeout: 300_000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+        const now = Date.now();
+        const events = passingEvents(now);
+        const preflightIndex = events.findIndex(
+          (event) => event.tool === "kb_validate_upsert",
+        );
+        const [preflight] = events.splice(preflightIndex, 1);
+        // The upsert runs 16 minutes before now: this preflight is 61
+        // minutes older than it.
+        events.unshift({ ...preflight, timestamp: atMinutesBefore(now, 77) });
+        writeUsageLog(sandbox, events);
+
+        const gated = await kibi(sandbox, [
+          "usage-metrics",
+          "--format",
+          "json",
+          "--require-acceptance",
+        ]);
+        assert.strictEqual(gated.exitCode, 1, `${gated.stdout}${gated.stderr}`);
+        const report = JSON.parse(gated.stdout) as AcceptanceResult;
+        assertAcceptanceStatus(report, "failed");
+        assert.strictEqual(
+          report.acceptance.metrics.find(
+            (metric) => metric.id === "validation_before_upsert",
+          )?.status,
+          "failed",
+        );
+      },
+    );
   });
 }

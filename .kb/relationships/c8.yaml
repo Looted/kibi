@@ -398,3 +398,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-283eefe248b4
+  - type: assumes
+    from: SCEN-NEG-kibi-plugin-search-hints-STALE-VECTOR
+    to: FACT-NEG-kibi-plugin-search-hints-STALE-VECTOR
+    created_at: 2026-10-30T08:42:57.971Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8b2f8a6cda5
+  - type: verified_by
+    from: SCEN-NEG-kibi-plugin-search-hints-STALE-VECTOR
+    to: TEST-kibi-plugin-search-hints
+    created_at: 2026-10-30T08:42:58.022Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-284ea1d6c0be

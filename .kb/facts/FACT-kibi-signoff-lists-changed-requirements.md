@@ -3,10 +3,10 @@ title: 'Signoff views: changed and affected requirements listed with statement, 
 status: active
 fact_kind: property_value
 subject_key: kibi.signoff_views
-property_key: lists_changed_requirements
+property_key: changed_or_implemented_requirements_missing_from_signoff
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 claim_key: CLAIM-AA496D7010BCE3DD
 claim_text: Kibi signoff must list each requirement a change adds, rewrites or retires and each current requirement the changed code implements, quoting its statement with its firmness and proof state
 text_ref: REQ-kibi-signoff-views

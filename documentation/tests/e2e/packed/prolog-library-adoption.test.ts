@@ -23,7 +23,8 @@ const RUN_NODE_TEST_SUITE =
  *
  * SCEN-prolog-library-adoption — a packed workspace syncs and answers local
  * queries, while `sparql-remote` returns remote endpoint rows through the
- * CLI and fails fast against an unreachable endpoint.
+ * CLI, refuses a query that is not a SELECT, and fails fast against an
+ * unreachable endpoint.
  */
 if (RUN_NODE_TEST_SUITE) {
   describe("E2E: Prolog library adoption", { timeout: 300000 }, () => {
@@ -32,6 +33,7 @@ if (RUN_NODE_TEST_SUITE) {
     let hasProlog = false;
     let endpoint: Server;
     let endpointUrl = "";
+    let endpointRequests = 0;
 
     before(
       async () => {
@@ -62,6 +64,7 @@ Local fixture.
         assert.strictEqual(sync.exitCode, 0, `${sync.stdout}${sync.stderr}`);
 
         endpoint = createServer((request, response) => {
+          endpointRequests += 1;
           let body = "";
           request.on("data", (chunk: Buffer) => {
             body += chunk.toString("utf8");
@@ -183,6 +186,44 @@ Local fixture.
           result.exitCode,
           0,
           "an unreachable endpoint must produce an error result",
+        );
+      },
+    );
+
+    it(
+      "refuses a query that is not a SELECT before contacting the endpoint",
+      { timeout: 120000 },
+      async () => {
+        if (!hasProlog) return;
+        const inputPath = join(sandbox.repoDir, "sparql-update.json");
+        writeFileSync(
+          inputPath,
+          `${JSON.stringify({
+            endpoint: endpointUrl,
+            query: "DELETE WHERE { ?s ?p ?o }",
+            timeoutMs: 10000,
+          })}\n`,
+          "utf8",
+        );
+        const before = endpointRequests;
+        const result = await kibi(sandbox, [
+          "sparql-remote",
+          "--input",
+          inputPath,
+        ]);
+        assert.notStrictEqual(
+          result.exitCode,
+          0,
+          "a non-SELECT query must produce an error result",
+        );
+        assert.match(
+          `${result.stdout}${result.stderr}`,
+          /SPARQL query must be a SELECT query/,
+        );
+        assert.strictEqual(
+          endpointRequests,
+          before,
+          "a refused query must not reach the endpoint",
         );
       },
     );

@@ -55,7 +55,7 @@ Every published documentation site page loads the Umami analytics script. The an
 
 ## Context
 
-Measures how visitors find and adopt Kibi (install copies, install method choice, GitHub clicks) without cookies, while local and test builds stay out of the numbers. The cookieless Umami script is scoped with data-domains to the published Pages host, tracking goes through a guarded helper so the site works unchanged when the script is blocked, and the footer and README disclose the site analytics. The Kibi packages themselves still send no telemetry.
+Measures how visitors find and adopt Kibi (install copies, install method choice, GitHub clicks) without cookies, while local and test builds stay out of the numbers. The cookieless Umami script is scoped with data-domains to the published Pages host, tracking goes through a guarded helper so the site works unchanged when the script is blocked, and the footer and README disclose the site analytics. The Kibi packages' own anonymous usage statistics are described separately in docs/telemetry.md.
 
 ## Source
 

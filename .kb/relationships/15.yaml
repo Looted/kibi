@@ -314,6 +314,62 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6301cf6135d0
+  - type: assumes
+    from: SCEN-NEG-005-UNTYPED-RELATIONSHIP
+    to: FACT-NEG-005-UNTYPED-RELATIONSHIP
+    created_at: 2026-10-29T21:01:19.511Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7db9d3f570fd
+  - type: verified_by
+    from: SCEN-NEG-005-UNTYPED-RELATIONSHIP
+    to: TEST-kibi-entity-relationship-schema-roundtrip
+    created_at: 2026-10-29T21:01:19.713Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3dbecfb5c0e
+  - type: assumes
+    from: SCEN-NEG-branch-store-recovery-v4-DETACHED-WRITE
+    to: FACT-NEG-branch-store-recovery-v4-DETACHED-WRITE
+    created_at: 2026-10-29T21:17:07.655Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9fc6fdb879f
+  - type: verified_by
+    from: SCEN-NEG-branch-store-recovery-v4-DETACHED-WRITE
+    to: TEST-branch-detached-head-read-only-cli
+    created_at: 2026-10-29T21:17:07.809Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b60309fdf695
+  - type: assumes
+    from: SCEN-NEG-kibi-anonymous-usage-telemetry-opted-out-send
+    to: FACT-NEG-kibi-anonymous-usage-telemetry-opted-out-send
+    created_at: 2026-10-29T21:06:29.318Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-edb04e21d22a
+  - type: verified_by
+    from: SCEN-NEG-kibi-anonymous-usage-telemetry-opted-out-send
+    to: TEST-kibi-anonymous-usage-telemetry-cli
+    created_at: 2026-10-29T21:06:29.402Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33b392945be0
+  - type: specified_by
+    from: REQ-model-predicates-requirement-subject-v2
+    to: SCEN-NEG-model-predicates-requirement-subject-v2-UNPAIRED-SUBJECT
+    created_at: 2026-10-29T21:03:27.666Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-509e781c8b9c
+  - type: specified_by
+    from: REQ-prolog-bundled-ci
+    to: SCEN-NEG-prolog-bundled-ci-CACHED-WITHOUT-FLAG
+    created_at: 2026-10-29T21:06:02.775Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-868d7b15325b
   - type: executable_for
     from: SYM-proof-search-hint-weak-score
     to: TEST-proof-search-hint-weak-score
@@ -321,3 +377,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1bcbec4c5e9e
+  - type: specified_by
+    from: REQ-prolog-bundled-ci
+    to: SCEN-CASE-prolog-bundled-ci-NO-SYSTEM-SWIPL-JOB
+    created_at: 2026-10-30T14:58:13.918Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0260335e50ad
+  - type: assumes
+    from: SCEN-NEG-branch-store-recovery-v4-DETACHED-WRITE
+    to: FACT-CASE-branch-store-recovery-v4-zero-branches-at-head
+    created_at: 2026-10-30T14:47:13.277Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-294631764610

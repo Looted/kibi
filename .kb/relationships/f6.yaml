@@ -321,3 +321,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ca7eca51c42f
+  - type: specified_by
+    from: REQ-cli-check
+    to: SCEN-NEG-cli-check-VIOLATIONS-EXIT-ZERO
+    created_at: 2026-10-29T20:56:39.177Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c1733fbae32
+  - type: specified_by
+    from: REQ-cli-staged-impact-enforcement
+    to: SCEN-NEG-cli-staged-impact-enforcement-NO-IMPACT-EVIDENCE
+    created_at: 2026-10-29T21:03:44.834Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7af6274c9f2c
+  - type: assumes
+    from: SCEN-NEG-model-predicates-grounding-guards-UNSTATED-CLAIM
+    to: FACT-NEG-model-predicates-grounding-guards-UNSTATED-CLAIM
+    created_at: 2026-10-29T21:02:41.227Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67e365b550d3
+  - type: verified_by
+    from: SCEN-NEG-model-predicates-grounding-guards-UNSTATED-CLAIM
+    to: TEST-model-predicates-grounding-guards
+    created_at: 2026-10-29T21:02:41.407Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-232d9060d789
+  - type: specified_by
+    from: REQ-prolog-mutation-lane
+    to: SCEN-NEG-prolog-mutation-lane-STALE-PACK
+    created_at: 2026-10-29T20:54:38.843Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a429d0209bd
+  - type: assumes
+    from: SCEN-CASE-cli-sync-summary-kb-totals-TYPE-MISSING-FROM-TOTALS
+    to: FACT-CASE-cli-sync-summary-kb-totals-TYPE-MISSING-FROM-TOTALS
+    created_at: 2026-10-30T14:57:25.098Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-78fcbe4b4c86
+  - type: verified_by
+    from: SCEN-CASE-cli-sync-summary-kb-totals-TYPE-MISSING-FROM-TOTALS
+    to: TEST-cli-migrated-kb-type-backfill-sync-totals
+    created_at: 2026-10-30T14:57:25.191Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30883ee9ff90

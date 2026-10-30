@@ -6,6 +6,10 @@ import path from "node:path";
 
 import { captureReminder } from "kibi-agent-core/decision-guard";
 import { MAX_SNIPPET_CHARS } from "kibi-agent-core/snippets";
+import {
+  hashTelemetryId,
+  workspaceSessionHash,
+} from "kibi-agent-core/usage-telemetry";
 import { type HookResult, runHook } from "../src/hook-runner";
 import { loadHookState } from "../src/hook-state";
 import { impactCheckReminder } from "../src/messages";
@@ -883,6 +887,53 @@ describe("Codex decision guard", () => {
     });
     expect(again.decision).toBeUndefined();
   });
+
+  test("no hook denies a tool call: firm edits, .kb edits and Kibi calls go ahead, and Stop only continues the turn", async () => {
+    const event = session();
+    const results: [string, HookResult][] = [];
+    const record = async (payload: Record<string, unknown>) => {
+      results.push([String(payload.hook_event_name), await event(payload)]);
+    };
+    await record({
+      hook_event_name: "UserPromptSubmit",
+      prompt: "Guards should never pass by default.",
+    });
+    for (const command of [
+      CHECKOUT_PATCH,
+      GUARD_PATCH,
+      [
+        "*** Begin Patch",
+        "*** Update File: .kb/requirements/REQ-guards.md",
+        "@@",
+        "-status: open",
+        "+status: closed",
+        "*** End Patch",
+      ].join("\n"),
+    ]) {
+      const call = { tool_name: "apply_patch", tool_input: { command } };
+      await record({ hook_event_name: "PreToolUse", ...call });
+      await record({ hook_event_name: "PostToolUse", ...call });
+    }
+    await record({
+      hook_event_name: "PreToolUse",
+      tool_name: "mcp__kibi__kb_query",
+      tool_input: { type: "req" },
+    });
+    await record({ hook_event_name: "Stop", stop_hook_active: false });
+
+    for (const [hookEvent, result] of results) {
+      expect(result.continue).not.toBe(false);
+      const specific = result.hookSpecificOutput as
+        | { permissionDecision?: string }
+        | undefined;
+      expect([undefined, "allow"]).toContain(specific?.permissionDecision);
+      if (hookEvent !== "Stop") expect(result.decision).toBeUndefined();
+    }
+    expect(results.at(-1)?.[1]).toMatchObject({
+      continue: true,
+      decision: "block",
+    });
+  });
 });
 
 describe("Codex opt-in hook telemetry", () => {
@@ -964,6 +1015,42 @@ describe("Codex opt-in hook telemetry", () => {
     tempRoots.push(pluginData);
     await post(cwd, pluginData, "apply_patch", { command: CHECKOUT_PATCH }, {});
     expect(usageRows(cwd)).toEqual([]);
+  });
+
+  // implements REQ-kibi-anonymous-usage-telemetry
+  test("sends an anonymous kibi_hook and remembers the session for the workspace", async () => {
+    const cwd = linkedWorkspace();
+    const pluginData = createTempRoot("kibi-codex-data-");
+    const telemetryDir = createTempRoot("kibi-codex-telemetry-");
+    tempRoots.push(pluginData, telemetryDir);
+    const env = { KIBI_TELEMETRY: "1", KIBI_TELEMETRY_DIR: telemetryDir };
+
+    await post(
+      cwd,
+      pluginData,
+      "apply_patch",
+      { command: CHECKOUT_PATCH },
+      env,
+    );
+
+    expect(usageRows(cwd)).toEqual([]);
+    const [queued] = fs
+      .readFileSync(path.join(telemetryDir, "telemetry-queue.jsonl"), "utf8")
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line));
+    expect(queued).toMatchObject({
+      event: "kibi_hook",
+      properties: {
+        package: "kibi-codex",
+        host: "codex",
+        hook_action: "edited",
+        session: hashTelemetryId("codex-session-1"),
+      },
+    });
+    expect(workspaceSessionHash(cwd, env)).toBe(
+      hashTelemetryId("codex-session-1"),
+    );
   });
 });
 

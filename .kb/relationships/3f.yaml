@@ -440,3 +440,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f3bf9801d34f
+  - type: assumes
+    from: SCEN-NEG-engine-daemon-package-versions-FOREIGN-CLIENT-SERVED
+    to: FACT-NEG-engine-daemon-package-versions-FOREIGN-CLIENT-SERVED
+    created_at: 2026-10-29T21:14:42.993Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d0f10e2bea8
+  - type: verified_by
+    from: SCEN-NEG-engine-daemon-package-versions-FOREIGN-CLIENT-SERVED
+    to: TEST-engine-daemon-package-versions
+    created_at: 2026-10-29T21:14:43.089Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-766512b32914
+  - type: specified_by
+    from: REQ-kibi-operation-interface-parity
+    to: SCEN-NEG-kibi-operation-interface-parity-REJECTED-INPUT-PARITY
+    created_at: 2026-10-29T21:36:13.523Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a256276e65ee

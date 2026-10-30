@@ -5,13 +5,10 @@ import { fileURLToPath } from "node:url";
 import {
   type HookTrace,
   appendHookUsage as appendSharedHookUsage,
+  finishHookTelemetry,
   hookTelemetryEnabled,
   readPackageVersion,
 } from "kibi-agent-core/hook-usage-log";
-import {
-  flushTelemetry,
-  recordHookTelemetry,
-} from "kibi-agent-core/usage-telemetry";
 
 /**
  * Opt-in hook telemetry for Claude Code.
@@ -48,46 +45,36 @@ export type HookUsageRow = {
   startedAt: Date;
 };
 
+// implements REQ-kibi-anonymous-usage-telemetry
+/** Record one hook decision as Claude Code, through the shared recorder. */
 export function appendHookUsage(
   row: HookUsageRow,
   env: NodeJS.ProcessEnv = process.env,
 ): void {
-  if (row.trace.action === undefined) return;
-  // implements REQ-kibi-anonymous-usage-telemetry
-  recordHookTelemetry(
+  appendSharedHookUsage(
     {
+      ...row,
+      host: "claude-code",
       packageName: "kibi-claude",
       packageVersion: pluginVersion(),
-      host: "claude-code",
-      sessionId: row.sessionId,
     },
-    {
-      hookEvent: row.event,
-      hookAction: row.trace.action,
-      pathKind: row.trace.pathKind,
-      kbOperation: row.trace.kbOperation,
-      kbUsedBefore: row.trace.kbUsedBefore,
-      requirementCount: row.trace.requirementIds?.length,
-    },
-    env,
-  );
-  if (!hookTelemetryEnabled(env)) return;
-  appendSharedHookUsage(
-    { ...row, host: "claude-code", packageVersion: pluginVersion() },
     env,
   );
 }
 
 // implements REQ-kibi-anonymous-usage-telemetry
 /**
- * Send the anonymous telemetry queue at the end of each turn. Stop runs on
- * every turn, so events reach PostHog even when an ephemeral container is
- * reclaimed without a session-end hook.
+ * Remember the session for the workspace and send the anonymous telemetry
+ * queue: always on Stop, which runs every turn, so events reach PostHog even
+ * when an ephemeral container is reclaimed without a session-end hook.
  */
 export async function flushHookTelemetry(
-  event: string,
+  input: {
+    readonly event: string;
+    readonly workspaceRoot: string | undefined;
+    readonly sessionId: string | undefined;
+  },
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<void> {
-  if (event !== "Stop") return;
-  await flushTelemetry({ force: true }, env);
+  await finishHookTelemetry(input, env);
 }

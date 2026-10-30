@@ -3,10 +3,10 @@ title: The bootstrap apply operation must reject deterministic failures terminal
 status: active
 fact_kind: property_value
 subject_key: bootstrap.write_safety
-property_key: terminal_failures
+property_key: committed_actions_unreported_on_terminal_failure
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 claim_key: CLAIM-395E89CA03470276
 claim_text: The bootstrap apply operation must reject deterministic failures terminally and report every previously committed action
 origin:

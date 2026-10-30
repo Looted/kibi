@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 
+import { previewCases } from "./case-preview.js";
 import { semanticClaimKey } from "./clauses.js";
 import type {
   SemanticModelingSuggestion,
@@ -188,6 +189,7 @@ export function strictSuggestion(
     claim.value_int ??
     claim.value_number ??
     claim.value_bool;
+  const casesPreview = previewCases(claim);
   const propertyFields = {
     ...(claim.value_string !== undefined
       ? { value_string: claim.value_string }
@@ -211,6 +213,7 @@ export function strictSuggestion(
     rationale,
     suggested_next_tool: "kb_model_requirement",
     claim,
+    ...(casesPreview.cases.length > 0 ? { casesPreview } : {}),
     rejected_alternatives: ["predicate", "observation_review"],
     applyPlan: [
       {

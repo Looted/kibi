@@ -524,3 +524,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-25e5e87b8c19
+  - type: specified_by
+    from: REQ-audit-quality-diagnostics-v1
+    to: SCEN-NEG-audit-quality-diagnostics-v1-INVALID-STATE-AS-ADVISORY
+    created_at: 2026-10-29T21:31:35.367Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cdbdab7f18cf
+  - type: specified_by
+    from: REQ-cursor-consumer-local-mcp-launcher-v1
+    to: SCEN-NEG-cursor-consumer-local-mcp-launcher-v1-MISSING-LOCAL-MCP
+    created_at: 2026-10-29T21:16:05.172Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-867a80a003fc
+  - type: assumes
+    from: SCEN-NEG-kibi-bootstrap-knowledge-sources-stale-source-candidate
+    to: FACT-NEG-kibi-bootstrap-knowledge-sources-stale-source-candidate
+    created_at: 2026-10-29T21:06:46.978Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e0989427a00
+  - type: verified_by
+    from: SCEN-NEG-kibi-bootstrap-knowledge-sources-stale-source-candidate
+    to: TEST-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-29T21:06:47.249Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-91d6b9c9b84b
+  - type: assumes
+    from: SCEN-NEG-mcp-cli-help-HELP-WITH-SERVER-FLAG
+    to: FACT-NEG-mcp-cli-help-HELP-WITH-SERVER-FLAG
+    created_at: 2026-10-29T21:21:15.798Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4dacdfd491da
+  - type: verified_by
+    from: SCEN-NEG-mcp-cli-help-HELP-WITH-SERVER-FLAG
+    to: TEST-mcp-cli-help
+    created_at: 2026-10-29T21:21:15.911Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a263b52ea88b

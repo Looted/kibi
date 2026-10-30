@@ -195,7 +195,7 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-960b4eb259cb
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-zcode-advisory-enforcement-boundary-v1
     to: FACT-PRED-ZCODE-OUTPUTS-ADVISORY
     created_at: 2026-09-17T05:39:18.921Z
@@ -475,3 +475,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5610ecc8a7a9
+  - type: specified_by
+    from: REQ-model-predicates-grounding-aware-v2
+    to: SCEN-NEG-model-predicates-grounding-aware-v2-SECOND-GROUNDING
+    created_at: 2026-10-29T21:02:28.386Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-224d870b292d
+  - type: specified_by
+    from: REQ-symbol-behavioral-anchors
+    to: SCEN-NEG-symbol-behavioral-anchors-COARSE-LINK-WITH-GRANULAR
+    created_at: 2026-10-29T21:09:36.029Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77a73c9dd134
+  - type: specified_by
+    from: REQ-zcode-advisory-enforcement-boundary-v1
+    to: SCEN-NEG-zcode-advisory-enforcement-boundary-v1-HOOK-KB-WRITE
+    created_at: 2026-10-29T21:11:57.288Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-770f20501019
+  - type: specified_by
+    from: REQ-model-predicates-grounding-aware-v2
+    to: SCEN-CASE-model-predicates-grounding-aware-v2-CLAIM-LEFT-UNGROUNDED
+    created_at: 2026-10-30T15:00:28.355Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-94233874ea78
+  - type: specified_by
+    from: REQ-zcode-advisory-enforcement-boundary-v1
+    to: SCEN-CASE-zcode-advisory-enforcement-boundary-v1-NON-ADVISORY-OUTPUT
+    created_at: 2026-10-30T15:01:13.914Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bcee7b590303

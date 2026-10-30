@@ -363,3 +363,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ecd4104e0081
+  - type: assumes
+    from: SCEN-NEG-kibi-truthful-consistency-UNMODELED-CLAUSE
+    to: FACT-NEG-kibi-truthful-consistency-UNMODELED-CLAUSE
+    created_at: 2026-10-29T21:17:06.821Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0ee618579f0
+  - type: verified_by
+    from: SCEN-NEG-kibi-truthful-consistency-UNMODELED-CLAUSE
+    to: TEST-kibi-truthful-consistency
+    created_at: 2026-10-29T21:17:06.921Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a050e7ba65ef
+  - type: assumes
+    from: SCEN-CASE-core-journaled-engine-persistence-SECOND-WRITER
+    to: FACT-CASE-core-journaled-engine-persistence-SECOND-WRITER
+    created_at: 2026-10-30T14:56:39.604Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-784e7c497e78
+  - type: verified_by
+    from: SCEN-CASE-core-journaled-engine-persistence-SECOND-WRITER
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-10-30T14:56:39.750Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a00a1d904cc0

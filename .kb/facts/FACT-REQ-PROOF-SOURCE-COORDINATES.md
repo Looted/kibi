@@ -1,6 +1,6 @@
 ---
 id: FACT-REQ-PROOF-SOURCE-COORDINATES
-title: Proof-bearing symbols resolve to current source coordinates
+title: No proof-bearing symbol lacks exact current source coordinates
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
@@ -10,15 +10,12 @@ tags:
   - proof
   - symbols
   - coordinates
-fact_kind: predicate
-predicate_namespace: kibi.requirements
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.proof.requirement
-  - source_coordinates
-  - exact_and_current
-canonical_key: logical_requirement_rule(kibi.proof.requirement,source_coordinates,exact_and_current)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.proof.requirement
+property_key: proof_bearing_symbols_without_exact_current_coordinates
+operator: eq
+value_type: int
+value_int: 0
 claim_key: CLAIM-6D6D5B50042B3F58
 claim_text: Every proof-bearing symbol must resolve to exact current source coordinates
 type: fact

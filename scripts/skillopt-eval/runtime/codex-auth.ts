@@ -100,6 +100,8 @@ export function isolatedCodexEnvironment(
     XDG_DATA_HOME: join(sandboxHome, "xdg-data"),
     GIT_CONFIG_GLOBAL: "/dev/null",
     GIT_CONFIG_SYSTEM: "/dev/null",
+    // Eval cells are not real usage: keep them out of anonymous telemetry.
+    KIBI_TELEMETRY: "0",
   };
 }
 

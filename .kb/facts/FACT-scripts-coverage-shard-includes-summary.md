@@ -1,13 +1,13 @@
 ---
-title: Scripts shard includes root summary once after tests = true
+title: Scripts shard includes root summary once after tests
 status: active
 fact_kind: property_value
 subject_key: kibi.testing.scripts_coverage_shard
-property_key: includes_root_summary_once_after_script_tests
+property_key: root_summary_inclusions_after_script_tests
 operator: eq
-value_type: bool
-value_bool: true
-canonical_key: kibi.testing.scripts_coverage_shard.includes_root_summary_once_after_script_tests.eq.true
+value_type: int
+value_int: 1
+canonical_key: kibi.testing.scripts_coverage_shard:root_summary_inclusions_after_script_tests:eq:1
 claim_key: CLAIM-C32C177216B13299
 claim_text: The scripts coverage shard must include test/root-summary.test.ts exactly once after those paths
 text_ref: scripts/run-unit-coverage.ts

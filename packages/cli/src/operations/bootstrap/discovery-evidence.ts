@@ -1,6 +1,7 @@
 import path from "node:path";
 
 import { OperationError } from "../../cli-errors.js";
+import { classifySource } from "../../plugins/source-classification.js";
 import type {
   FilesystemPort,
   GitPort,
@@ -21,10 +22,10 @@ const SCAN_PATTERNS = [
   "**/Cargo.toml",
   "**/go.mod",
   "**/opencode.json",
-  "**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs,py,rb,go,rs,java,kt,swift,php,c,cc,cpp,h,hpp}",
+  "**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs,py,rb,go,rs,java,kt,swift,php,c,cc,cpp,h,hpp,pl,plt}",
 ] as const;
 const CODE_EXTENSION =
-  /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs|py|rb|go|rs|java|kt|swift|php|c|cc|cpp|h|hpp)$/i;
+  /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs|py|rb|go|rs|java|kt|swift|php|c|cc|cpp|h|hpp|pl|plt)$/i;
 const LAYOUT_ROOTS = new Set([
   "src",
   "app",
@@ -87,6 +88,9 @@ function classifyFile(
 ): readonly [EvidenceProviderName, EvidenceKind] | null {
   if (/^\.kb\/symbols\.ya?ml$/i.test(relativePath))
     return ["typed_kibi_docs", "symbol_manifest"];
+  // Kibi's own generated schema (.kb/schema/*.pl) is not project source.
+  if (/^\.kb\//.test(relativePath) && CODE_EXTENSION.test(relativePath))
+    return null;
   if (/\.md$/i.test(relativePath)) {
     return /^---\s*[\r\n]/.test(content) &&
       isTypedKibiMarkdownPath(relativePath)
@@ -101,12 +105,55 @@ function classifyFile(
     return ["repo_metadata", "repo_metadata"];
   if (
     /\.(test|spec)\.[^.]+$/i.test(relativePath) ||
+    /\.plt$/i.test(relativePath) ||
     /(^|\/)__tests__\//.test(relativePath)
   )
     return ["test_topology", "test_topology"];
+  // `.pl` is shared by Perl and Prolog; only Prolog source is scanned.
+  if (
+    /\.pl$/i.test(relativePath) &&
+    classifySource(relativePath, content).language !== "prolog"
+  )
+    return null;
   if (CODE_EXTENSION.test(relativePath))
     return ["source_symbols", "source_symbols"];
   return null;
+}
+
+/**
+ * A Prolog file's `:- module(Name, Exports)` declaration. The export list is
+ * a claim the source makes about its public predicates.
+ */
+// implements REQ-KIBI-BOOTSTRAP-PLAN
+function prologModuleEvidence(
+  relativePath: string,
+  content: string,
+): Readonly<Record<string, unknown>> {
+  const declaration = content.match(
+    /^:-\s*module\(\s*([a-z][A-Za-z0-9_]*|'(?:[^'\\]|'')*')\s*,\s*\[([^\]]*)\]/m,
+  );
+  const moduleName = declaration?.[1]?.replace(/^'|'$/g, "");
+  const exports = [
+    ...(declaration?.[2] ?? "")
+      .replace(/%[^\n]*/g, "")
+      .matchAll(/([a-z][A-Za-z0-9_]*|'(?:[^'\\]|'')*')\s*(\/\/?)\s*(\d+)/g),
+  ].map(([, name, slash, arity]) => `${name}${slash}${arity}`);
+  const title = `Source module: ${moduleName ?? path.basename(relativePath, ".pl")}`;
+  return {
+    title,
+    factKind: "observation",
+    confidence: 0.82,
+    evidence: [`source_symbols:${relativePath}`],
+    analysisMode: "parser",
+    symbolCount: exports.length,
+    ...(moduleName === undefined ? {} : { module: moduleName }),
+    exports,
+    ...(moduleName !== undefined && exports.length > 0
+      ? {
+          claim: `Prolog module ${moduleName} (${relativePath}) exports ${exports.join(", ")}.`,
+        }
+      : {}),
+  };
 }
 
 function evidenceData(
@@ -146,6 +193,7 @@ function evidenceData(
       content.includes("bun:test") ? "bun:test" : "",
       content.includes("vitest") ? "vitest" : "",
       content.includes("node:test") ? "node:test" : "",
+      /^:-\s*begin_tests\(/m.test(content) ? "plunit" : "",
     ].filter(Boolean);
     // A recognized framework is a claim about the file (it is a test that
     // runs under that framework); without one the provider only found the
@@ -166,6 +214,8 @@ function evidenceData(
         : {}),
     };
   }
+  if (provider === "source_symbols" && /\.pl$/i.test(relativePath))
+    return prologModuleEvidence(relativePath, content);
   if (provider === "source_symbols") {
     const symbolCount = Array.from(
       content.matchAll(

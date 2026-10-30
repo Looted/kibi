@@ -47,6 +47,10 @@ entity_property(req, proof_exempt_reason, string).
 % Only an approved exception makes a success scenario feasible.
 entity_property(req, approved_by, string).
 entity_property(req, approval_ref, string).
+% Why a requirement has no failure side to test (its claims state a
+% capability or output shape), and the human who accepted that.
+entity_property(req, failure_side_waiver, string).
+entity_property(req, failure_side_waiver_approved_by, string).
 % Why the requirement exists, in the words of whoever stated the intent.
 % Explanation only: it is never part of the checked meaning.
 entity_property(req, rationale, string).
@@ -83,6 +87,12 @@ entity_property(fact, valid_to, datetime).
 entity_property(fact, canonical_key, string).
 entity_property(fact, claim_key, string).
 entity_property(fact, claim_text, string).
+% Why a quantifier word in claim_text ranges over nothing, so the claim
+% needs no dimension, and the human who accepted that.
+entity_property(fact, dimension_waiver, string).
+entity_property(fact, dimension_waiver_approved_by, string).
+entity_property(fact, case_waiver, string).
+entity_property(fact, case_waiver_approved_by, string).
 entity_property(fact, predicate_name, string).
 entity_property(fact, predicate_namespace, string).
 entity_property(fact, predicate_arity, integer).
@@ -149,6 +159,8 @@ optional_property(req, semantic_source_hash).
 optional_property(req, semantic_inventory).
 optional_property(req, proof_exempt).
 optional_property(req, proof_exempt_reason).
+optional_property(req, failure_side_waiver).
+optional_property(req, failure_side_waiver_approved_by).
 optional_property(req, approved_by).
 optional_property(req, approval_ref).
 optional_property(req, rationale).

@@ -9,15 +9,12 @@ tags:
   - lane:ontology
   - telemetry
   - acceptance
-fact_kind: predicate
-predicate_namespace: kibi.requirements
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.telemetry.acceptance
-  - pass_only_with_fresh_all_metric_evidence
-  - passed
-canonical_key: logical_requirement_rule(kibi.telemetry.acceptance,pass_only_with_fresh_all_metric_evidence,passed)
-polarity: assert
+fact_kind: property_value
+subject_key: kibi.telemetry.acceptance
+property_key: passing_report_evidence_age_days
+operator: lte
+value_type: int
+value_int: 7
 claim_key: CLAIM-AB901A8086704B89
 claim_text: The report must pass only when its evidence is no more than seven days old and every applicable metric passes
 claim_span_start: 99

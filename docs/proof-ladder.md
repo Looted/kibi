@@ -67,7 +67,7 @@ To re-enter the proof ladder, remove both properties.
 
 ## The stages
 
-For in-scope requirements the ladder evaluates nine stages, in order. Each
+For in-scope requirements the ladder evaluates the stages below, in order. Each
 stage reports a `status` under its key in `proofStages`; `productionSymbols`
 also carries a typed `reason` when it does not pass.
 
@@ -78,6 +78,9 @@ also carries a typed `reason` when it does not pass.
 | 3 | [Contradictions](#3-contradictions) | `contradictions` |
 | 4 | [Scenarios](#4-scenarios) | `scenarios` |
 | 5 | [Scenario tests](#5-scenario-tests) | `scenarioTests` |
+| 5a | [Failure side](#5a-failure-side) | `negativePath` |
+| 5b | [Quantified claims](#5b-quantified-claims) | `dimension` |
+| 5c | [Edge cases](#5c-edge-cases) | `cases` |
 | 6 | [Passing E2E tests](#6-passing-e2e-tests) | `passingE2e` |
 | 7 | [Executable test symbols](#7-executable-test-symbols) | `executableSymbols` |
 | 8 | [Production symbols](#8-production-symbols) | `productionSymbols` |
@@ -132,6 +135,123 @@ facts.
 
 - `passed`: every scenario has a test.
 - `missing`: a scenario has no test, or links a test that does not exist.
+
+### 5a. Failure side
+
+**Checks:** a requirement that grounds a claim (a `requires_property`,
+`requires_predicate` or `requires_rule` fact) is not tested through its happy
+path alone. At least one linked scenario must expect `rejection` or `error`
+and assume a value or situation the requirement forbids: either the
+scenario-feasibility analysis finds a witness naming the requirement, or one
+of its `assumes` facts opposes one of the requirement's claim facts directly
+(a conflicting value or polarity on the same subject and property, the
+opposite polarity of the same predicate, or, for a rule over predicates, a
+predicate fact instantiating one of the rule's atoms). For a guarantee rather
+than an input constraint, the assumed fact describes the attempt to break the
+guarantee, and `rejection` means the system refuses or contains it.
+
+- `passed`: `negativeScenarios` lists the linked scenarios that do this.
+- `missing`: none does; the requirement gets the `happy_path_only` gap, and
+  `suggestedNegatives` gives, per open claim, a fact that opposes it (the
+  value just past a numeric bound, the other boolean, a different string, a
+  set missing a required member, the opposite polarity of a predicate).
+- `not_required`: the requirement grounds no claim, or a fresh certificate
+  proves every claim at code scope (`certifiedClaims`): a certificate decides
+  both sides of the claim already. When every open claim is proved by a
+  certificate test whose receipt is only older than the code
+  (`pendingReproofClaims`), the evidence floor reports `pending_reproof`
+  rather than `below`, as for any other stale receipt.
+- `waived`: the requirement has no failure side to test. Its claims state a
+  capability or an output shape, so there is no input or attempt to refuse.
+  The requirement records why in `failure_side_waiver` and who accepted it in
+  `failure_side_waiver_approved_by`, and `waiver` shows both. A reason without
+  an approver stays `missing`, and `kibi proof explain` reports the waiver as
+  awaiting approval.
+
+The negative scenario needs a test like any other linked scenario, so the
+failure side is proven by the same passing E2E receipts. The canonical
+`scenario-outcome-mismatch` check rule reports a scenario that expects
+rejection or error while current requirements govern and permit everything it
+assumes.
+
+### 5b. Quantified claims
+
+**Checks:** a claim that quantifies over a collection (`each`, `every`,
+`all`) or bounds a cardinality (`exactly`, `at least`, `at most`, `no more
+than`) is grounded on what varies, not only on its verdict. When every fact
+grounding such a claim is a boolean `property_value` or a ground `predicate`,
+the claim states that the behavior holds without naming the dimension it
+holds over, and a scenario with one item can pass where several items break.
+Ground it on an integer count or bound, a set of members, a rule over a
+variable, or a state machine instead. `only`, `any` and `some` are not
+counted: they mostly scope a condition ("only when", "before any write")
+rather than range over one.
+
+- `missing`: `claims` lists each such claim with its `quantifier`, the
+  grounding `factIds`, and `rewrites`, the typed groundings that would
+  represent it, likeliest first (`bound` for a cardinality; `rule`, `count`
+  or `set` for a collection). The requirement gets the
+  `dimension_unrepresented` gap.
+- `not_required`: no grounded claim is quantified this way, or a fresh
+  certificate proves the claim at code scope. Stale certificate receipts are
+  reported as `pendingReproofClaims`, as in the failure-side stage.
+- `waived`: every such claim has an approved waiver. When the quantifier
+  word ranges over nothing ("start without all network access"), the
+  grounding fact records why in `dimension_waiver` and who accepted it in
+  `dimension_waiver_approved_by`; `waivedClaims` lists them. A reason without
+  an approver keeps the claim in `claims`, and `kibi proof explain` reports
+  it as awaiting approval.
+
+`kb_semantic_advisor` marks the same clauses: each normative proposition
+with such a quantifier carries `dimension` with its `quantifier` and
+`rewrites`, so the grounding can be chosen before the fact is written.
+
+### 5c. Edge cases
+
+**Checks:** every value class a typed property claim predicts is refused has
+a scenario that reaches it. Kibi derives the cases from each `property_value`
+fact the requirement grounds a claim on with `requires_property`:
+
+- a numeric bound yields the bound itself (or the nearest value inside a
+  strict bound) and the class past it: `files_per_batch lte 5` gives `eq 5`
+  (success) and `gt 5` (rejection);
+- an integer bounded at one or more also yields zero, one and many
+  (`eq 0`, `eq 1`, `gte 2`), keeping only the classes that fall wholly on
+  one side of the bound;
+- a set yields each member (success) and the value outside it: rejection
+  for `eq` and `subset_of`, `unspecified` for `includes`; each member of an
+  `excludes` set is a rejection case.
+
+A case is dropped when an earlier one already names its class with the same
+outcome, and one fact yields at most 12 (`limitReached` says when the cap
+cut). Each case has a stable `caseId` (`CASE-` and 12 hex characters) and the
+`assumption` a scenario would state to land in it.
+
+A case is covered by a scenario of the requirement that is not a draft,
+whose `expects` matches the prediction (`rejection` also accepts `error`),
+and whose `assumes` fact on the same subject and property entails the case:
+`files_per_batch eq 6` covers `gt 5`. Success cases are reported but do not
+block; the requirement's success scenarios already exercise them.
+
+- `missing`: a rejection case is uncovered; `uncoveredCases` lists them and
+  the requirement gets the `uncovered_case` gap. The repair plan's
+  `case_scenarios` phase carries `caseSkeletons`, an upsert-ready draft
+  scenario and assumed fact per case: fill in any placeholder value, verify
+  the scenario by a test and make it active.
+- `passed`: every rejection case is covered.
+- `not_required`: no grounded claim predicts a rejection case, or a fresh
+  certificate proves the claim at code scope. Stale certificate receipts are
+  reported as `pendingReproofClaims`.
+- `waived`: the uncovered rejection cases all belong to facts with an
+  approved waiver. When the cases are covered another way (a unit suite that
+  walks every value, a class the system cannot produce), the grounding fact
+  records why in `case_waiver` and who accepted it in
+  `case_waiver_approved_by`. A reason without an approver keeps the gap.
+
+`kibi coverage --cases` lists every requirement's cases with their coverage,
+and `kibi proof explain` prints the assumption each uncovered case needs.
+`kb_semantic_advisor` previews the cases of each strict-property suggestion
+in `casesPreview`, so the scenario debt shows before the fact is written.
 
 ### 6. Passing E2E tests
 

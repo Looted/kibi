@@ -153,3 +153,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-523ce4de441d
+  - type: assumes
+    from: SCEN-NEG-kibi-source-relationship-parity-AUTHORED-EDGE-MISSING
+    to: FACT-NEG-kibi-source-relationship-parity-AUTHORED-EDGE-MISSING
+    created_at: 2026-10-29T21:15:15.472Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-342dda5b100a
+  - type: verified_by
+    from: SCEN-NEG-kibi-source-relationship-parity-AUTHORED-EDGE-MISSING
+    to: TEST-kibi-source-relationship-parity
+    created_at: 2026-10-29T21:15:15.522Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de8383ce39c9
+  - type: assumes
+    from: SCEN-NEG-vscode-kb-to-source-ENTITY-WITHOUT-SOURCE
+    to: FACT-NEG-vscode-kb-to-source-ENTITY-WITHOUT-SOURCE
+    created_at: 2026-10-29T21:13:03.800Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-087491eba086
+  - type: verified_by
+    from: SCEN-NEG-vscode-kb-to-source-ENTITY-WITHOUT-SOURCE
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-10-29T21:13:03.833Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28a7c1993295
+  - type: requires_predicate
+    from: REQ-kibi-dimension-gap
+    to: FACT-PRED-kibi-dimension-gap-tested
+    created_at: 2026-10-30T12:06:39.982Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56da2613820e
+  - type: requires_predicate
+    from: REQ-kibi-dimension-gap
+    to: FACT-PRED-kibi-dimension-gap-waiver
+    created_at: 2026-10-30T12:06:40.025Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97fdd426f41d
+  - type: requires_predicate
+    from: REQ-kibi-dimension-gap
+    to: FACT-PRED-kibi-dimension-gap-advisor
+    created_at: 2026-10-30T12:06:40.058Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e92aee79ad51
+  - type: specified_by
+    from: REQ-kibi-dimension-gap
+    to: SCEN-kibi-dimension-gap
+    created_at: 2026-10-30T12:06:40.075Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b724d6b610e
+  - type: specified_by
+    from: REQ-kibi-dimension-gap
+    to: SCEN-NEG-kibi-dimension-gap-VERDICT-ONLY
+    created_at: 2026-10-30T12:06:40.097Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-745b534f3885
+  - type: assumes
+    from: SCEN-CASE-kibi-source-proof-kinds-bypassed-waypoint
+    to: FACT-CASE-kibi-source-proof-kinds-bypassed-waypoint
+    created_at: 2026-10-30T15:01:45.152Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-242d34ef5d77
+  - type: verified_by
+    from: SCEN-CASE-kibi-source-proof-kinds-bypassed-waypoint
+    to: TEST-kibi-source-proof-kinds
+    created_at: 2026-10-30T15:01:45.193Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43c5fc4624c7
+  - type: assumes
+    from: SCEN-CASE-kibi-intervals-verified-ENTAILMENT-MISDECISION
+    to: FACT-CASE-kibi-intervals-verified-ENTAILMENT-MISDECISION
+    created_at: 2026-10-30T15:36:49.407Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0ed1e91a617
+  - type: verified_by
+    from: SCEN-CASE-kibi-intervals-verified-ENTAILMENT-MISDECISION
+    to: TEST-kibi-intervals-differential
+    created_at: 2026-10-30T15:36:49.454Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0fa726657485

@@ -9,15 +9,12 @@ tags:
 claim_key: CLAIM-3CE79E9EEB832118
 claim_text: kibi sync must check every requirement before failing proposition-complete ingestion and name every failing requirement in one error that points to kibi migrate
 text_ref: .kb/requirements/REQ-kibi-schema6-migration.md
-fact_kind: predicate
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.migration.schema6
-  - proposition_complete_ingestion_failures
-  - all_failures_in_one_error_pointing_to_migrate
-polarity: assert
-canonical_key: logical_requirement_rule(kibi.migration.schema6,proposition_complete_ingestion_failures,all_failures_in_one_error_pointing_to_migrate)
-predicate_namespace: kibi.requirements
+fact_kind: property_value
+subject_key: kibi.migration.schema6
+property_key: failing_requirements_unnamed_in_migrate_error
+operator: eq
+value_type: int
+value_int: 0
 origin:
   kind: agent
   recorded_at: '2026-10-04T02:25:15.752Z'

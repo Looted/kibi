@@ -272,3 +272,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a19cc5ca27b1
+  - type: assumes
+    from: SCEN-NEG-bootstrap-claim-kinds-and-conflicts-OBSERVATION-AS-REQUIREMENT
+    to: FACT-NEG-bootstrap-claim-kinds-and-conflicts-OBSERVATION-AS-REQUIREMENT
+    created_at: 2026-10-29T21:03:34.131Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-554869e2d5b6
+  - type: verified_by
+    from: SCEN-NEG-bootstrap-claim-kinds-and-conflicts-OBSERVATION-AS-REQUIREMENT
+    to: TEST-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-29T21:03:34.213Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62e1796ee881
+  - type: assumes
+    from: SCEN-NEG-bootstrap-claim-kinds-and-conflicts-OBSERVATION-AS-REQUIREMENT
+    to: FACT-CASE-bootstrap-claim-kinds-and-conflicts-OBSERVATION-NOT-PLANNED
+    created_at: 2026-10-30T14:56:25.963Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-076a593e9849

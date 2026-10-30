@@ -503,3 +503,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-01ca17ccecd6
+  - type: specified_by
+    from: REQ-claude-code-kibi-plugin-v1
+    to: SCEN-NEG-claude-code-kibi-plugin-v1-UNOWNED-PROJECT-TOOLS
+    created_at: 2026-10-29T21:17:58.227Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-abc80c72efb3
+  - type: assumes
+    from: SCEN-NEG-skillopt-logical-evidence-fidelity-MISSING-COVERAGE-LINK
+    to: FACT-NEG-skillopt-logical-evidence-fidelity-MISSING-COVERAGE-LINK
+    created_at: 2026-10-29T21:04:31.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34443162001a
+  - type: verified_by
+    from: SCEN-NEG-skillopt-logical-evidence-fidelity-MISSING-COVERAGE-LINK
+    to: TEST-skillopt-logical-evidence-fidelity
+    created_at: 2026-10-29T21:04:31.174Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d13545f12a0
+  - type: specified_by
+    from: REQ-test-journaled-engine-harness
+    to: SCEN-NEG-test-journaled-engine-harness-LEAKED-OWNED-ENGINE
+    created_at: 2026-10-29T21:10:17.985Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bed6e472ca48
+  - type: assumes
+    from: SCEN-NEG-kb-entity-body-context-settings-SHORT-CONTEXT
+    to: FACT-NEG-kb-entity-body-context-settings-SHORT-CONTEXT
+    created_at: 2026-10-29T22:11:11.381Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd8a1fc498bb
+  - type: verified_by
+    from: SCEN-NEG-kb-entity-body-context-settings-SHORT-CONTEXT
+    to: TEST-kb-entity-body-context
+    created_at: 2026-10-29T22:11:11.442Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d777fa96fd57
+  - type: specified_by
+    from: REQ-claude-code-kibi-plugin-v1
+    to: SCEN-CASE-claude-code-kibi-plugin-v1-SECOND-SNIPPET
+    created_at: 2026-10-30T14:53:34.417Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64607422b4a5
+  - type: specified_by
+    from: REQ-claude-code-kibi-plugin-v1
+    to: SCEN-CASE-claude-code-kibi-plugin-v1-SECOND-STOP-REMINDER
+    created_at: 2026-10-30T14:53:48.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-897e1163c7e2
+  - type: assumes
+    from: SCEN-CASE-kibi-conservative-requirement-proof-SYMBOL-NOT-IMPLEMENTING
+    to: FACT-CASE-kibi-conservative-requirement-proof-SYMBOL-NOT-IMPLEMENTING
+    created_at: 2026-10-30T15:11:40.294Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0fbd28cfd4a
+  - type: verified_by
+    from: SCEN-CASE-kibi-conservative-requirement-proof-SYMBOL-NOT-IMPLEMENTING
+    to: TEST-e2e-coverage-proof-status
+    created_at: 2026-10-30T15:11:40.395Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec1903a2e58f
+  - type: specified_by
+    from: REQ-test-journaled-engine-harness
+    to: SCEN-CASE-test-journaled-engine-harness-LEAKED-BATCH-ENGINE
+    created_at: 2026-10-30T14:58:55.164Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d1999d29c28

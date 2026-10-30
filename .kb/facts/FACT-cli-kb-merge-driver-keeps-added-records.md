@@ -1,13 +1,13 @@
 ---
-title: Keeps Records Added On Either Side = true
+title: Records added on either side that the merge drops = 0
 status: active
 fact_kind: property_value
 subject_key: kibi.cli.kb_merge_driver
-property_key: keeps_records_added_on_either_side
+property_key: dropped_records_added_on_either_side
 operator: eq
-value_type: bool
-value_bool: true
-canonical_key: packages-cli-src-commands-merge-driver-ts:kibi.cli.kb_merge_driver:keeps_records_added_on_either_side:eq:true
+value_type: int
+value_int: 0
+canonical_key: kibi.cli.kb_merge_driver:dropped_records_added_on_either_side:eq:0
 claim_key: CLAIM-131544C56C22E57F
 claim_text: Kibi merge-driver must keep every record that either side of a merge added to the symbols manifest or a relationship shard
 claim_span_start: 0

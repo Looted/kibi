@@ -223,3 +223,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7cd2ed1829a4
+  - type: assumes
+    from: SCEN-NEG-kibi-non-numeric-proof-kinds-LOOSE-PATTERN
+    to: FACT-NEG-kibi-non-numeric-proof-kinds-LOOSE-PATTERN
+    created_at: 2026-10-29T21:02:19.527Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4125a5c6a7e8
+  - type: verified_by
+    from: SCEN-NEG-kibi-non-numeric-proof-kinds-LOOSE-PATTERN
+    to: TEST-kibi-non-numeric-proof-kinds
+    created_at: 2026-10-29T21:02:19.637Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae4c78e8e1a1
+  - type: assumes
+    from: SCEN-CASE-kb-entity-body-context-UNCHECKED-TYPE
+    to: FACT-CASE-kb-entity-body-context-UNCHECKED-TYPE
+    created_at: 2026-10-30T15:59:34.681Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d638cc0d8560
+  - type: verified_by
+    from: SCEN-CASE-kb-entity-body-context-UNCHECKED-TYPE
+    to: TEST-kb-entity-body-context
+    created_at: 2026-10-30T15:59:34.745Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b84fe316c7f

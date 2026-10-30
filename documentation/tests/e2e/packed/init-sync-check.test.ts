@@ -83,6 +83,29 @@ if (RUN_NODE_TEST_SUITE) {
       assert.ok(!Object.hasOwn(manifest, "paths"));
     });
 
+    it("should init write no .kb/config.json, path overrides or check-disabling policy", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+
+      await kibi(sandbox, ["init"]);
+
+      assert.ok(
+        !existsSync(join(sandbox.repoDir, ".kb/config.json")),
+        "init must not write a user-configurable .kb/config.json",
+      );
+      const manifest = JSON.parse(
+        readFileSync(join(sandbox.repoDir, ".kb/manifest.json"), "utf8"),
+      ) as Record<string, unknown>;
+      for (const key of ["paths", "checks", "rules", "disabledRules"]) {
+        assert.ok(
+          !Object.hasOwn(manifest, key),
+          `manifest.json must not carry a ${key} override: ${JSON.stringify(manifest)}`,
+        );
+      }
+    });
+
     it("should sync imports entities from documents", async (testContext) => {
       if (!hasProlog) {
         testContext.skip("SWI-Prolog is unavailable");
@@ -189,6 +212,52 @@ if (RUN_NODE_TEST_SUITE) {
 
         assert.ok(stdout.includes("Authentication Required"));
         assert.ok(stdout.includes("security"));
+      },
+    );
+
+    it(
+      "should not import a README.md inside an entity directory",
+      { timeout: 20000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        await kibi(sandbox, ["init"]);
+
+        createMarkdownFile(
+          sandbox,
+          ".kb/requirements/req-kept.md",
+          {
+            id: "req-kept",
+            title: "Kept Requirement",
+            type: "req",
+            status: "open",
+          },
+          "A real requirement next to the directory README.\n\n## Context\n\nFixture requirement for the packed init, sync and check test; it exists only to exercise the CLI and no further reason is stated.",
+        );
+        createMarkdownFile(
+          sandbox,
+          ".kb/requirements/README.md",
+          {
+            id: "req-readme",
+            title: "Directory Readme Posing As Requirement",
+            type: "req",
+            status: "open",
+          },
+          "This file explains the directory and must never become an entity.",
+        );
+
+        await kibi(sandbox, ["sync"]);
+
+        const { stdout } = await kibi(sandbox, ["query", "req"]);
+
+        assert.ok(stdout.includes("Kept Requirement"));
+        assert.ok(
+          !stdout.includes("Directory Readme Posing As Requirement"),
+          `README.md must not be imported as an entity: ${stdout}`,
+        );
       },
     );
 
@@ -315,6 +384,102 @@ if (RUN_NODE_TEST_SUITE) {
 
         assert.ok(stdout.includes("Auth Requirement"));
         assert.ok(!stdout.includes("Performance Requirement"));
+      },
+    );
+
+    it(
+      "should query by source file return only entities whose source matches that path",
+      { timeout: 20000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        await kibi(sandbox, ["init"]);
+
+        createMarkdownFile(
+          sandbox,
+          ".kb/requirements/req-billing.md",
+          {
+            id: "req-billing",
+            title: "Billing Requirement",
+            type: "req",
+            status: "open",
+          },
+          "# Billing\n\n## Context\n\nFixture requirement for the packed init, sync and check test; it exists only to exercise the CLI and no further reason is stated.",
+        );
+
+        createMarkdownFile(
+          sandbox,
+          ".kb/requirements/req-audit.md",
+          {
+            id: "req-audit",
+            title: "Audit Requirement",
+            type: "req",
+            status: "open",
+          },
+          "# Audit\n\n## Context\n\nFixture requirement for the packed init, sync and check test; it exists only to exercise the CLI and no further reason is stated.",
+        );
+
+        const sync = await kibi(sandbox, ["sync"]);
+        assert.strictEqual(sync.exitCode, 0, `${sync.stdout}${sync.stderr}`);
+
+        const result = await kibi(sandbox, [
+          "query",
+          "req",
+          "--source",
+          ".kb/requirements/req-billing.md",
+          "--format",
+          "json",
+        ]);
+        assert.strictEqual(result.exitCode, 0, result.stderr);
+        const rows = JSON.parse(result.stdout) as Array<{
+          id: string;
+          source?: string;
+        }>;
+        assert.deepStrictEqual(
+          rows.map((row) => row.id),
+          ["req-billing"],
+          `only the entity from the queried source file may be returned: ${result.stdout}`,
+        );
+        assert.strictEqual(rows[0]?.source, ".kb/requirements/req-billing.md");
+        assert.ok(
+          !result.stdout.includes("req-audit"),
+          "an entity whose source does not match the path must be excluded",
+        );
+      },
+    );
+
+    it(
+      "should reject a query for an unknown entity type and name the valid types",
+      { timeout: 20000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        await kibi(sandbox, ["init"]);
+        await kibi(sandbox, ["sync"]);
+
+        const result = await kibi(sandbox, ["query", "requirement-typo"]);
+
+        assert.notStrictEqual(
+          result.exitCode,
+          0,
+          "an unknown entity type must not be answered as an empty result",
+        );
+        assert.ok(
+          result.stderr.includes("Invalid type 'requirement-typo'"),
+          `the error must name the rejected type: ${result.stderr}`,
+        );
+        assert.ok(
+          result.stderr.includes("Valid types:") &&
+            result.stderr.includes("req"),
+          `the error must list the valid types: ${result.stderr}`,
+        );
+        assert.ok(!result.stdout.includes("[]"));
       },
     );
 

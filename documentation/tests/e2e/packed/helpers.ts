@@ -66,7 +66,7 @@ function resolveRepoRoot(): string {
 const REPO_ROOT = resolveRepoRoot();
 
 /**
- * Packed sandboxes are independent Git checkouts. Host CI may set
+ * Packed sandboxes are independent Git checkouts with telemetry off. Host CI may set
  * `KIBI_BRANCH` for the dogfood repository's detached HEAD; leaking that
  * identity into a temp repo makes hashed stores and `kibi init`/`sync`
  * attach to the host branch instead of the sandbox branch.
@@ -74,7 +74,12 @@ const REPO_ROOT = resolveRepoRoot();
 export function isolatedPackedSandboxEnv(
   overrides: NodeJS.ProcessEnv = {},
 ): NodeJS.ProcessEnv {
-  const env: NodeJS.ProcessEnv = { ...process.env, ...overrides };
+  // Packed runs are tests: they never send anonymous usage telemetry.
+  const env: NodeJS.ProcessEnv = {
+    ...process.env,
+    KIBI_TELEMETRY: "0",
+    ...overrides,
+  };
   env.KIBI_BRANCH = undefined;
   const explicit = overrides.KIBI_BRANCH;
   if (

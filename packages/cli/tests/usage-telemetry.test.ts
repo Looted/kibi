@@ -5,8 +5,14 @@ import os from "node:os";
 import path from "node:path";
 import { Command } from "commander";
 
+import { doctorFailureCategory } from "../src/commands/doctor";
 import { telemetryCommand } from "../src/commands/telemetry";
-import { finishCliTelemetry, trackCommandPath } from "../src/usage-telemetry";
+import {
+  finishCliTelemetry,
+  noteCliErrorCategory,
+  noteCliResultError,
+  trackCommandPath,
+} from "../src/usage-telemetry";
 
 const temporaryRoots: string[] = [];
 
@@ -85,6 +91,55 @@ describe("CLI anonymous usage telemetry", () => {
       },
       { operation: "sync", status: "error", exit_code: 2 },
     ]);
+  });
+
+  test("names why a command failed with a fixed category, never its message", async () => {
+    const env = telemetryEnv({ KIBI_TELEMETRY: "1" });
+    const finish = (exitCode: number, error?: unknown) =>
+      finishCliTelemetry({
+        commandPath: "doctor",
+        packageVersion: "1.2.3",
+        startedAt: new Date(),
+        exitCode,
+        error,
+        env,
+      });
+    noteCliErrorCategory(
+      doctorFailureCategory([
+        { name: "Git hooks", passed: false },
+        { name: ".kb/ manifest", passed: true },
+        { name: "Capability plugins", passed: false },
+      ]),
+    );
+    await finish(1);
+    noteCliResultError(
+      JSON.stringify({
+        status: "error",
+        error: { code: "UPSERT_DRY_RUN_INVALID", message: "/private/x.md" },
+      }),
+    );
+    await finish(1);
+    noteCliResultError("not json");
+    const failure = Object.assign(new Error("ENOENT: /private/repo"), {
+      code: "ENOENT",
+    });
+    await finish(1, failure);
+    await finish(1, new Error("boom at /private/repo"));
+    // A successful command after a noted failure carries no category.
+    noteCliErrorCategory("migrate:plan_hash_changed");
+    await finish(0);
+    const events = queued(env);
+    expect(events.map((event) => event.error_category)).toEqual([
+      "doctor:git_hooks+capability_plugins",
+      "upsert_dry_run_invalid",
+      "enoent",
+      "uncaught_error",
+      null,
+    ]);
+    expect(JSON.stringify(events)).not.toContain("/private");
+    expect(
+      doctorFailureCategory([{ name: "SWI-Prolog", passed: true }]),
+    ).toBeUndefined();
   });
 
   test("does not record telemetry management or unmatched commands", async () => {

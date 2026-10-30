@@ -419,3 +419,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f94ce753a786
+  - type: specified_by
+    from: REQ-kibi-env-bootstrap
+    to: SCEN-NEG-kibi-env-bootstrap-blank-overwrite
+    created_at: 2026-10-29T21:12:32.513Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e13ad55d914
+  - type: specified_by
+    from: REQ-kibi-evidence-levels
+    to: SCEN-NEG-kibi-evidence-levels-overstated-level
+    created_at: 2026-10-29T21:12:57.708Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ee9d04792d8
+  - type: specified_by
+    from: REQ-mcp-conditional-input-validation
+    to: SCEN-NEG-mcp-conditional-input-validation-CLAIM-KEY-WITHOUT-TEXT
+    created_at: 2026-10-29T21:21:42.315Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b608c0f5deb5
+  - type: assumes
+    from: SCEN-NEG-skillopt-host-neutral-optimization-CROSS-HARNESS-CONFIRM
+    to: FACT-NEG-skillopt-host-neutral-optimization-CROSS-HARNESS-CONFIRM
+    created_at: 2026-10-29T21:04:14.358Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51a9df69308a
+  - type: verified_by
+    from: SCEN-NEG-skillopt-host-neutral-optimization-CROSS-HARNESS-CONFIRM
+    to: TEST-e2e-skillopt-host-neutral-optimization
+    created_at: 2026-10-29T21:04:14.560Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-acfa03ee3475
+  - type: assumes
+    from: SCEN-NEG-skillopt-host-neutral-optimization-CROSS-HARNESS-CONFIRM
+    to: FACT-CASE-skillopt-host-neutral-optimization-CROSS-HARNESS-CELLS
+    created_at: 2026-10-30T14:56:55.873Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62299be4f597

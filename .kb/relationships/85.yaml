@@ -286,6 +286,27 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-14f8b968d207
+  - type: specified_by
+    from: REQ-opencode-risk-classification
+    to: SCEN-NEG-opencode-risk-classification-MANUAL-KB-EDIT
+    created_at: 2026-10-29T21:04:52.721Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8097449c8692
+  - type: assumes
+    from: SCEN-NEG-symbol-behavioral-anchors-COARSE-LINK-WITH-GRANULAR
+    to: FACT-NEG-symbol-behavioral-anchors-COARSE-LINK-WITH-GRANULAR
+    created_at: 2026-10-29T21:09:31.142Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59e70abd47d4
+  - type: verified_by
+    from: SCEN-NEG-symbol-behavioral-anchors-COARSE-LINK-WITH-GRANULAR
+    to: TEST-cli-symbol-behavioral-anchors
+    created_at: 2026-10-29T21:09:31.231Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-91fcefb640d1
   - type: validates
     from: TEST-proof-search-hint-weak-score
     to: SCEN-kibi-search-hints-host

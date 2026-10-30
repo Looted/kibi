@@ -167,7 +167,7 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5c49698c7cdf
-  - type: requires_predicate
+  - type: requires_property
     from: REQ-kibi-kb-lifecycle-integrity
     to: FACT-PRED-kb-lifecycle-cycle-once
     created_at: 2026-10-04T05:38:25.521Z
@@ -314,6 +314,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d971de2b0a56
+  - type: specified_by
+    from: REQ-kibi-kb-lifecycle-integrity
+    to: SCEN-NEG-kibi-kb-lifecycle-integrity-DANGLING-SOURCE
+    created_at: 2026-10-29T20:53:38.429Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1fb78ab5e1ed
   - type: verified_by
     from: SCEN-kibi-plugin-search-hints
     to: TEST-kibi-plugin-search-hints
@@ -321,3 +328,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f8944f71a95e
+  - type: constrains
+    from: REQ-kibi-kb-lifecycle-integrity
+    to: FACT-kibi-kb-lifecycle-component
+    created_at: 2026-10-30T12:40:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9dfe081b2e6
+  - type: specified_by
+    from: REQ-kibi-kb-lifecycle-integrity
+    to: SCEN-CASE-kibi-kb-lifecycle-integrity-cycle-reported-twice
+    created_at: 2026-10-30T14:58:13.070Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-195e148a0a67
+  - type: specified_by
+    from: REQ-kibi-kb-lifecycle-integrity
+    to: SCEN-CASE-kibi-kb-lifecycle-integrity-cycle-unreported
+    created_at: 2026-10-30T14:58:28.998Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66df3a2e2a5a

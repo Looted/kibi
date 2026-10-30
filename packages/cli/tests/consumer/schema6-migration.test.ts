@@ -332,4 +332,99 @@ links:
     expect(ws.text(["migrate", "--yes"])).toContain("No migration needed");
     expect(ws.read(TEST_PATH)).toBe(testAfter);
   }, 300_000);
+
+  test("sync names every requirement whose drifted inventory fails ingestion in one error that points to kibi migrate", () => {
+    const ws = createConsumerWorkspace("kibi-schema6-sync-lists-all-");
+    workspace = ws;
+    const manifest = JSON.parse(ws.read(".kb/manifest.json")) as Json;
+    ws.write(
+      ".kb/manifest.json",
+      `${JSON.stringify({ ...manifest, schemaVersion: 5 }, null, 2)}\n`,
+    );
+
+    // Two requirements whose ledgers an older advisor wrote: each stores its
+    // second normative clause as rationale.
+    const drifted = [
+      {
+        id: "REQ-QUOTA-RESET-REVIEW",
+        title: "Quota resets are logged and reviewed",
+        prose:
+          "Every quota reset must be logged. Every quota reset must be reviewed by an operator.",
+      },
+      {
+        id: "REQ-QUOTA-RAISE-AUDIT",
+        title: "Quota raises are logged and audited",
+        prose:
+          "Every quota raise must be logged. Every quota raise must be audited by a second operator.",
+      },
+    ];
+    for (const requirement of drifted) {
+      const { contract, propositions } = adviseProse(ws, requirement.prose);
+      const [kept, reclassified] = propositions as [
+        (typeof propositions)[number],
+        (typeof propositions)[number],
+      ];
+      expect([kept.role, reclassified.role]).toEqual([
+        "normative",
+        "normative",
+      ]);
+      const olderLedger = semanticFrontMatter(requirement.prose, contract, [
+        kept,
+        { ...reclassified, role: "rationale", status: "nonlogical" },
+      ]).replace(/^logic_claims: .*$/m, `logic_claims: [${kept.claim_key}]`);
+      ws.write(
+        `.kb/requirements/${requirement.id}.md`,
+        doc(
+          `
+id: ${requirement.id}
+title: ${requirement.title}
+type: req
+status: open
+priority: must
+${olderLedger}
+`,
+          requirement.prose,
+        ),
+      );
+    }
+    ws.stage();
+
+    const sync = ws.kibi(["sync"]);
+    expect(sync.status).not.toBe(0);
+    const output = `${sync.stdout}${sync.stderr}`;
+    expect(output).toContain(
+      "2 requirement(s) failed proposition-complete ingestion",
+    );
+    for (const requirement of drifted)
+      expect(output).toContain(`.kb/requirements/${requirement.id}.md`);
+    expect(output).toContain("Run 'kibi migrate'");
+  }, 300_000);
+
+  test("an upgrade applied with a hash other than the planned one is refused and changes nothing", () => {
+    const ws = createConsumerWorkspace("kibi-schema6-wrong-hash-");
+    workspace = ws;
+    const manifest = JSON.parse(ws.read(".kb/manifest.json")) as Json;
+    ws.write(
+      ".kb/manifest.json",
+      `${JSON.stringify({ ...manifest, schemaVersion: 5 }, null, 2)}\n`,
+    );
+    ws.stage();
+    const manifestBefore = ws.read(".kb/manifest.json");
+
+    const { plan } = planActions(ws);
+    expect(typeof plan.planHash).toBe("string");
+    const refused = ws.kibi([
+      "migrate",
+      "--apply-safe",
+      "--approved-plan-hash",
+      "0".repeat(64),
+      "--format",
+      "json",
+    ]);
+    expect(refused.status).not.toBe(0);
+    expect(`${refused.stdout}${refused.stderr}`).toContain(
+      "regenerate the plan and approve its current hash",
+    );
+    expect(ws.read(".kb/manifest.json")).toBe(manifestBefore);
+  }, 300_000);
 });

@@ -384,3 +384,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ac04a492c311
+  - type: assumes
+    from: SCEN-NEG-cli-migrate-legacy-requirement-status-COMPLETE-WITH-UNCOMPILED
+    to: FACT-NEG-cli-migrate-legacy-requirement-status-COMPLETE-WITH-UNCOMPILED
+    created_at: 2026-10-29T21:01:00.252Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3eb6dba3ba4
+  - type: verified_by
+    from: SCEN-NEG-cli-migrate-legacy-requirement-status-COMPLETE-WITH-UNCOMPILED
+    to: TEST-cli-migrate-legacy-requirement-status
+    created_at: 2026-10-29T21:01:00.360Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-342dc2cf15e0

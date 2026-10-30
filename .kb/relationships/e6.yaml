@@ -181,3 +181,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-231d43f5a2e7
+  - type: specified_by
+    from: REQ-013
+    to: SCEN-NEG-013-RAW-INFERENCE-CALL
+    created_at: 2026-10-29T21:28:14.579Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1540c5e773f
+  - type: assumes
+    from: SCEN-NEG-kb-upsert-ledger-contract-in-error-omitted-ledger
+    to: FACT-NEG-kb-upsert-ledger-contract-in-error-omitted-ledger
+    created_at: 2026-10-29T21:02:09.123Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60c53a2ccffb
+  - type: verified_by
+    from: SCEN-NEG-kb-upsert-ledger-contract-in-error-omitted-ledger
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-10-29T21:02:09.197Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f2f438f00376
+  - type: assumes
+    from: SCEN-NEG-mcp-kb-freshness-EXTERNAL-REPLACE
+    to: FACT-NEG-mcp-kb-freshness-EXTERNAL-REPLACE
+    created_at: 2026-10-29T21:21:49.374Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebd8e6cd40bd
+  - type: verified_by
+    from: SCEN-NEG-mcp-kb-freshness-EXTERNAL-REPLACE
+    to: TEST-e2e-mcp-freshness-external-replace
+    created_at: 2026-10-29T21:21:49.434Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5bf0a86e5580
+  - type: assumes
+    from: SCEN-CASE-cli-kb-merge-driver-BOTH-SIDES-APPEND
+    to: FACT-CASE-cli-kb-merge-driver-BOTH-SIDES-APPEND
+    created_at: 2026-10-30T14:56:34.124Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-444a09a0d271
+  - type: verified_by
+    from: SCEN-CASE-cli-kb-merge-driver-BOTH-SIDES-APPEND
+    to: TEST-cli-kb-merge-driver
+    created_at: 2026-10-30T14:56:34.187Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52ed7351efbe

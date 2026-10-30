@@ -25,6 +25,12 @@ const tempDirs: string[] = [];
 // own output instead of a test timeout.
 const RUNNER_TIMEOUT_MS = 15_000;
 
+// The Mutalog version the runner pins, read from the runner itself so a pin
+// bump does not have to touch this test.
+const pinnedMutalogVersion =
+  /mutalog_version\('([^']+)'\)/.exec(readFileSync(runnerPath, "utf8"))?.[1] ??
+  "unknown";
+
 // A stand-in for Mutalog's library(mutalog): its entry point prints where it
 // was loaded from and the arguments it received, so a test can tell which
 // copy the runner chose without running a real mutation pass.
@@ -123,5 +129,31 @@ describe("run-prolog-mutation.pl", () => {
     expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
     expect(result.stdout).toContain("stub pack [list]");
     expect(result.stderr).not.toContain("Installing Mutalog");
+  });
+
+  test("refuses to run a cached Mutalog pack whose version is not the pinned one", () => {
+    const cwd = tempDir("mutalog-stale");
+    const packDir = path.join(cwd, ".cache", "prolog-packs", "mutalog");
+    writeStub(path.join(packDir, "prolog"), "stale");
+    writeFileSync(
+      path.join(packDir, "pack.pl"),
+      "name(mutalog).\nversion('0.0.1').\ntitle('Mutalog stub').\n",
+      "utf8",
+    );
+    // A curl that always fails stands in for the download, so the test needs
+    // no network and the runner cannot fall back to the stale copy.
+    const bin = tempDir("mutalog-bin");
+    const fakeCurl = path.join(bin, "curl");
+    writeFileSync(fakeCurl, "#!/bin/sh\nexit 22\n", { mode: 0o755 });
+
+    const result = runMutation(cwd, ["list"], {
+      PATH: `${bin}${path.delimiter}${process.env.PATH ?? ""}`,
+    });
+
+    expect(result.status, `${result.stdout}\n${result.stderr}`).not.toBe(0);
+    expect(result.stderr).toContain(
+      `Installing Mutalog ${pinnedMutalogVersion}`,
+    );
+    expect(result.stdout).not.toContain("stub stale");
   });
 });

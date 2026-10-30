@@ -391,3 +391,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b4f6e47db261
+  - type: assumes
+    from: SCEN-NEG-core-engine-read-limits-PARTIAL-ANSWER
+    to: FACT-NEG-core-engine-read-limits-PARTIAL-ANSWER
+    created_at: 2026-10-29T21:09:14.196Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8fd5e8faf9d4
+  - type: verified_by
+    from: SCEN-NEG-core-engine-read-limits-PARTIAL-ANSWER
+    to: TEST-core-engine-read-limits-cli
+    created_at: 2026-10-29T21:09:14.293Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-630a7e38d717
+  - type: specified_by
+    from: REQ-kibi-uncompiled-source-visibility
+    to: SCEN-NEG-kibi-uncompiled-source-visibility-UNCOMPILABLE-WRITE
+    created_at: 2026-10-29T21:18:51.241Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4cfe2e1f1f47
+  - type: specified_by
+    from: REQ-skillopt-operator-selected-harness
+    to: SCEN-NEG-skillopt-operator-selected-harness-UNKNOWN-HARNESS
+    created_at: 2026-10-29T21:03:24.121Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83f2962cd5dd
+  - type: assumes
+    from: SCEN-CASE-bootstrap-advisor-proposition-roles-ROLE-NOT-FROM-ADVISOR
+    to: FACT-CASE-bootstrap-advisor-proposition-roles-ROLE-NOT-FROM-ADVISOR
+    created_at: 2026-10-30T14:57:40.735Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d4c28d3c34e
+  - type: verified_by
+    from: SCEN-CASE-bootstrap-advisor-proposition-roles-ROLE-NOT-FROM-ADVISOR
+    to: TEST-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-30T14:57:40.799Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae57b565dac4
+  - type: assumes
+    from: SCEN-NEG-core-engine-read-limits-PARTIAL-ANSWER
+    to: FACT-CASE-core-engine-read-limits-READ-PAST-LIMIT
+    created_at: 2026-10-30T14:58:27.914Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0593d34a8c2
+  - type: specified_by
+    from: REQ-kibi-uncompiled-source-visibility
+    to: SCEN-CASE-kibi-uncompiled-source-visibility-UNEXTRACTABLE-UNREPORTED
+    created_at: 2026-10-30T14:59:56.478Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0bdd3802ee2
+  - type: assumes
+    from: SCEN-CASE-kibi-search-answer-layer-v2-ADR-WITHOUT-EXCERPT
+    to: FACT-CASE-kibi-search-answer-layer-v2-ADR-WITHOUT-EXCERPT
+    created_at: 2026-10-30T14:56:04.231Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e100435dbee3
+  - type: verified_by
+    from: SCEN-CASE-kibi-search-answer-layer-v2-ADR-WITHOUT-EXCERPT
+    to: TEST-kibi-search-answer-layer
+    created_at: 2026-10-30T14:56:04.312Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86f42b0ac1b3
+  - type: specified_by
+    from: REQ-skillopt-operator-selected-harness
+    to: SCEN-CASE-skillopt-operator-selected-harness-LEAK-SCAN-BYPASS
+    created_at: 2026-10-30T15:34:12.048Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9aad3bd4366

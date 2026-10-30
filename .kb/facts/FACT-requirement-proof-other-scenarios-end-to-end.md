@@ -9,10 +9,11 @@ tags:
 text_ref: REQ-ui-pattern-component-proof
 fact_kind: property_value
 subject_key: requirement_proof.component_scope
-property_key: requires_end_to_end_for_other_scenarios
-operator: eq
-value_type: bool
-value_bool: true
+property_key: other_scenario_proof_test_kinds
+operator: subset_of
+value_type: set
+value_set:
+  - end_to_end
 claim_key: CLAIM-000ADB011443E23F
 claim_text: Every other scenario must accept only end-to-end tests as proof
 origin:
@@ -24,4 +25,4 @@ type: fact
 ---
 Every other scenario must accept only end-to-end tests as proof.
 
-Recorded as a strict boolean semantic fact about `requirement_proof.component_scope` so REQ-ui-pattern-component-proof can be checked for contradictions.
+Recorded as a typed semantic fact about `requirement_proof.component_scope` so REQ-ui-pattern-component-proof can be checked for contradictions.

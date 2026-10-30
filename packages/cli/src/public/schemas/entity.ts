@@ -411,6 +411,20 @@ const entitySchema: Record<string, unknown> = {
       description:
         "Requirement-only. Optional reference to the approval decision record (ticket, ADR or review link) for an exception requirement.",
     },
+    failure_side_waiver: {
+      type: "string",
+      minLength: 1,
+      pattern: "\\S",
+      description:
+        "Requirement-only. Why the requirement has no failure side to test: its claims state a capability or an output shape, so there is no input or attempt for Kibi to refuse. Waives the happy_path_only gap once failure_side_waiver_approved_by is set.",
+    },
+    failure_side_waiver_approved_by: {
+      type: "string",
+      minLength: 1,
+      pattern: "\\S",
+      description:
+        "Requirement-only. The person who accepted failure_side_waiver. Without it the waiver is reported as awaiting approval and the gap stays open.",
+    },
     rationale: {
       type: "string",
       minLength: 1,
@@ -497,6 +511,23 @@ const entitySchema: Record<string, unknown> = {
           semantic_key: { type: "string" },
           payload_hash: { type: "string" },
           reason: { type: "string" },
+          // The advisor's hint for a quantified clause, kept so its receipt
+          // propositions can be copied into the inventory unchanged.
+          dimension: {
+            type: "object",
+            required: ["quantifier", "rewrites"],
+            properties: {
+              quantifier: { type: "string", minLength: 1 },
+              rewrites: {
+                type: "array",
+                items: {
+                  type: "string",
+                  enum: ["bound", "rule", "count", "set"],
+                },
+              },
+            },
+            additionalProperties: false,
+          },
         },
         additionalProperties: false,
       },
@@ -606,6 +637,34 @@ const entitySchema: Record<string, unknown> = {
     canonical_key: { type: "string" },
     claim_key: { type: "string", pattern: "^CLAIM-[A-F0-9]{16}$" },
     claim_text: { type: "string" },
+    dimension_waiver: {
+      type: "string",
+      minLength: 1,
+      pattern: "\\S",
+      description:
+        "Fact-only. Why the quantifier word in claim_text (each, every, all, or a cardinality bound) ranges over nothing, so the claim needs no count, set or rule. Waives dimension_unrepresented for the claim once dimension_waiver_approved_by is set.",
+    },
+    dimension_waiver_approved_by: {
+      type: "string",
+      minLength: 1,
+      pattern: "\\S",
+      description:
+        "Fact-only. The person who accepted dimension_waiver. Without it the waiver is reported as awaiting approval and the gap stays open.",
+    },
+    case_waiver: {
+      type: "string",
+      minLength: 1,
+      pattern: "\\S",
+      description:
+        "Fact-only. Why the edge cases Kibi derives from this fact (the value past a bound, a value outside a set) are covered some other way or cannot occur. Waives uncovered_case for the fact once case_waiver_approved_by is set.",
+    },
+    case_waiver_approved_by: {
+      type: "string",
+      minLength: 1,
+      pattern: "\\S",
+      description:
+        "Fact-only. The person who accepted case_waiver. Without it the waiver is reported as awaiting approval and the gap stays open.",
+    },
     predicate_name: { type: "string" },
     predicate_namespace: { type: "string" },
     predicate_arity: { type: "integer", minimum: 1 },
@@ -699,6 +758,10 @@ const entitySchema: Record<string, unknown> = {
             { required: ["canonical_key"] },
             { required: ["claim_key"] },
             { required: ["claim_text"] },
+            { required: ["dimension_waiver"] },
+            { required: ["dimension_waiver_approved_by"] },
+            { required: ["case_waiver"] },
+            { required: ["case_waiver_approved_by"] },
             { required: ["predicate_name"] },
             { required: ["predicate_namespace"] },
             { required: ["predicate_arity"] },
@@ -760,6 +823,8 @@ const entitySchema: Record<string, unknown> = {
             { required: ["proof_exempt_reason"] },
             { required: ["approved_by"] },
             { required: ["approval_ref"] },
+            { required: ["failure_side_waiver"] },
+            { required: ["failure_side_waiver_approved_by"] },
             { required: ["rationale"] },
             { required: ["exempts_claims"] },
             { required: ["required_evidence"] },

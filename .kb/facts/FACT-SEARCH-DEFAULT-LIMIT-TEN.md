@@ -6,17 +6,14 @@ tags:
   - search
   - search-lane
 text_ref: .kb/requirements/REQ-mcp-structured-text-per-host.md
-fact_kind: predicate
-polarity: assert
-canonical_key: logical_requirement_rule(kibi.discovery.search,search_without_limit,at_most_ten_ranked_rows)
+fact_kind: property_value
+subject_key: kibi.discovery.search
+property_key: ranked_rows_returned_without_limit
+operator: lte
+value_type: int
+value_int: 10
 claim_key: CLAIM-97FC48AA9C1EA797
 claim_text: A kb_search without a limit must return at most 10 ranked rows
-predicate_name: logical_requirement_rule
-predicate_args:
-  - kibi.discovery.search
-  - search_without_limit
-  - at_most_ten_ranked_rows
-predicate_namespace: kibi.requirements
 origin:
   kind: agent
   recorded_at: '2026-10-11T20:32:13.554Z'
