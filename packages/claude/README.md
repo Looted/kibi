@@ -109,9 +109,14 @@ including Node startup.
 Session memory is an append-only journal per workspace and session, so hooks
 for parallel tool calls never lose each other's events.
 
-## Usage telemetry (opt-in)
+## Diagnostic usage log (opt-in)
 
-The plugin records nothing by default. To capture usage for diagnosis, set
+This local log is separate from Kibi's anonymous usage statistics, which are on
+by default; `KIBI_TELEMETRY=0`, `DO_NOT_TRACK=1` or `kibi telemetry disable`
+turns those off (see the
+[usage telemetry guide](https://looted.github.io/kibi/guide/telemetry.html)).
+
+The plugin writes no diagnostic log by default. To capture usage for diagnosis, set
 `KIBI_DIAGNOSTIC_MODE=1` in the environment Claude Code inherits — for example
 in the `env` block of `~/.claude/settings.json`. The MCP server, the CLI JSON
 routes, and these hooks all honor that one variable.
