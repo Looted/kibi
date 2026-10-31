@@ -356,3 +356,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-72ac629a7c7a
+  - type: validates
+    from: TEST-kibi-multilingual-code-proofs
+    to: SCEN-kibi-multilingual-code-proofs
+    created_at: 2026-10-31T08:35:20.722Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06696d911b3a

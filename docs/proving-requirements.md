@@ -275,6 +275,22 @@ without the field fails the read. `field` applies only to `exhaustive`.
   tuple, set or frozenset its items. The proof file must import the module
   (`from app.status import OrderStatus`, `from .status import OrderStatus` or
   `import app.status`).
+- **SWI-Prolog**: a `.pl` or `.plt` domain is loaded with the same
+  SWI-Prolog Kibi runs on (`KIBI_SWIPL`, then the bundled runtime, then
+  `swipl` on `PATH`). A module file loads as its module and a plain file into
+  `user`. `export` names a predicate indicator (`status/1`, `phrase//1` or
+  `operators:operator/2`), and the domain is the distinct solutions of its
+  argument. For a predicate with more than one argument, `arg` names the
+  1-based argument that holds the members (`arg` and `field` are not both
+  allowed). Kibi refuses a read whose solutions leave that argument unbound,
+  a predicate with more than 100,000 solutions, and a predicate with several
+  arguments and no `arg`. Members are atoms and strings as text, numbers as
+  written. The proof file must name the predicate and load its file
+  (`:- use_module('../prolog/operators')`, `library(operators)` for a pack's
+  `prolog/` directory, `consult/1` or a `:- [...]` list), or be the `.plt`
+  file beside it. A value_source reads a predicate with one solution that is
+  a number, and the rule, state_machine and regex kinds below read Prolog
+  predicates too.
 
 A Python test has no helper module: it writes the certificate JSON itself to
 a file in the directory named by `KIBI_PROOF_CERTIFICATES` (skip writing when
@@ -297,6 +313,32 @@ if directory:
             "domain": {"symbol_id": "SYM-order-status", "members": [str(m) for m in members]},
             "results": results,
         }, f)
+```
+
+A SWI-Prolog test writes its certificate with the `kibi_certificate` module
+the kibi-usage skill ships in `resources/prolog-proofs.md` (copy it into the
+project's test directory). It reads the domain with `findall/3` over the
+predicate, never a hand-written list:
+
+```prolog
+:- use_module('../prolog/operators').
+:- use_module(kibi_certificate).
+:- initialization(main, main).
+
+operator_name(Name) :- operator(Name, _).
+
+main :-
+    findall(Name, operator_name(Name), All), list_to_set(All, Names),
+    kibi_exhaustive_certificate('TEST-operators', 'SYM-operator', Names,
+                                [N]>>atom(N), Certificate),
+    kibi_write_certificate(Certificate).
+```
+
+```yaml
+  domain_source:
+    symbol_id: SYM-operator
+    export: operator/2
+    arg: 1
 ```
 
 ### Wiring a certificate test into the KB
@@ -429,7 +471,7 @@ keys to name and which facts to remodel.
 
 These kinds prove claims that are not numbers. In each one Kibi reads the
 model from the code itself at ingest, with the same runners as an exhaustive
-domain (TypeScript, JavaScript or Python), needs the certificate to be that
+domain (TypeScript, JavaScript, Python or SWI-Prolog), needs the certificate to be that
 model, and decides the claim exactly: nothing is sampled. Every symbol a
 contract names must link `covered_by` the test.
 
@@ -502,6 +544,19 @@ with the reason. The certificate builders are `ruleCertificate`,
 `stateMachineCertificate` and `regexCertificate` in
 `kibi-cli/proof-certificates`; `failedCalls` lists predicate calls that
 threw.
+
+In SWI-Prolog each symbol names a predicate indicator. A rule predicate is
+called once per row with one argument per argument type and its success or
+failure is the row's value; an arity that differs from the argument types is
+refused. A transition table is a predicate of arity 2 (`From, To`) or 3
+(`From, Event, To`) whose solutions are the edges; a next-state predicate
+`next(State, Event, Next)` is driven over its `domains` instead. A pattern is
+a predicate with one solution that is an atom or string, read like a string
+constant. The `kibi_certificate` module has
+`kibi_rule_certificate/4`, `kibi_machine_certificate/5` and
+`kibi_pattern_certificate/4` for these kinds. One certificate reads one
+language: a contract that mixes a Prolog domain with a TypeScript predicate
+is refused.
 
 ### Project sources: routes, schemas, configuration and references
 

@@ -279,12 +279,20 @@ export const PROOF_RUN_ARTIFACT_SCHEMA = {
   additionalProperties: false,
 } as const;
 
+const ARG_SCHEMA = {
+  type: "integer",
+  minimum: 1,
+  description:
+    "A SWI-Prolog predicate's argument (1-based) whose solutions Kibi reads, when the predicate takes more than one argument (operator/2 with arg 1 lists each operator's name).",
+} as const;
+
 const SOURCE_REFERENCE_SCHEMA = {
   type: "object",
   required: ["symbol_id"],
   properties: {
     symbol_id: { type: "string", minLength: 1 },
     export: { type: "string", minLength: 1 },
+    arg: ARG_SCHEMA,
   },
   additionalProperties: false,
 } as const;
@@ -382,6 +390,7 @@ export const PROOF_CONTRACT_SCHEMA = {
           description:
             "exhaustive: when the export is a list of records, the field of each record that names a domain member (a catalog's name).",
         },
+        arg: ARG_SCHEMA,
       },
       additionalProperties: false,
     },
@@ -411,6 +420,7 @@ export const PROOF_CONTRACT_SCHEMA = {
         properties: {
           symbol_id: { type: "string", minLength: 1 },
           export: { type: "string", minLength: 1 },
+          arg: ARG_SCHEMA,
           source: SOURCE_SPEC_SCHEMA,
           measure: {
             type: "string",
@@ -819,16 +829,29 @@ function proofContractKindErrors(contract: Record<string, unknown>): string[] {
       !nonEmptyString(row.symbol_id) ||
       (row.export !== undefined && !nonEmptyString(row.export)) ||
       (row.field !== undefined && !nonEmptyString(row.field)) ||
+      (row.arg !== undefined && !isArgIndex(row.arg)) ||
       Object.keys(row).some(
-        (key) => key !== "symbol_id" && key !== "export" && key !== "field",
+        (key) =>
+          key !== "symbol_id" &&
+          key !== "export" &&
+          key !== "field" &&
+          key !== "arg",
       )
     )
       errors.push(
-        "proof_contract.domain_source must be {symbol_id, export?, field?} naming the symbol that defines the domain, the export to read when its title is not the export name, and the record field that names each member",
+        "proof_contract.domain_source must be {symbol_id, export?, field?, arg?} naming the symbol that defines the domain, the export to read when its title is not the export name, the record field that names each member, and for a SWI-Prolog predicate the argument (1-based) that names it",
+      );
+    else if (row.field !== undefined && row.arg !== undefined)
+      errors.push(
+        "proof_contract.domain_source takes field (a record field) or arg (a Prolog argument), not both",
       );
     else if (row.field !== undefined && kind !== "exhaustive")
       errors.push(
         `proof_contract.domain_source.field applies only to kind exhaustive, not ${String(kind ?? "e2e")}`,
+      );
+    else if (row.arg !== undefined && kind !== "exhaustive")
+      errors.push(
+        `proof_contract.domain_source.arg applies only to kind exhaustive, not ${String(kind ?? "e2e")}`,
       );
   } else if (kind === "exhaustive" || kind === "typecheck")
     errors.push(
@@ -878,9 +901,13 @@ function proofContractKindErrors(contract: Record<string, unknown>): string[] {
             `proof_contract.value_source[${index}].source`,
           ),
         );
-        if (row.symbol_id !== undefined || row.export !== undefined)
+        if (
+          row.symbol_id !== undefined ||
+          row.export !== undefined ||
+          row.arg !== undefined
+        )
           errors.push(
-            `proof_contract.value_source[${index}] names a source, so it takes no symbol_id or export`,
+            `proof_contract.value_source[${index}] names a source, so it takes no symbol_id, export or arg`,
           );
         if (row.measure !== undefined && row.measure !== "count")
           errors.push(
@@ -897,18 +924,22 @@ function proofContractKindErrors(contract: Record<string, unknown>): string[] {
           row !== null &&
           nonEmptyString(row.symbol_id) &&
           (row.export === undefined || nonEmptyString(row.export)) &&
+          (row.arg === undefined || isArgIndex(row.arg)) &&
           (row.measure === undefined ||
             row.measure === "value" ||
             row.measure === "count") &&
           Object.keys(row).every(
             (key) =>
-              key === "symbol_id" || key === "export" || key === "measure",
+              key === "symbol_id" ||
+              key === "export" ||
+              key === "arg" ||
+              key === "measure",
           )
         );
       })
     )
       errors.push(
-        "proof_contract.value_source must be [{symbol_id, export?, measure?: value|count} or {source, measure?: count}] naming the code constants or project sources the assumptions read",
+        "proof_contract.value_source must be [{symbol_id, export?, arg?, measure?: value|count} or {source, measure?: count}] naming the code constants or project sources the assumptions read",
       );
     else if (kind !== "arithmetic" && kind !== "smt")
       errors.push(
@@ -938,13 +969,23 @@ function proofContractKindErrors(contract: Record<string, unknown>): string[] {
   return errors;
 }
 
-function isSourceReference(value: unknown): boolean {
+function isArgIndex(value: unknown): boolean {
+  return typeof value === "number" && Number.isInteger(value) && value >= 1;
+}
+
+function isSourceReference(
+  value: unknown,
+  options: Readonly<{ arg?: boolean }> = { arg: true },
+): boolean {
   const row = record(value);
   return (
     row !== null &&
     nonEmptyString(row.symbol_id) &&
     (row.export === undefined || nonEmptyString(row.export)) &&
-    Object.keys(row).every((key) => key === "symbol_id" || key === "export")
+    (row.arg === undefined || (options.arg === true && isArgIndex(row.arg))) &&
+    Object.keys(row).every(
+      (key) => key === "symbol_id" || key === "export" || key === "arg",
+    )
   );
 }
 
@@ -964,11 +1005,12 @@ function isSourceMap(
 
 function isPredicateReference(value: unknown): boolean {
   const row = record(value);
+  // A predicate is called with every argument, so it projects none.
   if (row === null || row.harness_for === undefined)
-    return isSourceReference(value);
+    return isSourceReference(value, { arg: false });
   const { harness_for: harness, ...reference } = row;
   return (
-    isSourceReference(reference) &&
+    isSourceReference(reference, { arg: false }) &&
     Array.isArray(harness) &&
     harness.length > 0 &&
     harness.every(nonEmptyString)
@@ -1046,12 +1088,12 @@ function nonNumericContractErrors(contract: Record<string, unknown>): string[] {
     )
   )
     errors.push(
-      "proof_contract.domains must map each argument type to {symbol_id, export?} naming the export that lists its values, or {source} naming the project source Kibi reads them from",
+      "proof_contract.domains must map each argument type to {symbol_id, export?, arg?} naming the export (or SWI-Prolog predicate and argument) that lists its values, or {source} naming the project source Kibi reads them from",
     );
   for (const field of ["initial_source", "pattern_source"])
     if (contract[field] !== undefined && !isSourceReference(contract[field]))
       errors.push(
-        `proof_contract.${field} must be {symbol_id, export?} naming the export Kibi reads`,
+        `proof_contract.${field} must be {symbol_id, export?, arg?} naming the export (or SWI-Prolog predicate and argument) Kibi reads`,
       );
   only("predicate_source", ["rule"]);
   only("domains", ["rule", "state_machine"]);
@@ -1113,7 +1155,12 @@ export function optionalProofContractFields(
 > {
   const fields: {
     kind?: ProofKind;
-    domain_source?: { symbol_id: string; export?: string; field?: string };
+    domain_source?: {
+      symbol_id: string;
+      export?: string;
+      field?: string;
+      arg?: number;
+    };
     witness?: { path: string };
     constraint_source?: { fact_ids: string[] };
     value_source?: ValueSourceEntry[];
@@ -1132,6 +1179,7 @@ export function optionalProofContractFields(
       symbol_id: domain.symbol_id,
       ...(typeof domain.export === "string" ? { export: domain.export } : {}),
       ...(typeof domain.field === "string" ? { field: domain.field } : {}),
+      ...(isArgIndex(domain.arg) ? { arg: domain.arg as number } : {}),
     };
   const witness = record(contract.witness);
   if (witness && typeof witness.path === "string")
@@ -1154,6 +1202,7 @@ export function optionalProofContractFields(
         return {
           symbol_id: row.symbol_id,
           ...(typeof row.export === "string" ? { export: row.export } : {}),
+          ...(isArgIndex(row.arg) ? { arg: row.arg as number } : {}),
           ...(row.measure === "value" || row.measure === "count"
             ? { measure: row.measure }
             : {}),
@@ -1177,10 +1226,19 @@ export function optionalProofContractFields(
   return fields;
 }
 
-type SourceReference = { symbol_id: string; export?: string };
-type PredicateReference = SourceReference & { harness_for?: string[] };
+type SourceReference = { symbol_id: string; export?: string; arg?: number };
+type PredicateReference = {
+  symbol_id: string;
+  export?: string;
+  harness_for?: string[];
+};
 type ValueSourceEntry =
-  | { symbol_id: string; export?: string; measure?: "value" | "count" }
+  | {
+      symbol_id: string;
+      export?: string;
+      arg?: number;
+      measure?: "value" | "count";
+    }
   | { source: SourceSpec; measure: "count" };
 
 function predicateMap(
@@ -1229,6 +1287,7 @@ function sourceReference(value: unknown): SourceReference | undefined {
   return {
     symbol_id: row.symbol_id,
     ...(typeof row.export === "string" ? { export: row.export } : {}),
+    ...(isArgIndex(row.arg) ? { arg: row.arg as number } : {}),
   };
 }
 

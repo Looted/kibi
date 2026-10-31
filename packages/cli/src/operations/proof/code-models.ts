@@ -37,13 +37,20 @@ import {
 import { loadSymbol } from "./code-certificates.js";
 import { describeSource, readSource } from "../../public/proof-sources.js";
 import { runCodeEvaluator, TS_RESOLVE_HOOKS } from "./code-runner.js";
+import {
+  CODE_LANGUAGE_NAMES,
+  codeLanguage,
+  languageName,
+} from "./code-languages.js";
+import { PROLOG_EVALUATOR } from "./prolog-evaluator.js";
 import { evaluateSourceCode } from "./source-code-readers.js";
 
 /** The most predicate calls one rule certificate may need. */
 export const MAX_TABLE_ROWS = 100_000;
 
-type Reference = Readonly<{ symbol_id: string; export?: string }>;
-export type Resolved = { file: string; export: string };
+type Reference = Readonly<{ symbol_id: string; export?: string; arg?: number }>;
+/** A code export Kibi reads; `arg` projects a Prolog predicate's solutions. */
+export type Resolved = { file: string; export: string; arg?: number };
 
 export type TableRow = Readonly<{
   args: readonly string[];
@@ -362,9 +369,13 @@ async function resolveReference(
   const symbol = await loadSymbol(context, reference.symbol_id);
   if (!symbol || symbol.sourceFile === "")
     return `the ${label} symbol ${reference.symbol_id} has no source file`;
+  const file = path.resolve(context.workspaceRoot, symbol.sourceFile);
+  if (reference.arg !== undefined && codeLanguage(file) !== "prolog")
+    return `${label}.arg applies only to a SWI-Prolog predicate, not to ${languageName(file)} in ${symbol.sourceFile}`;
   return {
-    file: path.resolve(context.workspaceRoot, symbol.sourceFile),
+    file,
     export: reference.export ?? symbol.title,
+    ...(reference.arg === undefined ? {} : { arg: reference.arg }),
   };
 }
 
@@ -378,18 +389,18 @@ export function evaluateCodeModel<T>(
   files: readonly Resolved[],
   plan: Record<string, unknown>,
 ): { ok: true; model: T } | { ok: false; reason: string } {
-  const python = files.map((file) => /\.py$/i.test(file.file));
-  if (python.some((value) => value !== python[0]))
+  const languages = [...new Set(files.map((file) => codeLanguage(file.file)))];
+  if (languages.length > 1)
     return {
       ok: false,
-      reason: "the contract's sources mix Python and JavaScript files; one certificate reads one language",
+      reason: `the contract's sources mix ${languages.map((language) => (language === null ? "unsupported" : CODE_LANGUAGE_NAMES[language])).join(" and ")} files; one certificate reads one language`,
     };
   const first = files[0];
   if (first === undefined) return { ok: false, reason: "the contract names no source" };
   const run = runCodeEvaluator(
     workspaceRoot,
     path.relative(workspaceRoot, first.file),
-    { js: jsModelEvaluator(), python: PYTHON_MODEL_EVALUATOR },
+    { js: jsModelEvaluator(), python: PYTHON_MODEL_EVALUATOR, prolog: PROLOG_EVALUATOR },
     [JSON.stringify(plan)],
     (parsed) =>
       parsed !== null && typeof parsed === "object" && "ok" in (parsed as object),

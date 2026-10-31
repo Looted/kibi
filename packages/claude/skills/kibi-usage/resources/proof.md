@@ -318,7 +318,10 @@ read for a test that wants to assert on it), fail the test when it records a fai
 (`failedMembers`, `failedCalls`), and call `writeCodeCertificate`; it writes to the
 directory `kibi prove` sets in `KIBI_PROOF_CERTIFICATES` and does nothing
 elsewhere. A Python test writes the same `kibi.code-certificate.v1` JSON
-to that directory itself. Wire the KB: the proof file symbol is
+to that directory itself. Kibi also reads SWI-Prolog domains, constants,
+rule predicates, transition tables and string constants (`arg` picks a
+predicate's argument); `resources/prolog-proofs.md` has the rules and a
+certificate module to copy. Wire the KB: the proof file symbol is
 `executable_for` the test and named in `required_proofs`; the domain symbol
 (and every symbol a rule, machine or pattern contract names) `implements`
 the requirement and is `covered_by` the test; the test

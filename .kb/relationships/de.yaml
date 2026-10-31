@@ -416,3 +416,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0245c85dad47
+  - type: executable_for
+    from: SYM-e2e-packed-prolog-code-proofs
+    to: TEST-kibi-multilingual-code-proofs
+    created_at: 2026-10-31T08:35:39.512Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-027ed6922755

@@ -3326,6 +3326,21 @@
     ]
   },
   {
+    "test_id": "TEST-kibi-multilingual-code-proofs",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/prolog-code-proofs.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/prolog-code-proofs.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-cli-subdirectory-workspace",
     "steps": [
       [

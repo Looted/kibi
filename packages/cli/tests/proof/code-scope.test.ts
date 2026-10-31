@@ -169,4 +169,37 @@ describe("currentReceiptBindingHash", () => {
     ).toBeUndefined();
     expect(await binding(before, "src/flow.ts")).toBeUndefined();
   });
+
+  test("a code model goes stale when the file its domain is read from changes", async () => {
+    const binding = (operators: string) => {
+      const root = mkdtempSync(path.join(tmpdir(), "kibi-binding-domain-"));
+      roots.push(root);
+      mkdirSync(path.join(root, "prolog"), { recursive: true });
+      writeFileSync(path.join(root, "prolog", "operators.pl"), operators);
+      mkdirSync(path.join(root, ".kb", "tests"), { recursive: true });
+      writeFileSync(
+        path.join(root, ".kb", "symbols.yaml"),
+        "symbols:\n  - id: SYM-operator\n    title: operator/2\n    sourceFile: prolog/operators.pl\n",
+      );
+      writeFileSync(path.join(root, ".kb", "tests", "TEST-flow.md"), "---\nid: TEST-flow\n---\nBody\n");
+      // The domain symbol is not covered_by the test: the contract binds it.
+      return currentReceiptBindingHash({
+        workspaceRoot: root,
+        readFile: (absolute) => readFile(absolute, "utf8"),
+        test: {
+          id: "TEST-flow",
+          source: ".kb/tests/TEST-flow.md",
+          proof_contract: {
+            ...contract,
+            kind: "exhaustive",
+            domain_source: { symbol_id: "SYM-operator", arg: 1 },
+          },
+        },
+        coveredBySymbols: [],
+      });
+    };
+    expect(await binding("operator(negate, a).\n")).not.toBe(
+      await binding("operator(negate, a).\noperator(swap, b).\n"),
+    );
+  });
 });

@@ -874,6 +874,11 @@
               "type": "string",
               "minLength": 1,
               "description": "exhaustive: when the export is a list of records, the field of each record that names a domain member (a catalog's name)."
+            },
+            "arg": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "A SWI-Prolog predicate's argument (1-based) whose solutions Kibi reads, when the predicate takes more than one argument (operator/2 with arg 1 lists each operator's name)."
             }
           },
           "additionalProperties": false
@@ -916,6 +921,11 @@
               "export": {
                 "type": "string",
                 "minLength": 1
+              },
+              "arg": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "A SWI-Prolog predicate's argument (1-based) whose solutions Kibi reads, when the predicate takes more than one argument (operator/2 with arg 1 lists each operator's name)."
               },
               "source": {
                 "type": "object",
@@ -1003,6 +1013,11 @@
                   "export": {
                     "type": "string",
                     "minLength": 1
+                  },
+                  "arg": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "A SWI-Prolog predicate's argument (1-based) whose solutions Kibi reads, when the predicate takes more than one argument (operator/2 with arg 1 lists each operator's name)."
                   }
                 },
                 "additionalProperties": false
@@ -1055,6 +1070,11 @@
             "export": {
               "type": "string",
               "minLength": 1
+            },
+            "arg": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "A SWI-Prolog predicate's argument (1-based) whose solutions Kibi reads, when the predicate takes more than one argument (operator/2 with arg 1 lists each operator's name)."
             }
           },
           "additionalProperties": false,
@@ -1073,6 +1093,11 @@
             "export": {
               "type": "string",
               "minLength": 1
+            },
+            "arg": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "A SWI-Prolog predicate's argument (1-based) whose solutions Kibi reads, when the predicate takes more than one argument (operator/2 with arg 1 lists each operator's name)."
             }
           },
           "additionalProperties": false,

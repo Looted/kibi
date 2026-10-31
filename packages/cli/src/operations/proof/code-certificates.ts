@@ -47,6 +47,14 @@ import {
   spawnSyncThroughFiles,
   TS_RESOLVE_HOOKS,
 } from "./code-runner.js";
+import {
+  CODE_LANGUAGE_NAMES,
+  codeLanguage,
+  prologLoadSpecs,
+  stripPrologExtension,
+  unsupportedLanguageReason,
+} from "./code-languages.js";
+import { PROLOG_EVALUATOR } from "./prolog-evaluator.js";
 import { evaluateSourceCode } from "./source-code-readers.js";
 import {
   machineCertificateProblem,
@@ -107,7 +115,9 @@ const IMPORT_SPECIFIER =
  * `identifier`: the domain is read from the code, not hand-listed. A suite
  * that tests compiled output imports the domain from the TypeScript
  * project's `outDir`; given the workspace root, such an import counts when it
- * maps back to the domain's source file under `rootDir`.
+ * maps back to the domain's source file under `rootDir`. A SWI-Prolog proof
+ * names the predicate and loads its file (use_module, ensure_loaded, consult
+ * or a load list), or is the plunit file beside it (`x.plt` for `x.pl`).
  */
 // implements REQ-kibi-code-proof-kinds
 export function importsDomain(
@@ -117,6 +127,8 @@ export function importsDomain(
   identifier: string,
   workspaceRoot?: string,
 ): boolean {
+  if (codeLanguage(targetPath) === "prolog")
+    return prologLoadsModule(source, sourcePath, targetPath, identifier);
   // A dotted export (BRAND.name) is imported under its head.
   const imported = identifier.split(".")[0] ?? "";
   if (imported === "" || !new RegExp(`\\b${escapeRegExp(imported)}\\b`).test(source))
@@ -134,6 +146,33 @@ export function importsDomain(
     if (mapped !== null && stripExtension(mapped) === target) return true;
   }
   return false;
+}
+
+/**
+ * Whether a SWI-Prolog proof names the predicate `identifier` (Name/Arity,
+ * optionally module-qualified) and loads the file at `targetPath`: a relative
+ * path resolved from the proof's directory, `library(X)` for a pack's
+ * `prolog/X.pl`, or the plunit convention of a `.plt` file beside its `.pl`.
+ */
+function prologLoadsModule(
+  source: string,
+  sourcePath: string,
+  targetPath: string,
+  identifier: string,
+): boolean {
+  const name = identifier.replace(/^[^:]*:/, "").replace(/\/\/?\d+$/, "");
+  if (name === "" || !new RegExp(`(?<![\\w])${escapeRegExp(name)}(?![\\w])`).test(source))
+    return false;
+  const target = stripPrologExtension(targetPath);
+  if (stripPrologExtension(sourcePath) === target && /\.plt$/i.test(sourcePath))
+    return true;
+  return prologLoadSpecs(source).some((spec) =>
+    "library" in spec
+      ? `${path.sep}${target}`.endsWith(
+          `${path.sep}prolog${path.sep}${path.normalize(spec.library)}`,
+        )
+      : stripPrologExtension(path.join(path.dirname(sourcePath), spec.path)) === target,
+  );
 }
 
 const PYTHON_FROM_IMPORT = /^\s*from\s+(\.*)([\w.]*)\s+import\b/gm;
@@ -350,11 +389,13 @@ export function evaluateDomain(
     runners?: readonly ("bun" | "tsx" | "node")[];
     /** Read this field of each member instead of the member itself. */
     field?: string;
+    /** A Prolog predicate's argument that names each member. */
+    arg?: number;
   }> = {},
 ):
   | { ok: true; count: number; members: readonly string[] | null }
   | { ok: false; reason: string } {
-  const evaluated = evaluateExport(workspaceRoot, sourceFile, exportName, options);
+  const evaluated = evaluateExport(workspaceRoot, sourceFile, exportName, "domain", options);
   if (!evaluated.ok) return evaluated;
   if (evaluated.scalar !== undefined)
     return {
@@ -365,15 +406,17 @@ export function evaluateDomain(
 }
 
 /**
- * The number a value_source export holds, read the same way as a domain.
+ * The number a value_source export holds, read the same way as a domain. A
+ * Prolog constant is a predicate with a single solution holding a number.
  */
 // implements REQ-kibi-claim-bound-proofs
 export function evaluateScalar(
   workspaceRoot: string,
   sourceFile: string,
   exportName: string,
+  options: Readonly<{ arg?: number }> = {},
 ): { ok: true; value: number } | { ok: false; reason: string } {
-  const evaluated = evaluateExport(workspaceRoot, sourceFile, exportName);
+  const evaluated = evaluateExport(workspaceRoot, sourceFile, exportName, "scalar", options);
   if (!evaluated.ok) return evaluated;
   if (evaluated.scalar === undefined || !Number.isFinite(evaluated.scalar))
     return { ok: false, reason: `${exportName} in ${sourceFile} is not a finite number` };
@@ -384,9 +427,11 @@ function evaluateExport(
   workspaceRoot: string,
   sourceFile: string,
   exportName: string,
+  want: "domain" | "scalar",
   options: Readonly<{
     runners?: readonly ("bun" | "tsx" | "node")[];
     field?: string;
+    arg?: number;
   }> = {},
 ):
   | {
@@ -397,11 +442,34 @@ function evaluateExport(
     }
   | { ok: false; reason: string } {
   const absolute = path.resolve(workspaceRoot, sourceFile);
+  const language = codeLanguage(sourceFile);
+  if (language === null)
+    return {
+      ok: false,
+      reason: unsupportedLanguageReason("Kibi's domain loader", ["js", "python", "prolog"], [sourceFile]),
+    };
+  if (language === "prolog" && options.field !== undefined)
+    return {
+      ok: false,
+      reason: `a SWI-Prolog predicate has arguments, not fields: name the argument of ${exportName} with arg instead of field`,
+    };
+  if (language !== "prolog" && options.arg !== undefined)
+    return {
+      ok: false,
+      reason: `arg applies only to a SWI-Prolog predicate, not to ${CODE_LANGUAGE_NAMES[language]} in ${sourceFile}`,
+    };
+  const ref = {
+    file: absolute,
+    export: exportName,
+    ...(options.arg === undefined ? {} : { arg: options.arg }),
+  };
   const run = runCodeEvaluator(
     workspaceRoot,
     sourceFile,
-    { js: DOMAIN_EVALUATOR, python: PYTHON_DOMAIN_EVALUATOR },
-    [absolute, exportName, options.field ?? ""],
+    { js: DOMAIN_EVALUATOR, python: PYTHON_DOMAIN_EVALUATOR, prolog: PROLOG_EVALUATOR },
+    language === "prolog"
+      ? [JSON.stringify({ mode: "export", want, ref })]
+      : [absolute, exportName, options.field ?? ""],
     (parsed) => {
       const row = parsed as {
         error?: string;
@@ -420,7 +488,7 @@ function evaluateExport(
   if (!run.ok)
     return {
       ok: false,
-      reason: `Kibi could not load ${exportName} from ${sourceFile}${run.failure ? `: ${run.failure}` : ""}${run.python ? " (a Python domain loads with KIBI_PYTHON, the active or project virtualenv (.venv or venv), then python3 on PATH)" : " (without bun or the workspace's tsx, node's type stripping loads the domain; a type imported without import type stops it)"}`,
+      reason: `Kibi could not load ${exportName} from ${sourceFile}${run.failure ? `: ${run.failure}` : ""}${run.language === "python" ? " (a Python domain loads with KIBI_PYTHON, the active or project virtualenv (.venv or venv), then python3 on PATH)" : run.language === "prolog" ? " (a SWI-Prolog domain loads with KIBI_SWIPL, the bundled SWI-Prolog, then swipl on PATH)" : " (without bun or the workspace's tsx, node's type stripping loads the domain; a type imported without import type stops it)"}`,
     };
   const parsed = run.value as {
     error?: string;
@@ -793,6 +861,7 @@ export async function valueSourceValues(
         context.workspaceRoot,
         symbol.sourceFile,
         exportName,
+        source.arg === undefined ? {} : { arg: source.arg },
       );
       if (!domain.ok) return domain;
       values.push({ symbol_id: source.symbol_id, value: domain.count });
@@ -802,6 +871,7 @@ export async function valueSourceValues(
       context.workspaceRoot,
       symbol.sourceFile,
       exportName,
+      source.arg === undefined ? {} : { arg: source.arg },
     );
     if (!evaluated.ok) return evaluated;
     values.push({ symbol_id: source.symbol_id, value: evaluated.value });
@@ -953,9 +1023,14 @@ async function workspaceProblem(
         context.workspaceRoot,
         domain.sourceFile,
         exportName,
-        contract.domain_source?.field === undefined
-          ? {}
-          : { field: contract.domain_source.field },
+        {
+          ...(contract.domain_source?.field === undefined
+            ? {}
+            : { field: contract.domain_source.field }),
+          ...(contract.domain_source?.arg === undefined
+            ? {}
+            : { arg: contract.domain_source.arg }),
+        },
       );
       if (!evaluated.ok) return evaluated.reason;
       const members = record(certificate.domain)?.members;

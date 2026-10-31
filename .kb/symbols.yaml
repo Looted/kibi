@@ -58003,6 +58003,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-code-proof-kinds
+      - type: covered_by
+        target: TEST-kibi-multilingual-code-proofs
       - type: implements
         target: REQ-kibi-code-proof-kinds
   - id: SYM-cli-rerun-smt-query
@@ -58459,6 +58461,8 @@ symbols:
       kind: agent
       recorded_at: 2026-10-26T09:48:41.696Z
     relationships:
+      - type: covered_by
+        target: TEST-kibi-multilingual-code-proofs
       - type: covered_by
         target: TEST-kibi-non-numeric-proof-kinds
       - type: implements
@@ -66270,3 +66274,110 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-telemetry-docs-link
+  - id: SYM-e2e-packed-prolog-code-proofs
+    title: checkPrologCodeProofs
+    status: active
+    sourceFile: documentation/tests/e2e/packed/prolog-code-proofs.test.ts
+    symbol_role: behavioral
+    tags:
+      - e2e
+    origin:
+      kind: agent
+      recorded_at: 2026-10-31T08:35:38.386Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-multilingual-code-proofs
+  - id: SYM-code-languages-code-language
+    title: codeLanguage
+    status: active
+    sourceFile: packages/cli/src/operations/proof/code-languages.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-31T08:35:42.485Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-multilingual-code-proofs
+      - type: implements
+        target: REQ-kibi-multilingual-code-proofs
+  - id: SYM-code-languages-prolog-load-specs
+    title: prologLoadSpecs
+    status: active
+    sourceFile: packages/cli/src/operations/proof/code-languages.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-31T08:35:47.006Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-multilingual-code-proofs
+      - type: implements
+        target: REQ-kibi-multilingual-code-proofs
+  - id: SYM-code-languages-unsupported-language-reason
+    title: unsupportedLanguageReason
+    status: active
+    sourceFile: packages/cli/src/operations/proof/code-languages.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-31T08:35:52.073Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-multilingual-code-proofs
+      - type: implements
+        target: REQ-kibi-multilingual-code-proofs
+  - id: SYM-prolog-evaluator
+    title: PROLOG_EVALUATOR
+    status: active
+    sourceFile: packages/cli/src/operations/proof/prolog-evaluator.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-31T08:35:55.426Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-multilingual-code-proofs
+      - type: implements
+        target: REQ-kibi-multilingual-code-proofs
+  - id: SYM-code-runner-run-code-evaluator
+    title: runCodeEvaluator
+    status: active
+    sourceFile: packages/cli/src/operations/proof/code-runner.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-31T08:35:59.216Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-multilingual-code-proofs
+      - type: covered_by
+        target: TEST-kibi-non-numeric-proof-kinds
+      - type: implements
+        target: REQ-kibi-multilingual-code-proofs
+      - type: implements
+        target: REQ-kibi-non-numeric-proof-kinds
+  - id: SYM-code-scope-contract-code-symbol-ids
+    title: contractCodeSymbolIds
+    status: active
+    sourceFile: packages/cli/src/operations/proof/code-scope.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-31T08:36:03.390Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-multilingual-code-proofs
+      - type: implements
+        target: REQ-kibi-multilingual-code-proofs

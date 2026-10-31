@@ -99,13 +99,21 @@ export type ProofContract = Readonly<{
     | "state_machine"
     | "regex"
     | "source";
-  domain_source?: Readonly<{ symbol_id: string; export?: string; field?: string }>;
+  domain_source?: Readonly<{
+    symbol_id: string;
+    export?: string;
+    field?: string;
+    /** A SWI-Prolog predicate's argument (1-based) that names each member. */
+    arg?: number;
+  }>;
   witness?: Readonly<{ path: string }>;
   constraint_source?: Readonly<{ fact_ids: readonly string[] }>;
   value_source?: readonly (
     | Readonly<{
         symbol_id: string;
         export?: string;
+        /** A SWI-Prolog predicate's argument (1-based) that holds the value. */
+        arg?: number;
         /** value (default): the export is a number; count: the size of a list, set, map or object. */
         measure?: "value" | "count";
       }>
@@ -130,12 +138,20 @@ export type ProofContract = Readonly<{
   domains?: Readonly<
     Record<
       string,
-      | Readonly<{ symbol_id: string; export?: string }>
+      | Readonly<{ symbol_id: string; export?: string; arg?: number }>
       | Readonly<{ source: ProofSourceSpec }>
     >
   >;
-  initial_source?: Readonly<{ symbol_id: string; export?: string }>;
-  pattern_source?: Readonly<{ symbol_id: string; export?: string }>;
+  initial_source?: Readonly<{
+    symbol_id: string;
+    export?: string;
+    arg?: number;
+  }>;
+  pattern_source?: Readonly<{
+    symbol_id: string;
+    export?: string;
+    arg?: number;
+  }>;
   /** kind source: the project source Kibi reads. */
   source?: ProofSourceSpec;
 }>;

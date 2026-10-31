@@ -4,7 +4,7 @@ description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware op
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-usage
-  version: 2.37.0
+  version: 2.38.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -22,6 +22,7 @@ metadata:
     - resources/fact-lanes.md
     - resources/workflows.md
     - resources/proof.md
+    - resources/prolog-proofs.md
     - resources/ui-requirements.md
     - resources/logic-ir.md
     - resources/kb-improvement.md
