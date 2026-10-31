@@ -58733,6 +58733,8 @@ symbols:
       recorded_at: 2026-10-26T17:39:06.139Z
     relationships:
       - type: covered_by
+        target: TEST-kibi-prolog-source-readers
+      - type: covered_by
         target: TEST-kibi-source-proof-kinds
       - type: implements
         target: REQ-kibi-source-proof-kinds
@@ -66381,3 +66383,31 @@ symbols:
         target: TEST-kibi-multilingual-code-proofs
       - type: implements
         target: REQ-kibi-multilingual-code-proofs
+  - id: SYM-e2e-packed-prolog-source-readers
+    title: checkPrologSourceReaders
+    status: active
+    sourceFile: documentation/tests/e2e/packed/prolog-source-readers.test.ts
+    symbol_role: behavioral
+    tags:
+      - e2e
+    origin:
+      kind: agent
+      recorded_at: 2026-10-31T10:24:04.092Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-prolog-source-readers
+  - id: SYM-prolog-source-reader
+    title: PROLOG_SOURCE_READER
+    status: active
+    sourceFile: packages/cli/src/operations/proof/prolog-source-reader.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-10-31T10:24:07.953Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-prolog-source-readers
+      - type: implements
+        target: REQ-kibi-prolog-source-readers

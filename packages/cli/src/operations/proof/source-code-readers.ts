@@ -20,7 +20,8 @@
  * The readers of `source` specs that need code: the references reader
  * (environment variables, imports, calls, string arguments, thrown errors
  * and property values, read from the syntax tree of TypeScript, JavaScript
- * and Python files), and the readers that load a module (drizzle schemas,
+ * and Python files and from the terms of SWI-Prolog files), the prolog
+ * reader (fact arguments of a Prolog file), and the readers that load a module (drizzle schemas,
  * Hono and Express route tables, zod and pydantic validators).
  */
 
@@ -39,6 +40,7 @@ import {
 } from "../../public/proof-sources.js";
 import { codeLanguage, unsupportedLanguageReason } from "./code-languages.js";
 import { runCodeEvaluator, TS_RESOLVE_HOOKS } from "./code-runner.js";
+import { PROLOG_SOURCE_READER } from "./prolog-source-reader.js";
 
 type TypeScriptApi = typeof import("typescript");
 type Node = import("typescript").Node;
@@ -369,12 +371,12 @@ async function readReferences(workspaceRoot: string, spec: SourceSpec): Promise<
     return { ok: false, reason: `no file matches ${globList(spec.files).join(", ")}` };
   const other = files.filter((file) => {
     const language = codeLanguage(file);
-    return language !== "js" && language !== "python";
+    return language !== "js" && language !== "python" && language !== "prolog";
   });
   if (other.length > 0)
     return {
       ok: false,
-      reason: `${unsupportedLanguageReason("the references reader", ["js", "python"], other)}; narrow files to exclude them`,
+      reason: `${unsupportedLanguageReason("the references reader", ["js", "python", "prolog"], other)}; narrow files to exclude them`,
     };
   const members: string[] = [];
   const unresolved: UnresolvedReference[] = [];
@@ -408,9 +410,69 @@ async function readReferences(workspaceRoot: string, spec: SourceSpec): Promise<
     members.push(...(value.members ?? []));
     unresolved.push(...(value.unresolved ?? []));
   }
+  const prolog = files.filter((file) => codeLanguage(file) === "prolog");
+  if (prolog.length > 0) {
+    if (spec.extract === "property")
+      return {
+        ok: false,
+        reason: `SWI-Prolog has no property values to extract (${prolog[0]}); read fact arguments with the prolog reader`,
+      };
+    const read = runPrologReader(workspaceRoot, prolog[0] as string, {
+      mode: "references",
+      extract: spec.extract,
+      ...(typeof spec.callee === "string" ? { callee: spec.callee } : {}),
+      files: prolog,
+    });
+    if (!read.ok) return read;
+    members.push(...(read.value.members ?? []));
+    unresolved.push(...(read.value.unresolved ?? []));
+  }
   if (unresolved.length > 0)
     return { ok: false, reason: unresolvedReason(EXTRACT_WHAT[String(spec.extract)] ?? "references", unresolved) };
   return { ok: true, members };
+}
+
+type PrologRead = {
+  ok: boolean;
+  members?: string[];
+  sequence?: string[];
+  unresolved?: UnresolvedReference[];
+  error?: string;
+};
+
+/** Run the SWI-Prolog source reader, which reads terms without running them. */
+// implements REQ-kibi-prolog-source-readers
+function runPrologReader(
+  workspaceRoot: string,
+  file: string,
+  plan: Readonly<Record<string, unknown>>,
+): { ok: true; value: PrologRead } | { ok: false; reason: string } {
+  const run = runCodeEvaluator(
+    workspaceRoot,
+    file,
+    { prolog: PROLOG_SOURCE_READER },
+    [JSON.stringify(plan)],
+    (parsed) => parsed !== null && typeof parsed === "object" && "ok" in (parsed as object),
+  );
+  if (!run.ok)
+    return { ok: false, reason: `Kibi could not run SWI-Prolog to read ${file}${run.failure ? `: ${run.failure}` : ""}` };
+  const value = run.value as PrologRead;
+  if (!value.ok) return { ok: false, reason: value.error ?? `Kibi could not read ${file}` };
+  return { ok: true, value };
+}
+
+/** The prolog reader: one argument of every fact with a functor, in file order. */
+// implements REQ-kibi-prolog-source-readers
+function readPrologTerms(workspaceRoot: string, spec: SourceSpec): SourceCodeEvaluation {
+  const file = String(spec.file);
+  const read = runPrologReader(workspaceRoot, file, {
+    mode: "terms",
+    file,
+    functor: spec.functor,
+    ...(spec.arg !== undefined ? { arg: spec.arg } : {}),
+  });
+  if (!read.ok) return read;
+  return { ok: true, members: read.value.members ?? [], sequence: read.value.sequence ?? [] };
 }
 
 // Built on first use so TS_RESOLVE_HOOKS is initialized.
@@ -723,6 +785,7 @@ function evaluateModule(workspaceRoot: string, spec: SourceSpec): SourceCodeEval
 // implements REQ-kibi-source-proof-kinds
 export const evaluateSourceCode: SourceCodeEvaluator = async (workspaceRoot, spec) => {
   if (spec.reader === "references") return readReferences(workspaceRoot, spec);
+  if (spec.reader === "prolog") return readPrologTerms(workspaceRoot, spec);
   if (spec.reader === "schema" && spec.format !== "drizzle")
     return { ok: false, reason: `format ${String(spec.format)} is read without code` };
   return evaluateModule(workspaceRoot, spec);

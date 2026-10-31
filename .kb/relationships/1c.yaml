@@ -300,3 +300,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ae8a71062d31
+  - type: constrains
+    from: REQ-kibi-prolog-source-readers
+    to: FACT-SUBJECT-KIBI-PROLOG-SOURCE-READERS
+    created_at: 2026-10-31T10:23:46.125Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ad87370fd1b
+  - type: requires_property
+    from: REQ-kibi-prolog-source-readers
+    to: FACT-kibi-prolog-references-read-statically
+    created_at: 2026-10-31T10:23:46.161Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-08ee93c4f22f
+  - type: requires_property
+    from: REQ-kibi-prolog-source-readers
+    to: FACT-kibi-prolog-references-refuse-dynamic-goals
+    created_at: 2026-10-31T10:23:46.178Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-faddb710afb0
+  - type: requires_property
+    from: REQ-kibi-prolog-source-readers
+    to: FACT-kibi-prolog-reader-fact-arguments
+    created_at: 2026-10-31T10:23:46.198Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69001bdc3d07
+  - type: specified_by
+    from: REQ-kibi-prolog-source-readers
+    to: SCEN-kibi-prolog-source-readers
+    created_at: 2026-10-31T10:23:46.214Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06be398df544
+  - type: specified_by
+    from: REQ-kibi-prolog-source-readers
+    to: SCEN-NEG-kibi-prolog-source-readers-DYNAMIC-GOAL
+    created_at: 2026-10-31T10:23:46.231Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a36587249f75
+  - type: executable_for
+    from: SYM-e2e-packed-prolog-source-readers
+    to: TEST-kibi-prolog-source-readers
+    created_at: 2026-10-31T10:24:05.273Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2adf7d8726dc

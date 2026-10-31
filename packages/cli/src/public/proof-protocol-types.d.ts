@@ -167,7 +167,8 @@ export type ProofSourceSpec = Readonly<Record<string, unknown>> &
       | "references"
       | "schema"
       | "routes"
-      | "validator";
+      | "validator"
+      | "prolog";
   }>;
 
 export type ProofBinding = Readonly<{

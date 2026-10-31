@@ -188,3 +188,19 @@ arg: 1}`, `proves: [CLAIM-...]`. A rule proof passes
 `[predicate(detected, 'SYM-detected', [status], detected)]`; its contract
 names `predicate_source: {detected: {symbol_id: SYM-detected}}` and
 `domains: {status: {symbol_id: SYM-status}}`.
+
+## Source proofs over Prolog code
+
+A `source` proof needs no certificate: Kibi reads the Prolog files itself,
+term by term, and never runs them. Use the `references` reader on `.pl` and
+`.plt` files for what modules load (`extract: imports`, members as written:
+`library(lists)`, `helpers`), call (`calls`, `Name/Arity` or
+`Module:Name/Arity`), read from the environment (`env`, `getenv/2`), pass as
+a first argument (`string_args` with `callee`) and throw (`thrown`: the error
+of `error(type_error(...), _)` is `type_error`). Use the `prolog` reader for
+facts: `{reader: prolog, file: pack.pl, functor: requires/1}` lists a pack's
+requirements, and `arg` picks the argument of a fact with several. A goal or
+closure held in a variable (`call(Goal)`, `maplist(G, L)`), a goal with a
+variable module, a clause asserted from a variable and `:- if(...)` fail the
+read with their place: name the predicate instead, or narrow `files` to the
+modules the claim is about.

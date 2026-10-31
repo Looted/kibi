@@ -21,7 +21,7 @@ proof_contract:
     path: /properties/proof_contract/properties/source/properties/reader/enum
     select: items
   proves:
-    - CLAIM-80131AF672B06C75
+    - CLAIM-D1436E2B6F2C67DE
 origin:
   kind: agent
   recorded_at: '2026-10-26T17:38:49.831Z'

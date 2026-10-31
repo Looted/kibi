@@ -3811,7 +3811,7 @@
                   },
                   "source": {
                     "additionalProperties": {},
-                    "description": "source: the project source a source proof reads. A project source Kibi reads by itself. reader json or yaml: {file, path?, select?: keys|values|items}. glob: {pattern, capture?, ignore?} (capture true reads what each * matched). openapi: {file, select?: operations|unsecured_operations|security_schemes|responses}. references: {files, extract: env|imports|calls|string_args|thrown|property, callee?, key?, ignore?}. schema: {format: drizzle|prisma|sql, file (drizzle, prisma) or files (sql migrations), exports?, table?, select?: tables|columns|required_columns|nullable_columns|foreign_keys}. routes: {file, export, framework?: hono|express, path_prefix?, names_from?, select?: routes|middleware}. validator: {file, export, select?: fields|required_fields|optional_fields}. Paths are repository-relative. A member Kibi cannot read statically fails the read with its location.",
+                    "description": "source: the project source a source proof reads. A project source Kibi reads by itself. reader json or yaml: {file, path?, select?: keys|values|items}. glob: {pattern, capture?, ignore?} (capture true reads what each * matched). openapi: {file, select?: operations|unsecured_operations|security_schemes|responses}. references: {files, extract: env|imports|calls|string_args|thrown|property, callee?, key?, ignore?} over TypeScript, JavaScript, Python and SWI-Prolog files. schema: {format: drizzle|prisma|sql, file (drizzle, prisma) or files (sql migrations), exports?, table?, select?: tables|columns|required_columns|nullable_columns|foreign_keys}. routes: {file, export, framework?: hono|express, path_prefix?, names_from?, select?: routes|middleware}. validator: {file, export, select?: fields|required_fields|optional_fields}. prolog: {file, functor: Name/Arity, arg?} reads one argument of every fact with that functor in a SWI-Prolog file (requires/1 in pack.pl), without running it. Paths are repository-relative. A member Kibi cannot read statically fails the read with its location.",
                     "properties": {
                       "reader": {
                         "anyOf": [
@@ -3845,6 +3845,10 @@
                           },
                           {
                             "const": "validator",
+                            "type": "string"
+                          },
+                          {
+                            "const": "prolog",
                             "type": "string"
                           }
                         ]
@@ -3895,7 +3899,7 @@
                         },
                         "source": {
                           "additionalProperties": {},
-                          "description": "A project source Kibi reads by itself. reader json or yaml: {file, path?, select?: keys|values|items}. glob: {pattern, capture?, ignore?} (capture true reads what each * matched). openapi: {file, select?: operations|unsecured_operations|security_schemes|responses}. references: {files, extract: env|imports|calls|string_args|thrown|property, callee?, key?, ignore?}. schema: {format: drizzle|prisma|sql, file (drizzle, prisma) or files (sql migrations), exports?, table?, select?: tables|columns|required_columns|nullable_columns|foreign_keys}. routes: {file, export, framework?: hono|express, path_prefix?, names_from?, select?: routes|middleware}. validator: {file, export, select?: fields|required_fields|optional_fields}. Paths are repository-relative. A member Kibi cannot read statically fails the read with its location.",
+                          "description": "A project source Kibi reads by itself. reader json or yaml: {file, path?, select?: keys|values|items}. glob: {pattern, capture?, ignore?} (capture true reads what each * matched). openapi: {file, select?: operations|unsecured_operations|security_schemes|responses}. references: {files, extract: env|imports|calls|string_args|thrown|property, callee?, key?, ignore?} over TypeScript, JavaScript, Python and SWI-Prolog files. schema: {format: drizzle|prisma|sql, file (drizzle, prisma) or files (sql migrations), exports?, table?, select?: tables|columns|required_columns|nullable_columns|foreign_keys}. routes: {file, export, framework?: hono|express, path_prefix?, names_from?, select?: routes|middleware}. validator: {file, export, select?: fields|required_fields|optional_fields}. prolog: {file, functor: Name/Arity, arg?} reads one argument of every fact with that functor in a SWI-Prolog file (requires/1 in pack.pl), without running it. Paths are repository-relative. A member Kibi cannot read statically fails the read with its location.",
                           "properties": {
                             "reader": {
                               "anyOf": [
@@ -3929,6 +3933,10 @@
                                 },
                                 {
                                   "const": "validator",
+                                  "type": "string"
+                                },
+                                {
+                                  "const": "prolog",
                                   "type": "string"
                                 }
                               ]

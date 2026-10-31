@@ -1,5 +1,5 @@
 ---
-title: A source proof reader shall be json, yaml, glob, openapi, references, schema, routes or validator, by an exhaustive proof
+title: A source proof reader shall be json, yaml, glob, openapi, references, schema, routes, validator or prolog, by an exhaustive proof
 status: passing
 tags:
   - proof
@@ -18,7 +18,7 @@ proof_contract:
   domain_source:
     symbol_id: SYM-const-source-readers
   proves:
-    - CLAIM-FF4438926644A069
+    - CLAIM-2337B1E3178A6C90
 origin:
   kind: agent
   recorded_at: '2026-10-29T16:46:17.071Z'

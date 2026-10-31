@@ -426,3 +426,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ef4377d23109
+  - type: covered_by
+    from: SYM-source-code-readers-evaluate-source-code
+    to: TEST-kibi-prolog-source-readers
+    created_at: 2026-10-31T10:24:16.716Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e13644929fd6
