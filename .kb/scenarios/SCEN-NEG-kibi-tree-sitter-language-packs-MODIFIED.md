@@ -6,7 +6,7 @@ tags:
   - negative-path
 origin:
   kind: agent
-  recorded_at: '2026-10-31T18:28:56.575Z'
+  recorded_at: '2026-10-31T20:10:12.802Z'
 id: SCEN-NEG-kibi-tree-sitter-language-packs-MODIFIED
 type: scenario
 ---
