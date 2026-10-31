@@ -3,6 +3,7 @@ import path from "node:path";
 import type { ProjectKibiConfig, ProjectPluginEntry } from "kibi-plugin-sdk";
 import {
   describeReferenceLanguageSuggestion,
+  pinnedPackVersions,
   referenceLanguageSuggestion,
   workspaceInstalledVersion,
 } from "../../plugins/reference-language-suggestion.js";
@@ -176,6 +177,7 @@ export async function pluginOffers(
         files,
         kibiConfigOf(await readManifest(context)),
         workspaceInstalledVersion(context.workspaceRoot),
+        pinnedPackVersions(context.workspaceRoot),
       )
     : null;
   if (references !== null && references.capabilities.length > 0) {

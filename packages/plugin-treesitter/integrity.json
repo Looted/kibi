@@ -21,8 +21,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 7557,
-      "sha256": "0e6c8efdaf7c29c737e0862bda32b0ee0b1cecb43ba27101553967a1e353cad2"
+      "bytes": 8249,
+      "sha256": "8e3a38cb3ef800a815b7a67e5d22468fbfffb05f8ca5e4ff05e9742c125dbbae"
     },
     {
       "path": "SBOM.spdx.json",
@@ -196,18 +196,18 @@
     },
     {
       "path": "dist/language-packs.d.ts",
-      "bytes": 1999,
-      "sha256": "7828e96b0868063261370f3c097ae628fc182bac28a4d193f25696e9de15fa1b"
+      "bytes": 2116,
+      "sha256": "c28283d3f2229b89c22d4a3bcc6ffc3767cf764902c16ea8250f15949523bb74"
     },
     {
       "path": "dist/language-packs.d.ts.map",
-      "bytes": 944,
-      "sha256": "b083b19494b1a16ef5f21a0ddfb10f281948f7c75e18dfa81ad6c3c0a8b602f8"
+      "bytes": 1017,
+      "sha256": "e9898086f886be4f7dde8a740116ea76dd7062c7eaf85154b60bb4a6dd6f2166"
     },
     {
       "path": "dist/language-packs.js",
-      "bytes": 5428,
-      "sha256": "cbffcdb9954bb81dee75af4d620c1e9ad519cc0d3b923d1d30736a529cd4b3c1"
+      "bytes": 6182,
+      "sha256": "fb341e072f110b0d1ec8267d481a5d97cfcb89c0b32a1e02130572648990e1a9"
     },
     {
       "path": "dist/performance-timing.d.ts",
@@ -232,12 +232,12 @@
     {
       "path": "dist/references.d.ts.map",
       "bytes": 1028,
-      "sha256": "7b1b704445f876a3653b6daff0a778de87fa1805060f73248a9c9d3b3e07b037"
+      "sha256": "ac0472622bdf49609d70b9904532401d69639dfa948db3ac7b72bdd92986ff93"
     },
     {
       "path": "dist/references.js",
-      "bytes": 28654,
-      "sha256": "1c43d21e21abe87ec9ca4dffc761b7e040db9a699bc197c640089753150b153e"
+      "bytes": 43628,
+      "sha256": "d03ae2522b7937e71ff758b6e20bd1b6ac0efd04cf43d05ebaf60bc3f0bd90b4"
     },
     {
       "path": "licenses/tree-sitter-python-MIT.txt",
@@ -256,8 +256,8 @@
     },
     {
       "path": "package.json",
-      "bytes": 2703,
-      "sha256": "3a7aea08f3e49999036c55a32fff59514d199758f9eda324f7afd2af249951e7"
+      "bytes": 2713,
+      "sha256": "ff4f7f8610b6755e74f3bbbd8dd7cb07ebc513ae142b2da1e7ba9e426b4314c6"
     }
   ]
 }

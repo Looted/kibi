@@ -96,23 +96,44 @@ export async function loadProofReferenceExtractors(
 
 const cache = new Map<string, Promise<ProofReferenceExtractors>>();
 
+function mtimeOf(path: string): string {
+  try {
+    return String(statSync(path).mtimeMs);
+  } catch {
+    return "none";
+  }
+}
+
 /** Replaceable loader, so tests can supply providers without installing a package. */
 export const proofReferenceExtractorLoader: {
   load: (workspaceRoot: string) => Promise<ProofReferenceExtractors>;
 } = {
   load(workspaceRoot) {
-    // A changed package.json (a plugin installed or activated) loads afresh.
-    let stamp = "";
-    try {
-      stamp = String(statSync(join(workspaceRoot, "package.json")).mtimeMs);
-    } catch {
-      stamp = "none";
-    }
-    const key = `${workspaceRoot}\0${stamp}`;
+    // A changed package.json (a plugin activated) or an installed plugin
+    // whose manifest changed (installed, upgraded) loads afresh.
+    const key = [
+      workspaceRoot,
+      mtimeOf(join(workspaceRoot, "package.json")),
+      mtimeOf(
+        join(
+          workspaceRoot,
+          "node_modules",
+          REFERENCE_PLUGIN_PACKAGE,
+          "package.json",
+        ),
+      ),
+    ].join("\0");
     let loaded = cache.get(key);
     if (loaded === undefined) {
       loaded = loadProofReferenceExtractors(workspaceRoot);
       cache.set(key, loaded);
+      // Only a load that found every provider is kept: a refusal is read
+      // again next time, so a fix is seen without restarting the host.
+      const pending = loaded;
+      void pending.then((result) => {
+        if (result.problems.length > 0 || result.extractors.length === 0)
+          if (cache.get(key) === pending) cache.delete(key);
+      });
     }
     return loaded;
   },

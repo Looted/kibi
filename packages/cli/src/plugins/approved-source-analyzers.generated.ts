@@ -59,13 +59,13 @@ export const qualifiedSourceAnalyzers = [
       "dist/index.js":
         "a7dcc81f40848a17a4b7adf4fe573a57a50c18425fab40fbb098489dfd092f3f",
       "dist/language-packs.js":
-        "cbffcdb9954bb81dee75af4d620c1e9ad519cc0d3b923d1d30736a529cd4b3c1",
+        "fb341e072f110b0d1ec8267d481a5d97cfcb89c0b32a1e02130572648990e1a9",
       "dist/performance-timing.js":
         "56cce530f627c8fd079e8ec070322f84378ae50c40a6765d88b418850692940b",
       "dist/references.js":
-        "1c43d21e21abe87ec9ca4dffc761b7e040db9a699bc197c640089753150b153e",
+        "d03ae2522b7937e71ff758b6e20bd1b6ac0efd04cf43d05ebaf60bc3f0bd90b4",
       "integrity.json":
-        "06db4bedd17a01e7cc5cbd85d34a5db10de6ddc3fd9a7bd22b42a1b04525927c",
+        "62415d295f080e4edf8213b312ddcf682e65eb63722fc909e66835eff6f7075b",
       "licenses/tree-sitter-python-MIT.txt":
         "d724405ce238a22c0d35769c5a36b386ad5958192efe8bbb304fb2896254575f",
       "licenses/tree-sitter-swi-prolog-MIT.txt":
@@ -73,7 +73,7 @@ export const qualifiedSourceAnalyzers = [
       "licenses/web-tree-sitter-MIT.txt":
         "c5cfb43042b6b72045f4ba997834d0a7786d2793d91680868b5815b39f14fc78",
       "package.json":
-        "3a7aea08f3e49999036c55a32fff59514d199758f9eda324f7afd2af249951e7",
+        "ff4f7f8610b6755e74f3bbbd8dd7cb07ebc513ae142b2da1e7ba9e426b4314c6",
     },
     dependencies: [
       {

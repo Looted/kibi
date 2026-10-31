@@ -667,15 +667,28 @@ Details that decide what a reader sees:
   `panic(&ConfigError{})` (or the factory of `panic(errors.New(...))`) and of
   Java and C# `throw new X()`; a rethrow of the caught exception is not a new
   error. `property` reads keyed Go composite literals and C# object
-  initializers (`new Options { Mode = "strict" }`); Java and Rust have none.
+  object, indexer and collection initializers (`new Options { Mode =
+  "strict" }`, `{ ["Mode"] = "strict" }`, `{ { "Mode", "strict" } }`); Java
+  and Rust have none. Names the file gives itself are followed: Go import
+  aliases (`o "os"`), Java single static imports (`import static
+  java.lang.System.getenv`), C# `using static System.Environment` and `using
+  E = System.Environment`, and Rust `use` bindings (`use std::env::var as
+  getvar`) read as the canonical name, and the fully qualified forms match
+  too, so `calls` can list both `env::var` and `std::env::var`.
   A name computed at run time (`os.Getenv(name)`), the whole environment
-  (`os.Environ()`, `System.getenv()`), reflection (Go `reflect` calls such as
-  `MethodByName`, Java `Class.forName` and `Method.invoke`, C#
-  `Type.GetType` and `Activator.CreateInstance`), a C# `dynamic` variable or
-  `#if` block, a Rust `#[cfg(...)]` item other than `#[cfg(test)]` (whose
-  items are skipped) and, for Rust `calls` and `thrown`, any macro
-  invocation (`println!` included) fail the read with their place. A file
-  that does not parse is refused with its line.
+  (`os.Environ()`, `System.getenv()`, `os.ExpandEnv`,
+  `Environment.ExpandEnvironmentVariables`), a getter handed on as a value
+  (`g := os.Getenv`, `System::getenv`, `let f = env::var`), a Go dot import,
+  a Java static wildcard or a Rust glob import that could bring a getter or
+  call into scope, a call with no static name (`fs[0]()`, `<T as Tr>::m()`),
+  reflection (Go `reflect` calls such as `MethodByName` and `plugin.Open`,
+  Java `Class.forName` and `Method.invoke`, also fully qualified, C#
+  `Type.GetType`, `Assembly.Load` and `CreateInstance`), C# `dynamic`
+  anywhere, a C# `#if` block, a Rust `#[cfg(...)]` item other than
+  `#[cfg(test)]` (whose items are skipped) and, for Rust `calls` and
+  `thrown`, any macro invocation (`println!` included), attribute macro
+  (`#[tokio::main]`) or derive outside the standard library fail the read
+  with their place. A file that does not parse is refused with its line.
 - **Importing the app.** The `routes`, `validator` and drizzle readers import
   the module, so it must load without side effects (no `listen`, no database
   connection at import). Export a factory or a wrapper when the app needs

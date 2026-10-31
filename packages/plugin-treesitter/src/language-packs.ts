@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -16,6 +16,12 @@ import type { TreeSitterLanguage } from "./catalog.js";
 
 export const LANGUAGE_PACK_MISSING = "TREESITTER_LANGUAGE_PACK_MISSING";
 export const LANGUAGE_PACK_MISMATCH = "TREESITTER_LANGUAGE_PACK_MISMATCH";
+export const LANGUAGE_PACK_VERSION = "TREESITTER_LANGUAGE_PACK_VERSION";
+
+export type LanguagePackCode =
+  | typeof LANGUAGE_PACK_MISSING
+  | typeof LANGUAGE_PACK_MISMATCH
+  | typeof LANGUAGE_PACK_VERSION;
 
 interface CatalogLanguage {
   readonly id: string;
@@ -101,7 +107,7 @@ export function languagePacks(): readonly (LanguagePack & {
 
 export class LanguagePackError extends Error {
   constructor(
-    readonly code: typeof LANGUAGE_PACK_MISSING | typeof LANGUAGE_PACK_MISMATCH,
+    readonly code: LanguagePackCode,
     message: string,
   ) {
     super(message);
@@ -113,35 +119,51 @@ function installLine(pack: LanguagePack): string {
   return `npm install --save-dev ${pack.package}@${pack.version}`;
 }
 
-const resolvedRoots = new Map<string, string>();
+const resolvedManifests = new Map<string, string>();
 
-/** The installed root of a language's pack; throws a LanguagePackError. */
-function packRoot(language: TreeSitterLanguage, pack: LanguagePack): string {
-  const cached = resolvedRoots.get(pack.package);
-  if (cached !== undefined) return cached;
-  let manifestPath: string;
+function resolveManifest(
+  language: TreeSitterLanguage,
+  pack: LanguagePack,
+): string {
+  // A long-lived host can see a pack uninstalled after the first read, so a
+  // cached path is used only while the manifest is still there.
+  const cached = resolvedManifests.get(pack.package);
+  if (cached !== undefined && existsSync(cached)) return cached;
+  resolvedManifests.delete(pack.package);
+  let manifestPath: string | undefined;
   try {
     manifestPath = createRequire(import.meta.url).resolve(
       `${pack.package}/package.json`,
     );
   } catch {
-    throw new LanguagePackError(
-      LANGUAGE_PACK_MISSING,
-      `${LABELS[language]} files need ${pack.package} ${pack.version}, which is not installed. Run: ${installLine(pack)}`,
-    );
+    manifestPath = undefined;
   }
+  // Node keeps resolved paths for the life of the process, so a path to a
+  // removed pack can still come back; it counts as not installed.
+  if (manifestPath !== undefined && existsSync(manifestPath)) {
+    resolvedManifests.set(pack.package, manifestPath);
+    return manifestPath;
+  }
+  throw new LanguagePackError(
+    LANGUAGE_PACK_MISSING,
+    `${LABELS[language]} files need ${pack.package} ${pack.version}, which is not installed. Run: ${installLine(pack)}`,
+  );
+}
+
+/** The installed root of a language's pack; throws a LanguagePackError. */
+function packRoot(language: TreeSitterLanguage, pack: LanguagePack): string {
+  const manifestPath = resolveManifest(language, pack);
+  // The manifest is re-read on every call so an upgrade in place is seen.
   const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as {
     name?: unknown;
     version?: unknown;
   };
   if (manifest.name !== pack.package || manifest.version !== pack.version)
     throw new LanguagePackError(
-      LANGUAGE_PACK_MISMATCH,
+      LANGUAGE_PACK_VERSION,
       `kibi-plugin-treesitter ${readCatalog().pluginVersion} reads ${LABELS[language]} with ${pack.package} ${pack.version}, but ${String(manifest.version)} is installed. Run: ${installLine(pack)}`,
     );
-  const root = dirname(manifestPath);
-  resolvedRoots.set(pack.package, root);
-  return root;
+  return dirname(manifestPath);
 }
 
 /**

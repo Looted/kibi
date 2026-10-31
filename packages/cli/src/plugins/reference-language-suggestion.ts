@@ -68,7 +68,7 @@ export function workspaceInstalledVersion(
 }
 
 /** The pack versions the installed kibi-plugin-treesitter pins. */
-function pinnedPackVersions(
+export function pinnedPackVersions(
   workspaceRoot: string | undefined,
 ): ReadonlyMap<string, string> {
   if (workspaceRoot === undefined) return new Map();

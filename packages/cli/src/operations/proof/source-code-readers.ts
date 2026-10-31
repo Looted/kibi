@@ -460,7 +460,8 @@ async function readPluginReferences(
   spec: SourceSpec,
 ): Promise<{ ok: true; members: string[]; unresolved: UnresolvedReference[] } | { ok: false; reason: string }> {
   const { extractors, problems } = await proofReferenceExtractorLoader.load(workspaceRoot);
-  const languages = [...new Set(files.map((file) => pluginReferenceLanguage(file) ?? "these"))];
+  // Callers pass only files a reference reader covers (unknown ones are refused first).
+  const languages = [...new Set(files.flatMap((file) => pluginReferenceLanguage(file) ?? []))];
   const unread = files.filter((file) => !extractors.some((extractor) => extractor.supports({ path: file })));
   if (unread.length > 0) {
     const shown = `${unread.slice(0, 3).join(", ")}${unread.length > 3 ? ` and ${unread.length - 3} more` : ""}`;

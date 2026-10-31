@@ -318,7 +318,7 @@ each extract lists and refuses.
 ```json
 {
   "devDependencies": {
-    "kibi-plugin-treesitter": "^3.0.0",
+    "kibi-plugin-treesitter": "3.0.0",
     "kibi-lang-go": "1.0.0",
     "kibi-lang-rust": "1.0.0"
   },
