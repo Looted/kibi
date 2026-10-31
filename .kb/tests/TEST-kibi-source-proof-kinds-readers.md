@@ -29,20 +29,20 @@ id: TEST-kibi-source-proof-kinds-readers
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-428a56f30d51b8f8457c6a1a
+    receipt_id: PR-03bb57c6626b1833a4483a29
     test_id: TEST-kibi-source-proof-kinds-readers
     scope: unit
     outcome: passed
-    code_snapshot: 9047be498fc197c435142e860896573d1a49aa8afbfbe9e1a74da36586e81995
+    code_snapshot: 33f4c964367981482cdc65c02bbc95e9062a11d74fdd6e243de943b060589077
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T13:42:59.655Z'
-    finished_at: '2026-10-28T13:42:59.773Z'
-    artifact_digest: c8055aa734b75089549becf13744e686638d1e2a08a4676e4ea7c0d62f80c14d
-    contract_hash: 98c41fffb2931282c5e79bb878cf695d4de66b3af7115844211d50fefacead9b
-    binding_hash: d034a388be8858a76f4fcb6c363ccb31a67082a60ea00563f7ee8cab97d12a70
-    fingerprint: 960a8e9505bdb9bb5c488940bbaeea9ef8334465302f6e5bb1d6d9f0927edf8a
+    started_at: '2026-10-31T10:31:45.773Z'
+    finished_at: '2026-10-31T10:31:45.895Z'
+    artifact_digest: 91698eacb6d5d9bb42680e8519d8f648d11f5ddecda35a6cdab4e196e4c8583e
+    contract_hash: 4785ca83149ec4de0f00656ab063627b24edee06d2cb494b5509dd72467bfe8f
+    binding_hash: 9e626bab8fc952cc18b37e0223e76d4a7704fc03aeb6ab7a45c04fc05f30f22b
+    fingerprint: 9e3e0d1e5f4277a142a21644b244ab04b7e39ab7c7b4ea72c9791ee115db99b0
     fingerprint_components:
-      contract: 98c41fffb2931282c5e79bb878cf695d4de66b3af7115844211d50fefacead9b
+      contract: 4785ca83149ec4de0f00656ab063627b24edee06d2cb494b5509dd72467bfe8f
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -77,6 +77,7 @@ proof_receipts:
           - glob
           - json
           - openapi
+          - prolog
           - references
           - routes
           - schema
@@ -91,9 +92,10 @@ proof_receipts:
           - schema
           - routes
           - validator
-    certificate_digest: 9dec8bf4fc650c988be62293e4a1a87e8c7036177a74b38025dbca3b3d722bad
+          - prolog
+    certificate_digest: d5b2ee916b0ab6a69b8224f652d12279f6053d43998e65ff1443bacc1967d5f8
     claim_bindings:
-      - claim_key: CLAIM-80131AF672B06C75
+      - claim_key: CLAIM-D1436E2B6F2C67DE
         requirement_id: REQ-kibi-source-proof-reader-vocabulary
         fact_id: FACT-kibi-source-proof-readers
         binding: derived
@@ -104,6 +106,7 @@ proof_receipts:
             - glob
             - json
             - openapi
+            - prolog
             - references
             - routes
             - schema
