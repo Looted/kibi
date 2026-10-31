@@ -22,8 +22,9 @@
  * JSON or YAML file, the files a glob matches, an OpenAPI document, the
  * references the code makes (environment variables, imports, calls, string
  * arguments, thrown error codes, property values), a data schema (drizzle,
- * Prisma or SQL migrations), a web app's route table (Hono, Express) and a
- * validator object (zod and anything with safeParse).
+ * Prisma or SQL migrations), a web app's route table (Hono, Express), a
+ * validator object (zod and anything with safeParse) and the facts of a
+ * SWI-Prolog file (a pack's requires/1).
  *
  * Every reader is exact or refuses: a member Kibi cannot read statically (a
  * computed environment variable name, a dynamic import, an ALTER TABLE form
@@ -47,6 +48,7 @@ export const SOURCE_READERS = [
   "schema",
   "routes",
   "validator",
+  "prolog",
 ] as const;
 
 export type SourceReader = (typeof SOURCE_READERS)[number];
@@ -148,6 +150,7 @@ const KEYS: Readonly<Record<SourceReader, readonly string[]>> = {
     "select",
   ],
   validator: ["reader", "file", "export", "select"],
+  prolog: ["reader", "file", "functor", "arg"],
 };
 
 function record(value: unknown): Record<string, unknown> | null {
@@ -322,6 +325,23 @@ export function sourceSpecErrors(value: unknown, label: string): string[] {
           `${label}.export is required for reader validator: name the object schema`,
         );
       break;
+    case "prolog":
+      file("file", true);
+      if (
+        typeof row.functor !== "string" ||
+        !/^[a-z][A-Za-z0-9_]*\/(?:0|[1-9][0-9]*)$/.test(row.functor)
+      )
+        errors.push(
+          `${label}.functor is required for reader prolog: name the facts read as Name/Arity (requires/1)`,
+        );
+      if (
+        row.arg !== undefined &&
+        !(Number.isInteger(row.arg) && (row.arg as number) >= 1)
+      )
+        errors.push(
+          `${label}.arg must be the 1-based argument of each fact that holds the member`,
+        );
+      break;
   }
   return errors;
 }
@@ -450,6 +470,9 @@ export function sourceDependencies(
     case "routes":
       addFile(String(spec.file));
       for (const file of globList(spec.names_from)) addFile(file);
+      break;
+    case "prolog":
+      addFile(String(spec.file));
       break;
   }
   if (
@@ -1617,6 +1640,14 @@ export async function readSource(
       ok: true,
       model: { members: sortedUnique(evaluated.members ?? []) },
     };
+  if (spec.reader === "prolog")
+    return {
+      ok: true,
+      model: {
+        members: sortedUnique(evaluated.members ?? []),
+        sequence: evaluated.sequence ?? [],
+      },
+    };
   if (spec.reader === "routes") {
     const routes = selectedRoutes(spec, evaluated.routes ?? []).sort((a, b) =>
       `${a.path} ${a.method}` < `${b.path} ${b.method}` ? -1 : 1,
@@ -1644,6 +1675,8 @@ export type SourceCodeEvaluation =
   | {
       ok: true;
       members?: string[];
+      /** The prolog reader's members in file order, duplicates kept. */
+      sequence?: string[];
       entities?: SourceEntity[];
       routes?: SourceRoute[];
     }
@@ -1671,6 +1704,8 @@ export function describeSource(spec: SourceSpec): string {
       return `routes of ${spec.export} in ${spec.file}${spec.path_prefix ? ` under ${spec.path_prefix}` : ""}`;
     case "validator":
       return `validator ${spec.export} in ${spec.file}`;
+    case "prolog":
+      return `${spec.functor} facts in ${spec.file}${spec.arg ? ` (argument ${spec.arg})` : ""}`;
   }
 }
 

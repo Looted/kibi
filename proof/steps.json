@@ -3341,6 +3341,21 @@
     ]
   },
   {
+    "test_id": "TEST-kibi-prolog-source-readers",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/prolog-source-readers.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/prolog-source-readers.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-cli-subdirectory-workspace",
     "steps": [
       [

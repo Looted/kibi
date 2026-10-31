@@ -262,11 +262,14 @@ left:
   each list item, such as the `run` of each workflow step), `glob` (`pattern`, `capture`),
   `openapi` (`file`, `select: operations|unsecured_operations|...`),
   `references` (`files`, `extract: env|imports|calls|string_args|thrown|
-  property`), `schema` (`format: drizzle|prisma|sql`, `select:
+  property`; TypeScript, JavaScript, Python and SWI-Prolog files), `schema` (`format: drizzle|prisma|sql`, `select:
   tables|columns|required_columns|nullable_columns|foreign_keys`), `routes`
   (Hono or Express app export, `path_prefix`, `names_from`, `select:
   routes|middleware`) or `validator` (zod, valibot or pydantic, `select:
-  fields|required_fields|optional_fields`). A member Kibi cannot read
+  fields|required_fields|optional_fields`) or `prolog` (`file`, `functor:
+  requires/1`, `arg`: one argument of each fact, such as a pack's
+  requirements in `pack.pl`). Prolog files are read term by term and never
+  run; see `resources/prolog-proofs.md`. A member Kibi cannot read
   statically (a computed env name, a dynamic import, an env object handed
   to a variable) fails the read with its location, and so does an empty
   read (a glob matching no file, migrations with no `CREATE TABLE`), so a

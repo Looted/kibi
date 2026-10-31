@@ -585,10 +585,11 @@ list anything. The contract names the source:
 | `json`, `yaml` | `file` at `path` (dotted, or a JSON pointer) | `keys`, `values`, `items` |
 | `glob` | the files `pattern` matches (`capture: true` reads what each `*` and `**` matched, joined with `/`: `i18n/**/*.json` reads `finance/de` from `i18n/finance/de.json`) | |
 | `openapi` | `file`'s operations (`GET /invoices`) | `operations`, `unsecured_operations`, `security_schemes`, `responses` |
-| `references` | the code in `files` (TypeScript, JavaScript, Python): `extract` `env`, `imports`, `calls`, `string_args` (with `callee`), `thrown` (the class of `throw new X()`, or the factory of `throw createX()`) or `property` (with `key`) | |
+| `references` | the code in `files` (TypeScript, JavaScript, Python, SWI-Prolog): `extract` `env`, `imports`, `calls`, `string_args` (with `callee`), `thrown` (the class of `throw new X()`, or the factory of `throw createX()`) or `property` (with `key`; not in Prolog) | |
 | `schema` | `format: drizzle` or `prisma` (`file`), or `sql` migrations replayed in order (`files`); `table` filters by name or glob | `tables`, `columns`, `required_columns`, `nullable_columns`, `foreign_keys` |
 | `routes` | a Hono or Express app's route table, with the middleware that runs before each route (mounted routers included); `path_prefix` keeps the routes under a prefix | `routes`, `middleware` |
 | `validator` | a zod or valibot object (or one wrapped in refine, transform or pipe; any field that is a Standard Schema), or a pydantic model | `fields`, `required_fields`, `optional_fields` |
+| `prolog` | `file`'s facts with `functor` (`requires/1` in `pack.pl`): argument `arg` (or the only one) of each, a list contributing its items, in file order | |
 
 Details that decide what a reader sees:
 
@@ -617,6 +618,27 @@ Details that decide what a reader sees:
   so routes guarded by `requireAuthentication()` list `requireAuthentication`.
   Async functions, generators and classes are never called. Without
   `names_from` a middleware is its function's name, or `(anonymous)`.
+- **SWI-Prolog.** The references reader and the `prolog` reader read a
+  `.pl` or `.plt` file term by term with SWI-Prolog and run none of it: no
+  directive, `initialization/1` or clause of the project executes. The file's
+  own `op/3` directives, its module export list, the export lists of project
+  modules it loads and the SWI-Prolog libraries it loads give the operators
+  it is read with. `imports` lists each loaded file as written
+  (`library(lists)`, `helpers`, `foreign(fastmath)`) from `use_module`,
+  `ensure_loaded`, `consult`, `reexport`, `load_files`, `include`,
+  `use_foreign_library` and `:- [...]`, in directives and in clause bodies.
+  `calls` lists `Name/Arity` (`Module:Name/Arity` when qualified) of every
+  goal in clause bodies and directives, walking control constructs, grammar
+  rules (a non-terminal `n//0` is the call `n/2`), lambdas and the arguments
+  of meta-predicates (the file's own `meta_predicate` declarations and
+  SWI-Prolog's). `env` reads `getenv/2`; `string_args` the first argument of
+  calls to `callee` (`format` or `format/2`); `thrown` the error of
+  `throw(error(type_error(...), _))` (`type_error`), the functor of any other
+  thrown term, and the `library(error)` helpers such as `domain_error/2`,
+  while a rethrow of the ball `catch/3` caught is not a new error. A
+  variable called as a goal or closure (`call(Goal)`, `maplist(G, L)`), a
+  goal qualified by a variable module, a clause asserted from a variable and
+  conditional compilation (`:- if(...)`) fail the read with their place.
 - **Importing the app.** The `routes`, `validator` and drizzle readers import
   the module, so it must load without side effects (no `listen`, no database
   connection at import). Export a factory or a wrapper when the app needs

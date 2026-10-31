@@ -297,11 +297,11 @@ const SOURCE_REFERENCE_SCHEMA = {
   additionalProperties: false,
 } as const;
 
-// implements REQ-kibi-source-proof-kinds
+// implements REQ-kibi-source-proof-kinds, REQ-kibi-prolog-source-readers
 const SOURCE_SPEC_SCHEMA = {
   type: "object",
   description:
-    "A project source Kibi reads by itself. reader json or yaml: {file, path?, select?: keys|values|items}. glob: {pattern, capture?, ignore?} (capture true reads what each * matched). openapi: {file, select?: operations|unsecured_operations|security_schemes|responses}. references: {files, extract: env|imports|calls|string_args|thrown|property, callee?, key?, ignore?}. schema: {format: drizzle|prisma|sql, file (drizzle, prisma) or files (sql migrations), exports?, table?, select?: tables|columns|required_columns|nullable_columns|foreign_keys}. routes: {file, export, framework?: hono|express, path_prefix?, names_from?, select?: routes|middleware}. validator: {file, export, select?: fields|required_fields|optional_fields}. Paths are repository-relative. A member Kibi cannot read statically fails the read with its location.",
+    "A project source Kibi reads by itself. reader json or yaml: {file, path?, select?: keys|values|items}. glob: {pattern, capture?, ignore?} (capture true reads what each * matched). openapi: {file, select?: operations|unsecured_operations|security_schemes|responses}. references: {files, extract: env|imports|calls|string_args|thrown|property, callee?, key?, ignore?} over TypeScript, JavaScript, Python and SWI-Prolog files. schema: {format: drizzle|prisma|sql, file (drizzle, prisma) or files (sql migrations), exports?, table?, select?: tables|columns|required_columns|nullable_columns|foreign_keys}. routes: {file, export, framework?: hono|express, path_prefix?, names_from?, select?: routes|middleware}. validator: {file, export, select?: fields|required_fields|optional_fields}. prolog: {file, functor: Name/Arity, arg?} reads one argument of every fact with that functor in a SWI-Prolog file (requires/1 in pack.pl), without running it. Paths are repository-relative. A member Kibi cannot read statically fails the read with its location.",
   required: ["reader"],
   properties: {
     reader: { type: "string", enum: [...SOURCE_READERS] },
@@ -1040,7 +1040,7 @@ function sourceContractErrors(contract: Record<string, unknown>): string[] {
       );
   } else if (kind === "source")
     errors.push(
-      "proof_contract.source is required for kind source: name the project source Kibi reads (reader json, yaml, glob, openapi, references, schema, routes or validator)",
+      "proof_contract.source is required for kind source: name the project source Kibi reads (reader json, yaml, glob, openapi, references, schema, routes, validator or prolog)",
     );
   const domains = record(contract.domains);
   for (const [type, entry] of Object.entries(domains ?? {}))
