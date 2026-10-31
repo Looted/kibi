@@ -1,6 +1,5 @@
 import { readFile } from "node:fs/promises";
 import { performance } from "node:perf_hooks";
-import { fileURLToPath } from "node:url";
 import { parentPort } from "node:worker_threads";
 import type {
   SourceAnalysisDiagnosticV2,
@@ -12,6 +11,7 @@ import type {
 import { Language, Parser, Query } from "web-tree-sitter";
 import type { Node } from "web-tree-sitter";
 import type { TreeSitterLanguage } from "./catalog.js";
+import { LanguagePackError, grammarSource } from "./language-packs.js";
 import {
   type ReferenceRead,
   type ReferenceRequest,
@@ -1867,22 +1867,6 @@ function analyzeInput(
   };
 }
 
-const GRAMMAR_ASSETS: Readonly<Record<TreeSitterLanguage, string>> = {
-  python: "tree-sitter-python.wasm",
-  go: "tree-sitter-go.wasm",
-  rust: "tree-sitter-rust.wasm",
-  java: "tree-sitter-java.wasm",
-  csharp: "tree-sitter-c_sharp.wasm",
-  php: "tree-sitter-php.wasm",
-  c: "tree-sitter-c.wasm",
-  cpp: "tree-sitter-cpp.wasm",
-  bash: "tree-sitter-bash.wasm",
-  ruby: "tree-sitter-ruby.wasm",
-  terraform: "tree-sitter-terraform.release.wasm",
-  hcl: "tree-sitter-hcl.release.wasm",
-  prolog: "tree-sitter-swi_prolog.wasm",
-};
-
 const SUPPLEMENTAL_QUERIES: Readonly<
   Partial<Record<TreeSitterLanguage, string>>
 > = {
@@ -1907,15 +1891,13 @@ async function loadGrammar(
 ): Promise<LoadedGrammar> {
   runtimeReady ??= Parser.init();
   await runtimeReady;
-  const grammarPath = fileURLToPath(
-    new URL(`../assets/${GRAMMAR_ASSETS[languageName]}`, import.meta.url),
-  );
+  const grammar = grammarSource(languageName);
   const queryPath = new URL(
     `../assets/queries/${languageName}.scm`,
     import.meta.url,
   );
   const [language, upstreamQuery] = await Promise.all([
-    Language.load(grammarPath),
+    Language.load(grammar),
     readFile(queryPath, "utf8"),
   ]);
   const supplementalName = SUPPLEMENTAL_QUERIES[languageName];
@@ -1987,6 +1969,8 @@ async function run(input: AnalysisWorkerInput): Promise<AnalysisWorkerResult> {
       tree.delete();
     }
   } catch (error) {
+    if (error instanceof LanguagePackError)
+      return { ok: false, code: error.code, message: error.message };
     return {
       ok: false,
       code: "TREESITTER_RUNTIME_ERROR",
@@ -2024,6 +2008,8 @@ async function runReferences(
       tree.delete();
     }
   } catch (error) {
+    if (error instanceof LanguagePackError)
+      return { ok: false, code: error.code, message: error.message };
     return {
       ok: false,
       code: "TREESITTER_RUNTIME_ERROR",

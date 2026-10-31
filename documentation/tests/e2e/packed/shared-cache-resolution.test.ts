@@ -145,6 +145,16 @@ if (fixtureChild) {
       "plugin-ui": archive("plugin-ui"),
       "plugin-search-hints": archive("plugin-search-hints"),
       "plugin-treesitter": archive("plugin-treesitter"),
+      "lang-go": archive("lang-go"),
+      "lang-rust": archive("lang-rust"),
+      "lang-java": archive("lang-java"),
+      "lang-csharp": archive("lang-csharp"),
+      "lang-php": archive("lang-php"),
+      "lang-c": archive("lang-c"),
+      "lang-cpp": archive("lang-cpp"),
+      "lang-bash": archive("lang-bash"),
+      "lang-ruby": archive("lang-ruby"),
+      "lang-hcl": archive("lang-hcl"),
       swipl: archive("swipl"),
     };
     writePackedInstallManifest(prefix, tarballs);

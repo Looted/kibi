@@ -68,8 +68,9 @@ describe("bootstrap plugin offers", () => {
         capability: "kibi.reference-extractor.v1",
         mode: "augment",
         alsoActivate: { "kibi.symbol-extractor.v2": "augment" },
+        alsoInstall: ["kibi-lang-go", "kibi-lang-rust"],
         reason:
-          '1 Go, 1 Rust source file(s); source proofs and symbols for them need kibi-plugin-treesitter: add it to devDependencies and to package.json kibi.plugins with "kibi.reference-extractor.v1": { "mode": "augment" }, "kibi.symbol-extractor.v2": { "mode": "augment" }',
+          '1 Go, 1 Rust source file(s); source proofs and symbols for them need kibi-plugin-treesitter and the grammar pack(s) kibi-lang-go, kibi-lang-rust: add them to devDependencies and kibi-plugin-treesitter to package.json kibi.plugins with "kibi.reference-extractor.v1": { "mode": "augment" }, "kibi.symbol-extractor.v2": { "mode": "augment" }',
         fileCount: 2,
         evidence: ["cmd/server/main.go", "src/lib.rs"],
       },

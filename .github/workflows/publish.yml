@@ -161,6 +161,16 @@ jobs:
             packages/swipl-darwin-arm64/*.tgz
             packages/swipl-darwin-x64/*.tgz
             packages/swipl/*.tgz
+            packages/lang-go/*.tgz
+            packages/lang-rust/*.tgz
+            packages/lang-java/*.tgz
+            packages/lang-csharp/*.tgz
+            packages/lang-php/*.tgz
+            packages/lang-c/*.tgz
+            packages/lang-cpp/*.tgz
+            packages/lang-bash/*.tgz
+            packages/lang-ruby/*.tgz
+            packages/lang-hcl/*.tgz
             packages/plugin-treesitter/*.tgz
             packages/runtime/*.tgz
             packages/cli/*.tgz

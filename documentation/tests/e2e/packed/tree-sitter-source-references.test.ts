@@ -7,10 +7,12 @@ import {
   type TestSandbox,
   createSandbox,
   kibi,
+  languagePackSpecs,
   packAll,
   run,
   stageSourceFile,
 } from "./helpers.js";
+import type { LanguagePackDir } from "./packed-packages.js";
 
 const RUN_NODE_TEST_SUITE =
   typeof (globalThis as { Bun?: unknown }).Bun === "undefined";
@@ -224,6 +226,7 @@ async function writePackageJson(
 async function installTreeSitter(
   sandbox: TestSandbox,
   tarballs: Tarballs,
+  packs: readonly LanguagePackDir[] = [],
 ): Promise<string> {
   const install = await run(
     "npm",
@@ -238,10 +241,12 @@ async function installTreeSitter(
       "--package-lock=false",
       `file:${tarballs["plugin-sdk"]}`,
       `file:${tarballs["plugin-treesitter"]}`,
+      ...languagePackSpecs(tarballs, packs),
     ],
     { cwd: sandbox.repoDir, env: sandbox.env, timeoutMs: 240000 },
   );
   assert.strictEqual(install.exitCode, 0, install.stdout + install.stderr);
+  if (packs.length > 0) return "";
   const { version } = JSON.parse(
     readFileSync(
       join(
@@ -392,6 +397,27 @@ export async function checkTreeSitterSourceReferences(
     "kibi.symbol-extractor.v2": { mode: "augment" },
     "kibi.reference-extractor.v1": { mode: "augment" },
   });
+  // Active, but the Go grammar pack is not installed: refused, naming it.
+  const noPack = await kibi(sandbox, ["prove", "--test", "TEST-GO-ENV"], {
+    timeoutMs: 240000,
+  });
+  assert.strictEqual(noPack.exitCode, 0, noPack.stdout + noPack.stderr);
+  const packless = latestReceipt(sandbox, "TEST-GO-ENV");
+  assert.doesNotMatch(packless, /evidence_level: proved/, packless);
+  assert.match(packless, /kibi-lang-go/, packless);
+  const doctor = await kibi(sandbox, ["doctor"], { timeoutMs: 240000 });
+  assert.match(
+    doctor.stdout + doctor.stderr,
+    /kibi-lang-go@\d+\.\d+\.\d+/,
+    doctor.stdout + doctor.stderr,
+  );
+
+  await installTreeSitter(sandbox, tarballs, [
+    "lang-go",
+    "lang-java",
+    "lang-csharp",
+    "lang-rust",
+  ]);
   const prove = await kibi(sandbox, ["prove", "--all"], { timeoutMs: 240000 });
   assert.strictEqual(prove.exitCode, 0, prove.stdout + prove.stderr);
   for (const testId of [

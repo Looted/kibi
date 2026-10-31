@@ -1,3 +1,21 @@
+/** The data-only kibi-lang-* grammar packs kibi-plugin-treesitter reads with. */
+// implements REQ-kibi-tree-sitter-language-packs
+export const languagePackDirs = [
+  "lang-go",
+  "lang-rust",
+  "lang-java",
+  "lang-csharp",
+  "lang-php",
+  "lang-c",
+  "lang-cpp",
+  "lang-bash",
+  "lang-ruby",
+  "lang-hcl",
+] as const;
+
+// implements REQ-kibi-tree-sitter-language-packs
+export type LanguagePackDir = (typeof languagePackDirs)[number];
+
 /** Workspace package dirs that must be present in every packed tarball set. */
 // implements REQ-test-journaled-engine-harness
 export const packagesForPack = [
@@ -9,6 +27,7 @@ export const packagesForPack = [
   "plugin-ui",
   "plugin-search-hints",
   "plugin-treesitter",
+  ...languagePackDirs,
   "swipl",
   "runtime",
   "cli",

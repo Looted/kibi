@@ -587,3 +587,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c7e527eb8e74
+  - type: validates
+    from: TEST-kibi-tree-sitter-language-packs
+    to: SCEN-kibi-tree-sitter-language-packs
+    created_at: 2026-10-31T17:56:17.586Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cfa17a26c111

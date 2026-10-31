@@ -166,8 +166,15 @@ characters. Qualified names and signatures are declaration locators; authored KB
 IDs remain the authority for identity, ownership and proof. An ambiguous locator
 cannot transfer an existing ID.
 
-`kibi-plugin-treesitter` is optional. Its qualified initial catalog covers Python,
-Go and Rust. Declare the exact qualified release as a project dependency and add:
+`kibi-plugin-treesitter` is optional. Python and SWI-Prolog grammars are built
+in; every other language's grammar is a data-only `kibi-lang-*` pack
+(`kibi-lang-go`, `kibi-lang-rust`, `kibi-lang-java`, `kibi-lang-csharp`,
+`kibi-lang-php`, `kibi-lang-c`, `kibi-lang-cpp`, `kibi-lang-bash`,
+`kibi-lang-ruby`, `kibi-lang-hcl`) installed next to it. The plugin pins each
+pack's version and grammar SHA-256 in its catalog and checks the bytes before
+loading them; a file whose pack is missing, another version or modified is
+refused with the install line, never skipped. Declare the exact qualified
+release and the packs you need as project dependencies and add:
 
 ```json
 {
@@ -180,7 +187,8 @@ Go and Rust. Declare the exact qualified release as a project dependency and add
 }
 ```
 
-The package contains grammar WASM, queries, notices and integrity metadata. Analysis
+The package contains the built-in grammar WASM, the queries for every language,
+notices and integrity metadata. Analysis
 does not download parsers, start language servers or execute consumer build tools.
 It keeps a small pool of persistent workers that load each grammar once; a
 worker that times out or fails is discarded and replaced. Its deadline and
@@ -309,7 +317,11 @@ each extract lists and refuses.
 
 ```json
 {
-  "devDependencies": { "kibi-plugin-treesitter": "^2.2.0" },
+  "devDependencies": {
+    "kibi-plugin-treesitter": "^3.0.0",
+    "kibi-lang-go": "1.0.0",
+    "kibi-lang-rust": "1.0.0"
+  },
   "kibi": {
     "plugins": [
       {
@@ -325,9 +337,11 @@ each extract lists and refuses.
 ```
 
 A Go, Java, C# or Rust project without a `package.json` creates one that only
-holds this list (`npm init -y`, then `npm install -D kibi-plugin-treesitter`).
-`kibi init`, `kibi doctor` and `kb_plan_bootstrap` suggest the plugin when
-such sources are tracked and it is not active for proofs.
+holds this list (`npm init -y`, then `npm install -D kibi-plugin-treesitter
+kibi-lang-go`). `kibi init`, `kibi doctor` and `kb_plan_bootstrap` suggest the
+plugin and the packs when such sources are tracked and it is not active for
+proofs, and `kibi doctor` names a pack that is missing or not the version the
+installed plugin pins.
 
 ## Optional search hints plugin
 

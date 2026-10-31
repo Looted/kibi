@@ -24,7 +24,7 @@ afterEach(() => {
   for (const root of roots.splice(0))
     rmSync(root, { recursive: true, force: true });
 });
-function consumer() {
+function consumer(packs: readonly string[] = ["go", "rust"]) {
   const root = mkdtempSync(join(tmpdir(), "kibi-approved-consumer-"));
   roots.push(root);
   const packageRoot = resolve(import.meta.dir, "../../../plugin-treesitter");
@@ -41,6 +41,12 @@ function consumer() {
     createRequire(join(packageRoot, "package.json")).resolve("web-tree-sitter"),
   );
   symlinkSync(runtime, join(root, "node_modules/web-tree-sitter"), "dir");
+  for (const pack of packs)
+    symlinkSync(
+      resolve(import.meta.dir, `../../../lang-${pack}`),
+      join(root, `node_modules/kibi-lang-${pack}`),
+      "dir",
+    );
   writeFileSync(
     join(root, "package.json"),
     JSON.stringify({
@@ -76,6 +82,42 @@ test("an approved relocated source package analyzes Python, Go and Rust through 
     ]);
     expect(result.providerFingerprint).toMatch(/^[a-f0-9]{64}$/);
   }
+}, 15000);
+
+// executable_for TEST-kibi-tree-sitter-language-packs
+test("a language whose grammar pack is missing or modified is refused, never skipped", async () => {
+  const { root } = consumer([]);
+  const service = createMaintenanceSourceAnalysisService(root);
+  const missing = await service.analyzeTextV2(
+    "sample.go",
+    "package sample\nfunc Execute() {}\n",
+  );
+  expect(missing.status).toBe("unsupported");
+  expect(JSON.stringify(missing.diagnostics)).toContain(
+    "npm install --save-dev kibi-lang-go@1.0.0",
+  );
+  // Python stays built in.
+  expect(
+    (await service.analyzeTextV2("sample.py", "def run():\n    return 1\n"))
+      .status,
+  ).toBe("ok");
+
+  const pack = join(root, "node_modules/kibi-lang-rust");
+  mkdirSync(pack);
+  const source = resolve(import.meta.dir, "../../../lang-rust");
+  for (const file of ["package.json", "tree-sitter-rust.wasm"])
+    copyFileSync(join(source, file), join(pack, file));
+  const wasm = readFileSync(join(pack, "tree-sitter-rust.wasm"));
+  wasm[wasm.length - 1] = (wasm[wasm.length - 1] ?? 0) ^ 1;
+  writeFileSync(join(pack, "tree-sitter-rust.wasm"), wasm);
+  const modified = await service.analyzeTextV2(
+    "sample.rs",
+    "pub fn execute() {}\n",
+  );
+  expect(modified.status).toBe("failed");
+  expect(JSON.stringify(modified.diagnostics)).toContain(
+    "TREESITTER_LANGUAGE_PACK_MISMATCH",
+  );
 }, 15000);
 
 test("known package names cannot execute modified code before approval validation", async () => {

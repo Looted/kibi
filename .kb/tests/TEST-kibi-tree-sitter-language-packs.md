@@ -1,0 +1,59 @@
+---
+title: Tree-sitter grammar packs are verified, refused when missing or modified, and named by kibi doctor
+status: passing
+tags:
+  - plugin
+  - multilingual
+  - e2e
+verification_scope: end_to_end
+verification_perspective: consumer
+origin:
+  kind: agent
+  recorded_at: '2026-10-31T17:56:17.578Z'
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-e2e-packed-tree-sitter-source-references
+      target: default
+  success_policy: all_required_first_attempt
+id: TEST-kibi-tree-sitter-language-packs
+type: test
+proof_receipts:
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-0b6342813024b388140ec1af
+    test_id: TEST-kibi-tree-sitter-language-packs
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: b2edd87f9db88973f9e196f6a0d9024cced12f4a3af6a63e455f5afc217e383a
+    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
+    started_at: '2026-10-31T18:24:43.928Z'
+    finished_at: '2026-10-31T18:26:25.668Z'
+    artifact_digest: bd6f49174ffbb3c4c5cfa1afb5851f2334c4e40e4a3b9dde51b2e807b7a1ddfa
+    contract_hash: 666c46c3735bda5801924dbcc821974cfd32b70f230ed17b3aa333dc8a057bcf
+    binding_hash: 1b73309aff319d1c57146f9cc7ddbbcd5e36f029672aed2d5a56d5bd4eade5d5
+    fingerprint: d1bb1844a5f3b21915897be3766b565cb2aee442c7187e0b9bedb74ac5afbc67
+    fingerprint_components:
+      contract: 666c46c3735bda5801924dbcc821974cfd32b70f230ed17b3aa333dc8a057bcf
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-packed-tree-sitter-source-references
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+    kind: e2e
+    evidence_level: tested
+---
+Packs the CLI, kibi-plugin-treesitter and the kibi-lang grammar packs, installs the plugin into a polyglot service without packs and checks that a Go reference read is refused naming kibi-lang-go and that kibi doctor names kibi-lang-go at the pinned version; after installing the Go, Java, C# and Rust packs the reads are proved. packages/cli/tests/plugins/approved-source-consumer.test.ts runs a relocated approved plugin through the maintenance host: Go without its pack is unsupported with the install line, Python stays built in, and a Rust pack with one changed byte fails with TREESITTER_LANGUAGE_PACK_MISMATCH. packages/cli/tests/plugins/language-pack-suggestion.test.ts checks which packs doctor and init name and that the CLI pack table matches the plugin catalog.

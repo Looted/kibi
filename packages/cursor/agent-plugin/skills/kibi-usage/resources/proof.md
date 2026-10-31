@@ -292,8 +292,10 @@ left:
   The builders need kibi-cli 2.33.0 or newer in the project. The env
   extractor reads `process.env`, `import.meta.env`, `Bun.env`,
   `Deno.env.get`, `os.environ` and `os.getenv`, through casts.
-- `references` over Go, Java, C# or Rust needs `kibi-plugin-treesitter` in
-  `devDependencies` and activated for proofs:
+- `references` over Go, Java, C# or Rust needs `kibi-plugin-treesitter` and
+  the language's grammar pack (`kibi-lang-go`, `kibi-lang-java`,
+  `kibi-lang-csharp`, `kibi-lang-rust`) in `devDependencies`, with the
+  plugin activated for proofs:
   `"kibi.reference-extractor.v1": { "mode": "augment" }` in its
   `kibi.plugins` entry (next to `"kibi.symbol-extractor.v2"`). A project
   with no `package.json` creates one that only holds this list. Without it

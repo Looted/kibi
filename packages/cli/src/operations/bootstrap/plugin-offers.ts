@@ -4,6 +4,7 @@ import type { ProjectKibiConfig, ProjectPluginEntry } from "kibi-plugin-sdk";
 import {
   describeReferenceLanguageSuggestion,
   referenceLanguageSuggestion,
+  workspaceInstalledVersion,
 } from "../../plugins/reference-language-suggestion.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import { KB_PATHS } from "../../utils/kb-paths.js";
@@ -21,6 +22,8 @@ export type PluginOffer = {
   readonly evidence: readonly string[];
   /** Further capabilities of the same package to activate, with their modes. */
   readonly alsoActivate?: Readonly<Record<string, "augment" | "replace">>;
+  /** Data packages to install next to it, such as kibi-lang-* grammar packs. */
+  readonly alsoInstall?: readonly string[];
 };
 
 const UI_PLUGIN = "kibi-plugin-ui";
@@ -172,9 +175,10 @@ export async function pluginOffers(
     ? referenceLanguageSuggestion(
         files,
         kibiConfigOf(await readManifest(context)),
+        workspaceInstalledVersion(context.workspaceRoot),
       )
     : null;
-  if (references !== null) {
+  if (references !== null && references.capabilities.length > 0) {
     const [capability, ...more] = references.capabilities;
     offers.push({
       package: references.package,
@@ -186,6 +190,7 @@ export async function pluginOffers(
         0,
       ),
       evidence: references.evidence,
+      ...(references.packs.length > 0 ? { alsoInstall: references.packs } : {}),
       ...(more.length > 0
         ? {
             alsoActivate: Object.fromEntries(

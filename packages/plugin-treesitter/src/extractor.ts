@@ -17,6 +17,7 @@ import {
   normalizeTreeSitterLanguage,
   treeSitterLanguageForPath,
 } from "./catalog.js";
+import { languagePackProblem } from "./language-packs.js";
 import { createBoundedSourceAnalysisTimingEmitter } from "./performance-timing.js";
 import {
   type ReferenceRead,
@@ -502,6 +503,16 @@ export function createTreeSitterSymbolExtractor(
         );
       }
 
+      const packProblem = languagePackProblem(language);
+      if (packProblem !== undefined)
+        return fallbackResult(
+          input,
+          language,
+          "unsupported",
+          packProblem.code,
+          packProblem.message,
+        );
+
       const result = await pool.analyze(language, input.content, deadline);
       if (!result.ok) {
         return fallbackResult(
@@ -604,6 +615,14 @@ export function createTreeSitterReferenceExtractor(
           "failed",
           "TREESITTER_INPUT_LIMIT",
           `${input.path} exceeds ${MAX_INPUT_BYTES} UTF-8 bytes`,
+          language,
+        );
+      const packProblem = languagePackProblem(language);
+      if (packProblem !== undefined)
+        return referenceRefusal(
+          "unsupported",
+          packProblem.code,
+          packProblem.message,
           language,
         );
       const read = await pool.references(

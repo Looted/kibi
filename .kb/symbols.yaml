@@ -66425,6 +66425,8 @@ symbols:
       recorded_at: 2026-10-31T16:50:53.778Z
     relationships:
       - type: executable_for
+        target: TEST-kibi-tree-sitter-language-packs
+      - type: executable_for
         target: TEST-kibi-tree-sitter-references
   - id: SYM-tree-sitter-extract-references
     title: extractReferences
@@ -66503,6 +66505,42 @@ symbols:
       recorded_at: 2026-10-31T16:51:15.642Z
     relationships:
       - type: covered_by
+        target: TEST-kibi-tree-sitter-language-packs
+      - type: covered_by
         target: TEST-kibi-tree-sitter-references
       - type: implements
+        target: REQ-kibi-tree-sitter-language-packs
+      - type: implements
         target: REQ-kibi-tree-sitter-references
+  - id: SYM-tree-sitter-grammar-source
+    title: grammarSource
+    status: active
+    sourceFile: packages/plugin-treesitter/src/language-packs.ts
+    symbol_role: behavioral
+    tags:
+      - plugin
+      - multilingual
+    origin:
+      kind: agent
+      recorded_at: 2026-10-31T17:56:25.654Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-tree-sitter-language-packs
+      - type: implements
+        target: REQ-kibi-tree-sitter-language-packs
+  - id: SYM-tree-sitter-language-pack-problem
+    title: languagePackProblem
+    status: active
+    sourceFile: packages/plugin-treesitter/src/language-packs.ts
+    symbol_role: behavioral
+    tags:
+      - plugin
+      - multilingual
+    origin:
+      kind: agent
+      recorded_at: 2026-10-31T17:56:30.698Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-tree-sitter-language-packs
+      - type: implements
+        target: REQ-kibi-tree-sitter-language-packs

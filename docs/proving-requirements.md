@@ -644,8 +644,10 @@ Details that decide what a reader sees:
   compiles or runs nothing. Activate it for proofs in `package.json`:
   `{"package": "kibi-plugin-treesitter", "capabilities":
   {"kibi.reference-extractor.v1": {"mode": "augment"},
-  "kibi.symbol-extractor.v2": {"mode": "augment"}}}`, with the package in
-  `devDependencies`. A project without a `package.json` creates one that only
+  "kibi.symbol-extractor.v2": {"mode": "augment"}}}`, with the package and
+  the language's grammar pack (`kibi-lang-go`, `kibi-lang-java`,
+  `kibi-lang-csharp` or `kibi-lang-rust`) in `devDependencies`; a missing
+  pack refuses the read with its install line. A project without a `package.json` creates one that only
   holds this list. Proofs use the plugin only when its installed files match
   the release-qualified closure Kibi ships, so a modified or unqualified
   provider is never imported. Without it the read is refused with what to

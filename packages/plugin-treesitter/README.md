@@ -2,9 +2,34 @@
 
 This package provides the `kibi.symbol-extractor.v2` capability for Python, Go, Rust, Java, C#, PHP, C, C++, Bash, Ruby, SWI-Prolog, Terraform, and generic HCL source files. It returns syntax-derived declarations with explicit `ok`, `partial`, `unsupported`, or `failed` status for the exact source text it receives.
 
-The package contains its pinned grammar WebAssembly files and parser queries. The runtime is `web-tree-sitter` 0.27.0. Catalog metadata records the upstream source commits, registry package integrity, parser ABI, query provenance, and SHA-256 digests. C and C++ header files use explicit language selection because `.h` alone cannot distinguish them. PHP analysis uses the mixed HTML/PHP grammar so declarations around embedded HTML remain visible. The shell catalog covers Bash syntax; `.sh` files use that subset, while a shebang naming a different or unknown interpreter returns `unsupported`.
+## Language packs
 
-At analysis time the plugin reads only its installed files and source text. It does not fetch grammars, run compilers, invoke the analyzed program, load language toolchains, evaluate Terraform, or expand macros. Parsing runs in a small pool of persistent workers (at most four, one fewer than the available CPUs) with bounded input, output symbols, and wall-clock time. Each worker loads a grammar once and serves one file at a time; a worker that times out or fails is replaced, and workers are recycled after 256 analyses. The wall-clock budget is the host-granted `timeoutMs`, capped at 10 seconds. Node workers configure 64 MiB old-generation heap, 16 MiB young-generation heap, and a 4 MiB stack. Bun ignores the Node `resourceLimits` option, so those heap and stack caps are not enforced there; see its [Node compatibility documentation](https://bun.sh/docs/runtime/nodejs-compat). WebAssembly linear memory and total process RSS are not separately capped in either runtime. The worker is not an operating-system sandbox.
+The Python and SWI-Prolog grammars are built in. Every other grammar ships in its own data-only package, so a project installs only the languages it uses:
+
+| Pack | Languages | Extensions |
+| --- | --- | --- |
+| `kibi-lang-go` | Go | `.go` |
+| `kibi-lang-rust` | Rust | `.rs` |
+| `kibi-lang-java` | Java | `.java` |
+| `kibi-lang-csharp` | C# | `.cs` |
+| `kibi-lang-php` | PHP | `.php` |
+| `kibi-lang-c` | C | `.c` (`.h` when C is selected) |
+| `kibi-lang-cpp` | C++ | `.cc`, `.cpp`, `.cxx`, `.hh`, `.hpp`, `.hxx` (`.h` when C++ is selected) |
+| `kibi-lang-bash` | Bash | `.bash`, `.sh` |
+| `kibi-lang-ruby` | Ruby | `.rb` |
+| `kibi-lang-hcl` | Terraform, HCL | `.tf`, `.hcl` |
+
+```sh
+npm install --save-dev kibi-plugin-treesitter kibi-lang-go kibi-lang-rust
+```
+
+A pack holds only the grammar WebAssembly and its license; it has no code and no install scripts. The plugin lists the packs as optional peer dependencies and finds them next to itself. `catalog.json` pins each pack's exact version and each grammar file's size and SHA-256, and the worker checks the bytes before it loads them, so a grammar runs only when it is the one this release was qualified with. A file whose pack is missing or a different version returns `unsupported` with the install line, and a modified grammar file returns `failed`; neither is skipped. `kibi doctor` and `kibi init` name the packs the tracked sources need.
+
+## Analysis
+
+The package contains the Python and SWI-Prolog grammar WebAssembly files and the parser queries for every language. The runtime is `web-tree-sitter` 0.27.0. Catalog metadata records the upstream source commits, registry package integrity, parser ABI, query provenance, and SHA-256 digests. C and C++ header files use explicit language selection because `.h` alone cannot distinguish them. PHP analysis uses the mixed HTML/PHP grammar so declarations around embedded HTML remain visible. The shell catalog covers Bash syntax; `.sh` files use that subset, while a shebang naming a different or unknown interpreter returns `unsupported`.
+
+At analysis time the plugin reads only its installed files, the installed language packs and source text. It does not fetch grammars, run compilers, invoke the analyzed program, load language toolchains, evaluate Terraform, or expand macros. Parsing runs in a small pool of persistent workers (at most four, one fewer than the available CPUs) with bounded input, output symbols, and wall-clock time. Each worker loads a grammar once and serves one file at a time; a worker that times out or fails is replaced, and workers are recycled after 256 analyses. The wall-clock budget is the host-granted `timeoutMs`, capped at 10 seconds. Node workers configure 64 MiB old-generation heap, 16 MiB young-generation heap, and a 4 MiB stack. Bun ignores the Node `resourceLimits` option, so those heap and stack caps are not enforced there; see its [Node compatibility documentation](https://bun.sh/docs/runtime/nodejs-compat). WebAssembly linear memory and total process RSS are not separately capped in either runtime. The worker is not an operating-system sandbox.
 
 `ok` means the selected syntax queries returned supported declaration forms without detected parse or coverage gaps; it is not proof of the complete runtime symbol set. Java, C#, and C++ overload locators preserve source-level parameter spelling; C++ method signatures also include `const`, `volatile`, and ref qualifiers. The analyzer does not resolve aliases, generic substitutions, or language-specific type equivalence. C/C++ includes, conditional compilation, and invoked declaration macros return `partial`; exact prototypes and definitions collapse within one file only when their supported signatures match, while unresolved collisions remain distinct with source-local locators and `partial` status. Python decorators, metaclasses, and `exec()`, Rust macro invocations, duplicate PHP declarations, dynamic Ruby method APIs/redefinitions, and Bash `eval`, sourced files, conditional declarations, and duplicate names also remain explicit partial-analysis cases.
 

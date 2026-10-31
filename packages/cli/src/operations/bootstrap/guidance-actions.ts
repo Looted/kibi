@@ -120,7 +120,10 @@ export function buildActions(
       ...(offer.alsoActivate === undefined
         ? {}
         : { alsoActivate: offer.alsoActivate }),
-      description: `${offer.reason} (${summary(offer.evidence)}). Ask the operator whether to enable the experimental ${offer.package}; on yes, install it as a dev dependency and add it to package.json kibi.plugins with ${[
+      ...(offer.alsoInstall === undefined
+        ? {}
+        : { alsoInstall: offer.alsoInstall }),
+      description: `${offer.reason} (${summary(offer.evidence)}). Ask the operator whether to enable the experimental ${offer.package}; on yes, install ${offer.alsoInstall === undefined ? "it as a dev dependency" : `it and ${offer.alsoInstall.join(", ")} as dev dependencies`} and add it to package.json kibi.plugins with ${[
         [offer.capability, offer.mode] as const,
         ...Object.entries(offer.alsoActivate ?? {}),
       ]

@@ -1,0 +1,21 @@
+{
+  "name": "kibi-lang-cpp",
+  "version": "1.0.0",
+  "description": "C++ grammar for kibi-plugin-treesitter (tree-sitter-cpp 0.23.4)",
+  "license": "MIT",
+  "author": "Piotr Franczyk",
+  "homepage": "https://looted.github.io/kibi/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Looted/kibi.git",
+    "directory": "packages/lang-cpp"
+  },
+  "bugs": {
+    "url": "https://github.com/Looted/kibi/issues"
+  },
+  "keywords": ["kibi", "tree-sitter", "cpp"],
+  "files": ["tree-sitter-cpp.wasm", "README.md", "CHANGELOG.md", "LICENSE"],
+  "publishConfig": {
+    "access": "public"
+  }
+}

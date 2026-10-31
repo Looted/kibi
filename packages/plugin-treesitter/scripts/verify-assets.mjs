@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFile, readdir, writeFile } from "node:fs/promises";
-import { join, relative, resolve, sep } from "node:path";
+import { createRequire } from "node:module";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const packageRoot = resolve(fileURLToPath(new URL("../", import.meta.url)));
@@ -91,9 +92,45 @@ if (includedPaths.includes("integrity.json")) {
   throw new Error("integrity.json must be excluded from its own hash list");
 }
 
+// Grammars in language packs: each pack is pinned by version in catalog.json
+// and package.json, and each grammar file by size and SHA-256.
+const resolvePack = createRequire(join(packageRoot, "package.json"));
+for (const language of catalog.languages) {
+  if (language.pack === undefined) continue;
+  if (
+    packageJson.peerDependencies?.[language.pack] !== language.packVersion ||
+    packageJson.peerDependenciesMeta?.[language.pack]?.optional !== true
+  )
+    throw new Error(
+      `${language.pack} must be an optional peer dependency pinned to ${language.packVersion}`,
+    );
+  const packRoot = dirname(
+    resolvePack.resolve(`${language.pack}/package.json`),
+  );
+  const pack = JSON.parse(
+    await readFile(join(packRoot, "package.json"), "utf8"),
+  );
+  if (pack.version !== language.packVersion)
+    throw new Error(
+      `${language.pack} is ${pack.version}; catalog.json pins ${language.packVersion}`,
+    );
+  if (!pack.files?.includes(language.asset))
+    throw new Error(`${language.pack} does not publish ${language.asset}`);
+  if (pack.dependencies || pack.scripts)
+    throw new Error(`${language.pack} must hold data only`);
+  const entry = await sha256(join(packRoot, language.asset));
+  if (
+    entry.bytes !== language.assetBytes ||
+    entry.sha256 !== language.assetSha256
+  )
+    throw new Error(
+      `Parser asset metadata mismatch: ${language.pack}/${language.asset}`,
+    );
+}
+
 for (const language of catalog.languages) {
   for (const relativePath of [
-    language.asset,
+    ...(language.pack === undefined ? [language.asset] : []),
     language.query,
     ...(language.supplementalQueries ?? []).map((query) => query.path),
   ]) {

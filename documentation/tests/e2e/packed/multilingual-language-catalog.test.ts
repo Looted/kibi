@@ -11,6 +11,7 @@ import {
   createInventoriedRequirement,
   createSandbox,
   kibi,
+  languagePackSpecs,
   packAll,
   run,
   stageSourceFile,
@@ -717,6 +718,7 @@ async function runCatalogWorkflow(tarballs: Tarballs): Promise<void> {
         "--package-lock=false",
         `file:${tarballs["plugin-sdk"]}`,
         `file:${tarballs["plugin-treesitter"]}`,
+        ...languagePackSpecs(tarballs),
       ],
       {
         cwd: sandbox.repoDir,
