@@ -265,3 +265,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-23dd6155ff7c
+  - type: covered_by
+    from: SYM-code-languages-unsupported-language-reason
+    to: TEST-kibi-multilingual-code-proofs
+    created_at: 2026-10-31T08:35:53.218Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5652b4d985a9
+  - type: implements
+    from: SYM-code-languages-unsupported-language-reason
+    to: REQ-kibi-multilingual-code-proofs
+    created_at: 2026-10-31T08:35:53.235Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef417f7b8928

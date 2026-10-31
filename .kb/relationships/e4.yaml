@@ -391,3 +391,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a8070b2cd11e
+  - type: covered_by
+    from: SYM-code-languages-code-language
+    to: TEST-kibi-multilingual-code-proofs
+    created_at: 2026-10-31T08:35:43.737Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e791f18927d4
+  - type: implements
+    from: SYM-code-languages-code-language
+    to: REQ-kibi-multilingual-code-proofs
+    created_at: 2026-10-31T08:35:43.761Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49abba16c41b

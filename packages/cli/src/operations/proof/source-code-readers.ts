@@ -37,13 +37,12 @@ import {
   type UnresolvedReference,
   unresolvedReason,
 } from "../../public/proof-sources.js";
+import { codeLanguage, unsupportedLanguageReason } from "./code-languages.js";
 import { runCodeEvaluator, TS_RESOLVE_HOOKS } from "./code-runner.js";
 
 type TypeScriptApi = typeof import("typescript");
 type Node = import("typescript").Node;
 
-const JS_FILE = /\.(?:[cm]?[jt]sx?)$/i;
-const PY_FILE = /\.py$/i;
 
 function globList(value: unknown): string[] {
   if (typeof value === "string") return [value];
@@ -368,15 +367,18 @@ async function readReferences(workspaceRoot: string, spec: SourceSpec): Promise<
   const files = matchWorkspaceFiles(workspaceRoot, globList(spec.files), globList(spec.ignore));
   if (files.length === 0)
     return { ok: false, reason: `no file matches ${globList(spec.files).join(", ")}` };
-  const other = files.filter((file) => !JS_FILE.test(file) && !PY_FILE.test(file));
+  const other = files.filter((file) => {
+    const language = codeLanguage(file);
+    return language !== "js" && language !== "python";
+  });
   if (other.length > 0)
     return {
       ok: false,
-      reason: `the references reader reads TypeScript, JavaScript and Python files; narrow files to exclude ${other.slice(0, 3).join(", ")}`,
+      reason: `${unsupportedLanguageReason("the references reader", ["js", "python"], other)}; narrow files to exclude them`,
     };
   const members: string[] = [];
   const unresolved: UnresolvedReference[] = [];
-  const scripts = files.filter((file) => JS_FILE.test(file));
+  const scripts = files.filter((file) => codeLanguage(file) === "js");
   if (scripts.length > 0) {
     const ts = loadTypeScript(workspaceRoot);
     if (ts === null)
@@ -390,12 +392,12 @@ async function readReferences(workspaceRoot: string, spec: SourceSpec): Promise<
       unresolved.push(...found.unresolved);
     }
   }
-  const python = files.filter((file) => PY_FILE.test(file));
+  const python = files.filter((file) => codeLanguage(file) === "python");
   if (python.length > 0) {
     const run = runCodeEvaluator(
       workspaceRoot,
       python[0] as string,
-      { js: "", python: PYTHON_REFERENCES },
+      { python: PYTHON_REFERENCES },
       [JSON.stringify({ extract: spec.extract, callee: spec.callee, key: spec.key, files: python })],
       (parsed) => parsed !== null && typeof parsed === "object" && "ok" in (parsed as object),
     );

@@ -433,3 +433,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8c86af1879d9
+  - type: covered_by
+    from: SYM-code-runner-run-code-evaluator
+    to: TEST-kibi-multilingual-code-proofs
+    created_at: 2026-10-31T08:36:00.475Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7853bf6ff48e
+  - type: implements
+    from: SYM-code-runner-run-code-evaluator
+    to: REQ-kibi-multilingual-code-proofs
+    created_at: 2026-10-31T08:36:00.500Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a30940ff367b
+  - type: implements
+    from: SYM-code-runner-run-code-evaluator
+    to: REQ-kibi-non-numeric-proof-kinds
+    created_at: 2026-10-31T08:36:00.518Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97d35e552672
+  - type: covered_by
+    from: SYM-code-runner-run-code-evaluator
+    to: TEST-kibi-non-numeric-proof-kinds
+    created_at: 2026-10-31T08:38:17.769Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e13104372631

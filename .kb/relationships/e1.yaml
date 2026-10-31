@@ -433,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4e0ba8c29f86
+  - type: assumes
+    from: SCEN-NEG-kibi-multilingual-code-proofs-AMBIGUOUS-PROJECTION
+    to: FACT-NEG-kibi-multilingual-code-proofs-AMBIGUOUS-PROJECTION
+    created_at: 2026-10-31T08:37:35.169Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-847622a5e629
+  - type: verified_by
+    from: SCEN-NEG-kibi-multilingual-code-proofs-AMBIGUOUS-PROJECTION
+    to: TEST-kibi-multilingual-code-proofs
+    created_at: 2026-10-31T08:37:35.209Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b5a8d366897

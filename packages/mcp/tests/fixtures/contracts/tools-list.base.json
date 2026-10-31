@@ -3646,6 +3646,12 @@
                     "additionalProperties": false,
                     "description": "exhaustive and typecheck: the symbol that defines the finite domain (typecheck: also the type whose fields a required_fields fact names). state_machine: the transition table or next-state function. The proof must import it from its source file; a hand-listed domain downgrades the receipt to example. Kibi reads the export named `export`, or the symbol's title when `export` is absent.",
                     "properties": {
+                      "arg": {
+                        "description": "A SWI-Prolog predicate's argument (1-based) whose solutions Kibi reads, when the predicate takes more than one argument (operator/2 with arg 1 lists each operator's name).",
+                        "maximum": 9007199254740991,
+                        "minimum": 1,
+                        "type": "integer"
+                      },
                       "export": {
                         "description": "The name the domain is exported under in the symbol's source file, when the symbol's title is not that name.",
                         "minLength": 1,
@@ -3674,6 +3680,12 @@
                     "additionalProperties": false,
                     "description": "state_machine: the export holding the initial state (or states), needed for initial_states and reachable_states facts.",
                     "properties": {
+                      "arg": {
+                        "description": "A SWI-Prolog predicate's argument (1-based) whose solutions Kibi reads, when the predicate takes more than one argument (operator/2 with arg 1 lists each operator's name).",
+                        "maximum": 9007199254740991,
+                        "minimum": 1,
+                        "type": "integer"
+                      },
                       "export": {
                         "minLength": 1,
                         "type": "string"
@@ -3743,6 +3755,12 @@
                     "additionalProperties": false,
                     "description": "regex: the export holding the code's pattern (a RegExp, or a Python re.Pattern) or string constant that a string fact is about.",
                     "properties": {
+                      "arg": {
+                        "description": "A SWI-Prolog predicate's argument (1-based) whose solutions Kibi reads, when the predicate takes more than one argument (operator/2 with arg 1 lists each operator's name).",
+                        "maximum": 9007199254740991,
+                        "minimum": 1,
+                        "type": "integer"
+                      },
                       "export": {
                         "minLength": 1,
                         "type": "string"
@@ -3852,6 +3870,12 @@
                     "items": {
                       "additionalProperties": false,
                       "properties": {
+                        "arg": {
+                          "description": "A SWI-Prolog predicate's argument (1-based) whose solutions Kibi reads, when the predicate takes more than one argument (operator/2 with arg 1 lists each operator's name).",
+                          "maximum": 9007199254740991,
+                          "minimum": 1,
+                          "type": "integer"
+                        },
                         "export": {
                           "minLength": 1,
                           "type": "string"
