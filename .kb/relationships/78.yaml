@@ -349,3 +349,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-228b086171af
+  - type: requires_property
+    from: REQ-telemetry-docs-link
+    to: FACT-telemetry-docs-link
+    created_at: 2026-10-30T19:42:29.647Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3567b241d201
+  - type: constrains
+    from: REQ-telemetry-docs-link
+    to: FACT-kibi-telemetry-docs-component
+    created_at: 2026-10-30T19:42:29.685Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-deb520dc4dc6
+  - type: specified_by
+    from: REQ-telemetry-docs-link
+    to: SCEN-kibi-anonymous-usage-telemetry
+    created_at: 2026-10-30T19:42:29.705Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2317d2ccee4

@@ -19,17 +19,17 @@ proof_bindings:
     source_file: documentation/tests/e2e/packed/runtime-symbol-analysis.test.ts
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-bfd2eb0e6b5961e8c9fd92dc
+    receipt_id: PR-c1f93971a2ba62ffedba8eb7
     test_id: TEST-e2e-runtime-symbol-portability
     scope: end_to_end
     outcome: passed
-    code_snapshot: 5477dc3831d7d1aad6ba7410b71c7f2e3fded37be9c633af99695e7be22a613f
+    code_snapshot: e2663d10a2e1a0b8fdd0d38e888ee46d8031436be2244a613e1c406fbfa714b0
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T13:36:29.963Z'
-    finished_at: '2026-10-28T13:37:44.836Z'
-    artifact_digest: bbb9f85ef6811d93f5ce71ce4befab9eadaa8d2a86c9e7bff222c0b4d6f697f5
+    started_at: '2026-10-30T19:51:51.865Z'
+    finished_at: '2026-10-30T19:51:52.643Z'
+    artifact_digest: d57c81080144b758655f2500fadf205c527deaa7b84d1004efba68cb65c28979
     contract_hash: c2633824048151cca929554e20f0350577bc55f3489610a26bce9ed4ac7035ac
-    binding_hash: 6ac5a3ef895308ada5fd8180a9e4d4d0783fa1f5021e7c2ef75f7da2fb9219df
+    binding_hash: f3d5d012bea9fc54a98cf6ef81320cfddaa1bd0b45b161dfcf76d8a74d7efab0
     fingerprint: e3accf6ed1fd9253aa856876bd13d13572f6ae9a71672699ccefdff6da8624a5
     fingerprint_components:
       contract: c2633824048151cca929554e20f0350577bc55f3489610a26bce9ed4ac7035ac

@@ -409,3 +409,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-226036cb94c2
+  - type: validates
+    from: TEST-proof-search-non-governing-statuses
+    to: SCEN-kibi-search-answer-verdicts
+    created_at: 2026-10-30T19:42:18.841Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0245c85dad47

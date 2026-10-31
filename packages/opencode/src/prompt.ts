@@ -22,7 +22,8 @@ import type { WorkspaceHealth } from "./workspace-health.js";
 const SENTINEL = "<!-- kibi-opencode -->";
 
 // ── Token budget enforcement ───────────────────────────────────────────
-const MAX_BULLETS = 5;
+// implements REQ-opencode-guidance-injection
+export const MAX_BULLETS = 5;
 const MAX_WORDS = 117; // Reserve 3 words for sentinel so total injected prompt stays ≤ 120
 
 function countWords(text: string): number {

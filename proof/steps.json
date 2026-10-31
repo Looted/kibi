@@ -7046,5 +7046,125 @@
         "./packages/cli/tests/proofs/claims/search-hints-limits.proof.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-proof-git-hook-print-formats",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/git-hook-print-formats.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-search-hints-model-id",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/search-hints-model-pin.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-search-hints-model-revision",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/search-hints-model-pin.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-search-hints-host-operations",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/search-hints-host-operations.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-signoff-latest-json",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/signoff-latest-views.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-signoff-latest-markdown",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/signoff-latest-views.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-signoff-latest-html",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/signoff-latest-views.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-advisor-case-preview-limit",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/advisor-case-preview-limit.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-opencode-guidance-bullet-limit",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/opencode-guidance-bullet-limit.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-builtin-symbol-source-extensions",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/builtin-symbol-source-extensions.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-search-non-governing-statuses",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/search-non-governing-statuses.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-telemetry-docs-link",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/telemetry-docs-link.proof.test.ts"
+      ]
+    ]
   }
 ]

@@ -461,3 +461,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-628d039b1276
+  - type: requires_property
+    from: REQ-git-hook-print-formats
+    to: FACT-git-hook-print-formats
+    created_at: 2026-10-30T19:39:43.739Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-473427b53e1a
+  - type: constrains
+    from: REQ-git-hook-print-formats
+    to: FACT-kibi-git-hooks-print-formats-component
+    created_at: 2026-10-30T19:39:43.788Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-591b7d27d0fe
+  - type: specified_by
+    from: REQ-git-hook-print-formats
+    to: SCEN-git-hook-manager-integration
+    created_at: 2026-10-30T19:39:43.820Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75b27e1d32fb

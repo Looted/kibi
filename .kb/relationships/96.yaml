@@ -510,3 +510,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3925283915f6
+  - type: executable_for
+    from: SYM-proof-search-hints-model-id
+    to: TEST-proof-search-hints-model-id
+    created_at: 2026-10-30T19:40:22.179Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72dc1a59bbb8

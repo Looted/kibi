@@ -384,3 +384,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-599f838502d5
+  - type: validates
+    from: TEST-proof-opencode-guidance-bullet-limit
+    to: SCEN-opencode-bootstrap-nudge
+    created_at: 2026-10-30T19:41:52.959Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8070b2cd11e

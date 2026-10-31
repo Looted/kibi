@@ -454,3 +454,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6fa5a4062923
+  - type: validates
+    from: TEST-proof-search-hints-host-operations
+    to: SCEN-kibi-search-hints-host
+    created_at: 2026-10-30T19:40:48.748Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5be4148fbd54

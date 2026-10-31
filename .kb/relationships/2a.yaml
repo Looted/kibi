@@ -188,3 +188,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ab09a7fa3939
+  - type: implements
+    from: SYM-const-external-search-hints-operations
+    to: REQ-search-hints-host-operations
+    created_at: 2026-10-30T19:40:55.027Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9be39e212bc7
+  - type: covered_by
+    from: SYM-const-external-search-hints-operations
+    to: TEST-proof-search-hints-host-operations
+    created_at: 2026-10-30T19:40:55.047Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60b828bcb760
+  - type: covered_by
+    from: SYM-const-external-search-hints-operations
+    to: TEST-kibi-search-hints-host
+    created_at: 2026-10-30T19:40:55.059Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8102d81a0a73

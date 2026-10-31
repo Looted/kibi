@@ -328,3 +328,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-72a95855c812
+  - type: requires_property
+    from: REQ-search-non-governing-statuses
+    to: FACT-search-non-governing-statuses
+    created_at: 2026-10-30T19:42:13.344Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e132f0fc4e45
+  - type: constrains
+    from: REQ-search-non-governing-statuses
+    to: FACT-kibi-search-non-governing-component
+    created_at: 2026-10-30T19:42:13.382Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74f223455dce
+  - type: specified_by
+    from: REQ-search-non-governing-statuses
+    to: SCEN-kibi-search-answer-verdicts
+    created_at: 2026-10-30T19:42:13.402Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d4dce48abb0

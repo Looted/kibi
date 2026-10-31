@@ -419,3 +419,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9c211c49465d
+  - type: validates
+    from: TEST-proof-git-hook-print-formats
+    to: SCEN-git-hook-manager-integration
+    created_at: 2026-10-30T19:39:45.314Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef4377d23109

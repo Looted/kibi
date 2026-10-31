@@ -426,3 +426,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7517d7c9f27e
+  - type: validates
+    from: TEST-proof-signoff-latest-json
+    to: SCEN-kibi-signoff-views
+    created_at: 2026-10-30T19:41:03.067Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e0ba8c29f86

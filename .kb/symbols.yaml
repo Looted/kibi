@@ -40121,6 +40121,10 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-e2e-capability-plugins
+      - type: covered_by
+        target: TEST-proof-builtin-symbol-source-extensions
+      - type: implements
+        target: REQ-builtin-symbol-source-extensions
       - type: implements
         target: REQ-capability-plugin-builtin-parity-v1
   - id: SYM-cap-plugin-createjevplugin-a2c5a4bf
@@ -54837,6 +54841,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-bootstrap-knowledge-sources
+      - type: covered_by
+        target: TEST-proof-near-restatement-jaccard
       - type: implements
         target: REQ-bootstrap-claim-restatement
       - type: implements
@@ -57258,8 +57264,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-signoff-views
+      - type: covered_by
+        target: TEST-proof-signoff-latest-html
       - type: implements
         target: REQ-kibi-signoff-views
+      - type: implements
+        target: REQ-signoff-latest-views
   - id: SYM-cli-signoff-model-signoff-latest-json
     title: SIGNOFF_LATEST_JSON
     status: active
@@ -57274,8 +57284,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-signoff-views
+      - type: covered_by
+        target: TEST-proof-signoff-latest-json
       - type: implements
         target: REQ-kibi-signoff-views
+      - type: implements
+        target: REQ-signoff-latest-views
   - id: SYM-cli-signoff-model-signoff-latest-markdown
     title: SIGNOFF_LATEST_MARKDOWN
     status: active
@@ -57290,8 +57304,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-signoff-views
+      - type: covered_by
+        target: TEST-proof-signoff-latest-markdown
       - type: implements
         target: REQ-kibi-signoff-views
+      - type: implements
+        target: REQ-signoff-latest-views
   - id: SYM-cli-signoff-model-signoff-version
     title: SIGNOFF_VERSION
     status: active
@@ -65401,8 +65419,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-git-hook-manager-integration
+      - type: covered_by
+        target: TEST-proof-git-hook-print-formats
       - type: implements
         target: REQ-git-hook-manager-integration
+      - type: implements
+        target: REQ-git-hook-print-formats
   - id: SYM-hook-managers-hook-snippet-format-type
     title: HookSnippetFormat
     status: active
@@ -65975,3 +65997,276 @@ symbols:
         target: TEST-kibi-case-coverage
       - type: implements
         target: REQ-kibi-case-coverage
+  - id: SYM-proof-git-hook-print-formats
+    title: gitHookPrintFormatsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/git-hook-print-formats.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T19:39:46.499Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-git-hook-print-formats
+  - id: SYM-const-search-hints-model-id
+    title: MODEL_ID
+    status: active
+    sourceFile: packages/plugin-search-hints/src/model.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T19:40:15.940Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-plugin-search-hints
+      - type: covered_by
+        target: TEST-proof-search-hints-model-id
+      - type: implements
+        target: REQ-search-hints-model-pin
+  - id: SYM-proof-search-hints-model-id
+    title: searchHintsModelIdCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/search-hints-model-pin.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T19:40:21.138Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-search-hints-model-id
+  - id: SYM-const-search-hints-model-revision
+    title: MODEL_REVISION
+    status: active
+    sourceFile: packages/plugin-search-hints/src/model.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T19:40:28.302Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-plugin-search-hints
+      - type: covered_by
+        target: TEST-proof-search-hints-model-revision
+      - type: implements
+        target: REQ-search-hints-model-pin
+  - id: SYM-proof-search-hints-model-revision
+    title: searchHintsModelRevisionCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/search-hints-model-pin.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T19:40:33.434Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-search-hints-model-revision
+  - id: SYM-const-external-search-hints-operations
+    title: EXTERNAL_SEARCH_HINTS_OPERATIONS
+    status: active
+    sourceFile: packages/cli/src/plugins/external-allowlist.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T19:40:44.695Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-hints-host
+      - type: covered_by
+        target: TEST-proof-search-hints-host-operations
+      - type: implements
+        target: REQ-search-hints-host-operations
+  - id: SYM-proof-search-hints-host-operations
+    title: searchHintsHostOperationsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/search-hints-host-operations.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T19:40:50.167Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-search-hints-host-operations
+  - id: SYM-proof-signoff-latest-json
+    title: signoffLatestJsonCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/signoff-latest-views.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T19:41:04.314Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-signoff-latest-json
+  - id: SYM-proof-signoff-latest-markdown
+    title: signoffLatestMarkdownCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/signoff-latest-views.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T19:41:12.933Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-signoff-latest-markdown
+  - id: SYM-proof-signoff-latest-html
+    title: signoffLatestHtmlCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/signoff-latest-views.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T19:41:21.105Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-signoff-latest-html
+  - id: SYM-const-case-preview-limit
+    title: CASE_LIMIT
+    status: active
+    sourceFile: packages/cli/src/operations/semantic-advisor/case-preview.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T19:41:32.954Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-case-coverage
+      - type: covered_by
+        target: TEST-proof-advisor-case-preview-limit
+      - type: implements
+        target: REQ-advisor-case-preview-limit
+  - id: SYM-proof-advisor-case-preview-limit
+    title: advisorCasePreviewLimitCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/advisor-case-preview-limit.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T19:41:37.989Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-advisor-case-preview-limit
+  - id: SYM-const-opencode-max-bullets
+    title: MAX_BULLETS
+    status: active
+    sourceFile: packages/opencode/src/prompt.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T19:41:49.235Z
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-proof-opencode-guidance-bullet-limit
+      - type: implements
+        target: REQ-opencode-guidance-bullet-limit
+  - id: SYM-proof-opencode-guidance-bullet-limit
+    title: opencodeGuidanceBulletLimitCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/opencode-guidance-bullet-limit.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T19:41:53.993Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-opencode-guidance-bullet-limit
+  - id: SYM-proof-builtin-symbol-source-extensions
+    title: builtinSymbolSourceExtensionsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/builtin-symbol-source-extensions.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T19:42:05.513Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-builtin-symbol-source-extensions
+  - id: SYM-const-search-non-governing-statuses
+    title: NON_GOVERNING_STATUSES
+    status: active
+    sourceFile: packages/cli/src/intent-search.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T19:42:14.805Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-answer-layer
+      - type: covered_by
+        target: TEST-proof-search-non-governing-statuses
+      - type: implements
+        target: REQ-search-non-governing-statuses
+  - id: SYM-proof-search-non-governing-statuses
+    title: searchNonGoverningStatusesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/search-non-governing-statuses.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T19:42:19.944Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-search-non-governing-statuses
+  - id: SYM-const-telemetry-docs-url
+    title: TELEMETRY_DOCS_URL
+    status: active
+    sourceFile: packages/agent-core/src/usage-telemetry.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T19:42:31.266Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-anonymous-usage-telemetry-cli
+      - type: covered_by
+        target: TEST-proof-telemetry-docs-link
+      - type: implements
+        target: REQ-telemetry-docs-link
+  - id: SYM-proof-telemetry-docs-link
+    title: telemetryDocsLinkCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/telemetry-docs-link.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - regex
+    origin:
+      kind: agent
+      recorded_at: 2026-10-30T19:42:35.920Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-telemetry-docs-link

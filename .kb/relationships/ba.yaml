@@ -370,3 +370,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4791ae76ef0a
+  - type: implements
+    from: SYM-const-opencode-max-bullets
+    to: REQ-opencode-guidance-bullet-limit
+    created_at: 2026-10-30T19:41:58.781Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e5aace70b6b
+  - type: covered_by
+    from: SYM-const-opencode-max-bullets
+    to: TEST-proof-opencode-guidance-bullet-limit
+    created_at: 2026-10-30T19:41:58.810Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-166141bea3fb
+  - type: covered_by
+    from: SYM-const-opencode-max-bullets
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-10-30T19:41:58.824Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28b26147f89b

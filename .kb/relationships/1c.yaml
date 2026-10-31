@@ -293,3 +293,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2beb127da367
+  - type: validates
+    from: TEST-proof-advisor-case-preview-limit
+    to: SCEN-kibi-case-coverage
+    created_at: 2026-10-30T19:41:36.771Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae8a71062d31
