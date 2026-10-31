@@ -1,7 +1,7 @@
 {
   "name": "kibi-plugin-treesitter",
   "version": "2.1.0",
-  "description": "Offline multi-language Tree-sitter symbol extraction; grammars beyond Python and SWI-Prolog install as kibi-lang-* packs",
+  "description": "Offline multi-language Tree-sitter symbol extraction; each language's grammar installs as a kibi-lang-* pack",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -60,13 +60,14 @@
     "kibi-lang-hcl": "1.0.0",
     "kibi-lang-java": "1.0.0",
     "kibi-lang-php": "1.0.0",
+    "kibi-lang-prolog": "1.0.0",
+    "kibi-lang-python": "1.0.0",
     "kibi-lang-ruby": "1.0.0",
     "kibi-lang-rust": "1.0.0",
     "kibi-plugin-sdk": "^0.5.0",
     "typescript": "^5.7.0"
   },
   "peerDependencies": {
-    "kibi-plugin-sdk": "^0.5.0",
     "kibi-lang-bash": "^1.0.0",
     "kibi-lang-c": "^1.0.0",
     "kibi-lang-cpp": "^1.0.0",
@@ -75,8 +76,11 @@
     "kibi-lang-hcl": "^1.0.0",
     "kibi-lang-java": "^1.0.0",
     "kibi-lang-php": "^1.0.0",
+    "kibi-lang-prolog": "^1.0.0",
+    "kibi-lang-python": "^1.0.0",
     "kibi-lang-ruby": "^1.0.0",
-    "kibi-lang-rust": "^1.0.0"
+    "kibi-lang-rust": "^1.0.0",
+    "kibi-plugin-sdk": "^0.5.0"
   },
   "peerDependenciesMeta": {
     "kibi-lang-bash": {
@@ -101,6 +105,12 @@
       "optional": true
     },
     "kibi-lang-php": {
+      "optional": true
+    },
+    "kibi-lang-prolog": {
+      "optional": true
+    },
+    "kibi-lang-python": {
       "optional": true
     },
     "kibi-lang-ruby": {

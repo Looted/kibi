@@ -24,7 +24,9 @@ afterEach(() => {
   for (const root of roots.splice(0))
     rmSync(root, { recursive: true, force: true });
 });
-function consumer(packs: readonly string[] = ["go", "rust"]) {
+function consumer(
+  packs: readonly string[] = ["python", "prolog", "go", "rust"],
+) {
   const root = mkdtempSync(join(tmpdir(), "kibi-approved-consumer-"));
   roots.push(root);
   const packageRoot = resolve(import.meta.dir, "../../../plugin-treesitter");
@@ -96,11 +98,15 @@ test("a language whose grammar pack is missing or modified is refused, never ski
   expect(JSON.stringify(missing.diagnostics)).toContain(
     "npm install --save-dev kibi-lang-go@1.0.0",
   );
-  // Python stays built in.
-  expect(
-    (await service.analyzeTextV2("sample.py", "def run():\n    return 1\n"))
-      .status,
-  ).toBe("ok");
+  // Python has no special place: without its pack it is refused the same way.
+  const python = await service.analyzeTextV2(
+    "sample.py",
+    "def run():\n    return 1\n",
+  );
+  expect(python.status).toBe("unsupported");
+  expect(JSON.stringify(python.diagnostics)).toContain(
+    "npm install --save-dev kibi-lang-python@1.0.0",
+  );
 
   const pack = join(root, "node_modules/kibi-lang-rust");
   mkdirSync(pack);

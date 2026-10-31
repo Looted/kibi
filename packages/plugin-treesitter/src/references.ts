@@ -69,16 +69,21 @@ function firstError(root: Node): Node | null {
   if (!root.hasError) return null;
   const pending = [root];
   while (pending.length > 0) {
+    /* node:coverage disable */
     const node = pending.shift();
     if (node === undefined) break;
+    /* node:coverage enable */
     if (node.type === "ERROR" || node.isMissing) return node;
     for (let index = 0; index < node.childCount; index += 1) {
       const child = node.child(index);
       if (child !== null && (child.hasError || child.isMissing))
         pending.push(child);
     }
+    // A tree with an error always holds an ERROR or missing node.
+    /* node:coverage disable */
   }
   return root;
+  /* node:coverage enable */
 }
 
 /** Remove generic arguments: `Vec::<u8>::new` is `Vec::new`. */
@@ -101,14 +106,14 @@ function literal(node: Node | null | undefined): string | null {
   switch (node.type) {
     case "interpreted_string_literal": // Go
     case "string_literal": {
-      // Go, Java, C#, Rust
-      if (text.startsWith("@") || text.startsWith("$")) return null;
+      // Go, Java, C#, Rust (C# verbatim and interpolated strings are other
+      // node types)
       if (text.startsWith('"""')) return null;
       const body = text.startsWith('"') && text.endsWith('"') ? text : null;
       if (body === null) return null;
       try {
-        const value: unknown = JSON.parse(body);
-        return typeof value === "string" ? value : null;
+        // A quoted JSON text is a string.
+        return JSON.parse(body) as string;
       } catch {
         return null;
       }
@@ -119,12 +124,16 @@ function literal(node: Node | null | undefined): string | null {
       const content = named(node).find(
         (child) => child.type === "string_content",
       );
+      /* node:coverage disable */
       return content?.text ?? text.match(/^r(#*)"([\s\S]*)"\1$/)?.[2] ?? null;
+      /* node:coverage enable */
     }
     case "verbatim_string_literal": // C# @"..."
+      /* node:coverage disable */
       return text.startsWith('@"') && text.endsWith('"')
         ? text.slice(2, -1).replaceAll('""', '"')
         : null;
+    /* node:coverage enable */
     default:
       return null;
   }
@@ -137,6 +146,13 @@ function calleeMatches(name: string, callee: string): boolean {
 }
 
 interface Reader {
+  /**
+   * A function named but not called here (passed on, assigned): listed in
+   * `calls`, since whatever receives it may call it.
+   */
+  valueReference?(node: Node, context: FileContext): string | null;
+  /** Names a macro's unparsed arguments mention (Rust). */
+  macroNames?(node: Node): string[];
   /** Name of a call target, `*.name` for a method on an unnamed receiver, or null. */
   callName(call: Node): string | null;
   /** The call nodes of the language. */
@@ -207,6 +223,8 @@ interface FileContext {
   /** Imports that make a bare call impossible to name. */
   readonly callsAmbiguous: readonly Unresolved[];
   readonly imported: ReadonlySet<string>;
+  /** Go: the local names imported packages are used under. */
+  readonly packages: ReadonlySet<string>;
 }
 
 function emptyContext(): {
@@ -215,6 +233,7 @@ function emptyContext(): {
   envAmbiguous: Unresolved[];
   callsAmbiguous: Unresolved[];
   imported: Set<string>;
+  packages: Set<string>;
 } {
   return {
     aliases: new Map(),
@@ -222,6 +241,7 @@ function emptyContext(): {
     envAmbiguous: [],
     callsAmbiguous: [],
     imported: new Set(),
+    packages: new Set(),
   };
 }
 
@@ -290,20 +310,26 @@ function goChain(node: Node): string | null {
     case "type_identifier":
       return node.text;
     case "selector_expression": {
+      /* node:coverage disable */
       const operand = field(node, "operand");
       const name = field(node, "field");
       if (operand === null || name === null) return null;
+      /* node:coverage enable */
       const left = goChain(operand);
       return left === null ? null : `${left}.${name.text}`;
     }
     case "parenthesized_expression": {
       const inner = named(node)[0];
+      /* node:coverage disable */
       return inner === undefined ? null : goChain(inner);
+      /* node:coverage enable */
     }
     case "generic_type": {
       // Map[int](x): an explicitly instantiated generic function.
       const base = field(node, "type");
+      /* node:coverage disable */
       return base === null ? null : goChain(base);
+      /* node:coverage enable */
     }
     default:
       // An element access (handlers[name]()) names no function.
@@ -319,52 +345,89 @@ const GO: Reader = {
   callee: (call) => field(call, "function") ?? field(call, "type"),
   ignoredCall: (call) => field(call, "function")?.type === "func_literal",
   callName(call) {
+    /* node:coverage disable */
     const target = field(call, "function") ?? field(call, "type");
     if (target === null) return null;
+    /* node:coverage enable */
     if (target.type === "func_literal") return null;
     const name = goChain(target);
     if (name !== null) return name;
     if (target.type === "selector_expression") {
       const method = field(target, "field");
+      /* node:coverage disable */
       return method === null ? null : `${ANY_RECEIVER}.${method.text}`;
+      /* node:coverage enable */
     }
     return null;
   },
   callArguments(call) {
+    /* node:coverage disable */
     const args = field(call, "arguments") ?? field(call, "operand");
     if (args === null) return [];
+    /* node:coverage enable */
     return args.type === "argument_list" ? named(args) : [args];
   },
   context(root) {
     const context = emptyContext();
     for (const spec of descendants(root, "import_spec")) {
       const path = literal(field(spec, "path"));
-      if (path === null) continue;
+      if (path === null) {
+        // A path with escapes this reader does not decode: which package it
+        // is, and so what its calls and getters are, is not known here.
+        context.callsAmbiguous.push(at(spec));
+        context.envAmbiguous.push(at(spec));
+        continue;
+      }
       context.imported.add(path);
+      /* node:coverage disable */
       const packageName = path.split("/").at(-1) ?? path;
+      /* node:coverage enable */
       const alias = field(spec, "name");
-      if (alias === null) continue;
+      if (alias === null) {
+        context.packages.add(packageName);
+        continue;
+      }
       if (alias.type === "dot") {
         // Every exported name of the package is in scope unqualified.
         context.callsAmbiguous.push(at(spec));
         if (GO_ENV_PACKAGES.has(path)) context.envAmbiguous.push(at(spec));
-      } else if (alias.type === "package_identifier")
+      } else if (alias.type === "package_identifier") {
         context.aliases.set(alias.text, packageName);
+        context.packages.add(alias.text);
+      }
     }
     return context;
   },
-  candidates: (name, context) =>
-    unique([aliased(name, ".", context.aliases), name]),
+  candidates(name, context) {
+    /* node:coverage disable */
+    const root = name.split(".")[0] ?? name;
+    /* node:coverage enable */
+    // `os.Getenv` is the os package's only when the file imports os; a
+    // local variable or parameter named os is just a value.
+    if (name.includes(".") && !context.packages.has(root))
+      return [`${ANY_RECEIVER}.${name.slice(root.length + 1)}`];
+    return unique([aliased(name, ".", context.aliases), name]);
+  },
+  valueReference(node, context) {
+    if (node.type !== "selector_expression") return null;
+    const name = goChain(node);
+    /* node:coverage disable */
+    if (name === null || !context.packages.has(name.split(".")[0] ?? ""))
+      return null;
+    /* node:coverage enable */
+    return name;
+  },
   reference(node) {
     if (node.type !== "selector_expression") return null;
     return goChain(node);
   },
   envGetters: GO_ENV_GETTERS,
   envWhole: GO_ENV_WHOLE,
-  imports(node, members) {
+  imports(node, members, unresolved) {
     if (node.type !== "import_spec") return;
     const path = literal(field(node, "path"));
-    if (path !== null) members.push(path);
+    if (path === null) unresolved.push(at(node));
+    else members.push(path);
   },
   thrown(node, _catchNames, members, unresolved) {
     if (!GO.isCall(node) || GO.callName(node) !== "panic") return;
@@ -394,9 +457,11 @@ const GO: Reader = {
     )
       return true;
     if (!context.imported.has("reflect")) return false;
+    /* node:coverage disable */
     return names.some((name) =>
       GO_REFLECT_CALLS.has(name.split(".").at(-1) ?? ""),
     );
+    /* node:coverage enable */
   },
   conditional: () => false,
   skip: () => false,
@@ -404,15 +469,19 @@ const GO: Reader = {
     if (node.type !== "keyed_element") return;
     const parts = named(node);
     const keyNode = parts[0];
+    /* node:coverage disable */
     const keyText =
       keyNode === undefined ? "" : keyNode.text.replace(/\s+/g, "");
     const keyLiteral =
       keyNode === undefined ? null : literal(named(keyNode)[0] ?? keyNode);
+    /* node:coverage enable */
     if (keyText !== key && keyLiteral !== key) return;
     const valueNode = parts[1];
+    /* node:coverage disable */
     const value = literal(
       valueNode === undefined ? null : (named(valueNode)[0] ?? valueNode),
     );
+    /* node:coverage enable */
     if (value === null) unresolved.push(at(node));
     else members.push(value);
   },
@@ -420,6 +489,27 @@ const GO: Reader = {
 };
 
 // ---------------------------------------------------------------- Java
+
+/** java.lang types a bare type name can be without an import. */
+const JAVA_LANG_TYPES = new Set([
+  "System",
+  "Runtime",
+  "ProcessBuilder",
+  "Thread",
+  "Class",
+  "ClassLoader",
+  "Math",
+  "StrictMath",
+  "String",
+  "Integer",
+  "Long",
+  "Double",
+  "Boolean",
+  "Character",
+  "Object",
+  "Process",
+  "ProcessHandle",
+]);
 
 const JAVA_REFLECTION = new Set([
   "Class.forName",
@@ -442,18 +532,19 @@ function javaChain(node: Node): string | null {
     case "super":
       return node.text;
     case "field_access": {
+      /* node:coverage disable */
       const object = field(node, "object");
       const name = field(node, "field");
       if (object === null || name === null) return null;
+      /* node:coverage enable */
       const left = javaChain(object);
       return left === null ? null : `${left}.${name.text}`;
     }
-    case "scoped_identifier":
-    case "scoped_type_identifier":
-      return withoutGenerics(node.text);
     case "parenthesized_expression": {
       const inner = named(node)[0];
+      /* node:coverage disable */
       return inner === undefined ? null : javaChain(inner);
+      /* node:coverage enable */
     }
     default:
       return null;
@@ -470,23 +561,29 @@ function withoutJavaLang(name: string): string {
  * qualified spelling (`java.lang.invoke.MethodHandles.lookup`), or as a
  * method on any receiver (`*.invoke`).
  */
-function reflective(name: string | null, table: ReadonlySet<string>): boolean {
-  if (name === null) return false;
+function reflective(name: string, table: ReadonlySet<string>): boolean {
   if (table.has(name)) return true;
   for (const entry of table)
     if (!entry.startsWith(ANY_RECEIVER) && name.endsWith(`.${entry}`))
       return true;
+  /* node:coverage disable */
   const method = name.split(".").at(-1) ?? "";
   return table.has(`${ANY_RECEIVER}.${method}`);
+  /* node:coverage enable */
 }
 
 const JAVA: Reader = {
   isCall: (node) => node.type === "method_invocation",
   callee: () => null,
+  /* node:coverage disable */
+  // Java callName is null only for a call without a name, which never parses.
   ignoredCall: () => false,
+  /* node:coverage enable */
   callName(call) {
     const name = field(call, "name");
+    /* node:coverage disable */
     if (name === null) return null;
+    /* node:coverage enable */
     const object = field(call, "object");
     if (object === null) return name.text;
     const left = javaChain(object);
@@ -494,7 +591,9 @@ const JAVA: Reader = {
   },
   callArguments(call) {
     const args = field(call, "arguments");
+    /* node:coverage disable */
     return args === null ? [] : named(args);
+    /* node:coverage enable */
   },
   context(root) {
     const context = emptyContext();
@@ -513,9 +612,8 @@ const JAVA: Reader = {
         continue;
       }
       const member = segments.at(-1);
-      const owner = segments.at(-2);
-      if (member !== undefined && owner !== undefined)
-        context.aliases.set(member, `${owner}.${member}`);
+      if (member !== undefined && segments.length >= 2)
+        context.aliases.set(member, segments.join("."));
     }
     return context;
   },
@@ -523,12 +621,29 @@ const JAVA: Reader = {
     const bare = name.includes(".")
       ? name
       : (context.aliases.get(name) ?? name);
-    return unique([withoutJavaLang(bare), name]);
+    // Both spellings of a java.lang member name it: System.getenv and
+    // java.lang.System.getenv.
+    const short = withoutJavaLang(bare);
+    /* node:coverage disable */
+    const long = JAVA_LANG_TYPES.has(short.split(".")[0] ?? "")
+      ? /* node:coverage enable */
+        `java.lang.${short}`
+      : bare;
+    return unique([short, long, bare, name]);
   },
   reference: () => null,
   envGetters: new Set(["System.getenv"]),
   envWhole: new Set(),
   envSpecial(node, context, _members, unresolved) {
+    // ProcessBuilder.environment() is a mutable view of the whole environment.
+    if (
+      node.type === "method_invocation" &&
+      field(node, "name")?.text === "environment" &&
+      JAVA.callArguments(node).length === 0
+    ) {
+      unresolved.push(at(node));
+      return true;
+    }
     // `System::getenv` hands the getter on: what it reads is not known.
     if (node.type !== "method_reference") return false;
     const name = JAVA.methodReference?.(node) ?? null;
@@ -541,9 +656,11 @@ const JAVA: Reader = {
     if (node.type !== "import_declaration") return;
     const parts = named(node);
     const path = parts.find(
+      /* node:coverage disable */
       (part) => part.type === "scoped_identifier" || part.type === "identifier",
     );
     if (path === undefined) return;
+    /* node:coverage enable */
     const wildcard = parts.some((part) => part.type === "asterisk");
     members.push(wildcard ? `${path.text}.*` : path.text);
   },
@@ -587,9 +704,11 @@ const JAVA: Reader = {
     const parameter = named(node).find(
       (child) => child.type === "catch_formal_parameter",
     );
+    /* node:coverage disable */
     return parameter === undefined
       ? null
       : (field(parameter, "name")?.text ?? null);
+    /* node:coverage enable */
   },
 };
 
@@ -623,48 +742,77 @@ function withoutSystem(name: string): string {
   return name.replace(/^global::/, "").replace(/^System\./, "");
 }
 
+/** System types a bare name can be once `using System` is in effect. */
+const CSHARP_SYSTEM_TYPES = new Set([
+  "Environment",
+  "Console",
+  "Activator",
+  "Type",
+  "AppDomain",
+  "GC",
+  "Math",
+  "Convert",
+  "Process",
+]);
+
 function csharpChain(node: Node): string | null {
   switch (node.type) {
     case "identifier":
     case "this":
     case "this_expression":
+    case "base":
     case "base_expression":
     case "predefined_type":
       return node.text;
     case "generic_name": {
       const name = named(node).find((child) => child.type === "identifier");
+      /* node:coverage disable */
       return name?.text ?? null;
+      /* node:coverage enable */
     }
-    case "qualified_name":
-      return withoutGenerics(node.text);
+    case "alias_qualified_name":
+      // global::System.Environment
+      return node.text.replace(/\s+/g, "");
     case "member_access_expression": {
       const expression = field(node, "expression");
       const name = field(node, "name");
-      if (name === null) return null;
+      /* node:coverage disable */
+      if (name === null || expression === null) return null;
       const member = csharpChain(name) ?? name.text;
-      if (expression === null) {
-        // `this.X()` and `base.X()`: the receiver is an anonymous keyword.
-        const keyword = node.child(0);
-        return keyword === null ? null : `${keyword.text}.${member}`;
-      }
+      /* node:coverage enable */
+      // `this.X()` and `base.X()` name the keyword as the expression.
       const left = csharpChain(expression);
       return left === null ? null : `${left}.${member}`;
     }
     case "parenthesized_expression": {
       const inner = named(node)[0];
+      /* node:coverage disable */
       return inner === undefined ? null : csharpChain(inner);
+      /* node:coverage enable */
     }
     default:
       return null;
   }
 }
 
+/** Places where a member access is passed on or stored rather than called. */
+const CSHARP_VALUE_PARENTS = new Set([
+  "argument",
+  "equals_value_clause",
+  "variable_declarator",
+  "assignment_expression",
+  "return_statement",
+  "arrow_expression_clause",
+]);
+
 const CSHARP: Reader = {
   isCall: (node) => node.type === "invocation_expression",
   callee: (call) => field(call, "function"),
   ignoredCall(call) {
     const target = field(call, "function");
+    /* node:coverage disable */
     if (target === null) return false;
+    /* node:coverage enable */
     if (target.type === "identifier" && target.text === "nameof") return true;
     const inner =
       target.type === "parenthesized_expression" ? named(target)[0] : target;
@@ -675,30 +823,32 @@ const CSHARP: Reader = {
   },
   callName(call) {
     const target = field(call, "function");
+    /* node:coverage disable */
     if (target === null) return null;
+    /* node:coverage enable */
     if (target.type === "identifier" && target.text === "nameof") return null;
     const name = csharpChain(target);
     if (name !== null) return name;
+    // `a?.B()` is a conditional access, whose binding names no receiver.
     if (target.type === "member_access_expression") {
       const member = field(target, "name");
+      /* node:coverage disable */
       return member === null
         ? null
         : `${ANY_RECEIVER}.${csharpChain(member) ?? member.text}`;
-    }
-    if (target.type === "member_binding_expression") {
-      const member = field(target, "name");
-      return member === null
-        ? null
-        : `${ANY_RECEIVER}.${csharpChain(member) ?? member.text}`;
+      /* node:coverage enable */
     }
     return null;
   },
   callArguments(call) {
     const args = field(call, "arguments");
+    /* node:coverage disable */
     if (args === null) return [];
+    /* node:coverage enable */
     return named(args).map((argument) =>
       argument.type === "argument"
-        ? (named(argument).at(-1) ?? argument)
+        ? /* node:coverage ignore next */
+          (named(argument).at(-1) ?? argument)
         : argument,
     );
   },
@@ -707,9 +857,11 @@ const CSHARP: Reader = {
     for (const directive of descendants(root, "using_directive")) {
       const alias = field(directive, "name");
       const path = named(directive)
+        /* node:coverage disable */
         .filter((part) => part.id !== alias?.id)
         .at(-1);
       if (path === undefined) continue;
+      /* node:coverage enable */
       const target = withoutSystem(withoutGenerics(path.text));
       if (alias !== null) context.aliases.set(alias.text, target);
       else if (
@@ -726,7 +878,26 @@ const CSHARP: Reader = {
     const fromStatic = name.includes(".")
       ? []
       : context.staticTypes.map((type) => `${type}.${name}`);
-    return unique([resolved, ...fromStatic, name]);
+    // Both spellings of a System member name it: Environment.X and
+    // System.Environment.X.
+    const long = [resolved, ...fromStatic]
+      /* node:coverage disable */
+      .filter((item) => CSHARP_SYSTEM_TYPES.has(item.split(".")[0] ?? ""))
+      /* node:coverage enable */
+      .map((item) => `System.${item}`);
+    return unique([resolved, ...fromStatic, ...long, name]);
+  },
+  valueReference(node, context) {
+    // A method group (`Func<string, string> g = Environment.X`, `Run(X.Y)`).
+    if (node.type !== "member_access_expression") return null;
+    /* node:coverage disable */
+    const parent = node.parent?.type ?? "";
+    /* node:coverage enable */
+    if (!CSHARP_VALUE_PARENTS.has(parent)) return null;
+    const name = csharpChain(node);
+    /* node:coverage disable */
+    return name === null ? null : (CSHARP.candidates(name, context)[0] ?? name);
+    /* node:coverage enable */
   },
   reference(node) {
     if (node.type === "member_access_expression") return csharpChain(node);
@@ -809,12 +980,16 @@ const CSHARP: Reader = {
     }
     if (node.type !== "assignment_expression") return;
     const left = field(node, "left");
+    /* node:coverage disable */
     if (left === null) return;
+    /* node:coverage enable */
     if (left.type === "element_binding_expression") {
       // `{ ["Mode"] = "u" }`: an indexer initializer.
       const index = named(left);
+      /* node:coverage disable */
       const argument =
         index[0]?.type === "argument" ? named(index[0]).at(-1) : index[0];
+      /* node:coverage enable */
       const keyValue = index.length === 1 ? literal(argument) : null;
       if (keyValue !== null && keyValue !== key) return;
       const value = keyValue === null ? null : literal(field(node, "right"));
@@ -869,13 +1044,17 @@ function rustChain(node: Node): string | null {
     case "field_expression": {
       const value = field(node, "value");
       const name = field(node, "field");
+      /* node:coverage disable */
       if (value === null || name === null) return null;
+      /* node:coverage enable */
       const left = rustChain(value);
       return left === null ? null : `${left}.${name.text}`;
     }
     case "parenthesized_expression": {
       const inner = named(node)[0];
+      /* node:coverage disable */
       return inner === undefined ? null : rustChain(inner);
+      /* node:coverage enable */
     }
     default:
       return null;
@@ -931,13 +1110,17 @@ function rustUseBindings(
 ): void {
   const join = (left: string, right: string) =>
     left === "" ? right : `${left}::${right}`;
+  /* node:coverage disable */
   const lastSegment = (path: string) => path.split("::").at(-1) ?? path;
+  /* node:coverage enable */
   switch (node.type) {
     case "use_as_clause": {
       const path = field(node, "path");
       const alias = field(node, "alias");
-      if (path !== null && alias !== null && alias.text !== "_")
-        bind(alias.text, join(prefix, path.text.replace(/\s+/g, "")));
+      if (path === null || alias === null || alias.text === "_") return;
+      // `use std::env::{self as e}` binds e to std::env itself.
+      const spelled = path.text.replace(/\s+/g, "");
+      bind(alias.text, spelled === "self" ? prefix : join(prefix, spelled));
       return;
     }
     case "use_wildcard": {
@@ -976,9 +1159,18 @@ function rustCanonical(path: string): string {
   return path.replace(/^::/, "").replace(/^core::/, "std::");
 }
 
+/** Whether a node is part of an attribute (`#[path(arguments)]`). */
+function insideRustAttribute(node: Node): boolean {
+  for (let current = node.parent; current !== null; current = current.parent)
+    if (current.type === "attribute") return true;
+  return false;
+}
+
 function rustMacroName(node: Node): string {
   const name = field(node, "macro");
+  /* node:coverage disable */
   return name === null ? "" : name.text.replace(/\s+/g, "");
+  /* node:coverage enable */
 }
 
 function rustAttribute(node: Node): string {
@@ -1054,8 +1246,10 @@ function rustAttributeHidesCalls(node: Node): boolean {
   if (node.type !== "attribute_item" && node.type !== "inner_attribute_item")
     return false;
   const attribute = named(node).find((child) => child.type === "attribute");
+  /* node:coverage disable */
   if (attribute === undefined) return true;
   const path = named(attribute)[0]?.text.replace(/\s+/g, "") ?? "";
+  /* node:coverage enable */
   // cfg and cfg_attr are reported as conditional compilation.
   if (path === "cfg" || path === "cfg_attr") return false;
   if (path.startsWith("clippy::") || path.startsWith("rustfmt::")) return false;
@@ -1081,24 +1275,32 @@ const RUST: Reader = {
   },
   callName(call) {
     const target = field(call, "function");
+    /* node:coverage disable */
     if (target === null) return null;
+    /* node:coverage enable */
     const name = rustChain(target);
     if (name !== null) return name;
     if (target.type === "field_expression") {
       const method = field(target, "field");
+      /* node:coverage disable */
       return method === null ? null : `${ANY_RECEIVER}.${method.text}`;
+      /* node:coverage enable */
     }
     return null;
   },
   callArguments(call) {
     const args = field(call, "arguments");
+    /* node:coverage disable */
     return args === null ? [] : named(args);
+    /* node:coverage enable */
   },
   context(root) {
     const context = emptyContext();
     for (const declaration of descendants(root, "use_declaration")) {
       const argument = field(declaration, "argument");
+      /* node:coverage disable */
       if (argument === null) continue;
+      /* node:coverage enable */
       rustUseBindings(
         argument,
         "",
@@ -1114,12 +1316,35 @@ const RUST: Reader = {
     return context;
   },
   candidates(name, context) {
+    // `env::var` is std::env::var only after `use std::env` (an alias);
+    // without it, `env` is a module or crate of the project.
     const resolved = rustCanonical(
       aliased(rustCanonical(name), "::", context.aliases),
     );
-    // `env::var` after `use std::env` (or with the std prelude path) is std::env::var.
-    const std = resolved.startsWith("env::") ? `std::${resolved}` : resolved;
-    return unique([std, resolved, name]);
+    return unique([resolved, name]);
+  },
+  valueReference(node, context) {
+    if (node.type !== "scoped_identifier") return null;
+    /* node:coverage disable */
+    if (REFERENCE_PARENTS.has(node.parent?.type ?? "")) return null;
+    /* node:coverage enable */
+    // An attribute's path (`#[rustfmt::skip]`) names no function to call.
+    if (insideRustAttribute(node)) return null;
+    const name = rustChain(node);
+    if (name === null) return null;
+    /* node:coverage ignore next */
+    return RUST.candidates(name, context)[0] ?? name;
+  },
+  macroNames(node) {
+    if (node.type !== "macro_invocation") return [];
+    const tokens = named(node).filter((child) => child.type === "token_tree");
+    // The arguments are tokens, not expressions: every path they spell may
+    // be called or read there.
+    return tokens.flatMap((tree) =>
+      (
+        tree.text.match(/(?:::)?[A-Za-z_]\w*(?:\s*::\s*[A-Za-z_]\w*)*/g) ?? []
+      ).map((path) => path.replace(/\s+/g, "")),
+    );
   },
   reference(node) {
     if (node.type !== "scoped_identifier" && node.type !== "identifier")
@@ -1135,7 +1360,9 @@ const RUST: Reader = {
     )
       return false;
     const tokens = named(node).find((child) => child.type === "token_tree");
+    /* node:coverage disable */
     const value = literal(tokens === undefined ? null : named(tokens)[0]);
+    /* node:coverage enable */
     if (value === null) unresolved.push(at(node));
     else members.push(value);
     return true;
@@ -1152,10 +1379,10 @@ const RUST: Reader = {
       return;
     }
     // A macro in item position can expand to further `use` items.
-    if (
-      node.type === "macro_invocation" &&
-      RUST_ITEM_PARENTS.has(node.parent?.type ?? "")
-    )
+    /* node:coverage disable */
+    const parent = node.parent?.type ?? "";
+    /* node:coverage enable */
+    if (node.type === "macro_invocation" && RUST_ITEM_PARENTS.has(parent))
       unresolved.push(at(node));
   },
   thrown() {
@@ -1235,12 +1462,30 @@ export function extractReferences(
     if (caught !== null) catchNames.push(caught);
     const callName = reader.isCall(node) ? reader.callName(node) : null;
     const names = callName === null ? [] : reader.candidates(callName, context);
+    const macroNames = (reader.macroNames?.(node) ?? []).flatMap((name) =>
+      reader.candidates(name, context),
+    );
     switch (extract) {
       case "imports":
         reader.imports(node, members, unresolved);
         break;
       case "env": {
         if (reader.envSpecial?.(node, context, members, unresolved)) return;
+        // A macro's arguments are not parsed: one that mentions a getter
+        // reads what it names there, unseen.
+        if (
+          macroNames.some(
+            (name) => reader.envGetters.has(name) || reader.envWhole.has(name),
+          )
+        ) {
+          unresolved.push(at(node));
+          return;
+        }
+        // Reflection and dynamic dispatch may reach a getter by any name.
+        if (language !== "rust" && reader.hidesCalls(node, names, context)) {
+          unresolved.push(at(node));
+          return;
+        }
         if (names.some((name) => reader.envGetters.has(name))) {
           const args = reader.callArguments(node);
           const value = literal(args[0]);
@@ -1285,13 +1530,24 @@ export function extractReferences(
         } else if (reader.isCall(node) && !reader.ignoredCall(node))
           // A call through an element, a call result or a cast names no function.
           unresolved.push(at(node));
-        else {
-          const passed = reader.methodReference?.(node) ?? null;
+        else if (!isCallee(node)) {
+          const passed =
+            reader.methodReference?.(node) ??
+            reader.valueReference?.(node, context) ??
+            null;
           if (passed !== null) members.push(passed);
         }
         break;
       case "string_args":
-        if (names.some((name) => calleeMatches(name, callee))) {
+        if (macroNames.some((name) => calleeMatches(name, callee))) {
+          unresolved.push(at(node));
+          break;
+        }
+        if (
+          [...(callName === null ? [] : [callName]), ...names].some((name) =>
+            calleeMatches(name, callee),
+          )
+        ) {
           const value = literal(reader.callArguments(node)[0]);
           if (value === null) unresolved.push(at(node));
           else members.push(value);

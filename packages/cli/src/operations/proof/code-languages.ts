@@ -91,8 +91,8 @@ export const PLUGIN_REFERENCE_LANGUAGES = [
 
 /**
  * The data-only kibi-lang-* packs kibi-plugin-treesitter reads these
- * languages with, by the file extensions its catalog maps to them. Python and
- * SWI-Prolog grammars are built into the plugin.
+ * languages with, by the file extensions its catalog maps to them. Every
+ * grammar ships in a pack; `.pl` counts as SWI-Prolog here.
  */
 // implements REQ-kibi-tree-sitter-language-packs
 export const PLUGIN_LANGUAGE_PACKS = [
@@ -106,6 +106,8 @@ export const PLUGIN_LANGUAGE_PACKS = [
   { pack: "kibi-lang-bash", name: "Bash", pattern: /\.(?:bash|sh)$/i },
   { pack: "kibi-lang-ruby", name: "Ruby", pattern: /\.rb$/i },
   { pack: "kibi-lang-hcl", name: "Terraform/HCL", pattern: /\.(?:tf|hcl)$/i },
+  { pack: "kibi-lang-python", name: "Python", pattern: /\.pyi?$/i },
+  { pack: "kibi-lang-prolog", name: "SWI-Prolog", pattern: /\.(?:pl|plt)$/i },
 ] as const;
 
 export function pluginReferenceLanguage(file: string): string | null {

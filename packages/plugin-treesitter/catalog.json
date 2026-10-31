@@ -32,14 +32,16 @@
         "license": "MIT"
       },
       "parserAbi": 15,
-      "asset": "assets/tree-sitter-python.wasm",
+      "asset": "tree-sitter-python.wasm",
       "assetBytes": 457883,
       "assetSha256": "16108b50df4ee9a30168794252ab55e7c93bfc5765d7fa0aa3e335752c515f47",
       "query": "assets/queries/python.scm",
       "querySource": "https://github.com/tree-sitter/tree-sitter-python/blob/293fdc02038ee2bf0e2e206711b69c90ac0d413f/queries/tags.scm",
       "queryBytes": 350,
       "querySha256": "d0f3e577878167bfabc30e526e497bce58d1699b9bcabf8ab3a50698efb5ca3e",
-      "aliases": ["python", "py"]
+      "aliases": ["python", "py"],
+      "pack": "kibi-lang-python",
+      "packVersion": "1.0.0"
     },
     {
       "id": "go",
@@ -394,14 +396,16 @@
         "license": "MIT"
       },
       "parserAbi": 15,
-      "asset": "assets/tree-sitter-swi_prolog.wasm",
+      "asset": "tree-sitter-swi_prolog.wasm",
       "assetBytes": 210131,
       "assetSha256": "a9872f0369b51c1eed2ef04267382c34aeaeba7c97b6f55b829fbf625bdb22dd",
       "query": "assets/queries/prolog.scm",
       "querySource": "Kibi-authored clause query; predicates, plunit units and tests are grouped by the analyzer",
       "queryBytes": 198,
       "querySha256": "df6af374b121bc85ff5b471763b542894ba9602b37f3ec7c17ab70944a7486b1",
-      "assetSource": "tree-sitter-swi_prolog.wasm inside the pinned npm tarball"
+      "assetSource": "tree-sitter-swi_prolog.wasm inside the pinned npm tarball",
+      "pack": "kibi-lang-prolog",
+      "packVersion": "1.0.0"
     }
   ],
   "runtimeNetworkRequired": false,

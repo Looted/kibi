@@ -391,3 +391,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-750c95ed50d9
+  - type: requires_property
+    from: REQ-kibi-tree-sitter-language-packs
+    to: FACT-kibi-tree-sitter-language-packs-staged-blocks
+    created_at: 2026-10-31T21:03:35.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-675687391f66
+  - type: requires_property
+    from: REQ-kibi-tree-sitter-language-packs
+    to: FACT-kibi-tree-sitter-language-packs-partial-per-symbol
+    created_at: 2026-10-31T21:03:35.865Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-efa745803083

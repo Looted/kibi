@@ -7,9 +7,9 @@ export const qualifiedSourceAnalyzers = [
     version: "2.1.0",
     files: {
       "SBOM.spdx.json":
-        "a0bf8da1b752296583f55a3365e0c3e8f14d4657ae9f00e117024c79c469d3a3",
+        "5c41886721e3c0228626993f5a2898bbebf06c719a3a31e60733ccca7082af6a",
       "THIRD_PARTY_NOTICES.md":
-        "40fa47df6b99aea0565fc8480ea1c9ddfb03d780b7c347fd5d664fbab1cfe439",
+        "942f1846cafc59c32d64422fcf1939be7036af4d82d776957aab8f4aeb107029",
       "assets/queries/bash.scm":
         "6ca535e8fe652b51203ac272831881dab001f7ac508e50551bc2cdc4a15d7b6c",
       "assets/queries/c.scm":
@@ -44,36 +44,28 @@ export const qualifiedSourceAnalyzers = [
         "f22867fdebde5cb091861c08d34690dc2540f4318068bf81be9f6b0d348ab8c1",
       "assets/queries/terraform.scm":
         "8a6974a8eb48e13b5b8cd64e7c81262a825b4251df01ab383aee5cdda8151e7e",
-      "assets/tree-sitter-python.wasm":
-        "16108b50df4ee9a30168794252ab55e7c93bfc5765d7fa0aa3e335752c515f47",
-      "assets/tree-sitter-swi_prolog.wasm":
-        "a9872f0369b51c1eed2ef04267382c34aeaeba7c97b6f55b829fbf625bdb22dd",
       "catalog.json":
-        "3ac965617015a20445c9b69d907916daf03dedebcbe806af09287183d119ba0e",
+        "7cfb50d5c75d3ffd48d351fbd57ab916a14e100bf00c25ee9f6ef8b16a81cf9f",
       "dist/analysis-worker.js":
-        "cf234f25160f831d755e91b55f3f07935058e67b4c34ec696dfba849493826cf",
+        "153738f85b70e02b041aece3089fb5b19903630282541962a806b32ad9c97691",
       "dist/catalog.js":
         "c485cd1bf81098c3e2e86d37f78bf9f55af122f5d6b9587c0c57b494d68e4968",
       "dist/extractor.js":
-        "3577949c405a5ff0bb4925472b6be5bb75d89e673a65de0938acf84ae93caf66",
+        "30e8aaea27afd15d1d4323bf9708b86bae84f1e77c0bae74d50dac85aa737d31",
       "dist/index.js":
         "a7dcc81f40848a17a4b7adf4fe573a57a50c18425fab40fbb098489dfd092f3f",
       "dist/language-packs.js":
-        "fb341e072f110b0d1ec8267d481a5d97cfcb89c0b32a1e02130572648990e1a9",
+        "4fd7f0e787f12e75d9b8bab9fa49463c782bdf2e9a85c922636154970a4530de",
       "dist/performance-timing.js":
-        "56cce530f627c8fd079e8ec070322f84378ae50c40a6765d88b418850692940b",
+        "28f589c29e8759b566ee3fb741a91e30347efe1dfbad0f5b1c5b7d4f785369ff",
       "dist/references.js":
-        "d03ae2522b7937e71ff758b6e20bd1b6ac0efd04cf43d05ebaf60bc3f0bd90b4",
+        "2626ddad50193d8b8976f58914a9a1943c925ec51ab8c6a7790d76efccf5c55b",
       "integrity.json":
-        "62415d295f080e4edf8213b312ddcf682e65eb63722fc909e66835eff6f7075b",
-      "licenses/tree-sitter-python-MIT.txt":
-        "d724405ce238a22c0d35769c5a36b386ad5958192efe8bbb304fb2896254575f",
-      "licenses/tree-sitter-swi-prolog-MIT.txt":
-        "c51ac4800457c57ddabdee5486605df9452705491f806cb87241b7a8acc7ab2d",
+        "877e9d373b79dac3a7c39fd3a007217e84cd233fddad333869373e03e4a117d1",
       "licenses/web-tree-sitter-MIT.txt":
         "c5cfb43042b6b72045f4ba997834d0a7786d2793d91680868b5815b39f14fc78",
       "package.json":
-        "ff4f7f8610b6755e74f3bbbd8dd7cb07ebc513ae142b2da1e7ba9e426b4314c6",
+        "e59f00cad3670820bb3fdb65d5de5cd3b51ffaed9c757d5323045e4b0e7e01e4",
     },
     dependencies: [
       {
