@@ -1,0 +1,21 @@
+{
+  "name": "kibi-lang-csharp",
+  "version": "1.0.0",
+  "description": "C# grammar for kibi-plugin-treesitter (tree-sitter-c-sharp 0.23.5)",
+  "license": "MIT",
+  "author": "Piotr Franczyk",
+  "homepage": "https://looted.github.io/kibi/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Looted/kibi.git",
+    "directory": "packages/lang-csharp"
+  },
+  "bugs": {
+    "url": "https://github.com/Looted/kibi/issues"
+  },
+  "keywords": ["kibi", "tree-sitter", "csharp"],
+  "files": ["tree-sitter-c_sharp.wasm", "README.md", "CHANGELOG.md", "LICENSE"],
+  "publishConfig": {
+    "access": "public"
+  }
+}

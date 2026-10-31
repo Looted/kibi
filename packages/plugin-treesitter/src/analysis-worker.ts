@@ -1,6 +1,5 @@
 import { readFile } from "node:fs/promises";
 import { performance } from "node:perf_hooks";
-import { fileURLToPath } from "node:url";
 import { parentPort } from "node:worker_threads";
 import type {
   SourceAnalysisDiagnosticV2,
@@ -12,6 +11,13 @@ import type {
 import { Language, Parser, Query } from "web-tree-sitter";
 import type { Node } from "web-tree-sitter";
 import type { TreeSitterLanguage } from "./catalog.js";
+import { LanguagePackError, grammarSource } from "./language-packs.js";
+import {
+  type ReferenceRead,
+  type ReferenceRequest,
+  extractReferences,
+  isReferenceLanguage,
+} from "./references.js";
 
 const MAX_SYMBOLS = 10_000;
 const QUERY_MATCH_LIMIT = 16_384;
@@ -24,6 +30,8 @@ interface AnalysisWorkerInput {
   readonly language: TreeSitterLanguage;
   readonly content: string;
   readonly performanceTimingEnabled?: boolean;
+  /** Present for a reference read instead of a symbol analysis. */
+  readonly references?: ReferenceRequest;
 }
 
 interface AnalysisWorkerTimings {
@@ -1859,22 +1867,6 @@ function analyzeInput(
   };
 }
 
-const GRAMMAR_ASSETS: Readonly<Record<TreeSitterLanguage, string>> = {
-  python: "tree-sitter-python.wasm",
-  go: "tree-sitter-go.wasm",
-  rust: "tree-sitter-rust.wasm",
-  java: "tree-sitter-java.wasm",
-  csharp: "tree-sitter-c_sharp.wasm",
-  php: "tree-sitter-php.wasm",
-  c: "tree-sitter-c.wasm",
-  cpp: "tree-sitter-cpp.wasm",
-  bash: "tree-sitter-bash.wasm",
-  ruby: "tree-sitter-ruby.wasm",
-  terraform: "tree-sitter-terraform.release.wasm",
-  hcl: "tree-sitter-hcl.release.wasm",
-  prolog: "tree-sitter-swi_prolog.wasm",
-};
-
 const SUPPLEMENTAL_QUERIES: Readonly<
   Partial<Record<TreeSitterLanguage, string>>
 > = {
@@ -1899,15 +1891,13 @@ async function loadGrammar(
 ): Promise<LoadedGrammar> {
   runtimeReady ??= Parser.init();
   await runtimeReady;
-  const grammarPath = fileURLToPath(
-    new URL(`../assets/${GRAMMAR_ASSETS[languageName]}`, import.meta.url),
-  );
+  const grammar = grammarSource(languageName);
   const queryPath = new URL(
     `../assets/queries/${languageName}.scm`,
     import.meta.url,
   );
   const [language, upstreamQuery] = await Promise.all([
-    Language.load(grammarPath),
+    Language.load(grammar),
     readFile(queryPath, "utf8"),
   ]);
   const supplementalName = SUPPLEMENTAL_QUERIES[languageName];
@@ -1979,6 +1969,47 @@ async function run(input: AnalysisWorkerInput): Promise<AnalysisWorkerResult> {
       tree.delete();
     }
   } catch (error) {
+    if (error instanceof LanguagePackError)
+      return { ok: false, code: error.code, message: error.message };
+    return {
+      ok: false,
+      code: "TREESITTER_RUNTIME_ERROR",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Unknown parser runtime error.",
+    };
+  }
+}
+
+/** Parse once and read one reference extract; nothing in the file runs. */
+async function runReferences(
+  input: AnalysisWorkerInput & { readonly references: ReferenceRequest },
+): Promise<ReferenceRead> {
+  if (!isReferenceLanguage(input.language))
+    return {
+      ok: false,
+      code: "TREESITTER_REFERENCES_UNSUPPORTED",
+      message: `no reference reader for ${input.language}`,
+    };
+  try {
+    const { parser } = await grammarFor(input.language);
+    parser.reset();
+    const tree = parser.parse(input.content);
+    if (tree === null)
+      return {
+        ok: false,
+        code: "TREESITTER_PARSE_FAILED",
+        message: "The Tree-sitter runtime returned no syntax tree.",
+      };
+    try {
+      return extractReferences(input.language, tree.rootNode, input.references);
+    } finally {
+      tree.delete();
+    }
+  } catch (error) {
+    if (error instanceof LanguagePackError)
+      return { ok: false, code: error.code, message: error.message };
     return {
       ok: false,
       code: "TREESITTER_RUNTIME_ERROR",
@@ -2000,5 +2031,12 @@ globalThis.fetch = async () => {
 const port = parentPort;
 // The host sends one request at a time and waits for its reply.
 port.on("message", (input: AnalysisWorkerInput) => {
-  void run(input).then((result) => port.postMessage({ id: input.id, result }));
+  const { references } = input;
+  const result =
+    references === undefined
+      ? run(input)
+      : runReferences({ ...input, references });
+  void result.then((value: AnalysisWorkerResult | ReferenceRead) =>
+    port.postMessage({ id: input.id, result: value }),
+  );
 });

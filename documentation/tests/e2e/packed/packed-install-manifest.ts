@@ -2,7 +2,10 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join, sep } from "node:path";
 import type { Tarballs } from "./helpers.js";
-import { hostSwiplPlatformPackage } from "./packed-packages.js";
+import {
+  hostSwiplPlatformPackage,
+  languagePackDirs,
+} from "./packed-packages.js";
 
 /** Prepare owned install metadata for an atomic staging-to-cache rename.
  * Return an exact rollback for a publisher that loses the rename race. */
@@ -63,6 +66,12 @@ export function writePackedInstallManifest(
           "kibi-plugin-ui": `file:${tarballs["plugin-ui"]}`,
           "kibi-plugin-search-hints": `file:${tarballs["plugin-search-hints"]}`,
           "kibi-plugin-treesitter": `file:${tarballs["plugin-treesitter"]}`,
+          ...Object.fromEntries(
+            languagePackDirs.map((pack) => [
+              `kibi-${pack}`,
+              `file:${tarballs[pack]}`,
+            ]),
+          ),
         }
       : {}),
     // kibi-cli and kibi-runtime depend on the resolver; its platform packages

@@ -29,6 +29,10 @@ export const CHECK_POLICY_CAPABILITY_ID = "kibi.check-policy.v1" as const;
 // implements REQ-capability-search-hints-v1
 export const SEARCH_HINTS_CAPABILITY_ID = "kibi.search-hints.v1" as const;
 
+// implements REQ-kibi-tree-sitter-references
+export const REFERENCE_EXTRACTOR_CAPABILITY_ID =
+  "kibi.reference-extractor.v1" as const;
+
 // implements REQ-capability-plugin-protocol-v1
 export type CapabilityId =
   | typeof SEMANTIC_CLASSIFIER_CAPABILITY_ID
@@ -37,7 +41,8 @@ export type CapabilityId =
   | typeof SYMBOL_EXTRACTOR_V2_CAPABILITY_ID
   | typeof VOCABULARY_ALIGNMENT_CAPABILITY_ID
   | typeof CHECK_POLICY_CAPABILITY_ID
-  | typeof SEARCH_HINTS_CAPABILITY_ID;
+  | typeof SEARCH_HINTS_CAPABILITY_ID
+  | typeof REFERENCE_EXTRACTOR_CAPABILITY_ID;
 
 // implements REQ-capability-plugin-protocol-v1
 export const PLUGIN_MODES = ["replace", "augment", "shadow"] as const;
@@ -67,6 +72,7 @@ export interface PluginProviderStamp {
 
 import type { CheckPolicyV1 } from "./capabilities/check-policy.js";
 import type { OntologyPackV1 } from "./capabilities/ontology-pack.js";
+import type { ReferenceExtractorV1 } from "./capabilities/reference-extractor.js";
 import type { SearchHintsV1 } from "./capabilities/search-hints.js";
 import type { SemanticClassifierV1 } from "./capabilities/semantic-classifier.js";
 import type {
@@ -87,6 +93,8 @@ export interface KibiPluginCapabilities {
   readonly checkPolicy?: CheckPolicyV1;
   /** Advisory hints for a weak search answer; never changes results. */
   readonly searchHints?: SearchHintsV1;
+  /** What a source file references, read without running it (source proofs). */
+  readonly referenceExtractor?: ReferenceExtractorV1;
 }
 
 // implements REQ-capability-plugin-protocol-v1

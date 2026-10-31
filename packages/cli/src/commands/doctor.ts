@@ -32,6 +32,7 @@ import {
   describeConfiguredCapabilityPlugins,
   readProjectKibiConfig,
 } from "../plugins/project-config.js";
+import { workspaceReferenceLanguageNote } from "../plugins/reference-language-suggestion.js";
 import {
   type ResolvedSwipl,
   SwiplResolutionError,
@@ -603,10 +604,14 @@ function checkCapabilityPlugins(): {
     const bootstrap = bootstrapKibiEnvironment();
     const workspaceRoot = bootstrap.workspaceRoot;
     const rows = describeConfiguredCapabilityPlugins(workspaceRoot);
+    const languages = workspaceReferenceLanguageNote(workspaceRoot);
     if (rows.length === 0) {
       return {
         passed: true,
         message: "None configured; builtin providers only",
+        ...(languages === null
+          ? {}
+          : { warning: true, remediation: languages }),
       };
     }
     const parts: string[] = rows.map(
@@ -684,6 +689,7 @@ function checkCapabilityPlugins(): {
     return {
       passed: true,
       message,
+      ...(languages === null ? {} : { warning: true, remediation: languages }),
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

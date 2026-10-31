@@ -20,7 +20,9 @@
  * The readers of `source` specs that need code: the references reader
  * (environment variables, imports, calls, string arguments, thrown errors
  * and property values, read from the syntax tree of TypeScript, JavaScript
- * and Python files and from the terms of SWI-Prolog files), the prolog
+ * and Python files, from the terms of SWI-Prolog files, and from the syntax
+ * trees of Go, Java, C# and Rust files through a qualified
+ * kibi.reference-extractor.v1 plugin), the prolog
  * reader (fact arguments of a Prolog file), and the readers that load a module (drizzle schemas,
  * Hono and Express route tables, zod and pydantic validators).
  */
@@ -38,7 +40,12 @@ import {
   type UnresolvedReference,
   unresolvedReason,
 } from "../../public/proof-sources.js";
-import { codeLanguage, unsupportedLanguageReason } from "./code-languages.js";
+import { validateReferenceExtractionResult } from "kibi-plugin-sdk";
+import {
+  REFERENCE_PLUGIN_PACKAGE,
+  proofReferenceExtractorLoader,
+} from "../../plugins/proof-reference-extractors.js";
+import { codeLanguage, pluginReferenceLanguage, unsupportedLanguageReason } from "./code-languages.js";
 import { runCodeEvaluator, TS_RESOLVE_HOOKS } from "./code-runner.js";
 import { PROLOG_SOURCE_READER } from "./prolog-source-reader.js";
 
@@ -373,13 +380,20 @@ async function readReferences(workspaceRoot: string, spec: SourceSpec): Promise<
     const language = codeLanguage(file);
     return language !== "js" && language !== "python" && language !== "prolog";
   });
-  if (other.length > 0)
+  const unknown = other.filter((file) => pluginReferenceLanguage(file) === null);
+  if (unknown.length > 0)
     return {
       ok: false,
-      reason: `${unsupportedLanguageReason("the references reader", ["js", "python", "prolog"], other)}; narrow files to exclude them`,
+      reason: `${unsupportedLanguageReason("the references reader", ["js", "python", "prolog"], unknown).replace(/ files, not /, ` files (and Go, Java, C# and Rust through ${REFERENCE_PLUGIN_PACKAGE}), not `)}; narrow files to exclude them`,
     };
   const members: string[] = [];
   const unresolved: UnresolvedReference[] = [];
+  if (other.length > 0) {
+    const read = await readPluginReferences(workspaceRoot, other, spec);
+    if (!read.ok) return read;
+    members.push(...read.members);
+    unresolved.push(...read.unresolved);
+  }
   const scripts = files.filter((file) => codeLanguage(file) === "js");
   if (scripts.length > 0) {
     const ts = loadTypeScript(workspaceRoot);
@@ -430,6 +444,61 @@ async function readReferences(workspaceRoot: string, spec: SourceSpec): Promise<
   if (unresolved.length > 0)
     return { ok: false, reason: unresolvedReason(EXTRACT_WHAT[String(spec.extract)] ?? "references", unresolved) };
   return { ok: true, members };
+}
+
+const PLUGIN_READ_TIMEOUT_MS = 10_000;
+
+/**
+ * Read references of Go, Java, C# and Rust files through a qualified
+ * kibi.reference-extractor.v1 provider. Without one the read is refused with
+ * what to install, never answered as empty.
+ */
+// implements REQ-kibi-tree-sitter-references
+async function readPluginReferences(
+  workspaceRoot: string,
+  files: readonly string[],
+  spec: SourceSpec,
+): Promise<{ ok: true; members: string[]; unresolved: UnresolvedReference[] } | { ok: false; reason: string }> {
+  const { extractors, problems } = await proofReferenceExtractorLoader.load(workspaceRoot);
+  // Callers pass only files a reference reader covers (unknown ones are refused first).
+  const languages = [...new Set(files.flatMap((file) => pluginReferenceLanguage(file) ?? []))];
+  const unread = files.filter((file) => !extractors.some((extractor) => extractor.supports({ path: file })));
+  if (unread.length > 0) {
+    const shown = `${unread.slice(0, 3).join(", ")}${unread.length > 3 ? ` and ${unread.length - 3} more` : ""}`;
+    const why = problems.length > 0 ? ` (${problems.join("; ")})` : "";
+    return {
+      ok: false,
+      reason: `the references reader reads ${languages.join(", ")} files through ${REFERENCE_PLUGIN_PACKAGE}, which is not active for proofs here${why}; add it to devDependencies and activate kibi.reference-extractor.v1 in package.json#kibi.plugins (kibi doctor lists what this project needs): ${shown}`,
+    };
+  }
+  const members: string[] = [];
+  const unresolved: UnresolvedReference[] = [];
+  for (const file of files) {
+    const extractor = extractors.find((candidate) => candidate.supports({ path: file }));
+    if (extractor === undefined) continue;
+    let result;
+    try {
+      result = validateReferenceExtractionResult(
+        await extractor.extract({
+          path: file,
+          content: readFileSync(path.join(workspaceRoot, file), "utf8"),
+          extract: spec.extract as import("kibi-plugin-sdk").ReferenceExtract,
+          ...(typeof spec.callee === "string" ? { callee: spec.callee } : {}),
+          ...(typeof spec.key === "string" ? { key: spec.key } : {}),
+          timeoutMs: PLUGIN_READ_TIMEOUT_MS,
+        }),
+      );
+    } catch (error) {
+      return {
+        ok: false,
+        reason: `Kibi could not read ${file}: ${error instanceof Error ? error.message : String(error)}`,
+      };
+    }
+    if (result.status !== "ok") return { ok: false, reason: `Kibi could not read ${file}: ${result.message}` };
+    members.push(...result.members);
+    for (const row of result.unresolved) unresolved.push({ file, line: row.line, text: row.text });
+  }
+  return { ok: true, members, unresolved };
 }
 
 type PrologRead = {

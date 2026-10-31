@@ -1118,7 +1118,7 @@ export function landingContent(args: {
     </details>
     <details>
       <summary>Which languages does Kibi understand?</summary>
-      <p>TypeScript and JavaScript work out of the box. Add the optional <code>kibi-plugin-treesitter</code> package for Python, Go, Rust, Java, C#, PHP, C, C++, Bash, Ruby, SWI-Prolog, and Terraform/HCL. It runs offline with pinned grammars. Code and source proofs read TypeScript, JavaScript, Python and SWI-Prolog directly. Setup is in the <a href="${root}reference/plugins.html">plugin reference</a>.</p>
+      <p>TypeScript and JavaScript work out of the box. Add the optional <code>kibi-plugin-treesitter</code> package for Python, Go, Rust, Java, C#, PHP, C, C++, Bash, Ruby, SWI-Prolog, and Terraform/HCL. It runs offline with pinned grammars: Python and SWI-Prolog are built in, and each other language is a small <code>kibi-lang-*</code> pack you install only if you use it. Code and source proofs read TypeScript, JavaScript, Python and SWI-Prolog directly, and through the plugin, source proofs read the imports, calls and environment reads of Go, Java, C# and Rust files without compiling them. Setup is in the <a href="${root}reference/plugins.html">plugin reference</a>.</p>
     </details>
     <details>
       <summary>Can Kibi stop agents drifting from our UI design?</summary>

@@ -31,6 +31,16 @@ describe("canonical package catalog", () => {
       "swipl-darwin-arm64",
       "swipl-darwin-x64",
       "swipl",
+      "lang-go",
+      "lang-rust",
+      "lang-java",
+      "lang-csharp",
+      "lang-php",
+      "lang-c",
+      "lang-cpp",
+      "lang-bash",
+      "lang-ruby",
+      "lang-hcl",
       "plugin-treesitter",
       "runtime",
       "cli",
@@ -154,6 +164,60 @@ describe("canonical package catalog", () => {
       expect(manifest.dependencies["kibi-zcode"]).toBeUndefined();
     } finally {
       rmSync(prefix, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("tree-sitter language packs", () => {
+  const plugin = JSON.parse(
+    readFileSync(
+      join(ROOT, "packages", "plugin-treesitter", "package.json"),
+      "utf8",
+    ),
+  );
+  const catalog = JSON.parse(
+    readFileSync(
+      join(ROOT, "packages", "plugin-treesitter", "catalog.json"),
+      "utf8",
+    ),
+  ) as {
+    languages: {
+      id: string;
+      pack?: string;
+      packVersion?: string;
+      asset: string;
+    }[];
+  };
+  const packLanguages = catalog.languages.filter(
+    (language) => language.pack !== undefined,
+  );
+
+  test("each pack the catalog pins is a publishable package at that version, carrying the grammar", () => {
+    expect(packLanguages.length).toBeGreaterThan(0);
+    for (const language of packLanguages) {
+      const dir = (language.pack as string).replace(/^kibi-/, "");
+      expect(PUBLISHABLE_DIRS).toContain(dir);
+      expect(PUBLISHABLE_DIRS.indexOf(dir)).toBeLessThan(
+        PUBLISHABLE_DIRS.indexOf("plugin-treesitter"),
+      );
+      const pack = JSON.parse(
+        readFileSync(join(ROOT, "packages", dir, "package.json"), "utf8"),
+      );
+      expect(pack.name).toBe(language.pack);
+      expect(pack.version).toBe(language.packVersion);
+      expect(pack.files).toContain(language.asset);
+      expect(pack.dependencies).toBeUndefined();
+      expect(pack.scripts).toBeUndefined();
+    }
+  });
+
+  test("the plugin declares each pack as an optional peer in the pinned major and develops against the pinned version", () => {
+    for (const language of packLanguages) {
+      const pack = language.pack as string;
+      const major = (language.packVersion as string).split(".")[0];
+      expect(plugin.peerDependencies[pack]).toBe(`^${major}.0.0`);
+      expect(plugin.peerDependenciesMeta[pack]).toEqual({ optional: true });
+      expect(plugin.devDependencies[pack]).toBe(language.packVersion);
     }
   });
 });

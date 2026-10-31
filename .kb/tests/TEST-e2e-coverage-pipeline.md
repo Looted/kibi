@@ -18,17 +18,17 @@ id: TEST-e2e-coverage-pipeline
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-6cd9789d6d54bb51dfac88bd
+    receipt_id: PR-24f171824ed37f4e04835386
     test_id: TEST-e2e-coverage-pipeline
     scope: end_to_end
     outcome: passed
-    code_snapshot: 287d8b7e21fc5ebfe33742e839feb2dd6ab1c5b91349284c293a90ceeeb17a0c
+    code_snapshot: b2edd87f9db88973f9e196f6a0d9024cced12f4a3af6a63e455f5afc217e383a
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-27T10:17:34.797Z'
-    finished_at: '2026-10-27T10:17:47.873Z'
-    artifact_digest: 4a6c200bd5a0ba550677033b5b0012eeb9e06266bd28fb75d6b1d468c4a61e12
+    started_at: '2026-10-31T18:26:56.488Z'
+    finished_at: '2026-10-31T18:27:05.757Z'
+    artifact_digest: 8a2311d8d83bb341840da2ee80ac9dff57e194611b479e877eef1d12f332ee58
     contract_hash: 5dd3923458cf0ae34253406c878df1627765803def2fbe7c7d07518f8412b1e4
-    binding_hash: b226988d52ba5434cb9e765807ff7829af57d88c008329bd73563541aa3f3795
+    binding_hash: 81ce3a5265fcfa6762dec9d79ddecf3c22dcaeeafb25fd67e979403444851c40
     fingerprint: afff8a3a1ab1c2915aa7a8f5f96feaaed6282cb9cdf39884573996c191715845
     fingerprint_components:
       contract: 5dd3923458cf0ae34253406c878df1627765803def2fbe7c7d07518f8412b1e4

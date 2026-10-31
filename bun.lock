@@ -123,6 +123,46 @@
         "kibi-mcp",
       ],
     },
+    "packages/lang-bash": {
+      "name": "kibi-lang-bash",
+      "version": "1.0.0",
+    },
+    "packages/lang-c": {
+      "name": "kibi-lang-c",
+      "version": "1.0.0",
+    },
+    "packages/lang-cpp": {
+      "name": "kibi-lang-cpp",
+      "version": "1.0.0",
+    },
+    "packages/lang-csharp": {
+      "name": "kibi-lang-csharp",
+      "version": "1.0.0",
+    },
+    "packages/lang-go": {
+      "name": "kibi-lang-go",
+      "version": "1.0.0",
+    },
+    "packages/lang-hcl": {
+      "name": "kibi-lang-hcl",
+      "version": "1.0.0",
+    },
+    "packages/lang-java": {
+      "name": "kibi-lang-java",
+      "version": "1.0.0",
+    },
+    "packages/lang-php": {
+      "name": "kibi-lang-php",
+      "version": "1.0.0",
+    },
+    "packages/lang-ruby": {
+      "name": "kibi-lang-ruby",
+      "version": "1.0.0",
+    },
+    "packages/lang-rust": {
+      "name": "kibi-lang-rust",
+      "version": "1.0.0",
+    },
     "packages/mcp": {
       "name": "kibi-mcp",
       "version": "3.23.0",
@@ -217,12 +257,44 @@
       },
       "devDependencies": {
         "@types/node": "25.9.8",
+        "kibi-lang-bash": "1.0.0",
+        "kibi-lang-c": "1.0.0",
+        "kibi-lang-cpp": "1.0.0",
+        "kibi-lang-csharp": "1.0.0",
+        "kibi-lang-go": "1.0.0",
+        "kibi-lang-hcl": "1.0.0",
+        "kibi-lang-java": "1.0.0",
+        "kibi-lang-php": "1.0.0",
+        "kibi-lang-ruby": "1.0.0",
+        "kibi-lang-rust": "1.0.0",
         "kibi-plugin-sdk": "^0.5.0",
         "typescript": "^5.7.0",
       },
       "peerDependencies": {
+        "kibi-lang-bash": "^1.0.0",
+        "kibi-lang-c": "^1.0.0",
+        "kibi-lang-cpp": "^1.0.0",
+        "kibi-lang-csharp": "^1.0.0",
+        "kibi-lang-go": "^1.0.0",
+        "kibi-lang-hcl": "^1.0.0",
+        "kibi-lang-java": "^1.0.0",
+        "kibi-lang-php": "^1.0.0",
+        "kibi-lang-ruby": "^1.0.0",
+        "kibi-lang-rust": "^1.0.0",
         "kibi-plugin-sdk": "^0.5.0",
       },
+      "optionalPeers": [
+        "kibi-lang-bash",
+        "kibi-lang-c",
+        "kibi-lang-cpp",
+        "kibi-lang-csharp",
+        "kibi-lang-go",
+        "kibi-lang-hcl",
+        "kibi-lang-java",
+        "kibi-lang-php",
+        "kibi-lang-ruby",
+        "kibi-lang-rust",
+      ],
     },
     "packages/plugin-ui": {
       "name": "kibi-plugin-ui",
@@ -1139,6 +1211,26 @@
     "kibi-core": ["kibi-core@workspace:packages/core"],
 
     "kibi-cursor": ["kibi-cursor@workspace:packages/cursor"],
+
+    "kibi-lang-bash": ["kibi-lang-bash@workspace:packages/lang-bash"],
+
+    "kibi-lang-c": ["kibi-lang-c@workspace:packages/lang-c"],
+
+    "kibi-lang-cpp": ["kibi-lang-cpp@workspace:packages/lang-cpp"],
+
+    "kibi-lang-csharp": ["kibi-lang-csharp@workspace:packages/lang-csharp"],
+
+    "kibi-lang-go": ["kibi-lang-go@workspace:packages/lang-go"],
+
+    "kibi-lang-hcl": ["kibi-lang-hcl@workspace:packages/lang-hcl"],
+
+    "kibi-lang-java": ["kibi-lang-java@workspace:packages/lang-java"],
+
+    "kibi-lang-php": ["kibi-lang-php@workspace:packages/lang-php"],
+
+    "kibi-lang-ruby": ["kibi-lang-ruby@workspace:packages/lang-ruby"],
+
+    "kibi-lang-rust": ["kibi-lang-rust@workspace:packages/lang-rust"],
 
     "kibi-mcp": ["kibi-mcp@workspace:packages/mcp"],
 

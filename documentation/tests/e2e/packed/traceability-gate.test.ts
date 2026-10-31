@@ -1142,7 +1142,11 @@ if (RUN_NODE_TEST_SUITE) {
         return;
       }
       assertCommandExit(
-        await run("git", ["reset", "-q", "--hard", "HEAD"], gitOptions(sandbox)),
+        await run(
+          "git",
+          ["reset", "-q", "--hard", "HEAD"],
+          gitOptions(sandbox),
+        ),
         0,
         "discarding the previous case's staged fixture",
       );
@@ -1169,7 +1173,11 @@ if (RUN_NODE_TEST_SUITE) {
       const result = await kibi(sandbox, ["check", "--staged"], {
         timeoutMs: CHECK_TIMEOUT_MS,
       });
-      assertCommandExit(result, 1, "staged check for a behavior edit without impact evidence");
+      assertCommandExit(
+        result,
+        1,
+        "staged check for a behavior edit without impact evidence",
+      );
       const output = commandText(result);
       assert.match(output, /kibi_impact_evidence_missing/);
       assert.match(output, /src\/sample\.js/);

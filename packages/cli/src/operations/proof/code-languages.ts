@@ -77,6 +77,41 @@ export function stripPrologExtension(file: string): string {
 }
 
 /** How a reason names a language. */
+/**
+ * Languages whose references a qualified plugin reads (kibi-plugin-treesitter
+ * through kibi.reference-extractor.v1). Kibi itself runs nothing for them.
+ */
+// implements REQ-kibi-tree-sitter-references
+export const PLUGIN_REFERENCE_LANGUAGES = [
+  { name: "Go", pattern: /\.go$/i },
+  { name: "Java", pattern: /\.java$/i },
+  { name: "C#", pattern: /\.cs$/i },
+  { name: "Rust", pattern: /\.rs$/i },
+] as const;
+
+/**
+ * The data-only kibi-lang-* packs kibi-plugin-treesitter reads these
+ * languages with, by the file extensions its catalog maps to them. Python and
+ * SWI-Prolog grammars are built into the plugin.
+ */
+// implements REQ-kibi-tree-sitter-language-packs
+export const PLUGIN_LANGUAGE_PACKS = [
+  { pack: "kibi-lang-go", name: "Go", pattern: /\.go$/i },
+  { pack: "kibi-lang-rust", name: "Rust", pattern: /\.rs$/i },
+  { pack: "kibi-lang-java", name: "Java", pattern: /\.java$/i },
+  { pack: "kibi-lang-csharp", name: "C#", pattern: /\.cs$/i },
+  { pack: "kibi-lang-php", name: "PHP", pattern: /\.php$/i },
+  { pack: "kibi-lang-c", name: "C", pattern: /\.c$/i },
+  { pack: "kibi-lang-cpp", name: "C++", pattern: /\.(?:cc|cpp|cxx|hh|hpp|hxx)$/i },
+  { pack: "kibi-lang-bash", name: "Bash", pattern: /\.(?:bash|sh)$/i },
+  { pack: "kibi-lang-ruby", name: "Ruby", pattern: /\.rb$/i },
+  { pack: "kibi-lang-hcl", name: "Terraform/HCL", pattern: /\.(?:tf|hcl)$/i },
+] as const;
+
+export function pluginReferenceLanguage(file: string): string | null {
+  return PLUGIN_REFERENCE_LANGUAGES.find((language) => language.pattern.test(file))?.name ?? null;
+}
+
 export const CODE_LANGUAGE_NAMES: Readonly<Record<CodeLanguage, string>> = {
   js: "TypeScript or JavaScript",
   python: "Python",
