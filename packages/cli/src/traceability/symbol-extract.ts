@@ -10,6 +10,7 @@ import {
   type SymbolRole,
   inferSymbolRole,
 } from "../public/symbol-granularity.js";
+import { analysisObligation } from "./analysis-gate.js";
 import type { HunkRange, StagedFile } from "./git-staged.js";
 
 type SourceAnalysisResult = SdkSourceAnalysisResult & {
@@ -360,6 +361,45 @@ export async function extractSymbolsFromStagedFileAsync(
   } else {
     analysis = analyzeWithBuiltinFallback(stagedFile.path, content);
   }
+  if (analysis?.status === "partial") {
+    // A local gap (a macro, an include, a dynamic definition) leaves the
+    // symbols declared outside it fully parsed. Those are validated; the gate
+    // asks for a review of any changed line inside a gap.
+    const uncovered =
+      (
+        analysis as {
+          uncoveredRanges?: readonly (HunkLineRange & { reason: string })[];
+        }
+      ).uncoveredRanges ?? [];
+    const codes = (
+      (analysis as { diagnostics?: readonly { code: string }[] }).diagnostics ??
+      []
+    ).map((diagnostic) => diagnostic.code);
+    const obligation = analysisObligation(
+      "after",
+      { status: "partial", diagnosticCodes: codes, uncoveredRanges: uncovered },
+      [],
+    );
+    if (
+      obligation.kind !== "blocked" &&
+      !codes.some((code) => /LIMIT/i.test(code))
+    )
+      return symbolsFromAnalysis(
+        stagedFile,
+        {
+          ...analysis,
+          symbols: analysis.symbols.filter(
+            (symbol) =>
+              !uncovered.some(
+                (range) =>
+                  range.startLine <= symbol.startLine &&
+                  symbol.startLine <= range.endLine,
+              ),
+          ),
+        },
+        manifestLookup,
+      );
+  }
   if (analysis?.status === "failed" || analysis?.status === "partial") {
     throw new Error(
       `Source analysis ${analysis.status} for ${stagedFile.path}; complete symbol validation is unavailable`,
@@ -367,6 +407,8 @@ export async function extractSymbolsFromStagedFileAsync(
   }
   return symbolsFromAnalysis(stagedFile, analysis, manifestLookup);
 }
+
+type HunkLineRange = { startLine: number; endLine: number };
 
 function symbolsFromAnalysis(
   stagedFile: StagedFile,

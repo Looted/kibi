@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -78,6 +79,27 @@ describe("the references reader on Go, Java, C# and Rust", () => {
     });
     expect(refused.ok).toBe(false);
     if (!refused.ok) expect(refused.reason).toContain("cmd/a.go:2 dynamic(x)");
+  });
+
+  // executable_for TEST-kibi-tree-sitter-references
+  test("adds the project's global usings to the imports of C# files", async () => {
+    proofReferenceExtractorLoader.load = async () => ({
+      extractors: [{ ...fakeExtractor, supports: () => true }],
+      problems: [],
+    });
+    const root = workspace({
+      "src/App.cs": "uses(System)\n",
+      "src/GlobalUsings.cs": "global using System.Net.Http;\n",
+    });
+    execFileSync("git", ["init", "-q"], { cwd: root });
+    execFileSync("git", ["add", "-A"], { cwd: root });
+    expect(
+      await read(root, {
+        reader: "references",
+        files: "src/App.cs",
+        extract: "imports",
+      }),
+    ).toEqual({ ok: true, model: { members: ["System", "System.Net.Http"] } });
   });
 
   test("refuses with what to install when no provider is active", async () => {

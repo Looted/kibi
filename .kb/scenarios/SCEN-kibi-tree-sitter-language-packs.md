@@ -7,7 +7,7 @@ tags:
   - multilingual
 origin:
   kind: agent
-  recorded_at: '2026-10-31T20:10:10.217Z'
+  recorded_at: '2026-10-31T21:49:09.666Z'
 id: SCEN-kibi-tree-sitter-language-packs
 type: scenario
 ---

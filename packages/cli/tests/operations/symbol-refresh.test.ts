@@ -68,6 +68,11 @@ function treeSitterWorkspace(prefix: string): string {
     createRequire(join(packageRoot, "package.json")).resolve("web-tree-sitter"),
   );
   symlinkSync(runtime, join(workspace, "node_modules/web-tree-sitter"), "dir");
+  symlinkSync(
+    resolve(import.meta.dir, "../../../lang-python"),
+    join(workspace, "node_modules/kibi-lang-python"),
+    "dir",
+  );
   writeFileSync(
     join(workspace, "package.json"),
     JSON.stringify({

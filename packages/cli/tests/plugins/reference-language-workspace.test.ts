@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "bun:test";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -11,6 +12,7 @@ import {
 } from "../../src/operations/proof/code-languages.js";
 import {
   describeReferenceLanguageSuggestion,
+  modifiedPacks,
   pinnedPackVersions,
   referenceLanguageSuggestion,
   workspaceInstalledVersion,
@@ -187,6 +189,7 @@ describe("reference language suggestion text", () => {
       evidence: ["svc/Main.java", "svc/App.cs"],
       activeForSymbolsOnly: false,
       packs: ["kibi-lang-java", "kibi-lang-csharp"],
+      modified: [],
     });
   });
 
@@ -199,7 +202,7 @@ describe("reference language suggestion text", () => {
     if (suggestion === null) throw new Error("expected a suggestion");
     expect(suggestion.packs).toEqual([]);
     expect(describeReferenceLanguageSuggestion(suggestion)).toBe(
-      `1 Go source file(s); source proofs and symbols for them need ${TREESITTER}: add it to devDependencies and ${TREESITTER} to package.json kibi.plugins with "${REFS}": { "mode": "augment" }, "${SYMBOLS}": { "mode": "augment" }`,
+      `1 Go source file(s); source proofs and symbols for them need ${TREESITTER}: add it to devDependencies and this entry to package.json "kibi": { "plugins": [ {"package":"kibi-plugin-treesitter","capabilities":{"kibi.reference-extractor.v1":{"mode":"augment"},"kibi.symbol-extractor.v2":{"mode":"augment"}}} ] }`,
     );
   });
 
@@ -267,7 +270,7 @@ describe("the workspace note for kibi init and kibi doctor", () => {
     });
     gitTrack(root);
     expect(workspaceReferenceLanguageNote(root)).toBe(
-      `1 Go source file(s); source proofs and symbols for them need ${TREESITTER} and the grammar pack(s) kibi-lang-go: add them to devDependencies and ${TREESITTER} to package.json kibi.plugins with "${REFS}": { "mode": "augment" }, "${SYMBOLS}": { "mode": "augment" }. This project has no package.json; create one that only holds Kibi's plugin list (npm init -y, then npm install -D ${TREESITTER} kibi-lang-go). Without it, references proofs on those files are refused.`,
+      `1 Go source file(s); source proofs and symbols for them need ${TREESITTER} and the grammar pack(s) kibi-lang-go: add them to devDependencies and this entry to package.json "kibi": { "plugins": [ {"package":"kibi-plugin-treesitter","capabilities":{"kibi.reference-extractor.v1":{"mode":"augment"},"kibi.symbol-extractor.v2":{"mode":"augment"}}} ] }. This project has no package.json; create one that only holds Kibi's plugin list (npm init -y, then npm install -D ${TREESITTER} kibi-lang-go) and add node_modules/ to .gitignore. Without it, references proofs on those files are refused.`,
     );
   });
 
@@ -289,6 +292,89 @@ describe("the workspace note for kibi init and kibi doctor", () => {
     expect(workspaceReferenceLanguageNote(root)).toBe(
       `1 PHP source file(s); ${TREESITTER} reads them only with the grammar pack(s) kibi-lang-php@1.0.0 installed: npm install --save-dev kibi-lang-php@1.0.0. Without them, those files are refused for symbols and proofs.`,
     );
+  });
+
+  it("names an installed pack whose grammar bytes differ from the pinned hash", () => {
+    const sha = (text: string) =>
+      createHash("sha256").update(text).digest("hex");
+    const root = workspace({
+      "package.json": manifest(fullyActive),
+      ...fakeTreesitter({
+        languages: [
+          {
+            id: "go",
+            pack: "kibi-lang-go",
+            packVersion: "1.0.0",
+            asset: "go.wasm",
+            assetSha256: sha("go grammar"),
+          },
+          {
+            id: "rust",
+            pack: "kibi-lang-rust",
+            packVersion: "1.0.0",
+            asset: "rust.wasm",
+            assetSha256: sha("rust grammar"),
+          },
+          {
+            id: "php",
+            pack: "kibi-lang-php",
+            packVersion: "1.0.0",
+            asset: "php.wasm",
+            assetSha256: sha("php grammar"),
+          },
+          { id: "c", pack: "kibi-lang-c", packVersion: "1.0.0" },
+          {
+            id: "java",
+            pack: "kibi-lang-java",
+            packVersion: "1.0.0",
+            asset: "java.wasm",
+            assetSha256: sha("java grammar"),
+          },
+          {
+            id: "ruby",
+            pack: "kibi-lang-ruby",
+            packVersion: "1.0.0",
+            asset: "ruby.wasm",
+            assetSha256: sha("ruby grammar"),
+          },
+          {
+            id: "bash",
+            pack: "kibi-lang-bash",
+            packVersion: "1.0.0",
+            asset: "bash.wasm",
+            assetSha256: sha("bash grammar"),
+          },
+        ],
+      }),
+      ...fakePack("kibi-lang-go", { name: "kibi-lang-go", version: "1.0.0" }),
+      "node_modules/kibi-lang-go/go.wasm": "go grammar",
+      ...fakePack("kibi-lang-rust", {
+        name: "kibi-lang-rust",
+        version: "1.0.0",
+      }),
+      "node_modules/kibi-lang-rust/rust.wasm": "rust grammar, changed",
+      // Another version is reported as such, not as modified.
+      ...fakePack("kibi-lang-php", { name: "kibi-lang-php", version: "0.9.0" }),
+      // An unreadable grammar counts as modified.
+      ...fakePack("kibi-lang-ruby", {
+        name: "kibi-lang-ruby",
+        version: "1.0.0",
+      }),
+      "node_modules/kibi-lang-bash/package.json": "{ not json",
+      "cmd/main.go": "package main\n",
+      "src/lib.rs": "pub fn run() {}\n",
+    });
+    gitTrack(root);
+    expect(modifiedPacks(undefined)).toEqual(new Set());
+    expect(modifiedPacks(root)).toEqual(
+      new Set(["kibi-lang-rust", "kibi-lang-ruby", "kibi-lang-bash"]),
+    );
+    expect(workspaceReferenceLanguageNote(root)).toBe(
+      `1 Rust source file(s); ${TREESITTER} reads them only with the grammar pack(s) kibi-lang-rust@1.0.0 installed: npm install --save-dev kibi-lang-rust@1.0.0. The installed grammar of kibi-lang-rust does not match the SHA-256 ${TREESITTER} pins; reinstall it. Without them, those files are refused for symbols and proofs.`,
+    );
+    // No plugin catalog: nothing to compare against.
+    const bare = workspace({ "package.json": manifest() });
+    expect(modifiedPacks(bare)).toEqual(new Set());
   });
 
   it("installs only the packs when the plugin is listed for symbols", () => {
@@ -327,7 +413,7 @@ describe("the bootstrap offer for reference languages", () => {
         mode: "augment",
         alsoActivate: { [SYMBOLS]: "augment" },
         alsoInstall: ["kibi-lang-java", "kibi-lang-csharp"],
-        reason: `1 Java, 1 C# source file(s); source proofs and symbols for them need ${TREESITTER} and the grammar pack(s) kibi-lang-java, kibi-lang-csharp: add them to devDependencies and ${TREESITTER} to package.json kibi.plugins with "${REFS}": { "mode": "augment" }, "${SYMBOLS}": { "mode": "augment" }`,
+        reason: `1 Java, 1 C# source file(s); source proofs and symbols for them need ${TREESITTER} and the grammar pack(s) kibi-lang-java, kibi-lang-csharp: add them to devDependencies and this entry to package.json "kibi": { "plugins": [ {"package":"kibi-plugin-treesitter","capabilities":{"kibi.reference-extractor.v1":{"mode":"augment"},"kibi.symbol-extractor.v2":{"mode":"augment"}}} ] }`,
         fileCount: 2,
         evidence: ["svc/Main.java", "svc/Main.cs"],
       },

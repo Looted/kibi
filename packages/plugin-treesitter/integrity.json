@@ -21,8 +21,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 8380,
-      "sha256": "6215e79b543bbd8bdb69cb57835f8329355deb4342653454f180f0842bf46eb4"
+      "bytes": 9123,
+      "sha256": "3716237d5fe1175ba8e95934c4a39e84bd68676e44bd02182233a4668cf27127"
     },
     {
       "path": "SBOM.spdx.json",
@@ -136,8 +136,8 @@
     },
     {
       "path": "dist/analysis-worker.js",
-      "bytes": 65738,
-      "sha256": "cf234f25160f831d755e91b55f3f07935058e67b4c34ec696dfba849493826cf"
+      "bytes": 68092,
+      "sha256": "153738f85b70e02b041aece3089fb5b19903630282541962a806b32ad9c97691"
     },
     {
       "path": "dist/catalog.d.ts",
@@ -162,12 +162,12 @@
     {
       "path": "dist/extractor.d.ts.map",
       "bytes": 1689,
-      "sha256": "f37c04bf3971c14012a23b2dec895b116d2ee3c2835bee9ee3c109edd6440044"
+      "sha256": "36794bb0ed5c00ce7aa110f0832371fb915b4ad3037e0ec574f6acd1fa6f67c4"
     },
     {
       "path": "dist/extractor.js",
-      "bytes": 19018,
-      "sha256": "3577949c405a5ff0bb4925472b6be5bb75d89e673a65de0938acf84ae93caf66"
+      "bytes": 19237,
+      "sha256": "30e8aaea27afd15d1d4323bf9708b86bae84f1e77c0bae74d50dac85aa737d31"
     },
     {
       "path": "dist/index.d.ts",
@@ -211,8 +211,8 @@
     },
     {
       "path": "dist/performance-timing.js",
-      "bytes": 2241,
-      "sha256": "56cce530f627c8fd079e8ec070322f84378ae50c40a6765d88b418850692940b"
+      "bytes": 2253,
+      "sha256": "28f589c29e8759b566ee3fb741a91e30347efe1dfbad0f5b1c5b7d4f785369ff"
     },
     {
       "path": "dist/references.d.ts",
@@ -222,12 +222,12 @@
     {
       "path": "dist/references.d.ts.map",
       "bytes": 1028,
-      "sha256": "ac0472622bdf49609d70b9904532401d69639dfa948db3ac7b72bdd92986ff93"
+      "sha256": "eae386e934c25779744fa763d983b0da645a8b9d74867935f2a8174eef8f3e2a"
     },
     {
       "path": "dist/references.js",
-      "bytes": 43628,
-      "sha256": "d03ae2522b7937e71ff758b6e20bd1b6ac0efd04cf43d05ebaf60bc3f0bd90b4"
+      "bytes": 52798,
+      "sha256": "2626ddad50193d8b8976f58914a9a1943c925ec51ab8c6a7790d76efccf5c55b"
     },
     {
       "path": "licenses/web-tree-sitter-MIT.txt",

@@ -47,21 +47,21 @@ export const qualifiedSourceAnalyzers = [
       "catalog.json":
         "7cfb50d5c75d3ffd48d351fbd57ab916a14e100bf00c25ee9f6ef8b16a81cf9f",
       "dist/analysis-worker.js":
-        "cf234f25160f831d755e91b55f3f07935058e67b4c34ec696dfba849493826cf",
+        "153738f85b70e02b041aece3089fb5b19903630282541962a806b32ad9c97691",
       "dist/catalog.js":
         "c485cd1bf81098c3e2e86d37f78bf9f55af122f5d6b9587c0c57b494d68e4968",
       "dist/extractor.js":
-        "3577949c405a5ff0bb4925472b6be5bb75d89e673a65de0938acf84ae93caf66",
+        "30e8aaea27afd15d1d4323bf9708b86bae84f1e77c0bae74d50dac85aa737d31",
       "dist/index.js":
         "a7dcc81f40848a17a4b7adf4fe573a57a50c18425fab40fbb098489dfd092f3f",
       "dist/language-packs.js":
         "4fd7f0e787f12e75d9b8bab9fa49463c782bdf2e9a85c922636154970a4530de",
       "dist/performance-timing.js":
-        "56cce530f627c8fd079e8ec070322f84378ae50c40a6765d88b418850692940b",
+        "28f589c29e8759b566ee3fb741a91e30347efe1dfbad0f5b1c5b7d4f785369ff",
       "dist/references.js":
-        "d03ae2522b7937e71ff758b6e20bd1b6ac0efd04cf43d05ebaf60bc3f0bd90b4",
+        "2626ddad50193d8b8976f58914a9a1943c925ec51ab8c6a7790d76efccf5c55b",
       "integrity.json":
-        "5d7edb08c0a45ff17afc05100667e80b1838d952de7a4cd85d49e7879d66143f",
+        "877e9d373b79dac3a7c39fd3a007217e84cd233fddad333869373e03e4a117d1",
       "licenses/web-tree-sitter-MIT.txt":
         "c5cfb43042b6b72045f4ba997834d0a7786d2793d91680868b5815b39f14fc78",
       "package.json":

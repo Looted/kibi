@@ -9,7 +9,7 @@ value_type: bool
 value_bool: false
 origin:
   kind: agent
-  recorded_at: '2026-10-31T20:10:07.842Z'
+  recorded_at: '2026-10-31T21:49:08.699Z'
 id: FACT-NEG-kibi-tree-sitter-language-packs-MODIFIED
 type: fact
 ---

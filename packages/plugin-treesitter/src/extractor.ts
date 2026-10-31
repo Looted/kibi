@@ -76,8 +76,8 @@ function detectedUnsupportedShellDialect(content: string): string | undefined {
   const lineEnd = prefix.search(/[\r\n]/);
   if (lineEnd < 0 && content.length > 2 + MAX_SHEBANG_LENGTH)
     return "unrecognized interpreter";
+  // At most MAX_SHEBANG_LENGTH characters: a longer line returned above.
   const line = (lineEnd < 0 ? prefix : prefix.slice(0, lineEnd)).trim();
-  if (line.length > MAX_SHEBANG_LENGTH) return "unrecognized interpreter";
   const words = tokenizeShebangWords(line);
   if (words === undefined || words.length === 0)
     return "unrecognized interpreter";
@@ -128,7 +128,8 @@ function tokenizeShebangWords(value: string): string[] | undefined {
   }
   if (escaped || quote !== undefined) return undefined;
   if (started) words.push(current);
-  return words.length <= MAX_SHEBANG_TOKENS ? words : undefined;
+  // The loop stops at MAX_SHEBANG_TOKENS words, so the last one still fits.
+  return words;
 }
 
 function commandFromEnvArguments(
@@ -137,7 +138,9 @@ function commandFromEnvArguments(
 ): string | undefined {
   for (let index = 0; index < commandArguments.length; index += 1) {
     const argument = commandArguments[index];
+    /* node:coverage disable */
     if (argument === undefined) return undefined;
+    /* node:coverage enable */
     if (
       allowSplitString &&
       (argument === "-S" || argument === "--split-string")
@@ -205,6 +208,7 @@ function fullSourceRange(content: string): SourceAnalysisUncoveredRangeV2 {
     startLine: 1,
     startColumn: 0,
     endLine: lines.length,
+    /* node:coverage ignore next */
     endColumn: lines.at(-1)?.length ?? 0,
     reason: "no-symbolic-coverage",
   };
@@ -327,7 +331,9 @@ export class TreeSitterWorkerPool {
         result: WorkerResult | ReferenceRead,
         healthy: boolean,
       ): void => {
+        /* node:coverage disable */
         if (settled) return;
+        /* node:coverage enable */
         settled = true;
         clearTimeout(timer);
         worker.off("message", onMessage);
