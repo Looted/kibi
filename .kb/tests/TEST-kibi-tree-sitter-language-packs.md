@@ -21,15 +21,15 @@ id: TEST-kibi-tree-sitter-language-packs
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-0b6342813024b388140ec1af
+    receipt_id: PR-74126cbea17dfa180550d312
     test_id: TEST-kibi-tree-sitter-language-packs
     scope: end_to_end
     outcome: passed
-    code_snapshot: b2edd87f9db88973f9e196f6a0d9024cced12f4a3af6a63e455f5afc217e383a
+    code_snapshot: ae233ba85fc8e99230cc3e20609a04fa173c444cf2abb7e2b38df71416e3cee7
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-31T18:24:43.928Z'
-    finished_at: '2026-10-31T18:26:25.668Z'
-    artifact_digest: bd6f49174ffbb3c4c5cfa1afb5851f2334c4e40e4a3b9dde51b2e807b7a1ddfa
+    started_at: '2026-10-31T18:37:26.895Z'
+    finished_at: '2026-10-31T18:39:07.242Z'
+    artifact_digest: c41946897cdda8ef1da3c4185f3c0c7bf48cb4a1866af03976d4a72081787066
     contract_hash: 666c46c3735bda5801924dbcc821974cfd32b70f230ed17b3aa333dc8a057bcf
     binding_hash: 1b73309aff319d1c57146f9cc7ddbbcd5e36f029672aed2d5a56d5bd4eade5d5
     fingerprint: d1bb1844a5f3b21915897be3766b565cb2aee442c7187e0b9bedb74ac5afbc67

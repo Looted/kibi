@@ -85,7 +85,7 @@ describe("language pack suggestions", () => {
         expect(
           PLUGIN_LANGUAGE_PACKS.find((entry) =>
             entry.pattern.test(`src/file${extension}`),
-          )?.pack,
+          )?.pack as string | undefined,
         ).toBe(language.pack);
   });
 });
