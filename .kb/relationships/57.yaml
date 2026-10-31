@@ -216,3 +216,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a3ac0f5b5345
+  - type: implements
+    from: SYM-reference-language-suggestion
+    to: REQ-kibi-tree-sitter-references
+    created_at: 2026-10-31T16:51:16.802Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a36cd547df2
+  - type: covered_by
+    from: SYM-reference-language-suggestion
+    to: TEST-kibi-tree-sitter-references
+    created_at: 2026-10-31T16:51:16.817Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e14ab54c7647

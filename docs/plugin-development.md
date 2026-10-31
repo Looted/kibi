@@ -1,6 +1,6 @@
 # Developing Kibi capability plugins
 
-Kibi capability plugins extend six host-owned seams without taking over
+Kibi capability plugins extend seven host-owned seams without taking over
 validation, Prolog, mutation, or proof:
 
 1. `kibi.semantic-classifier.v1` — lane / ambiguity classification over host
@@ -13,6 +13,10 @@ validation, Prolog, mutation, or proof:
    `compareClaims` (possible-duplicate candidates for review)
 6. `kibi.check-policy.v1` — data-only `kb_check` policy: ownership and
    pattern-marker rules evaluated by Kibi (see [Check policy](#check-policy))
+7. `kibi.reference-extractor.v1` — what a source file references (imports,
+   calls, environment variables, first arguments, thrown errors, property
+   values), read without running it, for `source` proofs over languages Kibi
+   does not read itself (see [Reference extractor](#reference-extractor))
 
 Every capability is optional for third-party plugins: a plugin declares only
 the capabilities it provides, and plugins written before a capability existed
@@ -282,6 +286,48 @@ no runtime code path. The UI vocabulary it relies on (`ui_pattern`,
 pattern requirements are part of Kibi core. See
 [packages/plugin-ui/README.md](../packages/plugin-ui/README.md) and
 [ui-requirements.md](./ui-requirements.md).
+
+## Reference extractor
+
+`kibi.reference-extractor.v1` serves the `references` source-proof reader
+for languages Kibi does not parse itself. A provider exposes `supports({path})`
+and `extract({path, content, extract, callee?, key?, timeoutMs?})`, and
+returns `{status: "ok", language, members, unresolved}` or a refusal
+(`unsupported` or `failed`, with a `code` and `message`). It lists only what it
+reads exactly and reports every construct it cannot read statically as an
+`unresolved` row with its 1-based line and text; Kibi then refuses the read and
+names those places, so a proof never rests on a guess. Results are checked
+with `validateReferenceExtractionResult` from `kibi-plugin-sdk`. The capability
+activates only in `augment` mode.
+
+A proof is evidence, so the host uses a provider only when its installed files
+match a release-qualified closure Kibi ships (the same list impact review
+uses); an activated but unqualified provider is reported and never imported.
+`kibi-plugin-treesitter` is the qualified provider today and reads Go, Java,
+C# and Rust; see [proving-requirements.md](./proving-requirements.md) for what
+each extract lists and refuses.
+
+```json
+{
+  "devDependencies": { "kibi-plugin-treesitter": "^2.2.0" },
+  "kibi": {
+    "plugins": [
+      {
+        "package": "kibi-plugin-treesitter",
+        "capabilities": {
+          "kibi.symbol-extractor.v2": { "mode": "augment" },
+          "kibi.reference-extractor.v1": { "mode": "augment" }
+        }
+      }
+    ]
+  }
+}
+```
+
+A Go, Java, C# or Rust project without a `package.json` creates one that only
+holds this list (`npm init -y`, then `npm install -D kibi-plugin-treesitter`).
+`kibi init`, `kibi doctor` and `kb_plan_bootstrap` suggest the plugin when
+such sources are tracked and it is not active for proofs.
 
 ## Optional search hints plugin
 

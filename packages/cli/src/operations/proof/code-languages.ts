@@ -77,6 +77,22 @@ export function stripPrologExtension(file: string): string {
 }
 
 /** How a reason names a language. */
+/**
+ * Languages whose references a qualified plugin reads (kibi-plugin-treesitter
+ * through kibi.reference-extractor.v1). Kibi itself runs nothing for them.
+ */
+// implements REQ-kibi-tree-sitter-references
+export const PLUGIN_REFERENCE_LANGUAGES = [
+  { name: "Go", pattern: /\.go$/i },
+  { name: "Java", pattern: /\.java$/i },
+  { name: "C#", pattern: /\.cs$/i },
+  { name: "Rust", pattern: /\.rs$/i },
+] as const;
+
+export function pluginReferenceLanguage(file: string): string | null {
+  return PLUGIN_REFERENCE_LANGUAGES.find((language) => language.pattern.test(file))?.name ?? null;
+}
+
 export const CODE_LANGUAGE_NAMES: Readonly<Record<CodeLanguage, string>> = {
   js: "TypeScript or JavaScript",
   python: "Python",

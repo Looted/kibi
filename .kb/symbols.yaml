@@ -58736,6 +58736,8 @@ symbols:
         target: TEST-kibi-prolog-source-readers
       - type: covered_by
         target: TEST-kibi-source-proof-kinds
+      - type: covered_by
+        target: TEST-kibi-tree-sitter-references
       - type: implements
         target: REQ-kibi-source-proof-kinds
   - id: SYM-code-scope-contract-sources
@@ -66411,3 +66413,96 @@ symbols:
         target: TEST-kibi-prolog-source-readers
       - type: implements
         target: REQ-kibi-prolog-source-readers
+  - id: SYM-e2e-packed-tree-sitter-source-references
+    title: checkTreeSitterSourceReferences
+    status: active
+    sourceFile: documentation/tests/e2e/packed/tree-sitter-source-references.test.ts
+    symbol_role: behavioral
+    tags:
+      - e2e
+    origin:
+      kind: agent
+      recorded_at: 2026-10-31T16:50:53.778Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-tree-sitter-references
+  - id: SYM-tree-sitter-extract-references
+    title: extractReferences
+    status: active
+    sourceFile: packages/plugin-treesitter/src/references.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - plugin
+    origin:
+      kind: agent
+      recorded_at: 2026-10-31T16:50:58.342Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-tree-sitter-references
+      - type: implements
+        target: REQ-kibi-tree-sitter-references
+  - id: SYM-tree-sitter-reference-extractor
+    title: createTreeSitterReferenceExtractor
+    status: active
+    sourceFile: packages/plugin-treesitter/src/extractor.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - plugin
+    origin:
+      kind: agent
+      recorded_at: 2026-10-31T16:51:02.699Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-tree-sitter-references
+      - type: implements
+        target: REQ-kibi-tree-sitter-references
+  - id: SYM-sdk-validate-reference-extraction-result
+    title: validateReferenceExtractionResult
+    status: active
+    sourceFile: packages/plugin-sdk/src/validate-reference-extractor.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - plugin-sdk
+    origin:
+      kind: agent
+      recorded_at: 2026-10-31T16:51:06.942Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-tree-sitter-references
+      - type: implements
+        target: REQ-kibi-tree-sitter-references
+  - id: SYM-load-proof-reference-extractors
+    title: loadProofReferenceExtractors
+    status: active
+    sourceFile: packages/cli/src/plugins/proof-reference-extractors.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - plugin
+    origin:
+      kind: agent
+      recorded_at: 2026-10-31T16:51:11.136Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-tree-sitter-references
+      - type: implements
+        target: REQ-kibi-tree-sitter-references
+  - id: SYM-reference-language-suggestion
+    title: referenceLanguageSuggestion
+    status: active
+    sourceFile: packages/cli/src/plugins/reference-language-suggestion.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - plugin
+    origin:
+      kind: agent
+      recorded_at: 2026-10-31T16:51:15.642Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-tree-sitter-references
+      - type: implements
+        target: REQ-kibi-tree-sitter-references

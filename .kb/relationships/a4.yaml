@@ -475,3 +475,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2b50b13fc15d
+  - type: constrains
+    from: REQ-kibi-tree-sitter-references
+    to: FACT-SUBJECT-KIBI-TREE-SITTER-REFERENCES
+    created_at: 2026-10-31T16:49:16.652Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1cdc00b6a458
+  - type: requires_property
+    from: REQ-kibi-tree-sitter-references
+    to: FACT-kibi-tree-sitter-references-read-statically
+    created_at: 2026-10-31T16:49:16.698Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff0bdcc9fd98
+  - type: requires_property
+    from: REQ-kibi-tree-sitter-references
+    to: FACT-kibi-tree-sitter-references-refuse-hidden
+    created_at: 2026-10-31T16:49:16.737Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a3156e976aa
+  - type: requires_property
+    from: REQ-kibi-tree-sitter-references
+    to: FACT-kibi-tree-sitter-references-name-plugin
+    created_at: 2026-10-31T16:49:16.782Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-556b1a669288
+  - type: specified_by
+    from: REQ-kibi-tree-sitter-references
+    to: SCEN-kibi-tree-sitter-references
+    created_at: 2026-10-31T16:49:16.816Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-092624c5f070
+  - type: specified_by
+    from: REQ-kibi-tree-sitter-references
+    to: SCEN-NEG-kibi-tree-sitter-references-HIDDEN
+    created_at: 2026-10-31T16:49:16.839Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ac9e1b5084a

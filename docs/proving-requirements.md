@@ -585,7 +585,7 @@ list anything. The contract names the source:
 | `json`, `yaml` | `file` at `path` (dotted, or a JSON pointer) | `keys`, `values`, `items` |
 | `glob` | the files `pattern` matches (`capture: true` reads what each `*` and `**` matched, joined with `/`: `i18n/**/*.json` reads `finance/de` from `i18n/finance/de.json`) | |
 | `openapi` | `file`'s operations (`GET /invoices`) | `operations`, `unsecured_operations`, `security_schemes`, `responses` |
-| `references` | the code in `files` (TypeScript, JavaScript, Python, SWI-Prolog): `extract` `env`, `imports`, `calls`, `string_args` (with `callee`), `thrown` (the class of `throw new X()`, or the factory of `throw createX()`) or `property` (with `key`; not in Prolog) | |
+| `references` | the code in `files` (TypeScript, JavaScript, Python, SWI-Prolog; Go, Java, C# and Rust through `kibi-plugin-treesitter`): `extract` `env`, `imports`, `calls`, `string_args` (with `callee`), `thrown` (the class of `throw new X()`, or the factory of `throw createX()`) or `property` (with `key`; not in Prolog) | |
 | `schema` | `format: drizzle` or `prisma` (`file`), or `sql` migrations replayed in order (`files`); `table` filters by name or glob | `tables`, `columns`, `required_columns`, `nullable_columns`, `foreign_keys` |
 | `routes` | a Hono or Express app's route table, with the middleware that runs before each route (mounted routers included); `path_prefix` keeps the routes under a prefix | `routes`, `middleware` |
 | `validator` | a zod or valibot object (or one wrapped in refine, transform or pipe; any field that is a Standard Schema), or a pydantic model | `fields`, `required_fields`, `optional_fields` |
@@ -639,6 +639,41 @@ Details that decide what a reader sees:
   variable called as a goal or closure (`call(Goal)`, `maplist(G, L)`), a
   goal qualified by a variable module, a clause asserted from a variable and
   conditional compilation (`:- if(...)`) fail the read with their place.
+- **Go, Java, C# and Rust.** The references reader hands these files to
+  `kibi-plugin-treesitter`, which parses them in its bounded workers and
+  compiles or runs nothing. Activate it for proofs in `package.json`:
+  `{"package": "kibi-plugin-treesitter", "capabilities":
+  {"kibi.reference-extractor.v1": {"mode": "augment"},
+  "kibi.symbol-extractor.v2": {"mode": "augment"}}}`, with the package in
+  `devDependencies`. A project without a `package.json` creates one that only
+  holds this list. Proofs use the plugin only when its installed files match
+  the release-qualified closure Kibi ships, so a modified or unqualified
+  provider is never imported. Without it the read is refused with what to
+  install, and `kibi init`, `kibi doctor` and `kb_plan_bootstrap` suggest it
+  when such sources are tracked. Members are written as the code names them:
+  `imports` lists Go import paths, Java imports (`java.util.*` for a
+  wildcard), C# `using` targets and Rust `use` paths expanded from their
+  groups (`std::io`, `std::io::Write`) plus `extern crate` names. `calls`
+  lists `os.Getenv`, `System.out.println` (Java method references such as
+  `System.out::println` too), `Console.WriteLine` and `std::env::var`; a
+  method called on an expression Kibi cannot name, such as the result of
+  another call, is `*.name` (`*.toList`). `env` reads `os.Getenv` and
+  `os.LookupEnv`, `System.getenv("X")`,
+  `Environment.GetEnvironmentVariable("X")`, and Rust's `env::var`,
+  `env::var_os`, `env!` and `option_env!`. `string_args` reads the first
+  argument of calls to `callee`. `thrown` lists the type of Go
+  `panic(&ConfigError{})` (or the factory of `panic(errors.New(...))`) and of
+  Java and C# `throw new X()`; a rethrow of the caught exception is not a new
+  error. `property` reads keyed Go composite literals and C# object
+  initializers (`new Options { Mode = "strict" }`); Java and Rust have none.
+  A name computed at run time (`os.Getenv(name)`), the whole environment
+  (`os.Environ()`, `System.getenv()`), reflection (Go `reflect` calls such as
+  `MethodByName`, Java `Class.forName` and `Method.invoke`, C#
+  `Type.GetType` and `Activator.CreateInstance`), a C# `dynamic` variable or
+  `#if` block, a Rust `#[cfg(...)]` item other than `#[cfg(test)]` (whose
+  items are skipped) and, for Rust `calls` and `thrown`, any macro
+  invocation (`println!` included) fail the read with their place. A file
+  that does not parse is refused with its line.
 - **Importing the app.** The `routes`, `validator` and drizzle readers import
   the module, so it must load without side effects (no `listen`, no database
   connection at import). Export a factory or a wrapper when the app needs

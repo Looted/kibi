@@ -363,3 +363,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-06696d911b3a
+  - type: implements
+    from: SYM-load-proof-reference-extractors
+    to: REQ-kibi-tree-sitter-references
+    created_at: 2026-10-31T16:51:12.337Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ee584a61c38
+  - type: covered_by
+    from: SYM-load-proof-reference-extractors
+    to: TEST-kibi-tree-sitter-references
+    created_at: 2026-10-31T16:51:12.366Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad7476226c71

@@ -73,17 +73,19 @@ export const qualifiedSourceAnalyzers = [
       "catalog.json":
         "c10f0cd5d1989abb9543c4e385ba44fa226cad4186613791061b56dbda2497a7",
       "dist/analysis-worker.js":
-        "9ef76ad467f6b4e2a117a3b5656838eb5f096890931ec0480566b76b73fd64db",
+        "a445dcbf3f342a8ad182bcb3b22890e67e016cf9cb72a600fe9c40e8d0087647",
       "dist/catalog.js":
         "c485cd1bf81098c3e2e86d37f78bf9f55af122f5d6b9587c0c57b494d68e4968",
       "dist/extractor.js":
-        "1d8cd819e7ec8fcc291a44e5ffe4ccfe77099301677913fcfe0d92e7ce971f33",
+        "dcd18579815656f93ef2264ad3506e65a7b364c4f4b737d0a8ea0fdea862f0ef",
       "dist/index.js":
-        "adc03d77d94c0133b3188950b35f79db19e447cf7bfa1f7e1cf1f5c97a582a44",
+        "a7dcc81f40848a17a4b7adf4fe573a57a50c18425fab40fbb098489dfd092f3f",
       "dist/performance-timing.js":
         "56cce530f627c8fd079e8ec070322f84378ae50c40a6765d88b418850692940b",
+      "dist/references.js":
+        "1c43d21e21abe87ec9ca4dffc761b7e040db9a699bc197c640089753150b153e",
       "integrity.json":
-        "fabfc50ba1392b4b0f7b9bf39e714de05d093ebfccdcc2225eb9d1fd84ad9a4e",
+        "9cfa8d63eb040c9b7fc3e79072d3b3c3273f3de994daf3c25b6cc93c7f7fec9f",
       "licenses/tree-sitter-bash-MIT.txt":
         "49bf33cf78ef5897e4e161ce1517df7de1ae5042a65b6bcfd44401e0fc606559",
       "licenses/tree-sitter-c-MIT.txt":

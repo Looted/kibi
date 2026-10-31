@@ -580,3 +580,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-15de471c0341
+  - type: executable_for
+    from: SYM-e2e-packed-tree-sitter-source-references
+    to: TEST-kibi-tree-sitter-references
+    created_at: 2026-10-31T16:50:55.037Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4aa1ffce1fe5

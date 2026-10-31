@@ -7196,5 +7196,25 @@
         "./packages/cli/tests/proofs/claims/telemetry-docs-link.proof.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-kibi-tree-sitter-references",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/tree-sitter-source-references.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/plugin-references.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "./packages/plugin-sdk/tests/reference-extractor.test.ts"
+      ]
+    ]
   }
 ]

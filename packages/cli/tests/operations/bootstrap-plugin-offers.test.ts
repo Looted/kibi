@@ -55,6 +55,59 @@ describe("bootstrap plugin offers", () => {
     fixture.cleanup();
   });
 
+  // executable_for TEST-kibi-tree-sitter-references
+  it("offers kibi-plugin-treesitter for Go, Java, C# and Rust sources until it reads proofs", async () => {
+    write(fixture.root, "cmd/server/main.go", "package main\n");
+    write(fixture.root, "src/lib.rs", "pub fn run() {}\n");
+    write(fixture.root, "cmd/server/main_test.go", "package main\n");
+
+    const { pluginOffers } = await discoverBootstrap(runtime(fixture.root));
+    expect(pluginOffers).toEqual([
+      {
+        package: "kibi-plugin-treesitter",
+        capability: "kibi.reference-extractor.v1",
+        mode: "augment",
+        alsoActivate: { "kibi.symbol-extractor.v2": "augment" },
+        reason:
+          '1 Go, 1 Rust source file(s); source proofs and symbols for them need kibi-plugin-treesitter: add it to devDependencies and to package.json kibi.plugins with "kibi.reference-extractor.v1": { "mode": "augment" }, "kibi.symbol-extractor.v2": { "mode": "augment" }',
+        fileCount: 2,
+        evidence: ["cmd/server/main.go", "src/lib.rs"],
+      },
+    ]);
+
+    // Active for symbols only: offer the proof capability alone.
+    setKibiConfig(fixture.root, {
+      plugins: [
+        {
+          package: "kibi-plugin-treesitter",
+          capabilities: { "kibi.symbol-extractor.v2": { mode: "augment" } },
+        },
+      ],
+    });
+    const symbolsOnly = await discoverBootstrap(runtime(fixture.root));
+    expect(
+      symbolsOnly.pluginOffers.map((offer) => [
+        offer.capability,
+        offer.alsoActivate,
+      ]),
+    ).toEqual([["kibi.reference-extractor.v1", undefined]]);
+
+    setKibiConfig(fixture.root, {
+      plugins: [
+        {
+          package: "kibi-plugin-treesitter",
+          capabilities: {
+            "kibi.symbol-extractor.v2": { mode: "augment" },
+            "kibi.reference-extractor.v1": { mode: "augment" },
+          },
+        },
+      ],
+    });
+    expect(
+      (await discoverBootstrap(runtime(fixture.root))).pluginOffers,
+    ).toEqual([]);
+  });
+
   it("offers kibi-plugin-ui when production component files exist", async () => {
     write(
       fixture.root,

@@ -1,7 +1,13 @@
 import path from "node:path";
 
+import type { ProjectKibiConfig, ProjectPluginEntry } from "kibi-plugin-sdk";
+import {
+  describeReferenceLanguageSuggestion,
+  referenceLanguageSuggestion,
+} from "../../plugins/reference-language-suggestion.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import { KB_PATHS } from "../../utils/kb-paths.js";
+import { pluginReferenceLanguage } from "../proof/code-languages.js";
 
 /** An optional plugin bootstrap offers because the workspace looks like it fits. */
 // implements REQ-bootstrap-ui-plugin-offer
@@ -13,6 +19,8 @@ export type PluginOffer = {
   readonly reason: string;
   readonly fileCount: number;
   readonly evidence: readonly string[];
+  /** Further capabilities of the same package to activate, with their modes. */
+  readonly alsoActivate?: Readonly<Record<string, "augment" | "replace">>;
 };
 
 const UI_PLUGIN = "kibi-plugin-ui";
@@ -29,6 +37,55 @@ const HINTS_CAPABILITY = "kibi.search-hints.v1";
  */
 // implements REQ-kibi-plugin-search-hints
 export const SEARCH_HINTS_OFFER_REQUIREMENTS = 50;
+
+/** The project's kibi block as written, for offers that look at capabilities. */
+function kibiConfigOf(manifest: unknown): ProjectKibiConfig {
+  if (typeof manifest !== "object" || manifest === null) return {};
+  const kibi = (manifest as Record<string, unknown>).kibi;
+  if (typeof kibi !== "object" || kibi === null || Array.isArray(kibi))
+    return {};
+  const { plugins, declinedPlugins } = kibi as Record<string, unknown>;
+  return {
+    plugins: Array.isArray(plugins)
+      ? plugins.flatMap((entry) => {
+          if (typeof entry !== "object" || entry === null) return [];
+          const { package: name, capabilities } = entry as Record<
+            string,
+            unknown
+          >;
+          return typeof name === "string"
+            ? [
+                {
+                  package: name,
+                  capabilities:
+                    typeof capabilities === "object" && capabilities !== null
+                      ? (capabilities as ProjectPluginEntry["capabilities"])
+                      : {},
+                },
+              ]
+            : [];
+        })
+      : [],
+    declinedPlugins: Array.isArray(declinedPlugins)
+      ? declinedPlugins.filter(
+          (name): name is string => typeof name === "string",
+        )
+      : [],
+  };
+}
+
+async function readManifest(context: OperationContext): Promise<unknown> {
+  try {
+    if (!context.fs) return undefined;
+    return JSON.parse(
+      await context.fs.readFile(
+        path.join(context.workspaceRoot, "package.json"),
+      ),
+    );
+  } catch {
+    return undefined;
+  }
+}
 
 /** Plugin names the project activated or declined, from its package.json. */
 async function configuredPlugins(
@@ -90,9 +147,11 @@ async function requirementFiles(
  * offered when production React or Angular component files exist, and
  * kibi-plugin-search-hints once the KB holds enough requirements that a
  * question worded differently from them is likely to miss; neither is
- * offered once the project activated or declined it.
+ * offered once the project activated or declined it. kibi-plugin-treesitter
+ * is offered for Go, Java, C# and Rust sources until it is active for
+ * source proofs.
  */
-// implements REQ-bootstrap-ui-plugin-offer, REQ-kibi-plugin-search-hints
+// implements REQ-bootstrap-ui-plugin-offer, REQ-kibi-plugin-search-hints, REQ-kibi-tree-sitter-references
 export async function pluginOffers(
   context: OperationContext,
   files: readonly string[],
@@ -102,10 +161,40 @@ export async function pluginOffers(
   );
   const requirements = await requirementFiles(context);
   const wantsHints = requirements.length >= SEARCH_HINTS_OFFER_REQUIREMENTS;
-  if (uiFiles.length === 0 && !wantsHints) return [];
+  const wantsReferences = files.some(
+    (file) => pluginReferenceLanguage(file) !== null,
+  );
+  if (uiFiles.length === 0 && !wantsHints && !wantsReferences) return [];
   const configured = await configuredPlugins(context);
   if (configured === undefined) return [];
   const offers: PluginOffer[] = [];
+  const references = wantsReferences
+    ? referenceLanguageSuggestion(
+        files,
+        kibiConfigOf(await readManifest(context)),
+      )
+    : null;
+  if (references !== null) {
+    const [capability, ...more] = references.capabilities;
+    offers.push({
+      package: references.package,
+      capability: capability as string,
+      mode: "augment",
+      reason: describeReferenceLanguageSuggestion(references),
+      fileCount: references.languages.reduce(
+        (total, language) => total + language.files,
+        0,
+      ),
+      evidence: references.evidence,
+      ...(more.length > 0
+        ? {
+            alsoActivate: Object.fromEntries(
+              more.map((name) => [name, "augment" as const]),
+            ),
+          }
+        : {}),
+    });
+  }
   if (uiFiles.length > 0 && !configured.has(UI_PLUGIN))
     offers.push({
       package: UI_PLUGIN,

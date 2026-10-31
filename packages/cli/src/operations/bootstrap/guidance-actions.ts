@@ -117,7 +117,17 @@ export function buildActions(
       capability: offer.capability,
       mode: offer.mode,
       evidence: offer.evidence,
-      description: `${offer.reason} (${summary(offer.evidence)}). Ask the operator whether to enable the experimental ${offer.package}; on yes, install it as a dev dependency and add it to package.json kibi.plugins with "${offer.capability}": { "mode": "${offer.mode}" }; on no, add "${offer.package}" to kibi.declinedPlugins so bootstrap stops offering it.`,
+      ...(offer.alsoActivate === undefined
+        ? {}
+        : { alsoActivate: offer.alsoActivate }),
+      description: `${offer.reason} (${summary(offer.evidence)}). Ask the operator whether to enable the experimental ${offer.package}; on yes, install it as a dev dependency and add it to package.json kibi.plugins with ${[
+        [offer.capability, offer.mode] as const,
+        ...Object.entries(offer.alsoActivate ?? {}),
+      ]
+        .map(([capability, mode]) => `"${capability}": { "mode": "${mode}" }`)
+        .join(
+          ", ",
+        )}; on no, add "${offer.package}" to kibi.declinedPlugins so bootstrap stops offering it.`,
     });
   result.push({
     order,

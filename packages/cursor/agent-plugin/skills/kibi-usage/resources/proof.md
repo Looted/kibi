@@ -262,7 +262,8 @@ left:
   each list item, such as the `run` of each workflow step), `glob` (`pattern`, `capture`),
   `openapi` (`file`, `select: operations|unsecured_operations|...`),
   `references` (`files`, `extract: env|imports|calls|string_args|thrown|
-  property`; TypeScript, JavaScript, Python and SWI-Prolog files), `schema` (`format: drizzle|prisma|sql`, `select:
+  property`; TypeScript, JavaScript, Python and SWI-Prolog files, and Go,
+  Java, C# and Rust files through `kibi-plugin-treesitter`), `schema` (`format: drizzle|prisma|sql`, `select:
   tables|columns|required_columns|nullable_columns|foreign_keys`), `routes`
   (Hono or Express app export, `path_prefix`, `names_from`, `select:
   routes|middleware`) or `validator` (zod, valibot or pydantic, `select:
@@ -291,6 +292,22 @@ left:
   The builders need kibi-cli 2.33.0 or newer in the project. The env
   extractor reads `process.env`, `import.meta.env`, `Bun.env`,
   `Deno.env.get`, `os.environ` and `os.getenv`, through casts.
+- `references` over Go, Java, C# or Rust needs `kibi-plugin-treesitter` in
+  `devDependencies` and activated for proofs:
+  `"kibi.reference-extractor.v1": { "mode": "augment" }` in its
+  `kibi.plugins` entry (next to `"kibi.symbol-extractor.v2"`). A project
+  with no `package.json` creates one that only holds this list. Without it
+  the read is refused with what to install, so ask the operator before
+  installing; `kibi doctor` names what the project needs. Members are
+  written as the code names them (`os.Getenv`, `System.out.println`,
+  `Console.WriteLine`, `std::env::var`, Go import paths, `java.util.*`,
+  `std::io::Write`); a method on an expression Kibi cannot name is
+  `*.name`, so write a never-call claim on the name the code uses
+  (`System.exit`). Reflection, a name computed at run time, the whole
+  environment, C# `dynamic` and `#if`, Rust `#[cfg(...)]` items other than
+  `#[cfg(test)]`, and any macro for Rust `calls` and `thrown` fail the
+  read with their place: narrow `files` or model a claim the code can
+  show (Rust `calls` over a file with `println!` is always refused).
 
 `arithmetic` and `smt` from `constraint_source` alone prove that the
 knowledge base's facts entail the claim, not that code follows the facts:

@@ -12,6 +12,12 @@ import type {
 import { Language, Parser, Query } from "web-tree-sitter";
 import type { Node } from "web-tree-sitter";
 import type { TreeSitterLanguage } from "./catalog.js";
+import {
+  type ReferenceRead,
+  type ReferenceRequest,
+  extractReferences,
+  isReferenceLanguage,
+} from "./references.js";
 
 const MAX_SYMBOLS = 10_000;
 const QUERY_MATCH_LIMIT = 16_384;
@@ -24,6 +30,8 @@ interface AnalysisWorkerInput {
   readonly language: TreeSitterLanguage;
   readonly content: string;
   readonly performanceTimingEnabled?: boolean;
+  /** Present for a reference read instead of a symbol analysis. */
+  readonly references?: ReferenceRequest;
 }
 
 interface AnalysisWorkerTimings {
@@ -1990,6 +1998,43 @@ async function run(input: AnalysisWorkerInput): Promise<AnalysisWorkerResult> {
   }
 }
 
+/** Parse once and read one reference extract; nothing in the file runs. */
+async function runReferences(
+  input: AnalysisWorkerInput & { readonly references: ReferenceRequest },
+): Promise<ReferenceRead> {
+  if (!isReferenceLanguage(input.language))
+    return {
+      ok: false,
+      code: "TREESITTER_REFERENCES_UNSUPPORTED",
+      message: `no reference reader for ${input.language}`,
+    };
+  try {
+    const { parser } = await grammarFor(input.language);
+    parser.reset();
+    const tree = parser.parse(input.content);
+    if (tree === null)
+      return {
+        ok: false,
+        code: "TREESITTER_PARSE_FAILED",
+        message: "The Tree-sitter runtime returned no syntax tree.",
+      };
+    try {
+      return extractReferences(input.language, tree.rootNode, input.references);
+    } finally {
+      tree.delete();
+    }
+  } catch (error) {
+    return {
+      ok: false,
+      code: "TREESITTER_RUNTIME_ERROR",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Unknown parser runtime error.",
+    };
+  }
+}
+
 if (parentPort === null)
   throw new Error("Tree-sitter worker requires a parent port.");
 globalThis.fetch = async () => {
@@ -2000,5 +2045,12 @@ globalThis.fetch = async () => {
 const port = parentPort;
 // The host sends one request at a time and waits for its reply.
 port.on("message", (input: AnalysisWorkerInput) => {
-  void run(input).then((result) => port.postMessage({ id: input.id, result }));
+  const { references } = input;
+  const result =
+    references === undefined
+      ? run(input)
+      : runReferences({ ...input, references });
+  void result.then((value: AnalysisWorkerResult | ReferenceRead) =>
+    port.postMessage({ id: input.id, result: value }),
+  );
 });
