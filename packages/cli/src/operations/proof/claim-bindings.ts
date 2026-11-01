@@ -24,6 +24,7 @@ import {
   runOperationJsonQuery,
   toPrologAtom,
 } from "../../public/operations/prolog-json.js";
+import { loadEntities } from "../../public/operations/discovery-entities.js";
 import { matchWorkspaceFiles } from "../../public/proof-sources.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import type { ProofContract } from "../../public/proof-protocol.js";
@@ -383,6 +384,37 @@ export function environmentGetterCallee(callee: string): boolean {
 
 const CLOSED_OPERATORS = new Set(["eq", "subset_of", "excludes"]);
 
+const FILE_NAME_TOKEN = /[A-Za-z0-9_][A-Za-z0-9_./-]*\.[A-Za-z0-9]{1,10}\b/g;
+
+/**
+ * The project files a claim names in its subject key or claim text (for
+ * example `src/match.c` or `utils.sh`): a token resolves to the file at that
+ * path, else to every project file with that name. Tokens that name no
+ * file (dotted subject keys such as `kibi.cli`) resolve to nothing.
+ */
+// implements REQ-kibi-source-proof-kinds
+export function namedClaimFiles(
+  workspaceRoot: string,
+  texts: readonly string[],
+): Map<string, string[]> {
+  const named = new Map<string, string[]>();
+  for (const value of texts) {
+    for (const match of value.matchAll(FILE_NAME_TOKEN)) {
+      const token = match[0].replace(/^\.\//, "").replace(/[./-]+$/, "");
+      if (named.has(token) || !/\.[A-Za-z0-9]{1,10}$/.test(token)) continue;
+      if (token.includes("*") || token.startsWith("/")) continue;
+      const exact = matchWorkspaceFiles(workspaceRoot, [token]);
+      const files =
+        exact.length > 0
+          ? exact
+          : matchWorkspaceFiles(workspaceRoot, [`**/${token}`]);
+      if (files.length > 0) named.set(token, files);
+    }
+  }
+  return named;
+}
+
+
 type SourceScopeCheck = (row: ObligationRow) => Promise<string | null>;
 
 /**
@@ -447,6 +479,18 @@ async function sourceScopeCheck(
         how: `implements ${row.requirement_id}`,
       })),
     ];
+    if (row.fact_id && context.prolog !== undefined) {
+      const [fact] = await loadEntities(context.prolog, { id: row.fact_id, type: "fact" });
+      const named = namedClaimFiles(context.workspaceRoot, [
+        text(fact?.subject_key),
+        text(fact?.claim_text),
+      ]);
+      const unread = [...named].filter(([, paths]) => !paths.some((file) => read.has(file)));
+      if (unread.length > 0) {
+        const [token, paths] = unread[0] as [string, string[]];
+        return `the claim is about ${token}${paths[0] !== token ? ` (${paths.slice(0, 3).join(", ")})` : ""}, which the read does not include. Kibi decides the claim only on the files it reads, so add that file to files; if Kibi cannot read it, the claim cannot be decided`;
+      }
+    }
     const outside: string[] = [];
     for (const { id, how } of linked) {
       const file = await fileOf(id);

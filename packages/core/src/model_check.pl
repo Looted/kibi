@@ -322,7 +322,10 @@ relation_problem("excludes", Actual, Expected, What, Reason) :-
 %              java.sql.Connection), a member under the prefix of E* (java.sql.*
 %              covers java.sql.Connection), a wildcard import that may bring E
 %              in, a shorter name E ends with (File.delete may be
-%              java.io.File.delete), and *.m when E ends in .m (it may be E).
+%              java.io.File.delete), a longer name ending in E at a segment
+%              boundary (checkNotNull may be named by
+%              com.google.common.base.Preconditions.checkNotNull), and *.m
+%              when E ends in .m (it may be E).
 %   includes   E holds only on a member that certainly is E: E itself, a
 %              member under the prefix of E*, or a member ending in .m for *.m.
 %              *.m never satisfies X.m.
@@ -411,6 +414,8 @@ exclude_match(Actual, Expected, How) :-
     ->  How = certain
     ;   ends_with_method(Expected, Actual)
     ->  How = possible
+    ;   ends_with_method(Actual, Expected)
+    ->  How = possible
     ).
 
 % certain_match(+Actual, +Expected): Actual certainly is what Expected names
@@ -451,6 +456,8 @@ excluded_text(Files, Actual-Expected-How, Text) :-
         format(string(Text), "~w (a call of ~w on a receiver Kibi cannot name, in ~w; it may be ~w)", [Actual, Method, Where, Expected])
     ;   pattern_stem(Actual, _)
     ->  format(string(Text), "~w (a wildcard that may cover ~w)", [Actual, Expected])
+    ;   ends_with_method(Actual, Expected)
+    ->  format(string(Text), "~w (it may be the ~w the fact excludes)", [Actual, Expected])
     ;   format(string(Text), "~w (a shorter name that may be ~w)", [Actual, Expected])
     ).
 
