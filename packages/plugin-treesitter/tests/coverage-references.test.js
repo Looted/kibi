@@ -174,7 +174,13 @@ describe("Java reference reader edge cases", () => {
       "}",
     ].join("\n");
     const calls = await read("A.java", source, "calls");
-    assert.deepEqual(calls.members, ["*.add", "*.run", "a.run", "super.close"]);
+    // A cast names its type; an undeclared lowercase name is a field.
+    assert.deepEqual(calls.members, [
+      "*.add",
+      "*.run",
+      "Runnable.run",
+      "super.close",
+    ]);
     // A qualified spelling of a reflection entry point is still reflection.
     assert.deepEqual(calls.lines, [7]);
   });
@@ -260,21 +266,22 @@ describe("C# reference reader edge cases", () => {
     assert.deepEqual(calls.members, [
       "*.C",
       "List.Create",
-      "Make",
       "a.B",
       "base.Y",
       "this.X",
     ]);
-    // A conditional access, a cast result and qualified reflection: refused.
-    assert.deepEqual(calls.lines, [9, 12, 13]);
+    // A bare call the file does not declare, a conditional access, a cast
+    // result and qualified reflection: refused.
+    assert.deepEqual(calls.lines, [5, 9, 12, 13]);
   });
 
   it("lists method groups it can name and skips ones it cannot", async () => {
     const source =
       "class A { void F() { Run(Helpers.Format); Run(items[0].Format); } }\n";
     const calls = await read("A.cs", source, "calls");
-    assert.deepEqual(calls.members, ["Helpers.Format", "Run"]);
-    assert.deepEqual(calls.lines, []);
+    assert.deepEqual(calls.members, ["Helpers.Format"]);
+    // `Run` is no method of A: a base type's or a `using static` type's.
+    assert.deepEqual(calls.lines, [1]);
   });
 
   it("decodes verbatim strings and refuses raw, UTF-8 and commented arguments", async () => {
@@ -362,11 +369,12 @@ describe("Rust reference reader edge cases", () => {
     assert.deepEqual(imports.lines, []);
   });
 
-  it("refuses a macro in item position for imports", async () => {
-    const source = "use std::io;\nimports! {}\nfn f() { inner!(); }\n";
+  it("refuses a macro in item position or a project macro for imports", async () => {
+    const source =
+      'use std::io;\nimports! {}\nfn f() { inner!(); println!("x"); }\n';
     const imports = await read("a.rs", source, "imports");
     assert.deepEqual(imports.members, ["std::io"]);
-    assert.deepEqual(imports.lines, [2]);
+    assert.deepEqual(imports.lines, [2, 3]);
   });
 
   it("refuses bare calls after a rootless wildcard use", async () => {

@@ -376,3 +376,534 @@ describe("agent-test regressions: no false proof", () => {
     assert.deepEqual((await inline("A.java", java, "env")).lines, [1]);
   });
 });
+
+describe("round-2 agent-test regressions: exact or refuse", () => {
+  const go = (lines) => `package a\n${lines.join("\n")}\n`;
+
+  it("does not take a Go local os in a block, parameter, closure, range or type switch for the package", async () => {
+    const source = go([
+      'import "os"',
+      "func f(v any) {",
+      '\t_ = os.Getenv("REAL_BEFORE")',
+      '\t{ os := fake{}; _ = os.Getenv("BLOCK") }',
+      '\tg := func(os fake) { _ = os.Getenv("CLOSURE") }',
+      '\tfor _, os := range fakes { _ = os.Getenv("RANGE") }',
+      '\tswitch os := v.(type) { case fake: _ = os.Getenv("SWITCH") }',
+      '\tselect { case os := <-ch: _ = os.Getenv("RECEIVE") }',
+      '\tif os := (fake{}); true { _ = os.Getenv("IF") }',
+      '\tfor os := (fake{}); ok; { _ = os.Getenv("FOR") }',
+      '\t{ var os, b = fake{}, 1; _ = os.Getenv("VAR"); _ = b }',
+      "\t{",
+      "\t\tvar (",
+      "\t\t\tos = fake{}",
+      "\t\t)",
+      '\t\t_ = os.Getenv("GROUP")',
+      "\t}",
+      "\t{ const os = 1; type c = int }",
+      "\t_ = g",
+      '\tos := os.Getenv("SELF")',
+      "\t_ = os",
+      "}",
+      'func h(os fake) string { return os.Getenv("PARAM") }',
+      'func (os fake) m() string { return os.Getenv("RECEIVER") }',
+    ]);
+    const env = await inline("a.go", source, "env");
+    // `os := os.Getenv("SELF")` reads the package: a name binds after its
+    // declaration ends.
+    assert.deepEqual(env.members, ["REAL_BEFORE", "SELF"]);
+    assert.deepEqual(env.lines, []);
+    const calls = await inline("a.go", source, "calls");
+    assert.ok(calls.members.includes("*.Getenv"), String(calls.members));
+    assert.ok(calls.members.includes("os.Getenv"), String(calls.members));
+  });
+
+  it("does not take a Go package imported as os, or a non-standard os, for the standard library", async () => {
+    const aliased = go([
+      'import os "github.com/joho/godotenv"',
+      'func f() { _ = os.Getenv("NOT_STD") }',
+    ]);
+    assert.deepEqual(await inline("a.go", aliased, "env"), {
+      members: [],
+      lines: [],
+    });
+    assert.deepEqual((await inline("a.go", aliased, "calls")).members, [
+      '"github.com/joho/godotenv".Getenv',
+    ]);
+    const path = go([
+      'import "example.com/fake/os"',
+      'func f() { _ = os.Getenv("NOT_STD") }',
+    ]);
+    assert.deepEqual((await inline("a.go", path, "env")).members, []);
+    const renamed = go([
+      'import e "example.com/x/os"',
+      'func f() { _ = e.Getenv("NOT_STD") }',
+    ]);
+    assert.deepEqual((await inline("a.go", renamed, "env")).members, []);
+    // A versioned module path is used under its package name.
+    const versioned = go([
+      'import "github.com/go-chi/chi/v5"',
+      'import "gopkg.in/yaml.v3"',
+      "func f() { chi.NewRouter(); yaml.Marshal(nil) }",
+    ]);
+    assert.deepEqual((await inline("a.go", versioned, "calls")).members, [
+      "chi.NewRouter",
+      "yaml.Marshal",
+    ]);
+  });
+
+  it("refuses Go env reads through cgo, linkname and an Environ method", async () => {
+    const cgo = go([
+      "// #include <stdlib.h>",
+      'import "C"',
+      'func f() { _ = C.GoString(C.getenv(C.CString("ADMIN_TOKEN"))) }',
+    ]);
+    assert.deepEqual((await inline("a.go", cgo, "env")).lines, [3]);
+    const environ = go([
+      'import "os/exec"',
+      "func f() {",
+      '\t_ = exec.Command("true").Environ()',
+      '\tcmd := exec.Command("x")',
+      "\t_ = cmd.Environ()",
+      "\tenv := cmd.Environ",
+      "\t_ = env",
+      "}",
+    ]);
+    assert.deepEqual((await inline("a.go", environ, "env")).lines, [4, 6, 7]);
+    const linkname = go([
+      'import _ "unsafe"',
+      "//go:linkname getenv os.Getenv",
+      "func getenv(string) string",
+      'func f() { getenv("X") }',
+    ]);
+    assert.deepEqual((await inline("a.go", linkname, "env")).lines, [3]);
+    assert.deepEqual((await inline("a.go", linkname, "calls")).lines, [3]);
+  });
+
+  it("lists a Go method on a logger from a package under that package too", async () => {
+    const source = go([
+      'import "github.com/sirupsen/logrus"',
+      "type service struct { log *logrus.Logger }",
+      "type plain struct{ n int }",
+      "func (s *service) Do(err error, p *plain) {",
+      "\tlogrus.StandardLogger().Error(err)",
+      "\tl := logrus.StandardLogger()",
+      '\tl.Errorf("%v", err)',
+      '\tlogrus.WithField("k", 1).WithError(err)',
+      "\ts.log.Warn(err)",
+      "\t(*logrus.Logger).Fatal(l, err)",
+      "\t_ = err.Error()",
+      "\tp.Close()",
+      "\tlogrus.Infoln(err)",
+      "\tundeclared.Run()",
+      "\t(&logrus.Logger{}).Panic(err)",
+      "\t[]plain{}[0].Open()",
+      "}",
+    ]);
+    const calls = await inline("a.go", source, "calls");
+    for (const name of [
+      "logrus.Error",
+      "logrus.Errorf",
+      "logrus.WithError",
+      "logrus.Warn",
+      "logrus.Fatal",
+      "logrus.Infoln",
+      "logrus.Panic",
+    ])
+      assert.ok(calls.members.includes(name), `${name}: ${calls.members}`);
+    // A method on a value of no package is only `*.name`.
+    assert.ok(!calls.members.includes("logrus.Close"), String(calls.members));
+    assert.ok(!calls.members.includes("logrus.Open"), String(calls.members));
+    assert.ok(calls.members.includes("*.Close"), String(calls.members));
+    // An undeclared receiver may be a package whose name the reader cannot
+    // guess: it is listed as spelled.
+    assert.ok(calls.members.includes("undeclared.Run"), String(calls.members));
+    assert.deepEqual(calls.lines, []);
+    const args = go([
+      'import "github.com/sirupsen/logrus"',
+      'func f() { l := logrus.New(); l.Error("boom") }',
+    ]);
+    assert.deepEqual(
+      (await inline("a.go", args, "string_args", { callee: "logrus.Error" }))
+        .members,
+      ["boom"],
+    );
+  });
+
+  it("names Java receivers by their declared type, cast or factory and refuses unknown ones for JDK callees", async () => {
+    const source = [
+      "class K {",
+      "  Runtime field;",
+      "  void f(Runtime p, String... rest) {",
+      '    String a = ((System) null).getenv("K_NULLCAST");',
+      "    Runtime.getRuntime().exit(2);",
+      "    java.lang.Runtime.getRuntime().halt(2);",
+      "    Runtime r = Runtime.getRuntime();",
+      "    r.exit(4);",
+      "    p.exit(5);",
+      "    this.field.exit(6);",
+      "    for (Runtime e : all) { e.exit(7); }",
+      "    new Thread(task).start();",
+      "  }",
+      "}",
+    ].join("\n");
+    assert.deepEqual(await inline("A.java", source, "env"), {
+      members: ["K_NULLCAST"],
+      lines: [],
+    });
+    const calls = await inline("A.java", source, "calls");
+    for (const name of [
+      "Runtime.exit",
+      "java.lang.Runtime.exit",
+      "Runtime.halt",
+      "System.getenv",
+      "Thread.start",
+    ])
+      assert.ok(calls.members.includes(name), `${name}: ${calls.members}`);
+    assert.deepEqual(calls.lines, []);
+    // An unknown receiver of a JDK callee's method may be that callee.
+    const unknown = [
+      "class K {",
+      "  void f(java.util.function.Supplier<Runtime> s) {",
+      "    s.get().exit(5);",
+      "    var v = Runtime.getRuntime();",
+      '    v.exec("rm");',
+      "    inherited.halt(1);",
+      "    Helper.exit(1);",
+      '    java.util.function.Function<Cfg, String> fn = x -> x.getenv("L");',
+      '    try (var t = open()) { t.load("lib"); } catch (Exception ex) { ex.exit(); }',
+      "    other.list();",
+      "    this.exit();",
+      "    this.missing.exit();",
+      "    (r).run.exit();",
+      "    java.util.function.BiConsumer<A, B> bc = (u, w) -> w.halt(1);",
+      "  }",
+      "}",
+    ].join("\n");
+    assert.deepEqual(
+      (await inline("A.java", unknown, "calls")).lines,
+      [3, 5, 6, 7, 8, 9, 12, 13, 14],
+    );
+    assert.deepEqual((await inline("A.java", unknown, "env")).lines, [8]);
+    assert.deepEqual(
+      (
+        await inline("A.java", unknown, "string_args", {
+          callee: "Runtime.exec",
+        })
+      ).lines,
+      [5],
+    );
+  });
+
+  it("reads Java imports without comments or spaces and lets an import or a declared class shadow java.lang", async () => {
+    const imports = [
+      "import java.sql./*x*/Connection;",
+      "import java . sql . Driver;",
+      "import static java . lang . System . getenv;",
+      'class A { void f() { getenv("S"); } }',
+    ].join("\n");
+    assert.deepEqual((await inline("A.java", imports, "imports")).members, [
+      "java.lang.System.getenv",
+      "java.sql.Connection",
+      "java.sql.Driver",
+    ]);
+    assert.deepEqual((await inline("A.java", imports, "env")).members, ["S"]);
+    const other =
+      'import other.System;\nclass A { String a() { return System.getenv("K_OTHER"); } }\n';
+    assert.deepEqual(await inline("A.java", other, "env"), {
+      members: [],
+      lines: [],
+    });
+    assert.deepEqual((await inline("A.java", other, "calls")).members, [
+      "other.System.getenv",
+    ]);
+    const nested = [
+      "package p;",
+      "class J12 {",
+      "  static class System { static String getenv(String k) { return k; } }",
+      '  String a() { return System.getenv("SHADOWED"); }',
+      "}",
+      'class B { String b() { return System.getenv("REAL"); } }',
+    ].join("\n");
+    assert.deepEqual(await inline("A.java", nested, "env"), {
+      members: ["REAL"],
+      lines: [],
+    });
+    assert.ok(
+      (await inline("A.java", nested, "calls")).members.includes(
+        "p.J12.System.getenv",
+      ),
+    );
+    const unnamed =
+      'class J12 { static class System {} String a() { return System.getenv("N"); } }\n';
+    assert.deepEqual((await inline("A.java", unnamed, "calls")).members, [
+      "J12.System.getenv",
+    ]);
+    // A top-level System of the default package has no other name: refused.
+    const top =
+      'class System { static String getenv(String k) { return k; } String a() { return System.getenv("X"); } }\n';
+    assert.deepEqual((await inline("A.java", top, "env")).lines, [1]);
+    // A local variable named System obscures the type.
+    const local =
+      'class A { String a() { Cfg System = new Cfg(); return System.getenv("L"); } }\n';
+    assert.deepEqual(await inline("A.java", local, "env"), {
+      members: [],
+      lines: [1],
+    });
+  });
+
+  it("refuses a C# bare call the file cannot place and qualifies one it can", async () => {
+    const source = [
+      "using static App.Program;",
+      "namespace App.Events",
+      "{",
+      "    class ReadyEvent",
+      "    {",
+      "        System.Func<int> handler;",
+      "        async void Run(System.Action done)",
+      "        {",
+      '            await RunShellCommand("git pull");',
+      "            Helper();",
+      "            done();",
+      "            handler();",
+      "            void Local() {}",
+      "            Local();",
+      "            System.Action<int> cb = (n) => n.ToString();",
+      "            System.Action<int> cb2 = n => n.ToString();",
+      "            System.Action<System.Action> cb3 = x => x();",
+      "            foreach (var f in handlers) { f(); }",
+      "            global::Tools.Run();",
+      "            System.Start();",
+      "        }",
+      "        void Helper() {}",
+      "    }",
+      "}",
+    ].join("\n");
+    const calls = await inline("A.cs", source, "calls");
+    assert.deepEqual(calls.lines, [9]);
+    for (const name of [
+      "Helper",
+      "ReadyEvent.Helper",
+      "App.Events.ReadyEvent.Helper",
+      "done",
+      "handler",
+      "Local",
+      "x",
+      "f",
+      "global::Tools.Run",
+      "Tools.Run",
+      "Start",
+    ])
+      assert.ok(calls.members.includes(name), `${name}: ${calls.members}`);
+    assert.ok(
+      !calls.members.includes("App.Program.RunShellCommand"),
+      String(calls.members),
+    );
+    assert.deepEqual(
+      (
+        await inline("A.cs", source, "string_args", {
+          callee: "App.Helpers.ShellCommand.RunShellCommand",
+        })
+      ).lines,
+      [9],
+    );
+    // A file-scoped namespace names the owner too.
+    const scoped =
+      "namespace N.M;\nclass A { void F() { G(); } void G() {} }\n";
+    assert.ok(
+      (await inline("A.cs", scoped, "calls")).members.includes("N.M.A.G"),
+    );
+  });
+
+  it("refuses C# env reads a project-wide using static or alias may supply", async () => {
+    const global = [
+      "class C16",
+      "{",
+      "    void F()",
+      "    {",
+      '        var a = GetEnvironmentVariable("C_VIA_GLOBAL_STATIC");',
+      '        var b = GE.GetEnvironmentVariable("C_VIA_GLOBAL_ALIAS");',
+      "        Run(GetEnvironmentVariables);",
+      "    }",
+      "}",
+    ].join("\n");
+    assert.deepEqual(await inline("A.cs", global, "env"), {
+      members: [],
+      lines: [5, 6, 7],
+    });
+    assert.deepEqual((await inline("A.cs", global, "calls")).lines, [5, 6, 7]);
+    assert.deepEqual(
+      (
+        await inline("A.cs", global, "string_args", {
+          callee: "System.Environment.GetEnvironmentVariable",
+        })
+      ).lines,
+      [5, 6],
+    );
+    // Two `using static` types may both own the name.
+    const two = [
+      "using static System.Environment;",
+      "using static App.Program;",
+      'class C { void F() { GetEnvironmentVariable("TWO"); } }',
+    ].join("\n");
+    assert.deepEqual((await inline("A.cs", two, "env")).lines, [3]);
+    // A method the file declares is the file's own.
+    const own =
+      'class C { string GetEnvironmentVariable(string k) => k; void F() { GetEnvironmentVariable("OWN"); var x = nameof(GetEnvironmentVariable); } }\n';
+    assert.deepEqual(await inline("A.cs", own, "env"), {
+      members: [],
+      lines: [],
+    });
+  });
+
+  it("lists a C# using static method group and reads verbatim identifiers", async () => {
+    const group = [
+      "using static System.Environment;",
+      'class C05 { void F() { System.Func<string, string?> g = GetEnvironmentVariable; g("X"); } }',
+    ].join("\n");
+    const calls = await inline("A.cs", group, "calls");
+    assert.ok(
+      calls.members.includes("System.Environment.GetEnvironmentVariable"),
+      String(calls.members),
+    );
+    assert.deepEqual((await inline("A.cs", group, "env")).lines, [2]);
+    const verbatim = [
+      "using @System;",
+      "class N04",
+      "{",
+      '    void F() { @Environment.@GetEnvironmentVariable("N_VERBATIM_ID"); }',
+      "    System.Func<string, string?> G() { return Environment.GetEnvironmentVariable; }",
+      "}",
+    ].join("\n");
+    assert.deepEqual((await inline("A.cs", verbatim, "env")).members, [
+      "N_VERBATIM_ID",
+    ]);
+    const verbatimCalls = (await inline("A.cs", verbatim, "calls")).members;
+    assert.ok(
+      verbatimCalls.includes("System.Environment.GetEnvironmentVariable"),
+      String(verbatimCalls),
+    );
+    assert.ok(
+      (await inline("A.cs", verbatim, "imports")).members.includes("System"),
+    );
+  });
+
+  it("refuses Rust env reads and imports a project macro, include! or nested env! may hide", async () => {
+    const env = [
+      "use std::env;",
+      'macro_rules! secret { () => { env::var("SECRET_TOKEN") }; }',
+      "fn f() {",
+      "    let _t = secret!();",
+      '    include!("hidden.inc");',
+      '    let _n = concat!(env!("CARGO_PKG_NAME"), "-", env!("HIDDEN"));',
+      '    let _v = env::var_os("SHOWN");',
+      '    println!("{}", 1);',
+      "}",
+    ].join("\n");
+    assert.deepEqual(await inline("a.rs", env, "env"), {
+      members: ["SHOWN"],
+      lines: [4, 5, 6],
+    });
+    const imports = [
+      "macro_rules! bring_env { () => { use std::env; }; }",
+      'fn f() -> bool { bring_env!(); env::var_os("HOME").is_some() }',
+    ].join("\n");
+    assert.deepEqual((await inline("a.rs", imports, "imports")).lines, [2]);
+    // Known crates' formatting macros, by the path the file gives them.
+    const crates = [
+      "use anyhow::bail;",
+      'fn f() -> anyhow::Result<()> { log::info!("x"); anyhow::ensure!(true, "y"); bail!("z") }',
+      'mod m { pub fn g() { bail!("unbound here"); } }',
+    ].join("\n");
+    assert.deepEqual((await inline("a.rs", crates, "env")).lines, [3]);
+    const named = [
+      "use anyhow::{anyhow, Result};",
+      'fn f() -> Result<()> { Err(anyhow!("x")) }',
+      "#[derive(clap::Parser)]",
+      "struct Cli {",
+      '    #[arg(long, env = "CLI_TOKEN")]',
+      "    token: String,",
+      "    #[allow(dead_code)]",
+      "    plain: u8,",
+      "}",
+    ].join("\n");
+    assert.deepEqual((await inline("a.rs", named, "env")).lines, [5]);
+    // A file's own macro named like a standard one is the file's.
+    const shadow =
+      'macro_rules! println { () => { std::env::var("X") }; }\nfn f() { println!(); }\n';
+    assert.deepEqual((await inline("a.rs", shadow, "env")).lines, [2]);
+    assert.deepEqual(
+      (
+        await inline("a.rs", shadow, "string_args", {
+          callee: "Command::new",
+        })
+      ).lines,
+      [2],
+    );
+  });
+
+  it("follows Rust aliases, re-exports in the file, extern crate and self, and refuses what it cannot follow", async () => {
+    const args = [
+      "use std::process::Command as C;",
+      'fn f() { C::new("git"); dbg!(C::new("rm")); }',
+    ].join("\n");
+    assert.deepEqual(
+      await inline("a.rs", args, "string_args", { callee: "Command::new" }),
+      { members: ["git"], lines: [2] },
+    );
+    const followed = [
+      "extern crate std as s;",
+      "use std::env;",
+      "mod helper { pub use std::env::var as read_it; }",
+      "mod m { pub use std::env; pub mod deep { pub use super::env as e; } }",
+      "fn f() {",
+      '    helper::read_it("REEXPORT");',
+      '    m::env::var("MODULE");',
+      '    m::deep::e::var("SUPER");',
+      '    s::env::var("EXTERN");',
+      '    self::env::var("SELF");',
+      '    ::std::env::var("ABSOLUTE");',
+      "}",
+    ].join("\n");
+    assert.deepEqual(await inline("a.rs", followed, "env"), {
+      members: ["ABSOLUTE", "EXTERN", "MODULE", "REEXPORT", "SELF", "SUPER"],
+      lines: [],
+    });
+    const calls = await inline("a.rs", followed, "calls");
+    assert.ok(calls.members.includes("std::env::var"), String(calls.members));
+    assert.ok(calls.members.includes("helper::read_it"), String(calls.members));
+    const local = [
+      "use std::env;",
+      'fn f() { mod env { pub fn var(_: &str) {} } env::var("SHADOWED"); }',
+      'fn g() { env::var("REAL"); }',
+      'mod inner { use std::env; pub fn h() { env::var("INNER"); } }',
+    ].join("\n");
+    assert.deepEqual(await inline("a.rs", local, "env"), {
+      members: ["INNER", "REAL"],
+      lines: [],
+    });
+    const unknown = [
+      "mod config;",
+      "fn f() {",
+      '    crate::settings::var("CRATE");',
+      '    dotenvy::var("OTHER_CRATE");',
+      '    super::env::var("SUPER");',
+      '    config::var("MODULE_FILE");',
+      '    Config::new("ok");',
+      '    ::other::var("ABSOLUTE");',
+      "}",
+    ].join("\n");
+    assert.deepEqual(await inline("a.rs", unknown, "env"), {
+      members: [],
+      lines: [3, 4, 5, 6, 8],
+    });
+    assert.deepEqual(
+      (await inline("a.rs", unknown, "calls")).lines,
+      [3, 4, 5, 6, 8],
+    );
+    assert.deepEqual(
+      (await inline("a.rs", unknown, "string_args", { callee: "env::var" }))
+        .lines,
+      [3, 4, 5, 6, 8],
+    );
+  });
+});

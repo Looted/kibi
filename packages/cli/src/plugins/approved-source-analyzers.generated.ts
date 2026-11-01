@@ -59,9 +59,9 @@ export const qualifiedSourceAnalyzers = [
       "dist/performance-timing.js":
         "28f589c29e8759b566ee3fb741a91e30347efe1dfbad0f5b1c5b7d4f785369ff",
       "dist/references.js":
-        "2626ddad50193d8b8976f58914a9a1943c925ec51ab8c6a7790d76efccf5c55b",
+        "2fb9aa6da2473a59705a2efc39ca53264886670da2742b2a622a9b3b45d533f4",
       "integrity.json":
-        "65488d076dd693e4e6344e2918e71e3e10d93eff45d556aef0e3e4d547b30b30",
+        "f6de066162c8edffb6dc116e8d6d05407ab1b632f7b8448c25a8f8e5308df427",
       "licenses/web-tree-sitter-MIT.txt":
         "c5cfb43042b6b72045f4ba997834d0a7786d2793d91680868b5815b39f14fc78",
       "package.json":
