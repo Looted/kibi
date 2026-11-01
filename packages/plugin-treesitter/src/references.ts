@@ -1811,12 +1811,29 @@ function csharpValuePosition(node: Node): boolean {
   switch (parent.type) {
     case "parenthesized_expression":
       return csharpValuePosition(parent);
+    // `Run!`: the null-forgiving operator hands its operand on.
+    case "postfix_unary_expression":
+      return parent.text.endsWith("!") && csharpValuePosition(parent);
     // `(Action<string>)Run`: the cast's value, wherever the cast is.
     case "cast_expression":
       return field(parent, "value")?.id === node.id;
     case "conditional_expression":
       return field(parent, "condition")?.id !== node.id;
+    // `k switch { 1 => Run, ... }`: an arm's value, not its pattern.
+    case "switch_expression_arm":
+      return named(parent).at(-1)?.id === node.id;
+    // `g ?? Run`: either operand is the value.
+    case "binary_expression":
+      return parent.children.some((token) => token?.type === "??");
+    // `() => Run`: an expression-bodied lambda returns the method group.
+    case "lambda_expression":
+      return field(parent, "body")?.id === node.id;
+    // `new { F = Run }`: the member's value, not its name.
+    case "anonymous_object_creation_expression":
+      return node.nextSibling?.type !== "=";
     case "initializer_expression":
+    case "expression_element": // `[Run]`
+    case "yield_statement":
       return true;
   }
   if (!CSHARP_VALUE_PARENTS.has(parent.type)) return false;

@@ -1453,4 +1453,66 @@ describe("round-4 agent-test regressions: exact or refuse", () => {
     const raw = 'fn f() { std::env::var(r#"RAW_STR"#); }';
     assert.deepEqual((await inline("a.rs", raw, "env")).members, ["RAW_STR"]);
   });
+
+  it("lists a C# method group in a switch arm, ??, yield, lambda body, ! or collection as a call", async () => {
+    const forms = [
+      "Action<int> a = k switch { 1 => Environment.Exit, _ => c => { } };",
+      "Action<int> a = g ?? Environment.Exit;",
+      "Action<int> a = Environment.Exit ?? g;",
+      "Run(() => Environment.Exit);",
+      "Action<int> a = Environment.Exit!;",
+      "Run(b ? Environment.Exit! : null!);",
+      "var a = new { F = Environment.Exit };",
+      "Action<int>[] a = [Environment.Exit];",
+      "Run((Environment.Exit, 1));",
+      "Run(k switch { 1 => Helpers.Stop, _ => Helpers.Go });",
+    ];
+    for (const form of forms) {
+      const source = [
+        "using System;",
+        "class V {",
+        `  static void M(int k, Action<int> g, bool b) { ${form} }`,
+        "}",
+      ].join("\n");
+      const calls = await inline("A.cs", source, "calls");
+      const expected = form.includes("Helpers")
+        ? "Helpers.Stop"
+        : "System.Environment.Exit";
+      assert.ok(calls.members.includes(expected), `${form}: ${calls.members}`);
+    }
+    const yielded = [
+      "using System;",
+      "class V {",
+      "  static IEnumerable<Action<int>> G() { yield return Environment.Exit; }",
+      "}",
+    ].join("\n");
+    assert.ok(
+      (await inline("A.cs", yielded, "calls")).members.includes(
+        "System.Environment.Exit",
+      ),
+    );
+    // The switch's subject and an arm's pattern are no method groups.
+    const subject = [
+      "using System;",
+      "class V { static int M(Mode m) => m switch { Mode.A => 1, _ => 0 }; }",
+    ].join("\n");
+    assert.deepEqual((await inline("A.cs", subject, "calls")).members, []);
+    // An environment getter as a method group in those forms refuses env.
+    const env = [
+      "using System;",
+      "class V {",
+      "  static void M(int k, Func<string, string?> g) {",
+      "    var a = k switch { 1 => Environment.GetEnvironmentVariable, _ => g };",
+      "    var b = g ?? Environment.GetEnvironmentVariable;",
+      "    Run(() => Environment.GetEnvironmentVariable);",
+      "    Func<string, string?> c = Environment.GetEnvironmentVariable!;",
+      "  }",
+      "  static IEnumerable<Func<string, string?>> G() { yield return Environment.GetEnvironmentVariable; }",
+      "}",
+    ].join("\n");
+    assert.deepEqual(await inline("A.cs", env, "env"), {
+      members: [],
+      lines: [4, 5, 6, 7, 9],
+    });
+  });
 });
