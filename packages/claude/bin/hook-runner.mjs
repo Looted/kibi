@@ -1910,7 +1910,7 @@ function stopReminder(paths) {
 
 // src/usage-log.ts
 import path9 from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath as fileURLToPath2 } from "node:url";
 
 // ../agent-core/dist/hook-usage-log.js
 import { randomUUID as randomUUID3 } from "node:crypto";
@@ -1922,6 +1922,7 @@ import { createHash as createHash4, randomUUID as randomUUID2 } from "node:crypt
 import fs7 from "node:fs";
 import os from "node:os";
 import path7 from "node:path";
+import { fileURLToPath } from "node:url";
 var DEFAULT_TELEMETRY_KEY = "phc_A5z8jRhD528abGJiTtPfgu4d4hpbEbfiJr9iUGn9TMsY";
 var DEFAULT_TELEMETRY_HOST = "https://eu.i.posthog.com";
 var QUEUE_FILE = "telemetry-queue.jsonl";
@@ -2041,6 +2042,47 @@ function sandboxedHome(env) {
   const temp = realDirectory(os.tmpdir());
   const resolved = realDirectory(home);
   return resolved !== temp && resolved.startsWith(`${temp}${path7.sep}`);
+}
+var KIBI_REPOSITORY_PACKAGE = "kibi";
+function thisModuleFile() {
+  try {
+    const url = import.meta.url;
+    return typeof url === "string" && url !== "" ? fileURLToPath(url) : undefined;
+  } catch {
+    return;
+  }
+}
+function insideKibiCheckout(file) {
+  const resolved = realDirectory(file);
+  if (resolved.split(/[\\/]/).includes("node_modules"))
+    return false;
+  let current = path7.dirname(resolved);
+  for (;; ) {
+    try {
+      const manifest = JSON.parse(fs7.readFileSync(path7.join(current, "package.json"), "utf8"));
+      if (manifest.name === KIBI_REPOSITORY_PACKAGE && fs7.existsSync(path7.join(current, "packages", "agent-core"))) {
+        return true;
+      }
+    } catch {}
+    const parent = path7.dirname(current);
+    if (parent === current)
+      return false;
+    current = parent;
+  }
+}
+var checkoutCache = new Map;
+function detectTelemetryChannel(env = process.env, moduleFile = thisModuleFile() ?? null) {
+  const explicit = env.KIBI_TELEMETRY_CHANNEL?.trim();
+  if (explicit)
+    return telemetryCategory(explicit) ?? "release";
+  if (!moduleFile)
+    return "release";
+  let fromCheckout = checkoutCache.get(moduleFile);
+  if (fromCheckout === undefined) {
+    fromCheckout = insideKibiCheckout(moduleFile);
+    checkoutCache.set(moduleFile, fromCheckout);
+  }
+  return fromCheckout ? "source" : "release";
 }
 function telemetryDirectory(env = process.env) {
   const explicit = env.KIBI_TELEMETRY_DIR?.trim();
@@ -2192,6 +2234,7 @@ function baseProperties(source, env) {
     package_version: source.packageVersion ?? null,
     host: source.host?.trim() && hostKey(source.host) || detectTelemetryHost(env) || "unknown",
     remote: remoteEnvironment(env),
+    channel: detectTelemetryChannel(env),
     session: sessionProperty(source, env),
     os: process.platform,
     arch: process.arch,
@@ -2213,6 +2256,12 @@ function appendEvent(event, env) {
     fs7.appendFileSync(file, `${JSON.stringify(event)}
 `, "utf8");
   } catch {}
+}
+function telemetryCategory(value) {
+  const trimmed = value?.trim();
+  if (!trimmed)
+    return null;
+  return /^[A-Za-z0-9_.:+-]{1,160}$/.test(trimmed) ? trimmed.toLowerCase() : "unclassified";
 }
 function recordHookTelemetry(source, hook, env = process.env) {
   if (!telemetryEnabled(env))
@@ -2427,7 +2476,7 @@ var cachedPluginVersion;
 function pluginVersion() {
   if (cachedPluginVersion !== undefined)
     return cachedPluginVersion;
-  cachedPluginVersion = readPackageVersion(path9.join(path9.dirname(fileURLToPath(import.meta.url)), "..", "package.json"));
+  cachedPluginVersion = readPackageVersion(path9.join(path9.dirname(fileURLToPath2(import.meta.url)), "..", "package.json"));
   return cachedPluginVersion;
 }
 function appendHookUsage2(row, env = process.env) {
