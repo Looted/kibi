@@ -804,12 +804,30 @@ Details that decide what a reader sees:
   Kibi drops only after finding no such type in the `.java` files of the
   file's folder; a bare Rust standard macro likewise gets a row that Kibi
   drops only after finding no `macro_rules!` of that name (nor `#[macro_use]
-  extern crate`) in the crate. A C# bare call is listed under a type only when the
+  extern crate`) in the crate. For Go `env`, a name the file uses but does
+  not declare gets a row that Kibi drops only when no other file of the
+  package (its test files only for a test file) can read the environment
+  or none names it, and every import other than `os`, `syscall`, x/sys and
+  cgo gets a row that Kibi drops only when the path is no package of the
+  project, or that package cannot read the environment: a package of the
+  project is a relative path, a path under the module path of any `go.mod`
+  in the project or under a local `replace`, or, with no `go.mod`, a folder
+  of that path above the file; it can read the environment when one of its
+  files (not its tests) spells a getter, cgo or `//go:linkname`, or imports
+  a package of the project that can. So `config.Get("X")` over a package
+  that wraps `os.Getenv`, `var Get = os.Getenv` there, or a package-level
+  value it reads at init is refused; third-party packages are not followed.
+  A C# bare call is listed under a type only when the
   file declares the method, or one `using static` System type has it; `@`
   verbatim identifiers are read without the `@`. A C# member access on a
   local, parameter, field or property named like a System type
-  (`Environment`), or on a type the file declares, is on a value of unknown
-  type (`*.Exit`). Rust paths are read without comments between segments,
+  (`Environment`), on a type parameter (`class C<Environment>`, `void
+  M<Environment>()`), on a pattern, `out`, deconstruction or query variable
+  declared in the same member (anywhere in the file for top-level
+  statements), or on a type the file declares, is on a value of unknown
+  type (`*.Exit`), and so is a method group on an expression Kibi cannot
+  name (`Process.GetCurrentProcess().Kill`, `new Process().Kill`,
+  `ps[0].Kill` are `*.Kill`). Rust paths are read without comments between segments,
   and a plain `type` alias is followed. A function or method used as a value
   (`logf := logrus.Error`, `apply(logrus.Error)`, a C# method group, also
   cast or in a conditional, a Rust

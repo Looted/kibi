@@ -11,11 +11,12 @@ const { createTreeSitterReferenceExtractor } = await import("../dist/index.js");
 const extractor = createTreeSitterReferenceExtractor();
 
 /**
- * A Go env row about a name another file of the package may declare: the
- * host drops it once it has checked those files (references.test.js covers
- * these rows).
+ * A Go env row about a name another file of the package may declare, or an
+ * import the project may provide: the host drops it once it has checked
+ * those files (references.test.js covers these rows).
  */
-const PACKAGE_ROW = /^\w+ may be declared in another file of the package: /;
+const PACKAGE_ROW =
+  /^(?:\w+ may be declared in another file of the package|\S+ may be a package of the project): /;
 
 /** Read one extract of an inline file; members are sorted, lines unique. */
 async function read(path, content, extract, options = {}) {

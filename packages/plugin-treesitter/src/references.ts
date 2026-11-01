@@ -1078,11 +1078,28 @@ const GO: Reader = {
    * refusing the read, unless no other file of the package mentions an
    * environment getter at all. Following the package's files this far is
    * sound whatever the chain of helpers is (any read in the package spells a
-   * getter in some file of it), and calls into other packages are not
-   * followed, as for any direct call.
+   * getter in some file of it).
+   *
+   * A package of the project itself (`config.Get("X")` where package config
+   * wraps os.Getenv, or `var Get = os.Getenv` there) is another such file
+   * set. For env, every import other than the getters' own packages and cgo
+   * (which are read or refused here) is marked: the host keeps the row,
+   * refusing the read, when the import path is one of the project's (under
+   * the module path of a go.mod, a local replace, or relative) and that
+   * package, or a package of the project it imports in turn, can read the
+   * environment. The import is marked rather than each use, since importing
+   * a package runs its init and package-level initializers, which may read
+   * the environment though nothing of it is used. Third-party packages are
+   * not followed, as for any direct call.
    */
   shadowed(node, _callName, _names, context, extract) {
     if (extract !== "env") return null;
+    if (node.type === "import_spec") {
+      const path = literal(field(node, "path"));
+      if (path === null || path === "C" || GO_ENV_PATHS.has(path)) return null;
+      const alias = field(node, "name");
+      return `${alias === null ? lastOf(path, "/") : alias.text} may be a package of the project`;
+    }
     const target =
       node.type === "call_expression"
         ? field(node, "function")

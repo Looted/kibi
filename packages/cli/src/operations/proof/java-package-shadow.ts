@@ -30,7 +30,13 @@
  *   project: ..."): a type of that name in the file's namespace, an
  *   enclosing one or the global namespace, declared in any file of the
  *   project, or a `global using` alias of that name, would bind instead of
- *   System's.
+ *   System's;
+ * - a Go name the file uses but does not declare ("getenv may be declared in
+ *   another file of the package: ..."), for env: another file of the package
+ *   may hold a getter or a wrapper of one;
+ * - a Go import ("config may be a package of the project: ..."), for env: a
+ *   package of the project may wrap a getter (`config.Get("X")`, `var Get =
+ *   os.Getenv`) or read the environment at init.
  *
  * The host drops such a row only after it has looked at those files and
  * found no such declaration. When it finds one, or cannot read the files,
@@ -49,6 +55,7 @@ const JAVA_ROW = /^(System|Runtime) may be a class of (?:package ([\w.]+)|the de
 const RUST_ROW = /^(\w+) may be a macro_rules! macro of the crate: /;
 const CSHARP_ROW = /^(\w+) may be a type of the project: /;
 const GO_ROW = /^(\w+) may be declared in another file of the package: /;
+const GO_IMPORT_ROW = /^\S+ may be a package of the project: /;
 
 /**
  * What in Go source may read the environment: a getter of os, syscall or
@@ -146,6 +153,132 @@ function csharpDeclares(text: string, name: string): boolean {
   );
 }
 
+/** Go string literals, interpreted and raw: every import path a file may spell. */
+function goStrings(text: string): string[] {
+  return [...text.matchAll(/"((?:[^"\\\n]|\\.)*)"|`([^`]*)`/g)].map((match) => match[1] ?? match[2] ?? "");
+}
+
+interface GoModule {
+  /** The module path, or a replaced module's path. */
+  readonly path: string;
+  /** The folder its packages are in. */
+  readonly dir: string;
+}
+
+/**
+ * The project's Go modules: each go.mod's module path at its folder (which
+ * covers the modules of a go.work), and each replace with a local folder.
+ */
+function goModules(workspaceRoot: string): GoModule[] {
+  const modules: GoModule[] = [];
+  for (const file of sourceFiles(workspaceRoot, "go.mod", ["vendor"])) {
+    if (path.basename(file) !== "go.mod") continue;
+    const dir = path.dirname(file);
+    const text = readFileSync(file, "utf8").replace(/\/\/[^\n]*/g, "");
+    const name = /^\s*module\s+"?([^\s"]+)"?/m.exec(text);
+    if (name !== null) modules.push({ path: name[1] as string, dir });
+    // `replace a v1 => ../a`, alone or in a `replace ( ... )` block.
+    for (const replace of text.matchAll(/^\s*(?:replace\s+)?"?([^\s"(]+)"?(?:\s+\S+)?\s*=>\s*"?((?:\.\.?|\/)[^\s"]*)"?/gm))
+      modules.push({ path: replace[1] as string, dir: path.resolve(dir, replace[2] as string) });
+  }
+  return modules;
+}
+
+/** Whether a go.mod at or above `directory`, within the workspace, puts it in module mode. */
+function goModuleMode(workspaceRoot: string, directory: string): boolean {
+  for (let current = directory; ; current = path.dirname(current)) {
+    try {
+      if (statSync(path.join(current, "go.mod")).isFile()) return true;
+    } catch {
+      // no go.mod here
+    }
+    if (path.relative(workspaceRoot, current) === "" || path.dirname(current) === current) return false;
+  }
+}
+
+/**
+ * Which Go packages are the project's, and whether one can read the
+ * environment. Folder scans and go.mod files are read once per filter.
+ */
+function createGoReach(workspaceRoot: string): {
+  /** Whether Go source imports a package of the project that can read the environment. */
+  readonly importsReach: (text: string, from: string) => boolean;
+} {
+  let modules: GoModule[] | null | undefined;
+  const reached = new Map<string, boolean>();
+  /**
+   * The folder an import path names when it is the project's: relative,
+   * under a module path or local replace of the project (the longest
+   * wins), or, without a go.mod (GOPATH mode), that path under one of the
+   * importer's enclosing folders. Null for another package (the standard
+   * library's, a third-party one); "" when the project's go.mod files
+   * cannot be read.
+   */
+  const resolve = (spelled: string, from: string): string | null => {
+    if (/^\.\.?(?:\/|$)/.test(spelled)) return path.resolve(from, spelled);
+    if (goModuleMode(workspaceRoot, from)) {
+      if (modules === undefined) {
+        try {
+          modules = goModules(workspaceRoot);
+        } catch {
+          modules = null;
+        }
+      }
+      if (modules === null) return "";
+      let best: GoModule | null = null;
+      for (const module of modules)
+        if (
+          (spelled === module.path || spelled.startsWith(`${module.path}/`)) &&
+          (best === null || module.path.length > best.path.length)
+        )
+          best = module;
+      return best === null ? null : path.join(best.dir, spelled.slice(best.path.length));
+    }
+    for (let current = from; ; current = path.dirname(current)) {
+      const candidate = path.join(current, spelled);
+      try {
+        if (statSync(candidate).isDirectory()) return candidate;
+      } catch {
+        // not here
+      }
+      if (path.relative(workspaceRoot, current) === "" || path.dirname(current) === current) return null;
+    }
+  };
+  /**
+   * Whether a package of the project can read the environment: one of its
+   * files (not its tests, which an importer does not compile) spells a
+   * getter, cgo or a linkname, or imports a package of the project that
+   * can. A folder that cannot be read, or holds no Go file, can.
+   */
+  const reaches = (dir: string): boolean => {
+    const known = reached.get(dir);
+    if (known !== undefined) return known;
+    // An import cycle reads nothing by itself.
+    reached.set(dir, false);
+    let result: boolean;
+    try {
+      const texts = readdirSync(dir)
+        .filter((name) => name.endsWith(".go") && !name.endsWith("_test.go"))
+        .map((name) => readFileSync(path.join(dir, name), "utf8"));
+      result = texts.some((text) => GO_ENV_SOURCE.test(text) || importsReach(text, dir));
+    } catch (error) {
+      // No such folder: no package of the project, so the path is not an
+      // import of it (an import of it would not build), only a string.
+      const code = (error as NodeJS.ErrnoException).code;
+      result = code !== "ENOENT" && code !== "ENOTDIR";
+    }
+    reached.set(dir, result);
+    return result;
+  };
+  /** Whether Go source imports a package of the project that can read the environment. */
+  const importsReach = (text: string, from: string): boolean =>
+    goStrings(text).some((spelled) => {
+      const target = resolve(spelled, from);
+      return target === "" || (target !== null && target !== from && reaches(target));
+    });
+  return { importsReach };
+}
+
 /** The nearest folder holding Cargo.toml at or above `directory`, within the workspace. */
 function crateRoot(workspaceRoot: string, directory: string): string {
   for (let current = directory; ; current = path.dirname(current)) {
@@ -193,6 +326,7 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
     }
     return sources.get(key) ?? null;
   };
+  const go = createGoReach(workspaceRoot);
   return (file, rows) => {
     const directory = path.dirname(path.join(workspaceRoot, file));
     return rows.filter((row) => {
@@ -219,8 +353,15 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
         const texts = read(`rust:${root}`, () => sourceFiles(root, ".rs", ["target"]));
         return texts === null || texts.some((text) => rustDefines(text, rust[1] as string));
       }
-      const go = GO_ROW.exec(row.text);
-      if (go !== null) {
+      if (GO_IMPORT_ROW.test(row.text)) {
+        // The row's text may be cut short, so the import is read from the
+        // file's line; every path spelled there is checked.
+        const texts = read(`file:${file}`, () => [path.join(workspaceRoot, file)]);
+        const line = texts?.[0]?.split("\n")[row.line - 1];
+        return line === undefined || goStrings(line).length === 0 || go.importsReach(line, directory);
+      }
+      const goName = GO_ROW.exec(row.text);
+      if (goName !== null) {
         // The package's other files: the directory's .go files, with its
         // test files only for a test file.
         const own = path.basename(file);
@@ -233,10 +374,13 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
         // A getter may be reached through the name by any chain of the
         // package's functions and values, so the row stays when any of
         // those files can read the environment and any names it.
-        const name = new RegExp(`\\b${go[1]}\\b`);
+        // A file that imports a package of the project that can read the
+        // environment can read it too.
+        const name = new RegExp(`\\b${goName[1]}\\b`);
         return (
           texts === null ||
-          (texts.some((text) => GO_ENV_SOURCE.test(text)) && texts.some((text) => name.test(text)))
+          (texts.some((text) => GO_ENV_SOURCE.test(text) || go.importsReach(text, directory)) &&
+            texts.some((text) => name.test(text)))
         );
       }
       const csharp = CSHARP_ROW.exec(row.text);

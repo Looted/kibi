@@ -36,8 +36,16 @@ async function read(path, extract, options = {}) {
  */
 const SHADOW_ROW =
   /^(?:\w+ may be a class of (?:package [\w.]+|the default package)|\w+ may be a macro_rules! macro of the crate|\w+ may be a type of the project|\w+ may be declared in another file of the package): /;
+/**
+ * A Go env row about an import the project may provide: the host drops it
+ * unless that package can reach an environment getter. Its own test asserts
+ * it; elsewhere it is neither a read row nor a shadow.
+ */
+const PROJECT_PACKAGE_ROW = /^\S+ may be a package of the project: /;
 const readRows = (result) =>
-  result.unresolved.filter((row) => !SHADOW_ROW.test(row.text));
+  result.unresolved.filter(
+    (row) => !SHADOW_ROW.test(row.text) && !PROJECT_PACKAGE_ROW.test(row.text),
+  );
 
 async function members(path, extract, options) {
   const result = await read(path, extract, options);
@@ -1895,5 +1903,45 @@ describe("round-4 agent-test regressions: exact or refuse", () => {
     );
     // Only env reads follow the package's other files.
     assert.equal((await inline("a.go", source, "calls")).shadows, undefined);
+  });
+
+  it("marks a Go import the project may provide for env", async () => {
+    const source = [
+      "package main",
+      "import (",
+      '\t"fmt"',
+      '\t"os"',
+      '\t"github.com/bxcodec/go-clean-arch/internal/config"',
+      '\tcfg "app/settings"',
+      '\t_ "app/initenv"',
+      '\t. "app/dot"',
+      ")",
+      'func main() { _ = os.Getenv("A"); _ = config.Get("ADMIN_TOKEN"); fmt.Println(cfg.X) }',
+    ].join("\n");
+    const rows = (
+      await extractor.extract({ path: "a.go", content: source, extract: "env" })
+    ).unresolved;
+    // os is read here; every other import is marked, for the host to check.
+    assert.deepEqual(
+      rows.map((row) => [row.line, row.text]),
+      [
+        [3, 'fmt may be a package of the project: "fmt"'],
+        [
+          5,
+          'config may be a package of the project: "github.com/bxcodec/go-clean-arch/intern',
+        ],
+        [6, 'cfg may be a package of the project: cfg "app/settings"'],
+        [7, '_ may be a package of the project: _ "app/initenv"'],
+        [8, '. may be a package of the project: . "app/dot"'],
+      ],
+    );
+    assert.deepEqual((await inline("a.go", source, "env")).members, ["A"]);
+    // Only env reads follow other packages of the project.
+    for (const extract of ["calls", "imports"])
+      assert.ok(
+        !(
+          await extractor.extract({ path: "a.go", content: source, extract })
+        ).unresolved.some((row) => row.text.includes("package of the project")),
+      );
   });
 });

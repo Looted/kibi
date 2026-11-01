@@ -271,6 +271,172 @@ describe("rows about a name another file of the project may bind", () => {
     ).toEqual([getenvRow]);
   });
 
+  const MODULE = "github.com/bxcodec/go-clean-arch";
+  const importing = (...paths: string[]) =>
+    `package main\nimport (\n${paths.map((p) => `\t"${p}"`).join("\n")}\n)\nfunc main() {}\n`;
+  /** The row the reader gives the import on line 3 (the first one). */
+  const importRow = (name: string, spelled: string) => ({
+    line: 3,
+    text: `${name} may be a package of the project: "${spelled}"`.slice(0, 80),
+  });
+
+  it("keeps a Go import row when that project package, or one it imports, can read the environment", () => {
+    const cases: [Record<string, string>, string][] = [
+      // A helper wrapping os.Getenv, and a getter variable.
+      [
+        {
+          "internal/config/config.go":
+            'package config\nimport "os"\nfunc Get(k string) string { return os.Getenv(k) }\n',
+        },
+        `${MODULE}/internal/config`,
+      ],
+      [
+        {
+          "internal/config/config.go":
+            'package config\nimport "os"\nvar Get = os.Getenv\n',
+        },
+        `${MODULE}/internal/config`,
+      ],
+      // A package-level value read at init.
+      [
+        {
+          "internal/config/config.go":
+            'package config\nimport "os"\nvar Token = os.Getenv("ADMIN_TOKEN")\n',
+        },
+        `${MODULE}/internal/config`,
+      ],
+      // Through another package of the project.
+      [
+        {
+          "internal/config/config.go": `package config\nimport "${MODULE}/internal/env"\nfunc Get(k string) string { return env.Get(k) }\n`,
+          "internal/env/env.go":
+            'package env\nimport "syscall"\nfunc Get(k string) string { v, _ := syscall.Getenv(k); return v }\n',
+        },
+        `${MODULE}/internal/config`,
+      ],
+      // A local replace, and another module of the workspace.
+      [
+        {
+          "go.mod": `module ${MODULE}\n\nreplace example.com/cfg v1.0.0 => ./third/cfg\n`,
+          "third/cfg/cfg.go":
+            'package cfg\nimport "os"\nfunc Get(k string) string { return os.Getenv(k) }\n',
+        },
+        "example.com/cfg",
+      ],
+      [
+        {
+          "lib/go.mod": "module example.com/lib\n",
+          "lib/env/env.go":
+            'package env\nimport "os"\nfunc Get(k string) string { return os.Getenv(k) }\n',
+        },
+        "example.com/lib/env",
+      ],
+      // A relative import.
+      [
+        {
+          "app/config/config.go":
+            'package config\nimport "os"\nfunc Get(k string) string { return os.Getenv(k) }\n',
+        },
+        "./config",
+      ],
+      // cgo in the imported package.
+      [
+        {
+          "internal/c/c.go":
+            'package c\n// #include <stdlib.h>\nimport "C"\nfunc Get() {}\n',
+        },
+        `${MODULE}/internal/c`,
+      ],
+    ];
+    for (const [files, spelled] of cases) {
+      const root = project({
+        "go.mod": `module ${MODULE}\n`,
+        "app/main.go": importing(spelled),
+        ...files,
+      });
+      const row = importRow("config", spelled);
+      expect(createShadowRowFilter(root)("app/main.go", [row])).toEqual([row]);
+    }
+    // GOPATH layout: no go.mod, the import is a folder under an ancestor.
+    const gopath = project({
+      "src/app/main.go": importing("app/config"),
+      "src/app/config/config.go":
+        'package config\nimport "os"\nvar Get = os.Getenv\n',
+    });
+    const row = importRow("config", "app/config");
+    expect(createShadowRowFilter(gopath)("src/app/main.go", [row])).toEqual([
+      row,
+    ]);
+    // The importing file cannot be read.
+    expect(
+      createShadowRowFilter(path.join(tmpdir(), "kibi-shadow-missing-root"))(
+        "app/main.go",
+        [row],
+      ),
+    ).toEqual([row]);
+  });
+
+  it("drops a Go import row for the standard library, a third-party package or a project package that cannot read the environment", () => {
+    const root = project({
+      "go.mod": `module ${MODULE}\n\nrequire github.com/sirupsen/logrus v1.9.0\n`,
+      "app/main.go": importing(
+        `${MODULE}/internal/rest`,
+        "fmt",
+        "github.com/sirupsen/logrus",
+        `${MODULE}/internal/missing`,
+        `${MODULE}/go.mod`,
+      ),
+      // Its test files are not compiled into the importer.
+      "internal/rest/rest.go":
+        'package rest\nimport "net/http"\nfunc New() *http.Server { return nil }\n',
+      "internal/rest/rest_test.go":
+        'package rest\nimport "os"\nvar _ = os.Getenv("T")\n',
+      // A vendored or downloaded copy is not the project's.
+      "vendor/github.com/sirupsen/logrus/env.go":
+        'package logrus\nimport "os"\nvar _ = os.Getenv("L")\n',
+    });
+    const rows = [
+      importRow("rest", `${MODULE}/internal/rest`),
+      { line: 4, text: 'fmt may be a package of the project: "fmt"' },
+      {
+        line: 5,
+        text: 'logrus may be a package of the project: "github.com/sirupsen/logrus"',
+      },
+      // No folder of the module holds such a package: it does not build.
+      { line: 6, text: "missing may be a package of the project: ..." },
+      { line: 7, text: "go.mod may be a package of the project: ..." },
+    ];
+    expect(createShadowRowFilter(root)("app/main.go", rows)).toEqual([]);
+    // A row without a path on its line stays.
+    const odd = { line: 1, text: "x may be a package of the project: x" };
+    expect(createShadowRowFilter(root)("app/main.go", [odd])).toEqual([odd]);
+  });
+
+  it("keeps a Go package row when another file of the package imports a project package that reads the environment", () => {
+    const root = project({
+      "go.mod": `module ${MODULE}\n`,
+      "app/main.go":
+        'package main\nfunc main() { _ = getenv("ADMIN_TOKEN") }\n',
+      "app/env.go": `package main\nimport "${MODULE}/internal/config"\nfunc getenv(k string) string { return config.Get(k) }\n`,
+      "internal/config/config.go":
+        'package config\nimport "os"\nfunc Get(k string) string { return os.Getenv(k) }\n',
+    });
+    expect(createShadowRowFilter(root)("app/main.go", [getenvRow])).toEqual([
+      getenvRow,
+    ]);
+    // A string that names no package of the project is no such import.
+    const strings = project({
+      "go.mod": `module ${MODULE}\n`,
+      "app/main.go":
+        'package main\nfunc main() { _ = getenv("ADMIN_TOKEN") }\n',
+      "app/env.go":
+        'package main\nimport "os"\nfunc getenv(k string) string { b, _ := os.ReadFile("./data.json"); return k + string(b) + "../app" }\n',
+    });
+    expect(createShadowRowFilter(strings)("app/main.go", [getenvRow])).toEqual(
+      [],
+    );
+  });
+
   const environmentRow = {
     line: 5,
     text: 'Environment may be a type of the project: Environment.GetEnvironmentVariable("U02")',
