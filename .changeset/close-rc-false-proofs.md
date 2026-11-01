@@ -10,13 +10,13 @@
 
 Close false proofs found by testing the language packs before release:
 
-- A references claim whose subject key or claim text names a project file is rejected unless that file is among the files read, so a claim about one file cannot be decided on another.
+- A references claim whose subject key or claim text names a project file (also with a repository prefix, another letter case, no extension, or spaces) is rejected unless that file is among the files read, so a claim about one file cannot be decided on another.
 - `excludes` now fails on a longer name ending in the excluded item at a segment boundary (`checkNotNull` excludes `Preconditions.checkNotNull`).
 - Rust raw identifiers (`std::r#env::var`) are read as their plain names.
-- C# method groups handed on as values (`Environment.Exit` in a switch arm, `??`, `yield return`, a lambda body, `!`) count as calls; an `Environment` that is not provably `System.Environment` (pattern or `out` variable, primary-constructor parameter, alias, a project type) refuses or is read as what it binds.
-- Go: env reads through a helper or variable in another file of the package refuse; a package imported under a well-known name (`logrus`, `exec`) is listed by its import path.
+- C# method groups handed on as values (`Environment.Exit` in a switch arm, `??`, `yield return`, a lambda body, `!`) count as calls, as does a method group on any receiver (`Process.GetCurrentProcess().Kill`); an `Environment` that is not provably `System.Environment` (pattern or `out` variable, type parameter, primary-constructor parameter, alias, a project type) refuses or is read as what it binds.
+- Go: env reads through a helper or variable in another file of the package, or in another package of the project, refuse; a package imported under a well-known name (`logrus`, `exec`) is listed by its import path.
 - Java: a `System` class of the same package in another source root refuses `System` reads.
-- Python: references through a module's private name (`from tempfile import _os`) and through ctypes or cffi refuse.
-- SWI-Prolog: goals in `'~@'` message lines and in grammar bodies passed to `phrase`/`call_dcg` are read; an aliased include that more than one project file matches refuses, and include refusals say which file to add to `files:`.
+- Python: references through a module's private name (`from tempfile import _os`), reflection on a module (`getattr`, `vars`, a module assigned to a name) and ctypes or cffi refuse; `posix.X` and `nt.X` are read as `os.X`.
+- SWI-Prolog: goals in `'~@'` message lines and in grammar bodies passed to `phrase`/`call_dcg` are read; an aliased include resolves only through the `file_search_path` declarations read, never by path suffix, and include refusals name the file to add to `files:` only when it is the exact resolution.
 - The Cursor hook runner is a self-contained bundle, so a copied or GitHub-installed plugin no longer fails with `ERR_MODULE_NOT_FOUND`.
 - Plugins accept kibi-plugin-sdk 0.6 as a peer.
