@@ -1587,6 +1587,14 @@ describe("round-4 agent-test regressions: exact or refuse", () => {
       members: [],
       lines: [4],
     });
+    // A method group through the alias is the alias's target's too.
+    const group = [
+      "using Environment = Lib.FakeEnvironment;",
+      "class U11 { Action<int> G() => Environment.Exit; }",
+    ].join("\n");
+    assert.deepEqual((await inline("A.cs", group, "calls")).members, [
+      "Lib.FakeEnvironment.Exit",
+    ]);
     // An alias that names System.Environment is read through.
     const real = [
       "using E = System.Environment;",
@@ -1628,6 +1636,26 @@ describe("round-4 agent-test regressions: exact or refuse", () => {
         ),
       },
     ]);
+    // A string_args read marks only the callee it asks for.
+    const started = [
+      "using System.Diagnostics;",
+      'class P { void M() { Process.Start("rm"); Console.WriteLine("x"); } }',
+    ].join("\n");
+    assert.deepEqual(
+      await inline("A.cs", started, "string_args", { callee: "Process.Start" }),
+      { members: ["rm"], lines: [], shadows: [2] },
+    );
+    assert.equal(
+      (
+        await extractor.extract({
+          path: "A.cs",
+          content: started,
+          extract: "string_args",
+          callee: "Process.Start",
+        })
+      ).unresolved.length,
+      1,
+    );
     // A name the file binds or qualifies with global:: is not marked.
     const bound = [
       "using System;",

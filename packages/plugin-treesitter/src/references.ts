@@ -2555,6 +2555,14 @@ function rustPlain(text: string): string {
   return rustRaw(plainName(text));
 }
 
+/** Whether an item's name is `name`, spelled raw (`r#name`) or not. */
+function rustNamed(item: Node, name: string): boolean {
+  const spelled = field(item, "name");
+  // Every item the reader asks about has a name.
+  /* node:coverage ignore next */
+  return spelled !== null && rustRaw(spelled.text) === name;
+}
+
 function rustChain(node: Node): string | null {
   switch (node.type) {
     case "identifier":
@@ -3007,7 +3015,7 @@ type RustBinding =
 function rustItem(scope: Node, name: string): RustBinding | null {
   for (const child of named(scope)) {
     if (child.type === "type_item") {
-      if (rustRaw(field(child, "name")?.text ?? "") !== name) continue;
+      if (!rustNamed(child, name)) continue;
       // `type C = std::process::Command` is followed; a generic alias or one
       // of another kind of type is not.
       const type = field(child, "type");
@@ -3019,8 +3027,7 @@ function rustItem(scope: Node, name: string): RustBinding | null {
         : { kind: "alias" };
     }
     if (RUST_ITEMS.has(child.type)) {
-      if (rustRaw(field(child, "name")?.text ?? "") === name)
-        return { kind: "item" };
+      if (rustNamed(child, name)) return { kind: "item" };
       continue;
     }
     switch (child.type) {
@@ -3042,7 +3049,7 @@ function rustItem(scope: Node, name: string): RustBinding | null {
         break;
       }
       case "mod_item":
-        if (rustRaw(field(child, "name")?.text ?? "") === name)
+        if (rustNamed(child, name))
           return { kind: "module", body: field(child, "body") };
         break;
       case "extern_crate_declaration": {
