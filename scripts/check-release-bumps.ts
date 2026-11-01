@@ -26,7 +26,7 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { PACKAGE_CATALOG } from "./package-catalog.ts";
+import { PACKAGE_CATALOG } from "./package-catalog";
 
 export type BumpPackage = Readonly<{ dir: string; npmName: string }>;
 
