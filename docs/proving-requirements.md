@@ -628,10 +628,14 @@ Details that decide what a reader sees:
   `subprocess.call`); an imported function used as a value
   (`f = sp.check_output`, `fn=Popen`) is listed as called. `imports` lists
   `import a.b` as `a` and `a.b`, and `from urllib import request` as
-  `urllib` and `urllib.request`. The whole environment handed on, copied or
+  `urllib` and `urllib.request`. `posix` and `nt` are the modules `os`
+  re-exports, so a name through them is listed as the `os` name too:
+  `posix.system("x")` and `from posix import system` are the call
+  `os.system` (as well as `posix.system`) for `calls` and `string_args`,
+  and `import posix` is listed as `os` and `posix` by `imports`. The whole environment handed on, copied or
   iterated (`os.environ.copy()`, `dict(os.environ)`, `**os.environ`,
   `env=os.environ`), a getter or the `os` module used as a value, a name
-  computed at run time, `getattr` on an imported module, `exec`, `eval`,
+  computed at run time, `getattr` or `vars` on an imported module, `exec`, `eval`,
   `compile`, `__import__` and `importlib.import_module` (which `imports`
   lists when the name is a literal), `pkgutil.resolve_name`, `runpy`,
   `importlib.util` and `importlib.machinery`, `sys.modules`,
@@ -648,7 +652,16 @@ Details that decide what a reader sees:
   `getenv` on any imported name other than `os` (`from .main import o;
   o.environ`, and a framework's `request.environ` alike), a module's
   namespace (`os.__dict__`, `f.__globals__`, `globals()`, `locals()`,
-  `vars()` and `vars(module)`), and an imported module handed on. For
+  `vars()` and `vars(module)`, so `getattr(tempfile, "_os")`,
+  `vars(tempfile)["_os"]` and `tempfile.__dict__["_os"]` are refused by
+  `imports` too), and an imported module handed on: a module used as a
+  value rather than called or read through (`_t = tempfile`, `f(shutil)`,
+  `return tf`, `[tempfile][0]`, `p = os.path`), and a name imported from a
+  project or third-party module assigned to another name (`x = h`, since
+  `h` may be a module), fail `imports`, `calls` and `env`. A standard
+  module's member is checked to be a module by importing that standard
+  module; a class or function used as a value (`@dataclass`,
+  `isinstance(x, Path)`) is read. For
   `calls`, a name imported from a project or third-party module that is, or
   is used through, a name of an `os`, `subprocess` or `sys` function
   (`from .cli import Popen`, `from .main import o; o.system()`) fails the
@@ -701,13 +714,24 @@ Details that decide what a reader sees:
   rule a format that is not written out), and any other module-sensitive
   (`:`) meta argument that is not a clause, predicate, file or operator spec
   or `[]` (`prolog_listen/2`, `on_signal/3`) fail the read with their place.
-  An include or load through a project alias (`bson(include/common)`, set
-  up by `file_search_path/2` at run time) resolves only when exactly one
-  project file (among `files` or anywhere in the workspace outside
-  `node_modules`, `.git` and `.kb`) has a path ending with the aliased path;
-  with none or several (a vendored copy next to the real one) it fails the
-  read, naming the candidates. The refusal of an include says which file to
-  add to `files` to read it.
+  An include or load through a project alias (`bson(include/common)`)
+  resolves only through the `file_search_path/2` declarations of the files
+  read: a fact or clause for `file_search_path/2` (with `user:` or not) or a
+  directive that asserts one, where Kibi evaluates
+  `prolog_load_context(directory, D)` (the declaring file's directory),
+  `directory_file_path/3` and `atom_concat/3` on known atoms, and the
+  directory is absolute or `Alias(Sub)` of another alias the files declare.
+  The alias resolves when those directories hold exactly one existing file
+  for the aliased path. A file that only ends with the aliased path (a
+  vendored copy, while the real target sits under `node_modules/` or
+  outside the project) is never taken for it. No declaration among the
+  files, one Kibi cannot evaluate (a relative directory, which depends on
+  the working directory at run time, or one computed otherwise), one that
+  goes through an alias SWI-Prolog defines (`library`, `pack`), or several
+  matching files fail the read with its place. The refusal of an include
+  names a file to add to `files` only when it is the file the declarations
+  resolve to; one under `node_modules`, `.git` or `.kb` or outside the
+  project is named as out of reach.
 - **Go, Java, C# and Rust.** The references reader hands these files to
   `kibi-plugin-treesitter`, which parses them in its bounded workers and
   compiles or runs nothing. Activate it for proofs in `package.json`:
