@@ -254,6 +254,14 @@ export class SourceAnalysisService {
   ): Promise<HostSourceAnalysisResultV2> {
     const request = createV2Request(filePath, content, explicitLanguageHint);
     const { classification } = request;
+    // Kibi's own knowledge-base files (its Prolog schema included) are not
+    // project source, so they never ask for a grammar pack.
+    if (/^(?:\.\/)?\.kb\//.test(filePath.replaceAll("\\", "/")))
+      return request.fallback(
+        "unsupported",
+        "kibi_knowledge_base_file",
+        "Kibi's own knowledge-base files are not analyzed as project source.",
+      );
     if (
       content.length > SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS ||
       Buffer.byteLength(content, "utf8") > 8 * 1024 * 1024

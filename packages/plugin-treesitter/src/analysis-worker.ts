@@ -1894,19 +1894,7 @@ function analyzeInput(
     const rest = omissions
       .slice(lastSlotOmission)
       .map((omission) => rangeForNode(omission.node));
-    const first = rest[0] as SourceAnalysisUncoveredRangeV2;
-    const last = rest.reduce((latest, range) =>
-      range.endLine > latest.endLine ||
-      (range.endLine === latest.endLine && range.endColumn > latest.endColumn)
-        ? range
-        : latest,
-    );
-    const span = {
-      startLine: first.startLine,
-      startColumn: first.startColumn,
-      endLine: last.endLine,
-      endColumn: last.endColumn,
-    };
+    const span = spanOf(rest);
     diagnostics[MAX_DIAGNOSTICS - 1] = {
       code: DECORATOR_OMISSION_CODE,
       message: `Python decorators are not evaluated and may alter or synthesize declarations (${rest.length} decorated declarations from line ${span.startLine} to ${span.endLine}; diagnostics are capped at ${MAX_DIAGNOSTICS}).`,
@@ -1915,6 +1903,33 @@ function analyzeInput(
     uncoveredRanges[MAX_DIAGNOSTICS - 1] = {
       ...span,
       reason: DECORATOR_OMISSION_REASON,
+    };
+  } else if (
+    omissions.length > MAX_DIAGNOSTICS &&
+    diagnostics.length === MAX_DIAGNOSTICS &&
+    omissions
+      .slice(lastSlotOmission)
+      .every(
+        (omission) =>
+          !WHOLE_FILE_OMISSION.test(`${omission.code} ${omission.reason}`),
+      )
+  ) {
+    // The findings past the cap are all local gaps (nested blocks, macros,
+    // includes): the last slot covers their span as one local gap, so the
+    // symbols declared outside it keep their coordinates instead of the whole
+    // file turning into a limit finding.
+    const rest = omissions
+      .slice(lastSlotOmission)
+      .map((omission) => rangeForNode(omission.node));
+    const span = spanOf(rest);
+    diagnostics[MAX_DIAGNOSTICS - 1] = {
+      code: "TREESITTER_LOCAL_GAPS_SUMMARIZED",
+      message: `${rest.length} further local analysis gaps from line ${span.startLine} to ${span.endLine} are summarized as one range; diagnostics are capped at ${MAX_DIAGNOSTICS}.`,
+      range: span,
+    };
+    uncoveredRanges[MAX_DIAGNOSTICS - 1] = {
+      ...span,
+      reason: "local-gaps-summarized-past-cap",
     };
   } else if (
     omissions.length > MAX_DIAGNOSTICS &&
@@ -1936,6 +1951,29 @@ function analyzeInput(
     symbols: limitedCandidates.map(buildSymbol),
     diagnostics,
     uncoveredRanges,
+  };
+}
+
+/** Omissions that make the whole parse unreliable, never summarized as local. */
+const WHOLE_FILE_OMISSION =
+  /syntax|parse|timeout|timed[\s_-]*out|integrity|checksum|fail|error|limit/i;
+
+/** The span from the first range's start to the latest end among them. */
+function spanOf(
+  ranges: readonly SourceAnalysisRangeV2[],
+): SourceAnalysisRangeV2 {
+  const first = ranges[0] as SourceAnalysisRangeV2;
+  const last = ranges.reduce((latest, range) =>
+    range.endLine > latest.endLine ||
+    (range.endLine === latest.endLine && range.endColumn > latest.endColumn)
+      ? range
+      : latest,
+  );
+  return {
+    startLine: first.startLine,
+    startColumn: first.startColumn,
+    endLine: last.endLine,
+    endColumn: last.endColumn,
   };
 }
 

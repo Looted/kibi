@@ -17,7 +17,6 @@
 */
 
 import * as fs from "node:fs";
-import { analysisObligation } from "../traceability/analysis-gate.js";
 import * as path from "node:path";
 import { createMaintenanceSourceAnalysisService } from "../plugins/maintenance-source-analysis.js";
 import type { CapabilityRegistry } from "../plugins/registry.js";
@@ -30,6 +29,7 @@ import {
   extensionLanguage,
   isTsJsSourcePath,
 } from "../plugins/source-classification.js";
+import { analysisObligation } from "../traceability/analysis-gate.js";
 import { resolveWorkspaceSourceAbsolute } from "../utils/repo-relative-path.js";
 import {
   type ManifestSymbolEntry,
@@ -335,10 +335,15 @@ export async function enrichSymbolCoordinates(
     if (
       analysis.status === "failed" ||
       (analysis.status === "partial" && !coordinateOnlyPartial && !localGaps)
-    )
-      throw new Error(
-        `Cannot refresh incomplete source analysis for ${logicalPath}: ${describeAnalysisDiagnostics(analysis.diagnostics)}`,
-      );
+    ) {
+      // A file the analyzer cannot read as a whole (a syntax error, which a
+      // grammar may also report for valid code, a timeout, a changed grammar)
+      // gives its own symbols no coordinates; every other file still refreshes.
+      const reason = `Cannot refresh incomplete source analysis for ${logicalPath}: ${describeAnalysisDiagnostics(analysis.diagnostics)}`;
+      if (firstAnalysis) console.warn(`[kibi] ${reason}`);
+      output[index] = { ...entry, coordinateRefreshFailure: reason };
+      continue;
+    }
     if (localGaps && firstAnalysis) {
       console.warn(
         `[kibi] ${logicalPath}: source analysis is partial; symbols declared on ${localGaps.map((range) => (range.startLine === range.endLine ? `line ${range.startLine}` : `lines ${range.startLine}-${range.endLine}`)).join(", ")} keep no coordinates (${describeAnalysisDiagnostics(analysis.diagnostics)})`,
@@ -353,6 +358,13 @@ export async function enrichSymbolCoordinates(
       const pack = analysis.diagnostics.find((diagnostic) =>
         diagnostic.code.startsWith("TREESITTER_LANGUAGE_PACK_"),
       );
+      const fileLevel = analysis.diagnostics.find(
+        (diagnostic) => diagnostic.code === "source_file_level_only",
+      );
+      if (fileLevel && !pack && firstAnalysis)
+        console.warn(
+          `[kibi] ${logicalPath}: symbol coordinates are approximate (placed by text match). ${fileLevel.message}`,
+        );
       if (pack && firstAnalysis)
         console.warn(
           `[kibi] ${logicalPath}: symbol coordinates are approximate until its grammar pack is installed. ${pack.message}`,

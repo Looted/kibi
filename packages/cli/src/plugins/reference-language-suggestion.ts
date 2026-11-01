@@ -34,7 +34,7 @@ import { readProjectKibiConfig } from "./project-config.js";
 import { REFERENCE_PLUGIN_PACKAGE } from "./proof-reference-extractors.js";
 
 const NOT_PRODUCTION =
-  /(?:^|\/)(?:node_modules|dist|build|target|bin|obj|vendor|coverage|tests?|__tests__|e2e|fixtures?)\/|(?:_test\.go|Tests?\.(?:java|cs)|\.(?:test|spec)\.[^/]+)$/i;
+  /(?:^|\/)(?:node_modules|dist|build|target|bin|obj|vendor|coverage|tests?|__tests__|e2e|fixtures?)\/|^\.kb\/|(?:_test\.go|Tests?\.(?:java|cs)|\.(?:test|spec)\.[^/]+)$/i;
 
 export type ReferenceLanguageSuggestion = Readonly<{
   package: string;
@@ -192,14 +192,15 @@ export function referenceLanguageSuggestion(
   // Without the plugin, any language it reads is a reason to suggest it for
   // symbols. `.pl` alone is shared with Perl, so Prolog counts only with a
   // `.plt` file or a `pack.pl`.
-  const symbolLanguages = packLanguages.filter(
+  const confirmed = packLanguages.filter(
     (language) =>
       language.pack !== "kibi-lang-prolog" ||
       language.found.some((file) => /(?:\.plt|(?:^|\/)pack\.pl)$/i.test(file)),
   );
+  const symbolLanguages = confirmed;
   const suggestSymbols = entry === undefined && symbolLanguages.length > 0;
   if (entry === undefined && !activate && !suggestSymbols) return null;
-  const missing = packLanguages.filter((language) => {
+  const missing = confirmed.filter((language) => {
     const installed = installedVersion(language.pack);
     const wanted = pinned.get(language.pack);
     return (
@@ -320,5 +321,9 @@ export function workspaceReferenceLanguageNote(
     noManifest
       ? ` This project has no package.json; create one that only holds Kibi's plugin list (npm init -y, then npm install -D ${install}) and add node_modules/ to .gitignore.`
       : ""
-  } Without ${suggestion.capabilities.length === 0 ? "them, those files are refused for symbols and proofs" : "it, references proofs on those files are refused"}.`;
+  } ${
+    suggestion.capabilities.includes(REFERENCE_EXTRACTOR_CAPABILITY_ID)
+      ? "Without it, references proofs on those files are refused."
+      : "Until then, symbols in those files are placed by text match and are approximate."
+  }`;
 }

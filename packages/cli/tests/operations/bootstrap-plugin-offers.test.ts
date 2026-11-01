@@ -109,6 +109,22 @@ describe("bootstrap plugin offers", () => {
     ).toEqual([]);
   });
 
+  // executable_for TEST-kibi-tree-sitter-language-packs
+  it("offers kibi-plugin-treesitter for symbols in a language it cannot prove", async () => {
+    write(fixture.root, "src/app.py", "def run():\n    pass\n");
+    write(fixture.root, "tools/build.pl", "print 1;\n");
+    const { pluginOffers } = await discoverBootstrap(runtime(fixture.root));
+    expect(pluginOffers).toMatchObject([
+      {
+        package: "kibi-plugin-treesitter",
+        capability: "kibi.symbol-extractor.v2",
+        mode: "augment",
+        alsoInstall: ["kibi-lang-python"],
+        evidence: ["src/app.py"],
+      },
+    ]);
+  });
+
   it("offers kibi-plugin-ui when production component files exist", async () => {
     write(
       fixture.root,

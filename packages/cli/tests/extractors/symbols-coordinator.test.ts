@@ -6,6 +6,7 @@ import {
   type ManifestSymbolEntry,
   enrichSymbolCoordinates,
 } from "../../src/extractors/symbols-coordinator.js";
+import type { SourceAnalysisService } from "../../src/plugins/source-analysis-service.js";
 
 type TsEnrichStub = (
   entries: ManifestSymbolEntry[],
@@ -545,12 +546,14 @@ it("refreshes partial files per symbol and keeps decorator coordinates explicit"
           { code, message: "Not a decorator-only omission", range: span },
         ],
       };
-      await expect(
-        enrichSymbolCoordinates(entries, tmpDir, {
-          sourceAnalysisService: service,
-          allowPythonDecoratorCoordinates: true,
-        }),
-      ).rejects.toThrow("Cannot refresh incomplete source analysis");
+      expect(
+        (
+          await enrichSymbolCoordinates(entries, tmpDir, {
+            sourceAnalysisService: service,
+            allowPythonDecoratorCoordinates: true,
+          })
+        )[0]?.coordinateRefreshFailure,
+      ).toContain("Cannot refresh incomplete source analysis");
     }
     // A local gap that is not decorator-only refreshes per symbol: the symbol
     // declared on line 2 lies inside it, one declared after it does not.
@@ -589,11 +592,13 @@ it("refreshes partial files per symbol and keeps decorator coordinates explicit"
     expect(local[2]).toMatchObject({ sourceLine: 5, sourceEndLine: 6 });
     // A partial result that names no uncovered range cannot be narrowed.
     response = { ...raw, uncoveredRanges: [] };
-    await expect(
-      enrichSymbolCoordinates(entries, tmpDir, {
-        sourceAnalysisService: service,
-      }),
-    ).rejects.toThrow("Cannot refresh incomplete source analysis");
+    expect(
+      (
+        await enrichSymbolCoordinates(entries, tmpDir, {
+          sourceAnalysisService: service,
+        })
+      )[0]?.coordinateRefreshFailure,
+    ).toContain("Cannot refresh incomplete source analysis");
     const firstSymbol = raw.symbols[0];
     if (firstSymbol === undefined) {
       throw new Error("Expected source analysis to return a symbol");
@@ -626,6 +631,7 @@ it("refreshes partial files per symbol and keeps decorator coordinates explicit"
     );
     // Exact-index generation supplies this strict callback. The sync-only
     // option is not forwarded to the completeness-sensitive coordinator.
+    // A file that cannot be read as a whole no longer stops the refresh.
     await expect(
       refreshManifestCoordinates(manifest, tmpDir, {
         refreshSymbolCoordinates: true,
@@ -640,7 +646,7 @@ it("refreshes partial files per symbol and keeps decorator coordinates explicit"
           coordinateArtifactStatus: "absent",
         }),
       }),
-    ).rejects.toThrow("Cannot refresh incomplete source analysis");
+    ).resolves.toBeDefined();
     response = {
       ...raw,
       status: "failed",
@@ -650,12 +656,14 @@ it("refreshes partial files per symbol and keeps decorator coordinates explicit"
       ],
       uncoveredRanges: [],
     };
-    await expect(
-      enrichSymbolCoordinates(entries, tmpDir, {
-        sourceAnalysisService: service,
-        allowPythonDecoratorCoordinates: true,
-      }),
-    ).rejects.toThrow("Cannot refresh incomplete source analysis");
+    expect(
+      (
+        await enrichSymbolCoordinates(entries, tmpDir, {
+          sourceAnalysisService: service,
+          allowPythonDecoratorCoordinates: true,
+        })
+      )[0]?.coordinateRefreshFailure,
+    ).toContain("Cannot refresh incomplete source analysis");
     response = {
       ...raw,
       symbols: [firstSymbol, { ...firstSymbol, startLine: 3, endLine: 3 }],
@@ -688,6 +696,38 @@ it("refreshes partial files per symbol and keeps decorator coordinates explicit"
     expect(warn).toHaveBeenCalledTimes(1);
     expect(warn.mock.calls[0]?.[0]).toBe(
       "[kibi] decorated.py: symbol coordinates are approximate until its grammar pack is installed. Python needs kibi-lang-python@1.0.0: npm install --save-dev kibi-lang-python@1.0.0",
+    );
+  } finally {
+    warn.mockRestore();
+  }
+});
+
+// executable_for TEST-kibi-tree-sitter-language-packs
+it("says when a shell dialect is only placed by text match", async () => {
+  writeFile("run.sh", "#!/bin/sh\n# start runs it\nstart() { :; }\n");
+  const warn = spyOn(console, "warn").mockImplementation(() => {});
+  try {
+    const service = {
+      analyzeTextV2: async () => ({
+        status: "unsupported",
+        symbols: [],
+        uncoveredRanges: [],
+        diagnostics: [
+          {
+            code: "source_file_level_only",
+            message: "The sh shell dialect is retained as file-level source.",
+          },
+        ],
+      }),
+    } as unknown as SourceAnalysisService;
+    const [entry] = await enrichSymbolCoordinates(
+      [{ id: "SYM-start", title: "start", sourceFile: "run.sh" }],
+      tmpDir,
+      { sourceAnalysisService: service },
+    );
+    expect(entry?.sourceLine).toBeNumber();
+    expect(warn.mock.calls[0]?.[0]).toBe(
+      "[kibi] run.sh: symbol coordinates are approximate (placed by text match). The sh shell dialect is retained as file-level source.",
     );
   } finally {
     warn.mockRestore();

@@ -290,7 +290,7 @@ describe("the workspace note for kibi init and kibi doctor", () => {
     });
     gitTrack(root);
     expect(workspaceReferenceLanguageNote(root)).toBe(
-      `1 PHP source file(s); ${TREESITTER} reads them only with the grammar pack(s) kibi-lang-php@1.0.0 installed: npm install --save-dev kibi-lang-php@1.0.0. Without them, those files are refused for symbols and proofs.`,
+      `1 PHP source file(s); ${TREESITTER} reads them only with the grammar pack(s) kibi-lang-php@1.0.0 installed: npm install --save-dev kibi-lang-php@1.0.0. Until then, symbols in those files are placed by text match and are approximate.`,
     );
   });
 
@@ -370,7 +370,7 @@ describe("the workspace note for kibi init and kibi doctor", () => {
       new Set(["kibi-lang-rust", "kibi-lang-ruby", "kibi-lang-bash"]),
     );
     expect(workspaceReferenceLanguageNote(root)).toBe(
-      `1 Rust source file(s); ${TREESITTER} reads them only with the grammar pack(s) kibi-lang-rust@1.0.0 installed: npm install --save-dev kibi-lang-rust@1.0.0. The installed grammar of kibi-lang-rust does not match the SHA-256 ${TREESITTER} pins; reinstall it. Without them, those files are refused for symbols and proofs.`,
+      `1 Rust source file(s); ${TREESITTER} reads them only with the grammar pack(s) kibi-lang-rust@1.0.0 installed: npm install --save-dev kibi-lang-rust@1.0.0. The installed grammar of kibi-lang-rust does not match the SHA-256 ${TREESITTER} pins; reinstall it. Until then, symbols in those files are placed by text match and are approximate.`,
     );
     // No plugin catalog: nothing to compare against.
     const bare = workspace({ "package.json": manifest() });

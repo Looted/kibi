@@ -409,6 +409,25 @@ function perlOrPrologByContent(content: string): string | undefined {
   return prolog ? "prolog" : "perl";
 }
 
+// C++-only constructs; `extern "C"` guards and C23 attributes are not among them.
+const CPP_ONLY =
+  /^\s*(?:class|namespace|template\s*<|using\s+namespace)\b|^\s*(?:public|private|protected)\s*:|\b(?:virtual|constexpr|nullptr|operator\s*[^\w\s]|static_cast|dynamic_cast|reinterpret_cast|noexcept)\b|\bstd::|[A-Za-z_]\w*::[A-Za-z_~]/m;
+
+/**
+ * Resolves a `.h` header without a shebang: C++ when its code uses a
+ * construct only C++ has, otherwise C (a C header also parses as C++, but
+ * the reverse does not hold, so C is the reading that stays exact).
+ */
+// implements REQ-multilingual-language-catalog
+function cOrCppByContent(content: string): string {
+  const code = content
+    .slice(0, MAX_CONTENT_SNIFF_LENGTH)
+    .replace(/\/\*[\s\S]*?\*\//g, " ")
+    .replace(/\/\/[^\n]*/g, " ")
+    .replace(/"(?:[^"\\\n]|\\.)*"/g, '""');
+  return CPP_ONLY.test(code) ? "cpp" : "c";
+}
+
 function classificationForLanguage(
   language: string,
   source: "extension" | "shebang" | "explicit" | "content",
@@ -500,9 +519,13 @@ export function classifySource(
 
   if (extension?.kind === "ambiguous") {
     const contentLanguage =
-      shebang === undefined && extension.language === "perl-or-prolog"
-        ? perlOrPrologByContent(content)
-        : undefined;
+      shebang !== undefined
+        ? undefined
+        : extension.language === "perl-or-prolog"
+          ? perlOrPrologByContent(content)
+          : extension.language === "c-or-cpp"
+            ? cOrCppByContent(content)
+            : undefined;
     if (contentLanguage !== undefined)
       return classificationForLanguage(contentLanguage, "content");
     if (shebang === undefined) {
