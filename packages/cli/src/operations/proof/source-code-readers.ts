@@ -317,6 +317,20 @@ NAMESPACES = {"globals", "locals", "builtins.globals", "builtins.locals"}
 REACHED = {"os", "posix", "nt", "sys", "subprocess", "builtins", "importlib", "runpy", "pkgutil", "shutil", "pty", "socket", "ctypes"}
 ENV_ATTRS = {"environ", "environb", "getenv", "getenvb"}
 ENV_MODULES = {"os", "posix", "nt"}
+# The modules a claim names: their own private members (os._exit) are read as written.
+NAMED_MODULES = {"os", "posix", "nt", "sys", "subprocess"}
+# Foreign function interfaces: a library they load (libc's getenv or system)
+# runs native code Kibi cannot read.
+FFI_MODULES = {"ctypes", "_ctypes", "cffi", "_cffi_backend"}
+def private(name):
+    return name.startswith("_") and not (name.startswith("__") and name.endswith("__"))
+def hidden(parts, i):
+    # A private name of a module: tempfile._os and threading._os are os, and
+    # what another standard module keeps under a private name is not known here.
+    part = parts[i]
+    if not private(part):
+        return False
+    return part.lstrip("_") in REACHED or (parts[0] in STDLIB and ".".join(parts[:i]) not in NAMED_MODULES)
 NAMESPACE_ATTRS = {"__dict__", "__getattribute__", "__getattr__", "__loader__", "__spec__", "__builtins__", "__import__", "__globals__"}
 STDLIB = getattr(sys, "stdlib_module_names", frozenset())
 def _system_names():
@@ -404,6 +418,8 @@ for file in plan["files"]:
             return False
         for i in range(1, len(parts)):
             part = parts[i]
+            if hidden(parts, i):
+                return True
             if part in REACHED and not (part == "subprocess" and parts[:i] == ["asyncio"]):
                 return True
             if part in NAMESPACE_ATTRS:
@@ -418,6 +434,16 @@ for file in plan["files"]:
                 after = [imported_as[head]] + after
             return any(part in SYSTEM_NAMES for part in after)
         return False
+    def ffi(node):
+        written = chain(node)
+        return written is not None and written.split(".")[0] in names and canonical(written).split(".")[0] in FFI_MODULES
+    def hides(node):
+        # from tempfile import _os: a module under a private name of another one.
+        if not isinstance(node, ast.ImportFrom):
+            return False
+        base = "." * node.level + (node.module or "")
+        parts = base.split(".") if node.level == 0 else [base]
+        return any(alias.name != "*" and hidden(parts + [alias.name], len(parts)) for alias in node.names)
     def env_use(node, name):
         up = parent.get(node)
         if name in ENV_GETTERS:
@@ -458,7 +484,18 @@ for file in plan["files"]:
         if extract in ("env", "calls") and isinstance(node, ast.Attribute) and canonical(chain(node) or "") == "sys.modules":
             miss(node)
             continue
-        if extract in ("env", "calls") and isinstance(node, (ast.Name, ast.Attribute)) and maximal(node) and reaches(node):
+        if extract in ("env", "calls", "imports") and hides(node):
+            miss(node)
+            continue
+        if (extract in ("env", "calls") and isinstance(node, ast.ImportFrom) and node.level == 0
+                and (node.module or "").split(".")[0] in FFI_MODULES and any(alias.name == "*" for alias in node.names)):
+            miss(node)
+            continue
+        if extract in ("env", "calls") and isinstance(node, (ast.Name, ast.Attribute)) and maximal(node) and ffi(node):
+            # ctypes.CDLL(None).getenv(b"X"): a foreign call can read or run anything.
+            miss(node)
+            continue
+        if extract in ("env", "calls", "imports") and isinstance(node, (ast.Name, ast.Attribute)) and maximal(node) and reaches(node):
             miss(node)
             continue
         if extract == "env":
