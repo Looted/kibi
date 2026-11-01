@@ -641,7 +641,10 @@ Details that decide what a reader sees:
   the read, because Kibi does not follow what another module binds: `os`,
   `sys`, `subprocess` and the like as an attribute of an imported module
   (`shutil.os.getenv`, `path.os`, `dotenv.main.os`) or imported from one
-  (`from .main import os`, which `imports` refuses too), `environ` or
+  (`from .main import os`, which `imports` refuses too), a private name of
+  a module (`from tempfile import _os`, `threading._os.popen`, refused by
+  `imports` too; the private names of `os` and `sys` themselves, such as
+  `os._exit`, are read as written), `environ` or
   `getenv` on any imported name other than `os` (`from .main import o;
   o.environ`, and a framework's `request.environ` alike), a module's
   namespace (`os.__dict__`, `f.__globals__`, `globals()`, `locals()`,
@@ -650,7 +653,10 @@ Details that decide what a reader sees:
   is used through, a name of an `os`, `subprocess` or `sys` function
   (`from .cli import Popen`, `from .main import o; o.system()`) fails the
   read, since it may be that function re-exported; a re-export under an
-  unrelated name is not detected.
+  unrelated name is not detected. For `env` and `calls`, any use of
+  `ctypes` or `cffi` (`ctypes.CDLL(None).getenv(b"X")`, `ffi.dlopen`) fails
+  the read: a function of a native library it loads can read the
+  environment or run a program.
 - **SWI-Prolog.** The references reader and the `prolog` reader read a
   `.pl` or `.plt` file term by term with SWI-Prolog and run none of it: no
   directive, `initialization/1` or clause of the project executes. The file's
@@ -669,8 +675,12 @@ Details that decide what a reader sees:
   rules (a non-terminal `n//0` is the call `n/2`), lambdas and the arguments
   of meta-predicates (the files' own `meta_predicate` declarations, those of
   the project modules they load and SWI-Prolog's), `apply/2` as the goal it
-  calls, the arguments of `~@` in `format/2,3`, `debug/3` and
-  `print_message(_, format(...))`, the goal lists of `first_solution/3` and
+  calls, the arguments of `~@` in `format/2,3`, `debug/3`,
+  `ansi_format/3`, `sformat/2,3`, `print_message(_, format(...))` and
+  message lines (`print_message_lines(_, _, ['~@'-[Goal]])`, and the list
+  elements of `prolog:message//1` rules and of any grammar rule whose
+  element is such a line), a `{Goal}` grammar body handed to `phrase/2,3` or
+  `call_dcg/3`, the goal lists of `first_solution/3` and
   `concurrent/3`, and the body of a clause
   asserted from a literal term (`assertz((s(V) :- getenv('X', V)))`). `env`
   reads `getenv/2`; `string_args` the first argument of
@@ -686,13 +696,18 @@ Details that decide what a reader sees:
   file that is not among `files`, a `consult`, `ensure_loaded`,
   `load_files` or `:- [...]` of a file without a module header that is not
   among `files` (its clauses join the loading module), a format string Kibi
-  cannot read whose arguments could be goals, and any other module-sensitive
+  cannot read whose arguments could be goals, message lines Kibi cannot
+  see to their end (a variable list or element, or in a `prolog:message//1`
+  rule a format that is not written out), and any other module-sensitive
   (`:`) meta argument that is not a clause, predicate, file or operator spec
   or `[]` (`prolog_listen/2`, `on_signal/3`) fail the read with their place.
   An include or load through a project alias (`bson(include/common)`, set
-  up by `file_search_path/2` at run time) resolves to the one file among
-  `files` whose path ends with the aliased path; with none or several it
-  fails the read.
+  up by `file_search_path/2` at run time) resolves only when exactly one
+  project file (among `files` or anywhere in the workspace outside
+  `node_modules`, `.git` and `.kb`) has a path ending with the aliased path;
+  with none or several (a vendored copy next to the real one) it fails the
+  read, naming the candidates. The refusal of an include says which file to
+  add to `files` to read it.
 - **Go, Java, C# and Rust.** The references reader hands these files to
   `kibi-plugin-treesitter`, which parses them in its bounded workers and
   compiles or runs nothing. Activate it for proofs in `package.json`:
