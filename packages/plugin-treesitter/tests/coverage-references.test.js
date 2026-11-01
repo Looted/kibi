@@ -289,11 +289,11 @@ describe("C# reference reader edge cases", () => {
     assert.deepEqual(calls.lines, [5, 9, 12, 13]);
   });
 
-  it("lists method groups it can name and skips ones it cannot", async () => {
+  it("lists method groups it can name and ones on an unnamed receiver as any receiver's", async () => {
     const source =
       "class A { void F() { Run(Helpers.Format); Run(items[0].Format); } }\n";
     const calls = await read("A.cs", source, "calls");
-    assert.deepEqual(calls.members, ["Helpers.Format"]);
+    assert.deepEqual(calls.members, ["*.Format", "Helpers.Format"]);
     // `Run` is no method of A: a base type's or a `using static` type's.
     assert.deepEqual(calls.lines, [1]);
   });

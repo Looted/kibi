@@ -1664,6 +1664,133 @@ describe("round-4 agent-test regressions: exact or refuse", () => {
     assert.equal((await inline("A.cs", bound, "calls")).shadows, undefined);
   });
 
+  it("lists a C# method group on a call, new, element or parenthesized receiver as a call", async () => {
+    for (const group of [
+      "Process.GetCurrentProcess().Kill",
+      "System.Diagnostics.Process.GetCurrentProcess().Kill",
+      "new Process().Kill",
+      "new System.Diagnostics.Process().Kill",
+      "(new Process()).Kill",
+      "ps[0].Kill",
+      "p.Kill",
+    ]) {
+      const source = [
+        "using System;",
+        "using System.Diagnostics;",
+        `class H { static void Stop(Process p, Process[] ps) { Action k = ${group}; k(); } }`,
+      ].join("\n");
+      const calls = await inline("A.cs", source, "calls");
+      assert.ok(calls.members.includes("*.Kill"), `${group}: ${calls.members}`);
+    }
+    // Handed on as an argument or returned, too.
+    const passed = [
+      "using System.Diagnostics;",
+      "class H {",
+      "  static void A() { Run(Process.GetCurrentProcess().Kill); }",
+      "  static Action B() => new Process().Kill;",
+      "}",
+    ].join("\n");
+    assert.ok(
+      (await inline("A.cs", passed, "calls")).members.includes("*.Kill"),
+    );
+    // An environment getter's name as such a method group refuses env.
+    const env = [
+      "class H {",
+      "  static void A() { Func<string, string> g = Make().GetEnvironmentVariable; }",
+      "}",
+    ].join("\n");
+    assert.deepEqual((await inline("A.cs", env, "env")).lines, [2]);
+    // A property read on such a receiver that is called is the call only.
+    const property = [
+      "using System.Diagnostics;",
+      "class H { static int A() => Process.GetCurrentProcess().Id; }",
+    ].join("\n");
+    assert.ok(
+      (await inline("A.cs", property, "calls")).members.includes("*.Id"),
+    );
+  });
+
+  it("does not read a C# type parameter named Environment as System.Environment", async () => {
+    const sources = [
+      [
+        "using System;",
+        "class C<Environment> where Environment : IFake {",
+        "  void M() { Environment.Exit(1); }",
+        '  string E() => Environment.GetEnvironmentVariable("S17_NOT_ENV");',
+        "}",
+      ],
+      [
+        "using System;",
+        "class C {",
+        "  void M<Environment>() where Environment : IFake { Environment.Exit(1); }",
+        '  string E<Environment>() where Environment : IFake => Environment.GetEnvironmentVariable("S17_NOT_ENV");',
+        "}",
+      ],
+      [
+        "using System;",
+        "interface I<Environment> where Environment : IFake {",
+        "  static void M() { Environment.Exit(1); }",
+        '  static string E() => Environment.GetEnvironmentVariable("S17_NOT_ENV");',
+        "}",
+      ],
+    ];
+    for (const lines of sources) {
+      const source = lines.join("\n");
+      const calls = await inline("A.cs", source, "calls");
+      assert.ok(calls.members.includes("*.Exit"), String(calls.members));
+      assert.ok(
+        !calls.members.some((name) => name.includes("Environment.")),
+        String(calls.members),
+      );
+      assert.deepEqual(await inline("A.cs", source, "env"), {
+        members: [],
+        lines: [4],
+      });
+    }
+    // Another method's type parameter does not bind this method's name.
+    const other = [
+      "using System;",
+      "class C {",
+      "  void M<Environment>() where Environment : IFake { }",
+      '  string E() => Environment.GetEnvironmentVariable("REAL");',
+      "}",
+    ].join("\n");
+    assert.deepEqual((await inline("A.cs", other, "env")).members, ["REAL"]);
+  });
+
+  it("reads a C# Environment as System.Environment outside the member a pattern variable of that name is in", async () => {
+    const source = [
+      "using System;",
+      "class H {",
+      "  static void Probe(object o) { if (o is Probe Environment) Environment.Exit(1); }",
+      '  static string Url() => Environment.GetEnvironmentVariable("URL");',
+      "  static string Field = o is Fake Environment ? Environment.Name : null;",
+      '  static string After() => Environment.GetEnvironmentVariable("AFTER");',
+      "}",
+    ].join("\n");
+    assert.deepEqual((await inline("A.cs", source, "env")).members, [
+      "AFTER",
+      "URL",
+    ]);
+    const calls = await inline("A.cs", source, "calls");
+    assert.ok(calls.members.includes("*.Exit"), String(calls.members));
+    assert.ok(
+      !calls.members.includes("System.Environment.Exit"),
+      String(calls.members),
+    );
+    // Top-level statements share one scope: a pattern variable there binds
+    // the name in every top-level statement.
+    const top = [
+      "using System;",
+      "if (args[0] is Fake Environment) { }",
+      'var u = Environment.GetEnvironmentVariable("TOP");',
+    ].join("\n");
+    assert.deepEqual(await inline("A.cs", top, "env"), {
+      members: [],
+      lines: [3],
+    });
+  });
+
   const go = (lines) => `package a\n${lines.join("\n")}\n`;
 
   it("lists a Go package used under a name another package is known by under its import path", async () => {

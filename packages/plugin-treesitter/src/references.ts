@@ -2065,6 +2065,13 @@ function csharpBinding(
         case "catch_declaration":
           if (csharpName(child) === name) return { owner: none };
           break;
+        // `class C<Environment>`, `void M<Environment>()`: a type parameter
+        // (with C# 11 static abstract members, `Environment.Exit()` calls
+        // its constraint's member) is in scope in its declaration.
+        case "type_parameter_list":
+          if (named(child).some((parameter) => csharpName(parameter) === name))
+            return { owner: none };
+          break;
       }
     }
   }
@@ -2125,18 +2132,51 @@ const CSHARP_DESIGNATIONS = [
 ];
 
 /**
- * Whether any designation in the file declares `name`. Their scopes (the
- * enclosing statement, block or query) are not followed: wherever the file
- * declares a local of that name, `name.X` may be a member of that local, so
- * the reader does not take it for a System type's.
+ * Members a local declared by a designation cannot leave: its scope (the
+ * enclosing statement, block, lambda, query or initializer) is inside the
+ * nearest of them.
  */
-function csharpDesignates(file: Node, name: string): boolean {
+const CSHARP_MEMBERS = new Set([
+  "method_declaration",
+  "constructor_declaration",
+  "destructor_declaration",
+  "operator_declaration",
+  "conversion_operator_declaration",
+  "property_declaration",
+  "indexer_declaration",
+  "event_declaration",
+  "field_declaration",
+  "event_field_declaration",
+]);
+
+/**
+ * Whether a designation that declares `name` may be in scope at `at`. Its
+ * exact scope is not followed, only the member it is in: wherever that
+ * member declares a local of that name, `name.X` in it may be a member of
+ * that local, so the reader does not take it for a System type's. A
+ * designation outside any member (a top-level statement, whose locals every
+ * top-level statement shares, or a primary constructor's base arguments) is
+ * taken to be in scope in the whole file.
+ */
+function csharpDesignates(at: Node, name: string): boolean {
+  let file: Node = at;
+  while (file.parent !== null) file = file.parent;
   return CSHARP_DESIGNATIONS.some((type) =>
-    descendants(file, type).some((node) =>
-      named(node).some(
-        (part) => part.type === "identifier" && csharpId(part.text) === name,
-      ),
-    ),
+    descendants(file, type).some((node) => {
+      if (
+        !named(node).some(
+          (part) => part.type === "identifier" && csharpId(part.text) === name,
+        )
+      )
+        return false;
+      let member: Node | null = node.parent;
+      while (member !== null && !CSHARP_MEMBERS.has(member.type))
+        member = member.parent;
+      if (member === null) return true;
+      for (let scope: Node | null = at; scope !== null; scope = scope.parent)
+        if (scope.id === member.id) return true;
+      return false;
+    }),
   );
 }
 
@@ -2176,9 +2216,9 @@ function csharpReceiver(name: string, at: Node): string {
   const method = `${ANY_RECEIVER}.${lastOf(name, ".")}`;
   const binding = csharpBinding(at, root);
   if (binding !== null) return binding.owner.length === 0 ? method : name;
+  if (csharpDesignates(at, root)) return method;
   let file: Node = at;
   while (file.parent !== null) file = file.parent;
-  if (csharpDesignates(file, root)) return method;
   for (const type of [...CSHARP_TYPE_DECLARATIONS, "enum_declaration"])
     if (descendants(file, type).some((node) => csharpName(node) === root))
       return method;
@@ -2348,6 +2388,17 @@ const CSHARP: Reader = {
         CSHARP_ENV_NAMES.has(bare) && (extract === "env" || extract === "calls")
       );
     }
+    // A getter's name as a method group handed on (`Make().GetEnvironmentVariable`,
+    // `p.GetEnvironmentVariable`): whatever it names, what it is later
+    // called with is not known here.
+    if (
+      extract === "env" &&
+      node.type === "member_access_expression" &&
+      node.parent?.type !== "invocation_expression" &&
+      CSHARP_ENV_NAMES.has(csharpId(field(node, "name")?.text ?? "")) &&
+      csharpValuePosition(node)
+    )
+      return true;
     // A getter's name on a receiver the reader does not resolve to
     // Environment (a project-wide `global using E = System.Environment`).
     if (
@@ -2407,9 +2458,18 @@ const CSHARP: Reader = {
     if (node.type !== "member_access_expression") return null;
     if (!csharpValuePosition(node)) return null;
     const chain = csharpChain(node);
-    /* node:coverage disable */
-    if (chain === null) return null;
+    // `Process.GetCurrentProcess().Kill`, `new Process().Kill`, `ps[0].Kill`:
+    // a method group on a receiver no name spells is a member of an unknown
+    // owner, as a call on it is.
+    if (chain === null) {
+      const member = field(node, "name");
+      /* node:coverage disable */
+      if (member === null) return null;
+      /* node:coverage enable */
+      return `${ANY_RECEIVER}.${csharpChain(member) ?? member.text}`;
+    }
     const name = csharpReceiver(chain, node);
+    /* node:coverage disable */
     return CSHARP.candidates(name, context, node)[0] ?? name;
     /* node:coverage enable */
   },
