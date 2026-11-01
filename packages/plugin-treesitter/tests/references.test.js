@@ -1404,3 +1404,53 @@ describe("round-3 agent-test regressions: exact or refuse", () => {
     });
   });
 });
+
+describe("round-4 agent-test regressions: exact or refuse", () => {
+  it("reads a Rust raw identifier in a path as the identifier it spells", async () => {
+    const source = [
+      "use std::r#env;",
+      "use std::process::exit as r#quit;",
+      "mod r#inner { pub fn r#run() {} }",
+      "fn f(x: S) {",
+      "    std::r#process::exit(1);",
+      '    let _ = std::r#env::var("RAW_PATH");',
+      '    let _ = r#env::var_os("RAW_USE");',
+      "    std::process::r#exit(3);",
+      "    r#quit(2);",
+      "    x.r#method();",
+      "    let g = std::r#process::abort;",
+      "    r#inner::r#run();",
+      '    let s = "r#not_a_path";',
+      "}",
+    ].join("\n");
+    assert.deepEqual((await inline("a.rs", source, "imports")).members, [
+      "std::env",
+      "std::process::exit",
+    ]);
+    const calls = await inline("a.rs", source, "calls");
+    for (const name of [
+      "std::process::exit",
+      "std::env::var",
+      "std::env::var_os",
+      "quit",
+      "x.method",
+      "std::process::abort",
+      "inner::run",
+    ])
+      assert.ok(calls.members.includes(name), `${name}: ${calls.members}`);
+    assert.ok(
+      !calls.members.some((name) => name.includes("r#")),
+      String(calls.members),
+    );
+    assert.deepEqual(await inline("a.rs", source, "env"), {
+      members: ["RAW_PATH", "RAW_USE"],
+      lines: [],
+    });
+    // A raw identifier inside a macro's tokens is the path it spells.
+    const macro = 'fn f() { println!("{:?}", std::r#env::var("IN_MACRO")); }';
+    assert.deepEqual((await inline("a.rs", macro, "env")).lines, [1]);
+    // A raw string is not a raw identifier.
+    const raw = 'fn f() { std::env::var(r#"RAW_STR"#); }';
+    assert.deepEqual((await inline("a.rs", raw, "env")).members, ["RAW_STR"]);
+  });
+});

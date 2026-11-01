@@ -2099,6 +2099,20 @@ const RUST_ENV_MACROS = new Set([
   "core::option_env",
 ]);
 
+/**
+ * An identifier or path without raw-identifier prefixes: `r#env` is the
+ * identifier `env`, so `std::r#process::exit` is `std::process::exit`. A raw
+ * string (`r#"..."#`) is not an identifier and is left alone.
+ */
+function rustRaw(text: string): string {
+  return text.replace(/(?<![\w#])r#(?=[A-Za-z_])/g, "");
+}
+
+/** A path as {@link plainName} spells it, without raw-identifier prefixes. */
+function rustPlain(text: string): string {
+  return rustRaw(plainName(text));
+}
+
 function rustChain(node: Node): string | null {
   switch (node.type) {
     case "identifier":
@@ -2113,7 +2127,7 @@ function rustChain(node: Node): string | null {
       // `<T as Trait>::m` names a method of whichever impl T resolves to.
       if (node.text.trimStart().startsWith("<")) return null;
       // A comment between segments is not part of the path.
-      return withoutGenerics(plainName(node.text));
+      return withoutGenerics(rustPlain(node.text));
     }
     case "field_expression": {
       const value = field(node, "value");
@@ -2122,7 +2136,7 @@ function rustChain(node: Node): string | null {
       if (value === null || name === null) return null;
       /* node:coverage enable */
       const left = rustChain(value);
-      return left === null ? null : `${left}.${name.text}`;
+      return left === null ? null : `${left}.${rustRaw(name.text)}`;
     }
     case "parenthesized_expression": {
       const inner = named(node)[0];
@@ -2148,7 +2162,7 @@ function rustUseTree(node: Node, prefix: string, members: string[]): void {
       const path = named(node)[0];
       members.push(
         join(
-          path === undefined ? prefix : join(prefix, plainName(path.text)),
+          path === undefined ? prefix : join(prefix, rustPlain(path.text)),
           "*",
         ),
       );
@@ -2157,7 +2171,7 @@ function rustUseTree(node: Node, prefix: string, members: string[]): void {
     case "scoped_use_list": {
       const path = field(node, "path");
       const list = field(node, "list");
-      const base = path === null ? prefix : join(prefix, plainName(path.text));
+      const base = path === null ? prefix : join(prefix, rustPlain(path.text));
       if (list !== null) rustUseTree(list, base, members);
       return;
     }
@@ -2168,7 +2182,7 @@ function rustUseTree(node: Node, prefix: string, members: string[]): void {
       members.push(prefix);
       return;
     default:
-      members.push(join(prefix, plainName(node.text)));
+      members.push(join(prefix, rustPlain(node.text)));
   }
 }
 
@@ -2188,16 +2202,20 @@ function rustUseBindings(
     case "use_as_clause": {
       const path = field(node, "path");
       const alias = field(node, "alias");
-      if (path === null || alias === null || alias.text === "_") return;
+      if (path === null || alias === null || rustRaw(alias.text) === "_")
+        return;
       // `use std::env::{self as e}` binds e to std::env itself.
-      const spelled = plainName(path.text);
-      bind(alias.text, spelled === "self" ? prefix : join(prefix, spelled));
+      const spelled = rustPlain(path.text);
+      bind(
+        rustRaw(alias.text),
+        spelled === "self" ? prefix : join(prefix, spelled),
+      );
       return;
     }
     case "use_wildcard": {
       const path = named(node)[0];
       glob(
-        path === undefined ? prefix : join(prefix, plainName(path.text)),
+        path === undefined ? prefix : join(prefix, rustPlain(path.text)),
         node,
       );
       return;
@@ -2205,7 +2223,7 @@ function rustUseBindings(
     case "scoped_use_list": {
       const path = field(node, "path");
       const list = field(node, "list");
-      const base = path === null ? prefix : join(prefix, plainName(path.text));
+      const base = path === null ? prefix : join(prefix, rustPlain(path.text));
       if (list !== null) rustUseBindings(list, base, bind, glob);
       return;
     }
@@ -2216,7 +2234,7 @@ function rustUseBindings(
       bind(lastSegment(prefix), prefix);
       return;
     default: {
-      const path = join(prefix, plainName(node.text));
+      const path = join(prefix, rustPlain(node.text));
       bind(lastSegment(path), path);
     }
   }
@@ -2229,7 +2247,8 @@ function rustUseBindings(
  */
 function rustTokens(node: Node): string {
   if (node.type === "line_comment" || node.type === "block_comment") return " ";
-  if (node.childCount === 0) return node.text;
+  if (node.childCount === 0)
+    return node.type === "identifier" ? rustRaw(node.text) : node.text;
   return node.children
     .map(
       (child) =>
@@ -2255,7 +2274,7 @@ function insideRustAttribute(node: Node): boolean {
 function rustMacroName(node: Node): string {
   const name = field(node, "macro");
   /* node:coverage disable */
-  return name === null ? "" : plainName(name.text);
+  return name === null ? "" : rustPlain(name.text);
   /* node:coverage enable */
 }
 
@@ -2546,7 +2565,7 @@ type RustBinding =
 function rustItem(scope: Node, name: string): RustBinding | null {
   for (const child of named(scope)) {
     if (child.type === "type_item") {
-      if (field(child, "name")?.text !== name) continue;
+      if (rustRaw(field(child, "name")?.text ?? "") !== name) continue;
       // `type C = std::process::Command` is followed; a generic alias or one
       // of another kind of type is not.
       const type = field(child, "type");
@@ -2554,11 +2573,12 @@ function rustItem(scope: Node, name: string): RustBinding | null {
         field(child, "type_parameters") === null &&
         (type.type === "type_identifier" ||
           type.type === "scoped_type_identifier")
-        ? { kind: "path", path: plainName(type.text) }
+        ? { kind: "path", path: rustPlain(type.text) }
         : { kind: "alias" };
     }
     if (RUST_ITEMS.has(child.type)) {
-      if (field(child, "name")?.text === name) return { kind: "item" };
+      if (rustRaw(field(child, "name")?.text ?? "") === name)
+        return { kind: "item" };
       continue;
     }
     switch (child.type) {
@@ -2580,16 +2600,16 @@ function rustItem(scope: Node, name: string): RustBinding | null {
         break;
       }
       case "mod_item":
-        if (field(child, "name")?.text === name)
+        if (rustRaw(field(child, "name")?.text ?? "") === name)
           return { kind: "module", body: field(child, "body") };
         break;
       case "extern_crate_declaration": {
         const crate = field(child, "name");
         const local = field(child, "alias") ?? crate;
         /* node:coverage disable */
-        if (crate !== null && local?.text === name)
+        if (crate !== null && rustRaw(local?.text ?? "") === name)
           /* node:coverage enable */
-          return { kind: "crate", crate: crate.text };
+          return { kind: "crate", crate: rustRaw(crate.text) };
         break;
       }
     }
@@ -2703,7 +2723,7 @@ const RUST: Reader = {
     if (target.type === "field_expression") {
       const method = field(target, "field");
       /* node:coverage disable */
-      return method === null ? null : `${ANY_RECEIVER}.${method.text}`;
+      return method === null ? null : `${ANY_RECEIVER}.${rustRaw(method.text)}`;
       /* node:coverage enable */
     }
     return null;
@@ -2720,7 +2740,7 @@ const RUST: Reader = {
     for (const definition of descendants(root, "macro_definition")) {
       const name = field(definition, "name");
       /* node:coverage disable */
-      if (name !== null) context.imported.add(name.text);
+      if (name !== null) context.imported.add(rustRaw(name.text));
       /* node:coverage enable */
     }
     for (const declaration of descendants(root, "use_declaration")) {
@@ -2782,7 +2802,7 @@ const RUST: Reader = {
       return (
         extract === "string_args" &&
         target !== null &&
-        lastOf(plainName(target.text), "::") === finalName(callee)
+        lastOf(rustPlain(target.text), "::") === finalName(callee)
       );
     }
     // A getter's name on a path the reader cannot follow to std::env (a
@@ -2884,7 +2904,7 @@ const RUST: Reader = {
     }
     if (node.type === "extern_crate_declaration") {
       const name = field(node, "name");
-      if (name !== null) members.push(name.text);
+      if (name !== null) members.push(rustRaw(name.text));
       return;
     }
     // A macro in item position can expand to further `use` items.
