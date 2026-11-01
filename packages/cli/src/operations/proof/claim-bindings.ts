@@ -400,9 +400,8 @@ export function namedClaimFiles(
   const named = new Map<string, string[]>();
   for (const value of texts) {
     for (const match of value.matchAll(FILE_NAME_TOKEN)) {
-      const token = match[0].replace(/^\.\//, "").replace(/[./-]+$/, "");
-      if (named.has(token) || !/\.[A-Za-z0-9]{1,10}$/.test(token)) continue;
-      if (token.includes("*") || token.startsWith("/")) continue;
+      const token = match[0];
+      if (named.has(token)) continue;
       const exact = matchWorkspaceFiles(workspaceRoot, [token]);
       const files =
         exact.length > 0

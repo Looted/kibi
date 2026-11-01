@@ -846,8 +846,10 @@ code does not hold:
   a member under the prefix of an item ending in `*` (`java.sql.*`, `os.*`),
   a wildcard import that may bring the item in (`java.sql.*` for
   `java.sql.Connection`), a shorter name the item ends with (`File.delete`
-  for `java.io.File.delete`), and a call on a receiver Kibi cannot name
-  (`*.delete` may be `java.io.File.delete`). The last three are refused with
+  for `java.io.File.delete`), a longer name ending in the item at a segment
+  boundary (`checkNotNull` excludes `Preconditions.checkNotNull`), and a call
+  on a receiver Kibi cannot name (`*.delete` may be `java.io.File.delete`).
+  The last four are refused with
   the member, the item it may be and the files read: Kibi cannot decide the
   claim for them.
 - `includes` holds only on a member that certainly is the item: the item, a
@@ -862,7 +864,11 @@ A references read decides a claim only for the files it reads. A proof is
 rejected when a symbol the test covers (`covered_by`) or a symbol that
 implements the claim's requirement lies in a file outside `files` (after
 `ignore`), naming the symbol and its file: a refused file cannot be dropped
-from `files` to prove a claim about it on other code. A `string_args` read
+from `files` to prove a claim about it on other code. A claim whose subject
+key or claim text names a project file (`src/match.c`, or a file name such as
+`utils.sh` that Kibi finds in the project) is also rejected when none of the
+files read is that file, so a claim about one file cannot be decided on
+another. A `string_args` read
 whose `callee` is an environment getter (`os.Getenv`, `os.getenv`,
 `System.getenv`, `env::var`, `env::var_os`,
 `Environment.GetEnvironmentVariable`, `getenv/2` and the like) sees only that

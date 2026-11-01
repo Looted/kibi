@@ -9611,6 +9611,10 @@ test(excludes_fails_on_what_may_be_the_item) :-
     reference_problem("excludes", ["*.close"], ["java.sql.*"], "Kibi cannot decide the claim"),
     reference_problem("excludes", ["java.sql.*"], ["java.sql.Connection"], "a wildcard that may cover java.sql.Connection"),
     reference_problem("excludes", ["File.delete"], ["java.io.File.delete"], "a shorter name that may be java.io.File.delete"),
+    reference_problem("excludes", ["com.google.common.base.Preconditions.checkNotNull"], ["checkNotNull"], "com.google.common.base.Preconditions.checkNotNull (it may be the checkNotNull the fact excludes)"),
+    reference_problem("excludes", ["Preconditions.checkNotNull"], ["checkNotNull"], "it may be the checkNotNull"),
+    reference_problem("excludes", ["std::process::exit"], ["process::exit"], "it may be the process::exit"),
+    reference_ok("excludes", ["Preconditions.checkNotNullOrEmpty", "checkNotNullX"], ["checkNotNull"]),
     reference_ok("excludes", ["*.close", "os.Getenv"], ["java.io.File.delete", "os.Exit"]).
 
 test(includes_and_subset_need_a_certain_member) :-
