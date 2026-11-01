@@ -84,6 +84,8 @@ export type IngestProofTestResult = Readonly<{
   evidenceLevel?: string;
   /** Why the test's certificate did not re-check, for a certificate kind. */
   certificateRejection?: string;
+  /** The receipt's verification scope (unit, integration or end_to_end). */
+  scope?: string;
 }>;
 
 // implements REQ-kibi-verification-evidence-contract
@@ -533,6 +535,7 @@ async function executeIngestProofUnlocked(
         ...(typeof entry.receipt.certificate_rejection === "string"
           ? { certificateRejection: entry.receipt.certificate_rejection }
           : {}),
+        scope: entry.receipt.scope,
       },
     ]),
   );

@@ -124,6 +124,43 @@ describe("syncCommand error and option paths", () => {
     expect(typeof result.success).toBe("boolean");
   });
 
+  test("refuses a coordinate refresh while a declared source analyzer is not installed", async () => {
+    // implements REQ-symbol-coordinates-derived-locally
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    const io = captureIo();
+    restores.push(io.restore);
+    await withCwd(cwd, () => initCommand({}));
+    writeFileSync(
+      path.join(cwd, "package.json"),
+      JSON.stringify({
+        name: "consumer",
+        devDependencies: { "kibi-plugin-treesitter": "2.1.0" },
+        kibi: {
+          plugins: [
+            {
+              package: "kibi-plugin-treesitter",
+              capabilities: { "kibi.symbol-extractor.v2": { mode: "augment" } },
+            },
+          ],
+        },
+      }),
+    );
+    let failure: unknown;
+    try {
+      await syncCommand({ refreshSymbolCoordinates: true, workspaceRoot: cwd });
+    } catch (error) {
+      failure = error;
+    }
+    const message = `${failure instanceof Error ? failure.message : ""}\n${io.errorText()}`;
+    expect(message).toContain(
+      "Symbol coordinate refresh refused: kibi-plugin-treesitter is declared but not installed.",
+    );
+    expect(message).toContain("The stored coordinates were kept.");
+  });
+
   test("a flow-style symbol manifest is rewritten in block layout", async () => {
     // implements REQ-kibi-hooks-flow-manifest
     const restoreEnv = isolateKibiEnv();

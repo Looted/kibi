@@ -21,8 +21,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 11974,
-      "sha256": "61e71bb73ca7130c72dff418bb8e3090ab5a909d901c10df70b13e0463c04b57"
+      "bytes": 15111,
+      "sha256": "1b560fb3d6268569c9b7d501385bb45833863c02b88f65b121c1174fd5b1eef9"
     },
     {
       "path": "SBOM.spdx.json",
@@ -136,8 +136,8 @@
     },
     {
       "path": "dist/analysis-worker.js",
-      "bytes": 69546,
-      "sha256": "1eaa509ffecfcedd97a2b56fb7e8abdd6a028b506269551ef1d7e55aa8c3f716"
+      "bytes": 73753,
+      "sha256": "9120078de07b39fd5caced87610eb262d94e9cf1ba5c19ddf0413baacffab4fe"
     },
     {
       "path": "dist/catalog.d.ts",
@@ -215,6 +215,21 @@
       "sha256": "28f589c29e8759b566ee3fb741a91e30347efe1dfbad0f5b1c5b7d4f785369ff"
     },
     {
+      "path": "dist/preprocessor-idioms.d.ts",
+      "bytes": 1002,
+      "sha256": "0261d67ad7958deca3088672d009f6d2db289f8182c31032a1ccd3243ca281fb"
+    },
+    {
+      "path": "dist/preprocessor-idioms.d.ts.map",
+      "bytes": 214,
+      "sha256": "c7fca18fe4f469b78c68632644306c208106e0500dfe06bef8c0527e8c68486f"
+    },
+    {
+      "path": "dist/preprocessor-idioms.js",
+      "bytes": 6192,
+      "sha256": "92973c7f0c017fdd340a084e39e5febadd4254bc822c0f86f46a05c1463c1870"
+    },
+    {
       "path": "dist/references.d.ts",
       "bytes": 1454,
       "sha256": "46c3aa294932e88bdb4481aba8bcfe76e1fe3a972a5a404286546545c63479f8"
@@ -222,12 +237,12 @@
     {
       "path": "dist/references.d.ts.map",
       "bytes": 1028,
-      "sha256": "fc5cc55396af708ab78ad71336c738a5d977830e9fd4c2609d80c0050c5eb1b7"
+      "sha256": "fc60c965d595126fa344e97136b762d1ffa801c591083749fac0b95dc1bdbd17"
     },
     {
       "path": "dist/references.js",
-      "bytes": 90969,
-      "sha256": "2fb9aa6da2473a59705a2efc39ca53264886670da2742b2a622a9b3b45d533f4"
+      "bytes": 107970,
+      "sha256": "a3aac1cf94fd6f62ea536108ac001bfc91f467ce5c7dd6b25c1470d87550bd6d"
     },
     {
       "path": "licenses/web-tree-sitter-MIT.txt",

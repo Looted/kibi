@@ -30,7 +30,9 @@ const RUN_NODE_TEST_SUITE =
  * the plugin is active for proofs the read is refused with what to install. A
  * Go file that reads a variable named at run time is refused with its place,
  * and once the Rust worker reads another variable its claim is rejected with
- * that name.
+ * that name. An environment claim read with string_args on one getter is
+ * refused, and so is a claim whose test covers a symbol in a file the read
+ * does not cover.
  */
 
 type Step = Readonly<{
@@ -199,6 +201,13 @@ const TESTS = [
   ["TEST-CSHARP-IMPORTS", "csharp/Gateway.cs", "imports", "csharpImports"],
   ["TEST-RUST-ENV", "rust/worker.rs", "env", "rustEnv"],
   ["TEST-GO-ENV-ALL", "go/*.go", "env", "goEnv"],
+  // One getter's arguments are not every variable the worker reads.
+  [
+    "TEST-RUST-STRING-ARGS",
+    "rust/worker.rs",
+    "string_args\n    callee: env::var",
+    "rustEnv",
+  ],
 ] as const;
 
 async function writePackageJson(
@@ -482,6 +491,37 @@ export async function checkTreeSitterSourceReferences(
   const rust = latestReceipt(sandbox, "TEST-RUST-ENV");
   assert.match(rust, /binding: rejected/, rust);
   assert.match(rust, /API_TOKEN/, rust);
+
+  // An environment claim read through one getter's arguments is refused.
+  const stringArgs = latestReceipt(sandbox, "TEST-RUST-STRING-ARGS");
+  assert.match(stringArgs, /binding: rejected/, stringArgs);
+  assert.match(stringArgs, /read the files with extract env/, stringArgs);
+  assert.doesNotMatch(stringArgs, /evidence_level: proved/, stringArgs);
+
+  // A claim is decided only on the files the read covers: once the Java
+  // client's proof covers a symbol in the Rust worker, the Java read no
+  // longer decides it.
+  await upsert(sandbox, {
+    type: "symbol",
+    id: "SYM-WORKER-START",
+    properties: {
+      title: "start",
+      status: "active",
+      sourceFile: "rust/worker.rs",
+      symbol_role: "behavioral",
+    },
+    relationships: [
+      { type: "covered_by", from: "SYM-WORKER-START", to: "TEST-JAVA-EXIT" },
+    ],
+  });
+  const scoped = await kibi(sandbox, ["prove", "--test", "TEST-JAVA-EXIT"], {
+    timeoutMs: 240000,
+  });
+  assert.strictEqual(scoped.exitCode, 0, scoped.stdout + scoped.stderr);
+  const java = latestReceipt(sandbox, "TEST-JAVA-EXIT");
+  assert.match(java, /binding: rejected/, java);
+  assert.match(java, /SYM-WORKER-START \(rust\/worker\.rs\)/, java);
+  assert.doesNotMatch(java, /evidence_level: proved/, java);
 }
 
 if (RUN_NODE_TEST_SUITE) {

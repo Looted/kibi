@@ -2402,15 +2402,15 @@ receipt_claim_fields(Receipt, Evidence0, Evidence) :-
 claim_evidence(ReqId, Props, Inventory, ProofStatus, ScenarioTestStage, Context,
                ClaimEvidence, ProvedTests, Rejections) :-
     (   get_dict(tests, ScenarioTestStage, Tests) -> true ; Tests = [] ),
-    (   ProofStatus == tested
-    ->  findall(TestId-Evidence,
-            (member(TestId, Tests),
-             test_receipt_evidence(Context, [unit, integration, end_to_end], TestId, Evidence),
-             get_dict(state, Evidence, passed),
-             get_dict(claimBindings, Evidence, _)),
-            BoundTests)
-    ;   BoundTests = []
-    ),
+    % The bindings are read whatever the proof status, so a claim that is not
+    % proved because the requirement is not tested end to end still shows the
+    % binding each receipt holds, and a rejected binding its reason.
+    findall(TestId-Evidence,
+        (member(TestId, Tests),
+         test_receipt_evidence(Context, [unit, integration, end_to_end], TestId, Evidence),
+         get_dict(state, Evidence, passed),
+         get_dict(claimBindings, Evidence, _)),
+        BoundTests),
     intent_claim_level(Props, IntentLevel),
     maplist(claim_entry(ReqId, ProofStatus, IntentLevel, BoundTests), Inventory, Entries0),
     exclude(==(none), Entries0, ClaimEvidence),
@@ -2458,17 +2458,25 @@ claim_entry(ReqId, ProofStatus, IntentLevel, BoundTests, InventoryEntry, Entry) 
         ;   Status \== modeled
         ->  Entry = Base.put(_{applicable: true, level: IntentLevel, bindings: [],
                                blocker: unresolved_semantic_proposition})
-        ;   ProofStatus \== tested
-        ->  Entry = Base.put(_{applicable: true, level: IntentLevel, bindings: []})
         ;   findall(Binding, test_claim_binding(ReqId, Key, BoundTests, Binding), Bindings0),
             sort(Bindings0, Bindings),
             include(binding_is(rejected), Bindings, RejectedBindings),
             maplist(binding_rejection(Key), RejectedBindings, Rejections),
-            (   member(B, Bindings), get_dict(binding, B, derived), \+ get_dict(scope, B, intent)
-            ->  Level = proved
-            ;   Level = tested
+            (   ProofStatus \== tested
+            ->  % A derived binding proves nothing until the requirement is
+                % tested end to end; the claim keeps the intent level and
+                % says why.
+                Entry1 = Base.put(_{applicable: true, level: IntentLevel, bindings: Bindings}),
+                (   member(B, Bindings), get_dict(binding, B, derived)
+                ->  Entry0 = Entry1.put(notProved, requirement_not_tested)
+                ;   Entry0 = Entry1
+                )
+            ;   (   member(B, Bindings), get_dict(binding, B, derived), \+ get_dict(scope, B, intent)
+                ->  Level = proved
+                ;   Level = tested
+                ),
+                Entry0 = Base.put(_{applicable: true, level: Level, bindings: Bindings})
             ),
-            Entry0 = Base.put(_{applicable: true, level: Level, bindings: Bindings}),
             (   Rejections == []
             ->  Entry = Entry0
             ;   Entry = Entry0.put(rejections, Rejections)

@@ -840,6 +840,10 @@ export async function executeUpsert(
     // the complete canonical entity the next sync would compile. Failures
     // abort before the RDF transaction so source and shard rollbacks keep all
     // surfaces consistent; stale coordinates are never reused as a fallback.
+    // A symbol Kibi cannot place in its source file is linked to no code:
+    // say so at write time, not only in a later sync's output.
+    // implements REQ-generated-coordinate-persistence
+    const coordinateWarnings: string[] = [];
     if (
       input.type === "symbol" &&
       context.fs !== undefined &&
@@ -864,6 +868,10 @@ export async function executeUpsert(
           `Coordinate refresh could not find ${input.id} in the authored symbol manifest`,
         );
       }
+      if (refresh.unplaced !== undefined)
+        coordinateWarnings.push(
+          `${input.id} has no symbol coordinates: ${refresh.unplaced}. Until Kibi places it, its link is not checked against the code (impact review, coverage and proofs do not see it there). Use the name the extractor gives the declaration, install the plugins and grammar packs kibi doctor names, or add symbol_role and granularity_reason for a file-level link.`,
+        );
       const canonical = reextractCanonicalSymbolEntity(
         input.id,
         sourceWrite.receipt.path,
@@ -1052,6 +1060,7 @@ export async function executeUpsert(
           { writtenPath: sourceWrite?.receipt.path },
         ),
         ...shardWarnings,
+        ...coordinateWarnings,
       ],
       ...advisorReceipt(semantic.receipt),
       ...storedClaimKey(commitEntity ?? validated.entity),

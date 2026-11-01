@@ -75,6 +75,8 @@ export type ClaimExplainEntry = Readonly<{
   applicable: boolean;
   level: string | null;
   blocker?: string;
+  /** Why a claim with a derived binding is still not proved. */
+  notProved?: string;
   bindings: readonly Readonly<{
     test: string;
     kind: string;
@@ -562,6 +564,9 @@ function claimFields(proof: Record<string, unknown>): {
               ...(typeof entry.blocker === "string"
                 ? { blocker: entry.blocker }
                 : {}),
+              ...(typeof entry.notProved === "string"
+                ? { notProved: entry.notProved }
+                : {}),
               bindings: (Array.isArray(entry.bindings)
                 ? entry.bindings
                 : []
@@ -603,6 +608,11 @@ function renderClaims(view: RequirementProofExplainView): string[] {
     for (const binding of claim.bindings)
       lines.push(
         `    ${binding.test} ${binding.kind}: ${binding.binding}${binding.binding === "derived" ? ` (${binding.scope})` : ""}${binding.reason ? `: ${binding.reason}` : ""}`,
+      );
+    // implements REQ-kibi-claim-bound-proofs
+    if (claim.notProved === "requirement_not_tested")
+      lines.push(
+        `    not proved: the certificate derives the claim, but a claim is proved only once the requirement is tested end to end (proofStatus ${view.proofStatus}${view.proofGaps.length > 0 ? `; gaps ${view.proofGaps.join(", ")}` : ""}); a test whose verification_scope is not end_to_end does not count`,
       );
   }
   return lines;

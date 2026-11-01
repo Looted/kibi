@@ -38,6 +38,14 @@ export const GENERATED_RULES = [
     category: "traceability",
   },
   {
+    name: "symbol-coordinates-missing",
+    description:
+      "Advisory: an active symbol names a source file that exists, but Kibi could not place it there (the declaration was not found, the file is unreadable to the analyzer, or a declared plugin or grammar pack is missing), so its link is checked against no code",
+    enforcementClass: "advisory",
+    category: "traceability",
+    diagnosticSeverity: "warning",
+  },
+  {
     name: "no-dangling-refs",
     description: "All relationship targets must exist in the KB",
     enforcementClass: "canonical",

@@ -28,6 +28,7 @@ import {
   secretSourceFromBootstrap,
 } from "../env/bootstrap.js";
 import { kibiPackageVersions } from "../package-versions.js";
+import { pluginInstallProblems } from "../plugins/plugin-install-check.js";
 import {
   describeConfiguredCapabilityPlugins,
   readProjectKibiConfig,
@@ -632,6 +633,14 @@ function checkCapabilityPlugins(): {
     const packages = [
       ...new Set((config.plugins ?? []).map((plugin) => plugin.package)),
     ];
+    const installProblems = pluginInstallProblems(workspaceRoot, packages);
+    if (installProblems.length > 0) {
+      return {
+        passed: false,
+        message: `${parts.join("; ")}; ${installProblems.map((row) => row.problem).join("; ")}`,
+        remediation: installProblems.map((row) => row.fix).join(" "),
+      };
+    }
     const missingSecrets: string[] = [];
     // Secrets whose plugin only augments a builtin provider: without them the
     // plugin is skipped and the builtin keeps working, so doctor warns.

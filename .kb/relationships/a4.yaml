@@ -517,3 +517,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9ac9e1b5084a
+  - type: requires_property
+    from: REQ-kibi-tree-sitter-references
+    to: FACT-kibi-tree-sitter-references-excludes-by-meaning
+    created_at: 2026-11-01T16:04:58.700Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-842598fc1f0e
+  - type: requires_property
+    from: REQ-kibi-tree-sitter-references
+    to: FACT-kibi-tree-sitter-references-files-cover-symbols
+    created_at: 2026-11-01T16:04:58.743Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72535d73535d
+  - type: requires_property
+    from: REQ-kibi-tree-sitter-references
+    to: FACT-kibi-tree-sitter-references-env-reader
+    created_at: 2026-11-01T16:04:58.789Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32c23eb895e8
