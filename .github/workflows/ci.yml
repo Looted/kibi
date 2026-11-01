@@ -373,6 +373,11 @@ jobs:
       - name: Verify publish metadata for npm provenance
         run: bun run scripts/verify-publish-metadata.ts
 
+      - name: Check changed packages are bumped for release
+        run: |
+          git fetch --no-tags --depth=1 origin master
+          bun run scripts/check-release-bumps.ts --base FETCH_HEAD
+
       - name: Rehearse release decision with mock registry
         run: |
           PUBLISHED_TOKENS=$(bun scripts/package-catalog.ts --print-publishable-tsv | while IFS=$'\t' read -r dir _; do
