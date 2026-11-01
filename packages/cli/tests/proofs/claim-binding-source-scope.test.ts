@@ -18,6 +18,8 @@ afterAll(() => rmSync(root, { recursive: true, force: true }));
 mkdirSync(path.join(root, "src"), { recursive: true });
 for (const file of ["a.ts", "b.ts", "c.ts", "d.ts", "e.ts", "skip.ts"])
   writeFileSync(path.join(root, "src", file), "export const x = 1;\n");
+mkdirSync(path.join(root, "with space"), { recursive: true });
+writeFileSync(path.join(root, "with space", "run.sh"), "echo hi\n");
 
 const CLAIM = "CLAIM-0000000000000S01";
 const REQ = "REQ-SCOPE";
@@ -266,17 +268,29 @@ describe("a references read includes the files its claim names", () => {
 
   test("resolves a path first, then a file name anywhere in the project", () => {
     expect([
-      ...namedClaimFiles(root, [
-        "src/c.ts and d.ts",
-        "src/c.ts",
-        "*.ts",
-        "/abs/a.ts",
-        "x",
-      ]),
+      ...namedClaimFiles(root, ["src/c.ts and d.ts", "src/c.ts", "*.ts", "x"]),
     ]).toEqual([
       ["src/c.ts", ["src/c.ts"]],
       ["d.ts", ["src/d.ts"]],
     ]);
+  });
+
+  test("resolves a repository prefix, other case, a missing extension and spaces", () => {
+    expect([...namedClaimFiles(root, ["repo/src/e.ts"])]).toEqual([
+      ["repo/src/e.ts", ["src/e.ts"]],
+    ]);
+    expect([...namedClaimFiles(root, ["SRC/E.TS"])]).toEqual([
+      ["SRC/E.TS", ["src/e.ts"]],
+    ]);
+    expect([...namedClaimFiles(root, ["src/skip never runs"])]).toEqual([
+      ["src/skip", ["src/skip.ts"]],
+    ]);
+    expect(
+      namedClaimFiles(root, ["`with space/run.sh` never calls eval"]).get(
+        "with space/run.sh",
+      ),
+    ).toEqual(["with space/run.sh"]);
+    expect([...namedClaimFiles(root, ["kibi.cli", "os/exec"])]).toEqual([]);
   });
 });
 

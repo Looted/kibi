@@ -372,11 +372,13 @@ export function matchWorkspaceFiles(
   workspaceRoot: string,
   patterns: readonly string[],
   ignore: readonly string[] = [],
+  caseSensitive = true,
 ): string[] {
   return fg
     .sync([...patterns], {
       cwd: workspaceRoot,
       ignore: [...DEFAULT_IGNORE, ...ignore],
+      caseSensitiveMatch: caseSensitive,
       dot: true,
       onlyFiles: true,
       followSymbolicLinks: false,

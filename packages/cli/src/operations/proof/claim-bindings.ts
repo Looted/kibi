@@ -19,6 +19,7 @@
 import { randomBytes } from "node:crypto";
 import { rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import fg from "fast-glob";
 import { normalizeEntityId, parseTriples } from "../../prolog/codec.js";
 import {
   runOperationJsonQuery,
@@ -385,12 +386,33 @@ export function environmentGetterCallee(callee: string): boolean {
 const CLOSED_OPERATORS = new Set(["eq", "subset_of", "excludes"]);
 
 const FILE_NAME_TOKEN = /[A-Za-z0-9_][A-Za-z0-9_./-]*\.[A-Za-z0-9]{1,10}\b/g;
+/** A quoted or backticked path, which may hold spaces (`automated install/x.sh`). */
+const QUOTED_PATH = /[`'"]([^`'"\n]*[/.][^`'"\n]*)[`'"]/g;
+/** A slashed path without an extension (`src/match` for src/match.c). */
+const BARE_PATH = /[A-Za-z0-9_][A-Za-z0-9_.-]*(?:\/[A-Za-z0-9_.-]+)+/g;
+
+function claimFileCandidates(token: string): string[][] {
+  const escaped = fg.escapePath(token.replace(/^\.?\/+/, ""));
+  const segments = escaped.split("/");
+  // The token as a path, as a name anywhere, then with leading segments
+  // dropped (a repository prefix such as fzy/src/match.c), then, for a
+  // slashed name without an extension, any extension.
+  const tries: string[][] = [[escaped], [`**/${escaped}`]];
+  for (let drop = 1; drop < segments.length; drop += 1)
+    tries.push([`**/${segments.slice(drop).join("/")}`]);
+  if (segments.length > 1 && !/\.[^/.]+$/.test(escaped))
+    tries.push([`${escaped}.*`, `**/${escaped}.*`]);
+  return tries;
+}
 
 /**
  * The project files a claim names in its subject key or claim text (for
- * example `src/match.c` or `utils.sh`): a token resolves to the file at that
- * path, else to every project file with that name. Tokens that name no
- * file (dotted subject keys such as `kibi.cli`) resolve to nothing.
+ * example `src/match.c`, `utils.sh`, `fzy/src/match.c`, `src/Match.c` or
+ * `src/match`): a token resolves, ignoring case, to the file at that path,
+ * else to every project file with that name or path suffix, else (for a
+ * slashed name without an extension) to the files with that stem. Tokens
+ * that name no file (dotted subject keys such as `kibi.cli`) resolve to
+ * nothing.
  */
 // implements REQ-kibi-source-proof-kinds
 export function namedClaimFiles(
@@ -399,20 +421,25 @@ export function namedClaimFiles(
 ): Map<string, string[]> {
   const named = new Map<string, string[]>();
   for (const value of texts) {
-    for (const match of value.matchAll(FILE_NAME_TOKEN)) {
-      const token = match[0];
-      if (named.has(token)) continue;
-      const exact = matchWorkspaceFiles(workspaceRoot, [token]);
-      const files =
-        exact.length > 0
-          ? exact
-          : matchWorkspaceFiles(workspaceRoot, [`**/${token}`]);
-      if (files.length > 0) named.set(token, files);
+    const tokens = [
+      ...[...value.matchAll(QUOTED_PATH)].map((match) => match[1] ?? ""),
+      ...[...value.matchAll(FILE_NAME_TOKEN)].map((match) => match[0]),
+      ...[...value.matchAll(BARE_PATH)].map((match) => match[0]),
+    ];
+    for (const raw of tokens) {
+      const token = raw.trim();
+      if (token === "" || named.has(token)) continue;
+      for (const patterns of claimFileCandidates(token)) {
+        const files = matchWorkspaceFiles(workspaceRoot, patterns, [], false);
+        if (files.length > 0) {
+          named.set(token, files);
+          break;
+        }
+      }
     }
   }
   return named;
 }
-
 
 type SourceScopeCheck = (row: ObligationRow) => Promise<string | null>;
 

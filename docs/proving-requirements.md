@@ -880,9 +880,11 @@ rejected when a symbol the test covers (`covered_by`) or a symbol that
 implements the claim's requirement lies in a file outside `files` (after
 `ignore`), naming the symbol and its file: a refused file cannot be dropped
 from `files` to prove a claim about it on other code. A claim whose subject
-key or claim text names a project file (`src/match.c`, or a file name such as
-`utils.sh` that Kibi finds in the project) is also rejected when none of the
-files read is that file, so a claim about one file cannot be decided on
+key or claim text names a project file (`src/match.c`, a file name such as
+`utils.sh` that Kibi finds in the project, a path with a repository prefix
+such as `fzy/src/match.c`, another letter case, a slashed name without its
+extension such as `src/match`, or a quoted path with spaces) is also rejected
+when none of the files read is that file, so a claim about one file cannot be decided on
 another. A `string_args` read
 whose `callee` is an environment getter (`os.Getenv`, `os.getenv`,
 `System.getenv`, `env::var`, `env::var_os`,
