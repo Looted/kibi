@@ -9,7 +9,10 @@ import {
 } from "../../plugins/reference-language-suggestion.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import { KB_PATHS } from "../../utils/kb-paths.js";
-import { pluginReferenceLanguage } from "../proof/code-languages.js";
+import {
+  PLUGIN_LANGUAGE_PACKS,
+  pluginReferenceLanguage,
+} from "../proof/code-languages.js";
 
 /** An optional plugin bootstrap offers because the workspace looks like it fits. */
 // implements REQ-bootstrap-ui-plugin-offer
@@ -152,8 +155,8 @@ async function requirementFiles(
  * kibi-plugin-search-hints once the KB holds enough requirements that a
  * question worded differently from them is likely to miss; neither is
  * offered once the project activated or declined it. kibi-plugin-treesitter
- * is offered for Go, Java, C# and Rust sources until it is active for
- * source proofs.
+ * is offered for sources in any language it reads until it is listed, and
+ * for Go, Java, C# and Rust sources until it is active for source proofs.
  */
 // implements REQ-bootstrap-ui-plugin-offer, REQ-kibi-plugin-search-hints, REQ-kibi-tree-sitter-references
 export async function pluginOffers(
@@ -165,8 +168,11 @@ export async function pluginOffers(
   );
   const requirements = await requirementFiles(context);
   const wantsHints = requirements.length >= SEARCH_HINTS_OFFER_REQUIREMENTS;
+  // Any language the plugin reads (for symbols, or for proofs too).
   const wantsReferences = files.some(
-    (file) => pluginReferenceLanguage(file) !== null,
+    (file) =>
+      pluginReferenceLanguage(file) !== null ||
+      PLUGIN_LANGUAGE_PACKS.some((language) => language.pattern.test(file)),
   );
   if (uiFiles.length === 0 && !wantsHints && !wantsReferences) return [];
   const configured = await configuredPlugins(context);

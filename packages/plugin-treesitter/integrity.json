@@ -21,8 +21,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 9123,
-      "sha256": "3716237d5fe1175ba8e95934c4a39e84bd68676e44bd02182233a4668cf27127"
+      "bytes": 11974,
+      "sha256": "61e71bb73ca7130c72dff418bb8e3090ab5a909d901c10df70b13e0463c04b57"
     },
     {
       "path": "SBOM.spdx.json",
@@ -136,8 +136,8 @@
     },
     {
       "path": "dist/analysis-worker.js",
-      "bytes": 68092,
-      "sha256": "153738f85b70e02b041aece3089fb5b19903630282541962a806b32ad9c97691"
+      "bytes": 69546,
+      "sha256": "1eaa509ffecfcedd97a2b56fb7e8abdd6a028b506269551ef1d7e55aa8c3f716"
     },
     {
       "path": "dist/catalog.d.ts",
@@ -222,12 +222,12 @@
     {
       "path": "dist/references.d.ts.map",
       "bytes": 1028,
-      "sha256": "eae386e934c25779744fa763d983b0da645a8b9d74867935f2a8174eef8f3e2a"
+      "sha256": "fc5cc55396af708ab78ad71336c738a5d977830e9fd4c2609d80c0050c5eb1b7"
     },
     {
       "path": "dist/references.js",
-      "bytes": 52798,
-      "sha256": "2626ddad50193d8b8976f58914a9a1943c925ec51ab8c6a7790d76efccf5c55b"
+      "bytes": 90969,
+      "sha256": "2fb9aa6da2473a59705a2efc39ca53264886670da2742b2a622a9b3b45d533f4"
     },
     {
       "path": "licenses/web-tree-sitter-MIT.txt",

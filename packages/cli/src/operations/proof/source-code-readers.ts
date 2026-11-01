@@ -295,8 +295,19 @@ def chain(node):
     return None
 def literal(node):
     return node.value if isinstance(node, ast.Constant) and isinstance(node.value, str) else None
-ENV_GETTERS = {"os.getenv", "getenv", "os.environ.get", "environ.get"}
-ENV_OBJECTS = {"os.environ", "environ"}
+# Bare getenv and environ are read as the environment even without an import.
+ENV_GETTERS = {"os.getenv", "os.getenvb", "getenv"}
+ENV_OBJECTS = {"os.environ", "os.environb", "environ"}
+ENV_KEY_METHODS = {"get", "setdefault", "pop"}
+ENV_TEMPLATES = {"os.path.expandvars", "posixpath.expandvars", "ntpath.expandvars"}
+# Code run from text, or a module looked up at run time, can read or call anything.
+IMPORTERS = {"__import__", "importlib.import_module", "import_module", "builtins.__import__"}
+DYNAMIC = IMPORTERS | {"exec", "eval", "compile", "builtins.exec", "builtins.eval", "builtins.compile"}
+def prefixes(dots, dotted):
+    parts = dotted.split(".") if dotted else []
+    return [dots + ".".join(parts[:i]) for i in range(1, len(parts) + 1)] or [dots]
+def joined(base, name):
+    return base + name if base.endswith(".") else base + "." + name
 for file in plan["files"]:
     with open(file, encoding="utf-8") as handle:
         text = handle.read()
@@ -310,36 +321,123 @@ for file in plan["files"]:
         line = getattr(node, "lineno", 1)
         unresolved.append({"file": file, "line": line, "text": (lines[line - 1].strip() if line - 1 < len(lines) else "")[:80]})
     caught = set()
+    parent = {}
+    # What each name the file imports stands for: import subprocess as sp makes
+    # sp stand for subprocess, from os import getenv as g makes g os.getenv.
+    names, modules = {}, set()
     for node in ast.walk(tree):
+        for child in ast.iter_child_nodes(node):
+            parent[child] = node
         if isinstance(node, ast.ExceptHandler) and node.name:
             caught.add(node.name)
+        elif isinstance(node, ast.Import):
+            for alias in node.names:
+                local = alias.asname or alias.name.split(".")[0]
+                names[local] = alias.name if alias.asname else local
+                modules.add(local)
+        elif isinstance(node, ast.ImportFrom):
+            base = "." * node.level + (node.module or "")
+            for alias in node.names:
+                if alias.name != "*":
+                    names[alias.asname or alias.name] = joined(base, alias.name)
+    def canonical(name):
+        head, dot, rest = name.partition(".")
+        return names[head] + dot + rest if head in names else name
+    def spelled(node):
+        name = chain(node)
+        return None if name is None else (name, canonical(name))
+    def called(node):
+        up = parent.get(node)
+        return isinstance(up, ast.Call) and up.func is node
+    def maximal(node):
+        up = parent.get(node)
+        return not (isinstance(up, ast.Attribute) and up.value is node)
+    def env_use(node, name):
+        up = parent.get(node)
+        if name in ENV_GETTERS:
+            if called(node):
+                value = literal(up.args[0]) if up.args else None
+                return members.append(value) if value is not None else miss(node)
+            return miss(node)
+        if isinstance(up, ast.Subscript) and up.value is node:
+            value = literal(up.slice)
+            return members.append(value) if value is not None else miss(node)
+        if isinstance(up, ast.Attribute) and up.attr in ENV_KEY_METHODS and called(up):
+            call = parent[up]
+            value = literal(call.args[0]) if call.args else None
+            return members.append(value) if value is not None else miss(node)
+        if (isinstance(up, ast.Compare) and len(up.ops) == 1 and isinstance(up.ops[0], (ast.In, ast.NotIn))
+                and up.comparators[0] is node and literal(up.left) is not None):
+            return members.append(literal(up.left))
+        # The whole environment handed on, copied, iterated or assigned.
+        miss(node)
     for node in ast.walk(tree):
+        if extract in ("env", "calls", "imports") and isinstance(node, ast.Call):
+            target = spelled(node.func)
+            name = None if target is None else target[1]
+            if name in DYNAMIC and not (extract == "imports" and name in IMPORTERS):
+                miss(node)
+                continue
+            if name == "getattr" and extract != "imports" and node.args:
+                inner = chain(node.args[0])
+                if inner is not None and inner.split(".")[0] in names:
+                    # A member of an imported module looked up by name.
+                    miss(node)
+                    continue
+        if extract in ("env", "calls") and isinstance(node, ast.Attribute) and canonical(chain(node) or "") == "sys.modules":
+            miss(node)
+            continue
         if extract == "env":
-            if isinstance(node, ast.Call) and chain(node.func) in ENV_GETTERS:
-                value = literal(node.args[0]) if node.args else None
-                (members.append(value) if value is not None else miss(node))
-            elif isinstance(node, ast.Subscript) and chain(node.value) in ENV_OBJECTS:
-                value = literal(node.slice)
-                (members.append(value) if value is not None else miss(node))
+            if isinstance(node, ast.ImportFrom) and node.module == "os" and any(alias.name == "*" for alias in node.names):
+                miss(node)
+            elif isinstance(node, (ast.Name, ast.Attribute)):
+                target = spelled(node)
+                if target is None:
+                    continue
+                name = target[1]
+                if name in ENV_GETTERS or name in ENV_OBJECTS:
+                    env_use(node, name)
+                elif name in ENV_TEMPLATES:
+                    miss(node)
+                elif isinstance(node, ast.Name) and name == "os" and maximal(node):
+                    # The os module itself handed on: its later reads could use any name.
+                    miss(node)
         elif extract == "imports":
             if isinstance(node, ast.Import):
-                members.extend(alias.name for alias in node.names)
+                for alias in node.names:
+                    members.extend(prefixes("", alias.name))
             elif isinstance(node, ast.ImportFrom):
-                members.append("." * node.level + (node.module or ""))
-            elif isinstance(node, ast.Call) and chain(node.func) in {"importlib.import_module", "import_module", "__import__"}:
+                dots = "." * node.level
+                members.extend(prefixes(dots, node.module or ""))
+                base = dots + (node.module or "")
+                members.extend(joined(base, alias.name) for alias in node.names if alias.name != "*")
+            elif isinstance(node, ast.Call) and canonical(chain(node.func) or "") in IMPORTERS:
                 value = literal(node.args[0]) if node.args else None
                 (members.append(value) if value is not None else miss(node))
         elif extract == "calls":
-            if isinstance(node, ast.Call):
-                name = chain(node.func)
-                if name is not None:
-                    members.append(name)
+            if isinstance(node, ast.ImportFrom) and any(alias.name == "*" for alias in node.names):
+                # A star import could bring any name into scope under a bare spelling.
+                miss(node)
+            elif isinstance(node, ast.Call):
+                target = spelled(node.func)
+                if target is not None:
+                    # A call through an alias is listed under what it names, too.
+                    members.extend(dict.fromkeys(target))
                 elif isinstance(node.func, ast.Subscript):
                     miss(node)
+            elif isinstance(node, (ast.Name, ast.Attribute)) and isinstance(node.ctx, ast.Load) and maximal(node) and not called(node):
+                target = spelled(node)
+                if target is not None and target[0].split(".")[0] in names:
+                    if isinstance(node, ast.Name) and node.id in modules:
+                        # An imported module handed on: its later calls could use any name.
+                        miss(node)
+                    else:
+                        # An imported function used as a value is listed as called.
+                        members.extend(dict.fromkeys(target))
         elif extract == "string_args":
             if isinstance(node, ast.Call):
-                name = chain(node.func)
-                if name is not None and (name == callee or ("." not in callee and name.endswith("." + callee))):
+                target = spelled(node.func)
+                if target is not None and any(name == callee or ("." not in callee and name.endswith("." + callee)) for name in target):
                     value = literal(node.args[0]) if node.args else None
                     (members.append(value) if value is not None else miss(node))
         elif extract == "thrown":

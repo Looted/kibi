@@ -139,10 +139,19 @@ function literal(node: Node | null | undefined): string | null {
   }
 }
 
+/**
+ * Whether a call name is the callee a `string_args` read asks for: the
+ * same name, or one that ends with it at a segment boundary (`Command::new`
+ * is `std::process::Command::new`, `Printf` is `fmt.Printf`).
+ */
 function calleeMatches(name: string, callee: string): boolean {
   if (name === callee) return true;
-  if (callee.includes(".") || callee.includes("::")) return false;
   return name.endsWith(`.${callee}`) || name.endsWith(`::${callee}`);
+}
+
+/** The final segment of a dotted or `::` path. */
+function finalName(name: string): string {
+  return lastOf(lastOf(name, "::"), ".");
 }
 
 interface Reader {
@@ -154,7 +163,7 @@ interface Reader {
   /** Names a macro's unparsed arguments mention (Rust). */
   macroNames?(node: Node): string[];
   /** Name of a call target, `*.name` for a method on an unnamed receiver, or null. */
-  callName(call: Node): string | null;
+  callName(call: Node, context: FileContext): string | null;
   /** The call nodes of the language. */
   isCall(node: Node): boolean;
   /** The callee node of a call, when the grammar has one. */
@@ -170,7 +179,20 @@ interface Reader {
    * static imports and fully qualified prefixes are resolved; the first is
    * the canonical one.
    */
-  candidates(name: string, context: FileContext): string[];
+  candidates(name: string, context: FileContext, at: Node): string[];
+  /**
+   * Whether the call or macro at `node` makes `extract` unknowable there:
+   * its target may be a getter or a claimed callee under a name the reader
+   * cannot follow (a receiver of unknown type, an owner it cannot see).
+   */
+  refuses?(
+    node: Node,
+    callName: string | null,
+    names: readonly string[],
+    context: FileContext,
+    extract: ReferenceExtract,
+    callee: string,
+  ): boolean;
   /** A name used as a value (not called), for a maximal reference node. */
   reference(node: Node): string | null;
   /** Calls that read one environment variable named by their first argument. */
@@ -184,12 +206,18 @@ interface Reader {
     members: string[],
     unresolved: Unresolved[],
   ): boolean;
-  imports(node: Node, members: string[], unresolved: Unresolved[]): void;
+  imports(
+    node: Node,
+    members: string[],
+    unresolved: Unresolved[],
+    context: FileContext,
+  ): void;
   thrown(
     node: Node,
     catchNames: readonly string[],
     members: string[],
     unresolved: Unresolved[],
+    context: FileContext,
   ): void;
   /** Constructs that make `calls` and `thrown` unknowable (reflection, macros). */
   hidesCalls(
@@ -209,8 +237,14 @@ interface Reader {
   ): void;
   /** Name of the catch variable bound by a catch clause, if any. */
   catchName(node: Node): string | null;
+  /**
+   * Types or packages a method call's receiver may come from, so that it is
+   * listed under each of them too (`l.Error` on a logrus logger is
+   * `logrus.Error`).
+   */
+  methodOwners?(call: Node, context: FileContext): string[];
   /** A callable passed by name, such as Java's `System.out::println`. */
-  methodReference?(node: Node): string | null;
+  methodReference?(node: Node, context: FileContext): string | null;
 }
 
 interface FileContext {
@@ -225,6 +259,10 @@ interface FileContext {
   readonly imported: ReadonlySet<string>;
   /** Go: the local names imported packages are used under. */
   readonly packages: ReadonlySet<string>;
+  /** Go: local package name to import path; Java: simple name to import. */
+  readonly paths: ReadonlyMap<string, string>;
+  /** Java: the file's package. */
+  readonly packageName: string;
 }
 
 function emptyContext(): {
@@ -234,6 +272,8 @@ function emptyContext(): {
   callsAmbiguous: Unresolved[];
   imported: Set<string>;
   packages: Set<string>;
+  paths: Map<string, string>;
+  packageName: string;
 } {
   return {
     aliases: new Map(),
@@ -242,6 +282,8 @@ function emptyContext(): {
     callsAmbiguous: [],
     imported: new Set(),
     packages: new Set(),
+    paths: new Map(),
+    packageName: "",
   };
 }
 
@@ -269,6 +311,23 @@ function unique(names: readonly string[]): string[] {
   return [...new Set(names)];
 }
 
+/** The text before the first `separator`, or all of it. */
+function before(text: string, separator: string): string {
+  const cut = text.indexOf(separator);
+  return cut === -1 ? text : text.slice(0, cut);
+}
+
+/** The text after the last `separator`, or all of it. */
+function lastOf(text: string, separator: string): string {
+  const cut = text.lastIndexOf(separator);
+  return cut === -1 ? text : text.slice(cut + separator.length);
+}
+
+/** A dotted name without comments and whitespace (`java . sql . A`). */
+function plainName(text: string): string {
+  return text.replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, "").replace(/\s+/g, "");
+}
+
 /** Chain node types that are part of a longer reference, per language. */
 const REFERENCE_PARENTS = new Set([
   "selector_expression",
@@ -291,16 +350,29 @@ const REFERENCE_PARENTS = new Set([
 // ---------------------------------------------------------------- Go
 
 const GO_ENV_GETTERS = new Set(["os.Getenv", "os.LookupEnv", "syscall.Getenv"]);
-// Expand and ExpandEnv read every variable their template names.
+// Expand and ExpandEnv read every variable their template names, and any
+// `Environ()` method (`exec.Cmd.Environ`) returns the whole environment.
 const GO_ENV_WHOLE = new Set([
   "os.Environ",
   "syscall.Environ",
   "os.ExpandEnv",
   "os.Expand",
+  `${ANY_RECEIVER}.Environ`,
 ]);
 const GO_ENV_PACKAGES = new Set(["os", "syscall"]);
 const GO_REFLECT_CALLS = new Set(["Call", "CallSlice", "MethodByName"]);
 const GO_PLUGIN_CALLS = new Set(["plugin.Open", "*.Lookup"]);
+
+/** The name a Go package is used under, guessed from its import path. */
+function goPackageName(path: string): string {
+  const tail = lastOf(path, "/");
+  const versioned = /^v\d+$/.test(tail) && path.includes("/");
+  const name = versioned ? lastOf(path.slice(0, -tail.length - 1), "/") : tail;
+  return name
+    .replace(/\.v\d+$/, "")
+    .replace(/^go-|-go$/g, "")
+    .replace(/[^\w]/g, "_");
+}
 
 function goChain(node: Node): string | null {
   switch (node.type) {
@@ -337,6 +409,219 @@ function goChain(node: Node): string | null {
   }
 }
 
+function goIdentifiers(node: Node | null): string[] {
+  /* node:coverage disable */
+  if (node === null) return [];
+  /* node:coverage enable */
+  return named(node)
+    .filter((child) => child.type === "identifier")
+    .map((child) => child.text);
+}
+
+/** The node of `statement` that declares `name` in its scope, or null. */
+function goDeclares(statement: Node, name: string): Node | null {
+  switch (statement.type) {
+    case "parameter_list":
+      return (
+        named(statement).find((parameter) =>
+          goIdentifiers(parameter).includes(name),
+        ) ?? null
+      );
+    case "short_var_declaration":
+      return goIdentifiers(field(statement, "left")).includes(name)
+        ? statement
+        : null;
+    case "range_clause":
+    case "receive_statement":
+      // `for os := range xs` declares; `for os = range xs` assigns.
+      return statement.children.some((token) => token?.type === ":=") &&
+        goIdentifiers(field(statement, "left")).includes(name)
+        ? statement
+        : null;
+    case "for_clause": {
+      const initializer = field(statement, "initializer");
+      return initializer === null ? null : goDeclares(initializer, name);
+    }
+    case "var_declaration":
+    case "const_declaration":
+    case "type_declaration":
+    case "var_spec_list":
+      for (const spec of named(statement)) {
+        if (spec.type === "var_spec_list") {
+          const found = goDeclares(spec, name);
+          if (found !== null) return found;
+          continue;
+        }
+        const names = spec.type.startsWith("type_")
+          ? [field(spec, "name")?.text]
+          : goIdentifiers(spec);
+        if (names.includes(name)) return spec;
+      }
+      return null;
+    default:
+      return null;
+  }
+}
+
+/**
+ * The declaration that binds `name` where `node` is, walking out through
+ * the blocks, clauses and parameter lists around it; null when nothing in
+ * the function binds it (it is then a package or a package-level name).
+ * A declaration binds only after it ends (`os := os.Getenv("X")` reads the
+ * package), as Go scopes do.
+ */
+function goBinding(node: Node, name: string): Node | null {
+  for (
+    let scope = node.parent;
+    scope !== null && scope.type !== "source_file";
+    scope = scope.parent
+  ) {
+    if (scope.type === "type_switch_statement") {
+      const value = field(scope, "value");
+      if (
+        value !== null &&
+        node.startIndex >= value.endIndex &&
+        goIdentifiers(field(scope, "alias")).includes(name)
+      )
+        return value;
+    }
+    for (const statement of named(scope)) {
+      if (statement.endIndex > node.startIndex) break;
+      const found = goDeclares(statement, name);
+      if (found !== null) return found;
+    }
+  }
+  return null;
+}
+
+/** Whether `name` is an imported package where `node` is (not shadowed). */
+function goPackageAt(name: string, node: Node, context: FileContext): boolean {
+  return context.packages.has(name) && goBinding(node, name) === null;
+}
+
+/**
+ * A spelled call or value name as the reader lists it: a method on a value
+ * the file declares is `*.Method`, and a package that is not the standard
+ * library's os or syscall but is used under that name (`os
+ * "github.com/x/env"`) is spelled by its import path.
+ */
+function goName(name: string, context: FileContext, at: Node): string {
+  const cut = name.indexOf(".");
+  if (cut === -1) return name;
+  const root = name.slice(0, cut);
+  const method = `${ANY_RECEIVER}.${lastOf(name, ".")}`;
+  if (!context.packages.has(root))
+    return goBinding(at, root) === null ? name : method;
+  if (goBinding(at, root) !== null) return method;
+  /* node:coverage disable */
+  const path = context.paths.get(root) ?? root;
+  /* node:coverage enable */
+  const usedAs = context.aliases.get(root) ?? root;
+  if (
+    !GO_ENV_PACKAGES.has(path) &&
+    (GO_ENV_PACKAGES.has(root) || GO_ENV_PACKAGES.has(usedAs))
+  )
+    return `"${path}"${name.slice(cut)}`;
+  return name;
+}
+
+/** The leftmost name of a receiver expression and how many steps lead to it. */
+function goReceiverRoot(node: Node, hops = 0): [Node, number] | null {
+  switch (node.type) {
+    case "identifier":
+    case "package_identifier":
+    case "type_identifier":
+      return [node, hops];
+    case "selector_expression":
+    case "index_expression":
+    case "slice_expression":
+    case "type_assertion_expression":
+    case "unary_expression": {
+      const operand = field(node, "operand");
+      /* node:coverage disable */
+      if (operand === null) return null;
+      /* node:coverage enable */
+      return goReceiverRoot(
+        operand,
+        node.type === "unary_expression" ? hops : hops + 1,
+      );
+    }
+    case "call_expression": {
+      const target = field(node, "function");
+      /* node:coverage disable */
+      if (target === null) return null;
+      /* node:coverage enable */
+      return goReceiverRoot(target, hops + 1);
+    }
+    case "composite_literal": {
+      const type = field(node, "type");
+      /* node:coverage disable */
+      if (type === null) return null;
+      /* node:coverage enable */
+      return goReceiverRoot(type, hops);
+    }
+    case "qualified_type": {
+      const pkg = field(node, "package");
+      /* node:coverage disable */
+      if (pkg === null) return null;
+      /* node:coverage enable */
+      return [pkg, hops];
+    }
+    case "parenthesized_expression":
+    case "pointer_type": {
+      const inner = named(node)[0];
+      /* node:coverage disable */
+      if (inner === undefined) return null;
+      /* node:coverage enable */
+      return goReceiverRoot(inner, hops);
+    }
+    default:
+      return null;
+  }
+}
+
+/**
+ * The packages a method's receiver visibly comes from: the package a call
+ * chain starts at (`logrus.WithField(..).Error`), or the packages the
+ * receiver's declaration names (`l := logrus.StandardLogger()`, `l
+ * *logrus.Logger`), and for a field of a struct this file declares, the
+ * packages that struct's fields name. `l.Error` may then be logrus's own
+ * Error, so it is listed as `logrus.Error` too.
+ */
+function goOwners(call: Node, context: FileContext): string[] {
+  // Only a selector call is a method on a receiver (`*.name`).
+  /* node:coverage disable */
+  const target = field(call, "function");
+  const operand = target === null ? null : field(target, "operand");
+  if (operand === null) return [];
+  /* node:coverage enable */
+  const found = goReceiverRoot(operand);
+  if (found === null) return [];
+  const [root, hops] = found;
+  const usedAs = (name: string) => context.aliases.get(name) ?? name;
+  if (goPackageAt(root.text, call, context)) return [usedAs(root.text)];
+  const binding = goBinding(call, root.text);
+  if (binding === null) return [];
+  const texts = [binding.text];
+  const type = field(binding, "type");
+  if (hops > 0 && type !== null) {
+    const typeName = type.text.replace(/^\*+/, "");
+    let file: Node = call;
+    while (file.parent !== null) file = file.parent;
+    for (const spec of descendants(file, "type_spec"))
+      if (field(spec, "name")?.text === typeName) texts.push(spec.text);
+  }
+  return unique(
+    [...context.packages]
+      .filter((name) =>
+        texts.some((text) =>
+          new RegExp(`(?<![\\w.])${name}\\s*\\.`).test(text),
+        ),
+      )
+      .map(usedAs),
+  );
+}
+
 const GO: Reader = {
   isCall: (node) =>
     node.type === "call_expression" ||
@@ -344,14 +629,14 @@ const GO: Reader = {
       field(node, "type")?.type === "generic_type"),
   callee: (call) => field(call, "function") ?? field(call, "type"),
   ignoredCall: (call) => field(call, "function")?.type === "func_literal",
-  callName(call) {
+  callName(call, context) {
     /* node:coverage disable */
     const target = field(call, "function") ?? field(call, "type");
     if (target === null) return null;
     /* node:coverage enable */
     if (target.type === "func_literal") return null;
     const name = goChain(target);
-    if (name !== null) return name;
+    if (name !== null) return goName(name, context, call);
     if (target.type === "selector_expression") {
       const method = field(target, "field");
       /* node:coverage disable */
@@ -379,12 +664,16 @@ const GO: Reader = {
         continue;
       }
       context.imported.add(path);
-      /* node:coverage disable */
-      const packageName = path.split("/").at(-1) ?? path;
-      /* node:coverage enable */
+      // cgo: C code (the preamble, or any C function called) can read the
+      // environment where the reader cannot see it.
+      if (path === "C") context.envAmbiguous.push(at(spec));
+      const packageName = lastOf(path, "/");
       const alias = field(spec, "name");
       if (alias === null) {
-        context.packages.add(packageName);
+        for (const name of unique([packageName, goPackageName(path)])) {
+          context.packages.add(name);
+          context.paths.set(name, path);
+        }
         continue;
       }
       if (alias.type === "dot") {
@@ -394,28 +683,37 @@ const GO: Reader = {
       } else if (alias.type === "package_identifier") {
         context.aliases.set(alias.text, packageName);
         context.packages.add(alias.text);
+        context.paths.set(alias.text, path);
       }
     }
+    // `//go:linkname local os.Getenv` binds a local name to any function.
+    for (const comment of descendants(root, "comment"))
+      if (comment.text.startsWith("//go:linkname")) {
+        context.envAmbiguous.push(at(comment));
+        context.callsAmbiguous.push(at(comment));
+      }
     return context;
   },
-  candidates(name, context) {
-    /* node:coverage disable */
-    const root = name.split(".")[0] ?? name;
-    /* node:coverage enable */
+  candidates(name, context, at) {
+    const spelled = goName(name, context, at);
+    const cut = spelled.indexOf(".");
+    if (cut === -1 || spelled.startsWith('"')) return [spelled];
+    const root = spelled.slice(0, cut);
     // `os.Getenv` is the os package's only when the file imports os; a
     // local variable or parameter named os is just a value.
-    if (name.includes(".") && !context.packages.has(root))
-      return [`${ANY_RECEIVER}.${name.slice(root.length + 1)}`];
-    return unique([aliased(name, ".", context.aliases), name]);
+    if (!context.packages.has(root))
+      return [`${ANY_RECEIVER}.${lastOf(spelled, ".")}`];
+    return unique([aliased(spelled, ".", context.aliases), spelled]);
   },
+  methodOwners: goOwners,
   valueReference(node, context) {
     if (node.type !== "selector_expression") return null;
     const name = goChain(node);
     /* node:coverage disable */
-    if (name === null || !context.packages.has(name.split(".")[0] ?? ""))
-      return null;
+    if (name === null) return null;
     /* node:coverage enable */
-    return name;
+    if (!goPackageAt(before(name, "."), node, context)) return null;
+    return goName(name, context, node);
   },
   reference(node) {
     if (node.type !== "selector_expression") return null;
@@ -429,8 +727,8 @@ const GO: Reader = {
     if (path === null) unresolved.push(at(node));
     else members.push(path);
   },
-  thrown(node, _catchNames, members, unresolved) {
-    if (!GO.isCall(node) || GO.callName(node) !== "panic") return;
+  thrown(node, _catchNames, members, unresolved, context) {
+    if (!GO.isCall(node) || GO.callName(node, context) !== "panic") return;
     let value = GO.callArguments(node)[0];
     if (value?.type === "unary_expression") value = named(value)[0];
     if (value?.type === "composite_literal") {
@@ -441,7 +739,7 @@ const GO: Reader = {
       }
     }
     if (value !== undefined && value.type === "call_expression") {
-      const name = GO.callName(value);
+      const name = GO.callName(value, context);
       if (name !== null && !name.startsWith(ANY_RECEIVER)) {
         members.push(name);
         return;
@@ -572,6 +870,236 @@ function reflective(name: string, table: ReadonlySet<string>): boolean {
   /* node:coverage enable */
 }
 
+/**
+ * JDK methods a never-call or env claim names (`Runtime.exit`,
+ * `System.getenv`). Called on a receiver whose type the reader cannot name
+ * (`*.exit`), such a method may be that callee, so the read is refused there.
+ */
+const JAVA_WATCHED = new Set([
+  "getenv",
+  "exit",
+  "halt",
+  "exec",
+  "load",
+  "loadLibrary",
+]);
+
+/** Static factories whose result type the reader knows. */
+const JAVA_RETURNS: ReadonlyMap<string, string> = new Map([
+  ["Runtime.getRuntime", "Runtime"],
+]);
+
+const JAVA_TYPE_DECLARATIONS = new Set([
+  "class_declaration",
+  "interface_declaration",
+  "enum_declaration",
+  "record_declaration",
+  "annotation_type_declaration",
+]);
+
+/** Scopes whose members are visible throughout, whatever their order. */
+const JAVA_MEMBER_SCOPES = new Set([
+  "program",
+  "class_body",
+  "interface_body",
+  "enum_body",
+  "enum_body_declarations",
+  "annotation_type_body",
+]);
+
+/**
+ * What a simple name is bound to in a Java file: a variable with its
+ * declared type (null for `var` or an untyped lambda parameter), or a type
+ * the file declares, by its qualified name (null when it has none, a
+ * top-level type of the default package).
+ */
+interface JavaBinding {
+  readonly value: boolean;
+  readonly type: string | null;
+}
+
+function javaTypeText(node: Node | null): string | null {
+  if (node === null || node.text === "var") return null;
+  return withoutGenerics(plainName(node.text));
+}
+
+/** The qualified name of a type the file declares. */
+function javaQualified(declaration: Node, packageName: string): string | null {
+  const names: string[] = [];
+  for (let node: Node | null = declaration; node !== null; node = node.parent)
+    if (JAVA_TYPE_DECLARATIONS.has(node.type)) {
+      const name = field(node, "name");
+      /* node:coverage disable */
+      if (name !== null) names.unshift(name.text);
+      /* node:coverage enable */
+    }
+  if (packageName === "" && names.length === 1) return null;
+  return [...(packageName === "" ? [] : [packageName]), ...names].join(".");
+}
+
+function javaDeclares(
+  child: Node,
+  name: string,
+  packageName: string,
+): JavaBinding | null {
+  if (JAVA_TYPE_DECLARATIONS.has(child.type))
+    return field(child, "name")?.text === name
+      ? { value: false, type: javaQualified(child, packageName) }
+      : null;
+  switch (child.type) {
+    case "local_variable_declaration":
+    case "field_declaration":
+    case "constant_declaration":
+      for (const declarator of named(child))
+        if (
+          declarator.type === "variable_declarator" &&
+          field(declarator, "name")?.text === name
+        )
+          return { value: true, type: javaTypeText(field(child, "type")) };
+      return null;
+    case "formal_parameters":
+    case "resource_specification":
+      for (const parameter of named(child)) {
+        if (parameter.type === "spread_parameter") {
+          const declarator = named(parameter).find(
+            (part) => part.type === "variable_declarator",
+          );
+          if (field(declarator ?? parameter, "name")?.text === name)
+            return { value: true, type: null };
+          continue;
+        }
+        if (field(parameter, "name")?.text === name)
+          return { value: true, type: javaTypeText(field(parameter, "type")) };
+      }
+      return null;
+    default:
+      return null;
+  }
+}
+
+/** The binding of a simple name where `node` is, or null when unbound. */
+function javaBinding(
+  node: Node,
+  name: string,
+  context: FileContext,
+): JavaBinding | null {
+  for (let scope = node.parent; scope !== null; scope = scope.parent) {
+    if (scope.type === "lambda_expression") {
+      const parameters = field(scope, "parameters");
+      if (parameters?.type === "formal_parameters") {
+        const found = javaDeclares(parameters, name, context.packageName);
+        if (found !== null) return found;
+      } else if (
+        parameters !== null &&
+        (parameters.text === name ||
+          named(parameters).some((part) => part.text === name))
+      )
+        return { value: true, type: null };
+      continue;
+    }
+    if (
+      scope.type === "enhanced_for_statement" &&
+      field(scope, "name")?.text === name &&
+      node.startIndex >= (field(scope, "body")?.startIndex ?? node.endIndex)
+    )
+      return { value: true, type: javaTypeText(field(scope, "type")) };
+    if (scope.type === "catch_clause") {
+      const parameter = named(scope).find(
+        (part) => part.type === "catch_formal_parameter",
+      );
+      if (parameter !== undefined && field(parameter, "name")?.text === name)
+        return { value: true, type: null };
+    }
+    const ordered = !JAVA_MEMBER_SCOPES.has(scope.type);
+    for (const child of named(scope)) {
+      if (ordered && child.endIndex > node.startIndex) break;
+      const found = javaDeclares(child, name, context.packageName);
+      if (found !== null) return found;
+    }
+  }
+  return null;
+}
+
+/**
+ * A type name as the reader lists it: a type the file declares by its
+ * qualified name, a single-type import that shadows a `java.lang` type by
+ * its import (`import other.System`), anything else as spelled. Null when
+ * the name is a type the file declares that has no qualified name.
+ */
+function javaType(
+  name: string,
+  node: Node,
+  context: FileContext,
+): string | null {
+  const root = before(name, ".");
+  const rest = name.slice(root.length);
+  const binding = javaBinding(node, root, context);
+  if (binding !== null && !binding.value)
+    return binding.type === null ? null : `${binding.type}${rest}`;
+  const imported = context.paths.get(root);
+  if (imported !== undefined && JAVA_LANG_TYPES.has(root))
+    return `${imported}${rest}`;
+  return name;
+}
+
+/**
+ * The type a method's receiver is, as the reader names it, or null when it
+ * cannot: a variable by its declared type (`Runtime r; r.exit()` is
+ * `Runtime.exit`), a cast or `new` by its type, `Runtime.getRuntime()` by
+ * its result, a field of a value of unknown type or an undeclared
+ * lowercase name by nothing.
+ */
+function javaReceiver(
+  object: Node,
+  node: Node,
+  context: FileContext,
+): string | null {
+  switch (object.type) {
+    case "parenthesized_expression": {
+      const inner = named(object)[0];
+      /* node:coverage disable */
+      return inner === undefined ? null : javaReceiver(inner, node, context);
+      /* node:coverage enable */
+    }
+    case "cast_expression":
+    case "object_creation_expression": {
+      const type = javaTypeText(field(object, "type"));
+      /* node:coverage disable */
+      return type === null ? null : javaType(type, node, context);
+      /* node:coverage enable */
+    }
+    case "method_invocation": {
+      const inner = JAVA.callName(object, context);
+      /* node:coverage disable */
+      if (inner === null) return null;
+      /* node:coverage enable */
+      const result = JAVA_RETURNS.get(withoutJavaLang(inner));
+      return result === undefined ? null : javaType(result, node, context);
+    }
+    default: {
+      const chain = javaChain(object);
+      if (chain === null) return null;
+      const [root = "", second] = chain.split(".");
+      if (root === "this" || root === "super") {
+        if (root === "super" || second === undefined) return chain;
+        const binding = javaBinding(node, second, context);
+        return chain === `this.${second}` && binding?.value && binding.type
+          ? javaType(binding.type, node, context)
+          : null;
+      }
+      const binding = javaBinding(node, root, context);
+      if (binding?.value)
+        return chain === root && binding.type !== null
+          ? javaType(binding.type, node, context)
+          : null;
+      // An unbound lowercase name is a field of a superclass; a package
+      // qualifies a type (java.lang.Runtime).
+      if (/^[a-z_$]/.test(root) && !/\.[A-Z]/.test(chain)) return null;
+      return javaType(chain, node, context);
+    }
+  }
+}
+
 const JAVA: Reader = {
   isCall: (node) => node.type === "method_invocation",
   callee: () => null,
@@ -579,14 +1107,14 @@ const JAVA: Reader = {
   // Java callName is null only for a call without a name, which never parses.
   ignoredCall: () => false,
   /* node:coverage enable */
-  callName(call) {
+  callName(call, context) {
     const name = field(call, "name");
     /* node:coverage disable */
     if (name === null) return null;
     /* node:coverage enable */
     const object = field(call, "object");
     if (object === null) return name.text;
-    const left = javaChain(object);
+    const left = javaReceiver(object, call, context);
     return `${left ?? ANY_RECEIVER}.${name.text}`;
   },
   callArguments(call) {
@@ -597,13 +1125,32 @@ const JAVA: Reader = {
   },
   context(root) {
     const context = emptyContext();
+    const pkg = named(root).find((part) => part.type === "package_declaration");
+    /* node:coverage disable */
+    context.packageName =
+      pkg === undefined ? "" : plainName(named(pkg)[0]?.text ?? "");
+    /* node:coverage enable */
+    for (const type of JAVA_TYPE_DECLARATIONS)
+      for (const declaration of descendants(root, type)) {
+        const name = field(declaration, "name");
+        /* node:coverage disable */
+        if (name !== null) context.imported.add(name.text);
+        /* node:coverage enable */
+      }
     for (const declaration of descendants(root, "import_declaration")) {
-      if (!/^import\s+static\b/.test(declaration.text)) continue;
       const path = named(declaration).find(
         (part) => part.type === "scoped_identifier",
       );
       if (path === undefined) continue;
-      const segments = path.text.replace(/\s+/g, "").split(".");
+      const segments = plainName(path.text).split(".");
+      if (!/^import\s+static\b/.test(declaration.text)) {
+        if (!named(declaration).some((part) => part.type === "asterisk")) {
+          const simple = segments.at(-1) as string;
+          context.imported.add(simple);
+          context.paths.set(simple, segments.join("."));
+        }
+        continue;
+      }
       if (named(declaration).some((part) => part.type === "asterisk")) {
         // `import static a.b.C.*`: any bare call may be one of C's methods.
         context.callsAmbiguous.push(at(declaration));
@@ -646,9 +1193,10 @@ const JAVA: Reader = {
     }
     // `System::getenv` hands the getter on: what it reads is not known.
     if (node.type !== "method_reference") return false;
-    const name = JAVA.methodReference?.(node) ?? null;
+    const name = JAVA.methodReference?.(node, context) ?? null;
     if (name === null) return false;
-    if (!JAVA.candidates(name, context).includes("System.getenv")) return false;
+    if (!JAVA.candidates(name, context, node).includes("System.getenv"))
+      return false;
     unresolved.push(at(node));
     return true;
   },
@@ -662,9 +1210,10 @@ const JAVA: Reader = {
     if (path === undefined) return;
     /* node:coverage enable */
     const wildcard = parts.some((part) => part.type === "asterisk");
-    members.push(wildcard ? `${path.text}.*` : path.text);
+    const name = plainName(path.text);
+    members.push(wildcard ? `${name}.*` : name);
   },
-  thrown(node, catchNames, members, unresolved) {
+  thrown(node, catchNames, members, unresolved, context) {
     if (node.type !== "throw_statement") return;
     const value = named(node)[0];
     if (value?.type === "object_creation_expression") {
@@ -675,7 +1224,7 @@ const JAVA: Reader = {
       }
     }
     if (value?.type === "method_invocation") {
-      const name = JAVA.callName(value);
+      const name = JAVA.callName(value, context);
       if (name !== null && !name.startsWith(ANY_RECEIVER)) {
         members.push(name);
         return;
@@ -687,7 +1236,25 @@ const JAVA: Reader = {
   hidesCalls: (node, names) =>
     JAVA.isCall(node) &&
     names.some((name) => reflective(name, JAVA_REFLECTION)),
-  methodReference(node) {
+  refuses(node, callName, _names, context, extract, callee) {
+    if (callName === null || !JAVA.isCall(node)) return false;
+    const method = finalName(callName);
+    if (!JAVA_WATCHED.has(method) || callName === method) return false;
+    const root = before(callName, ".");
+    // A receiver named by a package, java.lang or a type the file imports
+    // or declares is known; `*` or another type name may be anything.
+    if (
+      root !== ANY_RECEIVER &&
+      (/^[a-z]/.test(root) ||
+        JAVA_LANG_TYPES.has(root) ||
+        context.imported.has(root))
+    )
+      return false;
+    if (extract === "env") return method === "getenv";
+    if (extract === "string_args") return finalName(callee) === method;
+    return extract === "calls";
+  },
+  methodReference(node, context) {
     if (node.type !== "method_reference") return null;
     const parts = named(node);
     const target = parts[0];
@@ -695,7 +1262,7 @@ const JAVA: Reader = {
     if (target === undefined || method === undefined || parts.length < 2)
       return null;
     const name = method.type === "identifier" ? method.text : "new";
-    return `${javaChain(target) ?? ANY_RECEIVER}.${name}`;
+    return `${javaReceiver(target, node, context) ?? ANY_RECEIVER}.${name}`;
   },
   conditional: () => false,
   skip: () => false,
@@ -763,16 +1330,16 @@ function csharpChain(node: Node): string | null {
     case "base":
     case "base_expression":
     case "predefined_type":
-      return node.text;
+      return csharpId(node.text);
     case "generic_name": {
       const name = named(node).find((child) => child.type === "identifier");
       /* node:coverage disable */
-      return name?.text ?? null;
+      return name === undefined ? null : csharpId(name.text);
       /* node:coverage enable */
     }
     case "alias_qualified_name":
       // global::System.Environment
-      return node.text.replace(/\s+/g, "");
+      return csharpId(plainName(node.text));
     case "member_access_expression": {
       const expression = field(node, "expression");
       const name = field(node, "name");
@@ -804,6 +1371,204 @@ const CSHARP_VALUE_PARENTS = new Set([
   "return_statement",
   "arrow_expression_clause",
 ]);
+
+/** Method names of the environment getters (`GetEnvironmentVariable`). */
+const CSHARP_ENV_NAMES = new Set(
+  [...CSHARP_ENV, ...CSHARP_ENV_WHOLE].map((name) => lastOf(name, ".")),
+);
+
+/**
+ * Every static method of the System types the reader knows, so that a bare
+ * call through `using static` can be given its one owner.
+ */
+const CSHARP_STATIC_METHODS: ReadonlyMap<string, ReadonlySet<string>> = new Map(
+  [
+    [
+      "Environment",
+      new Set([
+        "Exit",
+        "ExpandEnvironmentVariables",
+        "FailFast",
+        "GetCommandLineArgs",
+        "GetEnvironmentVariable",
+        "GetEnvironmentVariables",
+        "GetFolderPath",
+        "GetLogicalDrives",
+        "SetEnvironmentVariable",
+      ]),
+    ],
+  ],
+);
+
+/** A C# identifier without its verbatim `@` (`@class` is `class`). */
+function csharpId(text: string): string {
+  return text.replaceAll("@", "");
+}
+
+const CSHARP_TYPE_DECLARATIONS = new Set([
+  "class_declaration",
+  "struct_declaration",
+  "record_declaration",
+  "record_struct_declaration",
+  "interface_declaration",
+]);
+
+/** The names of the type a member is declared in: short, then qualified. */
+function csharpOwner(body: Node): string[] {
+  const names: string[] = [];
+  let file: Node = body;
+  for (let node: Node | null = body; node !== null; node = node.parent) {
+    file = node;
+    if (
+      CSHARP_TYPE_DECLARATIONS.has(node.type) ||
+      node.type === "namespace_declaration"
+    ) {
+      const name = field(node, "name");
+      /* node:coverage disable */
+      if (name !== null) names.unshift(csharpId(plainName(name.text)));
+      /* node:coverage enable */
+    }
+  }
+  const scoped = named(file).find(
+    (child) => child.type === "file_scoped_namespace_declaration",
+  );
+  const namespace = scoped === undefined ? null : field(scoped, "name");
+  if (namespace !== null && namespace !== undefined)
+    names.unshift(csharpId(plainName(namespace.text)));
+  return unique([lastOf(names.join("."), "."), names.join(".")]);
+}
+
+/** A declared name, without its verbatim `@`. */
+function csharpName(node: Node): string {
+  const name = field(node, "name");
+  /* node:coverage disable */
+  return name === null ? "" : csharpId(name.text);
+  /* node:coverage enable */
+}
+
+function csharpDeclarators(declaration: Node, name: string): boolean {
+  return named(declaration).some(
+    (declarator) =>
+      declarator.type === "variable_declarator" &&
+      csharpName(declarator) === name,
+  );
+}
+
+/**
+ * What a simple name is bound to where `node` is: a method of a type the
+ * file declares (with that type's names), a local function or a variable,
+ * parameter, field or property; null when the file does not bind it (a
+ * base type's member or one a `using static` brings in, here or elsewhere
+ * in the project).
+ */
+function csharpBinding(
+  node: Node,
+  name: string,
+): { readonly owner: readonly string[] } | null {
+  const none: readonly string[] = [];
+  for (let scope = node.parent; scope !== null; scope = scope.parent) {
+    const parameters = field(scope, "parameters");
+    if (parameters !== null) {
+      if (
+        parameters.type === "implicit_parameter" &&
+        csharpId(parameters.text) === name
+      )
+        return { owner: none };
+      for (const parameter of named(parameters))
+        if (csharpName(parameter) === name) return { owner: none };
+    }
+    const left =
+      scope.type === "foreach_statement" ? field(scope, "left") : null;
+    if (
+      left !== null &&
+      [left, ...named(left)].some((part) => csharpId(part.text) === name)
+    )
+      return { owner: none };
+    for (const child of named(scope)) {
+      switch (child.type) {
+        case "local_declaration_statement":
+        case "field_declaration":
+        case "event_field_declaration": {
+          const declaration = named(child).find(
+            (part) => part.type === "variable_declaration",
+          );
+          if (declaration !== undefined && csharpDeclarators(declaration, name))
+            return { owner: none };
+          break;
+        }
+        case "variable_declaration":
+          if (csharpDeclarators(child, name)) return { owner: none };
+          break;
+        case "method_declaration":
+          if (csharpName(child) === name) return { owner: csharpOwner(scope) };
+          break;
+        case "local_function_statement":
+        case "property_declaration":
+        case "event_declaration":
+        case "catch_declaration":
+          if (csharpName(child) === name) return { owner: none };
+          break;
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * The names a bare call or method group may be, and whether the reader
+ * knows them: a member the file binds, or a method of the one `using
+ * static` type that can have it. A name the file does not bind may be any
+ * base type's or any `using static` type's, including a `global using
+ * static` in another file of the project, so it is not known.
+ */
+function csharpBare(
+  name: string,
+  context: FileContext,
+  at: Node,
+): { readonly names: string[]; readonly known: boolean } {
+  const binding = csharpBinding(at, name);
+  if (binding !== null)
+    return {
+      names: [name, ...binding.owner.map((owner) => `${owner}.${name}`)],
+      known: true,
+    };
+  const owners = context.staticTypes.filter(
+    (type) => CSHARP_STATIC_METHODS.get(type)?.has(name) ?? true,
+  );
+  const [owner] = owners;
+  if (
+    owners.length !== 1 ||
+    owner === undefined ||
+    !CSHARP_STATIC_METHODS.has(owner)
+  )
+    return { names: [name], known: false };
+  return {
+    names: [`${owner}.${name}`, `System.${owner}.${name}`, name],
+    known: true,
+  };
+}
+
+/** Whether an identifier is a value handed on (an argument, an initializer). */
+function csharpValuePosition(node: Node): boolean {
+  const parent = node.parent;
+  /* node:coverage disable */
+  if (parent === null) return false;
+  /* node:coverage enable */
+  if (!CSHARP_VALUE_PARENTS.has(parent.type)) return false;
+  // `nameof(X)` names X without using it.
+  const call = parent.parent?.parent;
+  if (
+    parent.type === "argument" &&
+    call?.type === "invocation_expression" &&
+    field(call, "function")?.text === "nameof"
+  )
+    return false;
+  if (parent.type === "variable_declarator")
+    return field(parent, "name")?.id !== node.id;
+  if (parent.type === "assignment_expression")
+    return field(parent, "right")?.id === node.id;
+  return true;
+}
 
 const CSHARP: Reader = {
   isCall: (node) => node.type === "invocation_expression",
@@ -862,8 +1627,10 @@ const CSHARP: Reader = {
         .at(-1);
       if (path === undefined) continue;
       /* node:coverage enable */
-      const target = withoutSystem(withoutGenerics(path.text));
-      if (alias !== null) context.aliases.set(alias.text, target);
+      const target = withoutSystem(
+        withoutGenerics(csharpId(plainName(path.text))),
+      );
+      if (alias !== null) context.aliases.set(csharpId(alias.text), target);
       else if (
         /^global\s+using\s+static\b|^using\s+static\b/.test(directive.text)
       )
@@ -871,37 +1638,73 @@ const CSHARP: Reader = {
     }
     return context;
   },
-  candidates(name, context) {
+  candidates(name, context, at) {
+    // A bare name is a member the file binds or one `using static` type's.
+    if (!/[.:]/.test(name)) return csharpBare(name, context, at).names;
     const resolved = withoutSystem(
       aliased(withoutSystem(name), ".", context.aliases),
     );
-    const fromStatic = name.includes(".")
-      ? []
-      : context.staticTypes.map((type) => `${type}.${name}`);
     // Both spellings of a System member name it: Environment.X and
     // System.Environment.X.
-    const long = [resolved, ...fromStatic]
-      /* node:coverage disable */
-      .filter((item) => CSHARP_SYSTEM_TYPES.has(item.split(".")[0] ?? ""))
-      /* node:coverage enable */
-      .map((item) => `System.${item}`);
-    return unique([resolved, ...fromStatic, ...long, name]);
+    const long = CSHARP_SYSTEM_TYPES.has(before(resolved, "."))
+      ? [`System.${resolved}`]
+      : [];
+    return unique([resolved, ...long, name]);
+  },
+  refuses(node, callName, names, context, extract, callee) {
+    const call = CSHARP.isCall(node);
+    const bare =
+      call && callName !== null && !/[.:]/.test(callName)
+        ? callName
+        : node.type === "identifier" &&
+            CSHARP_ENV_NAMES.has(csharpId(node.text)) &&
+            csharpValuePosition(node)
+          ? csharpId(node.text)
+          : null;
+    if (bare !== null) {
+      if (csharpBare(bare, context, node).known) return false;
+      if (call && extract === "calls") return true;
+      if (call && extract === "string_args") return finalName(callee) === bare;
+      return (
+        CSHARP_ENV_NAMES.has(bare) && (extract === "env" || extract === "calls")
+      );
+    }
+    // A getter's name on a receiver the reader does not resolve to
+    // Environment (a project-wide `global using E = System.Environment`).
+    if (
+      callName === null ||
+      !CSHARP_ENV_NAMES.has(finalName(callName)) ||
+      names.some((name) => CSHARP_ENV.has(name) || CSHARP_ENV_WHOLE.has(name))
+    )
+      return false;
+    if (extract === "string_args")
+      return finalName(callee) === finalName(callName);
+    return extract === "env" || extract === "calls";
   },
   valueReference(node, context) {
-    // A method group (`Func<string, string> g = Environment.X`, `Run(X.Y)`).
+    // A method group (`Func<string, string> g = Environment.X`, `Run(X.Y)`,
+    // `Run(GetEnvironmentVariable)` through `using static`).
+    if (node.type === "identifier") {
+      if (!csharpValuePosition(node)) return null;
+      const name = csharpId(node.text);
+      const bare = csharpBare(name, context, node);
+      // A variable is a value; a method the reader cannot place refuses.
+      return bare.known && bare.names.length > 1
+        ? (bare.names[0] as string)
+        : null;
+    }
     if (node.type !== "member_access_expression") return null;
-    /* node:coverage disable */
-    const parent = node.parent?.type ?? "";
-    /* node:coverage enable */
-    if (!CSHARP_VALUE_PARENTS.has(parent)) return null;
+    if (!csharpValuePosition(node)) return null;
     const name = csharpChain(node);
     /* node:coverage disable */
-    return name === null ? null : (CSHARP.candidates(name, context)[0] ?? name);
+    return name === null
+      ? null
+      : (CSHARP.candidates(name, context, node)[0] ?? name);
     /* node:coverage enable */
   },
   reference(node) {
     if (node.type === "member_access_expression") return csharpChain(node);
-    if (node.type === "identifier") return node.text;
+    if (node.type === "identifier") return csharpId(node.text);
     return null;
   },
   envGetters: CSHARP_ENV,
@@ -911,9 +1714,10 @@ const CSHARP: Reader = {
     const parts = named(node);
     const alias = field(node, "name");
     const path = parts.filter((part) => part.id !== alias?.id).at(-1);
-    if (path !== undefined) members.push(withoutGenerics(path.text));
+    if (path !== undefined)
+      members.push(withoutGenerics(csharpId(plainName(path.text))));
   },
-  thrown(node, catchNames, members, unresolved) {
+  thrown(node, catchNames, members, unresolved, context) {
     if (node.type !== "throw_statement" && node.type !== "throw_expression")
       return;
     const value = named(node)[0];
@@ -926,7 +1730,7 @@ const CSHARP: Reader = {
       }
     }
     if (value.type === "invocation_expression") {
-      const name = CSHARP.callName(value);
+      const name = CSHARP.callName(value, context);
       if (name !== null && !name.startsWith(ANY_RECEIVER)) {
         members.push(name);
         return;
@@ -1264,6 +2068,236 @@ function rustAttributeHidesCalls(node: Node): boolean {
   return !RUST_INERT_ATTRIBUTES.has(path);
 }
 
+/** The last segments of the environment getters (`var`, `vars_os`). */
+const RUST_ENV_NAMES = new Set(
+  [...RUST_ENV, ...RUST_ENV_WHOLE].map((name) => lastOf(name, "::")),
+);
+
+/**
+ * Standard macros whose expansion holds only their own tokens, which the
+ * reader scans. Any other macro (one the project defines with
+ * `macro_rules!`, one from another crate, `include!`) may expand to
+ * environment reads, `use` items or calls the file does not show.
+ */
+const RUST_STD_MACROS = new Set([
+  "assert",
+  "assert_eq",
+  "assert_ne",
+  "cfg",
+  "column",
+  "compile_error",
+  "concat",
+  "dbg",
+  "debug_assert",
+  "debug_assert_eq",
+  "debug_assert_ne",
+  "env",
+  "eprint",
+  "eprintln",
+  "file",
+  "format",
+  "format_args",
+  "include_bytes",
+  "include_str",
+  "line",
+  "matches",
+  "module_path",
+  "option_env",
+  "panic",
+  "print",
+  "println",
+  "stringify",
+  "thread_local",
+  "todo",
+  "unimplemented",
+  "unreachable",
+  "vec",
+  "write",
+  "writeln",
+]);
+
+/**
+ * Macros of common crates that, like the standard ones, expand only to
+ * their tokens (formatting, logging, error construction), by the path a
+ * `use` or a qualified name gives them.
+ */
+const RUST_CRATE_MACROS = new Set([
+  "anyhow::anyhow",
+  "anyhow::bail",
+  "anyhow::ensure",
+  "anyhow::format_err",
+  ...["log", "tracing"].flatMap((crate) =>
+    ["trace", "debug", "info", "warn", "error"].map(
+      (level) => `${crate}::${level}`,
+    ),
+  ),
+  "log::log",
+  "tracing::event",
+]);
+
+/** `env!`/`option_env!` nested in another macro's tokens. */
+const RUST_NESTED_ENV =
+  /(?<![\w:])(?:(?:::)?(?:std|core)\s*::\s*)?(?:option_)?env\s*!/;
+
+/**
+ * Whether a macro invocation is a standard macro the file does not rebind,
+ * or a known crate's macro by the path the file gives it.
+ */
+function rustStdMacro(node: Node, context: FileContext): boolean {
+  const spelled = rustMacroName(node);
+  if (RUST_CRATE_MACROS.has(rustPath(spelled, node).path)) return true;
+  const name = rustCanonical(spelled).replace(/^std::/, "");
+  return (
+    RUST_STD_MACROS.has(name) &&
+    !context.imported.has(name) &&
+    !context.aliases.has(name)
+  );
+}
+
+const RUST_ITEMS = new Set([
+  "function_item",
+  "function_signature_item",
+  "struct_item",
+  "enum_item",
+  "union_item",
+  "trait_item",
+  "const_item",
+  "static_item",
+  "type_item",
+  "macro_definition",
+]);
+
+type RustBinding =
+  | { readonly kind: "path"; readonly path: string }
+  | { readonly kind: "module"; readonly body: Node | null }
+  | { readonly kind: "crate"; readonly crate: string }
+  | { readonly kind: "item" };
+
+/** What `name` is bound to by the items directly in a block or module. */
+function rustItem(scope: Node, name: string): RustBinding | null {
+  for (const child of named(scope)) {
+    if (RUST_ITEMS.has(child.type)) {
+      if (field(child, "name")?.text === name) return { kind: "item" };
+      continue;
+    }
+    switch (child.type) {
+      case "use_declaration": {
+        const argument = field(child, "argument");
+        let path: string | null = null;
+        /* node:coverage disable */
+        if (argument !== null)
+          /* node:coverage enable */
+          rustUseBindings(
+            argument,
+            "",
+            (local, target) => {
+              if (local === name) path = target;
+            },
+            () => {},
+          );
+        if (path !== null) return { kind: "path", path };
+        break;
+      }
+      case "mod_item":
+        if (field(child, "name")?.text === name)
+          return { kind: "module", body: field(child, "body") };
+        break;
+      case "extern_crate_declaration": {
+        const crate = field(child, "name");
+        const local = field(child, "alias") ?? crate;
+        /* node:coverage disable */
+        if (crate !== null && local?.text === name)
+          /* node:coverage enable */
+          return { kind: "crate", crate: crate.text };
+        break;
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * The blocks and module bodies a path at `node` is resolved in, innermost
+ * first, ending at the module it is in (outer modules' names are not in
+ * scope inside a `mod`).
+ */
+function rustScopes(node: Node): Node[] {
+  const scopes: Node[] = [];
+  for (let scope = node.parent; scope !== null; scope = scope.parent) {
+    if (scope.type === "block") scopes.push(scope);
+    else if (
+      scope.type === "source_file" ||
+      (scope.type === "declaration_list" && scope.parent?.type === "mod_item")
+    ) {
+      scopes.push(scope);
+      break;
+    }
+  }
+  return scopes;
+}
+
+/**
+ * A Rust path resolved through the `use`, `mod` and `extern crate` items
+ * the file declares, in the scopes they bind in. `exact` is false when the
+ * resolution leaves what the file shows (`crate::`, `super::` out of the
+ * file, a module in another file, another crate's item): the path may then
+ * be a re-export of anything.
+ */
+function rustResolve(
+  segments: readonly string[],
+  scopes: readonly Node[],
+  depth = 0,
+): { readonly path: string; readonly exact: boolean } {
+  const spelled = { path: segments.join("::"), exact: true };
+  const unknown = { path: spelled.path, exact: false };
+  const [root = "", ...rest] = segments;
+  const std = new Set(["std", "core", "alloc"]);
+  if (std.has(root) || (root === "" && std.has(rest[0] ?? "")))
+    return { path: rustCanonical(spelled.path), exact: true };
+  const module = scopes.at(-1);
+  if (depth > 8 || module === undefined || root === "") return unknown;
+  if (root === "crate") return unknown;
+  if (root === "self") return rustResolve(rest, [module], depth + 1);
+  if (root === "super") {
+    const parent = module.parent;
+    return parent?.type === "mod_item"
+      ? rustResolve(rest, rustScopes(parent).slice(-1), depth + 1)
+      : unknown;
+  }
+  for (const [index, scope] of scopes.entries()) {
+    const binding = rustItem(scope, root);
+    if (binding === null) continue;
+    switch (binding.kind) {
+      case "path":
+        // `use anyhow::anyhow`: the path's root is the crate, not the name
+        // the item binds.
+        if (before(binding.path, "::") === root)
+          return { path: [binding.path, ...rest].join("::"), exact: false };
+        return rustResolve(
+          [...binding.path.split("::"), ...rest],
+          scopes.slice(index),
+          depth + 1,
+        );
+      case "module": {
+        if (binding.body === null) return unknown;
+        if (rest.length === 0) return spelled;
+        const inner = rustResolve(rest, [binding.body], depth + 1);
+        return inner.path.startsWith("std::") || !inner.exact ? inner : spelled;
+      }
+      case "crate":
+        return rustResolve([binding.crate, ...rest], scopes, depth + 1);
+      default:
+        return spelled;
+    }
+  }
+  // Not bound here: another crate (or the prelude), which may re-export.
+  return unknown;
+}
+
+function rustPath(name: string, at: Node): { path: string; exact: boolean } {
+  return rustResolve(name.split("::"), rustScopes(at));
+}
+
 const RUST: Reader = {
   isCall: (node) => node.type === "call_expression",
   callee: (call) => field(call, "function"),
@@ -1296,6 +2330,13 @@ const RUST: Reader = {
   },
   context(root) {
     const context = emptyContext();
+    // Macros the file defines (they may shadow a standard macro's name).
+    for (const definition of descendants(root, "macro_definition")) {
+      const name = field(definition, "name");
+      /* node:coverage disable */
+      if (name !== null) context.imported.add(name.text);
+      /* node:coverage enable */
+    }
     for (const declaration of descendants(root, "use_declaration")) {
       const argument = field(declaration, "argument");
       /* node:coverage disable */
@@ -1315,13 +2356,51 @@ const RUST: Reader = {
     }
     return context;
   },
-  candidates(name, context) {
-    // `env::var` is std::env::var only after `use std::env` (an alias);
-    // without it, `env` is a module or crate of the project.
-    const resolved = rustCanonical(
-      aliased(rustCanonical(name), "::", context.aliases),
-    );
-    return unique([resolved, name]);
+  candidates(name, _context, at) {
+    // `env::var` is std::env::var only where a `use std::env` binds it;
+    // without one, or under a `mod env` closer to the call, `env` is a
+    // module or crate of the project.
+    return unique([rustPath(name, at).path, name]);
+  },
+  refuses(node, callName, names, context, extract, callee) {
+    // A derive or attribute macro configured with `env` (clap's `#[arg(env
+    // = "X")]`) reads the environment in code it generates.
+    if (node.type === "attribute_item" || node.type === "inner_attribute_item")
+      return (
+        extract === "env" &&
+        rustAttributeHidesCalls(node) &&
+        /\benv\b/.test(node.text)
+      );
+    if (node.type === "macro_invocation") {
+      if (!rustStdMacro(node, context))
+        return extract === "env" || extract === "string_args";
+      // `concat!(env!("X"))`: a nested built-in reads a variable unseen.
+      return (
+        extract === "env" &&
+        named(node).some(
+          (tokens) =>
+            tokens.type === "token_tree" && RUST_NESTED_ENV.test(tokens.text),
+        )
+      );
+    }
+    // A getter's name on a path the reader cannot follow to std::env (a
+    // re-export through `crate::`, a module file or another crate, such as
+    // `dotenvy::var`) may read the environment.
+    if (
+      callName === null ||
+      names.some((name) => name.startsWith("std::env::"))
+    )
+      return false;
+    const resolved = rustPath(callName, node);
+    if (
+      resolved.exact ||
+      !resolved.path.includes("::") ||
+      !RUST_ENV_NAMES.has(lastOf(resolved.path, "::"))
+    )
+      return false;
+    if (extract === "string_args")
+      return finalName(callee) === lastOf(resolved.path, "::");
+    return extract === "env" || extract === "calls";
   },
   valueReference(node, context) {
     if (node.type !== "scoped_identifier") return null;
@@ -1333,7 +2412,7 @@ const RUST: Reader = {
     const name = rustChain(node);
     if (name === null) return null;
     /* node:coverage ignore next */
-    return RUST.candidates(name, context)[0] ?? name;
+    return RUST.candidates(name, context, node)[0] ?? name;
   },
   macroNames(node) {
     if (node.type !== "macro_invocation") return [];
@@ -1367,7 +2446,7 @@ const RUST: Reader = {
     else members.push(value);
     return true;
   },
-  imports(node, members, unresolved) {
+  imports(node, members, unresolved, context) {
     if (node.type === "use_declaration") {
       const argument = field(node, "argument");
       if (argument !== null) rustUseTree(argument, "", members);
@@ -1382,7 +2461,11 @@ const RUST: Reader = {
     /* node:coverage disable */
     const parent = node.parent?.type ?? "";
     /* node:coverage enable */
-    if (node.type === "macro_invocation" && RUST_ITEM_PARENTS.has(parent))
+    // Any other macro than a standard one can expand to `use` items too.
+    if (
+      node.type === "macro_invocation" &&
+      (RUST_ITEM_PARENTS.has(parent) || !rustStdMacro(node, context))
+    )
       unresolved.push(at(node));
   },
   thrown() {
@@ -1460,17 +2543,40 @@ export function extractReferences(
     if (reader.conditional(node)) unresolved.push(at(node));
     const caught = reader.catchName(node);
     if (caught !== null) catchNames.push(caught);
-    const callName = reader.isCall(node) ? reader.callName(node) : null;
-    const names = callName === null ? [] : reader.candidates(callName, context);
+    const callName = reader.isCall(node)
+      ? reader.callName(node, context)
+      : null;
+    const names =
+      callName === null ? [] : reader.candidates(callName, context, node);
     const macroNames = (reader.macroNames?.(node) ?? []).flatMap((name) =>
-      reader.candidates(name, context),
+      reader.candidates(name, context, node),
     );
+    const refused =
+      reader.refuses?.(
+        node,
+        callName,
+        [...names, ...macroNames],
+        context,
+        extract,
+        callee,
+      ) ?? false;
+    // A method on a receiver from a package or type is listed under it too.
+    const owned =
+      callName === null || !callName.startsWith(`${ANY_RECEIVER}.`)
+        ? []
+        : (reader.methodOwners?.(node, context) ?? []).map(
+            (owner) => `${owner}.${finalName(callName)}`,
+          );
     switch (extract) {
       case "imports":
-        reader.imports(node, members, unresolved);
+        reader.imports(node, members, unresolved, context);
         break;
       case "env": {
         if (reader.envSpecial?.(node, context, members, unresolved)) return;
+        if (refused) {
+          unresolved.push(at(node));
+          return;
+        }
         // A macro's arguments are not parsed: one that mentions a getter
         // reads what it names there, unseen.
         if (
@@ -1507,7 +2613,7 @@ export function extractReferences(
           if (
             reference !== null &&
             reader
-              .candidates(reference, context)
+              .candidates(reference, context, node)
               .some(
                 (name) =>
                   reader.envGetters.has(name) || reader.envWhole.has(name),
@@ -1520,11 +2626,12 @@ export function extractReferences(
         break;
       }
       case "calls":
-        if (reader.hidesCalls(node, names, context)) unresolved.push(at(node));
+        if (refused || reader.hidesCalls(node, names, context))
+          unresolved.push(at(node));
         else if (callName !== null) {
           members.push(callName);
           // An alias or static import is listed under what it names, too.
-          for (const name of names)
+          for (const name of [...names, ...owned])
             if (name !== callName && !name.startsWith(ANY_RECEIVER))
               members.push(name);
         } else if (reader.isCall(node) && !reader.ignoredCall(node))
@@ -1532,20 +2639,26 @@ export function extractReferences(
           unresolved.push(at(node));
         else if (!isCallee(node)) {
           const passed =
-            reader.methodReference?.(node) ??
+            reader.methodReference?.(node, context) ??
             reader.valueReference?.(node, context) ??
             null;
-          if (passed !== null) members.push(passed);
+          if (passed !== null)
+            members.push(
+              passed,
+              ...reader
+                .candidates(passed, context, node)
+                .filter((name) => !name.startsWith(ANY_RECEIVER)),
+            );
         }
         break;
       case "string_args":
-        if (macroNames.some((name) => calleeMatches(name, callee))) {
+        if (refused || macroNames.some((name) => calleeMatches(name, callee))) {
           unresolved.push(at(node));
           break;
         }
         if (
-          [...(callName === null ? [] : [callName]), ...names].some((name) =>
-            calleeMatches(name, callee),
+          [...(callName === null ? [] : [callName]), ...names, ...owned].some(
+            (name) => calleeMatches(name, callee),
           )
         ) {
           const value = literal(reader.callArguments(node)[0]);
@@ -1556,7 +2669,7 @@ export function extractReferences(
       case "thrown":
         if (reader.hidesCalls(node, names, context) && language === "rust")
           unresolved.push(at(node));
-        else reader.thrown(node, catchNames, members, unresolved);
+        else reader.thrown(node, catchNames, members, unresolved, context);
         break;
       case "property":
         reader.property?.(node, key, members, unresolved);

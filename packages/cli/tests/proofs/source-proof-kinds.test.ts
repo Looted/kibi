@@ -525,7 +525,163 @@ describe("references the code makes", () => {
         files: "app/*.py",
         extract: "imports",
       }),
-    ).toEqual([".db", "os"]);
+    ).toEqual([".db", ".db.engine", "os"]);
+  });
+
+  async function pythonRead(text: string, extract: string, callee?: string) {
+    write("py/case.py", text);
+    return read({
+      reader: "references",
+      files: "py/case.py",
+      extract,
+      ...(callee ? { callee } : {}),
+    });
+  }
+
+  test("Python env reads through import aliases and key methods", async () => {
+    for (const [text, expected] of [
+      ['import os as o\na = o.getenv("A")\nb = o.environ["B"]\n', ["A", "B"]],
+      [
+        'from os import getenv as g, environ as E\ng("A")\nE["B"]\nE.get("C")\n',
+        ["A", "B", "C"],
+      ],
+      [
+        'import os\nos.environ.setdefault("A", "1")\nos.environ.pop("B")\nif "C" in os.environ:\n    pass\nif "D" not in os.environ:\n    pass\n',
+        ["A", "B", "C", "D"],
+      ],
+      ['import os\nx = os.getenvb(b"A") or os.environb[b"B"]\n', []],
+    ] as const) {
+      const result = await pythonRead(text, "env");
+      if (expected.length === 0) {
+        // bytes keys are not string literals: refused, not left out.
+        expect(result.ok).toBe(false);
+        continue;
+      }
+      expect(result).toEqual({ ok: true, model: { members: [...expected] } });
+    }
+  });
+
+  test("Python refuses env reads it cannot name, with their place", async () => {
+    for (const text of [
+      "import os\nx = os.environ.copy()\n",
+      "import os\nx = dict(os.environ)\n",
+      "import os\nenv = {}\nenv.update(os.environ)\n",
+      "import os\nf(**os.environ)\n",
+      "import os\nrun(env=os.environ)\n",
+      "from os import environ\ne = environ\n",
+      "import os\nfor k in os.environ.items():\n    pass\n",
+      "import os\nk = 1\nif k not in os.environ:\n    pass\n",
+      "import os\nx = os.environ[k]\n",
+      "import os\nx = os.getenv(k)\n",
+      "import os\nx = os.environ.get(k)\n",
+      "import os\nf = os.getenv\n",
+      'import os\ngetattr(os, "getenv")("A")\n',
+      "import os\nm = os\n",
+      'exec("x")\n',
+      'eval("x")\n',
+      'compile("x", "f", "exec")\n',
+      '__import__("os").getenv("A")\n',
+      'import importlib\nimportlib.import_module("os").environ\n',
+      'import sys\nsys.modules["os"].getenv("A")\n',
+      'import os\nos.path.expandvars("$A")\n',
+      "from os import *\n",
+    ]) {
+      const result = await pythonRead(text, "env");
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.reason).toMatch(/py\/case\.py:\d/);
+    }
+  });
+
+  test("Python calls through an alias are listed under what they name, too", async () => {
+    expect(
+      await pythonRead(
+        'import subprocess as sp\nfrom subprocess import Popen\nfrom subprocess import run as r\nsp.call(["x"])\nPopen(["x"])\nr("y")\n',
+        "calls",
+      ),
+    ).toEqual({
+      ok: true,
+      model: {
+        members: [
+          "Popen",
+          "r",
+          "sp.call",
+          "subprocess.Popen",
+          "subprocess.call",
+          "subprocess.run",
+        ],
+      },
+    });
+    // An imported function used as a value is listed as called.
+    expect(
+      await pythonRead(
+        "import subprocess as sp\nfrom subprocess import Popen\nf = sp.check_output\ndef g(fn=Popen):\n    pass\n",
+        "calls",
+      ),
+    ).toEqual({
+      ok: true,
+      model: {
+        members: [
+          "Popen",
+          "sp.check_output",
+          "subprocess.Popen",
+          "subprocess.check_output",
+        ],
+      },
+    });
+    for (const text of [
+      "import subprocess\nm = subprocess\n",
+      'import subprocess\ngetattr(subprocess, "Popen")()\n',
+      "from subprocess import *\n",
+      'exec("x")\n',
+      'import sys\nsys.modules["subprocess"].Popen()\n',
+      "fs[0]()\n",
+    ]) {
+      const result = await pythonRead(text, "calls");
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.reason).toMatch(/py\/case\.py:\d/);
+    }
+    expect(
+      await pythonRead(
+        'from subprocess import run as r\nr("ls")\n',
+        "string_args",
+        "subprocess.run",
+      ),
+    ).toEqual({ ok: true, model: { members: ["ls"] } });
+  });
+
+  test("Python imports list the modules a from-import and a dotted import load", async () => {
+    expect(
+      await pythonRead(
+        "from urllib import request as rq\nimport os.path\nimport json\nfrom . import x\nfrom ..a.b import c\nfrom m import *\n",
+        "imports",
+      ),
+    ).toEqual({
+      ok: true,
+      model: {
+        members: [
+          ".",
+          "..a",
+          "..a.b",
+          "..a.b.c",
+          ".x",
+          "json",
+          "m",
+          "os",
+          "os.path",
+          "urllib",
+          "urllib.request",
+        ],
+      },
+    });
+    expect(
+      await pythonRead(
+        'import importlib\n__import__("os")\nimportlib.import_module("json")\n',
+        "imports",
+      ),
+    ).toEqual({ ok: true, model: { members: ["importlib", "json", "os"] } });
+    expect(
+      await pythonRead('__import__("os")\nexec("import x")\n', "imports"),
+    ).toMatchObject({ ok: false });
   });
 });
 

@@ -618,6 +618,24 @@ Details that decide what a reader sees:
   so routes guarded by `requireAuthentication()` list `requireAuthentication`.
   Async functions, generators and classes are never called. Without
   `names_from` a middleware is its function's name, or `(anonymous)`.
+- **Python.** The references reader parses `.py` files with Python's `ast`
+  and runs none of them. Names the file imports are followed: `import
+  subprocess as sp`, `from subprocess import Popen` and `from os import
+  getenv as g` read as `subprocess`, `subprocess.Popen` and `os.getenv`.
+  `env` reads `os.getenv`, `os.environ[...]`, `os.environ.get`,
+  `setdefault` and `pop`, and `"X" in os.environ`. `calls` lists each call
+  as written and, through an alias, under what it names too (`sp.call` and
+  `subprocess.call`); an imported function used as a value
+  (`f = sp.check_output`, `fn=Popen`) is listed as called. `imports` lists
+  `import a.b` as `a` and `a.b`, and `from urllib import request` as
+  `urllib` and `urllib.request`. The whole environment handed on, copied or
+  iterated (`os.environ.copy()`, `dict(os.environ)`, `**os.environ`,
+  `env=os.environ`), a getter or the `os` module used as a value, a name
+  computed at run time, `getattr` on an imported module, `exec`, `eval`,
+  `compile`, `__import__` and `importlib.import_module` (which `imports`
+  lists when the name is a literal), `sys.modules`,
+  `os.path.expandvars`, and a star import (from `os` for `env`, any for
+  `calls`) fail the read with their place.
 - **SWI-Prolog.** The references reader and the `prolog` reader read a
   `.pl` or `.plt` file term by term with SWI-Prolog and run none of it: no
   directive, `initialization/1` or clause of the project executes. The file's
@@ -631,14 +649,19 @@ Details that decide what a reader sees:
   goal in clause bodies and directives, walking control constructs, grammar
   rules (a non-terminal `n//0` is the call `n/2`), lambdas and the arguments
   of meta-predicates (the file's own `meta_predicate` declarations and
-  SWI-Prolog's). `env` reads `getenv/2`; `string_args` the first argument of
+  SWI-Prolog's), `apply/2` as the goal it calls, and the body of a clause
+  asserted from a literal term (`assertz((s(V) :- getenv('X', V)))`). `env`
+  reads `getenv/2`; `string_args` the first argument of
   calls to `callee` (`format` or `format/2`); `thrown` the error of
   `throw(error(type_error(...), _))` (`type_error`), the functor of any other
   thrown term, and the `library(error)` helpers such as `domain_error/2`,
   while a rethrow of the ball `catch/3` caught is not a new error. A
   variable called as a goal or closure (`call(Goal)`, `maplist(G, L)`), a
-  goal qualified by a variable module, a clause asserted from a variable and
-  conditional compilation (`:- if(...)`) fail the read with their place.
+  goal qualified by a variable module, a clause asserted from a variable,
+  conditional compilation (`:- if(...)`), a `term_expansion` or
+  `goal_expansion` clause (asserted ones too) in the files or in a project
+  file they load, since expansion can produce any clause, and an `include`
+  of a file that is not among `files` fail the read with their place.
 - **Go, Java, C# and Rust.** The references reader hands these files to
   `kibi-plugin-treesitter`, which parses them in its bounded workers and
   compiles or runs nothing. Activate it for proofs in `package.json`:
@@ -674,9 +697,13 @@ Details that decide what a reader sees:
   java.lang.System.getenv`), C# `using static System.Environment` and `using
   E = System.Environment`, and Rust `use` bindings (`use std::env::var as
   getvar`) read as the canonical name, and the fully qualified forms match
-  too, so `calls` can list both `env::var` and `std::env::var`; a Rust path
-  whose root the file does not bind (`env::var` with no `use std::env`, or a
-  local `mod env`) is not taken for the standard library. Calls on Java's
+  too, so `calls` can list both `env::var` and `std::env::var`. Rust paths
+  resolve through the `use`, `mod` and `extern crate` items in their scope:
+  a path whose root the scope does not bind (`env::var` with no `use
+  std::env`, or under a function-local `mod env`) is not the standard
+  library, while `mod m { pub use std::env; }` then `m::env::var`,
+  `self::env`, `extern crate std as s` and `use Command as C` (also for
+  `string_args` with `callee: Command::new`) are followed. Calls on Java's
   `java.lang` types and C#'s `System` types are also listed under their long
   spelling (`java.lang.System.getenv`, `System.Console.WriteLine`), so a
   "never calls" claim holds whichever spelling it uses. C# `imports` also
@@ -684,7 +711,20 @@ Details that decide what a reader sees:
   `<Using Include>` items of `.csproj`/`.props` files and the usings
   `ImplicitUsings` adds, and `global::` prefixes are dropped. A Go
   identifier that shadows a package the file does not import (a local `os`)
-  is not that package. A function or method used as a value
+  is not that package, and neither is a local `os` in a block, parameter,
+  closure, `range` or type switch of a file that imports it; a package
+  imported as `os` that is not the standard library's is listed by its
+  path (`"github.com/joho/godotenv".Getenv`). A Go method on a value is
+  `*.Method`, and also the package's (`logrus.Error`) when its receiver
+  visibly comes from that package (`logrus.StandardLogger().Error`, `l :=
+  logrus.New()`, a parameter or struct field of that type), so a never-call
+  claim on the package does not pass over its logger. A Java receiver is
+  named by its declared type, cast or `new` (`Runtime r; r.exit()` and
+  `((System) null).getenv` are `Runtime.exit` and `System.getenv`), and
+  `import other.System` or a `System` class in the file shadows
+  `java.lang.System`. A C# bare call is listed under a type only when the
+  file declares the method, or one `using static` System type has it; `@`
+  verbatim identifiers are read without the `@`. A function or method used as a value
   (`logf := logrus.Error`, `apply(logrus.Error)`, a C# method group, a Rust
   path such as `env::var` passed on) is listed in `calls`.
   A name computed at run time (`os.Getenv(name)`), the whole environment
@@ -703,7 +743,25 @@ Details that decide what a reader sees:
   (`#[tokio::main]`) or derive outside the standard library, for Rust `env`
   a macro whose arguments mention an environment getter
   (`eprintln!("{}", env::var("X")?)`), and for `string_args` a macro whose
-  arguments mention the callee fail the read with their place. A file that does not parse is refused with its line.
+  arguments mention the callee fail the read with their place. So do, since
+  the call may be a claimed callee or a getter under a name the file does
+  not show: Go cgo (`import "C"`), `//go:linkname` and any `Environ()`
+  method (`exec.Cmd.Environ`) for `env`; a Java method named like a JDK
+  callee (`getenv`, `exit`, `halt`, `exec`, `load`, `loadLibrary`) on a
+  receiver of unknown type (`Runtime.getRuntime()` is known, a `var` local
+  or an inherited field is not), for `calls` and, for `getenv`, `env`; a C#
+  bare call the file cannot place (a base type's, or one of a `using
+  static` in this file or a project-wide one such as `global using static
+  System.Environment` or `<Using Include="System.Environment"
+  Static="true" />`) for `calls`, an environment getter's name it cannot
+  place (bare, as a method group, or on a project-wide alias) for `env`; a
+  Rust getter's name on a path that cannot be followed (`crate::`,
+  `super::` out of the file, a module file, another crate's `var`) for
+  `env` and `calls`; and for Rust `env`, `imports` and `string_args` any
+  macro other than a standard one or a known crate's formatting macro
+  (`anyhow!`, `log::info!`), such as the file's own `macro_rules!` or
+  `include!`, an `env!` nested in another macro, or an attribute macro
+  configured with `env` (clap's `#[arg(env = "X")]`). A file that does not parse is refused with its line.
 - **Importing the app.** The `routes`, `validator` and drizzle readers import
   the module, so it must load without side effects (no `listen`, no database
   connection at import). Export a factory or a wrapper when the app needs

@@ -56,6 +56,24 @@ describe("language pack suggestions", () => {
     ).toBeNull();
   });
 
+  it("never counts Kibi's own .kb files or unconfirmed .pl files as Prolog", () => {
+    const suggestion = referenceLanguageSuggestion(
+      [".kb/schema/entities.pl", "tools/build.pl", "cmd/main.go"],
+      active,
+      () => null,
+      pinned,
+    );
+    expect(suggestion?.packs).toEqual(["kibi-lang-go@1.0.0"]);
+    expect(
+      referenceLanguageSuggestion(
+        [".kb/schema/entities.pl", "tools/build.pl", "cmd/main.go"],
+        active,
+        () => "1.0.0",
+        pinned,
+      ),
+    ).toBeNull();
+  });
+
   it("suggests the plugin for symbols alone in a language it cannot prove", () => {
     const suggestion = referenceLanguageSuggestion(
       ["web/index.php", "deploy.sh"],

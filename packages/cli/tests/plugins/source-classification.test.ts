@@ -82,14 +82,32 @@ function serviceFor(capability: SymbolExtractorV2): SourceAnalysisService {
 }
 
 describe("deterministic source classification", () => {
-  test("keeps ambiguous headers explicit and resolves .pl by shebang, hint or content", () => {
-    expect(
-      classifySource("include/shared.h", "int shared(void);"),
-    ).toMatchObject({
-      kind: "ambiguous",
-      language: "c-or-cpp",
-      candidates: ["c", "cpp"],
-    });
+  test("resolves headers and .pl files by shebang, hint or content", () => {
+    // A header is C unless its code uses a construct only C++ has.
+    for (const content of [
+      "int shared(void);",
+      '#ifdef __cplusplus\nextern "C" {\n#endif\nint f(void);\n',
+      '// class Foo in a comment\nconst char *s = "a::b";\n',
+      "",
+    ])
+      expect(classifySource("include/shared.h", content)).toMatchObject({
+        kind: "language",
+        language: "c",
+        source: "content",
+      });
+    for (const content of [
+      "class Foo {\npublic:\n  int x;\n};\n",
+      "namespace n { int f(); }\n",
+      "template <typename T> T id(T v);\n",
+      "int f(std::string s);\n",
+      "void Foo::bar();\n",
+      "constexpr int N = 3;\n",
+    ])
+      expect(classifySource("include/shared.h", content)).toMatchObject({
+        kind: "language",
+        language: "cpp",
+        source: "content",
+      });
     expect(
       classifySource("include/shared.h", "int shared(void);", "c++"),
     ).toMatchObject({ kind: "language", language: "cpp", source: "explicit" });
@@ -418,7 +436,8 @@ describe("single extension table", () => {
     > = TREE_SITTER_LANGUAGES;
     for (const extension of classifiedExtensions()) {
       const classification = classifySource(`file${extension}`, "");
-      if (classification.kind !== "language") continue;
+      // A header resolved from its content is analyzed with that language hint.
+      if (classification.kind !== "language" || extension === ".h") continue;
       const entry = catalog[classification.language];
       if (!entry) continue;
       expect(entry.extensions).toContain(extension);

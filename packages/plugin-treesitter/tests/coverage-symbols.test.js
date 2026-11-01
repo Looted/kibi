@@ -432,7 +432,7 @@ describe("output bounds", () => {
     assert.deepEqual(codesOf(result), ["TREESITTER_SYMBOL_LIMIT"]);
   });
 
-  it("replaces the last diagnostic slot with a limit finding over the whole file", async () => {
+  it("summarizes local gaps past the cap as one local range", async () => {
     const content = Array.from(
       { length: 70 },
       (_, index) => `exec("x${index} = 1")`,
@@ -441,13 +441,32 @@ describe("output bounds", () => {
     assert.equal(result.status, "partial");
     assert.equal(result.diagnostics.length, 64);
     const last = result.diagnostics.at(-1);
-    assert.equal(last.code, "TREESITTER_DIAGNOSTIC_LIMIT");
+    assert.equal(last.code, "TREESITTER_LOCAL_GAPS_SUMMARIZED");
     assert.deepEqual(last.range, {
-      startLine: 1,
+      startLine: 64,
       startColumn: 0,
       endLine: 70,
       endColumn: 'exec("x69 = 1")'.length,
     });
+    assert.equal(
+      result.uncoveredRanges.at(-1).reason,
+      "local-gaps-summarized-past-cap",
+    );
+  });
+
+  it("replaces the last slot with a whole-file limit when a gap past the cap is not local", async () => {
+    // The symbol cap is the last finding, past the diagnostic cap.
+    const content = `${Array.from(
+      { length: 70 },
+      (_, index) => `exec("x${index} = 1")`,
+    ).join("\n")}\n${Array.from(
+      { length: 10_001 },
+      (_, index) => `X${index} = 1`,
+    ).join("; ")}\n`;
+    const result = await analyze("exec.py", content);
+    const last = result.diagnostics.at(-1);
+    assert.equal(last.code, "TREESITTER_DIAGNOSTIC_LIMIT");
+    assert.equal(last.range.startLine, 1);
     assert.equal(
       result.uncoveredRanges.at(-1).reason,
       "diagnostic-limit-may-hide-analysis-gaps",

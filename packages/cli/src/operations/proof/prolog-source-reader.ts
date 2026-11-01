@@ -25,11 +25,14 @@
  * (read from their module header) and those of the SWI-Prolog libraries it
  * loads. `references` mode walks clause bodies and directives through
  * control constructs and meta-predicate arguments (the file's own
- * meta_predicate declarations and SWI-Prolog's), and reports every place it
- * cannot read statically: a variable called as a goal or closure, a goal
- * qualified by a variable module, a clause asserted from data and
- * conditional compilation. `terms` mode lists one argument of every fact
- * with a given functor, in file order.
+ * meta_predicate declarations and SWI-Prolog's) and the bodies of clauses
+ * asserted from literal terms, and reports every place it cannot read
+ * statically: a variable called as a goal or closure, a goal qualified by a
+ * variable module, a clause asserted from data, conditional compilation, a
+ * term_expansion or goal_expansion clause in the files or in a project file
+ * they load (expansion can produce any clause), and an include of a file
+ * outside the files read. `terms` mode lists one argument of every fact with
+ * a given functor, in file order.
  */
 // implements REQ-kibi-prolog-source-readers
 export const PROLOG_SOURCE_READER = String.raw`
@@ -40,7 +43,7 @@ export const PROLOG_SOURCE_READER = String.raw`
 
 :- initialization(main, main).
 
-:- dynamic member_found/1, unresolved_found/3, local_meta/2, local_pred/2.
+:- dynamic member_found/1, unresolved_found/3, local_meta/2, local_pred/2, plan_file/1, expands_checked/2.
 
 main :-
     current_prolog_flag(argv, Argv),
@@ -129,16 +132,17 @@ spec_operators(Spec, File, Module) :-
     project_file(Spec, File, Path), !,
     catch(setup_call_cleanup(
               open(Path, read, Stream),
-              ( read_term(Stream, First, [module(Module), syntax_errors(quiet)]),
-                (   First = (:- module(_, Exports)) -> export_operators(Exports, Module) ; true )
+              (   read_term(Stream, First, [module(Module), syntax_errors(quiet)]),
+                  First = (:- module(_, Exports))
+              ->  export_operators(Exports, Module)
+              ;   true
               ),
               close(Stream)),
           _, true).
 spec_operators(_, _, _).
 
 project_file(Spec, File, Path) :-
-    (   atom(Spec) ; string(Spec) ), !,
-    atom_string(Atom, Spec),
+    path_spec(Spec, Atom), !,
     atom_string(FromAtom, File),
     file_directory_name(FromAtom, Directory),
     directory_file_path(Directory, Atom, Base),
@@ -147,6 +151,12 @@ project_file(Spec, File, Path) :-
         atom_concat(Base, Extension, Path),
         exists_file(Path)
     ), !.
+
+% A relative file spec as written: helpers, 'helpers.pl' or sub/helpers.
+path_spec(Spec, Atom) :- ( atom(Spec) ; string(Spec) ), !, atom_string(Atom, Spec).
+path_spec(Dir/Name, Atom) :-
+    path_spec(Dir, D), path_spec(Name, N),
+    atomic_list_concat([D, N], /, Atom).
 
 % The load directives and the specs they name.
 load_directive(use_module(S), [S]).
@@ -177,8 +187,11 @@ run(Plan, _{ok: true, members: Members, unresolved: Unresolved}) :-
     Plan.mode == "references", !,
     retractall(member_found(_)), retractall(unresolved_found(_, _, _)),
     retractall(local_meta(_, _)), retractall(local_pred(_, _)),
-    findall(File-Terms, (member(File, Plan.files), file_terms(File, Terms)), Files),
+    retractall(plan_file(_)), retractall(expands_checked(_, _)),
+    forall(member(File, Plan.files), ( absolute_file_name(File, Abs), assertz(plan_file(Abs)) )),
+    maplist(plan_terms, Plan.files, Files),
     forall(member(_-Terms, Files), collect_local(Terms)),
+    forall(member(File-Terms, Files), expansion_misses(File, Terms)),
     Extract = Plan.extract,
     (   get_dict(callee, Plan, Callee) -> true ; Callee = "" ),
     forall(member(File-Terms, Files),
@@ -207,14 +220,18 @@ run(Plan, _) :- refuse("unknown plan mode ~w", [Plan.mode]).
 
 unresolved_row(_{file: File, line: Line, text: Text}) :- unresolved_found(File, Line, Text).
 
+% Every file is read or the read fails: none is left out.
+plan_terms(File, File-Terms) :- file_terms(File, Terms).
+
 % Predicates the files define, and their meta_predicate declarations.
 collect_local(Terms) :-
     forall(member(term(Term, _, _), Terms), collect_local_term(Term)).
 
 collect_local_term((:- meta_predicate(Specs))) :- !,
     forall(comma_member(Spec, Specs),
-           ( Spec = _:Head -> true ; Head = Spec ),
-           ( functor(Head, N, A), assertz(local_meta(N/A, Head)) )).
+           (   ( Spec = _:Head -> true ; Head = Spec ),
+               (   callable(Head) -> functor(Head, N, A), assertz(local_meta(N/A, Head)) ; true )
+           )).
 collect_local_term((:- _)) :- !.
 collect_local_term((Head --> _)) :- !,
     (   callable(Head) -> head_name(Head, N, A0), A is A0 + 2, assertz(local_pred(N, A)) ; true ).
@@ -222,6 +239,52 @@ collect_local_term((Head :- _)) :- !,
     (   callable(Head) -> head_name(Head, N, A), assertz(local_pred(N, A)) ; true ).
 collect_local_term(Head) :-
     (   callable(Head) -> head_name(Head, N, A), assertz(local_pred(N, A)) ; true ).
+
+% term_expansion/2,4 and goal_expansion/2,4 rewrite what the file defines
+% into clauses Kibi never sees, so a file that defines them, or that loads a
+% project file defining them, cannot be read statically.
+expansion_misses(File, Terms) :-
+    forall(( member(term(Term, Line, Bindings), Terms), expansion_clause(Term) ),
+           miss(File, Line, Bindings, Term)),
+    forall(( member(term((:- Directive), Line, Bindings), Terms),
+             load_directive(Directive, Specs), member(Spec, Specs),
+             project_file(Spec, File, Path), expands(Path, []) ),
+           miss(File, Line, Bindings, (:- Directive))).
+
+expansion_clause(Term) :-
+    nonvar(Term), Term \= (:- _), Term \= (_ --> _),
+    ( Term = (Head :- _) -> true ; Head = Term ),
+    expansion_head(Head).
+
+expansion_head(Head) :- nonvar(Head), Head = _:Inner, !, expansion_head(Inner).
+expansion_head(Head) :-
+    callable(Head), functor(Head, Name, Arity),
+    memberchk(Name/Arity, [term_expansion/2, term_expansion/4, goal_expansion/2, goal_expansion/4]).
+
+% A project file defines an expansion, or loads one that does; a file Kibi
+% cannot read counts as one that does.
+expands(Path, Seen) :-
+    absolute_file_name(Path, Abs),
+    (   memberchk(Abs, Seen) -> fail
+    ;   expands_checked(Abs, Answer) -> Answer == true
+    ;   atom_string(Path, File),
+        (   catch(file_terms(File, Terms), _, fail)
+        ->  (   member(term(Term, _, _), Terms), expansion_clause(Term) -> Answer = true
+            ;   member(term((:- Directive), _, _), Terms), load_directive(Directive, Specs),
+                member(Spec, Specs), project_file(Spec, File, Next), expands(Next, [Abs|Seen])
+            ->  Answer = true
+            ;   Answer = false
+            )
+        ;   Answer = true
+        ),
+        assertz(expands_checked(Abs, Answer)),
+        Answer == true
+    ).
+
+% An included file is part of the including module: it is read only when it
+% is one of the files read.
+outside_include(include(Spec), File) :-
+    \+ (   project_file(Spec, File, Path), absolute_file_name(Path, Abs), plan_file(Abs) ).
 
 head_name(_:Head, N, A) :- !, head_name(Head, N, A).
 head_name((Head, _), N, A) :- !, head_name(Head, N, A).
@@ -244,6 +307,8 @@ sub_string_max(Text, Max, Out) :-
 % references(+Extract, +Callee, +File, +Line, +Bindings, +Term)
 references(Extract, Callee, File, Line, Bindings, (:- Directive)) :- !,
     (   conditional(Directive)
+    ->  miss(File, Line, Bindings, (:- Directive))
+    ;   outside_include(Directive, File)
     ->  miss(File, Line, Bindings, (:- Directive))
     ;   load_directive(Directive, _)
     ->  (   Extract == "imports"
@@ -327,6 +392,12 @@ body(E, C, F, L, B, K, Module:Goal) :- !,
     ->  qualified(E, C, F, L, B, K, Module, Goal)
     ;   miss(F, L, B, Module:Goal)
     ).
+body(E, C, F, L, B, K, apply(Closure, Args)) :- !,
+    record_call(E, C, F, L, B, K, apply(Closure, Args)),
+    (   is_list(Args), apply_goal(Closure, Args, Goal)
+    ->  body(E, C, F, L, B, K, Goal)
+    ;   miss(F, L, B, apply(Closure, Args))
+    ).
 body(E, C, F, L, B, K, catch(Goal, Catcher, Recovery)) :- !,
     record_call(E, C, F, L, B, K, catch(Goal, Catcher, Recovery)),
     body(E, C, F, L, B, K, Goal),
@@ -383,6 +454,14 @@ closure(E, C, F, L, B, K, Extra, _, Closure) :-
     body(E, C, F, L, B, K, Called).
 closure(_, _, F, L, B, _, _, Goal, _) :- miss(F, L, B, Goal).
 
+% apply(Closure, Args) calls Closure with Args added.
+apply_goal(Closure, Args, Module:Goal) :-
+    nonvar(Closure), Closure = Module:Inner, !,
+    apply_goal(Inner, Args, Goal).
+apply_goal(Closure, Args, Goal) :-
+    callable(Closure),
+    Closure =.. List, append(List, Args, Full), Goal =.. Full.
+
 lambda_body(_/Body, Body) :- !.
 lambda_body(Body, Body).
 
@@ -401,21 +480,32 @@ meta_spec(Goal, Spec) :-
     ;   catch(predicate_property(kibi_source_reader:Goal, meta_predicate(Spec)), _, fail)
     ).
 
-% Goals that run a term built from data are refused: the clause asserted or
-% the goal passed is not known statically.
+% A clause asserted from a literal term is read like one in the file: its
+% body is walked. One asserted from data, or one that defines an expansion,
+% is not known statically and is refused.
 data_goal(assert(_)). data_goal(asserta(_)). data_goal(assertz(_)).
-data_goal(asserta(_, _)). data_goal(assertz(_, _)).
+data_goal(assert(_, _)). data_goal(asserta(_, _)). data_goal(assertz(_, _)).
+data_goal(compile_aux_clauses(_)).
 
 record_call(E, C, F, L, B, K, Goal) :-
-    (   E == "calls", data_goal(Goal), arg(1, Goal, Clause), \+ static_clause(Clause)
-    ->  miss(F, L, B, Goal)
+    (   data_goal(Goal)
+    ->  arg(1, Goal, Arg),
+        (   Goal = compile_aux_clauses(_), is_list(Arg) -> Clauses = Arg ; Clauses = [Arg] ),
+        forall(member(Clause, Clauses), asserted(E, C, F, L, B, Goal, Clause))
     ;   true
     ),
     extract(E, C, F, L, B, K, Goal).
 
-static_clause(Clause) :-
-    nonvar(Clause),
-    (   Clause = (Head :- Body) -> nonvar(Head), nonvar(Body) ; true ).
+asserted(E, C, F, L, B, Goal, Clause) :-
+    (   static_clause(Clause, Head, Body), \+ expansion_head(Head)
+    ->  ( Body == true -> true ; body(E, C, F, L, B, none, Body) )
+    ;   miss(F, L, B, Goal)
+    ).
+
+static_clause(Clause, _, _) :- var(Clause), !, fail.
+static_clause(Module:Clause, Head, Body) :- !, atom(Module), static_clause(Clause, Head, Body).
+static_clause((Head :- Body), Head, Body) :- !, callable(Head), nonvar(Body).
+static_clause(Head, Head, true) :- callable(Head).
 
 control(call/_).
 control(','/2). control(';'/2). control('->'/2). control('*->'/2). control('\\+'/1).
