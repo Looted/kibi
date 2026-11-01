@@ -45,7 +45,7 @@ interface Row {
   readonly text: string;
 }
 
-const JAVA_ROW = /^(System|Runtime) may be a class of (?:package [\w.]+|the default package): /;
+const JAVA_ROW = /^(System|Runtime) may be a class of (?:package ([\w.]+)|the default package): /;
 const RUST_ROW = /^(\w+) may be a macro_rules! macro of the crate: /;
 const CSHARP_ROW = /^(\w+) may be a type of the project: /;
 const GO_ROW = /^(\w+) may be declared in another file of the package: /;
@@ -88,6 +88,23 @@ export function javaCode(text: string): string {
     }
   }
   return out;
+}
+
+/**
+ * Java source with its Unicode escapes decoded (`q` is `q`), as the
+ * compiler reads it before anything else; a backslash escaped by another
+ * starts no escape.
+ */
+function javaUnicode(text: string): string {
+  return text.replace(/(\\+)u+([0-9a-fA-F]{4})/g, (escape, slashes: string, hex: string) =>
+    slashes.length % 2 === 1 ? `${slashes.slice(1)}${String.fromCharCode(Number.parseInt(hex, 16))}` : escape,
+  );
+}
+
+/** The package a Java file declares, "" for the default package. */
+function javaPackage(text: string): string {
+  const declared = /\bpackage\s+([\w$.\s]+?)\s*;/.exec(javaCode(javaUnicode(text)));
+  return declared === null ? "" : (declared[1] as string).replace(/\s+/g, "");
 }
 
 /** Whether Java source declares a type of that name (any nesting). */
@@ -186,7 +203,15 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
             .filter((name) => name.endsWith(".java"))
             .map((name) => path.join(directory, name)),
         );
-        return texts === null || texts.some((text) => javaDeclares(text, java[1] as string));
+        const type = java[1] as string;
+        if (texts === null || texts.some((text) => javaDeclares(text, type))) return true;
+        // A package spans source roots (src/main/java beside generated or
+        // test sources), and a file's package is what it declares, not its
+        // folder: every .java file of the project declaring the package is
+        // read too.
+        const all = read("java:*", () => sourceFiles(workspaceRoot, ".java"));
+        const pkg = java[2] ?? "";
+        return all === null || all.some((text) => javaPackage(text) === pkg && javaDeclares(text, type));
       }
       const rust = RUST_ROW.exec(row.text);
       if (rust !== null) {

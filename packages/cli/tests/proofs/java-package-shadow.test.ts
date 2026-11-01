@@ -83,11 +83,70 @@ describe("rows about a name another file of the project may bind", () => {
     expect(filter("src/e3/L04.java", [systemRow, runtimeRow])).toEqual([
       systemRow,
     ]);
-    expect(filter("src/e4/A.java", [systemRow, runtimeRow])).toEqual([
-      runtimeRow,
-    ]);
+    const e4Row = { ...systemRow, text: systemRow.text.replace("e3", "e4") };
+    expect(filter("src/e4/A.java", [e4Row, runtimeRow])).toEqual([runtimeRow]);
     expect(filter("src/e5/A.java", [systemRow])).toEqual([systemRow]);
     expect(filter("src/missing/A.java", [systemRow])).toEqual([systemRow]);
+  });
+
+  const qRow = {
+    line: 2,
+    text: 'System may be a class of package q: System.getenv("Q_NOT_ENV")',
+  };
+  const qRuntimeRow = {
+    line: 3,
+    text: "Runtime may be a class of package q: Runtime.getRuntime()",
+  };
+
+  it("keeps a Java row when the package declares the type in another source root", () => {
+    const main = {
+      "src/main/java/q/A.java":
+        'package q;\nclass A { String a() { return System.getenv("Q_NOT_ENV"); } }\n',
+    };
+    for (const [file, text] of [
+      [
+        "src/gen/java/q/System.java",
+        "package q;\npublic class System { public static String getenv(String k) { return k; } }\n",
+      ],
+      [
+        "target/generated-sources/annotations/q/System.java",
+        "@Generated\npackage /* gen */ q ;\nclass System {}\n",
+      ],
+      ["elsewhere/Odd.java", "package q;\nclass Odd {}\nclass System {}\n"],
+      ["src/test/java/q/T.java", "package \\u0071;\nclass System {}\n"],
+    ]) {
+      const root = project({ ...main, [file as string]: text as string });
+      expect(
+        createShadowRowFilter(root)("src/main/java/q/A.java", [qRow]),
+      ).toEqual([qRow]);
+    }
+    const defaultRoot = project({
+      "src/main/java/D.java":
+        "class D { void x() { Runtime.getRuntime().exit(1); } }\n",
+      "src/gen/java/Runtime.java": "public class Runtime {}\n",
+    });
+    expect(
+      createShadowRowFilter(defaultRoot)("src/main/java/D.java", [runtimeRow]),
+    ).toEqual([runtimeRow]);
+  });
+
+  it("drops a Java row when no source root's file of the package declares the type", () => {
+    const root = project({
+      "src/main/java/q/A.java":
+        'package q;\nclass A { String a() { return System.getenv("Q_NOT_ENV"); } }\n',
+      "src/gen/java/q/Gen.java": "package q;\nclass Gen {}\n",
+      "src/gen/java/r/System.java": "package r;\nclass System {}\n",
+      "src/gen/java/qq/System.java": "package q.q;\nclass System {}\n",
+      "src/gen/java/D.java": "class Runtime {}\n",
+      "node_modules/x/q/System.java": "package q;\nclass System {}\n",
+      ".cache/q/System.java": "package q;\nclass System {}\n",
+    });
+    expect(
+      createShadowRowFilter(root)("src/main/java/q/A.java", [
+        qRow,
+        qRuntimeRow,
+      ]),
+    ).toEqual([]);
   });
 
   it("drops a Rust macro row only when the crate defines no macro of that name", () => {
