@@ -45,7 +45,7 @@ export const PROLOG_SOURCE_READER = String.raw`
 :- initialization(main, main).
 
 :- dynamic member_found/1, unresolved_found/3, local_meta/2, local_pred/2, plan_file/1, expands_checked/2,
-            file_module/2, loaded_meta/2, loaded_export/1, loaded_read/1, project_listed/1, project_walked/0,
+            file_module/2, loaded_meta/2, loaded_export/1, loaded_read/1, search_dir/2, search_via/3, search_unread/3,
             in_message_rule/0.
 
 main :-
@@ -102,6 +102,7 @@ read_all(Stream, File, Module, Terms) :-
     ->  Terms = []
     ;   stream_position_data(line_count, Position, Line),
         declare_operators(Term, File, Module),
+        search_declaration(File, Line, Term),
         Terms = [term(Term, Line, Bindings)|Rest],
         read_all(Stream, File, Module, Rest)
     ).
@@ -147,8 +148,8 @@ spec_operators(Spec, File, Module) :-
 spec_operators(_, _, _).
 
 project_file(Spec, _, Path) :-
-    alias_spec(Spec, Rel), !,
-    alias_target(Rel, Path).
+    alias_spec(Spec, _), !,
+    alias_target(Spec, Path).
 project_file(Spec, File, Path) :-
     path_spec(Spec, Atom), !,
     atom_string(FromAtom, File),
@@ -162,13 +163,15 @@ project_file(Spec, File, Path) :-
 
 % Alias(Path) with an alias SWI-Prolog does not define itself (library,
 % foreign, swi, pack and the rest), such as bson(include/common) after a
-% file_search_path/2 the project sets up at run time. Kibi cannot run that
-% setup, so the alias resolves only when exactly one file of the project
-% (the files read and every file under the workspace outside node_modules,
-% .git and .kb) has a path ending with Path. None, or several (a vendored
-% or fixture copy next to the real one), leave it unresolved: a copy among
-% the files read is not taken for the file the alias names.
-alias_spec(Spec, Rel) :-
+% file_search_path/2 the project sets up. Kibi runs none of that setup: the
+% alias resolves only through the file_search_path declarations of the files
+% read that it can evaluate (see search_declaration/3), and only when they
+% name exactly one existing file. A file that merely ends with Path (a
+% vendored copy, or one next to a target under node_modules or outside the
+% project) is never taken for the file the alias names.
+alias_spec(Spec, Rel) :- alias_spec(Spec, _, Rel).
+
+alias_spec(Spec, Alias, Rel) :-
     compound(Spec), Spec =.. [Alias, Rel], atom(Alias),
     \+ memberchk(Alias, [/, :, -]),
     \+ system_alias(Alias),
@@ -176,63 +179,163 @@ alias_spec(Spec, Rel) :-
 
 system_alias(Alias) :- user:file_search_path(Alias, _), !.
 
-alias_target(Rel, Path) :- alias_candidates(Rel, [Path]).
+alias_target(Spec, Path) :-
+    alias_spec(Spec, Alias, Rel),
+    alias_resolution(Alias, Rel, found([Path])).
 
-alias_candidates(Rel, Found) :-
-    path_spec(Rel, Atom),
-    atom_concat(/, Atom, Tail),
-    project_files(Project),
-    findall(Abs,
-            ( ( plan_file(Abs) ; member(Abs, Project) ),
-              member(Extension, ['', '.pl', '.plt', '.prolog']),
-              atom_concat(Tail, Extension, Ending),
-              atom_concat(_, Ending, Abs) ),
-            Found0),
-    sort(Found0, Found).
+% found(Files): the existing files the declared directories hold for Rel.
+% undeclared(Alias), unread(File, Line), through(Alias): why there are none.
+alias_resolution(Alias, Rel, Result) :-
+    catch(( alias_dirs(Alias, [Alias], Dirs),
+            path_spec(Rel, Atom),
+            findall(Abs,
+                    ( member(Dir, Dirs),
+                      directory_file_path(Dir, Atom, Base),
+                      member(Extension, ['', '.pl', '.plt', '.prolog']),
+                      atom_concat(Base, Extension, Path),
+                      exists_file(Path),
+                      absolute_file_name(Path, Abs) ),
+                    Found0),
+            sort(Found0, Found),
+            Result = found(Found) ),
+          alias_problem(Problem), Result = Problem).
 
-% Every file under the working directory (the workspace), outside
-% node_modules, .git and .kb and linked directories, listed once per read.
-project_files(Files) :-
-    (   project_walked
-    ->  true
-    ;   working_directory(Dir, Dir), walk_directory(Dir), assertz(project_walked)
+alias_dirs(Alias, Seen, Dirs) :-
+    (   ( search_unread(Alias, File, Line) ; search_unread('$any', File, Line) )
+    ->  throw(alias_problem(unread(File, Line)))
+    ;   true
     ),
-    findall(File, project_listed(File), Files).
+    findall(Dir, search_dir(Alias, Dir), Own),
+    findall(Via-Sub, search_via(Alias, Via, Sub), Vias),
+    (   Own == [], Vias == [] -> throw(alias_problem(undeclared(Alias))) ; true ),
+    findall(Dir, ( member(Via-Sub, Vias), via_dir(Via, Sub, Seen, Dir) ), Through),
+    append(Own, Through, Dirs).
 
-walk_directory(Dir) :-
-    catch(directory_files(Dir, Entries), _, Entries = []),
-    forall(( member(Entry, Entries), \+ memberchk(Entry, ['.', '..', node_modules, '.git', '.kb']) ),
-           (   directory_file_path(Dir, Entry, Path),
-               (   exists_directory(Path)
-               ->  ( catch(read_link(Path, _, _), _, fail) -> true ; walk_directory(Path) )
-               ;   exists_file(Path)
-               ->  assertz(project_listed(Path))
-               ;   true
-               )
+% file_search_path(bson, base(sub)): through another alias the files declare.
+% One SWI-Prolog defines (library, pack, app) lies outside the project.
+via_dir(Via, Sub, Seen, Dir) :-
+    (   ( memberchk(Via, Seen) ; system_alias(Via) ) -> throw(alias_problem(through(Via))) ; true ),
+    alias_dirs(Via, [Via|Seen], Dirs),
+    member(Base, Dirs),
+    directory_file_path(Base, Sub, Dir).
+
+% The file_search_path/2 declarations of a file read: a fact or clause for
+% file_search_path/2 (user: or not), or a directive that asserts one. Kibi
+% evaluates prolog_load_context(directory, D) (the declaring file's
+% directory), directory_file_path/3 and atom_concat/3 on known atoms; the
+% directory must then be absolute, or Alias(Sub) of another alias. Any other
+% declaration (a relative directory, which depends on the working directory
+% at run time, or one computed otherwise) leaves its alias unresolved.
+search_declaration(File, Line, Term) :-
+    atom_string(Atom, File), absolute_file_name(Atom, Abs), plan_file(Abs), !,
+    findall(Alias,
+            ( sub_term(Sub, Term), compound(Sub), Sub = file_search_path(A, _),
+              ( atom(A) -> Alias = A ; Alias = '$any' ) ),
+            Aliases0),
+    sort(Aliases0, Aliases),
+    file_directory_name(Abs, Here),
+    forall(member(Alias, Aliases),
+           (   Alias \== '$any', search_values(Term, Alias, Here, Values)
+           ->  forall(member(Value, Values), assertz(Value))
+           ;   assertz(search_unread(Alias, File, Line))
            )).
+search_declaration(_, _, _).
+
+search_values((:- Body), Alias, Here, Values) :- !,
+    copy_term(Body, Goals0),
+    conjunction_goals(Goals0, Goals),
+    search_goals(Goals, Here, Alias, Values),
+    Values \== [].
+search_values((Head :- Body), Alias, Here, [Value]) :- !,
+    copy_term(Head-Body, H-B),
+    search_head(H, Alias, Dir),
+    conjunction_goals(B, Goals),
+    search_goals(Goals, Here, Alias, []),
+    search_value(Alias, Dir, Value).
+search_values(Head, Alias, _, [Value]) :-
+    copy_term(Head, H),
+    search_head(H, Alias, Dir),
+    search_value(Alias, Dir, Value).
+
+search_head(user:file_search_path(Alias, Dir), Alias, Dir) :- !.
+search_head(file_search_path(Alias, Dir), Alias, Dir).
+
+conjunction_goals(Body, Goals) :-
+    nonvar(Body), Body = (A, B), !,
+    conjunction_goals(A, GA), conjunction_goals(B, GB), append(GA, GB, Goals).
+conjunction_goals(Body, [Body]) :- nonvar(Body).
+
+% Evaluate the goals in order; the declarations they assert for Alias.
+search_goals([], _, _, []).
+search_goals([Goal|Goals], Here, Alias, Values) :-
+    search_goal(Goal, Here, Alias, Own),
+    search_goals(Goals, Here, Alias, Rest),
+    append(Own, Rest, Values).
+
+search_goal(prolog_load_context(directory, Dir), Here, _, []) :- !, var(Dir), Dir = Here.
+search_goal(directory_file_path(D, F, P), _, _, []) :- !,
+    atomic(D), atomic(F), var(P), directory_file_path(D, F, P).
+search_goal(atom_concat(A, B, C), _, _, []) :- !,
+    atomic(A), atomic(B), var(C), atom_concat(A, B, C).
+search_goal(Assert, _, Alias, Values) :-
+    nonvar(Assert), memberchk(Assert, [assert(H), asserta(H), assertz(H)]), !,
+    nonvar(H), search_head(H, Name, Dir), atom(Name),
+    (   Name == Alias -> search_value(Alias, Dir, Value), Values = [Value] ; Values = [] ).
+
+search_value(Alias, Dir, search_dir(Alias, Abs)) :-
+    ( atom(Dir) ; string(Dir) ), !,
+    atom_string(Abs0, Dir), is_absolute_file_name(Abs0),
+    absolute_file_name(Abs0, Abs).
+search_value(Alias, Spec, search_via(Alias, Via, Sub)) :-
+    compound(Spec), Spec =.. [Via, Rel], atom(Via), Via \== Alias,
+    \+ memberchk(Via, [/, :, -]),
+    path_spec(Rel, Sub).
 
 % A workspace file as the files: list names it.
 shown_path(Abs, Shown) :-
     working_directory(Dir, Dir),
     (   atom_concat(Dir, Relative, Abs) -> Shown = Relative ; Shown = Abs ).
 
-% Why an aliased load does not resolve, and what would resolve it.
-alias_note(Rel, Note) :-
+% A file no files: pattern can name: outside the workspace, or under a
+% directory proofs never read.
+unreadable_place(Abs, Shown) :-
+    (   Abs == Shown
+    ->  true
+    ;   atomic_list_concat(Parts, /, Shown),
+        member(Part, Parts), memberchk(Part, [node_modules, '.git', '.kb'])
+    ), !.
+
+% Why an aliased load does not resolve, and what would resolve it. A file is
+% named to add to files: only when it is the one the declarations resolve to.
+alias_note(Spec, Note) :-
+    alias_spec(Spec, Alias, Rel),
     path_spec(Rel, Atom),
-    alias_candidates(Rel, Found),
-    (   Found = []
-    ->  format(string(Note), "no project file ends with ~w", [Atom])
-    ;   Found = [One]
-    ->  shown_path(One, Shown),
-        format(string(Note), "add ~w to files: so Kibi reads it", [Shown])
-    ;   maplist(shown_path, Found, Shown), atomic_list_concat(Shown, ', ', List),
-        format(string(Note), "~w could be any of ~w, so Kibi cannot tell which file the alias names", [Atom, List])
+    alias_resolution(Alias, Rel, Result),
+    alias_result_note(Result, Alias, Atom, Note).
+
+alias_result_note(undeclared(Name), Alias, Atom, Note) :-
+    format(string(Note), "no file Kibi reads declares file_search_path(~w, Dir), so Kibi cannot tell which file ~w(~w) names (a file that ends with ~w is not taken for it); add the file that declares it to files:", [Name, Alias, Atom, Atom]).
+alias_result_note(unread(File, Line), Alias, Atom, Note) :-
+    format(string(Note), "Kibi cannot evaluate the file_search_path declaration at ~s:~w (a relative directory or one computed at run time), so it cannot tell which file ~w(~w) names", [File, Line, Alias, Atom]).
+alias_result_note(through(Via), Alias, Atom, Note) :-
+    format(string(Note), "file_search_path(~w, ...) goes through ~w, which Kibi does not resolve to a project directory, so it cannot tell which file ~w(~w) names", [Alias, Via, Alias, Atom]).
+alias_result_note(found([]), Alias, Atom, Note) :-
+    format(string(Note), "no directory file_search_path(~w, Dir) declares holds ~w", [Alias, Atom]).
+alias_result_note(found([One]), Alias, Atom, Note) :-
+    shown_path(One, Shown),
+    (   unreadable_place(One, Shown)
+    ->  format(string(Note), "~w(~w) names ~w, which lies outside the files Kibi reads (node_modules, .git, .kb or outside the project)", [Alias, Atom, Shown])
+    ;   format(string(Note), "add ~w to files: so Kibi reads it", [Shown])
     ).
+alias_result_note(found(Found), _, Atom, Note) :-
+    Found = [_, _|_],
+    maplist(shown_path, Found, Shown), atomic_list_concat(Shown, ', ', List),
+    format(string(Note), "~w could be any of ~w, so Kibi cannot tell which file the alias names", [Atom, List]).
 
 % What would let Kibi read a load it refuses, said after its place.
 load_note(include(Spec), File, Note) :- !,
-    (   nonvar(Spec), alias_spec(Spec, Rel)
-    ->  alias_note(Rel, Note0), format(string(Note), "the included file: ~s", [Note0])
+    (   nonvar(Spec), alias_spec(Spec, _)
+    ->  alias_note(Spec, Note0), format(string(Note), "the included file: ~s", [Note0])
     ;   nonvar(Spec), project_file(Spec, File, Path)
     ->  absolute_file_name(Path, Abs), shown_path(Abs, Shown),
         format(string(Note), "add ~w to files: so Kibi reads the included file", [Shown])
@@ -241,8 +344,8 @@ load_note(include(Spec), File, Note) :- !,
 load_note(Directive, File, Note) :-
     load_directive(Directive, Specs),
     member(Spec, Specs), nonvar(Spec),
-    (   alias_spec(Spec, Rel), \+ alias_target(Rel, _)
-    ->  alias_note(Rel, Note)
+    (   alias_spec(Spec, _), \+ alias_target(Spec, _)
+    ->  alias_note(Spec, Note)
     ;   consult_directive(Directive), project_file(Spec, File, Path), \+ module_file(Path),
         absolute_file_name(Path, Abs), \+ plan_file(Abs)
     ->  shown_path(Abs, Shown),
@@ -310,7 +413,8 @@ run(Plan, _{ok: true, members: Members, unresolved: Unresolved}) :-
     retractall(plan_file(_)), retractall(expands_checked(_, _)),
     retractall(file_module(_, _)), retractall(loaded_meta(_, _)),
     retractall(loaded_export(_)), retractall(loaded_read(_)),
-    retractall(project_listed(_)), retractall(project_walked), retractall(in_message_rule),
+    retractall(search_dir(_, _)), retractall(search_via(_, _, _)), retractall(search_unread(_, _, _)),
+    retractall(in_message_rule),
     forall(member(File, Plan.files), ( absolute_file_name(File, Abs), assertz(plan_file(Abs)) )),
     maplist(plan_terms, Plan.files, Files),
     forall(member(_-Terms, Files), collect_local(Terms)),

@@ -493,17 +493,19 @@ i :- format(user_error, "~\`-t~30|~+~~~n", []).
     ).toEqual({ ok: true, model: { members: ["helpers", "library(lists)"] } });
   });
 
-  test("resolves an include through a project alias to the one project file it names", async () => {
+  test("resolves an include through the alias the files read declare", async () => {
     const root = workspace({
       "src/dec.pl":
         ":- module(dec, []).\n:- include(bson(include/common)).\nd :- throw(bson_error(x)).\n",
+      "src/load.pl":
+        ":- multifile user:file_search_path/2.\n:- dynamic user:file_search_path/2.\n:- prolog_load_context(directory, Dir), asserta(user:file_search_path(bson, Dir)).\n",
       "src/include/common.pl":
         ":- encoding(utf8).\nc :- throw(common_error).\n",
       "src/uses.pl": ":- use_module(bson(nothere)).\n",
     });
     const alone = await read(root, {
       reader: "references",
-      files: "src/dec.pl",
+      files: ["src/dec.pl", "src/load.pl"],
       extract: "thrown",
     });
     expect(alone.ok).toBe(false);
@@ -511,19 +513,37 @@ i :- format(user_error, "~\`-t~30|~+~~~n", []).
       expect(alone.reason).toContain(
         "src/dec.pl:2 :-include(bson(include/common))",
       );
-      // The refusal names the file that would resolve it.
+      // The refusal names the file the declaration resolves to.
       expect(alone.reason).toContain("add src/include/common.pl to files:");
     }
     expect(
       await read(root, {
         reader: "references",
-        files: ["src/dec.pl", "src/include/common.pl"],
+        files: ["src/dec.pl", "src/load.pl", "src/include/common.pl"],
         extract: "thrown",
       }),
     ).toEqual({ ok: true, model: { members: ["bson_error", "common_error"] } });
+    // A fact and a clause body read the same way.
+    for (const declaration of [
+      `user:file_search_path(bson, '${root}/src').\n`,
+      "user:file_search_path(bson, Dir) :- prolog_load_context(directory, Dir).\n",
+      "file_search_path(proj, Dir) :- prolog_load_context(directory, Dir).\nfile_search_path(bson, proj('.')).\n",
+    ]) {
+      writeFileSync(path.join(root, "src/load.pl"), declaration);
+      expect(
+        await read(root, {
+          reader: "references",
+          files: ["src/dec.pl", "src/load.pl", "src/include/common.pl"],
+          extract: "thrown",
+        }),
+      ).toEqual({
+        ok: true,
+        model: { members: ["bson_error", "common_error"] },
+      });
+    }
     const uses = await read(root, {
       reader: "references",
-      files: "src/uses.pl",
+      files: ["src/uses.pl", "src/load.pl"],
       extract: "env",
     });
     expect(uses.ok).toBe(false);
@@ -533,15 +553,21 @@ i :- format(user_error, "~\`-t~30|~+~~~n", []).
       );
   });
 
-  test("refuses an aliased include that more than one project file could name", async () => {
+  test("refuses an aliased include the files read do not resolve to one file", async () => {
     const root = workspace({
       "src/dec.pl":
         ":- module(dec, []).\n:- include(bson(include/common)).\nd.\n",
       "src/include/common.pl": "c(V) :- getenv('REAL_SECRET', V).\n",
       "vendor/include/common.pl": "c2.\n",
+      // The real target: the alias is declared where Kibi does not read it.
+      "node_modules/bsonpl/include/common.pl":
+        "c(V) :- getenv('REAL_SECRET', V).\n",
+      "boot.pl":
+        ":- prolog_load_context(directory, D), directory_file_path(D, 'node_modules/bsonpl', B), asserta(user:file_search_path(bson, B)).\n",
     });
-    // A vendored copy among files is not the include: the real target reads REAL_SECRET.
+    // A copy that only ends with the aliased path is not the include.
     for (const files of [
+      ["src/dec.pl"],
       ["src/dec.pl", "vendor/include/common.pl"],
       ["src/dec.pl", "src/include/common.pl"],
       ["src/dec.pl", "src/include/common.pl", "vendor/include/common.pl"],
@@ -556,9 +582,59 @@ i :- format(user_error, "~\`-t~30|~+~~~n", []).
         expect(result.reason).toContain(
           "src/dec.pl:2 :-include(bson(include/common))",
         );
-        expect(result.reason).toContain("src/include/common.pl");
-        expect(result.reason).toContain("vendor/include/common.pl");
+        expect(result.reason).toContain("file_search_path(bson");
+        expect(result.reason).not.toContain("vendor/include/common.pl");
+        expect(result.reason).not.toContain("add src/include/common.pl");
       }
+    }
+    // Read with its declaration, the alias names the node_modules copy,
+    // which proofs never read: refused, and no file is offered to add.
+    const declared = await read(root, {
+      reader: "references",
+      files: ["src/dec.pl", "boot.pl", "vendor/include/common.pl"],
+      extract: "env",
+    });
+    expect(declared.ok).toBe(false);
+    if (!declared.ok) {
+      expect(declared.reason).toContain(
+        "names node_modules/bsonpl/include/common.pl, which lies outside the files Kibi reads",
+      );
+      expect(declared.reason).not.toContain("to files:");
+      expect(declared.reason).not.toContain("vendor/include/common.pl");
+    }
+    // A relative directory depends on the working directory at run time, and a
+    // declaration Kibi cannot evaluate could name any directory.
+    for (const declaration of [
+      "user:file_search_path(bson, src).\n",
+      "user:file_search_path(bson, D) :- getenv('BSON_HOME', D).\n",
+      "user:file_search_path(bson, library(bson)).\n",
+    ]) {
+      writeFileSync(path.join(root, "boot.pl"), declaration);
+      const result = await read(root, {
+        reader: "references",
+        files: ["src/dec.pl", "boot.pl", "src/include/common.pl"],
+        extract: "env",
+      });
+      expect(result.ok).toBe(false);
+      if (!result.ok)
+        expect(result.reason).toContain(
+          "src/dec.pl:2 :-include(bson(include/common))",
+        );
+    }
+    // Two declared directories that both hold the file: refused, naming both.
+    writeFileSync(
+      path.join(root, "boot.pl"),
+      `user:file_search_path(bson, '${root}/src').\nuser:file_search_path(bson, '${root}/vendor').\n`,
+    );
+    const both = await read(root, {
+      reader: "references",
+      files: ["src/dec.pl", "boot.pl", "src/include/common.pl"],
+      extract: "env",
+    });
+    expect(both.ok).toBe(false);
+    if (!both.ok) {
+      expect(both.reason).toContain("src/include/common.pl");
+      expect(both.reason).toContain("vendor/include/common.pl");
     }
   });
 
