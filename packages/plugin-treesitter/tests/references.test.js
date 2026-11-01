@@ -1635,4 +1635,67 @@ describe("round-4 agent-test regressions: exact or refuse", () => {
     ].join("\n");
     assert.equal((await inline("A.cs", bound, "calls")).shadows, undefined);
   });
+
+  const go = (lines) => `package a\n${lines.join("\n")}\n`;
+
+  it("lists a Go package used under a name another package is known by under its import path", async () => {
+    const cases = [
+      [
+        'import logrus "github.com/other/notlogrus"',
+        'func f() { logrus.Error("x"); l := logrus.New(); l.Warn("y") }',
+        [
+          '"github.com/other/notlogrus".Error',
+          '"github.com/other/notlogrus".Warn',
+        ],
+        ["logrus.Error", "logrus.Warn"],
+      ],
+      [
+        'import exec "github.com/fake/exec"',
+        'func f() { exec.Command("rm").Run() }',
+        ['"github.com/fake/exec".Command', '"github.com/fake/exec".Run'],
+        ["exec.Command", "exec.Run"],
+      ],
+      [
+        'import "github.com/charmbracelet/log"',
+        'func f() { log.Fatal("x") }',
+        ['"github.com/charmbracelet/log".Fatal'],
+        ["log.Fatal"],
+      ],
+      [
+        'import log "github.com/sirupsen/logrus"',
+        "func f(err error) { log.Error(err) }",
+        ["logrus.Error"],
+        ["log.Error"],
+      ],
+      [
+        'import "os/exec"\nimport x "os/exec"',
+        'func f() { exec.Command("a"); x.Command("b") }',
+        ["exec.Command"],
+        [],
+      ],
+      [
+        'import "github.com/sirupsen/logrus"\nimport "math/rand/v2"',
+        "func f() { logrus.Info(1); rand.IntN(3) }",
+        ["logrus.Info", "rand.IntN"],
+        [],
+      ],
+    ];
+    for (const [imports, body, present, absent] of cases) {
+      const calls = await inline("a.go", go([imports, body]), "calls");
+      for (const name of present)
+        assert.ok(calls.members.includes(name), `${name}: ${calls.members}`);
+      for (const name of absent)
+        assert.ok(!calls.members.includes(name), `${name}: ${calls.members}`);
+      assert.deepEqual(calls.lines, []);
+    }
+    const args = go([
+      'import exec "github.com/fake/exec"',
+      'func f() { exec.Command("rm") }',
+    ]);
+    assert.deepEqual(
+      (await inline("a.go", args, "string_args", { callee: "exec.Command" }))
+        .members,
+      [],
+    );
+  });
 });

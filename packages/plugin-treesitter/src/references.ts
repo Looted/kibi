@@ -393,6 +393,196 @@ const GO_ENV_PACKAGES: ReadonlyMap<string, string> = new Map([
   ["windows", "golang.org/x/sys/windows"],
 ]);
 const GO_ENV_PATHS = new Set(GO_ENV_PACKAGES.values());
+
+/**
+ * Packages a short name is known to mean: the standard library's, x/sys,
+ * and common loggers. A file that uses another package under one of these
+ * names (`exec "github.com/fake/exec"`, `"github.com/charmbracelet/log"`,
+ * `logrus "github.com/other/notlogrus"`) has its members listed under the
+ * quoted import path, so they are never taken for the known package's.
+ */
+const GO_KNOWN_PACKAGES: ReadonlyMap<string, ReadonlySet<string>> = (() => {
+  const known = new Map<string, Set<string>>();
+  const add = (name: string, path: string) => {
+    const paths = known.get(name) ?? new Set<string>();
+    paths.add(path);
+    known.set(name, paths);
+  };
+  for (const path of [
+    "archive/tar",
+    "archive/zip",
+    "bufio",
+    "bytes",
+    "cmp",
+    "compress/bzip2",
+    "compress/flate",
+    "compress/gzip",
+    "compress/lzw",
+    "compress/zlib",
+    "container/heap",
+    "container/list",
+    "container/ring",
+    "context",
+    "crypto",
+    "crypto/aes",
+    "crypto/cipher",
+    "crypto/des",
+    "crypto/dsa",
+    "crypto/ecdh",
+    "crypto/ecdsa",
+    "crypto/ed25519",
+    "crypto/elliptic",
+    "crypto/hmac",
+    "crypto/md5",
+    "crypto/rand",
+    "crypto/rc4",
+    "crypto/rsa",
+    "crypto/sha1",
+    "crypto/sha256",
+    "crypto/sha512",
+    "crypto/subtle",
+    "crypto/tls",
+    "crypto/x509",
+    "database/sql",
+    "database/sql/driver",
+    "embed",
+    "encoding",
+    "encoding/ascii85",
+    "encoding/asn1",
+    "encoding/base32",
+    "encoding/base64",
+    "encoding/binary",
+    "encoding/csv",
+    "encoding/gob",
+    "encoding/hex",
+    "encoding/json",
+    "encoding/pem",
+    "encoding/xml",
+    "errors",
+    "expvar",
+    "flag",
+    "fmt",
+    "go/ast",
+    "go/build",
+    "go/format",
+    "go/parser",
+    "go/printer",
+    "go/token",
+    "go/types",
+    "hash",
+    "hash/crc32",
+    "hash/crc64",
+    "hash/fnv",
+    "html",
+    "html/template",
+    "image",
+    "image/color",
+    "image/gif",
+    "image/jpeg",
+    "image/png",
+    "io",
+    "io/fs",
+    "io/ioutil",
+    "iter",
+    "log",
+    "log/slog",
+    "log/syslog",
+    "maps",
+    "math",
+    "math/big",
+    "math/bits",
+    "math/cmplx",
+    "math/rand",
+    "math/rand/v2",
+    "mime",
+    "mime/multipart",
+    "net",
+    "net/http",
+    "net/http/httptest",
+    "net/http/httputil",
+    "net/http/pprof",
+    "net/mail",
+    "net/netip",
+    "net/rpc",
+    "net/smtp",
+    "net/textproto",
+    "net/url",
+    "os",
+    "os/exec",
+    "os/signal",
+    "os/user",
+    "path",
+    "path/filepath",
+    "plugin",
+    "reflect",
+    "regexp",
+    "regexp/syntax",
+    "runtime",
+    "runtime/debug",
+    "runtime/pprof",
+    "slices",
+    "sort",
+    "strconv",
+    "strings",
+    "sync",
+    "sync/atomic",
+    "syscall",
+    "testing",
+    "testing/fstest",
+    "text/scanner",
+    "text/tabwriter",
+    "text/template",
+    "time",
+    "unicode",
+    "unicode/utf16",
+    "unicode/utf8",
+    "unique",
+    "unsafe",
+    ...GO_ENV_PATHS,
+    "github.com/sirupsen/logrus",
+    "github.com/Sirupsen/logrus",
+    "go.uber.org/zap",
+    "github.com/rs/zerolog",
+  ])
+    add(goPackageName(path), path);
+  return known;
+})();
+
+/** The known name a package path is used under, if it is a known package. */
+function goKnownName(path: string): string | null {
+  for (const [name, paths] of GO_KNOWN_PACKAGES)
+    if (paths.has(path)) return name;
+  return null;
+}
+
+/**
+ * Whether the file's local package name `local` (or the name its import
+ * guesses) is a known name that means another package than the one imported.
+ */
+function goNamedElsewhere(local: string, context: FileContext): boolean {
+  /* node:coverage disable */
+  const path = context.paths.get(local) ?? local;
+  /* node:coverage enable */
+  const usedAs = context.aliases.get(local) ?? local;
+  return [local, usedAs].some((name) => {
+    const paths = GO_KNOWN_PACKAGES.get(name);
+    return paths !== undefined && !paths.has(path);
+  });
+}
+
+/**
+ * How members of the package a file uses under `local` are listed: under
+ * its package name, or under its quoted import path when that name means
+ * another package.
+ */
+function goPackageSpelling(local: string, context: FileContext): string {
+  const usedAs = context.aliases.get(local) ?? local;
+  if (!goNamedElsewhere(local, context)) return usedAs;
+  /* node:coverage disable */
+  const path = context.paths.get(local) ?? local;
+  /* node:coverage enable */
+  return goKnownName(path) ?? `"${path}"`;
+}
 const GO_REFLECT_CALLS = new Set(["Call", "CallSlice", "MethodByName"]);
 const GO_PLUGIN_CALLS = new Set(["plugin.Open", "*.Lookup"]);
 
@@ -554,15 +744,16 @@ function goName(name: string, context: FileContext, at: Node): string {
   // known, so the method is `*.Method`.
   if (!context.packages.has(root) || goBinding(at, root) !== null)
     return method;
-  /* node:coverage disable */
-  const path = context.paths.get(root) ?? root;
-  /* node:coverage enable */
-  const usedAs = context.aliases.get(root) ?? root;
-  if (
-    !GO_ENV_PATHS.has(path) &&
-    (GO_ENV_PACKAGES.has(root) || GO_ENV_PACKAGES.has(usedAs))
-  )
+  // A package used under a name that means another package (`os
+  // "github.com/x/env"`, `exec "github.com/fake/exec"`, `log
+  // "github.com/sirupsen/logrus"`) is spelled by its import path, so the
+  // name's usual meaning is never listed.
+  if (goNamedElsewhere(root, context)) {
+    /* node:coverage disable */
+    const path = context.paths.get(root) ?? root;
+    /* node:coverage enable */
     return `"${path}"${name.slice(cut)}`;
+  }
   return name;
 }
 
@@ -640,7 +831,7 @@ function goOwners(call: Node, context: FileContext): string[] {
   const found = goReceiverRoot(operand);
   if (found === null) return [];
   const [root, hops] = found;
-  const usedAs = (name: string) => context.aliases.get(name) ?? name;
+  const usedAs = (name: string) => goPackageSpelling(name, context);
   if (goPackageAt(root.text, call, context)) return [usedAs(root.text)];
   const binding = goBinding(call, root.text);
   if (binding === null) return [];
@@ -757,6 +948,12 @@ const GO: Reader = {
     return context;
   },
   candidates(name, context, at) {
+    // `"github.com/sirupsen/logrus".Error` (used as log) is logrus.Error.
+    const quoted = /^"([^"]*)"(\..*)$/.exec(name);
+    if (quoted !== null) {
+      const known = goKnownName(quoted[1] as string);
+      return known === null ? [name] : [name, `${known}${quoted[2]}`];
+    }
     const spelled = goName(name, context, at);
     const cut = spelled.indexOf(".");
     if (cut === -1 || spelled.startsWith('"')) return [spelled];
