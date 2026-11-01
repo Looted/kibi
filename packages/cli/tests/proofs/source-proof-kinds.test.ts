@@ -592,6 +592,99 @@ describe("references the code makes", () => {
     }
   });
 
+  test("Python refuses os, posix and namespaces reached through another name", async () => {
+    for (const text of [
+      'from dotenv.main import os\nos.getenv("A")\n',
+      'from .main import os as o\no.environ["A"]\n',
+      'from .main import o\no.environ.get("A")\n',
+      'from .main import environ\nenviron["A"]\n',
+      'import dotenv.main\ndotenv.main.os.environ.get("A")\n',
+      'import shutil\nshutil.os.getenv("A")\n',
+      'from os import path\npath.os.getenv("A")\n',
+      'import os.path as p\np.os.environ["A"]\n',
+      'import posix\nposix.environ[b"A"]\n',
+      'import os\nos.__dict__["getenv"]("A")\n',
+      'import os\nglobals()["os"].getenv("A")\n',
+      'import os\nlocals()["os"]\n',
+      'import os\nvars()["os"]\n',
+      'import os\nvars(os)["getenv"]("A")\n',
+      'def f():\n    pass\nf.__globals__["os"]\n',
+      '__builtins__.__import__("os")\n',
+      "import shutil\nm = shutil\n",
+      'import importlib.util\ns = importlib.util.find_spec("os")\n',
+      'import runpy\nrunpy.run_path("x.py")\n',
+      'import pkgutil\npkgutil.resolve_name("os:getenv")("A")\n',
+    ]) {
+      const result = await pythonRead(text, "env");
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.reason).toMatch(/py\/case\.py:\d/);
+    }
+    // posix and nt are os under another name; a parameter's vars() is not a module's.
+    expect(await pythonRead('import nt\nnt.environ["A"]\n', "env")).toEqual({
+      ok: true,
+      model: { members: ["A"] },
+    });
+    expect(
+      await pythonRead(
+        'import os.path\nos.path.join("a")\nos.getenv("A")\ndef f(args):\n    return vars(args)\n',
+        "env",
+      ),
+    ).toEqual({ ok: true, model: { members: ["A"] } });
+    for (const text of [
+      'import shutil\nshutil.os.system("x")\n',
+      'from .main import os\nos.system("x")\n',
+      'from .main import o\no.system("x")\n',
+      'from dotenv.cli import Popen\nPopen(["x"])\n',
+      "import dotenv.main\ndotenv.main.os.system()\n",
+      'from subprocess import run\nglobals()["run"](["x"])\n',
+      'import runpy\nrunpy.run_module("x")\n',
+      'import subprocess\nsubprocess.__dict__["run"]()\n',
+    ]) {
+      const result = await pythonRead(text, "calls");
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.reason).toMatch(/py\/case\.py:\d/);
+    }
+    // A duplicate place is listed once.
+    const twice = await pythonRead(
+      'from subprocess import run\nglobals()["run"](["x"])\n',
+      "calls",
+    );
+    if (!twice.ok) expect(twice.reason).toContain("Kibi cannot read 1 ");
+    expect(
+      await pythonRead(
+        "from .main import load_dotenv\nfrom asyncio import subprocess as asp\nload_dotenv()\nasp.create_subprocess_exec()\n",
+        "calls",
+      ),
+    ).toEqual({
+      ok: true,
+      model: {
+        members: [
+          ".main.load_dotenv",
+          "asp.create_subprocess_exec",
+          "asyncio.subprocess.create_subprocess_exec",
+          "load_dotenv",
+        ],
+      },
+    });
+    for (const text of [
+      "from .main import os\n",
+      "from pkg import subprocess\n",
+      'import pkgutil\npkgutil.resolve_name("subprocess:run")\n',
+      'import runpy\nrunpy.run_module("subprocess")\n',
+      'import importlib.util\nimportlib.util.find_spec("subprocess")\n',
+    ]) {
+      const result = await pythonRead(text, "imports");
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.reason).toMatch(/py\/case\.py:\d/);
+    }
+    expect(
+      await pythonRead("from asyncio import subprocess\n", "imports"),
+    ).toEqual({
+      ok: true,
+      model: { members: ["asyncio", "asyncio.subprocess"] },
+    });
+  });
+
   test("Python calls through an alias are listed under what they name, too", async () => {
     expect(
       await pythonRead(

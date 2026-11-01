@@ -1468,4 +1468,59 @@ describe("executeUpsert remaining runtime branches", () => {
     );
     expect(result.structuredContent?.created).toBe(1);
   });
+  test("warns at write time when Kibi cannot place the symbol in its source", async () => {
+    // implements REQ-generated-coordinate-persistence
+    const root = makeTempDir();
+    track(
+      spyOn(
+        symbolRefresh,
+        "refreshSymbolCoordinatesForManifest",
+      ).mockResolvedValue({
+        refreshed: false,
+        found: true,
+        unplaced: "no declaration titled timeit was found in gravity.sh",
+      }),
+    );
+    track(
+      spyOn(
+        manifestModule,
+        "readManifestWithCoordinateOverlay",
+      ).mockReturnValue([{ id: "SYM-UNPLACED", title: "timeit" }]),
+    );
+    track(
+      spyOn(manifestModule, "extractManifestSymbolRecords").mockReturnValue([
+        {
+          entity: {
+            id: "SYM-UNPLACED",
+            type: "symbol",
+            title: "timeit",
+            status: "active",
+          },
+          relationships: [],
+          sourceFile: "gravity.sh",
+        },
+      ] as never),
+    );
+    const result = await executeUpsert(
+      {
+        type: "symbol",
+        id: "SYM-UNPLACED",
+        properties: {
+          title: "timeit",
+          status: "active",
+          sourceFile: "gravity.sh",
+        },
+        document: { path: ".kb/symbols.yaml" },
+      },
+      contextFor(root, commitQuery(), { fs: nodeFilesystem }),
+    );
+    expect(result.structuredContent?.created).toBe(1);
+    const warning = result.structuredContent?.warnings?.find((text) =>
+      text.startsWith("SYM-UNPLACED has no symbol coordinates"),
+    );
+    expect(warning).toStartWith(
+      "SYM-UNPLACED has no symbol coordinates: no declaration titled timeit was found in gravity.sh. Until Kibi places it, its link is not checked against the code",
+    );
+    expect(warning).toContain("symbol_role and granularity_reason");
+  });
 });

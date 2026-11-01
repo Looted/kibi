@@ -9572,3 +9572,62 @@ test(proof_contract_claim_candidates_list_every_reached_claim, [setup(setup_kb),
     assertion(sub_string(Set.reason, _, _, _, "set fact")).
 
 :- end_tests(claim_bound_proofs).
+
+% The references reader's members are names: an excluded item covers what
+% lies under it, a trailing * is a prefix, and a call on a receiver Kibi
+% cannot name (*.m) may be any X.m, so it fails excludes and never
+% satisfies includes.  Other readers keep comparing spellings exactly.
+:- begin_tests(reference_member_matching).
+
+reference_relation(Reader, Operator, Actual, Expected, Result) :-
+    Certificate = _{version: "kibi.code-certificate.v1", kind: "source",
+                    test_id: "TEST-R",
+                    source: _{reader: Reader, files: ["src/A.java"], extract: "calls"},
+                    model: _{members: Actual}},
+    model_check:model_check_obligation(source,
+        _{kind: "set_relation", operator: Operator, members: Expected},
+        Certificate, Result).
+
+reference_ok(Operator, Actual, Expected) :-
+    reference_relation("references", Operator, Actual, Expected, Result),
+    assertion(Result == ok).
+
+reference_problem(Operator, Actual, Expected, Fragment) :-
+    reference_relation("references", Operator, Actual, Expected, Result),
+    assertion(Result = problem(_)),
+    Result = problem(Reason),
+    assertion(sub_string(Reason, _, _, _, Fragment)).
+
+test(excludes_covers_members_under_an_item) :-
+    reference_problem("excludes", ["java.sql.Connection"], ["java.sql.*"], "java.sql.Connection (within java.sql.*)"),
+    reference_problem("excludes", ["java.sql.Connection"], ["java.sql"], "within java.sql"),
+    reference_problem("excludes", ["github.com/labstack/echo/v4/middleware"], ["github.com/labstack/echo/v4"], "echo/v4/middleware"),
+    reference_problem("excludes", ["std::env::var"], ["std::env"], "within std::env"),
+    reference_problem("excludes", ["os.Exit"], ["*.Exit"], "within *.Exit"),
+    reference_ok("excludes", ["github.com/labstack/echo/v4extra", "DATABASE_URL"], ["github.com/labstack/echo/v4", "DATABASE"]).
+
+test(excludes_fails_on_what_may_be_the_item) :-
+    reference_problem("excludes", ["*.delete", "get"], ["java.io.File.delete"], "a call of delete on a receiver Kibi cannot name, in src/A.java; it may be java.io.File.delete"),
+    reference_problem("excludes", ["*.close"], ["java.sql.*"], "Kibi cannot decide the claim"),
+    reference_problem("excludes", ["java.sql.*"], ["java.sql.Connection"], "a wildcard that may cover java.sql.Connection"),
+    reference_problem("excludes", ["File.delete"], ["java.io.File.delete"], "a shorter name that may be java.io.File.delete"),
+    reference_ok("excludes", ["*.close", "os.Getenv"], ["java.io.File.delete", "os.Exit"]).
+
+test(includes_and_subset_need_a_certain_member) :-
+    reference_problem("includes", ["*.delete"], ["java.io.File.delete"], "do not include java.io.File.delete"),
+    reference_problem("includes", ["java.sql.Connection"], ["java.sql"], "do not include java.sql"),
+    reference_ok("includes", ["java.sql.Connection", "x.y.delete"], ["java.sql.*", "*.delete"]),
+    reference_problem("subset_of", ["os/exec"], ["os"], "include os/exec"),
+    reference_problem("subset_of", ["*.m"], ["X.m"], "allowed only when the set lists it as *.m"),
+    reference_ok("subset_of", ["os.path", "*.m", "java.sql.*"], ["os.*", "*.m", "java.*"]),
+    reference_ok("subset_of", ["anything"], ["*"]).
+
+test(eq_and_other_readers_compare_spellings) :-
+    reference_problem("eq", ["*.m"], ["X.m"], "missing X.m"),
+    reference_ok("eq", ["java.sql.*"], ["java.sql.*"]),
+    reference_relation("json", "excludes", ["a.b"], ["a"], Json),
+    assertion(Json == ok),
+    reference_relation("json", "excludes", ["a.b"], ["a.*"], JsonPattern),
+    assertion(JsonPattern == ok).
+
+:- end_tests(reference_member_matching).

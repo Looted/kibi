@@ -220,4 +220,56 @@ describe("proof explain projection", () => {
     expect(text).toContain("required_proofs");
     expect(text).toContain("covered_by");
   });
+  // implements REQ-kibi-claim-bound-proofs
+  test("a derived claim whose requirement is not tested end to end says why it is not proved", () => {
+    const claim = (notProved?: unknown) => ({
+      claimKey: "CLAIM-A",
+      status: "derived",
+      applicable: true,
+      level: "tested",
+      ...(notProved === undefined ? {} : { notProved }),
+      bindings: [
+        {
+          test: "TEST-unit",
+          kind: "source",
+          binding: "derived",
+          scope: "source",
+        },
+      ],
+    });
+    const view = projectRequirementExplain({
+      ...requirementProof,
+      claimSummary: { applicable: 1, proved: 0 },
+      claimEvidence: [claim("requirement_not_tested")],
+    });
+    expect(view.claims?.[0]?.notProved).toBe("requirement_not_tested");
+    const text = renderProofExplain(view);
+    expect(text).toContain("    TEST-unit source: derived (source)");
+    expect(text).toContain(
+      "    not proved: the certificate derives the claim, but a claim is proved only once the requirement is tested end to end (proofStatus missing; gaps missing_production_symbol_coverage); a test whose verification_scope is not end_to_end does not count",
+    );
+
+    const noGaps = projectRequirementExplain({
+      ...requirementProof,
+      proofGaps: [],
+      claimEvidence: [claim("requirement_not_tested")],
+    });
+    expect(renderProofExplain(noGaps)).toContain(
+      "(proofStatus missing); a test whose",
+    );
+
+    // Any other notProved value, or none, names no such line.
+    for (const notProved of [undefined, 3, "other"]) {
+      const other = projectRequirementExplain({
+        ...requirementProof,
+        claimEvidence: [claim(notProved)],
+      });
+      expect(other.claims?.[0]).toEqual(
+        expect.objectContaining({ claimKey: "CLAIM-A" }),
+      );
+      if (typeof notProved !== "string")
+        expect(other.claims?.[0]).not.toHaveProperty("notProved");
+      expect(renderProofExplain(other)).not.toContain("not proved:");
+    }
+  });
 });

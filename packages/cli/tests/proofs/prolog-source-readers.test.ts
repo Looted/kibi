@@ -77,7 +77,17 @@ describe("the references reader on SWI-Prolog", () => {
       }),
     ).toEqual({
       ok: true,
-      model: { members: ["helpers", "library(clpfd)", "library(lists)"] },
+      // maplist/2, domain_error/2 and the lambda are autoloaded from their libraries.
+      model: {
+        members: [
+          "helpers",
+          "library(apply)",
+          "library(clpfd)",
+          "library(error)",
+          "library(lists)",
+          "library(yall)",
+        ],
+      },
     });
   });
 
@@ -319,6 +329,241 @@ aux(L) :- compile_aux_clauses(L).
       extract: "imports",
     });
     expect(library.ok).toBe(false);
+  });
+
+  test("reads goals in module-sensitive (:) arguments, or refuses them", async () => {
+    const root = workspace({
+      "prolog/fmt.pl": `:- module(fmt, []).
+a(V) :- format(atom(_), "~@", [getenv('A', V)]).
+b(V) :- format("~@", getenv('B', V)).
+c(V) :- format("~*c~a~W~@~n", [3, 0'x, y, t, [], getenv('C', V)]).
+d(V) :- print_message(informational, format("~@", [getenv('D', V)])).
+e(V) :- debug(topic, "~@", [getenv('E', V)]).
+f(V) :- first_solution(V, [getenv('F', V)], []).
+g(V) :- concurrent(1, [getenv('G', V)], []).
+h(X) :- format("~w ~a~n", [X, x]), format(_, ["s", 1]).
+i :- format(user_error, "~\`-t~30|~+~~~n", []).
+`,
+      "prolog/var.pl": "a(F) :- format(F, [x]).\n",
+      "prolog/args.pl": 'a(A) :- format("~@", A).\n',
+      "prolog/odd.pl": 'a :- format("~Q", [x]).\n',
+      "prolog/few.pl": 'a :- format("~a~@", [x]).\n',
+      "prolog/listen.pl": "a(V) :- prolog_listen(halt, getenv('A', V)).\n",
+      "prolog/signal.pl": "a :- on_signal(int, _, getenv('A')).\n",
+      "prolog/goals.pl": "a(G) :- first_solution(x, G, []).\n",
+      "prolog/data.pl":
+        "a :- assertz(p(1)), retract(p(_)), thread_create_in_pool(pool, true, _, []).\n",
+    });
+    expect(
+      await read(root, {
+        reader: "references",
+        files: "prolog/fmt.pl",
+        extract: "env",
+      }),
+    ).toEqual({
+      ok: true,
+      model: { members: ["A", "B", "C", "D", "E", "F", "G"] },
+    });
+    expect(
+      await read(root, {
+        reader: "references",
+        files: "prolog/data.pl",
+        extract: "env",
+      }),
+    ).toEqual({ ok: true, model: { members: [] } });
+    for (const [file, place] of [
+      ["var", "prolog/var.pl:1 format(F,[x])"],
+      ["args", 'prolog/args.pl:1 format("~@",A)'],
+      ["odd", 'prolog/odd.pl:1 format("~Q",[x])'],
+      ["few", 'prolog/few.pl:1 format("~a~@",[x])'],
+      ["listen", "prolog/listen.pl:1 prolog_listen(halt,getenv('A',V))"],
+      ["signal", "prolog/signal.pl:1 on_signal(int,"],
+      ["goals", "prolog/goals.pl:1 first_solution(x,G,[])"],
+    ] as const) {
+      const result = await read(root, {
+        reader: "references",
+        files: `prolog/${file}.pl`,
+        extract: "env",
+      });
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.reason).toContain(place);
+    }
+    const signal = await read(root, {
+      reader: "references",
+      files: "prolog/signal.pl",
+      extract: "env",
+    });
+    // Both (:) arguments of on_signal/3 sit on one line: the place is listed once.
+    if (!signal.ok) expect(signal.reason).toContain("Kibi cannot read 1 ");
+  });
+
+  test("reads goals handed to a meta-predicate a loaded project module declares", async () => {
+    const root = workspace({
+      "prolog/mrun.pl":
+        ":- module(mrun, [run/1]).\n:- meta_predicate run(0).\nrun(G) :- call(G).\n",
+      "prolog/front.pl": ":- module(front, []).\n:- reexport(mrun).\n",
+      "prolog/use.pl":
+        ":- module(use, [tok/1]).\n:- use_module(mrun).\ntok(V) :- run(getenv('SECRET', V)).\np(X) :- run(throw(bad_input(X))).\n",
+      "prolog/far.pl":
+        ":- use_module(front).\nt(V) :- run(getenv('FAR', V)).\n",
+    });
+    expect(
+      await read(root, {
+        reader: "references",
+        files: "prolog/use.pl",
+        extract: "env",
+      }),
+    ).toEqual({ ok: true, model: { members: ["SECRET"] } });
+    expect(
+      await read(root, {
+        reader: "references",
+        files: "prolog/use.pl",
+        extract: "thrown",
+      }),
+    ).toEqual({ ok: true, model: { members: ["bad_input"] } });
+    expect(
+      await read(root, {
+        reader: "references",
+        files: "prolog/far.pl",
+        extract: "env",
+      }),
+    ).toEqual({ ok: true, model: { members: ["FAR"] } });
+  });
+
+  test("follows consult and list loads of a file without a module header only when it is read too", async () => {
+    const root = workspace({
+      "prolog/list.pl": ":- module(list, []).\n:- [inc].\n",
+      "prolog/many.pl":
+        ":- consult(inc).\n:- load_files([inc], [if(true)]).\n:- ensure_loaded(inc).\n",
+      "prolog/body.pl": "go :- consult(inc).\n",
+      "prolog/mod.pl": ":- [helpers, library(lists)].\n:- consult(helpers).\n",
+      "prolog/gone.pl": ":- [nosuchfile].\n",
+      "prolog/inc.pl": "t(V) :- getenv('INC', V).\n",
+      "prolog/helpers.pl": ":- module(helpers, [h/0]).\nh.\n",
+    });
+    const list = await read(root, {
+      reader: "references",
+      files: "prolog/list.pl",
+      extract: "env",
+    });
+    expect(list.ok).toBe(false);
+    if (!list.ok) expect(list.reason).toContain("prolog/list.pl:2 :-[inc]");
+    const many = await read(root, {
+      reader: "references",
+      files: "prolog/many.pl",
+      extract: "calls",
+    });
+    expect(many.ok).toBe(false);
+    if (!many.ok) {
+      expect(many.reason).toContain("prolog/many.pl:1 :-consult(inc)");
+      expect(many.reason).toContain(
+        "prolog/many.pl:2 :-load_files([inc],[if(true)])",
+      );
+      expect(many.reason).toContain("prolog/many.pl:3 :-ensure_loaded(inc)");
+    }
+    const body = await read(root, {
+      reader: "references",
+      files: "prolog/body.pl",
+      extract: "env",
+    });
+    expect(body.ok).toBe(false);
+    if (!body.ok)
+      expect(body.reason).toContain("prolog/body.pl:1 consult(inc)");
+    const gone = await read(root, {
+      reader: "references",
+      files: "prolog/gone.pl",
+      extract: "env",
+    });
+    expect(gone.ok).toBe(false);
+    for (const file of ["list", "many", "body"])
+      expect(
+        await read(root, {
+          reader: "references",
+          files: [`prolog/${file}.pl`, "prolog/inc.pl"],
+          extract: "env",
+        }),
+      ).toEqual({ ok: true, model: { members: ["INC"] } });
+    // A module file or a library loaded by consult brings no clauses of its own.
+    expect(
+      await read(root, {
+        reader: "references",
+        files: "prolog/mod.pl",
+        extract: "imports",
+      }),
+    ).toEqual({ ok: true, model: { members: ["helpers", "library(lists)"] } });
+  });
+
+  test("resolves an include through a project alias to the one listed file it names", async () => {
+    const root = workspace({
+      "src/dec.pl":
+        ":- module(dec, []).\n:- include(bson(include/common)).\nd :- throw(bson_error(x)).\n",
+      "src/include/common.pl":
+        ":- encoding(utf8).\nc :- throw(common_error).\n",
+      "other/include/common.pl": "c2.\n",
+      "src/uses.pl": ":- use_module(bson(nothere)).\n",
+    });
+    const alone = await read(root, {
+      reader: "references",
+      files: "src/dec.pl",
+      extract: "thrown",
+    });
+    expect(alone.ok).toBe(false);
+    if (!alone.ok)
+      expect(alone.reason).toContain(
+        "src/dec.pl:2 :-include(bson(include/common))",
+      );
+    expect(
+      await read(root, {
+        reader: "references",
+        files: ["src/dec.pl", "src/include/common.pl"],
+        extract: "thrown",
+      }),
+    ).toEqual({ ok: true, model: { members: ["bson_error", "common_error"] } });
+    // Two listed files end with the aliased path: which one the alias names is not known.
+    const both = await read(root, {
+      reader: "references",
+      files: ["src/dec.pl", "src/include/common.pl", "other/include/common.pl"],
+      extract: "thrown",
+    });
+    expect(both.ok).toBe(false);
+    const uses = await read(root, {
+      reader: "references",
+      files: "src/uses.pl",
+      extract: "env",
+    });
+    expect(uses.ok).toBe(false);
+    if (!uses.ok)
+      expect(uses.reason).toContain(
+        "src/uses.pl:1 :-use_module(bson(nothere))",
+      );
+  });
+
+  test("lists autoloaded libraries and writes library specs one way", async () => {
+    const root = workspace({
+      "prolog/spell.pl":
+        ':- use_module(library("utf8")).\n:- use_module(library(\'http/json\')).\n:- use_module(library("http/json")).\n',
+      "prolog/auto.pl": ":- autoload(library(utf8)).\n",
+      "prolog/call.pl": "p(L) :- phrase(utf8_codes(C), L), atom_codes(_, C).\n",
+      "prolog/own.pl": "p(L) :- utf8_codes(L, [], []).\nutf8_codes(_, _, _).\n",
+      "prolog/helpers.pl":
+        ":- module(helpers, [h_codes/1, utf8_codes//1]).\nh_codes(_).\nutf8_codes(_) --> [].\n",
+      "prolog/via.pl":
+        ":- use_module(helpers).\np(L) :- phrase(utf8_codes(_), L).\n",
+    });
+    for (const [file, members] of [
+      ["spell", ["library(http/json)", "library(utf8)"]],
+      ["auto", ["library(utf8)"]],
+      ["call", ["library(utf8)"]],
+      ["own", []],
+      ["via", ["helpers"]],
+    ] as const)
+      expect(
+        await read(root, {
+          reader: "references",
+          files: `prolog/${file}.pl`,
+          extract: "imports",
+        }),
+      ).toEqual({ ok: true, model: { members: [...members] } });
   });
 
   test("reads apply/2 as the goal it calls", async () => {

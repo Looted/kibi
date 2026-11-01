@@ -47,6 +47,7 @@ import {
   proofReferenceExtractorLoader,
 } from "../../plugins/proof-reference-extractors.js";
 import { codeLanguage, pluginReferenceLanguage, unsupportedLanguageReason } from "./code-languages.js";
+import { createShadowRowFilter } from "./java-package-shadow.js";
 import { runCodeEvaluator, TS_RESOLVE_HOOKS } from "./code-runner.js";
 import { PROLOG_SOURCE_READER } from "./prolog-source-reader.js";
 
@@ -297,12 +298,39 @@ def literal(node):
     return node.value if isinstance(node, ast.Constant) and isinstance(node.value, str) else None
 # Bare getenv and environ are read as the environment even without an import.
 ENV_GETTERS = {"os.getenv", "os.getenvb", "getenv"}
-ENV_OBJECTS = {"os.environ", "os.environb", "environ"}
+ENV_OBJECTS = {"os.environ", "os.environb", "environ", "posix.environ", "nt.environ"}
 ENV_KEY_METHODS = {"get", "setdefault", "pop"}
 ENV_TEMPLATES = {"os.path.expandvars", "posixpath.expandvars", "ntpath.expandvars"}
 # Code run from text, or a module looked up at run time, can read or call anything.
 IMPORTERS = {"__import__", "importlib.import_module", "import_module", "builtins.__import__"}
-DYNAMIC = IMPORTERS | {"exec", "eval", "compile", "builtins.exec", "builtins.eval", "builtins.compile"}
+DYNAMIC = IMPORTERS | {"exec", "eval", "compile", "builtins.exec", "builtins.eval", "builtins.compile",
+                       "pkgutil.resolve_name", "pkgutil.get_loader", "pkgutil.find_loader", "importlib.reload",
+                       "importlib.__import__", "importlib.find_loader"}
+DYNAMIC_PREFIXES = ("runpy.", "importlib.util.", "importlib.machinery.", "importlib._bootstrap", "zipimport.")
+def dynamic(name):
+    return name is not None and (name in DYNAMIC or name.startswith(DYNAMIC_PREFIXES))
+# A module's namespace read as a dictionary: any module, or any of its members, under any key.
+NAMESPACES = {"globals", "locals", "builtins.globals", "builtins.locals"}
+# Modules that read the environment, run programs or load code. One reached
+# as an attribute of another module (shutil.os, path.os, from .main import os)
+# is that module under a name Kibi does not follow, so it fails the read.
+REACHED = {"os", "posix", "nt", "sys", "subprocess", "builtins", "importlib", "runpy", "pkgutil", "shutil", "pty", "socket", "ctypes"}
+ENV_ATTRS = {"environ", "environb", "getenv", "getenvb"}
+ENV_MODULES = {"os", "posix", "nt"}
+NAMESPACE_ATTRS = {"__dict__", "__getattribute__", "__getattr__", "__loader__", "__spec__", "__builtins__", "__import__", "__globals__"}
+STDLIB = getattr(sys, "stdlib_module_names", frozenset())
+def _system_names():
+    import os as _os, subprocess as _subprocess
+    found = set()
+    for module in (_os, _subprocess, sys):
+        for name in dir(module):
+            value = getattr(module, name, None)
+            if not name.startswith("_") and callable(value) and not (isinstance(value, type) and issubclass(value, BaseException)):
+                found.add(name)
+    return found | ENV_ATTRS
+# What a name a project module re-exports may stand for when it is os,
+# subprocess or sys, or one of their functions.
+SYSTEM_NAMES = _system_names()
 def prefixes(dots, dotted):
     parts = dotted.split(".") if dotted else []
     return [dots + ".".join(parts[:i]) for i in range(1, len(parts) + 1)] or [dots]
@@ -325,6 +353,9 @@ for file in plan["files"]:
     # What each name the file imports stands for: import subprocess as sp makes
     # sp stand for subprocess, from os import getenv as g makes g os.getenv.
     names, modules = {}, set()
+    # Names bound by an import from a module outside the standard library
+    # (a project or third-party module): what they are is not known here.
+    foreign, imported_as = set(), {}
     for node in ast.walk(tree):
         for child in ast.iter_child_nodes(node):
             parent[child] = node
@@ -335,11 +366,18 @@ for file in plan["files"]:
                 local = alias.asname or alias.name.split(".")[0]
                 names[local] = alias.name if alias.asname else local
                 modules.add(local)
+                if alias.name.split(".")[0] not in STDLIB:
+                    foreign.add(local)
         elif isinstance(node, ast.ImportFrom):
             base = "." * node.level + (node.module or "")
+            outside = node.level > 0 or (node.module or "").split(".")[0] not in STDLIB
             for alias in node.names:
                 if alias.name != "*":
-                    names[alias.asname or alias.name] = joined(base, alias.name)
+                    local = alias.asname or alias.name
+                    names[local] = joined(base, alias.name)
+                    imported_as[local] = alias.name
+                    if outside:
+                        foreign.add(local)
     def canonical(name):
         head, dot, rest = name.partition(".")
         return names[head] + dot + rest if head in names else name
@@ -352,6 +390,34 @@ for file in plan["files"]:
     def maximal(node):
         up = parent.get(node)
         return not (isinstance(up, ast.Attribute) and up.value is node)
+    def reaches(node):
+        # A chain through an imported name that reaches a module Kibi does not
+        # follow under that spelling, or a module's namespace.
+        written = chain(node)
+        if written is None:
+            return False
+        head = written.split(".")[0]
+        parts = canonical(written).split(".")
+        if head == "__builtins__" or "__globals__" in parts or "__builtins__" in parts:
+            return True
+        if head not in names:
+            return False
+        for i in range(1, len(parts)):
+            part = parts[i]
+            if part in REACHED and not (part == "subprocess" and parts[:i] == ["asyncio"]):
+                return True
+            if part in NAMESPACE_ATTRS:
+                return True
+            if extract == "env" and part in ENV_ATTRS and ".".join(parts[:i]) not in ENV_MODULES:
+                return True
+        if extract == "calls" and head in foreign:
+            # A project module's name may be os, subprocess or sys, or one of
+            # their functions, re-exported: from .main import os as o; o.system().
+            after = written.split(".")[1:]
+            if head in imported_as:
+                after = [imported_as[head]] + after
+            return any(part in SYSTEM_NAMES for part in after)
+        return False
     def env_use(node, name):
         up = parent.get(node)
         if name in ENV_GETTERS:
@@ -375,7 +441,12 @@ for file in plan["files"]:
         if extract in ("env", "calls", "imports") and isinstance(node, ast.Call):
             target = spelled(node.func)
             name = None if target is None else target[1]
-            if name in DYNAMIC and not (extract == "imports" and name in IMPORTERS):
+            if dynamic(name) and not (extract == "imports" and name in IMPORTERS):
+                miss(node)
+                continue
+            if extract != "imports" and (name in NAMESPACES or (name in ("vars", "builtins.vars") and (
+                    not node.args or (chain(node.args[0]) or "").split(".")[0] in names))):
+                # globals()['os'], vars(), vars(module): a namespace read by key.
                 miss(node)
                 continue
             if name == "getattr" and extract != "imports" and node.args:
@@ -385,6 +456,9 @@ for file in plan["files"]:
                     miss(node)
                     continue
         if extract in ("env", "calls") and isinstance(node, ast.Attribute) and canonical(chain(node) or "") == "sys.modules":
+            miss(node)
+            continue
+        if extract in ("env", "calls") and isinstance(node, (ast.Name, ast.Attribute)) and maximal(node) and reaches(node):
             miss(node)
             continue
         if extract == "env":
@@ -399,14 +473,18 @@ for file in plan["files"]:
                     env_use(node, name)
                 elif name in ENV_TEMPLATES:
                     miss(node)
-                elif isinstance(node, ast.Name) and name == "os" and maximal(node):
-                    # The os module itself handed on: its later reads could use any name.
+                elif isinstance(node, ast.Name) and (name in ENV_MODULES or node.id in modules) and maximal(node):
+                    # An imported module itself handed on: its later reads could use any name.
                     miss(node)
         elif extract == "imports":
             if isinstance(node, ast.Import):
                 for alias in node.names:
                     members.extend(prefixes("", alias.name))
             elif isinstance(node, ast.ImportFrom):
+                if any(alias.name in REACHED for alias in node.names) and not (node.level == 0 and node.module == "asyncio"):
+                    # from .main import os: a module reached through another one,
+                    # under a spelling a claim about the module would not match.
+                    miss(node)
                 dots = "." * node.level
                 members.extend(prefixes(dots, node.module or ""))
                 base = dots + (node.module or "")
@@ -459,7 +537,8 @@ for file in plan["files"]:
                     if keyword.arg == key:
                         value = literal(keyword.value)
                         (members.append(value) if value is not None else miss(keyword.value))
-print(json.dumps({"ok": True, "members": members, "unresolved": unresolved}))
+unique = list({(row["file"], row["line"], row["text"]): row for row in unresolved}.values())
+print(json.dumps({"ok": True, "members": members, "unresolved": unique}))
 `;
 
 const EXTRACT_WHAT: Readonly<Record<string, string>> = {
@@ -483,7 +562,7 @@ async function readReferences(workspaceRoot: string, spec: SourceSpec): Promise<
   if (unknown.length > 0)
     return {
       ok: false,
-      reason: `${unsupportedLanguageReason("the references reader", ["js", "python", "prolog"], unknown).replace(/ files, not /, ` files (and Go, Java, C# and Rust through ${REFERENCE_PLUGIN_PACKAGE}), not `)}; narrow files to exclude them`,
+      reason: `${unsupportedLanguageReason("the references reader", ["js", "python", "prolog"], unknown).replace(/ files, not /, ` files (and Go, Java, C# and Rust through ${REFERENCE_PLUGIN_PACKAGE}), not `)}; Kibi cannot decide a references claim for those files, so the claim stays unproved (do not drop them from files: a claim about them would then be checked on other code)`,
     };
   const members: string[] = [];
   const unresolved: UnresolvedReference[] = [];
@@ -572,6 +651,7 @@ async function readPluginReferences(
   }
   const members: string[] = [];
   const unresolved: UnresolvedReference[] = [];
+  const shadowRows = createShadowRowFilter(workspaceRoot);
   for (const file of files) {
     const extractor = extractors.find((candidate) => candidate.supports({ path: file }));
     if (extractor === undefined) continue;
@@ -595,7 +675,8 @@ async function readPluginReferences(
     }
     if (result.status !== "ok") return { ok: false, reason: `Kibi could not read ${file}: ${result.message}` };
     members.push(...result.members);
-    for (const row of result.unresolved) unresolved.push({ file, line: row.line, text: row.text });
+    // A row about a name another file may bind stays only if one does.
+    for (const row of shadowRows(file, result.unresolved)) unresolved.push({ file, line: row.line, text: row.text });
   }
   // A C# file also imports what the project's global and implicit usings
   // bring in, which no single file shows.

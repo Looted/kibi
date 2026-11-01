@@ -310,7 +310,6 @@ describe("HCL and Terraform omissions", () => {
         ["TREESITTER_TERRAFORM_BLOCK_UNCLASSIFIED", 1],
         ["TREESITTER_TERRAFORM_LABEL_COUNT_UNSUPPORTED", 2],
         ["TREESITTER_TERRAFORM_DYNAMIC_LABEL_OMITTED", 3],
-        ["TREESITTER_TERRAFORM_NESTED_BLOCK_OMITTED", 6],
         ["TREESITTER_TERRAFORM_QUERY_CAPTURE_MISSING", 8],
         ["TREESITTER_TERRAFORM_LOCAL_QUERY_CAPTURE_MISSING", 10],
       ],
@@ -432,7 +431,7 @@ describe("output bounds", () => {
     assert.deepEqual(codesOf(result), ["TREESITTER_SYMBOL_LIMIT"]);
   });
 
-  it("summarizes local gaps past the cap as one local range", async () => {
+  it("coalesces local gaps past the cap into the fewest ranges that fit", async () => {
     const content = Array.from(
       { length: 70 },
       (_, index) => `exec("x${index} = 1")`,
@@ -440,17 +439,37 @@ describe("output bounds", () => {
     const result = await analyze("exec.py", content);
     assert.equal(result.status, "partial");
     assert.equal(result.diagnostics.length, 64);
-    const last = result.diagnostics.at(-1);
-    assert.equal(last.code, "TREESITTER_LOCAL_GAPS_SUMMARIZED");
-    assert.deepEqual(last.range, {
-      startLine: 64,
-      startColumn: 0,
-      endLine: 70,
-      endColumn: 'exec("x69 = 1")'.length,
-    });
+    // Seven adjacent one-line gaps merge into one range; the rest stay as
+    // their own findings.
+    const [first, second] = result.diagnostics;
+    assert.equal(first.code, "TREESITTER_LOCAL_GAPS_SUMMARIZED");
+    assert.deepEqual([first.range.startLine, first.range.endLine], [1, 7]);
     assert.equal(
-      result.uncoveredRanges.at(-1).reason,
+      result.uncoveredRanges[0].reason,
       "local-gaps-summarized-past-cap",
+    );
+    assert.equal(second.code, "TREESITTER_DYNAMIC_DECLARATIONS_UNAVAILABLE");
+    assert.equal(second.range.startLine, 8);
+  });
+
+  it("merges gaps around symbol starts last, so declarations between gap groups keep coordinates", async () => {
+    // 66 one-line gaps, then a declaration, then 2 more: closing the three
+    // gaps needed never swallows the declaration on line 67.
+    const content = [
+      ...Array.from({ length: 66 }, (_, index) => `exec("a${index}")`),
+      "def kept():\n    pass",
+      'exec("b0")',
+      'exec("b1")',
+    ].join("\n");
+    const result = await analyze("exec.py", content);
+    assert.equal(result.diagnostics.length, 64);
+    const kept = result.symbols.find((entry) => entry.name === "kept");
+    assert.equal(kept.startLine, 67);
+    assert(
+      result.uncoveredRanges.every(
+        (range) => range.endLine < 67 || range.startLine > 68,
+      ),
+      JSON.stringify(result.uncoveredRanges),
     );
   });
 

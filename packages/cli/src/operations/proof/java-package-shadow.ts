@@ -1,0 +1,166 @@
+/*
+ Kibi — repo-local, per-branch, queryable long-term memory for software projects
+ Copyright (C) 2026 Piotr Franczyk
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
+
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+/**
+ * Names another file of the project may bind instead of the standard one.
+ * The tree-sitter reference reader reads one file at a time, so it marks:
+ *
+ * - a bare Java `System` or `Runtime` ("System may be a class of package
+ *   p: ..."): a top-level type of that name in another file of the package
+ *   would be used instead of java.lang's;
+ * - a bare Rust standard macro ("println may be a macro_rules! macro of the
+ *   crate: ..."): a `macro_rules! println` elsewhere in the crate, in
+ *   textual scope through `#[macro_use]`, would be expanded instead.
+ *
+ * The host drops such a row only after it has looked at those files and
+ * found no such declaration. When it finds one, or cannot read the files,
+ * the row stays and the read is refused.
+ */
+
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import path from "node:path";
+
+interface Row {
+  readonly line: number;
+  readonly text: string;
+}
+
+const JAVA_ROW = /^(System|Runtime) may be a class of (?:package [\w.]+|the default package): /;
+const RUST_ROW = /^(\w+) may be a macro_rules! macro of the crate: /;
+
+/** Java source with comments, string, char and text-block contents removed. */
+export function javaCode(text: string): string {
+  let out = "";
+  let index = 0;
+  while (index < text.length) {
+    const rest = text.slice(index, index + 3);
+    if (rest.startsWith("//")) {
+      const end = text.indexOf("\n", index);
+      index = end === -1 ? text.length : end;
+      out += " ";
+    } else if (rest.startsWith("/*")) {
+      const end = text.indexOf("*/", index + 2);
+      index = end === -1 ? text.length : end + 2;
+      out += " ";
+    } else if (rest === '"""') {
+      const end = text.indexOf('"""', index + 3);
+      index = end === -1 ? text.length : end + 3;
+      out += '""';
+    } else if (rest[0] === '"' || rest[0] === "'") {
+      const quote = rest[0];
+      index += 1;
+      while (index < text.length && text[index] !== quote && text[index] !== "\n")
+        index += text[index] === "\\" ? 2 : 1;
+      index += 1;
+      out += `${quote}${quote}`;
+    } else {
+      out += text[index];
+      index += 1;
+    }
+  }
+  return out;
+}
+
+/** Whether Java source declares a type of that name (any nesting). */
+function javaDeclares(text: string, name: string): boolean {
+  // A Unicode escape may spell any identifier: the file is not ruled out.
+  if (text.includes("\\u")) return true;
+  return new RegExp(`(?:^|[^\\w$.])(?:class|interface|enum|record)\\s+${name}(?![\\w$])`).test(javaCode(text));
+}
+
+/** Rust source files under a directory, skipping build output and dot folders. */
+function rustFiles(directory: string): string[] {
+  const files: string[] = [];
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    if (entry.name.startsWith(".") || entry.name === "target" || entry.name === "node_modules") continue;
+    const full = path.join(directory, entry.name);
+    if (entry.isDirectory()) files.push(...rustFiles(full));
+    else if (entry.name.endsWith(".rs")) files.push(full);
+  }
+  return files;
+}
+
+/** The nearest folder holding Cargo.toml at or above `directory`, within the workspace. */
+function crateRoot(workspaceRoot: string, directory: string): string {
+  for (let current = directory; ; current = path.dirname(current)) {
+    try {
+      if (statSync(path.join(current, "Cargo.toml")).isFile()) return current;
+    } catch {
+      // no manifest here
+    }
+    if (path.relative(workspaceRoot, current) === "" || path.dirname(current) === current) return workspaceRoot;
+  }
+}
+
+/**
+ * Whether Rust source may define a macro of that name for the crate: a
+ * `macro_rules!` of it (comments allowed between the tokens), a
+ * `macro_rules!` whose name is a macro variable, or `#[macro_use] extern
+ * crate`, which brings another crate's macros in.
+ */
+function rustDefines(text: string, name: string): boolean {
+  const gap = String.raw`(?:\s|\/\*[\s\S]*?\*\/|\/\/[^\n]*)*`;
+  return (
+    new RegExp(`macro_rules${gap}!${gap}(?:r#)?${name}(?!\\w)`).test(text) ||
+    new RegExp(`macro_rules${gap}!${gap}\\$`).test(text) ||
+    new RegExp(`#${gap}\\[${gap}macro_use${gap}\\]${gap}(?:pub${gap})?extern${gap}crate\\b`).test(text)
+  );
+}
+
+/**
+ * A filter for one read: keeps every row, except a marked row whose
+ * declaration the project's files rule out. Directory scans are shared by
+ * the files of the read.
+ */
+export function createShadowRowFilter(workspaceRoot: string): (file: string, rows: readonly Row[]) => Row[] {
+  const sources = new Map<string, string[] | null>();
+  const read = (key: string, list: () => string[]): string[] | null => {
+    if (!sources.has(key)) {
+      try {
+        sources.set(
+          key,
+          list().map((file) => readFileSync(file, "utf8")),
+        );
+      } catch {
+        sources.set(key, null);
+      }
+    }
+    return sources.get(key) ?? null;
+  };
+  return (file, rows) => {
+    const directory = path.dirname(path.join(workspaceRoot, file));
+    return rows.filter((row) => {
+      const java = JAVA_ROW.exec(row.text);
+      if (java !== null) {
+        const texts = read(`java:${directory}`, () =>
+          readdirSync(directory)
+            .filter((name) => name.endsWith(".java"))
+            .map((name) => path.join(directory, name)),
+        );
+        return texts === null || texts.some((text) => javaDeclares(text, java[1] as string));
+      }
+      const rust = RUST_ROW.exec(row.text);
+      if (rust !== null) {
+        const root = crateRoot(workspaceRoot, directory);
+        const texts = read(`rust:${root}`, () => rustFiles(root));
+        return texts === null || texts.some((text) => rustDefines(text, rust[1] as string));
+      }
+      return true;
+    });
+  };
+}

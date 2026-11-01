@@ -304,12 +304,28 @@ left:
   written as the code names them (`os.Getenv`, `System.out.println`,
   `Console.WriteLine`, `std::env::var`, Go import paths, `java.util.*`,
   `std::io::Write`); a method on an expression Kibi cannot name is
-  `*.name`, so write a never-call claim on the name the code uses
-  (`System.exit`). Reflection, a name computed at run time, the whole
+  `*.name`. Reflection, a name computed at run time, the whole
   environment, C# `dynamic` and `#if`, Rust `#[cfg(...)]` items other than
   `#[cfg(test)]`, and any macro for Rust `calls` and `thrown` fail the
-  read with their place: narrow `files` or model a claim the code can
-  show (Rust `calls` over a file with `println!` is always refused).
+  read with their place: the claim cannot be decided for that file, so
+  model a claim the code can show (Rust `calls` over a file with
+  `println!` is always refused). Never drop a file the claim is about
+  from `files`: the read decides a claim only for the files it covers,
+  and a proof is rejected when a symbol the test covers or that
+  implements the claim's requirement lies outside them.
+- Reference members match by name segments (`.`, `/`, `::`). `excludes`
+  fails on anything that is or may be an excluded item: `java.sql`
+  excludes `java.sql.Connection`, `github.com/labstack/echo/v4` excludes
+  `.../echo/v4/middleware`, a trailing `*` is a prefix (`java.sql.*`), a
+  wildcard import or a shorter name (`File.delete`) may be the item, and
+  `*.delete` (a call on a receiver Kibi cannot name) may be
+  `java.io.File.delete`, so the claim is refused naming it. `includes` and
+  `subset_of` count only members that certainly are an item (the item, a
+  member under `X.*`, or `a.b.m` for `*.m`); `eq` compares spellings.
+- For a claim about what the code reads from the environment use
+  `extract: env`: `string_args` on a getter (`os.Getenv`, `env::var`,
+  `System.getenv`, `getenv/2`, ...) sees only that getter, so Kibi refuses
+  it for `eq`, `subset_of` and `excludes`.
 
 `arithmetic` and `smt` from `constraint_source` alone prove that the
 knowledge base's facts entail the claim, not that code follows the facts:

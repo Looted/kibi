@@ -17,7 +17,7 @@ tags:
 text_ref: REQ-kibi-tree-sitter-language-packs
 origin:
   kind: agent
-  recorded_at: '2026-11-01T09:00:23.197Z'
+  recorded_at: '2026-11-01T16:04:33.761Z'
 id: FACT-kibi-tree-sitter-language-packs-staged-blocks
 type: fact
 ---

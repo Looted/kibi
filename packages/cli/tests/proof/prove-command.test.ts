@@ -222,7 +222,7 @@ describe("proveCommand", () => {
   });
 
   // implements REQ-kibi-code-proof-kinds
-  test("counts certified receipts apart from passed ones and names a rejected certificate", async () => {
+  test("counts certified receipts apart from passed ones, refuses a rejected certificate and names it", async () => {
     await withTempWorkspace(async (dir) => {
       writeIntegrations(dir, [
         {
@@ -287,7 +287,14 @@ describe("proveCommand", () => {
         );
         expect(value.exitCode).toBe(0);
         const summary = JSON.parse(output);
-        expect(summary).toMatchObject({ passed: 3, certified: 1, failed: 0 });
+        // A rejected certificate is refused, never counted as passed.
+        expect(summary).toMatchObject({
+          passed: 2,
+          refused: 1,
+          certified: 1,
+          failed: 0,
+        });
+        expect(summary.runs[0].summary).toBe("passed 2, refused 1, failed 0");
         expect(summary).not.toHaveProperty("proved");
         expect(summary.runs[0].results[2]).toMatchObject({
           kind: "smt",
@@ -298,6 +305,97 @@ describe("proveCommand", () => {
       }
       expect(errors.join("")).toContain(
         "prove: TEST-smt smt: certificate rejected, the solver did not answer unsat",
+      );
+    });
+  });
+
+  // implements REQ-kibi-claim-bound-proofs
+  test("names each claim binding and refuses a passed test whose claim binding was rejected", async () => {
+    await withTempWorkspace(async (dir) => {
+      writeIntegrations(dir, [
+        {
+          id: "self-proof",
+          producer: "command",
+          producer_version: "1.0.0",
+          command: passingCommand,
+          description: "Self proof",
+        },
+      ]);
+      const extra = `,proof_contract=${JSON.stringify(JSON.stringify(contract))}`;
+      const receipt = {
+        receiptId: "PR-1",
+        applied: true,
+        duplicate: false,
+        receiptCount: 1,
+        compacted: 0,
+        gaps: [],
+        outcome: "passed" as const,
+        kind: "source",
+        evidenceLevel: "proved" as const,
+      };
+      const errors: string[] = [];
+      const originalError = process.stderr.write.bind(process.stderr);
+      process.stderr.write = ((chunk: string | Uint8Array) => {
+        errors.push(typeof chunk === "string" ? chunk : chunk.toString());
+        return true;
+      }) as typeof process.stderr.write;
+      try {
+        const { value, output } = await captureStdout(() =>
+          proveCommand(
+            { all: true, workspaceRoot: dir },
+            {
+              runtime: fakeRuntime(dir, async () =>
+                resultsFor([entityRow("TEST-001", extra)]),
+              ),
+              ingestProof: async () =>
+                ingestResult({
+                  passed: 2,
+                  results: [
+                    {
+                      ...receipt,
+                      testId: "TEST-derived",
+                      scope: "unit",
+                      claimBindings: [
+                        {
+                          claim_key: "CLAIM-A",
+                          requirement_id: "REQ-A",
+                          binding: "derived",
+                          scope: "source",
+                        },
+                        { claim_key: "CLAIM-B", binding: "attested" },
+                      ],
+                    },
+                    {
+                      ...receipt,
+                      testId: "TEST-rejected",
+                      claimBindings: [
+                        {
+                          claim_key: "CLAIM-C",
+                          binding: "rejected",
+                          reason: "the read does not cover the code",
+                        },
+                      ],
+                    },
+                  ],
+                }),
+            },
+          ),
+        );
+        expect(value.exitCode).toBe(0);
+        const summary = JSON.parse(output);
+        // A passed test whose claim binding Kibi rejected is refused.
+        expect(summary).toMatchObject({ passed: 1, refused: 1, failed: 0 });
+        expect(summary.runs[0].summary).toBe("passed 1, refused 1, failed 0");
+      } finally {
+        process.stderr.write = originalError;
+      }
+      const stderr = errors.join("");
+      expect(stderr).toContain(
+        "prove: TEST-derived CLAIM-A (REQ-A): derived, source scope; the receipt's verification_scope is unit, and a claim is proved only once its requirement is tested end to end",
+      );
+      expect(stderr).toContain("prove: TEST-derived CLAIM-B: attested\n");
+      expect(stderr).toContain(
+        "prove: TEST-rejected CLAIM-C: rejected: the read does not cover the code\n",
       );
     });
   });

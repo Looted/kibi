@@ -12,6 +12,7 @@ import { Language, Parser, Query } from "web-tree-sitter";
 import type { Node } from "web-tree-sitter";
 import type { TreeSitterLanguage } from "./catalog.js";
 import { LanguagePackError, grammarSource } from "./language-packs.js";
+import { blankHeaderIdioms } from "./preprocessor-idioms.js";
 import {
   type ReferenceRead,
   type ReferenceRequest,
@@ -1007,21 +1008,32 @@ function collectHclCandidates(
       continue;
     }
 
-    const metadataBlocks = new Set(["provider", "terraform"]);
+    // Blocks that configure Terraform itself or refactor state declare no
+    // addressable object, so they are neither symbols nor gaps. Nested
+    // blocks (ingress, validation, lifecycle, dynamic) are arguments of the
+    // block that holds them, never addressable on their own, so they belong
+    // to its symbol and are no gap either.
+    const metadataBlocks = new Set([
+      "provider",
+      "terraform",
+      "moved",
+      "import",
+      "removed",
+      "check",
+    ]);
     if (metadataBlocks.has(parts.typeName)) continue;
-    const nestedBlocks = allDescendants(block).filter(
-      (node) => node.type === "block" && node.startIndex !== block.startIndex,
-    );
-    for (const nested of nestedBlocks) {
-      omissions.push({
-        node: nested,
-        code: "TREESITTER_TERRAFORM_NESTED_BLOCK_OMITTED",
-        message:
-          "Nested Terraform blocks are not emitted as source identities.",
-        reason: "nested-terraform-block-omitted",
-      });
-    }
     if (parts.typeName === "locals") {
+      // A locals block holds attributes only; a block inside it is not read.
+      for (const nested of allDescendants(block).filter(
+        (node) => node.type === "block" && node.startIndex !== block.startIndex,
+      )) {
+        omissions.push({
+          node: nested,
+          code: "TREESITTER_TERRAFORM_NESTED_BLOCK_OMITTED",
+          message: "A block inside locals is not read as a local value.",
+          reason: "nested-terraform-block-omitted",
+        });
+      }
       const body = parts.body;
       /* node:coverage disable */
       const attributes = body === undefined ? [] : namedChildren(body);
@@ -1915,22 +1927,63 @@ function analyzeInput(
       )
   ) {
     // The findings past the cap are all local gaps (nested blocks, macros,
-    // includes): the last slot covers their span as one local gap, so the
-    // symbols declared outside it keep their coordinates instead of the whole
-    // file turning into a limit finding.
-    const rest = omissions
-      .slice(lastSlotOmission)
-      .map((omission) => rangeForNode(omission.node));
-    const span = spanOf(rest);
-    diagnostics[MAX_DIAGNOSTICS - 1] = {
-      code: "TREESITTER_LOCAL_GAPS_SUMMARIZED",
-      message: `${rest.length} further local analysis gaps from line ${span.startLine} to ${span.endLine} are summarized as one range; diagnostics are capped at ${MAX_DIAGNOSTICS}.`,
-      range: span,
-    };
-    uncoveredRanges[MAX_DIAGNOSTICS - 1] = {
-      ...span,
-      reason: "local-gaps-summarized-past-cap",
-    };
+    // includes): local gaps are coalesced into as few ranges as the cap
+    // needs, closing first the gaps between them that hold no symbol start
+    // and are shortest, so the symbols declared between gap groups keep their
+    // coordinates instead of the whole file turning into a limit finding.
+    const kept = new Set<number>();
+    const local: SourceAnalysisRangeV2[] = [];
+    const localKeys = new Map<string, (typeof omissions)[number]>();
+    for (const [index, omission] of omissions.entries()) {
+      const range = rangeForNode(omission.node);
+      if (WHOLE_FILE_OMISSION.test(`${omission.code} ${omission.reason}`)) {
+        if (index <= lastSlotOmission) kept.add(index);
+        continue;
+      }
+      const key = rangeKey(range);
+      if (localKeys.has(key)) continue;
+      localKeys.set(key, omission);
+      local.push(range);
+    }
+    const groups = coalesceRanges(
+      local,
+      MAX_DIAGNOSTICS - kept.size,
+      limitedCandidates.map((candidate) => buildSymbol(candidate).startLine),
+    );
+    diagnostics.length = 0;
+    uncoveredRanges.length = 0;
+    for (const index of [...kept].sort((a, b) => a - b)) {
+      const omission = omissions[index] as (typeof omissions)[number];
+      const range = rangeForNode(omission.node);
+      diagnostics.push({
+        code: omission.code,
+        message: omission.message,
+        range,
+      });
+      uncoveredRanges.push({ ...range, reason: omission.reason });
+    }
+    for (const group of groups) {
+      const single =
+        group.count === 1 ? localKeys.get(rangeKey(group.range)) : undefined;
+      if (single !== undefined) {
+        diagnostics.push({
+          code: single.code,
+          message: single.message,
+          range: group.range,
+        });
+        uncoveredRanges.push({ ...group.range, reason: single.reason });
+        continue;
+      }
+      diagnostics.push({
+        code: "TREESITTER_LOCAL_GAPS_SUMMARIZED",
+        message: `${group.count} local analysis gap(s) from line ${group.range.startLine} to ${group.range.endLine} are summarized as one range; diagnostics are capped at ${MAX_DIAGNOSTICS}.`,
+        range: group.range,
+      });
+      uncoveredRanges.push({
+        ...group.range,
+        reason: "local-gaps-summarized-past-cap",
+      });
+    }
   } else if (
     omissions.length > MAX_DIAGNOSTICS &&
     diagnostics.length === MAX_DIAGNOSTICS
@@ -1952,6 +2005,65 @@ function analyzeInput(
     diagnostics,
     uncoveredRanges,
   };
+}
+
+/**
+ * Local gap ranges merged into at most `limit` groups. Adjacent ranges are
+ * merged by closing the gaps between them that hold the fewest symbol start
+ * lines, then the shortest, so a merge swallows as few declarations as the
+ * cap allows.
+ */
+function coalesceRanges(
+  ranges: readonly SourceAnalysisRangeV2[],
+  limit: number,
+  symbolStarts: readonly number[],
+): { readonly range: SourceAnalysisRangeV2; readonly count: number }[] {
+  const sorted = [...ranges].sort(
+    (a, b) => a.startLine - b.startLine || a.startColumn - b.startColumn,
+  );
+  const starts = [...symbolStarts].sort((a, b) => a - b);
+  const startsBetween = (after: number, before: number) => {
+    let count = 0;
+    for (const line of starts) if (line > after && line < before) count += 1;
+    return count;
+  };
+  const gaps = sorted.slice(1).map((range, index) => {
+    const previous = sorted[index] as SourceAnalysisRangeV2;
+    const overlap = range.startLine <= previous.endLine;
+    return {
+      index,
+      overlap,
+      symbols: overlap ? 0 : startsBetween(previous.endLine, range.startLine),
+      lines: Math.max(0, range.startLine - previous.endLine),
+    };
+  });
+  const toClose = Math.max(
+    gaps.filter((gap) => gap.overlap).length,
+    sorted.length - Math.max(1, limit),
+  );
+  const closed = new Set(
+    [...gaps]
+      .sort(
+        (a, b) =>
+          Number(b.overlap) - Number(a.overlap) ||
+          a.symbols - b.symbols ||
+          a.lines - b.lines ||
+          a.index - b.index,
+      )
+      .slice(0, toClose)
+      .map((gap) => gap.index),
+  );
+  const groups: { range: SourceAnalysisRangeV2; count: number }[] = [];
+  for (const [index, range] of sorted.entries()) {
+    const current = groups.at(-1);
+    if (current !== undefined && closed.has(index - 1)) {
+      current.range = spanOf([current.range, range]);
+      current.count += 1;
+    } else {
+      groups.push({ range, count: 1 });
+    }
+  }
+  return groups;
 }
 
 /** Omissions that make the whole parse unreliable, never summarized as local. */
@@ -2048,7 +2160,11 @@ async function run(input: AnalysisWorkerInput): Promise<AnalysisWorkerResult> {
       : 0;
     const parseStartedAt = timingEnabled ? performance.now() : 0;
     parser.reset();
-    const tree = parser.parse(input.content);
+    const tree = parser.parse(
+      input.language === "c" || input.language === "cpp"
+        ? blankHeaderIdioms(input.content)
+        : input.content,
+    );
     const parseWallMs = timingEnabled ? performance.now() - parseStartedAt : 0;
     /* node:coverage disable */
     if (tree === null) {

@@ -43,7 +43,8 @@ export const PROLOG_SOURCE_READER = String.raw`
 
 :- initialization(main, main).
 
-:- dynamic member_found/1, unresolved_found/3, local_meta/2, local_pred/2, plan_file/1, expands_checked/2.
+:- dynamic member_found/1, unresolved_found/3, local_meta/2, local_pred/2, plan_file/1, expands_checked/2,
+            file_module/2, loaded_meta/2, loaded_export/1, loaded_read/1.
 
 main :-
     current_prolog_flag(argv, Argv),
@@ -78,7 +79,9 @@ text(Value, Text) :- format(string(Text), "~q", [Value]).
 % clause(Term, Line, Bindings) for every term of File, in order. Operators the
 % file declares (op/3 directives and its module export list) and those of the
 % system libraries it loads apply while reading; nothing in the file runs.
-file_terms(File, Terms) :-
+file_terms(File, Terms) :- file_terms(File, Terms, _).
+
+file_terms(File, Terms, Module) :-
     atom_string(Path, File),
     (   exists_file(Path) -> true ; refuse("~s does not exist", [File]) ),
     gensym(kibi_read_, Module),
@@ -141,6 +144,9 @@ spec_operators(Spec, File, Module) :-
           _, true).
 spec_operators(_, _, _).
 
+project_file(Spec, _, Path) :-
+    alias_spec(Spec, Rel), !,
+    alias_target(Rel, Path).
 project_file(Spec, File, Path) :-
     path_spec(Spec, Atom), !,
     atom_string(FromAtom, File),
@@ -151,6 +157,43 @@ project_file(Spec, File, Path) :-
         atom_concat(Base, Extension, Path),
         exists_file(Path)
     ), !.
+
+% Alias(Path) with an alias SWI-Prolog does not define itself (library,
+% foreign, swi, pack and the rest), such as bson(include/common) after a
+% file_search_path/2 the project sets up at run time. Kibi cannot run that
+% setup, so the alias resolves only to the one file among the files read
+% whose path ends with Path; none or several leave it unresolved.
+alias_spec(Spec, Rel) :-
+    compound(Spec), Spec =.. [Alias, Rel], atom(Alias),
+    \+ memberchk(Alias, [/, :, -]),
+    \+ system_alias(Alias),
+    path_spec(Rel, _).
+
+system_alias(Alias) :- user:file_search_path(Alias, _), !.
+
+alias_target(Rel, Path) :-
+    path_spec(Rel, Atom),
+    atom_concat(/, Atom, Tail),
+    findall(Abs,
+            ( plan_file(Abs),
+              member(Extension, ['', '.pl', '.plt', '.prolog']),
+              atom_concat(Tail, Extension, Ending),
+              atom_concat(_, Ending, Abs) ),
+            Found),
+    sort(Found, [Path]).
+
+% A load of Alias(Path) that names a project file Kibi cannot find.
+unresolved_alias(Spec, File) :-
+    alias_spec(Spec, _), \+ project_file(Spec, File, _).
+
+% A file whose first term is a module header.
+module_file(Path) :-
+    catch(setup_call_cleanup(
+              open(Path, read, Stream),
+              read_term(Stream, First, [syntax_errors(quiet)]),
+              close(Stream)),
+          _, fail),
+    nonvar(First), First = (:- module(_, _)).
 
 % A relative file spec as written: helpers, 'helpers.pl' or sub/helpers.
 path_spec(Spec, Atom) :- ( atom(Spec) ; string(Spec) ), !, atom_string(Atom, Spec).
@@ -170,6 +213,8 @@ load_directive(load_files(S, _), Specs) :- spec_list(S, Specs).
 load_directive(include(S), [S]).
 load_directive(use_foreign_library(S), [S]).
 load_directive(use_foreign_library(S, _), [S]).
+load_directive(autoload(S), [S]).
+load_directive(autoload(S, _), [S]).
 load_directive(List, List) :- is_list(List), List \== [].
 
 spec_list(S, S) :- is_list(S), !.
@@ -188,9 +233,12 @@ run(Plan, _{ok: true, members: Members, unresolved: Unresolved}) :-
     retractall(member_found(_)), retractall(unresolved_found(_, _, _)),
     retractall(local_meta(_, _)), retractall(local_pred(_, _)),
     retractall(plan_file(_)), retractall(expands_checked(_, _)),
+    retractall(file_module(_, _)), retractall(loaded_meta(_, _)),
+    retractall(loaded_export(_)), retractall(loaded_read(_)),
     forall(member(File, Plan.files), ( absolute_file_name(File, Abs), assertz(plan_file(Abs)) )),
     maplist(plan_terms, Plan.files, Files),
     forall(member(_-Terms, Files), collect_local(Terms)),
+    forall(member(File-Terms, Files), collect_loaded(File, Terms)),
     forall(member(File-Terms, Files), expansion_misses(File, Terms)),
     Extract = Plan.extract,
     (   get_dict(callee, Plan, Callee) -> true ; Callee = "" ),
@@ -221,7 +269,47 @@ run(Plan, _) :- refuse("unknown plan mode ~w", [Plan.mode]).
 unresolved_row(_{file: File, line: Line, text: Text}) :- unresolved_found(File, Line, Text).
 
 % Every file is read or the read fails: none is left out.
-plan_terms(File, File-Terms) :- file_terms(File, Terms).
+plan_terms(File, File-Terms) :-
+    file_terms(File, Terms, Module),
+    assertz(file_module(File, Module)).
+
+% The meta_predicate declarations and exports of the project modules the
+% files load (and those they reexport), so a goal handed to a project
+% meta-predicate is read as one.
+collect_loaded(File, Terms) :-
+    forall(( member(term((:- Directive), _, _), Terms),
+             load_directive(Directive, Specs), member(Spec, Specs),
+             project_file(Spec, File, Path) ),
+           read_loaded(Path)).
+
+read_loaded(Path) :-
+    absolute_file_name(Path, Abs),
+    (   ( plan_file(Abs) ; loaded_read(Abs) )
+    ->  true
+    ;   assertz(loaded_read(Abs)),
+        atom_string(Abs, File),
+        (   catch(file_terms(File, Terms), _, fail)
+        ->  forall(member(term(Term, _, _), Terms), loaded_term(Term)),
+            forall(( member(term((:- Directive), _, _), Terms),
+                     reexport_directive(Directive, Specs), member(Spec, Specs),
+                     project_file(Spec, File, Next) ),
+                   read_loaded(Next))
+        ;   true
+        )
+    ).
+
+reexport_directive(reexport(S), [S]).
+reexport_directive(reexport(S, _), [S]).
+
+loaded_term((:- meta_predicate(Specs))) :- !,
+    forall(comma_member(Spec, Specs),
+           (   ( Spec = _:Head -> true ; Head = Spec ),
+               (   callable(Head) -> functor(Head, N, A), assertz(loaded_meta(N/A, Head)) ; true )
+           )).
+loaded_term((:- module(_, Exports))) :- is_list(Exports), !,
+    forall(( member(E, Exports), nonvar(E), ( E = N/A ; E = N//A0, A is A0 + 2 ) ),
+           assertz(loaded_export(N/A))).
+loaded_term(_).
 
 % Predicates the files define, and their meta_predicate declarations.
 collect_local(Terms) :-
@@ -282,9 +370,32 @@ expands(Path, Seen) :-
     ).
 
 % An included file is part of the including module: it is read only when it
-% is one of the files read.
-outside_include(include(Spec), File) :-
+% is one of the files read. So is a file without a module header that
+% consult/1, :- [File], ensure_loaded/1 or load_files/1,2 loads: its clauses
+% join the loading module. A load through an alias Kibi cannot resolve could
+% bring any meta-predicate or expansion, so it fails the read too.
+load_miss(include(Spec), File) :- !,
     \+ (   project_file(Spec, File, Path), absolute_file_name(Path, Abs), plan_file(Abs) ).
+load_miss(Directive, File) :-
+    load_directive(Directive, Specs),
+    member(Spec, Specs),
+    (   consult_directive(Directive) -> consult_miss(Spec, File) ; unresolved_alias(Spec, File) ),
+    !.
+
+consult_directive(consult(_)).
+consult_directive(ensure_loaded(_)).
+consult_directive(load_files(_)).
+consult_directive(load_files(_, _)).
+consult_directive(List) :- is_list(List).
+
+consult_miss(Spec, _) :- var(Spec), !.
+consult_miss(Spec, _) :- compound(Spec), functor(Spec, Alias, 1), system_alias(Alias), !, fail.
+consult_miss(Spec, File) :-
+    (   project_file(Spec, File, Path)
+    ->  \+ module_file(Path),
+        absolute_file_name(Path, Abs), \+ plan_file(Abs)
+    ;   true
+    ).
 
 head_name(_:Head, N, A) :- !, head_name(Head, N, A).
 head_name((Head, _), N, A) :- !, head_name(Head, N, A).
@@ -298,7 +409,7 @@ found(Member) :- ( member_found(Member) -> true ; assertz(member_found(Member)) 
 miss(File, Line, Bindings, Goal) :-
     format(string(Text0), "~W", [Goal, [quoted(true), variable_names(Bindings), max_depth(6)]]),
     sub_string_max(Text0, 80, Text),
-    assertz(unresolved_found(File, Line, Text)).
+    (   unresolved_found(File, Line, Text) -> true ; assertz(unresolved_found(File, Line, Text)) ).
 
 sub_string_max(Text, Max, Out) :-
     string_length(Text, Length),
@@ -308,7 +419,7 @@ sub_string_max(Text, Max, Out) :-
 references(Extract, Callee, File, Line, Bindings, (:- Directive)) :- !,
     (   conditional(Directive)
     ->  miss(File, Line, Bindings, (:- Directive))
-    ;   outside_include(Directive, File)
+    ;   load_miss(Directive, File)
     ->  miss(File, Line, Bindings, (:- Directive))
     ;   load_directive(Directive, _)
     ->  (   Extract == "imports"
@@ -347,9 +458,27 @@ directive_imports(_, _, _, _).
 
 import_spec(Spec, File, Line, Bindings, Directive) :-
     (   ground(Spec)
-    ->  text(Spec, Text), found(Text)
+    ->  normal_spec(Spec, Normal), text(Normal, Text), found(Text)
     ;   miss(File, Line, Bindings, (:- Directive))
     ).
+
+% library("utf8") and library('http/json') are written as library(utf8) and
+% library(http/json).
+normal_spec(Spec, Normal) :-
+    compound(Spec), Spec =.. [Alias, Arg], atom(Alias), \+ memberchk(Alias, [/, :, -]), !,
+    normal_path(Arg, Path), Normal =.. [Alias, Path].
+normal_spec(Spec, Spec).
+
+normal_path(Text, Path) :-
+    ( string(Text) ; atom(Text) ), !,
+    atom_string(Atom, Text),
+    atomic_list_concat(Parts, /, Atom),
+    (   Parts = [First|Rest], First \== '', \+ memberchk('', Rest)
+    ->  foldl([P, A0, A1]>>(A1 = A0/P), Rest, First, Path)
+    ;   Path = Atom
+    ).
+normal_path(Dir/Name, D/N) :- !, normal_path(Dir, D), normal_path(Name, N).
+normal_path(Path, Path).
 
 % A grammar rule body: terminals call nothing, {Goal} is a goal, and a
 % non-terminal Name//N is the call Name/(N+2).
@@ -417,7 +546,10 @@ qualified(E, C, F, L, B, K, Module, Goal) :-
 
 % The arguments a meta-predicate calls, walked as goals (0) or closures (N).
 meta_arguments(E, C, F, L, B, K, Goal) :-
-    meta_spec(Goal, Spec), !,
+    Goal = print_message(_, Message), nonvar(Message), Message = format(Format, Args), !,
+    format_goals(E, C, F, L, B, K, Goal, Format, Args).
+meta_arguments(E, C, F, L, B, K, Goal) :-
+    meta_spec(F, Goal, Spec), !,
     Goal =.. [_|Args], Spec =.. [_|Kinds],
     forall(nth1(I, Kinds, Kind), meta_argument(E, C, F, L, B, K, Kind, Goal, I, Args)).
 meta_arguments(_, _, _, _, _, _, _).
@@ -432,8 +564,112 @@ meta_argument(E, C, F, L, B, K, Kind, Goal, I, Args) :-
     ->  closure(E, C, F, L, B, K, 2, Goal, Arg)
     ;   integer(Kind)
     ->  closure(E, C, F, L, B, K, Kind, Goal, Arg)
+    ;   Kind == (:)
+    ->  colon_argument(E, C, F, L, B, K, Goal, I, Args, Arg)
     ;   true
     ).
+
+% A module-sensitive (:) argument: the format arguments of format/2,3 and
+% debug/3 (a ~@ directive calls its argument), the goal lists of
+% first_solution/3 and concurrent/3, and a lambda's body are read as goals;
+% the clause, predicate, file and operator specs of the declarations and
+% database predicates are data. Any other (:) argument that is not [] can
+% hold a goal Kibi does not know how to find, and fails the read.
+colon_argument(E, C, F, L, B, K, Goal, I, Args, Arg) :-
+    functor(Goal, Name, Arity),
+    (   format_argument(Name/Arity, I, At)
+    ->  nth1(At, Args, Format), format_goals(E, C, F, L, B, K, Goal, Format, Arg)
+    ;   goal_list_argument(Name/Arity, I)
+    ->  (   is_list(Arg) -> forall(member(G, Arg), body(E, C, F, L, B, K, G)) ; miss(F, L, B, Goal) )
+    ;   Name == (>>), I =:= 2
+    ->  lambda_body(Arg, Body), body(E, C, F, L, B, K, Body)
+    ;   colon_data(Name)
+    ->  true
+    ;   Arg == []
+    ->  true
+    ;   miss(F, L, B, Goal)
+    ).
+
+format_argument(format/2, 2, 1).
+format_argument(format/3, 3, 2).
+format_argument(debug/3, 3, 2).
+format_argument(pengine_format/2, 2, 1).
+
+goal_list_argument(first_solution/3, 2).
+goal_list_argument(concurrent/3, 2).
+
+colon_data(Name) :-
+    memberchk(Name, [ assert, asserta, assertz, retract, retractall, clause, abolish,
+                      incr_assert, incr_asserta, incr_assertz, incr_retract, incr_retractall,
+                      compile_predicates, current_predicate, predicate_property, det,
+                      discontiguous, dynamic, multifile, module_transparent, non_terminal,
+                      public, table, untable, thread_local, volatile, noprofile, listing,
+                      spy, nospy, trace, tracing, lock_predicate, unlock_predicate,
+                      abolish_table_subgoals, abolish_table_call, abolish_table_pred,
+                      current_table, rule, source_file, consult, ensure_loaded, load_files,
+                      use_module, reexport, autoload, require, use_foreign_library,
+                      load_foreign_library, qcompile, compile, reconsult, open_resource,
+                      current_resource, op, current_op, push_op, push_operators ]).
+
+% The goals a format string's ~@ directives call: each directive takes its
+% arguments in order (~W two, ~* one more, ~n, ~t, ~|, ~+ and ~~ none). A
+% format string Kibi cannot read fails the read; without ~@ no argument is a
+% goal. Arguments that are not a list are one argument, as format/2 takes them.
+format_goals(E, C, F, L, B, K, Goal, Format, Args0) :-
+    (   format_codes(Format, Codes), phrase(format_directives(Uses), Codes)
+    ->  (   \+ memberchk(goal, Uses)
+        ->  true
+        ;   strip_args(Args0, Args), format_arguments(Args, List)
+        ->  format_walk(E, C, F, L, B, K, Goal, Uses, List)
+        ;   miss(F, L, B, Goal)
+        )
+    ;   strip_args(Args0, Args), format_arguments(Args, List), maplist(plain_value, List)
+    ->  true
+    ;   miss(F, L, B, Goal)
+    ).
+
+% A format argument that cannot be a goal, whatever the format string is.
+plain_value(V) :- nonvar(V), ( number(V) ; string(V) ), !.
+
+format_codes(Format, Codes) :-
+    nonvar(Format),
+    (   is_list(Format) -> catch(text_to_string(Format, S), _, fail) ; ( atom(Format) ; string(Format) ), S = Format ),
+    string_codes(S, Codes).
+
+strip_args(Args, Args) :- var(Args), !.
+strip_args(M:Args, Inner) :- atom(M), !, strip_args(Args, Inner).
+strip_args(Args, Args).
+
+format_arguments(Args, _) :- var(Args), !, fail.
+format_arguments(Args, Args) :- is_list(Args), !.
+format_arguments(Args, _) :- Args = [_|_], !, fail.
+format_arguments(Args, [Args]).
+
+format_walk(_, _, _, _, _, _, _, [], _) :- !.
+format_walk(E, C, F, L, B, K, Goal, [Use|Uses], [Arg|Args]) :- !,
+    (   Use == goal -> body(E, C, F, L, B, K, Arg) ; true ),
+    format_walk(E, C, F, L, B, K, Goal, Uses, Args).
+format_walk(_, _, F, L, B, _, Goal, _, _) :- miss(F, L, B, Goal).
+
+format_directives(Uses) --> [0'~], !, format_column(Star), format_colon, [D],
+    { format_directive(D, Own), append(Star, Own, These) },
+    format_directives(Rest), { append(These, Rest, Uses) }.
+format_directives(Uses) --> [_], !, format_directives(Uses).
+format_directives([]) --> [].
+
+format_column([arg]) --> [0'*], !.
+format_column([]) --> [96], !, [_].
+format_column([]) --> [D], { code_type(D, digit) }, !, format_digits.
+format_column([]) --> [].
+format_digits --> [D], { code_type(D, digit) }, !, format_digits.
+format_digits --> [].
+format_colon --> [0':], !.
+format_colon --> [].
+
+format_directive(0'@, [goal]) :- !.
+format_directive(0'W, [arg, arg]) :- !.
+format_directive(D, []) :- memberchk(D, [0'~, 0'n, 0't, 0'|, 0'+]), !.
+format_directive(D, [arg]) :- memberchk(D, [0'a, 0'c, 0'd, 0'D, 0'e, 0'f, 0'g, 0'h, 0'i, 0'I, 0'k, 0'p, 0'q, 0'r, 0'R, 0's, 0'w]).
 
 strip_carets(V, V) :- var(V), !.
 strip_carets(_^G, I) :- !, strip_carets(G, I).
@@ -442,7 +678,9 @@ strip_carets(G, G).
 % A closure called with Extra more arguments: a lambda's body is walked, a
 % named closure is the call it makes once the arguments are added.
 closure(_, _, F, L, B, _, _, Goal, Closure) :- var(Closure), !, miss(F, L, B, Goal).
-closure(E, C, F, L, B, K, _, _, _Params>>Lambda) :- !, lambda_body(Lambda, Body), body(E, C, F, L, B, K, Body).
+closure(E, C, F, L, B, K, _, _, Params>>Lambda) :- !,
+    (   E == "imports", autoloaded(F, Params>>Lambda, Spec) -> text(Spec, Text), found(Text) ; true ),
+    lambda_body(Lambda, Body), body(E, C, F, L, B, K, Body).
 closure(E, C, F, L, B, K, Extra, Goal, Module:Closure) :- !,
     (   atom(Module), callable(Closure)
     ->  extend(Closure, Extra, Called), qualified(E, C, F, L, B, K, Module, Called)
@@ -471,13 +709,21 @@ extend(Closure, Extra, Called) :-
     append(List, More, Full),
     Called =.. Full.
 
-meta_spec(Goal, Spec) :-
+% A predicate's meta_predicate declaration: the files' own, then those of
+% the project modules they load, then SWI-Prolog's (autoloadable ones too)
+% and those of the libraries the file loads.
+meta_spec(File, Goal, Spec) :-
     functor(Goal, Name, Arity),
     (   local_meta(Name/Arity, Spec)
     ->  true
     ;   local_pred(Name, Arity)
     ->  fail
+    ;   loaded_meta(Name/Arity, Spec)
+    ->  true
     ;   catch(predicate_property(kibi_source_reader:Goal, meta_predicate(Spec)), _, fail)
+    ->  true
+    ;   file_module(File, Module), current_predicate(Module:Name/Arity),
+        catch(predicate_property(Module:Goal, meta_predicate(Spec)), _, fail)
     ).
 
 % A clause asserted from a literal term is read like one in the file: its
@@ -488,6 +734,10 @@ data_goal(assert(_, _)). data_goal(asserta(_, _)). data_goal(assertz(_, _)).
 data_goal(compile_aux_clauses(_)).
 
 record_call(E, C, F, L, B, K, Goal) :-
+    (   load_directive(Goal, _), load_miss(Goal, F)
+    ->  miss(F, L, B, Goal)
+    ;   true
+    ),
     (   data_goal(Goal)
     ->  arg(1, Goal, Arg),
         (   Goal = compile_aux_clauses(_), is_list(Arg) -> Clauses = Arg ; Clauses = [Arg] ),
@@ -539,7 +789,23 @@ extract("thrown", _, _, _, _, _, Goal) :-
 extract("imports", _, F, L, B, _, Goal) :-
     load_directive(Goal, _), \+ is_list(Goal), !,
     directive_imports(Goal, F, L, B).
+extract("imports", _, F, _, _, _, Goal) :-
+    autoloaded(F, Goal, Spec), !,
+    text(Spec, Text), found(Text).
 extract(_, _, _, _, _, _, _).
+
+% The library SWI-Prolog autoloads for a call the file makes: one it does
+% not define, that no library or project module it loads gives it, and that
+% is not built in.
+autoloaded(File, Goal, Spec) :-
+    callable(Goal), functor(Goal, Name, Arity),
+    \+ control(Name/Arity),
+    \+ local_pred(Name, Arity),
+    \+ loaded_export(Name/Arity),
+    file_module(File, Module),
+    \+ current_predicate(Module:Name/Arity),
+    catch('$find_library'(_, Name, Arity, _, Library), _, fail),
+    file_name_on_path(Library, Spec).
 
 thrown_name(error(Formal, _), Name) :- !, nonvar(Formal), functor(Formal, N, _), atom_string(N, Name).
 thrown_name(Ball, Name) :- functor(Ball, N, _), atom_string(N, Name).

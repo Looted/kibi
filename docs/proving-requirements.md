@@ -633,9 +633,24 @@ Details that decide what a reader sees:
   `env=os.environ`), a getter or the `os` module used as a value, a name
   computed at run time, `getattr` on an imported module, `exec`, `eval`,
   `compile`, `__import__` and `importlib.import_module` (which `imports`
-  lists when the name is a literal), `sys.modules`,
+  lists when the name is a literal), `pkgutil.resolve_name`, `runpy`,
+  `importlib.util` and `importlib.machinery`, `sys.modules`,
   `os.path.expandvars`, and a star import (from `os` for `env`, any for
-  `calls`) fail the read with their place.
+  `calls`) fail the read with their place. `posix.environ` and `nt.environ`
+  read like `os.environ`. A module reached through another name also fails
+  the read, because Kibi does not follow what another module binds: `os`,
+  `sys`, `subprocess` and the like as an attribute of an imported module
+  (`shutil.os.getenv`, `path.os`, `dotenv.main.os`) or imported from one
+  (`from .main import os`, which `imports` refuses too), `environ` or
+  `getenv` on any imported name other than `os` (`from .main import o;
+  o.environ`, and a framework's `request.environ` alike), a module's
+  namespace (`os.__dict__`, `f.__globals__`, `globals()`, `locals()`,
+  `vars()` and `vars(module)`), and an imported module handed on. For
+  `calls`, a name imported from a project or third-party module that is, or
+  is used through, a name of an `os`, `subprocess` or `sys` function
+  (`from .cli import Popen`, `from .main import o; o.system()`) fails the
+  read, since it may be that function re-exported; a re-export under an
+  unrelated name is not detected.
 - **SWI-Prolog.** The references reader and the `prolog` reader read a
   `.pl` or `.plt` file term by term with SWI-Prolog and run none of it: no
   directive, `initialization/1` or clause of the project executes. The file's
@@ -644,12 +659,19 @@ Details that decide what a reader sees:
   it is read with. `imports` lists each loaded file as written
   (`library(lists)`, `helpers`, `foreign(fastmath)`) from `use_module`,
   `ensure_loaded`, `consult`, `reexport`, `load_files`, `include`,
-  `use_foreign_library` and `:- [...]`, in directives and in clause bodies.
+  `use_foreign_library`, `autoload` and `:- [...]`, in directives and in
+  clause bodies, with string paths written as atoms (`library("utf8")` is
+  `library(utf8)`), plus `library(L)` for each predicate the files call that
+  SWI-Prolog would autoload from `L` (`maplist/2` is `library(apply)`)
+  because no library or project module they load gives it.
   `calls` lists `Name/Arity` (`Module:Name/Arity` when qualified) of every
   goal in clause bodies and directives, walking control constructs, grammar
   rules (a non-terminal `n//0` is the call `n/2`), lambdas and the arguments
-  of meta-predicates (the file's own `meta_predicate` declarations and
-  SWI-Prolog's), `apply/2` as the goal it calls, and the body of a clause
+  of meta-predicates (the files' own `meta_predicate` declarations, those of
+  the project modules they load and SWI-Prolog's), `apply/2` as the goal it
+  calls, the arguments of `~@` in `format/2,3`, `debug/3` and
+  `print_message(_, format(...))`, the goal lists of `first_solution/3` and
+  `concurrent/3`, and the body of a clause
   asserted from a literal term (`assertz((s(V) :- getenv('X', V)))`). `env`
   reads `getenv/2`; `string_args` the first argument of
   calls to `callee` (`format` or `format/2`); `thrown` the error of
@@ -660,8 +682,17 @@ Details that decide what a reader sees:
   goal qualified by a variable module, a clause asserted from a variable,
   conditional compilation (`:- if(...)`), a `term_expansion` or
   `goal_expansion` clause (asserted ones too) in the files or in a project
-  file they load, since expansion can produce any clause, and an `include`
-  of a file that is not among `files` fail the read with their place.
+  file they load, since expansion can produce any clause, an `include` of a
+  file that is not among `files`, a `consult`, `ensure_loaded`,
+  `load_files` or `:- [...]` of a file without a module header that is not
+  among `files` (its clauses join the loading module), a format string Kibi
+  cannot read whose arguments could be goals, and any other module-sensitive
+  (`:`) meta argument that is not a clause, predicate, file or operator spec
+  or `[]` (`prolog_listen/2`, `on_signal/3`) fail the read with their place.
+  An include or load through a project alias (`bson(include/common)`, set
+  up by `file_search_path/2` at run time) resolves to the one file among
+  `files` whose path ends with the aliased path; with none or several it
+  fails the read.
 - **Go, Java, C# and Rust.** The references reader hands these files to
   `kibi-plugin-treesitter`, which parses them in its bounded workers and
   compiles or runs nothing. Activate it for proofs in `package.json`:
@@ -685,7 +716,8 @@ Details that decide what a reader sees:
   another call, is `*.name` (`*.toList`). `env` reads `os.Getenv` and
   `os.LookupEnv`, `System.getenv("X")`,
   `Environment.GetEnvironmentVariable("X")`, and Rust's `env::var`,
-  `env::var_os`, `env!` and `option_env!`. `string_args` reads the first
+  `env::var_os`, `env!` and `option_env!` (and Go's `syscall` and
+  `golang.org/x/sys/unix` and `windows` getters). `string_args` reads the first
   argument of calls to `callee`. `thrown` lists the type of Go
   `panic(&ConfigError{})` (or the factory of `panic(errors.New(...))`) and of
   Java and C# `throw new X()`; a rethrow of the caught exception is not a new
@@ -718,14 +750,30 @@ Details that decide what a reader sees:
   `*.Method`, and also the package's (`logrus.Error`) when its receiver
   visibly comes from that package (`logrus.StandardLogger().Error`, `l :=
   logrus.New()`, a parameter or struct field of that type), so a never-call
-  claim on the package does not pass over its logger. A Java receiver is
+  claim on the package does not pass over its logger. A Go qualifier that
+  is no import (a package-level logger of another file) or a call result
+  (`logger().Error`) has an unknown type (`*.Error`), and a method value
+  (`g := l.Error`) is listed like a call. A Java receiver is
   named by its declared type, cast or `new` (`Runtime r; r.exit()` and
   `((System) null).getenv` are `Runtime.exit` and `System.getenv`), and
   `import other.System` or a `System` class in the file shadows
-  `java.lang.System`. A C# bare call is listed under a type only when the
+  `java.lang.System`; a call on an imported type is also listed under its
+  import (`java.io.File.delete`). A Java `System` that a supertype or a
+  static import may name is unknown, and a method the class declares
+  shadows a static import. Since another file of the package may declare
+  its own `System` or `Runtime`, a call on a bare one also gets a row that
+  Kibi drops only after finding no such type in the `.java` files of the
+  file's folder; a bare Rust standard macro likewise gets a row that Kibi
+  drops only after finding no `macro_rules!` of that name (nor `#[macro_use]
+  extern crate`) in the crate. A C# bare call is listed under a type only when the
   file declares the method, or one `using static` System type has it; `@`
-  verbatim identifiers are read without the `@`. A function or method used as a value
-  (`logf := logrus.Error`, `apply(logrus.Error)`, a C# method group, a Rust
+  verbatim identifiers are read without the `@`. A C# member access on a
+  local, parameter, field or property named like a System type
+  (`Environment`), or on a type the file declares, is on a value of unknown
+  type (`*.Exit`). Rust paths are read without comments between segments,
+  and a plain `type` alias is followed. A function or method used as a value
+  (`logf := logrus.Error`, `apply(logrus.Error)`, a C# method group, also
+  cast or in a conditional, a Rust
   path such as `env::var` passed on) is listed in `calls`.
   A name computed at run time (`os.Getenv(name)`), the whole environment
   (`os.Environ()`, `System.getenv()`, `os.ExpandEnv`,
@@ -760,8 +808,12 @@ Details that decide what a reader sees:
   `env` and `calls`; and for Rust `env`, `imports` and `string_args` any
   macro other than a standard one or a known crate's formatting macro
   (`anyhow!`, `log::info!`), such as the file's own `macro_rules!` or
-  `include!`, an `env!` nested in another macro, or an attribute macro
-  configured with `env` (clap's `#[arg(env = "X")]`). A file that does not parse is refused with its line.
+  `include!`, an `env!` nested in another macro, or (for `env` and
+  `string_args`) any attribute or derive macro outside the standard library
+  (clap's `#[arg(env = "X")]`, `#[derive(FromEnv)]`); a Rust glob of a
+  project module or another crate (`use inner::*`) for a bare getter name
+  and the standard macros; and a Rust alias Kibi cannot follow or a
+  qualified-self callee (`<T>::new`) for `string_args`. A file that does not parse is refused with its line.
 - **Importing the app.** The `routes`, `validator` and drizzle readers import
   the module, so it must load without side effects (no `listen`, no database
   connection at import). Export a factory or a wrapper when the app needs
@@ -783,6 +835,48 @@ property and operator:
 | property `required_fields` | have each member as a required, non-null field of every selected table or object; a bare name (`id`) applies to every table, including tables added later, while `table.field` names one table. Only `eq` and `includes` |
 | property `nullable_fields` | have each member nullable. Only `eq` and `includes` |
 | property `middleware` | run the members (by the operator) before every selected route |
+
+The `references` reader's members are names, so for it Kibi matches them by
+segment (`.`, `/`, `::`) in the direction that can never prove a claim the
+code does not hold:
+
+- `excludes` fails on every member that is, or may be, an excluded item: the
+  item itself, a member under it (`java.sql` excludes `java.sql.Connection`;
+  `github.com/labstack/echo/v4` excludes `github.com/labstack/echo/v4/middleware`),
+  a member under the prefix of an item ending in `*` (`java.sql.*`, `os.*`),
+  a wildcard import that may bring the item in (`java.sql.*` for
+  `java.sql.Connection`), a shorter name the item ends with (`File.delete`
+  for `java.io.File.delete`), and a call on a receiver Kibi cannot name
+  (`*.delete` may be `java.io.File.delete`). The last three are refused with
+  the member, the item it may be and the files read: Kibi cannot decide the
+  claim for them.
+- `includes` holds only on a member that certainly is the item: the item, a
+  member under `X.*`, or a member ending in `.m` for `*.m`. A `*.m` never
+  satisfies `X.m`, and `java.sql.Connection` does not satisfy `java.sql`.
+- `subset_of` allows a member only when it certainly is an allowed item, so
+  `os/exec` is not allowed by `os` (write `os/*` for anything under it), and
+  `*.m` only by `*.m` itself.
+- `eq` compares spellings, as for every other reader.
+
+A references read decides a claim only for the files it reads. A proof is
+rejected when a symbol the test covers (`covered_by`) or a symbol that
+implements the claim's requirement lies in a file outside `files` (after
+`ignore`), naming the symbol and its file: a refused file cannot be dropped
+from `files` to prove a claim about it on other code. A `string_args` read
+whose `callee` is an environment getter (`os.Getenv`, `os.getenv`,
+`System.getenv`, `env::var`, `env::var_os`,
+`Environment.GetEnvironmentVariable`, `getenv/2` and the like) sees only that
+getter's first arguments, so it cannot decide an `eq`, `subset_of` or
+`excludes` claim about what the code reads; Kibi refuses it and names
+`extract: env`, which reads every getter.
+
+`kibi prove` counts a test whose run passed but whose certificate or claim
+binding Kibi rejected as `refused`, not `passed`. A derived binding on a
+receipt whose `verification_scope` is not `end_to_end` says that the claim
+stays unproved until the requirement is tested end to end, and
+`kibi proof explain` lists each claim's bindings and rejections, and why a
+derived claim is not yet proved, whatever the requirement's proof status;
+signoff shows the same rejections.
 
 The receipt's binding covers what the read depends on: each file it parses,
 the list of files a glob matches, and the modules a drizzle schema, route

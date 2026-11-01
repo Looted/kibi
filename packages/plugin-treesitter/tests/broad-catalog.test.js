@@ -568,8 +568,9 @@ describe("qualified offline Tree-sitter catalog", () => {
         (item) => item.code === "TREESITTER_LOCATOR_COLLISION",
       ),
     );
+    // Nested blocks are arguments of their resource, not gaps.
     assert(
-      tf.diagnostics.some(
+      !tf.diagnostics.some(
         (item) => item.code === "TREESITTER_TERRAFORM_NESTED_BLOCK_OMITTED",
       ),
     );

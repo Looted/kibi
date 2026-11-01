@@ -243,6 +243,20 @@ interface Reader {
    * `logrus.Error`).
    */
   methodOwners?(call: Node, context: FileContext): string[];
+  /**
+   * A name another file of the project may bind instead (a `System` class
+   * of the same Java package, a crate's `macro_rules! println`): the start
+   * of an unresolved row the host may drop once it has checked those files.
+   * The construct is read as usual too.
+   */
+  shadowed?(
+    node: Node,
+    callName: string | null,
+    names: readonly string[],
+    context: FileContext,
+    extract: ReferenceExtract,
+    callee: string,
+  ): string | null;
   /** A callable passed by name, such as Java's `System.out::println`. */
   methodReference?(node: Node, context: FileContext): string | null;
 }
@@ -263,6 +277,8 @@ interface FileContext {
   readonly paths: ReadonlyMap<string, string>;
   /** Java: the file's package. */
   readonly packageName: string;
+  /** Rust: a glob `use` brings names in unqualified. */
+  readonly globbed: boolean;
 }
 
 function emptyContext(): {
@@ -274,6 +290,7 @@ function emptyContext(): {
   packages: Set<string>;
   paths: Map<string, string>;
   packageName: string;
+  globbed: boolean;
 } {
   return {
     aliases: new Map(),
@@ -284,6 +301,7 @@ function emptyContext(): {
     packages: new Set(),
     paths: new Map(),
     packageName: "",
+    globbed: false,
   };
 }
 
@@ -349,17 +367,32 @@ const REFERENCE_PARENTS = new Set([
 
 // ---------------------------------------------------------------- Go
 
-const GO_ENV_GETTERS = new Set(["os.Getenv", "os.LookupEnv", "syscall.Getenv"]);
+const GO_ENV_GETTERS = new Set([
+  "os.Getenv",
+  "os.LookupEnv",
+  "syscall.Getenv",
+  "unix.Getenv",
+  "windows.Getenv",
+]);
 // Expand and ExpandEnv read every variable their template names, and any
 // `Environ()` method (`exec.Cmd.Environ`) returns the whole environment.
 const GO_ENV_WHOLE = new Set([
   "os.Environ",
   "syscall.Environ",
+  "unix.Environ",
+  "windows.Environ",
   "os.ExpandEnv",
   "os.Expand",
   `${ANY_RECEIVER}.Environ`,
 ]);
-const GO_ENV_PACKAGES = new Set(["os", "syscall"]);
+/** The packages with environment getters, by the name they are used under. */
+const GO_ENV_PACKAGES: ReadonlyMap<string, string> = new Map([
+  ["os", "os"],
+  ["syscall", "syscall"],
+  ["unix", "golang.org/x/sys/unix"],
+  ["windows", "golang.org/x/sys/windows"],
+]);
+const GO_ENV_PATHS = new Set(GO_ENV_PACKAGES.values());
 const GO_REFLECT_CALLS = new Set(["Call", "CallSlice", "MethodByName"]);
 const GO_PLUGIN_CALLS = new Set(["plugin.Open", "*.Lookup"]);
 
@@ -471,11 +504,8 @@ function goDeclares(statement: Node, name: string): Node | null {
  * package), as Go scopes do.
  */
 function goBinding(node: Node, name: string): Node | null {
-  for (
-    let scope = node.parent;
-    scope !== null && scope.type !== "source_file";
-    scope = scope.parent
-  ) {
+  let scope = node.parent;
+  for (; scope !== null && scope.type !== "source_file"; scope = scope.parent) {
     if (scope.type === "type_switch_statement") {
       const value = field(scope, "value");
       if (
@@ -491,6 +521,14 @@ function goBinding(node: Node, name: string): Node | null {
       if (found !== null) return found;
     }
   }
+  // A package-level var, const or type of this file binds in every order.
+  /* node:coverage disable */
+  if (scope === null) return null;
+  /* node:coverage enable */
+  for (const declaration of named(scope)) {
+    const found = goDeclares(declaration, name);
+    if (found !== null) return found;
+  }
   return null;
 }
 
@@ -500,8 +538,9 @@ function goPackageAt(name: string, node: Node, context: FileContext): boolean {
 }
 
 /**
- * A spelled call or value name as the reader lists it: a method on a value
- * the file declares is `*.Method`, and a package that is not the standard
+ * A spelled call or value name as the reader lists it: a method on any
+ * value (one the file declares, or a package-level name of another file) is
+ * `*.Method`, and a package that is not the standard
  * library's os or syscall but is used under that name (`os
  * "github.com/x/env"`) is spelled by its import path.
  */
@@ -510,15 +549,17 @@ function goName(name: string, context: FileContext, at: Node): string {
   if (cut === -1) return name;
   const root = name.slice(0, cut);
   const method = `${ANY_RECEIVER}.${lastOf(name, ".")}`;
-  if (!context.packages.has(root))
-    return goBinding(at, root) === null ? name : method;
-  if (goBinding(at, root) !== null) return method;
+  // A qualifier that is not an imported package is a value or type of the
+  // package (declared here, or in another of its files): its type is not
+  // known, so the method is `*.Method`.
+  if (!context.packages.has(root) || goBinding(at, root) !== null)
+    return method;
   /* node:coverage disable */
   const path = context.paths.get(root) ?? root;
   /* node:coverage enable */
   const usedAs = context.aliases.get(root) ?? root;
   if (
-    !GO_ENV_PACKAGES.has(path) &&
+    !GO_ENV_PATHS.has(path) &&
     (GO_ENV_PACKAGES.has(root) || GO_ENV_PACKAGES.has(usedAs))
   )
     return `"${path}"${name.slice(cut)}`;
@@ -591,7 +632,8 @@ function goReceiverRoot(node: Node, hops = 0): [Node, number] | null {
 function goOwners(call: Node, context: FileContext): string[] {
   // Only a selector call is a method on a receiver (`*.name`).
   /* node:coverage disable */
-  const target = field(call, "function");
+  const target =
+    call.type === "selector_expression" ? call : field(call, "function");
   const operand = target === null ? null : field(target, "operand");
   if (operand === null) return [];
   /* node:coverage enable */
@@ -620,6 +662,26 @@ function goOwners(call: Node, context: FileContext): string[] {
       )
       .map(usedAs),
   );
+}
+
+/** Whether an expression is a value stored, passed on or returned. */
+function goValue(node: Node): boolean {
+  const parent = node.parent;
+  /* node:coverage disable */
+  if (parent === null) return false;
+  /* node:coverage enable */
+  switch (parent.type) {
+    case "argument_list":
+    case "literal_element":
+      return true;
+    case "expression_list": {
+      // Not the left side of an assignment (`l.x = 1`).
+      const statement = parent.parent;
+      return statement === null || field(statement, "left")?.id !== parent.id;
+    }
+    default:
+      return false;
+  }
 }
 
 const GO: Reader = {
@@ -679,7 +741,7 @@ const GO: Reader = {
       if (alias.type === "dot") {
         // Every exported name of the package is in scope unqualified.
         context.callsAmbiguous.push(at(spec));
-        if (GO_ENV_PACKAGES.has(path)) context.envAmbiguous.push(at(spec));
+        if (GO_ENV_PATHS.has(path)) context.envAmbiguous.push(at(spec));
       } else if (alias.type === "package_identifier") {
         context.aliases.set(alias.text, packageName);
         context.packages.add(alias.text);
@@ -712,7 +774,10 @@ const GO: Reader = {
     /* node:coverage disable */
     if (name === null) return null;
     /* node:coverage enable */
-    if (!goPackageAt(before(name, "."), node, context)) return null;
+    // A method value on any receiver (`g := l.Error`) may be called later;
+    // so may a field of func type, which the syntax cannot tell apart.
+    if (!goPackageAt(before(name, "."), node, context) && !goValue(node))
+      return null;
     return goName(name, context, node);
   },
   reference(node) {
@@ -1036,11 +1101,108 @@ function javaType(
   const binding = javaBinding(node, root, context);
   if (binding !== null && !binding.value)
     return binding.type === null ? null : `${binding.type}${rest}`;
+  // A statically imported field (`import static a.Holder.System`) is a value
+  // of a type the reader does not know.
+  if (context.aliases.has(root)) return null;
+  // A java.lang name that a supertype may declare as a member type or field
+  // (`class System` nested in a superclass) is not known to be java.lang's.
+  if (
+    binding === null &&
+    JAVA_LANG_TYPES.has(root) &&
+    !context.paths.has(root) &&
+    javaInherited(node, root, false) !== "none"
+  )
+    return null;
   const imported = context.paths.get(root);
   if (imported !== undefined && JAVA_LANG_TYPES.has(root))
     return `${imported}${rest}`;
   return name;
 }
+
+/** The supertypes a class, interface, enum, record or anonymous class names. */
+function javaSupertypes(declaration: Node): string[] {
+  if (declaration.type === "object_creation_expression") {
+    const type = javaTypeText(field(declaration, "type"));
+    /* node:coverage disable */
+    return type === null ? [] : [type];
+    /* node:coverage enable */
+  }
+  const types: Node[] = [];
+  for (const child of named(declaration))
+    if (child.type === "superclass") types.push(...named(child));
+    else if (
+      child.type === "super_interfaces" ||
+      child.type === "extends_interfaces"
+    )
+      for (const list of named(child)) types.push(...named(list));
+  return types.map((type) => withoutGenerics(plainName(type.text)));
+}
+
+/**
+ * Whether a type around `node` declares, or inherits, a method (`method`)
+ * or a member type or field named `name`: "found", "none", or "unknown"
+ * when a supertype is not declared in this file, so its members are not
+ * known.
+ */
+function javaInherited(
+  node: Node,
+  name: string,
+  method: boolean,
+): "found" | "unknown" | "none" {
+  let file: Node = node;
+  while (file.parent !== null) file = file.parent;
+  const declared = new Map<string, Node>();
+  for (const type of JAVA_TYPE_DECLARATIONS)
+    for (const declaration of descendants(file, type)) {
+      const declaredName = field(declaration, "name")?.text;
+      /* node:coverage disable */
+      if (declaredName !== undefined && !declared.has(declaredName))
+        /* node:coverage enable */
+        declared.set(declaredName, declaration);
+    }
+  const seen = new Set<number>();
+  let unknown = false;
+  const search = (declaration: Node, body: Node | null): boolean => {
+    if (seen.has(declaration.id)) return false;
+    seen.add(declaration.id);
+    // A declaration always has a body once it parses.
+    /* node:coverage disable */
+    const members = body === null ? [] : named(body);
+    /* node:coverage enable */
+    for (const member of members)
+      if (
+        method
+          ? member.type === "method_declaration" &&
+            field(member, "name")?.text === name
+          : javaDeclares(member, name, "") !== null
+      )
+        return true;
+    for (const supertype of javaSupertypes(declaration)) {
+      const target = declared.get(lastOf(supertype, "."));
+      if (target === undefined) unknown = true;
+      else if (search(target, field(target, "body"))) return true;
+    }
+    return false;
+  };
+  for (let scope = node.parent; scope !== null; scope = scope.parent) {
+    if (JAVA_TYPE_DECLARATIONS.has(scope.type)) {
+      if (search(scope, field(scope, "body"))) return "found";
+    } else if (scope.type === "object_creation_expression") {
+      // Only inside the anonymous class body, not in its arguments.
+      const body = named(scope).find((part) => part.type === "class_body");
+      if (
+        body !== undefined &&
+        node.startIndex >= body.startIndex &&
+        search(scope, body)
+      )
+        return "found";
+    }
+  }
+  return unknown ? "unknown" : "none";
+}
+
+/** java.lang types another file of the package may declare instead. */
+const JAVA_SHADOWED = new Set(["System", "Runtime"]);
 
 /**
  * The type a method's receiver is, as the reader names it, or null when it
@@ -1113,7 +1275,13 @@ const JAVA: Reader = {
     if (name === null) return null;
     /* node:coverage enable */
     const object = field(call, "object");
-    if (object === null) return name.text;
+    // A bare call of a static import in a class whose supertypes the file
+    // does not show may be an inherited method of that name instead.
+    if (object === null)
+      return context.aliases.has(name.text) &&
+        javaInherited(call, name.text, true) === "unknown"
+        ? `${ANY_RECEIVER}.${name.text}`
+        : name.text;
     const left = javaReceiver(object, call, context);
     return `${left ?? ANY_RECEIVER}.${name.text}`;
   },
@@ -1164,10 +1332,14 @@ const JAVA: Reader = {
     }
     return context;
   },
-  candidates(name, context) {
-    const bare = name.includes(".")
-      ? name
-      : (context.aliases.get(name) ?? name);
+  candidates(name, context, at) {
+    // A method the class declares or inherits shadows a static import.
+    const bare =
+      name.includes(".") ||
+      !context.aliases.has(name) ||
+      javaInherited(at, name, true) === "found"
+        ? name
+        : (context.aliases.get(name) as string);
     // Both spellings of a java.lang member name it: System.getenv and
     // java.lang.System.getenv.
     const short = withoutJavaLang(bare);
@@ -1176,7 +1348,15 @@ const JAVA: Reader = {
       ? /* node:coverage enable */
         `java.lang.${short}`
       : bare;
-    return unique([short, long, bare, name]);
+    // An imported type is named by its import too: File.delete is
+    // java.io.File.delete.
+    const root = before(bare, ".");
+    const imported = context.paths.get(root);
+    const qualified =
+      imported === undefined || root === bare
+        ? []
+        : [`${imported}${bare.slice(root.length)}`];
+    return unique([short, long, bare, name, ...qualified]);
   },
   reference: () => null,
   envGetters: new Set(["System.getenv"]),
@@ -1236,9 +1416,22 @@ const JAVA: Reader = {
   hidesCalls: (node, names) =>
     JAVA.isCall(node) &&
     names.some((name) => reflective(name, JAVA_REFLECTION)),
-  refuses(node, callName, _names, context, extract, callee) {
+  refuses(node, callName, names, context, extract, callee) {
     if (callName === null || !JAVA.isCall(node)) return false;
     const method = finalName(callName);
+    // A bare call of a static import that may be an inherited method
+    // instead (`*.format`) may still be the imported callee.
+    const imported =
+      field(node, "object") === null ? context.aliases.get(method) : undefined;
+    if (
+      imported !== undefined &&
+      callName !== method &&
+      extract === "string_args" &&
+      JAVA.candidates(imported, context, node).some((name) =>
+        calleeMatches(name, callee),
+      )
+    )
+      return true;
     if (!JAVA_WATCHED.has(method) || callName === method) return false;
     const root = before(callName, ".");
     // A receiver named by a package, java.lang or a type the file imports
@@ -1253,6 +1446,26 @@ const JAVA: Reader = {
     if (extract === "env") return method === "getenv";
     if (extract === "string_args") return finalName(callee) === method;
     return extract === "calls";
+  },
+  shadowed(node, callName, names, context, extract, callee) {
+    const name =
+      node.type === "method_reference"
+        ? (JAVA.methodReference?.(node, context) ?? null)
+        : callName;
+    if (name === null) return null;
+    const root = before(name, ".");
+    if (!JAVA_SHADOWED.has(root)) return null;
+    const read =
+      extract === "calls" ||
+      (extract === "env" && finalName(name) === "getenv") ||
+      (extract === "string_args" &&
+        [name, ...names].some((candidate) => calleeMatches(candidate, callee)));
+    if (!read) return null;
+    const pkg =
+      context.packageName === ""
+        ? "the default package"
+        : `package ${context.packageName}`;
+    return `${root} may be a class of ${pkg}`;
   },
   methodReference(node, context) {
     if (node.type !== "method_reference") return null;
@@ -1548,13 +1761,68 @@ function csharpBare(
   };
 }
 
+/** Whether a type around `node` has a base type this file does not declare. */
+function csharpInheritsUnknown(node: Node): boolean {
+  let file: Node = node;
+  while (file.parent !== null) file = file.parent;
+  const declared = new Set<string>();
+  for (const type of CSHARP_TYPE_DECLARATIONS)
+    for (const declaration of descendants(file, type))
+      declared.add(csharpName(declaration));
+  for (let scope = node.parent; scope !== null; scope = scope.parent) {
+    if (!CSHARP_TYPE_DECLARATIONS.has(scope.type)) continue;
+    const bases = named(scope).find((part) => part.type === "base_list");
+    for (const base of bases === undefined ? [] : named(bases))
+      if (!declared.has(lastOf(withoutGenerics(plainName(base.text)), ".")))
+        return true;
+  }
+  return false;
+}
+
+/**
+ * A member access as the reader lists it: on a variable, parameter, field
+ * or property the file binds (`var Environment = new Fake()`), or on a name
+ * that is a type this file declares or, for a System type's name, a member
+ * a base type may declare, the receiver is not the System type, so the
+ * member is `*.Name`.
+ */
+function csharpReceiver(name: string, at: Node): string {
+  const root = before(name, ".");
+  if (root === name || root === "this" || root === "base") return name;
+  const method = `${ANY_RECEIVER}.${lastOf(name, ".")}`;
+  const binding = csharpBinding(at, root);
+  if (binding !== null) return binding.owner.length === 0 ? method : name;
+  let file: Node = at;
+  while (file.parent !== null) file = file.parent;
+  for (const type of [...CSHARP_TYPE_DECLARATIONS, "enum_declaration"])
+    if (descendants(file, type).some((node) => csharpName(node) === root))
+      return method;
+  return CSHARP_SYSTEM_TYPES.has(root) && csharpInheritsUnknown(at)
+    ? method
+    : name;
+}
+
 /** Whether an identifier is a value handed on (an argument, an initializer). */
 function csharpValuePosition(node: Node): boolean {
   const parent = node.parent;
   /* node:coverage disable */
   if (parent === null) return false;
   /* node:coverage enable */
+  switch (parent.type) {
+    case "parenthesized_expression":
+      return csharpValuePosition(parent);
+    // `(Action<string>)Run`: the cast's value, wherever the cast is.
+    case "cast_expression":
+      return field(parent, "value")?.id === node.id;
+    case "conditional_expression":
+      return field(parent, "condition")?.id !== node.id;
+    case "initializer_expression":
+      return true;
+  }
   if (!CSHARP_VALUE_PARENTS.has(parent.type)) return false;
+  // `Run(name: x)`: the parameter's name is no value.
+  if (parent.type === "argument" && field(parent, "name")?.id === node.id)
+    return false;
   // `nameof(X)` names X without using it.
   const call = parent.parent?.parent;
   if (
@@ -1593,7 +1861,7 @@ const CSHARP: Reader = {
     /* node:coverage enable */
     if (target.type === "identifier" && target.text === "nameof") return null;
     const name = csharpChain(target);
-    if (name !== null) return name;
+    if (name !== null) return csharpReceiver(name, call);
     // `a?.B()` is a conditional access, whose binding names no receiver.
     if (target.type === "member_access_expression") {
       const member = field(target, "name");
@@ -1688,18 +1956,19 @@ const CSHARP: Reader = {
       if (!csharpValuePosition(node)) return null;
       const name = csharpId(node.text);
       const bare = csharpBare(name, context, node);
-      // A variable is a value; a method the reader cannot place refuses.
-      return bare.known && bare.names.length > 1
-        ? (bare.names[0] as string)
-        : null;
+      // A variable is a value. A name the file does not bind may be a
+      // method group of a base type or of a `using static` type elsewhere:
+      // it is a member of an unknown owner.
+      if (!bare.known) return `${ANY_RECEIVER}.${name}`;
+      return bare.names.length > 1 ? (bare.names[0] as string) : null;
     }
     if (node.type !== "member_access_expression") return null;
     if (!csharpValuePosition(node)) return null;
-    const name = csharpChain(node);
+    const chain = csharpChain(node);
     /* node:coverage disable */
-    return name === null
-      ? null
-      : (CSHARP.candidates(name, context, node)[0] ?? name);
+    if (chain === null) return null;
+    const name = csharpReceiver(chain, node);
+    return CSHARP.candidates(name, context, node)[0] ?? name;
     /* node:coverage enable */
   },
   reference(node) {
@@ -1843,7 +2112,8 @@ function rustChain(node: Node): string | null {
     case "generic_function": {
       // `<T as Trait>::m` names a method of whichever impl T resolves to.
       if (node.text.trimStart().startsWith("<")) return null;
-      return withoutGenerics(node.text);
+      // A comment between segments is not part of the path.
+      return withoutGenerics(plainName(node.text));
     }
     case "field_expression": {
       const value = field(node, "value");
@@ -1878,9 +2148,7 @@ function rustUseTree(node: Node, prefix: string, members: string[]): void {
       const path = named(node)[0];
       members.push(
         join(
-          path === undefined
-            ? prefix
-            : join(prefix, path.text.replace(/\s+/g, "")),
+          path === undefined ? prefix : join(prefix, plainName(path.text)),
           "*",
         ),
       );
@@ -1889,8 +2157,7 @@ function rustUseTree(node: Node, prefix: string, members: string[]): void {
     case "scoped_use_list": {
       const path = field(node, "path");
       const list = field(node, "list");
-      const base =
-        path === null ? prefix : join(prefix, path.text.replace(/\s+/g, ""));
+      const base = path === null ? prefix : join(prefix, plainName(path.text));
       if (list !== null) rustUseTree(list, base, members);
       return;
     }
@@ -1901,7 +2168,7 @@ function rustUseTree(node: Node, prefix: string, members: string[]): void {
       members.push(prefix);
       return;
     default:
-      members.push(join(prefix, node.text.replace(/\s+/g, "")));
+      members.push(join(prefix, plainName(node.text)));
   }
 }
 
@@ -1923,16 +2190,14 @@ function rustUseBindings(
       const alias = field(node, "alias");
       if (path === null || alias === null || alias.text === "_") return;
       // `use std::env::{self as e}` binds e to std::env itself.
-      const spelled = path.text.replace(/\s+/g, "");
+      const spelled = plainName(path.text);
       bind(alias.text, spelled === "self" ? prefix : join(prefix, spelled));
       return;
     }
     case "use_wildcard": {
       const path = named(node)[0];
       glob(
-        path === undefined
-          ? prefix
-          : join(prefix, path.text.replace(/\s+/g, "")),
+        path === undefined ? prefix : join(prefix, plainName(path.text)),
         node,
       );
       return;
@@ -1940,8 +2205,7 @@ function rustUseBindings(
     case "scoped_use_list": {
       const path = field(node, "path");
       const list = field(node, "list");
-      const base =
-        path === null ? prefix : join(prefix, path.text.replace(/\s+/g, ""));
+      const base = path === null ? prefix : join(prefix, plainName(path.text));
       if (list !== null) rustUseBindings(list, base, bind, glob);
       return;
     }
@@ -1952,10 +2216,28 @@ function rustUseBindings(
       bind(lastSegment(prefix), prefix);
       return;
     default: {
-      const path = join(prefix, node.text.replace(/\s+/g, ""));
+      const path = join(prefix, plainName(node.text));
       bind(lastSegment(path), path);
     }
   }
+}
+
+/**
+ * A macro's tokens, spaced, without comments: a comment between path
+ * segments (`std::` comment `env`) does not split the path, and one inside a string
+ * is not a comment.
+ */
+function rustTokens(node: Node): string {
+  if (node.type === "line_comment" || node.type === "block_comment") return " ";
+  if (node.childCount === 0) return node.text;
+  return node.children
+    .map(
+      (child) =>
+        /* node:coverage disable */
+        child === null ? "" : rustTokens(child),
+      /* node:coverage enable */
+    )
+    .join(" ");
 }
 
 /** `::std::env::var` and `core::env` name the same items as `std::env`. */
@@ -1973,12 +2255,12 @@ function insideRustAttribute(node: Node): boolean {
 function rustMacroName(node: Node): string {
   const name = field(node, "macro");
   /* node:coverage disable */
-  return name === null ? "" : name.text.replace(/\s+/g, "");
+  return name === null ? "" : plainName(name.text);
   /* node:coverage enable */
 }
 
 function rustAttribute(node: Node): string {
-  return node.text.replace(/\s+/g, "");
+  return plainName(node.text);
 }
 
 /** The attribute items that annotate an item: its preceding siblings. */
@@ -2052,7 +2334,7 @@ function rustAttributeHidesCalls(node: Node): boolean {
   const attribute = named(node).find((child) => child.type === "attribute");
   /* node:coverage disable */
   if (attribute === undefined) return true;
-  const path = named(attribute)[0]?.text.replace(/\s+/g, "") ?? "";
+  const path = plainName(named(attribute)[0]?.text ?? "");
   /* node:coverage enable */
   // cfg and cfg_attr are reported as conditional compilation.
   if (path === "cfg" || path === "cfg_attr") return false;
@@ -2066,6 +2348,80 @@ function rustAttributeHidesCalls(node: Node): boolean {
     );
   }
   return !RUST_INERT_ATTRIBUTES.has(path);
+}
+
+/**
+ * Derives of common crates whose generated code reads no environment
+ * variable and makes no call the item does not name, by the path a `use`
+ * or a qualified name gives them.
+ */
+const RUST_CRATE_DERIVES = new Set([
+  "serde::Serialize",
+  "serde::Deserialize",
+  "thiserror::Error",
+  "clap::Parser",
+  "clap::Args",
+  "clap::Subcommand",
+  "clap::ValueEnum",
+]);
+/** The helper attributes those derives read. */
+const RUST_DERIVE_HELPERS = new Set([
+  "serde",
+  "error",
+  "from",
+  "source",
+  "arg",
+  "command",
+  "clap",
+  "value",
+  "group",
+]);
+
+/**
+ * Whether an attribute may generate code that reads the environment or
+ * calls `callee`: any procedural attribute or derive outside the standard
+ * library and the known crates' derives, and a known derive's helper that
+ * mentions `env` (clap's `#[arg(env = "X")]`) or the callee.
+ */
+function rustAttributeGenerates(
+  node: Node,
+  context: FileContext,
+  callee: string,
+): boolean {
+  if (!rustAttributeHidesCalls(node)) return false;
+  const attribute = named(node).find((child) => child.type === "attribute");
+  /* node:coverage disable */
+  if (attribute === undefined) return true;
+  const path = plainName(named(attribute)[0]?.text ?? "");
+  /* node:coverage enable */
+  if (path === "derive") {
+    const list = field(attribute, "arguments");
+    // The list is tokens: `serde::Serialize` is three of them.
+    /* node:coverage disable */
+    const traits =
+      list === null
+        ? []
+        : rustTokens(list).replace(/\s+/g, "").slice(1, -1).split(",");
+    /* node:coverage enable */
+    return traits.some((name) => {
+      return (
+        !RUST_STD_DERIVES.has(
+          name.replace(/^(?:::)?(?:std|core)::\w+::/, ""),
+        ) && !RUST_CRATE_DERIVES.has(rustPath(name, node).path)
+      );
+    });
+  }
+  if (
+    !RUST_DERIVE_HELPERS.has(path) ||
+    context.aliases.has(path) ||
+    context.imported.has(path)
+  )
+    return true;
+  const tokens = rustTokens(attribute);
+  return (
+    /\benv\b/.test(tokens) ||
+    (callee !== "" && new RegExp(`\\b${finalName(callee)}\\b`).test(tokens))
+  );
 }
 
 /** The last segments of the environment getters (`var`, `vars_os`). */
@@ -2150,8 +2506,21 @@ function rustStdMacro(node: Node, context: FileContext): boolean {
   return (
     RUST_STD_MACROS.has(name) &&
     !context.imported.has(name) &&
-    !context.aliases.has(name)
+    !context.aliases.has(name) &&
+    // A glob of a project module or another crate may bring a macro of
+    // that name in.
+    (name !== spelled || !context.globbed)
   );
+}
+
+/**
+ * Whether a standard macro is spelled bare (`println!`, not
+ * `std::println!`): a `macro_rules!` of that name in another file of the
+ * crate, in textual scope through `#[macro_use]`, would then be called.
+ */
+function rustBareStdMacro(node: Node, context: FileContext): boolean {
+  const spelled = rustMacroName(node);
+  return RUST_STD_MACROS.has(spelled) && rustStdMacro(node, context);
 }
 
 const RUST_ITEMS = new Set([
@@ -2163,7 +2532,6 @@ const RUST_ITEMS = new Set([
   "trait_item",
   "const_item",
   "static_item",
-  "type_item",
   "macro_definition",
 ]);
 
@@ -2171,11 +2539,24 @@ type RustBinding =
   | { readonly kind: "path"; readonly path: string }
   | { readonly kind: "module"; readonly body: Node | null }
   | { readonly kind: "crate"; readonly crate: string }
+  | { readonly kind: "alias" }
   | { readonly kind: "item" };
 
 /** What `name` is bound to by the items directly in a block or module. */
 function rustItem(scope: Node, name: string): RustBinding | null {
   for (const child of named(scope)) {
+    if (child.type === "type_item") {
+      if (field(child, "name")?.text !== name) continue;
+      // `type C = std::process::Command` is followed; a generic alias or one
+      // of another kind of type is not.
+      const type = field(child, "type");
+      return type !== null &&
+        field(child, "type_parameters") === null &&
+        (type.type === "type_identifier" ||
+          type.type === "scoped_type_identifier")
+        ? { kind: "path", path: plainName(type.text) }
+        : { kind: "alias" };
+    }
     if (RUST_ITEMS.has(child.type)) {
       if (field(child, "name")?.text === name) return { kind: "item" };
       continue;
@@ -2247,7 +2628,7 @@ function rustResolve(
   segments: readonly string[],
   scopes: readonly Node[],
   depth = 0,
-): { readonly path: string; readonly exact: boolean } {
+): { readonly path: string; readonly exact: boolean; readonly opaque?: true } {
   const spelled = { path: segments.join("::"), exact: true };
   const unknown = { path: spelled.path, exact: false };
   const [root = "", ...rest] = segments;
@@ -2286,6 +2667,8 @@ function rustResolve(
       }
       case "crate":
         return rustResolve([binding.crate, ...rest], scopes, depth + 1);
+      case "alias":
+        return { ...unknown, opaque: true };
       default:
         return spelled;
     }
@@ -2294,7 +2677,10 @@ function rustResolve(
   return unknown;
 }
 
-function rustPath(name: string, at: Node): { path: string; exact: boolean } {
+function rustPath(
+  name: string,
+  at: Node,
+): { path: string; exact: boolean; opaque?: true } {
   return rustResolve(name.split("::"), rustScopes(at));
 }
 
@@ -2347,7 +2733,11 @@ const RUST: Reader = {
         "",
         (local, path) => context.aliases.set(local, rustCanonical(path)),
         (path, node) => {
+          // A glob in a `#[cfg(test)]` item is not read with it.
+          if (rustInTest(node)) return;
           // A glob brings names in unqualified: a bare call may be any of them.
+          if (!/^(?:std|core|alloc)(?:::|$)/.test(rustCanonical(path)))
+            context.globbed = true;
           context.callsAmbiguous.push(at(node));
           if (/^(?:std|env|self::env)(?:::env)?$/.test(rustCanonical(path)))
             context.envAmbiguous.push(at(node));
@@ -2365,11 +2755,13 @@ const RUST: Reader = {
   refuses(node, callName, names, context, extract, callee) {
     // A derive or attribute macro configured with `env` (clap's `#[arg(env
     // = "X")]`) reads the environment in code it generates.
+    // An attribute or derive macro (`#[inject_env]`, `#[derive(FromEnv)]`,
+    // clap's `#[arg(env = "X")]`) may read the environment or call anything
+    // in the code it generates.
     if (node.type === "attribute_item" || node.type === "inner_attribute_item")
       return (
-        extract === "env" &&
-        rustAttributeHidesCalls(node) &&
-        /\benv\b/.test(node.text)
+        (extract === "env" || extract === "string_args") &&
+        rustAttributeGenerates(node, context, callee)
       );
     if (node.type === "macro_invocation") {
       if (!rustStdMacro(node, context))
@@ -2379,19 +2771,44 @@ const RUST: Reader = {
         extract === "env" &&
         named(node).some(
           (tokens) =>
-            tokens.type === "token_tree" && RUST_NESTED_ENV.test(tokens.text),
+            tokens.type === "token_tree" &&
+            RUST_NESTED_ENV.test(rustTokens(tokens)),
         )
+      );
+    }
+    if (callName === null) {
+      // `<std::process::Command>::new("rm")`: a qualified-self callee.
+      const target = RUST.isCall(node) ? RUST.callee(node) : null;
+      return (
+        extract === "string_args" &&
+        target !== null &&
+        lastOf(plainName(target.text), "::") === finalName(callee)
       );
     }
     // A getter's name on a path the reader cannot follow to std::env (a
     // re-export through `crate::`, a module file or another crate, such as
     // `dotenvy::var`) may read the environment.
-    if (
-      callName === null ||
-      names.some((name) => name.startsWith("std::env::"))
-    )
-      return false;
+    if (names.some((name) => name.startsWith("std::env::"))) return false;
     const resolved = rustPath(callName, node);
+    // A callee through a type alias the reader does not follow (`type C<T>
+    // = ...; C::new(..)`) may be the one asked for.
+    if (
+      resolved.opaque &&
+      extract === "string_args" &&
+      finalName(callName) === finalName(callee)
+    )
+      return true;
+    // A bare getter name a glob may bring in (`use inner::*` re-exporting
+    // std::env::var).
+    if (
+      !resolved.exact &&
+      !callName.includes("::") &&
+      RUST_ENV_NAMES.has(callName) &&
+      context.globbed
+    ) {
+      if (extract === "string_args") return finalName(callee) === callName;
+      return extract === "env" || extract === "calls";
+    }
     if (
       resolved.exact ||
       !resolved.path.includes("::") ||
@@ -2401,6 +2818,17 @@ const RUST: Reader = {
     if (extract === "string_args")
       return finalName(callee) === lastOf(resolved.path, "::");
     return extract === "env" || extract === "calls";
+  },
+  shadowed(node, _callName, _names, context, extract) {
+    if (
+      node.type !== "macro_invocation" ||
+      (extract !== "env" &&
+        extract !== "imports" &&
+        extract !== "string_args") ||
+      !rustBareStdMacro(node, context)
+    )
+      return null;
+    return `${rustMacroName(node)} may be a macro_rules! macro of the crate`;
   },
   valueReference(node, context) {
     if (node.type !== "scoped_identifier") return null;
@@ -2421,7 +2849,9 @@ const RUST: Reader = {
     // be called or read there.
     return tokens.flatMap((tree) =>
       (
-        tree.text.match(/(?:::)?[A-Za-z_]\w*(?:\s*::\s*[A-Za-z_]\w*)*/g) ?? []
+        rustTokens(tree).match(
+          /(?:::)?[A-Za-z_]\w*(?:\s*::\s*[A-Za-z_]\w*)*/g,
+        ) ?? []
       ).map((path) => path.replace(/\s+/g, "")),
     );
   },
@@ -2486,6 +2916,17 @@ const RUST: Reader = {
     rustAttributes(node).includes("#[cfg(test)]"),
   catchName: () => null,
 };
+
+/** Whether a node is inside an item the reader skips as `#[cfg(test)]`. */
+function rustInTest(node: Node): boolean {
+  for (
+    let current: Node | null = node;
+    current !== null;
+    current = current.parent
+  )
+    if (RUST.skip(current)) return true;
+  return false;
+}
 
 const READERS: Readonly<Record<ReferenceLanguage, Reader>> = {
   go: GO,
@@ -2560,6 +3001,14 @@ export function extractReferences(
         extract,
         callee,
       ) ?? false;
+    const shadow =
+      reader.shadowed?.(node, callName, names, context, extract, callee) ??
+      null;
+    if (shadow !== null)
+      unresolved.push({
+        line: node.startPosition.row + 1,
+        text: `${shadow}: ${at(node).text}`.slice(0, 80),
+      });
     // A method on a receiver from a package or type is listed under it too.
     const owned =
       callName === null || !callName.startsWith(`${ANY_RECEIVER}.`)
@@ -2648,6 +3097,12 @@ export function extractReferences(
               ...reader
                 .candidates(passed, context, node)
                 .filter((name) => !name.startsWith(ANY_RECEIVER)),
+              // A method value on a receiver from a package is its too.
+              ...(passed.startsWith(`${ANY_RECEIVER}.`)
+                ? (reader.methodOwners?.(node, context) ?? []).map(
+                    (owner) => `${owner}.${finalName(passed)}`,
+                  )
+                : []),
             );
         }
         break;

@@ -64,6 +64,7 @@ import {
 } from "../operations/mutation/symbol-compiler-lock.js";
 import { analyzeSemanticAdvisorInput } from "../operations/semantic-advisor/analyze-prose.js";
 import { validateSemanticInventoryBoundary } from "../operations/semantic-advisor/ingestion-boundary.js";
+import { sourceAnalyzerInstallProblems } from "../plugins/plugin-install-check.js";
 import { PrologProcess } from "../prolog.js";
 import {
   type BranchAttachment,
@@ -891,6 +892,15 @@ export async function syncCommand(
     // on a partially published compiler dependency.
     const refreshedManifestKeys = new Set<string>();
     if (!validateOnly && options.refreshSymbolCoordinates) {
+      // A declared source analyzer that is missing or not the qualified
+      // build would drop every coordinate it places; refuse the refresh and
+      // keep the stored coordinates instead of reporting success.
+      // implements REQ-symbol-coordinates-derived-locally
+      const installProblems = sourceAnalyzerInstallProblems(workspaceRoot);
+      if (installProblems.length > 0)
+        throw new Error(
+          `Symbol coordinate refresh refused: ${installProblems.map((row) => row.problem).join("; ")}. ${installProblems.map((row) => row.fix).join(" ")} The stored coordinates were kept.`,
+        );
       for (const file of manifestFiles) {
         await refreshManifestCoordinates(file, workspaceRoot, {
           refreshSymbolCoordinates: options.refreshSymbolCoordinates,

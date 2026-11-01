@@ -202,5 +202,6 @@ facts: `{reader: prolog, file: pack.pl, functor: requires/1}` lists a pack's
 requirements, and `arg` picks the argument of a fact with several. A goal or
 closure held in a variable (`call(Goal)`, `maplist(G, L)`), a goal with a
 variable module, a clause asserted from a variable and `:- if(...)` fail the
-read with their place: name the predicate instead, or narrow `files` to the
-modules the claim is about.
+read with their place: name the predicate instead. The claim cannot be
+decided for a file the read refuses; never drop a file the claim is about
+from `files`.

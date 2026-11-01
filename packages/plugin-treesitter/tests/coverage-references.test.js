@@ -97,6 +97,7 @@ describe("Go reference reader edge cases", () => {
   it("reads panics with a named call and refuses unknown values", async () => {
     const source = go(
       [
+        'import "fmt"',
         "func f() {",
         '\tpanic(fmt.Sprintf("x"))',
         "\tpanic(err)",
@@ -107,7 +108,7 @@ describe("Go reference reader edge cases", () => {
     );
     const thrown = await read("a.go", source, "thrown");
     assert.deepEqual(thrown.members, ["fmt.Sprintf"]);
-    assert.deepEqual(thrown.lines, [4, 5, 6]);
+    assert.deepEqual(thrown.lines, [5, 6, 7]);
   });
 
   it("reads keyed values by field or string key and refuses computed ones", async () => {
@@ -139,12 +140,13 @@ describe("Go reference reader edge cases", () => {
     assert.ok(calls.members.includes("g"));
   });
 
-  it("lists package functions used as values but not fields of values", async () => {
+  it("lists package functions and values' members used as values", async () => {
     const source = go(
-      'import "strings"\nfunc f(cfg Conf) { up := strings.ToUpper; mode := cfg.Mode; _, _ = up, mode }',
+      'import "strings"\nfunc f(cfg Conf) { up := strings.ToUpper; mode := cfg.Mode; cfg.x = 1; _, _ = up, mode }',
     );
     const calls = await read("a.go", source, "calls");
-    assert.deepEqual(calls.members, ["strings.ToUpper"]);
+    // A field and a method value look alike: either may be called later.
+    assert.deepEqual(calls.members, ["*.Mode", "strings.ToUpper"]);
     assert.deepEqual(calls.lines, []);
   });
 
@@ -155,7 +157,8 @@ describe("Go reference reader edge cases", () => {
     assert.deepEqual((await read("a.go", withReflect, "calls")).lines, [3]);
     const without = go("func f() { v.Call(nil) }");
     const calls = await read("a.go", without, "calls");
-    assert.deepEqual(calls.members, ["v.Call"]);
+    // `v` is no package the file imports: a value of unknown type.
+    assert.deepEqual(calls.members, ["*.Call"]);
     assert.deepEqual(calls.lines, []);
   });
 });
@@ -396,7 +399,9 @@ describe("Rust reference reader edge cases", () => {
     ].join("\n");
     const env = await read("a.rs", source, "env");
     assert.deepEqual(env.members, ["BUILD", "FULL", "RAW"]);
-    assert.deepEqual(env.lines, [3, 4, 6]);
+    // Line 2 only names a std macro a crate's macro_rules! could shadow,
+    // a row the host drops once it has checked the crate.
+    assert.deepEqual(env.lines, [2, 3, 4, 6]);
   });
 
   it("names parenthesized and nested-generic calls and ignores closures", async () => {

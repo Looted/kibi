@@ -61,6 +61,7 @@ import {
   collectSourcePathDanglingViolations,
 } from "./source-path-dangling.js";
 import { collectSourceRelationshipParityViolations } from "./source-relationship-parity.js";
+import { collectSymbolCoordinatesMissingViolations } from "./symbol-coordinates-check.js";
 import { collectSymbolGranularityViolations } from "./symbol-granularity-check.js";
 import type { OperationResult } from "./types.js";
 import { readWorkspaceSnapshot } from "./workspace-snapshot.js";
@@ -414,6 +415,12 @@ export async function executeCheck(
       rulesAllowlist,
       analysisCacheDir(context, workspaceRoot, options),
     );
+    const symbolCoordinateFindings =
+      await collectSymbolCoordinatesMissingViolations(
+        prolog,
+        workspaceRoot,
+        rulesAllowlist,
+      );
     const originReviewFindings = await collectOriginReviewViolations(
       prolog,
       rulesAllowlist,
@@ -449,6 +456,7 @@ export async function executeCheck(
       ...sourceRelationshipParityViolations,
       ...sourcePathFindings,
       ...symbolGranularityFindings,
+      ...symbolCoordinateFindings,
       ...predicateConformanceFindings,
       ...originReviewFindings,
       ...entityContextFindings,

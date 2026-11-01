@@ -50,6 +50,8 @@ export type RefreshResult = {
   readonly found: boolean;
   readonly outcome?: TargetedRefreshOutcome;
   readonly publication?: ArtifactPublicationReceipt;
+  /** Why the symbol got no coordinates, when the refresh could not place it. */
+  readonly unplaced?: string;
 };
 
 // implements REQ-generated-coordinate-persistence
@@ -293,8 +295,14 @@ async function refreshUnlocked(
   if (next === null || !isValidCoordinateSpan(next)) {
     // No extractable coordinates: remove stale generated state so proof keeps
     // failing closed instead of rebinding an old span to current source bytes.
+    const failure =
+      typeof enriched?.coordinateRefreshFailure === "string"
+        ? enriched.coordinateRefreshFailure
+        : sourceText === null
+          ? `${sourceFile || "its source file"} cannot be read`
+          : `no declaration titled ${title} was found in ${sourceFile}`;
     if (existingRecords[symbolId] === undefined) {
-      return { refreshed: false, found: true };
+      return { refreshed: false, found: true, unplaced: failure };
     }
     delete existingRecords[symbolId];
     const publication = publishArtifact(
