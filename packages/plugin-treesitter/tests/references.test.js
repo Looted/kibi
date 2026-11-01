@@ -35,7 +35,7 @@ async function read(path, extract, options = {}) {
  * like a std macro); the tests that are about them assert them directly.
  */
 const SHADOW_ROW =
-  /^(?:\w+ may be a class of (?:package [\w.]+|the default package)|\w+ may be a macro_rules! macro of the crate|\w+ may be a type of the project): /;
+  /^(?:\w+ may be a class of (?:package [\w.]+|the default package)|\w+ may be a macro_rules! macro of the crate|\w+ may be a type of the project|\w+ may be declared in another file of the package): /;
 const readRows = (result) =>
   result.unresolved.filter((row) => !SHADOW_ROW.test(row.text));
 
@@ -1697,5 +1697,48 @@ describe("round-4 agent-test regressions: exact or refuse", () => {
         .members,
       [],
     );
+  });
+
+  it("marks a Go package-level name another file of the package may bind for env", async () => {
+    const source = [
+      "package main",
+      'import "os"',
+      "type T[K any] struct{ k K }",
+      "var local = 1",
+      "const two = 2",
+      "func f[K any](k K) K { return k }",
+      "func main() {",
+      '\t_ = os.Getenv("A")',
+      '\t_ = getenv("ADMIN_TOKEN")',
+      "\tvar c Config",
+      "\t_ = T[int]{k: local + two}",
+      "\tx := helper",
+      "\t_, _ = x, c",
+      "\tcfg.Port()",
+      '\t_ = len(f("a")) + cap([]byte(nil))',
+      "\tgoto L",
+      "L:",
+      "\tfor i, v := range []int{} { _, _ = i, v }",
+      "\tfunc() { _ = true; _ = nil; var e error; _ = e }()",
+      "}",
+    ].join("\n");
+    const env = await inline("a.go", source, "env");
+    assert.deepEqual(env.members, ["A"]);
+    assert.deepEqual(env.lines, []);
+    assert.deepEqual(env.shadows, [9, 10, 12, 14]);
+    const rows = (
+      await extractor.extract({ path: "a.go", content: source, extract: "env" })
+    ).unresolved;
+    assert.deepEqual(
+      rows.map((row) => row.text),
+      [
+        'getenv may be declared in another file of the package: getenv("ADMIN_TOKEN")',
+        "Config may be declared in another file of the package: Config",
+        "helper may be declared in another file of the package: helper",
+        "cfg may be declared in another file of the package: cfg",
+      ],
+    );
+    // Only env reads follow the package's other files.
+    assert.equal((await inline("a.go", source, "calls")).shadows, undefined);
   });
 });

@@ -48,6 +48,14 @@ interface Row {
 const JAVA_ROW = /^(System|Runtime) may be a class of (?:package [\w.]+|the default package): /;
 const RUST_ROW = /^(\w+) may be a macro_rules! macro of the crate: /;
 const CSHARP_ROW = /^(\w+) may be a type of the project: /;
+const GO_ROW = /^(\w+) may be declared in another file of the package: /;
+
+/**
+ * What in Go source may read the environment: a getter of os, syscall or
+ * x/sys (also as a value, or through an alias or a dot import), cgo, and a
+ * `//go:linkname`, which binds a local name to any function.
+ */
+const GO_ENV_SOURCE = /\b(?:Getenv|LookupEnv|Environ|ExpandEnv|Expand)\b|"C"|go:linkname/;
 
 /** Java source with comments, string, char and text-block contents removed. */
 export function javaCode(text: string): string {
@@ -185,6 +193,26 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
         const root = crateRoot(workspaceRoot, directory);
         const texts = read(`rust:${root}`, () => sourceFiles(root, ".rs", ["target"]));
         return texts === null || texts.some((text) => rustDefines(text, rust[1] as string));
+      }
+      const go = GO_ROW.exec(row.text);
+      if (go !== null) {
+        // The package's other files: the directory's .go files, with its
+        // test files only for a test file.
+        const own = path.basename(file);
+        const test = own.endsWith("_test.go");
+        const texts = read(`go:${file}`, () =>
+          readdirSync(directory)
+            .filter((name) => name.endsWith(".go") && name !== own && (test || !name.endsWith("_test.go")))
+            .map((name) => path.join(directory, name)),
+        );
+        // A getter may be reached through the name by any chain of the
+        // package's functions and values, so the row stays when any of
+        // those files can read the environment and any names it.
+        const name = new RegExp(`\\b${go[1]}\\b`);
+        return (
+          texts === null ||
+          (texts.some((text) => GO_ENV_SOURCE.test(text)) && texts.some((text) => name.test(text)))
+        );
       }
       const csharp = CSHARP_ROW.exec(row.text);
       if (csharp !== null) {

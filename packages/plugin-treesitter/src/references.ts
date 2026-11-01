@@ -855,6 +855,110 @@ function goOwners(call: Node, context: FileContext): string[] {
   );
 }
 
+/** Go's predeclared identifiers: no file of the package declares them. */
+const GO_PREDECLARED = new Set([
+  "_",
+  "true",
+  "false",
+  "nil",
+  "iota",
+  "any",
+  "bool",
+  "byte",
+  "comparable",
+  "complex64",
+  "complex128",
+  "error",
+  "float32",
+  "float64",
+  "int",
+  "int8",
+  "int16",
+  "int32",
+  "int64",
+  "rune",
+  "string",
+  "uint",
+  "uint8",
+  "uint16",
+  "uint32",
+  "uint64",
+  "uintptr",
+  "append",
+  "cap",
+  "clear",
+  "close",
+  "complex",
+  "copy",
+  "delete",
+  "imag",
+  "len",
+  "make",
+  "max",
+  "min",
+  "new",
+  "panic",
+  "print",
+  "println",
+  "real",
+  "recover",
+]);
+
+/**
+ * Whether an identifier is spelled by a declaration (a function, type,
+ * variable, constant, parameter or type parameter name, the left side of
+ * `:=`) or is a composite literal's key, rather than used.
+ */
+function goDeclaredName(node: Node): boolean {
+  const parent = node.parent;
+  /* node:coverage disable */
+  if (parent === null) return true;
+  /* node:coverage enable */
+  if (parent.childrenForFieldName("name").some((name) => name.id === node.id))
+    return true;
+  if (parent.type === "literal_element")
+    return (
+      parent.parent?.type === "keyed_element" && parent.previousSibling === null
+    );
+  const statement = parent.parent;
+  return (
+    parent.type === "expression_list" &&
+    statement !== null &&
+    field(statement, "left")?.id === parent.id &&
+    statement.children.some((token) => token?.type === ":=")
+  );
+}
+
+/**
+ * Whether `name` is declared where `node` is by this file: a local, a
+ * package-level var, const, type or function of the file, a type parameter
+ * around it, or an imported package.
+ */
+function goDeclaredHere(
+  node: Node,
+  name: string,
+  context: FileContext,
+): boolean {
+  if (goBinding(node, name) !== null || context.packages.has(name)) return true;
+  let file: Node = node;
+  for (let scope = node.parent; scope !== null; scope = scope.parent) {
+    file = scope;
+    const parameters = field(scope, "type_parameters");
+    if (
+      parameters !== null &&
+      named(parameters).some((declaration) =>
+        goIdentifiers(declaration).includes(name),
+      )
+    )
+      return true;
+  }
+  return named(file).some(
+    (declaration) =>
+      declaration.type === "function_declaration" &&
+      field(declaration, "name")?.text === name,
+  );
+}
+
 /** Whether an expression is a value stored, passed on or returned. */
 function goValue(node: Node): boolean {
   const parent = node.parent;
@@ -965,6 +1069,40 @@ const GO: Reader = {
     return unique([aliased(spelled, ".", context.aliases), spelled]);
   },
   methodOwners: goOwners,
+  /**
+   * A Go package spans the files of its directory, so a name this file uses
+   * but does not declare may be a package-level getter value or wrapper of
+   * another file (`var getenv = os.Getenv` in env.go, then `getenv("X")`
+   * here; a `getEnv(k, d string)` helper; a `cfg` whose methods read the
+   * environment). For env, every such name is marked: the host keeps the row,
+   * refusing the read, unless no other file of the package mentions an
+   * environment getter at all. Following the package's files this far is
+   * sound whatever the chain of helpers is (any read in the package spells a
+   * getter in some file of it), and calls into other packages are not
+   * followed, as for any direct call.
+   */
+  shadowed(node, _callName, _names, context, extract) {
+    if (extract !== "env") return null;
+    const target =
+      node.type === "call_expression"
+        ? field(node, "function")
+        : (node.type === "identifier" || node.type === "type_identifier") &&
+            !(
+              node.parent?.type === "call_expression" &&
+              field(node.parent, "function")?.id === node.id
+            )
+          ? node
+          : null;
+    if (
+      target === null ||
+      (target.type !== "identifier" && target.type !== "type_identifier") ||
+      GO_PREDECLARED.has(target.text) ||
+      goDeclaredName(target) ||
+      goDeclaredHere(target, target.text, context)
+    )
+      return null;
+    return `${target.text} may be declared in another file of the package`;
+  },
   valueReference(node, context) {
     if (node.type !== "selector_expression") return null;
     const name = goChain(node);

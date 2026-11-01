@@ -129,6 +129,89 @@ describe("rows about a name another file of the project may bind", () => {
     ]);
   });
 
+  const getenvRow = {
+    line: 85,
+    text: 'getenv may be declared in another file of the package: getenv("ADMIN_TOKEN")',
+  };
+  const helperRow = {
+    line: 86,
+    text: 'getEnv may be declared in another file of the package: getEnv("ADMIN_TOKEN", "")',
+  };
+
+  it("drops a Go package row only when no other file of the package can read the environment through that name", () => {
+    // main.go's own getter does not count, nor does a test file of the
+    // package for a production file, nor another package's directory.
+    const quiet = project({
+      "app/main.go":
+        'package main\nimport "os"\nfunc main() { _ = os.Getenv("A"); getenv("X") }\n',
+      "app/env.go": "package main\nfunc getenv(k string) string { return k }\n",
+      "app/env_test.go":
+        'package main\nimport "os"\nfunc init() { _ = os.Getenv("T"); getenv("T") }\n',
+      "app/sub/x.go": 'package sub\nimport "os"\nvar getenv = os.Getenv\n',
+    });
+    expect(
+      createShadowRowFilter(quiet)("app/main.go", [getenvRow, otherRow]),
+    ).toEqual([otherRow]);
+    // Another file reads the environment but never names getenv.
+    const unrelated = project({
+      "app/main.go": 'package main\nfunc main() { getenv("X") }\n',
+      "app/other.go":
+        'package main\nimport "os"\nfunc other() string { return os.Getenv("B") }\n',
+    });
+    expect(
+      createShadowRowFilter(unrelated)("app/main.go", [getenvRow]),
+    ).toEqual([]);
+  });
+
+  it("keeps a Go package row when another file of the package holds a getter or wrapper, or the package cannot be read", () => {
+    for (const declaration of [
+      'package main\nimport "os"\nvar getenv = os.Getenv\n',
+      'package main\nimport "os"\nfunc getEnv(k, d string) string { if v, ok := os.LookupEnv(k); ok { return v }; return d }\n',
+      'package main\nimport o "os"\nfunc getenv(k string) string { return o.Getenv(k) }\n',
+      'package main\nimport "syscall"\nfunc getenv(k string) (string, bool) { return syscall.Getenv(k) }\n',
+      'package main\nimport "os"\nfunc getenv(k string) string { return os.ExpandEnv("$" + k) }\n',
+      'package main\n// #include <stdlib.h>\nimport "C"\nfunc getenv(k string) string { return k }\n',
+      'package main\nimport _ "unsafe"\n//go:linkname getenv os.Getenv\nfunc getenv(string) string\n',
+    ]) {
+      const root = project({
+        "app/main.go":
+          'package main\nfunc main() { _ = getenv("ADMIN_TOKEN"); _ = getEnv("ADMIN_TOKEN", "") }\n',
+        "app/env.go": declaration,
+      });
+      expect(
+        createShadowRowFilter(root)("app/main.go", [getenvRow, helperRow])
+          .length,
+      ).toBeGreaterThan(0);
+    }
+    // A helper calling another file's getter wrapper is followed too.
+    const chain = project({
+      "app/main.go":
+        'package main\nfunc main() { _ = getenv("ADMIN_TOKEN") }\n',
+      "app/a.go":
+        "package main\nfunc getenv(k string) string { return inner(k) }\n",
+      "app/b.go":
+        'package main\nimport "os"\nfunc inner(k string) string { return os.Getenv(k) }\n',
+    });
+    expect(createShadowRowFilter(chain)("app/main.go", [getenvRow])).toEqual([
+      getenvRow,
+    ]);
+    // A test file reads its package's test files too.
+    const tests = project({
+      "app/main_test.go":
+        'package main\nfunc TestX() { _ = getenv("ADMIN_TOKEN") }\n',
+      "app/env_test.go": 'package main\nimport "os"\nvar getenv = os.Getenv\n',
+    });
+    expect(
+      createShadowRowFilter(tests)("app/main_test.go", [getenvRow]),
+    ).toEqual([getenvRow]);
+    expect(
+      createShadowRowFilter(path.join(tmpdir(), "kibi-shadow-missing-root"))(
+        "app/main.go",
+        [getenvRow],
+      ),
+    ).toEqual([getenvRow]);
+  });
+
   const environmentRow = {
     line: 5,
     text: 'Environment may be a type of the project: Environment.GetEnvironmentVariable("U02")',

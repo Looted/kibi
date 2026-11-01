@@ -10,6 +10,13 @@ globalThis.fetch = async () => {
 const { createTreeSitterReferenceExtractor } = await import("../dist/index.js");
 const extractor = createTreeSitterReferenceExtractor();
 
+/**
+ * A Go env row about a name another file of the package may declare: the
+ * host drops it once it has checked those files (references.test.js covers
+ * these rows).
+ */
+const PACKAGE_ROW = /^\w+ may be declared in another file of the package: /;
+
 /** Read one extract of an inline file; members are sorted, lines unique. */
 async function read(path, content, extract, options = {}) {
   const result = await extractor.extract({
@@ -22,9 +29,13 @@ async function read(path, content, extract, options = {}) {
   assert.equal(result.status, "ok", JSON.stringify(result));
   return {
     members: [...new Set(result.members)].sort(),
-    lines: [...new Set(result.unresolved.map((row) => row.line))].sort(
-      (a, b) => a - b,
-    ),
+    lines: [
+      ...new Set(
+        result.unresolved
+          .filter((row) => !PACKAGE_ROW.test(row.text))
+          .map((row) => row.line),
+      ),
+    ].sort((a, b) => a - b),
   };
 }
 
