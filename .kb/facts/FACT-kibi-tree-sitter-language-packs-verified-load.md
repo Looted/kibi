@@ -1,12 +1,12 @@
 ---
-title: 'Tree-sitter language packs: kibi-plugin-treesitter must load a Go, Rust, Java, C#, PHP, C, C++, Bash'
+title: 'Tree-sitter language packs: kibi-plugin-treesitter must load a Python, Go, Rust, Java, C#, PHP, C, C'
 status: active
 fact_kind: property_value
 subject_key: kibi.tree_sitter_language_packs
 property_key: loads_pack_grammar_only_when_pinned
 operator: eq
-claim_key: CLAIM-469CA72D8C01287D
-claim_text: kibi-plugin-treesitter must load a Go, Rust, Java, C#, PHP, C, C++, Bash, Ruby, Terraform or HCL grammar from its kibi-lang pack only when the installed pack version and the grammar file SHA-256 match the release catalog
+claim_key: CLAIM-D505D88A180B2074
+claim_text: kibi-plugin-treesitter must load a Python, Go, Rust, Java, C#, PHP, C, C++, Bash, Ruby, Terraform, HCL or SWI-Prolog grammar from its kibi-lang pack only when the installed pack version and the grammar file SHA-256 match the release catalog
 value_type: bool
 value_bool: true
 tags:
@@ -17,7 +17,7 @@ tags:
 text_ref: REQ-kibi-tree-sitter-language-packs
 origin:
   kind: agent
-  recorded_at: '2026-10-31T18:28:51.880Z'
+  recorded_at: '2026-10-31T21:49:03.881Z'
 id: FACT-kibi-tree-sitter-language-packs-verified-load
 type: fact
 ---

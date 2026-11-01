@@ -434,6 +434,26 @@ export async function checkTreeSitterSourceReferences(
     );
     assert.match(receipt, /binding: derived/, receipt);
   }
+  // A grammar file changed after install is named by kibi doctor.
+  const rustGrammar = join(
+    sandbox.repoDir,
+    "node_modules",
+    "kibi-lang-rust",
+    "tree-sitter-rust.wasm",
+  );
+  const grammarBytes = readFileSync(rustGrammar);
+  const changed = Buffer.from(grammarBytes);
+  changed[changed.length - 1] = (changed[changed.length - 1] ?? 0) ^ 1;
+  writeFileSync(rustGrammar, changed);
+  const modifiedDoctor = await kibi(sandbox, ["doctor"], {
+    timeoutMs: 240000,
+  });
+  assert.match(
+    modifiedDoctor.stdout + modifiedDoctor.stderr,
+    /installed grammar of kibi-lang-rust does not match the SHA-256/,
+    modifiedDoctor.stdout + modifiedDoctor.stderr,
+  );
+  writeFileSync(rustGrammar, grammarBytes);
   // Kibi stores the plugin's read as the certificate.
   assert.match(
     latestReceipt(sandbox, "TEST-CSHARP-IMPORTS"),

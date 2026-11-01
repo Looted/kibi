@@ -76,3 +76,48 @@ test("duplicate qualified declarations cannot transfer one authored identity to 
     }),
   ).rejects.toThrow("Ambiguous declaration locator");
 });
+
+// executable_for TEST-kibi-tree-sitter-language-packs
+test("a local partial gap validates the symbols declared outside it", async () => {
+  const lookup = new Map<string, ManifestLookupEntry>([sentinel]);
+  const partial = (
+    codes: string[],
+    ranges: SourceAnalysisResultV2["uncoveredRanges"],
+  ): SourceAnalysisResultV2 => ({
+    ...analysis(["Outside.execute", "Inside.execute"]),
+    status: "partial",
+    diagnostics: codes.map((code) => ({ code, message: code })),
+    uncoveredRanges: ranges,
+  });
+  const gap = {
+    startLine: 2,
+    startColumn: 0,
+    endLine: 2,
+    endColumn: 3,
+    reason: "include-may-alter-declarations",
+  };
+  const symbols = await extractSymbolsFromStagedFileAsync(file, lookup, {
+    analyzeText: () => partial(["TREESITTER_INCLUDE_UNAVAILABLE"], [gap]),
+  });
+  expect(symbols.map((symbol) => symbol.location.startLine)).toEqual([1]);
+  const { diagnostics: _omitted, ...withoutDiagnostics } = partial([], [gap]);
+  expect(
+    (
+      await extractSymbolsFromStagedFileAsync(file, lookup, {
+        analyzeText: () => withoutDiagnostics as SourceAnalysisResultV2,
+      })
+    ).length,
+  ).toBe(1);
+  // A whole-file gap, a truncated diagnostic list or no named range still
+  // refuses complete validation.
+  for (const [codes, ranges] of [
+    [["TREESITTER_SYNTAX_ERROR"], [gap]],
+    [["TREESITTER_DIAGNOSTIC_LIMIT"], [gap]],
+    [["TREESITTER_INCLUDE_UNAVAILABLE"], []],
+  ] as const)
+    await expect(
+      extractSymbolsFromStagedFileAsync(file, lookup, {
+        analyzeText: () => partial([...codes], [...ranges]),
+      }),
+    ).rejects.toThrow("complete symbol validation is unavailable");
+});

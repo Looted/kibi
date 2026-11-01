@@ -428,12 +428,13 @@ it("mixes multiple symbols with different file types", async () => {
   expect(out[1]?.sourceLine).toBe(3);
 });
 
-it("allows only explicit coordinate-only decorator partials without upgrading analysis", async () => {
+// executable_for TEST-kibi-tree-sitter-language-packs
+it("refreshes partial files per symbol and keeps decorator coordinates explicit", async () => {
   const { CapabilityRegistry } = await import("../../src/plugins/registry.js");
   const { SourceAnalysisService } = await import(
     "../../src/plugins/source-analysis-service.js"
   );
-  const content = "@identity\ndef run():\n    pass\n";
+  const content = "@identity\ndef run():\n    pass\n\ndef after():\n    pass\n";
   writeFile("decorated.py", content);
   const span = { startLine: 1, startColumn: 0, endLine: 3, endColumn: 8 };
   const raw = {
@@ -505,11 +506,17 @@ it("allows only explicit coordinate-only decorator partials without upgrading an
   ];
   const warn = spyOn(console, "warn").mockImplementation(() => {});
   try {
-    await expect(
-      enrichSymbolCoordinates(entries, tmpDir, {
-        sourceAnalysisService: service,
-      }),
-    ).rejects.toThrow("Cannot refresh incomplete source analysis");
+    // Without the decorator opt-in, a symbol declared inside an uncovered
+    // range keeps no coordinates, with one warning naming the lines.
+    const strict = await enrichSymbolCoordinates(entries, tmpDir, {
+      sourceAnalysisService: service,
+    });
+    expect(strict[0]?.sourceLine).toBeUndefined();
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0]?.[0]).toBe(
+      "[kibi] decorated.py: source analysis is partial; symbols declared on lines 1-3 keep no coordinates (TREESITTER_DECORATOR_EXPANSION_UNAVAILABLE (line 1): Decorators may alter or synthesize declarations.)",
+    );
+    warn.mockClear();
     const output = await enrichSymbolCoordinates(entries, tmpDir, {
       sourceAnalysisService: service,
       allowPythonDecoratorCoordinates: true,
@@ -531,7 +538,6 @@ it("allows only explicit coordinate-only decorator partials without upgrading an
       "TREESITTER_DECLARATION_PARSE_ERROR",
       "TREESITTER_DIAGNOSTIC_LIMIT",
       "TREESITTER_SYMBOL_LIMIT",
-      "TREESITTER_LOCATOR_COLLISION",
     ]) {
       response = {
         ...raw,
@@ -546,28 +552,71 @@ it("allows only explicit coordinate-only decorator partials without upgrading an
         }),
       ).rejects.toThrow("Cannot refresh incomplete source analysis");
     }
+    // A local gap that is not decorator-only refreshes per symbol: the symbol
+    // declared on line 2 lies inside it, one declared after it does not.
+    const firstLocal = raw.symbols[0];
+    if (firstLocal === undefined) throw new Error("expected a symbol");
     response = {
       ...raw,
+      symbols: [
+        firstLocal,
+        {
+          ...firstLocal,
+          name: "after",
+          qualifiedName: "after",
+          startLine: 5,
+          endLine: 6,
+        },
+      ],
+      diagnostics: [
+        {
+          code: "TREESITTER_LOCATOR_COLLISION",
+          message: "Local gap",
+          range: span,
+        },
+      ],
       uncoveredRanges: [{ ...span, reason: "unknown-omission" }],
     };
+    const local = await enrichSymbolCoordinates(
+      [
+        ...entries,
+        { id: "SYM-after", title: "after", sourceFile: "decorated.py" },
+      ],
+      tmpDir,
+      { sourceAnalysisService: service, allowPythonDecoratorCoordinates: true },
+    );
+    expect(local[0]?.sourceLine).toBeUndefined();
+    expect(local[2]).toMatchObject({ sourceLine: 5, sourceEndLine: 6 });
+    // A partial result that names no uncovered range cannot be narrowed.
+    response = { ...raw, uncoveredRanges: [] };
     await expect(
       enrichSymbolCoordinates(entries, tmpDir, {
         sourceAnalysisService: service,
-        allowPythonDecoratorCoordinates: true,
       }),
     ).rejects.toThrow("Cannot refresh incomplete source analysis");
     const firstSymbol = raw.symbols[0];
     if (firstSymbol === undefined) {
       throw new Error("Expected source analysis to return a symbol");
     }
-    response = { ...raw, symbols: [{ ...firstSymbol, endLine: 99 }] };
-    await expect(
-      enrichSymbolCoordinates(entries, tmpDir, {
-        sourceAnalysisService: service,
-        allowPythonDecoratorCoordinates: true,
-      }),
-    ).rejects.toThrow("Cannot refresh incomplete source analysis");
-    response = raw;
+    response = { ...raw, symbols: [{ ...firstSymbol, endLine: 6 }] };
+    expect(
+      (
+        await enrichSymbolCoordinates(entries, tmpDir, {
+          sourceAnalysisService: service,
+          allowPythonDecoratorCoordinates: true,
+        })
+      )[0]?.sourceLine,
+    ).toBe(2);
+    response = {
+      ...raw,
+      diagnostics: [
+        {
+          code: "TREESITTER_SYNTAX_ERROR",
+          message: "line 2 is not valid",
+          range: span,
+        },
+      ],
+    };
     const { refreshManifestCoordinates } = await import(
       "../../src/commands/sync/manifest.js"
     );
@@ -616,6 +665,30 @@ it("allows only explicit coordinate-only decorator partials without upgrading an
       allowPythonDecoratorCoordinates: true,
     });
     expect(ambiguous[0]?.sourceLine).toBeUndefined();
+    // A missing grammar pack is named once per file, with its install line,
+    // and the coarse heuristic still anchors the symbol.
+    warn.mockClear();
+    response = {
+      ...raw,
+      status: "unsupported",
+      symbols: [],
+      diagnostics: [
+        {
+          code: "TREESITTER_LANGUAGE_PACK_MISSING",
+          message:
+            "Python needs kibi-lang-python@1.0.0: npm install --save-dev kibi-lang-python@1.0.0",
+        },
+      ],
+      uncoveredRanges: [],
+    };
+    const unpacked = await enrichSymbolCoordinates(entries, tmpDir, {
+      sourceAnalysisService: service,
+    });
+    expect(unpacked[0]?.sourceLine).toBeNumber();
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0]?.[0]).toBe(
+      "[kibi] decorated.py: symbol coordinates are approximate until its grammar pack is installed. Python needs kibi-lang-python@1.0.0: npm install --save-dev kibi-lang-python@1.0.0",
+    );
   } finally {
     warn.mockRestore();
   }

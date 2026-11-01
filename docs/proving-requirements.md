@@ -674,7 +674,19 @@ Details that decide what a reader sees:
   java.lang.System.getenv`), C# `using static System.Environment` and `using
   E = System.Environment`, and Rust `use` bindings (`use std::env::var as
   getvar`) read as the canonical name, and the fully qualified forms match
-  too, so `calls` can list both `env::var` and `std::env::var`.
+  too, so `calls` can list both `env::var` and `std::env::var`; a Rust path
+  whose root the file does not bind (`env::var` with no `use std::env`, or a
+  local `mod env`) is not taken for the standard library. Calls on Java's
+  `java.lang` types and C#'s `System` types are also listed under their long
+  spelling (`java.lang.System.getenv`, `System.Console.WriteLine`), so a
+  "never calls" claim holds whichever spelling it uses. C# `imports` also
+  holds the project's `global using` lines from any tracked `.cs` file, the
+  `<Using Include>` items of `.csproj`/`.props` files and the usings
+  `ImplicitUsings` adds, and `global::` prefixes are dropped. A Go
+  identifier that shadows a package the file does not import (a local `os`)
+  is not that package. A function or method used as a value
+  (`logf := logrus.Error`, `apply(logrus.Error)`, a C# method group, a Rust
+  path such as `env::var` passed on) is listed in `calls`.
   A name computed at run time (`os.Getenv(name)`), the whole environment
   (`os.Environ()`, `System.getenv()`, `os.ExpandEnv`,
   `Environment.ExpandEnvironmentVariables`), a getter handed on as a value
@@ -684,11 +696,14 @@ Details that decide what a reader sees:
   reflection (Go `reflect` calls such as `MethodByName` and `plugin.Open`,
   Java `Class.forName` and `Method.invoke`, also fully qualified, C#
   `Type.GetType`, `Assembly.Load` and `CreateInstance`), C# `dynamic`
-  anywhere, a C# `#if` block, a Rust `#[cfg(...)]` item other than
-  `#[cfg(test)]` (whose items are skipped) and, for Rust `calls` and
-  `thrown`, any macro invocation (`println!` included), attribute macro
-  (`#[tokio::main]`) or derive outside the standard library fail the read
-  with their place. A file that does not parse is refused with its line.
+  anywhere (for `calls` and `env` alike, since a reflective call can read
+  the environment), a C# `#if` block, a Rust `#[cfg(...)]` item other than
+  `#[cfg(test)]` (whose items are skipped), for Rust `calls` and `thrown`
+  any macro invocation (`println!` included), attribute macro
+  (`#[tokio::main]`) or derive outside the standard library, for Rust `env`
+  a macro whose arguments mention an environment getter
+  (`eprintln!("{}", env::var("X")?)`), and for `string_args` a macro whose
+  arguments mention the callee fail the read with their place. A file that does not parse is refused with its line.
 - **Importing the app.** The `routes`, `validator` and drizzle readers import
   the module, so it must load without side effects (no `listen`, no database
   connection at import). Export a factory or a wrapper when the app needs

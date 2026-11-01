@@ -6,9 +6,10 @@ import { fileURLToPath } from "node:url";
 import type { TreeSitterLanguage } from "./catalog.js";
 
 /**
- * Grammars other than Python and SWI-Prolog ship in data-only language packs
- * (kibi-lang-go, kibi-lang-rust, ...), so a project installs only the
- * languages it uses. This release's catalog pins each pack's version and the
+ * Every grammar ships in a data-only language pack (kibi-lang-python,
+ * kibi-lang-go, kibi-lang-prolog, ...), so a project installs only the
+ * languages it uses and every language is handled the same way. A catalog
+ * entry without a pack would be read from the plugin's own assets. This release's catalog pins each pack's version and the
  * SHA-256 of every grammar file in it, so a pack is used only when its bytes
  * are the ones this release was qualified with. A missing or different pack
  * refuses the file and names the install line; it is never skipped.

@@ -1,5 +1,6 @@
 // implements REQ-cli-doctor
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
+import { execFileSync } from "node:child_process";
 import * as childProcess from "node:child_process";
 import * as fs from "node:fs";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -1029,6 +1030,23 @@ describe("doctorCommand capability plugins", () => {
       "builtin providers answer alone",
     );
     expect(check.message).toContain("TYPESAFE_API_KEY=missing");
+  });
+
+  // executable_for TEST-kibi-tree-sitter-language-packs
+  test("warns with the plugin suggestion when no plugin is configured but tracked sources need one", async () => {
+    const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
+    isolateUserEnvConfig();
+    writeFileSync(path.join(cwd, "main.go"), "package main\n");
+    execFileSync("git", ["add", "main.go"], { cwd, stdio: "ignore" });
+    const { payload } = await runDoctorJson(cwd);
+    const check = namedCheck(payload, "Capability plugins");
+    expect(check).toMatchObject({
+      passed: true,
+      warning: true,
+      message: "None configured; builtin providers only",
+    });
+    expect(String(check.remediation)).toContain("kibi-lang-go");
   });
 
   test("fails when a replace-mode Jev secret is missing, with remediation", async () => {

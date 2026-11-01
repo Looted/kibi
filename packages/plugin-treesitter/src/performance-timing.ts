@@ -48,8 +48,8 @@ export function createBoundedSourceAnalysisTimingEmitter(
   let linesWritten = 0;
   let disabled = false;
 
+  // Called only while the stream is still enabled.
   const stopWithMarker = (reason: "event_limit" | "byte_limit"): void => {
-    if (disabled) return;
     disabled = true;
     const marker = timingLimitLine(reason);
     const markerBytes = Buffer.byteLength(marker, "utf8");

@@ -17,6 +17,7 @@
 */
 
 import * as fs from "node:fs";
+import { analysisObligation } from "../traceability/analysis-gate.js";
 import * as path from "node:path";
 import { createMaintenanceSourceAnalysisService } from "../plugins/maintenance-source-analysis.js";
 import type { CapabilityRegistry } from "../plugins/registry.js";
@@ -190,6 +191,49 @@ export async function analyzeSourceTextWithRegistry(
   }
 }
 
+/**
+ * The uncovered ranges of a partial analysis whose gaps are local (a macro,
+ * an include, a dynamic definition), or null when the gap affects the whole
+ * file (syntax, parse, timeout, integrity, a diagnostic limit) or the provider
+ * named no ranges. A symbol declared outside every local range was parsed in
+ * full, so its span stays trustworthy.
+ */
+// implements REQ-source-analysis-v2
+function localPartialRanges(
+  analysis: Awaited<ReturnType<SourceAnalysisService["analyzeTextV2"]>>,
+): readonly { startLine: number; endLine: number }[] | null {
+  const codes = analysis.diagnostics.map((diagnostic) => diagnostic.code);
+  if (codes.some((code) => /LIMIT/i.test(code))) return null;
+  const obligation = analysisObligation(
+    "after",
+    {
+      status: "partial",
+      diagnosticCodes: codes,
+      uncoveredRanges: analysis.uncoveredRanges,
+    },
+    [],
+  );
+  return obligation.kind === "blocked" ? null : analysis.uncoveredRanges;
+}
+
+/** Diagnostics as `CODE (line N): message`, one per distinct message. */
+function describeAnalysisDiagnostics(
+  diagnostics: readonly {
+    code: string;
+    message: string;
+    range?: { startLine: number };
+  }[],
+): string {
+  return [
+    ...new Set(
+      diagnostics.map(
+        (diagnostic) =>
+          `${diagnostic.code}${diagnostic.range ? ` (line ${diagnostic.range.startLine})` : ""}: ${diagnostic.message}`,
+      ),
+    ),
+  ].join("; ");
+}
+
 function isCoordinateOnlyDecoratorPartial(
   analysis: Awaited<ReturnType<SourceAnalysisService["analyzeTextV2"]>>,
 ): boolean {
@@ -284,30 +328,56 @@ export async function enrichSymbolCoordinates(
     const coordinateOnlyPartial =
       deps?.allowPythonDecoratorCoordinates === true &&
       isCoordinateOnlyDecoratorPartial(analysis);
+    const localGaps =
+      analysis.status === "partial" && !coordinateOnlyPartial
+        ? localPartialRanges(analysis)
+        : null;
     if (
       analysis.status === "failed" ||
-      (analysis.status === "partial" && !coordinateOnlyPartial)
+      (analysis.status === "partial" && !coordinateOnlyPartial && !localGaps)
     )
       throw new Error(
-        `Cannot refresh incomplete source analysis for ${logicalPath}: ${analysis.diagnostics.map((d) => d.message).join("; ")}`,
+        `Cannot refresh incomplete source analysis for ${logicalPath}: ${describeAnalysisDiagnostics(analysis.diagnostics)}`,
       );
+    if (localGaps && firstAnalysis) {
+      console.warn(
+        `[kibi] ${logicalPath}: source analysis is partial; symbols declared on ${localGaps.map((range) => (range.startLine === range.endLine ? `line ${range.startLine}` : `lines ${range.startLine}-${range.endLine}`)).join(", ")} keep no coordinates (${describeAnalysisDiagnostics(analysis.diagnostics)})`,
+      );
+    }
     if (coordinateOnlyPartial && firstAnalysis) {
       console.warn(
         `[kibi] Coordinate-only refresh for ${logicalPath}; source analysis remains partial: ${analysis.diagnostics.map((diagnostic) => diagnostic.message).join("; ")}`,
       );
     }
     if (analysis.status === "unsupported") {
+      const pack = analysis.diagnostics.find((diagnostic) =>
+        diagnostic.code.startsWith("TREESITTER_LANGUAGE_PACK_"),
+      );
+      if (pack && firstAnalysis)
+        console.warn(
+          `[kibi] ${logicalPath}: symbol coordinates are approximate until its grammar pack is installed. ${pack.message}`,
+        );
       // Preserve the legacy coarse heuristic until the file-level migration;
       // it is never exposed as parser-backed symbol evidence.
       output[index] = enrichWithRegexHeuristic(entry, resolved.absolutePath);
       continue;
     }
-    const exact = analysis.symbols.filter(
+    const declared = localGaps
+      ? analysis.symbols.filter(
+          (symbol) =>
+            !localGaps.some(
+              (range) =>
+                range.startLine <= symbol.startLine &&
+                symbol.startLine <= range.endLine,
+            ),
+        )
+      : analysis.symbols;
+    const exact = declared.filter(
       (symbol) => (symbol.qualifiedName ?? symbol.name) === entry.title,
     );
     const candidates = exact.length
       ? exact
-      : analysis.symbols.filter((symbol) => symbol.name === entry.title);
+      : declared.filter((symbol) => symbol.name === entry.title);
     if (candidates.length !== 1) continue;
     const symbol = candidates[0];
     if (!symbol) continue;

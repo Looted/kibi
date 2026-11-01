@@ -41,6 +41,8 @@ describe("canonical package catalog", () => {
       "lang-bash",
       "lang-ruby",
       "lang-hcl",
+      "lang-python",
+      "lang-prolog",
       "plugin-treesitter",
       "runtime",
       "cli",

@@ -166,11 +166,11 @@ characters. Qualified names and signatures are declaration locators; authored KB
 IDs remain the authority for identity, ownership and proof. An ambiguous locator
 cannot transfer an existing ID.
 
-`kibi-plugin-treesitter` is optional. Python and SWI-Prolog grammars are built
-in; every other language's grammar is a data-only `kibi-lang-*` pack
-(`kibi-lang-go`, `kibi-lang-rust`, `kibi-lang-java`, `kibi-lang-csharp`,
-`kibi-lang-php`, `kibi-lang-c`, `kibi-lang-cpp`, `kibi-lang-bash`,
-`kibi-lang-ruby`, `kibi-lang-hcl`) installed next to it. The plugin pins each
+`kibi-plugin-treesitter` is optional. Every language's grammar is a data-only
+`kibi-lang-*` pack (`kibi-lang-python`, `kibi-lang-go`, `kibi-lang-rust`,
+`kibi-lang-java`, `kibi-lang-csharp`, `kibi-lang-php`, `kibi-lang-c`,
+`kibi-lang-cpp`, `kibi-lang-bash`, `kibi-lang-ruby`, `kibi-lang-hcl`,
+`kibi-lang-prolog`) installed next to it. The plugin pins each
 pack's version and grammar SHA-256 in its catalog and checks the bytes before
 loading them; a file whose pack is missing, another version or modified is
 refused with the install line, never skipped. Declare the exact qualified

@@ -8,6 +8,7 @@ import {
   checkPrologAvailable,
   createSandbox,
   kibi,
+  languagePackSpecs,
   packAll,
   run,
   stageSourceFile,
@@ -249,6 +250,7 @@ async function installTreeSitter(
       "--package-lock=false",
       `file:${tarballs["plugin-sdk"]}`,
       `file:${tarballs["plugin-treesitter"]}`,
+      ...languagePackSpecs(tarballs, ["lang-prolog"]),
     ],
     { cwd: sandbox.repoDir, env: sandbox.env, timeoutMs: 240000 },
   );

@@ -155,6 +155,14 @@
       "name": "kibi-lang-php",
       "version": "1.0.0",
     },
+    "packages/lang-prolog": {
+      "name": "kibi-lang-prolog",
+      "version": "1.0.0",
+    },
+    "packages/lang-python": {
+      "name": "kibi-lang-python",
+      "version": "1.0.0",
+    },
     "packages/lang-ruby": {
       "name": "kibi-lang-ruby",
       "version": "1.0.0",
@@ -265,6 +273,8 @@
         "kibi-lang-hcl": "1.0.0",
         "kibi-lang-java": "1.0.0",
         "kibi-lang-php": "1.0.0",
+        "kibi-lang-prolog": "1.0.0",
+        "kibi-lang-python": "1.0.0",
         "kibi-lang-ruby": "1.0.0",
         "kibi-lang-rust": "1.0.0",
         "kibi-plugin-sdk": "^0.5.0",
@@ -279,6 +289,8 @@
         "kibi-lang-hcl": "^1.0.0",
         "kibi-lang-java": "^1.0.0",
         "kibi-lang-php": "^1.0.0",
+        "kibi-lang-prolog": "^1.0.0",
+        "kibi-lang-python": "^1.0.0",
         "kibi-lang-ruby": "^1.0.0",
         "kibi-lang-rust": "^1.0.0",
         "kibi-plugin-sdk": "^0.5.0",
@@ -292,6 +304,8 @@
         "kibi-lang-hcl",
         "kibi-lang-java",
         "kibi-lang-php",
+        "kibi-lang-prolog",
+        "kibi-lang-python",
         "kibi-lang-ruby",
         "kibi-lang-rust",
       ],
@@ -1227,6 +1241,10 @@
     "kibi-lang-java": ["kibi-lang-java@workspace:packages/lang-java"],
 
     "kibi-lang-php": ["kibi-lang-php@workspace:packages/lang-php"],
+
+    "kibi-lang-prolog": ["kibi-lang-prolog@workspace:packages/lang-prolog"],
+
+    "kibi-lang-python": ["kibi-lang-python@workspace:packages/lang-python"],
 
     "kibi-lang-ruby": ["kibi-lang-ruby@workspace:packages/lang-ruby"],
 

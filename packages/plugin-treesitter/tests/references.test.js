@@ -79,7 +79,8 @@ describe("offline Tree-sitter reference extractor", () => {
 
   it("refuses a computed Go environment name and reflective calls", async () => {
     const file = "go/refs-dynamic.go";
-    assert.deepEqual(await unresolvedLines(file, "env"), [9]);
+    // Reflection may reach a getter by any name, so env refuses there too.
+    assert.deepEqual(await unresolvedLines(file, "env"), [9, 13]);
     assert.deepEqual(await unresolvedLines(file, "calls"), [13]);
   });
 
@@ -94,6 +95,8 @@ describe("offline Tree-sitter reference extractor", () => {
       "List.of",
       "System.getenv",
       "System.out.println",
+      "java.lang.System.getenv",
+      "java.lang.System.out.println",
       "log",
     ]);
     assert.deepEqual(await members(file, "env"), ["PORT"]);
@@ -106,7 +109,7 @@ describe("offline Tree-sitter reference extractor", () => {
   it("refuses Java reflection and a computed environment name", async () => {
     const file = "java/RefsDynamic.java";
     assert.deepEqual(await unresolvedLines(file, "calls"), [6]);
-    assert.deepEqual(await unresolvedLines(file, "env"), [5]);
+    assert.deepEqual(await unresolvedLines(file, "env"), [5, 6]);
   });
 
   it("reads C# usings, calls, environment variables, throws and initializer values", async () => {
@@ -118,6 +121,8 @@ describe("offline Tree-sitter reference extractor", () => {
     assert.deepEqual(await members(file, "calls"), [
       "Console.WriteLine",
       "Environment.GetEnvironmentVariable",
+      "System.Console.WriteLine",
+      "System.Environment.GetEnvironmentVariable",
     ]);
     assert.deepEqual(await members(file, "env"), ["PORT"]);
     assert.deepEqual(await members(file, "thrown"), [
@@ -285,5 +290,89 @@ describe("reads through names a file gives itself", () => {
     const inert =
       "#[derive(Debug, Clone)]\n#[allow(dead_code)]\nstruct S;\nfn f() { let _ = S; }\n";
     assert.deepEqual((await inline("a.rs", inert, "calls")).lines, []);
+  });
+});
+
+describe("agent-test regressions: no false proof", () => {
+  it("refuses a Rust env read inside macro arguments", async () => {
+    const source =
+      'use std::env;\nfn f() {\n eprintln!("{}", env::var("SECRET_TOKEN").unwrap());\n let _ = env::var("A");\n}\n';
+    const read = await inline("a.rs", source, "env");
+    assert.deepEqual(read.members, ["A"]);
+    assert.deepEqual(read.lines, [3]);
+    const plain =
+      'use std::env;\nfn f() { println!("{}", 1); let _ = env::var("A"); }\n';
+    assert.deepEqual((await inline("a.rs", plain, "env")).lines, []);
+    const args = 'fn f() { log!("x {}", target("y")); }\n';
+    assert.deepEqual(
+      (await inline("a.rs", args, "string_args", { callee: "target" })).lines,
+      [1],
+    );
+  });
+
+  it("reads Rust `self as` bindings and leaves a project module named env alone", async () => {
+    const selfAs =
+      'use std::env::{self as e2};\nfn f() { let _ = e2::var("A"); }\n';
+    assert.deepEqual((await inline("a.rs", selfAs, "env")).members, ["A"]);
+    const local =
+      'mod env { pub fn var(_: &str) {} }\nfn f() { env::var("A"); }\n';
+    assert.deepEqual((await inline("a.rs", local, "env")).members, []);
+  });
+
+  it("lists a Rust or Go function used as a value in calls", async () => {
+    const rust = "use std::env;\nfn f() { let g = env::var; }\n";
+    assert.ok(
+      (await inline("a.rs", rust, "calls")).members.includes("std::env::var"),
+    );
+    const go =
+      'package a\nimport "github.com/sirupsen/logrus"\nfunc f() { logf := logrus.Error; apply(logrus.Warn); _ = logf }\n';
+    const calls = (await inline("a.go", go, "calls")).members;
+    assert.ok(calls.includes("logrus.Error"), String(calls));
+    assert.ok(calls.includes("logrus.Warn"), String(calls));
+  });
+
+  it("does not take a Go value named os for the os package", async () => {
+    const source =
+      'package a\ntype T struct{}\nfunc (T) Getenv(string) string { return "" }\nfunc f(os T) { _ = os.Getenv("A") }\n';
+    assert.deepEqual((await inline("a.go", source, "env")).members, []);
+    const imported =
+      'package a\nimport "os"\nfunc f() { _ = os.Getenv("A") }\n';
+    assert.deepEqual((await inline("a.go", imported, "env")).members, ["A"]);
+  });
+
+  it("lists Java and C# calls under both spellings", async () => {
+    const java =
+      'import static java.lang.System.getenv;\nclass A { void f() { getenv("A"); } }\n';
+    const javaCalls = (await inline("A.java", java, "calls")).members;
+    assert.ok(javaCalls.includes("java.lang.System.getenv"), String(javaCalls));
+    assert.ok(javaCalls.includes("System.getenv"), String(javaCalls));
+    const cs =
+      'using static System.Environment;\nclass A { void F() { GetEnvironmentVariable("A"); } }\n';
+    const csCalls = (await inline("A.cs", cs, "calls")).members;
+    assert.ok(
+      csCalls.includes("System.Environment.GetEnvironmentVariable"),
+      String(csCalls),
+    );
+    const group =
+      "class A { void F() { System.Func<string,string> g = System.Environment.GetEnvironmentVariable; } }\n";
+    assert.ok(
+      (await inline("A.cs", group, "calls")).members.includes(
+        "Environment.GetEnvironmentVariable",
+      ),
+    );
+  });
+
+  it("reads C# global:: env reads and refuses env under reflection and dynamic", async () => {
+    const qualified =
+      'class A { void F() { global::System.Environment.GetEnvironmentVariable("A"); } }\n';
+    assert.deepEqual((await inline("A.cs", qualified, "env")).members, ["A"]);
+    const reflect =
+      'class A { void F() { typeof(A).GetMethod("X").Invoke(null, null); System.Environment.GetEnvironmentVariable("B"); } }\n';
+    assert.deepEqual((await inline("A.cs", reflect, "env")).lines, [1]);
+    const dyn = "class A { void F(dynamic d) { d.Run(); } }\n";
+    assert.deepEqual((await inline("A.cs", dyn, "env")).lines, [1]);
+    const java =
+      'class A { void f() throws Exception { Class.forName("X"); new ProcessBuilder("ls").environment(); } }\n';
+    assert.deepEqual((await inline("A.java", java, "env")).lines, [1]);
   });
 });

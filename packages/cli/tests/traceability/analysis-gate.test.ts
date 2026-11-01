@@ -101,6 +101,39 @@ describe("analysis gate", () => {
       ),
     ).toEqual({ kind: "unsupported_review" });
   });
+  // executable_for TEST-kibi-tree-sitter-language-packs
+  test("a missing or other-version grammar pack blocks instead of asking for a review", () => {
+    for (const code of [
+      "TREESITTER_LANGUAGE_PACK_MISSING",
+      "TREESITTER_LANGUAGE_PACK_VERSION",
+    ])
+      expect(
+        analysisObligation(
+          "after",
+          {
+            status: "unsupported",
+            diagnosticCodes: [code],
+            uncoveredRanges: [],
+          },
+          [],
+        ),
+      ).toEqual({
+        kind: "blocked",
+        reason:
+          "the kibi-lang grammar pack for this file is not installed at the version kibi-plugin-treesitter pins; kibi doctor gives the install line",
+      });
+    expect(
+      analysisObligation(
+        "before",
+        {
+          status: "unsupported",
+          diagnosticCodes: ["TREESITTER_LANGUAGE_PACK_MISSING"],
+          uncoveredRanges: [],
+        },
+        [],
+      ).kind,
+    ).toBe("none");
+  });
   test("a partial after side that reports no uncovered ranges blocks", () => {
     expect(
       analysisObligation("after", partial(["known_partial"], []), [

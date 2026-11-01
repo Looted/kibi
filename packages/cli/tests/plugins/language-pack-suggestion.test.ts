@@ -56,10 +56,23 @@ describe("language pack suggestions", () => {
     ).toBeNull();
   });
 
-  it("does not push the plugin for languages it cannot prove when it is not listed", () => {
+  it("suggests the plugin for symbols alone in a language it cannot prove", () => {
+    const suggestion = referenceLanguageSuggestion(
+      ["web/index.php", "deploy.sh"],
+      {},
+    );
+    expect(suggestion?.capabilities).toEqual(["kibi.symbol-extractor.v2"]);
+    expect(suggestion?.packs).toEqual(["kibi-lang-php", "kibi-lang-bash"]);
     expect(
-      referenceLanguageSuggestion(["web/index.php", "deploy.sh"], {}),
-    ).toBeNull();
+      describeReferenceLanguageSuggestion(
+        suggestion as NonNullable<typeof suggestion>,
+      ),
+    ).toContain("symbols for them need kibi-plugin-treesitter");
+    // `.pl` alone may be Perl; Prolog needs a .plt file or pack.pl.
+    expect(referenceLanguageSuggestion(["lib/tool.pl"], {})).toBeNull();
+    expect(
+      referenceLanguageSuggestion(["pack.pl", "prolog/a.pl"], {})?.packs,
+    ).toEqual(["kibi-lang-prolog"]);
     expect(
       referenceLanguageSuggestion(["cmd/main.go"], {
         declinedPlugins: ["kibi-plugin-treesitter"],

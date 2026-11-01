@@ -11,6 +11,8 @@ export const languagePackDirs = [
   "lang-bash",
   "lang-ruby",
   "lang-hcl",
+  "lang-python",
+  "lang-prolog",
 ] as const;
 
 // implements REQ-kibi-tree-sitter-language-packs

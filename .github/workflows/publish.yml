@@ -171,6 +171,8 @@ jobs:
             packages/lang-bash/*.tgz
             packages/lang-ruby/*.tgz
             packages/lang-hcl/*.tgz
+            packages/lang-python/*.tgz
+            packages/lang-prolog/*.tgz
             packages/plugin-treesitter/*.tgz
             packages/runtime/*.tgz
             packages/cli/*.tgz

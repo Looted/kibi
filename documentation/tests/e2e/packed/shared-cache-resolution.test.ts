@@ -155,6 +155,8 @@ if (fixtureChild) {
       "lang-bash": archive("lang-bash"),
       "lang-ruby": archive("lang-ruby"),
       "lang-hcl": archive("lang-hcl"),
+      "lang-python": archive("lang-python"),
+      "lang-prolog": archive("lang-prolog"),
       swipl: archive("swipl"),
     };
     writePackedInstallManifest(prefix, tarballs);

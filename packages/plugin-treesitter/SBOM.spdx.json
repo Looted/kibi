@@ -43,42 +43,6 @@
           "referenceLocator": "pkg:npm/web-tree-sitter@0.27.0"
         }
       ]
-    },
-    {
-      "name": "tree-sitter-python",
-      "SPDXID": "SPDXRef-TreeSitterPython",
-      "versionInfo": "0.25.0",
-      "downloadLocation": "https://registry.npmjs.org/tree-sitter-python/-/tree-sitter-python-0.25.0.tgz",
-      "filesAnalyzed": false,
-      "licenseConcluded": "MIT",
-      "licenseDeclared": "MIT",
-      "copyrightText": "NOASSERTION",
-      "comment": "Only the parser WASM, upstream tags query, and MIT text are vendored. The package SRI and source commit are in catalog.json.",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/tree-sitter-python@0.25.0"
-        }
-      ]
-    },
-    {
-      "name": "tree-sitter-swi-prolog",
-      "SPDXID": "SPDXRef-treesitterswiprolog-010",
-      "versionInfo": "0.1.0",
-      "downloadLocation": "https://registry.npmjs.org/tree-sitter-swi-prolog/-/tree-sitter-swi-prolog-0.1.0.tgz",
-      "filesAnalyzed": false,
-      "licenseConcluded": "MIT",
-      "licenseDeclared": "MIT",
-      "copyrightText": "NOASSERTION",
-      "comment": "Only the pinned SWI-Prolog WASM from the npm tarball is vendored; the query is Kibi-authored.",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/tree-sitter-swi-prolog@0.1.0"
-        }
-      ]
     }
   ],
   "relationships": [

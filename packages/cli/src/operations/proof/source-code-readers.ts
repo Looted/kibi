@@ -27,6 +27,7 @@
  * Hono and Express route tables, zod and pydantic validators).
  */
 
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
@@ -498,7 +499,76 @@ async function readPluginReferences(
     members.push(...result.members);
     for (const row of result.unresolved) unresolved.push({ file, line: row.line, text: row.text });
   }
+  // A C# file also imports what the project's global and implicit usings
+  // bring in, which no single file shows.
+  if (spec.extract === "imports" && files.some((file) => /\.cs$/i.test(file)))
+    members.push(...csharpProjectUsings(workspaceRoot));
   return { ok: true, members, unresolved };
+}
+
+/** The namespaces `<ImplicitUsings>enable</ImplicitUsings>` adds, by SDK. */
+const CSHARP_IMPLICIT_USINGS = [
+  "System",
+  "System.Collections.Generic",
+  "System.IO",
+  "System.Linq",
+  "System.Net.Http",
+  "System.Threading",
+  "System.Threading.Tasks",
+];
+const CSHARP_WEB_IMPLICIT_USINGS = [
+  "System.Net.Http.Json",
+  "Microsoft.AspNetCore.Builder",
+  "Microsoft.AspNetCore.Hosting",
+  "Microsoft.AspNetCore.Http",
+  "Microsoft.AspNetCore.Routing",
+  "Microsoft.Extensions.Configuration",
+  "Microsoft.Extensions.DependencyInjection",
+  "Microsoft.Extensions.Hosting",
+  "Microsoft.Extensions.Logging",
+];
+
+/**
+ * Namespaces every C# file of the project imports: `global using`
+ * directives in any tracked .cs file, `<Using Include>` items and the SDK's
+ * implicit usings in any tracked .csproj.
+ */
+// implements REQ-kibi-tree-sitter-references
+export function csharpProjectUsings(workspaceRoot: string): string[] {
+  let tracked: string[];
+  try {
+    tracked = execFileSync("git", ["ls-files", "-z", "--", "*.cs", "*.csproj", "*.props"], {
+      cwd: workspaceRoot,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+      maxBuffer: 64 * 1024 * 1024,
+    })
+      .split("\0")
+      .filter((file) => file.length > 0);
+  } catch {
+    tracked = [];
+  }
+  const usings = new Set<string>();
+  for (const file of tracked) {
+    let text: string;
+    try {
+      text = readFileSync(path.join(workspaceRoot, file), "utf8");
+    } catch {
+      continue;
+    }
+    if (/\.cs$/i.test(file)) {
+      for (const match of text.matchAll(/^\s*global\s+using\s+(?:static\s+)?(?:(\w+)\s*=\s*)?([\w.:]+)\s*;/gm))
+        usings.add((match[2] ?? "").replace(/^global::/, ""));
+      continue;
+    }
+    for (const match of text.matchAll(/<Using\s+Include="([^"]+)"/g)) usings.add(match[1] ?? "");
+    if (/<ImplicitUsings>\s*(?:enable|true)\s*<\/ImplicitUsings>/i.test(text)) {
+      for (const name of CSHARP_IMPLICIT_USINGS) usings.add(name);
+      if (/Sdk="Microsoft\.NET\.Sdk\.Web"/.test(text)) for (const name of CSHARP_WEB_IMPLICIT_USINGS) usings.add(name);
+    }
+  }
+  usings.delete("");
+  return [...usings].sort();
 }
 
 type PrologRead = {

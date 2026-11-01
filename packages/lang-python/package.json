@@ -1,0 +1,30 @@
+{
+  "name": "kibi-lang-python",
+  "version": "1.0.0",
+  "description": "Python grammar for kibi-plugin-treesitter (tree-sitter-python 0.25.0)",
+  "license": "MIT",
+  "author": "Piotr Franczyk",
+  "homepage": "https://looted.github.io/kibi/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Looted/kibi.git",
+    "directory": "packages/lang-python"
+  },
+  "bugs": {
+    "url": "https://github.com/Looted/kibi/issues"
+  },
+  "keywords": [
+    "kibi",
+    "tree-sitter",
+    "python"
+  ],
+  "files": [
+    "tree-sitter-python.wasm",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

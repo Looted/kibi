@@ -22,10 +22,10 @@ const SCAN_PATTERNS = [
   "**/Cargo.toml",
   "**/go.mod",
   "**/opencode.json",
-  "**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs,py,rb,go,rs,java,kt,swift,php,c,cc,cpp,h,hpp,pl,plt}",
+  "**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs,py,pyi,rb,go,rs,java,kt,swift,php,c,cc,cpp,cxx,h,hh,hpp,hxx,cs,sh,bash,tf,hcl,pl,plt}",
 ] as const;
 const CODE_EXTENSION =
-  /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs|py|rb|go|rs|java|kt|swift|php|c|cc|cpp|h|hpp|pl|plt)$/i;
+  /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs|py|pyi|rb|go|rs|java|kt|swift|php|c|cc|cpp|cxx|h|hh|hpp|hxx|cs|sh|bash|tf|hcl|pl|plt)$/i;
 const LAYOUT_ROOTS = new Set([
   "src",
   "app",
