@@ -707,8 +707,8 @@ type HookCommandRun = { code: number | null; stdout: string; stderr: string };
 
 /**
  * Run the command `hooks/hooks.json` registers for `event` the way Cursor
- * does: through a shell from the plugin root (the command names the built
- * `dist/hook-runner.js` relative to it), with the hook payload on stdin.
+ * does: through a shell from the plugin root (the command names the committed
+ * `bin/hook-runner.mjs` bundle relative to it), with the hook payload on stdin.
  */
 function runCursorHookCommand(
   event: string,

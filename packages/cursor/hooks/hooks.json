@@ -3,32 +3,32 @@
   "hooks": {
     "sessionStart": [
       {
-        "command": "node dist/hook-runner.js"
+        "command": "node bin/hook-runner.mjs"
       }
     ],
     "beforeSubmitPrompt": [
       {
-        "command": "node dist/hook-runner.js"
+        "command": "node bin/hook-runner.mjs"
       }
     ],
     "preToolUse": [
       {
-        "command": "node dist/hook-runner.js"
+        "command": "node bin/hook-runner.mjs"
       }
     ],
     "postToolUse": [
       {
-        "command": "node dist/hook-runner.js"
+        "command": "node bin/hook-runner.mjs"
       }
     ],
     "beforeReadFile": [
       {
-        "command": "node dist/hook-runner.js"
+        "command": "node bin/hook-runner.mjs"
       }
     ],
     "stop": [
       {
-        "command": "node dist/hook-runner.js",
+        "command": "node bin/hook-runner.mjs",
         "loop_limit": 1
       }
     ]

@@ -145,7 +145,8 @@ function firmNotice(
 }
 
 function packageVersion(): string | null {
-  // dist/hook-runner.js sits one level below the package root. Each hook
+  // bin/hook-runner.mjs and dist/hook-runner.js sit one level below the
+  // package root. Each hook
   // event is its own process, so the version is read at most once per event.
   return readPackageVersion(
     path.join(

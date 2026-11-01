@@ -67,7 +67,7 @@ proof_receipts:
 ---
 # The Cursor preToolUse hook command gives an edit of linked code its requirement, what it must keep true and its decision within the snippet budget
 
-Runs the command from `packages/cursor/hooks/hooks.json` through a shell as Cursor does, against a fixture KB, using the built `dist/hook-runner.js` (`packages/cursor/tests/hook-runner.test.ts`).
+Runs the command from `packages/cursor/hooks/hooks.json` through a shell as Cursor does, against a fixture KB, using the committed self-contained `bin/hook-runner.mjs` bundle (`packages/cursor/tests/hook-runner.test.ts`).
 
 - An edit of requirement-linked code is allowed and its guidance names the requirement, the function the edit is inside, a `must keep true` line with its grounding facts and the `Decision:` ADR line, within the shared snippet budget.
 - The snippet is not repeated in the same conversation.
