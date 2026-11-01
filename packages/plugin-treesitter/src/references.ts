@@ -1680,6 +1680,15 @@ function csharpBinding(
 ): { readonly owner: readonly string[] } | null {
   const none: readonly string[] = [];
   for (let scope = node.parent; scope !== null; scope = scope.parent) {
+    // `class U(Fake Environment)`: a primary constructor's parameters are in
+    // scope in the whole type.
+    if (CSHARP_TYPE_DECLARATIONS.has(scope.type))
+      for (const list of named(scope))
+        if (
+          list.type === "parameter_list" &&
+          named(list).some((parameter) => csharpName(parameter) === name)
+        )
+          return { owner: none };
     const parameters = field(scope, "parameters");
     if (parameters !== null) {
       if (
@@ -1761,6 +1770,46 @@ function csharpBare(
   };
 }
 
+/**
+ * Expressions and clauses that declare a local by a name of their own: a
+ * pattern variable (`o is Fake Environment`, `o is var Environment`), an out
+ * variable (`out var Environment`), a deconstruction and a query variable.
+ */
+const CSHARP_DESIGNATIONS = [
+  "declaration_pattern",
+  "declaration_expression",
+  "recursive_pattern",
+  "var_pattern",
+  "tuple_pattern",
+  "parenthesized_variable_designation",
+  "from_clause",
+  "let_clause",
+  "join_clause",
+  "join_into_clause",
+  "query_continuation",
+];
+
+/**
+ * Whether any designation in the file declares `name`. Their scopes (the
+ * enclosing statement, block or query) are not followed: wherever the file
+ * declares a local of that name, `name.X` may be a member of that local, so
+ * the reader does not take it for a System type's.
+ */
+function csharpDesignates(file: Node, name: string): boolean {
+  return CSHARP_DESIGNATIONS.some((type) =>
+    descendants(file, type).some((node) =>
+      named(node).some(
+        (part) => part.type === "identifier" && csharpId(part.text) === name,
+      ),
+    ),
+  );
+}
+
+/** A dotted name with a `using` alias at its head replaced by what it names. */
+function csharpAliased(name: string, context: FileContext): string {
+  return withoutSystem(aliased(withoutSystem(name), ".", context.aliases));
+}
+
 /** Whether a type around `node` has a base type this file does not declare. */
 function csharpInheritsUnknown(node: Node): boolean {
   let file: Node = node;
@@ -1794,6 +1843,7 @@ function csharpReceiver(name: string, at: Node): string {
   if (binding !== null) return binding.owner.length === 0 ? method : name;
   let file: Node = at;
   while (file.parent !== null) file = file.parent;
+  if (csharpDesignates(file, root)) return method;
   for (const type of [...CSHARP_TYPE_DECLARATIONS, "enum_declaration"])
     if (descendants(file, type).some((node) => csharpName(node) === root))
       return method;
@@ -1871,14 +1921,21 @@ const CSHARP: Reader = {
       inner?.type === "anonymous_method_expression"
     );
   },
-  callName(call) {
+  callName(call, context) {
     const target = field(call, "function");
     /* node:coverage disable */
     if (target === null) return null;
     /* node:coverage enable */
     if (target.type === "identifier" && target.text === "nameof") return null;
     const name = csharpChain(target);
-    if (name !== null) return csharpReceiver(name, call);
+    // `using Environment = Lib.FakeEnvironment`: the call is listed under
+    // what the alias names, never under the alias's spelling.
+    if (name !== null) {
+      const received = csharpReceiver(name, call);
+      return context.aliases.has(before(withoutSystem(received), "."))
+        ? csharpAliased(received, context)
+        : received;
+    }
     // `a?.B()` is a conditional access, whose binding names no receiver.
     if (target.type === "member_access_expression") {
       const member = field(target, "name");
@@ -1926,15 +1983,17 @@ const CSHARP: Reader = {
   candidates(name, context, at) {
     // A bare name is a member the file binds or one `using static` type's.
     if (!/[.:]/.test(name)) return csharpBare(name, context, at).names;
-    const resolved = withoutSystem(
-      aliased(withoutSystem(name), ".", context.aliases),
-    );
+    const resolved = csharpAliased(name, context);
     // Both spellings of a System member name it: Environment.X and
     // System.Environment.X.
     const long = CSHARP_SYSTEM_TYPES.has(before(resolved, "."))
       ? [`System.${resolved}`]
       : [];
-    return unique([resolved, ...long, name]);
+    // An alias's own spelling names nothing else.
+    const spelled = context.aliases.has(before(withoutSystem(name), "."))
+      ? []
+      : [name];
+    return unique([resolved, ...long, ...spelled]);
   },
   refuses(node, callName, names, context, extract, callee) {
     const call = CSHARP.isCall(node);
@@ -1965,6 +2024,37 @@ const CSHARP: Reader = {
     if (extract === "string_args")
       return finalName(callee) === finalName(callName);
     return extract === "env" || extract === "calls";
+  },
+  shadowed(node, _callName, _names, context, extract, callee) {
+    // A call `Environment.X(..)`, or a method group `Environment.X` handed on.
+    const target = CSHARP.isCall(node)
+      ? field(node, "function")
+      : node.type === "member_access_expression" &&
+          node.parent?.type !== "invocation_expression" &&
+          csharpValuePosition(node)
+        ? node
+        : null;
+    const spelled = target === null ? null : csharpChain(target);
+    if (spelled === null) return null;
+    const root = before(spelled, ".");
+    // A type of that name declared in any file of the project (its
+    // namespace, an enclosing one or the global namespace) or a `global
+    // using` alias of it would bind instead of System's.
+    if (
+      root === spelled ||
+      !CSHARP_SYSTEM_TYPES.has(root) ||
+      context.aliases.has(root) ||
+      csharpReceiver(spelled, node).startsWith(`${ANY_RECEIVER}.`)
+    )
+      return null;
+    const read =
+      extract === "calls" ||
+      (extract === "env" && CSHARP_ENV_NAMES.has(finalName(spelled))) ||
+      (extract === "string_args" &&
+        CSHARP.candidates(spelled, context, node).some((name) =>
+          calleeMatches(name, callee),
+        ));
+    return read ? `${root} may be a type of the project` : null;
   },
   valueReference(node, context) {
     // A method group (`Func<string, string> g = Environment.X`, `Run(X.Y)`,

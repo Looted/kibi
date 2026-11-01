@@ -25,7 +25,12 @@
  *   would be used instead of java.lang's;
  * - a bare Rust standard macro ("println may be a macro_rules! macro of the
  *   crate: ..."): a `macro_rules! println` elsewhere in the crate, in
- *   textual scope through `#[macro_use]`, would be expanded instead.
+ *   textual scope through `#[macro_use]`, would be expanded instead;
+ * - a C# System type spelled bare ("Environment may be a type of the
+ *   project: ..."): a type of that name in the file's namespace, an
+ *   enclosing one or the global namespace, declared in any file of the
+ *   project, or a `global using` alias of that name, would bind instead of
+ *   System's.
  *
  * The host drops such a row only after it has looked at those files and
  * found no such declaration. When it finds one, or cannot read the files,
@@ -42,6 +47,7 @@ interface Row {
 
 const JAVA_ROW = /^(System|Runtime) may be a class of (?:package [\w.]+|the default package): /;
 const RUST_ROW = /^(\w+) may be a macro_rules! macro of the crate: /;
+const CSHARP_ROW = /^(\w+) may be a type of the project: /;
 
 /** Java source with comments, string, char and text-block contents removed. */
 export function javaCode(text: string): string {
@@ -83,16 +89,36 @@ function javaDeclares(text: string, name: string): boolean {
   return new RegExp(`(?:^|[^\\w$.])(?:class|interface|enum|record)\\s+${name}(?![\\w$])`).test(javaCode(text));
 }
 
-/** Rust source files under a directory, skipping build output and dot folders. */
-function rustFiles(directory: string): string[] {
+/**
+ * Source files with an extension under a directory, skipping dot folders,
+ * node_modules and the named build folders.
+ */
+function sourceFiles(directory: string, extension: string, skipped: readonly string[] = []): string[] {
   const files: string[] = [];
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
-    if (entry.name.startsWith(".") || entry.name === "target" || entry.name === "node_modules") continue;
+    if (entry.name.startsWith(".") || entry.name === "node_modules" || skipped.includes(entry.name)) continue;
     const full = path.join(directory, entry.name);
-    if (entry.isDirectory()) files.push(...rustFiles(full));
-    else if (entry.name.endsWith(".rs")) files.push(full);
+    if (entry.isDirectory()) files.push(...sourceFiles(full, extension, skipped));
+    else if (entry.name.endsWith(extension)) files.push(full);
   }
   return files;
+}
+
+/**
+ * Whether C# source may declare a type, namespace or `global using` alias of
+ * that name. Comments and strings are not stripped (a mention there keeps
+ * the row too), and an identifier spelled with a Unicode escape may be any
+ * name.
+ */
+function csharpDeclares(text: string, name: string): boolean {
+  const id = `@?${name}(?![\\w\\\\])`;
+  return (
+    new RegExp(`\\b(?:class|struct|interface|enum|record)\\s+(?:(?:class|struct)\\s+)?${id}`).test(text) ||
+    new RegExp(`\\bdelegate\\s+[^;{}()]*?[\\s>\\]?]${id}\\s*[<(]`).test(text) ||
+    new RegExp(`\\bnamespace\\s+(?:[\\w@]+\\s*\\.\\s*)*${id}`).test(text) ||
+    new RegExp(`\\bglobal\\s+using\\s+${id}\\s*=`).test(text) ||
+    /\b(?:class|struct|interface|enum|record|delegate)\b[^;{}]*?\\[uU]/.test(text)
+  );
 }
 
 /** The nearest folder holding Cargo.toml at or above `directory`, within the workspace. */
@@ -157,8 +183,14 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
       const rust = RUST_ROW.exec(row.text);
       if (rust !== null) {
         const root = crateRoot(workspaceRoot, directory);
-        const texts = read(`rust:${root}`, () => rustFiles(root));
+        const texts = read(`rust:${root}`, () => sourceFiles(root, ".rs", ["target"]));
         return texts === null || texts.some((text) => rustDefines(text, rust[1] as string));
+      }
+      const csharp = CSHARP_ROW.exec(row.text);
+      if (csharp !== null) {
+        // Generated sources under obj/ are compiled too, so they are read.
+        const texts = read("csharp", () => sourceFiles(workspaceRoot, ".cs"));
+        return texts === null || texts.some((text) => csharpDeclares(text, csharp[1] as string));
       }
       return true;
     });

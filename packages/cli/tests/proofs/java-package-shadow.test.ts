@@ -128,4 +128,47 @@ describe("rows about a name another file of the project may bind", () => {
       macroRow,
     ]);
   });
+
+  const environmentRow = {
+    line: 5,
+    text: 'Environment may be a type of the project: Environment.GetEnvironmentVariable("U02")',
+  };
+
+  it("drops a C# row only when no file of the project declares that type or a global alias of it", () => {
+    const root = project({
+      "src/App/U02.cs":
+        'namespace App.Shadow { class U02 { string E() => Environment.GetEnvironmentVariable("U02"); } }\n',
+      "src/App/Notes.cs":
+        'class Notes { string S = "Environment"; class EnvironmentX {} void M() => Environment.Exit(1); }\n',
+      "src/App/readme.txt": "class Environment {}\n",
+      "node_modules/x/Environment.cs": "class Environment {}\n",
+    });
+    expect(
+      createShadowRowFilter(root)("src/App/U02.cs", [environmentRow, otherRow]),
+    ).toEqual([otherRow]);
+  });
+
+  it("keeps a C# row when another file declares the type, a global alias, may spell it by an escape, or the project cannot be read", () => {
+    for (const declaration of [
+      "namespace App.Shadow { static class Environment { public static string GetEnvironmentVariable(string k) => k; } }\n",
+      "public record struct Environment(int A);\n",
+      "namespace App;\ninternal enum Environment { Dev }\n",
+      "public delegate void Environment(int code);\n",
+      "class @Environment {}\n",
+      "class \\u0045nvironment {}\n",
+      "global using Environment = Lib.FakeEnvironment;\n",
+    ]) {
+      const root = project({
+        "src/App/U02.cs": "namespace App.Shadow { class U02 {} }\n",
+        "obj/Generated/U01.cs": declaration,
+      });
+      expect(
+        createShadowRowFilter(root)("src/App/U02.cs", [environmentRow]),
+      ).toEqual([environmentRow]);
+    }
+    const missing = path.join(tmpdir(), "kibi-shadow-missing-root");
+    expect(
+      createShadowRowFilter(missing)("src/App/U02.cs", [environmentRow]),
+    ).toEqual([environmentRow]);
+  });
 });

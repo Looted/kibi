@@ -35,7 +35,7 @@ async function read(path, extract, options = {}) {
  * like a std macro); the tests that are about them assert them directly.
  */
 const SHADOW_ROW =
-  /^(?:\w+ may be a class of (?:package [\w.]+|the default package)|\w+ may be a macro_rules! macro of the crate): /;
+  /^(?:\w+ may be a class of (?:package [\w.]+|the default package)|\w+ may be a macro_rules! macro of the crate|\w+ may be a type of the project): /;
 const readRows = (result) =>
   result.unresolved.filter((row) => !SHADOW_ROW.test(row.text));
 
@@ -1401,6 +1401,8 @@ describe("round-3 agent-test regressions: exact or refuse", () => {
     assert.deepEqual(await inline("A.cs", inherited, "env"), {
       members: ["KNOWN_BASE"],
       lines: [4],
+      // Environment may be a type another file of the project declares.
+      shadows: [3],
     });
   });
 });
@@ -1513,6 +1515,124 @@ describe("round-4 agent-test regressions: exact or refuse", () => {
     assert.deepEqual(await inline("A.cs", env, "env"), {
       members: [],
       lines: [4, 5, 6, 7, 9],
+      shadows: [4, 5, 6, 7, 9],
     });
+  });
+
+  it("does not read a C# Environment bound by a pattern, out var, deconstruction, query or primary constructor as System.Environment", async () => {
+    const bindings = [
+      ["void M(object o) { if (o is Fake Environment) ", " }"],
+      ["void M(object o) { if (o is var Environment) ", " }"],
+      ["void M(object o) { if (o is Fake { } Environment) ", " }"],
+      ["void M() { if (Try(out var Environment)) ", " }"],
+      ["void M() { if (Try(out Fake Environment)) ", " }"],
+      ["void M() { var (Environment, z) = P(); ", " }"],
+      [
+        "void M(Fake[] xs) { var q = from Environment in xs select Environment; ",
+        " }",
+      ],
+    ];
+    for (const [head, tail] of bindings) {
+      const source = [
+        "using System;",
+        `class U { ${head}Environment.Exit(1);${tail} }`,
+        `class W { ${head}Environment.GetEnvironmentVariable("FAKE");${tail} }`,
+      ].join("\n");
+      const calls = await inline("A.cs", source, "calls");
+      assert.ok(calls.members.includes("*.Exit"), `${head}: ${calls.members}`);
+      assert.ok(
+        !calls.members.some((name) => name.startsWith("System.Environment")),
+        `${head}: ${calls.members}`,
+      );
+      assert.deepEqual(
+        await inline("A.cs", source, "env"),
+        { members: [], lines: [3] },
+        head,
+      );
+    }
+    const primary = [
+      "using System;",
+      "class U08(Fake Environment) {",
+      "  void M() => Environment.Exit(10);",
+      '  string E() => Environment.GetEnvironmentVariable("U08");',
+      "}",
+    ].join("\n");
+    assert.ok(
+      (await inline("A.cs", primary, "calls")).members.includes("*.Exit"),
+    );
+    assert.deepEqual(await inline("A.cs", primary, "env"), {
+      members: [],
+      lines: [4],
+    });
+  });
+
+  it("does not read a C# using alias named Environment as System.Environment", async () => {
+    const source = [
+      "using Environment = Lib.FakeEnvironment;",
+      "class U10 {",
+      "  void M() { Environment.Exit(1); }",
+      '  string E() => Environment.GetEnvironmentVariable("U10");',
+      "}",
+    ].join("\n");
+    const calls = await inline("A.cs", source, "calls");
+    assert.ok(
+      calls.members.includes("Lib.FakeEnvironment.Exit"),
+      String(calls.members),
+    );
+    assert.ok(
+      !calls.members.some((name) => /^(?:System\.)?Environment\./.test(name)),
+      String(calls.members),
+    );
+    assert.deepEqual(await inline("A.cs", source, "env"), {
+      members: [],
+      lines: [4],
+    });
+    // An alias that names System.Environment is read through.
+    const real = [
+      "using E = System.Environment;",
+      'class A { string E1() => E.GetEnvironmentVariable("REAL"); void X() { E.Exit(1); } }',
+    ].join("\n");
+    assert.deepEqual((await inline("A.cs", real, "env")).members, ["REAL"]);
+    assert.ok(
+      (await inline("A.cs", real, "calls")).members.includes(
+        "System.Environment.Exit",
+      ),
+    );
+  });
+
+  it("marks a C# System type name another file of the project may declare", async () => {
+    const source = [
+      "using System;",
+      "namespace App.Shadow {",
+      "  class U02 {",
+      "    void M() { Environment.Exit(5); }",
+      '    string E() => Environment.GetEnvironmentVariable("U02");',
+      "    Action<int> G() => Environment.Exit;",
+      "  }",
+      "}",
+    ].join("\n");
+    const env = await inline("A.cs", source, "env");
+    assert.deepEqual(env.members, ["U02"]);
+    assert.deepEqual(env.shadows, [5]);
+    const calls = await inline("A.cs", source, "calls");
+    assert.deepEqual(calls.shadows, [4, 5, 6]);
+    const rows = (
+      await extractor.extract({ path: "A.cs", content: source, extract: "env" })
+    ).unresolved;
+    assert.deepEqual(rows, [
+      {
+        line: 5,
+        text: 'Environment may be a type of the project: Environment.GetEnvironmentVariable("U02")'.slice(
+          0,
+          80,
+        ),
+      },
+    ]);
+    // A name the file binds or qualifies with global:: is not marked.
+    const bound = [
+      "using System;",
+      "class U { void M(Fake Environment) { Environment.Exit(1); global::System.Environment.Exit(2); } }",
+    ].join("\n");
+    assert.equal((await inline("A.cs", bound, "calls")).shadows, undefined);
   });
 });
