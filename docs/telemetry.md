@@ -23,6 +23,7 @@ Every event also carries:
 
 - the Kibi package and its version, and the host agent (for example `claude-code` or `cursor`), taken from `KIBI_HOST`, the launcher's `KIBI_MCP_HOST`, the variables hosts set for their processes (`CLAUDECODE`, `CURSOR_AGENT`, `CODEX_SANDBOX`, `GEMINI_CLI`, `OPENCODE`, `AI_AGENT`), or the client name an MCP host sends;
 - whether it runs in a hosted cloud workspace (`CLAUDE_CODE_REMOTE`, GitHub Codespaces or Gitpod);
+- the channel the run comes from: `release` for an installed Kibi package, `source` when Kibi runs from a checkout of its own repository (Kibi's development, its own hooks and test rounds built from source), or the value of `KIBI_TELEMETRY_CHANNEL` when a harness sets one (for example `agent-test`), so that test and development runs can be told apart from real usage;
 - the operating system, CPU architecture, and JavaScript runtime with its major version;
 - a random install id, created on first use and stored only on your machine;
 - a one-way hash of the host's session id, so events from one agent session can be grouped. Hooks take it from the host's hook input. The CLI and MCP server take it from `KIBI_SESSION_ID`, `CLAUDE_CODE_SESSION_ID` or `CODEX_THREAD_ID` when the host sets one; otherwise they use the session a Kibi hook reported for the same workspace in the last 30 minutes. Hooks keep that link in `telemetry-sessions.json` next to the queue, as hashes of the workspace path and the session id only. Without a host, events carry no session.
