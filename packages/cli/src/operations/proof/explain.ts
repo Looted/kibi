@@ -8,6 +8,7 @@
  (at your option) any later version.
  */
 
+import { InputError, OperationError } from "../../cli-errors.js";
 import {
   runOperationJsonQuery,
   toPrologAtom,
@@ -193,7 +194,10 @@ export type ProofExplainView =
 
 function requireProlog(context: OperationContext): PrologPort {
   if (context.prolog === undefined) {
-    throw new Error("Proof explain requires a Prolog runtime");
+    throw new OperationError(
+      "PROLOG_UNAVAILABLE",
+      "Proof explain requires a Prolog runtime",
+    );
   }
   return context.prolog;
 }
@@ -848,7 +852,8 @@ export function classifyExplainTarget(
   options: { requirement?: string; symbol?: string },
 ): { kind: ProofExplainKind; id: string } {
   if (options.requirement && options.symbol) {
-    throw new Error(
+    throw new InputError(
+      "INVALID_TARGET",
       "proof explain: choose either --requirement or --symbol, not both",
     );
   }
@@ -857,8 +862,11 @@ export function classifyExplainTarget(
   if (options.symbol) return { kind: "symbol", id: options.symbol };
   if (id?.startsWith("REQ-")) return { kind: "requirement", id };
   if (id?.startsWith("SYM-")) return { kind: "symbol", id };
-  throw new Error(
-    "proof explain: pass REQ-* or SYM-* (or --requirement / --symbol)",
+  throw new InputError(
+    "INVALID_TARGET",
+    id === undefined
+      ? "proof explain: pass a requirement or symbol id, for example kibi proof explain REQ-login (or --requirement <id> / --symbol <id>)"
+      : `proof explain: ${id} is not a REQ-* or SYM-* id; pass --requirement <id> or --symbol <id> to explain an entity with another id`,
   );
 }
 
@@ -883,12 +891,45 @@ async function proofQueryContext(context: OperationContext): Promise<{
   };
 }
 
+const TARGET_TYPE: Readonly<Record<ProofExplainKind, string>> = {
+  requirement: "req",
+  symbol: "symbol",
+};
+
+// implements REQ-kibi-verification-evidence-contract
+/**
+ * Refuse an id the branch KB does not hold as the asked-for type before the
+ * proof query runs, which would otherwise fail with a bare "Query failed".
+ */
+export async function requireExplainTarget(
+  prolog: PrologPort,
+  target: { kind: ProofExplainKind; id: string },
+): Promise<void> {
+  const id = toPrologAtom(target.id);
+  const type = TARGET_TYPE[target.kind];
+  const asked = await prolog.query(`once(kb_entity(${id}, ${type}, _))`);
+  if (asked.success) return;
+  const other = await prolog.query(`once(kb_entity(${id}, _, _))`);
+  if (other.success) {
+    throw new InputError(
+      "INVALID_TARGET",
+      `proof explain: ${target.id} is not a ${type}; proof explain covers requirements (req) and symbols`,
+    );
+  }
+  throw new OperationError(
+    "ENTITY_NOT_FOUND",
+    `proof explain: no ${TARGET_TYPE[target.kind]} ${target.id} in the KB for this branch. Check the id with kibi query ${TARGET_TYPE[target.kind]}; if its file was just written or pulled, run kibi sync first.`,
+    false,
+  );
+}
+
 // implements REQ-kibi-verification-evidence-contract
 export async function executeProofExplain(
   target: { kind: ProofExplainKind; id: string },
   context: OperationContext,
 ): Promise<{ view: ProofExplainView; payload: Record<string, unknown> }> {
   const query = await proofQueryContext(context);
+  await requireExplainTarget(requireProlog(context), target);
   if (target.kind === "requirement") {
     const payload = await runOperationJsonQuery<Record<string, unknown>>(
       requireProlog(context),

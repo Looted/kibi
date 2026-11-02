@@ -947,8 +947,11 @@ async function connectWithRetry(
         const diagnostic = readFileSync(errorPath, "utf8").trim();
         if (diagnostic) throw new Error(diagnostic);
       } catch (error) {
-        throw new Error(
-          `Kibi engine failed to start: ${error instanceof Error ? error.message : String(error)}`,
+        throw Object.assign(
+          new Error(
+            `Kibi engine failed to start: ${error instanceof Error ? error.message : String(error)}`,
+          ),
+          { code: "ENGINE_START_FAILED" },
         );
       }
     }
