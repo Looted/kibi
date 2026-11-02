@@ -595,7 +595,7 @@ export function cReferences(
         // (`run_cb(system, x)`) or, for an object-like macro, called with
         // the arguments that follow it (`#define RUN (system)`).
         if (
-          token.called ||
+          followed ||
           (!variables.has(token.name) &&
             !LIBRARY_VARIABLES.has(token.name) &&
             !/_t$/.test(token.name))

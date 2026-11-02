@@ -906,13 +906,17 @@ Details that decide what a reader sees:
   (a header is read as C); `.sh` and `.bash`; `.tf` and `.hcl`.
   - *PHP* reads every extract; `property` reads literal array keys
     (`'acl' => 'private'`), named arguments, property and constant defaults,
-    promoted constructor parameters, enum case values, `define()` and
-    writes such as `$config['acl'] = 'private'`. Numbers are compared by
+    enum case values, `define()` and
+    writes such as `$config['acl'] = 'private'`; a promoted constructor
+    parameter holds what each `new` passes, so it refuses. Numbers are compared by
     value (`0x10` is `16`). In a merge the last literal value wins, and an
     operand Kibi cannot read after it refuses; a duplicate key, `compact()`,
     `array_combine`, `array_fill_keys`, `array_flip`, a negative implicit
-    key, and a write through a reference, `unset`, `foreach` by reference,
-    destructuring or `++` refuse. Class
+    key, and a write through a reference (also a reference element or
+    destructuring `['acl' => &$a]`, a slot passed to a constructor or any
+    function that is not a by-value builtin), `unset`, `foreach` by
+    reference, `++`, `ReflectionProperty::setValue`, `ArrayObject::offsetSet`
+    and a second `define()` of a name refuse. Class
     names resolve through the namespace and `use` imports (group uses too,
     each from the line it appears on) and are listed in full
     (`App\Mail\Mailer::send`, `*.send` for an unknown receiver); function
@@ -921,9 +925,8 @@ Details that decide what a reader sees:
     names ignore letter case, so `excludes` refuses a member that differs
     from an excluded item only in case. An unqualified call inside a
     namespace may reach the namespace's own function, so it is refused
-    unless no PHP file of the project (`.php`, `.php3` to `.php8`, `.phtml`,
-    `.inc`, `.module` and the other Drupal extensions, outside `vendor`)
-    declares that function there. `env` reads `getenv`,
+    unless no project file that opens PHP code (any extension, dot folders
+    included, outside the root `vendor`) declares that function there. `env` reads `getenv`,
     `apache_getenv`, `env()`, `Env::get` and
     `filter_input(INPUT_ENV|INPUT_SERVER, ...)`, and literal subscripts of
     `$_ENV` and `$_SERVER`; a call on a class that may extend
@@ -931,7 +934,7 @@ Details that decide what a reader sees:
     names that class (group uses too), and so is one on `new static` or on
     a trait's `$this`. Callables handed to `array_map`, `call_user_func` and the like
     are followed; a caught exception passed on as an argument is not a
-    callable when it goes to a constructor or a by-value builtin
+    callable when it goes to a PHP exception's constructor or a by-value builtin
     (`error_log`, `get_class`); any other function or method may replace
     it through a reference, and so may an `include` in the catch body, so
     the read refuses. Only a builtin's `callback:` named argument is a
@@ -980,7 +983,9 @@ Details that decide what a reader sees:
     defines no macro the file uses, other than upper-case ones whose body
     calls nothing (pure builtins such as `__builtin_expect` aside), pastes
     nothing and names only their parameters, keywords and other such
-    macros, and no function pointer it calls (in any spelling, a
+    macros (one that ends with a name it does not define, such as
+    `#define HASH SHA256`, counts where the file calls it), and no
+    function pointer it calls (in any spelling, a
     function-type `typedef` too), and holds no `asm`, `alias`, `weakref`,
     `__REDIRECT`, `typeof` or symbol-renaming pragma. A call through a
     variable, a function pointer or a struct field (`ops->exec`),
@@ -1017,7 +1022,9 @@ Details that decide what a reader sees:
     here-document. A `source` relative to `$0` resolves to the script's
     folder, and is refused when another project script may source this
     one (by name, a computed path or a glob: `$0` then names that script)
-    or after the script changes directory. Code handed to another
+    or after the script changes directory. Commands a sourced file runs
+    are that file's, as with a C include: list it in `files` too (an
+    alias or function it defines is read there). Code handed to another
     interpreter (`python -c`, `awk`, `sed e`) is not read, except that an
     `env` read refuses when the script holds text that reads the
     environment anywhere (`ENVIRON`, `os.environ`, `%ENV`, `ENV[...]`,
@@ -1031,17 +1038,23 @@ Details that decide what a reader sees:
     as Terraform does, identifiers included. A value that needs evaluation
     (variables, functions, templates), a computed key (one with `~` strip
     markers or that NFC may compose with an interpolation too), a
-    duplicate key, a `for` object, `jsondecode` and similar functions, a
+    duplicate key (also of an object holding it, where the later one
+    wins), a `for` object, `jsondecode` and similar functions, a
     value evaluation may drop (a conditional branch, an indexed or
     selected collection, a `for` body, a splat, a `coalesce` or `try`
-    argument), a `merge` whose later argument Kibi cannot read or may
+    argument, an operand of `==`, `!`, `&&` and other operators, a
+    template `%{ if }` or `%{ for }`), a `merge` whose later argument Kibi cannot read or may
     replace the key's top-level object, a list expanded into `merge(...)`,
     a typed variable `default` (or `optional` default) the type converts,
+    a decomposed (non-NFC) attribute name in a type,
     a number longer than Terraform's 512-bit precision, and a Terragrunt
     `include` block refuse, and
     so does any Terraform `override.tf`, `*_override.tf` or `.tofu` file in
     the same folder, whether or not the read includes it, since it may
-    replace the value. A folder Kibi cannot list refuses for the same
+    replace the value, and a `terragrunt.hcl` there with a `generate` or
+    `include` block, which may write one. Values are read as written: a
+    block that `count`, `for_each` or `dynamic` may create zero or many
+    times still shows its values. A folder Kibi cannot list refuses for the same
     reason. A computed key is allowed only in the `for_each` of a block
     that takes one (`resource`, `data`, `module`, `dynamic`, `import`,
     `provider`, `ephemeral`), where keys name instances.

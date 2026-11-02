@@ -158,6 +158,28 @@ describe("the references reader on Go, Java, C# and Rust", () => {
         key: "acl",
       }),
     ).toEqual({ ok: true, model: { members: ["x"] } });
+    // Terragrunt may generate an override into the folder it runs in.
+    for (const [config, refuses] of [
+      ['generate "acl" {\n  path = "acl_override.tf"\n}\n', true],
+      ['include "root" {\n  path = find_in_parent_folders()\n}\n', true],
+      ['inputs = {\n  bucket = "logs"\n}\n', false],
+    ] as const) {
+      const generated = workspace({
+        "main.tf": "uses(private)\n",
+        "terragrunt.hcl": config,
+      });
+      const result = await read(generated, {
+        reader: "references",
+        files: "main.tf",
+        extract: "property",
+        key: "acl",
+      });
+      expect(result.ok).toBe(!refuses);
+      if (!result.ok)
+        expect(result.reason).toContain(
+          "terragrunt.hcl may generate files that override this folder's blocks",
+        );
+    }
   });
 
   test("refuses with what to install when no provider is active", async () => {

@@ -1082,11 +1082,6 @@ describe("PHP constructs Kibi must not misread", () => {
       ["self::$acl = 'x';", "acl", ["x"]],
       ["$a['b']['acl'] = 'x';", "acl", ["x"]],
       [
-        "class C { function __construct(public string $acl = 'private') {} }",
-        "acl",
-        ["private"],
-      ],
-      [
         "enum Acl: string { case Private = 'private'; }",
         "Private",
         ["private"],
@@ -2597,7 +2592,7 @@ describe("Terraform and HCL values Kibi must not misread", () => {
         "acl",
       ],
       [
-        'variable "v" {\n  type = set(string)\n  default = ["b", "a"]\n}',
+        'variable "v" {\n  type = set(number)\n  default = ["b", "a"]\n}',
         "default",
       ],
       [
@@ -2612,6 +2607,177 @@ describe("Terraform and HCL values Kibi must not misread", () => {
       const result = await property(`${content}\n`, key);
       assert.ok(result.lines.length > 0, content);
     }
+  });
+});
+
+describe("PHP and C forms of the fourth round", () => {
+  const php = (body, extract, options = {}) =>
+    read("src/a.php", `<?php\n${body}\n`, extract, options);
+  const refused = async (body, extract, options = {}) =>
+    (await php(body, extract, options)).lines.length > 0;
+
+  it("refuses PHP values set through constructors, references and runtime APIs", async () => {
+    for (const body of [
+      "class C { function __construct(public string $acl = 'private') {} }",
+      "$p = new AclPolicy($opts['acl']);",
+      "['acl' => &$a] = $opts; $a = 'public-read';",
+      "$o = ['acl' => &$v]; $v = 'public-read';",
+      "(new ReflectionProperty(B::class, 'acl'))->setValue($b, 'public-read');",
+      "$o = new ArrayObject(['acl' => 'private']); $o->offsetSet('acl', 'x');",
+      "require 'defaults.php'; $opts = str_replace('private', 'public-read', $opts);",
+      "define('CURLOPT_ACL', 'acl'); $o = [CURLOPT_ACL => 'public-read'];",
+      "define('acl', 'private'); define('acl', 'public-read');",
+    ])
+      assert.ok(await refused(body, "property", { key: "acl" }), body);
+    assert.ok(
+      await refused(
+        "$levels = ['private']; array_unshift($levels, 'public-read-write');",
+        "property",
+        { key: "0" },
+      ),
+    );
+  });
+
+  it("refuses PHP callbacks hidden in modes, options and registries", async () => {
+    for (const body of [
+      "filter_var('id', 1024, ['options' => 'system']);",
+      "filter_var_array($d, ['a' => ['filter' => 1024, 'options' => 'system']]);",
+      "$m = PDO::FETCH_FUNC; $stmt->fetchAll($m, 'passthru');",
+      "$stmt->fetchAll(10, 'passthru');",
+      "call_user_func('class_alias', 'App\\Mail\\Mailer', 'App\\Courier');",
+      "ini_set('unserialize_callback_func', 'system'); unserialize($s);",
+      "$xp->registerPhpFunctions('system');",
+    ])
+      assert.ok(await refused(body, "calls"), body);
+    assert.deepEqual(
+      (
+        await php(
+          "curl_multi_setopt($mh, CURLMOPT_PUSHFUNCTION, 'push_handler');",
+          "calls",
+        )
+      ).members,
+      ["curl_multi_setopt", "push_handler"],
+    );
+    assert.ok(
+      (await php("$db->setAuthorizer('system');", "calls")).members.includes(
+        "system",
+      ),
+    );
+    // A macro closure runs bound to another class: `self` is not A.
+    assert.deepEqual(
+      (
+        await php(
+          "class A { function f() { Builder::macro('p', function () { return self::purge(); }); } }",
+          "calls",
+        )
+      ).members,
+      ["*.purge", "Builder::macro"],
+    );
+    assert.deepEqual(
+      (
+        await php(
+          "filter_var($x, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]); $stmt->fetchAll(PDO::FETCH_ASSOC);",
+          "calls",
+        )
+      ).members,
+      ["*.fetchAll", "filter_var"],
+    );
+    assert.ok(
+      await refused(
+        "namespace App\\Http; const INPUT_GET = \\INPUT_ENV; filter_input(INPUT_GET, 'DB_PASSWORD');",
+        "env",
+      ),
+    );
+  });
+
+  it("refuses a caught exception handed to a project constructor", async () => {
+    assert.ok(
+      await refused(
+        "try { f(); } catch (\\RuntimeException $e) { new Wrap($e); throw $e; }",
+        "thrown",
+      ),
+    );
+    assert.deepEqual(
+      (
+        await php(
+          "try { f(); } catch (\\RuntimeException $e) { throw new \\LogicException('w', 0, $e); }",
+          "thrown",
+        )
+      ).members,
+      ["LogicException"],
+    );
+  });
+
+  it("finds a function an object-like C macro stands for", async () => {
+    assert.ok(
+      (
+        await read(
+          "src/a.c",
+          "#define MK run_t\nvoid f(void) { MK(); }\n",
+          "calls",
+        )
+      ).members.includes("run_t"),
+    );
+  });
+});
+
+describe("Terraform values of the fourth round", () => {
+  const property = (content, key = "acl", path = "main.tf") =>
+    read(path, content, "property", { key });
+
+  it("refuses values a later key, an operator or a directive drops", async () => {
+    for (const content of [
+      'locals {\n  cfg = { settings = { acl = "private" }, settings = { mode = "x" } }\n}',
+      'locals {\n  cfg = { settings = { acl = "private" }, "settings" = {} }\n}',
+      'locals {\n  cfg = { "caf\u00e9" = { acl = "private" }, "cafe\u0301" = {} }\n}',
+      'locals {\n  cfg = { 1 = { acl = "private" }, 1.0 = {} }\n}',
+      'locals {\n  cfg = { settings = [{ acl = "private" }], settings = [] }\n}',
+      'locals {\n  cfg = { a = { b = { acl = "private" } }, a = { b = { mode = "x" } } }\n}',
+      'locals {\n  cfg = { settings = { acl = "private" }, (var.k) = {} }\n}',
+      'locals {\n  a = "%{ if true }ok%{ else }${jsonencode({ acl = "public-read" })}%{ endif }"\n}',
+      'locals {\n  a = "%{ for x in [] }${jsonencode({ acl = "public-read" })}%{ endfor }"\n}',
+      'locals {\n  is_public = var.cfg == { acl = "public-read" }\n}',
+      'locals {\n  b = !({ acl = "public-read" } == {})\n}',
+      'locals {\n  b = true && ({ acl = "public-read" } != null)\n}',
+      'variable "v" {\n  type    = object({ "cafe\u0301" = optional(string, "private") })\n}',
+      'variable "v" {\n  type    = tuple([string])\n  default = ["private"]\n}',
+    ]) {
+      const key = content.includes("optional(")
+        ? "caf\u00e9"
+        : content.includes("tuple(")
+          ? "default"
+          : "acl";
+      assert.ok((await property(content, key)).lines.length > 0, content);
+    }
+  });
+
+  it("reads a later key's own value and typed defaults Terraform keeps", async () => {
+    assert.deepEqual(
+      (
+        await property(
+          'locals {\n  cfg = { settings = { mode = "x" }, settings = { acl = "public-read" } }\n}',
+        )
+      ).members,
+      ["public-read"],
+    );
+    assert.deepEqual(
+      (
+        await property(
+          'variable "v" {\n  type    = number\n  default = -1\n}',
+          "default",
+        )
+      ).members,
+      ["-1"],
+    );
+    assert.deepEqual(
+      (
+        await property(
+          'variable "v" {\n  type    = set(string)\n  default = ["private"]\n}',
+          "default",
+        )
+      ).members,
+      ["private"],
+    );
   });
 });
 
