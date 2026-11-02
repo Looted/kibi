@@ -68,14 +68,24 @@ const GO_ROW = /^(\w+) may be declared in another file of the package: /;
 const GO_IMPORT_ROW = /^\S+ may be a package of the project: /;
 const GO_CALL_ROW = /^(\w+) may be a function of another file of the package: /;
 const PHP_ROW = /^(\w+) may be a function of namespace ([\w\\]+): /;
+const PHP_ENV_ROW = / may be Illuminate\\Support\\Env or a class that extends it: /;
+/** PHP sources: included files are often not named .php. */
+const PHP_EXTENSIONS = [".php", ".inc", ".phtml", ".module"];
 const C_INCLUDE_ROW = /^(.+?) may define macros this file uses: /;
 
-/** Whether PHP source declares function `name` in namespace `namespace`. */
+/** Space, or a comment, between PHP tokens. */
+const PHP_GAP = String.raw`(?:\s|/\*[\s\S]*?\*/|(?://|#(?!\[))[^\n]*(?:\n|$))*`;
+
+/**
+ * Whether PHP source may declare function `name` in namespace `namespace`.
+ * Comments may sit between the words, and strings are not told apart from
+ * code (a mention there keeps the row too).
+ */
 function phpDeclares(text: string, name: string, namespace: string): boolean {
-  const spelled = namespace.split("\\").map((part) => part.replace(/[^\w]/g, "")).join(String.raw`\s*\\\s*`);
+  const spelled = namespace.split("\\").map((part) => part.replace(/[^\w]/g, "")).join(`${PHP_GAP}\\\\${PHP_GAP}`);
   return (
-    new RegExp(String.raw`\bnamespace\s+\\?${spelled}\s*[;{]`, "i").test(text) &&
-    new RegExp(String.raw`\bfunction\s*&?\s*${name}\s*\(`, "i").test(text)
+    new RegExp(String.raw`\bnamespace${PHP_GAP}\\?${PHP_GAP}${spelled}${PHP_GAP}[;{]`, "i").test(text) &&
+    new RegExp(String.raw`\bfunction${PHP_GAP}&?${PHP_GAP}${name}${PHP_GAP}\(`, "i").test(text)
   );
 }
 
@@ -172,13 +182,14 @@ function javaDeclares(text: string, name: string): boolean {
  * Source files with an extension under a directory, skipping dot folders,
  * node_modules and the named build folders.
  */
-function sourceFiles(directory: string, extension: string, skipped: readonly string[] = []): string[] {
+function sourceFiles(directory: string, extension: string | readonly string[], skipped: readonly string[] = []): string[] {
   const files: string[] = [];
+  const extensions = typeof extension === "string" ? [extension] : extension;
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
     if (entry.name.startsWith(".") || entry.name === "node_modules" || skipped.includes(entry.name)) continue;
     const full = path.join(directory, entry.name);
-    if (entry.isDirectory()) files.push(...sourceFiles(full, extension, skipped));
-    else if (entry.name.endsWith(extension)) files.push(full);
+    if (entry.isDirectory()) files.push(...sourceFiles(full, extensions, skipped));
+    else if (extensions.some((suffix) => entry.name.endsWith(suffix))) files.push(full);
   }
   return files;
 }
@@ -448,8 +459,14 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
       const php = PHP_ROW.exec(row.text);
       if (php !== null) {
         // Composer packages under vendor/ do not declare the project's namespaces.
-        const texts = read("php", () => sourceFiles(workspaceRoot, ".php", ["vendor"]));
+        const texts = read("php", () => sourceFiles(workspaceRoot, PHP_EXTENSIONS, ["vendor"]));
         return texts === null || texts.some((text) => phpDeclares(text, php[1] as string, php[2] as string));
+      }
+      if (PHP_ENV_ROW.test(row.text)) {
+        // A class can extend Laravel's environment class only where the
+        // project names it.
+        const texts = read("php", () => sourceFiles(workspaceRoot, PHP_EXTENSIONS, ["vendor"]));
+        return texts === null || texts.some((text) => /Illuminate\s*\\+\s*Support\s*\\+\s*Env\b/i.test(text));
       }
       const include = C_INCLUDE_ROW.exec(row.text);
       if (include !== null) {

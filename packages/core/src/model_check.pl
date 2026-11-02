@@ -334,7 +334,7 @@ relation_problem("excludes", Actual, Expected, What, Reason) :-
 %              member ending in .m for *.m.  *.m is allowed only when *.m is.
 %   eq         Compares the spellings exactly, as for every other reader.
 
-source_matching(Certificate, references(Files)) :-
+source_matching(Certificate, references(Files, Case)) :-
     get_dict(source, Certificate, Source),
     is_dict(Source),
     get_dict(reader, Source, Reader),
@@ -343,6 +343,15 @@ source_matching(Certificate, references(Files)) :-
     (   get_dict(files, Source, RawFiles)
     ->  (   is_list(RawFiles) -> maplist(text_string, RawFiles, Files) ; text_string(RawFiles, File), Files = [File] )
     ;   Files = []
+    ),
+    % Some languages ignore letter case in the names they call, throw and
+    % import (PHP classes, methods and functions): excludes then also fails
+    % on a member that differs from an item only in case.
+    (   get_dict(extract, Source, RawExtract),
+        text_string(RawExtract, Extract),
+        memberchk(Extract, ["calls", "thrown", "imports"])
+    ->  Case = fold
+    ;   Case = exact
     ).
 source_matching(_, literal).
 
@@ -419,6 +428,16 @@ exclude_match(Actual, Expected, How) :-
     ->  How = possible
     ).
 
+% folded_match(+Actual, +Expected, -How): Actual may be what Expected names
+% once letter case is ignored, and is not without that.
+folded_match(Actual, Expected, possible) :-
+    string_lower(Actual, LowerActual),
+    string_lower(Expected, LowerExpected),
+    (   LowerActual \== Actual ; LowerExpected \== Expected ),
+    \+ exclude_match(Actual, Expected, _),
+    exclude_match(LowerActual, LowerExpected, _),
+    !.
+
 % certain_match(+Actual, +Expected): Actual certainly is what Expected names
 % (includes, subset_of).
 certain_match(Actual, Expected) :- Actual == Expected, !.
@@ -448,7 +467,10 @@ files_text(Files, Text) :-
     ).
 
 excluded_text(Files, Actual-Expected-How, Text) :-
-    (   How == certain, Actual == Expected
+    (   How == possible,
+        \+ exclude_match(Actual, Expected, _)
+    ->  format(string(Text), "~w (it may be ~w: the names differ only in letter case, which some languages ignore)", [Actual, Expected])
+    ;   How == certain, Actual == Expected
     ->  Text = Actual
     ;   How == certain
     ->  format(string(Text), "~w (within ~w)", [Actual, Expected])
@@ -462,11 +484,18 @@ excluded_text(Files, Actual-Expected-How, Text) :-
     ;   format(string(Text), "~w (a shorter name that may be ~w)", [Actual, Expected])
     ).
 
-% reference_relation_problem(+Operator, +Actual, +Expected, +Files, +What,
+% reference_relation_problem(+Operator, +Actual, +Expected, +Matching, +What,
 % -Reason) fails when the relation holds under the reference matching above.
-reference_relation_problem("excludes", Actual, Expected, Files, What, Reason) :-
+reference_relation_problem("excludes", Actual, Expected, references(Files, Case), What, Reason) :-
     !,
-    findall(A-E-How, (member(A, Actual), member(E, Expected), exclude_match(A, E, How)), Pairs0),
+    findall(A-E-How,
+            (   member(A, Actual), member(E, Expected),
+                (   exclude_match(A, E, How)
+                ->  true
+                ;   Case == fold, folded_match(A, E, How)
+                )
+            ),
+            Pairs0),
     sort(Pairs0, Pairs),
     Pairs \== [],
     include(certain_pair, Pairs, Certain),
@@ -601,8 +630,8 @@ obligation_result("set_relation", Obligation, model(_, _, source(Actual, _, _, _
     dict_text(Obligation, operator, Operator),
     obligation_strings(Obligation, Expected),
     What = "the members Kibi read from the source",
-    (   (   Matching = references(Files)
-        ->  reference_relation_problem(Operator, Actual, Expected, Files, What, Reason)
+    (   (   Matching = references(_, _)
+        ->  reference_relation_problem(Operator, Actual, Expected, Matching, What, Reason)
         ;   relation_problem(Operator, Actual, Expected, What, Reason)
         )
     ->  Result = problem(Reason)

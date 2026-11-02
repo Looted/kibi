@@ -12,7 +12,7 @@ const extractor = createTreeSitterReferenceExtractor();
 
 /** Rows the host drops once it has looked at the project's other files. */
 const HOST_ROW =
-  /^(?:\w+ may be a function of namespace [\w\\]+|.+? may define macros this file uses): /;
+  /^(?:\w+ may be a function of namespace [\w\\]+|.+? may define macros this file uses|.+? may be Illuminate\\Support\\Env or a class that extends it): /;
 
 async function raw(path, content, extract, options = {}) {
   const result = await extractor.extract({
@@ -778,7 +778,8 @@ describe("PHP reference reader", () => {
     const env = await read("a.php", dynamic, "env");
     assert.deepEqual(
       env.lines,
-      [2, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+      // `X::$sm()` may be Env::get.
+      [2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
     );
     const calls = await read("a.php", dynamic, "calls");
     assert.deepEqual(calls.lines, [2, 3, 4, 5, 6, 14, 17]);
@@ -876,6 +877,163 @@ describe("PHP reference reader", () => {
       callee: "shell_exec",
     });
     assert.deepEqual(shell.members, ["uptime"]);
+  });
+});
+
+describe("PHP constructs Kibi must not misread", () => {
+  const php = (body, extract, options = {}) =>
+    read(options.path ?? "src/a.php", `<?php\n${body}\n`, extract, options);
+  const ok = (members) => ({ members, lines: [], rows: [] });
+
+  it("reads constants, writes after initialisation and promoted defaults", async () => {
+    for (const [body, key, expected] of [
+      ["define('DB_HOST', '127.0.0.1');", "DB_HOST", ["127.0.0.1"]],
+      ["$o = ['acl' => 'private'];\n$o['acl'] = 'public-read';", "acl", ["private", "public-read"]],
+      ["class S { public $acl = 'private'; function f() { $this->acl = 'public-read'; } }", "acl", ["private", "public-read"]],
+      ["self::$acl = 'x';", "acl", ["x"]],
+      ["$a['b']['acl'] = 'x';", "acl", ["x"]],
+      ["class C { function __construct(public string $acl = 'private') {} }", "acl", ["private"]],
+      ["enum Acl: string { case Private = 'private'; }", "Private", ["private"]],
+      ["$a = ['x', 'y', 5 => 'z', 'w'];", "6", ["w"]],
+      ["$a = ['acl' => <<<'N'\n  raw $x\n  N\n];", "acl", ["raw $x"]],
+      ["$a = ['acl' => <<<N\n\n  a\n    b\n  N\n];", "acl", ["\na\n  b"]],
+      ["$o = [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, CURLOPT_URL => 'x'];", "db", []],
+    ])
+      assert.deepEqual(await php(body, "property", { key }), ok(expected), body);
+  });
+
+  it("compares numbers by value", async () => {
+    const body = "$c = ['a' => 0x1F90, 'b' => 0755, 'c' => 1.50, 'd' => 1e3, 'e' => 0o17, 'f' => 0b11, 'g' => -0x10, 'h' => -0.0, 'i' => 1_000];";
+    for (const [key, value] of [["a", "8080"], ["b", "493"], ["c", "1.5"], ["d", "1000"], ["e", "15"], ["f", "3"], ["g", "-16"], ["h", "0"], ["i", "1000"]])
+      assert.deepEqual((await php(body, "property", { key })).members, [value], key);
+    // Past the integer range PHP reads a float Kibi does not round.
+    assert.deepEqual((await php("$c = ['h' => 0xFFFFFFFFFFFFFFFF, 'p' => 3.14159265358979323];", "property", { key: "h" })).lines, [2]);
+    assert.deepEqual((await php("$c = ['p' => 3.14159265358979323];", "property", { key: "p" })).lines, [2]);
+  });
+
+  it("refuses property values it cannot vouch for", async () => {
+    for (const [body, key] of [
+      ["$a = array_merge(['acl' => 'private'], $x);", "acl"],
+      ["$a = ['acl' => 'x'] + $defaults;", "acl"],
+      ["$a = ['acl' => 'private', 'acl' => 'public-read'];", "acl"],
+      ["$a = [true => 'yes', 1.7 => 'float'];", "1"],
+      ["$acl = 'x'; upload(compact('acl'));", "acl"],
+      ["$a['acl'] .= 'x';", "acl"],
+      ["$a[$k] = 'x';", "acl"],
+      ["$o->$k = 'y';", "acl"],
+      ["$a[] = 'x';", "0"],
+      ["define($name, 'x');", "acl"],
+    ])
+      assert.deepEqual((await php(body, "property", { key })).lines, [2], body);
+    assert.deepEqual(await php("$a = array_merge(['other' => 1], $x);", "property", { key: "acl" }), ok([]));
+  });
+
+  it("refuses reflection and reads callables builtins are handed", async () => {
+    assert.deepEqual((await php("(new ReflectionFunction('system'))->invoke('id');", "calls")).lines, [2]);
+    assert.ok((await php("$f = new \\ReflectionFunction('get'.'env');", "env")).lines.includes(2));
+    assert.deepEqual(
+      (
+        await php(
+          lines(
+            "pcntl_signal(SIGTERM, 'cleanup');",
+            "preg_replace_callback_array(['/x/' => 'system'], $s);",
+            "array_find($a, 'passthru');",
+            "session_set_save_handler('open_h', 'close_h');",
+            "curl_setopt($ch, CURLOPT_WRITEFUNCTION, 'writer');",
+            "array_udiff_uassoc($a, $b, 'vcmp', 'kcmp');",
+            "$f = new Fiber('task');",
+            "die('bye');",
+          ),
+          "calls",
+        )
+      ).members,
+      [
+        "array_find",
+        "array_udiff_uassoc",
+        "cleanup",
+        "close_h",
+        "curl_setopt",
+        "exit",
+        "kcmp",
+        "open_h",
+        "passthru",
+        "pcntl_signal",
+        "preg_replace_callback_array",
+        "session_set_save_handler",
+        "system",
+        "task",
+        "vcmp",
+        "writer",
+      ],
+    );
+    assert.deepEqual((await php("curl_setopt($ch, $option, $value);", "calls")).lines, [2]);
+    assert.deepEqual((await php("array_map(...$args);", "calls")).lines, [2]);
+    assert.deepEqual(
+      (await php("class Job { function run() { array_map(['self', 'purge'], []); array_map([static::class, 'y'], []); } }", "calls")).members,
+      ["*.y", "Job::purge", "array_map"],
+    );
+  });
+
+  it("reads first arguments only where the call is certainly the callee", async () => {
+    for (const [body, callee] of [
+      ["exec(command: 'rm -rf /tmp/cache');", "exec"],
+      ["exec(...$args);", "exec"],
+      ["$this->db->prepare('DELETE FROM song');", "PDO::prepare"],
+      ["$this->db->prepare('DELETE FROM song');", "prepare"],
+      ["array_map('exec', $commands);", "exec"],
+    ])
+      assert.deepEqual((await php(body, "string_args", { callee })).lines, [2], body);
+    assert.deepEqual(await php("exit('bye'); die('x');", "string_args", { callee: "exit" }), ok(["bye", "x"]));
+    assert.deepEqual(await php("$s = strlen(...);", "string_args", { callee: "strlen" }), ok([]));
+  });
+
+  it("trusts a catch variable only while it holds the caught exception", async () => {
+    for (const body of [
+      "try { x(); } catch (\\RuntimeException $e) { $e = new \\LogicException('w'); throw $e; }",
+      "try { x(); } catch (\\Throwable $e) { foreach (errs() as $e) throw $e; }",
+      "try { x(); } catch (\\Throwable $e) { $f = function () { $e = new \\DomainException; throw $e; }; }",
+      "try { x(); } catch (\\Throwable $e) { $f = function () use (&$e) { $e = null; }; throw $e; }",
+    ])
+      assert.deepEqual((await php(body, "thrown")).lines, [2], body);
+    assert.deepEqual(
+      await php("try { x(); } catch (\\Throwable $e) { report($e); Log::error($e->getMessage(), ['e' => $e]); if ($e instanceof \\X) {} throw $e; }", "thrown"),
+      ok([]),
+    );
+    assert.deepEqual((await php("class E extends \\Exception { static function make() { throw new static('x'); } }", "thrown")).lines, [2]);
+    assert.deepEqual(await php("class E extends \\Exception { static function make() { throw new self('x'); } }", "thrown"), ok(["E"]));
+  });
+
+  it("reads Laravel's environment class through subclasses", async () => {
+    const env = "use Illuminate\\Support\\Env;\n";
+    assert.deepEqual(await php(`${env}class Config extends Env {}\nConfig::get('DB_HOST');`, "env"), ok(["DB_HOST"]));
+    assert.deepEqual(await php(`${env}Env::getOrFail('DB_PASSWORD');`, "env"), ok(["DB_PASSWORD"]));
+    assert.deepEqual(await php("class Local { static function get($k) {} }\nLocal::get('k');", "env"), ok([]));
+    for (const body of [
+      `${env}$cls = Env::class; $cls::get('DB_USER');`,
+      `${env}class AppEnv extends Env { static function h() { return static::get('APP_HOST'); } }`,
+      `${env}Env::getRepository()->get('X');`,
+    ])
+      assert.deepEqual((await php(body, "env")).lines, [3], body);
+    // A class of another file, and a callable's class, may extend it: the
+    // host drops the row once the project does not name the class.
+    const row = await php("Cache::get('k');\ncall_user_func_array([$this->c, $this->a], []);", "env");
+    assert.deepEqual([row.members, row.lines], [[], []]);
+    assert.equal(row.rows.length, 2);
+    for (const body of ["$f = 'env'; $f('APP_KEY');", "(new ReflectionFunction('env'))->invoke('APP_KEY');"])
+      assert.ok((await php(body, "env")).lines.includes(2), body);
+    assert.deepEqual(await php("$cfg = ['env' => 'production']; getenv('env');", "env"), ok(["env"]));
+  });
+
+  it("applies imports from where they are and reads more include paths", async () => {
+    assert.deepEqual(
+      (await php("namespace App;\nFoo::bar();\nuse Lib\\Foo;\nFoo::baz();", "calls")).members,
+      ["App\\Foo::bar", "Lib\\Foo::baz"],
+    );
+    assert.deepEqual(
+      await php("require __DIR__ . '/../lib/' . 'helpers.inc';\nrequire dirname(__DIR__) . '/x.php';\nrequire __dir__ . '/y.php';\nrequire dirname(__FILE__, 2) . '/z.php';", "imports"),
+      ok(["lib/helpers.inc", "src/y.php", "x.php", "z.php"]),
+    );
+    assert.deepEqual(await php('echo "home $_SERVER[HOME]";', "env"), ok(["HOME"]));
   });
 });
 
