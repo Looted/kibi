@@ -72,6 +72,25 @@ describe("C and C++ header idioms", () => {
     );
   });
 
+  it("leaves a guard whose #define has a body, and lexes comments and digraphs", () => {
+    const body = "#ifndef run\n#define run system\nint f(void);\n#endif\n";
+    assert.equal(blankHeaderIdioms(body), body);
+    for (const guard of ["#define G 1", "#define G G"])
+      assert.equal(
+        blankHeaderIdioms(`#ifndef G\n${guard}\nint f(void);\n#endif\n`)
+          .split("\n")[1]
+          .trim(),
+        "",
+      );
+    // `%:endif` closes `#if 0`; a `//` comment ending in `\` goes on.
+    assert.equal(
+      blankHeaderIdioms("#if 0\n%:endif\nint f(void);\n").split("\n")[2],
+      "int f(void);",
+    );
+    const spliced = "#if 0\n// a\\\n#endif\nint g;\n#endif\n";
+    assert.equal(blankHeaderIdioms(spliced).split("\n")[4], "      ");
+  });
+
   it("accepts the defined() spellings of both guards", () => {
     for (const open of ["#if !defined(G)", "#if !defined G", "# ifndef G"]) {
       const text = `${open}\n#define G\nint f(void);\n#endif\n`;

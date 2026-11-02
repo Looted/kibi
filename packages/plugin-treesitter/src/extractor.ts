@@ -20,6 +20,7 @@ import {
 import { languagePackProblem } from "./language-packs.js";
 import { createBoundedSourceAnalysisTimingEmitter } from "./performance-timing.js";
 import {
+  REFERENCE_LANGUAGE_NAMES,
   type ReferenceRead,
   type ReferenceRequest,
   isReferenceLanguage,
@@ -592,7 +593,8 @@ export function createTreeSitterReferenceExtractor(
   pool: TreeSitterWorkerPool = createTreeSitterWorkerPool(),
 ): ReferenceExtractorV1 {
   const languageOf = (path: string) => {
-    const language = treeSitterLanguageForPath(path);
+    // A `.h` header is read as C; a C++ header does not parse as C and is refused.
+    const language = /\.h$/i.test(path) ? "c" : treeSitterLanguageForPath(path);
     return language !== undefined && isReferenceLanguage(language)
       ? language
       : undefined;
@@ -611,7 +613,7 @@ export function createTreeSitterReferenceExtractor(
         return referenceRefusal(
           "unsupported",
           "TREESITTER_REFERENCES_UNSUPPORTED",
-          `kibi-plugin-treesitter reads references of Go, Java, C# and Rust files, not ${input.path}`,
+          `kibi-plugin-treesitter reads references of ${REFERENCE_LANGUAGE_NAMES} files, not ${input.path}`,
         );
       if (
         input.content.length > MAX_INPUT_CODE_UNITS ||
@@ -638,6 +640,7 @@ export function createTreeSitterReferenceExtractor(
           extract: input.extract,
           ...(input.callee === undefined ? {} : { callee: input.callee }),
           ...(input.key === undefined ? {} : { key: input.key }),
+          path: input.path,
         },
         deadline,
       );

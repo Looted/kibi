@@ -1,4 +1,9 @@
 import type { Node } from "web-tree-sitter";
+import { at, field, firstError, named } from "./reference-nodes.js";
+import { bashReferences } from "./references-bash.js";
+import { cReferences } from "./references-c.js";
+import { hclProperty } from "./references-hcl.js";
+import { phpReferences } from "./references-php.js";
 
 /**
  * Reference extraction for source proofs. Each reader lists what a file
@@ -9,7 +14,17 @@ import type { Node } from "web-tree-sitter";
  * compilation block may hide a reference, so it is never read as absent.
  */
 
-export const REFERENCE_LANGUAGES = ["go", "java", "csharp", "rust"] as const;
+export const REFERENCE_LANGUAGES = [
+  "go",
+  "java",
+  "csharp",
+  "rust",
+  "terraform",
+  "hcl",
+  "bash",
+  "php",
+  "c",
+] as const;
 export type ReferenceLanguage = (typeof REFERENCE_LANGUAGES)[number];
 
 export type ReferenceExtract =
@@ -24,6 +39,8 @@ export interface ReferenceRequest {
   readonly extract: ReferenceExtract;
   readonly callee?: string;
   readonly key?: string;
+  /** Workspace-relative path of the file, for paths it names relative to itself. */
+  readonly path?: string;
 }
 
 export interface Unresolved {
@@ -40,50 +57,27 @@ const LANGUAGE_NAMES: Readonly<Record<ReferenceLanguage, string>> = {
   java: "Java",
   csharp: "C#",
   rust: "Rust",
+  terraform: "Terraform",
+  hcl: "HCL",
+  bash: "Bash",
+  php: "PHP",
+  c: "C",
 };
+
+/** How a refusal lists the languages references are read in. */
+export const REFERENCE_LANGUAGE_NAMES = (() => {
+  const names = REFERENCE_LANGUAGES.map((language) => LANGUAGE_NAMES[language]);
+  return `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
+})();
+
+/** Languages read by a reader of their own rather than the call walker. */
+type WalkedLanguage = Exclude<
+  ReferenceLanguage,
+  "terraform" | "hcl" | "bash" | "php" | "c"
+>;
 
 /** A method called on an expression the reader cannot name is `*.name`. */
 const ANY_RECEIVER = "*";
-
-function at(node: Node): Unresolved {
-  return {
-    line: node.startPosition.row + 1,
-    text: node.text.replace(/\s+/g, " ").slice(0, 80),
-  };
-}
-
-function field(node: Node, name: string): Node | null {
-  return node.childForFieldName(name);
-}
-
-function named(node: Node): Node[] {
-  const children: Node[] = [];
-  for (let index = 0; index < node.namedChildCount; index += 1) {
-    const child = node.namedChild(index);
-    if (child !== null) children.push(child);
-  }
-  return children;
-}
-
-function firstError(root: Node): Node | null {
-  if (!root.hasError) return null;
-  // A tree with an error always holds an ERROR or missing node; the root
-  // stands in for it otherwise.
-  let found = root;
-  const pending = [root];
-  for (let node = pending.shift(); node !== undefined; node = pending.shift()) {
-    if (node.type === "ERROR" || node.isMissing) {
-      found = node;
-      break;
-    }
-    for (let index = 0; index < node.childCount; index += 1) {
-      const child = node.child(index);
-      if (child !== null && (child.hasError || child.isMissing))
-        pending.push(child);
-    }
-  }
-  return found;
-}
 
 /** Remove generic arguments: `Vec::<u8>::new` is `Vec::new`. */
 function withoutGenerics(text: string): string {
@@ -3888,7 +3882,7 @@ function rustInTest(node: Node): boolean {
   return false;
 }
 
-const READERS: Readonly<Record<ReferenceLanguage, Reader>> = {
+const READERS: Readonly<Record<WalkedLanguage, Reader>> = {
   go: GO,
   java: JAVA,
   csharp: CSHARP,
@@ -3914,8 +3908,61 @@ export function extractReferences(
       code: "TREESITTER_REFERENCES_SYNTAX",
       message: `line ${broken.startPosition.row + 1} is not valid ${name}`,
     };
-  const reader = READERS[language];
   const { extract } = request;
+  if (language === "terraform" || language === "hcl") {
+    if (extract !== "property")
+      return {
+        ok: false,
+        code: "TREESITTER_REFERENCES_UNSUPPORTED",
+        message: `${name} configuration has no ${extract} to extract; read attribute values with extract: property and a key`,
+      };
+    return {
+      ok: true,
+      ...hclProperty(root, request.key ?? "", request.path ?? ""),
+    };
+  }
+  if (language === "c") {
+    if (extract === "thrown")
+      return {
+        ok: false,
+        code: "TREESITTER_REFERENCES_UNSUPPORTED",
+        message: "C has no thrown errors to extract",
+      };
+    return {
+      ok: true,
+      ...cReferences(root, extract, {
+        callee: request.callee ?? "",
+        key: request.key ?? "",
+      }),
+    };
+  }
+  if (language === "php")
+    return {
+      ok: true,
+      ...phpReferences(root, extract, {
+        callee: request.callee ?? "",
+        key: request.key ?? "",
+        file: request.path ?? "",
+      }),
+    };
+  if (language === "bash") {
+    if (extract === "thrown" || extract === "property")
+      return {
+        ok: false,
+        code: "TREESITTER_REFERENCES_UNSUPPORTED",
+        message: `Bash has no ${extract === "thrown" ? "thrown errors" : "property values"} to extract`,
+      };
+    return {
+      ok: true,
+      ...bashReferences(
+        root,
+        extract,
+        request.callee ?? "",
+        request.path ?? "",
+      ),
+    };
+  }
+  const reader = READERS[language];
   if (extract === "property" && reader.property === undefined)
     return {
       ok: false,

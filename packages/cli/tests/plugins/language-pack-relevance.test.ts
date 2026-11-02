@@ -190,7 +190,7 @@ describe("which packs doctor asks for", () => {
     const files = [
       "bindings/go/binding.go",
       "bindings/rust/lib.rs",
-      "src/scanner.c",
+      "src/scanner.cc",
     ];
     const suggestion = referenceLanguageSuggestion(
       files,
@@ -204,13 +204,13 @@ describe("which packs doctor asks for", () => {
         referenced: new Set(["bindings/go/binding.go"]),
       },
     );
-    expect(suggestion?.packs).toEqual(["kibi-lang-go", "kibi-lang-c"]);
+    expect(suggestion?.packs).toEqual(["kibi-lang-go", "kibi-lang-cpp"]);
     expect(
       describeReferenceLanguageSuggestion(
         suggestion as NonNullable<typeof suggestion>,
       ),
     ).toStartWith(
-      "1 Go (generated, used by the KB) source file(s) for source proofs and symbols, and 1 C for symbols only; kibi-plugin-treesitter is active for symbols but not for source proofs",
+      "1 Go (generated, used by the KB) source file(s) for source proofs and symbols, and 1 C++ for symbols only; kibi-plugin-treesitter is active for symbols but not for source proofs",
     );
   });
 
@@ -241,7 +241,7 @@ describe("which packs doctor asks for", () => {
     gitTrack(root);
     const note = workspaceReferenceLanguageNote(root) as string;
     expect(note).toStartWith(
-      "1 Go (generated, used by the KB) source file(s) for source proofs and symbols, and 1 C, 2 Bash for symbols only; they need kibi-plugin-treesitter and the grammar pack(s) kibi-lang-go, kibi-lang-c, kibi-lang-bash:",
+      "1 Go (generated, used by the KB), 1 C, 2 Bash source file(s); source proofs and symbols for them need kibi-plugin-treesitter and the grammar pack(s) kibi-lang-go, kibi-lang-c, kibi-lang-bash:",
     );
     expect(note).toContain(
       "6 generated file(s) are not counted (kibi.generatedPaths, linguist-generated or a generator header) unless the KB references them.",

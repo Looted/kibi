@@ -47,11 +47,11 @@ export const qualifiedSourceAnalyzers = [
       "catalog.json":
         "88c1139144c89835eed2d8a4dc736e4fe8391b50c7aeecf967dd3cbe8163f937",
       "dist/analysis-worker.js":
-        "9120078de07b39fd5caced87610eb262d94e9cf1ba5c19ddf0413baacffab4fe",
+        "e05022b3a689b0b17b616bc5df6a03fc06f658f4581d598e9888b4ae7be4119a",
       "dist/catalog.js":
         "c485cd1bf81098c3e2e86d37f78bf9f55af122f5d6b9587c0c57b494d68e4968",
       "dist/extractor.js":
-        "30e8aaea27afd15d1d4323bf9708b86bae84f1e77c0bae74d50dac85aa737d31",
+        "baebe75cf0f786d48611d030a2bd8f58f763027848b1fe8e75ec78a4b0dc99c6",
       "dist/index.js":
         "a7dcc81f40848a17a4b7adf4fe573a57a50c18425fab40fbb098489dfd092f3f",
       "dist/language-packs.js":
@@ -59,11 +59,21 @@ export const qualifiedSourceAnalyzers = [
       "dist/performance-timing.js":
         "28f589c29e8759b566ee3fb741a91e30347efe1dfbad0f5b1c5b7d4f785369ff",
       "dist/preprocessor-idioms.js":
-        "92973c7f0c017fdd340a084e39e5febadd4254bc822c0f86f46a05c1463c1870",
+        "8b40d577796ecb1d859f97a9f437193903a5f2b9600bda9a38de865b9b1b3f1f",
+      "dist/reference-nodes.js":
+        "2cc9075664f9d43cd126360b09b4a4baee8d855ea178468ec68791d3eed4f967",
+      "dist/references-bash.js":
+        "c0106ce3de5f6cf14e280ac74e7e0d1a27ef19f57f7dfc11b654a9f4473ff283",
+      "dist/references-c.js":
+        "378a5cb9e1fc2ebfeda37cc9a11408cda67c367e3465f5e06da0573206de3c1c",
+      "dist/references-hcl.js":
+        "be6aca1b8e95605fedaaccbb45f44781cbf69ee2c8088ab67dd5cc85494fd77f",
+      "dist/references-php.js":
+        "c635e9b652737415a51ee2de004dc3435d7795d63c4203c9aad7c2696156ff37",
       "dist/references.js":
-        "91c634b37657292286be914935348b2a64363d515cd01c7ddc7dc712caaf9554",
+        "1aa64d35d4bfb23846bfe3a814ea658b2b4983eac95506d15c7c6655909143ea",
       "integrity.json":
-        "3795c51f825c6ff7c58671de11198277092a9ab8ccb6d1967cb63029ec77abe9",
+        "24f5e981779905088b110085483c76ecd940a72ae0b518a66ca072cd162a9d4c",
       "licenses/web-tree-sitter-MIT.txt":
         "c5cfb43042b6b72045f4ba997834d0a7786d2793d91680868b5815b39f14fc78",
       "package.json":

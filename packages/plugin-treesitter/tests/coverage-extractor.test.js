@@ -459,6 +459,7 @@ describe("reference extractor dispatch", () => {
       extract: "string_args",
       callee: "println",
       key: "k",
+      path: "a.rs",
     });
     assert.ok(seen[0].budget <= 50);
   });

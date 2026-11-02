@@ -16,7 +16,8 @@
  * normal conditional-compilation finding still covers it.
  */
 
-const DIRECTIVE = /^\s*#\s*(\w+)\b(.*)$/;
+// `%:` and `??=` (a digraph and a trigraph) also start a directive.
+const DIRECTIVE = /^\s*(?:#|%:|\?\?=)\s*(\w+)\b(.*)$/;
 
 /** The file with comments blanked and string literals kept, line by line. */
 function codeLines(content: string): string[] {
@@ -31,9 +32,19 @@ function codeLines(content: string): string[] {
       out += content.slice(index, stop).replace(/[^\n]/g, " ");
       index = stop;
     } else if (char === "/" && next === "/") {
-      let stop = content.indexOf("\n", index);
-      if (stop === -1) stop = content.length;
-      out += " ".repeat(stop - index);
+      // A backslash at the end of the line continues the comment.
+      let stop = index;
+      for (;;) {
+        stop = content.indexOf("\n", stop);
+        if (stop === -1) {
+          stop = content.length;
+          break;
+        }
+        // gcc and clang also splice a backslash followed by blanks.
+        if (!/\\[ \t\f\v]*\r?$/.test(content.slice(index, stop))) break;
+        stop += 1;
+      }
+      out += content.slice(index, stop).replace(/[^\n]/g, " ");
       index = stop;
     } else if (char === '"' || char === "'") {
       let stop = index + 1;
@@ -42,7 +53,14 @@ function codeLines(content: string): string[] {
         content[stop] !== char &&
         content[stop] !== "\n"
       ) {
-        stop += content[stop] === "\\" ? 2 : 1;
+        // A backslash before the line end (blanks and `\r` too) splices the
+        // literal onto the next line.
+        const splice =
+          content[stop] === "\\"
+            ? /^\\[ \t\f\v]*\r?\n/.exec(content.slice(stop, stop + 80))
+            : null;
+        stop +=
+          splice !== null ? splice[0].length : content[stop] === "\\" ? 2 : 1;
       }
       stop = Math.min(stop + 1, content.length);
       out += content.slice(index, stop);
@@ -115,6 +133,9 @@ function isBlank(line: string | undefined): boolean {
 
 // implements REQ-kibi-tree-sitter-language-packs
 export function blankHeaderIdioms(content: string): string {
+  // A trigraph (`??/` splices lines in strict modes) means the build mode
+  // decides how the file lexes: nothing is blanked.
+  if (/\?\?[=/'()!<>-]/.test(content)) return content;
   const code = codeLines(content);
   const lines = content.split("\n");
   const used = code
@@ -133,10 +154,17 @@ export function blankHeaderIdioms(content: string): string {
         : GUARD_OPEN.exec(`${open.name} ${open.rest}`.trim());
     const name = guard?.[1] ?? guard?.[2] ?? guard?.[3];
     const define = directiveAt(code, second);
+    // The guard's own `#define G` (or `G 1`, `G G`) defines nothing the code uses;
+    // a guard name with any other body is a macro of the file.
+    const words = define?.rest.split(/\s+/) ?? [];
     if (
       name !== undefined &&
+      // `#ifndef __GNUC__` / `#define __GNUC__ 1` tests the compiler.
+      !/^__/.test(name) &&
       define?.name === "define" &&
-      define.rest.split(/\s+/)[0] === name &&
+      words[0] === name &&
+      (words.length === 1 ||
+        (words.length === 2 && (words[1] === "1" || words[1] === name))) &&
       !define.rest.endsWith("\\") &&
       plainEndif(code, first) === last
     ) {
@@ -151,7 +179,11 @@ export function blankHeaderIdioms(content: string): string {
     const open = directiveAt(code, line);
     if (open === undefined) continue;
     const condition = `${open.name} ${open.rest}`.trim();
-    const disabled = condition === "if 0";
+    // `#if 0 /* ...` with the comment closing on a later line: the
+    // directive goes on after it (`*/ || 1`).
+    const raw = lines[line] as string;
+    const disabled =
+      condition === "if 0" && raw.lastIndexOf("/*") <= raw.lastIndexOf("*/");
     if (!disabled && !CPLUSPLUS_OPEN.test(condition)) continue;
     const endif = plainEndif(code, line);
     if (endif === undefined) continue;

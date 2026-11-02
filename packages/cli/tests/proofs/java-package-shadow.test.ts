@@ -479,4 +479,356 @@ describe("rows about a name another file of the project may bind", () => {
       createShadowRowFilter(missing)("src/App/U02.cs", [environmentRow]),
     ).toEqual([environmentRow]);
   });
+
+  it("drops a PHP namespace row only when no project file declares that function there", () => {
+    const row = {
+      line: 3,
+      text: "getenv may be a function of namespace App\\Svc: getenv('X')",
+    };
+    const root = project({
+      "src/a.php": "<?php\nnamespace App\\Svc;\ngetenv('X');\n",
+      "src/b.php": "<?php\nnamespace Other;\nfunction getenv($n) {}\n",
+      "vendor/x/c.php": "<?php\nnamespace App\\Svc;\nfunction getenv($n) {}\n",
+    });
+    expect(createShadowRowFilter(root)("src/a.php", [row])).toEqual([]);
+    fs.writeFileSync(
+      path.join(root, "src/d.php"),
+      "<?php\nnamespace App \\ Svc {\n  function &GETENV($n) {}\n}\n",
+    );
+    expect(createShadowRowFilter(root)("src/a.php", [row])).toEqual([row]);
+  });
+
+  it("drops a C include row only when the header defines no macro the file uses", () => {
+    const row = {
+      line: 1,
+      text: 'config.h may define macros or function pointers this file uses: #include "config.h"',
+    };
+    const root = project({
+      "src/a.c": '#include "config.h"\nint main(void) { return run(); }\n',
+      "src/config.h":
+        '#ifndef CONFIG_H\n#define CONFIG_H\n#include <stdio.h>\n#include "inner.h"\nint run(void);\n#endif\n',
+      "src/inner.h": "#define UNUSED 1\n",
+    });
+    expect(createShadowRowFilter(root)("src/a.c", [row])).toEqual([]);
+    // A macro the file uses, a header not next to the file, or an include
+    // Kibi cannot follow keeps the row.
+    fs.writeFileSync(path.join(root, "src/inner.h"), "#define run system\n");
+    expect(createShadowRowFilter(root)("src/a.c", [row])).toEqual([row]);
+    fs.writeFileSync(path.join(root, "src/inner.h"), "#include CONFIGURED\n");
+    expect(createShadowRowFilter(root)("src/a.c", [row])).toEqual([row]);
+    fs.rmSync(path.join(root, "src/config.h"));
+    expect(createShadowRowFilter(root)("src/a.c", [row])).toEqual([row]);
+    expect(createShadowRowFilter(root)("src/missing.c", [row])).toEqual([row]);
+  });
+
+  it("reads C headers the way the preprocessor does", () => {
+    const row = {
+      line: 1,
+      text: 'config.h may define macros or function pointers this file uses: #include "config.h"',
+    };
+    const uses = (header: string, more: Record<string, string> = {}) => {
+      const root = project({
+        "src/a.c":
+          '#include "config.h"\nint main(void) { log_line("x"); return LIMIT; }\n',
+        "src/config.h": header,
+        ...more,
+      });
+      return createShadowRowFilter(root)("src/a.c", [row]).length === 1;
+    };
+    // A macro of numbers or strings renames nothing.
+    expect(uses('#define LIMIT 10\n#define NAME "x"\n')).toBe(false);
+    expect(uses("/* shims */ #define log_line(m) system(m)\n")).toBe(true);
+    expect(uses("#/**/define log_line(m) system(m)\n")).toBe(true);
+    expect(uses("#define \\\nlog_line(m) system(m)\n")).toBe(true);
+    expect(uses("%:define log_line(m) system(m)\n")).toBe(true);
+    expect(uses("extern int (*log_line)(const char *);\n")).toBe(true);
+    expect(
+      uses('#import "shims.h"\n', {
+        "src/shims.h": "#define log_line(m) system(m)\n",
+      }),
+    ).toBe(true);
+    expect(
+      uses('#include_next "shims.h"\n', {
+        "src/shims.h": "#define log_line(m) system(m)\n",
+      }),
+    ).toBe(true);
+    expect(
+      uses("#include <proj/shims.h>\n", {
+        "include/proj/shims.h": "#define log_line(m) system(m)\n",
+      }),
+    ).toBe(true);
+    expect(uses("#include <stdio.h>\n")).toBe(false);
+    // Typedef'd and macro-declared function pointers.
+    expect(
+      uses(
+        "typedef int (*runner_t)(const char *);\nextern runner_t log_line;\n",
+      ),
+    ).toBe(true);
+    expect(
+      uses(
+        "#define HOOK(name) extern int (*name)(const char *)\nHOOK(log_line);\n",
+      ),
+    ).toBe(true);
+    // Symbol aliases, macro pushes and trigraphs are not read.
+    expect(uses('extern int run(const char *) __asm__("system");\n')).toBe(
+      true,
+    );
+    expect(
+      uses('int run(const char *) __attribute__((weakref("system")));\n'),
+    ).toBe(true);
+    expect(uses('_Pragma("push_macro(\\"X\\")")\n')).toBe(true);
+    expect(uses("??=define X 1\n")).toBe(true);
+    // A header that ends a macro of the file, and a form feed before `#`.
+    expect(uses("#undef log_line\n")).toBe(true);
+    expect(uses("\f#define log_line(m) system(m)\n")).toBe(true);
+    // A lower-case macro may replace a function or a value, whatever its body.
+    expect(uses("#define log_line(m) (m)\n")).toBe(true);
+    // Upper-case helpers of builtins and system constants rename nothing.
+    expect(uses("#define LIMIT(x) __builtin_expect(!!(x), 1)\n")).toBe(false);
+    expect(uses("#define LIMIT INFINITY\n")).toBe(false);
+    // Arrays a macro indexes are data, and harmless project constants chain.
+    expect(
+      uses(
+        "#define LIMIT(a, b) (table[idx[(unsigned char)(b)]][(unsigned char)(a)])\n",
+      ),
+    ).toBe(false);
+    expect(uses("#define LIMIT(i) (hooks[i](0))\n")).toBe(true);
+    expect(
+      uses("#define LIMIT COLOR\n", { "src/other.h": "#define COLOR 33\n" }),
+    ).toBe(false);
+    // ... unless a project file defines that constant.
+    expect(
+      uses("#define LIMIT RUNNER\n", {
+        "src/other.h": "#define RUNNER system\n",
+      }),
+    ).toBe(true);
+    // `<...>` in the file itself reaches a project header too.
+    const angled = {
+      line: 1,
+      text: "shims.h may define macros or function pointers this file uses: #include <shims.h>",
+    };
+    const root = project({
+      "src/b.c": '#include <shims.h>\nvoid f(void) { log_line("x"); }\n',
+      "inc/shims.h": "#define log_line(m) system(m)\n",
+    });
+    expect(createShadowRowFilter(root)("src/b.c", [angled])).toEqual([angled]);
+    fs.writeFileSync(path.join(root, "inc/shims.h"), "#define OTHER 1\n");
+    expect(createShadowRowFilter(root)("src/b.c", [angled])).toEqual([]);
+    // A project header of any extension.
+    const inl = {
+      line: 1,
+      text: "shims.inl may define macros or function pointers this file uses: #include <shims.inl>",
+    };
+    const other = project({
+      "src/c.c": '#include <shims.inl>\nvoid f(void) { log_line("x"); }\n',
+      "inc/shims.inl": "#define log_line(m) system(m)\n",
+    });
+    expect(createShadowRowFilter(other)("src/c.c", [inl])).toEqual([inl]);
+  });
+
+  it("keeps a Laravel Env row only when the project names the class", () => {
+    const row = {
+      line: 2,
+      text: "Cache may be Illuminate\\Support\\Env or a class that extends it: Cache::get('k')",
+    };
+    const root = project({
+      "src/a.php": "<?php\nCache::get('k');\n",
+      "vendor/laravel/Env.php":
+        "<?php\nnamespace Illuminate\\Support;\nclass Env {}\n",
+    });
+    expect(createShadowRowFilter(root)("src/a.php", [row])).toEqual([]);
+    fs.writeFileSync(
+      path.join(root, "src/helpers.inc"),
+      "<?php\nuse Illuminate\\Support\\Env;\nclass Cache extends Env {}\n",
+    );
+    expect(createShadowRowFilter(root)("src/a.php", [row])).toEqual([row]);
+    // A group use, and a package under vendor/.
+    for (const [file, text] of [
+      [
+        "src/b.php",
+        "<?php\nuse Illuminate\\Support\\{Env, Str};\nclass Cache extends Env {}\n",
+      ],
+      [
+        "vendor/pkg/Cache.php",
+        "<?php\nclass Cache extends \\Illuminate\\Support\\Env {}\n",
+      ],
+    ] as const) {
+      const other = project({
+        "src/a.php": "<?php\nCache::get('k');\n",
+        [file]: text,
+      });
+      expect(createShadowRowFilter(other)("src/a.php", [row])).toEqual([row]);
+    }
+  });
+
+  it("reads PHP files of every extension PHP runs for the namespace scan", () => {
+    const row = {
+      line: 3,
+      text: "getenv may be a function of namespace App: getenv('X')",
+    };
+    const root = project({
+      "src/a.php": "<?php\nnamespace App;\ngetenv('X');\n",
+      "lib/shim.php5": "<?php\nnamespace App;\nfunction getenv($n) {}\n",
+    });
+    expect(createShadowRowFilter(root)("src/a.php", [row])).toEqual([row]);
+  });
+
+  it("keeps a Bash $0 row only when a project script sources the file", () => {
+    const row = {
+      line: 1,
+      text: 'run.sh may be sourced by another script, whose folder $0 names: source "$(dirname "$0")/lib.sh"',
+    };
+    const root = project({
+      "bin/run.sh": 'source "$(dirname "$0")/lib.sh"\n',
+      "bin/main": "#!/bin/bash\necho hi\n",
+    });
+    expect(createShadowRowFilter(root)("bin/run.sh", [row])).toEqual([]);
+    fs.writeFileSync(
+      path.join(root, "bin/main"),
+      '#!/bin/bash\n. "$DIR/run.sh"\n',
+    );
+    expect(createShadowRowFilter(root)("bin/run.sh", [row])).toEqual([row]);
+    // A plugin loader sources whatever its glob finds.
+    fs.writeFileSync(
+      path.join(root, "bin/main"),
+      '#!/bin/bash\nfor f in "$(dirname "$0")"/plugins/*.sh; do . "$f"; done\n',
+    );
+    expect(createShadowRowFilter(root)("bin/run.sh", [row])).toEqual([row]);
+    // A literal source of another file does not reach this one.
+    fs.writeFileSync(
+      path.join(root, "bin/main"),
+      '#!/bin/bash\n. "$(dirname "$0")/other.sh"\n',
+    );
+    expect(createShadowRowFilter(root)("bin/run.sh", [row])).toEqual([]);
+  });
+
+  it("reads the third round of C header and PHP project forms", () => {
+    const row = {
+      line: 1,
+      text: 'config.h may define macros or function pointers this file uses: #include "config.h"',
+    };
+    const uses = (header: string, code: string) => {
+      const root = project({
+        "src/a.c": `#include "config.h"\n${code}\n`,
+        "src/config.h": header,
+      });
+      return createShadowRowFilter(root)("src/a.c", [row]).length === 1;
+    };
+    expect(
+      uses(
+        "#define DIGEST(d,n,o) MD5(d,n,o)\n",
+        "void f(void) { DIGEST(b, n, o); }",
+      ),
+    ).toBe(true);
+    expect(
+      uses(
+        "#define STR_COPY(d,s) __builtin_strcpy(d,s)\n",
+        "void f(void) { STR_COPY(a, b); }",
+      ),
+    ).toBe(true);
+    expect(
+      uses(
+        "#define LIKELY(x) __builtin_expect(!!(x), 1)\n",
+        "void f(void) { if (LIKELY(a)) {} }",
+      ),
+    ).toBe(false);
+    expect(
+      uses(
+        "#define RUN_VIA(k,c) RUN_##k(c)\n",
+        "void f(void) { RUN_VIA(SHELL, x); }",
+      ),
+    ).toBe(true);
+    expect(
+      uses(
+        "#define ENV_ENTRY(i) environ[i]\n",
+        "void f(void) { ENV_ENTRY(0); }",
+      ),
+    ).toBe(true);
+    expect(
+      uses(
+        "typedef int runner_fn(const char *);\nextern runner_fn *run_hook;\n",
+        'void f(void) { run_hook("x"); }',
+      ),
+    ).toBe(true);
+    expect(
+      uses(
+        "extern int (CALLBACK *run_hook)(const char *);\n",
+        'void f(void) { run_hook("x"); }',
+      ),
+    ).toBe(true);
+    expect(
+      uses(
+        "extern int (* volatile run_hook)(const char *);\n",
+        'void f(void) { run_hook("x"); }',
+      ),
+    ).toBe(true);
+    expect(
+      uses(
+        "extern char *__REDIRECT(config_value, (const char *n), getenv);\n",
+        'void f(void) { config_value("x"); }',
+      ),
+    ).toBe(true);
+    expect(
+      uses(
+        "#define\vlog_line(m) system(m)\n",
+        'void f(void) { log_line("x"); }',
+      ),
+    ).toBe(true);
+    expect(
+      uses("#define run$job(c) system(c)\n", 'void f(void) { run$job("x"); }'),
+    ).toBe(true);
+    // A union in a header may alias the field a property read sets.
+    const unionRow = {
+      ...row,
+      text: row.text.replace(
+        "macros or function pointers",
+        "macros, function pointers or unions",
+      ),
+    };
+    const unionRoot = project({
+      "src/a.c": '#include "config.h"\nstruct tls t = { .verify_peer = 1 };\n',
+      "src/config.h": "union tls { int verify_peer; int check; };\n",
+    });
+    expect(createShadowRowFilter(unionRoot)("src/a.c", [unionRow])).toEqual([
+      unionRow,
+    ]);
+    expect(createShadowRowFilter(unionRoot)("src/a.c", [row])).toEqual([]);
+
+    const envRow = {
+      line: 2,
+      text: "Settings may be Illuminate\\Support\\Env or a class that extends it: Settings::get('X')",
+    };
+    const aliased = project({
+      "src/a.php": "<?php\nSettings::get('X');\n",
+      "src/Settings.php":
+        "<?php\nuse Illuminate\\Support as Base;\nclass Settings extends Base\\Env {}\n",
+    });
+    expect(createShadowRowFilter(aliased)("src/a.php", [envRow])).toEqual([
+      envRow,
+    ]);
+    const phpRow = {
+      line: 3,
+      text: "getenv may be a function of namespace App: getenv('X')",
+    };
+    const dotted = project({
+      "src/a.php": "<?php\nnamespace App;\ngetenv('X');\n",
+      "lib/.compat.php": "<?php\nnamespace App;\nfunction getenv($n) {}\n",
+    });
+    expect(createShadowRowFilter(dotted)("src/a.php", [phpRow])).toEqual([
+      phpRow,
+    ]);
+  });
+
+  it("finds a PHP function declared in an included file with comments in it", () => {
+    const row = {
+      line: 3,
+      text: "exec may be a function of namespace Svc: exec('rm')",
+    };
+    const root = project({
+      "src/a.php": "<?php\nnamespace Svc;\nexec('rm');\n",
+      "lib/shim.inc":
+        "<?php\nnamespace /* c */ Svc;\nfunction exec /* shim */ ($c) {}\n",
+    });
+    expect(createShadowRowFilter(root)("src/a.php", [row])).toEqual([row]);
+  });
 });
