@@ -136,6 +136,18 @@ describe("symbol title matching", () => {
     expect(
       declarationTitleAliases({ qualifiedName: "terraform:module[not json]" }),
     ).toEqual([]);
+    // Labels must be a non-empty list of strings, and a variable has one.
+    expect(
+      declarationTitleAliases({ qualifiedName: "terraform:module[1]" }),
+    ).toEqual([]);
+    expect(
+      declarationTitleAliases({ qualifiedName: 'terraform:variable["a","b"]' }),
+    ).toEqual([]);
+    expect(
+      declarationTitleAliases({
+        qualifiedName: 'terraform:variable["region"]',
+      }),
+    ).toEqual(["var.region", "variable.region"]);
     expect(declarationTitleAliases({ qualifiedName: "ox.OS" })).toEqual([]);
     expect(declarationTitleAliases({})).toEqual([]);
   });

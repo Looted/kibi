@@ -243,6 +243,25 @@ describe("staged gate over partial analysis", () => {
     ).toEqual([[{ startLine: 6, endLine: 6 }]]);
   });
 
+  test("overlapping and adjacent hunks in one gap give one line range", () => {
+    for (const hunks of [
+      [
+        { start: 1, end: 2 },
+        { start: 2, end: 2 },
+      ],
+      [
+        { start: 2, end: 2 },
+        { start: 1, end: 1 },
+      ],
+    ])
+      expect(
+        partialAnalysisReviews(
+          staged(hunks),
+          analyses(["TREESITTER_PREPROCESSOR_INCLUDE_UNAVAILABLE"]),
+        ).map((review) => review.lines),
+      ).toEqual([[{ startLine: 1, endLine: 2 }]]);
+  });
+
   test("a syntax error still fails the staged validation", () => {
     expect(() =>
       assertSourceAnalysisGate(

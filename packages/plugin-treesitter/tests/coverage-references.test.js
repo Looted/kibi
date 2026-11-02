@@ -463,3 +463,56 @@ describe("Rust reference reader edge cases", () => {
     });
   });
 });
+
+describe("reference reader scopes and nested macros", () => {
+  it("looks past a local var block that does not declare the package name", async () => {
+    const source = go(
+      [
+        'import "os"',
+        "func f() {",
+        "\tvar (",
+        "\t\tother = 1",
+        "\t)",
+        '\t_ = os.Getenv("HOME")',
+        "}",
+      ].join("\n"),
+    );
+    const env = await read("a.go", source, "env");
+    assert.deepEqual(env.members, ["HOME"]);
+    assert.deepEqual(env.lines, []);
+  });
+
+  it("looks past lambda parameters that do not bind System", async () => {
+    const source = [
+      "class A {",
+      "  void f() {",
+      '    Function<String, String> a = (String s) -> System.getenv("TYPED");',
+      '    Function<String, String> b = s -> System.getenv("INFERRED");',
+      '    BiFunction<String, String, String> c = (x, y) -> System.getenv("PAIR");',
+      "  }",
+      "}",
+    ].join("\n");
+    const env = await read("A.java", source, "env");
+    assert.deepEqual(env.members, ["INFERRED", "PAIR", "TYPED"]);
+  });
+
+  it("reads System.Environment as the System type, not an environment copy", async () => {
+    const source = [
+      "class A {",
+      "  void F() {",
+      '    var a = System.Environment.GetEnvironmentVariable("QUALIFIED");',
+      "  }",
+      "}",
+    ].join("\n");
+    const env = await read("A.cs", source, "env");
+    assert.deepEqual(env.members, ["QUALIFIED"]);
+    assert.deepEqual(env.lines, []);
+  });
+
+  it("reads the calls of a standard macro nested in a standard macro", async () => {
+    const source = 'fn f() { println!("{}", format!("{}", make(1))); }\n';
+    const calls = await read("a.rs", source, "calls");
+    // The nested format! is read through: its call is listed.
+    assert.ok(calls.members.includes("make"), JSON.stringify(calls));
+  });
+});

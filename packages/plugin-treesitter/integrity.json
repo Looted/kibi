@@ -237,12 +237,12 @@
     {
       "path": "dist/references.d.ts.map",
       "bytes": 1028,
-      "sha256": "bc50c2c627508f04745442b61f02dedb792d7c9479d245951ce50a1053bd4aa7"
+      "sha256": "edf983c5dbb0d14e7e7d30fed2247f3bb5753137e89127909816325266ec3e5c"
     },
     {
       "path": "dist/references.js",
-      "bytes": 134556,
-      "sha256": "13f481356aa17fc1b19ec573430c2235645ea0047e8474ced1373c0d88e19e87"
+      "bytes": 134562,
+      "sha256": "91da9e1c3bcca7a8209bc91245c4ba405cddc901639fa233c6940188f0b75104"
     },
     {
       "path": "licenses/web-tree-sitter-MIT.txt",

@@ -309,9 +309,11 @@ export function extractScriptReferences(
     );
   };
   const inType = (node: Node): boolean => {
-    for (let current: Node | undefined = node.parent; current !== undefined; current = current.parent) {
+    // Up to the enclosing statement: the source file always ends the walk.
+    let current: Node | undefined = node.parent;
+    while (current !== undefined && !ts.isStatement(current) && !ts.isSourceFile(current)) {
       if (ts.isTypeNode(current) || ts.isTypeQueryNode(current) || ts.isHeritageClause(current)) return true;
-      if (ts.isStatement(current) || ts.isSourceFile(current)) return false;
+      current = current.parent;
     }
     return false;
   };

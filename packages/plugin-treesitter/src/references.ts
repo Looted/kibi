@@ -67,23 +67,22 @@ function named(node: Node): Node[] {
 
 function firstError(root: Node): Node | null {
   if (!root.hasError) return null;
+  // A tree with an error always holds an ERROR or missing node; the root
+  // stands in for it otherwise.
+  let found = root;
   const pending = [root];
-  while (pending.length > 0) {
-    /* node:coverage disable */
-    const node = pending.shift();
-    if (node === undefined) break;
-    /* node:coverage enable */
-    if (node.type === "ERROR" || node.isMissing) return node;
+  for (let node = pending.shift(); node !== undefined; node = pending.shift()) {
+    if (node.type === "ERROR" || node.isMissing) {
+      found = node;
+      break;
+    }
     for (let index = 0; index < node.childCount; index += 1) {
       const child = node.child(index);
       if (child !== null && (child.hasError || child.isMissing))
         pending.push(child);
     }
-    // A tree with an error always holds an ERROR or missing node.
-    /* node:coverage disable */
   }
-  return root;
-  /* node:coverage enable */
+  return found;
 }
 
 /** Remove generic arguments: `Vec::<u8>::new` is `Vec::new`. */
@@ -2364,12 +2363,10 @@ function csharpChildEnvironment(node: Node, context: FileContext): boolean {
   if (name === null || !CSHARP_ENV_COPIES.has(csharpChain(name) ?? ""))
     return false;
   if (node.type === "member_binding_expression") return true;
+  // Aliasing keeps the last segment, so only System.Environment itself
+  // (spelled through any alias of System) resolves to Environment.
   const chain = csharpChain(node);
-  return (
-    chain === null ||
-    csharpAliased(chain, context) !== "Environment" ||
-    finalName(chain) !== "Environment"
-  );
+  return chain === null || csharpAliased(chain, context) !== "Environment";
 }
 
 const CSHARP: Reader = {
