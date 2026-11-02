@@ -126,14 +126,30 @@ describe("the references reader on Go, Java, C# and Rust", () => {
       expect(refused.reason).toContain(
         "infra/prod_override.tf may override values of this folder's blocks",
       );
-    expect(
-      await read(root, {
-        reader: "references",
-        files: "infra/*.tf",
-        extract: "property",
-        key: "acl",
-      }),
-    ).toEqual({ ok: true, model: { members: ["private", "public"] } });
+    // Read together, the override would replace the value, not add to it.
+    const merged = await read(root, {
+      reader: "references",
+      files: "infra/*.tf",
+      extract: "property",
+      key: "acl",
+    });
+    expect(merged.ok).toBe(false);
+    // OpenTofu reads a .tofu file in place of the .tf file of its name.
+    const tofu = workspace({
+      "main.tf": "uses(private)\n",
+      "main.tofu": "uses(public)\n",
+    });
+    const replaced = await read(tofu, {
+      reader: "references",
+      files: "main.tf",
+      extract: "property",
+      key: "acl",
+    });
+    expect(replaced.ok).toBe(false);
+    if (!replaced.ok)
+      expect(replaced.reason).toContain(
+        "main.tofu may replace or override this folder's .tf files under OpenTofu",
+      );
     expect(
       await read(root, {
         reader: "references",

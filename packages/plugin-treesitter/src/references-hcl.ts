@@ -21,15 +21,39 @@ const HCL_KEY_FUNCTIONS = new Set([
   "csvdecode",
   "zipmap",
   "transpose",
-  "provider::terraform::decode_tfvars",
+  // Named capture groups become object keys.
+  "regex",
+  "regexall",
+  // Terragrunt: another file's configuration as an object.
+  "read_terragrunt_config",
 ]);
+
+/**
+ * The function a call names: `core::jsondecode` is `jsondecode`. A
+ * provider-defined function (`provider::aws::arn_parse`) may return any
+ * object, so it is treated like the key functions.
+ */
+function keyFunction(name: string): boolean {
+  const bare = name.replace(/\s+/g, "").replace(/^core::/, "");
+  return HCL_KEY_FUNCTIONS.has(bare) || bare.startsWith("provider::");
+}
+
+/** Named children other than comments. */
+function parts(node: Node): Node[] {
+  return named(node).filter((child) => child.type !== "comment");
+}
 
 /** The one named child of an `expression` wrapper, or null for a compound. */
 function single(node: Node | null): Node | null {
   if (node === null) return null;
   if (node.type !== "expression") return node;
-  const parts = named(node);
-  return parts.length === 1 ? single(parts[0] as Node) : null;
+  const inner = parts(node);
+  return inner.length === 1 ? single(inner[0] as Node) : null;
+}
+
+/** Whether an expression is wrapped in parentheses, which force evaluation. */
+function parenthesized(node: Node | null): boolean {
+  return node !== null && node.type === "expression" && node.child(0)?.type === "(";
 }
 
 const ESCAPES: Readonly<Record<string, string>> = {
@@ -68,12 +92,31 @@ function decode(text: string): string | null {
       if (digits === 0 || !new RegExp(`^[0-9A-Fa-f]{${digits}}$`).test(hex))
         return null;
       const point = Number.parseInt(hex, 16);
-      if (point > 0x10ffff) return null;
+      // A surrogate is not a character: HCL writes U+FFFD for it.
+      if (point > 0x10ffff || (point >= 0xd800 && point <= 0xdfff)) return null;
       value += String.fromCodePoint(point);
       index += 1 + digits;
     } else value += char;
   }
-  return value;
+  // HCL normalizes string literals to NFC.
+  return value.normalize("NFC");
+}
+
+/**
+ * A number as HCL holds it: `007` is 7, `3.0e3` is 3000 and `1.50` is 1.5.
+ * Integers keep every digit; other values are written in their shortest
+ * decimal form, or refused when that would round them.
+ */
+function canonicalNumber(text: string): string | null {
+  if (/^\d+$/.test(text)) return BigInt(text).toString();
+  const value = Number(text);
+  if (!Number.isFinite(value)) return null;
+  const written = Number.isInteger(value) && Math.abs(value) < 1e21
+    ? BigInt(value).toString()
+    : String(value);
+  // Refuse a value a double cannot hold exactly (more than 15 significant digits).
+  const digits = text.replace(/[eE].*$/, "").replace(/[^0-9]/g, "").replace(/^0+/, "").replace(/0+$/, "");
+  return digits.length > 15 ? null : written;
 }
 
 /** A quoted string or template with no interpolation or directive. */
@@ -85,6 +128,7 @@ function quoted(node: Node): string | null {
       part.type === "quoted_template_end"
     )
       continue;
+    if (part.type === "comment") continue;
     if (part.type !== "template_literal") return null;
     const text = decode(part.text);
     if (text === null) return null;
@@ -110,7 +154,7 @@ function heredoc(node: Node): string | null {
   if (match === null) return null;
   if ((match[2] as string).includes("${") || match[2]?.includes("%{"))
     return null;
-  return (match[2] as string).replace(/\r\n/g, "\n");
+  return (match[2] as string).replace(/\r\n/g, "\n").normalize("NFC");
 }
 
 /** The scalar literal values an expression holds (each item of a tuple). */
@@ -121,6 +165,7 @@ function values(node: Node | null): string[] | null {
     case "literal_value": {
       const literal = named(value)[0] as Node;
       if (literal.type === "string_lit") return wrap(quoted(literal));
+      if (literal.type === "numeric_lit") return wrap(canonicalNumber(literal.text));
       return [literal.text];
     }
     case "template_expr": {
@@ -135,7 +180,7 @@ function values(node: Node | null): string[] | null {
       const collection = named(value)[0] as Node;
       if (collection.type !== "tuple") return null;
       const items: string[] = [];
-      for (const item of named(collection)) {
+      for (const item of parts(collection)) {
         if (item.type === "tuple_start" || item.type === "tuple_end") continue;
         const read = values(item);
         if (read === null) return null;
@@ -152,8 +197,10 @@ function values(node: Node | null): string[] | null {
         operation.text.trimStart().startsWith("-") &&
         operand?.type === "literal_value" &&
         named(operand)[0]?.type === "numeric_lit"
-      )
-        return [`-${operand.text}`];
+      ) {
+        const number = canonicalNumber(operand.text);
+        return number === null ? null : [number === "0" ? "0" : `-${number}`];
+      }
       return null;
     }
     default:
@@ -167,6 +214,13 @@ function wrap(value: string | null): string[] | null {
 
 /** An object key's name: a bare identifier or a literal string. */
 function keyName(node: Node | null): string | null {
+  // `(k) = v` evaluates k: only a literal inside is a name.
+  if (parenthesized(node)) {
+    const inner = single(parts(node as Node)[0] ?? null);
+    return inner?.type === "literal_value" || inner?.type === "template_expr"
+      ? keyName(parts(node as Node)[0] ?? null)
+      : null;
+  }
   const key = single(node);
   if (key === null) return null;
   if (key.type === "variable_expr") return key.text;
@@ -181,39 +235,113 @@ function keyName(node: Node | null): string | null {
   return null;
 }
 
+/**
+ * Whether a computed object key may be `key`: a template whose literal start
+ * or end rules the key out cannot be it.
+ */
+function mayBeKey(node: Node | null, key: string): boolean {
+  const value = single(node);
+  if (value?.type === "literal_value" || value?.type === "template_expr") {
+    const name = keyName(node);
+    if (name !== null) return name === key;
+  }
+  if (value?.type !== "template_expr") return true;
+  const template = named(value)[0] as Node;
+  if (template.type !== "quoted_template") return true;
+  const pieces = named(template).filter(
+    (part) =>
+      part.type !== "quoted_template_start" && part.type !== "quoted_template_end",
+  );
+  const first = pieces[0];
+  const last = pieces.at(-1);
+  const head = first?.type === "template_literal" ? decode(first.text) : "";
+  const tail = last?.type === "template_literal" ? decode(last.text) : "";
+  if (head === null || tail === null) return true;
+  return key.startsWith(head) && key.endsWith(tail) && head.length + tail.length <= key.length;
+}
+
+/** The name of the block a node is the body of, and that block's labels. */
+function blockOf(node: Node): Node | null {
+  for (let current = node.parent; current !== null; current = current.parent)
+    if (current.type === "block") return current;
+  return null;
+}
+
 /** Read `property` values of `key` from a parsed Terraform or HCL file. */
 // implements REQ-kibi-tree-sitter-script-references
 export function hclProperty(
   root: Node,
   key: string,
+  file = "",
 ): { members: string[]; unresolved: UnresolvedRow[] } {
   const members: string[] = [];
   const unresolved: UnresolvedRow[] = [];
+  const terragrunt = /\.hcl$/i.test(file);
   const take = (owner: Node, value: Node | null): void => {
     const read = values(value);
     if (read === null) unresolved.push(at(owner));
     else members.push(...read);
   };
+  /**
+   * A variable's `type` is a type constraint, not a value: only an
+   * `optional(type, default)` attribute of `key` holds one.
+   */
+  const typeConstraint = (node: Node): void => {
+    if (node.type === "object_elem") {
+      if (keyName(field(node, "key")) === key) {
+        const call = single(field(node, "val"));
+        if (call?.type === "function_call" && named(call)[0]?.text === "optional") {
+          const args = named(call).find((child) => child.type === "function_arguments");
+          const defaults = args === undefined ? [] : parts(args).filter((arg) => arg.type === "expression");
+          if (defaults.length > 1) take(node, defaults[1] ?? null);
+        }
+      }
+    }
+    for (const child of named(node)) typeConstraint(child);
+  };
   const visit = (node: Node): void => {
     switch (node.type) {
+      case "block": {
+        // Terragrunt merges an included file's configuration into this one.
+        if (terragrunt && named(node)[0]?.text === "include") {
+          unresolved.push(at(node));
+          return;
+        }
+        break;
+      }
       case "attribute": {
         const [name, value] = named(node);
         if (name?.text === key) take(node, value ?? null);
+        if (
+          name?.text === "type" &&
+          named(blockOf(node) ?? node)[0]?.text === "variable"
+        ) {
+          if (value !== undefined) typeConstraint(value);
+          return;
+        }
         break;
       }
       case "object_elem": {
-        const name = keyName(field(node, "key"));
-        if (name === null) unresolved.push(at(node));
-        else if (name === key) take(node, field(node, "val"));
+        const keyNode = field(node, "key");
+        const name = keyName(keyNode);
+        if (name === null) {
+          if (mayBeKey(keyNode, key)) unresolved.push(at(node));
+        } else if (name === key) take(node, field(node, "val"));
         break;
       }
-      case "for_object_expr":
-        // `{ for k, v in x : k => v }` makes keys at evaluation.
-        unresolved.push(at(node));
+      case "for_object_expr": {
+        // `{ for k, v in x : k => v }` makes keys at evaluation. The keys of
+        // a `for_each` map are instance keys, not configuration values.
+        const owner = node.parent?.parent?.parent;
+        const forEach =
+          owner?.type === "attribute" && named(owner)[0]?.text === "for_each";
+        const keyExpression = parts(node).find((part) => part.type === "expression") ?? null;
+        if (!forEach && mayBeKey(keyExpression, key)) unresolved.push(at(node));
         break;
+      }
       case "function_call": {
         const name = named(node)[0]?.text ?? "";
-        if (HCL_KEY_FUNCTIONS.has(name)) unresolved.push(at(node));
+        if (keyFunction(name)) unresolved.push(at(node));
         break;
       }
     }

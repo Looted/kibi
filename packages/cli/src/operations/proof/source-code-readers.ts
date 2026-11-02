@@ -1112,7 +1112,9 @@ async function readPluginReferences(
   }
   // Terraform merges `override.tf` and `*_override.tf` files of a folder
   // into the blocks of its other files, so their values replace what a file
-  // read shows.
+  // read shows, whether or not the read includes them: Kibi does not merge.
+  // OpenTofu also reads `.tofu` files, which replace a `.tf` file of the same
+  // name and may hold overrides of their own.
   for (const file of files.filter((candidate) => /\.tf$/i.test(candidate))) {
     const folder = path.posix.dirname(file);
     let names: string[];
@@ -1123,8 +1125,10 @@ async function readPluginReferences(
     }
     for (const name of names) {
       const override = folder === "." ? name : `${folder}/${name}`;
-      if (/(?:^|_)override\.tf(?:\.json)?$/.test(name) && !files.includes(override))
+      if (/(?:^|_)override\.tf(?:\.json)?$/i.test(name))
         unresolved.push({ file, line: 1, text: `${override} may override values of this folder's blocks` });
+      else if (/\.tofu(?:\.json)?$/i.test(name))
+        unresolved.push({ file, line: 1, text: `${override} may replace or override this folder's .tf files under OpenTofu` });
     }
   }
   // A C# file also imports what the project's global and implicit usings

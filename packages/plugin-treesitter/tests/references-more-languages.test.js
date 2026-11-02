@@ -358,8 +358,9 @@ describe("Bash reference reader", () => {
     );
     const env = await read("s.sh", source, "env");
     assert.deepEqual(env.members, ["dyn", "m"]);
-    // JOB is set only when a job ends; names given at run time are refused.
-    assert.deepEqual(env.lines, [12, 18, 19, 21, 22]);
+    // JOB is set only when a job ends, ROWS and LIST only when `f` opens;
+    // names given at run time are refused.
+    assert.deepEqual(env.lines, [4, 12, 15, 18, 19, 21, 22]);
   });
 
   it("evaluates arithmetic on values it can vouch for", async () => {
@@ -474,6 +475,176 @@ describe("Bash reference reader", () => {
       assert.equal(result.status, "unsupported");
       assert.match(result.message, /^Bash has no/);
     }
+  });
+});
+
+describe("Bash constructs Kibi must not misread", () => {
+  const sh = (content, extract = "env", callee) =>
+    read("s.sh", content, extract, callee === undefined ? {} : { callee });
+
+  it("reads variables bash only fills in when the environment does not", async () => {
+    assert.deepEqual(
+      (await sh(lines('echo "$HOSTNAME"', 'case "$OSTYPE" in x) ;; esac', 'echo "$REPLY $OPTARG"'))).members,
+      ["HOSTNAME", "OPTARG", "OSTYPE", "REPLY"],
+    );
+    const shell = await sh(lines('echo "$OLDPWD $SHLVL"'));
+    assert.deepEqual([shell.members, shell.lines], [[], [1]]);
+  });
+
+  it("reads HOME through a tilde", async () => {
+    for (const content of [
+      lines("cp x ~/.config/a"),
+      lines("cd"),
+      lines("PATH=~/bin:$PATH"),
+      lines("X=a:~/b"),
+      lines("~/bin/tool"),
+      lines("for d in ~/a; do :; done"),
+      lines("a=(~/x)"),
+      lines("a=([1]=~/y)"),
+    ])
+      assert.ok((await sh(content)).members.includes("HOME"), content);
+    for (const content of [
+      lines('echo ~"/d"'),
+      lines("echo $x~/e"),
+      lines("echo \\~/f"),
+      lines("echo '~/g'"),
+      lines("echo a~/h"),
+    ])
+      assert.ok(!(await sh(content)).members.includes("HOME"), content);
+    // `~-` is OLDPWD, which bash may set; `make P=~/x` expands only in bash.
+    assert.deepEqual((await sh(lines("cd ~-"))).lines, [1]);
+    assert.deepEqual((await sh(lines("make P=~/c"))).lines, [1]);
+  });
+
+  it("reads the names that test -v checks", async () => {
+    const env = await sh(
+      lines("[[ -v DEBUG && -n x ]]", "[[ ! -v TRACE ]]", "test -v VERBOSE", "[ -v QUIET ]", "[ -v ]"),
+    );
+    assert.deepEqual(env.members, ["DEBUG", "QUIET", "TRACE", "VERBOSE"]);
+    assert.deepEqual(env.lines, []);
+  });
+
+  it("evaluates [[ -lt ]] operands and array indexes as arithmetic", async () => {
+    for (const [content, name] of [
+      [lines("n=1", "[[ $n -gt 0 && $n -lt MAX_RETRIES ]]"), "MAX_RETRIES"],
+      [lines("f() { local arr[SLOT]=1; }"), "SLOT"],
+      [lines("arr=([SLOT]=v [3]=w x)"), "SLOT"],
+      [lines("unset a[IDX]"), "IDX"],
+      [lines("unset 'a[IDX]'"), "IDX"],
+    ]) {
+      const env = await sh(content);
+      assert.deepEqual(env.members, [name], content);
+      assert.ok(env.lines.length > 0, content);
+    }
+    // `[ ]` compares text, an associative key is text.
+    assert.deepEqual(await sh(lines("[ 1 -lt N ]")), { members: [], lines: [], rows: [] });
+    assert.deepEqual(await sh(lines("declare -A m=([K]=v)", "unset m[J]")), {
+      members: [],
+      lines: [],
+      rows: [],
+    });
+    // Loop values that are all numbers are safe to evaluate.
+    assert.deepEqual(
+      (await sh(lines("sum=0", "for i in 1 2 3; do (( sum += i )); done"))).lines,
+      [],
+    );
+  });
+
+  it("does not trust assignments that may not run", async () => {
+    for (const content of [
+      lines("LOGDIR=/x &", 'echo "$LOGDIR"'),
+      lines("read -r VERSION < /etc/app/version", 'echo "$VERSION"'),
+      lines("g(){ unset HOME; echo \"$HOME\"; }", "f(){ local HOME=/srv; g; }", "f"),
+    ]) {
+      const env = await sh(content);
+      assert.deepEqual(env.members, [], content);
+      assert.ok(env.lines.length > 0, content);
+    }
+    // `local` outside a function fails.
+    assert.deepEqual((await sh(lines("local CONF=/x", 'echo "$CONF"'))).members, ["CONF"]);
+    // Redirections Kibi can vouch for keep the assignment.
+    assert.deepEqual(
+      await sh(lines("read -r X <<< 1", "read -r Y < /dev/null", 'echo "$X $Y"')),
+      { members: [], lines: [], rows: [] },
+    );
+  });
+
+  it("refuses code it cannot see for env", async () => {
+    for (const content of [
+      lines("tr '\\0' '\\n' < /proc/self/environ"),
+      lines("cat \"/proc/$$/environ\""),
+      lines("alias show='echo $API_TOKEN'", "show"),
+      lines("builtin declare -n ref=SECRET_KEY", 'echo "$ref"'),
+      lines("builtin source /etc/app/overrides.sh"),
+      lines('unset "$v"'),
+      lines("gosu app bash -c 'echo $X'"),
+    ])
+      assert.ok((await sh(content)).lines.includes(1), content);
+    assert.deepEqual(await sh(lines("gosu app server")), { members: [], lines: [], rows: [] });
+  });
+
+  it("knows what unset, read and here-documents leave", async () => {
+    for (const content of [
+      lines('unset "TMPDIR"', 'echo "${TMPDIR:-/tmp}"'),
+      lines("cat <<E\\OF", "$HOME", "EOF"),
+      lines("command read -r LINE", 'echo "$LINE"'),
+      lines('read -rp "> " answer', 'echo "$answer"'),
+      lines("read", 'echo "$REPLY"'),
+      lines("select c in a b; do echo \"$REPLY\"; done"),
+    ])
+      assert.deepEqual(await sh(content), { members: [], lines: [], rows: [] }, content);
+  });
+
+  it("follows sourced files through command and builtin", async () => {
+    assert.deepEqual(
+      (
+        await sh(
+          lines("builtin source /etc/app/overrides.sh", "command . ./local.sh", "source -- ./lib.sh", "gosu app server"),
+          "imports",
+        )
+      ).members,
+      ["./lib.sh", "./local.sh", "/etc/app/overrides.sh"],
+    );
+  });
+
+  it("follows the commands wrappers run", async () => {
+    for (const [content, expected] of [
+      [lines("find . -exec chmod {} \\; -exec rm -f {} \\;"), ["chmod", "find", "rm"]],
+      [lines("xargs -0 < list rm -f"), ["rm", "xargs"]],
+      [lines("sudo 2>/dev/null rm x"), ["rm", "sudo"]],
+      [lines("busybox rm x"), ["busybox", "rm"]],
+      [lines("ip netns exec ns rm x"), ["ip", "rm"]],
+      [lines("trap -- cleanup EXIT"), ["cleanup", "trap"]],
+      [lines("sudo -nE rm x"), ["rm", "sudo"]],
+    ])
+      assert.deepEqual(await sh(content, "calls"), { members: expected, lines: [], rows: [] }, content);
+  });
+
+  it("refuses commands that run code Kibi cannot follow", async () => {
+    for (const content of [
+      lines('bash -Ec "rm x"'),
+      lines('sh -Cc "rm x"'),
+      lines('nohup >/dev/null 2>&1 bash -c "rm"'),
+      lines('sudo su - app -c "rm"'),
+      lines('sudo watch "rm"'),
+      lines('command eval "rm -rf /tmp/cache"'),
+      lines("runuser -u u -- rm x"),
+      lines('script -qc "rm" /dev/null'),
+      lines('mapfile -t -C "rm -rf" -c 1 lines'),
+      lines("hash -p /bin/rm ls"),
+    ])
+      assert.deepEqual((await sh(content, "calls")).lines, [1], content);
+  });
+
+  it("reads first arguments past redirections and refuses ones from input", async () => {
+    assert.deepEqual(await sh(lines("curl >out.html https://trusted.example/x"), "string_args", "curl"), {
+      members: ["https://trusted.example/x"],
+      lines: [],
+      rows: [],
+    });
+    assert.deepEqual((await sh(lines("rm 2>/dev/null -rf x"), "string_args", "rm")).members, ["-rf"]);
+    assert.deepEqual((await sh(lines("cat urls | xargs curl"), "string_args", "curl")).lines, [1]);
+    assert.deepEqual((await sh(lines("find . -exec curl {} \\;"), "string_args", "curl")).lines, [1]);
   });
 });
 
@@ -998,6 +1169,89 @@ describe("reader edge cases", () => {
     assert.deepEqual(
       (await read("a.php", lines("<?php", 'getenv("\\u{110000}");'), "env"))
         .lines,
+      [2],
+    );
+  });
+});
+
+describe("Terraform and HCL values Kibi must not misread", () => {
+  const property = (content, key = "acl", path = "main.tf") =>
+    read(path, content, "property", { key });
+
+  it("refuses keys that are evaluated", async () => {
+    for (const content of [
+      lines("locals {", '  objs = [for k in ["acl"] : { (k) = "public-read" }]', "}"),
+      lines("locals {", '  objs = [for k, v in { a = "acl" } : { (v) = "public-read" }]', "}"),
+      lines("locals {", '  m = regex("^(?P<acl>[a-z-]+)$", "public-read")', "}"),
+      lines("locals {", '  m = regexall("(?P<acl>[a-z-]+)", "public-read")', "}"),
+      lines("locals {", '  m = core::jsondecode("{}")', "}"),
+      lines("locals {", '  m = core::zipmap(["acl"], ["x"])', "}"),
+      lines("locals {", '  m = provider::aws::arn_parse("x")', "}"),
+      lines("locals {", '  m = { for k, v in var.x : k => v }', "}"),
+    ])
+      assert.deepEqual((await property(content)).lines, [2], content);
+    // A literal in parentheses is still a name.
+    assert.deepEqual(
+      await property(lines("locals {", '  m = { ("acl") = "private", (local.other) = 1 }', "}")),
+      { members: ["private"], lines: [2], rows: ["(local.other) = 1"] },
+    );
+  });
+
+  it("reads keys that cannot be the one asked for", async () => {
+    // for_each keys are instance keys; a template key that starts otherwise
+    // cannot be acl.
+    const read1 = await property(
+      lines(
+        'resource "aws_s3_bucket" "b" {',
+        "  for_each = { for k, v in var.buckets : k => v }",
+        '  tags     = { for k, v in var.tags : "tag-${k}" => v }',
+        '  acl      = "private"',
+        "}",
+      ),
+    );
+    assert.deepEqual(read1, { members: ["private"], lines: [], rows: [] });
+  });
+
+  it("reads values as HCL holds them", async () => {
+    const numbers = await property(
+      lines("locals {", "  days = 007", "  days = 3.0e3", "  days = 1.50", "  days = -0", "}"),
+      "days",
+    );
+    assert.deepEqual(numbers.members, ["0", "1.5", "3000", "7"]);
+    // HCL normalizes strings to NFC, and a surrogate escape is no character.
+    const strings = await property(
+      lines("locals {", '  name = "café"', '  name = "\\ud83d\\ude00"', "}"),
+      "name",
+    );
+    assert.deepEqual(strings.members, ["café"]);
+    assert.deepEqual(strings.lines, [3]);
+    // Comments are not values.
+    assert.deepEqual(
+      (await property(lines("locals {", '  actions = [', '    "s3:Get", # read', '    /* c */ "s3:Put",', "  ]", "}"), "actions")).members,
+      ["s3:Get", "s3:Put"],
+    );
+  });
+
+  it("reads a variable's type as a constraint, with optional defaults as values", async () => {
+    const read1 = await property(
+      lines(
+        'variable "bucket" {',
+        "  type = object({",
+        "    acl  = optional(string, \"private\")",
+        "    name = optional(string)",
+        "    tags = map(string)",
+        "  })",
+        "}",
+      ),
+    );
+    assert.deepEqual(read1, { members: ["private"], lines: [], rows: [] });
+  });
+
+  it("refuses a Terragrunt include, which merges another file", async () => {
+    const content = lines('include "root" {', '  path = find_in_parent_folders("root.hcl")', "}", "inputs = {", '  acl = "private"', "}");
+    assert.deepEqual((await property(content, "acl", "terragrunt.hcl")).lines, [1]);
+    assert.deepEqual(
+      (await property(lines("locals {", '  common = read_terragrunt_config("common.hcl")', "}"), "acl", "terragrunt.hcl")).lines,
       [2],
     );
   });
