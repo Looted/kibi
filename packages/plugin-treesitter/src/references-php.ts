@@ -41,6 +41,13 @@ interface Scope {
   readonly functions: Map<string, Imported>;
 }
 
+/** An array literal's element: its key (null when Kibi cannot read it). */
+interface ArrayEntry {
+  readonly key: string | null;
+  readonly value: Node | undefined;
+  readonly item: Node;
+}
+
 /** Superglobals that hold the environment (`$_SERVER` holds it in the CLI and under FPM). */
 const ENV_ARRAYS = new Set(["_ENV", "_SERVER"]);
 
@@ -248,8 +255,6 @@ const READS_SLOT = new Set([
   "min",
   "abs",
   "round",
-  "echo",
-  "print",
 ]);
 
 /** Builtins that rewrite a whole array, its values or its keys. */
@@ -278,6 +283,14 @@ const ARRAY_TRANSFORMS = new Set([
   "iterator_to_array",
 ]);
 
+/** Nodes with variables of their own. */
+const FUNCTIONS = new Set([
+  "anonymous_function",
+  "arrow_function",
+  "function_definition",
+  "method_declaration",
+]);
+
 /** Code built from text: every extract is unknowable there. */
 const CODE_FUNCTIONS = new Set(["create_function"]);
 
@@ -285,53 +298,52 @@ function lower(name: string): string {
   return name.toLowerCase();
 }
 
-/** The value of a PHP escape sequence, or null for one Kibi does not decode. */
-function decodeEscape(text: string): string | null {
-  const simple: Readonly<Record<string, string>> = {
-    "\\n": "\n",
-    "\\t": "\t",
-    "\\r": "\r",
-    "\\v": "\v",
-    "\\e": "\x1b",
-    "\\f": "\f",
-    "\\\\": "\\",
-    "\\$": "$",
-    '\\"': '"',
-  };
-  const known = simple[text];
-  if (known !== undefined) return known;
-  const hex = /^\\x([0-9A-Fa-f]{1,2})$/.exec(text);
-  if (hex !== null)
-    return String.fromCharCode(Number.parseInt(hex[1] as string, 16));
-  const octal = /^\\([0-7]{1,3})$/.exec(text);
-  if (octal !== null)
-    return String.fromCharCode(Number.parseInt(octal[1] as string, 8) & 0xff);
-  const unicode = /^\\u\{([0-9A-Fa-f]+)\}$/.exec(text);
-  const point =
-    unicode === null ? Number.NaN : Number.parseInt(unicode[1] as string, 16);
-  return point <= 0x10ffff ? String.fromCodePoint(point) : null;
+const SIMPLE_ESCAPES: Readonly<Record<string, string>> = {
+  n: "\n",
+  t: "\t",
+  r: "\r",
+  v: "\v",
+  e: "\x1b",
+  f: "\f",
+  "\\": "\\",
+  $: "$",
+  '"': '"',
+};
+
+/**
+ * The bytes of an `escape_sequence` node, or null for a code point PHP
+ * refuses (past U+10FFFF) or writes as bytes that are not UTF-8 (a
+ * surrogate). The grammar admits only the escapes PHP decodes: `\n` and the
+ * like, `\x41`, `\101` and `\u{42}`.
+ */
+function decodeEscape(text: string): number[] | null {
+  const body = text.slice(1);
+  const simple = SIMPLE_ESCAPES[body];
+  if (simple !== undefined) return [simple.charCodeAt(0)];
+  if (body.startsWith("x")) return [Number.parseInt(body.slice(1), 16)];
+  if (body.startsWith("u")) {
+    const point = Number.parseInt(body.slice(2), 16);
+    return point > 0x10ffff || (point >= 0xd800 && point <= 0xdfff)
+      ? null
+      : [...new TextEncoder().encode(String.fromCodePoint(point))];
+  }
+  return [Number.parseInt(body, 8) & 0xff];
 }
 
 /** The value of a `string` or `encapsed_string` node with no interpolation. */
 function stringValue(node: Node): string | null {
-  if (node.type === "string") {
-    const text = node.text;
-    const body = /^[bB]?'([\s\S]*)'$/.exec(text)?.[1];
-    if (body === undefined) return null;
-    return body.replace(/\\([\\'])/g, "$1");
-  }
-  if (!/^[bB]?"/.test(node.text)) return null;
+  const text = node.text;
+  if (node.type === "string")
+    return text.slice(text.indexOf("'") + 1, -1).replace(/\\([\\'])/g, "$1");
   // A PHP string is bytes: `"\xc3\xa9"` is the UTF-8 of é.
   const bytes: number[] = [];
-  const encoder = new TextEncoder();
   for (const part of named(node)) {
     if (part.type === "string_content")
-      bytes.push(...encoder.encode(part.text));
+      bytes.push(...new TextEncoder().encode(part.text));
     else if (part.type === "escape_sequence") {
       const decoded = decodeEscape(part.text);
       if (decoded === null) return null;
-      if (/^\\(?:x|[0-7])/.test(part.text)) bytes.push(decoded.charCodeAt(0));
-      else bytes.push(...encoder.encode(decoded));
+      bytes.push(...decoded);
     } else return null;
   }
   try {
@@ -350,14 +362,10 @@ const INT64_MAX = 9223372036854775807n;
  * `1_000`), or null when PHP reads it as a float (past the int range).
  */
 function canonicalInteger(text: string): string | null {
-  const digits = text.replaceAll("_", "").toLowerCase();
-  let value: bigint;
-  if (/^0x[0-9a-f]+$/.test(digits) || /^0b[01]+$/.test(digits))
-    value = BigInt(digits);
-  else if (/^0o[0-7]+$/.test(digits)) value = BigInt(digits);
-  else if (/^0[0-7]+$/.test(digits)) value = BigInt(`0o${digits.slice(1)}`);
-  // The grammar admits no other spelling: a decimal.
-  else value = BigInt(digits);
+  const digits = text.replaceAll("_", "");
+  // A digit after a leading 0 is octal (the grammar admits only 0-7 there);
+  // BigInt reads every other spelling the grammar admits.
+  const value = BigInt(/^0\d/.test(digits) ? `0o${digits}` : digits);
   return value > INT64_MAX ? null : value.toString();
 }
 
@@ -369,7 +377,7 @@ function canonicalInteger(text: string): string | null {
 function canonicalFloat(text: string): string | null {
   const digits = text.replaceAll("_", "");
   const significant = digits
-    .replace(/[eE].*$/, "")
+    .replace(/e.*/i, "")
     .replace(".", "")
     .replace(/^0+/, "")
     .replace(/0+$/, "");
@@ -383,8 +391,7 @@ function canonicalFloat(text: string): string | null {
 /** A number literal node's value, or null. */
 function numberValue(node: Node): string | null {
   if (node.type === "integer") return canonicalInteger(node.text);
-  if (node.type === "float") return canonicalFloat(node.text);
-  return null;
+  return node.type === "float" ? canonicalFloat(node.text) : null;
 }
 
 /**
@@ -393,41 +400,38 @@ function numberValue(node: Node): string | null {
  */
 function docValue(node: Node): string | null {
   const body = field(node, "value");
-  const end = field(node, "end_tag");
-  if (body === null || end === null) return null;
+  // A doc with no line between its markers has no body: Kibi does not read it.
+  if (body === null) return null;
   if (
     node.type === "heredoc" &&
-    named(body).some((part) => part.type !== "string_content")
+    named(body).some(
+      (part) => part.type !== "string_content" || part.text.includes("\\"),
+    )
   )
     return null;
   const text = node.text;
-  const open = text.indexOf("\n");
-  const close = text.lastIndexOf("\n", end.startIndex - node.startIndex);
-  if (open < 0 || close < open) return null;
-  // The line end before the closing marker, `\r\n` too, is not text.
-  const stop = close > open && text[close - 1] === "\r" ? close - 1 : close;
-  const raw = text.slice(
-    open + 1,
-    close + 1 > open + 1 ? Math.max(stop, open + 1) : open + 1,
-  );
-  if (node.type === "heredoc" && raw.includes("\\")) return null;
-  const indent = text.slice(close + 1, end.startIndex - node.startIndex);
-  if (!/^[ \t]*$/.test(indent)) return null;
-  const lines = close === open ? [] : raw.split("\n");
+  const end = (field(node, "end_tag") as Node).startIndex - node.startIndex;
+  const close = text.lastIndexOf("\n", end);
+  // The closing marker's indentation: the grammar admits only blanks there.
+  const indent = text.slice(close + 1, end);
   const out: string[] = [];
-  for (const line of lines) {
-    if (line.trim() === "" && line.length <= indent.length) {
-      out.push("");
-      continue;
-    }
-    if (!line.startsWith(indent)) return null;
-    out.push(line.slice(indent.length));
+  for (const row of text.slice(text.indexOf("\n") + 1, close).split("\n")) {
+    if (row.startsWith(indent)) out.push(row.slice(indent.length));
+    // A blank line may be shorter than the indentation; its `\r` stays.
+    else if (row.trim() === "") out.push(row.endsWith("\r") ? "\r" : "");
+    else return null;
   }
-  return out.join("\n");
+  // The line end before the closing marker, `\r\n` too, is not text.
+  return out.join("\n").replace(/\r$/, "");
+}
+
+/** A `php://`, `phar://` or `data:` path: no project file. */
+function isStream(path: string): boolean {
+  return /^[A-Za-z][\w+.-]*:\/\//.test(path) || /^data:/i.test(path);
 }
 
 function stripLeading(name: string): string {
-  return name.replace(/^\\/, "").replace(/\s+/g, "");
+  return name.replace(/^\\/, "").replace(/\s/g, "");
 }
 
 function finalName(name: string): string {
@@ -456,44 +460,42 @@ export function phpReferences(
     unresolved.push(at(node));
   };
 
-  // Namespaces and imports, in file order.
-  const scopes: Scope[] = [];
+  const makeScope = (start: number, end: number, namespace: string): Scope => ({
+    start,
+    end,
+    namespace,
+    classes: new Map(),
+    functions: new Map(),
+  });
+  // Namespaces and imports, in file order: the global namespace first.
+  const scopes: Scope[] = [makeScope(0, root.endIndex, "")];
   const newScope = (start: number, end: number, namespace: string): Scope => {
-    const scope = {
-      start,
-      end,
-      namespace,
-      classes: new Map(),
-      functions: new Map(),
-    };
+    const scope = makeScope(start, end, namespace);
     scopes.push(scope);
     return scope;
   };
   const declared = new Set<string>();
   {
-    let current = newScope(0, root.endIndex, "");
+    let current = scopes[0] as Scope;
+    /** `use function` and `use const`, on the clause or the whole group. */
+    const typeOf = (node: Node): string | undefined =>
+      field(node, "type")?.text.toLowerCase();
     const imports = (declaration: Node, scope: Scope): void => {
-      const kind =
-        /^use\s+(function|const)\b/i
-          .exec(declaration.text)?.[1]
-          ?.toLowerCase() ?? "class";
       const prefixNode = named(declaration).find(
         (child) => child.type === "namespace_name",
       );
       const prefix =
         prefixNode === undefined ? "" : `${stripLeading(prefixNode.text)}\\`;
       const group = field(declaration, "body");
-      const clauses = (group ?? declaration).namedChildren.filter(
-        (child) => child?.type === "namespace_use_clause",
-      ) as Node[];
+      const clauses = named(group ?? declaration).filter(
+        (child) => child.type === "namespace_use_clause",
+      );
       for (const clause of clauses) {
+        // A comment may come first.
         const target = named(clause).find(
           (child) => child.type === "qualified_name" || child.type === "name",
-        );
-        if (target === undefined) continue;
-        const clauseKind =
-          /^\s*(function|const)\b/i.exec(clause.text)?.[1]?.toLowerCase() ??
-          kind;
+        ) as Node;
+        const clauseKind = typeOf(clause) ?? typeOf(declaration) ?? "class";
         const full = `${prefix}${stripLeading(target.text)}`;
         const alias = field(clause, "alias")?.text ?? finalName(full);
         if (extract === "imports") members.push(full);
@@ -507,34 +509,35 @@ export function phpReferences(
     const walk = (node: Node, outer: Scope): void => {
       let scope = outer;
       for (const child of named(node)) {
-        if (child.type === "namespace_definition") {
-          const name = stripLeading(field(child, "name")?.text ?? "");
-          const body = field(child, "body");
-          if (body !== null) {
-            const inner = newScope(body.startIndex, body.endIndex, name);
-            walk(body, inner);
-          } else {
-            // `namespace X;` holds until the next namespace statement.
-            current.end = child.startIndex;
-            current = newScope(child.startIndex, root.endIndex, name);
-            scope = current;
+        switch (child.type) {
+          case "namespace_definition": {
+            const name = stripLeading(field(child, "name")?.text ?? "");
+            const body = field(child, "body");
+            if (body !== null)
+              walk(body, newScope(body.startIndex, body.endIndex, name));
+            else {
+              // `namespace X;` holds until the next namespace statement.
+              current.end = child.startIndex;
+              current = newScope(child.endIndex, root.endIndex, name);
+              scope = current;
+            }
+            break;
           }
-          continue;
+          case "namespace_use_declaration":
+            imports(child, scope);
+            break;
+          case "function_definition":
+            // A name is never looked up in the global namespace's.
+            declared.add(
+              lower(
+                `${scope.namespace}\\${(field(child, "name") as Node).text}`,
+              ),
+            );
+            break;
+          case "compound_statement":
+          case "declare_statement":
+            walk(child, scope);
         }
-        if (child.type === "namespace_use_declaration") imports(child, scope);
-        if (child.type === "function_definition") {
-          const name = field(child, "name")?.text ?? "";
-          declared.add(
-            lower(
-              scope.namespace === "" ? name : `${scope.namespace}\\${name}`,
-            ),
-          );
-        }
-        if (
-          child.type === "compound_statement" ||
-          child.type === "declare_statement"
-        )
-          walk(child, scope);
       }
     };
     walk(root, current);
@@ -552,19 +555,16 @@ export function phpReferences(
   };
   const scopeOf = (node: Node): Scope => {
     let found = scopes[0] as Scope;
+    // Scopes are in file order: a later one is the namespace inside.
     for (const scope of scopes)
-      if (
-        scope.start <= node.startIndex &&
-        node.startIndex < scope.end &&
-        scope.start >= found.start
-      )
+      if (scope.start <= node.startIndex && node.startIndex < scope.end)
         found = scope;
     return found;
   };
 
   const resolveClass = (node: Node): string | null => {
     const scope = scopeOf(node);
-    const text = node.text.replace(/\s+/g, "");
+    const text = node.text.replace(/\s/g, "");
     switch (node.type) {
       case "name": {
         const relative = relativeClass(node, text);
@@ -575,13 +575,13 @@ export function phpReferences(
       }
       case "qualified_name": {
         if (text.startsWith("\\")) return text.slice(1);
-        const [first = "", ...rest] = text.split("\\");
+        const [first, ...rest] = text.split("\\") as [string, ...string[]];
         const alias = imported(scope.classes, first, node);
         if (alias !== undefined) return [alias, ...rest].join("\\");
         return scope.namespace === "" ? text : `${scope.namespace}\\${text}`;
       }
       case "relative_name":
-        return `${scope.namespace === "" ? "" : `${scope.namespace}\\`}${text.replace(/^namespace\\/i, "")}`;
+        return `${scope.namespace === "" ? "" : `${scope.namespace}\\`}${text.slice("namespace\\".length)}`;
       case "relative_scope":
         return relativeClass(node, text) ?? null;
       default:
@@ -612,15 +612,20 @@ export function phpReferences(
       (rebinds && insideClosure(node))
     )
       return null;
-    if (kind === "self") {
-      const name = field(owner, "name")?.text;
-      if (name === undefined) return null;
-      const namespace = scopeOf(owner).namespace;
-      return namespace === "" ? name : `${namespace}\\${name}`;
-    }
+    if (kind === "self")
+      return field(owner, "name") === null ? null : selfName(owner);
+    return parentName(owner);
+  }
+  /** The full name of a class, trait or enum the file declares. */
+  function selfName(owner: Node): string {
+    const name = (field(owner, "name") as Node).text;
+    const namespace = scopeOf(owner).namespace;
+    return namespace === "" ? name : `${namespace}\\${name}`;
+  }
+  /** The class a class extends, or null for none. */
+  function parentName(owner: Node): string | null {
     const base = named(owner).find((child) => child.type === "base_clause");
-    const parent = base === undefined ? undefined : named(base)[0];
-    return parent === undefined ? null : resolveClass(parent);
+    return base === undefined ? null : resolveClass(named(base)[0] as Node);
   }
 
   /** A function call target's names, and the namespace that may shadow it. */
@@ -628,7 +633,7 @@ export function phpReferences(
     node: Node,
   ): { name: string; namespace: string | null } | null => {
     const scope = scopeOf(node);
-    const text = node.text.replace(/\s+/g, "");
+    const text = node.text;
     switch (node.type) {
       case "name": {
         const alias = imported(scope.functions, text, node);
@@ -640,22 +645,17 @@ export function phpReferences(
         return { name: lower(text), namespace: scope.namespace };
       }
       case "qualified_name":
-      case "relative_name": {
-        if (text.startsWith("\\"))
-          return { name: lower(text.slice(1)), namespace: null };
-        const resolved = resolveClass(node);
-        return resolved === null
-          ? null
-          : { name: lower(resolved), namespace: null };
-      }
+      case "relative_name":
+        // Either is resolved as a class name is, never to null.
+        return { name: lower(resolveClass(node) as string), namespace: null };
       default:
         return null;
     }
   };
 
   /** A literal value: a string without interpolation, a number, a boolean, null or `X::class`. */
-  const literal = (node: Node | null | undefined): string | null => {
-    if (node === null || node === undefined) return null;
+  const literal = (node: Node | undefined): string | null => {
+    if (node === undefined) return null;
     switch (node.type) {
       case "string":
       case "encapsed_string":
@@ -673,37 +673,34 @@ export function phpReferences(
       case "parenthesized_expression":
         return literal(named(node)[0]);
       case "unary_op_expression": {
-        const operand = named(node)[0];
-        const value = operand === undefined ? null : numberValue(operand);
-        if (value === null || !node.text.trimStart().startsWith("-"))
-          return null;
-        return /^0(?:\.0*)?$/.test(value) ? "0" : `-${value}`;
+        const value = numberValue(named(node)[0] as Node);
+        if (value === null || !node.text.startsWith("-")) return null;
+        // A number's value is "0" for `0`, `0.0` and `-0.0` alike.
+        return value === "0" ? "0" : `-${value}`;
       }
       case "binary_expression": {
-        if (field(node, "operator")?.text !== ".") return null;
+        if ((field(node, "operator") as Node).text !== ".") return null;
         // As text, `true` is "1" and `false` and `null` are "".
-        const text = (side: Node | null): string | null => {
-          if (side?.type === "boolean")
+        const text = (side: Node): string | null => {
+          if (side.type === "boolean")
             return lower(side.text) === "true" ? "1" : "";
-          if (side?.type === "null") return "";
+          if (side.type === "null") return "";
           // PHP writes a float with its own precision (`1.0E+15`).
           if (
-            side?.type === "float" ||
-            (side?.type === "unary_op_expression" &&
-              named(side)[0]?.type === "float")
+            side.type === "float" ||
+            (side.type === "unary_op_expression" &&
+              (named(side)[0] as Node).type === "float")
           )
             return null;
           return literal(side);
         };
-        const left = text(field(node, "left"));
-        const right = text(field(node, "right"));
+        const left = text(field(node, "left") as Node);
+        const right = text(field(node, "right") as Node);
         return left === null || right === null ? null : left + right;
       }
       case "class_constant_access_expression": {
-        const [scope, constant] = named(node);
-        if (scope === undefined || lower(constant?.text ?? "") !== "class")
-          return null;
-        return resolveClass(scope);
+        const [scope, constant] = named(node) as [Node, Node];
+        return lower(constant.text) === "class" ? resolveClass(scope) : null;
       }
       default:
         return null;
@@ -714,17 +711,10 @@ export function phpReferences(
    * `__DIR__ . '/x.php'`, `dirname(__FILE__) . '/x.php'` and
    * `dirname(__DIR__, 2) . '/lib/' . 'x.php'`: a path from the file's folder.
    */
-  const includePath = (node: Node | undefined): string | null => {
-    if (node === undefined) return null;
-    const inner =
-      node.type === "parenthesized_expression" ? named(node)[0] : node;
-    if (inner === undefined) return null;
-    const value = literal(inner);
+  const includePath = (node: Node): string | null => {
+    const value = literal(node);
     // `data://`, `php://` and `phar://` paths are not project files.
-    if (value !== null)
-      return /^[A-Za-z][\w+.-]*:\/\//.test(value) || /^data:/i.test(value)
-        ? null
-        : value;
+    if (value !== null) return isStream(value) ? null : value;
     // The parts of a `.` chain, left to right.
     const parts: Node[] = [];
     const flatten = (part: Node): void => {
@@ -732,17 +722,15 @@ export function phpReferences(
         flatten(named(part)[0] as Node);
       else if (
         part.type === "binary_expression" &&
-        field(part, "operator")?.text === "."
+        (field(part, "operator") as Node).text === "."
       ) {
-        const left = field(part, "left");
-        const right = field(part, "right");
-        if (left !== null) flatten(left);
-        if (right !== null) flatten(right);
+        flatten(field(part, "left") as Node);
+        flatten(field(part, "right") as Node);
       } else parts.push(part);
     };
-    flatten(inner);
-    const [head, ...rest] = parts;
-    if (head === undefined || rest.length === 0) return null;
+    flatten(node);
+    // A lone part is no `.` chain: `__DIR__` alone ends in no "/" below.
+    const [head, ...rest] = parts as [Node, ...Node[]];
     const folder = directoryOf(head);
     if (folder === null) return null;
     let tail = "";
@@ -758,28 +746,19 @@ export function phpReferences(
   };
 
   /** `__DIR__`, `dirname(__FILE__)`, `dirname(__DIR__, n)`: a folder of the file. */
-  const directoryOf = (node: Node): string | null => {
-    const here = posix.dirname(options.file);
-    const text = node.text.replace(/\s+/g, "");
-    if (/^__DIR__$/i.test(text)) return here;
+  const directoryOf = (node: Node): string | null =>
+    folderOf(node.text.replace(/\s/g, ""));
+  const folderOf = (text: string): string | null => {
+    if (/^__DIR__$/i.test(text)) return posix.dirname(options.file);
     // `dirname(dirname(__FILE__))`: each call goes up from the inner path.
-    const parent = (path: string): string | null => {
-      if (/^__DIR__$/i.test(path)) return here;
-      if (/^__FILE__$/i.test(path)) return options.file;
-      const call = /^\\?dirname\((.+?)(?:,(\d+))?\)$/i.exec(path);
-      if (call === null) return null;
-      const inner = call[1] as string;
-      let folder = parent(inner);
-      if (folder === null) return null;
-      for (let index = 0; index < Number(call[2] ?? "1"); index += 1)
-        folder =
-          index === 0 && /^__FILE__$/i.test(inner)
-            ? posix.dirname(folder)
-            : posix.join(folder, "..");
-      return folder;
-    };
-    if (!/^\\?dirname\(/i.test(text)) return null;
-    return parent(text);
+    const call = /^\\?dirname\((.+?)(?:,(\d+))?\)$/i.exec(text);
+    if (call === null) return null;
+    const inner = call[1] as string;
+    let folder = /^__FILE__$/i.test(inner) ? options.file : folderOf(inner);
+    if (folder === null) return null;
+    for (let index = 0; index < Number(call[2] ?? "1"); index += 1)
+      folder = posix.join(folder, "..");
+    return folder;
   };
 
   const shadow = (name: string, namespace: string, node: Node): void => {
@@ -795,14 +774,15 @@ export function phpReferences(
   ): {
     names: string[];
     namespace: string | null;
-    dynamicFunction: boolean;
   } | null => {
+    // A method name computed at run time: `$o->$m()`, `X::{'m'}()`.
+    const method = field(node, "name");
+    if (method !== null && method.type !== "name") return null;
     switch (node.type) {
       case "function_call_expression": {
-        let target = field(node, "function");
-        while (target?.type === "parenthesized_expression")
-          target = named(target)[0] ?? null;
-        if (target === null) return null;
+        let target = field(node, "function") as Node;
+        while (target.type === "parenthesized_expression")
+          target = named(target)[0] as Node;
         const literalName =
           target.type === "string" || target.type === "encapsed_string"
             ? stringValue(target)
@@ -812,12 +792,10 @@ export function phpReferences(
           return {
             names: [name.includes("::") ? name : lower(name)],
             namespace: null,
-            dynamicFunction: false,
           };
         }
         const resolved = resolveFunction(target);
-        if (resolved === null)
-          return { names: [], namespace: null, dynamicFunction: true };
+        if (resolved === null) return null;
         return {
           // `die` and `exit` are one construct: both names are listed.
           names:
@@ -825,37 +803,18 @@ export function phpReferences(
               ? ["exit", "die"]
               : [resolved.name],
           namespace: resolved.namespace,
-          dynamicFunction: false,
         };
       }
       case "member_call_expression":
-      case "nullsafe_member_call_expression": {
-        const method = field(node, "name");
-        if (method?.type !== "name") return null;
-        return {
-          names: [`*.${method.text}`],
-          namespace: null,
-          dynamicFunction: false,
-        };
-      }
+      case "nullsafe_member_call_expression":
+        return { names: [`*.${(method as Node).text}`], namespace: null };
       default: {
         // scoped_call_expression, the one other call isCall admits.
-        const method = field(node, "name");
-        const scope = field(node, "scope");
-        if (method?.type !== "name" || scope === null) return null;
-        const owner =
-          scope.type === "name" ||
-          scope.type === "qualified_name" ||
-          scope.type === "relative_scope" ||
-          scope.type === "relative_name"
-            ? resolveClass(scope)
-            : null;
+        const owner = resolveClass(field(node, "scope") as Node);
+        const name = (method as Node).text;
         return {
-          names: [
-            owner === null ? `*.${method.text}` : `${owner}::${method.text}`,
-          ],
+          names: [owner === null ? `*.${name}` : `${owner}::${name}`],
           namespace: null,
-          dynamicFunction: false,
         };
       }
     }
@@ -868,30 +827,21 @@ export function phpReferences(
     node.type === "scoped_call_expression";
 
   const callArguments = (node: Node): Node[] => {
-    const list =
-      field(node, "arguments") ??
-      named(node).find((child) => child.type === "arguments") ??
-      null;
-    if (list === null) return [];
-    return named(list).filter(
+    // `new X` has no list, and no child of its own is an argument. A
+    // comment may come between arguments.
+    const list = named(node).find((child) => child.type === "arguments");
+    return named(list ?? node).filter(
       (child) =>
         child.type === "argument" || child.type === "variadic_placeholder",
     );
   };
+  /** An argument's value: its last child, after the name of a named one. */
   const argumentValue = (argument: Node | undefined): Node | undefined =>
-    argument === undefined
-      ? undefined
-      : named(argument)
-          .filter((child) => child.id !== field(argument, "name")?.id)
-          .at(-1);
+    argument === undefined ? undefined : named(argument).at(-1);
   const firstPositional = (node: Node): Node | undefined => {
+    // `f(...)`'s placeholder has no value to read.
     const first = callArguments(node)[0];
-    if (
-      first === undefined ||
-      first.type !== "argument" ||
-      field(first, "name") !== null
-    )
-      return undefined;
+    if (first === undefined || field(first, "name") !== null) return undefined;
     return first;
   };
 
@@ -901,7 +851,7 @@ export function phpReferences(
     const value = literal(node);
     if (value !== null) {
       const name = stripLeading(value);
-      const scoped = /^(\w+)::(.+)$/.exec(name);
+      const scoped = /^(\w+)::(.+)/.exec(name);
       if (scoped !== null) {
         const owner = relativeClass(node, scoped[1] as string);
         if (owner !== undefined)
@@ -909,20 +859,16 @@ export function phpReferences(
       }
       return [name.includes("::") ? name : lower(name)];
     }
-    if (
-      node.type === "anonymous_function" ||
-      node.type === "arrow_function" ||
-      node.type === "anonymous_function_creation_expression"
-    )
+    if (node.type === "anonymous_function" || node.type === "arrow_function")
       return [];
     if (node.type === "array_creation_expression") {
       const items = named(node).map((item) => named(item));
       if (items.length !== 2 || items.some((item) => item.length !== 1))
         return null;
-      const [owner, method] = items.map((item) => item[0] as Node);
+      const [owner, method] = items.map((item) => item[0]) as [Node, Node];
       const methodName = literal(method);
-      if (methodName === null || owner === undefined) return null;
-      const ownerText = owner.type === "variable_name" ? null : literal(owner);
+      if (methodName === null) return null;
+      const ownerText = literal(owner);
       const relative =
         ownerText === null ? undefined : relativeClass(owner, ownerText);
       const ownerName =
@@ -948,21 +894,11 @@ export function phpReferences(
   // extends (null for none).
   const classes = new Map<string, string | null>();
   const declareClasses = (node: Node): void => {
-    if (node.type === "class_declaration") {
-      const name = field(node, "name")?.text;
-      if (name !== undefined) {
-        const namespace = scopeOf(node).namespace;
-        const base = named(node).find((child) => child.type === "base_clause");
-        const parent = base === undefined ? undefined : named(base)[0];
-        classes.set(
-          lower(namespace === "" ? name : `${namespace}\\${name}`),
-          parent === undefined ? null : resolveClass(parent),
-        );
-      }
-    }
+    if (node.type === "class_declaration")
+      classes.set(lower(selfName(node)), parentName(node));
     for (const child of named(node)) declareClasses(child);
   };
-  if (extract === "env") declareClasses(root);
+  declareClasses(root);
 
   /**
    * Whether a class is Laravel's environment class: "env", "no", or the
@@ -984,25 +920,19 @@ export function phpReferences(
    * for any other object.
    */
   const instanceClass = (call: Node): string | null | undefined => {
-    let object = field(call, "object");
-    while (object?.type === "parenthesized_expression")
-      object = named(object)[0] ?? null;
-    if (object?.type === "variable_name" && object.text === "$this")
-      return relativeClass(call, "self") ?? null;
-    if (object?.type === "object_creation_expression") {
-      const type = named(object)[0];
-      if (type?.type === "name" || type?.type === "qualified_name")
-        return /^(?:static|self|parent)$/i.test(type.text)
-          ? (relativeClass(call, type.text) ?? null)
-          : resolveClass(type);
-      return null;
-    }
+    let object = field(call, "object") as Node;
+    while (object.type === "parenthesized_expression")
+      object = named(object)[0] as Node;
+    if (object.text === "$this") return relativeClass(call, "self") ?? null;
+    // `new static`, `new $class` and `new class {}` are null.
+    if (object.type === "object_creation_expression")
+      return resolveClass(named(object)[0] as Node);
     return undefined;
   };
 
   /** Whether the file names a class `Env` (or Laravel's support namespace). */
   const namesEnv =
-    /\benv\s*::|\bnew\s+\\?(?:[\w\\]*\\)?env\b|\bextends\s+\\?(?:[\w\\]*\\)?env\b|\\env\b|illuminate\s*\\\s*support\b/i.test(
+    /\benv\s*::|\b(?:new|extends)\s+env\b|\\env\b|illuminate\s*\\\s*support\b/i.test(
       root.text,
     );
 
@@ -1024,9 +954,12 @@ export function phpReferences(
     statically: boolean,
   ): boolean => {
     if (ENV_GETTERS.has(lower(name))) return true;
-    const scoped = /^(.*)::(\w+)$/.exec(name);
-    const unknown = /^\*\.(\w+)$/.exec(name);
-    const method = lower(scoped?.[2] ?? unknown?.[1] ?? "");
+    const scoped = /(.*)::(.*)/.exec(name);
+    // A function, not a method.
+    if (scoped === null && !name.startsWith("*.")) return false;
+    const method = lower(
+      scoped === null ? name.slice(2) : (scoped[2] as string),
+    );
     if (!ENV_METHODS.has(method)) return false;
     let owner = scoped?.[1];
     if (scoped === null) {
@@ -1072,48 +1005,40 @@ export function phpReferences(
     const matches = names.some((candidate) =>
       calleeMatches(candidate, options.callee),
     );
-    // `$db->prepare($sql)` may be a call of PDO::prepare.
+    // `$db->prepare($sql)` may be a call of PDO::prepare. A method's name
+    // is the only one.
+    const method = names[0] as string;
     const unknown =
       !matches &&
-      options.callee !== "" &&
-      names.some(
-        (candidate) =>
-          candidate.startsWith("*.") &&
-          lower(candidate.slice(2)) === lastSegment(options.callee),
-      );
+      method.startsWith("*.") &&
+      lower(method.slice(2)) === lastSegment(options.callee);
     if (!matches && !unknown) return;
     const first = callArguments(node)[0];
     if (first === undefined) return;
-    // `exec(...)` makes a callable of the callee, which is called elsewhere
-    // with arguments Kibi does not see.
-    if (first.type === "variadic_placeholder") {
+    if (unknown || field(first, "name") !== null) {
+      // A named argument may be the first parameter.
       refuse(node);
       return;
     }
-    if (
-      unknown ||
-      field(first, "name") !== null ||
-      named(first).some((child) => child.type === "variadic_unpacking")
-    ) {
-      // A named or spread argument may be the first parameter.
-      refuse(node);
-      return;
-    }
+    // `exec(...)` makes a callable of the callee, called elsewhere with
+    // arguments Kibi does not see; a spread (`...$args`) has no literal
+    // value either.
     const value = literal(argumentValue(first));
     if (value === null) refuse(node);
     else members.push(value);
   };
 
-  /** What a callable handed to a builtin means for the extract. */
+  /**
+   * What a callable handed to a builtin means for the extract (calls,
+   * string_args, env or thrown: the others never look).
+   */
   const handedCallable = (argument: Node, value: Node | undefined): void => {
     const reached = callable(value);
     // `call_user_func('class_alias', ...)` renames a class at run time.
     if (
       reached?.some((target) =>
         /^(?:class_alias|create_function)$/i.test(target),
-      ) &&
-      extract !== "property" &&
-      extract !== "imports"
+      )
     ) {
       refuse(argument);
       return;
@@ -1122,8 +1047,8 @@ export function phpReferences(
       // `[$controller, $action]` calls a method of some class.
       if (
         env &&
-        value?.type === "array_creation_expression" &&
-        named(value).length === 2
+        (value as Node).type === "array_creation_expression" &&
+        named(value as Node).length === 2
       )
         envRow("the callable's class", argument);
       else refuse(argument);
@@ -1134,7 +1059,6 @@ export function phpReferences(
       if (reached.some((target) => envMethod(target, argument, true)))
         refuse(argument);
     } else if (
-      extract === "string_args" &&
       reached.some(
         (target) =>
           calleeMatches(target, options.callee) ||
@@ -1152,13 +1076,11 @@ export function phpReferences(
     const key = lower(name);
     const positions = CALLABLE_ARGS.get(key);
     if (positions !== undefined) {
+      // A spread may put the callable anywhere. A `...` placeholder has no
+      // child.
       if (
-        list.some(
-          (argument) =>
-            argument.type === "argument" &&
-            named(argument).some(
-              (child) => child.type === "variadic_unpacking",
-            ),
+        list.some((argument) =>
+          named(argument).some((child) => child.type === "variadic_unpacking"),
         )
       ) {
         refuse(node);
@@ -1169,19 +1091,18 @@ export function phpReferences(
         for (const argument of list) handed.add(argument);
       else
         for (const position of positions) {
-          const argument = position < 0 ? list.at(position) : list[position];
+          const argument = list.at(position);
           if (argument !== undefined && field(argument, "name") === null)
             handed.add(argument);
         }
       // A named argument is the callable when it names that parameter
       // (`callback:`, `value:` for assert_options).
       for (const argument of list) {
-        const parameter = lower(field(argument, "name")?.text ?? "");
+        const parameter = field(argument, "name");
         if (
-          parameter !== "" &&
-          (positions === "all" ||
-            parameter === "callback" ||
-            (key === "assert_options" && parameter === "value"))
+          parameter !== null &&
+          (lower(parameter.text) === "callback" ||
+            (key === "assert_options" && lower(parameter.text) === "value"))
         )
           handed.add(argument);
       }
@@ -1205,10 +1126,14 @@ export function phpReferences(
     ) {
       // CURLOPT_*FUNCTION and CURLMOPT_*FUNCTION options take a callback.
       const pairs: [Node | undefined, Node | undefined, Node][] = [];
-      if (key !== "curl_setopt_array") {
-        if (list[1] !== undefined)
-          pairs.push([argumentValue(list[1]), argumentValue(list[2]), list[1]]);
-      } else {
+      if (key !== "curl_setopt_array")
+        // With no option there is nothing to read.
+        pairs.push([
+          argumentValue(list[1]),
+          argumentValue(list[2]),
+          list[1] as Node,
+        ]);
+      else {
         const map = argumentValue(list[1]);
         if (map?.type !== "array_creation_expression") {
           if (list[1] !== undefined) refuse(list[1]);
@@ -1236,22 +1161,17 @@ export function phpReferences(
    * nested function, which has a variable of its own.
    */
   const catchTrusted = (clause: Node, name: string): boolean => {
-    const body = field(clause, "body");
-    if (body === null) return true;
+    const body = field(clause, "body") as Node;
     // The function or file the catch is in: a reference to the variable
     // (`use (&$e)`, `$r = &$e`), `global $e`, `extract()`, a variable
     // variable or `$GLOBALS` may replace it without an assignment in the
     // catch body.
     let scope: Node = clause;
-    while (
-      scope.parent !== null &&
-      !/^(?:anonymous_function|arrow_function|function_definition|method_declaration)$/.test(
-        scope.type,
-      )
-    )
+    while (scope.parent !== null && !FUNCTIONS.has(scope.type))
       scope = scope.parent;
-    const variable = name.replace(/^\$/, "");
+    const variable = name.slice(1);
     if (
+      // `GLOBAL` is a keyword: any case.
       new RegExp(
         `&\\s*\\$${variable}\\b|\\bglobal\\b[^;]*\\$${variable}\\b`,
         "i",
@@ -1264,27 +1184,16 @@ export function phpReferences(
     // An included file shares the scope's variables.
     if (/\b(?:include|require)(?:_once)?\b/i.test(body.text)) return false;
     // At file scope, a function the catch body calls may set the global.
-    if (
-      scope.parent === null &&
-      /\(|\b(?:include|require)(?:_once)?\b|`/.test(
-        body.text.replace(/\bthrow\s+\$\w+\s*;/g, ""),
-      )
-    )
-      return false;
+    if (scope.parent === null && /\(|`/.test(body.text)) return false;
     const safe = (use: Node): boolean => {
       for (
-        let current = use.parent;
-        current !== null && current.id !== body.id;
-        current = current.parent
+        let current = use.parent as Node;
+        current.id !== body.id;
+        current = current.parent as Node
       )
-        if (
-          /^(?:anonymous_function|arrow_function|anonymous_function_creation_expression|function_definition|method_declaration|class_declaration)$/.test(
-            current.type,
-          )
-        )
+        if (FUNCTIONS.has(current.type) || current.type === "class_declaration")
           return false;
-      const parent = use.parent;
-      if (parent === null) return false;
+      const parent = use.parent as Node;
       switch (parent.type) {
         case "throw_expression":
         case "encapsed_string":
@@ -1293,41 +1202,37 @@ export function phpReferences(
         case "nullsafe_member_access_expression":
         case "member_call_expression":
         case "nullsafe_member_call_expression":
-          return field(parent, "object")?.id === use.id;
+          return (field(parent, "object") as Node).id === use.id;
         case "binary_expression": {
-          const operator = lower(field(parent, "operator")?.text ?? "");
+          const operator = lower((field(parent, "operator") as Node).text);
           return (
             operator === "." ||
-            (operator === "instanceof" && field(parent, "left")?.id === use.id)
+            (operator === "instanceof" &&
+              (field(parent, "left") as Node).id === use.id)
           );
         }
         case "argument": {
-          if (field(parent, "name")?.id === use.id) return false;
           // A constructor or a builtin that takes it by value keeps it; a
           // function or method may take it by reference and replace it.
-          const call = parent.parent?.parent;
+          const call = (parent.parent as Node).parent as Node;
           // A project class's constructor may take it by reference.
-          if (call?.type === "object_creation_expression") {
-            const type = named(call)[0];
-            const owner =
-              type === undefined || type.type === "variable_name"
-                ? null
-                : resolveClass(type);
+          if (call.type === "object_creation_expression") {
+            const owner = resolveClass(named(call)[0] as Node);
             return owner !== null && BUILTIN_THROWABLES.has(lower(owner));
           }
-          if (call?.type !== "function_call_expression") return false;
-          const callee = lower(
-            stripLeading(field(call, "function")?.text ?? ""),
+          const callee = field(call, "function");
+          return (
+            callee !== null &&
+            BY_VALUE_BUILTINS.has(lower(stripLeading(callee.text)))
           );
-          return BY_VALUE_BUILTINS.has(callee);
         }
         case "array_element_initializer":
           return (
-            named(parent).at(-1)?.id === use.id && !/&\s*\$/.test(parent.text)
+            // `&$e` is a `by_ref` node, never this one.
+            (named(parent).at(-1) as Node).id === use.id
           );
-        default:
-          return false;
       }
+      return false;
     };
     const check = (node: Node): boolean => {
       if (node.type === "variable_name" && node.text === name)
@@ -1336,34 +1241,40 @@ export function phpReferences(
     };
     return check(body);
   };
-
-  const catchNames: string[] = [];
+  /** Whether `throw $e` rethrows what the nearest `catch (X $e)` caught. */
+  const rethrows = (thrown: Node): boolean => {
+    // A parameter or property may be named so too: `function f($e = throw $e)`.
+    for (let node = thrown.parent; node !== null; node = node.parent)
+      if (
+        node.type === "catch_clause" &&
+        field(node, "name")?.text === thrown.text
+      )
+        return catchTrusted(node, thrown.text);
+    return false;
+  };
 
   /** property: what a write to `left` sets, "dynamic" when any key may be meant. */
-  const writtenKey = (left: Node | null): string | null => {
-    if (left === null) return null;
+  const writtenKey = (left: Node): string | null => {
     switch (left.type) {
       case "subscript_expression": {
         const index = named(left)[1];
+        // `$a[] = x` appends at a key that is no negative number.
         if (index === undefined)
-          return /^(?:0|[1-9]\d*)$/.test(options.key) ? "dynamic" : null;
+          return numericKey && !options.key.startsWith("-") ? "dynamic" : null;
         if (intConstant(index)) return null;
         return keyOf(index) ?? "dynamic";
       }
       case "member_access_expression":
       case "nullsafe_member_access_expression": {
-        const name = field(left, "name");
-        return name?.type === "name" ? name.text : "dynamic";
+        const name = field(left, "name") as Node;
+        return name.type === "name" ? name.text : "dynamic";
       }
       case "scoped_property_access_expression": {
-        const name = field(left, "name");
-        return name?.type === "variable_name"
-          ? name.text.replace(/^\$/, "")
-          : "dynamic";
+        const name = field(left, "name") as Node;
+        return name.type === "variable_name" ? name.text.slice(1) : "dynamic";
       }
-      default:
-        return null;
     }
+    return null;
   };
 
   const numericKey = /^(?:0|-?[1-9]\d*)$/.test(options.key);
@@ -1393,13 +1304,12 @@ export function phpReferences(
         if (value === null) return null;
         if (
           node.type === "unary_op_expression" &&
-          named(node)[0]?.type !== "float"
+          (named(node)[0] as Node).type !== "float"
         )
           return value;
+        // `String(-0)` is "0".
         const number = Math.trunc(Number(value));
-        return Number.isSafeInteger(number)
-          ? String(number === 0 ? 0 : number)
-          : null;
+        return Number.isSafeInteger(number) ? String(number) : null;
       }
       default:
         return literal(node);
@@ -1418,7 +1328,7 @@ export function phpReferences(
       // `CURLOPT_ACL` may be a constant the file defines (`const
       // CURLOPT_ACL = 'acl';`, `define('CURLOPT_ACL', 'acl')`).
       // An included file may define it too.
-      const name = node.text.replace(/^\\/, "");
+      const name = stripLeading(node.text);
       return (
         !new RegExp(`\\b(?:const|define)\\b[^;]*\\b${name}\\b`).test(
           root.text,
@@ -1426,49 +1336,43 @@ export function phpReferences(
       );
     }
     if (node.type !== "class_constant_access_expression") return false;
-    const [owner, constant] = named(node);
+    const [owner, constant] = named(node) as [Node, Node];
     return (
-      owner !== undefined &&
       // `PDO::ATTR_X` in `namespace App;` may be `App\PDO`'s.
-      lower(resolveClass(owner) ?? "") === "pdo" &&
-      /^(?:ATTR|MYSQL_ATTR|PGSQL_ATTR|SQLITE_ATTR|PARAM|FETCH|ERRMODE|CASE|NULL|CURSOR)_\w+$/.test(
-        constant?.text ?? "",
+      resolveClass(owner)?.toLowerCase() === "pdo" &&
+      /^(?:ATTR|MYSQL_ATTR|PGSQL_ATTR|SQLITE_ATTR|PARAM|FETCH|ERRMODE|CASE|NULL|CURSOR)_\w/.test(
+        constant.text,
       )
     );
   };
 
   /** The keys of an array literal, with the implicit ones PHP numbers. */
-  const arrayEntries = (
-    node: Node,
-  ): { key: string | null; value: Node | undefined; item: Node }[] | null => {
-    const entries: {
-      key: string | null;
-      value: Node | undefined;
-      item: Node;
-    }[] = [];
+  const arrayEntries = (node: Node): ArrayEntry[] | null => {
+    // Stryker disable next-line ArrayDeclaration: every caller reads only entries' fields, so a stray non-entry element is ignored.
+    const entries: ArrayEntry[] = [];
     let next = 0n;
-    let highest: bigint | null = null;
+    // While every integer key is negative (`next` is still 0), the next
+    // implicit key is the largest + 1 from PHP 8.3 and 0 before it: the
+    // version decides.
+    let integerKey = false;
     for (const item of named(node)) {
       if (item.type !== "array_element_initializer") continue;
       const parts = named(item);
-      if (parts.length === 1 && parts[0]?.type === "variadic_unpacking")
-        return null;
       if (parts.length === 1) {
-        if (highest !== null && highest < 0n) return null;
-        entries.push({ key: next.toString(), value: parts[0], item });
-        highest = next;
+        if ((parts[0] as Node).type === "variadic_unpacking") return null;
+        if (integerKey && next === 0n) return null;
+        entries.push({ key: String(next), value: parts[0], item });
         next += 1n;
         continue;
       }
       const keyNode = parts[0] as Node;
-      const key = intConstant(keyNode) ? undefined : keyOf(keyNode);
-      if (key === undefined) continue;
+      if (intConstant(keyNode)) continue;
+      const key = keyOf(keyNode);
       entries.push({ key, value: parts.at(-1), item });
-      if (key !== null && /^(?:0|-?[1-9]\d*)$/.test(key)) {
-        // While every integer key is negative, the next implicit key is the
-        // largest + 1 from PHP 8.3 and 0 before it: the version decides.
-        const number = BigInt(key);
-        if (highest === null || number > highest) highest = number;
+      // A refused key (null) reads "null": no integer.
+      if (/^(?:0|-?[1-9]\d*)$/.test(String(key))) {
+        integerKey = true;
+        const number = BigInt(key as string);
         if (number >= next) next = number + 1n;
       }
     }
@@ -1476,9 +1380,9 @@ export function phpReferences(
   };
 
   const arrayHasKey = (node: Node): boolean =>
-    (arrayEntries(node) ?? []).some(
+    arrayEntries(node)?.some(
       (entry) => entry.key === options.key || entry.key === null,
-    );
+    ) ?? false;
 
   /** property: the value an array literal gives the key. */
   const arrayKeys = (node: Node): void => {
@@ -1506,15 +1410,13 @@ export function phpReferences(
   const propertyCall = (node: Node, name: string): void => {
     const list = callArguments(node);
     if (name === "define") {
-      // `define(value: 1, constant_name: 'K')` names its arguments.
+      // `define(value: 1, constant_name: 'K')` names its arguments, after
+      // the positional ones.
       const byName = (wanted: string, position: number): Node | undefined =>
         list.find(
-          (argument) => lower(field(argument, "name")?.text ?? "") === wanted,
+          (argument) => field(argument, "name")?.text.toLowerCase() === wanted,
         ) ??
-        (list[position] !== undefined &&
-        field(list[position] as Node, "name") === null
-          ? list[position]
-          : undefined);
+        list.filter((argument) => field(argument, "name") === null)[position];
       const key = literal(argumentValue(byName("constant_name", 0)));
       if (key === null) refuse(node);
       else if (key === options.key && definedTwice)
@@ -1564,12 +1466,13 @@ export function phpReferences(
     // other included files set. Keys from a case change.
     if (ARRAY_TRANSFORMS.has(name)) {
       let outer: Node = node;
-      while (outer.parent?.type === "parenthesized_expression")
-        outer = outer.parent;
+      while ((outer.parent as Node).type === "parenthesized_expression")
+        outer = outer.parent as Node;
+      const parent = outer.parent as Node;
       const stored =
         name === "array_splice" ||
-        (outer.parent?.type === "assignment_expression" &&
-          field(outer.parent, "right")?.id === outer.id);
+        (parent.type === "assignment_expression" &&
+          (field(parent, "right") as Node).id === outer.id);
       if (
         name === "array_change_key_case"
           ? lower(root.text).includes(lower(options.key))
@@ -1593,7 +1496,7 @@ export function phpReferences(
     if (name === "array_walk" || name === "array_walk_recursive") {
       const callback = argumentValue(list[1]);
       const first = named(field(callback ?? root, "parameters") ?? root).find(
-        (child) => /_parameter$/.test(child.type),
+        (child) => child.type.endsWith("_parameter"),
       );
       const byValue =
         (callback?.type === "anonymous_function" ||
@@ -1610,37 +1513,33 @@ export function phpReferences(
    */
   const callableEnvName = (node: Node, value: string): boolean => {
     const name = lower(stripLeading(value));
-    const parent = node.parent;
+    const parent = node.parent as Node;
+    // An argument's call, or for any other string a node no getter call
+    // can be.
+    const call = (parent.parent as Node).parent;
     // `'env'` is a common word: only one handed to a function may be the
     // helper called by name.
     const getter =
       /^(?:apache_)?getenv$/.test(name) ||
       (name === "env" &&
-        parent?.type === "argument" &&
-        parent.parent?.parent?.type === "function_call_expression") ||
+        parent.type === "argument" &&
+        (call as Node).type === "function_call_expression") ||
       /^illuminate\\support\\env(?:::\w+)?$/.test(name);
     if (!getter) return false;
     if (
-      parent?.type === "array_element_initializer" &&
+      parent.type === "array_element_initializer" &&
       named(parent).length === 2 &&
-      named(parent)[0]?.id === node.id
+      (named(parent)[0] as Node).id === node.id
     )
       return false;
+    // `$a['getenv']`, but not `'getenv'[0]`.
     if (
-      parent?.type === "subscript_expression" &&
-      named(parent)[1]?.id === node.id
+      parent.type === "subscript_expression" &&
+      (named(parent)[0] as Node).id !== node.id
     )
       return false;
-    if (parent?.type === "argument") {
-      const call = parent.parent?.parent;
-      const read =
-        call !== null && call !== undefined && isCall(call)
-          ? callNames(call)
-          : null;
-      if (read?.names.some((candidate) => ENV_GETTERS.has(lower(candidate))))
-        return false;
-    }
-    return true;
+    const read = call !== null && isCall(call) ? callNames(call) : null;
+    return read === null || !ENV_GETTERS.has(lower(read.names[0] as string));
   };
 
   /**
@@ -1649,46 +1548,38 @@ export function phpReferences(
    * also in a definition array, a fetch mode that is not a `PDO::FETCH_*` constant
    * (`10` is FETCH_FUNC), or an ini option that takes a callback.
    */
-  const callbackMode = (
-    node: Node,
-    name: string,
-    names: readonly string[],
-  ): boolean => {
+  const callbackMode = (node: Node, name: string): boolean => {
     const list = callArguments(node);
     if (/^filter_(?:var|var_array|input|input_array)$/.test(name)) {
-      const filter = list[name.startsWith("filter_input") ? 2 : 1];
+      // filter_input(type, name, filter), filter_input_array(type, filter).
+      const filter = list[name === "filter_input" ? 2 : 1];
       return (
         list.some(
           (argument) =>
             argument.type !== "argument" || field(argument, "name") !== null,
         ) ||
         (filter !== undefined &&
-          !/^\\?FILTER_\w+$/.test(argumentValue(filter)?.text ?? "") &&
+          !/^\\?FILTER_\w+$/.test((argumentValue(filter) as Node).text) &&
           !(
             name.endsWith("_array") &&
-            argumentValue(filter)?.type === "array_creation_expression"
+            (argumentValue(filter) as Node).type === "array_creation_expression"
           )) ||
         // `['filter' => 1024, 'options' => 'system']` in a definition.
-        /['"]filter['"]\s*=>\s*(?!\\?FILTER_\w+\s*[,\]])/.test(node.text)
+        /['"]filter['"]\s*=>(?!\s*\\?FILTER_\w+\s*[,\]])/.test(node.text)
       );
     }
     if (
-      names.some((candidate) =>
-        /^(?:\*\.|.*::)(?:fetch|fetchall|setfetchmode|fetchobject)$/i.test(
-          candidate,
-        ),
-      ) &&
+      /(?:\*\.|::)(?:fetch|fetchall|setfetchmode|fetchobject)$/i.test(name) &&
       list.length > 1
     )
       return !/^\\?PDO::FETCH_\w+(?:\s*\|\s*\\?PDO::FETCH_\w+)*$/.test(
-        argumentValue(list[0])?.text ?? "",
+        (argumentValue(list[0]) as Node).text,
       );
     if (name === "ini_set" || name === "ini_alter") {
-      const byName = list.some(
-        (argument) =>
-          argument.type !== "argument" || field(argument, "name") !== null,
-      );
-      const option = byName ? null : literal(argumentValue(list[0]));
+      // `ini_set(...$a)` has no literal option either.
+      const option = list.some((argument) => field(argument, "name") !== null)
+        ? null
+        : literal(argumentValue(list[0]));
       return (
         option === null ||
         /^(?:unserialize_callback_func|assert\.callback)$/i.test(option)
@@ -1697,6 +1588,22 @@ export function phpReferences(
     return false;
   };
 
+  /** property: whether a write to `target` may set the key. */
+  const writesKey = (target: Node): boolean => {
+    const written = writtenKey(target);
+    return written === "dynamic" || written === options.key;
+  };
+  const isTarget = (part: Node): boolean =>
+    part.type === "subscript_expression" ||
+    part.type.endsWith("member_access_expression") ||
+    part.type === "scoped_property_access_expression";
+  /** property: whether a destructuring pattern writes the key. */
+  const writesThrough = (part: Node): boolean =>
+    isTarget(part) ? writesKey(part) : named(part).some(writesThrough);
+  /** property: whether a declared name (`$acl`, `acl`) is the key. */
+  const namesKey = (name: Node): boolean =>
+    name.text === options.key || name.text === `$${options.key}`;
+
   const visit = (node: Node): void => {
     switch (node.type) {
       case "function_call_expression":
@@ -1704,12 +1611,11 @@ export function phpReferences(
       case "nullsafe_member_call_expression":
       case "scoped_call_expression": {
         const read = callNames(node);
-        if (read === null || read.dynamicFunction) {
+        if (read === null) {
           // A method name or target computed at run time.
           const functionLike =
             node.type === "function_call_expression" ||
-            node.type === "scoped_call_expression" ||
-            read?.dynamicFunction === true;
+            node.type === "scoped_call_expression";
           if (
             extract === "calls" ||
             extract === "string_args" ||
@@ -1732,34 +1638,23 @@ export function phpReferences(
           name === "assert" &&
           (firstValue?.type === "string" ||
             firstValue?.type === "encapsed_string");
-        // `ReflectionMethod::createFromMethodName('A::m')` builds a callable.
-        if (
-          names.some((candidate) =>
-            /(?:^|\\)reflection\w*::/i.test(candidate),
-          ) &&
-          extract !== "property" &&
-          extract !== "imports"
-        ) {
-          refuse(node);
-          break;
-        }
+        // `ReflectionMethod::createFromMethodName('A::m')` builds a callable;
         // `$r->invoke('rm')` on a Reflection object (also through a subclass
         // or an anonymous class), a callback filter, a PDO row callback, a
         // SOAP function table and `class_alias` call or rename what they
-        // are given at run time.
+        // are given at run time. Only `exit` has a second name.
         if (
           extract !== "property" &&
           extract !== "imports" &&
-          (names.some((candidate) =>
-            /^(?:\*\.|.*::)(?:invoke|invokeargs|newinstance|newinstanceargs|newinstancewithoutconstructor|getclosure|addfunction|registerphpfunctions)$/i.test(
-              candidate,
-            ),
-          ) ||
+          (/(?:^|\\)reflection\w*::/i.test(name) ||
+            /(?:\*\.|::)(?:invoke|invokeargs|newinstance|newinstanceargs|newinstancewithoutconstructor|getclosure|addfunction|registerphpfunctions)$/i.test(
+              name,
+            ) ||
             name === "class_alias" ||
             callArguments(node).some((argument) =>
               /\b(?:FILTER_CALLBACK|FETCH_FUNC)\b/.test(argument.text),
             ) ||
-            callbackMode(node, name, names))
+            callbackMode(node, name))
         ) {
           refuse(node);
           break;
@@ -1780,23 +1675,15 @@ export function phpReferences(
               : name === "apache_getenv"
                 ? "variable"
                 : "key";
-          const list = callArguments(node);
+          // `getenv(...$a)` is a positional argument with no literal; PHP
+          // allows no unpacking after a named one.
           const first =
             firstPositional(node) ??
-            (list.some(
-              (argument) =>
-                argument.type !== "argument" ||
-                named(argument).some(
-                  (child) => child.type === "variadic_unpacking",
-                ),
-            )
-              ? undefined
-              : list.find(
-                  (argument) =>
-                    lower(field(argument, "name")?.text ?? "") === parameter,
-                ));
+            callArguments(node).find(
+              (argument) => field(argument, "name")?.text === parameter,
+            );
           const value = literal(argumentValue(first));
-          if (value === null || first === undefined) refuse(node);
+          if (value === null) refuse(node);
           else members.push(value);
         }
         if (
@@ -1805,20 +1692,20 @@ export function phpReferences(
             name === "filter_input_array" ||
             name === "filter_has_var")
         ) {
-          const source = argumentValue(callArguments(node)[0])?.text ?? "";
+          const sourceNode = argumentValue(callArguments(node)[0]);
+          const source = String(sourceNode?.text);
           // `const INPUT_GET = \INPUT_ENV;` in a namespace renames a source.
           if (
-            /^INPUT_\w+$/.test(source) &&
+            sourceNode?.type === "name" &&
             new RegExp(`\\b(?:const|define)\\b[^;]*\\b${source}\\b`).test(
               root.text,
             )
           )
             refuse(node);
-          else if (ENV_INPUTS.has(source.replace(/^\\/, ""))) {
-            const variable =
-              name === "filter_input_array"
-                ? null
-                : literal(argumentValue(callArguments(node)[1]));
+          else if (ENV_INPUTS.has(stripLeading(source))) {
+            // filter_input_array's filter (a constant or an array, or the
+            // call is refused above) is no literal either.
+            const variable = literal(argumentValue(callArguments(node)[1]));
             if (variable === null) refuse(node);
             else members.push(variable);
           } else if (!/^\\?INPUT_(?:GET|POST|COOKIE|REQUEST)$/.test(source))
@@ -1831,14 +1718,10 @@ export function phpReferences(
           // `ReflectionProperty::setValue`, `ArrayObject::offsetSet` and
           // `exchangeArray` set a value Kibi does not follow.
           if (
-            names.some((candidate) =>
-              /^(?:\*\.|.*::)(?:setstaticpropertyvalue|offsetset|offsetunset|exchangearray)$/i.test(
-                candidate,
-              ),
+            /(?:\*\.|::)(?:setstaticpropertyvalue|offsetset|offsetunset|exchangearray)$/i.test(
+              name,
             ) ||
-            (names.some((candidate) =>
-              /^(?:\*\.|.*::)setvalue$/i.test(candidate),
-            ) &&
+            (/(?:\*\.|::)setvalue$/i.test(name) &&
               /\bReflection\w*\b/i.test(root.text))
           )
             refuse(node);
@@ -1848,22 +1731,17 @@ export function phpReferences(
       }
       case "object_creation_expression": {
         if (extract === "imports" || extract === "property") break;
-        const type = named(node)[0];
-        const owner =
-          type === undefined || type.type === "variable_name"
-            ? null
-            : resolveClass(type);
+        const type = named(node)[0] as Node;
+        const owner = resolveClass(type);
         // Reflection calls, reads and builds whatever it is given at run
         // time, and a class computed at run time may be Reflection.
         if (
           (owner !== null && /^reflection/i.test(finalName(owner))) ||
-          (type !== undefined &&
-            type.type !== "name" &&
+          (type.type !== "name" &&
             type.type !== "qualified_name" &&
-            type.type !== "anonymous_class" &&
-            !/^(?:static|self|parent)$/i.test(type.text) &&
             // `new $controller()` with no argument cannot hand Reflection or
-            // a Fiber anything to call.
+            // a Fiber anything to call. `new class($x) {}` has its
+            // arguments in the class node.
             callArguments(node).length > 0)
         ) {
           refuse(node);
@@ -1874,12 +1752,9 @@ export function phpReferences(
           owner === null
             ? undefined
             : CALLABLE_CONSTRUCTORS.get(lower(stripLeading(owner)));
-        if (position !== undefined) {
-          const list = callArguments(node);
-          const argument = list[position];
-          if (argument !== undefined)
-            handedCallable(argument, argumentValue(argument));
-        }
+        // An absent argument hands no callable.
+        const argument = callArguments(node)[position as number];
+        handedCallable(argument as Node, argumentValue(argument));
         break;
       }
       case "shell_command_expression":
@@ -1888,12 +1763,10 @@ export function phpReferences(
           extract === "string_args" &&
           calleeMatches("shell_exec", options.callee)
         ) {
-          const value = named(node).every(
-            (part) => part.type === "string_content",
-          )
-            ? named(node)
-                .map((part) => part.text)
-                .join("")
+          // Text alone is one string_content part.
+          const parts = named(node);
+          const value = parts.every((part) => part.type === "string_content")
+            ? (parts[0]?.text ?? "")
             : null;
           if (value === null) refuse(node);
           else members.push(value);
@@ -1920,35 +1793,26 @@ export function phpReferences(
       case "require_once_expression": {
         if (extract !== "imports") {
           // `include 'data://text/plain,<?php system(...);'` runs code the
-          // file does not show.
-          const target = named(node)[0];
-          const inner =
-            target?.type === "parenthesized_expression"
-              ? named(target)[0]
-              : target;
-          const value = inner === undefined ? null : literal(inner);
-          if (
-            value !== null &&
-            (/^[A-Za-z][\w+.-]*:\/\//.test(value) || /^data:/i.test(value))
-          )
-            refuse(node);
+          // file does not show. A path Kibi cannot read is "null", no stream.
+          if (isStream(String(literal(named(node)[0] as Node)))) refuse(node);
           break;
         }
-        const path = includePath(named(node)[0]);
+        const path = includePath(named(node)[0] as Node);
         if (path === null) refuse(node);
         else members.push(path);
         break;
       }
       case "subscript_expression": {
         if (!env) break;
-        const [base, index] = named(node);
+        const [base, index] = named(node) as [Node, Node | undefined];
         if (
-          base?.type === "variable_name" &&
-          ENV_ARRAYS.has(base.text.replace(/^\$/, ""))
+          base.type === "variable_name" &&
+          ENV_ARRAYS.has(base.text.slice(1))
         ) {
           // `"$_SERVER[HOME]"`: in a string an unquoted key is text.
           const value =
-            index?.type === "name" && node.parent?.type === "encapsed_string"
+            index?.type === "name" &&
+            (node.parent as Node).type === "encapsed_string"
               ? index.text
               : literal(index);
           if (value === null) refuse(node);
@@ -1956,7 +1820,7 @@ export function phpReferences(
           if (index !== undefined) visit(index);
           return;
         }
-        if (base?.type === "variable_name" && base.text === "$GLOBALS") {
+        if (base.text === "$GLOBALS") {
           const value = literal(index);
           if (value === null || ENV_ARRAYS.has(value) || value === "GLOBALS")
             refuse(node);
@@ -1967,7 +1831,7 @@ export function phpReferences(
       }
       case "variable_name": {
         if (!env) break;
-        const name = node.text.replace(/^\$/, "");
+        const name = node.text.slice(1);
         // A superglobal handed on or iterated: any key may be read.
         if (ENV_ARRAYS.has(name) || name === "GLOBALS") refuse(node);
         break;
@@ -1978,59 +1842,42 @@ export function phpReferences(
       case "string":
       case "encapsed_string": {
         // `preg_match('/(?<acl>\w+)/', $s, $m)` sets the key `acl` of `$m`.
-        if (
-          extract === "property" &&
-          new RegExp(
-            `\\(\\?P?(?:<${options.key.replace(/[^\w]/g, "\\$&")}>|'${options.key.replace(/[^\w]/g, "\\$&")}')`,
-          ).test(node.text)
-        )
-          refuse(node);
+        if (extract === "property") {
+          const key = options.key.replace(/\W/g, "\\$&");
+          if (new RegExp(`\\(\\?P?(?:<${key}>|'${key}')`).test(node.text))
+            refuse(node);
+        }
         // A string may be called as a function: `$f = 'getenv'; $f('X')`.
         const value = stringValue(node);
         if (env && value !== null && callableEnvName(node, value)) refuse(node);
         break;
       }
-      case "catch_clause": {
-        const name = field(node, "name")?.text ?? null;
-        // A catch variable assigned or handed by reference may hold another
-        // exception by the time it is thrown.
-        const trusted = name !== null && catchTrusted(node, name);
-        catchNames.push(trusted ? (name as string) : "");
-        for (const child of named(node)) visit(child);
-        catchNames.pop();
-        return;
-      }
       case "throw_expression": {
         if (extract !== "thrown") break;
-        let thrown = named(node)[0];
+        let thrown = named(node)[0] as Node;
         // `throw (new X)` throws X.
         while (
-          thrown?.type === "parenthesized_expression" &&
+          thrown.type === "parenthesized_expression" &&
           named(thrown).length === 1
         )
-          thrown = named(thrown)[0];
-        if (thrown?.type === "object_creation_expression") {
-          const type = named(thrown)[0];
-          // `new static` may be any subclass.
-          const owner =
-            type === undefined || type.type === "variable_name"
-              ? null
-              : resolveClass(type);
+          thrown = named(thrown)[0] as Node;
+        if (thrown.type === "object_creation_expression") {
+          // `new static` and `new $class` may be any class.
+          const owner = resolveClass(named(thrown)[0] as Node);
           if (owner === null) refuse(node);
           else members.push(owner);
-        } else if (thrown !== undefined && isCall(thrown)) {
+        } else if (isCall(thrown)) {
           const read = callNames(thrown);
-          if (read === null || read.dynamicFunction) refuse(node);
+          if (read === null) refuse(node);
           else {
             members.push(...read.names);
             if (read.namespace !== null)
               shadow(read.names[0] as string, read.namespace, thrown);
           }
-        } else if (
-          !(
-            thrown?.type === "variable_name" && catchNames.includes(thrown.text)
-          )
-        )
+        } else if (!rethrows(thrown))
+          // A catch variable assigned or handed by reference may hold
+          // another exception by the time it is thrown; only a variable
+          // has the catch clause's name.
           refuse(node);
         break;
       }
@@ -2038,25 +1885,19 @@ export function phpReferences(
         // A stream context's `'notification' => 'cb'` is called on events.
         if (extract === "calls" || extract === "string_args" || env)
           for (const element of named(node)) {
+            // A comment among the elements has no parts, and
+            // `['notification']` hands no callable.
             const parts = named(element);
-            if (
-              element.type === "array_element_initializer" &&
-              parts.length === 2 &&
-              literal(parts[0] as Node) === "notification"
-            )
+            if (literal(parts[0]) === "notification")
               handedCallable(element, parts[1]);
           }
         if (extract === "property") {
           arrayKeys(node);
-          // `['acl' => &$a]` lets a later `$a = ...` set the slot.
+          // `['acl' => &$a]` lets a later `$a = ...` set the slot; `[&$a]`
+          // has no key to read (`by_ref` is no literal).
           for (const element of named(node))
-            if (
-              element.type === "array_element_initializer" &&
-              named(element).some((part) => part.type === "by_ref")
-            ) {
-              const slot =
-                named(element).length === 2 ? named(element)[0] : undefined;
-              const written = slot === undefined ? null : literal(slot);
+            if (named(element).some((part) => part.type === "by_ref")) {
+              const written = literal(named(element)[0] as Node);
               if (written === null || written === options.key) refuse(element);
             }
         }
@@ -2071,15 +1912,15 @@ export function phpReferences(
         break;
       case "binary_expression": {
         // `$defaults + ['acl' => 'x']`: the key may keep the other array's value.
-        if (extract !== "property" || field(node, "operator")?.text !== "+")
-          break;
-        const sides = [field(node, "left"), field(node, "right")];
         if (
-          sides.some(
-            (side) =>
-              side?.type === "array_creation_expression" && arrayHasKey(side),
-          ) &&
-          sides.some((side) => side?.type !== "array_creation_expression")
+          extract !== "property" ||
+          (field(node, "operator") as Node).text !== "+"
+        )
+          break;
+        const sides = [field(node, "left"), field(node, "right")] as Node[];
+        if (
+          sides.some(arrayHasKey) &&
+          sides.some((side) => side.type !== "array_creation_expression")
         )
           refuse(node);
         break;
@@ -2091,79 +1932,41 @@ export function phpReferences(
         // `$cfg['port']++` and `unset($o['acl'])` change the value, and
         // `foreach ($o as &$v)` may change any value of the array.
         if (node.type === "foreach_statement") {
-          const body = field(node, "body");
-          const header = named(node).filter((child) => child.id !== body?.id);
+          const body = field(node, "body") as Node;
           // `foreach ($o as $k => &$v)`, and a value written to a key
           // (`foreach ($rows as $o['acl'])`, `as [$o['acl']]`).
-          const targets: Node[] = [];
-          const gather = (part: Node): void => {
-            if (part.type === "by_ref") refuse(node);
-            else if (
-              part.type === "subscript_expression" ||
-              /member_access_expression$/.test(part.type) ||
-              part.type === "scoped_property_access_expression"
-            )
-              targets.push(part);
-            else for (const child of named(part)) gather(child);
-          };
-          for (const part of header.slice(1)) gather(part);
-          if (
-            targets.some((target) => {
-              const written = writtenKey(target);
-              return written === "dynamic" || written === options.key;
-            })
-          )
-            refuse(node);
+          const byRef = (part: Node): boolean =>
+            part.type === "by_ref" || named(part).some(byRef);
+          const header = named(node)
+            .filter((child) => child.id !== body.id)
+            .slice(1);
+          if (header.some(byRef) || header.some(writesThrough)) refuse(node);
           break;
         }
-        for (const target of named(node)) {
-          const key = writtenKey(target);
-          if (key === "dynamic" || key === options.key) refuse(node);
-        }
+        if (named(node).some(writesKey)) refuse(node);
         break;
       }
       case "assignment_expression":
       case "augmented_assignment_expression":
       case "reference_assignment_expression": {
         if (extract !== "property") break;
-        const left = field(node, "left");
+        const left = field(node, "left") as Node;
+        const right = field(node, "right") as Node;
         // `[$o['acl']] = [...]` writes through a destructuring target, and
         // `$r = &$o['acl']` lets `$r` write the key.
-        const targets: Node[] = [];
-        const gather = (part: Node): void => {
-          if (
-            part.type === "subscript_expression" ||
-            /member_access_expression$/.test(part.type) ||
-            part.type === "scoped_property_access_expression"
-          )
-            targets.push(part);
-          else for (const child of named(part)) gather(child);
-        };
         if (
-          left !== null &&
-          (left.type === "list_literal" ||
-            left.type === "array_creation_expression")
-        )
-          gather(left);
-        if (node.type === "reference_assignment_expression") {
-          const right = field(node, "right");
-          if (right !== null) targets.push(right);
-        }
-        if (
-          targets.some((target) => {
-            const written = writtenKey(target);
-            return written === "dynamic" || written === options.key;
-          })
+          // `[$a] = ...` is a list literal too.
+          (left.type === "list_literal" && writesThrough(left)) ||
+          (node.type === "reference_assignment_expression" && writesKey(right))
         ) {
           refuse(node);
           break;
         }
         // `$o += ['acl' => 'x']` keeps a value `$o` already has.
-        const right = field(node, "right");
         if (
+          // Only an array literal has entries.
           node.type === "augmented_assignment_expression" &&
-          field(node, "operator")?.text === "+=" &&
-          right?.type === "array_creation_expression" &&
+          (field(node, "operator") as Node).text === "+=" &&
           arrayHasKey(right)
         ) {
           refuse(node);
@@ -2173,9 +1976,7 @@ export function phpReferences(
         if (key === "dynamic") refuse(node);
         else if (key === options.key) {
           const value =
-            node.type === "assignment_expression"
-              ? literal(field(node, "right"))
-              : null;
+            node.type === "assignment_expression" ? literal(right) : null;
           if (value === null) refuse(node);
           else members.push(value);
         }
@@ -2183,9 +1984,8 @@ export function phpReferences(
       }
       case "enum_case":
       case "property_promotion_parameter": {
-        if (extract !== "property") break;
-        const name = field(node, "name")?.text.replace(/^\$/, "");
-        if (name !== options.key) break;
+        if (extract !== "property" || !namesKey(field(node, "name") as Node))
+          break;
         // A promoted parameter holds what each `new` passes; its default is
         // only one of them.
         if (node.type === "property_promotion_parameter") {
@@ -2201,44 +2001,33 @@ export function phpReferences(
       }
       case "argument": {
         if (extract !== "property") break;
-        {
-          // `setv($o['acl'], 'x')` may set the key through a reference.
-          const value = argumentValue(node);
-          const call = node.parent?.parent;
-          const callee =
-            call?.type === "function_call_expression"
-              ? lower(stripLeading(field(call, "function")?.text ?? ""))
-              : null;
-          if (
-            value !== undefined &&
-            (value.type === "subscript_expression" ||
-              /member_access_expression$/.test(value.type) ||
-              value.type === "scoped_property_access_expression") &&
-            !(callee !== null && READS_SLOT.has(callee))
-          ) {
-            const written = writtenKey(value);
-            if (written === "dynamic" || written === options.key) refuse(node);
-          }
-        }
+        // `setv($o['acl'], 'x')` may set the key through a reference.
+        const value = argumentValue(node) as Node;
+        const call = (node.parent as Node).parent as Node;
+        const readsSlot =
+          call.type === "function_call_expression" &&
+          READS_SLOT.has(
+            lower(stripLeading((field(call, "function") as Node).text)),
+          );
+        if (isTarget(value) && !readsSlot && writesKey(value)) refuse(node);
         const name = field(node, "name");
         if (name !== null && name.text === options.key) {
-          const value = literal(argumentValue(node));
-          if (value === null) refuse(node);
-          else members.push(value);
+          const read = literal(value);
+          if (read === null) refuse(node);
+          else members.push(read);
         }
         break;
       }
       case "property_declaration":
         // A PHP 8.4 hook (`$acl { get => ...; }`) computes the value on
-        // every read.
+        // every read. Only a property element has a name here.
         if (
           extract === "property" &&
           named(node).some((child) => child.type === "property_hook_list") &&
-          named(node).some(
-            (child) =>
-              child.type === "property_element" &&
-              field(child, "name")?.text.replace(/^\$/, "") === options.key,
-          )
+          named(node).some((child) => {
+            const name = field(child, "name");
+            return name !== null && namesKey(name);
+          })
         ) {
           refuse(node);
           return;
@@ -2246,12 +2035,8 @@ export function phpReferences(
         break;
       case "property_element":
       case "const_element": {
-        if (extract !== "property") break;
-        const name = (field(node, "name") ?? named(node)[0])?.text.replace(
-          /^\$/,
-          "",
-        );
-        if (name !== options.key) break;
+        // A property's name is its first child, as a constant's is.
+        if (extract !== "property" || !namesKey(named(node)[0] as Node)) break;
         if (node.type === "const_element" && definedTwice) {
           refuse(node);
           break;
@@ -2276,12 +2061,7 @@ export function phpReferences(
 /** Whether a node runs inside a function, method or closure body. */
 function insideFunctionScope(node: Node): boolean {
   for (let current = node.parent; current !== null; current = current.parent)
-    if (
-      /^(?:function_definition|method_declaration|anonymous_function|arrow_function|anonymous_function_creation_expression)$/.test(
-        current.type,
-      )
-    )
-      return true;
+    if (FUNCTIONS.has(current.type)) return true;
   return false;
 }
 
@@ -2291,15 +2071,14 @@ function insideClosure(node: Node): boolean {
   for (
     let current = node.parent;
     current !== null &&
-    !/^(?:class_declaration|method_declaration|function_definition)$/.test(
-      current.type,
-    );
+    current.type !== "class_declaration" &&
+    current.type !== "method_declaration" &&
+    current.type !== "function_definition";
     current = current.parent
   )
     if (
       current.type === "anonymous_function" ||
-      current.type === "arrow_function" ||
-      current.type === "anonymous_function_creation_expression"
+      current.type === "arrow_function"
     )
       return true;
   return false;

@@ -61,6 +61,7 @@ const config = {
       "mutation-references",
       "mutation-hcl",
       "mutation-c",
+      "mutation-php",
     ].map((f) => `./${T}${f}.test.js`),
     timeout: 120000,
     inspectorTimeout: 30000,
