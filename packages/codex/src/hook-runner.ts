@@ -177,18 +177,17 @@ function preEditContext(
   trace: HookTrace = {},
 ): string | undefined {
   const targets = editTargets(workspaceRoot, input);
-  // rationale: with no targets every later step yields nothing, so this
-  // early return only skips loading the index.
-  // Stryker disable next-line ConditionalExpression
-  if (targets.length === 0) return undefined;
-  const index = loadKnowledgeIndex(workspaceRoot, stateDir);
   const first = targets[0];
-  if (first) {
-    trace.pathKind = classifyPath(first.relative);
-    trace.requirementIds = implementedRequirementIds(
-      index.files[first.relative] ?? [],
-    );
-  }
+  // rationale: with no targets the read of first.relative below throws, and
+  // the caller treats a throw as no context, so this return only skips
+  // loading the index.
+  // Stryker disable next-line ConditionalExpression
+  if (first === undefined) return undefined;
+  const index = loadKnowledgeIndex(workspaceRoot, stateDir);
+  trace.pathKind = classifyPath(first.relative);
+  trace.requirementIds = implementedRequirementIds(
+    index.files[first.relative] ?? [],
+  );
   const summarize = createEntitySummarizer(workspaceRoot);
   const session: DecisionSession = { stateDir, sessionId: input.sessionId };
   const words = requestWords(session);
@@ -374,6 +373,9 @@ function postEditContext(
   const fresh = sourcePaths.filter((sourcePath) =>
     claimSnippetSlot(
       stateDir,
+      // rationale: any constant fallback keys a session without an id the
+      // same way; only the per-session part is observable.
+      // Stryker disable next-line StringLiteral
       `${sessionId ?? ""}\u0000post-edit\u0000${sourcePath}`,
     ),
   );

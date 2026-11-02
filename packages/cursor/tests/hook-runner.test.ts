@@ -1120,6 +1120,71 @@ describe("Cursor hook runner result contracts", () => {
     }
   });
 
+  // implements REQ-kibi-anonymous-usage-telemetry
+  test("each hook decision queues its action, path kind and requirement count, and only in a Kibi workspace", async () => {
+    const telemetryDir = createTempRoot("kibi-cursor-telemetry-");
+    tempRoots.push(telemetryDir);
+    const queue = path.join(telemetryDir, "telemetry-queue.jsonl");
+    const env = {
+      KIBI_TELEMETRY: "1",
+      KIBI_TELEMETRY_DIR: telemetryDir,
+      // stop sends the queue; an unreachable host keeps it on disk.
+      KIBI_TELEMETRY_HOST: "http://127.0.0.1:9",
+    };
+    const kbEdit = {
+      hook_event_name: "preToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: ".kb/requirements/REQ-x.md" },
+    };
+
+    const plain = createTempRoot("kibi-cursor-plain-");
+    tempRoots.push(plain);
+    const unconfigured = conversation(plain, env);
+    await unconfigured.event({ hook_event_name: "sessionStart" });
+    await unconfigured.event({ ...kbEdit, cwd: plain });
+    expect(fs.existsSync(queue)).toBe(false);
+
+    const { event, workspace } = conversation(cursorLinkedWorkspace(), env);
+    const file = path.join(workspace, "src/checkout.ts");
+    const read = { hook_event_name: "beforeReadFile", file_path: file };
+    const edit = {
+      hook_event_name: "preToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: file },
+    };
+    for (const payload of [
+      { hook_event_name: "beforeSubmitPrompt", prompt: "Rename the button." },
+      read,
+      read,
+      { ...kbEdit, cwd: workspace },
+      edit,
+      edit,
+    ]) {
+      await event(payload);
+    }
+
+    const queued = fs
+      .readFileSync(queue, "utf8")
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line).properties);
+    expect(
+      queued.map((row) => [
+        row.hook_event,
+        row.hook_action,
+        row.path_kind,
+        row.requirement_count,
+      ]),
+    ).toEqual([
+      ["beforeSubmitPrompt", "prompt_silent", null, null],
+      ["beforeReadFile", "read_snippet", "source", null],
+      ["beforeReadFile", "read_silent", "source", null],
+      ["preToolUse", "kb_direct_note", "kb", null],
+      ["preToolUse", "edit_snippet", "source", 1],
+      ["preToolUse", "edit_silent", "source", 1],
+    ]);
+  });
+
   test("an edit call without a path gets no pre-edit message", async () => {
     const { event } = conversation();
     expect(

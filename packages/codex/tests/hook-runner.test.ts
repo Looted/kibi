@@ -1332,11 +1332,13 @@ describe("Codex hook runner result contracts", () => {
         tool_input: { file_path: "src/checkout.ts" },
       }),
     ).toEqual({ continue: true });
-    await event({
-      hook_event_name: "PostToolUse",
-      tool_name: "Read",
-      tool_input: { file_path: "src/checkout.ts" },
-    });
+    expect(
+      await event({
+        hook_event_name: "PostToolUse",
+        tool_name: "Read",
+        tool_input: { file_path: "src/checkout.ts" },
+      }),
+    ).toEqual({ continue: true });
     await event({
       hook_event_name: "PostToolUse",
       tool_name: "Bash",
@@ -1524,7 +1526,14 @@ describe("Codex hook runner result contracts", () => {
     });
     expect(
       await event({ hook_event_name: "Stop", stop_hook_active: false }),
-    ).toMatchObject({ continue: true, decision: "block" });
+    ).toEqual({
+      continue: true,
+      decision: "block",
+      reason: [
+        captureReminder(false),
+        impactCheckReminder(["src/guard.ts"]),
+      ].join("\n"),
+    });
   });
 
   test("a CLI upsert counts as recording knowledge", async () => {
@@ -1679,8 +1688,10 @@ describe("Codex reminders from real payload shapes", () => {
         last_assistant_message: "Done.",
       }),
     );
-    expect(active.decision).toBeUndefined();
-    expect(active.systemMessage).toContain("src/guard.ts");
+    expect(active).toEqual({
+      continue: true,
+      systemMessage: impactCheckReminder(["src/guard.ts"]),
+    });
 
     await run(patchPost(cwd));
     const stop = await run(
@@ -1772,5 +1783,142 @@ describe("Codex reminders from real payload shapes", () => {
         session: hashTelemetryId("019a-codex-thread"),
       });
     }
+  });
+
+  function patchOf(files: readonly string[]): string {
+    return [
+      "*** Begin Patch",
+      ...files.flatMap((file) => [
+        `*** Update File: ${file}`,
+        "@@",
+        "-a",
+        "+b",
+      ]),
+      "*** End Patch",
+    ].join("\n");
+  }
+
+  const editPost = (cwd: string, files: readonly string[]) =>
+    codexPayload(cwd, "PostToolUse", {
+      tool_name: "apply_patch",
+      tool_input: { command: patchOf(files) },
+    });
+
+  test("the post-edit note names only the source files, at most ten, once per file per session", async () => {
+    const cwd = workspace();
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(pluginData);
+    const run = (payload: Record<string, unknown>) =>
+      runHook(payload, { pluginData, env: {} });
+    const note = (sourceFiles: readonly string[]): HookResult => ({
+      continue: true,
+      hookSpecificOutput: {
+        hookEventName: "PostToolUse",
+        additionalContext: `Kibi impact review: run kb_check({sourceFiles:${JSON.stringify(sourceFiles)}, includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) while this edit is fresh.\nCheck whether the linked requirements, scenarios and tests still cover the changed behavior.`,
+      },
+    });
+
+    expect(
+      await run(
+        codexPayload(cwd, "PostToolUse", {
+          tool_name: "Read",
+          tool_input: { file_path: "src/guard.ts" },
+        }),
+      ),
+    ).toEqual({ continue: true });
+    expect(await run(editPost(cwd, ["README.md", "src/guard.ts"]))).toEqual(
+      note(["src/guard.ts"]),
+    );
+    expect(await run(editPost(cwd, ["src/guard.ts"]))).toEqual({
+      continue: true,
+    });
+    expect(await run(editPost(cwd, ["src/checkout.ts"]))).toEqual(
+      note(["src/checkout.ts"]),
+    );
+    expect(
+      await run({ ...editPost(cwd, ["src/guard.ts"]), session_id: "other" }),
+    ).toEqual(note(["src/guard.ts"]));
+
+    const { session_id: _omitted, ...withoutSession } = editPost(cwd, [
+      "src/guard.ts",
+    ]);
+    expect(await run(withoutSession)).toEqual(note(["src/guard.ts"]));
+    expect(await run(withoutSession)).toEqual({ continue: true });
+
+    const many = Array.from({ length: 11 }, (_, i) => `src/many-${i}.ts`);
+    expect(await run({ ...editPost(cwd, many), session_id: "many" })).toEqual(
+      note(many.slice(0, 10)),
+    );
+  });
+
+  // implements REQ-kibi-anonymous-usage-telemetry
+  test("each hook decision queues its action, path kind and requirement count", async () => {
+    const cwd = workspace();
+    writeFile(cwd, "src/unlinked.ts", "export const unlinked = 1;\n");
+    const telemetryDir = createTempRoot("kibi-codex-telemetry-");
+    tempRoots.push(telemetryDir);
+    const env = {
+      KIBI_TELEMETRY: "1",
+      KIBI_TELEMETRY_DIR: telemetryDir,
+      // Stop sends the queue; an unreachable host keeps it on disk.
+      KIBI_TELEMETRY_HOST: "http://127.0.0.1:9",
+    };
+    const runSession = async (payloads: Record<string, unknown>[]) => {
+      const pluginData = createTempRoot("kibi-codex-data-");
+      tempRoots.push(pluginData);
+      for (const payload of payloads) {
+        await runHook(payload, { pluginData, env });
+      }
+    };
+    const preEdit = (toolName: string, toolInput: Record<string, unknown>) =>
+      codexPayload(cwd, "PreToolUse", {
+        tool_name: toolName,
+        tool_input: toolInput,
+      });
+    const upsert = (toolInput: Record<string, unknown>) =>
+      codexPayload(cwd, "PostToolUse", {
+        tool_name: "mcp__kibi__kb_upsert",
+        tool_input: toolInput,
+      });
+    const stop = codexPayload(cwd, "Stop", { stop_hook_active: false });
+
+    await runSession([
+      codexPayload(cwd, "UserPromptSubmit", {
+        prompt: "Rename the export button.",
+      }),
+      preEdit("apply_patch", { command: patchOf([".kb/requirements/R.md"]) }),
+      preEdit("apply_patch", { command: CHECKOUT_PATCH }),
+      preEdit("apply_patch", { command: CHECKOUT_PATCH }),
+      preEdit("Edit", { file_path: "src/unlinked.ts" }),
+      preEdit("Edit", {}),
+      preEdit("Read", { file_path: "src/checkout.ts" }),
+    ]);
+    await runSession([upsert({ type: "req", id: "REQ-guards" }), stop]);
+    await runSession([upsert({}), editPost(cwd, ["src/guard.ts"]), stop]);
+    await runSession([editPost(cwd, ["README.md"]), stop]);
+
+    const queued = fs
+      .readFileSync(path.join(telemetryDir, "telemetry-queue.jsonl"), "utf8")
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line).properties)
+      .filter((event) => event.hook_event !== "PostToolUse");
+    expect(
+      queued.map((event) => [
+        event.hook_event,
+        event.hook_action,
+        event.path_kind,
+        event.requirement_count,
+      ]),
+    ).toEqual([
+      ["UserPromptSubmit", "prompt_silent", null, null],
+      ["PreToolUse", "kb_direct_note", "kb", null],
+      ["PreToolUse", "edit_snippet", "source", 1],
+      ["PreToolUse", "edit_silent", "source", 1],
+      ["PreToolUse", "edit_snippet", "source", 0],
+      ["Stop", "stop_signoff_reminder", null, null],
+      ["Stop", "stop_reminder", null, null],
+      ["Stop", "stop_freshness_reminder", null, null],
+    ]);
   });
 });

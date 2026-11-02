@@ -2887,14 +2887,12 @@ function editTargets(workspaceRoot, input) {
 }
 function preEditContext(workspaceRoot, stateDir, input, env, trace = {}) {
   const targets = editTargets(workspaceRoot, input);
-  if (targets.length === 0)
+  const first = targets[0];
+  if (first === undefined)
     return;
   const index = loadKnowledgeIndex(workspaceRoot, stateDir);
-  const first = targets[0];
-  if (first) {
-    trace.pathKind = classifyPath(first.relative);
-    trace.requirementIds = implementedRequirementIds(index.files[first.relative] ?? []);
-  }
+  trace.pathKind = classifyPath(first.relative);
+  trace.requirementIds = implementedRequirementIds(index.files[first.relative] ?? []);
   const summarize = createEntitySummarizer(workspaceRoot);
   const session = { stateDir, sessionId: input.sessionId };
   const words = requestWords(session);

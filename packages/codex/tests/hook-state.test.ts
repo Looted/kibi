@@ -9,6 +9,7 @@ import {
   clearDirtyPaths,
   loadHookState,
   recordKbMcpTool,
+  resolvePluginDataDir,
   saveHookState,
 } from "../src/hook-state";
 
@@ -246,6 +247,39 @@ describe("Codex hook state", () => {
     expect(new Set(dirtyPaths).size).toBe(workerCount);
     for (let index = 0; index < workerCount; index++) {
       expect(dirtyPaths).toContain(`src/concurrent-${index}.ts`);
+    }
+  });
+});
+
+describe("Codex plugin data directory", () => {
+  test("an explicit directory wins, then PLUGIN_DATA, then CLAUDE_PLUGIN_DATA, each trimmed", () => {
+    const env = { PLUGIN_DATA: " /data/a ", CLAUDE_PLUGIN_DATA: " /data/b " };
+    expect(resolvePluginDataDir("/data/explicit", env)).toBe("/data/explicit");
+    expect(resolvePluginDataDir(undefined, env)).toBe("/data/a");
+    expect(resolvePluginDataDir(undefined, { ...env, PLUGIN_DATA: "  " })).toBe(
+      "/data/b",
+    );
+    expect(
+      resolvePluginDataDir(undefined, {
+        PLUGIN_DATA: "\t",
+        CLAUDE_PLUGIN_DATA: " ",
+      }),
+    ).toBe(resolvePluginDataDir(undefined, {}));
+  });
+
+  test("without a named directory it falls back to a per-user temp directory", () => {
+    const original = process.getuid;
+    try {
+      process.getuid = () => 4321;
+      expect(resolvePluginDataDir(undefined, {})).toBe(
+        path.join(os.tmpdir(), "kibi-codex-4321"),
+      );
+      Reflect.set(process, "getuid", undefined);
+      expect(resolvePluginDataDir(undefined, {})).toBe(
+        path.join(os.tmpdir(), "kibi-codex-user"),
+      );
+    } finally {
+      process.getuid = original;
     }
   });
 });
