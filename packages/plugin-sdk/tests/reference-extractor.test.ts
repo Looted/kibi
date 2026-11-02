@@ -66,6 +66,23 @@ describe("kibi.reference-extractor.v1", () => {
     );
   });
 
+  test("needs a non-empty id", () => {
+    for (const id of [undefined, "", "  "])
+      expectValidationCode(
+        () =>
+          validateKibiPlugin({
+            apiVersion: KIBI_PLUGIN_API_VERSION,
+            id: "test-plugin",
+            version: "1.0.0",
+            permissions,
+            capabilities: {
+              referenceExtractor: { ...referenceExtractor, id },
+            },
+          }),
+        "INVALID_CAPABILITY",
+      );
+  });
+
   test("activates only in augment mode", () => {
     const activate = (mode: string) =>
       validateProjectKibiConfig({
@@ -132,6 +149,32 @@ describe("kibi.reference-extractor.v1", () => {
         status: "maybe",
         code: "X",
         message: "x",
+      },
+      {
+        contractVersion: "kibi.reference-extractor.v1",
+        status: "ok",
+        language: "",
+        members: [],
+        unresolved: [],
+      },
+      {
+        contractVersion: "kibi.reference-extractor.v1",
+        status: "ok",
+        language: "go",
+        members: "os",
+        unresolved: [],
+      },
+      {
+        contractVersion: "kibi.reference-extractor.v1",
+        status: "ok",
+        language: "go",
+        members: [],
+        unresolved: null,
+      },
+      {
+        contractVersion: "kibi.reference-extractor.v1",
+        status: "unsupported",
+        code: "X",
       },
     ])
       expectValidationCode(

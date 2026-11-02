@@ -307,11 +307,15 @@ left:
   written as the code names them (`os.Getenv`, `System.out.println`,
   `Console.WriteLine`, `std::env::var`, Go import paths, `java.util.*`,
   `std::io::Write`); a method on an expression Kibi cannot name is
-  `*.name`. Reflection, a name computed at run time, the whole
-  environment, C# `dynamic` and `#if`, Rust `#[cfg(...)]` items other than
-  `#[cfg(test)]`, and any macro for Rust `calls` and `thrown` fail the
-  read with their place: the claim cannot be decided for that file, so
-  model a claim the code can show (Rust `calls` over a file with
+  `*.name`. Rust `#[cfg(...)]` items are read as if every build compiled
+  them (`#[cfg(test)]` items are skipped): a name two gated `use` items
+  bind is listed under both, and a `cfg_attr` counts as the attributes it
+  applies, so `excludes` holds in every build while `includes` and `eq`
+  may count a member only some builds compile. Reflection, a name
+  computed at run time, the whole environment, C# `dynamic` and `#if`, a
+  `cfg_attr` Kibi cannot split, and any macro for Rust `calls` and
+  `thrown` fail the read with their place: the claim cannot be decided
+  for that file, so model a claim the code can show (Rust `calls` over a file with
   `println!` is always refused). PHP class names are written in full with
   backslashes (`App\Mail\Mailer::send`) and functions in lower case;
   PHP names ignore letter case, so a PHP `excludes` refuses a member that

@@ -5,8 +5,8 @@ fact_kind: property_value
 subject_key: kibi.tree_sitter_references
 property_key: refuses_hidden_compiled_language_references
 operator: eq
-claim_key: CLAIM-C91EB554CC34875C
-claim_text: Kibi must refuse a Go, Java, C# or Rust reference read that reaches reflection, a macro, conditional compilation or a name computed at run time
+claim_key: CLAIM-CE8911DDC909129C
+claim_text: Kibi must refuse a Go, Java, C# or Rust reference read that reaches reflection, a macro, C# conditional compilation or a name computed at run time
 value_type: bool
 value_bool: true
 tags:

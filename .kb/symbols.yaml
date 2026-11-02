@@ -23931,7 +23931,7 @@ symbols:
         target: REQ-branch-store-recovery-v4
   - id: SYM-SyncError
     title: SyncError
-    sourceFile: packages/cli/src/commands/sync.ts
+    sourceFile: packages/cli/src/commands/sync/errors.ts
     status: active
     granularity_reason: legacy-link
     relationships:

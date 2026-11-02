@@ -19,6 +19,19 @@ const UNRECORDED_COMMANDS = new Set(["telemetry"]);
 
 let notedErrorCategory: string | undefined;
 
+/**
+ * Commands whose non-zero exit without a thrown error is their answer, not a
+ * fault: a check that found violations, tests that failed. Naming the
+ * outcome keeps them apart from failures nobody categorized.
+ */
+const OUTCOME_CATEGORIES: Readonly<Record<string, string>> = {
+  check: "check_violations",
+  "check-diff": "check_violations",
+  "check-generated": "generated_artifacts_stale",
+  prove: "tests_failed",
+  "proof run-steps": "tests_failed",
+};
+
 // implements REQ-kibi-anonymous-usage-telemetry
 /**
  * Name why this command failed with a fixed identifier (an error code, a
@@ -115,7 +128,7 @@ export async function finishCliTelemetry(input: {
           ? undefined
           : (noted ??
             (input.error === undefined
-              ? undefined
+              ? OUTCOME_CATEGORIES[command]
               : thrownErrorCategory(input.error))),
     },
     env,

@@ -48,6 +48,8 @@ const manifest = (kibi?: unknown) =>
   JSON.stringify({ name: "sample", version: "1.0.0", private: true, kibi });
 
 const TREESITTER = "kibi-plugin-treesitter";
+const declineHint = (pack: string) =>
+  ` To skip a pack the project does not need, list it in package.json kibi.declinedLanguagePacks (for example "declinedLanguagePacks": ["${pack}"]); staged changes to files in that language then get a whole-file review instead of blocking.`;
 const REFS = "kibi.reference-extractor.v1";
 const SYMBOLS = "kibi.symbol-extractor.v2";
 
@@ -238,8 +240,8 @@ describe("reference language suggestion text", () => {
       package: TREESITTER,
       capabilities: [REFS, SYMBOLS],
       languages: [
-        { name: "Java", files: 1 },
-        { name: "C#", files: 1 },
+        { name: "Java", files: 1, proofs: true },
+        { name: "C#", files: 1, proofs: true },
       ],
       evidence: ["svc/Main.java", "svc/App.cs"],
       activeForSymbolsOnly: false,
@@ -359,7 +361,7 @@ describe("the workspace note for kibi init and kibi doctor", () => {
     });
     gitTrack(root);
     expect(workspaceReferenceLanguageNote(root)).toBe(
-      `1 Go source file(s); source proofs and symbols for them need ${TREESITTER} and the grammar pack(s) kibi-lang-go: npm install --save-dev ${TREESITTER} kibi-lang-go, then add this entry to package.json "kibi": { "plugins": [ {"package":"kibi-plugin-treesitter","capabilities":{"kibi.reference-extractor.v1":{"mode":"augment"},"kibi.symbol-extractor.v2":{"mode":"augment"}}} ] }. This project has no package.json: run npm init -y first to create a minimal one (Kibi reads only its devDependencies and kibi.plugins), then run the install and add the kibi.plugins entry above, and add node_modules/ to .gitignore. Without it, references proofs on those files are refused.`,
+      `1 Go source file(s); source proofs and symbols for them need ${TREESITTER} and the grammar pack(s) kibi-lang-go: npm install --save-dev ${TREESITTER} kibi-lang-go, then add this entry to package.json "kibi": { "plugins": [ {"package":"kibi-plugin-treesitter","capabilities":{"kibi.reference-extractor.v1":{"mode":"augment"},"kibi.symbol-extractor.v2":{"mode":"augment"}}} ] }. This project has no package.json: run npm init -y first to create a minimal one (Kibi reads only its devDependencies and kibi.plugins), then run the install and add the kibi.plugins entry above, and add node_modules/ to .gitignore. Without it, references proofs on those files are refused.${declineHint("kibi-lang-go")}`,
     );
   });
 
@@ -404,7 +406,7 @@ describe("the workspace note for kibi init and kibi doctor", () => {
     });
     gitTrack(root);
     expect(workspaceReferenceLanguageNote(root)).toBe(
-      `1 PHP source file(s); ${TREESITTER} reads them only with the grammar pack(s) kibi-lang-php@1.0.0 installed: npm install --save-dev kibi-lang-php@1.0.0. Until then, symbols in those files are placed by text match and are approximate.`,
+      `1 PHP source file(s); ${TREESITTER} reads them only with the grammar pack(s) kibi-lang-php@1.0.0 installed: npm install --save-dev kibi-lang-php@1.0.0. Until then, symbols in those files are placed by text match and are approximate.${declineHint("kibi-lang-php")}`,
     );
   });
 
@@ -484,7 +486,7 @@ describe("the workspace note for kibi init and kibi doctor", () => {
       new Set(["kibi-lang-rust", "kibi-lang-ruby", "kibi-lang-bash"]),
     );
     expect(workspaceReferenceLanguageNote(root)).toBe(
-      `1 Rust source file(s); ${TREESITTER} reads them only with the grammar pack(s) kibi-lang-rust@1.0.0 installed: npm install --save-dev kibi-lang-rust@1.0.0. The installed grammar of kibi-lang-rust does not match the SHA-256 ${TREESITTER} pins; reinstall it. Until then, symbols in those files are placed by text match and are approximate.`,
+      `1 Rust source file(s); ${TREESITTER} reads them only with the grammar pack(s) kibi-lang-rust@1.0.0 installed: npm install --save-dev kibi-lang-rust@1.0.0. The installed grammar of kibi-lang-rust does not match the SHA-256 ${TREESITTER} pins; reinstall it. Until then, symbols in those files are placed by text match and are approximate.${declineHint("kibi-lang-rust")}`,
     );
     // No plugin catalog: nothing to compare against.
     const bare = workspace({ "package.json": manifest() });
@@ -497,7 +499,7 @@ describe("the workspace note for kibi init and kibi doctor", () => {
     // A package.json the git index does not track, so the note still sees one.
     fs.writeFileSync(path.join(root, "package.json"), manifest(symbolsOnly));
     expect(workspaceReferenceLanguageNote(root)).toBe(
-      `1 Rust source file(s); ${TREESITTER} is active for symbols but not for source proofs: add "${REFS}": { "mode": "augment" } to its package.json kibi.plugins entry, and install the grammar pack(s) kibi-lang-rust. Without it, references proofs on those files are refused.`,
+      `1 Rust source file(s); ${TREESITTER} is active for symbols but not for source proofs: add "${REFS}": { "mode": "augment" } to its package.json kibi.plugins entry, and install the grammar pack(s) kibi-lang-rust. Without it, references proofs on those files are refused.${declineHint("kibi-lang-rust")}`,
     );
   });
 });

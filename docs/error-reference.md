@@ -183,6 +183,12 @@ A `rdf/lock` file present after an MCP session ended is usually not stale. Calls
 
 Timeout diagnostics include `stage=<name>` and the child PID. The stage is one of the bounded commit markers (`runtime`, `lock`, `rdf_mutation`, `contradiction_check`, `entity_audit`, `relationship_audit`, `snapshot_save`, or `audit_sync`); use it to distinguish a stale lock from a filesystem or Prolog failure without relying on entity payload logging.
 
+## `Pending source hash drift blocks sync` (`PENDING_SOURCE_HASH_DRIFT`)
+
+**Cause:** `kb_upsert` wrote a `.kb/` file that Git does not track yet, and the file was then edited outside Kibi. Sync never guesses which bytes are meant, and `kibi branch recover --apply` refuses for the same reason.
+
+**Fix:** to keep the edit, stage the file (`git add <path>`) and run `kibi sync` again: Git-tracked bytes are the authored input. Or write the change through `kb_upsert` (CLI: `kibi upsert`), which records the new bytes. A pending source deleted on purpose (`PENDING_SOURCE_MISSING`) is the case `kibi branch recover --apply` handles.
+
 ## Coded tool errors on MCP (`VALIDATION_FAILED` and others)
 
 A tool that rejects its input with a Kibi error code, such as `kb_compile_intent` or `kb_model` mode `analyze` with a `clauses` entry that is not a verbatim fragment of the prose (`VALIDATION_FAILED`), returns `isError: true` with an error envelope in `structuredContent`: `status: "error"` and `error.code`, `error.message`, `error.retryable`. The CLI JSON route prints the same `error` for the same input (exit code 2 for input errors, 1 for operation errors). Branch on `error.code`, fix the input the message names, and call again; `retryable: false` means the same input fails again. The text content repeats the code: `Tool <name> failed: [<code>] <message>`.

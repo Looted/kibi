@@ -1,12 +1,12 @@
 ---
-title: 'Tree-sitter language packs: kibi-plugin-treesitter must refuse a source file whose kibi-lang pack is'
+title: 'Tree-sitter language packs: The kibi-plugin-treesitter plugin must refuse a source file whose kibi-lang'
 status: active
 fact_kind: property_value
 subject_key: kibi.tree_sitter_language_packs
 property_key: refuses_missing_or_modified_pack
 operator: eq
-claim_key: CLAIM-1D2DB1AD16B49600
-claim_text: kibi-plugin-treesitter must refuse a source file whose kibi-lang pack is missing, another version or modified, and name the pack to install
+claim_key: CLAIM-A63DEEFB7D52A494
+claim_text: The kibi-plugin-treesitter plugin must refuse a source file whose kibi-lang pack is missing, another version or modified, and name the pack to install
 value_type: bool
 value_bool: true
 tags:

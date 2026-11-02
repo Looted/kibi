@@ -849,6 +849,15 @@ Details that decide what a reader sees:
   (`logf := logrus.Error`, `apply(logrus.Error)`, a C# method group, also
   cast or in a conditional, a Rust
   path such as `env::var` passed on) is listed in `calls`.
+  Rust `#[cfg(...)]` items are read as if every build compiled them
+  (`#[cfg(test)]` items are skipped): a name that gated items bind in
+  several ways (`#[cfg(unix)] use std::process as p;` next to
+  `#[cfg(not(unix))] use mycrate::process as p;`) resolves to each of
+  them, a gated binding may also leave the outer scope's binding in force,
+  and a `cfg_attr` counts as the attributes it applies (`derive(Debug)` is
+  read as usual, `tokio::main` refuses `calls`). `excludes` and
+  `subset_of` then hold in every build; `includes` and `eq` may count a
+  member only some builds compile, as they do for a call in an `if`.
   A name computed at run time (`os.Getenv(name)`), the whole environment
   (`os.Environ()`, `System.getenv()`, `os.ExpandEnv`,
   `Environment.ExpandEnvironmentVariables`), a getter handed on as a value
@@ -859,8 +868,8 @@ Details that decide what a reader sees:
   Java `Class.forName` and `Method.invoke`, also fully qualified, C#
   `Type.GetType`, `Assembly.Load` and `CreateInstance`), C# `dynamic`
   anywhere (for `calls` and `env` alike, since a reflective call can read
-  the environment), a C# `#if` block, a Rust `#[cfg(...)]` item other than
-  `#[cfg(test)]` (whose items are skipped), for Rust `thrown` any macro
+  the environment), a C# `#if` block, a Rust `cfg_attr` whose attributes
+  cannot be split, for Rust `thrown` any macro
   invocation (`println!` included), for Rust `calls` a macro other than a
   standard one or a known crate's formatting macro, also nested in one (the
   calls in a standard macro's arguments are read: `println!("{}", f())`

@@ -106,6 +106,30 @@ describe("symbol refresh remaining publication and parse branches", () => {
     expect(result).toEqual({ refreshed: false, found: true, unplaced: reason });
   });
 
+  test("says an unplaced symbol's source cannot be read when the analyzer names no reason", async () => {
+    const workspace = preparedWorkspace();
+    writeFileSync(
+      join(workspace, ".kb", "symbols.yaml"),
+      "symbols:\n  - id: SYM-LOST\n    title: lost\n    sourceFile: src/lost.ts\n",
+    );
+    const enrich = spyOn(
+      coordinator,
+      "enrichSymbolCoordinates",
+    ).mockResolvedValue([
+      { id: "SYM-LOST", title: "lost", sourceFile: "src/lost.ts" },
+    ]);
+    restores.push(() => enrich.mockRestore());
+    const result = await refreshSymbolCoordinatesUnlocked(
+      "SYM-LOST",
+      context(workspace),
+    );
+    expect(result).toEqual({
+      refreshed: false,
+      found: true,
+      unplaced: "src/lost.ts cannot be read",
+    });
+  });
+
   test("leaves coordinates unchanged when enrichment points at unreadable source bytes", async () => {
     const workspace = preparedWorkspace();
     writeFileSync(

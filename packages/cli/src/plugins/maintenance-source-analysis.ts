@@ -15,6 +15,7 @@ import {
   APPROVED_SOURCE_ANALYZERS,
   type ApprovedSourceAnalyzer,
 } from "./approved-source-analyzers.js";
+import { isGeneratedSource } from "./generated-sources.js";
 import { readProjectKibiConfig } from "./project-config.js";
 import { CapabilityRegistry } from "./registry.js";
 import { resolveProjectLocalPackage } from "./resolve-package.js";
@@ -162,6 +163,30 @@ export function verifyApprovedSourceAnalyzer(
   return createHash("sha256").update(JSON.stringify(approval)).digest("hex");
 }
 
+/**
+ * Why a file refused for its missing kibi-lang pack does not need it: the
+ * project declined the pack, or a tool generated the file. Null when the
+ * file needs the pack, so the staged gate keeps blocking until it is
+ * installed.
+ */
+// implements REQ-kibi-tree-sitter-language-packs
+export function languagePackWaiver(
+  workspaceRoot: string,
+  config: ProjectKibiConfig,
+): (filePath: string, content: string, pack: string) => string | null {
+  const declined = new Set(config.declinedLanguagePacks ?? []);
+  return (filePath, content, pack) =>
+    declined.has(pack)
+      ? `${pack} is listed in package.json kibi.declinedLanguagePacks, so no grammar reads ${filePath}`
+      : isGeneratedSource(workspaceRoot, filePath, content, {
+            ...(config.generatedPaths
+              ? { patterns: config.generatedPaths }
+              : {}),
+          })
+        ? `${filePath} is generated (linguist-generated or a generator header), so it does not need ${pack}`
+        : null;
+}
+
 /** Maintenance resolves source capabilities only; unrelated plugin code is never imported. */
 // implements REQ-capability-plugin-activation-disclosure-v1
 export function createMaintenanceSourceAnalysisService(
@@ -195,6 +220,7 @@ export function createMaintenanceSourceAnalysisService(
   return createSourceAnalysisService({
     registry,
     providerFingerprints: fingerprints,
+    languagePackWaiver: languagePackWaiver(workspaceRoot, config),
     resolveExtractorsV2: async () => {
       for (const entry of sourceEntries) {
         const approval = APPROVED_SOURCE_ANALYZERS.find(
@@ -249,8 +275,10 @@ export function readSnapshotSourceConfig(
   };
   if (trustedTree !== undefined) return readConfig(trustedTree);
   const entries = new Map<string, ProjectPluginEntry>();
-  for (const entry of readConfig(snapshot.headTree).plugins ?? [])
-    entries.set(entry.package, entry);
+  const head = readConfig(snapshot.headTree);
+  for (const entry of head.plugins ?? []) entries.set(entry.package, entry);
+  let declinedLanguagePacks = head.declinedLanguagePacks ?? [];
+  let generatedPaths = head.generatedPaths ?? [];
   const configurationPaths = new Set([
     "package.json",
     "bun.lock",
@@ -264,7 +292,17 @@ export function readSnapshotSourceConfig(
         !configurationPaths.has(file.path) && !file.path.startsWith(".kb/"),
     )
   ) {
-    for (const entry of readConfig(snapshot.baseTree).plugins ?? []) {
+    const base = readConfig(snapshot.baseTree);
+    // A pack declined in the same change as the source it would read does
+    // not count yet, like a plugin downgraded in that change.
+    const baseDeclined = new Set(base.declinedLanguagePacks ?? []);
+    declinedLanguagePacks = declinedLanguagePacks.filter((pack) =>
+      baseDeclined.has(pack),
+    );
+    // Generated paths relax the commit gate, so a change to source is
+    // judged by the patterns committed before it.
+    generatedPaths = base.generatedPaths ?? [];
+    for (const entry of base.plugins ?? []) {
       const baseline = entry.capabilities[SYMBOL_EXTRACTOR_V2_CAPABILITY_ID];
       if (!baseline || baseline.mode === "shadow") continue;
       const selected = entries.get(entry.package)?.capabilities[
@@ -277,5 +315,9 @@ export function readSnapshotSourceConfig(
       if (!selected) entries.set(entry.package, entry);
     }
   }
-  return { plugins: [...entries.values()] };
+  return {
+    plugins: [...entries.values()],
+    ...(declinedLanguagePacks.length > 0 ? { declinedLanguagePacks } : {}),
+    ...(generatedPaths.length > 0 ? { generatedPaths } : {}),
+  };
 }

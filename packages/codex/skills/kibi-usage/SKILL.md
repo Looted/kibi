@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware operations safely across MCP or the trusted local CLI, including partial completion repair.
-version: 2.41.0
+version: 2.42.0
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -456,6 +456,9 @@ arithmetic, smt, rule, state_machine, regex, source) reach `proved` for the clai
 predicate bound with `harness_for` (scope `harness`) also counts toward
 `proved`; an intent-scope binding stays `tested`. When the `evidence-floor` rule fails, follow Debugging
 proof regressions in `resources/proof.md` and use `kibi proof explain`.
+Load `kibi-provable-code` before writing or refactoring code that implements
+a requirement, when a source read is refused for a computed name, dynamic
+import, reflection or eval, or when deciding how to treat generated code.
 
 ## Quantified claims: model the dimension
 

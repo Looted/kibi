@@ -71,9 +71,9 @@ export const qualifiedSourceAnalyzers = [
       "dist/references-php.js":
         "a1714be8ad3e240e0ac4330dacaeb4184461adb8ec0fcfdf65382c6bd9f8fc04",
       "dist/references.js":
-        "5e7c826739397908da35614499b68eaf9ba3cf02f6cd6839b0544fe6cd1d4a0a",
+        "1aa64d35d4bfb23846bfe3a814ea658b2b4983eac95506d15c7c6655909143ea",
       "integrity.json":
-        "f502e5cabd2105a84fec05053ec5923348572458af460210613b12183aabd9f7",
+        "621659fd7bc6873f48c79137426bd5fc9e352b28955d7371a9d928f771d62283",
       "licenses/web-tree-sitter-MIT.txt":
         "c5cfb43042b6b72045f4ba997834d0a7786d2793d91680868b5815b39f14fc78",
       "package.json":

@@ -124,4 +124,17 @@ export type ProjectKibiConfig = Readonly<{
   plugins?: readonly ProjectPluginEntry[];
   /** Plugins the project declined when bootstrap offered them. */
   declinedPlugins?: readonly string[];
+  /**
+   * kibi-lang-* grammar packs the project does not want. Kibi stops
+   * suggesting them, and a source file in their language is treated as one
+   * no installed plugin reads (a whole-file review) instead of blocking.
+   */
+  declinedLanguagePacks?: readonly string[];
+  /**
+   * Gitignore-style globs of files a tool generates, on top of
+   * `.gitattributes` and generator headers; a `!` pattern marks a path as
+   * hand-written. Generated files do not ask for grammar packs and their
+   * symbols need no requirement link unless the KB references the file.
+   */
+  generatedPaths?: readonly string[];
 }>;

@@ -19,4 +19,4 @@ Source proofs read PHP, C, Bash and Terraform/HCL files through `kibi-plugin-tre
 
 Values evaluation may drop or convert are refused rather than read: HCL conditional branches, selected collections, `coalesce` arguments and typed variable defaults; PHP slots passed to functions that may take them by reference; C initializers in macros, unions and struct-field calls; Bash commands named at run time and arithmetic on values that are not certainly numbers.
 
-`kibi init` and `kibi doctor` now suggest the plugin and the matching pack for source proofs in these languages too, and member matching splits PHP names at `\`; for PHP, `excludes` also refuses a member that differs from an excluded item only in letter case. kibi-usage 2.41.0 describes the new languages.
+`kibi init` and `kibi doctor` now suggest the plugin and the matching pack for source proofs in these languages too, and member matching splits PHP names at `\`; for PHP, `excludes` also refuses a member that differs from an excluded item only in letter case. kibi-usage 2.42.0 describes the new languages.

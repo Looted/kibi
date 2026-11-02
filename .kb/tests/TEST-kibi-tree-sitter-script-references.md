@@ -22,15 +22,15 @@ id: TEST-kibi-tree-sitter-script-references
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-a05b6e52c0061140c70d55a8
+    receipt_id: PR-d99ee4d67349d61298dc138e
     test_id: TEST-kibi-tree-sitter-script-references
     scope: end_to_end
     outcome: passed
-    code_snapshot: 264fcebc1070a2a9e6ed376780e992fddd07461d2898359372b4546a81577663
+    code_snapshot: 4463f2a8dee17b8a222ad0cecbc020ae6eff3b8d95e9a8eb2194b88f740b2c11
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-02T15:33:45.442Z'
-    finished_at: '2026-11-02T15:35:21.451Z'
-    artifact_digest: 15b70cc3ee33d1f305d83224c5d9e982aa5a29729a48425bc3344afb77679e05
+    started_at: '2026-11-02T15:43:24.398Z'
+    finished_at: '2026-11-02T15:45:05.864Z'
+    artifact_digest: 62872c21a93efeb449833722aa0f3a854460096d1d044875aaab90df7fb92338
     contract_hash: 1e8dc9c25c56aa4c4e063da954dba64454553746d196cc1e85d362b6b52d59f2
     binding_hash: 70a2c015116f9752251cc38f927b3d862694215cee9fc6d2c3403c86e195cb20
     fingerprint: c721c2d28efdf77bf808a283b9ee1e6b725329fb5f1a6fbd682d8f591e1e78ad
