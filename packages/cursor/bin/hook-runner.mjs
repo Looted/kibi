@@ -2788,9 +2788,11 @@ async function runHook(rawInput, environment = {}) {
     stateDir,
     sessionId: input.conversationId
   };
+  const trace = {};
   try {
     switch (input.event) {
       case "sessionStart":
+        trace.action = "session_start";
         if (!kibiReady) {
           const advisory = interfaceAdvisory(initialState.mcpState, workspaceTrusted);
           return {
@@ -2810,6 +2812,8 @@ ${advisory}` : BOOTSTRAP_REMINDER
         const explicitPaths = extractExplicitPathFields2(input.toolInput);
         const hasDirectKbEdit = isEditLikeTool(input.toolName) && explicitPaths.some(isDirectKbPath);
         if (hasDirectKbEdit) {
+          trace.action = "kb_direct_note";
+          trace.pathKind = "kb";
           return {
             permission: "allow",
             agent_message: DIRECT_KB_EDIT_WARNING
@@ -2822,6 +2826,8 @@ ${advisory}` : BOOTSTRAP_REMINDER
         const relativePath = toRepoRelativePath(primaryPath, cwd);
         const state = loadHookState(stateDir);
         const linked = getSourceLinkedSymbols(cwd, primaryPath, stateDir);
+        trace.pathKind = classifyPath(relativePath);
+        trace.requirementIds = implementedRequirementIds(linked.symbols);
         const focus = editFocus(path9.resolve(cwd, primaryPath), input.toolInput);
         const ruleNote = takeRuleNote(session);
         const notice = firmNotice(cwd, linked, focus, session, environment.env ?? process.env);
@@ -2836,6 +2842,7 @@ ${advisory}` : BOOTSTRAP_REMINDER
           rememberGuidedPath(stateDir, "pre-edit", relativePath);
         }
         const parts = [ruleNote, notice, guidance].filter((part) => part !== undefined);
+        trace.action = parts.length > 0 ? "edit_snippet" : "edit_silent";
         return parts.length > 0 ? { permission: "allow", agent_message: parts.join(`
 
 `) } : emptyResult();
@@ -2845,6 +2852,7 @@ ${advisory}` : BOOTSTRAP_REMINDER
           const rule = recordRequest(session, input.prompt);
           if (rule !== undefined)
             holdRuleNote(session, rule);
+          trace.action = rule === undefined ? "prompt_silent" : "prompt_rule_note";
         }
         return { continue: true };
       }
@@ -2854,6 +2862,8 @@ ${advisory}` : BOOTSTRAP_REMINDER
           return { permission: "allow" };
         }
         const relativePath = toRepoRelativePath(primaryPath, cwd);
+        trace.pathKind = classifyPath(relativePath);
+        trace.action = "read_silent";
         const state = loadHookState(stateDir);
         if (hasGuidedPath(state, "read", relativePath)) {
           return { permission: "allow" };
@@ -2869,6 +2879,7 @@ ${advisory}` : BOOTSTRAP_REMINDER
           return { permission: "allow" };
         }
         rememberGuidedPath(stateDir, "read", relativePath);
+        trace.action = "read_snippet";
         return {
           permission: "allow",
           agent_message: guidance
@@ -2958,9 +2969,11 @@ ${advisory}` : BOOTSTRAP_REMINDER
         }
         const capture = claimCaptureReminder(session) ? captureReminder(hasDecisionFlag(session, "rule-prompt")) : undefined;
         const signoff = claimSignoffReminder(session, cwd) ? signoffReminder() : undefined;
-        const followupMessage = [capture, signoff, stopFollowupMessage(state)].filter((part) => part !== undefined).join(`
+        const reminder = stopFollowupMessage(state);
+        const followupMessage = [capture, signoff, reminder].filter((part) => part !== undefined).join(`
 `);
         if (followupMessage) {
+          trace.action = capture ? "stop_capture_reminder" : signoff ? "stop_signoff_reminder" : "stop_reminder";
           clearSessionHookState(stateDir);
           return { followup_message: followupMessage };
         }
@@ -2973,6 +2986,18 @@ ${advisory}` : BOOTSTRAP_REMINDER
         return emptyResult();
     }
   } finally {
+    if (kibiReady) {
+      appendHookUsage({
+        host: "cursor",
+        packageVersion: packageVersion(),
+        workspaceRoot: cwd,
+        event: input.event,
+        sessionId: input.conversationId,
+        hostTool: input.toolName,
+        trace,
+        startedAt
+      }, environment.env ?? process.env);
+    }
     await finishHookTelemetry({
       event: input.event,
       workspaceRoot: kibiReady ? cwd : undefined,

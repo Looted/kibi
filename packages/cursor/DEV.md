@@ -85,7 +85,7 @@ To also test plugin packaging (skills, commands, plugin-bundled MCP) in the Curs
 ./scripts/sync-cursor-plugin-local.sh
 ```
 
-This copies a real directory (not a symlink) into `~/.cursor/plugins/local/kibi-cursor` (WSL/Linux home). Reload Cursor afterward.
+This copies a real directory (not a symlink) into `~/.cursor/plugins/local/kibi-cursor` (WSL/Linux home). Reload Cursor afterward. The copy holds the npm package's file set (`npm pack`), the same files an `npm install kibi-cursor` ships, so it has no `node_modules` with workspace links.
 
 **WSL note:** With `layout: unifiedAgent`, Cursor loads user plugins from your WSL home (`/home/<user>/.cursor/plugins/local`), not `C:\Users\<user>\.cursor\plugins\local`. A Windows profile copy is ignored for WSL workspaces and is not created by default.
 

@@ -23,6 +23,8 @@ import {
   takeRuleNote,
 } from "kibi-agent-core/decision-guard";
 import {
+  type HookTrace,
+  appendHookUsage,
   appendHookUsageRows,
   editTraces,
   finishHookTelemetry,
@@ -31,6 +33,7 @@ import {
   readPackageVersion,
 } from "kibi-agent-core/hook-usage-log";
 import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
+import { classifyPath } from "kibi-agent-core/path-policy";
 import {
   type LineRange,
   createEntitySummarizer,
@@ -301,10 +304,12 @@ export async function runHook(
     stateDir,
     sessionId: input.conversationId,
   };
+  const trace: HookTrace = {};
 
   try {
     switch (input.event) {
       case "sessionStart":
+        trace.action = "session_start";
         if (!kibiReady) {
           const advisory = interfaceAdvisory(
             initialState.mcpState,
@@ -342,6 +347,8 @@ export async function runHook(
           isEditLikeTool(input.toolName) && explicitPaths.some(isDirectKbPath);
 
         if (hasDirectKbEdit) {
+          trace.action = "kb_direct_note";
+          trace.pathKind = "kb";
           return {
             permission: "allow",
             agent_message: DIRECT_KB_EDIT_WARNING,
@@ -360,6 +367,8 @@ export async function runHook(
         const relativePath = toRepoRelativePath(primaryPath, cwd);
         const state = loadHookState(stateDir);
         const linked = getSourceLinkedSymbols(cwd, primaryPath, stateDir);
+        trace.pathKind = classifyPath(relativePath);
+        trace.requirementIds = implementedRequirementIds(linked.symbols);
         const focus = editFocus(
           path.resolve(cwd, primaryPath),
           input.toolInput,
@@ -389,6 +398,7 @@ export async function runHook(
         const parts = [ruleNote, notice, guidance].filter(
           (part): part is string => part !== undefined,
         );
+        trace.action = parts.length > 0 ? "edit_snippet" : "edit_silent";
         return parts.length > 0
           ? { permission: "allow", agent_message: parts.join("\n\n") }
           : emptyResult();
@@ -401,6 +411,8 @@ export async function runHook(
         if (kibiReady && input.prompt) {
           const rule = recordRequest(session, input.prompt);
           if (rule !== undefined) holdRuleNote(session, rule);
+          trace.action =
+            rule === undefined ? "prompt_silent" : "prompt_rule_note";
         }
         return { continue: true };
       }
@@ -412,6 +424,8 @@ export async function runHook(
         }
 
         const relativePath = toRepoRelativePath(primaryPath, cwd);
+        trace.pathKind = classifyPath(relativePath);
+        trace.action = "read_silent";
         const state = loadHookState(stateDir);
         if (hasGuidedPath(state, "read", relativePath)) {
           return { permission: "allow" };
@@ -436,6 +450,7 @@ export async function runHook(
         }
 
         rememberGuidedPath(stateDir, "read", relativePath);
+        trace.action = "read_snippet";
         return {
           permission: "allow",
           agent_message: guidance,
@@ -590,10 +605,16 @@ export async function runHook(
         const signoff = claimSignoffReminder(session, cwd)
           ? signoffReminder()
           : undefined;
-        const followupMessage = [capture, signoff, stopFollowupMessage(state)]
+        const reminder = stopFollowupMessage(state);
+        const followupMessage = [capture, signoff, reminder]
           .filter((part): part is string => part !== undefined)
           .join("\n");
         if (followupMessage) {
+          trace.action = capture
+            ? "stop_capture_reminder"
+            : signoff
+              ? "stop_signoff_reminder"
+              : "stop_reminder";
           clearSessionHookState(stateDir);
           return { followup_message: followupMessage };
         }
@@ -609,6 +630,21 @@ export async function runHook(
         return emptyResult();
     }
   } finally {
+    if (kibiReady) {
+      appendHookUsage(
+        {
+          host: "cursor",
+          packageVersion: packageVersion(),
+          workspaceRoot: cwd,
+          event: input.event,
+          sessionId: input.conversationId,
+          hostTool: input.toolName,
+          trace,
+          startedAt,
+        },
+        environment.env ?? process.env,
+      );
+    }
     await finishHookTelemetry(
       {
         event: input.event,

@@ -1054,6 +1054,72 @@ describe("Cursor hook runner result contracts", () => {
     expect(fs.readdirSync(telemetryDir)).toEqual([]);
   });
 
+  // implements REQ-kibi-anonymous-usage-telemetry
+  test("every hook event that decides something queues one kibi_hook, and KIBI_TELEMETRY=0 queues none", async () => {
+    const telemetryDir = createTempRoot("kibi-cursor-telemetry-");
+    tempRoots.push(telemetryDir);
+    const queue = path.join(telemetryDir, "telemetry-queue.jsonl");
+    const runAll = async (env: NodeJS.ProcessEnv) => {
+      const { event, workspace } = conversation(cursorLinkedWorkspace(), env);
+      const file = path.join(workspace, "src/checkout.ts");
+      for (const payload of [
+        { hook_event_name: "sessionStart" },
+        {
+          hook_event_name: "beforeSubmitPrompt",
+          prompt: "Totals must never round down.",
+        },
+        { hook_event_name: "beforeReadFile", file_path: file },
+        {
+          hook_event_name: "preToolUse",
+          tool_name: "Write",
+          tool_input: { file_path: file },
+        },
+        {
+          hook_event_name: "postToolUse",
+          tool_name: "Write",
+          tool_input: { file_path: file },
+        },
+        { hook_event_name: "stop", status: "completed", loop_count: 0 },
+      ]) {
+        await event(payload, "conv-9");
+      }
+    };
+
+    await runAll({ KIBI_TELEMETRY: "0", KIBI_TELEMETRY_DIR: telemetryDir });
+    expect(fs.existsSync(queue)).toBe(false);
+
+    await runAll({
+      KIBI_TELEMETRY: "1",
+      KIBI_TELEMETRY_DIR: telemetryDir,
+      KIBI_TELEMETRY_CHANNEL: "agent-test",
+      // stop sends the queue; an unreachable host keeps it on disk.
+      KIBI_TELEMETRY_HOST: "http://127.0.0.1:9",
+    });
+    const queued = fs
+      .readFileSync(queue, "utf8")
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line).properties);
+    expect(
+      queued.map((event) => [event.hook_event, event.hook_action]),
+    ).toEqual([
+      ["sessionStart", "session_start"],
+      ["beforeSubmitPrompt", "prompt_rule_note"],
+      ["beforeReadFile", "read_snippet"],
+      ["preToolUse", "edit_snippet"],
+      ["postToolUse", "edited"],
+      ["stop", "stop_capture_reminder"],
+    ]);
+    for (const event of queued) {
+      expect(event).toMatchObject({
+        package: "kibi-cursor",
+        host: "cursor",
+        channel: "agent-test",
+        session: hashTelemetryId("conv-9"),
+      });
+    }
+  });
+
   test("an edit call without a path gets no pre-edit message", async () => {
     const { event } = conversation();
     expect(

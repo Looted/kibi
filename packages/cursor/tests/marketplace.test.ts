@@ -166,4 +166,24 @@ describe("kibi-cursor local marketplace fixture", () => {
       fs.rmSync(tempRoot, { recursive: true, force: true });
     }
   });
+
+  test("the local sync script copies the npm package's file set, not the workspace's node_modules", () => {
+    const script = fs.readFileSync(
+      path.join(repoRoot, "scripts", "sync-cursor-plugin-local.sh"),
+      "utf8",
+    );
+    expect(script).toContain("npm pack --ignore-scripts");
+    expect(script).toContain('cp -R "$pack_dir/package" "$target"');
+    expect(script).not.toMatch(/cp -r packages\/cursor/);
+  });
+
+  test("the README's npm route replaces an earlier copy instead of nesting into it", () => {
+    const readme = fs.readFileSync(path.join(packageRoot, "README.md"), "utf8");
+    const route = [
+      "mkdir -p ~/.cursor/plugins/local",
+      "rm -rf ~/.cursor/plugins/local/kibi-cursor",
+      'cp -R "$(npm root)/kibi-cursor" ~/.cursor/plugins/local/kibi-cursor',
+    ].join("\n");
+    expect(readme).toContain(route);
+  });
 });
