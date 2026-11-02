@@ -91,31 +91,46 @@ export function parseChangesetPackages(markdown: string): string[] {
   return names;
 }
 
-function git(args: readonly string[]): string {
+function git(cwd: string, args: readonly string[]): string {
   return execFileSync("git", args, {
+    cwd,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
   });
 }
 
-function versionAt(ref: string, dir: string): string | undefined {
+function versionAt(cwd: string, ref: string, dir: string): string | undefined {
   try {
-    const raw = git(["show", `${ref}:packages/${dir}/package.json`]);
+    const raw = git(cwd, ["show", `${ref}:packages/${dir}/package.json`]);
     return (JSON.parse(raw) as { version?: string }).version;
   } catch {
     return undefined;
   }
 }
 
-function main(argv: readonly string[]): void {
+export type ReleaseBumpOptions = Readonly<{
+  /** Repository root; defaults to the working directory. */
+  cwd?: string;
+  /** Packages to guard; defaults to the publishable catalog entries. */
+  packages?: readonly BumpPackage[];
+}>;
+
+export function main(
+  argv: readonly string[],
+  options: ReleaseBumpOptions = {},
+): void {
+  const cwd = options.cwd ?? process.cwd();
   const baseIndex = argv.indexOf("--base");
   const base = baseIndex >= 0 ? argv[baseIndex + 1] : "origin/master";
   if (!base) throw new Error("--base requires a git ref");
 
-  const packages = PACKAGE_CATALOG.filter((entry) => entry.publishable).map(
-    (entry) => ({ dir: entry.dir, npmName: entry.npmName }),
-  );
-  const changedFiles = git([
+  const packages =
+    options.packages ??
+    PACKAGE_CATALOG.filter((entry) => entry.publishable).map((entry) => ({
+      dir: entry.dir,
+      npmName: entry.npmName,
+    }));
+  const changedFiles = git(cwd, [
     "diff",
     "--name-only",
     base,
@@ -128,17 +143,17 @@ function main(argv: readonly string[]): void {
   const baseVersions = new Map<string, string | undefined>();
   const headVersions = new Map<string, string>();
   for (const pkg of packages) {
-    baseVersions.set(pkg.npmName, versionAt(base, pkg.dir));
+    baseVersions.set(pkg.npmName, versionAt(cwd, base, pkg.dir));
     const head = JSON.parse(
-      readFileSync(join("packages", pkg.dir, "package.json"), "utf8"),
+      readFileSync(join(cwd, "packages", pkg.dir, "package.json"), "utf8"),
     ) as { version: string };
     headVersions.set(pkg.npmName, head.version);
   }
   const changesetPackages = new Set<string>();
-  for (const file of readdirSync(".changeset")) {
+  for (const file of readdirSync(join(cwd, ".changeset"))) {
     if (!file.endsWith(".md") || file === "README.md") continue;
     for (const name of parseChangesetPackages(
-      readFileSync(join(".changeset", file), "utf8"),
+      readFileSync(join(cwd, ".changeset", file), "utf8"),
     )) {
       changesetPackages.add(name);
     }

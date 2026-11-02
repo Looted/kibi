@@ -14,6 +14,7 @@ import {
   detectTelemetrySession,
   flushTelemetry,
   hashTelemetryId,
+  moduleFileFromUrl,
   readTelemetryConfig,
   recordHookTelemetry,
   recordOperationTelemetry,
@@ -308,6 +309,18 @@ describe("anonymous usage telemetry host and session", () => {
     ).toBe("unclassified");
     // This suite itself runs from the checkout.
     expect(detectTelemetryChannel({})).toBe("source");
+    // A bundle without a usable module URL has no module file.
+    expect(moduleFileFromUrl(() => "file:///tmp/kibi/index.js")).toBe(
+      path.join(path.sep, "tmp", "kibi", "index.js"),
+    );
+    expect(moduleFileFromUrl(() => undefined)).toBeUndefined();
+    expect(moduleFileFromUrl(() => "")).toBeUndefined();
+    expect(moduleFileFromUrl(() => "https://example.com/a.js")).toBeUndefined();
+    expect(
+      moduleFileFromUrl(() => {
+        throw new TypeError("import.meta is not available");
+      }),
+    ).toBeUndefined();
 
     // implements REQ-kibi-anonymous-usage-telemetry
     // Status names the channel and where it comes from.
