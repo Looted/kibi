@@ -9655,4 +9655,28 @@ test(eq_and_other_readers_compare_spellings) :-
     reference_relation("json", "excludes", ["a.b"], ["a.*"], JsonPattern),
     assertion(JsonPattern == ok).
 
+test(names_fold_for_thrown_and_imports_too) :-
+    forall(member(Extract, ["thrown", "imports"]),
+           (   Certificate = _{version: "kibi.code-certificate.v1", kind: "source",
+                               test_id: "TEST-R",
+                               source: _{reader: "references", files: ["a.php"], extract: Extract},
+                               model: _{members: ["app\\errors\\fatal"]}},
+               model_check:model_check_obligation(source,
+                   _{kind: "set_relation", operator: "excludes", members: ["App\\Errors\\Fatal"]},
+                   Certificate, Result),
+               assertion(Result = problem(_))
+           )).
+
+test(an_excluded_member_read_exactly_is_named_alone) :-
+    reference_relation("references", "excludes", ["os.Exit"], ["os.Exit"], Result),
+    assertion(Result = problem(_)),
+    Result = problem(Reason),
+    assertion(sub_string(Reason, _, _, _, "os.Exit")),
+    assertion(\+ sub_string(Reason, _, _, _, "within")),
+    assertion(\+ sub_string(Reason, _, _, _, "letter case")).
+
+test(other_readers_include_only_exact_spellings) :-
+    reference_relation("json", "includes", ["a.b"], ["a.*"], Json),
+    assertion(Json = problem(_)).
+
 :- end_tests(reference_member_matching).
