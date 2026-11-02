@@ -307,7 +307,7 @@ Install `kibi-core`, `kibi-cli`, and `kibi-mcp` in the project. Everything else 
 | `kibi-plugin-builtin` | Default semantic, ontology, and TypeScript symbol capabilities |
 | `kibi-plugin-jev` | Optional TypeSafe Jev semantic classifier |
 | `kibi-plugin-treesitter` | Optional offline multi-language symbol extraction (tree-sitter queries; each grammar is a `kibi-lang-*` pack) |
-| `kibi-lang-*` | Data-only grammar packs for `kibi-plugin-treesitter`: `go`, `rust`, `java`, `csharp`, `php`, `c`, `cpp`, `bash`, `ruby`, `hcl` |
+| `kibi-lang-*` | Data-only grammar packs for `kibi-plugin-treesitter`: `python`, `go`, `rust`, `java`, `csharp`, `php`, `c`, `cpp`, `bash`, `ruby`, `hcl`, `prolog` |
 | `kibi-plugin-ui` | Experimental check policy keeping UI components on their agreed design patterns |
 | `kibi-plugin-search-hints` | Optional offline meaning-based hints for weak `kb_search` answers |
 | `kibi-swipl` | Bundled SWI-Prolog runtime; the matching platform build installs automatically |
