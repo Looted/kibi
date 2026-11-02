@@ -1288,3 +1288,442 @@ describe("PHP callback filters, fetch modes and ini options", () => {
     ]);
   });
 });
+
+describe("PHP forms each extract reads", () => {
+  const property = (cases, key = "acl") => reads("property", cases, { key });
+
+  it("reads only its own forms whatever options it is given", async () => {
+    const body = lines(
+      "$o['acl'] = 'x'; $o['acl']++; unset($o['acl']); foreach ($a as &$v) {} [$o['acl']] = $x; $r = &$o['acl'];",
+      "$o = $d + ['acl' => 'x']; [$a, &$b] = $x; $o = ['acl' => &$a]; $o += ['acl' => 1];",
+      "enum E: string { case acl = 'x'; }",
+      "class C { public $acl { get => 1; } const acl = 1; public $b = 2; function __construct(public $acl = 1) {} }",
+      "foo(acl: 'x'); bar($o['acl']); preg_match('/(?<acl>x)/', $s);",
+      "`ls`; exit('x'); throw $e; $o->offsetSet('acl', 1); compact('acl'); define('acl', 1); foo('y');",
+    );
+    const options = { key: "acl", callee: "foo" };
+    await reads("env", [[body, []]], options);
+    await reads(
+      "calls",
+      [
+        [
+          body,
+          [
+            "*.offsetSet",
+            "bar",
+            "compact",
+            "define",
+            "die",
+            "exit",
+            "foo",
+            "preg_match",
+            "shell_exec",
+          ],
+        ],
+      ],
+      options,
+    );
+    await reads("string_args", [[body, ["y"], ["6: foo(acl: 'x')"]]], options);
+    await reads("thrown", [[body, [], ["7: throw $e"]]], options);
+    await reads("imports", [[body, []]], options);
+    await reads("imports", [
+      [
+        "ReflectionMethod::createFromMethodName('A::m'); $r->invoke('x'); new ReflectionClass($x); eval('x');",
+        [],
+        ["2: eval('x')"],
+      ],
+    ]);
+    await property([
+      [
+        "ReflectionMethod::createFromMethodName('A::m'); $r->invoke('x'); new ReflectionClass($x); eval('x');",
+        [],
+      ],
+    ]);
+  });
+
+  it("names calls, code and reflection", async () => {
+    await reads("calls", [
+      ["$o?->m();", ["*.m"]],
+      ["assert();", ["assert"]],
+      ["assert($x);", ["assert"]],
+      ["assert('x');", [], ["2: assert('x')"]],
+      ['assert("x$y");', [], ['2: assert("x$y")']],
+      ["$r->invokex('x');", ["*.invokex"]],
+      ["$r->invoke('x');", [], ["2: $r->invoke('x')"]],
+      ["new $c($x);", [], ["2: new $c($x)"]],
+      ["new ($x)($y);", [], ["2: new ($x)($y)"]],
+      ["new $c;", []],
+      ["new App\\MyReflection($x);", []],
+      ["new ReflectionClass('X');", [], ["2: new ReflectionClass('X')"]],
+      ["new class($x) {};", []],
+      ["new Fiber();", []],
+      ["new static($x);", []],
+      ["`ls`;", ["shell_exec"]],
+      ["include 'a.php';", []],
+      [
+        "include_once 'data://text/plain,x';",
+        [],
+        ["2: include_once 'data://text/plain,x'"],
+      ],
+      ["require 'php://filter/x';", [], ["2: require 'php://filter/x'"]],
+      ["$c = ['notification' => 'cb'];", ["cb"]],
+      ["$c = ['notification'];", []],
+    ]);
+    await reads("string_args", [["$f('x');", [], ["2: $f('x')"]]], {
+      callee: "foo",
+    });
+    await reads(
+      "string_args",
+      [["$c = ['notification' => 'cb'];", [], ["2: 'notification' => 'cb'"]]],
+      { callee: "cb" },
+    );
+    await reads(
+      "string_args",
+      [
+        ["`ls -l`;", ["ls -l"]],
+        ["`ls $x`;", [], ["2: `ls $x`"]],
+        ["``;", [""]],
+      ],
+      { callee: "shell_exec" },
+    );
+    await reads(
+      "string_args",
+      [
+        ["exit('x');", ["x"]],
+        ["die('y');", ["y"]],
+        ["exit;", []],
+        ["exit($x);", [], ["2: exit($x);"]],
+      ],
+      { callee: "exit" },
+    );
+    await reads("string_args", [["exit('x');", ["x"]]], { callee: "die" });
+    await reads("string_args", [["exit('x');", []]], { callee: "foo" });
+  });
+
+  it("reads getters by their parameter names", async () => {
+    await reads("env", [
+      ["getenv(name: 'X');", ["X"]],
+      ["apache_getenv(variable: 'X');", ["X"]],
+      ["env(key: 'X');", ["X"]],
+      ["getenv(other: 1, name: 'X');", ["X"]],
+      ["getenv(variable: 'X');", [], ["2: getenv(variable: 'X')"]],
+      ["apache_getenv(name: 'X');", [], ["2: apache_getenv(name: 'X')"]],
+      ["env(name: 'X');", [], ["2: env(name: 'X')"]],
+      ["getenv(...);", [], ["2: getenv(...)"]],
+      ["getenv(...$a);", [], ["2: getenv(...$a)"]],
+      ["getenv();", [], ["2: getenv()"]],
+    ]);
+  });
+
+  it("reads filter_input sources", async () => {
+    await reads("env", [
+      ["filter_has_var(INPUT_ENV, 'X');", ["X"]],
+      ["filter_input(\\INPUT_ENV, 'X');", ["X"]],
+      ["filter_input(INPUT_GET, 'a');", []],
+      ["define('X', INPUT_ENV); filter_input(\\INPUT_ENV, 'HOME');", ["HOME"]],
+      ["filter_input();", [], ["2: filter_input()"]],
+      [
+        "filter_input_array(INPUT_ENV, 'X');",
+        [],
+        ["2: filter_input_array(INPUT_ENV, 'X')"],
+      ],
+      [
+        "filter_input(INPUT_GETX, 'a');",
+        [],
+        ["2: filter_input(INPUT_GETX, 'a')"],
+      ],
+      [
+        "filter_input(MY_INPUT_GET, 'a');",
+        [],
+        ["2: filter_input(MY_INPUT_GET, 'a')"],
+      ],
+      [
+        "const INPUT_GET = \\INPUT_ENV; filter_input(INPUT_GET, 'a');",
+        [],
+        ["2: filter_input(INPUT_GET, 'a')"],
+      ],
+    ]);
+  });
+
+  it("reads superglobal subscripts", async () => {
+    await reads("env", [
+      ["$x = X_ENV['HOME'];", []],
+      ["$x = $_SERVER[HOME];", [], ["2: $_SERVER[HOME]"]],
+      ['$x = "$_SERVER[HOME]";', ["HOME"]],
+      ["$_ENV[] = 1;", [], ["2: $_ENV[]"]],
+      ["$x = $_ENV[getenv('X')];", ["X"], ["2: $_ENV[getenv('X')]"]],
+      ["$x = $GLOBALS['x'];", []],
+      ["$x = $GLOBALS['_SERVER'];", [], ["2: $GLOBALS['_SERVER']"]],
+      ["$x = $GLOBALS['GLOBALS'];", [], ["2: $GLOBALS['GLOBALS']"]],
+      ["$x = $GLOBALS[$k];", [], ["2: $GLOBALS[$k]"]],
+      ["$x = $GLOBALS[getenv('X')];", ["X"], ["2: $GLOBALS[getenv('X')]"]],
+      ["$x = $o['x'];", []],
+      ["foo($GLOBALS);", [], ["2: $GLOBALS"]],
+      ["foo($_ENV);", [], ["2: $_ENV"]],
+      ['$f = "getenv";', [], ['2: "getenv"']],
+      [
+        "$c = ['notification' => 'getenv'];",
+        [],
+        ["2: 'notification' => 'getenv'", "2: 'getenv'"],
+      ],
+    ]);
+  });
+
+  it("names thrown classes and calls", async () => {
+    await reads("thrown", [
+      ["throw (new X);", ["X"]],
+      ["throw (new X /*c*/);", [], ["2: throw (new X /*c*/)"]],
+      ["throw new $c;", [], ["2: throw new $c"]],
+      ["throw $f();", [], ["2: throw $f()"]],
+      ["throw foo();", ["foo"]],
+      [
+        "namespace App; throw make();",
+        ["make"],
+        ["2: make may be a function of namespace App: make()"],
+      ],
+    ]);
+  });
+
+  it("refuses named regex groups for the key", async () => {
+    await property(
+      [
+        ["preg_match(\"/(?<axb>x)(?'axb'x)/\", $s, $m);", []],
+        ['preg_match("/(?<a.b>x)/", $s, $m);', [], ['2: "/(?<a.b>x)/"']],
+        ["preg_match(\"/(?'a.b'x)/\", $s, $m);", [], ["2: \"/(?'a.b'x)/\""]],
+      ],
+      "a.b",
+    );
+    await property(
+      [
+        ["preg_match(\"/(?'ab'x)/\", $s, $m);", [], ["2: \"/(?'ab'x)/\""]],
+        ["preg_match('/(?P<ab>x)/', $s, $m);", [], ["2: '/(?P<ab>x)/'"]],
+      ],
+      "ab",
+    );
+  });
+
+  it("refuses references and writes to the key", async () => {
+    await property([
+      ["$o = ['acl' => &$a];", [], ["2: 'acl' => &$a", "2: 'acl' => &$a"]],
+      ["$o = ['x' => &$a];", []],
+      ["$o = [&$a];", [], ["2: &$a"]],
+      ["$o = [$k => &$a];", [], ["2: $k => &$a", "2: $k => &$a"]],
+      ["[$a, &$b] = $x;", [], ["2: [$a, &$b]"]],
+      ["list($a, &$b) = $x;", [], ["2: list($a, &$b)"]],
+      ["[$a, $b] = $x;", []],
+      ["$o = $d . ['acl' => 'x'];", ["x"]],
+      ["$o = $d + ['acl' => 'x'];", ["x"], ["2: $d + ['acl' => 'x']"]],
+      ["$o = ['acl' => 1] + ['b' => 2];", ["1"]],
+      ["$o = $d + ['b' => 1];", []],
+      ["$o['acl']++;", [], ["2: $o['acl']++"]],
+      ["$o['x']++;", []],
+      ["unset($o['acl']);", [], ["2: unset($o['acl']);"]],
+      ["unset($o[$k]);", [], ["2: unset($o[$k]);"]],
+      ["unset($x, $o['acl']);", [], ["2: unset($x, $o['acl']);"]],
+      ["[$o['acl']] = $x;", [], ["2: [$o['acl']] = $x"]],
+      ["[$o->acl] = $x;", [], ["2: [$o->acl] = $x"]],
+      ["[X::$acl] = $x;", [], ["2: [X::$acl] = $x"]],
+      ["list($o['acl']) = $x;", [], ["2: list($o['acl']) = $x"]],
+      ["[[$o['acl']]] = $x;", [], ["2: [[$o['acl']]] = $x"]],
+      ["[$o['x']] = $x;", []],
+      ["$r = &$o['acl'];", [], ["2: $r = &$o['acl']"]],
+      ["$r = &$o['x'];", []],
+      ["$o['acl'] = &$r;", [], ["2: $o['acl'] = &$r"]],
+      ["$o += ['acl' => 1];", ["1"], ["2: $o += ['acl' => 1]"]],
+      ["$o += $x;", []],
+      ["$o['acl'] += 1;", [], ["2: $o['acl'] += 1"]],
+      ["$o ??= ['acl' => 1];", ["1"]],
+      ["$o -= ['acl' => 1];", ["1"]],
+    ]);
+  });
+
+  it("refuses foreach targets that write the key", async () => {
+    const refused = (header) => [
+      `foreach (${header}) {}`,
+      [],
+      [`2: foreach (${header}) {}`],
+    ];
+    await property([
+      ["foreach ($a as $v) { $o['acl'] = 1; }", ["1"]],
+      ["foreach ($a as $v) { $b = &$v; }", []],
+      ["foreach ($a as $o['x']) {}", []],
+      ["foreach ($o['acl'] as $v) {}", []],
+      ["foreach ($a as $k => $v): endforeach;", []],
+      refused("$a as &$v"),
+      refused("$a as $k => &$v"),
+      refused("$a as $o['acl']"),
+      refused("$a as [$o['acl']]"),
+      refused("$a as $o->acl"),
+      refused("$a as $o?->acl"),
+      refused("$a as X::$acl"),
+      refused("$a as $o[$k]"),
+    ]);
+  });
+
+  it("reads enum cases, arguments and declared properties", async () => {
+    await property([
+      ["enum E { case acl; }", []],
+      ["enum E: string { case acl = 'x'; }", ["x"]],
+      ["enum E: string { case acl = X; }", [], ["2: case acl = X;"]],
+      ["enum E: string { case Acl = 'x'; }", []],
+      [
+        "class C { function __construct(public $acl = 1) {} }",
+        [],
+        ["2: public $acl = 1"],
+      ],
+      ["class C { function __construct(public $x = 1) {} }", []],
+      ["foo(acl: 'x');", ["x"]],
+      ["foo(acl: $x);", [], ["2: acl: $x"]],
+      ["strtolower($o['acl']);", []],
+      ["\\strtolower($o['acl']);", []],
+      ["STRTOLOWER($o['acl']);", []],
+      ["foo($o['x']);", []],
+      ["$o->m($o['acl']);", [], ["2: $o['acl']"]],
+      ["new X($o['acl']);", [], ["2: $o['acl']"]],
+      ["foo($o->acl);", [], ["2: $o->acl"]],
+      ["foo(X::$acl);", [], ["2: X::$acl"]],
+      [
+        "class C { public $acl { get => 1; } }",
+        [],
+        ["2: public $acl { get => 1; }"],
+      ],
+      ["class C { public $x { get => 1; } }", []],
+      [
+        "class C { public $b = 1, $acl { get => 1; } }",
+        [],
+        ["2: public $b = 1, $acl { get => 1; }"],
+      ],
+      ["class C { public $acl = 1; }", ["1"]],
+      ["class C { public $acl /*c*/ = 2; }", ["2"]],
+      ["class C { public $acl; }", []],
+      ["class C { const acl = 1; }", ["1"]],
+      [
+        "define('acl', 1); define('acl', 2); class C { public $acl = 3; }",
+        ["3"],
+        ["2: define('acl', 1)", "2: define('acl', 2)"],
+      ],
+    ]);
+    await property(
+      [
+        [
+          "define('K', 1); define('K', 2); define('OTHER', 3);",
+          [],
+          ["2: define('K', 1)", "2: define('K', 2)"],
+        ],
+      ],
+      "K",
+    );
+  });
+
+  it("refuses array builtins that write slots", async () => {
+    await property([
+      ["$o->offsetSet('acl', 1);", [], ["2: $o->offsetSet('acl', 1)"]],
+      ["X::offsetSet('acl', 1);", [], ["2: X::offsetSet('acl', 1)"]],
+      ["$o->offsetSetx('acl', 1);", []],
+      [
+        "$o->setValue($x, 1); new ReflectionClass('C');",
+        [],
+        ["2: $o->setValue($x, 1)"],
+      ],
+      ["$o->setValue($x, 1);", []],
+      ["$o->setValuex(1); // Reflection", []],
+      ["$o->foo(); // Reflection", []],
+    ]);
+  });
+
+  it("knows which class self names inside closures and nested classes", async () => {
+    const bound = (body) => `${body} $f->bindTo($o);`;
+    await reads("calls", [
+      [
+        bound("class C { function m() { $f = fn() => self::x(); } }"),
+        ["*.bindTo", "*.x"],
+      ],
+      [bound("self::x();"), ["*.bindTo", "*.x"]],
+      [
+        bound(
+          "class C { function m() { $f = function () { function g() { self::x(); } }; } }",
+        ),
+        ["*.bindTo", "C::x"],
+      ],
+      [
+        bound(
+          "class C { function m() { $f = function () { enum E { case A; function n() { self::x(); } } }; } }",
+        ),
+        ["*.bindTo", "E::x"],
+      ],
+      [
+        bound(
+          "class C { function m() { $f = function () { class D { const X = self::x(); } }; } }",
+        ),
+        ["*.bindTo", "D::x"],
+      ],
+      [
+        "class C { function m() { trait T { function n() { self::x(); } } } }",
+        ["*.x"],
+      ],
+      [
+        "class C { function m() { enum E { case A; function n() { self::x(); } } } }",
+        ["E::x"],
+      ],
+      [
+        "trait T { public $p = self::x(); } $f->bindTo($o);",
+        ["*.bindTo", "*.x"],
+      ],
+      [
+        "$o = new class { const X = self::x(); }; $f->bindTo($o);",
+        ["*.bindTo", "*.x"],
+      ],
+    ]);
+  });
+
+  it("reads the rest of each form only where it belongs", async () => {
+    await reads(
+      "string_args",
+      [
+        [
+          "namespace App; foo('x');",
+          ["x"],
+          ["2: foo may be a function of namespace App: foo('x')"],
+        ],
+      ],
+      { callee: "foo" },
+    );
+    for (const callee of ["shell_exec", "exit"])
+      await reads(
+        "calls",
+        [["`ls`; exit('x');", ["die", "exit", "shell_exec"]]],
+        { callee },
+      );
+    for (const extract of ["property", "thrown", "imports"])
+      await reads(extract, [["$c = ['notification' => 'cb'];", []]], {
+        key: "acl",
+        callee: "cb",
+      });
+    await reads("calls", [
+      ["include $x;", []],
+      [
+        "new Fiber(); new Fiber($x); new CallbackFilterIterator($i);",
+        [],
+        ["2: $x"],
+      ],
+    ]);
+    await reads("env", [
+      ["$x = \"{$_SERVER['HOME']}\";", ["HOME"]],
+      ["$GLOBALS[] = 1;", [], ["2: $GLOBALS[]"]],
+      [
+        "filter_input_array(INPUT_ENV, ['X' => FILTER_DEFAULT]);",
+        [],
+        ["2: filter_input_array(INPUT_ENV, ['X' => FILTER_DEFAULT])"],
+      ],
+    ]);
+    await property([
+      ["foreach ($a as /*c*/ &$v) {}", [], ["2: foreach ($a as /*c*/ &$v) {}"]],
+      [
+        "foreach ($a as /*c*/ $o['acl']) {}",
+        [],
+        ["2: foreach ($a as /*c*/ $o['acl']) {}"],
+      ],
+      ["$x = $o['acl'];", []],
+    ]);
+  });
+});
