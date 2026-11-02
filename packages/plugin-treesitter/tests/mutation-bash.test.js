@@ -1820,3 +1820,168 @@ describe("Bash details of words and bindings", () => {
     await expect("unset n\necho $(( n ))", "calls", ["echo"]);
   });
 });
+
+/** The members of one read as the extractor lists them, and its rows. */
+async function raw(content, extract, callee) {
+  const result = await extractor.extract({
+    path: "s.sh",
+    content: `${content}\n`,
+    extract,
+    ...(callee === undefined ? {} : { callee }),
+  });
+  return { members: result.members, rows: result.unresolved.length };
+}
+
+describe("Bash reader edge cases", () => {
+  it("lists each member once per place", async () => {
+    assert.deepEqual((await raw("curl x", "calls")).members, ["curl"]);
+    assert.deepEqual((await raw("trap f INT", "calls")).members, ["trap", "f"]);
+    assert.deepEqual((await raw("trap f INT", "string_args", "trap")).members, [
+      "f",
+    ]);
+    await expect("trap f INT", "env", [], [], { callee: "trap" });
+    assert.deepEqual((await raw("arr=([$i]=v)", "env")).members, ["i"]);
+    assert.deepEqual((await raw("unset a[$i]", "env")).members, ["i"]);
+  });
+
+  it("writes the arithmetic row", async () => {
+    const short = await read("echo $(( a ))");
+    assert.deepEqual(short.rows, [
+      "1: the value of a is evaluated as arithmetic: $(( a ))",
+    ]);
+    const name = `L${"X".repeat(90)}`;
+    const long = await read(`echo $(( ${name} ))`);
+    assert.equal(
+      long.rows[0],
+      `1: ${`the value of ${name} is evaluated as arithmetic: $(( ${name} ))`.slice(0, 80)}`,
+    );
+  });
+
+  it("reads tildes in array elements and in words after an expansion", async () => {
+    await expect("arr=(=~/z)", "env", []);
+    await expect("arr=([1]~~/x)", "env", []);
+    await expect("echo $a~null", "env", ["a"]);
+  });
+
+  it("refuses once for each reason a command gives", async () => {
+    assert.equal((await raw("read \"$n\" 'a[$(x)]'", "env")).rows, 1);
+    assert.equal((await raw("readarray -C f 'a[i]'", "env")).rows, 1);
+    assert.equal((await raw("source /dev/stdin", "env")).rows, 1);
+    await expect("printf -v 'a[12]' x", "env", []);
+    await expect("source '$0/a.sh'", "imports", ["$0/a.sh"]);
+    await expect("source /dev/stdin", "imports", ["/dev/stdin"]);
+  });
+
+  it("reads wrapper options", async () => {
+    await table([
+      ["sudo -nu. rm", "calls", ["sudo"], [1]],
+      ["sudo -nl", "calls", ["sudo"]],
+      ["sudo -nu root rm", "calls", ["rm", "sudo"]],
+      ["sudo -unroot rm", "calls", ["rm", "sudo"]],
+      ["sudo -u. rm", "calls", ["rm", "sudo"]],
+      ["sudo -n=x rm", "calls", ["sudo"], [1]],
+      ["sudo - rm", "calls", ["-", "sudo"]],
+      ["nice -x10 rm", "calls", ["nice"], [1]],
+      ["nice -10x rm", "calls", ["nice"], [1]],
+      ["nohup X=1 rm", "calls", ["X=1", "nohup"]],
+      ["sudo 1X=1 rm", "calls", ["1X=1", "sudo"]],
+      ["sudo sudo", "calls", ["sudo"]],
+      ["curl a{}b", "string_args", ["a{}b"], [], { callee: "curl" }],
+      ["busybox curl", "string_args", [], [], { callee: "curl" }],
+      ['"" x', "string_args", [], [], { callee: "" }],
+    ]);
+  });
+
+  it("reads the script a shell runs", async () => {
+    await table([
+      ["bash -x /dev/stdin", "calls", ["bash"], [1]],
+      ["bash /dev/fd/12", "calls", ["bash"], [1]],
+      ["bash /proc/1/fd/12", "calls", ["bash"], [1]],
+      ["bash a-b.sh", "calls", ["bash"]],
+    ]);
+  });
+
+  it("reads what find and ip run", async () => {
+    await table([
+      ['find . -exec rm \\; "$d"', "calls", ["find", "rm"]],
+      ["find . x-exec rm \\;", "calls", ["find"]],
+      ["find . -exec rm {} + -exec ls \\;", "calls", ["find", "ls", "rm"]],
+      ["find . -exec curl \\;", "string_args", [], [], { callee: "curl" }],
+      ["ip -xn ns netns exec ns rm", "calls", ["ip"]],
+      ["ip link exec ns rm", "calls", ["ip"]],
+      ["ip netns exec -a rm", "calls", ["ip", "rm"]],
+      ["ip -xa netns exec ns rm", "calls", ["ip", "rm"]],
+      ['ip netns exec ns rm "$x"', "calls", ["ip", "rm"]],
+      ["ip netns exec ns sudo", "calls", ["ip", "sudo"]],
+    ]);
+  });
+
+  it("reads the folder a script sets for itself", async () => {
+    const zero = (value, path = "$DIR/a.sh") =>
+      `DIR=${value}\nsource "${path}"`;
+    const dirname = '"$(dirname "$0")"';
+    for (const value of [
+      '"$(cd -- "$(dirname -- "$0")" && pwd)"',
+      '"$(cd  --  "$(dirname  --  "$0")" && pwd)"',
+      `"$(cd ${dirname} >/dev/null 2>&1 && pwd)"`,
+      `"$(cd ${dirname} > /dev/null && pwd)"`,
+      `"$(cd ${dirname}&>/dev/null && pwd)"`,
+      `"$(cd ${dirname} >/dev/null  2>&1 && pwd)"`,
+    ])
+      await expect(zero(value), "imports", ["a.sh"], [2]);
+    for (const text of [
+      zero('$(dirname "$0")', "x$DIR/a.sh"),
+      zero('$(dirname "$0")', "$DIR/a b.sh"),
+      zero(`"$(cd ${dirname} 2>/dev/null; pwd)"`),
+      zero("$(pwd)"),
+    ])
+      await expect(text, "imports", [], [2]);
+    await expect(
+      'f() { DIR=$(dirname "$0"); }\nsource "$DIR/a.sh"',
+      "imports",
+      [],
+      [2],
+    );
+    await expect('source "$DIR/a.sh"\nDIR=$(dirname "$0")', "imports", [], [1]);
+  });
+
+  it("refuses text the grammar reads differently", async () => {
+    await expect("echo a\n\\x", "calls", ["echo"], [1]);
+    assert.equal((await raw("echo '/proc/12/environ'", "env")).rows, 3);
+    assert.equal((await raw('echo "/proc/$p/environ"x', "env")).rows, 2);
+    await expect('echo "a\nb"', "env", []);
+    await expect(':\necho "a\nb"', "env", []);
+  });
+
+  it("reads arrays, unset and declarations", async () => {
+    await table([
+      ["arr=([i]=v)", "calls", []],
+      ["unset a-b", "env", [], [1]],
+      ["f() { local X; }\ng() { unset 'X'''; }", "env", [], [2]],
+      ["unset '1a[i]'", "env", [], [1]],
+      ["unset 'ab[i]'", "env", ["i"], [1]],
+      ["declare x 'a[$(x)]=1'", "calls", [], [1]],
+      ["declare a-b", "env", [], [1]],
+      ["declare -p X=1", "env", []],
+      ["declare a[i]+=1", "env", ["a", "i"], [1]],
+      ["PS4x='$(x)'", "calls", []],
+      ['X="]+="', "env", []],
+    ]);
+    assert.equal((await raw("declare a[i]=1", "env")).rows, 1);
+  });
+
+  it("reads parameter expansions", async () => {
+    await table([
+      ["echo ${ab:1+X}", "env", [], [1]],
+      ["echo ${a[1]:1}", "env", ["a"]],
+      ["echo ${s:0x1}", "env", ["s"]],
+      ["echo ${s:1+2}", "env", ["s"]],
+      ["echo ${!a[x@]}", "env", [], [1]],
+      ["echo ${a[k]}; declare -A a", "calls", ["echo"]],
+      ["echo ${s:-$X}", "env", ["X", "s"]],
+      ["for ((;; i += j)); do :; done", "env", ["j"], [1]],
+    ]);
+    assert.deepEqual((await read("echo ${a:-${b:1+X}}")).rows, ["1: ${b:1+X}"]);
+    assert.deepEqual((await read("echo ${a:-${x@P}}")).rows, ["1: ${x@P}"]);
+  });
+});
