@@ -5,6 +5,7 @@ import fs from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import {
+  generatedClassifier,
   generatedSourceFiles,
   hasGeneratedHeader,
   kbReferencedFiles,
@@ -137,6 +138,38 @@ describe("generated sources", () => {
     ]);
   });
 
+  it("lets kibi.generatedPaths and linguist-generated=false override the defaults", () => {
+    const root = workspace({
+      ".gitattributes":
+        "gen/** linguist-generated\ngen/keep.c -linguist-generated\n",
+      "gen/a.c": "int a;\n",
+      "gen/keep.c": "int k;\n",
+      "codegen/out.go": "package out\n",
+      "codegen/hand.go": "package out\n",
+    });
+    gitTrack(root);
+    const files = [
+      "gen/a.c",
+      "gen/keep.c",
+      "codegen/out.go",
+      "codegen/hand.go",
+    ];
+    expect(
+      [
+        ...generatedSourceFiles(root, files, {
+          patterns: ["codegen/**", "!codegen/hand.go"],
+        }),
+      ].sort(),
+    ).toEqual(["codegen/out.go", "gen/a.c"]);
+    // A pattern decides before .gitattributes and before a header.
+    const classify = generatedClassifier(root, files, {
+      patterns: ["!gen/a.c"],
+    });
+    expect(classify("gen/a.c", () => "// @generated\n")).toBe(false);
+    expect(classify("gen/keep.c", () => "// @generated\n")).toBe(false);
+    expect(classify("src/new.c", () => "// @generated\n")).toBe(true);
+  });
+
   it("finds the generated files the KB names as whole paths", () => {
     const root = workspace({
       ".kb/symbols.yaml":
@@ -211,7 +244,7 @@ describe("which packs doctor asks for", () => {
       "1 Go (generated, used by the KB) source file(s) for source proofs and symbols, and 1 C, 2 Bash for symbols only; they need kibi-plugin-treesitter and the grammar pack(s) kibi-lang-go, kibi-lang-c, kibi-lang-bash:",
     );
     expect(note).toContain(
-      "6 generated file(s) are not counted (linguist-generated or a generator header) unless the KB references them.",
+      "6 generated file(s) are not counted (kibi.generatedPaths, linguist-generated or a generator header) unless the KB references them.",
     );
     expect(note).toEndWith(
       'list it in package.json kibi.declinedLanguagePacks (for example "declinedLanguagePacks": ["kibi-lang-go"]); staged changes to files in that language then get a whole-file review instead of blocking.',

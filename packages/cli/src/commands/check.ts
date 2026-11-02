@@ -25,6 +25,7 @@ import {
   type ExtractionResult,
   extractFromMarkdownString,
 } from "../extractors/markdown.js";
+import { stagedGeneratedPaths } from "../plugins/generated-sources.js";
 import {
   createMaintenanceSourceAnalysisService,
   fingerprintMaintenanceSourceSet,
@@ -809,9 +810,16 @@ export async function checkCommand(
           snapshot.assertUnchanged();
           printNotedResult(input);
         };
+        const generatedStaged = stagedGeneratedPaths(
+          process.cwd(),
+          stagedInventory,
+          trustedSourceConfig.generatedPaths,
+          snapshot.baseTree,
+        );
         stagedCoverage = analyzeStagedFileCoverage(
           stagedInventory,
           snapshot.readGit,
+          (file) => generatedStaged.has(file),
         );
         stagedCoverage.snapshot = {
           baseTree: snapshot.baseTree,
@@ -1002,6 +1010,15 @@ export async function checkCommand(
           Awaited<ReturnType<typeof extractSymbolsFromStagedFileAsync>>
         >();
         const sourceContentByFile = new Map<string, string>();
+        // Symbols of a generated file the KB does not reference need no
+        // requirement link: the generator owns them. Linked ones stay checked.
+        const manifestSourceFiles = new Set(
+          authoredSymbolResults.flatMap((result) => {
+            const sourceFile = result.sourceFile || result.entity.source;
+            return sourceFile ? [sourceFile] : [];
+          }),
+        );
+        const generatedSkipped: string[] = [];
         for (const f of sourceFiles) {
           try {
             if (f.content !== undefined) {
@@ -1024,9 +1041,16 @@ export async function checkCommand(
                   );
               }
             }
-            symbolsByFile.set(f.path, symbols);
-            if (symbols?.length) {
-              allSymbols.push(...symbols);
+            const exempt =
+              generatedStaged.has(f.path) && !manifestSourceFiles.has(f.path);
+            const checked = exempt
+              ? symbols.filter((symbol) => symbol.reqLinks.length > 0)
+              : symbols;
+            if (exempt && checked.length < symbols.length)
+              generatedSkipped.push(f.path);
+            symbolsByFile.set(f.path, checked);
+            if (checked?.length) {
+              allSymbols.push(...checked);
             }
           } catch (e) {
             const message = `Error extracting symbols from staged file ${f.path}: ${e instanceof Error ? e.message : String(e)}`;
@@ -1034,6 +1058,10 @@ export async function checkCommand(
           }
         }
 
+        if (generatedSkipped.length > 0)
+          baselineNotes.push(
+            `Generated files: symbols without a requirement link in ${generatedSkipped.join(", ")} are not checked for one, because kibi.generatedPaths, .gitattributes (linguist-generated) or the committed file's generator header marks the file generated and no .kb/symbols.yaml entry names it. Review the generator change itself; a "!" pattern in kibi.generatedPaths or linguist-generated=false checks the file again.`,
+          );
         const markdownResultsByPath = new Map<string, ExtractionResult>();
         for (const file of markdownFiles) {
           const content = file.content ?? "";

@@ -392,11 +392,14 @@ export function describeReferenceLanguageSuggestion(
 export function workspacePackRelevance(
   workspaceRoot: string,
   files: readonly string[],
+  config: ProjectKibiConfig = {},
 ): Required<PackRelevance> {
   const candidates = files.filter(
     (file) => !NOT_PRODUCTION.test(file) && languagePackFor(file) !== null,
   );
-  const generated = generatedSourceFiles(workspaceRoot, candidates);
+  const generated = generatedSourceFiles(workspaceRoot, candidates, {
+    ...(config.generatedPaths ? { patterns: config.generatedPaths } : {}),
+  });
   return {
     generated,
     referenced: kbReferencedFiles(
@@ -441,7 +444,7 @@ export function workspaceReferenceLanguageNote(
   } catch {
     return null;
   }
-  const relevance = workspacePackRelevance(workspaceRoot, files);
+  const relevance = workspacePackRelevance(workspaceRoot, files, config);
   const suggestion = referenceLanguageSuggestion(
     files,
     config,
@@ -466,7 +469,7 @@ export function workspaceReferenceLanguageNote(
   const generatedNote =
     skipped === 0
       ? ""
-      : ` ${skipped} generated file(s) are not counted (linguist-generated or a generator header) unless the KB references them.`;
+      : ` ${skipped} generated file(s) are not counted (kibi.generatedPaths, linguist-generated or a generator header) unless the KB references them.`;
   const declineNote =
     suggestion.packs.length === 0
       ? ""

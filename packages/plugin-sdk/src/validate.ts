@@ -424,9 +424,11 @@ export function validateProjectKibiConfig(value: unknown): ProjectKibiConfig {
   const declinedLanguagePacks = validateDeclinedLanguagePacks(
     value.declinedLanguagePacks,
   );
+  const generatedPaths = validateGeneratedPaths(value.generatedPaths);
   const declined = {
     ...(declinedPlugins !== undefined ? { declinedPlugins } : {}),
     ...(declinedLanguagePacks !== undefined ? { declinedLanguagePacks } : {}),
+    ...(generatedPaths !== undefined ? { generatedPaths } : {}),
   };
   if (value.plugins === undefined) return declined;
   if (!Array.isArray(value.plugins)) {
@@ -589,6 +591,34 @@ function validateDeclinedPlugins(value: unknown): string[] | undefined {
       );
     }
     return name;
+  });
+}
+
+function validateGeneratedPaths(value: unknown): string[] | undefined {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value)) {
+    throw new PluginValidationError(
+      "INVALID_PROJECT_CONFIG",
+      "kibi.generatedPaths must be an array of gitignore-style globs",
+    );
+  }
+  return value.map((entry, index) => {
+    const pattern = requireString(
+      entry,
+      `kibi.generatedPaths[${index}]`,
+      "INVALID_PROJECT_CONFIG",
+    );
+    if (
+      pattern.trim() === "" ||
+      pattern.replace(/^!/, "").startsWith("/") ||
+      pattern.includes("\\")
+    ) {
+      throw new PluginValidationError(
+        "INVALID_PROJECT_CONFIG",
+        `kibi.generatedPaths[${index}] must be a non-empty glob relative to the repository root, such as "src/gen/**" or "!src/gen/keep.ts"`,
+      );
+    }
+    return pattern;
   });
 }
 

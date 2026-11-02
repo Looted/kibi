@@ -343,8 +343,9 @@ plugin and the packs when such sources are tracked and it is not active for
 proofs, and `kibi doctor` names a pack that is missing or not the version the
 installed plugin pins.
 
-Only files people write count toward a pack. A file marked `linguist-generated`
-or `linguist-vendored` in `.gitattributes`, or one that opens with a generator
+Only files people write count toward a pack. A file matched by a
+`package.json` `kibi.generatedPaths` glob, marked `linguist-generated` or
+`linguist-vendored` in `.gitattributes`, or one that opens with a generator
 marker (`@generated`, `Code generated ... DO NOT EDIT`, `auto-generated`),
 counts only when the KB references it, for example as a symbol's `sourceFile`
 or in a proof contract's `files`. A pack the project does not want can be
@@ -358,7 +359,13 @@ declined on its own:
 }
 ```
 
-Kibi then stops suggesting it, and `kibi sync` and the staged check treat files
+`kibi.generatedPaths` takes gitignore-style globs for codegen output that has
+no header or attribute (`"generatedPaths": ["src/api/**", "!src/api/index.ts"]`);
+a `!` pattern, like `linguist-generated=false`, marks a path as hand-written.
+The same rules exempt generated files from the commit gate's requirement-link
+check (see `kibi check --staged` in the CLI reference).
+
+Kibi then stops suggesting a declined pack, and `kibi sync` and the staged check treat files
 in its language as files no plugin reads: symbols there are placed by text
 match, and a staged change to one gets a whole-file review instead of blocking
 on the missing pack. A generated file whose pack is missing gets the same

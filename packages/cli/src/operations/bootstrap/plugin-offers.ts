@@ -54,10 +54,8 @@ function kibiConfigOf(manifest: unknown): ProjectKibiConfig {
   const kibi = (manifest as Record<string, unknown>).kibi;
   if (typeof kibi !== "object" || kibi === null || Array.isArray(kibi))
     return {};
-  const { plugins, declinedPlugins, declinedLanguagePacks } = kibi as Record<
-    string,
-    unknown
-  >;
+  const { plugins, declinedPlugins, declinedLanguagePacks, generatedPaths } =
+    kibi as Record<string, unknown>;
   return {
     plugins: Array.isArray(plugins)
       ? plugins.flatMap((entry) => {
@@ -87,6 +85,11 @@ function kibiConfigOf(manifest: unknown): ProjectKibiConfig {
     declinedLanguagePacks: Array.isArray(declinedLanguagePacks)
       ? declinedLanguagePacks.filter(
           (name): name is string => typeof name === "string",
+        )
+      : [],
+    generatedPaths: Array.isArray(generatedPaths)
+      ? generatedPaths.filter(
+          (pattern): pattern is string => typeof pattern === "string",
         )
       : [],
   };
@@ -198,7 +201,11 @@ export async function pluginOffers(
         pinnedPackVersions(context.workspaceRoot),
         undefined,
         manifestDeclares(manifest, REFERENCE_PLUGIN_PACKAGE),
-        workspacePackRelevance(context.workspaceRoot, files),
+        workspacePackRelevance(
+          context.workspaceRoot,
+          files,
+          kibiConfigOf(manifest),
+        ),
       )
     : null;
   if (references !== null && references.capabilities.length > 0) {

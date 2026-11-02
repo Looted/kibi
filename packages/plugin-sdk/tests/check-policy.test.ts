@@ -124,6 +124,19 @@ describe("kibi.check-policy.v1 protocol", () => {
     );
   });
 
+  test("records generated path globs", () => {
+    expect(
+      validateProjectKibiConfig({
+        generatedPaths: ["src/gen/**", "!src/gen/keep.ts"],
+      }),
+    ).toEqual({ generatedPaths: ["src/gen/**", "!src/gen/keep.ts"] });
+    for (const bad of ["src/gen/**", [""], ["/abs/**"], ["!/abs"], [1]])
+      expectValidationCode(
+        () => validateProjectKibiConfig({ generatedPaths: bad }),
+        "INVALID_PROJECT_CONFIG",
+      );
+  });
+
   test("a plugin may provide only a check policy", () => {
     const plugin = validateKibiPlugin({
       apiVersion: KIBI_PLUGIN_API_VERSION,

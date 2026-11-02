@@ -7239,6 +7239,11 @@
         "bun",
         "test",
         "./packages/cli/tests/plugins/language-pack-relevance.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/commands/check-staged-generated.test.ts"
       ]
     ]
   }

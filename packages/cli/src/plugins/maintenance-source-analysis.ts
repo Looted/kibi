@@ -178,7 +178,11 @@ export function languagePackWaiver(
   return (filePath, content, pack) =>
     declined.has(pack)
       ? `${pack} is listed in package.json kibi.declinedLanguagePacks, so no grammar reads ${filePath}`
-      : isGeneratedSource(workspaceRoot, filePath, content)
+      : isGeneratedSource(workspaceRoot, filePath, content, {
+            ...(config.generatedPaths
+              ? { patterns: config.generatedPaths }
+              : {}),
+          })
         ? `${filePath} is generated (linguist-generated or a generator header), so it does not need ${pack}`
         : null;
 }
@@ -274,6 +278,7 @@ export function readSnapshotSourceConfig(
   const head = readConfig(snapshot.headTree);
   for (const entry of head.plugins ?? []) entries.set(entry.package, entry);
   let declinedLanguagePacks = head.declinedLanguagePacks ?? [];
+  let generatedPaths = head.generatedPaths ?? [];
   const configurationPaths = new Set([
     "package.json",
     "bun.lock",
@@ -294,6 +299,9 @@ export function readSnapshotSourceConfig(
     declinedLanguagePacks = declinedLanguagePacks.filter((pack) =>
       baseDeclined.has(pack),
     );
+    // Generated paths relax the commit gate, so a change to source is
+    // judged by the patterns committed before it.
+    generatedPaths = base.generatedPaths ?? [];
     for (const entry of base.plugins ?? []) {
       const baseline = entry.capabilities[SYMBOL_EXTRACTOR_V2_CAPABILITY_ID];
       if (!baseline || baseline.mode === "shadow") continue;
@@ -310,5 +318,6 @@ export function readSnapshotSourceConfig(
   return {
     plugins: [...entries.values()],
     ...(declinedLanguagePacks.length > 0 ? { declinedLanguagePacks } : {}),
+    ...(generatedPaths.length > 0 ? { generatedPaths } : {}),
   };
 }
