@@ -7234,6 +7234,11 @@
         "bun",
         "test",
         "./packages/cli/tests/plugins/language-pack-suggestion.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/plugins/language-pack-relevance.test.ts"
       ]
     ]
   }
