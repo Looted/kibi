@@ -15,6 +15,8 @@ export type HookInput = {
   toolInput?: unknown;
   /** UserPromptSubmit: the submitted prompt. */
   prompt?: string;
+  /** Stop: true when the turn already continued because of a Stop hook. */
+  stopHookActive?: boolean;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -79,6 +81,10 @@ export function parseHookInput(input: unknown): HookInput {
 
   if (toolInput !== undefined) {
     parsed.toolInput = toolInput;
+  }
+
+  if (input.stop_hook_active === true) {
+    parsed.stopHookActive = true;
   }
 
   return parsed;

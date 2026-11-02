@@ -53,6 +53,30 @@
 
 ### Patch Changes
 
+- `kibi telemetry status` (and its `--json` output) now shows the channel and host its events carry; set `KIBI_HOST` to override a host detected from inherited environment variables.
+
+- The pre-commit gate reads a symbol by any title `kibi sync` places on it alone, so a Java class titled like its constructors (`OS`) or a Terraform resource titled by its address (`aws_s3_bucket.this`) keeps its links when staged.
+
+- Fix the pre-commit gate (`kibi check --staged`) for non-TypeScript languages. An edit inside a linked Java, C#, PHP or TypeScript method no longer blocks the commit because the enclosing class counts as an unlinked changed symbol: a changed line belongs to the innermost declaration that contains it. Adding a C/C++ `#include`, a Bash `source` or a PHP `require_once` no longer fails the validation with an error; the line is named for a file-level review. In a partially analyzed file (Python decorators, Rust macros, C includes and the like) an edit inside a placed declaration is now checked against that symbol's requirements instead of only at file level. Kibi's own `.kb/` files (such as `.kb/schema/*.pl`) no longer get `staged_file_ownership_missing` advisories, and the unlinked-symbol failure now says how to link each symbol.
+
+- `kibi init` and `kibi doctor` no longer say to add an installed `kibi-plugin-treesitter` to devDependencies when only its `kibi.plugins` entry is missing. They print the `npm install --save-dev` line for what is not installed, then the entry to add, and a project without a package.json is told to run `npm init -y` first (Kibi reads only its devDependencies and `kibi.plugins`).
+
+- A symbol titled like a class whose constructors share its name (`OS` in `OS.java`, also C# and C++) is placed on the class; it used to get no coordinates.
+- Terraform symbols can be titled by their address: `aws_s3_bucket.this`, `data.x.y`, `module.m`, `var.v` (or `variable.v`), `output.o` and `local.l`. A generic HCL block takes its type and labels joined by dots.
+- `kibi sync --refresh-symbol-coordinates` gives the reason for each failed symbol: no declaration with that title (with the titles the file has), several declarations that match it, a missing source file, or no text match in a file without a parser.
+
+- `kibi telemetry status` shows the channel in effect and where it comes from (`KIBI_TELEMETRY_CHANNEL`, a checkout of the Kibi repository, or an installed package), in the text output and as `channel` and `channelSource` with `--format json`.
+
+- The kibi-usage skill (2.40.1) describes the `must keep true` line of edit snippets as the requirement's modeled claims or its own statement.
+
+- `kibi proof explain` gives the reason for each gap that is really open: a missing_symbol_coordinates gap names the symbols without source coordinates and how to place them, instead of saying that a test which is not end to end does not count. When a proof refutes a claim, explain says so plainly, naming the test, the claim and the violating members, and that uncovered_case and happy_path_only follow from the refutation; the JSON view adds `refutations` and `missingCoordinateSymbols`. The `kibi check` evidence-floor finding for such a requirement says the code breaks the claim and adds `refutations` to its evidence. Gap codes are unchanged.
+
+- `kibi migrate --apply-safe <hash>` takes the plan hash directly, and the plan preview prints the exact command to apply its ready automatic actions. When the plan changed after it was printed, nothing is applied and the error says so, gives the new hash and lists what changed (actions added, removed or changed state, and whether the KB snapshot, workspace files, branch or config moved). A plan still applies only with its current hash; `--approved-plan-hash` keeps working.
+
+- `kibi coverage`, `kibi find-gaps` and `kibi graph` (and the MCP `kb_coverage`, `kb_find_gaps` and `kb_graph` tools) report the branch name in `meta.branch` instead of the hash Kibi uses as the branch store key; that hash is now in `meta.branchStoreKey`.
+
+- Requirement titles that Kibi suggests from a requirement's text end at a real sentence end (a `.`, `?` or `!` followed by whitespace and an uppercase letter, or the end of the text). A dot inside a path, a dotted name, a version or backticks no longer cuts the title, so "The greet function must never call console.log" stays whole instead of becoming "The greet function must never call console", and fact claim text that falls back to the title is no longer cut either.
+
 - Close more false proofs of the references reader. JavaScript and TypeScript names are read through what they are bound to: renamed and namespace imports, `require` bindings, `node:` built-in names, `globalThis.process`, `import { env } from "node:process"`, destructuring from `process`, `.call`/`.apply`/`.bind`, and imported functions used as values. Modules loaded in place (`process.getBuiltinModule`, `createRequire(url)(...)`, `import()`), non-literal specifiers and code built from text (`eval`, `new Function`, `vm`) fail the read instead of being skipped. Python unpickling (`pickle.loads` and similar) fails the read, SWI-Prolog's `must_be/2` is listed as throwing the errors it throws, a symbolic link to a file that `files` matches is read as that file instead of being skipped, and a Go call to a name another file of the package binds to a function value fails the read.
 
 - 048d1c9: Close false proofs found by testing the language packs before release:

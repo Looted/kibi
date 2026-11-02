@@ -156,6 +156,35 @@ describe("CLI anonymous usage telemetry", () => {
     expect(queued(env)).toEqual([]);
   });
 
+  // implements REQ-kibi-anonymous-usage-telemetry
+  test("kibi telemetry status names the channel, its source and the host its events carry", async () => {
+    const env = telemetryEnv({
+      KIBI_TELEMETRY_CHANNEL: "agent-test",
+      CURSOR_AGENT: "1",
+    });
+    const log = spyOn(console, "log").mockImplementation(() => undefined);
+    try {
+      await telemetryCommand("status", { format: "json" }, env);
+      expect(JSON.parse(String(log.mock.calls.at(-1)?.[0]))).toMatchObject({
+        channel: "agent-test",
+        channelSource: "KIBI_TELEMETRY_CHANNEL",
+        host: "cursor",
+      });
+      await telemetryCommand("status", {}, { ...env, KIBI_HOST: "codex" });
+      expect(log.mock.calls.map((call) => String(call[0]))).toContain(
+        "Channel: agent-test (set by KIBI_TELEMETRY_CHANNEL). Host: codex (set KIBI_HOST to override).",
+      );
+      // This suite runs from a checkout of the Kibi repository.
+      const { KIBI_TELEMETRY_CHANNEL: _, ...unset } = env;
+      await telemetryCommand("status", {}, unset);
+      expect(log.mock.calls.map((call) => String(call[0]))).toContain(
+        "Channel: source (Kibi runs from a checkout of its own repository). Host: cursor (set KIBI_HOST to override).",
+      );
+    } finally {
+      log.mockRestore();
+    }
+  });
+
   test("kibi telemetry disable and enable persist the choice", async () => {
     const env = telemetryEnv();
     const log = spyOn(console, "log").mockImplementation(() => undefined);
@@ -167,7 +196,7 @@ describe("CLI anonymous usage telemetry", () => {
         reason: "disabled with `kibi telemetry disable`",
       });
       await telemetryCommand("enable", {}, env);
-      expect(String(log.mock.calls.at(-3)?.[0])).toContain("telemetry is");
+      expect(String(log.mock.calls.at(-4)?.[0])).toContain("telemetry is");
       // CI runs stay off even after an explicit enable.
       await telemetryCommand(
         "status",

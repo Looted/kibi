@@ -44,11 +44,31 @@ export type ReferenceLanguageSuggestion = Readonly<{
   evidence: readonly string[];
   /** The project already lists the plugin, but not for proofs. */
   activeForSymbolsOnly: boolean;
+  /** The plugin package is declared in package.json and resolves. */
+  pluginInstalled: boolean;
   /** kibi-lang-* packs the tracked sources need that are not installed. */
   packs: readonly string[];
   /** Installed packs whose grammar bytes differ from the pinned SHA-256. */
   modified: readonly string[];
 }>;
+
+/** Whether a package.json lists a package in any dependency field. */
+export function manifestDeclares(
+  manifest: unknown,
+  packageName: string,
+): boolean {
+  if (typeof manifest !== "object" || manifest === null) return false;
+  return ["dependencies", "devDependencies", "optionalDependencies"].some(
+    (field) => {
+      const dependencies = (manifest as Record<string, unknown>)[field];
+      return (
+        typeof dependencies === "object" &&
+        dependencies !== null &&
+        Object.hasOwn(dependencies, packageName)
+      );
+    },
+  );
+}
 
 /** Whether a package resolves from the workspace root, and at which version. */
 export type InstalledVersion = (packageName: string) => string | null;
@@ -59,14 +79,25 @@ export function workspaceInstalledVersion(
 ): InstalledVersion {
   const resolve = createRequire(join(workspaceRoot, "package.json")).resolve;
   return (packageName) => {
-    try {
-      const manifest = JSON.parse(
-        readFileSync(resolve(`${packageName}/package.json`), "utf8"),
-      ) as { version?: unknown };
-      return typeof manifest.version === "string" ? manifest.version : null;
-    } catch {
-      return null;
+    // A package whose exports omit ./package.json (kibi-plugin-treesitter)
+    // is found through the node_modules lookup directories instead.
+    const manifests = [
+      () => resolve(`${packageName}/package.json`),
+      ...(resolve.paths(packageName) ?? []).map(
+        (directory) => () => join(directory, packageName, "package.json"),
+      ),
+    ];
+    for (const manifestPath of manifests) {
+      try {
+        const manifest = JSON.parse(readFileSync(manifestPath(), "utf8")) as {
+          version?: unknown;
+        };
+        return typeof manifest.version === "string" ? manifest.version : null;
+      } catch {
+        // Try the next lookup directory.
+      }
     }
+    return null;
   };
 }
 
@@ -171,6 +202,7 @@ export function referenceLanguageSuggestion(
   installedVersion: InstalledVersion = () => null,
   pinned: ReadonlyMap<string, string> = new Map(),
   modified: ReadonlySet<string> = new Set(),
+  pluginDeclared = true,
 ): ReferenceLanguageSuggestion | null {
   const production = files.filter((file) => !NOT_PRODUCTION.test(file));
   const references = PLUGIN_REFERENCE_LANGUAGES.map((language) => ({
@@ -227,6 +259,8 @@ export function referenceLanguageSuggestion(
     })),
     evidence: shown.flatMap((language) => language.found).slice(0, 5),
     activeForSymbolsOnly: entry !== undefined,
+    pluginInstalled:
+      pluginDeclared && installedVersion(REFERENCE_PLUGIN_PACKAGE) !== null,
     packs: missing.map((language) => {
       const version = pinned.get(language.pack);
       return version === undefined
@@ -271,13 +305,34 @@ export function describeReferenceLanguageSuggestion(
       ]),
     ),
   });
-  return `${found} source file(s); ${what} for them need ${suggestion.package}${packs}: add ${suggestion.packs.length === 0 ? "it" : "them"} to devDependencies and this entry to package.json "kibi": { "plugins": [ ${entry} ] }`;
+  const activate = `add this entry to package.json "kibi": { "plugins": [ ${entry} ] }`;
+  // An installed plugin only lacks its kibi.plugins entry.
+  const install = [
+    ...(suggestion.pluginInstalled ? [] : [suggestion.package]),
+    ...suggestion.packs,
+  ];
+  const needs = suggestion.pluginInstalled
+    ? `${suggestion.package}, which is installed but not activated${packs === "" ? "" : `,${packs}`}`
+    : `${suggestion.package}${packs}`;
+  return install.length === 0
+    ? `${found} source file(s); ${what} for them need ${needs}: ${activate}`
+    : `${found} source file(s); ${what} for them need ${needs}: npm install --save-dev ${install.join(" ")}, then ${activate}`;
+}
+
+function readManifestOrNull(workspaceRoot: string): unknown {
+  try {
+    return JSON.parse(
+      readFileSync(join(workspaceRoot, "package.json"), "utf8"),
+    );
+  } catch {
+    return null;
+  }
 }
 
 /**
  * The suggestion for a workspace, from its tracked files, as one line for
  * `kibi init` and `kibi doctor`, or null when nothing is missing. A project
- * without a package.json gets one whose only job is Kibi's plugin list.
+ * without a package.json is told to create a minimal one first.
  */
 // implements REQ-kibi-tree-sitter-references, REQ-kibi-tree-sitter-language-packs
 export function workspaceReferenceLanguageNote(
@@ -304,22 +359,20 @@ export function workspaceReferenceLanguageNote(
     workspaceInstalledVersion(workspaceRoot),
     pinnedPackVersions(workspaceRoot),
     modifiedPacks(workspaceRoot),
+    manifestDeclares(
+      readManifestOrNull(workspaceRoot),
+      REFERENCE_PLUGIN_PACKAGE,
+    ),
   );
   if (suggestion === null) return null;
   const noManifest = !existsSync(join(workspaceRoot, "package.json"));
-  const install = [
-    ...(suggestion.capabilities.length > 0 && !suggestion.activeForSymbolsOnly
-      ? [suggestion.package]
-      : []),
-    ...suggestion.packs,
-  ].join(" ");
   const changed =
     suggestion.modified.length === 0
       ? ""
       : ` The installed grammar of ${suggestion.modified.join(", ")} does not match the SHA-256 ${suggestion.package} pins; reinstall it.`;
   return `${describeReferenceLanguageSuggestion(suggestion)}.${changed}${
     noManifest
-      ? ` This project has no package.json; create one that only holds Kibi's plugin list (npm init -y, then npm install -D ${install}) and add node_modules/ to .gitignore.`
+      ? " This project has no package.json: run npm init -y first to create a minimal one (Kibi reads only its devDependencies and kibi.plugins), then run the install and add the kibi.plugins entry above, and add node_modules/ to .gitignore."
       : ""
   } ${
     suggestion.capabilities.includes(REFERENCE_EXTRACTOR_CAPABILITY_ID)

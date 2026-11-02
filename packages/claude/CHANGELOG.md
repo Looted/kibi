@@ -53,6 +53,12 @@
 
 ### Patch Changes
 
+- The MCP launcher says on stderr when the project has no `kibi-mcp` and it runs a global install, naming the path it uses.
+
+- The kibi-usage skill (2.40.1) describes the `must keep true` line of edit snippets as the requirement's modeled claims or its own statement.
+
+- Edit snippets say what the lead requirement must keep true as the claims its facts model, in words with their operator and members (for example "REQ-GREET must keep true: The greet function must not call console.log."), or as the requirement's own statement, instead of listing internal fact IDs and subject keys. A requirement title that an older Kibi cut at a dot inside a name is shown whole.
+
 - f9ec786: Usage telemetry events now carry a `channel`: `release` for an installed Kibi package, `source` when Kibi runs from a checkout of its own repository, or the value of `KIBI_TELEMETRY_CHANNEL` when a harness sets one (for example `agent-test`). Development and test runs can then be filtered out of real usage. Nothing else about what is sent changes.
 
 ## 0.12.1

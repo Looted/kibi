@@ -21,6 +21,15 @@ export function freshnessReminder(dirtyPaths: readonly string[]): string {
   ].join("\n");
 }
 
+/** PostToolUse context after source edits: the impact check to run. */
+export function postEditImpactNote(sourcePaths: readonly string[]): string {
+  const sourceFiles = JSON.stringify(sourcePaths.slice(0, 10));
+  return [
+    `Kibi impact review: run kb_check({sourceFiles:${sourceFiles}, includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) while this edit is fresh.`,
+    "Check whether the linked requirements, scenarios and tests still cover the changed behavior.",
+  ].join("\n");
+}
+
 export function impactCheckReminder(sourcePaths: readonly string[]): string {
   const preview = sourcePaths.slice(0, 10);
   const sourceFiles = JSON.stringify(preview);

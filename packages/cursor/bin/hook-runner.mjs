@@ -705,6 +705,55 @@ var ENTITY_LANES = [
   ["EVT-", "events"]
 ];
 var SAFE_ENTITY_ID = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+var SUMMARY_SCALARS = {
+  semantic_text: "statement",
+  fact_kind: "factKind",
+  subject_key: "subjectKey",
+  property_key: "propertyKey",
+  operator: "operator",
+  unit: "unit",
+  claim_text: "claimText"
+};
+var SCALAR_VALUE_FIELDS = new Set([
+  "value_string",
+  "value_int",
+  "value_number",
+  "value_bool"
+]);
+function readScalar(lines, index, raw) {
+  const block = /^[>|][+-]?$/.test(raw.trim());
+  const parts = block ? [] : [raw.trim()];
+  let last = index;
+  while (last + 1 < lines.length) {
+    const next = lines[last + 1] ?? "";
+    if (next.trim() === "---" || !/^\s+\S/.test(next))
+      break;
+    if (!block && /^\s+-\s/.test(next))
+      break;
+    parts.push(next.trim());
+    last += 1;
+  }
+  const joined = parts.join(" ").trim();
+  return { value: block ? joined : unquote(joined), last };
+}
+function firstParagraph(lines) {
+  const paragraph = [];
+  for (const line of lines) {
+    const text = line.trim();
+    if (text === "") {
+      if (paragraph.length > 0)
+        break;
+      continue;
+    }
+    if (/^#{1,6}\s/.test(text)) {
+      if (paragraph.length > 0)
+        break;
+      continue;
+    }
+    paragraph.push(text);
+  }
+  return paragraph.length > 0 ? paragraph.join(" ") : undefined;
+}
 var MAX_SUMMARY_LINKS = 24;
 var RELATIONSHIPS_DIR = ".kb/relationships";
 var shardCache = new Map;
@@ -765,15 +814,52 @@ function readEntitySummary(workspaceRoot, entityId) {
     return { id: entityId };
   const summary = { id: entityId };
   const authored = [];
+  const claim = {};
+  const values = [];
   let inLinks = false;
+  let inValueSet = false;
   let inOrigin = false;
   let originKind;
   let closed = false;
+  let bodyStart = lines.length;
   let pending;
-  for (const line of lines.slice(1)) {
+  for (let index = 1;index < lines.length; index += 1) {
+    const line = lines[index] ?? "";
     if (line.trim() === "---") {
       closed = true;
+      bodyStart = index + 1;
       break;
+    }
+    const scalar = /^([a-z_]+):\s*(.*)$/.exec(line);
+    const scalarField = scalar ? SUMMARY_SCALARS[scalar[1] ?? ""] : undefined;
+    if (scalar && scalarField && scalar[2]) {
+      const { value, last } = readScalar(lines, index, scalar[2]);
+      if (value !== "") {
+        if (scalarField === "statement")
+          summary.statement = value;
+        else if (scalarField !== "values")
+          claim[scalarField] = value;
+      }
+      index = last;
+      flushLink(authored, pending);
+      pending = undefined;
+      inLinks = false;
+      inValueSet = false;
+      continue;
+    }
+    if (scalar && SCALAR_VALUE_FIELDS.has(scalar[1] ?? "") && scalar[2]) {
+      values.push(unquote(scalar[2]));
+    }
+    const flowSet = /^value_set:\s*\[(.*)\]\s*$/.exec(line);
+    if (flowSet?.[1]?.trim()) {
+      values.push(...flowSet[1].split(",").map((member) => unquote(member)));
+    }
+    if (/^\S/.test(line))
+      inValueSet = /^value_set:\s*$/.test(line);
+    else if (inValueSet) {
+      const member = /^\s*-\s*(.+)$/.exec(line);
+      if (member)
+        values.push(unquote(member[1] ?? ""));
     }
     const flowOrigin = /^origin:\s*\{.*\bkind:\s*["']?([a-z]+)/.exec(line);
     if (flowOrigin)
@@ -833,6 +919,15 @@ function readEntitySummary(workspaceRoot, entityId) {
   }
   if (links.length > 0)
     summary.links = links;
+  if (values.length > 0)
+    claim.values = values;
+  if (Object.keys(claim).length > 0)
+    summary.claim = claim;
+  if (summary.statement === undefined && lane[1] === "requirements" && closed) {
+    const paragraph = firstParagraph(lines.slice(bodyStart));
+    if (paragraph)
+      summary.statement = paragraph;
+  }
   return summary;
 }
 
@@ -842,6 +937,7 @@ var MAX_SYMBOLS_PER_REQUIREMENT = 3;
 var MAX_TESTS = 3;
 var MAX_TITLE = 80;
 var MAX_GROUNDING = 2;
+var MAX_CLAIM = 160;
 var MAX_FOCUS_SCAN_BYTES = 2 * 1024 * 1024;
 var MAX_SNIPPET_CHARS = 1200;
 function truncate(text, limit) {
@@ -914,7 +1010,18 @@ function describeEntity(summary) {
   const retired = isRetiredStatus(summary.status) ? ` (${summary.status})` : "";
   const firmness = !retired && (summary.firmness === "firm" || summary.firmness === "exploratory") ? summary.firmness === "firm" ? " [firm: ask before changing]" : " [exploratory]" : "";
   const notable = `${retired}${firmness}`;
-  return summary.title ? `${summary.id}${notable}: ${truncate(summary.title, MAX_TITLE)}` : `${summary.id}${notable}`;
+  const title = displayTitle(summary);
+  return title ? `${summary.id}${notable}: ${truncate(title, MAX_TITLE)}` : `${summary.id}${notable}`;
+}
+function displayTitle(summary) {
+  const { title, statement } = summary;
+  if (!title || !statement?.startsWith(title))
+    return title;
+  const rest = statement.slice(title.length);
+  if (!/^\.\S/.test(rest))
+    return title;
+  const end = rest.search(/[.!?](?:\s|$)/);
+  return end < 0 ? statement : statement.slice(0, title.length + end);
 }
 function jsonString(value) {
   return JSON.stringify(value);
@@ -928,6 +1035,72 @@ var GROUNDING_LINK_TYPES = [
   "requires_predicate",
   "requires_rule"
 ];
+var PROPERTY_VERBS = {
+  calls: "call",
+  imports: "import",
+  reads: "read",
+  uses: "use",
+  throws: "throw"
+};
+var OPERATOR_PHRASES = {
+  eq: "must be",
+  neq: "must not be",
+  lt: "must be less than",
+  lte: "must be at most",
+  gt: "must be greater than",
+  gte: "must be at least",
+  matches: "must match",
+  includes: "must include",
+  subset_of: "must be within",
+  excludes: "must not include"
+};
+function joinMembers(values, conjunction) {
+  if (values.length <= 1)
+    return values[0] ?? "";
+  return `${values.slice(0, -1).join(", ")} ${conjunction} ${values.at(-1)}`;
+}
+var MODAL = /^(.{1,100}?)\s+(?:must|may|can|cannot|should|shall|will|never)\b/i;
+function subjectPhrase(claim) {
+  const spoken = MODAL.exec(claim.claimText ?? "")?.[1];
+  if (spoken)
+    return spoken;
+  return claim.subjectKey?.replace(/[._]+/g, " ").trim() || undefined;
+}
+function factClaimSentence(summary) {
+  const claim = summary.claim;
+  if (!claim || claim.factKind === "subject")
+    return;
+  const values = claim.values ?? [];
+  if (claim.propertyKey && claim.operator && values.length > 0) {
+    const subject = subjectPhrase(claim);
+    if (!subject)
+      return claim.claimText;
+    const verb = PROPERTY_VERBS[claim.propertyKey];
+    const verbal = verb ? {
+      excludes: `must not ${verb} ${joinMembers(values, "or")}`,
+      includes: `must ${verb} ${joinMembers(values, "and")}`,
+      subset_of: `may ${verb} only ${joinMembers(values, "or")}`,
+      eq: `must ${verb} exactly ${joinMembers(values, "and")}`
+    }[claim.operator] : undefined;
+    if (verbal)
+      return `${subject} ${verbal}`;
+    const phrase = OPERATOR_PHRASES[claim.operator];
+    if (phrase) {
+      const property = claim.propertyKey.replace(/_+/g, " ");
+      const unit = claim.unit ? ` ${claim.unit}` : "";
+      return `${subject}: ${property} ${phrase} ${values.join(", ")}${unit}`;
+    }
+  }
+  return claim.claimText;
+}
+function groundingText(summary) {
+  if (summary.claim?.factKind === "subject")
+    return;
+  return factClaimSentence(summary) ?? summary.title;
+}
+function withoutClosingStop(text) {
+  return text.replace(/[.\s]+$/, "");
+}
 function requirementGroundingLines(requirementId, summarize, options = {}) {
   const maxFacts = options.maxFacts ?? MAX_GROUNDING;
   const requirement = summarize(requirementId);
@@ -942,9 +1115,15 @@ function requirementGroundingLines(requirementId, summarize, options = {}) {
   ];
   const lines = [];
   if (facts.length > 0) {
-    const shown = facts.slice(0, maxFacts).map((id) => describeEntity(summarize(id)));
-    const more = facts.length > maxFacts ? ` +${facts.length - maxFacts}` : "";
-    lines.push(`${requirementId} must keep true: ${shown.join("; ")}${more}.`);
+    const claims = [
+      ...new Set(facts.map((id) => groundingText(summarize(id))).filter((sentence) => Boolean(sentence)).map(withoutClosingStop))
+    ];
+    const statement = requirement.statement ? withoutClosingStop(requirement.statement) : undefined;
+    const shown = claims.length > 0 ? claims.slice(0, maxFacts) : statement ? [statement] : [];
+    const more = claims.length > maxFacts ? ` +${claims.length - maxFacts} more` : "";
+    if (shown.length > 0) {
+      lines.push(`${requirementId} must keep true: ${shown.map((claim) => truncate(claim, MAX_CLAIM)).join("; ")}${more}.`);
+    }
   }
   const adr = adrs[0];
   if (adr)
@@ -1700,17 +1879,23 @@ function insideKibiCheckout(file) {
 }
 var checkoutCache = new Map;
 function detectTelemetryChannel(env = process.env, moduleFile = thisModuleFile() ?? null) {
+  return telemetryChannel(env, moduleFile).channel;
+}
+function telemetryChannel(env = process.env, moduleFile = thisModuleFile() ?? null) {
   const explicit = env.KIBI_TELEMETRY_CHANNEL?.trim();
   if (explicit)
-    return telemetryCategory(explicit) ?? "release";
+    return {
+      channel: telemetryCategory(explicit) ?? "release",
+      source: "KIBI_TELEMETRY_CHANNEL"
+    };
   if (!moduleFile)
-    return "release";
+    return { channel: "release", source: "installed" };
   let fromCheckout = checkoutCache.get(moduleFile);
   if (fromCheckout === undefined) {
     fromCheckout = insideKibiCheckout(moduleFile);
     checkoutCache.set(moduleFile, fromCheckout);
   }
-  return fromCheckout ? "source" : "release";
+  return fromCheckout ? { channel: "source", source: "checkout" } : { channel: "release", source: "installed" };
 }
 function telemetryDirectory(env = process.env) {
   const explicit = env.KIBI_TELEMETRY_DIR?.trim();
@@ -1738,10 +1923,13 @@ function writeTelemetryConfig(config, env) {
 }
 function telemetryStatus(env = process.env) {
   const directory = telemetryDirectory(env);
+  const { channel, source } = telemetryChannel(env);
   const status = (enabled, reason) => ({
     enabled,
     reason,
-    directory
+    directory,
+    channel,
+    channelSource: source
   });
   const explicit = flagValue(env.KIBI_TELEMETRY);
   if (explicit === false)
@@ -2788,9 +2976,11 @@ async function runHook(rawInput, environment = {}) {
     stateDir,
     sessionId: input.conversationId
   };
+  const trace = {};
   try {
     switch (input.event) {
       case "sessionStart":
+        trace.action = "session_start";
         if (!kibiReady) {
           const advisory = interfaceAdvisory(initialState.mcpState, workspaceTrusted);
           return {
@@ -2810,6 +3000,8 @@ ${advisory}` : BOOTSTRAP_REMINDER
         const explicitPaths = extractExplicitPathFields2(input.toolInput);
         const hasDirectKbEdit = isEditLikeTool(input.toolName) && explicitPaths.some(isDirectKbPath);
         if (hasDirectKbEdit) {
+          trace.action = "kb_direct_note";
+          trace.pathKind = "kb";
           return {
             permission: "allow",
             agent_message: DIRECT_KB_EDIT_WARNING
@@ -2822,6 +3014,8 @@ ${advisory}` : BOOTSTRAP_REMINDER
         const relativePath = toRepoRelativePath(primaryPath, cwd);
         const state = loadHookState(stateDir);
         const linked = getSourceLinkedSymbols(cwd, primaryPath, stateDir);
+        trace.pathKind = classifyPath(relativePath);
+        trace.requirementIds = implementedRequirementIds(linked.symbols);
         const focus = editFocus(path9.resolve(cwd, primaryPath), input.toolInput);
         const ruleNote = takeRuleNote(session);
         const notice = firmNotice(cwd, linked, focus, session, environment.env ?? process.env);
@@ -2836,6 +3030,7 @@ ${advisory}` : BOOTSTRAP_REMINDER
           rememberGuidedPath(stateDir, "pre-edit", relativePath);
         }
         const parts = [ruleNote, notice, guidance].filter((part) => part !== undefined);
+        trace.action = parts.length > 0 ? "edit_snippet" : "edit_silent";
         return parts.length > 0 ? { permission: "allow", agent_message: parts.join(`
 
 `) } : emptyResult();
@@ -2845,6 +3040,7 @@ ${advisory}` : BOOTSTRAP_REMINDER
           const rule = recordRequest(session, input.prompt);
           if (rule !== undefined)
             holdRuleNote(session, rule);
+          trace.action = rule === undefined ? "prompt_silent" : "prompt_rule_note";
         }
         return { continue: true };
       }
@@ -2854,6 +3050,8 @@ ${advisory}` : BOOTSTRAP_REMINDER
           return { permission: "allow" };
         }
         const relativePath = toRepoRelativePath(primaryPath, cwd);
+        trace.pathKind = classifyPath(relativePath);
+        trace.action = "read_silent";
         const state = loadHookState(stateDir);
         if (hasGuidedPath(state, "read", relativePath)) {
           return { permission: "allow" };
@@ -2869,6 +3067,7 @@ ${advisory}` : BOOTSTRAP_REMINDER
           return { permission: "allow" };
         }
         rememberGuidedPath(stateDir, "read", relativePath);
+        trace.action = "read_snippet";
         return {
           permission: "allow",
           agent_message: guidance
@@ -2958,9 +3157,11 @@ ${advisory}` : BOOTSTRAP_REMINDER
         }
         const capture = claimCaptureReminder(session) ? captureReminder(hasDecisionFlag(session, "rule-prompt")) : undefined;
         const signoff = claimSignoffReminder(session, cwd) ? signoffReminder() : undefined;
-        const followupMessage = [capture, signoff, stopFollowupMessage(state)].filter((part) => part !== undefined).join(`
+        const reminder = stopFollowupMessage(state);
+        const followupMessage = [capture, signoff, reminder].filter((part) => part !== undefined).join(`
 `);
         if (followupMessage) {
+          trace.action = capture ? "stop_capture_reminder" : signoff ? "stop_signoff_reminder" : "stop_reminder";
           clearSessionHookState(stateDir);
           return { followup_message: followupMessage };
         }
@@ -2973,6 +3174,18 @@ ${advisory}` : BOOTSTRAP_REMINDER
         return emptyResult();
     }
   } finally {
+    if (kibiReady) {
+      appendHookUsage({
+        host: "cursor",
+        packageVersion: packageVersion(),
+        workspaceRoot: cwd,
+        event: input.event,
+        sessionId: input.conversationId,
+        hostTool: input.toolName,
+        trace,
+        startedAt
+      }, environment.env ?? process.env);
+    }
     await finishHookTelemetry({
       event: input.event,
       workspaceRoot: kibiReady ? cwd : undefined,

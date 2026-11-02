@@ -1,8 +1,10 @@
 import path from "node:path";
 
 import type { ProjectKibiConfig, ProjectPluginEntry } from "kibi-plugin-sdk";
+import { REFERENCE_PLUGIN_PACKAGE } from "../../plugins/proof-reference-extractors.js";
 import {
   describeReferenceLanguageSuggestion,
+  manifestDeclares,
   pinnedPackVersions,
   referenceLanguageSuggestion,
   workspaceInstalledVersion,
@@ -178,12 +180,15 @@ export async function pluginOffers(
   const configured = await configuredPlugins(context);
   if (configured === undefined) return [];
   const offers: PluginOffer[] = [];
+  const manifest = wantsReferences ? await readManifest(context) : undefined;
   const references = wantsReferences
     ? referenceLanguageSuggestion(
         files,
-        kibiConfigOf(await readManifest(context)),
+        kibiConfigOf(manifest),
         workspaceInstalledVersion(context.workspaceRoot),
         pinnedPackVersions(context.workspaceRoot),
+        undefined,
+        manifestDeclares(manifest, REFERENCE_PLUGIN_PACKAGE),
       )
     : null;
   if (references !== null && references.capabilities.length > 0) {

@@ -404,6 +404,41 @@ describe("zcode MCP launcher workspace gate", () => {
     expect(launcher.findGlobalKibiMcpCommand(hermeticEnv())).toBeNull();
   });
 
+  test("a global fallback says so on stderr; a project-local install does not", async () => {
+    const run = async (installPackage: boolean) => {
+      const fixture = createFixtureWorkspace({
+        prefix: "kibi-zcode-launcher-notice-",
+        installPackage,
+      });
+      roots.push(fixture.base);
+      const shimDir = tempRoot("kibi-zcode-launcher-notice-path-");
+      fs.writeFileSync(path.join(shimDir, "kibi-mcp"), "#!/bin/sh\nexit 0\n");
+      fs.chmodSync(path.join(shimDir, "kibi-mcp"), 0o755);
+      const child = makeFakeChild();
+      const err = makeWriteSink();
+      const stdin = new PassThrough();
+      const exit = launcher.proxyKibiMcp({
+        workspaceRoot: fixture.workspaceRoot,
+        env: hermeticEnv({ PATH: shimDir }),
+        spawnImpl: () => child,
+        stdin,
+        stdout: new PassThrough(),
+        stderr: err.stream,
+      });
+      stdin.end();
+      child.emit("close", 0);
+      await exit;
+      return { text: err.text(), shim: path.join(shimDir, "kibi-mcp") };
+    };
+
+    const global = await run(false);
+    expect(global.text).toStartWith(
+      "[kibi-zcode] No project-local kibi-mcp in ",
+    );
+    expect(global.text).toContain(`using the global install at ${global.shim}`);
+    expect((await run(true)).text).toBe("");
+  });
+
   test("resolves the JS entry behind Windows .cmd shims without a shell", () => {
     const shimDir = tempRoot("kibi-zcode-launcher-cmdshim-");
     const entry = path.join(

@@ -73,7 +73,7 @@ describe("symbol refresh remaining publication and parse branches", () => {
     expect(result).toEqual({
       refreshed: false,
       found: true,
-      unplaced: "src/nope.ts cannot be read",
+      unplaced: "src/nope.ts does not exist",
     });
   });
 

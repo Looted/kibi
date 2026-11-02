@@ -8,6 +8,8 @@
 
 ### Patch Changes
 
+- Evidence-floor rows carry the proof's claim refutations in `refutations` when a proof refutes a claim of the requirement.
+
 - 048d1c9: Close false proofs found by testing the language packs before release:
   - A references claim whose subject key or claim text names a project file (also with a repository prefix, another letter case, no extension, or spaces) is rejected unless that file is among the files read, so a claim about one file cannot be decided on another.
   - `excludes` now fails on a longer name ending in the excluded item at a segment boundary (`checkNotNull` excludes `Preconditions.checkNotNull`).

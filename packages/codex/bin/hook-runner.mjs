@@ -797,6 +797,55 @@ var ENTITY_LANES = [
   ["EVT-", "events"]
 ];
 var SAFE_ENTITY_ID = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+var SUMMARY_SCALARS = {
+  semantic_text: "statement",
+  fact_kind: "factKind",
+  subject_key: "subjectKey",
+  property_key: "propertyKey",
+  operator: "operator",
+  unit: "unit",
+  claim_text: "claimText"
+};
+var SCALAR_VALUE_FIELDS = new Set([
+  "value_string",
+  "value_int",
+  "value_number",
+  "value_bool"
+]);
+function readScalar(lines, index, raw) {
+  const block = /^[>|][+-]?$/.test(raw.trim());
+  const parts = block ? [] : [raw.trim()];
+  let last = index;
+  while (last + 1 < lines.length) {
+    const next = lines[last + 1] ?? "";
+    if (next.trim() === "---" || !/^\s+\S/.test(next))
+      break;
+    if (!block && /^\s+-\s/.test(next))
+      break;
+    parts.push(next.trim());
+    last += 1;
+  }
+  const joined = parts.join(" ").trim();
+  return { value: block ? joined : unquote2(joined), last };
+}
+function firstParagraph(lines) {
+  const paragraph = [];
+  for (const line of lines) {
+    const text = line.trim();
+    if (text === "") {
+      if (paragraph.length > 0)
+        break;
+      continue;
+    }
+    if (/^#{1,6}\s/.test(text)) {
+      if (paragraph.length > 0)
+        break;
+      continue;
+    }
+    paragraph.push(text);
+  }
+  return paragraph.length > 0 ? paragraph.join(" ") : undefined;
+}
 var MAX_SUMMARY_LINKS = 24;
 var RELATIONSHIPS_DIR = ".kb/relationships";
 var shardCache = new Map;
@@ -857,15 +906,52 @@ function readEntitySummary(workspaceRoot, entityId) {
     return { id: entityId };
   const summary = { id: entityId };
   const authored = [];
+  const claim = {};
+  const values = [];
   let inLinks = false;
+  let inValueSet = false;
   let inOrigin = false;
   let originKind;
   let closed = false;
+  let bodyStart = lines.length;
   let pending;
-  for (const line of lines.slice(1)) {
+  for (let index = 1;index < lines.length; index += 1) {
+    const line = lines[index] ?? "";
     if (line.trim() === "---") {
       closed = true;
+      bodyStart = index + 1;
       break;
+    }
+    const scalar = /^([a-z_]+):\s*(.*)$/.exec(line);
+    const scalarField = scalar ? SUMMARY_SCALARS[scalar[1] ?? ""] : undefined;
+    if (scalar && scalarField && scalar[2]) {
+      const { value, last } = readScalar(lines, index, scalar[2]);
+      if (value !== "") {
+        if (scalarField === "statement")
+          summary.statement = value;
+        else if (scalarField !== "values")
+          claim[scalarField] = value;
+      }
+      index = last;
+      flushLink(authored, pending);
+      pending = undefined;
+      inLinks = false;
+      inValueSet = false;
+      continue;
+    }
+    if (scalar && SCALAR_VALUE_FIELDS.has(scalar[1] ?? "") && scalar[2]) {
+      values.push(unquote2(scalar[2]));
+    }
+    const flowSet = /^value_set:\s*\[(.*)\]\s*$/.exec(line);
+    if (flowSet?.[1]?.trim()) {
+      values.push(...flowSet[1].split(",").map((member) => unquote2(member)));
+    }
+    if (/^\S/.test(line))
+      inValueSet = /^value_set:\s*$/.test(line);
+    else if (inValueSet) {
+      const member = /^\s*-\s*(.+)$/.exec(line);
+      if (member)
+        values.push(unquote2(member[1] ?? ""));
     }
     const flowOrigin = /^origin:\s*\{.*\bkind:\s*["']?([a-z]+)/.exec(line);
     if (flowOrigin)
@@ -925,6 +1011,15 @@ function readEntitySummary(workspaceRoot, entityId) {
   }
   if (links.length > 0)
     summary.links = links;
+  if (values.length > 0)
+    claim.values = values;
+  if (Object.keys(claim).length > 0)
+    summary.claim = claim;
+  if (summary.statement === undefined && lane[1] === "requirements" && closed) {
+    const paragraph = firstParagraph(lines.slice(bodyStart));
+    if (paragraph)
+      summary.statement = paragraph;
+  }
   return summary;
 }
 
@@ -934,6 +1029,7 @@ var MAX_SYMBOLS_PER_REQUIREMENT = 3;
 var MAX_TESTS = 3;
 var MAX_TITLE = 80;
 var MAX_GROUNDING = 2;
+var MAX_CLAIM = 160;
 var MAX_FOCUS_SCAN_BYTES = 2 * 1024 * 1024;
 var MAX_SNIPPET_CHARS = 1200;
 function truncate(text, limit) {
@@ -1006,7 +1102,18 @@ function describeEntity(summary) {
   const retired = isRetiredStatus(summary.status) ? ` (${summary.status})` : "";
   const firmness = !retired && (summary.firmness === "firm" || summary.firmness === "exploratory") ? summary.firmness === "firm" ? " [firm: ask before changing]" : " [exploratory]" : "";
   const notable = `${retired}${firmness}`;
-  return summary.title ? `${summary.id}${notable}: ${truncate(summary.title, MAX_TITLE)}` : `${summary.id}${notable}`;
+  const title = displayTitle(summary);
+  return title ? `${summary.id}${notable}: ${truncate(title, MAX_TITLE)}` : `${summary.id}${notable}`;
+}
+function displayTitle(summary) {
+  const { title, statement } = summary;
+  if (!title || !statement?.startsWith(title))
+    return title;
+  const rest = statement.slice(title.length);
+  if (!/^\.\S/.test(rest))
+    return title;
+  const end = rest.search(/[.!?](?:\s|$)/);
+  return end < 0 ? statement : statement.slice(0, title.length + end);
 }
 function jsonString(value) {
   return JSON.stringify(value);
@@ -1051,6 +1158,72 @@ var GROUNDING_LINK_TYPES = [
   "requires_predicate",
   "requires_rule"
 ];
+var PROPERTY_VERBS = {
+  calls: "call",
+  imports: "import",
+  reads: "read",
+  uses: "use",
+  throws: "throw"
+};
+var OPERATOR_PHRASES = {
+  eq: "must be",
+  neq: "must not be",
+  lt: "must be less than",
+  lte: "must be at most",
+  gt: "must be greater than",
+  gte: "must be at least",
+  matches: "must match",
+  includes: "must include",
+  subset_of: "must be within",
+  excludes: "must not include"
+};
+function joinMembers(values, conjunction) {
+  if (values.length <= 1)
+    return values[0] ?? "";
+  return `${values.slice(0, -1).join(", ")} ${conjunction} ${values.at(-1)}`;
+}
+var MODAL = /^(.{1,100}?)\s+(?:must|may|can|cannot|should|shall|will|never)\b/i;
+function subjectPhrase(claim) {
+  const spoken = MODAL.exec(claim.claimText ?? "")?.[1];
+  if (spoken)
+    return spoken;
+  return claim.subjectKey?.replace(/[._]+/g, " ").trim() || undefined;
+}
+function factClaimSentence(summary) {
+  const claim = summary.claim;
+  if (!claim || claim.factKind === "subject")
+    return;
+  const values = claim.values ?? [];
+  if (claim.propertyKey && claim.operator && values.length > 0) {
+    const subject = subjectPhrase(claim);
+    if (!subject)
+      return claim.claimText;
+    const verb = PROPERTY_VERBS[claim.propertyKey];
+    const verbal = verb ? {
+      excludes: `must not ${verb} ${joinMembers(values, "or")}`,
+      includes: `must ${verb} ${joinMembers(values, "and")}`,
+      subset_of: `may ${verb} only ${joinMembers(values, "or")}`,
+      eq: `must ${verb} exactly ${joinMembers(values, "and")}`
+    }[claim.operator] : undefined;
+    if (verbal)
+      return `${subject} ${verbal}`;
+    const phrase = OPERATOR_PHRASES[claim.operator];
+    if (phrase) {
+      const property = claim.propertyKey.replace(/_+/g, " ");
+      const unit = claim.unit ? ` ${claim.unit}` : "";
+      return `${subject}: ${property} ${phrase} ${values.join(", ")}${unit}`;
+    }
+  }
+  return claim.claimText;
+}
+function groundingText(summary) {
+  if (summary.claim?.factKind === "subject")
+    return;
+  return factClaimSentence(summary) ?? summary.title;
+}
+function withoutClosingStop(text) {
+  return text.replace(/[.\s]+$/, "");
+}
 function requirementGroundingLines(requirementId, summarize, options = {}) {
   const maxFacts = options.maxFacts ?? MAX_GROUNDING;
   const requirement = summarize(requirementId);
@@ -1065,9 +1238,15 @@ function requirementGroundingLines(requirementId, summarize, options = {}) {
   ];
   const lines = [];
   if (facts.length > 0) {
-    const shown = facts.slice(0, maxFacts).map((id) => describeEntity(summarize(id)));
-    const more = facts.length > maxFacts ? ` +${facts.length - maxFacts}` : "";
-    lines.push(`${requirementId} must keep true: ${shown.join("; ")}${more}.`);
+    const claims = [
+      ...new Set(facts.map((id) => groundingText(summarize(id))).filter((sentence) => Boolean(sentence)).map(withoutClosingStop))
+    ];
+    const statement = requirement.statement ? withoutClosingStop(requirement.statement) : undefined;
+    const shown = claims.length > 0 ? claims.slice(0, maxFacts) : statement ? [statement] : [];
+    const more = claims.length > maxFacts ? ` +${claims.length - maxFacts} more` : "";
+    if (shown.length > 0) {
+      lines.push(`${requirementId} must keep true: ${shown.map((claim) => truncate(claim, MAX_CLAIM)).join("; ")}${more}.`);
+    }
   }
   const adr = adrs[0];
   if (adr)
@@ -1877,17 +2056,23 @@ function insideKibiCheckout(file) {
 }
 var checkoutCache = new Map;
 function detectTelemetryChannel(env = process.env, moduleFile = thisModuleFile() ?? null) {
+  return telemetryChannel(env, moduleFile).channel;
+}
+function telemetryChannel(env = process.env, moduleFile = thisModuleFile() ?? null) {
   const explicit = env.KIBI_TELEMETRY_CHANNEL?.trim();
   if (explicit)
-    return telemetryCategory(explicit) ?? "release";
+    return {
+      channel: telemetryCategory(explicit) ?? "release",
+      source: "KIBI_TELEMETRY_CHANNEL"
+    };
   if (!moduleFile)
-    return "release";
+    return { channel: "release", source: "installed" };
   let fromCheckout = checkoutCache.get(moduleFile);
   if (fromCheckout === undefined) {
     fromCheckout = insideKibiCheckout(moduleFile);
     checkoutCache.set(moduleFile, fromCheckout);
   }
-  return fromCheckout ? "source" : "release";
+  return fromCheckout ? { channel: "source", source: "checkout" } : { channel: "release", source: "installed" };
 }
 function telemetryDirectory(env = process.env) {
   const explicit = env.KIBI_TELEMETRY_DIR?.trim();
@@ -1915,10 +2100,13 @@ function writeTelemetryConfig(config, env) {
 }
 function telemetryStatus(env = process.env) {
   const directory = telemetryDirectory(env);
+  const { channel, source } = telemetryChannel(env);
   const status = (enabled, reason) => ({
     enabled,
     reason,
-    directory
+    directory,
+    channel,
+    channelSource: source
   });
   const explicit = flagValue(env.KIBI_TELEMETRY);
   if (explicit === false)
@@ -2378,11 +2566,15 @@ function parseStdinJson(rawInput) {
 // src/hook-state.ts
 import { createHash as createHash5, randomUUID as randomUUID4 } from "node:crypto";
 import fs7 from "node:fs";
+import os2 from "node:os";
 import path8 from "node:path";
 var stateFileName = "hook-state.json";
 var journalFileName = "hook-state.events.jsonl";
 var maxDirtyPaths = 50;
 var workspaceStateRoot = "workspaces";
+function resolvePluginDataDir(explicit, env = process.env) {
+  return explicit || env.PLUGIN_DATA?.trim() || env.CLAUDE_PLUGIN_DATA?.trim() || path8.join(os2.tmpdir(), `kibi-codex-${process.getuid?.() ?? "user"}`);
+}
 function resolveWorkspaceStateDir(pluginData, workspaceRoot) {
   if (!pluginData) {
     return;
@@ -2598,6 +2790,14 @@ function freshnessReminder(dirtyPaths) {
   ].join(`
 `);
 }
+function postEditImpactNote(sourcePaths) {
+  const sourceFiles = JSON.stringify(sourcePaths.slice(0, 10));
+  return [
+    `Kibi impact review: run kb_check({sourceFiles:${sourceFiles}, includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) while this edit is fresh.`,
+    "Check whether the linked requirements, scenarios and tests still cover the changed behavior."
+  ].join(`
+`);
+}
 function impactCheckReminder(sourcePaths) {
   const preview = sourcePaths.slice(0, 10);
   const sourceFiles = JSON.stringify(preview);
@@ -2685,11 +2885,14 @@ function editTargets(workspaceRoot, input) {
     absolute: target.absolute
   }));
 }
-function preEditContext(workspaceRoot, stateDir, input, env) {
+function preEditContext(workspaceRoot, stateDir, input, env, trace = {}) {
   const targets = editTargets(workspaceRoot, input);
-  if (targets.length === 0)
+  const first = targets[0];
+  if (first === undefined)
     return;
   const index = loadKnowledgeIndex(workspaceRoot, stateDir);
+  trace.pathKind = classifyPath(first.relative);
+  trace.requirementIds = implementedRequirementIds(index.files[first.relative] ?? []);
   const summarize = createEntitySummarizer(workspaceRoot);
   const session = { stateDir, sessionId: input.sessionId };
   const words = requestWords(session);
@@ -2763,21 +2966,39 @@ function recordToolTelemetry(workspaceRoot, stateDir, input, startedAt, env) {
     startedAt
   }, traces, env);
 }
+function stopReminder(reason, stopHookActive) {
+  return stopHookActive ? { continue: true, systemMessage: reason } : { continue: true, decision: "block", reason };
+}
+function postEditContext(stateDir, sessionId, sourcePaths) {
+  const fresh = sourcePaths.filter((sourcePath) => claimSnippetSlot(stateDir, `${sessionId ?? ""}\x00post-edit\x00${sourcePath}`));
+  if (fresh.length === 0)
+    return;
+  return {
+    continue: true,
+    hookSpecificOutput: {
+      hookEventName: "PostToolUse",
+      additionalContext: postEditImpactNote(fresh)
+    }
+  };
+}
 async function runHook(rawInput, environment = {}) {
   const startedAt = new Date;
   const input = parseHookInput(rawInput);
-  const pluginData = environment.pluginData ?? process.env.PLUGIN_DATA;
+  const env = environment.env ?? process.env;
   const workspace = resolveKibiWorkspace(input.cwd ?? process.cwd());
   if (!workspace.optedIn) {
     return defaultResult();
   }
-  const stateDir = resolveWorkspaceStateDir(pluginData, workspace.root);
+  const stateDir = resolveWorkspaceStateDir(resolvePluginDataDir(environment.pluginData, env), workspace.root);
+  const trace = {};
   try {
     switch (input.event) {
       case "SessionStart":
+        trace.action = "session_start";
         return defaultResult();
       case "UserPromptSubmit": {
         const rule = recordRequest({ stateDir, sessionId: input.sessionId }, input.prompt ?? "");
+        trace.action = rule === undefined ? "prompt_silent" : "prompt_rule_note";
         if (rule === undefined)
           return defaultResult();
         return {
@@ -2803,12 +3024,17 @@ async function runHook(rawInput, environment = {}) {
         const explicitPaths = extractEditedPaths(input.toolInput);
         const hasDirectKbEdit = isEditLikeTool(input.toolName) && explicitPaths.some(isDirectKbPath);
         if (hasDirectKbEdit) {
+          trace.action = "kb_direct_note";
+          trace.pathKind = "kb";
           return { continue: true, systemMessage: DIRECT_KB_EDIT_WARNING };
         }
         let context;
         try {
-          context = isKnownEditTool(input.toolName) ? preEditContext(workspace.root, stateDir, input, environment.env ?? process.env) : undefined;
+          context = isKnownEditTool(input.toolName) ? preEditContext(workspace.root, stateDir, input, env, trace) : undefined;
         } catch {}
+        if (isKnownEditTool(input.toolName) && trace.pathKind !== undefined) {
+          trace.action = context ? "edit_snippet" : "edit_silent";
+        }
         if (context) {
           return {
             continue: true,
@@ -2845,6 +3071,11 @@ async function runHook(rawInput, environment = {}) {
             markDecisionFlag(session, "requirement-recorded");
           }
         }
+        if (isKnownEditTool(input.toolName)) {
+          const note = postEditContext(stateDir, input.sessionId, dirtyPaths.filter(isSourceImpactRelevantPath2));
+          if (note)
+            return note;
+        }
         return defaultResult();
       }
       case "Stop": {
@@ -2858,9 +3089,11 @@ async function runHook(rawInput, environment = {}) {
           ].join(`
 `);
           clearDirtyPaths(stateDir);
+          trace.action = "stop_capture_reminder";
           return { continue: true, decision: "block", reason };
         }
         if (!input.stopHookActive && claimSignoffReminder(session, workspace.root)) {
+          trace.action = "stop_signoff_reminder";
           return {
             continue: true,
             decision: "block",
@@ -2869,18 +3102,14 @@ async function runHook(rawInput, environment = {}) {
         }
         if (uncheckedSourcePaths.length > 0) {
           clearDirtyPaths(stateDir);
-          return {
-            continue: true,
-            systemMessage: impactCheckReminder(uncheckedSourcePaths)
-          };
+          trace.action = "stop_reminder";
+          return stopReminder(impactCheckReminder(uncheckedSourcePaths), input.stopHookActive);
         }
         const freshnessPaths = state.dirtyPaths.filter((dirtyPath) => !isSourceImpactRelevantPath2(dirtyPath));
         if (freshnessPaths.length > 0) {
           clearDirtyPaths(stateDir);
-          return {
-            continue: true,
-            systemMessage: freshnessReminder(freshnessPaths)
-          };
+          trace.action = "stop_freshness_reminder";
+          return stopReminder(freshnessReminder(freshnessPaths), input.stopHookActive);
         }
         if (state.dirtyPaths.length > 0 || state.kbCheckRun) {
           clearDirtyPaths(stateDir);
@@ -2891,11 +3120,21 @@ async function runHook(rawInput, environment = {}) {
         return defaultResult();
     }
   } finally {
+    appendHookUsage({
+      host: "codex",
+      packageVersion: packageVersion(),
+      workspaceRoot: workspace.root,
+      event: input.event,
+      sessionId: input.sessionId,
+      hostTool: input.toolName,
+      trace,
+      startedAt
+    }, env);
     await finishHookTelemetry({
       event: input.event,
       workspaceRoot: workspace.root,
       sessionId: input.sessionId
-    }, environment.env ?? process.env);
+    }, env);
   }
 }
 async function main() {

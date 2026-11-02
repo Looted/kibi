@@ -2,7 +2,11 @@ import { execFileSync } from "node:child_process";
 import { load as parseYaml } from "js-yaml";
 import { extractFromManifestString } from "../extractors/manifest.js";
 import { extractFromMarkdownString } from "../extractors/markdown.js";
-import { CANONICAL_ENTITY_PATHS, isEntityLanePath } from "../utils/kb-paths.js";
+import {
+  CANONICAL_ENTITY_PATHS,
+  KB_ROOT,
+  isEntityLanePath,
+} from "../utils/kb-paths.js";
 import type { StagedPath } from "./git-staged.js";
 
 export const STAGED_FILE_COVERAGE_RESULT_VERSION =
@@ -202,6 +206,10 @@ function stagedManifestContent(
   return file.status === "D" ? null : (file.content ?? null);
 }
 
+function isKibiManagedPath(path: string): boolean {
+  return path.replaceAll("\\", "/").startsWith(`${KB_ROOT}/`);
+}
+
 function sourcePaths(entry: StagedPath): Set<string> {
   return new Set([entry.path, ...(entry.oldPath ? [entry.oldPath] : [])]);
 }
@@ -377,7 +385,10 @@ export function analyzeStagedFileCoverage(
       providerId: entry.analysisDepth === "symbol" ? "ts-morph" : null,
     });
 
-    if (entry.analysisDepth !== "file") continue;
+    // Kibi writes everything under .kb/ (schema, manifest, entities); it is
+    // knowledge, not product code, so it needs no requirement ownership.
+    if (entry.analysisDepth !== "file" || isKibiManagedPath(entry.path))
+      continue;
     if (requirementIds.length === 0) {
       diagnostics.push({
         id: "staged_file_ownership_missing",

@@ -31,6 +31,7 @@ import {
 } from "../plugins/source-classification.js";
 import { analysisObligation } from "../traceability/analysis-gate.js";
 import { resolveWorkspaceSourceAbsolute } from "../utils/repo-relative-path.js";
+import { matchDeclarationTitle } from "./symbol-title-match.js";
 import {
   type ManifestSymbolEntry,
   createTsMorphSourceAnalysisProvider,
@@ -304,7 +305,17 @@ export async function enrichSymbolCoordinates(
     if (!entry) continue;
 
     const resolved = resolveSourcePath(entry.sourceFile, workspaceRoot);
-    if (!resolved || !fs.statSync(resolved.absolutePath).isFile()) continue;
+    if (!resolved || !fs.statSync(resolved.absolutePath).isFile()) {
+      if (entry.sourceFile)
+        output[index] = {
+          ...entry,
+          coordinateRefreshFailure: unreadableSourceReason(
+            entry.sourceFile,
+            workspaceRoot,
+          ),
+        };
+      continue;
+    }
 
     const ext = path.extname(resolved.absolutePath).toLowerCase();
     if (isTsJsSourcePath(resolved.absolutePath)) {
@@ -371,7 +382,14 @@ export async function enrichSymbolCoordinates(
         );
       // Preserve the legacy coarse heuristic until the file-level migration;
       // it is never exposed as parser-backed symbol evidence.
-      output[index] = enrichWithRegexHeuristic(entry, resolved.absolutePath);
+      const placed = enrichWithRegexHeuristic(entry, resolved.absolutePath);
+      output[index] =
+        placed.sourceLine === undefined
+          ? {
+              ...placed,
+              coordinateRefreshFailure: `no text match for '${entry.title}' in ${logicalPath}, which has no parser-backed declarations (${(pack ?? fileLevel)?.message ?? "no symbol extractor reads this file type"})`,
+            }
+          : placed;
       continue;
     }
     const declared = localGaps
@@ -384,15 +402,17 @@ export async function enrichSymbolCoordinates(
             ),
         )
       : analysis.symbols;
-    const exact = declared.filter(
-      (symbol) => (symbol.qualifiedName ?? symbol.name) === entry.title,
+    const match = matchDeclarationTitle(
+      entry.title,
+      declared,
+      logicalPath,
+      analysis.symbols,
     );
-    const candidates = exact.length
-      ? exact
-      : declared.filter((symbol) => symbol.name === entry.title);
-    if (candidates.length !== 1) continue;
-    const symbol = candidates[0];
-    if (!symbol) continue;
+    if ("failure" in match) {
+      output[index] = { ...entry, coordinateRefreshFailure: match.failure };
+      continue;
+    }
+    const symbol = match.symbol;
     output[index] = {
       ...entry,
       sourceLine: symbol.startLine,
@@ -469,6 +489,17 @@ function enrichWithRegexHeuristic(
     );
     return entry;
   }
+}
+
+function unreadableSourceReason(
+  sourceFile: string,
+  workspaceRoot: string,
+): string {
+  const absolute = resolveWorkspaceSourceAbsolute(workspaceRoot, sourceFile);
+  if (absolute === null)
+    return `${sourceFile} is not a file path inside the workspace`;
+  if (!fs.existsSync(absolute)) return `${sourceFile} does not exist`;
+  return `${sourceFile} is not a regular file`;
 }
 
 function resolveSourcePath(

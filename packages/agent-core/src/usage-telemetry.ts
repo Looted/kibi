@@ -75,7 +75,21 @@ export type TelemetryStatus = {
   /** Why telemetry is on or off, e.g. `KIBI_TELEMETRY=0` or `default`. */
   reason: string;
   directory: string;
+  /** The channel events carry, e.g. `release`, `source` or `agent-test`. */
+  channel: string;
+  /** Where the channel comes from. */
+  channelSource: TelemetryChannelSource;
 };
+
+// implements REQ-kibi-anonymous-usage-telemetry
+/**
+ * `KIBI_TELEMETRY_CHANNEL` (a harness set it), `checkout` (Kibi runs from a
+ * checkout of its own repository) or `installed` (an installed package).
+ */
+export type TelemetryChannelSource =
+  | "KIBI_TELEMETRY_CHANNEL"
+  | "checkout"
+  | "installed";
 
 // implements REQ-kibi-anonymous-usage-telemetry
 /** Summary of one Kibi operation run through MCP or the CLI. */
@@ -325,15 +339,30 @@ export function detectTelemetryChannel(
   env: Env = process.env,
   moduleFile: string | null = thisModuleFile() ?? null,
 ): string {
+  return telemetryChannel(env, moduleFile).channel;
+}
+
+// implements REQ-kibi-anonymous-usage-telemetry
+/** The channel in effect and where it comes from. */
+export function telemetryChannel(
+  env: Env = process.env,
+  moduleFile: string | null = thisModuleFile() ?? null,
+): { channel: string; source: TelemetryChannelSource } {
   const explicit = env.KIBI_TELEMETRY_CHANNEL?.trim();
-  if (explicit) return telemetryCategory(explicit) ?? "release";
-  if (!moduleFile) return "release";
+  if (explicit)
+    return {
+      channel: telemetryCategory(explicit) ?? "release",
+      source: "KIBI_TELEMETRY_CHANNEL",
+    };
+  if (!moduleFile) return { channel: "release", source: "installed" };
   let fromCheckout = checkoutCache.get(moduleFile);
   if (fromCheckout === undefined) {
     fromCheckout = insideKibiCheckout(moduleFile);
     checkoutCache.set(moduleFile, fromCheckout);
   }
-  return fromCheckout ? "source" : "release";
+  return fromCheckout
+    ? { channel: "source", source: "checkout" }
+    : { channel: "release", source: "installed" };
 }
 
 // implements REQ-kibi-anonymous-usage-telemetry
@@ -396,10 +425,13 @@ export function setTelemetryPreference(
  */
 export function telemetryStatus(env: Env = process.env): TelemetryStatus {
   const directory = telemetryDirectory(env);
+  const { channel, source } = telemetryChannel(env);
   const status = (enabled: boolean, reason: string): TelemetryStatus => ({
     enabled,
     reason,
     directory,
+    channel,
+    channelSource: source,
   });
   const explicit = flagValue(env.KIBI_TELEMETRY);
   if (explicit === false) return status(false, "KIBI_TELEMETRY=0");

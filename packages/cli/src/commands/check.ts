@@ -34,6 +34,7 @@ import {
   type SourceChangeAnalysis,
   analyzeSourceChanges,
   assertSourceAnalysisGate,
+  partialAnalysisReviews,
 } from "../plugins/source-change-analysis.js";
 import { PrologProcess } from "../prolog.js";
 import {
@@ -104,6 +105,7 @@ import {
   type ManifestLookup,
   createManifestLookupSentinelKey,
   extractSymbolsFromStagedFileAsync,
+  partialAnalysisSymbolsUsable,
 } from "../traceability/symbol-extract.js";
 import {
   cleanupTempKb,
@@ -506,7 +508,7 @@ function noValidatedSymbolsMessage(
     return [`${analysis.path}${provider}`];
   });
   if (partialFiles.length > 0) {
-    return `Partial source analysis was reviewed for ${partialFiles.join(", ")}; no fully analyzed exported symbols or staged entities were available for symbol validation.`;
+    return `Partial source analysis was reviewed for ${partialFiles.join(", ")}; the staged change touches no declaration the analyzer placed and no staged entity.`;
   }
   return "No exported symbols or staged entities found in staged files.";
 }
@@ -739,11 +741,36 @@ export async function checkCommand(
           stagedInventory,
           sourceService,
         );
+        // A partial result still places its declarations: they are checked
+        // like fully analyzed ones, and only a staged line in a gap outside
+        // them keeps the file at file-level review.
+        const partialReviews = partialAnalysisReviews(
+          stagedInventory,
+          sourceAnalysis,
+        );
+        const partialReviewPaths = new Set(
+          partialReviews.map((review) => review.path),
+        );
+        const impactPolicyEnabled =
+          stagedInventory.length > 0 && hasValidBaseImpactPolicy(snapshot);
+        const partialSymbolPaths = new Set<string>();
         for (const file of stagedInventory) {
-          const analysis = sourceAnalysis.get(file.path);
-          if (analysis?.after?.status === "ok") {
+          const after = sourceAnalysis.get(file.path)?.after;
+          if (after?.status === "ok") {
             file.analysisDepth = "symbol";
             file.disposition = "checked";
+          } else if (
+            after &&
+            file.status !== "D" &&
+            !file.skipReason &&
+            partialAnalysisSymbolsUsable(after)
+          ) {
+            partialSymbolPaths.add(file.path);
+            // An impact review binds the classified depth; keep it there.
+            if (!impactPolicyEnabled && !partialReviewPaths.has(file.path)) {
+              file.analysisDepth = "symbol";
+              file.disposition = "checked";
+            }
           }
         }
         const mergeInherited = snapshot.mergeInherited ?? [];
@@ -756,9 +783,14 @@ export async function checkCommand(
           renameResolved.length > 0
             ? `Baseline: HEAD with ${renameResolved.length} staged knowledge rename(s) into .kb/ resolved; renamed files are judged only on what this commit changed in them. Run kibi check for the full report.`
             : undefined;
-        const baselineNotes = [mergeNote, renameNote].filter(
-          (note): note is string => note !== undefined,
-        );
+        const baselineNotes = [
+          mergeNote,
+          renameNote,
+          ...partialReviews.map(
+            (review) =>
+              `Partial source analysis: staged line(s) ${review.lines.map((range) => (range.startLine === range.endLine ? `${range.startLine}` : `${range.startLine}-${range.endLine}`)).join(", ")} of ${review.path} fall outside every declaration the analyzer placed (${review.detail}); review that change at file level.`,
+          ),
+        ].filter((note): note is string => note !== undefined);
         const printNotedResult = (
           input: Parameters<typeof printStagedResult>[0],
         ): void => {
@@ -807,8 +839,6 @@ export async function checkCommand(
           record.providerId =
             analysis.after?.providerId ?? analysis.before?.providerId ?? null;
         }
-        const impactPolicyEnabled =
-          stagedInventory.length > 0 && hasValidBaseImpactPolicy(snapshot);
         // One rule decides which analysis gaps block (see analysis-gate): the
         // committed side never blocks, and an after-side local gap blocks only
         // where it overlaps the staged lines. With a policy, the impact review
@@ -848,12 +878,20 @@ export async function checkCommand(
 
         const symbolPaths = new Set(
           stagedInventory
-            .filter((file) => file.analysisDepth === "symbol")
+            .filter(
+              (file) =>
+                file.analysisDepth === "symbol" ||
+                partialSymbolPaths.has(file.path),
+            )
             .map((file) => file.path),
         );
-        const sourceFiles = stagedFiles.filter((file) =>
-          symbolPaths.has(file.path),
-        );
+        const sourceFiles = supportedStagedFiles(
+          stagedInventory.map((file) =>
+            partialSymbolPaths.has(file.path)
+              ? { ...file, analysisDepth: "symbol" as const }
+              : file,
+          ),
+        ).filter((file) => symbolPaths.has(file.path));
         const markdownFiles = stagedFiles.filter(
           (file) => file.path.endsWith(".md") && isEntityLanePath(file.path),
         );

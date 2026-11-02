@@ -46,11 +46,19 @@ On WSL workspaces, Cursor reads `~/.cursor/plugins/local` in your Linux home, no
 npm install --save-dev kibi-cursor
 ```
 
-Copy the installed package into Cursor's local plugin directory (do not symlink):
+Copy the installed package into Cursor's local plugin directory (do not
+symlink). Remove an earlier copy first, or `cp` nests the new one inside it:
 
 ```bash
-cp -r "$(npm root)/kibi-cursor" ~/.cursor/plugins/local/kibi-cursor
+mkdir -p ~/.cursor/plugins/local
+rm -rf ~/.cursor/plugins/local/kibi-cursor
+cp -R "$(npm root)/kibi-cursor" ~/.cursor/plugins/local/kibi-cursor
 ```
+
+The copy needs no `node_modules`: the hooks run `bin/hook-runner.mjs`, a
+self-contained bundle, and the MCP launcher `bin/launch-kibi-mcp.mjs` uses
+only Node built-ins and starts the opened project's own `kibi-mcp`. Copy again
+after upgrading `kibi-cursor`.
 
 ## MCP configuration
 
@@ -80,6 +88,16 @@ Toggle the bundled MCP server from **Settings → Features → Model Context Pro
 
 Cursor expands `${CURSOR_PLUGIN_ROOT}` to the installed plugin directory and
 `${workspaceFolder}` to the opened workspace before starting the command.
+
+Unlike the Claude Code, Codex and ZCode launchers, which fall back to a
+global `kibi-mcp` (with a notice on stderr), the Cursor plugin launcher only
+runs the opened project's own `kibi-mcp`: Cursor starts plugin MCP servers
+from a host-chosen directory, and a project-local package keeps the server
+version tied to the project's `kibi-cli` and `.kb/` schema. Without one it
+refuses with an error that says how to install it. To use a global
+`kibi-mcp` anyway, turn off the plugin's MCP server and add the manual entry
+below (`npx --no-install` finds a project-local install first, then a global
+one).
 
 Manual MCP fallback (no plugin install required):
 

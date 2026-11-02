@@ -325,7 +325,7 @@ describe("preToolUse emits guidance before the edit is written", () => {
       "- REQ-checkout-total [firm: ask before changing]: Checkout totals round to cents — SYM-checkout-total",
     );
     expect(result.agent_message).toContain(
-      "REQ-checkout-total must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.",
+      "REQ-checkout-total must keep true: Totals round half up to two decimals.",
     );
     expect(result.agent_message).toContain(
       "Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",

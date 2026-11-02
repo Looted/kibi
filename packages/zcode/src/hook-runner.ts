@@ -21,6 +21,8 @@ import {
   signoffReminder,
 } from "kibi-agent-core/decision-guard";
 import {
+  type HookTrace,
+  appendHookUsage,
   appendHookUsageRows,
   editTraces,
   finishHookTelemetry,
@@ -33,8 +35,9 @@ import {
   type IndexedSymbol,
   loadKnowledgeIndex,
 } from "kibi-agent-core/knowledge-index";
-import { extractEditedPaths } from "kibi-agent-core/path-policy";
+import { classifyPath, extractEditedPaths } from "kibi-agent-core/path-policy";
 import {
+  claimSnippetSlot,
   createEntitySummarizer,
   editFocus,
   editKnowledgeContext,
@@ -48,6 +51,7 @@ import {
   clearDirtyPaths,
   loadHookState,
   recordKbMcpTool,
+  resolvePluginDataDir,
   resolveSessionStateDir,
 } from "./hook-state.js";
 import { extractKbMcpToolCall } from "./kb-mcp-tools.js";
@@ -56,6 +60,7 @@ import {
   SESSION_START_CONTEXT,
   freshnessReminder,
   impactCheckReminder,
+  postEditImpactNote,
 } from "./messages.js";
 import {
   canonicalizeWorkspacePath,
@@ -160,10 +165,18 @@ function preEditContext(
   stateDir: string | undefined,
   input: ReturnType<typeof parseHookInput>,
   env: NodeJS.ProcessEnv,
+  trace: HookTrace = {},
 ): string | undefined {
   const targets = editTargets(workspaceRoot, input);
   if (targets.length === 0) return undefined;
   const files = loadKnowledgeIndex(workspaceRoot, stateDir).files;
+  const first = targets[0];
+  if (first) {
+    trace.pathKind = classifyPath(first.relative);
+    trace.requirementIds = implementedRequirementIds(
+      files[first.relative] ?? [],
+    );
+  }
   const summarize = createEntitySummarizer(workspaceRoot);
   const notice = firmNotice(
     targets,
@@ -328,16 +341,34 @@ function isEditLikeTool(toolName: string | undefined): boolean {
   return toolName === undefined || editableTools.has(toolName);
 }
 
+/**
+ * The impact check to run after an edit of source files, once per file per
+ * session, as context next to the tool result.
+ */
+function postEditContext(
+  stateDir: string | undefined,
+  sessionId: string | undefined,
+  sourcePaths: readonly string[],
+): HookResult | undefined {
+  const fresh = sourcePaths.filter((sourcePath) =>
+    claimSnippetSlot(
+      stateDir,
+      `${sessionId ?? ""}\u0000post-edit\u0000${sourcePath}`,
+    ),
+  );
+  return fresh.length > 0
+    ? contextResult("PostToolUse", postEditImpactNote(fresh))
+    : undefined;
+}
+
 export async function runHook(
   rawInput: unknown,
   environment: HookEnvironment = {},
 ): Promise<HookResult> {
   const startedAt = new Date();
   const input = parseHookInput(rawInput);
-  const pluginData =
-    environment.pluginData ??
-    process.env.ZCODE_PLUGIN_DATA ??
-    process.env.CLAUDE_PLUGIN_DATA;
+  const env = environment.env ?? process.env;
+  const pluginData = resolvePluginDataDir(environment.pluginData, env);
 
   // Workspaces that never adopted Kibi must stay silent: no reminders, no
   // tracking, and no state writes. The resolution is shared by every event so
@@ -357,10 +388,12 @@ export async function runHook(
   );
 
   const session: DecisionSession = { stateDir, sessionId: input.sessionId };
+  const trace: HookTrace = {};
 
   try {
     switch (input.event) {
       case "SessionStart":
+        trace.action = "session_start";
         return contextResult(input.event, SESSION_START_CONTEXT);
 
       // implements REQ-agent-hosts-decision-guard
@@ -368,6 +401,8 @@ export async function runHook(
         const rule = input.prompt
           ? recordRequest(session, input.prompt)
           : undefined;
+        trace.action =
+          rule === undefined ? "prompt_silent" : "prompt_rule_note";
         return rule === undefined
           ? defaultResult()
           : contextResult(input.event, rulePromptNote(rule));
@@ -405,23 +440,23 @@ export async function runHook(
           });
 
         if (hasDirectKbEdit) {
+          trace.action = "kb_direct_note";
+          trace.pathKind = "kb";
           return contextResult(input.event, DIRECT_KB_EDIT_WARNING);
         }
 
         let knowledge: string | undefined;
         try {
           knowledge = isMutatingTool(input.toolName)
-            ? preEditContext(
-                workspace.root,
-                stateDir,
-                input,
-                environment.env ?? process.env,
-              )
+            ? preEditContext(workspace.root, stateDir, input, env, trace)
             : undefined;
         } catch {
           // Requirement context is advisory; an unreadable manifest or file
           // leaves the edit without it rather than reporting a hook error.
           knowledge = undefined;
+        }
+        if (isMutatingTool(input.toolName) && trace.pathKind !== undefined) {
+          trace.action = knowledge ? "edit_snippet" : "edit_silent";
         }
         if (knowledge) {
           return contextResult(input.event, knowledge);
@@ -461,6 +496,7 @@ export async function runHook(
 
         // Only file-mutating tool events create dirty paths; a path argument
         // inside a read-only tool call is not evidence of a change.
+        let editedSource: string[] = [];
         if (isMutatingTool(input.toolName)) {
           const dirtyPaths = extractMutatedWorkspacePaths(
             workspace.root,
@@ -471,7 +507,8 @@ export async function runHook(
           if (dirtyPaths.length > 0) {
             addDirtyPaths(stateDir, dirtyPaths);
           }
-          if (dirtyPaths.some(isSourceImpactRelevantPath)) {
+          editedSource = dirtyPaths.filter(isSourceImpactRelevantPath);
+          if (editedSource.length > 0) {
             markDecisionFlag(session, "source-edited");
           }
         }
@@ -487,10 +524,15 @@ export async function runHook(
           }
         }
 
-        return defaultResult();
+        return (
+          postEditContext(stateDir, input.sessionId, editedSource) ??
+          defaultResult()
+        );
       }
 
       case "Stop": {
+        // One continuation per stop: pending work waits for the next Stop.
+        if (input.stopHookActive) return defaultResult();
         const state = loadHookState(stateDir);
         const uncheckedSourcePaths = state.dirtyPaths
           .filter(isSourceImpactRelevantPath)
@@ -515,6 +557,12 @@ export async function runHook(
           uncheckedSourcePaths.length > 0
         ) {
           clearDirtyPaths(stateDir);
+          trace.action =
+            capture !== undefined
+              ? "stop_capture_reminder"
+              : signoff !== undefined
+                ? "stop_signoff_reminder"
+                : "stop_reminder";
           return contextResult(
             input.event,
             [
@@ -535,6 +583,7 @@ export async function runHook(
 
         if (freshnessPaths.length > 0) {
           clearDirtyPaths(stateDir);
+          trace.action = "stop_freshness_reminder";
           return contextResult(input.event, freshnessReminder(freshnessPaths));
         }
 
@@ -549,13 +598,26 @@ export async function runHook(
         return defaultResult();
     }
   } finally {
+    appendHookUsage(
+      {
+        host: "zcode",
+        packageVersion: packageVersion(),
+        workspaceRoot: workspace.root,
+        event: input.event,
+        sessionId: input.sessionId,
+        hostTool: input.toolName,
+        trace,
+        startedAt,
+      },
+      env,
+    );
     await finishHookTelemetry(
       {
         event: input.event,
         workspaceRoot: workspace.root,
         sessionId: input.sessionId,
       },
-      environment.env ?? process.env,
+      env,
     );
   }
 }

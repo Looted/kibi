@@ -93,12 +93,18 @@ import {
   applyLegacyStorageMigration,
   planLegacyStorageMigration,
 } from "./legacy-storage-migration.js";
+import {
+  describePlanChange,
+  findPrintedPlan,
+  recordPrintedPlan,
+} from "./migrate-plan-record.js";
 
 interface MigrateOptions {
   dryRun?: boolean;
   yes?: boolean;
   format?: "json" | "table";
-  applySafe?: boolean;
+  /** `--apply-safe [sha256]`: true, or the approved plan hash given with it. */
+  applySafe?: boolean | string;
   approvedPlanHash?: string;
   approvedActionIds?: string[];
   /** `--approved-action <id>` as the CLI parser spells it; same as approvedActionIds. */
@@ -724,7 +730,7 @@ export async function migrateCommand(
   options: MigrateOptions = {},
 ): Promise<{ exitCode: number; summary?: MigrationRunSummary }> {
   if (
-    options.applySafe === true ||
+    applySafeRequested(options) ||
     options.format === "json" ||
     (options.yes !== true && options.dryRun !== true)
   ) {
@@ -1625,34 +1631,87 @@ function printApplySummary(content: unknown): void {
   );
 }
 
+/** True for `--apply-safe`, with or without the hash it may carry. */
+function applySafeRequested(options: MigrateOptions): boolean {
+  return (
+    options.applySafe === true ||
+    (typeof options.applySafe === "string" && options.applySafe !== "")
+  );
+}
+
+/** The exact command that applies the plan with this hash. */
+// implements REQ-cli-schema-migration
+export function applyPlanCommand(planHash: string): string {
+  return `kibi migrate --apply-safe ${planHash}`;
+}
+
+/**
+ * Why an approved hash is not the current plan's: what changed since that
+ * plan was printed here, when Kibi recorded it, and the command for the
+ * current plan.
+ */
+// implements REQ-cli-schema-migration
+export function planChangedMessage(
+  workspaceRoot: string,
+  approvedPlanHash: string,
+  plan: MigrationPlan,
+): string {
+  const printed = findPrintedPlan(workspaceRoot, approvedPlanHash);
+  const changes = printed ? describePlanChange(printed, plan) : [];
+  const lines = [
+    printed
+      ? `The migration plan changed since ${approvedPlanHash} was printed (${printed.printedAt}); its hash is now ${plan.planHash}. Nothing was applied.`
+      : `${approvedPlanHash} is not the current migration plan; its hash is now ${plan.planHash}. Kibi has no record of printing ${approvedPlanHash} here, so it cannot say what changed. Nothing was applied.`,
+    ...(printed
+      ? changes.length > 0
+        ? ["What changed:", ...changes.map((change) => `- ${change}`)]
+        : ["Its actions and inputs are the same; only their details changed."]
+      : []),
+    `Review the current plan with 'kibi migrate', then apply it with: ${applyPlanCommand(plan.planHash)}`,
+  ];
+  return lines.join("\n");
+}
+
 async function migratePlanCommand(
   options: MigrateOptions,
 ): Promise<{ exitCode: number }> {
   const workspaceRoot = path.resolve(options.workspaceRoot ?? process.cwd());
   const plan = await buildWorkspaceMigrationPlan(workspaceRoot);
+  const applySafe = applySafeRequested(options);
   // `--yes` with JSON output applies every ready automatic action of the plan
   // it would otherwise only print; `--dry-run` still only prints it.
   const approveWholePlan =
-    options.applySafe !== true &&
+    !applySafe &&
     options.yes === true &&
     options.dryRun !== true &&
     options.format === "json";
-  if (options.applySafe === true || approveWholePlan) {
+  if (applySafe || approveWholePlan) {
+    const inlineHash =
+      typeof options.applySafe === "string" ? options.applySafe : undefined;
+    if (
+      inlineHash !== undefined &&
+      options.approvedPlanHash !== undefined &&
+      inlineHash !== options.approvedPlanHash
+    ) {
+      noteCliErrorCategory("migrate:approved_plan_hash_conflict");
+      console.error(
+        `--apply-safe ${inlineHash} and --approved-plan-hash ${options.approvedPlanHash} name different plans; give one hash. The current plan applies with: ${applyPlanCommand(plan.planHash)}`,
+      );
+      return { exitCode: 2 };
+    }
     const approvedPlanHash = approveWholePlan
       ? plan.planHash
-      : options.approvedPlanHash;
+      : (inlineHash ?? options.approvedPlanHash);
     if (!approvedPlanHash) {
       noteCliErrorCategory("migrate:approved_plan_hash_missing");
       console.error(
-        `--apply-safe requires --approved-plan-hash <sha256>. Review the plan with 'kibi migrate', then approve its current hash: kibi migrate --apply-safe --approved-plan-hash ${plan.planHash}`,
+        `--apply-safe needs the hash of the plan you reviewed. Review the plan with 'kibi migrate', then apply its current hash: ${applyPlanCommand(plan.planHash)}`,
       );
       return { exitCode: 2 };
     }
     if (approvedPlanHash !== plan.planHash) {
       noteCliErrorCategory("migrate:plan_hash_changed");
-      console.error(
-        `Migration plan changed; regenerate the plan and approve its current hash: kibi migrate --apply-safe --approved-plan-hash ${plan.planHash}`,
-      );
+      console.error(planChangedMessage(workspaceRoot, approvedPlanHash, plan));
       return { exitCode: 2 };
     }
     const explicitActionIds = approveWholePlan
@@ -1710,6 +1769,7 @@ async function migratePlanCommand(
   } else {
     printPlanText(plan, options.backlog === true);
   }
+  if (options.dryRun !== true) recordPrintedPlan(workspaceRoot, plan);
   return { exitCode: 0 };
 }
 
@@ -1779,6 +1839,10 @@ function printPlanText(plan: MigrationPlan, listBacklog: boolean): void {
     }
   }
   console.log(
-    `Plan status: ${plan.status} (covers both sections). Use --format json for structured actions, or --apply-safe with the approved plan hash.`,
+    `Plan status: ${plan.status} (covers both sections). Use --format json for structured actions.`,
   );
+  if (automaticReady > 0)
+    console.log(
+      `Apply the ${automaticReady} ready automatic action(s) of this plan: ${applyPlanCommand(plan.planHash)}`,
+    );
 }

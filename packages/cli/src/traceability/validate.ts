@@ -237,18 +237,20 @@ export function formatViolations(violations: Violation[]): string {
   if (!violations || violations.length === 0) return "";
   const total = violations.length;
   const minLinks = violations[0]?.requiredLinks ?? 0;
-  const lines: string[] = [];
-  lines.push(
-    `Traceability failed: ${total}/${total} staged symbols unlinked (minLinks=${minLinks})`,
-  );
+  const lines: string[] = [
+    `Traceability failed: ${total} changed symbol(s) have fewer than ${minLinks} requirement link(s) (minLinks=${minLinks}):`,
+  ];
   for (const v of violations) {
-    const loc = `${v.file}:${v.line}`;
-    const name = `${v.name}()`;
-    // Suggest adding requirement links with role-specific guidance
-    const suggestion =
-      "Add ownership: implements: REQ-<area>-<behavior> (production code), use covered_by for production coverage, or executable_for for executable test code";
-    lines.push(`${loc}  ${name}  -> ${suggestion}`);
+    lines.push(
+      `  ${v.file}:${v.line}  ${v.name}  (${v.currentLinks} of ${v.requiredLinks} link(s))`,
+    );
   }
+  lines.push(
+    "To link a symbol, give it an owning requirement, stage the change and re-run kibi check --staged:",
+    `  - Add a .kb/symbols.yaml entry with kb_upsert (CLI: kibi upsert --input -): title as listed above (e.g. ${JSON.stringify(violations[0]?.name ?? "")}), sourceFile, and the relationship implements -> REQ-<area>-<behavior> for production code or executable_for -> TEST-<area>-<behavior> for executable test code. Stage .kb/symbols.yaml with the code.`,
+    "  - Or write a comment `implements REQ-<area>-<behavior>` directly above the declaration.",
+    "  If no requirement fits, find one with kb_search or create it with kb_upsert (type req) first; production symbols also need covered_by -> TEST-<area>-<behavior>.",
+  );
   return lines.join("\n");
 }
 

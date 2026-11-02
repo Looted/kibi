@@ -53,6 +53,12 @@
 
 ### Patch Changes
 
+- Each hook decision is now recorded in usage telemetry, as on the other hosts (`KIBI_TELEMETRY=0` turns it off). The README npm copy route replaces an earlier copy instead of nesting into it and explains that the copy needs no `node_modules`, and the missing-`kibi-mcp` error says how to use a global `kibi-mcp` through the manual MCP entry.
+
+- The kibi-usage skill (2.40.1) describes the `must keep true` line of edit snippets as the requirement's modeled claims or its own statement.
+
+- Edit snippets say what the lead requirement must keep true as the claims its facts model, in words with their operator and members (for example "REQ-GREET must keep true: The greet function must not call console.log."), or as the requirement's own statement, instead of listing internal fact IDs and subject keys. A requirement title that an older Kibi cut at a dot inside a name is shown whole.
+
 - 048d1c9: Close false proofs found by testing the language packs before release:
   - A references claim whose subject key or claim text names a project file (also with a repository prefix, another letter case, no extension, or spaces) is rejected unless that file is among the files read, so a claim about one file cannot be decided on another.
   - `excludes` now fails on a longer name ending in the excluded item at a segment boundary (`checkNotNull` excludes `Preconditions.checkNotNull`).

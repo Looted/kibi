@@ -749,7 +749,85 @@ export type EntitySummary = {
    * with canonical relationship-shard records whose `from` is this entity.
    */
   links?: EntityLink[];
+  /** Requirement prose: `semantic_text`, else the body's first paragraph. */
+  statement?: string;
+  /** The claim a fact models, from its typed front matter fields. */
+  claim?: FactClaim;
 };
+
+// implements REQ-agent-core-edit-snippets
+/** A fact's typed fields, as authored; absent fields are left out. */
+export type FactClaim = {
+  factKind?: string;
+  subjectKey?: string;
+  propertyKey?: string;
+  operator?: string;
+  /** `value_set` members, or the one scalar value. */
+  values?: string[];
+  unit?: string;
+  claimText?: string;
+};
+
+/** Front matter scalars a summary keeps, by field name. */
+const SUMMARY_SCALARS: Readonly<Record<string, keyof FactClaim | "statement">> =
+  {
+    semantic_text: "statement",
+    fact_kind: "factKind",
+    subject_key: "subjectKey",
+    property_key: "propertyKey",
+    operator: "operator",
+    unit: "unit",
+    claim_text: "claimText",
+  };
+
+const SCALAR_VALUE_FIELDS = new Set([
+  "value_string",
+  "value_int",
+  "value_number",
+  "value_bool",
+]);
+
+/**
+ * A front matter scalar starting at `lines[index]` with `raw` after its key:
+ * a plain or quoted value with its indented continuation lines, or a block
+ * scalar (`>-`, `|`). Returns the value and the last line it used.
+ */
+function readScalar(
+  lines: readonly string[],
+  index: number,
+  raw: string,
+): { value: string; last: number } {
+  const block = /^[>|][+-]?$/.test(raw.trim());
+  const parts: string[] = block ? [] : [raw.trim()];
+  let last = index;
+  while (last + 1 < lines.length) {
+    const next = lines[last + 1] ?? "";
+    if (next.trim() === "---" || !/^\s+\S/.test(next)) break;
+    if (!block && /^\s+-\s/.test(next)) break;
+    parts.push(next.trim());
+    last += 1;
+  }
+  const joined = parts.join(" ").trim();
+  return { value: block ? joined : unquote(joined), last };
+}
+
+/** The first prose paragraph of a Markdown body, headings skipped. */
+function firstParagraph(lines: readonly string[]): string | undefined {
+  const paragraph: string[] = [];
+  for (const line of lines) {
+    const text = line.trim();
+    if (text === "") {
+      if (paragraph.length > 0) break;
+      continue;
+    }
+    if (/^#{1,6}\s/.test(text)) {
+      if (paragraph.length > 0) break;
+      continue;
+    }
+    paragraph.push(text);
+  }
+  return paragraph.length > 0 ? paragraph.join(" ") : undefined;
+}
 
 const MAX_SUMMARY_LINKS = 24;
 const RELATIONSHIPS_DIR = ".kb/relationships";
@@ -850,15 +928,48 @@ export function readEntitySummary(
   if (lines[0]?.trim() !== "---") return { id: entityId };
   const summary: EntitySummary = { id: entityId };
   const authored: EntityLink[] = [];
+  const claim: FactClaim = {};
+  const values: string[] = [];
   let inLinks = false;
+  let inValueSet = false;
   let inOrigin = false;
   let originKind: string | undefined;
   let closed = false;
+  let bodyStart = lines.length;
   let pending: PendingLink | undefined;
-  for (const line of lines.slice(1)) {
+  for (let index = 1; index < lines.length; index += 1) {
+    const line = lines[index] ?? "";
     if (line.trim() === "---") {
       closed = true;
+      bodyStart = index + 1;
       break;
+    }
+    const scalar = /^([a-z_]+):\s*(.*)$/.exec(line);
+    const scalarField = scalar ? SUMMARY_SCALARS[scalar[1] ?? ""] : undefined;
+    if (scalar && scalarField && scalar[2]) {
+      const { value, last } = readScalar(lines, index, scalar[2]);
+      if (value !== "") {
+        if (scalarField === "statement") summary.statement = value;
+        else if (scalarField !== "values") claim[scalarField] = value;
+      }
+      index = last;
+      flushLink(authored, pending);
+      pending = undefined;
+      inLinks = false;
+      inValueSet = false;
+      continue;
+    }
+    if (scalar && SCALAR_VALUE_FIELDS.has(scalar[1] ?? "") && scalar[2]) {
+      values.push(unquote(scalar[2]));
+    }
+    const flowSet = /^value_set:\s*\[(.*)\]\s*$/.exec(line);
+    if (flowSet?.[1]?.trim()) {
+      values.push(...flowSet[1].split(",").map((member) => unquote(member)));
+    }
+    if (/^\S/.test(line)) inValueSet = /^value_set:\s*$/.test(line);
+    else if (inValueSet) {
+      const member = /^\s*-\s*(.+)$/.exec(line);
+      if (member) values.push(unquote(member[1] ?? ""));
     }
     // implements REQ-kb-decision-firmness-from-origin
     const flowOrigin = /^origin:\s*\{.*\bkind:\s*["']?([a-z]+)/.exec(line);
@@ -919,5 +1030,11 @@ export function readEntitySummary(
     if (links.length >= MAX_SUMMARY_LINKS) break;
   }
   if (links.length > 0) summary.links = links;
+  if (values.length > 0) claim.values = values;
+  if (Object.keys(claim).length > 0) summary.claim = claim;
+  if (summary.statement === undefined && lane[1] === "requirements" && closed) {
+    const paragraph = firstParagraph(lines.slice(bodyStart));
+    if (paragraph) summary.statement = paragraph;
+  }
   return summary;
 }

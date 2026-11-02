@@ -3,6 +3,7 @@ import {
   buildStrictWriteSet,
 } from "../../public/check-types.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
+import { firstSentence } from "../../utils/first-sentence.js";
 import { readKbManifestStatus } from "../../utils/kb-manifest.js";
 import {
   factSourcePath,
@@ -481,8 +482,7 @@ async function unresolvedConditionalResult(
             type: "req",
             id: args.requirementId,
             properties: {
-              title:
-                claimText.split(/[.!?]/, 1)[0] || "Conditional requirement",
+              title: firstSentence(claimText) || "Conditional requirement",
               status: "open",
               source: extracted.source,
               semantic_text: semanticText,

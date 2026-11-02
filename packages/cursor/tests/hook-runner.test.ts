@@ -842,7 +842,7 @@ describe("Cursor hook command pre-edit knowledge (end to end)", () => {
       "Kibi knowledge for src/checkout.ts (symbol manifest):\n- REQ-checkout-rounding [firm: ask before changing]: Checkout totals round to cents — computeTotal\n",
     );
     expect(snippet).toContain(
-      "\nREQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.\n",
+      "\nREQ-checkout-rounding must keep true: Totals round half up to two decimals.\n",
     );
     expect(snippet).toContain(
       "\nDecision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.\n",
@@ -1052,6 +1052,137 @@ describe("Cursor hook runner result contracts", () => {
     const { event } = conversation(cursorLinkedWorkspace(), env);
     await event({ hook_event_name: "stop", status: "completed" }, "conv-8");
     expect(fs.readdirSync(telemetryDir)).toEqual([]);
+  });
+
+  // implements REQ-kibi-anonymous-usage-telemetry
+  test("every hook event that decides something queues one kibi_hook, and KIBI_TELEMETRY=0 queues none", async () => {
+    const telemetryDir = createTempRoot("kibi-cursor-telemetry-");
+    tempRoots.push(telemetryDir);
+    const queue = path.join(telemetryDir, "telemetry-queue.jsonl");
+    const runAll = async (env: NodeJS.ProcessEnv) => {
+      const { event, workspace } = conversation(cursorLinkedWorkspace(), env);
+      const file = path.join(workspace, "src/checkout.ts");
+      for (const payload of [
+        { hook_event_name: "sessionStart" },
+        {
+          hook_event_name: "beforeSubmitPrompt",
+          prompt: "Totals must never round down.",
+        },
+        { hook_event_name: "beforeReadFile", file_path: file },
+        {
+          hook_event_name: "preToolUse",
+          tool_name: "Write",
+          tool_input: { file_path: file },
+        },
+        {
+          hook_event_name: "postToolUse",
+          tool_name: "Write",
+          tool_input: { file_path: file },
+        },
+        { hook_event_name: "stop", status: "completed", loop_count: 0 },
+      ]) {
+        await event(payload, "conv-9");
+      }
+    };
+
+    await runAll({ KIBI_TELEMETRY: "0", KIBI_TELEMETRY_DIR: telemetryDir });
+    expect(fs.existsSync(queue)).toBe(false);
+
+    await runAll({
+      KIBI_TELEMETRY: "1",
+      KIBI_TELEMETRY_DIR: telemetryDir,
+      KIBI_TELEMETRY_CHANNEL: "agent-test",
+      // stop sends the queue; an unreachable host keeps it on disk.
+      KIBI_TELEMETRY_HOST: "http://127.0.0.1:9",
+    });
+    const queued = fs
+      .readFileSync(queue, "utf8")
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line).properties);
+    expect(
+      queued.map((event) => [event.hook_event, event.hook_action]),
+    ).toEqual([
+      ["sessionStart", "session_start"],
+      ["beforeSubmitPrompt", "prompt_rule_note"],
+      ["beforeReadFile", "read_snippet"],
+      ["preToolUse", "edit_snippet"],
+      ["postToolUse", "edited"],
+      ["stop", "stop_capture_reminder"],
+    ]);
+    for (const event of queued) {
+      expect(event).toMatchObject({
+        package: "kibi-cursor",
+        host: "cursor",
+        channel: "agent-test",
+        session: hashTelemetryId("conv-9"),
+      });
+    }
+  });
+
+  // implements REQ-kibi-anonymous-usage-telemetry
+  test("each hook decision queues its action, path kind and requirement count, and only in a Kibi workspace", async () => {
+    const telemetryDir = createTempRoot("kibi-cursor-telemetry-");
+    tempRoots.push(telemetryDir);
+    const queue = path.join(telemetryDir, "telemetry-queue.jsonl");
+    const env = {
+      KIBI_TELEMETRY: "1",
+      KIBI_TELEMETRY_DIR: telemetryDir,
+      // stop sends the queue; an unreachable host keeps it on disk.
+      KIBI_TELEMETRY_HOST: "http://127.0.0.1:9",
+    };
+    const kbEdit = {
+      hook_event_name: "preToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: ".kb/requirements/REQ-x.md" },
+    };
+
+    const plain = createTempRoot("kibi-cursor-plain-");
+    tempRoots.push(plain);
+    const unconfigured = conversation(plain, env);
+    await unconfigured.event({ hook_event_name: "sessionStart" });
+    await unconfigured.event({ ...kbEdit, cwd: plain });
+    expect(fs.existsSync(queue)).toBe(false);
+
+    const { event, workspace } = conversation(cursorLinkedWorkspace(), env);
+    const file = path.join(workspace, "src/checkout.ts");
+    const read = { hook_event_name: "beforeReadFile", file_path: file };
+    const edit = {
+      hook_event_name: "preToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: file },
+    };
+    for (const payload of [
+      { hook_event_name: "beforeSubmitPrompt", prompt: "Rename the button." },
+      read,
+      read,
+      { ...kbEdit, cwd: workspace },
+      edit,
+      edit,
+    ]) {
+      await event(payload);
+    }
+
+    const queued = fs
+      .readFileSync(queue, "utf8")
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line).properties);
+    expect(
+      queued.map((row) => [
+        row.hook_event,
+        row.hook_action,
+        row.path_kind,
+        row.requirement_count,
+      ]),
+    ).toEqual([
+      ["beforeSubmitPrompt", "prompt_silent", null, null],
+      ["beforeReadFile", "read_snippet", "source", null],
+      ["beforeReadFile", "read_silent", "source", null],
+      ["preToolUse", "kb_direct_note", "kb", null],
+      ["preToolUse", "edit_snippet", "source", 1],
+      ["preToolUse", "edit_silent", "source", 1],
+    ]);
   });
 
   test("an edit call without a path gets no pre-edit message", async () => {

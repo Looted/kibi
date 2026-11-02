@@ -860,9 +860,12 @@ Details that decide what a reader sees:
   `Type.GetType`, `Assembly.Load` and `CreateInstance`), C# `dynamic`
   anywhere (for `calls` and `env` alike, since a reflective call can read
   the environment), a C# `#if` block, a Rust `#[cfg(...)]` item other than
-  `#[cfg(test)]` (whose items are skipped), for Rust `calls` and `thrown`
-  any macro invocation (`println!` included), attribute macro
-  (`#[tokio::main]`) or derive outside the standard library, for Rust `env`
+  `#[cfg(test)]` (whose items are skipped), for Rust `thrown` any macro
+  invocation (`println!` included), for Rust `calls` a macro other than a
+  standard one or a known crate's formatting macro, also nested in one (the
+  calls in a standard macro's arguments are read: `println!("{}", f())`
+  lists `f`), and for both an attribute macro (`#[tokio::main]`) or derive
+  outside the standard library, for Rust `env`
   a macro whose arguments mention an environment getter
   (`eprintln!("{}", env::var("X")?)`), and for `string_args` a macro whose
   arguments mention the callee fail the read with their place. So do, since

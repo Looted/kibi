@@ -53,6 +53,12 @@
 
 ### Patch Changes
 
+- Hook reminders now reach the agent. Hook state falls back to a temp directory when `ZCODE_PLUGIN_DATA` and `CLAUDE_PLUGIN_DATA` are unset, where hooks used to answer only `{"continue":true}`, PostToolUse adds a once-per-file impact-review note after an edit, and Stop stays quiet while `stop_hook_active` is set. Each hook decision is now recorded in usage telemetry (`KIBI_TELEMETRY=0` turns it off), and the MCP launcher says on stderr when it falls back to a global `kibi-mcp`.
+
+- The kibi-usage skill (2.40.1) describes the `must keep true` line of edit snippets as the requirement's modeled claims or its own statement.
+
+- Edit snippets say what the lead requirement must keep true as the claims its facts model, in words with their operator and members (for example "REQ-GREET must keep true: The greet function must not call console.log."), or as the requirement's own statement, instead of listing internal fact IDs and subject keys. A requirement title that an older Kibi cut at a dot inside a name is shown whole.
+
 - f9ec786: Usage telemetry events now carry a `channel`: `release` for an installed Kibi package, `source` when Kibi runs from a checkout of its own repository, or the value of `KIBI_TELEMETRY_CHANNEL` when a harness sets one (for example `agent-test`). Development and test runs can then be filtered out of real usage. Nothing else about what is sent changes.
 
 ## 0.11.1

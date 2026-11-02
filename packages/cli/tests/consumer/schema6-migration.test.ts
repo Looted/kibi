@@ -422,9 +422,10 @@ ${olderLedger}
       "json",
     ]);
     expect(refused.status).not.toBe(0);
-    expect(`${refused.stdout}${refused.stderr}`).toContain(
-      "regenerate the plan and approve its current hash",
-    );
+    const refusal = `${refused.stdout}${refused.stderr}`;
+    expect(refusal).toContain("is not the current migration plan");
+    expect(refusal).toContain("Nothing was applied.");
+    expect(refusal).toContain(`kibi migrate --apply-safe ${plan.planHash}`);
     expect(ws.read(".kb/manifest.json")).toBe(manifestBefore);
   }, 300_000);
 });

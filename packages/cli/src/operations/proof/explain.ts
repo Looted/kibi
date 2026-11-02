@@ -86,6 +86,13 @@ export type ClaimExplainEntry = Readonly<{
   }>[];
 }>;
 
+// implements REQ-kibi-claim-bound-proofs
+export type ClaimRefutation = Readonly<{
+  test: string;
+  claimKey: string;
+  reason: string;
+}>;
+
 export type RequirementProofExplainView = {
   readonly kind: "requirement";
   readonly id: string;
@@ -95,6 +102,10 @@ export type RequirementProofExplainView = {
   readonly evidenceLevel?: string;
   /** Tests whose receipt claimed proved but whose certificate no longer re-checks. */
   readonly certificateRejections?: readonly { test: string; reason: string }[];
+  /** Claims a proof refuted: the test and what it read that breaks the claim. */
+  readonly refutations?: readonly ClaimRefutation[];
+  /** Proof-bearing symbols without source coordinates. */
+  readonly missingCoordinateSymbols?: readonly string[];
   /** How many applicable claims reach each level, and which are not proved. */
   readonly claimSummary?: ClaimSummary;
   readonly unprovedClaims?: readonly string[];
@@ -333,6 +344,7 @@ export function projectRequirementExplain(
           }),
         }
       : {}),
+    ...refutationFields(proof, stages),
     ...claimFields(proof),
     scenarios,
     ...negativePathField(stages.negativePath),
@@ -529,6 +541,70 @@ function renderNegativePath(view: RequirementProofExplainView): string[] {
   return lines;
 }
 
+// implements REQ-kibi-claim-bound-proofs
+function refutationFields(
+  proof: Record<string, unknown>,
+  stages: Record<string, unknown>,
+): {
+  refutations?: ClaimRefutation[];
+  missingCoordinateSymbols?: string[];
+} {
+  const refutations = Array.isArray(proof.claimBindingRejections)
+    ? proof.claimBindingRejections.map((row) => {
+        const entry = asRecord(row);
+        return {
+          test: asString(entry.test),
+          claimKey: asString(entry.claimKey),
+          reason: asString(entry.reason),
+        };
+      })
+    : [];
+  const missing = asStringArray(
+    asRecord(stages.sourceCoordinates).missingSymbols,
+  );
+  return {
+    ...(refutations.length > 0 ? { refutations } : {}),
+    ...(missing.length > 0 ? { missingCoordinateSymbols: missing } : {}),
+  };
+}
+
+/** Why each gap keeps a requirement from being tested end to end. */
+const GAP_REASONS: Readonly<Record<string, string>> = {
+  missing_passing_e2e:
+    "no scenario-backed test has a passing end-to-end receipt (a test whose verification_scope is not end_to_end does not count)",
+  missing_proof_receipt: "a scenario-backed test has no proof receipt yet",
+  stale_proof_receipt: "a proof receipt is older than the current code",
+  failed_proof_receipt: "a proof receipt records a failed run",
+  invalid_proof_receipt: "a proof receipt cannot be checked",
+  proof_contract_mismatch:
+    "a proof receipt was recorded for an older proof contract",
+  missing_production_symbol: "no production symbol implements the requirement",
+  missing_production_symbol_coverage:
+    "a production symbol is not covered by a qualifying end-to-end test (a test whose verification_scope is not end_to_end does not qualify)",
+  missing_executable_test_symbol:
+    "a scenario test has no test code linked executable_for",
+  missing_scenario: "the requirement has no scenario",
+  missing_scenario_test: "a scenario has no test",
+  happy_path_only: "no scenario exercises the failure side",
+  uncovered_case: "an edge case of the claim has no scenario",
+};
+
+/** One plain clause per gap, naming what it is about where Kibi knows. */
+// implements REQ-kibi-claim-bound-proofs
+export function gapReason(
+  gap: string,
+  view: Pick<RequirementProofExplainView, "missingCoordinateSymbols">,
+): string {
+  if (gap === "missing_symbol_coordinates") {
+    const symbols = view.missingCoordinateSymbols ?? [];
+    const named =
+      symbols.length > 0 ? `${symbols.slice(0, 3).join(", ")} ` : "a symbol ";
+    return `${gap}: ${named}${symbols.length > 1 ? "have" : "has"} no source coordinates, so Kibi cannot tie the proof to its code (kibi sync --refresh-symbol-coordinates places ${symbols.length > 1 ? "them" : "it"}; kibi check says why a symbol cannot be placed)`;
+  }
+  const reason = GAP_REASONS[gap];
+  return reason ? `${gap}: ${reason}` : gap;
+}
+
 function claimFields(proof: Record<string, unknown>): {
   claimSummary?: ClaimSummary;
   unprovedClaims?: string[];
@@ -589,6 +665,25 @@ function claimFields(proof: Record<string, unknown>): {
   };
 }
 
+/** Gaps a refuted claim leaves that a derived proof would have covered. */
+const CERTIFIED_GAPS = new Set(["happy_path_only", "uncovered_case"]);
+
+// implements REQ-kibi-claim-bound-proofs
+function renderRefutations(view: RequirementProofExplainView): string[] {
+  const refutations = view.refutations ?? [];
+  if (refutations.length === 0) return [];
+  const lines = refutations.map(
+    (row) =>
+      `refuted: ${row.test} refutes ${row.claimKey}: ${row.reason}. The code breaks the claim, so it is not proved; fix the code (or, with the person who owns the rule, the requirement) and run kibi prove`,
+  );
+  const covered = view.proofGaps.filter((gap) => CERTIFIED_GAPS.has(gap));
+  if (covered.length > 0)
+    lines.push(
+      `  ${covered.join(" and ")} ${covered.length > 1 ? "follow" : "follows"} from the refutation: a proof that derives the claim covers its failure side and edge cases, a refuted one covers none`,
+    );
+  return lines;
+}
+
 function renderClaims(view: RequirementProofExplainView): string[] {
   if (view.claims === undefined) return [];
   const summary = view.claimSummary;
@@ -612,7 +707,7 @@ function renderClaims(view: RequirementProofExplainView): string[] {
     // implements REQ-kibi-claim-bound-proofs
     if (claim.notProved === "requirement_not_tested")
       lines.push(
-        `    not proved: the certificate derives the claim, but a claim is proved only once the requirement is tested end to end (proofStatus ${view.proofStatus}${view.proofGaps.length > 0 ? `; gaps ${view.proofGaps.join(", ")}` : ""}); a test whose verification_scope is not end_to_end does not count`,
+        `    not proved: the certificate derives the claim, but a claim is proved only once the requirement is tested end to end, and it is not (proofStatus ${view.proofStatus})${view.proofGaps.length > 0 ? `: ${view.proofGaps.map((gap) => gapReason(gap, view)).join("; ")}` : ""}`,
       );
   }
   return lines;
@@ -655,6 +750,7 @@ function renderRequirementExplain(view: RequirementProofExplainView): string {
     ...(view.certificateRejections ?? []).map(
       (row) => `certificate rejected for ${row.test}: ${row.reason}`,
     ),
+    ...renderRefutations(view),
     ...renderClaims(view),
     "",
     "Scenarios",

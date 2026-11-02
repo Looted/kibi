@@ -5,6 +5,7 @@ import path from "node:path";
 
 import {
   type EntitySummary,
+  type FactClaim,
   type IndexedSymbol,
   readEntitySummary,
 } from "./knowledge-index.js";
@@ -26,6 +27,7 @@ const MAX_SYMBOLS_PER_REQUIREMENT = 3;
 const MAX_TESTS = 3;
 const MAX_TITLE = 80;
 const MAX_GROUNDING = 2;
+const MAX_CLAIM = 160;
 /** Files larger than this are not scanned to locate an edit. */
 const MAX_FOCUS_SCAN_BYTES = 2 * 1024 * 1024;
 // implements REQ-claude-code-kibi-plugin-v1, REQ-cursor-kibi-plugin-v1
@@ -156,9 +158,23 @@ export function describeEntity(summary: EntitySummary): string {
         : " [exploratory]"
       : "";
   const notable = `${retired}${firmness}`;
-  return summary.title
-    ? `${summary.id}${notable}: ${truncate(summary.title, MAX_TITLE)}`
+  const title = displayTitle(summary);
+  return title
+    ? `${summary.id}${notable}: ${truncate(title, MAX_TITLE)}`
     : `${summary.id}${notable}`;
+}
+
+/**
+ * The title, completed from the statement when an older title was cut at a
+ * dot inside a name ("...call console" for "...call console.log").
+ */
+function displayTitle(summary: EntitySummary): string | undefined {
+  const { title, statement } = summary;
+  if (!title || !statement?.startsWith(title)) return title;
+  const rest = statement.slice(title.length);
+  if (!/^\.\S/.test(rest)) return title;
+  const end = rest.search(/[.!?](?:\s|$)/);
+  return end < 0 ? statement : statement.slice(0, title.length + end);
 }
 
 function jsonString(value: string): string {
@@ -226,12 +242,99 @@ export const GROUNDING_LINK_TYPES: readonly string[] = [
   "requires_rule",
 ];
 
+/** Set-valued properties whose claim reads as a verb on the members. */
+const PROPERTY_VERBS: Readonly<Record<string, string>> = {
+  calls: "call",
+  imports: "import",
+  reads: "read",
+  uses: "use",
+  throws: "throw",
+};
+
+/** How a scalar or set property is constrained, by fact operator. */
+const OPERATOR_PHRASES: Readonly<Record<string, string>> = {
+  eq: "must be",
+  neq: "must not be",
+  lt: "must be less than",
+  lte: "must be at most",
+  gt: "must be greater than",
+  gte: "must be at least",
+  matches: "must match",
+  includes: "must include",
+  subset_of: "must be within",
+  excludes: "must not include",
+};
+
+function joinMembers(values: readonly string[], conjunction: string): string {
+  if (values.length <= 1) return values[0] ?? "";
+  return `${values.slice(0, -1).join(", ")} ${conjunction} ${values.at(-1)}`;
+}
+
+const MODAL =
+  /^(.{1,100}?)\s+(?:must|may|can|cannot|should|shall|will|never)\b/i;
+
+/** The claim's own subject words, before its modal verb, else the key's. */
+function subjectPhrase(claim: FactClaim): string | undefined {
+  const spoken = MODAL.exec(claim.claimText ?? "")?.[1];
+  if (spoken) return spoken;
+  return claim.subjectKey?.replace(/[._]+/g, " ").trim() || undefined;
+}
+
+// implements REQ-agent-core-edit-snippets
+/**
+ * A property fact as a sentence naming its operator and members ("The greet
+ * function must not call console.log"); a predicate or rule fact as the
+ * claim text it models. Undefined for a subject fact and for a fact without
+ * readable fields.
+ */
+export function factClaimSentence(summary: EntitySummary): string | undefined {
+  const claim = summary.claim;
+  if (!claim || claim.factKind === "subject") return undefined;
+  const values = claim.values ?? [];
+  if (claim.propertyKey && claim.operator && values.length > 0) {
+    const subject = subjectPhrase(claim);
+    if (!subject) return claim.claimText;
+    const verb = PROPERTY_VERBS[claim.propertyKey];
+    const verbal = verb
+      ? (
+          {
+            excludes: `must not ${verb} ${joinMembers(values, "or")}`,
+            includes: `must ${verb} ${joinMembers(values, "and")}`,
+            subset_of: `may ${verb} only ${joinMembers(values, "or")}`,
+            eq: `must ${verb} exactly ${joinMembers(values, "and")}`,
+          } as Record<string, string>
+        )[claim.operator]
+      : undefined;
+    if (verbal) return `${subject} ${verbal}`;
+    const phrase = OPERATOR_PHRASES[claim.operator];
+    if (phrase) {
+      const property = claim.propertyKey.replace(/_+/g, " ");
+      const unit = claim.unit ? ` ${claim.unit}` : "";
+      return `${subject}: ${property} ${phrase} ${values.join(", ")}${unit}`;
+    }
+  }
+  return claim.claimText;
+}
+
+/** A fact's claim sentence, else its authored title; a subject fact adds nothing. */
+function groundingText(summary: EntitySummary): string | undefined {
+  if (summary.claim?.factKind === "subject") return undefined;
+  return factClaimSentence(summary) ?? summary.title;
+}
+
+function withoutClosingStop(text: string): string {
+  return text.replace(/[.\s]+$/, "");
+}
+
 // implements REQ-agent-core-edit-snippets, REQ-claude-code-kibi-plugin-v1, REQ-opencode-kibi-plugin-v1
 /**
- * What a requirement says must stay true (its linked facts) and the decision
- * behind it (a linked ADR), read from its frontmatter links and
- * relationship-shard records. A retired requirement is not current policy, so
- * its grounding is not presented as something to keep true.
+ * What a requirement says must stay true and the decision behind it (a
+ * linked ADR), read from its frontmatter links and relationship-shard
+ * records. Each linked fact is shown as the claim it models, with its
+ * operator and members (a fact without typed fields by its title); without
+ * one the requirement's own statement is shown. Fact IDs are internal and
+ * never shown. A retired requirement is not current policy, so its grounding
+ * is not presented as something to keep true.
  */
 export function requirementGroundingLines(
   requirementId: string,
@@ -258,11 +361,30 @@ export function requirementGroundingLines(
   ];
   const lines: string[] = [];
   if (facts.length > 0) {
-    const shown = facts
-      .slice(0, maxFacts)
-      .map((id) => describeEntity(summarize(id)));
-    const more = facts.length > maxFacts ? ` +${facts.length - maxFacts}` : "";
-    lines.push(`${requirementId} must keep true: ${shown.join("; ")}${more}.`);
+    const claims = [
+      ...new Set(
+        facts
+          .map((id) => groundingText(summarize(id)))
+          .filter((sentence): sentence is string => Boolean(sentence))
+          .map(withoutClosingStop),
+      ),
+    ];
+    const statement = requirement.statement
+      ? withoutClosingStop(requirement.statement)
+      : undefined;
+    const shown =
+      claims.length > 0
+        ? claims.slice(0, maxFacts)
+        : statement
+          ? [statement]
+          : [];
+    const more =
+      claims.length > maxFacts ? ` +${claims.length - maxFacts} more` : "";
+    if (shown.length > 0) {
+      lines.push(
+        `${requirementId} must keep true: ${shown.map((claim) => truncate(claim, MAX_CLAIM)).join("; ")}${more}.`,
+      );
+    }
   }
   const adr = adrs[0];
   if (adr) lines.push(`Decision: ${describeEntity(summarize(adr))}.`);
