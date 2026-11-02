@@ -458,11 +458,11 @@ Body.
 
   // implements REQ-impact-policy-stage-e-content-bound-review
   test.each([
-    { label: "overlaps", startLine: 2, endLine: 2, blocks: true },
-    { label: "does not overlap", startLine: 9, endLine: 12, blocks: false },
+    { label: "overlaps", startLine: 2, endLine: 2, reviews: true },
+    { label: "does not overlap", startLine: 9, endLine: 12, reviews: false },
   ])(
-    "without an impact policy, a local after-side gap blocks only when it $label the staged lines",
-    async ({ startLine, endLine, blocks }) => {
+    "without an impact policy, a local after-side gap asks for a file-level review only when it $label the staged lines",
+    async ({ startLine, endLine, reviews }) => {
       const cwd = prepareWorkspace();
       const entry = stagedPath({
         path: "src/partial.py",
@@ -524,7 +524,7 @@ Body.
       const io = captureIo();
       restores.push(io.restore);
 
-      await withCwd(cwd, () =>
+      const result = await withCwd(cwd, () =>
         checkCommand({
           staged: true,
           format: "json",
@@ -532,15 +532,182 @@ Body.
         }),
       );
 
-      if (blocks)
-        expect(
-          JSON.parse(io.logText()).structuredContent.operationalError,
-        ).toContain(
-          "Source analysis partial for src/partial.py where the staged change touches uncovered lines (2-2)",
-        );
-      else expect(io.logText()).not.toContain("Source analysis partial");
+      // An include or other local gap is not a symbol: it never fails the
+      // validation, and a touched gap is named for a file-level review.
+      expect(result.exitCode).toBe(0);
+      const output = JSON.parse(io.logText()).structuredContent as {
+        operationalError?: string;
+        messages: string[];
+        staged: { files: Array<{ path: string; analysisDepth: string }> };
+      };
+      expect(output.operationalError).toBeUndefined();
+      const note =
+        "Partial source analysis: staged line(s) 2 of src/partial.py fall outside every declaration the analyzer placed (The provider reported a known structural limitation.); review that change at file level.";
+      if (reviews) expect(output.messages).toContain(note);
+      else expect(output.messages.join("\n")).not.toContain(note);
     },
   );
+
+  // implements REQ-impact-policy-stage-e-content-bound-review
+  test("without an impact policy, a non-local after-side gap still fails the staged validation", async () => {
+    const cwd = prepareWorkspace();
+    const entry = stagedPath({
+      path: "src/broken.py",
+      content: "def handler(:\n    return True\n",
+      analysisDepth: "file",
+    });
+    stageInventory(cwd, [entry]);
+    const brokenResult: HostSourceAnalysisResultV2 = {
+      sourceFile: entry.path,
+      language: "python",
+      module: { title: "broken", language: "python", analysisMode: "parser" },
+      contractVersion: "kibi.symbol-extractor.v2",
+      status: "partial",
+      symbols: [],
+      diagnostics: [{ code: "TREESITTER_SYNTAX_ERROR", message: "bad syntax" }],
+      uncoveredRanges: [
+        {
+          startLine: 1,
+          startColumn: 0,
+          endLine: 1,
+          endColumn: 1,
+          reason: "syntax-error",
+        },
+      ],
+      providerId: "fixture.python.partial",
+      stamp: null,
+      inputFingerprint: "a".repeat(64),
+      providerFingerprint: "b".repeat(64),
+      shadowComparisons: [],
+    };
+    const sourceAnalysisResult = spyOn(
+      sourceChangeAnalysis,
+      "analyzeSourceChanges",
+    ).mockResolvedValue(
+      new Map([
+        [entry.path, { path: entry.path, before: null, after: brokenResult }],
+      ]),
+    );
+    const analyzeCoverage = spyOn(
+      stagedCoverageModule,
+      "analyzeStagedFileCoverage",
+    ).mockReturnValue(emptyCoverage([entry]) as never);
+    restores.push(() => {
+      sourceAnalysisResult.mockRestore();
+      analyzeCoverage.mockRestore();
+    });
+    const io = captureIo();
+    restores.push(io.restore);
+
+    const result = await withCwd(cwd, () =>
+      checkCommand({
+        staged: true,
+        format: "json",
+        kbPath: path.join(cwd, "kb-store"),
+      }),
+    );
+
+    expect(result.exitCode).toBe(1);
+    expect(
+      JSON.parse(io.logText()).structuredContent.operationalError,
+    ).toContain("Source analysis partial for src/broken.py: bad syntax");
+  });
+
+  // implements REQ-cli-staged-impact-enforcement
+  test("checks an edit inside a placed declaration of a partially analyzed file against that symbol", async () => {
+    const cwd = prepareWorkspace();
+    const entry = stagedPath({
+      path: "src/decorated.py",
+      content: "def handler():\n    return True\n",
+      analysisDepth: "file",
+    });
+    stageInventory(cwd, [entry]);
+    const partialResult: HostSourceAnalysisResultV2 = {
+      sourceFile: entry.path,
+      language: "python",
+      module: {
+        title: "decorated",
+        language: "python",
+        analysisMode: "parser",
+      },
+      contractVersion: "kibi.symbol-extractor.v2",
+      status: "partial",
+      symbols: [
+        {
+          name: "handler",
+          kind: "function",
+          startLine: 1,
+          endLine: 2,
+          startColumn: 0,
+          endColumn: 15,
+        },
+      ],
+      diagnostics: [
+        {
+          code: "TREESITTER_DECORATOR_EXPANSION_UNAVAILABLE",
+          message: "Python decorators are not evaluated.",
+        },
+      ],
+      uncoveredRanges: [
+        {
+          startLine: 9,
+          startColumn: 0,
+          endLine: 12,
+          endColumn: 1,
+          reason: "decorator-expansion-unavailable",
+        },
+      ],
+      providerId: "fixture.python.partial",
+      stamp: null,
+      inputFingerprint: "a".repeat(64),
+      providerFingerprint: "b".repeat(64),
+      shadowComparisons: [],
+    };
+    const sourceAnalysisResult = spyOn(
+      sourceChangeAnalysis,
+      "analyzeSourceChanges",
+    ).mockResolvedValue(
+      new Map([
+        [entry.path, { path: entry.path, before: null, after: partialResult }],
+      ]),
+    );
+    const analyzeCoverage = spyOn(
+      stagedCoverageModule,
+      "analyzeStagedFileCoverage",
+    ).mockImplementation(((inventory: StagedPath[]) =>
+      emptyCoverage(inventory)) as never);
+    restores.push(() => {
+      sourceAnalysisResult.mockRestore();
+      analyzeCoverage.mockRestore();
+    });
+    mockImpactDiagnostics();
+    const io = captureIo();
+    restores.push(io.restore);
+
+    const result = await withCwd(cwd, () =>
+      checkCommand({
+        staged: true,
+        format: "json",
+        kbPath: path.join(cwd, "kb-store"),
+      }),
+    );
+
+    // The unlinked symbol is judged like one from a complete analysis.
+    expect(result.exitCode).toBe(1);
+    const output = JSON.parse(io.logText()).structuredContent as {
+      messages: string[];
+      staged: { files: Array<{ path: string; analysisDepth: string }> };
+    };
+    expect(output.staged.files).toEqual([
+      expect.objectContaining({
+        path: "src/decorated.py",
+        analysisDepth: "symbol",
+      }),
+    ]);
+    const messages = output.messages.join("\n");
+    expect(messages).toContain("src/decorated.py:1  handler  (0 of 1 link(s))");
+    expect(messages).not.toContain("Partial source analysis");
+  });
 
   // implements REQ-impact-policy-stage-e-content-bound-review
   test("does not block a staged fix because the committed side analyzes as partial", async () => {

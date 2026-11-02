@@ -130,35 +130,43 @@ describe("traceability/validate", () => {
     ]);
   });
 
-  it("formats violations into a human-readable report", () => {
-    expect(
-      formatViolations([
-        {
-          symbolId: "SYM-1",
-          name: "alpha",
-          file: "src/alpha.ts",
-          line: 12,
-          column: 2,
-          currentLinks: 0,
-          requiredLinks: 2,
-        },
-        {
-          symbolId: "SYM-2",
-          name: "beta",
-          file: "src/beta.ts",
-          line: 3,
-          column: 1,
-          currentLinks: 1,
-          requiredLinks: 2,
-        },
-      ]),
-    ).toBe(
-      [
-        "Traceability failed: 2/2 staged symbols unlinked (minLinks=2)",
-        "src/alpha.ts:12  alpha()  -> Add ownership: implements: REQ-<area>-<behavior> (production code), use covered_by for production coverage, or executable_for for executable test code",
-        "src/beta.ts:3  beta()  -> Add ownership: implements: REQ-<area>-<behavior> (production code), use covered_by for production coverage, or executable_for for executable test code",
-      ].join("\n"),
+  it("names each unlinked symbol and how to link it", () => {
+    const report = formatViolations([
+      {
+        symbolId: "SYM-1",
+        name: "alpha",
+        file: "src/alpha.ts",
+        line: 12,
+        column: 2,
+        currentLinks: 0,
+        requiredLinks: 2,
+      },
+      {
+        symbolId: "SYM-2",
+        name: "ox.Extra.extra()",
+        file: "src/ox/Extra.java",
+        line: 3,
+        column: 1,
+        currentLinks: 1,
+        requiredLinks: 2,
+      },
+    ]);
+    const lines = report.split("\n");
+    expect(lines.slice(0, 3)).toEqual([
+      "Traceability failed: 2 changed symbol(s) have fewer than 2 requirement link(s) (minLinks=2):",
+      "  src/alpha.ts:12  alpha  (0 of 2 link(s))",
+      // A signature-qualified locator is shown as the title to author.
+      "  src/ox/Extra.java:3  ox.Extra.extra()  (1 of 2 link(s))",
+    ]);
+    expect(report).toContain("kb_upsert (CLI: kibi upsert --input -)");
+    expect(report).toContain('title as listed above (e.g. "alpha")');
+    expect(report).toContain("implements -> REQ-<area>-<behavior>");
+    expect(report).toContain("executable_for -> TEST-<area>-<behavior>");
+    expect(report).toContain("Stage .kb/symbols.yaml with the code.");
+    expect(report).toContain(
+      "write a comment `implements REQ-<area>-<behavior>` directly above the declaration",
     );
+    expect(report).toContain("re-run kibi check --staged");
   });
 
   it("returns an empty string for no violations and falls back to minLinks=0 when missing", () => {

@@ -47,6 +47,28 @@ describe("staged file-level coverage", () => {
     );
   });
 
+  it("asks no requirement ownership of the files Kibi manages under .kb/", () => {
+    const root = createRepo();
+    mkdirSync(join(root, ".kb", "schema"), { recursive: true });
+    writeFileSync(join(root, ".kb", "schema", "entities.pl"), "% schema\n");
+    writeFileSync(join(root, ".kb", "manifest.json"), "{}\n");
+    writeFileSync(join(root, "notes.txt"), "product note\n");
+    git(root, "add", ".");
+    process.chdir(root);
+
+    const result = analyzeStagedFileCoverage(getStagedInventory());
+    expect(result.files).toContainEqual(
+      expect.objectContaining({
+        path: ".kb/schema/entities.pl",
+        analysisDepth: "file",
+      }),
+    );
+    // Only the project file is asked for an owner.
+    expect(result.diagnostics.map((item) => [item.id, item.path])).toEqual([
+      ["staged_file_ownership_missing", "notes.txt"],
+    ]);
+  });
+
   it("uses committed plus matching staged evidence and ignores unrelated or unstaged KB edits", () => {
     const root = createRepo();
     mkdirSync(join(root, ".kb", "requirements"), { recursive: true });
