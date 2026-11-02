@@ -612,24 +612,6 @@ if (RUN_NODE_TEST_SUITE) {
               severity: "warning",
               blocking: false,
             },
-            {
-              id: "staged_file_ownership_missing",
-              path: ".kb/schema/entities.pl",
-              severity: "warning",
-              blocking: false,
-            },
-            {
-              id: "staged_file_ownership_missing",
-              path: ".kb/schema/relationships.pl",
-              severity: "warning",
-              blocking: false,
-            },
-            {
-              id: "staged_file_ownership_missing",
-              path: ".kb/schema/validation.pl",
-              severity: "warning",
-              blocking: false,
-            },
           ],
           "initialization may have only its known nonblocking file-level advisories",
         );
