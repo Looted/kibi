@@ -476,14 +476,15 @@ const RUNNERS = new Set([
   "dumb-init",
 ]);
 
-/** Programs that run code they are handed as text. */
+/**
+ * Programs that run code they are handed as text. busybox runs the applet
+ * named next, and jq has its own check.
+ */
 const INTERPRETERS = new Set([
   "awk",
   "gawk",
   "mawk",
   "nawk",
-  "busybox",
-  "jq",
   "python",
   "python2",
   "python3",
@@ -590,9 +591,9 @@ function wordValue(node: Node): string | null {
 function args(node: Node): Node[] {
   const list = node.childrenForFieldName("argument");
   // `curl >out https://x`: the grammar reads the words after a redirect as
-  // more destinations of it, but only the first is the redirect's.
+  // more destinations of it, but only the first is the redirect's. Only a
+  // redirected statement has redirects.
   const statement = node.parent as Node;
-  if (statement.type !== "redirected_statement") return list;
   // `sudo <<A 2>/dev/null rm -rf x`: the grammar nests the redirects that
   // follow a here-document start inside it, after the words it holds.
   const redirects: Node[] = [];
@@ -669,6 +670,9 @@ interface Binding {
  * `before` (one inside `$(...)` or `( ... )` changes a subshell's folder).
  */
 function changesDirectory(node: Node, before: number): boolean {
+  // rationale: no node that changes directory starts where the sourcing
+  // command does, so `>` and `>=` stop at the same nodes.
+  // Stryker disable next-line EqualityOperator
   if (node.startIndex >= before) return false;
   if (
     node.type === "command_substitution" ||
@@ -719,15 +723,12 @@ function direct(node: Node): boolean {
   if (parent.type === "program") return true;
   // A command with redirections runs like the command, unless opening a
   // file can fail first (`read X < missing`): input from a here-document,
-  // a here-string or a process substitution always opens.
+  // a here-string or a process substitution always opens. The grammar gives
+  // a here-string no redirect field.
   if (parent.type === "redirected_statement")
     return (
       parent.childrenForFieldName("redirect").every((redirect) => {
-        if (
-          redirect.type === "heredoc_redirect" ||
-          redirect.type === "herestring_redirect"
-        )
-          return true;
+        if (redirect.type === "heredoc_redirect") return true;
         // `3<&-` closes a descriptor: it has no destination.
         const destination = field(redirect, "destination");
         return (
@@ -739,7 +740,7 @@ function direct(node: Node): boolean {
     );
   // The first command of `a && b` always runs.
   if (parent.type === "list")
-    return named(parent)[0]?.id === node.id && direct(parent);
+    return (named(parent)[0] as Node).id === node.id && direct(parent);
   return (
     parent.type === "compound_statement" &&
     (parent.parent as Node).type === "function_definition"
@@ -844,23 +845,23 @@ function commandBinds(
         ) {
           // `-rp PROMPT`: options cluster, and the first that takes an
           // argument takes the rest of the word or the next word.
+          // With none (at -1), `option` is the `-` and the rest of the word
+          // is attached: nothing is read.
           const at = [...word.slice(1)].findIndex((letter) =>
             READ_ARGS.has(letter),
           );
-          if (at >= 0) {
-            const attached = word.slice(at + 2);
-            const value = attached !== "" ? attached : words[index + 1];
-            if (attached === "") index += 1;
-            const option = word[at + 1];
-            if (option === "a") {
-              if (value === null || value === undefined) return null;
-              names.push(value);
-            }
-            // `read -t 0` only tests for input and sets nothing.
-            if (option === "t") {
-              if (value === null || value === undefined) return null;
-              if (/^0*(?:\.0*)?$/.test(value)) return NONE;
-            }
+          const attached = word.slice(at + 2);
+          const value = attached !== "" ? attached : words[index + 1];
+          if (attached === "") index += 1;
+          const option = word[at + 1];
+          if (option === "a") {
+            if (value === null || value === undefined) return null;
+            names.push(value);
+          }
+          // `read -t 0` only tests for input and sets nothing.
+          if (option === "t") {
+            if (value === null || value === undefined) return null;
+            if (/^0*(?:\.0*)?$/.test(value)) return NONE;
           }
           continue;
         }
@@ -1099,9 +1100,9 @@ export function bashReferences(
       case "unary_expression": {
         if (!inArithmetic(node)) break;
         if (!ASSIGNMENTS.has((field(node, "operator") as Node).text)) break;
+        // A target that is no name (`a[i]`, `$x`) binds a name no read uses.
         const target = named(node)[0] as Node;
-        if (target.type === "variable_name" || target.type === "word")
-          bind(target.text, target, null, true);
+        bind(target.text, target, null, true);
         break;
       }
       case "command": {
@@ -1135,7 +1136,7 @@ export function bashReferences(
 
       case "expansion": {
         // `${X:=default}` sets X when it is unset.
-        const match = /^\$\{(\w+):?=/.exec(node.text);
+        const match = /\$\{(\w+):?=/.exec(node.text);
         if (match !== null) bind(match[1] as string, node, null, false);
         break;
       }
@@ -1143,6 +1144,14 @@ export function bashReferences(
     for (const child of named(node)) collect(child);
   };
   collect(root);
+
+  /** Whether a binding ends before `node` starts. */
+  const precedes = (binding: Binding, node: Node): boolean => {
+    // rationale: a binding ends at a separator or after its own read of the
+    // name (`${X:=a}$X`), so `<` and `<=` agree on every node that matters.
+    // Stryker disable next-line EqualityOperator
+    return binding.end <= node.startIndex;
+  };
 
   /** Whether `command` is a `read` that sets `name`. */
   const readBinds = (command: Node | null, name: string): boolean =>
@@ -1209,12 +1218,12 @@ export function bashReferences(
         binding.scope !== null &&
         scope !== null &&
         binding.scope.id === scope.id &&
-        binding.end <= read.startIndex
+        precedes(binding, read)
       )
         return true;
       // A top-level binding precedes a read below it, and any function
       // defined below it, which cannot run before it is defined.
-      if (binding.scope === null && binding.end <= (outer ?? read).startIndex)
+      if (binding.scope === null && precedes(binding, outer ?? read))
         return true;
     }
     return false;
@@ -1225,8 +1234,7 @@ export function bashReferences(
     const list = bindingsOf(name);
     if (list.length === 0) return true;
     if (outermostFunction(read) !== null) return false;
-    for (const binding of list)
-      if (binding.end <= read.startIndex) return false;
+    for (const binding of list) if (precedes(binding, read)) return false;
     // A loop around the read may set the variable before its next turn.
     for (let current = read.parent; current !== null; current = current.parent)
       if (

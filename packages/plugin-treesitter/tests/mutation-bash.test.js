@@ -1785,3 +1785,38 @@ describe("Bash arithmetic", () => {
     await expect("unset a[$x]", "env", ["x"], [1]);
   });
 });
+
+describe("Bash details of words and bindings", () => {
+  it("reads words as Bash does", async () => {
+    const curl = { callee: "curl" };
+    await table([
+      ["sudo X=1 rm", "calls", ["rm", "sudo"]],
+      ["curl *.txt", "string_args", [], [1], curl],
+      ["curl a\\*b", "string_args", ["a*b"], [], curl],
+      ["curl a\\\n b", "string_args", ["a"], [], curl],
+      ['curl "a \\\n b"', "string_args", ["a  b"], [], curl],
+    ]);
+    // busybox runs the applet named next: one row.
+    assert.equal((await read('busybox "$p"')).rows.length, 1);
+  });
+
+  it("knows which read options set nothing", async () => {
+    for (const option of ["-d ''", "-n 0", "-x", "-rx"])
+      await expect(`read ${option} X\necho "$X"`, "env", []);
+  });
+
+  it("knows what declarations bind", async () => {
+    await expect("declare -a a; echo ${a[i]}", "env", ["a", "i"], [1]);
+    const local = await read("f() { declare -A a; }; echo ${a[k]}");
+    assert.equal(local.rows.length, 2);
+    await expect('declare X\necho "$X"', "env", ["X"]);
+    await expect("unset X 'a-f'\necho \"$X\"", "env", [], [1]);
+    await expect('for (( i = 0; ; )); do echo "$X"; done', "env", ["X"]);
+    await expect('(( (n = 1) ))\necho "$n"', "env", [], [2]);
+  });
+
+  it("knows which bindings hold numbers", async () => {
+    await expect("read n\necho $(( n ))", "calls", ["echo", "read"], [2]);
+    await expect("unset n\necho $(( n ))", "calls", ["echo"]);
+  });
+});
