@@ -14,7 +14,7 @@ const extractor = createTreeSitterReferenceExtractor();
 async function read(content, extract = "env", options = {}) {
   const result = await extractor.extract({
     path: options.path ?? "s.sh",
-    content: content.endsWith("\n") ? content : `${content}\n`,
+    content: options.raw || content.endsWith("\n") ? content : `${content}\n`,
     extract,
     ...(options.callee === undefined ? {} : { callee: options.callee }),
   });
@@ -572,5 +572,252 @@ describe("Bash statements that always run", () => {
     await expect('X=1 \\\necho "$X"', "env", ["X"]);
     await expect('X=1 \\\\ echo "$X"', "env", ["X"]);
     await expect("X=1 >/dev/null\nrm x", "calls", ["rm"]);
+  });
+
+  it("runs a function body's statements, not a subshell body's", async () => {
+    await expect('f() ( X=1; echo "$X" )', "env", [], [1]);
+    await expect('f() { X=1; echo "$X"; }', "env", []);
+  });
+});
+
+describe("Bash arithmetic assignments", () => {
+  it("binds variables assigned in arithmetic only", async () => {
+    await expect('(( n = 1 ))\necho "$n"', "env", [], [2]);
+    await expect('(( n++ ))\necho "$n"', "env", ["n"], [1]);
+    await expect('echo $(( n -= 1 ))\necho "$n"', "env", ["n"], [1]);
+    await expect(
+      'for (( i = 0; i < 3; i++ )); do :; done\necho "$i"',
+      "env",
+      [],
+      [2],
+    );
+    // `=` in a test compares text.
+    await expect('[[ x = 1 ]]\necho "$x"', "env", ["x"]);
+    await expect('[ x = 1 ]\necho "$x"', "env", ["x"]);
+    await expect("echo ${x:a+1:2}", "env", [], [1]);
+  });
+
+  it("reads a script that starts with arithmetic as commands", async () => {
+    await expect('(( 1 ))\necho "$HOME"', "env", ["HOME"]);
+    await expect('(( 1 ))\necho "$HOME"', "calls", ["echo"]);
+  });
+});
+
+describe("Bash declarations", () => {
+  it("reads declaration options from option words only", async () => {
+    await expect("declare xn=1", "env", []);
+    await expect("declare xn=a-b", "env", []);
+    await expect("declare -n r=X", "env", [], [1]);
+    await expect("declare -rn r=X", "env", [], [1]);
+    await expect("declare -r -n r=X", "env", [], [1]);
+    await expect("declare +n r", "env", [], [1]);
+    await expect("f() { local -I X; }", "env", [], [1]);
+    await expect('f() { local X=1; echo "$X"; }', "env", []);
+    await expect('local X=1\necho "$X"', "env", ["X"]);
+    await expect('f() { typeset X; echo "$X"; }', "env", []);
+    await expect('f() { typeset -g X; echo "$X"; }', "env", ["X"]);
+  });
+});
+
+describe("Bash builtins that set variables", () => {
+  it("knows read's options", async () => {
+    for (const option of ["-d", "-i", "-n", "-N", "-p", "-u"]) {
+      await expect(`read ${option} v N\necho "$v $N"`, "env", ["v"]);
+      await expect(`read -r${option.slice(1)} v N\necho "$v $N"`, "env", ["v"]);
+      await expect(`read ${option}v N\necho "$v $N"`, "env", ["v"]);
+    }
+    await expect('read -a v N\necho "$v $N"', "env", []);
+    await expect('read -av N\necho "$v $N"', "env", []);
+    await expect('read -ra\necho "$a $REPLY"', "env", ["a", "REPLY"], [1]);
+    await expect('read -ra v\necho "$v $REPLY"', "env", ["REPLY"]);
+    await expect('read -x v\necho "$v $REPLY"', "env", ["REPLY"]);
+    await expect('read -- -d A\necho "$A $REPLY"', "env", ["REPLY"]);
+    await expect('read -\necho "$REPLY"', "env", ["REPLY"]);
+    await expect('read A -d B\necho "$A $B"', "env", []);
+    for (const script of [
+      "read -a",
+      'read -a "$x"',
+      "read -t",
+      'read -t "$x" A',
+    ])
+      assert.ok((await read(script)).lines.includes(1), script);
+  });
+
+  it("knows read -t 0 sets nothing", async () => {
+    for (const zero of ["0", "00", "0.00", ".0", "0."])
+      await expect(`read -t ${zero} N\necho "$N"`, "env", ["N"]);
+    for (const time of ["5", "10", "0x", "0.5", "1.0"])
+      await expect(`read -t ${time} N\necho "$N"`, "env", []);
+    await expect('read -t5 N\necho "$N"', "env", []);
+    await expect('read -t0 N\necho "$N"', "env", ["N"]);
+  });
+
+  it("knows mapfile's options", async () => {
+    for (const option of ["-d", "-n", "-O", "-s", "-u", "-c"])
+      await expect(`mapfile ${option} L\necho "$L $MAPFILE"`, "env", ["L"]);
+    await expect('mapfile -C L\necho "$L"', "env", ["L"], [1]);
+    await expect('mapfile -t L\necho "$L $MAPFILE"', "env", ["MAPFILE"]);
+    await expect('mapfile -t\necho "$MAPFILE"', "env", []);
+    await expect('mapfile\necho "$MAPFILE"', "env", []);
+    await expect('readarray\necho "$MAPFILE"', "env", []);
+    await expect('mapfile "$m"', "env", ["m"], [1]);
+  });
+
+  it("knows printf -v, getopts and wait -p", async () => {
+    await expect('printf x\necho "$x"', "env", ["x"]);
+    await expect("printf 'a[1]' x\necho \"$a\"", "env", ["a"]);
+    await expect('printf -v ab x\necho "$ab $a"', "env", ["a"]);
+    await expect("printf -v 'a[1]' x\necho \"$a\"", "env", []);
+    await expect("printf -v", "env", [], [1]);
+    await expect('printf -v "$x" y', "env", ["x"], [1]);
+    await expect('getopts ab o\necho "$o $OPTARG"', "env", []);
+    await expect('getopts ab\necho "$OPTARG"', "env", ["OPTARG"]);
+    await expect('getopts ab "$x"', "env", ["x"], [1]);
+    await expect('wait x\necho "$x"', "env", ["x"]);
+    await expect('wait -p J\necho "$J"', "env", [], [2]);
+    await expect('wait -n -p J\necho "$J"', "env", [], [2]);
+    await expect("wait -p", "env", [], [1]);
+    await expect('wait -p "$x"', "env", ["x"], [1]);
+    await expect('[ -v "a[1]" ]', "env", ["a"]);
+    await expect('[[ -v ab ]]; [[ -v "c[x]" ]]', "env", ["ab", "c"]);
+  });
+});
+
+describe("Bash text that rebinds commands or reads the environment", () => {
+  it("refuses text that rebinds what a command runs", async () => {
+    for (const extract of ["calls", "string_args", "env"])
+      await expect(
+        "BASH_CMDS[c]=/bin/rm\nc x",
+        extract,
+        extract === "string_args" ? ["x"] : ["c"],
+        [1],
+        { callee: "c" },
+      );
+    await expect("BASH_CMDS[c]=/bin/rm\nsource a.sh", "imports", ["a.sh"]);
+    const row = await read("x=1\n  BASH_ALIASES[c]=y # note\n", "calls");
+    assert.deepEqual(row.rows, [
+      "2: BASH_ALIASES[c]=y # note",
+      "2: BASH_ALIASES[c]=y",
+    ]);
+    const long = `echo ${"a".repeat(90)} BASH_ARGV0`;
+    assert.deepEqual((await read(`:\n${long}`, "calls")).rows, [
+      `2: ${long.slice(0, 80)}`,
+    ]);
+  });
+
+  it("refuses prompt variables whose value is not plain text", async () => {
+    for (const value of ["abc", "'a b'", '"a b"', "abc;", "abc &"])
+      await expect(`PS4=${value}\n:`, "calls", [":"]);
+    await expect("PS4=abc|x", "calls", ["x"]);
+    await expect("(PS4=abc)", "calls", []);
+    await expect("PS4=abc", "calls", [], [], { raw: true });
+    await expect("PROMPT_COMMAND=abc", "calls", [], [], { raw: true });
+    for (const value of [
+      "'$(x)'",
+      '"$x"',
+      "'a`b'",
+      "'a\\b'",
+      '"a\\b"',
+      "$x",
+      "a\\b",
+      "ab'c'",
+      "a<b",
+      "a>b",
+    ])
+      await expect(`PS4=${value}\n:`, "calls", [":"], [1]);
+    await expect("echo PS4 x=1", "calls", ["echo"], [1]);
+    await expect("echo PS1", "calls", ["echo"], [1]);
+    await expect("echo $PS1 ${PS2} aPS3", "calls", ["echo"]);
+  });
+
+  it("refuses text another language reads the environment through", async () => {
+    for (const text of [
+      "ENVIRON",
+      "%ENV",
+      "$ENV",
+      "$ENV{X}",
+      "os.environ",
+      "os.environb",
+      "os.getenv",
+      "getenv(",
+      "getenv  (",
+      "process.env",
+      "ENV[",
+      "ENV  [",
+      "ENV.fetch",
+      "ENV .fetch",
+      "-MEnv",
+      "environ",
+      "/proc/12/env",
+      "/proc/ab/x/env",
+      "/proc/self/env",
+      "/proc/*/x",
+      "/proc/?",
+      "/proc/[",
+      "/proc/$x",
+      "/proc/a/../y",
+      "/proc/a/./y",
+      "/proc/a//x",
+      "/proc/thread-self",
+      "cd /proc",
+      "pushd /proc",
+      "cd '/proc",
+      'cd "/proc',
+      "cd  /proc",
+    ]) {
+      const result = await read(`: # ${text}`, "env");
+      assert.deepEqual(result.rows, [`1: : # ${text}`], text);
+    }
+    for (const text of [
+      "xENVIRON",
+      "ENVIRONx",
+      "%ENVx",
+      "$ENVx",
+      "xos.environb",
+      "os.environbx",
+      "xos.getenv",
+      "os.getenvx",
+      "getenv",
+      "xgetenv(",
+      "process.envx",
+      "ENV",
+      "xENV[",
+      "ENV.fetchx",
+      "ENV.x",
+      "-MEnvx",
+      "xenviron",
+      "environx",
+      "/proc/1/x",
+      "/proc/ env",
+      "/proc/;env",
+      "/proc/&env",
+      "/proc/|env",
+      "/proc/<env",
+      "/proc/>env",
+      "/proc/)env",
+      "/proc/'env",
+      '/proc/"env',
+      "/proc/.",
+      "/proc/a/.../",
+      "/proc/thread-selfx",
+      "xcd /proc",
+      "cd /procx",
+      "cd/proc",
+      "cd x/proc",
+    ])
+      await expect(`: # ${text}`, "env", [], [], {});
+    assert.deepEqual((await read(": # ENVIRON", "calls")).rows, []);
+  });
+
+  it("finds the names a script declares local anywhere", async () => {
+    await expect(
+      "f() { local ABC DEF=1 G; }\nunset ABC\nunset DEF\nunset G\nunset H",
+      "env",
+      [],
+      [2, 3, 4],
+    );
+    await expect("f() { local -r ABC; }\nunset ABC", "env", [], [2]);
+    await expect("f() { local A1; local\tB; }\nunset A1 B", "env", [], [2]);
+    await expect("f() { local; }; unset x", "env", [], [1]);
   });
 });

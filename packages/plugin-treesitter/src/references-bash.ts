@@ -724,23 +724,17 @@ function direct(node: Node): boolean {
     return named(parent)[0]?.id === node.id && direct(parent);
   return (
     parent.type === "compound_statement" &&
-    parent.parent?.type === "function_definition"
+    (parent.parent as Node).type === "function_definition"
   );
 }
 
 /** Whether a node is inside an arithmetic context or a C-style `for`. */
 function inArithmetic(node: Node): boolean {
-  let current = node.parent;
-  while (
-    current !== null &&
-    !arithmetic(current) &&
-    !ARITHMETIC_ENDS.has(current.type)
-  )
-    current = current.parent;
-  return (
-    current !== null &&
-    (arithmetic(current) || current.type === "c_style_for_statement")
-  );
+  // Every expression is inside an arithmetic context, a command or a test.
+  let current = node.parent as Node;
+  while (!arithmetic(current) && !ARITHMETIC_ENDS.has(current.type))
+    current = current.parent as Node;
+  return arithmetic(current) || current.type === "c_style_for_statement";
 }
 
 /** Where the search for an arithmetic context stops. */
@@ -757,35 +751,42 @@ function arithmetic(node: Node): boolean {
   return false;
 }
 
-/** The options of a declaration (`-r`, `-i`, `-A`), as letters. */
+/** The option words of a declaration (`-r`, `-iA`), joined: their letters. */
 function declarationFlags(node: Node): string {
   return named(node)
-    .filter((child) => child.type === "word" && /^[-+]/.test(child.text))
-    .map((child) => child.text.slice(1))
-    .join("");
+    .filter((child) => /^[-+]/.test(child.text))
+    .map((child) => child.text)
+    .join();
 }
 
+/** The builtin a declaration runs: `declare`, `local`, `export`, ... */
 function keyword(node: Node): string {
-  return /^\w+/.exec(node.text)?.[0] ?? "";
+  return (node.child(0) as Node).type;
 }
 
 /** `read`'s options that take an argument; `-a` names an array. */
-const READ_ARGS = new Set(["-a", "-d", "-i", "-n", "-N", "-p", "-t", "-u"]);
+const READ_ARGS = new Set(["a", "d", "i", "n", "N", "p", "t", "u"]);
 const MAPFILE_ARGS = new Set(["-d", "-n", "-O", "-s", "-u", "-C", "-c"]);
+
+/** No variable. */
+// rationale: a name in this list is bound, and no script can read a variable
+// whose name Stryker writes here, so no test can tell the lists apart.
+// Stryker disable next-line ArrayDeclaration
+const NONE: readonly string[] = [];
 
 /**
  * The variable names a binding command sets (`read A B`, `mapfile -t L`,
  * `printf -v OUT`, `getopts s NAME`, `wait -p J`), or null when one is not
  * literal (`read "$name"`).
  */
-function commandBinds(name: string, list: Node[]): string[] | null {
+function commandBinds(name: string, list: Node[]): readonly string[] | null {
   const words = list.map((node) => wordValue(node));
   switch (name) {
     case "read": {
       const names: string[] = [];
       let options = true;
       for (let index = 0; index < words.length; index += 1) {
-        const word = words[index];
+        const word = words[index] as string | null;
         if (options && word === "--") {
           options = false;
           continue;
@@ -793,32 +794,32 @@ function commandBinds(name: string, list: Node[]): string[] | null {
         if (
           options &&
           word !== null &&
-          word !== undefined &&
           word.startsWith("-") &&
           word.length > 1
         ) {
-          // `-rp PROMPT`: options cluster, and the last may take the next word.
-          const letters = word.slice(1);
-          for (let at = 0; at < letters.length; at += 1) {
-            const option = `-${letters[at]}`;
-            if (!READ_ARGS.has(option)) continue;
-            const attached = letters.slice(at + 1);
+          // `-rp PROMPT`: options cluster, and the first that takes an
+          // argument takes the rest of the word or the next word.
+          const at = [...word.slice(1)].findIndex((letter) =>
+            READ_ARGS.has(letter),
+          );
+          if (at >= 0) {
+            const attached = word.slice(at + 2);
             const value = attached !== "" ? attached : words[index + 1];
             if (attached === "") index += 1;
-            if (option === "-a") {
+            const option = word[at + 1];
+            if (option === "a") {
               if (value === null || value === undefined) return null;
               names.push(value);
             }
             // `read -t 0` only tests for input and sets nothing.
-            if (option === "-t") {
+            if (option === "t") {
               if (value === null || value === undefined) return null;
-              if (/^0*(?:\.0*)?$/.test(value)) return [];
+              if (/^0*(?:\.0*)?$/.test(value)) return NONE;
             }
-            break;
           }
           continue;
         }
-        if (word === null || word === undefined) return null;
+        if (word === null) return null;
         options = false;
         names.push(word);
       }
@@ -829,8 +830,8 @@ function commandBinds(name: string, list: Node[]): string[] | null {
     case "readarray": {
       const names: string[] = [];
       for (let index = 0; index < words.length; index += 1) {
-        const word = words[index];
-        if (word === null || word === undefined) return null;
+        const word = words[index] as string | null;
+        if (word === null) return null;
         if (word.startsWith("-")) {
           if (MAPFILE_ARGS.has(word)) index += 1;
           continue;
@@ -841,29 +842,33 @@ function commandBinds(name: string, list: Node[]): string[] | null {
     }
     case "printf": {
       const index = words.indexOf("-v");
-      if (index < 0) return [];
+      if (index < 0) return NONE;
       const target = words[index + 1];
       return target === null || target === undefined
         ? null
-        : [target.replace(/\[.*$/, "")];
+        : [arrayName(target)];
     }
     case "getopts": {
       const target = words[1];
       return target === null
         ? null
         : target === undefined
-          ? []
+          ? NONE
           : [target, "OPTARG"];
     }
     case "wait": {
       const index = words.indexOf("-p");
-      if (index < 0) return [];
+      if (index < 0) return NONE;
       const target = words[index + 1];
       return target === null || target === undefined ? null : [target];
     }
-    default:
-      return [];
   }
+  return NONE;
+}
+
+/** The array a subscripted name names: `a` for `a[1]`. */
+function arrayName(target: string): string {
+  return target.split("[")[0] as string;
 }
 
 /** Read one extract of a parsed Bash file. */
@@ -885,7 +890,7 @@ export function bashReferences(
   const localNames = new Set<string>();
   for (const match of root.text.matchAll(/\blocal\b([^\n;&|]*)/g))
     for (const word of (match[1] as string).matchAll(
-      /(?:^|\s)([A-Za-z_]\w*)(?==|\s|$)/g,
+      /\s([A-Za-z_]\w*)(?==|\s|$)/g,
     ))
       localNames.add(word[1] as string);
   /**
@@ -906,10 +911,10 @@ export function bashReferences(
   const textRow = (
     match: RegExpExecArray | RegExpMatchArray,
   ): UnresolvedRow => {
-    const line = root.text.slice(0, match.index ?? 0).split("\n").length;
+    const line = root.text.slice(0, match.index as number).split("\n").length;
     return {
       line,
-      text: (root.text.split("\n")[line - 1] ?? "").trim().slice(0, 80),
+      text: (root.text.split("\n")[line - 1] as string).trim().slice(0, 80),
     };
   };
   if (code && rebinds !== null) unresolved.push(textRow(rebinds));
@@ -922,7 +927,7 @@ export function bashReferences(
    */
   const foreignEnv = !env
     ? null
-    : /\bENVIRON\b|%ENV\b|\$ENV\b|\bos\.environb?\b|\bos\.getenv\b|\bgetenv\s*\(|process\.env\b|\bENV\s*(?:\[|\.fetch\b)|-MEnv\b|\benviron\b|\/proc\/[^\s;&|<>)'"]*(?:env|[*?[$]|\/\.\.?\/|\/\/)|\/proc\/thread-self\b|\b(?:cd|pushd)\s+["']?\/proc\b/.exec(
+    : /\bENVIRON\b|%ENV\b|\$ENV\b|\bos\.environb\b|\bos\.getenv\b|\bgetenv\s*\(|process\.env\b|\bENV\s*(?:\[|\.fetch\b)|-MEnv\b|\benviron\b|\/proc\/[^\s;&|<>)'"]*(?:env|[*?[$]|\/\.\.?\/|\/\/)|\/proc\/thread-self\b|\b(?:cd|pushd)\s+["']?\/proc\b/.exec(
         root.text,
       );
   if (foreignEnv !== null) unresolved.push(textRow(foreignEnv));
@@ -1529,8 +1534,7 @@ export function bashReferences(
           if (words[index] === "-v" || words[index] === "-R") {
             const target = words[index + 1];
             if (target === null || target === undefined) refuse(node);
-            else
-              read(target.replace(/\[.*$/, ""), list[index + 1] as Node, node);
+            else read(arrayName(target), list[index + 1] as Node, node);
           }
       } else if (DECLARATIONS.has(name) && node.type === "command") {
         // `builtin declare -n ref=X`: Kibi reads declarations it can see as such.
@@ -2291,7 +2295,7 @@ export function bashReferences(
           const name = operand === undefined ? null : wordValue(operand);
           if (name === null) {
             if (env) refuse(node);
-          } else read(name.replace(/\[.*$/, ""), operand as Node, node);
+          } else read(arrayName(name), operand as Node, node);
           return;
         }
         break;
