@@ -1,12 +1,12 @@
 ---
-title: 'Tree-sitter language packs: Kibi doctor must fail when a plugin that package.json declares is not in'
+title: 'Tree-sitter language packs: Kibi doctor must fail when a plugin that package.json declares is not insta'
 status: active
 fact_kind: property_value
 subject_key: kibi.tree_sitter_language_packs
 property_key: doctor_fails_on_missing_plugin
 operator: eq
-claim_key: CLAIM-B4DD19BF84DEE768
-claim_text: Kibi doctor must fail when a plugin that package.json declares is not installed or is not the release-qualified build, and coordinate refresh must then keep the stored coordinates
+claim_key: CLAIM-CC3F0410A6FD8F49
+claim_text: Kibi doctor must fail when a plugin that package.json declares is not installed or is not the release-qualified build
 value_type: bool
 value_bool: true
 tags:
