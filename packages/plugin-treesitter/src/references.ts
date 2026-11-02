@@ -40,7 +40,7 @@ export interface ReferenceRequest {
   readonly callee?: string;
   readonly key?: string;
   /** Workspace-relative path of the file, for paths it names relative to itself. */
-  readonly path?: string;
+  readonly path: string;
 }
 
 export interface Unresolved {
@@ -2945,17 +2945,19 @@ function rustAttribute(node: Node): string {
   return plainName(node.text);
 }
 
-/** The attribute items that annotate an item: its preceding siblings. */
+/**
+ * The attribute items that annotate an item: its preceding siblings. Doc
+ * comments may sit between an item's attributes and the item; a comment
+ * reads as an empty attribute, which no caller looks for.
+ */
 function rustAttributes(node: Node): string[] {
   const attributes: string[] = [];
   let previous = node.previousNamedSibling;
-  // Doc comments may sit between an item's attributes and the item.
   while (
     previous !== null &&
     (previous.type === "attribute_item" || previous.type.endsWith("comment"))
   ) {
-    if (previous.type === "attribute_item")
-      attributes.push(rustAttribute(previous));
+    attributes.push(rustAttribute(previous));
     previous = previous.previousNamedSibling;
   }
   return attributes;
@@ -3034,15 +3036,15 @@ interface RustAttributePart {
 function rustCfgAttrParts(list: Node | null): RustAttributePart[] | null {
   if (list === null || list.type !== "token_tree") return null;
   const tokens = list.children
-    .filter((child): child is Node => child !== null)
     .filter((child) => !child.type.endsWith("comment"))
     .slice(1, -1);
-  const pieces: Node[][] = [[]];
+  // The predicate's tokens come before the first comma and land in no piece.
+  const pieces: Node[][] = [];
   for (const token of tokens)
     if (token.type === ",") pieces.push([]);
     else pieces.at(-1)?.push(token);
   const parts: RustAttributePart[] = [];
-  for (const piece of pieces.slice(1)) {
+  for (const piece of pieces) {
     if (piece.length === 0) continue;
     let end = 0;
     while (
@@ -3081,26 +3083,29 @@ function rustAttributeExpand(
 
 /** The attributes an attribute item applies in any build. */
 function rustAttributeParts(node: Node): RustAttributePart[] | null {
-  const attribute = named(node).find((child) => child.type === "attribute");
-  /* node:coverage disable */
-  if (attribute === undefined) return null;
-  const head = named(attribute)[0];
-  if (head === undefined) return null;
-  /* node:coverage enable */
-  const list = field(attribute, "arguments");
+  // A parsed attribute item always holds an attribute, which starts with
+  // its path.
+  const attribute = named(node).find(
+    (child) => child.type === "attribute",
+  ) as Node;
+  const head = named(attribute)[0] as Node;
+  const after = attribute.children
+    .filter((child) => child.id !== head.id)
+    .map((child) => rustTokens(child));
+  // At most `= value` or one token tree follows the path, so the separator
+  // never stands between two words.
+  // Stryker disable next-line StringLiteral: rationale: see the lines above.
+  const tokens = after.join(" ");
   return rustAttributeExpand({
     path: plainName(rustRaw(head.text)),
-    tokens: attribute.children
-      .filter((child): child is Node => child !== null && child.id !== head.id)
-      .map((child) => rustTokens(child))
-      .join(" "),
-    list,
+    tokens,
+    list: field(attribute, "arguments"),
   });
 }
 
 /** The traits a `derive` part lists, as spelled (`serde::Serialize`). */
 function rustDerived(part: RustAttributePart): string[] {
-  const list = part.tokens.replace(/\s+/g, "");
+  const list = part.tokens.replace(/\s/g, "");
   return list.startsWith("(") && list.endsWith(")")
     ? list
         .slice(1, -1)
@@ -3166,11 +3171,8 @@ function rustAttributeGenerates(
   context: FileContext,
   callee: string,
 ): boolean {
-  if (!rustAttributeHidesCalls(node)) return false;
   const parts = rustAttributeParts(node);
-  /* node:coverage disable */
   if (parts === null) return true;
-  /* node:coverage enable */
   return parts.some((part) => {
     if (!rustPartHidesCalls(part)) return false;
     if (part.path === "derive")
@@ -3440,9 +3442,9 @@ function rustItemBinding(child: Node, name: string): RustBinding | null {
     if (!rustNamed(child, name)) return null;
     // `type C = std::process::Command` is followed; a generic alias or one
     // of another kind of type is not.
-    const type = field(child, "type");
-    return type !== null &&
-      field(child, "type_parameters") === null &&
+    // A parsed `type` item always names its type.
+    const type = field(child, "type") as Node;
+    return field(child, "type_parameters") === null &&
       (type.type === "type_identifier" ||
         type.type === "scoped_type_identifier")
       ? { kind: "path", path: rustPlain(type.text) }
@@ -3453,19 +3455,16 @@ function rustItemBinding(child: Node, name: string): RustBinding | null {
   }
   switch (child.type) {
     case "use_declaration": {
-      const argument = field(child, "argument");
       let path: string | null = null;
-      /* node:coverage disable */
-      if (argument !== null)
-        /* node:coverage enable */
-        rustUseBindings(
-          argument,
-          "",
-          (local, target) => {
-            if (local === name) path = target;
-          },
-          () => {},
-        );
+      // A parsed `use` item always has an argument.
+      rustUseBindings(
+        field(child, "argument") as Node,
+        "",
+        (local, target) => {
+          if (local === name) path = target;
+        },
+        () => {},
+      );
       if (path !== null) return { kind: "path", path };
       break;
     }
@@ -3474,11 +3473,10 @@ function rustItemBinding(child: Node, name: string): RustBinding | null {
         return { kind: "module", body: field(child, "body") };
       break;
     case "extern_crate_declaration": {
-      const crate = field(child, "name");
+      // A parsed `extern crate` item always names its crate.
+      const crate = field(child, "name") as Node;
       const local = field(child, "alias") ?? crate;
-      /* node:coverage disable */
-      if (crate !== null && rustRaw(local?.text ?? "") === name)
-        /* node:coverage enable */
+      if (rustRaw(local.text) === name)
         return { kind: "crate", crate: rustRaw(crate.text) };
       break;
     }
@@ -3533,9 +3531,12 @@ function rustResolve(
   const std = new Set(["std", "core", "alloc"]);
   if (std.has(root) || (root === "" && std.has(rest[0] ?? "")))
     return [{ path: rustCanonical(spelled.path), exact: true }];
-  const module = scopes.at(-1);
-  if (depth > 8 || module === undefined || root === "") return [unknown];
-  if (root === "crate") return [unknown];
+  if (depth > 8) return [unknown];
+  // Only a cfg-gated binding of the outermost scope asks again with no
+  // scopes, and the name it asks for is not `self` or `super`. No item
+  // binds `crate` or the empty root of `::name`, so the loop below finds
+  // them nowhere and answers `unknown`.
+  const module = scopes.at(-1) as Node;
   if (root === "self") return rustResolve(rest, [module], depth + 1);
   if (root === "super") {
     const parent = module.parent;
@@ -3574,7 +3575,7 @@ function rustResolve(
           return rustResolve([binding.crate, ...rest], scopes, depth + 1);
         case "alias":
           return [{ ...unknown, opaque: true }];
-        default:
+        case "item":
           return [spelled];
       }
     });
@@ -3594,7 +3595,7 @@ function rustUniqueResolutions(
   const seen = new Map<string, RustResolution>();
   for (const resolution of resolutions)
     seen.set(
-      `${resolution.path}\0${resolution.exact}\0${resolution.opaque ?? ""}`,
+      `${resolution.path}\0${resolution.exact}\0${resolution.opaque}`,
       resolution,
     );
   return [...seen.values()];
@@ -3605,7 +3606,10 @@ function rustPaths(name: string, at: Node): RustResolution[] {
   return rustResolve(name.split("::"), rustScopes(at));
 }
 
-/** Whether a call resolved to `resolved` may read or call unseen. */
+/**
+ * Whether a call resolved to `resolved` may read or call unseen. Only the
+ * `env`, `calls` and `string_args` reads look at a refusal.
+ */
 function rustRefusesResolved(
   resolved: RustResolution,
   callName: string,
@@ -3622,15 +3626,10 @@ function rustRefusesResolved(
   )
     return true;
   // A bare getter name a glob may bring in (`use inner::*` re-exporting
-  // std::env::var).
-  if (
-    !resolved.exact &&
-    !callName.includes("::") &&
-    RUST_ENV_NAMES.has(callName) &&
-    context.globbed
-  ) {
+  // std::env::var); a getter's name has no `::`, so it is spelled bare.
+  if (!resolved.exact && RUST_ENV_NAMES.has(callName) && context.globbed) {
     if (extract === "string_args") return finalName(callee) === callName;
-    return extract === "env" || extract === "calls";
+    return true;
   }
   if (
     resolved.exact ||
@@ -3640,7 +3639,7 @@ function rustRefusesResolved(
     return false;
   if (extract === "string_args")
     return finalName(callee) === lastOf(resolved.path, "::");
-  return extract === "env" || extract === "calls";
+  return true;
 }
 
 const RUST: Reader = {
@@ -3908,7 +3907,12 @@ export function extractReferences(
       code: "TREESITTER_REFERENCES_SYNTAX",
       message: `line ${broken.startPosition.row + 1} is not valid ${name}`,
     };
-  const { extract } = request;
+  const { extract, path } = request;
+  // No name a reader compares the callee with is empty or holds a space, so
+  // an absent callee matches nothing whatever string stands for it.
+  // Stryker disable next-line StringLiteral: rationale: see the line above.
+  const callee = request.callee ?? "";
+  const key = request.key ?? "";
   if (language === "terraform" || language === "hcl") {
     if (extract !== "property")
       return {
@@ -3918,7 +3922,7 @@ export function extractReferences(
       };
     return {
       ok: true,
-      ...hclProperty(root, request.key ?? "", request.path ?? ""),
+      ...hclProperty(root, key, path),
     };
   }
   if (language === "c") {
@@ -3931,8 +3935,8 @@ export function extractReferences(
     return {
       ok: true,
       ...cReferences(root, extract, {
-        callee: request.callee ?? "",
-        key: request.key ?? "",
+        callee,
+        key,
       }),
     };
   }
@@ -3940,9 +3944,9 @@ export function extractReferences(
     return {
       ok: true,
       ...phpReferences(root, extract, {
-        callee: request.callee ?? "",
-        key: request.key ?? "",
-        file: request.path ?? "",
+        callee,
+        key,
+        file: path,
       }),
     };
   if (language === "bash") {
@@ -3954,12 +3958,7 @@ export function extractReferences(
       };
     return {
       ok: true,
-      ...bashReferences(
-        root,
-        extract,
-        request.callee ?? "",
-        request.path ?? "",
-      ),
+      ...bashReferences(root, extract, callee, path),
     };
   }
   const reader = READERS[language];
@@ -3969,8 +3968,6 @@ export function extractReferences(
       code: "TREESITTER_REFERENCES_UNSUPPORTED",
       message: `${name} has no property values to extract`,
     };
-  const callee = request.callee ?? "";
-  const key = request.key ?? "";
   const members: string[] = [];
   const unresolved: Unresolved[] = [];
   const context = reader.context(root);
