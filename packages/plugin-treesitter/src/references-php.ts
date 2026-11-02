@@ -278,6 +278,14 @@ const ARRAY_TRANSFORMS = new Set([
   "iterator_to_array",
 ]);
 
+/** Nodes with variables of their own. */
+const FUNCTIONS = new Set([
+  "anonymous_function",
+  "arrow_function",
+  "function_definition",
+  "method_declaration",
+]);
+
 /** Code built from text: every extract is unknowable there. */
 const CODE_FUNCTIONS = new Set(["create_function"]);
 
@@ -1019,16 +1027,17 @@ export function phpReferences(
     else members.push(value);
   };
 
-  /** What a callable handed to a builtin means for the extract. */
+  /**
+   * What a callable handed to a builtin means for the extract (calls,
+   * string_args, env or thrown: the others never look).
+   */
   const handedCallable = (argument: Node, value: Node | undefined): void => {
     const reached = callable(value);
     // `call_user_func('class_alias', ...)` renames a class at run time.
     if (
       reached?.some((target) =>
         /^(?:class_alias|create_function)$/i.test(target),
-      ) &&
-      extract !== "property" &&
-      extract !== "imports"
+      )
     ) {
       refuse(argument);
       return;
@@ -1037,8 +1046,8 @@ export function phpReferences(
       // `[$controller, $action]` calls a method of some class.
       if (
         env &&
-        value?.type === "array_creation_expression" &&
-        named(value).length === 2
+        (value as Node).type === "array_creation_expression" &&
+        named(value as Node).length === 2
       )
         envRow("the callable's class", argument);
       else refuse(argument);
@@ -1049,7 +1058,6 @@ export function phpReferences(
       if (reached.some((target) => envMethod(target, argument, true)))
         refuse(argument);
     } else if (
-      extract === "string_args" &&
       reached.some(
         (target) =>
           calleeMatches(target, options.callee) ||
@@ -1067,13 +1075,11 @@ export function phpReferences(
     const key = lower(name);
     const positions = CALLABLE_ARGS.get(key);
     if (positions !== undefined) {
+      // A spread may put the callable anywhere. A `...` placeholder has no
+      // child.
       if (
-        list.some(
-          (argument) =>
-            argument.type === "argument" &&
-            named(argument).some(
-              (child) => child.type === "variadic_unpacking",
-            ),
+        list.some((argument) =>
+          named(argument).some((child) => child.type === "variadic_unpacking"),
         )
       ) {
         refuse(node);
@@ -1084,19 +1090,18 @@ export function phpReferences(
         for (const argument of list) handed.add(argument);
       else
         for (const position of positions) {
-          const argument = position < 0 ? list.at(position) : list[position];
+          const argument = list.at(position);
           if (argument !== undefined && field(argument, "name") === null)
             handed.add(argument);
         }
       // A named argument is the callable when it names that parameter
       // (`callback:`, `value:` for assert_options).
       for (const argument of list) {
-        const parameter = lower(field(argument, "name")?.text ?? "");
+        const parameter = field(argument, "name");
         if (
-          parameter !== "" &&
-          (positions === "all" ||
-            parameter === "callback" ||
-            (key === "assert_options" && parameter === "value"))
+          parameter !== null &&
+          (lower(parameter.text) === "callback" ||
+            (key === "assert_options" && lower(parameter.text) === "value"))
         )
           handed.add(argument);
       }
@@ -1120,10 +1125,14 @@ export function phpReferences(
     ) {
       // CURLOPT_*FUNCTION and CURLMOPT_*FUNCTION options take a callback.
       const pairs: [Node | undefined, Node | undefined, Node][] = [];
-      if (key !== "curl_setopt_array") {
-        if (list[1] !== undefined)
-          pairs.push([argumentValue(list[1]), argumentValue(list[2]), list[1]]);
-      } else {
+      if (key !== "curl_setopt_array")
+        // With no option there is nothing to read.
+        pairs.push([
+          argumentValue(list[1]),
+          argumentValue(list[2]),
+          list[1] as Node,
+        ]);
+      else {
         const map = argumentValue(list[1]);
         if (map?.type !== "array_creation_expression") {
           if (list[1] !== undefined) refuse(list[1]);
@@ -1151,22 +1160,17 @@ export function phpReferences(
    * nested function, which has a variable of its own.
    */
   const catchTrusted = (clause: Node, name: string): boolean => {
-    const body = field(clause, "body");
-    if (body === null) return true;
+    const body = field(clause, "body") as Node;
     // The function or file the catch is in: a reference to the variable
     // (`use (&$e)`, `$r = &$e`), `global $e`, `extract()`, a variable
     // variable or `$GLOBALS` may replace it without an assignment in the
     // catch body.
     let scope: Node = clause;
-    while (
-      scope.parent !== null &&
-      !/^(?:anonymous_function|arrow_function|function_definition|method_declaration)$/.test(
-        scope.type,
-      )
-    )
+    while (scope.parent !== null && !FUNCTIONS.has(scope.type))
       scope = scope.parent;
-    const variable = name.replace(/^\$/, "");
+    const variable = name.slice(1);
     if (
+      // `GLOBAL` is a keyword: any case.
       new RegExp(
         `&\\s*\\$${variable}\\b|\\bglobal\\b[^;]*\\$${variable}\\b`,
         "i",
@@ -1179,27 +1183,16 @@ export function phpReferences(
     // An included file shares the scope's variables.
     if (/\b(?:include|require)(?:_once)?\b/i.test(body.text)) return false;
     // At file scope, a function the catch body calls may set the global.
-    if (
-      scope.parent === null &&
-      /\(|\b(?:include|require)(?:_once)?\b|`/.test(
-        body.text.replace(/\bthrow\s+\$\w+\s*;/g, ""),
-      )
-    )
-      return false;
+    if (scope.parent === null && /\(|`/.test(body.text)) return false;
     const safe = (use: Node): boolean => {
       for (
-        let current = use.parent;
-        current !== null && current.id !== body.id;
-        current = current.parent
+        let current = use.parent as Node;
+        current.id !== body.id;
+        current = current.parent as Node
       )
-        if (
-          /^(?:anonymous_function|arrow_function|anonymous_function_creation_expression|function_definition|method_declaration|class_declaration)$/.test(
-            current.type,
-          )
-        )
+        if (FUNCTIONS.has(current.type) || current.type === "class_declaration")
           return false;
-      const parent = use.parent;
-      if (parent === null) return false;
+      const parent = use.parent as Node;
       switch (parent.type) {
         case "throw_expression":
         case "encapsed_string":
@@ -1208,41 +1201,37 @@ export function phpReferences(
         case "nullsafe_member_access_expression":
         case "member_call_expression":
         case "nullsafe_member_call_expression":
-          return field(parent, "object")?.id === use.id;
+          return (field(parent, "object") as Node).id === use.id;
         case "binary_expression": {
-          const operator = lower(field(parent, "operator")?.text ?? "");
+          const operator = lower((field(parent, "operator") as Node).text);
           return (
             operator === "." ||
-            (operator === "instanceof" && field(parent, "left")?.id === use.id)
+            (operator === "instanceof" &&
+              (field(parent, "left") as Node).id === use.id)
           );
         }
         case "argument": {
-          if (field(parent, "name")?.id === use.id) return false;
           // A constructor or a builtin that takes it by value keeps it; a
           // function or method may take it by reference and replace it.
-          const call = parent.parent?.parent;
+          const call = (parent.parent as Node).parent as Node;
           // A project class's constructor may take it by reference.
-          if (call?.type === "object_creation_expression") {
-            const type = named(call)[0];
-            const owner =
-              type === undefined || type.type === "variable_name"
-                ? null
-                : resolveClass(type);
+          if (call.type === "object_creation_expression") {
+            const owner = resolveClass(named(call)[0] as Node);
             return owner !== null && BUILTIN_THROWABLES.has(lower(owner));
           }
-          if (call?.type !== "function_call_expression") return false;
-          const callee = lower(
-            stripLeading(field(call, "function")?.text ?? ""),
+          const callee = field(call, "function");
+          return (
+            callee !== null &&
+            BY_VALUE_BUILTINS.has(lower(stripLeading(callee.text)))
           );
-          return BY_VALUE_BUILTINS.has(callee);
         }
         case "array_element_initializer":
           return (
-            named(parent).at(-1)?.id === use.id && !/&\s*\$/.test(parent.text)
+            // `&$e` is a `by_ref` node, never this one.
+            (named(parent).at(-1) as Node).id === use.id
           );
-        default:
-          return false;
       }
+      return false;
     };
     const check = (node: Node): boolean => {
       if (node.type === "variable_name" && node.text === name)
@@ -1251,34 +1240,40 @@ export function phpReferences(
     };
     return check(body);
   };
-
-  const catchNames: string[] = [];
+  /** Whether `throw $e` rethrows what the nearest `catch (X $e)` caught. */
+  const rethrows = (thrown: Node): boolean => {
+    // A parameter or property may be named so too: `function f($e = throw $e)`.
+    for (let node = thrown.parent; node !== null; node = node.parent)
+      if (
+        node.type === "catch_clause" &&
+        field(node, "name")?.text === thrown.text
+      )
+        return catchTrusted(node, thrown.text);
+    return false;
+  };
 
   /** property: what a write to `left` sets, "dynamic" when any key may be meant. */
-  const writtenKey = (left: Node | null): string | null => {
-    if (left === null) return null;
+  const writtenKey = (left: Node): string | null => {
     switch (left.type) {
       case "subscript_expression": {
         const index = named(left)[1];
+        // `$a[] = x` appends at a key that is no negative number.
         if (index === undefined)
-          return /^(?:0|[1-9]\d*)$/.test(options.key) ? "dynamic" : null;
+          return numericKey && !options.key.startsWith("-") ? "dynamic" : null;
         if (intConstant(index)) return null;
         return keyOf(index) ?? "dynamic";
       }
       case "member_access_expression":
       case "nullsafe_member_access_expression": {
-        const name = field(left, "name");
-        return name?.type === "name" ? name.text : "dynamic";
+        const name = field(left, "name") as Node;
+        return name.type === "name" ? name.text : "dynamic";
       }
       case "scoped_property_access_expression": {
-        const name = field(left, "name");
-        return name?.type === "variable_name"
-          ? name.text.replace(/^\$/, "")
-          : "dynamic";
+        const name = field(left, "name") as Node;
+        return name.type === "variable_name" ? name.text.slice(1) : "dynamic";
       }
-      default:
-        return null;
     }
+    return null;
   };
 
   const numericKey = /^(?:0|-?[1-9]\d*)$/.test(options.key);
@@ -1308,13 +1303,12 @@ export function phpReferences(
         if (value === null) return null;
         if (
           node.type === "unary_op_expression" &&
-          named(node)[0]?.type !== "float"
+          (named(node)[0] as Node).type !== "float"
         )
           return value;
+        // `String(-0)` is "0".
         const number = Math.trunc(Number(value));
-        return Number.isSafeInteger(number)
-          ? String(number === 0 ? 0 : number)
-          : null;
+        return Number.isSafeInteger(number) ? String(number) : null;
       }
       default:
         return literal(node);
@@ -1333,7 +1327,7 @@ export function phpReferences(
       // `CURLOPT_ACL` may be a constant the file defines (`const
       // CURLOPT_ACL = 'acl';`, `define('CURLOPT_ACL', 'acl')`).
       // An included file may define it too.
-      const name = node.text.replace(/^\\/, "");
+      const name = stripLeading(node.text);
       return (
         !new RegExp(`\\b(?:const|define)\\b[^;]*\\b${name}\\b`).test(
           root.text,
@@ -1341,13 +1335,12 @@ export function phpReferences(
       );
     }
     if (node.type !== "class_constant_access_expression") return false;
-    const [owner, constant] = named(node);
+    const [owner, constant] = named(node) as [Node, Node];
     return (
-      owner !== undefined &&
       // `PDO::ATTR_X` in `namespace App;` may be `App\PDO`'s.
-      lower(resolveClass(owner) ?? "") === "pdo" &&
-      /^(?:ATTR|MYSQL_ATTR|PGSQL_ATTR|SQLITE_ATTR|PARAM|FETCH|ERRMODE|CASE|NULL|CURSOR)_\w+$/.test(
-        constant?.text ?? "",
+      resolveClass(owner)?.toLowerCase() === "pdo" &&
+      /^(?:ATTR|MYSQL_ATTR|PGSQL_ATTR|SQLITE_ATTR|PARAM|FETCH|ERRMODE|CASE|NULL|CURSOR)_\w/.test(
+        constant.text,
       )
     );
   };
@@ -1895,16 +1888,6 @@ export function phpReferences(
         if (env && value !== null && callableEnvName(node, value)) refuse(node);
         break;
       }
-      case "catch_clause": {
-        const name = field(node, "name")?.text ?? null;
-        // A catch variable assigned or handed by reference may hold another
-        // exception by the time it is thrown.
-        const trusted = name !== null && catchTrusted(node, name);
-        catchNames.push(trusted ? (name as string) : "");
-        for (const child of named(node)) visit(child);
-        catchNames.pop();
-        return;
-      }
       case "throw_expression": {
         if (extract !== "thrown") break;
         let thrown = named(node)[0];
@@ -1931,11 +1914,9 @@ export function phpReferences(
             if (read.namespace !== null)
               shadow(read.names[0] as string, read.namespace, thrown);
           }
-        } else if (
-          !(
-            thrown?.type === "variable_name" && catchNames.includes(thrown.text)
-          )
-        )
+        } else if (!(thrown?.type === "variable_name" && rethrows(thrown)))
+          // A catch variable assigned or handed by reference may hold
+          // another exception by the time it is thrown.
           refuse(node);
         break;
       }
@@ -2031,7 +2012,7 @@ export function phpReferences(
       case "augmented_assignment_expression":
       case "reference_assignment_expression": {
         if (extract !== "property") break;
-        const left = field(node, "left");
+        const left = field(node, "left") as Node;
         // `[$o['acl']] = [...]` writes through a destructuring target, and
         // `$r = &$o['acl']` lets `$r` write the key.
         const targets: Node[] = [];
@@ -2045,15 +2026,12 @@ export function phpReferences(
           else for (const child of named(part)) gather(child);
         };
         if (
-          left !== null &&
-          (left.type === "list_literal" ||
-            left.type === "array_creation_expression")
+          left.type === "list_literal" ||
+          left.type === "array_creation_expression"
         )
           gather(left);
-        if (node.type === "reference_assignment_expression") {
-          const right = field(node, "right");
-          if (right !== null) targets.push(right);
-        }
+        if (node.type === "reference_assignment_expression")
+          targets.push(field(node, "right") as Node);
         if (
           targets.some((target) => {
             const written = writtenKey(target);

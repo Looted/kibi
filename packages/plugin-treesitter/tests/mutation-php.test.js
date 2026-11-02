@@ -472,3 +472,245 @@ describe("PHP namespaces and imports", () => {
     );
   });
 });
+
+describe("PHP callables handed to builtins", () => {
+  it("refuses class_alias and reads other callables by name", async () => {
+    await reads("calls", [
+      [
+        "call_user_func('my_class_alias'); call_user_func('class_alias_x'); call_user_func('Class_Alias', 'A', 'B');",
+        ["call_user_func", "class_alias_x", "my_class_alias"],
+        ["2: 'Class_Alias'"],
+      ],
+      [
+        "array_map(...$args); array_map('trim', ...$args); array_map(); array_map(array: $x, callback: 'trim'); array_map(callback: 'ltrim', array: $x);",
+        ["array_map", "ltrim", "trim"],
+        ["2: array_map(...$args)", "2: array_map('trim', ...$args)"],
+      ],
+      [
+        "assert_options(ASSERT_CALLBACK, value: 'cb'); usort($a, value: 'x'); assert_options(callback: 'cb2'); assert_options(what: 'w'); array_map(...);",
+        ["array_map", "assert_options", "cb", "cb2", "usort"],
+      ],
+      [
+        "curl_setopt_array($ch, [/*c*/ CURLOPT_URL => 'x']);",
+        ["curl_setopt_array"],
+        ["2: /*c*/"],
+      ],
+      [
+        "preg_replace_callback_array(); preg_replace_callback_array(['system'], $s); preg_replace_callback_array($m, $s);",
+        ["preg_replace_callback_array", "system"],
+        ["2: $m"],
+      ],
+      [
+        "curl_setopt($ch); curl_setopt_array($ch); curl_setopt_array($ch, $opts); curl_setopt_array($ch, ['x', CURLOPT_WRITEFUNCTION => 'w']);",
+        ["curl_setopt", "curl_setopt_array", "w"],
+        ["2: $opts", "2: 'x'"],
+      ],
+      [
+        "curl_setopt($ch, CURLOPT_URL . '', $v); curl_setopt($ch, MY_CURLOPT_WRITEFUNCTION, 'a'); curl_setopt($ch, CURLOPT_FUNCTION_X, 'cb'); curl_setopt($ch, \\CURLMOPT_PUSHFUNCTION, 'p');",
+        ["curl_setopt", "p"],
+        ["2: CURLOPT_URL . ''", "2: MY_CURLOPT_WRITEFUNCTION"],
+      ],
+    ]);
+  });
+
+  it("reads a handed callable for env and string_args only", async () => {
+    await reads("env", [
+      [
+        "call_user_func($o->cb, 'X'); call_user_func([$a, $b, $c], 'Y'); call_user_func([$c, $a], 'Z');",
+        [],
+        [
+          "2: $o->cb",
+          "2: [$a, $b, $c]",
+          "2: the callable's class may be Illuminate\\Support\\Env or a class that extends it: [$c, $a]",
+        ],
+      ],
+      [
+        "array_map([\\Illuminate\\Support\\Env::class, 'get'], $xs); array_map(fn($x) => 1, $xs);",
+        [],
+        ["2: [\\Illuminate\\Support\\Env::class, 'get']"],
+      ],
+      ["array_map('static::get', $x);", [], ["2: 'static::get'"]],
+    ]);
+    await reads(
+      "string_args",
+      [
+        [
+          "array_map(fn($x) => 1, $x); array_map('trim', $x); array_map('xxexec', $x); array_map([$o, 'run'], $x); array_map([$o, 'exec'], $x);",
+          [],
+          ["2: [$o, 'exec']"],
+        ],
+      ],
+      { callee: "exec" },
+    );
+    await reads("property", [["array_map($cb, $x); new Fiber($cb);", []]], {
+      key: "acl",
+    });
+    await reads("thrown", [
+      ["array_map($cb, $x); new Fiber($cb); throw new E;", ["E"], ["2: $cb"]],
+    ]);
+  });
+});
+
+describe("PHP rethrown catch variables", () => {
+  const inFunction = (body) =>
+    `function f() { try {} catch (E $e) { ${body} } }`;
+  it("trusts a catch variable that is only read", async () => {
+    for (const body of [
+      'echo "msg $e"; $e->code; $e?->code; $e->m(); $e?->m(); throw $e;',
+      "$x = 'x' . $e; $y = $e instanceof X; throw $e;",
+      "new RuntimeException('x', 0, $e); print_r($e); throw $e;",
+      "$a = [$e, 'k' => $e]; throw $e;",
+      "try {} catch (B $x) { throw $e; }",
+    ])
+      await reads("thrown", [[inFunction(body), []]]);
+    await reads("thrown", [["try {} catch (E $e) { throw $e; }", []]]);
+  });
+
+  it("refuses a catch variable something may replace", async () => {
+    for (const body of [
+      "$f = function() use ($e) { throw $e; }; throw $e;",
+      "$f = fn() => $e; throw $e;",
+      "class K { function m() { $e; } } throw $e;",
+      "$o->$e; throw $e;",
+      "$o->m($e); throw $e;",
+      "$y = $x instanceof $e; throw $e;",
+      "$y = $e + 1; throw $e;",
+      "new MyEx($e); throw $e;",
+      "strtoupper($e); throw $e;",
+      "$a = [$e => 1]; throw $e;",
+      "$a = ['k' => & $e]; throw $e;",
+      "$a = [&$e]; throw $e;",
+      "$x = $e; throw $e;",
+      "include 'x.php'; throw $e;",
+      "try {} catch (B $e) { $e = new C; throw $e; }",
+      "$f = fn() => throw $e; throw $e;",
+      "function g() { throw $e; } throw $e;",
+      'class K { public $p = "$e"; } throw $e;',
+      "new $cls($e); throw $e;",
+    ]) {
+      const { rows } = await php(inFunction(body), "thrown");
+      assert.ok(rows.includes("2: throw $e"), body);
+    }
+    for (const body of [
+      "function f() { try {} catch (E $e) { throw $e; } GLOBAL $e; }",
+      "function f() { try {} catch (E $e) { throw $e; } extract ($x); }",
+      "try {} catch (E $e) { f(); throw $e; }",
+      "try {} catch (E $e) { `ls`; throw $e; }",
+      "function f() { try { throw $e; } catch (A $e) {} }",
+      "function f() { try {} catch (A) { throw $e; } }",
+      "function f($e = throw $e) {}",
+      "class C { public $e = throw $e; }",
+    ])
+      await reads("thrown", [[body, [], ["2: throw $e"]]]);
+  });
+});
+
+describe("PHP keys a write may set", () => {
+  const p = (body, key, members, rows = []) =>
+    reads("property", [[body, members, rows]], { key });
+  it("appends at a number key", async () => {
+    for (const key of ["0", "10", "5"])
+      await p("$a[] = 'x';", key, [], ["2: $a[] = 'x'"]);
+    for (const key of ["-1", "01", "1x", "acl"])
+      await p("$a[] = 'x';", key, []);
+  });
+
+  it("names written properties and constants", async () => {
+    await p("$a[CURLOPT_URL] = 'x';", "acl", []);
+    await p("$o?->acl = 'x';", "acl", ["x"]);
+    await p("X::$acl = 'x'; X::$$v = 'y';", "acl", ["x"], ["2: X::$$v = 'y'"]);
+    await p("$o->{'acl'} = 'x';", "zz", [], ["2: $o->{'acl'} = 'x'"]);
+    const curl =
+      "$o = [CURLOPT_URL => 'x', 'acl' => 'y', 5 => 'z', -5 => 'w'];";
+    for (const key of ["0", "10002"])
+      await p(curl, key, [], ["2: CURLOPT_URL => 'x'"]);
+    await p(curl, "-5", ["w"], ["2: CURLOPT_URL => 'x'"]);
+    for (const key of ["05", "5x", "x5", "-0"]) await p(curl, key, []);
+    await p(curl, "acl", ["y"]);
+  });
+
+  it("refuses a constant defined twice", async () => {
+    await p(
+      "define ('K', 1); define('K', 2);",
+      "K",
+      [],
+      ["2: define ('K', 1)", "2: define('K', 2)"],
+    );
+    for (const first of [
+      "const  K = 1",
+      "const int K = 1",
+      "const int  K = 1",
+      "const K= 1",
+    ])
+      await p(
+        `${first}; const K = 2;`,
+        "K",
+        [],
+        [`2: ${first.replace(/^const (?:int )? ?/, "")}`, "2: K = 2"],
+      );
+    await p("const A = 1; const B = 2;", "A", ["1"]);
+    await p("class C { const int K = 1; }", "K", ["1"]);
+  });
+
+  it("stores bool, float and negative keys as PHP does", async () => {
+    const body =
+      "$a = [false => 'f', 1.7 => 'g', -1.7 => 'h', -0.5 => 'i', -5 => 'j', 1e20 => 'k'];";
+    await p(body, "1", ["g"], ["2: 1e20 => 'k'"]);
+    await p(body, "-1", ["h"], ["2: 1e20 => 'k'"]);
+    await p(body, "-5", ["j"], ["2: 1e20 => 'k'"]);
+    await p(body, "0", [], ["2: 1e20 => 'k'", `2: ${body.slice(5, -1)}`]);
+    await p("$a = [1e999 => 'x'];", "0", [], ["2: 1e999 => 'x'"]);
+    await p("$a = [-$x => 'x'];", "0", [], ["2: -$x => 'x'"]);
+    await p("$a = [-9007199254740993 => 'x'];", "-9007199254740993", ["x"]);
+  });
+
+  it("knows the integer constants of curl and PDO", async () => {
+    await p(
+      "$a = [MY_CURLOPT_X => 'x', CURLOPT_URLX => 'y', \\CURLOPT_URL => 'z', Foo\\CURLOPT_URL => 'w', CURLOPT_X\\Y => 'v'];",
+      "acl",
+      [],
+      [
+        "2: MY_CURLOPT_X => 'x'",
+        "2: Foo\\CURLOPT_URL => 'w'",
+        "2: CURLOPT_X\\Y => 'v'",
+      ],
+    );
+    await p(
+      "const CURLOPT_ACL = 'acl'; $a = [CURLOPT_ACL => 'x'];",
+      "acl",
+      [],
+      ["2: CURLOPT_ACL => 'x'"],
+    );
+    await p(
+      "$a = [\\CURLOPT_ACL => 'x']; define('CURLOPT_ACL', 'acl');",
+      "acl",
+      [],
+      ["2: \\CURLOPT_ACL => 'x'"],
+    );
+    await p(
+      "include 'x.php'; $a = [CURLOPT_URL => 'x'];",
+      "acl",
+      [],
+      ["2: CURLOPT_URL => 'x'"],
+    );
+    await p(
+      "$a = [PDO::ATTR_ERRMODE => 1, PDO::MY_ATTR_X => 2];",
+      "acl",
+      [],
+      ["2: PDO::MY_ATTR_X => 2"],
+    );
+    for (const owner of ["X", "$x"])
+      await p(
+        `$a = [${owner}::ATTR_ERRMODE => 1];`,
+        "acl",
+        [],
+        [`2: ${owner}::ATTR_ERRMODE => 1`],
+      );
+    await p(
+      "namespace App; $a = [PDO::ATTR_ERRMODE => 1];",
+      "acl",
+      [],
+      ["2: PDO::ATTR_ERRMODE => 1"],
+    );
+  });
+});
