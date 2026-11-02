@@ -1791,7 +1791,8 @@ export function bashReferences(
         let at = 0;
         let unsure = false;
         while (restWords[at]?.startsWith("-") === true) {
-          const option = (restWords[at] as string).replace(/^--?/, "");
+          // The word starts with its dashes, so the first match is them.
+          const option = (restWords[at] as string).replace(/--?/, "");
           const takes = IP_ARGUMENT_OPTIONS.some((full) =>
             full.startsWith(option),
           );
