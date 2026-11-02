@@ -21,6 +21,7 @@ import {
   setTelemetryPreference,
   takeTelemetryNotice,
   telemetryCategory,
+  telemetryChannel,
   telemetryStatus,
   workspaceSessionHash,
 } from "../src/usage-telemetry";
@@ -307,6 +308,30 @@ describe("anonymous usage telemetry host and session", () => {
     ).toBe("unclassified");
     // This suite itself runs from the checkout.
     expect(detectTelemetryChannel({})).toBe("source");
+
+    // implements REQ-kibi-anonymous-usage-telemetry
+    // Status names the channel and where it comes from.
+    expect(
+      telemetryChannel({ KIBI_TELEMETRY_CHANNEL: "agent-test" }, installed),
+    ).toEqual({ channel: "agent-test", source: "KIBI_TELEMETRY_CHANNEL" });
+    expect(telemetryChannel({}, installed)).toEqual({
+      channel: "release",
+      source: "installed",
+    });
+    expect(telemetryChannel({}, fromSource)).toEqual({
+      channel: "source",
+      source: "checkout",
+    });
+    expect(
+      telemetryStatus({
+        KIBI_TELEMETRY_CHANNEL: "agent-test",
+        KIBI_TELEMETRY: "0",
+      }),
+    ).toMatchObject({
+      enabled: false,
+      channel: "agent-test",
+      channelSource: "KIBI_TELEMETRY_CHANNEL",
+    });
   });
 
   test("CLI and MCP events take the session a hook last reported for the workspace", async () => {

@@ -65,6 +65,8 @@
 - Terraform symbols can be titled by their address: `aws_s3_bucket.this`, `data.x.y`, `module.m`, `var.v` (or `variable.v`), `output.o` and `local.l`. A generic HCL block takes its type and labels joined by dots.
 - `kibi sync --refresh-symbol-coordinates` gives the reason for each failed symbol: no declaration with that title (with the titles the file has), several declarations that match it, a missing source file, or no text match in a file without a parser.
 
+- `kibi telemetry status` shows the channel in effect and where it comes from (`KIBI_TELEMETRY_CHANNEL`, a checkout of the Kibi repository, or an installed package), in the text output and as `channel` and `channelSource` with `--format json`.
+
 - The kibi-usage skill (2.40.1) describes the `must keep true` line of edit snippets as the requirement's modeled claims or its own statement.
 
 - `kibi proof explain` gives the reason for each gap that is really open: a missing_symbol_coordinates gap names the symbols without source coordinates and how to place them, instead of saying that a test which is not end to end does not count. When a proof refutes a claim, explain says so plainly, naming the test, the claim and the violating members, and that uncovered_case and happy_path_only follow from the refutation; the JSON view adds `refutations` and `missingCoordinateSymbols`. The `kibi check` evidence-floor finding for such a requirement says the code breaks the claim and adds `refutations` to its evidence. Gap codes are unchanged.

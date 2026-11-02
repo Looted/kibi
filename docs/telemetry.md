@@ -6,7 +6,7 @@ Kibi sends anonymous usage statistics so its maintainers can see which operation
 
 Any one of these turns telemetry off:
 
-- `kibi telemetry disable`, which saves the choice for your user account and deletes any events still waiting to be sent. `kibi telemetry enable` turns it back on, and `kibi telemetry status` shows the current state and why.
+- `kibi telemetry disable`, which saves the choice for your user account and deletes any events still waiting to be sent. `kibi telemetry enable` turns it back on, and `kibi telemetry status` shows the current state and why, the channel events carry and where it comes from, and the host (`--format json`: `channel`, `channelSource` and `host`).
 - `KIBI_TELEMETRY=0` in the environment.
 - `DO_NOT_TRACK=1` in the environment.
 

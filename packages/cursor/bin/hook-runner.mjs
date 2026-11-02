@@ -1879,17 +1879,23 @@ function insideKibiCheckout(file) {
 }
 var checkoutCache = new Map;
 function detectTelemetryChannel(env = process.env, moduleFile = thisModuleFile() ?? null) {
+  return telemetryChannel(env, moduleFile).channel;
+}
+function telemetryChannel(env = process.env, moduleFile = thisModuleFile() ?? null) {
   const explicit = env.KIBI_TELEMETRY_CHANNEL?.trim();
   if (explicit)
-    return telemetryCategory(explicit) ?? "release";
+    return {
+      channel: telemetryCategory(explicit) ?? "release",
+      source: "KIBI_TELEMETRY_CHANNEL"
+    };
   if (!moduleFile)
-    return "release";
+    return { channel: "release", source: "installed" };
   let fromCheckout = checkoutCache.get(moduleFile);
   if (fromCheckout === undefined) {
     fromCheckout = insideKibiCheckout(moduleFile);
     checkoutCache.set(moduleFile, fromCheckout);
   }
-  return fromCheckout ? "source" : "release";
+  return fromCheckout ? { channel: "source", source: "checkout" } : { channel: "release", source: "installed" };
 }
 function telemetryDirectory(env = process.env) {
   const explicit = env.KIBI_TELEMETRY_DIR?.trim();
@@ -1917,10 +1923,13 @@ function writeTelemetryConfig(config, env) {
 }
 function telemetryStatus(env = process.env) {
   const directory = telemetryDirectory(env);
+  const { channel, source } = telemetryChannel(env);
   const status = (enabled, reason) => ({
     enabled,
     reason,
-    directory
+    directory,
+    channel,
+    channelSource: source
   });
   const explicit = flagValue(env.KIBI_TELEMETRY);
   if (explicit === false)
