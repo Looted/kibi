@@ -528,7 +528,8 @@ describe("rows about a name another file of the project may bind", () => {
     };
     const uses = (header: string, more: Record<string, string> = {}) => {
       const root = project({
-        "src/a.c": '#include "config.h"\nint main(void) { log_line("x"); return LIMIT; }\n',
+        "src/a.c":
+          '#include "config.h"\nint main(void) { log_line("x"); return LIMIT; }\n',
         "src/config.h": header,
         ...more,
       });
@@ -541,12 +542,27 @@ describe("rows about a name another file of the project may bind", () => {
     expect(uses("#define \\\nlog_line(m) system(m)\n")).toBe(true);
     expect(uses("%:define log_line(m) system(m)\n")).toBe(true);
     expect(uses("extern int (*log_line)(const char *);\n")).toBe(true);
-    expect(uses('#import "shims.h"\n', { "src/shims.h": "#define log_line(m) system(m)\n" })).toBe(true);
-    expect(uses('#include_next "shims.h"\n', { "src/shims.h": "#define log_line(m) system(m)\n" })).toBe(true);
-    expect(uses("#include <proj/shims.h>\n", { "include/proj/shims.h": "#define log_line(m) system(m)\n" })).toBe(true);
+    expect(
+      uses('#import "shims.h"\n', {
+        "src/shims.h": "#define log_line(m) system(m)\n",
+      }),
+    ).toBe(true);
+    expect(
+      uses('#include_next "shims.h"\n', {
+        "src/shims.h": "#define log_line(m) system(m)\n",
+      }),
+    ).toBe(true);
+    expect(
+      uses("#include <proj/shims.h>\n", {
+        "include/proj/shims.h": "#define log_line(m) system(m)\n",
+      }),
+    ).toBe(true);
     expect(uses("#include <stdio.h>\n")).toBe(false);
     // `<...>` in the file itself reaches a project header too.
-    const angled = { line: 1, text: "shims.h may define macros or function pointers this file uses: #include <shims.h>" };
+    const angled = {
+      line: 1,
+      text: "shims.h may define macros or function pointers this file uses: #include <shims.h>",
+    };
     const root = project({
       "src/b.c": '#include <shims.h>\nvoid f(void) { log_line("x"); }\n',
       "inc/shims.h": "#define log_line(m) system(m)\n",
@@ -563,7 +579,8 @@ describe("rows about a name another file of the project may bind", () => {
     };
     const root = project({
       "src/a.php": "<?php\nCache::get('k');\n",
-      "vendor/laravel/Env.php": "<?php\nnamespace Illuminate\\Support;\nclass Env {}\n",
+      "vendor/laravel/Env.php":
+        "<?php\nnamespace Illuminate\\Support;\nclass Env {}\n",
     });
     expect(createShadowRowFilter(root)("src/a.php", [row])).toEqual([]);
     fs.writeFileSync(
@@ -580,7 +597,8 @@ describe("rows about a name another file of the project may bind", () => {
     };
     const root = project({
       "src/a.php": "<?php\nnamespace Svc;\nexec('rm');\n",
-      "lib/shim.inc": "<?php\nnamespace /* c */ Svc;\nfunction exec /* shim */ ($c) {}\n",
+      "lib/shim.inc":
+        "<?php\nnamespace /* c */ Svc;\nfunction exec /* shim */ ($c) {}\n",
     });
     expect(createShadowRowFilter(root)("src/a.php", [row])).toEqual([row]);
   });

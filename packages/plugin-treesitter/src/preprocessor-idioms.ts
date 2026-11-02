@@ -150,7 +150,8 @@ export function blankHeaderIdioms(content: string): string {
       name !== undefined &&
       define?.name === "define" &&
       words[0] === name &&
-      (words.length === 1 || (words.length === 2 && (words[1] === "1" || words[1] === name))) &&
+      (words.length === 1 ||
+        (words.length === 2 && (words[1] === "1" || words[1] === name))) &&
       !define.rest.endsWith("\\") &&
       plainEndif(code, first) === last
     ) {

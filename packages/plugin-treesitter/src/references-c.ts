@@ -361,7 +361,8 @@ export function cReferences(
       case "type_definition": {
         if (node.type === "field_declaration") break;
         // A prototype's parameter names exist only inside the prototype.
-        if (node.type === "parameter_declaration" && !definitionParameter(node)) break;
+        if (node.type === "parameter_declaration" && !definitionParameter(node))
+          break;
         const local =
           node.type === "parameter_declaration" || insideFunction(node);
         for (const declarator of node.childrenForFieldName("declarator")) {
@@ -525,7 +526,9 @@ export function cReferences(
         const directive = field(node, "directive")?.text.replace(/\s+/g, "");
         const argument = (field(node, "argument")?.text ?? "").trim();
         if (directive === "#import" || directive === "#include_next") {
-          const path = /^(?:<([^>]+)>|"([^"]+)")\s*(?:\/\/.*|\/\*.*)?$/.exec(argument);
+          const path = /^(?:<([^>]+)>|"([^"]+)")\s*(?:\/\/.*|\/\*.*)?$/.exec(
+            argument,
+          );
           included(node, path === null ? null : (path[1] ?? path[2] ?? null));
         } else if (
           directive === "#pragma" &&
@@ -538,7 +541,8 @@ export function cReferences(
       }
       case "gnu_asm_expression":
         // An asm label (`__asm__("getenv")`) or inline asm may call anything.
-        if (extract === "calls" || extract === "string_args" || env) refuse(node);
+        if (extract === "calls" || extract === "string_args" || env)
+          refuse(node);
         return;
       case "preproc_def":
       case "preproc_function_def":
@@ -641,7 +645,10 @@ export function cReferences(
         // A function-like macro's name without `(` is not the macro: it is
         // the function of that name (`register_lookup(getenv)`).
         const found = macroAt(name, node);
-        if (found.length > 0 && found.some((macro) => macro.parameters === null)) {
+        if (
+          found.length > 0 &&
+          found.some((macro) => macro.parameters === null)
+        ) {
           const expanded = expand(name, node);
           if (expanded === null) {
             if (extract !== "imports" && extract !== "property") refuse(node);
@@ -702,12 +709,15 @@ export function cReferences(
         const twice = named(node.parent as Node).filter(
           (pair) =>
             pair.type === "initializer_pair" &&
-            pair.childrenForFieldName("designator").length === designators.length &&
-            pair.childrenForFieldName("designator").every(
-              (designator, index) =>
-                designator.text.replace(/\s+/g, "") ===
-                (designators[index] as Node).text.replace(/\s+/g, ""),
-            ),
+            pair.childrenForFieldName("designator").length ===
+              designators.length &&
+            pair
+              .childrenForFieldName("designator")
+              .every(
+                (designator, index) =>
+                  designator.text.replace(/\s+/g, "") ===
+                  (designators[index] as Node).text.replace(/\s+/g, ""),
+              ),
         );
         if (twice.length > 1) refuse(node);
         break;
@@ -764,7 +774,10 @@ function valuePosition(node: Node): boolean {
     current = current.parent;
   if (current !== node) {
     const outer = current.parent;
-    if (outer?.type === "call_expression" && field(outer, "function")?.id === current.id)
+    if (
+      outer?.type === "call_expression" &&
+      field(outer, "function")?.id === current.id
+    )
       return true;
     return valuePosition(current);
   }
@@ -816,14 +829,16 @@ function definitionParameter(node: Node): boolean {
   if (current?.type !== "parameter_list") return false;
   current = current.parent;
   if (current?.type !== "function_declarator") return false;
-  for (let child: Node = current; ; ) {
-    const parent: Node | null = child.parent;
-    if (parent === null) return false;
-    if (parent.type === "function_definition")
-      return field(parent, "declarator")?.id === child.id;
-    if (!/_declarator$/.test(parent.type)) return false;
+  let child: Node = current;
+  let parent = child.parent;
+  while (parent !== null && /_declarator$/.test(parent.type)) {
     child = parent;
+    parent = child.parent;
   }
+  return (
+    parent?.type === "function_definition" &&
+    field(parent, "declarator")?.id === child.id
+  );
 }
 
 /** Whether a declaration is inside a function body. */

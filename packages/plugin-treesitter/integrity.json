@@ -21,8 +21,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 19574,
-      "sha256": "addcbbeff35932e84b6d787dff9767fea57e94e13f241424e456327b2945acc7"
+      "bytes": 21089,
+      "sha256": "146db6964ad7373081b0ae2ece33c635a8f531b9e2e9b94423ce4610006f9c25"
     },
     {
       "path": "SBOM.spdx.json",
@@ -222,12 +222,12 @@
     {
       "path": "dist/preprocessor-idioms.d.ts.map",
       "bytes": 214,
-      "sha256": "c7fca18fe4f469b78c68632644306c208106e0500dfe06bef8c0527e8c68486f"
+      "sha256": "a4ad7f82f33bc68e0d858e0de14203cc7700f884fb4adf117ef1080e07fd2ec7"
     },
     {
       "path": "dist/preprocessor-idioms.js",
-      "bytes": 6192,
-      "sha256": "92973c7f0c017fdd340a084e39e5febadd4254bc822c0f86f46a05c1463c1870"
+      "bytes": 6922,
+      "sha256": "a616f259e1f94e1b5d68d6cb1d9805a7067bb8dc5cd445dac4fb57fd195085a5"
     },
     {
       "path": "dist/reference-nodes.d.ts",
@@ -252,12 +252,12 @@
     {
       "path": "dist/references-bash.d.ts.map",
       "bytes": 513,
-      "sha256": "0520ba780e09a1a1ed92d1aed40461189cc744ef3df24cc0b5f9c8f2fea32535"
+      "sha256": "c779ec423a73a8aaa633f8cecb5a5e021d501bab40163040313baa275ed3687e"
     },
     {
       "path": "dist/references-bash.js",
-      "bytes": 44510,
-      "sha256": "8688d0dfe3655881d08c3fed546f179f5ab0aceae12b19bbcf2865d5cb3fb7a4"
+      "bytes": 62946,
+      "sha256": "eca2410c2d65e45e6ae7fab1ab238882530ff91a1bc01cc1097d1e743f180fe9"
     },
     {
       "path": "dist/references-c.d.ts",
@@ -267,27 +267,27 @@
     {
       "path": "dist/references-c.d.ts.map",
       "bytes": 546,
-      "sha256": "bd13f0e67f6d78d5fbb0ed5d81a9be4e9e0e9767a7037c0c8ad0f177ce64e2be"
+      "sha256": "63184ccb08c0779a1d0b46b7ee54ca35dbcd4ea2c2e227af30b0428a8fb12fe1"
     },
     {
       "path": "dist/references-c.js",
-      "bytes": 22451,
-      "sha256": "ab7ca37a6ea9e10f90170711e31c77971eef99a2d98cbc3da81d1d0f757c8a2d"
+      "bytes": 29872,
+      "sha256": "e77fd3cf47ba1c3df7dc7b4da44845bf4961ef31b1618e8039cd3c1784ecfec2"
     },
     {
       "path": "dist/references-hcl.d.ts",
-      "bytes": 347,
-      "sha256": "747f54b5f2956e374949768299604221b52a6cb88c5060795aaf6b9cb1619b98"
+      "bytes": 362,
+      "sha256": "8c777d2735bc3219ff4b08ed578c3997007d2ab2e4ac21db3b3e5c93fbfac1d1"
     },
     {
       "path": "dist/references-hcl.d.ts.map",
-      "bytes": 367,
-      "sha256": "e00c6bda604dc89e7c160b0ca02b36ca666e3d552461f4d6272dd633b8b32265"
+      "bytes": 382,
+      "sha256": "237f446e3e4e0cbe90bc3c1b7b5c7aff12d7f95c5466119c47248f5cfe0cb627"
     },
     {
       "path": "dist/references-hcl.js",
-      "bytes": 7591,
-      "sha256": "9b8c71ee1ceb0a2965a86501375aa50d1329a808437a639716078e8f524d33e6"
+      "bytes": 13478,
+      "sha256": "bc0b3a7be5f91cac8ee5e5e45aa08939d068aff4c0de74366eff863a3a8a1e04"
     },
     {
       "path": "dist/references-php.d.ts",
@@ -297,12 +297,12 @@
     {
       "path": "dist/references-php.d.ts.map",
       "bytes": 583,
-      "sha256": "0e08e2e2aa2e31be50ee97f239d1ab56d6d169221c56dfbdcaf08edc22df68e4"
+      "sha256": "8eb66243aa917acfba176f854c286b5fa519b7b20b49b65c72281db40ec23806"
     },
     {
       "path": "dist/references-php.js",
-      "bytes": 30865,
-      "sha256": "af14f909b8d3a6457e633b5fd4ada9c0334d8db326010ea38edc193aa3c3bdf0"
+      "bytes": 58177,
+      "sha256": "8a247613efbec93f49299c8a68218e80448c55dcfcc905e37ff18955884825bf"
     },
     {
       "path": "dist/references.d.ts",
@@ -312,12 +312,12 @@
     {
       "path": "dist/references.d.ts.map",
       "bytes": 1127,
-      "sha256": "2fbbfd0bcd49bfdf3163d52fd7002e6e973faed2dbef7cfd14b88d4bd8ef94fc"
+      "sha256": "8dae4e70544cc12df17973ea35f1d19435eaf8e29a1d52fe61f6bb80b7cb5593"
     },
     {
       "path": "dist/references.js",
-      "bytes": 135652,
-      "sha256": "91d6c09d6f45b024466b261247f3a8209975311022e8a11e94a6bb5f71f7b273"
+      "bytes": 135705,
+      "sha256": "5e7c826739397908da35614499b68eaf9ba3cf02f6cd6839b0544fe6cd1d4a0a"
     },
     {
       "path": "licenses/web-tree-sitter-MIT.txt",

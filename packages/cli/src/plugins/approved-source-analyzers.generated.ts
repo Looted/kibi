@@ -59,21 +59,21 @@ export const qualifiedSourceAnalyzers = [
       "dist/performance-timing.js":
         "28f589c29e8759b566ee3fb741a91e30347efe1dfbad0f5b1c5b7d4f785369ff",
       "dist/preprocessor-idioms.js":
-        "92973c7f0c017fdd340a084e39e5febadd4254bc822c0f86f46a05c1463c1870",
+        "a616f259e1f94e1b5d68d6cb1d9805a7067bb8dc5cd445dac4fb57fd195085a5",
       "dist/reference-nodes.js":
         "2cc9075664f9d43cd126360b09b4a4baee8d855ea178468ec68791d3eed4f967",
       "dist/references-bash.js":
-        "8688d0dfe3655881d08c3fed546f179f5ab0aceae12b19bbcf2865d5cb3fb7a4",
+        "eca2410c2d65e45e6ae7fab1ab238882530ff91a1bc01cc1097d1e743f180fe9",
       "dist/references-c.js":
-        "ab7ca37a6ea9e10f90170711e31c77971eef99a2d98cbc3da81d1d0f757c8a2d",
+        "e77fd3cf47ba1c3df7dc7b4da44845bf4961ef31b1618e8039cd3c1784ecfec2",
       "dist/references-hcl.js":
-        "9b8c71ee1ceb0a2965a86501375aa50d1329a808437a639716078e8f524d33e6",
+        "bc0b3a7be5f91cac8ee5e5e45aa08939d068aff4c0de74366eff863a3a8a1e04",
       "dist/references-php.js":
-        "af14f909b8d3a6457e633b5fd4ada9c0334d8db326010ea38edc193aa3c3bdf0",
+        "8a247613efbec93f49299c8a68218e80448c55dcfcc905e37ff18955884825bf",
       "dist/references.js":
-        "91d6c09d6f45b024466b261247f3a8209975311022e8a11e94a6bb5f71f7b273",
+        "5e7c826739397908da35614499b68eaf9ba3cf02f6cd6839b0544fe6cd1d4a0a",
       "integrity.json":
-        "d4908e79adb8b63d59a3b59c0a1d7db299d9858795d8f33a6c66485de7077f6b",
+        "0605d512b9c09d0aaece4729629b080f71953dd83e4e7ad89e5d2cf455bddb81",
       "licenses/web-tree-sitter-MIT.txt":
         "c5cfb43042b6b72045f4ba997834d0a7786d2793d91680868b5815b39f14fc78",
       "package.json":

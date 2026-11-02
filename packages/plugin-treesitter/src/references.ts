@@ -3757,7 +3757,10 @@ export function extractReferences(
         code: "TREESITTER_REFERENCES_UNSUPPORTED",
         message: `${name} configuration has no ${extract} to extract; read attribute values with extract: property and a key`,
       };
-    return { ok: true, ...hclProperty(root, request.key ?? "", request.path ?? "") };
+    return {
+      ok: true,
+      ...hclProperty(root, request.key ?? "", request.path ?? ""),
+    };
   }
   if (language === "c") {
     if (extract === "thrown")

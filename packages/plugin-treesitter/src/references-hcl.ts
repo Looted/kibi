@@ -53,7 +53,9 @@ function single(node: Node | null): Node | null {
 
 /** Whether an expression is wrapped in parentheses, which force evaluation. */
 function parenthesized(node: Node | null): boolean {
-  return node !== null && node.type === "expression" && node.child(0)?.type === "(";
+  return (
+    node !== null && node.type === "expression" && node.child(0)?.type === "("
+  );
 }
 
 const ESCAPES: Readonly<Record<string, string>> = {
@@ -111,11 +113,16 @@ function canonicalNumber(text: string): string | null {
   if (/^\d+$/.test(text)) return BigInt(text).toString();
   const value = Number(text);
   if (!Number.isFinite(value)) return null;
-  const written = Number.isInteger(value) && Math.abs(value) < 1e21
-    ? BigInt(value).toString()
-    : String(value);
+  const written =
+    Number.isInteger(value) && Math.abs(value) < 1e21
+      ? BigInt(value).toString()
+      : String(value);
   // Refuse a value a double cannot hold exactly (more than 15 significant digits).
-  const digits = text.replace(/[eE].*$/, "").replace(/[^0-9]/g, "").replace(/^0+/, "").replace(/0+$/, "");
+  const digits = text
+    .replace(/[eE].*$/, "")
+    .replace(/[^0-9]/g, "")
+    .replace(/^0+/, "")
+    .replace(/0+$/, "");
   return digits.length > 15 ? null : written;
 }
 
@@ -165,7 +172,8 @@ function values(node: Node | null): string[] | null {
     case "literal_value": {
       const literal = named(value)[0] as Node;
       if (literal.type === "string_lit") return wrap(quoted(literal));
-      if (literal.type === "numeric_lit") return wrap(canonicalNumber(literal.text));
+      if (literal.type === "numeric_lit")
+        return wrap(canonicalNumber(literal.text));
       return [literal.text];
     }
     case "template_expr": {
@@ -250,14 +258,19 @@ function mayBeKey(node: Node | null, key: string): boolean {
   if (template.type !== "quoted_template") return true;
   const pieces = named(template).filter(
     (part) =>
-      part.type !== "quoted_template_start" && part.type !== "quoted_template_end",
+      part.type !== "quoted_template_start" &&
+      part.type !== "quoted_template_end",
   );
   const first = pieces[0];
   const last = pieces.at(-1);
   const head = first?.type === "template_literal" ? decode(first.text) : "";
   const tail = last?.type === "template_literal" ? decode(last.text) : "";
   if (head === null || tail === null) return true;
-  return key.startsWith(head) && key.endsWith(tail) && head.length + tail.length <= key.length;
+  return (
+    key.startsWith(head) &&
+    key.endsWith(tail) &&
+    head.length + tail.length <= key.length
+  );
 }
 
 /** The name of the block a node is the body of, and that block's labels. */
@@ -290,9 +303,17 @@ export function hclProperty(
     if (node.type === "object_elem") {
       if (keyName(field(node, "key")) === key) {
         const call = single(field(node, "val"));
-        if (call?.type === "function_call" && named(call)[0]?.text === "optional") {
-          const args = named(call).find((child) => child.type === "function_arguments");
-          const defaults = args === undefined ? [] : parts(args).filter((arg) => arg.type === "expression");
+        if (
+          call?.type === "function_call" &&
+          named(call)[0]?.text === "optional"
+        ) {
+          const args = named(call).find(
+            (child) => child.type === "function_arguments",
+          );
+          const defaults =
+            args === undefined
+              ? []
+              : parts(args).filter((arg) => arg.type === "expression");
           if (defaults.length > 1) take(node, defaults[1] ?? null);
         }
       }
@@ -335,7 +356,8 @@ export function hclProperty(
         const owner = node.parent?.parent?.parent;
         const forEach =
           owner?.type === "attribute" && named(owner)[0]?.text === "for_each";
-        const keyExpression = parts(node).find((part) => part.type === "expression") ?? null;
+        const keyExpression =
+          parts(node).find((part) => part.type === "expression") ?? null;
         if (!forEach && mayBeKey(keyExpression, key)) unresolved.push(at(node));
         break;
       }

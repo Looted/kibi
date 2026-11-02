@@ -120,7 +120,7 @@ const CALLABLE_ARGS: ReadonlyMap<string, readonly number[] | "all"> = new Map<
   ["xml_set_external_entity_ref_handler", [1]],
   ["session_set_save_handler", "all"],
   ["closure::fromcallable", [0]],
-])
+]);
 
 /** Code built from text: every extract is unknowable there. */
 const CODE_FUNCTIONS = new Set(["create_function"]);
@@ -190,8 +190,8 @@ function canonicalInteger(text: string): string | null {
     value = BigInt(digits);
   else if (/^0o[0-7]+$/.test(digits)) value = BigInt(digits);
   else if (/^0[0-7]+$/.test(digits)) value = BigInt(`0o${digits.slice(1)}`);
-  else if (/^(?:0|[1-9]\d*)$/.test(digits)) value = BigInt(digits);
-  else return null;
+  // The grammar admits no other spelling: a decimal.
+  else value = BigInt(digits);
   return value > INT64_MAX ? null : value.toString();
 }
 
@@ -229,7 +229,10 @@ function docValue(node: Node): string | null {
   const body = field(node, "value");
   const end = field(node, "end_tag");
   if (body === null || end === null) return null;
-  if (node.type === "heredoc" && named(body).some((part) => part.type !== "string_content"))
+  if (
+    node.type === "heredoc" &&
+    named(body).some((part) => part.type !== "string_content")
+  )
     return null;
   const text = node.text;
   const open = text.indexOf("\n");
@@ -489,7 +492,8 @@ export function phpReferences(
       case "unary_op_expression": {
         const operand = named(node)[0];
         const value = operand === undefined ? null : numberValue(operand);
-        if (value === null || !node.text.trimStart().startsWith("-")) return null;
+        if (value === null || !node.text.trimStart().startsWith("-"))
+          return null;
         return /^0(?:\.0*)?$/.test(value) ? "0" : `-${value}`;
       }
       case "binary_expression": {
@@ -525,7 +529,10 @@ export function phpReferences(
     const flatten = (part: Node): void => {
       if (part.type === "parenthesized_expression" && named(part).length === 1)
         flatten(named(part)[0] as Node);
-      else if (part.type === "binary_expression" && field(part, "operator")?.text === ".") {
+      else if (
+        part.type === "binary_expression" &&
+        field(part, "operator")?.text === "."
+      ) {
         const left = field(part, "left");
         const right = field(part, "right");
         if (left !== null) flatten(left);
@@ -554,9 +561,12 @@ export function phpReferences(
     if (/^__DIR__$/i.test(text)) return here;
     const call = /^\\?dirname\((__FILE__|__DIR__)(?:,(\d+))?\)$/i.exec(text);
     if (call === null) return null;
-    const levels = Number(call[2] ?? "1") - (lower(call[1] as string) === "__file__" ? 1 : 0);
+    const levels =
+      Number(call[2] ?? "1") -
+      (lower(call[1] as string) === "__file__" ? 1 : 0);
     let folder = here;
-    for (let index = 0; index < levels; index += 1) folder = posix.join(folder, "..");
+    for (let index = 0; index < levels; index += 1)
+      folder = posix.join(folder, "..");
     return folder;
   };
 
@@ -706,7 +716,9 @@ export function phpReferences(
             ? null
             : stripLeading(ownerText)
           : relative;
-      return [ownerName === null ? `*.${methodName}` : `${ownerName}::${methodName}`];
+      return [
+        ownerName === null ? `*.${methodName}` : `${ownerName}::${methodName}`,
+      ];
     }
     // A call that returns a callable (`strlen(...)`) is listed where it is made.
     if (
@@ -763,7 +775,11 @@ export function phpReferences(
    * its first argument names, false for none; a refusal or host row is
    * recorded. `*.method` is a class Kibi cannot name.
    */
-  const envMethod = (name: string, node: Node, statically: boolean): boolean => {
+  const envMethod = (
+    name: string,
+    node: Node,
+    statically: boolean,
+  ): boolean => {
     if (ENV_GETTERS.has(lower(name))) return true;
     const scoped = /^(.*)::(\w+)$/.exec(name);
     const unknown = /^\*\.(\w+)$/.exec(name);
@@ -795,7 +811,9 @@ export function phpReferences(
 
   /** string_args: the first argument of a call of the callee. */
   const firstArgument = (node: Node, names: string[]): void => {
-    const matches = names.some((candidate) => calleeMatches(candidate, options.callee));
+    const matches = names.some((candidate) =>
+      calleeMatches(candidate, options.callee),
+    );
     // `$db->prepare($sql)` may be a call of PDO::prepare.
     const unknown =
       !matches &&
@@ -863,14 +881,17 @@ export function phpReferences(
         list.some(
           (argument) =>
             argument.type === "argument" &&
-            named(argument).some((child) => child.type === "variadic_unpacking"),
+            named(argument).some(
+              (child) => child.type === "variadic_unpacking",
+            ),
         )
       ) {
         refuse(node);
         return;
       }
       const handed = new Set<Node>();
-      if (positions === "all") for (const argument of list) handed.add(argument);
+      if (positions === "all")
+        for (const argument of list) handed.add(argument);
       else
         for (const position of positions) {
           const argument = position < 0 ? list.at(position) : list[position];
@@ -930,7 +951,11 @@ export function phpReferences(
     const body = field(clause, "body");
     if (body === null) return true;
     const safe = (use: Node): boolean => {
-      for (let current = use.parent; current !== null && current.id !== body.id; current = current.parent)
+      for (
+        let current = use.parent;
+        current !== null && current.id !== body.id;
+        current = current.parent
+      )
         if (
           /^(?:anonymous_function|arrow_function|anonymous_function_creation_expression|function_definition|method_declaration|class_declaration)$/.test(
             current.type,
@@ -958,13 +983,16 @@ export function phpReferences(
         case "argument":
           return field(parent, "name")?.id !== use.id;
         case "array_element_initializer":
-          return named(parent).at(-1)?.id === use.id && !/&\s*\$/.test(parent.text);
+          return (
+            named(parent).at(-1)?.id === use.id && !/&\s*\$/.test(parent.text)
+          );
         default:
           return false;
       }
     };
     const check = (node: Node): boolean => {
-      if (node.type === "variable_name" && node.text === name) return safe(node);
+      if (node.type === "variable_name" && node.text === name)
+        return safe(node);
       return named(node).every(check);
     };
     return check(body);
@@ -978,7 +1006,8 @@ export function phpReferences(
     switch (left.type) {
       case "subscript_expression": {
         const index = named(left)[1];
-        if (index === undefined) return /^(?:0|[1-9]\d*)$/.test(options.key) ? "dynamic" : null;
+        if (index === undefined)
+          return /^(?:0|[1-9]\d*)$/.test(options.key) ? "dynamic" : null;
         if (intConstant(index)) return null;
         return keyOf(index) ?? "dynamic";
       }
@@ -989,7 +1018,9 @@ export function phpReferences(
       }
       case "scoped_property_access_expression": {
         const name = field(left, "name");
-        return name?.type === "variable_name" ? name.text.replace(/^\$/, "") : "dynamic";
+        return name?.type === "variable_name"
+          ? name.text.replace(/^\$/, "")
+          : "dynamic";
       }
       default:
         return null;
@@ -1012,10 +1043,15 @@ export function phpReferences(
       case "unary_op_expression": {
         const value = literal(node);
         if (value === null) return null;
-        if (node.type === "unary_op_expression" && named(node)[0]?.type !== "float")
+        if (
+          node.type === "unary_op_expression" &&
+          named(node)[0]?.type !== "float"
+        )
           return value;
         const number = Math.trunc(Number(value));
-        return Number.isSafeInteger(number) ? String(number === 0 ? 0 : number) : null;
+        return Number.isSafeInteger(number)
+          ? String(number === 0 ? 0 : number)
+          : null;
       }
       default:
         return literal(node);
@@ -1045,12 +1081,17 @@ export function phpReferences(
   const arrayEntries = (
     node: Node,
   ): { key: string | null; value: Node | undefined; item: Node }[] | null => {
-    const entries: { key: string | null; value: Node | undefined; item: Node }[] = [];
+    const entries: {
+      key: string | null;
+      value: Node | undefined;
+      item: Node;
+    }[] = [];
     let next = 0n;
     for (const item of named(node)) {
       if (item.type !== "array_element_initializer") continue;
       const parts = named(item);
-      if (parts.length === 1 && parts[0]?.type === "variadic_unpacking") return null;
+      if (parts.length === 1 && parts[0]?.type === "variadic_unpacking")
+        return null;
       if (parts.length === 1) {
         entries.push({ key: next.toString(), value: parts[0], item });
         next += 1n;
@@ -1067,7 +1108,9 @@ export function phpReferences(
   };
 
   const arrayHasKey = (node: Node): boolean =>
-    (arrayEntries(node) ?? []).some((entry) => entry.key === options.key || entry.key === null);
+    (arrayEntries(node) ?? []).some(
+      (entry) => entry.key === options.key || entry.key === null,
+    );
 
   /** property: the value an array literal gives the key. */
   const arrayKeys = (node: Node): void => {
@@ -1115,7 +1158,10 @@ export function phpReferences(
     if (/^array_(?:merge|replace)(?:_recursive)?$/.test(name)) {
       const values = list.map((argument) => argumentValue(argument));
       if (
-        values.some((value) => value?.type === "array_creation_expression" && arrayHasKey(value)) &&
+        values.some(
+          (value) =>
+            value?.type === "array_creation_expression" && arrayHasKey(value),
+        ) &&
         values.some((value) => value?.type !== "array_creation_expression")
       )
         refuse(node);
@@ -1135,13 +1181,25 @@ export function phpReferences(
       /^illuminate\\support\\env(?:::\w+)?$/.test(name);
     if (!getter) return false;
     const parent = node.parent;
-    if (parent?.type === "array_element_initializer" && named(parent).length === 2 && named(parent)[0]?.id === node.id)
+    if (
+      parent?.type === "array_element_initializer" &&
+      named(parent).length === 2 &&
+      named(parent)[0]?.id === node.id
+    )
       return false;
-    if (parent?.type === "subscript_expression" && named(parent)[1]?.id === node.id) return false;
+    if (
+      parent?.type === "subscript_expression" &&
+      named(parent)[1]?.id === node.id
+    )
+      return false;
     if (parent?.type === "argument") {
       const call = parent.parent?.parent;
-      const read = call !== null && call !== undefined && isCall(call) ? callNames(call) : null;
-      if (read !== null && read.names.some((candidate) => ENV_GETTERS.has(lower(candidate)))) return false;
+      const read =
+        call !== null && call !== undefined && isCall(call)
+          ? callNames(call)
+          : null;
+      if (read?.names.some((candidate) => ENV_GETTERS.has(lower(candidate))))
+        return false;
     }
     return true;
   };
@@ -1186,7 +1244,10 @@ export function phpReferences(
           break;
         }
         if (extract === "calls") members.push(...names);
-        if (env && envMethod(name, node, node.type === "scoped_call_expression")) {
+        if (
+          env &&
+          envMethod(name, node, node.type === "scoped_call_expression")
+        ) {
           const first = firstPositional(node);
           const value = literal(argumentValue(first));
           if (value === null || first === undefined) refuse(node);
@@ -1230,7 +1291,8 @@ export function phpReferences(
         // `new Fiber('task')` calls what it is handed.
         if (owner !== null && lower(owner) === "fiber") {
           const list = callArguments(node);
-          if (list[0] !== undefined) handedCallable(list[0], argumentValue(list[0]));
+          if (list[0] !== undefined)
+            handedCallable(list[0], argumentValue(list[0]));
         }
         break;
       }
@@ -1257,7 +1319,8 @@ export function phpReferences(
         if (
           extract === "string_args" &&
           argument !== undefined &&
-          (calleeMatches("exit", options.callee) || calleeMatches("die", options.callee))
+          (calleeMatches("exit", options.callee) ||
+            calleeMatches("die", options.callee))
         ) {
           const value = literal(argument);
           if (value === null) refuse(node);
@@ -1361,10 +1424,14 @@ export function phpReferences(
         break;
       case "binary_expression": {
         // `$defaults + ['acl' => 'x']`: the key may keep the other array's value.
-        if (extract !== "property" || field(node, "operator")?.text !== "+") break;
+        if (extract !== "property" || field(node, "operator")?.text !== "+")
+          break;
         const sides = [field(node, "left"), field(node, "right")];
         if (
-          sides.some((side) => side?.type === "array_creation_expression" && arrayHasKey(side)) &&
+          sides.some(
+            (side) =>
+              side?.type === "array_creation_expression" && arrayHasKey(side),
+          ) &&
           sides.some((side) => side?.type !== "array_creation_expression")
         )
           refuse(node);

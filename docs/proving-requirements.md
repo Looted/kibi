@@ -896,45 +896,70 @@ Details that decide what a reader sees:
   `kibi-lang-hcl`). Files are matched by extension: `.php`; `.c` and `.h`
   (a header is read as C); `.sh` and `.bash`; `.tf` and `.hcl`.
   - *PHP* reads every extract; `property` reads literal array keys
-    (`'acl' => 'private'`), named arguments, and property and constant
-    defaults. Class names resolve through the namespace
-    and `use` imports (group uses too) and are listed in full
+    (`'acl' => 'private'`), named arguments, property and constant defaults,
+    promoted constructor parameters, enum case values, `define()` and
+    writes such as `$config['acl'] = 'private'`. Numbers are compared by
+    value (`0x10` is `16`); a duplicate key, `compact()`, and an
+    `array_merge` or `+` with an operand Kibi cannot read refuse. Class
+    names resolve through the namespace and `use` imports (group uses too,
+    each from the line it appears on) and are listed in full
     (`App\Mail\Mailer::send`, `*.send` for an unknown receiver); function
-    names are listed in lower case. An unqualified call inside a namespace
-    may reach the namespace's own function, so it is refused unless no
-    `.php` file of the project (outside `vendor`) declares that function
-    there. `env` reads `getenv`, `apache_getenv`, `env()`, `Env::get` and
+    names are listed in lower case, and `die` is listed as `exit`. PHP
+    names ignore letter case, so `excludes` refuses a member that differs
+    from an excluded item only in case. An unqualified call inside a
+    namespace may reach the namespace's own function, so it is refused
+    unless no PHP file of the project (`.php`, `.inc`, `.phtml`, `.module`,
+    outside `vendor`) declares that function there. `env` reads `getenv`,
+    `apache_getenv`, `env()`, `Env::get` and
     `filter_input(INPUT_ENV|INPUT_SERVER, ...)`, and literal subscripts of
-    `$_ENV` and `$_SERVER`. Callables handed to `array_map`,
-    `call_user_func` and the like are followed. A dynamic call or
-    `new`, `eval`, `create_function`, a string `assert`, a getter's name in
-    a string, `$$name`, `$GLOBALS` and `get_defined_vars()` refuse.
-    Backticks are listed as `shell_exec`.
+    `$_ENV` and `$_SERVER`; a call on a class that may extend
+    `Illuminate\Support\Env` is refused while a project file names that
+    class. Callables handed to `array_map`, `call_user_func` and the like
+    are followed; a caught exception passed on as an argument is not a
+    callable (a callback that replaces it through a by-reference parameter
+    is not followed). A dynamic call, `eval`, `create_function`, a string
+    `assert`, a getter's name in a string, `$$name`, `$GLOBALS`,
+    `get_defined_vars()` and Reflection refuse, and so do a `*.m` member
+    and a named first argument for `string_args`. Backticks are listed as
+    `shell_exec`.
   - *C* reads `env`, `imports`, `calls`, `string_args` and `property` (the
-    designated fields of an initializer, `.field = value`); C has no thrown
-    errors. Macros the file defines are expanded, respecting `#undef`; a
-    macro defined under a condition, one that uses `#` or `##`, and an `#if`
-    block that adds members refuse. A quoted `#include` may bring macros,
-    so it is refused unless the header, found next to the file, defines no
-    macro the file uses. A call through a variable or a function pointer,
-    `environ`, a three-parameter `main`, a getter handed on as a value and a
-    positional struct initializer refuse.
+    designated fields of an initializer, `.field = value`, GNU `field:`
+    labels too; a field set twice refuses); C has no thrown errors.
+    Trigraphs and digraphs are read. Macros the file defines are expanded,
+    respecting `#undef`, and the names in a macro's body are listed; a
+    header guard with a body is a macro. A macro defined or undefined under
+    a condition, `#pragma push_macro`, one that uses `#` or `##`, and an
+    `#if` block that adds members refuse; a macro whose body is a literal
+    does not. A function-like macro name used without `(` is the function
+    of that name. `#include`, `#import` and `#include_next` are read. An
+    include may bring macros or function pointers, so it is refused unless
+    the header (a quoted one next to the file, an angle one when the project
+    has it) defines no macro the file uses and no function pointer it
+    calls. A call through a variable or a function pointer, `environ`, a
+    three-parameter `main` (K&R and macro-written ones too), inline `asm`,
+    a getter handed on as a value and a positional struct initializer
+    refuse.
   - *Bash* reads `env`, `imports` (`source` and `.`, with the
     `$(dirname "$0")` script-folder idioms resolved), `calls` and
     `string_args`. A variable the script expands but never sets is an
-    environment read; one it sets only on some paths is refused as a read
-    the environment may supply. Commands run through `sudo`, `env`,
-    `xargs`, `find -exec`, `timeout` and similar wrappers are followed.
-    `eval`, `sh -c`, a shell reading its script from input, `trap` code,
-    `alias`, a command held in a variable, `coproc`, and a `source` of a
-    computed path (for `env`) refuse.
+    environment read, and so are `~` (`HOME`), `test -v NAME` and
+    arithmetic in an array index; one it sets only on some paths, or in an
+    assignment with a redirection or in a background job, is refused as a
+    read the environment may supply. Commands run through `sudo`, `env`,
+    `timeout` and similar wrappers are followed; a runner whose command
+    Kibi cannot name refuses, and so do the first arguments `xargs` and
+    `find -exec ... {}` supply. `eval`, `sh -c`, a shell reading its
+    script from input, `trap` code, `alias`, a command held in a variable,
+    `coproc`, `/proc/*/environ`, and a `source` of a computed path (for
+    `env`) refuse.
   - *Terraform/HCL* reads `property` only: the literal values of an
-    attribute or object key anywhere in the file (strings, numbers, bools,
-    `null`, tuples, plain heredocs). A value that needs evaluation
-    (variables, functions, templates), a computed key, a `for` object,
-    `jsondecode` and similar functions refuse, and so does a Terraform
-    `override.tf` or `*_override.tf` file in the same folder that the read
-    does not include, since it may replace the value.
+    attribute or object key anywhere in the file (strings, numbers as HCL
+    holds them, bools, `null`, tuples, plain heredocs). A value that needs
+    evaluation (variables, functions, templates), a computed key, a `for`
+    object, `jsondecode` and similar functions, and a Terragrunt `include`
+    block refuse, and so does any Terraform `override.tf`, `*_override.tf`
+    or `.tofu` file in the same folder, whether or not the read includes
+    it, since it may replace the value.
 - **Importing the app.** The `routes`, `validator` and drizzle readers import
   the module, so it must load without side effects (no `listen`, no database
   connection at import). Export a factory or a wrapper when the app needs
@@ -980,6 +1005,11 @@ code does not hold:
   `os/exec` is not allowed by `os` (write `os/*` for anything under it), and
   `*.m` only by `*.m` itself.
 - `eq` compares spellings, as for every other reader.
+
+PHP function and class names ignore letter case, so for a PHP read
+`excludes` also refuses a member that matches an excluded item only when
+letter case is ignored (`Exec` for `exec`). `includes`, `subset_of` and
+`eq` stay exact.
 
 A references read decides a claim only for the files it reads. A proof is
 rejected when a symbol the test covers (`covered_by`) or a symbol that

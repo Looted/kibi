@@ -314,9 +314,13 @@ left:
   model a claim the code can show (Rust `calls` over a file with
   `println!` is always refused). PHP class names are written in full with
   backslashes (`App\Mail\Mailer::send`) and functions in lower case;
+  PHP names ignore letter case, so a PHP `excludes` refuses a member that
+  differs from an item only in case (`Exec` for `exec`);
   Terraform/HCL reads only `property`; C and Bash have no `thrown`, and
   Bash no `property`. A Bash variable the script expands but never sets is
-  an environment read, and one it sets only on some paths is refused.
+  an environment read, and one it sets only on some paths is refused. A
+  Terraform `override.tf`, `*_override.tf` or `.tofu` file in the folder
+  refuses an HCL read, so a value claim there cannot be proved.
   Never drop a file the claim is about
   from `files`: the read decides a claim only for the files it covers,
   and a proof is rejected when a symbol the test covers or that
