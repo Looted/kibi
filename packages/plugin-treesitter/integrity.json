@@ -21,8 +21,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 16838,
-      "sha256": "83bf144375c23be0d8779eea308b56bd5cc13884995b9295634c49588dfe1acf"
+      "bytes": 17267,
+      "sha256": "e35bf14ca45a5636bba66e3ee8e3661618b347fe4abd3ab87735aea675b7a83c"
     },
     {
       "path": "SBOM.spdx.json",

@@ -308,6 +308,7 @@ function changedRelationshipEvidence(
 export function analyzeStagedFileCoverage(
   inventory: readonly StagedPath[],
   reader: GitReader = defaultGitReader,
+  isGenerated: (path: string) => boolean = () => false,
 ): StagedFileCoverageResult {
   const headPaths = headKbPaths(reader);
   const headManifest = headPaths.has(CANONICAL_ENTITY_PATHS.symbols)
@@ -387,7 +388,13 @@ export function analyzeStagedFileCoverage(
 
     // Kibi writes everything under .kb/ (schema, manifest, entities); it is
     // knowledge, not product code, so it needs no requirement ownership.
-    if (entry.analysisDepth !== "file" || isKibiManagedPath(entry.path))
+    // A generated file no symbol owns is the generator's output, not
+    // product code someone wrote, so it needs no requirement ownership.
+    if (
+      entry.analysisDepth !== "file" ||
+      isKibiManagedPath(entry.path) ||
+      (requirementIds.length === 0 && isGenerated(entry.path))
+    )
       continue;
     if (requirementIds.length === 0) {
       diagnostics.push({

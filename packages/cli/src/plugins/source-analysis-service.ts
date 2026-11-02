@@ -70,6 +70,18 @@ export type SourceAnalysisServiceOptions = Readonly<{
   analysisTimeoutMs?: number;
   /** Host-verified package/asset fingerprint, never accepted from result data. */
   providerFingerprints?: Readonly<Record<string, string>>;
+  /**
+   * Why a file whose kibi-lang grammar pack is missing or another version
+   * does not need that pack (the project declined it, or the file is
+   * generated), or null when it does. A waived file is reported as one no
+   * configured analyzer reads, so it gets a whole-file review instead of
+   * blocking on the install.
+   */
+  languagePackWaiver?: (
+    filePath: string,
+    content: string,
+    pack: string,
+  ) => string | null;
   /** Injectable resolution for tests. */
   resolveExtractors?: () => Promise<
     CapabilityModeResolution<SymbolExtractorV1>
@@ -313,6 +325,13 @@ export class SourceAnalysisService {
       "unsupported_language",
       "No configured source analyzer claims this file; file-level review remains required.",
     );
+    const waived = this.waivedLanguagePack(canonical, filePath, content);
+    if (waived !== null)
+      canonical = request.fallback(
+        "unsupported",
+        "language_pack_not_required",
+        `${waived}; file-level review remains required.`,
+      );
     const shadowComparisons: HostSourceAnalysisShadowComparison[] = [];
     for (const entry of resolution.shadow) {
       const result = await this.runV2Extractor(entry, request);
@@ -329,6 +348,27 @@ export class SourceAnalysisService {
       });
     }
     return { ...canonical, shadowComparisons };
+  }
+
+  /** The waiver reason for a result refused only for its missing pack. */
+  // implements REQ-kibi-tree-sitter-language-packs
+  private waivedLanguagePack(
+    result: HostSourceAnalysisResultV2,
+    filePath: string,
+    content: string,
+  ): string | null {
+    const waiver = this.options.languagePackWaiver;
+    if (waiver === undefined || result.status !== "unsupported") return null;
+    const diagnostic = result.diagnostics.find(
+      (item) =>
+        item.code === "TREESITTER_LANGUAGE_PACK_MISSING" ||
+        item.code === "TREESITTER_LANGUAGE_PACK_VERSION",
+    );
+    const pack =
+      diagnostic === undefined
+        ? undefined
+        : /\bkibi-lang-[a-z0-9-]+/.exec(diagnostic.message)?.[0];
+    return pack === undefined ? null : waiver(filePath, content, pack);
   }
 
   /**

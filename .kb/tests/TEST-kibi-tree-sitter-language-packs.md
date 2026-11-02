@@ -21,17 +21,17 @@ id: TEST-kibi-tree-sitter-language-packs
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-057cd2ca627bb5c9da1a554d
+    receipt_id: PR-de7689f33f31f60c2b2a7d7a
     test_id: TEST-kibi-tree-sitter-language-packs
     scope: end_to_end
     outcome: passed
-    code_snapshot: 732dcfc9a818bef78ca1eefbe820fd3f11e8e6a321fa4701277d7d35f51a3e39
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-11-01T16:37:17.966Z'
-    finished_at: '2026-11-01T16:39:17.122Z'
-    artifact_digest: f068bd4c33f49e115a097abf562c7eae957339af1ba54e92d9e8e7177d707eda
+    code_snapshot: 2210a3b26347357a6143494e7845f3549365c7f018fb0ad374b64b07279de1b1
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-02T12:14:45.935Z'
+    finished_at: '2026-11-02T12:16:44.661Z'
+    artifact_digest: 8a4b769247f05169060f459981f1df55d354e03cd40ccb00b7feed1b6048134b
     contract_hash: 666c46c3735bda5801924dbcc821974cfd32b70f230ed17b3aa333dc8a057bcf
-    binding_hash: 0e0320365051bc26b8911923c77cc0fae7a7586449523ee64bbdf8b0abde99ed
+    binding_hash: 870a465d87bc9221b7bc1ec1dfe83e0a3e3d80a0f15eded0d1c58bbc97b92112
     fingerprint: d1bb1844a5f3b21915897be3766b565cb2aee442c7187e0b9bedb74ac5afbc67
     fingerprint_components:
       contract: 666c46c3735bda5801924dbcc821974cfd32b70f230ed17b3aa333dc8a057bcf
@@ -56,4 +56,4 @@ proof_receipts:
     kind: e2e
     evidence_level: tested
 ---
-Packs the CLI, kibi-plugin-treesitter and the kibi-lang grammar packs, installs the plugin into a polyglot service without packs and checks that a Go reference read is refused naming kibi-lang-go and that kibi doctor names kibi-lang-go at the pinned version; after installing the Go, Java, C# and Rust packs the reads are proved. packages/cli/tests/plugins/approved-source-consumer.test.ts runs a relocated approved plugin through the maintenance host: Go and Python without their packs are unsupported with the install line, and a Rust pack with one changed byte fails with TREESITTER_LANGUAGE_PACK_MISMATCH. packages/cli/tests/plugins/language-pack-suggestion.test.ts checks which packs doctor and init name and that the CLI pack table matches the plugin catalog.
+Packs the CLI, kibi-plugin-treesitter and the kibi-lang grammar packs, installs the plugin into a polyglot service without packs and checks that a Go reference read is refused naming kibi-lang-go and that kibi doctor names kibi-lang-go at the pinned version; after installing the Go, Java, C# and Rust packs the reads are proved. packages/cli/tests/plugins/approved-source-consumer.test.ts runs a relocated approved plugin through the maintenance host: Go and Python without their packs are unsupported with the install line, and a Rust pack with one changed byte fails with TREESITTER_LANGUAGE_PACK_MISMATCH. packages/cli/tests/plugins/language-pack-suggestion.test.ts checks which packs doctor and init name and that the CLI pack table matches the plugin catalog. packages/cli/tests/plugins/language-pack-relevance.test.ts checks, in a generated grammar repository, that generated files count toward a pack only when the KB names them, that declined packs are never suggested, that a declined or generated file without its pack gets a whole-file review while a hand-written one still blocks, and that a commit cannot decline the pack of the source it changes. packages/cli/tests/commands/check-staged-generated.test.ts runs kibi check --staged in a fresh repository: symbols of a file that the committed .gitattributes, kibi.generatedPaths or the committed generator header marks generated need no requirement link, a negated pattern and a mark added in the same change keep the check, and a generated file .kb/symbols.yaml names stays fully checked.
