@@ -654,8 +654,8 @@ export function phpReferences(
   };
 
   /** A literal value: a string without interpolation, a number, a boolean, null or `X::class`. */
-  const literal = (node: Node | null | undefined): string | null => {
-    if (node === null || node === undefined) return null;
+  const literal = (node: Node | undefined): string | null => {
+    if (node === undefined) return null;
     switch (node.type) {
       case "string":
       case "encapsed_string":
@@ -839,13 +839,9 @@ export function phpReferences(
   const argumentValue = (argument: Node | undefined): Node | undefined =>
     argument === undefined ? undefined : named(argument).at(-1);
   const firstPositional = (node: Node): Node | undefined => {
+    // `f(...)`'s placeholder has no value to read.
     const first = callArguments(node)[0];
-    if (
-      first === undefined ||
-      first.type !== "argument" ||
-      field(first, "name") !== null
-    )
-      return undefined;
+    if (first === undefined || field(first, "name") !== null) return undefined;
     return first;
   };
 
@@ -1797,9 +1793,8 @@ export function phpReferences(
       case "require_once_expression": {
         if (extract !== "imports") {
           // `include 'data://text/plain,<?php system(...);'` runs code the
-          // file does not show.
-          const value = literal(named(node)[0] as Node);
-          if (value !== null && isStream(value)) refuse(node);
+          // file does not show. A path Kibi cannot read is "null", no stream.
+          if (isStream(String(literal(named(node)[0] as Node)))) refuse(node);
           break;
         }
         const path = includePath(named(node)[0] as Node);

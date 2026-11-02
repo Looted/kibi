@@ -1406,6 +1406,8 @@ describe("PHP forms each extract reads", () => {
       ["apache_getenv(variable: 'X');", ["X"]],
       ["env(key: 'X');", ["X"]],
       ["getenv(other: 1, name: 'X');", ["X"]],
+      // PHP rejects a positional argument after a named one; the grammar does not.
+      ["getenv(other: 1, 'Y', name: 'X');", ["X"]],
       ["getenv(variable: 'X');", [], ["2: getenv(variable: 'X')"]],
       ["apache_getenv(name: 'X');", [], ["2: apache_getenv(name: 'X')"]],
       ["env(name: 'X');", [], ["2: env(name: 'X')"]],
@@ -1673,6 +1675,17 @@ describe("PHP forms each extract reads", () => {
         "$o = new class { const X = self::x(); }; $f->bindTo($o);",
         ["*.bindTo", "*.x"],
       ],
+    ]);
+  });
+
+  it("knows the remaining getters, sources and function scopes", async () => {
+    await reads("env", [
+      ["Illuminate\\Support\\Env::getOrFail('getenv');", ["getenv"]],
+      ["filter_input(INPUT_SERVER, 'X');", ["X"]],
+    ]);
+    await property([
+      ["$f = function ($o) { $o = str_replace('a', 'b', $o); };", []],
+      ["class C { function m($o) { $o = str_replace('a', 'b', $o); } }", []],
     ]);
   });
 
