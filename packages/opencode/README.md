@@ -27,17 +27,39 @@ cached `kibi-opencode` plugin package when a newer version is available. The
 base `kibi-cli`, `kibi-mcp`, and `kibi-core` project dependencies are never
 updated by this plugin updater.
 
-Use an exact semver entry when you want a fixed plugin version:
+A `plugin` entry is always installed from the npm registry into OpenCode's own
+cache (`~/.cache/opencode/`), never from the project's `node_modules`, so
+`"kibi-opencode"` loads the latest published version even when the project
+installed another one.
+
+Use an exact semver entry when you want a fixed published version, for example
+the one in your `package.json`:
 
 ```json
 {
-  "plugin": ["kibi-opencode@0.18.1"]
+  "plugin": ["kibi-opencode@<version>"]
 }
 ```
 
 Exact semver pins are respected: the updater will notify that a newer plugin is
 available, but it will not replace the pinned version until you change the
 plugin array. Dist-tags such as `kibi-opencode@latest` remain auto-updatable.
+
+### Load the project's installed version
+
+To run the `kibi-opencode` your project installed (a release candidate, a
+local build, or a version npm does not have), load it as a local plugin.
+OpenCode loads every `.js` or `.ts` file in the project's `.opencode/plugins/`
+directory at startup. Add `.opencode/plugins/kibi.js`:
+
+```js
+// Loads the kibi-opencode installed in this project's node_modules.
+export { default } from "../../node_modules/kibi-opencode/dist/index.js";
+```
+
+Then remove `kibi-opencode` from the `plugin` array, or OpenCode loads both
+copies. A `file://` path in the `plugin` array does not load the package. The
+local file is not auto-updated: it follows the project's `npm install`.
 
 Configure the MCP server separately with the project-local `kibi-mcp` binary.
 The plugin may run internal maintenance commands such as `kibi sync` and

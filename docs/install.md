@@ -376,12 +376,24 @@ the plugin, use an exact semver entry in the plugin array:
 
 ```json
 {
-  "plugin": ["kibi-opencode@0.18.1"]
+  "plugin": ["kibi-opencode@<version>"]
 }
 ```
 
 Set `autoUpdate: false` in `.opencode/kibi.json` or
 `~/.config/opencode/kibi.json` to disable the startup updater entirely.
+
+A `plugin` array entry always installs from npm into OpenCode's cache, never
+from the project's `node_modules`, and a `file://` path there does not load.
+To run the version installed in the project instead, drop the array entry and
+re-export it from `.opencode/plugins/kibi.js`:
+
+```js
+export { default } from "../../node_modules/kibi-opencode/dist/index.js";
+```
+
+The local file is not auto-updated; it follows the project's installed
+version. See `packages/opencode/README.md`.
 
 The plugin's internal maintenance expects a `kibi` CLI command to be available
 from the project context or `PATH`; the canonical setup above satisfies that by

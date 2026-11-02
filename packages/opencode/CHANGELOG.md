@@ -4,6 +4,7 @@
 
 ### Patch Changes
 
+- The README explains how to load the version installed in the project from `.opencode/plugins/kibi.js` (a `plugin` array entry always installs from npm), and its version-lock example no longer pins an old release.
 - f9ec786: Usage telemetry events now carry a `channel`: `release` for an installed Kibi package, `source` when Kibi runs from a checkout of its own repository, or the value of `KIBI_TELEMETRY_CHANNEL` when a harness sets one (for example `agent-test`). Development and test runs can then be filtered out of real usage. Nothing else about what is sent changes.
 - Updated dependencies [048d1c9]
 - Updated dependencies [4b4e7cb]
