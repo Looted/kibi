@@ -58,6 +58,7 @@ const config = {
       "coverage-references",
       "preprocessor-idioms",
       "coverage-symbols",
+      "mutation-c",
     ].map((f) => "./" + T + f + ".test.js"),
     timeout: 120000,
     inspectorTimeout: 30000,

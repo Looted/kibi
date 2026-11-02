@@ -160,7 +160,6 @@ const ESCAPES: Readonly<Record<string, string>> = {
   n: "\n",
   t: "\t",
   r: "\r",
-  "0": "\0",
   a: "\x07",
   b: "\b",
   f: "\f",
@@ -172,8 +171,8 @@ const ESCAPES: Readonly<Record<string, string>> = {
 };
 
 /** A string literal's value (adjacent literals joined), or null. */
-function stringValue(node: Node | null | undefined): string | null {
-  if (node === null || node === undefined) return null;
+function stringValue(node: Node | undefined): string | null {
+  if (node === undefined) return null;
   if (node.type === "concatenated_string") {
     let value = "";
     for (const part of named(node)) {
@@ -184,9 +183,10 @@ function stringValue(node: Node | null | undefined): string | null {
     return value;
   }
   if (node.type !== "string_literal") return null;
-  const body = /^(?:L|u8|u|U)?"([\s\S]*)"$/.exec(node.text)?.[1];
+  // After the `L`, `u8`, `u` or `U` prefix.
+  const body = node.text.slice(node.text.indexOf('"') + 1, -1);
   // A trigraph (`??/`) means another character where the compiler reads them.
-  if (body === undefined || /\?\?[=/'()!<>-]/.test(body)) return null;
+  if (/\?\?[=/'()!<>-]/.test(body)) return null;
   let value = "";
   for (let index = 0; index < body.length; index += 1) {
     const char = body[index] as string;
@@ -194,15 +194,13 @@ function stringValue(node: Node | null | undefined): string | null {
       value += char;
       continue;
     }
-    const next = body[index + 1] ?? "";
+    const next = body[index + 1] as string;
     const hex = /^x([0-9A-Fa-f]{1,2})(?![0-9A-Fa-f])/.exec(
       body.slice(index + 1),
     );
     const octal = /^([0-7]{1,3})/.exec(body.slice(index + 1));
-    if (
-      ESCAPES[next] !== undefined &&
-      !(next === "0" && /^[0-7]{2}/.test(body.slice(index + 1)))
-    ) {
+    // `\0` is the octal escape of 0.
+    if (ESCAPES[next] !== undefined) {
       value += ESCAPES[next];
       index += 1;
     } else if (hex !== null) {
@@ -241,28 +239,26 @@ function cNumber(text: string): string | null {
       return BigInt(`0o${integer[3] || "0"}`).toString();
     return BigInt(integer[4] as string).toString();
   }
-  const decimal = /^((?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)([fFlL]?)$/.exec(
-    plain,
-  );
+  const decimal = /^((\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)([fFlL]?)$/.exec(plain);
   if (decimal === null) return null;
   const value = Number(decimal[1]);
-  const digits = (decimal[1] as string)
-    .replace(/[eE].*$/, "")
+  // Significant digits of the mantissa.
+  const digits = (decimal[2] as string)
     .replace(/\D/g, "")
     .replace(/^0+/, "")
     .replace(/0+$/, "");
   // A float suffix rounds the value to float precision.
-  if (digits.length > 15 || (decimal[2] !== "" && !Number.isInteger(value)))
+  if (digits.length > 15 || (decimal[3] !== "" && !Number.isInteger(value)))
     return null;
-  if (Number.isInteger(value) && Math.abs(value) < 1e21)
-    return BigInt(value).toString();
-  // Exponent form (`1e-7`) is not how the value is written.
-  return /e/.test(String(value)) ? null : String(value);
+  // Exponent form (`1e-7`) is not how the value is written, and `1e400`
+  // overflows.
+  return Number.isFinite(value) && !/e/.test(String(value))
+    ? String(value)
+    : null;
 }
 
 /** A literal value: a string, a number, true/false/NULL. */
-function literal(node: Node | null | undefined): string | null {
-  if (node === null || node === undefined) return null;
+function literal(node: Node): string | null {
   switch (node.type) {
     case "string_literal":
     case "concatenated_string":
@@ -274,15 +270,14 @@ function literal(node: Node | null | undefined): string | null {
     case "null":
       return node.text;
     case "unary_expression": {
-      const operand = field(node, "argument");
+      const operand = field(node, "argument") as Node;
       const number =
-        operand?.type === "number_literal" ? cNumber(operand.text) : null;
-      if (number === null || !node.text.trimStart().startsWith("-"))
-        return null;
+        operand.type === "number_literal" ? cNumber(operand.text) : null;
+      if (number === null || !node.text.startsWith("-")) return null;
       return number === "0" ? "0" : `-${number}`;
     }
     case "parenthesized_expression":
-      return literal(named(node)[0]);
+      return literal(named(node)[0] as Node);
     default:
       return null;
   }
@@ -304,51 +299,53 @@ interface BodyToken {
  */
 function bodyTokens(
   body: string,
-  parameters: readonly string[] = [],
+  parameters: readonly string[] | null,
 ): {
   tokens: BodyToken[];
-  calls: string[];
   methods: string[];
   pastes: boolean;
 } {
-  const code = blankLiterals(body.replace(/\\[ \t\f\v]*\r?\n/g, " "));
+  const code = blankLiterals(body);
   const tokens: BodyToken[] = [];
-  const calls: string[] = [];
   const end = /([A-Za-z_$][\w$]*)\s*$/.exec(code)?.index;
   for (const match of code.matchAll(
     /(?<![\w$.]|->)([A-Za-z_$][\w$]*)(\s*\()?/g,
   )) {
     const name = match[1] as string;
-    if (C_KEYWORDS.has(name) || parameters.includes(name)) continue;
-    const called = match[2] !== undefined;
-    tokens.push({ name, called, last: match.index === end });
-    if (called) calls.push(name);
+    if (C_KEYWORDS.has(name) || parameters?.includes(name)) continue;
+    tokens.push({
+      name,
+      called: match[2] !== undefined,
+      last: match.index === end,
+    });
   }
   const methods = [
     ...code.matchAll(/(?:\.|->)\s*([A-Za-z_$][\w$]*)\s*\(/g),
   ].map((match) => `*.${match[1] as string}`);
-  return { tokens, calls, methods, pastes: /#/.test(code) };
+  return { tokens, methods, pastes: /#/.test(code) };
 }
 
 /**
- * C text with strings and character constants emptied and comments blanked,
- * lexed left to right as the preprocessor does (`'"'` is one constant).
+ * A macro's value with its lines spliced, strings and character constants
+ * emptied and a line comment cut, lexed left to right as the preprocessor
+ * does (`'"'` is one constant).
  */
-function blankLiterals(text: string): string {
+function blankLiterals(value: string): string {
+  // A spliced line is one line, also for a comment that ends with `\`. The
+  // grammar ends a directive at `\ ` and a newline, which fails the parse.
+  const text = value.replace(/\\\r?\n/g, " ");
   let out = "";
   let index = 0;
   while (index < text.length) {
     const char = text[index] as string;
-    const next = text[index + 1];
     // A block comment ends a macro's value in the grammar (text after it on
-    // the line fails the parse), so only line comments reach here.
-    if (char === "/" && next === "/") {
-      const end = text.indexOf("\n", index);
-      index = end === -1 ? text.length : end;
-      out += " ";
-    } else if (char === '"' || char === "'") {
+    // the line fails the parse), so only a line comment reaches here, and it
+    // runs to the end of the value.
+    if (char === "/" && text[index + 1] === "/") break;
+    if (char === '"' || char === "'") {
       let stop = index + 1;
-      while (stop < text.length && text[stop] !== char && text[stop] !== "\n")
+      // An unclosed one runs to the end of the value.
+      while (text[stop] !== undefined && text[stop] !== char)
         stop += text[stop] === "\\" ? 2 : 1;
       index = stop + 1;
       out += `${char}${char}`;
@@ -360,26 +357,25 @@ function blankLiterals(text: string): string {
   return out;
 }
 
+/** Under `#if`, `#ifdef` or `#ifndef`, whose `#elif` and `#else` they hold. */
 function conditionalAncestor(node: Node): boolean {
   for (let current = node.parent; current !== null; current = current.parent)
-    if (/^preproc_(?:if|ifdef|elif|else|elifdef)$/.test(current.type))
+    if (current.type === "preproc_if" || current.type === "preproc_ifdef")
       return true;
   return false;
 }
 
 /** The identifier a declarator declares, and whether it is a function. */
 function declared(
-  declarator: Node | null,
+  node: Node,
   pointer = false,
 ): { name: string; function: boolean } | null {
-  // A null declarator has no type and falls to the default.
-  const node = declarator as Node;
-  switch (declarator?.type) {
+  switch (node.type) {
     case "identifier":
       return { name: node.text, function: false };
     case "function_declarator": {
-      const inner = field(node, "declarator");
-      if (inner?.type === "identifier" && !pointer)
+      const inner = field(node, "declarator") as Node;
+      if (inner.type === "identifier" && !pointer)
         return { name: inner.text, function: true };
       return declared(inner, true);
     }
@@ -387,15 +383,25 @@ function declared(
     case "array_declarator":
     case "init_declarator":
     case "attributed_declarator":
-      return declared(
-        field(node, "declarator") ?? named(node)[0] ?? null,
-        pointer,
-      );
+      return declared(inside(node), pointer);
     case "parenthesized_declarator":
-      return declared(named(node)[0] ?? null, true);
+      return declared(inside(node), true);
     default:
       return null;
   }
+}
+
+/** The name a function definition defines. */
+function definedName(node: Node): string {
+  return (declared(field(node, "declarator") as Node) as { name: string }).name;
+}
+
+/**
+ * The declarator a declarator holds: its `declarator` field, or the first
+ * child of one without it (`(f)`, `x [[attr]]`); undefined in a name.
+ */
+function inside(node: Node): Node {
+  return field(node, "declarator") ?? (named(node)[0] as Node);
 }
 
 /** Read one extract of a parsed C file. */
@@ -415,18 +421,20 @@ export function cReferences(
   // Where the grammar and the preprocessor read the text differently: a
   // backslash with blanks before the newline (gcc and clang splice it), a
   // trigraph (`??/` is a backslash in strict modes) and an identifier split
-  // by a line splice.
+  // by a line splice. A last line that ends with a splice fails the parse,
+  // so a splice always has a next line.
   const lines = root.text.split("\n");
   lines.forEach((text, index) => {
     if (
       /\\[ \t\f\v]+\r?$/.test(text) ||
       /\?\?[=/'()!<>-]/.test(text) ||
-      (/[\w$]\\\r?$/.test(text) && /^[\w$]/.test(lines[index + 1] ?? ""))
+      (/[\w$]\\\r?$/.test(text) && /^[\w$]/.test(lines[index + 1] as string))
     )
       unresolved.push({ line: index + 1, text: text.trim().slice(0, 80) });
   });
 
   // Macros, by name and range, and every name the file declares.
+  // Stryker disable next-line ArrayDeclaration: rationale: a string in the list has no name, so no lookup finds it.
   const macros: Macro[] = [];
   const variables = new Set<string>();
   // Variables of a function: a local pointer may share a function's name.
@@ -436,55 +444,48 @@ export function cReferences(
     switch (node.type) {
       case "preproc_def":
       case "preproc_function_def": {
-        const name = field(node, "name")?.text ?? "";
         const parameters = field(node, "parameters");
+        // `#define X` has no value.
+        const body = field(node, "value")?.text ?? "";
         // `#define SAVE _Pragma("push_macro(\"x\")")` restores a macro when used.
-        {
-          const value = field(node, "value")?.text ?? "";
-          if (
-            extract !== "imports" &&
-            /\b(?:_Pragma|__pragma)\b/.test(value) &&
-            (/\b(?:push_macro|pop_macro|redefine_extname)\b/.test(value) ||
-              blankLiterals(value).includes("#"))
-          )
-            refuse(node);
-        }
+        if (
+          extract !== "imports" &&
+          /\b(?:_Pragma|__pragma)\b/.test(body) &&
+          (/\b(?:push_macro|pop_macro|redefine_extname)\b/.test(body) ||
+            blankLiterals(body).includes("#"))
+        )
+          refuse(node);
         macros.push({
-          name,
+          name: (field(node, "name") as Node).text,
           start: node.endIndex,
           end: root.endIndex,
-          body: field(node, "value")?.text ?? "",
+          body,
+          // `...` is no name the body could use.
           parameters:
             parameters === null
               ? null
-              : named(parameters)
-                  .filter((child) => child.type === "identifier")
-                  .map((child) => child.text),
+              : named(parameters).map((child) => child.text),
           conditional: conditionalAncestor(node),
           maybeEnded: [],
         });
         break;
       }
       case "preproc_call": {
-        const directive = field(node, "directive")?.text.replace(/\s+/g, "");
-        const argument = field(node, "argument")?.text ?? "";
-        if (directive === "#undef") {
+        const argument = field(node, "argument");
+        if (directive(node) === "#undef" && argument !== null) {
           // `#undef X // note`: the name is the first word.
-          const name = /^\s*([A-Za-z_]\w*)/.exec(argument)?.[1] ?? "";
+          const name = /^([A-Za-z_]\w*)/.exec(argument.text)?.[1];
           const conditional = conditionalAncestor(node);
           for (const macro of macros)
             if (macro.name === name && macro.end === root.endIndex) {
-              if (conditional) macro.maybeEnded.push(node.startIndex);
-              else macro.end = node.startIndex;
+              if (conditional) macro.maybeEnded.push(node.endIndex);
+              else macro.end = node.endIndex;
             }
         }
         break;
       }
       case "declaration":
-      case "field_declaration":
-      case "parameter_declaration":
-      case "type_definition": {
-        if (node.type === "field_declaration") break;
+      case "parameter_declaration": {
         // A prototype's parameter names exist only inside the prototype.
         if (node.type === "parameter_declaration" && !definitionParameter(node))
           break;
@@ -492,7 +493,7 @@ export function cReferences(
         // body of its function.
         const local =
           node.type === "parameter_declaration" ||
-          node.parent?.type === "function_definition" ||
+          (node.parent as Node).type === "function_definition" ||
           insideFunction(node);
         for (const declarator of node.childrenForFieldName("declarator")) {
           const found = declared(declarator);
@@ -511,15 +512,12 @@ export function cReferences(
         break;
       }
       case "function_definition": {
-        const found = declared(field(node, "declarator"));
-        if (found !== null) functions.add(found.name);
+        functions.add(definedName(node));
         break;
       }
-      case "enumerator": {
-        const name = field(node, "name")?.text;
-        if (name !== undefined) variables.add(name);
+      case "enumerator":
+        variables.add((field(node, "name") as Node).text);
         break;
-      }
     }
     for (const child of named(node)) collect(child);
   };
@@ -567,10 +565,13 @@ export function cReferences(
     const calls: string[] = [];
     seen.add(name);
     for (const macro of found) {
-      const tokens = bodyTokens(macro.body, macro.parameters ?? []);
+      const tokens = bodyTokens(macro.body, macro.parameters);
       if (tokens.pastes) return null;
       // A call through a pointer the file declares names no function.
-      if (tokens.calls.some((call) => variables.has(call))) return null;
+      if (
+        tokens.tokens.some((token) => token.called && variables.has(token.name))
+      )
+        return null;
       for (const token of tokens.tokens) {
         // C expands neither a macro's own name inside its body (the
         // function `getenv` in `#define getenv(n) (log(n), getenv(n))`)
@@ -611,8 +612,7 @@ export function cReferences(
     names.some((name) => ENV_GETTERS.has(name) || ENV_WHOLE.has(name));
 
   const calleeMatches = (name: string): boolean =>
-    options.callee !== "" &&
-    (name === options.callee || name === `*.${options.callee}`);
+    name === options.callee || name === `*.${options.callee}`;
 
   /**
    * An `#include`, `#import` or `#include_next` of `path`: for imports the
@@ -637,17 +637,18 @@ export function cReferences(
 
   /** A string literal, or an object-like macro of the file that is one. */
   const constantString = (node: Node | undefined): string | null => {
-    const value = stringValue(node);
-    if (value !== null || node?.type !== "identifier") return value;
+    if (node?.type !== "identifier") return stringValue(node);
     const found = macroAt(node.text, node);
+    if (found.length !== 1) return null;
+    const macro = found[0] as Macro;
     if (
-      found.length !== 1 ||
-      found[0]?.parameters !== null ||
-      found[0].conditional ||
-      found[0].maybeEnded.length > 0
+      macro.parameters !== null ||
+      macro.conditional ||
+      macro.maybeEnded.length > 0
     )
       return null;
-    const body = /^\s*((?:"(?:[^"\\\n]|\\.)*"\s*)+)$/.exec(found[0].body)?.[1];
+    // A macro's value starts after the blanks that follow its name.
+    const body = /^((?:"(?:[^"\\\n]|\\.)*"\s*)+)$/.exec(macro.body)?.[1];
     if (body === undefined) return null;
     let joined = "";
     for (const part of body.matchAll(/"((?:[^"\\\n]|\\.)*)"/g)) {
@@ -719,7 +720,7 @@ export function cReferences(
 
   /** Positions of code under `#if` whose read gave members or rows. */
   const visit = (node: Node): void => {
-    if (/^preproc_(?:if|ifdef)$/.test(node.type)) {
+    if (node.type === "preproc_if" || node.type === "preproc_ifdef") {
       const before = members.length + unresolved.length;
       for (const child of named(node)) visit(child);
       if (members.length + unresolved.length > before) refuse(node);
@@ -727,26 +728,26 @@ export function cReferences(
     }
     switch (node.type) {
       case "preproc_include": {
-        const path = field(node, "path");
-        const value =
-          path?.type === "system_lib_string"
+        // `#include MACRO_H` names its header through a macro.
+        const path = field(node, "path") as Node;
+        included(
+          node,
+          path.type === "system_lib_string"
             ? path.text.slice(1, -1)
-            : path?.type === "string_literal"
-              ? stringValue(path)
-              : null;
-        included(node, value);
+            : stringValue(path),
+        );
         return;
       }
       case "preproc_call": {
-        const directive = field(node, "directive")?.text.replace(/\s+/g, "");
-        const argument = (field(node, "argument")?.text ?? "").trim();
-        if (directive === "#import" || directive === "#include_next") {
-          const path = /^(?:<([^>]+)>|"([^"]+)")\s*(?:\/\/.*|\/\*.*)?$/.exec(
-            argument,
-          );
+        const name = directive(node);
+        // An absent argument reads as "undefined", which no pattern matches.
+        const argument = String(field(node, "argument")?.text);
+        if (name === "#import" || name === "#include_next") {
+          // A block comment after the path is not part of the argument.
+          const path = /^(?:<([^>]+)>|"([^"]+)")\s*(?:\/\/.*)?$/.exec(argument);
           included(node, path === null ? null : (path[1] ?? path[2] ?? null));
         } else if (
-          directive === "#pragma" &&
+          name === "#pragma" &&
           /\b(?:push_macro|pop_macro|redefine_extname)\b/.test(argument) &&
           extract !== "imports"
         )
@@ -785,67 +786,61 @@ export function cReferences(
         return;
       case "function_definition": {
         // `int main(int argc, char **argv, char **envp)` hands the environment in.
-        const declarator = field(node, "declarator");
-        const found = declared(declarator);
+        const declarator = field(node, "declarator") as Node;
+        const name = definedName(node);
         // `#define ENTRY main` / `int ENTRY(...)` is main too.
         // `wmain` and `_tmain` take the environment the same way.
-        const entry = (name: string): boolean => MAIN_NAMES.has(name);
+        const entry = (word: string): boolean => MAIN_NAMES.has(word);
         const main =
-          found !== null &&
-          (entry(found.name) ||
-            (macroAt(found.name, node).length > 0 &&
-              (expand(found.name, node)?.names.some(entry) ?? true)));
-        // glibc hands a constructor `(argc, argv, envp)` too.
-        const startupHook =
-          /\bconstructor\b/.test(
-            node.text.slice(
-              0,
-              (field(node, "body")?.startIndex ?? node.endIndex) -
-                node.startIndex,
-            ),
-          ) || /\bconstructor\b/.test(node.previousSibling?.text ?? "");
+          entry(name) || (expand(name, node)?.names.some(entry) ?? true);
+        // glibc hands a constructor `(argc, argv, envp)` too, marked before
+        // the body or on the declaration before it.
+        const startupHook = /\bconstructor\b/.test(
+          root.text.slice(
+            node.previousSibling?.startIndex ?? node.startIndex,
+            (field(node, "body") as Node).startIndex,
+          ),
+        );
         if (env && (main || startupHook)) {
-          let current: Node | null = declarator;
-          while (current !== null && current.type !== "function_declarator")
-            current = field(current, "declarator");
-          const parameters =
-            current === null ? null : field(current, "parameters");
+          // The parameters of the function itself, the innermost list:
+          // `void (*main(int, char **, char **))(int)` and `int (main(...))`.
+          let parameters = declarator;
+          for (
+            let current: Node | undefined = declarator;
+            current !== undefined;
+            current = inside(current)
+          )
+            if (current.type === "function_declarator")
+              parameters = field(current, "parameters") as Node;
           // K&R `main(argc, argv, envp)` names them without types, and
           // `main(MAIN_ARGS)` writes them through a macro.
           if (
-            parameters !== null &&
-            ([...parameters.text.matchAll(/[A-Za-z_$][\w$]*/g)].some(
+            [...parameters.text.matchAll(/[A-Za-z_$][\w$]*/g)].some(
               (word) => macroAt(word[0], parameters).length > 0,
             ) ||
-              named(parameters).filter(
-                (child) =>
-                  child.type === "parameter_declaration" ||
-                  child.type === "identifier" ||
-                  child.type === "variadic_parameter",
-              ).length >= 3)
+            named(parameters).filter(
+              (child) =>
+                child.type === "parameter_declaration" ||
+                child.type === "identifier" ||
+                child.type === "variadic_parameter",
+            ).length >= 3
           )
             refuse(parameters);
         }
         break;
       }
       case "call_expression": {
-        let target = field(node, "function");
-        const list = field(node, "arguments");
-        const argumentsOf = list === null ? [] : named(list);
+        let target = field(node, "function") as Node;
+        const argumentsOf = named(field(node, "arguments") as Node);
         // `(getenv)("X")` calls the function, never a function-like macro.
         let bare = false;
-        while (target?.type === "parenthesized_expression") {
-          const inner = named(target).filter(
+        while (target.type === "parenthesized_expression") {
+          target = named(target).find(
             (child) => child.type !== "comment",
-          );
-          if (inner.length !== 1) break;
-          target = inner[0] as Node;
+          ) as Node;
           bare = true;
         }
-        if (
-          target?.type === "identifier" &&
-          /^_?_[Pp]ragma$/.test(target.text)
-        ) {
+        if (/^_?_[Pp]ragma$/.test(target.text)) {
           // `_Pragma("push_macro(...)")` restores a macro Kibi does not track.
           if (
             extract !== "imports" &&
@@ -855,14 +850,14 @@ export function cReferences(
           return;
         }
         if (
-          target?.type === "identifier" &&
+          target.type === "identifier" &&
           bare &&
           macroAt(target.text, node).every((macro) => macro.parameters !== null)
         ) {
           plainCall(target.text, node, argumentsOf);
           return;
         }
-        if (target?.type === "identifier") {
+        if (target.type === "identifier") {
           const name = target.text;
           if (extract === "property" && initializes(name, node)) refuse(node);
           if (macroAt(name, node).length > 0) {
@@ -883,17 +878,9 @@ export function cReferences(
           plainCall(name, node, argumentsOf);
           return;
         }
-        if (target?.type === "field_expression") {
-          // A struct field holds a function pointer, which may point to any
-          // function (`ops->exec` may be `system`).
-          if (extract === "calls" || extract === "string_args" || env)
-            refuse(node);
-          const object = field(target, "argument");
-          if (object !== null) visit(object);
-          for (const argument of argumentsOf) visit(argument);
-          return;
-        }
-        // A call through an expression names no function.
+        // A call through an expression names no function: a struct field
+        // holds a function pointer, which may point to any function
+        // (`ops->exec` may be `system`).
         if (extract === "calls" || extract === "string_args" || env)
           refuse(node);
         break;
@@ -908,10 +895,7 @@ export function cReferences(
           refuse(node);
           return;
         }
-        if (
-          found.length > 0 &&
-          found.some((macro) => macro.parameters === null)
-        ) {
+        if (found.some((macro) => macro.parameters === null)) {
           const expanded = expand(name, node);
           if (expanded === null) {
             if (extract !== "imports" && extract !== "property") refuse(node);
@@ -952,10 +936,10 @@ export function cReferences(
       }
       case "initializer_pair": {
         if (extract !== "property") break;
-        const designators = node.childrenForFieldName("designator");
-        const last = designators.at(-1);
-        const name = designatorName(last);
-        if (name === undefined) break;
+        // Undefined for `[0] = 1`, which names no macro and is not the key.
+        const name = designatorName(
+          node.childrenForFieldName("designator").at(-1) as Node,
+        ) as string;
         // `.verify = 0` with `#define verify verify_peer` sets verify_peer.
         if (macroAt(name, node).length > 0) {
           refuse(node);
@@ -968,16 +952,10 @@ export function cReferences(
           refuse(node);
           break;
         }
-        const value = field(node, "value");
+        const value = field(node, "value") as Node;
         const read = literal(value);
         // `#define true 0` changes what the word means.
-        if (
-          read === null ||
-          (value !== null &&
-            /^[A-Za-z_]\w*$/.test(value.text) &&
-            macroAt(value.text, node).length > 0)
-        )
-          refuse(node);
+        if (read === null || macroAt(value.text, node).length > 0) refuse(node);
         else members.push(read);
         // A field set twice keeps its last value, and a later `.tls = {...}`
         // sets every field of `.tls.verify_peer`'s subobject again.
@@ -1003,51 +981,51 @@ export function cReferences(
   return { members, unresolved };
 }
 
+/** The name of a directive: `# undef` is `#undef`. */
+function directive(node: Node): string {
+  return (field(node, "directive") as Node).text.replace(/\s/g, "");
+}
+
+/** Parents of an identifier that declare it (the grammar names a typedef a type_identifier). */
+const DECLARING = new Set([
+  "function_declarator",
+  "pointer_declarator",
+  "array_declarator",
+  "parenthesized_declarator",
+  "attributed_declarator",
+  "declaration",
+  "parameter_declaration",
+]);
+
 /** Whether an identifier is the name a declaration declares. */
 function declaratorPosition(node: Node): boolean {
-  const parent = node.parent;
-  if (parent === null) return false;
-  if (
-    /^(?:function|pointer|array|parenthesized|attributed)_declarator$/.test(
-      parent.type,
-    )
-  )
-    return true;
+  const parent = node.parent as Node;
+  if (DECLARING.has(parent.type)) return true;
   if (parent.type === "init_declarator")
-    return field(parent, "declarator")?.id === node.id;
-  if (
-    parent.type === "declaration" ||
-    parent.type === "parameter_declaration" ||
-    parent.type === "type_definition"
-  )
-    return parent
-      .childrenForFieldName("declarator")
-      .some((child) => child.id === node.id);
-  return parent.type === "enumerator" && field(parent, "name")?.id === node.id;
+    return (field(parent, "declarator") as Node).id === node.id;
+  return (
+    parent.type === "enumerator" &&
+    (field(parent, "name") as Node).id === node.id
+  );
 }
 
 /** Whether an identifier is used as a value a callee could receive. */
 function valuePosition(node: Node): boolean {
   // `(system)` and `*system` are the function too.
   let current = node;
+  let parent = node.parent as Node;
   while (
-    current.parent !== null &&
-    (current.parent.type === "parenthesized_expression" ||
-      (current.parent.type === "pointer_expression" &&
-        current.parent.text.trimStart().startsWith("*")))
-  )
-    current = current.parent;
-  if (current !== node) {
-    const outer = current.parent;
-    if (
-      outer?.type === "call_expression" &&
-      field(outer, "function")?.id === current.id
-    )
-      return true;
-    return valuePosition(current);
+    parent.type === "parenthesized_expression" ||
+    (parent.type === "pointer_expression" && parent.text.startsWith("*"))
+  ) {
+    current = parent;
+    parent = current.parent as Node;
   }
-  const parent = node.parent;
-  if (parent === null) return false;
+  if (current !== node)
+    return (
+      // Climbed from an argument, the parent is its argument list.
+      parent.type === "call_expression" || valuePosition(current)
+    );
   switch (parent.type) {
     case "argument_list":
     case "init_declarator":
@@ -1058,46 +1036,42 @@ function valuePosition(node: Node): boolean {
     case "comma_expression":
     case "cast_expression":
     case "generic_expression":
+    // `&system`; `*system` is read above.
+    case "pointer_expression":
       return true;
     case "assignment_expression":
-      return field(parent, "right")?.id === node.id;
-    case "pointer_expression":
-      return node.parent?.text.startsWith("&") ?? false;
+      return (field(parent, "right") as Node).id === node.id;
     case "extension_expression":
       // `__extension__ system` is `system`.
       return valuePosition(parent);
     case "expression_statement": {
       // The last statement of `({ ...; system; })` is the expression's value.
-      const block = parent.parent;
-      const outer = block?.parent;
-      if (
-        block?.type === "compound_statement" &&
+      const block = parent.parent as Node;
+      const outer = block.parent;
+      return (
         outer?.type === "parenthesized_expression" &&
-        named(block)
-          .filter((child) => child.type !== "comment")
-          .at(-1)?.id === parent.id
-      )
-        return valuePosition(outer);
-      return false;
+        (
+          named(block)
+            .filter((child) => child.type !== "comment")
+            .at(-1) as Node
+        ).id === parent.id &&
+        valuePosition(outer)
+      );
     }
-    default:
-      return false;
   }
+  return false;
 }
 
 /**
  * Whether an initializer list fills a struct or union (a type other than a
- * plain scalar), whose fields positional values set by order.
+ * plain scalar), whose fields positional values set by order. Past the
+ * initializers it sits in, a list is the value of a declaration or of a
+ * compound literal, both of which have a type.
  */
 function aggregate(node: Node): boolean {
-  let current = node.parent;
-  while (current !== null && INITIALIZER_PARTS.has(current.type))
-    current = current.parent;
-  return !(
-    (current?.type === "declaration" ||
-      current?.type === "compound_literal_expression") &&
-    field(current, "type")?.type === "primitive_type"
-  );
+  let current = node.parent as Node;
+  while (INITIALIZER_PARTS.has(current.type)) current = current.parent as Node;
+  return (field(current, "type") as Node).type !== "primitive_type";
 }
 
 const INITIALIZER_PARTS = new Set([
@@ -1108,20 +1082,12 @@ const INITIALIZER_PARTS = new Set([
 
 /** Whether a parameter belongs to a function definition (not a prototype). */
 function definitionParameter(node: Node): boolean {
-  let current: Node | null = node.parent;
-  if (current?.type !== "parameter_list") return false;
-  current = current.parent;
-  if (current?.type !== "function_declarator") return false;
-  let child: Node = current;
-  let parent = child.parent;
-  while (parent !== null && /_declarator$/.test(parent.type)) {
-    child = parent;
-    parent = child.parent;
-  }
-  return (
-    parent?.type === "function_definition" &&
-    field(parent, "declarator")?.id === child.id
-  );
+  // From the list's declarator (an abstract one in a type name too), the
+  // declarators around it lead to a definition only for a function's own
+  // parameters.
+  let current = (node.parent as Node).parent as Node;
+  while (current.type.endsWith("_declarator")) current = current.parent as Node;
+  return current.type === "function_definition";
 }
 
 /** Whether a declaration is inside a function body. */
@@ -1135,25 +1101,23 @@ function insideFunction(node: Node): boolean {
 function designatorStep(node: Node): string {
   const name = designatorName(node);
   if (name !== undefined) return name;
-  // `[0]` and `[0x0]` are one element; `[1 - 1]` is not read.
+  // `[0]` and `[0x0]` are one element; `[1 - 1]` and `[0 ... 2]` are
+  // not read.
   const index = named(node);
-  if (
-    node.type === "subscript_designator" &&
-    index.length === 1 &&
-    index[0]?.type === "number_literal"
-  ) {
-    const number = cNumber((index[0] as Node).text);
-    if (number !== null) return `[${number}]`;
-  }
-  return "?";
+  const first = index[0] as Node;
+  const number =
+    index.length === 1 && first.type === "number_literal"
+      ? cNumber(first.text)
+      : null;
+  return number === null ? "?" : `[${number}]`;
 }
 
 /** The designator path of a pair from its outermost initializer list. */
 function designatorPath(pair: Node): { path: string[]; list: Node } {
   const own = pair.childrenForFieldName("designator").map(designatorStep);
   const list = pair.parent as Node;
-  const outer = list.parent;
-  if (outer?.type === "initializer_pair") {
+  const outer = list.parent as Node;
+  if (outer.type === "initializer_pair") {
     const above = designatorPath(outer);
     return { path: [...above.path, ...own], list: above.list };
   }
@@ -1179,16 +1143,14 @@ function overridden(pair: Node): boolean {
     if (other.id === pair.id) return false;
     const steps = designatorPath(other).path;
     if (steps.includes("?")) return true;
-    return (
-      steps.length <= path.length &&
-      steps.every((step, index) => step === path[index])
-    );
+    // A longer path differs where this one has no step.
+    return steps.every((step, index) => step === path[index]);
   });
 }
 
 /** The field a designator names: `.f` or GNU `f:`. */
-function designatorName(node: Node | undefined): string | undefined {
-  if (node?.type === "field_designator") return named(node)[0]?.text;
-  if (node?.type === "field_identifier") return node.text;
+function designatorName(node: Node): string | undefined {
+  if (node.type === "field_designator") return (named(node)[0] as Node).text;
+  if (node.type === "field_identifier") return node.text;
   return undefined;
 }
