@@ -239,15 +239,15 @@ export function referenceLanguageSuggestion(
 ): ReferenceLanguageSuggestion | null {
   const generated = relevance.generated ?? new Set<string>();
   const referenced = relevance.referenced ?? new Set<string>();
-  const declined = new Set(config.declinedLanguagePacks ?? []);
+  const declined = new Set<string | null>(config.declinedLanguagePacks);
   const production = files.filter((file) => {
     if (NOT_PRODUCTION.test(file)) return false;
-    const pack = languagePackFor(file);
-    if (pack !== null && declined.has(pack)) return false;
+    // A file no pack reads (null) is never declined.
+    if (declined.has(languagePackFor(file))) return false;
     return !generated.has(file) || referenced.has(file);
   });
   const usedByKb = (found: readonly string[]): boolean =>
-    found.length > 0 && found.every((file) => generated.has(file));
+    found.every((file) => generated.has(file));
   const references = PLUGIN_REFERENCE_LANGUAGES.map((language) => ({
     name: language.name,
     found: production.filter((file) => language.pattern.test(file)),
@@ -308,7 +308,7 @@ export function referenceLanguageSuggestion(
       name: language.name,
       files: language.found.length,
       ...(usedByKb(language.found) ? { generatedUsedByKb: true } : {}),
-      ...("proofs" in language ? { proofs: true } : {}),
+      ...("proofs" in language ? { proofs: language.proofs } : {}),
     })),
     evidence: shown.flatMap((language) => language.found).slice(0, 5),
     activeForSymbolsOnly: entry !== undefined,
@@ -473,7 +473,7 @@ export function workspaceReferenceLanguageNote(
   const declineNote =
     suggestion.packs.length === 0
       ? ""
-      : ` To skip a pack the project does not need, list it in package.json kibi.declinedLanguagePacks (for example "declinedLanguagePacks": ["${(suggestion.packs[0] as string).replace(/@[^@]*$/, "")}"]); staged changes to files in that language then get a whole-file review instead of blocking.`;
+      : ` To skip a pack the project does not need, list it in package.json kibi.declinedLanguagePacks (for example "declinedLanguagePacks": ["${(suggestion.packs[0] as string).split("@")[0]}"]); staged changes to files in that language then get a whole-file review instead of blocking.`;
   return `${describeReferenceLanguageSuggestion(suggestion)}.${changed}${generatedNote}${
     noManifest
       ? " This project has no package.json: run npm init -y first to create a minimal one (Kibi reads only its devDependencies and kibi.plugins), then run the install and add the kibi.plugins entry above, and add node_modules/ to .gitignore."

@@ -314,10 +314,14 @@ export function extractScriptReferences(
     );
   };
   const inType = (node: Node): boolean => {
-    // Up to the enclosing statement: the source file always ends the walk.
-    let current: Node | undefined = node.parent;
-    while (current !== undefined && !ts.isStatement(current) && !ts.isSourceFile(current)) {
-      if (ts.isTypeNode(current) || ts.isTypeQueryNode(current) || ts.isHeritageClause(current)) return true;
+    // Up to the enclosing statement.
+    let current: Node = node.parent;
+    while (!ts.isStatement(current)) {
+      // A `typeof x` query is a type node too.
+      if (ts.isTypeNode(current) || ts.isHeritageClause(current)) return true;
+      // The source file bounds the walk.
+      // Stryker disable next-line ConditionalExpression: every node read sits in a statement, which ends the walk first
+      if (ts.isSourceFile(current)) break;
       current = current.parent;
     }
     return false;
@@ -1136,9 +1140,9 @@ async function readPluginReferences(
       // Terragrunt writes the files a `generate` block names into the folder
       // it runs in (an override among them), also from a config it includes.
       else if (/^terragrunt\.hcl(?:\.json)?$/i.test(name)) {
-        let text = "";
+        let text: string;
         try {
-          text = readFileSync(path.join(workspaceRoot, override), "utf8");
+          text = String(readFileSync(path.join(workspaceRoot, override)));
         } catch {
           text = "generate";
         }
