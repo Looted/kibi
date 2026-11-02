@@ -53,6 +53,8 @@
 
 ### Patch Changes
 
+- `kibi migrate --apply-safe <hash>` takes the plan hash directly, and the plan preview prints the exact command to apply its ready automatic actions. When the plan changed after it was printed, nothing is applied and the error says so, gives the new hash and lists what changed (actions added, removed or changed state, and whether the KB snapshot, workspace files, branch or config moved). A plan still applies only with its current hash; `--approved-plan-hash` keeps working.
+
 - `kibi coverage`, `kibi find-gaps` and `kibi graph` (and the MCP `kb_coverage`, `kb_find_gaps` and `kb_graph` tools) report the branch name in `meta.branch` instead of the hash Kibi uses as the branch store key; that hash is now in `meta.branchStoreKey`.
 
 - Requirement titles that Kibi suggests from a requirement's text end at a real sentence end (a `.`, `?` or `!` followed by whitespace and an uppercase letter, or the end of the text). A dot inside a path, a dotted name, a version or backticks no longer cuts the title, so "The greet function must never call console.log" stays whole instead of becoming "The greet function must never call console", and fact claim text that falls back to the title is no longer cut either.

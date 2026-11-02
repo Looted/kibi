@@ -52,12 +52,12 @@ export function registerFoundationCommands(program: Command): void {
     .option("--yes", "Apply migration changes without prompting")
     .option("--format <format>", "Output format: json|table", "table")
     .option(
-      "--apply-safe",
-      "Apply only explicitly approved deterministic migration actions",
+      "--apply-safe [sha256]",
+      "Apply only explicitly approved deterministic migration actions of the plan with this hash",
     )
     .option(
       "--approved-plan-hash <sha256>",
-      "Exact migration plan hash approved for --apply-safe",
+      "Exact migration plan hash approved for --apply-safe (same as --apply-safe <sha256>)",
     )
     .option(
       "--backlog",

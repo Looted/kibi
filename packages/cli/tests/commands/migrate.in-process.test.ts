@@ -48,6 +48,84 @@ function writeManifest(
 }
 
 describe("migrateCommand", () => {
+  // implements REQ-cli-schema-migration
+  test("apply-safe takes the printed hash and says what changed since a plan was printed", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    await withCwd(cwd, () => initCommand({}));
+    const io = captureIo();
+    restores.push(io.restore);
+    expect(
+      (await migrateCommand({ format: "json", workspaceRoot: cwd })).exitCode,
+    ).toBe(0);
+    const printed = JSON.parse(io.logText());
+
+    // The hash right after --apply-safe, as the plan text prints it.
+    const applied = await migrateCommand({
+      applySafe: printed.planHash,
+      workspaceRoot: cwd,
+    });
+    expect(applied.exitCode).toBe(0);
+    expect(io.errorText()).toBe("");
+
+    const conflict = await migrateCommand({
+      applySafe: printed.planHash,
+      approvedPlanHash: "deadbeef",
+      workspaceRoot: cwd,
+    });
+    expect(conflict.exitCode).toBe(2);
+    expect(io.errorText()).toContain(
+      `--apply-safe ${printed.planHash} and --approved-plan-hash deadbeef name different plans`,
+    );
+
+    // An authored requirement the store has not compiled changes the plan.
+    mkdirSync(path.join(cwd, ".kb", "requirements"), { recursive: true });
+    writeFileSync(
+      path.join(cwd, ".kb", "requirements", "REQ-new.md"),
+      "---\nid: REQ-new\ntitle: New rule\nstatus: open\ntype: req\n---\n\nThe app must log in.\n",
+    );
+    const errors = io.errorText().length;
+    const stale = await migrateCommand({
+      applySafe: printed.planHash,
+      workspaceRoot: cwd,
+    });
+    expect(stale.exitCode).toBe(2);
+    const message = io.errorText().slice(errors);
+    const current = /its hash is now ([a-f0-9]{64})/.exec(message)?.[1];
+    expect(current).toBeDefined();
+    expect(current).not.toBe(printed.planHash);
+    expect(message).toContain(
+      `The migration plan changed since ${printed.planHash} was printed (`,
+    );
+    expect(message).toContain("Nothing was applied.\nWhat changed:\n- ");
+    expect(message).toContain(
+      `apply it with: kibi migrate --apply-safe ${current}`,
+    );
+  });
+
+  test("the plan text prints the exact command that applies it", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    await withCwd(cwd, () => initCommand({}));
+    mkdirSync(path.join(cwd, ".kb", "requirements"), { recursive: true });
+    writeFileSync(
+      path.join(cwd, ".kb", "requirements", "REQ-new.md"),
+      "---\nid: REQ-new\ntitle: New rule\nstatus: open\ntype: req\n---\n\nThe app must log in.\n",
+    );
+    const io = captureIo();
+    restores.push(io.restore);
+    expect((await migrateCommand({ workspaceRoot: cwd })).exitCode).toBe(0);
+    const text = io.logText();
+    const hash = /^Migration plan ([a-f0-9]{64})$/m.exec(text)?.[1];
+    expect(hash).toBeDefined();
+    if (/automatic-ready: [1-9]/.test(text))
+      expect(text).toContain(`kibi migrate --apply-safe ${hash}`);
+  });
+
   test("fails when lifecycle state is missing", async () => {
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);
@@ -158,8 +236,8 @@ status: open
       workspaceRoot: cwd,
     });
     expect(result.exitCode).toBe(2);
-    expect(io.errorText()).toContain(
-      "--apply-safe requires --approved-plan-hash",
+    expect(io.errorText()).toMatch(
+      /--apply-safe needs the hash of the plan you reviewed\..*kibi migrate --apply-safe [a-f0-9]{64}$/,
     );
   });
 
@@ -185,7 +263,12 @@ status: open
       workspaceRoot: cwd,
     });
     expect(stale.exitCode).toBe(2);
-    expect(io.errorText()).toContain("Migration plan changed");
+    expect(io.errorText()).toContain(
+      `deadbeef is not the current migration plan; its hash is now ${plan.planHash}. Kibi has no record of printing deadbeef here`,
+    );
+    expect(io.errorText()).toContain(
+      `apply it with: kibi migrate --apply-safe ${plan.planHash}`,
+    );
 
     const applied = await migrateCommand({
       applySafe: true,

@@ -1077,8 +1077,8 @@ flags, it is a read-only preview; `--format json` returns the complete
 - `--backlog` - In the text preview, list every quality and coverage backlog action instead of counts per code
 - `--yes` - Apply migration changes without prompting
 - `--format json|table` - Render the structured plan or a concise table. With `--apply-safe`, the table form prints the outcome, one line per action and a summary of the remaining plan; `--format json` prints the full apply result
-- `--apply-safe` - Apply only approved deterministic actions
-- `--approved-plan-hash SHA256` - Required exact plan hash for `--apply-safe`
+- `--apply-safe [SHA256]` - Apply only approved deterministic actions of the plan with this hash. The text preview prints the exact `kibi migrate --apply-safe <hash>` command when the plan has ready automatic actions. A plan applies only with its current hash: when the plan changed after it was printed, nothing is applied and the error names the new hash and what changed (actions added, removed or changed state, and whether the KB snapshot, workspace files, branch or config moved)
+- `--approved-plan-hash SHA256` - The same hash as a separate flag (`--apply-safe --approved-plan-hash <hash>`); giving two different hashes is an error
 - `--approved-action ID` - Explicit action ID (repeatable or comma-separated): an automatic action, or a review action Kibi can execute once approved (`semantic_inventory_rederive_drop_grounding`, `req_status_vocabulary_map`, or a `semantic_inventory_rederive` that depends on a status mapping). Without it, `--apply-safe` applies every ready automatic action and no review action
 
 **Example (predicate vocabulary):**
