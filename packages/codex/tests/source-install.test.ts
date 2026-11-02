@@ -57,11 +57,18 @@ function resultOf(output: {
   exitCode: number;
   stdout: string;
   stderr: string;
-}): { continue: boolean; systemMessage?: string } {
+}): {
+  continue: boolean;
+  systemMessage?: string;
+  decision?: string;
+  reason?: string;
+} {
   expect(output.exitCode, output.stderr).toBe(0);
   return JSON.parse(output.stdout.trim()) as {
     continue: boolean;
     systemMessage?: string;
+    decision?: string;
+    reason?: string;
   };
 }
 

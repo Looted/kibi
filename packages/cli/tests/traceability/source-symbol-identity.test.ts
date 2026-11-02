@@ -1,6 +1,6 @@
 // executable_for TEST-source-analysis-v2-contract
 import { expect, test } from "bun:test";
-import type { SourceAnalysisResultV2 } from "kibi-plugin-sdk";
+import type { SourceAnalysisResultV2, SourceSymbolKind } from "kibi-plugin-sdk";
 import {
   type ManifestLookupEntry,
   createManifestLookupSentinelKey,
@@ -139,7 +139,7 @@ test("a changed line belongs to the innermost declaration that contains it", asy
     ].map(([name, qualifiedName, kind, startLine, endLine]) => ({
       name: String(name),
       qualifiedName: String(qualifiedName),
-      kind: String(kind),
+      kind: String(kind) as SourceSymbolKind,
       startLine: Number(startLine),
       endLine: Number(endLine),
       startColumn: 0,
@@ -183,7 +183,7 @@ test("a staged declaration keeps the identity of a title sync places on it", asy
     rows.map(([name, qualifiedName, kind, containerName, start, end]) => ({
       name,
       qualifiedName,
-      kind,
+      kind: kind as SourceSymbolKind,
       ...(containerName === undefined ? {} : { containerName }),
       startLine: start,
       endLine: end,

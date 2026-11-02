@@ -52,7 +52,8 @@ describe("requirement titles from the semantic advisor", () => {
     const requirement = result.structuredContent.receipt.suggestions
       .flatMap((suggestion) => suggestion.applyPlan ?? [])
       .find((step) => step.type === "req");
-    expect(requirement?.properties.title).toBe(
+    const properties = requirement?.properties as { title?: unknown };
+    expect(properties?.title).toBe(
       "The greet function must never call console.log",
     );
   });

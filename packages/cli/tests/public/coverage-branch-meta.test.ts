@@ -18,7 +18,9 @@ describe("discovery meta names the branch", () => {
   test("meta.branch is the branch name and the store key moves to branchStoreKey", () => {
     const payload = { rows: [], meta: { branch: KEY, syncState: "fresh" } };
     expect(
-      withBranchName(payload, { branchAttachment: attachment("main") }),
+      withBranchName(payload, {
+        branchAttachment: attachment("main"),
+      }) as unknown,
     ).toEqual({
       rows: [],
       meta: { branch: "main", branchStoreKey: KEY, syncState: "fresh" },
@@ -30,7 +32,9 @@ describe("discovery meta names the branch", () => {
     expect(
       withBranchName(named, { branchAttachment: attachment("main") }),
     ).toBe(named);
-    const bare = { rows: [] as unknown[] };
+    const bare: { rows: unknown[]; meta?: Record<string, unknown> } = {
+      rows: [],
+    };
     expect(withBranchName(bare, { branchAttachment: attachment("main") })).toBe(
       bare,
     );
