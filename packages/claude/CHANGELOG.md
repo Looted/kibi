@@ -53,6 +53,7 @@
 
 ### Patch Changes
 
+- The MCP launcher says on stderr when the project has no `kibi-mcp` and it runs a global install, naming the path it uses.
 - f9ec786: Usage telemetry events now carry a `channel`: `release` for an installed Kibi package, `source` when Kibi runs from a checkout of its own repository, or the value of `KIBI_TELEMETRY_CHANNEL` when a harness sets one (for example `agent-test`). Development and test runs can then be filtered out of real usage. Nothing else about what is sent changes.
 
 ## 0.12.1

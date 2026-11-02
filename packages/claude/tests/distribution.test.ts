@@ -1,8 +1,11 @@
 // implements REQ-claude-code-kibi-plugin-v1
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { spawn, spawnSync } from "node:child_process";
+import { EventEmitter } from "node:events";
 import fs from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
+import { PassThrough } from "node:stream";
 
 import { syncAgentSkillsUnlocked } from "../../../scripts/sync-agent-skills";
 import {
@@ -300,5 +303,43 @@ describe("kibi-claude MCP launcher", () => {
     );
     expect(session.serverName).toBe("kibi-claude-launcher");
     expect(session.tools).toEqual([]);
+  });
+
+  test("a global kibi-mcp fallback says so on stderr", async () => {
+    const { proxyKibiMcp } = createRequire(import.meta.url)(launcher) as {
+      proxyKibiMcp: (options: Record<string, unknown>) => Promise<number>;
+    };
+    const kibi = createKibiWorkspace();
+    const bin = tempDir("kibi-claude-global-bin-");
+    write(bin, "kibi-mcp", "#!/bin/sh\nexit 0\n");
+    fs.chmodSync(path.join(bin, "kibi-mcp"), 0o755);
+    const child = Object.assign(new EventEmitter(), {
+      stdin: new PassThrough(),
+      stdout: new PassThrough(),
+      stderr: new PassThrough(),
+      killed: false,
+      kill: () => true,
+    });
+    let stderr = "";
+    const stdin = new PassThrough();
+    const exit = proxyKibiMcp({
+      workspaceRoot: kibi.root,
+      env: { PATH: bin },
+      spawnImpl: () => child,
+      stdin,
+      stdout: new PassThrough(),
+      stderr: {
+        write: (text: string) => {
+          stderr += text;
+          return true;
+        },
+      },
+    });
+    stdin.end();
+    child.emit("close", 0);
+    expect(await exit).toBe(0);
+    expect(stderr).toBe(
+      `[kibi-claude] No project-local kibi-mcp in ${kibi.root}; using the global install at ${path.join(bin, "kibi-mcp")}. Install kibi-mcp in the project to pin its version.\n`,
+    );
   });
 });

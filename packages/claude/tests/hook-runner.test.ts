@@ -569,6 +569,30 @@ describe("search tip", () => {
 const IMPACT_REMINDER = "without a Kibi impact check";
 
 describe("stop reminders", () => {
+  test("the Stop reminder uses the documented non-error continuation, never a block", async () => {
+    const fixture = createKibiWorkspace();
+    const { call, post } = session(fixture);
+    await post("Edit", {
+      file_path: path.join(fixture.root, "src/checkout.ts"),
+    });
+    const output = await call({
+      hook_event_name: "Stop",
+      stop_hook_active: false,
+      last_assistant_message: "Done.",
+      background_tasks: [],
+      session_crons: [],
+    });
+    expect(output).toEqual({
+      hookSpecificOutput: {
+        hookEventName: "Stop",
+        additionalContext: expect.stringContaining("src/checkout.ts"),
+      },
+    });
+    expect(
+      await call({ hook_event_name: "Stop", stop_hook_active: true }),
+    ).toEqual({});
+  });
+
   test("unchecked source edits are reminded once, then the agent may stop", async () => {
     const fixture = createKibiWorkspace();
     const { post, stop } = session(fixture);

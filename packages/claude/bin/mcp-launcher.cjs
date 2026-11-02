@@ -426,6 +426,12 @@ function resolveLaunchTarget(workspaceRoot, env = process.env) {
   return findGlobalKibiMcpCommand(env);
 }
 
+/** Stderr line naming the global kibi-mcp a workspace without its own uses. */
+function globalFallbackNotice(prefix, workspaceRoot, target) {
+  const where = target.args[0] ?? target.command;
+  return `[${prefix}] No project-local kibi-mcp in ${workspaceRoot}; using the global install at ${where}. Install kibi-mcp in the project to pin its version.\n`;
+}
+
 /**
  * Probe classifies the outcome instead of collapsing every failure into
  * "missing": a resolution miss is missing; a spawn/runtime failure on an
@@ -507,6 +513,9 @@ function proxyKibiMcp(options = {}) {
       "[kibi-claude] kibi-mcp is no longer resolvable from the workspace\n",
     );
     return Promise.resolve(1);
+  }
+  if (target.via !== "project-local") {
+    stderr.write(globalFallbackNotice("kibi-claude", workspaceRoot, target));
   }
   const childEnv = {
     ...env,
