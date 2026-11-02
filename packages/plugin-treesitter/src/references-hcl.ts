@@ -110,38 +110,50 @@ function decode(text: string): string | null {
  * decimal form, or refused when that would round them.
  */
 function canonicalNumber(text: string): string | null {
-  if (/^\d+$/.test(text)) return BigInt(text).toString();
-  const value = Number(text);
-  if (!Number.isFinite(value)) return null;
-  const written =
-    Number.isInteger(value) && Math.abs(value) < 1e21
-      ? BigInt(value).toString()
-      : String(value);
-  // Refuse a value a double cannot hold exactly (more than 15 significant digits).
-  const digits = text
-    .replace(/[eE].*$/, "")
-    .replace(/[^0-9]/g, "")
-    .replace(/^0+/, "")
-    .replace(/0+$/, "");
-  return digits.length > 15 ? null : written;
+  const match = /^(\d+)(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/.exec(text);
+  if (match === null) return null;
+  // The value is digits × 10^scale, written in plain decimal as Terraform
+  // prints it (`0.0000001`, never `1e-7`).
+  const fraction = match[2] ?? "";
+  let digits = `${match[1]}${fraction}`.replace(/^0+(?=\d)/, "");
+  let scale = Number(match[3] ?? "0") - fraction.length;
+  if (!Number.isSafeInteger(scale) || Math.abs(scale) > 400) return null;
+  while (scale < 0 && digits.endsWith("0") && digits.length > 1) {
+    digits = digits.slice(0, -1);
+    scale += 1;
+  }
+  if (/^0+$/.test(digits)) return "0";
+  if (scale >= 0) return `${digits}${"0".repeat(scale)}`;
+  const padded = digits.padStart(-scale + 1, "0");
+  return `${padded.slice(0, scale)}.${padded.slice(scale)}`;
 }
 
-/** A quoted string or template with no interpolation or directive. */
+/**
+ * A quoted string or template with no interpolation or directive, read from
+ * the source between its quotes: the grammar's literal nodes leave out
+ * blanks at the ends (`" acl "`).
+ */
 function quoted(node: Node): string | null {
-  let value = "";
-  for (const part of named(node)) {
-    if (
-      part.type === "quoted_template_start" ||
-      part.type === "quoted_template_end"
+  const parts = named(node);
+  const start = parts.find((part) => part.type === "quoted_template_start");
+  const end =
+    parts.at(-1)?.type === "quoted_template_end" ? parts.at(-1) : undefined;
+  if (start === undefined || end === undefined) return null;
+  if (
+    parts.some(
+      (part) =>
+        part.type !== "quoted_template_start" &&
+        part.type !== "quoted_template_end" &&
+        part.type !== "template_literal",
     )
-      continue;
-    if (part.type === "comment") continue;
-    if (part.type !== "template_literal") return null;
-    const text = decode(part.text);
-    if (text === null) return null;
-    value += text;
-  }
-  return value;
+  )
+    return null;
+  return decode(
+    node.text.slice(
+      start.endIndex - node.startIndex,
+      end.startIndex - node.startIndex,
+    ),
+  );
 }
 
 /**
@@ -157,11 +169,18 @@ function heredoc(node: Node): string | null {
     )
   )
     return null;
-  const match = /^<<(\w+)\r?\n([\s\S]*?)[ \t]*\1[ \t]*$/.exec(node.text);
+  const match = /^<<([A-Za-z_][\w-]*)\r?\n([\s\S]*?)[ \t]*\1[ \t]*$/.exec(
+    node.text,
+  );
   if (match === null) return null;
-  if ((match[2] as string).includes("${") || match[2]?.includes("%{"))
-    return null;
-  return (match[2] as string).replace(/\r\n/g, "\n").normalize("NFC");
+  const marker = match[1] as string;
+  const body = match[2] as string;
+  if (body.includes("${") || body.includes("%{")) return null;
+  // Terraform ends a heredoc on a line that is the marker once any Unicode
+  // blank (U+00A0, \v, \f) is trimmed; the grammar does not.
+  if (body.split("\n").some((line) => line.trim() === marker)) return null;
+  // Line ends are kept as written (`\r\n` on a CRLF checkout).
+  return body.normalize("NFC");
 }
 
 /** The scalar literal values an expression holds (each item of a tuple). */
@@ -234,7 +253,10 @@ function keyName(node: Node | null): string | null {
   if (key.type === "variable_expr") return key.text;
   if (key.type === "literal_value") {
     const literal = named(key)[0] as Node;
-    return literal.type === "string_lit" ? quoted(literal) : literal.text;
+    if (literal.type === "string_lit") return quoted(literal);
+    // `{ 007 = ... }` has the key "7".
+    if (literal.type === "numeric_lit") return canonicalNumber(literal.text);
+    return literal.text;
   }
   if (key.type === "template_expr") {
     const template = named(key)[0] as Node;
@@ -265,13 +287,25 @@ function mayBeKey(node: Node | null, key: string): boolean {
   const last = pieces.at(-1);
   const head = first?.type === "template_literal" ? decode(first.text) : "";
   const tail = last?.type === "template_literal" ? decode(last.text) : "";
-  if (head === null || tail === null) return true;
+  // A combining mark at either end may compose with what is interpolated.
+  if (head === null || tail === null || /^\p{M}/u.test(tail)) return true;
   return (
     key.startsWith(head) &&
     key.endsWith(tail) &&
     head.length + tail.length <= key.length
   );
 }
+
+/** Blocks whose `for_each` keys are instance keys. */
+const FOR_EACH_BLOCKS = new Set([
+  "resource",
+  "data",
+  "module",
+  "dynamic",
+  "import",
+  "provider",
+  "ephemeral",
+]);
 
 /** The name of the block a node is the body of, and that block's labels. */
 function blockOf(node: Node): Node | null {
@@ -318,6 +352,21 @@ export function hclProperty(
         }
       }
     }
+    // An `optional(type, default)` default is a value: an object default
+    // may hold the key.
+    if (node.type === "function_call" && named(node)[0]?.text === "optional") {
+      const args = named(node).find(
+        (child) => child.type === "function_arguments",
+      );
+      const defaults =
+        args === undefined
+          ? []
+          : parts(args).filter((arg) => arg.type === "expression");
+      const value = defaults[1];
+      if (value !== undefined) visit(value);
+      if (defaults[0] !== undefined) typeConstraint(defaults[0]);
+      return;
+    }
     for (const child of named(node)) typeConstraint(child);
   };
   const visit = (node: Node): void => {
@@ -347,15 +396,41 @@ export function hclProperty(
         const name = keyName(keyNode);
         if (name === null) {
           if (mayBeKey(keyNode, key)) unresolved.push(at(node));
-        } else if (name === key) take(node, field(node, "val"));
+        } else if (name === key) {
+          // A key written twice keeps its last value.
+          const twice = named(node.parent as Node).filter(
+            (other) =>
+              other.type === "object_elem" &&
+              keyName(field(other, "key")) === key,
+          );
+          if (twice.length > 1) unresolved.push(at(node));
+          else take(node, field(node, "val"));
+        }
+        break;
+      }
+      case "heredoc_template": {
+        // Terraform ends a heredoc on a line that is the marker once any
+        // Unicode blank (U+00A0, \v, \f) is trimmed; the grammar reads on.
+        const marker = /^<<-?([A-Za-z_][\w-]*)/.exec(node.text)?.[1];
+        const inner = node.text.split("\n").slice(1, -1);
+        if (
+          marker !== undefined &&
+          inner.some((line) => line.trim() === marker)
+        )
+          unresolved.push(at(node));
         break;
       }
       case "for_object_expr": {
         // `{ for k, v in x : k => v }` makes keys at evaluation. The keys of
         // a `for_each` map are instance keys, not configuration values.
         const owner = node.parent?.parent?.parent;
+        const block = blockOf(node);
         const forEach =
-          owner?.type === "attribute" && named(owner)[0]?.text === "for_each";
+          !terragrunt &&
+          owner?.type === "attribute" &&
+          named(owner)[0]?.text === "for_each" &&
+          block !== null &&
+          FOR_EACH_BLOCKS.has(named(block)[0]?.text ?? "");
         const keyExpression =
           parts(node).find((part) => part.type === "expression") ?? null;
         if (!forEach && mayBeKey(keyExpression, key)) unresolved.push(at(node));
@@ -364,6 +439,32 @@ export function hclProperty(
       case "function_call": {
         const name = named(node)[0]?.text ?? "";
         if (keyFunction(name)) unresolved.push(at(node));
+        else if (name.replace(/\s+/g, "").replace(/^core::/, "") === "merge") {
+          // The last of the objects `merge` gets that names the key wins,
+          // and a later argument Kibi cannot read may name it.
+          const args = named(node).find(
+            (child) => child.type === "function_arguments",
+          );
+          const objects = (args === undefined ? [] : parts(args)).map((arg) => {
+            const value = single(arg);
+            const object =
+              value?.type === "collection_value" ? named(value)[0] : undefined;
+            if (object?.type !== "object") return "unknown";
+            return named(object).some(
+              (elem) =>
+                elem.type === "object_elem" &&
+                keyName(field(elem, "key")) === key,
+            )
+              ? "key"
+              : "other";
+          });
+          const first = objects.indexOf("key");
+          if (
+            first !== -1 &&
+            objects.slice(first + 1).some((kind) => kind !== "other")
+          )
+            unresolved.push(at(node));
+        }
         break;
       }
     }

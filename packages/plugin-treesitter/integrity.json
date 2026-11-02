@@ -21,8 +21,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 21089,
-      "sha256": "146db6964ad7373081b0ae2ece33c635a8f531b9e2e9b94423ce4610006f9c25"
+      "bytes": 22954,
+      "sha256": "9946355593bfd763618546b4163f2c98a899dbec693f8a532f7a0bc665b3d45f"
     },
     {
       "path": "SBOM.spdx.json",
@@ -222,12 +222,12 @@
     {
       "path": "dist/preprocessor-idioms.d.ts.map",
       "bytes": 214,
-      "sha256": "a4ad7f82f33bc68e0d858e0de14203cc7700f884fb4adf117ef1080e07fd2ec7"
+      "sha256": "a852ad3d75ce4a763901321bd362a0f337d8b6ac5df3636e7d5ef25bc82f9640"
     },
     {
       "path": "dist/preprocessor-idioms.js",
-      "bytes": 6922,
-      "sha256": "a616f259e1f94e1b5d68d6cb1d9805a7067bb8dc5cd445dac4fb57fd195085a5"
+      "bytes": 7206,
+      "sha256": "55942a675474b35e6c72ff573aa0f237c1655d9820e4325e4daf818789278f87"
     },
     {
       "path": "dist/reference-nodes.d.ts",
@@ -252,12 +252,12 @@
     {
       "path": "dist/references-bash.d.ts.map",
       "bytes": 513,
-      "sha256": "c779ec423a73a8aaa633f8cecb5a5e021d501bab40163040313baa275ed3687e"
+      "sha256": "2792b0cdd760c95ff1d248f1e2d3a81cfbc975a025ef4c21f1c83a47246652ea"
     },
     {
       "path": "dist/references-bash.js",
-      "bytes": 62946,
-      "sha256": "eca2410c2d65e45e6ae7fab1ab238882530ff91a1bc01cc1097d1e743f180fe9"
+      "bytes": 72707,
+      "sha256": "774ecf663add1a2f534d55233879d03ec92b30d2ae427f26762be4c9f431b205"
     },
     {
       "path": "dist/references-c.d.ts",
@@ -266,13 +266,13 @@
     },
     {
       "path": "dist/references-c.d.ts.map",
-      "bytes": 546,
-      "sha256": "63184ccb08c0779a1d0b46b7ee54ca35dbcd4ea2c2e227af30b0428a8fb12fe1"
+      "bytes": 547,
+      "sha256": "7ce873fb8278ddfba077ff6b649c7b02e871c11cd59f2d388b792fb77f8a7dd2"
     },
     {
       "path": "dist/references-c.js",
-      "bytes": 29872,
-      "sha256": "e77fd3cf47ba1c3df7dc7b4da44845bf4961ef31b1618e8039cd3c1784ecfec2"
+      "bytes": 37254,
+      "sha256": "e19b78dde3a6530cfbc3d86cb19a6a812f41b25236aadddee929b5a8d2580099"
     },
     {
       "path": "dist/references-hcl.d.ts",
@@ -282,12 +282,12 @@
     {
       "path": "dist/references-hcl.d.ts.map",
       "bytes": 382,
-      "sha256": "237f446e3e4e0cbe90bc3c1b7b5c7aff12d7f95c5466119c47248f5cfe0cb627"
+      "sha256": "b1f941294ee786b41f8d8917cf0a4ee1c80ffa490f3e22be0a16208faf8d9df7"
     },
     {
       "path": "dist/references-hcl.js",
-      "bytes": 13478,
-      "sha256": "bc0b3a7be5f91cac8ee5e5e45aa08939d068aff4c0de74366eff863a3a8a1e04"
+      "bytes": 17759,
+      "sha256": "7b3034b8c2146c8864d6189a06e2e59c638e644a730f04824e7ed04d54837f2b"
     },
     {
       "path": "dist/references-php.d.ts",
@@ -297,12 +297,12 @@
     {
       "path": "dist/references-php.d.ts.map",
       "bytes": 583,
-      "sha256": "8eb66243aa917acfba176f854c286b5fa519b7b20b49b65c72281db40ec23806"
+      "sha256": "40b1bc2efe1ab024c4568d4c8204f3de36904adb9ee745c175e95727c9e9ac13"
     },
     {
       "path": "dist/references-php.js",
-      "bytes": 58177,
-      "sha256": "8a247613efbec93f49299c8a68218e80448c55dcfcc905e37ff18955884825bf"
+      "bytes": 67616,
+      "sha256": "0231da3187952a672fa8c21fa3109c8558d787751bdc045a69ae2212a1731f32"
     },
     {
       "path": "dist/references.d.ts",

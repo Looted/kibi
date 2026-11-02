@@ -120,6 +120,23 @@ const CALLABLE_ARGS: ReadonlyMap<string, readonly number[] | "all"> = new Map<
   ["xml_set_external_entity_ref_handler", [1]],
   ["session_set_save_handler", "all"],
   ["closure::fromcallable", [0]],
+  ["assert_options", [1]],
+  // Methods of builtin classes, on a receiver Kibi cannot name.
+  ["*.uasort", [0]],
+  ["*.uksort", [0]],
+  ["*.createfunction", [1]],
+  ["*.createaggregate", [1, 2]],
+  ["*.createcollation", [1]],
+  ["*.sqlitecreatefunction", [1]],
+  ["*.sqlitecreateaggregate", [1, 2]],
+  ["*.sqlitecreatecollation", [1]],
+]);
+
+/** Builtin classes whose constructor calls a callable it is given, by position. */
+const CALLABLE_CONSTRUCTORS: ReadonlyMap<string, number> = new Map([
+  ["fiber", 0],
+  ["callbackfilteriterator", 1],
+  ["recursivecallbackfilteriterator", 1],
 ]);
 
 /** Code built from text: every extract is unknowable there. */
@@ -238,7 +255,12 @@ function docValue(node: Node): string | null {
   const open = text.indexOf("\n");
   const close = text.lastIndexOf("\n", end.startIndex - node.startIndex);
   if (open < 0 || close < open) return null;
-  const raw = text.slice(open + 1, close + 1 > open + 1 ? close : open + 1);
+  // The line end before the closing marker, `\r\n` too, is not text.
+  const stop = close > open && text[close - 1] === "\r" ? close - 1 : close;
+  const raw = text.slice(
+    open + 1,
+    close + 1 > open + 1 ? Math.max(stop, open + 1) : open + 1,
+  );
   if (node.type === "heredoc" && raw.includes("\\")) return null;
   const indent = text.slice(close + 1, end.startIndex - node.startIndex);
   if (!/^[ \t]*$/.test(indent)) return null;
@@ -428,7 +450,13 @@ export function phpReferences(
     if (kind !== "self" && kind !== "parent" && kind !== "static")
       return undefined;
     const owner = enclosingClass(node);
-    if (owner === null || kind === "static") return null;
+    // In a trait, `self` and `parent` are the using class's.
+    if (
+      owner === null ||
+      kind === "static" ||
+      owner.type === "trait_declaration"
+    )
+      return null;
     if (kind === "self") {
       const name = field(owner, "name")?.text;
       if (name === undefined) return null;
@@ -498,8 +526,15 @@ export function phpReferences(
       }
       case "binary_expression": {
         if (field(node, "operator")?.text !== ".") return null;
-        const left = literal(field(node, "left"));
-        const right = literal(field(node, "right"));
+        // As text, `true` is "1" and `false` and `null` are "".
+        const text = (side: Node | null): string | null => {
+          if (side?.type === "boolean")
+            return lower(side.text) === "true" ? "1" : "";
+          if (side?.type === "null") return "";
+          return literal(side);
+        };
+        const left = text(field(node, "left"));
+        const right = text(field(node, "right"));
         return left === null || right === null ? null : left + right;
       }
       case "class_constant_access_expression": {
@@ -523,7 +558,11 @@ export function phpReferences(
       node.type === "parenthesized_expression" ? named(node)[0] : node;
     if (inner === undefined) return null;
     const value = literal(inner);
-    if (value !== null) return value;
+    // `data://`, `php://` and `phar://` paths are not project files.
+    if (value !== null)
+      return /^[A-Za-z][\w+.-]*:\/\//.test(value) || /^data:/i.test(value)
+        ? null
+        : value;
     // The parts of a `.` chain, left to right.
     const parts: Node[] = [];
     const flatten = (part: Node): void => {
@@ -607,8 +646,11 @@ export function phpReferences(
         if (resolved === null)
           return { names: [], namespace: null, dynamicFunction: true };
         return {
-          // `die` is `exit`.
-          names: [resolved.name === "die" ? "exit" : resolved.name],
+          // `die` and `exit` are one construct: both names are listed.
+          names:
+            resolved.name === "die" || resolved.name === "exit"
+              ? ["exit", "die"]
+              : [resolved.name],
           namespace: resolved.namespace,
           dynamicFunction: false,
         };
@@ -763,6 +805,28 @@ export function phpReferences(
     if (parent === null) return "no";
     return envReach(parent, seen);
   };
+  /**
+   * The class of the object a method is called on, when the code names it:
+   * `$this` (null in a trait or an anonymous class) and `new X`; undefined
+   * for any other object.
+   */
+  const instanceClass = (call: Node): string | null | undefined => {
+    let object = field(call, "object");
+    while (object?.type === "parenthesized_expression")
+      object = named(object)[0] ?? null;
+    if (object?.type === "variable_name" && object.text === "$this")
+      return relativeClass(call, "self") ?? null;
+    if (object?.type === "object_creation_expression") {
+      const type = named(object)[0];
+      if (type?.type === "name" || type?.type === "qualified_name")
+        return /^(?:static|self|parent)$/i.test(type.text)
+          ? (relativeClass(call, type.text) ?? null)
+          : resolveClass(type);
+      return null;
+    }
+    return undefined;
+  };
+
   /** A host row: kept when the project mentions Laravel's environment class. */
   const envRow = (owner: string, node: Node): void => {
     unresolved.push({
@@ -785,13 +849,24 @@ export function phpReferences(
     const unknown = /^\*\.(\w+)$/.exec(name);
     const method = lower(scoped?.[2] ?? unknown?.[1] ?? "");
     if (!ENV_METHODS.has(method)) return false;
+    let owner = scoped?.[1];
     if (scoped === null) {
-      // `static::get()`, `$class::get()`: any class; `$o->get()` is an
-      // object's method, which Env's static getters are not called as.
-      if (statically) refuse(node);
-      return false;
+      // `static::get()`, `$class::get()`: any class.
+      if (statically) {
+        refuse(node);
+        return false;
+      }
+      // A static getter may be called on an instance: `$this->get()` in a
+      // subclass, `(new Env)->get()`. Another object's method is not one.
+      const instance = instanceClass(node);
+      if (instance === undefined) return false;
+      if (instance === null) {
+        refuse(node);
+        return false;
+      }
+      owner = instance;
     }
-    const reach = envReach(scoped[1] as string);
+    const reach = envReach(owner as string);
     if (reach === "no") return false;
     if (reach !== "env") {
       envRow(reach, node);
@@ -950,6 +1025,37 @@ export function phpReferences(
   const catchTrusted = (clause: Node, name: string): boolean => {
     const body = field(clause, "body");
     if (body === null) return true;
+    // The function or file the catch is in: a reference to the variable
+    // (`use (&$e)`, `$r = &$e`), `global $e`, `extract()`, a variable
+    // variable or `$GLOBALS` may replace it without an assignment in the
+    // catch body.
+    let scope: Node = clause;
+    while (
+      scope.parent !== null &&
+      !/^(?:anonymous_function|arrow_function|function_definition|method_declaration)$/.test(
+        scope.type,
+      )
+    )
+      scope = scope.parent;
+    const variable = name.replace(/^\$/, "");
+    if (
+      new RegExp(
+        `&\\s*\\$${variable}\\b|\\bglobal\\b[^;]*\\$${variable}\\b`,
+        "i",
+      ).test(scope.text) ||
+      /\b(?:extract|parse_str|mb_parse_str)\s*\(|\$\$|\$\{|\$GLOBALS\b/i.test(
+        scope.text,
+      )
+    )
+      return false;
+    // At file scope, a function the catch body calls may set the global.
+    if (
+      scope.parent === null &&
+      /\(|\b(?:include|require)(?:_once)?\b|`/.test(
+        body.text.replace(/\bthrow\s+\$\w+\s*;/g, ""),
+      )
+    )
+      return false;
     const safe = (use: Node): boolean => {
       for (
         let current = use.parent;
@@ -1087,13 +1193,16 @@ export function phpReferences(
       item: Node;
     }[] = [];
     let next = 0n;
+    let highest: bigint | null = null;
     for (const item of named(node)) {
       if (item.type !== "array_element_initializer") continue;
       const parts = named(item);
       if (parts.length === 1 && parts[0]?.type === "variadic_unpacking")
         return null;
       if (parts.length === 1) {
+        if (highest !== null && highest < 0n) return null;
         entries.push({ key: next.toString(), value: parts[0], item });
+        highest = next;
         next += 1n;
         continue;
       }
@@ -1101,8 +1210,13 @@ export function phpReferences(
       const key = intConstant(keyNode) ? undefined : keyOf(keyNode);
       if (key === undefined) continue;
       entries.push({ key, value: parts.at(-1), item });
-      if (key !== null && /^(?:0|-?[1-9]\d*)$/.test(key) && BigInt(key) >= next)
-        next = BigInt(key) + 1n;
+      if (key !== null && /^(?:0|-?[1-9]\d*)$/.test(key)) {
+        // While every integer key is negative, the next implicit key is the
+        // largest + 1 from PHP 8.3 and 0 before it: the version decides.
+        const number = BigInt(key);
+        if (highest === null || number > highest) highest = number;
+        if (number >= next) next = number + 1n;
+      }
     }
     return entries;
   };
@@ -1138,10 +1252,19 @@ export function phpReferences(
   const propertyCall = (node: Node, name: string): void => {
     const list = callArguments(node);
     if (name === "define") {
-      const key = literal(argumentValue(list[0]));
+      // `define(value: 1, constant_name: 'K')` names its arguments.
+      const byName = (wanted: string, position: number): Node | undefined =>
+        list.find(
+          (argument) => lower(field(argument, "name")?.text ?? "") === wanted,
+        ) ??
+        (list[position] !== undefined &&
+        field(list[position] as Node, "name") === null
+          ? list[position]
+          : undefined);
+      const key = literal(argumentValue(byName("constant_name", 0)));
       if (key === null) refuse(node);
       else if (key === options.key) {
-        const value = literal(argumentValue(list[1]));
+        const value = literal(argumentValue(byName("value", 1)));
         if (value === null) refuse(node);
         else members.push(value);
       }
@@ -1156,15 +1279,40 @@ export function phpReferences(
       return;
     }
     if (/^array_(?:merge|replace)(?:_recursive)?$/.test(name)) {
+      // The last array that has the key gives its value (`_recursive`
+      // merges them), so an earlier literal is overwritten and a later array
+      // Kibi cannot read may hold the key. `array_merge` renumbers integer
+      // keys.
       const values = list.map((argument) => argumentValue(argument));
+      const holds = values.map((value) =>
+        value?.type === "array_creation_expression"
+          ? arrayHasKey(value)
+            ? "key"
+            : "other"
+          : "unknown",
+      );
+      const first = holds.indexOf("key");
       if (
-        values.some(
-          (value) =>
-            value?.type === "array_creation_expression" && arrayHasKey(value),
-        ) &&
-        values.some((value) => value?.type !== "array_creation_expression")
+        first !== -1 &&
+        (holds.slice(first + 1).some((kind) => kind !== "other") ||
+          (numericKey && name.startsWith("array_merge")))
       )
         refuse(node);
+    }
+    // Keys built from data, and a callback that may change values by reference.
+    if (
+      name === "array_fill_keys" ||
+      name === "array_combine" ||
+      name === "array_flip"
+    )
+      refuse(node);
+    if (name === "array_walk" || name === "array_walk_recursive") {
+      const callback = argumentValue(list[1]);
+      const byValue =
+        (callback?.type === "anonymous_function" ||
+          callback?.type === "arrow_function") &&
+        !/^[^(]*\(\s*&/.test(callback.text);
+      if (!byValue) refuse(node);
     }
   };
 
@@ -1239,6 +1387,17 @@ export function phpReferences(
           name === "assert" &&
           (firstValue?.type === "string" ||
             firstValue?.type === "encapsed_string");
+        // `ReflectionMethod::createFromMethodName('A::m')` builds a callable.
+        if (
+          names.some((candidate) =>
+            /(?:^|\\)reflection\w*::/i.test(candidate),
+          ) &&
+          extract !== "property" &&
+          extract !== "imports"
+        ) {
+          refuse(node);
+          break;
+        }
         if (name === "eval" || CODE_FUNCTIONS.has(name) || codeText) {
           if (extract !== "property") refuse(node);
           break;
@@ -1283,16 +1442,29 @@ export function phpReferences(
           type === undefined || type.type === "variable_name"
             ? null
             : resolveClass(type);
-        // Reflection calls, reads and builds whatever it is given at run time.
-        if (owner !== null && /^reflection/i.test(finalName(owner))) {
+        // Reflection calls, reads and builds whatever it is given at run
+        // time, and a class computed at run time may be Reflection.
+        if (
+          (owner !== null && /^reflection/i.test(finalName(owner))) ||
+          (type !== undefined &&
+            type.type !== "name" &&
+            type.type !== "qualified_name" &&
+            type.type !== "anonymous_class" &&
+            !/^(?:static|self|parent)$/i.test(type.text))
+        ) {
           refuse(node);
           break;
         }
         // `new Fiber('task')` calls what it is handed.
-        if (owner !== null && lower(owner) === "fiber") {
+        const position =
+          owner === null
+            ? undefined
+            : CALLABLE_CONSTRUCTORS.get(lower(stripLeading(owner)));
+        if (position !== undefined) {
           const list = callArguments(node);
-          if (list[0] !== undefined)
-            handedCallable(list[0], argumentValue(list[0]));
+          const argument = list[position];
+          if (argument !== undefined)
+            handedCallable(argument, argumentValue(argument));
         }
         break;
       }
@@ -1314,7 +1486,7 @@ export function phpReferences(
         }
         break;
       case "exit_statement": {
-        if (extract === "calls") members.push("exit");
+        if (extract === "calls") members.push("exit", "die");
         const argument = named(node)[0];
         if (
           extract === "string_args" &&
@@ -1437,11 +1609,70 @@ export function phpReferences(
           refuse(node);
         break;
       }
+      case "update_expression":
+      case "unset_statement":
+      case "foreach_statement": {
+        if (extract !== "property") break;
+        // `$cfg['port']++` and `unset($o['acl'])` change the value, and
+        // `foreach ($o as &$v)` may change any value of the array.
+        if (node.type === "foreach_statement") {
+          const header = /^foreach\s*\(([^)]*)\)/i.exec(node.text)?.[1] ?? "";
+          if (/&\s*\$/.test(header)) refuse(node);
+          break;
+        }
+        for (const target of named(node)) {
+          const key = writtenKey(target);
+          if (key === "dynamic" || key === options.key) refuse(node);
+        }
+        break;
+      }
       case "assignment_expression":
       case "augmented_assignment_expression":
       case "reference_assignment_expression": {
         if (extract !== "property") break;
-        const key = writtenKey(field(node, "left"));
+        const left = field(node, "left");
+        // `[$o['acl']] = [...]` writes through a destructuring target, and
+        // `$r = &$o['acl']` lets `$r` write the key.
+        const targets: Node[] = [];
+        const gather = (part: Node): void => {
+          if (
+            part.type === "subscript_expression" ||
+            /member_access_expression$/.test(part.type)
+          )
+            targets.push(part);
+          else for (const child of named(part)) gather(child);
+        };
+        if (
+          left !== null &&
+          (left.type === "list_literal" ||
+            left.type === "array_creation_expression")
+        )
+          gather(left);
+        if (node.type === "reference_assignment_expression") {
+          const right = field(node, "right");
+          if (right !== null) targets.push(right);
+        }
+        if (
+          targets.some((target) => {
+            const written = writtenKey(target);
+            return written === "dynamic" || written === options.key;
+          })
+        ) {
+          refuse(node);
+          break;
+        }
+        // `$o += ['acl' => 'x']` keeps a value `$o` already has.
+        const right = field(node, "right");
+        if (
+          node.type === "augmented_assignment_expression" &&
+          field(node, "operator")?.text === "+=" &&
+          right?.type === "array_creation_expression" &&
+          arrayHasKey(right)
+        ) {
+          refuse(node);
+          break;
+        }
+        const key = writtenKey(left);
         if (key === "dynamic") refuse(node);
         else if (key === options.key) {
           const value =
@@ -1508,7 +1739,8 @@ function enclosingClass(node: Node): Node | null {
     if (
       current.type === "class_declaration" ||
       current.type === "trait_declaration" ||
-      current.type === "enum_declaration"
+      current.type === "enum_declaration" ||
+      current.type === "anonymous_class"
     )
       return current;
   return null;

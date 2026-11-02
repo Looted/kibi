@@ -12,7 +12,7 @@ const extractor = createTreeSitterReferenceExtractor();
 
 /** Rows the host drops once it has looked at the project's other files. */
 const HOST_ROW =
-  /^(?:\w+ may be a function of namespace [\w\\]+|.+? may define macros or function pointers this file uses|.+? may be Illuminate\\Support\\Env or a class that extends it): /;
+  /^(?:\w+ may be a function of namespace [\w\\]+|.+? may define macros or function pointers this file uses|.+? may be Illuminate\\Support\\Env or a class that extends it|.+? may be sourced by another script, whose folder \$0 names): /;
 
 async function raw(path, content, extract, options = {}) {
   const result = await extractor.extract({
@@ -482,6 +482,95 @@ describe("Bash constructs Kibi must not misread", () => {
   const sh = (content, extract = "env", callee = undefined) =>
     read("s.sh", content, extract, callee === undefined ? {} : { callee });
 
+  it("follows wrapper options and namespaces of the second round", async () => {
+    for (const [extract, content] of [
+      ["calls", 'ip "$o" netns exec ns rm y\n'],
+      ["env", "env -i0\n"],
+      ["env", "env --version\n"],
+    ]) {
+      const result = await raw("s.sh", content, extract);
+      assert.ok(result.unresolved.length > 0, content);
+    }
+    assert.deepEqual((await sh("sudo --user=root rm y\n", "calls")).members, [
+      "rm",
+      "sudo",
+    ]);
+    assert.deepEqual((await sh("ip -n x link\n", "calls")).members, ["ip"]);
+  });
+
+  it("reads the second round of Bash constructs exactly or refuses them", async () => {
+    for (const [extract, content] of [
+      ["calls", 'args=(-exec rm -rf {} +); find /tmp/c "${args[@]}"\n'],
+      ["calls", "bash /dev/stdin <<'EOF'\nrm -rf x\nEOF\n"],
+      ["calls", "BASH_ALIASES[c]='rm -rf x'\nc\n"],
+      ["calls", "BASH_CMDS[c]=/bin/rm\nc\n"],
+      ["calls", "x='$(rm -rf y)'\necho \"${x@P}\"\n"],
+      ["calls", "r\\\nm -rf /\n"],
+      ["env", "env -0 | grep token\n"],
+      ["env", "printenv -0\n"],
+      ["env", "g(){ unset HOME; }\nf(){ local HOME=/x; g; echo $HOME; }\nf\n"],
+      ["imports", "s=source; $s ./lib.sh\n"],
+      ["env", "f(){ local -I X; echo $X; }\n"],
+      ["env", "shopt -s localvar_inherit\n"],
+      ["env", "fakeroot printenv\n"],
+      ["env", "cmd=printenv; $cmd\n"],
+      ["env", "cat /proc/thread-self/environ\n"],
+      ["env", "cat /proc//self/environ\n"],
+      ["env", "ps eww\n"],
+      ["calls", "fish -c 'rm x'\n"],
+      ["calls", "PS4='$(rm -rf x)'\nset -x\n"],
+      ["calls", "echo `echo \\`rm x\\``\n"],
+      ["env", "read 'a[IDX]'\n"],
+      ["env", "printf -v 'a[IDX]' %s x\n"],
+      ["env", "echo ${s:1+OFF:2}\n"],
+      ["env", "echo $SECONDS\n"],
+      ["env", "awk 'BEGIN{print ENVIRON[\"HOME\"]}'\n"],
+      ["calls", "cat <<EOF\nx\nEOF \nrm y\nEOF\n"],
+      [
+        "env",
+        "f(){ declare -A m; m[k]=1; }\ng(){ local m=(); echo ${m[KEY]}; }\n",
+      ],
+      ["calls", "cat <<EOF\n$[1+2]\nEOF\n"],
+    ]) {
+      const result = await raw("s.sh", content, extract);
+      assert.ok(
+        result.status === "failed" ||
+          result.unresolved.some((row) => !HOST_ROW.test(row.text)),
+        content,
+      );
+    }
+    for (const [extract, content, callee, members] of [
+      ["calls", "sudo <<EOF rm -rf /tmp/x\ny\nEOF\n", null, ["rm", "sudo"]],
+      [
+        "string_args",
+        "curl {fd}>/tmp/x https://e/x\n",
+        "curl",
+        ["https://e/x"],
+      ],
+      ["calls", "timeout -- 5 rm -rf x\n", null, ["rm", "timeout"]],
+      ["calls", "env -- X=1 rm y\n", null, ["env", "rm"]],
+      ["calls", "sudo -R /mnt rm y\n", null, ["rm", "sudo"]],
+      ["calls", "ip -all netns exec rm y\n", null, ["ip", "rm"]],
+      ["calls", "strace -V rm\n", null, ["strace"]],
+      ["calls", "sudo --preserve-env=PATH rm x\n", null, ["rm", "sudo"]],
+      ["env", "cd --\n", null, ["HOME"]],
+      ["env", '[[ $a =~ (x) ]] && echo "${BASH_REMATCH[1]}"\n', null, ["a"]],
+      ["env", "ls | wc; echo ${PIPESTATUS[0]}\n", null, []],
+      [
+        "env",
+        "while read -r l || [[ -n $l ]]; do echo $l; done < f\n",
+        null,
+        [],
+      ],
+      ["env", 'echo "${X:-~/x}"\n', null, ["X"]],
+    ])
+      assert.deepEqual(
+        await sh(content, extract, callee ?? undefined),
+        { members, lines: [], rows: [] },
+        content,
+      );
+  });
+
   it("reads variables bash only fills in when the environment does not", async () => {
     assert.deepEqual(
       (
@@ -788,6 +877,7 @@ describe("PHP reference reader", () => {
       "app\\svc\\local_fn",
       "array_map",
       "call_user_func",
+      "die",
       "exec",
       "exit",
       "filter_input",
@@ -1112,6 +1202,7 @@ describe("PHP constructs Kibi must not misread", () => {
         "cleanup",
         "close_h",
         "curl_setopt",
+        "die",
         "exit",
         "kcmp",
         "open_h",
@@ -1164,6 +1255,194 @@ describe("PHP constructs Kibi must not misread", () => {
     );
   });
 
+  it("reads the second round of PHP constructs exactly or refuses them", async () => {
+    // `die` and `exit` are one construct.
+    assert.deepEqual(
+      (
+        await php("die('Database connection failed');", "string_args", {
+          callee: "die",
+        })
+      ).members,
+      ["Database connection failed"],
+    );
+    assert.deepEqual((await php("die('x');", "calls")).members, [
+      "die",
+      "exit",
+    ]);
+    // A CRLF heredoc ends before its `\r\n`.
+    assert.deepEqual(
+      (
+        await read(
+          "src/a.php",
+          "<?php\r\n$o = ['acl' => <<<EOT\r\npublic-read\r\nEOT];\r\n",
+          "property",
+          { key: "acl" },
+        )
+      ).members,
+      ["public-read"],
+    );
+    for (const [body, extract, options] of [
+      // A class computed at run time may be Reflection.
+      ["$f = new $cls('system'); $f->invoke();", "calls"],
+      ["$f = new ('Reflection' . 'Function')('passthru');", "calls"],
+      ["ReflectionMethod::createFromMethodName('A::m');", "calls"],
+      // The catch variable rebound without an assignment in the catch.
+      [
+        "function g() { $f = function () use (&$e) { $e = new \\LogicException; }; try { x(); } catch (\\RuntimeException $e) { $f(); throw $e; } }",
+        "thrown",
+      ],
+      [
+        "function g() { try { x(); } catch (\\RuntimeException $e) { extract(['e' => 1]); throw $e; } }",
+        "thrown",
+      ],
+      [
+        "try { x(); } catch (\\RuntimeException $e) { log_it(); throw $e; }",
+        "thrown",
+      ],
+      // Writes Kibi does not follow.
+      [
+        "$o = ['acl' => 'private']; $r = &$o['acl']; $r = 'public-read';",
+        "property",
+        { key: "acl" },
+      ],
+      [
+        "$o = ['acl' => 'private']; foreach ($o as &$v) { $v = 'x'; }",
+        "property",
+        { key: "acl" },
+      ],
+      [
+        "$o = ['acl' => 'private']; array_walk($o, function (&$v) { $v = 'x'; });",
+        "property",
+        { key: "acl" },
+      ],
+      [
+        "$o = ['acl' => 'private']; [$o['acl']] = ['x'];",
+        "property",
+        { key: "acl" },
+      ],
+      ["$c = ['port' => 80]; $c['port']++;", "property", { key: "port" }],
+      [
+        "$o = ['acl' => 'private']; unset($o['acl']);",
+        "property",
+        { key: "acl" },
+      ],
+      ["$o = load(); $o += ['acl' => 'private'];", "property", { key: "acl" }],
+      [
+        "$o = array_merge(['acl' => 'a'], ['acl' => 'b']);",
+        "property",
+        { key: "acl" },
+      ],
+      ["$o = array_merge(['acl' => 'a'], $more);", "property", { key: "acl" }],
+      ["$o = array_fill_keys(['acl'], 'x');", "property", { key: "acl" }],
+      ["$o = [-5 => 'a', 'b'];", "property", { key: "-4" }],
+    ])
+      assert.ok((await php(body, extract, options)).lines.length > 0, body);
+    // Callbacks of builtin classes.
+    for (const body of [
+      "new CallbackFilterIterator($it, 'unlink');",
+      "$a->uasort('system');",
+      "$db->createFunction('f', 'system');",
+      "assert_options(ASSERT_CALLBACK, 'passthru');",
+    ])
+      assert.ok(
+        (await php(body, "calls")).members.some((name) =>
+          ["unlink", "system", "passthru"].includes(name),
+        ),
+        body,
+      );
+    // `parent` in an anonymous class, `self` in a trait (the using class).
+    assert.deepEqual(
+      (
+        await php(
+          "class O extends \\B { function f() { return new class extends \\Other { function g() { parent::boot(); } }; } }",
+          "calls",
+        )
+      ).members,
+      ["Other::boot"],
+    );
+    assert.deepEqual(
+      (await php("trait T { function f() { self::purge(); } }", "calls"))
+        .members,
+      ["*.purge"],
+    );
+    // A static getter called on an instance of a subclass.
+    assert.deepEqual(
+      (
+        await php(
+          "class C extends \\Illuminate\\Support\\Env { function f() { return $this->get('DB_HOST'); } }",
+          "env",
+        )
+      ).members,
+      ["DB_HOST"],
+    );
+    // Env getters on objects the code names, and on objects it does not.
+    for (const [body, members, refused] of [
+      ["(new \\Illuminate\\Support\\Env)->get('A');", ["A"], false],
+      [
+        "class C extends \\Illuminate\\Support\\Env { function f() { return (new self)->get('B'); } }",
+        ["B"],
+        false,
+      ],
+      [
+        "class C extends \\Illuminate\\Support\\Env { function f() { return (new static)->get('B'); } }",
+        [],
+        true,
+      ],
+      ["trait T { function f() { return $this->get('C'); } }", [], true],
+      ["(new $cls)->get('D');", [], true],
+      ["$repo->get('E');", [], false],
+    ]) {
+      const result = await php(body, "env");
+      assert.deepEqual(
+        [result.members, result.lines.length > 0],
+        [members, refused],
+        body,
+      );
+    }
+    assert.deepEqual(
+      (
+        await php(
+          "function g() { try { x(); } catch (\\RuntimeException $e) { $copy = $e; throw $e; } }",
+          "thrown",
+        )
+      ).lines,
+      [2],
+    );
+    // What is still read exactly.
+    assert.deepEqual(
+      (
+        await php("$o = array_merge($defaults, ['acl' => 'b']);", "property", {
+          key: "acl",
+        })
+      ).members,
+      ["b"],
+    );
+    assert.deepEqual(
+      (
+        await php("define(value: 'v', constant_name: 'K');", "property", {
+          key: "K",
+        })
+      ).members,
+      ["v"],
+    );
+    assert.deepEqual(
+      (
+        await php("$x = ['k' => 'a' . null . true . false];", "property", {
+          key: "k",
+        })
+      ).members,
+      ["a1"],
+    );
+    assert.deepEqual(
+      (await php("$a = new static(); $b = new self();", "calls")).lines,
+      [],
+    );
+    assert.deepEqual(
+      (await php("include 'data://text/plain,x';", "imports")).lines,
+      [2],
+    );
+  });
+
   it("trusts a catch variable only while it holds the caught exception", async () => {
     for (const body of [
       "try { x(); } catch (\\RuntimeException $e) { $e = new \\LogicException('w'); throw $e; }",
@@ -1174,7 +1453,7 @@ describe("PHP constructs Kibi must not misread", () => {
       assert.deepEqual((await php(body, "thrown")).lines, [2], body);
     assert.deepEqual(
       await php(
-        "try { x(); } catch (\\Throwable $e) { report($e); Log::error($e->getMessage(), ['e' => $e]); if ($e instanceof \\X) {} throw $e; }",
+        "function g() { try { x(); } catch (\\Throwable $e) { report($e); Log::error($e->getMessage(), ['e' => $e]); if ($e instanceof \\X) {} throw $e; } }",
         "thrown",
       ),
       ok([]),
@@ -1456,7 +1735,8 @@ describe("C reference reader", () => {
     for (const [key, values] of [
       ["k", ["ab", "s"]],
       ["n", ["-3", "4"]],
-      ["c", ["'x'"]],
+      // A character constant is a number Kibi does not spell: refused.
+      ["c", []],
       ["v", ["NULL"]],
     ])
       assert.deepEqual(
@@ -1528,6 +1808,167 @@ describe("C constructs Kibi must not misread", () => {
   const c = (content, extract, options = {}) =>
     read("a.c", `${content}\n`, extract, options);
   const ok = (members) => ({ members, lines: [], rows: [] });
+
+  it("reads a macro's own name in its body as the function", async () => {
+    // `#define getenv(n) (log(n), getenv(n))` still reads the variable.
+    for (const [content, extract, options] of [
+      [
+        '#define getenv(n) (log_access(n), getenv(n))\nvoid f(void) { getenv("A"); }',
+        "env",
+      ],
+      ['#define getenv getenv\nvoid f(void) { getenv("A"); }', "env"],
+      [
+        '#define getenv(n) traced(n)\n#define traced(n) getenv(n)\nvoid f(void) { getenv("A"); }',
+        "env",
+      ],
+      [
+        '#define system(c) (audit(c), system(c))\nvoid f(void) { system("rm"); }',
+        "string_args",
+        { callee: "system" },
+      ],
+      [
+        '#define system system\nvoid f(void) { system("rm"); }',
+        "string_args",
+        { callee: "system" },
+      ],
+      // Through an object-like macro: the function itself, or a rescan.
+      [
+        "#define getenv(n) cfg(n)\n#define LOOKUP getenv\nvoid f(void) { reg(LOOKUP); }",
+        "env",
+      ],
+    ])
+      assert.deepEqual(
+        (await c(content, extract, options)).lines.length > 0,
+        true,
+        content,
+      );
+    const calls = await c(
+      '#define system(c) (audit(c), system(c))\nvoid f(void) { system("rm"); }',
+      "calls",
+    );
+    assert.ok(calls.members.includes("system"));
+    const paren = await c(
+      '#define system(c) safe(c)\n#define RUN (system)\nvoid f(void) { RUN("rm"); }',
+      "calls",
+    );
+    assert.ok(paren.members.includes("system"));
+    const rescan = await c(
+      '#define getenv(n) cfg(n)\n#define LOOKUP getenv\nvoid f(void) { LOOKUP("A"); }',
+      "calls",
+    );
+    assert.ok(rescan.members.includes("cfg"));
+  });
+
+  it("refuses aliases, pragmas and environment entry points", async () => {
+    for (const [content, extract] of [
+      [
+        '#define log_line(m) system(m)\n_Pragma("push_macro(\\"log_line\\")")\nvoid f(void) { log_line("x"); }',
+        "calls",
+      ],
+      [
+        '#pragma redefine_extname cfg getenv\nvoid f(void) { cfg("A"); }',
+        "env",
+      ],
+      [
+        'static int run(const char*) __attribute__((weakref("system")));\nvoid f(void) { run("x"); }',
+        "calls",
+      ],
+      [
+        "#define MAIN_ARGS int c, char **v, char **e\nint main(MAIN_ARGS) { return 0; }",
+        "env",
+      ],
+      ["int wmain(int c, wchar_t **v, wchar_t **e) { return 0; }", "env"],
+      ['void f(void) { fopen("/proc/self/environ", "r"); }', "env"],
+      ['void f(void) { SDL_getenv("A"); }', "env"],
+      ['int go(run) int (*run)(const char *); { return run("x"); }', "calls"],
+      ["void f(int n) { n * run(cmd); }", "calls"],
+      ["void f(void) { int n; sys\\\ntem(n); }", "calls"],
+      ['// C:\\old\\ \nvoid f(void) { system("x"); }', "calls"],
+      ['// what??/\nvoid f(void) { system("x"); }', "calls"],
+    ]) {
+      const result = await raw("a.c", `${content}\n`, extract);
+      assert.ok(
+        result.status === "failed" ||
+          result.unresolved.some((row) => !HOST_ROW.test(row.text)),
+        content,
+      );
+    }
+    assert.deepEqual(
+      (
+        await c(
+          'void f(void) { uv_os_getenv("A", b, &n); apr_env_get(&v, "B", p); }',
+          "env",
+        )
+      ).members,
+      ["A", "B"],
+    );
+    assert.deepEqual(
+      (await c('void f(void) { _Pragma("once"); }', "calls")).members,
+      [],
+    );
+    const generic = await c(
+      "void f(void) { on(_Generic(0, int: system, default: puts)); }",
+      "calls",
+    );
+    assert.deepEqual(generic.members, ["on", "puts", "system"]);
+    assert.deepEqual(
+      (await c('#define run$x system\nvoid f(void) { run$x("y"); }', "calls"))
+        .members,
+      ["run$x", "system"],
+    );
+  });
+
+  it("lists a function called through a pointer to its name", async () => {
+    const pointer = await c('void f(void) { (*system)("x"); }', "calls");
+    assert.ok(pointer.members.includes("system"));
+    assert.deepEqual(pointer.lines, [1]);
+  });
+
+  it("reads numbers by value and refuses overridden fields", async () => {
+    const value = async (text) =>
+      c(`struct s v = { .n = ${text} };`, "property", { key: "n" });
+    for (const [text, members] of [
+      ["0x1F90", ["8080"]],
+      ["017", ["15"]],
+      ["0b101", ["5"]],
+      ["30u", ["30"]],
+      ["10ULL", ["10"]],
+      ["1'000", ["1000"]],
+      ["1.50", ["1.5"]],
+      ["2.0f", ["2"]],
+      ["-0x10", ["-16"]],
+      ["-0", ["0"]],
+      ["- 0", ["0"]],
+    ])
+      assert.deepEqual((await value(text)).members, members, text);
+    for (const text of [
+      "'x'",
+      "0x1p3",
+      "0.1f",
+      "0.0000001",
+      "1e300",
+      "123456789012345678.5",
+    ])
+      assert.deepEqual((await value(text)).lines, [1], text);
+    for (const body of [
+      "{ .t.n = 1, .t = { .m = 5 } }",
+      "{ .n = 1, n: 0 }",
+      "{ .t = { .n = 1 }, .t.n = 0 }",
+    ])
+      assert.deepEqual(
+        (await c(`struct s v = ${body};`, "property", { key: "n" })).lines,
+        [1],
+        body,
+      );
+    assert.deepEqual(
+      (
+        await c("struct s v = { .a.n = 1, .b.n = 2 };", "property", {
+          key: "n",
+        })
+      ).members,
+      ["1", "2"],
+    );
+  });
 
   it("refuses what macros may decide", async () => {
     for (const [content, extract] of [
@@ -1709,8 +2150,9 @@ describe("C constructs Kibi must not misread", () => {
         )
       ).lines.includes(4),
     );
+    // `(system)(...)` calls the function, never a function-like macro.
     const paren = await c('void f(void) { (system)("x"); }', "calls");
-    assert.deepEqual([paren.members, paren.lines], [["system"], [1]]);
+    assert.deepEqual([paren.members, paren.lines], [["system"], []]);
     assert.deepEqual(
       (await c("char *f(char *(*cb)(void)) { return cb(); }", "calls")).lines,
       [1],
@@ -1837,6 +2279,65 @@ describe("reader edge cases", () => {
 describe("Terraform and HCL values Kibi must not misread", () => {
   const property = (content, key = "acl", path = "main.tf") =>
     read(path, content, "property", { key });
+
+  it("reads strings, numbers and heredocs as Terraform holds them", async () => {
+    for (const [content, key, members] of [
+      ['locals {\n  d = " "\n}', "d", [" "]],
+      ['locals {\n  acl = "private "\n}', "acl", ["private "]],
+      ['locals {\n  x = { " acl " = "public-read" }\n}', "acl", []],
+      ["locals {\n  m = 0.0000001\n}", "m", ["0.0000001"]],
+      ["locals {\n  m = -0.0000001\n}", "m", ["-0.0000001"]],
+      ["locals {\n  m = 1.0e21\n}", "m", ["1000000000000000000000"]],
+      ["locals {\n  m = 1.5e-7\n}", "m", ["0.00000015"]],
+      ["locals {\n  m = 0.000\n}", "m", ["0"]],
+      ['locals {\n  x = { 007 = "bond" }\n}', "7", ["bond"]],
+      ["locals {\n  p = <<END-OF-POLICY\nhi\nEND-OF-POLICY\n}", "p", ["hi\n"]],
+      ["locals {\r\n  p = <<EOT\r\nline\r\nEOT\r\n}", "p", ["line\r\n"]],
+      ['locals {\n  x = merge(var.t, { acl = "b" })\n}', "acl", ["b"]],
+      [
+        'resource "x" "y" {\n  for_each = { for k in ["acl"] : k => "public-read" }\n}',
+        "acl",
+        [],
+      ],
+    ])
+      assert.deepEqual(
+        (await property(`${content}\n`, key)).members,
+        members,
+        content,
+      );
+  });
+
+  it("reads bool and number object keys", async () => {
+    assert.deepEqual(
+      (await property('locals {\n  x = { true = "t" }\n}\n', "true")).members,
+      ["t"],
+    );
+    assert.deepEqual(
+      (await property('locals {\n  x = { 1.50 = "n" }\n}\n', "1.5")).members,
+      ["n"],
+    );
+  });
+
+  it("refuses keys set twice, overridable merges and misread heredocs", async () => {
+    for (const content of [
+      'locals {\n  cfg = { acl = "private", acl = "public-read" }\n}',
+      'locals {\n  cfg = { acl = "private", "a\\u0063l" = "public-read" }\n}',
+      'locals {\n  x = merge({ acl = "a" }, { acl = "b" })\n}',
+      'locals {\n  x = merge({ acl = "a" }, var.t)\n}',
+      'locals {\n  p = <<EOT\nhello\nEOT\u00a0\n}\nresource "a" "b" {\n  acl = "public-read"\n}\nlocals {\n  q = <<EOT\nEOT\n}',
+      'variable "b" {\n  type = object({\n    s = optional(object({ acl = string }), { acl = var.x })\n  })\n}',
+      'locals {\n  for_each = { for k in ["acl"] : k => "public-read" }\n}',
+    ])
+      assert.ok((await property(`${content}\n`)).lines.length > 0, content);
+    assert.deepEqual(
+      (
+        await property(
+          'variable "b" {\n  type = object({\n    s = optional(object({ acl = string }), { acl = "public-read" })\n  })\n}\n',
+        )
+      ).members,
+      ["public-read"],
+    );
+  });
 
   it("reads a top-level type attribute as a value", async () => {
     assert.deepEqual(

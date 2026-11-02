@@ -40,7 +40,8 @@ function codeLines(content: string): string[] {
           stop = content.length;
           break;
         }
-        if (!/\\\r?$/.test(content.slice(index, stop))) break;
+        // gcc and clang also splice a backslash followed by blanks.
+        if (!/\\[ \t\f\v]*\r?$/.test(content.slice(index, stop))) break;
         stop += 1;
       }
       out += content.slice(index, stop).replace(/[^\n]/g, " ");
@@ -125,6 +126,9 @@ function isBlank(line: string | undefined): boolean {
 
 // implements REQ-kibi-tree-sitter-language-packs
 export function blankHeaderIdioms(content: string): string {
+  // A trigraph (`??/` splices lines in strict modes) means the build mode
+  // decides how the file lexes: nothing is blanked.
+  if (/\?\?[=/'()!<>-]/.test(content)) return content;
   const code = codeLines(content);
   const lines = content.split("\n");
   const used = code

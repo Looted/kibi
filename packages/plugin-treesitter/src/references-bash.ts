@@ -31,8 +31,8 @@ const SHELL_VARIABLES = new Set([
   "BASH",
   "BASHPID",
   "BASH_COMMAND",
-  "BASH_EXECUTION_STRING",
   "BASH_LINENO",
+  "BASH_REMATCH",
   "BASH_SOURCE",
   "BASH_SUBSHELL",
   "BASH_VERSINFO",
@@ -47,10 +47,10 @@ const SHELL_VARIABLES = new Set([
   "LINENO",
   "OPTERR",
   "OPTIND",
+  "PIPESTATUS",
   "PPID",
   "PWD",
   "RANDOM",
-  "SECONDS",
   "SHELLOPTS",
   "SRANDOM",
   "UID",
@@ -66,7 +66,9 @@ const MAYBE_SHELL_VARIABLES = new Set([
   "BASH_ARGC",
   "BASH_ARGV",
   "BASH_CMDS",
+  "BASH_EXECUTION_STRING",
   "OLDPWD",
+  "SECONDS",
   "SHLVL",
 ]);
 
@@ -98,6 +100,13 @@ const SHELLS = new Set([
   "ash",
   "mksh",
   "yash",
+  "rbash",
+  "ksh93",
+  "pdksh",
+  "posh",
+  "fish",
+  "csh",
+  "tcsh",
 ]);
 
 /** Shell options that take an argument (`-o pipefail`, `-O extglob`). */
@@ -159,6 +168,8 @@ const WRAPPERS: ReadonlyMap<string, Wrapper> = new Map<string, Wrapper>([
         "--command-timeout",
         "--close-from",
         "--host",
+        "-R",
+        "--chroot",
       ),
       flags: set(
         "-A",
@@ -171,7 +182,6 @@ const WRAPPERS: ReadonlyMap<string, Wrapper> = new Map<string, Wrapper>([
         "-k",
         "-B",
         "-N",
-        "-R",
         "--askpass",
         "--background",
         "--preserve-env",
@@ -378,7 +388,6 @@ const WRAPPERS: ReadonlyMap<string, Wrapper> = new Map<string, Wrapper>([
         "-t",
         "-T",
         "-v",
-        "-V",
         "-w",
         "-x",
         "-y",
@@ -389,6 +398,7 @@ const WRAPPERS: ReadonlyMap<string, Wrapper> = new Map<string, Wrapper>([
         "-yy",
         "-qq",
       ),
+      noCommand: set("-V", "--version", "-h", "--help"),
     },
   ],
   [
@@ -407,19 +417,19 @@ const WRAPPERS: ReadonlyMap<string, Wrapper> = new Map<string, Wrapper>([
         "-x",
         "-F",
         "-A",
+        "-w",
+        "-D",
       ),
       flags: set(
         "-c",
         "-C",
         "-d",
-        "-D",
         "-f",
         "-i",
         "-r",
         "-S",
         "-t",
         "-T",
-        "-w",
         "-b",
         "-tt",
         "-ttt",
@@ -485,6 +495,25 @@ const RUNNERS = new Set([
   "tini",
   "dumb-init",
 ]);
+
+/** Commands that print the whole environment when a runner starts them. */
+const ENV_DUMPERS = new Set([
+  "env",
+  "printenv",
+  "set",
+  "export",
+  "declare",
+  "typeset",
+  "compgen",
+  "ps",
+]);
+
+/**
+ * Text another language reads the environment through: awk's `ENVIRON`,
+ * jq's `env` and `$ENV`, Perl's `%ENV`, Python's `os.environ`.
+ */
+const FOREIGN_ENV =
+  /\bENVIRON\b|\$ENV\b|%ENV\b|\$ENV\{|\benviron\b|\bgetenv\b|process\.env\b|\benv\.[A-Za-z_]|\benv\[/;
 
 /** Commands that set variables: through `command` or `builtin` they still do. */
 const DECLARATIONS = new Set([
@@ -561,14 +590,32 @@ function args(node: Node): Node[] {
   // more destinations of it, but only the first is the redirect's.
   const statement = node.parent;
   if (statement?.type !== "redirected_statement") return list;
-  for (const redirect of statement.childrenForFieldName("redirect")) {
-    if (redirect === null) continue;
+  const redirects = statement
+    .childrenForFieldName("redirect")
+    .filter((child): child is Node => child !== null);
+  for (const redirect of redirects) {
     const destinations = redirect
       .childrenForFieldName("destination")
       .filter((child): child is Node => child !== null);
     list.push(...destinations.slice(1));
+    // `sudo <<EOF rm -rf x`: the words after a here-document start are the
+    // command's.
+    if (redirect.type === "heredoc_redirect")
+      list.push(
+        ...redirect
+          .childrenForFieldName("argument")
+          .filter((child): child is Node => child !== null),
+      );
   }
-  return list.sort((a, b) => a.startIndex - b.startIndex);
+  // `curl {fd}>/tmp/x URL`: `{fd}` names the redirect's descriptor.
+  const words = list.filter(
+    (word) =>
+      !(
+        /^\{[A-Za-z_]\w*\}$/.test(word.text) &&
+        redirects.some((redirect) => redirect.startIndex === word.endIndex)
+      ),
+  );
+  return words.sort((a, b) => a.startIndex - b.startIndex);
 }
 
 /** The parameter an expansion reads: its name, or null for a special one. */
@@ -803,8 +850,27 @@ export function bashReferences(
   const unresolved: UnresolvedRow[] = [];
   const env = extract === "env";
   const code = extract === "calls" || extract === "string_args" || env;
+  /**
+   * Names a function declares `local`: `unset NAME` in another function
+   * removes the caller's local, and the caller then reads the environment's.
+   */
+  const localNames = new Set<string>();
+  for (const match of root.text.matchAll(/\blocal\b([^\n;&|]*)/g))
+    for (const word of (match[1] as string).matchAll(
+      /(?:^|\s)([A-Za-z_]\w*)(?==|\s|$)/g,
+    ))
+      localNames.add(word[1] as string);
+  /**
+   * Whether a variable may hold a command that reads or sets variables or
+   * loads code (`s=source; $s ./lib.sh`, `c=printenv; $c`).
+   */
+  const variableCommands =
+    /(?:^|[\s;&|(])[A-Za-z_]\w*=(['"]?)(?:\S*\/)?(?:source|\.|eval|printenv|env|set|export|declare|typeset|read|mapfile|readarray|compgen|bash|sh|zsh|dash|ksh)\1(?=[\s;&|)]|$)/m.test(
+      root.text,
+    );
   const bindings = new Map<string, Binding[]>();
   const assoc = new Set<string>();
+  const indexedToo = new Set<string>();
   const integers = new Set<string>();
   const bind = (
     name: string,
@@ -874,6 +940,9 @@ export function bashReferences(
                 : null;
           if (name === null) continue;
           if (flags.includes("A")) assoc.add(name);
+          // Declared without -A elsewhere (a local indexed array, a scalar):
+          // which declaration a subscript meets is the run's.
+          else indexedToo.add(name);
           if (flags.includes("i")) integers.add(name);
           // `local X` gives the function an empty X of its own; outside a
           // function `local` fails.
@@ -970,6 +1039,18 @@ export function bashReferences(
       current = current.parent
     ) {
       if (current.type === "function_definition") break;
+      // `read -r line || [[ -n $line ]]`: read sets its names even when it
+      // fails at the end of its input.
+      if (current.type === "list") {
+        const first = named(current)[0];
+        if (
+          first?.type === "command" &&
+          first.endIndex <= read.startIndex &&
+          wordValue(field(first, "name")) === "read" &&
+          (commandBinds("read", args(first)) ?? []).includes(name)
+        )
+          return true;
+      }
       if (current.type === "do_group") {
         const loop = current.parent;
         if (
@@ -980,7 +1061,13 @@ export function bashReferences(
           return true;
         if (loop?.type === "while_statement") {
           const condition = field(loop, "condition");
-          const command = condition?.type === "command" ? condition : null;
+          const command =
+            condition?.type === "command"
+              ? condition
+              : condition?.type === "list" &&
+                  named(condition)[0]?.type === "command"
+                ? (named(condition)[0] as Node)
+                : null;
           if (
             command !== null &&
             wordValue(field(command, "name")) === "read" &&
@@ -1188,6 +1275,8 @@ export function bashReferences(
    */
   const tilde = (node: Node): void => {
     if (!node.text.includes("~")) return;
+    for (let current = node.parent; current !== null; current = current.parent)
+      if (current.type === "string") return;
     const parent = node.parent;
     const concat = parent?.type === "concatenation" ? parent : null;
     const first = concat === null || concat.child(0)?.id === node.id;
@@ -1262,14 +1351,33 @@ export function bashReferences(
     list: Node[],
     words: (string | null)[],
   ): boolean => {
-    if (env && commandBinds(name, list) === null) {
+    const bound = commandBinds(name, list);
+    if (env && bound === null) {
       // `read "$name"`: a variable named at run time is set.
+      refuse(node);
+      return true;
+    }
+    const printfTarget =
+      name === "printf" ? words[words.indexOf("-v") + 1] : undefined;
+    if (
+      env &&
+      (bound?.some((target) => /\[(?!\d+\])/.test(target)) ||
+        (words.includes("-v") &&
+          typeof printfTarget === "string" &&
+          /\[(?!\d+\])/.test(printfTarget)))
+    ) {
+      // `read 'a[IDX]'`: the index is arithmetic on IDX.
       refuse(node);
       return true;
     }
     if (env) {
       if (name === "printenv") {
-        if (list.length === 0 || words.includes(null)) refuse(node);
+        if (
+          list.length === 0 ||
+          words.includes(null) ||
+          words.every((word) => (word as string).startsWith("-"))
+        )
+          refuse(node);
         else
           for (const word of words)
             if (!(word as string).startsWith("-")) members.push(word as string);
@@ -1291,6 +1399,25 @@ export function bashReferences(
       )
         refuse(node);
       else if (name === "set" && list.length === 0) refuse(node);
+      // A local that copies or uncovers the caller's value.
+      else if (
+        name === "shopt" &&
+        words.some(
+          (word) => word === null || /^localvar_(?:inherit|unset)$/.test(word),
+        )
+      )
+        refuse(node);
+      // BSD `ps e` (`ps eww`, `ps aux e`) prints each process's environment.
+      else if (
+        posix.basename(name) === "ps" &&
+        words.some(
+          (word) => word === null || /^[A-Za-z]*e[A-Za-z]*$/.test(word),
+        )
+      )
+        refuse(node);
+      // A program handed code that reads the environment (`awk ENVIRON`).
+      else if (words.some((word) => word !== null && FOREIGN_ENV.test(word)))
+        refuse(node);
       else if (name === "let") {
         // `let` evaluates its words as arithmetic text Kibi does not parse.
         refuse(node);
@@ -1298,7 +1425,7 @@ export function bashReferences(
       } else if (name === "cd") {
         // A bare `cd` goes to $HOME, `cd -` to $OLDPWD.
         const operands = words.filter(
-          (word) => word === null || !/^-[LPe@]+$/.test(word),
+          (word) => word === null || !/^(?:-[LPe@]+|--)$/.test(word),
         );
         if (operands.length === 0) read("HOME", node, node);
         else if (operands[0] === "-") read("OLDPWD", node, node);
@@ -1324,8 +1451,23 @@ export function bashReferences(
       const operands = words[0] === "--" ? list.slice(1) : list;
       const path = sourcedPath(operands[0], file);
       if (extract === "imports") {
-        if (path === null) refuse(node);
-        else members.push(path);
+        const fromZero =
+          operands[0] !== undefined &&
+          wordValue(operands[0]) === null &&
+          /\$\{?0\b/.test(operands[0].text);
+        if (path === null || (fromZero && /\bBASH_ARGV0=/.test(root.text)))
+          refuse(node);
+        else {
+          members.push(path);
+          // `$0` is the script bash runs: in a file another script sources,
+          // it names that script's folder. The host drops the row when no
+          // project file sources this one.
+          if (fromZero)
+            unresolved.push({
+              line: node.startPosition.row + 1,
+              text: `${posix.basename(file)} may be sourced by another script, whose folder $0 names: ${at(node).text}`,
+            });
+        }
         return true;
       }
       // The sourced file may read or set any variable.
@@ -1352,7 +1494,8 @@ export function bashReferences(
             (word) =>
               word === null ||
               SHELLS.has(posix.basename(word)) ||
-              CODE_COMMANDS.has(posix.basename(word)),
+              CODE_COMMANDS.has(posix.basename(word)) ||
+              ENV_DUMPERS.has(posix.basename(word)),
           ))
       )
         return true;
@@ -1469,7 +1612,11 @@ export function bashReferences(
           }
           if (word === "--") continue;
           if (/^[-+]/.test(word)) continue;
-          script = true;
+          // `bash /dev/stdin <<EOF` reads the script from its input.
+          script =
+            !/^(?:\/dev\/(?:stdin|fd\/\d+|tty)|\/proc\/\S*\/fd\/\d+)$/.test(
+              word,
+            );
           break;
         }
         if (!script) refuse(node);
@@ -1482,7 +1629,9 @@ export function bashReferences(
           if (word === null) {
             // `"$dir"` is one word; it could be `-exec` only with a command
             // and its `;` after it. An unquoted expansion may be several words.
-            const quoted = rest[index]?.type === "string";
+            const quoted =
+              rest[index]?.type === "string" &&
+              !/\$\{?[@*]|\[[@*]\]/.test(rest[index]?.text ?? "");
             if (
               quoted &&
               !restWords
@@ -1518,20 +1667,33 @@ export function bashReferences(
         }
         return;
       }
-      if (
-        base === "ip" &&
-        restWords[0] === "netns" &&
-        restWords[1] === "exec"
-      ) {
-        const target = restWords[3];
-        if (target === null || target === undefined) {
+      if (base === "ip") {
+        // `ip [-all] netns exec [NAME] CMD`: options may come first.
+        let at = 0;
+        while (restWords[at]?.startsWith("-") === true) at += 1;
+        if (restWords[at] === "netns" && restWords[at + 1] === "exec") {
+          const all = restWords
+            .slice(0, at)
+            .some((word) => /^-a(?:ll?)?$/.test(word as string));
+          const position = at + (all ? 2 : 3);
+          const target = restWords[position];
+          if (
+            target === null ||
+            target === undefined ||
+            restWords.slice(0, position).includes(null)
+          ) {
+            refuse(node);
+            return;
+          }
+          name = target;
+          rest = rest.slice(position + 1);
+          restWords = restWords.slice(position + 1);
+          continue;
+        }
+        if (restWords.slice(0, at + 2).includes(null)) {
           refuse(node);
           return;
         }
-        name = target;
-        rest = rest.slice(4);
-        restWords = restWords.slice(4);
-        continue;
       }
       const wrapper = WRAPPERS.get(base);
       if (wrapper === undefined) return;
@@ -1539,41 +1701,47 @@ export function bashReferences(
       let index = 0;
       let operands = wrapper.operands ?? 0;
       let next: string | null = null;
+      // `env -0` prints the environment.
+      const stops = (): void => {
+        if (env && base === "env") refuse(node);
+      };
+      // After `--` no word is an option; operands (`timeout -- 5 rm`) and
+      // assignments (`env -- X=1 rm`) still come before the command.
+      let optionsDone = false;
       for (; index < rest.length; index += 1) {
         const word = restWords[index];
         if (word === null || word === undefined) {
           refuse(node);
           return;
         }
-        if (word === "--") {
-          index += 1;
-          next = restWords[index] ?? null;
-          if (index < rest.length && next === null) {
-            refuse(node);
-            return;
-          }
-          break;
+        if (word === "--" && !optionsDone) {
+          optionsDone = true;
+          continue;
         }
         const option =
           word.includes("=") && word.startsWith("--")
             ? word.slice(0, word.indexOf("="))
             : word;
-        if (wrapper.noCommand?.has(option)) return;
-        if (wrapper.code?.has(option)) {
+        if (!optionsDone && wrapper.noCommand?.has(option)) {
+          stops();
+          return;
+        }
+        if (!optionsDone && wrapper.code?.has(option)) {
           refuse(node);
           return;
         }
-        if (word.startsWith("-") && word.length > 1) {
+        if (!optionsDone && word.startsWith("-") && word.length > 1) {
           if (wrapper.args.has(word)) index += 1;
-          else if (wrapper.args.has(option)) {
-            // --name=value
-          } else if (wrapper.flags.has(word)) {
-            // flag
+          else if (wrapper.args.has(option) || wrapper.flags.has(option)) {
+            // A flag, or --name=value
           } else if (wrapper.numericFlags === true && /^-\d+$/.test(word)) {
             // nice -10
           } else {
             const kind = cluster(wrapper, word);
-            if (kind === "noCommand") return;
+            if (kind === "noCommand") {
+              stops();
+              return;
+            }
             if (kind === "argument") index += 1;
             else if (kind === "flags" || kind === "attached") {
               // -nE, or -ofoo: an option with its argument attached
@@ -1625,7 +1793,8 @@ export function bashReferences(
     const list = args(node);
     const name = wordValue(nameNode);
     if (name === null) {
-      if (extract !== "imports" && extract !== "env") refuse(node);
+      if ((extract !== "imports" && extract !== "env") || variableCommands)
+        refuse(node);
       return;
     }
     chain(
@@ -1671,6 +1840,20 @@ export function bashReferences(
         )
           refuse(node);
         break;
+      case "heredoc_end": {
+        // bash ends a here-document only on a line that is exactly the
+        // delimiter; the grammar also accepts one with trailing blanks.
+        const line = root.text.split("\n")[node.startPosition.row] ?? "";
+        if (code && /[ \t]+\r?$/.test(line)) refuse(node);
+        break;
+      }
+      case "command_substitution":
+        // An escaped backtick inside backticks starts a nested substitution.
+        if (code && node.text.startsWith("`") && /\\`/.test(node.text)) {
+          refuse(node);
+          return;
+        }
+        break;
       case "heredoc_body": {
         // Any quoted character in the delimiter (`'EOF'`, `E\OF`) leaves the
         // body as text.
@@ -1682,11 +1865,20 @@ export function bashReferences(
         if (quotedDelimiter) return;
         if (code)
           for (const part of named(node))
-            if (part.type === "heredoc_content" && /`|\$\(/.test(part.text))
+            if (
+              part.type === "heredoc_content" &&
+              /`|\$\(|\$\[/.test(part.text)
+            )
               refuse(part);
         break;
       }
       case "command":
+        // `r\` + newline + `m -rf`: a line splice inside a word joins it, which
+        // the grammar does not do.
+        if (code && /[^\s\\;&|]\\\r?\n[^\s]/.test(node.text)) {
+          refuse(node);
+          return;
+        }
         command(node);
         break;
       case "array": {
@@ -1714,6 +1906,12 @@ export function bashReferences(
           const child = children[index] as Node;
           const next = children[index + 1];
           if (child.type === "word" && /^-/.test(child.text)) continue;
+          if (child.type === "variable_name" && localNames.has(child.text)) {
+            // A caller's local of that name is removed, uncovering the
+            // environment's value.
+            refuse(child);
+            continue;
+          }
           if (child.type === "variable_name") {
             if (
               next?.type === "concatenation" &&
@@ -1759,7 +1957,8 @@ export function bashReferences(
         const children = named(node).filter(
           (child) => !(child.type === "word" && /^[-+]/.test(child.text)),
         );
-        if (flags.includes("n")) refuse(node);
+        // `-n` makes a name reference; `local -I` copies the caller's value.
+        if (flags.includes("n") || flags.includes("I")) refuse(node);
         else if (
           children.length === 0 &&
           !flags.includes("f") &&
@@ -1797,6 +1996,22 @@ export function bashReferences(
         break;
       }
       case "variable_assignment": {
+        // `BASH_ALIASES[c]='rm -rf x'` defines an alias, `BASH_CMDS[c]=/bin/rm`
+        // a command path, and `PS4='$(...)'` code that `set -x` runs.
+        {
+          const assigned =
+            field(node, "name")?.type === "subscript"
+              ? (field(field(node, "name") as Node, "name")?.text ?? "")
+              : (field(node, "name")?.text ?? "");
+          if (
+            code &&
+            (assigned === "BASH_ALIASES" ||
+              assigned === "BASH_CMDS" ||
+              (/^(?:PS[0-4]|PROMPT_COMMAND)$/.test(assigned) &&
+                /\$\(|`/.test(node.text)))
+          )
+            refuse(node);
+        }
         if (!env || node.parent?.type === "declaration_command") break;
         const target = field(node, "name");
         const name =
@@ -1824,6 +2039,27 @@ export function bashReferences(
         break;
       }
       case "expansion": {
+        // `${x@P}` expands the value as a prompt, running `$(...)` in it.
+        if (code && /@P\}$/.test(node.text)) {
+          refuse(node);
+          return;
+        }
+        // `${s:1+OFF:2}`: an offset or length Kibi does not parse as arithmetic.
+        if (
+          env &&
+          /^\$\{[^}:]*:(?![-=?+])/.test(node.text) &&
+          named(node)
+            .slice(1)
+            .some(
+              (child) =>
+                child.type !== "variable_name" &&
+                child.type !== "number" &&
+                /[A-Za-z_]/.test(child.text),
+            )
+        ) {
+          refuse(node);
+          return;
+        }
         if (node.text.startsWith("${!")) {
           const first = named(node)[0];
           const keys =
@@ -1840,7 +2076,15 @@ export function bashReferences(
         if (first?.type === "subscript") {
           const index = field(first, "index");
           if (index !== null && !/^[@*]$/.test(index.text)) {
-            if (target !== null && assoc.has(target.name)) visit(index);
+            if (
+              env &&
+              target !== null &&
+              assoc.has(target.name) &&
+              indexedToo.has(target.name) &&
+              /[A-Za-z_]/.test(index.text)
+            )
+              refuse(node);
+            else if (target !== null && assoc.has(target.name)) visit(index);
             else arithmeticNames(index, node);
           }
         }

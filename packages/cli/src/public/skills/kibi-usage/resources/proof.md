@@ -320,7 +320,10 @@ left:
   Bash no `property`. A Bash variable the script expands but never sets is
   an environment read, and one it sets only on some paths is refused. A
   Terraform `override.tf`, `*_override.tf` or `.tofu` file in the folder
-  refuses an HCL read, so a value claim there cannot be proved.
+  refuses an HCL read, so a value claim there cannot be proved. C
+  `property` reads only initializers (a later `cfg.field = v` is not
+  seen), and Bash does not read code handed to another interpreter
+  (`python -c`, `awk`): model such claims over the code that holds them.
   Never drop a file the claim is about
   from `files`: the read decides a claim only for the files it covers,
   and a proof is rejected when a symbol the test covers or that

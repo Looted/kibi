@@ -70,8 +70,10 @@ const GO_CALL_ROW = /^(\w+) may be a function of another file of the package: /;
 const PHP_ROW = /^(\w+) may be a function of namespace ([\w\\]+): /;
 const PHP_ENV_ROW = / may be Illuminate\\Support\\Env or a class that extends it: /;
 /** PHP sources: included files are often not named .php. */
-const PHP_EXTENSIONS = [".php", ".inc", ".phtml", ".module"];
+// Extensions PHP code is commonly run from (Drupal's module files too).
+const PHP_EXTENSIONS = [".php", ".php3", ".php4", ".php5", ".php7", ".php8", ".phtml", ".phtm", ".inc", ".module", ".install", ".theme", ".engine", ".profile"];
 const C_INCLUDE_ROW = /^(.+?) may define macros or function pointers this file uses: /;
+const BASH_ZERO_ROW = /^(.+?) may be sourced by another script, whose folder \$0 names: /;
 
 /** Space, or a comment, between PHP tokens. */
 const PHP_GAP = String.raw`(?:\s|/\*[\s\S]*?\*/|(?://|#(?!\[))[^\n]*(?:\n|$))*`;
@@ -99,20 +101,81 @@ function cPreprocessed(text: string): string {
     );
 }
 
-const C_KEYWORDS = new Set(["defined", "sizeof", "int", "char", "long", "short", "unsigned", "signed", "void", "const", "volatile", "struct", "union", "enum", "float", "double"]);
+const C_KEYWORDS = new Set(["defined", "sizeof", "int", "char", "long", "short", "unsigned", "signed", "void", "const", "volatile", "struct", "union", "enum", "float", "double", "do", "while", "if", "else", "for", "return", "typeof", "_Bool", "bool", "_Static_assert", "static_assert", "_Alignof", "alignof", "inline", "static", "extern", "register", "restrict"]);
+
+/** What a header may do that no macro name shows: alias a symbol, restore a macro, lex by build mode. */
+const C_HEADER_OPAQUE = /\b(?:__asm__|__asm|asm|weakref|alias|ifunc|redefine_extname|push_macro|pop_macro|_Pragma|__pragma)\b|\?\?[=/'()!<>-]/;
+
+const C_DEFINE = /^[ \t\f\v]*(?:#|%:|\?\?=)[ \t\f\v]*define[ \t]+([A-Za-z_$][\w$]*)(\([^)]*\))?(.*)$/gm;
+
+interface CMacro {
+  readonly name: string;
+  readonly parameters: readonly string[];
+  readonly body: string;
+}
+
+/** Every macro a C text defines. */
+function cDefines(text: string): CMacro[] {
+  return [...cPreprocessed(text).matchAll(C_DEFINE)].map((match) => ({
+    name: match[1] as string,
+    parameters: (match[2] ?? "").replace(/[()\s.]/g, "").split(","),
+    body: (match[3] ?? "").replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g, ""),
+  }));
+}
+
+/** Project macro definitions by name; "*" when the sources could not be listed. */
+type MacroIndex = ReadonlyMap<string, readonly CMacro[]>;
+
+const upperName = (name: string): boolean => /^[A-Z_][A-Z0-9_]*$/.test(name);
 
 /**
- * The names a header gives the file that includes it: macros whose body
- * names something (a macro of numbers or strings renames nothing) and
- * function pointers, with those of the headers it includes. Null when one of
- * them cannot be read: a quoted header missing next to its includer (it may
- * come from an include path Kibi does not know), or an include Kibi cannot
- * follow. A header in `<...>` is the project's when the project has a file
- * at that path, and the system's (not read) otherwise.
+ * Whether a macro cannot change what a name of the including file means:
+ * an upper-case name whose body names only its parameters, keywords,
+ * compiler builtins, arrays it indexes (`table[i]`, never called) and
+ * upper-case names that are harmless project macros or no project macro
+ * (a system constant such as `INFINITY`).
+ */
+function harmlessMacro(macro: CMacro, index: MacroIndex, seen: Set<string> = new Set()): boolean {
+  if (!upperName(macro.name) || index.has("*")) return false;
+  if (seen.has(macro.name)) return true;
+  seen.add(macro.name);
+  const indexed = !/\]\s*\(/.test(macro.body);
+  for (const word of macro.body.matchAll(/[A-Za-z_$][\w$]*/g)) {
+    const name = word[0];
+    if (macro.parameters.includes(name) || C_KEYWORDS.has(name)) continue;
+    if (/^__(?:builtin_\w+|attribute__|typeof__|extension__|inline__|restrict__)$/.test(name)) continue;
+    const defined = index.get(name);
+    if (upperName(name)) {
+      if (defined === undefined) continue;
+      if (defined.every((inner) => harmlessMacro(inner, index, seen))) continue;
+      return false;
+    }
+    const after = macro.body.slice((word.index ?? 0) + name.length);
+    if (indexed && defined === undefined && /^\s*\[/.test(after)) continue;
+    return false;
+  }
+  return true;
+}
+
+/**
+ * The names a header gives the file that includes it, with those of the
+ * headers it includes: macros that may change what a name of the file
+ * means, names it `#undef`s, and function pointers (declared directly,
+ * through a typedef or through a macro). A macro is harmless only when its
+ * name is upper case (a lower-case one may replace a function such as
+ * `getenv`) and its body names nothing but its parameters, keywords,
+ * compiler builtins and upper-case names no project file defines (a system
+ * constant such as `INFINITY`). Null when the header cannot be read: a
+ * quoted header missing next to its includer (it may come from an include
+ * path Kibi does not know), an include Kibi cannot follow, an asm label,
+ * alias attribute or macro push in it, or a trigraph. A header in `<...>`
+ * is the project's when the project has a file at that path, and the
+ * system's (not read) otherwise.
  */
 function headerMacros(
   header: string,
   findProjectHeader: (spelled: string) => string[],
+  macroIndex: () => MacroIndex,
   seen: Set<string> = new Set(),
 ): string[] | null {
   if (seen.has(header)) return [];
@@ -123,17 +186,29 @@ function headerMacros(
   } catch {
     return null;
   }
+  if (C_HEADER_OPAQUE.test(text)) return null;
   const names: string[] = [];
-  for (const match of text.matchAll(/^[ \t]*(?:#|%:|\?\?=)[ \t]*define[ \t]+([A-Za-z_]\w*)(\([^)]*\))?(.*)$/gm)) {
-    const parameters = (match[2] ?? "").replace(/[()\s.]/g, "").split(",");
-    const body = (match[3] ?? "").replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g, "");
-    const words = [...body.matchAll(/[A-Za-z_]\w*/g)].map((word) => word[0]);
-    if (words.some((word) => !parameters.includes(word) && !C_KEYWORDS.has(word) && !/^\d/.test(word)))
-      names.push(match[1] as string);
+  const pointerMacros: string[] = [];
+  for (const macro of cDefines(text)) {
+    const { name, parameters, body } = macro;
+    if (!harmlessMacro(macro, macroIndex())) names.push(name);
+    // `#define DECLARE_HOOK(name) extern int (*name)(const char *)`.
+    if (parameters.some((parameter) => parameter !== "" && new RegExp(`\\(\\s*\\*\\s*${parameter.replace(/\$/g, "\\$")}\\s*\\)`).test(body)))
+      pointerMacros.push(name);
   }
+  for (const match of text.matchAll(/^[ \t\f\v]*(?:#|%:)[ \t]*undef[ \t]+([A-Za-z_$][\w$]*)/gm)) names.push(match[1] as string);
   // Function pointers: `int (*run_hook)(const char *)`.
-  for (const match of text.matchAll(/\(\s*\*\s*(?:const\s+)?([A-Za-z_]\w*)\s*\)\s*\(/g)) names.push(match[1] as string);
-  for (const match of text.matchAll(/^[ \t]*(?:#|%:|\?\?=)[ \t]*(?:include|include_next|import)\b[ \t]*(.*)$/gm)) {
+  for (const match of text.matchAll(/\(\s*\*\s*(?:const\s+)?([A-Za-z_$][\w$]*)\s*\)\s*\(/g)) names.push(match[1] as string);
+  // Through a typedef: `typedef int (*runner_t)(const char *); extern runner_t run_hook;`.
+  for (const match of text.matchAll(/\btypedef\b[^;]*?\(\s*\*\s*([A-Za-z_$][\w$]*)\s*\)\s*\(/g)) {
+    const type = match[1] as string;
+    for (const use of text.matchAll(new RegExp(`\\b${type.replace(/\$/g, "\\$")}\\s*(?:const\\s+)?\\**\\s*(?:const\\s+)?([A-Za-z_$][\\w$]*)`, "g")))
+      names.push(use[1] as string);
+  }
+  for (const macro of pointerMacros)
+    for (const use of text.matchAll(new RegExp(`\\b${macro.replace(/\$/g, "\\$")}\\s*\\(\\s*([A-Za-z_$][\\w$]*)`, "g")))
+      names.push(use[1] as string);
+  for (const match of text.matchAll(/^[ \t\f\v]*(?:#|%:)[ \t]*(?:include|include_next|import)\b[ \t]*(.*)$/gm)) {
     const spelled = (match[1] as string).trim();
     const quoted = /^"([^"]+)"/.exec(spelled)?.[1];
     const angled = /^<([^>]+)>/.exec(spelled)?.[1];
@@ -143,7 +218,7 @@ function headerMacros(
         ? [path.join(path.dirname(header), quoted)]
         : findProjectHeader(angled as string);
     for (const target of targets) {
-      const inner = headerMacros(target, findProjectHeader, seen);
+      const inner = headerMacros(target, findProjectHeader, macroIndex, seen);
       if (inner === null) return null;
       names.push(...inner);
     }
@@ -410,6 +485,7 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
   const sources = new Map<string, string[] | null>();
   // The project's C headers, for `#include <...>` of one of them.
   let headerPaths: string[] | undefined;
+  let projectMacros: Map<string, CMacro[]> | undefined;
   const read = (key: string, list: () => string[]): string[] | null => {
     if (!sources.has(key)) {
       try {
@@ -501,11 +577,29 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
         const texts = read("php", () => sourceFiles(workspaceRoot, PHP_EXTENSIONS, ["vendor"]));
         return texts === null || texts.some((text) => phpDeclares(text, php[1] as string, php[2] as string));
       }
+      const zero = BASH_ZERO_ROW.exec(row.text);
+      if (zero !== null) {
+        // `$0` names this file's folder only when no project script sources it.
+        const scripts = read("shell", () =>
+          sourceFiles(workspaceRoot, "").filter(
+            (candidate) =>
+              /\.(?:sh|bash|zsh|ksh|bats)$/i.test(candidate) || !path.basename(candidate).includes("."),
+          ),
+        );
+        const name = (zero[1] as string).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const sources = new RegExp(`(?:^|[\\s;&|(])(?:source|\\.)\\s+[^\\n;&|]*${name}`, "m");
+        return scripts === null || scripts.some((text) => sources.test(text));
+      }
       if (PHP_ENV_ROW.test(row.text)) {
         // A class can extend Laravel's environment class only where the
         // project names it.
-        const texts = read("php", () => sourceFiles(workspaceRoot, PHP_EXTENSIONS, ["vendor"]));
-        return texts === null || texts.some((text) => /Illuminate\s*\\+\s*Support\s*\\+\s*Env\b/i.test(text));
+        // A package under vendor/ may extend it too, and a group use names it
+        // as `Illuminate\Support\{Env, Str}`.
+        const texts = read("php+vendor", () => sourceFiles(workspaceRoot, PHP_EXTENSIONS));
+        return (
+          texts === null ||
+          texts.some((text) => /Illuminate\s*\\+\s*Support\s*\\+\s*(?:Env\b|\{[^}]*\bEnv\b)/i.test(text))
+        );
       }
       const include = C_INCLUDE_ROW.exec(row.text);
       if (include !== null) {
@@ -514,10 +608,11 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
         const line = own?.split("\n")[row.line - 1] ?? "";
         const spelled = /(?:#|%:)\s*(?:include|include_next|import)\s*(?:"([^"]+)"|<([^>]+)>)/.exec(line);
         if (own === undefined || spelled === null) return true;
+        // An angle include may name a project file of any extension (`<shims.inl>`).
         const findProjectHeader = (header: string): string[] => {
           if (headerPaths === undefined) {
             try {
-              headerPaths = sourceFiles(workspaceRoot, [".h", ".hh", ".hpp", ".hxx", ".inc", ".def"]);
+              headerPaths = sourceFiles(workspaceRoot, "");
             } catch {
               headerPaths = [];
             }
@@ -525,11 +620,22 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
           const suffix = `${path.sep}${path.normalize(header)}`;
           return headerPaths.filter((candidate) => candidate.endsWith(suffix));
         };
+        // The macros any C or header file of the project defines.
+        const macroIndex = (): MacroIndex => {
+          if (projectMacros === undefined) {
+            const texts = read("c-sources", () => sourceFiles(workspaceRoot, [".c", ".h", ".hh", ".hpp", ".hxx", ".inc", ".inl", ".def", ".ipp", ".tcc"]));
+            const index = new Map<string, CMacro[]>();
+            for (const macro of (texts ?? []).flatMap(cDefines)) index.set(macro.name, [...(index.get(macro.name) ?? []), macro]);
+            if (texts === null) index.set("*", []);
+            projectMacros = index;
+          }
+          return projectMacros;
+        };
         const targets =
           spelled[1] !== undefined ? [path.join(directory, spelled[1])] : findProjectHeader(spelled[2] as string);
         const code = cPreprocessed(own);
         for (const target of targets) {
-          const macros = headerMacros(target, findProjectHeader);
+          const macros = headerMacros(target, findProjectHeader, macroIndex);
           if (macros === null || macros.some((name) => new RegExp(`\\b${name}\\b`).test(code))) return true;
         }
         return false;

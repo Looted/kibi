@@ -1121,7 +1121,9 @@ async function readPluginReferences(
     try {
       names = readdirSync(path.join(workspaceRoot, folder));
     } catch {
-      names = [];
+      // A folder Kibi cannot list may hold overrides.
+      unresolved.push({ file, line: 1, text: `${folder} cannot be listed for override files` });
+      continue;
     }
     for (const name of names) {
       const override = folder === "." ? name : `${folder}/${name}`;

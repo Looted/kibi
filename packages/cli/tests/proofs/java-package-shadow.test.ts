@@ -558,6 +558,50 @@ describe("rows about a name another file of the project may bind", () => {
       }),
     ).toBe(true);
     expect(uses("#include <stdio.h>\n")).toBe(false);
+    // Typedef'd and macro-declared function pointers.
+    expect(
+      uses(
+        "typedef int (*runner_t)(const char *);\nextern runner_t log_line;\n",
+      ),
+    ).toBe(true);
+    expect(
+      uses(
+        "#define HOOK(name) extern int (*name)(const char *)\nHOOK(log_line);\n",
+      ),
+    ).toBe(true);
+    // Symbol aliases, macro pushes and trigraphs are not read.
+    expect(uses('extern int run(const char *) __asm__("system");\n')).toBe(
+      true,
+    );
+    expect(
+      uses('int run(const char *) __attribute__((weakref("system")));\n'),
+    ).toBe(true);
+    expect(uses('_Pragma("push_macro(\\"X\\")")\n')).toBe(true);
+    expect(uses("??=define X 1\n")).toBe(true);
+    // A header that ends a macro of the file, and a form feed before `#`.
+    expect(uses("#undef log_line\n")).toBe(true);
+    expect(uses("\f#define log_line(m) system(m)\n")).toBe(true);
+    // A lower-case macro may replace a function or a value, whatever its body.
+    expect(uses("#define log_line(m) (m)\n")).toBe(true);
+    // Upper-case helpers of builtins and system constants rename nothing.
+    expect(uses("#define LIMIT(x) __builtin_expect(!!(x), 1)\n")).toBe(false);
+    expect(uses("#define LIMIT INFINITY\n")).toBe(false);
+    // Arrays a macro indexes are data, and harmless project constants chain.
+    expect(
+      uses(
+        "#define LIMIT(a, b) (table[idx[(unsigned char)(b)]][(unsigned char)(a)])\n",
+      ),
+    ).toBe(false);
+    expect(uses("#define LIMIT(i) (hooks[i](0))\n")).toBe(true);
+    expect(
+      uses("#define LIMIT COLOR\n", { "src/other.h": "#define COLOR 33\n" }),
+    ).toBe(false);
+    // ... unless a project file defines that constant.
+    expect(
+      uses("#define LIMIT RUNNER\n", {
+        "src/other.h": "#define RUNNER system\n",
+      }),
+    ).toBe(true);
     // `<...>` in the file itself reaches a project header too.
     const angled = {
       line: 1,
@@ -570,6 +614,16 @@ describe("rows about a name another file of the project may bind", () => {
     expect(createShadowRowFilter(root)("src/b.c", [angled])).toEqual([angled]);
     fs.writeFileSync(path.join(root, "inc/shims.h"), "#define OTHER 1\n");
     expect(createShadowRowFilter(root)("src/b.c", [angled])).toEqual([]);
+    // A project header of any extension.
+    const inl = {
+      line: 1,
+      text: "shims.inl may define macros or function pointers this file uses: #include <shims.inl>",
+    };
+    const other = project({
+      "src/c.c": '#include <shims.inl>\nvoid f(void) { log_line("x"); }\n',
+      "inc/shims.inl": "#define log_line(m) system(m)\n",
+    });
+    expect(createShadowRowFilter(other)("src/c.c", [inl])).toEqual([inl]);
   });
 
   it("keeps a Laravel Env row only when the project names the class", () => {
@@ -588,6 +642,52 @@ describe("rows about a name another file of the project may bind", () => {
       "<?php\nuse Illuminate\\Support\\Env;\nclass Cache extends Env {}\n",
     );
     expect(createShadowRowFilter(root)("src/a.php", [row])).toEqual([row]);
+    // A group use, and a package under vendor/.
+    for (const [file, text] of [
+      [
+        "src/b.php",
+        "<?php\nuse Illuminate\\Support\\{Env, Str};\nclass Cache extends Env {}\n",
+      ],
+      [
+        "vendor/pkg/Cache.php",
+        "<?php\nclass Cache extends \\Illuminate\\Support\\Env {}\n",
+      ],
+    ] as const) {
+      const other = project({
+        "src/a.php": "<?php\nCache::get('k');\n",
+        [file]: text,
+      });
+      expect(createShadowRowFilter(other)("src/a.php", [row])).toEqual([row]);
+    }
+  });
+
+  it("reads PHP files of every extension PHP runs for the namespace scan", () => {
+    const row = {
+      line: 3,
+      text: "getenv may be a function of namespace App: getenv('X')",
+    };
+    const root = project({
+      "src/a.php": "<?php\nnamespace App;\ngetenv('X');\n",
+      "lib/shim.php5": "<?php\nnamespace App;\nfunction getenv($n) {}\n",
+    });
+    expect(createShadowRowFilter(root)("src/a.php", [row])).toEqual([row]);
+  });
+
+  it("keeps a Bash $0 row only when a project script sources the file", () => {
+    const row = {
+      line: 1,
+      text: 'run.sh may be sourced by another script, whose folder $0 names: source "$(dirname "$0")/lib.sh"',
+    };
+    const root = project({
+      "bin/run.sh": 'source "$(dirname "$0")/lib.sh"\n',
+      "bin/main": "#!/bin/bash\necho hi\n",
+    });
+    expect(createShadowRowFilter(root)("bin/run.sh", [row])).toEqual([]);
+    fs.writeFileSync(
+      path.join(root, "bin/main"),
+      '#!/bin/bash\n. "$DIR/run.sh"\n',
+    );
+    expect(createShadowRowFilter(root)("bin/run.sh", [row])).toEqual([row]);
   });
 
   it("finds a PHP function declared in an included file with comments in it", () => {
