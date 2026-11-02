@@ -1993,6 +1993,7 @@ describe("Bash reader edge cases", () => {
       ["curl a\\*b*", "string_args", [], [1], curl],
       ["f() { local X=a; echo $(( X )); }", "calls", ["echo"], [1]],
       ["sudo -nl rm", "calls", ["sudo"]],
+      ["sudo -nl rm x", "calls", ["sudo"]],
       ["ip netns exec ns curl x", "string_args", ["x"], [], curl],
       [':          \necho "a\nb"', "env", []],
       ["unset -$x", "env", [], [1]],

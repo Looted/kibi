@@ -1643,17 +1643,17 @@ export function bashReferences(
     return false;
   };
 
-  /** A wrapper's short options clustered in one word (`sudo -nE`), or null. */
-  const cluster = (
-    wrapper: Wrapper,
-    word: string,
-  ): number | "noCommand" | null => {
+  /**
+   * A wrapper's short options clustered in one word (`sudo -nE`): how many
+   * more words they take, -1 when they run no command, or null.
+   */
+  const cluster = (wrapper: Wrapper, word: string): number | null => {
     const letters = word.slice(1);
     // `--name`, `-o=x`: only letters and digits cluster.
     if (!/^[A-Za-z0-9]*$/.test(letters)) return null;
     for (let index = 0; index < letters.length; index += 1) {
       const option = `-${letters[index]}`;
-      if (wrapper.noCommand?.has(option)) return "noCommand";
+      if (wrapper.noCommand?.has(option)) return -1;
       // The last option takes the next word, an earlier one the rest of this.
       if (wrapper.args.has(option)) return index === letters.length - 1 ? 1 : 0;
       if (!wrapper.flags.has(option)) return null;
@@ -1859,7 +1859,7 @@ export function bashReferences(
             // nice -10
           } else {
             const kind = cluster(wrapper, word);
-            if (kind === "noCommand") {
+            if (kind === -1) {
               stops();
               return;
             }
