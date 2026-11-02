@@ -22,6 +22,8 @@ import {
   signoffReminder,
 } from "kibi-agent-core/decision-guard";
 import {
+  type HookTrace,
+  appendHookUsage,
   appendHookUsageRows,
   editTraces,
   finishHookTelemetry,
@@ -36,6 +38,7 @@ import {
 } from "kibi-agent-core/knowledge-index";
 import {
   canonicalizeWorkspacePath,
+  classifyPath,
   extractEditedPaths,
 } from "kibi-agent-core/path-policy";
 import { requirementCandidatesForPath } from "kibi-agent-core/requirement-candidates";
@@ -55,6 +58,7 @@ import {
   clearDirtyPaths,
   loadHookState,
   recordKbMcpTool,
+  resolvePluginDataDir,
   resolveWorkspaceStateDir,
 } from "./hook-state.js";
 import { extractKbMcpToolCall } from "./kb-mcp-tools.js";
@@ -62,6 +66,7 @@ import {
   DIRECT_KB_EDIT_WARNING,
   freshnessReminder,
   impactCheckReminder,
+  postEditImpactNote,
 } from "./messages.js";
 import {
   isDirectKbPath,
@@ -103,6 +108,11 @@ export type HookResult = {
     | {
         /** UserPromptSubmit only: developer context added to the prompt. */
         hookEventName: "UserPromptSubmit";
+        additionalContext: string;
+      }
+    | {
+        /** PostToolUse only: developer context added after the tool result. */
+        hookEventName: "PostToolUse";
         additionalContext: string;
       };
 };
@@ -164,6 +174,7 @@ function preEditContext(
   stateDir: string | undefined,
   input: ReturnType<typeof parseHookInput>,
   env: NodeJS.ProcessEnv,
+  trace: HookTrace = {},
 ): string | undefined {
   const targets = editTargets(workspaceRoot, input);
   // rationale: with no targets every later step yields nothing, so this
@@ -171,6 +182,13 @@ function preEditContext(
   // Stryker disable next-line ConditionalExpression
   if (targets.length === 0) return undefined;
   const index = loadKnowledgeIndex(workspaceRoot, stateDir);
+  const first = targets[0];
+  if (first) {
+    trace.pathKind = classifyPath(first.relative);
+    trace.requirementIds = implementedRequirementIds(
+      index.files[first.relative] ?? [],
+    );
+  }
   const summarize = createEntitySummarizer(workspaceRoot);
   const session: DecisionSession = { stateDir, sessionId: input.sessionId };
   const words = requestWords(session);
@@ -330,13 +348,52 @@ function recordToolTelemetry(
   );
 }
 
+/**
+ * Codex shows `systemMessage` only to the person. A Stop reminder for the
+ * agent continues the turn once with it as `reason`; while a Stop hook already
+ * continued the turn it goes to the person instead.
+ */
+function stopReminder(
+  reason: string,
+  stopHookActive: boolean | undefined,
+): HookResult {
+  return stopHookActive
+    ? { continue: true, systemMessage: reason }
+    : { continue: true, decision: "block", reason };
+}
+
+/**
+ * The impact check to run after an edit of source files, once per file per
+ * session, as context next to the tool result.
+ */
+function postEditContext(
+  stateDir: string | undefined,
+  sessionId: string | undefined,
+  sourcePaths: readonly string[],
+): HookResult | undefined {
+  const fresh = sourcePaths.filter((sourcePath) =>
+    claimSnippetSlot(
+      stateDir,
+      `${sessionId ?? ""}\u0000post-edit\u0000${sourcePath}`,
+    ),
+  );
+  if (fresh.length === 0) return undefined;
+  return {
+    continue: true,
+    hookSpecificOutput: {
+      hookEventName: "PostToolUse",
+      additionalContext: postEditImpactNote(fresh),
+    },
+  };
+}
+
 export async function runHook(
   rawInput: unknown,
   environment: HookEnvironment = {},
 ): Promise<HookResult> {
   const startedAt = new Date();
   const input = parseHookInput(rawInput);
-  const pluginData = environment.pluginData ?? process.env.PLUGIN_DATA;
+  const env = environment.env ?? process.env;
 
   // Workspaces that never adopted Kibi must stay silent: no reminders, no
   // tracking, and no state writes. The resolution is shared by every event so
@@ -345,17 +402,16 @@ export async function runHook(
   if (!workspace.optedIn) {
     return defaultResult();
   }
-  const stateDir = resolveWorkspaceStateDir(pluginData, workspace.root);
+  const stateDir = resolveWorkspaceStateDir(
+    resolvePluginDataDir(environment.pluginData, env),
+    workspace.root,
+  );
+  const trace: HookTrace = {};
 
   try {
     switch (input.event) {
-      // rationale: the default case below returns the same defaultResult, so
-      // this case is behaviorally redundant.
-      // Stryker disable next-line ConditionalExpression, StringLiteral
       case "SessionStart":
-        // rationale: same redundancy as above; the default case already
-        // returns defaultResult.
-        // Stryker disable next-line StringLiteral
+        trace.action = "session_start";
         return defaultResult();
 
       // implements REQ-agent-hosts-decision-guard
@@ -366,6 +422,8 @@ export async function runHook(
           // Stryker disable next-line StringLiteral
           input.prompt ?? "",
         );
+        trace.action =
+          rule === undefined ? "prompt_silent" : "prompt_rule_note";
         if (rule === undefined) return defaultResult();
         return {
           continue: true,
@@ -401,22 +459,22 @@ export async function runHook(
           isEditLikeTool(input.toolName) && explicitPaths.some(isDirectKbPath);
 
         if (hasDirectKbEdit) {
+          trace.action = "kb_direct_note";
+          trace.pathKind = "kb";
           return { continue: true, systemMessage: DIRECT_KB_EDIT_WARNING };
         }
 
         let context: string | undefined;
         try {
           context = isKnownEditTool(input.toolName)
-            ? preEditContext(
-                workspace.root,
-                stateDir,
-                input,
-                environment.env ?? process.env,
-              )
+            ? preEditContext(workspace.root, stateDir, input, env, trace)
             : undefined;
         } catch {
           // Requirement context is advisory; an unreadable manifest or file
           // leaves the edit without it rather than reporting a hook error.
+        }
+        if (isKnownEditTool(input.toolName) && trace.pathKind !== undefined) {
+          trace.action = context ? "edit_snippet" : "edit_silent";
         }
         if (context) {
           return {
@@ -483,6 +541,14 @@ export async function runHook(
           }
         }
 
+        if (isKnownEditTool(input.toolName)) {
+          const note = postEditContext(
+            stateDir,
+            input.sessionId,
+            dirtyPaths.filter(isSourceImpactRelevantPath),
+          );
+          if (note) return note;
+        }
         return defaultResult();
       }
 
@@ -505,6 +571,7 @@ export async function runHook(
               : []),
           ].join("\n");
           clearDirtyPaths(stateDir);
+          trace.action = "stop_capture_reminder";
           return { continue: true, decision: "block", reason };
         }
         // implements REQ-kibi-signoff-views
@@ -514,6 +581,7 @@ export async function runHook(
           !input.stopHookActive &&
           claimSignoffReminder(session, workspace.root)
         ) {
+          trace.action = "stop_signoff_reminder";
           return {
             continue: true,
             decision: "block",
@@ -522,10 +590,11 @@ export async function runHook(
         }
         if (uncheckedSourcePaths.length > 0) {
           clearDirtyPaths(stateDir);
-          return {
-            continue: true,
-            systemMessage: impactCheckReminder(uncheckedSourcePaths),
-          };
+          trace.action = "stop_reminder";
+          return stopReminder(
+            impactCheckReminder(uncheckedSourcePaths),
+            input.stopHookActive,
+          );
         }
 
         const freshnessPaths = state.dirtyPaths.filter(
@@ -534,10 +603,11 @@ export async function runHook(
 
         if (freshnessPaths.length > 0) {
           clearDirtyPaths(stateDir);
-          return {
-            continue: true,
-            systemMessage: freshnessReminder(freshnessPaths),
-          };
+          trace.action = "stop_freshness_reminder";
+          return stopReminder(
+            freshnessReminder(freshnessPaths),
+            input.stopHookActive,
+          );
         }
 
         // rationale: reaching this line with dirty paths implies every path is
@@ -555,13 +625,26 @@ export async function runHook(
         return defaultResult();
     }
   } finally {
+    appendHookUsage(
+      {
+        host: "codex",
+        packageVersion: packageVersion(),
+        workspaceRoot: workspace.root,
+        event: input.event,
+        sessionId: input.sessionId,
+        hostTool: input.toolName,
+        trace,
+        startedAt,
+      },
+      env,
+    );
     await finishHookTelemetry(
       {
         event: input.event,
         workspaceRoot: workspace.root,
         sessionId: input.sessionId,
       },
-      environment.env ?? process.env,
+      env,
     );
   }
 }

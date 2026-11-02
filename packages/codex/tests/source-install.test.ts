@@ -163,9 +163,9 @@ async function exercisePlugin(
       cwd: workspaceRoot,
     }),
   );
-  expect(stop.continue).toBe(true);
-  expect(stop.systemMessage).toContain("Kibi freshness reminder");
-  expect(stop.systemMessage).toContain("docs/codex.md");
+  expect(stop).toMatchObject({ continue: true, decision: "block" });
+  expect(stop.reason).toContain("Kibi freshness reminder");
+  expect(stop.reason).toContain("docs/codex.md");
 }
 
 describe("Codex source and packed-install hook artifact", () => {

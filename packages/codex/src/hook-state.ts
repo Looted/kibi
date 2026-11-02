@@ -1,12 +1,30 @@
 // implements REQ-codex-kibi-plugin-v1
 import { createHash, randomUUID } from "node:crypto";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
 const stateFileName = "hook-state.json";
 const journalFileName = "hook-state.events.jsonl";
 const maxDirtyPaths = 50;
 const workspaceStateRoot = "workspaces";
+
+/**
+ * The plugin data directory: the one the host names (`PLUGIN_DATA`, or its
+ * `CLAUDE_PLUGIN_DATA` alias), else a per-user temp directory, so edits seen
+ * by one hook run still reach the Stop reminder when no directory is named.
+ */
+export function resolvePluginDataDir(
+  explicit: string | undefined,
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  return (
+    explicit ||
+    env.PLUGIN_DATA?.trim() ||
+    env.CLAUDE_PLUGIN_DATA?.trim() ||
+    path.join(os.tmpdir(), `kibi-codex-${process.getuid?.() ?? "user"}`)
+  );
+}
 
 /**
  * Hook state lives under a per-workspace directory keyed by the resolved Kibi

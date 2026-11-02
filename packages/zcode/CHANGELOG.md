@@ -53,6 +53,7 @@
 
 ### Patch Changes
 
+- Hook reminders now reach the agent. Hook state falls back to a temp directory when `ZCODE_PLUGIN_DATA` and `CLAUDE_PLUGIN_DATA` are unset, where hooks used to answer only `{"continue":true}`, PostToolUse adds a once-per-file impact-review note after an edit, and Stop stays quiet while `stop_hook_active` is set. Each hook decision is now recorded in usage telemetry (`KIBI_TELEMETRY=0` turns it off), and the MCP launcher says on stderr when it falls back to a global `kibi-mcp`.
 - f9ec786: Usage telemetry events now carry a `channel`: `release` for an installed Kibi package, `source` when Kibi runs from a checkout of its own repository, or the value of `KIBI_TELEMETRY_CHANNEL` when a harness sets one (for example `agent-test`). Development and test runs can then be filtered out of real usage. Nothing else about what is sent changes.
 
 ## 0.11.1

@@ -1148,11 +1148,9 @@ describe("Codex hook runner decisions", () => {
     });
 
     const result = await runHook({ event: "Stop", cwd }, { pluginData });
-    expect(result.continue).toBe(true);
-    expect(result.systemMessage?.startsWith("Kibi freshness reminder:")).toBe(
-      true,
-    );
-    expect(result.systemMessage).toContain("- docs/b.md");
+    expect(result).toMatchObject({ continue: true, decision: "block" });
+    expect(result.reason?.startsWith("Kibi freshness reminder:")).toBe(true);
+    expect(result.reason).toContain("- docs/b.md");
     expect(loadHookState(stateDir).dirtyPaths).toEqual([]);
 
     const unchecked = createTempRoot("kibi-codex-cwd2-");
@@ -1166,9 +1164,7 @@ describe("Codex hook runner decisions", () => {
       { event: "Stop", cwd: unchecked },
       { pluginData: uncheckedData },
     );
-    expect(
-      impactResult.systemMessage?.startsWith("Kibi impact reminder:"),
-    ).toBe(true);
+    expect(impactResult.reason?.startsWith("Kibi impact reminder:")).toBe(true);
     expect(loadHookState(uncheckedDir).dirtyPaths).toEqual([]);
   });
 

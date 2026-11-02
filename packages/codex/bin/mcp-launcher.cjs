@@ -258,6 +258,14 @@ function probeKibiMcp(options = {}) {
   });
 }
 
+/** Whether `npx --no-install kibi-mcp` would run the workspace's own install. */
+function hasProjectLocalBin(workspaceRoot) {
+  const bin = path.join(workspaceRoot, "node_modules", ".bin");
+  return ["kibi-mcp", "kibi-mcp.cmd"].some((name) =>
+    fs.existsSync(path.join(bin, name)),
+  );
+}
+
 /**
  * Proxy the real kibi-mcp: stdio passes through untouched and the launcher
  * mirrors the child's exit state. Codex signals the whole process group, so
@@ -273,6 +281,11 @@ function proxyKibiMcp(options = {}) {
     stdout = process.stdout,
     stderr = process.stderr,
   } = options;
+  if (!hasProjectLocalBin(workspaceRoot)) {
+    stderr.write(
+      `[kibi-codex] No project-local kibi-mcp in ${workspaceRoot}; npx runs the global install. Install kibi-mcp in the project to pin its version.\n`,
+    );
+  }
   // KIBI_MCP_HOST only identifies the host on usage rows. It never enables
   // telemetry; KIBI_DIAGNOSTIC_MODE stays the operator's explicit opt-in and
   // is passed through untouched.

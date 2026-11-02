@@ -2378,11 +2378,15 @@ function parseStdinJson(rawInput) {
 // src/hook-state.ts
 import { createHash as createHash5, randomUUID as randomUUID4 } from "node:crypto";
 import fs7 from "node:fs";
+import os2 from "node:os";
 import path8 from "node:path";
 var stateFileName = "hook-state.json";
 var journalFileName = "hook-state.events.jsonl";
 var maxDirtyPaths = 50;
 var workspaceStateRoot = "workspaces";
+function resolvePluginDataDir(explicit, env = process.env) {
+  return explicit || env.PLUGIN_DATA?.trim() || env.CLAUDE_PLUGIN_DATA?.trim() || path8.join(os2.tmpdir(), `kibi-codex-${process.getuid?.() ?? "user"}`);
+}
 function resolveWorkspaceStateDir(pluginData, workspaceRoot) {
   if (!pluginData) {
     return;
@@ -2598,6 +2602,14 @@ function freshnessReminder(dirtyPaths) {
   ].join(`
 `);
 }
+function postEditImpactNote(sourcePaths) {
+  const sourceFiles = JSON.stringify(sourcePaths.slice(0, 10));
+  return [
+    `Kibi impact review: run kb_check({sourceFiles:${sourceFiles}, includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) while this edit is fresh.`,
+    "Check whether the linked requirements, scenarios and tests still cover the changed behavior."
+  ].join(`
+`);
+}
 function impactCheckReminder(sourcePaths) {
   const preview = sourcePaths.slice(0, 10);
   const sourceFiles = JSON.stringify(preview);
@@ -2685,11 +2697,16 @@ function editTargets(workspaceRoot, input) {
     absolute: target.absolute
   }));
 }
-function preEditContext(workspaceRoot, stateDir, input, env) {
+function preEditContext(workspaceRoot, stateDir, input, env, trace = {}) {
   const targets = editTargets(workspaceRoot, input);
   if (targets.length === 0)
     return;
   const index = loadKnowledgeIndex(workspaceRoot, stateDir);
+  const first = targets[0];
+  if (first) {
+    trace.pathKind = classifyPath(first.relative);
+    trace.requirementIds = implementedRequirementIds(index.files[first.relative] ?? []);
+  }
   const summarize = createEntitySummarizer(workspaceRoot);
   const session = { stateDir, sessionId: input.sessionId };
   const words = requestWords(session);
@@ -2763,21 +2780,39 @@ function recordToolTelemetry(workspaceRoot, stateDir, input, startedAt, env) {
     startedAt
   }, traces, env);
 }
+function stopReminder(reason, stopHookActive) {
+  return stopHookActive ? { continue: true, systemMessage: reason } : { continue: true, decision: "block", reason };
+}
+function postEditContext(stateDir, sessionId, sourcePaths) {
+  const fresh = sourcePaths.filter((sourcePath) => claimSnippetSlot(stateDir, `${sessionId ?? ""}\x00post-edit\x00${sourcePath}`));
+  if (fresh.length === 0)
+    return;
+  return {
+    continue: true,
+    hookSpecificOutput: {
+      hookEventName: "PostToolUse",
+      additionalContext: postEditImpactNote(fresh)
+    }
+  };
+}
 async function runHook(rawInput, environment = {}) {
   const startedAt = new Date;
   const input = parseHookInput(rawInput);
-  const pluginData = environment.pluginData ?? process.env.PLUGIN_DATA;
+  const env = environment.env ?? process.env;
   const workspace = resolveKibiWorkspace(input.cwd ?? process.cwd());
   if (!workspace.optedIn) {
     return defaultResult();
   }
-  const stateDir = resolveWorkspaceStateDir(pluginData, workspace.root);
+  const stateDir = resolveWorkspaceStateDir(resolvePluginDataDir(environment.pluginData, env), workspace.root);
+  const trace = {};
   try {
     switch (input.event) {
       case "SessionStart":
+        trace.action = "session_start";
         return defaultResult();
       case "UserPromptSubmit": {
         const rule = recordRequest({ stateDir, sessionId: input.sessionId }, input.prompt ?? "");
+        trace.action = rule === undefined ? "prompt_silent" : "prompt_rule_note";
         if (rule === undefined)
           return defaultResult();
         return {
@@ -2803,12 +2838,17 @@ async function runHook(rawInput, environment = {}) {
         const explicitPaths = extractEditedPaths(input.toolInput);
         const hasDirectKbEdit = isEditLikeTool(input.toolName) && explicitPaths.some(isDirectKbPath);
         if (hasDirectKbEdit) {
+          trace.action = "kb_direct_note";
+          trace.pathKind = "kb";
           return { continue: true, systemMessage: DIRECT_KB_EDIT_WARNING };
         }
         let context;
         try {
-          context = isKnownEditTool(input.toolName) ? preEditContext(workspace.root, stateDir, input, environment.env ?? process.env) : undefined;
+          context = isKnownEditTool(input.toolName) ? preEditContext(workspace.root, stateDir, input, env, trace) : undefined;
         } catch {}
+        if (isKnownEditTool(input.toolName) && trace.pathKind !== undefined) {
+          trace.action = context ? "edit_snippet" : "edit_silent";
+        }
         if (context) {
           return {
             continue: true,
@@ -2845,6 +2885,11 @@ async function runHook(rawInput, environment = {}) {
             markDecisionFlag(session, "requirement-recorded");
           }
         }
+        if (isKnownEditTool(input.toolName)) {
+          const note = postEditContext(stateDir, input.sessionId, dirtyPaths.filter(isSourceImpactRelevantPath2));
+          if (note)
+            return note;
+        }
         return defaultResult();
       }
       case "Stop": {
@@ -2858,9 +2903,11 @@ async function runHook(rawInput, environment = {}) {
           ].join(`
 `);
           clearDirtyPaths(stateDir);
+          trace.action = "stop_capture_reminder";
           return { continue: true, decision: "block", reason };
         }
         if (!input.stopHookActive && claimSignoffReminder(session, workspace.root)) {
+          trace.action = "stop_signoff_reminder";
           return {
             continue: true,
             decision: "block",
@@ -2869,18 +2916,14 @@ async function runHook(rawInput, environment = {}) {
         }
         if (uncheckedSourcePaths.length > 0) {
           clearDirtyPaths(stateDir);
-          return {
-            continue: true,
-            systemMessage: impactCheckReminder(uncheckedSourcePaths)
-          };
+          trace.action = "stop_reminder";
+          return stopReminder(impactCheckReminder(uncheckedSourcePaths), input.stopHookActive);
         }
         const freshnessPaths = state.dirtyPaths.filter((dirtyPath) => !isSourceImpactRelevantPath2(dirtyPath));
         if (freshnessPaths.length > 0) {
           clearDirtyPaths(stateDir);
-          return {
-            continue: true,
-            systemMessage: freshnessReminder(freshnessPaths)
-          };
+          trace.action = "stop_freshness_reminder";
+          return stopReminder(freshnessReminder(freshnessPaths), input.stopHookActive);
         }
         if (state.dirtyPaths.length > 0 || state.kbCheckRun) {
           clearDirtyPaths(stateDir);
@@ -2891,11 +2934,21 @@ async function runHook(rawInput, environment = {}) {
         return defaultResult();
     }
   } finally {
+    appendHookUsage({
+      host: "codex",
+      packageVersion: packageVersion(),
+      workspaceRoot: workspace.root,
+      event: input.event,
+      sessionId: input.sessionId,
+      hostTool: input.toolName,
+      trace,
+      startedAt
+    }, env);
     await finishHookTelemetry({
       event: input.event,
       workspaceRoot: workspace.root,
       sessionId: input.sessionId
-    }, environment.env ?? process.env);
+    }, env);
   }
 }
 async function main() {

@@ -11,7 +11,11 @@ import {
   workspaceSessionHash,
 } from "kibi-agent-core/usage-telemetry";
 import { type HookResult, runHook } from "../src/hook-runner";
-import { loadHookState } from "../src/hook-state";
+import {
+  loadHookState,
+  resolvePluginDataDir,
+  resolveWorkspaceStateDir,
+} from "../src/hook-state";
 import { impactCheckReminder } from "../src/messages";
 
 function createTempRoot(prefix: string): string {
@@ -222,8 +226,9 @@ describe("Codex hook runner workspace opt-in", () => {
       { event: "Stop", cwd: workspaceA },
       { pluginData },
     );
-    expect(stopA.systemMessage).toContain("docs/a.md");
-    expect(stopA.systemMessage).not.toContain("docs/b.md");
+    expect(stopA.decision).toBe("block");
+    expect(stopA.reason).toContain("docs/a.md");
+    expect(stopA.reason).not.toContain("docs/b.md");
   });
 
   test("invocation from a subdirectory maps to the repository workspace state", async () => {
@@ -248,7 +253,7 @@ describe("Codex hook runner workspace opt-in", () => {
       { pluginData },
     );
 
-    expect(stopFromRoot.systemMessage).toContain("docs/subdir.md");
+    expect(stopFromRoot.reason).toContain("docs/subdir.md");
     expect(loadHookStateFromPluginData(pluginData).dirtyPaths).toEqual([]);
   });
 
@@ -278,7 +283,7 @@ describe("Codex hook runner workspace opt-in", () => {
       { pluginData },
     );
 
-    expect(stopMain.systemMessage).toBeUndefined();
+    expect(stopMain).toEqual({ continue: true });
   });
 
   test("Stop keeps the impact-check reminder after unverified source edits", async () => {
@@ -308,9 +313,11 @@ describe("Codex hook runner workspace opt-in", () => {
 
     const result = await runHook({ event: "Stop", cwd }, { pluginData });
 
-    expect(result.continue).toBe(true);
-    expect(result.systemMessage).toContain("includeImpactDiagnostics");
-    expect(result.systemMessage).toContain("src/hook-runner.ts");
+    // systemMessage reaches only the person; the agent gets `reason`.
+    expect(result).toMatchObject({ continue: true, decision: "block" });
+    expect(result.systemMessage).toBeUndefined();
+    expect(result.reason).toContain("includeImpactDiagnostics");
+    expect(result.reason).toContain("src/hook-runner.ts");
   });
 
   test("Stop stays quiet after an impact-enabled kb_check covers source edits", async () => {
@@ -672,7 +679,15 @@ describe("Codex evaluation trace replay", () => {
         tool_name: "apply_patch",
         tool_input: { input: UNLINKED_PATCH },
       }),
-    ).toEqual({ continue: true });
+    ).toEqual({
+      continue: true,
+      hookSpecificOutput: {
+        hookEventName: "PostToolUse",
+        additionalContext: expect.stringContaining(
+          'kb_check({sourceFiles:["src/guard.ts"], includeImpactDiagnostics:true',
+        ),
+      },
+    });
 
     const stop = await event({
       hook_event_name: "Stop",
@@ -845,7 +860,8 @@ describe("Codex decision guard", () => {
       hook_event_name: "Stop",
       stop_hook_active: false,
     });
-    expect(again.decision).toBeUndefined();
+    expect(again.reason).not.toContain("recorded nothing");
+    expect(again.reason).toContain("kb_check(");
   });
 
   test("a kb_upsert in the session keeps Stop from asking for capture", async () => {
@@ -864,8 +880,8 @@ describe("Codex decision guard", () => {
       hook_event_name: "Stop",
       stop_hook_active: false,
     });
-    expect(stop.decision).toBeUndefined();
-    expect(stop.systemMessage).toContain("kb_check(");
+    expect(stop.reason).not.toContain("recorded nothing");
+    expect(stop.reason).toContain("kb_check(");
   });
 
   test("Stop continues once with a signoff request after a requirement is written", async () => {
@@ -1529,7 +1545,7 @@ describe("Codex hook runner result contracts", () => {
       hook_event_name: "Stop",
       stop_hook_active: false,
     });
-    expect(stop.decision).toBeUndefined();
+    expect(stop.reason ?? "").not.toContain("recorded nothing");
   });
 
   test("the capture request adds the impact reminder only for unchecked source files", async () => {
@@ -1580,5 +1596,181 @@ describe("Codex hook runner result contracts", () => {
     ).toBe(
       `${captureReminder(false)}\n${impactCheckReminder(["src/guard.ts"])}`,
     );
+  });
+});
+
+/** Fields Codex sends on every turn-scoped hook, as in its hook docs. */
+function codexPayload(
+  cwd: string,
+  event: string,
+  fields: Record<string, unknown> = {},
+): Record<string, unknown> {
+  return {
+    session_id: "019a-codex-thread",
+    transcript_path: null,
+    cwd,
+    hook_event_name: event,
+    model: "gpt-5-codex",
+    permission_mode: "default",
+    turn_id: "turn-1",
+    ...fields,
+  };
+}
+
+const GUARD_PATCH_COMMAND = [
+  "*** Begin Patch",
+  "*** Update File: src/guard.ts",
+  "@@",
+  "-export const guard = () => true;",
+  "+export const guard = () => false;",
+  "*** End Patch",
+].join("\n");
+
+describe("Codex reminders from real payload shapes", () => {
+  function workspace(): string {
+    const cwd = linkedWorkspace();
+    writeFile(cwd, "src/guard.ts", "export const guard = () => true;\n");
+    return cwd;
+  }
+
+  const patchPost = (cwd: string) =>
+    codexPayload(cwd, "PostToolUse", {
+      tool_name: "apply_patch",
+      tool_use_id: "call_1",
+      tool_input: { command: GUARD_PATCH_COMMAND },
+      tool_response: "Success. Updated the following files:\nM src/guard.ts",
+    });
+
+  test("PostToolUse after apply_patch names the impact check once per file", async () => {
+    const cwd = workspace();
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(pluginData);
+    const first = await runHook(patchPost(cwd), { pluginData, env: {} });
+    expect(first).toEqual({
+      continue: true,
+      hookSpecificOutput: {
+        hookEventName: "PostToolUse",
+        additionalContext: expect.stringContaining(
+          'kb_check({sourceFiles:["src/guard.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})',
+        ),
+      },
+    });
+    expect(await runHook(patchPost(cwd), { pluginData, env: {} })).toEqual({
+      continue: true,
+    });
+  });
+
+  test("Stop hands the impact reminder to the agent, and only to the person once a Stop hook continued the turn", async () => {
+    const cwd = workspace();
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(pluginData);
+    const run = (payload: Record<string, unknown>) =>
+      runHook(payload, { pluginData, env: {} });
+    await run(
+      codexPayload(cwd, "PostToolUse", {
+        tool_name: "mcp__kibi__kb_upsert",
+        tool_input: {},
+      }),
+    );
+    await run(patchPost(cwd));
+    const active = await run(
+      codexPayload(cwd, "Stop", {
+        stop_hook_active: true,
+        last_assistant_message: "Done.",
+      }),
+    );
+    expect(active.decision).toBeUndefined();
+    expect(active.systemMessage).toContain("src/guard.ts");
+
+    await run(patchPost(cwd));
+    const stop = await run(
+      codexPayload(cwd, "Stop", {
+        stop_hook_active: false,
+        last_assistant_message: "Done.",
+      }),
+    );
+    expect(stop).toEqual({
+      continue: true,
+      decision: "block",
+      reason: impactCheckReminder(["src/guard.ts"]),
+    });
+    expect(
+      await run(codexPayload(cwd, "Stop", { stop_hook_active: true })),
+    ).toEqual({ continue: true });
+  });
+
+  test("without PLUGIN_DATA the edit still reaches the Stop reminder", async () => {
+    const cwd = workspace();
+    const stateDir = resolveWorkspaceStateDir(
+      resolvePluginDataDir(undefined, {}),
+      cwd,
+    );
+    if (stateDir) tempRoots.push(stateDir);
+    await runHook(patchPost(cwd), { env: {} });
+    const stop = await runHook(
+      codexPayload(cwd, "Stop", { stop_hook_active: false }),
+      { env: {} },
+    );
+    expect(stop.decision).toBe("block");
+    expect(stop.reason).toContain("recorded nothing in the knowledge base");
+    expect(stop.reason).toContain("src/guard.ts");
+  });
+
+  // implements REQ-kibi-anonymous-usage-telemetry
+  test("every hook event that decides something queues one kibi_hook, and KIBI_TELEMETRY=0 queues none", async () => {
+    const cwd = workspace();
+    const telemetryDir = createTempRoot("kibi-codex-telemetry-");
+    tempRoots.push(telemetryDir);
+    const queue = path.join(telemetryDir, "telemetry-queue.jsonl");
+    const events = [
+      codexPayload(cwd, "SessionStart", { source: "startup" }),
+      codexPayload(cwd, "UserPromptSubmit", {
+        prompt: "Guards must never pass by default.",
+      }),
+      codexPayload(cwd, "PreToolUse", {
+        tool_name: "apply_patch",
+        tool_input: { command: GUARD_PATCH_COMMAND },
+      }),
+      patchPost(cwd),
+      codexPayload(cwd, "Stop", { stop_hook_active: false }),
+    ];
+    const runAll = async (env: NodeJS.ProcessEnv) => {
+      const pluginData = createTempRoot("kibi-codex-data-");
+      tempRoots.push(pluginData);
+      for (const payload of events) await runHook(payload, { pluginData, env });
+    };
+
+    await runAll({ KIBI_TELEMETRY: "0", KIBI_TELEMETRY_DIR: telemetryDir });
+    expect(fs.existsSync(queue)).toBe(false);
+
+    await runAll({
+      KIBI_TELEMETRY: "1",
+      KIBI_TELEMETRY_DIR: telemetryDir,
+      KIBI_TELEMETRY_CHANNEL: "agent-test",
+      // Stop sends the queue; an unreachable host keeps it on disk.
+      KIBI_TELEMETRY_HOST: "http://127.0.0.1:9",
+    });
+    const queued = fs
+      .readFileSync(queue, "utf8")
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line).properties);
+    expect(
+      queued.map((event) => [event.hook_event, event.hook_action]),
+    ).toEqual([
+      ["SessionStart", "session_start"],
+      ["UserPromptSubmit", "prompt_rule_note"],
+      ["PreToolUse", "edit_snippet"],
+      ["PostToolUse", "edited"],
+      ["Stop", "stop_capture_reminder"],
+    ]);
+    for (const event of queued) {
+      expect(event).toMatchObject({
+        package: "kibi-codex",
+        host: "codex",
+        channel: "agent-test",
+        session: hashTelemetryId("019a-codex-thread"),
+      });
+    }
   });
 });

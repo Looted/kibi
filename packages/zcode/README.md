@@ -88,8 +88,14 @@ All hooks are advisory; the hard enforcement gate remains the
   also appends opt-in `interface: "hook"` rows with `host: "zcode"` to
   `.kb/usage.log` for `kb_*` lookups (MCP or `kibi <route>` in Bash) and for
   edited files with the requirements they implement; `kibi usage-metrics`
-  reads them for the `lookup_before_first_edit` metric.
-- **Stop**: emits an impact-check or freshness reminder naming canonical
+  reads them for the `lookup_before_first_edit` metric. After an edit of a
+  source file it adds the `kb_check` impact call as `additionalContext`, once
+  per file per session.
+- **State**: kept in `ZCODE_PLUGIN_DATA` (or `CLAUDE_PLUGIN_DATA`); when the
+  host names neither, in a per-user temp directory, so edits still reach the
+  Stop reminder.
+- **Stop**: does nothing while `stop_hook_active` is set (pending work waits
+  for the next Stop). Otherwise emits an impact-check or freshness reminder naming canonical
   workspace-relative paths that changed during this session without a
   corresponding covering `kb_check`. When the session changed source files
   and recorded nothing with `kb_upsert`, it first asks, once, for the
