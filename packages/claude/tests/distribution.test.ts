@@ -173,6 +173,7 @@ describe("kibi-claude distribution artifacts", () => {
       "kibi-commit-review",
       "kibi-decisions",
       "kibi-freshness",
+      "kibi-provable-code",
       "kibi-traceability",
       "kibi-usage",
     ]);

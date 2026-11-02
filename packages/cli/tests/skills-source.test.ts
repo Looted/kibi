@@ -12,6 +12,7 @@ const EXPECTED_SKILL_IDS = [
   "kibi-commit-review",
   "kibi-decisions",
   "kibi-freshness",
+  "kibi-provable-code",
   "kibi-traceability",
   "kibi-usage",
 ] as const;
@@ -138,6 +139,7 @@ describe("canonical skills source", () => {
       "kibi-commit-review": "1.4.0",
       "kibi-decisions": "1.5.0",
       "kibi-freshness": "2.3.0",
+      "kibi-provable-code": "1.0.0",
       "kibi-traceability": "2.3.0",
     } as const;
     for (const [id, version] of Object.entries(newCanonical)) {
