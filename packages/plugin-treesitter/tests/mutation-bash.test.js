@@ -1530,6 +1530,177 @@ describe("Bash expressions", () => {
   });
 });
 
+describe("Bash unset, declarations and assignments", () => {
+  it("reads what unset names", async () => {
+    await table([
+      ["unset X", "env", []],
+      ["unset -v X", "env", []],
+      ["unset -f X", "env", []],
+      ['unset "a"', "env", []],
+      ["unset 'a[1]'", "env", []],
+      ["unset 'a[@]'", "env", []],
+      ["unset 'a[*]'", "env", []],
+      ["unset a[@]", "env", []],
+      ['unset "$n"', "env", [], [1]],
+      ['unset "$n"', "calls", []],
+      ["unset 'a b'", "env", [], [1]],
+      ["unset 'a[x]b'", "env", [], [1]],
+      ["unset 'a[x'", "env", [], [1]],
+      ["unset '1a'", "env", [], [1]],
+      ["unset a [i]", "env", [], [1]],
+      ["unset 'a[i+j]'", "env", ["i", "j"], [1]],
+      ["unset 'a[$i]'", "env", ["i"], [1]],
+      ["unset 'a[${i}]'", "env", ["i"], [1]],
+      ["unset a[$i]", "env", ["i"], [1]],
+      ["unset 'a[$#]'", "env", []],
+      ["unset 'a[16#ff]'", "env", []],
+      ["declare -A a; unset 'a[k]'", "env", []],
+      ["declare -A a; unset a[k]", "env", []],
+      ["declare -A a; unset a[$k]", "env", ["k"]],
+      ["declare -A a; unset 'a[$k]'", "env", ["k"]],
+      ["declare -A a; unset 'a[${k}x$j]'", "env", ["j", "k"]],
+      ["declare -A a; unset 'a[$1]'", "env", []],
+    ]);
+  });
+
+  it("refuses unset of a name a caller declares local", async () => {
+    for (const word of ["X", "'X'", '"X"', "-v X"])
+      await expect(`f() { local X; }\ng() { unset ${word}; }`, "env", [], [2]);
+    await expect("f() { local X; }\ng() { unset Y; }", "env", []);
+  });
+
+  it("refuses a subscript that runs code", async () => {
+    for (const text of [
+      "unset 'a[$(x)]'",
+      'unset "a[$(x)]"',
+      "unset 'a[`x`]'",
+      "unset 'a[1$[x]]'",
+      "declare 'a[$(x)]=1'",
+      "local 'a[`x`]'",
+    ]) {
+      await expect(text, "calls", [], [1]);
+      await expect(text, "env", [], [1]);
+      await expect(text, "imports", []);
+    }
+    await expect("unset 'a[1]$(x)'", "calls", []);
+    await expect("declare a[$(x)]=1", "calls", ["x"]);
+    await expect('declare x="[$(y)]"', "calls", ["y"]);
+  });
+
+  it("reads declarations", async () => {
+    await table([
+      ["declare", "env", [], [1]],
+      ["declare -p", "env", [], [1]],
+      ["declare -n r=X", "env", [], [1]],
+      ["local -I X", "env", [], [1]],
+      ['declare "$x"', "env", ["x"], [1]],
+      ["declare -f", "env", []],
+      ["declare -F", "env", []],
+      ["declare -x X", "env", []],
+      ["declare X=1", "env", []],
+      ["declare -p X", "env", ["X"]],
+      ["declare X+=1", "env", ["X"]],
+      ["declare a[i]=1", "env", ["i"], [1]],
+      ["declare -A a; declare a[k]=1", "env", []],
+      ["declare a[@]=1", "env", []],
+      ["declare -i n=x", "env", ["x"], [1]],
+      ["declare -i n; declare n=x", "env", ["x"], [1]],
+      ["declare -i n; declare n=", "env", []],
+    ]);
+  });
+
+  it("reads assignments", async () => {
+    await table([
+      ["declare -i n; n=x", "env", ["x"], [1]],
+      ["declare -i n; n=", "env", []],
+      ["declare -i n; n+=x", "env", ["n", "x"], [1]],
+      ["X+=1", "env", ["X"]],
+      ["a[i]+=1", "env", ["a", "i"], [1]],
+      ["a[1]+=1", "env", ["a"]],
+      ["a[i]=1", "env", ["i"], [1]],
+      ["declare -A a; a[k]=1", "env", []],
+    ]);
+  });
+
+  it("refuses assignments that change what runs", async () => {
+    for (const text of [
+      "BASH_ALIASES[c]='rm x'",
+      "BASH_CMDS[c]=/bin/rm",
+      "PS4='$(x)'",
+      "PS4='`x`'",
+      "PROMPT_COMMAND='$(x)'",
+      "PS4[1]='$(x)'",
+    ]) {
+      const result = await read(text, "calls");
+      assert.equal(result.rows.length, 2, text);
+    }
+    for (const text of ["PS4='x'", "PS5='$(x)'", "XPS4='$(x)'"])
+      await expect(text, "calls", []);
+    await expect("BASH_CMDS[c]=/bin/rm", "imports", []);
+  });
+});
+
+describe("Bash parameter expansions", () => {
+  it("refuses prompt expansion and offsets it does not parse", async () => {
+    await table([
+      ["echo ${x@P}", "env", [], [1]],
+      ["echo ${x@P}", "calls", ["echo"], [1]],
+      ["echo ${x@P}", "imports", []],
+      ["echo ${s:1+OFF:2}", "env", [], [1]],
+      ["echo ${s:1:$n}", "env", [], [1]],
+      ["echo ${s:1+OFF:2}", "calls", ["echo"]],
+    ]);
+  });
+
+  it("reads offsets, lengths and subscripts", async () => {
+    await table([
+      ["echo ${s:OFF}", "env", ["OFF", "s"], [1]],
+      ["echo ${s:i:n}", "env", ["i", "n", "s"], [1]],
+      ["echo ${a[i]}", "env", ["a", "i"], [1]],
+      ["x=${a[i]}", "env", ["a", "i"], [1]],
+      ["echo ${a[i]:-x}", "env", ["a", "i"], [1]],
+      ["echo $a[i]", "env", ["a"]],
+      ["echo ${a[@]}", "env", ["a"]],
+      ["echo ${a[1]}", "env", ["a"]],
+    ]);
+    for (const text of [
+      "${s:1}",
+      "${s:-x}",
+      "${s:=x}",
+      "${s:?x}",
+      "${s:+x}",
+      "${s: -1}",
+      "${s#x}",
+      "${s/a/b}",
+    ])
+      await expect(`echo ${text}`, "env", ["s"]);
+  });
+
+  it("reads the keys of an associative array as text", async () => {
+    await table([
+      ["declare -A a; echo ${a[k]}", "env", ["a"]],
+      ["declare -A a; echo ${a[1]}", "env", ["a"]],
+      ["declare -A a; echo ${a[$k]}", "env", ["a", "k"]],
+      ["declare -A a; f() { echo ${a[k]}; }", "env", ["a"]],
+      ["echo ${a[k]}; declare -A a", "env", ["a"], [1]],
+      ["declare -A a; declare -a a; echo ${a[k]}", "env", ["a"], [1]],
+      ["f() { declare -A a; }; echo ${a[k]}", "env", [], [1]],
+    ]);
+  });
+
+  it("reads the variables a test checks", async () => {
+    await table([
+      ["[[ -v X ]]", "env", ["X"]],
+      ["[[ -R X ]]", "env", ["X"]],
+      ["[ -v X ]", "env", ["X"]],
+      ["[[ -z X ]]", "env", []],
+      ['[[ -v "$x" ]]', "env", [], [1]],
+      ['[[ -v "$x" ]]', "calls", []],
+      ["[[ -v a[1] ]]", "env", [], [1]],
+    ]);
+  });
+});
+
 describe("Bash tildes", () => {
   it("reads HOME where Bash expands a tilde", async () => {
     for (const text of [

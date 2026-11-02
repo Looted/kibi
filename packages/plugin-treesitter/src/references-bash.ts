@@ -519,6 +519,12 @@ const ENV_DUMPERS = new Set([
 const FOREIGN_ENV =
   /\bENVIRON\b|\$ENV\b|%ENV\b|\benviron\b|\bgetenv\b|process\.env\b|\benv\.[A-Za-z_]|\benv\[/;
 
+/**
+ * `read 'a[$(rm -rf x)]'`, `unset 'a[$(rm -rf x)]'`: a subscript bash
+ * evaluates runs the code in it.
+ */
+const SUBSCRIPT_CODE = /\[[^\]]*(?:\$\(|`|\$\[)/;
+
 /** Commands that set variables: through `command` or `builtin` they still do. */
 const DECLARATIONS = new Set([
   "declare",
@@ -1348,17 +1354,13 @@ export function bashReferences(
   };
 
   /** The test command (`[[ ... ]]`, `[ ... ]`) an expression is part of. */
+  // The grammar has `-v` and `-eq` expressions only in tests, so the nearest
+  // test is the expression's own.
   const inTest = (node: Node): Node | null => {
     let current = node.parent;
-    while (
-      current !== null &&
-      current.type !== "test_command" &&
-      !/^(?:command|program|compound_statement|subshell|command_substitution|process_substitution|function_definition|arithmetic_expansion|expansion|redirected_statement|list|pipeline)$/.test(
-        current.type,
-      )
-    )
+    while (current !== null && current.type !== "test_command")
       current = current.parent;
-    return current?.type === "test_command" ? current : null;
+    return current;
   };
 
   /**
@@ -1450,12 +1452,9 @@ export function bashReferences(
     }
     const printfTarget =
       name === "printf" ? words[words.indexOf("-v") + 1] : undefined;
-    // `read 'a[$(rm -rf x)]'`: a subscript bash evaluates runs the code.
     if (
       code &&
-      words.some(
-        (word) => word !== null && /\[[^\]]*(?:\$\(|`|\$\[)/.test(word),
-      )
+      words.some((word) => word !== null && SUBSCRIPT_CODE.test(word))
     ) {
       refuse(node);
       return true;
@@ -2079,6 +2078,10 @@ export function bashReferences(
         return;
       }
       case "unset_command": {
+        if (code && SUBSCRIPT_CODE.test(node.text)) {
+          refuse(node);
+          return;
+        }
         if (!env) break;
         const children = named(node);
         for (let index = 0; index < children.length; index += 1) {
@@ -2119,23 +2122,38 @@ export function bashReferences(
             continue;
           }
           const subscript = /^([A-Za-z_]\w*)\[(.*)\]$/s.exec(value);
-          if (
-            subscript !== null &&
-            !assoc.has(subscript[1] as string) &&
-            !/^[@*]$/.test(subscript[2] as string)
-          )
-            for (const match of (subscript[2] as string).matchAll(
-              /(?<![\w$#])[A-Za-z_]\w*/g,
-            )) {
+          if (subscript === null) {
+            if (!/^[A-Za-z_]\w*$/.test(value)) refuse(child);
+            continue;
+          }
+          const key = subscript[2] as string;
+          // bash expands the subscript: `unset 'a[$k]'` reads k. The key of
+          // an associative array is text; an index is arithmetic.
+          if (assoc.has(subscript[1] as string))
+            for (const match of key.matchAll(/\$\{?([A-Za-z_]\w*)/g))
+              read(match[1] as string, child, node);
+          else if (!/^[@*]$/.test(key))
+            for (const match of key.matchAll(/(?<![\w#])[A-Za-z_]\w*/g)) {
               read(match[0], child, node);
               evaluated(match[0], child, node);
             }
-          else if (subscript === null && !/^[A-Za-z_]\w*$/.test(value))
-            refuse(child);
         }
         return;
       }
       case "declaration_command": {
+        // `declare 'a[$(rm -rf x)]=1'`; the grammar reads `a[$(x)]=1` as an
+        // assignment, whose substitution Kibi follows.
+        if (
+          code &&
+          named(node).some(
+            (child) =>
+              child.type !== "variable_assignment" &&
+              SUBSCRIPT_CODE.test(child.text),
+          )
+        ) {
+          refuse(node);
+          return;
+        }
         if (!env) break;
         const flags = declarationFlags(node);
         const children = named(node).filter(
