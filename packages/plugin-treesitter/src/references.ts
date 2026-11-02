@@ -2916,6 +2916,21 @@ function rustTokens(node: Node): string {
     .join(" ");
 }
 
+/** A macro's tokens with string and character literals blanked: not code. */
+function rustCodeTokens(node: Node): string {
+  if (/^(?:raw_)?string_literal$|^char_literal$/.test(node.type)) return '""';
+  if (node.childCount === 0 || node.type.endsWith("comment"))
+    return rustTokens(node);
+  return node.children
+    .map(
+      (child) =>
+        /* node:coverage disable */
+        child === null ? "" : rustCodeTokens(child),
+      /* node:coverage enable */
+    )
+    .join(" ");
+}
+
 /** `::std::env::var` and `core::env` name the same items as `std::env`. */
 function rustCanonical(path: string): string {
   return path.replace(/^::/, "").replace(/^core::/, "std::");
@@ -3189,6 +3204,97 @@ function rustStdMacro(node: Node, context: FileContext): boolean {
   );
 }
 
+const RUST_KEYWORDS = new Set([
+  "as",
+  "async",
+  "await",
+  "break",
+  "const",
+  "continue",
+  "crate",
+  "dyn",
+  "else",
+  "enum",
+  "extern",
+  "fn",
+  "for",
+  "if",
+  "impl",
+  "in",
+  "let",
+  "loop",
+  "match",
+  "mod",
+  "move",
+  "mut",
+  "pub",
+  "ref",
+  "return",
+  "self",
+  "Self",
+  "static",
+  "struct",
+  "super",
+  "trait",
+  "type",
+  "unsafe",
+  "use",
+  "where",
+  "while",
+  "true",
+  "false",
+]);
+
+/**
+ * The calls a standard or known crate macro's arguments make, read from its
+ * tokens: a path followed by `(` (after an optional turbofish) is called, a
+ * method name after `.` is called on any receiver, and a qualified or
+ * imported path not called may be a function passed on, so it is listed
+ * too. Null when the macro is not one whose expansion holds only its
+ * tokens, or a macro nested in its tokens is not.
+ */
+function rustMacroCalls(node: Node, context: FileContext): string[] | null {
+  if (!rustStdMacro(node, context)) return null;
+  const tokens = named(node)
+    .filter((child) => child.type === "token_tree")
+    .map((tree) => rustCodeTokens(tree))
+    .join(" ")
+    // A turbofish names types, not calls: `Vec::<u8>::new` calls `Vec::new`.
+    .replace(/\s*::\s*<[^()<>]*(?:<[^()<>]*>[^()<>]*)*>/g, "");
+  const found: string[] = [];
+  const path =
+    /(\.\s*)?((?:::\s*)?[A-Za-z_]\w*(?:\s*::\s*[A-Za-z_]\w*)*)\s*(!|\()?/g;
+  for (const match of tokens.matchAll(path)) {
+    const [, dot, rawPath, after] = match;
+    const spelled = (rawPath ?? "").replace(/\s+/g, "");
+    if (RUST_KEYWORDS.has(spelled)) continue;
+    if (after === "!") {
+      // A nested macro: readable only when it is a standard one too.
+      if (RUST_CRATE_MACROS.has(rustPath(spelled, node).path)) continue;
+      const name = rustCanonical(spelled).replace(/^std::/, "");
+      if (
+        !RUST_STD_MACROS.has(name) ||
+        context.imported.has(name) ||
+        context.aliases.has(name)
+      )
+        return null;
+      continue;
+    }
+    if (dot !== undefined) {
+      if (after === "(") found.push(`${ANY_RECEIVER}.${spelled}`);
+      continue;
+    }
+    const candidates = RUST.candidates(spelled, context, node);
+    if (after === "(") found.push(spelled, ...candidates);
+    else
+      found.push(
+        ...candidates.filter((name) => name.includes("::") && name !== spelled),
+        ...(spelled.includes("::") ? [spelled] : []),
+      );
+  }
+  return [...new Set(found)];
+}
+
 /**
  * Whether a standard macro is spelled bare (`println!`, not
  * `std::println!`): a `macro_rules!` of that name in another file of the
@@ -3327,9 +3433,12 @@ function rustResolve(
     switch (binding.kind) {
       case "path":
         // `use anyhow::anyhow`: the path's root is the crate, not the name
-        // the item binds.
+        // the item binds, and so is `anyhow::bail`'s.
         if (before(binding.path, "::") === root)
-          return { path: [binding.path, ...rest].join("::"), exact: false };
+          return {
+            path: rest.length === 0 ? binding.path : spelled.path,
+            exact: false,
+          };
         return rustResolve(
           [...binding.path.split("::"), ...rest],
           scopes.slice(index),
@@ -3501,6 +3610,7 @@ const RUST: Reader = {
       node.type !== "macro_invocation" ||
       (extract !== "env" &&
         extract !== "imports" &&
+        extract !== "calls" &&
         extract !== "string_args") ||
       !rustBareStdMacro(node, context)
     )
@@ -3512,8 +3622,10 @@ const RUST: Reader = {
     /* node:coverage disable */
     if (REFERENCE_PARENTS.has(node.parent?.type ?? "")) return null;
     /* node:coverage enable */
-    // An attribute's path (`#[rustfmt::skip]`) names no function to call.
-    if (insideRustAttribute(node)) return null;
+    // An attribute's path (`#[rustfmt::skip]`) names no function to call,
+    // nor does a macro's own path (`anyhow::ensure!`).
+    if (insideRustAttribute(node) || node.parent?.type === "macro_invocation")
+      return null;
     const name = rustChain(node);
     if (name === null) return null;
     /* node:coverage ignore next */
@@ -3589,8 +3701,10 @@ const RUST: Reader = {
   thrown() {
     // Rust has no throw statement; panics are macros, refused with the rest.
   },
-  hidesCalls: (node) =>
-    node.type === "macro_invocation" || rustAttributeHidesCalls(node),
+  hidesCalls: (node, _names, context) =>
+    (node.type === "macro_invocation" &&
+      rustMacroCalls(node, context) === null) ||
+    rustAttributeHidesCalls(node),
   conditional(node) {
     if (node.type !== "attribute_item") return false;
     const attribute = rustAttribute(node);
@@ -3765,6 +3879,8 @@ export function extractReferences(
       case "calls":
         if (refused || reader.hidesCalls(node, names, context))
           unresolved.push(at(node));
+        else if (language === "rust" && node.type === "macro_invocation")
+          members.push(...(rustMacroCalls(node, context) ?? []));
         else if (callName !== null) {
           members.push(callName);
           // An alias or static import is listed under what it names, too.
@@ -3810,7 +3926,12 @@ export function extractReferences(
         }
         break;
       case "thrown":
-        if (reader.hidesCalls(node, names, context) && language === "rust")
+        // Any macro may panic (`panic!`, `assert!`, `todo!`) or hide one.
+        if (
+          language === "rust" &&
+          (node.type === "macro_invocation" ||
+            reader.hidesCalls(node, names, context))
+        )
           unresolved.push(at(node));
         else reader.thrown(node, catchNames, members, unresolved, context);
         break;

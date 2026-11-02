@@ -180,9 +180,10 @@ describe("offline Tree-sitter reference extractor", () => {
     assert.deepEqual(await members(file, "thrown"), []);
   });
 
-  it("refuses Rust calls and panics in a file with a macro, and cfg-gated items everywhere", async () => {
+  it("refuses Rust panics in a file with a macro, and cfg-gated items everywhere", async () => {
     const file = "rust/refs-dynamic.rs";
-    assert.deepEqual(await unresolvedLines(file, "calls"), [5, 8]);
+    // The standard println! on line 5 calls nothing; its calls are read.
+    assert.deepEqual(await unresolvedLines(file, "calls"), [8]);
     assert.deepEqual(await unresolvedLines(file, "thrown"), [5, 8]);
     assert.deepEqual(await unresolvedLines(file, "env"), [8]);
   });
@@ -330,6 +331,47 @@ describe("agent-test regressions: no false proof", () => {
       (await inline("a.rs", args, "string_args", { callee: "target" })).lines,
       [1],
     );
+  });
+
+  it("reads the calls in a standard or known crate macro's arguments", async () => {
+    const source = [
+      "use std::process;",
+      "use anyhow::{anyhow, bail};",
+      "fn f(v: Vec<u8>) -> anyhow::Result<()> {",
+      '  println!("{} {}", helper(1), v.len());',
+      '  let s = format!("{x}", x = std::fs::read_to_string("a").unwrap());',
+      "  let w = vec![Vec::<u8>::new(), make()];",
+      '  anyhow::ensure!(check(), "bad {}", "call(x)");',
+      "  let k = vec![process::exit];",
+      '  bail!("{}", anyhow!("x {}", go()));',
+      "}",
+      "",
+    ].join("\n");
+    const read = await inline("a.rs", source, "calls");
+    assert.deepEqual(read.lines, []);
+    assert.deepEqual(read.members, [
+      "*.len",
+      "*.unwrap",
+      "Vec::new",
+      "check",
+      "go",
+      "helper",
+      "make",
+      "process::exit",
+      "std::fs::read_to_string",
+      "std::process::exit",
+    ]);
+    // A bare standard macro may be a crate's macro_rules! of that name.
+    assert.deepEqual(read.shadows, [4, 5, 6, 8]);
+    // A project macro, or one nested in a standard macro, may call anything.
+    for (const hidden of [
+      "fn f() { my_macro!(x()); }\n",
+      'fn f() { println!("{}", my_macro!(x())); }\n',
+    ])
+      assert.deepEqual((await inline("a.rs", hidden, "calls")).lines, [1]);
+    // Any macro may panic.
+    const panics = "fn f() { assert!(ok()); }\n";
+    assert.deepEqual((await inline("a.rs", panics, "thrown")).lines, [1]);
   });
 
   it("reads Rust `self as` bindings and leaves a project module named env alone", async () => {
