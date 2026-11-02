@@ -38,9 +38,7 @@ export async function telemetryCommand(
   // variables an agent host set for the processes it starts.
   const host = detectTelemetryHost(env) ?? "unknown";
   if (options.format === "json") {
-    console.log(
-      JSON.stringify({ ...status, host, docs: TELEMETRY_DOCS_URL }),
-    );
+    console.log(JSON.stringify({ ...status, host, docs: TELEMETRY_DOCS_URL }));
     return { exitCode: 0 };
   }
   console.log(
