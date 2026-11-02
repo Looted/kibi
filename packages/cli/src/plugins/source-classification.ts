@@ -521,11 +521,10 @@ export function classifySource(
     const contentLanguage =
       shebang !== undefined
         ? undefined
-        : extension.language === "perl-or-prolog"
+        : // The two ambiguous extensions: .pl and .h.
+          extension.language === "perl-or-prolog"
           ? perlOrPrologByContent(content)
-          : extension.language === "c-or-cpp"
-            ? cOrCppByContent(content)
-            : undefined;
+          : cOrCppByContent(content);
     if (contentLanguage !== undefined)
       return classificationForLanguage(contentLanguage, "content");
     if (shebang === undefined) {
