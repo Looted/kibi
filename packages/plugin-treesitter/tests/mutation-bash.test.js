@@ -821,3 +821,208 @@ describe("Bash text that rebinds commands or reads the environment", () => {
     await expect("f() { local; }; unset x", "env", [], [1]);
   });
 });
+
+describe("Bash places that set a variable", () => {
+  it("binds assignments, elements and declarations", async () => {
+    await expect('X=1 cmd\necho "$X"', "env", ["X"]);
+    await expect('a[1]=x\necho "$a"', "env", [], [2]);
+    for (const [value, rows] of [
+      ["5", []],
+      ["$(( 2 ))", []],
+      ["", [2]],
+      ["a", [2]],
+    ])
+      await expect(`X=${value}\necho $(( X + 1 ))`, "calls", ["echo"], rows);
+    await expect("a=1; a[1]=x; echo $(( a + 1 ))", "calls", ["echo"], [1]);
+    await expect('f() { export X; echo "$X"; }', "env", ["X"]);
+    await expect('f() { readonly X; echo "$X"; }', "env", ["X"]);
+    await expect('f() { declare X; echo "$X"; }', "env", []);
+    await expect('declare X\necho "$X"', "env", ["X"]);
+    await expect("f() { local X; echo $(( X + 1 )); }", "calls", ["echo"]);
+  });
+
+  it("binds loop variables", async () => {
+    await expect('for f in a; do :; done\necho "$f"', "env", [], [2]);
+    for (const values of [
+      "1 2",
+      "-1 23",
+      "{1..3}",
+      "{-1..-3}",
+      "{1..9..2}",
+      "{12..34..-56}",
+    ])
+      await expect(
+        `for i in ${values}; do echo $(( i )); done`,
+        "calls",
+        ["echo"],
+        [],
+      );
+    for (const values of [
+      "a",
+      "1 a",
+      "1x",
+      "x1",
+      "x{1..3}",
+      "{1..3}x",
+      "{a..c}",
+      "{1..3..}",
+      "{1..c}",
+      "{1..3..x}",
+    ])
+      await expect(
+        `for i in ${values}; do echo $(( i )); done`,
+        "calls",
+        ["echo"],
+        [1],
+      );
+    await expect("for i; do echo $(( i )); done", "calls", ["echo"], [1]);
+    await expect('select x in a; do :; done\necho "$REPLY"', "env", [], [2]);
+    await expect('for x in a; do :; done\necho "$REPLY"', "env", ["REPLY"]);
+    await expect(
+      "select x in a; do echo $(( REPLY )); done",
+      "calls",
+      ["echo"],
+      [1],
+    );
+  });
+
+  it("binds arithmetic assignments", async () => {
+    for (const expression of [
+      "n = 1",
+      "n += 1",
+      "n -= 1",
+      "n *= 1",
+      "n /= 1",
+      "n %= 1",
+      "n &= 1",
+      "n |= 1",
+      "n ^= 1",
+      "n <<= 1",
+      "n >>= 1",
+      "n++",
+      "n--",
+      "++n",
+      "--n",
+    ]) {
+      const result = await read(`f() { (( ${expression} )); }`);
+      assert.deepEqual(result.members, [], expression);
+    }
+    for (const expression of [
+      "n == 1",
+      "n != 1",
+      "n <= 1",
+      "n >= 1",
+      "n < 1",
+      "n + 1",
+      "-n",
+      "!n",
+    ])
+      assert.deepEqual(
+        (await read(`f() { (( ${expression} )); }`)).members,
+        ["n"],
+        expression,
+      );
+    await expect("n=1; (( n += 1 )); echo $(( n + 1 ))", "calls", ["echo"]);
+  });
+
+  it("binds through command and builtin", async () => {
+    await expect('builtin read X\necho "$X"', "env", []);
+    await expect('command command read X\necho "$X"', "env", []);
+    await expect('command -p read X\necho "$X"', "env", ["X"]);
+    await expect("command\nbuiltin", "env", []);
+  });
+
+  it("binds unset names unless it unsets functions", async () => {
+    await expect('unset -f X\necho "$X"', "env", ["X"]);
+    await expect('unset -vf X\necho "$X"', "env", ["X"]);
+    await expect('unset -vvf X\necho "$X"', "env", ["X"]);
+    await expect('unset fx\necho "$fx"', "env", []);
+    await expect('unset -v X\necho "$X"', "env", []);
+    await expect('f() { unset X; echo "$X"; }', "env", [], [1]);
+  });
+
+  it("binds a default assigned in an expansion", async () => {
+    await expect('f() { : "${XY:=5}"; }', "env", [], [1]);
+    await expect('f() { : "${XY=5}"; }', "env", [], [1]);
+    await expect('f() { : "${XY}"; }', "env", ["XY"]);
+    await expect(
+      'XY=1; : "${XY:=a}"; echo $(( XY ))',
+      "calls",
+      [":", "echo"],
+      [1],
+    );
+  });
+});
+
+describe("Bash values the script certainly set", () => {
+  it("follows read in lists and loops", async () => {
+    await expect(
+      'while read -r line; do f() { echo "$line"; }; done',
+      "env",
+      [],
+      [1],
+    );
+    await expect('while :; do read X; echo "$X"; done', "env", [], [1]);
+    await expect('read X || echo "$X"', "env", []);
+    await expect('read X "$X" || :', "env", ["X"], [1]);
+    await expect('[[ x ]] || read X\necho "$X"', "env", [], [2]);
+    await expect('while (read X); do echo "$X"; done', "env", [], [1]);
+    await expect('while [[ x ]] && read X; do echo "$X"; done', "env", [], [1]);
+    await expect('while read X && :; do echo "$X"; done', "env", []);
+    await expect('while read X; do echo "$X"; done', "env", []);
+    await expect('until read X; do echo "$X"; done', "env", []);
+    await expect('while printf -v X a; do echo "$X"; done', "env", [], [1]);
+    await expect(
+      'while :; do printf -v X a || echo "$X"; done',
+      "env",
+      [],
+      [1],
+    );
+    await expect('while [[ x ]]; do echo "$X"; done', "env", ["X"]);
+  });
+
+  it("follows for and select loops", async () => {
+    await expect('for y in a; do echo "$X"; done', "env", ["X"]);
+    await expect('for y in a; do echo "$y"; done', "env", []);
+    await expect('select x in a; do echo "$Y"; done', "env", ["Y"]);
+    await expect('for x in a; do echo "$REPLY"; done', "env", ["REPLY"]);
+    await expect('select x in a; do echo "$REPLY"; done', "env", []);
+    await expect('for (( i = 0; i < 3; i++ )); do echo "$i"; done', "env", []);
+    await expect("for (( i = i; ; )); do :; done", "env", [], [1]);
+    await expect('for (( i++; i < 3; )); do echo "$i"; done', "env", [], [1]);
+    await expect('for (( ; i < 3; )); do echo "$i"; done', "env", ["i"], [1]);
+  });
+
+  it("follows bindings into the functions that run after them", async () => {
+    await expect('X=1\nf() { echo "$X"; }', "env", []);
+    await expect('f() { echo "$X"; }\nX=1', "env", [], [1]);
+    await expect('f() { X=1; }\necho "$X"', "env", [], [2]);
+    await expect('f() { X=1; }\ng() { echo "$X"; }', "env", [], [2]);
+    await expect('f() { echo "$X"; X=1; }', "env", [], [1]);
+    await expect('f() { X=1; echo "$X"; }', "env", []);
+  });
+
+  it("knows a loop may set a variable before it reads it again", async () => {
+    for (const loop of ["while :", "for i in a", "for ((;;))"])
+      await expect(`${loop}; do echo "$X"; X=1; done`, "env", [], [1]);
+    await expect('echo "$X"; X=1', "env", ["X"]);
+    await expect('while :; do echo "$X"; done; X=2', "env", ["X"]);
+    await expect('while :; do echo "$X"; X=1; done; X=2', "env", [], [1]);
+  });
+
+  it("keeps the first row for a variable that may be the environment's", async () => {
+    await expect('f() { echo "$X"; }\ng() { echo "$X"; }\nX=1', "env", [], [1]);
+    const name = `L${"X".repeat(90)}`;
+    const long = await read(`f() { echo "$${name}"; }\n${name}=1`);
+    assert.equal(
+      long.rows[0],
+      `1: ${`${name} may be read from the environment: $${name}`.slice(0, 80)}`,
+    );
+  });
+
+  it("knows which values are numbers", async () => {
+    await expect("declare -i n\necho $(( n + 1 ))", "calls", ["echo"]);
+    await expect("n=1; n=a; echo $(( n ))", "calls", ["echo"], [1]);
+    await expect("n=1; echo $(( n ))", "calls", ["echo"]);
+  });
+});

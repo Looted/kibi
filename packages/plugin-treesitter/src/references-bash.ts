@@ -648,6 +648,7 @@ function sourcedPath(node: Node | undefined, file: string): string | null {
 
 interface Binding {
   readonly name: string;
+  readonly node: Node;
   readonly start: number;
   readonly end: number;
   /** Runs before anything after it in its block: a direct statement, `=`. */
@@ -675,6 +676,17 @@ function changesDirectory(node: Node, before: number): boolean {
   )
     return true;
   return named(node).some((child) => changesDirectory(child, before));
+}
+
+/** Whether `node` is `outer` or inside it. */
+function inside(node: Node, outer: Node): boolean {
+  for (
+    let current: Node | null = node;
+    current !== null;
+    current = current.parent
+  )
+    if (current.id === outer.id) return true;
+  return false;
 }
 
 /** The function definition a node is inside, innermost first. */
@@ -737,6 +749,30 @@ function inArithmetic(node: Node): boolean {
   return arithmetic(current) || current.type === "c_style_for_statement";
 }
 
+/** Operators that set the variable on their left. */
+const ASSIGNMENTS = new Set([
+  "=",
+  "+=",
+  "-=",
+  "*=",
+  "/=",
+  "%=",
+  "&=",
+  "|=",
+  "^=",
+  "<<=",
+  ">>=",
+  "++",
+  "--",
+]);
+
+/** Loops that may run a statement again after a later one. */
+const LOOPS = new Set([
+  "while_statement",
+  "for_statement",
+  "c_style_for_statement",
+]);
+
 /** Where the search for an arithmetic context stops. */
 const ARITHMETIC_ENDS = new Set([
   "c_style_for_statement",
@@ -779,7 +815,10 @@ const NONE: readonly string[] = [];
  * `printf -v OUT`, `getopts s NAME`, `wait -p J`), or null when one is not
  * literal (`read "$name"`).
  */
-function commandBinds(name: string, list: Node[]): readonly string[] | null {
+function commandBinds(
+  name: string | null,
+  list: Node[],
+): readonly string[] | null {
   const words = list.map((node) => wordValue(node));
   switch (name) {
     case "read": {
@@ -937,78 +976,82 @@ export function bashReferences(
   /** Where a top-level `declare -A NAME` first makes NAME associative. */
   const assocAt = new Map<string, number>();
   const integers = new Set<string>();
+  const noBindings: Binding[] = [];
+  const bindingsOf = (name: string): Binding[] =>
+    bindings.get(name) ?? noBindings;
+  /**
+   * `statement` runs the binding: it dominates what follows it in its block
+   * when it is a direct statement. A binding with no statement never does.
+   */
   const bind = (
     name: string,
     node: Node,
-    statement: Node,
-    dominates: boolean,
+    statement: Node | null,
     numeric: boolean,
   ): void => {
-    const list = bindings.get(name) ?? [];
-    list.push({
-      name,
-      start: node.startIndex,
-      end: node.endIndex,
-      dominates: dominates && direct(statement),
-      scope: enclosingFunction(statement),
-      numeric,
-    });
-    bindings.set(name, list);
+    bindings.set(name, [
+      ...bindingsOf(name),
+      {
+        name,
+        node,
+        start: node.startIndex,
+        end: node.endIndex,
+        dominates: statement !== null && direct(statement),
+        scope: enclosingFunction(node),
+        numeric,
+      },
+    ]);
   };
 
   // Pass 1: every place the script sets a variable, and its attributes.
   const collect = (node: Node): void => {
     switch (node.type) {
       case "variable_assignment": {
-        const target = field(node, "name");
+        const target = field(node, "name") as Node;
         const value = field(node, "value");
-        const parent = node.parent;
+        const parent = node.parent as Node;
         // `FOO=bar cmd` sets FOO for that command only.
-        if (parent?.type === "command") break;
+        if (parent.type === "command") break;
         // `local X=1` outside a function fails and sets nothing.
-        if (
-          parent?.type === "declaration_command" &&
-          keyword(parent) === "local" &&
-          enclosingFunction(parent) === null
-        )
+        if (keyword(parent) === "local" && enclosingFunction(parent) === null)
           break;
-        const statement =
-          parent?.type === "declaration_command" ? parent : node;
-        if (target?.type === "variable_name")
+        const statement = parent.type === "declaration_command" ? parent : node;
+        if (target.type === "variable_name")
           bind(
             target.text,
             node,
             statement,
-            true,
             value?.type === "number" || value?.type === "arithmetic_expansion",
           );
-        else if (target?.type === "subscript") {
-          const base = field(target, "name");
-          if (base !== null) bind(base.text, node, statement, false, false);
-        }
+        // `a[1]=x` sets one element.
+        else bind((field(target, "name") as Node).text, node, null, false);
         break;
       }
       case "declaration_command": {
         const flags = declarationFlags(node);
         const word = keyword(node);
+        const inFunction = enclosingFunction(node) !== null;
+        // `local`, and `declare` or `typeset` without -g, in a function.
         const local =
-          word === "local" ||
-          ((word === "declare" || word === "typeset") &&
-            enclosingFunction(node) !== null &&
-            !flags.includes("g"));
+          inFunction &&
+          (word === "local" ||
+            ((word === "declare" || word === "typeset") &&
+              !flags.includes("g")));
         for (const child of named(node)) {
+          if (
+            child.type !== "variable_name" &&
+            child.type !== "variable_assignment"
+          )
+            continue;
           const name =
             child.type === "variable_name"
               ? child.text
-              : child.type === "variable_assignment"
-                ? (field(child, "name")?.text ?? null)
-                : null;
-          if (name === null) continue;
+              : (field(child, "name") as Node).text;
           // `declare HOME=/srv` in a function is a local too.
-          if (local && enclosingFunction(node) !== null) localNames.add(name);
+          if (local) localNames.add(name);
           if (flags.includes("A")) {
             assoc.add(name);
-            if (enclosingFunction(node) === null)
+            if (!inFunction)
               assocAt.set(
                 name,
                 Math.min(
@@ -1023,43 +1066,36 @@ export function bashReferences(
           if (flags.includes("i")) integers.add(name);
           // `local X` gives the function an empty X of its own; outside a
           // function `local` fails.
-          if (
-            child.type === "variable_name" &&
-            local &&
-            enclosingFunction(node) !== null
-          )
-            bind(name, child, node, true, true);
+          if (child.type === "variable_name" && local)
+            bind(name, child, node, true);
         }
         break;
       }
       case "for_statement": {
-        const variable = field(node, "variable");
+        const variable = field(node, "variable") as Node;
         const values = node.childrenForFieldName("value");
         // `for i in 1 2 3`, `for i in {1..9}`: every value is a number.
         const numbers =
           values.length > 0 &&
           values.every(
             (value) =>
-              value !== null &&
-              (/^-?\d+$/.test(value.text) ||
-                /^\{-?\d+\.\.-?\d+(?:\.\.-?\d+)?\}$/.test(value.text)),
+              /^-?\d+$/.test(value.text) ||
+              /^\{-?\d+\.\.-?\d+(?:\.\.-?\d+)?\}$/.test(value.text),
           );
-        if (variable !== null)
-          bind(variable.text, variable, node, false, numbers);
+        bind(variable.text, variable, null, numbers);
         // `select` also sets REPLY.
-        if (node.child(0)?.type === "select")
-          bind("REPLY", node, node, false, false);
+        if ((node.child(0) as Node).type === "select")
+          bind("REPLY", node, null, false);
         break;
       }
       case "binary_expression":
       case "postfix_expression":
       case "unary_expression": {
         if (!inArithmetic(node)) break;
-        const operator = field(node, "operator")?.text ?? "";
-        if (!/^(?:[-+*/%&|^]|<<|>>)?=$|^\+\+$|^--$/.test(operator)) break;
-        const target = field(node, "left") ?? named(node)[0];
-        if (target?.type === "variable_name" || target?.type === "word")
-          bind(target.text, target, node, false, true);
+        if (!ASSIGNMENTS.has((field(node, "operator") as Node).text)) break;
+        const target = named(node)[0] as Node;
+        if (target.type === "variable_name" || target.type === "word")
+          bind(target.text, target, null, true);
         break;
       }
       case "command": {
@@ -1067,32 +1103,26 @@ export function bashReferences(
         let list = args(node);
         // `command read X` and `builtin read X` still set X.
         while ((name === "command" || name === "builtin") && list.length > 0) {
-          const next = wordValue(list[0] as Node);
-          if (next === null || next.startsWith("-")) break;
-          name = next;
+          name = wordValue(list[0] as Node);
           list = list.slice(1);
         }
-        const bound = name === null ? [] : commandBinds(name, list);
         // `read`, `mapfile`, `printf -v` and `getopts` set their variables
         // even at end of input; `wait -p` only when a job ends.
-        for (const variable of bound ?? [])
-          bind(variable, node, node, name !== "wait", false);
+        for (const variable of commandBinds(name, list) ?? NONE)
+          bind(variable, node, name === "wait" ? null : node, false);
         break;
       }
       case "unset_command": {
-        const flags = named(node)
-          .filter(
-            (child) => child.type === "word" && child.text.startsWith("-"),
-          )
-          .map((child) => child.text);
-        if (flags.some((flag) => flag.includes("f"))) break;
+        if (named(node).some((child) => /^-.*f/s.test(child.text))) break;
         // In a function, `unset X` may uncover a caller's X.
-        const own = enclosingFunction(node) === null;
+        const own = enclosingFunction(node) === null ? node : null;
         for (const child of named(node)) {
           const name =
             child.type === "variable_name" ? child.text : wordValue(child);
-          if (name !== null && /^[A-Za-z_]\w*$/.test(name))
-            bind(name, child, node, own, true);
+          // rationale: binding a name no read uses (`-v`, `a[1]`, null for
+          // `"$x"`) changes nothing, so skipping one is not observable.
+          // Stryker disable next-line ConditionalExpression
+          if (name !== null) bind(name, child, own, true);
         }
         break;
       }
@@ -1100,13 +1130,19 @@ export function bashReferences(
       case "expansion": {
         // `${X:=default}` sets X when it is unset.
         const match = /^\$\{(\w+):?=/.exec(node.text);
-        if (match !== null) bind(match[1] as string, node, node, false, false);
+        if (match !== null) bind(match[1] as string, node, null, false);
         break;
       }
     }
     for (const child of named(node)) collect(child);
   };
   collect(root);
+
+  /** Whether `command` is a `read` that sets `name`. */
+  const readBinds = (command: Node | null, name: string): boolean =>
+    command !== null &&
+    commandName(command) === "read" &&
+    (commandBinds("read", args(command)) ?? NONE).includes(name);
 
   /** Whether the value at `read` is certainly the script's own. */
   const dominated = (name: string, read: Node): boolean => {
@@ -1119,57 +1155,49 @@ export function bashReferences(
       // `read -r line || [[ -n $line ]]`: read sets its names even when it
       // fails at the end of its input.
       if (current.type === "list") {
-        const first = named(current)[0];
+        const first = named(current)[0] as Node;
         if (
-          first?.type === "command" &&
-          first.endIndex <= read.startIndex &&
-          commandName(first) === "read" &&
-          (commandBinds("read", args(first)) ?? []).includes(name)
+          first.type === "command" &&
+          !inside(read, first) &&
+          readBinds(first, name)
         )
           return true;
       }
       if (current.type === "do_group") {
-        const loop = current.parent;
+        const loop = current.parent as Node;
         if (
-          loop?.type === "for_statement" &&
-          (field(loop, "variable")?.text === name ||
-            (name === "REPLY" && loop.child(0)?.type === "select"))
+          loop.type === "for_statement" &&
+          ((field(loop, "variable") as Node).text === name ||
+            (name === "REPLY" && (loop.child(0) as Node).type === "select"))
         )
           return true;
-        if (loop?.type === "while_statement") {
-          const condition = field(loop, "condition");
-          const command =
+        // `while read -r line; do`; a `for` loop has no condition.
+        const condition = field(loop, "condition");
+        if (
+          readBinds(
             condition?.type === "command"
               ? condition
               : condition?.type === "list" &&
-                  named(condition)[0]?.type === "command"
+                  (named(condition)[0] as Node).type === "command"
                 ? (named(condition)[0] as Node)
-                : null;
-          if (
-            command !== null &&
-            commandName(command) === "read" &&
-            (commandBinds("read", args(command)) ?? []).includes(name)
-          )
-            return true;
-        }
-      }
-      if (current.type === "c_style_for_statement") {
-        const initializer = field(current, "initializer");
-        if (
-          initializer !== null &&
-          initializer.id !== read.id &&
-          field(initializer, "name")?.text === name &&
-          !(
-            read.startIndex >= initializer.startIndex &&
-            read.endIndex <= initializer.endIndex
+                : null,
+            name,
           )
         )
           return true;
       }
+      // `for (( i = 0; ...))`: the initializer sets i before the rest runs.
+      const initializer = field(current, "initializer");
+      if (
+        initializer !== null &&
+        field(initializer, "name")?.text === name &&
+        !inside(read, initializer)
+      )
+        return true;
     }
     const scope = enclosingFunction(read);
     const outer = outermostFunction(read);
-    for (const binding of bindings.get(name) ?? []) {
+    for (const binding of bindingsOf(name)) {
       if (!binding.dominates) continue;
       if (
         binding.scope !== null &&
@@ -1188,7 +1216,7 @@ export function bashReferences(
 
   /** Whether the read is certainly of the environment's value. */
   const certain = (name: string, read: Node): boolean => {
-    const list = bindings.get(name) ?? [];
+    const list = bindingsOf(name);
     if (list.length === 0) return true;
     if (outermostFunction(read) !== null) return false;
     for (const binding of list)
@@ -1196,12 +1224,8 @@ export function bashReferences(
     // A loop around the read may set the variable before its next turn.
     for (let current = read.parent; current !== null; current = current.parent)
       if (
-        /^(?:while|for|c_style_for)_statement$/.test(current.type) &&
-        list.some(
-          (binding) =>
-            binding.start >= current.startIndex &&
-            binding.end <= current.endIndex,
-        )
+        LOOPS.has(current.type) &&
+        list.some((binding) => inside(binding.node, current))
       )
         return false;
     return true;
@@ -1228,11 +1252,9 @@ export function bashReferences(
    * the script's own there and every value the script gives it is one.
    */
   const numeric = (name: string, place: Node): boolean => {
-    if (NUMERIC_SHELL_VARIABLES.has(name) || NUMERIC_SPECIAL.has(name))
-      return true;
-    if (integers.has(name)) return true;
+    if (NUMERIC_SHELL_VARIABLES.has(name) || integers.has(name)) return true;
     if (!dominated(name, place)) return false;
-    return (bindings.get(name) ?? []).every((binding) => binding.numeric);
+    return bindingsOf(name).every((binding) => binding.numeric);
   };
 
   /** A value evaluated as arithmetic may name another variable. */
@@ -1909,7 +1931,7 @@ export function bashReferences(
     );
     if (match === null) return null;
     const name = match[1] as string;
-    const sets = bindings.get(name) ?? [];
+    const sets = bindingsOf(name);
     if (
       sets.length !== 1 ||
       (sets[0] as Binding).scope !== null ||
