@@ -145,6 +145,11 @@ const set = (...items: string[]): ReadonlySet<string> => new Set(items);
  * that runs its argument as shell code (`sudo -s`, `env -S`, `flock -c`) is
  * refused like any option a wrapper does not list.
  */
+/** `ip` options that take the next word as their argument. */
+const IP_ARGUMENT_OPTIONS = ["netns", "family", "loops", "rcvbuf", "batch"];
+/** `ip` options without an argument whose prefixes overlap the ones above. */
+const IP_FLAG_OPTIONS = ["force", "brief", "resolve"];
+
 const WRAPPERS: ReadonlyMap<string, Wrapper> = new Map<string, Wrapper>([
   [
     "sudo",
@@ -1778,16 +1783,26 @@ export function bashReferences(
         return;
       }
       if (base === "ip") {
-        // `ip [-all] netns exec [NAME] CMD`: options may come first.
-        // `-netns NS`, or any prefix of it (`-n NS`), takes the namespace as
-        // its argument.
+        // `ip [-all] netns exec [NAME] CMD`: options may come first, and
+        // `-netns`, `-family`, `-loops`, `-rcvbuf` and `-batch` (or a prefix
+        // of one) take the next word as their argument. A prefix that may
+        // also name an option without one (`-f`: -family or -force) leaves
+        // the command unknown.
         let at = 0;
-        while (restWords[at]?.startsWith("-") === true)
-          at += /^n(?:e(?:t(?:ns?)?)?)?$/.test(
-            (restWords[at] as string).slice(1),
-          )
-            ? 2
-            : 1;
+        let unsure = false;
+        while (restWords[at]?.startsWith("-") === true) {
+          const option = (restWords[at] as string).replace(/^--?/, "");
+          const takes = IP_ARGUMENT_OPTIONS.some((full) =>
+            full.startsWith(option),
+          );
+          if (takes && IP_FLAG_OPTIONS.some((full) => full.startsWith(option)))
+            unsure = true;
+          at += takes ? 2 : 1;
+        }
+        if (unsure && restWords.includes("netns")) {
+          refuse(node);
+          return;
+        }
         if (restWords[at] === "netns" && restWords[at + 1] === "exec") {
           const all = restWords
             .slice(0, at)
@@ -2110,11 +2125,17 @@ export function bashReferences(
           // bash expands the subscript: `unset 'a[$k]'` reads k. The key of
           // an associative array is text; an index is arithmetic.
           // `a[@]` names no variable.
+          // `${!k}` reads a variable whose name is k's value.
+          if (key.includes("${!")) {
+            refuse(child);
+            continue;
+          }
+          // `${#k}` reads k too; in `16#ff` the digits after `#` are no name.
           if (assoc.has(subscript[1] as string))
-            for (const match of key.matchAll(/\$\{?([A-Za-z_]\w*)/g))
+            for (const match of key.matchAll(/\$\{?#?([A-Za-z_]\w*)/g))
               read(match[1] as string, child, node);
           else
-            for (const match of key.matchAll(/(?<![\w#])[A-Za-z_]\w*/g)) {
+            for (const match of key.matchAll(/(?<!\w)(?<!\w#)[A-Za-z_]\w*/g)) {
               read(match[0], child, node);
               evaluated(match[0], child, node);
             }

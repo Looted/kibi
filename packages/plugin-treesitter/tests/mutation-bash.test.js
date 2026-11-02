@@ -1364,6 +1364,26 @@ describe("Bash commands that run other commands", () => {
     for (const option of ["-n", "-ne", "-net", "-netn", "-netns"])
       await expect(`ip ${option} ns netns exec ns rm`, "calls", ["ip", "rm"]);
     await expect("ip -nets ns netns exec ns rm", "calls", ["ip"]);
+    // -family, -loops, -rcvbuf and -batch take an argument too, with one
+    // or two dashes.
+    for (const option of [
+      "-fa",
+      "-family",
+      "--family",
+      "-l",
+      "-loops",
+      "-rc",
+      "-rcvbuf",
+      "-ba",
+      "-batch",
+    ])
+      await expect(`ip ${option} inet netns exec ns rm`, "calls", ["ip", "rm"]);
+    // A prefix that may also be a flag (-f: -family or -force) leaves the
+    // command unknown.
+    for (const option of ["-f", "-b", "-r", "-", "--"])
+      await expect(`ip ${option} inet netns exec ns rm`, "calls", ["ip"], [1]);
+    await expect("ip -f inet link show", "calls", ["ip"]);
+    await expect("ip -force -batch x", "calls", ["ip"]);
   });
 
   it("follows wrappers to the command they run", async () => {
@@ -1561,6 +1581,11 @@ describe("Bash unset, declarations and assignments", () => {
       ["declare -A a; unset 'a[$k]'", "env", ["k"]],
       ["declare -A a; unset 'a[${k}x$j]'", "env", ["j", "k"]],
       ["declare -A a; unset 'a[$1]'", "env", []],
+      // `${#b}` reads b; `${!p}` reads a variable p only names.
+      ["unset 'a[${#b}]'", "env", ["b"], [1]],
+      ["declare -A a; unset 'a[${#k}]'", "env", ["k"]],
+      ["unset 'a[${!p}]'", "env", [], [1]],
+      ["declare -A a; unset 'a[${!p}]'", "env", [], [1]],
     ]);
   });
 
