@@ -285,53 +285,52 @@ function lower(name: string): string {
   return name.toLowerCase();
 }
 
-/** The value of a PHP escape sequence, or null for one Kibi does not decode. */
-function decodeEscape(text: string): string | null {
-  const simple: Readonly<Record<string, string>> = {
-    "\\n": "\n",
-    "\\t": "\t",
-    "\\r": "\r",
-    "\\v": "\v",
-    "\\e": "\x1b",
-    "\\f": "\f",
-    "\\\\": "\\",
-    "\\$": "$",
-    '\\"': '"',
-  };
-  const known = simple[text];
-  if (known !== undefined) return known;
-  const hex = /^\\x([0-9A-Fa-f]{1,2})$/.exec(text);
-  if (hex !== null)
-    return String.fromCharCode(Number.parseInt(hex[1] as string, 16));
-  const octal = /^\\([0-7]{1,3})$/.exec(text);
-  if (octal !== null)
-    return String.fromCharCode(Number.parseInt(octal[1] as string, 8) & 0xff);
-  const unicode = /^\\u\{([0-9A-Fa-f]+)\}$/.exec(text);
-  const point =
-    unicode === null ? Number.NaN : Number.parseInt(unicode[1] as string, 16);
-  return point <= 0x10ffff ? String.fromCodePoint(point) : null;
+const SIMPLE_ESCAPES: Readonly<Record<string, string>> = {
+  n: "\n",
+  t: "\t",
+  r: "\r",
+  v: "\v",
+  e: "\x1b",
+  f: "\f",
+  "\\": "\\",
+  $: "$",
+  '"': '"',
+};
+
+/**
+ * The bytes of an `escape_sequence` node, or null for a code point PHP
+ * refuses (past U+10FFFF) or writes as bytes that are not UTF-8 (a
+ * surrogate). The grammar admits only the escapes PHP decodes: `\n` and the
+ * like, `\x41`, `\101` and `\u{42}`.
+ */
+function decodeEscape(text: string): number[] | null {
+  const body = text.slice(1);
+  const simple = SIMPLE_ESCAPES[body];
+  if (simple !== undefined) return [simple.charCodeAt(0)];
+  if (body.startsWith("x")) return [Number.parseInt(body.slice(1), 16)];
+  if (body.startsWith("u")) {
+    const point = Number.parseInt(body.slice(2), 16);
+    return point > 0x10ffff || (point >= 0xd800 && point <= 0xdfff)
+      ? null
+      : [...new TextEncoder().encode(String.fromCodePoint(point))];
+  }
+  return [Number.parseInt(body, 8) & 0xff];
 }
 
 /** The value of a `string` or `encapsed_string` node with no interpolation. */
 function stringValue(node: Node): string | null {
-  if (node.type === "string") {
-    const text = node.text;
-    const body = /^[bB]?'([\s\S]*)'$/.exec(text)?.[1];
-    if (body === undefined) return null;
-    return body.replace(/\\([\\'])/g, "$1");
-  }
-  if (!/^[bB]?"/.test(node.text)) return null;
+  const text = node.text;
+  if (node.type === "string")
+    return text.slice(text.indexOf("'") + 1, -1).replace(/\\([\\'])/g, "$1");
   // A PHP string is bytes: `"\xc3\xa9"` is the UTF-8 of é.
   const bytes: number[] = [];
-  const encoder = new TextEncoder();
   for (const part of named(node)) {
     if (part.type === "string_content")
-      bytes.push(...encoder.encode(part.text));
+      bytes.push(...new TextEncoder().encode(part.text));
     else if (part.type === "escape_sequence") {
       const decoded = decodeEscape(part.text);
       if (decoded === null) return null;
-      if (/^\\(?:x|[0-7])/.test(part.text)) bytes.push(decoded.charCodeAt(0));
-      else bytes.push(...encoder.encode(decoded));
+      bytes.push(...decoded);
     } else return null;
   }
   try {
@@ -350,14 +349,10 @@ const INT64_MAX = 9223372036854775807n;
  * `1_000`), or null when PHP reads it as a float (past the int range).
  */
 function canonicalInteger(text: string): string | null {
-  const digits = text.replaceAll("_", "").toLowerCase();
-  let value: bigint;
-  if (/^0x[0-9a-f]+$/.test(digits) || /^0b[01]+$/.test(digits))
-    value = BigInt(digits);
-  else if (/^0o[0-7]+$/.test(digits)) value = BigInt(digits);
-  else if (/^0[0-7]+$/.test(digits)) value = BigInt(`0o${digits.slice(1)}`);
-  // The grammar admits no other spelling: a decimal.
-  else value = BigInt(digits);
+  const digits = text.replaceAll("_", "");
+  // A digit after a leading 0 is octal (the grammar admits only 0-7 there);
+  // BigInt reads every other spelling the grammar admits.
+  const value = BigInt(/^0\d/.test(digits) ? `0o${digits}` : digits);
   return value > INT64_MAX ? null : value.toString();
 }
 
@@ -369,7 +364,7 @@ function canonicalInteger(text: string): string | null {
 function canonicalFloat(text: string): string | null {
   const digits = text.replaceAll("_", "");
   const significant = digits
-    .replace(/[eE].*$/, "")
+    .replace(/e.*/i, "")
     .replace(".", "")
     .replace(/^0+/, "")
     .replace(/0+$/, "");
@@ -383,8 +378,7 @@ function canonicalFloat(text: string): string | null {
 /** A number literal node's value, or null. */
 function numberValue(node: Node): string | null {
   if (node.type === "integer") return canonicalInteger(node.text);
-  if (node.type === "float") return canonicalFloat(node.text);
-  return null;
+  return node.type === "float" ? canonicalFloat(node.text) : null;
 }
 
 /**
@@ -393,41 +387,33 @@ function numberValue(node: Node): string | null {
  */
 function docValue(node: Node): string | null {
   const body = field(node, "value");
-  const end = field(node, "end_tag");
-  if (body === null || end === null) return null;
+  // A doc with no line between its markers has no body: Kibi does not read it.
+  if (body === null) return null;
   if (
     node.type === "heredoc" &&
-    named(body).some((part) => part.type !== "string_content")
+    named(body).some(
+      (part) => part.type !== "string_content" || part.text.includes("\\"),
+    )
   )
     return null;
   const text = node.text;
-  const open = text.indexOf("\n");
-  const close = text.lastIndexOf("\n", end.startIndex - node.startIndex);
-  if (open < 0 || close < open) return null;
-  // The line end before the closing marker, `\r\n` too, is not text.
-  const stop = close > open && text[close - 1] === "\r" ? close - 1 : close;
-  const raw = text.slice(
-    open + 1,
-    close + 1 > open + 1 ? Math.max(stop, open + 1) : open + 1,
-  );
-  if (node.type === "heredoc" && raw.includes("\\")) return null;
-  const indent = text.slice(close + 1, end.startIndex - node.startIndex);
-  if (!/^[ \t]*$/.test(indent)) return null;
-  const lines = close === open ? [] : raw.split("\n");
+  const end = (field(node, "end_tag") as Node).startIndex - node.startIndex;
+  const close = text.lastIndexOf("\n", end);
+  // The closing marker's indentation: the grammar admits only blanks there.
+  const indent = text.slice(close + 1, end);
   const out: string[] = [];
-  for (const line of lines) {
-    if (line.trim() === "" && line.length <= indent.length) {
-      out.push("");
-      continue;
-    }
-    if (!line.startsWith(indent)) return null;
-    out.push(line.slice(indent.length));
+  for (const row of text.slice(text.indexOf("\n") + 1, close).split("\n")) {
+    if (row.startsWith(indent)) out.push(row.slice(indent.length));
+    // A blank line may be shorter than the indentation; its `\r` stays.
+    else if (row.trim() === "") out.push(row.endsWith("\r") ? "\r" : "");
+    else return null;
   }
-  return out.join("\n");
+  // The line end before the closing marker, `\r\n` too, is not text.
+  return out.join("\n").replace(/\r$/, "");
 }
 
 function stripLeading(name: string): string {
-  return name.replace(/^\\/, "").replace(/\s+/g, "");
+  return name.replace(/^\\/, "").replace(/\s/g, "");
 }
 
 function finalName(name: string): string {
@@ -456,44 +442,42 @@ export function phpReferences(
     unresolved.push(at(node));
   };
 
-  // Namespaces and imports, in file order.
-  const scopes: Scope[] = [];
+  const makeScope = (start: number, end: number, namespace: string): Scope => ({
+    start,
+    end,
+    namespace,
+    classes: new Map(),
+    functions: new Map(),
+  });
+  // Namespaces and imports, in file order: the global namespace first.
+  const scopes: Scope[] = [makeScope(0, root.endIndex, "")];
   const newScope = (start: number, end: number, namespace: string): Scope => {
-    const scope = {
-      start,
-      end,
-      namespace,
-      classes: new Map(),
-      functions: new Map(),
-    };
+    const scope = makeScope(start, end, namespace);
     scopes.push(scope);
     return scope;
   };
   const declared = new Set<string>();
   {
-    let current = newScope(0, root.endIndex, "");
+    let current = scopes[0] as Scope;
+    /** `use function` and `use const`, on the clause or the whole group. */
+    const typeOf = (node: Node): string | undefined =>
+      field(node, "type")?.text.toLowerCase();
     const imports = (declaration: Node, scope: Scope): void => {
-      const kind =
-        /^use\s+(function|const)\b/i
-          .exec(declaration.text)?.[1]
-          ?.toLowerCase() ?? "class";
       const prefixNode = named(declaration).find(
         (child) => child.type === "namespace_name",
       );
       const prefix =
         prefixNode === undefined ? "" : `${stripLeading(prefixNode.text)}\\`;
       const group = field(declaration, "body");
-      const clauses = (group ?? declaration).namedChildren.filter(
-        (child) => child?.type === "namespace_use_clause",
-      ) as Node[];
+      const clauses = named(group ?? declaration).filter(
+        (child) => child.type === "namespace_use_clause",
+      );
       for (const clause of clauses) {
+        // A comment may come first.
         const target = named(clause).find(
           (child) => child.type === "qualified_name" || child.type === "name",
-        );
-        if (target === undefined) continue;
-        const clauseKind =
-          /^\s*(function|const)\b/i.exec(clause.text)?.[1]?.toLowerCase() ??
-          kind;
+        ) as Node;
+        const clauseKind = typeOf(clause) ?? typeOf(declaration) ?? "class";
         const full = `${prefix}${stripLeading(target.text)}`;
         const alias = field(clause, "alias")?.text ?? finalName(full);
         if (extract === "imports") members.push(full);
@@ -507,34 +491,35 @@ export function phpReferences(
     const walk = (node: Node, outer: Scope): void => {
       let scope = outer;
       for (const child of named(node)) {
-        if (child.type === "namespace_definition") {
-          const name = stripLeading(field(child, "name")?.text ?? "");
-          const body = field(child, "body");
-          if (body !== null) {
-            const inner = newScope(body.startIndex, body.endIndex, name);
-            walk(body, inner);
-          } else {
-            // `namespace X;` holds until the next namespace statement.
-            current.end = child.startIndex;
-            current = newScope(child.startIndex, root.endIndex, name);
-            scope = current;
+        switch (child.type) {
+          case "namespace_definition": {
+            const name = stripLeading(field(child, "name")?.text ?? "");
+            const body = field(child, "body");
+            if (body !== null)
+              walk(body, newScope(body.startIndex, body.endIndex, name));
+            else {
+              // `namespace X;` holds until the next namespace statement.
+              current.end = child.startIndex;
+              current = newScope(child.endIndex, root.endIndex, name);
+              scope = current;
+            }
+            break;
           }
-          continue;
+          case "namespace_use_declaration":
+            imports(child, scope);
+            break;
+          case "function_definition":
+            // A name is never looked up in the global namespace's.
+            declared.add(
+              lower(
+                `${scope.namespace}\\${(field(child, "name") as Node).text}`,
+              ),
+            );
+            break;
+          case "compound_statement":
+          case "declare_statement":
+            walk(child, scope);
         }
-        if (child.type === "namespace_use_declaration") imports(child, scope);
-        if (child.type === "function_definition") {
-          const name = field(child, "name")?.text ?? "";
-          declared.add(
-            lower(
-              scope.namespace === "" ? name : `${scope.namespace}\\${name}`,
-            ),
-          );
-        }
-        if (
-          child.type === "compound_statement" ||
-          child.type === "declare_statement"
-        )
-          walk(child, scope);
       }
     };
     walk(root, current);
@@ -552,19 +537,16 @@ export function phpReferences(
   };
   const scopeOf = (node: Node): Scope => {
     let found = scopes[0] as Scope;
+    // Scopes are in file order: a later one is the namespace inside.
     for (const scope of scopes)
-      if (
-        scope.start <= node.startIndex &&
-        node.startIndex < scope.end &&
-        scope.start >= found.start
-      )
+      if (scope.start <= node.startIndex && node.startIndex < scope.end)
         found = scope;
     return found;
   };
 
   const resolveClass = (node: Node): string | null => {
     const scope = scopeOf(node);
-    const text = node.text.replace(/\s+/g, "");
+    const text = node.text.replace(/\s/g, "");
     switch (node.type) {
       case "name": {
         const relative = relativeClass(node, text);
@@ -575,13 +557,13 @@ export function phpReferences(
       }
       case "qualified_name": {
         if (text.startsWith("\\")) return text.slice(1);
-        const [first = "", ...rest] = text.split("\\");
+        const [first, ...rest] = text.split("\\") as [string, ...string[]];
         const alias = imported(scope.classes, first, node);
         if (alias !== undefined) return [alias, ...rest].join("\\");
         return scope.namespace === "" ? text : `${scope.namespace}\\${text}`;
       }
       case "relative_name":
-        return `${scope.namespace === "" ? "" : `${scope.namespace}\\`}${text.replace(/^namespace\\/i, "")}`;
+        return `${scope.namespace === "" ? "" : `${scope.namespace}\\`}${text.slice("namespace\\".length)}`;
       case "relative_scope":
         return relativeClass(node, text) ?? null;
       default:
@@ -628,7 +610,7 @@ export function phpReferences(
     node: Node,
   ): { name: string; namespace: string | null } | null => {
     const scope = scopeOf(node);
-    const text = node.text.replace(/\s+/g, "");
+    const text = node.text.replace(/\s/g, "");
     switch (node.type) {
       case "name": {
         const alias = imported(scope.functions, text, node);
@@ -760,7 +742,7 @@ export function phpReferences(
   /** `__DIR__`, `dirname(__FILE__)`, `dirname(__DIR__, n)`: a folder of the file. */
   const directoryOf = (node: Node): string | null => {
     const here = posix.dirname(options.file);
-    const text = node.text.replace(/\s+/g, "");
+    const text = node.text.replace(/\s/g, "");
     if (/^__DIR__$/i.test(text)) return here;
     // `dirname(dirname(__FILE__))`: each call goes up from the inner path.
     const parent = (path: string): string | null => {
