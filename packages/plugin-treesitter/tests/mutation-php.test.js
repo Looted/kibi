@@ -143,6 +143,211 @@ describe("PHP literal values", () => {
   });
 });
 
+describe("PHP computed literals", () => {
+  it("reads negated numbers, `.` chains and X::class", async () => {
+    await values([
+      ["+5", "refused"],
+      ["-0", "0"],
+      ["-0.0", "0"],
+      ["'1' + '2'", "refused"],
+      ["'a' . true", "a1"],
+      ["'a' . false", "a"],
+      ["'a' . null", "a"],
+      ["'a' . 1.5", "refused"],
+      ["'a' . -1.5", "refused"],
+      ["'a' . -1", "a-1"],
+      ["'a' . (1.5)", "a1.5"],
+      ["X::FOO", "refused"],
+      ["X::class", "X"],
+    ]);
+  });
+});
+
+describe("PHP included paths", () => {
+  const include = (body, members, rows) => [
+    body,
+    members,
+    rows ?? (members.length === 0 ? [`2: ${body.slice(0, -1)}`] : []),
+  ];
+  it("resolves a path from the file's folder", async () => {
+    await reads(
+      "imports",
+      [
+        include("include 'php://memory';", []),
+        include("include 'a1+.-b://x';", []),
+        include("include 'data:text/plain,x';", []),
+        include("include 'lib/a://b.php';", ["lib/a://b.php"]),
+        include("include 'lib/data:x.php';", ["lib/data:x.php"]),
+        include("include ('x.php');", ["x.php"]),
+        include("include (__DIR__) . '/x.php';", ["app/src/lib/x.php"]),
+        include("include (__DIR__ /*c*/) . '/x.php';", []),
+        include("include __DIR__ + '/x.php';", []),
+        include("include $base . '/x.php';", []),
+        include("include __DIR__ . MY_DIRECTORY_SEPARATOR . 'x.php';", []),
+        include("include __DIR__ . DIRECTORY_SEPARATOR_X . 'x.php';", []),
+        include("include __DIR__ . \\DIRECTORY_SEPARATOR . 'x.php';", [
+          "app/src/lib/x.php",
+        ]),
+        include("include __DIR__ . '/' . $x;", []),
+        include("include __DIR__ . 'x.php';", []),
+        include("include __DIR__;", []),
+        include("include X__DIR__ . '/a.php';", []),
+        include("include __DIR__X . '/a.php';", []),
+        include("include dirname(X__FILE__) . '/a.php';", []),
+        include("include dirname(__FILE__X) . '/a.php';", []),
+        include("include dirname(__FILE__) . '/a.php';", ["app/src/lib/a.php"]),
+        include("include dirname( __DIR__ , 2 ) . '/a.php';", ["app/a.php"]),
+        include("include dirname(Xdirname(__DIR__)) . '/a.php';", []),
+        include("include Xdirname(__DIR__) . '/a.php';", []),
+        include("include dirname(__DIR__)[0] . '/a.php';", []),
+        include("include dirname(__DIR__, 10) . '/a.php';", [
+          "../../../../../../../a.php",
+        ]),
+        include("include dirname($x) . '/a.php';", []),
+        include("include __FILE__ . '/x.php';", []),
+        include("include dirname(dirname(__FILE__)) . '/a.php';", [
+          "app/src/a.php",
+        ]),
+        include("include \\dirname(__DIR__) . '/a.php';", ["app/src/a.php"]),
+      ],
+      { path: "app/src/lib/a.php" },
+    );
+  });
+});
+
+describe("PHP call targets", () => {
+  it("names self and parent only where the class is known", async () => {
+    await reads("calls", [
+      [
+        "$o = new class { function m() { self::x(); parent::y(); } }; class C { function m() { parent::z(); } }",
+        ["*.x", "*.y", "*.z"],
+      ],
+      ["Foo \\ bar(); \\Foo\\baz();", ["foo\\bar", "foo\\baz"]],
+      [
+        "('trim')($x); (\"strlen\")($y); ((('ucfirst')))($z);",
+        ["strlen", "trim", "ucfirst"],
+      ],
+      [
+        "('TRIM')($x); \\exit(1); die('x'); $o?->m(); namespace\\Foo::m(); $c::m(); X::{'m'}(); $o->{'m'}(); new Fiber;",
+        ["*.m", "Foo::m", "die", "exit", "trim"],
+        ["2: X::{'m'}()", "2: $o->{'m'}()"],
+      ],
+      ["\\exit(1);", ["die", "exit"]],
+    ]);
+  });
+
+  it("names the callables a builtin is handed", async () => {
+    await reads("calls", [
+      [
+        "class C { function m() { array_map('self::ab', $x); array_map('Foo::b', $x); array_map('TRIM', $x); array_map('X\\self::c', $x); array_map(function($x){}, $x); array_map(fn($x) => 1, $x); array_map([$o, 'm'], $x); array_map(strlen(...), $x); } }",
+        ["*.m", "C::ab", "Foo::b", "X\\self::c", "array_map", "strlen", "trim"],
+      ],
+      [
+        "new class { function m() { array_map('self::p', []); } };",
+        ["*.p", "array_map"],
+      ],
+      ...[
+        "[X::class, 'm', 'z']",
+        "['k' => X::class, 'm']",
+        "[X::class, $m]",
+        "strlen()",
+        "strlen($y)",
+      ].map((handed) => [
+        `array_map(${handed}, $x);`,
+        handed.startsWith("strlen") ? ["array_map", "strlen"] : ["array_map"],
+        [`2: ${handed}`],
+      ]),
+      ["array_map($o->m(...), $x);", ["*.m", "array_map"], ["2: $o->m(...)"]],
+    ]);
+  });
+
+  it("reads first arguments of the callee only", async () => {
+    await reads(
+      "string_args",
+      [
+        [
+          "exec(/*c*/'ls'); exec(); exec(...); exec(...$a); xxexec('a'); $o->run('x'); $f('x');",
+          ["ls"],
+          ["2: exec(...)", "2: exec(...$a)", "2: $f('x')"],
+        ],
+      ],
+      { callee: "exec" },
+    );
+    await reads("string_args", [["$o->exec('x');", ["x"]]], {
+      callee: "*.exec",
+    });
+    await reads(
+      "string_args",
+      [["$db->prepare('x');", [], ["2: $db->prepare('x')"]]],
+      { callee: "Db\\Pdo::prepare" },
+    );
+  });
+
+  it("names thrown method calls", async () => {
+    await reads("thrown", [
+      ["throw $o->make(); throw $o?->make();", ["*.make"]],
+    ]);
+  });
+});
+
+describe("PHP environment class reads", () => {
+  it("refuses an unknown object's getter where the file names Env", async () => {
+    for (const marker of [
+      "Env::",
+      "Env ::",
+      "new Env",
+      "new  Env",
+      "extends Env",
+      "extends  Env",
+      "\\Env",
+      "Illuminate\\Support",
+      "Illuminate \\ Support",
+    ])
+      await reads("env", [
+        [`// ${marker}\n$e->get('X');`, [], ["3: $e->get('X')"]],
+      ]);
+    for (const marker of ["newEnv", "xEnv::", "new Envy", ""])
+      await reads("env", [[`// ${marker}\n$e->get('X');`, []]]);
+  });
+
+  it("follows the classes the file declares", async () => {
+    await reads("env", [
+      [
+        "$cls::get('X'); static::get('Y');",
+        [],
+        ["2: $cls::get('X')", "2: static::get('Y')"],
+      ],
+      [
+        "Illuminate\\Support\\Env::getRepository('X');",
+        [],
+        ["2: Illuminate\\Support\\Env::getRepository('X')"],
+      ],
+      ["class A extends B {} class B extends A {} A::get('X');", []],
+      [
+        "function Foo() {} Foo::get('X');",
+        [],
+        [
+          "2: Foo may be Illuminate\\Support\\Env or a class that extends it: Foo::get('X')",
+        ],
+      ],
+      ["class Foo {} Foo::get('X'); abget('Y');", []],
+      ["namespace App; class Foo {} Foo::get('X');", []],
+      [
+        "class C extends \\Illuminate\\Support\\Env { function m() { $this->get('X'); ($this)->get('Y'); (new static)->get('Z'); (new self)->get('W'); } }",
+        ["W", "X", "Y"],
+        ["2: (new static)->get('Z')"],
+      ],
+      [
+        "(new Env)->get('X'); (new \\Illuminate\\Support\\Env)->getOrFail('Y');",
+        ["Y"],
+        [
+          "2: Env may be Illuminate\\Support\\Env or a class that extends it: (new Env)->get('X')",
+        ],
+      ],
+    ]);
+  });
+});
+
 describe("PHP namespaces and imports", () => {
   it("lists imports of every form", async () => {
     await reads("imports", [

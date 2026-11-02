@@ -412,6 +412,11 @@ function docValue(node: Node): string | null {
   return out.join("\n").replace(/\r$/, "");
 }
 
+/** A `php://`, `phar://` or `data:` path: no project file. */
+function isStream(path: string): boolean {
+  return /^[A-Za-z][\w+.-]*:\/\//.test(path) || /^data:/i.test(path);
+}
+
 function stripLeading(name: string): string {
   return name.replace(/^\\/, "").replace(/\s/g, "");
 }
@@ -594,15 +599,20 @@ export function phpReferences(
       (rebinds && insideClosure(node))
     )
       return null;
-    if (kind === "self") {
-      const name = field(owner, "name")?.text;
-      if (name === undefined) return null;
-      const namespace = scopeOf(owner).namespace;
-      return namespace === "" ? name : `${namespace}\\${name}`;
-    }
+    if (kind === "self")
+      return field(owner, "name") === null ? null : selfName(owner);
+    return parentName(owner);
+  }
+  /** The full name of a class, trait or enum the file declares. */
+  function selfName(owner: Node): string {
+    const name = (field(owner, "name") as Node).text;
+    const namespace = scopeOf(owner).namespace;
+    return namespace === "" ? name : `${namespace}\\${name}`;
+  }
+  /** The class a class extends, or null for none. */
+  function parentName(owner: Node): string | null {
     const base = named(owner).find((child) => child.type === "base_clause");
-    const parent = base === undefined ? undefined : named(base)[0];
-    return parent === undefined ? null : resolveClass(parent);
+    return base === undefined ? null : resolveClass(named(base)[0] as Node);
   }
 
   /** A function call target's names, and the namespace that may shadow it. */
@@ -610,7 +620,7 @@ export function phpReferences(
     node: Node,
   ): { name: string; namespace: string | null } | null => {
     const scope = scopeOf(node);
-    const text = node.text.replace(/\s/g, "");
+    const text = node.text;
     switch (node.type) {
       case "name": {
         const alias = imported(scope.functions, text, node);
@@ -622,14 +632,9 @@ export function phpReferences(
         return { name: lower(text), namespace: scope.namespace };
       }
       case "qualified_name":
-      case "relative_name": {
-        if (text.startsWith("\\"))
-          return { name: lower(text.slice(1)), namespace: null };
-        const resolved = resolveClass(node);
-        return resolved === null
-          ? null
-          : { name: lower(resolved), namespace: null };
-      }
+      case "relative_name":
+        // Either is resolved as a class name is, never to null.
+        return { name: lower(resolveClass(node) as string), namespace: null };
       default:
         return null;
     }
@@ -655,37 +660,34 @@ export function phpReferences(
       case "parenthesized_expression":
         return literal(named(node)[0]);
       case "unary_op_expression": {
-        const operand = named(node)[0];
-        const value = operand === undefined ? null : numberValue(operand);
-        if (value === null || !node.text.trimStart().startsWith("-"))
-          return null;
-        return /^0(?:\.0*)?$/.test(value) ? "0" : `-${value}`;
+        const value = numberValue(named(node)[0] as Node);
+        if (value === null || !node.text.startsWith("-")) return null;
+        // A number's value is "0" for `0`, `0.0` and `-0.0` alike.
+        return value === "0" ? "0" : `-${value}`;
       }
       case "binary_expression": {
-        if (field(node, "operator")?.text !== ".") return null;
+        if ((field(node, "operator") as Node).text !== ".") return null;
         // As text, `true` is "1" and `false` and `null` are "".
-        const text = (side: Node | null): string | null => {
-          if (side?.type === "boolean")
+        const text = (side: Node): string | null => {
+          if (side.type === "boolean")
             return lower(side.text) === "true" ? "1" : "";
-          if (side?.type === "null") return "";
+          if (side.type === "null") return "";
           // PHP writes a float with its own precision (`1.0E+15`).
           if (
-            side?.type === "float" ||
-            (side?.type === "unary_op_expression" &&
-              named(side)[0]?.type === "float")
+            side.type === "float" ||
+            (side.type === "unary_op_expression" &&
+              (named(side)[0] as Node).type === "float")
           )
             return null;
           return literal(side);
         };
-        const left = text(field(node, "left"));
-        const right = text(field(node, "right"));
+        const left = text(field(node, "left") as Node);
+        const right = text(field(node, "right") as Node);
         return left === null || right === null ? null : left + right;
       }
       case "class_constant_access_expression": {
-        const [scope, constant] = named(node);
-        if (scope === undefined || lower(constant?.text ?? "") !== "class")
-          return null;
-        return resolveClass(scope);
+        const [scope, constant] = named(node) as [Node, Node];
+        return lower(constant.text) === "class" ? resolveClass(scope) : null;
       }
       default:
         return null;
@@ -696,17 +698,10 @@ export function phpReferences(
    * `__DIR__ . '/x.php'`, `dirname(__FILE__) . '/x.php'` and
    * `dirname(__DIR__, 2) . '/lib/' . 'x.php'`: a path from the file's folder.
    */
-  const includePath = (node: Node | undefined): string | null => {
-    if (node === undefined) return null;
-    const inner =
-      node.type === "parenthesized_expression" ? named(node)[0] : node;
-    if (inner === undefined) return null;
-    const value = literal(inner);
+  const includePath = (node: Node): string | null => {
+    const value = literal(node);
     // `data://`, `php://` and `phar://` paths are not project files.
-    if (value !== null)
-      return /^[A-Za-z][\w+.-]*:\/\//.test(value) || /^data:/i.test(value)
-        ? null
-        : value;
+    if (value !== null) return isStream(value) ? null : value;
     // The parts of a `.` chain, left to right.
     const parts: Node[] = [];
     const flatten = (part: Node): void => {
@@ -714,17 +709,15 @@ export function phpReferences(
         flatten(named(part)[0] as Node);
       else if (
         part.type === "binary_expression" &&
-        field(part, "operator")?.text === "."
+        (field(part, "operator") as Node).text === "."
       ) {
-        const left = field(part, "left");
-        const right = field(part, "right");
-        if (left !== null) flatten(left);
-        if (right !== null) flatten(right);
+        flatten(field(part, "left") as Node);
+        flatten(field(part, "right") as Node);
       } else parts.push(part);
     };
-    flatten(inner);
-    const [head, ...rest] = parts;
-    if (head === undefined || rest.length === 0) return null;
+    flatten(node);
+    // A lone part is no `.` chain: `__DIR__` alone ends in no "/" below.
+    const [head, ...rest] = parts as [Node, ...Node[]];
     const folder = directoryOf(head);
     if (folder === null) return null;
     let tail = "";
@@ -740,28 +733,19 @@ export function phpReferences(
   };
 
   /** `__DIR__`, `dirname(__FILE__)`, `dirname(__DIR__, n)`: a folder of the file. */
-  const directoryOf = (node: Node): string | null => {
-    const here = posix.dirname(options.file);
-    const text = node.text.replace(/\s/g, "");
-    if (/^__DIR__$/i.test(text)) return here;
+  const directoryOf = (node: Node): string | null =>
+    folderOf(node.text.replace(/\s/g, ""));
+  const folderOf = (text: string): string | null => {
+    if (/^__DIR__$/i.test(text)) return posix.dirname(options.file);
     // `dirname(dirname(__FILE__))`: each call goes up from the inner path.
-    const parent = (path: string): string | null => {
-      if (/^__DIR__$/i.test(path)) return here;
-      if (/^__FILE__$/i.test(path)) return options.file;
-      const call = /^\\?dirname\((.+?)(?:,(\d+))?\)$/i.exec(path);
-      if (call === null) return null;
-      const inner = call[1] as string;
-      let folder = parent(inner);
-      if (folder === null) return null;
-      for (let index = 0; index < Number(call[2] ?? "1"); index += 1)
-        folder =
-          index === 0 && /^__FILE__$/i.test(inner)
-            ? posix.dirname(folder)
-            : posix.join(folder, "..");
-      return folder;
-    };
-    if (!/^\\?dirname\(/i.test(text)) return null;
-    return parent(text);
+    const call = /^\\?dirname\((.+?)(?:,(\d+))?\)$/i.exec(text);
+    if (call === null) return null;
+    const inner = call[1] as string;
+    let folder = /^__FILE__$/i.test(inner) ? options.file : folderOf(inner);
+    if (folder === null) return null;
+    for (let index = 0; index < Number(call[2] ?? "1"); index += 1)
+      folder = posix.join(folder, "..");
+    return folder;
   };
 
   const shadow = (name: string, namespace: string, node: Node): void => {
@@ -777,14 +761,15 @@ export function phpReferences(
   ): {
     names: string[];
     namespace: string | null;
-    dynamicFunction: boolean;
   } | null => {
+    // A method name computed at run time: `$o->$m()`, `X::{'m'}()`.
+    const method = field(node, "name");
+    if (method !== null && method.type !== "name") return null;
     switch (node.type) {
       case "function_call_expression": {
-        let target = field(node, "function");
-        while (target?.type === "parenthesized_expression")
-          target = named(target)[0] ?? null;
-        if (target === null) return null;
+        let target = field(node, "function") as Node;
+        while (target.type === "parenthesized_expression")
+          target = named(target)[0] as Node;
         const literalName =
           target.type === "string" || target.type === "encapsed_string"
             ? stringValue(target)
@@ -794,12 +779,10 @@ export function phpReferences(
           return {
             names: [name.includes("::") ? name : lower(name)],
             namespace: null,
-            dynamicFunction: false,
           };
         }
         const resolved = resolveFunction(target);
-        if (resolved === null)
-          return { names: [], namespace: null, dynamicFunction: true };
+        if (resolved === null) return null;
         return {
           // `die` and `exit` are one construct: both names are listed.
           names:
@@ -807,37 +790,18 @@ export function phpReferences(
               ? ["exit", "die"]
               : [resolved.name],
           namespace: resolved.namespace,
-          dynamicFunction: false,
         };
       }
       case "member_call_expression":
-      case "nullsafe_member_call_expression": {
-        const method = field(node, "name");
-        if (method?.type !== "name") return null;
-        return {
-          names: [`*.${method.text}`],
-          namespace: null,
-          dynamicFunction: false,
-        };
-      }
+      case "nullsafe_member_call_expression":
+        return { names: [`*.${(method as Node).text}`], namespace: null };
       default: {
         // scoped_call_expression, the one other call isCall admits.
-        const method = field(node, "name");
-        const scope = field(node, "scope");
-        if (method?.type !== "name" || scope === null) return null;
-        const owner =
-          scope.type === "name" ||
-          scope.type === "qualified_name" ||
-          scope.type === "relative_scope" ||
-          scope.type === "relative_name"
-            ? resolveClass(scope)
-            : null;
+        const owner = resolveClass(field(node, "scope") as Node);
+        const name = (method as Node).text;
         return {
-          names: [
-            owner === null ? `*.${method.text}` : `${owner}::${method.text}`,
-          ],
+          names: [owner === null ? `*.${name}` : `${owner}::${name}`],
           namespace: null,
-          dynamicFunction: false,
         };
       }
     }
@@ -850,22 +814,17 @@ export function phpReferences(
     node.type === "scoped_call_expression";
 
   const callArguments = (node: Node): Node[] => {
-    const list =
-      field(node, "arguments") ??
-      named(node).find((child) => child.type === "arguments") ??
-      null;
-    if (list === null) return [];
-    return named(list).filter(
+    // `new X` has no list, and no child of its own is an argument. A
+    // comment may come between arguments.
+    const list = named(node).find((child) => child.type === "arguments");
+    return named(list ?? node).filter(
       (child) =>
         child.type === "argument" || child.type === "variadic_placeholder",
     );
   };
+  /** An argument's value: its last child, after the name of a named one. */
   const argumentValue = (argument: Node | undefined): Node | undefined =>
-    argument === undefined
-      ? undefined
-      : named(argument)
-          .filter((child) => child.id !== field(argument, "name")?.id)
-          .at(-1);
+    argument === undefined ? undefined : named(argument).at(-1);
   const firstPositional = (node: Node): Node | undefined => {
     const first = callArguments(node)[0];
     if (
@@ -883,7 +842,7 @@ export function phpReferences(
     const value = literal(node);
     if (value !== null) {
       const name = stripLeading(value);
-      const scoped = /^(\w+)::(.+)$/.exec(name);
+      const scoped = /^(\w+)::(.+)/.exec(name);
       if (scoped !== null) {
         const owner = relativeClass(node, scoped[1] as string);
         if (owner !== undefined)
@@ -891,20 +850,16 @@ export function phpReferences(
       }
       return [name.includes("::") ? name : lower(name)];
     }
-    if (
-      node.type === "anonymous_function" ||
-      node.type === "arrow_function" ||
-      node.type === "anonymous_function_creation_expression"
-    )
+    if (node.type === "anonymous_function" || node.type === "arrow_function")
       return [];
     if (node.type === "array_creation_expression") {
       const items = named(node).map((item) => named(item));
       if (items.length !== 2 || items.some((item) => item.length !== 1))
         return null;
-      const [owner, method] = items.map((item) => item[0] as Node);
+      const [owner, method] = items.map((item) => item[0]) as [Node, Node];
       const methodName = literal(method);
-      if (methodName === null || owner === undefined) return null;
-      const ownerText = owner.type === "variable_name" ? null : literal(owner);
+      if (methodName === null) return null;
+      const ownerText = literal(owner);
       const relative =
         ownerText === null ? undefined : relativeClass(owner, ownerText);
       const ownerName =
@@ -930,21 +885,11 @@ export function phpReferences(
   // extends (null for none).
   const classes = new Map<string, string | null>();
   const declareClasses = (node: Node): void => {
-    if (node.type === "class_declaration") {
-      const name = field(node, "name")?.text;
-      if (name !== undefined) {
-        const namespace = scopeOf(node).namespace;
-        const base = named(node).find((child) => child.type === "base_clause");
-        const parent = base === undefined ? undefined : named(base)[0];
-        classes.set(
-          lower(namespace === "" ? name : `${namespace}\\${name}`),
-          parent === undefined ? null : resolveClass(parent),
-        );
-      }
-    }
+    if (node.type === "class_declaration")
+      classes.set(lower(selfName(node)), parentName(node));
     for (const child of named(node)) declareClasses(child);
   };
-  if (extract === "env") declareClasses(root);
+  declareClasses(root);
 
   /**
    * Whether a class is Laravel's environment class: "env", "no", or the
@@ -966,25 +911,19 @@ export function phpReferences(
    * for any other object.
    */
   const instanceClass = (call: Node): string | null | undefined => {
-    let object = field(call, "object");
-    while (object?.type === "parenthesized_expression")
-      object = named(object)[0] ?? null;
-    if (object?.type === "variable_name" && object.text === "$this")
-      return relativeClass(call, "self") ?? null;
-    if (object?.type === "object_creation_expression") {
-      const type = named(object)[0];
-      if (type?.type === "name" || type?.type === "qualified_name")
-        return /^(?:static|self|parent)$/i.test(type.text)
-          ? (relativeClass(call, type.text) ?? null)
-          : resolveClass(type);
-      return null;
-    }
+    let object = field(call, "object") as Node;
+    while (object.type === "parenthesized_expression")
+      object = named(object)[0] as Node;
+    if (object.text === "$this") return relativeClass(call, "self") ?? null;
+    // `new static`, `new $class` and `new class {}` are null.
+    if (object.type === "object_creation_expression")
+      return resolveClass(named(object)[0] as Node);
     return undefined;
   };
 
   /** Whether the file names a class `Env` (or Laravel's support namespace). */
   const namesEnv =
-    /\benv\s*::|\bnew\s+\\?(?:[\w\\]*\\)?env\b|\bextends\s+\\?(?:[\w\\]*\\)?env\b|\\env\b|illuminate\s*\\\s*support\b/i.test(
+    /\benv\s*::|\b(?:new|extends)\s+env\b|\\env\b|illuminate\s*\\\s*support\b/i.test(
       root.text,
     );
 
@@ -1006,9 +945,12 @@ export function phpReferences(
     statically: boolean,
   ): boolean => {
     if (ENV_GETTERS.has(lower(name))) return true;
-    const scoped = /^(.*)::(\w+)$/.exec(name);
-    const unknown = /^\*\.(\w+)$/.exec(name);
-    const method = lower(scoped?.[2] ?? unknown?.[1] ?? "");
+    const scoped = /(.*)::(.*)/.exec(name);
+    // A function, not a method.
+    if (scoped === null && !name.startsWith("*.")) return false;
+    const method = lower(
+      scoped === null ? name.slice(2) : (scoped[2] as string),
+    );
     if (!ENV_METHODS.has(method)) return false;
     let owner = scoped?.[1];
     if (scoped === null) {
@@ -1054,33 +996,24 @@ export function phpReferences(
     const matches = names.some((candidate) =>
       calleeMatches(candidate, options.callee),
     );
-    // `$db->prepare($sql)` may be a call of PDO::prepare.
+    // `$db->prepare($sql)` may be a call of PDO::prepare. A method's name
+    // is the only one.
+    const method = names[0] as string;
     const unknown =
       !matches &&
-      options.callee !== "" &&
-      names.some(
-        (candidate) =>
-          candidate.startsWith("*.") &&
-          lower(candidate.slice(2)) === lastSegment(options.callee),
-      );
+      method.startsWith("*.") &&
+      lower(method.slice(2)) === lastSegment(options.callee);
     if (!matches && !unknown) return;
     const first = callArguments(node)[0];
     if (first === undefined) return;
-    // `exec(...)` makes a callable of the callee, which is called elsewhere
-    // with arguments Kibi does not see.
-    if (first.type === "variadic_placeholder") {
+    if (unknown || field(first, "name") !== null) {
+      // A named argument may be the first parameter.
       refuse(node);
       return;
     }
-    if (
-      unknown ||
-      field(first, "name") !== null ||
-      named(first).some((child) => child.type === "variadic_unpacking")
-    ) {
-      // A named or spread argument may be the first parameter.
-      refuse(node);
-      return;
-    }
+    // `exec(...)` makes a callable of the callee, called elsewhere with
+    // arguments Kibi does not see; a spread (`...$args`) has no literal
+    // value either.
     const value = literal(argumentValue(first));
     if (value === null) refuse(node);
     else members.push(value);
@@ -1686,12 +1619,11 @@ export function phpReferences(
       case "nullsafe_member_call_expression":
       case "scoped_call_expression": {
         const read = callNames(node);
-        if (read === null || read.dynamicFunction) {
+        if (read === null) {
           // A method name or target computed at run time.
           const functionLike =
             node.type === "function_call_expression" ||
-            node.type === "scoped_call_expression" ||
-            read?.dynamicFunction === true;
+            node.type === "scoped_call_expression";
           if (
             extract === "calls" ||
             extract === "string_args" ||
@@ -1903,20 +1835,11 @@ export function phpReferences(
         if (extract !== "imports") {
           // `include 'data://text/plain,<?php system(...);'` runs code the
           // file does not show.
-          const target = named(node)[0];
-          const inner =
-            target?.type === "parenthesized_expression"
-              ? named(target)[0]
-              : target;
-          const value = inner === undefined ? null : literal(inner);
-          if (
-            value !== null &&
-            (/^[A-Za-z][\w+.-]*:\/\//.test(value) || /^data:/i.test(value))
-          )
-            refuse(node);
+          const value = literal(named(node)[0] as Node);
+          if (value !== null && isStream(value)) refuse(node);
           break;
         }
-        const path = includePath(named(node)[0]);
+        const path = includePath(named(node)[0] as Node);
         if (path === null) refuse(node);
         else members.push(path);
         break;
@@ -2002,7 +1925,7 @@ export function phpReferences(
           else members.push(owner);
         } else if (thrown !== undefined && isCall(thrown)) {
           const read = callNames(thrown);
-          if (read === null || read.dynamicFunction) refuse(node);
+          if (read === null) refuse(node);
           else {
             members.push(...read.names);
             if (read.namespace !== null)
