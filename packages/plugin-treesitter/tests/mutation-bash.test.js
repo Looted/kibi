@@ -1026,3 +1026,88 @@ describe("Bash values the script certainly set", () => {
     await expect("n=1; echo $(( n ))", "calls", ["echo"]);
   });
 });
+
+describe("Bash tildes", () => {
+  it("reads HOME where Bash expands a tilde", async () => {
+    for (const text of [
+      "echo ~ ~/x",
+      "X=a:~/b",
+      "X=~",
+      "arr=([1]=~/x)",
+      "arr=([1]=a:~/x)",
+      'echo "$(echo ~)"',
+      "X=~:~/x",
+    ])
+      await expect(text, "env", ["HOME"]);
+    await expect("X=$a:~", "env", ["HOME", "a"]);
+    await expect("X=$a:~/x", "env", ["HOME", "a"]);
+    await expect("arr=([i]=~/x)", "env", ["HOME", "i"], [1]);
+  });
+
+  it("reads OLDPWD for ~-", async () => {
+    await expect("echo ~-", "env", [], [1]);
+    await expect("X=~-", "env", [], [1]);
+    await expect("X=$a:~-", "env", ["a"], [1]);
+  });
+
+  it("reads nothing where Bash leaves a tilde alone", async () => {
+    for (const text of [
+      'echo ~+/x ~user a~ "~" a:~/x',
+      "X=~x",
+      "X=~+",
+      "echo [1]=~/x",
+      'echo ~"/x"',
+      "X=P=~/x",
+      "echo -P=~/x",
+      "echo a~null",
+      "echo ~:x",
+    ])
+      await expect(text, "env", []);
+    await expect("X=$a:~x", "env", ["a"]);
+    await expect("echo ~$u", "env", ["u"]);
+  });
+
+  it("refuses a tilde in an argument that looks like an assignment", async () => {
+    for (const value of ["~/x", "a:~/x", "~+/x", "~", "a:~", "a:~-/x"])
+      await expect(`make P=${value}`, "env", [], [1]);
+    await expect("make PX=~/x", "env", [], [1]);
+    await expect("make P=x", "env", []);
+  });
+});
+
+describe("Bash arithmetic", () => {
+  it("reads the names an arithmetic expression evaluates", async () => {
+    await expect("echo $(( a = b ))", "env", ["b"], [1]);
+    await expect("echo $(( a + b ))", "env", ["a", "b"], [1]);
+    await expect("echo $(( $X + 1 ))", "env", ["X"], [1]);
+    await expect("echo $(( ${#X} + 1 ))", "env", ["X"]);
+    await expect('echo $(( "x" + 1 ))', "env", ["x"], [1]);
+    await expect("echo $(( 'x' ))", "env", ["x"], [1]);
+    await expect('echo $(( "$y" + 1 ))', "env", ["y"], [1]);
+    await expect("for (( i = j; ; )); do :; done", "env", ["j"], [1]);
+    await expect("(( x ))", "env", ["x"], [1]);
+  });
+
+  it("refuses special values an arithmetic expression evaluates", async () => {
+    await expect("echo $(( $# ))", "calls", ["echo"]);
+    await expect("echo $(( $- ))", "calls", ["echo"], [1]);
+    await expect("echo $(( $1 ))", "calls", ["echo"], [1]);
+    await expect("echo $(( $(date) + 1 ))", "calls", ["date", "echo"], [1]);
+  });
+
+  it("reads the index of an array element", async () => {
+    await expect("a[1x]=1", "env", []);
+    await expect("a[x-1]=1", "env", ["x"], [1]);
+    await expect("a[ab]=1", "env", ["ab"], [1]);
+    await expect("a[x+y]=1", "env", ["x", "y"], [1]);
+    await expect('a["x"]=1', "env", ["x"], [1]);
+    await expect("a['x']=1", "env", ["x"], [1]);
+    await expect("a[$i]=1", "env", ["i"], [1]);
+    await expect("arr=(x[i]=y)", "env", []);
+    await expect("arr=([i]=v)", "env", ["i"], [1]);
+    await expect("arr=([a$x)", "env", ["x"]);
+    await expect("unset 'a[i]'", "env", ["i"], [1]);
+    await expect("unset a[i]", "env", ["i"], [1]);
+    await expect("unset a[$x]", "env", ["x"], [1]);
+  });
+});

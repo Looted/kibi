@@ -942,7 +942,7 @@ export function bashReferences(
     [...root.text.matchAll(/(?<![$\w{])(?:PS[0-4]|PROMPT_COMMAND)\b/g)].find(
       (match) =>
         !/^=(?:'[^'$`\\]*'|"[^"$`\\]*"|[^\s'"$`\\;&|()<>]*)(?=[\s;&|)]|$)/.test(
-          root.text.slice((match.index ?? 0) + match[0].length),
+          root.text.slice((match.index as number) + match[0].length),
         ),
     ) ??
     null;
@@ -1279,41 +1279,33 @@ export function bashReferences(
    * context expands is evaluated as an expression in turn.
    */
   const arithmeticNames = (node: Node, owner: Node): void => {
-    if (
-      node.type === "variable_name" ||
-      (node.type === "word" && /^[A-Za-z_]\w*$/.test(node.text))
-    ) {
+    // A bare name; a word (`a[i]`) is read below like quoted text.
+    if (node.type === "variable_name") {
       read(node.text, node, owner);
       evaluated(node.text, node, owner);
       return;
     }
-    if (
-      node.type === "number" ||
-      (node.type === "word" && /^\d+$/.test(node.text))
-    )
-      return;
+    // `for (( i = j; ...))`: the initializer sets i and reads j.
     if (node.type === "variable_assignment") {
-      const value = field(node, "value");
-      if (value !== null) arithmeticNames(value, owner);
+      arithmeticNames(field(node, "value") as Node, owner);
       return;
     }
     if (
       node.type === "binary_expression" &&
-      field(node, "operator")?.text === "="
+      (field(node, "operator") as Node).text === "="
     ) {
       // `x = y + 1` sets x: only the right side is read.
-      const right = field(node, "right");
-      if (right !== null) arithmeticNames(right, owner);
+      arithmeticNames(field(node, "right") as Node, owner);
       return;
     }
     if (node.type === "simple_expansion" || node.type === "expansion") {
       visit(node);
       if (node.text.startsWith("${#")) return;
       const target = parameter(node);
-      const special = named(node)[0];
+      const special = named(node)[0] as Node;
       if (target !== null) evaluated(target.name, node, owner);
       else if (
-        special?.type === "special_variable_name" &&
+        special.type === "special_variable_name" &&
         NUMERIC_SPECIAL.has(special.text)
       )
         return;
@@ -1374,28 +1366,26 @@ export function bashReferences(
    * assignment value it also may follow `:`.
    */
   const tilde = (node: Node): void => {
-    if (!node.text.includes("~")) return;
     for (
       let current = node.parent;
       current !== null && current.type !== "command_substitution";
       current = current.parent
     )
       if (current.type === "string") return;
-    const parent = node.parent;
-    const concat = parent?.type === "concatenation" ? parent : null;
-    const first = concat === null || concat.child(0)?.id === node.id;
+    const parent = node.parent as Node;
+    const concat = parent.type === "concatenation" ? parent : null;
+    const first = concat === null || (concat.child(0) as Node).id === node.id;
     const last =
-      concat === null || concat.child(concat.childCount - 1)?.id === node.id;
+      concat === null ||
+      (concat.child(concat.childCount - 1) as Node).id === node.id;
     const holder = concat ?? node;
-    const owner = holder.parent;
+    const owner = holder.parent as Node;
     let text = node.text;
     let starts = first;
-    let colons =
-      owner?.type === "variable_assignment" &&
-      field(owner, "value")?.id === holder.id;
+    // A word in an assignment is its value.
+    let colons = owner.type === "variable_assignment";
     if (
-      owner?.type === "array" &&
-      !first &&
+      owner.type === "array" &&
       node.previousSibling?.text === "]" &&
       text.startsWith("=")
     ) {
@@ -1421,7 +1411,7 @@ export function bashReferences(
         : null;
     if (pattern === null) return;
     for (const match of text.matchAll(pattern)) {
-      const end = (match.index ?? 0) + match[0].length;
+      const end = (match.index as number) + match[0].length;
       // `~"/x"`, `~$u`: a tilde-prefix with quoted or expanded text is not
       // expanded.
       if (end === text.length && !last) continue;
@@ -1435,12 +1425,9 @@ export function bashReferences(
    * `[`, the index parts and `]`. The index of an indexed array is arithmetic.
    */
   const bracketIndex = (parts: Node[], owner: Node): number => {
-    if (parts[0]?.text !== "[") return 0;
-    const close = parts.findIndex(
-      (part, index) =>
-        index > 0 && part.type === "word" && part.text.startsWith("]"),
-    );
-    if (close < 0) return 0;
+    if ((parts[0] as Node).text !== "[") return 0;
+    const close = parts.findIndex((part) => part.text.startsWith("]"));
+    if (close === -1) return 0;
     for (const part of parts.slice(1, close)) arithmeticNames(part, owner);
     return close;
   };
@@ -2082,8 +2069,7 @@ export function bashReferences(
           }
           const parts = named(element);
           const close = bracketIndex(parts, element);
-          for (const part of close > 0 ? parts.slice(close) : parts)
-            visit(part);
+          for (const part of parts.slice(close)) visit(part);
         }
         return;
       }
@@ -2116,8 +2102,7 @@ export function bashReferences(
               const close = assoc.has(child.text)
                 ? 0
                 : bracketIndex(parts, node);
-              for (const part of close > 0 ? parts.slice(close + 1) : parts)
-                visit(part);
+              for (const part of parts.slice(close)) visit(part);
               index += 1;
             }
             continue;
