@@ -132,7 +132,7 @@ agent-plugin/
 ### Discovery-first rules and skills
 
 - **Rules**: always-on capability-based workflow guidance plus optional traceability rules for source files.
-- **Skills**: `kibi-usage`, `kibi-bootstrap`, `kibi-freshness`, `kibi-traceability`, `kibi-decisions`, and `kibi-commit-review`.
+- **Skills**: `kibi-usage`, `kibi-bootstrap`, `kibi-freshness`, `kibi-traceability`, `kibi-decisions`, `kibi-commit-review`, and `kibi-provable-code`.
 - **Commands**: `/kibi-bootstrap` documents the `kb_plan_bootstrap` bootstrap workflow, and `/kibi-signoff` shows the requirements signoff view (or the decisions waiting for you) as Markdown in the chat. The [kibi-vscode](../vscode/README.md) extension also installs in Cursor and adds the **Kibi: Show Requirements Signoff** panel.
 
 ### Advisory editor hooks
