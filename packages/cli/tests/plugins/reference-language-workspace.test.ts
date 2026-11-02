@@ -132,6 +132,31 @@ describe("installed and pinned pack versions", () => {
     expect(installed("kibi-lang-php")).toBeNull();
   });
 
+  it("reads the version of a package whose exports hide package.json", () => {
+    const root = workspace({
+      "package.json": manifest(),
+      [`node_modules/${TREESITTER}/package.json`]: JSON.stringify({
+        name: TREESITTER,
+        version: "3.0.0",
+        exports: { ".": "./index.js" },
+      }),
+      [`node_modules/${TREESITTER}/index.js`]: "export {};\n",
+    });
+    expect(workspaceInstalledVersion(root)(TREESITTER)).toBe("3.0.0");
+    // Bun resolves package.json past an exports map; Node, which runs the
+    // CLI, does not.
+    const built = path.resolve(
+      import.meta.dir,
+      "../../dist/plugins/reference-language-suggestion.js",
+    );
+    const script = `const { workspaceInstalledVersion } = await import(${JSON.stringify(built)}); console.log(workspaceInstalledVersion(${JSON.stringify(root)})(${JSON.stringify(TREESITTER)}));`;
+    expect(
+      execFileSync("node", ["--input-type=module", "-e", script], {
+        encoding: "utf8",
+      }).trim(),
+    ).toBe("3.0.0");
+  });
+
   it("reads the pack versions the installed plugin's catalog pins", () => {
     expect(pinnedPackVersions(undefined)).toEqual(new Map());
     // No plugin installed.
@@ -188,6 +213,7 @@ describe("reference language suggestion text", () => {
       ],
       evidence: ["svc/Main.java", "svc/App.cs"],
       activeForSymbolsOnly: false,
+      pluginInstalled: false,
       packs: ["kibi-lang-java", "kibi-lang-csharp"],
       modified: [],
     });
@@ -197,12 +223,45 @@ describe("reference language suggestion text", () => {
     const suggestion = referenceLanguageSuggestion(
       ["cmd/main.go"],
       {},
-      () => "1.0.0",
+      (name) => (name === TREESITTER ? null : "1.0.0"),
     );
     if (suggestion === null) throw new Error("expected a suggestion");
     expect(suggestion.packs).toEqual([]);
     expect(describeReferenceLanguageSuggestion(suggestion)).toBe(
-      `1 Go source file(s); source proofs and symbols for them need ${TREESITTER}: add it to devDependencies and this entry to package.json "kibi": { "plugins": [ {"package":"kibi-plugin-treesitter","capabilities":{"kibi.reference-extractor.v1":{"mode":"augment"},"kibi.symbol-extractor.v2":{"mode":"augment"}}} ] }`,
+      `1 Go source file(s); source proofs and symbols for them need ${TREESITTER}: npm install --save-dev ${TREESITTER}, then add this entry to package.json "kibi": { "plugins": [ {"package":"kibi-plugin-treesitter","capabilities":{"kibi.reference-extractor.v1":{"mode":"augment"},"kibi.symbol-extractor.v2":{"mode":"augment"}}} ] }`,
+    );
+  });
+
+  it("asks only for the kibi.plugins entry when the plugin is installed", () => {
+    const installed = referenceLanguageSuggestion(
+      ["cmd/main.go"],
+      {},
+      () => "1.0.0",
+    );
+    if (installed === null) throw new Error("expected a suggestion");
+    expect(installed.pluginInstalled).toBe(true);
+    // Resolvable from a parent folder but not declared: still an install.
+    const undeclared = referenceLanguageSuggestion(
+      ["cmd/main.go"],
+      {},
+      () => "1.0.0",
+      new Map(),
+      new Set(),
+      false,
+    );
+    expect(undeclared?.pluginInstalled).toBe(false);
+    expect(describeReferenceLanguageSuggestion(installed)).toBe(
+      `1 Go source file(s); source proofs and symbols for them need ${TREESITTER}, which is installed but not activated: add this entry to package.json "kibi": { "plugins": [ {"package":"kibi-plugin-treesitter","capabilities":{"kibi.reference-extractor.v1":{"mode":"augment"},"kibi.symbol-extractor.v2":{"mode":"augment"}}} ] }`,
+    );
+    const withPack = referenceLanguageSuggestion(
+      ["cmd/main.go"],
+      {},
+      (name) => (name === TREESITTER ? "3.0.0" : null),
+      new Map([["kibi-lang-go", "1.0.0"]]),
+    );
+    if (withPack === null) throw new Error("expected a suggestion");
+    expect(describeReferenceLanguageSuggestion(withPack)).toBe(
+      `1 Go source file(s); source proofs and symbols for them need ${TREESITTER}, which is installed but not activated, and the grammar pack(s) kibi-lang-go@1.0.0: npm install --save-dev kibi-lang-go@1.0.0, then add this entry to package.json "kibi": { "plugins": [ {"package":"kibi-plugin-treesitter","capabilities":{"kibi.reference-extractor.v1":{"mode":"augment"},"kibi.symbol-extractor.v2":{"mode":"augment"}}} ] }`,
     );
   });
 
@@ -270,7 +329,32 @@ describe("the workspace note for kibi init and kibi doctor", () => {
     });
     gitTrack(root);
     expect(workspaceReferenceLanguageNote(root)).toBe(
-      `1 Go source file(s); source proofs and symbols for them need ${TREESITTER} and the grammar pack(s) kibi-lang-go: add them to devDependencies and this entry to package.json "kibi": { "plugins": [ {"package":"kibi-plugin-treesitter","capabilities":{"kibi.reference-extractor.v1":{"mode":"augment"},"kibi.symbol-extractor.v2":{"mode":"augment"}}} ] }. This project has no package.json; create one that only holds Kibi's plugin list (npm init -y, then npm install -D ${TREESITTER} kibi-lang-go) and add node_modules/ to .gitignore. Without it, references proofs on those files are refused.`,
+      `1 Go source file(s); source proofs and symbols for them need ${TREESITTER} and the grammar pack(s) kibi-lang-go: npm install --save-dev ${TREESITTER} kibi-lang-go, then add this entry to package.json "kibi": { "plugins": [ {"package":"kibi-plugin-treesitter","capabilities":{"kibi.reference-extractor.v1":{"mode":"augment"},"kibi.symbol-extractor.v2":{"mode":"augment"}}} ] }. This project has no package.json: run npm init -y first to create a minimal one (Kibi reads only its devDependencies and kibi.plugins), then run the install and add the kibi.plugins entry above, and add node_modules/ to .gitignore. Without it, references proofs on those files are refused.`,
+    );
+  });
+
+  it("asks a project that installed the plugin only for its kibi.plugins entry", () => {
+    const root = workspace({
+      "package.json": JSON.stringify({
+        name: "sample",
+        version: "1.0.0",
+        private: true,
+        devDependencies: { [TREESITTER]: "3.0.0", "kibi-lang-go": "1.0.0" },
+      }),
+      [`node_modules/${TREESITTER}/package.json`]: JSON.stringify({
+        name: TREESITTER,
+        version: "3.0.0",
+        exports: { ".": "./index.js", "./catalog.json": "./catalog.json" },
+      }),
+      [`node_modules/${TREESITTER}/catalog.json`]: JSON.stringify({
+        languages: [{ id: "go", pack: "kibi-lang-go", packVersion: "1.0.0" }],
+      }),
+      ...fakePack("kibi-lang-go", { name: "kibi-lang-go", version: "1.0.0" }),
+      "cmd/main.go": "package main\n",
+    });
+    gitTrack(root);
+    expect(workspaceReferenceLanguageNote(root)).toBe(
+      `1 Go source file(s); source proofs and symbols for them need ${TREESITTER}, which is installed but not activated: add this entry to package.json "kibi": { "plugins": [ {"package":"kibi-plugin-treesitter","capabilities":{"kibi.reference-extractor.v1":{"mode":"augment"},"kibi.symbol-extractor.v2":{"mode":"augment"}}} ] }. Without it, references proofs on those files are refused.`,
     );
   });
 
@@ -413,7 +497,7 @@ describe("the bootstrap offer for reference languages", () => {
         mode: "augment",
         alsoActivate: { [SYMBOLS]: "augment" },
         alsoInstall: ["kibi-lang-java", "kibi-lang-csharp"],
-        reason: `1 Java, 1 C# source file(s); source proofs and symbols for them need ${TREESITTER} and the grammar pack(s) kibi-lang-java, kibi-lang-csharp: add them to devDependencies and this entry to package.json "kibi": { "plugins": [ {"package":"kibi-plugin-treesitter","capabilities":{"kibi.reference-extractor.v1":{"mode":"augment"},"kibi.symbol-extractor.v2":{"mode":"augment"}}} ] }`,
+        reason: `1 Java, 1 C# source file(s); source proofs and symbols for them need ${TREESITTER} and the grammar pack(s) kibi-lang-java, kibi-lang-csharp: npm install --save-dev ${TREESITTER} kibi-lang-java kibi-lang-csharp, then add this entry to package.json "kibi": { "plugins": [ {"package":"kibi-plugin-treesitter","capabilities":{"kibi.reference-extractor.v1":{"mode":"augment"},"kibi.symbol-extractor.v2":{"mode":"augment"}}} ] }`,
         fileCount: 2,
         evidence: ["svc/Main.java", "svc/Main.cs"],
       },
