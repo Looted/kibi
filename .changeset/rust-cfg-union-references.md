@@ -16,4 +16,4 @@ Rust source proofs read `#[cfg(...)]`-gated code instead of refusing the whole f
 - A `cfg_attr` counts as the attributes it applies: `cfg_attr(feature = "serde", derive(Debug))` reads as usual, `cfg_attr(x, tokio::main)` refuses `calls`, and one Kibi cannot split refuses every extract.
 - `#[cfg(test)]` items, and the bindings they make, are still skipped, also with a doc comment between the attribute and the item.
 
-Files such as tree-sitter's generated `bindings/rust/lib.rs`, whose query constants are `#[cfg(with_*_query)]`, can now be read. The kibi-usage skill (2.40.2) and the proof docs describe the new reading.
+Files such as tree-sitter's generated `bindings/rust/lib.rs`, whose query constants are `#[cfg(with_*_query)]`, can now be read. The kibi-usage skill (2.41.1) and the proof docs describe the new reading.

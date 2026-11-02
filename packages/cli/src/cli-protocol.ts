@@ -2,6 +2,7 @@ import Ajv2020 from "ajv/dist/2020.js";
 import { InputError, OperationError } from "./cli-errors.js";
 import { loadOperationSpec } from "./cli-operation-loader.js";
 import { isOperationName } from "./cli-operation-metadata.js";
+import { INTEGRATED_OPERATIONS } from "./cli-register-json.js";
 import {
   type DiagnosticTelemetry,
   prepareOperationInput,
@@ -139,7 +140,12 @@ export async function executeOperation(
   if (!prepared.valid) {
     return errorResult(
       catalogName,
-      new InputError("VALIDATION_FAILED", prepared.errors.join("; ")),
+      new InputError(
+        "VALIDATION_FAILED",
+        INTEGRATED_OPERATIONS.has(catalogName)
+          ? prepared.errors.join("; ")
+          : `${prepared.errors.join("; ")}. Run 'kibi ${spec.cliName.replaceAll(" ", "-")} --schema' to print the input fields and allowed values.`,
+      ),
       spec,
       false,
     );

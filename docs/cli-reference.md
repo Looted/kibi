@@ -4,7 +4,7 @@ This document provides complete command-by-command documentation for the kibi CL
 
 ## Dedicated JSON operation routes
 
-The CLI exposes the canonical public operation catalog as a peer to MCP. Every route accepts one JSON object through `--input <file|->`, where a path is resolved from the current working directory and `-` reads standard input exactly once. JSON mode writes one structured JSON value followed by a newline to stdout.
+The CLI exposes the canonical public operation catalog as a peer to MCP. Every route accepts one JSON object through `--input <file|->`, where a path is resolved from the current working directory and `-` reads standard input exactly once. JSON mode writes one structured JSON value followed by a newline to stdout. Every JSON-only route (the operations without their own flags, such as `plan-bootstrap`, `upsert` or `apply-plan`) also takes `--schema`, which prints the JSON Schema its input is validated against, with each field and its allowed values. When such a route rejects its input with `VALIDATION_FAILED`, the message names each failing field and points at `--schema`.
 
 ```bash
 # Read an input object from a file
