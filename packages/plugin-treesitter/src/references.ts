@@ -2958,8 +2958,13 @@ function rustAttribute(node: Node): string {
 function rustAttributes(node: Node): string[] {
   const attributes: string[] = [];
   let previous = node.previousNamedSibling;
-  while (previous !== null && previous.type === "attribute_item") {
-    attributes.push(rustAttribute(previous));
+  // Doc comments may sit between an item's attributes and the item.
+  while (
+    previous !== null &&
+    (previous.type === "attribute_item" || previous.type.endsWith("comment"))
+  ) {
+    if (previous.type === "attribute_item")
+      attributes.push(rustAttribute(previous));
     previous = previous.previousNamedSibling;
   }
   return attributes;
@@ -3019,26 +3024,114 @@ const RUST_STD_DERIVES = new Set([
   "Ord",
 ]);
 
+/**
+ * One attribute an attribute item applies: its path, the tokens after the
+ * path (`(Debug, Clone)`, `= "x"`), and its token tree when that is all
+ * that follows the path.
+ */
+interface RustAttributePart {
+  readonly path: string;
+  readonly tokens: string;
+  readonly list: Node | null;
+}
+
+/**
+ * The parts of `cfg_attr(predicate, a, b(..))` after the predicate, split at
+ * the commas of the token tree itself (a comma in a string or a nested tree
+ * is not one of them). Null when a part is not a path and its arguments.
+ */
+function rustCfgAttrParts(list: Node | null): RustAttributePart[] | null {
+  if (list === null || list.type !== "token_tree") return null;
+  const tokens = list.children
+    .filter((child): child is Node => child !== null)
+    .filter((child) => !child.type.endsWith("comment"))
+    .slice(1, -1);
+  const pieces: Node[][] = [[]];
+  for (const token of tokens)
+    if (token.type === ",") pieces.push([]);
+    else pieces.at(-1)?.push(token);
+  const parts: RustAttributePart[] = [];
+  for (const piece of pieces.slice(1)) {
+    if (piece.length === 0) continue;
+    let end = 0;
+    while (
+      end < piece.length &&
+      ((piece[end] as Node).type === "identifier" ||
+        (piece[end] as Node).type === "::")
+    )
+      end += 1;
+    const head = piece.slice(0, end);
+    if (!head.some((token) => token.type === "identifier")) return null;
+    const rest = piece.slice(end);
+    const nested = rustAttributeExpand({
+      path: head.map((token) => rustTokens(token)).join(""),
+      tokens: rest.map((token) => rustTokens(token)).join(" "),
+      list: rest.length === 1 ? (rest[0] as Node) : null,
+    });
+    if (nested === null) return null;
+    parts.push(...nested);
+  }
+  return parts;
+}
+
+/**
+ * The attributes a part stands for in some build: none for `cfg` (it only
+ * decides whether the item exists, and every build is read), the
+ * attributes a `cfg_attr` applies when its predicate holds, the part itself
+ * otherwise. Null when a `cfg_attr` cannot be split.
+ */
+function rustAttributeExpand(
+  part: RustAttributePart,
+): RustAttributePart[] | null {
+  if (part.path === "cfg") return [];
+  if (part.path === "cfg_attr") return rustCfgAttrParts(part.list);
+  return [part];
+}
+
+/** The attributes an attribute item applies in any build. */
+function rustAttributeParts(node: Node): RustAttributePart[] | null {
+  const attribute = named(node).find((child) => child.type === "attribute");
+  /* node:coverage disable */
+  if (attribute === undefined) return null;
+  const head = named(attribute)[0];
+  if (head === undefined) return null;
+  /* node:coverage enable */
+  const list = field(attribute, "arguments");
+  return rustAttributeExpand({
+    path: plainName(rustRaw(head.text)),
+    tokens: attribute.children
+      .filter((child): child is Node => child !== null && child.id !== head.id)
+      .map((child) => rustTokens(child))
+      .join(" "),
+    list,
+  });
+}
+
+/** The traits a `derive` part lists, as spelled (`serde::Serialize`). */
+function rustDerived(part: RustAttributePart): string[] {
+  const list = part.tokens.replace(/\s+/g, "");
+  return list.startsWith("(") && list.endsWith(")")
+    ? list.slice(1, -1).split(",").filter((name) => name !== "")
+    : [];
+}
+
+function rustStdDerive(name: string): boolean {
+  return RUST_STD_DERIVES.has(name.replace(/^(?:::)?(?:std|core)::\w+::/, ""));
+}
+
+function rustPartHidesCalls(part: RustAttributePart): boolean {
+  if (part.path.startsWith("clippy::") || part.path.startsWith("rustfmt::"))
+    return false;
+  if (part.path === "derive")
+    return rustDerived(part).some((name) => !rustStdDerive(name));
+  return !RUST_INERT_ATTRIBUTES.has(part.path);
+}
+
 function rustAttributeHidesCalls(node: Node): boolean {
   if (node.type !== "attribute_item" && node.type !== "inner_attribute_item")
     return false;
-  const attribute = named(node).find((child) => child.type === "attribute");
-  /* node:coverage disable */
-  if (attribute === undefined) return true;
-  const path = plainName(named(attribute)[0]?.text ?? "");
-  /* node:coverage enable */
-  // cfg and cfg_attr are reported as conditional compilation.
-  if (path === "cfg" || path === "cfg_attr") return false;
-  if (path.startsWith("clippy::") || path.startsWith("rustfmt::")) return false;
-  if (path === "derive") {
-    const list = field(attribute, "arguments");
-    const traits = list === null ? [] : named(list).map((item) => item.text);
-    return traits.some(
-      (item) =>
-        !RUST_STD_DERIVES.has(item.replace(/^(?:::)?(?:std|core)::\w+::/, "")),
-    );
-  }
-  return !RUST_INERT_ATTRIBUTES.has(path);
+  const parts = rustAttributeParts(node);
+  return parts === null || parts.some(rustPartHidesCalls);
 }
 
 /**
@@ -3080,39 +3173,32 @@ function rustAttributeGenerates(
   callee: string,
 ): boolean {
   if (!rustAttributeHidesCalls(node)) return false;
-  const attribute = named(node).find((child) => child.type === "attribute");
+  const parts = rustAttributeParts(node);
   /* node:coverage disable */
-  if (attribute === undefined) return true;
-  const path = plainName(named(attribute)[0]?.text ?? "");
+  if (parts === null) return true;
   /* node:coverage enable */
-  if (path === "derive") {
-    const list = field(attribute, "arguments");
-    // The list is tokens: `serde::Serialize` is three of them.
-    /* node:coverage disable */
-    const traits =
-      list === null
-        ? []
-        : rustTokens(list).replace(/\s+/g, "").slice(1, -1).split(",");
-    /* node:coverage enable */
-    return traits.some((name) => {
-      return (
-        !RUST_STD_DERIVES.has(
-          name.replace(/^(?:::)?(?:std|core)::\w+::/, ""),
-        ) && !RUST_CRATE_DERIVES.has(rustPath(name, node).path)
+  return parts.some((part) => {
+    if (!rustPartHidesCalls(part)) return false;
+    if (part.path === "derive")
+      return rustDerived(part).some(
+        (name) =>
+          !rustStdDerive(name) &&
+          !rustPaths(name, node).every((resolved) =>
+            RUST_CRATE_DERIVES.has(resolved.path),
+          ),
       );
-    });
-  }
-  if (
-    !RUST_DERIVE_HELPERS.has(path) ||
-    context.aliases.has(path) ||
-    context.imported.has(path)
-  )
-    return true;
-  const tokens = rustTokens(attribute);
-  return (
-    /\benv\b/.test(tokens) ||
-    (callee !== "" && new RegExp(`\\b${finalName(callee)}\\b`).test(tokens))
-  );
+    if (
+      !RUST_DERIVE_HELPERS.has(part.path) ||
+      context.aliases.has(part.path) ||
+      context.imported.has(part.path)
+    )
+      return true;
+    const tokens = `${part.path}${part.tokens}`;
+    return (
+      /\benv\b/.test(tokens) ||
+      (callee !== "" && new RegExp(`\\b${finalName(callee)}\\b`).test(tokens))
+    );
+  });
 }
 
 /** The last segments of the environment getters (`var`, `vars_os`). */
@@ -3186,13 +3272,20 @@ const RUST_CRATE_MACROS = new Set([
 const RUST_NESTED_ENV =
   /(?<![\w:])(?:(?:::)?(?:std|core)\s*::\s*)?(?:option_)?env\s*!/;
 
+/** Whether a macro path is a known crate's macro in every build. */
+function rustCrateMacro(spelled: string, node: Node): boolean {
+  return rustPaths(spelled, node).every((resolved) =>
+    RUST_CRATE_MACROS.has(resolved.path),
+  );
+}
+
 /**
  * Whether a macro invocation is a standard macro the file does not rebind,
  * or a known crate's macro by the path the file gives it.
  */
 function rustStdMacro(node: Node, context: FileContext): boolean {
   const spelled = rustMacroName(node);
-  if (RUST_CRATE_MACROS.has(rustPath(spelled, node).path)) return true;
+  if (rustCrateMacro(spelled, node)) return true;
   const name = rustCanonical(spelled).replace(/^std::/, "");
   return (
     RUST_STD_MACROS.has(name) &&
@@ -3270,7 +3363,7 @@ function rustMacroCalls(node: Node, context: FileContext): string[] | null {
     if (RUST_KEYWORDS.has(spelled)) continue;
     if (after === "!") {
       // A nested macro: readable only when it is a standard one too.
-      if (RUST_CRATE_MACROS.has(rustPath(spelled, node).path)) continue;
+      if (rustCrateMacro(spelled, node)) continue;
       const name = rustCanonical(spelled).replace(/^std::/, "");
       if (
         !RUST_STD_MACROS.has(name) ||
@@ -3324,56 +3417,76 @@ type RustBinding =
   | { readonly kind: "alias" }
   | { readonly kind: "item" };
 
-/** What `name` is bound to by the items directly in a block or module. */
-function rustItem(scope: Node, name: string): RustBinding | null {
+/**
+ * What `name` may be bound to by the items directly in a block or module:
+ * every binding, since `#[cfg]` items of the same name may each be the one
+ * a build compiles. A binding is gated when its item has a `#[cfg]`, so a
+ * build may leave it out. `#[cfg(test)]` items are not read.
+ */
+function rustItems(
+  scope: Node,
+  name: string,
+): { readonly binding: RustBinding; readonly gated: boolean }[] {
+  const found: { binding: RustBinding; gated: boolean }[] = [];
   for (const child of named(scope)) {
-    if (child.type === "type_item") {
-      if (!rustNamed(child, name)) continue;
-      // `type C = std::process::Command` is followed; a generic alias or one
-      // of another kind of type is not.
-      const type = field(child, "type");
-      return type !== null &&
-        field(child, "type_parameters") === null &&
-        (type.type === "type_identifier" ||
-          type.type === "scoped_type_identifier")
-        ? { kind: "path", path: rustPlain(type.text) }
-        : { kind: "alias" };
+    const attributes = rustAttributes(child);
+    if (attributes.includes("#[cfg(test)]")) continue;
+    const gated = attributes.some((attribute) =>
+      attribute.startsWith("#[cfg("),
+    );
+    const binding = rustItemBinding(child, name);
+    if (binding !== null) found.push({ binding, gated });
+  }
+  return found;
+}
+
+/** What one item binds `name` to, if it binds it. */
+function rustItemBinding(child: Node, name: string): RustBinding | null {
+  if (child.type === "type_item") {
+    if (!rustNamed(child, name)) return null;
+    // `type C = std::process::Command` is followed; a generic alias or one
+    // of another kind of type is not.
+    const type = field(child, "type");
+    return type !== null &&
+      field(child, "type_parameters") === null &&
+      (type.type === "type_identifier" ||
+        type.type === "scoped_type_identifier")
+      ? { kind: "path", path: rustPlain(type.text) }
+      : { kind: "alias" };
+  }
+  if (RUST_ITEMS.has(child.type)) {
+    return rustNamed(child, name) ? { kind: "item" } : null;
+  }
+  switch (child.type) {
+    case "use_declaration": {
+      const argument = field(child, "argument");
+      let path: string | null = null;
+      /* node:coverage disable */
+      if (argument !== null)
+        /* node:coverage enable */
+        rustUseBindings(
+          argument,
+          "",
+          (local, target) => {
+            if (local === name) path = target;
+          },
+          () => {},
+        );
+      if (path !== null) return { kind: "path", path };
+      break;
     }
-    if (RUST_ITEMS.has(child.type)) {
-      if (rustNamed(child, name)) return { kind: "item" };
-      continue;
-    }
-    switch (child.type) {
-      case "use_declaration": {
-        const argument = field(child, "argument");
-        let path: string | null = null;
-        /* node:coverage disable */
-        if (argument !== null)
-          /* node:coverage enable */
-          rustUseBindings(
-            argument,
-            "",
-            (local, target) => {
-              if (local === name) path = target;
-            },
-            () => {},
-          );
-        if (path !== null) return { kind: "path", path };
-        break;
-      }
-      case "mod_item":
-        if (rustNamed(child, name))
-          return { kind: "module", body: field(child, "body") };
-        break;
-      case "extern_crate_declaration": {
-        const crate = field(child, "name");
-        const local = field(child, "alias") ?? crate;
-        /* node:coverage disable */
-        if (crate !== null && rustRaw(local?.text ?? "") === name)
-          /* node:coverage enable */
-          return { kind: "crate", crate: rustRaw(crate.text) };
-        break;
-      }
+    case "mod_item":
+      if (rustNamed(child, name))
+        return { kind: "module", body: field(child, "body") };
+      break;
+    case "extern_crate_declaration": {
+      const crate = field(child, "name");
+      const local = field(child, "alias") ?? crate;
+      /* node:coverage disable */
+      if (crate !== null && rustRaw(local?.text ?? "") === name)
+        /* node:coverage enable */
+        return { kind: "crate", crate: rustRaw(crate.text) };
+      break;
     }
   }
   return null;
@@ -3399,74 +3512,141 @@ function rustScopes(node: Node): Node[] {
   return scopes;
 }
 
+type RustResolution = {
+  readonly path: string;
+  readonly exact: boolean;
+  readonly opaque?: true;
+};
+
 /**
  * A Rust path resolved through the `use`, `mod` and `extern crate` items
  * the file declares, in the scopes they bind in. `exact` is false when the
  * resolution leaves what the file shows (`crate::`, `super::` out of the
  * file, a module in another file, another crate's item): the path may then
- * be a re-export of anything.
+ * be a re-export of anything. Every `#[cfg]` branch is read as possibly
+ * compiled, so a name bound by several gated items resolves to each of
+ * them, and a name bound only by gated items may also be what an outer
+ * scope binds.
  */
 function rustResolve(
   segments: readonly string[],
   scopes: readonly Node[],
   depth = 0,
-): { readonly path: string; readonly exact: boolean; readonly opaque?: true } {
+): RustResolution[] {
   const spelled = { path: segments.join("::"), exact: true };
   const unknown = { path: spelled.path, exact: false };
   const [root = "", ...rest] = segments;
   const std = new Set(["std", "core", "alloc"]);
   if (std.has(root) || (root === "" && std.has(rest[0] ?? "")))
-    return { path: rustCanonical(spelled.path), exact: true };
+    return [{ path: rustCanonical(spelled.path), exact: true }];
   const module = scopes.at(-1);
-  if (depth > 8 || module === undefined || root === "") return unknown;
-  if (root === "crate") return unknown;
+  if (depth > 8 || module === undefined || root === "") return [unknown];
+  if (root === "crate") return [unknown];
   if (root === "self") return rustResolve(rest, [module], depth + 1);
   if (root === "super") {
     const parent = module.parent;
     return parent?.type === "mod_item"
       ? rustResolve(rest, rustScopes(parent).slice(-1), depth + 1)
-      : unknown;
+      : [unknown];
   }
   for (const [index, scope] of scopes.entries()) {
-    const binding = rustItem(scope, root);
-    if (binding === null) continue;
-    switch (binding.kind) {
-      case "path":
-        // `use anyhow::anyhow`: the path's root is the crate, not the name
-        // the item binds, and so is `anyhow::bail`'s.
-        if (before(binding.path, "::") === root)
-          return {
-            path: rest.length === 0 ? binding.path : spelled.path,
-            exact: false,
-          };
-        return rustResolve(
-          [...binding.path.split("::"), ...rest],
-          scopes.slice(index),
-          depth + 1,
-        );
-      case "module": {
-        if (binding.body === null) return unknown;
-        if (rest.length === 0) return spelled;
-        const inner = rustResolve(rest, [binding.body], depth + 1);
-        return inner.path.startsWith("std::") || !inner.exact ? inner : spelled;
+    const bindings = rustItems(scope, root);
+    if (bindings.length === 0) continue;
+    const found = bindings.flatMap(({ binding }): RustResolution[] => {
+      switch (binding.kind) {
+        case "path":
+          // `use anyhow::anyhow`: the path's root is the crate, not the name
+          // the item binds, and so is `anyhow::bail`'s.
+          if (before(binding.path, "::") === root)
+            return [
+              {
+                path: rest.length === 0 ? binding.path : spelled.path,
+                exact: false,
+              },
+            ];
+          return rustResolve(
+            [...binding.path.split("::"), ...rest],
+            scopes.slice(index),
+            depth + 1,
+          );
+        case "module": {
+          if (binding.body === null) return [unknown];
+          if (rest.length === 0) return [spelled];
+          return rustResolve(rest, [binding.body], depth + 1).map((inner) =>
+            inner.path.startsWith("std::") || !inner.exact ? inner : spelled,
+          );
+        }
+        case "crate":
+          return rustResolve([binding.crate, ...rest], scopes, depth + 1);
+        case "alias":
+          return [{ ...unknown, opaque: true }];
+        default:
+          return [spelled];
       }
-      case "crate":
-        return rustResolve([binding.crate, ...rest], scopes, depth + 1);
-      case "alias":
-        return { ...unknown, opaque: true };
-      default:
-        return spelled;
-    }
+    });
+    // Each binding here may be left out of a build: the name is then what
+    // the outer scopes bind, or another crate's.
+    if (bindings.every(({ gated }) => gated))
+      found.push(...rustResolve(segments, scopes.slice(index + 1), depth + 1));
+    return rustUniqueResolutions(found);
   }
   // Not bound here: another crate (or the prelude), which may re-export.
-  return unknown;
+  return [unknown];
 }
 
-function rustPath(
-  name: string,
-  at: Node,
-): { path: string; exact: boolean; opaque?: true } {
+function rustUniqueResolutions(
+  resolutions: readonly RustResolution[],
+): RustResolution[] {
+  const seen = new Map<string, RustResolution>();
+  for (const resolution of resolutions)
+    seen.set(
+      `${resolution.path}\0${resolution.exact}\0${resolution.opaque ?? ""}`,
+      resolution,
+    );
+  return [...seen.values()];
+}
+
+/** Every path `name` may resolve to at `at`, across `#[cfg]` branches. */
+function rustPaths(name: string, at: Node): RustResolution[] {
   return rustResolve(name.split("::"), rustScopes(at));
+}
+
+/** Whether a call resolved to `resolved` may read or call unseen. */
+function rustRefusesResolved(
+  resolved: RustResolution,
+  callName: string,
+  context: FileContext,
+  extract: ReferenceExtract,
+  callee: string,
+): boolean {
+  // A callee through a type alias the reader does not follow (`type C<T>
+  // = ...; C::new(..)`) may be the one asked for.
+  if (
+    resolved.opaque &&
+    extract === "string_args" &&
+    finalName(callName) === finalName(callee)
+  )
+    return true;
+  // A bare getter name a glob may bring in (`use inner::*` re-exporting
+  // std::env::var).
+  if (
+    !resolved.exact &&
+    !callName.includes("::") &&
+    RUST_ENV_NAMES.has(callName) &&
+    context.globbed
+  ) {
+    if (extract === "string_args") return finalName(callee) === callName;
+    return extract === "env" || extract === "calls";
+  }
+  if (
+    resolved.exact ||
+    !resolved.path.includes("::") ||
+    !RUST_ENV_NAMES.has(lastOf(resolved.path, "::"))
+  )
+    return false;
+  if (extract === "string_args")
+    return finalName(callee) === lastOf(resolved.path, "::");
+  return extract === "env" || extract === "calls";
 }
 
 const RUST: Reader = {
@@ -3535,8 +3715,12 @@ const RUST: Reader = {
     // `env::var` is std::env::var only where a `use std::env` binds it;
     // without one, or under a `mod env` closer to the call, `env` is a
     // module or crate of the project.
-    const path = rustPath(name, at).path;
-    return unique([path, name, ...rustFfiExit(path, at)]);
+    const paths = rustPaths(name, at).map((resolved) => resolved.path);
+    return unique([
+      ...paths,
+      name,
+      ...paths.flatMap((path) => rustFfiExit(path, at)),
+    ]);
   },
   refuses(node, callName, names, context, extract, callee) {
     // A derive or attribute macro configured with `env` (clap's `#[arg(env
@@ -3574,36 +3758,11 @@ const RUST: Reader = {
     // A getter's name on a path the reader cannot follow to std::env (a
     // re-export through `crate::`, a module file or another crate, such as
     // `dotenvy::var`) may read the environment.
-    if (names.some((name) => name.startsWith("std::env::"))) return false;
-    const resolved = rustPath(callName, node);
-    // A callee through a type alias the reader does not follow (`type C<T>
-    // = ...; C::new(..)`) may be the one asked for.
-    if (
-      resolved.opaque &&
-      extract === "string_args" &&
-      finalName(callName) === finalName(callee)
-    )
-      return true;
-    // A bare getter name a glob may bring in (`use inner::*` re-exporting
-    // std::env::var).
-    if (
-      !resolved.exact &&
-      !callName.includes("::") &&
-      RUST_ENV_NAMES.has(callName) &&
-      context.globbed
-    ) {
-      if (extract === "string_args") return finalName(callee) === callName;
-      return extract === "env" || extract === "calls";
-    }
-    if (
-      resolved.exact ||
-      !resolved.path.includes("::") ||
-      !RUST_ENV_NAMES.has(lastOf(resolved.path, "::"))
-    )
-      return false;
-    if (extract === "string_args")
-      return finalName(callee) === lastOf(resolved.path, "::");
-    return extract === "env" || extract === "calls";
+    // A name `#[cfg]` items bind in several ways is refused when any of
+    // them would be.
+    return rustPaths(callName, node).some((resolved) =>
+      rustRefusesResolved(resolved, callName, context, extract, callee),
+    );
   },
   shadowed(node, _callName, _names, context, extract) {
     if (
@@ -3705,13 +3864,13 @@ const RUST: Reader = {
     (node.type === "macro_invocation" &&
       rustMacroCalls(node, context) === null) ||
     rustAttributeHidesCalls(node),
-  conditional(node) {
-    if (node.type !== "attribute_item") return false;
-    const attribute = rustAttribute(node);
-    return (
-      /^#!?\[(?:cfg|cfg_attr)\(/.test(attribute) && attribute !== "#[cfg(test)]"
-    );
-  },
+  // `#[cfg]` items are read as if every build compiled them (a claim about
+  // what the code never does then holds in each build); only a `cfg_attr`
+  // whose attributes cannot be told apart is refused.
+  conditional: (node) =>
+    (node.type === "attribute_item" ||
+      node.type === "inner_attribute_item") &&
+    rustAttributeParts(node) === null,
   skip: (node) =>
     RUST_ITEM_PARENTS.has(node.parent?.type ?? "") &&
     node.type !== "attribute_item" &&
