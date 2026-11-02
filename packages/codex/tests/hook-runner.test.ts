@@ -537,7 +537,7 @@ describe("Codex pre-edit knowledge", () => {
       "Kibi knowledge for src/checkout.ts (symbol manifest):\n- REQ-checkout-rounding [firm: ask before changing]: Checkout totals round to cents — computeTotal",
     );
     expect(context).toContain(
-      "REQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.",
+      "REQ-checkout-rounding must keep true: Totals round half up to two decimals.",
     );
     expect(context).toContain(
       "Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
@@ -1165,7 +1165,7 @@ describe("Codex hook command pre-edit knowledge (end to end)", () => {
       "Kibi knowledge for src/checkout.ts (symbol manifest):\n- REQ-checkout-rounding [firm: ask before changing]: Checkout totals round to cents — computeTotal\n",
     );
     expect(context).toContain(
-      "\nREQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.\n",
+      "\nREQ-checkout-rounding must keep true: Totals round half up to two decimals.\n",
     );
     expect(context).toContain(
       "\nDecision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.\n",
@@ -1237,7 +1237,7 @@ describe("Codex hook command pre-edit knowledge (end to end)", () => {
     );
     expect(context).toContain("\n- +2 more requirements: kb_query(");
     expect(context).toContain(
-      "\nREQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.\n",
+      "\nREQ-checkout-rounding must keep true: Totals round half up to two decimals.\n",
     );
     expect(context).toContain(
       "\nDecision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.\n",

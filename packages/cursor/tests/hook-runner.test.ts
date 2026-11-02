@@ -842,7 +842,7 @@ describe("Cursor hook command pre-edit knowledge (end to end)", () => {
       "Kibi knowledge for src/checkout.ts (symbol manifest):\n- REQ-checkout-rounding [firm: ask before changing]: Checkout totals round to cents — computeTotal\n",
     );
     expect(snippet).toContain(
-      "\nREQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.\n",
+      "\nREQ-checkout-rounding must keep true: Totals round half up to two decimals.\n",
     );
     expect(snippet).toContain(
       "\nDecision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.\n",

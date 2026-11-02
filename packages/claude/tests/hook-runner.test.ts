@@ -240,7 +240,7 @@ describe("pre-edit snippets", () => {
       new_string: "  return total;",
     });
     expect(text).toContain(
-      "REQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.",
+      "REQ-checkout-rounding must keep true: Totals round half up to two decimals.",
     );
     expect(text).toContain(
       "Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
@@ -275,7 +275,7 @@ describe("pre-edit snippets", () => {
       new_string: "  return total;",
     });
     expect(text).toContain(
-      "REQ-checkout-rounding must keep true: FACT-total-rounding-cents: Totals round half up to two decimals.",
+      "REQ-checkout-rounding must keep true: Totals round half up to two decimals.",
     );
     expect(text).toContain(
       "Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
@@ -313,7 +313,7 @@ describe("pre-edit snippets", () => {
     });
     expect(first?.split("\n")).toEqual([
       "Kibi: this edit to src/checkout.ts is inside computeTotal, which implements REQ-checkout-rounding.",
-      "REQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.",
+      "REQ-checkout-rounding must keep true: Totals round half up to two decimals.",
       "Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
       'Behavior changes here are traced to these requirements; kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.',
     ]);
@@ -1421,7 +1421,7 @@ describe("hook command pre-edit snippet (end to end)", () => {
       "Kibi knowledge for src/checkout.ts (symbol manifest):\n- REQ-checkout-rounding [firm: ask before changing]: Checkout totals round to cents — computeTotal\n",
     );
     expect(text).toContain(
-      "\nREQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.\n",
+      "\nREQ-checkout-rounding must keep true: Totals round half up to two decimals.\n",
     );
     expect(text).toContain(
       "\nDecision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.\n",

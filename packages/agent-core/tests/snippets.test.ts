@@ -18,9 +18,11 @@ import {
   MAX_SNIPPET_CHARS,
   claimSnippetSlot,
   createEntitySummarizer,
+  describeEntity,
   editFocus,
   editKnowledgeContext,
   editKnowledgeUpdate,
+  factClaimSentence,
   fileKnowledgeSnippet,
   requirementGroundingLines,
   unownedSourceNote,
@@ -68,7 +70,30 @@ const SUMMARIES: Record<string, EntitySummary> = {
       { type: "relates_to", target: "ADR-decimal" },
     ],
   },
-  "FACT-cents": { id: "FACT-cents", title: "Totals round half up" },
+  "FACT-total": {
+    id: "FACT-total",
+    title: "checkout.total subject",
+    claim: { factKind: "subject", subjectKey: "checkout.total" },
+  },
+  "FACT-cents": {
+    id: "FACT-cents",
+    title: "Totals round half up",
+    claim: {
+      factKind: "property_value",
+      subjectKey: "checkout.total",
+      propertyKey: "rounding_mode",
+      operator: "eq",
+      values: ["half_up"],
+      claimText: "Checkout totals must round half up",
+    },
+  },
+  "FACT-rule": {
+    id: "FACT-rule",
+    claim: {
+      factKind: "rule",
+      claimText: "A total is rounded once, after tax.",
+    },
+  },
   "ADR-decimal": { id: "ADR-decimal", title: "Money is decimal cents" },
 };
 
@@ -98,13 +123,13 @@ const SYMBOLS: IndexedSymbol[] = [
 describe("requirement grounding", () => {
   test("names the linked facts and the decision behind a current requirement", () => {
     expect(requirementGroundingLines("REQ-rounding", summarize)).toEqual([
-      "REQ-rounding must keep true: FACT-total; FACT-cents: Totals round half up +1.",
+      "REQ-rounding must keep true: Checkout totals: rounding mode must be half_up; A total is rounded once, after tax.",
       "Decision: ADR-decimal: Money is decimal cents.",
     ]);
     expect(
       requirementGroundingLines("REQ-rounding", summarize, { maxFacts: 1 }),
     ).toEqual([
-      "REQ-rounding must keep true: FACT-total +2.",
+      "REQ-rounding must keep true: Checkout totals: rounding mode must be half_up +1 more.",
       "Decision: ADR-decimal: Money is decimal cents.",
     ]);
   });
@@ -112,6 +137,102 @@ describe("requirement grounding", () => {
   test("a retired or ungrounded requirement contributes nothing", () => {
     expect(requirementGroundingLines("REQ-old", summarize)).toEqual([]);
     expect(requirementGroundingLines("REQ-unknown", summarize)).toEqual([]);
+  });
+
+  test("shows the modeled claim with its operator and members, never fact IDs", () => {
+    const root = tempDir("kibi-grounding-claim-");
+    write(
+      root,
+      ".kb/requirements/REQ-GREET.md",
+      "---\ntitle: The greet function must never call console.log\nstatus: open\nsemantic_text: The greet function must never call console.log.\nlinks:\n  - type: constrains\n    target: FACT-SUBJECT-933e16874642\n  - type: requires_property\n    target: FACT-PROP-402ceeb6f19a\n---\nThe greet function must never call console.log.\n",
+    );
+    write(
+      root,
+      ".kb/facts/FACT-SUBJECT-933e16874642.md",
+      "---\ntitle: the.greet.function subject\nstatus: active\nfact_kind: subject\nsubject_key: the.greet.function\nclaim_text: The greet function must never call console.log\n---\n",
+    );
+    write(
+      root,
+      ".kb/facts/FACT-PROP-402ceeb6f19a.md",
+      "---\ntitle: the.greet.function calls\nstatus: active\nfact_kind: property_value\nsubject_key: the.greet.function\nproperty_key: calls\noperator: excludes\nvalue_type: set\nvalue_set:\n  - console.log\n  - eval\ncanonical_key: the.greet.function.calls.excludes.console.log\nclaim_key: CLAIM-36FB2A9E9A14F5B1\nclaim_text: The greet function must never call console.log\n---\n",
+    );
+    const lines = requirementGroundingLines(
+      "REQ-GREET",
+      createEntitySummarizer(root),
+    );
+    expect(lines).toEqual([
+      "REQ-GREET must keep true: The greet function must not call console.log or eval.",
+    ]);
+    expect(lines.join("\n")).not.toContain("FACT-");
+  });
+
+  test("completes a title an older Kibi cut at a dot inside a name", () => {
+    const root = tempDir("kibi-grounding-title-");
+    write(
+      root,
+      ".kb/requirements/REQ-GREET.md",
+      "---\ntitle: The greet function must never call console\nstatus: open\nfirmness: default\nsemantic_text: The greet function must never call console.log. It logs nothing.\n---\n",
+    );
+    write(
+      root,
+      ".kb/requirements/REQ-plain.md",
+      "---\ntitle: Totals round\nstatus: open\nfirmness: default\nsemantic_text: Totals round. Always.\n---\n",
+    );
+    const summarizeRoot = createEntitySummarizer(root);
+    expect(describeEntity(summarizeRoot("REQ-GREET"))).toBe(
+      "REQ-GREET: The greet function must never call console.log",
+    );
+    expect(describeEntity(summarizeRoot("REQ-plain"))).toBe(
+      "REQ-plain: Totals round",
+    );
+  });
+
+  test("reads set members, scalar values and wrapped claim text from a fact", () => {
+    const root = tempDir("kibi-grounding-fields-");
+    write(
+      root,
+      ".kb/facts/FACT-port.md",
+      "---\ntitle: server port\nfact_kind: property_value\nsubject_key: server\nproperty_key: listen_port\noperator: gte\nvalue_int: 1024\nclaim_text: >-\n  The server must listen on port\n  1024 or above\n---\n",
+    );
+    write(
+      root,
+      ".kb/facts/FACT-env.md",
+      "---\nfact_kind: property_value\nsubject_key: server.environment\nproperty_key: reads\noperator: subset_of\nvalue_set: [PORT, HOST]\n---\n",
+    );
+    const summarizeRoot = createEntitySummarizer(root);
+    expect(summarizeRoot("FACT-port").claim).toEqual({
+      factKind: "property_value",
+      subjectKey: "server",
+      propertyKey: "listen_port",
+      operator: "gte",
+      values: ["1024"],
+      claimText: "The server must listen on port 1024 or above",
+    });
+    expect(factClaimSentence(summarizeRoot("FACT-port"))).toBe(
+      "The server: listen port must be at least 1024",
+    );
+    expect(factClaimSentence(summarizeRoot("FACT-env"))).toBe(
+      "server environment may read only PORT or HOST",
+    );
+  });
+
+  test("falls back to the requirement's own statement when no fact reads as a claim", () => {
+    const root = tempDir("kibi-grounding-statement-");
+    write(
+      root,
+      ".kb/requirements/REQ-cut.md",
+      "---\ntitle: Cut\nstatus: open\nlinks:\n  - type: constrains\n    target: FACT-subject-only\n---\n# Heading\n\nThe matcher in src/match.c must never call malloc.\nIt runs in a signal handler.\n\n## Context\n\nReason not stated.\n",
+    );
+    write(
+      root,
+      ".kb/facts/FACT-subject-only.md",
+      "---\ntitle: matcher subject\nfact_kind: subject\nsubject_key: matcher\n---\n",
+    );
+    expect(
+      requirementGroundingLines("REQ-cut", createEntitySummarizer(root)),
+    ).toEqual([
+      "REQ-cut must keep true: The matcher in src/match.c must never call malloc. It runs in a signal handler.",
+    ]);
   });
 });
 
@@ -128,7 +249,7 @@ describe("shared file knowledge snippet", () => {
       "Kibi knowledge for src/checkout.ts (symbol manifest):",
       "- REQ-rounding: Checkout totals round to cents — computeTotal",
       "- REQ-old (superseded): Totals truncate — formatTotal",
-      "REQ-rounding must keep true: FACT-total; FACT-cents: Totals round half up +1.",
+      "REQ-rounding must keep true: Checkout totals: rounding mode must be half_up; A total is rounded once, after tax.",
       "Decision: ADR-decimal: Money is decimal cents.",
       "Covered by: TEST-rounding.",
       "The edit is inside computeTotal, which implements REQ-rounding.",
@@ -233,7 +354,7 @@ describe("edit update after a shown snippet", () => {
     });
     expect(text?.split("\n")).toEqual([
       "Kibi: this edit to src/checkout.ts is inside computeTotal, which implements REQ-rounding.",
-      "REQ-rounding must keep true: FACT-total; FACT-cents: Totals round half up +1.",
+      "REQ-rounding must keep true: Checkout totals: rounding mode must be half_up; A total is rounded once, after tax.",
       "Decision: ADR-decimal: Money is decimal cents.",
       'Behavior changes here are traced to these requirements; kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.',
     ]);

@@ -176,6 +176,7 @@ describe("entity summaries", () => {
       title: "Totals display with a currency symbol",
       status: "superseded",
       firmness: "firm",
+      statement: "Body.",
     });
   });
 
