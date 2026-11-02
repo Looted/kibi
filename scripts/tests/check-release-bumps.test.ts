@@ -251,6 +251,24 @@ describe("release bump guard command", () => {
     );
   });
 
+  test("guards every publishable package of the catalog by default", () => {
+    const repository = join(import.meta.dir, "..", "..");
+    const out: string[] = [];
+    const stdout = spyOn(process.stdout, "write").mockImplementation(
+      (chunk) => {
+        out.push(String(chunk));
+        return true;
+      },
+    );
+    try {
+      // HEAD against itself: nothing changed, so every package passes.
+      main(["--base", "HEAD"], { cwd: repository });
+    } finally {
+      stdout.mockRestore();
+    }
+    expect(out.join("")).toContain("(base HEAD)");
+  });
+
   test("requires a ref after --base", () => {
     expect(() => main(["--base"], { cwd: tmpdir() })).toThrow(
       "--base requires a git ref",
