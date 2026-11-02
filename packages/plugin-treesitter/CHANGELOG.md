@@ -35,6 +35,8 @@
 
 - Rust `calls` no longer refuses a file for every macro: the calls in a standard or known crate macro's arguments are read (`println!("{}", f())` lists `f`). A project macro, also nested in a standard one, still refuses, and every macro still refuses `thrown`.
 
+- The README lists the titles that place a symbol, including Terraform addresses (`aws_s3_bucket.this`, `var.region`, `local.name`).
+
 - Close more false proofs. Rust: a C environment getter (`libc::getenv`, `environ`) fails the read, and a C exit (`libc::exit`, `abort`) is also listed as `std::process::exit`. C#: Unicode escapes in identifiers (`\u0045nvironment.Exit`) are decoded, and a `ProcessStartInfo` environment read fails the read. Go: a call to a name the file does not declare is marked so the host can check the package's other files for a function value of that name.
 
 - 048d1c9: Close false proofs found by testing the language packs before release:

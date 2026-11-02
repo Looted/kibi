@@ -369,17 +369,24 @@ it("returns original entry when source path cannot be resolved", async () => {
   expect(out[0]?.sourceLine).toBeUndefined();
 });
 
-it("returns original entry when regex heuristic cannot read a resolved path", async () => {
+it("names a source path that is not a regular file", async () => {
+  fs.mkdirSync(path.join(tmpDir, "sub"));
   const entries: ManifestSymbolEntry[] = [
-    { id: "dir", title: "anything", sourceFile: "." },
+    { id: "dir", title: "anything", sourceFile: "sub" },
+    { id: "root", title: "anything", sourceFile: "." },
+    { id: "out", title: "anything", sourceFile: "../elsewhere.go" },
   ];
 
   const out = await runEnrichment(entries, tmpDir);
 
-  expect(out).toEqual(entries);
+  expect(out.map((entry) => entry.coordinateRefreshFailure)).toEqual([
+    "sub is not a regular file",
+    ". is not a file path inside the workspace",
+    "../elsewhere.go is not a file path inside the workspace",
+  ]);
 });
 
-it("handles nonexistent sourceFile and returns original", async () => {
+it("names a nonexistent sourceFile", async () => {
   const entries: ManifestSymbolEntry[] = [
     { id: "n1", title: "nope", sourceFile: "no/such/path.txt" },
   ];
@@ -387,6 +394,9 @@ it("handles nonexistent sourceFile and returns original", async () => {
   const out = await runEnrichment(entries, tmpDir);
 
   expect(out[0]?.sourceLine).toBeUndefined();
+  expect(out[0]?.coordinateRefreshFailure).toBe(
+    "no/such/path.txt does not exist",
+  );
 });
 
 it("properly escapes regex metacharacters in title when searching", async () => {
@@ -673,6 +683,9 @@ it("refreshes partial files per symbol and keeps decorator coordinates explicit"
       allowPythonDecoratorCoordinates: true,
     });
     expect(ambiguous[0]?.sourceLine).toBeUndefined();
+    expect(ambiguous[0]?.coordinateRefreshFailure).toBe(
+      "'run' matches 2 declarations in decorated.py (run on lines 2-3, run on line 3); no title tells them apart",
+    );
     // A missing grammar pack is named once per file, with its install line,
     // and the coarse heuristic still anchors the symbol.
     warn.mockClear();
@@ -729,7 +742,83 @@ it("says when a shell dialect is only placed by text match", async () => {
     expect(warn.mock.calls[0]?.[0]).toBe(
       "[kibi] run.sh: symbol coordinates are approximate (placed by text match). The sh shell dialect is retained as file-level source.",
     );
+    const [missed] = await enrichSymbolCoordinates(
+      [{ id: "SYM-stop", title: "stop", sourceFile: "run.sh" }],
+      tmpDir,
+      { sourceAnalysisService: service },
+    );
+    expect(missed?.coordinateRefreshFailure).toBe(
+      "no text match for 'stop' in run.sh, which has no parser-backed declarations (The sh shell dialect is retained as file-level source.)",
+    );
   } finally {
     warn.mockRestore();
   }
+});
+
+it("places a Java class named like its constructor and Terraform blocks by address", async () => {
+  writeFile("OS.java", "package ox;\n");
+  writeFile("main.tf", "# terraform\n");
+  const span = (startLine: number, endLine: number) => ({
+    startLine,
+    startColumn: 0,
+    endLine,
+    endColumn: 1,
+  });
+  const symbols: Record<string, unknown[]> = {
+    "OS.java": [
+      {
+        name: "OS",
+        qualifiedName: "ox.OS",
+        kind: "class",
+        containerName: "ox",
+        ...span(5, 20),
+      },
+      {
+        name: "OS",
+        qualifiedName: "ox.OS.OS()",
+        kind: "method",
+        containerName: "OS",
+        ...span(13, 14),
+      },
+    ],
+    "main.tf": [
+      {
+        name: "this",
+        qualifiedName: 'terraform:resource["aws_s3_bucket","this"]',
+        kind: "unknown",
+        ...span(15, 17),
+      },
+      {
+        name: "this",
+        qualifiedName: 'terraform:resource["aws_s3_bucket_versioning","this"]',
+        kind: "unknown",
+        ...span(19, 24),
+      },
+    ],
+  };
+  const service = {
+    analyzeTextV2: async (file: string) => ({
+      status: "ok",
+      symbols: symbols[file] ?? [],
+      uncoveredRanges: [],
+      diagnostics: [],
+    }),
+  } as unknown as SourceAnalysisService;
+  const out = await enrichSymbolCoordinates(
+    [
+      { id: "SYM-OS", title: "OS", sourceFile: "OS.java" },
+      { id: "SYM-OS-Q", title: "ox.OS", sourceFile: "OS.java" },
+      { id: "SYM-BUCKET", title: "aws_s3_bucket.this", sourceFile: "main.tf" },
+      { id: "SYM-THIS", title: "this", sourceFile: "main.tf" },
+    ],
+    tmpDir,
+    { sourceAnalysisService: service },
+  );
+  expect(out[0]).toMatchObject({ sourceLine: 5, sourceEndLine: 20 });
+  expect(out[1]).toMatchObject({ sourceLine: 5, sourceEndLine: 20 });
+  expect(out[2]).toMatchObject({ sourceLine: 15, sourceEndLine: 17 });
+  expect(out[3]?.sourceLine).toBeUndefined();
+  expect(out[3]?.coordinateRefreshFailure).toBe(
+    "'this' matches 2 declarations in main.tf (aws_s3_bucket.this on lines 15-17, aws_s3_bucket_versioning.this on lines 19-24); use one of those titles",
+  );
 });
