@@ -41,6 +41,13 @@ interface Scope {
   readonly functions: Map<string, Imported>;
 }
 
+/** An array literal's element: its key (null when Kibi cannot read it). */
+interface ArrayEntry {
+  readonly key: string | null;
+  readonly value: Node | undefined;
+  readonly item: Node;
+}
+
 /** Superglobals that hold the environment (`$_SERVER` holds it in the CLI and under FPM). */
 const ENV_ARRAYS = new Set(["_ENV", "_SERVER"]);
 
@@ -248,8 +255,6 @@ const READS_SLOT = new Set([
   "min",
   "abs",
   "round",
-  "echo",
-  "print",
 ]);
 
 /** Builtins that rewrite a whole array, its values or its keys. */
@@ -1346,37 +1351,32 @@ export function phpReferences(
   };
 
   /** The keys of an array literal, with the implicit ones PHP numbers. */
-  const arrayEntries = (
-    node: Node,
-  ): { key: string | null; value: Node | undefined; item: Node }[] | null => {
-    const entries: {
-      key: string | null;
-      value: Node | undefined;
-      item: Node;
-    }[] = [];
+  const arrayEntries = (node: Node): ArrayEntry[] | null => {
+    // Stryker disable next-line ArrayDeclaration: every caller reads only entries' fields, so a stray non-entry element is ignored.
+    const entries: ArrayEntry[] = [];
     let next = 0n;
-    let highest: bigint | null = null;
+    // While every integer key is negative (`next` is still 0), the next
+    // implicit key is the largest + 1 from PHP 8.3 and 0 before it: the
+    // version decides.
+    let integerKey = false;
     for (const item of named(node)) {
       if (item.type !== "array_element_initializer") continue;
       const parts = named(item);
-      if (parts.length === 1 && parts[0]?.type === "variadic_unpacking")
-        return null;
       if (parts.length === 1) {
-        if (highest !== null && highest < 0n) return null;
-        entries.push({ key: next.toString(), value: parts[0], item });
-        highest = next;
+        if ((parts[0] as Node).type === "variadic_unpacking") return null;
+        if (integerKey && next === 0n) return null;
+        entries.push({ key: String(next), value: parts[0], item });
         next += 1n;
         continue;
       }
       const keyNode = parts[0] as Node;
-      const key = intConstant(keyNode) ? undefined : keyOf(keyNode);
-      if (key === undefined) continue;
+      if (intConstant(keyNode)) continue;
+      const key = keyOf(keyNode);
       entries.push({ key, value: parts.at(-1), item });
-      if (key !== null && /^(?:0|-?[1-9]\d*)$/.test(key)) {
-        // While every integer key is negative, the next implicit key is the
-        // largest + 1 from PHP 8.3 and 0 before it: the version decides.
-        const number = BigInt(key);
-        if (highest === null || number > highest) highest = number;
+      // A refused key (null) reads "null": no integer.
+      if (/^(?:0|-?[1-9]\d*)$/.test(String(key))) {
+        integerKey = true;
+        const number = BigInt(key as string);
         if (number >= next) next = number + 1n;
       }
     }
@@ -1384,9 +1384,9 @@ export function phpReferences(
   };
 
   const arrayHasKey = (node: Node): boolean =>
-    (arrayEntries(node) ?? []).some(
+    arrayEntries(node)?.some(
       (entry) => entry.key === options.key || entry.key === null,
-    );
+    ) ?? false;
 
   /** property: the value an array literal gives the key. */
   const arrayKeys = (node: Node): void => {
@@ -1414,15 +1414,13 @@ export function phpReferences(
   const propertyCall = (node: Node, name: string): void => {
     const list = callArguments(node);
     if (name === "define") {
-      // `define(value: 1, constant_name: 'K')` names its arguments.
+      // `define(value: 1, constant_name: 'K')` names its arguments, after
+      // the positional ones.
       const byName = (wanted: string, position: number): Node | undefined =>
         list.find(
-          (argument) => lower(field(argument, "name")?.text ?? "") === wanted,
+          (argument) => field(argument, "name")?.text.toLowerCase() === wanted,
         ) ??
-        (list[position] !== undefined &&
-        field(list[position] as Node, "name") === null
-          ? list[position]
-          : undefined);
+        list.filter((argument) => field(argument, "name") === null)[position];
       const key = literal(argumentValue(byName("constant_name", 0)));
       if (key === null) refuse(node);
       else if (key === options.key && definedTwice)
@@ -1472,12 +1470,13 @@ export function phpReferences(
     // other included files set. Keys from a case change.
     if (ARRAY_TRANSFORMS.has(name)) {
       let outer: Node = node;
-      while (outer.parent?.type === "parenthesized_expression")
-        outer = outer.parent;
+      while ((outer.parent as Node).type === "parenthesized_expression")
+        outer = outer.parent as Node;
+      const parent = outer.parent as Node;
       const stored =
         name === "array_splice" ||
-        (outer.parent?.type === "assignment_expression" &&
-          field(outer.parent, "right")?.id === outer.id);
+        (parent.type === "assignment_expression" &&
+          (field(parent, "right") as Node).id === outer.id);
       if (
         name === "array_change_key_case"
           ? lower(root.text).includes(lower(options.key))
@@ -1501,7 +1500,7 @@ export function phpReferences(
     if (name === "array_walk" || name === "array_walk_recursive") {
       const callback = argumentValue(list[1]);
       const first = named(field(callback ?? root, "parameters") ?? root).find(
-        (child) => /_parameter$/.test(child.type),
+        (child) => child.type.endsWith("_parameter"),
       );
       const byValue =
         (callback?.type === "anonymous_function" ||
@@ -1518,37 +1517,33 @@ export function phpReferences(
    */
   const callableEnvName = (node: Node, value: string): boolean => {
     const name = lower(stripLeading(value));
-    const parent = node.parent;
+    const parent = node.parent as Node;
+    // An argument's call, or for any other string a node no getter call
+    // can be.
+    const call = (parent.parent as Node).parent;
     // `'env'` is a common word: only one handed to a function may be the
     // helper called by name.
     const getter =
       /^(?:apache_)?getenv$/.test(name) ||
       (name === "env" &&
-        parent?.type === "argument" &&
-        parent.parent?.parent?.type === "function_call_expression") ||
+        parent.type === "argument" &&
+        (call as Node).type === "function_call_expression") ||
       /^illuminate\\support\\env(?:::\w+)?$/.test(name);
     if (!getter) return false;
     if (
-      parent?.type === "array_element_initializer" &&
+      parent.type === "array_element_initializer" &&
       named(parent).length === 2 &&
-      named(parent)[0]?.id === node.id
+      (named(parent)[0] as Node).id === node.id
     )
       return false;
+    // `$a['getenv']`, but not `'getenv'[0]`.
     if (
-      parent?.type === "subscript_expression" &&
-      named(parent)[1]?.id === node.id
+      parent.type === "subscript_expression" &&
+      (named(parent)[0] as Node).id !== node.id
     )
       return false;
-    if (parent?.type === "argument") {
-      const call = parent.parent?.parent;
-      const read =
-        call !== null && call !== undefined && isCall(call)
-          ? callNames(call)
-          : null;
-      if (read?.names.some((candidate) => ENV_GETTERS.has(lower(candidate))))
-        return false;
-    }
-    return true;
+    const read = call !== null && isCall(call) ? callNames(call) : null;
+    return read === null || !ENV_GETTERS.has(lower(read.names[0] as string));
   };
 
   /**
@@ -1557,46 +1552,38 @@ export function phpReferences(
    * also in a definition array, a fetch mode that is not a `PDO::FETCH_*` constant
    * (`10` is FETCH_FUNC), or an ini option that takes a callback.
    */
-  const callbackMode = (
-    node: Node,
-    name: string,
-    names: readonly string[],
-  ): boolean => {
+  const callbackMode = (node: Node, name: string): boolean => {
     const list = callArguments(node);
     if (/^filter_(?:var|var_array|input|input_array)$/.test(name)) {
-      const filter = list[name.startsWith("filter_input") ? 2 : 1];
+      // filter_input(type, name, filter), filter_input_array(type, filter).
+      const filter = list[name === "filter_input" ? 2 : 1];
       return (
         list.some(
           (argument) =>
             argument.type !== "argument" || field(argument, "name") !== null,
         ) ||
         (filter !== undefined &&
-          !/^\\?FILTER_\w+$/.test(argumentValue(filter)?.text ?? "") &&
+          !/^\\?FILTER_\w+$/.test((argumentValue(filter) as Node).text) &&
           !(
             name.endsWith("_array") &&
-            argumentValue(filter)?.type === "array_creation_expression"
+            (argumentValue(filter) as Node).type === "array_creation_expression"
           )) ||
         // `['filter' => 1024, 'options' => 'system']` in a definition.
-        /['"]filter['"]\s*=>\s*(?!\\?FILTER_\w+\s*[,\]])/.test(node.text)
+        /['"]filter['"]\s*=>(?!\s*\\?FILTER_\w+\s*[,\]])/.test(node.text)
       );
     }
     if (
-      names.some((candidate) =>
-        /^(?:\*\.|.*::)(?:fetch|fetchall|setfetchmode|fetchobject)$/i.test(
-          candidate,
-        ),
-      ) &&
+      /(?:\*\.|::)(?:fetch|fetchall|setfetchmode|fetchobject)$/i.test(name) &&
       list.length > 1
     )
       return !/^\\?PDO::FETCH_\w+(?:\s*\|\s*\\?PDO::FETCH_\w+)*$/.test(
-        argumentValue(list[0])?.text ?? "",
+        (argumentValue(list[0]) as Node).text,
       );
     if (name === "ini_set" || name === "ini_alter") {
-      const byName = list.some(
-        (argument) =>
-          argument.type !== "argument" || field(argument, "name") !== null,
-      );
-      const option = byName ? null : literal(argumentValue(list[0]));
+      // `ini_set(...$a)` has no literal option either.
+      const option = list.some((argument) => field(argument, "name") !== null)
+        ? null
+        : literal(argumentValue(list[0]));
       return (
         option === null ||
         /^(?:unserialize_callback_func|assert\.callback)$/i.test(option)
@@ -1666,7 +1653,7 @@ export function phpReferences(
             callArguments(node).some((argument) =>
               /\b(?:FILTER_CALLBACK|FETCH_FUNC)\b/.test(argument.text),
             ) ||
-            callbackMode(node, name, names))
+            callbackMode(node, name))
         ) {
           refuse(node);
           break;

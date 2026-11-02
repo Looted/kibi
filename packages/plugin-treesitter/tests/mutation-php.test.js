@@ -714,3 +714,577 @@ describe("PHP keys a write may set", () => {
     );
   });
 });
+
+describe("PHP array literals and array builtins", () => {
+  const p = (key, cases) => reads("property", cases, { key });
+
+  it("numbers the implicit keys of an array literal", async () => {
+    await p("k", [
+      ["$a = [/*c*/ 'k' => 'v'];", ["v"]],
+      ["$a = ['k' => /*c*/ 'v'];", ["v"]],
+      ["$a = [...$d, 'k' => 'x'];", [], ["2: [...$d, 'k' => 'x']"]],
+      ["$o = [...$d] + $x;", [], ["2: [...$d]"]],
+      ["$o += [...$d];", [], ["2: [...$d]"]],
+      [
+        "$o += ['j' => 'y', 'k' => 'x'];",
+        ["x"],
+        ["2: $o += ['j' => 'y', 'k' => 'x']"],
+      ],
+      ["$o += [$j => 'x'];", [], ["2: $o += [$j => 'x']", "2: $j => 'x'"]],
+    ]);
+    await p("1", [
+      ["$a = ['a', 'b'];", ["b"]],
+      ["$a = [0 => 'a', 'b'];", ["b"]],
+    ]);
+    await p("0", [
+      ["$a = [-5 => 'a', 'b'];", [], ["2: [-5 => 'a', 'b']"]],
+      ["$a = ['5x' => 'a', 'b'];", ["b"]],
+      ["$a = ['05' => 'a', 'b'];", ["b"]],
+      ["$a = [CURLOPT_URL => 'a', 'b'];", ["b"], ["2: CURLOPT_URL => 'a'"]],
+    ]);
+    await p("-3", [["$a = [-5 => 'a', -3 => 'c'];", ["c"]]]);
+    await p("6", [
+      ["$a = [5 => 'a', 2 => 'b', 'c'];", ["c"]],
+      ["$a = ['05' => 'a', 'b'];", []],
+    ]);
+    await p("11", [["$a = [10 => 'a', 'b'];", ["b"]]]);
+  });
+
+  it("reads define and compact", async () => {
+    await p("K", [
+      ["define();", [], ["2: define()"]],
+      ["define(...);", [], ["2: define(...)"]],
+      ["define('K');", [], ["2: define('K')"]],
+      ["define('K', foo: 1);", [], ["2: define('K', foo: 1)"]],
+      ["define(value: 1, constant_name: 'K');", ["1"]],
+      ["define(VALUE: 1, Constant_Name: 'K');", ["1"]],
+      ["define('OTHER', 1); define('K', 2);", ["2"]],
+      ["define('K', $x);", [], ["2: define('K', $x)"]],
+    ]);
+    await p("k", [
+      ["compact('k');", [], ["2: 'k'"]],
+      ["compact('j');", []],
+      ["compact($x);", [], ["2: $x"]],
+    ]);
+  });
+
+  it("refuses a merge a later array may overwrite", async () => {
+    await p("k", [
+      ["$o = my_array_merge(['k' => 'x'], $y);", ["x"]],
+      ["$o = array_merge_x(['k' => 'x'], $y);", ["x"]],
+      ["$o = foo(['k' => 'x'], $y);", ["x"]],
+      ["$o = array_merge(...);", []],
+      ["$o = array_merge(['k' => 'x'], ['j' => 'y']);", ["x"]],
+      [
+        "$o = array_merge(['k' => 'x'], $y);",
+        ["x"],
+        ["2: array_merge(['k' => 'x'], $y)"],
+      ],
+      ["$o = array_merge($y, ['k' => 'x']);", ["x"]],
+    ]);
+    await p("acl", [
+      [
+        "f(array_merge_recursive($y, ['acl' => 'x']));",
+        ["x"],
+        ["2: array_merge_recursive($y, ['acl' => 'x'])"],
+      ],
+      ["f(array_merge($y, ['acl' => 'x']));", ["x"]],
+      ["f(array_merge_recursive(['acl' => 'x'], ['j' => 'y']));", ["x"]],
+    ]);
+    await p("0", [
+      ["$o = array_merge([0 => 'x']);", ["x"], ["2: array_merge([0 => 'x'])"]],
+      ["$o = array_replace([0 => 'x']);", ["x"]],
+      [
+        "f(array_merge_recursive([0 => 'x']));",
+        ["x"],
+        ["2: array_merge_recursive([0 => 'x'])"],
+      ],
+    ]);
+  });
+
+  it("refuses a whole-array rewrite stored back", async () => {
+    const replace = "str_replace('a', 'b', $o)";
+    const row = [`2: ${replace}`];
+    await p("acl", [
+      [`function f($o) { $o = ${replace}; }`, []],
+      [`function f($o) { $o = (${replace}); }`, []],
+      [`function f($o) { $p = 'acl'; $o = ${replace}; }`, [], row],
+      [`function f($o) { $p = 'acl'; $o = (${replace}); }`, [], row],
+      [`function f($o) { $p = 'acl'; f(${replace}); }`, []],
+      [`function f($o) { include 'x.php'; $o = ${replace}; }`, [], row],
+      [`function f($o) { require_once 'x.php'; $o = ${replace}; }`, [], row],
+      [`$o = ${replace};`, [], row],
+      [`f(${replace});`, []],
+      [`${replace} = 1;`, []],
+      [`$o = f(${replace});`, []],
+      ["function f($o) { array_splice($o, 1); }", []],
+      [
+        "function f($o) { $p = 'acl'; array_splice($o, 1); }",
+        [],
+        ["2: array_splice($o, 1)"],
+      ],
+      [
+        "function f($o) { $o = array_change_key_case($o); return $o['ACL']; }",
+        [],
+        ["2: array_change_key_case($o)"],
+      ],
+      ["function f($o) { $o = array_change_key_case($o); }", []],
+      [
+        "f(array_change_key_case($o)); $p = 'Acl';",
+        [],
+        ["2: array_change_key_case($o)"],
+      ],
+    ]);
+  });
+
+  it("refuses builtins that renumber or build keys", async () => {
+    await p("0", [
+      ["array_push($o, 'x');", [], ["2: array_push($o, 'x')"]],
+      ["array_unshift($o, 'x');", [], ["2: array_unshift($o, 'x')"]],
+      ["array_shift($o);", [], ["2: array_shift($o)"]],
+      ["array_pop($o);", [], ["2: array_pop($o)"]],
+      ["my_array_push($o, 'x');", []],
+      ["array_push_x($o, 'x');", []],
+    ]);
+    await p("acl", [
+      ["array_push($o, 'x');", []],
+      ["$o = array_combine($k, $v);", [], ["2: array_combine($k, $v)"]],
+      ["$o = array_flip($v);", [], ["2: array_flip($v)"]],
+      ["$o = array_fill_keys($v, 1);", [], ["2: array_fill_keys($v, 1)"]],
+    ]);
+  });
+
+  it("refuses array_walk unless the callback takes values by value", async () => {
+    const cases = [
+      ["function ($v) {}", true],
+      ["function () {}", true],
+      ["fn ($v) => $v", true],
+      ["function (&$v) {}", false],
+      ["function (/*c*/ &$v) {}", false],
+      ["fn (&$v) => $v", false],
+      ["'trim'", false],
+    ];
+    for (const walk of ["array_walk", "array_walk_recursive"])
+      for (const [callback, byValue] of cases) {
+        const call = `${walk}($o, ${callback})`;
+        await p("acl", [[`${call};`, [], byValue ? [] : [`2: ${call}`]]]);
+      }
+    await p("acl", [["array_walk($o);", [], ["2: array_walk($o)"]]]);
+  });
+});
+
+describe("PHP builtin tables", () => {
+  it("names the callables each builtin is handed", async () => {
+    const table = [
+      ["call_user_func", [0]],
+      ["call_user_func_array", [0]],
+      ["forward_static_call", [0]],
+      ["forward_static_call_array", [0]],
+      ["array_map", [0]],
+      ["array_filter", [1]],
+      ["array_find", [1]],
+      ["array_find_key", [1]],
+      ["array_any", [1]],
+      ["array_all", [1]],
+      ["array_walk", [1]],
+      ["array_walk_recursive", [1]],
+      ["array_reduce", [1]],
+      ["usort", [1]],
+      ["uasort", [1]],
+      ["uksort", [1]],
+      ["array_udiff", [4]],
+      ["array_uintersect", [4]],
+      ["array_diff_uassoc", [4]],
+      ["array_diff_ukey", [4]],
+      ["array_intersect_uassoc", [4]],
+      ["array_intersect_ukey", [4]],
+      ["array_udiff_assoc", [4]],
+      ["array_uintersect_assoc", [4]],
+      ["array_udiff_uassoc", [3, 4]],
+      ["array_uintersect_uassoc", [3, 4]],
+      ["iterator_apply", [1]],
+      ["register_shutdown_function", [0]],
+      ["register_tick_function", [0]],
+      ["spl_autoload_register", [0]],
+      ["set_error_handler", [0]],
+      ["set_exception_handler", [0]],
+      ["ob_start", [0]],
+      ["preg_replace_callback", [1]],
+      ["mb_ereg_replace_callback", [1]],
+      ["header_register_callback", [0]],
+      ["pcntl_signal", [1]],
+      ["sapi_windows_set_ctrl_handler", [0]],
+      ["readline_completion_function", [0]],
+      ["readline_callback_handler_install", [1]],
+      ["libxml_set_external_entity_loader", [0]],
+      ["xml_set_element_handler", [1, 2]],
+      ["xml_set_character_data_handler", [1]],
+      ["xml_set_default_handler", [1]],
+      ["xml_set_processing_instruction_handler", [1]],
+      ["xml_set_start_namespace_decl_handler", [1]],
+      ["xml_set_end_namespace_decl_handler", [1]],
+      ["xml_set_unparsed_entity_decl_handler", [1]],
+      ["xml_set_notation_decl_handler", [1]],
+      ["xml_set_external_entity_ref_handler", [1]],
+      ["session_set_save_handler", [0, 1, 2, 3, 4]],
+      ["Closure::fromCallable", [0]],
+      ["assert_options", [1]],
+      ["ldap_set_rebind_proc", [1]],
+      ["IntlChar::enumCharNames", [2]],
+      ["IntlChar::enumCharTypes", [0]],
+      ["$o->setAuthorizer", [0]],
+      ["$o->uasort", [0]],
+      ["$o->uksort", [0]],
+      ["$o->createFunction", [1]],
+      ["$o->createAggregate", [1, 2]],
+      ["$o->createCollation", [1]],
+      ["$o->sqliteCreateFunction", [1]],
+      ["$o->sqliteCreateAggregate", [1, 2]],
+      ["$o->sqliteCreateCollation", [1]],
+    ];
+    for (const [callee, positions] of table) {
+      const args = [0, 1, 2, 3, 4].map((position) =>
+        positions.includes(position) ? `'cb${position}'` : `$a${position}`,
+      );
+      const name = callee.replace(/^\$o->/, "*.");
+      await reads("calls", [
+        [
+          `${callee}(${args.join(", ")});`,
+          [name, ...positions.map((position) => `cb${position}`)].sort(),
+        ],
+      ]);
+    }
+  });
+
+  it("names the callables a builtin class is built with", async () => {
+    await reads("calls", [
+      ["new Fiber('cb');", ["cb"]],
+      ["new CallbackFilterIterator($i, 'cb');", ["cb"]],
+      ["new RecursiveCallbackFilterIterator($i, 'cb');", ["cb"]],
+      ["new RecursiveCallbackFilterIterator('cb', $i);", [], ["2: $i"]],
+      ["create_function('', 'x');", [], ["2: create_function('', 'x')"]],
+    ]);
+  });
+
+  it("trusts a catch variable handed to a builtin by value", async () => {
+    const rethrow = (statement) =>
+      `function f() { try {} catch (E $e) { ${statement}; throw $e; } }`;
+    for (const owner of [
+      "Exception",
+      "ErrorException",
+      "Error",
+      "TypeError",
+      "ValueError",
+      "ArithmeticError",
+      "DivisionByZeroError",
+      "ArgumentCountError",
+      "JsonException",
+      "RuntimeException",
+      "LogicException",
+      "InvalidArgumentException",
+      "DomainException",
+      "LengthException",
+      "OutOfRangeException",
+      "OutOfBoundsException",
+      "RangeException",
+      "OverflowException",
+      "UnderflowException",
+      "UnexpectedValueException",
+      "BadFunctionCallException",
+      "BadMethodCallException",
+    ])
+      await reads("thrown", [[rethrow(`$x = new ${owner}('m', 0, $e)`), []]]);
+    for (const callee of [
+      "error_log",
+      "print_r",
+      "var_dump",
+      "var_export",
+      "get_class",
+      "is_a",
+      "is_subclass_of",
+      "json_encode",
+      "serialize",
+      "spl_object_id",
+      "spl_object_hash",
+      "sprintf",
+      "printf",
+      "trigger_error",
+    ])
+      await reads("thrown", [[rethrow(`${callee}($e)`), []]]);
+    await reads("thrown", [
+      [rethrow("$x = new MyException('m', 0, $e)"), [], ["2: throw $e"]],
+      [rethrow("my_log($e)"), [], ["2: throw $e"]],
+    ]);
+  });
+
+  it("reads a slot handed to a builtin by value", async () => {
+    for (const callee of [
+      "error_log",
+      "print_r",
+      "var_dump",
+      "var_export",
+      "get_class",
+      "is_a",
+      "is_subclass_of",
+      "json_encode",
+      "serialize",
+      "spl_object_id",
+      "spl_object_hash",
+      "sprintf",
+      "printf",
+      "trigger_error",
+      "strtolower",
+      "strtoupper",
+      "ucfirst",
+      "lcfirst",
+      "trim",
+      "ltrim",
+      "rtrim",
+      "strlen",
+      "mb_strlen",
+      "count",
+      "in_array",
+      "array_key_exists",
+      "array_keys",
+      "array_values",
+      "intval",
+      "floatval",
+      "boolval",
+      "strval",
+      "is_array",
+      "is_string",
+      "is_int",
+      "is_bool",
+      "is_null",
+      "is_numeric",
+      "htmlspecialchars",
+      "htmlentities",
+      "urlencode",
+      "rawurlencode",
+      "base64_encode",
+      "md5",
+      "sha1",
+      "hash",
+      "explode",
+      "implode",
+      "join",
+      "str_contains",
+      "str_starts_with",
+      "str_ends_with",
+      "strpos",
+      "stripos",
+      "substr",
+      "str_pad",
+      "str_repeat",
+      "number_format",
+      "date",
+      "strtotime",
+      "json_decode",
+      "unserialize",
+      "filter_var",
+      "max",
+      "min",
+      "abs",
+      "round",
+    ])
+      await reads("property", [[`f(${callee}($o['acl']));`, []]], {
+        key: "acl",
+      });
+    await reads(
+      "property",
+      [
+        ["foo($o['acl']);", [], ["2: $o['acl']"]],
+        ["echo $o['acl'], print($o['acl']);", []],
+      ],
+      { key: "acl" },
+    );
+  });
+
+  it("refuses each whole-array rewrite stored back", async () => {
+    for (const callee of [
+      "str_replace",
+      "str_ireplace",
+      "preg_replace",
+      "preg_replace_callback",
+      "array_map",
+      "array_filter",
+      "array_change_key_case",
+      "array_diff_key",
+      "array_diff_assoc",
+      "array_intersect_key",
+      "array_intersect_assoc",
+      "array_splice",
+      "array_slice",
+      "array_pad",
+      "array_unique",
+      "array_reverse",
+      "array_column",
+      "substr_replace",
+      "preg_filter",
+      "array_merge_recursive",
+      "array_replace_recursive",
+      "iterator_to_array",
+    ])
+      await reads(
+        "property",
+        [[`$o = ${callee}($o); // ACL`, [], [`2: ${callee}($o)`]]],
+        { key: "acl" },
+      );
+    await reads("property", [["$o = foo($o);", []]], { key: "acl" });
+  });
+});
+
+describe("PHP strings that may name a getter", () => {
+  /** Each body with the string rows it refuses, besides `rows`. */
+  const refused = (body, strings = [], members = []) =>
+    reads("env", [[body, members, strings.map((text) => `2: ${text}`)]]);
+
+  it("names getenv, env handed to a function and the Env class", async () => {
+    for (const name of [
+      "getenv",
+      "apache_getenv",
+      "Illuminate\\Support\\Env",
+      "\\Illuminate\\Support\\Env::get",
+    ])
+      await refused(`$f = '${name}';`, [`'${name}'`]);
+    for (const name of [
+      "mygetenv",
+      "getenvx",
+      "env",
+      "Illuminate\\Support\\Envx",
+      "xIlluminate\\Support\\Env",
+      "Illuminate\\Support\\Env::",
+      "Illuminate\\Support\\Env::get-x",
+    ])
+      await refused(`$f = '${name}';`);
+    await refused("'getenv';", ["'getenv'"]);
+    await refused("foo('env');", ["'env'"]);
+    await refused("$o->m('env');");
+    await refused("new X('env');");
+    await refused("('env' . 'x')('y');", ["('env' . 'x')('y')"]);
+    await refused("('getenv' . 'x')('y');", [
+      "('getenv' . 'x')('y')",
+      "'getenv'",
+    ]);
+  });
+
+  it("skips keys and the variable a getter is asked for", async () => {
+    await refused("$a = ['getenv' => 1];");
+    await refused("$a = ['x' => 'getenv'];", ["'getenv'"]);
+    await refused("$a = ['getenv'];", ["'getenv'"]);
+    await refused("$x = $a['getenv'];");
+    await refused("$x = 'getenv'[0];", ["'getenv'"]);
+    await refused("getenv('getenv');", [], ["getenv"]);
+    await refused("env('getenv');", [], ["getenv"]);
+    await refused("Illuminate\\Support\\Env::get('getenv');", [], ["getenv"]);
+    await refused(
+      "'Illuminate\\Support\\Env::get'('getenv');",
+      ["'Illuminate\\Support\\Env::get'"],
+      ["getenv"],
+    );
+    await refused(
+      "namespace App; getenv('getenv');",
+      ["getenv may be a function of namespace App: getenv('getenv')"],
+      ["getenv"],
+    );
+    await refused("$f('getenv');", ["$f('getenv')", "'getenv'"]);
+    await refused("new X('getenv');", ["'getenv'"]);
+    await refused("foo('getenv');", ["'getenv'"]);
+  });
+});
+
+describe("PHP callback filters, fetch modes and ini options", () => {
+  /** Each call, refused or read by name. */
+  const calls = async (cases) => {
+    for (const [call, refusedCall] of cases) {
+      const name = call.replace(/\(.*/s, "").replace(/^\$\w+->/, "*.");
+      await reads("calls", [
+        refusedCall ? [`${call};`, [], [`2: ${call}`]] : [`${call};`, [name]],
+      ]);
+    }
+  };
+
+  it("refuses a filter that may be a callback", async () => {
+    await calls([
+      ["filter_var($x, 1024)", true],
+      ["filter_var($x, FILTER_DEFAULT)", false],
+      ["filter_var($x, \\FILTER_DEFAULT)", false],
+      ["filter_varx($x, 1)", false],
+      ["xfilter_var($x, 1)", false],
+      ["filter_var($x)", false],
+      ["filter_input(INPUT_GET, 'x', FILTER_DEFAULT)", false],
+      ["filter_input(INPUT_GET, 'x', 1024)", true],
+      ["filter_input_array(INPUT_GET, FILTER_DEFAULT, true)", false],
+      ["filter_input_array(INPUT_GET, 1024)", true],
+      ["filter_input_array(INPUT_GET, ['a' => FILTER_DEFAULT])", false],
+      ["filter_var(...)", true],
+      ["filter_var($x, FILTER_DEFAULT, flags: 0)", true],
+      ["filter_var(value: $x, filter: FILTER_DEFAULT)", true],
+      ["filter_var($x, 1|FILTER_DEFAULT)", true],
+      ["filter_var($x, FILTER_DEFAULT|1)", true],
+      ["filter_var_array($x, FILTER_DEFAULT)", false],
+      ["filter_var_array($x, ['a' => FILTER_DEFAULT])", false],
+      ["filter_var_array($x, 1024)", true],
+      ["filter_var($x, ['flags' => 1])", true],
+    ]);
+  });
+
+  it("reads the filter of a definition array", async () => {
+    await calls([
+      ["filter_var_array($x, ['a' => ['filter'=>1024]])", true],
+      ["filter_var_array($x, ['a' => ['filter' =>1024]])", true],
+      ["filter_var_array($x, ['a' => ['filter'=> 1024]])", true],
+      [
+        "filter_var_array($x, ['a' => ['filter' => FILTER_DEFAULT | 1024]])",
+        true,
+      ],
+      ["filter_var_array($x, ['a' => ['filter' => FILTER_DEFAULT]])", false],
+      [
+        "filter_var_array($x, ['a' => ['filter' => FILTER_DEFAULT, 'flags' => 1]])",
+        false,
+      ],
+      [
+        "filter_var_array($x, ['a' => [\"filter\" =>  \\FILTER_DEFAULT ]])",
+        false,
+      ],
+      ["filter_var_array($x, ['a' => ['filter' => FILTER_D]])", false],
+    ]);
+  });
+
+  it("refuses a fetch mode that may be a callback", async () => {
+    await calls([
+      ["$st->fetch(10, 'f')", true],
+      ["$st->fetch(10)", false],
+      ["$st->fetch()", false],
+      ["$st->fetchx(10, 2)", false],
+      ["$st->xfetch(10, 2)", false],
+      ["PDOStatement::fetchAll(10, 2)", true],
+      ["$st->FetchAll(PDO::FETCH_ASSOC, 1)", false],
+      ["$st->fetchAll(\\PDO::FETCH_ASSOC, 1)", false],
+      ["$st->fetchAll(1|PDO::FETCH_ASSOC, 1)", true],
+      ["$st->fetchAll(PDO::FETCH_GROUP|10, 1)", true],
+      ["$st->fetchAll(PDO::FETCH_A|PDO::FETCH_BC, 1)", false],
+      ["$st->fetchAll(PDO::FETCH_A | \\PDO::FETCH_BC, 1)", false],
+      ["$st->setFetchMode(PDO::FETCH_A, 1)", false],
+      ["$st->fetchObject(PDO::FETCH_A, 1)", false],
+      ["$st->fetchAll(...$a, 1)", true],
+    ]);
+  });
+
+  it("refuses an ini option that takes a callback", async () => {
+    await calls([
+      ["ini_set('display_errors', '1')", false],
+      ["ini_alter('unserialize_callback_func', 'x')", true],
+      ["ini_set('UNSERIALIZE_CALLBACK_FUNC', 'x')", true],
+      ["ini_set('assert.callback', 'x')", true],
+      ["ini_set('assertxcallback', 'x')", false],
+      ["ini_set('xunserialize_callback_func', 1)", false],
+      ["ini_set('assert.callbackx', 1)", false],
+      ["ini_set(...)", true],
+      ["ini_set(option: 'x', value: 'y')", true],
+      ["ini_set('display_errors', value: 1)", true],
+      ["ini_set($o, 1)", true],
+      ["ini_get('assert.callback')", false],
+    ]);
+  });
+});
