@@ -538,3 +538,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-32c23eb895e8
+  - type: requires_property
+    from: REQ-kibi-tree-sitter-references
+    to: FACT-kibi-tree-sitter-references-rust-cfg-branches
+    created_at: 2026-11-02T12:15:43.916Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6aa54a308954

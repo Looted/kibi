@@ -180,12 +180,14 @@ describe("offline Tree-sitter reference extractor", () => {
     assert.deepEqual(await members(file, "thrown"), []);
   });
 
-  it("refuses Rust panics in a file with a macro, and cfg-gated items everywhere", async () => {
+  it("refuses Rust panics in a file with a macro, and reads cfg-gated items", async () => {
     const file = "rust/refs-dynamic.rs";
-    // The standard println! on line 5 calls nothing; its calls are read.
-    assert.deepEqual(await unresolvedLines(file, "calls"), [8]);
-    assert.deepEqual(await unresolvedLines(file, "thrown"), [5, 8]);
-    assert.deepEqual(await unresolvedLines(file, "env"), [8]);
+    // The standard println! on line 5 calls nothing; its calls are read,
+    // and so is the `#[cfg(feature = "metrics")]` item on line 8.
+    assert.deepEqual(await unresolvedLines(file, "calls"), []);
+    assert.deepEqual(await unresolvedLines(file, "thrown"), [5]);
+    assert.deepEqual(await unresolvedLines(file, "env"), []);
+    assert.deepEqual(await members(file, "env"), ["PORT"]);
   });
 
   it("refuses a file that does not parse, and a language it has no reader for", async () => {
@@ -2138,5 +2140,152 @@ describe("reads foreign, escaped and inherited environments and calls", () => {
       args.unresolved.map((row) => row.line),
       [8, 15],
     );
+  });
+});
+
+describe("reads every #[cfg] branch of a Rust file", () => {
+  it("reads a grammar's bindings, whose queries are cfg-gated", async () => {
+    const file = [
+      "use tree_sitter_language::LanguageFn;",
+      'extern "C" {',
+      "    fn tree_sitter_x() -> *const ();",
+      "}",
+      "pub const LANGUAGE: LanguageFn = unsafe { LanguageFn::from_raw(tree_sitter_x) };",
+      "#[cfg(with_highlights_query)]",
+      "/// The syntax highlighting query for this grammar.",
+      'pub const HIGHLIGHTS_QUERY: &str = "";',
+      "#[cfg(test)]",
+      "mod tests {",
+      "    #[test]",
+      "    fn loads() { std::process::exit(1); }",
+      "}",
+      "",
+    ].join("\n");
+    assert.deepEqual(await inline("lib.rs", file, "calls"), {
+      members: [
+        "LanguageFn::from_raw",
+        "tree_sitter_language::LanguageFn::from_raw",
+      ],
+      lines: [],
+    });
+    assert.deepEqual(await inline("lib.rs", file, "env"), {
+      members: [],
+      lines: [],
+    });
+  });
+
+  it("resolves a name each cfg branch binds to every binding", async () => {
+    const aliased = [
+      "#[cfg(unix)]",
+      "use std::process as p;",
+      "#[cfg(not(unix))]",
+      "use mycrate::process as p;",
+      "fn f() { p::exit(1); }",
+      "",
+    ].join("\n");
+    assert.deepEqual(await inline("a.rs", aliased, "calls"), {
+      members: ["mycrate::process::exit", "p::exit", "std::process::exit"],
+      lines: [],
+    });
+    assert.deepEqual(await inline("a.rs", aliased, "imports"), {
+      members: ["mycrate::process", "std::process"],
+      lines: [],
+    });
+    const modules = [
+      "#[cfg(unix)]",
+      "mod imp { pub use std::process::exit as stop; }",
+      "#[cfg(windows)]",
+      "mod imp { pub fn stop(_: i32) {} }",
+      "fn f() { imp::stop(1); }",
+      "",
+    ].join("\n");
+    assert.deepEqual((await inline("a.rs", modules, "calls")).members, [
+      "imp::stop",
+      "std::process::exit",
+    ]);
+  });
+
+  it("reads a gated binding as possibly absent, so the outer one may apply", async () => {
+    const shadowed = [
+      "use foo::exit;",
+      "fn f() {",
+      "    #[cfg(a)]",
+      "    use std::process::exit;",
+      "    exit(1);",
+      "}",
+      "",
+    ].join("\n");
+    assert.deepEqual((await inline("a.rs", shadowed, "calls")).members, [
+      "exit",
+      "foo::exit",
+      "std::process::exit",
+    ]);
+    // A binding only a `#[cfg(test)]` item makes is not read.
+    const test = [
+      "#[cfg(test)]",
+      "use mock::exit;",
+      "use std::process::exit;",
+      "fn f() { exit(1); }",
+      "",
+    ].join("\n");
+    assert.deepEqual((await inline("a.rs", test, "calls")).members, [
+      "exit",
+      "std::process::exit",
+    ]);
+  });
+
+  it("refuses a getter or macro that is std in one branch only", async () => {
+    const getter = [
+      "#[cfg(a)]",
+      "use std::env::var;",
+      "#[cfg(not(a))]",
+      "use dotenvy::var;",
+      'fn f() { let _ = var("X"); }',
+      "",
+    ].join("\n");
+    assert.deepEqual((await inline("a.rs", getter, "env")).lines, [5]);
+    const std = '#[cfg(a)]\nuse std::env::var;\nfn f() { let _ = var("X"); }\n';
+    assert.deepEqual(await inline("a.rs", std, "env"), {
+      members: ["X"],
+      lines: [],
+    });
+    const macro = [
+      "#[cfg(a)]",
+      "use anyhow::bail;",
+      "#[cfg(not(a))]",
+      "use mymacros::bail;",
+      'fn f() -> R { bail!("x"); }',
+      "",
+    ].join("\n");
+    assert.deepEqual((await inline("a.rs", macro, "calls")).lines, [5]);
+  });
+
+  it("reads the attributes a cfg_attr applies as applied", async () => {
+    const derive =
+      '#[cfg_attr(feature = "x", derive(Debug, Clone))]\nstruct S;\nfn f() { g(); }\n';
+    for (const extract of ["calls", "env", "thrown"])
+      assert.deepEqual((await inline("a.rs", derive, extract)).lines, []);
+    const macro =
+      '#[cfg_attr(feature = "x", allow(dead_code), tokio::main)]\nfn main() { g(); }\n';
+    assert.deepEqual((await inline("a.rs", macro, "calls")).lines, [1]);
+    assert.deepEqual((await inline("a.rs", macro, "thrown")).lines, [1]);
+    const nested = "#[cfg_attr(a, cfg_attr(b, inject_env))]\nfn main() {}\n";
+    assert.deepEqual((await inline("a.rs", nested, "env")).lines, [1]);
+    const inert =
+      "#[cfg_attr(a, allow(dead_code), inject_env,)]\nfn main() {}\n";
+    assert.deepEqual((await inline("a.rs", inert, "env")).lines, [1]);
+    const trailing = "#[cfg_attr(a, allow(dead_code),)]\nfn main() { g(); }\n";
+    assert.deepEqual((await inline("a.rs", trailing, "calls")).lines, []);
+    const helper =
+      '#[derive(clap::Parser)]\nstruct A {\n    #[cfg_attr(feature = "env", arg(env = "TOKEN"))]\n    token: String,\n}\n';
+    assert.deepEqual((await inline("a.rs", helper, "env")).lines, [3]);
+    // A cfg_attr whose attribute is not a path and its arguments is refused
+    // for every extract.
+    const unreadable = '#![cfg_attr(a, "x")]\nuse std::io;\n';
+    assert.deepEqual((await inline("a.rs", unreadable, "imports")).lines, [1]);
+    const deep = '#[cfg_attr(a, cfg_attr(b, "x"))]\nfn main() {}\n';
+    assert.deepEqual((await inline("a.rs", deep, "imports")).lines, [1]);
+    const empty = "#[cfg_attr]\nfn main() {}\n";
+    assert.deepEqual((await inline("a.rs", empty, "imports")).lines, [1]);
   });
 });

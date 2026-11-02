@@ -126,8 +126,10 @@ every static reader, people included: `eval`, `new Function`, `exec`,
 `$obj->$method()`, a dynamic `import()` or `require(path)` with a computed
 path, reflection (`Class.forName`, `Method.invoke`, `reflect.Value.Call`,
 `Type.GetMethod`), C# `dynamic`, `process.env[key]` with a computed key, and
-`#if`/`#[cfg]` around the code a claim is about. Kibi refuses a read that
-meets one of these and names the line.
+C# `#if` around the code a claim is about. Kibi refuses a read that meets
+one of these and names the line. Rust `#[cfg]` items are read as if every
+build compiled them, so a "never" claim holds in each build; a `cfg_attr`
+Kibi cannot split is still refused.
 
 Replace a dynamic lookup when an explicit form is clearer, which is the usual
 case: a computed `getattr` dispatch becomes a dict from name to function, a
