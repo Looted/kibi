@@ -63,7 +63,7 @@ export const qualifiedSourceAnalyzers = [
       "dist/references.js":
         "4e1237b11e257582beb562feca4496b4bb5c281a8121f50efe927d8c3458b7d6",
       "integrity.json":
-        "29ce5d798cbc8a2a58f4a2bd6da50679d43300bfa794427256fc55565763fc37",
+        "83aa3fc5c7488c3e363fcfb6139fa68c9f77bd8310e650b14729517739f982ee",
       "licenses/web-tree-sitter-MIT.txt":
         "c5cfb43042b6b72045f4ba997834d0a7786d2793d91680868b5815b39f14fc78",
       "package.json":
