@@ -139,6 +139,111 @@ const CALLABLE_CONSTRUCTORS: ReadonlyMap<string, number> = new Map([
   ["recursivecallbackfilteriterator", 1],
 ]);
 
+/** Builtins that take every argument by value: a caught exception passed in stays. */
+const BY_VALUE_BUILTINS = new Set([
+  "error_log",
+  "print_r",
+  "var_dump",
+  "var_export",
+  "get_class",
+  "is_a",
+  "is_subclass_of",
+  "json_encode",
+  "serialize",
+  "spl_object_id",
+  "spl_object_hash",
+  "sprintf",
+  "printf",
+  "trigger_error",
+]);
+
+/**
+ * Builtins that take an array slot by value: `strtolower($o['acl'])` reads
+ * the key. Any other callee may take it by reference and set it.
+ */
+const READS_SLOT = new Set([
+  ...BY_VALUE_BUILTINS,
+  "strtolower",
+  "strtoupper",
+  "ucfirst",
+  "lcfirst",
+  "trim",
+  "ltrim",
+  "rtrim",
+  "strlen",
+  "mb_strlen",
+  "count",
+  "in_array",
+  "array_key_exists",
+  "array_keys",
+  "array_values",
+  "intval",
+  "floatval",
+  "boolval",
+  "strval",
+  "is_array",
+  "is_string",
+  "is_int",
+  "is_bool",
+  "is_null",
+  "is_numeric",
+  "htmlspecialchars",
+  "htmlentities",
+  "urlencode",
+  "rawurlencode",
+  "base64_encode",
+  "md5",
+  "sha1",
+  "hash",
+  "explode",
+  "implode",
+  "join",
+  "str_contains",
+  "str_starts_with",
+  "str_ends_with",
+  "strpos",
+  "stripos",
+  "substr",
+  "str_pad",
+  "str_repeat",
+  "number_format",
+  "date",
+  "strtotime",
+  "json_decode",
+  "unserialize",
+  "filter_var",
+  "max",
+  "min",
+  "abs",
+  "round",
+  "echo",
+  "print",
+]);
+
+/** Builtins that rewrite a whole array, its values or its keys. */
+const ARRAY_TRANSFORMS = new Set([
+  "str_replace",
+  "str_ireplace",
+  "preg_replace",
+  "preg_replace_callback",
+  "array_map",
+  "array_filter",
+  "array_change_key_case",
+  "array_diff_key",
+  "array_diff_assoc",
+  "array_intersect_key",
+  "array_intersect_assoc",
+  "array_splice",
+  "array_slice",
+  "array_pad",
+  "array_unique",
+  "array_reverse",
+  "array_column",
+  "array_merge_recursive",
+  "array_replace_recursive",
+  "iterator_to_array",
+]);
+
 /** Code built from text: every extract is unknowable there. */
 const CODE_FUNCTIONS = new Set(["create_function"]);
 
@@ -182,16 +287,26 @@ function stringValue(node: Node): string | null {
     return body.replace(/\\([\\'])/g, "$1");
   }
   if (!/^[bB]?"/.test(node.text)) return null;
-  let value = "";
+  // A PHP string is bytes: `"\xc3\xa9"` is the UTF-8 of é.
+  const bytes: number[] = [];
+  const encoder = new TextEncoder();
   for (const part of named(node)) {
-    if (part.type === "string_content") value += part.text;
+    if (part.type === "string_content")
+      bytes.push(...encoder.encode(part.text));
     else if (part.type === "escape_sequence") {
       const decoded = decodeEscape(part.text);
       if (decoded === null) return null;
-      value += decoded;
+      if (/^\\(?:x|[0-7])/.test(part.text)) bytes.push(decoded.charCodeAt(0));
+      else bytes.push(...encoder.encode(decoded));
     } else return null;
   }
-  return value;
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(
+      new Uint8Array(bytes),
+    );
+  } catch {
+    return null;
+  }
 }
 
 const INT64_MAX = 9223372036854775807n;
@@ -440,6 +555,10 @@ export function phpReferences(
     }
   };
 
+  const rebinds =
+    /->\s*call\s*\(|\bbindTo\s*\(|::\s*bind\s*\(|\bcall_user_func\w*\s*\(\s*\[\s*\$\w+\s*,\s*['"]call['"]/i.test(
+      root.text,
+    );
   /**
    * `self`, `parent` and `static` where `node` is: the class, its parent, or
    * null for `static` (a subclass may be meant) and outside a class;
@@ -450,11 +569,13 @@ export function phpReferences(
     if (kind !== "self" && kind !== "parent" && kind !== "static")
       return undefined;
     const owner = enclosingClass(node);
-    // In a trait, `self` and `parent` are the using class's.
+    // In a trait, `self` and `parent` are the using class's, and a closure
+    // `->call`ed or bound (`bindTo`, `Closure::bind`) takes another class's.
     if (
       owner === null ||
       kind === "static" ||
-      owner.type === "trait_declaration"
+      owner.type === "trait_declaration" ||
+      (rebinds && insideClosure(node))
     )
       return null;
     if (kind === "self") {
@@ -531,6 +652,13 @@ export function phpReferences(
           if (side?.type === "boolean")
             return lower(side.text) === "true" ? "1" : "";
           if (side?.type === "null") return "";
+          // PHP writes a float with its own precision (`1.0E+15`).
+          if (
+            side?.type === "float" ||
+            (side?.type === "unary_op_expression" &&
+              named(side)[0]?.type === "float")
+          )
+            return null;
           return literal(side);
         };
         const left = text(field(node, "left"));
@@ -585,7 +713,9 @@ export function phpReferences(
     if (folder === null) return null;
     let tail = "";
     for (const part of rest) {
-      const text = literal(part);
+      const text = /^\\?DIRECTORY_SEPARATOR$/.test(part.text)
+        ? "/"
+        : literal(part);
       if (text === null) return null;
       tail += text;
     }
@@ -598,15 +728,24 @@ export function phpReferences(
     const here = posix.dirname(options.file);
     const text = node.text.replace(/\s+/g, "");
     if (/^__DIR__$/i.test(text)) return here;
-    const call = /^\\?dirname\((__FILE__|__DIR__)(?:,(\d+))?\)$/i.exec(text);
-    if (call === null) return null;
-    const levels =
-      Number(call[2] ?? "1") -
-      (lower(call[1] as string) === "__file__" ? 1 : 0);
-    let folder = here;
-    for (let index = 0; index < levels; index += 1)
-      folder = posix.join(folder, "..");
-    return folder;
+    // `dirname(dirname(__FILE__))`: each call goes up from the inner path.
+    const parent = (path: string): string | null => {
+      if (/^__DIR__$/i.test(path)) return here;
+      if (/^__FILE__$/i.test(path)) return options.file;
+      const call = /^\\?dirname\((.+?)(?:,(\d+))?\)$/i.exec(path);
+      if (call === null) return null;
+      const inner = call[1] as string;
+      let folder = parent(inner);
+      if (folder === null) return null;
+      for (let index = 0; index < Number(call[2] ?? "1"); index += 1)
+        folder =
+          index === 0 && /^__FILE__$/i.test(inner)
+            ? posix.dirname(folder)
+            : posix.join(folder, "..");
+      return folder;
+    };
+    if (!/^\\?dirname\(/i.test(text)) return null;
+    return parent(text);
   };
 
   const shadow = (name: string, namespace: string, node: Node): void => {
@@ -827,6 +966,12 @@ export function phpReferences(
     return undefined;
   };
 
+  /** Whether the file names a class `Env` (or Laravel's support namespace). */
+  const namesEnv =
+    /\benv\s*::|\bnew\s+\\?(?:[\w\\]*\\)?env\b|\bextends\s+\\?(?:[\w\\]*\\)?env\b|\\env\b|illuminate\s*\\\s*support\b/i.test(
+      root.text,
+    );
+
   /** A host row: kept when the project mentions Laravel's environment class. */
   const envRow = (owner: string, node: Node): void => {
     unresolved.push({
@@ -859,7 +1004,11 @@ export function phpReferences(
       // A static getter may be called on an instance: `$this->get()` in a
       // subclass, `(new Env)->get()`. Another object's method is not one.
       const instance = instanceClass(node);
-      if (instance === undefined) return false;
+      // `$env = new Env(); $env->get('X')`, `$self = $this; $self->get()`.
+      if (instance === undefined) {
+        if (namesEnv) refuse(node);
+        return false;
+      }
       if (instance === null) {
         refuse(node);
         return false;
@@ -900,7 +1049,13 @@ export function phpReferences(
       );
     if (!matches && !unknown) return;
     const first = callArguments(node)[0];
-    if (first === undefined || first.type === "variadic_placeholder") return;
+    if (first === undefined) return;
+    // `exec(...)` makes a callable of the callee, which is called elsewhere
+    // with arguments Kibi does not see.
+    if (first.type === "variadic_placeholder") {
+      refuse(node);
+      return;
+    }
     if (
       unknown ||
       field(first, "name") !== null ||
@@ -973,9 +1128,18 @@ export function phpReferences(
           if (argument !== undefined && field(argument, "name") === null)
             handed.add(argument);
         }
-      // A named argument may be the callable parameter.
-      for (const argument of list)
-        if (field(argument, "name") !== null) handed.add(argument);
+      // A named argument is the callable when it names that parameter
+      // (`callback:`, `value:` for assert_options).
+      for (const argument of list) {
+        const parameter = lower(field(argument, "name")?.text ?? "");
+        if (
+          parameter !== "" &&
+          (positions === "all" ||
+            parameter === "callback" ||
+            (key === "assert_options" && parameter === "value"))
+        )
+          handed.add(argument);
+      }
       for (const argument of handed)
         handedCallable(argument, argumentValue(argument));
       return;
@@ -1048,6 +1212,8 @@ export function phpReferences(
       )
     )
       return false;
+    // An included file shares the scope's variables.
+    if (/\b(?:include|require)(?:_once)?\b/i.test(body.text)) return false;
     // At file scope, a function the catch body calls may set the global.
     if (
       scope.parent === null &&
@@ -1086,8 +1252,18 @@ export function phpReferences(
             (operator === "instanceof" && field(parent, "left")?.id === use.id)
           );
         }
-        case "argument":
-          return field(parent, "name")?.id !== use.id;
+        case "argument": {
+          if (field(parent, "name")?.id === use.id) return false;
+          // A constructor or a builtin that takes it by value keeps it; a
+          // function or method may take it by reference and replace it.
+          const call = parent.parent?.parent;
+          if (call?.type === "object_creation_expression") return true;
+          if (call?.type !== "function_call_expression") return false;
+          const callee = lower(
+            stripLeading(field(call, "function")?.text ?? ""),
+          );
+          return BY_VALUE_BUILTINS.has(callee);
+        }
         case "array_element_initializer":
           return (
             named(parent).at(-1)?.id === use.id && !/&\s*\$/.test(parent.text)
@@ -1170,13 +1346,24 @@ export function phpReferences(
    */
   const intConstant = (node: Node): boolean => {
     if (numericKey) return false;
-    if (node.type === "name" || node.type === "qualified_name")
-      return /^\\?(?:CURLOPT|CURLINFO|CURLMOPT)_\w+$/.test(node.text);
+    if (node.type === "name" || node.type === "qualified_name") {
+      if (!/^\\?(?:CURLOPT|CURLINFO|CURLMOPT)_\w+$/.test(node.text))
+        return false;
+      // In a namespace, `CURLOPT_ACL` is a constant the file may define
+      // there (`const CURLOPT_ACL = 'acl';`).
+      const name = node.text.replace(/^\\/, "");
+      return (
+        node.text.startsWith("\\") ||
+        scopeOf(node).namespace === "" ||
+        !new RegExp(`\\b(?:const|define)\\b[^;]*\\b${name}\\b`).test(root.text)
+      );
+    }
     if (node.type !== "class_constant_access_expression") return false;
     const [owner, constant] = named(node);
     return (
       owner !== undefined &&
-      /^\\?PDO$/i.test(owner.text) &&
+      // `PDO::ATTR_X` in `namespace App;` may be `App\PDO`'s.
+      lower(resolveClass(owner) ?? "") === "pdo" &&
       /^(?:ATTR|MYSQL_ATTR|PGSQL_ATTR|SQLITE_ATTR|PARAM|FETCH|ERRMODE|CASE|NULL|CURSOR)_\w+$/.test(
         constant?.text ?? "",
       )
@@ -1295,10 +1482,20 @@ export function phpReferences(
       if (
         first !== -1 &&
         (holds.slice(first + 1).some((kind) => kind !== "other") ||
+          (name.endsWith("_recursive") && holds.includes("unknown")) ||
           (numericKey && name.startsWith("array_merge")))
       )
         refuse(node);
     }
+    // A whole-array rewrite in a file that names the key, and keys from a
+    // case change.
+    if (
+      ARRAY_TRANSFORMS.has(name) &&
+      (name === "array_change_key_case"
+        ? lower(root.text).includes(lower(options.key))
+        : root.text.includes(options.key))
+    )
+      refuse(node);
     // Keys built from data, and a callback that may change values by reference.
     if (
       name === "array_fill_keys" ||
@@ -1308,10 +1505,13 @@ export function phpReferences(
       refuse(node);
     if (name === "array_walk" || name === "array_walk_recursive") {
       const callback = argumentValue(list[1]);
+      const first = named(field(callback ?? root, "parameters") ?? root).find(
+        (child) => /_parameter$/.test(child.type),
+      );
       const byValue =
         (callback?.type === "anonymous_function" ||
           callback?.type === "arrow_function") &&
-        !/^[^(]*\(\s*&/.test(callback.text);
+        (first === undefined || field(first, "reference_modifier") === null);
       if (!byValue) refuse(node);
     }
   };
@@ -1323,12 +1523,16 @@ export function phpReferences(
    */
   const callableEnvName = (node: Node, value: string): boolean => {
     const name = lower(stripLeading(value));
+    const parent = node.parent;
+    // `'env'` is a common word: only one handed to a function may be the
+    // helper called by name.
     const getter =
       /^(?:apache_)?getenv$/.test(name) ||
-      name === "env" ||
+      (name === "env" &&
+        parent?.type === "argument" &&
+        parent.parent?.parent?.type === "function_call_expression") ||
       /^illuminate\\support\\env(?:::\w+)?$/.test(name);
     if (!getter) return false;
-    const parent = node.parent;
     if (
       parent?.type === "array_element_initializer" &&
       named(parent).length === 2 &&
@@ -1398,6 +1602,26 @@ export function phpReferences(
           refuse(node);
           break;
         }
+        // `$r->invoke('rm')` on a Reflection object (also through a subclass
+        // or an anonymous class), a callback filter, a PDO row callback, a
+        // SOAP function table and `class_alias` call or rename what they
+        // are given at run time.
+        if (
+          extract !== "property" &&
+          extract !== "imports" &&
+          (names.some((candidate) =>
+            /^(?:\*\.|.*::)(?:invoke|invokeargs|newinstance|newinstanceargs|newinstancewithoutconstructor|getclosure|addfunction)$/i.test(
+              candidate,
+            ),
+          ) ||
+            name === "class_alias" ||
+            callArguments(node).some((argument) =>
+              /\b(?:FILTER_CALLBACK|FETCH_FUNC)\b/.test(argument.text),
+            ))
+        ) {
+          refuse(node);
+          break;
+        }
         if (name === "eval" || CODE_FUNCTIONS.has(name) || codeText) {
           if (extract !== "property") refuse(node);
           break;
@@ -1407,7 +1631,28 @@ export function phpReferences(
           env &&
           envMethod(name, node, node.type === "scoped_call_expression")
         ) {
-          const first = firstPositional(node);
+          // `getenv(name: 'HOME')` names the variable by its parameter.
+          const parameter =
+            name === "getenv"
+              ? "name"
+              : name === "apache_getenv"
+                ? "variable"
+                : "key";
+          const list = callArguments(node);
+          const first =
+            firstPositional(node) ??
+            (list.some(
+              (argument) =>
+                argument.type !== "argument" ||
+                named(argument).some(
+                  (child) => child.type === "variadic_unpacking",
+                ),
+            )
+              ? undefined
+              : list.find(
+                  (argument) =>
+                    lower(field(argument, "name")?.text ?? "") === parameter,
+                ));
           const value = literal(argumentValue(first));
           if (value === null || first === undefined) refuse(node);
           else members.push(value);
@@ -1450,7 +1695,10 @@ export function phpReferences(
             type.type !== "name" &&
             type.type !== "qualified_name" &&
             type.type !== "anonymous_class" &&
-            !/^(?:static|self|parent)$/i.test(type.text))
+            !/^(?:static|self|parent)$/i.test(type.text) &&
+            // `new $controller()` with no argument cannot hand Reflection or
+            // a Fiber anything to call.
+            callArguments(node).length > 0)
         ) {
           refuse(node);
           break;
@@ -1504,7 +1752,22 @@ export function phpReferences(
       case "include_once_expression":
       case "require_expression":
       case "require_once_expression": {
-        if (extract !== "imports") break;
+        if (extract !== "imports") {
+          // `include 'data://text/plain,<?php system(...);'` runs code the
+          // file does not show.
+          const target = named(node)[0];
+          const inner =
+            target?.type === "parenthesized_expression"
+              ? named(target)[0]
+              : target;
+          const value = inner === undefined ? null : literal(inner);
+          if (
+            value !== null &&
+            (/^[A-Za-z][\w+.-]*:\/\//.test(value) || /^data:/i.test(value))
+          )
+            refuse(node);
+          break;
+        }
         const path = includePath(named(node)[0]);
         if (path === null) refuse(node);
         else members.push(path);
@@ -1548,6 +1811,14 @@ export function phpReferences(
         break;
       case "string":
       case "encapsed_string": {
+        // `preg_match('/(?<acl>\w+)/', $s, $m)` sets the key `acl` of `$m`.
+        if (
+          extract === "property" &&
+          new RegExp(
+            `\\(\\?P?(?:<${options.key.replace(/[^\w]/g, "\\$&")}>|'${options.key.replace(/[^\w]/g, "\\$&")}')`,
+          ).test(node.text)
+        )
+          refuse(node);
         // A string may be called as a function: `$f = 'getenv'; $f('X')`.
         const value = stringValue(node);
         if (env && value !== null && callableEnvName(node, value)) refuse(node);
@@ -1565,7 +1836,13 @@ export function phpReferences(
       }
       case "throw_expression": {
         if (extract !== "thrown") break;
-        const thrown = named(node)[0];
+        let thrown = named(node)[0];
+        // `throw (new X)` throws X.
+        while (
+          thrown?.type === "parenthesized_expression" &&
+          named(thrown).length === 1
+        )
+          thrown = named(thrown)[0];
         if (thrown?.type === "object_creation_expression") {
           const type = named(thrown)[0];
           // `new static` may be any subclass.
@@ -1616,8 +1893,29 @@ export function phpReferences(
         // `$cfg['port']++` and `unset($o['acl'])` change the value, and
         // `foreach ($o as &$v)` may change any value of the array.
         if (node.type === "foreach_statement") {
-          const header = /^foreach\s*\(([^)]*)\)/i.exec(node.text)?.[1] ?? "";
-          if (/&\s*\$/.test(header)) refuse(node);
+          const body = field(node, "body");
+          const header = named(node).filter((child) => child.id !== body?.id);
+          // `foreach ($o as $k => &$v)`, and a value written to a key
+          // (`foreach ($rows as $o['acl'])`, `as [$o['acl']]`).
+          const targets: Node[] = [];
+          const gather = (part: Node): void => {
+            if (part.type === "by_ref") refuse(node);
+            else if (
+              part.type === "subscript_expression" ||
+              /member_access_expression$/.test(part.type) ||
+              part.type === "scoped_property_access_expression"
+            )
+              targets.push(part);
+            else for (const child of named(part)) gather(child);
+          };
+          for (const part of header.slice(1)) gather(part);
+          if (
+            targets.some((target) => {
+              const written = writtenKey(target);
+              return written === "dynamic" || written === options.key;
+            })
+          )
+            refuse(node);
           break;
         }
         for (const target of named(node)) {
@@ -1637,7 +1935,8 @@ export function phpReferences(
         const gather = (part: Node): void => {
           if (
             part.type === "subscript_expression" ||
-            /member_access_expression$/.test(part.type)
+            /member_access_expression$/.test(part.type) ||
+            part.type === "scoped_property_access_expression"
           )
             targets.push(part);
           else for (const child of named(part)) gather(child);
@@ -1701,6 +2000,26 @@ export function phpReferences(
       }
       case "argument": {
         if (extract !== "property") break;
+        {
+          // `setv($o['acl'], 'x')` may set the key through a reference.
+          const value = argumentValue(node);
+          const call = node.parent?.parent;
+          const callee =
+            call?.type === "function_call_expression"
+              ? lower(stripLeading(field(call, "function")?.text ?? ""))
+              : null;
+          if (
+            value !== undefined &&
+            (value.type === "subscript_expression" ||
+              /member_access_expression$/.test(value.type) ||
+              value.type === "scoped_property_access_expression") &&
+            call?.type !== "object_creation_expression" &&
+            !(callee !== null && READS_SLOT.has(callee))
+          ) {
+            const written = writtenKey(value);
+            if (written === "dynamic" || written === options.key) refuse(node);
+          }
+        }
         const name = field(node, "name");
         if (name !== null && name.text === options.key) {
           const value = literal(argumentValue(node));
@@ -1709,6 +2028,22 @@ export function phpReferences(
         }
         break;
       }
+      case "property_declaration":
+        // A PHP 8.4 hook (`$acl { get => ...; }`) computes the value on
+        // every read.
+        if (
+          extract === "property" &&
+          named(node).some((child) => child.type === "property_hook_list") &&
+          named(node).some(
+            (child) =>
+              child.type === "property_element" &&
+              field(child, "name")?.text.replace(/^\$/, "") === options.key,
+          )
+        ) {
+          refuse(node);
+          return;
+        }
+        break;
       case "property_element":
       case "const_element": {
         if (extract !== "property") break;
@@ -1732,6 +2067,24 @@ export function phpReferences(
   };
   visit(root);
   return { members, unresolved };
+}
+
+function insideClosure(node: Node): boolean {
+  for (let current = node.parent; current !== null; current = current.parent) {
+    if (
+      current.type === "anonymous_function" ||
+      current.type === "arrow_function" ||
+      current.type === "anonymous_function_creation_expression"
+    )
+      return true;
+    if (
+      /^(?:class_declaration|method_declaration|function_definition)$/.test(
+        current.type,
+      )
+    )
+      return false;
+  }
+  return false;
 }
 
 function enclosingClass(node: Node): Node | null {

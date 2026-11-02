@@ -59,21 +59,21 @@ export const qualifiedSourceAnalyzers = [
       "dist/performance-timing.js":
         "28f589c29e8759b566ee3fb741a91e30347efe1dfbad0f5b1c5b7d4f785369ff",
       "dist/preprocessor-idioms.js":
-        "55942a675474b35e6c72ff573aa0f237c1655d9820e4325e4daf818789278f87",
+        "8b40d577796ecb1d859f97a9f437193903a5f2b9600bda9a38de865b9b1b3f1f",
       "dist/reference-nodes.js":
         "2cc9075664f9d43cd126360b09b4a4baee8d855ea178468ec68791d3eed4f967",
       "dist/references-bash.js":
-        "774ecf663add1a2f534d55233879d03ec92b30d2ae427f26762be4c9f431b205",
+        "c0106ce3de5f6cf14e280ac74e7e0d1a27ef19f57f7dfc11b654a9f4473ff283",
       "dist/references-c.js":
-        "e19b78dde3a6530cfbc3d86cb19a6a812f41b25236aadddee929b5a8d2580099",
+        "fcaa89d3081f429738e5b9678ec889f258b294ab637c45b0c9d65b95341c82fd",
       "dist/references-hcl.js":
-        "7b3034b8c2146c8864d6189a06e2e59c638e644a730f04824e7ed04d54837f2b",
+        "b5ab0f854154c48e77d5594485f0f92e991e12b1d41439af76278fca46c1fc8c",
       "dist/references-php.js":
-        "0231da3187952a672fa8c21fa3109c8558d787751bdc045a69ae2212a1731f32",
+        "a1714be8ad3e240e0ac4330dacaeb4184461adb8ec0fcfdf65382c6bd9f8fc04",
       "dist/references.js":
         "5e7c826739397908da35614499b68eaf9ba3cf02f6cd6839b0544fe6cd1d4a0a",
       "integrity.json":
-        "8cd5e1e137846d61bd5bea631e96afe36f8649a4b85b334cc3a8c6ffcd0623d5",
+        "f502e5cabd2105a84fec05053ec5923348572458af460210613b12183aabd9f7",
       "licenses/web-tree-sitter-MIT.txt":
         "c5cfb43042b6b72045f4ba997834d0a7786d2793d91680868b5815b39f14fc78",
       "package.json":

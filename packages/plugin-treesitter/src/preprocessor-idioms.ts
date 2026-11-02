@@ -53,7 +53,14 @@ function codeLines(content: string): string[] {
         content[stop] !== char &&
         content[stop] !== "\n"
       ) {
-        stop += content[stop] === "\\" ? 2 : 1;
+        // A backslash before the line end (blanks and `\r` too) splices the
+        // literal onto the next line.
+        const splice =
+          content[stop] === "\\"
+            ? /^\\[ \t\f\v]*\r?\n/.exec(content.slice(stop, stop + 80))
+            : null;
+        stop +=
+          splice !== null ? splice[0].length : content[stop] === "\\" ? 2 : 1;
       }
       stop = Math.min(stop + 1, content.length);
       out += content.slice(index, stop);
@@ -152,6 +159,8 @@ export function blankHeaderIdioms(content: string): string {
     const words = define?.rest.split(/\s+/) ?? [];
     if (
       name !== undefined &&
+      // `#ifndef __GNUC__` / `#define __GNUC__ 1` tests the compiler.
+      !/^__/.test(name) &&
       define?.name === "define" &&
       words[0] === name &&
       (words.length === 1 ||
@@ -170,7 +179,11 @@ export function blankHeaderIdioms(content: string): string {
     const open = directiveAt(code, line);
     if (open === undefined) continue;
     const condition = `${open.name} ${open.rest}`.trim();
-    const disabled = condition === "if 0";
+    // `#if 0 /* ...` with the comment closing on a later line: the
+    // directive goes on after it (`*/ || 1`).
+    const raw = lines[line] as string;
+    const disabled =
+      condition === "if 0" && raw.lastIndexOf("/*") <= raw.lastIndexOf("*/");
     if (!disabled && !CPLUSPLUS_OPEN.test(condition)) continue;
     const endif = plainEndif(code, line);
     if (endif === undefined) continue;

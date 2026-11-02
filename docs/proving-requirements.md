@@ -922,19 +922,39 @@ Details that decide what a reader sees:
     names that class (group uses too), and so is one on `new static` or on
     a trait's `$this`. Callables handed to `array_map`, `call_user_func` and the like
     are followed; a caught exception passed on as an argument is not a
-    callable (a callback that replaces it through a by-reference parameter
-    is not followed). A dynamic call, `eval`, `create_function`, a string
+    callable when it goes to a constructor or a by-value builtin
+    (`error_log`, `get_class`); any other function or method may replace
+    it through a reference, and so may an `include` in the catch body, so
+    the read refuses. Only a builtin's `callback:` named argument is a
+    callable. A dynamic call, `eval`, `create_function`, a string
     `assert`, a getter's name in a string, `$$name`, `$GLOBALS`,
-    `get_defined_vars()`, Reflection, a `new` of a computed class, an
-    include through a stream wrapper (`data://`, `phar://`), and a caught
-    exception whose variable may be replaced (`&$e`, `extract`, `$$`)
-    refuse, and so do a `*.m` member
-    and a named first argument for `string_args`. Backticks are listed as
-    `shell_exec`.
+    `get_defined_vars()`, Reflection and its `invoke`-like methods (on
+    any object), `class_alias`, `FILTER_CALLBACK`, `PDO::FETCH_FUNC`, a
+    SOAP `addFunction`, a `new` of a computed class with arguments, an
+    include through a stream wrapper (`data://`, `phar://`), a caught
+    exception whose variable may be replaced (`&$e`, `extract`, `$$`), and
+    an environment getter called on an object Kibi cannot name in a file
+    that names `Env` refuse, and so do a `*.m` member, a named first
+    argument and a first-class callable of the callee (`exec(...)`) for
+    `string_args`. In a closure that the file rebinds (`->call`, `bindTo`,
+    `Closure::bind`), `self` and `parent` are unknown. Backticks are listed
+    as `shell_exec`. For `property`, a slot of the key passed to a
+    function or method other than a by-value builtin (it may take it by
+    reference), a `foreach` that writes the key, a regex named group of
+    the key, and an array rewrite (`str_replace`, `array_map`,
+    `array_change_key_case` and the like) in a file that names the key
+    refuse. Strings are bytes read as UTF-8 (`"\xc3\xa9"` is `é`); a float
+    joined into a string refuses, since PHP writes it with its own
+    precision.
   - *C* reads `env`, `imports`, `calls`, `string_args` and `property` (the
     designated fields of an initializer, `.field = value`, GNU `field:`
     labels too; a field set twice refuses); C has no thrown errors.
-    Only initializers are read: a later `cfg.field = value` is not. Numbers
+    Only initializers are read: a later `cfg.field = value` is not, and a
+    value is read as written, not converted to the field's type (a
+    bit-field or a narrower integer may hold another value). An
+    initializer written in a macro (`TLS_DEFAULTS`), a union in the file or
+    an included header, and an array designator that is not a number
+    refuse; an array of designated structs is read. Numbers
     are compared by value (`0x10`, `1'000` and `16u` are `16`), and a
     character constant refuses. Digraphs are read; trigraphs, a line
     splice inside an identifier and a backslash followed by blanks refuse.
@@ -949,17 +969,24 @@ Details that decide what a reader sees:
     function pointers, so it is refused unless the header (a quoted one
     next to the file, an angle one when any project file has that path)
     defines no macro the file uses, other than upper-case ones whose body
-    names only their parameters, keywords, builtins and other such macros,
-    and no function pointer it calls, and holds no `asm`, `alias`,
-    `weakref` or symbol-renaming pragma. A call through a variable or a
-    function pointer, `environ`, a call to an unknown function whose name
-    looks like an environment getter, a `/proc/.../environ` path, a
-    three-parameter `main` (K&R and macro-written ones too), inline `asm`,
+    calls nothing (pure builtins such as `__builtin_expect` aside), pastes
+    nothing and names only their parameters, keywords and other such
+    macros, and no function pointer it calls (in any spelling, a
+    function-type `typedef` too), and holds no `asm`, `alias`, `weakref`,
+    `__REDIRECT`, `typeof` or symbol-renaming pragma. A call through a
+    variable, a function pointer or a struct field (`ops->exec`),
+    `environ`, a call to an unknown function whose name looks like an
+    environment getter, a `/proc/.../environ` path, a three-parameter
+    `main` or constructor (K&R and macro-written ones too), inline `asm`,
     a function declared inside a block, a getter handed on as a value, a
-    positional struct initializer and a field set twice (also through a
-    nested designator) refuse.
+    string with an embedded `\0`, a positional struct initializer and a
+    field set twice (also through a nested designator) refuse. Code in an
+    included file (a header's `static inline` function, an `#include`d
+    `.c` file) is that file's: list it in `files` too.
   - *Bash* reads `env`, `imports` (`source` and `.`, with the
-    `$(dirname "$0")` script-folder idioms resolved), `calls` and
+    `$(dirname "$0")` script-folder idioms resolved, also through a
+    variable set once at the top, `DIR="$(cd "$(dirname "$0")" && pwd)"`),
+    `calls` and
     `string_args`. A variable the script expands but never sets is an
     environment read, and so are `~` (`HOME`), `test -v NAME` and
     arithmetic in an array index; one it sets only on some paths, or in an
@@ -969,24 +996,40 @@ Details that decide what a reader sees:
     Kibi cannot name refuses, and so do the first arguments `xargs` and
     `find -exec ... {}` supply. `eval`, `sh -c`, a shell reading its
     script from input or `/dev/stdin`, `trap` code, `alias`,
-    `BASH_ALIASES`, `BASH_CMDS`, prompt variables holding `$(...)`,
-    `${x@P}`, a command held in a variable, `coproc`, `/proc/*/environ`,
+    any mention of `BASH_ALIASES`, `BASH_CMDS` or `BASH_ARGV0`, a prompt
+    variable set to anything but plain text, `${x@P}`, a command name Kibi
+    cannot read (`$cmd`, `"${cmds[0]}"`), arithmetic on a value that is
+    not certainly a number (a value such as `a[$(rm -rf x)]` runs code), a
+    quoted subscript holding `$(...)`, `coproc`, a `/proc` environment
+    path in any form (a glob, a variable, `cd /proc/self`),
     BSD `ps e`, a word splice across lines, a here-document whose end line
     has trailing blanks, and a `source` of a computed path (for `env`)
-    refuse. A `source` relative to `$0` resolves to the script's folder,
-    and is refused when another project script sources this one (`$0`
-    then names that script). Code handed to another interpreter
-    (`python -c`, `awk`, `sed e`) is not read, except that an `env` read
-    refuses when that code reads the environment (`ENVIRON`, `os.environ`,
-    `%ENV`, jq's `env`). `unset` of a name some function declares `local`,
-    `local -I` and `shopt localvar_inherit` refuse for `env`.
+    refuse, and so does a backtick or `$[ ]` in an unquoted
+    here-document. A `source` relative to `$0` resolves to the script's
+    folder, and is refused when another project script may source this
+    one (by name, a computed path or a glob: `$0` then names that script)
+    or after the script changes directory. Code handed to another
+    interpreter (`python -c`, `awk`, `sed e`) is not read, except that an
+    `env` read refuses when the script holds text that reads the
+    environment anywhere (`ENVIRON`, `os.environ`, `%ENV`, `ENV[...]`,
+    `getenv(`, jq's `env`), or hands an interpreter a program from a
+    variable. `unset` of a name some function declares `local` (or
+    `declare`s), `local -I` and `shopt localvar_inherit` refuse for `env`.
   - *Terraform/HCL* reads `property` only: the literal values of an
     attribute or object key anywhere in the file (strings with their
     blanks, numbers as exact decimals, bools, `null`, tuples, plain
-    heredocs with their line ends). A value that needs evaluation
-    (variables, functions, templates), a computed key, a duplicate key, a
-    `for` object, `jsondecode` and similar functions, a `merge` whose later
-    argument Kibi cannot read, and a Terragrunt `include` block refuse, and
+    heredocs with their line ends). Keys are compared after Unicode NFC,
+    as Terraform does, identifiers included. A value that needs evaluation
+    (variables, functions, templates), a computed key (one with `~` strip
+    markers or that NFC may compose with an interpolation too), a
+    duplicate key, a `for` object, `jsondecode` and similar functions, a
+    value evaluation may drop (a conditional branch, an indexed or
+    selected collection, a `for` body, a splat, a `coalesce` or `try`
+    argument), a `merge` whose later argument Kibi cannot read or may
+    replace the key's top-level object, a list expanded into `merge(...)`,
+    a typed variable `default` (or `optional` default) the type converts,
+    a number longer than Terraform's 512-bit precision, and a Terragrunt
+    `include` block refuse, and
     so does any Terraform `override.tf`, `*_override.tf` or `.tofu` file in
     the same folder, whether or not the read includes it, since it may
     replace the value. A folder Kibi cannot list refuses for the same

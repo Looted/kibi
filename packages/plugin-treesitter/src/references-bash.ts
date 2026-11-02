@@ -496,6 +496,30 @@ const RUNNERS = new Set([
   "dumb-init",
 ]);
 
+/** Programs that run code they are handed as text. */
+const INTERPRETERS = new Set([
+  "awk",
+  "gawk",
+  "mawk",
+  "nawk",
+  "busybox",
+  "jq",
+  "python",
+  "python2",
+  "python3",
+  "perl",
+  "ruby",
+  "node",
+  "nodejs",
+  "deno",
+  "bun",
+  "php",
+  "lua",
+  "tclsh",
+  "Rscript",
+  "osascript",
+]);
+
 /** Commands that print the whole environment when a runner starts them. */
 const ENV_DUMPERS = new Set([
   "env",
@@ -590,9 +614,17 @@ function args(node: Node): Node[] {
   // more destinations of it, but only the first is the redirect's.
   const statement = node.parent;
   if (statement?.type !== "redirected_statement") return list;
-  const redirects = statement
-    .childrenForFieldName("redirect")
-    .filter((child): child is Node => child !== null);
+  // `sudo <<A 2>/dev/null rm -rf x`: the grammar nests the redirects that
+  // follow a here-document start inside it.
+  const redirects: Node[] = [];
+  const nested = (owner: Node): void => {
+    for (const child of owner.childrenForFieldName("redirect"))
+      if (child !== null) {
+        redirects.push(child);
+        nested(child);
+      }
+  };
+  nested(statement);
   for (const redirect of redirects) {
     const destinations = redirect
       .childrenForFieldName("destination")
@@ -656,6 +688,26 @@ interface Binding {
   /** The function whose body holds it, or null at top level. */
   readonly scope: Node | null;
   readonly numeric: boolean;
+}
+
+/**
+ * Whether the script runs `cd`, `pushd` or `popd` in its own shell before
+ * `before` (one inside `$(...)` or `( ... )` changes a subshell's folder).
+ */
+function changesDirectory(node: Node, before: number): boolean {
+  if (node.startIndex >= before) return false;
+  if (
+    node.type === "command_substitution" ||
+    node.type === "subshell" ||
+    node.type === "process_substitution"
+  )
+    return false;
+  if (
+    node.type === "command" &&
+    /^(?:cd|pushd|popd)$/.test(field(node, "name")?.text ?? "")
+  )
+    return true;
+  return named(node).some((child) => changesDirectory(child, before));
 }
 
 /** The function definition a node is inside, innermost first. */
@@ -786,6 +838,11 @@ function commandBinds(name: string, list: Node[]): string[] | null {
               if (value === null || value === undefined) return null;
               names.push(value);
             }
+            // `read -t 0` only tests for input and sets nothing.
+            if (option === "-t") {
+              if (value === null || value === undefined) return null;
+              if (/^0*(?:\.0*)?$/.test(value)) return [];
+            }
             break;
           }
           continue;
@@ -861,16 +918,48 @@ export function bashReferences(
     ))
       localNames.add(word[1] as string);
   /**
-   * Whether a variable may hold a command that reads or sets variables or
-   * loads code (`s=source; $s ./lib.sh`, `c=printenv; $c`).
+   * Text that sets what a command name runs or what tracing runs:
+   * `BASH_CMDS[ls]=/bin/rm` (also through `printf -v` or `read`), aliases,
+   * `BASH_ARGV0`, and a prompt variable whose value is not plain text.
    */
-  const variableCommands =
-    /(?:^|[\s;&|(])[A-Za-z_]\w*=(['"]?)(?:\S*\/)?(?:source|\.|eval|printenv|env|set|export|declare|typeset|read|mapfile|readarray|compgen|bash|sh|zsh|dash|ksh)\1(?=[\s;&|)]|$)/m.test(
-      root.text,
-    );
+  const rebinds =
+    /\b(?:BASH_CMDS|BASH_ALIASES|BASH_ARGV0)\b/.exec(root.text) ??
+    [...root.text.matchAll(/(?<![$\w{])(?:PS[0-4]|PROMPT_COMMAND)\b/g)].find(
+      (match) =>
+        !/^=(?:'[^'$`\\]*'|"[^"$`\\]*"|[^\s'"$`\\;&|()<>]*)(?=[\s;&|)]|$)/.test(
+          root.text.slice((match.index ?? 0) + match[0].length),
+        ),
+    ) ??
+    null;
+  /** A row at the line of a match in the script's text. */
+  const textRow = (
+    match: RegExpExecArray | RegExpMatchArray,
+  ): UnresolvedRow => {
+    const line = root.text.slice(0, match.index ?? 0).split("\n").length;
+    return {
+      line,
+      text: (root.text.split("\n")[line - 1] ?? "").trim().slice(0, 80),
+    };
+  };
+  if (code && rebinds !== null) unresolved.push(textRow(rebinds));
+  /**
+   * Text through which code handed to another interpreter reads the
+   * environment, wherever it sits (a word, a here-document, a variable):
+   * awk's `ENVIRON`, Perl's `%ENV` and `-MEnv`, Python's `os.environ`,
+   * Ruby's `ENV[...]`, C's `getenv(...)`, a `/proc/<pid>/environ` path or
+   * a `/proc` path Kibi cannot follow (a glob, a variable, `cd /proc`).
+   */
+  const foreignEnv = !env
+    ? null
+    : /\bENVIRON\b|%ENV\b|\$ENV\b|\$ENV\{|\bos\.environb?\b|\bos\.getenv\b|\bgetenv\s*\(|process\.env\b|\bENV\s*(?:\[|\.fetch\b)|-MEnv\b|\benviron\b|\/proc\/[^\s;&|<>)'"]*(?:env|[*?[$]|\/\.\.?\/|\/\/)|\/proc\/thread-self\b|\b(?:cd|pushd)\s+["']?\/proc\b/.exec(
+        root.text,
+      );
+  if (foreignEnv !== null) unresolved.push(textRow(foreignEnv));
   const bindings = new Map<string, Binding[]>();
   const assoc = new Set<string>();
   const indexedToo = new Set<string>();
+  /** Where a top-level `declare -A NAME` first makes NAME associative. */
+  const assocAt = new Map<string, number>();
   const integers = new Set<string>();
   const bind = (
     name: string,
@@ -939,7 +1028,19 @@ export function bashReferences(
                 ? (field(child, "name")?.text ?? null)
                 : null;
           if (name === null) continue;
-          if (flags.includes("A")) assoc.add(name);
+          // `declare HOME=/srv` in a function is a local too.
+          if (local && enclosingFunction(node) !== null) localNames.add(name);
+          if (flags.includes("A")) {
+            assoc.add(name);
+            if (enclosingFunction(node) === null)
+              assocAt.set(
+                name,
+                Math.min(
+                  assocAt.get(name) ?? Number.POSITIVE_INFINITY,
+                  node.startIndex,
+                ),
+              );
+          }
           // Declared without -A elsewhere (a local indexed array, a scalar):
           // which declaration a subscript meets is the run's.
           else indexedToo.add(name);
@@ -1160,7 +1261,8 @@ export function bashReferences(
 
   /** A value evaluated as arithmetic may name another variable. */
   const evaluated = (name: string, place: Node, owner: Node): void => {
-    if (!env || numeric(name, place)) return;
+    // The value may be `a[$(rm -rf x)]`, whose subscript bash runs.
+    if (!code || numeric(name, place)) return;
     unresolved.push({
       line: owner.startPosition.row + 1,
       text: `the value of ${name} is evaluated as arithmetic: ${at(owner).text}`.slice(
@@ -1275,7 +1377,11 @@ export function bashReferences(
    */
   const tilde = (node: Node): void => {
     if (!node.text.includes("~")) return;
-    for (let current = node.parent; current !== null; current = current.parent)
+    for (
+      let current = node.parent;
+      current !== null && current.type !== "command_substitution";
+      current = current.parent
+    )
       if (current.type === "string") return;
     const parent = node.parent;
     const concat = parent?.type === "concatenation" ? parent : null;
@@ -1359,6 +1465,16 @@ export function bashReferences(
     }
     const printfTarget =
       name === "printf" ? words[words.indexOf("-v") + 1] : undefined;
+    // `read 'a[$(rm -rf x)]'`: a subscript bash evaluates runs the code.
+    if (
+      code &&
+      words.some(
+        (word) => word !== null && /\[[^\]]*(?:\$\(|`|\$\[)/.test(word),
+      )
+    ) {
+      refuse(node);
+      return true;
+    }
     if (
       env &&
       (bound?.some((target) => /\[(?!\d+\])/.test(target)) ||
@@ -1415,8 +1531,16 @@ export function bashReferences(
         )
       )
         refuse(node);
-      // A program handed code that reads the environment (`awk ENVIRON`).
-      else if (words.some((word) => word !== null && FOREIGN_ENV.test(word)))
+      // A program handed code that reads the environment (`awk ENVIRON`,
+      // jq's `env`), or a program Kibi cannot see (`awk "$prog"`).
+      else if (
+        words.some((word) => word !== null && FOREIGN_ENV.test(word)) ||
+        (posix.basename(name) === "jq" &&
+          words.some(
+            (word) => word === null || /\benv\b|\$ENV\b/.test(word),
+          )) ||
+        (INTERPRETERS.has(posix.basename(name)) && words.includes(null))
+      )
         refuse(node);
       else if (name === "let") {
         // `let` evaluates its words as arithmetic text Kibi does not parse.
@@ -1449,13 +1573,20 @@ export function bashReferences(
     }
     if (name === "source" || name === ".") {
       const operands = words[0] === "--" ? list.slice(1) : list;
-      const path = sourcedPath(operands[0], file);
+      const folder = scriptFolder(operands[0], node);
+      const path = sourcedPath(operands[0], file) ?? folder;
       if (extract === "imports") {
         const fromZero =
           operands[0] !== undefined &&
           wordValue(operands[0]) === null &&
-          /\$\{?0\b/.test(operands[0].text);
-        if (path === null || (fromZero && /\bBASH_ARGV0=/.test(root.text)))
+          (/\$\{?0\b/.test(operands[0].text) ||
+            (folder !== null && /\$\{?0\b/.test(folderText ?? "")));
+        if (
+          path === null ||
+          // A relative `$0` names another folder after the script changes
+          // directory.
+          (fromZero && changesDirectory(root, node.startIndex))
+        )
           refuse(node);
         else {
           members.push(path);
@@ -1669,8 +1800,10 @@ export function bashReferences(
       }
       if (base === "ip") {
         // `ip [-all] netns exec [NAME] CMD`: options may come first.
+        // `-n NS` (`-netns NS`) takes the namespace as its argument.
         let at = 0;
-        while (restWords[at]?.startsWith("-") === true) at += 1;
+        while (restWords[at]?.startsWith("-") === true)
+          at += /^-(?:n|netns?)$/.test(restWords[at] as string) ? 2 : 1;
         if (restWords[at] === "netns" && restWords[at + 1] === "exec") {
           const all = restWords
             .slice(0, at)
@@ -1786,15 +1919,56 @@ export function bashReferences(
     refuse(node);
   };
 
+  /** The value text of the last script-folder variable `scriptFolder` read. */
+  let folderText: string | null = null;
+  /**
+   * `source "$DIR/lib.sh"` where the script sets DIR once, at top level and
+   * before, to its own folder: `DIR=$(dirname "$0")`,
+   * `DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"`.
+   */
+  const scriptFolder = (word: Node | undefined, place: Node): string | null => {
+    folderText = null;
+    if (word === undefined) return null;
+    const match = /^\$\{?([A-Za-z_]\w*)\}?(\/[\w./-]+)$/.exec(
+      word.text.replaceAll('"', ""),
+    );
+    if (match === null) return null;
+    const name = match[1] as string;
+    const sets = bindings.get(name) ?? [];
+    if (
+      sets.length !== 1 ||
+      (sets[0] as Binding).scope !== null ||
+      !(sets[0] as Binding).dominates ||
+      (sets[0] as Binding).end > place.startIndex ||
+      localNames.has(name)
+    )
+      return null;
+    const value = root.text
+      .slice((sets[0] as Binding).start, (sets[0] as Binding).end)
+      .replace(/^[A-Za-z_]\w*=/, "")
+      .replaceAll('"', "")
+      .replace(/\s+--\s+/g, " ")
+      .replace(/\s*(?:&>|>|2>)\s*\/dev\/null(?:\s+2>&1)?/g, "");
+    const dirname = String.raw`\$\(dirname \$\{?(?:0|BASH_SOURCE(?:\[0\])?)\}?\)`;
+    if (
+      !new RegExp(
+        `^\\$\\((?:cd ${dirname} (?:&&|;) pwd(?: -P)?|dirname \\$\\{?(?:0|BASH_SOURCE(?:\\[0\\])?)\\}?)\\)$`,
+      ).test(value)
+    )
+      return null;
+    folderText = value;
+    return posix.normalize(posix.join(posix.dirname(file), match[2] as string));
+  };
+
   /** One command: its name, what it wraps, and what its words mean. */
   const command = (node: Node): void => {
     const nameNode = field(node, "name");
     if (nameNode === null) return;
     const list = args(node);
     const name = wordValue(nameNode);
+    // `$cmd`, `"${cmds[0]}"`: the command may be `source` or `printenv`.
     if (name === null) {
-      if ((extract !== "imports" && extract !== "env") || variableCommands)
-        refuse(node);
+      refuse(node);
       return;
     }
     chain(
@@ -1863,6 +2037,10 @@ export function bashReferences(
           )?.text ?? "",
         );
         if (quotedDelimiter) return;
+        if (code && /`|\$\[/.test(node.text)) {
+          refuse(node);
+          return;
+        }
         if (code)
           for (const part of named(node))
             if (
@@ -1906,7 +2084,13 @@ export function bashReferences(
           const child = children[index] as Node;
           const next = children[index + 1];
           if (child.type === "word" && /^-/.test(child.text)) continue;
-          if (child.type === "variable_name" && localNames.has(child.text)) {
+          if (
+            (child.type === "variable_name" ||
+              child.type === "word" ||
+              child.type === "string" ||
+              child.type === "raw_string") &&
+            localNames.has(wordValue(child) ?? child.text)
+          ) {
             // A caller's local of that name is removed, uncovering the
             // environment's value.
             refuse(child);
@@ -2080,7 +2264,13 @@ export function bashReferences(
               env &&
               target !== null &&
               assoc.has(target.name) &&
-              indexedToo.has(target.name) &&
+              // Declared other ways too, in a function, or after this read:
+              // which kind of array the subscript meets is the run's.
+              (indexedToo.has(target.name) ||
+                !(
+                  (assocAt.get(target.name) ?? Number.POSITIVE_INFINITY) <
+                  node.startIndex
+                )) &&
               /[A-Za-z_]/.test(index.text)
             )
               refuse(node);

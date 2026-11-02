@@ -123,6 +123,9 @@ function canonicalNumber(text: string): string | null {
     scale += 1;
   }
   if (/^0+$/.test(digits)) return "0";
+  // Terraform holds a number in 512 bits (about 154 digits) and rounds a
+  // longer one.
+  if (digits.replace(/0+$/, "").length > 150) return null;
   if (scale >= 0) return `${digits}${"0".repeat(scale)}`;
   const padded = digits.padStart(-scale + 1, "0");
   return `${padded.slice(0, scale)}.${padded.slice(scale)}`;
@@ -169,18 +172,27 @@ function heredoc(node: Node): string | null {
     )
   )
     return null;
-  const match = /^<<([A-Za-z_][\w-]*)\r?\n([\s\S]*?)[ \t]*\1[ \t]*$/.exec(
-    node.text,
-  );
+  const match = new RegExp(
+    `^<<([A-Za-z_][\\w-]*)\\r?\\n([\\s\\S]*?)${GO_SPACE}*\\1${GO_SPACE}*$`,
+    "u",
+  ).exec(node.text);
   if (match === null) return null;
   const marker = match[1] as string;
   const body = match[2] as string;
   if (body.includes("${") || body.includes("%{")) return null;
   // Terraform ends a heredoc on a line that is the marker once any Unicode
   // blank (U+00A0, \v, \f) is trimmed; the grammar does not.
-  if (body.split("\n").some((line) => line.trim() === marker)) return null;
+  if (body.split("\n").some((line) => goTrim(line) === marker)) return null;
   // Line ends are kept as written (`\r\n` on a CRLF checkout).
   return body.normalize("NFC");
+}
+
+/** A blank to Go's `unicode.IsSpace`, which Terraform trims a heredoc line with. */
+const GO_SPACE =
+  "[\\t\\v\\f\\r \\u0085\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]";
+
+function goTrim(line: string): string {
+  return line.replace(new RegExp(`^${GO_SPACE}+|${GO_SPACE}+$`, "gu"), "");
 }
 
 /** The scalar literal values an expression holds (each item of a tuple). */
@@ -250,7 +262,8 @@ function keyName(node: Node | null): string | null {
   }
   const key = single(node);
   if (key === null) return null;
-  if (key.type === "variable_expr") return key.text;
+  // An identifier key becomes a string, which HCL normalizes to NFC.
+  if (key.type === "variable_expr") return key.text.normalize("NFC");
   if (key.type === "literal_value") {
     const literal = named(key)[0] as Node;
     if (literal.type === "string_lit") return quoted(literal);
@@ -283,17 +296,122 @@ function mayBeKey(node: Node | null, key: string): boolean {
       part.type !== "quoted_template_start" &&
       part.type !== "quoted_template_end",
   );
+  // `${~ x}` and `${x ~}` strip the blanks next to them, escapes too.
+  if (/\$\{~|~\}|%\{~/.test(template.text)) return true;
   const first = pieces[0];
   const last = pieces.at(-1);
   const head = first?.type === "template_literal" ? decode(first.text) : "";
   const tail = last?.type === "template_literal" ? decode(last.text) : "";
-  // A combining mark at either end may compose with what is interpolated.
-  if (head === null || tail === null || /^\p{M}/u.test(tail)) return true;
+  if (head === null || tail === null) return true;
+  // NFC may compose the character next to an interpolation with what it
+  // yields (a combining mark, a Hangul vowel), so that character and its
+  // marks are left out of the comparison.
+  const name = key.normalize("NFD");
+  const start =
+    first?.type === "template_literal"
+      ? head.normalize("NFD").replace(/\P{M}?\p{M}*$/u, "")
+      : "";
+  const end =
+    last?.type === "template_literal"
+      ? tail.normalize("NFD").replace(/^\p{M}*\P{M}?\p{M}*/u, "")
+      : "";
   return (
-    key.startsWith(head) &&
-    key.endsWith(tail) &&
-    head.length + tail.length <= key.length
+    name.startsWith(start) &&
+    name.endsWith(end) &&
+    start.length + end.length <= name.length
   );
+}
+
+/**
+ * Functions whose result holds every argument's elements as written, so an
+ * object element inside them is a value of the configuration.
+ */
+const KEEPS_ARGUMENTS = new Set([
+  "merge",
+  "tomap",
+  "toset",
+  "tolist",
+  "concat",
+  "flatten",
+  "jsonencode",
+  "yamlencode",
+]);
+
+/**
+ * Whether converting a value to a type constraint leaves what it holds as
+ * written: the type is `any`, a literal of the primitive type, `null`, or
+ * an object, map or list whose elements are each kept. An object attribute
+ * the type does not declare is dropped, so it is not kept.
+ */
+function kept(typeNode: Node | null, valueNode: Node | null): boolean {
+  const type = single(typeNode);
+  const value = single(valueNode);
+  if (type === null || value === null) return false;
+  const literal = value.type === "literal_value" ? named(value)[0] : undefined;
+  if (literal?.type === "null_lit") return true;
+  if (type.type === "variable_expr")
+    switch (type.text.trim()) {
+      case "any":
+        return true;
+      case "string":
+        return (
+          literal?.type === "string_lit" ||
+          (value.type === "template_expr" &&
+            named(value)[0]?.type === "quoted_template")
+        );
+      case "number":
+        return literal?.type === "numeric_lit";
+      case "bool":
+        return literal?.type === "bool_lit";
+      default:
+        return false;
+    }
+  if (type.type !== "function_call") return false;
+  const name = named(type)[0]?.text.trim() ?? "";
+  const args = named(type).find((child) => child.type === "function_arguments");
+  const typeArgs =
+    args === undefined
+      ? []
+      : parts(args).filter((arg) => arg.type === "expression");
+  if (name === "optional") return kept(typeArgs[0] ?? null, valueNode);
+  const collection =
+    value.type === "collection_value" ? named(value)[0] : undefined;
+  const elems =
+    collection?.type === "object"
+      ? named(collection).filter((elem) => elem.type === "object_elem")
+      : [];
+  if (name === "object" && collection?.type === "object") {
+    const shape = single(typeArgs[0] ?? null);
+    const object =
+      shape?.type === "collection_value" ? named(shape)[0] : undefined;
+    if (object?.type !== "object") return false;
+    const attributes = new Map<string, Node | null>();
+    for (const elem of named(object))
+      if (elem.type === "object_elem") {
+        const attribute = keyName(field(elem, "key"));
+        if (attribute === null) return false;
+        attributes.set(attribute, field(elem, "val"));
+      }
+    return elems.every((elem) => {
+      const attribute = keyName(field(elem, "key"));
+      return (
+        attribute !== null &&
+        attributes.has(attribute) &&
+        kept(attributes.get(attribute) ?? null, field(elem, "val"))
+      );
+    });
+  }
+  if (name === "map" && collection?.type === "object")
+    return elems.every(
+      (elem) =>
+        keyName(field(elem, "key")) !== null &&
+        kept(typeArgs[0] ?? null, field(elem, "val")),
+    );
+  if (name === "list" && collection?.type === "tuple")
+    return parts(collection)
+      .filter((item) => item.type === "expression")
+      .every((item) => kept(typeArgs[0] ?? null, item));
+  return false;
 }
 
 /** Blocks whose `for_each` keys are instance keys. */
@@ -324,8 +442,117 @@ export function hclProperty(
   const members: string[] = [];
   const unresolved: UnresolvedRow[] = [];
   const terragrunt = /\.hcl$/i.test(file);
+  // Object keys are strings, which HCL normalizes to NFC.
+  const objectKey = key.normalize("NFC");
+  /** Whether an expression holds an object element that is or may be the key. */
+  const holdsKey = (node: Node): boolean => {
+    if (node.type === "object_elem") {
+      const keyNode = field(node, "key");
+      const name = keyName(keyNode);
+      if (name === null ? mayBeKey(keyNode, objectKey) : name === objectKey)
+        return true;
+    }
+    return named(node).some(holdsKey);
+  };
+  /**
+   * The literal top-level keys of an object argument, or null when it is not
+   * an object literal. With `owning`, only the keys whose value holds the key
+   * (or that are the key).
+   */
+  const topKeys = (arg: Node, owning: boolean): string[] | null => {
+    const value = single(arg);
+    const object =
+      value?.type === "collection_value" ? named(value)[0] : undefined;
+    if (object?.type !== "object") return null;
+    const names: string[] = [];
+    for (const elem of named(object)) {
+      if (elem.type !== "object_elem") continue;
+      const name = keyName(field(elem, "key"));
+      if (name === null) return null;
+      if (!owning || holdsKey(elem)) names.push(name);
+    }
+    return names;
+  };
+  /**
+   * Whether evaluation may drop or replace the value an attribute or object
+   * element holds: a conditional branch, an indexed or attribute-selected
+   * collection, a `for` body, a splat, or the argument of a function that
+   * does not keep its arguments whole (`coalesce`, `lookup`, `try`). A
+   * typed variable's `default` is converted to its type.
+   */
+  const discarded = (owner: Node): boolean => {
+    // A variable's `type` is read by typeConstraint.
+    for (
+      let current: Node | null = owner;
+      current !== null;
+      current = current.parent
+    )
+      if (current.type === "attribute") {
+        if (
+          named(current)[0]?.text === "type" &&
+          named(blockOf(current) ?? current)[0]?.text === "variable"
+        )
+          return false;
+        break;
+      }
+    for (
+      let current: Node | null = owner;
+      current !== null;
+      current = current.parent
+    ) {
+      // `[a, b][1]`, `{...}.acl` and `x[*]` select from the collection: the
+      // index, attribute or splat follows it in the same expression.
+      if (
+        current.type === "expression" &&
+        named(current).some((child) =>
+          ["index", "get_attr", "splat"].includes(child.type),
+        )
+      )
+        return true;
+      switch (current.type) {
+        case "conditional":
+        case "index":
+        case "new_index":
+        case "legacy_index":
+        case "get_attr":
+        case "splat":
+        case "full_splat":
+        case "attr_splat":
+        case "for_tuple_expr":
+        case "for_object_expr":
+          return true;
+        case "function_call": {
+          const name = (named(current)[0]?.text ?? "")
+            .replace(/\s+/g, "")
+            .replace(/^core::/, "");
+          if (!KEEPS_ARGUMENTS.has(name)) return true;
+          break;
+        }
+        case "attribute": {
+          const block = blockOf(current);
+          if (
+            named(current)[0]?.text === "default" &&
+            block !== null &&
+            named(block)[0]?.text === "variable"
+          ) {
+            const body = named(block).find((child) => child.type === "body");
+            const type = named(body ?? block).find(
+              (child) =>
+                child.type === "attribute" && named(child)[0]?.text === "type",
+            );
+            if (type !== undefined)
+              return !kept(named(type)[1] ?? null, named(current)[1] ?? null);
+          }
+          return false;
+        }
+        case "block":
+          return false;
+      }
+    }
+    return false;
+  };
   const take = (owner: Node, value: Node | null): void => {
-    const read = values(value);
+    const read = discarded(owner) ? null : values(value);
     if (read === null) unresolved.push(at(owner));
     else members.push(...read);
   };
@@ -335,7 +562,7 @@ export function hclProperty(
    */
   const typeConstraint = (node: Node): void => {
     if (node.type === "object_elem") {
-      if (keyName(field(node, "key")) === key) {
+      if (keyName(field(node, "key")) === objectKey) {
         const call = single(field(node, "val"));
         if (
           call?.type === "function_call" &&
@@ -348,7 +575,12 @@ export function hclProperty(
             args === undefined
               ? []
               : parts(args).filter((arg) => arg.type === "expression");
-          if (defaults.length > 1) take(node, defaults[1] ?? null);
+          if (defaults.length > 1) {
+            // `optional(number, "007")` converts the default to 7.
+            if (kept(defaults[0] ?? null, defaults[1] ?? null))
+              take(node, defaults[1] ?? null);
+            else unresolved.push(at(node));
+          }
         }
       }
     }
@@ -363,7 +595,12 @@ export function hclProperty(
           ? []
           : parts(args).filter((arg) => arg.type === "expression");
       const value = defaults[1];
-      if (value !== undefined) visit(value);
+      // An object default is converted to the optional's type, which may
+      // drop or convert what it holds.
+      if (value !== undefined) {
+        if (kept(defaults[0] ?? null, value)) visit(value);
+        else if (holdsKey(value)) unresolved.push(at(value));
+      }
       if (defaults[0] !== undefined) typeConstraint(defaults[0]);
       return;
     }
@@ -395,13 +632,13 @@ export function hclProperty(
         const keyNode = field(node, "key");
         const name = keyName(keyNode);
         if (name === null) {
-          if (mayBeKey(keyNode, key)) unresolved.push(at(node));
-        } else if (name === key) {
+          if (mayBeKey(keyNode, objectKey)) unresolved.push(at(node));
+        } else if (name === objectKey) {
           // A key written twice keeps its last value.
           const twice = named(node.parent as Node).filter(
             (other) =>
               other.type === "object_elem" &&
-              keyName(field(other, "key")) === key,
+              keyName(field(other, "key")) === objectKey,
           );
           if (twice.length > 1) unresolved.push(at(node));
           else take(node, field(node, "val"));
@@ -415,7 +652,7 @@ export function hclProperty(
         const inner = node.text.split("\n").slice(1, -1);
         if (
           marker !== undefined &&
-          inner.some((line) => line.trim() === marker)
+          inner.some((line) => goTrim(line) === marker)
         )
           unresolved.push(at(node));
         break;
@@ -433,37 +670,46 @@ export function hclProperty(
           FOR_EACH_BLOCKS.has(named(block)[0]?.text ?? "");
         const keyExpression =
           parts(node).find((part) => part.type === "expression") ?? null;
-        if (!forEach && mayBeKey(keyExpression, key)) unresolved.push(at(node));
+        if (!forEach && mayBeKey(keyExpression, objectKey))
+          unresolved.push(at(node));
         break;
       }
       case "function_call": {
         const name = named(node)[0]?.text ?? "";
         if (keyFunction(name)) unresolved.push(at(node));
         else if (name.replace(/\s+/g, "").replace(/^core::/, "") === "merge") {
-          // The last of the objects `merge` gets that names the key wins,
-          // and a later argument Kibi cannot read may name it.
+          // The last of the objects `merge` gets that holds the key wins, and
+          // a later argument replaces a top-level key whole.
           const args = named(node).find(
             (child) => child.type === "function_arguments",
           );
-          const objects = (args === undefined ? [] : parts(args)).map((arg) => {
-            const value = single(arg);
-            const object =
-              value?.type === "collection_value" ? named(value)[0] : undefined;
-            if (object?.type !== "object") return "unknown";
-            return named(object).some(
-              (elem) =>
-                elem.type === "object_elem" &&
-                keyName(field(elem, "key")) === key,
-            )
-              ? "key"
-              : "other";
-          });
-          const first = objects.indexOf("key");
+          const list = (args === undefined ? [] : parts(args)).filter(
+            (arg) => arg.type === "expression",
+          );
+          // `merge(list...)`: the objects come from a list.
           if (
-            first !== -1 &&
-            objects.slice(first + 1).some((kind) => kind !== "other")
-          )
+            args !== undefined &&
+            parts(args).some((part) => part.type === "ellipsis") &&
+            holdsKey(args)
+          ) {
             unresolved.push(at(node));
+            break;
+          }
+          const first = list.findIndex(holdsKey);
+          if (first !== -1) {
+            const owners = topKeys(list[first] as Node, true);
+            for (const later of list.slice(first + 1)) {
+              const keys = topKeys(later, false);
+              if (
+                owners === null ||
+                keys === null ||
+                keys.some((name) => owners.includes(name))
+              ) {
+                unresolved.push(at(node));
+                break;
+              }
+            }
+          }
         }
         break;
       }

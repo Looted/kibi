@@ -688,6 +688,135 @@ describe("rows about a name another file of the project may bind", () => {
       '#!/bin/bash\n. "$DIR/run.sh"\n',
     );
     expect(createShadowRowFilter(root)("bin/run.sh", [row])).toEqual([row]);
+    // A plugin loader sources whatever its glob finds.
+    fs.writeFileSync(
+      path.join(root, "bin/main"),
+      '#!/bin/bash\nfor f in "$(dirname "$0")"/plugins/*.sh; do . "$f"; done\n',
+    );
+    expect(createShadowRowFilter(root)("bin/run.sh", [row])).toEqual([row]);
+    // A literal source of another file does not reach this one.
+    fs.writeFileSync(
+      path.join(root, "bin/main"),
+      '#!/bin/bash\n. "$(dirname "$0")/other.sh"\n',
+    );
+    expect(createShadowRowFilter(root)("bin/run.sh", [row])).toEqual([]);
+  });
+
+  it("reads the third round of C header and PHP project forms", () => {
+    const row = {
+      line: 1,
+      text: 'config.h may define macros or function pointers this file uses: #include "config.h"',
+    };
+    const uses = (header: string, code: string) => {
+      const root = project({
+        "src/a.c": `#include "config.h"\n${code}\n`,
+        "src/config.h": header,
+      });
+      return createShadowRowFilter(root)("src/a.c", [row]).length === 1;
+    };
+    expect(
+      uses(
+        "#define DIGEST(d,n,o) MD5(d,n,o)\n",
+        "void f(void) { DIGEST(b, n, o); }",
+      ),
+    ).toBe(true);
+    expect(
+      uses(
+        "#define STR_COPY(d,s) __builtin_strcpy(d,s)\n",
+        "void f(void) { STR_COPY(a, b); }",
+      ),
+    ).toBe(true);
+    expect(
+      uses(
+        "#define LIKELY(x) __builtin_expect(!!(x), 1)\n",
+        "void f(void) { if (LIKELY(a)) {} }",
+      ),
+    ).toBe(false);
+    expect(
+      uses(
+        "#define RUN_VIA(k,c) RUN_##k(c)\n",
+        "void f(void) { RUN_VIA(SHELL, x); }",
+      ),
+    ).toBe(true);
+    expect(
+      uses(
+        "#define ENV_ENTRY(i) environ[i]\n",
+        "void f(void) { ENV_ENTRY(0); }",
+      ),
+    ).toBe(true);
+    expect(
+      uses(
+        "typedef int runner_fn(const char *);\nextern runner_fn *run_hook;\n",
+        'void f(void) { run_hook("x"); }',
+      ),
+    ).toBe(true);
+    expect(
+      uses(
+        "extern int (CALLBACK *run_hook)(const char *);\n",
+        'void f(void) { run_hook("x"); }',
+      ),
+    ).toBe(true);
+    expect(
+      uses(
+        "extern int (* volatile run_hook)(const char *);\n",
+        'void f(void) { run_hook("x"); }',
+      ),
+    ).toBe(true);
+    expect(
+      uses(
+        "extern char *__REDIRECT(config_value, (const char *n), getenv);\n",
+        'void f(void) { config_value("x"); }',
+      ),
+    ).toBe(true);
+    expect(
+      uses(
+        "#define\vlog_line(m) system(m)\n",
+        'void f(void) { log_line("x"); }',
+      ),
+    ).toBe(true);
+    expect(
+      uses("#define run$job(c) system(c)\n", 'void f(void) { run$job("x"); }'),
+    ).toBe(true);
+    // A union in a header may alias the field a property read sets.
+    const unionRow = {
+      ...row,
+      text: row.text.replace(
+        "macros or function pointers",
+        "macros, function pointers or unions",
+      ),
+    };
+    const unionRoot = project({
+      "src/a.c": '#include "config.h"\nstruct tls t = { .verify_peer = 1 };\n',
+      "src/config.h": "union tls { int verify_peer; int check; };\n",
+    });
+    expect(createShadowRowFilter(unionRoot)("src/a.c", [unionRow])).toEqual([
+      unionRow,
+    ]);
+    expect(createShadowRowFilter(unionRoot)("src/a.c", [row])).toEqual([]);
+
+    const envRow = {
+      line: 2,
+      text: "Settings may be Illuminate\\Support\\Env or a class that extends it: Settings::get('X')",
+    };
+    const aliased = project({
+      "src/a.php": "<?php\nSettings::get('X');\n",
+      "src/Settings.php":
+        "<?php\nuse Illuminate\\Support as Base;\nclass Settings extends Base\\Env {}\n",
+    });
+    expect(createShadowRowFilter(aliased)("src/a.php", [envRow])).toEqual([
+      envRow,
+    ]);
+    const phpRow = {
+      line: 3,
+      text: "getenv may be a function of namespace App: getenv('X')",
+    };
+    const dotted = project({
+      "src/a.php": "<?php\nnamespace App;\ngetenv('X');\n",
+      "lib/.compat.php": "<?php\nnamespace App;\nfunction getenv($n) {}\n",
+    });
+    expect(createShadowRowFilter(dotted)("src/a.php", [phpRow])).toEqual([
+      phpRow,
+    ]);
   });
 
   it("finds a PHP function declared in an included file with comments in it", () => {
