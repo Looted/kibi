@@ -2690,6 +2690,47 @@ describe("PHP and C forms of the fourth round", () => {
     );
   });
 
+  it("refuses the forms the round-four check found", async () => {
+    for (const body of [
+      "$opts = str_replace('private', 'public-read', $opts);",
+      "require 'd.php'; $opts = substr_replace($opts, 'public-read', 0);",
+      "const acl = 'private'; define('acl', 'public-read');",
+      "require 'consts.php'; $o = [CURLOPT_ACL => 'public-read'];",
+    ])
+      assert.ok(await refused(body, "property", { key: "acl" }), body);
+    assert.ok(
+      await refused(
+        "ini_set(value: 'deploy_tool', option: 'unserialize_callback_func');",
+        "calls",
+      ),
+    );
+    for (const body of [
+      "stream_context_set_params($ctx, ['notification' => 'notify_ops']);",
+      "IntlChar::enumCharTypes('notify_ops');",
+    ])
+      assert.ok(
+        (await php(body, "calls")).members.includes("notify_ops"),
+        body,
+      );
+    // A rewrite that is not stored back changes no array the read holds.
+    assert.deepEqual(
+      await php(
+        "define('DB_HOST', '127.0.0.1'); define('URL', str_replace('a', '', $p));",
+        "property",
+        { key: "DB_HOST" },
+      ),
+      { members: ["127.0.0.1"], lines: [], rows: [] },
+    );
+    assert.deepEqual(
+      await php(
+        "$o = ['acl' => 'private']; function f($x) { return array_map('trim', $x); }",
+        "property",
+        { key: "acl" },
+      ),
+      { members: ["private"], lines: [], rows: [] },
+    );
+  });
+
   it("refuses a caught exception handed to a project constructor", async () => {
     assert.ok(
       await refused(

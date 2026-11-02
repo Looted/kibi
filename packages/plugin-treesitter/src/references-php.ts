@@ -123,6 +123,7 @@ const CALLABLE_ARGS: ReadonlyMap<string, readonly number[] | "all"> = new Map<
   ["assert_options", [1]],
   ["ldap_set_rebind_proc", [1]],
   ["intlchar::enumcharnames", [2]],
+  ["intlchar::enumchartypes", [0]],
   ["*.setauthorizer", [0]],
   // Methods of builtin classes, on a receiver Kibi cannot name.
   ["*.uasort", [0]],
@@ -270,6 +271,8 @@ const ARRAY_TRANSFORMS = new Set([
   "array_unique",
   "array_reverse",
   "array_column",
+  "substr_replace",
+  "preg_filter",
   "array_merge_recursive",
   "array_replace_recursive",
   "iterator_to_array",
@@ -1364,6 +1367,15 @@ export function phpReferences(
   };
 
   const numericKey = /^(?:0|-?[1-9]\d*)$/.test(options.key);
+  /** Whether `define()` and `const` together name the key more than once. */
+  const definedTwice =
+    [...root.text.matchAll(/\bdefine\s*\(\s*(['"])(.*?)\1/gi)].filter(
+      (match) => match[2] === options.key,
+    ).length +
+      [
+        ...root.text.matchAll(/\bconst\s+(?:\w+\s+)?([A-Za-z_]\w*)\s*=/g),
+      ].filter((match) => match[1] === options.key).length >
+    1;
 
   /**
    * An array key as PHP stores it: `true` is 1, `null` is "", a float is cut
@@ -1405,9 +1417,12 @@ export function phpReferences(
         return false;
       // `CURLOPT_ACL` may be a constant the file defines (`const
       // CURLOPT_ACL = 'acl';`, `define('CURLOPT_ACL', 'acl')`).
+      // An included file may define it too.
       const name = node.text.replace(/^\\/, "");
-      return !new RegExp(`\\b(?:const|define)\\b[^;]*\\b${name}\\b`).test(
-        root.text,
+      return (
+        !new RegExp(`\\b(?:const|define)\\b[^;]*\\b${name}\\b`).test(
+          root.text,
+        ) && !/\b(?:include|require)(?:_once)?\b/i.test(root.text)
       );
     }
     if (node.type !== "class_constant_access_expression") return false;
@@ -1502,13 +1517,9 @@ export function phpReferences(
           : undefined);
       const key = literal(argumentValue(byName("constant_name", 0)));
       if (key === null) refuse(node);
-      else if (
-        key === options.key &&
-        [...root.text.matchAll(/\bdefine\s*\(\s*(['"])(.*?)\1/gi)].filter(
-          (match) => match[2] === key,
-        ).length > 1
-      )
-        // A second `define` of a name fails and keeps the first value.
+      else if (key === options.key && definedTwice)
+        // A second `define` (or one after `const`) of a name fails and
+        // keeps the first value.
         refuse(node);
       else if (key === options.key) {
         const value = literal(argumentValue(byName("value", 1)));
@@ -1547,17 +1558,28 @@ export function phpReferences(
       )
         refuse(node);
     }
-    // A whole-array rewrite in a file that names the key, and keys from a
-    // case change.
-    // A file that includes another may rewrite the array that file sets.
-    if (
-      ARRAY_TRANSFORMS.has(name) &&
-      (name === "array_change_key_case"
-        ? lower(root.text).includes(lower(options.key))
-        : root.text.includes(options.key) ||
-          /\b(?:include|require)(?:_once)?\b/i.test(root.text))
-    )
-      refuse(node);
+    // A whole-array rewrite stored back (`$o = str_replace(...)`, or
+    // `array_splice` in place) in a file that names the key, includes
+    // another, or runs at the top level, where its variables are the ones
+    // other included files set. Keys from a case change.
+    if (ARRAY_TRANSFORMS.has(name)) {
+      let outer: Node = node;
+      while (outer.parent?.type === "parenthesized_expression")
+        outer = outer.parent;
+      const stored =
+        name === "array_splice" ||
+        (outer.parent?.type === "assignment_expression" &&
+          field(outer.parent, "right")?.id === outer.id);
+      if (
+        name === "array_change_key_case"
+          ? lower(root.text).includes(lower(options.key))
+          : stored &&
+            (root.text.includes(options.key) ||
+              /\b(?:include|require)(?:_once)?\b/i.test(root.text) ||
+              !insideFunctionScope(node))
+      )
+        refuse(node);
+    }
     // `array_unshift($levels, 'x')` renumbers every slot.
     if (numericKey && /^array_(?:unshift|push|splice|shift|pop)$/.test(name))
       refuse(node);
@@ -1662,7 +1684,11 @@ export function phpReferences(
         argumentValue(list[0])?.text ?? "",
       );
     if (name === "ini_set" || name === "ini_alter") {
-      const option = literal(argumentValue(list[0]));
+      const byName = list.some(
+        (argument) =>
+          argument.type !== "argument" || field(argument, "name") !== null,
+      );
+      const option = byName ? null : literal(argumentValue(list[0]));
       return (
         option === null ||
         /^(?:unserialize_callback_func|assert\.callback)$/i.test(option)
@@ -2009,6 +2035,17 @@ export function phpReferences(
         break;
       }
       case "array_creation_expression":
+        // A stream context's `'notification' => 'cb'` is called on events.
+        if (extract === "calls" || extract === "string_args" || env)
+          for (const element of named(node)) {
+            const parts = named(element);
+            if (
+              element.type === "array_element_initializer" &&
+              parts.length === 2 &&
+              literal(parts[0] as Node) === "notification"
+            )
+              handedCallable(element, parts[1]);
+          }
         if (extract === "property") {
           arrayKeys(node);
           // `['acl' => &$a]` lets a later `$a = ...` set the slot.
@@ -2215,6 +2252,10 @@ export function phpReferences(
           "",
         );
         if (name !== options.key) break;
+        if (node.type === "const_element" && definedTwice) {
+          refuse(node);
+          break;
+        }
         const value =
           node.type === "property_element"
             ? field(node, "default_value")
@@ -2230,6 +2271,18 @@ export function phpReferences(
   };
   visit(root);
   return { members, unresolved };
+}
+
+/** Whether a node runs inside a function, method or closure body. */
+function insideFunctionScope(node: Node): boolean {
+  for (let current = node.parent; current !== null; current = current.parent)
+    if (
+      /^(?:function_definition|method_declaration|anonymous_function|arrow_function|anonymous_function_creation_expression)$/.test(
+        current.type,
+      )
+    )
+      return true;
+  return false;
 }
 
 function insideClosure(node: Node): boolean {

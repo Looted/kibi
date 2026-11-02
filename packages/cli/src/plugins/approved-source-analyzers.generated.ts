@@ -69,11 +69,11 @@ export const qualifiedSourceAnalyzers = [
       "dist/references-hcl.js":
         "29cd002a47c07e0a556c822b2bcbce2a98275bf478f8ed81c683fae33ee95b79",
       "dist/references-php.js":
-        "320c33c7f064c53594a6a24b1dbe1b0aed1716ff02cb5a1902ad302cb428430b",
+        "ab8ea2acee2a9c17aece0568f0acff73266dc4026bad00fa0de5e438be9f24e6",
       "dist/references.js":
         "1aa64d35d4bfb23846bfe3a814ea658b2b4983eac95506d15c7c6655909143ea",
       "integrity.json":
-        "6396d6c24383b0ac5860f8484d12cab36c05ebf5fc668ae448aa0a6bfb072239",
+        "f3f3686b6c01c55190026adb926fca104aee5c5365a45807f126bcd3711d5686",
       "licenses/web-tree-sitter-MIT.txt":
         "c5cfb43042b6b72045f4ba997834d0a7786d2793d91680868b5815b39f14fc78",
       "package.json":

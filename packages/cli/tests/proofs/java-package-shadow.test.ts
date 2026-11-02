@@ -488,9 +488,14 @@ describe("rows about a name another file of the project may bind", () => {
     const root = project({
       "src/a.php": "<?php\nnamespace App\\Svc;\ngetenv('X');\n",
       "src/b.php": "<?php\nnamespace Other;\nfunction getenv($n) {}\n",
-      "vendor/x/c.php": "<?php\nnamespace App\\Svc;\nfunction getenv($n) {}\n",
     });
     expect(createShadowRowFilter(root)("src/a.php", [row])).toEqual([]);
+    // A Composer package's `files` autoload may declare it too.
+    const vendored = project({
+      "src/a.php": "<?php\nnamespace App\\Svc;\ngetenv('X');\n",
+      "vendor/x/c.php": "<?php\nnamespace App\\Svc;\nfunction getenv($n) {}\n",
+    });
+    expect(createShadowRowFilter(vendored)("src/a.php", [row])).toEqual([row]);
     fs.writeFileSync(
       path.join(root, "src/d.php"),
       "<?php\nnamespace App \\ Svc {\n  function &GETENV($n) {}\n}\n",
@@ -498,9 +503,18 @@ describe("rows about a name another file of the project may bind", () => {
     expect(createShadowRowFilter(root)("src/a.php", [row])).toEqual([row]);
     // `namespace App ?>`, a dot folder and a template any file may include.
     for (const [file, text] of [
-      ["lib/close.php", "<?php\nnamespace App\\Svc ?>\n<?php function getenv($n) {}\n"],
-      ["lib/.shims/compat.php", "<?php\nnamespace App\\Svc;\nfunction getenv($n) {}\n"],
-      ["lib/compat.tpl", "<?php\nnamespace App\\Svc;\nfunction getenv($n) {}\n"],
+      [
+        "lib/close.php",
+        "<?php\nnamespace App\\Svc ?>\n<?php function getenv($n) {}\n",
+      ],
+      [
+        "lib/.shims/compat.php",
+        "<?php\nnamespace App\\Svc;\nfunction getenv($n) {}\n",
+      ],
+      [
+        "lib/compat.tpl",
+        "<?php\nnamespace App\\Svc;\nfunction getenv($n) {}\n",
+      ],
     ] as const) {
       const other = project({
         "src/a.php": "<?php\nnamespace App\\Svc;\ngetenv('X');\n",

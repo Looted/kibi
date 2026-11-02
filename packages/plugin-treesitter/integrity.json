@@ -21,8 +21,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 27069,
-      "sha256": "ee14c1eb3a16d48a4d40055b1b49eba52d9b209f7f5a8c24c1472304c733c8fb"
+      "bytes": 27056,
+      "sha256": "537aef111cc1701e3ac1a94b0b8ea19ee818d3cf08da6ad7fa4b8a69e55dcba5"
     },
     {
       "path": "SBOM.spdx.json",
@@ -297,12 +297,12 @@
     {
       "path": "dist/references-php.d.ts.map",
       "bytes": 583,
-      "sha256": "0fa0c43cdb1b4f63e936677cd24bec69eaf87c4f8f8e5ff1dbf1a98993ceae1e"
+      "sha256": "7ad2b9fbe97698929bf845fe881464fc29d69a080ebc10767c73b5c857db9230"
     },
     {
       "path": "dist/references-php.js",
-      "bytes": 86070,
-      "sha256": "320c33c7f064c53594a6a24b1dbe1b0aed1716ff02cb5a1902ad302cb428430b"
+      "bytes": 88329,
+      "sha256": "ab8ea2acee2a9c17aece0568f0acff73266dc4026bad00fa0de5e438be9f24e6"
     },
     {
       "path": "dist/references.d.ts",

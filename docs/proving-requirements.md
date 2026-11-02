@@ -926,7 +926,7 @@ Details that decide what a reader sees:
     from an excluded item only in case. An unqualified call inside a
     namespace may reach the namespace's own function, so it is refused
     unless no project file that opens PHP code (any extension, dot folders
-    included, outside the root `vendor`) declares that function there. `env` reads `getenv`,
+    and `vendor` included) declares that function there. `env` reads `getenv`,
     `apache_getenv`, `env()`, `Env::get` and
     `filter_input(INPUT_ENV|INPUT_SERVER, ...)`, and literal subscripts of
     `$_ENV` and `$_SERVER`; a call on a class that may extend

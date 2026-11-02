@@ -1142,7 +1142,8 @@ async function readPluginReferences(
         } catch {
           text = "generate";
         }
-        if (/(?:^|[\s{,])"?(?:generate|include)"?\s*(?:"|\{|:|=)/m.test(text))
+        // `generate "x" {`, `generate x {`, `"generate": [...]` in JSON.
+        if (/(?:^|[\s{,[])"?(?:generate|include)\b(?!_)/m.test(text))
           unresolved.push({ file, line: 1, text: `${override} may generate files that override this folder's blocks` });
       }
     }

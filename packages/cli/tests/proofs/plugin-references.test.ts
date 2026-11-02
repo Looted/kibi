@@ -162,6 +162,12 @@ describe("the references reader on Go, Java, C# and Rust", () => {
     for (const [config, refuses] of [
       ['generate "acl" {\n  path = "acl_override.tf"\n}\n', true],
       ['include "root" {\n  path = find_in_parent_folders()\n}\n', true],
+      ['generate acl {\n  path = "acl_override.tf"\n}\n', true],
+      ["include root {\n  path = find_in_parent_folders()\n}\n", true],
+      [
+        '{\n  "generate": [{ "acl": { "path": "acl_override.tf" } }]\n}\n',
+        true,
+      ],
       ['inputs = {\n  bucket = "logs"\n}\n', false],
     ] as const) {
       const generated = workspace({

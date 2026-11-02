@@ -634,14 +634,10 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
       }
       const php = PHP_ROW.exec(row.text);
       if (php !== null) {
-        // Composer packages under the root vendor/ do not declare the
-        // project's namespaces; a vendor folder deeper down may be the project's.
-        const vendor = path.join(workspaceRoot, "vendor") + path.sep;
-        // Any file may be included by path (`lib/compat.tpl`, a dot folder),
-        // so every project file that opens PHP code counts.
-        const texts = read("php-any", () =>
-          sourceFiles(workspaceRoot, "", [], true).filter((candidate) => !candidate.startsWith(vendor)),
-        );
+        // Any file may be included by path (`lib/compat.tpl`, a dot folder,
+        // a Composer package's `files` autoload), so every file that opens
+        // PHP code counts, vendor/ too.
+        const texts = read("php-any", () => sourceFiles(workspaceRoot, "", [], true));
         return (
           texts === null ||
           texts.some((text) => /<\?(?:php|=)/i.test(text) && phpDeclares(text, php[1] as string, php[2] as string))
