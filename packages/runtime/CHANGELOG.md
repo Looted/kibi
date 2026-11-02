@@ -53,6 +53,8 @@
 
 ### Patch Changes
 
+- Requirement titles that Kibi suggests from a requirement's text end at a real sentence end (a `.`, `?` or `!` followed by whitespace and an uppercase letter, or the end of the text). A dot inside a path, a dotted name, a version or backticks no longer cuts the title, so "The greet function must never call console.log" stays whole instead of becoming "The greet function must never call console", and fact claim text that falls back to the title is no longer cut either.
+
 - Close more false proofs of the references reader. JavaScript and TypeScript names are read through what they are bound to: renamed and namespace imports, `require` bindings, `node:` built-in names, `globalThis.process`, `import { env } from "node:process"`, destructuring from `process`, `.call`/`.apply`/`.bind`, and imported functions used as values. Modules loaded in place (`process.getBuiltinModule`, `createRequire(url)(...)`, `import()`), non-literal specifiers and code built from text (`eval`, `new Function`, `vm`) fail the read instead of being skipped. Python unpickling (`pickle.loads` and similar) fails the read, SWI-Prolog's `must_be/2` is listed as throwing the errors it throws, a symbolic link to a file that `files` matches is read as that file instead of being skipped, and a Go call to a name another file of the package binds to a function value fails the read.
 
 - 048d1c9: Close false proofs found by testing the language packs before release:

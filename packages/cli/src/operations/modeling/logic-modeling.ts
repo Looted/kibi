@@ -5,6 +5,7 @@ import {
   utf8Span,
   validateLogicIr,
 } from "../../logic/ir.js";
+import { firstSentence } from "../../utils/first-sentence.js";
 import {
   modeledClaimRole,
   normalizeSemanticClause,
@@ -131,7 +132,7 @@ export function buildLogicApplyPlan(
         type: "req",
         id: input.requirementId ?? `REQ-LOGIC-${shortId(claimText)}`,
         properties: {
-          title: claimText.split(/[.!?]/, 1)[0] || "Typed logical requirement",
+          title: firstSentence(claimText) || "Typed logical requirement",
           status: "open",
           source: input.source,
           semantic_text: input.text.trim(),
