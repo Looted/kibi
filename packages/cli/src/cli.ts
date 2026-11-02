@@ -87,6 +87,17 @@ export function buildProgram(): Command {
 }
 
 // implements REQ-kibi-operation-interface-parity
+/**
+ * Whether an error only says the reader of stdout went away (`kibi … | head`).
+ * The command already did its work, so this is not a command failure.
+ */
+export function isClosedOutputError(error: unknown): boolean {
+  if (error === null || typeof error !== "object") return false;
+  const code = (error as { code?: unknown }).code;
+  return code === "EPIPE" || code === "ERR_STREAM_DESTROYED";
+}
+
+// implements REQ-kibi-operation-interface-parity
 export async function main(): Promise<never> {
   const workspace = resolveWorkspaceCwd(
     process.argv,
@@ -98,32 +109,63 @@ export async function main(): Promise<never> {
   const startedAt = new Date();
   const program = buildProgram();
   const commandPath = trackCommandPath(program);
+  let stdoutClosed = false;
+  let finishing: Promise<never> | undefined;
+  const finish = (exitCode: number, failure?: unknown): Promise<never> => {
+    finishing ??= (async () => {
+      try {
+        await finishCliTelemetry({
+          commandPath: commandPath(),
+          packageVersion: packageVersion(packageJson),
+          startedAt,
+          exitCode,
+          error: failure,
+        });
+      } catch {
+        // Telemetry is best effort and never changes the exit code.
+      }
+      const streams = stdoutClosed
+        ? [process.stderr]
+        : [process.stdout, process.stderr];
+      await Promise.all(
+        streams.map((stream) =>
+          // once() rejects when the stream errors instead of draining; a
+          // closed reader is not a reason to skip the exit code.
+          stream.writableNeedDrain
+            ? once(stream, "drain").then(
+                () => undefined,
+                () => undefined,
+              )
+            : Promise.resolve(),
+        ),
+      );
+      process.exit(exitCode);
+    })();
+    return finishing;
+  };
+  // A reader that closes stdout early (`kibi query req | head`) makes the
+  // next write fail with EPIPE, asynchronously and outside any command's
+  // try/catch. Finish with the command's own exit code instead of crashing.
+  process.stdout.on("error", (error) => {
+    if (!isClosedOutputError(error)) throw error;
+    stdoutClosed = true;
+    void finish(Number(process.exitCode ?? 0));
+  });
   let exitCode = process.exitCode ?? 0;
   let failure: unknown;
   try {
     await program.parseAsync(workspace.argv);
     exitCode = process.exitCode ?? 0;
   } catch (error) {
-    failure = error;
-    exitCode = exitCodeFromCliFailure(error);
+    if (isClosedOutputError(error)) {
+      stdoutClosed = true;
+      exitCode = process.exitCode ?? 0;
+    } else {
+      failure = error;
+      exitCode = exitCodeFromCliFailure(error);
+    }
   }
-  try {
-    await finishCliTelemetry({
-      commandPath: commandPath(),
-      packageVersion: packageVersion(packageJson),
-      startedAt,
-      exitCode: Number(exitCode),
-      error: failure,
-    });
-  } catch {
-    // Telemetry is best effort and never changes the exit code.
-  }
-  await Promise.all(
-    [process.stdout, process.stderr].map((stream) =>
-      stream.writableNeedDrain ? once(stream, "drain") : Promise.resolve(),
-    ),
-  );
-  process.exit(exitCode);
+  return await finish(Number(exitCode), failure);
 }
 
 export async function runCliIfEntrypoint(

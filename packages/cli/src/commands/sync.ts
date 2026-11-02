@@ -99,6 +99,12 @@ import {
 } from "./sync/discovery.js";
 import type { PendingSourceReceiptSnapshot } from "./sync/discovery.js";
 import {
+  SyncError,
+  pendingSourceEscapesError,
+  pendingSourceHashDriftError,
+  pendingSourceMissingError,
+} from "./sync/errors.js";
+import {
   normalizeExtractionSources,
   processExtractions,
 } from "./sync/extraction.js";
@@ -127,17 +133,7 @@ import {
   findUntrackedDocumentMatches,
 } from "./sync/untracked-targets.js";
 
-// Manual deletion of a written-but-unstaged source leaves a recovery receipt
-// behind; sync refuses to guess, so the error must name the way out.
-const PENDING_SOURCE_RECOVERY_HINT =
-  " If the file was deleted on purpose, run 'kibi branch recover --apply' to rebuild the branch KB from the sources that remain.";
-
-export class SyncError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "SyncError";
-  }
-}
+export { SyncError };
 
 function relationshipKey(relationship: ExtractedRelationship): string {
   return `${relationship.type}\0${relationship.from}\0${relationship.to}`;
@@ -292,9 +288,7 @@ export function trackedRelationshipFiles(
       if (!relative.startsWith(".kb/relationships/")) continue;
       const absolute = path.resolve(workspaceRoot, relative);
       if (!absolute.startsWith(`${path.resolve(workspaceRoot)}${path.sep}`)) {
-        throw new SyncError(
-          `Pending source path escapes workspace: ${relative}`,
-        );
+        throw pendingSourceEscapesError(relative);
       }
       if (!existsSync(absolute)) {
         if (recoverMissingPendingSources) {
@@ -315,17 +309,13 @@ export function trackedRelationshipFiles(
           }
           continue;
         }
-        throw new SyncError(
-          `Pending source is missing: ${relative}.${PENDING_SOURCE_RECOVERY_HINT}`,
-        );
+        throw pendingSourceMissingError(relative);
       }
       const actual = createHash("sha256")
         .update(readFileSync(absolute))
         .digest("hex");
       if (actual !== receipt.afterHash) {
-        throw new SyncError(
-          `Pending source hash drift blocks sync for ${relative}`,
-        );
+        throw pendingSourceHashDriftError(relative, receipt.afterHash, actual);
       }
       pending.add(relative);
     }
@@ -898,8 +888,9 @@ export async function syncCommand(
       // implements REQ-symbol-coordinates-derived-locally
       const installProblems = sourceAnalyzerInstallProblems(workspaceRoot);
       if (installProblems.length > 0)
-        throw new Error(
+        throw new SyncError(
           `Symbol coordinate refresh refused: ${installProblems.map((row) => row.problem).join("; ")}. ${installProblems.map((row) => row.fix).join(" ")} The stored coordinates were kept.`,
+          "SOURCE_ANALYZER_UNAVAILABLE",
         );
       for (const file of manifestFiles) {
         await refreshManifestCoordinates(file, workspaceRoot, {

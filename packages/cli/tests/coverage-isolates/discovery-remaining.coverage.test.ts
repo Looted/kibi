@@ -110,6 +110,39 @@ type: req
     ).rejects.toThrow(/hash drift/);
   });
 
+  // implements REQ-core-atomic-upsert-persistence
+  test("names how to keep a hand edit of a pending source, and staging it unblocks discovery", async () => {
+    const cwd = prepared();
+    mkdirSync(path.join(cwd, ".kb", "requirements"), { recursive: true });
+    const relative = ".kb/requirements/REQ-EDITED.md";
+    const written =
+      "---\nid: REQ-EDITED\ntitle: Edited\nstatus: open\ntype: req\n---\n";
+    writeFileSync(path.join(cwd, relative), `${written}Edited by hand.\n`);
+    writePendingSourceReceipt(cwd, relative, sha(written));
+    const refusal = await discoverSourceFiles(cwd, { trackedOnly: true }).then(
+      () => undefined,
+      (error: unknown) => error,
+    );
+    expect(refusal).toMatchObject({
+      name: "SyncError",
+      code: "PENDING_SOURCE_HASH_DRIFT",
+    });
+    expect(String((refusal as Error).message)).toContain(`git add ${relative}`);
+    git(cwd, `add ${relative}`);
+    const result = await discoverSourceFiles(cwd, { trackedOnly: true });
+    expect(
+      result.markdownFiles.some((file) => file.endsWith("REQ-EDITED.md")),
+    ).toBe(true);
+  });
+
+  test("codes a missing pending source", async () => {
+    const cwd = prepared();
+    writePendingSourceReceipt(cwd, ".kb/requirements/REQ-LOST.md", sha("x"));
+    await expect(
+      discoverSourceFiles(cwd, { trackedOnly: true }),
+    ).rejects.toMatchObject({ code: "PENDING_SOURCE_MISSING" });
+  });
+
   test("keeps a pending untracked markdown file when it is not yet git-tracked", async () => {
     const cwd = prepared();
     mkdirSync(path.join(cwd, ".kb", "requirements"), { recursive: true });

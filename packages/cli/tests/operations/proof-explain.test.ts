@@ -4,7 +4,9 @@ import {
   projectRequirementExplain,
   projectSymbolExplain,
   renderProofExplain,
+  requireExplainTarget,
 } from "../../src/operations/proof/explain.js";
+import type { PrologPort } from "../../src/public/operations/runtime-types.js";
 
 const requirementProof = {
   id: "REQ-example",
@@ -82,6 +84,54 @@ describe("proof explain projection", () => {
     expect(() =>
       classifyExplainTarget("REQ-1", { requirement: "REQ-1", symbol: "SYM-1" }),
     ).toThrow(/not both/);
+  });
+
+  // implements REQ-kibi-verification-evidence-contract
+  test("refuses ids it cannot explain with coded errors", () => {
+    for (const [id, message] of [
+      ["TEST-1", /TEST-1 is not a REQ-\* or SYM-\* id/],
+      [undefined, /pass a requirement or symbol id/],
+    ] as const) {
+      try {
+        classifyExplainTarget(id, {});
+        throw new Error("expected a refusal");
+      } catch (error) {
+        expect(error).toMatchObject({ code: "INVALID_TARGET" });
+        expect(String((error as Error).message)).toMatch(message);
+      }
+    }
+  });
+
+  // implements REQ-kibi-verification-evidence-contract
+  test("names an unknown or mistyped id instead of a bare query failure", async () => {
+    const stored = new Map([
+      ["REQ-known", "req"],
+      ["SYM-known", "symbol"],
+    ]);
+    const prolog = {
+      query: async (goal: string) => {
+        const match = /kb_entity\('([^']+)', (\w+|_), _\)/.exec(goal);
+        const type = match ? stored.get(match[1] ?? "") : undefined;
+        const success =
+          type !== undefined && (match?.[2] === "_" || match?.[2] === type);
+        return { success, bindings: {} };
+      },
+    } as unknown as PrologPort;
+    await expect(
+      requireExplainTarget(prolog, { kind: "requirement", id: "REQ-known" }),
+    ).resolves.toBeUndefined();
+    await expect(
+      requireExplainTarget(prolog, { kind: "requirement", id: "REQ-missing" }),
+    ).rejects.toMatchObject({
+      code: "ENTITY_NOT_FOUND",
+      message: expect.stringContaining("run kibi sync first"),
+    });
+    await expect(
+      requireExplainTarget(prolog, { kind: "requirement", id: "SYM-known" }),
+    ).rejects.toMatchObject({
+      code: "INVALID_TARGET",
+      message: expect.stringContaining("SYM-known is not a req"),
+    });
   });
 
   test("structural unit candidate is rendered as qualifying, not test_scope_is_unit", () => {

@@ -28,6 +28,11 @@ import {
   CANONICAL_ENTITY_PATHS,
   isSymbolsManifestPath,
 } from "../../utils/kb-paths.js";
+import {
+  SyncError,
+  pendingSourceHashDriftError,
+  pendingSourceMissingError,
+} from "./errors.js";
 
 const MARKDOWN_DISCOVERY_IGNORE = ["**/README.md"] as const;
 const execFileAsync = promisify(execFile);
@@ -113,8 +118,9 @@ function pendingSourcePaths(
         }
         const absolute = path.resolve(cwd, relative);
         if (!absolute.startsWith(`${path.resolve(cwd)}${path.sep}`)) {
-          throw new Error(
+          throw new SyncError(
             `Pending source receipt escapes workspace: ${relative}`,
+            "PENDING_SOURCE_ESCAPES_WORKSPACE",
           );
         }
         if (!existsSync(absolute)) {
@@ -127,16 +133,16 @@ function pendingSourcePaths(
             });
             continue;
           }
-          throw new Error(
-            `Pending source is missing: ${relative}. If the file was deleted on purpose, run 'kibi branch recover --apply' to rebuild the branch KB from the sources that remain.`,
-          );
+          throw pendingSourceMissingError(relative);
         }
         const actual = createHash("sha256")
           .update(readFileSync(absolute))
           .digest("hex");
         if (actual !== receipt.afterHash) {
-          throw new Error(
-            `Pending source hash drift blocks sync for ${relative}; expected ${receipt.afterHash}, found ${actual}`,
+          throw pendingSourceHashDriftError(
+            relative,
+            receipt.afterHash,
+            actual,
           );
         }
         paths.set(relative, receipt.afterHash);
@@ -170,8 +176,9 @@ export function readTextOrEnoent(absolute: string): string | null {
     return fs.readFileSync(absolute, "utf8");
   } catch (error) {
     if (isFsEnoent(error)) return null;
-    throw new Error(
+    throw new SyncError(
       `Failed to inspect pending source receipt for ${absolute}: ${error instanceof Error ? error.message : String(error)}`,
+      "PENDING_SOURCE_RECEIPT_IO",
     );
   }
 }
@@ -182,8 +189,9 @@ export function unlinkOrEnoent(absolute: string): boolean {
     return true;
   } catch (error) {
     if (isFsEnoent(error)) return false;
-    throw new Error(
+    throw new SyncError(
       `Failed to retire pending source receipt for ${absolute}: ${error instanceof Error ? error.message : String(error)}`,
+      "PENDING_SOURCE_RECEIPT_IO",
     );
   }
 }
@@ -196,8 +204,9 @@ export function clearRecoveredPendingSourceReceipts(
   for (const receipt of receipts) {
     const absolute = path.resolve(receipt.receiptPath);
     if (!absolute.startsWith(`${root}${path.sep}`)) {
-      throw new Error(
+      throw new SyncError(
         `Pending source receipt escapes recovery root: ${absolute}`,
+        "PENDING_SOURCE_ESCAPES_WORKSPACE",
       );
     }
     if (!existsSync(absolute)) continue;
@@ -211,8 +220,9 @@ export function clearRecoveredPendingSourceReceipts(
     if (raw === null) continue;
     const rawHash = createHash("sha256").update(raw).digest("hex");
     if (rawHash !== receipt.rawHash) {
-      throw new Error(
+      throw new SyncError(
         `Pending source receipt changed during recovery for ${receipt.path}; refusing to retire newer receipt`,
+        "PENDING_SOURCE_RECEIPT_CHANGED",
       );
     }
     let current: { path?: unknown; afterHash?: unknown };
@@ -222,16 +232,18 @@ export function clearRecoveredPendingSourceReceipts(
         afterHash?: unknown;
       };
     } catch {
-      throw new Error(
+      throw new SyncError(
         `Pending source receipt changed during recovery for ${receipt.path}; refusing to retire newer receipt`,
+        "PENDING_SOURCE_RECEIPT_CHANGED",
       );
     }
     if (
       current.path !== receipt.path ||
       current.afterHash !== receipt.afterHash
     ) {
-      throw new Error(
+      throw new SyncError(
         `Pending source receipt changed during recovery for ${receipt.path}; refusing to retire newer receipt`,
+        "PENDING_SOURCE_RECEIPT_CHANGED",
       );
     }
     unlinkOrEnoent(absolute);

@@ -46,6 +46,7 @@ import {
 import { resolveSymbolsManifestPaths } from "../../utils/manifest-paths.js";
 import { resolveWorkspaceSourceAbsolute } from "../../utils/repo-relative-path.js";
 import { blockifySymbolManifest } from "../../utils/symbol-manifest-layout.js";
+import { SyncError } from "./errors.js";
 
 interface ManifestDeps {
   dumpYAML: typeof dumpYAML;
@@ -291,15 +292,17 @@ export async function refreshManifestCoordinates(
   const parsed = resolved.parseYAML(rawContent);
 
   if (!isRecord(parsed)) {
-    throw new Error(
+    throw new SyncError(
       `symbols manifest ${manifestPath} is not a YAML object; refusing coordinate refresh`,
+      "SYMBOLS_MANIFEST_INVALID",
     );
   }
 
   const rawSymbols = parsed.symbols;
   if (!Array.isArray(rawSymbols)) {
-    throw new Error(
+    throw new SyncError(
       `symbols manifest ${manifestPath} has no symbols array; refusing coordinate refresh`,
+      "SYMBOLS_MANIFEST_INVALID",
     );
   }
 
@@ -328,8 +331,9 @@ export async function refreshManifestCoordinates(
         // The artifact is a local cache: an incremental refresh rebuilds a
         // damaged one instead of refusing.
         if (!incremental) {
-          throw new Error(
+          throw new SyncError(
             `Failed to parse coordinate artifact ${coordinatesPath}: ${existing.reason}`,
+            "COORDINATE_ARTIFACT_INVALID",
           );
         }
       } else {
