@@ -266,14 +266,17 @@ function keyName(node: Node | null): string | null {
   if (key.type === "variable_expr") return key.text.normalize("NFC");
   if (key.type === "literal_value") {
     const literal = named(key)[0] as Node;
-    if (literal.type === "string_lit") return quoted(literal);
+    if (literal.type === "string_lit")
+      return quoted(literal)?.normalize("NFC") ?? null;
     // `{ 007 = ... }` has the key "7".
     if (literal.type === "numeric_lit") return canonicalNumber(literal.text);
     return literal.text;
   }
   if (key.type === "template_expr") {
     const template = named(key)[0] as Node;
-    return template.type === "quoted_template" ? quoted(template) : null;
+    return template.type === "quoted_template"
+      ? (quoted(template)?.normalize("NFC") ?? null)
+      : null;
   }
   return null;
 }
@@ -360,7 +363,10 @@ function kept(typeNode: Node | null, valueNode: Node | null): boolean {
             named(value)[0]?.type === "quoted_template")
         );
       case "number":
-        return literal?.type === "numeric_lit";
+        return (
+          literal?.type === "numeric_lit" ||
+          (values(value)?.length === 1 && value.type === "operation")
+        );
       case "bool":
         return literal?.type === "bool_lit";
       default:
@@ -389,7 +395,9 @@ function kept(typeNode: Node | null, valueNode: Node | null): boolean {
     for (const elem of named(object))
       if (elem.type === "object_elem") {
         const attribute = keyName(field(elem, "key"));
-        if (attribute === null) return false;
+        // A type's attribute names are not normalized as object keys are:
+        // `café` written decomposed declares no key a value can set.
+        if (attribute === null || !nfcName(field(elem, "key"))) return false;
         attributes.set(attribute, field(elem, "val"));
       }
     return elems.every((elem) => {
@@ -407,11 +415,18 @@ function kept(typeNode: Node | null, valueNode: Node | null): boolean {
         keyName(field(elem, "key")) !== null &&
         kept(typeArgs[0] ?? null, field(elem, "val")),
     );
-  if (name === "list" && collection?.type === "tuple")
+  // A set also drops duplicates and reorders, which a set of values keeps.
+  if ((name === "list" || name === "set") && collection?.type === "tuple")
     return parts(collection)
       .filter((item) => item.type === "expression")
       .every((item) => kept(typeArgs[0] ?? null, item));
   return false;
+}
+
+/** Whether a key is written as Unicode normalizes it (NFC). */
+function nfcName(node: Node | null): boolean {
+  const text = node?.text ?? "";
+  return text === text.normalize("NFC");
 }
 
 /** Blocks whose `for_each` keys are instance keys. */
@@ -509,7 +524,27 @@ export function hclProperty(
         )
       )
         return true;
+      // `{ settings = {acl = "x"}, settings = {} }` keeps the later value of
+      // a key written twice, also one a computed key may spell.
+      if (current.type === "object_elem" && current.id !== owner.id) {
+        const name = keyName(field(current, "key"));
+        let after = false;
+        for (const other of named(current.parent as Node)) {
+          if (other.id === current.id) after = true;
+          else if (
+            after &&
+            other.type === "object_elem" &&
+            (name === null ||
+              [name, null].includes(keyName(field(other, "key"))))
+          )
+            return true;
+        }
+      }
       switch (current.type) {
+        // An operand of `==`, `!`, `&&` becomes a bool or number, and a
+        // template `%{ if }` or `%{ for }` may drop what it holds.
+        case "operation":
+        case "template_directive":
         case "conditional":
         case "index":
         case "new_index":
@@ -560,7 +595,12 @@ export function hclProperty(
    */
   const typeConstraint = (node: Node): void => {
     if (node.type === "object_elem") {
-      if (keyName(field(node, "key")) === objectKey) {
+      if (
+        keyName(field(node, "key")) === objectKey &&
+        !nfcName(field(node, "key"))
+      )
+        unresolved.push(at(node));
+      else if (keyName(field(node, "key")) === objectKey) {
         const call = single(field(node, "val"));
         if (
           call?.type === "function_call" &&

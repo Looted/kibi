@@ -1133,6 +1133,19 @@ async function readPluginReferences(
         unresolved.push({ file, line: 1, text: `${override} may override values of this folder's blocks` });
       else if (/\.tofu(?:\.json)?$/i.test(name))
         unresolved.push({ file, line: 1, text: `${override} may replace or override this folder's .tf files under OpenTofu` });
+      // Terragrunt writes the files a `generate` block names into the folder
+      // it runs in (an override among them), also from a config it includes.
+      else if (/^terragrunt\.hcl(?:\.json)?$/i.test(name)) {
+        let text = "";
+        try {
+          text = readFileSync(path.join(workspaceRoot, override), "utf8");
+        } catch {
+          text = "generate";
+        }
+        // `generate "x" {`, `generate x {`, `"generate": [...]` in JSON.
+        if (/(?:^|[\s{,[])"?(?:generate|include)\b(?!_)/m.test(text))
+          unresolved.push({ file, line: 1, text: `${override} may generate files that override this folder's blocks` });
+      }
     }
   }
   // A C# file also imports what the project's global and implicit usings

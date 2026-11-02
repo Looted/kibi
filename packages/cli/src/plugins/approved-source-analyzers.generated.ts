@@ -65,15 +65,15 @@ export const qualifiedSourceAnalyzers = [
       "dist/references-bash.js":
         "c0106ce3de5f6cf14e280ac74e7e0d1a27ef19f57f7dfc11b654a9f4473ff283",
       "dist/references-c.js":
-        "378a5cb9e1fc2ebfeda37cc9a11408cda67c367e3465f5e06da0573206de3c1c",
+        "c96f052308565cdf9a0ff0d098d5d0fa22f71fde1443625df9335372286517c7",
       "dist/references-hcl.js":
-        "be6aca1b8e95605fedaaccbb45f44781cbf69ee2c8088ab67dd5cc85494fd77f",
+        "29cd002a47c07e0a556c822b2bcbce2a98275bf478f8ed81c683fae33ee95b79",
       "dist/references-php.js":
-        "c635e9b652737415a51ee2de004dc3435d7795d63c4203c9aad7c2696156ff37",
+        "ab8ea2acee2a9c17aece0568f0acff73266dc4026bad00fa0de5e438be9f24e6",
       "dist/references.js":
         "1aa64d35d4bfb23846bfe3a814ea658b2b4983eac95506d15c7c6655909143ea",
       "integrity.json":
-        "24f5e981779905088b110085483c76ecd940a72ae0b518a66ca072cd162a9d4c",
+        "f3f3686b6c01c55190026adb926fca104aee5c5365a45807f126bcd3711d5686",
       "licenses/web-tree-sitter-MIT.txt":
         "c5cfb43042b6b72045f4ba997834d0a7786d2793d91680868b5815b39f14fc78",
       "package.json":

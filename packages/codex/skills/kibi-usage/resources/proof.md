@@ -326,8 +326,10 @@ left:
   Terraform `override.tf`, `*_override.tf` or `.tofu` file in the folder
   refuses an HCL read, so a value claim there cannot be proved. C
   `property` reads only initializers (a later `cfg.field = v` is not
-  seen), and Bash does not read code handed to another interpreter
-  (`python -c`, `awk`): model such claims over the code that holds them.
+  seen), Bash does not read code handed to another interpreter
+  (`python -c`, `awk`), and the commands a sourced Bash file or an
+  included C file runs are that file's: model such claims over the code
+  that holds them, listing every file it runs.
   Never drop a file the claim is about
   from `files`: the read decides a claim only for the files it covers,
   and a proof is rejected when a symbol the test covers or that

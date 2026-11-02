@@ -121,6 +121,10 @@ const CALLABLE_ARGS: ReadonlyMap<string, readonly number[] | "all"> = new Map<
   ["session_set_save_handler", "all"],
   ["closure::fromcallable", [0]],
   ["assert_options", [1]],
+  ["ldap_set_rebind_proc", [1]],
+  ["intlchar::enumcharnames", [2]],
+  ["intlchar::enumchartypes", [0]],
+  ["*.setauthorizer", [0]],
   // Methods of builtin classes, on a receiver Kibi cannot name.
   ["*.uasort", [0]],
   ["*.uksort", [0]],
@@ -138,6 +142,34 @@ const CALLABLE_CONSTRUCTORS: ReadonlyMap<string, number> = new Map([
   ["callbackfilteriterator", 1],
   ["recursivecallbackfilteriterator", 1],
 ]);
+
+/** PHP's own throwables, whose constructors take their arguments by value. */
+const BUILTIN_THROWABLES = new Set(
+  [
+    "Exception",
+    "ErrorException",
+    "Error",
+    "TypeError",
+    "ValueError",
+    "ArithmeticError",
+    "DivisionByZeroError",
+    "ArgumentCountError",
+    "JsonException",
+    "RuntimeException",
+    "LogicException",
+    "InvalidArgumentException",
+    "DomainException",
+    "LengthException",
+    "OutOfRangeException",
+    "OutOfBoundsException",
+    "RangeException",
+    "OverflowException",
+    "UnderflowException",
+    "UnexpectedValueException",
+    "BadFunctionCallException",
+    "BadMethodCallException",
+  ].map(lower),
+);
 
 /** Builtins that take every argument by value: a caught exception passed in stays. */
 const BY_VALUE_BUILTINS = new Set([
@@ -239,6 +271,8 @@ const ARRAY_TRANSFORMS = new Set([
   "array_unique",
   "array_reverse",
   "array_column",
+  "substr_replace",
+  "preg_filter",
   "array_merge_recursive",
   "array_replace_recursive",
   "iterator_to_array",
@@ -556,7 +590,7 @@ export function phpReferences(
   };
 
   const rebinds =
-    /->\s*call\s*\(|\bbindTo\s*\(|::\s*bind\s*\(|\bcall_user_func\w*\s*\(\s*\[\s*\$\w+\s*,\s*['"]call['"]/i.test(
+    /->\s*call\s*\(|\bbindTo\s*\(|::\s*bind\s*\(|(?:::|->)\s*(?:macro|mixin)\s*\(|\bcall_user_func\w*\s*\(\s*\[\s*\$\w+\s*,\s*['"]call['"]/i.test(
       root.text,
     );
   /**
@@ -1073,6 +1107,17 @@ export function phpReferences(
   /** What a callable handed to a builtin means for the extract. */
   const handedCallable = (argument: Node, value: Node | undefined): void => {
     const reached = callable(value);
+    // `call_user_func('class_alias', ...)` renames a class at run time.
+    if (
+      reached?.some((target) =>
+        /^(?:class_alias|create_function)$/i.test(target),
+      ) &&
+      extract !== "property" &&
+      extract !== "imports"
+    ) {
+      refuse(argument);
+      return;
+    }
     if (reached === null) {
       // `[$controller, $action]` calls a method of some class.
       if (
@@ -1153,10 +1198,14 @@ export function phpReferences(
       for (const item of named(map)) handedCallable(item, named(item).at(-1));
       return;
     }
-    if (key === "curl_setopt" || key === "curl_setopt_array") {
-      // CURLOPT_*FUNCTION options take a callback.
+    if (
+      key === "curl_setopt" ||
+      key === "curl_setopt_array" ||
+      key === "curl_multi_setopt"
+    ) {
+      // CURLOPT_*FUNCTION and CURLMOPT_*FUNCTION options take a callback.
       const pairs: [Node | undefined, Node | undefined, Node][] = [];
-      if (key === "curl_setopt") {
+      if (key !== "curl_setopt_array") {
         if (list[1] !== undefined)
           pairs.push([argumentValue(list[1]), argumentValue(list[2]), list[1]]);
       } else {
@@ -1173,7 +1222,7 @@ export function phpReferences(
       }
       for (const [option, value, place] of pairs) {
         if (option === undefined) continue;
-        const constant = /^\\?CURLOPT_\w+$/.test(option.text);
+        const constant = /^\\?CURLM?OPT_\w+$/.test(option.text);
         if (!constant) refuse(place);
         else if (/FUNCTION$/.test(option.text)) handedCallable(place, value);
       }
@@ -1257,7 +1306,15 @@ export function phpReferences(
           // A constructor or a builtin that takes it by value keeps it; a
           // function or method may take it by reference and replace it.
           const call = parent.parent?.parent;
-          if (call?.type === "object_creation_expression") return true;
+          // A project class's constructor may take it by reference.
+          if (call?.type === "object_creation_expression") {
+            const type = named(call)[0];
+            const owner =
+              type === undefined || type.type === "variable_name"
+                ? null
+                : resolveClass(type);
+            return owner !== null && BUILTIN_THROWABLES.has(lower(owner));
+          }
           if (call?.type !== "function_call_expression") return false;
           const callee = lower(
             stripLeading(field(call, "function")?.text ?? ""),
@@ -1310,6 +1367,15 @@ export function phpReferences(
   };
 
   const numericKey = /^(?:0|-?[1-9]\d*)$/.test(options.key);
+  /** Whether `define()` and `const` together name the key more than once. */
+  const definedTwice =
+    [...root.text.matchAll(/\bdefine\s*\(\s*(['"])(.*?)\1/gi)].filter(
+      (match) => match[2] === options.key,
+    ).length +
+      [
+        ...root.text.matchAll(/\bconst\s+(?:\w+\s+)?([A-Za-z_]\w*)\s*=/g),
+      ].filter((match) => match[1] === options.key).length >
+    1;
 
   /**
    * An array key as PHP stores it: `true` is 1, `null` is "", a float is cut
@@ -1349,13 +1415,14 @@ export function phpReferences(
     if (node.type === "name" || node.type === "qualified_name") {
       if (!/^\\?(?:CURLOPT|CURLINFO|CURLMOPT)_\w+$/.test(node.text))
         return false;
-      // In a namespace, `CURLOPT_ACL` is a constant the file may define
-      // there (`const CURLOPT_ACL = 'acl';`).
+      // `CURLOPT_ACL` may be a constant the file defines (`const
+      // CURLOPT_ACL = 'acl';`, `define('CURLOPT_ACL', 'acl')`).
+      // An included file may define it too.
       const name = node.text.replace(/^\\/, "");
       return (
-        node.text.startsWith("\\") ||
-        scopeOf(node).namespace === "" ||
-        !new RegExp(`\\b(?:const|define)\\b[^;]*\\b${name}\\b`).test(root.text)
+        !new RegExp(`\\b(?:const|define)\\b[^;]*\\b${name}\\b`).test(
+          root.text,
+        ) && !/\b(?:include|require)(?:_once)?\b/i.test(root.text)
       );
     }
     if (node.type !== "class_constant_access_expression") return false;
@@ -1450,6 +1517,10 @@ export function phpReferences(
           : undefined);
       const key = literal(argumentValue(byName("constant_name", 0)));
       if (key === null) refuse(node);
+      else if (key === options.key && definedTwice)
+        // A second `define` (or one after `const`) of a name fails and
+        // keeps the first value.
+        refuse(node);
       else if (key === options.key) {
         const value = literal(argumentValue(byName("value", 1)));
         if (value === null) refuse(node);
@@ -1487,14 +1558,30 @@ export function phpReferences(
       )
         refuse(node);
     }
-    // A whole-array rewrite in a file that names the key, and keys from a
-    // case change.
-    if (
-      ARRAY_TRANSFORMS.has(name) &&
-      (name === "array_change_key_case"
-        ? lower(root.text).includes(lower(options.key))
-        : root.text.includes(options.key))
-    )
+    // A whole-array rewrite stored back (`$o = str_replace(...)`, or
+    // `array_splice` in place) in a file that names the key, includes
+    // another, or runs at the top level, where its variables are the ones
+    // other included files set. Keys from a case change.
+    if (ARRAY_TRANSFORMS.has(name)) {
+      let outer: Node = node;
+      while (outer.parent?.type === "parenthesized_expression")
+        outer = outer.parent;
+      const stored =
+        name === "array_splice" ||
+        (outer.parent?.type === "assignment_expression" &&
+          field(outer.parent, "right")?.id === outer.id);
+      if (
+        name === "array_change_key_case"
+          ? lower(root.text).includes(lower(options.key))
+          : stored &&
+            (root.text.includes(options.key) ||
+              /\b(?:include|require)(?:_once)?\b/i.test(root.text) ||
+              !insideFunctionScope(node))
+      )
+        refuse(node);
+    }
+    // `array_unshift($levels, 'x')` renumbers every slot.
+    if (numericKey && /^array_(?:unshift|push|splice|shift|pop)$/.test(name))
       refuse(node);
     // Keys built from data, and a callback that may change values by reference.
     if (
@@ -1556,6 +1643,60 @@ export function phpReferences(
     return true;
   };
 
+  /**
+   * Whether a filter or fetch mode may be a callback Kibi cannot name: a
+   * filter that is not a `FILTER_*` constant (`1024` is FILTER_CALLBACK),
+   * also in a definition array, a fetch mode that is not a `PDO::FETCH_*` constant
+   * (`10` is FETCH_FUNC), or an ini option that takes a callback.
+   */
+  const callbackMode = (
+    node: Node,
+    name: string,
+    names: readonly string[],
+  ): boolean => {
+    const list = callArguments(node);
+    if (/^filter_(?:var|var_array|input|input_array)$/.test(name)) {
+      const filter = list[name.startsWith("filter_input") ? 2 : 1];
+      return (
+        list.some(
+          (argument) =>
+            argument.type !== "argument" || field(argument, "name") !== null,
+        ) ||
+        (filter !== undefined &&
+          !/^\\?FILTER_\w+$/.test(argumentValue(filter)?.text ?? "") &&
+          !(
+            name.endsWith("_array") &&
+            argumentValue(filter)?.type === "array_creation_expression"
+          )) ||
+        // `['filter' => 1024, 'options' => 'system']` in a definition.
+        /['"]filter['"]\s*=>\s*(?!\\?FILTER_\w+\s*[,\]])/.test(node.text)
+      );
+    }
+    if (
+      names.some((candidate) =>
+        /^(?:\*\.|.*::)(?:fetch|fetchall|setfetchmode|fetchobject)$/i.test(
+          candidate,
+        ),
+      ) &&
+      list.length > 1
+    )
+      return !/^\\?PDO::FETCH_\w+(?:\s*\|\s*\\?PDO::FETCH_\w+)*$/.test(
+        argumentValue(list[0])?.text ?? "",
+      );
+    if (name === "ini_set" || name === "ini_alter") {
+      const byName = list.some(
+        (argument) =>
+          argument.type !== "argument" || field(argument, "name") !== null,
+      );
+      const option = byName ? null : literal(argumentValue(list[0]));
+      return (
+        option === null ||
+        /^(?:unserialize_callback_func|assert\.callback)$/i.test(option)
+      );
+    }
+    return false;
+  };
+
   const visit = (node: Node): void => {
     switch (node.type) {
       case "function_call_expression":
@@ -1610,14 +1751,15 @@ export function phpReferences(
           extract !== "property" &&
           extract !== "imports" &&
           (names.some((candidate) =>
-            /^(?:\*\.|.*::)(?:invoke|invokeargs|newinstance|newinstanceargs|newinstancewithoutconstructor|getclosure|addfunction)$/i.test(
+            /^(?:\*\.|.*::)(?:invoke|invokeargs|newinstance|newinstanceargs|newinstancewithoutconstructor|getclosure|addfunction|registerphpfunctions)$/i.test(
               candidate,
             ),
           ) ||
             name === "class_alias" ||
             callArguments(node).some((argument) =>
               /\b(?:FILTER_CALLBACK|FETCH_FUNC)\b/.test(argument.text),
-            ))
+            ) ||
+            callbackMode(node, name, names))
         ) {
           refuse(node);
           break;
@@ -1664,7 +1806,15 @@ export function phpReferences(
             name === "filter_has_var")
         ) {
           const source = argumentValue(callArguments(node)[0])?.text ?? "";
-          if (ENV_INPUTS.has(source.replace(/^\\/, ""))) {
+          // `const INPUT_GET = \INPUT_ENV;` in a namespace renames a source.
+          if (
+            /^INPUT_\w+$/.test(source) &&
+            new RegExp(`\\b(?:const|define)\\b[^;]*\\b${source}\\b`).test(
+              root.text,
+            )
+          )
+            refuse(node);
+          else if (ENV_INPUTS.has(source.replace(/^\\/, ""))) {
             const variable =
               name === "filter_input_array"
                 ? null
@@ -1676,7 +1826,23 @@ export function phpReferences(
         }
         if (env && name === "get_defined_vars") refuse(node);
         if (extract === "string_args") firstArgument(node, names);
-        if (extract === "property") propertyCall(node, name);
+        if (extract === "property") {
+          propertyCall(node, name);
+          // `ReflectionProperty::setValue`, `ArrayObject::offsetSet` and
+          // `exchangeArray` set a value Kibi does not follow.
+          if (
+            names.some((candidate) =>
+              /^(?:\*\.|.*::)(?:setstaticpropertyvalue|offsetset|offsetunset|exchangearray)$/i.test(
+                candidate,
+              ),
+            ) ||
+            (names.some((candidate) =>
+              /^(?:\*\.|.*::)setvalue$/i.test(candidate),
+            ) &&
+              /\bReflection\w*\b/i.test(root.text))
+          )
+            refuse(node);
+        }
         handedCallables(node, name);
         break;
       }
@@ -1869,7 +2035,39 @@ export function phpReferences(
         break;
       }
       case "array_creation_expression":
-        if (extract === "property") arrayKeys(node);
+        // A stream context's `'notification' => 'cb'` is called on events.
+        if (extract === "calls" || extract === "string_args" || env)
+          for (const element of named(node)) {
+            const parts = named(element);
+            if (
+              element.type === "array_element_initializer" &&
+              parts.length === 2 &&
+              literal(parts[0] as Node) === "notification"
+            )
+              handedCallable(element, parts[1]);
+          }
+        if (extract === "property") {
+          arrayKeys(node);
+          // `['acl' => &$a]` lets a later `$a = ...` set the slot.
+          for (const element of named(node))
+            if (
+              element.type === "array_element_initializer" &&
+              named(element).some((part) => part.type === "by_ref")
+            ) {
+              const slot =
+                named(element).length === 2 ? named(element)[0] : undefined;
+              const written = slot === undefined ? null : literal(slot);
+              if (written === null || written === options.key) refuse(element);
+            }
+        }
+        break;
+      case "list_literal":
+        // `['acl' => &$a] = $opts` binds a reference to the slot.
+        if (
+          extract === "property" &&
+          named(node).some((part) => part.type === "by_ref")
+        )
+          refuse(node);
         break;
       case "binary_expression": {
         // `$defaults + ['acl' => 'x']`: the key may keep the other array's value.
@@ -1988,10 +2186,13 @@ export function phpReferences(
         if (extract !== "property") break;
         const name = field(node, "name")?.text.replace(/^\$/, "");
         if (name !== options.key) break;
-        const value =
-          node.type === "enum_case"
-            ? field(node, "value")
-            : field(node, "default_value");
+        // A promoted parameter holds what each `new` passes; its default is
+        // only one of them.
+        if (node.type === "property_promotion_parameter") {
+          refuse(node);
+          break;
+        }
+        const value = field(node, "value");
         if (value === null) break;
         const read = literal(value);
         if (read === null) refuse(node);
@@ -2013,7 +2214,6 @@ export function phpReferences(
             (value.type === "subscript_expression" ||
               /member_access_expression$/.test(value.type) ||
               value.type === "scoped_property_access_expression") &&
-            call?.type !== "object_creation_expression" &&
             !(callee !== null && READS_SLOT.has(callee))
           ) {
             const written = writtenKey(value);
@@ -2052,6 +2252,10 @@ export function phpReferences(
           "",
         );
         if (name !== options.key) break;
+        if (node.type === "const_element" && definedTwice) {
+          refuse(node);
+          break;
+        }
         const value =
           node.type === "property_element"
             ? field(node, "default_value")
@@ -2067,6 +2271,18 @@ export function phpReferences(
   };
   visit(root);
   return { members, unresolved };
+}
+
+/** Whether a node runs inside a function, method or closure body. */
+function insideFunctionScope(node: Node): boolean {
+  for (let current = node.parent; current !== null; current = current.parent)
+    if (
+      /^(?:function_definition|method_declaration|anonymous_function|arrow_function|anonymous_function_creation_expression)$/.test(
+        current.type,
+      )
+    )
+      return true;
+  return false;
 }
 
 function insideClosure(node: Node): boolean {

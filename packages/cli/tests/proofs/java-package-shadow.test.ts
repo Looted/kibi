@@ -488,14 +488,40 @@ describe("rows about a name another file of the project may bind", () => {
     const root = project({
       "src/a.php": "<?php\nnamespace App\\Svc;\ngetenv('X');\n",
       "src/b.php": "<?php\nnamespace Other;\nfunction getenv($n) {}\n",
-      "vendor/x/c.php": "<?php\nnamespace App\\Svc;\nfunction getenv($n) {}\n",
     });
     expect(createShadowRowFilter(root)("src/a.php", [row])).toEqual([]);
+    // A Composer package's `files` autoload may declare it too.
+    const vendored = project({
+      "src/a.php": "<?php\nnamespace App\\Svc;\ngetenv('X');\n",
+      "vendor/x/c.php": "<?php\nnamespace App\\Svc;\nfunction getenv($n) {}\n",
+    });
+    expect(createShadowRowFilter(vendored)("src/a.php", [row])).toEqual([row]);
     fs.writeFileSync(
       path.join(root, "src/d.php"),
       "<?php\nnamespace App \\ Svc {\n  function &GETENV($n) {}\n}\n",
     );
     expect(createShadowRowFilter(root)("src/a.php", [row])).toEqual([row]);
+    // `namespace App ?>`, a dot folder and a template any file may include.
+    for (const [file, text] of [
+      [
+        "lib/close.php",
+        "<?php\nnamespace App\\Svc ?>\n<?php function getenv($n) {}\n",
+      ],
+      [
+        "lib/.shims/compat.php",
+        "<?php\nnamespace App\\Svc;\nfunction getenv($n) {}\n",
+      ],
+      [
+        "lib/compat.tpl",
+        "<?php\nnamespace App\\Svc;\nfunction getenv($n) {}\n",
+      ],
+    ] as const) {
+      const other = project({
+        "src/a.php": "<?php\nnamespace App\\Svc;\ngetenv('X');\n",
+        [file]: text,
+      });
+      expect(createShadowRowFilter(other)("src/a.php", [row])).toEqual([row]);
+    }
   });
 
   it("drops a C include row only when the header defines no macro the file uses", () => {
@@ -720,6 +746,25 @@ describe("rows about a name another file of the project may bind", () => {
         "void f(void) { DIGEST(b, n, o); }",
       ),
     ).toBe(true);
+    // An object-like alias of a function is called where `(` follows it.
+    for (const [header, code, kept] of [
+      ["#define HASH SHA256\n", "void f(void) { HASH(d, n, o); }", true],
+      ["#define HASH (&SHA256)\n", "void f(void) { HASH(d, n, o); }", true],
+      ["#define A B\n#define B RC4\n", "void f(void) { A(k, n, d); }", true],
+      [
+        "#define SCORE_MAX INFINITY\n",
+        "double f(void) { return SCORE_MAX; }",
+        false,
+      ],
+      ["#define MASK (1 << BIT)\n", "int f(void) { return MASK(0); }", false],
+      ["#define TTY_H TTY_H\n", "int TTY_H(void);", false],
+      [
+        "#define HI YELLOW\n#define YELLOW 3\n",
+        "int f(void) { return HI(0); }",
+        false,
+      ],
+    ] as const)
+      expect(uses(header, code)).toBe(kept);
     expect(
       uses(
         "#define STR_COPY(d,s) __builtin_strcpy(d,s)\n",

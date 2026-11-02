@@ -86,7 +86,8 @@ const PHP_GAP = String.raw`(?:\s|/\*[\s\S]*?\*/|(?://|#(?!\[))[^\n]*(?:\n|$))*`;
 function phpDeclares(text: string, name: string, namespace: string): boolean {
   const spelled = namespace.split("\\").map((part) => part.replace(/[^\w]/g, "")).join(`${PHP_GAP}\\\\${PHP_GAP}`);
   return (
-    new RegExp(String.raw`\bnamespace${PHP_GAP}\\?${PHP_GAP}${spelled}${PHP_GAP}[;{]`, "i").test(text) &&
+    // `namespace App ?>` ends the statement too.
+    new RegExp(String.raw`\bnamespace${PHP_GAP}\\?${PHP_GAP}${spelled}${PHP_GAP}(?:[;{]|\?>)`, "i").test(text) &&
     new RegExp(String.raw`\bfunction${PHP_GAP}&?${PHP_GAP}${name}${PHP_GAP}\(`, "i").test(text)
   );
 }
@@ -176,6 +177,24 @@ function harmlessMacro(macro: CMacro, index: MacroIndex, seen: Set<string> = new
 }
 
 /**
+ * Whether an object-like macro may stand for a function: its body ends with
+ * a name no project macro defines (`#define HASH SHA256`, `(&SHA256)`,
+ * `(x ? A : SHA256)`) or with a macro that may, so `HASH(d, n, o)` calls
+ * that name. An arithmetic, shift or comparison operator before the name
+ * makes it a number (`(1 << BIT)`); a header guard names itself.
+ */
+function trailingAlias(macro: CMacro, index: MacroIndex, seen: Set<string> = new Set()): boolean {
+  if (macro.parameters.length !== 1 || macro.parameters[0] !== "" || seen.has(macro.name)) return false;
+  seen.add(macro.name);
+  const last = /(?:^|([^\w$\s]+))\s*([A-Za-z_$][\w$]*)\s*\)*\s*$/.exec(macro.body);
+  if (last === null || /^(?:<<|>>|[|+\-/%^<>]|[<>=!]=)$/.test(last[1] ?? "")) return false;
+  const name = last[2] as string;
+  if (name === macro.name || C_KEYWORDS.has(name)) return false;
+  const defined = index.get(name);
+  return defined === undefined || defined.some((inner) => trailingAlias(inner, index, seen));
+}
+
+/**
  * The names a header gives the file that includes it, with those of the
  * headers it includes: macros that may change what a name of the file
  * means, names it `#undef`s, and function pointers (declared directly,
@@ -213,6 +232,8 @@ function headerMacros(
   for (const macro of cDefines(text)) {
     const { name, parameters, body } = macro;
     if (!harmlessMacro(macro, macroIndex())) names.push(name);
+    // Only a use followed by `(` calls what the alias names.
+    else if (trailingAlias(macro, macroIndex())) names.push(`${name}(`);
     // `#define HOOK(n) int (*n##_hook)(void)` declares a name Kibi cannot spell.
     if (body.includes("##") && /\(\s*\*/.test(body)) return null;
     // `#define DECLARE_HOOK(name) extern int (*name)(const char *)`.
@@ -327,14 +348,19 @@ function javaDeclares(text: string, name: string): boolean {
  * node_modules and the named build folders. Dot files are read: a project
  * may require `lib/.compat.php`.
  */
-function sourceFiles(directory: string, extension: string | readonly string[], skipped: readonly string[] = []): string[] {
+function sourceFiles(
+  directory: string,
+  extension: string | readonly string[],
+  skipped: readonly string[] = [],
+  dotFolders = false,
+): string[] {
   const files: string[] = [];
   const extensions = typeof extension === "string" ? [extension] : extension;
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
-    if (entry.name === "node_modules" || skipped.includes(entry.name)) continue;
+    if (entry.name === "node_modules" || entry.name === ".git" || skipped.includes(entry.name)) continue;
     const full = path.join(directory, entry.name);
     if (entry.isDirectory()) {
-      if (!entry.name.startsWith(".")) files.push(...sourceFiles(full, extensions, skipped));
+      if (dotFolders || !entry.name.startsWith(".")) files.push(...sourceFiles(full, extensions, skipped, dotFolders));
     }
     else if (extensions.some((suffix) => entry.name.endsWith(suffix))) files.push(full);
   }
@@ -608,13 +634,14 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
       }
       const php = PHP_ROW.exec(row.text);
       if (php !== null) {
-        // Composer packages under the root vendor/ do not declare the
-        // project's namespaces; a vendor folder deeper down may be the project's.
-        const vendor = path.join(workspaceRoot, "vendor") + path.sep;
-        const texts = read("php", () =>
-          sourceFiles(workspaceRoot, PHP_EXTENSIONS).filter((candidate) => !candidate.startsWith(vendor)),
+        // Any file may be included by path (`lib/compat.tpl`, a dot folder,
+        // a Composer package's `files` autoload), so every file that opens
+        // PHP code counts, vendor/ too.
+        const texts = read("php-any", () => sourceFiles(workspaceRoot, "", [], true));
+        return (
+          texts === null ||
+          texts.some((text) => /<\?(?:php|=)/i.test(text) && phpDeclares(text, php[1] as string, php[2] as string))
         );
-        return texts === null || texts.some((text) => phpDeclares(text, php[1] as string, php[2] as string));
       }
       const zero = BASH_ZERO_ROW.exec(row.text);
       if (zero !== null) {
@@ -696,7 +723,13 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
         const unions = include[2] !== " or function pointers";
         for (const target of targets) {
           const macros = headerMacros(target, findProjectHeader, macroIndex, new Set(), unions);
-          if (macros === null || macros.some((name) => cWord(name).test(code))) return true;
+          if (
+            macros === null ||
+            macros.some((name) =>
+              name.endsWith("(") ? new RegExp(`${cWord(name.slice(0, -1)).source}\\s*\\(`).test(code) : cWord(name).test(code),
+            )
+          )
+            return true;
         }
         return false;
       }
