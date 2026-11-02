@@ -55,7 +55,9 @@ function rangesTouchingHunks<Range extends LineRange>(
  * - A local gap (a macro, decorator or other declared limitation) matters only
  *   where it overlaps the changed lines; elsewhere the file was already in that
  *   state and this change did not touch it.
- * - Unsupported after-side analysis needs one whole-file review.
+ * - Unsupported after-side analysis needs one whole-file review, unless the
+ *   project lists the grammar plugin and only its kibi-lang pack is missing or
+ *   another version: that blocks, so a missing install never disarms the gate.
  */
 // implements REQ-source-analysis-v2
 export function analysisObligation<Range extends LineRange>(
@@ -67,6 +69,17 @@ export function analysisObligation<Range extends LineRange>(
     return { kind: "none" };
   if (analysis.status === "failed")
     return { kind: "blocked", reason: "source analysis failed" };
+  if (
+    analysis.status === "unsupported" &&
+    analysis.diagnosticCodes.some((code) =>
+      code.startsWith("TREESITTER_LANGUAGE_PACK_"),
+    )
+  )
+    return {
+      kind: "blocked",
+      reason:
+        "the kibi-lang grammar pack for this file is not installed at the version kibi-plugin-treesitter pins; kibi doctor gives the install line",
+    };
   if (analysis.status === "unsupported") return { kind: "unsupported_review" };
   if (analysis.uncoveredRanges.length === 0)
     return {

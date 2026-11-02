@@ -328,3 +328,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fc534612f8fe
+  - type: implements
+    from: SYM-cap-plugin-supported-source-extensions-7688bba6
+    to: REQ-builtin-symbol-source-extensions
+    created_at: 2026-10-30T19:42:09.388Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9e9346ba7e0
+  - type: covered_by
+    from: SYM-cap-plugin-supported-source-extensions-7688bba6
+    to: TEST-proof-builtin-symbol-source-extensions
+    created_at: 2026-10-30T19:42:09.406Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7a8f85751d4

@@ -20,12 +20,16 @@
  * The readers of `source` specs that need code: the references reader
  * (environment variables, imports, calls, string arguments, thrown errors
  * and property values, read from the syntax tree of TypeScript, JavaScript
- * and Python files), and the readers that load a module (drizzle schemas,
+ * and Python files, from the terms of SWI-Prolog files, and from the syntax
+ * trees of Go, Java, C# and Rust files through a qualified
+ * kibi.reference-extractor.v1 plugin), the prolog
+ * reader (fact arguments of a Prolog file), and the readers that load a module (drizzle schemas,
  * Hono and Express route tables, zod and pydantic validators).
  */
 
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
-import { createRequire } from "node:module";
+import { builtinModules, createRequire } from "node:module";
 import path from "node:path";
 import {
   matchWorkspaceFiles,
@@ -37,13 +41,21 @@ import {
   type UnresolvedReference,
   unresolvedReason,
 } from "../../public/proof-sources.js";
+import { validateReferenceExtractionResult } from "kibi-plugin-sdk";
+import {
+  REFERENCE_PLUGIN_PACKAGE,
+  proofReferenceExtractorLoader,
+} from "../../plugins/proof-reference-extractors.js";
+import { codeLanguage, pluginReferenceLanguage, unsupportedLanguageReason } from "./code-languages.js";
+import { createShadowRowFilter } from "./java-package-shadow.js";
 import { runCodeEvaluator, TS_RESOLVE_HOOKS } from "./code-runner.js";
+import { PROLOG_SOURCE_READER } from "./prolog-source-reader.js";
 
 type TypeScriptApi = typeof import("typescript");
 type Node = import("typescript").Node;
 
-const JS_FILE = /\.(?:[cm]?[jt]sx?)$/i;
-const PY_FILE = /\.py$/i;
+const NODE_BUILTINS = new Set(builtinModules.filter((name) => !name.startsWith("_")));
+
 
 function globList(value: unknown): string[] {
   if (typeof value === "string") return [value];
@@ -100,18 +112,22 @@ export function extractScriptReferences(
     node !== undefined && (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node))
       ? node.text
       : null;
-  // The expression under parentheses, `!`, `as T`, `<T>x` and `satisfies T`:
-  // a cast does not change what is read, so `(import.meta as X).env` is
-  // import.meta.env.
+  // The expression under parentheses, `!`, `as T`, `<T>x`, `satisfies T`,
+  // `await` and the comma operator: none of them changes what is read, so
+  // `(import.meta as X).env` is import.meta.env and `(0, process).env` is
+  // process.env.
   const unwrapped = (node: Node): Node => {
     if (
       ts.isNonNullExpression(node) ||
       ts.isParenthesizedExpression(node) ||
       ts.isAsExpression(node) ||
       ts.isTypeAssertionExpression(node) ||
-      ts.isSatisfiesExpression(node)
+      ts.isSatisfiesExpression(node) ||
+      ts.isAwaitExpression(node)
     )
       return unwrapped(node.expression);
+    if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.CommaToken)
+      return unwrapped(node.right);
     return node;
   };
   // a.b.c for identifier and property chains, a["b"] for literal element access
@@ -145,10 +161,205 @@ export function extractScriptReferences(
       parent.expression === current
     );
   };
+  // The node an expression stands in, above its casts and parentheses.
+  const outer = (node: Node): Node => {
+    let current = node;
+    while (current.parent !== undefined && unwrapped(current.parent) !== current.parent) current = current.parent;
+    return current;
+  };
   const extract = spec.extract;
   const callee = typeof spec.callee === "string" ? spec.callee : "";
   const key = typeof spec.key === "string" ? spec.key : "";
   const ENV_OBJECTS = new Set(["process.env", "import.meta.env", "Bun.env"]);
+  // A Node built-in under its `node:` name is the same module.
+  const moduleName = (specifier: string): string =>
+    specifier.startsWith("node:") && NODE_BUILTINS.has(specifier.slice(5)) ? specifier.slice(5) : specifier;
+  const spellings = (specifier: string): string[] => [...new Set([specifier, moduleName(specifier)])];
+
+  // What each local name stands for: `import { execSync as run } from
+  // "child_process"` makes run child_process.execSync, `const { env } =
+  // process` makes env process.env, `const g = globalThis` makes g
+  // globalThis. Names are file-wide; a shadowing local is read as the import,
+  // which can list more than the code does but never less.
+  const names = new Map<string, string>();
+  // Local names bound to a module itself (import * as cp, const cp = require(...)).
+  const moduleNames = new Set<string>();
+  // The declarations those names come from.
+  const bindingDeclarations = new Set<Node>();
+  const GLOBAL_OBJECTS = new Set(["globalThis", "global", "window", "self"]);
+  const canonical = (written: string): string => {
+    let current = written;
+    for (let depth = 0; depth < 8; depth++) {
+      const dot = current.indexOf(".");
+      const head = dot < 0 ? current : current.slice(0, dot);
+      const bound = names.get(head);
+      if (bound === undefined || bound === head) break;
+      current = bound + (dot < 0 ? "" : current.slice(dot));
+    }
+    // globalThis.process is process.
+    const parts = current.split(".");
+    while (parts.length > 1 && GLOBAL_OBJECTS.has(parts[0] ?? "") && !names.has(parts[0] ?? "")) parts.shift();
+    return parts.join(".");
+  };
+  const LOADERS = new Set(["require", "module.require", "process.getBuiltinModule"]);
+  const REQUIRE_FACTORIES = new Set(["createRequire", "module.createRequire"]);
+  // A call that loads a module: require("m"), import("m"),
+  // process.getBuiltinModule("m"), createRequire(url)("m"). Undefined when the
+  // call loads nothing; `{ specifier: null }` when the module is not a literal.
+  const loaded = (node: Node): { specifier: string | null } | undefined => {
+    const call = unwrapped(node);
+    if (!ts.isCallExpression(call)) return undefined;
+    const target = unwrapped(call.expression);
+    const isLoader =
+      call.expression.kind === ts.SyntaxKind.ImportKeyword ||
+      LOADERS.has(canonical(chain(target) ?? "")) ||
+      (ts.isCallExpression(target) && REQUIRE_FACTORIES.has(canonical(chain(target.expression) ?? "")));
+    if (!isLoader) return undefined;
+    const value = literal(call.arguments[0]);
+    return { specifier: value === null ? null : moduleName(value) };
+  };
+  const bindPattern = (pattern: import("typescript").BindingName, from: string): void => {
+    if (ts.isIdentifier(pattern)) {
+      names.set(pattern.text, from);
+      return;
+    }
+    if (!ts.isObjectBindingPattern(pattern)) return;
+    for (const element of pattern.elements) {
+      if (element.dotDotDotToken) continue;
+      const property = element.propertyName ?? element.name;
+      if (ts.isIdentifier(property) || ts.isStringLiteral(property)) bindPattern(element.name, `${from}.${property.text}`);
+    }
+  };
+  const collect = (node: Node): void => {
+    if (ts.isImportDeclaration(node) && node.importClause && !node.importClause.isTypeOnly) {
+      const from = literal(node.moduleSpecifier);
+      if (from !== null) {
+        const mod = moduleName(from);
+        const clause = node.importClause;
+        if (clause.name) {
+          names.set(clause.name.text, mod);
+          moduleNames.add(clause.name.text);
+        }
+        const bindings = clause.namedBindings;
+        if (bindings && ts.isNamespaceImport(bindings)) {
+          names.set(bindings.name.text, mod);
+          moduleNames.add(bindings.name.text);
+        } else if (bindings && ts.isNamedImports(bindings)) {
+          for (const element of bindings.elements) {
+            if (element.isTypeOnly) continue;
+            const imported = (element.propertyName ?? element.name).text;
+            names.set(element.name.text, imported === "default" ? mod : `${mod}.${imported}`);
+            if (imported === "default") moduleNames.add(element.name.text);
+          }
+        }
+      }
+    } else if (ts.isImportEqualsDeclaration(node) && ts.isExternalModuleReference(node.moduleReference)) {
+      const from = literal(node.moduleReference.expression);
+      if (from !== null) {
+        names.set(node.name.text, moduleName(from));
+        moduleNames.add(node.name.text);
+      }
+    } else if (ts.isVariableDeclaration(node) && node.initializer) {
+      bindingDeclarations.add(node);
+      const init = unwrapped(node.initializer);
+      const module = loaded(init);
+      if (module !== undefined) {
+        if (module.specifier !== null) {
+          bindPattern(node.name, module.specifier);
+          if (ts.isIdentifier(node.name)) moduleNames.add(node.name.text);
+        }
+      } else if (ts.isCallExpression(init) && REQUIRE_FACTORIES.has(canonical(chain(init.expression) ?? ""))) {
+        // const req = createRequire(import.meta.url): req loads modules.
+        if (ts.isIdentifier(node.name)) names.set(node.name.text, "require");
+      } else {
+        const from = chain(init);
+        if (from !== null) bindPattern(node.name, from);
+      }
+    }
+    ts.forEachChild(node, collect);
+  };
+  collect(source);
+  // Bound names are read through what they stand for; a declaration's own
+  // name is not a read.
+  const declares = (node: Node): boolean => {
+    const parent = node.parent;
+    if (parent === undefined) return false;
+    return (
+      ((ts.isVariableDeclaration(parent) ||
+        ts.isBindingElement(parent) ||
+        ts.isParameter(parent) ||
+        ts.isFunctionDeclaration(parent) ||
+        ts.isClassDeclaration(parent) ||
+        ts.isImportClause(parent) ||
+        ts.isNamespaceImport(parent) ||
+        ts.isImportSpecifier(parent) ||
+        ts.isImportEqualsDeclaration(parent) ||
+        ts.isExportSpecifier(parent) ||
+        ts.isPropertyAssignment(parent) ||
+        ts.isPropertyDeclaration(parent) ||
+        ts.isMethodDeclaration(parent) ||
+        ts.isPropertySignature(parent) ||
+        ts.isLabeledStatement(parent)) &&
+        (parent as { name?: Node }).name === node) ||
+      (ts.isBindingElement(parent) && parent.propertyName === node) ||
+      (ts.isImportSpecifier(parent) && parent.propertyName === node) ||
+      (ts.isExportSpecifier(parent) && parent.propertyName === node) ||
+      (ts.isPropertyAccessExpression(parent) && parent.name === node) ||
+      (ts.isQualifiedName(parent) && parent.right === node)
+    );
+  };
+  const inType = (node: Node): boolean => {
+    for (let current: Node | undefined = node.parent; current !== undefined; current = current.parent) {
+      if (ts.isTypeNode(current) || ts.isTypeQueryNode(current) || ts.isHeritageClause(current)) return true;
+      if (ts.isStatement(current) || ts.isSourceFile(current)) return false;
+    }
+    return false;
+  };
+  // Whether a global name (process, globalThis) is a parameter or local of
+  // an enclosing function or block there.
+  const shadowed = (node: Node, name: string): boolean => {
+    const binds = (binding: import("typescript").BindingName): boolean =>
+      ts.isIdentifier(binding)
+        ? binding.text === name
+        : binding.elements.some((element) => !ts.isOmittedExpression(element) && binds(element.name));
+    for (let current: Node | undefined = node.parent; current !== undefined; current = current.parent) {
+      if (ts.isFunctionLike(current) && current.parameters.some((parameter) => binds(parameter.name))) return true;
+      if (ts.isBlock(current) || ts.isSourceFile(current)) {
+        for (const statement of current.statements) {
+          if (ts.isVariableStatement(statement) && statement.declarationList.declarations.some((d) => !bindingDeclarations.has(d) && binds(d.name)))
+            return true;
+          if ((ts.isFunctionDeclaration(statement) || ts.isClassDeclaration(statement)) && statement.name?.text === name)
+            return true;
+        }
+      }
+    }
+    return false;
+  };
+  // Whether an expression is a whole chain (not the head of a longer one).
+  const maximal = (node: Node): boolean => {
+    const top = outer(node);
+    const parent = top.parent;
+    return !(
+      parent !== undefined &&
+      (ts.isPropertyAccessExpression(parent) || ts.isElementAccessExpression(parent)) &&
+      parent.expression === top
+    );
+  };
+  const calledAs = (node: Node): boolean => {
+    const top = outer(node);
+    const parent = top.parent;
+    return (
+      parent !== undefined && (ts.isCallExpression(parent) || ts.isNewExpression(parent)) && parent.expression === top
+    );
+  };
+  // The initializer of a declaration whose names are followed above.
+  const followed = (node: Node): boolean => {
+    const top = outer(node);
+    const parent = top.parent;
+    return parent !== undefined && ts.isVariableDeclaration(parent) && parent.initializer === top;
+  };
+  // Code built from text runs anything.
+  const DYNAMIC_CODE = new Set(["eval", "Function", "vm.runInThisContext", "vm.runInNewContext", "vm.runInContext", "vm.compileFunction", "vm.Script", "vm.SourceTextModule"]);
   const catchNames: string[] = [];
   const visit = (node: Node): void => {
     if (ts.isCatchClause(node) && node.variableDeclaration && ts.isIdentifier(node.variableDeclaration.name)) {
@@ -157,44 +368,95 @@ export function extractScriptReferences(
       catchNames.pop();
       return;
     }
+    const reads = extract === "env" || extract === "calls" || extract === "imports";
+    if (reads && (ts.isCallExpression(node) || ts.isNewExpression(node))) {
+      const name = canonical(chain(node.expression) ?? "");
+      if (DYNAMIC_CODE.has(name)) unresolved.push(at(node));
+      const module = loaded(node);
+      if (module !== undefined && extract !== "imports" && !followed(node)) {
+        // A module loaded in place: what is read or called on it is not followed
+        // unless it is a known module whose member is called directly.
+        const top = outer(node);
+        const parent = top.parent;
+        const member =
+          parent !== undefined && ts.isPropertyAccessExpression(parent) && parent.expression === top
+            ? parent.name.text
+            : null;
+        const direct =
+          extract === "calls" &&
+          module.specifier !== null &&
+          member !== null &&
+          parent !== undefined &&
+          calledAs(parent);
+        if (direct) members.push(`${module.specifier}.${member}`);
+        else if (module.specifier === null || (extract === "env" && module.specifier === "process"))
+          unresolved.push(at(node));
+        else if (extract === "calls" && NODE_BUILTINS.has(module.specifier))
+          // A built-in module used in place: any of its members may be called.
+          members.push(`${module.specifier}.*`);
+      }
+    }
     switch (extract) {
       case "env": {
-        const name = ts.isPropertyAccessExpression(node) || ts.isElementAccessExpression(node) ? chain(node.expression) : null;
-        if (name !== null && ENV_OBJECTS.has(name)) {
-          if (ts.isPropertyAccessExpression(node)) {
-            if (!(name === "import.meta.env" && VITE_BUILTINS.has(node.name.text))) members.push(node.name.text);
-          } else {
-            const value = literal((node as import("typescript").ElementAccessExpression).argumentExpression);
-            if (value === null) unresolved.push(at(node));
-            else members.push(value);
-          }
+        // `export { env } from "node:process"` hands the environment to the files that import it.
+        if (
+          ts.isExportDeclaration(node) &&
+          node.moduleSpecifier &&
+          moduleName(literal(node.moduleSpecifier) ?? "") === "process"
+        ) {
+          unresolved.push(at(node));
           return;
         }
-        if (ts.isCallExpression(node) && chain(node.expression) === "Deno.env.get") {
+        if (ts.isPropertyAccessExpression(node) || ts.isElementAccessExpression(node)) {
+          const written = chain(node.expression);
+          const name = written === null ? null : canonical(written);
+          if (name !== null && ENV_OBJECTS.has(name)) {
+            if (ts.isPropertyAccessExpression(node)) {
+              if (!(name === "import.meta.env" && VITE_BUILTINS.has(node.name.text))) members.push(node.name.text);
+            } else {
+              const value = literal(node.argumentExpression);
+              if (value === null) unresolved.push(at(node));
+              else members.push(value);
+            }
+            return;
+          }
+        }
+        if (ts.isCallExpression(node) && canonical(chain(node.expression) ?? "") === "Deno.env.get") {
           const value = literal(node.arguments[0]);
           if (value === null) unresolved.push(at(node));
           else members.push(value);
           return;
         }
-        if (ts.isVariableDeclaration(node) && node.initializer && ts.isObjectBindingPattern(node.name)) {
-          const from = chain(node.initializer);
-          if (from !== null && ENV_OBJECTS.has(from)) {
-            for (const element of node.name.elements) {
-              const property = element.propertyName ?? element.name;
-              if (element.dotDotDotToken || !(ts.isIdentifier(property) || ts.isStringLiteral(property)))
-                unresolved.push(at(element));
-              else members.push(property.text);
-            }
+        if (ts.isVariableDeclaration(node) && node.initializer && !ts.isIdentifier(node.name)) {
+          const written = chain(unwrapped(node.initializer));
+          const from = written === null ? (loaded(node.initializer)?.specifier ?? null) : canonical(written);
+          if (from !== null && (ENV_OBJECTS.has(from) || from === "process" || GLOBAL_OBJECTS.has(from))) {
+            readPattern(node.name, from);
             return;
           }
         }
-        // The whole environment object handed elsewhere can be read under any name.
-        if ((ts.isPropertyAccessExpression(node) || ts.isMetaProperty(node)) && ENV_OBJECTS.has(chain(node) ?? "")) {
-          unresolved.push(at(node));
-          return;
+        // The environment object, process or the global object handed on can
+        // be read under any name.
+        if (
+          (ts.isIdentifier(node) || ts.isPropertyAccessExpression(node) || ts.isMetaProperty(node)) &&
+          !declares(node) &&
+          !inType(node) &&
+          maximal(node) &&
+          !followed(node)
+        ) {
+          const name = canonical(chain(node) ?? "");
+          if (ts.isIdentifier(node) && shadowed(node, node.text)) break;
+          const handedOn =
+            ENV_OBJECTS.has(name) ||
+            (name === "process" && !readsAProperty(node)) ||
+            (GLOBAL_OBJECTS.has(name) && !readsAProperty(node));
+          if (handedOn) {
+            unresolved.push(at(node));
+            return;
+          }
         }
         // So can import.meta itself, when it is handed on instead of read.
-        if (ts.isMetaProperty(node) && chain(node) === "import.meta" && !readsAProperty(node)) {
+        if (ts.isMetaProperty(node) && chain(node) === "import.meta" && !readsAProperty(node) && !followed(node)) {
           unresolved.push(at(node));
           return;
         }
@@ -203,38 +465,81 @@ export function extractScriptReferences(
       case "imports": {
         if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) && node.moduleSpecifier) {
           const value = literal(node.moduleSpecifier);
-          if (value !== null) members.push(value);
+          if (value !== null) members.push(...spellings(value));
           break;
         }
         if (ts.isImportEqualsDeclaration(node) && ts.isExternalModuleReference(node.moduleReference)) {
           const value = literal(node.moduleReference.expression);
-          if (value !== null) members.push(value);
+          if (value !== null) members.push(...spellings(value));
           break;
         }
-        if (
-          ts.isCallExpression(node) &&
-          (node.expression.kind === ts.SyntaxKind.ImportKeyword ||
-            (ts.isIdentifier(node.expression) && node.expression.text === "require"))
-        ) {
-          const value = literal(node.arguments[0]);
-          if (value === null) unresolved.push(at(node));
-          else members.push(value);
+        if (ts.isCallExpression(node)) {
+          const module = loaded(node);
+          if (module !== undefined) {
+            const value = literal(node.arguments[0]);
+            if (value === null) unresolved.push(at(node));
+            else members.push(...spellings(value));
+          }
+          break;
+        }
+        // A loader handed on (const r = [require][0]) loads under a name Kibi does not follow.
+        if (ts.isIdentifier(node) || ts.isPropertyAccessExpression(node)) {
+          const name = canonical(chain(node) ?? "");
+          if (
+            (LOADERS.has(name) || REQUIRE_FACTORIES.has(name)) &&
+            maximal(node) &&
+            !calledAs(node) &&
+            !declares(node) &&
+            !inType(node) &&
+            !followed(node)
+          )
+            unresolved.push(at(node));
         }
         break;
       }
       case "calls": {
         if (ts.isCallExpression(node)) {
           const target = node.expression;
-          const name = chain(target);
-          if (name !== null) members.push(name);
-          else if (ts.isElementAccessExpression(target)) unresolved.push(at(target));
+          const written = chain(target);
+          if (written !== null) {
+            const listed = [written, canonical(written)];
+            // f.call(...), f.apply(...) and f.bind(...)() call f.
+            for (const name of [...listed]) {
+              const bound = /^(.*)\.(?:call|apply|bind)$/.exec(name);
+              if (bound?.[1]) listed.push(bound[1]);
+            }
+            members.push(...new Set(listed));
+          } else if (ts.isElementAccessExpression(target)) unresolved.push(at(target));
+        } else if (
+          (ts.isIdentifier(node) || ts.isPropertyAccessExpression(node) || ts.isElementAccessExpression(node)) &&
+          maximal(node) &&
+          !calledAs(node) &&
+          !declares(node) &&
+          !inType(node)
+        ) {
+          const written = chain(node);
+          const head = written?.split(".")[0];
+          if (written !== null && head !== undefined && names.has(head) && !followed(node)) {
+            const name = canonical(written);
+            if (moduleNames.has(head) && written === head && NODE_BUILTINS.has(name)) {
+              // A built-in module handed on: any of its members may be called.
+              members.push(`${name}.*`);
+            } else if (name.includes(".") || written !== name) {
+              // An imported function used as a value is listed as called.
+              members.push(...new Set([written, name]));
+            }
+          } else if (written !== null && head !== undefined && names.has(head) && followed(node)) {
+            const name = canonical(written);
+            if (name !== written && name.includes(".")) members.push(name);
+          }
         }
         break;
       }
       case "string_args": {
         if (ts.isCallExpression(node)) {
-          const name = chain(node.expression);
-          if (name !== null && (name === callee || (!callee.includes(".") && name.endsWith(`.${callee}`)))) {
+          const written = chain(node.expression);
+          const listed = written === null ? [] : [...new Set([written, canonical(written)])];
+          if (listed.some((name) => name === callee || (!callee.includes(".") && name.endsWith(`.${callee}`)))) {
             const value = literal(node.arguments[0]);
             if (value === null) unresolved.push(at(node));
             else members.push(value);
@@ -268,6 +573,28 @@ export function extractScriptReferences(
     }
     ts.forEachChild(node, visit);
   };
+  // Destructuring from the environment, process or the global object:
+  // `const { PORT } = process.env` reads PORT, `const { env: { HOST } } =
+  // process` reads HOST; a rest element or a computed key could read any.
+  const readPattern = (pattern: import("typescript").BindingName, from: string): void => {
+    if (ts.isIdentifier(pattern)) return;
+    if (!ts.isObjectBindingPattern(pattern)) {
+      unresolved.push(at(pattern));
+      return;
+    }
+    for (const element of pattern.elements) {
+      const property = element.propertyName ?? element.name;
+      if (element.dotDotDotToken || !(ts.isIdentifier(property) || ts.isStringLiteral(property))) {
+        unresolved.push(at(element));
+        continue;
+      }
+      const path = canonical(`${from}.${property.text}`);
+      if (ENV_OBJECTS.has(from)) members.push(property.text);
+      else if (ENV_OBJECTS.has(path) || path === "process" || GLOBAL_OBJECTS.has(path)) {
+        if (!ts.isIdentifier(element.name)) readPattern(element.name, path);
+      }
+    }
+  };
   visit(source);
   return { members, unresolved };
 }
@@ -286,8 +613,110 @@ def chain(node):
     return None
 def literal(node):
     return node.value if isinstance(node, ast.Constant) and isinstance(node.value, str) else None
-ENV_GETTERS = {"os.getenv", "getenv", "os.environ.get", "environ.get"}
-ENV_OBJECTS = {"os.environ", "environ"}
+# Bare getenv and environ are read as the environment even without an import.
+ENV_GETTERS = {"os.getenv", "os.getenvb", "getenv"}
+ENV_OBJECTS = {"os.environ", "os.environb", "environ", "posix.environ", "nt.environ"}
+ENV_KEY_METHODS = {"get", "setdefault", "pop"}
+ENV_TEMPLATES = {"os.path.expandvars", "posixpath.expandvars", "ntpath.expandvars"}
+# Code run from text, or a module looked up at run time, can read or call anything.
+IMPORTERS = {"__import__", "importlib.import_module", "import_module", "builtins.__import__"}
+DYNAMIC = IMPORTERS | {"exec", "eval", "compile", "builtins.exec", "builtins.eval", "builtins.compile",
+                       "pkgutil.resolve_name", "pkgutil.get_loader", "pkgutil.find_loader", "importlib.reload",
+                       "importlib.__import__", "importlib.find_loader",
+                       # Unpickling calls whatever the data names (os.system).
+                       "pickle.loads", "pickle.load", "pickle.Unpickler", "_pickle.loads", "_pickle.load",
+                       "_pickle.Unpickler", "marshal.loads", "marshal.load", "shelve.open", "dill.loads",
+                       "dill.load", "cloudpickle.loads", "cloudpickle.load", "jsonpickle.decode", "yaml.unsafe_load",
+                       "yaml.unsafe_load_all"}
+DYNAMIC_PREFIXES = ("runpy.", "importlib.util.", "importlib.machinery.", "importlib._bootstrap", "zipimport.")
+def dynamic(name):
+    return name is not None and (name in DYNAMIC or name.startswith(DYNAMIC_PREFIXES))
+# A module's namespace read as a dictionary: any module, or any of its members, under any key.
+NAMESPACES = {"globals", "locals", "builtins.globals", "builtins.locals"}
+# Modules that read the environment, run programs or load code. One reached
+# as an attribute of another module (shutil.os, path.os, from .main import os)
+# is that module under a name Kibi does not follow, so it fails the read.
+REACHED = {"os", "posix", "nt", "sys", "subprocess", "builtins", "importlib", "runpy", "pkgutil", "shutil", "pty", "socket", "ctypes"}
+ENV_ATTRS = {"environ", "environb", "getenv", "getenvb"}
+ENV_MODULES = {"os", "posix", "nt"}
+# The modules a claim names: their own private members (os._exit) are read as written.
+NAMED_MODULES = {"os", "posix", "nt", "sys", "subprocess"}
+# Foreign function interfaces: a library they load (libc's getenv or system)
+# runs native code Kibi cannot read.
+FFI_MODULES = {"ctypes", "_ctypes", "cffi", "_cffi_backend"}
+def private(name):
+    return name.startswith("_") and not (name.startswith("__") and name.endswith("__"))
+def hidden(parts, i):
+    # A private name of a module: tempfile._os and threading._os are os, and
+    # what another standard module keeps under a private name is not known here.
+    part = parts[i]
+    if not private(part):
+        return False
+    return part.lstrip("_") in REACHED or (parts[0] in STDLIB and ".".join(parts[:i]) not in NAMED_MODULES)
+NAMESPACE_ATTRS = {"__dict__", "__getattribute__", "__getattr__", "__loader__", "__spec__", "__builtins__", "__import__", "__globals__"}
+STDLIB = getattr(sys, "stdlib_module_names", frozenset())
+def _system_names():
+    import os as _os, subprocess as _subprocess
+    found = set()
+    for module in (_os, _subprocess, sys):
+        for name in dir(module):
+            value = getattr(module, name, None)
+            if not name.startswith("_") and callable(value) and not (isinstance(value, type) and issubclass(value, BaseException)):
+                found.add(name)
+    return found | ENV_ATTRS
+# What a name a project module re-exports may stand for when it is os,
+# subprocess or sys, or one of their functions.
+SYSTEM_NAMES = _system_names()
+# os re-exports posix (nt on Windows): posix.system is os.system, so a name
+# through posix or nt is listed as the os name too.
+def as_os(name):
+    head, dot, rest = name.partition(".")
+    return "os" + dot + rest if head in ("posix", "nt") else None
+def with_os(names):
+    return list(dict.fromkeys(list(names) + [n for n in map(as_os, names) if n is not None]))
+# Whether a standard-library dotted name is a module object (os.path,
+# importlib.resources, shutil.fnmatch), found by importing the standard
+# module it starts with. None when that is not known: a name outside the
+# standard library, or one whose module does not import here.
+MODULE_CACHE = {}
+# Standard modules that act when imported (print, open a browser): not imported here.
+NOISY = {"this", "antigravity", "__hello__", "__phello__", "idlelib", "turtledemo"}
+def is_module(dotted):
+    parts = dotted.split(".")
+    if not parts[0] or parts[0] not in STDLIB:
+        return None
+    if len(parts) == 1:
+        return True
+    if parts[0] in NOISY:
+        return None
+    if dotted not in MODULE_CACHE:
+        import contextlib, importlib, io, types
+        try:
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                value = importlib.import_module(parts[0])
+                for i in range(1, len(parts)):
+                    if hasattr(value, parts[i]):
+                        value = getattr(value, parts[i])
+                    elif isinstance(value, types.ModuleType) and hasattr(value, "__path__"):
+                        try:
+                            value = importlib.import_module(".".join(parts[:i + 1]))
+                        except ModuleNotFoundError:
+                            value = None
+                            break
+                    else:
+                        value = None
+                        break
+            MODULE_CACHE[dotted] = isinstance(value, types.ModuleType)
+        except Exception:
+            # A module that does not import here (winreg on Linux) is not known,
+            # as a project module is not.
+            MODULE_CACHE[dotted] = None
+    return MODULE_CACHE[dotted]
+def prefixes(dots, dotted):
+    parts = dotted.split(".") if dotted else []
+    return [dots + ".".join(parts[:i]) for i in range(1, len(parts) + 1)] or [dots]
+def joined(base, name):
+    return base + name if base.endswith(".") else base + "." + name
 for file in plan["files"]:
     with open(file, encoding="utf-8") as handle:
         text = handle.read()
@@ -301,36 +730,219 @@ for file in plan["files"]:
         line = getattr(node, "lineno", 1)
         unresolved.append({"file": file, "line": line, "text": (lines[line - 1].strip() if line - 1 < len(lines) else "")[:80]})
     caught = set()
+    parent = {}
+    # What each name the file imports stands for: import subprocess as sp makes
+    # sp stand for subprocess, from os import getenv as g makes g os.getenv.
+    names, modules = {}, set()
+    # Names bound by an import from a module outside the standard library
+    # (a project or third-party module): what they are is not known here.
+    foreign, imported_as = set(), {}
     for node in ast.walk(tree):
+        for child in ast.iter_child_nodes(node):
+            parent[child] = node
         if isinstance(node, ast.ExceptHandler) and node.name:
             caught.add(node.name)
+        elif isinstance(node, ast.Import):
+            for alias in node.names:
+                local = alias.asname or alias.name.split(".")[0]
+                names[local] = alias.name if alias.asname else local
+                modules.add(local)
+                if alias.name.split(".")[0] not in STDLIB:
+                    foreign.add(local)
+        elif isinstance(node, ast.ImportFrom):
+            base = "." * node.level + (node.module or "")
+            outside = node.level > 0 or (node.module or "").split(".")[0] not in STDLIB
+            for alias in node.names:
+                if alias.name != "*":
+                    local = alias.asname or alias.name
+                    names[local] = joined(base, alias.name)
+                    imported_as[local] = alias.name
+                    if outside:
+                        foreign.add(local)
+    def canonical(name):
+        head, dot, rest = name.partition(".")
+        return names[head] + dot + rest if head in names else name
+    def spelled(node):
+        name = chain(node)
+        return None if name is None else (name, canonical(name))
+    def called(node):
+        up = parent.get(node)
+        return isinstance(up, ast.Call) and up.func is node
+    def maximal(node):
+        up = parent.get(node)
+        return not (isinstance(up, ast.Attribute) and up.value is node)
+    def reaches(node):
+        # A chain through an imported name that reaches a module Kibi does not
+        # follow under that spelling, or a module's namespace.
+        written = chain(node)
+        if written is None:
+            return False
+        head = written.split(".")[0]
+        parts = canonical(written).split(".")
+        if head == "__builtins__" or "__globals__" in parts or "__builtins__" in parts:
+            return True
+        if head not in names:
+            return False
+        for i in range(1, len(parts)):
+            part = parts[i]
+            if hidden(parts, i):
+                return True
+            if part in REACHED and not (part == "subprocess" and parts[:i] == ["asyncio"]):
+                return True
+            if part in NAMESPACE_ATTRS:
+                return True
+            if extract == "env" and part in ENV_ATTRS and ".".join(parts[:i]) not in ENV_MODULES:
+                return True
+        if extract == "calls" and head in foreign:
+            # A project module's name may be os, subprocess or sys, or one of
+            # their functions, re-exported: from .main import os as o; o.system().
+            after = written.split(".")[1:]
+            if head in imported_as:
+                after = [imported_as[head]] + after
+            return any(part in SYSTEM_NAMES for part in after)
+        return False
+    def flows(node):
+        # An imported module used as a value (assigned, passed, returned or put
+        # in a container), not as the head of a chain or a call. A name from a
+        # project or third-party module may be a module too, so assigning one
+        # to another name fails the read as well.
+        if not isinstance(node.ctx, ast.Load) or not maximal(node) or called(node):
+            return False
+        written = chain(node)
+        if written is None or written.split(".")[0] not in names:
+            return False
+        if isinstance(node, ast.Name) and node.id in modules:
+            return True
+        known = is_module(canonical(written))
+        if known is not None:
+            return known
+        up = parent.get(node)
+        return isinstance(up, (ast.Assign, ast.AnnAssign, ast.NamedExpr, ast.AugAssign)) and up.value is node
+    def ffi(node):
+        written = chain(node)
+        return written is not None and written.split(".")[0] in names and canonical(written).split(".")[0] in FFI_MODULES
+    def hides(node):
+        # from tempfile import _os: a module under a private name of another one.
+        if not isinstance(node, ast.ImportFrom):
+            return False
+        base = "." * node.level + (node.module or "")
+        parts = base.split(".") if node.level == 0 else [base]
+        return any(alias.name != "*" and hidden(parts + [alias.name], len(parts)) for alias in node.names)
+    def env_use(node, name):
+        up = parent.get(node)
+        if name in ENV_GETTERS:
+            if called(node):
+                value = literal(up.args[0]) if up.args else None
+                return members.append(value) if value is not None else miss(node)
+            return miss(node)
+        if isinstance(up, ast.Subscript) and up.value is node:
+            value = literal(up.slice)
+            return members.append(value) if value is not None else miss(node)
+        if isinstance(up, ast.Attribute) and up.attr in ENV_KEY_METHODS and called(up):
+            call = parent[up]
+            value = literal(call.args[0]) if call.args else None
+            return members.append(value) if value is not None else miss(node)
+        if (isinstance(up, ast.Compare) and len(up.ops) == 1 and isinstance(up.ops[0], (ast.In, ast.NotIn))
+                and up.comparators[0] is node and literal(up.left) is not None):
+            return members.append(literal(up.left))
+        # The whole environment handed on, copied, iterated or assigned.
+        miss(node)
     for node in ast.walk(tree):
+        if extract in ("env", "calls", "imports") and isinstance(node, ast.Call):
+            target = spelled(node.func)
+            name = None if target is None else target[1]
+            if dynamic(name) and not (extract == "imports" and name in IMPORTERS):
+                miss(node)
+                continue
+            if name in NAMESPACES or (name in ("vars", "builtins.vars") and (
+                    not node.args or (chain(node.args[0]) or "").split(".")[0] in names)):
+                # globals()['os'], vars(), vars(module): a namespace read by key,
+                # which holds modules (vars(tempfile)["_os"] is os).
+                miss(node)
+                continue
+            if name in ("getattr", "builtins.getattr") and node.args:
+                inner = chain(node.args[0])
+                if inner is not None and inner.split(".")[0] in names:
+                    # A member of an imported module looked up by name.
+                    miss(node)
+                    continue
+        if extract in ("env", "calls", "imports") and isinstance(node, ast.Attribute) and canonical(chain(node) or "") == "sys.modules":
+            miss(node)
+            continue
+        if extract in ("env", "calls", "imports") and hides(node):
+            miss(node)
+            continue
+        if (extract in ("env", "calls") and isinstance(node, ast.ImportFrom) and node.level == 0
+                and (node.module or "").split(".")[0] in FFI_MODULES and any(alias.name == "*" for alias in node.names)):
+            miss(node)
+            continue
+        if extract in ("env", "calls") and isinstance(node, (ast.Name, ast.Attribute)) and maximal(node) and ffi(node):
+            # ctypes.CDLL(None).getenv(b"X"): a foreign call can read or run anything.
+            miss(node)
+            continue
+        if extract in ("env", "calls", "imports") and isinstance(node, (ast.Name, ast.Attribute)) and maximal(node) and reaches(node):
+            miss(node)
+            continue
+        if extract in ("env", "calls", "imports") and isinstance(node, (ast.Name, ast.Attribute)) and flows(node):
+            # _t = tempfile; _t._os: a module handed on is used under a name Kibi does not follow.
+            miss(node)
+            continue
         if extract == "env":
-            if isinstance(node, ast.Call) and chain(node.func) in ENV_GETTERS:
-                value = literal(node.args[0]) if node.args else None
-                (members.append(value) if value is not None else miss(node))
-            elif isinstance(node, ast.Subscript) and chain(node.value) in ENV_OBJECTS:
-                value = literal(node.slice)
-                (members.append(value) if value is not None else miss(node))
+            if isinstance(node, ast.ImportFrom) and node.module == "os" and any(alias.name == "*" for alias in node.names):
+                miss(node)
+            elif isinstance(node, (ast.Name, ast.Attribute)):
+                target = spelled(node)
+                if target is None:
+                    continue
+                name = target[1]
+                if name in ENV_GETTERS or name in ENV_OBJECTS:
+                    env_use(node, name)
+                elif name in ENV_TEMPLATES:
+                    miss(node)
+                elif isinstance(node, ast.Name) and (name in ENV_MODULES or node.id in modules) and maximal(node):
+                    # An imported module itself handed on: its later reads could use any name.
+                    miss(node)
         elif extract == "imports":
             if isinstance(node, ast.Import):
-                members.extend(alias.name for alias in node.names)
+                for alias in node.names:
+                    members.extend(with_os(prefixes("", alias.name)))
             elif isinstance(node, ast.ImportFrom):
-                members.append("." * node.level + (node.module or ""))
-            elif isinstance(node, ast.Call) and chain(node.func) in {"importlib.import_module", "import_module", "__import__"}:
+                if any(alias.name in REACHED for alias in node.names) and not (node.level == 0 and node.module == "asyncio"):
+                    # from .main import os: a module reached through another one,
+                    # under a spelling a claim about the module would not match.
+                    miss(node)
+                dots = "." * node.level
+                members.extend(with_os(prefixes(dots, node.module or "")))
+                base = dots + (node.module or "")
+                members.extend(with_os([joined(base, alias.name) for alias in node.names if alias.name != "*"]))
+            elif isinstance(node, ast.Call) and canonical(chain(node.func) or "") in IMPORTERS:
                 value = literal(node.args[0]) if node.args else None
                 (members.append(value) if value is not None else miss(node))
         elif extract == "calls":
-            if isinstance(node, ast.Call):
-                name = chain(node.func)
-                if name is not None:
-                    members.append(name)
+            if isinstance(node, ast.ImportFrom) and any(alias.name == "*" for alias in node.names):
+                # A star import could bring any name into scope under a bare spelling.
+                miss(node)
+            elif isinstance(node, ast.Call):
+                target = spelled(node.func)
+                if target is not None:
+                    # A call through an alias is listed under what it names, too.
+                    members.extend(with_os(target))
                 elif isinstance(node.func, ast.Subscript):
                     miss(node)
+            elif isinstance(node, (ast.Name, ast.Attribute)) and isinstance(node.ctx, ast.Load) and maximal(node) and not called(node):
+                target = spelled(node)
+                if target is not None and target[0].split(".")[0] in names:
+                    if isinstance(node, ast.Name) and node.id in modules:
+                        # An imported module handed on: its later calls could use any name.
+                        miss(node)
+                    else:
+                        # An imported function used as a value is listed as called.
+                        members.extend(with_os(target))
         elif extract == "string_args":
             if isinstance(node, ast.Call):
-                name = chain(node.func)
-                if name is not None and (name == callee or ("." not in callee and name.endswith("." + callee))):
+                target = spelled(node.func)
+                target = None if target is None else with_os(target)
+                if target is not None and any(name == callee or ("." not in callee and name.endswith("." + callee)) for name in target):
                     value = literal(node.args[0]) if node.args else None
                     (members.append(value) if value is not None else miss(node))
         elif extract == "thrown":
@@ -352,7 +964,8 @@ for file in plan["files"]:
                     if keyword.arg == key:
                         value = literal(keyword.value)
                         (members.append(value) if value is not None else miss(keyword.value))
-print(json.dumps({"ok": True, "members": members, "unresolved": unresolved}))
+unique = list({(row["file"], row["line"], row["text"]): row for row in unresolved}.values())
+print(json.dumps({"ok": True, "members": members, "unresolved": unique}))
 `;
 
 const EXTRACT_WHAT: Readonly<Record<string, string>> = {
@@ -368,15 +981,25 @@ async function readReferences(workspaceRoot: string, spec: SourceSpec): Promise<
   const files = matchWorkspaceFiles(workspaceRoot, globList(spec.files), globList(spec.ignore));
   if (files.length === 0)
     return { ok: false, reason: `no file matches ${globList(spec.files).join(", ")}` };
-  const other = files.filter((file) => !JS_FILE.test(file) && !PY_FILE.test(file));
-  if (other.length > 0)
+  const other = files.filter((file) => {
+    const language = codeLanguage(file);
+    return language !== "js" && language !== "python" && language !== "prolog";
+  });
+  const unknown = other.filter((file) => pluginReferenceLanguage(file) === null);
+  if (unknown.length > 0)
     return {
       ok: false,
-      reason: `the references reader reads TypeScript, JavaScript and Python files; narrow files to exclude ${other.slice(0, 3).join(", ")}`,
+      reason: `${unsupportedLanguageReason("the references reader", ["js", "python", "prolog"], unknown).replace(/ files, not /, ` files (and Go, Java, C# and Rust through ${REFERENCE_PLUGIN_PACKAGE}), not `)}; Kibi cannot decide a references claim for those files, so the claim stays unproved (do not drop them from files: a claim about them would then be checked on other code)`,
     };
   const members: string[] = [];
   const unresolved: UnresolvedReference[] = [];
-  const scripts = files.filter((file) => JS_FILE.test(file));
+  if (other.length > 0) {
+    const read = await readPluginReferences(workspaceRoot, other, spec);
+    if (!read.ok) return read;
+    members.push(...read.members);
+    unresolved.push(...read.unresolved);
+  }
+  const scripts = files.filter((file) => codeLanguage(file) === "js");
   if (scripts.length > 0) {
     const ts = loadTypeScript(workspaceRoot);
     if (ts === null)
@@ -390,12 +1013,12 @@ async function readReferences(workspaceRoot: string, spec: SourceSpec): Promise<
       unresolved.push(...found.unresolved);
     }
   }
-  const python = files.filter((file) => PY_FILE.test(file));
+  const python = files.filter((file) => codeLanguage(file) === "python");
   if (python.length > 0) {
     const run = runCodeEvaluator(
       workspaceRoot,
       python[0] as string,
-      { js: "", python: PYTHON_REFERENCES },
+      { python: PYTHON_REFERENCES },
       [JSON.stringify({ extract: spec.extract, callee: spec.callee, key: spec.key, files: python })],
       (parsed) => parsed !== null && typeof parsed === "object" && "ok" in (parsed as object),
     );
@@ -406,9 +1029,195 @@ async function readReferences(workspaceRoot: string, spec: SourceSpec): Promise<
     members.push(...(value.members ?? []));
     unresolved.push(...(value.unresolved ?? []));
   }
+  const prolog = files.filter((file) => codeLanguage(file) === "prolog");
+  if (prolog.length > 0) {
+    if (spec.extract === "property")
+      return {
+        ok: false,
+        reason: `SWI-Prolog has no property values to extract (${prolog[0]}); read fact arguments with the prolog reader`,
+      };
+    const read = runPrologReader(workspaceRoot, prolog[0] as string, {
+      mode: "references",
+      extract: spec.extract,
+      ...(typeof spec.callee === "string" ? { callee: spec.callee } : {}),
+      files: prolog,
+    });
+    if (!read.ok) return read;
+    members.push(...(read.value.members ?? []));
+    unresolved.push(...(read.value.unresolved ?? []));
+  }
   if (unresolved.length > 0)
     return { ok: false, reason: unresolvedReason(EXTRACT_WHAT[String(spec.extract)] ?? "references", unresolved) };
   return { ok: true, members };
+}
+
+const PLUGIN_READ_TIMEOUT_MS = 10_000;
+
+/**
+ * Read references of Go, Java, C# and Rust files through a qualified
+ * kibi.reference-extractor.v1 provider. Without one the read is refused with
+ * what to install, never answered as empty.
+ */
+// implements REQ-kibi-tree-sitter-references
+async function readPluginReferences(
+  workspaceRoot: string,
+  files: readonly string[],
+  spec: SourceSpec,
+): Promise<{ ok: true; members: string[]; unresolved: UnresolvedReference[] } | { ok: false; reason: string }> {
+  const { extractors, problems } = await proofReferenceExtractorLoader.load(workspaceRoot);
+  // Callers pass only files a reference reader covers (unknown ones are refused first).
+  const languages = [...new Set(files.flatMap((file) => pluginReferenceLanguage(file) ?? []))];
+  const unread = files.filter((file) => !extractors.some((extractor) => extractor.supports({ path: file })));
+  if (unread.length > 0) {
+    const shown = `${unread.slice(0, 3).join(", ")}${unread.length > 3 ? ` and ${unread.length - 3} more` : ""}`;
+    const why = problems.length > 0 ? ` (${problems.join("; ")})` : "";
+    return {
+      ok: false,
+      reason: `the references reader reads ${languages.join(", ")} files through ${REFERENCE_PLUGIN_PACKAGE}, which is not active for proofs here${why}; add it to devDependencies and activate kibi.reference-extractor.v1 in package.json#kibi.plugins (kibi doctor lists what this project needs): ${shown}`,
+    };
+  }
+  const members: string[] = [];
+  const unresolved: UnresolvedReference[] = [];
+  const shadowRows = createShadowRowFilter(workspaceRoot);
+  for (const file of files) {
+    const extractor = extractors.find((candidate) => candidate.supports({ path: file }));
+    if (extractor === undefined) continue;
+    let result;
+    try {
+      result = validateReferenceExtractionResult(
+        await extractor.extract({
+          path: file,
+          content: readFileSync(path.join(workspaceRoot, file), "utf8"),
+          extract: spec.extract as import("kibi-plugin-sdk").ReferenceExtract,
+          ...(typeof spec.callee === "string" ? { callee: spec.callee } : {}),
+          ...(typeof spec.key === "string" ? { key: spec.key } : {}),
+          timeoutMs: PLUGIN_READ_TIMEOUT_MS,
+        }),
+      );
+    } catch (error) {
+      return {
+        ok: false,
+        reason: `Kibi could not read ${file}: ${error instanceof Error ? error.message : String(error)}`,
+      };
+    }
+    if (result.status !== "ok") return { ok: false, reason: `Kibi could not read ${file}: ${result.message}` };
+    members.push(...result.members);
+    // A row about a name another file may bind stays only if one does.
+    for (const row of shadowRows(file, result.unresolved)) unresolved.push({ file, line: row.line, text: row.text });
+  }
+  // A C# file also imports what the project's global and implicit usings
+  // bring in, which no single file shows.
+  if (spec.extract === "imports" && files.some((file) => /\.cs$/i.test(file)))
+    members.push(...csharpProjectUsings(workspaceRoot));
+  return { ok: true, members, unresolved };
+}
+
+/** The namespaces `<ImplicitUsings>enable</ImplicitUsings>` adds, by SDK. */
+const CSHARP_IMPLICIT_USINGS = [
+  "System",
+  "System.Collections.Generic",
+  "System.IO",
+  "System.Linq",
+  "System.Net.Http",
+  "System.Threading",
+  "System.Threading.Tasks",
+];
+const CSHARP_WEB_IMPLICIT_USINGS = [
+  "System.Net.Http.Json",
+  "Microsoft.AspNetCore.Builder",
+  "Microsoft.AspNetCore.Hosting",
+  "Microsoft.AspNetCore.Http",
+  "Microsoft.AspNetCore.Routing",
+  "Microsoft.Extensions.Configuration",
+  "Microsoft.Extensions.DependencyInjection",
+  "Microsoft.Extensions.Hosting",
+  "Microsoft.Extensions.Logging",
+];
+
+/**
+ * Namespaces every C# file of the project imports: `global using`
+ * directives in any tracked .cs file, `<Using Include>` items and the SDK's
+ * implicit usings in any tracked .csproj.
+ */
+// implements REQ-kibi-tree-sitter-references
+export function csharpProjectUsings(workspaceRoot: string): string[] {
+  let tracked: string[];
+  try {
+    tracked = execFileSync("git", ["ls-files", "-z", "--", "*.cs", "*.csproj", "*.props"], {
+      cwd: workspaceRoot,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+      maxBuffer: 64 * 1024 * 1024,
+    })
+      .split("\0")
+      .filter((file) => file.length > 0);
+  } catch {
+    tracked = [];
+  }
+  const usings = new Set<string>();
+  for (const file of tracked) {
+    let text: string;
+    try {
+      text = readFileSync(path.join(workspaceRoot, file), "utf8");
+    } catch {
+      continue;
+    }
+    if (/\.cs$/i.test(file)) {
+      for (const match of text.matchAll(/^\s*global\s+using\s+(?:static\s+)?(?:(\w+)\s*=\s*)?([\w.:]+)\s*;/gm))
+        usings.add((match[2] ?? "").replace(/^global::/, ""));
+      continue;
+    }
+    for (const match of text.matchAll(/<Using\s+Include="([^"]+)"/g)) usings.add(match[1] ?? "");
+    if (/<ImplicitUsings>\s*(?:enable|true)\s*<\/ImplicitUsings>/i.test(text)) {
+      for (const name of CSHARP_IMPLICIT_USINGS) usings.add(name);
+      if (/Sdk="Microsoft\.NET\.Sdk\.Web"/.test(text)) for (const name of CSHARP_WEB_IMPLICIT_USINGS) usings.add(name);
+    }
+  }
+  usings.delete("");
+  return [...usings].sort();
+}
+
+type PrologRead = {
+  ok: boolean;
+  members?: string[];
+  sequence?: string[];
+  unresolved?: UnresolvedReference[];
+  error?: string;
+};
+
+/** Run the SWI-Prolog source reader, which reads terms without running them. */
+// implements REQ-kibi-prolog-source-readers
+function runPrologReader(
+  workspaceRoot: string,
+  file: string,
+  plan: Readonly<Record<string, unknown>>,
+): { ok: true; value: PrologRead } | { ok: false; reason: string } {
+  const run = runCodeEvaluator(
+    workspaceRoot,
+    file,
+    { prolog: PROLOG_SOURCE_READER },
+    [JSON.stringify(plan)],
+    (parsed) => parsed !== null && typeof parsed === "object" && "ok" in (parsed as object),
+  );
+  if (!run.ok)
+    return { ok: false, reason: `Kibi could not run SWI-Prolog to read ${file}${run.failure ? `: ${run.failure}` : ""}` };
+  const value = run.value as PrologRead;
+  if (!value.ok) return { ok: false, reason: value.error ?? `Kibi could not read ${file}` };
+  return { ok: true, value };
+}
+
+/** The prolog reader: one argument of every fact with a functor, in file order. */
+// implements REQ-kibi-prolog-source-readers
+function readPrologTerms(workspaceRoot: string, spec: SourceSpec): SourceCodeEvaluation {
+  const file = String(spec.file);
+  const read = runPrologReader(workspaceRoot, file, {
+    mode: "terms",
+    file,
+    functor: spec.functor,
+    ...(spec.arg !== undefined ? { arg: spec.arg } : {}),
+  });
+  if (!read.ok) return read;
+  return { ok: true, members: read.value.members ?? [], sequence: read.value.sequence ?? [] };
 }
 
 // Built on first use so TS_RESOLVE_HOOKS is initialized.
@@ -721,6 +1530,7 @@ function evaluateModule(workspaceRoot: string, spec: SourceSpec): SourceCodeEval
 // implements REQ-kibi-source-proof-kinds
 export const evaluateSourceCode: SourceCodeEvaluator = async (workspaceRoot, spec) => {
   if (spec.reader === "references") return readReferences(workspaceRoot, spec);
+  if (spec.reader === "prolog") return readPrologTerms(workspaceRoot, spec);
   if (spec.reader === "schema" && spec.format !== "drizzle")
     return { ok: false, reason: `format ${String(spec.format)} is read without code` };
   return evaluateModule(workspaceRoot, spec);

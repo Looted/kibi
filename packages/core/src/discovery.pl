@@ -417,7 +417,7 @@ evidence_floor_json(BindingMode, TestBindings, VerificationSnapshot, CheckedAt, 
         (   member(Id-Proof, Evaluated),
             Floor = Proof.evidenceFloor,
             Floor.status \== met,
-            Row = _{
+            Row0 = _{
                 id: Id,
                 evidenceLevel: Proof.evidenceLevel,
                 requiredEvidence: Floor.required,
@@ -427,7 +427,14 @@ evidence_floor_json(BindingMode, TestBindings, VerificationSnapshot, CheckedAt, 
                 proofGaps: Proof.proofGaps,
                 gapDetails: Details
             },
-            evidence_floor_gap_details(Proof, Details)
+            evidence_floor_gap_details(Proof, Details),
+            % implements REQ-kibi-claim-bound-proofs
+            % A claim its proof refuted: the test and what it read.
+            (   get_dict(claimBindingRejections, Proof, Refutations),
+                Refutations \== []
+            ->  Row = Row0.put(refutations, Refutations)
+            ;   Row = Row0
+            )
         ),
         Rows0),
     sort(id, @<, Rows0, Rows),

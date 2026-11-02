@@ -117,8 +117,9 @@ certificate_model(state_machine, Certificate, model(any(States), Table, machine(
     ;   Initial = none
     ),
     machine_table(States, Edges, Initial, Table).
-certificate_model(source, Certificate, model(none, none, source(Members, Entities, Routes, Sequence))) :-
+certificate_model(source, Certificate, model(none, none, source(Members, Entities, Routes, Sequence, Matching))) :-
     !,
+    source_matching(Certificate, Matching),
     required(Certificate, model, Model),
     required(Model, members, RawMembers),
     maplist(text_string, RawMembers, Members0),
@@ -307,6 +308,204 @@ relation_problem("excludes", Actual, Expected, What, Reason) :-
     format(string(Reason), "~w include ~w, which the fact excludes", [What, Text]).
 
 % ---------------------------------------------------------------------------
+% Reference members
+%
+% The references reader's members are dotted, slashed or ::-joined names
+% (java.sql.Connection, github.com/labstack/echo/v4/middleware,
+% std::env::var), a wildcard import (java.sql.*), or *.m for a call of m on a
+% receiver the reader cannot name.  For these members an expected item E
+% covers more than its own spelling, and each operator reads it in the
+% direction that can never prove a claim the code does not hold:
+%
+%   excludes   E fails on any member that is or may be E: E itself, a member
+%              under E at a segment boundary (java.sql covers
+%              java.sql.Connection), a member under the prefix of E* (java.sql.*
+%              covers java.sql.Connection), a wildcard import that may bring E
+%              in, a shorter name E ends with (File.delete may be
+%              java.io.File.delete), a longer name ending in E at a segment
+%              boundary (checkNotNull may be named by
+%              com.google.common.base.Preconditions.checkNotNull), and *.m
+%              when E ends in .m (it may be E).
+%   includes   E holds only on a member that certainly is E: E itself, a
+%              member under the prefix of E*, or a member ending in .m for *.m.
+%              *.m never satisfies X.m.
+%   subset_of  A member is allowed only when it certainly is an allowed item:
+%              the item itself, a member under the prefix of an item E*, or a
+%              member ending in .m for *.m.  *.m is allowed only when *.m is.
+%   eq         Compares the spellings exactly, as for every other reader.
+
+source_matching(Certificate, references(Files)) :-
+    get_dict(source, Certificate, Source),
+    is_dict(Source),
+    get_dict(reader, Source, Reader),
+    text_string(Reader, "references"),
+    !,
+    (   get_dict(files, Source, RawFiles)
+    ->  (   is_list(RawFiles) -> maplist(text_string, RawFiles, Files) ; text_string(RawFiles, File), Files = [File] )
+    ;   Files = []
+    ).
+source_matching(_, literal).
+
+member_separator(".").
+member_separator("/").
+member_separator("::").
+
+% extends_member(+Member, +Stem): Member is Stem or lies under it at a
+% segment boundary.  The empty stem (from the item "*") covers everything.
+extends_member(_, "") :- !.
+extends_member(Member, Stem) :- Member == Stem, !.
+extends_member(Member, Stem) :-
+    member_separator(Separator),
+    string_concat(Stem, Separator, Prefix),
+    string_concat(Prefix, _, Member),
+    !.
+
+% pattern_stem(+Item, -Stem): Item ends in *; Stem drops it and the separator
+% before it (java.sql.* -> java.sql, * -> "").
+pattern_stem(Item, Stem) :-
+    \+ unknown_receiver(Item, _),
+    string_concat(Base, "*", Item),
+    (   member_separator(Separator), string_concat(Stem0, Separator, Base)
+    ->  Stem = Stem0
+    ;   Stem = Base
+    ).
+
+% unknown_receiver(+Member, -Method): Member is *.Method.
+unknown_receiver(Member, Method) :-
+    string_concat("*.", Method, Member),
+    Method \== "".
+
+% ends_with_method(+Member, +Method): Member's last segment is Method.
+ends_with_method(Member, Method) :-
+    member_separator(Separator),
+    string_concat(Separator, Method, Suffix),
+    string_concat(_, Suffix, Member),
+    !.
+
+% exclude_match(+Actual, +Expected, -How): Actual is (certain) or may be
+% (possible) what Expected names.
+exclude_match(Actual, Expected, certain) :- Actual == Expected, !.
+exclude_match(Actual, Expected, certain) :-
+    unknown_receiver(Expected, Method),
+    \+ unknown_receiver(Actual, _),
+    ends_with_method(Actual, Method),
+    !.
+exclude_match(Actual, Expected, possible) :-
+    unknown_receiver(Actual, Method),
+    !,
+    (   pattern_stem(Expected, _)
+    ;   ends_with_method(Expected, Method)
+    ),
+    !.
+exclude_match(Actual, Expected, How) :-
+    pattern_stem(Actual, ActualStem),
+    !,
+    (   pattern_stem(Expected, Target) -> true ; Target = Expected ),
+    (   extends_member(ActualStem, Target)
+    ->  How = certain
+    ;   extends_member(Target, ActualStem)
+    ->  How = possible
+    ).
+exclude_match(Actual, Expected, How) :-
+    (   pattern_stem(Expected, Stem)
+    ->  extends_member(Actual, Stem),
+        How = certain
+    ;   extends_member(Actual, Expected)
+    ->  How = certain
+    ;   ends_with_method(Expected, Actual)
+    ->  How = possible
+    ;   ends_with_method(Actual, Expected)
+    ->  How = possible
+    ).
+
+% certain_match(+Actual, +Expected): Actual certainly is what Expected names
+% (includes, subset_of).
+certain_match(Actual, Expected) :- Actual == Expected, !.
+certain_match(_, "*") :- !.
+certain_match(Actual, Expected) :-
+    \+ unknown_receiver(Actual, _),
+    (   pattern_stem(Expected, Stem)
+    ->  (   pattern_stem(Actual, ActualStem)
+        ->  extends_member(ActualStem, Stem)
+        ;   extends_member(Actual, Stem)
+        )
+    ;   unknown_receiver(Expected, Method)
+    ->  \+ pattern_stem(Actual, _),
+        ends_with_method(Actual, Method)
+    ),
+    !.
+
+files_text([], "the files read") :- !.
+files_text(Files, Text) :-
+    length(Files, N),
+    (   N > 3
+    ->  length(Shown, 3), append(Shown, _, Files),
+        atomic_list_concat(Shown, ', ', Listed),
+        Extra is N - 3,
+        format(string(Text), "~w and ~w more", [Listed, Extra])
+    ;   atomic_list_concat(Files, ', ', Text)
+    ).
+
+excluded_text(Files, Actual-Expected-How, Text) :-
+    (   How == certain, Actual == Expected
+    ->  Text = Actual
+    ;   How == certain
+    ->  format(string(Text), "~w (within ~w)", [Actual, Expected])
+    ;   unknown_receiver(Actual, Method)
+    ->  files_text(Files, Where),
+        format(string(Text), "~w (a call of ~w on a receiver Kibi cannot name, in ~w; it may be ~w)", [Actual, Method, Where, Expected])
+    ;   pattern_stem(Actual, _)
+    ->  format(string(Text), "~w (a wildcard that may cover ~w)", [Actual, Expected])
+    ;   ends_with_method(Actual, Expected)
+    ->  format(string(Text), "~w (it may be the ~w the fact excludes)", [Actual, Expected])
+    ;   format(string(Text), "~w (a shorter name that may be ~w)", [Actual, Expected])
+    ).
+
+% reference_relation_problem(+Operator, +Actual, +Expected, +Files, +What,
+% -Reason) fails when the relation holds under the reference matching above.
+reference_relation_problem("excludes", Actual, Expected, Files, What, Reason) :-
+    !,
+    findall(A-E-How, (member(A, Actual), member(E, Expected), exclude_match(A, E, How)), Pairs0),
+    sort(Pairs0, Pairs),
+    Pairs \== [],
+    include(certain_pair, Pairs, Certain),
+    maplist(excluded_text(Files), Pairs, Texts),
+    atomic_list_concat(Texts, ', ', Text),
+    (   Certain \== []
+    ->  format(string(Reason), "~w include ~w, which the fact excludes", [What, Text])
+    ;   format(string(Reason), "~w include ~w, which the fact excludes; Kibi cannot decide the claim for those members", [What, Text])
+    ).
+reference_relation_problem("includes", Actual, Expected, _, What, Reason) :-
+    !,
+    exclude(matched_by_some(Actual), Expected, Missing),
+    Missing \== [],
+    atomic_list_concat(Missing, ', ', Text),
+    format(string(Reason), "~w do not include ~w", [What, Text]).
+reference_relation_problem("subset_of", Actual, Expected, _, What, Reason) :-
+    !,
+    exclude(allowed_by_some(Expected), Actual, Extra),
+    Extra \== [],
+    atomic_list_concat(Extra, ', ', Text),
+    (   member(Member, Extra), unknown_receiver(Member, _)
+    ->  format(string(Reason), "~w include ~w, which the fact's set does not allow (a call on a receiver Kibi cannot name is allowed only when the set lists it as *.m)", [What, Text])
+    ;   format(string(Reason), "~w include ~w, which the fact's set does not allow", [What, Text])
+    ).
+reference_relation_problem(Operator, Actual, Expected, _, What, Reason) :-
+    relation_problem(Operator, Actual, Expected, What, Reason).
+
+certain_pair(_-_-certain).
+
+matched_by_some(Actual, Expected) :-
+    member(Member, Actual),
+    certain_match(Member, Expected),
+    !.
+
+allowed_by_some(Expected, Member) :-
+    member(Item, Expected),
+    certain_match(Member, Item),
+    !.
+
+% ---------------------------------------------------------------------------
 % Obligations
 
 obligation_result("rule_holds", Obligation, Model, Result) :- !,
@@ -397,14 +596,18 @@ obligation_result("machine_relation", Obligation, model(_, _, Machine), Result) 
         ;   Result = ok
         )
     ).
-obligation_result("set_relation", Obligation, model(_, _, source(Actual, _, _, _)), Result) :- !,
+obligation_result("set_relation", Obligation, model(_, _, source(Actual, _, _, _, Matching)), Result) :- !,
     dict_text(Obligation, operator, Operator),
     obligation_strings(Obligation, Expected),
-    (   relation_problem(Operator, Actual, Expected, "the members Kibi read from the source", Reason)
+    What = "the members Kibi read from the source",
+    (   (   Matching = references(Files)
+        ->  reference_relation_problem(Operator, Actual, Expected, Files, What, Reason)
+        ;   relation_problem(Operator, Actual, Expected, What, Reason)
+        )
     ->  Result = problem(Reason)
     ;   Result = ok
     ).
-obligation_result(FieldKind, Obligation, model(_, _, source(_, Entities, _, _)), Result) :-
+obligation_result(FieldKind, Obligation, model(_, _, source(_, Entities, _, _, _)), Result) :-
     memberchk(FieldKind, ["required_fields", "nullable_fields"]),
     !,
     (   is_list(Entities), Entities \== []
@@ -417,7 +620,7 @@ obligation_result(FieldKind, Obligation, model(_, _, source(_, Entities, _, _)),
     ->  Result = problem(Reason)
     ;   Result = ok
     ).
-obligation_result("route_middleware", Obligation, model(_, _, source(_, _, Routes, _)), Result) :- !,
+obligation_result("route_middleware", Obligation, model(_, _, source(_, _, Routes, _, _)), Result) :- !,
     (   is_list(Routes), Routes \== []
     ->  true
     ;   throw(model_error("the source has no routes; read a route table for a middleware claim"))
@@ -436,7 +639,7 @@ obligation_result("route_middleware", Obligation, model(_, _, source(_, _, Route
     ;   Result = ok
     ).
 % implements REQ-kibi-source-proof-kinds
-obligation_result("sequence_precedes", Obligation, model(_, _, source(_, _, _, Sequence)), Result) :- !,
+obligation_result("sequence_precedes", Obligation, model(_, _, source(_, _, _, Sequence, _)), Result) :- !,
     (   is_list(Sequence)
     ->  true
     ;   throw(model_error("the source has no order; read a list for a precedes claim"))

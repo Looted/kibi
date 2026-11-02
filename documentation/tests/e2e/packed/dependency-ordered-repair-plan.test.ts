@@ -503,7 +503,11 @@ if (RUN_NODE_TEST_SUITE) {
         );
         assert.match(
           `${refused.stdout}${refused.stderr}`,
-          /Migration plan changed; regenerate the plan and approve its current hash/,
+          /is not the current migration plan; its hash is now [a-f0-9]{64}/,
+        );
+        assert.match(
+          `${refused.stdout}${refused.stderr}`,
+          /kibi migrate --apply-safe [a-f0-9]{64}/,
         );
 
         const afterStatus = await cliJson<{

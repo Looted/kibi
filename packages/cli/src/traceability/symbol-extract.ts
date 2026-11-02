@@ -2,6 +2,10 @@ import { createHash } from "node:crypto";
 import type { SourceAnalysisResult as SdkSourceAnalysisResult } from "kibi-plugin-sdk";
 import { readManifestWithCoordinateOverlay } from "../extractors/manifest.js";
 import {
+  declarationTitleAliases,
+  matchDeclarationTitle,
+} from "../extractors/symbol-title-match.js";
+import {
   createTsMorphSourceAnalysisProvider,
   isPrivateClassMember,
 } from "../extractors/symbols-ts.js";
@@ -10,6 +14,7 @@ import {
   type SymbolRole,
   inferSymbolRole,
 } from "../public/symbol-granularity.js";
+import { analysisObligation } from "./analysis-gate.js";
 import type { HunkRange, StagedFile } from "./git-staged.js";
 
 type SourceAnalysisResult = SdkSourceAnalysisResult & {
@@ -190,6 +195,7 @@ function buildSymbolResult(
   span: { startLine: number; endLine: number },
   inlineReqLinks: string[],
   manifestLookup?: ManifestLookup,
+  nestedSpans: readonly HunkLineRange[] = [],
 ): ExtractedSymbol {
   const { id, relationships } = resolveSymbolTraceability(
     stagedFile.path,
@@ -210,11 +216,7 @@ function buildSymbolResult(
       startLine: span.startLine,
       endLine: span.endLine,
     },
-    hunkRanges: intersectingHunks(
-      span.startLine,
-      span.endLine,
-      stagedFile.hunkRanges,
-    ),
+    hunkRanges: ownedHunks(span, nestedSpans, stagedFile.hunkRanges),
     reqLinks: mergedReqLinks,
     ...(relationships !== undefined ? { relationships } : {}),
   };
@@ -360,12 +362,45 @@ export async function extractSymbolsFromStagedFileAsync(
   } else {
     analysis = analyzeWithBuiltinFallback(stagedFile.path, content);
   }
+  // A local gap (a macro, an include, a dynamic definition) does not hide the
+  // declarations the parser placed, so those are validated; a changed line
+  // that no placed declaration contains is reviewed at file level instead.
+  if (analysis && partialAnalysisSymbolsUsable(analysis))
+    return symbolsFromAnalysis(stagedFile, analysis, manifestLookup);
   if (analysis?.status === "failed" || analysis?.status === "partial") {
     throw new Error(
       `Source analysis ${analysis.status} for ${stagedFile.path}; complete symbol validation is unavailable`,
     );
   }
   return symbolsFromAnalysis(stagedFile, analysis, manifestLookup);
+}
+
+type HunkLineRange = { startLine: number; endLine: number };
+
+/**
+ * Whether a partial result still places its declarations: every gap is local
+ * (no parser, timeout or integrity finding) and no output cap hid symbols.
+ */
+// implements REQ-cli-staged-impact-enforcement
+export function partialAnalysisSymbolsUsable(analysis: {
+  status?: string;
+  diagnostics?: readonly { code: string }[];
+  uncoveredRanges?: readonly (HunkLineRange & { reason: string })[];
+}): boolean {
+  if (analysis.status !== "partial") return false;
+  const codes = (analysis.diagnostics ?? []).map((item) => item.code);
+  if (codes.some((code) => /LIMIT/i.test(code))) return false;
+  return (
+    analysisObligation(
+      "after",
+      {
+        status: "partial",
+        diagnosticCodes: codes,
+        uncoveredRanges: analysis.uncoveredRanges ?? [],
+      },
+      [],
+    ).kind !== "blocked"
+  );
 }
 
 function symbolsFromAnalysis(
@@ -390,6 +425,7 @@ function symbolsFromAnalysis(
   const results: ExtractedSymbol[] = [];
 
   for (const symbol of analysis.symbols) {
+    const nested = nestedSpans(symbol, analysis.symbols);
     try {
       results.push(
         buildSymbolResult(
@@ -404,6 +440,7 @@ function symbolsFromAnalysis(
           { startLine: symbol.startLine, endLine: symbol.endLine },
           parseReqDirectives(symbol.directiveText ?? ""),
           manifestLookup,
+          nested,
         ),
       );
     } catch (error) {
@@ -426,16 +463,45 @@ function symbolsFromAnalysis(
 
 export { isPrivateClassMember };
 
-function intersectingHunks(
-  startLine: number,
-  endLine: number,
-  hunks: HunkRange[],
+/** Spans of the other declarations strictly inside a declaration's span. */
+function nestedSpans(
+  symbol: HunkLineRange,
+  symbols: readonly HunkLineRange[],
+): HunkLineRange[] {
+  return symbols
+    .filter(
+      (other) =>
+        other !== symbol &&
+        symbol.startLine <= other.startLine &&
+        other.endLine <= symbol.endLine &&
+        (other.startLine !== symbol.startLine ||
+          other.endLine !== symbol.endLine),
+    )
+    .sort((left, right) => left.startLine - right.startLine);
+}
+
+/**
+ * Hunks with a changed line inside the span that no nested declaration
+ * contains: a line inside a member changes the member, not its class.
+ */
+function ownedHunks(
+  span: HunkLineRange,
+  nested: readonly HunkLineRange[],
+  hunks: readonly HunkRange[],
 ): HunkRange[] {
-  const out: HunkRange[] = [];
-  for (const h of hunks) {
-    if (rangesIntersect(startLine, endLine, h.start, h.end)) out.push(h);
-  }
-  return out;
+  return hunks.filter((hunk) => {
+    if (!rangesIntersect(span.startLine, span.endLine, hunk.start, hunk.end))
+      return false;
+    const end = Math.min(span.endLine, hunk.end);
+    let line = Math.max(span.startLine, hunk.start);
+    for (const child of nested) {
+      if (child.endLine < line) continue;
+      if (child.startLine > line) return true;
+      line = child.endLine + 1;
+      if (line > end) return false;
+    }
+    return line <= end;
+  });
 }
 
 // implements REQ-cli-staged-impact-enforcement
@@ -450,12 +516,13 @@ function sourceSymbolLocator(
   const qualified = symbol.qualifiedName;
   if (!qualified || qualified === symbol.name) return symbol.name;
   if (lookup?.has(`${filePath}:${qualified}`)) return qualified;
-  // Preserve an authored legacy unqualified locator only when unambiguous.
-  if (
-    symbols.filter((candidate) => candidate.name === symbol.name).length ===
-      1 &&
-    lookup?.has(`${filePath}:${symbol.name}`)
-  )
-    return symbol.name;
+  // Another title sync places on this declaration alone: a Terraform
+  // address, a bare name no other declaration shares, a class named like
+  // its constructors.
+  for (const title of [...declarationTitleAliases(symbol), symbol.name]) {
+    if (!lookup?.has(`${filePath}:${title}`)) continue;
+    const match = matchDeclarationTitle(title, symbols, filePath);
+    if ("symbol" in match && match.symbol === symbol) return title;
+  }
   return qualified;
 }

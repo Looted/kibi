@@ -7,3 +7,4 @@ export * from "./capabilities/symbol-extractor.js";
 export * from "./capabilities/vocabulary-alignment.js";
 export * from "./capabilities/check-policy.js";
 export * from "./capabilities/search-hints.js";
+export * from "./capabilities/reference-extractor.js";

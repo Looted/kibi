@@ -57,11 +57,18 @@ function resultOf(output: {
   exitCode: number;
   stdout: string;
   stderr: string;
-}): { continue: boolean; systemMessage?: string } {
+}): {
+  continue: boolean;
+  systemMessage?: string;
+  decision?: string;
+  reason?: string;
+} {
   expect(output.exitCode, output.stderr).toBe(0);
   return JSON.parse(output.stdout.trim()) as {
     continue: boolean;
     systemMessage?: string;
+    decision?: string;
+    reason?: string;
   };
 }
 
@@ -163,9 +170,9 @@ async function exercisePlugin(
       cwd: workspaceRoot,
     }),
   );
-  expect(stop.continue).toBe(true);
-  expect(stop.systemMessage).toContain("Kibi freshness reminder");
-  expect(stop.systemMessage).toContain("docs/codex.md");
+  expect(stop).toMatchObject({ continue: true, decision: "block" });
+  expect(stop.reason).toContain("Kibi freshness reminder");
+  expect(stop.reason).toContain("docs/codex.md");
 }
 
 describe("Codex source and packed-install hook artifact", () => {

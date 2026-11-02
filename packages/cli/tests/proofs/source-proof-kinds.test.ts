@@ -486,6 +486,8 @@ describe("references the code makes", () => {
         extract: "env",
       }),
     ).toEqual(["API_URL", "VITE_C", "VITE_MODE"]);
+    // An alias of the env object or import.meta is followed: its reads are
+    // the env reads.
     for (const [name, text] of [
       [
         "escape-env.ts",
@@ -497,14 +499,26 @@ describe("references the code makes", () => {
       ],
     ] as const) {
       write(`src/${name}`, text);
-      const result = await read({
-        reader: "references",
-        files: `src/${name}`,
-        extract: "env",
-      });
-      expect(result.ok).toBe(false);
-      if (!result.ok) expect(result.reason).toContain(`src/${name}:1`);
+      expect(
+        await members({
+          reader: "references",
+          files: `src/${name}`,
+          extract: "env",
+        }),
+      ).toEqual(["NG_APP_URL"]);
     }
+    // Handed on under that alias, it could be read under any name.
+    write(
+      "src/escape-pass.ts",
+      "const env = import.meta.env;\nexport const x = read(env);\n",
+    );
+    const result = await read({
+      reader: "references",
+      files: "src/escape-pass.ts",
+      extract: "env",
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toContain("src/escape-pass.ts:2");
   });
 
   test("Python env and imports", async () => {
@@ -525,7 +539,541 @@ describe("references the code makes", () => {
         files: "app/*.py",
         extract: "imports",
       }),
-    ).toEqual([".db", "os"]);
+    ).toEqual([".db", ".db.engine", "os"]);
+  });
+
+  async function pythonRead(text: string, extract: string, callee?: string) {
+    write("py/case.py", text);
+    return read({
+      reader: "references",
+      files: "py/case.py",
+      extract,
+      ...(callee ? { callee } : {}),
+    });
+  }
+
+  test("Python env reads through import aliases and key methods", async () => {
+    for (const [text, expected] of [
+      ['import os as o\na = o.getenv("A")\nb = o.environ["B"]\n', ["A", "B"]],
+      [
+        'from os import getenv as g, environ as E\ng("A")\nE["B"]\nE.get("C")\n',
+        ["A", "B", "C"],
+      ],
+      [
+        'import os\nos.environ.setdefault("A", "1")\nos.environ.pop("B")\nif "C" in os.environ:\n    pass\nif "D" not in os.environ:\n    pass\n',
+        ["A", "B", "C", "D"],
+      ],
+      ['import os\nx = os.getenvb(b"A") or os.environb[b"B"]\n', []],
+    ] as const) {
+      const result = await pythonRead(text, "env");
+      if (expected.length === 0) {
+        // bytes keys are not string literals: refused, not left out.
+        expect(result.ok).toBe(false);
+        continue;
+      }
+      expect(result).toEqual({ ok: true, model: { members: [...expected] } });
+    }
+  });
+
+  test("Python refuses env reads it cannot name, with their place", async () => {
+    for (const text of [
+      "import os\nx = os.environ.copy()\n",
+      "import os\nx = dict(os.environ)\n",
+      "import os\nenv = {}\nenv.update(os.environ)\n",
+      "import os\nf(**os.environ)\n",
+      "import os\nrun(env=os.environ)\n",
+      "from os import environ\ne = environ\n",
+      "import os\nfor k in os.environ.items():\n    pass\n",
+      "import os\nk = 1\nif k not in os.environ:\n    pass\n",
+      "import os\nx = os.environ[k]\n",
+      "import os\nx = os.getenv(k)\n",
+      "import os\nx = os.environ.get(k)\n",
+      "import os\nf = os.getenv\n",
+      'import os\ngetattr(os, "getenv")("A")\n',
+      "import os\nm = os\n",
+      'exec("x")\n',
+      'eval("x")\n',
+      'compile("x", "f", "exec")\n',
+      '__import__("os").getenv("A")\n',
+      'import importlib\nimportlib.import_module("os").environ\n',
+      'import sys\nsys.modules["os"].getenv("A")\n',
+      'import os\nos.path.expandvars("$A")\n',
+      "from os import *\n",
+    ]) {
+      const result = await pythonRead(text, "env");
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.reason).toMatch(/py\/case\.py:\d/);
+    }
+  });
+
+  test("Python refuses os, posix and namespaces reached through another name", async () => {
+    for (const text of [
+      'from dotenv.main import os\nos.getenv("A")\n',
+      'from .main import os as o\no.environ["A"]\n',
+      'from .main import o\no.environ.get("A")\n',
+      'from .main import environ\nenviron["A"]\n',
+      'import dotenv.main\ndotenv.main.os.environ.get("A")\n',
+      'import shutil\nshutil.os.getenv("A")\n',
+      'from os import path\npath.os.getenv("A")\n',
+      'import os.path as p\np.os.environ["A"]\n',
+      'import posix\nposix.environ[b"A"]\n',
+      'import os\nos.__dict__["getenv"]("A")\n',
+      'import os\nglobals()["os"].getenv("A")\n',
+      'import os\nlocals()["os"]\n',
+      'import os\nvars()["os"]\n',
+      'import os\nvars(os)["getenv"]("A")\n',
+      'def f():\n    pass\nf.__globals__["os"]\n',
+      '__builtins__.__import__("os")\n',
+      "import shutil\nm = shutil\n",
+      'import importlib.util\ns = importlib.util.find_spec("os")\n',
+      'import runpy\nrunpy.run_path("x.py")\n',
+      'import pkgutil\npkgutil.resolve_name("os:getenv")("A")\n',
+    ]) {
+      const result = await pythonRead(text, "env");
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.reason).toMatch(/py\/case\.py:\d/);
+    }
+    // posix and nt are os under another name; a parameter's vars() is not a module's.
+    expect(await pythonRead('import nt\nnt.environ["A"]\n', "env")).toEqual({
+      ok: true,
+      model: { members: ["A"] },
+    });
+    expect(
+      await pythonRead(
+        'import os.path\nos.path.join("a")\nos.getenv("A")\ndef f(args):\n    return vars(args)\n',
+        "env",
+      ),
+    ).toEqual({ ok: true, model: { members: ["A"] } });
+    for (const text of [
+      'import shutil\nshutil.os.system("x")\n',
+      'from .main import os\nos.system("x")\n',
+      'from .main import o\no.system("x")\n',
+      'from dotenv.cli import Popen\nPopen(["x"])\n',
+      "import dotenv.main\ndotenv.main.os.system()\n",
+      'from subprocess import run\nglobals()["run"](["x"])\n',
+      'import runpy\nrunpy.run_module("x")\n',
+      'import subprocess\nsubprocess.__dict__["run"]()\n',
+    ]) {
+      const result = await pythonRead(text, "calls");
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.reason).toMatch(/py\/case\.py:\d/);
+    }
+    // A duplicate place is listed once.
+    const twice = await pythonRead(
+      'from subprocess import run\nglobals()["run"](["x"])\n',
+      "calls",
+    );
+    if (!twice.ok) expect(twice.reason).toContain("Kibi cannot read 1 ");
+    expect(
+      await pythonRead(
+        "from .main import load_dotenv\nfrom asyncio import subprocess as asp\nload_dotenv()\nasp.create_subprocess_exec()\n",
+        "calls",
+      ),
+    ).toEqual({
+      ok: true,
+      model: {
+        members: [
+          ".main.load_dotenv",
+          "asp.create_subprocess_exec",
+          "asyncio.subprocess.create_subprocess_exec",
+          "load_dotenv",
+        ],
+      },
+    });
+    for (const text of [
+      "from .main import os\n",
+      "from pkg import subprocess\n",
+      'import pkgutil\npkgutil.resolve_name("subprocess:run")\n',
+      'import runpy\nrunpy.run_module("subprocess")\n',
+      'import importlib.util\nimportlib.util.find_spec("subprocess")\n',
+    ]) {
+      const result = await pythonRead(text, "imports");
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.reason).toMatch(/py\/case\.py:\d/);
+    }
+    expect(
+      await pythonRead("from asyncio import subprocess\n", "imports"),
+    ).toEqual({
+      ok: true,
+      model: { members: ["asyncio", "asyncio.subprocess"] },
+    });
+  });
+
+  test("Python refuses os reached through a module's private name", async () => {
+    // tempfile, random and threading bind os as _os: tempfile._os is os.
+    for (const [text, extracts] of [
+      ["from tempfile import _os\n", ["imports", "calls", "env"]],
+      ["from random import _os as o\n", ["imports", "calls", "env"]],
+      ["from .main import _subprocess\n", ["imports", "calls"]],
+      ['from tempfile import _os\n_os.system("x")\n', ["imports", "calls"]],
+      [
+        'import tempfile\ntempfile._os.system("echo hi")\n',
+        ["imports", "calls"],
+      ],
+      ['import threading\nthreading._os.popen("ls")\n', ["calls"]],
+      ['import tempfile\ntempfile._os.popen("ls")\n', ["calls"]],
+      ["import tempfile\nm = tempfile._os\n", ["imports", "calls", "env"]],
+    ] as const) {
+      for (const extract of extracts) {
+        const result = await pythonRead(text, extract);
+        expect(result.ok).toBe(false);
+        if (!result.ok) expect(result.reason).toMatch(/py\/case\.py:\d/);
+      }
+    }
+    // os's and sys's own private names are read as written, and so is a
+    // private name of a project module that is not a module Kibi follows.
+    expect(
+      await pythonRead(
+        "import os\nfrom .util import _helper\nos._exit(0)\n_helper()\n",
+        "calls",
+      ),
+    ).toEqual({
+      ok: true,
+      model: { members: [".util._helper", "_helper", "os._exit"] },
+    });
+  });
+
+  test("Python refuses reflection on a module and a module bound to another name", async () => {
+    // getattr(tempfile, "_os"), vars(tempfile)["_os"] and _t = tempfile; _t._os all reach os.
+    for (const text of [
+      'import tempfile\ngetattr(tempfile, "_os").path.expanduser("~")\n',
+      'import shutil\ngetattr(shutil, "os").system("x")\n',
+      'import tempfile\nvars(tempfile)["_os"].system("x")\n',
+      'import tempfile\ntempfile.__dict__["_os"].system("x")\n',
+      'import tempfile\n_t = tempfile\n_t._os.path.expanduser("~")\n',
+      'import shutil\n_m = shutil\n_m.os.system("x")\n',
+      "import tempfile as tf\ndef f():\n    return tf\nf()._os\n",
+      'import tempfile\nm = [tempfile][0]\nm._os.system("x")\n',
+      'from os import path\np = path\np.os.system("x")\n',
+      'from importlib import resources as r\nx = r\nx._os.system("x")\n',
+      'import os\np = os.path\np.os.system("x")\n',
+      'from .helpers import h\nx = h\nx._os.system("x")\n',
+      'import tempfile\nglobals()["tempfile"]._os.system("x")\n',
+      'import sys\nsys.modules["tempfile"]._os.system("x")\n',
+    ]) {
+      for (const extract of ["imports", "calls", "env"]) {
+        const result = await pythonRead(text, extract);
+        expect(result.ok).toBe(false);
+        if (!result.ok) expect(result.reason).toMatch(/py\/case\.py:\d/);
+      }
+    }
+    // A class or function used as a value, and an attribute that is not a module, are read.
+    expect(
+      await pythonRead(
+        "from pathlib import Path\nfrom dataclasses import dataclass\nimport os\n@dataclass\nclass C:\n    pass\nisinstance(1, Path)\nsep = os.sep\n",
+        "imports",
+      ),
+    ).toEqual({
+      ok: true,
+      model: {
+        members: [
+          "dataclasses",
+          "dataclasses.dataclass",
+          "os",
+          "pathlib",
+          "pathlib.Path",
+        ],
+      },
+    });
+  });
+
+  test("JavaScript env reads through process aliases, node:process and the global object", async () => {
+    const env = async (text: string) => {
+      write("js/env.mjs", text);
+      return read({
+        reader: "references",
+        files: "js/env.mjs",
+        extract: "env",
+      });
+    };
+    // Read exactly: each of these reads SECRET.
+    for (const text of [
+      "const s = globalThis.process.env.SECRET;\n",
+      "const s = global.process.env.SECRET;\n",
+      "const g = globalThis;\nconst s = g.process.env.SECRET;\n",
+      'import { env } from "node:process";\nconst s = env.SECRET;\n',
+      'import proc from "node:process";\nconst s = proc.env.SECRET;\n',
+      'import * as P from "process";\nconst s = P.env.SECRET;\n',
+      'const p = require("node:process");\nconst s = p.env["SECRET"];\n',
+      "const s = (0, process).env.SECRET;\n",
+      "const { env: { SECRET: s } } = process;\n",
+      "const { env } = process;\nconst s = env.SECRET;\n",
+    ]) {
+      expect(await env(text)).toEqual({
+        ok: true,
+        model: { members: ["SECRET"] },
+      });
+    }
+    // Refused: the module or the environment is reached in a way Kibi does not follow.
+    for (const text of [
+      'const s = process.getBuiltinModule("node:process").env.SECRET;\n',
+      'import { createRequire } from "node:module";\nconst s = createRequire(import.meta.url)("process").env.SECRET;\n',
+      'const s = await import("node:process").then((m) => m.env.SECRET);\n',
+      'const s = new Function("return process.env.SECRET")();\n',
+      "const p = [process][0];\n",
+      "const { env: { ...rest } } = process;\n",
+      'export { env } from "node:process";\n',
+    ]) {
+      const result = await env(text);
+      expect({ text, ok: result.ok }).toEqual({ text, ok: false });
+    }
+    // A local named process is not the global one.
+    expect(
+      await env(
+        "function f(process) { return keep(process); }\nconst s = process.env.PORT;\n",
+      ),
+    ).toEqual({
+      ok: true,
+      model: { members: ["PORT"] },
+    });
+  });
+
+  test("JavaScript imports and calls through node: names, aliases and loaders", async () => {
+    const js = async (text: string, extract: string) => {
+      write("js/calls.mjs", text);
+      return read({ reader: "references", files: "js/calls.mjs", extract });
+    };
+    const imports = async (text: string) => {
+      const result = await js(text, "imports");
+      if (!result.ok) throw new Error(result.reason);
+      return result.model.members;
+    };
+    expect(
+      await imports('import { execSync } from "node:child_process";\n'),
+    ).toContain("child_process");
+    expect(await imports('import "node:child_process";\n')).toContain(
+      "child_process",
+    );
+    expect(await imports("await import(`node:child_process`);\n")).toContain(
+      "child_process",
+    );
+    expect(
+      await imports(
+        'import { createRequire } from "node:module";\nconst cp = createRequire(import.meta.url)("child_process");\n',
+      ),
+    ).toContain("child_process");
+    expect(
+      await imports(
+        'import { createRequire } from "node:module";\nconst req = createRequire(import.meta.url);\nreq("child_process");\n',
+      ),
+    ).toContain("child_process");
+    expect(
+      await imports('const cp = process.getBuiltinModule("child_process");\n'),
+    ).toContain("child_process");
+    expect((await js("const r = [require][0];\n", "imports")).ok).toBe(false);
+    const calls = async (text: string) => {
+      const result = await js(text, "calls");
+      if (!result.ok) throw new Error(result.reason);
+      return result.model.members;
+    };
+    for (const text of [
+      'import { execSync as run } from "child_process";\nrun("id");\n',
+      'import * as cp from "node:child_process";\ncp.execSync("id");\n',
+      'import * as cp from "node:child_process";\ncp["execSync"]("id");\n',
+      'import * as cp from "node:child_process";\ncp?.execSync("id");\n',
+      'import * as cp from "node:child_process";\ncp.execSync.call(null, "id");\n',
+      'import * as cp from "node:child_process";\nconst f = cp.execSync;\nf("id");\n',
+      'import * as cp from "node:child_process";\nReflect.apply(cp.execSync, null, ["id"]);\n',
+      'import { execSync } from "child_process";\n[execSync].forEach((f) => f("id"));\n',
+      'process.getBuiltinModule("child_process").execSync("id");\n',
+      '(await import("child_process")).execSync("id");\n',
+      'const cp = require("child_process");\ncp.execSync("id");\n',
+    ]) {
+      expect({
+        text,
+        called: (await calls(text)).includes("child_process.execSync"),
+      }).toEqual({ text, called: true });
+    }
+    // A built-in module handed on may have any member called.
+    expect(
+      await calls('import * as cp from "child_process";\nuse(cp);\n'),
+    ).toContain("child_process.*");
+    expect(
+      (await js("const f = new Function('return 1');\n", "calls")).ok,
+    ).toBe(false);
+  });
+
+  test("Python refuses unpickling, which calls whatever the data names", async () => {
+    for (const text of [
+      'import pickle\npickle.loads(b"cos\\nsystem\\n(Vid\\ntR.")\n',
+      "from pickle import loads\nloads(data)\n",
+    ]) {
+      expect((await pythonRead(text, "calls")).ok).toBe(false);
+    }
+  });
+
+  test("a symbolic link to a file is read as that file", async () => {
+    write("linked/real/zz.go.txt", "x");
+    write("linked/app/a.ts", "const a = process.env.A;\n");
+    write("linked/misc/b.ts", "const b = process.env.SECRET;\n");
+    symlinkSync("../misc/b.ts", path.join(root, "linked/app/b.ts"));
+    expect(
+      await members({
+        reader: "references",
+        files: "linked/app/*.ts",
+        extract: "env",
+      }),
+    ).toEqual(["A", "SECRET"]);
+    expect(
+      await members({
+        reader: "references",
+        files: "linked/app/b.ts",
+        extract: "env",
+      }),
+    ).toEqual(["SECRET"]);
+  });
+
+  test("Python reads posix and nt as os", async () => {
+    // os re-exports posix (nt on Windows): posix.system is os.system.
+    for (const [text, expected] of [
+      ['import posix\nposix.system("x")\n', ["os.system", "posix.system"]],
+      [
+        'from posix import system\nsystem("x")\n',
+        ["os.system", "posix.system", "system"],
+      ],
+      ['import nt as n\nn.popen("x")\n', ["n.popen", "nt.popen", "os.popen"]],
+      [
+        "from posix import system\nf = system\n",
+        ["os.system", "posix.system", "system"],
+      ],
+    ] as const) {
+      expect(await pythonRead(text, "calls")).toEqual({
+        ok: true,
+        model: { members: [...expected] },
+      });
+    }
+    expect(
+      await pythonRead(
+        'import posix\nfrom nt import popen\nposix.system("x")\n',
+        "imports",
+      ),
+    ).toEqual({
+      ok: true,
+      model: { members: ["nt", "nt.popen", "os", "os.popen", "posix"] },
+    });
+    expect(
+      await pythonRead(
+        'import posix\nposix.system("x")\n',
+        "string_args",
+        "os.system",
+      ),
+    ).toEqual({ ok: true, model: { members: ["x"] } });
+  });
+
+  test("Python refuses foreign function calls through ctypes and cffi", async () => {
+    for (const text of [
+      'import ctypes\nctypes.CDLL(None).getenv(b"X")\n',
+      'import ctypes\nlibc = ctypes.CDLL(None)\nlibc.getenv(b"X")\n',
+      'from ctypes import CDLL\nCDLL(None).getenv(b"X")\n',
+      'import ctypes as c\nc.cdll.LoadLibrary("libc.so.6").getenv(b"X")\n',
+      "import ctypes\nctypes.pythonapi.Py_GetVersion()\n",
+      'import cffi\nffi = cffi.FFI()\nffi.dlopen(None).getenv(b"X")\n',
+      'from cffi import FFI\nFFI().dlopen(None).getenv(b"X")\n',
+      'from ctypes import *\nCDLL(None).getenv(b"X")\n',
+      'import _ctypes\n_ctypes.dlopen("libc.so.6")\n',
+    ]) {
+      for (const extract of ["env", "calls"]) {
+        const result = await pythonRead(text, extract);
+        expect(result.ok).toBe(false);
+        if (!result.ok) expect(result.reason).toMatch(/py\/case\.py:\d/);
+      }
+    }
+    expect(await pythonRead("import ctypes\n", "imports")).toEqual({
+      ok: true,
+      model: { members: ["ctypes"] },
+    });
+  });
+
+  test("Python calls through an alias are listed under what they name, too", async () => {
+    expect(
+      await pythonRead(
+        'import subprocess as sp\nfrom subprocess import Popen\nfrom subprocess import run as r\nsp.call(["x"])\nPopen(["x"])\nr("y")\n',
+        "calls",
+      ),
+    ).toEqual({
+      ok: true,
+      model: {
+        members: [
+          "Popen",
+          "r",
+          "sp.call",
+          "subprocess.Popen",
+          "subprocess.call",
+          "subprocess.run",
+        ],
+      },
+    });
+    // An imported function used as a value is listed as called.
+    expect(
+      await pythonRead(
+        "import subprocess as sp\nfrom subprocess import Popen\nf = sp.check_output\ndef g(fn=Popen):\n    pass\n",
+        "calls",
+      ),
+    ).toEqual({
+      ok: true,
+      model: {
+        members: [
+          "Popen",
+          "sp.check_output",
+          "subprocess.Popen",
+          "subprocess.check_output",
+        ],
+      },
+    });
+    for (const text of [
+      "import subprocess\nm = subprocess\n",
+      'import subprocess\ngetattr(subprocess, "Popen")()\n',
+      "from subprocess import *\n",
+      'exec("x")\n',
+      'import sys\nsys.modules["subprocess"].Popen()\n',
+      "fs[0]()\n",
+    ]) {
+      const result = await pythonRead(text, "calls");
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.reason).toMatch(/py\/case\.py:\d/);
+    }
+    expect(
+      await pythonRead(
+        'from subprocess import run as r\nr("ls")\n',
+        "string_args",
+        "subprocess.run",
+      ),
+    ).toEqual({ ok: true, model: { members: ["ls"] } });
+  });
+
+  test("Python imports list the modules a from-import and a dotted import load", async () => {
+    expect(
+      await pythonRead(
+        "from urllib import request as rq\nimport os.path\nimport json\nfrom . import x\nfrom ..a.b import c\nfrom m import *\n",
+        "imports",
+      ),
+    ).toEqual({
+      ok: true,
+      model: {
+        members: [
+          ".",
+          "..a",
+          "..a.b",
+          "..a.b.c",
+          ".x",
+          "json",
+          "m",
+          "os",
+          "os.path",
+          "urllib",
+          "urllib.request",
+        ],
+      },
+    });
+    expect(
+      await pythonRead(
+        'import importlib\n__import__("os")\nimportlib.import_module("json")\n',
+        "imports",
+      ),
+    ).toEqual({ ok: true, model: { members: ["importlib", "json", "os"] } });
+    expect(
+      await pythonRead('__import__("os")\nexec("import x")\n', "imports"),
+    ).toMatchObject({ ok: false });
   });
 });
 

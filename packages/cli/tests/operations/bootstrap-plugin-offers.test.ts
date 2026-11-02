@@ -55,6 +55,76 @@ describe("bootstrap plugin offers", () => {
     fixture.cleanup();
   });
 
+  // executable_for TEST-kibi-tree-sitter-references
+  it("offers kibi-plugin-treesitter for Go, Java, C# and Rust sources until it reads proofs", async () => {
+    write(fixture.root, "cmd/server/main.go", "package main\n");
+    write(fixture.root, "src/lib.rs", "pub fn run() {}\n");
+    write(fixture.root, "cmd/server/main_test.go", "package main\n");
+
+    const { pluginOffers } = await discoverBootstrap(runtime(fixture.root));
+    expect(pluginOffers).toEqual([
+      {
+        package: "kibi-plugin-treesitter",
+        capability: "kibi.reference-extractor.v1",
+        mode: "augment",
+        alsoActivate: { "kibi.symbol-extractor.v2": "augment" },
+        alsoInstall: ["kibi-lang-go", "kibi-lang-rust"],
+        reason:
+          '1 Go, 1 Rust source file(s); source proofs and symbols for them need kibi-plugin-treesitter and the grammar pack(s) kibi-lang-go, kibi-lang-rust: npm install --save-dev kibi-plugin-treesitter kibi-lang-go kibi-lang-rust, then add this entry to package.json "kibi": { "plugins": [ {"package":"kibi-plugin-treesitter","capabilities":{"kibi.reference-extractor.v1":{"mode":"augment"},"kibi.symbol-extractor.v2":{"mode":"augment"}}} ] }',
+        fileCount: 2,
+        evidence: ["cmd/server/main.go", "src/lib.rs"],
+      },
+    ]);
+
+    // Active for symbols only: offer the proof capability alone.
+    setKibiConfig(fixture.root, {
+      plugins: [
+        {
+          package: "kibi-plugin-treesitter",
+          capabilities: { "kibi.symbol-extractor.v2": { mode: "augment" } },
+        },
+      ],
+    });
+    const symbolsOnly = await discoverBootstrap(runtime(fixture.root));
+    expect(
+      symbolsOnly.pluginOffers.map((offer) => [
+        offer.capability,
+        offer.alsoActivate,
+      ]),
+    ).toEqual([["kibi.reference-extractor.v1", undefined]]);
+
+    setKibiConfig(fixture.root, {
+      plugins: [
+        {
+          package: "kibi-plugin-treesitter",
+          capabilities: {
+            "kibi.symbol-extractor.v2": { mode: "augment" },
+            "kibi.reference-extractor.v1": { mode: "augment" },
+          },
+        },
+      ],
+    });
+    expect(
+      (await discoverBootstrap(runtime(fixture.root))).pluginOffers,
+    ).toEqual([]);
+  });
+
+  // executable_for TEST-kibi-tree-sitter-language-packs
+  it("offers kibi-plugin-treesitter for symbols in a language it cannot prove", async () => {
+    write(fixture.root, "src/app.py", "def run():\n    pass\n");
+    write(fixture.root, "tools/build.pl", "print 1;\n");
+    const { pluginOffers } = await discoverBootstrap(runtime(fixture.root));
+    expect(pluginOffers).toMatchObject([
+      {
+        package: "kibi-plugin-treesitter",
+        capability: "kibi.symbol-extractor.v2",
+        mode: "augment",
+        alsoInstall: ["kibi-lang-python"],
+        evidence: ["src/app.py"],
+      },
+    ]);
+  });
+
   it("offers kibi-plugin-ui when production component files exist", async () => {
     write(
       fixture.root,
@@ -158,6 +228,40 @@ describe("bootstrap plugin offers", () => {
     expect(String(offer?.description)).toContain("kibi.declinedPlugins");
     expect(String(offer?.description)).toContain('{ "mode": "augment" }');
     expect(actions.at(-1)?.kind).toBe("check");
+  });
+
+  // executable_for TEST-kibi-tree-sitter-language-packs
+  it("names the grammar packs to install next to the plugin in the action", () => {
+    const actions = buildActions(
+      fixture.root,
+      {
+        activationState: "root_uninitialized",
+        activationMode: "cold_start_bootstrap",
+        applyBlocked: false,
+        allowCandidateGeneration: true,
+        reason: "cold start",
+      },
+      normalizeBootstrapContext(undefined),
+      [],
+      [],
+      [
+        {
+          package: "kibi-plugin-treesitter",
+          capability: "kibi.reference-extractor.v1",
+          mode: "augment",
+          alsoActivate: { "kibi.symbol-extractor.v2": "augment" },
+          alsoInstall: ["kibi-lang-go"],
+          reason: "1 Go source file(s) found",
+          fileCount: 1,
+          evidence: ["cmd/main.go"],
+        },
+      ],
+    );
+    const offer = actions.find((action) => action.kind === "plugin_offer");
+    expect(offer).toMatchObject({ alsoInstall: ["kibi-lang-go"] });
+    expect(String(offer?.description)).toContain(
+      "install it and kibi-lang-go as dev dependencies",
+    );
   });
 
   // executable_for TEST-kibi-plugin-search-hints

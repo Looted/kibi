@@ -51,6 +51,7 @@ import {
   type PluginPermissions,
   type ProjectKibiConfig,
   type ProjectPluginEntry,
+  REFERENCE_EXTRACTOR_CAPABILITY_ID,
   SEARCH_HINTS_CAPABILITY_ID,
   SEMANTIC_CLASSIFIER_CAPABILITY_ID,
   SYMBOL_EXTRACTOR_CAPABILITY_ID,
@@ -58,12 +59,21 @@ import {
   VOCABULARY_ALIGNMENT_CAPABILITY_ID,
 } from "./protocol.js";
 import {
+  validateReferenceExtractionResult,
+  validateReferenceExtractor,
+} from "./validate-reference-extractor.js";
+import {
   validateSearchHints,
   validateSearchHintsResult,
 } from "./validate-search-hints.js";
 import { PluginValidationError } from "./validation-error.js";
 
-export { PluginValidationError, validateSearchHintsResult };
+export {
+  PluginValidationError,
+  validateReferenceExtractionResult,
+  validateReferenceExtractor,
+  validateSearchHintsResult,
+};
 
 const SOURCE_SYMBOL_KINDS = [
   "function",
@@ -125,7 +135,8 @@ export function isCapabilityId(value: string): value is CapabilityId {
     value === SYMBOL_EXTRACTOR_V2_CAPABILITY_ID ||
     value === VOCABULARY_ALIGNMENT_CAPABILITY_ID ||
     value === CHECK_POLICY_CAPABILITY_ID ||
-    value === SEARCH_HINTS_CAPABILITY_ID
+    value === SEARCH_HINTS_CAPABILITY_ID ||
+    value === REFERENCE_EXTRACTOR_CAPABILITY_ID
   );
 }
 
@@ -350,6 +361,14 @@ export function validateKibiPlugin(value: unknown): KibiPluginV1 {
     });
   }
 
+  if (value.capabilities.referenceExtractor !== undefined) {
+    Object.assign(capabilities, {
+      referenceExtractor: validateReferenceExtractor(
+        value.capabilities.referenceExtractor,
+      ),
+    });
+  }
+
   if (
     capabilities.semanticClassifier === undefined &&
     capabilities.ontologyPack === undefined &&
@@ -357,7 +376,8 @@ export function validateKibiPlugin(value: unknown): KibiPluginV1 {
     capabilities.symbolExtractorV2 === undefined &&
     capabilities.vocabularyAlignment === undefined &&
     capabilities.checkPolicy === undefined &&
-    capabilities.searchHints === undefined
+    capabilities.searchHints === undefined &&
+    capabilities.referenceExtractor === undefined
   ) {
     throw new PluginValidationError(
       "INVALID_CAPABILITY",
@@ -373,6 +393,7 @@ export function validateKibiPlugin(value: unknown): KibiPluginV1 {
     capabilities.vocabularyAlignment?.id,
     capabilities.checkPolicy?.id,
     capabilities.searchHints?.id,
+    capabilities.referenceExtractor?.id,
   ].filter((entry): entry is string => typeof entry === "string");
   if (new Set(capabilityIds).size !== capabilityIds.length) {
     throw new PluginValidationError(
@@ -462,6 +483,16 @@ export function validateProjectKibiConfig(value: unknown): ProjectKibiConfig {
       // A check policy only adds rules; it cannot replace or shadow Kibi's.
       if (
         capabilityId === CHECK_POLICY_CAPABILITY_ID &&
+        config.mode !== "augment"
+      ) {
+        throw new PluginValidationError(
+          "INVALID_MODE",
+          `${capabilityId} supports only mode 'augment'`,
+        );
+      }
+      // Proofs read references from every configured provider together.
+      if (
+        capabilityId === REFERENCE_EXTRACTOR_CAPABILITY_ID &&
         config.mode !== "augment"
       ) {
         throw new PluginValidationError(

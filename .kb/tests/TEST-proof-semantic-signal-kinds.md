@@ -26,15 +26,15 @@ id: TEST-proof-semantic-signal-kinds
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-b2faa9789021f8f05af79695
+    receipt_id: PR-6f9846e8ab25b7379c71ae66
     test_id: TEST-proof-semantic-signal-kinds
     scope: unit
     outcome: passed
-    code_snapshot: ff8e5279c85a1d8327a39367bae1bbbfaf7995ec824dc7f7b0c782d4598c1f1b
+    code_snapshot: e2663d10a2e1a0b8fdd0d38e888ee46d8031436be2244a613e1c406fbfa714b0
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-29T10:32:43.477Z'
-    finished_at: '2026-10-29T10:32:43.663Z'
-    artifact_digest: 7ea95c9baf9f5121345720691a6170e0948d43926c04b3aabbf9046cbcd6d52c
+    started_at: '2026-10-30T19:52:19.056Z'
+    finished_at: '2026-10-30T19:52:19.161Z'
+    artifact_digest: 570970ef1abfefba6632e4082b180cd8a81db12af18bf415fddba3dae4cb4770
     contract_hash: b2e47c22a0cf21eebee43d8a72d116f8309d0680cbe71536e2f467413d0fc2bc
     binding_hash: bc0d179f6dd9da4f373d4839d3774be95b0dde033c7851537c056cddd3b7a313
     fingerprint: f0ff8c6042281a050ea1783d1d3bdeabf0553c58a1f4965160459faa26f3eabd

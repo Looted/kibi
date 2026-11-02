@@ -479,3 +479,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-53db84cb375a
+  - type: implements
+    from: SYM-const-case-preview-limit
+    to: REQ-advisor-case-preview-limit
+    created_at: 2026-10-30T19:41:43.167Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97aca72b9bcc
+  - type: covered_by
+    from: SYM-const-case-preview-limit
+    to: TEST-proof-advisor-case-preview-limit
+    created_at: 2026-10-30T19:41:43.207Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5798c3b0d72
+  - type: covered_by
+    from: SYM-const-case-preview-limit
+    to: TEST-kibi-case-coverage
+    created_at: 2026-10-30T19:41:43.232Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8fd5e9d784d8

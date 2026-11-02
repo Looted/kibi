@@ -220,4 +220,101 @@ describe("proof explain projection", () => {
     expect(text).toContain("required_proofs");
     expect(text).toContain("covered_by");
   });
+  // implements REQ-kibi-claim-bound-proofs
+  test("a derived claim whose requirement is not tested end to end says why it is not proved", () => {
+    const claim = (notProved?: unknown) => ({
+      claimKey: "CLAIM-A",
+      status: "derived",
+      applicable: true,
+      level: "tested",
+      ...(notProved === undefined ? {} : { notProved }),
+      bindings: [
+        {
+          test: "TEST-unit",
+          kind: "source",
+          binding: "derived",
+          scope: "source",
+        },
+      ],
+    });
+    const view = projectRequirementExplain({
+      ...requirementProof,
+      claimSummary: { applicable: 1, proved: 0 },
+      claimEvidence: [claim("requirement_not_tested")],
+    });
+    expect(view.claims?.[0]?.notProved).toBe("requirement_not_tested");
+    const text = renderProofExplain(view);
+    expect(text).toContain("    TEST-unit source: derived (source)");
+    expect(text).toContain(
+      "    not proved: the certificate derives the claim, but a claim is proved only once the requirement is tested end to end, and it is not (proofStatus missing): missing_production_symbol_coverage: a production symbol is not covered by a qualifying end-to-end test (a test whose verification_scope is not end_to_end does not qualify)",
+    );
+
+    const noGaps = projectRequirementExplain({
+      ...requirementProof,
+      proofGaps: [],
+      claimEvidence: [claim("requirement_not_tested")],
+    });
+    expect(renderProofExplain(noGaps)).toContain(
+      "tested end to end, and it is not (proofStatus missing)\n",
+    );
+
+    // The text names the gap that blocks the requirement, not a test scope.
+    const uncoordinated = projectRequirementExplain({
+      ...requirementProof,
+      proofGaps: ["missing_symbol_coordinates"],
+      proofStages: {
+        ...requirementProof.proofStages,
+        sourceCoordinates: { missingSymbols: ["SYM-match"] },
+      },
+      claimEvidence: [claim("requirement_not_tested")],
+    });
+    expect(uncoordinated.missingCoordinateSymbols).toEqual(["SYM-match"]);
+    const uncoordinatedText = renderProofExplain(uncoordinated);
+    expect(uncoordinatedText).toContain(
+      "and it is not (proofStatus missing): missing_symbol_coordinates: SYM-match has no source coordinates, so Kibi cannot tie the proof to its code",
+    );
+    expect(uncoordinatedText).not.toContain("verification_scope");
+
+    // Any other notProved value, or none, names no such line.
+    for (const notProved of [undefined, 3, "other"]) {
+      const other = projectRequirementExplain({
+        ...requirementProof,
+        claimEvidence: [claim(notProved)],
+      });
+      expect(other.claims?.[0]).toEqual(
+        expect.objectContaining({ claimKey: "CLAIM-A" }),
+      );
+      if (typeof notProved !== "string")
+        expect(other.claims?.[0]).not.toHaveProperty("notProved");
+      expect(renderProofExplain(other)).not.toContain("not proved:");
+    }
+  });
+
+  // implements REQ-kibi-claim-bound-proofs
+  test("a refuted claim names the test, what it read and why the case gaps follow", () => {
+    const reason =
+      "the members Kibi read from the source include console.log, which the fact excludes";
+    const view = projectRequirementExplain({
+      ...requirementProof,
+      proofGaps: ["uncovered_case", "happy_path_only"],
+      claimBindingRejections: [
+        { test: "TEST-GREET", claimKey: "CLAIM-GREET", reason },
+      ],
+    });
+    expect(view.refutations).toEqual([
+      { test: "TEST-GREET", claimKey: "CLAIM-GREET", reason },
+    ]);
+    // The machine gap codes stay as they are.
+    expect(view.proofGaps).toEqual(["uncovered_case", "happy_path_only"]);
+    const text = renderProofExplain(view);
+    expect(text).toContain(
+      `refuted: TEST-GREET refutes CLAIM-GREET: ${reason}. The code breaks the claim, so it is not proved`,
+    );
+    expect(text).toContain(
+      "  uncovered_case and happy_path_only follow from the refutation: a proof that derives the claim covers its failure side and edge cases, a refuted one covers none",
+    );
+    expect(projectRequirementExplain(requirementProof)).not.toHaveProperty(
+      "refutations",
+    );
+  });
 });

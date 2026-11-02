@@ -262,11 +262,15 @@ left:
   each list item, such as the `run` of each workflow step), `glob` (`pattern`, `capture`),
   `openapi` (`file`, `select: operations|unsecured_operations|...`),
   `references` (`files`, `extract: env|imports|calls|string_args|thrown|
-  property`), `schema` (`format: drizzle|prisma|sql`, `select:
+  property`; TypeScript, JavaScript, Python and SWI-Prolog files, and Go,
+  Java, C# and Rust files through `kibi-plugin-treesitter`), `schema` (`format: drizzle|prisma|sql`, `select:
   tables|columns|required_columns|nullable_columns|foreign_keys`), `routes`
   (Hono or Express app export, `path_prefix`, `names_from`, `select:
   routes|middleware`) or `validator` (zod, valibot or pydantic, `select:
-  fields|required_fields|optional_fields`). A member Kibi cannot read
+  fields|required_fields|optional_fields`) or `prolog` (`file`, `functor:
+  requires/1`, `arg`: one argument of each fact, such as a pack's
+  requirements in `pack.pl`). Prolog files are read term by term and never
+  run; see `resources/prolog-proofs.md`. A member Kibi cannot read
   statically (a computed env name, a dynamic import, an env object handed
   to a variable) fails the read with its location, and so does an empty
   read (a glob matching no file, migrations with no `CREATE TABLE`), so a
@@ -288,6 +292,40 @@ left:
   The builders need kibi-cli 2.33.0 or newer in the project. The env
   extractor reads `process.env`, `import.meta.env`, `Bun.env`,
   `Deno.env.get`, `os.environ` and `os.getenv`, through casts.
+- `references` over Go, Java, C# or Rust needs `kibi-plugin-treesitter` and
+  the language's grammar pack (`kibi-lang-go`, `kibi-lang-java`,
+  `kibi-lang-csharp`, `kibi-lang-rust`) in `devDependencies`, with the
+  plugin activated for proofs:
+  `"kibi.reference-extractor.v1": { "mode": "augment" }` in its
+  `kibi.plugins` entry (next to `"kibi.symbol-extractor.v2"`). A project
+  with no `package.json` creates one that only holds this list. Without it
+  the read is refused with what to install, so ask the operator before
+  installing; `kibi doctor` names what the project needs. Members are
+  written as the code names them (`os.Getenv`, `System.out.println`,
+  `Console.WriteLine`, `std::env::var`, Go import paths, `java.util.*`,
+  `std::io::Write`); a method on an expression Kibi cannot name is
+  `*.name`. Reflection, a name computed at run time, the whole
+  environment, C# `dynamic` and `#if`, Rust `#[cfg(...)]` items other than
+  `#[cfg(test)]`, and any macro for Rust `calls` and `thrown` fail the
+  read with their place: the claim cannot be decided for that file, so
+  model a claim the code can show (Rust `calls` over a file with
+  `println!` is always refused). Never drop a file the claim is about
+  from `files`: the read decides a claim only for the files it covers,
+  and a proof is rejected when a symbol the test covers or that
+  implements the claim's requirement lies outside them.
+- Reference members match by name segments (`.`, `/`, `::`). `excludes`
+  fails on anything that is or may be an excluded item: `java.sql`
+  excludes `java.sql.Connection`, `github.com/labstack/echo/v4` excludes
+  `.../echo/v4/middleware`, a trailing `*` is a prefix (`java.sql.*`), a
+  wildcard import or a shorter name (`File.delete`) may be the item, and
+  `*.delete` (a call on a receiver Kibi cannot name) may be
+  `java.io.File.delete`, so the claim is refused naming it. `includes` and
+  `subset_of` count only members that certainly are an item (the item, a
+  member under `X.*`, or `a.b.m` for `*.m`); `eq` compares spellings.
+- For a claim about what the code reads from the environment use
+  `extract: env`: `string_args` on a getter (`os.Getenv`, `env::var`,
+  `System.getenv`, `getenv/2`, ...) sees only that getter, so Kibi refuses
+  it for `eq`, `subset_of` and `excludes`.
 
 `arithmetic` and `smt` from `constraint_source` alone prove that the
 knowledge base's facts entail the claim, not that code follows the facts:
@@ -318,7 +356,10 @@ read for a test that wants to assert on it), fail the test when it records a fai
 (`failedMembers`, `failedCalls`), and call `writeCodeCertificate`; it writes to the
 directory `kibi prove` sets in `KIBI_PROOF_CERTIFICATES` and does nothing
 elsewhere. A Python test writes the same `kibi.code-certificate.v1` JSON
-to that directory itself. Wire the KB: the proof file symbol is
+to that directory itself. Kibi also reads SWI-Prolog domains, constants,
+rule predicates, transition tables and string constants (`arg` picks a
+predicate's argument); `resources/prolog-proofs.md` has the rules and a
+certificate module to copy. Wire the KB: the proof file symbol is
 `executable_for` the test and named in `required_proofs`; the domain symbol
 (and every symbol a rule, machine or pattern contract names) `implements`
 the requirement and is `covered_by` the test; the test

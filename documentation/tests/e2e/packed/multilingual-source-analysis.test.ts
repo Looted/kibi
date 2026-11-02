@@ -9,6 +9,7 @@ import {
   createInventoriedRequirement,
   createSandbox,
   kibi,
+  languagePackSpecs,
   packAll,
   run,
   stageSourceFile,
@@ -285,10 +286,12 @@ async function runPythonDecoratorCoordinateWorkflow(
     ["sync", "--refresh-symbol-coordinates"],
     { timeoutMs: COMMAND_TIMEOUT_MS },
   );
-  assert.notEqual(
-    syntaxRefresh.exitCode,
+  // A file that does not parse gives its own symbols no coordinates and is
+  // named; it no longer stops the refresh of every other file.
+  assertCommandExit(
+    syntaxRefresh,
     0,
-    "coordinate refresh must reject Python syntax errors",
+    "coordinate refresh with a Python syntax error in one file",
   );
   assert.match(
     outputOf(syntaxRefresh),
@@ -472,6 +475,7 @@ async function runLanguageWorkflow(
         "--package-lock=false",
         `file:${tarballs["plugin-sdk"]}`,
         `file:${tarballs["plugin-treesitter"]}`,
+        ...languagePackSpecs(tarballs),
       ],
       {
         cwd: sandbox.repoDir,

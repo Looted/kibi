@@ -668,3 +668,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cae638f96748
+  - type: implements
+    from: SYM-const-search-hints-model-revision
+    to: REQ-search-hints-model-pin
+    created_at: 2026-10-30T19:40:38.459Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7487de14cf16
+  - type: covered_by
+    from: SYM-const-search-hints-model-revision
+    to: TEST-proof-search-hints-model-revision
+    created_at: 2026-10-30T19:40:38.497Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0aec530544f4
+  - type: covered_by
+    from: SYM-const-search-hints-model-revision
+    to: TEST-kibi-plugin-search-hints
+    created_at: 2026-10-30T19:40:38.528Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f488c22c738

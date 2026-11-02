@@ -20,6 +20,7 @@ import { existsSync, lstatSync, realpathSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { classifyActivation } from "../operations/bootstrap/activation.js";
+import { workspaceReferenceLanguageNote } from "../plugins/reference-language-suggestion.js";
 import { nodeFilesystem } from "../public/operations/node-ports.js";
 import { resolveBranchAttachment } from "../utils/branch-resolver.js";
 import { readLegacyKbConfig } from "../utils/config.js";
@@ -368,6 +369,8 @@ export async function initCommand(
         ? "  Next: run 'kibi migrate --yes' to move the legacy knowledge into .kb/."
         : (await initNextAction(projectRoot)).message,
     );
+    const plugins = workspaceReferenceLanguageNote(projectRoot);
+    if (plugins !== null) console.log(`  Suggested plugin: ${plugins}`);
     console.log(
       "  Optional diagnostic: run 'kibi doctor' if setup appears degraded.",
     );

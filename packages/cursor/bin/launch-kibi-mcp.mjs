@@ -180,7 +180,8 @@ export function resolveProjectLocalMcp(workspaceRoot) {
   if (!packageInfo) {
     throw new Error(
       `[KIBI-CURSOR] No project-local ${PACKAGE_NAME} package was found for ${root}. ` +
-        `Install it in that workspace (for example: npm install --save-dev ${PACKAGE_NAME}) and reload Cursor.`,
+        `Install it in that workspace (for example: npm install --save-dev ${PACKAGE_NAME}) and reload Cursor. ` +
+        `The plugin launcher does not use a global ${PACKAGE_NAME}; to use one, add the manual MCP entry from the kibi-cursor README instead.`,
     );
   }
 

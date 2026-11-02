@@ -2,6 +2,10 @@ import { availableParallelism } from "node:os";
 import { basename, extname } from "node:path";
 import { Worker } from "node:worker_threads";
 import type {
+  ReferenceExtractionResultV1,
+  ReferenceExtractorV1,
+  ReferenceExtractorV1Input,
+  ReferenceExtractorV1SupportsInput,
   SourceAnalysisResultV2,
   SourceAnalysisUncoveredRangeV2,
   SymbolExtractorV2,
@@ -13,9 +17,16 @@ import {
   normalizeTreeSitterLanguage,
   treeSitterLanguageForPath,
 } from "./catalog.js";
+import { languagePackProblem } from "./language-packs.js";
 import { createBoundedSourceAnalysisTimingEmitter } from "./performance-timing.js";
+import {
+  type ReferenceRead,
+  type ReferenceRequest,
+  isReferenceLanguage,
+} from "./references.js";
 
 const EXTRACTOR_ID = "kibi-plugin-treesitter.tree-sitter.v2";
+const REFERENCE_EXTRACTOR_ID = "kibi-plugin-treesitter.references.v1";
 const MAX_INPUT_CODE_UNITS = 1_048_576;
 const MAX_INPUT_BYTES = 2_097_152;
 const MAX_POOL_SIZE = 4;
@@ -65,8 +76,8 @@ function detectedUnsupportedShellDialect(content: string): string | undefined {
   const lineEnd = prefix.search(/[\r\n]/);
   if (lineEnd < 0 && content.length > 2 + MAX_SHEBANG_LENGTH)
     return "unrecognized interpreter";
+  // At most MAX_SHEBANG_LENGTH characters: a longer line returned above.
   const line = (lineEnd < 0 ? prefix : prefix.slice(0, lineEnd)).trim();
-  if (line.length > MAX_SHEBANG_LENGTH) return "unrecognized interpreter";
   const words = tokenizeShebangWords(line);
   if (words === undefined || words.length === 0)
     return "unrecognized interpreter";
@@ -117,7 +128,8 @@ function tokenizeShebangWords(value: string): string[] | undefined {
   }
   if (escaped || quote !== undefined) return undefined;
   if (started) words.push(current);
-  return words.length <= MAX_SHEBANG_TOKENS ? words : undefined;
+  // The loop stops at MAX_SHEBANG_TOKENS words, so the last one still fits.
+  return words;
 }
 
 function commandFromEnvArguments(
@@ -126,7 +138,9 @@ function commandFromEnvArguments(
 ): string | undefined {
   for (let index = 0; index < commandArguments.length; index += 1) {
     const argument = commandArguments[index];
+    /* node:coverage disable */
     if (argument === undefined) return undefined;
+    /* node:coverage enable */
     if (
       allowSplitString &&
       (argument === "-S" || argument === "--split-string")
@@ -194,6 +208,7 @@ function fullSourceRange(content: string): SourceAnalysisUncoveredRangeV2 {
     startLine: 1,
     startColumn: 0,
     endLine: lines.length,
+    /* node:coverage ignore next */
     endColumn: lines.at(-1)?.length ?? 0,
     reason: "no-symbolic-coverage",
   };
@@ -237,7 +252,10 @@ interface PooledWorker {
   uses: number;
 }
 
-type WorkerReply = Readonly<{ id: number; result: WorkerResult }>;
+type WorkerReply = Readonly<{
+  id: number;
+  result: WorkerResult | ReferenceRead;
+}>;
 
 function workerPoolSize(): number {
   return Math.max(1, Math.min(MAX_POOL_SIZE, availableParallelism() - 1));
@@ -251,7 +269,7 @@ function workerPoolSize(): number {
  * cannot accumulate in a long-running host. Idle workers are unreferenced and
  * never keep the host process alive.
  */
-class TreeSitterWorkerPool {
+export class TreeSitterWorkerPool {
   private readonly idle: PooledWorker[] = [];
   private readonly waiters: Array<(worker: PooledWorker | undefined) => void> =
     [];
@@ -260,11 +278,38 @@ class TreeSitterWorkerPool {
 
   constructor(private readonly size: number) {}
 
-  async analyze(
+  analyze(
     language: TreeSitterLanguage,
     content: string,
     deadline: number,
   ): Promise<WorkerResult> {
+    return this.send(
+      {
+        language,
+        content,
+        performanceTimingEnabled: process.env.KIBI_PERF_TIMINGS === "1",
+      },
+      deadline,
+    ) as Promise<WorkerResult>;
+  }
+
+  /** Read one reference extract; the worker parses and never runs the file. */
+  references(
+    language: TreeSitterLanguage,
+    content: string,
+    request: ReferenceRequest,
+    deadline: number,
+  ): Promise<ReferenceRead> {
+    return this.send(
+      { language, content, references: request },
+      deadline,
+    ) as Promise<ReferenceRead>;
+  }
+
+  private async send(
+    payload: Readonly<Record<string, unknown>>,
+    deadline: number,
+  ): Promise<WorkerResult | ReferenceRead> {
     const pooled = await this.acquire();
     if (pooled === undefined) {
       return {
@@ -282,8 +327,13 @@ class TreeSitterWorkerPool {
       const { worker } = pooled;
       const id = this.nextId++;
       let settled = false;
-      const finish = (result: WorkerResult, healthy: boolean): void => {
+      const finish = (
+        result: WorkerResult | ReferenceRead,
+        healthy: boolean,
+      ): void => {
+        /* node:coverage disable */
         if (settled) return;
+        /* node:coverage enable */
         settled = true;
         clearTimeout(timer);
         worker.off("message", onMessage);
@@ -318,12 +368,7 @@ class TreeSitterWorkerPool {
       worker.on("error", onError);
       worker.on("exit", onExit);
       worker.ref();
-      worker.postMessage({
-        id,
-        language,
-        content,
-        performanceTimingEnabled: process.env.KIBI_PERF_TIMINGS === "1",
-      });
+      worker.postMessage({ ...payload, id });
     });
   }
 
@@ -404,8 +449,9 @@ function analysisBudgetMs(requested: number | undefined): number {
  * Source bytes are only parsed by Tree-sitter; this provider never executes them.
  */
 // implements REQ-source-analysis-v2
-export function createTreeSitterSymbolExtractor(): SymbolExtractorV2 {
-  const pool = new TreeSitterWorkerPool(workerPoolSize());
+export function createTreeSitterSymbolExtractor(
+  pool: TreeSitterWorkerPool = createTreeSitterWorkerPool(),
+): SymbolExtractorV2 {
   return {
     id: EXTRACTOR_ID,
     supports(input: SymbolExtractorV2SupportsInput): boolean {
@@ -463,6 +509,16 @@ export function createTreeSitterSymbolExtractor(): SymbolExtractorV2 {
         );
       }
 
+      const packProblem = languagePackProblem(language);
+      if (packProblem !== undefined)
+        return fallbackResult(
+          input,
+          language,
+          "unsupported",
+          packProblem.code,
+          packProblem.message,
+        );
+
       const result = await pool.analyze(language, input.content, deadline);
       if (!result.ok) {
         return fallbackResult(
@@ -501,6 +557,105 @@ export function createTreeSitterSymbolExtractor(): SymbolExtractorV2 {
         symbols: result.symbols,
         diagnostics: result.diagnostics,
         uncoveredRanges: result.uncoveredRanges,
+      };
+    },
+  };
+}
+
+/** One bounded worker pool, shared by the capabilities of a plugin instance. */
+export function createTreeSitterWorkerPool(): TreeSitterWorkerPool {
+  return new TreeSitterWorkerPool(workerPoolSize());
+}
+
+function referenceRefusal(
+  status: "unsupported" | "failed",
+  code: string,
+  message: string,
+  language?: string,
+): ReferenceExtractionResultV1 {
+  return {
+    contractVersion: "kibi.reference-extractor.v1",
+    status,
+    ...(language === undefined ? {} : { language }),
+    code,
+    message,
+  };
+}
+
+/**
+ * Create the offline `kibi.reference-extractor.v1` implementation for Go,
+ * Java, C# and Rust. Files are parsed by Tree-sitter in the same bounded
+ * workers as symbol analysis and are never run or compiled.
+ */
+// implements REQ-kibi-tree-sitter-references
+export function createTreeSitterReferenceExtractor(
+  pool: TreeSitterWorkerPool = createTreeSitterWorkerPool(),
+): ReferenceExtractorV1 {
+  const languageOf = (path: string) => {
+    const language = treeSitterLanguageForPath(path);
+    return language !== undefined && isReferenceLanguage(language)
+      ? language
+      : undefined;
+  };
+  return {
+    id: REFERENCE_EXTRACTOR_ID,
+    supports(input: ReferenceExtractorV1SupportsInput): boolean {
+      return languageOf(input.path) !== undefined;
+    },
+    async extract(
+      input: ReferenceExtractorV1Input,
+    ): Promise<ReferenceExtractionResultV1> {
+      const deadline = Date.now() + analysisBudgetMs(input.timeoutMs);
+      const language = languageOf(input.path);
+      if (language === undefined)
+        return referenceRefusal(
+          "unsupported",
+          "TREESITTER_REFERENCES_UNSUPPORTED",
+          `kibi-plugin-treesitter reads references of Go, Java, C# and Rust files, not ${input.path}`,
+        );
+      if (
+        input.content.length > MAX_INPUT_CODE_UNITS ||
+        Buffer.byteLength(input.content, "utf8") > MAX_INPUT_BYTES
+      )
+        return referenceRefusal(
+          "failed",
+          "TREESITTER_INPUT_LIMIT",
+          `${input.path} exceeds ${MAX_INPUT_BYTES} UTF-8 bytes`,
+          language,
+        );
+      const packProblem = languagePackProblem(language);
+      if (packProblem !== undefined)
+        return referenceRefusal(
+          "unsupported",
+          packProblem.code,
+          packProblem.message,
+          language,
+        );
+      const read = await pool.references(
+        language,
+        input.content,
+        {
+          extract: input.extract,
+          ...(input.callee === undefined ? {} : { callee: input.callee }),
+          ...(input.key === undefined ? {} : { key: input.key }),
+        },
+        deadline,
+      );
+      if (!read.ok)
+        return referenceRefusal(
+          read.code === "TREESITTER_REFERENCES_UNSUPPORTED"
+            ? "unsupported"
+            : "failed",
+          read.code,
+          read.message,
+          language,
+        );
+      return {
+        contractVersion: "kibi.reference-extractor.v1",
+        status: "ok",
+        language,
+        members: read.members,
+        unresolved: read.unresolved,
       };
     },
   };

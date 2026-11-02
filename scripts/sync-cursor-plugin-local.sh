@@ -11,11 +11,19 @@ cd "$repo_root"
 
 bun run build:cursor
 
+# Copy the npm package's file set, as `npm install kibi-cursor` would ship it:
+# the workspace's node_modules holds links that dangle in a copy, and the
+# plugin needs none of it (the hooks run the self-contained bundle).
+pack_dir="$(mktemp -d)"
+trap 'rm -rf "$pack_dir"' EXIT
+(cd packages/cursor && npm pack --ignore-scripts --silent --pack-destination "$pack_dir" >/dev/null)
+tar -xzf "$pack_dir"/kibi-cursor-*.tgz -C "$pack_dir"
+
 install_copy() {
   local target="$1"
   mkdir -p "$(dirname "$target")"
   rm -rf "$target"
-  cp -r packages/cursor "$target"
+  cp -R "$pack_dir/package" "$target"
   echo "Copied kibi-cursor plugin to ${target}"
 }
 

@@ -11,6 +11,7 @@ import {
   createInventoriedRequirement,
   createSandbox,
   kibi,
+  languagePackSpecs,
   packAll,
   run,
   stageSourceFile,
@@ -465,9 +466,14 @@ function analysisCases(sandbox: TestSandbox): Record<string, unknown> {
       content: fixture.withUnowned,
     };
   }
-  cases["header-ambiguous"] = {
+  // A header without a hint is read as C unless it uses a C++-only construct.
+  cases["header-content-c"] = {
     path: "include/shared.h",
     content: "struct Header { int value; };\n",
+  };
+  cases["header-content-cpp"] = {
+    path: "include/shared.h",
+    content: "namespace shared { struct Header { int value; }; }\n",
   };
   cases["header-c"] = {
     path: "include/shared.h",
@@ -717,6 +723,7 @@ async function runCatalogWorkflow(tarballs: Tarballs): Promise<void> {
         "--package-lock=false",
         `file:${tarballs["plugin-sdk"]}`,
         `file:${tarballs["plugin-treesitter"]}`,
+        ...languagePackSpecs(tarballs),
       ],
       {
         cwd: sandbox.repoDir,
@@ -808,15 +815,10 @@ async function runCatalogWorkflow(tarballs: Tarballs): Promise<void> {
       baselineAnalyses.push(baseline);
     }
 
-    const headerAmbiguous = analyses["header-ambiguous"];
     const headerC = analyses["header-c"];
     const headerCpp = analyses["header-cpp"];
-    assert.equal(headerAmbiguous?.status, "unsupported");
-    assert.equal(headerAmbiguous?.language, "c-or-cpp");
-    assert.equal(
-      headerAmbiguous?.diagnostics[0]?.code,
-      "source_language_ambiguous",
-    );
+    assertProvider(analyses["header-content-c"] as Analysis, "c");
+    assertProvider(analyses["header-content-cpp"] as Analysis, "cpp");
     assertProvider(headerC as Analysis, "c");
     assertProvider(headerCpp as Analysis, "cpp");
     assertProvider(analyses["prolog-hint"] as Analysis, "prolog");

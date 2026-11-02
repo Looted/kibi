@@ -118,6 +118,30 @@ export function receiptBindingContract(raw: unknown): ProofContract | null {
   };
 }
 
+/**
+ * The code symbols a certificate contract loads at ingest: its domain, value
+ * constants, rule predicates and domains, initial states and pattern. They
+ * enter the binding with the test's own scope, so editing the file a domain
+ * is read from stales the receipt even when that symbol is not linked
+ * covered_by the test. A symbol already in scope binds as before.
+ */
+// implements REQ-kibi-multilingual-code-proofs
+export function contractCodeSymbolIds(contract: ProofContract): string[] {
+  const ids = new Set<string>();
+  const add = (entry: unknown) => {
+    const row = record(entry);
+    if (row !== null && typeof row.symbol_id === "string" && row.symbol_id !== "")
+      ids.add(row.symbol_id);
+  };
+  add(contract.domain_source);
+  add(contract.initial_source);
+  add(contract.pattern_source);
+  for (const entry of contract.value_source ?? []) add(entry);
+  for (const entry of Object.values(contract.domains ?? {})) add(entry);
+  for (const entry of Object.values(contract.predicate_source ?? {})) add(entry);
+  return [...ids].sort();
+}
+
 /** Every project source a contract reads: its source, source counts and source domains. */
 // implements REQ-kibi-source-proof-kinds
 export function contractSources(contract: ProofContract): SourceSpec[] {
@@ -186,11 +210,14 @@ export async function currentReceiptBindingHashes(
       removeFrontmatterBlock(withoutReceipts, "links") ?? withoutReceipts;
     const codeScope = resolveBoundSymbolScope(
       join(input.workspaceRoot, ".kb", "symbols.yaml"),
-      receiptCodeScopeSymbolIds(
-        contract,
-        input.test.proof_bindings,
-        input.coveredBySymbols,
-      ),
+      [
+        ...receiptCodeScopeSymbolIds(
+          contract,
+          input.test.proof_bindings,
+          input.coveredBySymbols,
+        ),
+        ...contractCodeSymbolIds(contract),
+      ],
     );
     // A contract that reads project sources stales when what it reads
     // changes: each file's contents and the set of files a glob matches.

@@ -19,10 +19,14 @@
 import { randomBytes } from "node:crypto";
 import { rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import fg from "fast-glob";
+import { normalizeEntityId, parseTriples } from "../../prolog/codec.js";
 import {
   runOperationJsonQuery,
   toPrologAtom,
 } from "../../public/operations/prolog-json.js";
+import { loadEntities } from "../../public/operations/discovery-entities.js";
+import { matchWorkspaceFiles } from "../../public/proof-sources.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import type { ProofContract } from "../../public/proof-protocol.js";
 import type { ClaimBinding } from "../../public/proof-receipt.js";
@@ -367,6 +371,164 @@ async function derivedProblem(
 }
 
 /**
+ * Callees that read one environment variable. A string_args read of one of
+ * them sees only that getter's first arguments, never the other ways the
+ * code reads the environment, so it cannot decide an eq, subset_of or
+ * excludes claim about what the code reads; the env extract reads them all.
+ */
+const ENVIRONMENT_GETTER =
+  /(?:^|[.:/])(?:getenv|Getenv|LookupEnv|getenvb|GetEnvironmentVariable)$|(?:^|[.:/])env::var(?:_os)?$|^(?:os\.environ\.get|ENV\.fetch|process\.env)$/;
+
+export function environmentGetterCallee(callee: string): boolean {
+  return ENVIRONMENT_GETTER.test(callee.replace(/\s+/g, "").replace(/\/\d+$/, ""));
+}
+
+const CLOSED_OPERATORS = new Set(["eq", "subset_of", "excludes"]);
+
+const FILE_NAME_TOKEN = /[A-Za-z0-9_][A-Za-z0-9_./-]*\.[A-Za-z0-9]{1,10}\b/g;
+/** A quoted or backticked path, which may hold spaces (`automated install/x.sh`). */
+const QUOTED_PATH = /[`'"]([^`'"\n]*[/.][^`'"\n]*)[`'"]/g;
+/** A slashed path without an extension (`src/match` for src/match.c). */
+const BARE_PATH = /[A-Za-z0-9_][A-Za-z0-9_.-]*(?:\/[A-Za-z0-9_.-]+)+/g;
+
+function claimFileCandidates(token: string): string[][] {
+  const escaped = fg.escapePath(token.replace(/^\.?\/+/, ""));
+  const segments = escaped.split("/");
+  // The token as a path, as a name anywhere, then with leading segments
+  // dropped (a repository prefix such as fzy/src/match.c), then, for a
+  // slashed name without an extension, any extension.
+  const tries: string[][] = [[escaped], [`**/${escaped}`]];
+  for (let drop = 1; drop < segments.length; drop += 1)
+    tries.push([`**/${segments.slice(drop).join("/")}`]);
+  if (segments.length > 1 && !/\.[^/.]+$/.test(escaped))
+    tries.push([`${escaped}.*`, `**/${escaped}.*`]);
+  return tries;
+}
+
+/**
+ * The project files a claim names in its subject key or claim text (for
+ * example `src/match.c`, `utils.sh`, `fzy/src/match.c`, `src/Match.c` or
+ * `src/match`): a token resolves, ignoring case, to the file at that path,
+ * else to every project file with that name or path suffix, else (for a
+ * slashed name without an extension) to the files with that stem. Tokens
+ * that name no file (dotted subject keys such as `kibi.cli`) resolve to
+ * nothing.
+ */
+// implements REQ-kibi-source-proof-kinds
+export function namedClaimFiles(
+  workspaceRoot: string,
+  texts: readonly string[],
+): Map<string, string[]> {
+  const named = new Map<string, string[]>();
+  for (const value of texts) {
+    const tokens = [
+      ...[...value.matchAll(QUOTED_PATH)].map((match) => match[1] ?? ""),
+      ...[...value.matchAll(FILE_NAME_TOKEN)].map((match) => match[0]),
+      ...[...value.matchAll(BARE_PATH)].map((match) => match[0]),
+    ];
+    for (const raw of tokens) {
+      const token = raw.trim();
+      if (token === "" || named.has(token)) continue;
+      for (const patterns of claimFileCandidates(token)) {
+        const files = matchWorkspaceFiles(workspaceRoot, patterns, [], false);
+        if (files.length > 0) {
+          named.set(token, files);
+          break;
+        }
+      }
+    }
+  }
+  return named;
+}
+
+type SourceScopeCheck = (row: ObligationRow) => Promise<string | null>;
+
+/**
+ * What a references read must cover for the claims it proves. The read
+ * decides a claim only for the files it reads, so every symbol the test
+ * covers (covered_by) and every symbol that implements the claim's
+ * requirement must lie in one of those files: otherwise the claim, which is
+ * about that symbol's code, would be decided on other files. A string_args
+ * read of an environment getter cannot decide a closed claim (eq, subset_of,
+ * excludes) about what the code reads, since the other getters are unread.
+ */
+// implements REQ-kibi-source-proof-kinds
+async function sourceScopeCheck(
+  context: OperationContext,
+  contract: ProofContract,
+  coveredBy: ReadonlySet<string>,
+): Promise<SourceScopeCheck | null> {
+  const spec = contract.source as Record<string, unknown> | undefined;
+  if (contract.kind !== "source" || spec?.reader !== "references") return null;
+  const list = (value: unknown): string[] =>
+    typeof value === "string"
+      ? [value]
+      : Array.isArray(value)
+        ? value.filter((item): item is string => typeof item === "string")
+        : [];
+  const read = new Set(
+    matchWorkspaceFiles(context.workspaceRoot, list(spec.files), list(spec.ignore)),
+  );
+  const implementers = new Map<string, string[]>();
+  if (context.prolog !== undefined) {
+    const result = await context.prolog.query(
+      "findall([From,To,'implements'], kb_relationship(implements, From, To), Rels)",
+    );
+    if (!result.success)
+      throw new Error(
+        `implements relationship query failed: ${result.error ?? "Unknown error"}`,
+      );
+    for (const [from, to] of parseTriples(result.bindings.Rels ?? "[]")) {
+      const requirement = normalizeEntityId(to);
+      implementers.set(requirement, [
+        ...(implementers.get(requirement) ?? []),
+        normalizeEntityId(from),
+      ]);
+    }
+  }
+  const files = new Map<string, string>();
+  const fileOf = async (symbolId: string): Promise<string> => {
+    if (!files.has(symbolId))
+      files.set(symbolId, (await loadSymbol(context, symbolId))?.sourceFile ?? "");
+    return files.get(symbolId) ?? "";
+  };
+  const callee = typeof spec.callee === "string" ? spec.callee : "";
+  const getter = spec.extract === "string_args" && environmentGetterCallee(callee);
+  return async (row) => {
+    const operator = text(record(row.obligation)?.operator);
+    if (getter && CLOSED_OPERATORS.has(operator))
+      return `a string_args read of ${callee} sees only that getter's arguments, not the other ways the code reads the environment, so it cannot decide a ${operator} claim; read the files with extract env`;
+    const linked = [
+      ...[...coveredBy].map((id) => ({ id, how: "is covered by the test" })),
+      ...(implementers.get(row.requirement_id ?? "") ?? []).map((id) => ({
+        id,
+        how: `implements ${row.requirement_id}`,
+      })),
+    ];
+    if (row.fact_id && context.prolog !== undefined) {
+      const [fact] = await loadEntities(context.prolog, { id: row.fact_id, type: "fact" });
+      const named = namedClaimFiles(context.workspaceRoot, [
+        text(fact?.subject_key),
+        text(fact?.claim_text),
+      ]);
+      const unread = [...named].filter(([, paths]) => !paths.some((file) => read.has(file)));
+      if (unread.length > 0) {
+        const [token, paths] = unread[0] as [string, string[]];
+        return `the claim is about ${token}${paths[0] !== token ? ` (${paths.slice(0, 3).join(", ")})` : ""}, which the read does not include. Kibi decides the claim only on the files it reads, so add that file to files; if Kibi cannot read it, the claim cannot be decided`;
+      }
+    }
+    const outside: string[] = [];
+    for (const { id, how } of linked) {
+      const file = await fileOf(id);
+      if (file !== "" && !read.has(file) && !outside.some((text) => text.startsWith(`${id} `)))
+        outside.push(`${id} (${file}) ${how}`);
+    }
+    if (outside.length === 0) return null;
+    return `the read does not cover the code the claim is about: ${outside.slice(0, 3).join("; ")}${outside.length > 3 ? ` and ${outside.length - 3} more` : ""}. Kibi decides the claim only on the files it reads, so add those files to files; if Kibi cannot read them, the claim cannot be decided for them`;
+  };
+}
+
+/**
  * The evidence level a receipt records. A certificate that re-checks but
  * derives none of the claims it names from the code proves nothing about
  * the code, so the receipt supports tested, the level coverage reports. An
@@ -432,6 +594,7 @@ export async function judgeClaimBindings(
       (row) => (row.harness_for ?? []).length > 0,
     );
   const certificate = record(input.verdict.certificate) ?? {};
+  const scopeCheck = await sourceScopeCheck(context, input.contract, coveredBy);
   const bindings: ClaimBinding[] = [];
   for (const row of rows) {
     const base = {
@@ -471,13 +634,9 @@ export async function judgeClaimBindings(
       });
       continue;
     }
-    const problem = await derivedProblem(
-      context,
-      input.contract,
-      certificate,
-      row,
-      coveredBy,
-    );
+    const problem =
+      (await scopeCheck?.(row)) ??
+      (await derivedProblem(context, input.contract, certificate, row, coveredBy));
     const numeric = text(obligation.kind) === "numeric_constraint";
     bindings.push(
       problem === null

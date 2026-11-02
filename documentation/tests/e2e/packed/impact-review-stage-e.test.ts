@@ -17,6 +17,7 @@ import {
   checkPrologAvailable,
   createSandbox,
   kibi,
+  languagePackSpecs,
   packAll,
   run,
 } from "./helpers.js";
@@ -1213,6 +1214,7 @@ async function runInstalledDerivedCoordinateWorkflow(
         "--package-lock=false",
         `file:${tarballs["plugin-sdk"]}`,
         `file:${tarballs["plugin-treesitter"]}`,
+        ...languagePackSpecs(tarballs),
       ],
       {
         cwd: sandbox.repoDir,

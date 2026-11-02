@@ -6,7 +6,7 @@ Kibi sends anonymous usage statistics so its maintainers can see which operation
 
 Any one of these turns telemetry off:
 
-- `kibi telemetry disable`, which saves the choice for your user account and deletes any events still waiting to be sent. `kibi telemetry enable` turns it back on, and `kibi telemetry status` shows the current state and why.
+- `kibi telemetry disable`, which saves the choice for your user account and deletes any events still waiting to be sent. `kibi telemetry enable` turns it back on, and `kibi telemetry status` shows the current state and why, the channel events carry and where it comes from, and the host (`--format json`: `channel`, `channelSource` and `host`).
 - `KIBI_TELEMETRY=0` in the environment.
 - `DO_NOT_TRACK=1` in the environment.
 
@@ -21,8 +21,9 @@ Kibi sends two kinds of event to its PostHog project in the EU region:
 
 Every event also carries:
 
-- the Kibi package and its version, and the host agent (for example `claude-code` or `cursor`), taken from `KIBI_HOST`, the launcher's `KIBI_MCP_HOST`, the variables hosts set for their processes (`CLAUDECODE`, `CURSOR_AGENT`, `CODEX_SANDBOX`, `GEMINI_CLI`, `OPENCODE`, `AI_AGENT`), or the client name an MCP host sends;
+- the Kibi package and its version, and the host agent (for example `claude-code` or `cursor`). Hook events name the host whose hook ran. The MCP server takes it from the launcher's `KIBI_MCP_HOST` or the client name the MCP host sends. The CLI takes it from `KIBI_HOST`, else from the variables hosts set for the processes they start (`CLAUDECODE`, `CURSOR_AGENT`, `CODEX_SANDBOX`, `GEMINI_CLI`, `OPENCODE`, `AI_AGENT`). Those variables are inherited, so a shell started from an agent's terminal, or a harness that runs inside one, counts as that agent; the CLI cannot tell it apart from the agent's own commands. Set `KIBI_HOST` to name the host yourself. `kibi telemetry status` shows the host and channel this shell's events carry;
 - whether it runs in a hosted cloud workspace (`CLAUDE_CODE_REMOTE`, GitHub Codespaces or Gitpod);
+- the channel the run comes from: `release` for an installed Kibi package, `source` when Kibi runs from a checkout of its own repository (Kibi's development, its own hooks and test rounds built from source), or the value of `KIBI_TELEMETRY_CHANNEL` when a harness sets one (for example `agent-test`), so that test and development runs can be told apart from real usage;
 - the operating system, CPU architecture, and JavaScript runtime with its major version;
 - a random install id, created on first use and stored only on your machine;
 - a one-way hash of the host's session id, so events from one agent session can be grouped. Hooks take it from the host's hook input. The CLI and MCP server take it from `KIBI_SESSION_ID`, `CLAUDE_CODE_SESSION_ID` or `CODEX_THREAD_ID` when the host sets one; otherwise they use the session a Kibi hook reported for the same workspace in the last 30 minutes. Hooks keep that link in `telemetry-sessions.json` next to the queue, as hashes of the workspace path and the session id only. Without a host, events carry no session.

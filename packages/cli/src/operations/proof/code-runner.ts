@@ -28,11 +28,18 @@ import {
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { resolveSwipl, swiplChildEnv } from "../../prolog/swipl-resolver.js";
+import {
+  type CodeLanguage,
+  codeLanguage,
+  unsupportedLanguageReason,
+} from "./code-languages.js";
 
 /**
  * How Kibi runs a small evaluator script against the workspace's own code:
  * the TypeScript and JavaScript runners (bun, the workspace's tsx, node with
- * type stripping) and the Python interpreters a project uses. The proof kinds
+ * type stripping), the Python interpreters a project uses and the SWI-Prolog
+ * Kibi's engine runs on. The proof kinds
  * that read a model from the code (exhaustive domains, rule tables, state
  * machines, patterns, data schemas, route tables) all load code this way.
  */
@@ -115,7 +122,12 @@ export function pythonDomainInterpreters(
 export function spawnSyncThroughFiles(
   command: string,
   args: readonly string[],
-  options: Readonly<{ cwd?: string; input?: string; timeout: number }>,
+  options: Readonly<{
+    cwd?: string;
+    input?: string;
+    timeout: number;
+    env?: NodeJS.ProcessEnv;
+  }>,
 ): { error: Error | undefined; status: number | null; stdout: string; stderr: string } {
   const dir = mkdtempSync(path.join(os.tmpdir(), "kibi-spawn-"));
   try {
@@ -128,6 +140,7 @@ export function spawnSyncThroughFiles(
     try {
       run = spawnSync(command, [...args], {
         cwd: options.cwd,
+        ...(options.env === undefined ? {} : { env: options.env }),
         stdio: fds,
         timeout: options.timeout,
       });
@@ -146,83 +159,123 @@ export function spawnSyncThroughFiles(
 }
 
 /** The line of a runner's stderr that names the failure. */
-function failureLine(stderr: string, python: boolean): string {
+function failureLine(stderr: string, language: CodeLanguage): string {
   const lines = stderr
     .trim()
     .split("\n")
     .map((line) => line.trim())
     .filter((line) => line !== "");
   // A Python traceback names the exception on its last line.
-  return (python ? lines.at(-1) : lines[0]) ?? "";
+  return (language === "python" ? lines.at(-1) : lines[0]) ?? "";
 }
+
+type Runner = Readonly<{ command: string; argv: string[]; env?: NodeJS.ProcessEnv }>;
 
 /**
  * Run an evaluator script against the workspace code and return the JSON it
  * prints last. A TypeScript or JavaScript file runs with bun when it is on
  * PATH, else the workspace's tsx, else node's type stripping (which retries
  * extensionless relative imports as TypeScript files); a Python file (`.py`)
- * runs with the first interpreter pythonDomainInterpreters finds. A runner
- * whose output `accept` rejects (or that fails to start) yields to the next.
+ * runs with the first interpreter pythonDomainInterpreters finds; a
+ * SWI-Prolog file (`.pl`, `.plt`) runs with the SWI-Prolog Kibi resolves for
+ * its engine. A runner whose output `accept` rejects (or that fails to
+ * start) yields to the next. A file in a language the caller has no script
+ * for refuses.
  */
-// implements REQ-kibi-non-numeric-proof-kinds
+// implements REQ-kibi-non-numeric-proof-kinds, REQ-kibi-multilingual-code-proofs
 export function runCodeEvaluator(
   workspaceRoot: string,
   sourceFile: string,
-  scripts: Readonly<{ js: string; python: string }>,
+  scripts: Readonly<Partial<Record<CodeLanguage, string>>>,
   args: readonly string[],
   accept: (parsed: unknown) => boolean = () => true,
   options: Readonly<{
     runners?: readonly ("bun" | "tsx" | "node")[];
   }> = {},
 ):
-  | { ok: true; value: unknown; python: boolean }
-  | { ok: false; failure: string; python: boolean } {
-  const python = /\.py$/i.test(sourceFile);
-  const tsx = python ? null : workspaceBin(workspaceRoot, "tsx");
-  const runners: [string, string[]][] = python
-    ? pythonDomainInterpreters(workspaceRoot, sourceFile).map(
-        (interpreter): [string, string[]] => [
-          interpreter,
-          ["-c", scripts.python],
-        ],
-      )
-    : (options.runners ?? ["bun", "tsx", "node"]).flatMap(
-        (runner): [string, string[]][] => {
-          if (runner === "bun") return [["bun", ["-e", scripts.js]]];
-          if (runner === "tsx")
-            return tsx === null
-              ? []
-              : [[tsx, ["--eval", scripts.js, "--"]]];
-          return [
-            [
-              process.execPath,
-              [
-                "--experimental-strip-types",
-                "--no-warnings",
-                "--input-type=module",
-                "-e",
-                scripts.js,
-              ],
-            ],
-          ];
-        },
-      );
-  let failure = "";
-  for (const [command, argv] of runners) {
-    const run = spawnSyncThroughFiles(command, [...argv, ...args], {
-      cwd: workspaceRoot,
-      timeout: 60_000,
-    });
-    if (run.error) continue;
-    const line = run.stdout.trim().split("\n").pop() ?? "";
+  | { ok: true; value: unknown; language: CodeLanguage }
+  | { ok: false; failure: string; language: CodeLanguage | null } {
+  const language = codeLanguage(sourceFile);
+  const script = language === null ? undefined : scripts[language];
+  if (language === null || script === undefined)
+    return {
+      ok: false,
+      failure: unsupportedLanguageReason(
+        "this reader",
+        (Object.keys(scripts) as CodeLanguage[]).filter((key) => scripts[key] !== undefined),
+        [sourceFile],
+      ),
+      language,
+    };
+  const fail = (failure: string) => ({ ok: false, failure, language }) as const;
+  let scriptDir: string | null = null;
+  let runners: Runner[];
+  if (language === "prolog") {
+    let swipl: ReturnType<typeof resolveSwipl>;
     try {
-      const parsed = JSON.parse(line) as unknown;
-      if (accept(parsed)) return { ok: true, value: parsed, python };
-    } catch {
-      // Fall through to the next runner.
+      swipl = resolveSwipl();
+    } catch (error) {
+      return fail(error instanceof Error ? error.message.split("\n")[0] ?? "" : String(error));
     }
-    failure = failureLine(run.stderr, python);
+    // swipl runs a script from a file, not from an argument.
+    scriptDir = mkdtempSync(path.join(os.tmpdir(), "kibi-prolog-"));
+    const scriptFile = path.join(scriptDir, "evaluator.pl");
+    writeFileSync(scriptFile, script);
+    runners = [
+      {
+        command: swipl.bin,
+        argv: [scriptFile, "--"],
+        env: { ...process.env, ...swiplChildEnv(swipl) },
+      },
+    ];
+  } else if (language === "python")
+    runners = pythonDomainInterpreters(workspaceRoot, sourceFile).map(
+      (interpreter) => ({ command: interpreter, argv: ["-c", script] }),
+    );
+  else {
+    const tsx = workspaceBin(workspaceRoot, "tsx");
+    runners = (options.runners ?? ["bun", "tsx", "node"]).flatMap(
+      (runner): Runner[] => {
+        if (runner === "bun") return [{ command: "bun", argv: ["-e", script] }];
+        if (runner === "tsx")
+          return tsx === null
+            ? []
+            : [{ command: tsx, argv: ["--eval", script, "--"] }];
+        return [
+          {
+            command: process.execPath,
+            argv: [
+              "--experimental-strip-types",
+              "--no-warnings",
+              "--input-type=module",
+              "-e",
+              script,
+            ],
+          },
+        ];
+      },
+    );
   }
-  return { ok: false, failure, python };
+  let failure = "";
+  try {
+    for (const { command, argv, env } of runners) {
+      const run = spawnSyncThroughFiles(command, [...argv, ...args], {
+        cwd: workspaceRoot,
+        timeout: 60_000,
+        ...(env === undefined ? {} : { env }),
+      });
+      if (run.error) continue;
+      const line = run.stdout.trim().split("\n").pop() ?? "";
+      try {
+        const parsed = JSON.parse(line) as unknown;
+        if (accept(parsed)) return { ok: true, value: parsed, language };
+      } catch {
+        // Fall through to the next runner.
+      }
+      failure = failureLine(run.stderr, language);
+    }
+  } finally {
+    if (scriptDir !== null) rmSync(scriptDir, { recursive: true, force: true });
+  }
+  return fail(failure);
 }
-

@@ -293,3 +293,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-076a593e9849
+  - type: requires_property
+    from: REQ-search-hints-model-pin
+    to: FACT-search-hints-model-id
+    created_at: 2026-10-30T19:40:14.395Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b88ec453acfb
+  - type: requires_property
+    from: REQ-search-hints-model-pin
+    to: FACT-search-hints-model-revision
+    created_at: 2026-10-30T19:40:14.433Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0bcd9b724e0d
+  - type: constrains
+    from: REQ-search-hints-model-pin
+    to: FACT-kibi-search-hints-model-component
+    created_at: 2026-10-30T19:40:14.459Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-08646aaa9463
+  - type: specified_by
+    from: REQ-search-hints-model-pin
+    to: SCEN-kibi-plugin-search-hints
+    created_at: 2026-10-30T19:40:14.485Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d82b71065921

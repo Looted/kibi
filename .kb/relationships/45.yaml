@@ -356,3 +356,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7d95bab434f2
+  - type: executable_for
+    from: SYM-proof-search-non-governing-statuses
+    to: TEST-proof-search-non-governing-statuses
+    created_at: 2026-10-30T19:42:20.986Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dde018d97c63

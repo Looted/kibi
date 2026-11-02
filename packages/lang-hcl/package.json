@@ -1,0 +1,27 @@
+{
+  "name": "kibi-lang-hcl",
+  "version": "1.0.0",
+  "description": "Terraform and HCL grammar for kibi-plugin-treesitter (@tree-sitter-grammars/tree-sitter-hcl 1.2.0)",
+  "license": "Apache-2.0",
+  "author": "Piotr Franczyk",
+  "homepage": "https://looted.github.io/kibi/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Looted/kibi.git",
+    "directory": "packages/lang-hcl"
+  },
+  "bugs": {
+    "url": "https://github.com/Looted/kibi/issues"
+  },
+  "keywords": ["kibi", "tree-sitter", "hcl"],
+  "files": [
+    "tree-sitter-terraform.release.wasm",
+    "tree-sitter-hcl.release.wasm",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

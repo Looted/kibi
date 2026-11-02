@@ -42,7 +42,7 @@ export async function certificateProofKindsCertificate(): Promise<CodeCertificat
   });
 }
 
-/** A source proof reader shall be json, yaml, glob, openapi, references, schema, routes or validator. */
+/** A source proof reader shall be json, yaml, glob, openapi, references, schema, routes, validator or prolog. */
 export async function sourceProofReadersCertificate(): Promise<CodeCertificate> {
   return exhaustiveCertificate({
     testId: "TEST-proof-source-proof-readers",
@@ -102,12 +102,13 @@ describe("Proof kinds, source readers and binding verdicts", () => {
     ]);
   });
 
-  test("A source proof reader shall be json, yaml, glob, openapi, references, schema, routes or validator", async () => {
+  test("A source proof reader shall be json, yaml, glob, openapi, references, schema, routes, validator or prolog", async () => {
     writeCodeCertificate(await sourceProofReadersCertificate());
     expect([...SOURCE_READERS].sort()).toEqual([
       "glob",
       "json",
       "openapi",
+      "prolog",
       "references",
       "routes",
       "schema",

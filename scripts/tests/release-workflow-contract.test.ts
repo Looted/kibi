@@ -335,6 +335,19 @@ describe("publish.yml CI workflow contract", () => {
     expect(packagesBuild).toBeGreaterThan(driftCheck);
   });
 
+  test("checks Cursor hook bundle drift before build regeneration", () => {
+    const block = extractJobBlock(workflowContent, "build-and-check");
+    const dependencyInstall = block.indexOf("bun install --frozen-lockfile");
+    const driftCheck = block.indexOf(
+      "bun run --filter kibi-cursor check:hook-bundle",
+    );
+    const packagesBuild = block.search(/\bbun run build\b/);
+
+    expect(dependencyInstall).toBeGreaterThanOrEqual(0);
+    expect(driftCheck).toBeGreaterThan(dependencyInstall);
+    expect(packagesBuild).toBeGreaterThan(driftCheck);
+  });
+
   test("keeps package packing and smoke-install order canonical", () => {
     const block = extractJobBlock(workflowContent, "build-and-check");
     expect(block).toContain("scripts/pack-packages.ts --slice publishable");

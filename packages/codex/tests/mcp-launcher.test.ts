@@ -477,6 +477,44 @@ describe("codex MCP launcher server helpers", () => {
     expect(exitCode).toBe(1);
   });
 
+  test("the proxy says on stderr when npx will run a global kibi-mcp", async () => {
+    const run = async (workspaceRoot: string) => {
+      const child = makeFakeChild();
+      const err = makeWriteSink();
+      const stdin = new PassThrough();
+      const exit = launcher.proxyKibiMcp({
+        workspaceRoot,
+        env: {},
+        spawnImpl: () => child,
+        stdin,
+        stdout: new PassThrough(),
+        stderr: err.stream,
+      });
+      stdin.end();
+      child.emit("close", 0);
+      await exit;
+      return err.text();
+    };
+    const bare = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-codex-bare-"));
+    const local = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-codex-local-"));
+    try {
+      fs.mkdirSync(path.join(local, "node_modules", ".bin"), {
+        recursive: true,
+      });
+      fs.writeFileSync(
+        path.join(local, "node_modules", ".bin", "kibi-mcp"),
+        "",
+      );
+      expect(await run(bare)).toBe(
+        `[kibi-codex] No project-local kibi-mcp in ${bare}; npx runs the global install. Install kibi-mcp in the project to pin its version.\n`,
+      );
+      expect(await run(local)).toBe("");
+    } finally {
+      fs.rmSync(bare, { recursive: true, force: true });
+      fs.rmSync(local, { recursive: true, force: true });
+    }
+  });
+
   test("proxied children mirror exit state and receive forwarded input", async () => {
     const stdin = new PassThrough();
     const child = makeFakeChild();

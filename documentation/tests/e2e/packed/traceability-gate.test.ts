@@ -612,24 +612,6 @@ if (RUN_NODE_TEST_SUITE) {
               severity: "warning",
               blocking: false,
             },
-            {
-              id: "staged_file_ownership_missing",
-              path: ".kb/schema/entities.pl",
-              severity: "warning",
-              blocking: false,
-            },
-            {
-              id: "staged_file_ownership_missing",
-              path: ".kb/schema/relationships.pl",
-              severity: "warning",
-              blocking: false,
-            },
-            {
-              id: "staged_file_ownership_missing",
-              path: ".kb/schema/validation.pl",
-              severity: "warning",
-              blocking: false,
-            },
           ],
           "initialization may have only its known nonblocking file-level advisories",
         );
@@ -1142,7 +1124,11 @@ if (RUN_NODE_TEST_SUITE) {
         return;
       }
       assertCommandExit(
-        await run("git", ["reset", "-q", "--hard", "HEAD"], gitOptions(sandbox)),
+        await run(
+          "git",
+          ["reset", "-q", "--hard", "HEAD"],
+          gitOptions(sandbox),
+        ),
         0,
         "discarding the previous case's staged fixture",
       );
@@ -1169,7 +1155,11 @@ if (RUN_NODE_TEST_SUITE) {
       const result = await kibi(sandbox, ["check", "--staged"], {
         timeoutMs: CHECK_TIMEOUT_MS,
       });
-      assertCommandExit(result, 1, "staged check for a behavior edit without impact evidence");
+      assertCommandExit(
+        result,
+        1,
+        "staged check for a behavior edit without impact evidence",
+      );
       const output = commandText(result);
       assert.match(output, /kibi_impact_evidence_missing/);
       assert.match(output, /src\/sample\.js/);

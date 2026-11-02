@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware operations safely across MCP or the trusted local CLI, including partial completion repair.
-version: 2.37.0
+version: 2.40.1
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -20,6 +20,7 @@ resources:
   - resources/fact-lanes.md
   - resources/workflows.md
   - resources/proof.md
+  - resources/prolog-proofs.md
   - resources/ui-requirements.md
   - resources/logic-ir.md
   - resources/kb-improvement.md
@@ -94,8 +95,10 @@ it is a pointer to the knowledge, never proof. Each line answers one question:
   requirement first. Read the lead requirement with `kb_query({id})` before
   changing behavior; add `includeBody: true` to see its authored prose, and
   fix a stale sentence there with `kb_upsert` `document.body`.
-- `REQ-… must keep true: FACT-…` (edit only): the ground facts the lead
-  requirement requires. An edit that breaks one of them is a requirement
+- `REQ-… must keep true: <claim>` (edit only): what the lead requirement
+  requires, as the claims its facts model (with the operator and members,
+  such as "The greet function must not call console.log") or, without
+  them, its own statement. An edit that breaks one of them is a requirement
   change: ask before changing the rule (see Decision firmness), and never
   code around the fact.
 - `Decision: ADR-…` (edit only): the decision behind the lead requirement.

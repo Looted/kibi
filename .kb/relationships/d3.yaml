@@ -356,3 +356,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-652569dd7fd3
+  - type: validates
+    from: TEST-kibi-tree-sitter-references
+    to: SCEN-kibi-tree-sitter-references
+    created_at: 2026-10-31T16:50:50.567Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75775e7ea9e3

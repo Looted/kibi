@@ -1,10 +1,10 @@
 ---
-title: A source proof reader shall be json, yaml, glob, openapi, references, schema, routes or validator
+title: A source proof reader shall be json, yaml, glob, openapi, references, schema, routes, validator or prolog
 status: active
 fact_kind: property_value
 subject_key: kibi.proofs.vocabulary
-claim_key: CLAIM-FF4438926644A069
-claim_text: A source proof reader shall be json, yaml, glob, openapi, references, schema, routes or validator
+claim_key: CLAIM-2337B1E3178A6C90
+claim_text: A source proof reader shall be json, yaml, glob, openapi, references, schema, routes, validator or prolog
 text_ref: REQ-kibi-proof-vocabulary
 property_key: source_readers
 operator: eq
@@ -18,6 +18,7 @@ value_set:
   - schema
   - routes
   - validator
+  - prolog
 origin:
   kind: agent
   recorded_at: '2026-10-29T16:44:37.371Z'

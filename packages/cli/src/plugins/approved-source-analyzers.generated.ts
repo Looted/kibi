@@ -4,12 +4,12 @@
 export const qualifiedSourceAnalyzers = [
   {
     packageName: "kibi-plugin-treesitter",
-    version: "2.1.0",
+    version: "3.0.0",
     files: {
       "SBOM.spdx.json":
-        "ffab8e28376a815906c901348cdc9c31ba566c903e832e1f9808c890a0cab3c2",
+        "35be6f461678e3b04bee9823e6ed8adb631886335bc66590d80f6c8e8a1d0605",
       "THIRD_PARTY_NOTICES.md":
-        "fff747633b08a90bf949e998892211702b021c63e3a074ded102700fc447fed3",
+        "942f1846cafc59c32d64422fcf1939be7036af4d82d776957aab8f4aeb107029",
       "assets/queries/bash.scm":
         "6ca535e8fe652b51203ac272831881dab001f7ac508e50551bc2cdc4a15d7b6c",
       "assets/queries/c.scm":
@@ -44,74 +44,30 @@ export const qualifiedSourceAnalyzers = [
         "f22867fdebde5cb091861c08d34690dc2540f4318068bf81be9f6b0d348ab8c1",
       "assets/queries/terraform.scm":
         "8a6974a8eb48e13b5b8cd64e7c81262a825b4251df01ab383aee5cdda8151e7e",
-      "assets/tree-sitter-bash.wasm":
-        "8292919c88a0f7d3fb31d0cd0253ca5a9531bc1ede82b0537f2c63dd8abe6a7a",
-      "assets/tree-sitter-c.wasm":
-        "c852c2a85ebf2beb636aa3b0ef7f7e70458684d74f6741b20dcb296885bed9f9",
-      "assets/tree-sitter-c_sharp.wasm":
-        "6f69e1cae44e1c32c1eccc170dc5a9778fb94ff716f71113fe1f8c4299aa2f40",
-      "assets/tree-sitter-cpp.wasm":
-        "174eb0deb75b2ec7881bcacda9f995648d8e683956e5c2267e69ab6dc503fcbf",
-      "assets/tree-sitter-go.wasm":
-        "9504573f352b20be7f2f1911754d710622aedc15afff16d5ed8fb5645681aee7",
-      "assets/tree-sitter-hcl.release.wasm":
-        "2f9acf63e7c263215f283e2cf0f4ebbb9bfa77f58e18fa42b91094be201372a7",
-      "assets/tree-sitter-java.wasm":
-        "4fdeac4ca6ca089f06c6f7e562abcac1733cd465728cc7031ebb73c2019122c4",
-      "assets/tree-sitter-php.wasm":
-        "d4df6a6ff08c87c3ec4f9cbb785fe09998a0cb570e03f57d7b19b3acfb146aa7",
-      "assets/tree-sitter-python.wasm":
-        "16108b50df4ee9a30168794252ab55e7c93bfc5765d7fa0aa3e335752c515f47",
-      "assets/tree-sitter-ruby.wasm":
-        "09a96427d7c72f0613ed470cd9812223fc4a91d6a9c025c0235cc6bd59ff96f4",
-      "assets/tree-sitter-rust.wasm":
-        "f65f354215611fd94ad34134b3427eb3d58cbb745df7b6509ba722184db73d57",
-      "assets/tree-sitter-swi_prolog.wasm":
-        "a9872f0369b51c1eed2ef04267382c34aeaeba7c97b6f55b829fbf625bdb22dd",
-      "assets/tree-sitter-terraform.release.wasm":
-        "59dbcbb0f08eb78b78f37510834559a48ce5c9d4866c978d62c6390796461cb5",
       "catalog.json":
-        "c10f0cd5d1989abb9543c4e385ba44fa226cad4186613791061b56dbda2497a7",
+        "88c1139144c89835eed2d8a4dc736e4fe8391b50c7aeecf967dd3cbe8163f937",
       "dist/analysis-worker.js":
-        "9ef76ad467f6b4e2a117a3b5656838eb5f096890931ec0480566b76b73fd64db",
+        "9120078de07b39fd5caced87610eb262d94e9cf1ba5c19ddf0413baacffab4fe",
       "dist/catalog.js":
         "c485cd1bf81098c3e2e86d37f78bf9f55af122f5d6b9587c0c57b494d68e4968",
       "dist/extractor.js":
-        "1d8cd819e7ec8fcc291a44e5ffe4ccfe77099301677913fcfe0d92e7ce971f33",
+        "30e8aaea27afd15d1d4323bf9708b86bae84f1e77c0bae74d50dac85aa737d31",
       "dist/index.js":
-        "adc03d77d94c0133b3188950b35f79db19e447cf7bfa1f7e1cf1f5c97a582a44",
+        "a7dcc81f40848a17a4b7adf4fe573a57a50c18425fab40fbb098489dfd092f3f",
+      "dist/language-packs.js":
+        "4fd7f0e787f12e75d9b8bab9fa49463c782bdf2e9a85c922636154970a4530de",
       "dist/performance-timing.js":
-        "56cce530f627c8fd079e8ec070322f84378ae50c40a6765d88b418850692940b",
+        "28f589c29e8759b566ee3fb741a91e30347efe1dfbad0f5b1c5b7d4f785369ff",
+      "dist/preprocessor-idioms.js":
+        "92973c7f0c017fdd340a084e39e5febadd4254bc822c0f86f46a05c1463c1870",
+      "dist/references.js":
+        "13f481356aa17fc1b19ec573430c2235645ea0047e8474ced1373c0d88e19e87",
       "integrity.json":
-        "fabfc50ba1392b4b0f7b9bf39e714de05d093ebfccdcc2225eb9d1fd84ad9a4e",
-      "licenses/tree-sitter-bash-MIT.txt":
-        "49bf33cf78ef5897e4e161ce1517df7de1ae5042a65b6bcfd44401e0fc606559",
-      "licenses/tree-sitter-c-MIT.txt":
-        "2e0110e07abef7c2548b26ec9d6969775617ca539a0dc8dbeeb14d6452c711d1",
-      "licenses/tree-sitter-c-sharp-MIT.txt":
-        "778fb7d63b8c1844da315648c02f325c4713a6f4a5d19644fd413421422776d3",
-      "licenses/tree-sitter-cpp-MIT.txt":
-        "2e0110e07abef7c2548b26ec9d6969775617ca539a0dc8dbeeb14d6452c711d1",
-      "licenses/tree-sitter-go-MIT.txt":
-        "2e0110e07abef7c2548b26ec9d6969775617ca539a0dc8dbeeb14d6452c711d1",
-      "licenses/tree-sitter-hcl-Apache-2.0.txt":
-        "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
-      "licenses/tree-sitter-java-MIT.txt":
-        "52ed137b039cd9c46409bc22e89938af911c95b157feae2d040b51e6084369a7",
-      "licenses/tree-sitter-php-MIT.txt":
-        "664764fabf40c0b318e06324a5a12379092a2df25b8cbf2415f71bc0bb352346",
-      "licenses/tree-sitter-python-MIT.txt":
-        "d724405ce238a22c0d35769c5a36b386ad5958192efe8bbb304fb2896254575f",
-      "licenses/tree-sitter-ruby-MIT.txt":
-        "9c99b99e93d3c6461bef9f6bac45d17b8bf014172625c24f76319bbd235a7b80",
-      "licenses/tree-sitter-rust-MIT.txt":
-        "31d5b6f4243d5c7c6e1c4ebbbb9f6407bd1457a08bcc4f706521710341acba36",
-      "licenses/tree-sitter-swi-prolog-MIT.txt":
-        "c51ac4800457c57ddabdee5486605df9452705491f806cb87241b7a8acc7ab2d",
+        "53d8a644a2bd4fcba93d60704b1f69c886f4705a8cbe78acc673ba8b50b00e1b",
       "licenses/web-tree-sitter-MIT.txt":
         "c5cfb43042b6b72045f4ba997834d0a7786d2793d91680868b5815b39f14fc78",
       "package.json":
-        "5e81c6ce4712add506e576b30d05a80d07a9ad65ba863c2765483b4150687370",
+        "5df90de14b219f4ae13c6cfd17206cbb70115c5a29f50ddb62f11d4abf891f9e",
     },
     dependencies: [
       {

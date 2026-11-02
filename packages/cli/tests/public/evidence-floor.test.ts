@@ -73,6 +73,33 @@ describe("evidence-floor findings", () => {
     });
   });
 
+  // implements REQ-kibi-claim-bound-proofs
+  test("a claim its proof refuted is named with the test and what it read", () => {
+    const reason =
+      "the members Kibi read from the source include console.log, which the fact excludes";
+    const [finding] = evidenceFloorViolations([
+      row({
+        evidenceLevel: "unverified",
+        proofGaps: ["uncovered_case", "happy_path_only"],
+        refutations: [{ test: "TEST-GREET", claimKey: "CLAIM-GREET", reason }],
+      }),
+    ]);
+    expect(finding?.description).toBe(
+      `REQ-A is unverified but needs tested (the floor of a firm requirement); its proof refutes a claim: TEST-GREET refutes CLAIM-GREET: ${reason}`,
+    );
+    expect(finding?.suggestion).toBe(
+      `The code breaks a claim of REQ-A (TEST-GREET refutes CLAIM-GREET: ${reason}). Fix the code so it keeps the claim, or, with the person who owns the rule, change the requirement, then run kibi prove; uncovered_case and happy_path_only clear once the proof derives the claim. kibi proof explain REQ-A shows each claim's bindings.`,
+    );
+    // The gap codes stay; the refutation is added beside them.
+    expect(finding?.evidence).toMatchObject({
+      proofGaps: ["uncovered_case", "happy_path_only"],
+      refutations: [{ test: "TEST-GREET", claimKey: "CLAIM-GREET", reason }],
+    });
+    expect(evidenceFloorViolations([row({})])[0]?.evidence).not.toHaveProperty(
+      "refutations",
+    );
+  });
+
   test("an explicit floor says it comes from required_evidence", () => {
     const [finding] = evidenceFloorViolations([
       row({

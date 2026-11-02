@@ -363,3 +363,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0a7563c251b8
+  - type: covered_by
+    from: SYM-bootstrap-near-restatement-jaccard
+    to: TEST-proof-near-restatement-jaccard
+    created_at: 2026-10-30T19:45:07.980Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a079d4b444eb

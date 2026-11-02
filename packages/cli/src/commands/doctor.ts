@@ -28,10 +28,12 @@ import {
   secretSourceFromBootstrap,
 } from "../env/bootstrap.js";
 import { kibiPackageVersions } from "../package-versions.js";
+import { pluginInstallProblems } from "../plugins/plugin-install-check.js";
 import {
   describeConfiguredCapabilityPlugins,
   readProjectKibiConfig,
 } from "../plugins/project-config.js";
+import { workspaceReferenceLanguageNote } from "../plugins/reference-language-suggestion.js";
 import {
   type ResolvedSwipl,
   SwiplResolutionError,
@@ -603,10 +605,14 @@ function checkCapabilityPlugins(): {
     const bootstrap = bootstrapKibiEnvironment();
     const workspaceRoot = bootstrap.workspaceRoot;
     const rows = describeConfiguredCapabilityPlugins(workspaceRoot);
+    const languages = workspaceReferenceLanguageNote(workspaceRoot);
     if (rows.length === 0) {
       return {
         passed: true,
         message: "None configured; builtin providers only",
+        ...(languages === null
+          ? {}
+          : { warning: true, remediation: languages }),
       };
     }
     const parts: string[] = rows.map(
@@ -627,6 +633,14 @@ function checkCapabilityPlugins(): {
     const packages = [
       ...new Set((config.plugins ?? []).map((plugin) => plugin.package)),
     ];
+    const installProblems = pluginInstallProblems(workspaceRoot, packages);
+    if (installProblems.length > 0) {
+      return {
+        passed: false,
+        message: `${parts.join("; ")}; ${installProblems.map((row) => row.problem).join("; ")}`,
+        remediation: installProblems.map((row) => row.fix).join(" "),
+      };
+    }
     const missingSecrets: string[] = [];
     // Secrets whose plugin only augments a builtin provider: without them the
     // plugin is skipped and the builtin keeps working, so doctor warns.
@@ -684,6 +698,7 @@ function checkCapabilityPlugins(): {
     return {
       passed: true,
       message,
+      ...(languages === null ? {} : { warning: true, remediation: languages }),
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

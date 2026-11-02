@@ -7,6 +7,7 @@ import type {
   SemanticAdvisorReceipt,
 } from "../../../operations/semantic-advisor/types.js";
 import { publicCapabilityStamp } from "../../../plugins/compose-semantic-classifier.js";
+import { firstSentence } from "../../../utils/first-sentence.js";
 import type { OperationContext, PrologPort } from "../runtime-types.js";
 import type { OperationSpec } from "../types.js";
 
@@ -59,7 +60,7 @@ export async function executeSemanticAdvisor(
 ): Promise<SemanticAdvisorOperationResult> {
   const text = requiredText(args.text);
   const id = optionalString(args.id) ?? "REQ-SEMANTIC-ADVISOR-PREVIEW";
-  const title = optionalString(args.title) ?? text.split(/[.!?]/, 1)[0] ?? text;
+  const title = optionalString(args.title) ?? (firstSentence(text) || text);
   const source = optionalString(args.source) ?? "mcp://kibi/semantic-advisor";
   const orchestrated = await analyzeSemanticAdvisorInputWithPlugins(
     {

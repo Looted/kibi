@@ -26,15 +26,15 @@ id: TEST-proof-builtin-predicate-confidence
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-d83e043936cd9a1b0752d7bf
+    receipt_id: PR-9dca5a97c6bd8c993051cf96
     test_id: TEST-proof-builtin-predicate-confidence
     scope: unit
     outcome: passed
-    code_snapshot: 5c8fc46444649a0e2a750fad0febe6d78383e8860bf2ea01e98a879300256a4f
+    code_snapshot: e2663d10a2e1a0b8fdd0d38e888ee46d8031436be2244a613e1c406fbfa714b0
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-29T17:01:15.638Z'
-    finished_at: '2026-10-29T17:01:15.807Z'
-    artifact_digest: 64242c373c10d0280a515c285a1d990ae9b395c904ace9fd2f2447c75222b05c
+    started_at: '2026-10-30T19:51:55.075Z'
+    finished_at: '2026-10-30T19:51:55.173Z'
+    artifact_digest: 8212e31e43fe0922e5208e4ae5ff678465653c3d3fea96d7345fcc0eafa92f2a
     contract_hash: d584ca6d2f33b6a856f6e3400bd9bcb811250ad2640fea65e961380a5c559bb7
     binding_hash: ca7845ebf7eb61efe99f25d8bfa441fc24eef59612a8a27dd1516647c06006da
     fingerprint: 05132d4a643a39b5e4730d9fa014b29614c7597f4f511f96b794571a3ab37ca3

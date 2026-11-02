@@ -20,6 +20,7 @@ import type {
   OperationContext,
   WorkspaceSnapshot,
 } from "../../public/operations/runtime-types.js";
+import { firstSentence } from "../../utils/first-sentence.js";
 import { buildWhatIfAnalysisGoal } from "../mutation/contradictions.js";
 import { canonicalSourcePath } from "../mutation/source-authoring.js";
 import type { RelationshipInput, UpsertInput } from "../mutation/types.js";
@@ -1233,7 +1234,7 @@ export async function executeCompileIntent(
   const title =
     text(args.title) ||
     text(existingEntity.title) ||
-    intent.split(/[.!?]/, 1)[0] ||
+    firstSentence(intent) ||
     intent;
   const requirementDocument = requirementDocumentPath(args.sourceLocations);
   const source =

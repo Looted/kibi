@@ -426,3 +426,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e3b05ad0b5a4
+  - type: covered_by
+    from: SYM-code-scope-contract-code-symbol-ids
+    to: TEST-kibi-multilingual-code-proofs
+    created_at: 2026-10-31T08:36:04.626Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d6ef350f1a9
+  - type: implements
+    from: SYM-code-scope-contract-code-symbol-ids
+    to: REQ-kibi-multilingual-code-proofs
+    created_at: 2026-10-31T08:36:04.650Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-817b7521f8e1

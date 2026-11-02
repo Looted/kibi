@@ -9,11 +9,13 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
+import type { Tarballs } from "./helpers.js";
 import {
   parseNpmPackJsonOutput,
   resolveNpmPackFilename,
 } from "./npm-pack-json.js";
 import { writePackedInstallManifest } from "./packed-install-manifest.js";
+import { languagePackDirs } from "./packed-packages.js";
 
 describe("opencode packed utility helpers", () => {
   it("parses npm pack JSON after build output noise", () => {
@@ -93,8 +95,11 @@ describe("opencode packed utility helpers", () => {
       "plugin-ui": "/tmp/kibi/plugin-ui.tgz",
       "plugin-search-hints": "/tmp/kibi/plugin-search-hints.tgz",
       "plugin-treesitter": "/tmp/kibi/plugin-treesitter.tgz",
+      ...Object.fromEntries(
+        languagePackDirs.map((pack) => [pack, `/tmp/kibi/${pack}.tgz`]),
+      ),
       swipl: "/tmp/kibi/swipl.tgz",
-    };
+    } as Tarballs;
     const packageFiles = {
       "kibi-core": `file:${tarballs.core}`,
       "kibi-agent-core": `file:${tarballs["agent-core"]}`,
@@ -145,9 +150,20 @@ describe("opencode packed utility helpers", () => {
       assert.deepStrictEqual(completePackageJson.dependencies, {
         ...packageFiles,
         "kibi-plugin-jev": `file:${tarballs["plugin-jev"]}`,
+        "kibi-plugin-ui": `file:${tarballs["plugin-ui"]}`,
+        "kibi-plugin-search-hints": `file:${tarballs["plugin-search-hints"]}`,
         "kibi-plugin-treesitter": `file:${tarballs["plugin-treesitter"]}`,
+        ...Object.fromEntries(
+          languagePackDirs.map((pack) => [
+            `kibi-${pack}`,
+            `file:${tarballs[pack]}`,
+          ]),
+        ),
       });
-      assert.equal(Object.keys(completePackageJson.dependencies).length, 13);
+      assert.equal(
+        Object.keys(completePackageJson.dependencies).length,
+        15 + languagePackDirs.length,
+      );
     } finally {
       rmSync(prefix, { recursive: true, force: true });
     }

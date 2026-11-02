@@ -23,7 +23,9 @@ import {
   writePackedInstallManifest,
 } from "./packed-install-manifest.js";
 import {
+  type LanguagePackDir,
   hostSwiplPlatformPackage,
+  languagePackDirs,
   packagesForPack,
 } from "./packed-packages.js";
 
@@ -760,7 +762,7 @@ export function cleanupSharedPackedInstallation(): void {
 }
 
 /** Tarball paths for each package */
-export interface Tarballs {
+export interface Tarballs extends Record<LanguagePackDir, string> {
   core: string;
   "agent-core": string;
   cli: string;
@@ -781,6 +783,18 @@ export interface Tarballs {
    * tarball set carries one (a populated release pack).
    */
   swiplPlatform?: string;
+}
+
+/**
+ * `file:` specs of the grammar packs a test installs next to
+ * kibi-plugin-treesitter; every pack when none are named.
+ */
+// implements REQ-kibi-tree-sitter-language-packs
+export function languagePackSpecs(
+  tarballs: Tarballs,
+  packs: readonly LanguagePackDir[] = languagePackDirs,
+): string[] {
+  return packs.map((pack) => `file:${tarballs[pack]}`);
 }
 
 /** Options for running commands */

@@ -1265,6 +1265,70 @@ describe("refreshManifestCoordinates", () => {
 
     restore();
   });
+
+  test("reports an active symbol whose source file is missing, with the reason", async () => {
+    const gone = makeEntry({
+      id: "SYM-GONE",
+      sourceFile: "src/gone.go",
+      sourceLine: undefined,
+    });
+    const retired = makeEntry({
+      id: "SYM-RETIRED",
+      sourceFile: "src/gone.go",
+      sourceLine: undefined,
+      status: "deprecated",
+    });
+    mockParseYAML.mockImplementation(() => ({ symbols: [gone, retired] }));
+    mockEnrichSymbolCoordinates.mockImplementation(async (entries) =>
+      entries.map((entry) => ({
+        ...entry,
+        coordinateRefreshFailure: "src/gone.go does not exist",
+      })),
+    );
+    mockExistsSync.mockImplementation(() => false);
+
+    const { messages, restore } = captureLog();
+    try {
+      await refreshManifestCoordinates(
+        manifestPath,
+        workspaceRoot,
+        manifestDeps(),
+      );
+    } finally {
+      restore();
+    }
+
+    expect(messages[0]).toContain("unchanged=1, failed=1");
+    expect(messages[1]).toBe("  failed SYM-GONE: src/gone.go does not exist");
+  });
+
+  test("names the title and file when the enricher gives no reason", async () => {
+    const entry = makeEntry({
+      id: "SYM-TS",
+      title: "missingFn",
+      sourceFile: "src/a.ts",
+      sourceLine: undefined,
+      sourceColumn: undefined,
+    });
+    mockParseYAML.mockImplementation(() => ({ symbols: [entry] }));
+    mockEnrichSymbolCoordinates.mockImplementation(async (e) => e);
+    mockExistsSync.mockImplementation(() => true);
+
+    const { messages, restore } = captureLog();
+    try {
+      await refreshManifestCoordinates(
+        manifestPath,
+        workspaceRoot,
+        manifestDeps(),
+      );
+    } finally {
+      restore();
+    }
+
+    expect(messages[1]).toStartWith(
+      "  failed SYM-TS: no unique declaration titled 'missingFn' was found in src/a.ts; use the name the extractor gives the declaration",
+    );
+  });
   test("opts into decorator coordinates only for explicit coordinate refresh", async () => {
     mockParseYAML.mockImplementation(() => ({ symbols: [] }));
     mockExistsSync.mockImplementation(() => false);

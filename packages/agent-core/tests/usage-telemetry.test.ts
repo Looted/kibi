@@ -9,6 +9,7 @@ import {
   CI_ENV_KEYS,
   DEFAULT_TELEMETRY_HOST,
   TEST_ENV_KEYS,
+  detectTelemetryChannel,
   detectTelemetryHost,
   detectTelemetrySession,
   flushTelemetry,
@@ -20,6 +21,7 @@ import {
   setTelemetryPreference,
   takeTelemetryNotice,
   telemetryCategory,
+  telemetryChannel,
   telemetryStatus,
   workspaceSessionHash,
 } from "../src/usage-telemetry";
@@ -261,6 +263,77 @@ describe("anonymous usage telemetry host and session", () => {
     });
   });
 
+  test("marks runs from a Kibi checkout and harness-tagged runs apart from releases", () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-channel-"));
+    temporaryRoots.push(root);
+    const write = (file: string, text: string) => {
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      fs.writeFileSync(file, text);
+    };
+    const checkout = path.join(root, "kibi");
+    write(path.join(checkout, "package.json"), '{"name":"kibi"}');
+    fs.mkdirSync(path.join(checkout, "packages", "agent-core"), {
+      recursive: true,
+    });
+    const fromSource = path.join(checkout, "packages", "cli", "dist", "cli.js");
+    write(fromSource, "");
+    const installed = path.join(
+      checkout,
+      "node_modules",
+      "kibi-cli",
+      "dist",
+      "cli.js",
+    );
+    write(installed, "");
+    const project = path.join(root, "project");
+    write(path.join(project, "package.json"), '{"name":"kibi"}');
+    const pluginCopy = path.join(project, ".claude", "hooks", "kibi.mjs");
+    write(pluginCopy, "");
+
+    expect(detectTelemetryChannel({}, fromSource)).toBe("source");
+    expect(detectTelemetryChannel({}, installed)).toBe("release");
+    expect(detectTelemetryChannel({}, pluginCopy)).toBe("release");
+    expect(detectTelemetryChannel({}, null)).toBe("release");
+    expect(
+      detectTelemetryChannel(
+        { KIBI_TELEMETRY_CHANNEL: "Agent-Test" },
+        installed,
+      ),
+    ).toBe("agent-test");
+    expect(
+      detectTelemetryChannel(
+        { KIBI_TELEMETRY_CHANNEL: "free text!" },
+        installed,
+      ),
+    ).toBe("unclassified");
+    // This suite itself runs from the checkout.
+    expect(detectTelemetryChannel({})).toBe("source");
+
+    // implements REQ-kibi-anonymous-usage-telemetry
+    // Status names the channel and where it comes from.
+    expect(
+      telemetryChannel({ KIBI_TELEMETRY_CHANNEL: "agent-test" }, installed),
+    ).toEqual({ channel: "agent-test", source: "KIBI_TELEMETRY_CHANNEL" });
+    expect(telemetryChannel({}, installed)).toEqual({
+      channel: "release",
+      source: "installed",
+    });
+    expect(telemetryChannel({}, fromSource)).toEqual({
+      channel: "source",
+      source: "checkout",
+    });
+    expect(
+      telemetryStatus({
+        KIBI_TELEMETRY_CHANNEL: "agent-test",
+        KIBI_TELEMETRY: "0",
+      }),
+    ).toMatchObject({
+      enabled: false,
+      channel: "agent-test",
+      channelSource: "KIBI_TELEMETRY_CHANNEL",
+    });
+  });
+
   test("CLI and MCP events take the session a hook last reported for the workspace", async () => {
     const env = enabledEnv();
     const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-ws-"));
@@ -431,6 +504,7 @@ describe("anonymous usage telemetry events", () => {
       host: "claude-code",
       session: hashTelemetryId("session-secret-id"),
       remote: false,
+      channel: "source",
       interface: "mcp",
       operation: "kb_search",
       status: "error",
@@ -443,6 +517,7 @@ describe("anonymous usage telemetry events", () => {
         "$lib",
         "$process_person_profile",
         "arch",
+        "channel",
         "distinct_id",
         "duration_ms",
         "error_category",

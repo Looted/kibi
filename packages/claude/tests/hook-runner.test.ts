@@ -240,7 +240,7 @@ describe("pre-edit snippets", () => {
       new_string: "  return total;",
     });
     expect(text).toContain(
-      "REQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.",
+      "REQ-checkout-rounding must keep true: Totals round half up to two decimals.",
     );
     expect(text).toContain(
       "Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
@@ -275,7 +275,7 @@ describe("pre-edit snippets", () => {
       new_string: "  return total;",
     });
     expect(text).toContain(
-      "REQ-checkout-rounding must keep true: FACT-total-rounding-cents: Totals round half up to two decimals.",
+      "REQ-checkout-rounding must keep true: Totals round half up to two decimals.",
     );
     expect(text).toContain(
       "Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
@@ -313,7 +313,7 @@ describe("pre-edit snippets", () => {
     });
     expect(first?.split("\n")).toEqual([
       "Kibi: this edit to src/checkout.ts is inside computeTotal, which implements REQ-checkout-rounding.",
-      "REQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.",
+      "REQ-checkout-rounding must keep true: Totals round half up to two decimals.",
       "Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
       'Behavior changes here are traced to these requirements; kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.',
     ]);
@@ -569,6 +569,30 @@ describe("search tip", () => {
 const IMPACT_REMINDER = "without a Kibi impact check";
 
 describe("stop reminders", () => {
+  test("the Stop reminder uses the documented non-error continuation, never a block", async () => {
+    const fixture = createKibiWorkspace();
+    const { call, post } = session(fixture);
+    await post("Edit", {
+      file_path: path.join(fixture.root, "src/checkout.ts"),
+    });
+    const output = await call({
+      hook_event_name: "Stop",
+      stop_hook_active: false,
+      last_assistant_message: "Done.",
+      background_tasks: [],
+      session_crons: [],
+    });
+    expect(output).toEqual({
+      hookSpecificOutput: {
+        hookEventName: "Stop",
+        additionalContext: expect.stringContaining("src/checkout.ts"),
+      },
+    });
+    expect(
+      await call({ hook_event_name: "Stop", stop_hook_active: true }),
+    ).toEqual({});
+  });
+
   test("unchecked source edits are reminded once, then the agent may stop", async () => {
     const fixture = createKibiWorkspace();
     const { post, stop } = session(fixture);
@@ -1397,7 +1421,7 @@ describe("hook command pre-edit snippet (end to end)", () => {
       "Kibi knowledge for src/checkout.ts (symbol manifest):\n- REQ-checkout-rounding [firm: ask before changing]: Checkout totals round to cents — computeTotal\n",
     );
     expect(text).toContain(
-      "\nREQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.\n",
+      "\nREQ-checkout-rounding must keep true: Totals round half up to two decimals.\n",
     );
     expect(text).toContain(
       "\nDecision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.\n",

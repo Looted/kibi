@@ -510,3 +510,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3754a8a0e28b
+  - type: validates
+    from: TEST-kibi-prolog-source-readers
+    to: SCEN-kibi-prolog-source-readers
+    created_at: 2026-10-31T10:23:43.040Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e98aaeeb0d4a

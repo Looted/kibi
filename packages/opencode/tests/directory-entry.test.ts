@@ -1,5 +1,13 @@
 import { describe, expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -41,5 +49,45 @@ describe("directory plugin entries", () => {
     const cleanup = await definition?.setup?.({});
     expect(typeof cleanup).toBe("function");
     (cleanup as () => void)();
+  });
+});
+
+describe("project-local plugin file from the README", () => {
+  const readme = readFileSync(path.join(packageRoot, "README.md"), "utf8");
+
+  test("the README pins no stale release in its plugin array example", () => {
+    expect(readme).not.toMatch(/kibi-opencode@\d/);
+  });
+
+  test("the .opencode/plugins/kibi.js re-export loads the installed package", async () => {
+    const snippet = readme.match(
+      /```js\n((?:\/\/[^\n]*\n)*export \{ default \} from "\.\.\/\.\.\/node_modules\/kibi-opencode\/[^"]+";\n)```/,
+    )?.[1];
+    expect(snippet).toBeTruthy();
+
+    const project = mkdtempSync(path.join(tmpdir(), "kibi-opencode-local-"));
+    try {
+      mkdirSync(path.join(project, "node_modules"), { recursive: true });
+      symlinkSync(
+        packageRoot,
+        path.join(project, "node_modules", "kibi-opencode"),
+      );
+      mkdirSync(path.join(project, ".opencode", "plugins"), {
+        recursive: true,
+      });
+      const pluginFile = path.join(project, ".opencode", "plugins", "kibi.js");
+      writeFileSync(pluginFile, snippet as string);
+
+      const local = (await import(pathToFileURL(pluginFile).href)) as {
+        default?: unknown;
+      };
+      const installed = (await import(
+        pathToFileURL(path.join(packageRoot, "dist", "index.js")).href
+      )) as { default?: unknown };
+      expect(local.default).toBeDefined();
+      expect(local.default).toBe(installed.default);
+    } finally {
+      rmSync(project, { recursive: true, force: true });
+    }
   });
 });

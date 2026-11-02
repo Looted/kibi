@@ -46,11 +46,19 @@ On WSL workspaces, Cursor reads `~/.cursor/plugins/local` in your Linux home, no
 npm install --save-dev kibi-cursor
 ```
 
-Copy the installed package into Cursor's local plugin directory (do not symlink):
+Copy the installed package into Cursor's local plugin directory (do not
+symlink). Remove an earlier copy first, or `cp` nests the new one inside it:
 
 ```bash
-cp -r "$(npm root)/kibi-cursor" ~/.cursor/plugins/local/kibi-cursor
+mkdir -p ~/.cursor/plugins/local
+rm -rf ~/.cursor/plugins/local/kibi-cursor
+cp -R "$(npm root)/kibi-cursor" ~/.cursor/plugins/local/kibi-cursor
 ```
+
+The copy needs no `node_modules`: the hooks run `bin/hook-runner.mjs`, a
+self-contained bundle, and the MCP launcher `bin/launch-kibi-mcp.mjs` uses
+only Node built-ins and starts the opened project's own `kibi-mcp`. Copy again
+after upgrading `kibi-cursor`.
 
 ## MCP configuration
 
@@ -80,6 +88,16 @@ Toggle the bundled MCP server from **Settings → Features → Model Context Pro
 
 Cursor expands `${CURSOR_PLUGIN_ROOT}` to the installed plugin directory and
 `${workspaceFolder}` to the opened workspace before starting the command.
+
+Unlike the Claude Code, Codex and ZCode launchers, which fall back to a
+global `kibi-mcp` (with a notice on stderr), the Cursor plugin launcher only
+runs the opened project's own `kibi-mcp`: Cursor starts plugin MCP servers
+from a host-chosen directory, and a project-local package keeps the server
+version tied to the project's `kibi-cli` and `.kb/` schema. Without one it
+refuses with an error that says how to install it. To use a global
+`kibi-mcp` anyway, turn off the plugin's MCP server and add the manual entry
+below (`npx --no-install` finds a project-local install first, then a global
+one).
 
 Manual MCP fallback (no plugin install required):
 
@@ -119,7 +137,7 @@ agent-plugin/
 
 ### Advisory editor hooks
 
-Hooks are warning-only and never replace MCP/CLI behavior:
+Hooks are warning-only and never replace MCP/CLI behavior. `hooks/hooks.json` runs `bin/hook-runner.mjs`, a committed self-contained bundle (with `kibi-agent-core` inlined), so a copied plugin directory or a GitHub marketplace install runs the hooks without `node_modules` or a build step:
 
 - **sessionStart**: bootstrap reminder when `.kb/manifest.json` is missing.
 - **preToolUse**: warns on explicit direct `.kb/**` edits without blocking. Before the first edit of a file whose symbols implement a requirement, it adds the shared Kibi snippet (from `kibi-agent-core/snippets`, the same builder the Claude Code plugin uses): the requirements and their implementing symbols, what the lead requirement must keep true and the decision behind it, the covering tests, and the symbol the edit lands in. A superseded or retired lead requirement gets no "must keep true" or "Decision" line. Once per path per session. When the edited code implements a firm requirement (a rule the person set), the message first tells the agent to ask the person before an edit that breaks it, once per requirement per conversation (Cursor does not enforce a hook's "ask"; `KIBI_CONFIRM_FIRM_EDITS=0` turns this off).

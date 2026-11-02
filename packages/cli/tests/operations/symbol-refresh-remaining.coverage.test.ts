@@ -69,7 +69,41 @@ describe("symbol refresh remaining publication and parse branches", () => {
       "SYM-MISS",
       context(workspace),
     );
-    expect(result).toEqual({ refreshed: false, found: true });
+    // The symbol is reported as unplaced, naming why, so upsert can warn.
+    expect(result).toEqual({
+      refreshed: false,
+      found: true,
+      unplaced: "src/nope.ts does not exist",
+    });
+  });
+
+  test("reports the analyzer's refresh failure as the reason a symbol is unplaced", async () => {
+    const workspace = preparedWorkspace();
+    writeFileSync(join(workspace, "src", "broken.sh"), "f() {\n");
+    writeFileSync(
+      join(workspace, ".kb", "symbols.yaml"),
+      "symbols:\n  - id: SYM-BROKEN\n    title: f\n    sourceFile: src/broken.sh\n",
+    );
+    const reason =
+      "Cannot refresh incomplete source analysis for src/broken.sh: syntax error";
+    const enrich = spyOn(
+      coordinator,
+      "enrichSymbolCoordinates",
+    ).mockResolvedValue([
+      {
+        id: "SYM-BROKEN",
+        title: "f",
+        sourceFile: "src/broken.sh",
+        coordinateRefreshFailure: reason,
+      },
+    ]);
+    restores.push(() => enrich.mockRestore());
+    const result = await refreshSymbolCoordinatesUnlocked(
+      "SYM-BROKEN",
+      context(workspace),
+    );
+    // The analyzer's reason wins over the generic "no declaration" text.
+    expect(result).toEqual({ refreshed: false, found: true, unplaced: reason });
   });
 
   test("leaves coordinates unchanged when enrichment points at unreadable source bytes", async () => {

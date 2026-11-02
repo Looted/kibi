@@ -26,15 +26,15 @@ id: TEST-proof-semantic-lanes
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-b2e7fecbb9f491ba931fa35c
+    receipt_id: PR-60f5914c147547d5332b4273
     test_id: TEST-proof-semantic-lanes
     scope: unit
     outcome: passed
-    code_snapshot: ff8e5279c85a1d8327a39367bae1bbbfaf7995ec824dc7f7b0c782d4598c1f1b
+    code_snapshot: e2663d10a2e1a0b8fdd0d38e888ee46d8031436be2244a613e1c406fbfa714b0
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-29T10:32:32.350Z'
-    finished_at: '2026-10-29T10:32:32.510Z'
-    artifact_digest: c11b6dfa955527b31e35904f894a5dcb8569c9a6e90c76ef5cadac1d90b1daec
+    started_at: '2026-10-30T19:52:16.181Z'
+    finished_at: '2026-10-30T19:52:16.296Z'
+    artifact_digest: 96b507b776a8675f231c681256dcd463b4f6da27606654e2d23da60a8e994830
     contract_hash: bf7b5d9d53b92fb9070cc090d5183ea009bf094354cb1104b8f074d9bed82d3f
     binding_hash: 252f7e74ed4cd16f22dd696f272c2792ad2463cfd91f597c1f576dcceae47edf
     fingerprint: c60af9ad681d926580485c7da886372f59142a63f1df1915a2f2264b0f77d339

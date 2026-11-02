@@ -363,3 +363,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2f3f84501d3c
+  - type: constrains
+    from: REQ-kibi-multilingual-code-proofs
+    to: FACT-SUBJECT-KIBI-CODE-PROOF-LANGUAGES
+    created_at: 2026-10-31T08:35:04.931Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6b794da14b3
+  - type: requires_property
+    from: REQ-kibi-multilingual-code-proofs
+    to: FACT-kibi-code-proof-reads-prolog
+    created_at: 2026-10-31T08:35:04.970Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f89bb1d7db69
+  - type: requires_property
+    from: REQ-kibi-multilingual-code-proofs
+    to: FACT-kibi-code-proof-refuses-open-prolog-domain
+    created_at: 2026-10-31T08:35:05.003Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a240bcc2cf6c
+  - type: requires_property
+    from: REQ-kibi-multilingual-code-proofs
+    to: FACT-kibi-code-proof-refuses-mixed-languages
+    created_at: 2026-10-31T08:35:05.029Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d64b446e0eb1
+  - type: requires_property
+    from: REQ-kibi-multilingual-code-proofs
+    to: FACT-kibi-code-proof-stale-on-domain-file
+    created_at: 2026-10-31T08:35:05.053Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e8623dc2959
+  - type: specified_by
+    from: REQ-kibi-multilingual-code-proofs
+    to: SCEN-kibi-multilingual-code-proofs
+    created_at: 2026-10-31T08:35:05.072Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c4390978e32
+  - type: specified_by
+    from: REQ-kibi-multilingual-code-proofs
+    to: SCEN-NEG-kibi-multilingual-code-proofs-AMBIGUOUS-PROJECTION
+    created_at: 2026-10-31T08:37:36.213Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a840af2991b

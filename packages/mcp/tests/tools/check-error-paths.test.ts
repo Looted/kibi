@@ -90,7 +90,7 @@ describe("kb_check error and edge branches", () => {
     // The rules, the symbol-granularity projections (symbols and their
     // links), the fact-pair count of domain-contradictions and the quality
     // scan each read the engine.
-    expect(query).toHaveBeenCalledTimes(28);
+    expect(query).toHaveBeenCalledTimes(29);
   });
 
   test("returns early when all requested rules are invalid", async () => {

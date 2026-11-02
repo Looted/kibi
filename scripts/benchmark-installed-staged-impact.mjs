@@ -1179,8 +1179,29 @@ function verifyParserRuntimeProvenance(
   }
   const checkedParserAssets = [];
   for (const language of catalog.languages) {
+    // A grammar in a kibi-lang-* pack is checked in that pack's archive; a
+    // pack the benchmark does not read may be absent.
+    const grammarSource =
+      typeof language.pack === "string"
+        ? packageSources.find(({ name }) => name === language.pack)
+        : plugin;
+    if (grammarSource === undefined && Object.hasOwn(FIXTURES, language.id)) {
+      throw new Error(
+        `Qualified grammar pack ${language.pack} is missing for ${language.id}`,
+      );
+    }
     const checks = [
-      [language.asset, language.assetBytes, language.assetSha256, "asset"],
+      ...(grammarSource === undefined
+        ? []
+        : [
+            [
+              language.asset,
+              language.assetBytes,
+              language.assetSha256,
+              "asset",
+              grammarSource,
+            ],
+          ]),
       [language.query, language.queryBytes, language.querySha256, "query"],
       ...(language.supplementalQueries ?? []).map((query) => [
         query.path,
@@ -1189,7 +1210,13 @@ function verifyParserRuntimeProvenance(
         "supplemental_query",
       ]),
     ];
-    for (const [assetPath, expectedBytes, expectedHash, kind] of checks) {
+    for (const [
+      assetPath,
+      expectedBytes,
+      expectedHash,
+      kind,
+      source = plugin,
+    ] of checks) {
       if (
         typeof assetPath !== "string" ||
         !Number.isInteger(expectedBytes) ||
@@ -1197,7 +1224,7 @@ function verifyParserRuntimeProvenance(
       ) {
         throw new Error(`Invalid parser asset approval for ${language.id}`);
       }
-      const entry = plugin.archiveEntries.get(assetPath);
+      const entry = source.archiveEntries.get(assetPath);
       if (
         !entry ||
         entry.kind !== "file" ||
@@ -1211,7 +1238,7 @@ function verifyParserRuntimeProvenance(
       checkedParserAssets.push({
         language: language.id,
         kind,
-        path: assetPath,
+        path: source === plugin ? assetPath : `${source.name}/${assetPath}`,
         bytes: expectedBytes,
         sha256: expectedHash,
       });

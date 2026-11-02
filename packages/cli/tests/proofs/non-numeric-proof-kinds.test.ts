@@ -355,7 +355,51 @@ describe("proof_contract fields of the non-numeric kinds", () => {
           domain_source: { symbol_id: "SYM-D", field: "" },
         }),
       ).join("\n"),
-    ).toContain("{symbol_id, export?, field?}");
+    ).toContain("{symbol_id, export?, field?, arg?}");
+    // arg names a SWI-Prolog predicate's argument: a positive integer, on a
+    // domain, value or initial reference, never on a predicate.
+    expect(
+      proofContractErrors(
+        contract({
+          kind: "exhaustive",
+          domain_source: { symbol_id: "SYM-D", arg: 1 },
+        }),
+      ),
+    ).toEqual([]);
+    expect(
+      proofContractErrors(
+        contract({
+          kind: "exhaustive",
+          domain_source: { symbol_id: "SYM-D", arg: 0 },
+        }),
+      ).join("\n"),
+    ).toContain("{symbol_id, export?, field?, arg?}");
+    expect(
+      proofContractErrors(
+        contract({
+          kind: "exhaustive",
+          domain_source: { symbol_id: "SYM-D", arg: 1, field: "name" },
+        }),
+      ).join("\n"),
+    ).toContain("not both");
+    expect(
+      proofContractErrors(
+        contract({
+          kind: "rule",
+          predicate_source: { p: { symbol_id: "S", arg: 1 } },
+          domains: { t: { symbol_id: "S", arg: 2 } },
+        }),
+      ).join("\n"),
+    ).toContain("predicate_source must map each predicate name");
+    expect(
+      proofContractErrors(
+        contract({
+          kind: "rule",
+          predicate_source: { p: { symbol_id: "S" } },
+          domains: { t: { symbol_id: "S", arg: 2 } },
+        }),
+      ),
+    ).toEqual([]);
     expect(
       proofContractErrors(
         contract({

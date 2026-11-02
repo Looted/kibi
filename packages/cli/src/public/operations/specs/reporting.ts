@@ -37,6 +37,32 @@ const ENTITY_TYPES = [
 ] as const;
 const ENTITY_TYPE_SET: ReadonlySet<string> = new Set(ENTITY_TYPES);
 
+/**
+ * The engine names the attached store by its directory key (a SHA-256 of the
+ * branch name); meta.branch carries the branch name, as kb_status does, and
+ * the key moves to meta.branchStoreKey.
+ */
+// implements REQ-kibi-verification-evidence-contract
+export function withBranchName<
+  T extends { readonly meta?: Readonly<Record<string, unknown>> },
+>(payload: T, context: Pick<OperationContext, "branchAttachment">): T {
+  const meta = payload.meta;
+  const name = context.branchAttachment?.kbBranch;
+  if (meta === undefined || name === undefined || meta.branch === name)
+    return payload;
+  const key = typeof meta.branch === "string" ? meta.branch : undefined;
+  return {
+    ...payload,
+    meta: {
+      ...meta,
+      branch: name,
+      ...(key !== undefined && key !== "unknown"
+        ? { branchStoreKey: key }
+        : {}),
+    },
+  };
+}
+
 export type FindGapsInput = {
   readonly type?: string;
   readonly missingRelationships?: readonly string[];
@@ -161,7 +187,10 @@ export async function executeFindGaps(
               : `Found ${payload.count ?? rows.length} gap rows. Showing ${rows.length}: ${rows.map((row) => row.id).join(", ")}.${stubNote}`,
         },
       ],
-      structuredContent: confirmMetaFreshness(payload, context.workspaceRoot),
+      structuredContent: withBranchName(
+        confirmMetaFreshness(payload, context.workspaceRoot),
+        context,
+      ),
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -418,7 +447,10 @@ export async function executeCoverage(
     const migrationPlan = statusPlan
       ? mergeMigrationPlans([statusPlan, coveragePlan])
       : coveragePlan;
-    const confirmed = confirmMetaFreshness(payload, context.workspaceRoot);
+    const confirmed = withBranchName(
+      confirmMetaFreshness(payload, context.workspaceRoot),
+      context,
+    );
     const enrichedPayload = {
       ...confirmed,
       rows,
@@ -581,7 +613,10 @@ export async function executeGraph(
               : `Graph traversal returned ${nodes.length} nodes and ${edges.length} edges from ${input.seedIds.join(", ")}.`,
         },
       ],
-      structuredContent: confirmMetaFreshness(payload, context.workspaceRoot),
+      structuredContent: withBranchName(
+        confirmMetaFreshness(payload, context.workspaceRoot),
+        context,
+      ),
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

@@ -3326,6 +3326,36 @@
     ]
   },
   {
+    "test_id": "TEST-kibi-multilingual-code-proofs",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/prolog-code-proofs.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/prolog-code-proofs.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-prolog-source-readers",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/prolog-source-readers.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/prolog-source-readers.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-cli-subdirectory-workspace",
     "steps": [
       [
@@ -7044,6 +7074,166 @@
         "bun",
         "test",
         "./packages/cli/tests/proofs/claims/search-hints-limits.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-git-hook-print-formats",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/git-hook-print-formats.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-search-hints-model-id",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/search-hints-model-pin.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-search-hints-model-revision",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/search-hints-model-pin.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-search-hints-host-operations",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/search-hints-host-operations.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-signoff-latest-json",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/signoff-latest-views.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-signoff-latest-markdown",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/signoff-latest-views.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-signoff-latest-html",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/signoff-latest-views.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-advisor-case-preview-limit",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/advisor-case-preview-limit.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-opencode-guidance-bullet-limit",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/opencode-guidance-bullet-limit.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-builtin-symbol-source-extensions",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/builtin-symbol-source-extensions.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-search-non-governing-statuses",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/search-non-governing-statuses.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-telemetry-docs-link",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/telemetry-docs-link.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-tree-sitter-references",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/tree-sitter-source-references.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/plugin-references.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "./packages/plugin-sdk/tests/reference-extractor.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-tree-sitter-language-packs",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/tree-sitter-source-references.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/plugins/approved-source-consumer.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/plugins/language-pack-suggestion.test.ts"
       ]
     ]
   }

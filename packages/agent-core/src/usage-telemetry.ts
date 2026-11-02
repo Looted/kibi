@@ -3,6 +3,7 @@ import { createHash, randomUUID } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 /**
  * Anonymous usage telemetry shared by the CLI, the MCP server and the host
@@ -21,7 +22,10 @@ import path from "node:path";
  * short-lived processes (hooks, the CLI) do not wait on the network.
  * `KIBI_TELEMETRY=0`, `DO_NOT_TRACK=1`, `kibi telemetry disable`, CI and test
  * runs, and sandboxes whose home directory is a temp directory (eval and
- * packaging harnesses) turn it off.
+ * packaging harnesses) turn it off. Runs of Kibi from a checkout of its own
+ * repository, and runs a harness marks with `KIBI_TELEMETRY_CHANNEL`, are
+ * still sent but carry a `channel` other than `release`, so they can be
+ * filtered out of real usage.
  */
 
 // implements REQ-kibi-anonymous-usage-telemetry
@@ -71,7 +75,21 @@ export type TelemetryStatus = {
   /** Why telemetry is on or off, e.g. `KIBI_TELEMETRY=0` or `default`. */
   reason: string;
   directory: string;
+  /** The channel events carry, e.g. `release`, `source` or `agent-test`. */
+  channel: string;
+  /** Where the channel comes from. */
+  channelSource: TelemetryChannelSource;
 };
+
+// implements REQ-kibi-anonymous-usage-telemetry
+/**
+ * `KIBI_TELEMETRY_CHANNEL` (a harness set it), `checkout` (Kibi runs from a
+ * checkout of its own repository) or `installed` (an installed package).
+ */
+export type TelemetryChannelSource =
+  | "KIBI_TELEMETRY_CHANNEL"
+  | "checkout"
+  | "installed";
 
 // implements REQ-kibi-anonymous-usage-telemetry
 /** Summary of one Kibi operation run through MCP or the CLI. */
@@ -263,6 +281,90 @@ function sandboxedHome(env: Env): boolean {
   return resolved !== temp && resolved.startsWith(`${temp}${path.sep}`);
 }
 
+/** The Kibi monorepo root's package name. */
+const KIBI_REPOSITORY_PACKAGE = "kibi";
+
+/** This module's file, or undefined when a bundle format drops `import.meta.url`. */
+function thisModuleFile(): string | undefined {
+  try {
+    const url = import.meta.url;
+    return typeof url === "string" && url !== ""
+      ? fileURLToPath(url)
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Whether a file belongs to a checkout of the Kibi repository rather than to
+ * an installed package. Installed copies live under `node_modules` or in a
+ * host's plugin cache; a checkout has the monorepo root `package.json` (named
+ * `kibi`, with a `packages/agent-core` workspace) above the file.
+ */
+function insideKibiCheckout(file: string): boolean {
+  const resolved = realDirectory(file);
+  if (resolved.split(/[\\/]/).includes("node_modules")) return false;
+  let current = path.dirname(resolved);
+  for (;;) {
+    try {
+      const manifest = JSON.parse(
+        fs.readFileSync(path.join(current, "package.json"), "utf8"),
+      ) as { name?: unknown };
+      if (
+        manifest.name === KIBI_REPOSITORY_PACKAGE &&
+        fs.existsSync(path.join(current, "packages", "agent-core"))
+      ) {
+        return true;
+      }
+    } catch {
+      // No readable manifest here; keep walking up.
+    }
+    const parent = path.dirname(current);
+    if (parent === current) return false;
+    current = parent;
+  }
+}
+
+const checkoutCache = new Map<string, boolean>();
+
+// implements REQ-kibi-anonymous-usage-telemetry
+/**
+ * Where a run comes from: the `KIBI_TELEMETRY_CHANNEL` a harness sets (for
+ * example `agent-test`), `source` when Kibi runs from a checkout of its own
+ * repository (local development, the repository's own hooks, e2e and agent
+ * test rounds built from source), and `release` for an installed package.
+ */
+export function detectTelemetryChannel(
+  env: Env = process.env,
+  moduleFile: string | null = thisModuleFile() ?? null,
+): string {
+  return telemetryChannel(env, moduleFile).channel;
+}
+
+// implements REQ-kibi-anonymous-usage-telemetry
+/** The channel in effect and where it comes from. */
+export function telemetryChannel(
+  env: Env = process.env,
+  moduleFile: string | null = thisModuleFile() ?? null,
+): { channel: string; source: TelemetryChannelSource } {
+  const explicit = env.KIBI_TELEMETRY_CHANNEL?.trim();
+  if (explicit)
+    return {
+      channel: telemetryCategory(explicit) ?? "release",
+      source: "KIBI_TELEMETRY_CHANNEL",
+    };
+  if (!moduleFile) return { channel: "release", source: "installed" };
+  let fromCheckout = checkoutCache.get(moduleFile);
+  if (fromCheckout === undefined) {
+    fromCheckout = insideKibiCheckout(moduleFile);
+    checkoutCache.set(moduleFile, fromCheckout);
+  }
+  return fromCheckout
+    ? { channel: "source", source: "checkout" }
+    : { channel: "release", source: "installed" };
+}
+
 // implements REQ-kibi-anonymous-usage-telemetry
 /** Per-user directory holding the telemetry config and queue. */
 export function telemetryDirectory(env: Env = process.env): string {
@@ -323,10 +425,13 @@ export function setTelemetryPreference(
  */
 export function telemetryStatus(env: Env = process.env): TelemetryStatus {
   const directory = telemetryDirectory(env);
+  const { channel, source } = telemetryChannel(env);
   const status = (enabled: boolean, reason: string): TelemetryStatus => ({
     enabled,
     reason,
     directory,
+    channel,
+    channelSource: source,
   });
   const explicit = flagValue(env.KIBI_TELEMETRY);
   if (explicit === false) return status(false, "KIBI_TELEMETRY=0");
@@ -546,6 +651,7 @@ function baseProperties(
       detectTelemetryHost(env) ||
       "unknown",
     remote: remoteEnvironment(env),
+    channel: detectTelemetryChannel(env),
     session: sessionProperty(source, env),
     os: process.platform,
     arch: process.arch,

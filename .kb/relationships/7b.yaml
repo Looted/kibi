@@ -335,3 +335,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e2c0a73994bd
+  - type: requires_property
+    from: REQ-opencode-guidance-bullet-limit
+    to: FACT-opencode-guidance-bullet-limit
+    created_at: 2026-10-30T19:41:47.718Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07c00e7e5c31
+  - type: constrains
+    from: REQ-opencode-guidance-bullet-limit
+    to: FACT-kibi-opencode-guidance-block-component
+    created_at: 2026-10-30T19:41:47.753Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f2daabb5bb6
+  - type: specified_by
+    from: REQ-opencode-guidance-bullet-limit
+    to: SCEN-opencode-bootstrap-nudge
+    created_at: 2026-10-30T19:41:47.783Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8bff294dc9c7

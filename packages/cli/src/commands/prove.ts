@@ -529,7 +529,7 @@ function claimBindingLines(result: IngestProofResult): string[] {
   return result.results.flatMap((row) =>
     (row.claimBindings ?? []).map(
       (binding) =>
-        `${row.testId} ${binding.claim_key}${binding.requirement_id ? ` (${binding.requirement_id})` : ""}: ${binding.binding}${binding.binding === "derived" && binding.scope ? `, ${binding.scope} scope` : ""}${binding.reason ? `: ${binding.reason}` : ""}`,
+        `${row.testId} ${binding.claim_key}${binding.requirement_id ? ` (${binding.requirement_id})` : ""}: ${binding.binding}${binding.binding === "derived" && binding.scope ? `, ${binding.scope} scope` : ""}${binding.reason ? `: ${binding.reason}` : ""}${binding.binding === "derived" && row.scope !== undefined && row.scope !== "end_to_end" ? `; the receipt's verification_scope is ${row.scope}, and a claim is proved only once its requirement is tested end to end, so kibi proof explain keeps it unproved until an end_to_end receipt covers the scenario` : ""}`,
     ),
   );
 }
@@ -547,8 +547,27 @@ function certificateRejectionLines(result: IngestProofResult): string[] {
   );
 }
 
+// implements REQ-kibi-code-proof-kinds
+// A test whose run passed but whose certificate or claim binding Kibi
+// rejected is refused, not passed: it proves nothing about the code.
+function refusedCount(result: IngestProofResult): number {
+  return result.results.filter(
+    (row) =>
+      row.outcome === "passed" &&
+      (row.certificateRejection !== undefined ||
+        (row.claimBindings ?? []).some(
+          (binding) => binding.binding === "rejected",
+        )),
+  ).length;
+}
+
 function summarize(result: IngestProofResult): string {
-  const parts = [`passed ${result.passed}`, `failed ${result.failed}`];
+  const refused = refusedCount(result);
+  const parts = [
+    `passed ${result.passed - refused}`,
+    ...(refused > 0 ? [`refused ${refused}`] : []),
+    `failed ${result.failed}`,
+  ];
   if (result.unchanged > 0) parts.push(`unchanged ${result.unchanged}`);
   return parts.join(", ");
 }
@@ -836,10 +855,12 @@ export async function proveCommand(
       }
     }
 
-    const passed = ingestResults.reduce(
-      (sum, result) => sum + result.passed,
+    const refused = ingestResults.reduce(
+      (sum, result) => sum + refusedCount(result),
       0,
     );
+    const passed =
+      ingestResults.reduce((sum, result) => sum + result.passed, 0) - refused;
     const failed = ingestResults.reduce(
       (sum, result) => sum + result.failed,
       0,
@@ -861,6 +882,7 @@ export async function proveCommand(
     );
     const summary = {
       passed,
+      ...(refused > 0 ? { refused } : {}),
       certified,
       failed,
       unchanged,

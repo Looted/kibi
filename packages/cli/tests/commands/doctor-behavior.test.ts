@@ -1,5 +1,6 @@
 // implements REQ-cli-doctor
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
+import { execFileSync } from "node:child_process";
 import * as childProcess from "node:child_process";
 import * as fs from "node:fs";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -929,7 +930,74 @@ describe("doctorCommand capability plugins", () => {
         },
       }),
     );
+    if (declared) installStub(cwd, "kibi-plugin-jev", "0.1.0");
   }
+
+  /** A package doctor can resolve; its entry throws, so importing it fails. */
+  function installStub(cwd: string, name: string, version: string): string {
+    const pkgDir = path.join(cwd, "node_modules", name);
+    mkdirSync(pkgDir, { recursive: true });
+    writeFileSync(
+      path.join(pkgDir, "package.json"),
+      JSON.stringify({ name, version, type: "module", main: "index.js" }),
+    );
+    writeFileSync(
+      path.join(pkgDir, "index.js"),
+      'throw new Error("doctor must not import plugins");\n',
+    );
+    return pkgDir;
+  }
+
+  function writeTreeSitterActivation(cwd: string): void {
+    writeFileSync(
+      path.join(cwd, "package.json"),
+      JSON.stringify({
+        name: "consumer",
+        devDependencies: { "kibi-plugin-treesitter": "2.1.0" },
+        kibi: {
+          plugins: [
+            {
+              package: "kibi-plugin-treesitter",
+              capabilities: {
+                "kibi.symbol-extractor.v2": { mode: "augment" },
+              },
+            },
+          ],
+        },
+      }),
+    );
+  }
+
+  test("fails when a declared plugin is not installed, naming the fix", async () => {
+    const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
+    writeTreeSitterActivation(cwd);
+    mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
+    const { payload } = await runDoctorJson(cwd);
+    const check = namedCheck(payload, "Capability plugins");
+    expect(check.passed).toBe(false);
+    expect(check.message).toContain(
+      "kibi-plugin-treesitter is declared but not installed",
+    );
+    expect(String(check.remediation)).toContain("npm install");
+  });
+
+  test("fails when the installed source analyzer is not the release-qualified build", async () => {
+    const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
+    writeTreeSitterActivation(cwd);
+    installStub(cwd, "kibi-plugin-treesitter", "2.1.0");
+    mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
+    const { payload } = await runDoctorJson(cwd);
+    const check = namedCheck(payload, "Capability plugins");
+    expect(check.passed).toBe(false);
+    expect(check.message).toContain(
+      "installed kibi-plugin-treesitter 2.1.0 is not the release-qualified build",
+    );
+    expect(String(check.remediation)).toContain(
+      "Remove node_modules/kibi-plugin-treesitter",
+    );
+  });
 
   function writeSideEffectPlugin(cwd: string): void {
     const pkgDir = path.join(cwd, "node_modules", "evil-plugin");
@@ -1029,6 +1097,23 @@ describe("doctorCommand capability plugins", () => {
       "builtin providers answer alone",
     );
     expect(check.message).toContain("TYPESAFE_API_KEY=missing");
+  });
+
+  // executable_for TEST-kibi-tree-sitter-language-packs
+  test("warns with the plugin suggestion when no plugin is configured but tracked sources need one", async () => {
+    const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
+    isolateUserEnvConfig();
+    writeFileSync(path.join(cwd, "main.go"), "package main\n");
+    execFileSync("git", ["add", "main.go"], { cwd, stdio: "ignore" });
+    const { payload } = await runDoctorJson(cwd);
+    const check = namedCheck(payload, "Capability plugins");
+    expect(check).toMatchObject({
+      passed: true,
+      warning: true,
+      message: "None configured; builtin providers only",
+    });
+    expect(String(check.remediation)).toContain("kibi-lang-go");
   });
 
   test("fails when a replace-mode Jev secret is missing, with remediation", async () => {

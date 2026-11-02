@@ -412,3 +412,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bb58eb432bb1
+  - type: implements
+    from: SYM-sdk-validate-reference-extraction-result
+    to: REQ-kibi-tree-sitter-references
+    created_at: 2026-10-31T16:51:08.089Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d66605c5dc31
+  - type: covered_by
+    from: SYM-sdk-validate-reference-extraction-result
+    to: TEST-kibi-tree-sitter-references
+    created_at: 2026-10-31T16:51:08.118Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca6c2b9d9bb0

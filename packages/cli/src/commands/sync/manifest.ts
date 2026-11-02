@@ -114,6 +114,12 @@ const GENERATED_COORD_FIELDS = [
   "sourceEndLine",
   "sourceEndColumn",
 ] as const;
+const INACTIVE_SYMBOL_STATUSES = new Set([
+  "deprecated",
+  "removed",
+  "retired",
+  "superseded",
+]);
 const GENERATED_MANIFEST_FIELDS = new Set<string>([
   ...GENERATED_COORD_FIELDS,
   "coordinatesGeneratedAt",
@@ -250,11 +256,12 @@ function coarseAnchorFailureReason(entry: ManifestSymbolEntry): string {
   if (typeof entry.coordinateRefreshFailure === "string") {
     return entry.coordinateRefreshFailure;
   }
+  const missed = `no unique declaration titled '${String(entry.title ?? "")}' was found in ${String(entry.sourceFile ?? "its source file")}`;
   const reason = entry.granularity_reason;
   if (!isCoarseGranularityReason(reason)) {
-    return `extractor produced no coordinates; add symbol_role and granularity_reason ${COARSE_GRANULARITY_REASONS_PARENTHESIZED} to enable the whole-file coarse fallback`;
+    return `${missed}; use the name the extractor gives the declaration`;
   }
-  return "extractor produced no coordinates and the whole-file coarse fallback found no span for this symbol";
+  return `${missed} and the whole-file coarse fallback found no span for this symbol`;
 }
 
 // implements REQ-symbol-coordinates-derived-locally
@@ -480,7 +487,14 @@ export async function refreshManifestCoordinates(
         resolved,
       );
 
-    if (eligible && !hasAllGeneratedCoordinates(current)) {
+    // A missing source file is no refresh candidate, but an active symbol
+    // that names one still gets no coordinates, so it is reported.
+    const unreadable =
+      !coarseAnchor &&
+      !eligible &&
+      typeof current.coordinateRefreshFailure === "string" &&
+      !INACTIVE_SYMBOL_STATUSES.has(String(current.status ?? ""));
+    if ((eligible || unreadable) && !hasAllGeneratedCoordinates(current)) {
       failures.push({
         id: typeof current.id === "string" ? current.id : `#${i}`,
         reason: coarseAnchorFailureReason(current),
@@ -564,7 +578,7 @@ export async function refreshManifestCoordinates(
     }
     if (failures.length > 0) {
       console.log(
-        "  Symbols without a published coordinate entry are dropped from coverage until they succeed.",
+        `  Symbols without a published coordinate entry are dropped from coverage until they succeed. To link a whole file instead, add symbol_role and granularity_reason ${COARSE_GRANULARITY_REASONS_PARENTHESIZED} to the symbol.`,
       );
     }
   }

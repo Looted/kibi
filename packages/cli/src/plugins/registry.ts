@@ -30,6 +30,8 @@ import {
   type PluginProviderStamp,
   type ProjectKibiConfig,
   type ProjectPluginEntry,
+  REFERENCE_EXTRACTOR_CAPABILITY_ID,
+  type ReferenceExtractorV1,
   SEARCH_HINTS_CAPABILITY_ID,
   SEMANTIC_CLASSIFIER_CAPABILITY_ID,
   SYMBOL_EXTRACTOR_CAPABILITY_ID,
@@ -99,7 +101,8 @@ type CapabilitySlot =
   | "symbolExtractorV2"
   | "vocabularyAlignment"
   | "checkPolicy"
-  | "searchHints";
+  | "searchHints"
+  | "referenceExtractor";
 
 const CAPABILITY_SLOT: Record<CapabilityId, CapabilitySlot> = {
   [SEMANTIC_CLASSIFIER_CAPABILITY_ID]: "semanticClassifier",
@@ -109,6 +112,8 @@ const CAPABILITY_SLOT: Record<CapabilityId, CapabilitySlot> = {
   [VOCABULARY_ALIGNMENT_CAPABILITY_ID]: "vocabularyAlignment",
   [CHECK_POLICY_CAPABILITY_ID]: "checkPolicy",
   [SEARCH_HINTS_CAPABILITY_ID]: "searchHints",
+  // Read only by source proofs, through the qualified loader.
+  [REFERENCE_EXTRACTOR_CAPABILITY_ID]: "referenceExtractor",
 };
 
 /**
@@ -296,6 +301,7 @@ function capabilityFromPlugin(
   | VocabularyAlignmentV1
   | CheckPolicyV1
   | SearchHintsV1
+  | ReferenceExtractorV1
   | undefined {
   const slot = CAPABILITY_SLOT[capabilityId];
   return plugin.capabilities[slot];

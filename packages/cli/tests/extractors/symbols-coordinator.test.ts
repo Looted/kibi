@@ -6,6 +6,7 @@ import {
   type ManifestSymbolEntry,
   enrichSymbolCoordinates,
 } from "../../src/extractors/symbols-coordinator.js";
+import type { SourceAnalysisService } from "../../src/plugins/source-analysis-service.js";
 
 type TsEnrichStub = (
   entries: ManifestSymbolEntry[],
@@ -368,17 +369,24 @@ it("returns original entry when source path cannot be resolved", async () => {
   expect(out[0]?.sourceLine).toBeUndefined();
 });
 
-it("returns original entry when regex heuristic cannot read a resolved path", async () => {
+it("names a source path that is not a regular file", async () => {
+  fs.mkdirSync(path.join(tmpDir, "sub"));
   const entries: ManifestSymbolEntry[] = [
-    { id: "dir", title: "anything", sourceFile: "." },
+    { id: "dir", title: "anything", sourceFile: "sub" },
+    { id: "root", title: "anything", sourceFile: "." },
+    { id: "out", title: "anything", sourceFile: "../elsewhere.go" },
   ];
 
   const out = await runEnrichment(entries, tmpDir);
 
-  expect(out).toEqual(entries);
+  expect(out.map((entry) => entry.coordinateRefreshFailure)).toEqual([
+    "sub is not a regular file",
+    ". is not a file path inside the workspace",
+    "../elsewhere.go is not a file path inside the workspace",
+  ]);
 });
 
-it("handles nonexistent sourceFile and returns original", async () => {
+it("names a nonexistent sourceFile", async () => {
   const entries: ManifestSymbolEntry[] = [
     { id: "n1", title: "nope", sourceFile: "no/such/path.txt" },
   ];
@@ -386,6 +394,9 @@ it("handles nonexistent sourceFile and returns original", async () => {
   const out = await runEnrichment(entries, tmpDir);
 
   expect(out[0]?.sourceLine).toBeUndefined();
+  expect(out[0]?.coordinateRefreshFailure).toBe(
+    "no/such/path.txt does not exist",
+  );
 });
 
 it("properly escapes regex metacharacters in title when searching", async () => {
@@ -428,12 +439,13 @@ it("mixes multiple symbols with different file types", async () => {
   expect(out[1]?.sourceLine).toBe(3);
 });
 
-it("allows only explicit coordinate-only decorator partials without upgrading analysis", async () => {
+// executable_for TEST-kibi-tree-sitter-language-packs
+it("refreshes partial files per symbol and keeps decorator coordinates explicit", async () => {
   const { CapabilityRegistry } = await import("../../src/plugins/registry.js");
   const { SourceAnalysisService } = await import(
     "../../src/plugins/source-analysis-service.js"
   );
-  const content = "@identity\ndef run():\n    pass\n";
+  const content = "@identity\ndef run():\n    pass\n\ndef after():\n    pass\n";
   writeFile("decorated.py", content);
   const span = { startLine: 1, startColumn: 0, endLine: 3, endColumn: 8 };
   const raw = {
@@ -505,11 +517,17 @@ it("allows only explicit coordinate-only decorator partials without upgrading an
   ];
   const warn = spyOn(console, "warn").mockImplementation(() => {});
   try {
-    await expect(
-      enrichSymbolCoordinates(entries, tmpDir, {
-        sourceAnalysisService: service,
-      }),
-    ).rejects.toThrow("Cannot refresh incomplete source analysis");
+    // Without the decorator opt-in, a symbol declared inside an uncovered
+    // range keeps no coordinates, with one warning naming the lines.
+    const strict = await enrichSymbolCoordinates(entries, tmpDir, {
+      sourceAnalysisService: service,
+    });
+    expect(strict[0]?.sourceLine).toBeUndefined();
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0]?.[0]).toBe(
+      "[kibi] decorated.py: source analysis is partial; symbols declared on lines 1-3 keep no coordinates (TREESITTER_DECORATOR_EXPANSION_UNAVAILABLE (line 1): Decorators may alter or synthesize declarations.)",
+    );
+    warn.mockClear();
     const output = await enrichSymbolCoordinates(entries, tmpDir, {
       sourceAnalysisService: service,
       allowPythonDecoratorCoordinates: true,
@@ -531,7 +549,6 @@ it("allows only explicit coordinate-only decorator partials without upgrading an
       "TREESITTER_DECLARATION_PARSE_ERROR",
       "TREESITTER_DIAGNOSTIC_LIMIT",
       "TREESITTER_SYMBOL_LIMIT",
-      "TREESITTER_LOCATOR_COLLISION",
     ]) {
       response = {
         ...raw,
@@ -539,35 +556,82 @@ it("allows only explicit coordinate-only decorator partials without upgrading an
           { code, message: "Not a decorator-only omission", range: span },
         ],
       };
-      await expect(
-        enrichSymbolCoordinates(entries, tmpDir, {
-          sourceAnalysisService: service,
-          allowPythonDecoratorCoordinates: true,
-        }),
-      ).rejects.toThrow("Cannot refresh incomplete source analysis");
+      expect(
+        (
+          await enrichSymbolCoordinates(entries, tmpDir, {
+            sourceAnalysisService: service,
+            allowPythonDecoratorCoordinates: true,
+          })
+        )[0]?.coordinateRefreshFailure,
+      ).toContain("Cannot refresh incomplete source analysis");
     }
+    // A local gap that is not decorator-only refreshes per symbol: the symbol
+    // declared on line 2 lies inside it, one declared after it does not.
+    const firstLocal = raw.symbols[0];
+    if (firstLocal === undefined) throw new Error("expected a symbol");
     response = {
       ...raw,
+      symbols: [
+        firstLocal,
+        {
+          ...firstLocal,
+          name: "after",
+          qualifiedName: "after",
+          startLine: 5,
+          endLine: 6,
+        },
+      ],
+      diagnostics: [
+        {
+          code: "TREESITTER_LOCATOR_COLLISION",
+          message: "Local gap",
+          range: span,
+        },
+      ],
       uncoveredRanges: [{ ...span, reason: "unknown-omission" }],
     };
-    await expect(
-      enrichSymbolCoordinates(entries, tmpDir, {
-        sourceAnalysisService: service,
-        allowPythonDecoratorCoordinates: true,
-      }),
-    ).rejects.toThrow("Cannot refresh incomplete source analysis");
+    const local = await enrichSymbolCoordinates(
+      [
+        ...entries,
+        { id: "SYM-after", title: "after", sourceFile: "decorated.py" },
+      ],
+      tmpDir,
+      { sourceAnalysisService: service, allowPythonDecoratorCoordinates: true },
+    );
+    expect(local[0]?.sourceLine).toBeUndefined();
+    expect(local[2]).toMatchObject({ sourceLine: 5, sourceEndLine: 6 });
+    // A partial result that names no uncovered range cannot be narrowed.
+    response = { ...raw, uncoveredRanges: [] };
+    expect(
+      (
+        await enrichSymbolCoordinates(entries, tmpDir, {
+          sourceAnalysisService: service,
+        })
+      )[0]?.coordinateRefreshFailure,
+    ).toContain("Cannot refresh incomplete source analysis");
     const firstSymbol = raw.symbols[0];
     if (firstSymbol === undefined) {
       throw new Error("Expected source analysis to return a symbol");
     }
-    response = { ...raw, symbols: [{ ...firstSymbol, endLine: 99 }] };
-    await expect(
-      enrichSymbolCoordinates(entries, tmpDir, {
-        sourceAnalysisService: service,
-        allowPythonDecoratorCoordinates: true,
-      }),
-    ).rejects.toThrow("Cannot refresh incomplete source analysis");
-    response = raw;
+    response = { ...raw, symbols: [{ ...firstSymbol, endLine: 6 }] };
+    expect(
+      (
+        await enrichSymbolCoordinates(entries, tmpDir, {
+          sourceAnalysisService: service,
+          allowPythonDecoratorCoordinates: true,
+        })
+      )[0]?.sourceLine,
+    ).toBe(2);
+    response = {
+      ...raw,
+      diagnostics: [
+        {
+          code: "TREESITTER_SYNTAX_ERROR",
+          message: "line 2 is not valid",
+          range: span,
+        },
+      ],
+    };
     const { refreshManifestCoordinates } = await import(
       "../../src/commands/sync/manifest.js"
     );
@@ -577,6 +641,7 @@ it("allows only explicit coordinate-only decorator partials without upgrading an
     );
     // Exact-index generation supplies this strict callback. The sync-only
     // option is not forwarded to the completeness-sensitive coordinator.
+    // A file that cannot be read as a whole no longer stops the refresh.
     await expect(
       refreshManifestCoordinates(manifest, tmpDir, {
         refreshSymbolCoordinates: true,
@@ -591,7 +656,7 @@ it("allows only explicit coordinate-only decorator partials without upgrading an
           coordinateArtifactStatus: "absent",
         }),
       }),
-    ).rejects.toThrow("Cannot refresh incomplete source analysis");
+    ).resolves.toBeDefined();
     response = {
       ...raw,
       status: "failed",
@@ -601,12 +666,14 @@ it("allows only explicit coordinate-only decorator partials without upgrading an
       ],
       uncoveredRanges: [],
     };
-    await expect(
-      enrichSymbolCoordinates(entries, tmpDir, {
-        sourceAnalysisService: service,
-        allowPythonDecoratorCoordinates: true,
-      }),
-    ).rejects.toThrow("Cannot refresh incomplete source analysis");
+    expect(
+      (
+        await enrichSymbolCoordinates(entries, tmpDir, {
+          sourceAnalysisService: service,
+          allowPythonDecoratorCoordinates: true,
+        })
+      )[0]?.coordinateRefreshFailure,
+    ).toContain("Cannot refresh incomplete source analysis");
     response = {
       ...raw,
       symbols: [firstSymbol, { ...firstSymbol, startLine: 3, endLine: 3 }],
@@ -616,7 +683,142 @@ it("allows only explicit coordinate-only decorator partials without upgrading an
       allowPythonDecoratorCoordinates: true,
     });
     expect(ambiguous[0]?.sourceLine).toBeUndefined();
+    expect(ambiguous[0]?.coordinateRefreshFailure).toBe(
+      "'run' matches 2 declarations in decorated.py (run on lines 2-3, run on line 3); no title tells them apart",
+    );
+    // A missing grammar pack is named once per file, with its install line,
+    // and the coarse heuristic still anchors the symbol.
+    warn.mockClear();
+    response = {
+      ...raw,
+      status: "unsupported",
+      symbols: [],
+      diagnostics: [
+        {
+          code: "TREESITTER_LANGUAGE_PACK_MISSING",
+          message:
+            "Python needs kibi-lang-python@1.0.0: npm install --save-dev kibi-lang-python@1.0.0",
+        },
+      ],
+      uncoveredRanges: [],
+    };
+    const unpacked = await enrichSymbolCoordinates(entries, tmpDir, {
+      sourceAnalysisService: service,
+    });
+    expect(unpacked[0]?.sourceLine).toBeNumber();
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0]?.[0]).toBe(
+      "[kibi] decorated.py: symbol coordinates are approximate until its grammar pack is installed. Python needs kibi-lang-python@1.0.0: npm install --save-dev kibi-lang-python@1.0.0",
+    );
   } finally {
     warn.mockRestore();
   }
+});
+
+// executable_for TEST-kibi-tree-sitter-language-packs
+it("says when a shell dialect is only placed by text match", async () => {
+  writeFile("run.sh", "#!/bin/sh\n# start runs it\nstart() { :; }\n");
+  const warn = spyOn(console, "warn").mockImplementation(() => {});
+  try {
+    const service = {
+      analyzeTextV2: async () => ({
+        status: "unsupported",
+        symbols: [],
+        uncoveredRanges: [],
+        diagnostics: [
+          {
+            code: "source_file_level_only",
+            message: "The sh shell dialect is retained as file-level source.",
+          },
+        ],
+      }),
+    } as unknown as SourceAnalysisService;
+    const [entry] = await enrichSymbolCoordinates(
+      [{ id: "SYM-start", title: "start", sourceFile: "run.sh" }],
+      tmpDir,
+      { sourceAnalysisService: service },
+    );
+    expect(entry?.sourceLine).toBeNumber();
+    expect(warn.mock.calls[0]?.[0]).toBe(
+      "[kibi] run.sh: symbol coordinates are approximate (placed by text match). The sh shell dialect is retained as file-level source.",
+    );
+    const [missed] = await enrichSymbolCoordinates(
+      [{ id: "SYM-stop", title: "stop", sourceFile: "run.sh" }],
+      tmpDir,
+      { sourceAnalysisService: service },
+    );
+    expect(missed?.coordinateRefreshFailure).toBe(
+      "no text match for 'stop' in run.sh, which has no parser-backed declarations (The sh shell dialect is retained as file-level source.)",
+    );
+  } finally {
+    warn.mockRestore();
+  }
+});
+
+it("places a Java class named like its constructor and Terraform blocks by address", async () => {
+  writeFile("OS.java", "package ox;\n");
+  writeFile("main.tf", "# terraform\n");
+  const span = (startLine: number, endLine: number) => ({
+    startLine,
+    startColumn: 0,
+    endLine,
+    endColumn: 1,
+  });
+  const symbols: Record<string, unknown[]> = {
+    "OS.java": [
+      {
+        name: "OS",
+        qualifiedName: "ox.OS",
+        kind: "class",
+        containerName: "ox",
+        ...span(5, 20),
+      },
+      {
+        name: "OS",
+        qualifiedName: "ox.OS.OS()",
+        kind: "method",
+        containerName: "OS",
+        ...span(13, 14),
+      },
+    ],
+    "main.tf": [
+      {
+        name: "this",
+        qualifiedName: 'terraform:resource["aws_s3_bucket","this"]',
+        kind: "unknown",
+        ...span(15, 17),
+      },
+      {
+        name: "this",
+        qualifiedName: 'terraform:resource["aws_s3_bucket_versioning","this"]',
+        kind: "unknown",
+        ...span(19, 24),
+      },
+    ],
+  };
+  const service = {
+    analyzeTextV2: async (file: string) => ({
+      status: "ok",
+      symbols: symbols[file] ?? [],
+      uncoveredRanges: [],
+      diagnostics: [],
+    }),
+  } as unknown as SourceAnalysisService;
+  const out = await enrichSymbolCoordinates(
+    [
+      { id: "SYM-OS", title: "OS", sourceFile: "OS.java" },
+      { id: "SYM-OS-Q", title: "ox.OS", sourceFile: "OS.java" },
+      { id: "SYM-BUCKET", title: "aws_s3_bucket.this", sourceFile: "main.tf" },
+      { id: "SYM-THIS", title: "this", sourceFile: "main.tf" },
+    ],
+    tmpDir,
+    { sourceAnalysisService: service },
+  );
+  expect(out[0]).toMatchObject({ sourceLine: 5, sourceEndLine: 20 });
+  expect(out[1]).toMatchObject({ sourceLine: 5, sourceEndLine: 20 });
+  expect(out[2]).toMatchObject({ sourceLine: 15, sourceEndLine: 17 });
+  expect(out[3]?.sourceLine).toBeUndefined();
+  expect(out[3]?.coordinateRefreshFailure).toBe(
+    "'this' matches 2 declarations in main.tf (aws_s3_bucket.this on lines 15-17, aws_s3_bucket_versioning.this on lines 19-24); use one of those titles",
+  );
 });

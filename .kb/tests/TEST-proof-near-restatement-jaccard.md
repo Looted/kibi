@@ -26,17 +26,17 @@ proof_contract:
     - CLAIM-D75EA03CE26FF1F2
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-83001f9410e816eef6d2b7d6
+    receipt_id: PR-998ae578c0b941c5a5de5ed7
     test_id: TEST-proof-near-restatement-jaccard
     scope: unit
     outcome: passed
-    code_snapshot: 1930b6bde491fcbbc77f67b0d5f56d1e187b3c4225271c211189a107ec098307
+    code_snapshot: e2663d10a2e1a0b8fdd0d38e888ee46d8031436be2244a613e1c406fbfa714b0
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-27T08:06:52.980Z'
-    finished_at: '2026-10-27T08:06:53.158Z'
-    artifact_digest: 03f70f74264d942ca44a8f4b69b92bfbdd0628bf362c2058616c01cd1eaf93a2
+    started_at: '2026-10-30T19:45:09.938Z'
+    finished_at: '2026-10-30T19:45:10.048Z'
+    artifact_digest: 0162274ea2a4913af5377541db077b3fddea08f226e942bfbc7fe0b1ff87183d
     contract_hash: a8473998337d7eec0bbe304f2d018110881b28ae7f98f2a07c6b350db75edb5a
-    binding_hash: 62093234cea881ac551c32bb8347954ec928abb0fd5f5b259e15d2877b06cb11
+    binding_hash: 8332c7b25220d9555014a46af9313ec61fc1247385cd7de3fcbec0d49f35ce47
     fingerprint: cb4f8e55db1a52837b8fe4ae6684e5e91bc1fb1731cf47d20ad1d439c9fa7132
     fingerprint_components:
       contract: a8473998337d7eec0bbe304f2d018110881b28ae7f98f2a07c6b350db75edb5a
@@ -59,7 +59,7 @@ proof_receipts:
         attempts:
           status: unavailable
     kind: arithmetic
-    evidence_level: tested
+    evidence_level: proved
     certificate:
       version: kibi.code-certificate.v1
       kind: arithmetic
@@ -78,7 +78,7 @@ proof_receipts:
         requirement_id: REQ-bootstrap-claim-restatement-threshold
         fact_id: FACT-bootstrap-claim-restatement-near-jaccard
         binding: derived
-        scope: intent
+        scope: code
         obligation:
           kind: numeric_constraint
           operator: eq

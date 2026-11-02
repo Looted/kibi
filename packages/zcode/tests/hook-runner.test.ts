@@ -5,7 +5,11 @@ import os from "node:os";
 import path from "node:path";
 
 import { type HookResult, runHook } from "../src/hook-runner";
-import { loadHookState } from "../src/hook-state";
+import {
+  loadHookState,
+  resolvePluginDataDir,
+  resolveWorkspaceStateDir,
+} from "../src/hook-state";
 
 /**
  * ZCode parses hook stdout against a strict schema (verified against the
@@ -1503,7 +1507,7 @@ describe("ZCode pre-edit knowledge", () => {
       "Kibi knowledge for src/checkout.ts (symbol manifest):\n- REQ-checkout-rounding [firm: ask before changing]: Checkout totals round to cents — computeTotal",
     );
     expect(context).toContain(
-      "REQ-checkout-rounding must keep true: FACT-total-rounding-cents: Totals round half up to two decimals.",
+      "REQ-checkout-rounding must keep true: Totals round half up to two decimals.",
     );
     expect(context).toContain(
       "Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
@@ -1703,5 +1707,132 @@ describe("ZCode decision guard", () => {
     await recordKbUpsert(fixture.cwd, fixture.pluginData, "s1");
     const reminder = expectReminder(await event({ hook_event_name: "Stop" }));
     expect(reminder).not.toContain("recorded nothing in the knowledge base");
+  });
+});
+
+describe("ZCode reminders from Claude-compatible payloads", () => {
+  /** A ZCode hook payload: Claude Code's snake_case fields. */
+  function zcodePayload(
+    cwd: string,
+    event: string,
+    fields: Record<string, unknown> = {},
+  ): Record<string, unknown> {
+    return {
+      session_id: "zcode-session-1",
+      transcript_path: path.join(cwd, ".zcode", "transcript.jsonl"),
+      cwd,
+      hook_event_name: event,
+      ...fields,
+    };
+  }
+
+  function editPost(cwd: string): Record<string, unknown> {
+    return zcodePayload(cwd, "PostToolUse", {
+      tool_name: "Edit",
+      tool_input: {
+        file_path: path.join(cwd, "src/checkout.ts"),
+        old_string: "1",
+        new_string: "2",
+      },
+      tool_response: { filePath: path.join(cwd, "src/checkout.ts") },
+    });
+  }
+
+  test("PostToolUse after an edit names the impact check once per file", async () => {
+    const { cwd, pluginData } = workspaceFixture("kibi-zcode-post");
+    const first = await runHook(editPost(cwd), { pluginData, env: {} });
+    expect(expectAdditionalContext(first, "PostToolUse")).toContain(
+      'kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})',
+    );
+    expectQuiet(await runHook(editPost(cwd), { pluginData, env: {} }));
+  });
+
+  test("Stop waits while a Stop hook already continued the turn", async () => {
+    const { cwd, pluginData } = workspaceFixture("kibi-zcode-active");
+    await runHook(editPost(cwd), { pluginData, env: {} });
+    expectQuiet(
+      await runHook(zcodePayload(cwd, "Stop", { stop_hook_active: true }), {
+        pluginData,
+        env: {},
+      }),
+    );
+    const reminder = expectReminder(
+      await runHook(zcodePayload(cwd, "Stop", { stop_hook_active: false }), {
+        pluginData,
+        env: {},
+      }),
+    );
+    expect(reminder).toContain("recorded nothing in the knowledge base");
+    expect(reminder).toContain("src/checkout.ts");
+  });
+
+  test("without a plugin data variable the edit still reaches the Stop reminder", async () => {
+    const { cwd } = workspaceFixture("kibi-zcode-nodata");
+    const stateDir = resolveWorkspaceStateDir(
+      resolvePluginDataDir(undefined, {}),
+      cwd,
+    );
+    if (stateDir) tempRoots.push(stateDir);
+    await runHook(editPost(cwd), { env: {} });
+    const reminder = expectReminder(
+      await runHook(zcodePayload(cwd, "Stop"), { env: {} }),
+    );
+    expect(reminder).toContain("src/checkout.ts");
+  });
+
+  // implements REQ-kibi-anonymous-usage-telemetry
+  test("every hook event that decides something queues one kibi_hook, and KIBI_TELEMETRY=0 queues none", async () => {
+    const telemetryDir = createTempRoot("kibi-zcode-telemetry-");
+    tempRoots.push(telemetryDir);
+    const queue = path.join(telemetryDir, "telemetry-queue.jsonl");
+    const runAll = async (env: NodeJS.ProcessEnv) => {
+      const { cwd, pluginData } = workspaceFixture("kibi-zcode-telemetry");
+      for (const payload of [
+        zcodePayload(cwd, "SessionStart", { source: "startup" }),
+        zcodePayload(cwd, "UserPromptSubmit", {
+          prompt: "Totals must never round down.",
+        }),
+        zcodePayload(cwd, "PreToolUse", {
+          tool_name: "Edit",
+          tool_input: { file_path: path.join(cwd, "src/checkout.ts") },
+        }),
+        editPost(cwd),
+        zcodePayload(cwd, "Stop", { stop_hook_active: false }),
+      ]) {
+        await runHook(payload, { pluginData, env });
+      }
+    };
+
+    await runAll({ KIBI_TELEMETRY: "0", KIBI_TELEMETRY_DIR: telemetryDir });
+    expect(fs.existsSync(queue)).toBe(false);
+
+    await runAll({
+      KIBI_TELEMETRY: "1",
+      KIBI_TELEMETRY_DIR: telemetryDir,
+      KIBI_TELEMETRY_CHANNEL: "agent-test",
+      // Stop sends the queue; an unreachable host keeps it on disk.
+      KIBI_TELEMETRY_HOST: "http://127.0.0.1:9",
+    });
+    const queued = fs
+      .readFileSync(queue, "utf8")
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line).properties);
+    expect(
+      queued.map((event) => [event.hook_event, event.hook_action]),
+    ).toEqual([
+      ["SessionStart", "session_start"],
+      ["UserPromptSubmit", "prompt_rule_note"],
+      ["PreToolUse", "edit_silent"],
+      ["PostToolUse", "edited"],
+      ["Stop", "stop_capture_reminder"],
+    ]);
+    for (const event of queued) {
+      expect(event).toMatchObject({
+        package: "kibi-zcode",
+        host: "zcode",
+        channel: "agent-test",
+      });
+    }
   });
 });
