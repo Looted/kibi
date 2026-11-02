@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { qualifiedSourceAnalyzers } from "../../src/plugins/approved-source-analyzers.generated.js";
 import {
   pluginInstallProblems,
   sourceAnalyzerInstallProblems,
@@ -72,11 +73,15 @@ describe("source analyzer install problems", () => {
     const root = workspace();
     installStub(root, "kibi-plugin-treesitter", "2.0.9");
     const [problem] = sourceAnalyzerInstallProblems(root);
+    const pinned = qualifiedSourceAnalyzers.find(
+      (entry) => entry.packageName === "kibi-plugin-treesitter",
+    )?.version;
+    expect(pinned).toBeDefined();
     expect(problem?.problem).toStartWith(
-      "installed kibi-plugin-treesitter 2.0.9 is not the release-qualified build this Kibi pins (kibi-plugin-treesitter 2.1.0: ",
+      `installed kibi-plugin-treesitter 2.0.9 is not the release-qualified build this Kibi pins (kibi-plugin-treesitter ${pinned}: `,
     );
     expect(problem?.fix).toContain(
-      "npm install --save-dev kibi-plugin-treesitter@2.1.0",
+      `npm install --save-dev kibi-plugin-treesitter@${pinned}`,
     );
   });
 

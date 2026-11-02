@@ -1052,6 +1052,10 @@ extract("thrown", _, F, L, B, Catcher, Goal) :-
     ;   miss(F, L, B, Goal)
     ).
 extract("thrown", _, _, _, _, _, Goal) :-
+    Goal = must_be(_, _), !,
+    % library(error)'s must_be/2 throws these when the value is not of the type.
+    forall(member(Error, ["type_error", "domain_error", "instantiation_error", "existence_error"]), found(Error)).
+extract("thrown", _, _, _, _, _, Goal) :-
     functor(Goal, Name, Arity),
     error_helper(Name/Arity), !,
     atom_string(Name, Text), found(Text).

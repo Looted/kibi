@@ -486,6 +486,8 @@ describe("references the code makes", () => {
         extract: "env",
       }),
     ).toEqual(["API_URL", "VITE_C", "VITE_MODE"]);
+    // An alias of the env object or import.meta is followed: its reads are
+    // the env reads.
     for (const [name, text] of [
       [
         "escape-env.ts",
@@ -497,14 +499,26 @@ describe("references the code makes", () => {
       ],
     ] as const) {
       write(`src/${name}`, text);
-      const result = await read({
-        reader: "references",
-        files: `src/${name}`,
-        extract: "env",
-      });
-      expect(result.ok).toBe(false);
-      if (!result.ok) expect(result.reason).toContain(`src/${name}:1`);
+      expect(
+        await members({
+          reader: "references",
+          files: `src/${name}`,
+          extract: "env",
+        }),
+      ).toEqual(["NG_APP_URL"]);
     }
+    // Handed on under that alias, it could be read under any name.
+    write(
+      "src/escape-pass.ts",
+      "const env = import.meta.env;\nexport const x = read(env);\n",
+    );
+    const result = await read({
+      reader: "references",
+      files: "src/escape-pass.ts",
+      extract: "env",
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toContain("src/escape-pass.ts:2");
   });
 
   test("Python env and imports", async () => {
@@ -761,6 +775,152 @@ describe("references the code makes", () => {
         ],
       },
     });
+  });
+
+  test("JavaScript env reads through process aliases, node:process and the global object", async () => {
+    const env = async (text: string) => {
+      write("js/env.mjs", text);
+      return read({
+        reader: "references",
+        files: "js/env.mjs",
+        extract: "env",
+      });
+    };
+    // Read exactly: each of these reads SECRET.
+    for (const text of [
+      "const s = globalThis.process.env.SECRET;\n",
+      "const s = global.process.env.SECRET;\n",
+      "const g = globalThis;\nconst s = g.process.env.SECRET;\n",
+      'import { env } from "node:process";\nconst s = env.SECRET;\n',
+      'import proc from "node:process";\nconst s = proc.env.SECRET;\n',
+      'import * as P from "process";\nconst s = P.env.SECRET;\n',
+      'const p = require("node:process");\nconst s = p.env["SECRET"];\n',
+      "const s = (0, process).env.SECRET;\n",
+      "const { env: { SECRET: s } } = process;\n",
+      "const { env } = process;\nconst s = env.SECRET;\n",
+    ]) {
+      expect(await env(text)).toEqual({
+        ok: true,
+        model: { members: ["SECRET"] },
+      });
+    }
+    // Refused: the module or the environment is reached in a way Kibi does not follow.
+    for (const text of [
+      'const s = process.getBuiltinModule("node:process").env.SECRET;\n',
+      'import { createRequire } from "node:module";\nconst s = createRequire(import.meta.url)("process").env.SECRET;\n',
+      'const s = await import("node:process").then((m) => m.env.SECRET);\n',
+      'const s = new Function("return process.env.SECRET")();\n',
+      "const p = [process][0];\n",
+      "const { env: { ...rest } } = process;\n",
+      'export { env } from "node:process";\n',
+    ]) {
+      const result = await env(text);
+      expect({ text, ok: result.ok }).toEqual({ text, ok: false });
+    }
+    // A local named process is not the global one.
+    expect(
+      await env(
+        "function f(process) { return keep(process); }\nconst s = process.env.PORT;\n",
+      ),
+    ).toEqual({
+      ok: true,
+      model: { members: ["PORT"] },
+    });
+  });
+
+  test("JavaScript imports and calls through node: names, aliases and loaders", async () => {
+    const js = async (text: string, extract: string) => {
+      write("js/calls.mjs", text);
+      return read({ reader: "references", files: "js/calls.mjs", extract });
+    };
+    const imports = async (text: string) => {
+      const result = await js(text, "imports");
+      if (!result.ok) throw new Error(result.reason);
+      return result.model.members;
+    };
+    expect(
+      await imports('import { execSync } from "node:child_process";\n'),
+    ).toContain("child_process");
+    expect(await imports('import "node:child_process";\n')).toContain(
+      "child_process",
+    );
+    expect(await imports("await import(`node:child_process`);\n")).toContain(
+      "child_process",
+    );
+    expect(
+      await imports(
+        'import { createRequire } from "node:module";\nconst cp = createRequire(import.meta.url)("child_process");\n',
+      ),
+    ).toContain("child_process");
+    expect(
+      await imports(
+        'import { createRequire } from "node:module";\nconst req = createRequire(import.meta.url);\nreq("child_process");\n',
+      ),
+    ).toContain("child_process");
+    expect(
+      await imports('const cp = process.getBuiltinModule("child_process");\n'),
+    ).toContain("child_process");
+    expect((await js("const r = [require][0];\n", "imports")).ok).toBe(false);
+    const calls = async (text: string) => {
+      const result = await js(text, "calls");
+      if (!result.ok) throw new Error(result.reason);
+      return result.model.members;
+    };
+    for (const text of [
+      'import { execSync as run } from "child_process";\nrun("id");\n',
+      'import * as cp from "node:child_process";\ncp.execSync("id");\n',
+      'import * as cp from "node:child_process";\ncp["execSync"]("id");\n',
+      'import * as cp from "node:child_process";\ncp?.execSync("id");\n',
+      'import * as cp from "node:child_process";\ncp.execSync.call(null, "id");\n',
+      'import * as cp from "node:child_process";\nconst f = cp.execSync;\nf("id");\n',
+      'import * as cp from "node:child_process";\nReflect.apply(cp.execSync, null, ["id"]);\n',
+      'import { execSync } from "child_process";\n[execSync].forEach((f) => f("id"));\n',
+      'process.getBuiltinModule("child_process").execSync("id");\n',
+      '(await import("child_process")).execSync("id");\n',
+      'const cp = require("child_process");\ncp.execSync("id");\n',
+    ]) {
+      expect({
+        text,
+        called: (await calls(text)).includes("child_process.execSync"),
+      }).toEqual({ text, called: true });
+    }
+    // A built-in module handed on may have any member called.
+    expect(
+      await calls('import * as cp from "child_process";\nuse(cp);\n'),
+    ).toContain("child_process.*");
+    expect(
+      (await js("const f = new Function('return 1');\n", "calls")).ok,
+    ).toBe(false);
+  });
+
+  test("Python refuses unpickling, which calls whatever the data names", async () => {
+    for (const text of [
+      'import pickle\npickle.loads(b"cos\\nsystem\\n(Vid\\ntR.")\n',
+      "from pickle import loads\nloads(data)\n",
+    ]) {
+      expect((await pythonRead(text, "calls")).ok).toBe(false);
+    }
+  });
+
+  test("a symbolic link to a file is read as that file", async () => {
+    write("linked/real/zz.go.txt", "x");
+    write("linked/app/a.ts", "const a = process.env.A;\n");
+    write("linked/misc/b.ts", "const b = process.env.SECRET;\n");
+    symlinkSync("../misc/b.ts", path.join(root, "linked/app/b.ts"));
+    expect(
+      await members({
+        reader: "references",
+        files: "linked/app/*.ts",
+        extract: "env",
+      }),
+    ).toEqual(["A", "SECRET"]);
+    expect(
+      await members({
+        reader: "references",
+        files: "linked/app/b.ts",
+        extract: "env",
+      }),
+    ).toEqual(["SECRET"]);
   });
 
   test("Python reads posix and nt as os", async () => {

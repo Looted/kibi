@@ -13,17 +13,8 @@
   "bugs": {
     "url": "https://github.com/Looted/kibi/issues"
   },
-  "keywords": [
-    "kibi",
-    "tree-sitter",
-    "python"
-  ],
-  "files": [
-    "tree-sitter-python.wasm",
-    "README.md",
-    "CHANGELOG.md",
-    "LICENSE"
-  ],
+  "keywords": ["kibi", "tree-sitter", "python"],
+  "files": ["tree-sitter-python.wasm", "README.md", "CHANGELOG.md", "LICENSE"],
   "publishConfig": {
     "access": "public"
   }

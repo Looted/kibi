@@ -13,11 +13,7 @@
   "bugs": {
     "url": "https://github.com/Looted/kibi/issues"
   },
-  "keywords": [
-    "kibi",
-    "tree-sitter",
-    "prolog"
-  ],
+  "keywords": ["kibi", "tree-sitter", "prolog"],
   "files": [
     "tree-sitter-swi_prolog.wasm",
     "README.md",
