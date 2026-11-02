@@ -174,7 +174,7 @@ export function languagePackWaiver(
   workspaceRoot: string,
   config: ProjectKibiConfig,
 ): (filePath: string, content: string, pack: string) => string | null {
-  const declined = new Set(config.declinedLanguagePacks ?? []);
+  const declined = new Set(config.declinedLanguagePacks);
   return (filePath, content, pack) =>
     declined.has(pack)
       ? `${pack} is listed in package.json kibi.declinedLanguagePacks, so no grammar reads ${filePath}`
@@ -295,7 +295,7 @@ export function readSnapshotSourceConfig(
     const base = readConfig(snapshot.baseTree);
     // A pack declined in the same change as the source it would read does
     // not count yet, like a plugin downgraded in that change.
-    const baseDeclined = new Set(base.declinedLanguagePacks ?? []);
+    const baseDeclined = new Set(base.declinedLanguagePacks);
     declinedLanguagePacks = declinedLanguagePacks.filter((pack) =>
       baseDeclined.has(pack),
     );

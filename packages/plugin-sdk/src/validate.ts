@@ -608,11 +608,8 @@ function validateGeneratedPaths(value: unknown): string[] | undefined {
       `kibi.generatedPaths[${index}]`,
       "INVALID_PROJECT_CONFIG",
     );
-    if (
-      pattern.trim() === "" ||
-      pattern.replace(/^!/, "").startsWith("/") ||
-      pattern.includes("\\")
-    ) {
+    // requireString has refused a blank pattern already.
+    if (/^!?\//.test(pattern) || pattern.includes("\\")) {
       throw new PluginValidationError(
         "INVALID_PROJECT_CONFIG",
         `kibi.generatedPaths[${index}] must be a non-empty glob relative to the repository root, such as "src/gen/**" or "!src/gen/keep.ts"`,

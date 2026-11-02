@@ -13,6 +13,18 @@ const tests = [
   "packages/cli/tests/operations/proof-explain.test.ts",
   "packages/cli/tests/public/proof-contract-args.test.ts",
   "packages/cli/tests/proofs/code-runner.test.ts",
+  "packages/cli/tests/plugins/generated-sources-mutation.test.ts",
+  "packages/cli/tests/plugins/reference-language-suggestion-mutation.test.ts",
+  "packages/cli/tests/operations/plugin-offers-mutation.test.ts",
+  "packages/cli/tests/commands/sync-errors-mutation.test.ts",
+  "packages/cli/tests/operations/proof-explain-mutation.test.ts",
+  "packages/cli/tests/cli-register-json-mutation.test.ts",
+  "packages/cli/tests/cli-main-mutation.test.ts",
+  "packages/cli/tests/proofs/java-package-shadow-mutation.test.ts",
+  "packages/cli/tests/plugins/source-analysis-service-mutation.test.ts",
+  "packages/cli/tests/plugins/maintenance-source-analysis-mutation.test.ts",
+  "packages/cli/tests/proofs/source-code-readers-mutation.test.ts",
+  "packages/plugin-sdk/tests/project-config-mutation.test.ts",
 ];
 export default {
   testRunner: "bun",
