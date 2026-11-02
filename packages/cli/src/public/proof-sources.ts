@@ -374,14 +374,25 @@ export function matchWorkspaceFiles(
   ignore: readonly string[] = [],
   caseSensitive = true,
 ): string[] {
+  // A symbolic link to a file is read as that file (git and compilers read
+  // it so); links to folders are not walked.
   return fg
     .sync([...patterns], {
       cwd: workspaceRoot,
       ignore: [...DEFAULT_IGNORE, ...ignore],
       caseSensitiveMatch: caseSensitive,
       dot: true,
-      onlyFiles: true,
+      onlyFiles: false,
+      markDirectories: true,
       followSymbolicLinks: false,
+    })
+    .filter((file) => {
+      if (file.endsWith("/")) return false;
+      try {
+        return statSync(path.join(workspaceRoot, file)).isFile();
+      } catch {
+        return false;
+      }
     })
     .map((file) => file.split(path.sep).join("/"))
     .sort();

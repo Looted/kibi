@@ -601,6 +601,23 @@ Details that decide what a reader sees:
   `import.meta` itself, handed to a variable or a function fails the read,
   because its later reads could use any name. A framework's own runtime
   object (`globalThis._NGX_ENV_`) is not an environment object Kibi reads.
+- **Names in JavaScript and TypeScript.** What a file imports is read under
+  the name it is bound to: `import { execSync as run } from "child_process"`
+  makes `run()` a call of `child_process.execSync`, `import * as cp` and
+  `const cp = require(...)` make `cp.execSync()` one, and `import { env }
+  from "node:process"` or `const { env } = process` make `env.X` an
+  environment read. `node:` names of Node's built-in modules are listed under
+  both spellings, `globalThis.process` and `global.process` are `process`,
+  and `f.call(...)`, `f.apply(...)` and `f.bind(...)` call `f`. An imported
+  function used as a value (`const f = cp.execSync`, `[execSync].forEach(...)`)
+  is listed as called, and a built-in module handed on is listed as
+  `module.*` (any of its members may be called). A module loaded in place
+  (`process.getBuiltinModule`, `createRequire(url)(...)`, `import()`) is read
+  only when a member of it is called directly; otherwise an environment read
+  through it, a non-literal specifier, and code built from text (`eval`,
+  `new Function`, `vm`) fail the read.
+- **Symbolic links.** A link to a file that `files` matches is read as that
+  file, as git and compilers read it. Links to folders are not walked.
 - **SQL migrations.** The replay reads `CREATE TABLE` (quoted and
   schema-qualified names such as `"public"."messages"` included), `DROP TABLE`
   and the `ALTER TABLE` actions that change columns, nullability or foreign

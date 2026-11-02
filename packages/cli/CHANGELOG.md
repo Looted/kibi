@@ -53,6 +53,8 @@
 
 ### Patch Changes
 
+- Close more false proofs of the references reader. JavaScript and TypeScript names are read through what they are bound to: renamed and namespace imports, `require` bindings, `node:` built-in names, `globalThis.process`, `import { env } from "node:process"`, destructuring from `process`, `.call`/`.apply`/`.bind`, and imported functions used as values. Modules loaded in place (`process.getBuiltinModule`, `createRequire(url)(...)`, `import()`), non-literal specifiers and code built from text (`eval`, `new Function`, `vm`) fail the read instead of being skipped. Python unpickling (`pickle.loads` and similar) fails the read, SWI-Prolog's `must_be/2` is listed as throwing the errors it throws, a symbolic link to a file that `files` matches is read as that file instead of being skipped, and a Go call to a name another file of the package binds to a function value fails the read.
+
 - 048d1c9: Close false proofs found by testing the language packs before release:
   - A references claim whose subject key or claim text names a project file (also with a repository prefix, another letter case, no extension, or spaces) is rejected unless that file is among the files read, so a claim about one file cannot be decided on another.
   - `excludes` now fails on a longer name ending in the excluded item at a segment boundary (`checkNotNull` excludes `Preconditions.checkNotNull`).

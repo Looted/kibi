@@ -979,6 +979,37 @@ function goValue(node: Node): boolean {
   }
 }
 
+/**
+ * For calls: a bare function name the file does not declare, called or
+ * handed on as a value (`command("rm")` with `var command = exec.Command`
+ * in another file of the package). What it calls is not known here, so the
+ * row is kept: `X may be a function of another file of the package`.
+ */
+function goUndeclaredCall(
+  node: Node,
+  callName: string | null,
+  context: FileContext,
+): string | null {
+  // A dot import or an undecoded path already refuses every call.
+  if (context.callsAmbiguous.length > 0) return null;
+  let name: string | null = null;
+  if (node.type === "call_expression") {
+    if (callName !== null && !/[."]/.test(callName)) name = callName;
+  } else if (
+    node.type === "identifier" &&
+    goValue(node) &&
+    !goDeclaredName(node)
+  )
+    name = node.text;
+  if (
+    name === null ||
+    GO_PREDECLARED.has(name) ||
+    goDeclaredHere(node, name, context)
+  )
+    return null;
+  return `${name} may be a function of another file of the package`;
+}
+
 const GO: Reader = {
   isCall: (node) =>
     node.type === "call_expression" ||
@@ -1092,7 +1123,9 @@ const GO: Reader = {
    * the environment though nothing of it is used. Third-party packages are
    * not followed, as for any direct call.
    */
-  shadowed(node, _callName, _names, context, extract) {
+  shadowed(node, callName, _names, context, extract) {
+    if (extract === "calls" || extract === "string_args")
+      return goUndeclaredCall(node, callName, context);
     if (extract !== "env") return null;
     if (node.type === "import_spec") {
       const path = literal(field(node, "path"));
@@ -1965,9 +1998,21 @@ const CSHARP_STATIC_METHODS: ReadonlyMap<string, ReadonlySet<string>> = new Map(
   ],
 );
 
-/** A C# identifier without its verbatim `@` (`@class` is `class`). */
+/**
+ * A C# identifier as the compiler reads it: without its verbatim `@`
+ * (`@class` is `class`) and with Unicode escapes decoded (`\u0045xit` and
+ * `\U00000045xit` are `Exit`).
+ */
 function csharpId(text: string): string {
-  return text.replaceAll("@", "");
+  return text
+    .replaceAll("@", "")
+    .replace(
+      /\\u([0-9a-fA-F]{4})|\\U([0-9a-fA-F]{8})/g,
+      (spelled, short?: string, long?: string) => {
+        const code = Number.parseInt(short ?? long ?? "", 16);
+        return code > 0x10ffff ? spelled : String.fromCodePoint(code);
+      },
+    );
 }
 
 const CSHARP_TYPE_DECLARATIONS = new Set([
@@ -2214,7 +2259,11 @@ function csharpInheritsUnknown(node: Node): boolean {
     if (!CSHARP_TYPE_DECLARATIONS.has(scope.type)) continue;
     const bases = named(scope).find((part) => part.type === "base_list");
     for (const base of bases === undefined ? [] : named(bases))
-      if (!declared.has(lastOf(withoutGenerics(plainName(base.text)), ".")))
+      if (
+        !declared.has(
+          lastOf(withoutGenerics(csharpId(plainName(base.text))), "."),
+        )
+      )
         return true;
   }
   return false;
@@ -2295,6 +2344,32 @@ function csharpValuePosition(node: Node): boolean {
   if (parent.type === "assignment_expression")
     return field(parent, "right")?.id === node.id;
   return true;
+}
+
+/** Members holding a copy of the process environment (`ProcessStartInfo`'s). */
+const CSHARP_ENV_COPIES = new Set(["Environment", "EnvironmentVariables"]);
+
+/**
+ * Whether a member access reads a copy of the environment
+ * (`new ProcessStartInfo().Environment["X"]`, `psi?.EnvironmentVariables`):
+ * any `.Environment` or `.EnvironmentVariables` other than the System type.
+ */
+function csharpChildEnvironment(node: Node, context: FileContext): boolean {
+  if (
+    node.type !== "member_access_expression" &&
+    node.type !== "member_binding_expression"
+  )
+    return false;
+  const name = field(node, "name");
+  if (name === null || !CSHARP_ENV_COPIES.has(csharpChain(name) ?? ""))
+    return false;
+  if (node.type === "member_binding_expression") return true;
+  const chain = csharpChain(node);
+  return (
+    chain === null ||
+    csharpAliased(chain, context) !== "Environment" ||
+    finalName(chain) !== "Environment"
+  );
 }
 
 const CSHARP: Reader = {
@@ -2388,6 +2463,7 @@ const CSHARP: Reader = {
     return unique([resolved, ...long, ...spelled]);
   },
   refuses(node, callName, names, context, extract, callee) {
+    if (extract === "env" && csharpChildEnvironment(node, context)) return true;
     const call = CSHARP.isCall(node);
     const bare =
       call && callName !== null && !/[.:]/.test(callName)
@@ -2513,7 +2589,7 @@ const CSHARP: Reader = {
     if (value.type === "object_creation_expression") {
       const type = field(value, "type");
       if (type !== null) {
-        members.push(withoutGenerics(type.text));
+        members.push(withoutGenerics(csharpId(type.text)));
         return;
       }
     }
@@ -2524,7 +2600,11 @@ const CSHARP: Reader = {
         return;
       }
     }
-    if (value.type === "identifier" && catchNames.includes(value.text)) return;
+    if (
+      value.type === "identifier" &&
+      catchNames.includes(csharpId(value.text))
+    )
+      return;
     unresolved.push(at(node));
   },
   hidesCalls(node, names) {
@@ -2538,7 +2618,7 @@ const CSHARP: Reader = {
     // argument.
     return (
       (node.type === "identifier" || node.type === "predefined_type") &&
-      node.text === "dynamic" &&
+      csharpId(node.text) === "dynamic" &&
       node.parent?.type !== "member_access_expression" &&
       node.parent?.type !== "invocation_expression" &&
       node.parent?.type !== "argument"
@@ -2589,7 +2669,7 @@ const CSHARP: Reader = {
       else members.push(value);
       return;
     }
-    if (left.text !== key) return;
+    if (csharpId(left.text) !== key) return;
     const value = literal(field(node, "right"));
     if (value === null) unresolved.push(at(node));
     else members.push(value);
@@ -2599,9 +2679,8 @@ const CSHARP: Reader = {
     const declaration = named(node).find(
       (child) => child.type === "catch_declaration",
     );
-    return declaration === undefined
-      ? null
-      : (field(declaration, "name")?.text ?? null);
+    const name = declaration === undefined ? null : field(declaration, "name");
+    return name === null || name === undefined ? null : csharpId(name.text);
   },
 };
 
@@ -2617,6 +2696,57 @@ const RUST_ENV_MACROS = new Set([
   "std::option_env",
   "core::option_env",
 ]);
+
+/**
+ * C library names that read the environment (`libc::getenv`, an `extern
+ * "C"` getenv, `libc::environ`): the key is a C string the reader does not
+ * follow, so any mention of one is refused for env.
+ */
+const RUST_FFI_ENV = new Set([
+  "getenv",
+  "secure_getenv",
+  "__secure_getenv",
+  "getenv_s",
+  "_wgetenv",
+  "_wgetenv_s",
+  "_dupenv_s",
+  "_wdupenv_s",
+  "environ",
+  "__environ",
+  "_environ",
+  "_wenviron",
+  "GetEnvironmentVariableA",
+  "GetEnvironmentVariableW",
+  "GetEnvironmentStringsA",
+  "GetEnvironmentStringsW",
+]);
+
+/** C library calls that end the process, as `std::process::exit` does. */
+const RUST_FFI_EXIT: ReadonlyMap<string, string> = new Map([
+  ["exit", "std::process::exit"],
+  ["_exit", "std::process::exit"],
+  ["_Exit", "std::process::exit"],
+  ["quick_exit", "std::process::exit"],
+  ["abort", "std::process::abort"],
+]);
+
+/**
+ * The std names a C exit call stands for: `libc::exit`, or an exit the
+ * file declares in an `extern` block, is `std::process::exit` too.
+ */
+function rustFfiExit(path: string, at: Node): string[] {
+  const name = lastOf(path, "::");
+  const std = RUST_FFI_EXIT.get(name);
+  if (std === undefined) return [];
+  const external =
+    path.split("::").includes("libc") ||
+    descendants(at.tree.rootNode, "foreign_mod_item").some((block) =>
+      descendants(block, "function_signature_item").some((item) =>
+        rustNamed(item, name),
+      ),
+    );
+  return external ? unique(["std::process::exit", std]) : [];
+}
 
 /**
  * An identifier or path without raw-identifier prefixes: `r#env` is the
@@ -3296,7 +3426,8 @@ const RUST: Reader = {
     // `env::var` is std::env::var only where a `use std::env` binds it;
     // without one, or under a `mod env` closer to the call, `env` is a
     // module or crate of the project.
-    return unique([rustPath(name, at).path, name]);
+    const path = rustPath(name, at).path;
+    return unique([path, name, ...rustFfiExit(path, at)]);
   },
   refuses(node, callName, names, context, extract, callee) {
     // A derive or attribute macro configured with `env` (clap's `#[arg(env
@@ -3409,6 +3540,17 @@ const RUST: Reader = {
   envGetters: RUST_ENV,
   envWhole: RUST_ENV_WHOLE,
   envSpecial(node, _context, members, unresolved) {
+    // A C getter or the C environment, called, passed on or imported.
+    if (
+      (node.type === "identifier" ||
+        node.type === "scoped_identifier" ||
+        node.type === "field_identifier") &&
+      node.parent?.type !== "scoped_identifier" &&
+      RUST_FFI_ENV.has(lastOf(rustPlain(node.text), "::"))
+    ) {
+      unresolved.push(at(node));
+      return true;
+    }
     if (
       node.type !== "macro_invocation" ||
       !RUST_ENV_MACROS.has(rustCanonical(rustMacroName(node)))

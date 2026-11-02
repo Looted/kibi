@@ -982,6 +982,8 @@ describe("round-3 agent-test regressions: exact or refuse", () => {
       "\tu.n = 1",
       "\tg(err)",
       "}",
+      "func logger() *logrus.Logger { return nil }",
+      "func h(...any) {}",
     ]);
     const calls = await inline("a.go", source, "calls");
     for (const name of [
@@ -1943,5 +1945,156 @@ describe("round-4 agent-test regressions: exact or refuse", () => {
           await extractor.extract({ path: "a.go", content: source, extract })
         ).unresolved.some((row) => row.text.includes("package of the project")),
       );
+  });
+});
+
+describe("reads foreign, escaped and inherited environments and calls", () => {
+  // A backslash, so the escapes reach the reader as written.
+  const bs = String.fromCharCode(92);
+
+  it("refuses a Rust C getenv or environ and lists a C exit as std::process::exit", async () => {
+    const source = [
+      "use std::env;",
+      "use std::ffi::CString;",
+      'extern "C" { fn getenv(name: *const i8) -> *mut i8; fn exit(code: i32) -> !; }',
+      "fn main() {",
+      '    let _ = env::var("PORT");',
+      '    let _a = unsafe { libc::getenv(c"SECRET".as_ptr()) };',
+      `    let _b = unsafe { libc::getenv(b"SECRET${bs}0".as_ptr() as *const _) };`,
+      '    let key = CString::new("SECRET").unwrap();',
+      "    let _c = unsafe { libc::secure_getenv(key.as_ptr()) };",
+      "    let _d = unsafe { getenv(key.as_ptr()) };",
+      "    let _e = unsafe { *libc::environ };",
+      "}",
+      "fn stop() { unsafe { libc::exit(1) } }",
+      "fn stop2() { unsafe { libc::_exit(1) } }",
+      "fn stop3() { unsafe { libc::abort() } }",
+      "fn stop4() { unsafe { exit(1) } }",
+      "fn keep() { let _ = std::process::id(); }",
+    ].join("\n");
+    assert.deepEqual(await inline("a.rs", source, "env"), {
+      members: ["PORT"],
+      lines: [3, 6, 7, 9, 10, 11],
+    });
+    const calls = await inline("a.rs", source, "calls");
+    assert.deepEqual(calls.lines, []);
+    for (const name of [
+      "libc::exit",
+      "libc::_exit",
+      "libc::abort",
+      "std::process::exit",
+      "std::process::abort",
+    ])
+      assert.ok(calls.members.includes(name), `${name}: ${calls.members}`);
+    // Only the C exits stand for std::process::exit.
+    const plain = await inline(
+      "a.rs",
+      "fn exit(_c: i32) {}\nfn main() { exit(1); app::exit(); }\n",
+      "calls",
+    );
+    assert.ok(!plain.members.includes("std::process::exit"), plain.members);
+  });
+
+  it("decodes C# Unicode escapes and verbatim identifiers in calls, env and usings", async () => {
+    const source = [
+      "using System;",
+      `using ${bs}u0053ystem.Diagnostics;`,
+      `using E${bs}u006E = System.Environment;`,
+      "class A {",
+      "  static void M() {",
+      `    Environment.${bs}u0045xit(1);`,
+      `    ${bs}u0045nvironment.Exit(2);`,
+      `    @Environment.${bs}U00000045xit(3);`,
+      "    En.Exit(4);",
+      `    var x = Environment.GetEnvironment${bs}u0056ariable("SECRET");`,
+      "  }",
+      "}",
+    ].join("\n");
+    const calls = await inline("A.cs", source, "calls");
+    assert.deepEqual(calls.lines, []);
+    assert.ok(
+      calls.members.includes("Environment.Exit") &&
+        calls.members.includes("System.Environment.Exit"),
+      calls.members,
+    );
+    assert.ok(!calls.members.some((name) => name.includes(bs)), calls.members);
+    const env = await inline("A.cs", source, "env");
+    assert.deepEqual(env.members, ["SECRET"]);
+    assert.deepEqual(env.lines, []);
+    assert.deepEqual((await inline("A.cs", source, "imports")).members, [
+      "System",
+      "System.Diagnostics",
+      "System.Environment",
+    ]);
+  });
+
+  it("refuses a C# ProcessStartInfo environment read as an environment read", async () => {
+    const source = [
+      "using System;",
+      "using System.Diagnostics;",
+      "class A {",
+      "  static void M(ProcessStartInfo p) {",
+      '    var a = new ProcessStartInfo().Environment["SECRET"];',
+      '    var b = new ProcessStartInfo().EnvironmentVariables["OTHER"];',
+      '    var c = p?.Environment["MAYBE"];',
+      "    foreach (var kv in p.Environment) { }",
+      '    var d = System.Environment.GetEnvironmentVariable("PORT");',
+      "  }",
+      "}",
+    ].join("\n");
+    assert.deepEqual(await inline("A.cs", source, "env"), {
+      members: ["PORT"],
+      lines: [5, 6, 7, 8],
+    });
+  });
+
+  it("refuses a Go call to a function the file does not declare", async () => {
+    // `var command = exec.Command` may be in another file of the package.
+    const source = [
+      'import "fmt"',
+      "func helper(n int) int { return n }",
+      "var local = fmt.Sprintf",
+      "type T struct{}",
+      "func (T) m() {}",
+      "func main() {",
+      '\tcommand("rm")',
+      "\tf := func() {}",
+      "\tf()",
+      '\t_ = local("x")',
+      "\tn := helper(len(make([]int, 1)))",
+      "\tvar t T",
+      "\tt.m()",
+      "\tfmt.Println(n, run)",
+      "}",
+    ];
+    const content = `package a\n${source.join("\n")}\n`;
+    const result = await extractor.extract({
+      path: "app/main.go",
+      content,
+      extract: "calls",
+    });
+    assert.equal(result.status, "ok", JSON.stringify(result));
+    assert.deepEqual(
+      result.unresolved.map((row) => [row.line, row.text]),
+      [
+        [
+          8,
+          'command may be a function of another file of the package: command("rm")',
+        ],
+        [15, "run may be a function of another file of the package: run"],
+      ],
+    );
+    for (const name of ["helper", "local", "len", "make", "f", "*.m"])
+      assert.ok(result.members.includes(name), `${name}: ${result.members}`);
+    const args = await extractor.extract({
+      path: "app/main.go",
+      content,
+      extract: "string_args",
+      callee: "exec.Command",
+    });
+    assert.deepEqual(
+      args.unresolved.map((row) => row.line),
+      [8, 15],
+    );
   });
 });

@@ -34,6 +34,10 @@
  * - a Go name the file uses but does not declare ("getenv may be declared in
  *   another file of the package: ..."), for env: another file of the package
  *   may hold a getter or a wrapper of one;
+ * - a Go name the file calls but does not declare ("command may be a
+ *   function of another file of the package: ..."), for calls: another file
+ *   of the package may bind it to a function value (`var command =
+ *   exec.Command`), so the call is that function's;
  * - a Go import ("config may be a package of the project: ..."), for env: a
  *   package of the project may wrap a getter (`config.Get("X")`, `var Get =
  *   os.Getenv`) or read the environment at init.
@@ -56,6 +60,7 @@ const RUST_ROW = /^(\w+) may be a macro_rules! macro of the crate: /;
 const CSHARP_ROW = /^(\w+) may be a type of the project: /;
 const GO_ROW = /^(\w+) may be declared in another file of the package: /;
 const GO_IMPORT_ROW = /^\S+ may be a package of the project: /;
+const GO_CALL_ROW = /^(\w+) may be a function of another file of the package: /;
 
 /**
  * What in Go source may read the environment: a getter of os, syscall or
@@ -359,6 +364,21 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
         const texts = read(`file:${file}`, () => [path.join(workspaceRoot, file)]);
         const line = texts?.[0]?.split("\n")[row.line - 1];
         return line === undefined || goStrings(line).length === 0 || go.importsReach(line, directory);
+      }
+      const goCall = GO_CALL_ROW.exec(row.text);
+      if (goCall !== null) {
+        const own = path.basename(file);
+        const test = own.endsWith("_test.go");
+        const texts = read(`go:${file}`, () =>
+          readdirSync(directory)
+            .filter((name) => name.endsWith(".go") && name !== own && (test || !name.endsWith("_test.go")))
+            .map((name) => path.join(directory, name)),
+        );
+        // A function declared in another file is the package's own function;
+        // a variable of that name may hold any function value.
+        const name = goCall[1] as string;
+        const variable = new RegExp(`\\bvar\\s+${name}\\b|\\b${name}\\s*(?:,\\s*\\w+\\s*)*(?::=|=(?!=))|^\\s*${name}\\s+[^\\s(=]`, "m");
+        return texts === null || texts.some((text) => variable.test(javaCode(text)));
       }
       const goName = GO_ROW.exec(row.text);
       if (goName !== null) {

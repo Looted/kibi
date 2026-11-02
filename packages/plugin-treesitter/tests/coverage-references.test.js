@@ -71,6 +71,9 @@ describe("Go reference reader edge cases", () => {
         '\tconv[string]("tag")',
         "\tfunc() {}()",
         "}",
+        "func g() {}",
+        "func h[T any](T) {}",
+        "func conv[T any](string) {}",
       ].join("\n"),
     );
     const calls = await read("a.go", source, "calls");
@@ -88,7 +91,7 @@ describe("Go reference reader edge cases", () => {
     const source = go(
       [
         'import "fmt"',
-        "func f() {",
+        "func f(format string) {",
         '\tfmt.Printf("a")',
         "\tfmt.Printf(format)",
         '\tlog.Printf("b")',

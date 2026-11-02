@@ -154,6 +154,29 @@ describe("the references reader on SWI-Prolog", () => {
     });
   });
 
+  test("lists the errors library(error)'s must_be/2 throws", async () => {
+    const root = workspace({
+      "prolog/check.pl": "check(X) :- must_be(integer, X).\n",
+    });
+    expect(
+      await read(root, {
+        reader: "references",
+        files: "prolog/check.pl",
+        extract: "thrown",
+      }),
+    ).toEqual({
+      ok: true,
+      model: {
+        members: [
+          "domain_error",
+          "existence_error",
+          "instantiation_error",
+          "type_error",
+        ],
+      },
+    });
+  });
+
   test("refuses a goal, closure or clause it cannot read statically, with its place", async () => {
     const root = workspace({
       "prolog/dynamic.pl": `run(Goal) :- call(Goal).

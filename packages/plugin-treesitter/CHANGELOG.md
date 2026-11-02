@@ -33,6 +33,8 @@
 
 ### Patch Changes
 
+- Close more false proofs. Rust: a C environment getter (`libc::getenv`, `environ`) fails the read, and a C exit (`libc::exit`, `abort`) is also listed as `std::process::exit`. C#: Unicode escapes in identifiers (`\u0045nvironment.Exit`) are decoded, and a `ProcessStartInfo` environment read fails the read. Go: a call to a name the file does not declare is marked so the host can check the package's other files for a function value of that name.
+
 - 048d1c9: Close false proofs found by testing the language packs before release:
   - A references claim whose subject key or claim text names a project file (also with a repository prefix, another letter case, no extension, or spaces) is rejected unless that file is among the files read, so a claim about one file cannot be decided on another.
   - `excludes` now fails on a longer name ending in the excluded item at a segment boundary (`checkNotNull` excludes `Preconditions.checkNotNull`).
