@@ -60,6 +60,7 @@ const config = {
       "coverage-symbols",
       "mutation-references",
       "mutation-hcl",
+      "mutation-c",
     ].map((f) => `./${T}${f}.test.js`),
     timeout: 120000,
     inspectorTimeout: 30000,
