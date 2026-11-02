@@ -44,27 +44,28 @@ function codeLines(content: string): string[] {
         if (!/\\[ \t\f\v]*\r?$/.test(content.slice(index, stop))) break;
         stop += 1;
       }
-      out += content.slice(index, stop).replace(/[^\n]/g, " ");
+      // The comment runs to the line end, so dropping it leaves the line as
+      // blank as spaces would.
+      out += content.slice(index, stop).replace(/[^\n]/g, "");
       index = stop;
     } else if (char === '"' || char === "'") {
       let stop = index + 1;
       while (
-        stop < content.length &&
+        content[stop] !== undefined &&
         content[stop] !== char &&
         content[stop] !== "\n"
       ) {
         // A backslash before the line end (blanks and `\r` too) splices the
         // literal onto the next line.
-        const splice =
-          content[stop] === "\\"
-            ? /^\\[ \t\f\v]*\r?\n/.exec(content.slice(stop, stop + 80))
-            : null;
+        const splice = /^\\[ \t\f\v]*\r?\n/.exec(
+          content.slice(stop, stop + 80),
+        );
         stop +=
           splice !== null ? splice[0].length : content[stop] === "\\" ? 2 : 1;
       }
-      stop = Math.min(stop + 1, content.length);
-      out += content.slice(index, stop);
-      index = stop;
+      // With the closing quote (or line end), if any.
+      out += content.slice(index, stop + 1);
+      index = stop + 1;
     } else {
       out += char;
       index += 1;
@@ -116,10 +117,15 @@ function plainEndif(code: readonly string[], open: number) {
   return undefined;
 }
 
+// A condition is the directive's name, one space and the rest of its line.
 const GUARD_OPEN =
-  /^(?:ifndef\s+([A-Za-z_]\w*)|if\s+!\s*defined\s*(?:\(\s*([A-Za-z_]\w*)\s*\)|([A-Za-z_]\w*)))$/;
+  /^(?:ifndef ([A-Za-z_]\w*)|if !\s*defined\s*(?:\(\s*([A-Za-z_]\w*)\s*\)|([A-Za-z_]\w*)))$/;
 const CPLUSPLUS_OPEN =
-  /^(?:ifdef\s+__cplusplus|if\s+defined\s*(?:\(\s*__cplusplus\s*\)|__cplusplus))$/;
+  /^(?:ifdef __cplusplus|if defined\s*(?:\(\s*__cplusplus\s*\)|__cplusplus))$/;
+
+function condition(directive: Directive): string {
+  return `${directive.name} ${directive.rest}`;
+}
 
 function blankLines(lines: string[], from: number, to: number): void {
   for (let line = from; line <= to; line += 1) {
@@ -127,8 +133,8 @@ function blankLines(lines: string[], from: number, to: number): void {
   }
 }
 
-function isBlank(line: string | undefined): boolean {
-  return line === undefined || line.trim().length === 0;
+function isBlank(line: string): boolean {
+  return line.trim().length === 0;
 }
 
 // implements REQ-kibi-tree-sitter-language-packs
@@ -143,34 +149,36 @@ export function blankHeaderIdioms(content: string): string {
     .filter((index) => index >= 0);
   // Include guard: the first code line opens it, the second defines the
   // guard name and the last code line is its own `#endif`.
-  const first = used[0];
+  // With a second code line there are a first and a last one.
+  const first = used[0] as number;
   const second = used[1];
-  const last = used.at(-1);
-  if (first !== undefined && second !== undefined && last !== undefined) {
+  const last = used.at(-1) as number;
+  if (second !== undefined) {
     const open = directiveAt(code, first);
     const guard =
-      open === undefined
-        ? undefined
-        : GUARD_OPEN.exec(`${open.name} ${open.rest}`.trim());
+      open === undefined ? undefined : GUARD_OPEN.exec(condition(open));
     const name = guard?.[1] ?? guard?.[2] ?? guard?.[3];
     const define = directiveAt(code, second);
     // The guard's own `#define G` (or `G 1`, `G G`) defines nothing the code uses;
-    // a guard name with any other body is a macro of the file.
-    const words = define?.rest.split(/\s+/) ?? [];
+    // a guard name with any other body (a line that goes on with `\` too) is
+    // a macro of the file.
     if (
       name !== undefined &&
       // `#ifndef __GNUC__` / `#define __GNUC__ 1` tests the compiler.
-      !/^__/.test(name) &&
-      define?.name === "define" &&
-      words[0] === name &&
-      (words.length === 1 ||
-        (words.length === 2 && (words[1] === "1" || words[1] === name))) &&
-      !define.rest.endsWith("\\") &&
-      plainEndif(code, first) === last
+      !name.startsWith("__") &&
+      define?.name === "define"
     ) {
-      blankLines(lines, first, first);
-      blankLines(lines, second, second);
-      blankLines(lines, last, last);
+      const words = define.rest.split(/\s+/);
+      if (
+        words[0] === name &&
+        (words.length === 1 ||
+          (words.length === 2 && (words[1] === "1" || words[1] === name))) &&
+        plainEndif(code, first) === last
+      ) {
+        blankLines(lines, first, first);
+        blankLines(lines, second, second);
+        blankLines(lines, last, last);
+      }
     }
   }
   // Linkage guards: `#ifdef __cplusplus`, one line `extern "C" {` or `}`,
@@ -178,13 +186,13 @@ export function blankHeaderIdioms(content: string): string {
   for (let line = 0; line < code.length; line += 1) {
     const open = directiveAt(code, line);
     if (open === undefined) continue;
-    const condition = `${open.name} ${open.rest}`.trim();
     // `#if 0 /* ...` with the comment closing on a later line: the
     // directive goes on after it (`*/ || 1`).
     const raw = lines[line] as string;
     const disabled =
-      condition === "if 0" && raw.lastIndexOf("/*") <= raw.lastIndexOf("*/");
-    if (!disabled && !CPLUSPLUS_OPEN.test(condition)) continue;
+      condition(open) === "if 0" &&
+      raw.lastIndexOf("/*") <= raw.lastIndexOf("*/");
+    if (!disabled && !CPLUSPLUS_OPEN.test(condition(open))) continue;
     const endif = plainEndif(code, line);
     if (endif === undefined) continue;
     if (disabled) {
