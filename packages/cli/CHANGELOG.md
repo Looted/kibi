@@ -55,6 +55,8 @@
 
 - `kibi telemetry status` (and its `--json` output) now shows the channel and host its events carry; set `KIBI_HOST` to override a host detected from inherited environment variables.
 
+- The pre-commit gate reads a symbol by any title `kibi sync` places on it alone, so a Java class titled like its constructors (`OS`) or a Terraform resource titled by its address (`aws_s3_bucket.this`) keeps its links when staged.
+
 - Fix the pre-commit gate (`kibi check --staged`) for non-TypeScript languages. An edit inside a linked Java, C#, PHP or TypeScript method no longer blocks the commit because the enclosing class counts as an unlinked changed symbol: a changed line belongs to the innermost declaration that contains it. Adding a C/C++ `#include`, a Bash `source` or a PHP `require_once` no longer fails the validation with an error; the line is named for a file-level review. In a partially analyzed file (Python decorators, Rust macros, C includes and the like) an edit inside a placed declaration is now checked against that symbol's requirements instead of only at file level. Kibi's own `.kb/` files (such as `.kb/schema/*.pl`) no longer get `staged_file_ownership_missing` advisories, and the unlinked-symbol failure now says how to link each symbol.
 
 - `kibi init` and `kibi doctor` no longer say to add an installed `kibi-plugin-treesitter` to devDependencies when only its `kibi.plugins` entry is missing. They print the `npm install --save-dev` line for what is not installed, then the entry to add, and a project without a package.json is told to run `npm init -y` first (Kibi reads only its devDependencies and `kibi.plugins`).

@@ -175,3 +175,78 @@ test("a changed line belongs to the innermost declaration that contains it", asy
     ]),
   ).toEqual(["ox.OS.getAppFolder(String)", "ox.OS.other()"]);
 });
+
+test("a staged declaration keeps the identity of a title sync places on it", async () => {
+  const declare = (
+    rows: [string, string, string, string | undefined, number, number][],
+  ): SourceAnalysisResultV2["symbols"] =>
+    rows.map(([name, qualifiedName, kind, containerName, start, end]) => ({
+      name,
+      qualifiedName,
+      kind,
+      ...(containerName === undefined ? {} : { containerName }),
+      startLine: start,
+      endLine: end,
+      startColumn: 0,
+      endColumn: 1,
+    }));
+  const linked = (key: string, id: string): [string, ManifestLookupEntry] => [
+    key,
+    { id, relationships: [{ type: "implements", to: "REQ-x" }] },
+  ];
+  const ids = async (
+    path: string,
+    symbols: SourceAnalysisResultV2["symbols"],
+    entries: [string, ManifestLookupEntry][],
+  ) =>
+    (
+      await extractSymbolsFromStagedFileAsync(
+        { path, status: "A", content: "", hunkRanges: [{ start: 1, end: 9 }] },
+        new Map([sentinel, ...entries]),
+        { analyzeText: () => ({ ...analysis([]), sourceFile: path, symbols }) },
+      )
+    ).map((symbol) => [symbol.name, symbol.id]);
+
+  // A Java class titled by its bare name, which its constructor shares.
+  const java = declare([
+    ["OS", "ox.OS", "class", undefined, 1, 9],
+    ["OS", "ox.OS.OS()", "method", "OS", 2, 3],
+  ]);
+  expect(
+    await ids("src/ox/OS.java", java, [linked("src/ox/OS.java:OS", "SYM-os")]),
+  ).toEqual([
+    ["OS", "SYM-os"],
+    ["ox.OS.OS()", expect.not.stringMatching(/^SYM-os$/)],
+  ]);
+  // Terraform resources titled by their address.
+  const terraform = declare([
+    [
+      "this",
+      'terraform:resource["aws_s3_bucket","this"]',
+      "resource",
+      undefined,
+      1,
+      3,
+    ],
+    [
+      "this",
+      'terraform:resource["aws_s3_bucket_versioning","this"]',
+      "resource",
+      undefined,
+      5,
+      7,
+    ],
+  ]);
+  expect(
+    await ids("main.tf", terraform, [
+      linked("main.tf:aws_s3_bucket.this", "SYM-bucket"),
+      linked("main.tf:this", "SYM-ambiguous"),
+    ]),
+  ).toEqual([
+    ["aws_s3_bucket.this", "SYM-bucket"],
+    [
+      'terraform:resource["aws_s3_bucket_versioning","this"]',
+      expect.not.stringMatching(/^SYM-/),
+    ],
+  ]);
+});

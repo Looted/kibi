@@ -2,6 +2,10 @@ import { createHash } from "node:crypto";
 import type { SourceAnalysisResult as SdkSourceAnalysisResult } from "kibi-plugin-sdk";
 import { readManifestWithCoordinateOverlay } from "../extractors/manifest.js";
 import {
+  declarationTitleAliases,
+  matchDeclarationTitle,
+} from "../extractors/symbol-title-match.js";
+import {
   createTsMorphSourceAnalysisProvider,
   isPrivateClassMember,
 } from "../extractors/symbols-ts.js";
@@ -512,12 +516,13 @@ function sourceSymbolLocator(
   const qualified = symbol.qualifiedName;
   if (!qualified || qualified === symbol.name) return symbol.name;
   if (lookup?.has(`${filePath}:${qualified}`)) return qualified;
-  // Preserve an authored legacy unqualified locator only when unambiguous.
-  if (
-    symbols.filter((candidate) => candidate.name === symbol.name).length ===
-      1 &&
-    lookup?.has(`${filePath}:${symbol.name}`)
-  )
-    return symbol.name;
+  // Another title sync places on this declaration alone: a Terraform
+  // address, a bare name no other declaration shares, a class named like
+  // its constructors.
+  for (const title of [...declarationTitleAliases(symbol), symbol.name]) {
+    if (!lookup?.has(`${filePath}:${title}`)) continue;
+    const match = matchDeclarationTitle(title, symbols, filePath);
+    if ("symbol" in match && match.symbol === symbol) return title;
+  }
   return qualified;
 }
