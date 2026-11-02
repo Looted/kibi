@@ -97,6 +97,33 @@ describe("kibi.check-policy.v1 protocol", () => {
     );
   });
 
+  test("records declined language packs as kibi-lang-* package names", () => {
+    expect(
+      validateProjectKibiConfig({
+        declinedPlugins: ["kibi-plugin-ui"],
+        declinedLanguagePacks: ["kibi-lang-cpp", "kibi-lang-bash"],
+      }),
+    ).toEqual({
+      declinedPlugins: ["kibi-plugin-ui"],
+      declinedLanguagePacks: ["kibi-lang-cpp", "kibi-lang-bash"],
+    });
+    expectValidationCode(
+      () => validateProjectKibiConfig({ declinedLanguagePacks: "kibi-lang-c" }),
+      "INVALID_PROJECT_CONFIG",
+    );
+    expectValidationCode(
+      () => validateProjectKibiConfig({ declinedLanguagePacks: [3] }),
+      "INVALID_PROJECT_CONFIG",
+    );
+    expectValidationCode(
+      () =>
+        validateProjectKibiConfig({
+          declinedLanguagePacks: ["kibi-plugin-ui"],
+        }),
+      "INVALID_PACKAGE_REFERENCE",
+    );
+  });
+
   test("a plugin may provide only a check policy", () => {
     const plugin = validateKibiPlugin({
       apiVersion: KIBI_PLUGIN_API_VERSION,

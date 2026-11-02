@@ -30,6 +30,10 @@ import {
   PLUGIN_LANGUAGE_PACKS,
   PLUGIN_REFERENCE_LANGUAGES,
 } from "../operations/proof/code-languages.js";
+import {
+  generatedSourceFiles,
+  kbReferencedFiles,
+} from "./generated-sources.js";
 import { readProjectKibiConfig } from "./project-config.js";
 import { REFERENCE_PLUGIN_PACKAGE } from "./proof-reference-extractors.js";
 
@@ -40,7 +44,14 @@ export type ReferenceLanguageSuggestion = Readonly<{
   package: string;
   /** Capabilities to activate, each in augment mode; empty when all are active. */
   capabilities: readonly string[];
-  languages: readonly Readonly<{ name: string; files: number }>[];
+  languages: readonly Readonly<{
+    name: string;
+    files: number;
+    /** Every counted file is generated and counts because the KB uses it. */
+    generatedUsedByKb?: boolean;
+    /** Source proofs read this language through the plugin. */
+    proofs?: boolean;
+  }>[];
   evidence: readonly string[];
   /** The project already lists the plugin, but not for proofs. */
   activeForSymbolsOnly: boolean;
@@ -188,11 +199,32 @@ export function modifiedPacks(
 }
 
 /**
+ * Which tracked files a tool generated and which of those the KB uses. A
+ * generated file counts toward a pack only when the KB references it.
+ */
+export type PackRelevance = Readonly<{
+  /** Files marked generated or vendored, or opening with a generator marker. */
+  generated?: ReadonlySet<string>;
+  /** Generated files a tracked KB file names (a symbol, a proof contract). */
+  referenced?: ReadonlySet<string>;
+}>;
+
+/** The pack that reads `file`, if any. */
+export function languagePackFor(file: string): string | null {
+  return (
+    PLUGIN_LANGUAGE_PACKS.find((language) => language.pattern.test(file))
+      ?.pack ?? null
+  );
+}
+
+/**
  * Whether the project has sources kibi-plugin-treesitter must read for it:
  * Go, Java, C# or Rust files whose references source proofs read only
  * through the plugin while it is not activated for that, or files of a
  * language whose kibi-lang-* pack is not installed (at the version the
  * installed plugin pins) while the plugin is listed or being suggested.
+ * Generated files count only when the KB references them, and a pack listed
+ * in kibi.declinedLanguagePacks is never asked for.
  * Reads file names and package manifests only; never imports a plugin.
  */
 // implements REQ-kibi-tree-sitter-references, REQ-kibi-tree-sitter-language-packs
@@ -203,8 +235,19 @@ export function referenceLanguageSuggestion(
   pinned: ReadonlyMap<string, string> = new Map(),
   modified: ReadonlySet<string> = new Set(),
   pluginDeclared = true,
+  relevance: PackRelevance = {},
 ): ReferenceLanguageSuggestion | null {
-  const production = files.filter((file) => !NOT_PRODUCTION.test(file));
+  const generated = relevance.generated ?? new Set<string>();
+  const referenced = relevance.referenced ?? new Set<string>();
+  const declined = new Set(config.declinedLanguagePacks ?? []);
+  const production = files.filter((file) => {
+    if (NOT_PRODUCTION.test(file)) return false;
+    const pack = languagePackFor(file);
+    if (pack !== null && declined.has(pack)) return false;
+    return !generated.has(file) || referenced.has(file);
+  });
+  const usedByKb = (found: readonly string[]): boolean =>
+    found.length > 0 && found.every((file) => generated.has(file));
   const references = PLUGIN_REFERENCE_LANGUAGES.map((language) => ({
     name: language.name,
     found: production.filter((file) => language.pattern.test(file)),
@@ -242,11 +285,19 @@ export function referenceLanguageSuggestion(
     );
   });
   if (!activate && !suggestSymbols && missing.length === 0) return null;
+  // With proofs to activate, the reference languages lead and the other
+  // languages the plugin would read (or whose packs are missing) follow, so
+  // every pack named has its files named too.
+  const rest = suggestSymbols ? symbolLanguages : missing;
   const shown = activate
-    ? references
-    : suggestSymbols
-      ? symbolLanguages
-      : missing;
+    ? [
+        ...references.map((language) => ({ ...language, proofs: true })),
+        ...rest.filter(
+          (language) =>
+            !references.some((reference) => reference.name === language.name),
+        ),
+      ]
+    : rest;
   return {
     package: REFERENCE_PLUGIN_PACKAGE,
     capabilities: [
@@ -256,6 +307,8 @@ export function referenceLanguageSuggestion(
     languages: shown.map((language) => ({
       name: language.name,
       files: language.found.length,
+      ...(usedByKb(language.found) ? { generatedUsedByKb: true } : {}),
+      ...("proofs" in language ? { proofs: true } : {}),
     })),
     evidence: shown.flatMap((language) => language.found).slice(0, 5),
     activeForSymbolsOnly: entry !== undefined,
@@ -277,9 +330,20 @@ export function referenceLanguageSuggestion(
 export function describeReferenceLanguageSuggestion(
   suggestion: ReferenceLanguageSuggestion,
 ): string {
-  const found = suggestion.languages
-    .map((language) => `${language.files} ${language.name}`)
-    .join(", ");
+  const name = (language: ReferenceLanguageSuggestion["languages"][number]) =>
+    `${language.files} ${language.name}${language.generatedUsedByKb ? " (generated, used by the KB)" : ""}`;
+  const proofLanguages = suggestion.languages.filter(
+    (language) => language.proofs,
+  );
+  const symbolLanguages = suggestion.languages.filter(
+    (language) => !language.proofs,
+  );
+  // Say which languages are for proofs and which only for symbols when both
+  // are named, so a pack is never presented as enabling proofs it cannot.
+  const mixed = proofLanguages.length > 0 && symbolLanguages.length > 0;
+  const found = mixed
+    ? `${proofLanguages.map(name).join(", ")} source file(s) for source proofs and symbols, and ${symbolLanguages.map(name).join(", ")} for symbols only`
+    : `${suggestion.languages.map(name).join(", ")} source file(s)`;
   const activation = suggestion.capabilities
     .map((capability) => `"${capability}": { "mode": "augment" }`)
     .join(", ");
@@ -288,14 +352,14 @@ export function describeReferenceLanguageSuggestion(
       ? ""
       : ` and the grammar pack(s) ${suggestion.packs.join(", ")}`;
   if (suggestion.capabilities.length === 0)
-    return `${found} source file(s); ${suggestion.package} reads them only with${packs.slice(4)} installed: npm install --save-dev ${suggestion.packs.join(" ")}`;
+    return `${found}; ${suggestion.package} reads them only with${packs.slice(4)} installed: npm install --save-dev ${suggestion.packs.join(" ")}`;
   if (suggestion.activeForSymbolsOnly)
-    return `${found} source file(s); ${suggestion.package} is active for symbols but not for source proofs: add ${activation} to its package.json kibi.plugins entry${packs === "" ? "" : `, and install${packs.slice(4)}`}`;
-  const what = suggestion.capabilities.includes(
-    REFERENCE_EXTRACTOR_CAPABILITY_ID,
-  )
-    ? "source proofs and symbols"
-    : "symbols";
+    return `${found}; ${suggestion.package} is active for symbols but not for source proofs: add ${activation} to its package.json kibi.plugins entry${packs === "" ? "" : `, and install${packs.slice(4)}`}`;
+  const what = mixed
+    ? "they"
+    : suggestion.capabilities.includes(REFERENCE_EXTRACTOR_CAPABILITY_ID)
+      ? "source proofs and symbols for them"
+      : "symbols for them";
   const entry = JSON.stringify({
     package: suggestion.package,
     capabilities: Object.fromEntries(
@@ -315,8 +379,32 @@ export function describeReferenceLanguageSuggestion(
     ? `${suggestion.package}, which is installed but not activated${packs === "" ? "" : `,${packs}`}`
     : `${suggestion.package}${packs}`;
   return install.length === 0
-    ? `${found} source file(s); ${what} for them need ${needs}: ${activate}`
-    : `${found} source file(s); ${what} for them need ${needs}: npm install --save-dev ${install.join(" ")}, then ${activate}`;
+    ? `${found}; ${what} need ${needs}: ${activate}`
+    : `${found}; ${what} need ${needs}: npm install --save-dev ${install.join(" ")}, then ${activate}`;
+}
+
+/**
+ * The generated files among the tracked sources a pack would read, and the
+ * ones the tracked KB names. Reads `.gitattributes` through git, the first
+ * lines of those sources and the tracked `.kb/` text.
+ */
+// implements REQ-kibi-tree-sitter-language-packs
+export function workspacePackRelevance(
+  workspaceRoot: string,
+  files: readonly string[],
+): Required<PackRelevance> {
+  const candidates = files.filter(
+    (file) => !NOT_PRODUCTION.test(file) && languagePackFor(file) !== null,
+  );
+  const generated = generatedSourceFiles(workspaceRoot, candidates);
+  return {
+    generated,
+    referenced: kbReferencedFiles(
+      workspaceRoot,
+      files.filter((file) => file.startsWith(".kb/")),
+      [...generated],
+    ),
+  };
 }
 
 function readManifestOrNull(workspaceRoot: string): unknown {
@@ -353,6 +441,7 @@ export function workspaceReferenceLanguageNote(
   } catch {
     return null;
   }
+  const relevance = workspacePackRelevance(workspaceRoot, files);
   const suggestion = referenceLanguageSuggestion(
     files,
     config,
@@ -363,14 +452,26 @@ export function workspaceReferenceLanguageNote(
       readManifestOrNull(workspaceRoot),
       REFERENCE_PLUGIN_PACKAGE,
     ),
+    relevance,
   );
   if (suggestion === null) return null;
+  const skipped = [...relevance.generated].filter(
+    (file) => !relevance.referenced.has(file),
+  ).length;
   const noManifest = !existsSync(join(workspaceRoot, "package.json"));
   const changed =
     suggestion.modified.length === 0
       ? ""
       : ` The installed grammar of ${suggestion.modified.join(", ")} does not match the SHA-256 ${suggestion.package} pins; reinstall it.`;
-  return `${describeReferenceLanguageSuggestion(suggestion)}.${changed}${
+  const generatedNote =
+    skipped === 0
+      ? ""
+      : ` ${skipped} generated file(s) are not counted (linguist-generated or a generator header) unless the KB references them.`;
+  const declineNote =
+    suggestion.packs.length === 0
+      ? ""
+      : ` To skip a pack the project does not need, list it in package.json kibi.declinedLanguagePacks (for example "declinedLanguagePacks": ["${(suggestion.packs[0] as string).replace(/@[^@]*$/, "")}"]); staged changes to files in that language then get a whole-file review instead of blocking.`;
+  return `${describeReferenceLanguageSuggestion(suggestion)}.${changed}${generatedNote}${
     noManifest
       ? " This project has no package.json: run npm init -y first to create a minimal one (Kibi reads only its devDependencies and kibi.plugins), then run the install and add the kibi.plugins entry above, and add node_modules/ to .gitignore."
       : ""
@@ -378,5 +479,5 @@ export function workspaceReferenceLanguageNote(
     suggestion.capabilities.includes(REFERENCE_EXTRACTOR_CAPABILITY_ID)
       ? "Without it, references proofs on those files are refused."
       : "Until then, symbols in those files are placed by text match and are approximate."
-  }`;
+  }${declineNote}`;
 }

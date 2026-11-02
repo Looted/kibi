@@ -134,7 +134,7 @@ describe("canonical skills source", () => {
 
   test("canonical skills declare their current release versions and compatibility", () => {
     const newCanonical = {
-      "kibi-bootstrap": "3.18.0",
+      "kibi-bootstrap": "3.19.0",
       "kibi-commit-review": "1.4.0",
       "kibi-decisions": "1.5.0",
       "kibi-freshness": "2.3.0",

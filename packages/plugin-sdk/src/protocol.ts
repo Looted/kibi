@@ -124,4 +124,10 @@ export type ProjectKibiConfig = Readonly<{
   plugins?: readonly ProjectPluginEntry[];
   /** Plugins the project declined when bootstrap offered them. */
   declinedPlugins?: readonly string[];
+  /**
+   * kibi-lang-* grammar packs the project does not want. Kibi stops
+   * suggesting them, and a source file in their language is treated as one
+   * no installed plugin reads (a whole-file review) instead of blocking.
+   */
+  declinedLanguagePacks?: readonly string[];
 }>;

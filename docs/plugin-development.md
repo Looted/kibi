@@ -343,6 +343,28 @@ plugin and the packs when such sources are tracked and it is not active for
 proofs, and `kibi doctor` names a pack that is missing or not the version the
 installed plugin pins.
 
+Only files people write count toward a pack. A file marked `linguist-generated`
+or `linguist-vendored` in `.gitattributes`, or one that opens with a generator
+marker (`@generated`, `Code generated ... DO NOT EDIT`, `auto-generated`),
+counts only when the KB references it, for example as a symbol's `sourceFile`
+or in a proof contract's `files`. A pack the project does not want can be
+declined on its own:
+
+```json
+{
+  "kibi": {
+    "declinedLanguagePacks": ["kibi-lang-cpp", "kibi-lang-bash"]
+  }
+}
+```
+
+Kibi then stops suggesting it, and `kibi sync` and the staged check treat files
+in its language as files no plugin reads: symbols there are placed by text
+match, and a staged change to one gets a whole-file review instead of blocking
+on the missing pack. A generated file whose pack is missing gets the same
+review. A pack declined in the same commit as a source change in its language
+takes effect from the next commit, like other analyzer settings.
+
 ## Optional search hints plugin
 
 `kibi-plugin-search-hints` implements `kibi.search-hints.v1` with the bundled,

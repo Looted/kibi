@@ -745,7 +745,7 @@ repository's `.claude/settings.json` (the exact snippet is in
 
 ### Optional: languages beyond TypeScript and JavaScript
 
-TypeScript and JavaScript symbols are built in. For Python, Go, Rust, Java, C#, PHP, C, C++, Bash, Ruby, SWI-Prolog and Terraform/HCL, add the optional `kibi-plugin-treesitter` package and the grammar pack of each language the repository uses. Each pack is a small data-only `kibi-lang-*` package: `kibi-lang-python`, `kibi-lang-go`, `kibi-lang-rust`, `kibi-lang-java`, `kibi-lang-csharp`, `kibi-lang-php`, `kibi-lang-c`, `kibi-lang-cpp`, `kibi-lang-bash`, `kibi-lang-ruby`, `kibi-lang-hcl` and `kibi-lang-prolog`. `kibi init` and `kibi doctor` name the packs the tracked sources need, at the version the plugin pins.
+TypeScript and JavaScript symbols are built in. For Python, Go, Rust, Java, C#, PHP, C, C++, Bash, Ruby, SWI-Prolog and Terraform/HCL, add the optional `kibi-plugin-treesitter` package and the grammar pack of each language the repository uses. Each pack is a small data-only `kibi-lang-*` package: `kibi-lang-python`, `kibi-lang-go`, `kibi-lang-rust`, `kibi-lang-java`, `kibi-lang-csharp`, `kibi-lang-php`, `kibi-lang-c`, `kibi-lang-cpp`, `kibi-lang-bash`, `kibi-lang-ruby`, `kibi-lang-hcl` and `kibi-lang-prolog`. `kibi init` and `kibi doctor` name the packs the tracked sources need, at the version the plugin pins. Generated files (`linguist-generated` in `.gitattributes`, or a generator header) count only when the KB references them, and a pack the project does not want can go in `package.json` `kibi.declinedLanguagePacks`; see the [plugin guide](plugin-development.md).
 
 ```bash
 npm install --save-dev kibi-plugin-treesitter kibi-lang-python kibi-lang-go

@@ -8,6 +8,7 @@ import {
   pinnedPackVersions,
   referenceLanguageSuggestion,
   workspaceInstalledVersion,
+  workspacePackRelevance,
 } from "../../plugins/reference-language-suggestion.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import { KB_PATHS } from "../../utils/kb-paths.js";
@@ -53,7 +54,10 @@ function kibiConfigOf(manifest: unknown): ProjectKibiConfig {
   const kibi = (manifest as Record<string, unknown>).kibi;
   if (typeof kibi !== "object" || kibi === null || Array.isArray(kibi))
     return {};
-  const { plugins, declinedPlugins } = kibi as Record<string, unknown>;
+  const { plugins, declinedPlugins, declinedLanguagePacks } = kibi as Record<
+    string,
+    unknown
+  >;
   return {
     plugins: Array.isArray(plugins)
       ? plugins.flatMap((entry) => {
@@ -77,6 +81,11 @@ function kibiConfigOf(manifest: unknown): ProjectKibiConfig {
       : [],
     declinedPlugins: Array.isArray(declinedPlugins)
       ? declinedPlugins.filter(
+          (name): name is string => typeof name === "string",
+        )
+      : [],
+    declinedLanguagePacks: Array.isArray(declinedLanguagePacks)
+      ? declinedLanguagePacks.filter(
           (name): name is string => typeof name === "string",
         )
       : [],
@@ -189,6 +198,7 @@ export async function pluginOffers(
         pinnedPackVersions(context.workspaceRoot),
         undefined,
         manifestDeclares(manifest, REFERENCE_PLUGIN_PACKAGE),
+        workspacePackRelevance(context.workspaceRoot, files),
       )
     : null;
   if (references !== null && references.capabilities.length > 0) {

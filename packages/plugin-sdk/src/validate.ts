@@ -421,8 +421,13 @@ export function validateProjectKibiConfig(value: unknown): ProjectKibiConfig {
     );
   }
   const declinedPlugins = validateDeclinedPlugins(value.declinedPlugins);
-  const declined =
-    declinedPlugins !== undefined ? { declinedPlugins } : ({} as const);
+  const declinedLanguagePacks = validateDeclinedLanguagePacks(
+    value.declinedLanguagePacks,
+  );
+  const declined = {
+    ...(declinedPlugins !== undefined ? { declinedPlugins } : {}),
+    ...(declinedLanguagePacks !== undefined ? { declinedLanguagePacks } : {}),
+  };
   if (value.plugins === undefined) return declined;
   if (!Array.isArray(value.plugins)) {
     throw new PluginValidationError(
@@ -581,6 +586,30 @@ function validateDeclinedPlugins(value: unknown): string[] | undefined {
       throw new PluginValidationError(
         "INVALID_PACKAGE_REFERENCE",
         `kibi.declinedPlugins[${index}] must be a bare package name`,
+      );
+    }
+    return name;
+  });
+}
+
+function validateDeclinedLanguagePacks(value: unknown): string[] | undefined {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value)) {
+    throw new PluginValidationError(
+      "INVALID_PROJECT_CONFIG",
+      "kibi.declinedLanguagePacks must be an array of kibi-lang-* package names",
+    );
+  }
+  return value.map((entry, index) => {
+    const name = requireString(
+      entry,
+      `kibi.declinedLanguagePacks[${index}]`,
+      "INVALID_PROJECT_CONFIG",
+    );
+    if (!/^kibi-lang-[a-z0-9][a-z0-9-]*$/.test(name)) {
+      throw new PluginValidationError(
+        "INVALID_PACKAGE_REFERENCE",
+        `kibi.declinedLanguagePacks[${index}] must be a kibi-lang-* package name such as kibi-lang-cpp`,
       );
     }
     return name;
