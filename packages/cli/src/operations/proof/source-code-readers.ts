@@ -317,6 +317,20 @@ NAMESPACES = {"globals", "locals", "builtins.globals", "builtins.locals"}
 REACHED = {"os", "posix", "nt", "sys", "subprocess", "builtins", "importlib", "runpy", "pkgutil", "shutil", "pty", "socket", "ctypes"}
 ENV_ATTRS = {"environ", "environb", "getenv", "getenvb"}
 ENV_MODULES = {"os", "posix", "nt"}
+# The modules a claim names: their own private members (os._exit) are read as written.
+NAMED_MODULES = {"os", "posix", "nt", "sys", "subprocess"}
+# Foreign function interfaces: a library they load (libc's getenv or system)
+# runs native code Kibi cannot read.
+FFI_MODULES = {"ctypes", "_ctypes", "cffi", "_cffi_backend"}
+def private(name):
+    return name.startswith("_") and not (name.startswith("__") and name.endswith("__"))
+def hidden(parts, i):
+    # A private name of a module: tempfile._os and threading._os are os, and
+    # what another standard module keeps under a private name is not known here.
+    part = parts[i]
+    if not private(part):
+        return False
+    return part.lstrip("_") in REACHED or (parts[0] in STDLIB and ".".join(parts[:i]) not in NAMED_MODULES)
 NAMESPACE_ATTRS = {"__dict__", "__getattribute__", "__getattr__", "__loader__", "__spec__", "__builtins__", "__import__", "__globals__"}
 STDLIB = getattr(sys, "stdlib_module_names", frozenset())
 def _system_names():
@@ -331,6 +345,51 @@ def _system_names():
 # What a name a project module re-exports may stand for when it is os,
 # subprocess or sys, or one of their functions.
 SYSTEM_NAMES = _system_names()
+# os re-exports posix (nt on Windows): posix.system is os.system, so a name
+# through posix or nt is listed as the os name too.
+def as_os(name):
+    head, dot, rest = name.partition(".")
+    return "os" + dot + rest if head in ("posix", "nt") else None
+def with_os(names):
+    return list(dict.fromkeys(list(names) + [n for n in map(as_os, names) if n is not None]))
+# Whether a standard-library dotted name is a module object (os.path,
+# importlib.resources, shutil.fnmatch), found by importing the standard
+# module it starts with. None when that is not known: a name outside the
+# standard library, or one whose module does not import here.
+MODULE_CACHE = {}
+# Standard modules that act when imported (print, open a browser): not imported here.
+NOISY = {"this", "antigravity", "__hello__", "__phello__", "idlelib", "turtledemo"}
+def is_module(dotted):
+    parts = dotted.split(".")
+    if not parts[0] or parts[0] not in STDLIB:
+        return None
+    if len(parts) == 1:
+        return True
+    if parts[0] in NOISY:
+        return None
+    if dotted not in MODULE_CACHE:
+        import contextlib, importlib, io, types
+        try:
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                value = importlib.import_module(parts[0])
+                for i in range(1, len(parts)):
+                    if hasattr(value, parts[i]):
+                        value = getattr(value, parts[i])
+                    elif isinstance(value, types.ModuleType) and hasattr(value, "__path__"):
+                        try:
+                            value = importlib.import_module(".".join(parts[:i + 1]))
+                        except ModuleNotFoundError:
+                            value = None
+                            break
+                    else:
+                        value = None
+                        break
+            MODULE_CACHE[dotted] = isinstance(value, types.ModuleType)
+        except Exception:
+            # A module that does not import here (winreg on Linux) is not known,
+            # as a project module is not.
+            MODULE_CACHE[dotted] = None
+    return MODULE_CACHE[dotted]
 def prefixes(dots, dotted):
     parts = dotted.split(".") if dotted else []
     return [dots + ".".join(parts[:i]) for i in range(1, len(parts) + 1)] or [dots]
@@ -404,6 +463,8 @@ for file in plan["files"]:
             return False
         for i in range(1, len(parts)):
             part = parts[i]
+            if hidden(parts, i):
+                return True
             if part in REACHED and not (part == "subprocess" and parts[:i] == ["asyncio"]):
                 return True
             if part in NAMESPACE_ATTRS:
@@ -418,6 +479,33 @@ for file in plan["files"]:
                 after = [imported_as[head]] + after
             return any(part in SYSTEM_NAMES for part in after)
         return False
+    def flows(node):
+        # An imported module used as a value (assigned, passed, returned or put
+        # in a container), not as the head of a chain or a call. A name from a
+        # project or third-party module may be a module too, so assigning one
+        # to another name fails the read as well.
+        if not isinstance(node.ctx, ast.Load) or not maximal(node) or called(node):
+            return False
+        written = chain(node)
+        if written is None or written.split(".")[0] not in names:
+            return False
+        if isinstance(node, ast.Name) and node.id in modules:
+            return True
+        known = is_module(canonical(written))
+        if known is not None:
+            return known
+        up = parent.get(node)
+        return isinstance(up, (ast.Assign, ast.AnnAssign, ast.NamedExpr, ast.AugAssign)) and up.value is node
+    def ffi(node):
+        written = chain(node)
+        return written is not None and written.split(".")[0] in names and canonical(written).split(".")[0] in FFI_MODULES
+    def hides(node):
+        # from tempfile import _os: a module under a private name of another one.
+        if not isinstance(node, ast.ImportFrom):
+            return False
+        base = "." * node.level + (node.module or "")
+        parts = base.split(".") if node.level == 0 else [base]
+        return any(alias.name != "*" and hidden(parts + [alias.name], len(parts)) for alias in node.names)
     def env_use(node, name):
         up = parent.get(node)
         if name in ENV_GETTERS:
@@ -444,21 +532,37 @@ for file in plan["files"]:
             if dynamic(name) and not (extract == "imports" and name in IMPORTERS):
                 miss(node)
                 continue
-            if extract != "imports" and (name in NAMESPACES or (name in ("vars", "builtins.vars") and (
-                    not node.args or (chain(node.args[0]) or "").split(".")[0] in names))):
-                # globals()['os'], vars(), vars(module): a namespace read by key.
+            if name in NAMESPACES or (name in ("vars", "builtins.vars") and (
+                    not node.args or (chain(node.args[0]) or "").split(".")[0] in names)):
+                # globals()['os'], vars(), vars(module): a namespace read by key,
+                # which holds modules (vars(tempfile)["_os"] is os).
                 miss(node)
                 continue
-            if name == "getattr" and extract != "imports" and node.args:
+            if name in ("getattr", "builtins.getattr") and node.args:
                 inner = chain(node.args[0])
                 if inner is not None and inner.split(".")[0] in names:
                     # A member of an imported module looked up by name.
                     miss(node)
                     continue
-        if extract in ("env", "calls") and isinstance(node, ast.Attribute) and canonical(chain(node) or "") == "sys.modules":
+        if extract in ("env", "calls", "imports") and isinstance(node, ast.Attribute) and canonical(chain(node) or "") == "sys.modules":
             miss(node)
             continue
-        if extract in ("env", "calls") and isinstance(node, (ast.Name, ast.Attribute)) and maximal(node) and reaches(node):
+        if extract in ("env", "calls", "imports") and hides(node):
+            miss(node)
+            continue
+        if (extract in ("env", "calls") and isinstance(node, ast.ImportFrom) and node.level == 0
+                and (node.module or "").split(".")[0] in FFI_MODULES and any(alias.name == "*" for alias in node.names)):
+            miss(node)
+            continue
+        if extract in ("env", "calls") and isinstance(node, (ast.Name, ast.Attribute)) and maximal(node) and ffi(node):
+            # ctypes.CDLL(None).getenv(b"X"): a foreign call can read or run anything.
+            miss(node)
+            continue
+        if extract in ("env", "calls", "imports") and isinstance(node, (ast.Name, ast.Attribute)) and maximal(node) and reaches(node):
+            miss(node)
+            continue
+        if extract in ("env", "calls", "imports") and isinstance(node, (ast.Name, ast.Attribute)) and flows(node):
+            # _t = tempfile; _t._os: a module handed on is used under a name Kibi does not follow.
             miss(node)
             continue
         if extract == "env":
@@ -479,16 +583,16 @@ for file in plan["files"]:
         elif extract == "imports":
             if isinstance(node, ast.Import):
                 for alias in node.names:
-                    members.extend(prefixes("", alias.name))
+                    members.extend(with_os(prefixes("", alias.name)))
             elif isinstance(node, ast.ImportFrom):
                 if any(alias.name in REACHED for alias in node.names) and not (node.level == 0 and node.module == "asyncio"):
                     # from .main import os: a module reached through another one,
                     # under a spelling a claim about the module would not match.
                     miss(node)
                 dots = "." * node.level
-                members.extend(prefixes(dots, node.module or ""))
+                members.extend(with_os(prefixes(dots, node.module or "")))
                 base = dots + (node.module or "")
-                members.extend(joined(base, alias.name) for alias in node.names if alias.name != "*")
+                members.extend(with_os([joined(base, alias.name) for alias in node.names if alias.name != "*"]))
             elif isinstance(node, ast.Call) and canonical(chain(node.func) or "") in IMPORTERS:
                 value = literal(node.args[0]) if node.args else None
                 (members.append(value) if value is not None else miss(node))
@@ -500,7 +604,7 @@ for file in plan["files"]:
                 target = spelled(node.func)
                 if target is not None:
                     # A call through an alias is listed under what it names, too.
-                    members.extend(dict.fromkeys(target))
+                    members.extend(with_os(target))
                 elif isinstance(node.func, ast.Subscript):
                     miss(node)
             elif isinstance(node, (ast.Name, ast.Attribute)) and isinstance(node.ctx, ast.Load) and maximal(node) and not called(node):
@@ -511,10 +615,11 @@ for file in plan["files"]:
                         miss(node)
                     else:
                         # An imported function used as a value is listed as called.
-                        members.extend(dict.fromkeys(target))
+                        members.extend(with_os(target))
         elif extract == "string_args":
             if isinstance(node, ast.Call):
                 target = spelled(node.func)
+                target = None if target is None else with_os(target)
                 if target is not None and any(name == callee or ("." not in callee and name.endswith("." + callee)) for name in target):
                     value = literal(node.args[0]) if node.args else None
                     (members.append(value) if value is not None else miss(node))

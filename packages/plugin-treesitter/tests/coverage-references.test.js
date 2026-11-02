@@ -10,6 +10,14 @@ globalThis.fetch = async () => {
 const { createTreeSitterReferenceExtractor } = await import("../dist/index.js");
 const extractor = createTreeSitterReferenceExtractor();
 
+/**
+ * A Go env row about a name another file of the package may declare, or an
+ * import the project may provide: the host drops it once it has checked
+ * those files (references.test.js covers these rows).
+ */
+const PACKAGE_ROW =
+  /^(?:\w+ may be declared in another file of the package|\S+ may be a package of the project): /;
+
 /** Read one extract of an inline file; members are sorted, lines unique. */
 async function read(path, content, extract, options = {}) {
   const result = await extractor.extract({
@@ -22,9 +30,13 @@ async function read(path, content, extract, options = {}) {
   assert.equal(result.status, "ok", JSON.stringify(result));
   return {
     members: [...new Set(result.members)].sort(),
-    lines: [...new Set(result.unresolved.map((row) => row.line))].sort(
-      (a, b) => a - b,
-    ),
+    lines: [
+      ...new Set(
+        result.unresolved
+          .filter((row) => !PACKAGE_ROW.test(row.text))
+          .map((row) => row.line),
+      ),
+    ].sort((a, b) => a - b),
   };
 }
 
@@ -278,11 +290,11 @@ describe("C# reference reader edge cases", () => {
     assert.deepEqual(calls.lines, [5, 9, 12, 13]);
   });
 
-  it("lists method groups it can name and skips ones it cannot", async () => {
+  it("lists method groups it can name and ones on an unnamed receiver as any receiver's", async () => {
     const source =
       "class A { void F() { Run(Helpers.Format); Run(items[0].Format); } }\n";
     const calls = await read("A.cs", source, "calls");
-    assert.deepEqual(calls.members, ["Helpers.Format"]);
+    assert.deepEqual(calls.members, ["*.Format", "Helpers.Format"]);
     // `Run` is no method of A: a base type's or a `using static` type's.
     assert.deepEqual(calls.lines, [1]);
   });

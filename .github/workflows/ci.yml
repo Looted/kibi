@@ -76,6 +76,9 @@ jobs:
       - name: Check Claude hook bundle drift
         run: bun run --filter kibi-claude check:hook-bundle
 
+      - name: Check Cursor hook bundle drift
+        run: bun run --filter kibi-cursor check:hook-bundle
+
       - name: Verify generated symbol classification parity
         run: bun run symbols:check
 

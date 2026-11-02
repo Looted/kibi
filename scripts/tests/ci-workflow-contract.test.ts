@@ -158,6 +158,19 @@ describe("ci.yml CI workflow contract", () => {
     expect(packagesBuild).toBeGreaterThan(driftCheck);
   });
 
+  test("checks Cursor hook bundle drift before build regeneration", () => {
+    const block = extractJobBlock(workflowContent, "ci-typecheck-build");
+    const dependencyInstall = block.indexOf("bun install --frozen-lockfile");
+    const driftCheck = block.indexOf(
+      "bun run --filter kibi-cursor check:hook-bundle",
+    );
+    const packagesBuild = block.search(/\bbun run build\b/);
+
+    expect(dependencyInstall).toBeGreaterThanOrEqual(0);
+    expect(driftCheck).toBeGreaterThan(dependencyInstall);
+    expect(packagesBuild).toBeGreaterThan(driftCheck);
+  });
+
   test("ci-unit-coverage: unit coverage runs on pull requests and pushes", () => {
     const block = extractJobBlock(workflowContent, "ci-unit-coverage");
     expect(block).toContain("- name: Run unit tests with coverage");

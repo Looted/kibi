@@ -35,9 +35,17 @@ async function read(path, extract, options = {}) {
  * like a std macro); the tests that are about them assert them directly.
  */
 const SHADOW_ROW =
-  /^(?:\w+ may be a class of (?:package [\w.]+|the default package)|\w+ may be a macro_rules! macro of the crate): /;
+  /^(?:\w+ may be a class of (?:package [\w.]+|the default package)|\w+ may be a macro_rules! macro of the crate|\w+ may be a type of the project|\w+ may be declared in another file of the package): /;
+/**
+ * A Go env row about an import the project may provide: the host drops it
+ * unless that package can reach an environment getter. Its own test asserts
+ * it; elsewhere it is neither a read row nor a shadow.
+ */
+const PROJECT_PACKAGE_ROW = /^\S+ may be a package of the project: /;
 const readRows = (result) =>
-  result.unresolved.filter((row) => !SHADOW_ROW.test(row.text));
+  result.unresolved.filter(
+    (row) => !SHADOW_ROW.test(row.text) && !PROJECT_PACKAGE_ROW.test(row.text),
+  );
 
 async function members(path, extract, options) {
   const result = await read(path, extract, options);
@@ -1401,6 +1409,539 @@ describe("round-3 agent-test regressions: exact or refuse", () => {
     assert.deepEqual(await inline("A.cs", inherited, "env"), {
       members: ["KNOWN_BASE"],
       lines: [4],
+      // Environment may be a type another file of the project declares.
+      shadows: [3],
     });
+  });
+});
+
+describe("round-4 agent-test regressions: exact or refuse", () => {
+  it("reads a Rust raw identifier in a path as the identifier it spells", async () => {
+    const source = [
+      "use std::r#env;",
+      "use std::process::exit as r#quit;",
+      "mod r#inner { pub fn r#run() {} }",
+      "fn f(x: S) {",
+      "    std::r#process::exit(1);",
+      '    let _ = std::r#env::var("RAW_PATH");',
+      '    let _ = r#env::var_os("RAW_USE");',
+      "    std::process::r#exit(3);",
+      "    r#quit(2);",
+      "    x.r#method();",
+      "    let g = std::r#process::abort;",
+      "    r#inner::r#run();",
+      '    let s = "r#not_a_path";',
+      "}",
+    ].join("\n");
+    assert.deepEqual((await inline("a.rs", source, "imports")).members, [
+      "std::env",
+      "std::process::exit",
+    ]);
+    const calls = await inline("a.rs", source, "calls");
+    for (const name of [
+      "std::process::exit",
+      "std::env::var",
+      "std::env::var_os",
+      "quit",
+      "x.method",
+      "std::process::abort",
+      "inner::run",
+    ])
+      assert.ok(calls.members.includes(name), `${name}: ${calls.members}`);
+    assert.ok(
+      !calls.members.some((name) => name.includes("r#")),
+      String(calls.members),
+    );
+    assert.deepEqual(await inline("a.rs", source, "env"), {
+      members: ["RAW_PATH", "RAW_USE"],
+      lines: [],
+    });
+    // A raw identifier inside a macro's tokens is the path it spells.
+    const macro = 'fn f() { println!("{:?}", std::r#env::var("IN_MACRO")); }';
+    assert.deepEqual((await inline("a.rs", macro, "env")).lines, [1]);
+    // A raw string is not a raw identifier.
+    const raw = 'fn f() { std::env::var(r#"RAW_STR"#); }';
+    assert.deepEqual((await inline("a.rs", raw, "env")).members, ["RAW_STR"]);
+  });
+
+  it("lists a C# method group in a switch arm, ??, yield, lambda body, ! or collection as a call", async () => {
+    const forms = [
+      "Action<int> a = k switch { 1 => Environment.Exit, _ => c => { } };",
+      "Action<int> a = g ?? Environment.Exit;",
+      "Action<int> a = Environment.Exit ?? g;",
+      "Run(() => Environment.Exit);",
+      "Action<int> a = Environment.Exit!;",
+      "Run(b ? Environment.Exit! : null!);",
+      "var a = new { F = Environment.Exit };",
+      "Action<int>[] a = [Environment.Exit];",
+      "Run((Environment.Exit, 1));",
+      "Run(k switch { 1 => Helpers.Stop, _ => Helpers.Go });",
+    ];
+    for (const form of forms) {
+      const source = [
+        "using System;",
+        "class V {",
+        `  static void M(int k, Action<int> g, bool b) { ${form} }`,
+        "}",
+      ].join("\n");
+      const calls = await inline("A.cs", source, "calls");
+      const expected = form.includes("Helpers")
+        ? "Helpers.Stop"
+        : "System.Environment.Exit";
+      assert.ok(calls.members.includes(expected), `${form}: ${calls.members}`);
+    }
+    const yielded = [
+      "using System;",
+      "class V {",
+      "  static IEnumerable<Action<int>> G() { yield return Environment.Exit; }",
+      "}",
+    ].join("\n");
+    assert.ok(
+      (await inline("A.cs", yielded, "calls")).members.includes(
+        "System.Environment.Exit",
+      ),
+    );
+    // The switch's subject and an arm's pattern are no method groups.
+    const subject = [
+      "using System;",
+      "class V { static int M(Mode m) => m switch { Mode.A => 1, _ => 0 }; }",
+    ].join("\n");
+    assert.deepEqual((await inline("A.cs", subject, "calls")).members, []);
+    // An environment getter as a method group in those forms refuses env.
+    const env = [
+      "using System;",
+      "class V {",
+      "  static void M(int k, Func<string, string?> g) {",
+      "    var a = k switch { 1 => Environment.GetEnvironmentVariable, _ => g };",
+      "    var b = g ?? Environment.GetEnvironmentVariable;",
+      "    Run(() => Environment.GetEnvironmentVariable);",
+      "    Func<string, string?> c = Environment.GetEnvironmentVariable!;",
+      "  }",
+      "  static IEnumerable<Func<string, string?>> G() { yield return Environment.GetEnvironmentVariable; }",
+      "}",
+    ].join("\n");
+    assert.deepEqual(await inline("A.cs", env, "env"), {
+      members: [],
+      lines: [4, 5, 6, 7, 9],
+      shadows: [4, 5, 6, 7, 9],
+    });
+  });
+
+  it("does not read a C# Environment bound by a pattern, out var, deconstruction, query or primary constructor as System.Environment", async () => {
+    const bindings = [
+      ["void M(object o) { if (o is Fake Environment) ", " }"],
+      ["void M(object o) { if (o is var Environment) ", " }"],
+      ["void M(object o) { if (o is Fake { } Environment) ", " }"],
+      ["void M() { if (Try(out var Environment)) ", " }"],
+      ["void M() { if (Try(out Fake Environment)) ", " }"],
+      ["void M() { var (Environment, z) = P(); ", " }"],
+      [
+        "void M(Fake[] xs) { var q = from Environment in xs select Environment; ",
+        " }",
+      ],
+    ];
+    for (const [head, tail] of bindings) {
+      const source = [
+        "using System;",
+        `class U { ${head}Environment.Exit(1);${tail} }`,
+        `class W { ${head}Environment.GetEnvironmentVariable("FAKE");${tail} }`,
+      ].join("\n");
+      const calls = await inline("A.cs", source, "calls");
+      assert.ok(calls.members.includes("*.Exit"), `${head}: ${calls.members}`);
+      assert.ok(
+        !calls.members.some((name) => name.startsWith("System.Environment")),
+        `${head}: ${calls.members}`,
+      );
+      assert.deepEqual(
+        await inline("A.cs", source, "env"),
+        { members: [], lines: [3] },
+        head,
+      );
+    }
+    const primary = [
+      "using System;",
+      "class U08(Fake Environment) {",
+      "  void M() => Environment.Exit(10);",
+      '  string E() => Environment.GetEnvironmentVariable("U08");',
+      "}",
+    ].join("\n");
+    assert.ok(
+      (await inline("A.cs", primary, "calls")).members.includes("*.Exit"),
+    );
+    assert.deepEqual(await inline("A.cs", primary, "env"), {
+      members: [],
+      lines: [4],
+    });
+  });
+
+  it("does not read a C# using alias named Environment as System.Environment", async () => {
+    const source = [
+      "using Environment = Lib.FakeEnvironment;",
+      "class U10 {",
+      "  void M() { Environment.Exit(1); }",
+      '  string E() => Environment.GetEnvironmentVariable("U10");',
+      "}",
+    ].join("\n");
+    const calls = await inline("A.cs", source, "calls");
+    assert.ok(
+      calls.members.includes("Lib.FakeEnvironment.Exit"),
+      String(calls.members),
+    );
+    assert.ok(
+      !calls.members.some((name) => /^(?:System\.)?Environment\./.test(name)),
+      String(calls.members),
+    );
+    assert.deepEqual(await inline("A.cs", source, "env"), {
+      members: [],
+      lines: [4],
+    });
+    // A method group through the alias is the alias's target's too.
+    const group = [
+      "using Environment = Lib.FakeEnvironment;",
+      "class U11 { Action<int> G() => Environment.Exit; }",
+    ].join("\n");
+    assert.deepEqual((await inline("A.cs", group, "calls")).members, [
+      "Lib.FakeEnvironment.Exit",
+    ]);
+    // An alias that names System.Environment is read through.
+    const real = [
+      "using E = System.Environment;",
+      'class A { string E1() => E.GetEnvironmentVariable("REAL"); void X() { E.Exit(1); } }',
+    ].join("\n");
+    assert.deepEqual((await inline("A.cs", real, "env")).members, ["REAL"]);
+    assert.ok(
+      (await inline("A.cs", real, "calls")).members.includes(
+        "System.Environment.Exit",
+      ),
+    );
+  });
+
+  it("marks a C# System type name another file of the project may declare", async () => {
+    const source = [
+      "using System;",
+      "namespace App.Shadow {",
+      "  class U02 {",
+      "    void M() { Environment.Exit(5); }",
+      '    string E() => Environment.GetEnvironmentVariable("U02");',
+      "    Action<int> G() => Environment.Exit;",
+      "  }",
+      "}",
+    ].join("\n");
+    const env = await inline("A.cs", source, "env");
+    assert.deepEqual(env.members, ["U02"]);
+    assert.deepEqual(env.shadows, [5]);
+    const calls = await inline("A.cs", source, "calls");
+    assert.deepEqual(calls.shadows, [4, 5, 6]);
+    const rows = (
+      await extractor.extract({ path: "A.cs", content: source, extract: "env" })
+    ).unresolved;
+    assert.deepEqual(rows, [
+      {
+        line: 5,
+        text: 'Environment may be a type of the project: Environment.GetEnvironmentVariable("U02")'.slice(
+          0,
+          80,
+        ),
+      },
+    ]);
+    // A string_args read marks only the callee it asks for.
+    const started = [
+      "using System.Diagnostics;",
+      'class P { void M() { Process.Start("rm"); Console.WriteLine("x"); } }',
+    ].join("\n");
+    assert.deepEqual(
+      await inline("A.cs", started, "string_args", { callee: "Process.Start" }),
+      { members: ["rm"], lines: [], shadows: [2] },
+    );
+    assert.equal(
+      (
+        await extractor.extract({
+          path: "A.cs",
+          content: started,
+          extract: "string_args",
+          callee: "Process.Start",
+        })
+      ).unresolved.length,
+      1,
+    );
+    // A name the file binds or qualifies with global:: is not marked.
+    const bound = [
+      "using System;",
+      "class U { void M(Fake Environment) { Environment.Exit(1); global::System.Environment.Exit(2); } }",
+    ].join("\n");
+    assert.equal((await inline("A.cs", bound, "calls")).shadows, undefined);
+  });
+
+  it("lists a C# method group on a call, new, element or parenthesized receiver as a call", async () => {
+    for (const group of [
+      "Process.GetCurrentProcess().Kill",
+      "System.Diagnostics.Process.GetCurrentProcess().Kill",
+      "new Process().Kill",
+      "new System.Diagnostics.Process().Kill",
+      "(new Process()).Kill",
+      "ps[0].Kill",
+      "p.Kill",
+    ]) {
+      const source = [
+        "using System;",
+        "using System.Diagnostics;",
+        `class H { static void Stop(Process p, Process[] ps) { Action k = ${group}; k(); } }`,
+      ].join("\n");
+      const calls = await inline("A.cs", source, "calls");
+      assert.ok(calls.members.includes("*.Kill"), `${group}: ${calls.members}`);
+    }
+    // Handed on as an argument or returned, too.
+    const passed = [
+      "using System.Diagnostics;",
+      "class H {",
+      "  static void A() { Run(Process.GetCurrentProcess().Kill); }",
+      "  static Action B() => new Process().Kill;",
+      "}",
+    ].join("\n");
+    assert.ok(
+      (await inline("A.cs", passed, "calls")).members.includes("*.Kill"),
+    );
+    // An environment getter's name as such a method group refuses env.
+    const env = [
+      "class H {",
+      "  static void A() { Func<string, string> g = Make().GetEnvironmentVariable; }",
+      "}",
+    ].join("\n");
+    assert.deepEqual((await inline("A.cs", env, "env")).lines, [2]);
+    // A property read on such a receiver that is called is the call only.
+    const property = [
+      "using System.Diagnostics;",
+      "class H { static int A() => Process.GetCurrentProcess().Id; }",
+    ].join("\n");
+    assert.ok(
+      (await inline("A.cs", property, "calls")).members.includes("*.Id"),
+    );
+  });
+
+  it("does not read a C# type parameter named Environment as System.Environment", async () => {
+    const sources = [
+      [
+        "using System;",
+        "class C<Environment> where Environment : IFake {",
+        "  void M() { Environment.Exit(1); }",
+        '  string E() => Environment.GetEnvironmentVariable("S17_NOT_ENV");',
+        "}",
+      ],
+      [
+        "using System;",
+        "class C {",
+        "  void M<Environment>() where Environment : IFake { Environment.Exit(1); }",
+        '  string E<Environment>() where Environment : IFake => Environment.GetEnvironmentVariable("S17_NOT_ENV");',
+        "}",
+      ],
+      [
+        "using System;",
+        "interface I<Environment> where Environment : IFake {",
+        "  static void M() { Environment.Exit(1); }",
+        '  static string E() => Environment.GetEnvironmentVariable("S17_NOT_ENV");',
+        "}",
+      ],
+    ];
+    for (const lines of sources) {
+      const source = lines.join("\n");
+      const calls = await inline("A.cs", source, "calls");
+      assert.ok(calls.members.includes("*.Exit"), String(calls.members));
+      assert.ok(
+        !calls.members.some((name) => name.includes("Environment.")),
+        String(calls.members),
+      );
+      assert.deepEqual(await inline("A.cs", source, "env"), {
+        members: [],
+        lines: [4],
+      });
+    }
+    // Another method's type parameter does not bind this method's name.
+    const other = [
+      "using System;",
+      "class C {",
+      "  void M<Environment>() where Environment : IFake { }",
+      '  string E() => Environment.GetEnvironmentVariable("REAL");',
+      "}",
+    ].join("\n");
+    assert.deepEqual((await inline("A.cs", other, "env")).members, ["REAL"]);
+  });
+
+  it("reads a C# Environment as System.Environment outside the member a pattern variable of that name is in", async () => {
+    const source = [
+      "using System;",
+      "class H {",
+      "  static void Probe(object o) { if (o is Probe Environment) Environment.Exit(1); }",
+      '  static string Url() => Environment.GetEnvironmentVariable("URL");',
+      "  static string Field = o is Fake Environment ? Environment.Name : null;",
+      '  static string After() => Environment.GetEnvironmentVariable("AFTER");',
+      "}",
+    ].join("\n");
+    assert.deepEqual((await inline("A.cs", source, "env")).members, [
+      "AFTER",
+      "URL",
+    ]);
+    const calls = await inline("A.cs", source, "calls");
+    assert.ok(calls.members.includes("*.Exit"), String(calls.members));
+    assert.ok(
+      !calls.members.includes("System.Environment.Exit"),
+      String(calls.members),
+    );
+    // Top-level statements share one scope: a pattern variable there binds
+    // the name in every top-level statement.
+    const top = [
+      "using System;",
+      "if (args[0] is Fake Environment) { }",
+      'var u = Environment.GetEnvironmentVariable("TOP");',
+    ].join("\n");
+    assert.deepEqual(await inline("A.cs", top, "env"), {
+      members: [],
+      lines: [3],
+    });
+  });
+
+  const go = (lines) => `package a\n${lines.join("\n")}\n`;
+
+  it("lists a Go package used under a name another package is known by under its import path", async () => {
+    const cases = [
+      [
+        'import logrus "github.com/other/notlogrus"',
+        'func f() { logrus.Error("x"); l := logrus.New(); l.Warn("y") }',
+        [
+          '"github.com/other/notlogrus".Error',
+          '"github.com/other/notlogrus".Warn',
+        ],
+        ["logrus.Error", "logrus.Warn"],
+      ],
+      [
+        'import exec "github.com/fake/exec"',
+        'func f() { exec.Command("rm").Run() }',
+        ['"github.com/fake/exec".Command', '"github.com/fake/exec".Run'],
+        ["exec.Command", "exec.Run"],
+      ],
+      [
+        'import "github.com/charmbracelet/log"',
+        'func f() { log.Fatal("x") }',
+        ['"github.com/charmbracelet/log".Fatal'],
+        ["log.Fatal"],
+      ],
+      [
+        'import log "github.com/sirupsen/logrus"',
+        "func f(err error) { log.Error(err) }",
+        ["logrus.Error"],
+        ["log.Error"],
+      ],
+      [
+        'import "os/exec"\nimport x "os/exec"',
+        'func f() { exec.Command("a"); x.Command("b") }',
+        ["exec.Command"],
+        [],
+      ],
+      [
+        'import "github.com/sirupsen/logrus"\nimport "math/rand/v2"',
+        "func f() { logrus.Info(1); rand.IntN(3) }",
+        ["logrus.Info", "rand.IntN"],
+        [],
+      ],
+    ];
+    for (const [imports, body, present, absent] of cases) {
+      const calls = await inline("a.go", go([imports, body]), "calls");
+      for (const name of present)
+        assert.ok(calls.members.includes(name), `${name}: ${calls.members}`);
+      for (const name of absent)
+        assert.ok(!calls.members.includes(name), `${name}: ${calls.members}`);
+      assert.deepEqual(calls.lines, []);
+    }
+    const args = go([
+      'import exec "github.com/fake/exec"',
+      'func f() { exec.Command("rm") }',
+    ]);
+    assert.deepEqual(
+      (await inline("a.go", args, "string_args", { callee: "exec.Command" }))
+        .members,
+      [],
+    );
+  });
+
+  it("marks a Go package-level name another file of the package may bind for env", async () => {
+    const source = [
+      "package main",
+      'import "os"',
+      "type T[K any] struct{ k K }",
+      "var local = 1",
+      "const two = 2",
+      "func f[K any](k K) K { return k }",
+      "func main() {",
+      '\t_ = os.Getenv("A")',
+      '\t_ = getenv("ADMIN_TOKEN")',
+      "\tvar c Config",
+      "\t_ = T[int]{k: local + two}",
+      "\tx := helper",
+      "\t_, _ = x, c",
+      "\tcfg.Port()",
+      '\t_ = len(f("a")) + cap([]byte(nil))',
+      "\tgoto L",
+      "L:",
+      "\tfor i, v := range []int{} { _, _ = i, v }",
+      "\tfunc() { _ = true; _ = nil; var e error; _ = e }()",
+      "}",
+    ].join("\n");
+    const env = await inline("a.go", source, "env");
+    assert.deepEqual(env.members, ["A"]);
+    assert.deepEqual(env.lines, []);
+    assert.deepEqual(env.shadows, [9, 10, 12, 14]);
+    const rows = (
+      await extractor.extract({ path: "a.go", content: source, extract: "env" })
+    ).unresolved;
+    assert.deepEqual(
+      rows.map((row) => row.text),
+      [
+        'getenv may be declared in another file of the package: getenv("ADMIN_TOKEN")',
+        "Config may be declared in another file of the package: Config",
+        "helper may be declared in another file of the package: helper",
+        "cfg may be declared in another file of the package: cfg",
+      ],
+    );
+    // Only env reads follow the package's other files.
+    assert.equal((await inline("a.go", source, "calls")).shadows, undefined);
+  });
+
+  it("marks a Go import the project may provide for env", async () => {
+    const source = [
+      "package main",
+      "import (",
+      '\t"fmt"',
+      '\t"os"',
+      '\t"github.com/bxcodec/go-clean-arch/internal/config"',
+      '\tcfg "app/settings"',
+      '\t_ "app/initenv"',
+      '\t. "app/dot"',
+      ")",
+      'func main() { _ = os.Getenv("A"); _ = config.Get("ADMIN_TOKEN"); fmt.Println(cfg.X) }',
+    ].join("\n");
+    const rows = (
+      await extractor.extract({ path: "a.go", content: source, extract: "env" })
+    ).unresolved;
+    // os is read here; every other import is marked, for the host to check.
+    assert.deepEqual(
+      rows.map((row) => [row.line, row.text]),
+      [
+        [3, 'fmt may be a package of the project: "fmt"'],
+        [
+          5,
+          'config may be a package of the project: "github.com/bxcodec/go-clean-arch/intern',
+        ],
+        [6, 'cfg may be a package of the project: cfg "app/settings"'],
+        [7, '_ may be a package of the project: _ "app/initenv"'],
+        [8, '. may be a package of the project: . "app/dot"'],
+      ],
+    );
+    assert.deepEqual((await inline("a.go", source, "env")).members, ["A"]);
+    // Only env reads follow other packages of the project.
+    for (const extract of ["calls", "imports"])
+      assert.ok(
+        !(
+          await extractor.extract({ path: "a.go", content: source, extract })
+        ).unresolved.some((row) => row.text.includes("package of the project")),
+      );
   });
 });

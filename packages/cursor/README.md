@@ -119,7 +119,7 @@ agent-plugin/
 
 ### Advisory editor hooks
 
-Hooks are warning-only and never replace MCP/CLI behavior:
+Hooks are warning-only and never replace MCP/CLI behavior. `hooks/hooks.json` runs `bin/hook-runner.mjs`, a committed self-contained bundle (with `kibi-agent-core` inlined), so a copied plugin directory or a GitHub marketplace install runs the hooks without `node_modules` or a build step:
 
 - **sessionStart**: bootstrap reminder when `.kb/manifest.json` is missing.
 - **preToolUse**: warns on explicit direct `.kb/**` edits without blocking. Before the first edit of a file whose symbols implement a requirement, it adds the shared Kibi snippet (from `kibi-agent-core/snippets`, the same builder the Claude Code plugin uses): the requirements and their implementing symbols, what the lead requirement must keep true and the decision behind it, the covering tests, and the symbol the edit lands in. A superseded or retired lead requirement gets no "must keep true" or "Decision" line. Once per path per session. When the edited code implements a firm requirement (a rule the person set), the message first tells the agent to ask the person before an edit that breaks it, once per requirement per conversation (Cursor does not enforce a hook's "ask"; `KIBI_CONFIRM_FIRM_EDITS=0` turns this off).

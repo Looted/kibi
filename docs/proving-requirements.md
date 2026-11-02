@@ -628,10 +628,14 @@ Details that decide what a reader sees:
   `subprocess.call`); an imported function used as a value
   (`f = sp.check_output`, `fn=Popen`) is listed as called. `imports` lists
   `import a.b` as `a` and `a.b`, and `from urllib import request` as
-  `urllib` and `urllib.request`. The whole environment handed on, copied or
+  `urllib` and `urllib.request`. `posix` and `nt` are the modules `os`
+  re-exports, so a name through them is listed as the `os` name too:
+  `posix.system("x")` and `from posix import system` are the call
+  `os.system` (as well as `posix.system`) for `calls` and `string_args`,
+  and `import posix` is listed as `os` and `posix` by `imports`. The whole environment handed on, copied or
   iterated (`os.environ.copy()`, `dict(os.environ)`, `**os.environ`,
   `env=os.environ`), a getter or the `os` module used as a value, a name
-  computed at run time, `getattr` on an imported module, `exec`, `eval`,
+  computed at run time, `getattr` or `vars` on an imported module, `exec`, `eval`,
   `compile`, `__import__` and `importlib.import_module` (which `imports`
   lists when the name is a literal), `pkgutil.resolve_name`, `runpy`,
   `importlib.util` and `importlib.machinery`, `sys.modules`,
@@ -641,16 +645,31 @@ Details that decide what a reader sees:
   the read, because Kibi does not follow what another module binds: `os`,
   `sys`, `subprocess` and the like as an attribute of an imported module
   (`shutil.os.getenv`, `path.os`, `dotenv.main.os`) or imported from one
-  (`from .main import os`, which `imports` refuses too), `environ` or
+  (`from .main import os`, which `imports` refuses too), a private name of
+  a module (`from tempfile import _os`, `threading._os.popen`, refused by
+  `imports` too; the private names of `os` and `sys` themselves, such as
+  `os._exit`, are read as written), `environ` or
   `getenv` on any imported name other than `os` (`from .main import o;
   o.environ`, and a framework's `request.environ` alike), a module's
   namespace (`os.__dict__`, `f.__globals__`, `globals()`, `locals()`,
-  `vars()` and `vars(module)`), and an imported module handed on. For
+  `vars()` and `vars(module)`, so `getattr(tempfile, "_os")`,
+  `vars(tempfile)["_os"]` and `tempfile.__dict__["_os"]` are refused by
+  `imports` too), and an imported module handed on: a module used as a
+  value rather than called or read through (`_t = tempfile`, `f(shutil)`,
+  `return tf`, `[tempfile][0]`, `p = os.path`), and a name imported from a
+  project or third-party module assigned to another name (`x = h`, since
+  `h` may be a module), fail `imports`, `calls` and `env`. A standard
+  module's member is checked to be a module by importing that standard
+  module; a class or function used as a value (`@dataclass`,
+  `isinstance(x, Path)`) is read. For
   `calls`, a name imported from a project or third-party module that is, or
   is used through, a name of an `os`, `subprocess` or `sys` function
   (`from .cli import Popen`, `from .main import o; o.system()`) fails the
   read, since it may be that function re-exported; a re-export under an
-  unrelated name is not detected.
+  unrelated name is not detected. For `env` and `calls`, any use of
+  `ctypes` or `cffi` (`ctypes.CDLL(None).getenv(b"X")`, `ffi.dlopen`) fails
+  the read: a function of a native library it loads can read the
+  environment or run a program.
 - **SWI-Prolog.** The references reader and the `prolog` reader read a
   `.pl` or `.plt` file term by term with SWI-Prolog and run none of it: no
   directive, `initialization/1` or clause of the project executes. The file's
@@ -669,8 +688,12 @@ Details that decide what a reader sees:
   rules (a non-terminal `n//0` is the call `n/2`), lambdas and the arguments
   of meta-predicates (the files' own `meta_predicate` declarations, those of
   the project modules they load and SWI-Prolog's), `apply/2` as the goal it
-  calls, the arguments of `~@` in `format/2,3`, `debug/3` and
-  `print_message(_, format(...))`, the goal lists of `first_solution/3` and
+  calls, the arguments of `~@` in `format/2,3`, `debug/3`,
+  `ansi_format/3`, `sformat/2,3`, `print_message(_, format(...))` and
+  message lines (`print_message_lines(_, _, ['~@'-[Goal]])`, and the list
+  elements of `prolog:message//1` rules and of any grammar rule whose
+  element is such a line), a `{Goal}` grammar body handed to `phrase/2,3` or
+  `call_dcg/3`, the goal lists of `first_solution/3` and
   `concurrent/3`, and the body of a clause
   asserted from a literal term (`assertz((s(V) :- getenv('X', V)))`). `env`
   reads `getenv/2`; `string_args` the first argument of
@@ -686,13 +709,29 @@ Details that decide what a reader sees:
   file that is not among `files`, a `consult`, `ensure_loaded`,
   `load_files` or `:- [...]` of a file without a module header that is not
   among `files` (its clauses join the loading module), a format string Kibi
-  cannot read whose arguments could be goals, and any other module-sensitive
+  cannot read whose arguments could be goals, message lines Kibi cannot
+  see to their end (a variable list or element, or in a `prolog:message//1`
+  rule a format that is not written out), and any other module-sensitive
   (`:`) meta argument that is not a clause, predicate, file or operator spec
   or `[]` (`prolog_listen/2`, `on_signal/3`) fail the read with their place.
-  An include or load through a project alias (`bson(include/common)`, set
-  up by `file_search_path/2` at run time) resolves to the one file among
-  `files` whose path ends with the aliased path; with none or several it
-  fails the read.
+  An include or load through a project alias (`bson(include/common)`)
+  resolves only through the `file_search_path/2` declarations of the files
+  read: a fact or clause for `file_search_path/2` (with `user:` or not) or a
+  directive that asserts one, where Kibi evaluates
+  `prolog_load_context(directory, D)` (the declaring file's directory),
+  `directory_file_path/3` and `atom_concat/3` on known atoms, and the
+  directory is absolute or `Alias(Sub)` of another alias the files declare.
+  The alias resolves when those directories hold exactly one existing file
+  for the aliased path. A file that only ends with the aliased path (a
+  vendored copy, while the real target sits under `node_modules/` or
+  outside the project) is never taken for it. No declaration among the
+  files, one Kibi cannot evaluate (a relative directory, which depends on
+  the working directory at run time, or one computed otherwise), one that
+  goes through an alias SWI-Prolog defines (`library`, `pack`), or several
+  matching files fail the read with its place. The refusal of an include
+  names a file to add to `files` only when it is the file the declarations
+  resolve to; one under `node_modules`, `.git` or `.kb` or outside the
+  project is named as out of reach.
 - **Go, Java, C# and Rust.** The references reader hands these files to
   `kibi-plugin-treesitter`, which parses them in its bounded workers and
   compiles or runs nothing. Activate it for proofs in `package.json`:
@@ -765,12 +804,30 @@ Details that decide what a reader sees:
   Kibi drops only after finding no such type in the `.java` files of the
   file's folder; a bare Rust standard macro likewise gets a row that Kibi
   drops only after finding no `macro_rules!` of that name (nor `#[macro_use]
-  extern crate`) in the crate. A C# bare call is listed under a type only when the
+  extern crate`) in the crate. For Go `env`, a name the file uses but does
+  not declare gets a row that Kibi drops only when no other file of the
+  package (its test files only for a test file) can read the environment
+  or none names it, and every import other than `os`, `syscall`, x/sys and
+  cgo gets a row that Kibi drops only when the path is no package of the
+  project, or that package cannot read the environment: a package of the
+  project is a relative path, a path under the module path of any `go.mod`
+  in the project or under a local `replace`, or, with no `go.mod`, a folder
+  of that path above the file; it can read the environment when one of its
+  files (not its tests) spells a getter, cgo or `//go:linkname`, or imports
+  a package of the project that can. So `config.Get("X")` over a package
+  that wraps `os.Getenv`, `var Get = os.Getenv` there, or a package-level
+  value it reads at init is refused; third-party packages are not followed.
+  A C# bare call is listed under a type only when the
   file declares the method, or one `using static` System type has it; `@`
   verbatim identifiers are read without the `@`. A C# member access on a
   local, parameter, field or property named like a System type
-  (`Environment`), or on a type the file declares, is on a value of unknown
-  type (`*.Exit`). Rust paths are read without comments between segments,
+  (`Environment`), on a type parameter (`class C<Environment>`, `void
+  M<Environment>()`), on a pattern, `out`, deconstruction or query variable
+  declared in the same member (anywhere in the file for top-level
+  statements), or on a type the file declares, is on a value of unknown
+  type (`*.Exit`), and so is a method group on an expression Kibi cannot
+  name (`Process.GetCurrentProcess().Kill`, `new Process().Kill`,
+  `ps[0].Kill` are `*.Kill`). Rust paths are read without comments between segments,
   and a plain `type` alias is followed. A function or method used as a value
   (`logf := logrus.Error`, `apply(logrus.Error)`, a C# method group, also
   cast or in a conditional, a Rust
@@ -846,8 +903,10 @@ code does not hold:
   a member under the prefix of an item ending in `*` (`java.sql.*`, `os.*`),
   a wildcard import that may bring the item in (`java.sql.*` for
   `java.sql.Connection`), a shorter name the item ends with (`File.delete`
-  for `java.io.File.delete`), and a call on a receiver Kibi cannot name
-  (`*.delete` may be `java.io.File.delete`). The last three are refused with
+  for `java.io.File.delete`), a longer name ending in the item at a segment
+  boundary (`checkNotNull` excludes `Preconditions.checkNotNull`), and a call
+  on a receiver Kibi cannot name (`*.delete` may be `java.io.File.delete`).
+  The last four are refused with
   the member, the item it may be and the files read: Kibi cannot decide the
   claim for them.
 - `includes` holds only on a member that certainly is the item: the item, a
@@ -862,7 +921,13 @@ A references read decides a claim only for the files it reads. A proof is
 rejected when a symbol the test covers (`covered_by`) or a symbol that
 implements the claim's requirement lies in a file outside `files` (after
 `ignore`), naming the symbol and its file: a refused file cannot be dropped
-from `files` to prove a claim about it on other code. A `string_args` read
+from `files` to prove a claim about it on other code. A claim whose subject
+key or claim text names a project file (`src/match.c`, a file name such as
+`utils.sh` that Kibi finds in the project, a path with a repository prefix
+such as `fzy/src/match.c`, another letter case, a slashed name without its
+extension such as `src/match`, or a quoted path with spaces) is also rejected
+when none of the files read is that file, so a claim about one file cannot be decided on
+another. A `string_args` read
 whose `callee` is an environment getter (`os.Getenv`, `os.getenv`,
 `System.getenv`, `env::var`, `env::var_os`,
 `Environment.GetEnvironmentVariable`, `getenv/2` and the like) sees only that

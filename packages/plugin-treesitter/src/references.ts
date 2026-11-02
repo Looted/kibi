@@ -393,6 +393,196 @@ const GO_ENV_PACKAGES: ReadonlyMap<string, string> = new Map([
   ["windows", "golang.org/x/sys/windows"],
 ]);
 const GO_ENV_PATHS = new Set(GO_ENV_PACKAGES.values());
+
+/**
+ * Packages a short name is known to mean: the standard library's, x/sys,
+ * and common loggers. A file that uses another package under one of these
+ * names (`exec "github.com/fake/exec"`, `"github.com/charmbracelet/log"`,
+ * `logrus "github.com/other/notlogrus"`) has its members listed under the
+ * quoted import path, so they are never taken for the known package's.
+ */
+const GO_KNOWN_PACKAGES: ReadonlyMap<string, ReadonlySet<string>> = (() => {
+  const known = new Map<string, Set<string>>();
+  const add = (name: string, path: string) => {
+    const paths = known.get(name) ?? new Set<string>();
+    paths.add(path);
+    known.set(name, paths);
+  };
+  for (const path of [
+    "archive/tar",
+    "archive/zip",
+    "bufio",
+    "bytes",
+    "cmp",
+    "compress/bzip2",
+    "compress/flate",
+    "compress/gzip",
+    "compress/lzw",
+    "compress/zlib",
+    "container/heap",
+    "container/list",
+    "container/ring",
+    "context",
+    "crypto",
+    "crypto/aes",
+    "crypto/cipher",
+    "crypto/des",
+    "crypto/dsa",
+    "crypto/ecdh",
+    "crypto/ecdsa",
+    "crypto/ed25519",
+    "crypto/elliptic",
+    "crypto/hmac",
+    "crypto/md5",
+    "crypto/rand",
+    "crypto/rc4",
+    "crypto/rsa",
+    "crypto/sha1",
+    "crypto/sha256",
+    "crypto/sha512",
+    "crypto/subtle",
+    "crypto/tls",
+    "crypto/x509",
+    "database/sql",
+    "database/sql/driver",
+    "embed",
+    "encoding",
+    "encoding/ascii85",
+    "encoding/asn1",
+    "encoding/base32",
+    "encoding/base64",
+    "encoding/binary",
+    "encoding/csv",
+    "encoding/gob",
+    "encoding/hex",
+    "encoding/json",
+    "encoding/pem",
+    "encoding/xml",
+    "errors",
+    "expvar",
+    "flag",
+    "fmt",
+    "go/ast",
+    "go/build",
+    "go/format",
+    "go/parser",
+    "go/printer",
+    "go/token",
+    "go/types",
+    "hash",
+    "hash/crc32",
+    "hash/crc64",
+    "hash/fnv",
+    "html",
+    "html/template",
+    "image",
+    "image/color",
+    "image/gif",
+    "image/jpeg",
+    "image/png",
+    "io",
+    "io/fs",
+    "io/ioutil",
+    "iter",
+    "log",
+    "log/slog",
+    "log/syslog",
+    "maps",
+    "math",
+    "math/big",
+    "math/bits",
+    "math/cmplx",
+    "math/rand",
+    "math/rand/v2",
+    "mime",
+    "mime/multipart",
+    "net",
+    "net/http",
+    "net/http/httptest",
+    "net/http/httputil",
+    "net/http/pprof",
+    "net/mail",
+    "net/netip",
+    "net/rpc",
+    "net/smtp",
+    "net/textproto",
+    "net/url",
+    "os",
+    "os/exec",
+    "os/signal",
+    "os/user",
+    "path",
+    "path/filepath",
+    "plugin",
+    "reflect",
+    "regexp",
+    "regexp/syntax",
+    "runtime",
+    "runtime/debug",
+    "runtime/pprof",
+    "slices",
+    "sort",
+    "strconv",
+    "strings",
+    "sync",
+    "sync/atomic",
+    "syscall",
+    "testing",
+    "testing/fstest",
+    "text/scanner",
+    "text/tabwriter",
+    "text/template",
+    "time",
+    "unicode",
+    "unicode/utf16",
+    "unicode/utf8",
+    "unique",
+    "unsafe",
+    ...GO_ENV_PATHS,
+    "github.com/sirupsen/logrus",
+    "github.com/Sirupsen/logrus",
+    "go.uber.org/zap",
+    "github.com/rs/zerolog",
+  ])
+    add(goPackageName(path), path);
+  return known;
+})();
+
+/** The known name a package path is used under, if it is a known package. */
+function goKnownName(path: string): string | null {
+  for (const [name, paths] of GO_KNOWN_PACKAGES)
+    if (paths.has(path)) return name;
+  return null;
+}
+
+/**
+ * Whether the file's local package name `local` (or the name its import
+ * guesses) is a known name that means another package than the one imported.
+ */
+function goNamedElsewhere(local: string, context: FileContext): boolean {
+  /* node:coverage disable */
+  const path = context.paths.get(local) ?? local;
+  /* node:coverage enable */
+  const usedAs = context.aliases.get(local) ?? local;
+  return [local, usedAs].some((name) => {
+    const paths = GO_KNOWN_PACKAGES.get(name);
+    return paths !== undefined && !paths.has(path);
+  });
+}
+
+/**
+ * How members of the package a file uses under `local` are listed: under
+ * its package name, or under its quoted import path when that name means
+ * another package.
+ */
+function goPackageSpelling(local: string, context: FileContext): string {
+  const usedAs = context.aliases.get(local) ?? local;
+  if (!goNamedElsewhere(local, context)) return usedAs;
+  /* node:coverage disable */
+  const path = context.paths.get(local) ?? local;
+  /* node:coverage enable */
+  return goKnownName(path) ?? `"${path}"`;
+}
 const GO_REFLECT_CALLS = new Set(["Call", "CallSlice", "MethodByName"]);
 const GO_PLUGIN_CALLS = new Set(["plugin.Open", "*.Lookup"]);
 
@@ -554,15 +744,16 @@ function goName(name: string, context: FileContext, at: Node): string {
   // known, so the method is `*.Method`.
   if (!context.packages.has(root) || goBinding(at, root) !== null)
     return method;
-  /* node:coverage disable */
-  const path = context.paths.get(root) ?? root;
-  /* node:coverage enable */
-  const usedAs = context.aliases.get(root) ?? root;
-  if (
-    !GO_ENV_PATHS.has(path) &&
-    (GO_ENV_PACKAGES.has(root) || GO_ENV_PACKAGES.has(usedAs))
-  )
+  // A package used under a name that means another package (`os
+  // "github.com/x/env"`, `exec "github.com/fake/exec"`, `log
+  // "github.com/sirupsen/logrus"`) is spelled by its import path, so the
+  // name's usual meaning is never listed.
+  if (goNamedElsewhere(root, context)) {
+    /* node:coverage disable */
+    const path = context.paths.get(root) ?? root;
+    /* node:coverage enable */
     return `"${path}"${name.slice(cut)}`;
+  }
   return name;
 }
 
@@ -640,7 +831,7 @@ function goOwners(call: Node, context: FileContext): string[] {
   const found = goReceiverRoot(operand);
   if (found === null) return [];
   const [root, hops] = found;
-  const usedAs = (name: string) => context.aliases.get(name) ?? name;
+  const usedAs = (name: string) => goPackageSpelling(name, context);
   if (goPackageAt(root.text, call, context)) return [usedAs(root.text)];
   const binding = goBinding(call, root.text);
   if (binding === null) return [];
@@ -661,6 +852,110 @@ function goOwners(call: Node, context: FileContext): string[] {
         ),
       )
       .map(usedAs),
+  );
+}
+
+/** Go's predeclared identifiers: no file of the package declares them. */
+const GO_PREDECLARED = new Set([
+  "_",
+  "true",
+  "false",
+  "nil",
+  "iota",
+  "any",
+  "bool",
+  "byte",
+  "comparable",
+  "complex64",
+  "complex128",
+  "error",
+  "float32",
+  "float64",
+  "int",
+  "int8",
+  "int16",
+  "int32",
+  "int64",
+  "rune",
+  "string",
+  "uint",
+  "uint8",
+  "uint16",
+  "uint32",
+  "uint64",
+  "uintptr",
+  "append",
+  "cap",
+  "clear",
+  "close",
+  "complex",
+  "copy",
+  "delete",
+  "imag",
+  "len",
+  "make",
+  "max",
+  "min",
+  "new",
+  "panic",
+  "print",
+  "println",
+  "real",
+  "recover",
+]);
+
+/**
+ * Whether an identifier is spelled by a declaration (a function, type,
+ * variable, constant, parameter or type parameter name, the left side of
+ * `:=`) or is a composite literal's key, rather than used.
+ */
+function goDeclaredName(node: Node): boolean {
+  const parent = node.parent;
+  /* node:coverage disable */
+  if (parent === null) return true;
+  /* node:coverage enable */
+  if (parent.childrenForFieldName("name").some((name) => name.id === node.id))
+    return true;
+  if (parent.type === "literal_element")
+    return (
+      parent.parent?.type === "keyed_element" && parent.previousSibling === null
+    );
+  const statement = parent.parent;
+  return (
+    parent.type === "expression_list" &&
+    statement !== null &&
+    field(statement, "left")?.id === parent.id &&
+    statement.children.some((token) => token?.type === ":=")
+  );
+}
+
+/**
+ * Whether `name` is declared where `node` is by this file: a local, a
+ * package-level var, const, type or function of the file, a type parameter
+ * around it, or an imported package.
+ */
+function goDeclaredHere(
+  node: Node,
+  name: string,
+  context: FileContext,
+): boolean {
+  if (goBinding(node, name) !== null || context.packages.has(name)) return true;
+  let file: Node = node;
+  for (let scope = node.parent; scope !== null; scope = scope.parent) {
+    file = scope;
+    const parameters = field(scope, "type_parameters");
+    if (
+      parameters !== null &&
+      named(parameters).some((declaration) =>
+        goIdentifiers(declaration).includes(name),
+      )
+    )
+      return true;
+  }
+  return named(file).some(
+    (declaration) =>
+      declaration.type === "function_declaration" &&
+      field(declaration, "name")?.text === name,
   );
 }
 
@@ -757,6 +1052,12 @@ const GO: Reader = {
     return context;
   },
   candidates(name, context, at) {
+    // `"github.com/sirupsen/logrus".Error` (used as log) is logrus.Error.
+    const quoted = /^"([^"]*)"(\..*)$/.exec(name);
+    if (quoted !== null) {
+      const known = goKnownName(quoted[1] as string);
+      return known === null ? [name] : [name, `${known}${quoted[2]}`];
+    }
     const spelled = goName(name, context, at);
     const cut = spelled.indexOf(".");
     if (cut === -1 || spelled.startsWith('"')) return [spelled];
@@ -768,6 +1069,57 @@ const GO: Reader = {
     return unique([aliased(spelled, ".", context.aliases), spelled]);
   },
   methodOwners: goOwners,
+  /**
+   * A Go package spans the files of its directory, so a name this file uses
+   * but does not declare may be a package-level getter value or wrapper of
+   * another file (`var getenv = os.Getenv` in env.go, then `getenv("X")`
+   * here; a `getEnv(k, d string)` helper; a `cfg` whose methods read the
+   * environment). For env, every such name is marked: the host keeps the row,
+   * refusing the read, unless no other file of the package mentions an
+   * environment getter at all. Following the package's files this far is
+   * sound whatever the chain of helpers is (any read in the package spells a
+   * getter in some file of it).
+   *
+   * A package of the project itself (`config.Get("X")` where package config
+   * wraps os.Getenv, or `var Get = os.Getenv` there) is another such file
+   * set. For env, every import other than the getters' own packages and cgo
+   * (which are read or refused here) is marked: the host keeps the row,
+   * refusing the read, when the import path is one of the project's (under
+   * the module path of a go.mod, a local replace, or relative) and that
+   * package, or a package of the project it imports in turn, can read the
+   * environment. The import is marked rather than each use, since importing
+   * a package runs its init and package-level initializers, which may read
+   * the environment though nothing of it is used. Third-party packages are
+   * not followed, as for any direct call.
+   */
+  shadowed(node, _callName, _names, context, extract) {
+    if (extract !== "env") return null;
+    if (node.type === "import_spec") {
+      const path = literal(field(node, "path"));
+      if (path === null || path === "C" || GO_ENV_PATHS.has(path)) return null;
+      const alias = field(node, "name");
+      return `${alias === null ? lastOf(path, "/") : alias.text} may be a package of the project`;
+    }
+    const target =
+      node.type === "call_expression"
+        ? field(node, "function")
+        : (node.type === "identifier" || node.type === "type_identifier") &&
+            !(
+              node.parent?.type === "call_expression" &&
+              field(node.parent, "function")?.id === node.id
+            )
+          ? node
+          : null;
+    if (
+      target === null ||
+      (target.type !== "identifier" && target.type !== "type_identifier") ||
+      GO_PREDECLARED.has(target.text) ||
+      goDeclaredName(target) ||
+      goDeclaredHere(target, target.text, context)
+    )
+      return null;
+    return `${target.text} may be declared in another file of the package`;
+  },
   valueReference(node, context) {
     if (node.type !== "selector_expression") return null;
     const name = goChain(node);
@@ -1680,6 +2032,15 @@ function csharpBinding(
 ): { readonly owner: readonly string[] } | null {
   const none: readonly string[] = [];
   for (let scope = node.parent; scope !== null; scope = scope.parent) {
+    // `class U(Fake Environment)`: a primary constructor's parameters are in
+    // scope in the whole type.
+    if (CSHARP_TYPE_DECLARATIONS.has(scope.type))
+      for (const list of named(scope))
+        if (
+          list.type === "parameter_list" &&
+          named(list).some((parameter) => csharpName(parameter) === name)
+        )
+          return { owner: none };
     const parameters = field(scope, "parameters");
     if (parameters !== null) {
       if (
@@ -1721,6 +2082,13 @@ function csharpBinding(
         case "catch_declaration":
           if (csharpName(child) === name) return { owner: none };
           break;
+        // `class C<Environment>`, `void M<Environment>()`: a type parameter
+        // (with C# 11 static abstract members, `Environment.Exit()` calls
+        // its constraint's member) is in scope in its declaration.
+        case "type_parameter_list":
+          if (named(child).some((parameter) => csharpName(parameter) === name))
+            return { owner: none };
+          break;
       }
     }
   }
@@ -1761,6 +2129,79 @@ function csharpBare(
   };
 }
 
+/**
+ * Expressions and clauses that declare a local by a name of their own: a
+ * pattern variable (`o is Fake Environment`, `o is var Environment`), an out
+ * variable (`out var Environment`), a deconstruction and a query variable.
+ */
+const CSHARP_DESIGNATIONS = [
+  "declaration_pattern",
+  "declaration_expression",
+  "recursive_pattern",
+  "var_pattern",
+  "tuple_pattern",
+  "parenthesized_variable_designation",
+  "from_clause",
+  "let_clause",
+  "join_clause",
+  "join_into_clause",
+  "query_continuation",
+];
+
+/**
+ * Members a local declared by a designation cannot leave: its scope (the
+ * enclosing statement, block, lambda, query or initializer) is inside the
+ * nearest of them.
+ */
+const CSHARP_MEMBERS = new Set([
+  "method_declaration",
+  "constructor_declaration",
+  "destructor_declaration",
+  "operator_declaration",
+  "conversion_operator_declaration",
+  "property_declaration",
+  "indexer_declaration",
+  "event_declaration",
+  "field_declaration",
+  "event_field_declaration",
+]);
+
+/**
+ * Whether a designation that declares `name` may be in scope at `at`. Its
+ * exact scope is not followed, only the member it is in: wherever that
+ * member declares a local of that name, `name.X` in it may be a member of
+ * that local, so the reader does not take it for a System type's. A
+ * designation outside any member (a top-level statement, whose locals every
+ * top-level statement shares, or a primary constructor's base arguments) is
+ * taken to be in scope in the whole file.
+ */
+function csharpDesignates(at: Node, name: string): boolean {
+  let file: Node = at;
+  while (file.parent !== null) file = file.parent;
+  return CSHARP_DESIGNATIONS.some((type) =>
+    descendants(file, type).some((node) => {
+      if (
+        !named(node).some(
+          (part) => part.type === "identifier" && csharpId(part.text) === name,
+        )
+      )
+        return false;
+      let member: Node | null = node.parent;
+      while (member !== null && !CSHARP_MEMBERS.has(member.type))
+        member = member.parent;
+      if (member === null) return true;
+      for (let scope: Node | null = at; scope !== null; scope = scope.parent)
+        if (scope.id === member.id) return true;
+      return false;
+    }),
+  );
+}
+
+/** A dotted name with a `using` alias at its head replaced by what it names. */
+function csharpAliased(name: string, context: FileContext): string {
+  return withoutSystem(aliased(withoutSystem(name), ".", context.aliases));
+}
+
 /** Whether a type around `node` has a base type this file does not declare. */
 function csharpInheritsUnknown(node: Node): boolean {
   let file: Node = node;
@@ -1792,6 +2233,7 @@ function csharpReceiver(name: string, at: Node): string {
   const method = `${ANY_RECEIVER}.${lastOf(name, ".")}`;
   const binding = csharpBinding(at, root);
   if (binding !== null) return binding.owner.length === 0 ? method : name;
+  if (csharpDesignates(at, root)) return method;
   let file: Node = at;
   while (file.parent !== null) file = file.parent;
   for (const type of [...CSHARP_TYPE_DECLARATIONS, "enum_declaration"])
@@ -1811,12 +2253,29 @@ function csharpValuePosition(node: Node): boolean {
   switch (parent.type) {
     case "parenthesized_expression":
       return csharpValuePosition(parent);
+    // `Run!`: the null-forgiving operator hands its operand on.
+    case "postfix_unary_expression":
+      return parent.text.endsWith("!") && csharpValuePosition(parent);
     // `(Action<string>)Run`: the cast's value, wherever the cast is.
     case "cast_expression":
       return field(parent, "value")?.id === node.id;
     case "conditional_expression":
       return field(parent, "condition")?.id !== node.id;
+    // `k switch { 1 => Run, ... }`: an arm's value, not its pattern.
+    case "switch_expression_arm":
+      return named(parent).at(-1)?.id === node.id;
+    // `g ?? Run`: either operand is the value.
+    case "binary_expression":
+      return parent.children.some((token) => token?.type === "??");
+    // `() => Run`: an expression-bodied lambda returns the method group.
+    case "lambda_expression":
+      return field(parent, "body")?.id === node.id;
+    // `new { F = Run }`: the member's value, not its name.
+    case "anonymous_object_creation_expression":
+      return node.nextSibling?.type !== "=";
     case "initializer_expression":
+    case "expression_element": // `[Run]`
+    case "yield_statement":
       return true;
   }
   if (!CSHARP_VALUE_PARENTS.has(parent.type)) return false;
@@ -1854,14 +2313,21 @@ const CSHARP: Reader = {
       inner?.type === "anonymous_method_expression"
     );
   },
-  callName(call) {
+  callName(call, context) {
     const target = field(call, "function");
     /* node:coverage disable */
     if (target === null) return null;
     /* node:coverage enable */
     if (target.type === "identifier" && target.text === "nameof") return null;
     const name = csharpChain(target);
-    if (name !== null) return csharpReceiver(name, call);
+    // `using Environment = Lib.FakeEnvironment`: the call is listed under
+    // what the alias names, never under the alias's spelling.
+    if (name !== null) {
+      const received = csharpReceiver(name, call);
+      return context.aliases.has(before(withoutSystem(received), "."))
+        ? csharpAliased(received, context)
+        : received;
+    }
     // `a?.B()` is a conditional access, whose binding names no receiver.
     if (target.type === "member_access_expression") {
       const member = field(target, "name");
@@ -1909,15 +2375,17 @@ const CSHARP: Reader = {
   candidates(name, context, at) {
     // A bare name is a member the file binds or one `using static` type's.
     if (!/[.:]/.test(name)) return csharpBare(name, context, at).names;
-    const resolved = withoutSystem(
-      aliased(withoutSystem(name), ".", context.aliases),
-    );
+    const resolved = csharpAliased(name, context);
     // Both spellings of a System member name it: Environment.X and
     // System.Environment.X.
     const long = CSHARP_SYSTEM_TYPES.has(before(resolved, "."))
       ? [`System.${resolved}`]
       : [];
-    return unique([resolved, ...long, name]);
+    // An alias's own spelling names nothing else.
+    const spelled = context.aliases.has(before(withoutSystem(name), "."))
+      ? []
+      : [name];
+    return unique([resolved, ...long, ...spelled]);
   },
   refuses(node, callName, names, context, extract, callee) {
     const call = CSHARP.isCall(node);
@@ -1937,6 +2405,17 @@ const CSHARP: Reader = {
         CSHARP_ENV_NAMES.has(bare) && (extract === "env" || extract === "calls")
       );
     }
+    // A getter's name as a method group handed on (`Make().GetEnvironmentVariable`,
+    // `p.GetEnvironmentVariable`): whatever it names, what it is later
+    // called with is not known here.
+    if (
+      extract === "env" &&
+      node.type === "member_access_expression" &&
+      node.parent?.type !== "invocation_expression" &&
+      CSHARP_ENV_NAMES.has(csharpId(field(node, "name")?.text ?? "")) &&
+      csharpValuePosition(node)
+    )
+      return true;
     // A getter's name on a receiver the reader does not resolve to
     // Environment (a project-wide `global using E = System.Environment`).
     if (
@@ -1948,6 +2427,37 @@ const CSHARP: Reader = {
     if (extract === "string_args")
       return finalName(callee) === finalName(callName);
     return extract === "env" || extract === "calls";
+  },
+  shadowed(node, _callName, _names, context, extract, callee) {
+    // A call `Environment.X(..)`, or a method group `Environment.X` handed on.
+    const target = CSHARP.isCall(node)
+      ? field(node, "function")
+      : node.type === "member_access_expression" &&
+          node.parent?.type !== "invocation_expression" &&
+          csharpValuePosition(node)
+        ? node
+        : null;
+    const spelled = target === null ? null : csharpChain(target);
+    if (spelled === null) return null;
+    const root = before(spelled, ".");
+    // A type of that name declared in any file of the project (its
+    // namespace, an enclosing one or the global namespace) or a `global
+    // using` alias of it would bind instead of System's.
+    if (
+      root === spelled ||
+      !CSHARP_SYSTEM_TYPES.has(root) ||
+      context.aliases.has(root) ||
+      csharpReceiver(spelled, node).startsWith(`${ANY_RECEIVER}.`)
+    )
+      return null;
+    const read =
+      extract === "calls" ||
+      (extract === "env" && CSHARP_ENV_NAMES.has(finalName(spelled))) ||
+      (extract === "string_args" &&
+        CSHARP.candidates(spelled, context, node).some((name) =>
+          calleeMatches(name, callee),
+        ));
+    return read ? `${root} may be a type of the project` : null;
   },
   valueReference(node, context) {
     // A method group (`Func<string, string> g = Environment.X`, `Run(X.Y)`,
@@ -1965,9 +2475,18 @@ const CSHARP: Reader = {
     if (node.type !== "member_access_expression") return null;
     if (!csharpValuePosition(node)) return null;
     const chain = csharpChain(node);
-    /* node:coverage disable */
-    if (chain === null) return null;
+    // `Process.GetCurrentProcess().Kill`, `new Process().Kill`, `ps[0].Kill`:
+    // a method group on a receiver no name spells is a member of an unknown
+    // owner, as a call on it is.
+    if (chain === null) {
+      const member = field(node, "name");
+      /* node:coverage disable */
+      if (member === null) return null;
+      /* node:coverage enable */
+      return `${ANY_RECEIVER}.${csharpChain(member) ?? member.text}`;
+    }
     const name = csharpReceiver(chain, node);
+    /* node:coverage disable */
     return CSHARP.candidates(name, context, node)[0] ?? name;
     /* node:coverage enable */
   },
@@ -2099,6 +2618,28 @@ const RUST_ENV_MACROS = new Set([
   "core::option_env",
 ]);
 
+/**
+ * An identifier or path without raw-identifier prefixes: `r#env` is the
+ * identifier `env`, so `std::r#process::exit` is `std::process::exit`. A raw
+ * string (`r#"..."#`) is not an identifier and is left alone.
+ */
+function rustRaw(text: string): string {
+  return text.replace(/(?<![\w#])r#(?=[A-Za-z_])/g, "");
+}
+
+/** A path as {@link plainName} spells it, without raw-identifier prefixes. */
+function rustPlain(text: string): string {
+  return rustRaw(plainName(text));
+}
+
+/** Whether an item's name is `name`, spelled raw (`r#name`) or not. */
+function rustNamed(item: Node, name: string): boolean {
+  const spelled = field(item, "name");
+  // Every item the reader asks about has a name.
+  /* node:coverage ignore next */
+  return spelled !== null && rustRaw(spelled.text) === name;
+}
+
 function rustChain(node: Node): string | null {
   switch (node.type) {
     case "identifier":
@@ -2113,7 +2654,7 @@ function rustChain(node: Node): string | null {
       // `<T as Trait>::m` names a method of whichever impl T resolves to.
       if (node.text.trimStart().startsWith("<")) return null;
       // A comment between segments is not part of the path.
-      return withoutGenerics(plainName(node.text));
+      return withoutGenerics(rustPlain(node.text));
     }
     case "field_expression": {
       const value = field(node, "value");
@@ -2122,7 +2663,7 @@ function rustChain(node: Node): string | null {
       if (value === null || name === null) return null;
       /* node:coverage enable */
       const left = rustChain(value);
-      return left === null ? null : `${left}.${name.text}`;
+      return left === null ? null : `${left}.${rustRaw(name.text)}`;
     }
     case "parenthesized_expression": {
       const inner = named(node)[0];
@@ -2148,7 +2689,7 @@ function rustUseTree(node: Node, prefix: string, members: string[]): void {
       const path = named(node)[0];
       members.push(
         join(
-          path === undefined ? prefix : join(prefix, plainName(path.text)),
+          path === undefined ? prefix : join(prefix, rustPlain(path.text)),
           "*",
         ),
       );
@@ -2157,7 +2698,7 @@ function rustUseTree(node: Node, prefix: string, members: string[]): void {
     case "scoped_use_list": {
       const path = field(node, "path");
       const list = field(node, "list");
-      const base = path === null ? prefix : join(prefix, plainName(path.text));
+      const base = path === null ? prefix : join(prefix, rustPlain(path.text));
       if (list !== null) rustUseTree(list, base, members);
       return;
     }
@@ -2168,7 +2709,7 @@ function rustUseTree(node: Node, prefix: string, members: string[]): void {
       members.push(prefix);
       return;
     default:
-      members.push(join(prefix, plainName(node.text)));
+      members.push(join(prefix, rustPlain(node.text)));
   }
 }
 
@@ -2188,16 +2729,20 @@ function rustUseBindings(
     case "use_as_clause": {
       const path = field(node, "path");
       const alias = field(node, "alias");
-      if (path === null || alias === null || alias.text === "_") return;
+      if (path === null || alias === null || rustRaw(alias.text) === "_")
+        return;
       // `use std::env::{self as e}` binds e to std::env itself.
-      const spelled = plainName(path.text);
-      bind(alias.text, spelled === "self" ? prefix : join(prefix, spelled));
+      const spelled = rustPlain(path.text);
+      bind(
+        rustRaw(alias.text),
+        spelled === "self" ? prefix : join(prefix, spelled),
+      );
       return;
     }
     case "use_wildcard": {
       const path = named(node)[0];
       glob(
-        path === undefined ? prefix : join(prefix, plainName(path.text)),
+        path === undefined ? prefix : join(prefix, rustPlain(path.text)),
         node,
       );
       return;
@@ -2205,7 +2750,7 @@ function rustUseBindings(
     case "scoped_use_list": {
       const path = field(node, "path");
       const list = field(node, "list");
-      const base = path === null ? prefix : join(prefix, plainName(path.text));
+      const base = path === null ? prefix : join(prefix, rustPlain(path.text));
       if (list !== null) rustUseBindings(list, base, bind, glob);
       return;
     }
@@ -2216,7 +2761,7 @@ function rustUseBindings(
       bind(lastSegment(prefix), prefix);
       return;
     default: {
-      const path = join(prefix, plainName(node.text));
+      const path = join(prefix, rustPlain(node.text));
       bind(lastSegment(path), path);
     }
   }
@@ -2229,7 +2774,8 @@ function rustUseBindings(
  */
 function rustTokens(node: Node): string {
   if (node.type === "line_comment" || node.type === "block_comment") return " ";
-  if (node.childCount === 0) return node.text;
+  if (node.childCount === 0)
+    return node.type === "identifier" ? rustRaw(node.text) : node.text;
   return node.children
     .map(
       (child) =>
@@ -2255,7 +2801,7 @@ function insideRustAttribute(node: Node): boolean {
 function rustMacroName(node: Node): string {
   const name = field(node, "macro");
   /* node:coverage disable */
-  return name === null ? "" : plainName(name.text);
+  return name === null ? "" : rustPlain(name.text);
   /* node:coverage enable */
 }
 
@@ -2546,7 +3092,7 @@ type RustBinding =
 function rustItem(scope: Node, name: string): RustBinding | null {
   for (const child of named(scope)) {
     if (child.type === "type_item") {
-      if (field(child, "name")?.text !== name) continue;
+      if (!rustNamed(child, name)) continue;
       // `type C = std::process::Command` is followed; a generic alias or one
       // of another kind of type is not.
       const type = field(child, "type");
@@ -2554,11 +3100,11 @@ function rustItem(scope: Node, name: string): RustBinding | null {
         field(child, "type_parameters") === null &&
         (type.type === "type_identifier" ||
           type.type === "scoped_type_identifier")
-        ? { kind: "path", path: plainName(type.text) }
+        ? { kind: "path", path: rustPlain(type.text) }
         : { kind: "alias" };
     }
     if (RUST_ITEMS.has(child.type)) {
-      if (field(child, "name")?.text === name) return { kind: "item" };
+      if (rustNamed(child, name)) return { kind: "item" };
       continue;
     }
     switch (child.type) {
@@ -2580,16 +3126,16 @@ function rustItem(scope: Node, name: string): RustBinding | null {
         break;
       }
       case "mod_item":
-        if (field(child, "name")?.text === name)
+        if (rustNamed(child, name))
           return { kind: "module", body: field(child, "body") };
         break;
       case "extern_crate_declaration": {
         const crate = field(child, "name");
         const local = field(child, "alias") ?? crate;
         /* node:coverage disable */
-        if (crate !== null && local?.text === name)
+        if (crate !== null && rustRaw(local?.text ?? "") === name)
           /* node:coverage enable */
-          return { kind: "crate", crate: crate.text };
+          return { kind: "crate", crate: rustRaw(crate.text) };
         break;
       }
     }
@@ -2703,7 +3249,7 @@ const RUST: Reader = {
     if (target.type === "field_expression") {
       const method = field(target, "field");
       /* node:coverage disable */
-      return method === null ? null : `${ANY_RECEIVER}.${method.text}`;
+      return method === null ? null : `${ANY_RECEIVER}.${rustRaw(method.text)}`;
       /* node:coverage enable */
     }
     return null;
@@ -2720,7 +3266,7 @@ const RUST: Reader = {
     for (const definition of descendants(root, "macro_definition")) {
       const name = field(definition, "name");
       /* node:coverage disable */
-      if (name !== null) context.imported.add(name.text);
+      if (name !== null) context.imported.add(rustRaw(name.text));
       /* node:coverage enable */
     }
     for (const declaration of descendants(root, "use_declaration")) {
@@ -2782,7 +3328,7 @@ const RUST: Reader = {
       return (
         extract === "string_args" &&
         target !== null &&
-        lastOf(plainName(target.text), "::") === finalName(callee)
+        lastOf(rustPlain(target.text), "::") === finalName(callee)
       );
     }
     // A getter's name on a path the reader cannot follow to std::env (a
@@ -2884,7 +3430,7 @@ const RUST: Reader = {
     }
     if (node.type === "extern_crate_declaration") {
       const name = field(node, "name");
-      if (name !== null) members.push(name.text);
+      if (name !== null) members.push(rustRaw(name.text));
       return;
     }
     // A macro in item position can expand to further `use` items.

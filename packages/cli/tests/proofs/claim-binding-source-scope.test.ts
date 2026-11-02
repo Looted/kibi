@@ -5,6 +5,7 @@ import path from "node:path";
 import {
   environmentGetterCallee,
   judgeClaimBindings,
+  namedClaimFiles,
 } from "../../src/operations/proof/claim-bindings.js";
 import type { CertificateVerdict } from "../../src/operations/proof/code-certificates.js";
 import type { OperationContext } from "../../src/public/operations/runtime-types.js";
@@ -17,9 +18,14 @@ afterAll(() => rmSync(root, { recursive: true, force: true }));
 mkdirSync(path.join(root, "src"), { recursive: true });
 for (const file of ["a.ts", "b.ts", "c.ts", "d.ts", "e.ts", "skip.ts"])
   writeFileSync(path.join(root, "src", file), "export const x = 1;\n");
+mkdirSync(path.join(root, "with space"), { recursive: true });
+writeFileSync(path.join(root, "with space", "run.sh"), "echo hi\n");
 
 const CLAIM = "CLAIM-0000000000000S01";
 const REQ = "REQ-SCOPE";
+
+/** The claim's fact (subject key and claim text); undefined: not in the KB. */
+let factRow: { subject: string; claim: string } | undefined;
 
 /** Where each symbol's source lies; a symbol missing here is not in the KB. */
 const SYMBOL_FILES: Record<string, string> = {
@@ -74,6 +80,16 @@ function contextWith(
           };
         }
         const id = /kb_entity\('([^']+)'/.exec(goal)?.[1] ?? "";
+        if (id === "FACT-SCOPE")
+          return {
+            success: true,
+            bindings: {
+              Results:
+                factRow === undefined
+                  ? "[]"
+                  : `[['${id}',fact,[subject_key="${factRow.subject}",claim_text="${factRow.claim}"]]]`,
+            },
+          };
         const file = SYMBOL_FILES[id];
         return {
           success: true,
@@ -208,6 +224,73 @@ describe("a references read covers the code its claims are about", () => {
     await expect(
       judge(contextWith([], "eq", "fail-silent"), contract, ["SYM-A"]),
     ).rejects.toThrow("implements relationship query failed: Unknown error");
+  });
+});
+
+describe("a references read includes the files its claim names", () => {
+  afterAll(() => {
+    factRow = undefined;
+  });
+
+  test("rejects a claim about a file the read does not include", async () => {
+    factRow = { subject: "b.ts", claim: "src/b.ts never reads KIBI_HOME" };
+    const binding = await judge(
+      contextWith([]),
+      referencesContract({ files: ["src/a.ts"] }),
+      [],
+    );
+    expect(binding).toMatchObject({
+      binding: "rejected",
+      reason:
+        "the claim is about b.ts (src/b.ts), which the read does not include. Kibi decides the claim only on the files it reads, so add that file to files; if Kibi cannot read it, the claim cannot be decided",
+    });
+  });
+
+  test("derives the claim when the named file is read", async () => {
+    factRow = { subject: "b.ts", claim: "./src/b.ts never reads KIBI_HOME." };
+    const binding = await judge(
+      contextWith([]),
+      referencesContract({ files: ["src/b.ts"] }),
+      [],
+    );
+    expect(binding).toMatchObject({ binding: "derived", scope: "source" });
+  });
+
+  test("ignores names that are no project file", async () => {
+    factRow = { subject: "kibi.cli", claim: "kibi.cli never reads missing.ts" };
+    const binding = await judge(
+      contextWith([]),
+      referencesContract({ files: ["src/a.ts"] }),
+      [],
+    );
+    expect(binding).toMatchObject({ binding: "derived", scope: "source" });
+  });
+
+  test("resolves a path first, then a file name anywhere in the project", () => {
+    expect([
+      ...namedClaimFiles(root, ["src/c.ts and d.ts", "src/c.ts", "*.ts", "x"]),
+    ]).toEqual([
+      ["src/c.ts", ["src/c.ts"]],
+      ["d.ts", ["src/d.ts"]],
+    ]);
+  });
+
+  test("resolves a repository prefix, other case, a missing extension and spaces", () => {
+    expect([...namedClaimFiles(root, ["repo/src/e.ts"])]).toEqual([
+      ["repo/src/e.ts", ["src/e.ts"]],
+    ]);
+    expect([...namedClaimFiles(root, ["SRC/E.TS"])]).toEqual([
+      ["SRC/E.TS", ["src/e.ts"]],
+    ]);
+    expect([...namedClaimFiles(root, ["src/skip never runs"])]).toEqual([
+      ["src/skip", ["src/skip.ts"]],
+    ]);
+    expect(
+      namedClaimFiles(root, ["`with space/run.sh` never calls eval"]).get(
+        "with space/run.sh",
+      ),
+    ).toEqual(["with space/run.sh"]);
+    expect([...namedClaimFiles(root, ["kibi.cli", "os/exec"])]).toEqual([]);
   });
 });
 

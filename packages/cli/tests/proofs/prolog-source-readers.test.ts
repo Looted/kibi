@@ -493,42 +493,57 @@ i :- format(user_error, "~\`-t~30|~+~~~n", []).
     ).toEqual({ ok: true, model: { members: ["helpers", "library(lists)"] } });
   });
 
-  test("resolves an include through a project alias to the one listed file it names", async () => {
+  test("resolves an include through the alias the files read declare", async () => {
     const root = workspace({
       "src/dec.pl":
         ":- module(dec, []).\n:- include(bson(include/common)).\nd :- throw(bson_error(x)).\n",
+      "src/load.pl":
+        ":- multifile user:file_search_path/2.\n:- dynamic user:file_search_path/2.\n:- prolog_load_context(directory, Dir), asserta(user:file_search_path(bson, Dir)).\n",
       "src/include/common.pl":
         ":- encoding(utf8).\nc :- throw(common_error).\n",
-      "other/include/common.pl": "c2.\n",
       "src/uses.pl": ":- use_module(bson(nothere)).\n",
     });
     const alone = await read(root, {
       reader: "references",
-      files: "src/dec.pl",
+      files: ["src/dec.pl", "src/load.pl"],
       extract: "thrown",
     });
     expect(alone.ok).toBe(false);
-    if (!alone.ok)
+    if (!alone.ok) {
       expect(alone.reason).toContain(
         "src/dec.pl:2 :-include(bson(include/common))",
       );
+      // The refusal names the file the declaration resolves to.
+      expect(alone.reason).toContain("add src/include/common.pl to files:");
+    }
     expect(
       await read(root, {
         reader: "references",
-        files: ["src/dec.pl", "src/include/common.pl"],
+        files: ["src/dec.pl", "src/load.pl", "src/include/common.pl"],
         extract: "thrown",
       }),
     ).toEqual({ ok: true, model: { members: ["bson_error", "common_error"] } });
-    // Two listed files end with the aliased path: which one the alias names is not known.
-    const both = await read(root, {
-      reader: "references",
-      files: ["src/dec.pl", "src/include/common.pl", "other/include/common.pl"],
-      extract: "thrown",
-    });
-    expect(both.ok).toBe(false);
+    // A fact and a clause body read the same way.
+    for (const declaration of [
+      `user:file_search_path(bson, '${root}/src').\n`,
+      "user:file_search_path(bson, Dir) :- prolog_load_context(directory, Dir).\n",
+      "file_search_path(proj, Dir) :- prolog_load_context(directory, Dir).\nfile_search_path(bson, proj('.')).\n",
+    ]) {
+      writeFileSync(path.join(root, "src/load.pl"), declaration);
+      expect(
+        await read(root, {
+          reader: "references",
+          files: ["src/dec.pl", "src/load.pl", "src/include/common.pl"],
+          extract: "thrown",
+        }),
+      ).toEqual({
+        ok: true,
+        model: { members: ["bson_error", "common_error"] },
+      });
+    }
     const uses = await read(root, {
       reader: "references",
-      files: "src/uses.pl",
+      files: ["src/uses.pl", "src/load.pl"],
       extract: "env",
     });
     expect(uses.ok).toBe(false);
@@ -536,6 +551,215 @@ i :- format(user_error, "~\`-t~30|~+~~~n", []).
       expect(uses.reason).toContain(
         "src/uses.pl:1 :-use_module(bson(nothere))",
       );
+  });
+
+  test("refuses an aliased include the files read do not resolve to one file", async () => {
+    const root = workspace({
+      "src/dec.pl":
+        ":- module(dec, []).\n:- include(bson(include/common)).\nd.\n",
+      "src/include/common.pl": "c(V) :- getenv('REAL_SECRET', V).\n",
+      "vendor/include/common.pl": "c2.\n",
+      // The real target: the alias is declared where Kibi does not read it.
+      "node_modules/bsonpl/include/common.pl":
+        "c(V) :- getenv('REAL_SECRET', V).\n",
+      "boot.pl":
+        ":- prolog_load_context(directory, D), directory_file_path(D, 'node_modules/bsonpl', B), asserta(user:file_search_path(bson, B)).\n",
+    });
+    // A copy that only ends with the aliased path is not the include.
+    for (const files of [
+      ["src/dec.pl"],
+      ["src/dec.pl", "vendor/include/common.pl"],
+      ["src/dec.pl", "src/include/common.pl"],
+      ["src/dec.pl", "src/include/common.pl", "vendor/include/common.pl"],
+    ]) {
+      const result = await read(root, {
+        reader: "references",
+        files,
+        extract: "env",
+      });
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.reason).toContain(
+          "src/dec.pl:2 :-include(bson(include/common))",
+        );
+        expect(result.reason).toContain("file_search_path(bson");
+        expect(result.reason).not.toContain("vendor/include/common.pl");
+        expect(result.reason).not.toContain("add src/include/common.pl");
+      }
+    }
+    // Read with its declaration, the alias names the node_modules copy,
+    // which proofs never read: refused, and no file is offered to add.
+    const declared = await read(root, {
+      reader: "references",
+      files: ["src/dec.pl", "boot.pl", "vendor/include/common.pl"],
+      extract: "env",
+    });
+    expect(declared.ok).toBe(false);
+    if (!declared.ok) {
+      expect(declared.reason).toContain(
+        "names node_modules/bsonpl/include/common.pl, which lies outside the files Kibi reads",
+      );
+      expect(declared.reason).not.toContain("to files:");
+      expect(declared.reason).not.toContain("vendor/include/common.pl");
+    }
+    // A relative directory depends on the working directory at run time, and a
+    // declaration Kibi cannot evaluate could name any directory.
+    for (const declaration of [
+      "user:file_search_path(bson, src).\n",
+      "user:file_search_path(bson, D) :- getenv('BSON_HOME', D).\n",
+      "user:file_search_path(bson, library(bson)).\n",
+    ]) {
+      writeFileSync(path.join(root, "boot.pl"), declaration);
+      const result = await read(root, {
+        reader: "references",
+        files: ["src/dec.pl", "boot.pl", "src/include/common.pl"],
+        extract: "env",
+      });
+      expect(result.ok).toBe(false);
+      if (!result.ok)
+        expect(result.reason).toContain(
+          "src/dec.pl:2 :-include(bson(include/common))",
+        );
+    }
+    // Two declared directories that both hold the file: refused, naming both.
+    writeFileSync(
+      path.join(root, "boot.pl"),
+      `user:file_search_path(bson, '${root}/src').\nuser:file_search_path(bson, '${root}/vendor').\n`,
+    );
+    const both = await read(root, {
+      reader: "references",
+      files: ["src/dec.pl", "boot.pl", "src/include/common.pl"],
+      extract: "env",
+    });
+    expect(both.ok).toBe(false);
+    if (!both.ok) {
+      expect(both.reason).toContain("src/include/common.pl");
+      expect(both.reason).toContain("vendor/include/common.pl");
+    }
+  });
+
+  test("says which file to add to files: for a relative include", async () => {
+    const root = workspace({
+      "prolog/main.pl": ":- include(inc).\n",
+      "prolog/inc.pl": "x(V) :- getenv('A', V).\n",
+    });
+    const result = await read(root, {
+      reader: "references",
+      files: "prolog/main.pl",
+      extract: "env",
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok)
+      expect(result.reason).toContain("add prolog/inc.pl to files:");
+  });
+
+  test("reads goals in message lines and message rules, or refuses them", async () => {
+    const root = workspace({
+      "prolog/lines.pl": `:- module(lines, []).
+:- multifile prolog:message//1.
+a :- print_message_lines(user_error, '', ['~@'-[getenv('A', _)]]).
+b :- print_message_lines(user_error, kind(error), [ansi(bold, "~@", [getenv('B', _)]), nl, prefix('~@'-[getenv('C', _)])]).
+c :- ansi_format([bold], "~@", [getenv('D', _)]).
+d(S) :- sformat(S, "~@", [getenv('E', _)]).
+prolog:message(m) --> [ '~@'-[getenv('F', _)], nl, url(x, '~@'-[getenv('G', _)]) ].
+prolog:message(n) --> helper.
+prolog:message(ok(X)) --> [ 'ok ~w'-[X], nl, flush ].
+helper --> [ '~@'-[getenv('H', _)] ].
+digits([D|T]) --> [D], digits(T).
+digits([]) --> [].
+`,
+      "prolog/throws.pl": `t :- print_message_lines(user_error, '', ['~@'-[throw(t_bad)]]).
+prolog:message(x) --> [ '~@'-[throw(m_bad)] ].
+`,
+      "prolog/var_lines.pl":
+        "a(L) :- print_message_lines(user_error, '', L).\n",
+      "prolog/var_line.pl":
+        "a(X) :- print_message_lines(user_error, '', [x, X]).\n",
+      "prolog/var_goal.pl":
+        "a(G) :- print_message_lines(user_error, '', ['~@'-[G]]).\n",
+      "prolog/var_rule.pl": "prolog:message(f(F, A)) --> [F-A].\n",
+    });
+    expect(
+      await read(root, {
+        reader: "references",
+        files: "prolog/lines.pl",
+        extract: "env",
+      }),
+    ).toEqual({
+      ok: true,
+      model: { members: ["A", "B", "C", "D", "E", "F", "G", "H"] },
+    });
+    expect(
+      await read(root, {
+        reader: "references",
+        files: "prolog/throws.pl",
+        extract: "thrown",
+      }),
+    ).toEqual({ ok: true, model: { members: ["m_bad", "t_bad"] } });
+    for (const [file, place] of [
+      [
+        "var_lines",
+        "prolog/var_lines.pl:1 print_message_lines(user_error,'',L)",
+      ],
+      [
+        "var_line",
+        "prolog/var_line.pl:1 print_message_lines(user_error,'',[x,X])",
+      ],
+      ["var_goal", "prolog/var_goal.pl:1"],
+      ["var_rule", "prolog/var_rule.pl:1"],
+    ] as const) {
+      const result = await read(root, {
+        reader: "references",
+        files: `prolog/${file}.pl`,
+        extract: "env",
+      });
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.reason).toContain(place);
+    }
+  });
+
+  test("reads a {Goal} grammar body handed to phrase or call_dcg", async () => {
+    const root = workspace({
+      "prolog/dcg.pl": `a(L) :- call_dcg({getenv('A', _)}, L, _).
+b(L) :- phrase(({getenv('B', _)}, "x"), L).
+c(L) :- phrase({throw(c_bad)}, L).
+d(L) :- phrase(lines:digits(_), L).
+`,
+      "prolog/open.pl": "a(B, L) :- phrase(B, L).\n",
+    });
+    expect(
+      await read(root, {
+        reader: "references",
+        files: "prolog/dcg.pl",
+        extract: "env",
+      }),
+    ).toEqual({ ok: true, model: { members: ["A", "B"] } });
+    expect(
+      await read(root, {
+        reader: "references",
+        files: "prolog/dcg.pl",
+        extract: "thrown",
+      }),
+    ).toEqual({ ok: true, model: { members: ["c_bad"] } });
+    const calls = await read(root, {
+      reader: "references",
+      files: "prolog/dcg.pl",
+      extract: "calls",
+    });
+    expect(calls.ok).toBe(true);
+    if (calls.ok) {
+      expect(calls.model.members).toEqual(
+        expect.arrayContaining(["getenv/2", "throw/1", "lines:digits/3"]),
+      );
+      expect(calls.model.members).not.toContain("{}/3");
+    }
+    const open = await read(root, {
+      reader: "references",
+      files: "prolog/open.pl",
+      extract: "env",
+    });
+    expect(open.ok).toBe(false);
+    if (!open.ok) expect(open.reason).toContain("prolog/open.pl:1 phrase(B,L)");
   });
 
   test("lists autoloaded libraries and writes library specs one way", async () => {

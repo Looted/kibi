@@ -123,7 +123,8 @@ bun test ./scripts/tests/dogfood-config.test.ts
 - Reload Cursor
 
 **Hooks do not fire:**
-- Confirm `packages/cursor/dist/hook-runner.js` exists
+- Repo dogfood (`.cursor/hooks.json`): confirm `packages/cursor/dist/hook-runner.js` exists
+- Installed plugin (`hooks/hooks.json`): it runs the committed, self-contained `bin/hook-runner.mjs`; after changing `src/` or `kibi-agent-core`, run `bun run --filter kibi-cursor build:hook-bundle`
 - Check the Hooks output channel in Cursor
 - Reload Cursor after `hooks.json` changes
 

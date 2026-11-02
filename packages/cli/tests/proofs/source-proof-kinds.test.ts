@@ -685,6 +685,145 @@ describe("references the code makes", () => {
     });
   });
 
+  test("Python refuses os reached through a module's private name", async () => {
+    // tempfile, random and threading bind os as _os: tempfile._os is os.
+    for (const [text, extracts] of [
+      ["from tempfile import _os\n", ["imports", "calls", "env"]],
+      ["from random import _os as o\n", ["imports", "calls", "env"]],
+      ["from .main import _subprocess\n", ["imports", "calls"]],
+      ['from tempfile import _os\n_os.system("x")\n', ["imports", "calls"]],
+      [
+        'import tempfile\ntempfile._os.system("echo hi")\n',
+        ["imports", "calls"],
+      ],
+      ['import threading\nthreading._os.popen("ls")\n', ["calls"]],
+      ['import tempfile\ntempfile._os.popen("ls")\n', ["calls"]],
+      ["import tempfile\nm = tempfile._os\n", ["imports", "calls", "env"]],
+    ] as const) {
+      for (const extract of extracts) {
+        const result = await pythonRead(text, extract);
+        expect(result.ok).toBe(false);
+        if (!result.ok) expect(result.reason).toMatch(/py\/case\.py:\d/);
+      }
+    }
+    // os's and sys's own private names are read as written, and so is a
+    // private name of a project module that is not a module Kibi follows.
+    expect(
+      await pythonRead(
+        "import os\nfrom .util import _helper\nos._exit(0)\n_helper()\n",
+        "calls",
+      ),
+    ).toEqual({
+      ok: true,
+      model: { members: [".util._helper", "_helper", "os._exit"] },
+    });
+  });
+
+  test("Python refuses reflection on a module and a module bound to another name", async () => {
+    // getattr(tempfile, "_os"), vars(tempfile)["_os"] and _t = tempfile; _t._os all reach os.
+    for (const text of [
+      'import tempfile\ngetattr(tempfile, "_os").path.expanduser("~")\n',
+      'import shutil\ngetattr(shutil, "os").system("x")\n',
+      'import tempfile\nvars(tempfile)["_os"].system("x")\n',
+      'import tempfile\ntempfile.__dict__["_os"].system("x")\n',
+      'import tempfile\n_t = tempfile\n_t._os.path.expanduser("~")\n',
+      'import shutil\n_m = shutil\n_m.os.system("x")\n',
+      "import tempfile as tf\ndef f():\n    return tf\nf()._os\n",
+      'import tempfile\nm = [tempfile][0]\nm._os.system("x")\n',
+      'from os import path\np = path\np.os.system("x")\n',
+      'from importlib import resources as r\nx = r\nx._os.system("x")\n',
+      'import os\np = os.path\np.os.system("x")\n',
+      'from .helpers import h\nx = h\nx._os.system("x")\n',
+      'import tempfile\nglobals()["tempfile"]._os.system("x")\n',
+      'import sys\nsys.modules["tempfile"]._os.system("x")\n',
+    ]) {
+      for (const extract of ["imports", "calls", "env"]) {
+        const result = await pythonRead(text, extract);
+        expect(result.ok).toBe(false);
+        if (!result.ok) expect(result.reason).toMatch(/py\/case\.py:\d/);
+      }
+    }
+    // A class or function used as a value, and an attribute that is not a module, are read.
+    expect(
+      await pythonRead(
+        "from pathlib import Path\nfrom dataclasses import dataclass\nimport os\n@dataclass\nclass C:\n    pass\nisinstance(1, Path)\nsep = os.sep\n",
+        "imports",
+      ),
+    ).toEqual({
+      ok: true,
+      model: {
+        members: [
+          "dataclasses",
+          "dataclasses.dataclass",
+          "os",
+          "pathlib",
+          "pathlib.Path",
+        ],
+      },
+    });
+  });
+
+  test("Python reads posix and nt as os", async () => {
+    // os re-exports posix (nt on Windows): posix.system is os.system.
+    for (const [text, expected] of [
+      ['import posix\nposix.system("x")\n', ["os.system", "posix.system"]],
+      [
+        'from posix import system\nsystem("x")\n',
+        ["os.system", "posix.system", "system"],
+      ],
+      ['import nt as n\nn.popen("x")\n', ["n.popen", "nt.popen", "os.popen"]],
+      [
+        "from posix import system\nf = system\n",
+        ["os.system", "posix.system", "system"],
+      ],
+    ] as const) {
+      expect(await pythonRead(text, "calls")).toEqual({
+        ok: true,
+        model: { members: [...expected] },
+      });
+    }
+    expect(
+      await pythonRead(
+        'import posix\nfrom nt import popen\nposix.system("x")\n',
+        "imports",
+      ),
+    ).toEqual({
+      ok: true,
+      model: { members: ["nt", "nt.popen", "os", "os.popen", "posix"] },
+    });
+    expect(
+      await pythonRead(
+        'import posix\nposix.system("x")\n',
+        "string_args",
+        "os.system",
+      ),
+    ).toEqual({ ok: true, model: { members: ["x"] } });
+  });
+
+  test("Python refuses foreign function calls through ctypes and cffi", async () => {
+    for (const text of [
+      'import ctypes\nctypes.CDLL(None).getenv(b"X")\n',
+      'import ctypes\nlibc = ctypes.CDLL(None)\nlibc.getenv(b"X")\n',
+      'from ctypes import CDLL\nCDLL(None).getenv(b"X")\n',
+      'import ctypes as c\nc.cdll.LoadLibrary("libc.so.6").getenv(b"X")\n',
+      "import ctypes\nctypes.pythonapi.Py_GetVersion()\n",
+      'import cffi\nffi = cffi.FFI()\nffi.dlopen(None).getenv(b"X")\n',
+      'from cffi import FFI\nFFI().dlopen(None).getenv(b"X")\n',
+      'from ctypes import *\nCDLL(None).getenv(b"X")\n',
+      'import _ctypes\n_ctypes.dlopen("libc.so.6")\n',
+    ]) {
+      for (const extract of ["env", "calls"]) {
+        const result = await pythonRead(text, extract);
+        expect(result.ok).toBe(false);
+        if (!result.ok) expect(result.reason).toMatch(/py\/case\.py:\d/);
+      }
+    }
+    expect(await pythonRead("import ctypes\n", "imports")).toEqual({
+      ok: true,
+      model: { members: ["ctypes"] },
+    });
+  });
+
   test("Python calls through an alias are listed under what they name, too", async () => {
     expect(
       await pythonRead(
