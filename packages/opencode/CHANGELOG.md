@@ -1,5 +1,18 @@
 # kibi-opencode
 
+## 3.1.3
+
+### Patch Changes
+
+- f9ec786: Usage telemetry events now carry a `channel`: `release` for an installed Kibi package, `source` when Kibi runs from a checkout of its own repository, or the value of `KIBI_TELEMETRY_CHANNEL` when a harness sets one (for example `agent-test`). Development and test runs can then be filtered out of real usage. Nothing else about what is sent changes.
+- Updated dependencies [048d1c9]
+- Updated dependencies [4b4e7cb]
+- Updated dependencies [79c86a7]
+- Updated dependencies [f9ec786]
+- Updated dependencies [f53950a]
+  - kibi-runtime@2.28.0
+  - kibi-agent-core@0.11.1
+
 ## 3.1.2
 
 ### Patch Changes
