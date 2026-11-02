@@ -267,12 +267,12 @@
     {
       "path": "dist/references-c.d.ts.map",
       "bytes": 547,
-      "sha256": "abfb86b0eab1a3e30e04b2e9f3c117dbc567e87020424b980dab628d33628c64"
+      "sha256": "05d3c177a55cfa717c8c0cd68dd0453a5274d4c2a6c651de0a4d649cfdc64690"
     },
     {
       "path": "dist/references-c.js",
-      "bytes": 42324,
-      "sha256": "fcaa89d3081f429738e5b9678ec889f258b294ab637c45b0c9d65b95341c82fd"
+      "bytes": 42283,
+      "sha256": "378a5cb9e1fc2ebfeda37cc9a11408cda67c367e3465f5e06da0573206de3c1c"
     },
     {
       "path": "dist/references-hcl.d.ts",
@@ -282,12 +282,12 @@
     {
       "path": "dist/references-hcl.d.ts.map",
       "bytes": 382,
-      "sha256": "3e752aa0db5b10f6f376320aa0e54afbfdf0d29819d825d52988274c88de19e7"
+      "sha256": "cbbe441f627f188c38426d6a10c4cb95cdac53949d84781bf5af06bd313ffa24"
     },
     {
       "path": "dist/references-hcl.js",
-      "bytes": 27317,
-      "sha256": "b5ab0f854154c48e77d5594485f0f92e991e12b1d41439af76278fca46c1fc8c"
+      "bytes": 27253,
+      "sha256": "be6aca1b8e95605fedaaccbb45f44781cbf69ee2c8088ab67dd5cc85494fd77f"
     },
     {
       "path": "dist/references-php.d.ts",
@@ -301,8 +301,8 @@
     },
     {
       "path": "dist/references-php.js",
-      "bytes": 80333,
-      "sha256": "a1714be8ad3e240e0ac4330dacaeb4184461adb8ec0fcfdf65382c6bd9f8fc04"
+      "bytes": 80403,
+      "sha256": "c635e9b652737415a51ee2de004dc3435d7795d63c4203c9aad7c2696156ff37"
     },
     {
       "path": "dist/references.d.ts",

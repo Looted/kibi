@@ -340,11 +340,9 @@ function blankLiterals(text: string): string {
   while (index < text.length) {
     const char = text[index] as string;
     const next = text[index + 1];
-    if (char === "/" && next === "*") {
-      const end = text.indexOf("*/", index + 2);
-      index = end === -1 ? text.length : end + 2;
-      out += " ";
-    } else if (char === "/" && next === "/") {
+    // A block comment ends a macro's value in the grammar (text after it on
+    // the line fails the parse), so only line comments reach here.
+    if (char === "/" && next === "/") {
       const end = text.indexOf("\n", index);
       index = end === -1 ? text.length : end;
       out += " ";

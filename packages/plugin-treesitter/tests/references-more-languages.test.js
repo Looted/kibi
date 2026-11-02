@@ -2959,4 +2959,89 @@ describe("script-language constructs of the third round", () => {
       ["RuntimeException"],
     );
   });
+
+  it("reads the plain cases next to the round-three rules", async () => {
+    // Comments in a macro body are blanked, not read as code.
+    assert.deepEqual(
+      (
+        await c(
+          '#define RUN(c) /* "run" */ system(c) // go\nvoid f(void) { RUN("x"); }',
+          "calls",
+        )
+      ).members,
+      ["RUN", "system"],
+    );
+    // Text after a block comment on a #define line is the macro's body,
+    // which the grammar cannot place: the read fails.
+    assert.equal(
+      (
+        await raw(
+          "src/a.c",
+          "#define B 1 /* y */ int z;\nvoid f(void) { }\n",
+          "calls",
+        )
+      ).status,
+      "failed",
+    );
+    // A bare statement and an earlier statement of `({ ... })` are no value.
+    assert.deepEqual(
+      (await c("void f(void) { system; (void)({ abort; 0; }); }", "calls"))
+        .members,
+      [],
+    );
+    // Typed defaults that keep number and bool values.
+    assert.deepEqual(
+      (
+        await read(
+          "main.tf",
+          'variable "v" {\n  type    = object({ n = number, b = bool })\n  default = { n = 1, b = true }\n}\n',
+          "property",
+          { key: "n" },
+        )
+      ).members,
+      ["1"],
+    );
+    assert.deepEqual(
+      (
+        await read(
+          "main.tf",
+          'variable "v" {\n  type    = object({ n = number, b = bool })\n  default = { n = 1, b = true }\n}\n',
+          "property",
+          { key: "b" },
+        )
+      ).members,
+      ["true"],
+    );
+    for (const type of ["bool", "list"])
+      assert.ok(
+        (
+          await read(
+            "main.tf",
+            `variable "v" {\n  type    = object({ n = ${type} })\n  default = { n = 1 }\n}\n`,
+            "property",
+            { key: "n" },
+          )
+        ).lines.length > 0,
+        type,
+      );
+    // Bytes that are not UTF-8 cannot be spelled.
+    assert.ok(
+      (await php('$o = ["k" => "\\xff"];', "property", { key: "k" })).lines
+        .length > 0,
+    );
+    // `'getenv'` as an array key or subscript names no getter.
+    assert.deepEqual(
+      await php("$m = ['getenv' => 1]; $x = $m['getenv']; getenv('A');", "env"),
+      { members: ["A"], lines: [], rows: [] },
+    );
+    // A bound closure elsewhere leaves a method's `self` its class.
+    assert.ok(
+      (
+        await php(
+          "$f = Closure::bind(fn () => 1, null, null);\nclass A { function f() { self::run(); } }",
+          "calls",
+        )
+      ).members.includes("A::run"),
+    );
+  });
 });

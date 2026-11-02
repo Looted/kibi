@@ -2070,20 +2070,22 @@ export function phpReferences(
 }
 
 function insideClosure(node: Node): boolean {
-  for (let current = node.parent; current !== null; current = current.parent) {
+  // A class, method or function between the closure and `node` is the
+  // scope `self` belongs to.
+  for (
+    let current = node.parent;
+    current !== null &&
+    !/^(?:class_declaration|method_declaration|function_definition)$/.test(
+      current.type,
+    );
+    current = current.parent
+  )
     if (
       current.type === "anonymous_function" ||
       current.type === "arrow_function" ||
       current.type === "anonymous_function_creation_expression"
     )
       return true;
-    if (
-      /^(?:class_declaration|method_declaration|function_definition)$/.test(
-        current.type,
-      )
-    )
-      return false;
-  }
   return false;
 }
 

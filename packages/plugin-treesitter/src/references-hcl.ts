@@ -545,8 +545,6 @@ export function hclProperty(
           }
           return false;
         }
-        case "block":
-          return false;
       }
     }
     return false;
