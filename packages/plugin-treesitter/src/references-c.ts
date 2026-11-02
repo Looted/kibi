@@ -434,7 +434,8 @@ export function cReferences(
   });
 
   // Macros, by name and range, and every name the file declares.
-  // Stryker disable next-line ArrayDeclaration: rationale: a string in the list has no name, so no lookup finds it.
+  // rationale: a string in the list has no name, so no lookup finds it.
+  // Stryker disable next-line ArrayDeclaration
   const macros: Macro[] = [];
   const variables = new Set<string>();
   // Variables of a function: a local pointer may share a function's name.

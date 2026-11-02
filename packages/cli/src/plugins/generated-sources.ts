@@ -92,7 +92,8 @@ export function gitAttributeVerdicts(
         cwd: workspaceRoot,
         encoding: "utf8",
         input: `${files.join("\0")}\0`,
-        // Stryker disable next-line ArrayDeclaration: [] pipes stderr into the discarded result instead of ignoring it; with stdio given, neither reaches the terminal
+        // rationale: [] pipes stderr into the discarded result instead of ignoring it; with stdio given, neither reaches the terminal
+        // Stryker disable next-line ArrayDeclaration
         stdio: ["pipe", "pipe", "ignore"],
         maxBuffer: 64 * 1024 * 1024,
       },
@@ -240,7 +241,8 @@ export function kbReferencedFiles(
 ): ReadonlySet<string> {
   const referenced = new Set<string>();
   for (const kbFile of kbFiles) {
-    // Stryker disable next-line ConditionalExpression: once every candidate is found the rest of the KB is not read; the result is the same either way
+    // rationale: once every candidate is found the rest of the KB is not read; the result is the same either way
+    // Stryker disable next-line ConditionalExpression
     if (referenced.size === candidates.length) break;
     let text: string;
     try {

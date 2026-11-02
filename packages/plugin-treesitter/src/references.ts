@@ -3092,9 +3092,9 @@ function rustAttributeParts(node: Node): RustAttributePart[] | null {
   const after = attribute.children
     .filter((child) => child.id !== head.id)
     .map((child) => rustTokens(child));
-  // At most `= value` or one token tree follows the path, so the separator
+  // rationale: At most `= value` or one token tree follows the path, so the separator
   // never stands between two words.
-  // Stryker disable next-line StringLiteral: rationale: see the lines above.
+  // Stryker disable next-line StringLiteral
   const tokens = after.join(" ");
   return rustAttributeExpand({
     path: plainName(rustRaw(head.text)),
@@ -3908,9 +3908,9 @@ export function extractReferences(
       message: `line ${broken.startPosition.row + 1} is not valid ${name}`,
     };
   const { extract, path } = request;
-  // No name a reader compares the callee with is empty or holds a space, so
+  // rationale: No name a reader compares the callee with is empty or holds a space, so
   // an absent callee matches nothing whatever string stands for it.
-  // Stryker disable next-line StringLiteral: rationale: see the line above.
+  // Stryker disable next-line StringLiteral
   const callee = request.callee ?? "";
   const key = request.key ?? "";
   if (language === "terraform" || language === "hcl") {

@@ -43,6 +43,7 @@
     "test": "bun run test:unit && bun run test:e2e:local",
     "test:unit": "bun ./test/root.test.ts",
     "test:mutation": "stryker run",
+    "test:mutation:treesitter": "stryker run stryker.treesitter.conf.mjs",
     "test:coverage:unit": "bun run scripts/run-unit-coverage.ts",
     "proof:run": "bun packages/cli/bin/kibi prove --all",
     "proof:gate": "sh scripts/proof-gate.sh",

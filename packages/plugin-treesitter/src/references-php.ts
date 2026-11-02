@@ -1348,7 +1348,8 @@ export function phpReferences(
 
   /** The keys of an array literal, with the implicit ones PHP numbers. */
   const arrayEntries = (node: Node): ArrayEntry[] | null => {
-    // Stryker disable next-line ArrayDeclaration: every caller reads only entries' fields, so a stray non-entry element is ignored.
+    // rationale: every caller reads only entries' fields, so a stray non-entry element is ignored.
+    // Stryker disable next-line ArrayDeclaration
     const entries: ArrayEntry[] = [];
     let next = 0n;
     // While every integer key is negative (`next` is still 0), the next
