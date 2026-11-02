@@ -16,7 +16,8 @@
  * normal conditional-compilation finding still covers it.
  */
 
-const DIRECTIVE = /^\s*#\s*(\w+)\b(.*)$/;
+// `%:` and `??=` (a digraph and a trigraph) also start a directive.
+const DIRECTIVE = /^\s*(?:#|%:|\?\?=)\s*(\w+)\b(.*)$/;
 
 /** The file with comments blanked and string literals kept, line by line. */
 function codeLines(content: string): string[] {
@@ -31,9 +32,18 @@ function codeLines(content: string): string[] {
       out += content.slice(index, stop).replace(/[^\n]/g, " ");
       index = stop;
     } else if (char === "/" && next === "/") {
-      let stop = content.indexOf("\n", index);
-      if (stop === -1) stop = content.length;
-      out += " ".repeat(stop - index);
+      // A backslash at the end of the line continues the comment.
+      let stop = index;
+      for (;;) {
+        stop = content.indexOf("\n", stop);
+        if (stop === -1) {
+          stop = content.length;
+          break;
+        }
+        if (!/\\\r?$/.test(content.slice(index, stop))) break;
+        stop += 1;
+      }
+      out += content.slice(index, stop).replace(/[^\n]/g, " ");
       index = stop;
     } else if (char === '"' || char === "'") {
       let stop = index + 1;
@@ -133,10 +143,14 @@ export function blankHeaderIdioms(content: string): string {
         : GUARD_OPEN.exec(`${open.name} ${open.rest}`.trim());
     const name = guard?.[1] ?? guard?.[2] ?? guard?.[3];
     const define = directiveAt(code, second);
+    // The guard's own `#define G` (or `G 1`, `G G`) defines nothing the code uses;
+    // a guard name with any other body is a macro of the file.
+    const words = define?.rest.split(/\s+/) ?? [];
     if (
       name !== undefined &&
       define?.name === "define" &&
-      define.rest.split(/\s+/)[0] === name &&
+      words[0] === name &&
+      (words.length === 1 || (words.length === 2 && (words[1] === "1" || words[1] === name))) &&
       !define.rest.endsWith("\\") &&
       plainEndif(code, first) === last
     ) {

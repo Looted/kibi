@@ -12,7 +12,7 @@ const extractor = createTreeSitterReferenceExtractor();
 
 /** Rows the host drops once it has looked at the project's other files. */
 const HOST_ROW =
-  /^(?:\w+ may be a function of namespace [\w\\]+|.+? may define macros this file uses|.+? may be Illuminate\\Support\\Env or a class that extends it): /;
+  /^(?:\w+ may be a function of namespace [\w\\]+|.+? may define macros or function pointers this file uses|.+? may be Illuminate\\Support\\Env or a class that extends it): /;
 
 async function raw(path, content, extract, options = {}) {
   const result = await extractor.extract({
@@ -1128,7 +1128,7 @@ describe("C reference reader", () => {
     assert.deepEqual(env.members, []);
     // After `#define getenv my_getenv`, GE("A") and getenv(name) call my_getenv.
     assert.deepEqual(env.lines, [9, 11, 12, 13, 16, 20, 21, 25]);
-    assert.match(env.rows[0], /^local\.h may define macros this file uses: /);
+    assert.match(env.rows[0], /^local\.h may define macros or function pointers this file uses: /);
     const calls = await read("src/a.c", tricky, "calls");
     assert.deepEqual(calls.lines, [11, 12, 13, 17, 20, 21, 25]);
     assert.ok(calls.members.includes("my_getenv"));
@@ -1236,6 +1236,88 @@ describe("C reference reader", () => {
   });
 });
 
+describe("C constructs Kibi must not misread", () => {
+  const c = (content, extract, options = {}) => read("a.c", `${content}\n`, extract, options);
+  const ok = (members) => ({ members, lines: [], rows: [] });
+
+  it("refuses what macros may decide", async () => {
+    for (const [content, extract] of [
+      ["#ifndef run_task\n#define run_task system\nint main(void) { return run_task(\"rm\"); }\n#endif", "calls"],
+      ["#ifndef lookup\n#define lookup getenv\nint main(void) { return lookup(\"K\") != 0; }\n#endif", "env"],
+      ["#define exit(c) abort()\n#ifdef NDEBUG\n#undef exit\n#endif\nint main(void) { exit(1); }", "calls"],
+      ["#pragma push_macro(\"log_line\")\nvoid f(void) { log_line(\"x\"); }", "calls"],
+      ["char *(*lookup_fn)(const char*);\n#define LOOKUP(n) lookup_fn(n)\nint main(void) { return LOOKUP(\"K\") != 0; }", "env"],
+      ["#define getenv(n) cfg_get(n)\nvoid f(void) { register_lookup(getenv); }", "env"],
+    ])
+      assert.ok((await c(content, extract)).lines.length > 0, content);
+    assert.deepEqual(
+      await c("#define getenv(n) \"fake\"\n#undef getenv // back to real\nint main(void) { return getenv(\"SECRET\") != 0; }", "env"),
+      ok(["SECRET"]),
+    );
+  });
+
+  it("lists every function a macro body may call or hand on", async () => {
+    for (const [content, expected] of [
+      ["#define RUN (system)\nint main(void) { return RUN(\"x\"); }", ["RUN", "system"]],
+      ["#define RUN ((int (*)(const char *))system)\nvoid f(void) { RUN(\"x\"); }", ["RUN", "system"]],
+      ["#define RUN(c) system \\\n(c)\nvoid f(void) { RUN(\"x\"); }", ["RUN", "system"]],
+      ["#define SPAWN(cmd) run_cb(system, cmd)\nvoid f(void) { SPAWN(\"x\"); }", ["SPAWN", "run_cb", "system"]],
+      ["#define RUN(x) _Generic((x), char*: system, default: puts)(x)\nvoid f(void) { RUN(\"x\"); }", ["RUN", "puts", "system"]],
+      ["#define system(c) safe_system(c)\nvoid f(void) { on_command(system); }", ["on_command", "system"]],
+      ["void f(void) { on_command((system)); on_command(*system); }", ["on_command", "system"]],
+      ["#define MAX(a, b) ((a) > (b) ? (a) : (b))\nvoid f(size_t n) { n = MAX(n, 2); }", ["MAX"]],
+      ["void set_allocator(void *(*malloc)(size_t), void (*free)(void *));\nvoid f(void *p) { free(p); }", ["free"]],
+    ])
+      assert.deepEqual(await c(content, "calls"), ok(expected), content);
+  });
+
+  it("refuses environment reads it cannot name", async () => {
+    for (const content of [
+      "char *lookup(const char *n);\nint main(void) { char *(*lookup)(const char*) = 0; return lookup(\"K\") != 0; }",
+      "int main(argc, argv, envp) int argc; char **argv; char **envp; { return 0; }",
+      "#define ENTRY main\nint ENTRY(int c, char **v, char **envp) { return 0; }",
+      "extern char *config_value(const char*) __asm__(\"getenv\");",
+      "int main(void) { return *_NSGetEnviron() != 0; }",
+    ])
+      assert.ok((await c(content, "env")).lines.length > 0, content);
+    assert.deepEqual(await c("int main(void) { return g_getenv(\"A\") || g_environ_getenv(e, \"B\"); }", "env"), ok(["A", "B"]));
+    assert.deepEqual(await c("#define TOKEN_VAR \"API_\" \"TOKEN\"\nint main(void) { return getenv(TOKEN_VAR) != 0; }", "env"), ok(["API_TOKEN"]));
+    assert.deepEqual((await c("void f(void) { __asm__(\"call system\"); }", "calls")).lines, [1]);
+  });
+
+  it("reads #import and #include_next and asks the host about every header", async () => {
+    assert.deepEqual(await c("#import <curl/curl.h>\n#include_next \"x.h\"\n#include <stdio.h>", "imports"), ok(["curl/curl.h", "stdio.h", "x.h"]));
+    const calls = await c("#import \"shims.h\"\n#include <project.h>\nvoid f(void) { log_line(\"x\"); }", "calls");
+    assert.deepEqual(calls.members, ["log_line"]);
+    assert.deepEqual(calls.rows.map((row) => row.trimEnd()), [
+      'shims.h may define macros or function pointers this file uses: #import "shims.h"',
+      "project.h may define macros or function pointers this file uses: #include <project.h>",
+    ]);
+  });
+
+  it("reads designators exactly or refuses them", async () => {
+    const key = { key: "verify_peer" };
+    assert.deepEqual(await c("struct o x = { verify_peer: 0, timeout: 30 };", "property", key), ok(["0"]));
+    for (const content of [
+      "#define verify verify_peer\nstruct o x = { .verify = 0 };",
+      "struct o x = { .verify_peer = 1, .timeout = 3, .verify_peer = 0 };",
+      "#undef true\n#define true 0\nstruct o x = { .verify_peer = true };",
+    ])
+      assert.ok((await c(content, "property", key)).lines.length > 0, content);
+    // A trigraph may be another character.
+    assert.deepEqual((await c("int main(void) { return system(\"echo ??/n\"); }", "string_args", { callee: "system" })).lines, [1]);
+  });
+
+  it("blanks #if 0 the way the preprocessor reads it", async () => {
+    assert.deepEqual(
+      await c("#if 0\n// path C:\\old\\\n/*\n#endif\nint main(void) { return getenv(\"K\") != 0; }\n#if 1\n// */\n#endif", "env"),
+      ok(["K"]),
+    );
+    const digraph = await raw("a.c", "#if 0\n%:endif\nint main(void) { return getenv(\"K\") != 0; }\n%:if 1\n#endif\n", "env");
+    assert.notEqual(digraph.status, "ok");
+  });
+});
+
 describe("reader edge cases", () => {
   it("reads C prototypes, negative and parenthesized literals, and refuses what it cannot spell", async () => {
     assert.deepEqual(
@@ -1293,7 +1375,7 @@ describe("reader edge cases", () => {
       (
         await read(
           "a.c",
-          lines("#define S(x) #x", "int main(void) { int y = S; return y; }"),
+          lines("#define S(x) #x", "int main(void) { return S(y)[0]; }"),
           "env",
         )
       ).lines,

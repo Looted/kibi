@@ -33,6 +33,8 @@ const ENV_GETTERS: ReadonlyMap<string, number> = new Map([
   ["_wdupenv_s", 2],
   ["getenv_s", 3],
   ["_wgetenv_s", 3],
+  ["g_getenv", 0],
+  ["g_environ_getenv", 1],
 ]);
 
 /** Reads of the whole environment. */
@@ -47,6 +49,9 @@ const ENV_WHOLE = new Set([
   "ExpandEnvironmentStrings",
   "ExpandEnvironmentStringsA",
   "ExpandEnvironmentStringsW",
+  "_NSGetEnviron",
+  "g_get_environ",
+  "g_listenv",
 ]);
 
 /**
@@ -130,8 +135,12 @@ interface Macro {
   /** Where an `#undef` ends it, or the end of the file. */
   end: number;
   readonly body: string;
+  /** A function-like macro's parameters; null for an object-like one. */
+  readonly parameters: readonly string[] | null;
   /** Defined under `#if`: whether it exists is the preprocessor's choice. */
   readonly conditional: boolean;
+  /** Where an `#undef` under `#if` may end it. */
+  readonly maybeEnded: number[];
 }
 
 const ESCAPES: Readonly<Record<string, string>> = {
@@ -163,7 +172,8 @@ function stringValue(node: Node | null | undefined): string | null {
   }
   if (node.type !== "string_literal") return null;
   const body = /^(?:L|u8|u|U)?"([\s\S]*)"$/.exec(node.text)?.[1];
-  if (body === undefined) return null;
+  // A trigraph (`??/`) means another character where the compiler reads them.
+  if (body === undefined || /\?\?[=/'()!<>-]/.test(body)) return null;
   let value = "";
   for (let index = 0; index < body.length; index += 1) {
     const char = body[index] as string;
@@ -223,12 +233,16 @@ function literal(node: Node | null | undefined): string | null {
 }
 
 /** Identifiers of a macro body, and those called in it (`name(`). */
-function bodyTokens(body: string): {
+function bodyTokens(
+  body: string,
+  parameters: readonly string[] = [],
+): {
   names: string[];
   calls: string[];
   pastes: boolean;
 } {
   const code = body
+    .replace(/\\\r?\n/g, " ")
     .replace(/"(?:[^"\\\n]|\\.)*"/g, '""')
     .replace(/'(?:[^'\\\n]|\\.)*'/g, "''")
     .replace(/\/\*[\s\S]*?\*\//g, " ")
@@ -237,7 +251,7 @@ function bodyTokens(body: string): {
   const calls: string[] = [];
   for (const match of code.matchAll(/(?<![\w.]|->)([A-Za-z_]\w*)(\s*\()?/g)) {
     const name = match[1] as string;
-    if (C_KEYWORDS.has(name)) continue;
+    if (C_KEYWORDS.has(name) || parameters.includes(name)) continue;
     names.push(name);
     if (match[2] !== undefined) calls.push(name);
   }
@@ -301,27 +315,43 @@ export function cReferences(
   // Macros, by name and range, and every name the file declares.
   const macros: Macro[] = [];
   const variables = new Set<string>();
+  // Variables of a function: a local pointer may share a function's name.
+  const locals = new Set<string>();
   const functions = new Set<string>();
   const collect = (node: Node): void => {
     switch (node.type) {
       case "preproc_def":
       case "preproc_function_def": {
         const name = field(node, "name")?.text ?? "";
+        const parameters = field(node, "parameters");
         macros.push({
           name,
           start: node.endIndex,
           end: root.endIndex,
           body: field(node, "value")?.text ?? "",
+          parameters:
+            parameters === null
+              ? null
+              : named(parameters)
+                  .filter((child) => child.type === "identifier")
+                  .map((child) => child.text),
           conditional: conditionalAncestor(node),
+          maybeEnded: [],
         });
         break;
       }
       case "preproc_call": {
-        if (field(node, "directive")?.text.replace(/\s+/g, "") === "#undef") {
-          const name = field(node, "argument")?.text.trim() ?? "";
+        const directive = field(node, "directive")?.text.replace(/\s+/g, "");
+        const argument = field(node, "argument")?.text ?? "";
+        if (directive === "#undef") {
+          // `#undef X // note`: the name is the first word.
+          const name = /^\s*([A-Za-z_]\w*)/.exec(argument)?.[1] ?? "";
+          const conditional = conditionalAncestor(node);
           for (const macro of macros)
-            if (macro.name === name && macro.end === root.endIndex)
-              macro.end = node.startIndex;
+            if (macro.name === name && macro.end === root.endIndex) {
+              if (conditional) macro.maybeEnded.push(node.startIndex);
+              else macro.end = node.startIndex;
+            }
         }
         break;
       }
@@ -329,12 +359,16 @@ export function cReferences(
       case "field_declaration":
       case "parameter_declaration":
       case "type_definition": {
+        if (node.type === "field_declaration") break;
+        // A prototype's parameter names exist only inside the prototype.
+        if (node.type === "parameter_declaration" && !definitionParameter(node)) break;
+        const local =
+          node.type === "parameter_declaration" || insideFunction(node);
         for (const declarator of node.childrenForFieldName("declarator")) {
           const found = declared(declarator);
           if (found === null) continue;
-          if (node.type === "field_declaration") continue;
           if (found.function) functions.add(found.name);
-          else variables.add(found.name);
+          else (local ? locals : variables).add(found.name);
         }
         break;
       }
@@ -353,6 +387,7 @@ export function cReferences(
   };
   collect(root);
   for (const name of functions) variables.delete(name);
+  for (const name of locals) variables.add(name);
 
   const macroAt = (name: string, node: Node): Macro[] =>
     macros.filter(
@@ -373,13 +408,22 @@ export function cReferences(
     seen: Set<string> = new Set(),
   ): { names: string[]; calls: string[] } | null => {
     const found = macroAt(name, node);
-    if (found.some((macro) => macro.conditional)) return null;
+    if (
+      found.some(
+        (macro) =>
+          macro.conditional ||
+          macro.maybeEnded.some((place) => place <= node.startIndex),
+      )
+    )
+      return null;
     const names: string[] = [];
     const calls: string[] = [];
     seen.add(name);
     for (const macro of found) {
-      const tokens = bodyTokens(macro.body);
+      const tokens = bodyTokens(macro.body, macro.parameters ?? []);
       if (tokens.pastes) return null;
+      // A call through a pointer the file declares names no function.
+      if (tokens.calls.some((call) => variables.has(call))) return null;
       for (const token of tokens.names) {
         if (seen.has(token)) continue;
         if (macroAt(token, node).length > 0) {
@@ -392,18 +436,20 @@ export function cReferences(
       for (const call of tokens.calls)
         if (!seen.has(call) && macroAt(call, node).length === 0)
           calls.push(call);
-      // An object-like macro that names a function is called with the arguments that follow it.
-      if (
-        tokens.names.length === 1 &&
-        tokens.calls.length === 0 &&
-        /^\s*[A-Za-z_]\w*\s*$/.test(macro.body)
-      ) {
-        const target = tokens.names[0] as string;
-        if (!seen.has(target) && macroAt(target, node).length === 0)
-          calls.push(target);
-      }
+      // Any other name in the body may be a function: called, handed on
+      // (`run_cb(system, x)`) or, for an object-like macro, called with the
+      // arguments that follow it (`#define RUN (system)`).
+      for (const token of tokens.names)
+        if (
+          !seen.has(token) &&
+          macroAt(token, node).length === 0 &&
+          !variables.has(token) &&
+          !LIBRARY_VARIABLES.has(token) &&
+          !/_t$/.test(token)
+        )
+          calls.push(token);
     }
-    return { names, calls };
+    return { names, calls: [...new Set(calls)] };
   };
 
   const getterNames = (names: readonly string[]): boolean =>
@@ -412,6 +458,48 @@ export function cReferences(
   const calleeMatches = (name: string): boolean =>
     options.callee !== "" &&
     (name === options.callee || name === `*.${options.callee}`);
+
+  /**
+   * An `#include`, `#import` or `#include_next` of `path`: for imports the
+   * path; otherwise a row the host drops when the header (found next to the
+   * file, or in the project for `<...>`) defines nothing the file uses.
+   */
+  const included = (node: Node, path: string | null): void => {
+    if (path === null) {
+      refuse(node);
+      return;
+    }
+    if (extract === "imports") {
+      members.push(path);
+      return;
+    }
+    unresolved.push({
+      line: node.startPosition.row + 1,
+      text: `${path} may define macros or function pointers this file uses: ${at(node).text}`,
+    });
+  };
+
+  /** A string literal, or an object-like macro of the file that is one. */
+  const constantString = (node: Node | undefined): string | null => {
+    const value = stringValue(node);
+    if (value !== null || node?.type !== "identifier") return value;
+    const found = macroAt(node.text, node);
+    if (
+      found.length !== 1 ||
+      found[0]?.parameters !== null ||
+      found[0].conditional ||
+      found[0].maybeEnded.length > 0
+    )
+      return null;
+    const body = /^\s*((?:"(?:[^"\\\n]|\\.)*"\s*)+)$/.exec(found[0].body)?.[1];
+    if (body === undefined) return null;
+    let joined = "";
+    for (const part of body.matchAll(/"((?:[^"\\\n]|\\.)*)"/g)) {
+      if (/\\/.test(part[1] as string)) return null;
+      joined += part[1] as string;
+    }
+    return joined;
+  };
 
   /** Positions of code under `#if` whose read gave members or rows. */
   const visit = (node: Node): void => {
@@ -424,40 +512,61 @@ export function cReferences(
     switch (node.type) {
       case "preproc_include": {
         const path = field(node, "path");
-        if (path?.type === "system_lib_string") {
-          if (extract === "imports") members.push(path.text.slice(1, -1));
-        } else if (path?.type === "string_literal") {
-          const value = stringValue(path);
-          if (extract === "imports") {
-            if (value === null) refuse(node);
-            else members.push(value);
-          } else if (value === null) refuse(node);
-          else
-            unresolved.push({
-              line: node.startPosition.row + 1,
-              text: `${value} may define macros this file uses: ${at(node).text}`,
-            });
-        } else refuse(node);
+        const value =
+          path?.type === "system_lib_string"
+            ? path.text.slice(1, -1)
+            : path?.type === "string_literal"
+              ? stringValue(path)
+              : null;
+        included(node, value);
         return;
       }
+      case "preproc_call": {
+        const directive = field(node, "directive")?.text.replace(/\s+/g, "");
+        const argument = (field(node, "argument")?.text ?? "").trim();
+        if (directive === "#import" || directive === "#include_next") {
+          const path = /^(?:<([^>]+)>|"([^"]+)")\s*(?:\/\/.*|\/\*.*)?$/.exec(argument);
+          included(node, path === null ? null : (path[1] ?? path[2] ?? null));
+        } else if (
+          directive === "#pragma" &&
+          /\b(?:push|pop)_macro\b/.test(argument) &&
+          extract !== "imports"
+        )
+          // The macro a pop brings back is not tracked.
+          refuse(node);
+        return;
+      }
+      case "gnu_asm_expression":
+        // An asm label (`__asm__("getenv")`) or inline asm may call anything.
+        if (extract === "calls" || extract === "string_args" || env) refuse(node);
+        return;
       case "preproc_def":
       case "preproc_function_def":
-      case "preproc_call":
         return;
       case "function_definition": {
         // `int main(int argc, char **argv, char **envp)` hands the environment in.
         const declarator = field(node, "declarator");
         const found = declared(declarator);
-        if (env && found?.name === "main") {
+        // `#define ENTRY main` / `int ENTRY(...)` is main too.
+        const main =
+          found !== null &&
+          (found.name === "main" ||
+            (macroAt(found.name, node).length > 0 &&
+              (expand(found.name, node)?.names.includes("main") ?? true)));
+        if (env && main) {
           let current: Node | null = declarator;
           while (current !== null && current.type !== "function_declarator")
             current = field(current, "declarator");
           const parameters =
             current === null ? null : field(current, "parameters");
+          // K&R `main(argc, argv, envp)` names them without types.
           if (
             parameters !== null &&
             named(parameters).filter(
-              (child) => child.type === "parameter_declaration",
+              (child) =>
+                child.type === "parameter_declaration" ||
+                child.type === "identifier" ||
+                child.type === "variadic_parameter",
             ).length >= 3
           )
             refuse(parameters);
@@ -493,7 +602,7 @@ export function cReferences(
           }
           if (extract === "calls") members.push(name);
           if (env && ENV_GETTERS.has(name)) {
-            const value = stringValue(
+            const value = constantString(
               argumentsOf[ENV_GETTERS.get(name) as number],
             );
             if (value === null) refuse(node);
@@ -503,7 +612,7 @@ export function cReferences(
           if (extract === "string_args" && calleeMatches(name)) {
             const first = argumentsOf[0];
             if (first !== undefined) {
-              const value = literal(first);
+              const value = literal(first) ?? constantString(first);
               if (value === null) refuse(node);
               else members.push(value);
             }
@@ -529,7 +638,10 @@ export function cReferences(
       case "identifier": {
         const name = node.text;
         if (declaratorPosition(node)) return;
-        if (macroAt(name, node).length > 0) {
+        // A function-like macro's name without `(` is not the macro: it is
+        // the function of that name (`register_lookup(getenv)`).
+        const found = macroAt(name, node);
+        if (found.length > 0 && found.some((macro) => macro.parameters === null)) {
           const expanded = expand(name, node);
           if (expanded === null) {
             if (extract !== "imports" && extract !== "property") refuse(node);
@@ -567,15 +679,37 @@ export function cReferences(
         if (extract !== "property") break;
         const designators = node.childrenForFieldName("designator");
         const last = designators.at(-1);
-        if (
-          last?.type === "field_designator" &&
-          named(last)[0]?.text === options.key
-        ) {
-          const value = field(node, "value");
-          const read = literal(value);
-          if (read === null) refuse(node);
-          else members.push(read);
+        const name = designatorName(last);
+        if (name === undefined) break;
+        // `.verify = 0` with `#define verify verify_peer` sets verify_peer.
+        if (macroAt(name, node).length > 0) {
+          refuse(node);
+          break;
         }
+        if (name !== options.key) break;
+        const value = field(node, "value");
+        const read = literal(value);
+        // `#define true 0` changes what the word means.
+        if (
+          read === null ||
+          (value !== null &&
+            /^[A-Za-z_]\w*$/.test(value.text) &&
+            macroAt(value.text, node).length > 0)
+        )
+          refuse(node);
+        else members.push(read);
+        // A field set twice keeps its last value.
+        const twice = named(node.parent as Node).filter(
+          (pair) =>
+            pair.type === "initializer_pair" &&
+            pair.childrenForFieldName("designator").length === designators.length &&
+            pair.childrenForFieldName("designator").every(
+              (designator, index) =>
+                designator.text.replace(/\s+/g, "") ===
+                (designators[index] as Node).text.replace(/\s+/g, ""),
+            ),
+        );
+        if (twice.length > 1) refuse(node);
         break;
       }
       case "initializer_list": {
@@ -619,6 +753,21 @@ function declaratorPosition(node: Node): boolean {
 
 /** Whether an identifier is used as a value a callee could receive. */
 function valuePosition(node: Node): boolean {
+  // `(system)` and `*system` are the function too.
+  let current = node;
+  while (
+    current.parent !== null &&
+    (current.parent.type === "parenthesized_expression" ||
+      (current.parent.type === "pointer_expression" &&
+        current.parent.text.trimStart().startsWith("*")))
+  )
+    current = current.parent;
+  if (current !== node) {
+    const outer = current.parent;
+    if (outer?.type === "call_expression" && field(outer, "function")?.id === current.id)
+      return true;
+    return valuePosition(current);
+  }
   const parent = node.parent;
   if (parent === null) return false;
   switch (parent.type) {
@@ -660,3 +809,33 @@ const INITIALIZER_PARTS = new Set([
   "initializer_pair",
   "init_declarator",
 ]);
+
+/** Whether a parameter belongs to a function definition (not a prototype). */
+function definitionParameter(node: Node): boolean {
+  let current: Node | null = node.parent;
+  if (current?.type !== "parameter_list") return false;
+  current = current.parent;
+  if (current?.type !== "function_declarator") return false;
+  for (let child: Node = current; ; ) {
+    const parent: Node | null = child.parent;
+    if (parent === null) return false;
+    if (parent.type === "function_definition")
+      return field(parent, "declarator")?.id === child.id;
+    if (!/_declarator$/.test(parent.type)) return false;
+    child = parent;
+  }
+}
+
+/** Whether a declaration is inside a function body. */
+function insideFunction(node: Node): boolean {
+  for (let current = node.parent; current !== null; current = current.parent)
+    if (current.type === "compound_statement") return true;
+  return false;
+}
+
+/** The field a designator names: `.f` or GNU `f:`. */
+function designatorName(node: Node | undefined): string | undefined {
+  if (node?.type === "field_designator") return named(node)[0]?.text;
+  if (node?.type === "field_identifier") return node.text;
+  return undefined;
+}
