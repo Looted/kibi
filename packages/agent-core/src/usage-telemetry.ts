@@ -284,16 +284,24 @@ function sandboxedHome(env: Env): boolean {
 /** The Kibi monorepo root's package name. */
 const KIBI_REPOSITORY_PACKAGE = "kibi";
 
-/** This module's file, or undefined when a bundle format drops `import.meta.url`. */
-function thisModuleFile(): string | undefined {
+/**
+ * The file a module URL names, or undefined when there is none: a bundle
+ * format can drop `import.meta.url` or make reading it throw.
+ */
+export function moduleFileFromUrl(readUrl: () => unknown): string | undefined {
   try {
-    const url = import.meta.url;
+    const url = readUrl();
     return typeof url === "string" && url !== ""
       ? fileURLToPath(url)
       : undefined;
   } catch {
     return undefined;
   }
+}
+
+/** This module's file. */
+function thisModuleFile(): string | undefined {
+  return moduleFileFromUrl(() => import.meta.url);
 }
 
 /**

@@ -244,9 +244,8 @@ function manifestEntryIdentity(entry: ManifestSymbolEntry): {
 
 /**
  * Typed reason an eligible (code-file) symbol still has no coordinates after
- * enrichment: the AST extractor missed and the symbol either lacks a coarse
- * granularity_reason (so the whole-file fallback is gated off) or the
- * fallback itself produced no span.
+ * enrichment: the AST extractor missed and the symbol lacks a coarse
+ * granularity_reason, so the whole-file fallback is gated off.
  */
 // implements REQ-generated-coordinate-persistence
 function coarseAnchorFailureReason(entry: ManifestSymbolEntry): string {
@@ -256,12 +255,9 @@ function coarseAnchorFailureReason(entry: ManifestSymbolEntry): string {
   if (typeof entry.coordinateRefreshFailure === "string") {
     return entry.coordinateRefreshFailure;
   }
-  const missed = `no unique declaration titled '${String(entry.title ?? "")}' was found in ${String(entry.sourceFile ?? "its source file")}`;
-  const reason = entry.granularity_reason;
-  if (!isCoarseGranularityReason(reason)) {
-    return `${missed}; use the name the extractor gives the declaration`;
-  }
-  return `${missed} and the whole-file coarse fallback found no span for this symbol`;
+  // A symbol with a coarse granularity_reason is anchored to its whole file
+  // and never reported here.
+  return `no unique declaration titled '${String(entry.title ?? "")}' was found in ${String(entry.sourceFile ?? "its source file")}; use the name the extractor gives the declaration`;
 }
 
 // implements REQ-symbol-coordinates-derived-locally
