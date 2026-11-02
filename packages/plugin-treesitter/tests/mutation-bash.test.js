@@ -1027,6 +1027,509 @@ describe("Bash values the script certainly set", () => {
   });
 });
 
+/** Runs `expect` over rows of [content, extract, members, lines, options]. */
+async function table(rows) {
+  for (const [content, extract, members, rowLines = [], options] of rows)
+    await expect(content, extract, members, rowLines, options);
+}
+
+describe("Bash commands Kibi reads before it follows them", () => {
+  it("refuses variables and subscripts it cannot see", async () => {
+    await table([
+      ['read "$n"', "env", ["n"], [1]],
+      ['read "$n"', "calls", ["read"]],
+      ["printf -v 'a[i]' x", "env", [], [1]],
+      ["printf x -v 'a[i]'", "env", [], [1]],
+      ["printf -v", "env", [], [1]],
+      ["printf -v 'a[1]' x", "env", []],
+      ["printf -v a x", "env", []],
+      ["printf 'a[i]'", "env", []],
+      ["echo -v 'a[i]'", "env", []],
+      ["read 'a[1$(x)]'", "calls", [], [1]],
+      ["read 'a[1`x`]'", "calls", [], [1]],
+      ["read 'a[1$[x]]'", "calls", [], [1]],
+      ["read \"$v\" 'a[$(x)]'", "calls", [], [1]],
+      ["read 'a[1]$(x)'", "calls", ["read"]],
+      ["read 'a[$(x)]'", "imports", []],
+      ["read 'a[i]'", "env", [], [1]],
+      ["read 'a[]'", "env", [], [1]],
+      ["read 'a[12]'", "env", []],
+      ["read 'a[1]'", "env", []],
+    ]);
+  });
+
+  it("reads the variables printenv and envsubst name", async () => {
+    await table([
+      ["printenv", "calls", ["printenv"]],
+      ["printenv", "env", [], [1]],
+      ["printenv -0", "env", [], [1]],
+      ['printenv "$x"', "env", ["x"], [1]],
+      ["printenv HOME USER", "env", ["HOME", "USER"]],
+      ["printenv -0 HOME", "env", ["HOME"]],
+      ["printenv -0 x-", "env", ["x-"]],
+      ["envsubst", "env", [], [1]],
+      ['envsubst "$f"', "env", ["f"], [1]],
+      ["envsubst '$A' \"$f\"", "env", ["f"], [1]],
+      ["envsubst '$A ${B}'", "env", ["A", "B"]],
+      ["envsubst -v '$A'", "env", ["A"]],
+      ["envsubst x- '$A'", "env", []],
+    ]);
+  });
+
+  it("refuses commands that list or uncover variables", async () => {
+    for (const text of [
+      "compgen -e",
+      "compgen -v",
+      "compgen -A variable",
+      "compgen -ve",
+      "compgen -c -e",
+      "set",
+      "shopt -s localvar_inherit",
+      "shopt -s localvar_unset",
+      "ps e",
+      "ps aux e",
+      "ps eww",
+      "ps x e",
+      "/bin/ps e",
+      "jq env",
+      "/usr/bin/jq env",
+    ])
+      await expect(text, "env", [], [1]);
+    for (const text of [
+      "compgen -c",
+      "compgen x-e",
+      "compgen -eX",
+      "compgen -Xe",
+      "compgen -Ae",
+      "compgen -ce1",
+      "set -e",
+      "shopt -s x",
+      "shopt -s localvar_inheritx",
+      "shopt -s xlocalvar_inherit",
+      "ps aux",
+      "ps -e",
+      "ps 1e",
+      "ps e1",
+      "jq .x",
+      "jq xenv",
+      "jq '$ENVx'",
+    ])
+      await expect(text, "env", []);
+    for (const name of ["compgen", "shopt -s", "ps", "jq"])
+      await expect(`${name} "$x"`, "env", ["x"], [1]);
+    await expect("jq '$ENV.X'", "env", [], [1]);
+    assert.equal((await read("jq '$ENV.X'")).rows.length, 2);
+    assert.equal((await read('foo "$x" ENVIRON')).rows.length, 2);
+    await expect('foo "$x" a', "env", ["x"]);
+  });
+
+  it("refuses let and eval", async () => {
+    await expect("let x=1\necho $Y", "env", ["Y"], [1]);
+    for (const extract of ["env", "calls", "imports"])
+      await expect("eval x", extract, [], [1]);
+  });
+
+  it("reads HOME and OLDPWD for cd", async () => {
+    for (const text of ["cd", "cd -L", "cd --", "cd -e@", "cd -LP"])
+      await expect(text, "env", ["HOME"]);
+    for (const text of ["cd -", "cd -P -", "cd -- -"])
+      await expect(text, "env", [], [1]);
+    for (const text of ["cd x", "cd -x", "cd x-", "cd x -", "cd ---", "cd -L-"])
+      await expect(text, "env", []);
+    await expect('cd "$x"', "env", ["x"]);
+  });
+
+  it("reads the variables test -v and -R name", async () => {
+    await table([
+      ["test -v X", "env", ["X"]],
+      ["test -R X", "env", ["X"]],
+      ["[ -v X ]", "env", ["X"]],
+      ["test x -v X", "env", ["X"]],
+      ["test -v 'a[x]'", "env", ["a"]],
+      ["test -v 'a[x]b'", "env", ["a"]],
+      ["test -v -R", "env", ["-R"]],
+      ["test -v", "env", []],
+      ["test -R", "env", []],
+      ["foo -v X", "env", []],
+      ['test -v "$x"', "env", ["x"], [1]],
+      ["declare x", "env", []],
+    ]);
+  });
+
+  it("follows sourced files", async () => {
+    const zero = 'source "$(dirname "$0")/a.sh"';
+    await table([
+      ["source a.sh", "imports", ["a.sh"]],
+      ["source -- a.sh", "imports", ["a.sh"]],
+      ['source "$x"', "imports", [], [1]],
+      ["source", "imports", [], [1]],
+      [zero, "imports", ["a.sh"], [1]],
+      ['source "${0%/*}/a.sh"', "imports", ["a.sh"], [1]],
+      ['source "$0x/a.sh"', "imports", [], [1]],
+      ['d=$(dirname "$0")\nsource "$d/a.sh"', "imports", ["a.sh"], [2]],
+      ['d=$(dirname "$0")\ncd x\nsource "$d/a.sh"', "imports", [], [3]],
+      [`cd x\n${zero}`, "imports", [], [2]],
+      [`${zero}\ncd x`, "imports", ["a.sh"], [1]],
+      [`\n\n${zero}`, "imports", ["a.sh"], [3]],
+      ["source a.sh", "env", [], [1]],
+      ["source a.sh", "calls", ["source"]],
+      ["source -- a.sh", "calls", ["source"]],
+      ['source "$x"', "calls", ["source"]],
+      [". a.sh", "calls", ["."]],
+      ["source x/dev/stdin", "calls", ["source"]],
+      ["source <(x)", "calls", ["x"], [1]],
+      ["source /dev/stdin", "calls", [], [1]],
+      ["source /dev/fd/3", "calls", [], [1]],
+      ["source /dev/stdinx", "calls", [], [1]],
+      ["source", "calls", [], [1]],
+      ["source a.sh", "string_args", []],
+    ]);
+    const row = (await read(zero, "imports")).rows[0];
+    assert.equal(
+      row,
+      `1: s.sh may be sourced by another script, whose folder $0 names: ${zero}`,
+    );
+  });
+
+  it("reads runners for imports and env", async () => {
+    await table([
+      ["chrt 5 x", "imports", []],
+      ["chrt 5 source a.sh", "imports", []],
+      ["chrt 5 x", "env", []],
+      ["chrt 5 x", "string_args", [], [1]],
+    ]);
+  });
+
+  it("refuses alias, mapfile -C and hash -p", async () => {
+    for (const text of [
+      "alias a=b",
+      "mapfile -C f",
+      "readarray -C f",
+      "mapfile -tC f",
+      'mapfile "$x"',
+      "mapfile x -C",
+      "hash -p /x y",
+      "hash -rp /x y",
+      'hash "$x"',
+    ])
+      await expect(text, "calls", [], [1]);
+    for (const name of ["alias", "mapfile --C", "mapfile -t"])
+      await expect(name, "calls", [name.split(" ")[0]]);
+    for (const text of ["hash x", "hash x-p", "hash --p"])
+      await expect(text, "calls", ["hash"]);
+  });
+
+  it("follows the function a trap runs", async () => {
+    for (const text of [
+      "trap",
+      "trap - INT",
+      "trap '' INT",
+      "trap -p",
+      "trap -l",
+    ])
+      await expect(text, "calls", ["trap"]);
+    await expect("trap f INT", "calls", ["f", "trap"]);
+    await expect("trap -- f INT", "calls", ["f", "trap"]);
+    await expect("trap f-g INT", "calls", ["f-g", "trap"]);
+    for (const text of ["trap 'rm x' INT", 'trap "$x" INT', "trap 1f INT"])
+      await expect(text, "calls", [], [1]);
+    await expect("trap f INT", "string_args", ["f"], [], { callee: "trap" });
+    await expect("trap f INT", "string_args", [], [], { callee: "other" });
+    await expect("trap f INT", "env", []);
+  });
+});
+
+describe("Bash commands that run other commands", () => {
+  it("reads calls and string arguments", async () => {
+    const curl = { callee: "curl" };
+    await table([
+      ["/usr/bin/curl x", "calls", ["/usr/bin/curl", "curl"]],
+      ["curl x y", "string_args", ["x"], [], curl],
+      ["/usr/bin/curl x", "string_args", ["x"], [], curl],
+      ["curl", "string_args", [], [], curl],
+      ['curl "$x"', "string_args", [], [1], curl],
+      ["xargs curl", "string_args", [], [1], curl],
+      ["xargs curl x", "string_args", [], [1], curl],
+      ["find . -exec curl {} \\;", "string_args", [], [1], curl],
+      ["find . -exec curl a{}b \\;", "string_args", [], [1], curl],
+      ['find . -exec curl "$x" \\;', "string_args", [], [1], curl],
+      ["find . -exec curl x \\;", "string_args", ["x"], [], curl],
+    ]);
+  });
+
+  it("follows busybox applets", async () => {
+    await table([
+      ["busybox", "calls", ["busybox"]],
+      ["busybox ls x", "calls", ["busybox", "ls"]],
+      ["toybox ls", "calls", ["ls", "toybox"]],
+      ["/bin/busybox ls", "calls", ["/bin/busybox", "busybox", "ls"]],
+      ['busybox "$x"', "calls", ["busybox"], [1]],
+      ["busybox sh -c x", "calls", ["busybox", "sh"], [1]],
+    ]);
+  });
+
+  it("refuses a shell that reads code it cannot see", async () => {
+    for (const text of [
+      "bash",
+      "bash -s x",
+      "bash -xc x",
+      'bash "$x"',
+      "bash -o x",
+      "bash /dev/stdin",
+      "bash /dev/fd/3",
+      "bash /dev/tty",
+      "bash /proc/self/fd/3",
+      "bash /proc/1/fd/0",
+    ])
+      await expect(text, "calls", ["bash"], [1]);
+    for (const text of [
+      "bash -x x.sh",
+      "bash +x x.sh",
+      "bash -- x.sh",
+      "bash /dev/stdinx",
+      "bash x/dev/stdin",
+      "bash /dev/fd/x",
+      "bash /proc/a b/fd/3",
+      "bash -c1 x",
+      "bash -1c x",
+    ])
+      await expect(text, "calls", ["bash"]);
+    await expect("/bin/bash x.sh", "calls", ["/bin/bash", "bash"]);
+  });
+
+  it("follows the commands find runs", async () => {
+    await table([
+      ["find .", "calls", ["find"]],
+      ["find . -exec rm {} \\;", "calls", ["find", "rm"]],
+      ["find . -execdir rm {} +", "calls", ["find", "rm"]],
+      ["find . -ok rm {} \\;", "calls", ["find", "rm"]],
+      ["find . -okdir rm {} \\;", "calls", ["find", "rm"]],
+      ["find . -exec rm {} \\; -exec ls \\;", "calls", ["find", "ls", "rm"]],
+      ["find . -exec rm {}", "calls", ["find", "rm"]],
+      ["find . -exec sudo rm {} \\;", "calls", ["find", "rm", "sudo"]],
+      [
+        "/usr/bin/find . -exec rm \\;",
+        "calls",
+        ["/usr/bin/find", "find", "rm"],
+      ],
+      ["find . -xexec rm", "calls", ["find"]],
+      ["find . -execx rm", "calls", ["find"]],
+      ['find "$d" -name x', "calls", ["find"]],
+      ['find "$x"', "calls", ["find"]],
+      ["find . -exec", "calls", ["find"], [1]],
+      ['find . -exec "$x" \\;', "calls", ["find"], [1]],
+      ['find "$d" -exec rm {} \\;', "calls", ["find"], [1]],
+      ['find "$d" -exec rm {} +', "calls", ["find"], [1]],
+      ["find $d -name x", "calls", ["find"], [1]],
+      ['find "$@" -name x', "calls", ["find"], [1]],
+      ['find "${a[@]}" -name x', "calls", ["find"], [1]],
+      ['find "${a[*]}" -name x', "calls", ["find"], [1]],
+      ['find "$*" -name x', "calls", ["find"], [1]],
+      [
+        "find . -exec find . -exec find . -exec find . -exec rm \\; \\; \\; \\;",
+        "calls",
+        ["find"],
+        [1],
+      ],
+    ]);
+  });
+
+  it("follows the command ip netns exec runs", async () => {
+    await table([
+      ["ip netns exec ns rm x", "calls", ["ip", "rm"]],
+      ["ip -all netns exec rm x", "calls", ["ip", "rm"]],
+      ["ip -a netns exec rm x", "calls", ["ip", "rm"]],
+      ["ip -al netns exec rm x", "calls", ["ip", "rm"]],
+      ["ip -alll netns exec rm x", "calls", ["ip", "x"]],
+      ["ip -x netns exec ns rm", "calls", ["ip", "rm"]],
+      ["ip -all -n x netns exec rm", "calls", ["ip", "rm"]],
+      ["/sbin/ip netns exec ns rm", "calls", ["/sbin/ip", "ip", "rm"]],
+      ["ip", "calls", ["ip"]],
+      ["ip netns", "calls", ["ip"]],
+      ["ip netns list", "calls", ["ip"]],
+      ["ip link set x", "calls", ["ip"]],
+      ['ip a b "$x"', "calls", ["ip"]],
+      ["ip -n", "calls", ["ip"]],
+      ["ip netns exec", "calls", ["ip"], [1]],
+      ["ip netns exec ns", "calls", ["ip"], [1]],
+      ['ip netns exec "$n" rm', "calls", ["ip"], [1]],
+      ['ip netns exec ns "$c"', "calls", ["ip"], [1]],
+      ['ip "$x" netns', "calls", ["ip"], [1]],
+      ['ip "$x"', "calls", ["ip"], [1]],
+      ['ip link "$x"', "calls", ["ip"], [1]],
+      ['ip netns "$x"', "calls", ["ip"], [1]],
+    ]);
+    // ip takes any prefix of -netns.
+    for (const option of ["-n", "-ne", "-net", "-netn", "-netns"])
+      await expect(`ip ${option} ns netns exec ns rm`, "calls", ["ip", "rm"]);
+    await expect("ip -nets ns netns exec ns rm", "calls", ["ip"]);
+  });
+
+  it("follows wrappers to the command they run", async () => {
+    await table([
+      ["env", "env", [], [1]],
+      ["env -0", "env", [], [1]],
+      ["env -u X", "env", [], [1]],
+      ["env X=1", "env", [], [1]],
+      ["env --", "env", [], [1]],
+      ["sudo -l", "env", []],
+      ["env X=1", "calls", ["env"]],
+      ["env", "calls", ["env"]],
+      ["sudo", "calls", ["sudo"]],
+      ["sudo -l", "calls", ["sudo"]],
+      ["sudo -u", "calls", ["sudo"]],
+      ["timeout 5 rm", "calls", ["rm", "timeout"]],
+      ["timeout -- 5 rm", "calls", ["rm", "timeout"]],
+      ["env -- X=1 rm", "calls", ["env", "rm"]],
+      ["env -- -x", "calls", ["-x", "env"]],
+      ["sudo -- -x", "calls", ["-x", "sudo"]],
+      ["env --unset=X rm", "calls", ["env", "rm"]],
+      ["env --unset X rm", "calls", ["env", "rm"]],
+      ["env -uX rm", "calls", ["env", "rm"]],
+      ["sudo -ufoo rm", "calls", ["rm", "sudo"]],
+      ["nice -10 rm", "calls", ["nice", "rm"]],
+      ["env -10 rm", "calls", ["env"], [1]],
+      ["sudo -ofoo rm", "calls", ["sudo"], [1]],
+      ["sudo --ufoo rm", "calls", ["sudo"], [1]],
+      ['sudo "$x" rm', "calls", ["sudo"], [1]],
+      ["env -S 'a b'", "calls", ["env"], [1]],
+      ["xargs", "calls", ["echo", "xargs"]],
+      ["xargs -0", "calls", ["echo", "xargs"]],
+      ["command -v x", "calls", ["command"]],
+    ]);
+    for (const name of ["time", "nohup", "exec", "command", "builtin"])
+      await expect(name, "calls", [name]);
+  });
+
+  it("follows at most eight commands in one chain", async () => {
+    const sudo = (count) => `${"sudo ".repeat(count)}rm`;
+    await expect(sudo(7), "calls", ["rm", "sudo"]);
+    await expect(sudo(8), "calls", ["sudo"], [1]);
+  });
+});
+
+describe("Bash text the grammar reads differently from Bash", () => {
+  it("counts a row for each place that reads a process environment", async () => {
+    // The whole script, the command's literal words and the path each give
+    // a row.
+    for (const [text, count] of [
+      ["echo /proc/self/environ", 3],
+      ["echo /proc/12/environ", 3],
+      ["echo /proc/*/environ", 2],
+      ["echo x/proc/self/environ", 3],
+      ["echo /proc/self/a/environ", 3],
+      ["echo /proc/x/environ", 2],
+      ["echo /proc/self/environx", 1],
+      ["echo /proc/self /environ", 2],
+      ["echo /proc/$$/environ", 2],
+      ["echo /proc/${BASHPID}/environ", 2],
+      ["echo /proc/$BASHPID/environ", 2],
+      ["echo /proc/[1]/environ", 2],
+      ["echo '/proc/x/environ'", 3],
+      ["echo '/proc/x/a b/environ'", 2],
+      ["echo '/proc/x/a\"b/environ'", 2],
+      ["echo '/proc/x/environx'", 1],
+      ['echo "/proc/x/environ"', 4],
+      ['echo "/proc/$p/environ"', 2],
+      ['echo "/proc/$p/environx"', 1],
+      ['echo "/proc/$p"/environ', 2],
+      ['echo "/proc/$p /environ"', 1],
+      ["echo /proc/$p/environ", 2],
+    ]) {
+      const result = await read(text);
+      assert.equal(
+        result.rows.length,
+        count,
+        `${text}\n${result.rows.join("\n")}`,
+      );
+    }
+    for (const text of [
+      "echo /proc/self/environ",
+      'echo "/proc/$p/environ"',
+      "echo '/proc/x/environ'",
+    ])
+      await expect(text, "calls", ["echo"]);
+  });
+
+  it("refuses a here-document whose end has trailing blanks", async () => {
+    await expect("cat <<EOF\nx\nEOF ", "calls", ["cat"], [3], { raw: true });
+    await expect("cat <<EOF\nx\nEOF\t", "calls", ["cat"], [3], { raw: true });
+    await expect("cat <<EOF\nx\nEOF ", "imports", [], [], { raw: true });
+  });
+
+  it("refuses code in a here-document Kibi does not read", async () => {
+    await table([
+      ["cat <<EOF\n`date`\nEOF", "calls", ["cat"], [2]],
+      ["cat <<EOF\n$(date) $[1]\nEOF", "calls", ["cat"], [2]],
+      ["cat <<EOF\n$(date)\nEOF", "calls", ["cat", "date"]],
+      ["cat <<'EOF'\n`date`\nEOF", "calls", ["cat"]],
+      ["cat <<EOF\n`date`\nEOF", "imports", []],
+      ["cat <<-EOF\n$X\n\tEOF", "env", ["X"]],
+      ["cat <<EOF\n$X\nEOF", "env", ["X"]],
+      ["cat <<'EOF'\n$X\nEOF", "env", []],
+      ['cat <<"EOF"\n$X\nEOF', "env", []],
+      ["cat <<E\\OF\n$X\nEOF", "env", []],
+    ]);
+  });
+
+  it("refuses nested backticks", async () => {
+    await table([
+      ["echo `a \\`b\\``", "calls", ["echo"], [1]],
+      ["echo `a \\`b\\``", "imports", []],
+      ["echo `a`", "calls", ["a", "echo"]],
+      ["echo $(a \\`b)", "calls", ["a", "echo"]],
+    ]);
+  });
+
+  it("refuses a word the grammar joins to the next line", async () => {
+    await expect("echo a\\\nb", "calls", [], [1]);
+    await expect("echo \\\nb", "calls", ["echo"]);
+  });
+});
+
+describe("Bash expressions", () => {
+  it("reads array elements and their indexes", async () => {
+    await table([
+      ["a[1]=(x)", "env", []],
+      ["a=(x $Y)", "env", ["Y"]],
+      ["declare -A a; a=([k]=v)", "env", []],
+      ["declare -A a; a=($i)", "env", ["i"]],
+      ["declare -a a=([i]=v)", "env", ["i"], [1]],
+      ["x=1 a=([i]=v)", "env", ["i"], [1]],
+    ]);
+  });
+
+  it("refuses indirect expansions", async () => {
+    await table([
+      ["echo ${}", "env", []],
+      ["echo ${#}", "env", []],
+      ["echo ${!}", "env", [], [1]],
+      ["echo ${!x}", "env", [], [1]],
+      ["echo ${!a[1]}", "env", [], [1]],
+      ["echo ${!x*}", "env", [], [1]],
+      ["echo ${!a[@]}", "env", ["a"]],
+      ["echo ${!a[*]}", "env", ["a"]],
+      ["echo ${!x}", "calls", ["echo"]],
+    ]);
+  });
+
+  it("reads the sides of an arithmetic test", async () => {
+    await table([
+      ["[[ a -eq b ]]", "env", ["a", "b"], [1]],
+      ["[[ a -lt b && c -ge d ]]", "env", ["a", "b", "c", "d"], [1]],
+      ["[[ -eq 1 ]]", "env", []],
+      ["[ a -eq b ]", "env", []],
+      ["test a -eq b", "env", []],
+      ["[[ a -eqx b ]]", "env", []],
+      ["[[ a == b ]]", "env", []],
+      ["for ((;;)) { :; }", "env", []],
+      ["for ((;;)); do echo $X; done", "env", ["X"]],
+    ]);
+    for (const operator of ["-eq", "-ne", "-lt", "-le", "-gt", "-ge"])
+      await expect(`[[ a ${operator} 1 ]]`, "env", ["a"], [1]);
+  });
+});
+
 describe("Bash tildes", () => {
   it("reads HOME where Bash expands a tilde", async () => {
     for (const text of [

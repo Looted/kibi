@@ -1783,10 +1783,13 @@ export function bashReferences(
       }
       if (base === "ip") {
         // `ip [-all] netns exec [NAME] CMD`: options may come first.
-        // `-n NS` (`-netns NS`) takes the namespace as its argument.
+        // `-netns NS`, or any prefix of it (`-n NS`), takes the namespace as
+        // its argument.
         let at = 0;
         while (restWords[at]?.startsWith("-") === true)
-          at += /^-(?:n|netns?)$/.test(restWords[at] as string) ? 2 : 1;
+          at += /^-n(?:e(?:t(?:ns?)?)?)?$/.test(restWords[at] as string)
+            ? 2
+            : 1;
         if (restWords[at] === "netns" && restWords[at + 1] === "exec") {
           const all = restWords
             .slice(0, at)
@@ -1973,11 +1976,9 @@ export function bashReferences(
         }
         if (env) {
           tilde(node);
-          if (
-            /\/proc\/(?:self|\$\$|\$\{?BASHPID\}?|\d+|\*|\[)[^\s]*\/environ\b/.test(
-              node.text,
-            )
-          )
+          // An expansion or a `[` splits a word: `/proc/$$/environ` is a
+          // concatenation.
+          if (/\/proc\/(?:self|\d+|\*)\S*\/environ\b/.test(node.text))
             refuse(node);
         }
         break;
@@ -1990,8 +1991,8 @@ export function bashReferences(
         // `"/proc/$$/environ"`: the path is split across parts.
         if (
           env &&
-          node.parent?.type !== "string" &&
-          node.parent?.type !== "concatenation" &&
+          (node.parent as Node).type !== "string" &&
+          (node.parent as Node).type !== "concatenation" &&
           /\/proc\/\S*\/environ\b/.test(node.text)
         )
           refuse(node);
@@ -1999,7 +2000,7 @@ export function bashReferences(
       case "heredoc_end": {
         // bash ends a here-document only on a line that is exactly the
         // delimiter; the grammar also accepts one with trailing blanks.
-        const line = root.text.split("\n")[node.startPosition.row] ?? "";
+        const line = root.text.split("\n")[node.startPosition.row] as string;
         if (code && /[ \t]+\r?$/.test(line)) refuse(node);
         break;
       }
@@ -2014,9 +2015,11 @@ export function bashReferences(
         // Any quoted character in the delimiter (`'EOF'`, `E\OF`) leaves the
         // body as text.
         const quotedDelimiter = /['"\\]/.test(
-          node.parent?.namedChildren.find(
-            (child) => child.type === "heredoc_start",
-          )?.text ?? "",
+          (
+            named(node.parent as Node).find(
+              (child) => child.type === "heredoc_start",
+            ) as Node
+          ).text,
         );
         if (quotedDelimiter) return;
         if (code && /`|\$\[/.test(node.text)) {
@@ -2058,10 +2061,12 @@ export function bashReferences(
         break;
       case "array": {
         if (!env) break;
-        const owner = node.parent;
-        const target =
-          owner?.type === "variable_assignment" ? field(owner, "name") : null;
-        if (target === null || assoc.has(target.text)) break;
+        const owner = node.parent as Node;
+        if (
+          owner.type !== "variable_assignment" ||
+          assoc.has((field(owner, "name") as Node).text)
+        )
+          break;
         for (const element of named(node)) {
           if (element.type !== "concatenation") {
             visit(element);
@@ -2154,11 +2159,11 @@ export function bashReferences(
             read(child.text, child, node);
         for (const child of children)
           if (child.type === "variable_assignment") {
-            const target = field(child, "name")?.text ?? "";
+            const name = field(child, "name") as Node;
+            const target = name.text;
             if (child.text.startsWith(`${target}+=`)) read(target, child, node);
-            const name = field(child, "name");
-            if (name?.type === "subscript") {
-              const base = field(name, "name")?.text ?? "";
+            if (name.type === "subscript") {
+              const base = (field(name, "name") as Node).text;
               const index = field(name, "index");
               if (
                 index !== null &&
@@ -2177,32 +2182,26 @@ export function bashReferences(
       case "variable_assignment": {
         // `BASH_ALIASES[c]='rm -rf x'` defines an alias, `BASH_CMDS[c]=/bin/rm`
         // a command path, and `PS4='$(...)'` code that `set -x` runs.
-        {
-          const assigned =
-            field(node, "name")?.type === "subscript"
-              ? (field(field(node, "name") as Node, "name")?.text ?? "")
-              : (field(node, "name")?.text ?? "");
-          if (
-            code &&
-            (assigned === "BASH_ALIASES" ||
-              assigned === "BASH_CMDS" ||
-              (/^(?:PS[0-4]|PROMPT_COMMAND)$/.test(assigned) &&
-                /\$\(|`/.test(node.text)))
-          )
-            refuse(node);
-        }
-        if (!env || node.parent?.type === "declaration_command") break;
-        const target = field(node, "name");
+        const target = field(node, "name") as Node;
         const name =
-          target?.type === "subscript"
-            ? (field(target, "name")?.text ?? "")
-            : (target?.text ?? "");
+          target.type === "subscript"
+            ? (field(target, "name") as Node).text
+            : target.text;
+        if (
+          code &&
+          (name === "BASH_ALIASES" ||
+            name === "BASH_CMDS" ||
+            (/^(?:PS[0-4]|PROMPT_COMMAND)$/.test(name) &&
+              /\$\(|`/.test(node.text)))
+        )
+          refuse(node);
+        if (!env || (node.parent as Node).type === "declaration_command") break;
         if (
           node.text.startsWith(`${name}+=`) ||
-          (target?.type === "subscript" && node.text.includes("]+="))
+          (target.type === "subscript" && node.text.includes("]+="))
         )
-          read(name, target as Node, node);
-        if (target?.type === "subscript" && !assoc.has(name)) {
+          read(name, target, node);
+        if (target.type === "subscript" && !assoc.has(name)) {
           const index = field(target, "index");
           if (index !== null) arithmeticNames(index, node);
         }
@@ -2280,21 +2279,20 @@ export function bashReferences(
         return;
       }
       case "subscript": {
-        const base = field(node, "name");
+        const base = field(node, "name") as Node;
         const index = field(node, "index");
         if (
-          base !== null &&
           index !== null &&
           !assoc.has(base.text) &&
           !/^[@*]$/.test(index.text) &&
-          node.parent?.type !== "expansion" &&
-          node.parent?.type !== "variable_assignment"
+          (node.parent as Node).type !== "expansion" &&
+          (node.parent as Node).type !== "variable_assignment"
         )
           arithmeticNames(index, node);
         break;
       }
       case "unary_expression": {
-        const operator = field(node, "operator")?.text;
+        const operator = (field(node, "operator") as Node).text;
         if ((operator === "-v" || operator === "-R") && inTest(node)) {
           const operand = named(node).find(
             (child) => child.type !== "test_operator",
@@ -2308,11 +2306,11 @@ export function bashReferences(
         break;
       }
       case "binary_expression": {
-        const operator = field(node, "operator")?.text ?? "";
+        const operator = (field(node, "operator") as Node).text;
         const test = inTest(node)?.text.startsWith("[[") === true;
         if (test && /^-(?:eq|ne|lt|le|gt|ge)$/.test(operator)) {
-          for (const side of [field(node, "left"), field(node, "right")])
-            if (side !== null) arithmeticNames(side, node);
+          arithmeticNames(field(node, "left") as Node, node);
+          arithmeticNames(field(node, "right") as Node, node);
         }
         break;
       }
@@ -2321,8 +2319,7 @@ export function bashReferences(
           const child = field(node, part);
           if (child !== null) arithmeticNames(child, node);
         }
-        const body = field(node, "body");
-        if (body !== null) visit(body);
+        visit(field(node, "body") as Node);
         return;
       }
     }
