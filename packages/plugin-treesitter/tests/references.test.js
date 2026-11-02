@@ -2271,7 +2271,8 @@ describe("reads every #[cfg] branch of a Rust file", () => {
     assert.deepEqual((await inline("a.rs", macro, "thrown")).lines, [1]);
     const nested = "#[cfg_attr(a, cfg_attr(b, inject_env))]\nfn main() {}\n";
     assert.deepEqual((await inline("a.rs", nested, "env")).lines, [1]);
-    const inert = "#[cfg_attr(a, allow(dead_code), inject_env,)]\nfn main() {}\n";
+    const inert =
+      "#[cfg_attr(a, allow(dead_code), inject_env,)]\nfn main() {}\n";
     assert.deepEqual((await inline("a.rs", inert, "env")).lines, [1]);
     const trailing = "#[cfg_attr(a, allow(dead_code),)]\nfn main() { g(); }\n";
     assert.deepEqual((await inline("a.rs", trailing, "calls")).lines, []);

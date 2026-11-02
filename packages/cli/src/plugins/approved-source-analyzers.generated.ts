@@ -61,9 +61,9 @@ export const qualifiedSourceAnalyzers = [
       "dist/preprocessor-idioms.js":
         "92973c7f0c017fdd340a084e39e5febadd4254bc822c0f86f46a05c1463c1870",
       "dist/references.js":
-        "df4d0bc320fd24798d373c48b5ef0eb341a68ccbc7cb885a3d469d478fba0140",
+        "bfc273caf9e69d1c2fe749a928cf2b1246f225dd036341f77cd2a3fbac1ed1a1",
       "integrity.json":
-        "29b71643c013cde8a331d188628cb0c768442f964cd57df5cb45bc7a0b7579ad",
+        "2eaa4f8b9bd73eda79fed3bde5a46a91e7382ca7e06b2b17c4959ec9cd4a5ad3",
       "licenses/web-tree-sitter-MIT.txt":
         "c5cfb43042b6b72045f4ba997834d0a7786d2793d91680868b5815b39f14fc78",
       "package.json":

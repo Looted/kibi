@@ -3111,7 +3111,10 @@ function rustAttributeParts(node: Node): RustAttributePart[] | null {
 function rustDerived(part: RustAttributePart): string[] {
   const list = part.tokens.replace(/\s+/g, "");
   return list.startsWith("(") && list.endsWith(")")
-    ? list.slice(1, -1).split(",").filter((name) => name !== "")
+    ? list
+        .slice(1, -1)
+        .split(",")
+        .filter((name) => name !== "")
     : [];
 }
 
@@ -3868,8 +3871,7 @@ const RUST: Reader = {
   // what the code never does then holds in each build); only a `cfg_attr`
   // whose attributes cannot be told apart is refused.
   conditional: (node) =>
-    (node.type === "attribute_item" ||
-      node.type === "inner_attribute_item") &&
+    (node.type === "attribute_item" || node.type === "inner_attribute_item") &&
     rustAttributeParts(node) === null,
   skip: (node) =>
     RUST_ITEM_PARENTS.has(node.parent?.type ?? "") &&
