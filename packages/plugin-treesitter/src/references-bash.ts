@@ -1294,6 +1294,12 @@ export function bashReferences(
     unresolved.push(at(node));
   };
 
+  /** Refuses a command that `special` handles. */
+  const stop = (node: Node): true => {
+    refuse(node);
+    return true;
+  };
+
   /**
    * Bare names in an arithmetic context are variables, and every value the
    * context expands is evaluated as an expression in turn.
@@ -1444,8 +1450,7 @@ export function bashReferences(
     const bound = commandBinds(name, list);
     if (env && bound === null) {
       // `read "$name"`: a variable named at run time is set.
-      refuse(node);
-      return true;
+      return stop(node);
     }
     const printfTarget =
       name === "printf" ? words[words.indexOf("-v") + 1] : undefined;
@@ -1454,8 +1459,7 @@ export function bashReferences(
       // A null word tests as "null".
       words.some((word) => SUBSCRIPT_CODE.test(word as string))
     ) {
-      refuse(node);
-      return true;
+      return stop(node);
     }
     if (
       env &&
@@ -1465,8 +1469,7 @@ export function bashReferences(
         (words.includes("-v") && /\[(?!\d+\])/.test(printfTarget as string)))
     ) {
       // `read 'a[IDX]'`: the index is arithmetic on IDX.
-      refuse(node);
-      return true;
+      return stop(node);
     }
     if (env) {
       if (name === "printenv") {
@@ -1546,8 +1549,7 @@ export function bashReferences(
         refuse(node);
     }
     if (name === "eval") {
-      refuse(node);
-      return true;
+      return stop(node);
     }
     if (name === "source" || name === ".") {
       const operands = words[0] === "--" ? list.slice(1) : list;
@@ -1578,21 +1580,19 @@ export function bashReferences(
               text: `${posix.basename(file)} may be sourced by another script, whose folder $0 names: ${at(node).text}`,
             });
         }
-        return true;
       }
-      // The sourced file may read or set any variable.
-      if (env) {
-        refuse(node);
-        return true;
-      }
-      // Code read from a stream is the script's own, unseen.
-      const stream =
+      // The sourced file may read or set any variable; code read from a
+      // stream is the script's own, unseen.
+      else if (
+        env ||
         operands[0]?.type === "process_substitution" ||
-        /^\/dev\/(?:stdin|fd\/)/.test(path as string);
-      if (stream || operands.length === 0) {
+        /^\/dev\/(?:stdin|fd\/)/.test(path as string) ||
+        operands.length === 0
+      )
         refuse(node);
-        return true;
-      }
+      // `source a.sh` is a call.
+      else return false;
+      return true;
     }
     if (RUNNERS.has(name)) {
       // A runner cannot run `source`; for env only a shell it may start
@@ -1608,8 +1608,7 @@ export function bashReferences(
               ENV_DUMPERS.has(posix.basename(word)),
           ))
       )
-        refuse(node);
-      return true;
+        return stop(node);
     }
     if (
       CODE_COMMANDS.has(name) ||
@@ -1619,8 +1618,7 @@ export function bashReferences(
       (name === "hash" &&
         words.some((word) => word === null || /^-[^-]*p/.test(word)))
     ) {
-      refuse(node);
-      return true;
+      return stop(node);
     }
     if (name === "trap") {
       const actions = words[0] === "--" ? words.slice(1) : words;
@@ -1639,8 +1637,7 @@ export function bashReferences(
           members.push(action);
         return true;
       } else {
-        refuse(node);
-        return true;
+        return stop(node);
       }
     }
     return false;
@@ -1650,18 +1647,18 @@ export function bashReferences(
   const cluster = (
     wrapper: Wrapper,
     word: string,
-  ): "flags" | "argument" | "attached" | "noCommand" | null => {
+  ): number | "noCommand" | null => {
     const letters = word.slice(1);
     // `--name`, `-o=x`: only letters and digits cluster.
     if (!/^[A-Za-z0-9]*$/.test(letters)) return null;
     for (let index = 0; index < letters.length; index += 1) {
       const option = `-${letters[index]}`;
       if (wrapper.noCommand?.has(option)) return "noCommand";
-      if (wrapper.args.has(option))
-        return index === letters.length - 1 ? "argument" : "attached";
+      // The last option takes the next word, an earlier one the rest of this.
+      if (wrapper.args.has(option)) return index === letters.length - 1 ? 1 : 0;
       if (!wrapper.flags.has(option)) return null;
     }
-    return "flags";
+    return 0;
   };
 
   /** One command and what it runs: `sudo env X=1 rm` runs all three. */
@@ -1866,10 +1863,10 @@ export function bashReferences(
               stops();
               return;
             }
-            if (kind === "argument") index += 1;
             // -nE, -ofoo, `-u.`: flags, or an option with its argument
             // attached.
-            else if (kind === null && !wrapper.args.has(word.slice(0, 2))) {
+            if (kind !== null) index += kind;
+            else if (!wrapper.args.has(word.slice(0, 2))) {
               refuse(node);
               return;
             }
@@ -1977,7 +1974,7 @@ export function bashReferences(
           tilde(node);
           // An expansion or a `[` splits a word: `/proc/$$/environ` is a
           // concatenation.
-          if (/\/proc\/(?:self|\d+|\*)\S*\/environ\b/.test(node.text))
+          if (/\/proc\/(?:self|\d|\*)\S*\/environ\b/.test(node.text))
             refuse(node);
         }
         break;

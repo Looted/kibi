@@ -1151,6 +1151,7 @@ describe("Bash commands Kibi reads before it follows them", () => {
       ["test -v", "env", []],
       ["test -R", "env", []],
       ["foo -v X", "env", []],
+      ['"[" -v X ]', "env", ["X"]],
       ['test -v "$x"', "env", ["x"], [1]],
       ["declare x", "env", []],
     ]);
@@ -1983,5 +1984,18 @@ describe("Bash reader edge cases", () => {
     ]);
     assert.deepEqual((await read("echo ${a:-${b:1+X}}")).rows, ["1: ${b:1+X}"]);
     assert.deepEqual((await read("echo ${a:-${x@P}}")).rows, ["1: ${x@P}"]);
+    await expect("echo ${!a[@x]}", "env", [], [1]);
+  });
+
+  it("reads the last details", async () => {
+    const curl = { callee: "curl" };
+    await table([
+      ["curl a\\*b*", "string_args", [], [1], curl],
+      ["f() { local X=a; echo $(( X )); }", "calls", ["echo"], [1]],
+      ["sudo -nl rm", "calls", ["sudo"]],
+      ["ip netns exec ns curl x", "string_args", ["x"], [], curl],
+      [':          \necho "a\nb"', "env", []],
+      ["unset -$x", "env", [], [1]],
+    ]);
   });
 });
