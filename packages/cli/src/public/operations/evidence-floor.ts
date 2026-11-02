@@ -46,6 +46,12 @@ export type EvidenceFloorRow = Readonly<{
   proofGaps: readonly string[];
   /** The tests and symbols behind the gaps; empty lists are left out. */
   gapDetails?: Readonly<Record<string, readonly string[]>>;
+  /** Claims a proof refuted: the test, the claim and what the test read. */
+  refutations?: readonly Readonly<{
+    test: string;
+    claimKey: string;
+    reason: string;
+  }>[];
 }>;
 
 type EvidenceFloorPayload = {
@@ -100,7 +106,28 @@ export function gapDetailLines(row: EvidenceFloorRow): string[] {
   );
 }
 
+/** Gaps a refuted claim leaves that a derived proof would have covered. */
+const REFUTATION_GAPS = new Set(["happy_path_only", "uncovered_case"]);
+
+/** Each refuted claim in plain words: which test refutes it and why. */
+// implements REQ-kibi-claim-bound-proofs
+export function refutationText(row: EvidenceFloorRow): string | undefined {
+  const refutations = row.refutations ?? [];
+  if (refutations.length === 0) return undefined;
+  return refutations
+    .map(
+      (refutation) =>
+        `${refutation.test} refutes ${refutation.claimKey}: ${refutation.reason}`,
+    )
+    .join("; ");
+}
+
 function suggestionFor(row: EvidenceFloorRow): string {
+  const refuted = refutationText(row);
+  if (refuted !== undefined) {
+    const following = row.proofGaps.filter((gap) => REFUTATION_GAPS.has(gap));
+    return `The code breaks a claim of ${row.id} (${refuted}). Fix the code so it keeps the claim, or, with the person who owns the rule, change the requirement, then run kibi prove${following.length > 0 ? `; ${following.join(" and ")} ${following.length > 1 ? "clear" : "clears"} once the proof derives the claim` : ""}. kibi proof explain ${row.id} shows each claim's bindings.`;
+  }
   if (row.status === "pending_reproof")
     return `Run kibi prove for the tests behind ${row.id} so its receipts match the current code, then rerun kibi check --fresh-evidence.`;
   switch (row.requiredEvidence) {
@@ -127,7 +154,7 @@ export function evidenceFloorViolations(
       description:
         row.status === "pending_reproof"
           ? `${row.id} is ${row.evidenceLevel} but needs ${row.requiredEvidence} (${floorSource(row)}); its receipts are older than the code`
-          : `${row.id} is ${row.evidenceLevel} but needs ${row.requiredEvidence} (${floorSource(row)})`,
+          : `${row.id} is ${row.evidenceLevel} but needs ${row.requiredEvidence} (${floorSource(row)})${refutationText(row) === undefined ? "" : `; its proof refutes a claim: ${refutationText(row)}`}`,
       suggestion: suggestionFor(row),
       evidence: {
         evidenceLevel: row.evidenceLevel,
@@ -137,6 +164,7 @@ export function evidenceFloorViolations(
         proofStatus: row.proofStatus,
         proofGaps: row.proofGaps,
         ...(row.gapDetails === undefined ? {} : { gapDetails: row.gapDetails }),
+        ...(row.refutations?.length ? { refutations: row.refutations } : {}),
       },
     }));
 }
