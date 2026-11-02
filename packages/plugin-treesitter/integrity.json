@@ -21,8 +21,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 16530,
-      "sha256": "25e856abb7249ac13bc368c3e2a9b86f7e8081a72a441f5e5ca0d753f4619d3b"
+      "bytes": 19574,
+      "sha256": "addcbbeff35932e84b6d787dff9767fea57e94e13f241424e456327b2945acc7"
     },
     {
       "path": "SBOM.spdx.json",
@@ -136,8 +136,8 @@
     },
     {
       "path": "dist/analysis-worker.js",
-      "bytes": 73753,
-      "sha256": "9120078de07b39fd5caced87610eb262d94e9cf1ba5c19ddf0413baacffab4fe"
+      "bytes": 73813,
+      "sha256": "e05022b3a689b0b17b616bc5df6a03fc06f658f4581d598e9888b4ae7be4119a"
     },
     {
       "path": "dist/catalog.d.ts",
@@ -162,12 +162,12 @@
     {
       "path": "dist/extractor.d.ts.map",
       "bytes": 1689,
-      "sha256": "36794bb0ed5c00ce7aa110f0832371fb915b4ad3037e0ec574f6acd1fa6f67c4"
+      "sha256": "e4c3f19320786188b38f3fe2328cea3b76a2e3d6cc26e61961874f92d9526344"
     },
     {
       "path": "dist/extractor.js",
-      "bytes": 19237,
-      "sha256": "30e8aaea27afd15d1d4323bf9708b86bae84f1e77c0bae74d50dac85aa737d31"
+      "bytes": 19418,
+      "sha256": "baebe75cf0f786d48611d030a2bd8f58f763027848b1fe8e75ec78a4b0dc99c6"
     },
     {
       "path": "dist/index.d.ts",
@@ -230,19 +230,94 @@
       "sha256": "92973c7f0c017fdd340a084e39e5febadd4254bc822c0f86f46a05c1463c1870"
     },
     {
+      "path": "dist/reference-nodes.d.ts",
+      "bytes": 551,
+      "sha256": "df66070b64960458fb81a90bec2b2a8611e0255183391b5e8086767d86f710da"
+    },
+    {
+      "path": "dist/reference-nodes.d.ts.map",
+      "bytes": 553,
+      "sha256": "c05c51ff9cef8d6c28333c3a2fef47aef20c9ad31cb98a7cff24391f8348574b"
+    },
+    {
+      "path": "dist/reference-nodes.js",
+      "bytes": 1257,
+      "sha256": "2cc9075664f9d43cd126360b09b4a4baee8d855ea178468ec68791d3eed4f967"
+    },
+    {
+      "path": "dist/references-bash.d.ts",
+      "bytes": 1048,
+      "sha256": "e53328622b79cae645628e1bd9a13c6aea19f2fe92da4e010607db656c84a80d"
+    },
+    {
+      "path": "dist/references-bash.d.ts.map",
+      "bytes": 513,
+      "sha256": "0520ba780e09a1a1ed92d1aed40461189cc744ef3df24cc0b5f9c8f2fea32535"
+    },
+    {
+      "path": "dist/references-bash.js",
+      "bytes": 44510,
+      "sha256": "8688d0dfe3655881d08c3fed546f179f5ab0aceae12b19bbcf2865d5cb3fb7a4"
+    },
+    {
+      "path": "dist/references-c.d.ts",
+      "bytes": 1159,
+      "sha256": "c8f74f56ff274287475d5ba8d17daa77b2576ea87c6f43ce61a8cc3aba08e0ae"
+    },
+    {
+      "path": "dist/references-c.d.ts.map",
+      "bytes": 546,
+      "sha256": "bd13f0e67f6d78d5fbb0ed5d81a9be4e9e0e9767a7037c0c8ad0f177ce64e2be"
+    },
+    {
+      "path": "dist/references-c.js",
+      "bytes": 22451,
+      "sha256": "ab7ca37a6ea9e10f90170711e31c77971eef99a2d98cbc3da81d1d0f757c8a2d"
+    },
+    {
+      "path": "dist/references-hcl.d.ts",
+      "bytes": 347,
+      "sha256": "747f54b5f2956e374949768299604221b52a6cb88c5060795aaf6b9cb1619b98"
+    },
+    {
+      "path": "dist/references-hcl.d.ts.map",
+      "bytes": 367,
+      "sha256": "e00c6bda604dc89e7c160b0ca02b36ca666e3d552461f4d6272dd633b8b32265"
+    },
+    {
+      "path": "dist/references-hcl.js",
+      "bytes": 7591,
+      "sha256": "9b8c71ee1ceb0a2965a86501375aa50d1329a808437a639716078e8f524d33e6"
+    },
+    {
+      "path": "dist/references-php.d.ts",
+      "bytes": 1035,
+      "sha256": "ab82dde342ce8bc2a1c880c124d6002ff9646b902a68de9d7d780edac492e6b3"
+    },
+    {
+      "path": "dist/references-php.d.ts.map",
+      "bytes": 583,
+      "sha256": "0e08e2e2aa2e31be50ee97f239d1ab56d6d169221c56dfbdcaf08edc22df68e4"
+    },
+    {
+      "path": "dist/references-php.js",
+      "bytes": 30865,
+      "sha256": "af14f909b8d3a6457e633b5fd4ada9c0334d8db326010ea38edc193aa3c3bdf0"
+    },
+    {
       "path": "dist/references.d.ts",
-      "bytes": 1454,
-      "sha256": "46c3aa294932e88bdb4481aba8bcfe76e1fe3a972a5a404286546545c63479f8"
+      "bytes": 1729,
+      "sha256": "74e96d066cb05c3e12d1afb718702e6be848d36116c36226e9a75b01cad9caea"
     },
     {
       "path": "dist/references.d.ts.map",
-      "bytes": 1028,
-      "sha256": "bc50c2c627508f04745442b61f02dedb792d7c9479d245951ce50a1053bd4aa7"
+      "bytes": 1127,
+      "sha256": "2fbbfd0bcd49bfdf3163d52fd7002e6e973faed2dbef7cfd14b88d4bd8ef94fc"
     },
     {
       "path": "dist/references.js",
-      "bytes": 134556,
-      "sha256": "13f481356aa17fc1b19ec573430c2235645ea0047e8474ced1373c0d88e19e87"
+      "bytes": 135652,
+      "sha256": "91d6c09d6f45b024466b261247f3a8209975311022e8a11e94a6bb5f71f7b273"
     },
     {
       "path": "licenses/web-tree-sitter-MIT.txt",

@@ -2223,7 +2223,9 @@ async function runReferences(
   try {
     const { parser } = await grammarFor(input.language);
     parser.reset();
-    const tree = parser.parse(input.content);
+    const tree = parser.parse(
+      input.language === "c" ? blankHeaderIdioms(input.content) : input.content,
+    );
     /* node:coverage disable */
     if (tree === null)
       return {

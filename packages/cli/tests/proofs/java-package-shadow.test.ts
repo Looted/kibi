@@ -479,4 +479,45 @@ describe("rows about a name another file of the project may bind", () => {
       createShadowRowFilter(missing)("src/App/U02.cs", [environmentRow]),
     ).toEqual([environmentRow]);
   });
+
+  it("drops a PHP namespace row only when no project file declares that function there", () => {
+    const row = {
+      line: 3,
+      text: "getenv may be a function of namespace App\\Svc: getenv('X')",
+    };
+    const root = project({
+      "src/a.php": "<?php\nnamespace App\\Svc;\ngetenv('X');\n",
+      "src/b.php": "<?php\nnamespace Other;\nfunction getenv($n) {}\n",
+      "vendor/x/c.php": "<?php\nnamespace App\\Svc;\nfunction getenv($n) {}\n",
+    });
+    expect(createShadowRowFilter(root)("src/a.php", [row])).toEqual([]);
+    fs.writeFileSync(
+      path.join(root, "src/d.php"),
+      "<?php\nnamespace App \\ Svc {\n  function &GETENV($n) {}\n}\n",
+    );
+    expect(createShadowRowFilter(root)("src/a.php", [row])).toEqual([row]);
+  });
+
+  it("drops a C include row only when the header defines no macro the file uses", () => {
+    const row = {
+      line: 1,
+      text: 'config.h may define macros this file uses: #include "config.h"',
+    };
+    const root = project({
+      "src/a.c": '#include "config.h"\nint main(void) { return run(); }\n',
+      "src/config.h":
+        '#ifndef CONFIG_H\n#define CONFIG_H\n#include <stdio.h>\n#include "inner.h"\nint run(void);\n#endif\n',
+      "src/inner.h": "#define UNUSED 1\n",
+    });
+    expect(createShadowRowFilter(root)("src/a.c", [row])).toEqual([]);
+    // A macro the file uses, a header not next to the file, or an include
+    // Kibi cannot follow keeps the row.
+    fs.writeFileSync(path.join(root, "src/inner.h"), "#define run system\n");
+    expect(createShadowRowFilter(root)("src/a.c", [row])).toEqual([row]);
+    fs.writeFileSync(path.join(root, "src/inner.h"), "#include CONFIGURED\n");
+    expect(createShadowRowFilter(root)("src/a.c", [row])).toEqual([row]);
+    fs.rmSync(path.join(root, "src/config.h"));
+    expect(createShadowRowFilter(root)("src/a.c", [row])).toEqual([row]);
+    expect(createShadowRowFilter(root)("src/missing.c", [row])).toEqual([row]);
+  });
 });

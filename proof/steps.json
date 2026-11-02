@@ -7218,6 +7218,27 @@
     ]
   },
   {
+    "test_id": "TEST-kibi-tree-sitter-script-references",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/tree-sitter-script-references.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/plugin-references.test.ts",
+        "./packages/cli/tests/proofs/java-package-shadow.test.ts"
+      ],
+      [
+        "node",
+        "--test",
+        "packages/plugin-treesitter/tests/references-more-languages.test.js"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-kibi-tree-sitter-language-packs",
     "steps": [
       [

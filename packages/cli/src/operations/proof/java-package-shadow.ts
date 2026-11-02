@@ -40,7 +40,13 @@
  *   exec.Command`), so the call is that function's;
  * - a Go import ("config may be a package of the project: ..."), for env: a
  *   package of the project may wrap a getter (`config.Get("X")`, `var Get =
- *   os.Getenv`) or read the environment at init.
+ *   os.Getenv`) or read the environment at init;
+ * - a PHP function called unqualified in a namespace ("getenv may be a
+ *   function of namespace App: ..."): PHP calls `App\getenv` when the
+ *   project declares one, and the global `getenv` only otherwise;
+ * - a C quoted `#include` ("config.h may define macros this file uses:
+ *   ..."): a macro of the header, or of a header it includes, may rename
+ *   anything the file calls or reads.
  *
  * The host drops such a row only after it has looked at those files and
  * found no such declaration. When it finds one, or cannot read the files,
@@ -61,6 +67,42 @@ const CSHARP_ROW = /^(\w+) may be a type of the project: /;
 const GO_ROW = /^(\w+) may be declared in another file of the package: /;
 const GO_IMPORT_ROW = /^\S+ may be a package of the project: /;
 const GO_CALL_ROW = /^(\w+) may be a function of another file of the package: /;
+const PHP_ROW = /^(\w+) may be a function of namespace ([\w\\]+): /;
+const C_INCLUDE_ROW = /^(.+?) may define macros this file uses: /;
+
+/** Whether PHP source declares function `name` in namespace `namespace`. */
+function phpDeclares(text: string, name: string, namespace: string): boolean {
+  const spelled = namespace.split("\\").map((part) => part.replace(/[^\w]/g, "")).join(String.raw`\s*\\\s*`);
+  return (
+    new RegExp(String.raw`\bnamespace\s+\\?${spelled}\s*[;{]`, "i").test(text) &&
+    new RegExp(String.raw`\bfunction\s*&?\s*${name}\s*\(`, "i").test(text)
+  );
+}
+
+/**
+ * The macros a quoted header defines, with those of the quoted headers it
+ * includes, or null when one of them is not found next to its includer
+ * (it may come from an include path Kibi does not know).
+ */
+function headerMacros(header: string, seen: Set<string> = new Set()): string[] | null {
+  if (seen.has(header)) return [];
+  seen.add(header);
+  let text: string;
+  try {
+    text = readFileSync(header, "utf8");
+  } catch {
+    return null;
+  }
+  const names = [...text.matchAll(/^[ \t]*#[ \t]*define[ \t]+([A-Za-z_]\w*)/gm)].map((match) => match[1] as string);
+  for (const match of text.matchAll(/^[ \t]*#[ \t]*include[ \t]*("([^"]+)"|[^<\s].*)$/gm)) {
+    const quoted = match[2];
+    if (quoted === undefined) return null;
+    const inner = headerMacros(path.join(path.dirname(header), quoted), seen);
+    if (inner === null) return null;
+    names.push(...inner);
+  }
+  return names;
+}
 
 /**
  * What in Go source may read the environment: a getter of os, syscall or
@@ -402,6 +444,22 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
           (texts.some((text) => GO_ENV_SOURCE.test(text) || go.importsReach(text, directory)) &&
             texts.some((text) => name.test(text)))
         );
+      }
+      const php = PHP_ROW.exec(row.text);
+      if (php !== null) {
+        // Composer packages under vendor/ do not declare the project's namespaces.
+        const texts = read("php", () => sourceFiles(workspaceRoot, ".php", ["vendor"]));
+        return texts === null || texts.some((text) => phpDeclares(text, php[1] as string, php[2] as string));
+      }
+      const include = C_INCLUDE_ROW.exec(row.text);
+      if (include !== null) {
+        // The row's text may be cut short, so the path is read from the line.
+        const own = read(`file:${file}`, () => [path.join(workspaceRoot, file)])?.[0];
+        const line = own?.split("\n")[row.line - 1] ?? "";
+        const spelled = /#\s*include\s*"([^"]+)"/.exec(line)?.[1];
+        if (own === undefined || spelled === undefined) return true;
+        const macros = headerMacros(path.join(directory, spelled));
+        return macros === null || macros.some((name) => new RegExp(`\\b${name}\\b`).test(own));
       }
       const csharp = CSHARP_ROW.exec(row.text);
       if (csharp !== null) {

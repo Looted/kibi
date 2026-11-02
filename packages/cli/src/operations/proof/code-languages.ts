@@ -87,7 +87,17 @@ export const PLUGIN_REFERENCE_LANGUAGES = [
   { name: "Java", pattern: /\.java$/i },
   { name: "C#", pattern: /\.cs$/i },
   { name: "Rust", pattern: /\.rs$/i },
+  { name: "PHP", pattern: /\.php$/i },
+  { name: "C", pattern: /\.[ch]$/i },
+  { name: "Bash", pattern: /\.(?:bash|sh)$/i },
+  { name: "Terraform/HCL", pattern: /\.(?:tf|hcl)$/i },
 ] as const;
+
+/** How a reason lists the languages the plugin reads references in. */
+export const PLUGIN_REFERENCE_LANGUAGE_NAMES = (() => {
+  const names = PLUGIN_REFERENCE_LANGUAGES.map((language) => language.name);
+  return `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
+})();
 
 /**
  * The data-only kibi-lang-* packs kibi-plugin-treesitter reads these

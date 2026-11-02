@@ -47,11 +47,11 @@ export const qualifiedSourceAnalyzers = [
       "catalog.json":
         "88c1139144c89835eed2d8a4dc736e4fe8391b50c7aeecf967dd3cbe8163f937",
       "dist/analysis-worker.js":
-        "9120078de07b39fd5caced87610eb262d94e9cf1ba5c19ddf0413baacffab4fe",
+        "e05022b3a689b0b17b616bc5df6a03fc06f658f4581d598e9888b4ae7be4119a",
       "dist/catalog.js":
         "c485cd1bf81098c3e2e86d37f78bf9f55af122f5d6b9587c0c57b494d68e4968",
       "dist/extractor.js":
-        "30e8aaea27afd15d1d4323bf9708b86bae84f1e77c0bae74d50dac85aa737d31",
+        "baebe75cf0f786d48611d030a2bd8f58f763027848b1fe8e75ec78a4b0dc99c6",
       "dist/index.js":
         "a7dcc81f40848a17a4b7adf4fe573a57a50c18425fab40fbb098489dfd092f3f",
       "dist/language-packs.js":
@@ -60,10 +60,20 @@ export const qualifiedSourceAnalyzers = [
         "28f589c29e8759b566ee3fb741a91e30347efe1dfbad0f5b1c5b7d4f785369ff",
       "dist/preprocessor-idioms.js":
         "92973c7f0c017fdd340a084e39e5febadd4254bc822c0f86f46a05c1463c1870",
+      "dist/reference-nodes.js":
+        "2cc9075664f9d43cd126360b09b4a4baee8d855ea178468ec68791d3eed4f967",
+      "dist/references-bash.js":
+        "8688d0dfe3655881d08c3fed546f179f5ab0aceae12b19bbcf2865d5cb3fb7a4",
+      "dist/references-c.js":
+        "ab7ca37a6ea9e10f90170711e31c77971eef99a2d98cbc3da81d1d0f757c8a2d",
+      "dist/references-hcl.js":
+        "9b8c71ee1ceb0a2965a86501375aa50d1329a808437a639716078e8f524d33e6",
+      "dist/references-php.js":
+        "af14f909b8d3a6457e633b5fd4ada9c0334d8db326010ea38edc193aa3c3bdf0",
       "dist/references.js":
-        "13f481356aa17fc1b19ec573430c2235645ea0047e8474ced1373c0d88e19e87",
+        "91d6c09d6f45b024466b261247f3a8209975311022e8a11e94a6bb5f71f7b273",
       "integrity.json":
-        "53d8a644a2bd4fcba93d60704b1f69c886f4705a8cbe78acc673ba8b50b00e1b",
+        "d4908e79adb8b63d59a3b59c0a1d7db299d9858795d8f33a6c66485de7077f6b",
       "licenses/web-tree-sitter-MIT.txt":
         "c5cfb43042b6b72045f4ba997834d0a7786d2793d91680868b5815b39f14fc78",
       "package.json":

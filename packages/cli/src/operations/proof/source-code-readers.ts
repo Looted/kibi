@@ -21,14 +21,14 @@
  * (environment variables, imports, calls, string arguments, thrown errors
  * and property values, read from the syntax tree of TypeScript, JavaScript
  * and Python files, from the terms of SWI-Prolog files, and from the syntax
- * trees of Go, Java, C# and Rust files through a qualified
+ * trees of Go, Java, C#, Rust, PHP, C, Bash and Terraform files through a qualified
  * kibi.reference-extractor.v1 plugin), the prolog
  * reader (fact arguments of a Prolog file), and the readers that load a module (drizzle schemas,
  * Hono and Express route tables, zod and pydantic validators).
  */
 
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { builtinModules, createRequire } from "node:module";
 import path from "node:path";
 import {
@@ -46,7 +46,12 @@ import {
   REFERENCE_PLUGIN_PACKAGE,
   proofReferenceExtractorLoader,
 } from "../../plugins/proof-reference-extractors.js";
-import { codeLanguage, pluginReferenceLanguage, unsupportedLanguageReason } from "./code-languages.js";
+import {
+  codeLanguage,
+  PLUGIN_REFERENCE_LANGUAGE_NAMES,
+  pluginReferenceLanguage,
+  unsupportedLanguageReason,
+} from "./code-languages.js";
 import { createShadowRowFilter } from "./java-package-shadow.js";
 import { runCodeEvaluator, TS_RESOLVE_HOOKS } from "./code-runner.js";
 import { PROLOG_SOURCE_READER } from "./prolog-source-reader.js";
@@ -989,7 +994,7 @@ async function readReferences(workspaceRoot: string, spec: SourceSpec): Promise<
   if (unknown.length > 0)
     return {
       ok: false,
-      reason: `${unsupportedLanguageReason("the references reader", ["js", "python", "prolog"], unknown).replace(/ files, not /, ` files (and Go, Java, C# and Rust through ${REFERENCE_PLUGIN_PACKAGE}), not `)}; Kibi cannot decide a references claim for those files, so the claim stays unproved (do not drop them from files: a claim about them would then be checked on other code)`,
+      reason: `${unsupportedLanguageReason("the references reader", ["js", "python", "prolog"], unknown).replace(/ files, not /, ` files (and ${PLUGIN_REFERENCE_LANGUAGE_NAMES} through ${REFERENCE_PLUGIN_PACKAGE}), not `)}; Kibi cannot decide a references claim for those files, so the claim stays unproved (do not drop them from files: a claim about them would then be checked on other code)`,
     };
   const members: string[] = [];
   const unresolved: UnresolvedReference[] = [];
@@ -1054,7 +1059,7 @@ async function readReferences(workspaceRoot: string, spec: SourceSpec): Promise<
 const PLUGIN_READ_TIMEOUT_MS = 10_000;
 
 /**
- * Read references of Go, Java, C# and Rust files through a qualified
+ * Read references of the plugin's languages through a qualified
  * kibi.reference-extractor.v1 provider. Without one the read is refused with
  * what to install, never answered as empty.
  */
@@ -1104,6 +1109,23 @@ async function readPluginReferences(
     members.push(...result.members);
     // A row about a name another file may bind stays only if one does.
     for (const row of shadowRows(file, result.unresolved)) unresolved.push({ file, line: row.line, text: row.text });
+  }
+  // Terraform merges `override.tf` and `*_override.tf` files of a folder
+  // into the blocks of its other files, so their values replace what a file
+  // read shows.
+  for (const file of files.filter((candidate) => /\.tf$/i.test(candidate))) {
+    const folder = path.posix.dirname(file);
+    let names: string[];
+    try {
+      names = readdirSync(path.join(workspaceRoot, folder));
+    } catch {
+      names = [];
+    }
+    for (const name of names) {
+      const override = folder === "." ? name : `${folder}/${name}`;
+      if (/(?:^|_)override\.tf(?:\.json)?$/.test(name) && !files.includes(override))
+        unresolved.push({ file, line: 1, text: `${override} may override values of this folder's blocks` });
+    }
   }
   // A C# file also imports what the project's global and implicit usings
   // bring in, which no single file shows.

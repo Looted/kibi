@@ -89,15 +89,45 @@ const fakePack = (name: string, manifestBody: unknown) => ({
 
 // executable_for TEST-kibi-tree-sitter-references
 describe("plugin reference languages", () => {
-  it("names the language of Go, Java, C# and Rust files and nothing else", () => {
+  it("names the language of each file the plugin reads references of, and nothing else", () => {
     expect(PLUGIN_REFERENCE_LANGUAGES.map((language) => language.name)).toEqual(
-      ["Go", "Java", "C#", "Rust"],
+      ["Go", "Java", "C#", "Rust", "PHP", "C", "Bash", "Terraform/HCL"],
     );
     expect(
-      ["a.go", "B.JAVA", "c.cs", "d.rs", "e.ts", "f.py", "g.rb"].map(
-        pluginReferenceLanguage,
-      ),
-    ).toEqual(["Go", "Java", "C#", "Rust", null, null, null]);
+      [
+        "a.go",
+        "B.JAVA",
+        "c.cs",
+        "d.rs",
+        "x.php",
+        "y.c",
+        "y.h",
+        "z.sh",
+        "z.bash",
+        "main.tf",
+        "t.hcl",
+        "e.ts",
+        "f.py",
+        "g.rb",
+        "h.cpp",
+      ].map(pluginReferenceLanguage),
+    ).toEqual([
+      "Go",
+      "Java",
+      "C#",
+      "Rust",
+      "PHP",
+      "C",
+      "C",
+      "Bash",
+      "Bash",
+      "Terraform/HCL",
+      "Terraform/HCL",
+      null,
+      null,
+      null,
+      null,
+    ]);
   });
 
   it("maps every pack-hosted extension to exactly one pack", () => {

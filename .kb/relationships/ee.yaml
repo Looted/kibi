@@ -552,3 +552,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b3bc8f52d7f4
+  - type: constrains
+    from: REQ-kibi-tree-sitter-script-references
+    to: FACT-SUBJECT-KIBI-TREE-SITTER-SCRIPT-REFERENCES
+    created_at: 2026-11-02T12:20:18.660Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-184642ff1b0d
+  - type: requires_property
+    from: REQ-kibi-tree-sitter-script-references
+    to: FACT-kibi-tree-sitter-script-references-read-statically
+    created_at: 2026-11-02T12:20:18.712Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b26d05331254
+  - type: requires_property
+    from: REQ-kibi-tree-sitter-script-references
+    to: FACT-kibi-tree-sitter-script-references-refuse-hidden
+    created_at: 2026-11-02T12:20:18.752Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee2cf7f0b7fd
+  - type: requires_property
+    from: REQ-kibi-tree-sitter-script-references
+    to: FACT-kibi-tree-sitter-script-references-bash-partial-assignments
+    created_at: 2026-11-02T12:20:18.783Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47aeb8c76253
+  - type: requires_property
+    from: REQ-kibi-tree-sitter-script-references
+    to: FACT-kibi-tree-sitter-script-references-terraform-overrides
+    created_at: 2026-11-02T12:20:18.806Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fde13f28c3b7
+  - type: requires_property
+    from: REQ-kibi-tree-sitter-script-references
+    to: FACT-kibi-tree-sitter-script-references-other-files
+    created_at: 2026-11-02T12:20:18.827Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a7996687a12
+  - type: specified_by
+    from: REQ-kibi-tree-sitter-script-references
+    to: SCEN-kibi-tree-sitter-script-references
+    created_at: 2026-11-02T12:20:18.849Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ba9bf9feb08
+  - type: specified_by
+    from: REQ-kibi-tree-sitter-script-references
+    to: SCEN-NEG-kibi-tree-sitter-script-references-EVAL
+    created_at: 2026-11-02T12:20:18.871Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-948ec229d589

@@ -1,0 +1,224 @@
+import type { Node } from "web-tree-sitter";
+import { type UnresolvedRow, at, field, named } from "./reference-nodes.js";
+
+/**
+ * Terraform and HCL references: the literal values of an attribute or object
+ * key. Configuration has no imports, calls, environment reads or errors of
+ * its own that a file names, so only `property` is read. A value Kibi cannot
+ * know without evaluating the configuration (a variable, a local, a function
+ * call, an interpolated template) is an unresolved row, and so is any object
+ * key it cannot name, since that key may be the one asked for.
+ */
+
+/**
+ * Functions whose result is an object with keys their arguments spell only
+ * as text or data (`jsondecode("{\"acl\": \"public\"}")`, `zipmap(["acl"],
+ * ...)`): the key may be inside, unseen.
+ */
+const HCL_KEY_FUNCTIONS = new Set([
+  "jsondecode",
+  "yamldecode",
+  "csvdecode",
+  "zipmap",
+  "transpose",
+  "provider::terraform::decode_tfvars",
+]);
+
+/** The one named child of an `expression` wrapper, or null for a compound. */
+function single(node: Node | null): Node | null {
+  if (node === null) return null;
+  if (node.type !== "expression") return node;
+  const parts = named(node);
+  return parts.length === 1 ? single(parts[0] as Node) : null;
+}
+
+const ESCAPES: Readonly<Record<string, string>> = {
+  n: "\n",
+  r: "\r",
+  t: "\t",
+  '"': '"',
+  "\\": "\\",
+};
+
+/**
+ * The text of a template literal: `\n`, `\t`, `\r`, `\"`, `\\`, `\uNNNN`,
+ * `\UNNNNNNNN` and the `$${` and `%%{` escapes decoded, or null for an
+ * escape HCL does not define.
+ */
+function decode(text: string): string | null {
+  let value = "";
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index] as string;
+    if (char === "$" && text.startsWith("$${", index)) {
+      value += "${";
+      index += 2;
+    } else if (char === "%" && text.startsWith("%%{", index)) {
+      value += "%{";
+      index += 2;
+    } else if (char === "\\") {
+      const next = text[index + 1] ?? "";
+      const simple = ESCAPES[next];
+      if (simple !== undefined) {
+        value += simple;
+        index += 1;
+        continue;
+      }
+      const digits = next === "u" ? 4 : next === "U" ? 8 : 0;
+      const hex = text.slice(index + 2, index + 2 + digits);
+      if (digits === 0 || !new RegExp(`^[0-9A-Fa-f]{${digits}}$`).test(hex))
+        return null;
+      const point = Number.parseInt(hex, 16);
+      if (point > 0x10ffff) return null;
+      value += String.fromCodePoint(point);
+      index += 1 + digits;
+    } else value += char;
+  }
+  return value;
+}
+
+/** A quoted string or template with no interpolation or directive. */
+function quoted(node: Node): string | null {
+  let value = "";
+  for (const part of named(node)) {
+    if (
+      part.type === "quoted_template_start" ||
+      part.type === "quoted_template_end"
+    )
+      continue;
+    if (part.type !== "template_literal") return null;
+    const text = decode(part.text);
+    if (text === null) return null;
+    value += text;
+  }
+  return value;
+}
+
+/**
+ * A `<<EOT` heredoc with no interpolation or directive: its lines, each
+ * ending with a newline. An indented `<<-EOT` heredoc is not read.
+ */
+function heredoc(node: Node): string | null {
+  if (
+    named(node).some(
+      (part) =>
+        part.type === "template_interpolation" ||
+        part.type === "template_directive",
+    )
+  )
+    return null;
+  const match = /^<<(\w+)\r?\n([\s\S]*?)[ \t]*\1[ \t]*$/.exec(node.text);
+  if (match === null) return null;
+  if ((match[2] as string).includes("${") || match[2]?.includes("%{"))
+    return null;
+  return (match[2] as string).replace(/\r\n/g, "\n");
+}
+
+/** The scalar literal values an expression holds (each item of a tuple). */
+function values(node: Node | null): string[] | null {
+  const value = single(node);
+  if (value === null) return null;
+  switch (value.type) {
+    case "literal_value": {
+      const literal = named(value)[0] as Node;
+      if (literal.type === "string_lit") return wrap(quoted(literal));
+      return [literal.text];
+    }
+    case "template_expr": {
+      const template = named(value)[0] as Node;
+      return wrap(
+        template.type === "quoted_template"
+          ? quoted(template)
+          : heredoc(template),
+      );
+    }
+    case "collection_value": {
+      const collection = named(value)[0] as Node;
+      if (collection.type !== "tuple") return null;
+      const items: string[] = [];
+      for (const item of named(collection)) {
+        if (item.type === "tuple_start" || item.type === "tuple_end") continue;
+        const read = values(item);
+        if (read === null) return null;
+        items.push(...read);
+      }
+      return items;
+    }
+    case "operation": {
+      // `-1` is a unary operation on a number.
+      const operation = named(value)[0] as Node;
+      const operand = single(named(operation)[0] ?? null);
+      if (
+        operation.type === "unary_operation" &&
+        operation.text.trimStart().startsWith("-") &&
+        operand?.type === "literal_value" &&
+        named(operand)[0]?.type === "numeric_lit"
+      )
+        return [`-${operand.text}`];
+      return null;
+    }
+    default:
+      return null;
+  }
+}
+
+function wrap(value: string | null): string[] | null {
+  return value === null ? null : [value];
+}
+
+/** An object key's name: a bare identifier or a literal string. */
+function keyName(node: Node | null): string | null {
+  const key = single(node);
+  if (key === null) return null;
+  if (key.type === "variable_expr") return key.text;
+  if (key.type === "literal_value") {
+    const literal = named(key)[0] as Node;
+    return literal.type === "string_lit" ? quoted(literal) : literal.text;
+  }
+  if (key.type === "template_expr") {
+    const template = named(key)[0] as Node;
+    return template.type === "quoted_template" ? quoted(template) : null;
+  }
+  return null;
+}
+
+/** Read `property` values of `key` from a parsed Terraform or HCL file. */
+// implements REQ-kibi-tree-sitter-script-references
+export function hclProperty(
+  root: Node,
+  key: string,
+): { members: string[]; unresolved: UnresolvedRow[] } {
+  const members: string[] = [];
+  const unresolved: UnresolvedRow[] = [];
+  const take = (owner: Node, value: Node | null): void => {
+    const read = values(value);
+    if (read === null) unresolved.push(at(owner));
+    else members.push(...read);
+  };
+  const visit = (node: Node): void => {
+    switch (node.type) {
+      case "attribute": {
+        const [name, value] = named(node);
+        if (name?.text === key) take(node, value ?? null);
+        break;
+      }
+      case "object_elem": {
+        const name = keyName(field(node, "key"));
+        if (name === null) unresolved.push(at(node));
+        else if (name === key) take(node, field(node, "val"));
+        break;
+      }
+      case "for_object_expr":
+        // `{ for k, v in x : k => v }` makes keys at evaluation.
+        unresolved.push(at(node));
+        break;
+      case "function_call": {
+        const name = named(node)[0]?.text ?? "";
+        if (HCL_KEY_FUNCTIONS.has(name)) unresolved.push(at(node));
+        break;
+      }
+    }
+    for (const child of named(node)) visit(child);
+  };
+  visit(root);
+  return { members, unresolved };
+}

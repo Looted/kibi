@@ -158,7 +158,8 @@ async function requirementFiles(
  * question worded differently from them is likely to miss; neither is
  * offered once the project activated or declined it. kibi-plugin-treesitter
  * is offered for sources in any language it reads until it is listed, and
- * for Go, Java, C# and Rust sources until it is active for source proofs.
+ * for Go, Java, C#, Rust, PHP, C, Bash and Terraform sources until it is active
+ * for source proofs.
  */
 // implements REQ-bootstrap-ui-plugin-offer, REQ-kibi-plugin-search-hints, REQ-kibi-tree-sitter-references
 export async function pluginOffers(

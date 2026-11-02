@@ -349,6 +349,7 @@ source_matching(_, literal).
 member_separator(".").
 member_separator("/").
 member_separator("::").
+member_separator("\\").
 
 % extends_member(+Member, +Stem): Member is Stem or lies under it at a
 % segment boundary.  The empty stem (from the item "*") covers everything.

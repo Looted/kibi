@@ -102,6 +102,48 @@ describe("the references reader on Go, Java, C# and Rust", () => {
     ).toEqual({ ok: true, model: { members: ["System", "System.Net.Http"] } });
   });
 
+  // executable_for TEST-kibi-tree-sitter-references
+  test("refuses Terraform values an override file of the folder may replace", async () => {
+    proofReferenceExtractorLoader.load = async () => ({
+      extractors: [
+        { ...fakeExtractor, supports: ({ path: file }) => /\.tf$/.test(file) },
+      ],
+      problems: [],
+    });
+    const root = workspace({
+      "infra/main.tf": "uses(private)\n",
+      "infra/prod_override.tf": "uses(public)\n",
+      "other/main.tf": "uses(x)\n",
+    });
+    const refused = await read(root, {
+      reader: "references",
+      files: "infra/main.tf",
+      extract: "property",
+      key: "acl",
+    });
+    expect(refused.ok).toBe(false);
+    if (!refused.ok)
+      expect(refused.reason).toContain(
+        "infra/prod_override.tf may override values of this folder's blocks",
+      );
+    expect(
+      await read(root, {
+        reader: "references",
+        files: "infra/*.tf",
+        extract: "property",
+        key: "acl",
+      }),
+    ).toEqual({ ok: true, model: { members: ["private", "public"] } });
+    expect(
+      await read(root, {
+        reader: "references",
+        files: "other/main.tf",
+        extract: "property",
+        key: "acl",
+      }),
+    ).toEqual({ ok: true, model: { members: ["x"] } });
+  });
+
   test("refuses with what to install when no provider is active", async () => {
     const root = workspace({ "main.go": "package main\n" });
     const refused = await read(root, {
@@ -158,7 +200,7 @@ describe("the references reader on Go, Java, C# and Rust", () => {
     expect(refused.ok).toBe(false);
     if (!refused.ok)
       expect(refused.reason).toContain(
-        "Go, Java, C# and Rust through kibi-plugin-treesitter",
+        "Go, Java, C#, Rust, PHP, C, Bash and Terraform/HCL through kibi-plugin-treesitter",
       );
   });
 

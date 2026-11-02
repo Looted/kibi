@@ -585,7 +585,7 @@ list anything. The contract names the source:
 | `json`, `yaml` | `file` at `path` (dotted, or a JSON pointer) | `keys`, `values`, `items` |
 | `glob` | the files `pattern` matches (`capture: true` reads what each `*` and `**` matched, joined with `/`: `i18n/**/*.json` reads `finance/de` from `i18n/finance/de.json`) | |
 | `openapi` | `file`'s operations (`GET /invoices`) | `operations`, `unsecured_operations`, `security_schemes`, `responses` |
-| `references` | the code in `files` (TypeScript, JavaScript, Python, SWI-Prolog; Go, Java, C# and Rust through `kibi-plugin-treesitter`): `extract` `env`, `imports`, `calls`, `string_args` (with `callee`), `thrown` (the class of `throw new X()`, or the factory of `throw createX()`) or `property` (with `key`; not in Prolog) | |
+| `references` | the code in `files` (TypeScript, JavaScript, Python, SWI-Prolog; Go, Java, C#, Rust, PHP, C, Bash and Terraform/HCL through `kibi-plugin-treesitter`): `extract` `env`, `imports`, `calls`, `string_args` (with `callee`), `thrown` (the class of `throw new X()`, or the factory of `throw createX()`) or `property` (with `key`; not in Prolog) | |
 | `schema` | `format: drizzle` or `prisma` (`file`), or `sql` migrations replayed in order (`files`); `table` filters by name or glob | `tables`, `columns`, `required_columns`, `nullable_columns`, `foreign_keys` |
 | `routes` | a Hono or Express app's route table, with the middleware that runs before each route (mounted routers included); `path_prefix` keeps the routes under a prefix | `routes`, `middleware` |
 | `validator` | a zod or valibot object (or one wrapped in refine, transform or pipe; any field that is a Standard Schema), or a pydantic model | `fields`, `required_fields`, `optional_fields` |
@@ -891,6 +891,50 @@ Details that decide what a reader sees:
   project module or another crate (`use inner::*`) for a bare getter name
   and the standard macros; and a Rust alias Kibi cannot follow or a
   qualified-self callee (`<T>::new`) for `string_args`. A file that does not parse is refused with its line.
+- **PHP, C, Bash and Terraform/HCL.** These go through the same plugin and
+  need their packs (`kibi-lang-php`, `kibi-lang-c`, `kibi-lang-bash`,
+  `kibi-lang-hcl`). Files are matched by extension: `.php`; `.c` and `.h`
+  (a header is read as C); `.sh` and `.bash`; `.tf` and `.hcl`.
+  - *PHP* reads every extract; `property` reads literal array keys
+    (`'acl' => 'private'`), named arguments, and property and constant
+    defaults. Class names resolve through the namespace
+    and `use` imports (group uses too) and are listed in full
+    (`App\Mail\Mailer::send`, `*.send` for an unknown receiver); function
+    names are listed in lower case. An unqualified call inside a namespace
+    may reach the namespace's own function, so it is refused unless no
+    `.php` file of the project (outside `vendor`) declares that function
+    there. `env` reads `getenv`, `apache_getenv`, `env()`, `Env::get` and
+    `filter_input(INPUT_ENV|INPUT_SERVER, ...)`, and literal subscripts of
+    `$_ENV` and `$_SERVER`. Callables handed to `array_map`,
+    `call_user_func` and the like are followed. A dynamic call or
+    `new`, `eval`, `create_function`, a string `assert`, a getter's name in
+    a string, `$$name`, `$GLOBALS` and `get_defined_vars()` refuse.
+    Backticks are listed as `shell_exec`.
+  - *C* reads `env`, `imports`, `calls`, `string_args` and `property` (the
+    designated fields of an initializer, `.field = value`); C has no thrown
+    errors. Macros the file defines are expanded, respecting `#undef`; a
+    macro defined under a condition, one that uses `#` or `##`, and an `#if`
+    block that adds members refuse. A quoted `#include` may bring macros,
+    so it is refused unless the header, found next to the file, defines no
+    macro the file uses. A call through a variable or a function pointer,
+    `environ`, a three-parameter `main`, a getter handed on as a value and a
+    positional struct initializer refuse.
+  - *Bash* reads `env`, `imports` (`source` and `.`, with the
+    `$(dirname "$0")` script-folder idioms resolved), `calls` and
+    `string_args`. A variable the script expands but never sets is an
+    environment read; one it sets only on some paths is refused as a read
+    the environment may supply. Commands run through `sudo`, `env`,
+    `xargs`, `find -exec`, `timeout` and similar wrappers are followed.
+    `eval`, `sh -c`, a shell reading its script from input, `trap` code,
+    `alias`, a command held in a variable, `coproc`, and a `source` of a
+    computed path (for `env`) refuse.
+  - *Terraform/HCL* reads `property` only: the literal values of an
+    attribute or object key anywhere in the file (strings, numbers, bools,
+    `null`, tuples, plain heredocs). A value that needs evaluation
+    (variables, functions, templates), a computed key, a `for` object,
+    `jsondecode` and similar functions refuse, and so does a Terraform
+    `override.tf` or `*_override.tf` file in the same folder that the read
+    does not include, since it may replace the value.
 - **Importing the app.** The `routes`, `validator` and drizzle readers import
   the module, so it must load without side effects (no `listen`, no database
   connection at import). Export a factory or a wrapper when the app needs

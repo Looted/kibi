@@ -66544,3 +66544,80 @@ symbols:
         target: TEST-kibi-tree-sitter-language-packs
       - type: implements
         target: REQ-kibi-tree-sitter-language-packs
+  - id: SYM-e2e-packed-tree-sitter-script-references
+    title: checkTreeSitterScriptReferences
+    status: active
+    sourceFile: documentation/tests/e2e/packed/tree-sitter-script-references.test.ts
+    symbol_role: behavioral
+    tags:
+      - e2e
+    origin:
+      kind: agent
+      recorded_at: 2026-11-02T12:20:30.722Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-tree-sitter-script-references
+  - id: SYM-tree-sitter-hcl-property
+    title: hclProperty
+    status: active
+    sourceFile: packages/plugin-treesitter/src/references-hcl.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - plugin
+    origin:
+      kind: agent
+      recorded_at: 2026-11-02T12:20:34.748Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-tree-sitter-script-references
+      - type: implements
+        target: REQ-kibi-tree-sitter-script-references
+  - id: SYM-tree-sitter-bash-references
+    title: bashReferences
+    status: active
+    sourceFile: packages/plugin-treesitter/src/references-bash.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - plugin
+    origin:
+      kind: agent
+      recorded_at: 2026-11-02T12:20:38.802Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-tree-sitter-script-references
+      - type: implements
+        target: REQ-kibi-tree-sitter-script-references
+  - id: SYM-tree-sitter-php-references
+    title: phpReferences
+    status: active
+    sourceFile: packages/plugin-treesitter/src/references-php.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - plugin
+    origin:
+      kind: agent
+      recorded_at: 2026-11-02T12:20:42.864Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-tree-sitter-script-references
+      - type: implements
+        target: REQ-kibi-tree-sitter-script-references
+  - id: SYM-tree-sitter-c-references
+    title: cReferences
+    status: active
+    sourceFile: packages/plugin-treesitter/src/references-c.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - plugin
+    origin:
+      kind: agent
+      recorded_at: 2026-11-02T12:20:46.950Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-tree-sitter-script-references
+      - type: implements
+        target: REQ-kibi-tree-sitter-script-references

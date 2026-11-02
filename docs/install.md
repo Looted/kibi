@@ -751,7 +751,7 @@ TypeScript and JavaScript symbols are built in. For Python, Go, Rust, Java, C#, 
 npm install --save-dev kibi-plugin-treesitter kibi-lang-python kibi-lang-go
 ```
 
-Then activate it in `package.json`. `kibi.symbol-extractor.v2` gives symbols, their coordinates and the commit gate for those languages; `kibi.reference-extractor.v1` also lets source proofs read what Go, Java, C# and Rust files import, call and read from the environment:
+Then activate it in `package.json`. `kibi.symbol-extractor.v2` gives symbols, their coordinates and the commit gate for those languages; `kibi.reference-extractor.v1` also lets source proofs read what Go, Java, C#, Rust, PHP, C and Bash files import, call and read from the environment, and the values Terraform/HCL files set:
 
 ```json
 {

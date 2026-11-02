@@ -263,7 +263,8 @@ left:
   `openapi` (`file`, `select: operations|unsecured_operations|...`),
   `references` (`files`, `extract: env|imports|calls|string_args|thrown|
   property`; TypeScript, JavaScript, Python and SWI-Prolog files, and Go,
-  Java, C# and Rust files through `kibi-plugin-treesitter`), `schema` (`format: drizzle|prisma|sql`, `select:
+  Java, C#, Rust, PHP, C, Bash and Terraform/HCL files through
+  `kibi-plugin-treesitter`), `schema` (`format: drizzle|prisma|sql`, `select:
   tables|columns|required_columns|nullable_columns|foreign_keys`), `routes`
   (Hono or Express app export, `path_prefix`, `names_from`, `select:
   routes|middleware`) or `validator` (zod, valibot or pydantic, `select:
@@ -292,9 +293,11 @@ left:
   The builders need kibi-cli 2.33.0 or newer in the project. The env
   extractor reads `process.env`, `import.meta.env`, `Bun.env`,
   `Deno.env.get`, `os.environ` and `os.getenv`, through casts.
-- `references` over Go, Java, C# or Rust needs `kibi-plugin-treesitter` and
-  the language's grammar pack (`kibi-lang-go`, `kibi-lang-java`,
-  `kibi-lang-csharp`, `kibi-lang-rust`) in `devDependencies`, with the
+- `references` over Go, Java, C#, Rust, PHP, C, Bash or Terraform/HCL
+  needs `kibi-plugin-treesitter` and the language's grammar pack
+  (`kibi-lang-go`, `kibi-lang-java`, `kibi-lang-csharp`, `kibi-lang-rust`,
+  `kibi-lang-php`, `kibi-lang-c`, `kibi-lang-bash`, `kibi-lang-hcl`) in
+  `devDependencies`, with the
   plugin activated for proofs:
   `"kibi.reference-extractor.v1": { "mode": "augment" }` in its
   `kibi.plugins` entry (next to `"kibi.symbol-extractor.v2"`). A project
@@ -309,7 +312,12 @@ left:
   `#[cfg(test)]`, and any macro for Rust `calls` and `thrown` fail the
   read with their place: the claim cannot be decided for that file, so
   model a claim the code can show (Rust `calls` over a file with
-  `println!` is always refused). Never drop a file the claim is about
+  `println!` is always refused). PHP class names are written in full with
+  backslashes (`App\Mail\Mailer::send`) and functions in lower case;
+  Terraform/HCL reads only `property`; C and Bash have no `thrown`, and
+  Bash no `property`. A Bash variable the script expands but never sets is
+  an environment read, and one it sets only on some paths is refused.
+  Never drop a file the claim is about
   from `files`: the read decides a claim only for the files it covers,
   and a proof is rejected when a symbol the test covers or that
   implements the claim's requirement lies outside them.
