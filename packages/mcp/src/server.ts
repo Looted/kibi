@@ -39,8 +39,8 @@ import { resolveWorkspaceRoot } from "./workspace.js";
 // Read version from package.json to prevent drift
 const packageJson = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8"),
-) as { version?: string };
-const VERSION = packageJson.version ?? "0.1.0";
+) as { version: string };
+const VERSION = packageJson.version;
 
 const SERVER_INSTRUCTIONS = [
   "Kibi is a branch-local requirements knowledge base for software traceability.",
