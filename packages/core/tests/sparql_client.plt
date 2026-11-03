@@ -3,6 +3,7 @@
 :- use_module(library(http/http_open)).
 :- use_module(library(http/json)).
 :- use_module('../src/sparql_client.pl').
+:- use_module(test_helpers).
 
 % Every request goes to a stub SPARQL server on a loopback port: a proxy
 % hook routes every host to it, so no request leaves the machine, even one
@@ -42,13 +43,6 @@ slow_stub :-
 
 endpoint('http://sparql.example.org/sparql').
 
-% Goal's first answer leaves no choicepoint.
-:- meta_predicate first_answer_is_last(0).
-first_answer_is_last(Goal) :-
-    call_cleanup(Goal, Det = true),
-    (   var(Det) -> Left = choicepoint ; Left = none ),
-    !,
-    Left == none.
 
 query('SELECT ?s ?n WHERE { ?s ?p ?n }').
 

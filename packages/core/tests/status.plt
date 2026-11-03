@@ -4,6 +4,8 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module('../src/kb.pl').
 :- use_module('../src/status.pl').
+:- use_module(test_helpers).
+:- use_module(kb_fixture, [detach_leftover_kb/0]).
 
 % Each test attaches a fresh legacy store at <Root>/.kb/branches/<Branch>
 % in a temporary workspace and sets file times explicitly: the snapshot
@@ -20,6 +22,7 @@ workspace(Branch, Root, Kb) :-
     tmp_file(kibi_status_ws, Root),
     atomic_list_concat([Root, '/.kb/branches/', Branch], Kb),
     make_directory_path(Kb),
+    detach_leftover_kb,
     kb_attach(Kb).
 
 workspace(Root, Kb) :-
@@ -83,38 +86,12 @@ source_entity(Id, Source, Extra) :-
              ], Extra ], Props),
     kb_assert_entity(req, Props).
 
-% Goal's first answer leaves no choicepoint.
-:- meta_predicate first_answer_is_last(0).
-first_answer_is_last(Goal) :-
-    call_cleanup(Goal, Det = true),
-    (   var(Det) -> Left = choicepoint ; Left = none ),
-    !,
-    Left == none.
-
 % The status and scope dicts, each a single answer.
 status_dict(Dict) :-
     first_answer_is_last(status_meta_dict(Dict)).
 
 scope_dict(Scope) :-
     first_answer_is_last(status_scope_dict(Scope)).
-
-% Dicts compared by their keys and values, at any depth.
-plain(Dict, Plain) :-
-    is_dict(Dict),
-    !,
-    dict_pairs(Dict, _, Pairs),
-    findall(Key-PlainValue, (member(Key-Value, Pairs), plain(Value, PlainValue)), Plain0),
-    Plain = dict(Plain0).
-plain(List, Plain) :-
-    is_list(List),
-    !,
-    maplist(plain, List, Plain).
-plain(Term, Term).
-
-same(Actual, Expected) :-
-    plain(Actual, Plain),
-    plain(Expected, Plain0),
-    Plain == Plain0.
 
 meta(Key, Value) :-
     status_dict(Dict),
@@ -169,7 +146,7 @@ test(status_json_is_the_meta_dict) :-
     }.
 
 test(a_store_outside_a_branches_directory_reports_only_its_path,
-     [setup((tmp_file(kibi_status_plain, Dir), make_directory_path(Dir), kb_attach(Dir))),
+     [setup((tmp_file(kibi_status_plain, Dir), make_directory_path(Dir), detach_leftover_kb, kb_attach(Dir))),
       cleanup((kb_detach, delete_directory_and_contents(Dir)))]) :-
     snapshot_file(Dir, 'kb.rdf', 0),
     status_dict(Dict),
@@ -184,7 +161,7 @@ test(a_store_outside_a_branches_directory_reports_only_its_path,
 test(a_branches_directory_itself_is_not_a_branch_store,
      [setup((tmp_file(kibi_status_plain, Root),
              atom_concat(Root, '/.kb/branches', Dir),
-             make_directory_path(Dir), kb_attach(Dir))),
+             make_directory_path(Dir), detach_leftover_kb, kb_attach(Dir))),
       cleanup((kb_detach, delete_directory_and_contents(Root)))]) :-
     meta(branch, unknown),
     meta(kbPath, Dir).
@@ -516,7 +493,7 @@ test(a_workspace_inside_an_e2e_tree_ignores_its_documentation,
      [setup((tmp_file(kibi_status_e2e, Base),
              atom_concat(Base, '/tests/e2e/ws', Root),
              atom_concat(Root, '/.kb/branches/main', Kb),
-             make_directory_path(Kb), kb_attach(Kb))),
+             make_directory_path(Kb), detach_leftover_kb, kb_attach(Kb))),
       cleanup(drop_workspace(Base))]) :-
     snapshot_file(Kb, 'kb.rdf', 0),
     doc_at(Root, 'documentation/a.md', 10),
@@ -529,7 +506,7 @@ test(a_workspace_inside_a_benchmarks_tree_ignores_its_documentation,
      [setup((tmp_file(kibi_status_bench, Base),
              atom_concat(Base, '/tests/benchmarks/ws', Root),
              atom_concat(Root, '/.kb/branches/main', Kb),
-             make_directory_path(Kb), kb_attach(Kb))),
+             make_directory_path(Kb), detach_leftover_kb, kb_attach(Kb))),
       cleanup(drop_workspace(Base))]) :-
     snapshot_file(Kb, 'kb.rdf', 0),
     doc_at(Root, 'documentation/a.md', 10),
