@@ -517,3 +517,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-79f61eaf3339
+  - type: specified_by
+    from: REQ-sync-relationship-retry
+    to: SCEN-sync-relationship-retry
+    created_at: 2026-11-03T11:17:43.039Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0323fa98c224
+  - type: constrains
+    from: REQ-sync-relationship-retry
+    to: FACT-SUBJ-kibi-sync-relationships
+    created_at: 2026-11-03T11:20:44.740Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d2b6a115cc9b
+  - type: requires_property
+    from: REQ-sync-relationship-retry
+    to: FACT-sync-retries-unasserted-relationships
+    created_at: 2026-11-03T11:20:44.796Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b42ed58f535
+  - type: requires_property
+    from: REQ-sync-relationship-retry
+    to: FACT-sync-settles-after-retry
+    created_at: 2026-11-03T11:20:44.844Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1bd15939d87d
+  - type: specified_by
+    from: REQ-sync-relationship-retry
+    to: SCEN-NEG-sync-relationship-retry-NO-RETRY
+    created_at: 2026-11-03T11:22:52.255Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ec236f84961

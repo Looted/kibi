@@ -349,3 +349,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9d4dce48abb0
+  - type: validates
+    from: TEST-sync-relationship-retry
+    to: SCEN-sync-relationship-retry
+    created_at: 2026-11-03T11:17:44.099Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-536bccdf71b6

@@ -7277,5 +7277,19 @@
         "./packages/cli/tests/proofs/claims/skill-catalog.proof.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-sync-relationship-retry",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/commands/sync.test.ts",
+        "-t",
+        "retries a front-matter relationship"
+      ]
+    ]
   }
 ]

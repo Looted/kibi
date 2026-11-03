@@ -177,6 +177,79 @@ semantic_inventory:
     span: {start: 0, end: ${Buffer.byteLength(claimText, "utf8")}}`;
 }
 
+/** Sync asserts a front-matter link once its missing target is added. */
+function retriesRelationshipOnceTargetIsAdded(
+  tmpDir: string,
+  kibiBin: string,
+): void {
+  execSync(`bun ${kibiBin} sync`, {
+    cwd: tmpDir,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+
+  const scenarioDir = path.join(tmpDir, ".kb/scenarios");
+  writeFileSync(
+    path.join(scenarioDir, "scenario2.md"),
+    `---
+id: scenario2
+title: Logout Flow
+status: active
+links:
+- type: relates_to
+  target: scenario3
+---
+
+# Logout Flow
+
+User logs out and the OAuth2 session ends.
+`,
+  );
+  stageSources(tmpDir, ".kb/scenarios/scenario2.md");
+  const first = spawnSync("bun", [kibiBin, "sync"], {
+    cwd: tmpDir,
+    encoding: "utf8",
+  });
+  expect(`${first.stdout}${first.stderr}`).toContain(
+    "relationship(s) failed to sync",
+  );
+
+  // Only the target changes: the source that holds the link is unchanged.
+  writeFileSync(
+    path.join(scenarioDir, "scenario3.md"),
+    `---
+id: scenario3
+title: Session Expiry
+status: active
+---
+
+# Session Expiry
+
+An idle OAuth2 session expires and the user signs in again.
+`,
+  );
+  stageSources(tmpDir, ".kb/scenarios/scenario3.md");
+  execSync(`bun ${kibiBin} sync`, {
+    cwd: tmpDir,
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+
+  const linked = JSON.parse(
+    execSync(`bun ${kibiBin} query scenario --id scenario2 --format json`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+    }),
+  ) as Array<{ relates_to?: string }>;
+  expect(linked[0]?.relates_to).toBe("kb:entity/scenario3");
+
+  const settled = execSync(`bun ${kibiBin} sync`, {
+    cwd: tmpDir,
+    encoding: "utf8",
+  });
+  expect(settled).toMatch(/Imported 0 entities, 0 relationships/);
+}
+
 describe("kibi sync", () => {
   const TEST_TIMEOUT_MS = 20000;
   let tmpDir: string;
@@ -1110,6 +1183,12 @@ The system must greet the user by name.
       ) as Array<{ relates_to?: string }>;
       expect(after[0]?.relates_to).toBeUndefined();
     },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "retries a front-matter relationship once its missing target is added",
+    () => retriesRelationshipOnceTargetIsAdded(tmpDir, kibiBin),
     TEST_TIMEOUT_MS,
   );
 
