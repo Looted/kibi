@@ -16,6 +16,7 @@
 :- use_module(library(http/json)).
 :- use_module(library(date)).
 :- use_module(library(plunit)).
+:- use_module(test_helpers, [deterministic/1]).
 :- use_module(library(yall)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(filesex)).
@@ -39,12 +40,36 @@
 % for callers that want all matching entities, relationships, or violations. These
 % tests assert specific observable results and do not depend on exhausting every
 % alternative, so PLUnit should not warn about the intentionally open choicepoints.
-user:term_expansion((test(Name) :- Body), (test(Name, [nondet]) :- Body)).
-user:term_expansion((test(Name, Options0) :- Body), (test(Name, Options) :- Body)) :-
+%
+% A test's setup option also runs as the first goal of its body. PLUnit 9
+% reports a setup that fails or throws but does not count the test as failed,
+% so a broken kb_attach/1 would otherwise let every test that attaches a store
+% in its setup pass. The rewrite applies to this file only, because the
+% mutation lane loads several plunit files into one process.
+user:term_expansion((test(Name) :- Body), (test(Name, [nondet]) :- Body)) :-
+    kb_plt_source.
+user:term_expansion((test(Name, Options0) :- Body0), (test(Name, Options) :- Body)) :-
+    kb_plt_source,
     is_list(Options0),
-    (   memberchk(nondet, Options0)
-    ->  Options = Options0
-    ;   Options = [nondet|Options0]
+    (   selectchk(setup(Setup), Options0, Options1)
+    ->  Body = (test_setup_succeeds(Setup), Body0)
+    ;   Options1 = Options0,
+        Body = Body0
+    ),
+    (   memberchk(nondet, Options1)
+    ->  Options = Options1
+    ;   Options = [nondet|Options1]
+    ).
+
+kb_plt_source :-
+    prolog_load_context(source, Source),
+    file_base_name(Source, 'kb.plt').
+
+:- meta_predicate test_setup_succeeds(0).
+test_setup_succeeds(Setup) :-
+    (   call(Setup)
+    ->  true
+    ;   throw(error(goal_failed(setup(Setup)), _))
     ).
 
 % Every PLUnit process owns one private root. Each test removes only its
@@ -1054,6 +1079,7 @@ test(opposite_ground_predicate_polarities_contradict, [setup(setup_kb), cleanup(
     req_conflict_witness('REQ-PUBLISH-ASSERT', 'REQ-PUBLISH-DENY', Witness),
     assertion(Witness.kind == predicate),
     assertion(Witness.status == contradiction),
+    assertion(Witness.schemaIds == []),
     assertion(Witness.left.factId == 'FACT-PUBLISH-ASSERT'),
     assertion(Witness.left.claimKey == 'CLAIM-1111111111111111'),
     assertion(Witness.left.term.polarity == assert),
@@ -1103,8 +1129,10 @@ test(allow_and_deny_decisions_on_the_same_permission_contradict, [setup(setup_kb
     req_conflict_witness('REQ-COACH-READ-ALLOW', 'REQ-COACH-READ-DENY', Witness),
     assertion(Witness.kind == predicate),
     assertion(Witness.keyArguments == [coach, read, unassigned_analysis_request]),
+    assertion(Witness.schemaIds == []),
     assertion(Witness.left.term.args == [coach, read, unassigned_analysis_request, allow]),
     assertion(Witness.right.term.args == [coach, read, unassigned_analysis_request, deny]),
+    assertion(\+ req_conflict_witness(_, 'REQ-COACH-READ-ALLOW', _)),
     check_domain_contradictions(Violations),
     assertion(memberchk(violation('domain-contradictions', "REQ-COACH-READ-ALLOW/REQ-COACH-READ-DENY", _, _, _), Violations)).
 
@@ -6876,10 +6904,10 @@ test(cleanup_temp_file_removes_existing_temp_file, [setup(setup_kb), cleanup(cle
 
 % implements REQ-kibi-kb-certificates
 test(consistent_facts_get_models_that_reverify, [setup(setup_kb), cleanup(cleanup_kb)]) :-
-    cert_property('FACT-CERT-MIN', 'REQ-CERT-MIN', "api.quota", "rate_limit", gte, int, 1, []),
-    cert_property('FACT-CERT-MAX', 'REQ-CERT-MAX', "api.quota", "rate_limit", lte, int, 10, []),
-    cert_property('FACT-CERT-ON', 'REQ-CERT-ON', "api.quota", "enabled", eq, bool, true, []),
-    cert_property('FACT-CERT-NOT-OFF', 'REQ-CERT-NOT-OFF', "api.quota", "enabled", eq, bool, false, [polarity=forbid]),
+    kb_cert_property('FACT-CERT-MIN', 'REQ-CERT-MIN', "api.quota", "rate_limit", gte, int, 1, []),
+    kb_cert_property('FACT-CERT-MAX', 'REQ-CERT-MAX', "api.quota", "rate_limit", lte, int, 10, []),
+    kb_cert_property('FACT-CERT-ON', 'REQ-CERT-ON', "api.quota", "enabled", eq, bool, true, []),
+    kb_cert_property('FACT-CERT-NOT-OFF', 'REQ-CERT-NOT-OFF', "api.quota", "enabled", eq, bool, false, [polarity=forbid]),
     cert_verify(Bundle, Report),
     assertion(Report.status == verified),
     assertion(Report.rejected == []),
@@ -6897,9 +6925,9 @@ test(consistent_facts_get_models_that_reverify, [setup(setup_kb), cleanup(cleanu
 test(set_facts_get_models_that_reverify, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     % The same set in another order agrees, and a neq set admits the eq one.
     % Two different eq sets conflict pairwise, so the KB never holds them.
-    cert_property('FACT-CERT-SET-A', 'REQ-CERT-SET-A', "palette.colors", "allowed", eq, set, ["red", "green", "blue"], []),
-    cert_property('FACT-CERT-SET-B', 'REQ-CERT-SET-B', "palette.colors", "allowed", eq, set, ["blue", "red", "green"], []),
-    cert_property('FACT-CERT-SET-C', 'REQ-CERT-SET-C', "palette.colors", "allowed", neq, set, ["red", "green"], []),
+    kb_cert_property('FACT-CERT-SET-A', 'REQ-CERT-SET-A', "palette.colors", "allowed", eq, set, ["red", "green", "blue"], []),
+    kb_cert_property('FACT-CERT-SET-B', 'REQ-CERT-SET-B', "palette.colors", "allowed", eq, set, ["blue", "red", "green"], []),
+    kb_cert_property('FACT-CERT-SET-C', 'REQ-CERT-SET-C', "palette.colors", "allowed", neq, set, ["red", "green"], []),
     cert_verify(Bundle, Report),
     assertion(Report.status == verified),
     assertion(Report.rejected == []),
@@ -6915,10 +6943,10 @@ test(set_facts_get_models_that_reverify, [setup(setup_kb), cleanup(cleanup_kb)])
 % implements REQ-kibi-kb-certificates
 test(joint_contradiction_the_pairwise_check_misses_gets_a_core, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     % Every pair admits an integer, all four together admit none.
-    cert_property('FACT-CERT-J1', 'REQ-CERT-J1', "seat.count", "free", gte, int, 0, []),
-    cert_property('FACT-CERT-J2', 'REQ-CERT-J2', "seat.count", "free", lte, int, 1, []),
-    cert_property('FACT-CERT-J3', 'REQ-CERT-J3', "seat.count", "free", neq, int, 0, []),
-    cert_property('FACT-CERT-J4', 'REQ-CERT-J4', "seat.count", "free", neq, int, 1, []),
+    kb_cert_property('FACT-CERT-J1', 'REQ-CERT-J1', "seat.count", "free", gte, int, 0, []),
+    kb_cert_property('FACT-CERT-J2', 'REQ-CERT-J2', "seat.count", "free", lte, int, 1, []),
+    kb_cert_property('FACT-CERT-J3', 'REQ-CERT-J3', "seat.count", "free", neq, int, 0, []),
+    kb_cert_property('FACT-CERT-J4', 'REQ-CERT-J4', "seat.count", "free", neq, int, 1, []),
     check_domain_contradictions(Pairwise),
     assertion(Pairwise == []),
     cert_verify(Bundle, Report),
@@ -6934,9 +6962,9 @@ test(joint_contradiction_the_pairwise_check_misses_gets_a_core, [setup(setup_kb)
 
 % implements REQ-kibi-kb-certificates
 test(scoped_facts_get_one_model_per_scope, [setup(setup_kb), cleanup(cleanup_kb)]) :-
-    cert_property('FACT-CERT-ALL', 'REQ-CERT-ALL', "tax.rate", "percent", gte, int, 0, []),
-    cert_property('FACT-CERT-EU', 'REQ-CERT-EU', "tax.rate", "percent", eq, int, 20, [scope="eu"]),
-    cert_property('FACT-CERT-US', 'REQ-CERT-US', "tax.rate", "percent", eq, int, 7, [scope="us"]),
+    kb_cert_property('FACT-CERT-ALL', 'REQ-CERT-ALL', "tax.rate", "percent", gte, int, 0, []),
+    kb_cert_property('FACT-CERT-EU', 'REQ-CERT-EU', "tax.rate", "percent", eq, int, 20, [scope="eu"]),
+    kb_cert_property('FACT-CERT-US', 'REQ-CERT-US', "tax.rate", "percent", eq, int, 7, [scope="us"]),
     cert_verify(Bundle, Report),
     assertion(Report.status == verified),
     findall(Scope-Value, (member(C, Bundle.certificates), C.kind == property_model, Scope = C.scope, Value = C.value), Models0),
@@ -6945,8 +6973,8 @@ test(scoped_facts_get_one_model_per_scope, [setup(setup_kb), cleanup(cleanup_kb)
 
 % implements REQ-kibi-kb-certificates
 test(contradiction_across_disjoint_windows_stays_unresolved, [setup(setup_kb), cleanup(cleanup_kb)]) :-
-    cert_property('FACT-CERT-OLD', 'REQ-CERT-OLD', "plan.price", "monthly", eq, int, 10, [valid_to="2025-12-31T00:00:00Z"]),
-    cert_property('FACT-CERT-NEW', 'REQ-CERT-NEW', "plan.price", "monthly", eq, int, 12, [valid_from="2026-01-01T00:00:00Z"]),
+    kb_cert_property('FACT-CERT-OLD', 'REQ-CERT-OLD', "plan.price", "monthly", eq, int, 10, [valid_to="2025-12-31T00:00:00Z"]),
+    kb_cert_property('FACT-CERT-NEW', 'REQ-CERT-NEW', "plan.price", "monthly", eq, int, 12, [valid_from="2026-01-01T00:00:00Z"]),
     cert_verify(Bundle, Report),
     assertion(Report.status == verified),
     cert_theorem(Report, properties_consistent, Properties),
@@ -6958,9 +6986,9 @@ test(contradiction_across_disjoint_windows_stays_unresolved, [setup(setup_kb), c
 test(predicate_and_decision_contradictions_reverify, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     % Allow asserted and the same allow denied disagree on one atom; allow
     % against an asserted deny disagree on one decision key.
-    cert_predicate('FACT-CERT-READ-ALLOW', 'REQ-CERT-READ-ALLOW', ["coach", "read", "request", "allow"], assert),
-    cert_predicate('FACT-CERT-READ-ALLOW-DENIED', 'REQ-CERT-READ-ALLOW-DENIED', ["coach", "read", "request", "allow"], deny),
-    cert_predicate('FACT-CERT-READ-DENY', 'REQ-CERT-READ-DENY', ["coach", "read", "request", "deny"], assert),
+    kb_cert_predicate('FACT-CERT-READ-ALLOW', 'REQ-CERT-READ-ALLOW', ["coach", "read", "request", "allow"], assert),
+    kb_cert_predicate('FACT-CERT-READ-ALLOW-DENIED', 'REQ-CERT-READ-ALLOW-DENIED', ["coach", "read", "request", "allow"], deny),
+    kb_cert_predicate('FACT-CERT-READ-DENY', 'REQ-CERT-READ-DENY', ["coach", "read", "request", "deny"], assert),
     cert_verify(Bundle, Report),
     assertion(Report.status == verified),
     cert_theorem(Report, predicates_consistent, Predicates),
@@ -6973,8 +7001,8 @@ test(predicate_and_decision_contradictions_reverify, [setup(setup_kb), cleanup(c
 
 % implements REQ-kibi-kb-certificates
 test(stratified_rules_get_strata_and_a_negation_cycle_is_shown, [setup(setup_kb), cleanup(cleanup_kb)]) :-
-    cert_rule('FACT-CERT-RULE-P', p, not(q)),
-    cert_rule('FACT-CERT-RULE-Q', q, r),
+    kb_cert_rule('FACT-CERT-RULE-P', p, not(q)),
+    kb_cert_rule('FACT-CERT-RULE-Q', q, r),
     cert_verify(Bundle, Report),
     assertion(Report.status == verified),
     cert_theorem(Report, rules_stratified, Stratified),
@@ -6985,7 +7013,7 @@ test(stratified_rules_get_strata_and_a_negation_cycle_is_shown, [setup(setup_kb)
     member(PEntry, Strata.strata), PEntry.name == p, !,
     member(QEntry, Strata.strata), QEntry.name == q, !,
     assertion(PEntry.stratum > QEntry.stratum),
-    cert_rule('FACT-CERT-RULE-R', r, not(p)),
+    kb_cert_rule('FACT-CERT-RULE-R', r, not(p)),
     cert_verify(CycleBundle, CycleReport),
     assertion(CycleReport.status == verified),
     cert_theorem(CycleReport, rules_stratified, Cycle),
@@ -6995,13 +7023,13 @@ test(stratified_rules_get_strata_and_a_negation_cycle_is_shown, [setup(setup_kb)
 
 % implements REQ-kibi-kb-certificates
 test(tampered_certificates_are_rejected, [setup(setup_kb), cleanup(cleanup_kb)]) :-
-    cert_property('FACT-CERT-J1', 'REQ-CERT-J1', "seat.count", "free", gte, int, 0, []),
-    cert_property('FACT-CERT-J2', 'REQ-CERT-J2', "seat.count", "free", lte, int, 1, []),
-    cert_property('FACT-CERT-J3', 'REQ-CERT-J3', "seat.count", "free", neq, int, 0, []),
-    cert_property('FACT-CERT-J4', 'REQ-CERT-J4', "seat.count", "free", neq, int, 1, []),
-    cert_property('FACT-CERT-MIN', 'REQ-CERT-MIN', "api.quota", "rate_limit", gte, int, 1, []),
-    cert_rule('FACT-CERT-RULE-P', p, not(q)),
-    cert_rule('FACT-CERT-RULE-Q', q, r),
+    kb_cert_property('FACT-CERT-J1', 'REQ-CERT-J1', "seat.count", "free", gte, int, 0, []),
+    kb_cert_property('FACT-CERT-J2', 'REQ-CERT-J2', "seat.count", "free", lte, int, 1, []),
+    kb_cert_property('FACT-CERT-J3', 'REQ-CERT-J3', "seat.count", "free", neq, int, 0, []),
+    kb_cert_property('FACT-CERT-J4', 'REQ-CERT-J4', "seat.count", "free", neq, int, 1, []),
+    kb_cert_property('FACT-CERT-MIN', 'REQ-CERT-MIN', "api.quota", "rate_limit", gte, int, 1, []),
+    kb_cert_rule('FACT-CERT-RULE-P', p, not(q)),
+    kb_cert_rule('FACT-CERT-RULE-Q', q, r),
     kb_certificates(Bundle0),
     cert_json(Bundle0, Bundle),
     verify_certificates(Bundle, Clean),
@@ -7043,13 +7071,13 @@ test(checker_loads_neither_the_search_nor_the_checks) :-
 
 % implements REQ-kibi-kb-certificates
 test(kb_consistency_rule_reports_a_reverified_joint_contradiction, [setup(setup_kb), cleanup(cleanup_kb)]) :-
-    cert_property('FACT-CERT-MIN', 'REQ-CERT-MIN', "api.quota", "rate_limit", gte, int, 1, []),
+    kb_cert_property('FACT-CERT-MIN', 'REQ-CERT-MIN', "api.quota", "rate_limit", gte, int, 1, []),
     check_kb_consistency(Clean),
     assertion(Clean == []),
-    cert_property('FACT-CERT-J1', 'REQ-CERT-J1', "seat.count", "free", gte, int, 0, []),
-    cert_property('FACT-CERT-J2', 'REQ-CERT-J2', "seat.count", "free", lte, int, 1, []),
-    cert_property('FACT-CERT-J3', 'REQ-CERT-J3', "seat.count", "free", neq, int, 0, []),
-    cert_property('FACT-CERT-J4', 'REQ-CERT-J4', "seat.count", "free", neq, int, 1, []),
+    kb_cert_property('FACT-CERT-J1', 'REQ-CERT-J1', "seat.count", "free", gte, int, 0, []),
+    kb_cert_property('FACT-CERT-J2', 'REQ-CERT-J2', "seat.count", "free", lte, int, 1, []),
+    kb_cert_property('FACT-CERT-J3', 'REQ-CERT-J3', "seat.count", "free", neq, int, 0, []),
+    kb_cert_property('FACT-CERT-J4', 'REQ-CERT-J4', "seat.count", "free", neq, int, 1, []),
     check_kb_consistency(Violations),
     assertion(Violations = [violation('kb-consistency', "REQ-CERT-J1/REQ-CERT-J2/REQ-CERT-J3/REQ-CERT-J4", _, _, "", _)]),
     Violations = [violation(_, _, Description, Suggestion, _, Evidence)],
@@ -7062,8 +7090,8 @@ test(kb_consistency_rule_reports_a_reverified_joint_contradiction, [setup(setup_
 
 % implements REQ-kibi-kb-certificates
 test(kb_consistency_unresolved_names_contexts_it_cannot_compare, [setup(setup_kb), cleanup(cleanup_kb)]) :-
-    cert_property('FACT-CERT-GB', 'REQ-CERT-GB', "plan.storage", "quota", lte, int, 10, [unit="GB"]),
-    cert_property('FACT-CERT-SEATS', 'REQ-CERT-SEATS', "plan.storage", "quota", gte, int, 2, [unit="seat"]),
+    kb_cert_property('FACT-CERT-GB', 'REQ-CERT-GB', "plan.storage", "quota", lte, int, 10, [unit="GB"]),
+    kb_cert_property('FACT-CERT-SEATS', 'REQ-CERT-SEATS', "plan.storage", "quota", gte, int, 2, [unit="seat"]),
     check_kb_consistency(Violations),
     assertion(Violations == []),
     check_kb_consistency_unresolved(Unresolved),
@@ -7074,8 +7102,8 @@ test(kb_consistency_unresolved_names_contexts_it_cannot_compare, [setup(setup_kb
 
 % implements REQ-kibi-kb-certificates
 test(kb_consistency_rule_reports_a_negation_cycle, [setup(setup_kb), cleanup(cleanup_kb)]) :-
-    cert_rule('FACT-CERT-RULE-P', p, not(q)),
-    cert_rule('FACT-CERT-RULE-Q', q, p),
+    kb_cert_rule('FACT-CERT-RULE-P', p, not(q)),
+    kb_cert_rule('FACT-CERT-RULE-Q', q, p),
     check_kb_consistency(Violations),
     assertion(Violations = [violation('kb-consistency', _, _, _, "", _)]),
     Violations = [violation(_, _, Description, _, _, _)],
@@ -7090,7 +7118,7 @@ test(kb_consistency_rules_run_through_check_selected, [setup(setup_kb), cleanup(
 
 :- end_tests(kb_certificates).
 
-cert_property(FactId, ReqId, Subject, Property, Operator, Type, Value, Extra) :-
+kb_cert_property(FactId, ReqId, Subject, Property, Operator, Type, Value, Extra) :-
     atom_concat('FACT-SUBJECT-', Subject, SubjectId0),
     upcase_atom(SubjectId0, SubjectId),
     (   kb_entity(SubjectId, fact, _)
@@ -7111,7 +7139,7 @@ cert_property(FactId, ReqId, Subject, Property, Operator, Type, Value, Extra) :-
     kb_assert_relationship(constrains, ReqId, SubjectId, []),
     kb_assert_relationship(requires_property, ReqId, FactId, []).
 
-cert_predicate(FactId, ReqId, Args, Polarity) :-
+kb_cert_predicate(FactId, ReqId, Args, Polarity) :-
     variant_sha1(FactId, Hash),
     sub_atom(Hash, 0, 16, _, Hex),
     upcase_atom(Hex, Upper),
@@ -7134,7 +7162,7 @@ cert_predicate(FactId, ReqId, Args, Polarity) :-
 
 % A rule Head :- Body, Body an atom name or not(Name).  Stored raw so a
 % negation cycle reaches the KB.
-cert_rule(FactId, Head, Body) :-
+kb_cert_rule(FactId, Head, Body) :-
     (   Body = not(Name)
     ->  BodyDict = _{kind: not, item: _{kind: atom, name: Name, args: []}}
     ;   BodyDict = _{kind: atom, name: Body, args: []}
@@ -9698,3 +9726,1572 @@ test(closed_windows_overlap_only_when_they_meet) :-
     assertion(\+ kb:intervals_overlap('2026-07-01', '', '2026-01-01', '2026-06-30')).
 
 :- end_tests(validity_window_overlap).
+
+% Helpers for the storage tests below. They are prefixed `ks_` because the
+% mutation lane loads every plunit file into one module.
+
+ks_journal_marker('{"format":"kibi.rdf-journal.v1","schemaVersion":1}\n').
+
+ks_journaled_store(Dir) :-
+    test_kb_dir(Dir),
+    make_directory_path(Dir),
+    atom_concat(Dir, '/storage.json', Marker),
+    ks_journal_marker(Text),
+    ks_write_file(Marker, Text).
+
+ks_write_file(File, Text) :-
+    setup_call_cleanup(open(File, write, Out, [encoding(utf8)]),
+                       write(Out, Text),
+                       close(Out)).
+
+ks_read_file(File, Text) :-
+    read_file_to_string(File, Text, []).
+
+ks_req_props(Id, [
+    id=Id,
+    title="Storage requirement",
+    status=active,
+    created_at="2026-02-17T00:00:00Z",
+    updated_at="2026-02-17T00:00:00Z",
+    source="test://kb.plt"
+]).
+
+ks_assert_req(Id) :-
+    ks_req_props(Id, Props),
+    kb_assert_entity(req, Props).
+
+%% ks_stderr(:Goal, -Text)
+% Text is what Goal writes to user_error.
+ks_stderr(Goal, Text) :-
+    new_memory_file(Memory),
+    stream_property(Error, alias(user_error)),
+    setup_call_cleanup(
+        open_memory_file(Memory, write, Capture),
+        setup_call_cleanup(
+            set_stream(Capture, alias(user_error)),
+            once(Goal),
+            set_stream(Error, alias(user_error))),
+        close(Capture)),
+    memory_file_to_string(Memory, Text),
+    free_memory_file(Memory).
+
+% The marker lines of Text, without the informational messages of rdf_save.
+ks_stage_lines(Text, Stages) :-
+    split_string(Text, "\n", "", Lines),
+    include(ks_stage_line, Lines, Stages).
+
+ks_stage_line(Line) :-
+    sub_string(Line, 0, _, _, "__KIBI_").
+
+ks_open_file_streams(Suffix, Streams) :-
+    findall(Stream,
+            ( stream_property(Stream, file_name(File)),
+              sub_atom(File, _, _, 0, Suffix) ),
+            Streams).
+
+ks_temp_snapshots(Dir, Temps) :-
+    directory_files(Dir, Files),
+    include(ks_temp_snapshot_name, Files, Temps).
+
+ks_temp_snapshot_name(File) :-
+    sub_atom(File, 0, _, _, 'kb.rdf.tmp.').
+
+%% ks_with_locked_rdf_store(+PersistencyDirectory, :Goal)
+% Run Goal while a child process holds the rdf_persistency lock on
+% PersistencyDirectory.
+ks_with_locked_rdf_store(PersistencyDirectory, Goal) :-
+    make_directory_path(PersistencyDirectory),
+    atom_concat(PersistencyDirectory, '/lock', Lock),
+    ks_with_locked_file(Lock, update, Goal).
+
+%% ks_with_locked_file(+File, +Mode, :Goal)
+% Run Goal while a child process holds a write lock on File, opened in Mode.
+ks_with_locked_file(File, Mode, Goal) :-
+    atom_concat(File, '.ready', Ready),
+    atom_concat(File, '.release', Release),
+    format(atom(ChildGoal),
+           'open(~q, ~q, S, [lock(write)]), open(~q, write, R), close(R), \c
+            (between(1, 400, _), exists_file(~q) -> true ; sleep(0.025), fail), \c
+            close(S)',
+           [File, Mode, Ready, Release]),
+    process_create(path(swipl), ['-q', '-g', ChildGoal, '-t', halt],
+                   [process(Pid), stdin(null), stdout(null), stderr(null)]),
+    setup_call_cleanup(
+        wait_for_isolation_file(Ready, 1000),
+        once(Goal),
+        ( ks_write_file(Release, ''),
+          process_wait(Pid, _),
+          catch(delete_file(Ready), _, true),
+          catch(delete_file(Release), _, true) )).
+
+%% ks_caught(+Caught, +Pattern)
+% Caught is an error (not a still-unbound catch variable) of Pattern's form.
+ks_caught(Caught, Pattern) :-
+    nonvar(Caught),
+    subsumes_term(Pattern, Caught).
+
+:- begin_tests(kb_storage_lane).
+
+test(journaled_attach_records_its_owner_until_detach, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_store(Dir),
+    kb_attach(Dir),
+    atom_concat(Dir, '/rdf', Rdf),
+    assertion(exists_directory(Rdf)),
+    atom_concat(Dir, '/.kibi-lock-owner.json', OwnerFile),
+    setup_call_cleanup(open(OwnerFile, read, In),
+                       json_read_dict(In, Owner, []),
+                       close(In)),
+    kb_detach,
+    current_prolog_flag(pid, Pid),
+    kb:boot_id('/proc/sys/kernel/random/boot_id', BootId),
+    atom_string(Dir, DirString),
+    assertion(Owner.pid == Pid),
+    assertion(Owner.workspaceRoot == DirString),
+    assertion(Owner.bootId == BootId),
+    assertion(string_length(Owner.startedAt, 20)),
+    assertion(parse_time(Owner.startedAt, iso_8601, _)),
+    assertion(sub_string(Owner.startedAt, 19, 1, 0, "Z")),
+    assertion(\+ exists_file(OwnerFile)),
+    atom_concat(OwnerFile, '.tmp', OwnerTmp),
+    assertion(\+ exists_file(OwnerTmp)).
+
+test(boot_id_is_the_first_line_or_empty, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    test_kb_dir(Dir),
+    make_directory_path(Dir),
+    atom_concat(Dir, '/boot_id', File),
+    ks_write_file(File, 'first\r\nsecond\n'),
+    kb:boot_id(File, BootId),
+    assertion(BootId == "first"),
+    atom_concat(Dir, '/missing', Missing),
+    kb:boot_id(Missing, Empty),
+    assertion(Empty == "").
+
+test(locked_store_reports_the_recorded_owner, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_store(Dir),
+    atom_concat(Dir, '/rdf', Rdf),
+    atom_concat(Dir, '/.kibi-lock-owner.json', OwnerFile),
+    make_directory_path(Rdf),
+    ks_write_file(OwnerFile, '{"pid":1}'),
+    ks_with_locked_rdf_store(Rdf, catch(kb_attach(Dir), Error, true)),
+    assertion(\+ kb:kb_attached(_)),
+    assertion(nonvar(Error)),
+    Error = error(permission_error(attach, kb_store, Culprit),
+                  kb_store_locked(OwnerJson, LockedDirectory, OriginalText)),
+    assertion(Culprit == Dir),
+    assertion(OwnerJson == "{\"pid\":1}"),
+    assertion(LockedDirectory == Rdf),
+    assertion(string(OriginalText)),
+    assertion(sub_string(OriginalText, _, _, _, "Database is in use")).
+
+test(locked_store_without_owner_reports_an_empty_owner, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_store(Dir),
+    atom_concat(Dir, '/rdf', Rdf),
+    ks_with_locked_rdf_store(Rdf, catch(kb_attach(Dir), Error, true)),
+    assertion(nonvar(Error)),
+    Error = error(permission_error(attach, kb_store, _),
+                  kb_store_locked(OwnerJson, _, _)),
+    assertion(OwnerJson == "").
+
+test(journal_graph_uri_is_the_file_uri_up_to_200_characters) :-
+    length(Codes, 193),
+    maplist(=(0'a), Codes),
+    atom_codes(Short, Codes),
+    kb:journal_expected_graph_uri(Short, ShortURI),
+    atom_concat('file://', Short, FileURI),
+    assertion(ShortURI == FileURI),
+    atom_concat(Short, b, Long),
+    kb:journal_expected_graph_uri(Long, LongURI),
+    sha_hash(Long, Hash, [algorithm(sha1)]),
+    hash_atom(Hash, Digest),
+    atom_concat('urn:kibi:store:', Digest, DigestURI),
+    assertion(LongURI == DigestURI).
+
+test(journaled_attach_loads_legacy_entity_files_and_builds_the_index, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_store(Dir),
+    atom_concat(Dir, '/legacy.pl', LegacyFile),
+    ks_write_file(LegacyFile,
+                  'entity(req, \'REQ-LEGACY-J\', "Legacy", [title("Legacy")]).\n'),
+    kb_attach(Dir),
+    assertion(kb:kb_index_entity_count(1)),
+    assertion(kb:kb_index_entity('REQ-LEGACY-J', req)),
+    kb_entity_ids(Ids),
+    kb_detach,
+    assertion(Ids == ['REQ-LEGACY-J']).
+
+test(legacy_save_reports_its_stages_and_releases_the_branch_lock, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_assert_req('REQ-SAVE-STAGES'),
+    ks_stderr(kb_save, Text),
+    ks_stage_lines(Text, Stages),
+    assertion(Stages == ["__KIBI_STAGE__:snapshot_save", "__KIBI_STAGE__:audit_sync",
+                         "__KIBI_STAGE__:snapshot_save"]),
+    ks_open_file_streams('kb.lock', Streams),
+    assertion(Streams == []),
+    test_kb_dir(Dir),
+    atom_concat(Dir, '/kb.rdf', DataFile),
+    assertion(exists_file(DataFile)).
+
+test(save_without_an_attached_store_does_nothing, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_stderr(kb_save, Text),
+    assertion(Text == "").
+
+test(legacy_save_refuses_a_snapshot_another_writer_replaced, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    test_kb_dir(Dir),
+    atom_concat(Dir, '/kb.rdf', DataFile),
+    ks_assert_req('REQ-STALE-1'),
+    kb_save,
+    setup_call_cleanup(open(DataFile, append, Out), nl(Out), close(Out)),
+    ks_assert_req('REQ-STALE-2'),
+    catch(ks_stderr(kb_save, _), Error, true),
+    assertion(ks_caught(Error, error(permission_error(save, kb, stale_snapshot), _))),
+    ks_temp_snapshots(Dir, Temps),
+    assertion(Temps == []).
+
+test(legacy_save_failure_removes_the_temporary_snapshot, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    test_kb_dir(Dir),
+    atom_concat(Dir, '/kb.rdf', DataFile),
+    make_directory_path(DataFile),
+    kb_attach(Dir),
+    ks_assert_req('REQ-RENAME-FAILS'),
+    catch(ks_stderr(kb_save, _), Error, true),
+    kb_detach,
+    assertion(nonvar(Error)),
+    ks_temp_snapshots(Dir, Temps),
+    assertion(Temps == []).
+
+test(journaled_save_publishes_one_commit_per_dirty_save, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_store(Dir),
+    atom_concat(Dir, '/CURRENT', Head),
+    atom_concat(Dir, '/kb.rdf', DataFile),
+    kb_attach(Dir),
+    kb_storage_status(Status0),
+    kb_save,
+    assertion(\+ exists_file(Head)),
+    ks_assert_req('REQ-JOURNAL-SAVE'),
+    ks_stderr(kb_save, Stages),
+    ks_read_file(Head, Head1),
+    kb_storage_status(Status1),
+    kb_sync_checkpoint,
+    ks_read_file(Head, Head2),
+    kb_detach,
+    kb_attach(Dir),
+    kb_storage_status(Status3),
+    kb_detach,
+    assertion(Status0.mode == journaled),
+    assertion(Status0.directory == Dir),
+    assertion(Status0.generation == 'generation-1'),
+    assertion(Status0.sequence == 0),
+    assertion(Status0.journalBytes == 0),
+    assertion(Stages == "__KIBI_STAGE__:journal_flush\n"),
+    assertion(Head1 == "generation-1:1\n"),
+    assertion(Status1.sequence == 1),
+    assertion(Status1.journalBytes > 0),
+    assertion(Head2 == "generation-1:2\n"),
+    assertion(Status3.sequence == 2),
+    assertion(Status3.generation == 'generation-1'),
+    assertion(\+ exists_file(DataFile)).
+
+test(legacy_storage_status_counts_the_audit_log, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    test_kb_dir(Dir),
+    kb_storage_status(Status0),
+    ks_assert_req('REQ-LEGACY-STATUS'),
+    kb_storage_status(Status1),
+    atom_concat(Dir, '/audit.log', AuditLog),
+    size_file(AuditLog, AuditBytes),
+    dict_pairs(Status0, _, Pairs0),
+    assertion(Pairs0 == [directory-Dir, generation-unknown, journalBytes-0,
+                         mode-legacy, sequence-0]),
+    assertion(AuditBytes > 0),
+    assertion(Status1.journalBytes == AuditBytes).
+
+test(compaction_publishes_pending_writes_and_empties_the_journal, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_store(Dir),
+    atom_concat(Dir, '/CURRENT', Head),
+    kb_attach(Dir),
+    ks_assert_req('REQ-COMPACT'),
+    kb_storage_compact_if_needed,
+    assertion(\+ exists_file(Head)),
+    ks_stderr(kb_storage_compact, _),
+    ks_read_file(Head, HeadText),
+    kb_storage_status(Status),
+    kb_detach,
+    assertion(HeadText == "generation-1:1\n"),
+    assertion(Status.journalBytes == 0).
+
+test(compaction_rewrites_the_head_without_new_writes, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_store(Dir),
+    atom_concat(Dir, '/CURRENT', Head),
+    ks_write_file(Head, 'generation-7:4\n'),
+    kb_attach(Dir),
+    kb_storage_compact,
+    ks_read_file(Head, HeadText),
+    kb_detach,
+    assertion(HeadText == "generation-7:4\n").
+
+test(compaction_head_defaults_without_commit_state, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_store(Dir),
+    atom_concat(Dir, '/CURRENT', Head),
+    kb_attach(Dir),
+    retractall(kb:kb_generation(_)),
+    retractall(kb:kb_commit_sequence(_)),
+    kb_storage_compact,
+    ks_read_file(Head, HeadText),
+    kb_detach,
+    assertion(HeadText == "generation-1:0\n").
+
+test(compaction_threshold_is_sixteen_mebibytes) :-
+    assertion(\+ kb:journal_needs_compaction(16777215)),
+    assertion(kb:journal_needs_compaction(16777216)),
+    assertion(\+ kb:journal_needs_compaction(0)).
+
+test(legacy_stores_are_not_compacted, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assertion(\+ kb_storage_compact),
+    assertion(\+ kb_storage_compact_if_needed).
+
+test(mark_index_dirty_records_one_marker, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    retractall(kb:kb_index_dirty),
+    kb:kb_mark_index_dirty,
+    kb:kb_mark_index_dirty,
+    aggregate_all(count, kb:kb_index_dirty, Count),
+    assertion(Count == 1).
+
+:- end_tests(kb_storage_lane).
+
+ks_entity_props(Id, Title, [
+    id=Id,
+    title=Title,
+    status=active,
+    created_at="2026-02-17T00:00:00Z",
+    updated_at="2026-02-17T00:00:00Z",
+    source="test://kb.plt"
+]).
+
+ks_assert(Type, Id) :-
+    ks_entity_props(Id, "Migrated entity", Props),
+    kb_assert_entity(Type, Props).
+
+%% ks_legacy_source(-Source, -Target)
+% A saved legacy store with a requirement, its implementing symbol and the
+% three audit entries, and the path of a staged journaled store beside it.
+ks_legacy_source(Source, Target) :-
+    test_kb_dir(Source),
+    atom_concat(Source, '/staged', Target),
+    kb_attach(Source),
+    ks_assert(req, 'REQ-MIGRATE'),
+    ks_assert(symbol, 'SYM-MIGRATE'),
+    kb_assert_relationship(implements, 'SYM-MIGRATE', 'REQ-MIGRATE', []),
+    kb_save.
+
+ks_raw_triple(Subject, Predicate, Object) :-
+    kb:kb_graph(Graph),
+    rdf_assert(Subject, Predicate, Object, Graph).
+
+ks_migration_error(Source, Target, Error) :-
+    catch(ks_stderr(kb_migrate_legacy(Source, Target), _), Error, true),
+    assertion(nonvar(Error)).
+
+ks_audit_indexes(Indexes) :-
+    kb:kb_graph(Graph),
+    findall(Index,
+            ( rdf(Audit, 'urn:kibi:audit/operation', _, Graph),
+              atomic_list_concat(Parts, '-', Audit),
+              last(Parts, IndexAtom),
+              atom_number(IndexAtom, Index) ),
+            Indexes0),
+    msort(Indexes0, Indexes).
+
+%% ks_journaled_store_at(+Dir, :Goal)
+% Run Goal in a new journaled store at Dir, then save and detach it.
+ks_journaled_store_at(Dir, Goal) :-
+    make_directory_path(Dir),
+    atom_concat(Dir, '/storage.json', Marker),
+    ks_journal_marker(Text),
+    ks_write_file(Marker, Text),
+    kb_attach(Dir),
+    once(Goal),
+    kb_save,
+    kb_detach.
+
+:- begin_tests(kb_storage_migration).
+
+test(migration_copies_entities_relationships_and_audits, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_legacy_source(Source, Target),
+    % An extension field that the current schema no longer models stays in
+    % the copied graph without failing validation.
+    entity_id_to_uri_atom('REQ-MIGRATE', ReqURI),
+    ks_raw_triple(ReqURI, 'kb:legacy_extension', "kept"^^'http://www.w3.org/2001/XMLSchema#string'),
+    ks_stderr(kb_migrate_legacy(Source, Target), _),
+    assertion(\+ kb:kb_attached(_)),
+    atom_concat(Target, '/storage.json', Marker),
+    ks_read_file(Marker, MarkerText),
+    ks_journal_marker(ExpectedMarker),
+    atom_string(ExpectedMarker, ExpectedMarkerText),
+    assertion(MarkerText == ExpectedMarkerText),
+    atom_concat(Target, '/CURRENT', Head),
+    ks_read_file(Head, HeadText),
+    current_prolog_flag(pid, Pid),
+    format(string(GenerationPrefix), "generation-~w-", [Pid]),
+    assertion(sub_string(HeadText, 0, _, _, GenerationPrefix)),
+    assertion(sub_string(HeadText, _, _, 0, ":1\n")),
+    split_string(HeadText, ":", "\n", [Generation, "1"]),
+    sub_string(Generation, _, _, 0, MillisText),
+    \+ sub_string(MillisText, _, _, _, "-"),
+    number_string(Millis, MillisText),
+    get_time(Now),
+    assertion(Millis =< floor(Now * 1000)),
+    assertion(Millis > floor((Now - 600) * 1000)),
+    kb_attach(Target),
+    kb_storage_status(Status),
+    assertion(Status.mode == journaled),
+    assertion(Status.sequence == 1),
+    assertion(once(kb_entity('REQ-MIGRATE', req, _))),
+    assertion(once(kb_entity('SYM-MIGRATE', symbol, _))),
+    assertion(kb_relationship(implements, 'SYM-MIGRATE', 'REQ-MIGRATE')),
+    ks_audit_indexes(Indexes),
+    kb_detach,
+    assertion(Indexes == [1, 2, 3]),
+    kb_attach(Source),
+    kb_storage_status(SourceStatus),
+    assertion(SourceStatus.mode == legacy),
+    assertion(once(kb_entity('REQ-MIGRATE', req, _))).
+
+test(migration_into_an_existing_empty_directory, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_legacy_source(Source, Target),
+    make_directory_path(Target),
+    ks_stderr(kb_migrate_legacy(Source, Target), _),
+    kb_attach(Target),
+    assertion(once(kb_entity('REQ-MIGRATE', req, _))).
+
+test(migration_needs_the_attached_legacy_source, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    test_kb_dir(Source),
+    atom_concat(Source, '/staged', Target),
+    assertion(\+ kb_migrate_legacy(Source, Target)),
+    kb_attach(Source),
+    atom_concat(Source, '/other', Other),
+    assertion(\+ kb_migrate_legacy(Other, Target)),
+    kb_detach,
+    atom_concat(Source, '/journaled', Journaled),
+    ks_journaled_store_at(Journaled, true),
+    kb_attach(Journaled),
+    assertion(\+ kb_migrate_legacy(Journaled, Target)),
+    assertion(\+ exists_directory(Target)).
+
+test(migration_does_not_wait_for_a_held_branch_lock, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_legacy_source(Source, Target),
+    atom_concat(Source, '/kb.lock', Lock),
+    ks_with_locked_file(Lock, append,
+                        catch(kb_migrate_legacy(Source, Target), Error, true)),
+    assertion(ks_caught(Error, error(permission_error(lock, _, _), _))),
+    assertion(kb:kb_attached(Source)),
+    assertion(\+ exists_directory(Target)),
+    ks_open_file_streams('kb.lock', Streams),
+    assertion(Streams == []).
+
+test(migration_lock_is_released_after_the_copy, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_legacy_source(Source, Target),
+    ks_stderr(kb_migrate_legacy(Source, Target), _),
+    ks_open_file_streams('kb.lock', Streams),
+    assertion(Streams == []).
+
+test(migration_refuses_extra_triples_in_the_staged_store, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    test_kb_dir(Source),
+    atom_concat(Source, '/staged', Target),
+    ks_journaled_store_at(Target, ks_assert(req, 'REQ-LEFTOVER')),
+    kb_attach(Source),
+    ks_assert(req, 'REQ-MIGRATE'),
+    kb_save,
+    ks_migration_error(Source, Target, Error),
+    assertion(Error == error(migration_validation(triple_count, 7, 14),
+                             kb_migrate_legacy/2)).
+
+test(migration_refuses_extra_audits_in_the_staged_store, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    test_kb_dir(Source),
+    atom_concat(Source, '/staged', Target),
+    ks_journaled_store_at(Target, kb_retract_entity('REQ-NEVER')),
+    kb_attach(Source),
+    ks_assert(req, 'REQ-MIGRATE'),
+    kb_save,
+    ks_migration_error(Source, Target, Error),
+    assertion(Error == error(migration_validation(audit_count, 1, 2),
+                             kb_migrate_legacy/2)).
+
+test(migration_refuses_entities_that_fail_the_schema, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_legacy_source(Source, Target),
+    entity_id_to_uri_atom('REQ-BROKEN', BrokenURI),
+    ks_raw_triple(BrokenURI, 'urn-kibi:type', "req"^^'http://www.w3.org/2001/XMLSchema#string'),
+    ks_raw_triple(BrokenURI, 'kb:id', "REQ-BROKEN"^^'http://www.w3.org/2001/XMLSchema#string'),
+    ks_migration_error(Source, Target, Error),
+    assertion(Error == error(migration_validation(entity_schema,
+                                                  [problem('REQ-BROKEN', req)]),
+                             kb_migrate_legacy/2)).
+
+test(migration_refuses_dangling_and_invalid_relationships, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_legacy_source(Source, Target),
+    ks_assert(req, 'REQ-OTHER'),
+    entity_id_to_uri_atom('REQ-MIGRATE', ReqURI),
+    entity_id_to_uri_atom('REQ-OTHER', OtherURI),
+    entity_id_to_uri_atom('SYM-MIGRATE', SymURI),
+    entity_id_to_uri_atom('GHOST', GhostURI),
+    ks_raw_triple(GhostURI, 'urn-kibi:implements', ReqURI),
+    ks_raw_triple(SymURI, 'urn-kibi:implements', GhostURI),
+    ks_raw_triple(ReqURI, 'urn-kibi:implements', OtherURI),
+    kb_save,
+    ks_migration_error(Source, Target, Error),
+    Error = error(migration_validation(relationships, Problems), Context),
+    assertion(Context == kb_migrate_legacy/2),
+    msort(Problems, Sorted),
+    assertion(Sorted == [problem(implements, 'GHOST', 'REQ-MIGRATE'),
+                         problem(implements, 'REQ-MIGRATE', 'REQ-OTHER'),
+                         problem(implements, 'SYM-MIGRATE', 'GHOST')]).
+
+test(migration_decodes_values_by_their_schema_kind) :-
+    String = 'http://www.w3.org/2001/XMLSchema#string',
+    deterministic(kb:normalize_migration_props(fact, [
+        id='F-1'^^String,
+        title='Title Atom',
+        retired_extension=x,
+        value_int="12"^^String,
+        value_number='1.5',
+        predicate_arity=3,
+        claim_span_start="not a number",
+        claim_span_end=[1],
+        polarity=literal(type(String, deny)),
+        created_at=12,
+        updated_at=at(noon),
+        scope=literal(lang(en, "global")),
+        value_bool=literal(true),
+        tags=[a, "b"],
+        closed_world="1",
+        unit="ms"
+    ], Normalized)),
+    assertion(Normalized == [
+        id='F-1',
+        title="Title Atom",
+        value_int=12,
+        value_number=1.5,
+        predicate_arity=3,
+        claim_span_start="not a number",
+        claim_span_end=[1],
+        polarity=deny,
+        created_at="12",
+        updated_at="at(noon)",
+        scope="global",
+        value_bool=true,
+        tags=[a, "b"],
+        closed_world="1",
+        unit="ms"
+    ]).
+
+test(export_writes_the_graph_and_a_readable_audit_log, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_store(Dir),
+    kb_attach(Dir),
+    ks_assert(req, 'REQ-EXPORT'),
+    atom_concat(Dir, '/export', Export),
+    ks_stderr(kb_storage_export(Export), _),
+    atom_concat(Export, '/kb.rdf', ExportedGraph),
+    atom_concat(Export, '/audit.log', ExportedAudit),
+    read_file_to_terms(ExportedAudit, Terms, []),
+    ks_read_file(ExportedGraph, GraphText),
+    ks_stderr(kb_storage_export(Export), _),
+    read_file_to_terms(ExportedAudit, TermsAgain, []),
+    kb_detach,
+    assertion(sub_string(GraphText, _, _, _, "REQ-EXPORT")),
+    assertion(sub_string(GraphText, _, _, _, "urn-kibi:")),
+    assertion(Terms = [changeset(_^^_, "upsert"^^_, "'REQ-EXPORT'"^^_, Data^^_)]),
+    [changeset(_, _, _, Data^^_)] = Terms,
+    assertion(sub_string(Data, 0, _, _, "req-[change_kind=created,id='REQ-EXPORT'")),
+    assertion(TermsAgain == Terms).
+
+:- end_tests(kb_storage_migration).
+
+entity_id_to_uri_atom(Id, URI) :-
+    atom_concat('kb:entity/', Id, URI).
+
+ks_journaled_attached(Dir) :-
+    ks_journaled_store(Dir),
+    kb_attach(Dir).
+
+ks_head(Dir, Text) :-
+    atom_concat(Dir, '/CURRENT', Head),
+    (   exists_file(Head)
+    ->  ks_read_file(Head, Text)
+    ;   Text = none
+    ).
+
+ks_set_env(Name, Value) :-
+    (   var(Value)
+    ->  unsetenv(Name)
+    ;   setenv(Name, Value)
+    ).
+
+ks_saved_env(Names, Saved) :-
+    findall(Name-Value, ( member(Name, Names), (getenv(Name, Value) -> true ; true) ), Saved).
+
+ks_restore_env(Saved) :-
+    forall(member(Name-Value, Saved), ks_set_env(Name, Value)).
+
+ks_runtime_env(['KIBI_RUNTIME_NAME', 'KIBI_RUNTIME_VERSION', 'KIBI_PACKAGE_VERSIONS']).
+
+ks_audit_ops(Ops) :-
+    findall(Op-Entity, changeset(_, Op, Entity, _), Ops).
+
+:- begin_tests(kb_storage_commits).
+
+test(journaled_commit_classifies_by_its_own_id, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_attached(Dir),
+    ks_assert(req, 'REQ-EXISTING'),
+    kb_save,
+    ks_entity_props('REQ-NEW', "New", Props),
+    ks_stderr(deterministic(kb_commit_upsert(req, Props, [], true, Kind)), Text),
+    ks_head(Dir, Head),
+    assertion(Kind == created),
+    ks_stage_lines(Text, Stages),
+    assertion(Stages == ["__KIBI_STAGE__:rdf_mutation", "__KIBI_STAGE__:entity_audit",
+                         "__KIBI_STAGE__:relationship_audit", "__KIBI_STAGE__:journal_flush"]),
+    assertion(Head == "generation-1:2\n"),
+    ks_entity_props('REQ-NEW', "Renamed", Props2),
+    ks_stderr(kb_commit_upsert(req, Props2, [], false, Kind2), Text2),
+    ks_stage_lines(Text2, Stages2),
+    assertion(Kind2 == updated),
+    assertion(Stages2 == ["__KIBI_STAGE__:rdf_mutation", "__KIBI_STAGE__:contradiction_check",
+                          "__KIBI_STAGE__:entity_audit", "__KIBI_STAGE__:relationship_audit",
+                          "__KIBI_STAGE__:journal_flush"]).
+
+test(journaled_commit_refuses_an_unknown_skip_flag, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_attached(Dir),
+    ks_entity_props('REQ-SKIP', "Skip", Props),
+    assertion(\+ kb_commit_upsert(req, Props, [], maybe, _)),
+    assertion(\+ once(kb_entity('REQ-SKIP', _, _))),
+    ks_head(Dir, Head),
+    assertion(Head == none).
+
+test(journaled_commit_audits_every_relationship, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_attached(_),
+    ks_assert(symbol, 'SYM-A'),
+    ks_assert(req, 'REQ-A'),
+    ks_assert(req, 'REQ-B'),
+    ks_entity_props('SYM-COMMIT', "Symbol", Props),
+    ks_stderr(kb_commit_upsert(symbol, Props,
+                               [rel(implements, 'SYM-COMMIT', 'REQ-A', [note]),
+                                rel(implements, 'SYM-COMMIT', 'REQ-B', [])],
+                               true, _), _),
+    kb:kb_graph(Graph),
+    findall(Entity,
+            ( rdf(Audit, 'urn:kibi:audit/operation', "upsert_rel"^^_, Graph),
+              rdf(Audit, 'urn:kibi:audit/entity', Entity^^_, Graph) ),
+            Entities0),
+    msort(Entities0, Entities),
+    assertion(Entities == ["'SYM-COMMIT->REQ-A'", "'SYM-COMMIT->REQ-B'"]).
+
+test(failed_journaled_commit_keeps_the_dirty_bit_it_found, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_attached(Dir),
+    ks_assert(req, 'REQ-PENDING'),
+    assertion(kb:kb_dirty),
+    ks_entity_props('SYM-DANGLING', "Symbol", Props),
+    catch(ks_stderr(kb_commit_upsert(symbol, Props,
+                                     [rel(implements, 'SYM-DANGLING', 'REQ-MISSING', [])],
+                                     true, _), _),
+          Error, true),
+    assertion(ks_caught(Error, error(existence_error(entity, 'REQ-MISSING'), _))),
+    assertion(\+ once(kb_entity('SYM-DANGLING', _, _))),
+    assertion(kb:kb_dirty),
+    kb_save,
+    ks_head(Dir, Head),
+    assertion(Head == "generation-1:1\n").
+
+test(failed_journaled_mutation_drops_a_dirty_bit_it_set, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_attached(Dir),
+    assertion(\+ kb:kb_dirty),
+    context_module(Module),
+    catch(kb:kb_run_journaled_mutation(Module:(ks_assert(req, 'REQ-ROLLED'), throw(rolled))),
+          Caught, true),
+    assertion(Caught == rolled),
+    assertion(\+ kb:kb_dirty),
+    assertion(\+ once(kb_entity('REQ-ROLLED', _, _))),
+    kb_save,
+    ks_head(Dir, Head),
+    assertion(Head == none).
+
+test(failed_journaled_mutation_keeps_an_earlier_dirty_bit, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_attached(_),
+    ks_assert(req, 'REQ-EARLIER'),
+    context_module(Module),
+    catch(kb:kb_run_journaled_mutation(Module:(ks_assert(req, 'REQ-ROLLED'), throw(rolled))),
+          Caught, true),
+    assertion(Caught == rolled),
+    assertion(kb:kb_dirty).
+
+test(mark_dirty_records_one_marker, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_attached(_),
+    kb:kb_mark_dirty,
+    kb:kb_mark_dirty,
+    aggregate_all(count, kb:kb_dirty, Count),
+    assertion(Count == 1).
+
+test(legacy_commit_reports_runtime_and_stages, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    test_kb_dir(Dir),
+    ks_runtime_env(Names),
+    ks_saved_env(Names, Saved),
+    ks_entity_props('REQ-LEGACY-COMMIT', "Legacy", Props),
+    setup_call_cleanup(
+        ( setenv('KIBI_RUNTIME_NAME', 'kibi-test'),
+          setenv('KIBI_RUNTIME_VERSION', '9.9.9'),
+          unsetenv('KIBI_PACKAGE_VERSIONS') ),
+        ks_stderr(deterministic(kb_commit_upsert(req, Props, [], true, Kind)), Text),
+        ks_restore_env(Saved)),
+    assertion(Kind == created),
+    current_prolog_flag(pid, Pid),
+    format(string(Runtime),
+           "__KIBI_RUNTIME__:pid=~w;audit=~w/audit.log;runtime=kibi-test@9.9.9;packages=unknown",
+           [Pid, Dir]),
+    ks_stage_lines(Text, Stages),
+    assertion(Stages == ["__KIBI_STAGE__:runtime", Runtime, "__KIBI_STAGE__:lock",
+                         "__KIBI_STAGE__:rdf_mutation", "__KIBI_STAGE__:entity_audit",
+                         "__KIBI_STAGE__:relationship_audit",
+                         "__KIBI_STAGE__:snapshot_save", "__KIBI_STAGE__:audit_sync",
+                         "__KIBI_STAGE__:snapshot_save"]),
+    ks_open_file_streams('audit.log', Streams),
+    assertion(Streams == []).
+
+test(legacy_commit_refuses_an_unknown_skip_flag, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_entity_props('REQ-SKIP', "Skip", Props),
+    assertion(\+ kb_commit_upsert(req, Props, [], maybe, _)),
+    assertion(\+ once(kb_entity('REQ-SKIP', _, _))).
+
+test(legacy_commit_refuses_a_locked_audit_log, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    test_kb_dir(Dir),
+    ks_assert(req, 'REQ-FIRST'),
+    atom_concat(Dir, '/audit.log', AuditLog),
+    assertion(exists_file(AuditLog)),
+    ks_entity_props('REQ-BLOCKED', "Blocked", Props),
+    ks_with_locked_file(AuditLog, append,
+                        catch(ks_stderr(kb_commit_upsert(req, Props, [], true, _), _),
+                              Error, true)),
+    assertion(ks_caught(Error, error(permission_error(lock, audit_log, AuditLog),
+                            context(kb_commit_upsert/5, _)))),
+    assertion(\+ once(kb_entity('REQ-BLOCKED', _, _))).
+
+test(legacy_commit_without_an_audit_log_yet, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    test_kb_dir(Dir),
+    atom_concat(Dir, '/audit.log', AuditLog),
+    assertion(\+ exists_file(AuditLog)),
+    ks_entity_props('REQ-FIRST-COMMIT', "First", Props),
+    ks_stderr(kb_commit_upsert(req, Props, [], true, Kind), _),
+    assertion(Kind == created).
+
+test(change_kind_has_one_answer, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_assert(req, 'REQ-KIND'),
+    findall(Kind, kb:upsert_change_kind('REQ-KIND', Kind), Kinds),
+    assertion(Kinds == [updated]),
+    findall(Kind, kb:upsert_change_kind('REQ-NONE', Kind), NewKinds),
+    assertion(NewKinds == [created]).
+
+test(contradiction_check_runs_once_for_requirements_only, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_assert(req, 'REQ-CHECKED'),
+    ks_stderr(deterministic(kb:kb_maybe_check_req_contradiction(req, 'REQ-CHECKED', false)), Text),
+    assertion(Text == "__KIBI_STAGE__:contradiction_check\n"),
+    ks_stderr(kb:kb_maybe_check_req_contradiction(req, 'REQ-CHECKED', true), Skipped),
+    assertion(Skipped == ""),
+    ks_stderr(kb:kb_maybe_check_req_contradiction(symbol, 'REQ-CHECKED', false), Other),
+    assertion(Other == "").
+
+test(journaled_batch_commits_every_entry_in_one_flush, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_attached(Dir),
+    ks_assert(req, 'REQ-BATCH-OLD'),
+    kb_save,
+    ks_entity_props('REQ-BATCH-OLD', "Updated", OldProps),
+    ks_entity_props('REQ-BATCH-NEW', "Created", NewProps),
+    ks_stderr(deterministic(kb_commit_upsert_batch([
+        upsert(req, NewProps, [], true),
+        upsert(req, OldProps, [], false)
+    ], Kinds)), Text),
+    ks_head(Dir, Head),
+    ks_stage_lines(Text, Stages),
+    kb:kb_graph(Graph),
+    aggregate_all(count, rdf(_, 'urn:kibi:audit/operation', "upsert"^^_, Graph), Upserts),
+    assertion(Kinds == [created, updated]),
+    assertion(Stages == ["__KIBI_STAGE__:rdf_mutation", "__KIBI_STAGE__:contradiction_check",
+                         "__KIBI_STAGE__:journal_flush"]),
+    assertion(Head == "generation-1:2\n"),
+    assertion(Upserts == 3),
+    assertion(once(kb_entity('REQ-BATCH-NEW', req, _))).
+
+test(failed_journaled_batch_writes_nothing, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_attached(Dir),
+    ks_entity_props('REQ-BATCH-1', "First", Props1),
+    ks_entity_props('SYM-BATCH-2', "Second", Props2),
+    catch(ks_stderr(kb_commit_upsert_batch([
+        upsert(req, Props1, [], true),
+        upsert(symbol, Props2, [rel(implements, 'SYM-BATCH-2', 'REQ-GONE', [])], true)
+    ], _), _), Error, true),
+    assertion(ks_caught(Error, error(existence_error(entity, 'REQ-GONE'), _))),
+    assertion(\+ once(kb_entity('REQ-BATCH-1', _, _))),
+    assertion(\+ kb:kb_dirty),
+    ks_head(Dir, Head),
+    assertion(Head == none).
+
+test(legacy_batch_commits_and_saves_once, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    test_kb_dir(Dir),
+    ks_assert(req, 'REQ-LBATCH-OLD'),
+    ks_entity_props('REQ-LBATCH-OLD', "Updated", OldProps),
+    ks_entity_props('REQ-LBATCH-NEW', "Created", NewProps),
+    ks_stderr(deterministic(kb_commit_upsert_batch([
+        upsert(req, NewProps, [], true),
+        upsert(req, OldProps, [], true)
+    ], Kinds)), Text),
+    ks_stage_lines(Text, Stages),
+    assertion(Kinds == [created, updated]),
+    Stages = [Runtime, Runtime2, Lock|Rest],
+    assertion(Runtime == "__KIBI_STAGE__:runtime"),
+    assertion(sub_string(Runtime2, 0, _, _, "__KIBI_RUNTIME__:pid=")),
+    assertion(Lock == "__KIBI_STAGE__:lock"),
+    assertion(Rest == ["__KIBI_STAGE__:rdf_mutation",
+                       "__KIBI_STAGE__:snapshot_save", "__KIBI_STAGE__:audit_sync",
+                       "__KIBI_STAGE__:snapshot_save"]),
+    ks_audit_ops(Ops),
+    assertion(Ops == ['upsert'-'REQ-LBATCH-OLD', upsert-'REQ-LBATCH-NEW', upsert-'REQ-LBATCH-OLD']),
+    kb_detach,
+    kb_attach(Dir),
+    assertion(once(kb_entity('REQ-LBATCH-NEW', req, _))).
+
+test(legacy_batch_refuses_a_stale_snapshot, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    test_kb_dir(Dir),
+    ks_assert(req, 'REQ-LBATCH-STALE'),
+    kb_save,
+    atom_concat(Dir, '/kb.rdf', DataFile),
+    setup_call_cleanup(open(DataFile, append, Out), nl(Out), close(Out)),
+    ks_entity_props('REQ-LBATCH-LATE', "Late", Props),
+    catch(ks_stderr(kb_commit_upsert_batch([upsert(req, Props, [], true)], _), _),
+          Error, true),
+    assertion(ks_caught(Error, error(permission_error(save, kb, stale_snapshot), _))),
+    assertion(\+ once(kb_entity('REQ-LBATCH-LATE', _, _))).
+
+test(retracting_entity_relationships_keeps_properties_and_incoming_edges, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    forall(member(Mode, [legacy, journaled]),
+           ks_retract_relationships_in(Mode)).
+
+test(retracting_all_relationships_keeps_entities, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    forall(member(Mode, [legacy, journaled]),
+           ks_retract_all_in(Mode)).
+
+:- end_tests(kb_storage_commits).
+
+ks_store_in(legacy, Dir) :-
+    test_kb_dir(Base),
+    atom_concat(Base, '/legacy', Dir),
+    kb_attach(Dir).
+ks_store_in(journaled, Dir) :-
+    test_kb_dir(Base),
+    atom_concat(Base, '/journaled', Dir),
+    make_directory_path(Dir),
+    atom_concat(Dir, '/storage.json', Marker),
+    ks_journal_marker(Text),
+    ks_write_file(Marker, Text),
+    kb_attach(Dir).
+
+ks_edge_fixture :-
+    ks_assert(req, 'REQ-EDGE-A'),
+    ks_assert(req, 'REQ-EDGE-B'),
+    ks_assert(symbol, 'SYM-EDGE'),
+    kb_assert_relationship(depends_on, 'REQ-EDGE-A', 'REQ-EDGE-B', []),
+    kb_assert_relationship(implements, 'SYM-EDGE', 'REQ-EDGE-A', []).
+
+ks_edges(Edges) :-
+    findall(T-F-O, ( kibi_relationships:relationship_type(T), kb_relationship(T, F, O) ), Edges0),
+    msort(Edges0, Edges).
+
+ks_retract_relationships_in(Mode) :-
+    ks_store_in(Mode, _),
+    ks_edge_fixture,
+    kb_retract_entity_relationships('REQ-EDGE-A'),
+    ks_edges(Edges),
+    once(kb_entity('REQ-EDGE-A', req, Props)),
+    ( Mode == journaled -> Dirty = true ; Dirty = false ),
+    ( kb:kb_dirty -> ActualDirty = true ; ActualDirty = false ),
+    kb_detach,
+    assertion(Edges == [implements-'SYM-EDGE'-'REQ-EDGE-A']),
+    assertion(memberchk(title=_, Props)),
+    assertion(ActualDirty == Dirty).
+
+ks_retract_all_in(Mode) :-
+    ks_store_in(Mode, _),
+    ks_edge_fixture,
+    kb_retract_all_relationships,
+    ks_edges(Edges),
+    kb_entity_ids(Ids),
+    kb:kb_graph(Graph),
+    aggregate_all(count, rdf(_, 'urn:kibi:audit/operation', _, Graph), Audits),
+    ( Mode == journaled -> Dirty = true ; Dirty = false ),
+    ( kb:kb_dirty -> ActualDirty = true ; ActualDirty = false ),
+    kb_detach,
+    assertion(Edges == []),
+    assertion(Ids == ['REQ-EDGE-A', 'REQ-EDGE-B', 'SYM-EDGE']),
+    assertion(ActualDirty == Dirty),
+    ( Mode == journaled -> assertion(Audits == 5) ; assertion(Audits == 0) ).
+
+ks_fact(Id, Extra) :-
+    ks_entity_props(Id, "Fact", Base),
+    append(Base, Extra, Props),
+    kb_assert_entity(fact, Props).
+
+ks_legacy_file(Dir, Name, Clauses) :-
+    atom_concat(Dir, '/', Prefix),
+    atom_concat(Prefix, Name, File),
+    setup_call_cleanup(open(File, write, Out, [encoding(utf8)]),
+                       forall(member(Clause, Clauses),
+                              format(Out, '~q.~n', [Clause])),
+                       close(Out)).
+
+ks_attach_with_legacy(Clauses) :-
+    test_kb_dir(Dir),
+    make_directory_path(Dir),
+    ks_legacy_file(Dir, 'legacy.pl', Clauses),
+    kb_attach(Dir).
+
+ks_rows_ids(Rows, Ids) :-
+    findall(Id, member([Id|_], Rows), Ids).
+
+ks_verification_req(Req, Facts) :-
+    ks_assert(req, Req),
+    format(string(Subject), "requirement.~w.verification", [Req]),
+    atom_concat(Req, '-SUBJECT', SubjectFact),
+    ks_fact(SubjectFact, [fact_kind=subject, subject_key=Subject]),
+    kb_assert_relationship(constrains, Req, SubjectFact, []),
+    forall(member(Suffix-Extra, Facts),
+           ( atom_concat(Req, Suffix, FactId),
+             ks_fact(FactId, [fact_kind=property_value, subject_key=Subject,
+                              value_type=string|Extra]),
+             kb_assert_relationship(requires_property, Req, FactId, []) )).
+
+:- begin_tests(kb_storage_queries).
+
+test(index_verification_key_names_the_graph_and_legacy_count, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    kb:index_verification_key(3, Detached),
+    assertion(Detached = key(none, _, 0, 3)),
+    ks_attach_with_legacy([entity(req, 'REQ-LEGACY-KEY', "Legacy", [title("Legacy")])]),
+    kb:kb_graph(Graph),
+    kb:index_verification_key(7, Attached),
+    assertion(Attached = key(Graph, _, 1, 7)),
+    kb_entity_ids(_),
+    kb:kb_index_verified_key(Verified),
+    assertion(ground(Verified)).
+
+test(rebuild_needs_an_attached_store, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    assertion(\+ kb_rebuild_indexes),
+    assertion(\+ kb:kb_index_entity_count(_)).
+
+test(entities_by_tag_and_indexed_sources, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_indexed_sources(None),
+    assertion(None == []),
+    ks_entity_props('REQ-TAG-1', "Tagged", Props1),
+    kb_assert_entity(req, [tags=[alpha, "Beta"]|Props1]),
+    ks_entity_props('REQ-TAG-2', "Tagged", Props2),
+    kb_assert_entity(req, [tags=[alpha]|Props2]),
+    kb_entities_by_tag(alpha, Alpha),
+    kb_entities_by_tag("Beta", Beta),
+    kb_entities_by_tag(gamma, Gamma),
+    kb_indexed_sources(Sources),
+    assertion(Alpha == ['REQ-TAG-1', 'REQ-TAG-2']),
+    assertion(Beta == ['REQ-TAG-1']),
+    assertion(Gamma == []),
+    assertion(Sources == ['test://kb.plt']).
+
+test(proof_contract_pages_count_only_contracted_tests, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_assert(test, 'TEST-A-PLAIN'),
+    ks_entity_props('TEST-B-CONTRACT', "Contract", Props),
+    kb_assert_entity(test, [proof_contract="{\"v\":1}"|Props]),
+    entity_id_to_uri_atom('REQ-A-CONTRACT', ReqURI),
+    ks_raw_triple(ReqURI, 'urn-kibi:type', "req"^^'http://www.w3.org/2001/XMLSchema#string'),
+    ks_raw_triple(ReqURI, 'kb:proof_contract', "{}"^^'http://www.w3.org/2001/XMLSchema#string'),
+    kb_query_proof_contracts(none, 1, 0, Rows),
+    assertion(Rows = [['TEST-B-CONTRACT', test, _]]),
+    Rows = [[_, _, Projected]],
+    assertion(\+ memberchk(proof_bindings=_, Projected)),
+    kb_query_proof_contracts(some('TEST-B-CONTRACT'), 5, 0, Some),
+    ks_rows_ids(Some, SomeIds),
+    assertion(SomeIds == ['TEST-B-CONTRACT']),
+    kb_query_proof_contracts(some('TEST-A-PLAIN'), 5, 0, Plain),
+    assertion(Plain == []).
+
+test(proof_contract_pages_include_legacy_tests, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_attach_with_legacy([
+        entity(test, 'TEST-LEGACY-BARE', "Bare", [proof_contract="{}"]),
+        entity(test, 'TEST-LEGACY-FULL', "Full",
+               [proof_contract="{}", proof_bindings="[]", source="tests/full.md"]),
+        entity(test, 'TEST-LEGACY-NONE', "None", [title("None")])
+    ]),
+    ks_assert(test, 'TEST-RDF-PLAIN'),
+    kb_query_proof_contracts(none, 10, 0, Rows),
+    assertion(Rows == [['TEST-LEGACY-BARE', test, [id='TEST-LEGACY-BARE', proof_contract="{}"]],
+                       ['TEST-LEGACY-FULL', test, [id='TEST-LEGACY-FULL', proof_contract="{}",
+                                                   proof_bindings="[]", source="tests/full.md"]]]),
+    kb_query_proof_contracts(some(_), 10, 0, Unbound),
+    assertion(Unbound == []).
+
+test(entity_pages_past_the_end_are_empty, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_assert(req, 'REQ-PAGE-1'),
+    ks_assert(req, 'REQ-PAGE-2'),
+    deterministic(kb_query_entities(req, none, [], none, 1, 0, First, Count)),
+    ks_rows_ids(First, FirstIds),
+    assertion(FirstIds == ['REQ-PAGE-1']),
+    assertion(Count == 2),
+    kb_query_entities(req, none, [], none, 5, 7, Past, PastCount),
+    assertion(Past == []),
+    assertion(PastCount == 2).
+
+test(search_candidates_project_every_ranking_field, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    Keys = [id, title, status, priority, severity, owner, tags, source, sourceFile,
+            sourceLine, sourceColumn, sourceEndLine, sourceEndColumn, source_line,
+            source_end_line, updated_at, created_at, semantic_text, text_ref, body,
+            content, markdownBody, markdown_body],
+    findall(Key=v, (member(Key, Keys), Key \== id), Props0),
+    append(Props0, [proof_receipts=v, rule_ir=v], Props),
+    ks_attach_with_legacy([entity(symbol, 'SYM-ALL-FIELDS', "All", Props)]),
+    kb_list_search_candidates(symbol, 5, 0, Rows, Count),
+    assertion(Count == 1),
+    Rows = [['SYM-ALL-FIELDS', symbol, Projected]],
+    findall(Key, member(Key=_, Projected), ProjectedKeys),
+    msort(ProjectedKeys, SortedKeys),
+    msort([id|Keys], Expected0),
+    exclude(==(id), Expected0, Expected1),
+    msort(Expected1, Expected),
+    assertion(SortedKeys == Expected).
+
+test(symbol_roles_cannot_mix_test_and_production_edges, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_assert(req, 'REQ-ROLE'),
+    ks_assert(test, 'TEST-ROLE'),
+    ks_assert(symbol, 'SYM-TEST-ROLE'),
+    ks_assert(symbol, 'SYM-COVERED'),
+    ks_assert(symbol, 'SYM-OWNER'),
+    kb_assert_relationship(executable_for, 'SYM-TEST-ROLE', 'TEST-ROLE', []),
+    catch(kb_assert_relationship(implements, 'SYM-TEST-ROLE', 'REQ-ROLE', []), Implements, true),
+    catch(kb_assert_relationship(covered_by, 'SYM-TEST-ROLE', 'TEST-ROLE', []), Covered, true),
+    kb_assert_relationship(covered_by, 'SYM-COVERED', 'TEST-ROLE', []),
+    catch(kb_assert_relationship(executable_for, 'SYM-COVERED', 'TEST-ROLE', []), Executable, true),
+    kb_assert_relationship(implements, 'SYM-OWNER', 'REQ-ROLE', []),
+    catch(kb_assert_relationship(executable_for, 'SYM-OWNER', 'TEST-ROLE', []), Owner, true),
+    Message = 'symbol SYM-TEST-ROLE cannot mix executable_for with production ownership/coverage relationships',
+    assertion(Implements == error(validation_error(Message), Message)),
+    assertion(Covered == error(validation_error(Message), Message)),
+    assertion(ks_caught(Executable, error(validation_error(_), _))),
+    assertion(ks_caught(Owner, error(validation_error(_), _))),
+    assertion(\+ kb_relationship(implements, 'SYM-TEST-ROLE', _)),
+    assertion(\+ kb_relationship(executable_for, 'SYM-COVERED', _)),
+    assertion(\+ mixed_role_symbol('SYM-TEST-ROLE')),
+    assertion(\+ mixed_role_symbol('SYM-OWNER')).
+
+test(typed_literals_keep_their_datatypes, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_fact('FACT-NUMBER', [fact_kind=property_value, subject_key="s", property_key="p",
+                            operator=eq, value_type=number, value_number=3]),
+    ks_fact('FACT-BOOL', [fact_kind=property_value, subject_key="s", property_key="p",
+                          operator=eq, value_type=bool, value_bool=true]),
+    ks_entity_props('REQ-INVENTORY', "Inventory", ReqProps),
+    kb_assert_entity(req, [proof_exempt=true, semantic_inventory="[{\"a\":1}]"|ReqProps]),
+    kb_entity('FACT-NUMBER', fact, NumberProps),
+    kb_entity('FACT-BOOL', fact, BoolProps),
+    kb_entity('REQ-INVENTORY', req, InventoryProps),
+    memberchk(value_number=_^^NumberType, NumberProps),
+    memberchk(value_bool=Bool, BoolProps),
+    memberchk(proof_exempt=Exempt, InventoryProps),
+    findall(V, member(semantic_inventory=V, InventoryProps), Inventories),
+    assertion(NumberType == 'http://www.w3.org/2001/XMLSchema#decimal'),
+    assertion(Bool == true^^'http://www.w3.org/2001/XMLSchema#boolean'),
+    assertion(Exempt == "true"^^'http://www.w3.org/2001/XMLSchema#string'),
+    assertion(Inventories == ["[{\"a\":1}]"]).
+
+test(structured_literals_unwrap_every_form) :-
+    kb:structured_literal_value("a"^^t, A),
+    kb:structured_literal_value(literal(type(t, b)), B),
+    kb:structured_literal_value(literal(lang(en, c)), C),
+    kb:structured_literal_value(literal(d), D),
+    kb:structured_literal_value(e, E),
+    findall(X, kb:structured_literal_value(literal(lang(en, f)), X), Fs),
+    assertion([A, B, C, D, E] == ["a", b, c, d, e]),
+    assertion(Fs == [f]).
+
+test(scenarios_are_verified_through_either_edge, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_assert(scenario, 'SCN-VALIDATED'),
+    ks_assert(scenario, 'SCN-VERIFIED'),
+    ks_assert(test, 'TEST-ONE'),
+    ks_assert(test, 'TEST-TWO'),
+    kb_assert_relationship(validates, 'TEST-ONE', 'SCN-VALIDATED', []),
+    kb_assert_relationship(validates, 'TEST-TWO', 'SCN-VALIDATED', []),
+    kb_assert_relationship(verified_by, 'SCN-VERIFIED', 'TEST-TWO', []),
+    findall(T, scenario_verified_by_test('SCN-VALIDATED', T), Validated),
+    findall(T, scenario_verified_by_test('SCN-VERIFIED', T), Verified),
+    assertion(Validated == ['TEST-ONE', 'TEST-TWO']),
+    assertion(Verified == ['TEST-TWO']).
+
+test(requirement_test_semantics_follow_the_verification_facts, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_verification_req('REQ-SEM', [
+        '-SCOPE'-[property_key="verification_scope", operator=eq, value_string="end_to_end", polarity=require],
+        '-PERSPECTIVE'-[property_key="verification_perspective", operator=eq, value_string="consumer", polarity=require],
+        '-NEQ'-[property_key="verification_scope", operator=neq, value_string="unit", polarity=require],
+        '-FORBID'-[property_key="verification_scope", operator=eq, value_string="integration", polarity=forbid],
+        '-OTHER'-[property_key="other_key", operator=eq, value_string="x", polarity=require]
+    ]),
+    ks_entity_props('TEST-SEM-OK', "Ok", OkProps),
+    kb_assert_entity(test, [verification_scope=end_to_end, verification_perspective=consumer|OkProps]),
+    ks_entity_props('TEST-SEM-SCOPE', "Scope only", ScopeProps),
+    kb_assert_entity(test, [verification_scope=end_to_end|ScopeProps]),
+    ks_entity_props('TEST-SEM-UNIT', "Unit", UnitProps),
+    kb_assert_entity(test, [verification_scope=unit, verification_perspective=consumer|UnitProps]),
+    ks_assert(req, 'REQ-PLAIN'),
+    assertion(test_satisfies_requirement_semantics('TEST-SEM-OK', 'REQ-SEM')),
+    assertion(\+ test_satisfies_requirement_semantics('TEST-SEM-SCOPE', 'REQ-SEM')),
+    assertion(\+ test_satisfies_requirement_semantics('TEST-SEM-UNIT', 'REQ-SEM')),
+    assertion(\+ test_satisfies_requirement_semantics('TEST-MISSING', 'REQ-SEM')),
+    assertion(test_satisfies_requirement_semantics('TEST-MISSING', 'REQ-PLAIN')),
+    findall(K-E, kb:required_test_semantic('REQ-SEM', K, E), Pairs0),
+    msort(Pairs0, Pairs),
+    assertion(Pairs == [verification_perspective-consumer, verification_scope-end_to_end]).
+
+:- end_tests(kb_storage_queries).
+
+:- begin_tests(kb_storage_inference).
+
+test(impact_spreads_through_edges_in_both_directions, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_assert(req, 'REQ-IMPACT-A'),
+    ks_assert(req, 'REQ-IMPACT-B'),
+    ks_assert(req, 'REQ-IMPACT-C'),
+    ks_assert(req, 'REQ-IMPACT-ALONE'),
+    ks_assert(symbol, 'SYM-IMPACT'),
+    kb_assert_relationship(depends_on, 'REQ-IMPACT-A', 'REQ-IMPACT-B', []),
+    kb_assert_relationship(depends_on, 'REQ-IMPACT-B', 'REQ-IMPACT-C', []),
+    kb_assert_relationship(implements, 'SYM-IMPACT', 'REQ-IMPACT-A', []),
+    findall(E, impacted_by_change(E, 'REQ-IMPACT-A'), Impacted0),
+    sort(Impacted0, Impacted),
+    assertion(Impacted == ['REQ-IMPACT-A', 'REQ-IMPACT-B', 'REQ-IMPACT-C', 'SYM-IMPACT']),
+    findall(E, impacted_by_change(E, 'REQ-IMPACT-ALONE'), Alone),
+    assertion(Alone == ['REQ-IMPACT-ALONE']).
+
+test(a_test_on_any_path_counts, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    forall(member(R, ['REQ-T1', 'REQ-T2', 'REQ-T3', 'REQ-T4', 'REQ-T5']), ks_assert(req, R)),
+    forall(member(S, ['SCN-T3', 'SCN-T4', 'SCN-T5']), ks_assert(scenario, S)),
+    ks_assert(test, 'TEST-T'),
+    kb_assert_relationship(validates, 'TEST-T', 'REQ-T1', []),
+    kb_assert_relationship(verified_by, 'REQ-T2', 'TEST-T', []),
+    kb_assert_relationship(specified_by, 'REQ-T3', 'SCN-T3', []),
+    kb_assert_relationship(validates, 'TEST-T', 'SCN-T3', []),
+    kb_assert_relationship(specified_by, 'REQ-T4', 'SCN-T4', []),
+    kb_assert_relationship(verified_by, 'SCN-T4', 'TEST-T', []),
+    kb_assert_relationship(specified_by, 'REQ-T5', 'SCN-T5', []),
+    forall(member(R, ['REQ-T1', 'REQ-T2', 'REQ-T3', 'REQ-T4']),
+           assertion(deterministic(kb:has_test(R)))),
+    assertion(\+ kb:has_test('REQ-T5')).
+
+test(superseded_requirements_are_not_current, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_assert(req, 'REQ-OLD-CURRENT'),
+    ks_assert(req, 'REQ-NEW-CURRENT'),
+    kb_assert_relationship(supersedes, 'REQ-NEW-CURRENT', 'REQ-OLD-CURRENT', []),
+    assertion(kb:current_req('REQ-NEW-CURRENT')),
+    assertion(\+ kb:current_req('REQ-OLD-CURRENT')).
+
+:- end_tests(kb_storage_inference).
+
+ks_must_req(Id) :-
+    ks_entity_props(Id, "Must requirement", Base),
+    append(Base, [priority=must], Props),
+    kb_assert_entity(req, Props).
+
+ks_index_count(Count) :-
+    kb:kb_index_entity_count(Count).
+
+:- begin_tests(kb_storage_values).
+
+test(incremental_index_updates_keep_the_entity_count, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_assert(req, 'REQ-INDEX-KEPT'),
+    kb:kb_ensure_indexes,
+    ks_index_count(Before),
+    ks_assert(req, 'REQ-INDEX-NEW'),
+    ks_index_count(Added),
+    assertion(Added =:= Before + 1),
+    ks_assert(req, 'REQ-INDEX-NEW'),
+    ks_index_count(Replaced),
+    assertion(Replaced =:= Before + 1),
+    kb_retract_entity('REQ-INDEX-NEW'),
+    ks_index_count(Removed),
+    assertion(Removed =:= Before),
+    kb_retract_entity('REQ-INDEX-NEW'),
+    ks_index_count(Again),
+    assertion(Again =:= Before),
+    assertion(\+ kb:kb_index_entity('REQ-INDEX-NEW', _)),
+    assertion(kb:kb_index_entity('REQ-INDEX-KEPT', req)).
+
+test(boolean_fields_type_only_boolean_values) :-
+    Boolean = 'http://www.w3.org/2001/XMLSchema#boolean',
+    String = 'http://www.w3.org/2001/XMLSchema#string',
+    kb:value_to_literal(value_bool, true, True),
+    assertion(True == true^^Boolean),
+    kb:value_to_literal(closed_world, true, ClosedTrue),
+    assertion(ClosedTrue == true^^Boolean),
+    kb:value_to_literal(value_bool, false, False),
+    assertion(False == false^^Boolean),
+    kb:value_to_literal(value_bool, maybe, Maybe),
+    assertion(Maybe == maybe^^String),
+    kb:value_to_literal(closed_world, false, Closed),
+    assertion(Closed == false^^Boolean),
+    kb:value_to_literal(closed_world, maybe, Open),
+    assertion(Open == maybe^^String).
+
+test(structured_fields_decode_once) :-
+    String = 'http://www.w3.org/2001/XMLSchema#string',
+    forall(member(Key, [semantic_inventory, proof_receipts, proof_contract, proof_bindings]),
+           ( deterministic(kb:literal_to_value(Key, "[1]"^^String, Value)),
+             assertion(Value == "[1]") )),
+    deterministic(kb:literal_to_value(title, "[1]"^^String, Parsed)),
+    assertion(Parsed == [1]).
+
+test(structured_literal_values_unwrap_once) :-
+    forall(member(Literal-Expected,
+                  [ v^^t-v,
+                    literal(type(t, v))-v,
+                    literal(lang(en, v))-v,
+                    literal(v)-v,
+                    v-v ]),
+           ( deterministic(kb:structured_literal_value(Literal, Value)),
+             assertion(Value == Expected) )).
+
+test(term_atom_lists_accept_wrapped_lists) :-
+    kb:normalize_term_atom_list([a, "b"]^^t, Wrapped),
+    assertion(Wrapped == [a, b]),
+    kb:normalize_term_atom_list([c], Plain),
+    assertion(Plain == [c]),
+    assertion(\+ kb:normalize_term_atom_list(abc^^t, _)),
+    assertion(\+ kb:normalize_term_atom_list([a|_], _)).
+
+test(unspecified_units_and_scopes_match_anything) :-
+    assertion(kb:unit_compatible('', ms)),
+    assertion(kb:unit_compatible(ms, '')),
+    assertion(kb:unit_compatible(ms, ms)),
+    assertion(\+ kb:unit_compatible(ms, s)),
+    assertion(kb:scope_intersects('', eu)),
+    assertion(kb:scope_intersects(eu, '')),
+    assertion(kb:scope_intersects(eu, eu)),
+    assertion(\+ kb:scope_intersects(eu, us)).
+
+test(refreshing_an_absent_entity_keeps_the_count, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_assert(req, 'REQ-INDEX-PRESENT'),
+    kb:kb_ensure_indexes,
+    ks_index_count(Before),
+    kb:kb_refresh_entity_index('REQ-INDEX-ABSENT'),
+    ks_index_count(After),
+    assertion(After == Before),
+    assertion(\+ kb:kb_index_entity('REQ-INDEX-ABSENT', _)),
+    % An indexed entity whose triples are gone drops out of the count.
+    kb:kb_graph(Graph),
+    rdf_retractall('kb:entity/REQ-INDEX-PRESENT', _, _, Graph),
+    kb:kb_refresh_entity_index('REQ-INDEX-PRESENT'),
+    ks_index_count(Dropped),
+    assertion(Dropped =:= Before - 1),
+    assertion(\+ kb:kb_index_entity('REQ-INDEX-PRESENT', _)).
+
+test(legacy_entity_audit_needs_a_known_change_kind, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assertion(\+ kb_log_entity_upsert(renamed, req, [id='REQ-AUDIT-KIND'])),
+    ks_audit_ops(None),
+    assertion(\+ memberchk(_-'REQ-AUDIT-KIND', None)),
+    kb_log_entity_upsert(updated, req, [id='REQ-AUDIT-KIND']),
+    ks_audit_ops(Ops),
+    assertion(memberchk(upsert-'REQ-AUDIT-KIND', Ops)).
+
+test(unaudited_relationship_needs_its_source, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_assert(req, 'REQ-REL-TARGET'),
+    catch(kb_assert_relationship_no_audit(depends_on, 'REQ-REL-MISSING', 'REQ-REL-TARGET', []), Error, true),
+    assertion(Error == error(existence_error(entity, 'REQ-REL-MISSING'),
+                             context(kb_assert_relationship, 'Source entity does not exist'))).
+
+test(journaled_relationship_audit_has_one_answer, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_attached(_),
+    assertion(deterministic(kb_log_relationship_upsert(depends_on, 'REQ-A', 'REQ-B', []))).
+
+test(coverage_gaps_name_only_the_missing_side, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_must_req('REQ-GAP-SCN'),
+    ks_must_req('REQ-GAP-TEST'),
+    ks_must_req('REQ-GAP-BOTH'),
+    ks_must_req('REQ-GAP-NONE'),
+    ks_assert(req, 'REQ-GAP-UNRANKED'),
+    ks_assert(req, 'REQ-GAP-UNRANKED-TESTED'),
+    ks_assert(req, 'REQ-GAP-UNRANKED-SPECIFIED'),
+    ks_entity_props('REQ-GAP-RETIRED', "Retired requirement", RetiredBase0),
+    select(status=_, RetiredBase0, RetiredBase),
+    append(RetiredBase, [status=deprecated, priority=must], RetiredProps),
+    kb_assert_entity(req, RetiredProps),
+    ks_must_req('REQ-GAP-REPLACED'),
+    ks_assert(req, 'REQ-GAP-REPLACEMENT'),
+    kb_assert_relationship(supersedes, 'REQ-GAP-REPLACEMENT', 'REQ-GAP-REPLACED', []),
+    ks_entity_props('REQ-GAP-CLOSED', "Closed requirement", ClosedBase0),
+    select(status=_, ClosedBase0, ClosedBase),
+    append(ClosedBase, [status=closed, priority=must, tags=[done]], ClosedProps),
+    kb_assert_entity(req, ClosedProps),
+    ks_entity_props('REQ-GAP-SHIPPED', "Shipped requirement", ShippedBase0),
+    select(status=_, ShippedBase0, ShippedBase),
+    append(ShippedBase, [status=closed, priority=must, tags=[implemented]], ShippedProps),
+    kb_assert_entity(req, ShippedProps),
+    ks_entity_props('REQ-GAP-SHOULD', "Should requirement", ShouldBase),
+    append(ShouldBase, [priority=should], ShouldProps),
+    kb_assert_entity(req, ShouldProps),
+    ks_assert(scenario, 'SCN-GAP'),
+    ks_assert(test, 'TEST-GAP'),
+    kb_assert_relationship(specified_by, 'REQ-GAP-SCN', 'SCN-GAP', []),
+    kb_assert_relationship(validates, 'TEST-GAP', 'REQ-GAP-TEST', []),
+    kb_assert_relationship(specified_by, 'REQ-GAP-NONE', 'SCN-GAP', []),
+    kb_assert_relationship(validates, 'TEST-GAP', 'REQ-GAP-NONE', []),
+    kb_assert_relationship(validates, 'TEST-GAP', 'REQ-GAP-UNRANKED-TESTED', []),
+    kb_assert_relationship(specified_by, 'REQ-GAP-UNRANKED-SPECIFIED', 'SCN-GAP', []),
+    forall(member(Req-Expected,
+                  [ 'REQ-GAP-SCN'-[missing_test],
+                    'REQ-GAP-TEST'-[missing_scenario],
+                    'REQ-GAP-BOTH'-[missing_scenario_and_test],
+                    'REQ-GAP-NONE'-[],
+                    'REQ-GAP-UNRANKED'-[],
+                    'REQ-GAP-UNRANKED-TESTED'-[],
+                    'REQ-GAP-UNRANKED-SPECIFIED'-[],
+                    'REQ-GAP-RETIRED'-[],
+                    'REQ-GAP-REPLACED'-[],
+                    'REQ-GAP-CLOSED'-[],
+                    'REQ-GAP-SHIPPED'-[missing_scenario_and_test],
+                    'REQ-GAP-SHOULD'-[] ]),
+           ( findall(Reason, coverage_gap(Req, Reason), Reasons),
+             assertion(Reasons == Expected) )).
+
+test(predicate_polarities_oppose_both_ways) :-
+    assertion(kb:opposite_predicate_polarity(assert, deny)),
+    assertion(kb:opposite_predicate_polarity(deny, assert)),
+    assertion(\+ kb:opposite_predicate_polarity(deny, deny)).
+
+test(eq_and_neq_conflict_only_on_the_same_value) :-
+    assertion(kb:values_conflict(eq, 7, neq, 7, int)),
+    assertion(\+ kb:values_conflict(eq, 7, neq, 8, int)),
+    assertion(kb:values_conflict(neq, 7, eq, 7.0, number)),
+    assertion(\+ kb:values_conflict(neq, 7, eq, 8, number)).
+
+test(includes_conflicts_with_eq_only_on_a_left_out_member) :-
+    assertion(kb:values_conflict(includes, [a, c], eq, [a, b], set)),
+    assertion(\+ kb:values_conflict(includes, [a], eq, [a, b], set)),
+    assertion(kb:values_conflict(eq, [a, b], includes, [c], set)),
+    assertion(\+ kb:values_conflict(eq, [a, b], includes, [b], set)),
+    assertion(\+ kb:values_conflict(includes, [a], includes, [b], set)).
+
+test(subset_of_conflicts_with_a_required_member_outside_it) :-
+    forall(member(Op, [eq, includes]),
+           ( assertion(kb:values_conflict(subset_of, [a], Op, [a, b], set)),
+             assertion(\+ kb:values_conflict(subset_of, [a, b], Op, [a], set)),
+             assertion(kb:values_conflict(Op, [a, b], subset_of, [a], set)),
+             assertion(\+ kb:values_conflict(Op, [b], subset_of, [a, b], set)) )),
+    assertion(\+ kb:values_conflict(subset_of, [a], excludes, [b], set)),
+    assertion(\+ kb:values_conflict(subset_of, [a], subset_of, [b], set)),
+    assertion(\+ kb:values_conflict(subset_of, [a], neq, [b], set)).
+
+test(excludes_conflicts_with_a_required_shared_member) :-
+    forall(member(Op, [eq, includes]),
+           ( assertion(kb:values_conflict(excludes, [a], Op, [a, b], set)),
+             assertion(\+ kb:values_conflict(excludes, [c], Op, [a, b], set)),
+             assertion(kb:values_conflict(Op, [a, b], excludes, [b], set)),
+             assertion(\+ kb:values_conflict(Op, [a, b], excludes, [c], set)) )),
+    assertion(\+ kb:values_conflict(excludes, [a], excludes, [a], set)),
+    assertion(\+ kb:values_conflict(excludes, [a], neq, [a], set)).
+
+test(journaled_attach_records_the_current_commit, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_attached(_),
+    kb:kb_generation(Generation),
+    kb:kb_commit_sequence(Sequence),
+    kb:kb_attached_snapshot(Snapshot),
+    assertion(Snapshot == journal_snapshot(Generation, Sequence)).
+
+test(a_predicate_witness_skips_partners_that_agree, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    forall(member(Req-Polarity-Claim,
+                  [ 'REQ-PRED-A'-assert-"CLAIM-AAAAAAAAAAAAAAAA",
+                    'REQ-PRED-B'-assert-"CLAIM-BBBBBBBBBBBBBBBB",
+                    'REQ-PRED-C'-deny-"CLAIM-CCCCCCCCCCCCCCCC" ]),
+           ks_predicate_req(Req, Polarity, Claim)),
+    findall(Other, req_conflict_witness('REQ-PRED-A', Other, _), Others),
+    assertion(Others == ['REQ-PRED-C']),
+    req_conflict_witness('REQ-PRED-A', 'REQ-PRED-C', Witness),
+    assertion(Witness.reason == "Predicate conflict on default:archive_rule(editor,archive,draft): REQ-PRED-A asserts assert while REQ-PRED-C asserts deny"),
+    assertion(Witness.schemaIds == []),
+    assert_fixture_entity(fact, 'FACT-ARCHIVE-SCHEMA', "Archiving schema", active, [
+        fact_kind=predicate_schema,
+        predicate_name="archive_rule",
+        predicate_namespace="default",
+        predicate_arity=3,
+        argument_names=[role, action, item],
+        argument_types=[atom, atom, atom]
+    ]),
+    req_conflict_witness('REQ-PRED-A', 'REQ-PRED-C', Schemed),
+    assertion(Schemed.schemaIds == ['FACT-ARCHIVE-SCHEMA']),
+    findall(Other, req_conflict_witness(Other, 'REQ-PRED-C', _), Partners),
+    assertion(Partners == ['REQ-PRED-A', 'REQ-PRED-B']).
+
+test(a_shared_fact_is_no_candidate_pair, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_predicate_req('REQ-SHARED-A', assert, "CLAIM-DDDDDDDDDDDDDDDD"),
+    ks_assert(req, 'REQ-SHARED-B'),
+    kb_assert_relationship(requires_predicate, 'REQ-SHARED-B', 'FACT-REQ-SHARED-A', []),
+    assert_fixture_entity(fact, 'FACT-SHARED-ALLOW', "Shared permission", active, [
+        fact_kind=predicate,
+        predicate_name="permission_rule",
+        predicate_namespace="default",
+        predicate_args=["coach", "read", "shared_request", "allow"],
+        polarity=assert,
+        canonical_key="permission_rule(coach,read,shared_request,allow)",
+        claim_key="CLAIM-EEEEEEEEEEEEEEEE",
+        claim_text="Coaches read shared requests"
+    ]),
+    ks_assert(req, 'REQ-SHARED-C'),
+    kb_assert_relationship(requires_predicate, 'REQ-SHARED-C', 'FACT-SHARED-ALLOW', []),
+    ks_assert(req, 'REQ-SHARED-D'),
+    kb_assert_relationship(requires_predicate, 'REQ-SHARED-D', 'FACT-SHARED-ALLOW', []),
+    kb_domain_contradiction_pairs_examined(Pairs),
+    assertion(Pairs == 0).
+
+test(only_predicate_facts_state_predicates, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_fact('FACT-NOT-PREDICATE', [fact_kind=subject, subject_key="archive",
+                                   predicate_name="archive_rule", predicate_args=[a]]),
+    assertion(\+ kb:predicate_fact('FACT-NOT-PREDICATE', _, _, _, _)).
+
+test(property_constraints_need_the_constrained_subject, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_assert(req, 'REQ-UNCONSTRAINED'),
+    ks_fact('FACT-LOOSE-SUBJECT', [fact_kind=subject, subject_key="loose.subject"]),
+    ks_fact('FACT-LOOSE-VALUE', [fact_kind=property_value, subject_key="loose.subject",
+                                 property_key="mode", operator=eq, value_type=string,
+                                 value_string="on"]),
+    kb_assert_relationship(requires_property, 'REQ-UNCONSTRAINED', 'FACT-LOOSE-VALUE', []),
+    assertion(\+ kb:effective_req_property('REQ-UNCONSTRAINED', _, _, _, _, _, _, _, _)).
+
+test(journaled_attach_clears_an_earlier_dirty_mark, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    kb:kb_mark_dirty,
+    ks_journaled_attached(_),
+    assertion(\+ kb:kb_dirty).
+
+test(a_moved_journaled_store_keeps_its_graph, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    test_kb_dir(Root),
+    atom_concat(Root, '/before', Before),
+    atom_concat(Root, '/after', After),
+    ks_journaled_store_at(Before, ks_assert(req, 'REQ-MOVED')),
+    rename_file(Before, After),
+    rdf_create_graph('urn:kibi:test:empty'),
+    kb_attach(After),
+    kb:kb_graph(Graph),
+    atom_concat('file://', Before, Expected),
+    assertion(Graph == Expected),
+    assertion(kb_entity('REQ-MOVED', req, _)),
+    kb_detach,
+    rdf_unload_graph('urn:kibi:test:empty').
+
+test(journaled_save_rejects_a_replaced_sentinel, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_attached(Dir),
+    ks_assert(req, 'REQ-SENTINEL'),
+    atom_concat(Dir, '/kb.rdf', Sentinel),
+    ks_write_file(Sentinel, "replaced"),
+    catch(kb_save, Error, true),
+    assertion(ks_caught(Error, error(permission_error(save, kb, stale_snapshot), _))).
+
+test(a_dirty_index_is_rebuilt_even_when_counts_agree, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_assert(req, 'REQ-DIRTY-OLD'),
+    kb:kb_ensure_indexes,
+    kb:kb_graph(Graph),
+    String = 'http://www.w3.org/2001/XMLSchema#string',
+    rdf_retractall('kb:entity/REQ-DIRTY-OLD', _, _, Graph),
+    rdf_assert('kb:entity/REQ-DIRTY-NEW', kb:type, "req"^^String, Graph),
+    kb:kb_mark_index_dirty,
+    kb:kb_ensure_indexes,
+    assertion(kb:kb_index_entity('REQ-DIRTY-NEW', req)),
+    assertion(\+ kb:kb_index_entity('REQ-DIRTY-OLD', _)).
+
+test(equal_decisions_never_conflict, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    forall(member(Req-Polarity-Claim,
+                  [ 'REQ-SAME-ALLOW-A'-assert-"CLAIM-FFFFFFFFFFFFFFF1",
+                    'REQ-SAME-ALLOW-B'-deny-"CLAIM-FFFFFFFFFFFFFFF2" ]),
+           ks_decision_req(Req, ["coach", "read", "same_request", "allow"], Polarity, Claim)),
+    % Only the opposite polarities conflict; the equal decisions add no
+    % second witness.
+    findall(Witness, req_conflict_witness('REQ-SAME-ALLOW-A', _, Witness), Witnesses),
+    assertion(length(Witnesses, 1)),
+    Witnesses = [Only],
+    assertion(sub_string(Only.reason, 0, _, _, "Predicate conflict")).
+
+test(a_decision_witness_names_the_project_schema, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(fact, 'FACT-PERMISSION-SCHEMA', "Permission schema", active, [
+        fact_kind=predicate_schema,
+        predicate_name="permission_rule",
+        predicate_namespace="default",
+        predicate_arity=4,
+        argument_names=[role, action, resource, decision],
+        argument_types=[atom, atom, atom, atom],
+        key_arguments=[role, action, resource]
+    ]),
+    ks_decision_req('REQ-SCHEMA-ALLOW', ["coach", "read", "schema_request", "allow"], assert, "CLAIM-FFFFFFFFFFFFFFF3"),
+    ks_decision_req('REQ-SCHEMA-DENY', ["coach", "read", "schema_request", "deny"], deny, "CLAIM-FFFFFFFFFFFFFFF4"),
+    req_conflict_witness('REQ-SCHEMA-ALLOW', 'REQ-SCHEMA-DENY', Witness),
+    assertion(Witness.schemaIds == ['FACT-PERMISSION-SCHEMA']).
+
+test(a_property_fact_defaults_to_eq, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    % Validation requires an operator, so only a stored legacy fact lacks one.
+    assert_raw_entity(fact, 'FACT-NO-OPERATOR', [fact_kind=property_value, subject_key="defaults",
+                                                 property_key="mode", value_type=string, value_string="on"]),
+    kb:fact_property_tuple('FACT-NO-OPERATOR', _, _, Op, _, _, _, _, _),
+    assertion(Op == eq).
+
+test(literal_atom_lists_keep_each_member_verbatim) :-
+    kb:normalize_literal_atom_list(['Mixed Case', "text", 3, f(x), 'a/b'^^t], Atoms),
+    assertion(Atoms == ['Mixed Case', text, '3', 'f(x)', 'a/b']).
+
+test(equal_or_numeric_types_are_compatible) :-
+    forall(member(A-B, [int-int, string-string, int-number, number-int]),
+           assertion(kb:compatible_types(A, B))),
+    forall(member(A-B, [int-string, string-number, set-string]),
+           assertion(\+ kb:compatible_types(A, B))).
+
+test(polarity_conflicts_need_require_against_forbid) :-
+    kb:polarity_conflict(s, p, eq, string, v, '', '', require, eq, string, v, '', '', forbid, Required),
+    assertion(Required == 'Polarity conflict on s.p: eq v vs forbid'),
+    kb:polarity_conflict(s, p, eq, string, v, '', '', forbid, eq, string, v, '', '', require, Forbidden),
+    assertion(Forbidden == 'Polarity conflict on s.p: forbid vs eq v'),
+    forall(member(PA-PB, [require-require, forbid-forbid]),
+           assertion(\+ kb:polarity_conflict(s, p, eq, string, v, '', '', PA, eq, string, v, '', '', PB, _))),
+    assertion(\+ kb:polarity_conflict(s, p, eq, string, v, '', '', require, eq, string, w, '', '', forbid, _)),
+    assertion(\+ kb:polarity_conflict(s, p, eq, string, v, '', '', require, gt, string, v, '', '', forbid, _)),
+    assertion(\+ kb:polarity_conflict(s, p, eq, string, v, ms, '', require, eq, string, v, s, '', forbid, _)),
+    assertion(\+ kb:polarity_conflict(s, p, eq, string, v, '', eu, require, eq, string, v, '', us, forbid, _)),
+    assertion(\+ kb:polarity_conflict(s, p, eq, string, v, '', '', require, eq, int, v, '', '', forbid, _)).
+
+test(an_unwritable_lock_owner_does_not_block_attach, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_store(Dir),
+    atom_concat(Dir, '/.kibi-lock-owner.json.tmp', Blocked),
+    make_directory_path(Blocked),
+    kb_attach(Dir),
+    assertion(kb:kb_attached(Dir)),
+    atom_concat(Dir, '/.kibi-lock-owner.json', Owner),
+    assertion(\+ exists_file(Owner)).
+
+:- end_tests(kb_storage_values).
+
+ks_decision_req(Req, Args, Polarity, Claim) :-
+    atom_concat('FACT-', Req, Fact),
+    atomic_list_concat(Args, ',', ArgsText),
+    format(string(CanonicalKey), "permission_rule(~w)", [ArgsText]),
+    assert_fixture_entity(fact, Fact, "Permission decision", active, [
+        fact_kind=predicate,
+        predicate_name="permission_rule",
+        predicate_namespace="default",
+        predicate_args=Args,
+        polarity=Polarity,
+        canonical_key=CanonicalKey,
+        claim_key=Claim,
+        claim_text="Coaches read requests"
+    ]),
+    assert_fixture_entity(req, Req, "Permission requirement", open, [logic_claims=[Claim]]),
+    kb_assert_relationship(requires_predicate, Req, Fact, []).
+
+ks_predicate_req(Req, Polarity, Claim) :-
+    atom_concat('FACT-', Req, Fact),
+    assert_fixture_entity(fact, Fact, "Archiving rule", active, [
+        fact_kind=predicate,
+        predicate_name="archive_rule",
+        predicate_namespace="default",
+        predicate_args=["editor", "archive", "draft"],
+        polarity=Polarity,
+        canonical_key="archive_rule(editor,archive,draft)",
+        claim_key=Claim,
+        claim_text="Editors archive drafts"
+    ]),
+    assert_fixture_entity(req, Req, "Archiving requirement", open, [logic_claims=[Claim]]),
+    kb_assert_relationship(requires_predicate, Req, Fact, []).
