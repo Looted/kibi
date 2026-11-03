@@ -16,6 +16,7 @@ import {
   REFERENCE_PLUGIN_PACKAGE,
   loadProofReferenceExtractors,
   proofReferenceExtractorLoader,
+  realProofReferenceExtractorLoader,
 } from "../../src/plugins/proof-reference-extractors.js";
 
 // implements REQ-kibi-tree-sitter-references
@@ -23,7 +24,10 @@ import {
 const REFS = "kibi.reference-extractor.v1";
 const roots: string[] = [];
 afterEach(() => {
-  proofReferenceExtractorLoader.approvals = APPROVED_SOURCE_ANALYZERS;
+  Object.assign(
+    proofReferenceExtractorLoader,
+    realProofReferenceExtractorLoader(),
+  );
   for (const root of roots.splice(0))
     rmSync(root, { recursive: true, force: true });
 });
@@ -176,24 +180,13 @@ describe("loadProofReferenceExtractors", () => {
 });
 
 describe("proofReferenceExtractorLoader", () => {
-  test("starts with the release-qualified closures and the caching load", async () => {
-    // A fresh module copy: other test files reassign the shared loader.
-    const fresh = (await import(
-      new URL(
-        "../../src/plugins/proof-reference-extractors.ts?initial",
-        import.meta.url,
-      ).href
-    )) as typeof import("../../src/plugins/proof-reference-extractors.js");
-    expect(Object.keys(fresh.proofReferenceExtractorLoader)).toStrictEqual([
-      "approvals",
-      "load",
-    ]);
-    expect(fresh.proofReferenceExtractorLoader.approvals).toBe(
-      APPROVED_SOURCE_ANALYZERS,
-    );
+  test("starts as, and is restored to, the real loader", async () => {
+    const real = realProofReferenceExtractorLoader();
+    expect(Object.keys(real)).toStrictEqual(["approvals", "load"]);
+    expect(real.approvals).toBe(APPROVED_SOURCE_ANALYZERS);
     const root = workspace(["refs-a"]);
     install(root, "refs-a");
-    expect(await fresh.proofReferenceExtractorLoader.load(root)).toStrictEqual({
+    expect(await real.load(root)).toStrictEqual({
       extractors: [],
       problems: ["refs-a is not a release-qualified reference reader"],
     });

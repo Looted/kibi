@@ -110,43 +110,56 @@ function mtimeOf(path: string): number | undefined {
   return mtime;
 }
 
-/** Replaceable loader, so tests can supply providers without installing a package. */
-export const proofReferenceExtractorLoader: {
+// implements REQ-kibi-tree-sitter-references
+export type ProofReferenceExtractorLoader = {
   /** The release-qualified closures the default load checks against. */
   approvals: readonly ApprovedSourceAnalyzer[];
   load: (workspaceRoot: string) => Promise<ProofReferenceExtractors>;
-} = {
-  approvals: APPROVED_SOURCE_ANALYZERS,
-  load(workspaceRoot) {
-    // A changed package.json (a plugin activated) or an installed plugin
-    // whose manifest changed (installed, upgraded) loads afresh.
-    const key = JSON.stringify([
-      workspaceRoot,
-      mtimeOf(join(workspaceRoot, "package.json")),
-      mtimeOf(
-        join(
-          workspaceRoot,
-          "node_modules",
-          REFERENCE_PLUGIN_PACKAGE,
-          "package.json",
-        ),
-      ),
-    ]);
-    let loaded = cache.get(key);
-    if (loaded === undefined) {
-      loaded = loadProofReferenceExtractors(
-        workspaceRoot,
-        proofReferenceExtractorLoader.approvals,
-      );
-      cache.set(key, loaded);
-      // Only a load that found every provider is kept: a refusal is read
-      // again next time, so a fix is seen without restarting the host. While
-      // a load is pending the cache returns it, so nothing replaces it first.
-      void loaded.then((result) => {
-        if (result.problems.length > 0 || result.extractors.length === 0)
-          cache.delete(key);
-      });
-    }
-    return loaded;
-  },
 };
+
+/**
+ * The real loader. The shared loader starts as one, and a test restores it
+ * from a new one, so both read the same definition.
+ */
+// implements REQ-kibi-tree-sitter-references
+export function realProofReferenceExtractorLoader(): ProofReferenceExtractorLoader {
+  return {
+    approvals: APPROVED_SOURCE_ANALYZERS,
+    load(workspaceRoot) {
+      // A changed package.json (a plugin activated) or an installed plugin
+      // whose manifest changed (installed, upgraded) loads afresh.
+      const key = JSON.stringify([
+        workspaceRoot,
+        mtimeOf(join(workspaceRoot, "package.json")),
+        mtimeOf(
+          join(
+            workspaceRoot,
+            "node_modules",
+            REFERENCE_PLUGIN_PACKAGE,
+            "package.json",
+          ),
+        ),
+      ]);
+      let loaded = cache.get(key);
+      if (loaded === undefined) {
+        loaded = loadProofReferenceExtractors(
+          workspaceRoot,
+          proofReferenceExtractorLoader.approvals,
+        );
+        cache.set(key, loaded);
+        // Only a load that found every provider is kept: a refusal is read
+        // again next time, so a fix is seen without restarting the host. While
+        // a load is pending the cache returns it, so nothing replaces it first.
+        void loaded.then((result) => {
+          if (result.problems.length > 0 || result.extractors.length === 0)
+            cache.delete(key);
+        });
+      }
+      return loaded;
+    },
+  };
+}
+
+/** Replaceable loader, so tests can supply providers without installing a package. */
+export const proofReferenceExtractorLoader: ProofReferenceExtractorLoader =
+  realProofReferenceExtractorLoader();
