@@ -643,3 +643,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9aa879cda9e6
+  - type: covered_by
+    from: SYM-cli-errors-prefixedfailure
+    to: TEST-kibi-telemetry-expected-outcomes-cli
+    created_at: 2026-11-03T13:39:35.740Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ab72598cffc
+  - type: implements
+    from: SYM-cli-errors-prefixedfailure
+    to: REQ-kibi-telemetry-expected-outcomes
+    created_at: 2026-11-03T13:39:35.784Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42d6e6d7dfa2

@@ -66699,3 +66699,93 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-bundled-skill-catalog
+  - id: SYM-test-kibi-telemetry-expected-outcomes-cli
+    title: kibi CLI telemetry outcomes end-to-end suite
+    status: active
+    sourceFile: packages/cli/tests/usage-telemetry-outcomes-e2e.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T13:39:08.014Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+  - id: SYM-agent-core-usage-telemetry-telemetryoutcome
+    title: telemetryOutcome
+    status: active
+    sourceFile: packages/agent-core/src/usage-telemetry.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T13:39:15.277Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-expected-outcomes
+  - id: SYM-agent-core-usage-telemetry-telemetryerrorclass
+    title: telemetryErrorClass
+    status: active
+    sourceFile: packages/agent-core/src/usage-telemetry.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T13:39:21.687Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-expected-outcomes
+  - id: SYM-cli-errors-kbrejection
+    title: KbRejection
+    status: active
+    sourceFile: packages/cli/src/cli-errors.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T13:39:27.919Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-expected-outcomes
+  - id: SYM-cli-errors-prefixedfailure
+    title: prefixedFailure
+    status: active
+    sourceFile: packages/cli/src/cli-errors.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T13:39:33.792Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-expected-outcomes
+  - id: SYM-cli-usage-telemetry-noteclithrownerror
+    title: noteCliThrownError
+    status: active
+    sourceFile: packages/cli/src/usage-telemetry.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T13:39:39.962Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-expected-outcomes
+  - id: SYM-cli-contradictions-upsertfailure
+    title: upsertFailure
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/contradictions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T13:39:46.601Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-expected-outcomes

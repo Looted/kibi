@@ -1,5 +1,5 @@
 // implements REQ-kibi-operation-interface-parity
-import { codedErrorOf } from "../../cli-errors.js";
+import { KbRejection, codedErrorOf } from "../../cli-errors.js";
 import { escapeAtom } from "../../prolog/codec.js";
 import type {
   OperationContext,
@@ -11,7 +11,7 @@ import { entityContextWarnings } from "./context-warning.js";
 import {
   buildUpsertContradictionPreviewGoal,
   buildWhatIfAnalysisGoal,
-  formatUpsertError,
+  upsertFailure,
 } from "./contradictions.js";
 import { validateRelationshipSources } from "./relationships.js";
 import { canonicalSourcePath, renderSourceWrite } from "./source-authoring.js";
@@ -102,9 +102,7 @@ async function previewCommit(
     }),
   );
   if (!preview.success) {
-    throw new Error(
-      formatUpsertError(input.id, preview.error, preview.errorRecord),
-    );
+    throw upsertFailure(input.id, preview.error, preview.errorRecord);
   }
 }
 
@@ -132,7 +130,10 @@ async function stagePlannedFacts(
   const planned = input.plannedFacts;
   if (planned === undefined) return null;
   if (!Array.isArray(planned))
-    throw new Error("plannedFacts must be an array of fact upsert payloads");
+    throw new KbRejection(
+      "VALIDATION_FAILED",
+      "plannedFacts must be an array of fact upsert payloads",
+    );
   const entities = new Map<string, Readonly<Record<string, unknown>>>();
   const relationships: RelationshipInput[] = [];
   const steps: {
@@ -142,11 +143,13 @@ async function stagePlannedFacts(
   for (const [index, fact] of planned.entries()) {
     const id = typeof fact?.id === "string" ? fact.id : `#${index + 1}`;
     if (fact?.type !== "fact")
-      throw new Error(
+      throw new KbRejection(
+        "VALIDATION_FAILED",
         `planned fact ${id} is invalid: plannedFacts stages fact entities only (got type '${String(fact?.type)}')`,
       );
     if (fact.id === input.id)
-      throw new Error(
+      throw new KbRejection(
+        "VALIDATION_FAILED",
         `planned fact ${id} is invalid: it has the same id as the payload`,
       );
     try {
@@ -162,7 +165,8 @@ async function stagePlannedFacts(
         relationships: validated.relationships,
       });
     } catch (error) {
-      throw new Error(
+      throw new KbRejection(
+        "VALIDATION_FAILED",
         `planned fact ${id} is invalid: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
@@ -208,9 +212,7 @@ async function previewStagedContradictions(
     ]),
   );
   if (!result.success)
-    throw new Error(
-      formatUpsertError(input.id, result.error, result.errorRecord),
-    );
+    throw upsertFailure(input.id, result.error, result.errorRecord);
   const analysis = parseWhatIfAnalysis(result.bindings.JsonString);
   if (analysis === null)
     throw new Error(
@@ -223,7 +225,8 @@ async function previewStagedContradictions(
       const others = witness.requirements.filter((id) => id !== input.id);
       return `  - Conflicts with ${others.join(", ") || witness.requirements.join(", ")}: ${witness.reason}`;
     });
-    throw new Error(
+    throw new KbRejection(
+      "SEMANTIC_CONTRADICTION",
       `Contradiction detected for requirement ${input.id} once its planned facts are written:\n${conflicts.join("\n")}\n\nTo resolve:\n  1. Add a supersedes relationship from the new requirement to the conflicting one, OR\n  2. Deprecate the conflicting requirement before creating the new one. (stage=contradiction_check, plannedFacts staged)`,
     );
   }

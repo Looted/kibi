@@ -5,6 +5,7 @@ import {
   flushTelemetry,
   recordOperationTelemetry,
   takeTelemetryNotice,
+  telemetryErrorClass,
 } from "kibi-agent-core/usage-telemetry";
 
 import { classifyDiagnosticError } from "./diagnostics-helpers.js";
@@ -48,6 +49,23 @@ function resultErrorCode(result: unknown): string | undefined {
   return typeof code === "string" ? code : undefined;
 }
 
+// implements REQ-kibi-telemetry-expected-outcomes
+/**
+ * The category of a thrown error: the diagnostic classification, unless it
+ * found nothing more specific than `handler_error` and the error carries its
+ * own code (a coded rejection such as ENTITY_VALIDATION_FAILED, or a system
+ * error such as ENOENT).
+ */
+function thrownErrorCategory(error: unknown): string {
+  const classified = classifyDiagnosticError(error).error_category;
+  if (classified !== "handler_error") return classified;
+  const code =
+    error !== null && typeof error === "object"
+      ? (error as { code?: unknown }).code
+      : undefined;
+  return typeof code === "string" && code !== "" ? code : classified;
+}
+
 // implements REQ-kibi-anonymous-usage-telemetry
 export function recordMcpToolTelemetry(input: {
   readonly operation: string;
@@ -67,10 +85,14 @@ export function recordMcpToolTelemetry(input: {
     durationMs: Date.now() - input.startedAt.getTime(),
     errorCategory:
       input.error !== undefined
-        ? classifyDiagnosticError(input.error).error_category
+        ? thrownErrorCategory(input.error)
         : input.status === "error"
           ? resultErrorCode(input.result)
           : undefined,
+    errorClass:
+      input.error !== undefined
+        ? (telemetryErrorClass(input.error) ?? undefined)
+        : undefined,
   });
 }
 

@@ -5,6 +5,7 @@ import {
   flushTelemetry,
   recordOperationTelemetry,
   takeTelemetryNotice,
+  telemetryErrorClass,
 } from "kibi-agent-core/usage-telemetry";
 
 /**
@@ -18,6 +19,7 @@ import {
 const UNRECORDED_COMMANDS = new Set(["telemetry"]);
 
 let notedErrorCategory: string | undefined;
+let notedErrorClass: string | undefined;
 
 /**
  * Commands whose non-zero exit without a thrown error is their answer, not a
@@ -41,6 +43,21 @@ export function noteCliErrorCategory(category: string | undefined): void {
   if (category && notedErrorCategory === undefined) {
     notedErrorCategory = category;
   }
+}
+
+// implements REQ-kibi-telemetry-expected-outcomes
+/**
+ * Note an error an operation threw before its route turned it into a result:
+ * its code (a coded rejection such as ENTITY_VALIDATION_FAILED) when it has
+ * one, and its class. Never its message.
+ */
+export function noteCliThrownError(error: unknown): void {
+  const code =
+    error !== null && typeof error === "object"
+      ? (error as { code?: unknown }).code
+      : undefined;
+  if (typeof code === "string" && code !== "") noteCliErrorCategory(code);
+  notedErrorClass ??= telemetryErrorClass(error) ?? undefined;
 }
 
 // implements REQ-kibi-anonymous-usage-telemetry
@@ -104,7 +121,9 @@ export async function finishCliTelemetry(input: {
   const env = input.env ?? process.env;
   const command = input.commandPath;
   const noted = notedErrorCategory;
+  const notedClass = notedErrorClass;
   notedErrorCategory = undefined;
+  notedErrorClass = undefined;
   if (!command || UNRECORDED_COMMANDS.has(command.split(" ")[0] ?? "")) {
     return;
   }
@@ -130,6 +149,10 @@ export async function finishCliTelemetry(input: {
             (input.error === undefined
               ? OUTCOME_CATEGORIES[command]
               : thrownErrorCategory(input.error))),
+      errorClass:
+        input.exitCode === 0
+          ? undefined
+          : (notedClass ?? telemetryErrorClass(input.error) ?? undefined),
     },
     env,
   );

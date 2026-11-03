@@ -16,7 +16,7 @@ Telemetry is also off in CI and under test runners, even after `kibi telemetry e
 
 Kibi sends two kinds of event to its PostHog project in the EU region:
 
-- `kibi_operation`, once for each MCP tool call and each CLI command. It contains the interface (`mcp` or `cli`), the registered tool or command name (for example `kb_search` or `storage compact`), whether it succeeded, its duration, the CLI exit code, and for a failure a fixed category: an error code such as `tool_timeout`, `stale_snapshot` or `upsert_dry_run_invalid`, or the names of the failing checks for `kibi doctor` (for example `doctor:git_hooks`). A category that isn't a fixed identifier is sent as `unclassified`.
+- `kibi_operation`, once for each MCP tool call and each CLI command. It contains the interface (`mcp` or `cli`), the registered tool or command name (for example `kb_search` or `storage compact`), its outcome, its duration, the CLI exit code, and for a failure a fixed category: an error code such as `tool_timeout`, `stale_snapshot` or `upsert_dry_run_invalid`, or the names of the failing checks for `kibi doctor` (for example `doctor:git_hooks`). A category that isn't a fixed identifier is sent as `unclassified`. The outcome is `success`, `rejected` when Kibi refused the request on purpose (an invalid payload, check findings, a contradiction, a firm decision, a missing entity), or `error` when Kibi itself failed. For an `error`, the event also names the JavaScript class of the thrown error (for example `TypeError` or `SyncError`) when it is a plain identifier, never its message.
 - `kibi_hook`, once for each Kibi hook decision in Claude Code, Codex, Cursor, ZCode or OpenCode. It contains the hook event, the action Kibi took (for example `read_snippet` or `edit_silent`), the kind of path touched (`source`, `test`, `kb`), the Kibi operation a tool call ran, whether Kibi had already been used in the session, and how many requirements the touched file implements.
 
 Every event also carries:
@@ -25,6 +25,7 @@ Every event also carries:
 - whether it runs in a hosted cloud workspace (`CLAUDE_CODE_REMOTE`, GitHub Codespaces or Gitpod);
 - the channel the run comes from: `release` for an installed Kibi package, `source` when Kibi runs from a checkout of its own repository (Kibi's development, its own hooks and test rounds built from source), or the value of `KIBI_TELEMETRY_CHANNEL` when a harness sets one (for example `agent-test`), so that test and development runs can be told apart from real usage;
 - the operating system, CPU architecture, and JavaScript runtime with its major version;
+- the event format version (`telemetry_version`, currently 2; events without it come from Kibi versions that counted refusals as errors);
 - a random install id, created on first use and stored only on your machine;
 - a one-way hash of the host's session id, so events from one agent session can be grouped. Hooks take it from the host's hook input. The CLI and MCP server take it from `KIBI_SESSION_ID`, `CLAUDE_CODE_SESSION_ID` or `CODEX_THREAD_ID` when the host sets one; otherwise they use the session a Kibi hook reported for the same workspace in the last 30 minutes. Hooks keep that link in `telemetry-sessions.json` next to the queue, as hashes of the workspace path and the session id only. Without a host, events carry no session.
 

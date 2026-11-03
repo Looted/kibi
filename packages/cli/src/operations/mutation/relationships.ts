@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { KbRejection } from "../../cli-errors.js";
 import { escapeAtom, toPrologAtom } from "../../prolog/codec.js";
 import type { PrologPort } from "../../public/operations/runtime-types.js";
 import { parsePrologList } from "./serialization.js";
@@ -52,7 +53,10 @@ type RelationshipTuple = {
 function stringField(record: RelationshipInput, field: string): string {
   const value = record[field];
   if (typeof value !== "string" || value.trim() === "") {
-    throw new Error(`Relationship ${field} must be a non-empty string`);
+    throw new KbRejection(
+      "VALIDATION_FAILED",
+      `Relationship ${field} must be a non-empty string`,
+    );
   }
   return value;
 }
@@ -107,7 +111,10 @@ export function validateRelationshipSources(
 ): void {
   for (const relationship of relationships) {
     if (relationship.from !== entityId) {
-      throw new Error(formatRelationshipSourceMismatch(entityId, relationship));
+      throw new KbRejection(
+        "RELATIONSHIP_SOURCE_MISMATCH",
+        formatRelationshipSourceMismatch(entityId, relationship),
+      );
     }
   }
 }
@@ -239,7 +246,8 @@ export async function validateSupersedesSourceHistory(
         deps,
       ) === "reversed"
     ) {
-      throw new Error(
+      throw new KbRejection(
+        "RELATIONSHIP_VALIDATION_FAILED",
         `Invalid supersedes direction: tracked source history proves ${sourceId} predates ${targetId}. The replacement must point to the older requirement (new -> old).`,
       );
     }
@@ -308,7 +316,11 @@ export async function validateLiveRelationshipTargets(
     const result = await prolog.query(
       `once(kb:validate_relationship(${toPrologAtom(tuple.relType)}, ${toPrologAtom(tuple.fromType)}, ${toPrologAtom(tuple.toType)}))`,
     );
-    if (!result.success) throw new Error(formatInvalidRelationshipTuple(tuple));
+    if (!result.success)
+      throw new KbRejection(
+        "INVALID_RELATIONSHIP",
+        formatInvalidRelationshipTuple(tuple),
+      );
   }
 }
 
@@ -339,7 +351,8 @@ export async function validateStrictLanePairing(
               )
             ).success;
       if (!isRule) {
-        throw new Error(
+        throw new KbRejection(
+          "RELATIONSHIP_VALIDATION_FAILED",
           `Relationship 'requires_rule' requires target '${target}' to be a fact_kind=rule fact.`,
         );
       }

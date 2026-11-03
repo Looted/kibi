@@ -101,8 +101,107 @@ export type OperationTelemetry = {
   durationMs: number;
   /** Fixed diagnostic category such as `tool_timeout`, when known. */
   errorCategory?: string | undefined;
+  /**
+   * The class of the error a failure threw (`TypeError`, `SyncError`), so
+   * failures nobody has given a code yet can still be told apart.
+   */
+  errorClass?: string | undefined;
   exitCode?: number | undefined;
 };
+
+// implements REQ-kibi-telemetry-expected-outcomes
+/**
+ * How an operation ended as sent: `success`; `rejected` when Kibi worked and
+ * its answer was no (a check found violations, a payload failed validation,
+ * an id does not exist); `error` when Kibi itself failed.
+ */
+export type TelemetryOutcome = "success" | "rejected" | "error";
+
+// implements REQ-kibi-telemetry-expected-outcomes
+/**
+ * Version of the event fields. 2 split expected outcomes (`rejected`) from
+ * failures (`error`) and added `error_class`.
+ */
+export const TELEMETRY_EVENT_VERSION = 2;
+
+/**
+ * Categories that are an operation's answer rather than a fault: the input
+ * or the workspace was refused, or a check reported what it found.
+ */
+const REJECTED_CATEGORIES: ReadonlySet<string> = new Set([
+  "bootstrap_plan_rejected",
+  "check_violations",
+  "coarse_symbol_linkage",
+  "conflicting_input",
+  "entity_not_found",
+  "entity_validation_failed",
+  "firm_decision_locked",
+  "generated_artifacts_stale",
+  "incomplete_propositions",
+  "input_read_failed",
+  "integration_failed",
+  "invalid_project_config",
+  "invalid_relationship",
+  "legacy_branch_storage",
+  "migration_plan_refused",
+  "missing_input",
+  "query_limit_exceeded",
+  "relationship_source_mismatch",
+  "relationship_validation_failed",
+  "semantic_contradiction",
+  "symbol_granularity_violation",
+  "tests_failed",
+  "uncompiled_source",
+  "unknown_operation",
+  "upsert_dry_run_invalid",
+  "validation_failed",
+]);
+
+/**
+ * Category families that are always findings: doctor checks, migration
+ * refusals, and sync refusing pending sources something else changed.
+ */
+const REJECTED_CATEGORY_PREFIXES = [
+  "doctor:",
+  "migrate:",
+  "pending_source_",
+] as const;
+
+// implements REQ-kibi-telemetry-expected-outcomes
+/**
+ * The outcome an operation's status and category amount to. Only a failure
+ * whose category names an expected answer becomes `rejected`; a failure with
+ * no category, or any other category, stays `error`.
+ */
+export function telemetryOutcome(
+  status: "success" | "error",
+  errorCategory: string | null | undefined,
+): TelemetryOutcome {
+  if (status === "success") return "success";
+  if (!errorCategory) return "error";
+  if (REJECTED_CATEGORIES.has(errorCategory)) return "rejected";
+  return REJECTED_CATEGORY_PREFIXES.some((prefix) =>
+    errorCategory.startsWith(prefix),
+  )
+    ? "rejected"
+    : "error";
+}
+
+// implements REQ-kibi-telemetry-expected-outcomes
+/**
+ * The class name of a thrown value as sent: an identifier such as
+ * `TypeError`, or null for a plain `Error`, a non-error or a name that is not
+ * an identifier. Never the message.
+ */
+export function telemetryErrorClass(error: unknown): string | null {
+  if (error === null || typeof error !== "object") return null;
+  const name = (error as { constructor?: { name?: unknown } }).constructor
+    ?.name;
+  if (typeof name !== "string" || name === "Error" || name === "Object") {
+    return null;
+  }
+  return /^[A-Za-z_$][A-Za-z0-9_$]{0,79}$/.test(name) ? name : null;
+}
 
 // implements REQ-kibi-anonymous-usage-telemetry
 /** Summary of one host hook decision. */
@@ -656,6 +755,7 @@ function baseProperties(
     $process_person_profile: false,
     $geoip_disable: true,
     $lib: "kibi",
+    telemetry_version: TELEMETRY_EVENT_VERSION,
     package: source.packageName,
     package_version: source.packageVersion ?? null,
     host:
@@ -706,6 +806,13 @@ export function telemetryCategory(value: string | undefined): string | null {
     : "unclassified";
 }
 
+/** An error class name as sent: an identifier, else null. */
+function telemetryClassName(value: string | undefined): string | null {
+  return value !== undefined && /^[A-Za-z_$][A-Za-z0-9_$]{0,79}$/.test(value)
+    ? value
+    : null;
+}
+
 // implements REQ-kibi-anonymous-usage-telemetry
 export function recordOperationTelemetry(
   source: TelemetrySource,
@@ -713,6 +820,8 @@ export function recordOperationTelemetry(
   env: Env = process.env,
 ): void {
   if (!telemetryEnabled(env)) return;
+  const errorCategory = telemetryCategory(operation.errorCategory);
+  const status = telemetryOutcome(operation.status, errorCategory);
   appendEvent(
     {
       event: "kibi_operation",
@@ -721,9 +830,12 @@ export function recordOperationTelemetry(
         ...baseProperties(source, env),
         interface: operation.interface,
         operation: operation.operation,
-        status: operation.status,
+        status,
         duration_ms: Math.max(0, Math.round(operation.durationMs)),
-        error_category: telemetryCategory(operation.errorCategory),
+        error_category: errorCategory,
+        // Only a failure is worth a class: an expected answer has its code.
+        error_class:
+          status === "error" ? telemetryClassName(operation.errorClass) : null,
         exit_code: operation.exitCode ?? null,
       },
     },

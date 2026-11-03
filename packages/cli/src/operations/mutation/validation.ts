@@ -1,4 +1,5 @@
 import Ajv, { type ErrorObject, type ValidateFunction } from "ajv";
+import { KbRejection } from "../../cli-errors.js";
 import { proofReceiptHistoryErrors } from "../../public/proof-receipt.js";
 import entitySchema from "../../public/schemas/entity.js";
 import relationshipSchema from "../../public/schemas/relationship.js";
@@ -242,7 +243,10 @@ export function validateUpsertInput(
   now: Date,
 ): ValidatedUpsert {
   if (!input.type || !input.id) {
-    throw new Error("'type' and 'id' are required for upsert");
+    throw new KbRejection(
+      "VALIDATION_FAILED",
+      "'type' and 'id' are required for upsert",
+    );
   }
   const entity: Record<string, unknown> = {
     id: input.id,
@@ -254,7 +258,8 @@ export function validateUpsertInput(
   entity.source ??= "mcp://kibi/upsert";
   const validateEntity = entitySchemaValidator();
   if (!validateEntity(entity)) {
-    throw new Error(
+    throw new KbRejection(
+      "ENTITY_VALIDATION_FAILED",
       `Entity validation failed: ${formatEntityErrors(entity, validateEntity.errors ?? [])}`,
     );
   }
@@ -272,7 +277,10 @@ export function validateUpsertInput(
       receipts,
     );
     if (receiptErrors.length > 0) {
-      throw new Error(`Entity validation failed: ${receiptErrors.join("; ")}`);
+      throw new KbRejection(
+        "ENTITY_VALIDATION_FAILED",
+        `Entity validation failed: ${receiptErrors.join("; ")}`,
+      );
     }
   }
   validateFactModelingShape(entity);
@@ -283,7 +291,8 @@ export function validateUpsertInput(
   ) {
     const expectedClaimKey = semanticClaimKey(entity.claim_text);
     if (entity.claim_key !== expectedClaimKey) {
-      throw new Error(
+      throw new KbRejection(
+        "ENTITY_VALIDATION_FAILED",
         `Entity validation failed: claim_key must equal the stable key derived from claim_text (expected '${expectedClaimKey}')`,
       );
     }
@@ -295,7 +304,8 @@ export function validateUpsertInput(
       const details = (validateRelationship.errors ?? [])
         .map((error) => `${error.instancePath || "root"}: ${error.message}`)
         .join("; ");
-      throw new Error(
+      throw new KbRejection(
+        "RELATIONSHIP_VALIDATION_FAILED",
         `Relationship validation failed at index ${index}: ${details}`,
       );
     }
@@ -322,7 +332,8 @@ function validateSymbolSourceFile(
   if (typeof sourceFile !== "string" || sourceFile.trim() === "") return;
   const normalized = sourceFile.replaceAll("\\", "/").trim();
   if (normalized === ".kb" || normalized.startsWith(".kb/")) {
-    throw new Error(
+    throw new KbRejection(
+      "ENTITY_VALIDATION_FAILED",
       `Entity validation failed: symbol sourceFile must point at a real code file in the workspace, not into the knowledge base ('${sourceFile}'). Coordinates for .kb/ paths are never merged into the engine, so coverage would report missing_symbol_coordinates permanently. Point the symbol at the implementing or verifying code file instead.`,
     );
   }
@@ -334,7 +345,8 @@ function validateSymbolSourceFile(
     normalized.startsWith("//") ||
     normalized.split("/").includes("..")
   ) {
-    throw new Error(
+    throw new KbRejection(
+      "ENTITY_VALIDATION_FAILED",
       `Entity validation failed: symbol sourceFile must be a workspace-relative path ('${sourceFile}'). Absolute paths and '..' escapes are rejected so coordinate refresh cannot read files outside the repository.`,
     );
   }
@@ -361,7 +373,8 @@ function validateProofExemptionPairing(
   if (!isExempt) return;
   const reason = entity.proof_exempt_reason;
   if (typeof reason !== "string" || reason.trim() === "") {
-    throw new Error(
+    throw new KbRejection(
+      "ENTITY_VALIDATION_FAILED",
       "Entity validation failed: proof_exempt requires a non-empty proof_exempt_reason explaining why the requirement is outside E2E-proof scope",
     );
   }

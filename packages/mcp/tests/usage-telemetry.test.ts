@@ -114,6 +114,67 @@ describe("MCP anonymous usage telemetry", () => {
     expect(text).not.toContain("REQ-secret");
   });
 
+  // implements REQ-kibi-telemetry-expected-outcomes
+  test("counts refusals as rejected and faults as errors with their class", () => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-telem-"));
+    temporaryRoots.push(directory);
+    process.env.KIBI_TELEMETRY = "1";
+    process.env.KIBI_TELEMETRY_DIR = directory;
+    const call = (input: { error?: unknown; result?: unknown }) =>
+      recordMcpToolTelemetry({
+        operation: "kb_upsert",
+        startedAt: new Date(),
+        status: "error",
+        ...input,
+      });
+
+    // A message the diagnostic classifier names keeps that name.
+    call({ error: new Error("Entity validation failed: REQ-secret") });
+    // A coded rejection the classifier cannot name is known by its code.
+    call({
+      error: Object.assign(new Error("Upsert of REQ-secret refused"), {
+        code: "UNCOMPILED_SOURCE",
+      }),
+    });
+    // A fault with a code and a class stays an error.
+    call({
+      error: Object.assign(new TypeError("open /home/me/x"), {
+        code: "ENOENT",
+      }),
+    });
+    // Nothing more specific than the handler fallback.
+    call({ error: new Error("something broke at /home/me/y") });
+    call({ error: { code: 42 } });
+    call({ result: { status: "error" } });
+    call({
+      result: { status: "error", error: { code: "UPSERT_DRY_RUN_INVALID" } },
+    });
+
+    const text = fs.readFileSync(
+      path.join(directory, "telemetry-queue.jsonl"),
+      "utf8",
+    );
+    const outcomes = text
+      .trim()
+      .split("\n")
+      .map((line) => {
+        const { status, error_category, error_class } =
+          JSON.parse(line).properties;
+        return [status, error_category, error_class];
+      });
+    expect(outcomes).toEqual([
+      ["rejected", "entity_validation_failed", null],
+      ["rejected", "uncompiled_source", null],
+      ["error", "enoent", "TypeError"],
+      ["error", "handler_error", null],
+      ["error", "handler_error", null],
+      ["error", null, null],
+      ["rejected", "upsert_dry_run_invalid", null],
+    ]);
+    expect(text).not.toContain("/home/me");
+    expect(text).not.toContain("REQ-secret");
+  });
+
   test("queues nothing when telemetry is off", () => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-telem-"));
     temporaryRoots.push(directory);

@@ -7,14 +7,17 @@ import path from "node:path";
 import { Command } from "commander";
 
 import { isClosedOutputError } from "../src/cli";
+import { KbRejection } from "../src/cli-errors";
 import { executeOperation } from "../src/cli-protocol";
 import {
   missingInputMessage,
   registerJsonOnlyCommands,
 } from "../src/cli-register-json";
+import { SyncError } from "../src/commands/sync/errors";
 import {
   finishCliTelemetry,
   noteCliErrorCategory,
+  noteCliThrownError,
 } from "../src/usage-telemetry";
 
 const temporaryRoots: string[] = [];
@@ -43,6 +46,22 @@ function queuedCategories(env: NodeJS.ProcessEnv): unknown[] {
     .trim()
     .split("\n")
     .map((line) => JSON.parse(line).properties.error_category);
+}
+
+function queuedOutcomes(env: NodeJS.ProcessEnv): unknown[] {
+  const file = path.join(
+    env.KIBI_TELEMETRY_DIR as string,
+    "telemetry-queue.jsonl",
+  );
+  return fs
+    .readFileSync(file, "utf8")
+    .trim()
+    .split("\n")
+    .map((line) => {
+      const { status, error_category, error_class } =
+        JSON.parse(line).properties;
+      return [status, error_category, error_class];
+    });
 }
 
 function finish(
@@ -160,6 +179,46 @@ describe("CLI failure categories", () => {
       null,
       "pending_source_hash_drift",
     ]);
+  });
+
+  // implements REQ-kibi-telemetry-expected-outcomes
+  test("expected answers are rejections; faults are errors with their class", async () => {
+    const env = telemetryEnv();
+    await finish(env, "check", 1);
+    noteCliThrownError(
+      new KbRejection(
+        "ENTITY_VALIDATION_FAILED",
+        "Entity validation failed: /home/alice/x",
+      ),
+    );
+    await finish(env, "upsert", 1);
+    noteCliThrownError(new TypeError("Cannot read properties of undefined"));
+    await finish(env, "upsert", 1);
+    noteCliThrownError("not an error");
+    await finish(env, "upsert", 1);
+    await finish(env, "sync", 1, new SyncError("Store invariant broken"));
+    await finish(
+      env,
+      "sync",
+      1,
+      new SyncError("Pending source hash drift", "PENDING_SOURCE_HASH_DRIFT"),
+    );
+    await finish(env, "status", 0, new TypeError("ignored on success"));
+    expect(queuedOutcomes(env)).toEqual([
+      ["rejected", "check_violations", null],
+      ["rejected", "entity_validation_failed", null],
+      ["error", null, "TypeError"],
+      ["error", null, null],
+      ["error", "syncerror", "SyncError"],
+      ["rejected", "pending_source_hash_drift", null],
+      ["success", null, null],
+    ]);
+    const queue = fs.readFileSync(
+      path.join(env.KIBI_TELEMETRY_DIR as string, "telemetry-queue.jsonl"),
+      "utf8",
+    );
+    expect(queue).not.toContain("/home/alice");
+    expect(queue).not.toContain("Cannot read");
   });
 
   test("only a closed output stream counts as a closed reader", () => {
