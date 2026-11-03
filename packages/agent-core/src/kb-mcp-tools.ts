@@ -71,9 +71,10 @@ function readRecord(
 export function canonicalKbToolName(
   toolName: string | undefined,
 ): string | undefined {
-  const trimmed = toolName?.trim() ?? "";
+  // `String(undefined)` is "undefined", which is no kb_ operation either.
+  const trimmed = String(toolName).trim();
   const lastSegment = trimmed.includes("__")
-    ? (trimmed.split("__").at(-1) ?? "")
+    ? (trimmed.split("__").at(-1) as string)
     : trimmed.replace(/^MCP:/i, "");
   const operation = lastSegment.replace(/^kibi_/, "");
   return operation.startsWith("kb_") ? operation : undefined;
@@ -93,12 +94,13 @@ export const KIBI_WORKSPACE_ARGUMENT = "workspaceRoot";
  * `MCP:kb_*` (Cursor does not name the server there).
  */
 export function isKibiMcpToolName(toolName: string | undefined): boolean {
-  const name = toolName?.trim() ?? "";
+  const name = String(toolName).trim();
   if (/^MCP:kb_[a-z_]+$/i.test(name)) return true;
   const segments = name.split("__");
-  if (segments.length < 3 || segments[0] !== "mcp") return false;
+  if (segments[0] !== "mcp") return false;
+  // Fewer than three segments leave the server empty, which never matches.
   const server = segments.slice(1, -1).join("__");
-  return /kibi/i.test(server) && /^kb_[a-z_]+$/.test(segments.at(-1) ?? "");
+  return /kibi/i.test(server) && /^kb_[a-z_]+$/.test(segments.at(-1) as string);
 }
 
 /**
@@ -134,137 +136,54 @@ export function resolveKibiInterface(
   return workspaceTrusted ? "cli" : "setup";
 }
 
+const TOOL_NAME_KEYS = ["toolName", "tool_name", "name"] as const;
+
 export function extractKbMcpToolCall(
   toolName: string | undefined,
   toolInput: unknown,
 ): KbMcpToolCall | undefined {
-  let normalizedToolName = canonicalKbToolName(toolName);
-
-  if (isRecord(toolInput)) {
-    normalizedToolName ??= readString(toolInput, [
-      "toolName",
-      "tool_name",
-      "name",
-    ]);
-
-    const args = readRecord(toolInput, ["arguments", "args"]);
-    const payload = args ?? toolInput;
-    const includeImpactDiagnostics = readBoolean(payload, [
-      "includeImpactDiagnostics",
-      "include_impact_diagnostics",
-    ]);
-    const includeWorkingTreeDiff = readBoolean(payload, [
-      "includeWorkingTreeDiff",
-      "include_working_tree_diff",
-    ]);
-    const sourceFiles = readStringArray(payload, [
-      "sourceFiles",
-      "source_files",
-    ]);
-
-    // A dry-run upsert only validates; report it as the read-only operation
-    // it routes to so hooks do not treat it as a KB write.
-    if (
-      normalizedToolName === "kb_upsert" &&
-      readBoolean(payload, ["dryRun"]) === true
-    ) {
-      normalizedToolName = "kb_validate_upsert";
-    }
-
-    if (normalizedToolName?.startsWith("kb_")) {
-      return {
-        toolName: normalizedToolName,
-        impactCheckRun:
-          normalizedToolName === "kb_check" &&
-          includeImpactDiagnostics === true &&
-          includeWorkingTreeDiff === true &&
-          sourceFiles.length > 0,
-        sourceFiles,
-      };
-    }
-
-    const nestedArgs = toolInput.arguments ?? toolInput.args;
-    if (isRecord(nestedArgs)) {
-      const nestedTool = readString(nestedArgs, [
-        "toolName",
-        "tool_name",
-        "name",
-      ]);
-      if (nestedTool?.startsWith("kb_")) {
-        return { toolName: nestedTool, impactCheckRun: false, sourceFiles: [] };
-      }
-    }
+  const input = isRecord(toolInput) ? toolInput : {};
+  let name = canonicalKbToolName(toolName) ?? readString(input, TOOL_NAME_KEYS);
+  if (!name?.startsWith("kb_")) {
+    // Hosts that wrap MCP calls may name the tool inside the arguments only.
+    const nested = input.arguments ?? input.args;
+    const nestedTool = isRecord(nested)
+      ? readString(nested, TOOL_NAME_KEYS)
+      : undefined;
+    return nestedTool?.startsWith("kb_")
+      ? { toolName: nestedTool, impactCheckRun: false, sourceFiles: [] }
+      : undefined;
   }
 
-  if (normalizedToolName?.startsWith("kb_")) {
-    return {
-      toolName: normalizedToolName,
-      impactCheckRun: false,
-      sourceFiles: [],
-    };
+  const payload = readRecord(input, ["arguments", "args"]) ?? input;
+  // A dry-run upsert only validates; report it as the read-only operation
+  // it routes to so hooks do not treat it as a KB write.
+  if (name === "kb_upsert" && readBoolean(payload, ["dryRun"]) === true) {
+    name = "kb_validate_upsert";
   }
-
-  return undefined;
+  const sourceFiles = readStringArray(payload, ["sourceFiles", "source_files"]);
+  return {
+    toolName: name,
+    impactCheckRun:
+      name === "kb_check" &&
+      readBoolean(payload, [
+        "includeImpactDiagnostics",
+        "include_impact_diagnostics",
+      ]) === true &&
+      readBoolean(payload, [
+        "includeWorkingTreeDiff",
+        "include_working_tree_diff",
+      ]) === true &&
+      sourceFiles.length > 0,
+    sourceFiles,
+  };
 }
 
 export function extractKbMcpToolName(
   toolName: string | undefined,
   toolInput: unknown,
 ): string | undefined {
-  const toolCall = extractKbMcpToolCall(toolName, toolInput);
-  // rationale: the fallbacks below re-derive the same name from the same
-  // inputs, so dropping the toolCall shortcut is observationally equivalent.
-  // Stryker disable next-line ConditionalExpression, BlockStatement
-  if (toolCall) {
-    return toolCall.toolName;
-  }
-
-  // rationale: any tool name that trims to a kb_ prefix already produced a
-  // tool call above, so this branch only sees equivalent names.
-  // Stryker disable next-line MethodExpression
-  if (toolName) {
-    // rationale: any name that trims to a kb_ prefix already produced a tool
-    // call above, so this trim cannot change the returned name.
-    // Stryker disable MethodExpression
-    const normalized = toolName.trim();
-    if (normalized.startsWith("kb_")) {
-      return normalized;
-    }
-    // Stryker restore
-  }
-
-  if (!isRecord(toolInput)) {
-    return undefined;
-  }
-
-  // rationale: this alias list duplicates the one inside
-  // extractKbMcpToolCall, which already returned for every kb_ match.
-  // Stryker disable next-line StringLiteral
-  const directTool = readString(toolInput, ["toolName", "tool_name", "name"]);
-  if (directTool?.startsWith("kb_")) {
-    return directTool;
-  }
-
-  const nestedArgs = toolInput.arguments ?? toolInput.args;
-  if (isRecord(nestedArgs)) {
-    // rationale: this alias list duplicates the one inside
-    // extractKbMcpToolCall, which already returned for every kb_ match.
-    // Stryker disable next-line StringLiteral
-    // rationale: duplicate alias list; extractKbMcpToolCall already
-    // returned for every kb_ match.
-    // Stryker disable StringLiteral
-    const nestedTool = readString(nestedArgs, [
-      "toolName",
-      "tool_name",
-      "name",
-    ]);
-    // Stryker restore
-    if (nestedTool?.startsWith("kb_")) {
-      return nestedTool;
-    }
-  }
-
-  return undefined;
+  return extractKbMcpToolCall(toolName, toolInput)?.toolName;
 }
 
 /** Project-local CLI routes and the Kibi operation each one runs. */
@@ -305,8 +224,10 @@ export function hostKbOperation(
   toolName: string | undefined,
   toolInput: unknown,
 ): string | undefined {
+  // A canonical name always starts with kb_, and `String(undefined)` never
+  // matches, so only the operation's characters are checked.
   const mcp = canonicalKbToolName(toolName);
-  if (mcp !== undefined && /^kb_[a-z_]+$/.test(mcp)) return mcp;
+  if (/kb_[a-z_]+$/.test(String(mcp))) return mcp;
   if (!toolName || !SHELL_TOOL_NAMES.has(toolName) || !isRecord(toolInput)) {
     return undefined;
   }
