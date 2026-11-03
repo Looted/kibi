@@ -1,5 +1,5 @@
 ---
-title: The kb_query MCP tool must return an empty result, not an error, when no entity matches
+title: mcp.kb_query clause 4
 status: active
 tags:
   - strict-lane

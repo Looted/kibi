@@ -1,5 +1,5 @@
 ---
-title: The sync compiler must treat symbol-coordinates.yaml as a dependency of symbols.yaml, detect its creation, modification and deletion, derive cache identities relative to the explicit workspace root, a
+title: kibi.symbols.coordinates clause 4
 status: active
 tags:
   - strict-lane

@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must classify edits to KB entity front matter or relationships as kb_doc_structural
+title: opencode.kibi_plugin clause 4
 status: active
 tags:
   - strict-lane

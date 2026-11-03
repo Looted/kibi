@@ -1,5 +1,5 @@
 ---
-title: The discovery surface must offer gap analysis with kb_find_gaps and kibi gaps
+title: mcp.discovery clause 4
 status: active
 tags:
   - strict-lane

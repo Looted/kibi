@@ -1,5 +1,5 @@
 ---
-title: The Kibi tree must refresh when the underlying KB snapshot changes
+title: vscode.kibi_extension clause 4
 status: active
 tags:
   - strict-lane

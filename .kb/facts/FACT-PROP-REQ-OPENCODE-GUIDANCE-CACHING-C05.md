@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must expire cached guidance after a configurable time to live
+title: opencode.kibi_plugin clause 5
 status: active
 tags:
   - strict-lane

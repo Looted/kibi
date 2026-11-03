@@ -1,5 +1,5 @@
 ---
-title: Kibi must provide a curated read-only discovery surface through both MCP and the CLI
+title: mcp.discovery clause 1
 status: active
 tags:
   - strict-lane

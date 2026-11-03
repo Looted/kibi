@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must classify the workspace as root_active when .kb/manifest.json exists at the repository root and the canonical KB targets resolve
+title: opencode.kibi_plugin clause 1
 status: active
 tags:
   - strict-lane

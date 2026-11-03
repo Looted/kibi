@@ -1,5 +1,5 @@
 ---
-title: Typed relationship objects in Markdown front matter must be imported with their explicit types
+title: kibi.sync.extractors clause 3
 status: active
 tags:
   - strict-lane

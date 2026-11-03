@@ -1,5 +1,5 @@
 ---
-title: The kb_upsert MCP tool must reject a write that contradicts an existing requirement unless the write declares a supersedes relationship
+title: mcp.kb_upsert clause 4
 status: active
 tags:
   - strict-lane

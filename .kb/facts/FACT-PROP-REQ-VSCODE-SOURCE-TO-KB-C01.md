@@ -1,5 +1,5 @@
 ---
-title: 'A registered symbol in the editor must offer a Kibi: Browse linked entities code action'
+title: vscode.kibi_extension clause 1
 status: active
 tags:
   - strict-lane

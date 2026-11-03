@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must classify code changes that need traceability as behavior_candidate
+title: opencode.kibi_plugin clause 6
 status: active
 tags:
   - strict-lane

@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must report sync errors without blocking the OpenCode session
+title: opencode.kibi_plugin clause 2
 status: active
 tags:
   - strict-lane

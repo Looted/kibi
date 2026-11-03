@@ -1,5 +1,5 @@
 ---
-title: A registered symbol must show a Code Lens with the count of its linked requirements and tests
+title: vscode.kibi_extension clause 3
 status: active
 tags:
   - strict-lane

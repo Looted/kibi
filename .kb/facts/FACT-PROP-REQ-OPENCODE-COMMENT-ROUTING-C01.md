@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must detect long explanatory comments in code files and guide the agent to route durable knowledge to the matching Kibi entity type (FACT, ADR, REQ, SCEN or TEST) instead of an inl
+title: opencode.kibi_plugin clause 1
 status: active
 tags:
   - strict-lane

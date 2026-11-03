@@ -1,5 +1,5 @@
 ---
-title: The Markdown extractor must parse YAML front matter for the core entity types and import Markdown links as relates_to edges
+title: kibi.sync.extractors clause 1
 status: active
 tags:
   - strict-lane

@@ -1,5 +1,5 @@
 ---
-title: Clicking a symbol entity in the Kibi tree sidebar must open its source file at its line
+title: vscode.kibi_extension clause 1
 status: active
 tags:
   - strict-lane

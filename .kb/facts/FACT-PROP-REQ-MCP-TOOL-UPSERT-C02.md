@@ -1,5 +1,5 @@
 ---
-title: The kb_upsert MCP tool must create relationships to other existing entities in the same call
+title: mcp.kb_upsert clause 2
 status: active
 tags:
   - strict-lane

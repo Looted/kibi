@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must classify edits to non-KB documentation as safe_docs_only
+title: opencode.kibi_plugin clause 2
 status: active
 tags:
   - strict-lane

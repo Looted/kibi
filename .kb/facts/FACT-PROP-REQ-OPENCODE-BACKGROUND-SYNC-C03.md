@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin's sync debounce interval must be configurable in the plugin settings
+title: opencode.kibi_plugin clause 3
 status: active
 tags:
   - strict-lane

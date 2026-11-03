@@ -1,5 +1,5 @@
 ---
-title: Consecutive refreshes over unchanged sources must be idempotent and must not alternate generated coordinate fields in the authored manifest
+title: kibi.sync.extractors clause 5
 status: active
 tags:
   - strict-lane

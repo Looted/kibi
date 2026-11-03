@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must classify edits to tests only as safe_test_only
+title: opencode.kibi_plugin clause 3
 status: active
 tags:
   - strict-lane

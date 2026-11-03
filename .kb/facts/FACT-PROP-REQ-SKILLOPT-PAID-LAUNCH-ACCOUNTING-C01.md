@@ -1,5 +1,5 @@
 ---
-title: Paid SkillOpt model launches must fail closed unless the external trust boundary validates immutable authority and supervisor-parent bindings; binds the one-use capability to the exact request ID, req
+title: kibi.skillopt.paid_launch clause 1
 status: active
 tags:
   - strict-lane

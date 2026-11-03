@@ -1,5 +1,5 @@
 ---
-title: The Kibi VS Code extension must provide traceability in both directions between the knowledge base and source code
+title: vscode.kibi_extension clause 1
 status: active
 tags:
   - strict-lane

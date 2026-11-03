@@ -1,5 +1,5 @@
 ---
-title: Kibi must expose the remote SPARQL capability through the curated MCP surface, validating endpoint safety and accepting only SELECT queries
+title: kibi.engine.prolog_libraries clause 3
 status: active
 tags:
   - strict-lane

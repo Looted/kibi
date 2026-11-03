@@ -1,5 +1,5 @@
 ---
-title: The OpenCode Kibi plugin must adjust its enforcement to the workspace posture and the risk of the edit
+title: opencode.kibi_plugin clause 1
 status: active
 tags:
   - strict-lane

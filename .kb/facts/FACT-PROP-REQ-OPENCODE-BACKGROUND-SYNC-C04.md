@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must switch to maintenanceDegraded mode when its sync scheduler cannot be created or sync fails
+title: opencode.kibi_plugin clause 4
 status: active
 tags:
   - strict-lane

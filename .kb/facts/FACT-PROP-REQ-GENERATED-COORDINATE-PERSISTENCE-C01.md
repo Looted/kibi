@@ -1,5 +1,5 @@
 ---
-title: Callers must not author symbol coordinate fields through kb_upsert, because symbol source coordinates are generated compiler state
+title: kibi.symbols.coordinates clause 1
 status: active
 tags:
   - strict-lane

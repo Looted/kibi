@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must classify an extracted comment as FACT, ADR, REQ, SCEN or TEST with knowledge-classifier.ts
+title: opencode.kibi_plugin clause 5
 status: active
 tags:
   - strict-lane

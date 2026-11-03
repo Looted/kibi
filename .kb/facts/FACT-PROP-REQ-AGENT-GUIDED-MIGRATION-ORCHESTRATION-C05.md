@@ -1,5 +1,5 @@
 ---
-title: Semantic judgment, contradictions, E2E execution, package changes, receipt history and limitation acceptance must remain review, operator or execution actions
+title: kibi.migration.orchestration clause 5
 status: active
 tags:
   - strict-lane

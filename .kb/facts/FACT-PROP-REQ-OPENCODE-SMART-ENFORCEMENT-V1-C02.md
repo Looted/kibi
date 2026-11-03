@@ -1,5 +1,5 @@
 ---
-title: The OpenCode Kibi plugin's guidance must stay non-blocking and within its token budget
+title: opencode.kibi_plugin clause 2
 status: active
 tags:
   - strict-lane

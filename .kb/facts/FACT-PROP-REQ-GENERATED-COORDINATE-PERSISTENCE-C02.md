@@ -1,5 +1,5 @@
 ---
-title: A source-first symbol upsert must preserve or regenerate valid coordinates in persisted RDF without copying coordinate fields into the authored symbol manifest
+title: kibi.symbols.coordinates clause 2
 status: active
 tags:
   - strict-lane

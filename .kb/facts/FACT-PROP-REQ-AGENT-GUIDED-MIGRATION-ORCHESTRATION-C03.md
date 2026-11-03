@@ -1,5 +1,5 @@
 ---
-title: Checks and status must remain read-only
+title: kibi.migration.orchestration clause 3
 status: active
 tags:
   - strict-lane

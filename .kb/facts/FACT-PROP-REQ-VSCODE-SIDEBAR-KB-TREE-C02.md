@@ -1,5 +1,5 @@
 ---
-title: The Kibi tree must group entities by type
+title: vscode.kibi_extension clause 2
 status: active
 tags:
   - strict-lane

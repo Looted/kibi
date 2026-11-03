@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must run comment analysis after file.edited events without blocking sync or other plugin operations
+title: opencode.kibi_plugin clause 9
 status: active
 tags:
   - strict-lane

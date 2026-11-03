@@ -1,5 +1,5 @@
 ---
-title: Coordinate artifact publication must be atomic, bound to the current extraction identity, preserve unrelated valid records, and fail closed on malformed artifacts
+title: kibi.symbols.coordinates clause 7
 status: active
 tags:
   - strict-lane

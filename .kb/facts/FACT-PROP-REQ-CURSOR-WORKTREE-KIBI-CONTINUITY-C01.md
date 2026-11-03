@@ -1,5 +1,5 @@
 ---
-title: A Cursor worktree switch must not change the public Kibi surface that the user sees
+title: cursor.kibi_plugin clause 1
 status: active
 tags:
   - strict-lane

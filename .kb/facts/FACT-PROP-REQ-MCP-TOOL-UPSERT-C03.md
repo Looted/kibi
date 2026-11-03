@@ -1,5 +1,5 @@
 ---
-title: The kb_upsert MCP tool must validate relationship types against the supported canonical list
+title: mcp.kb_upsert clause 3
 status: active
 tags:
   - strict-lane

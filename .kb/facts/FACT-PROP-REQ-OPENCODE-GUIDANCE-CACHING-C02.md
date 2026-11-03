@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must invalidate its guidance cache on a branch switch
+title: opencode.kibi_plugin clause 2
 status: active
 tags:
   - strict-lane

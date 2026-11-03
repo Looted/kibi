@@ -1,5 +1,5 @@
 ---
-title: When a batch times out, exits non-zero or produces an unexpected number of bun summaries, getBatchFailureMessage must report the batch label, timeout status, exit code and summary count
+title: kibi.testing.harness clause 2
 status: active
 tags:
   - strict-lane

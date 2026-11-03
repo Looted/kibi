@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must detect uninitialized or weakly seeded repositories that declare Kibi intent
+title: opencode.plugin.onboarding_routing clause 1
 status: active
 tags:
   - strict-lane

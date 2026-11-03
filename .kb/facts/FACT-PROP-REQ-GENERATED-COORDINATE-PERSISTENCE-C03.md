@@ -1,5 +1,5 @@
 ---
-title: A coordinate-generation or artifact-publication failure must not be reported as a complete mutation
+title: kibi.symbols.coordinates clause 3
 status: active
 tags:
   - strict-lane

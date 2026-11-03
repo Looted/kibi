@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must extract JavaScript and TypeScript line, block and doc comments and Python comment blocks and true docstrings
+title: opencode.kibi_plugin clause 2
 status: active
 tags:
   - strict-lane

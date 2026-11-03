@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must run kibi sync debounced and non-blocking after file edits that can change the KB
+title: opencode.kibi_plugin clause 1
 status: active
 tags:
   - strict-lane

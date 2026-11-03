@@ -1,5 +1,5 @@
 ---
-title: Schema and storage migrations must be ordered, idempotent, audited and recoverable, with backups preserved before the next status readback
+title: kibi.migration.orchestration clause 6
 status: active
 tags:
   - strict-lane

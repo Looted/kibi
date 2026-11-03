@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must ignore Python triple-quoted strings that are not in docstring position
+title: opencode.kibi_plugin clause 4
 status: active
 tags:
   - strict-lane

@@ -1,5 +1,5 @@
 ---
-title: kb_query must remain exact and deterministic and must not be turned into fuzzy search
+title: mcp.discovery clause 7
 status: active
 tags:
   - strict-lane

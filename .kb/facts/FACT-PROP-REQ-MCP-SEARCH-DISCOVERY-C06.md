@@ -1,5 +1,5 @@
 ---
-title: The discovery surface must offer bounded relationship traversal with kb_graph and kibi graph
+title: mcp.discovery clause 6
 status: active
 tags:
   - strict-lane

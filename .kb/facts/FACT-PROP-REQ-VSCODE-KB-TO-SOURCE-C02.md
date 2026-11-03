@@ -1,5 +1,5 @@
 ---
-title: The VS Code extension must resolve navigation coordinates from .kb/symbols.yaml and the generated .kb/symbol-coordinates.yaml
+title: vscode.kibi_extension clause 2
 status: active
 tags:
   - strict-lane

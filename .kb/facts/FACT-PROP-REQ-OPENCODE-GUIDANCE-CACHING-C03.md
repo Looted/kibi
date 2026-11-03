@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must keep guidance cached for one git worktree from applying to another
+title: opencode.kibi_plugin clause 3
 status: active
 tags:
   - strict-lane

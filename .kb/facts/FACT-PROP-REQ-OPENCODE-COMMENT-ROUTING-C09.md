@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must only prompt for medium-confidence and high-confidence suggestions
+title: opencode.kibi_plugin clause 8
 status: active
 tags:
   - strict-lane

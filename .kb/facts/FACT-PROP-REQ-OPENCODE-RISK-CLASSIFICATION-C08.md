@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must classify direct edits to .kb internal files as manual_kb_edit, with the strongest warning
+title: opencode.kibi_plugin clause 8
 status: active
 tags:
   - strict-lane

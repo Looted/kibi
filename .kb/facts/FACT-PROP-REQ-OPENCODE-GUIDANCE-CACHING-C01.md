@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must cache enforcement state and guidance context
+title: opencode.kibi_plugin clause 1
 status: active
 tags:
   - strict-lane

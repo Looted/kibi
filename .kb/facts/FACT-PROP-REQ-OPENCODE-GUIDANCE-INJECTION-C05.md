@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must append a completion reminder to run kb_check for behavior candidates
+title: opencode.kibi_plugin clause 5
 status: active
 tags:
   - strict-lane

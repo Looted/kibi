@@ -1,5 +1,5 @@
 ---
-title: The kb_query MCP tool must return entities as structured content
+title: mcp.kb_query clause 3
 status: active
 tags:
   - strict-lane

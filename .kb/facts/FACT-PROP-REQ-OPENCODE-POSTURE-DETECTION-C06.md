@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must add a maintenanceDegraded overlay when runtime execution is unavailable
+title: opencode.kibi_plugin clause 6
 status: active
 tags:
   - strict-lane

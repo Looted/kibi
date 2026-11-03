@@ -1,5 +1,5 @@
 ---
-title: The curated unit suite (test/root.test.ts) must run package-scoped batches as spawned bun subprocesses bounded by BATCH_TIMEOUT_MINUTES (25 minutes)
+title: kibi.testing.harness clause 1
 status: active
 tags:
   - strict-lane

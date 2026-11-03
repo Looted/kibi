@@ -1,5 +1,5 @@
 ---
-title: 'Incomplete runtime configuration and infrastructure failures are not behavioral evidence: the bridge must reject missing or partial executable paths, and runtime, training, interruption, budget, or ev'
+title: kibi.skillopt.adoption clause 4
 status: active
 tags:
   - strict-lane

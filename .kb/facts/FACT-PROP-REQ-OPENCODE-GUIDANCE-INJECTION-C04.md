@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin's guidance must include file lifecycle context for created, edited and deleted files
+title: opencode.kibi_plugin clause 4
 status: active
 tags:
   - strict-lane

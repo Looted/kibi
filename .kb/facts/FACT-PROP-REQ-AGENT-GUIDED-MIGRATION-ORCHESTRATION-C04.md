@@ -1,5 +1,5 @@
 ---
-title: kb_apply_plan and kibi migrate --apply-safe must require the exact approved plan hash and explicit automatic action IDs
+title: kibi.migration.orchestration clause 4
 status: active
 tags:
   - strict-lane

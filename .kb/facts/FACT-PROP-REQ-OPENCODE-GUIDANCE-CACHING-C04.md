@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must invalidate its guidance cache when .kb/manifest.json or the workspace posture changes
+title: opencode.kibi_plugin clause 4
 status: active
 tags:
   - strict-lane

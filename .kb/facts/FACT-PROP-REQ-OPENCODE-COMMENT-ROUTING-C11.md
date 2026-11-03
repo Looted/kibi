@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must respect the guidance.commentDetection.enabled and guidance.commentDetection.minLines settings
+title: opencode.kibi_plugin clause 10
 status: active
 tags:
   - strict-lane

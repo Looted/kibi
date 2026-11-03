@@ -1,5 +1,5 @@
 ---
-title: A migration plan must bind a canonical SHA-256 planHash to the active branch, KB snapshot, workspace snapshot, configuration hash and evaluated domains
+title: kibi.migration.orchestration clause 2
 status: active
 tags:
   - strict-lane

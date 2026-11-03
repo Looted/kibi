@@ -1,5 +1,5 @@
 ---
-title: The discovery surface must offer free-text discovery with kb_search and kibi search
+title: mcp.discovery clause 2
 status: active
 tags:
   - strict-lane

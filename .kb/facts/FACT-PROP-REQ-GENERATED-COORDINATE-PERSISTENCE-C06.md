@@ -1,5 +1,5 @@
 ---
-title: Sync cache state may advance only after refresh, extraction, RDF persistence and durable save succeed
+title: kibi.symbols.coordinates clause 6
 status: active
 tags:
   - strict-lane

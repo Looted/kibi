@@ -1,5 +1,5 @@
 ---
-title: Selecting the Browse linked entities action must open a Quick Pick listing the symbol's related KB entities
+title: vscode.kibi_extension clause 2
 status: active
 tags:
   - strict-lane

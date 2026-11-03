@@ -1,5 +1,5 @@
 ---
-title: Kibi must keep CHR-derived facts isolated from the existing validation path
+title: kibi.engine.prolog_libraries clause 1
 status: active
 tags:
   - strict-lane

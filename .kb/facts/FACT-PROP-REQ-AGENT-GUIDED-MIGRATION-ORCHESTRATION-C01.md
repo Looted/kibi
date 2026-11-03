@@ -1,5 +1,5 @@
 ---
-title: Kibi must expose one kibi.migration-plan.v2 contract from status, check and coverage outputs
+title: kibi.migration.orchestration clause 1
 status: active
 tags:
   - strict-lane

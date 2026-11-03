@@ -1,5 +1,5 @@
 ---
-title: The kb_query MCP tool must page results with the limit and offset parameters
+title: mcp.kb_query clause 2
 status: active
 tags:
   - strict-lane

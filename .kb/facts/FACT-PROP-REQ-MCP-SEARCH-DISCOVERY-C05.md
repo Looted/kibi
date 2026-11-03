@@ -1,5 +1,5 @@
 ---
-title: The discovery surface must offer coverage reporting with kb_coverage and kibi coverage
+title: mcp.discovery clause 5
 status: active
 tags:
   - strict-lane

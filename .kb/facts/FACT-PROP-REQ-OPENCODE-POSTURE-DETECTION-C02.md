@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must classify the workspace as root_partial when the root .kb/manifest.json exists but some canonical KB targets are missing
+title: opencode.kibi_plugin clause 2
 status: active
 tags:
   - strict-lane

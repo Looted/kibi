@@ -1,5 +1,5 @@
 ---
-title: Guidance for the active Cursor worktree must remain consistent with the same public operation model
+title: cursor.kibi_plugin clause 2
 status: active
 tags:
   - strict-lane

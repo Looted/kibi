@@ -1,5 +1,5 @@
 ---
-title: Symbol coordinate refreshes must keep authored metadata in symbols.yaml and generated locations in symbol-coordinates.yaml
+title: kibi.sync.extractors clause 4
 status: active
 tags:
   - strict-lane

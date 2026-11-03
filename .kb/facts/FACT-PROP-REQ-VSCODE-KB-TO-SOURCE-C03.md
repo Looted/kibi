@@ -1,5 +1,5 @@
 ---
-title: A symbol node in the Kibi tree must stay expandable to show its linked KB entities while it navigates to source
+title: vscode.kibi_extension clause 3
 status: active
 tags:
   - strict-lane

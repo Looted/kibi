@@ -1,5 +1,5 @@
 ---
-title: The kb_upsert MCP tool must create or update a single entity with its metadata
+title: mcp.kb_upsert clause 1
 status: active
 tags:
   - strict-lane

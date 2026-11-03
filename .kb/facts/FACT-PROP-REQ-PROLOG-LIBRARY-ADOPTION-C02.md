@@ -1,5 +1,5 @@
 ---
-title: Kibi must keep SPARQL support remote-only and opt-in
+title: kibi.engine.prolog_libraries clause 2
 status: active
 tags:
   - strict-lane

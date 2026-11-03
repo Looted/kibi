@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must classify the workspace as vendored_only when Kibi is present only in vendored dependencies
+title: opencode.kibi_plugin clause 4
 status: active
 tags:
   - strict-lane

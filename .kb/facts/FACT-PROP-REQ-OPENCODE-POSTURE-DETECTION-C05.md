@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must classify the workspace as hybrid_root_plus_vendored, with the root authoritative, when the root .kb/manifest.json exists alongside vendored Kibi trees
+title: opencode.kibi_plugin clause 5
 status: active
 tags:
   - strict-lane

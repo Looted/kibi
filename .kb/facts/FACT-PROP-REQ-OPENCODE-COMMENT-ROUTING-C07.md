@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must inject routing guidance that names the classified entity type
+title: opencode.kibi_plugin clause 6
 status: active
 tags:
   - strict-lane

@@ -1,5 +1,5 @@
 ---
-title: The Kibi tree must let the user expand linked entities hierarchically, such as REQ to SCEN to TEST
+title: vscode.kibi_extension clause 3
 status: active
 tags:
   - strict-lane

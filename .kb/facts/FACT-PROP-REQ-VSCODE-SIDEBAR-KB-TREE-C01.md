@@ -1,5 +1,5 @@
 ---
-title: The VS Code extension must provide a TreeView in the sidebar to browse Kibi entities
+title: vscode.kibi_extension clause 1
 status: active
 tags:
   - strict-lane

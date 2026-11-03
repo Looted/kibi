@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must classify the workspace as root_uninitialized when there is no root .kb/manifest.json but the root declares Kibi intent
+title: opencode.kibi_plugin clause 3
 status: active
 tags:
   - strict-lane

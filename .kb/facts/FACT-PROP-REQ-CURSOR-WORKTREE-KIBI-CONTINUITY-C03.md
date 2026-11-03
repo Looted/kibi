@@ -1,5 +1,5 @@
 ---
-title: Kibi continuity must survive branch and worktree movement without rewriting history
+title: cursor.kibi_plugin clause 3
 status: active
 tags:
   - strict-lane

@@ -1,5 +1,5 @@
 ---
-title: The kb_query MCP tool must retrieve entities by the structured filters id, type, sourceFile and tags
+title: mcp.kb_query clause 1
 status: active
 tags:
   - strict-lane

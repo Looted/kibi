@@ -1,5 +1,5 @@
 ---
-title: The kb_upsert MCP tool must refresh symbol coordinates when the upsert affects symbol linkage
+title: mcp.kb_upsert clause 5
 status: active
 tags:
   - strict-lane

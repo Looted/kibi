@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must escalate to the user or operator when environment setup or repair is required
+title: opencode.plugin.onboarding_routing clause 3
 status: active
 tags:
   - strict-lane

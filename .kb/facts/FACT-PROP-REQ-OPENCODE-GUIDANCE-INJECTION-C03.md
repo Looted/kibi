@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin's guidance must include code traceability nudges (implements REQ-xxx)
+title: opencode.kibi_plugin clause 3
 status: active
 tags:
   - strict-lane

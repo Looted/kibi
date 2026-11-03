@@ -1,5 +1,5 @@
 ---
-title: An accepted launch must produce strict typed debit-subentry, final debit/reconciliation, and final-verdict receipts
+title: kibi.skillopt.paid_launch clause 2
 status: active
 tags:
   - strict-lane

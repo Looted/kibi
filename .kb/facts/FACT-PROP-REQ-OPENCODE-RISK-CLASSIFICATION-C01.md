@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must classify a proposed edit into a risk class that sets its enforcement level
+title: opencode.kibi_plugin clause 1
 status: active
 tags:
   - strict-lane

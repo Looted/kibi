@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must only extract comment blocks that reach guidance.commentDetection.minLines lines and contain prose
+title: opencode.kibi_plugin clause 3
 status: active
 tags:
   - strict-lane

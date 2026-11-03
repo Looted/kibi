@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must classify new requirements that may need policy alignment as req_policy_candidate
+title: opencode.kibi_plugin clause 5
 status: active
 tags:
   - strict-lane

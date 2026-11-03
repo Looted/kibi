@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must report sync progress and completion through structured logs and non-intrusive toasts
+title: opencode.kibi_plugin clause 1
 status: active
 tags:
   - strict-lane

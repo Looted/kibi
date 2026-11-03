@@ -1,5 +1,5 @@
 ---
-title: An explicitly approved coordinate refresh must force coordinate-bearing symbols to persist even when normalized entity hashes match cached hashes
+title: kibi.symbols.coordinates clause 5
 status: active
 tags:
   - strict-lane

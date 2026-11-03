@@ -1,5 +1,5 @@
 ---
-title: The symbol extractor must import code symbol definitions from symbols.yaml into the KB
+title: kibi.sync.extractors clause 2
 status: active
 tags:
   - strict-lane

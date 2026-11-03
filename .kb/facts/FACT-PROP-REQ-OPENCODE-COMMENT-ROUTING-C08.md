@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must fingerprint seen comments so that identical comments do not trigger repeated guidance
+title: opencode.kibi_plugin clause 7
 status: active
 tags:
   - strict-lane

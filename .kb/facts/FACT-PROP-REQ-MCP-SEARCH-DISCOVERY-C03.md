@@ -1,5 +1,5 @@
 ---
-title: The discovery surface must offer freshness and snapshot inspection with kb_status and kibi status
+title: mcp.discovery clause 3
 status: active
 tags:
   - strict-lane

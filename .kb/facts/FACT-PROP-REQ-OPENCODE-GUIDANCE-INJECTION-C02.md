@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must inject Kibi guidance into the session with the requirements and traceability context of the files in play
+title: opencode.kibi_plugin clause 1
 status: active
 tags:
   - strict-lane

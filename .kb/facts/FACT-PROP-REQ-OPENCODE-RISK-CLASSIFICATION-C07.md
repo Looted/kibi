@@ -1,5 +1,5 @@
 ---
-title: The OpenCode plugin must classify symbol changes missing requirement links as traceability_candidate
+title: opencode.kibi_plugin clause 7
 status: active
 tags:
   - strict-lane
