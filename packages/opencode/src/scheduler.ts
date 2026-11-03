@@ -37,8 +37,8 @@ export type CheckRunner = (
   rules: string[],
 ) => Promise<{
   readonly exitCode: number;
-  readonly stdout?: string;
-  readonly stderr?: string;
+  readonly stdout?: string | undefined;
+  readonly stderr?: string | undefined;
 }>;
 
 export interface SchedulerOptions {
@@ -55,8 +55,8 @@ export interface SchedulerOptions {
 
 export type PendingTrigger = {
   reason: string;
-  filePath?: string;
-  checkRules?: string[];
+  filePath?: string | undefined;
+  checkRules?: string[] | undefined;
 };
 
 export interface SyncScheduler {
@@ -109,11 +109,7 @@ class WorktreeSyncScheduler implements SyncScheduler {
       if (!shouldHandleFile(filePath, this.worktree)) return;
     }
 
-    this.pending = {
-      reason,
-      ...(filePath !== undefined ? { filePath } : {}),
-      ...(checkRules !== undefined ? { checkRules } : {}),
-    };
+    this.pending = { reason, filePath, checkRules };
     if (this.timer) this.clearTimeoutFn(this.timer);
     this.timer = this.setTimeoutFn(() => {
       this.timer = null;
@@ -126,22 +122,20 @@ class WorktreeSyncScheduler implements SyncScheduler {
   }
 
   onToolExecuteAfter(reason = "tool.execute.after"): void {
-    // Only proceed if tool.after notifications are enabled
-    if (!this.isToolExecuteAfterEnabled()) return;
+    // With the explicit hint the host reports edits itself, so tool calls
+    // never schedule a sync; otherwise only compat mode listens to them.
+    if (this.explicitToolAfterHint) return;
+    if (this.config.prompt.hookMode !== "compat") return;
 
     // The tool call restarts the debounce window and is still inside it, so
     // only a negative window lets it through.
     if (this.config.sync.debounceMs >= 0) return;
 
-    // Tool.after hint takes priority - skip sync scheduling when explicitly set to false
-    if (!this.explicitToolAfterHint) {
-      this.scheduleSync(reason);
-    }
+    this.scheduleSync(reason);
   }
 
   async flush(): Promise<void> {
-    if (!this.config.sync.enabled) return;
-
+    // A disabled scheduler never has a timer or pending trigger, so it is idle.
     if (this.timer) {
       this.clearTimeoutFn(this.timer);
       this.timer = null;
@@ -167,11 +161,6 @@ class WorktreeSyncScheduler implements SyncScheduler {
     for (const waiter of waiters) {
       waiter();
     }
-  }
-
-  private isToolExecuteAfterEnabled(): boolean {
-    if (this.explicitToolAfterHint) return true;
-    return this.config.prompt.hookMode === "compat";
   }
 
   private flushPending(): void {
@@ -296,11 +285,9 @@ class WorktreeSyncScheduler implements SyncScheduler {
     syncCommand?: string,
   ): void {
     const durationMs = Math.max(0, this.now() - startedAt);
-    const normalizedReason = trigger.reason.endsWith(".trailing")
-      ? trigger.reason.slice(0, -".trailing".length)
-      : trigger.reason;
+    // A ".trailing" suffix never changes the reason's prefix.
     const isSmartEnforcementSync =
-      normalizedReason.startsWith("smart-enforcement.");
+      trigger.reason.startsWith("smart-enforcement.");
     const meta: SyncRunMetadata = {
       reason: trigger.reason,
       worktree: this.worktree,
@@ -393,12 +380,15 @@ async function runKibiCheck(
       `kibi check --rules ${rulesArg} --format json`,
       { cwd: worktree },
       (error, stdout, stderr) => {
-        const truncatedOut = truncateSyncOutput(stdout);
-        const truncatedErr = truncateSyncOutput(stderr);
         resolve({
-          exitCode: error && typeof error.code === "number" ? error.code : 0,
-          ...(truncatedOut !== undefined ? { stdout: truncatedOut } : {}),
-          ...(truncatedErr !== undefined ? { stderr: truncatedErr } : {}),
+          // A check killed by a signal has no numeric code and still failed.
+          exitCode: error
+            ? typeof error.code === "number"
+              ? error.code
+              : 1
+            : 0,
+          stdout: truncateSyncOutput(stdout),
+          stderr: truncateSyncOutput(stderr),
         });
       },
     );
@@ -448,30 +438,37 @@ function parseQualityDiagnostics(
   stderr: string | undefined,
 ): AdvisoryQualityDiagnostic[] {
   for (const output of [stdout, stderr]) {
-    try {
-      // A missing or blank stream throws like any other non-JSON output.
-      const parsed: unknown = JSON.parse(output as string);
-      const candidates = qualityDiagnosticCandidates(parsed);
-      const diagnostics = candidates.flatMap(
-        (candidate) => parseQualityDiagnostic(candidate) ?? [],
-      );
-      if (diagnostics.length > 0) return diagnostics;
-    } catch {
-      // Not JSON (only JSON.parse throws here): try the next stream.
-    }
+    const candidates = qualityDiagnosticList(parseJson(output));
+    if (!Array.isArray(candidates)) continue;
+    const diagnostics = candidates.flatMap(
+      (candidate) => parseQualityDiagnostic(candidate) ?? [],
+    );
+    if (diagnostics.length > 0) return diagnostics;
   }
   return [];
 }
 
-function qualityDiagnosticCandidates(value: unknown): readonly unknown[] {
-  if (!isRecord(value)) return [];
-  const structuredContent = value.structuredContent;
-  if (isRecord(structuredContent)) {
-    const diagnostics = structuredContent.qualityDiagnostics;
-    return Array.isArray(diagnostics) ? diagnostics : [];
+function parseJson(output: string | undefined): unknown {
+  try {
+    // A missing or blank stream throws like any other non-JSON output.
+    // rationale: the catch below only returns undefined, which an emptied
+    // block also returns, so its mutant cannot be observed.
+    // Stryker disable BlockStatement
+    return JSON.parse(output as string);
+  } catch {
+    // Not JSON: the stream has no diagnostics.
+    return undefined;
   }
-  const diagnostics = value.qualityDiagnostics;
-  return Array.isArray(diagnostics) ? diagnostics : [];
+}
+
+// rationale: ends the catch-block exemption of parseJson.
+// Stryker restore BlockStatement
+function qualityDiagnosticList(value: unknown): unknown {
+  if (!isRecord(value)) return undefined;
+  const structuredContent = value.structuredContent;
+  return isRecord(structuredContent)
+    ? structuredContent.qualityDiagnostics
+    : value.qualityDiagnostics;
 }
 
 function parseQualityDiagnostic(
