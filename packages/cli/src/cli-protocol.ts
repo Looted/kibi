@@ -20,7 +20,8 @@ import type { OperationSpec } from "./public/operations/types.js";
 import type { OperationEffect } from "./public/operations/types.js";
 import { detachedReadOnlyDiagnostic } from "./runtime/detached-snapshot.js";
 
-const outputValidator = new Ajv2020({ strict: false, allErrors: true });
+// Only whether an envelope is valid matters here, never the list of errors.
+const outputValidator = new Ajv2020({ strict: false });
 
 // implements REQ-kibi-operation-interface-parity
 export type CliContext = OperationContext & {
@@ -59,7 +60,8 @@ function errorResult(
         code: error.code,
         message: error.detail,
         retryable: error.retryable,
-        ...(details !== undefined ? { details } : {}),
+        // Serialized right below, where an undefined `details` disappears.
+        details,
       },
     },
   );
@@ -92,8 +94,9 @@ function protocolValid(
   try {
     return outputValidator.compile(spec.outputSchema)(envelope) === true;
   } catch {
-    return false;
+    // An output schema that does not compile accepts no envelope.
   }
+  return false;
 }
 
 /**
@@ -192,10 +195,15 @@ export async function executeOperation(
     // A read stopped at its engine limit reports the limit, not a failure
     // that could pass for a missing answer.
     const limitExceeded = queryLimitExceededOf(error);
-    if (error instanceof Error && limitExceeded !== null) {
+    // Only an Error carries a limit (see queryLimitExceededOf).
+    if (limitExceeded !== null) {
       return errorResult(
         catalogName,
-        new OperationError(QUERY_LIMIT_EXCEEDED_CODE, error.message, false),
+        new OperationError(
+          QUERY_LIMIT_EXCEEDED_CODE,
+          (error as Error).message,
+          false,
+        ),
         spec,
         true,
         { limitExceeded },
