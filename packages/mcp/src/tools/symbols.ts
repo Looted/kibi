@@ -16,7 +16,8 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 import { createHash } from "node:crypto";
-import { access, readFile, rename, unlink, writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import { readFile, rename, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { dump as dumpYAML, load as parseYAML } from "js-yaml";
 import {
@@ -128,11 +129,10 @@ async function handleKbSymbolsRefreshUnlocked(
   const { coordinatesPath, manifestPath } =
     await resolveManifestPaths(workspaceRoot);
   const currentCoordinates = await readOptionalTextFile(coordinatesPath);
-  if (currentCoordinates !== null) {
-    readCoordinateArtifact(currentCoordinates);
-  }
+  // Refuse to replace an artifact this version cannot read.
+  readCoordinateArtifact(currentCoordinates);
 
-  const rawContent = await readFile(manifestPath, "utf8");
+  const rawContent = (await readFile(manifestPath)).toString();
   const parsed = parseYAML(rawContent);
 
   if (!isRecord(parsed) || !Array.isArray(parsed.symbols)) {
@@ -158,11 +158,7 @@ async function handleKbSymbolsRefreshUnlocked(
   );
   const finalized = await Promise.all(
     enriched.map((entry, index) =>
-      fillMissingCoordinates(
-        original[index] ?? ({} as ManifestSymbolEntry),
-        entry,
-        workspaceRoot,
-      ),
+      fillMissingCoordinates(original[index] ?? {}, entry, workspaceRoot),
     ),
   );
   parsed.symbols = finalized;
@@ -184,14 +180,10 @@ async function handleKbSymbolsRefreshUnlocked(
       continue;
     }
 
-    const source =
-      typeof after.sourceFile === "string"
-        ? after.sourceFile
-        : typeof before.sourceFile === "string"
-          ? before.sourceFile
-          : undefined;
-
-    const eligible = await isEligible(source, workspaceRoot);
+    const eligible = isEligible(
+      textField(after, before, "sourceFile"),
+      workspaceRoot,
+    );
     if (eligible && !hasGeneratedCoordinates(after)) {
       failed++;
     } else {
@@ -238,7 +230,7 @@ async function refreshCoordinatesForSymbolIdUnlocked(
   // implements REQ-vscode-traceability
   const { coordinatesPath, manifestPath } =
     await resolveManifestPaths(workspaceRoot);
-  const rawContent = await readFile(manifestPath, "utf8");
+  const rawContent = (await readFile(manifestPath)).toString();
   const parsed = parseYAML(rawContent);
 
   if (!isRecord(parsed) || !Array.isArray(parsed.symbols)) {
@@ -273,7 +265,7 @@ async function refreshCoordinatesForSymbolIdUnlocked(
   );
   const finalized = await fillMissingCoordinates(
     original as ManifestSymbolEntry,
-    enriched ?? singleEntry,
+    enriched as ManifestSymbolEntry,
     workspaceRoot,
   );
 
@@ -284,8 +276,8 @@ async function refreshCoordinatesForSymbolIdUnlocked(
     (field) => (original as ManifestSymbolEntry)[field] !== finalized[field],
   );
 
-  const artifact = await readCoordinateArtifactFromPath(coordinatesPath);
   const currentContent = await readOptionalTextFile(coordinatesPath);
+  const artifact = readCoordinateArtifact(currentContent);
   const nextCoordinates: Record<string, CoordinateArtifactRecord> = {
     ...artifact.coordinates,
   };
@@ -325,16 +317,15 @@ async function refreshCoordinatesForSymbolIdUnlocked(
               sourceHash: coordinateSourceHash(sourceText),
             };
     }
-  } else if (nextCoordinates[symbolId] !== undefined) {
+  } else {
     delete nextCoordinates[symbolId];
   }
 
-  const removedExistingRecord =
-    coordinatesRecord === null && artifact.coordinates[symbolId] !== undefined;
+  // Write when there is something to keep or something to remove; never
+  // create an empty artifact.
   if (
-    coordinatesRecord ||
     Object.keys(nextCoordinates).length > 0 ||
-    removedExistingRecord
+    Object.keys(artifact.coordinates).length > 0
   ) {
     const nextContent =
       artifact.status === "legacy" && currentContent !== null
@@ -378,28 +369,34 @@ function hasGeneratedCoordinates(entry: ManifestSymbolEntry): boolean {
   return normalizeCoordinateRecord(entry) !== null;
 }
 
-async function isEligible(
+export function isEligible(
   sourceFile: string | undefined,
   workspaceRoot: string,
-): Promise<boolean> {
+): boolean {
   if (!sourceFile) return false;
 
-  const absolute = resolveWorkspaceSourceAbsolute(workspaceRoot, sourceFile);
-  if (absolute === null || !(await fileExists(absolute))) return false;
+  // A path outside the workspace resolves to null, which never exists.
+  const absolute = resolveWorkspaceSourceAbsolute(
+    workspaceRoot,
+    sourceFile,
+  ) as string;
+  if (!existsSync(absolute)) return false;
 
   return SOURCE_EXTENSIONS.has(path.extname(absolute).toLowerCase());
 }
 
-async function fileExists(filePath: string): Promise<boolean> {
-  try {
-    await access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
+/** The entry's text field, else the authored entry's, else none. */
+export function textField(
+  after: ManifestSymbolEntry,
+  before: ManifestSymbolEntry,
+  key: "sourceFile" | "title",
+): string | undefined {
+  return [after[key], before[key]].find((value) => typeof value === "string") as
+    | string
+    | undefined;
 }
 
-async function fillMissingCoordinates(
+export async function fillMissingCoordinates(
   before: ManifestSymbolEntry,
   after: ManifestSymbolEntry,
   workspaceRoot: string,
@@ -420,110 +417,68 @@ async function fillMissingCoordinates(
     return withoutGeneratedCoordinates(after);
   }
 
-  const sourceFile =
-    typeof after.sourceFile === "string"
-      ? after.sourceFile
-      : typeof before.sourceFile === "string"
-        ? before.sourceFile
-        : undefined;
-  const title =
-    typeof after.title === "string"
-      ? after.title
-      : typeof before.title === "string"
-        ? before.title
-        : undefined;
+  const sourceFile = textField(after, before, "sourceFile");
+  const title = textField(after, before, "title");
+  const content = await readSourceText(sourceFile as string, workspaceRoot);
+  if (content === null) return after;
 
-  if (!sourceFile) {
-    return after;
+  if (isCoarseAnchor(after)) {
+    return {
+      ...after,
+      ...coarseCoordinateSpan(sourceFile as string, title, content),
+    };
   }
-
-  const absolutePath = resolveWorkspaceSourceAbsolute(
-    workspaceRoot,
-    sourceFile,
-  );
-  if (absolutePath === null) {
-    return after;
-  }
-
-  try {
-    const content = await readFile(absolutePath, "utf8");
-    const lines = content.split(/\r?\n/);
-
-    if (isCoarseAnchor(after)) {
-      return {
-        ...after,
-        ...coarseCoordinateSpan(sourceFile, title ?? "", content),
-      };
-    }
-
-    if (title) {
-      const escapedTitle = title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const pattern = new RegExp(`\\b${escapedTitle}\\b`);
-      for (let index = 0; index < lines.length; index++) {
-        const line = lines[index];
-        if (!line) continue;
-        const match = pattern.exec(line);
-        if (!match || match.index < 0) continue;
-
-        return {
-          ...after,
-          sourceLine: index + 1,
-          sourceColumn: match.index,
-          sourceEndLine: index + 1,
-          sourceEndColumn: match.index + title.length,
-        };
-      }
-    }
-  } catch {
-    return after;
-  }
-
-  return after;
+  return {
+    ...after,
+    ...titleSpan(sourceFile as string, title, content),
+  };
 }
 
-function coarseCoordinateSpan(
+/** The first whole-word occurrence of a text title, as a coordinate span. */
+export function titleSpan(
   sourceFile: string,
-  title: string,
+  title: unknown,
+  content: string,
+): SymbolCoordinatesRecord | null {
+  if (typeof title !== "string" || title === "") return null;
+  const escapedTitle = title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = new RegExp(`\\b${escapedTitle}\\b`);
+  for (const [index, line] of content.split(/\r?\n/).entries()) {
+    const match = pattern.exec(line);
+    if (!match) continue;
+    return {
+      sourceFile,
+      sourceLine: index + 1,
+      sourceColumn: match.index,
+      sourceEndLine: index + 1,
+      sourceEndColumn: match.index + title.length,
+    };
+  }
+  return null;
+}
+
+export function coarseCoordinateSpan(
+  sourceFile: string,
+  title: unknown,
   content: string,
 ): SymbolCoordinatesRecord {
-  if (title.length > 0) {
-    const escapedTitle = title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const pattern = new RegExp(`\\b${escapedTitle}\\b`);
-    const lines = content.split(/\r?\n/);
-    for (let index = 0; index < lines.length; index++) {
-      const line = lines[index];
-      if (!line) continue;
-      const match = pattern.exec(line);
-      if (!match || match.index < 0) continue;
-      return {
-        sourceFile,
-        sourceLine: index + 1,
-        sourceColumn: match.index,
-        sourceEndLine: index + 1,
-        sourceEndColumn: match.index + title.length,
-      };
-    }
-  }
-
+  const found = titleSpan(sourceFile, title, content);
+  if (found) return found;
   const lines = content.split(/\r?\n/);
-  const lastLine = lines[lines.length - 1] ?? "";
   return {
     sourceFile,
     sourceLine: 1,
     sourceColumn: 0,
-    sourceEndLine: Math.max(1, lines.length),
-    sourceEndColumn: lastLine.length,
+    sourceEndLine: lines.length,
+    sourceEndColumn: (lines.at(-1) as string).length,
   };
 }
 
-function isCoarseAnchor(entry: ManifestSymbolEntry): boolean {
-  return (
-    typeof entry.granularity_reason === "string" &&
-    COARSE_GRANULARITY_REASONS.has(entry.granularity_reason)
-  );
+export function isCoarseAnchor(entry: ManifestSymbolEntry): boolean {
+  return COARSE_GRANULARITY_REASONS.has(entry.granularity_reason as string);
 }
 
-function withoutGeneratedCoordinates(
+export function withoutGeneratedCoordinates(
   entry: ManifestSymbolEntry,
 ): ManifestSymbolEntry {
   const next = { ...entry };
@@ -539,7 +494,7 @@ function withoutGeneratedCoordinates(
   return next;
 }
 
-function coordinateIdentityKey(entry: ManifestSymbolEntry): string {
+export function coordinateIdentityKey(entry: ManifestSymbolEntry): string {
   return [
     typeof entry.id === "string" ? entry.id : "",
     typeof entry.title === "string" ? entry.title : "",
@@ -560,41 +515,34 @@ function coordinateSourceHash(sourceText: string): string {
   return createHash("sha256").update(sourceText).digest("hex");
 }
 
-async function readSourceText(
+/** The workspace file's text, or null when it is outside, missing or unreadable. */
+export async function readSourceText(
   sourceFile: string,
   workspaceRoot: string,
 ): Promise<string | null> {
-  const absolutePath = resolveWorkspaceSourceAbsolute(
-    workspaceRoot,
-    sourceFile,
-  );
-  if (absolutePath === null) return null;
   try {
-    return await readFile(absolutePath, "utf8");
+    // A path outside the workspace resolves to null, which readFile refuses.
+    const absolutePath = resolveWorkspaceSourceAbsolute(
+      workspaceRoot,
+      sourceFile,
+    ) as string;
+    return (await readFile(absolutePath)).toString();
   } catch {
     return null;
   }
 }
 
-async function coordinateMatchesCurrentDeclaration(
-  entry: ManifestSymbolEntry,
+/** Whether the declaration a dotted title names starts at the coordinate. */
+export function declaredAt(
+  content: string,
   coordinate: SymbolCoordinatesRecord,
-  workspaceRoot: string,
-): Promise<boolean> {
-  const sourceFile =
-    typeof entry.sourceFile === "string" ? entry.sourceFile : undefined;
-  const title = typeof entry.title === "string" ? entry.title : "";
-  if (!sourceFile || sourceFile !== coordinate.sourceFile || !title) {
-    return false;
-  }
-  const content = await readSourceText(coordinate.sourceFile, workspaceRoot);
-  if (content === null) return false;
+  title: unknown,
+): boolean {
+  if (typeof title !== "string") return false;
   const declarationName = title.slice(title.lastIndexOf(".") + 1);
-  const line = content.split(/\r?\n/)[coordinate.sourceLine - 1];
+  const line = content.split(/\r?\n/)[coordinate.sourceLine - 1] ?? "";
   return (
     declarationName.length > 0 &&
-    line !== undefined &&
-    coordinate.sourceColumn <= line.length - declarationName.length &&
     line.slice(
       coordinate.sourceColumn,
       coordinate.sourceColumn + declarationName.length,
@@ -602,11 +550,21 @@ async function coordinateMatchesCurrentDeclaration(
   );
 }
 
+export async function coordinateMatchesCurrentDeclaration(
+  entry: ManifestSymbolEntry,
+  coordinate: SymbolCoordinatesRecord,
+  workspaceRoot: string,
+): Promise<boolean> {
+  if (entry.sourceFile !== coordinate.sourceFile) return false;
+  const content = await readSourceText(coordinate.sourceFile, workspaceRoot);
+  return content !== null && declaredAt(content, coordinate, entry.title);
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function normalizeCoordinateRecord(
+export function normalizeCoordinateRecord(
   value: unknown,
 ): SymbolCoordinatesRecord | null {
   if (!isRecord(value)) {
@@ -621,55 +579,49 @@ function normalizeCoordinateRecord(
     sourceLine,
   } = value;
 
+  // Number.isInteger is false for every non-number.
   if (
     typeof sourceFile !== "string" ||
     sourceFile.length === 0 ||
-    typeof sourceLine !== "number" ||
     !Number.isInteger(sourceLine) ||
-    sourceLine < 1 ||
-    typeof sourceColumn !== "number" ||
+    (sourceLine as number) < 1 ||
     !Number.isInteger(sourceColumn) ||
-    sourceColumn < 0 ||
-    typeof sourceEndLine !== "number" ||
+    (sourceColumn as number) < 0 ||
     !Number.isInteger(sourceEndLine) ||
-    sourceEndLine < sourceLine ||
-    typeof sourceEndColumn !== "number" ||
+    (sourceEndLine as number) < (sourceLine as number) ||
     !Number.isInteger(sourceEndColumn) ||
-    sourceEndColumn < 0
+    (sourceEndColumn as number) < 0
   ) {
     return null;
   }
 
   return {
     sourceFile,
-    sourceLine,
-    sourceColumn,
-    sourceEndLine,
-    sourceEndColumn,
+    sourceLine: sourceLine as number,
+    sourceColumn: sourceColumn as number,
+    sourceEndLine: sourceEndLine as number,
+    sourceEndColumn: sourceEndColumn as number,
   };
 }
 
-function isSha256Hash(value: unknown): value is string {
-  return typeof value === "string" && /^[a-f0-9]{64}$/.test(value);
+export function isSha256Hash(value: unknown): value is string {
+  // A non-text value reads as text that is never 64 hex digits.
+  return /^[a-f0-9]{64}$/.test(value as string);
 }
 
-function normalizeBoundCoordinateRecord(
+export function normalizeBoundCoordinateRecord(
   value: unknown,
 ): BoundSymbolCoordinatesRecord | null {
-  if (!isRecord(value)) return null;
   const record = normalizeCoordinateRecord(value);
-  const { identityHash, sourceHash } = value;
-  if (
-    record === null ||
-    !isSha256Hash(identityHash) ||
-    !isSha256Hash(sourceHash)
-  ) {
+  if (record === null) return null;
+  const { identityHash, sourceHash } = value as Record<string, unknown>;
+  if (!isSha256Hash(identityHash) || !isSha256Hash(sourceHash)) {
     return null;
   }
   return { ...record, identityHash, sourceHash };
 }
 
-function sortCoordinates(
+export function sortCoordinates(
   coordinates: Record<string, BoundSymbolCoordinatesRecord>,
 ): Record<string, BoundSymbolCoordinatesRecord> {
   const sortedCoordinates: Record<string, BoundSymbolCoordinatesRecord> = {};
@@ -690,10 +642,13 @@ function sortCoordinates(
   return sortedCoordinates;
 }
 
-function readCoordinateArtifact(content: string): SymbolCoordinatesArtifact {
+/** Read an artifact's text; no artifact (null) reads as an empty legacy one. */
+export function readCoordinateArtifact(
+  content: string | null,
+): SymbolCoordinatesArtifact {
   let parsed: unknown;
   try {
-    parsed = parseYAML(content) as unknown;
+    parsed = parseYAML(String(content)) as unknown;
   } catch (error) {
     throw new Error(
       `Failed to parse coordinate artifact: ${error instanceof Error ? error.message : String(error)}`,
@@ -744,7 +699,7 @@ function readCoordinateArtifact(content: string): SymbolCoordinatesArtifact {
   return { status: "parsed", coordinates: boundCoordinates };
 }
 
-function writeCoordinateArtifact(
+export function writeCoordinateArtifact(
   coordinates: Record<string, BoundSymbolCoordinatesRecord>,
 ): string {
   return `${SYMBOL_COORDINATES_COMMENT_BLOCK}${dumpYAML(
@@ -752,14 +707,11 @@ function writeCoordinateArtifact(
       version: SYMBOL_COORDINATES_FORMAT_VERSION,
       coordinates: sortCoordinates(coordinates),
     },
-    {
-      lineWidth: -1,
-      noRefs: true,
-    },
+    { lineWidth: -1 },
   )}`;
 }
 
-function writeLegacyCoordinateArtifact(
+export function writeLegacyCoordinateArtifact(
   coordinates: Record<string, SymbolCoordinatesRecord>,
 ): string {
   const sortedCoordinates: Record<string, SymbolCoordinatesRecord> = {};
@@ -776,7 +728,7 @@ function writeLegacyCoordinateArtifact(
   }
   return `${SYMBOL_COORDINATES_COMMENT_BLOCK}${dumpYAML(
     { coordinates: sortedCoordinates },
-    { lineWidth: -1, noRefs: true },
+    { lineWidth: -1 },
   )}`;
 }
 
@@ -786,39 +738,25 @@ function toCoordinateRecord(
   return normalizeCoordinateRecord(entry);
 }
 
-async function legacyRecordMatchesCurrentExtraction(
+/** `coordinate` comes from a read artifact, so its span is already valid. */
+export async function legacyRecordMatchesCurrentExtraction(
   record: ManifestSymbolEntry,
   coordinate: CoordinateArtifactRecord,
   workspaceRoot: string,
 ): Promise<boolean> {
-  if (!normalizeCoordinateRecord(coordinate)) return false;
-  const sourceFile =
-    typeof record.sourceFile === "string" ? record.sourceFile : undefined;
-  const title = typeof record.title === "string" ? record.title : "";
-  if (!sourceFile) return false;
+  if (record.sourceFile !== coordinate.sourceFile) return false;
   const content = await readSourceText(coordinate.sourceFile, workspaceRoot);
-  if (content === null || coordinate.sourceFile !== sourceFile) return false;
+  if (content === null) return false;
   if (isCoarseAnchor(record)) {
     return coordinatesEqual(
       coordinate,
-      coarseCoordinateSpan(sourceFile, title, content),
+      coarseCoordinateSpan(coordinate.sourceFile, record.title, content),
     );
   }
-  if (!title) return false;
-  const declarationName = title.slice(title.lastIndexOf(".") + 1);
-  const line = content.split(/\r?\n/)[coordinate.sourceLine - 1];
-  return (
-    declarationName.length > 0 &&
-    line !== undefined &&
-    coordinate.sourceColumn <= line.length - declarationName.length &&
-    line.slice(
-      coordinate.sourceColumn,
-      coordinate.sourceColumn + declarationName.length,
-    ) === declarationName
-  );
+  return declaredAt(content, coordinate, record.title);
 }
 
-function coordinatesEqual(
+export function coordinatesEqual(
   left: SymbolCoordinatesRecord,
   right: SymbolCoordinatesRecord,
 ): boolean {
@@ -831,7 +769,7 @@ function coordinatesEqual(
   );
 }
 
-async function buildCoordinatesMap(
+export async function buildCoordinatesMap(
   entries: ManifestSymbolEntry[],
   workspaceRoot: string,
 ): Promise<Record<string, BoundSymbolCoordinatesRecord>> {
@@ -857,40 +795,26 @@ async function buildCoordinatesMap(
   return coordinates;
 }
 
-async function readCoordinateArtifactFromPath(
-  coordinatesPath: string,
-): Promise<SymbolCoordinatesArtifact> {
-  const content = await readOptionalTextFile(coordinatesPath);
-  if (content === null) {
-    return { status: "legacy", coordinates: {} };
-  }
-
-  return readCoordinateArtifact(content);
-}
-
-async function readOptionalTextFile(filePath: string): Promise<string | null> {
+export async function readOptionalTextFile(
+  filePath: string,
+): Promise<string | null> {
   try {
-    return await readFile(filePath, "utf8");
+    return (await readFile(filePath)).toString();
   } catch (error) {
-    if (
-      error !== null &&
-      typeof error === "object" &&
-      "code" in error &&
-      error.code === "ENOENT"
-    ) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       return null;
     }
     throw error;
   }
 }
 
-async function publishCoordinateArtifact(
+export async function publishCoordinateArtifact(
   targetPath: string,
   content: string,
 ): Promise<void> {
   const temporary = `${targetPath}.kibi-tmp-${process.pid}`;
   try {
-    await writeFile(temporary, content, "utf8");
+    await writeFile(temporary, content);
     await rename(temporary, targetPath);
   } catch (error) {
     try {
