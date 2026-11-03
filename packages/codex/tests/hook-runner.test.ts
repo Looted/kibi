@@ -884,6 +884,43 @@ describe("Codex decision guard", () => {
     expect(stop.reason).toContain("kb_check(");
   });
 
+  test("a dry-run MCP upsert is no record; a CLI upsert is", async () => {
+    const dryRun = session();
+    await dryRun({
+      hook_event_name: "PostToolUse",
+      tool_name: "apply_patch",
+      tool_input: { command: GUARD_PATCH },
+    });
+    await dryRun({
+      hook_event_name: "PostToolUse",
+      tool_name: "mcp__kibi__kb_upsert",
+      tool_input: { type: "req", dryRun: true },
+    });
+    const asked = await dryRun({
+      hook_event_name: "Stop",
+      stop_hook_active: false,
+    });
+    expect(asked.reason).toContain("recorded nothing");
+    expect(asked.reason).not.toContain("kibi signoff");
+
+    const cli = session();
+    await cli({
+      hook_event_name: "PostToolUse",
+      tool_name: "apply_patch",
+      tool_input: { command: GUARD_PATCH },
+    });
+    await cli({
+      hook_event_name: "PostToolUse",
+      tool_name: "Bash",
+      tool_input: { command: "kibi upsert --input req.json" },
+    });
+    const quiet = await cli({
+      hook_event_name: "Stop",
+      stop_hook_active: false,
+    });
+    expect(quiet.reason).not.toContain("recorded nothing");
+  });
+
   test("Stop continues once with a signoff request after a requirement is written", async () => {
     const event = session();
     await event({

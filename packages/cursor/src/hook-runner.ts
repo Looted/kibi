@@ -503,11 +503,12 @@ export async function runHook(
             markDecisionFlag(session, "source-edited");
           }
         }
-        if (
-          kbToolCall?.toolName === "kb_upsert" ||
-          kbUsageTrace(input.toolName, input.toolInput)?.kbOperation ===
-            "kb_upsert"
-        ) {
+        // An MCP call is judged by its parsed name, under which a dry-run
+        // upsert is a validation; other calls by the CLI route they ran.
+        const kbOperation = kbToolCall
+          ? kbToolCall.toolName
+          : kbUsageTrace(input.toolName, input.toolInput)?.kbOperation;
+        if (kbOperation === "kb_upsert") {
           markDecisionFlag(session, "kb-recorded");
           // implements REQ-kibi-signoff-views
           if (isRequirementUpsert(input.toolInput)) {
