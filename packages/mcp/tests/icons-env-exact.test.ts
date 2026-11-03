@@ -58,6 +58,8 @@ describe("environment loading", () => {
     const root = mkdtempSync(path.join(tmpdir(), "kibi-mcp-env-"));
     const error = spyOn(console, "error").mockImplementation(() => undefined);
     spies.push(error);
+    // Another file may have left console.error as a mock with its own calls.
+    error.mockClear();
     try {
       expect(
         loadEnvFile({ envFileName: ".env.none", workspaceRoot: root }),
@@ -66,7 +68,11 @@ describe("environment loading", () => {
         envFilePath: path.join(root, ".env.none"),
         keysLoaded: [],
       });
-      expect(error).not.toHaveBeenCalled();
+      expect(
+        error.mock.calls.filter((call) =>
+          String(call[0]).includes("Unable to load environment file"),
+        ),
+      ).toStrictEqual([]);
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

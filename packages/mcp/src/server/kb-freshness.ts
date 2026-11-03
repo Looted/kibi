@@ -43,10 +43,8 @@ export async function readBranchKbStamp(
 
   const markerPath = path.join(branchPath, "storage.json");
   // A store without a readable marker is a legacy store.
-  const journaled = await readFile(markerPath, "utf8").then(
-    (marker) => marker.includes("kibi.rdf-journal.v1"),
-    () => false,
-  );
+  const marker = await readFile(markerPath).catch(() => Buffer.alloc(0));
+  const journaled = marker.includes("kibi.rdf-journal.v1");
   // Journaled stores expose CURRENT as their cheap, atomic freshness marker;
   // legacy stores retain kb.rdf for compatibility.
   const rdfPath = path.join(branchPath, journaled ? "CURRENT" : "kb.rdf");
@@ -114,8 +112,6 @@ function emptyStamp(branchPath: string): BranchKbStamp {
 }
 
 function formatStatError(statPath: string, error: unknown): string {
-  if (error instanceof Error) {
-    return `${statPath}: ${error.message}`;
-  }
-  return `${statPath}: ${String(error)}`;
+  // fs.stat rejects with an Error (ENOENT, EACCES, ...).
+  return `${statPath}: ${(error as Error).message}`;
 }
