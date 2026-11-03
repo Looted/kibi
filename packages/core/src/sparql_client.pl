@@ -15,8 +15,13 @@ remote_sparql_select_json(Endpoint, Query, Options, JsonString) :-
     validate_remote_endpoint(Endpoint),
     validate_select_query(Query),
     validate_sparql_options(Options, SparqlOptions),
-    sparql_query(Query, Rows, [endpoint(Endpoint), variable_names(Variables)|SparqlOptions]),
-    maplist(row_json(Variables), Rows, JsonRows),
+    % sparql_query/3 yields one row(...) per solution, and its variable
+    % names come as a v(...) term.
+    findall(JsonRow,
+        (   sparql_query(Query, Row, [endpoint(Endpoint), variable_names(Names)|SparqlOptions]),
+            row_json(Names, Row, JsonRow)
+        ),
+        JsonRows),
     with_output_to(string(JsonString), json_write_dict(current_output, _{rows: JsonRows}, [])).
 
 validate_non_empty_atom(Name, Value) :-
@@ -27,57 +32,48 @@ validate_non_empty_atom(Name, Value) :-
     ).
 
 validate_remote_endpoint(Endpoint) :-
-    (   sub_atom(Endpoint, 0, _, _, 'http://')
-    ;   sub_atom(Endpoint, 0, _, _, 'https://')
-    ),
-    endpoint_host(Endpoint, Host),
-    \+ local_or_private_host(Host),
-    !.
-validate_remote_endpoint(Endpoint) :-
-    (   sub_atom(Endpoint, 0, _, _, 'http://')
-    ;   sub_atom(Endpoint, 0, _, _, 'https://')
-    ),
-    !,
-    throw(error(domain_error(public_remote_endpoint, Endpoint), _)).
-validate_remote_endpoint(Endpoint) :-
-    throw(error(domain_error(remote_http_endpoint, Endpoint), _)).
+    (   strip_endpoint_scheme(Endpoint, WithoutScheme)
+    ->  endpoint_host(WithoutScheme, Host),
+        (   local_or_private_host(Host)
+        ->  throw(error(domain_error(public_remote_endpoint, Endpoint), _))
+        ;   true
+        )
+    ;   throw(error(domain_error(remote_http_endpoint, Endpoint), _))
+    ).
 
+% The query must be a SELECT once PREFIX and BASE lines are skipped.
 validate_select_query(Query) :-
-    normalize_space(atom(Normalized), Query),
-    split_string(Normalized, "\n", " \t\r", RawLines),
+    split_string(Query, "\n", "", RawLines),
     strip_sparql_prelude(RawLines, RemainingLines),
     atomic_list_concat(RemainingLines, ' ', Remainder),
     downcase_atom(Remainder, Lower),
     sub_atom(Lower, 0, 6, After, 'select'),
     (   After =:= 0
-    ;   sub_atom(Lower, 6, 1, _, ' ')
-    ;   sub_atom(Lower, 6, 1, _, '*')
+    ;   sub_atom(Lower, 6, 1, _, Next),
+        memberchk(Next, [' ', '*'])
     ),
     !.
 validate_select_query(Query) :-
     throw(error(domain_error(sparql_select_query, Query), _)).
 
-strip_sparql_prelude([], []).
+% A query of prelude lines alone has no SELECT to find: on it,
+% strip_sparql_prelude/2 fails.
 strip_sparql_prelude([Line | Rest], Result) :-
     normalize_space(atom(Trimmed), Line),
-    (   Trimmed == ''
-    ->  strip_sparql_prelude(Rest, Result)
-    ;   is_prelude_line(Trimmed)
+    (   (   Trimmed == ''
+        ;   is_prelude_line(Trimmed)
+        )
     ->  strip_sparql_prelude(Rest, Result)
     ;   Result = [Trimmed | Rest]
     ).
 
+% Line is space-normalized, so its first word ends at the first space.
 is_prelude_line(Line) :-
     downcase_atom(Line, Lower),
-    split_string(Lower, " ", " \t", Tokens0),
-    exclude(=("") , Tokens0, Tokens),
-    Tokens = [FirstToken | _],
-    (   FirstToken == "prefix"
-    ;   FirstToken == "base"
-    ).
+    atomic_list_concat([FirstToken | _], ' ', Lower),
+    memberchk(FirstToken, [prefix, base]).
 
-endpoint_host(Endpoint, Host) :-
-    strip_endpoint_scheme(Endpoint, WithoutScheme),
+endpoint_host(WithoutScheme, Host) :-
     segment_before(WithoutScheme, '/', WithoutPath),
     segment_before(WithoutPath, '?', WithoutQuery),
     segment_before(WithoutQuery, '#', Authority),
@@ -86,12 +82,8 @@ endpoint_host(Endpoint, Host) :-
     downcase_atom(Host0, Host).
 
 strip_endpoint_scheme(Endpoint, WithoutScheme) :-
-    sub_atom(Endpoint, 0, 7, _, 'http://'),
-    !,
-    sub_atom(Endpoint, 7, _, 0, WithoutScheme).
-strip_endpoint_scheme(Endpoint, WithoutScheme) :-
-    sub_atom(Endpoint, 0, 8, _, 'https://'),
-    sub_atom(Endpoint, 8, _, 0, WithoutScheme).
+    member(Scheme, ['http://', 'https://']),
+    atom_concat(Scheme, WithoutScheme, Endpoint).
 
 segment_before(Atom, Delimiter, Segment) :-
     sub_atom(Atom, Before, _, _, Delimiter),
@@ -105,38 +97,29 @@ strip_userinfo(Authority, HostWithPort) :-
     sub_atom(Authority, _, After, 0, HostWithPort).
 strip_userinfo(Authority, Authority).
 
+% A bracketed IPv6 literal ([::1]:8080) keeps its colons.
 strip_port(HostWithPort, Host) :-
-    sub_atom(HostWithPort, 0, 1, _, '['),
-    sub_atom(HostWithPort, 1, Length, _, ']'),
+    atom_concat('[', Rest, HostWithPort),
     !,
-    sub_atom(HostWithPort, 1, Length, _, Host).
+    segment_before(Rest, ']', Host).
 strip_port(HostWithPort, Host) :-
     segment_before(HostWithPort, ':', Host).
 
-local_or_private_host(localhost).
-local_or_private_host('0.0.0.0').
-local_or_private_host('::1').
 local_or_private_host(Host) :-
-    sub_atom(Host, _, _, 0, '.localhost').
-local_or_private_host(Host) :-
-    sub_atom(Host, 0, _, _, '127.').
-local_or_private_host(Host) :-
-    sub_atom(Host, 0, _, _, '10.').
-local_or_private_host(Host) :-
-    sub_atom(Host, 0, _, _, '192.168.').
-local_or_private_host(Host) :-
-    sub_atom(Host, 0, _, _, '169.254.').
-local_or_private_host(Host) :-
-    sub_atom(Host, 0, _, _, 'fe80:').
-local_or_private_host(Host) :-
-    sub_atom(Host, 0, 2, _, Prefix),
-    memberchk(Prefix, ['fc', 'fd']).
-local_or_private_host(Host) :-
-    sub_atom(Host, 0, _, _, '172.'),
-    atomic_list_concat([_, SecondAtom|_], '.', Host),
-    atom_number(SecondAtom, Second),
-    Second >= 16,
-    Second =< 31.
+    (   memberchk(Host, [localhost, '0.0.0.0', '::1'])
+    ;   sub_atom(Host, _, _, 0, '.localhost')
+    ;   member(Prefix, ['127.', '10.', '192.168.', '169.254.', 'fe80:']),
+        sub_atom(Host, 0, _, _, Prefix)
+    ;   % Unique local IPv6 (fc00::/7); only an IPv6 literal contains a
+        % colon, so host names such as fdic.gov stay public.
+        sub_atom(Host, 0, 2, _, Prefix),
+        memberchk(Prefix, [fc, fd]),
+        sub_atom(Host, _, _, _, ':')
+    ;   atomic_list_concat(['172', SecondAtom|_], '.', Host),
+        atom_number(SecondAtom, Second),
+        Second >= 16,
+        Second =< 31
+    ).
 
 validate_sparql_options([], []).
 validate_sparql_options([result_format(json)|Rest], SparqlOptions) :-
@@ -148,7 +131,8 @@ validate_sparql_options([timeout(Timeout)|Rest], [timeout(Timeout)|SparqlOptions
 validate_sparql_options([Option|_], _) :-
     throw(error(domain_error(sparql_client_option, Option), _)).
 
-row_json(Variables, Row, Dict) :-
+row_json(Names, Row, Dict) :-
+    Names =.. [_|Variables],
     Row =.. [row|Values],
     pairs_json(Variables, Values, Pairs),
     dict_create(Dict, row, Pairs).
@@ -158,6 +142,9 @@ pairs_json([Variable|Variables], [Value|Values], [Variable-JsonValue|Pairs]) :-
     sparql_value_json(Value, JsonValue),
     pairs_json(Variables, Values, Pairs).
 
+% sparql_query/3 binds a variable a row leaves unbound to '$null$'.
+sparql_value_json('$null$', null) :-
+    !.
 sparql_value_json(Value, JsonValue) :-
     atomic(Value),
     !,
@@ -166,6 +153,9 @@ sparql_value_json(literal(Value), JsonValue) :-
     !,
     sparql_value_json(Value, JsonValue).
 sparql_value_json(type(_Type, Value), JsonValue) :-
+    !,
+    sparql_value_json(Value, JsonValue).
+sparql_value_json(lang(_Lang, Value), JsonValue) :-
     !,
     sparql_value_json(Value, JsonValue).
 sparql_value_json(Value, JsonValue) :-
