@@ -7,7 +7,7 @@
 
 export type KnowledgeSuggestion = {
   type: "fact" | "req" | "adr" | "scenario" | "test";
-  confidence: "low" | "medium" | "high";
+  confidence: "medium" | "high";
   reasoning: string;
 };
 
@@ -91,7 +91,7 @@ const TEST_CUES = [
  */
 export function classifyKnowledge(text: string): KnowledgeSuggestion | null {
   // implements REQ-opencode-kibi-plugin-v1
-  if (!text || text.trim().length < 50) {
+  if (text.trim().length < 50) {
     return null;
   }
 
@@ -161,10 +161,6 @@ export function classifyKnowledge(text: string): KnowledgeSuggestion | null {
     };
   }
 
-  // Return best match (any match with at least 1 cue is medium+ confidence)
-  if (bestMatch) {
-    return bestMatch;
-  }
-
-  return null;
+  // Best match (any match with at least 1 cue is medium+ confidence), or null
+  return bestMatch;
 }

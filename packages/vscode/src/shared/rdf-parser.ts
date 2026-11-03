@@ -40,25 +40,16 @@ export function parseRdfRelationships(content: string): KbRelationship[] {
   const blockRe =
     /<rdf:Description rdf:about="(?:(?:urn:kibi:)|kb:)entity\/([^"]+)">([\s\S]*?)<\/rdf:Description>/g;
 
-  while (true) {
-    const blockMatch = blockRe.exec(content);
-    if (!blockMatch) break;
-
-    const fromId = blockMatch[1];
-    const block = blockMatch[2];
-    if (fromId === undefined || block === undefined) continue;
-
+  for (const blockMatch of content.matchAll(blockRe)) {
+    // Both groups are mandatory in the patterns, so they are always set.
+    const [, fromId, block] = blockMatch as unknown as [string, string, string];
     for (const relType of KB_RELATIONSHIP_TYPES) {
       const relRe = new RegExp(
         `<kb:${relType}[^>]*rdf:resource="(?:(?:http://kibi\\.dev/kb/)|kb:)entity/([^"]+)"[^>]*/?>`,
         "g",
       );
-      while (true) {
-        const relMatch = relRe.exec(block);
-        if (!relMatch) break;
-        const toId = relMatch[1];
-        if (toId === undefined) continue;
-        relationships.push({ relType, fromId, toId });
+      for (const relMatch of block.matchAll(relRe)) {
+        relationships.push({ relType, fromId, toId: relMatch[1] as string });
       }
     }
   }

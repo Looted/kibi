@@ -94,7 +94,7 @@ export function notifyStartup(
           .catch(() => {
             // Advisory log failure stays silent
           });
-      } else if (result.status === "failed") {
+      } else {
         void client.app
           .log({
             body: {

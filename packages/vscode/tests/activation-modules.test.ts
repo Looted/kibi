@@ -39,6 +39,13 @@ let buildIndexResult = {
 
 resetVscodeMock();
 mock.module("vscode", () => getVscodeMockModule());
+// mock.module leaks into later test files of the same run, so the real
+// provider modules are snapshotted here and put back in afterAll.
+const realCodeActionProvider = {
+  ...(await import("../src/codeActionProvider")),
+};
+const realCodeLensProvider = { ...(await import("../src/codeLensProvider")) };
+const realHoverProvider = { ...(await import("../src/hoverProvider")) };
 mock.module("../src/codeActionProvider", () => ({
   openFileAtLine: (...args: Parameters<typeof openFileAtLineMock>) =>
     openFileAtLineMock(...args),
@@ -552,4 +559,7 @@ describe("activation/contextOnOpen", () => {
 });
 afterAll(() => {
   mock.restore();
+  mock.module("../src/codeActionProvider", () => realCodeActionProvider);
+  mock.module("../src/codeLensProvider", () => realCodeLensProvider);
+  mock.module("../src/hoverProvider", () => realHoverProvider);
 });

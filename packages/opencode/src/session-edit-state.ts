@@ -62,25 +62,17 @@ export function createSessionEditState(opts: {
   // ---- Per-instance state (no module globals) ----
 
   /**
-   * Tracked files keyed by relative path.
-   * Undefined baselineHash means we haven't taken a snapshot yet.
+   * Tracked files keyed by relative path. A path only hinted at so far has no
+   * snapshot (undefined) until its first reconciliation.
    */
-  const tracked = new Map<
-    string,
-    {
-      baselineHash: string | undefined;
-      currentHash: string | undefined;
-      lastReconciledAt: number;
-      eventHints: { kind: EditEventKind; timestamp: number }[];
-    }
-  >();
+  const tracked = new Map<string, SessionEditEntry | undefined>();
 
   // ---- Internal helpers ----
 
   function resolveToRelative(filePath: string): string {
     if (path.isAbsolute(filePath)) {
       const rel = path.relative(worktree, filePath);
-      // Normalise away any leading ./ or ../ that escapes worktree
+      // Keep the absolute path when it escapes the worktree
       return rel.startsWith("..") ? filePath : rel;
     }
     return filePath;
@@ -90,83 +82,39 @@ export function createSessionEditState(opts: {
     return path.join(worktree, relPath);
   }
 
-  function hashContent(content: string): string {
+  function hashContent(content: string | Buffer): string {
     return crypto.createHash("sha256").update(content).digest("hex");
   }
 
   function hashFile(absPath: string): string {
     try {
-      const content = fs.readFileSync(absPath, "utf-8");
-      return hashContent(content);
+      return hashContent(fs.readFileSync(absPath));
     } catch {
       return SENTINEL_HASH;
     }
-  }
-
-  /**
-   * Take a baseline snapshot if we haven't yet.
-   * Returns the baseline hash.
-   */
-  function ensureBaseline(
-    entry: {
-      baselineHash: string | undefined;
-      currentHash: string | undefined;
-      lastReconciledAt: number;
-      eventHints: { kind: EditEventKind; timestamp: number }[];
-    },
-    relPath: string,
-  ): string {
-    if (entry.baselineHash !== undefined) {
-      return entry.baselineHash;
-    }
-    const abs = resolveToAbsolute(relPath);
-    const h = hashFile(abs);
-    entry.baselineHash = h;
-    return h;
   }
 
   // ---- Public API ----
 
   function recordEventHint(
     filePath: string,
-    kind: EditEventKind,
-    timestamp?: number,
+    _kind: EditEventKind,
+    _timestamp?: number,
   ): void {
     const rel = resolveToRelative(filePath);
-    let entry = tracked.get(rel);
-    if (!entry) {
-      entry = {
-        baselineHash: undefined,
-        currentHash: undefined,
-        lastReconciledAt: 0,
-        eventHints: [],
-      };
-      tracked.set(rel, entry);
-    }
-    entry.eventHints.push({ kind, timestamp: timestamp ?? now() });
+    if (!tracked.has(rel)) tracked.set(rel, undefined);
   }
 
   function reconcilePath(filePath: string): void {
     const rel = resolveToRelative(filePath);
-    let entry = tracked.get(rel);
-    if (!entry) {
-      entry = {
-        baselineHash: undefined,
-        currentHash: undefined,
-        lastReconciledAt: 0,
-        eventHints: [],
-      };
-      tracked.set(rel, entry);
-    }
-
-    // Lazy baseline snapshot
-    ensureBaseline(entry, rel);
-
-    // Current hash
-    const abs = resolveToAbsolute(rel);
-    const current = hashFile(abs);
-    entry.currentHash = current;
-    entry.lastReconciledAt = now();
+    const currentHash = hashFile(resolveToAbsolute(rel));
+    tracked.set(rel, {
+      filePath: rel,
+      // Lazy baseline snapshot: the first reconciliation is the baseline.
+      baselineHash: tracked.get(rel)?.baselineHash ?? currentHash,
+      currentHash,
+      lastReconciledAt: now(),
+    });
   }
 
   function reconcileKnownPaths(): void {
@@ -180,47 +128,25 @@ export function createSessionEditState(opts: {
    * Sorted by lastReconciledAt ascending (oldest first).
    */
   function getSessionEdits(): SessionEditEntry[] {
-    const results: SessionEditEntry[] = [];
-    for (const [relPath, entry] of tracked) {
-      if (entry.baselineHash === undefined || entry.currentHash === undefined) {
-        // Not yet reconciled
-        continue;
-      }
-      if (entry.currentHash !== entry.baselineHash) {
-        results.push({
-          filePath: relPath,
-          baselineHash: entry.baselineHash,
-          currentHash: entry.currentHash,
-          lastReconciledAt: entry.lastReconciledAt,
-        });
-      }
-    }
-    results.sort((a, b) => a.lastReconciledAt - b.lastReconciledAt);
-    return results;
+    return [...tracked.values()]
+      .filter(
+        (entry): entry is SessionEditEntry =>
+          entry !== undefined && entry.currentHash !== entry.baselineHash,
+      )
+      .map((entry) => ({ ...entry }))
+      .sort((a, b) => a.lastReconciledAt - b.lastReconciledAt);
   }
 
   /**
    * Focus edit = the last reconciled surviving edit (highest lastReconciledAt).
    */
   function getFocusEdit(): SessionEditEntry | null {
-    const edits = getSessionEdits();
-    if (edits.length === 0) return null;
     // edits are sorted ascending by lastReconciledAt, so last = most recent
-    const focusEdit = edits.at(-1);
-    return focusEdit ?? null;
+    return getSessionEdits().at(-1) ?? null;
   }
 
   function hasSessionEdits(): boolean {
-    for (const [, entry] of tracked) {
-      if (
-        entry.baselineHash !== undefined &&
-        entry.currentHash !== undefined &&
-        entry.currentHash !== entry.baselineHash
-      ) {
-        return true;
-      }
-    }
-    return false;
+    return getSessionEdits().length > 0;
   }
 
   /**
@@ -230,31 +156,19 @@ export function createSessionEditState(opts: {
    */
   function forceEdit(
     filePath: string,
-    kind?: EditEventKind,
+    _kind?: EditEventKind,
     timestamp?: number,
   ): void {
     const rel = resolveToRelative(filePath);
-    let entry = tracked.get(rel);
-    if (!entry) {
-      entry = {
-        baselineHash: undefined,
-        currentHash: undefined,
-        lastReconciledAt: 0,
-        eventHints: [],
-      };
-      tracked.set(rel, entry);
-    }
-
-    // Set a synthetic baseline that will never match real file content
-    if (entry.baselineHash === undefined) {
-      entry.baselineHash = hashContent(`__FORCED_BASELINE__${rel}`);
-    }
-
-    const abs = resolveToAbsolute(rel);
-    entry.currentHash = hashFile(abs);
-    entry.lastReconciledAt = timestamp ?? now();
-
-    pushEventHintIfKind(entry.eventHints, kind, timestamp ?? now());
+    tracked.set(rel, {
+      filePath: rel,
+      // A synthetic baseline that will never match real file content
+      baselineHash:
+        tracked.get(rel)?.baselineHash ??
+        hashContent(`__FORCED_BASELINE__${rel}`),
+      currentHash: hashFile(resolveToAbsolute(rel)),
+      lastReconciledAt: timestamp ?? now(),
+    });
   }
 
   return {

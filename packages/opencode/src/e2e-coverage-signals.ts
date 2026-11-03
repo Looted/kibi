@@ -1,5 +1,5 @@
 // implements REQ-opencode-file-context-guidance-v1
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import * as path from "node:path";
 import { getFileLinkedTargetsByType } from "./file-entity-links.js";
 
@@ -12,12 +12,10 @@ export interface E2eCoverageSignal {
 }
 
 type TestDocMeta = {
-  id: string;
-  title: string;
-  status?: string;
-  tags?: string[];
+  /** Whether `e2e` is one of the frontmatter tags. */
+  e2eTagged?: boolean;
   source?: string;
-  body?: string;
+  body: string;
 };
 
 // ── TEST doc reader ──────────────────────────────────────────────
@@ -25,74 +23,54 @@ type TestDocMeta = {
 // Reads a TEST-*.md file from .kb/tests/ and extracts
 // frontmatter tags, source, and body.
 
-function readTestDoc(worktree: string, testId: string): TestDocMeta | null {
+function readTestDocText(worktree: string, testId: string): string | undefined {
   // Try common locations for TEST docs
-  const candidates = [
+  for (const rel of [
     `.kb/tests/${testId}.md`,
     `.kb/tests/${testId.toLowerCase()}.md`,
-  ];
-
-  for (const rel of candidates) {
-    const fullPath = path.join(worktree, rel);
-    if (existsSync(fullPath)) {
-      try {
-        const content = readFileSync(fullPath, "utf8");
-        return parseTestDoc(content, testId);
-      } catch (error) {
-        if (!(error instanceof Error)) throw error;
-      }
+  ]) {
+    try {
+      return readFileSync(path.join(worktree, rel), "utf8");
+    } catch (error) {
+      // Missing or unreadable: try the next location.
+      if (!(error instanceof Error)) throw error;
     }
   }
-
-  return null;
+  return undefined;
 }
 
-function parseTestDoc(content: string, id: string): TestDocMeta {
-  const result: TestDocMeta = { id, title: id };
+function readTestDoc(worktree: string, testId: string): TestDocMeta | null {
+  const content = readTestDocText(worktree, testId);
+  return content === undefined ? null : parseTestDoc(content);
+}
 
+function parseTestDoc(content: string): TestDocMeta {
   // Extract frontmatter
   const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
-  if (!fmMatch || fmMatch[1] === undefined) {
-    result.body = content;
-    return result;
+  if (!fmMatch) {
+    return { body: content };
   }
 
-  const frontmatter = fmMatch[1];
+  // The capture group always participates when the pattern matches.
+  const frontmatter = fmMatch[1] as string;
+  // Everything after the closing fence is body.
+  const result: TestDocMeta = { body: content.slice(fmMatch[0].length) };
 
-  // Parse title
-  const titleMatch = frontmatter.match(/^title:\s*(.+)$/m);
-  if (titleMatch && titleMatch[1] !== undefined) {
-    result.title = titleMatch[1].trim();
+  // Parse source (trim() also drops the space after the colon)
+  const sourceMatch = /^source:(.+)/m.exec(frontmatter);
+  if (sourceMatch) {
+    result.source = (sourceMatch[1] as string).trim();
   }
 
-  // Parse status
-  const statusMatch = frontmatter.match(/^status:\s*(.+)$/m);
-  if (statusMatch && statusMatch[1] !== undefined) {
-    result.status = statusMatch[1].trim();
-  }
-
-  // Parse source
-  const sourceMatch = frontmatter.match(/^source:\s*(.+)$/m);
-  if (sourceMatch && sourceMatch[1] !== undefined) {
-    result.source = sourceMatch[1].trim();
-  }
-
-  // Parse tags
-  const tagsMatch = frontmatter.match(/^tags:\s*$/m);
-  if (tagsMatch) {
-    const afterTags = frontmatter.slice(
-      frontmatter.indexOf("tags:") + "tags:".length,
-    );
-    const tagLines = afterTags.match(/^\s+-\s+(.+)$/gm);
-    if (tagLines) {
-      result.tags = tagLines.map((l) => l.replace(/^\s+-\s+/, "").trim());
+  // Parse tags: the list items directly under a bare `tags:` line
+  const lines = frontmatter.split("\n");
+  const tagsLine = lines.findIndex((line) => /^tags:\s*$/.test(line));
+  if (tagsLine !== -1) {
+    for (const line of lines.slice(tagsLine + 1)) {
+      const item = /^\s+-(.+)/.exec(line);
+      if (!item) break;
+      if ((item[1] as string).trim() === "e2e") result.e2eTagged = true;
     }
-  }
-
-  // Extract body (after frontmatter)
-  const bodyMatch = content.match(/^---\n[\s\S]*?\n---\n([\s\S]*)$/);
-  if (bodyMatch && bodyMatch[1] !== undefined) {
-    result.body = bodyMatch[1];
   }
 
   return result;
@@ -107,7 +85,7 @@ const E2E_SOURCE_PREFIXES = [
 
 function isExactE2eEvidence(doc: TestDocMeta): boolean {
   // (a) has e2e tag
-  if (doc.tags?.includes("e2e")) return true;
+  if (doc.e2eTagged) return true;
 
   // (b) source points into e2e directories
   if (doc.source) {
@@ -121,21 +99,20 @@ function isExactE2eEvidence(doc: TestDocMeta): boolean {
 
 function isPackageLevelUmbrellaDoc(testId: string): boolean {
   // Package-level umbrella docs like TEST-opencode-kibi-plugin-v1
-  // These are broad test manifests, not file-specific e2e evidence
-  return /^TEST-opencode-.*-plugin-v\d+$/.test(testId);
+  // These are broad test manifests, not file-specific e2e evidence.
+  // Callers only pass TEST- ids, so the start needs no anchor.
+  return /TEST-opencode-.*-plugin-v\d+$/.test(testId);
 }
 
 function docNamesPath(
   doc: TestDocMeta,
   queryRelPath: string,
-  distRelPath: string | null,
   srcCorrespondingPath: string | null,
 ): boolean {
-  const body = doc.body ?? "";
+  // For dist/ files the query path is the dist path itself.
   return (
-    body.includes(queryRelPath) ||
-    (distRelPath !== null && body.includes(distRelPath)) ||
-    (srcCorrespondingPath !== null && body.includes(srcCorrespondingPath))
+    doc.body.includes(queryRelPath) ||
+    (srcCorrespondingPath !== null && doc.body.includes(srcCorrespondingPath))
   );
 }
 
@@ -159,10 +136,8 @@ export function getE2eCoverageSignal(
     .join("/");
 
   // For dist/ files, compute the matching src/ path
-  let distRelPath: string | null = null;
   let srcCorrespondingPath: string | null = null;
   if (srcRelPath.startsWith("packages/opencode/dist/")) {
-    distRelPath = srcRelPath;
     // Derive the src/ path: packages/opencode/dist/toast.js → packages/opencode/src/toast.ts
     const distSuffix = srcRelPath.slice("packages/opencode/dist/".length);
     const baseName = distSuffix.replace(/\.js$/, ".ts");
@@ -196,12 +171,7 @@ export function getE2eCoverageSignal(
 
     const isUmbrella = isPackageLevelUmbrellaDoc(targetId);
     const hasExactE2e = isExactE2eEvidence(doc);
-    const namesPath = docNamesPath(
-      doc,
-      srcRelPath,
-      distRelPath,
-      srcCorrespondingPath,
-    );
+    const namesPath = docNamesPath(doc, srcRelPath, srcCorrespondingPath);
 
     if (isUmbrella) {
       // Package-level umbrella docs are demoted to heuristic at most
@@ -223,13 +193,7 @@ export function getE2eCoverageSignal(
     }
   }
 
-  // Step 2: Also check heuristic path rules when no exact evidence
-  if (exactEvidence.length === 0 && heuristicEvidence.length === 0) {
-    // Narrow heuristic: file under packages/opencode/src/ and a test doc body names it
-    // This is already covered by the linked targets loop above since we check docNamesPath
-    // No additional scanning needed - we only inspect linked docs
-  }
-
+  // Only linked docs are inspected: there is no extra path scanning.
   // Step 3: Resolve level
   if (exactEvidence.length > 0) {
     return {

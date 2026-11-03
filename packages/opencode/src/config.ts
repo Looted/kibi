@@ -93,16 +93,64 @@ const DEFAULTS: KibiConfig = {
 function readJsonIfExists(filePath: string): unknown | null {
   try {
     if (!fs.existsSync(filePath)) return null;
-    const raw = fs.readFileSync(filePath, "utf8");
-    return JSON.parse(raw);
+    return JSON.parse(String(fs.readFileSync(filePath)));
   } catch (err: unknown) {
-    const msg =
-      err && typeof err === "object" && "message" in err
-        ? (err as { message: string }).message
-        : String(err);
-    logger.warn(`Failed to read/parse config ${filePath}: ${msg}`);
+    // fs and JSON.parse only throw Error instances.
+    logger.warn(
+      `Failed to read/parse config ${filePath}: ${(err as Error).message}`,
+    );
     return null;
   }
+}
+
+type ConfigRecord = Record<string, unknown>;
+
+/** A config section; property reads on a missing or primitive value find nothing. */
+function section(value: unknown): ConfigRecord {
+  return (value ?? {}) as ConfigRecord;
+}
+
+function pickBoolean(src: ConfigRecord, key: string, fallback: boolean) {
+  const value = src[key];
+  return typeof value === "boolean" ? value : fallback;
+}
+
+function pickNumber(src: ConfigRecord, key: string, fallback: number) {
+  const value = src[key];
+  return typeof value === "number" ? value : fallback;
+}
+
+function pickStrings(src: ConfigRecord, key: string): string[] {
+  const value = src[key];
+  return Array.isArray(value) ? value.map(String) : [];
+}
+
+/** `allowed` lists the accepted values besides the fallback itself. */
+function pickOneOf<T extends string>(
+  src: ConfigRecord,
+  key: string,
+  allowed: readonly T[],
+  fallback: T,
+): T {
+  const value = src[key];
+  return allowed.includes(value as T) ? (value as T) : fallback;
+}
+
+const HOOK_MODES = [
+  "auto",
+  "chat-params",
+  "system-transform",
+  "compat",
+] as const;
+
+function pickHookMode(prompt: ConfigRecord): KibiConfig["prompt"]["hookMode"] {
+  const mode = prompt.hookMode;
+  if (typeof mode !== "string") return DEFAULTS.prompt.hookMode;
+  if ((HOOK_MODES as readonly string[]).includes(mode)) {
+    return mode as KibiConfig["prompt"]["hookMode"];
+  }
+  logger.warn(`Invalid prompt.hookMode '${mode}', using default`);
+  return DEFAULTS.prompt.hookMode;
 }
 
 // implements REQ-opencode-kibi-plugin-v1, REQ-opencode-worktree-hard-enforcement-v1
@@ -112,135 +160,124 @@ export function validateAndMerge(obj: unknown): KibiConfig {
     return DEFAULTS;
   }
 
-  const src = obj as Record<string, unknown>;
-  const out: KibiConfig = { ...DEFAULTS };
+  const src = obj as ConfigRecord;
+  const prompt = section(src.prompt);
+  const sync = section(src.sync);
+  const ux = section(src.ux);
+  const guidance = section(src.guidance);
+  const commentDetection = section(guidance.commentDetection);
+  const sessionSummary = section(guidance.sessionSummary);
+  const smartEnforcement = section(guidance.smartEnforcement);
+  const d = DEFAULTS;
+  const dg = DEFAULTS.guidance;
+  const dse = dg.smartEnforcement;
 
-  if (typeof src.enabled === "boolean") out.enabled = src.enabled;
-  if (typeof src.autoUpdate === "boolean") out.autoUpdate = src.autoUpdate;
-
-  if (src.prompt && typeof src.prompt === "object") {
-    const p = src.prompt as Record<string, unknown>;
-    out.prompt = { ...DEFAULTS.prompt };
-    if (typeof p.enabled === "boolean") out.prompt.enabled = p.enabled;
-    if (typeof p.hookMode === "string") {
-      const modes = ["auto", "chat-params", "system-transform", "compat"];
-      if (modes.includes(p.hookMode))
-        out.prompt.hookMode = p.hookMode as
-          | "auto"
-          | "chat-params"
-          | "system-transform"
-          | "compat";
-      else
-        logger.warn(`Invalid prompt.hookMode '${p.hookMode}', using default`);
-    }
-  }
-
-  if (src.sync && typeof src.sync === "object") {
-    const s = src.sync as Record<string, unknown>;
-    out.sync = { ...DEFAULTS.sync };
-    if (typeof s.enabled === "boolean") out.sync.enabled = s.enabled;
-    if (typeof s.debounceMs === "number") out.sync.debounceMs = s.debounceMs;
-    if (Array.isArray(s.ignore)) out.sync.ignore = s.ignore.map(String);
-    if (Array.isArray(s.relevant)) out.sync.relevant = s.relevant.map(String);
-  }
-
-  if (src.ux && typeof src.ux === "object") {
-    const u = src.ux as Record<string, unknown>;
-    out.ux = { ...DEFAULTS.ux };
-    if (typeof u.toastStartup === "boolean")
-      out.ux.toastStartup = u.toastStartup;
-    if (typeof u.toastFailures === "boolean")
-      out.ux.toastFailures = u.toastFailures;
-    if (typeof u.toastSuccesses === "boolean")
-      out.ux.toastSuccesses = u.toastSuccesses;
-    if (typeof u.toastCooldownMs === "number")
-      out.ux.toastCooldownMs = u.toastCooldownMs;
-  }
-  if (typeof src.logLevel === "string") out.logLevel = src.logLevel;
-
-  if (src.guidance && typeof src.guidance === "object") {
-    const g = src.guidance as Record<string, unknown>;
-    out.guidance = { ...DEFAULTS.guidance };
-    if (typeof g.dynamic === "boolean") out.guidance.dynamic = g.dynamic;
-    if (typeof g.warnOnKbEdits === "boolean")
-      out.guidance.warnOnKbEdits = g.warnOnKbEdits;
-    if (typeof g.factFirstDomainRouting === "boolean")
-      out.guidance.factFirstDomainRouting = g.factFirstDomainRouting;
-
-    if (g.commentDetection && typeof g.commentDetection === "object") {
-      const cd = g.commentDetection as Record<string, unknown>;
-      out.guidance.commentDetection = { ...DEFAULTS.guidance.commentDetection };
-      if (typeof cd.enabled === "boolean")
-        out.guidance.commentDetection.enabled = cd.enabled;
-      if (typeof cd.minLines === "number")
-        out.guidance.commentDetection.minLines = cd.minLines;
-    }
-
-    if (g.targetedChecks && typeof g.targetedChecks === "object") {
-      const tc = g.targetedChecks as Record<string, unknown>;
-      out.guidance.targetedChecks = { ...DEFAULTS.guidance.targetedChecks };
-      if (typeof tc.enabled === "boolean")
-        out.guidance.targetedChecks.enabled = tc.enabled;
-    }
-
-    if (g.sessionSummary && typeof g.sessionSummary === "object") {
-      const ss = g.sessionSummary as Record<string, unknown>;
-      out.guidance.sessionSummary = { ...DEFAULTS.guidance.sessionSummary };
-      if (typeof ss.enabled === "boolean")
-        out.guidance.sessionSummary.enabled = ss.enabled;
-      if (typeof ss.logIntervalMs === "number")
-        out.guidance.sessionSummary.logIntervalMs = ss.logIntervalMs;
-    }
-
-    if (g.smartEnforcement && typeof g.smartEnforcement === "object") {
-      const se = g.smartEnforcement as Record<string, unknown>;
-      out.guidance.smartEnforcement = {
-        ...DEFAULTS.guidance.smartEnforcement,
-      };
-      if (typeof se.enabled === "boolean")
-        out.guidance.smartEnforcement.enabled = se.enabled;
-      if (se.mode === "advisory" || se.mode === "strict" || se.mode === "hard")
-        out.guidance.smartEnforcement.mode = se.mode;
-      if (typeof se.preflightTtlMs === "number")
-        out.guidance.smartEnforcement.preflightTtlMs = se.preflightTtlMs;
-      if (typeof se.idleResetMs === "number")
-        out.guidance.smartEnforcement.idleResetMs = se.idleResetMs;
-      if (
-        se.degradedMode === "warn-once" ||
-        se.degradedMode === "structured-only"
-      )
-        out.guidance.smartEnforcement.degradedMode = se.degradedMode;
-      if (typeof se.requireRootKbForStrict === "boolean")
-        out.guidance.smartEnforcement.requireRootKbForStrict =
-          se.requireRootKbForStrict;
-      if (typeof se.completionReminder === "boolean")
-        out.guidance.smartEnforcement.completionReminder =
-          se.completionReminder;
-    }
-  }
-
-  return out;
+  return {
+    enabled: pickBoolean(src, "enabled", d.enabled),
+    autoUpdate: pickBoolean(src, "autoUpdate", d.autoUpdate),
+    prompt: {
+      enabled: pickBoolean(prompt, "enabled", d.prompt.enabled),
+      hookMode: pickHookMode(prompt),
+    },
+    sync: {
+      enabled: pickBoolean(sync, "enabled", d.sync.enabled),
+      debounceMs: pickNumber(sync, "debounceMs", d.sync.debounceMs),
+      ignore: pickStrings(sync, "ignore"),
+      relevant: pickStrings(sync, "relevant"),
+    },
+    ux: {
+      toastStartup: pickBoolean(ux, "toastStartup", d.ux.toastStartup),
+      toastFailures: pickBoolean(ux, "toastFailures", d.ux.toastFailures),
+      toastSuccesses: pickBoolean(ux, "toastSuccesses", d.ux.toastSuccesses),
+      toastCooldownMs: pickNumber(ux, "toastCooldownMs", d.ux.toastCooldownMs),
+    },
+    guidance: {
+      dynamic: pickBoolean(guidance, "dynamic", dg.dynamic),
+      warnOnKbEdits: pickBoolean(guidance, "warnOnKbEdits", dg.warnOnKbEdits),
+      factFirstDomainRouting: pickBoolean(
+        guidance,
+        "factFirstDomainRouting",
+        dg.factFirstDomainRouting,
+      ),
+      commentDetection: {
+        enabled: pickBoolean(
+          commentDetection,
+          "enabled",
+          dg.commentDetection.enabled,
+        ),
+        minLines: pickNumber(
+          commentDetection,
+          "minLines",
+          dg.commentDetection.minLines,
+        ),
+      },
+      targetedChecks: {
+        enabled: pickBoolean(
+          section(guidance.targetedChecks),
+          "enabled",
+          dg.targetedChecks.enabled,
+        ),
+      },
+      sessionSummary: {
+        enabled: pickBoolean(
+          sessionSummary,
+          "enabled",
+          dg.sessionSummary.enabled,
+        ),
+        logIntervalMs: pickNumber(
+          sessionSummary,
+          "logIntervalMs",
+          dg.sessionSummary.logIntervalMs,
+        ),
+      },
+      smartEnforcement: {
+        enabled: pickBoolean(smartEnforcement, "enabled", dse.enabled),
+        mode: pickOneOf(smartEnforcement, "mode", ["strict", "hard"], dse.mode),
+        preflightTtlMs: pickNumber(
+          smartEnforcement,
+          "preflightTtlMs",
+          dse.preflightTtlMs,
+        ),
+        idleResetMs: pickNumber(
+          smartEnforcement,
+          "idleResetMs",
+          dse.idleResetMs,
+        ),
+        degradedMode: pickOneOf(
+          smartEnforcement,
+          "degradedMode",
+          ["structured-only"],
+          dse.degradedMode,
+        ),
+        requireRootKbForStrict: pickBoolean(
+          smartEnforcement,
+          "requireRootKbForStrict",
+          dse.requireRootKbForStrict,
+        ),
+        completionReminder: pickBoolean(
+          smartEnforcement,
+          "completionReminder",
+          dse.completionReminder,
+        ),
+      },
+    },
+    logLevel: typeof src.logLevel === "string" ? src.logLevel : d.logLevel,
+  };
 }
 
 // implements REQ-opencode-kibi-plugin-v1
-export function loadConfig(projectDir: string = process.cwd()): KibiConfig {
-  const homeConfig = path.join(
-    os.homedir(),
-    ".config",
-    "opencode",
-    "kibi.json",
-  );
+export function loadConfig(
+  projectDir: string = process.cwd(),
+  homeDir: string = os.homedir(),
+): KibiConfig {
+  const homeConfig = path.join(homeDir, ".config", "opencode", "kibi.json");
   const projectConfig = path.join(projectDir, ".opencode", "kibi.json");
 
-  const globalObj = readJsonIfExists(homeConfig);
-  const projectObj = readJsonIfExists(projectConfig);
-
-  let merged = {};
-  if (globalObj) merged = { ...merged, ...globalObj };
-  if (projectObj) merged = { ...merged, ...projectObj };
-
-  const validated = validateAndMerge(merged);
-  return validated;
+  // Spreading a missing (null) config adds nothing.
+  return validateAndMerge({
+    ...(readJsonIfExists(homeConfig) as object | null),
+    ...(readJsonIfExists(projectConfig) as object | null),
+  });
 }
 
 // implements REQ-opencode-kibi-plugin-v1

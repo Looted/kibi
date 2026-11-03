@@ -7,10 +7,15 @@ import {
   mock,
   test,
 } from "bun:test";
-import { execSync as realExecSync } from "node:child_process";
+import * as childProcess from "node:child_process";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+
+// mock.module patches node:child_process in place for every later test file,
+// so keep a copy of the real module to call through to and to put back.
+const realChildProcess = { ...childProcess };
+const realExecSync = realChildProcess.execSync;
 
 type ExecSyncOptions = {
   cwd: string;
@@ -403,4 +408,5 @@ describe("symbolIndex", () => {
 
 afterAll(() => {
   mock.restore();
+  mock.module("node:child_process", () => realChildProcess);
 });

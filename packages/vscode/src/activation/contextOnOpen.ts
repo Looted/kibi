@@ -61,12 +61,9 @@ export function registerContextOnOpen(
           { sourceFile: relativePath },
         );
 
-        if (
-          mcpResult?.structuredContent?.entities &&
-          Array.isArray(mcpResult.structuredContent.entities) &&
-          mcpResult.structuredContent.entities.length > 0
-        ) {
-          const count = mcpResult.structuredContent.entities.length;
+        const entities = mcpResult?.structuredContent?.entities;
+        if (Array.isArray(entities) && entities.length > 0) {
+          const count = entities.length;
           vscode.window.showInformationMessage(
             `Kibi: ${count} KB entities linked to this file. Open Kibi panel to explore.`,
           );

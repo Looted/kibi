@@ -80,7 +80,15 @@ function initializeWorkspaceFeatures(
   registerContextOnOpen(context, output, workspaceRoot);
   registerSignoff(context, output, workspaceRoot);
 
-  const subscriptions: vscode.Disposable[] = [
+  // Traceability parts that failed to initialize have no registration.
+  const traceabilityRegistrations = [
+    traceabilityResult.browseLinkedEntitiesCommand,
+    traceabilityResult.codeActionRegistration,
+    traceabilityResult.codeLensRegistration,
+    traceabilityResult.hoverRegistration,
+  ].filter((registration) => registration !== undefined);
+
+  context.subscriptions.push(
     treeViewResult.watcher,
     treeViewResult.treeView,
     treeViewResult.refreshCommand,
@@ -88,22 +96,8 @@ function initializeWorkspaceFeatures(
     navigationCommands.openEntityByIdCommand,
     navigationCommands.openTreeItemSourceCommand,
     navigationCommands.focusKnowledgeBaseCommand,
-  ];
-
-  if (traceabilityResult.browseLinkedEntitiesCommand) {
-    subscriptions.push(traceabilityResult.browseLinkedEntitiesCommand);
-  }
-  if (traceabilityResult.codeActionRegistration) {
-    subscriptions.push(traceabilityResult.codeActionRegistration);
-  }
-  if (traceabilityResult.codeLensRegistration) {
-    subscriptions.push(traceabilityResult.codeLensRegistration);
-  }
-  if (traceabilityResult.hoverRegistration) {
-    subscriptions.push(traceabilityResult.hoverRegistration);
-  }
-
-  context.subscriptions.push(...subscriptions);
+    ...traceabilityRegistrations,
+  );
 
   output.appendLine("Kibi extension activation complete.");
 }

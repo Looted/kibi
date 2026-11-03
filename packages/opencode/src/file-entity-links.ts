@@ -1,7 +1,7 @@
 // implements REQ-opencode-file-context-guidance-v1
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import * as path from "node:path";
-import { loadKbSyncPaths } from "./file-filter.js";
+import { getKbExistenceTargets, loadKbSyncPaths } from "./file-filter.js";
 
 // ── Shared types ────────────────────────────────────────────────────
 
@@ -10,10 +10,10 @@ export function emptyLinkedTargets(): { ids: []; source: "none" } {
 }
 
 export type SymbolsManifestRow = {
-  id?: string;
-  sourceFile?: string;
-  links?: string[];
-  relationships?: Array<{ type: string; target: string }>;
+  id: string;
+  sourceFile: string;
+  links: string[];
+  relationships: Array<{ type: string; target: string }>;
 };
 
 // ── Lightweight YAML parser (symbols.yaml subset) ───────────────────
@@ -31,103 +31,90 @@ export type SymbolsManifestRow = {
 // And bare array format (no wrapping `symbols:` key):
 //     - id: SYM-xxx
 //       ...
+//
+// Values are trimmed after capture, so the patterns need no `\s*` before
+// them. Comment lines never match a pattern: every one starts with
+// whitespace followed by a key or `-`.
+
+type ParsedEntry = Omit<SymbolsManifestRow, "sourceFile"> & {
+  sourceFile?: string;
+};
 
 // implements REQ-opencode-file-context-guidance-v1
 export function parseSymbolsYaml(content: string): SymbolsManifestRow[] {
   const entries: SymbolsManifestRow[] = [];
-  const lines = content.split("\n");
-
-  let current: Partial<SymbolsManifestRow> | null = null;
-  let section: "none" | "links" | "relationships" = "none";
-  let pendingRel: { type: string; target?: string } | null = null;
-
-  function flushRel() {
-    if (pendingRel?.type && pendingRel.target && current?.relationships) {
-      current.relationships.push({
-        type: pendingRel.type,
-        target: pendingRel.target,
-      });
-    }
-    pendingRel = null;
-  }
+  let current: ParsedEntry | undefined;
+  let section: "links" | "relationships" | undefined;
+  // The relationship that a following `target:` line completes. It is added
+  // to the entry at once; incomplete ones are dropped when the entry ends.
+  let rel: { type: string; target: string } | undefined;
 
   function flushEntry() {
-    flushRel();
-    if (current?.id && current?.sourceFile) {
-      entries.push(current as SymbolsManifestRow);
+    if (current?.id && current.sourceFile) {
+      entries.push({
+        id: current.id,
+        sourceFile: current.sourceFile,
+        links: current.links,
+        relationships: current.relationships.filter(
+          (r) => r.type !== "" && r.target !== "",
+        ),
+      });
     }
-    current = null;
-    section = "none";
   }
 
-  for (const raw of lines) {
-    if (raw.trim().startsWith("#")) continue;
-
+  for (const raw of content.split(/\r?\n/)) {
     // New entry: "  - id: ..."
-    const entryMatch = raw.match(/^\s+-\s+id:\s*(.+)$/);
+    const entryMatch = raw.match(/^\s+-\s+id:(.+)/);
     if (entryMatch) {
       flushEntry();
-      const entryId = entryMatch[1];
-      if (entryId === undefined) continue;
-      current = { id: entryId.trim(), links: [], relationships: [] };
-      section = "none";
+      current = {
+        id: (entryMatch[1] as string).trim(),
+        links: [],
+        relationships: [],
+      };
+      section = undefined;
       continue;
     }
 
     if (!current) continue;
 
-    // sourceFile
-    const srcMatch = raw.match(/^\s+sourceFile:\s*(.+)$/);
+    const srcMatch = raw.match(/^\s+sourceFile:(.+)/);
     if (srcMatch) {
-      const sourceFile = srcMatch[1];
-      if (sourceFile === undefined) continue;
-      current.sourceFile = sourceFile.trim();
-      section = "none";
+      current.sourceFile = (srcMatch[1] as string).trim();
+      section = undefined;
       continue;
     }
 
-    // links section header
     if (/^\s+links:\s*$/.test(raw)) {
-      flushRel();
       section = "links";
       continue;
     }
 
-    // relationships section header
     if (/^\s+relationships:\s*$/.test(raw)) {
-      flushRel();
       section = "relationships";
+      rel = undefined;
       continue;
     }
 
-    // Link item: "      - REQ-xxx"
     if (section === "links") {
+      // Link item: "      - REQ-xxx"
       const linkMatch = raw.match(/^\s+-\s+(REQ-[A-Za-z0-9_-]+)\s*$/);
-      if (linkMatch) {
-        const linkId = linkMatch[1];
-        if (linkId !== undefined && current.links) {
-          current.links.push(linkId);
-        }
-        continue;
-      }
+      if (linkMatch) current.links.push(linkMatch[1] as string);
+      continue;
     }
 
-    // Relationship type: "      - type: implements"
     if (section === "relationships") {
-      const relTypeMatch = raw.match(/^\s+-\s+type:\s*(.+)$/);
+      // Relationship type: "      - type: implements"
+      const relTypeMatch = raw.match(/^\s+-\s+type:(.+)/);
       if (relTypeMatch) {
-        flushRel();
-        const relationType = relTypeMatch[1];
-        if (relationType === undefined) continue;
-        pendingRel = { type: relationType.trim() };
+        rel = { type: (relTypeMatch[1] as string).trim(), target: "" };
+        current.relationships.push(rel);
         continue;
       }
       // Relationship target: "        target: REQ-..."
-      const relTargetMatch = raw.match(/^\s+target:\s*(.+)$/);
-      if (relTargetMatch && pendingRel) {
-        const target = relTargetMatch[1];
-        if (target === undefined) continue;
-        pendingRel.target = target.trim();
+      const relTargetMatch = raw.match(/^\s+target:(.+)/);
+      if (relTargetMatch && rel) {
+        rel.target = (relTargetMatch[1] as string).trim();
       }
     }
   }
@@ -143,73 +130,42 @@ const DOC_ENTITY_PATTERN =
 
 // implements REQ-opencode-file-context-guidance-v1
 function resolveDocPathIdentity(
+  worktree: string,
   relPath: string,
-  syncPaths: Record<string, string>,
 ): string | null {
   const basename = path.posix.basename(relPath);
   if (!DOC_ENTITY_PATTERN.test(basename)) return null;
-
-  const entityId = basename.replace(/\.md$/, "");
-
-  // Check if the file lives under one of the configured doc roots
-  const docRootKeys = [
-    "requirements",
-    "scenarios",
-    "tests",
-    "adr",
-    "flags",
-    "events",
-    "facts",
-  ] as const;
-
-  // Normalize the relative path for matching
-  const normalizedRel = relPath.split(path.sep).join("/");
-
-  for (const key of docRootKeys) {
-    const pattern = syncPaths[key];
-    if (!pattern) continue;
-
-    // Strip glob from pattern to get the root dir prefix
-    // e.g. ".kb/requirements/**/*.md" → ".kb/requirements"
-    const rootDir = pattern.replace(/\/\*\*\/.*$/, "").replace(/\/+$/, "");
-
-    if (normalizedRel.startsWith(`${rootDir}/`)) {
-      return entityId;
-    }
-  }
-
-  return null;
+  // The file must live under one of the entity document roots.
+  const underDocRoot = getKbExistenceTargets(worktree).some(
+    (target) =>
+      target.kind === "dir" && relPath.startsWith(`${target.relativePath}/`),
+  );
+  return underDocRoot ? basename.slice(0, -".md".length) : null;
 }
 
 // ── Symbols file resolution ─────────────────────────────────────────
 
-function readSymbolsManifest(
-  worktree: string,
-  syncPaths: Record<string, string>,
-): SymbolsManifestRow[] {
-  const symbolsPathRaw = syncPaths.symbols;
-  if (!symbolsPathRaw) return [];
-
-  const symbolsPath = path.isAbsolute(symbolsPathRaw)
-    ? symbolsPathRaw
-    : path.join(worktree, symbolsPathRaw);
-
-  if (!existsSync(symbolsPath)) return [];
-
-  const content = readFileSync(symbolsPath, "utf8");
-  return parseSymbolsYaml(content);
+/** Rows of the symbols manifest for one file. A missing manifest throws,
+ *  which the callers treat like a file without links. */
+function readSymbolsRows(worktree: string, relPath: string) {
+  const symbolsPath = path.join(worktree, loadKbSyncPaths(worktree).symbols);
+  return parseSymbolsYaml(readFileSync(symbolsPath, "utf8")).filter(
+    (row) => row.sourceFile === relPath,
+  );
 }
 
 function normalizeFilePath(worktree: string, filePath: string): string {
   // Normalize to forward-slash relative path from worktree
-  const absPath = path.isAbsolute(filePath)
-    ? filePath
-    : path.resolve(worktree, filePath);
-
-  return path.relative(worktree, absPath).split(path.sep).join("/");
+  return path
+    .relative(worktree, path.resolve(worktree, filePath))
+    .split(path.sep)
+    .join("/");
 }
 
 // ── Public API ──────────────────────────────────────────────────────
+
+// Priority order: implements → covered_by → executable_for
+const REL_PRIORITY = ["implements", "covered_by", "executable_for"];
 
 // implements REQ-opencode-file-context-guidance-v1
 export function getFileLinkedEntityIds(
@@ -217,59 +173,34 @@ export function getFileLinkedEntityIds(
   filePath: string,
 ): { ids: string[]; source: "symbols" | "doc-path" | "none" } {
   try {
-    const syncPaths = loadKbSyncPaths(worktree);
     const relPath = normalizeFilePath(worktree, filePath);
 
     // Check doc-path identity first
-    const docId = resolveDocPathIdentity(relPath, syncPaths);
+    const docId = resolveDocPathIdentity(worktree, relPath);
     if (docId) {
       return { ids: [docId], source: "doc-path" };
     }
 
-    // Try symbols manifest
-    const symbols = readSymbolsManifest(worktree, syncPaths);
-    const matchedRows = symbols.filter((s) => s.sourceFile === relPath);
-
+    const matchedRows = readSymbolsRows(worktree, relPath);
     if (matchedRows.length === 0) {
-      return { ids: [], source: "none" };
+      return emptyLinkedTargets();
     }
 
-    const seen = new Set<string>();
-    const orderedIds: string[] = [];
-
-    // Priority order: implements → covered_by → executable_for
-    const relPriority = ["implements", "covered_by", "executable_for"];
-
-    // First pass: collect relationships grouped by priority type, preserving file order within each type
-    for (const priorityType of relPriority) {
+    // Relationships grouped by priority type, preserving file order within
+    // each type, then the static links; first occurrence wins.
+    const ordered = new Set<string>();
+    for (const priorityType of REL_PRIORITY) {
       for (const row of matchedRows) {
-        for (const r of row.relationships ?? []) {
-          if (r.type === priorityType) {
-            const id = r.target;
-            if (!seen.has(id)) {
-              seen.add(id);
-              orderedIds.push(id);
-              if (orderedIds.length >= 3)
-                return { ids: orderedIds.slice(0, 3), source: "symbols" };
-            }
-          }
+        for (const r of row.relationships) {
+          if (r.type === priorityType) ordered.add(r.target);
         }
       }
     }
-
-    // Second pass: fall back to static links, preserving file order
     for (const row of matchedRows) {
-      for (const l of row.links ?? []) {
-        if (!seen.has(l)) {
-          seen.add(l);
-          orderedIds.push(l);
-          if (orderedIds.length >= 3)
-            return { ids: orderedIds.slice(0, 3), source: "symbols" };
-        }
-      }
+      for (const l of row.links) ordered.add(l);
     }
 
-    return { ids: orderedIds.slice(0, 3), source: "symbols" };
+    return { ids: [...ordered].slice(0, 3), source: "symbols" };
   } catch {
     return emptyLinkedTargets();
   }
@@ -282,26 +213,14 @@ export function getFileLinkedTargetsByType(
   relationshipTypes: string[],
 ): string[] {
   try {
-    const syncPaths = loadKbSyncPaths(worktree);
     const relPath = normalizeFilePath(worktree, filePath);
-    const symbols = readSymbolsManifest(worktree, syncPaths);
-
-    const matchedRows = symbols.filter((s) => s.sourceFile === relPath);
-    if (matchedRows.length === 0) return [];
-
-    const targets: string[] = [];
-    const seen = new Set<string>();
-
-    for (const row of matchedRows) {
-      for (const r of row.relationships ?? []) {
-        if (relationshipTypes.includes(r.type) && !seen.has(r.target)) {
-          seen.add(r.target);
-          targets.push(r.target);
-        }
+    const targets = new Set<string>();
+    for (const row of readSymbolsRows(worktree, relPath)) {
+      for (const r of row.relationships) {
+        if (relationshipTypes.includes(r.type)) targets.add(r.target);
       }
     }
-
-    return targets;
+    return [...targets];
   } catch {
     return [];
   }

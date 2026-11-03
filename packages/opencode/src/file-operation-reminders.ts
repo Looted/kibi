@@ -72,6 +72,9 @@ export function deriveFileOperationReminder(
   const policyResult = computeEnforcementPolicy({
     resolvedContext: params.resolvedContext,
     workContext: params.workContext,
+    // rationale: the policy only distinguishes "hard" from every other mode,
+    // so an empty default behaves exactly like "advisory".
+    // Stryker disable next-line StringLiteral
     effectiveMode: params.effectiveMode ?? "advisory",
     lifecycleEvents: params.lifecycleEvents ?? [{ normalizedPath, lifecycle }],
     pathKinds: params.pathKinds ?? [pathKind],

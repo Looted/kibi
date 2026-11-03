@@ -80,8 +80,9 @@ export function createFileOperationState(opts: {
     existing: FileLifecycle | undefined,
     incoming: FileLifecycle,
   ): FileLifecycle {
-    if (existing === undefined) {
-      return incoming;
+    // deleted + anything -> deleted
+    if (existing === "deleted") {
+      return "deleted";
     }
 
     // created + edited -> created
@@ -89,28 +90,8 @@ export function createFileOperationState(opts: {
       return "created";
     }
 
-    // edited + edited -> edited
-    if (existing === "edited" && incoming === "edited") {
-      return "edited";
-    }
-
-    // created|edited + deleted -> deleted
-    if (
-      (existing === "created" || existing === "edited") &&
-      incoming === "deleted"
-    ) {
-      return "deleted";
-    }
-
-    // deleted + created|edited -> deleted
-    if (
-      existing === "deleted" &&
-      (incoming === "created" || incoming === "edited")
-    ) {
-      return "deleted";
-    }
-
-    // Fallback: use incoming
+    // Every other pair (no event yet, edited + edited, created|edited +
+    // deleted, ...) takes the incoming lifecycle.
     return incoming;
   }
 

@@ -15,6 +15,7 @@ type VscodeMockState = {
   };
   CodeActionKind: { Empty: string };
   TextEditorRevealType: { InCenter: string };
+  ViewColumn: { Beside: number };
   CodeAction: new (title: string, kind: unknown) => DefaultCodeAction;
   CodeLens: new (range: unknown, command?: unknown) => DefaultCodeLens;
   Position: new (line: number, character: number) => DefaultPosition;
@@ -295,6 +296,7 @@ function createDefaultState(): VscodeMockState {
     TreeItemCollapsibleState: { None: 0, Collapsed: 1, Expanded: 2 },
     CodeActionKind: { Empty: "empty-kind" },
     TextEditorRevealType: { InCenter: "in-center" },
+    ViewColumn: { Beside: -2 },
     CodeAction: DefaultCodeAction,
     CodeLens: DefaultCodeLens,
     Position: DefaultPosition,
@@ -400,6 +402,9 @@ const vscodeMockModule = {
   },
   get TextEditorRevealType() {
     return state.TextEditorRevealType;
+  },
+  get ViewColumn() {
+    return state.ViewColumn;
   },
   get CodeAction() {
     return state.CodeAction;

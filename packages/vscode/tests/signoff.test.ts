@@ -9,7 +9,14 @@ type Listener = () => Promise<void> | void;
 let commandHandler: (() => void) | undefined;
 let changeListener: Listener | undefined;
 let createListener: Listener | undefined;
-let panels: { webview: { html: string }; reveal: () => void }[] = [];
+type Panel = {
+  webview: { html: string };
+  reveal: (column: unknown) => void;
+  reveals: unknown[];
+  dispose?: () => void;
+};
+let panels: Panel[] = [];
+let panelArgs: unknown[][] = [];
 let choice: string | undefined;
 const messages: string[] = [];
 
@@ -37,21 +44,25 @@ function installMock(): void {
         messages.push(message);
         return choice;
       }),
-      createWebviewPanel: mock(() => {
-        const panel = {
+      createWebviewPanel: mock((...args: unknown[]) => {
+        panelArgs.push(args);
+        const panel: Panel & { onDidDispose: (cb: () => void) => unknown } = {
           webview: { html: "" },
-          reveal: () => {},
-          onDidDispose: () => ({ dispose() {} }),
+          reveals: [],
+          reveal: (column: unknown) => {
+            panel.reveals.push(column);
+          },
+          onDidDispose: (cb: () => void) => {
+            panel.dispose = cb;
+            return { dispose() {} };
+          },
         };
         panels.push(panel);
         return panel;
       }),
     },
   });
-  mock.module("vscode", () => ({
-    ...getVscodeMockModule(),
-    ViewColumn: { Beside: -2 },
-  }));
+  mock.module("vscode", () => getVscodeMockModule());
 }
 
 installMock();
@@ -76,6 +87,7 @@ beforeEach(() => {
   changeListener = undefined;
   createListener = undefined;
   panels = [];
+  panelArgs = [];
   choice = undefined;
   messages.length = 0;
 });
@@ -141,5 +153,39 @@ describe("requirements signoff view", () => {
     registerSignoff(context as never, { appendLine: () => {} } as never, root);
     commandHandler?.();
     expect(panels[0]?.webview.html).toContain("No signoff view yet");
+  });
+
+  test("a second show reveals the open panel beside the editor", () => {
+    const context = { subscriptions: [] as unknown[] };
+    registerSignoff(context as never, { appendLine: () => {} } as never, root);
+    writeLatest({ kind: "summary", requirements: [] }, "<html>v1</html>");
+    commandHandler?.();
+    commandHandler?.();
+    expect(panels).toHaveLength(1);
+    expect(panels[0]?.reveals).toEqual([-2]);
+    expect(panelArgs).toEqual([
+      [
+        "kibiSignoff",
+        "Kibi signoff",
+        -2,
+        { enableScripts: false, retainContextWhenHidden: false },
+      ],
+    ]);
+  });
+
+  test("a closed panel is created again on the next show", async () => {
+    const context = { subscriptions: [] as unknown[] };
+    registerSignoff(context as never, { appendLine: () => {} } as never, root);
+    commandHandler?.();
+    panels[0]?.dispose?.();
+    // With no open panel, a change announces instead of re-rendering.
+    writeLatest({ kind: "summary", requirements: [{}] }, "<html>v3</html>");
+    await changeListener?.();
+    expect(messages).toEqual([
+      "Kibi: requirements signoff ready (1 requirement).",
+    ]);
+    commandHandler?.();
+    expect(panels).toHaveLength(2);
+    expect(panels[1]?.webview.html).toBe("<html>v3</html>");
   });
 });

@@ -12,7 +12,7 @@ import type { RiskClass } from "./risk-classifier.js";
  *   impact.
  */
 export function isSafeDocsUnknownPath(
-  riskClass: RiskClass,
+  riskClass: RiskClass | undefined,
   pathKind: PathKind,
 ): boolean {
   return riskClass === "safe_docs_only" && pathKind === "unknown";
@@ -69,27 +69,6 @@ const ADVISORY_FILENAMES = new Set([
   "yarn.lock",
 ]);
 
-// PathKind values that always require KB evidence.
-const MEANINGFUL_PATH_KINDS: ReadonlySet<PathKind> = new Set([
-  "code",
-  "requirement",
-  "scenario",
-  "test",
-  "adr",
-  "fact",
-  "flag",
-  "event",
-  "symbol",
-  "kb",
-]);
-
-// Risk classes that upgrade the classification to requires-kb-evidence.
-const UPGRADE_RISK_CLASSES: ReadonlySet<RiskClass> = new Set([
-  "behavior_candidate",
-  "traceability_candidate",
-  "req_policy_candidate",
-]);
-
 function isIgnoredPath(normalizedPath: string): boolean {
   // Check extension-based ignored patterns.
   if (
@@ -120,10 +99,8 @@ function isIgnoredPath(normalizedPath: string): boolean {
 }
 
 function getFilename(normalizedPath: string): string {
-  const lastSlash = normalizedPath.lastIndexOf("/");
-  return lastSlash === -1
-    ? normalizedPath
-    : normalizedPath.slice(lastSlash + 1);
+  // lastIndexOf is -1 without a slash, which slices from 0.
+  return normalizedPath.slice(normalizedPath.lastIndexOf("/") + 1);
 }
 
 /**
@@ -132,10 +109,10 @@ function getFilename(normalizedPath: string): string {
  * Rules (first match wins):
  * 1. Ignored paths (build artifacts, vendor dirs) → `ignored`
  * 2. Advisory paths (lockfiles) → `advisory`
- * 3. Meaningful pathKinds (code, requirements, KB docs, etc.) → `requires-kb-evidence`
- * 4. Risk-based upgrade (behavior/traceability/req_policy candidates) → `requires-kb-evidence`
- * 5. `safe_docs_only` risk + `unknown` pathKind → `advisory`
- * 6. Default → `requires-kb-evidence` (safety default)
+ * 3. `safe_docs_only` risk + `unknown` pathKind → `advisory`
+ * 4. Default → `requires-kb-evidence`: every meaningful pathKind (code,
+ *    requirements, KB docs, etc.), every risk-upgrading class, and the
+ *    safety default for anything else
  */
 export function classifyMeaningfulChange(params: {
   normalizedPath: string;
@@ -156,20 +133,9 @@ export function classifyMeaningfulChange(params: {
     return "advisory";
   }
 
-  // 3. REQUIRES-KB-EVIDENCE by pathKind
-  if (MEANINGFUL_PATH_KINDS.has(pathKind)) {
-    return "requires-kb-evidence";
-  }
+  // 3. ADVISORY docs-only changes to unknown paths
+  if (isSafeDocsUnknownPath(riskClass, pathKind)) return "advisory";
 
-  // 4. RISK-BASED UPGRADE
-  if (riskClass) {
-    if (UPGRADE_RISK_CLASSES.has(riskClass)) {
-      return "requires-kb-evidence";
-    }
-
-    if (isSafeDocsUnknownPath(riskClass, pathKind)) return "advisory";
-  }
-
-  // 5. DEFAULT — safety default for unknown paths
+  // 4. DEFAULT — requires KB evidence
   return "requires-kb-evidence";
 }
