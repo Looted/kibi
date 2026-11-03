@@ -35,15 +35,19 @@ export function collectGranularityCandidates(
   filePath: string,
   content: string,
 ): GranularitySymbolCandidate[] {
-  const source = new (tsMorph().Project)({
-    skipAddingFilesFromTsConfig: true,
-  }).createSourceFile(`${filePath}::granularity`, content, {
-    overwrite: true,
-    scriptKind: chooseScriptKind(filePath),
-  });
+  // Without a tsconfig path the project reads no tsconfig files.
+  // The suffix keeps an in-memory file from colliding with a directory or
+  // another source file at the same path.
+  const source = new (tsMorph().Project)().createSourceFile(
+    `${filePath}::granularity`,
+    content,
+    {
+      overwrite: true,
+      scriptKind: chooseScriptKind(filePath),
+    },
+  );
   const found: GranularitySymbolCandidate[] = [];
   const methodCounts = new Map<string, number>();
-  const bareMethods = new Map<string, GranularitySymbolCandidate>();
   for (const fn of source.getFunctions()) {
     const name = fn.getName();
     if (fn.isExported() && name) found.push({ name, kind: "function" });
@@ -57,7 +61,6 @@ export function collectGranularityCandidates(
       const name = method.getName();
       if (className)
         found.push({ name: `${className}.${name}`, kind: "method" });
-      bareMethods.set(name, { name, kind: "method" });
       methodCounts.set(name, (methodCounts.get(name) ?? 0) + 1);
     }
     for (const property of cls.getProperties()) {
@@ -77,8 +80,7 @@ export function collectGranularityCandidates(
     }
   }
   for (const [name, count] of methodCounts) {
-    const method = bareMethods.get(name);
-    if (count === 1 && method) found.push(method);
+    if (count === 1) found.push({ name, kind: "method" });
   }
   for (const item of source.getInterfaces()) {
     if (item.isExported())

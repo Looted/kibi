@@ -10,6 +10,8 @@ import { join } from "node:path";
 
 import strykerConfig, {
   CLI_MUTATION_MODULES,
+  MUTATION_PACKAGES,
+  MUTATION_TEST_EXCLUDES,
   PLUGIN_MUTATION_MODULES,
 } from "../../stryker.conf.mjs";
 import treesitterConfig, {
@@ -18,11 +20,6 @@ import treesitterConfig, {
 } from "../../stryker.treesitter.conf.mjs";
 
 const ROOT = join(import.meta.dir, "..", "..");
-const MUTATION_PACKAGES = [
-  "packages/runtime",
-  "packages/codex",
-  "packages/cursor",
-] as const;
 
 type StrykerConfig = {
   testRunner?: string;
@@ -77,6 +74,13 @@ describe("mutation testing workflow contract", () => {
     }
   });
 
+  test("every whole package in scope is mutated", () => {
+    expect(MUTATION_PACKAGES).toContain("packages/runtime");
+    for (const pkg of MUTATION_PACKAGES) {
+      expect(config.mutate).toContain(`${pkg}/src/**/*.ts`);
+    }
+  });
+
   test("the runtime re-export barrel stays excluded from mutation", () => {
     expect(config.mutate).toContain("!packages/runtime/src/index.ts");
     const excluded = (config.mutate ?? [])
@@ -105,12 +109,15 @@ describe("mutation testing workflow contract", () => {
       ...new Set([
         ...MUTATION_PACKAGES.flatMap((pkg) =>
           walkTsFiles(pkg, "tests", ".test.ts"),
-        ),
+        ).filter((file) => !MUTATION_TEST_EXCLUDES.includes(file)),
         ...Object.values(CLI_MUTATION_MODULES).flat(),
         ...Object.values(PLUGIN_MUTATION_MODULES).flat(),
       ]),
     ].sort();
     expect(registered.sort()).toEqual(onDisk);
+    for (const excluded of MUTATION_TEST_EXCLUDES) {
+      expect(statSync(join(ROOT, excluded)).isFile()).toBe(true);
+    }
     for (const rel of registered) {
       expect(statSync(join(ROOT, rel)).isFile()).toBe(true);
     }
@@ -142,7 +149,7 @@ describe("mutation testing workflow contract", () => {
     }
     expect(workflow).toContain("- 'stryker.conf.mjs'");
     for (const [module, tests] of Object.entries(PLUGIN_MUTATION_MODULES)) {
-      const pkg = module.split("/src/")[0];
+      const pkg = module.split("/").slice(0, 2).join("/");
       const covered = (path: string, leaf: string) =>
         workflow.includes(`- '${path}'`) ||
         workflow.includes(`- '${pkg}/${leaf}/**'`);
@@ -175,7 +182,7 @@ describe("mutation testing workflow contract", () => {
     for (const [module, tests] of modules) {
       expect(config.mutate).toContain(module);
       expect(statSync(join(ROOT, module)).isFile()).toBe(true);
-      const pkg = module.split("/src/")[0];
+      const pkg = module.split("/").slice(0, 2).join("/");
       expect(tests.length).toBeGreaterThan(0);
       for (const test of tests) {
         expect(test.startsWith(`${pkg}/tests/`)).toBe(true);

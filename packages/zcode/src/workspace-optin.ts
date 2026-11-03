@@ -62,9 +62,8 @@ export function resolveKibiWorkspace(
     }
   }
 
-  let current: string | undefined = path.resolve(
-    startDir && startDir.trim().length > 0 ? startDir : process.cwd(),
-  );
+  const start = path.resolve(startDir?.trim() ? startDir : process.cwd());
+  let current: string | undefined = start;
   while (current !== undefined) {
     if (hasKibiManifest(current)) {
       return { root: current, optedIn: true };
@@ -75,5 +74,7 @@ export function resolveKibiWorkspace(
     current = nextAncestorDirectory(current);
   }
 
-  return resolutionFor(path.resolve(startDir ?? process.cwd()));
+  // The walk checked `start` for a manifest first, so reaching the
+  // filesystem root means the start directory is not opted in.
+  return { root: start, optedIn: false };
 }

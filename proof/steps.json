@@ -7269,6 +7269,16 @@
     ]
   },
   {
+    "test_id": "TEST-proof-bundled-skill-catalog",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/skill-catalog.proof.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-sync-relationship-retry",
     "steps": [
       [

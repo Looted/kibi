@@ -17,10 +17,6 @@ export type HookInput = {
   prompt?: string;
 };
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
 function readString(
   record: Record<string, unknown>,
   key: string,
@@ -29,11 +25,10 @@ function readString(
   return typeof value === "string" ? value : undefined;
 }
 
-export function parseHookInput(input: unknown): HookInput {
-  if (!isRecord(input)) {
-    return { event: "" };
-  }
-
+export function parseHookInput(raw: unknown): HookInput {
+  // Only null and undefined cannot be indexed; any other value that is not a
+  // record (a string, a number, an array) has none of these fields.
+  const input = (raw ?? {}) as Record<string, unknown>;
   const parsed: HookInput = {
     event: readString(input, "hook_event_name") ?? "",
   };
@@ -55,7 +50,8 @@ export function parseHookInput(input: unknown): HookInput {
 export async function readStdin(): Promise<string> {
   const chunks: Buffer[] = [];
   for await (const chunk of process.stdin) {
-    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+    // Buffer.from copies a Buffer chunk and encodes a string one.
+    chunks.push(Buffer.from(chunk));
   }
   return Buffer.concat(chunks).toString("utf8");
 }

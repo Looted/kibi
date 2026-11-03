@@ -119,9 +119,16 @@ export type HookEnvironment = {
   env?: NodeJS.ProcessEnv | undefined;
 };
 
-const readTools = new Set(["Read"]);
-const editTools = new Set(["Edit", "MultiEdit", "Write", "NotebookEdit"]);
-const searchTools = new Set(["Grep", "Glob"]);
+// Typed to take the input's optional tool name as it is.
+type ToolNames = ReadonlySet<string | undefined>;
+const readTools: ToolNames = new Set(["Read"]);
+const editTools: ToolNames = new Set([
+  "Edit",
+  "MultiEdit",
+  "Write",
+  "NotebookEdit",
+]);
+const searchTools: ToolNames = new Set(["Grep", "Glob"]);
 
 function context(event: ContextEvent, text: string): HookOutput {
   return {
@@ -129,19 +136,34 @@ function context(event: ContextEvent, text: string): HookOutput {
   };
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+/**
+ * The fields of a tool input. Reading a field of a primitive or an array
+ * yields undefined, so only null and undefined need replacing.
+ */
+function fieldsOf(toolInput: unknown): Record<string, unknown> {
+  return (toolInput ?? {}) as Record<string, unknown>;
 }
 
 function toolPath(toolInput: unknown): string | undefined {
-  if (!isRecord(toolInput)) return undefined;
-  const candidate = toolInput.file_path ?? toolInput.notebook_path;
+  const fields = fieldsOf(toolInput);
+  const candidate = fields.file_path ?? fields.notebook_path;
   return typeof candidate === "string" ? candidate : undefined;
 }
 
+/**
+ * The Bash command. Claude Code always sends a string; anything else reads
+ * as its string form, which names no file, search or Kibi call.
+ */
 function bashCommand(toolInput: unknown): string {
-  if (!isRecord(toolInput)) return "";
-  return typeof toolInput.command === "string" ? toolInput.command : "";
+  return String(fieldsOf(toolInput).command);
+}
+
+/** Symbols with relationships in a workspace-relative file. */
+function symbolsFor(
+  workspace: Workspace,
+  relativePath: string,
+): readonly IndexedSymbol[] {
+  return workspace.index().files[relativePath] ?? [];
 }
 
 function linkedFileCount(index: KnowledgeIndex): number {
@@ -152,11 +174,9 @@ function linkedFileCount(index: KnowledgeIndex): number {
 
 /** Read window of a Read call; no focus when the whole file is read. */
 export function readFocus(toolInput: unknown): LineRange[] | undefined {
-  if (!isRecord(toolInput)) return undefined;
-  const offset =
-    typeof toolInput.offset === "number" ? toolInput.offset : undefined;
-  const limit =
-    typeof toolInput.limit === "number" ? toolInput.limit : undefined;
+  const fields = fieldsOf(toolInput);
+  const offset = typeof fields.offset === "number" ? fields.offset : undefined;
+  const limit = typeof fields.limit === "number" ? fields.limit : undefined;
   if (offset === undefined && limit === undefined) return undefined;
   const start = Math.max(1, offset ?? 1);
   return [{ start, end: limit !== undefined ? start + limit - 1 : start }];
@@ -263,7 +283,7 @@ function preToolUse(
   workspace: Workspace,
   trace: HookTrace = {},
 ): HookOutput {
-  const toolName = input.toolName ?? "";
+  const toolName = input.toolName;
   // Name the session's workspace on every Kibi MCP call so the MCP launcher
   // answers from it, even after the session moves into a git worktree.
   const stamped = stampKibiWorkspace(toolName, input.toolInput, workspace.root);
@@ -319,7 +339,7 @@ function preToolUse(
   if (kind === "other") return {};
 
   const relativePath = target.relative;
-  const symbols = workspace.index().files[relativePath] ?? [];
+  const symbols = symbolsFor(workspace, relativePath);
   trace.requirementIds = requirementIds(symbols);
 
   if (isRead) {
@@ -381,8 +401,8 @@ function editPreToolUse(
     if (!symbol || symbol.implements.length === 0) return {};
     const key = `${relativePath}#${symbol.id}`;
     if (state.shownEdit.has(key)) return {};
-    const update = focusUpdate(relativePath, symbols, focus);
-    if (!update) return {};
+    // The focused symbol exists, so the update always has text.
+    const update = focusUpdate(relativePath, symbols, focus) as string;
     events.push({ kind: "shown", surface: "edit", path: key });
     return emit(update, "edit_focus_update");
   }
@@ -399,29 +419,24 @@ function editPreToolUse(
   }
   events.push({ kind: "shown", surface: "edit", path: relativePath });
 
-  if (alreadyKnown) {
-    // The read snippet already described the file (requirements, symbols,
-    // tests, next layer); the first edit still has to say what must stay
-    // true and name the impact check, which the read never showed.
-    const update = editKnowledgeUpdate({
-      relativePath,
-      symbols,
-      surface: "edit",
-      focus,
-      summarize: workspace.summarize,
-    });
-    if (update) return emit(update, "edit_update_snippet");
-    appendSessionEvents(workspace.stateDir, events);
-    return {};
-  }
-
-  const snippet = fileKnowledgeSnippet({
+  const snippetInput = {
     relativePath,
     symbols,
     surface: "edit",
     focus,
     summarize: workspace.summarize,
-  });
+  } as const;
+  if (alreadyKnown) {
+    // The read snippet already described the file (requirements, symbols,
+    // tests, next layer); the first edit still has to say what must stay
+    // true and name the impact check, which the read never showed.
+    const update = editKnowledgeUpdate(snippetInput);
+    if (update) return emit(update, "edit_update_snippet");
+    appendSessionEvents(workspace.stateDir, events);
+    return {};
+  }
+
+  const snippet = fileKnowledgeSnippet(snippetInput);
   if (snippet) return emit(snippet, "edit_snippet");
 
   if (kind === "source") {
@@ -479,6 +494,9 @@ function readSnippet(
     fileKnowledgeSnippet({
       relativePath,
       symbols,
+      // rationale: the shared snippet only tests for the edit surface, so
+      // any other value reads as this one.
+      // Stryker disable next-line StringLiteral
       surface: "read",
       focus,
       summarize: workspace.summarize,
@@ -514,7 +532,7 @@ function bashPreToolUse(
     .map((absolute) => {
       const target = toWorkspacePath(workspace.root, absolute, input.cwd);
       if (!target || classifyPath(target.relative) !== "source") return;
-      const symbols = workspace.index().files[target.relative] ?? [];
+      const symbols = symbolsFor(workspace, target.relative);
       return firmEdit(
         target.relative,
         symbols,
@@ -556,7 +574,7 @@ function bashContext(
     const kind = classifyPath(target.relative);
     if (kind === "kb") namesKb = true;
     if (kind === "kb" || kind === "other") continue;
-    const symbols = workspace.index().files[target.relative] ?? [];
+    const symbols = symbolsFor(workspace, target.relative);
     if (edited.has(absolute)) {
       // An in-place write is an edit: say what must stay true before it
       // runs. A file with no linked symbol is left to PostToolUse, which
@@ -565,19 +583,15 @@ function bashContext(
       const alreadyKnown =
         state.shownRead.has(target.relative) ||
         isExplored(state, target.relative);
+      const snippetInput = {
+        relativePath: target.relative,
+        symbols,
+        surface: "edit",
+        summarize: workspace.summarize,
+      } as const;
       const note = alreadyKnown
-        ? editKnowledgeUpdate({
-            relativePath: target.relative,
-            symbols,
-            surface: "edit",
-            summarize: workspace.summarize,
-          })
-        : fileKnowledgeSnippet({
-            relativePath: target.relative,
-            symbols,
-            surface: "edit",
-            summarize: workspace.summarize,
-          });
+        ? editKnowledgeUpdate(snippetInput)
+        : fileKnowledgeSnippet(snippetInput);
       if (!note) continue;
       trace.path = target.relative;
       trace.pathKind = kind;
@@ -624,6 +638,9 @@ function bashChanges(
   trace: HookTrace,
 ): string | undefined {
   const state = loadSessionState(workspace.stateDir);
+  // rationale: without a recorded start the mtime check compares with NaN
+  // and matches no file; the early return only skips running git.
+  // Stryker disable next-line ConditionalExpression
   if (state.commandStartedAt === undefined) return undefined;
   let note: string | undefined;
   for (const relative of filesChangedSince(
@@ -633,8 +650,7 @@ function bashChanges(
     const pathKind = classifyPath(relative);
     if (pathKind === "kb" || pathKind === "other") continue;
     events.push({ kind: "edited", path: relative, pathKind });
-    const index = workspace.index();
-    const symbols = index.files[relative] ?? [];
+    const symbols = symbolsFor(workspace, relative);
     const owners = requirementIds(symbols);
     if (trace.action === undefined && owners.length > 0) {
       trace.action = "edited";
@@ -646,25 +662,22 @@ function bashChanges(
     if (note !== undefined || state.shownEdit.has(relative)) continue;
     const alreadyKnown =
       state.shownRead.has(relative) || isExplored(state, relative);
+    const snippetInput = {
+      relativePath: relative,
+      symbols,
+      surface: "edit",
+      summarize: workspace.summarize,
+    } as const;
     const snippet = alreadyKnown
-      ? editKnowledgeUpdate({
-          relativePath: relative,
-          symbols,
-          surface: "edit",
-          summarize: workspace.summarize,
-        })
-      : fileKnowledgeSnippet({
-          relativePath: relative,
-          symbols,
-          surface: "edit",
-          summarize: workspace.summarize,
-        });
+      ? editKnowledgeUpdate(snippetInput)
+      : fileKnowledgeSnippet(snippetInput);
     if (snippet) {
       note = snippet;
     } else if (
+      // Both snippets have text for any file a requirement owns, so the
+      // file is unowned here.
       pathKind === "source" &&
-      owners.length === 0 &&
-      index.manifest !== "unreadable"
+      workspace.index().manifest !== "unreadable"
     ) {
       note = unownedSourceNote(
         relative,
@@ -713,15 +726,17 @@ function hasKibiPreCommitGate(workspaceRoot: string): boolean {
     ["rev-parse", "--git-path", "hooks/pre-commit"],
     { cwd: workspaceRoot, encoding: "utf8", timeout: 2000 },
   );
+  // A successful rev-parse always prints the path.
   const hookPath =
-    resolved.status === 0 && resolved.stdout.trim().length > 0
+    resolved.status === 0
       ? path.resolve(workspaceRoot, resolved.stdout.trim())
       : path.join(workspaceRoot, ".git", "hooks", "pre-commit");
   try {
-    return /kibi[^\n]*\bcheck\b/.test(fs.readFileSync(hookPath, "utf8"));
+    return /kibi[^\n]*\bcheck\b/.test(String(fs.readFileSync(hookPath)));
   } catch {
-    return false;
+    // No hook file.
   }
+  return false;
 }
 
 function postToolUse(
@@ -729,7 +744,7 @@ function postToolUse(
   workspace: Workspace,
   trace: HookTrace = {},
 ): HookOutput {
-  const toolName = input.toolName ?? "";
+  const toolName = input.toolName;
   const events: SessionEvent[] = [];
   // Replaying the journal is only needed to describe the call for telemetry.
   const kbUsedBefore = (): boolean | undefined =>
@@ -760,7 +775,7 @@ function postToolUse(
         // acceptance report whether this edit needed a lookup first.
         if (workspace.telemetry && pathKind !== "kb") {
           trace.requirementIds = requirementIds(
-            workspace.index().files[target.relative] ?? [],
+            symbolsFor(workspace, target.relative),
           );
         }
       }
@@ -960,12 +975,15 @@ function dispatchHook(
   }
 }
 
-async function main(): Promise<void> {
+export async function main(): Promise<void> {
   const result = await runHook(parseStdinJson(await readStdin()));
   process.stdout.write(`${JSON.stringify(result)}\n`);
 }
 
-function isInvokedAsCli(argv1: string | undefined, moduleUrl: string): boolean {
+export function isInvokedAsCli(
+  argv1: string | undefined,
+  moduleUrl: string,
+): boolean {
   const invokedPath = argv1 ? pathToFileURL(path.resolve(argv1)).href : "";
   return moduleUrl === invokedPath;
 }
@@ -974,7 +992,7 @@ function isInvokedAsCli(argv1: string | undefined, moduleUrl: string): boolean {
  * Hooks are advisory: any failure is reported on stderr (visible in Claude
  * Code's debug output) and the tool call proceeds without added context.
  */
-async function runHookCli(): Promise<void> {
+export async function runHookCli(): Promise<void> {
   try {
     await main();
   } catch (error: unknown) {
@@ -984,6 +1002,12 @@ async function runHookCli(): Promise<void> {
   }
 }
 
-if (isInvokedAsCli(process.argv[1], import.meta.url)) {
-  void runHookCli();
+/** Run the hook when this module is the process entry point. */
+export async function runHookCliIfMain(
+  isMain = isInvokedAsCli(process.argv[1], import.meta.url),
+  start: () => Promise<void> = runHookCli,
+): Promise<void> {
+  if (isMain) await start();
 }
+
+void runHookCliIfMain();

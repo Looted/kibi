@@ -20,18 +20,21 @@
 
 // implements REQ-capability-plugin-builtin-parity-v1
 export function normalizeKey(value: string): string {
+  // Whitespace runs, like every other non-alphanumeric run, collapse into a
+  // single "_", so trimming the input first and stripping more than one
+  // underscore from each edge would change nothing.
   return value
-    .trim()
     .toLowerCase()
     .replace(/['’]/g, "")
     .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
+    .replace(/^_|_$/g, "");
 }
 
 // implements REQ-capability-plugin-builtin-parity-v1
 export function normalizePredicateToken(value: string): string {
+  // Edge whitespace becomes edge underscores, which the last step strips, so
+  // the input needs no separate trim.
   return value
-    .trim()
     .replace(/\b(?:a|an|the)\b\s*/gi, "")
     .replace(/['’]/g, "")
     .replace(/\s+/g, "_")
@@ -55,9 +58,5 @@ export function commaList(
   value: string,
   separator: RegExp = /,|\band\b/i,
 ): string {
-  return value
-    .split(separator)
-    .map((part) => normalizeKey(part.trim()))
-    .filter(Boolean)
-    .join(",");
+  return value.split(separator).map(normalizeKey).filter(Boolean).join(",");
 }

@@ -405,3 +405,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-49abba16c41b
+  - type: constrains
+    from: REQ-kibi-bundled-skill-catalog
+    to: FACT-SUBJ-REQ-REUSABLE-SKILL-SUBSYSTEM
+    created_at: 2026-11-03T10:48:35.006Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32b3eb59a619
+  - type: requires_property
+    from: REQ-kibi-bundled-skill-catalog
+    to: FACT-kibi-bundled-skill-catalog
+    created_at: 2026-11-03T10:48:35.085Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef2fa565c61b
+  - type: specified_by
+    from: REQ-kibi-bundled-skill-catalog
+    to: SCEN-reusable-skill-subsystem
+    created_at: 2026-11-03T10:48:35.132Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7c23d99c111

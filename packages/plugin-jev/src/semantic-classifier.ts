@@ -7,11 +7,13 @@ import {
   type SemanticLane,
 } from "kibi-plugin-sdk";
 import {
-  type JevChoiceAnswer,
   type JevClient,
   type JevClientFactory,
-  type JevNoulAnswer,
   JevProviderError,
+  asChoice,
+  asNoul,
+  choiceConfidence,
+  clamp01,
   mapJevError,
 } from "./jev-client.js";
 import { choice, noul } from "./typesafe-client.js";
@@ -111,50 +113,6 @@ function isLane(value: string): value is SemanticLane {
   return (SEMANTIC_LANES as readonly string[]).includes(value);
 }
 
-function asChoice(answer: unknown): JevChoiceAnswer {
-  if (
-    typeof answer !== "object" ||
-    answer === null ||
-    !("choice" in answer) ||
-    typeof (answer as { choice?: unknown }).choice !== "string"
-  ) {
-    throw new JevProviderError(
-      "malformed",
-      "Jev Choice answer is missing a string choice field",
-    );
-  }
-  return answer as JevChoiceAnswer;
-}
-
-function asNoul(answer: unknown): JevNoulAnswer {
-  if (
-    typeof answer !== "object" ||
-    answer === null ||
-    !("noul" in answer) ||
-    typeof (answer as { noul?: unknown }).noul !== "number"
-  ) {
-    throw new JevProviderError(
-      "malformed",
-      "Jev Noul answer is missing a numeric noul field",
-    );
-  }
-  return answer as JevNoulAnswer;
-}
-
-function confidenceFromChoice(answer: JevChoiceAnswer): number {
-  if (
-    typeof answer.confidence === "number" &&
-    Number.isFinite(answer.confidence)
-  ) {
-    return Math.max(0, Math.min(1, answer.confidence));
-  }
-  const selected = answer.probabilities?.[answer.choice];
-  if (typeof selected === "number" && Number.isFinite(selected)) {
-    return Math.max(0, Math.min(1, selected));
-  }
-  return 0.5;
-}
-
 // implements REQ-capability-plugin-jev-fallback-v1, REQ-capability-plugin-observable-behavior-v1
 // covered_by TEST-e2e-capability-plugins
 export function createJevSemanticClassifier(
@@ -167,13 +125,12 @@ export function createJevSemanticClassifier(
   try {
     timeoutMs = resolveJevTimeoutMs(options.timeoutMs);
   } catch (error) {
-    if (error instanceof JevProviderError) {
-      throw new JevProviderError(error.code, error.message, {
-        cause: error,
-        model,
-      });
-    }
-    throw error;
+    // resolveJevTimeoutMs only throws JevProviderError.
+    const invalid = error as JevProviderError;
+    throw new JevProviderError(invalid.code, invalid.message, {
+      cause: invalid,
+      model,
+    });
   }
 
   const ensureClient = (): JevClient => {
@@ -235,14 +192,14 @@ export function createJevSemanticClassifier(
             const ambiguousAnswer = asNoul(
               response.answers[`ambiguous:${proposition.claimKey}`],
             );
-            const confidence = confidenceFromChoice(laneAnswer);
+            const confidence = choiceConfidence(laneAnswer);
             return {
               claimKey: proposition.claimKey,
               lane: laneAnswer.choice,
               confidence,
               ambiguity: {
                 ambiguous: ambiguousAnswer.noul >= 0.5,
-                confidence: Math.max(0, Math.min(1, ambiguousAnswer.noul)),
+                confidence: clamp01(ambiguousAnswer.noul),
               },
               ...(proposition.signals
                 ? {

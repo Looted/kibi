@@ -15,10 +15,30 @@
 import { readdirSync } from "node:fs";
 import { join, posix } from "node:path";
 
-const MUTATION_PACKAGES = [
+// Whole packages in scope: every src/**/*.ts file is mutated and every
+// tests/**/*.test.ts file runs against the mutants.
+export const MUTATION_PACKAGES = [
   "packages/runtime",
   "packages/codex",
   "packages/cursor",
+  "packages/plugin-sdk",
+  "packages/plugin-jev",
+  "packages/agent-core",
+  "packages/zcode",
+  "packages/claude",
+  "packages/plugin-ui",
+  "packages/plugin-search-hints",
+  "packages/plugin-builtin",
+];
+
+/**
+ * Test files of a whole package in scope that cannot run in the Stryker
+ * sandbox. rationale: the claude distribution test compares the committed hook
+ * bundle with the source, and the sandbox source is instrumented, so it always
+ * fails the initial run there.
+ */
+export const MUTATION_TEST_EXCLUDES = [
+  "packages/claude/tests/distribution.test.ts",
 ];
 
 // kibi-cli is too large and engine-heavy to mutate whole. Each module joins
@@ -60,24 +80,7 @@ export const CLI_MUTATION_MODULES = {
 // Plugin package modules gated the same way: each with the hermetic tests of
 // its own package.
 export const PLUGIN_MUTATION_MODULES = {
-  "packages/plugin-sdk/src/validate-search-hints.ts": [
-    "packages/plugin-sdk/tests/search-hints.test.ts",
-  ],
-  "packages/plugin-search-hints/src/tokenizer.ts": [
-    "packages/plugin-search-hints/tests/tokenizer.test.ts",
-  ],
-  "packages/plugin-search-hints/src/model.ts": [
-    "packages/plugin-search-hints/tests/plugin.test.ts",
-    "packages/plugin-search-hints/tests/edges.test.ts",
-  ],
-  "packages/plugin-search-hints/src/cache.ts": [
-    "packages/plugin-search-hints/tests/plugin.test.ts",
-    "packages/plugin-search-hints/tests/edges.test.ts",
-  ],
-  "packages/plugin-search-hints/src/index.ts": [
-    "packages/plugin-search-hints/tests/plugin.test.ts",
-    "packages/plugin-search-hints/tests/edges.test.ts",
-  ],
+  "packages/swipl/index.js": ["packages/swipl/tests/index.test.ts"],
 };
 
 // Explicit test-file list, enumerated relative to the repo root (the Stryker
@@ -92,7 +95,8 @@ function scopedTestFiles() {
         if (entry.isDirectory()) {
           walk(posix.join(rel, entry.name));
         } else if (entry.name.endsWith(".test.ts")) {
-          files.push(`./${posix.join(pkg, "tests", rel, entry.name)}`);
+          const file = posix.join(pkg, "tests", rel, entry.name);
+          if (!MUTATION_TEST_EXCLUDES.includes(file)) files.push(`./${file}`);
         }
       }
     };
@@ -120,6 +124,14 @@ const config = {
     "!packages/runtime/src/index.ts",
     "packages/codex/src/**/*.ts",
     "packages/cursor/src/**/*.ts",
+    "packages/plugin-sdk/src/**/*.ts",
+    "packages/plugin-jev/src/**/*.ts",
+    "packages/agent-core/src/**/*.ts",
+    "packages/zcode/src/**/*.ts",
+    "packages/claude/src/**/*.ts",
+    "packages/plugin-ui/src/**/*.ts",
+    "packages/plugin-search-hints/src/**/*.ts",
+    "packages/plugin-builtin/src/**/*.ts",
     ...Object.keys(CLI_MUTATION_MODULES),
     ...Object.keys(PLUGIN_MUTATION_MODULES),
   ],

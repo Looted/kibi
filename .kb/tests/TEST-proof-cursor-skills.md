@@ -25,23 +25,23 @@ proof_contract:
     pattern: packages/cursor/skills/*/SKILL.md
     capture: true
   proves:
-    - CLAIM-930C7BFCB5C43874
+    - CLAIM-E0972AB25D5495E5
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-544470f6b7851b77f34c40d2
+    receipt_id: PR-129850064792fe31b8a722da
     test_id: TEST-proof-cursor-skills
     scope: unit
     outcome: passed
-    code_snapshot: 408bad0aae430e34672d3be58afde18487a6a55e7255f14f4c355346f29a8bf1
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-27T07:54:14.329Z'
-    finished_at: '2026-10-27T07:54:14.493Z'
-    artifact_digest: ae078c1eefb0cab28337f6c1c9f961f77db18c3d9b39ea3416f64cf9734cd70c
-    contract_hash: e66733657b396b1a5b1bc90f2a6979810131e36bfbb8c81243304a6bd1851d9d
-    binding_hash: 0f83ef51453f51df9113846ee82420501f15d9262d5b37f5d4552acf385b2c71
-    fingerprint: a838b7748ee647ddade69133d3938684f57e909ae9973a2e8a1a8b9c80d13acf
+    code_snapshot: 88c2873a38c9e4ea633f3ff0eacfb92e6e29c64fa0f3cc023471f8c6fc0964af
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-03T10:50:55.375Z'
+    finished_at: '2026-11-03T10:50:55.560Z'
+    artifact_digest: 184f1cfa244087bbf3e403dc570b9e5d36e39e63f4b5a4dca82dba252ca2eac9
+    contract_hash: d297e25add6ba7da7e6eb8ca26c129a8781858280f2f7abdcae6befae19c3db0
+    binding_hash: 543bcfaae1e064690cbc12f9c08e7769e1b989ef4d3888e5e637706cc02d9fa7
+    fingerprint: 559ea900f47933053727d359e47966bb4f07bcf6c74b19013d9b0d2554760a74
     fingerprint_components:
-      contract: e66733657b396b1a5b1bc90f2a6979810131e36bfbb8c81243304a6bd1851d9d
+      contract: d297e25add6ba7da7e6eb8ca26c129a8781858280f2f7abdcae6befae19c3db0
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -76,15 +76,16 @@ proof_receipts:
           - kibi-commit-review
           - kibi-decisions
           - kibi-freshness
+          - kibi-provable-code
           - kibi-traceability
           - kibi-usage
-    certificate_digest: 82b18551718154b88e89e3e9db96d395fc55c732535d3d58f84413160227cc41
+    certificate_digest: 8ad8c9884208316c41cd9401a56217f8f8e26ea4224efe7230656de7a4ccf415
     claim_bindings:
-      - claim_key: CLAIM-930C7BFCB5C43874
+      - claim_key: CLAIM-E0972AB25D5495E5
         requirement_id: REQ-cursor-plugin-package
         fact_id: FACT-cursor-bundled-skills
         binding: derived
-        scope: code
+        scope: source
         obligation:
           kind: set_relation
           members:
@@ -92,8 +93,9 @@ proof_receipts:
             - kibi-commit-review
             - kibi-decisions
             - kibi-freshness
+            - kibi-provable-code
             - kibi-traceability
             - kibi-usage
-          operator: includes
+          operator: eq
 ---
 Globs packages/cursor/skills/*/SKILL.md. Kibi re-reads the same file when it ingests the certificate, so the claim stays proved only while the file still matches.

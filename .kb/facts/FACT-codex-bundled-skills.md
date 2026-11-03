@@ -1,20 +1,21 @@
 ---
-title: The kibi-codex plugin bundles the six Kibi skills
+title: The kibi-codex plugin bundles the seven Kibi skills
 status: active
 fact_kind: property_value
 subject_key: codex.kibi_plugin
 property_key: bundled_skills
-operator: includes
+operator: eq
 value_type: set
 value_set:
   - kibi-bootstrap
   - kibi-commit-review
   - kibi-decisions
   - kibi-freshness
+  - kibi-provable-code
   - kibi-traceability
   - kibi-usage
-claim_text: The kibi-codex plugin must bundle the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-traceability and kibi-usage skills
-claim_key: CLAIM-D7E2340FFABCF26E
+claim_text: The kibi-codex plugin must bundle the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-provable-code, kibi-traceability and kibi-usage skills, and no others
+claim_key: CLAIM-3C03F93E59BE963F
 text_ref: REQ-codex-plugin-package
 origin:
   kind: agent
