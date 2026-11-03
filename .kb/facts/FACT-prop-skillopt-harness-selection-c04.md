@@ -15,7 +15,7 @@ tags:
   - strict-lane
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-05: supersede the Codex-only rule; support different harnesses and run what the operator asks'
+  ref: 'Maintainer request, 2026-10-05: supersede the Codex-only rule; support different harnesses and run what the operator asks'
   recorded_at: '2026-10-05T23:48:47.671Z'
 id: FACT-prop-skillopt-harness-selection-c04
 type: fact

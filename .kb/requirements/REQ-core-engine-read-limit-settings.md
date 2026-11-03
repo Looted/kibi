@@ -2,7 +2,7 @@
 title: Engine read limit settings
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: The engine read time limit environment variable shall be KIBI_ENGINE_READ_TIME_LIMIT_MS. The engine read inference limit environment variable shall be KIBI_ENGINE_READ_INFERENCE_LIMIT. The error code of a read that hits its limit shall be QUERY_LIMIT_EXCEEDED. The engine read time limit cap shall be 115000 milliseconds.
 semantic_clauses:
   - The engine read time limit environment variable shall be KIBI_ENGINE_READ_TIME_LIMIT_MS.
@@ -13,7 +13,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T10:30:30.201Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -55,6 +55,7 @@ logic_claims:
   - CLAIM-446DAB32C6107945
 id: REQ-core-engine-read-limit-settings
 type: req
+required_evidence: tested
 ---
 The engine read time limit environment variable shall be KIBI_ENGINE_READ_TIME_LIMIT_MS. The engine read inference limit environment variable shall be KIBI_ENGINE_READ_INFERENCE_LIMIT. The error code of a read that hits its limit shall be QUERY_LIMIT_EXCEEDED. The engine read time limit cap shall be 115000 milliseconds.
 

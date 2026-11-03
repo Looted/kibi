@@ -2,7 +2,7 @@
 title: Kibi-managed git hooks and block marker
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: 'A Kibi-managed hook block shall open with # BEGIN kibi-managed. A Kibi-managed git hook shall be post-checkout, post-merge, post-rewrite or pre-commit.'
 semantic_clauses:
   - 'A Kibi-managed hook block shall open with # BEGIN kibi-managed.'
@@ -11,7 +11,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T22:40:19.016Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -37,6 +37,7 @@ logic_claims:
   - CLAIM-3CDE819547F73291
 id: REQ-git-hook-managed-names
 type: req
+required_evidence: tested
 ---
 A Kibi-managed hook block shall open with # BEGIN kibi-managed. A Kibi-managed git hook shall be post-checkout, post-merge, post-rewrite or pre-commit.
 

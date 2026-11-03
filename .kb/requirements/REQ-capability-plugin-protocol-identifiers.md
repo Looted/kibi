@@ -2,7 +2,7 @@
 title: Capability plugin protocol identifiers
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: The Kibi plugin API version shall be kibi.plugin.v1. The ontology pack capability id shall be kibi.ontology-pack.v1. The check policy capability id shall be kibi.check-policy.v1.
 semantic_clauses:
   - The Kibi plugin API version shall be kibi.plugin.v1.
@@ -12,7 +12,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T13:35:27.571Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -46,6 +46,7 @@ logic_claims:
   - CLAIM-DF4B0268FE1A8B50
 id: REQ-capability-plugin-protocol-identifiers
 type: req
+required_evidence: tested
 ---
 The Kibi plugin API version shall be kibi.plugin.v1. The ontology pack capability id shall be kibi.ontology-pack.v1. The check policy capability id shall be kibi.check-policy.v1.
 

@@ -370,3 +370,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a079d4b444eb
+  - type: supersedes
+    from: REQ-core-journaled-engine-persistence
+    to: REQ-core-atomic-upsert-persistence
+    created_at: 2026-11-03T11:41:53.953Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-595907dbf873
+  - type: supersedes
+    from: REQ-core-journaled-engine-persistence
+    to: REQ-core-persistence
+    created_at: 2026-11-03T11:41:53.999Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b689e244cccb
+  - type: specified_by
+    from: REQ-core-journaled-engine-persistence
+    to: SCEN-core-journaled-engine-migration
+    created_at: 2026-11-03T11:41:54.044Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a796b6be061
+  - type: specified_by
+    from: REQ-core-journaled-engine-persistence
+    to: SCEN-core-journaled-engine-delta-sync
+    created_at: 2026-11-03T11:41:54.079Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-080592286802
+  - type: specified_by
+    from: REQ-core-journaled-engine-persistence
+    to: SCEN-core-journaled-engine-lifecycle
+    created_at: 2026-11-03T11:41:54.119Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-65814ad96999
+  - type: requires_property
+    from: REQ-core-journaled-engine-persistence
+    to: FACT-JOURNALED-ENGINE-SINGLE-WRITER
+    created_at: 2026-11-03T11:41:54.160Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e286173c7829
+  - type: requires_predicate
+    from: REQ-core-journaled-engine-persistence
+    to: FACT-JOURNALED-ENGINE-PROTOCOL
+    created_at: 2026-11-03T11:41:54.188Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0ddc5d44070
+  - type: requires_predicate
+    from: REQ-core-journaled-engine-persistence
+    to: FACT-JOURNALED-ENGINE-DURABLE-TRANSACTION
+    created_at: 2026-11-03T11:41:54.224Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9cbb0bd46de
+  - type: requires_predicate
+    from: REQ-core-journaled-engine-persistence
+    to: FACT-JOURNALED-ENGINE-MIGRATION
+    created_at: 2026-11-03T11:41:54.260Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-554b1f4e25ad
+  - type: requires_predicate
+    from: REQ-core-journaled-engine-persistence
+    to: FACT-JOURNALED-ENGINE-DELTA-SYNC
+    created_at: 2026-11-03T11:41:54.278Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7905b6b3be55

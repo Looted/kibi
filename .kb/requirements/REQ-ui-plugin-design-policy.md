@@ -8,7 +8,7 @@ tags:
   - kibi-plugin-ui
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-09: UI design plugin'
+  ref: 'Maintainer request, 2026-10-09: UI design plugin'
   recorded_at: '2026-10-09T12:13:47.366Z'
 rationale: UI design enforcement is experimental and only useful for projects with a frontend, so it ships as an optional package rather than as default behavior.
 semantic_text: The kibi-plugin-ui policy must require React and Angular components to implement a requirement grounded in UI design predicates. The kibi-plugin-ui policy must require implementing component files and their html templates to contain every pattern marker of their requirement pattern. The kibi-plugin-ui package must declare no permissions.
@@ -60,4 +60,4 @@ The project owner wanted the UI design checks to be experimental and not tied ti
 
 > The feature would be somehow experimental, so I don't want to tie it too strongly to the core - that's why I had the plugin idea.
 
-Project owner, project thread on the UI design plugin, 2026-10-09.
+Project owner, UI design plugin discussion, 2026-10-09.

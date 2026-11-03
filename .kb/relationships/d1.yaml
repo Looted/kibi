@@ -573,3 +573,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3a48389ef5fc
+  - type: relates_to
+    from: REQ-cursor-worktree-kibi-continuity
+    to: ADR-022
+    created_at: 2026-11-03T11:34:44.826Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aea6e380be29
+  - type: specified_by
+    from: REQ-cursor-worktree-kibi-continuity
+    to: SCEN-cursor-worktree-kibi-continuity
+    created_at: 2026-11-03T11:34:44.888Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58bec45ca046
+  - type: verified_by
+    from: REQ-cursor-worktree-kibi-continuity
+    to: TEST-cursor-worktree-kibi-continuity
+    created_at: 2026-11-03T11:34:44.949Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1140aaae8819
+  - type: requires_property
+    from: REQ-cursor-worktree-kibi-continuity
+    to: FACT-PROP-REQ-CURSOR-WORKTREE-KIBI-CONTINUITY-C02
+    created_at: 2026-11-03T11:34:45.005Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bce49153ec7e
+  - type: requires_property
+    from: REQ-cursor-worktree-kibi-continuity
+    to: FACT-PROP-REQ-CURSOR-WORKTREE-KIBI-CONTINUITY-C03
+    created_at: 2026-11-03T11:34:45.037Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec1a70acf7d1

@@ -328,3 +328,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5a33dbdb1062
+  - type: specified_by
+    from: REQ-opencode-risk-classification
+    to: SCEN-opencode-risk-classification
+    created_at: 2026-11-03T11:36:25.559Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6cd2a9d685fb
+  - type: verified_by
+    from: REQ-opencode-risk-classification
+    to: TEST-opencode-smart-enforcement
+    created_at: 2026-11-03T11:36:25.598Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d337ab96511
+  - type: requires_property
+    from: REQ-opencode-risk-classification
+    to: FACT-PROP-REQ-OPENCODE-RISK-CLASSIFICATION-C02
+    created_at: 2026-11-03T11:36:25.638Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7041f4f8206b
+  - type: requires_property
+    from: REQ-opencode-risk-classification
+    to: FACT-PROP-REQ-OPENCODE-RISK-CLASSIFICATION-C03
+    created_at: 2026-11-03T11:36:25.669Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb75f64acca4
+  - type: requires_property
+    from: REQ-opencode-risk-classification
+    to: FACT-PROP-REQ-OPENCODE-RISK-CLASSIFICATION-C04
+    created_at: 2026-11-03T11:36:25.694Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84df2b52b02d
+  - type: requires_property
+    from: REQ-opencode-risk-classification
+    to: FACT-PROP-REQ-OPENCODE-RISK-CLASSIFICATION-C05
+    created_at: 2026-11-03T11:36:25.722Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40352744125f
+  - type: requires_property
+    from: REQ-opencode-risk-classification
+    to: FACT-PROP-REQ-OPENCODE-RISK-CLASSIFICATION-C06
+    created_at: 2026-11-03T11:36:25.742Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-475ce63a8399
+  - type: requires_property
+    from: REQ-opencode-risk-classification
+    to: FACT-PROP-REQ-OPENCODE-RISK-CLASSIFICATION-C07
+    created_at: 2026-11-03T11:36:25.759Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-edeb80620179
+  - type: requires_property
+    from: REQ-opencode-risk-classification
+    to: FACT-PROP-REQ-OPENCODE-RISK-CLASSIFICATION-C08
+    created_at: 2026-11-03T11:36:25.787Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a03962a15e87

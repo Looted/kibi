@@ -17,7 +17,7 @@ claim_key: CLAIM-0B667438D7DBFB61
 claim_text: The kb_check operation must block when an activated check policy cannot be read
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-09: UI design plugin'
+  ref: 'Maintainer request, 2026-10-09: UI design plugin'
   recorded_at: '2026-10-09T12:12:46.638Z'
 id: FACT-check-policy-blocks-unreadable
 type: fact

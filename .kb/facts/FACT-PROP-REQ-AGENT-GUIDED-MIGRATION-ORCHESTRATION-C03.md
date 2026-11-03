@@ -1,22 +1,23 @@
 ---
-title: Checks and status MUST remain read-only while kb_apply_plan and kibi migrate --a
+title: kibi.migration.orchestration clause 3
 status: active
 tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.migration.orchestration
-property_key: clause_03_checks_and_status_must_remain_read_only_while_kb
+property_key: clause_03_checks_and_status_must_remain_read_only
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_agent_guided_migration_orchestration.clause_03_checks_and_status_must_remain_read_only_while_kb.eq.true
-claim_key: CLAIM-DDE966DD631FAC53
-claim_text: Checks and status MUST remain read-only while kb_apply_plan and kibi migrate --apply-safe MUST require the exact approved plan hash and explicit automatic action IDs
+canonical_key: req.req_agent_guided_migration_orchestration.clause_03_checks_and_status_must_remain_read_only.eq.true
+claim_key: CLAIM-1EDEF6580A6786E1
+claim_text: Checks and status must remain read-only
 id: FACT-PROP-REQ-AGENT-GUIDED-MIGRATION-ORCHESTRATION-C03
 type: fact
 origin:
-  kind: migration
-  ref: kibi migrate v5->v6
-  recorded_at: '2026-10-04T01:17:15.284Z'
+  kind: agent
+  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6).'
+  approved_by: maintainer
+  recorded_at: '2026-11-03T11:34:18.000Z'
 ---

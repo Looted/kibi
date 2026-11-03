@@ -2,7 +2,7 @@
 title: Health report brand colours
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: 'A Kibi brand colour shall be carbon, deepCarbon, panel, ice, signal, snow, mist, rail, success, warning or danger. The Kibi carbon brand colour shall be #1d1e23. The Kibi deep carbon brand colour shall be #111318. The Kibi panel brand colour shall be #191c22. The Kibi ice brand colour shall be #a2d3f4. The Kibi signal brand colour shall be #3e8ed6. The Kibi snow brand colour shall be #f4f8fb. The Kibi mist brand colour shall be #aab8c2. The Kibi rail brand colour shall be #34434f. The Kibi success brand colour shall be #63c99a. The Kibi warning brand colour shall be #f2b84b. The Kibi danger brand colour shall be #f07178.'
 semantic_clauses:
   - A Kibi brand colour shall be carbon, deepCarbon, panel, ice, signal, snow, mist, rail, success, warning or danger.
@@ -21,7 +21,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T22:27:43.951Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -127,6 +127,7 @@ logic_claims:
   - CLAIM-A5F9B7D9BBEFB706
 id: REQ-kibi-report-brand-colors
 type: req
+required_evidence: tested
 ---
 A Kibi brand colour shall be carbon, deepCarbon, panel, ice, signal, snow, mist, rail, success, warning or danger. The Kibi carbon brand colour shall be #1d1e23. The Kibi deep carbon brand colour shall be #111318. The Kibi panel brand colour shall be #191c22. The Kibi ice brand colour shall be #a2d3f4. The Kibi signal brand colour shall be #3e8ed6. The Kibi snow brand colour shall be #f4f8fb. The Kibi mist brand colour shall be #aab8c2. The Kibi rail brand colour shall be #34434f. The Kibi success brand colour shall be #63c99a. The Kibi warning brand colour shall be #f2b84b. The Kibi danger brand colour shall be #f07178.
 

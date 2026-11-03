@@ -17,7 +17,7 @@ claim_key: CLAIM-41E11E10F6D50D64
 claim_text: The built-in predicate catalog must offer the ui_pattern, same_pattern, pattern_marker and ui_container schemas
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-09: UI design plugin'
+  ref: 'Maintainer request, 2026-10-09: UI design plugin'
   recorded_at: '2026-10-09T12:13:20.992Z'
 id: FACT-predicate-catalog-offers-ui-schemas
 type: fact

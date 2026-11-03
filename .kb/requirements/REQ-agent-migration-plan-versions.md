@@ -2,7 +2,7 @@
 title: Legacy and digest migration plan versions
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: The legacy migration plan version shall be kibi.legacy-migration-plan.v1. The migration plan digest version shall be kibi.migration-plan-digest.v2. A refused migration plan shall return the code MIGRATION_PLAN_REFUSED.
 semantic_clauses:
   - The legacy migration plan version shall be kibi.legacy-migration-plan.v1.
@@ -12,7 +12,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T20:55:11.652Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -46,6 +46,7 @@ logic_claims:
   - CLAIM-250EDD12651935F1
 id: REQ-agent-migration-plan-versions
 type: req
+required_evidence: tested
 ---
 The legacy migration plan version shall be kibi.legacy-migration-plan.v1. The migration plan digest version shall be kibi.migration-plan-digest.v2. A refused migration plan shall return the code MIGRATION_PLAN_REFUSED.
 

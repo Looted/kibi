@@ -2,7 +2,7 @@
 title: Capability plugin modes, polarities and lanes
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: A capability plugin mode shall be replace, augment or shadow. An ontology pack polarity shall be assert or deny. A semantic lane shall be strict_property, predicate, rule, observation_review or none. A semantic signal kind shall be normative_modal, numeric_cardinality, numeric_threshold, conditional, permission or state_or_default. An external semantic classifier shall load only for kb_semantic_advisor or kb_compile_intent.
 semantic_clauses:
   - A capability plugin mode shall be replace, augment or shadow.
@@ -14,7 +14,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-29T10:29:00.746Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -64,6 +64,7 @@ logic_claims:
   - CLAIM-C22A6481F799BDA3
 id: REQ-capability-plugin-vocabulary
 type: req
+required_evidence: tested
 ---
 A capability plugin mode shall be replace, augment or shadow. An ontology pack polarity shall be assert or deny. A semantic lane shall be strict_property, predicate, rule, observation_review or none. A semantic signal kind shall be normative_modal, numeric_cardinality, numeric_threshold, conditional, permission or state_or_default. An external semantic classifier shall load only for kb_semantic_advisor or kb_compile_intent.
 

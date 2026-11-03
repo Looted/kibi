@@ -71,4 +71,4 @@ The maintainer wanted the model outside kibi-cli so a project can opt in or out,
 
 > Ok, could you prepare an implementation plan for the plugin?
 
-Maintainer, project thread on semantic search, 2026-10-29.
+Maintainer, semantic search discussion, 2026-10-29.

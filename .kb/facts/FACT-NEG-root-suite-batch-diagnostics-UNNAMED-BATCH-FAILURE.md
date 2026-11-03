@@ -3,7 +3,7 @@ title: A curated unit batch fails and leaves no message naming the failed batch
 status: active
 fact_kind: property_value
 operator: eq
-property_key: clause_02_when_a_batch_nfails_getbatchfailuremessage_produ
+property_key: clause_02_when_a_batch_times_out_exits_non_zero_or_produces_an_unexpec
 subject_key: kibi.testing.harness
 value_type: bool
 value_bool: false

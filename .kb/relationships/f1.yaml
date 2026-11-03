@@ -440,3 +440,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-570a82975638
+  - type: relates_to
+    from: REQ-mcp-tag-filtering-server-side
+    to: REQ-002
+    created_at: 2026-11-03T11:45:52.422Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-780d4301b1df

@@ -2,7 +2,7 @@
 title: Impact review versions and policy path
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: The impact policy file shall be .kibi/impact-policy.json. The impact policy version shall be kibi.impact-policy.v1. The impact review version shall be kibi.impact-review.v1. The impact evaluator version shall be kibi.impact-evaluator.v1.
 semantic_clauses:
   - The impact policy file shall be .kibi/impact-policy.json.
@@ -13,7 +13,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T17:31:49.039Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -55,6 +55,7 @@ logic_claims:
   - CLAIM-5857985CFA6DB752
 id: REQ-impact-review-identifiers
 type: req
+required_evidence: tested
 ---
 The impact policy file shall be .kibi/impact-policy.json. The impact policy version shall be kibi.impact-policy.v1. The impact review version shall be kibi.impact-review.v1. The impact evaluator version shall be kibi.impact-evaluator.v1.
 

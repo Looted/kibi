@@ -405,3 +405,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b38423549045
+  - type: requires_property
+    from: REQ-opencode-bootstrap-nudge
+    to: FACT-PROP-REQ-OPENCODE-BOOTSTRAP-NUDGE-C01
+    created_at: 2026-11-03T11:35:43.954Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d73732f9cdb
+  - type: requires_property
+    from: REQ-opencode-bootstrap-nudge
+    to: FACT-PROP-REQ-OPENCODE-BOOTSTRAP-NUDGE-C02
+    created_at: 2026-11-03T11:35:44.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de035796daa3

@@ -49,7 +49,7 @@ type: req
 Predicate modeling must report already grounded with no write plan when the requirement already grounds the claim. Predicate modeling must offer a replacement plan that keeps one grounding relationship per claim. Predicate modeling must name the planned predicate fact as the relationship target.
 
 ## Context
-In an external onboarding evaluation kb_model with mode predicates offered a requires_predicate plan for requirements that bootstrap had already grounded with requires_property facts. Every such link failed the proposition-complete rule because a claim then had two grounding relationships, and the agent also linked candidate ids instead of the planned fact ids. The evaluation reported 22 modeled requirements while the KB held no requires_predicate links. Piotr asked for kb_model to detect existing grounding and to say which id is the relationship target.
+In an external onboarding evaluation kb_model with mode predicates offered a requires_predicate plan for requirements that bootstrap had already grounded with requires_property facts. Every such link failed the proposition-complete rule because a claim then had two grounding relationships, and the agent also linked candidate ids instead of the planned fact ids. The evaluation reported 22 modeled requirements while the KB held no requires_predicate links. The maintainer asked for kb_model to detect existing grounding and to say which id is the relationship target.
 
 ## Source
 > kb_model mode: predicates dla wymagań już ugruntowanych przez requires_property ... zwraca applyPlan + relationshipPlan z requires_predicate, bez ostrzeżenia.

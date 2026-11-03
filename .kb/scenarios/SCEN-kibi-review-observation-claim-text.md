@@ -9,7 +9,7 @@ tags:
 expects: success
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
+  ref: 'Maintainer request, 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
   recorded_at: '2026-10-06T20:44:13.508Z'
 id: SCEN-kibi-review-observation-claim-text
 type: scenario

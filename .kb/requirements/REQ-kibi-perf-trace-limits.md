@@ -2,7 +2,7 @@
 title: Performance trace settings and limits
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: The performance timings environment variable shall be KIBI_PERF_TIMINGS. The performance trace folder environment variable shall be KIBI_PERF_TRACE_DIR. A performance trace shall be at most 524288 bytes. A performance trace shall hold at most 5000 events.
 semantic_clauses:
   - The performance timings environment variable shall be KIBI_PERF_TIMINGS.
@@ -13,7 +13,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T17:35:44.637Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -55,6 +55,7 @@ logic_claims:
   - CLAIM-55F3786ECA1A6DD0
 id: REQ-kibi-perf-trace-limits
 type: req
+required_evidence: tested
 ---
 The performance timings environment variable shall be KIBI_PERF_TIMINGS. The performance trace folder environment variable shall be KIBI_PERF_TRACE_DIR. A performance trace shall be at most 524288 bytes. A performance trace shall hold at most 5000 events.
 

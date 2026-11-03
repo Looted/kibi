@@ -17,7 +17,7 @@ claim_key: CLAIM-A2943DA31DDD9A0C
 claim_text: The kb_check operation must read an activated check policy as JSON data without importing plugin code
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-09: UI design plugin'
+  ref: 'Maintainer request, 2026-10-09: UI design plugin'
   recorded_at: '2026-10-09T12:12:44.917Z'
 id: FACT-check-policy-reads-as-data
 type: fact

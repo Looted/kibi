@@ -258,3 +258,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-70494cc99036
+  - type: specified_by
+    from: REQ-opencode-posture-detection
+    to: SCEN-opencode-posture-detection
+    created_at: 2026-11-03T11:36:13.519Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e3fbff14c47
+  - type: verified_by
+    from: REQ-opencode-posture-detection
+    to: TEST-opencode-smart-enforcement
+    created_at: 2026-11-03T11:36:13.565Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e572051dcd4
+  - type: requires_property
+    from: REQ-opencode-posture-detection
+    to: FACT-PROP-REQ-OPENCODE-POSTURE-DETECTION-C02
+    created_at: 2026-11-03T11:36:13.598Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a362ca9a638d
+  - type: requires_property
+    from: REQ-opencode-posture-detection
+    to: FACT-PROP-REQ-OPENCODE-POSTURE-DETECTION-C03
+    created_at: 2026-11-03T11:36:13.629Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69cc8caeac66
+  - type: requires_property
+    from: REQ-opencode-posture-detection
+    to: FACT-PROP-REQ-OPENCODE-POSTURE-DETECTION-C04
+    created_at: 2026-11-03T11:36:13.650Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-102b287d7424
+  - type: requires_property
+    from: REQ-opencode-posture-detection
+    to: FACT-PROP-REQ-OPENCODE-POSTURE-DETECTION-C05
+    created_at: 2026-11-03T11:36:13.683Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aea8669c042a
+  - type: requires_property
+    from: REQ-opencode-posture-detection
+    to: FACT-PROP-REQ-OPENCODE-POSTURE-DETECTION-C06
+    created_at: 2026-11-03T11:36:13.703Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c90a0dd5a38c

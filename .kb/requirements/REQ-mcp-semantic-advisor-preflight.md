@@ -34,10 +34,12 @@ semantic_inventory:
 type: req
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   recorded_at: '2026-10-04T01:17:15.284Z'
 failure_side_waiver: "The claim makes upsert preflight return advisory receipts; advisory output never refuses a write."
 failure_side_waiver_approved_by: Piotr Franczyk
+firmness: default
+required_evidence: tested
 ---
 
 The MCP server must analyze raw requirement prose and requirement upsert payloads for deterministic semantic modeling signals and return advisory receipts that guide agents toward strict facts, ontology predicates, ambiguity review, or ontology-gap observations before prose is treated as contradiction-checkable knowledge.

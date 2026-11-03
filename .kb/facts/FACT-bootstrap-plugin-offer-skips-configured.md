@@ -17,7 +17,7 @@ claim_key: CLAIM-37B80ACA54E6C0C6
 claim_text: The bootstrap plan must not offer a plugin that package.json activates or lists in kibi.declinedPlugins
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-09: UI design plugin'
+  ref: 'Maintainer request, 2026-10-09: UI design plugin'
   recorded_at: '2026-10-09T12:14:04.659Z'
 id: FACT-bootstrap-plugin-offer-skips-configured
 type: fact

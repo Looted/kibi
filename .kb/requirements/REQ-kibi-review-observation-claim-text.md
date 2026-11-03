@@ -16,7 +16,7 @@ logic_claims:
   - CLAIM-D4C266B0D0756615
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
+  ref: 'Maintainer request, 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
   recorded_at: '2026-10-06T20:44:15.593Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text

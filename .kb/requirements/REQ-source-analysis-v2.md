@@ -48,7 +48,9 @@ id: REQ-source-analysis-v2
 type: req
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   recorded_at: '2026-10-04T01:17:15.284Z'
+firmness: default
+required_evidence: tested
 ---
 Source analysis v2 must preserve an explicit completeness status. Source analysis v2 must validate UTF-16 source ranges against the supplied snapshot content. Source analysis v2 must preserve authored symbol identity when declaration locators are unambiguous.

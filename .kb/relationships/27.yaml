@@ -209,3 +209,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0c14985801b5
+  - type: depends_on
+    from: REQ-cli-status-pre-first-sync
+    to: REQ-mcp-search-discovery
+    created_at: 2026-11-03T11:41:44.558Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-02c6597ec4d4
+  - type: specified_by
+    from: REQ-cli-status-pre-first-sync
+    to: SCEN-cli-status-pre-first-sync
+    created_at: 2026-11-03T11:41:44.596Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b8a177e8fb8
+  - type: verified_by
+    from: REQ-cli-status-pre-first-sync
+    to: TEST-cli-status-pre-first-sync
+    created_at: 2026-11-03T11:41:44.613Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-38f920f49cff

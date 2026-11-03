@@ -50445,7 +50445,7 @@ symbols:
     granularity_reason: test-suite
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+      ref: 'Maintainer request, 2026-10-05: continue PR 331 on another agent host'
       recorded_at: 2026-10-05T22:05:48.622Z
     relationships:
       - type: executable_for
@@ -50457,7 +50457,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+      ref: 'Maintainer request, 2026-10-05: continue PR 331 on another agent host'
       recorded_at: 2026-10-05T22:05:55.669Z
     relationships:
       - type: covered_by
@@ -50473,7 +50473,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+      ref: 'Maintainer request, 2026-10-05: continue PR 331 on another agent host'
       recorded_at: 2026-10-05T22:06:02.962Z
     relationships:
       - type: covered_by
@@ -50489,7 +50489,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+      ref: 'Maintainer request, 2026-10-05: continue PR 331 on another agent host'
       recorded_at: 2026-10-05T22:06:10.428Z
     relationships:
       - type: covered_by
@@ -50505,7 +50505,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+      ref: 'Maintainer request, 2026-10-05: continue PR 331 on another agent host'
       recorded_at: 2026-10-05T22:06:17.441Z
     relationships:
       - type: covered_by
@@ -50521,7 +50521,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+      ref: 'Maintainer request, 2026-10-05: continue PR 331 on another agent host'
       recorded_at: 2026-10-05T22:06:24.411Z
     relationships:
       - type: covered_by
@@ -50537,7 +50537,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+      ref: 'Maintainer request, 2026-10-05: continue PR 331 on another agent host'
       recorded_at: 2026-10-05T22:06:31.215Z
     relationships:
       - type: covered_by
@@ -50553,7 +50553,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+      ref: 'Maintainer request, 2026-10-05: continue PR 331 on another agent host'
       recorded_at: 2026-10-05T22:06:38.330Z
     relationships:
       - type: covered_by
@@ -50569,7 +50569,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+      ref: 'Maintainer request, 2026-10-05: continue PR 331 on another agent host'
       recorded_at: 2026-10-05T22:06:44.589Z
     relationships:
       - type: covered_by
@@ -50585,7 +50585,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-05: supersede the Codex-only rule; support different harnesses and run what the operator asks'
+      ref: 'Maintainer request, 2026-10-05: supersede the Codex-only rule; support different harnesses and run what the operator asks'
       recorded_at: 2026-10-05T23:49:05.551Z
     relationships:
       - type: covered_by
@@ -50602,7 +50602,7 @@ symbols:
     granularity_reason: test-suite
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      ref: 'Maintainer request, 2026-10-06: let SkillOpt optimize the skill description, not just the body'
       recorded_at: 2026-10-06T00:22:46.550Z
     relationships:
       - type: executable_for
@@ -50614,7 +50614,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      ref: 'Maintainer request, 2026-10-06: let SkillOpt optimize the skill description, not just the body'
       recorded_at: 2026-10-06T00:22:52.206Z
     relationships:
       - type: covered_by
@@ -50628,7 +50628,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      ref: 'Maintainer request, 2026-10-06: let SkillOpt optimize the skill description, not just the body'
       recorded_at: 2026-10-06T00:22:57.435Z
     relationships:
       - type: covered_by
@@ -50642,7 +50642,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      ref: 'Maintainer request, 2026-10-06: let SkillOpt optimize the skill description, not just the body'
       recorded_at: 2026-10-06T00:23:03.655Z
     relationships:
       - type: covered_by
@@ -50656,7 +50656,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      ref: 'Maintainer request, 2026-10-06: let SkillOpt optimize the skill description, not just the body'
       recorded_at: 2026-10-06T00:23:09.932Z
     relationships:
       - type: covered_by
@@ -50670,7 +50670,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      ref: 'Maintainer request, 2026-10-06: let SkillOpt optimize the skill description, not just the body'
       recorded_at: 2026-10-06T00:23:15.811Z
     relationships:
       - type: covered_by
@@ -50684,7 +50684,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      ref: 'Maintainer request, 2026-10-06: let SkillOpt optimize the skill description, not just the body'
       recorded_at: 2026-10-06T00:23:21.964Z
     relationships:
       - type: covered_by
@@ -50953,7 +50953,7 @@ symbols:
     status: active
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
+      ref: 'Maintainer request, 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
       recorded_at: 2026-10-06T20:44:20.161Z
     sourceFile: packages/cli/src/operations/semantic-advisor/proposition-role.ts
     symbol_role: behavioral
@@ -50969,7 +50969,7 @@ symbols:
     status: active
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
+      ref: 'Maintainer request, 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
       recorded_at: 2026-10-06T20:44:28.035Z
     sourceFile: packages/cli/src/operations/semantic-advisor/proposition-role.ts
     symbol_role: behavioral
@@ -50985,7 +50985,7 @@ symbols:
     status: active
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
+      ref: 'Maintainer request, 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
       recorded_at: 2026-10-06T20:44:35.219Z
     sourceFile: packages/cli/src/operations/semantic-advisor/proposition-role.ts
     symbol_role: behavioral
@@ -50999,7 +50999,7 @@ symbols:
     status: active
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
+      ref: 'Maintainer request, 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
       recorded_at: 2026-10-06T20:44:41.464Z
     sourceFile: packages/cli/src/operations/mutation/requirement-semantics.ts
     symbol_role: behavioral
@@ -51013,7 +51013,7 @@ symbols:
     status: active
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
+      ref: 'Maintainer request, 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
       recorded_at: 2026-10-06T22:18:56.380Z
     sourceFile: packages/cli/src/operations/mutation/stored-entity.ts
     symbol_role: behavioral
@@ -51027,7 +51027,7 @@ symbols:
     status: active
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
+      ref: 'Maintainer request, 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
       recorded_at: 2026-10-06T20:44:47.862Z
     sourceFile: packages/core/schema/validation.pl
     symbol_role: behavioral
@@ -51042,7 +51042,7 @@ symbols:
     status: active
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
+      ref: 'Maintainer request, 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
       recorded_at: 2026-10-06T20:41:54.053Z
     sourceFile: packages/cli/tests/consumer/upsert-review-lanes.test.ts
     symbol_role: behavioral
@@ -51589,7 +51589,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:14:12.292Z
     relationships:
       - type: executable_for
@@ -51604,7 +51604,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:13:51.996Z
     relationships:
       - type: executable_for
@@ -51619,7 +51619,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:12:56.709Z
     relationships:
       - type: executable_for
@@ -51631,7 +51631,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:12:59.818Z
     relationships:
       - type: covered_by
@@ -51645,7 +51645,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:13:03.255Z
     relationships:
       - type: covered_by
@@ -51659,7 +51659,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:13:06.670Z
     relationships:
       - type: covered_by
@@ -51673,7 +51673,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:13:10.485Z
     relationships:
       - type: covered_by
@@ -51688,7 +51688,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:13:24.666Z
     relationships:
       - type: executable_for
@@ -51700,7 +51700,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:13:28.085Z
     relationships:
       - type: covered_by
@@ -51715,7 +51715,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:13:35.942Z
     relationships:
       - type: executable_for
@@ -51727,7 +51727,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:13:38.086Z
     relationships:
       - type: covered_by
@@ -51741,7 +51741,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:13:40.574Z
     relationships:
       - type: covered_by
@@ -51756,7 +51756,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:13:48.596Z
     relationships:
       - type: executable_for
@@ -51768,7 +51768,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:13:55.064Z
     relationships:
       - type: covered_by
@@ -51782,7 +51782,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:13:58.722Z
     relationships:
       - type: covered_by
@@ -51797,7 +51797,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:14:08.483Z
     relationships:
       - type: executable_for
@@ -51809,7 +51809,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:14:15.195Z
     relationships:
       - type: covered_by

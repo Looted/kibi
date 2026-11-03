@@ -17,7 +17,7 @@ claim_key: CLAIM-84D8DC80CE991920
 claim_text: The kb_check operation must report an implementing file that lacks a pattern marker declared for its requirement pattern
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-09: UI design plugin'
+  ref: 'Maintainer request, 2026-10-09: UI design plugin'
   recorded_at: '2026-10-09T12:12:46.096Z'
 id: FACT-check-policy-reports-missing-marker
 type: fact

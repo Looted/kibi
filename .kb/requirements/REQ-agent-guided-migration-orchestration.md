@@ -12,22 +12,67 @@ tags:
   - agents
   - safety
   - review:context-missing
-semantic_text: Kibi MUST expose one kibi.migration-plan.v2 contract from status check and coverage outputs\n\nEvery migration plan MUST bind a canonical SHA-256 planHash to the active branch KB snapshot workspace snapshot configuration hash and evaluated domains\n\nChecks and status MUST remain read-only while kb_apply_plan and kibi migrate --apply-safe MUST require the exact approved plan hash and explicit automatic action IDs\n\nSemantic judgment contradictions E2E execution package changes receipt history and limitation acceptance MUST remain review operator or execution actions\n\nSchema and storage migrations MUST be ordered idempotent audited and recoverable with preserved backups before the next status readback
+semantic_text: Kibi must expose one kibi.migration-plan.v2 contract from status, check and coverage outputs. A migration plan must bind a canonical SHA-256 planHash to the active branch, KB snapshot, workspace snapshot, configuration hash and evaluated domains. Checks and status must remain read-only. kb_apply_plan and kibi migrate --apply-safe must require the exact approved plan hash and explicit automatic action IDs. Semantic judgment, contradictions, E2E execution, package changes, receipt history and limitation acceptance must remain review, operator or execution actions. Schema and storage migrations must be ordered, idempotent, audited and recoverable, with backups preserved before the next status readback.
 semantic_clauses:
-  - Kibi MUST expose one kibi.migration-plan.v2 contract from status check and coverage outputs\n\nEvery migration plan MUST bind a canonical SHA-256 planHash to the active branch KB snapshot workspace snapshot configuration hash and evaluated domains\n\nChecks and status MUST remain read-only while kb_apply_plan and kibi migrate --apply-safe MUST require the exact approved plan hash and explicit automatic action IDs\n\nSemantic judgment contradictions E2E execution package changes receipt history and limitation acceptance MUST remain review operator or execution actions\n\nSchema and storage migrations MUST be ordered idempotent audited and recoverable with preserved backups before the next status readback
+  - Kibi must expose one kibi.migration-plan.v2 contract from status, check and coverage outputs.
+  - A migration plan must bind a canonical SHA-256 planHash to the active branch, KB snapshot, workspace snapshot, configuration hash and evaluated domains.
+  - Checks and status must remain read-only.
+  - kb_apply_plan and kibi migrate --apply-safe must require the exact approved plan hash and explicit automatic action IDs.
+  - Semantic judgment, contradictions, E2E execution, package changes, receipt history and limitation acceptance must remain review, operator or execution actions.
+  - Schema and storage migrations must be ordered, idempotent, audited and recoverable, with backups preserved before the next status readback.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: d7dc74b7fa1675065afe71cbf3fd13fc4ceacae65fefa468ccdd2b835f8b8bb3
+semantic_source_hash: 50bdf41afc8730742073cea4fd2fdf3aaeb1209299857e0fc3a5ebe147776f8b
 logic_claims:
-  - CLAIM-F216C603723B0E2B
+  - CLAIM-7E4E388191530F9C
+  - CLAIM-A3051C44CDE8EFB7
+  - CLAIM-1EDEF6580A6786E1
+  - CLAIM-40F4E828F37792DE
+  - CLAIM-CA304D0A5C107DC2
+  - CLAIM-976C8836CB246AEE
 semantic_inventory:
-  - claim_key: CLAIM-F216C603723B0E2B
-    claim_text: Kibi MUST expose one kibi.migration-plan.v2 contract from status check and coverage outputs\n\nEvery migration plan MUST bind a canonical SHA-256 planHash to the active branch KB snapshot workspace snapshot configuration hash and evaluated domains\n\nChecks and status MUST remain read-only while kb_apply_plan and kibi migrate --apply-safe MUST require the exact approved plan hash and explicit automatic action IDs\n\nSemantic judgment contradictions E2E execution package changes receipt history and limitation acceptance MUST remain review operator or execution actions\n\nSchema and storage migrations MUST be ordered idempotent audited and recoverable with preserved backups before the next status readback
+  - claim_key: CLAIM-7E4E388191530F9C
+    claim_text: Kibi must expose one kibi.migration-plan.v2 contract from status, check and coverage outputs
     role: normative
     status: modeled
     span:
       start: 0
-      end: 712
+      end: 92
+  - claim_key: CLAIM-A3051C44CDE8EFB7
+    claim_text: A migration plan must bind a canonical SHA-256 planHash to the active branch, KB snapshot, workspace snapshot, configuration hash and evaluated domains
+    role: normative
+    status: modeled
+    span:
+      start: 94
+      end: 245
+  - claim_key: CLAIM-1EDEF6580A6786E1
+    claim_text: Checks and status must remain read-only
+    role: normative
+    status: modeled
+    span:
+      start: 247
+      end: 286
+  - claim_key: CLAIM-40F4E828F37792DE
+    claim_text: kb_apply_plan and kibi migrate --apply-safe must require the exact approved plan hash and explicit automatic action IDs
+    role: normative
+    status: modeled
+    span:
+      start: 288
+      end: 407
+  - claim_key: CLAIM-CA304D0A5C107DC2
+    claim_text: Semantic judgment, contradictions, E2E execution, package changes, receipt history and limitation acceptance must remain review, operator or execution actions
+    role: normative
+    status: modeled
+    span:
+      start: 409
+      end: 567
+  - claim_key: CLAIM-976C8836CB246AEE
+    claim_text: Schema and storage migrations must be ordered, idempotent, audited and recoverable, with backups preserved before the next status readback
+    role: normative
+    status: modeled
+    span:
+      start: 569
+      end: 707
 links:
   - type: relates_to
     target: REQ-core-journaled-engine-persistence
@@ -39,12 +84,16 @@ links:
     target: TEST-agent-guided-migration-orchestration
 type: req
 origin:
-  kind: migration
-  ref: kibi migrate v5->v6
-  recorded_at: '2026-10-04T01:17:15.284Z'
+  kind: agent
+  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6).).'
+  approved_by: maintainer
+  recorded_at: '2026-11-03T12:03:44.000Z'
+firmness: default
+required_evidence: tested
 ---
-
-Kibi exposes a single typed migration plan so agents can inspect deterministic
-repair work and distinguish it from semantic, operator, and execution work.
-Status and checks are read-only; only explicitly approved automatic actions may
-be applied, and every application is followed by a fresh readback.
+- Kibi must expose one kibi.migration-plan.v2 contract from status, check and coverage outputs.
+- A migration plan must bind a canonical SHA-256 planHash to the active branch, KB snapshot, workspace snapshot, configuration hash and evaluated domains.
+- Checks and status must remain read-only.
+- kb_apply_plan and kibi migrate --apply-safe must require the exact approved plan hash and explicit automatic action IDs.
+- Semantic judgment, contradictions, E2E execution, package changes, receipt history and limitation acceptance must remain review, operator or execution actions.
+- Schema and storage migrations must be ordered, idempotent, audited and recoverable, with backups preserved before the next status readback.

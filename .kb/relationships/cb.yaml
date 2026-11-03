@@ -349,3 +349,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c5f843c6238d
+  - type: depends_on
+    from: REQ-kibi-dependency-ordered-repair-plan
+    to: REQ-kibi-conservative-requirement-proof
+    created_at: 2026-11-03T11:43:21.981Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c3d9113e717
+  - type: depends_on
+    from: REQ-kibi-dependency-ordered-repair-plan
+    to: REQ-kibi-proposition-complete-ingestion
+    created_at: 2026-11-03T11:43:22.020Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a96ffe6afc4
+  - type: specified_by
+    from: REQ-kibi-dependency-ordered-repair-plan
+    to: SCEN-kibi-dependency-ordered-repair-plan
+    created_at: 2026-11-03T11:43:22.052Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca267ae37b04
+  - type: requires_property
+    from: REQ-kibi-dependency-ordered-repair-plan
+    to: FACT-REPAIR-PLAN-READ-ONLY
+    created_at: 2026-11-03T11:43:22.075Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0152907342e
+  - type: requires_predicate
+    from: REQ-kibi-dependency-ordered-repair-plan
+    to: FACT-REPAIR-PLAN-DEPENDENCY-ORDER
+    created_at: 2026-11-03T11:43:22.108Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb6476555d22
+  - type: requires_property
+    from: REQ-kibi-dependency-ordered-repair-plan
+    to: FACT-REPAIR-PLAN-EARLIEST-READY
+    created_at: 2026-11-03T11:43:22.133Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8d10f1a9c64
+  - type: requires_property
+    from: REQ-kibi-dependency-ordered-repair-plan
+    to: FACT-REPAIR-PLAN-EXPLICIT-DEPENDENCIES
+    created_at: 2026-11-03T11:43:22.153Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b97beebc4ad6
+  - type: requires_property
+    from: REQ-kibi-dependency-ordered-repair-plan
+    to: FACT-REPAIR-PLAN-NON-AUTO
+    created_at: 2026-11-03T11:43:22.181Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec4d04d8f091
+  - type: requires_predicate
+    from: REQ-kibi-dependency-ordered-repair-plan
+    to: FACT-REPAIR-PLAN-STABLE-ID
+    created_at: 2026-11-03T11:43:22.201Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb21ee32fb20
+  - type: requires_predicate
+    from: REQ-kibi-dependency-ordered-repair-plan
+    to: FACT-REPAIR-PLAN-PAGINATION
+    created_at: 2026-11-03T11:43:22.230Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8922b857e2f
+  - type: requires_predicate
+    from: REQ-kibi-dependency-ordered-repair-plan
+    to: FACT-REPAIR-PLAN-REQ-ONLY
+    created_at: 2026-11-03T11:43:22.252Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01835a7c3660

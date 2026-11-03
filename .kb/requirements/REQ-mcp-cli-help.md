@@ -53,8 +53,10 @@ semantic_inventory:
 type: req
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   recorded_at: '2026-10-04T01:17:15.284Z'
+firmness: default
+required_evidence: tested
 ---
 
 The `kibi-mcp` binary must support standard CLI help flags (`--help`, `-h`) and exit immediately with human-readable help text. It must NOT start the MCP stdio server or wait for input when help is requested. This allows users and system administrators to verify the binary installation and inspect usage information without needing an MCP client.

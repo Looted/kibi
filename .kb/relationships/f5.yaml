@@ -440,3 +440,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-817b7521f8e1
+  - type: depends_on
+    from: REQ-kibi-proof-aware-quality-diagnostics
+    to: REQ-kibi-conservative-requirement-proof
+    created_at: 2026-11-03T11:44:39.290Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62a6d2c10d3e
+  - type: specified_by
+    from: REQ-kibi-proof-aware-quality-diagnostics
+    to: SCEN-kibi-proof-aware-quality-diagnostics
+    created_at: 2026-11-03T11:44:39.329Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7062018beb6b
+  - type: verified_by
+    from: REQ-kibi-proof-aware-quality-diagnostics
+    to: TEST-kibi-proof-aware-quality-diagnostics
+    created_at: 2026-11-03T11:44:39.362Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e07076e5428b

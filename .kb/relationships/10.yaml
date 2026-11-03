@@ -461,3 +461,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-230183b69a3f
+  - type: specified_by
+    from: REQ-vscode-kb-to-source
+    to: SCEN-vscode-kb-to-source
+    created_at: 2026-11-03T11:36:56.958Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef6aeb0aaf0f
+  - type: verified_by
+    from: REQ-vscode-kb-to-source
+    to: TEST-vscode-traceability
+    created_at: 2026-11-03T11:36:57.011Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8bd48a6b74a5
+  - type: requires_property
+    from: REQ-vscode-kb-to-source
+    to: FACT-PROP-REQ-VSCODE-KB-TO-SOURCE-C02
+    created_at: 2026-11-03T11:36:57.050Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33eba70f316c
+  - type: requires_property
+    from: REQ-vscode-kb-to-source
+    to: FACT-PROP-REQ-VSCODE-KB-TO-SOURCE-C03
+    created_at: 2026-11-03T11:36:57.087Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f4c1f86df5b

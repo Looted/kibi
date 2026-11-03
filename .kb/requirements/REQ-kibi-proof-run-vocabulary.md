@@ -2,7 +2,7 @@
 title: Proof run results and producers
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: A proof result outcome shall be passed, failed, timed_out, skipped, interrupted or errored. A proof run failure phase shall be setup, collection, execution, teardown or infrastructure. A proof success policy shall be all_required_first_attempt or own_results_first_attempt. A proof binding kind shall be native_case or aggregate_run. A proof run attempts status shall be complete or unavailable. A proof producer shall be command, playwright, junit or tap. The proof integrations file shall be .kb/proof/integrations.json. Proof runs shall be stored under .kb/proof/runs. Kibi shall keep at most 50 proof receipts per test. Kibi shall read coverage rows in pages of at most 10 rows.
 semantic_clauses:
   - A proof result outcome shall be passed, failed, timed_out, skipped, interrupted or errored.
@@ -19,7 +19,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T17:47:25.893Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -109,6 +109,7 @@ logic_claims:
   - CLAIM-159D396F3EE48E0B
 id: REQ-kibi-proof-run-vocabulary
 type: req
+required_evidence: tested
 ---
 A proof result outcome shall be passed, failed, timed_out, skipped, interrupted or errored. A proof run failure phase shall be setup, collection, execution, teardown or infrastructure. A proof success policy shall be all_required_first_attempt or own_results_first_attempt. A proof binding kind shall be native_case or aggregate_run. A proof run attempts status shall be complete or unavailable. A proof producer shall be command, playwright, junit or tap. The proof integrations file shall be .kb/proof/integrations.json. Proof runs shall be stored under .kb/proof/runs. Kibi shall keep at most 50 proof receipts per test. Kibi shall read coverage rows in pages of at most 10 rows.
 

@@ -531,3 +531,122 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-55ade0225234
+  - type: supersedes
+    from: REQ-core-validation-rules
+    to: REQ-006
+    created_at: 2026-11-03T11:41:58.724Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-afe144f00cd3
+  - type: specified_by
+    from: REQ-core-validation-rules
+    to: SCEN-001
+    created_at: 2026-11-03T11:41:58.766Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-181b9758894f
+  - type: constrains
+    from: REQ-kibi-legacy-migration-preview-v2
+    to: FACT-SUBJECT-kibi-migration-legacy-plan
+    created_at: 2026-11-03T11:43:56.392Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d32f27c11489
+  - type: depends_on
+    from: REQ-kibi-legacy-migration-preview-v2
+    to: REQ-kibi-dependency-ordered-repair-plan
+    created_at: 2026-11-03T11:43:56.453Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-486b8f97c211
+  - type: depends_on
+    from: REQ-kibi-legacy-migration-preview-v2
+    to: REQ-kibi-proposition-complete-ingestion
+    created_at: 2026-11-03T11:43:56.495Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c44b829354a0
+  - type: specified_by
+    from: REQ-kibi-legacy-migration-preview-v2
+    to: SCEN-kibi-legacy-migration-preview-v2
+    created_at: 2026-11-03T11:43:56.531Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-274ca6007a4b
+  - type: requires_predicate
+    from: REQ-kibi-legacy-migration-preview-v2
+    to: FACT-LEGACY-MIGRATION-OPT-IN
+    created_at: 2026-11-03T11:43:56.568Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1dfc2beca14
+  - type: requires_predicate
+    from: REQ-kibi-legacy-migration-preview-v2
+    to: FACT-LEGACY-MIGRATION-READY-SCOPE
+    created_at: 2026-11-03T11:43:56.597Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0000e7d14480
+  - type: requires_property
+    from: REQ-kibi-legacy-migration-preview-v2
+    to: FACT-LEGACY-MIGRATION-SOURCE-BOUND
+    created_at: 2026-11-03T11:43:56.625Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95ed223d0e35
+  - type: requires_predicate
+    from: REQ-kibi-legacy-migration-preview-v2
+    to: FACT-LEGACY-MIGRATION-SEMANTIC-SOURCE
+    created_at: 2026-11-03T11:43:56.649Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25a14f1ae6f8
+  - type: requires_predicate
+    from: REQ-kibi-legacy-migration-preview-v2
+    to: FACT-LEGACY-MIGRATION-SEMANTIC-DRIFT
+    created_at: 2026-11-03T11:43:56.676Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-687e9585c72b
+  - type: requires_property
+    from: REQ-kibi-legacy-migration-preview-v2
+    to: FACT-LEGACY-MIGRATION-ONE-DISPOSITION
+    created_at: 2026-11-03T11:43:56.702Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f71708d7daac
+  - type: requires_predicate
+    from: REQ-kibi-legacy-migration-preview-v2
+    to: FACT-LEGACY-MIGRATION-SCHEMA-PROVENANCE
+    created_at: 2026-11-03T11:43:56.731Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17df8575a691
+  - type: requires_predicate
+    from: REQ-kibi-legacy-migration-preview-v2
+    to: FACT-LEGACY-MIGRATION-NO-INCOMPLETE-WRITE
+    created_at: 2026-11-03T11:43:56.758Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7793d0d92ca6
+  - type: requires_predicate
+    from: REQ-kibi-legacy-migration-preview-v2
+    to: FACT-LEGACY-MIGRATION-PAGINATION
+    created_at: 2026-11-03T11:43:56.787Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55f3410f68a9
+  - type: requires_property
+    from: REQ-kibi-legacy-migration-preview-v2
+    to: FACT-LEGACY-MIGRATION-READ-ONLY
+    created_at: 2026-11-03T11:43:56.817Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6efb6908433e
+  - type: requires_predicate
+    from: REQ-kibi-legacy-migration-preview-v2
+    to: FACT-LEGACY-MIGRATION-PARITY
+    created_at: 2026-11-03T11:43:56.852Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f64f907b9e6

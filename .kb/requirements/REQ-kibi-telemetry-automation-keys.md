@@ -2,7 +2,7 @@
 title: Telemetry endpoint and automation detection keys
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: The default telemetry endpoint shall be https://eu.i.posthog.com. A CI environment variable that silences telemetry shall be one of the 18 names the CI list holds. A test runner variable that silences telemetry shall be NODE_ENV=test, JEST_WORKER_ID, VITEST, VITEST_WORKER_ID or NODE_TEST_CONTEXT.
 semantic_clauses:
   - The default telemetry endpoint shall be https://eu.i.posthog.com.
@@ -12,7 +12,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-29T16:26:49.824Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -46,6 +46,7 @@ logic_claims:
   - CLAIM-25B6330588FD2199
 id: REQ-kibi-telemetry-automation-keys
 type: req
+required_evidence: tested
 ---
 The default telemetry endpoint shall be https://eu.i.posthog.com. A CI environment variable that silences telemetry shall be one of the 18 names the CI list holds. A test runner variable that silences telemetry shall be NODE_ENV=test, JEST_WORKER_ID, VITEST, VITEST_WORKER_ID or NODE_TEST_CONTEXT.
 

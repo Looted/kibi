@@ -384,3 +384,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-647f52b9d7a6
+  - type: verified_by
+    from: REQ-mcp-relationship-preflight
+    to: TEST-mcp-relationship-preflight
+    created_at: 2026-11-03T11:45:44.367Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c62e912b8dbd

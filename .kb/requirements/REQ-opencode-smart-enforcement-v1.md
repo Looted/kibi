@@ -18,36 +18,41 @@ links:
   - REQ-opencode-posture-detection
   - REQ-opencode-risk-classification
   - REQ-opencode-guidance-caching
-semantic_text: The OpenCode Kibi Plugin implements smart, posture-aware enforcement to provide high-signal guidance while minimizing noise and token usage.\n\nWhen briefing guidance is sanctioned for risky edits, smart enforcement should point agents to `/brief-kibi` and the public MCP briefing workflow through `kb_briefing_generate`.\n\nThis requirement is an umbrella doc for the following granular behaviors:\nPosture-Aware Enforcement (REQ-opencode-posture-detection)\nRisk Classification (REQ-opencode-risk-classification)\nGuidance Caching Policy (REQ-opencode-guidance-caching)\n\nSmart enforcement ensures that guidance is contextual, non-blocking, and adheres to token budget constraints.
+semantic_text: The OpenCode Kibi plugin must adjust its enforcement to the workspace posture and the risk of the edit. The OpenCode Kibi plugin's guidance must stay non-blocking and within its token budget.
 logic_claims:
-  - CLAIM-C0D9D30612CDB6DD
+  - CLAIM-62AC22FF0A8A2B17
+  - CLAIM-CBC32FC4EFA3154F
 semantic_clauses:
-  - The OpenCode Kibi Plugin implements smart, posture-aware enforcement to provide high-signal guidance while minimizing noise and token usage.\n\nWhen briefing guidance is sanctioned for risky edits, smart enforcement should point agents to `/brief-kibi` and the public MCP briefing workflow through `kb_briefing_generate`.\n\nThis requirement is an umbrella doc for the following granular behaviors:\nPosture-Aware Enforcement (REQ-opencode-posture-detection)\nRisk Classification (REQ-opencode-risk-classification)\nGuidance Caching Policy (REQ-opencode-guidance-caching)\n\nSmart enforcement ensures that guidance is contextual, non-blocking, and adheres to token budget constraints
+  - The OpenCode Kibi plugin must adjust its enforcement to the workspace posture and the risk of the edit.
+  - The OpenCode Kibi plugin's guidance must stay non-blocking and within its token budget.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: ce8de35aa22e62fe4cd7e7b897c0c67ebd5140cf1852105473d1d9cdd1695de3
+semantic_source_hash: 4e104bfc6de8c9bf656dd8cfa921ab2c74318743134399420a6d18e8b19e1dd5
 semantic_inventory:
-  - claim_key: CLAIM-C0D9D30612CDB6DD
-    claim_text: The OpenCode Kibi Plugin implements smart, posture-aware enforcement to provide high-signal guidance while minimizing noise and token usage.\n\nWhen briefing guidance is sanctioned for risky edits, smart enforcement should point agents to `/brief-kibi` and the public MCP briefing workflow through `kb_briefing_generate`.\n\nThis requirement is an umbrella doc for the following granular behaviors:\nPosture-Aware Enforcement (REQ-opencode-posture-detection)\nRisk Classification (REQ-opencode-risk-classification)\nGuidance Caching Policy (REQ-opencode-guidance-caching)\n\nSmart enforcement ensures that guidance is contextual, non-blocking, and adheres to token budget constraints
+  - claim_key: CLAIM-62AC22FF0A8A2B17
+    claim_text: The OpenCode Kibi plugin must adjust its enforcement to the workspace posture and the risk of the edit
     role: normative
     status: modeled
     span:
       start: 0
-      end: 683
+      end: 102
+  - claim_key: CLAIM-CBC32FC4EFA3154F
+    claim_text: The OpenCode Kibi plugin's guidance must stay non-blocking and within its token budget
+    role: normative
+    status: modeled
+    span:
+      start: 104
+      end: 190
 type: req
 origin:
-  kind: migration
-  ref: kibi migrate v5->v6
-  recorded_at: '2026-10-04T01:17:15.284Z'
+  kind: agent
+  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6).).'
+  approved_by: maintainer
+  recorded_at: '2026-11-03T12:03:44.000Z'
+firmness: default
+required_evidence: tested
 ---
+- The OpenCode Kibi plugin must adjust its enforcement to the workspace posture and the risk of the edit.
+- The OpenCode Kibi plugin's guidance must stay non-blocking and within its token budget.
 
-The OpenCode Kibi Plugin implements smart, posture-aware enforcement to provide high-signal guidance while minimizing noise and token usage.
-
-When briefing guidance is sanctioned for risky edits, smart enforcement should point agents to `/brief-kibi` and the public MCP briefing workflow through `kb_briefing_generate`.
-
-This requirement is an umbrella doc for the following granular behaviors:
-1. Posture-Aware Enforcement (REQ-opencode-posture-detection)
-2. Risk Classification (REQ-opencode-risk-classification)
-3. Guidance Caching Policy (REQ-opencode-guidance-caching)
-
-Smart enforcement ensures that guidance is contextual, non-blocking, and adheres to token budget constraints.
+This requirement is the umbrella for REQ-opencode-posture-detection, REQ-opencode-risk-classification and REQ-opencode-guidance-caching.

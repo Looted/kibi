@@ -50,7 +50,9 @@ id: REQ-skillopt-paid-matrix-infrastructure
 type: req
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   recorded_at: '2026-10-04T01:17:15.284Z'
+firmness: default
+required_evidence: tested
 ---
 The held-out evaluation matrix, fake-provider gateway ledger, paid-launch receipt chain, and mirror-adoption transaction machinery execute only under external supervisor launches with an installed external trust plane. Repository proof runs execute these paths only through fixture-level integration contracts with deterministic-test-fixture signatures (signatureProvenance deterministic-test-fixture and externallySigned false), because the full paths require paid model launches, root-installed verifier infrastructure, and supervisor parent processes. The repository-provable fail-closed boundaries are owned by REQ-skillopt-external-adoption-verdict and REQ-skillopt-paid-launch-accounting.

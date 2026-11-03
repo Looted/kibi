@@ -60,8 +60,10 @@ semantic_clauses:
   - Augment mode must add capability results beside builtin providers.
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   recorded_at: '2026-10-04T01:17:15.284Z'
+firmness: default
+required_evidence: tested
 ---
 # REQ-capability-plugin-three-capabilities-v1
 

@@ -307,3 +307,108 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9b90268a8cca
+  - type: depends_on
+    from: REQ-kibi-telemetry-remediation-evidence
+    to: REQ-kibi-telemetry-acceptance-gate
+    created_at: 2026-11-03T11:45:23.725Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1758860bf66a
+  - type: depends_on
+    from: REQ-kibi-telemetry-remediation-evidence
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-11-03T11:45:23.753Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b08d31c187db
+  - type: specified_by
+    from: REQ-kibi-telemetry-remediation-evidence
+    to: SCEN-kibi-telemetry-remediation-evidence
+    created_at: 2026-11-03T11:45:23.778Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e5744f2d775
+  - type: constrains
+    from: REQ-kibi-telemetry-remediation-evidence
+    to: FACT-SUBJECT-KIBI-TELEMETRY-REMEDIATION
+    created_at: 2026-11-03T11:45:23.798Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6df10419901a
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-remediation-evidence
+    to: FACT-TELEM-CLI-LOGGING
+    created_at: 2026-11-03T11:45:23.819Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49b710560f34
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-remediation-evidence
+    to: FACT-TELEM-MCP-LOGGING
+    created_at: 2026-11-03T11:45:23.840Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5f269c812db
+  - type: requires_property
+    from: REQ-kibi-telemetry-remediation-evidence
+    to: FACT-TELEM-SESSION
+    created_at: 2026-11-03T11:45:23.860Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-517d9bab68ad
+  - type: requires_property
+    from: REQ-kibi-telemetry-remediation-evidence
+    to: FACT-TELEM-ACTOR
+    created_at: 2026-11-03T11:45:23.875Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e20d7eb73637
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-remediation-evidence
+    to: FACT-TELEM-ADVISOR-CORRELATION
+    created_at: 2026-11-03T11:45:23.905Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41d5e76a249c
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-remediation-evidence
+    to: FACT-TELEM-PREFLIGHT-CORRELATION
+    created_at: 2026-11-03T11:45:23.929Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-341201f4c661
+  - type: requires_property
+    from: REQ-kibi-telemetry-remediation-evidence
+    to: FACT-TELEM-REPORT-CONTRACT
+    created_at: 2026-11-03T11:45:23.952Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4744043bdeb6
+  - type: requires_property
+    from: REQ-kibi-telemetry-remediation-evidence
+    to: FACT-TELEM-EVENT-FIELDS
+    created_at: 2026-11-03T11:45:23.972Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab0570be09b2
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-remediation-evidence
+    to: FACT-TELEM-ORDERING
+    created_at: 2026-11-03T11:45:23.987Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68f7f16fa46c
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-remediation-evidence
+    to: FACT-TELEM-COMMAND
+    created_at: 2026-11-03T11:45:24.009Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14d3bd6018ee
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-remediation-evidence
+    to: FACT-TELEM-MISSING-COVERAGE
+    created_at: 2026-11-03T11:45:24.028Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c790e171bb01

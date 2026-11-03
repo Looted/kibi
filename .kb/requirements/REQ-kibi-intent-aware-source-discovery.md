@@ -25,10 +25,12 @@ links:
     target: TEST-kibi-intent-aware-source-discovery
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   recorded_at: '2026-10-04T01:17:15.284Z'
 semantic_text: Given a natural-language functionality request, Kibi must rank matching requirements, scenarios, tests, facts, and implementation symbols using lexical, semantic, relationship, and source-location evidence. The result must expose deterministic scores, evidence paths, source locations, and explicit zero-result or ambiguity states rather than presenting an unsupported match as proof.
 type: req
+firmness: default
+required_evidence: tested
 ---
 
 Given a natural-language functionality request, Kibi must rank matching requirements, scenarios, tests, facts, and implementation symbols using lexical, semantic, relationship, and source-location evidence. The result must expose deterministic scores, evidence paths, source locations, and explicit zero-result or ambiguity states rather than presenting an unsupported match as proof.

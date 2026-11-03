@@ -1,7 +1,7 @@
 ---
 title: MCP exposes 16 consolidated agent-facing tools with composite parity and env-gated optional tools
 status: open
-firmness: firm
+firmness: default
 priority: must
 tags:
   - mcp
@@ -49,8 +49,9 @@ id: REQ-kibi-mcp-tool-consolidation
 type: req
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T09:29:20.974Z'
+required_evidence: tested
 ---
 The composite kb_skills and kb_model MCP tools must return the routed catalog operation payload plus the selector. kb_upsert with dryRun true must write nothing and report both write effects as skipped in place of kb_validate_upsert. kb_sparql_remote and kb_job_status must register only when KIBI_MCP_OPTIONAL_TOOLS names them.

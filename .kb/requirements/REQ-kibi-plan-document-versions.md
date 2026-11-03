@@ -2,7 +2,7 @@
 title: Plan document versions
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: The compiled plan version shall be kibi.compile-plan.v1. The plan apply result version shall be kibi.plan-apply-result.v1. The repair plan version shall be kibi.repair-plan.v1. The symbol repair plan version shall be kibi.symbol-repair-plan.v1.
 semantic_clauses:
   - The compiled plan version shall be kibi.compile-plan.v1.
@@ -13,7 +13,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T17:45:09.115Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -55,6 +55,7 @@ logic_claims:
   - CLAIM-BC7A149A10F9A5EA
 id: REQ-kibi-plan-document-versions
 type: req
+required_evidence: tested
 ---
 The compiled plan version shall be kibi.compile-plan.v1. The plan apply result version shall be kibi.plan-apply-result.v1. The repair plan version shall be kibi.repair-plan.v1. The symbol repair plan version shall be kibi.symbol-repair-plan.v1.
 
