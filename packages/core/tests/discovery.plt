@@ -1518,7 +1518,12 @@ test(verdict_errors_are_reported_per_requirement) :-
     dsc_kb((
         dsc_broken_quota("abc"),
         dsc_verdicts(['REQ-BAD', 'REQ-NONE'], [Bad, None]),
-        same(Bad, _{id: 'REQ-BAD', error: 'error(type_error([],"abc"),context(system:(=:=)/2,\'"x" must hold one character\'))'}),
+        % The error text is SWI-Prolog's rendering of the caught term, which
+        % differs between releases; pin its shape, not the exact text.
+        dict_pairs(Bad, _, [error-Error, id-'REQ-BAD']),
+        atom(Error),
+        sub_atom(Error, 0, _, _, 'error(type_error('),
+        sub_atom(Error, _, _, _, '"x" must hold one character'),
         get_dict(inventory, None, _)
     )).
 
