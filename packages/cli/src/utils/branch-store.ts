@@ -153,8 +153,7 @@ export function inspectBranchStore(
       state: "unreadable",
       path: storePath,
       errorCode: "branch_store_unreadable",
-      // Every failure above is a filesystem Error.
-      detail: (error as Error).message,
+      detail: error instanceof Error ? error.message : String(error),
       recoveryRequired: true,
     };
   }

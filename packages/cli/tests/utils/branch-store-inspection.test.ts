@@ -1,5 +1,5 @@
 // implements REQ-cli-status-pre-first-sync
-import { afterAll, describe, expect, test } from "bun:test";
+import { afterAll, describe, expect, spyOn, test } from "bun:test";
 import {
   mkdirSync,
   mkdtempSync,
@@ -7,6 +7,7 @@ import {
   symlinkSync,
   writeFileSync,
 } from "node:fs";
+import * as fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import {
@@ -74,6 +75,25 @@ describe("inspectBranchStore", () => {
         "A literal branch-named store exists; preview and apply the explicit migration before writes.",
       recoveryRequired: true,
     });
+  });
+
+  test("a non-Error filesystem failure is reported as its string form", () => {
+    const root = fresh();
+    ensureBranchStoreManifest(root, "main");
+    const stat = spyOn(fs, "statSync").mockImplementation(() => {
+      throw "stat-failed";
+    });
+    try {
+      expect(inspectBranchStore(root, "main")).toStrictEqual({
+        state: "unreadable",
+        path: branchStorePath(root, "main"),
+        errorCode: "branch_store_unreadable",
+        detail: "stat-failed",
+        recoveryRequired: true,
+      });
+    } finally {
+      stat.mockRestore();
+    }
   });
 
   test("a store path that is a file, or lacks a matching manifest", () => {
