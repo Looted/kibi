@@ -23,7 +23,6 @@ import {
 } from "../../extractors/manifest.js";
 import {
   type ExtractionResult,
-  FrontmatterError,
   extractFromMarkdown,
 } from "../../extractors/markdown.js";
 import { toCacheKey } from "./cache.js";
@@ -97,14 +96,8 @@ export async function processExtractions(
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
 
-      // Handle INVALID_AUTHORING diagnostics for embedded entities
-      if (
-        error instanceof FrontmatterError &&
-        error.classification === "Embedded Entity Violation"
-      ) {
-        // Note: diagnostics with embeddedTypes are created by the caller (sync.ts)
-      }
-
+      // INVALID_AUTHORING diagnostics for embedded entities are built by the
+      // caller (sync.ts) from the failure recorded here.
       if (validateOnly) {
         errors.push({ file, message });
       } else {
