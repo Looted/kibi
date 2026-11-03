@@ -53483,6 +53483,45 @@ symbols:
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-kibi-proposition-complete-ingestion
+  - id: SYM-staged-inventory-drift-STAGED_STATEMENT_DRIFT_RULE
+    title: STAGED_STATEMENT_DRIFT_RULE
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-inventory-drift.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T10:45:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+  - id: SYM-staged-inventory-drift-StagedStatementDriftViolation
+    title: StagedStatementDriftViolation
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-inventory-drift.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T10:45:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+  - id: SYM-staged-inventory-drift-stagedStatementDriftViolations
+    title: stagedStatementDriftViolations
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-inventory-drift.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T10:45:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-merge-driver-setup-manifestMergeDriverGaps
     title: manifestMergeDriverGaps
     status: active
