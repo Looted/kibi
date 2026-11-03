@@ -21,30 +21,22 @@ export function field(node: Node, name: string): Node | null {
 
 export function named(node: Node): Node[] {
   const children: Node[] = [];
-  for (let index = 0; index < node.namedChildCount; index += 1) {
-    const child = node.namedChild(index);
-    if (child !== null) children.push(child);
-  }
+  for (let index = 0; index < node.namedChildCount; index += 1)
+    children.push(node.namedChild(index) as Node);
   return children;
 }
 
 export function firstError(root: Node): Node | null {
   if (!root.hasError) return null;
+  // Breadth first, so the error nearest the root is the one reported.
   const pending = [root];
-  while (pending.length > 0) {
-    /* node:coverage disable */
-    const node = pending.shift();
-    if (node === undefined) break;
-    /* node:coverage enable */
+  for (const node of pending) {
     if (node.type === "ERROR" || node.isMissing) return node;
-    for (let index = 0; index < node.childCount; index += 1) {
-      const child = node.child(index);
-      if (child !== null && (child.hasError || child.isMissing))
-        pending.push(child);
-    }
-    // A tree with an error always holds an ERROR or missing node.
-    /* node:coverage disable */
+    for (let index = 0; index < node.childCount; index += 1)
+      pending.push(node.child(index) as Node);
   }
+  // A tree with an error always holds an ERROR or missing node.
+  /* node:coverage disable */
   return root;
 }
 /* node:coverage enable */

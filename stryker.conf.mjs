@@ -51,6 +51,10 @@ export const CLI_MUTATION_MODULES = {
   "packages/cli/src/plugins/compose-search-hints.ts": [
     "packages/cli/tests/search-hints.test.ts",
   ],
+  "packages/cli/src/plugins/generated-sources.ts": [
+    "packages/cli/tests/plugins/generated-sources-mutation.test.ts",
+    "packages/cli/tests/plugins/language-pack-relevance.test.ts",
+  ],
 };
 
 // Plugin package modules gated the same way: each with the hermetic tests of
@@ -142,6 +146,8 @@ const config = {
     // copier follows it and fails with EISDIR.
     ".codegraph",
     ".codegraph/**",
+    // Local agent worktrees are whole checkouts of the repository.
+    ".claude/worktrees/**",
   ],
   buildCommand: "sh scripts/mutation-sandbox-setup.sh",
   // All-or-nothing: a single surviving mutant fails `bun run test:mutation`.

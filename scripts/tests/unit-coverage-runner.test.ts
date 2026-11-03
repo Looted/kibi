@@ -134,6 +134,7 @@ describe("unit coverage runner contract", () => {
         ?.paths,
     ).toEqual([
       "./packages/cli/tests/commands/sync-coverage.test.ts",
+      "./packages/cli/tests/commands/sync-errors-mutation.test.ts",
       "./packages/cli/tests/commands/sync-remaining.coverage.test.ts",
       "./packages/cli/tests/commands/sync.in-process.test.ts",
     ]);

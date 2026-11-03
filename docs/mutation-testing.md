@@ -60,6 +60,33 @@ To add a module, add it to `mutate` and its plunit file to `tests` in
 Measure the module's run time first and raise the job's `timeout-minutes` if
 needed.
 
+## Tree-sitter source-proof readers
+
+`bun run test:mutation:treesitter` runs a second Stryker gate,
+`stryker.treesitter.conf.mjs`, over kibi-plugin-treesitter's PHP, C, Bash and
+HCL reference readers and the helpers they share (`preprocessor-idioms.ts`,
+`reference-nodes.ts`). Like the main gate it fails on any surviving mutant.
+`.github/workflows/mutation-treesitter.yml` runs it nightly on `develop`, on
+demand, and on pull requests that touch the plugin or this setup. It takes
+about an hour on 4 cores (roughly 10,000 mutants).
+
+Two things differ from the main gate:
+
+- The plugin's tests import `dist/`, so the build command
+  (`scripts/mutation-sandbox-treesitter.sh`) compiles the instrumented source
+  in each sandbox. Stryker runs it without a shell and before `node_modules`
+  is linked, so the script takes the repository root to find `tsc`.
+- The readers run in worker threads, which never see the runner's
+  main-thread preload that switches mutants on and records coverage.
+  `scripts/mutation-treesitter-inprocess.mjs` rewrites the sandbox's `dist/`
+  so the worker pool is an in-process shim over one shared port. Without it
+  every reader mutant reads as `NoCoverage` or `Survived`.
+
+New tests that pin reader results go in
+`packages/plugin-treesitter/tests/mutation-<language>.test.js` and must be
+listed in `TREESITTER_MUTATION_TESTS`; the contract test checks both.
+`references.ts` (the older readers) is not in this gate.
+
 ## Equivalent mutants and exclusions
 
 Some mutants are semantically equivalent to the original code (for example,

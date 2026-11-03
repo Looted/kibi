@@ -1,5 +1,11 @@
 # kibi-plugin-search-hints
 
+## 0.1.2
+
+### Patch Changes
+
+- e0796af: Accept kibi-plugin-sdk 0.7 as a peer dependency.
+
 ## 0.1.1
 
 ### Patch Changes

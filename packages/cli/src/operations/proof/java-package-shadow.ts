@@ -84,7 +84,8 @@ const PHP_GAP = String.raw`(?:\s|/\*[\s\S]*?\*/|(?://|#(?!\[))[^\n]*(?:\n|$))*`;
  * code (a mention there keeps the row too).
  */
 function phpDeclares(text: string, name: string, namespace: string): boolean {
-  const spelled = namespace.split("\\").map((part) => part.replace(/[^\w]/g, "")).join(`${PHP_GAP}\\\\${PHP_GAP}`);
+  // PHP_ROW reads the namespace as word characters and backslashes.
+  const spelled = namespace.split("\\").join(`${PHP_GAP}\\\\${PHP_GAP}`);
   return (
     // `namespace App ?>` ends the statement too.
     new RegExp(String.raw`\bnamespace${PHP_GAP}\\?${PHP_GAP}${spelled}${PHP_GAP}(?:[;{]|\?>)`, "i").test(text) &&
@@ -108,7 +109,7 @@ const C_KEYWORDS = new Set(["defined", "sizeof", "int", "char", "long", "short",
 const C_HEADER_OPAQUE =
   /\b(?:__asm__|__asm|asm|weakref|alias|ifunc|symver|redefine_extname|push_macro|pop_macro|_Pragma|__pragma|__REDIRECT\w*|__asm_name|typeof|__typeof__|__typeof|__auto_type)\b|\?\?[=/'()!<>-]/;
 
-const C_DEFINE = /^[ \t\f\v]*(?:#|%:|\?\?=)[ \t\f\v]*define[ \t\f\v]+([A-Za-z_$][\w$]*)(\([^)]*\))?(.*)$/gm;
+const C_DEFINE = /^[ \t\f\v]*(?:#|%:|\?\?=)[ \t\f\v]*define[ \t\f\v]+([A-Za-z_$][\w$]*)(\([^)]*\))?(.*)/gm;
 
 /** Compiler builtins that compute a value and call no library function. */
 const PURE_BUILTIN =
@@ -130,11 +131,11 @@ function cDefines(text: string): CMacro[] {
   return [...cPreprocessed(text).matchAll(C_DEFINE)].map((match) => ({
     name: match[1] as string,
     parameters: (match[2] ?? "").replace(/[()\s.]/g, "").split(","),
-    body: (match[3] ?? "").replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g, ""),
+    body: (match[3] as string).replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g, ""),
   }));
 }
 
-/** Project macro definitions by name; "*" when the sources could not be listed. */
+/** Project macro definitions by name. */
 type MacroIndex = ReadonlyMap<string, readonly CMacro[]>;
 
 const upperName = (name: string): boolean => /^[A-Z_][A-Z0-9_]*$/.test(name);
@@ -148,10 +149,10 @@ const upperName = (name: string): boolean => /^[A-Z_][A-Z0-9_]*$/.test(name);
  * environment) and upper-case names that are harmless project macros or no
  * project macro (a system constant such as `INFINITY`).
  */
-function harmlessMacro(macro: CMacro, index: MacroIndex, seen: Set<string> = new Set()): boolean {
-  if (!upperName(macro.name) || index.has("*")) return false;
-  if (seen.has(macro.name)) return true;
-  seen.add(macro.name);
+function harmlessMacro(macro: CMacro, index: MacroIndex, seen: Set<CMacro> = new Set()): boolean {
+  if (!upperName(macro.name)) return false;
+  if (seen.has(macro)) return true;
+  seen.add(macro);
   // `hooks[i](0)` calls through an array of function pointers.
   if (macro.body.includes("#") || /\]\s*\(/.test(macro.body)) return false;
   for (const word of macro.body.matchAll(/[A-Za-z_$][\w$]*/g)) {
@@ -183,11 +184,12 @@ function harmlessMacro(macro: CMacro, index: MacroIndex, seen: Set<string> = new
  * that name. An arithmetic, shift or comparison operator before the name
  * makes it a number (`(1 << BIT)`); a header guard names itself.
  */
-function trailingAlias(macro: CMacro, index: MacroIndex, seen: Set<string> = new Set()): boolean {
-  if (macro.parameters.length !== 1 || macro.parameters[0] !== "" || seen.has(macro.name)) return false;
-  seen.add(macro.name);
-  const last = /(?:^|([^\w$\s]+))\s*([A-Za-z_$][\w$]*)\s*\)*\s*$/.exec(macro.body);
-  if (last === null || /^(?:<<|>>|[|+\-/%^<>]|[<>=!]=)$/.test(last[1] ?? "")) return false;
+function trailingAlias(macro: CMacro, index: MacroIndex, seen: Set<CMacro> = new Set()): boolean {
+  // Object-like, or function-like without parameters: `#define HASH() SHA256`.
+  if (macro.parameters.join() !== "" || seen.has(macro)) return false;
+  seen.add(macro);
+  const last = /(^|[^\w$\s]+)\s*([A-Za-z_$][\w$]*)\s*\)*\s*$/.exec(macro.body);
+  if (last === null || /^(?:<<|>>|[|+\-/%^<>]|[<>=!]=)$/.test(last[1] as string)) return false;
   const name = last[2] as string;
   if (name === macro.name || C_KEYWORDS.has(name)) return false;
   const defined = index.get(name);
@@ -211,12 +213,11 @@ function trailingAlias(macro: CMacro, index: MacroIndex, seen: Set<string> = new
  */
 function headerMacros(
   header: string,
-  findProjectHeader: (spelled: string) => string[],
-  macroIndex: () => MacroIndex,
-  seen: Set<string> = new Set(),
-  unions = false,
+  findProjectHeader: (spelled: string) => string[] | null,
+  macroIndex: () => MacroIndex | null,
+  seen: Set<string>,
+  unions: boolean,
 ): string[] | null {
-  if (seen.has(header)) return [];
   seen.add(header);
   let text: string;
   try {
@@ -227,13 +228,17 @@ function headerMacros(
   if (C_HEADER_OPAQUE.test(text)) return null;
   // A union aliases its members: a `property` read is refused.
   if (unions && /\bunion\b/.test(text)) return null;
+  // Stryker disable next-line ArrayDeclaration: a placeholder entry would only count where the file spells it
   const names: string[] = [];
+  // Stryker disable next-line ArrayDeclaration: a placeholder entry would only count where the header spells it as a macro call
   const pointerMacros: string[] = [];
   for (const macro of cDefines(text)) {
     const { name, parameters, body } = macro;
-    if (!harmlessMacro(macro, macroIndex())) names.push(name);
+    // Without the project's macros no macro is known to be harmless.
+    const index = macroIndex();
+    if (index === null || !harmlessMacro(macro, index)) names.push(name);
     // Only a use followed by `(` calls what the alias names.
-    else if (trailingAlias(macro, macroIndex())) names.push(`${name}(`);
+    else if (trailingAlias(macro, index)) names.push(`${name}(`);
     // `#define HOOK(n) int (*n##_hook)(void)` declares a name Kibi cannot spell.
     if (body.includes("##") && /\(\s*\*/.test(body)) return null;
     // `#define DECLARE_HOOK(name) extern int (*name)(const char *)`.
@@ -261,7 +266,7 @@ function headerMacros(
   for (const macro of pointerMacros)
     for (const use of text.matchAll(new RegExp(`\\b${macro.replace(/\$/g, "\\$")}\\s*\\(\\s*([A-Za-z_$][\\w$]*)`, "g")))
       names.push(use[1] as string);
-  for (const match of text.matchAll(/^[ \t\f\v]*(?:#|%:)[ \t]*(?:include|include_next|import)\b[ \t]*(.*)$/gm)) {
+  for (const match of text.matchAll(/^[ \t\f\v]*(?:#|%:)[ \t]*(?:include|include_next|import)\b[ \t]*(.*)/gm)) {
     const spelled = (match[1] as string).trim();
     const quoted = /^"([^"]+)"/.exec(spelled)?.[1];
     const angled = /^<([^>]+)>/.exec(spelled)?.[1];
@@ -270,7 +275,10 @@ function headerMacros(
       quoted !== undefined
         ? [path.join(path.dirname(header), quoted)]
         : findProjectHeader(angled as string);
+    if (targets === null) return null;
     for (const target of targets) {
+      // A header already read adds nothing new.
+      if (seen.has(target)) continue;
       const inner = headerMacros(target, findProjectHeader, macroIndex, seen, unions);
       if (inner === null) return null;
       names.push(...inner);
@@ -351,16 +359,15 @@ function javaDeclares(text: string, name: string): boolean {
 function sourceFiles(
   directory: string,
   extension: string | readonly string[],
-  skipped: readonly string[] = [],
-  dotFolders = false,
+  options: { readonly skipped?: readonly string[]; readonly dotFolders?: boolean } = {},
 ): string[] {
   const files: string[] = [];
   const extensions = typeof extension === "string" ? [extension] : extension;
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
-    if (entry.name === "node_modules" || entry.name === ".git" || skipped.includes(entry.name)) continue;
+    if (entry.name === "node_modules" || entry.name === ".git" || options.skipped?.includes(entry.name)) continue;
     const full = path.join(directory, entry.name);
     if (entry.isDirectory()) {
-      if (dotFolders || !entry.name.startsWith(".")) files.push(...sourceFiles(full, extensions, skipped, dotFolders));
+      if (options.dotFolders || !entry.name.startsWith(".")) files.push(...sourceFiles(full, extensions, options));
     }
     else if (extensions.some((suffix) => entry.name.endsWith(suffix))) files.push(full);
   }
@@ -402,7 +409,8 @@ interface GoModule {
  */
 function goModules(workspaceRoot: string): GoModule[] {
   const modules: GoModule[] = [];
-  for (const file of sourceFiles(workspaceRoot, "go.mod", ["vendor"])) {
+  // Every file is listed and only go.mod files are read.
+  for (const file of sourceFiles(workspaceRoot, "", { skipped: ["vendor"] })) {
     if (path.basename(file) !== "go.mod") continue;
     const dir = path.dirname(file);
     const text = readFileSync(file, "utf8").replace(/\/\/[^\n]*/g, "");
@@ -543,22 +551,67 @@ function rustDefines(text: string, name: string): boolean {
  * the files of the read.
  */
 export function createShadowRowFilter(workspaceRoot: string): (file: string, rows: readonly Row[]) => Row[] {
+  /** The texts of the listed files; null when one cannot be listed or read. */
+  const readAll = (list: () => string[]): string[] | null => {
+    try {
+      return list().map((file) => readFileSync(file, "utf8"));
+    } catch {
+      return null;
+    }
+  };
   const sources = new Map<string, string[] | null>();
-  // The project's C headers, for `#include <...>` of one of them.
-  let headerPaths: string[] | undefined;
-  let projectMacros: Map<string, CMacro[]> | undefined;
   const read = (key: string, list: () => string[]): string[] | null => {
-    if (!sources.has(key)) {
+    if (!sources.has(key)) sources.set(key, readAll(list));
+    return sources.get(key) as string[] | null;
+  };
+  /** One list of the project, read on first use and then kept. */
+  const once = (list: () => string[]): (() => string[] | null) => {
+    let texts: string[] | null | undefined;
+    return () => {
+      if (texts === undefined) texts = readAll(list);
+      return texts;
+    };
+  };
+  // Any file may be included by path (`lib/compat.tpl`, a dot folder, a
+  // Composer package's `files` autoload), so every file that opens PHP code
+  // counts, vendor/ too.
+  const phpAny = once(() => sourceFiles(workspaceRoot, "", { dotFolders: true }));
+  const shellScripts = once(() =>
+    sourceFiles(workspaceRoot, "").filter(
+      (candidate) => /\.(?:sh|bash|zsh|ksh|bats)$/i.test(candidate) || !path.basename(candidate).includes("."),
+    ),
+  );
+  const phpSources = once(() => sourceFiles(workspaceRoot, PHP_EXTENSIONS));
+  // The project's files, for `#include <...>` of one of them; null when the
+  // project cannot be listed.
+  let headerPaths: string[] | null | undefined;
+  // An angle include may name a project file of any extension (`<shims.inl>`).
+  const findProjectHeader = (header: string): string[] | null => {
+    if (headerPaths === undefined) {
       try {
-        sources.set(
-          key,
-          list().map((file) => readFileSync(file, "utf8")),
-        );
+        headerPaths = sourceFiles(workspaceRoot, "");
       } catch {
-        sources.set(key, null);
+        headerPaths = null;
       }
     }
-    return sources.get(key) ?? null;
+    if (headerPaths === null) return null;
+    const suffix = `${path.sep}${path.normalize(header)}`;
+    return headerPaths.filter((candidate) => candidate.endsWith(suffix));
+  };
+  // The macros any C or header file of the project defines; null when one
+  // cannot be read.
+  let projectMacros: MacroIndex | null | undefined;
+  const macroIndex = (): MacroIndex | null => {
+    if (projectMacros === undefined) {
+      const texts = readAll(() => sourceFiles(workspaceRoot, [".c", ".h", ".hh", ".hpp", ".hxx", ".inc", ".inl", ".def", ".ipp", ".tcc"]));
+      if (texts === null) projectMacros = null;
+      else {
+        const index = new Map<string, CMacro[]>();
+        for (const macro of texts.flatMap(cDefines)) index.set(macro.name, [...(index.get(macro.name) ?? []), macro]);
+        projectMacros = index;
+      }
+    }
+    return projectMacros;
   };
   const go = createGoReach(workspaceRoot);
   return (file, rows) => {
@@ -584,7 +637,7 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
       const rust = RUST_ROW.exec(row.text);
       if (rust !== null) {
         const root = crateRoot(workspaceRoot, directory);
-        const texts = read(`rust:${root}`, () => sourceFiles(root, ".rs", ["target"]));
+        const texts = read(`rust:${root}`, () => sourceFiles(root, ".rs", { skipped: ["target"] }));
         return texts === null || texts.some((text) => rustDefines(text, rust[1] as string));
       }
       if (GO_IMPORT_ROW.test(row.text)) {
@@ -634,10 +687,7 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
       }
       const php = PHP_ROW.exec(row.text);
       if (php !== null) {
-        // Any file may be included by path (`lib/compat.tpl`, a dot folder,
-        // a Composer package's `files` autoload), so every file that opens
-        // PHP code counts, vendor/ too.
-        const texts = read("php-any", () => sourceFiles(workspaceRoot, "", [], true));
+        const texts = phpAny();
         return (
           texts === null ||
           texts.some((text) => /<\?(?:php|=)/i.test(text) && phpDeclares(text, php[1] as string, php[2] as string))
@@ -646,12 +696,7 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
       const zero = BASH_ZERO_ROW.exec(row.text);
       if (zero !== null) {
         // `$0` names this file's folder only when no project script sources it.
-        const scripts = read("shell", () =>
-          sourceFiles(workspaceRoot, "").filter(
-            (candidate) =>
-              /\.(?:sh|bash|zsh|ksh|bats)$/i.test(candidate) || !path.basename(candidate).includes("."),
-          ),
-        );
+        const scripts = shellScripts();
         const name = zero[1] as string;
         // A `source` naming this file, or a computed path or glob whose last
         // segment may be it (`. "$f"` in a `for f in plugins/*.sh` loop).
@@ -659,7 +704,7 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
           let word = operand.replace(/["']/g, "").trim();
           // `$(dirname $0)/lib.sh`: a substitution is one piece of the word.
           while (/\$\([^()]*\)/.test(word)) word = word.replace(/\$\([^()]*\)/g, "$S");
-          word = word.split(/\s+/)[0] ?? "";
+          word = word.split(/\s/)[0] as string;
           const last = word.slice(word.lastIndexOf("/") + 1);
           if (!/[$*?[`]/.test(last)) return last === name;
           return true;
@@ -667,7 +712,7 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
         return (
           scripts === null ||
           scripts.some((text) =>
-            [...text.matchAll(/(?:^|[\s;&|(])(?:source|\.)\s+(?:--\s+)?([^\n;&|]+)/gm)].some((match) =>
+            [...text.matchAll(/(?:^|[\s;&|(])(?:source|\.)\s(?:--\s)?([^\n;&|]+)/gm)].some((match) =>
               mayBe(match[1] as string),
             ),
           )
@@ -678,47 +723,26 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
         // project names it.
         // A package under vendor/ may extend it too, and a group use names it
         // as `Illuminate\Support\{Env, Str}`.
-        const texts = read("php+vendor", () => sourceFiles(workspaceRoot, PHP_EXTENSIONS));
+        const texts = phpSources();
         return (
           texts === null ||
           // `use Illuminate\Support as Base; ... extends Base\Env`: any
           // mention of the vendor namespace may lead to the class.
           // A file's own `namespace Illuminate\...;` declares, not names.
-          texts.some((text) => /\bIlluminate\b/i.test(text.replace(/\bnamespace\s+[^;{]*[;{]/gi, "")))
+          texts.some((text) => text.split(/\bnamespace\s[^;{]*[;{]/i).some((part) => /\bIlluminate\b/i.test(part)))
         );
       }
       const include = C_INCLUDE_ROW.exec(row.text);
       if (include !== null) {
         // The row's text may be cut short, so the path is read from the line.
         const own = read(`file:${file}`, () => [path.join(workspaceRoot, file)])?.[0];
-        const line = own?.split("\n")[row.line - 1] ?? "";
-        const spelled = /(?:#|%:)\s*(?:include|include_next|import)\s*(?:"([^"]+)"|<([^>]+)>)/.exec(line);
-        if (own === undefined || spelled === null) return true;
-        // An angle include may name a project file of any extension (`<shims.inl>`).
-        const findProjectHeader = (header: string): string[] => {
-          if (headerPaths === undefined) {
-            try {
-              headerPaths = sourceFiles(workspaceRoot, "");
-            } catch {
-              headerPaths = [];
-            }
-          }
-          const suffix = `${path.sep}${path.normalize(header)}`;
-          return headerPaths.filter((candidate) => candidate.endsWith(suffix));
-        };
-        // The macros any C or header file of the project defines.
-        const macroIndex = (): MacroIndex => {
-          if (projectMacros === undefined) {
-            const texts = read("c-sources", () => sourceFiles(workspaceRoot, [".c", ".h", ".hh", ".hpp", ".hxx", ".inc", ".inl", ".def", ".ipp", ".tcc"]));
-            const index = new Map<string, CMacro[]>();
-            for (const macro of (texts ?? []).flatMap(cDefines)) index.set(macro.name, [...(index.get(macro.name) ?? []), macro]);
-            if (texts === null) index.set("*", []);
-            projectMacros = index;
-          }
-          return projectMacros;
-        };
+        if (own === undefined) return true;
+        // A line past the end reads as "undefined", which includes nothing.
+        const spelled = /(?:#|%:)\s*(?:include|include_next|import)\s*(?:"([^"]+)"|<([^>]+)>)/.exec(String(own.split("\n")[row.line - 1]));
+        if (spelled === null) return true;
         const targets =
           spelled[1] !== undefined ? [path.join(directory, spelled[1])] : findProjectHeader(spelled[2] as string);
+        if (targets === null) return true;
         const code = cPreprocessed(own);
         const unions = include[2] !== " or function pointers";
         for (const target of targets) {

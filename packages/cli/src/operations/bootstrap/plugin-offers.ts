@@ -82,16 +82,10 @@ function kibiConfigOf(manifest: unknown): ProjectKibiConfig {
           (name): name is string => typeof name === "string",
         )
       : [],
-    declinedLanguagePacks: Array.isArray(declinedLanguagePacks)
-      ? declinedLanguagePacks.filter(
-          (name): name is string => typeof name === "string",
-        )
-      : [],
-    generatedPaths: Array.isArray(generatedPaths)
-      ? generatedPaths.filter(
-          (pattern): pattern is string => typeof pattern === "string",
-        )
-      : [],
+    // A non-string entry names no pack and matches no path, so these lists
+    // are passed on as written; a value that is not a list is ignored.
+    ...(Array.isArray(declinedLanguagePacks) ? { declinedLanguagePacks } : {}),
+    ...(Array.isArray(generatedPaths) ? { generatedPaths } : {}),
   };
 }
 

@@ -4,10 +4,10 @@
 export const qualifiedSourceAnalyzers = [
   {
     packageName: "kibi-plugin-treesitter",
-    version: "3.0.0",
+    version: "3.1.0",
     files: {
       "SBOM.spdx.json":
-        "35be6f461678e3b04bee9823e6ed8adb631886335bc66590d80f6c8e8a1d0605",
+        "27e83274e9c1f04e9a4eb058fdef08d6067f76cbc7d916011831c61f1e9bbd44",
       "THIRD_PARTY_NOTICES.md":
         "942f1846cafc59c32d64422fcf1939be7036af4d82d776957aab8f4aeb107029",
       "assets/queries/bash.scm":
@@ -45,7 +45,7 @@ export const qualifiedSourceAnalyzers = [
       "assets/queries/terraform.scm":
         "8a6974a8eb48e13b5b8cd64e7c81262a825b4251df01ab383aee5cdda8151e7e",
       "catalog.json":
-        "88c1139144c89835eed2d8a4dc736e4fe8391b50c7aeecf967dd3cbe8163f937",
+        "2706fa2dc9852231f398352f3433509ca76d8d4141a99c465e1dbcddf82be86d",
       "dist/analysis-worker.js":
         "e05022b3a689b0b17b616bc5df6a03fc06f658f4581d598e9888b4ae7be4119a",
       "dist/catalog.js":
@@ -59,25 +59,25 @@ export const qualifiedSourceAnalyzers = [
       "dist/performance-timing.js":
         "28f589c29e8759b566ee3fb741a91e30347efe1dfbad0f5b1c5b7d4f785369ff",
       "dist/preprocessor-idioms.js":
-        "8b40d577796ecb1d859f97a9f437193903a5f2b9600bda9a38de865b9b1b3f1f",
+        "6d9e4892ae5a24495635558a844276dc5d828a9473495c3743da8b97700cd2ea",
       "dist/reference-nodes.js":
-        "2cc9075664f9d43cd126360b09b4a4baee8d855ea178468ec68791d3eed4f967",
+        "faaf1d994b25d306de616d6d2d6b116c21a70f56be2925da1355e52b3e8836d4",
       "dist/references-bash.js":
-        "c0106ce3de5f6cf14e280ac74e7e0d1a27ef19f57f7dfc11b654a9f4473ff283",
+        "a489fb9edaef7fae75341744114754fcf1ce855bba86c205aa741a29f44cf6cf",
       "dist/references-c.js":
-        "c96f052308565cdf9a0ff0d098d5d0fa22f71fde1443625df9335372286517c7",
+        "cb8feb16769a464c21ec85bdfacbf123a6f3645f96cf041057ca8d2288364346",
       "dist/references-hcl.js":
-        "29cd002a47c07e0a556c822b2bcbce2a98275bf478f8ed81c683fae33ee95b79",
+        "66a8e4ca74424ac780e0741d03d9a5919ce8c8777e6c1e304878cdd9a910f266",
       "dist/references-php.js":
-        "ab8ea2acee2a9c17aece0568f0acff73266dc4026bad00fa0de5e438be9f24e6",
+        "ae4cf157c6dbb328045508c287936b9884043e94d00d7276db99d0d1d13f5a66",
       "dist/references.js":
-        "1aa64d35d4bfb23846bfe3a814ea658b2b4983eac95506d15c7c6655909143ea",
+        "cf763fd23496eb572fcd12439049af3c4fc39494943b31d31b459f3d7d75b7d5",
       "integrity.json":
-        "f3f3686b6c01c55190026adb926fca104aee5c5365a45807f126bcd3711d5686",
+        "2301f3e42eaa22f398fc9e9a4003caf357ab10b9a0ed585d24cdf5c12ac640d4",
       "licenses/web-tree-sitter-MIT.txt":
         "c5cfb43042b6b72045f4ba997834d0a7786d2793d91680868b5815b39f14fc78",
       "package.json":
-        "5df90de14b219f4ae13c6cfd17206cbb70115c5a29f50ddb62f11d4abf891f9e",
+        "937b86bc67a367ef92da63d1c5b51933d898fa445115e0a22a4609897e186611",
     },
     dependencies: [
       {

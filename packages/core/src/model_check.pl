@@ -351,6 +351,7 @@ source_matching(Certificate, references(Files, Case)) :-
         text_string(RawExtract, Extract),
         memberchk(Extract, ["calls", "thrown", "imports"])
     ->  Case = fold
+    % mutalog-disable-next-line goal_true: Case is only compared with ==, so an unbound Case reads as exact
     ;   Case = exact
     ).
 source_matching(_, literal).
@@ -429,13 +430,13 @@ exclude_match(Actual, Expected, How) :-
     ).
 
 % folded_match(+Actual, +Expected, -How): Actual may be what Expected names
-% once letter case is ignored, and is not without that.
+% once letter case is ignored.  Called only for a pair exclude_match/3
+% rejected, so a match here is one that only letter case makes.
 folded_match(Actual, Expected, possible) :-
     string_lower(Actual, LowerActual),
     string_lower(Expected, LowerExpected),
-    (   LowerActual \== Actual ; LowerExpected \== Expected ),
-    \+ exclude_match(Actual, Expected, _),
     exclude_match(LowerActual, LowerExpected, _),
+    % mutalog-disable-next-line cut: the caller sorts the pairs it collects, so a second answer adds nothing
     !.
 
 % certain_match(+Actual, +Expected): Actual certainly is what Expected names
@@ -467,10 +468,9 @@ files_text(Files, Text) :-
     ).
 
 excluded_text(Files, Actual-Expected-How, Text) :-
-    (   How == possible,
-        \+ exclude_match(Actual, Expected, _)
+    (   \+ exclude_match(Actual, Expected, _)
     ->  format(string(Text), "~w (it may be ~w: the names differ only in letter case, which some languages ignore)", [Actual, Expected])
-    ;   How == certain, Actual == Expected
+    ;   Actual == Expected
     ->  Text = Actual
     ;   How == certain
     ->  format(string(Text), "~w (within ~w)", [Actual, Expected])
