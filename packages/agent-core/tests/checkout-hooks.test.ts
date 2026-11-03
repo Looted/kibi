@@ -51,7 +51,43 @@ describe("checkout hooks note", () => {
     expect(missingHooksNote(root)).toBeNull();
   });
 
+  test("reads the pre-commit hook where core.hooksPath points", () => {
+    mkdirSync(path.join(root, "custom-hooks"));
+    writeFileSync(
+      path.join(root, "custom-hooks", "pre-commit"),
+      "#!/bin/sh\nkibi check --staged\n",
+    );
+    expect(hasKibiPreCommitGate(root)).toBe(false);
+    git("config", "core.hooksPath", "custom-hooks");
+    expect(hasKibiPreCommitGate(root)).toBe(true);
+  });
+
+  test("falls back to .git/hooks when Git cannot resolve the hook path", () => {
+    const plain = realpathSync(
+      mkdtempSync(path.join(os.tmpdir(), "kibi-hooks-plain-")),
+    );
+    try {
+      mkdirSync(path.join(plain, ".git", "hooks"), { recursive: true });
+      expect(hasKibiPreCommitGate(plain)).toBe(false);
+      writeFileSync(
+        path.join(plain, ".git", "hooks", "pre-commit"),
+        "#!/bin/sh\nkibi check --staged\n",
+      );
+      expect(hasKibiPreCommitGate(plain)).toBe(true);
+      // Not a Git work tree: there are no hooks to install, so no note.
+      mkdirSync(path.join(plain, ".kb"));
+      writeFileSync(path.join(plain, ".kb", "manifest.json"), "{}\n");
+      rmSync(path.join(plain, ".git"), { recursive: true });
+      expect(kibiHooksMissing(plain)).toBe(false);
+    } finally {
+      rmSync(plain, { recursive: true, force: true });
+    }
+  });
+
   test("stays quiet where Kibi is not initialized or a hook manager owns the hooks", () => {
+    rmSync(path.join(root, ".kb", "manifest.json"));
+    expect(kibiHooksMissing(root)).toBe(false);
+
     rmSync(path.join(root, ".kb"), { recursive: true });
     expect(missingHooksNote(root)).toBeNull();
 

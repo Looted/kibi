@@ -7,6 +7,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import { MISSING_HOOKS_NOTE } from "kibi-agent-core/checkout-hooks";
 import { createEntitySummarizer } from "kibi-agent-core/snippets";
 import {
   CONFIRM_FIRM_EDITS_ENV,
@@ -316,6 +317,21 @@ describe("session start", () => {
       }),
     );
     expect(h.journal()).toStrictEqual([]);
+  });
+
+  // implements REQ-kibi-fresh-clone-setup
+  test("a checkout without Kibi's hooks gets the missing-hooks note on its own line", async () => {
+    const fixture = workspace();
+    spawnSync("git", ["init", "-q"], { cwd: fixture.root });
+    const h = hooks(fixture);
+    expect(
+      await h.call({ hook_event_name: "SessionStart", source: "startup" }),
+    ).toStrictEqual({
+      hookSpecificOutput: {
+        hookEventName: "SessionStart",
+        additionalContext: `${sessionStartContext(6)}\n${MISSING_HOOKS_NOTE}`,
+      },
+    });
   });
 
   test("a compact or clear resets what was shown; a startup or resume does not", async () => {
