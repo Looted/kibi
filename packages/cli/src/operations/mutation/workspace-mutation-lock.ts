@@ -416,9 +416,15 @@ export function classifySourceMutationFailure(
 }
 
 /**
- * Acquire the workspace workspace mutation lock without a callback shape, for
- * operations whose lock must span several awaits (source publication,
- * coordinate refresh, canonical re-extraction, and the RDF commit).
+ * Acquire the workspace mutation lock for an operation whose lock spans
+ * several awaits (source publication, coordinate refresh, canonical
+ * re-extraction, and the RDF commit).
+ *
+ * Atomic directory creation is the sole lock authority. Owner metadata is
+ * release authorization and diagnostics. Every existing target, including a
+ * legacy file or a directory with missing/corrupt metadata, blocks or fails
+ * closed without mutating the lock path. Release failures propagate so
+ * successful work is never reported unlocked.
  */
 // implements REQ-generated-coordinate-persistence
 export async function acquireWorkspaceMutationLock(
@@ -618,31 +624,4 @@ export async function acquireWorkspaceMutationLock(
       releaseState = "released";
     },
   };
-}
-
-/**
- * Run `operation` while holding the workspace mutation lock.
- *
- * Atomic directory creation is the sole lock authority. Owner metadata is
- * release authorization and diagnostics. Every existing target, including a
- * legacy file or a directory with missing/corrupt metadata, blocks or fails
- * closed without mutating the lock path. Release failures propagate so
- * successful work is never reported unlocked.
- */
-// implements REQ-generated-coordinate-persistence
-export async function withWorkspaceMutationLock<T>(
-  workspaceRoot: string,
-  operation: () => Promise<T>,
-  options: WorkspaceMutationLockOptions = {},
-): Promise<T> {
-  const handle = await acquireWorkspaceMutationLock(workspaceRoot, options);
-  let operationFailure: { readonly error: unknown } | undefined;
-  try {
-    return await operation();
-  } catch (error) {
-    operationFailure = { error };
-    throw error;
-  } finally {
-    releaseWorkspaceMutationLock(handle, operationFailure);
-  }
 }

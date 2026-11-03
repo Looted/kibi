@@ -62,6 +62,10 @@ function upsertBatchEntry(input: TransactionInput): string {
 const ENSURE_CHECKS_LOADED =
   "(current_predicate(checks:what_if_analysis_json/2) -> true ; module_property(kb, file(KbFile)), file_directory_name(KbFile, KbDir), directory_file_path(KbDir, 'checks.pl', ChecksFile), use_module(ChecksFile))";
 
+/**
+ * Inputs without entity properties stage only their relationships, so a
+ * relationship-only step never erases an existing entity's properties.
+ */
 type WhatIfInput = TransactionInput & { readonly relationshipsOnly?: boolean };
 
 function whatIfEntries(inputs: readonly WhatIfInput[]): string {
@@ -75,19 +79,6 @@ function whatIfEntries(inputs: readonly WhatIfInput[]): string {
     return `upsert(${String(input.entity.type)}, ${buildPropertyList(input.entity)}, [${relationships.join(", ")}])`;
   });
   return `[${entries.join(", ")}]`;
-}
-
-// implements REQ-kibi-truthful-consistency
-/**
- * Goal that stages inputs in a rolled-back transaction and returns the
- * contradiction witnesses the KB would then contain, as JSON in JsonString.
- * Inputs without entity properties stage only their relationships, so a
- * relationship-only step never erases an existing entity's properties.
- */
-export function buildWhatIfContradictionGoal(
-  inputs: readonly WhatIfInput[],
-): string {
-  return `(${ENSURE_CHECKS_LOADED}, call(checks:what_if_contradiction_witnesses_json(${whatIfEntries(inputs)}, JsonString)))`;
 }
 
 // implements REQ-kibi-truthful-consistency
