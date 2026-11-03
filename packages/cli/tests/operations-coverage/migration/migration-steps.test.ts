@@ -1,11 +1,17 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
+import { readFileSync, writeFileSync } from "node:fs";
+import path from "node:path";
 import { planEntityTypeBackfill } from "../../../src/operations/migration/entity-type.js";
 import {
   planEvidenceFloorPins,
   readLadderFloorVerdicts,
 } from "../../../src/operations/migration/evidence-floor.js";
+import { applySafeInventoryRederivations } from "../../../src/operations/migration/inventory-rederive.js";
 import * as kbSources from "../../../src/operations/migration/kb-sources.js";
-import { applyOriginBackfill } from "../../../src/operations/migration/origin-backfill.js";
+import {
+  applyOriginBackfill,
+  withBackfilledOrigin,
+} from "../../../src/operations/migration/origin-backfill.js";
 import { applyRequirementStatusMapping } from "../../../src/operations/migration/requirement-status.js";
 import {
   coordinateRefreshFailureMessage,
@@ -13,6 +19,7 @@ import {
 } from "../../../src/operations/migration/symbol-coordinates-refresh.js";
 import * as evidenceFloorRows from "../../../src/public/operations/evidence-floor.js";
 import * as runtimeTypes from "../../../src/public/operations/runtime-types.js";
+import { writeDriftedRequirement } from "../../helpers/schema6-fixture.js";
 import { scratch } from "../helpers.js";
 
 const spies: { mockRestore: () => void }[] = [];
@@ -62,6 +69,12 @@ describe("migration steps on authored files", () => {
     ).toStrictEqual([
       { path: ".kb/requirements/REQ-a.md", reason: "unreadable" },
     ]);
+  });
+
+  test("refuse an origin that does not read back as one", () => {
+    expect(
+      withBackfilledOrigin("---\nid: REQ-a\n---\n", { kind: "bogus" } as never),
+    ).toBeNull();
   });
 
   test("skip a firm requirement whose evidence floor cannot be set in place", () => {
@@ -116,5 +129,19 @@ describe("coordinate refresh after a migration", () => {
     expect(
       coordinateRefreshFailureMessage((refresh as { reason: string }).reason),
     ).toStartWith("Could not refresh symbol coordinates after the migration (");
+  });
+});
+
+describe("inventory re-derivation", () => {
+  test("rewrites only the span of an entry whose claim is unchanged", () => {
+    const root = workspace();
+    writeDriftedRequirement(root, "REQ-s", 0);
+    const file = path.join(root, ".kb/requirements/REQ-s.md");
+    writeFileSync(
+      file,
+      readFileSync(file, "utf8").replace("      end: 61\n", "      end: 60\n"),
+    );
+    applySafeInventoryRederivations(root);
+    expect(readFileSync(file, "utf8")).toContain("span: {start: 0, end: 61}");
   });
 });

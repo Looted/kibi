@@ -1,5 +1,6 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, spyOn, test } from "bun:test";
 import type { OntologyPackV1, SemanticClassifierV1 } from "kibi-plugin-sdk";
+import * as prose from "../../../src/operations/semantic-advisor/analyze-prose.js";
 import { analyzeSemanticAdvisorInput } from "../../../src/operations/semantic-advisor/analyze-prose.js";
 import {
   analyzeSemanticAdvisorInputWithPlugins,
@@ -126,6 +127,25 @@ describe("analyzeSemanticAdvisorInputWithPlugins", () => {
     expect(
       result.ontologyShadowMatches.map((row) => row.schemaId),
     ).toStrictEqual(["shadow.holds"]);
+  });
+});
+
+describe("analyzeSemanticAdvisorInputWithPlugins on a modeled requirement", () => {
+  test("skips the classifier and still applies ontology matches", async () => {
+    const modeled = analysis({ logic_readiness: "modeled" });
+    const spy = spyOn(prose, "analyzeSemanticAdvisorInput").mockReturnValue(
+      modeled,
+    );
+    try {
+      const result = await analyzeSemanticAdvisorInputWithPlugins(input(TEXT), {
+        ensurePlugins: async () => registry(),
+        operationName: "kb_semantic_advisor",
+      });
+      expect(result.classification).toBeNull();
+      expect(result.analysis.receipt).toStrictEqual(modeled.receipt);
+    } finally {
+      spy.mockRestore();
+    }
   });
 });
 
