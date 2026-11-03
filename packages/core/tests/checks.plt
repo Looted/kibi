@@ -555,13 +555,13 @@ test(memo_resets_at_its_limit) :-
     assertz(checks:json_text_memo_size(Before)),
     assertz(checks:json_text_memo(old, parsed(1))),
     checks:json_text_term("[7]", _),
-    checks:json_text_memo_size(AtLimit),
-    AtLimit == Limit,
+    findall(S1, checks:json_text_memo_size(S1), AtLimit),
+    AtLimit == [Limit],
     checks:json_text_term("[8]", _),
     findall(K, checks:json_text_memo(K, _), Keys),
     Keys == ['[8]'],
-    checks:json_text_memo_size(Reset),
-    Reset == 1,
+    findall(S2, checks:json_text_memo_size(S2), Reset),
+    Reset == [1],
     retractall(checks:json_text_memo(_, _)),
     retractall(checks:json_text_memo_size(_)).
 
@@ -3343,7 +3343,7 @@ test(rule_with_negation, [nondet]) :-
 
 :- begin_tests(checks_rule_verifiability).
 
-test(each_description, Violations == [V1, V2, V3, V4, V5, V6]) :-
+test(each_description, Violations == [V1, V2, V2b, V2c, V3, V4, V5, V6]) :-
     chk_kb((
         chk_req('REQ-RV'),
         chk_rule_schema('SCHEMA-OK', [fact_kind=rule_schema, rule_name="ok", argument_names=["a"], argument_types=["t"]]),
@@ -3354,8 +3354,10 @@ test(each_description, Violations == [V1, V2, V3, V4, V5, V6]) :-
         chk_rule_fact('FACT-MISSING', rule, assert, checkout, [total-gt-0], [], [rule_schema_id="kb/SCHEMA-NONE"], _),
         chk_rule_fact('FACT-BADSCHEMA', rule, assert, checkout, [total-gt-0], [], [rule_schema_id="SCHEMA-PRED"], _),
         chk_raw_entity(fact, 'FACT-UNSAFE', [id='FACT-UNSAFE', fact_kind=rule, rule_schema_id="SCHEMA-OK", rule_ir="{"]),
+        chk_raw_entity(fact, 'FACT-PRED2', [id='FACT-PRED2', fact_kind=predicate, rule_schema_id="SCHEMA-NONE"]),
+        chk_raw_entity(fact, 'FACT-PRED3', [id='FACT-PRED3', fact_kind=predicate, rule_schema_id="SCHEMA-PRED"]),
         chk_rule_fact('FACT-GOOD', rule, assert, checkout, [total-gt-0], [], [rule_schema_id="SCHEMA-OK"], _),
-        forall(member(F, ['FACT-LEG', 'FACT-PRED', 'FACT-NOSCHEMA', 'FACT-MISSING', 'FACT-BADSCHEMA', 'FACT-UNSAFE', 'FACT-GOOD']),
+        forall(member(F, ['FACT-LEG', 'FACT-PRED', 'FACT-PRED2', 'FACT-PRED3', 'FACT-NOSCHEMA', 'FACT-MISSING', 'FACT-BADSCHEMA', 'FACT-UNSAFE', 'FACT-GOOD']),
                chk_raw_rel(requires_rule, 'REQ-RV', F)),
         chk_raw_rel(requires_rule, 'REQ-RV', 'FACT-ABSENT'),
         chk_req('REQ-OLD', [status=deprecated]),
@@ -3364,6 +3366,8 @@ test(each_description, Violations == [V1, V2, V3, V4, V5, V6]) :-
     )),
     chk_verif('REQ-RV', "Requirement uses requires_rule FACT-LEG but target is fact_kind=legacy", V1),
     chk_verif('REQ-RV', "Requirement uses requires_rule FACT-PRED but target is fact_kind=predicate", V2),
+    chk_verif('REQ-RV', "Requirement uses requires_rule FACT-PRED2 but target is fact_kind=predicate", V2b),
+    chk_verif('REQ-RV', "Requirement uses requires_rule FACT-PRED3 but target is fact_kind=predicate", V2c),
     chk_verif('REQ-RV', "Rule fact FACT-BADSCHEMA references SCHEMA-PRED, which is not a rule_schema fact", V3),
     chk_verif('REQ-RV', "Rule fact FACT-MISSING references missing rule schema SCHEMA-NONE", V4),
     chk_verif('REQ-RV', "Rule fact FACT-NOSCHEMA has no rule_schema_id", V5),
@@ -3534,6 +3538,7 @@ test(check_selected, Nonempty == [must_priority_coverage]) :-
     chk_all_keys(Expected),
     chk_kb((
         chk_must_and_dangling,
+        chk_ent(symbol, 'SYM-X', []),
         checks:check_selected(['must-priority-coverage', 'symbol-granularity'], D),
         dict_keys(D, Keys),
         Keys == Expected,
@@ -3728,6 +3733,9 @@ test(narrow_exception_of_another_requirement, Violations == [violation('scenario
         chk_req('REQ-EXB', [approved_by="Owner", exempts_claims=["CLAIM-OTHER"]]),
         chk_rel(exempts, 'REQ-EXB', 'REQ-B'),
         chk_rel(specified_by, 'REQ-EXB', 'SCEN-ZERO'),
+        chk_req('REQ-EXU'),
+        chk_rel(exempts, 'REQ-EXU', 'REQ-B'),
+        chk_rel(specified_by, 'REQ-EXU', 'SCEN-ZERO'),
         check_scenario_feasibility(Violations)
     )).
 
@@ -3821,7 +3829,10 @@ test(time_helpers) :-
     \+ checks:time_before(b, a),
     \+ checks:time_before(x, x),
     \+ checks:time_before('2026-01-01', ''),
-    \+ checks:time_before('', '2026-01-01').
+    \+ checks:time_before('', '2026-01-01'),
+    % an unparsable bound falls back to the standard order of terms
+    \+ checks:time_before(f(x), '2026-01-01'),
+    checks:time_before('2026-01-01', f(x)).
 
 test(outside_general_rule_is_deterministic) :-
     first_answer_is_last(checks:general_rule_verdict([], gr(r, f, forbids, '', outside, false, [s-p], []), V)),

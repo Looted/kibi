@@ -1250,7 +1250,7 @@ scenario_feasibility_outcome(ScenarioId, Outcome) :-
     Outcome = Outcome0.
 
 analysis_outcome(analysis([infeasibility(ReqIds, AssumedFacts, ReqFacts, Reason)|_], _, _, _),
-                 infeasible(witness(ReqIds, AssumedFacts, ReqFacts, Reason))) :- !.
+                 infeasible(witness(ReqIds, AssumedFacts, ReqFacts, Reason))).
 analysis_outcome(analysis([], [Reason|_], _, _), unknown(Reason)) :- !.
 analysis_outcome(analysis([], [], true, _), feasible_by_exception) :- !.
 analysis_outcome(analysis([], [], false, [Reason|_]), not_applicable(Reason)) :- !.
@@ -1594,7 +1594,9 @@ declared_numeric_type(Value, VarType, int) :-
 declared_numeric_type(_, _, number).
 
 condition_term_text(number(Value, none), Value) :- !.
+% mutalog-disable-next-line cut_insert: no later clause takes a number with a unit
 condition_term_text(number(Value, Unit), Text) :- format(atom(Text), '~w ~w', [Value, Unit]).
+% mutalog-disable-next-line cut_insert: no later clause takes a duration
 condition_term_text(duration(Value, Unit), Text) :- format(atom(Text), '~w ~w', [Value, Unit]).
 condition_term_text(const(Value, _), Value).
 
@@ -1844,8 +1846,10 @@ general_rule_verdict(Assumptions, gr(ReqId, FactId, Restriction, Scope, Applicab
         )
     ;   Exempt == true, Conditions == untranslatable
     ->  Verdict = []
-    ;   (   Conditions == untranslatable
-        ;   Scope == '', AssumedScopes = [_, _|_]
+    ;   % A scoped rule reads only unscoped assumptions and those in its own
+        % scope, so only an unscoped rule can see two scopes.
+        (   Conditions == untranslatable
+        ;   AssumedScopes = [_, _|_]
         )
     ->  Verdict = [undecided_rule([FactId])]
     ;   condition_verdict(Relevant, ReqId, FactId, Applicability, Exempt, ReadKeys, Conditions, Verdict)
@@ -2050,7 +2054,7 @@ assumption_incomparable(_, Assumption) :-
 % Some value satisfies every member.  Members must be comparable.  Numeric
 % members are decided by intervals.pl over the integers only when every
 % member is declared int; other types support eq and neq.
-members_satisfiable([]) :- !.
+members_satisfiable([]).
 members_satisfiable(Members) :-
     Members = [m(_, _, _, _, _, Type, _, _, _, _)|_],
     (   kb:is_numeric_type(Type)
@@ -2142,8 +2146,7 @@ facts_oppose(AssumedFact, ReqFact) :-
     (   kb:polarity_conflict(Subject, Property, OpA, TypeA, ValueA, UnitA, ScopeA, PolarityA,
                              OpB, TypeB, ValueB, UnitB, ScopeB, PolarityB, _)
     ->  true
-    ;   PolarityA == PolarityB,
-        kb:property_conflict(Subject, Property, OpA, TypeA, ValueA, UnitA, PolarityA,
+    ;   kb:property_conflict(Subject, Property, OpA, TypeA, ValueA, UnitA, PolarityA,
                              OpB, TypeB, ValueB, UnitB, PolarityB, _)
     ->  true
     ).
@@ -2167,6 +2170,7 @@ facts_oppose(AssumedFact, ReqFact) :-
 % or, for a rule over predicates, its head instantiated with the variable
 % names.  Fails when no such fact can be derived (a matches pattern).
 opposing_assumption(FactId, Assumption) :-
+    % mutalog-disable-next-line cut_insert: a fact is a property fact, a predicate fact or a rule, never two of them
     kb:fact_property_tuple(FactId, Subject, Property, Op, Type, Value, Unit, Scope, Polarity),
     (   Polarity == forbid
     ->  Op1 = Op, Value1 = Value
