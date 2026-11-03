@@ -133,12 +133,12 @@ describe("inspectBranchStore", () => {
       "branch_store_missing_rdf",
       "The journaled store has no rdf generation directory.",
     );
-    expect(inspectBranchStore(root, "main")).toStrictEqual(noRdf);
+    expect<unknown>(inspectBranchStore(root, "main")).toStrictEqual(noRdf);
     write(path.join(s, "rdf"), "file");
-    expect(inspectBranchStore(root, "main")).toStrictEqual(noRdf);
+    expect<unknown>(inspectBranchStore(root, "main")).toStrictEqual(noRdf);
     rmSync(path.join(s, "rdf"));
     mkdirSync(path.join(s, "rdf"));
-    expect(inspectBranchStore(root, "main")).toStrictEqual(
+    expect<unknown>(inspectBranchStore(root, "main")).toStrictEqual(
       incomplete(
         "sync_metadata_missing",
         "The journaled store has no CURRENT generation pointer.",
@@ -159,10 +159,12 @@ describe("inspectBranchStore", () => {
       "generation-a b:1",
     ]) {
       write(path.join(s, "CURRENT"), current);
-      expect(inspectBranchStore(root, "main")).toStrictEqual(malformed);
+      expect<unknown>(inspectBranchStore(root, "main")).toStrictEqual(
+        malformed,
+      );
     }
     write(path.join(s, "CURRENT"), " generation-a1:12 \n");
-    expect(inspectBranchStore(root, "main")).toStrictEqual(healthy(s));
+    expect<unknown>(inspectBranchStore(root, "main")).toStrictEqual(healthy(s));
   });
 
   test("an unreadable CURRENT is reported with the filesystem error", () => {
@@ -202,7 +204,9 @@ describe("inspectBranchStore", () => {
     }
     for (const text of ["<rdf:RDF>", "<?xml?>\n<rdf:RDF\n xmlns:rdf='x'>"]) {
       write(path.join(s, "kb.rdf"), text);
-      expect(inspectBranchStore(root, "main")).toStrictEqual(healthy(s));
+      expect<unknown>(inspectBranchStore(root, "main")).toStrictEqual(
+        healthy(s),
+      );
     }
   });
 });

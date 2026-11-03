@@ -97,7 +97,7 @@ describe("readKbManifestStatus", () => {
       firmSupersedeAcknowledged: [{}, "D -> E"],
     };
     const { status, hash } = statusOf(value);
-    expect(status).toStrictEqual({
+    expect<unknown>(status).toStrictEqual({
       state: "ok",
       manifestHash: hash,
       manifest: {
@@ -107,7 +107,7 @@ describe("readKbManifestStatus", () => {
         firmSupersedeAcknowledged: ["D -> E"],
       },
     });
-    expect(
+    expect<unknown>(
       statusOf({
         ...VALID,
         contextAcknowledged: "A",
@@ -128,12 +128,12 @@ describe("readKbManifestStatus", () => {
 
   test("accepts every backfill state and a version below the current one", () => {
     for (const backfill of ["pending", "completed", "not_applicable"]) {
-      expect(
+      expect<unknown>(
         statusOf({ ...VALID, semanticAdvisorBackfill: backfill }).status
           .manifest,
       ).toStrictEqual({ ...VALID, semanticAdvisorBackfill: backfill });
     }
-    expect(
+    expect<unknown>(
       statusOf({ ...VALID, manifestVersion: 0, schemaVersion: 1 }).status
         .manifest,
     ).toStrictEqual({ ...VALID, manifestVersion: 0, schemaVersion: 1 });
@@ -182,8 +182,8 @@ describe("readKbManifestStatus", () => {
 describe("readKbManifest and writeKbManifest", () => {
   test("readers return the manifest only when it is ok", () => {
     const ok = workspace(JSON.stringify(VALID));
-    expect(readKbManifest(ok)).toStrictEqual(VALID);
-    expect(readKbManifestOrDefault(ok)).toStrictEqual(VALID);
+    expect<unknown>(readKbManifest(ok)).toStrictEqual(VALID);
+    expect<unknown>(readKbManifestOrDefault(ok)).toStrictEqual(VALID);
     const broken = workspace("{");
     expect(readKbManifest(broken)).toBeNull();
     expect(readKbManifestOrDefault(broken)).toStrictEqual(defaultKbManifest());
@@ -201,7 +201,7 @@ describe("readKbManifest and writeKbManifest", () => {
       `${JSON.stringify(manifest, null, 2)}\n`,
     );
     writeKbManifest(dir, VALID as never);
-    expect(readKbManifest(dir)).toStrictEqual(VALID);
+    expect<unknown>(readKbManifest(dir)).toStrictEqual(VALID);
     expect(readdirSync(path.join(dir, ".kb"))).toStrictEqual(["manifest.json"]);
   });
 });

@@ -363,7 +363,7 @@ describe("confirmMetaFreshness", () => {
 
   test("a fully confirmed stale payload becomes fresh", () => {
     const { root, store } = fixture();
-    expect(
+    expect<unknown>(
       confirmMetaFreshness(
         {
           rows: 1,
@@ -395,13 +395,13 @@ describe("confirmMetaFreshness", () => {
         { meta: { kbPath: store, syncState: "stale", ...meta } },
         root,
       ).meta;
-    expect(run({ staleReasons: [same, changed] })).toStrictEqual({
+    expect<unknown>(run({ staleReasons: [same, changed] })).toStrictEqual({
       kbPath: store,
       syncState: "stale",
       staleReasons: [changed],
       staleReasonCount: 1,
     });
-    expect(
+    expect<unknown>(
       run({
         staleReasons: [same],
         staleReasonsTruncated: true,
@@ -414,7 +414,9 @@ describe("confirmMetaFreshness", () => {
       staleReasonsTruncated: true,
       staleReasonCount: 6,
     });
-    expect(run({ staleReasons: [same], syncState: "unknown" })).toStrictEqual({
+    expect<unknown>(
+      run({ staleReasons: [same], syncState: "unknown" }),
+    ).toStrictEqual({
       kbPath: store,
       syncState: "unknown",
       staleReasons: [],
@@ -424,7 +426,7 @@ describe("confirmMetaFreshness", () => {
 
   test("the count never drops below the reasons still carried", () => {
     const { root, store } = fixture();
-    expect(
+    expect<unknown>(
       confirmMetaFreshness(
         {
           meta: {
