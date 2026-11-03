@@ -59,7 +59,6 @@ import { amendsRootCommit } from "../traceability/commit-amend.js";
 import {
   KIBI_NO_IMPACT_DECLARATION,
   KIBI_SYMBOLS_MANIFEST_PATH,
-  KIBI_SYMBOL_COORDINATES_PATH,
   type KibiEntityType,
   type KibiImpactEvidence,
 } from "../traceability/evidence-model.js";
@@ -298,14 +297,6 @@ const KIBI_ENTITY_TYPES = new Set<KibiEntityType>([
 
 function isKibiEntityType(value: string): value is KibiEntityType {
   return KIBI_ENTITY_TYPES.has(value as KibiEntityType);
-}
-
-function isStagedManifestPath(filePath: string): boolean {
-  return (
-    filePath === CANONICAL_ENTITY_PATHS.symbols ||
-    filePath === ".kb/symbols.yml" ||
-    filePath === KIBI_SYMBOL_COORDINATES_PATH
-  );
 }
 
 function isTestOnlySourcePath(filePath: string): boolean {
