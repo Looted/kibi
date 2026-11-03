@@ -39,6 +39,7 @@ import {
   setupSeededDirtyKb,
   setupSeededFreshKb,
   setupSeededGovernedAreaKb,
+  setupSeededJointContradictionKb,
   setupSeededPreconditionKb,
   setupSeededSafeMutationKb,
   setupSeededUncoveredKb,
@@ -179,6 +180,7 @@ test.each([
   ["precondition", setupSeededPreconditionKb],
   ["consistency", setupSeededConsistencyKb],
   ["unresolved-rule", setupSeededUnresolvedRuleKb],
+  ["joint-contradiction", setupSeededJointContradictionKb],
 ] as const)(
   "%s seed passes its own validation",
   async (name, setup) => {
