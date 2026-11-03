@@ -32,6 +32,10 @@ const launcher = require(
     detail?: string;
   }>;
   proxyKibiMcp: (options?: Record<string, unknown>) => Promise<number>;
+  resolveLaunchTarget: (
+    workspaceRoot: string,
+    env?: NodeJS.ProcessEnv,
+  ) => { command: string; args: string[]; via: string } | null;
   resolveLocalEntry: (workspaceRoot: string) => string | null;
   resolveWindowsShimEntry: (shimPath: string) => string | null;
   serveSilent: (options?: Record<string, unknown>) => Promise<number>;
@@ -151,6 +155,105 @@ describe("resolution edges", () => {
     const brokenManifest = path.join(brokenDir, "package.json");
     fs.writeFileSync(brokenManifest, "{ not json");
     expect(launcher.resolveLocalEntry(fixture.workspaceRoot)).toBe(entry);
+  });
+
+  function globalPathDir(): string {
+    const globalDir = tempRoot("kibi-zcode-edges-global-");
+    const globalEntry = path.join(globalDir, "kibi-mcp");
+    fs.writeFileSync(globalEntry, "#!/bin/sh\nexit 0\n");
+    fs.chmodSync(globalEntry, 0o755);
+    return globalDir;
+  }
+
+  function rewritePackageManifest(
+    packageRoot: string,
+    change: (manifest: Record<string, unknown>) => void,
+  ): void {
+    const manifestPath = path.join(packageRoot, "package.json");
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+    change(manifest);
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest));
+  }
+
+  test("a local package without a workspace package.json blocks the global fallback", () => {
+    const fixture = createFixtureWorkspace({
+      prefix: "kibi-zcode-edges-nomarker-",
+      installPackage: true,
+    });
+    roots.push(fixture.base);
+    fs.rmSync(path.join(fixture.workspaceRoot, "package.json"));
+    const env = hermeticEnv({ PATH: globalPathDir() });
+    expect(launcher.resolveLocalEntry(fixture.workspaceRoot)).toBeNull();
+    expect(launcher.resolveLaunchTarget(fixture.workspaceRoot, env)).toBeNull();
+  });
+
+  test("no workspace package.json and no local package falls back globally", () => {
+    const fixture = createFixtureWorkspace({
+      prefix: "kibi-zcode-edges-nomarker-global-",
+      installPackage: false,
+    });
+    roots.push(fixture.base);
+    fs.rmSync(path.join(fixture.workspaceRoot, "package.json"));
+    const globalDir = globalPathDir();
+    const target = launcher.resolveLaunchTarget(
+      fixture.workspaceRoot,
+      hermeticEnv({ PATH: globalDir }),
+    );
+    expect(target).toStrictEqual({
+      command: path.join(globalDir, "kibi-mcp"),
+      args: [],
+      via: "global-path",
+    });
+  });
+
+  test("a resolved entry without a kibi-mcp manifest is installed but unlaunchable", () => {
+    const fixture = createFixtureWorkspace({
+      prefix: "kibi-zcode-edges-noowner-",
+      installPackage: true,
+    });
+    roots.push(fixture.base);
+    rewritePackageManifest(fixture.packageRoot as string, (manifest) => {
+      manifest.name = "not-kibi-mcp";
+    });
+    const env = hermeticEnv({ PATH: globalPathDir() });
+    expect(launcher.resolveLocalEntry(fixture.workspaceRoot)).toBeNull();
+    expect(launcher.resolveLaunchTarget(fixture.workspaceRoot, env)).toBeNull();
+  });
+
+  for (const [label, bin] of [
+    ["a non-string, non-object bin", 5],
+    ["an empty bin path", ""],
+    ["a bin map without a kibi-mcp entry", { other: "bin/other.js" }],
+  ] as const) {
+    test(`${label} declares no launchable entry`, () => {
+      const fixture = createFixtureWorkspace({
+        prefix: "kibi-zcode-edges-bin-",
+        installPackage: true,
+      });
+      roots.push(fixture.base);
+      rewritePackageManifest(fixture.packageRoot as string, (manifest) => {
+        manifest.bin = bin;
+      });
+      const env = hermeticEnv({ PATH: globalPathDir() });
+      expect(launcher.resolveLocalEntry(fixture.workspaceRoot)).toBeNull();
+      expect(
+        launcher.resolveLaunchTarget(fixture.workspaceRoot, env),
+      ).toBeNull();
+    });
+  }
+
+  test("a string bin is resolved against the package root", () => {
+    const fixture = createFixtureWorkspace({
+      prefix: "kibi-zcode-edges-strbin-",
+      installPackage: true,
+    });
+    roots.push(fixture.base);
+    rewritePackageManifest(fixture.packageRoot as string, (manifest) => {
+      manifest.bin = "bin/kibi-mcp.js";
+    });
+    expect(launcher.resolveLocalEntry(fixture.workspaceRoot)).toBe(
+      fixture.entryPath as string,
+    );
   });
 
   test("Windows PATH lookup prefers shims and skips unresolvable ones", () => {

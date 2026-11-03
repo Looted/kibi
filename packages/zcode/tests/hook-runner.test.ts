@@ -4,12 +4,33 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { type HookResult, runHook } from "../src/hook-runner";
+import {
+  captureReminder,
+  signoffReminder,
+} from "kibi-agent-core/decision-guard";
+
+import {
+  type HookResult,
+  canonicalizeCheckSourceFiles,
+  extractMutatedWorkspacePaths,
+  isInvokedAsCli,
+  main,
+  runHook,
+  runHookCli,
+  runHookCliIfMain,
+} from "../src/hook-runner";
 import {
   loadHookState,
   resolvePluginDataDir,
+  resolveSessionStateDir,
   resolveWorkspaceStateDir,
 } from "../src/hook-state";
+import {
+  DIRECT_KB_EDIT_WARNING,
+  freshnessReminder,
+  impactCheckReminder,
+  postEditImpactNote,
+} from "../src/messages";
 
 /**
  * ZCode parses hook stdout against a strict schema (verified against the
@@ -1834,5 +1855,518 @@ describe("ZCode reminders from Claude-compatible payloads", () => {
         channel: "agent-test",
       });
     }
+  });
+});
+
+describe("ZCode hook runner exact decisions", () => {
+  const DIAGNOSTIC = { KIBI_DIAGNOSTIC_MODE: "true", KIBI_TELEMETRY: "0" };
+  const QUIET = { KIBI_TELEMETRY: "0" };
+  const PACKAGE_VERSION = JSON.parse(
+    fs.readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+  ).version as string;
+  const FIRM_NOTICE =
+    "Kibi: this edit changes computeTotal in src/checkout.ts, which implements a firm requirement, a rule the person set: REQ-checkout-rounding: Checkout totals round to cents.";
+
+  type Fixture = { cwd: string; pluginData: string };
+
+  function hook(
+    fixture: Fixture,
+    payload: Record<string, unknown>,
+    env: NodeJS.ProcessEnv = DIAGNOSTIC,
+    sessionId = "s1",
+  ): Promise<HookResult> {
+    return runHook(
+      { session_id: sessionId, cwd: fixture.cwd, ...payload },
+      { pluginData: fixture.pluginData, env },
+    );
+  }
+
+  function rows(fixture: Fixture): Record<string, unknown>[] {
+    const logPath = path.join(fixture.cwd, ".kb", "usage.log");
+    if (!fs.existsSync(logPath)) return [];
+    return fs
+      .readFileSync(logPath, "utf8")
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line) as Record<string, unknown>);
+  }
+
+  function actions(fixture: Fixture): unknown[][] {
+    return rows(fixture).map((row) => [
+      row.hook_event,
+      row.hook_action,
+      row.path_kind,
+      row.requirement_ids,
+    ]);
+  }
+
+  function stateDirOf(fixture: Fixture, sessionId = "s1"): string {
+    return resolveSessionStateDir(
+      fixture.pluginData,
+      fixture.cwd,
+      sessionId,
+    ) as string;
+  }
+
+  const context = (event: string, message: string) => ({
+    continue: true,
+    hookSpecificOutput: { hookEventName: event, additionalContext: message },
+  });
+
+  const write = (fixture: Fixture, relativePath: string) => ({
+    hook_event_name: "PostToolUse",
+    tool_name: "Write",
+    tool_input: { file_path: path.join(fixture.cwd, relativePath) },
+  });
+
+  const impactCheck = (sourceFiles: string[]) => ({
+    hook_event_name: "PostToolUse",
+    tool_name: "mcp__kibi__kb_check",
+    tool_input: {
+      sourceFiles,
+      includeImpactDiagnostics: true,
+      includeWorkingTreeDiff: true,
+    },
+  });
+
+  const upsert = (toolInput: Record<string, unknown> = {}) => ({
+    hook_event_name: "PostToolUse",
+    tool_name: "mcp__kibi__kb_upsert",
+    tool_input: toolInput,
+  });
+
+  const stop = { hook_event_name: "Stop" };
+
+  test("session and prompt events record their actions", async () => {
+    const fixture = linkedWorkspace();
+    await hook(fixture, { hook_event_name: "SessionStart" });
+    expect(
+      await hook(fixture, { hook_event_name: "UserPromptSubmit" }),
+    ).toStrictEqual({ continue: true });
+    await hook(fixture, {
+      hook_event_name: "UserPromptSubmit",
+      prompt: "Rename computeTotal.",
+    });
+    await hook(fixture, {
+      hook_event_name: "UserPromptSubmit",
+      prompt: "Totals must not be rounded from now on.",
+    });
+    expect(actions(fixture)).toStrictEqual([
+      ["SessionStart", "session_start", null, []],
+      ["UserPromptSubmit", "prompt_silent", null, []],
+      ["UserPromptSubmit", "prompt_silent", null, []],
+      ["UserPromptSubmit", "prompt_rule_note", null, []],
+    ]);
+    expect(rows(fixture)[0]).toMatchObject({
+      host: "zcode",
+      package_version: PACKAGE_VERSION,
+      session_id: "s1",
+      host_tool: null,
+    });
+  });
+
+  test("pre-edit actions name the path kind and implemented requirements", async () => {
+    const fixture = linkedWorkspace();
+    const edit = (toolInput: Record<string, unknown>, toolName = "Edit") =>
+      hook(fixture, {
+        hook_event_name: "PreToolUse",
+        tool_name: toolName,
+        tool_input: toolInput,
+      });
+
+    expect(
+      await edit({ file_path: ".kb/requirements/REQ-x.md" }),
+    ).toStrictEqual(context("PreToolUse", DIRECT_KB_EDIT_WARNING));
+    expect(
+      await edit({
+        file_path: path.join(fixture.cwd, "src/checkout.ts"),
+        old_string: "  return 1;",
+      }),
+    ).toMatchObject({ hookSpecificOutput: { hookEventName: "PreToolUse" } });
+    expect(await edit({ file_path: "src/other.ts" })).toStrictEqual({
+      continue: true,
+    });
+    expect(await edit({ file_path: "src/checkout.ts" }, "Read")).toStrictEqual({
+      continue: true,
+    });
+    expect(await edit({})).toStrictEqual({ continue: true });
+
+    expect(actions(fixture)).toStrictEqual([
+      ["PreToolUse", "kb_direct_note", "kb", []],
+      ["PreToolUse", "edit_snippet", "source", ["REQ-checkout-rounding"]],
+      ["PreToolUse", "edit_silent", "source", []],
+    ]);
+    expect(rows(fixture)[1]).toMatchObject({
+      host_tool: "Edit",
+      package_version: PACKAGE_VERSION,
+    });
+  });
+
+  test("the direct .kb warning applies to edit-like tools and any targeted path", async () => {
+    const { cwd, pluginData } = workspaceFixture("kibi-zcode-kbwarn");
+    const fixture = { cwd, pluginData };
+    const pre = (payload: Record<string, unknown>) =>
+      hook(fixture, { hook_event_name: "PreToolUse", ...payload }, QUIET);
+    const warning = context("PreToolUse", DIRECT_KB_EDIT_WARNING);
+
+    expect(await pre({ tool_input: { file_path: ".kb/x.md" } })).toStrictEqual(
+      warning,
+    );
+    expect(
+      await pre({ tool_name: "Read", tool_input: { file_path: ".kb/x.md" } }),
+    ).toStrictEqual({ continue: true });
+    expect(
+      await pre({
+        tool_name: "Edit",
+        tool_input: { file_path: "src/a.ts", new_path: ".kb/x.md" },
+      }),
+    ).toStrictEqual(warning);
+  });
+
+  test("each edit target gets its own focus, and unlinked targets add nothing", async () => {
+    const fixture = linkedWorkspace();
+    const result = await hook(
+      fixture,
+      {
+        hook_event_name: "PreToolUse",
+        tool_name: "Edit",
+        tool_input: {
+          old_path: "../outside.ts",
+          file_path: "src/other.ts",
+          path: "src/checkout.ts",
+          old_string: "  return 1;",
+          new_string: "  return 2;",
+        },
+      },
+      QUIET,
+    );
+    const text = result.hookSpecificOutput?.additionalContext ?? "";
+    expect(text).toStartWith(`${FIRM_NOTICE}\n`);
+    expect(text).toContain("\n\nKibi knowledge for src/checkout.ts");
+    expect(text).toContain(
+      "The edit is inside computeTotal, which implements REQ-checkout-rounding.",
+    );
+    expect(text).not.toContain("src/other.ts");
+  });
+
+  test("a whole-file write of firm code names the file", async () => {
+    const fixture = linkedWorkspace();
+    const result = await hook(
+      fixture,
+      {
+        hook_event_name: "PreToolUse",
+        tool_name: "Write",
+        tool_input: {
+          file_path: "src/checkout.ts",
+          content: "export const x = 1;\n",
+        },
+      },
+      QUIET,
+    );
+    expect(result.hookSpecificOutput?.additionalContext).toStartWith(
+      "Kibi: this edit changes src/checkout.ts, which implements a firm requirement, a rule the person set: REQ-checkout-rounding: Checkout totals round to cents.\n",
+    );
+  });
+
+  test("an unreadable knowledge index leaves the edit without context", async () => {
+    const fixture = linkedWorkspace();
+    const pre = (relativePath: string) =>
+      hook(fixture, {
+        hook_event_name: "PreToolUse",
+        tool_name: "Edit",
+        tool_input: { file_path: relativePath, old_string: "  return 1;" },
+      });
+    await pre("src/other.ts");
+    const cachePath = path.join(stateDirOf(fixture), "knowledge-index.json");
+    const cache = JSON.parse(fs.readFileSync(cachePath, "utf8"));
+    cache.index.files = null;
+    fs.writeFileSync(cachePath, JSON.stringify(cache));
+
+    expect(await pre("src/checkout.ts")).toStrictEqual({ continue: true });
+    expect(actions(fixture).at(-1)).toStrictEqual([
+      "PreToolUse",
+      "edit_silent",
+      "source",
+      [],
+    ]);
+    // The edit telemetry fails on the same index without changing the output.
+    const rowCount = rows(fixture).length;
+    expect(
+      await hook(fixture, write(fixture, "src/checkout.ts")),
+    ).toStrictEqual(
+      context("PostToolUse", postEditImpactNote(["src/checkout.ts"])),
+    );
+    expect(rows(fixture)).toHaveLength(rowCount);
+  });
+
+  test("post-edit telemetry rows carry the call and the edited file's requirements", async () => {
+    const fixture = linkedWorkspace();
+    await hook(fixture, write(fixture, "src/other.ts"));
+    expect(rows(fixture)).toHaveLength(1);
+    expect(rows(fixture)[0]).toMatchObject({
+      hook_event: "PostToolUse",
+      hook_action: "edited",
+      host: "zcode",
+      host_tool: "Write",
+      session_id: "s1",
+      package_version: PACKAGE_VERSION,
+      path: "src/other.ts",
+      requirement_ids: [],
+    });
+  });
+
+  test("without traces wanted the knowledge index is not loaded after an edit", async () => {
+    const fixture = linkedWorkspace();
+    const cachePath = path.join(stateDirOf(fixture), "knowledge-index.json");
+    await hook(fixture, write(fixture, "src/other.ts"), QUIET);
+    expect(fs.existsSync(cachePath)).toBe(false);
+    await hook(fixture, write(fixture, "src/other.ts"));
+    expect(fs.existsSync(cachePath)).toBe(true);
+  });
+
+  test("post-edit notes name each new source file once", async () => {
+    const { cwd, pluginData } = workspaceFixture("kibi-zcode-notes");
+    const fixture = { cwd, pluginData };
+    expect(
+      await hook(fixture, write(fixture, "src/a.ts"), QUIET),
+    ).toStrictEqual(context("PostToolUse", postEditImpactNote(["src/a.ts"])));
+    expect(
+      await hook(fixture, write(fixture, "src/b.ts"), QUIET),
+    ).toStrictEqual(context("PostToolUse", postEditImpactNote(["src/b.ts"])));
+    expect(
+      await hook(fixture, write(fixture, "src/a.ts"), QUIET),
+    ).toStrictEqual({ continue: true });
+    expect(
+      await hook(
+        fixture,
+        {
+          hook_event_name: "PostToolUse",
+          tool_name: "Read",
+          tool_input: { file_path: "src/c.ts" },
+        },
+        QUIET,
+      ),
+    ).toStrictEqual({ continue: true });
+  });
+
+  test("an edit outside the workspace journals nothing", async () => {
+    const { cwd, pluginData } = workspaceFixture("kibi-zcode-outside");
+    const fixture = { cwd, pluginData };
+    expect(
+      await hook(
+        fixture,
+        {
+          hook_event_name: "PostToolUse",
+          tool_name: "Write",
+          tool_input: { file_path: "../elsewhere.ts" },
+        },
+        QUIET,
+      ),
+    ).toStrictEqual({ continue: true });
+    expect(
+      fs.existsSync(path.join(stateDirOf(fixture), "hook-state.events.jsonl")),
+    ).toBe(false);
+  });
+
+  test("a CLI upsert records the decision, a dry-run MCP upsert does not", async () => {
+    const recorded = linkedWorkspace();
+    await hook(
+      recorded,
+      {
+        hook_event_name: "PostToolUse",
+        tool_name: "Bash",
+        tool_input: { command: "kibi upsert --input req.json" },
+      },
+      QUIET,
+    );
+    await hook(recorded, write(recorded, "src/checkout.ts"), QUIET);
+    expect(await hook(recorded, stop, QUIET)).toStrictEqual(
+      context("Stop", impactCheckReminder(["src/checkout.ts"])),
+    );
+
+    const dryRun = linkedWorkspace();
+    await hook(dryRun, upsert({ dryRun: true }), QUIET);
+    await hook(dryRun, write(dryRun, "src/checkout.ts"), QUIET);
+    expect(await hook(dryRun, stop, QUIET)).toStrictEqual(
+      context(
+        "Stop",
+        [captureReminder(false), impactCheckReminder(["src/checkout.ts"])].join(
+          "\n",
+        ),
+      ),
+    );
+  });
+
+  test("Stop combines exactly the reminders that apply", async () => {
+    const captureOnly = linkedWorkspace();
+    await hook(captureOnly, write(captureOnly, "src/checkout.ts"));
+    await hook(captureOnly, impactCheck(["src/checkout.ts"]));
+    expect(await hook(captureOnly, stop)).toStrictEqual(
+      context("Stop", captureReminder(false)),
+    );
+    expect(actions(captureOnly).at(-1)).toStrictEqual([
+      "Stop",
+      "stop_capture_reminder",
+      null,
+      [],
+    ]);
+
+    const signoffOnly = linkedWorkspace();
+    await hook(signoffOnly, upsert({ type: "req", id: "REQ-checkout" }));
+    expect(await hook(signoffOnly, stop)).toStrictEqual(
+      context("Stop", signoffReminder()),
+    );
+    expect(actions(signoffOnly).at(-1)).toStrictEqual([
+      "Stop",
+      "stop_signoff_reminder",
+      null,
+      [],
+    ]);
+
+    const impactOnly = linkedWorkspace();
+    await hook(impactOnly, upsert());
+    await hook(impactOnly, write(impactOnly, "src/checkout.ts"));
+    expect(await hook(impactOnly, stop)).toStrictEqual(
+      context("Stop", impactCheckReminder(["src/checkout.ts"])),
+    );
+    expect(actions(impactOnly).at(-1)).toStrictEqual([
+      "Stop",
+      "stop_reminder",
+      null,
+      [],
+    ]);
+  });
+
+  test("a freshness reminder clears the paths it names", async () => {
+    const fixture = linkedWorkspace();
+    await hook(fixture, write(fixture, "docs/guide.md"));
+    expect(await hook(fixture, stop)).toStrictEqual(
+      context("Stop", freshnessReminder(["docs/guide.md"])),
+    );
+    expect(actions(fixture).at(-1)).toStrictEqual([
+      "Stop",
+      "stop_freshness_reminder",
+      null,
+      [],
+    ]);
+    expect(await hook(fixture, stop)).toStrictEqual({ continue: true });
+  });
+
+  test("a quiet Stop clears checked state and writes nothing otherwise", async () => {
+    const checked = linkedWorkspace();
+    await hook(checked, upsert(), QUIET);
+    await hook(checked, write(checked, "src/checkout.ts"), QUIET);
+    await hook(checked, impactCheck(["src/checkout.ts"]), QUIET);
+    expect(loadHookState(stateDirOf(checked)).dirtyPaths).toStrictEqual([
+      "src/checkout.ts",
+    ]);
+    expect(await hook(checked, stop, QUIET)).toStrictEqual({ continue: true });
+    expect(loadHookState(stateDirOf(checked))).toStrictEqual({
+      dirtyPaths: [],
+      kbCheckRun: false,
+      impactCheckRun: false,
+      impactCheckedPaths: [],
+    });
+
+    const checkOnly = linkedWorkspace();
+    await hook(checkOnly, impactCheck([]), QUIET);
+    expect(loadHookState(stateDirOf(checkOnly)).kbCheckRun).toBe(true);
+    expect(await hook(checkOnly, stop, QUIET)).toStrictEqual({
+      continue: true,
+    });
+    expect(loadHookState(stateDirOf(checkOnly)).kbCheckRun).toBe(false);
+
+    const untouched = linkedWorkspace();
+    expect(await hook(untouched, stop, QUIET)).toStrictEqual({
+      continue: true,
+    });
+    expect(
+      fs.existsSync(path.join(stateDirOf(untouched), "hook-state.json")),
+    ).toBe(false);
+  });
+
+  test("each hook remembers its session for anonymous telemetry", async () => {
+    const fixture = linkedWorkspace();
+    const telemetryDir = createTempRoot("kibi-zcode-telemetry-session-");
+    tempRoots.push(telemetryDir);
+    await hook(
+      fixture,
+      { hook_event_name: "SessionStart" },
+      {
+        KIBI_TELEMETRY: "1",
+        KIBI_TELEMETRY_DIR: telemetryDir,
+        KIBI_TELEMETRY_HOST: "http://127.0.0.1:9",
+      },
+    );
+    expect(
+      fs.existsSync(path.join(telemetryDir, "telemetry-sessions.json")),
+    ).toBe(true);
+  });
+
+  test("check sources and mutated paths canonicalize to workspace files", () => {
+    const root = createTempRoot("kibi-zcode-canonical-");
+    tempRoots.push(root);
+    expect(
+      canonicalizeCheckSourceFiles(root, [
+        "src/a.ts",
+        "./src/b.ts",
+        "../outside.ts",
+        path.join(root, "src/c.ts"),
+        "",
+      ]),
+    ).toStrictEqual(["src/a.ts", "src/b.ts", "src/c.ts"]);
+    expect(
+      extractMutatedWorkspacePaths(root, path.join(root, "src"), {
+        file_path: "a.ts",
+        paths: ["../../outside.ts", "../node_modules/x/index.js"],
+      }),
+    ).toStrictEqual(["src/a.ts"]);
+  });
+
+  test("the CLI writes one JSON line and reports failures as advisory output", async () => {
+    const outside = createTempRoot("kibi-zcode-cli-outside-");
+    tempRoots.push(outside);
+    const writes: string[] = [];
+    const original = process.stdout.write.bind(process.stdout);
+    const previousStdin = Object.getOwnPropertyDescriptor(process, "stdin");
+    process.stdout.write = ((chunk: string) => {
+      writes.push(chunk);
+      return true;
+    }) as typeof process.stdout.write;
+    try {
+      const { Readable } = await import("node:stream");
+      Object.defineProperty(process, "stdin", {
+        configurable: true,
+        value: Readable.from([JSON.stringify({ event: "Stop", cwd: outside })]),
+      });
+      await main();
+      await runHookCli(() => {
+        throw "boom";
+      });
+      await runHookCli(async () => {
+        throw new Error("bad input");
+      });
+    } finally {
+      process.stdout.write = original;
+      if (previousStdin) Object.defineProperty(process, "stdin", previousStdin);
+    }
+    expect(writes).toStrictEqual([
+      '{"continue":true}\n',
+      '{"continue":true,"systemMessage":"Kibi hook runner error: Unknown hook error"}\n',
+      '{"continue":true,"systemMessage":"Kibi hook runner error: bad input"}\n',
+    ]);
+  });
+
+  test("the CLI entry runs only when invoked as the main module", async () => {
+    let starts = 0;
+    const start = async () => {
+      starts += 1;
+    };
+    await runHookCliIfMain(false, start);
+    expect(starts).toBe(0);
+    await runHookCliIfMain(true, start);
+    expect(starts).toBe(1);
+    expect(isInvokedAsCli(undefined, "")).toBe(false);
+    expect(isInvokedAsCli("", "")).toBe(false);
   });
 });
