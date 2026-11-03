@@ -108,8 +108,8 @@ export function sweepStoreLock(
   const owner = journal.owner;
   const holderState = classifyStoreLockHolder(owner);
   const workspaceRoot = owner.workspaceRoot;
-  const workspaceExists =
-    workspaceRoot !== undefined && existsSync(workspaceRoot);
+  // existsSync answers false for an undefined path.
+  const workspaceExists = existsSync(workspaceRoot as string);
   const workspaceVerifiablyGone =
     workspaceRoot !== undefined && !workspaceExists;
   let action: StoreLockFinding["action"];
@@ -128,9 +128,10 @@ export function sweepStoreLock(
     action = "keep";
   }
   if (apply && action !== "keep") {
-    if (action === "kill-and-clean" && typeof owner.pid === "number") {
+    // Only a holder with a numeric pid classifies as alive or self.
+    if (action === "kill-and-clean") {
       try {
-        process.kill(owner.pid, "SIGTERM");
+        process.kill(owner.pid as number, "SIGTERM");
       } catch {
         // Already gone — fall through to artifact cleanup.
       }
@@ -161,11 +162,7 @@ export function sweepWorkspaceStoreLocks(
   const findings: StoreLockFinding[] = [];
   for (const entry of readdirSync(branchesDir)) {
     const storePath = join(branchesDir, entry);
-    try {
-      if (!existsSync(join(storePath, "storage.json"))) continue;
-    } catch {
-      continue;
-    }
+    if (!existsSync(join(storePath, "storage.json"))) continue;
     const finding = sweepStoreLock(storePath, options.apply === true);
     if (finding !== null) findings.push(finding);
   }
@@ -195,16 +192,17 @@ export function sweepStoreLockTakeoverRecords(
       if (record !== null) {
         at = record.at;
         brokenPid = record.brokenPid;
-      } else if (existsSync(recordPath)) {
-        at = statSync(recordPath).mtime.toISOString();
       } else {
-        continue;
+        // An unreadable record is dated by its mtime; without a record
+        // statSync throws and the store is skipped.
+        at = statSync(recordPath).mtime.toISOString();
       }
     } catch {
       continue;
     }
     if (now - Date.parse(at) <= STORE_LOCK_TAKEOVER_VISIBLE_MS) continue;
-    if (options.apply === true) rmSync(recordPath, { force: true });
+    // The record was just read, so it exists.
+    if (options.apply === true) rmSync(recordPath);
     findings.push({
       kind: "takeover-record",
       storePath,
@@ -231,41 +229,29 @@ export function sweepRuntimeSockets(options: JanitorOptions): SocketFinding[] {
     const socketPath = join(options.runtimeDirectory, entry);
     const pidPath = `${socketPath}.pid`;
     let pid: number | undefined;
-    if (existsSync(pidPath)) {
-      try {
-        const parsed = Number.parseInt(
-          readFileSync(pidPath, "utf8").trim(),
-          10,
-        );
-        if (Number.isInteger(parsed) && parsed > 0) pid = parsed;
-      } catch {
-        // The daemon being swept removed its pid file mid-scan; leave the
-        // pid unknown rather than failing the whole run.
-      }
+    try {
+      // parseInt skips surrounding whitespace; NaN is not > 0.
+      const parsed = Number.parseInt(String(readFileSync(pidPath)), 10);
+      if (parsed > 0) pid = parsed;
+    } catch {
+      // No pid file, or the daemon being swept removed it mid-scan: leave
+      // the pid unknown rather than failing the whole run.
     }
     const holderState =
       pid === undefined ? "unknown" : isProcessAlive(pid) ? "alive" : "dead";
-    if (holderState === "dead") {
-      if (options.apply === true) {
-        rmSync(socketPath, { force: true });
-        rmSync(pidPath, { force: true });
-      }
-      findings.push({
-        kind: "socket",
-        socketPath,
-        ...(pid !== undefined ? { pid } : {}),
-        holderState,
-        action: "clean",
-      });
-    } else {
-      findings.push({
-        kind: "socket",
-        socketPath,
-        ...(pid !== undefined ? { pid } : {}),
-        holderState,
-        action: "keep",
-      });
+    const stale = holderState === "dead";
+    // A dead holder was read from its pid file, so both files exist.
+    if (stale && options.apply === true) {
+      rmSync(socketPath);
+      rmSync(pidPath);
     }
+    findings.push({
+      kind: "socket",
+      socketPath,
+      ...(pid !== undefined ? { pid } : {}),
+      holderState,
+      action: stale ? "clean" : "keep",
+    });
   }
   return findings;
 }
