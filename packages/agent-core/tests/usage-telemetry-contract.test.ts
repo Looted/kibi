@@ -207,6 +207,10 @@ describe("switches and reasons", () => {
       expect(telemetryStatus({ ...base, VITEST: "1" }).reason).toBe(
         "test environment (VITEST)",
       );
+      expect(telemetryStatus({ ...base, NODE_ENV: "test" }).enabled).toBe(
+        false,
+      );
+      expect(telemetryStatus({ ...base, CI: "yes" }).enabled).toBe(false);
       setTelemetryPreference("enabled", base);
       expect(telemetryStatus(base).reason).toBe(
         "enabled with `kibi telemetry enable`",
