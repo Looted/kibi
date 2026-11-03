@@ -1,7 +1,12 @@
 import { createHash, randomUUID } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { InputError, OperationError } from "../../cli-errors.js";
+import {
+  InputError,
+  KbRejection,
+  OperationError,
+  prefixedFailure,
+} from "../../cli-errors.js";
 import {
   parseEntityFromList,
   parseListOfLists,
@@ -76,7 +81,8 @@ async function loadEntity(
     );
   const rows = parseListOfLists(result.bindings.Results ?? "[]");
   if (rows.length === 0)
-    throw new Error(
+    throw new KbRejection(
+      "ENTITY_NOT_FOUND",
       `Failed to load metadata for entity ${id}: Entity not found`,
     );
   return { ...parseEntityFromList(rows[0] ?? []), id };
@@ -203,7 +209,8 @@ async function executeRelationshipDeleteUnlocked(
     attachment.migrationRequired &&
     (context.branchAttachment !== undefined || context.fs !== undefined)
   ) {
-    throw new Error(
+    throw new KbRejection(
+      "LEGACY_BRANCH_STORAGE",
       `Delete blocked: migrate legacy branch storage first with 'kibi branch migrate --from ${attachment.kbBranch} --to ${attachment.gitBranch} --apply'`,
     );
   }
@@ -676,7 +683,8 @@ export async function executeDelete(
     branchAttachment.migrationRequired &&
     (context.branchAttachment !== undefined || context.fs !== undefined)
   ) {
-    throw new Error(
+    throw new KbRejection(
+      "LEGACY_BRANCH_STORAGE",
       `Delete blocked: KB is attached through legacy branch storage (${branchAttachment.gitBranch} -> ${branchAttachment.kbBranch}). Run 'kibi branch migrate --from ${branchAttachment.kbBranch} --to ${branchAttachment.gitBranch} --apply' first.`,
     );
   }
@@ -707,7 +715,8 @@ export async function executeDelete(
     const dryRun = input.dryRun === true;
     const approvedPlanHash = input.approvedPlanHash;
     if ((ids.length === 0) === (relationships.length === 0))
-      throw new Error(
+      throw new KbRejection(
+        "VALIDATION_FAILED",
         "Delete requires exactly one non-empty input: ids or relationships",
       );
     if (approvedPlanHash !== undefined) {
@@ -724,7 +733,8 @@ export async function executeDelete(
     }
     if (relationships.length > 0) {
       if (relationships.some((value) => !isSelector(value)))
-        throw new Error(
+        throw new KbRejection(
+          "VALIDATION_FAILED",
           "Each relationship selector requires non-empty type, from, and to strings",
         );
       const payload = await executeRelationshipDelete(
@@ -1022,9 +1032,7 @@ export async function executeDelete(
       throw failure;
     }
     const failure = withPlanRecoveryNotes(
-      new Error(
-        `Delete execution failed: ${error instanceof Error ? error.message : String(error)}`,
-      ),
+      prefixedFailure("Delete execution failed: ", error),
       recoveryNotes,
     );
     operationFailure = { error: failure };

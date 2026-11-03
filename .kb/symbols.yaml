@@ -66699,3 +66699,275 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-bundled-skill-catalog
+  - id: SYM-test-kibi-telemetry-expected-outcomes-cli
+    title: kibi CLI telemetry outcomes end-to-end suite
+    status: active
+    sourceFile: packages/cli/tests/usage-telemetry-outcomes-e2e.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T13:39:08.014Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+  - id: SYM-agent-core-usage-telemetry-telemetryoutcome
+    title: telemetryOutcome
+    status: active
+    sourceFile: packages/agent-core/src/usage-telemetry.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T13:39:15.277Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-expected-outcomes
+  - id: SYM-agent-core-usage-telemetry-telemetryerrorclass
+    title: telemetryErrorClass
+    status: active
+    sourceFile: packages/agent-core/src/usage-telemetry.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T13:39:21.687Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-expected-outcomes
+  - id: SYM-cli-errors-kbrejection
+    title: KbRejection
+    status: active
+    sourceFile: packages/cli/src/cli-errors.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T13:39:27.919Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-expected-outcomes
+  - id: SYM-cli-errors-prefixedfailure
+    title: prefixedFailure
+    status: active
+    sourceFile: packages/cli/src/cli-errors.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T13:39:33.792Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-expected-outcomes
+  - id: SYM-cli-usage-telemetry-noteclithrownerror
+    title: noteCliThrownError
+    status: active
+    sourceFile: packages/cli/src/usage-telemetry.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T13:39:39.962Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-expected-outcomes
+  - id: SYM-cli-contradictions-upsertfailure
+    title: upsertFailure
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/contradictions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T13:39:46.601Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-expected-outcomes
+  - id: SYM-agent-core-telemetry-signals-countbucket
+    title: countBucket
+    status: active
+    sourceFile: packages/agent-core/src/telemetry-signals.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:22:50.132Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-agent-core-telemetry-signals-telemetryfield
+    title: telemetryField
+    status: active
+    sourceFile: packages/agent-core/src/telemetry-signals.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:22:59.623Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-agent-core-telemetry-signals-telemetryrule
+    title: telemetryRule
+    status: active
+    sourceFile: packages/agent-core/src/telemetry-signals.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:23:08.034Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-agent-core-telemetry-signals-telemetrycrash
+    title: telemetryCrash
+    status: active
+    sourceFile: packages/agent-core/src/telemetry-signals.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:23:15.809Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-agent-core-telemetry-signals-kibiskillload
+    title: kibiSkillLoad
+    status: active
+    sourceFile: packages/agent-core/src/telemetry-signals.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:23:24.697Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-agent-core-telemetry-signals-recalloperation
+    title: recallOperation
+    status: active
+    sourceFile: packages/agent-core/src/telemetry-signals.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:23:33.451Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-agent-core-telemetry-signals-rememberskillload
+    title: rememberSkillLoad
+    status: active
+    sourceFile: packages/agent-core/src/telemetry-signals.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:23:42.887Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-agent-core-usage-telemetry-remembertelemetryskillload
+    title: rememberTelemetrySkillLoad
+    status: active
+    sourceFile: packages/agent-core/src/usage-telemetry.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:23:51.867Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-agent-core-hook-usage-log-skillloadtrace
+    title: skillLoadTrace
+    status: active
+    sourceFile: packages/agent-core/src/hook-usage-log.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:24:01.301Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-cli-telemetry-details-operationtelemetrysignals
+    title: operationTelemetrySignals
+    status: active
+    sourceFile: packages/cli/src/telemetry-details.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:24:10.680Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-cli-telemetry-details-schemaissues
+    title: schemaIssues
+    status: active
+    sourceFile: packages/cli/src/telemetry-details.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:24:20.426Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-cli-telemetry-details-schemafieldpath
+    title: schemaFieldPath
+    status: active
+    sourceFile: packages/cli/src/telemetry-details.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:24:29.410Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-cli-telemetry-details-kibischemafieldnames
+    title: kibiSchemaFieldNames
+    status: active
+    sourceFile: packages/cli/src/telemetry-details.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:24:39.063Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-cli-usage-telemetry-noteclioperationcall
+    title: noteCliOperationCall
+    status: active
+    sourceFile: packages/cli/src/usage-telemetry.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:24:48.282Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals

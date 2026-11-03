@@ -116,6 +116,10 @@
       "types": "./dist/diagnostics.d.ts",
       "default": "./dist/diagnostics.js"
     },
+    "./telemetry-details": {
+      "types": "./dist/telemetry-details.d.ts",
+      "default": "./dist/telemetry-details.js"
+    },
     "./search-ranking": {
       "types": "./dist/search-ranking.d.ts",
       "default": "./dist/search-ranking.js"

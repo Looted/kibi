@@ -6395,6 +6395,18 @@
     ]
   },
   {
+    "test_id": "TEST-kibi-telemetry-expected-outcomes-cli",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "240000",
+        "./packages/cli/tests/usage-telemetry-outcomes-e2e.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-proof-github-badge-workflow-path",
     "steps": [
       [

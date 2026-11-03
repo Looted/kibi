@@ -272,3 +272,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c0045eeadfc8
+  - type: covered_by
+    from: SYM-agent-core-hook-usage-log-skillloadtrace
+    to: TEST-kibi-telemetry-expected-outcomes-cli
+    created_at: 2026-11-03T14:24:03.957Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce7741c75251
+  - type: implements
+    from: SYM-agent-core-hook-usage-log-skillloadtrace
+    to: REQ-kibi-telemetry-agent-signals
+    created_at: 2026-11-03T14:24:03.993Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1543013cb522

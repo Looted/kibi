@@ -125,6 +125,17 @@ export type ValidateUpsertPayload = {
    * error (for example DOCUMENT_PATH_REQUIRED): that code.
    */
   readonly errorCode?: string;
+  /**
+   * When Kibi refused the payload: the refusal's code and its issues, as
+   * fixed rule ids and schema field paths (never the payload's values).
+   */
+  readonly rejection?: {
+    readonly code: string;
+    readonly issues: readonly {
+      readonly rule: string;
+      readonly field?: string | undefined;
+    }[];
+  };
   /** Planned fact ids staged ahead of the payload, in order. */
   readonly stagedFacts?: readonly string[];
   /**
