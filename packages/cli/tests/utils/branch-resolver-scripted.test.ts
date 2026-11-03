@@ -57,11 +57,12 @@ let savedBranch: string | undefined;
 beforeEach(() => {
   calls = [];
   savedBranch = process.env.KIBI_BRANCH;
-  delete process.env.KIBI_BRANCH;
+  Reflect.deleteProperty(process.env, "KIBI_BRANCH");
 });
 afterEach(() => {
   _setBranchResolverDepsForTests({});
-  if (savedBranch === undefined) delete process.env.KIBI_BRANCH;
+  if (savedBranch === undefined)
+    Reflect.deleteProperty(process.env, "KIBI_BRANCH");
   else process.env.KIBI_BRANCH = savedBranch;
 });
 
