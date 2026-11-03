@@ -21,8 +21,8 @@ import {
   statementSentenceDiff,
 } from "./model.js";
 
-function escapeHtml(value: unknown): string {
-  return String(value ?? "")
+function escapeHtml(value: string): string {
+  return value
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
@@ -221,7 +221,7 @@ function questionCard(question: SignoffQuestion): string {
   const kind = questionKind(question);
   const title = question.title ?? question.current?.title ?? question.id;
   if (!questionOpen(question)) {
-    return `<article class="card card--answered"><div class="card__head"><span class="num">${question.number}.</span><span class="title">${escapeHtml(kind)}${title ? `: ${escapeHtml(title)}` : ""}</span><span class="badge badge--answered">answered: ${escapeHtml(question.answer)}</span></div></article>`;
+    return `<article class="card card--answered"><div class="card__head"><span class="num">${question.number}.</span><span class="title">${escapeHtml(kind)}${title ? `: ${escapeHtml(title)}` : ""}</span><span class="badge badge--answered">answered: ${escapeHtml(question.answer as string)}</span></div></article>`;
   }
   const details: string[] = [];
   if (question.quote)
