@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 
-import { startJob } from "../../src/server/jobs.js";
+import { getJob, jobSnapshot, startJob } from "../../src/server/jobs.js";
 import { registerAllTools } from "../../src/server/tools.js";
 import { setWorkspaceRouter } from "../../src/server/workspace-router.js";
 
@@ -55,6 +56,18 @@ describe("kb_job_status", () => {
     });
     expect(config.inputSchema.safeParse({}).success).toBe(false);
     expect(config.inputSchema.safeParse({ jobId: "j" }).success).toBe(true);
+    expect(
+      (
+        z.toJSONSchema(config.inputSchema as never) as {
+          properties: unknown;
+        }
+      ).properties,
+    ).toStrictEqual({
+      jobId: {
+        type: "string",
+        description: "The jobId from the kibi.job.v1 receipt.",
+      },
+    });
   });
 
   test("unknown and empty job ids report an unknown job", async () => {
@@ -64,6 +77,7 @@ describe("kb_job_status", () => {
     for (const [args, jobId] of [
       [{ jobId: "missing" }, "missing"],
       [{ jobId: "" }, ""],
+      [{ jobId: 5 }, ""],
     ] as const) {
       const result = await tool?.handler(args);
       const body = {
@@ -76,6 +90,7 @@ describe("kb_job_status", () => {
       expect(result?.content).toStrictEqual([
         { type: "text", text: JSON.stringify(body) },
       ]);
+      expect(result?.structuredContent.data).toStrictEqual(body);
     }
   });
 
@@ -91,5 +106,10 @@ describe("kb_job_status", () => {
     expect(snapshot.jobId).toBe(receipt.jobId);
     expect(snapshot.status).toBe("succeeded");
     expect(snapshot.result).toStrictEqual({ ok: true });
+    const job = getJob(receipt.jobId as string);
+    if (job === undefined) throw new Error("job missing");
+    expect(result?.content).toStrictEqual([
+      { type: "text", text: JSON.stringify(jobSnapshot(job)) },
+    ]);
   });
 });

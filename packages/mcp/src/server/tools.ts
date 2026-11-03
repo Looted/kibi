@@ -74,11 +74,9 @@ const TOOL_TIMEOUT_GRACE_MS = 100;
 // which would reject sibling tools with "Kibi engine connection closed".
 const TOOL_TIMEOUT_WEDGE_MS = 1_000;
 
-function isMutationEffect(effects: readonly string[] | undefined): boolean {
-  return (
-    effects?.some(
-      (effect) => effect === "kb-write" || effect === "workspace-write",
-    ) ?? false
+function isMutationEffect(effects: readonly string[]): boolean {
+  return effects.some(
+    (effect) => effect === "kb-write" || effect === "workspace-write",
   );
 }
 
@@ -116,7 +114,6 @@ const HOSTS_READING_STRUCTURED_CONTENT: ReadonlySet<string> = new Set([
 /** `Claude Code`, `claude_code` and `claude-code` name the same host. */
 function hostKey(name: string): string {
   return name
-    .trim()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
@@ -124,12 +121,17 @@ function hostKey(name: string): string {
 
 /** The client name the host sent on initialize, when the server has one. */
 function clientName(server: McpServer | undefined): string | undefined {
+  let name: string | undefined;
   try {
-    const name = server?.server?.getClientVersion?.()?.name;
-    return typeof name === "string" ? hostKey(name) : undefined;
+    // A missing server, client version or text name throws and leaves none.
+    name = hostKey(
+      ((server as McpServer).server.getClientVersion() as { name: string })
+        .name,
+    );
   } catch {
-    return undefined;
+    // No client name yet.
   }
+  return name;
 }
 
 // implements REQ-mcp-structured-text-per-host
@@ -147,13 +149,9 @@ export function embedsStructuredText(
   const explicit = env[STRUCTURED_TEXT_ENV]?.trim().toLowerCase();
   if (explicit === "embed") return true;
   if (explicit === "omit") return false;
-  const host =
-    env.KIBI_MCP_HOST === undefined ? "" : hostKey(env.KIBI_MCP_HOST);
-  if (host !== "" && HOSTS_READING_STRUCTURED_CONTENT.has(host)) return false;
-  const client = clientName(server);
-  return !(
-    client !== undefined && HOSTS_READING_STRUCTURED_CONTENT.has(client)
-  );
+  if (HOSTS_READING_STRUCTURED_CONTENT.has(hostKey(String(env.KIBI_MCP_HOST))))
+    return false;
+  return !HOSTS_READING_STRUCTURED_CONTENT.has(clientName(server) as string);
 }
 
 // implements REQ-002
@@ -165,12 +163,8 @@ function debugLog(...args: Parameters<typeof console.error>): void {
 
 // implements REQ-002
 function getToolTimeoutMs(): number {
-  const raw = process.env[TOOL_TIMEOUT_ENV]?.trim();
-  if (!raw) {
-    return DEFAULT_TOOL_TIMEOUT_MS;
-  }
-
-  const parsed = Number(raw);
+  // Number() trims the text and reads an unset or blank value as NaN or 0.
+  const parsed = Number(process.env[TOOL_TIMEOUT_ENV]);
   return Number.isSafeInteger(parsed) && parsed > 0
     ? parsed
     : DEFAULT_TOOL_TIMEOUT_MS;
@@ -206,7 +200,7 @@ async function withToolTimeout<T>(
   toolName: string,
   operation: Promise<T>,
   onTimeout: (error: Error, timeoutMs: number) => Promise<void>,
-  activity?: ToolTimeoutActivity,
+  activity: ToolTimeoutActivity,
 ): Promise<T> {
   const timeoutMs = getToolTimeoutMs();
   let timeout: ReturnType<typeof setTimeout> | undefined;
@@ -237,22 +231,16 @@ async function withToolTimeout<T>(
           .finally(() => reject(error));
       };
       timeout = setTimeout(fire, timeoutMs);
-      if (activity) {
-        activity.touch = () => {
-          if (fired) return;
-          if (timeout) clearTimeout(timeout);
-          timeout = setTimeout(fire, timeoutMs);
-        };
-      }
+      activity.touch = () => {
+        if (fired) return;
+        clearTimeout(timeout);
+        timeout = setTimeout(fire, timeoutMs);
+      };
     });
-    // When abort settles `operation` before this timeout promise rejects,
-    // the late reject must not become an unhandled rejection.
-    timeoutPromise.catch(() => undefined);
+    // The race handles a late timeout reject after abort settles `operation`.
     return await Promise.race([operation, timeoutPromise]);
   } finally {
-    if (timeout) {
-      clearTimeout(timeout);
-    }
+    clearTimeout(timeout);
   }
 }
 
@@ -414,7 +402,7 @@ export function addTool<TProlog>(
       const routing = router
         ? await router.route(name, args)
         : localDecision(name, args);
-      if (routing.kind === "remote") return routing.result;
+      if (routing.kind !== "local") return routing.result;
       args = routing.args;
       workspaceNotice = routing.notice;
       ({ businessArgs, telemetry } = diagnosticModeEnabled
@@ -453,7 +441,8 @@ export function addTool<TProlog>(
         execute: async (input, _context) => handler(input),
       };
       const observed = observeDetachedReads(runtime.operationRuntime);
-      const activity: ToolTimeoutActivity = { touch: () => undefined };
+      // withToolTimeout installs touch before the operation can report.
+      const activity = {} as ToolTimeoutActivity;
       const onProgress = progressReporter(extra, activity);
       const handlerPromise = executeOperation(
         observed.runtime,
@@ -545,7 +534,6 @@ export function addTool<TProlog>(
         if (
           result !== null &&
           typeof result === "object" &&
-          !Array.isArray(result) &&
           "content" in result
         ) {
           const withContent = result as {
@@ -784,7 +772,7 @@ function registerJobStatusTool(server: McpServer): void {
     },
     async (args) => {
       const jobId = typeof args.jobId === "string" ? args.jobId : "";
-      const job = jobId === "" ? undefined : getJob(jobId);
+      const job = getJob(jobId);
       if (job === undefined) {
         return {
           content: [
