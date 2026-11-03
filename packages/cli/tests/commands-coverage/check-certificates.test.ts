@@ -20,7 +20,7 @@ afterEach(() => {
   for (const root of roots.splice(0)) removeTempDir(root);
 });
 
-type Outcome = { status: string };
+type Outcome = { status: string; result?: unknown; error?: unknown };
 
 function fakeRuntime(context: Record<string, unknown>): Outcome[] {
   const closed: Outcome[] = [];

@@ -47,7 +47,7 @@ describe("model requirement subject review", () => {
       "The shopping checkout window must be at most 7 days for each guest order.",
       provided,
     );
-    expect(warnings).toContainEqual({
+    expect(warnings as unknown[]).toContainEqual({
       kind: "subject_reuse_review",
       message:
         "Provided subjectKey order.retention is new, but existing subject cart.checkout_window (FACT-SUBJ-CART) matches this clause.",
@@ -61,7 +61,7 @@ describe("model requirement subject review", () => {
       "The checkout window must close within 7 days for every order.",
       provided,
     );
-    expect(warnings).toContainEqual({
+    expect(warnings as unknown[]).toContainEqual({
       kind: "new_subject_declared",
       message:
         "Declaring new subject order.retention; nearest existing subject is cart.checkout_window (score 0.353).",

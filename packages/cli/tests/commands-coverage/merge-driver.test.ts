@@ -25,9 +25,9 @@ describe("mergeKbManifests manifest validation", () => {
   test("reports invalid YAML", () => {
     const result = mergeKbManifests("a: [", sym("A"), sym("A"));
     expect(result.status).toBe("conflict");
-    expect((result as { conflicts: string[] }).conflicts[0]).toStartWith(
-      "base: not valid YAML (",
-    );
+    expect(
+      (result as { conflicts: readonly string[] }).conflicts[0],
+    ).toStartWith("base: not valid YAML (");
   });
 
   test("reports a top level that is not a mapping", () => {

@@ -26,7 +26,9 @@ export type FakeEntity = Readonly<{
  */
 export function fakeProlog(
   entities: readonly FakeEntity[],
-  handle?: (goal: string) => Record<string, unknown> | undefined,
+  handle?: (
+    goal: string,
+  ) => Record<string, unknown> | Promise<Record<string, unknown>> | undefined,
 ) {
   const goals: string[] = [];
   return {
@@ -64,7 +66,9 @@ export function fakeProlog(
 export function context(
   workspaceRoot: string,
   entities: readonly FakeEntity[] = [],
-  handle?: (goal: string) => Record<string, unknown> | undefined,
+  handle?: (
+    goal: string,
+  ) => Record<string, unknown> | Promise<Record<string, unknown>> | undefined,
 ): OperationContext {
   return {
     workspaceRoot,

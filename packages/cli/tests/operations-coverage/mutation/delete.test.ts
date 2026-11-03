@@ -89,7 +89,7 @@ describe("relationship delete dry run", () => {
         ],
         dryRun: true,
       },
-      ctx(root, (goal) => {
+      ctx(root, (goal): Answer | undefined => {
         if (goal.includes("findall(['REQ-MD'"))
           return {
             success: true,
@@ -254,7 +254,7 @@ describe("executeRelationshipDelete under the workspace lock", () => {
     let committed = 0;
     const payload = await executeRelationshipDelete(
       [{ type: "verified_by", from: "REQ-MD", to: "TEST-MD" }],
-      ctx(root, (goal) => {
+      ctx(root, (goal): Answer | undefined => {
         if (goal.includes("findall(['REQ-MD'"))
           return {
             success: true,

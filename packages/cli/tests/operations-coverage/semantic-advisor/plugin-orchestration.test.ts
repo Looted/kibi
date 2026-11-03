@@ -243,7 +243,7 @@ describe("applyClassificationRouting", () => {
         diagnostics: [
           { pluginId: "p1", code: "timeout", message: "slow", model: "m1" },
           { pluginId: "p2", code: "error", message: "bad" },
-        ] as ComposedSemanticClassifierResult["diagnostics"],
+        ] as unknown as ComposedSemanticClassifierResult["diagnostics"],
       }),
     );
     expect(result.receipt).toStrictEqual(modeled.receipt);
@@ -274,7 +274,7 @@ describe("applyClassificationRouting", () => {
           fallbackUsed: true,
           diagnostics: [
             { pluginId: "p1", code: "timeout", message: "slow" },
-          ] as ComposedSemanticClassifierResult["diagnostics"],
+          ] as unknown as ComposedSemanticClassifierResult["diagnostics"],
         },
       ),
       [],
