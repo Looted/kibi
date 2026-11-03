@@ -27,7 +27,7 @@ const WHOLE_FILE = {
   kind: "blocked",
   reason:
     "a parser, syntax, timeout or integrity diagnostic affects the whole file",
-};
+} as const;
 
 describe("analysisObligation", () => {
   test("nothing is needed for ok, missing or before-side analysis", () => {

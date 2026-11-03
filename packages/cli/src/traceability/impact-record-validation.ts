@@ -165,9 +165,11 @@ export function validateAnalysisReviews(
         );
       continue;
     }
-    const allowedClass = analysis
-      ? approvedPartialClass(policy, analysis)
-      : null;
+    // Only a present analysis can ask for a partial review.
+    const allowedClass = approvedPartialClass(
+      policy,
+      analysis as NonNullable<typeof analysis>,
+    );
     if (!allowedClass)
       throw new Error(
         `Partial side is not approved by policy: ${record.path} (${side})`,

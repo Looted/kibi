@@ -73,7 +73,7 @@ describe("recordFromCapturedTree", () => {
         row(mode, "blob"),
         Buffer.from(JSON.stringify(RECORD)),
       );
-      expect(recordFromCapturedTree(s.value)).toStrictEqual(RECORD);
+      expect(recordFromCapturedTree(s.value) as unknown).toStrictEqual(RECORD);
       expect(s.calls).toStrictEqual([
         ["ls-tree", "-z", "HEAD", "--", ":(literal).kibi/impact-review.json"],
       ]);

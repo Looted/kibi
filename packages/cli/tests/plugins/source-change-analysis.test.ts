@@ -138,7 +138,15 @@ describe("analyzeSourceChanges", () => {
 
 describe("gateAnalysis", () => {
   test("adapts a host result and passes null through", () => {
-    const ranges = [{ startLine: 1, endLine: 2, reason: "macro" }];
+    const ranges = [
+      {
+        startLine: 1,
+        startColumn: 0,
+        endLine: 2,
+        endColumn: 0,
+        reason: "macro",
+      },
+    ];
     expect(gateAnalysis(null)).toBeNull();
     expect(
       gateAnalysis(

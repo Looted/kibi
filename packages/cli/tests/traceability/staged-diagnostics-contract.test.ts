@@ -132,7 +132,9 @@ describe("missing evidence diagnostic", () => {
 });
 
 describe("stale manifest diagnostic", () => {
-  const stale = (fileDetails?: KibiImpactSymbolsManifestFileDetail[]) =>
+  const stale = (
+    fileDetails?: KibiImpactSymbolsManifestFileDetail[],
+  ): Record<string, unknown>[] =>
     collectStagedKibiDiagnostics(
       evidence([], undefined, {
         state: "stale",
@@ -140,7 +142,7 @@ describe("stale manifest diagnostic", () => {
         ...(fileDetails ? { fileDetails } : {}),
       }),
       "m.yaml",
-    );
+    ) as unknown as Record<string, unknown>[];
   const base = {
     id: "symbols_manifest_stale",
     severity: "error",
@@ -271,7 +273,7 @@ describe("override rationale diagnostic", () => {
     expect(
       collectStagedKibiDiagnostics(
         evidence([], override("  ", ["src/b.ts", "src/a.ts"])),
-      ),
+      ) as unknown[],
     ).toStrictEqual([expected]);
     expect(
       collectStagedKibiDiagnostics(
@@ -293,7 +295,7 @@ describe("override rationale diagnostic", () => {
     expect(
       createMissingOverrideRationaleDiagnostic(
         evidence([], override("", ["src/b.ts", "src/a.ts"])),
-      ),
+      ) as unknown,
     ).toStrictEqual(expected);
     expect(() =>
       createMissingOverrideRationaleDiagnostic(evidence([])),
