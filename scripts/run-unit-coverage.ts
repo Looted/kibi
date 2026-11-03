@@ -145,6 +145,8 @@ const CLI_SUPPORT_TEST_DIRECTORIES = [
   "./packages/cli/tests/proofs",
   "./packages/cli/tests/relationships",
   "./packages/cli/tests/prolog",
+  "./packages/cli/tests/runtime",
+  "./packages/cli/tests/signoff",
   "./packages/cli/tests/helpers",
 ];
 const CLI_SUPPORT_TESTS = CLI_SUPPORT_TEST_DIRECTORIES.flatMap((directory) =>
