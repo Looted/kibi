@@ -5,7 +5,9 @@
 % interpreter, the numeric interval procedure, unit canonicalization, the
 % symbol classification tables, the CHR coverage pilot, the SPARQL client,
 % KB consistency findings, certificates, requirement edge cases, the rule
-% registry and status freshness.
+% registry, status freshness, the entity and relationship schema, code
+% certificates and their independent checker, model checks, claim
+% obligations and semantic quality.
 % Like the Stryker lanes it gates at 100%: every mutant is killed or
 % suppressed as an equivalent.
 
@@ -20,7 +22,15 @@ mutate([
     "packages/core/src/certificates.pl",
     "packages/core/src/cases.pl",
     "packages/core/src/rule_registry.pl",
-    "packages/core/src/status.pl"
+    "packages/core/src/status.pl",
+    "packages/core/schema/validation.pl",
+    "packages/core/schema/entities.pl",
+    "packages/core/schema/relationships.pl",
+    "packages/core/src/code_certificates.pl",
+    "packages/core/src/certificate_check.pl",
+    "packages/core/src/model_check.pl",
+    "packages/core/src/claim_obligations.pl",
+    "packages/core/src/semantic_quality.pl"
 ]).
 tests([
     "packages/core/tests/logic_ir.plt",
@@ -33,7 +43,15 @@ tests([
     "packages/core/tests/certificates.plt",
     "packages/core/tests/cases.plt",
     "packages/core/tests/rule_registry.plt",
-    "packages/core/tests/status.plt"
+    "packages/core/tests/status.plt",
+    "packages/core/tests/entities.plt",
+    "packages/core/tests/relationships.plt",
+    "packages/core/tests/validation.plt",
+    "packages/core/tests/code_certificates.plt",
+    "packages/core/tests/certificate_check.plt",
+    "packages/core/tests/model_check.plt",
+    "packages/core/tests/claim_obligations.plt",
+    "packages/core/tests/semantic_quality.plt"
 ]).
 
 % Equivalent mutants are suppressed in the source, with a

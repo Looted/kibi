@@ -401,6 +401,8 @@ describe("unit coverage runner contract", () => {
       "proofs",
       "relationships",
       "prolog",
+      "runtime",
+      "signoff",
       "helpers",
     ].map((name) => `./packages/cli/tests/${name}`);
     const supportShard = COVERAGE_SHARDS.find(
