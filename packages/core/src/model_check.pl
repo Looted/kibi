@@ -124,10 +124,15 @@ certificate_model(source, Certificate, model(none, none, source(Members, Entitie
     required(Model, members, RawMembers),
     maplist(text_string, RawMembers, Members0),
     sort(Members0, Members),
+    % An absent part reads as none, which fails the is_list/1 check its
+    % obligation makes, exactly as an unbound value would.
+    % mutalog-disable-next-line goal_true: an unbound value fails is_list/1 like none
     (   get_dict(entities, Model, Entities) -> true ; Entities = none ),
+    % mutalog-disable-next-line goal_true: an unbound value fails is_list/1 like none
     (   get_dict(routes, Model, Routes) -> true ; Routes = none ),
     (   get_dict(sequence, Model, RawSequence)
     ->  maplist(text_string, RawSequence, Sequence)
+    % mutalog-disable-next-line goal_true: an unbound value fails is_list/1 like none
     ;   Sequence = none
     ).
 certificate_model(Kind, _, _) :-
@@ -165,7 +170,7 @@ boolean_value(_, _) :-
     throw(model_error("a predicate table holds a value that is not a boolean")).
 
 edge_pair(Raw, From-To) :-
-    (   is_list(Raw), Raw = [RawFrom, RawTo]
+    (   Raw = [RawFrom, RawTo]
     ->  text_atom(RawFrom, From),
         text_atom(RawTo, To)
     ;   throw(model_error("a transition is not a [from, to] pair"))
@@ -214,20 +219,23 @@ reach_frontier([State|Rest], Edges, Seen0, Seen) :-
 %% machine_projection(+Projection, +Machine, -Members)
 % The machine's states or transitions a set fact's property names, as
 % sorted strings (a transition spelled "from->to").
-machine_projection(transitions, machine(_, Edges, _), Members) :- !,
+machine_projection(transitions, machine(_, Edges, _), Members) :-
+    % mutalog-disable-next-line cut_insert: the projections are distinct and the projection is bound
     maplist([From-To, Text]>>edge_text(From, To, Text), Edges, Members0),
     sort(Members0, Members).
-machine_projection(states, machine(States, _, _), Members) :- !,
+machine_projection(states, machine(States, _, _), Members) :-
+    % mutalog-disable-next-line cut_insert: the projections are distinct and the projection is bound
     maplist(atom_string, States, Members).
-machine_projection(initial_states, machine(_, _, Initial), Members) :- !,
+machine_projection(initial_states, machine(_, _, Initial), Members) :-
     (   Initial == none
     ->  throw(model_error("the certificate names no initial state; set proof_contract.initial_source"))
     ;   maplist(atom_string, Initial, Members)
     ).
-machine_projection(terminal_states, machine(States, Edges, _), Members) :- !,
+machine_projection(terminal_states, machine(States, Edges, _), Members) :-
+    % mutalog-disable-next-line cut_insert: the projections are distinct and the projection is bound
     findall(S, ( member(S, States), \+ memberchk(S-_, Edges) ), Terminal),
     maplist(atom_string, Terminal, Members).
-machine_projection(reachable_states, machine(States, Edges, Initial), Members) :- !,
+machine_projection(reachable_states, machine(States, Edges, Initial), Members) :-
     (   Initial == none
     ->  throw(model_error("the certificate names no initial state; set proof_contract.initial_source"))
     ;   true
@@ -238,7 +246,7 @@ machine_projection(reachable_states, machine(States, Edges, Initial), Members) :
     include(member_of(States), All, Kept),
     maplist(atom_string, Kept, Members).
 
-machine_projection(reachable_pairs, machine(States, Edges, _), Members) :- !,
+machine_projection(reachable_pairs, machine(States, Edges, _), Members) :-
     closure_pairs(States, Edges, Pairs),
     maplist([From-To, Text]>>edge_text(From, To, Text), Pairs, Members0),
     sort(Members0, Members).
@@ -248,8 +256,9 @@ edge_text(From, To, Text) :-
 
 % implements REQ-kibi-source-proof-kinds
 % Whether "from->to via mid" holds: to is reachable from from, and not once
-% mid is taken out of the machine.
-waypoint_holds(Member, machine(States, Edges, _), Holds, Why) :-
+% mid is taken out of the machine.  Holds is true or false(Why).  When mid
+% is from or to, taking it out cuts every path, so the waypoint holds.
+waypoint_holds(Member, machine(States, Edges, _), Holds) :-
     (   sub_string(Member, Before, _, After, " via "),
         sub_string(Member, 0, Before, _, EdgeText),
         sub_string(Member, _, After, 0, ViaText),
@@ -268,16 +277,14 @@ waypoint_holds(Member, machine(States, Edges, _), Holds, Why) :-
            )),
     reach_from(From, Edges, Reached),
     (   \+ memberchk(To, Reached)
-    ->  Holds = false,
-        format(string(Why), "~w is never reachable from ~w, so no path passes through ~w", [To, From, Via])
-    ;   memberchk(Via, [From, To])
-    ->  Holds = true, Why = ""
+    ->  format(string(Why), "~w is never reachable from ~w, so no path passes through ~w", [To, From, Via]),
+        Holds = false(Why)
     ;   exclude(edge_touches(Via), Edges, Without),
         reach_from(From, Without, Avoiding),
         (   memberchk(To, Avoiding)
-        ->  Holds = false,
-            format(string(Why), "a path from ~w reaches ~w without passing through ~w", [From, To, Via])
-        ;   Holds = true, Why = ""
+        ->  format(string(Why), "a path from ~w reaches ~w without passing through ~w", [From, To, Via]),
+            Holds = false(Why)
+        ;   Holds = true
         )
     ).
 
@@ -286,17 +293,20 @@ edge_touches(State, From-To) :- ( From == State ; To == State ).
 % relation_problem(+Operator, +Actual, +Expected, +What, -Reason) fails when
 % the relation holds; Actual and Expected are sorted lists of strings.
 relation_problem("eq", Actual, Expected, What, Reason) :-
+    % mutalog-disable-next-line cut_insert: the operators are distinct and every caller commits to the first answer
     Actual \== Expected,
     subtract(Expected, Actual, Missing),
     subtract(Actual, Expected, Extra),
     set_difference_text(Missing, Extra, Difference),
     format(string(Reason), "~w are not the fact's set (~w)", [What, Difference]).
 relation_problem("includes", Actual, Expected, What, Reason) :-
+    % mutalog-disable-next-line cut_insert: the operators are distinct and every caller commits to the first answer
     subtract(Expected, Actual, Missing),
     Missing \== [],
     atomic_list_concat(Missing, ', ', Text),
     format(string(Reason), "~w do not include ~w", [What, Text]).
 relation_problem("subset_of", Actual, Expected, What, Reason) :-
+    % mutalog-disable-next-line cut_insert: the operators are distinct and every caller commits to the first answer
     subtract(Actual, Expected, Extra),
     Extra \== [],
     atomic_list_concat(Extra, ', ', Text),
@@ -334,16 +344,18 @@ relation_problem("excludes", Actual, Expected, What, Reason) :-
 %              member ending in .m for *.m.  *.m is allowed only when *.m is.
 %   eq         Compares the spellings exactly, as for every other reader.
 
-source_matching(Certificate, references(Files, Case)) :-
-    get_dict(source, Certificate, Source),
-    is_dict(Source),
-    get_dict(reader, Source, Reader),
-    text_string(Reader, "references"),
-    !,
-    (   get_dict(files, Source, RawFiles)
-    ->  (   is_list(RawFiles) -> maplist(text_string, RawFiles, Files) ; text_string(RawFiles, File), Files = [File] )
-    ;   Files = []
-    ),
+source_matching(Certificate, Matching) :-
+    (   get_dict(source, Certificate, Source),
+        is_dict(Source),
+        get_dict(reader, Source, Reader),
+        text_string(Reader, "references")
+    ->  reference_matching(Source, Matching)
+    ;   Matching = literal
+    ).
+
+reference_matching(Source, references(Files, Case)) :-
+    (   get_dict(files, Source, RawFiles0) -> RawFiles = RawFiles0 ; RawFiles = [] ),
+    (   is_list(RawFiles) -> maplist(text_string, RawFiles, Files) ; text_string(RawFiles, File), Files = [File] ),
     % Some languages ignore letter case in the names they call, throw and
     % import (PHP classes, methods and functions): excludes then also fails
     % on a member that differs from an item only in case.
@@ -354,7 +366,6 @@ source_matching(Certificate, references(Files, Case)) :-
     % mutalog-disable-next-line goal_true: Case is only compared with ==, so an unbound Case reads as exact
     ;   Case = exact
     ).
-source_matching(_, literal).
 
 member_separator(".").
 member_separator("/").
@@ -453,13 +464,13 @@ certain_match(Actual, Expected) :-
     ;   unknown_receiver(Expected, Method)
     ->  \+ pattern_stem(Actual, _),
         ends_with_method(Actual, Method)
-    ),
-    !.
+    ).
 
-files_text([], "the files read") :- !.
 files_text(Files, Text) :-
     length(Files, N),
-    (   N > 3
+    (   N =:= 0
+    ->  Text = "the files read"
+    ;   N > 3
     ->  length(Shown, 3), append(Shown, _, Files),
         atomic_list_concat(Shown, ', ', Listed),
         Extra is N - 3,
@@ -486,8 +497,10 @@ excluded_text(Files, Actual-Expected-How, Text) :-
 
 % reference_relation_problem(+Operator, +Actual, +Expected, +Matching, +What,
 % -Reason) fails when the relation holds under the reference matching above.
+% When no pair matches, no member is the item either, so the plain excludes
+% clause below fails too.
 reference_relation_problem("excludes", Actual, Expected, references(Files, Case), What, Reason) :-
-    !,
+    % mutalog-disable-next-line cut_insert: when this clause fails, the plain excludes clause fails too
     findall(A-E-How,
             (   member(A, Actual), member(E, Expected),
                 (   exclude_match(A, E, How)
@@ -525,15 +538,14 @@ reference_relation_problem(Operator, Actual, Expected, _, What, Reason) :-
 
 certain_pair(_-_-certain).
 
+% include/3 and exclude/3 commit to the first answer of these.
 matched_by_some(Actual, Expected) :-
     member(Member, Actual),
-    certain_match(Member, Expected),
-    !.
+    certain_match(Member, Expected).
 
 allowed_by_some(Expected, Member) :-
     member(Item, Expected),
-    certain_match(Member, Item),
-    !.
+    certain_match(Member, Item).
 
 % ---------------------------------------------------------------------------
 % Obligations
@@ -608,12 +620,11 @@ obligation_result("machine_relation", Obligation, model(_, _, Machine), Result) 
     sort(Expected0, Expected),
     (   Projection == required_waypoints
     ->  (   member(Member, Expected),
-            waypoint_holds(Member, Machine, Holds, Why),
+            waypoint_holds(Member, Machine, Holds),
             (   Operator == "excludes"
             ->  Holds == true,
                 format(string(Reason), "every path ~w, which the fact excludes", [Member])
-            ;   Holds == false,
-                Reason = Why
+            ;   Holds = false(Reason)
             )
         ->  Result = problem(Reason)
         ;   Result = ok
@@ -702,16 +713,17 @@ precedes_problem(Pair, Sequence, Reason) :-
     ;   format(string(Reason), "~w is not spelled \"A -> B\"", [Pair])
     ).
 
+% The first " -> " splits the pair, so a second one is a misspelling rather
+% than a split at the last arrow.
 precedes_pair(Pair, First, Second) :-
-    sub_string(Pair, Before, 4, After, " -> "),
+    once(sub_string(Pair, Before, 4, After, " -> ")),
     sub_string(Pair, 0, Before, _, First0),
     sub_string(Pair, _, After, 0, Second0),
     \+ sub_string(Second0, _, _, _, " -> "),
     normalize_space(string(First), First0),
     normalize_space(string(Second), Second0),
     First \== "",
-    Second \== "",
-    !.
+    Second \== "".
 
 obligation_strings(Obligation, Members) :-
     get_dict(members, Obligation, Raw),
@@ -726,16 +738,14 @@ field_problem(FieldKind, Member, Entities, Reason) :-
         sub_string(Member, _, After, 0, Field),
         \+ sub_string(Field, _, _, _, ".")
     ->  (   member(Entity, Entities), get_dict(name, Entity, Name), text_string(Name, Table)
-        ->  Targets = [Entity]
-        ;   format(string(Reason), "the source has no table or object ~w", [Table]),
-            Targets = []
+        ->  entity_field_problem(FieldKind, Field, [Entity], Reason)
+        ;   format(string(Reason), "the source has no table or object ~w", [Table])
         )
-    ;   Field = Member,
-        Targets = Entities
-    ),
-    (   nonvar(Reason)
-    ->  true
-    ;   member(Entity, Targets),
+    ;   entity_field_problem(FieldKind, Member, Entities, Reason)
+    ).
+
+entity_field_problem(FieldKind, Field, Targets, Reason) :-
+    (   member(Entity, Targets),
         get_dict(name, Entity, EntityName),
         get_dict(columns, Entity, Columns),
         (   member(Column, Columns), get_dict(name, Column, ColumnName), text_string(ColumnName, Field)
@@ -799,7 +809,7 @@ rule_result(rule(Kind, Modality, Head, Body, Exceptions, _Scope, _From, _To, _Sc
     ).
 
 expected_value(Modality, true) :- memberchk(Modality, [assert, oblige, permit]), !.
-expected_value(Modality, false) :- memberchk(Modality, [deny, forbid]), !.
+expected_value(Modality, false) :- memberchk(Modality, [deny, forbid]).
 
 rule_case_holds(atom, Head, _Body, Exceptions, Expected, Env, Model) :- !,
     (   any_exception(Exceptions, Env, Model)
@@ -835,15 +845,16 @@ applies(Body, Exceptions, Env, Model) :-
     ),
     \+ any_exception(Exceptions, Env, Model).
 
+% Its callers test it in a condition or under \+, so they commit to the first
+% exception that applies.
 any_exception(Exceptions, Env, Model) :-
     member(Exception, Exceptions),
-    eval_expression(Exception, Env, Model, true),
-    !.
+    eval_expression(Exception, Env, Model, true).
 
 counterexample_text(_Kind, Head, _Body, _Exceptions, Expected, Env, Model, Reason) :-
     assignment_text(Env, EnvText),
-    (   Head \== none,
-        catch(eval_atom(Head, Env, Model, Actual), model_error(_), fail),
+    % A head of none matches no eval_atom/4 clause.
+    (   catch(eval_atom(Head, Env, Model, Actual), model_error(_), fail),
         Actual \== Expected
     ->  atom_text(Head, Env, HeadText),
         format(string(Reason), "the rule fails for ~w: the code decides ~w is ~w, but the rule requires ~w",
@@ -880,14 +891,13 @@ first_per_name([Name-Type|Rest], Acc, Out) :-
     ;   first_per_name(Rest, [Name-Type|Acc], Out)
     ).
 
-term_var(var(Name, Type), Name, Type) :- !.
+% A list argument is a '[|]' term, so its items are reached as arguments;
+% var/2's own arguments are atoms and yield nothing more.
+term_var(var(Name, Type), Name, Type).
 term_var(Term, Name, Type) :-
-    compound(Term),
     Term =.. [_|Args],
     member(Arg, Args),
-    (   is_list(Arg) -> member(Item, Arg), term_var(Item, Name, Type)
-    ;   term_var(Arg, Name, Type)
-    ).
+    term_var(Arg, Name, Type).
 
 variable_domain(Domains, Name-Type, Name-Members) :-
     (   Domains = any(Members0)
@@ -974,8 +984,8 @@ resolve_value(Term, Env, Value) :- resolve_atom_arg(Env, Term, Value).
 atom_or_number(Atom, Value) :-
     (   atom(Atom), atom_number(Atom, Number) -> Value = Number ; Value = Atom ).
 
-compare_values(eq, L, R) :- number(L), number(R), !, L =:= R.
-compare_values(eq, L, R) :- !, L == R.
+compare_values(eq, L, R) :- !,
+    (   number(L), number(R) -> L =:= R ; L == R ).
 compare_values(neq, L, R) :- !, \+ compare_values(eq, L, R).
 compare_values(Op, L, R) :-
     (   number(L), number(R)
@@ -984,8 +994,11 @@ compare_values(Op, L, R) :-
         throw(model_error(Reason))
     ).
 
+% mutalog-disable-next-line cut_insert: a comparison has one answer and the operators are distinct
 numeric_compare(lt, L, R) :- L < R.
+% mutalog-disable-next-line cut_insert: a comparison has one answer and the operators are distinct
 numeric_compare(lte, L, R) :- L =< R.
+% mutalog-disable-next-line cut_insert: a comparison has one answer and the operators are distinct
 numeric_compare(gt, L, R) :- L > R.
 numeric_compare(gte, L, R) :- L >= R.
 
@@ -997,13 +1010,21 @@ dict_text(Dict, Key, String) :-
     get_dict(Key, Dict, Raw),
     text_string(Raw, String).
 
-text_string(Raw, String) :- string(Raw), !, String = Raw.
-text_string(Raw, String) :- atom(Raw), !, atom_string(Raw, String).
-text_string(Raw, String) :- number(Raw), !, number_string(Raw, String).
+text_string(Raw, String) :-
+    (   string(Raw)
+    ->  String = Raw
+    ;   ( atom(Raw) -> true ; number(Raw) ),
+        atom_string(Raw, String)
+    ).
 
-text_atom(Raw, Atom) :- atom(Raw), !, Atom = Raw.
-text_atom(Raw, Atom) :- string(Raw), !, atom_string(Atom, Raw).
-text_atom(Raw, Atom) :- number(Raw), !, format(atom(Atom), "~w", [Raw]).
-text_atom(_, _) :- throw(model_error("a model value is not text")).
+text_atom(Raw, Atom) :-
+    (   atom(Raw)
+    ->  Atom = Raw
+    ;   string(Raw)
+    ->  atom_string(Atom, Raw)
+    ;   number(Raw)
+    ->  format(atom(Atom), "~w", [Raw])
+    ;   throw(model_error("a model value is not text"))
+    ).
 
 member_of(List, Element) :- memberchk(Element, List).
