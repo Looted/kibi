@@ -268,10 +268,11 @@ interface ManifestFile {
 }
 
 function getManifestSymbols(
-  manifest: ManifestFile,
+  manifest: ManifestFile | null | undefined,
   filePath: string,
 ): ManifestSymbolRecord[] {
-  if (!manifest.symbols || !Array.isArray(manifest.symbols)) {
+  // An empty document parses to undefined and a `~` document to null.
+  if (!Array.isArray(manifest?.symbols)) {
     throw new ManifestError("No symbols array found in manifest", filePath);
   }
 
@@ -293,7 +294,9 @@ function extractRelationships(
           from: id,
           to: link,
         });
-      } else if (link !== null && typeof link === "object") {
+      } else if (link) {
+        // Any other truthy value is read as a typed link; a primitive has no
+        // string type or target and is skipped below.
         const typedLink = link as { type?: unknown; target?: unknown };
         if (
           typeof typedLink.type === "string" &&
@@ -338,7 +341,7 @@ function extractRelationships(
 }
 
 function extractFromParsedManifest(
-  manifest: ManifestFile,
+  manifest: ManifestFile | null | undefined,
   filePath: string,
 ): ExtractionResult[] {
   return extractManifestSymbolRecords(
@@ -422,7 +425,7 @@ export function extractManifestSymbolRecords(
 }
 
 function cloneManifestSymbols(
-  manifest: ManifestFile,
+  manifest: ManifestFile | null | undefined,
   filePath: string,
 ): ManifestSymbolRecord[] {
   return getManifestSymbols(manifest, filePath).map((symbol) => ({
@@ -430,53 +433,45 @@ function cloneManifestSymbols(
   }));
 }
 
+/**
+ * Parse a manifest document and run `extract` on it. Every failure surfaces
+ * as a ManifestError; js-yaml and the extractors only throw Error instances.
+ */
+function withParsedManifest<T>(
+  content: string,
+  filePath: string,
+  extract: (manifest: ManifestFile | null | undefined) => T,
+): T {
+  try {
+    return extract(parseYAML(content) as ManifestFile | null | undefined);
+  } catch (error) {
+    if (error instanceof ManifestError) {
+      throw error;
+    }
+    throw new ManifestError(
+      `Failed to parse manifest: ${(error as Error).message}`,
+      filePath,
+    );
+  }
+}
+
 // implements REQ-007
 export function extractFromManifestString(
   content: string,
   filePath: string,
 ): ExtractionResult[] {
-  try {
-    const manifest = parseYAML(content) as ManifestFile;
-
-    return extractFromParsedManifest(manifest, filePath);
-  } catch (error) {
-    if (error instanceof ManifestError) {
-      throw error;
-    }
-
-    if (error instanceof Error) {
-      throw new ManifestError(
-        `Failed to parse manifest: ${error.message}`,
-        filePath,
-      );
-    }
-
-    throw error;
-  }
+  return withParsedManifest(content, filePath, (manifest) =>
+    extractFromParsedManifest(manifest, filePath),
+  );
 }
 
 export function extractManifestSymbolRecordsString(
   content: string,
   filePath: string,
 ): ManifestSymbolRecord[] {
-  try {
-    const manifest = parseYAML(content) as ManifestFile;
-
-    return cloneManifestSymbols(manifest, filePath);
-  } catch (error) {
-    if (error instanceof ManifestError) {
-      throw error;
-    }
-
-    if (error instanceof Error) {
-      throw new ManifestError(
-        `Failed to parse manifest: ${error.message}`,
-        filePath,
-      );
-    }
-
-    throw error;
-  }
+  return withParsedManifest(content, filePath, (manifest) =>
+    cloneManifestSymbols(manifest, filePath),
+  );
 }
 
 export function extractFromManifest(filePath: string): ExtractionResult[] {
@@ -507,53 +502,49 @@ function readCoordinateArtifactFromFile(
     return null;
   }
 
+  let content: string;
   try {
-    const parsed = parseCoordinateArtifact(
-      readFileSync(coordinatesPath, "utf8"),
-    );
-    if (parsed.status === "invalid") {
-      throw new ManifestError(
-        parsed.reason,
-        coordinatesPath,
-        "coordinate-artifact",
-      );
-    }
-    return parsed;
+    content = readFileSync(coordinatesPath).toString();
   } catch (error) {
-    if (error instanceof Error && !(error instanceof ManifestError)) {
-      throw new ManifestError(
-        `Failed to parse coordinate artifact: ${error.message}`,
-        coordinatesPath,
-        "coordinate-artifact",
-      );
-    }
-    throw error;
+    // readFileSync only throws Error instances (a directory, a permission).
+    throw new ManifestError(
+      `Failed to parse coordinate artifact: ${(error as Error).message}`,
+      coordinatesPath,
+      "coordinate-artifact",
+    );
   }
+  // parseCoordinateArtifact reports every failure as an invalid result.
+  const parsed = parseCoordinateArtifact(content);
+  if (parsed.status === "invalid") {
+    throw new ManifestError(
+      parsed.reason,
+      coordinatesPath,
+      "coordinate-artifact",
+    );
+  }
+  return parsed;
 }
 
 /** Resolve workspace-relative source files used to validate bound coordinates. */
 function sourceTextResolver(
   manifestPath: string,
 ): (sourceFile: string) => string | null {
-  const bases = [process.cwd()];
-  const grandparent = path.resolve(path.dirname(path.dirname(manifestPath)));
-  if (!bases.includes(grandparent)) bases.push(grandparent);
+  const bases = [
+    process.cwd(),
+    path.resolve(path.dirname(path.dirname(manifestPath))),
+  ];
   return (sourceFile: string) => {
-    let resolved: string | null = null;
     for (const base of bases) {
+      // A path outside the base resolves to null, which readFileSync rejects
+      // like a missing file: either way the next base is tried.
       const absolute = resolveWorkspaceSourceAbsolute(base, sourceFile);
-      if (absolute === null || !existsSync(absolute)) continue;
       try {
-        const content = readFileSync(absolute, "utf8");
-        if (typeof content === "string") {
-          resolved = content;
-          break;
-        }
+        return readFileSync(absolute as string, "utf8");
       } catch {
         // Try the next resolution base.
       }
     }
-    return resolved;
+    return null;
   };
 }
 
@@ -562,7 +553,7 @@ export function readManifestWithCoordinateOverlay(
   manifestPath: string,
   coordinatesPath?: string,
 ): ManifestSymbolRecord[] {
-  const manifestContent = readFileSync(manifestPath, "utf8");
+  const manifestContent = readFileSync(manifestPath).toString();
   const manifestRecords = extractManifestSymbolRecordsString(
     manifestContent,
     manifestPath,
@@ -597,7 +588,7 @@ export interface ReceiptCodeScopeEntry {
 // memoized per manifest state and file hashes per file state (mtime + size).
 const scopeSourceFileCache = new Map<
   string,
-  { stamp: string; sourceFiles: ReadonlyMap<string, string> }
+  { stamp: string; sourceFiles: ReadonlyMap<unknown, string> }
 >();
 const scopeFileHashCache = new Map<string, { stamp: string; hash: string }>();
 
@@ -610,14 +601,18 @@ function fileStamp(filePath: string): string | null {
   }
 }
 
-function scopeSourceFiles(manifestPath: string): ReadonlyMap<string, string> {
+/**
+ * Each record id's source file. Records are keyed by their raw id: a
+ * non-string id can never equal a requested symbol id.
+ */
+function scopeSourceFiles(manifestPath: string): ReadonlyMap<unknown, string> {
   const stamp = fileStamp(manifestPath) ?? "missing";
   const hit = scopeSourceFileCache.get(manifestPath);
   if (hit && hit.stamp === stamp) return hit.sourceFiles;
-  const sourceFiles = new Map<string, string>();
+  const sourceFiles = new Map<unknown, string>();
   if (stamp !== "missing") {
     const records = extractManifestSymbolRecordsString(
-      readFileSync(manifestPath, "utf8"),
+      readFileSync(manifestPath).toString(),
       manifestPath,
     );
     for (const record of records) {
@@ -627,9 +622,7 @@ function scopeSourceFiles(manifestPath: string): ReadonlyMap<string, string> {
           : typeof record.source === "string" && record.source !== ""
             ? record.source
             : undefined;
-      if (typeof record.id === "string" && sourceFile !== undefined) {
-        sourceFiles.set(record.id, sourceFile);
-      }
+      if (sourceFile !== undefined) sourceFiles.set(record.id, sourceFile);
     }
   }
   scopeSourceFileCache.set(manifestPath, { stamp, sourceFiles });
@@ -662,7 +655,6 @@ export function resolveBoundSymbolScope(
   symbolIds: readonly string[],
 ): ReceiptCodeScopeEntry[] {
   const wanted = [...new Set(symbolIds)];
-  if (wanted.length === 0) return [];
   const sourceFiles = scopeSourceFiles(manifestPath);
   // The manifest lives at <workspace>/.kb/symbols.yaml; source files are
   // workspace-relative. Every recorded path is normalized to its
