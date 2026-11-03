@@ -52,7 +52,10 @@ type ManagedPrologPort = PrologPort & {
   readonly terminate?: () => Promise<void>;
 };
 
-function createDefaultProlog(root: string, branch: string): ManagedPrologPort {
+function createDefaultProlog(
+  root: string,
+  branch: string,
+): ManagedPrologPort & { readonly start: () => Promise<void> } {
   const engine = new EngineClient({
     workspaceRoot: root,
     branch,
@@ -60,7 +63,9 @@ function createDefaultProlog(root: string, branch: string): ManagedPrologPort {
   });
   // Keep the concrete client so sync and operation runtimes can use its
   // batched queue, storage controls, and cancellation-aware socket lifecycle.
-  return engine as unknown as ManagedPrologPort;
+  return engine as unknown as ManagedPrologPort & {
+    readonly start: () => Promise<void>;
+  };
 }
 
 function workspaceRoot(options: RuntimeOptions): string {
@@ -136,10 +141,9 @@ function resolvePluginsOption(
 async function resolveDetachedReadAttachment(
   root: string,
 ): Promise<BranchAttachment | undefined> {
-  const attachment = resolveReadBranchAttachment(root);
-  if ("error" in attachment || attachment.readOnly === undefined) {
-    return undefined;
-  }
+  // A resolution error carries no read-only snapshot.
+  const attachment = resolveReadBranchAttachment(root) as BranchAttachment;
+  if (attachment.readOnly === undefined) return undefined;
   console.warn(`[KIBI] ${attachment.readOnly.notice}`);
   try {
     await refreshDetachedSnapshot(root, attachment);
@@ -191,7 +195,6 @@ export function createCliRuntime(
         let lazyProlog: ManagedPrologPort | undefined = merged.prolog as
           | ManagedPrologPort
           | undefined;
-        const lazyContext: { current?: OperationContext } = {};
         // A KB read on a detached HEAD answers from the checkout's snapshot;
         // resolve it up front so the operation reports which store it read.
         const detachedAttachment =
@@ -209,10 +212,10 @@ export function createCliRuntime(
             );
           }
           const engine = createDefaultProlog(root, attachment.kbBranch);
-          await engine.start?.();
+          await engine.start();
           lazyProlog = engine;
-          if (lazyContext.current !== undefined)
-            ownedPrologs.set(lazyContext.current, engine);
+          // Called only once the context below is returned.
+          ownedPrologs.set(context, engine);
           return bindSignal(engine, signal);
         };
         const lazyEngine = merged.prolog
@@ -229,7 +232,6 @@ export function createCliRuntime(
             : {}),
           ensureProlog,
         };
-        lazyContext.current = context;
         return context;
       }
 
